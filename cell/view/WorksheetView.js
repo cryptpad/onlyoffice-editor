@@ -232,6 +232,8 @@
         this.shrinkToFit = false;
         this.merged = null;
         this.textAlign = null;
+
+        this.bApplyByArray = null;
     }
 
     CellFlags.prototype.clone = function () {
@@ -7102,7 +7104,7 @@
         cell_info.name = this._getColumnTitle(c1) + this._getRowTitle(r1);
         cell_info.formula = c.getFormula();
 
-        cell_info.text = c.getValueForEdit();
+        cell_info.text = c.getValueForEdit(true);
 
 		cell_info.halign = align.getAlignHorizontal();
 		cell_info.valign = align.getAlignVertical();
@@ -8520,6 +8522,13 @@
 		if (this.model.inPivotTable([arnFrom, arnTo])) {
 			this._cleanSelectionMoveRange();
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+			return;
+		}
+
+		//***array-formula***
+		if (!this.checkMoveFormulaArray(arnFrom, arnTo, ctrlKey)) {
+			this._cleanSelectionMoveRange();
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 			return;
 		}
 
@@ -11707,26 +11716,64 @@
 			History.StartTransaction();
 		}
 
+		//***array-formula***
+		var changeRangesIfArrayFormula = function() {
+			if(flags.bApplyByArray) {
+				c = t.getSelectedRange();
+				if(c.bbox.isOneCell()) {
+					//проверяем, есть ли формула массива в этой ячейке
+					t.model._getCell(c.bbox.r1, c.bbox.c1, function(cell){
+						var formulaRef = cell && cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+						if(formulaRef) {
+							c = t.model.getRange3(formulaRef.r1, formulaRef.c1, formulaRef.r2, formulaRef.c2);
+						}
+					});
+				}
+				bbox = c.bbox;
+			}
+		};
+
 		var oAutoExpansionTable;
 		var isFormula = this._isFormula(val);
 		if (isFormula) {
 			var ftext = val.reduce(function (pv, cv) {
 				return pv + cv.text;
 			}, "");
-			var ret = true;
+
 			// ToDo - при вводе формулы в заголовок автофильтра надо писать "0"
+			//***array-formula***
+			var ret = true;
+			changeRangesIfArrayFormula();
+			if(flags.bApplyByArray) {
+				this.model.workbook.dependencyFormulas.lockRecal();
+			}
+
 			c.setValue(ftext, function (r) {
 				ret = r;
-			});
+			}, null, flags.bApplyByArray ? bbox : null);
+
+			//***array-formula***
+			if(flags.bApplyByArray) {
+				this.model.workbook.dependencyFormulas.unlockRecal();
+			}
+
 			if (!ret) {
 				this.isFormulaEditMode = oldMode;
 				History.EndTransaction();
 				return false;
 			}
+
+			//***array-formula***
+			History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
+				new Asc.Range(c.bbox.c1, c.bbox.r1, c.bbox.c2, c.bbox.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(c.bbox, ftext));
+
 			isFormula = c.isFormula();
 			this.model.autoFilters.renameTableColumn(bbox);
 		} else {
+			//***array-formula***
+			changeRangesIfArrayFormula();
 			c.setValue2(val);
+
 			// Вызываем функцию пересчета для заголовков форматированной таблицы
 			this.model.autoFilters.renameTableColumn(bbox);
 		}
@@ -11867,8 +11914,59 @@
 				autoCompleteLC: arrAutoCompleteLC,
 				cellName: c.getName(),
 				cellNumFormat: c.getNumFormatType(),
-				saveValueCallback: function (val, flags) {
-					return t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
+				saveValueCallback: function (val, flags, callback) {
+					var saveCellValueCallback = function(success) {
+						if(!success) {
+							if(callback) {
+								return callback(false);
+							} else {
+								return false;
+							}
+						}
+
+						var bRes = t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
+						if(callback) {
+							return callback(bRes);
+						} else {
+							return bRes;
+						}
+					};
+
+					//***array-formula***
+					var ref = null;
+					if(flags.bApplyByArray) {
+						//необходимо проверить на выделение массива частично
+						var activeRange = t.getSelectedRange();
+						var doNotApply = false;
+						if(!activeRange.bbox.isOneCell()) {
+							activeRange._foreachNoEmpty(function(cell, row, col) {
+								ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+
+								if(ref && !activeRange.bbox.containsRange(ref)) {
+									doNotApply = true;
+									return false;
+								}
+							});
+						}
+						if(doNotApply) {
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
+							return false;
+						} else {
+							t._isLockedCells(activeRange.bbox, /*subType*/null, saveCellValueCallback);
+						}
+					} else {
+						//проверяем activeCell на наличие форулы массива
+						var activeCell = t.model.selectionRange.activeCell;
+						t.model._getCell(activeCell.row, activeCell.col, function(cell) {
+							ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+						});
+						if(ref && !ref.isOneCell()) {
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return false;
+						} else {
+							return saveCellValueCallback(true);
+						}
+					}
 				},
 				getSides: function () {
 					var _c1, _r1, _c2, _r2, ri = 0, bi = 0;
@@ -14302,6 +14400,40 @@
 
         return res;
     };
+
+	WorksheetView.prototype.checkMoveFormulaArray = function(from, to, ctrlKey) {
+		//***array-formula***
+		var res = true;
+
+		//TODO вместо getRange3 нужна функция, которая может заканчивать цикл по ячейкам
+		if(!ctrlKey) {
+			//проверяем from, затрагиваем ли мы часть формулы массива
+			this.model.getRange3(from.r1, from.c1, from.r2, from.c2)._foreachNoEmpty(function(cell) {
+				if(cell.isFormula()) {
+					var formulaParsed = cell.getFormulaParsed();
+					var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
+					if(arrayFormulaRef && !from.containsRange(arrayFormulaRef)) {
+						res = false;
+					}
+				}
+			});
+		}
+
+		//проверяем to, затрагиваем ли мы часть формулы массива
+		if(res) {
+			this.model.getRange3(to.r1, to.c1, to.r2, to.c2)._foreachNoEmpty(function(cell) {
+				if(cell.isFormula()) {
+					var formulaParsed = cell.getFormulaParsed();
+					var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
+					if(arrayFormulaRef && !to.containsRange(arrayFormulaRef)) {
+						res = false;
+					}
+				}
+			});
+		}
+
+		return res;
+	};
 
     // Convert coordinates methods
 	WorksheetView.prototype.ConvertXYToLogic = function (x, y) {

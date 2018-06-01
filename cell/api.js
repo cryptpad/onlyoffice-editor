@@ -310,6 +310,7 @@ var editor;
     AscCommonExcel.g_DefNameWorksheet = new AscCommonExcel.Worksheet(wbModel, -1);
     AscCommonExcel.g_oUndoRedoSharedFormula = new AscCommonExcel.UndoRedoSharedFormula(wbModel);
     AscCommonExcel.g_oUndoRedoLayout = new AscCommonExcel.UndoRedoRedoLayout(wbModel);
+    AscCommonExcel.g_oUndoRedoArrayFormula = new AscCommonExcel.UndoRedoArrayFormula(wbModel);
   };
 
   spreadsheet_api.prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, adjustPrint) {//передаем число соответствующее своему формату. например  c_oAscFileType.XLSX

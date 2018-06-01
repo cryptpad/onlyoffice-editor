@@ -3641,6 +3641,7 @@
 			var ref;
 			var type;
 			var shared = parsed.getShared();
+			var arrayFormula = parsed.getArrayFormulaRef();
             if (shared) {
                 var sharedToWrite = this.sharedFormulas[parsed.getIndexNumber()];
                 if (!sharedToWrite) {
@@ -3677,8 +3678,16 @@
                         formula = parsed.getFormula();
                     });
                 }
-            } else {
-                formula = parsed.getFormula();
+			} else if(null !== arrayFormula) {
+				//***array-formula***
+				var bIsFirstCellArray = parsed.checkFirstCellArray(cell);
+				if(bIsFirstCellArray) {
+					ref = arrayFormula;
+					type = ECellFormulaType.cellformulatypeArray;
+					formula = parsed.getFormula();
+				}
+			} else {
+				formula = parsed.getFormula();
             }
 
             // if(null != oFormula.aca)
@@ -6238,12 +6247,28 @@
 				var tmp = {
 					pos: null, len: null, bNoBuildDep: bNoBuildDep, ws: ws, row: new AscCommonExcel.Row(ws),
 					cell: new AscCommonExcel.Cell(ws), formula: new OpenFormula(), sharedFormulas: {},
-					prevFormulas: {}, siFormulas: {}, prevRow: -1, prevCol: -1
+					prevFormulas: {}, siFormulas: {}, prevRow: -1, prevCol: -1, formulaArray: []
 				};
 				res = this.bcr.Read1(sheetDataElem.len, function(t, l) {
 					return oThis.ReadSheetData(t, l, tmp);
 				});
 				if (!bNoBuildDep) {
+					//TODO возможно стоит делать это в worksheet после полного чтения
+					//***array-formula***
+					//добавление ко всем ячейкам массива головной формулы
+					for(var j = 0; j < tmp.formulaArray.length; j++) {
+						var curFormula = tmp.formulaArray[j];
+						var ref = curFormula.ref;
+						if(ref) {
+							var rangeFormulaArray = tmp.ws.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
+							rangeFormulaArray._foreach(function(cell){
+								cell.setFormulaInternal(curFormula);
+								//if (curFormula.ca || cell.isNullTextString()) {
+									tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
+								//}
+							});
+						}
+					}
 					for (var nCol in tmp.prevFormulas) {
 						if (tmp.prevFormulas.hasOwnProperty(nCol)) {
 							var prevFormula = tmp.prevFormulas[nCol];
@@ -6816,7 +6841,7 @@
 				if (prevFormula && prevFormula.nRow + offsetRow === cell.nRow &&
 					AscCommonExcel.compareFormula(prevFormula.formula, prevFormula.refPos, formula.v, offsetRow)) {
 					if (!(shared && shared.ref)) {
-					    sharedRef = new Asc.Range(cell.nCol, prevFormula.nRow, cell.nCol, cell.nRow);
+						sharedRef = new Asc.Range(cell.nCol, prevFormula.nRow, cell.nCol, cell.nRow);
 						prevFormula.parsed.setShared(sharedRef, prevFormula.base);
 					} else {
 						shared.ref.union3(cell.nCol, cell.nRow);
@@ -6832,8 +6857,13 @@
 					parsed.ca = formula.ca;
 					parsed.parse(undefined, undefined, parseResult);
 					if (null !== formula.ref) {
-						sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
-						parsed.setShared(sharedRef, newFormulaParent);
+						if(formula.t === ECellFormulaType.cellformulatypeShared) {
+							sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
+							parsed.setShared(sharedRef, newFormulaParent);
+						} else if(formula.t === ECellFormulaType.cellformulatypeArray) {//***array-formula***
+							parsed.ref = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
+							tmp.formulaArray.push(parsed);
+						}
 					}
 					curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);
 					tmp.prevFormulas[cell.nCol] = curFormula;

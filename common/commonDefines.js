@@ -181,6 +181,8 @@
 			OpenWarning : 500,
 
             DataEncrypted : -600,
+
+			CannotChangeFormulaArray: -450,
 		}
 	};
 
@@ -1526,6 +1528,7 @@
 	prot['LockedCellPivot']                  = prot.LockedCellPivot;
 	prot['ForceSaveButton']                  = prot.ForceSaveButton;
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
+	prot['CannotChangeFormulaArray']         = prot.CannotChangeFormulaArray;
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
