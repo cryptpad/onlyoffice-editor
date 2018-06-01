@@ -2252,6 +2252,10 @@
 					var a = elem;
 					var b = arg1.getElementRowCol(r, c);
 					if (a instanceof cNumber && b instanceof cNumber) {
+						if(1 === b.getValue()) {
+							return new cError(cErrorType.division_by_zero);
+						}
+
 						this.array[r][c] = new cNumber(Math.log(a.getValue()) / Math.log(b.getValue()));
 					} else {
 						this.array[r][c] = new cError(cErrorType.wrong_value_type);
@@ -2266,6 +2270,10 @@
 
 					if (a.getValue() <= 0 || a.getValue() <= 0) {
 						this.array[r][c] = new cError(cErrorType.not_numeric);
+					}
+
+					if(1 === b.getValue()) {
+						return new cError(cErrorType.division_by_zero);
 					}
 
 					this.array[r][c] = new cNumber(Math.log(a.getValue()) / Math.log(b.getValue()));
@@ -2283,6 +2291,10 @@
 						this.array[r][c] = new cError(cErrorType.not_numeric);
 					}
 
+					if(1 === b.getValue()) {
+						return new cError(cErrorType.division_by_zero);
+					}
+
 					this.array[r][c] = new cNumber(Math.log(a.getValue()) / Math.log(b.getValue()));
 				} else {
 					this.array[r][c] = new cError(cErrorType.wrong_value_type);
@@ -2297,6 +2309,10 @@
 
 		if (arg0.getValue() <= 0 || ( arg1 && arg1.getValue() <= 0 )) {
 			return new cError(cErrorType.not_numeric);
+		}
+
+		if(1 === arg1.getValue()) {
+			return new cError(cErrorType.division_by_zero);
 		}
 
 		return new cNumber(Math.log(arg0.getValue()) / Math.log(arg1.getValue()));
@@ -2733,6 +2749,7 @@
 	cMROUND.prototype.name = 'MROUND';
 	cMROUND.prototype.argumentsMin = 2;
 	cMROUND.prototype.argumentsMax = 2;
+	cMROUND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cMROUND.prototype.Calculate = function (arg) {
 
 		var multiple;
@@ -3125,6 +3142,7 @@
 	cQUOTIENT.prototype.name = 'QUOTIENT';
 	cQUOTIENT.prototype.argumentsMin = 2;
 	cQUOTIENT.prototype.argumentsMax = 2;
+	cQUOTIENT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cQUOTIENT.prototype.Calculate = function (arg) {
 
 		function quotient(a, b) {
@@ -3258,6 +3276,7 @@
 	cRANDBETWEEN.prototype.argumentsMin = 2;
 	cRANDBETWEEN.prototype.argumentsMax = 2;
 	cRANDBETWEEN.prototype.ca = true;
+	cRANDBETWEEN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cRANDBETWEEN.prototype.Calculate = function (arg) {
 
 		function randBetween(a, b) {

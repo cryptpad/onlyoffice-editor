@@ -1102,6 +1102,8 @@ $( function () {
 		oParser = new parserFormula( 'FLOOR.PRECISE(test)', "A1", ws );
 		ok( oParser.parse(), 'FLOOR.PRECISE(test)' );
 		strictEqual( oParser.calculate().getValue(), "#NAME?", 'FLOOR.PRECISE(test)' );
+
+		testArrayFormula2("FLOOR.PRECISE", 1, 2);
 	} );
 
 	test( "Test: \"FLOOR.MATH\"", function () {
@@ -1635,6 +1637,26 @@ $( function () {
 		testArrayFormula("RADIANS");
 	} );
 
+	test( "Test: \"LOG\"", function () {
+		oParser = new parserFormula( "LOG(10)", "A1", ws );
+		ok( oParser.parse(), "LOG(10)" );
+		strictEqual( oParser.calculate().getValue(), 1, "LOG(10)" );
+
+		oParser = new parserFormula( "LOG(8,2)", "A1", ws );
+		ok( oParser.parse(), "LOG(8,2)" );
+		strictEqual( oParser.calculate().getValue(), 3, "LOG(8,2)" );
+
+		oParser = new parserFormula( "LOG(86, 2.7182818)", "A1", ws );
+		ok( oParser.parse(), "LOG(86, 2.7182818)" );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 4.4543473, "LOG(86, 2.7182818)" );
+
+		oParser = new parserFormula( "LOG(8,1)", "A1", ws );
+		ok( oParser.parse(), "LOG(8,1)" );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!", "LOG(8,1)" );
+
+		testArrayFormula("LOG", 1, 2);
+	} );
+
 	test( "Test: \"LOGNORM.DIST\"", function () {
 		ws.getRange2( "A2" ).setValue( "4" );
 		ws.getRange2( "A3" ).setValue( "3.5" );
@@ -1990,6 +2012,8 @@ $( function () {
         oParser = new parserFormula( "POWER(0,-3)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
+		testArrayFormula2("POWER", 2, 2);
     } );
 
 	test( "Test: \"ISNA(A1)\"", function () {
@@ -1998,6 +2022,38 @@ $( function () {
 		oParser = new parserFormula( "ISNA(A1)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "TRUE" );
+	} );
+
+	test( "Test: \"ROUND\"", function () {
+		oParser = new parserFormula( "ROUND(2.15, 1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2.2 );
+
+		oParser = new parserFormula( "ROUND(2.149, 1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2.1 );
+
+		oParser = new parserFormula( "ROUND(-1.475, 2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), -1.48 );
+
+		oParser = new parserFormula( "ROUND(21.5, -1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 20 );
+
+		oParser = new parserFormula( "ROUND(626.3,-3)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1000 );
+
+		oParser = new parserFormula( "ROUND(1.98,-1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "ROUND(-50.55,-2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), -100 );
+
+		testArrayFormula2("ROUND", 2, 2)
 	} );
 
     test( "Test: \"ROUNDUP(31415.92654,-2)\"", function () {
@@ -2022,6 +2078,8 @@ $( function () {
         oParser = new parserFormula( "ROUNDUP(3.14159,3)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 3.142 );
+
+		testArrayFormula2("ROUNDUP", 2, 2)
     } );
 
     test( "Test: \"ROUNDDOWN(31415.92654,-2)\"", function () {
@@ -2046,6 +2104,8 @@ $( function () {
         oParser = new parserFormula( "ROUNDDOWN(3.2,0)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 3 );
+
+		testArrayFormula2("ROUNDDOWN", 2, 2)
     } );
 
     test( "Test: \"MROUND\"", function () {
@@ -2080,6 +2140,8 @@ $( function () {
         ok( oParser.parse() );
         multiple = 0.2;
         strictEqual( oParser.calculate().getValue(), mroundHelper( 1.3 + 0.2 / 2 ) );
+
+		testArrayFormula2("MROUND", 2, 2, true);
     } );
 
     test( "Test: \"T(\"HELLO\")\"", function () {
@@ -2344,6 +2406,8 @@ $( function () {
         oParser = new parserFormula( "MOD(7,3)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 1 );
+
+		testArrayFormula2("MOD", 2, 2);
     } );
 
     test( "Test: rename sheet #1", function () {
@@ -3988,6 +4052,8 @@ $( function () {
         oParser = new parserFormula( "QUOTIENT(5,0)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
+        testArrayFormula2("QUOTIENT", 2 , 2, true)
     } );
 
     test( "Test: \"TRUNC\"", function () {
