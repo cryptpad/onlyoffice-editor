@@ -1659,6 +1659,7 @@
 	cFACTDOUBLE.prototype.name = 'FACTDOUBLE';
 	cFACTDOUBLE.prototype.argumentsMin = 1;
 	cFACTDOUBLE.prototype.argumentsMax = 1;
+	cFACTDOUBLE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cFACTDOUBLE.prototype.Calculate = function (arg) {
 		function factDouble(n) {
 			if (n == 0) {
@@ -4137,6 +4138,7 @@
 	cSQRTPI.prototype.name = 'SQRTPI';
 	cSQRTPI.prototype.argumentsMin = 1;
 	cSQRTPI.prototype.argumentsMax = 1;
+	cSQRTPI.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cSQRTPI.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {

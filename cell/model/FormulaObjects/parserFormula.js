@@ -438,6 +438,22 @@ var cErrorType = {
 		not_available       : 7,
 		getting_data        : 8
   };
+
+
+//добавляю константу cReturnFormulaType для корректной обработки формул массива
+// value - функция умеет возвращать только значение(не массив)
+// в этом случае данная функция вызывается множество раз для каждого элемента внутренних массивов
+// предварительно area и area3d преобразуются в массив
+// value_convert_area - аналогично value, но area и area3d не преобразуются в массив
+// array - умеет возвращать массив
+// используоется в returnValueType у каждой формулы
+/** @enum */
+var cReturnFormulaType = {
+		value: 0,
+		value_replace_area: 1,
+		array: 2
+};
+
 var cExcelSignificantDigits = 15; //количество цифр в числе после запятой
 var cExcelMaxExponent = 308;
 var cExcelMinExponent = -308;
@@ -2501,6 +2517,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cBaseFunction.prototype.excludeHiddenRows = false;
 	cBaseFunction.prototype.excludeErrorsVal = false;
 	cBaseFunction.prototype.excludeNestedStAg = false;
+	cBaseFunction.prototype.bArrayFormula = null;
 	cBaseFunction.prototype.name = null;
 	cBaseFunction.prototype.Calculate = function () {
 		return new cError(cErrorType.wrong_name);
@@ -2707,6 +2724,186 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			res = true;
 		}
 		return res;
+	};
+	cBaseFunction.prototype.prepareAreaArg = function (arg, arguments1) {
+		var res;
+
+		if(this.bArrayFormula) {
+			res = window['AscCommonExcel'].convertAreaToArray(arg);
+		} else {
+			res = arg.cross(arguments1);
+		}
+
+		return res;
+	};
+	cBaseFunction.prototype.calculateOneArgument = function(arg0, arguments1, func, convertAreaToArray) {
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
+			if(convertAreaToArray) {
+				//***array-formula***
+				arg0 = this.prepareAreaArg(arg0, arguments1);
+			} else {
+				arg0 = arg0.cross(arguments1);
+			}
+		}
+		if (arg0 instanceof cError) {
+			return arg0;
+		} else if (arg0 instanceof cArray) {
+			var array = new cArray();
+			arg0.foreach(function (elem, r, c) {
+				if ( !array.array[r] ) {
+					array.addRow();
+				}
+				array.addElement(func(elem));
+			});
+			return array;
+		} else {
+			return func(arg0);
+		}
+	};
+
+	cBaseFunction.prototype.calculateTwoArguments = function(arg0, arg1, arguments1, func, convertAreaToArray) {
+
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
+			if(convertAreaToArray) {
+				//***array-formula***
+				arg0 = this.prepareAreaArg(arg0, arguments1);
+			} else {
+				arg0 = arg0.cross(arguments1);
+			}
+		}
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
+			if(convertAreaToArray) {
+				//***array-formula***
+				arg1 = this.prepareAreaArg(arg1, arguments1);
+			} else {
+				arg1 = arg1.cross(arguments1);
+			}
+		}
+
+		if (arg0 instanceof cError) {
+			return arg0;
+		}
+		if (arg1 instanceof cError) {
+			return arg1;
+		}
+
+		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
+			if (arg0 instanceof cError) {
+				return arg0;
+			} else if (arg0 instanceof cString) {
+				return new cError(cErrorType.wrong_value_type);
+			} else {
+				arg0 = arg0.tocNumber();
+			}
+		} else {
+			arg0 = arg0.tocNumber();
+		}
+
+		if (arg1 instanceof cRef || arg1 instanceof cRef3D) {
+			arg1 = arg1.getValue();
+			if (arg1 instanceof cError) {
+				return arg1;
+			} else if (arg1 instanceof cString) {
+				return new cError(cErrorType.wrong_value_type);
+			} else {
+				arg1 = arg1.tocNumber();
+			}
+		} else {
+			arg1 = arg1.tocNumber();
+		}
+
+		var array;
+		if (arg0 instanceof cArray && arg1 instanceof cArray) {
+			//TODO пересмотреть и упростить обработку
+			array = new cArray();
+			//в случае, если первый аргумент состоит из одно строки/столбца - тогда цикл по второму аргменту
+			if(1 === arg0.getRowCount() || 1 === arg0.getCountElementInRow()) {
+				arg1.foreach(function (elem, r, c) {
+					var b = elem, res;
+					//если аргумент - строка/столбец
+					var rowArg1 = r, colArg1 = c;
+					if(1 === arg0.getRowCount()) {
+						rowArg1 = 0;
+					}
+					if(1 === arg0.getCountElementInRow()) {
+						colArg1 = 0;
+					}
+					if ( !array.array[r] ) {
+						array.addRow();
+					}
+					var a = arg0.array[rowArg1] ? arg0.getElementRowCol(rowArg1, colArg1) : null;
+					if(!a) {
+						res = new cError(cErrorType.not_available);
+					} else if (a instanceof cNumber && b instanceof cNumber) {
+						res = func(a.getValue(), b.getValue());
+					} else {
+						res = new cError(cErrorType.wrong_value_type);
+					}
+					array.addElement(res);
+				});
+				return array;
+			} else {
+				arg0.foreach(function (elem, r, c) {
+					var a = elem, res;
+					var rowArg1 = r, colArg1 = c;
+					if(1 === arg1.getRowCount()) {
+						rowArg1 = 0;
+					}
+					if(1 === arg1.getCountElementInRow()) {
+						colArg1 = 0;
+					}
+					if ( !array.array[r] ) {
+						array.addRow();
+					}
+					var b = arg1.array[rowArg1] ? arg1.getElementRowCol(rowArg1, colArg1) : null;
+					if(!b) {
+						res = new cError(cErrorType.not_available);
+					} else if (a instanceof cNumber && b instanceof cNumber) {
+						res = func(a.getValue(), b.getValue());
+					} else {
+						res = new cError(cErrorType.wrong_value_type);
+					}
+					array.addElement(res);
+				});
+				return array;
+			}
+		} else if (arg0 instanceof cArray) {
+			array = new cArray();
+			arg0.foreach(function (elem, r, c) {
+				var a = elem, res;
+				var b = arg1;
+				if ( !array.array[r] ) {
+					array.addRow();
+				}
+				if (a instanceof cNumber && b instanceof cNumber) {
+					res = func(a.getValue(), b.getValue())
+				} else {
+					res = new cError(cErrorType.wrong_value_type);
+				}
+				array.addElement(res);
+			});
+			return array;
+		} else if (arg1 instanceof cArray) {
+			array = new cArray();
+			arg1.foreach(function (elem, r, c) {
+				var a = arg0, res;
+				var b = elem;
+				if ( !array.array[r] ) {
+					array.addRow();
+				}
+				if (a instanceof cNumber && b instanceof cNumber) {
+					res = func(a.getValue(), b.getValue())
+				} else {
+					res = new cError(cErrorType.wrong_value_type);
+				}
+				array.addElement(res);
+			});
+			return array;
+		} else {
+			return func(arg0.getValue(), arg1.getValue());
+		}
+
 	};
 
 	/** @constructor */
@@ -4455,6 +4652,8 @@ function parserFormula( formula, parent, _ws ) {
 	this.parent = parent;
 	this._index = undefined;
 
+	this.ref = null;
+
 	if (AscFonts.IsCheckSymbols) {
 		AscFonts.FontPickerByCharacter.getFontsByString(this.Formula);
 	}
@@ -4592,6 +4791,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
     }
     }
   oRes.isParsed = this.isParsed;
+  oRes.ref = this.ref;
   return oRes;
 };
 	parserFormula.prototype.getParent = function() {
@@ -5471,7 +5671,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			opt_bbox = new Asc.Range(0, 0, 0, 0);
 		}
 
-		var elemArr = [], _tmp, numFormat = cNumFormatFirstCell, currentElement = null, bIsSpecialFunction, argumentsCount;
+		var elemArr = [], _tmp, numFormat = cNumFormatFirstCell, currentElement = null, bIsSpecialFunction, argumentsCount, t = this;
 		for (var i = 0; i < this.outStack.length; i++) {
 			currentElement = this.outStack[i];
 			if (currentElement.name === "(") {
@@ -5488,6 +5688,14 @@ parserFormula.prototype.setFormula = function(formula) {
 			if("number" === typeof(currentElement)){
 				continue;
 			}
+
+			//TODO пока проставляю у каждого элемента флаг для рассчетов. пересмотреть
+			//***array-formula***
+			currentElement.bArrayFormula = null;
+			if(this.ref) {
+				currentElement.bArrayFormula = true;
+			}
+
 			if (currentElement.type === cElementType.operator || currentElement.type === cElementType.func) {
 				argumentsCount = "number" === typeof(this.outStack[i - 1]) ? this.outStack[i - 1] : currentElement.argumentsCurrent;
 				if (elemArr.length < argumentsCount) {
@@ -5503,7 +5711,79 @@ parserFormula.prototype.setFormula = function(formula) {
 						}
 						arg.unshift(elemArr.pop());
 					}
-					_tmp = currentElement.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
+
+
+					//***array-formula***
+					//если данная функция не может возвращать массив, проходимся по всем элементам аргументов и формируем массив
+					var returnFormulaType = currentElement.returnValueType;
+					if(true === currentElement.bArrayFormula && (!returnFormulaType || cReturnFormulaType.value_replace_area === returnFormulaType)) {
+
+						//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
+						var tempArgs = [], tempArg, firstArray;
+						var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
+						for (var j = 0; j < argumentsCount; j++) {
+							tempArg = arg[j];
+							if(cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
+								if(replaceAreaByValue) {
+									tempArg = tempArg.cross(opt_bbox);
+								} else {
+									tempArg = window['AscCommonExcel'].convertAreaToArray(tempArg);
+								}
+							}
+
+							if(cElementType.array === tempArg.type) {
+								//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
+								if (!firstArray ||
+									((1 === firstArray.getRowCount() || 1 === firstArray.getCountElementInRow()) &&
+									1 !== tempArg.getRowCount() && 1 !== tempArg.getCountElementInRow())) {
+									firstArray = tempArg;
+								}
+							}
+							tempArgs.push(tempArg);
+						}
+
+						if(firstArray) {
+							var array = new cArray();
+							firstArray.foreach(function (elem, r, c) {
+								if ( !array.array[r] ) {
+									array.addRow();
+								}
+
+								//формируем новые аргументы(берем r/c элмент массива у каждого аргумента)
+								var newArgs = [], newArg;
+								for (var j = 0; j < argumentsCount; j++) {
+									newArg = tempArgs[j];
+									if(cElementType.array === newArg.type) {
+										if(1 === newArg.getRowCount() && 1 === newArg.getCountElementInRow()) {
+											newArg = newArg.array[0] ? newArg.array[0][0] : null;
+										} else if(1 === newArg.getRowCount()) {
+											newArg = newArg.array[0] ? newArg.array[0][c] : null;
+										} else if(1 === newArg.getCountElementInRow()) {
+											newArg = newArg.array[r] ? newArg.array[r][0] : null;
+										} else {
+											newArg = newArg.array[r] ? newArg.array[r][c] : null;
+										}
+										if(!newArg) {
+											newArg = new cError(cErrorType.not_available);
+										}
+									}
+
+									newArgs.push(newArg);
+								}
+
+								array.addElement(currentElement.Calculate(newArgs, opt_bbox, opt_defName, t.ws, bIsSpecialFunction));
+							});
+
+							_tmp = array;
+
+						} else {
+							_tmp = currentElement.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
+						}
+					} else {
+						_tmp = currentElement.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
+					}
+
+					//_tmp = currentElement.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
 					if (cNumFormatNull !== _tmp.numFormat) {
 						numFormat = _tmp.numFormat;
 					} else if (0 > numFormat || cNumFormatNone === currentElement.numFormat) {
@@ -5524,7 +5804,20 @@ parserFormula.prototype.setFormula = function(formula) {
 		this.value = elemArr.pop();
 		this.value.numFormat = numFormat;
 
-		this._endCalculate();
+		//***array-formula***
+		//для обработки формулы массива
+		//передаётся последним параметром cell и временно подменяется parent у parserFormula для того, чтобы поменялось значение в элементе массива
+		var cell = arguments[3];
+		if(this.ref && cell && !(this.ref.r1 === cell.nRow && this.ref.c1 === cell.nCol)) {
+			var oldParent = this.parent;
+			this.parent = new AscCommonExcel.CCellWithFormula(cell.ws, cell.nRow, cell.nCol);
+			this._endCalculate();
+			this.parent = oldParent;
+		} else {
+			this._endCalculate();
+		}
+		//***array-formula***
+
 		return this.value;
 	};
 	parserFormula.prototype._endCalculate = function() {
@@ -6188,6 +6481,22 @@ parserFormula.prototype.setFormula = function(formula) {
 		}
 		return true;
 	};
+	parserFormula.prototype.getArrayFormulaRef = function() {
+		return this.ref;
+	};
+	parserFormula.prototype.setArrayFormulaRef = function(ref) {
+		this.ref = ref;
+	};
+	parserFormula.prototype.checkFirstCellArray = function(cell) {
+		//возвращаем ТОЛЬКО главную ячейку
+		var res = null;
+		if(this.ref) {
+			if(this.parent && cell.nCol === this.parent.nCol && cell.nRow === this.parent.nRow) {
+				res = true;
+			}
+		}
+		return res;
+	};
 	parserFormula.prototype.transpose = function(bounds) {
 		for (var i = 0; i < this.outStack.length; i++) {
 			//TODO пересмотреть случаи, когда возвращается ошибка
@@ -6761,6 +7070,7 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].cNumFormatNone = cNumFormatNone;
 	window['AscCommonExcel'].g_cCalcRecursion = g_cCalcRecursion;
 	window['AscCommonExcel'].g_ProcessShared = false;
+	window['AscCommonExcel'].cReturnFormulaType = cReturnFormulaType;
 
 	window['AscCommonExcel'].cNumber = cNumber;
 	window['AscCommonExcel'].cString = cString;
@@ -6802,6 +7112,8 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].getArrayMin = getArrayMin;
 	window['AscCommonExcel'].compareFormula = compareFormula;
 	window['AscCommonExcel'].cDate = cDate;
+
+	window['AscCommonExcel'].convertAreaToArray = convertAreaToArray;
 
 	window["Asc"]["cDate"] = window["Asc"].cDate = cDate;
 	prot									     = cDate.prototype;
