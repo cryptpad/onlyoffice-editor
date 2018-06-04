@@ -4347,6 +4347,7 @@ function (window, undefined) {
 	cBESSELI.prototype.name = 'BESSELI';
 	cBESSELI.prototype.argumentsMin = 2;
 	cBESSELI.prototype.argumentsMax = 2;
+	cBESSELI.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBESSELI.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
 		var argClone = oArguments.args;
@@ -4389,6 +4390,7 @@ function (window, undefined) {
 	cBESSELJ.prototype.name = 'BESSELJ';
 	cBESSELJ.prototype.argumentsMin = 2;
 	cBESSELJ.prototype.argumentsMax = 2;
+	cBESSELJ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBESSELJ.prototype.Calculate = function (arg) {
 		//результаты вычислений как в LO
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -4433,6 +4435,7 @@ function (window, undefined) {
 	cBESSELK.prototype.name = 'BESSELK';
 	cBESSELK.prototype.argumentsMin = 2;
 	cBESSELK.prototype.argumentsMax = 2;
+	cBESSELK.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBESSELK.prototype.Calculate = function (arg) {
 		//результаты вычислений как в LO
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -4475,6 +4478,7 @@ function (window, undefined) {
 	cBESSELY.prototype.name = 'BESSELY';
 	cBESSELY.prototype.argumentsMin = 2;
 	cBESSELY.prototype.argumentsMax = 2;
+	cBESSELY.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBESSELY.prototype.Calculate = function (arg) {
 		//результаты вычислений как в LO
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -4566,6 +4570,7 @@ function (window, undefined) {
 	cBIN2HEX.prototype.name = 'BIN2HEX';
 	cBIN2HEX.prototype.argumentsMin = 1;
 	cBIN2HEX.prototype.argumentsMax = 2;
+	cBIN2HEX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBIN2HEX.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -4631,6 +4636,7 @@ function (window, undefined) {
 	cBIN2OCT.prototype.name = 'BIN2OCT';
 	cBIN2OCT.prototype.argumentsMin = 1;
 	cBIN2OCT.prototype.argumentsMax = 2;
+	cBIN2OCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBIN2OCT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -5091,6 +5097,7 @@ function (window, undefined) {
 	cDEC2BIN.prototype.name = 'DEC2BIN';
 	cDEC2BIN.prototype.argumentsMin = 1;
 	cDEC2BIN.prototype.argumentsMax = 2;
+	cDEC2BIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDEC2BIN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
 
@@ -5151,6 +5158,7 @@ function (window, undefined) {
 	cDEC2HEX.prototype.name = 'DEC2HEX';
 	cDEC2HEX.prototype.argumentsMin = 1;
 	cDEC2HEX.prototype.argumentsMax = 2;
+	cDEC2HEX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDEC2HEX.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
 
@@ -5210,6 +5218,7 @@ function (window, undefined) {
 	cDEC2OCT.prototype.name = 'DEC2OCT';
 	cDEC2OCT.prototype.argumentsMin = 1;
 	cDEC2OCT.prototype.argumentsMax = 2;
+	cDEC2OCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDEC2OCT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
 
@@ -5269,6 +5278,7 @@ function (window, undefined) {
 	cDELTA.prototype.name = 'DELTA';
 	cDELTA.prototype.argumentsMin = 1;
 	cDELTA.prototype.argumentsMax = 2;
+	cDELTA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDELTA.prototype.Calculate = function (arg) {
 
 		var number1 = arg[0], number2 = !arg[1] ? new cNumber(0) : arg[1];
@@ -5313,6 +5323,7 @@ function (window, undefined) {
 	cERF.prototype.name = 'ERF';
 	cERF.prototype.argumentsMin = 1;
 	cERF.prototype.argumentsMax = 2;
+	cERF.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cERF.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -5431,6 +5442,7 @@ function (window, undefined) {
 	cGESTEP.prototype.name = 'GESTEP';
 	cGESTEP.prototype.argumentsMin = 1;
 	cGESTEP.prototype.argumentsMax = 2;
+	cGESTEP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cGESTEP.prototype.Calculate = function (arg) {
 
 		var number1 = arg[0], number2 = !arg[1] ? new cNumber(0) : arg[1];
@@ -5475,6 +5487,7 @@ function (window, undefined) {
 	cHEX2BIN.prototype.name = 'HEX2BIN';
 	cHEX2BIN.prototype.argumentsMin = 1;
 	cHEX2BIN.prototype.argumentsMax = 2;
+	cHEX2BIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cHEX2BIN.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -5547,6 +5560,7 @@ function (window, undefined) {
 	cHEX2DEC.prototype.name = 'HEX2DEC';
 	cHEX2DEC.prototype.argumentsMin = 1;
 	cHEX2DEC.prototype.argumentsMax = 1;
+	cHEX2DEC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cHEX2DEC.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5595,6 +5609,7 @@ function (window, undefined) {
 	cHEX2OCT.prototype.name = 'HEX2OCT';
 	cHEX2OCT.prototype.argumentsMin = 1;
 	cHEX2OCT.prototype.argumentsMax = 2;
+	cHEX2OCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cHEX2OCT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -6078,6 +6093,7 @@ function (window, undefined) {
 	cIMDIV.prototype.name = 'IMDIV';
 	cIMDIV.prototype.argumentsMin = 2;
 	cIMDIV.prototype.argumentsMax = 2;
+	cIMDIV.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMDIV.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1];
@@ -6315,6 +6331,7 @@ function (window, undefined) {
 	cIMPOWER.prototype.name = 'IMPOWER';
 	cIMPOWER.prototype.argumentsMin = 2;
 	cIMPOWER.prototype.argumentsMax = 2;
+	cIMPOWER.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMPOWER.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1];
@@ -6947,6 +6964,7 @@ function (window, undefined) {
 	cOCT2BIN.prototype.name = 'OCT2BIN';
 	cOCT2BIN.prototype.argumentsMin = 1;
 	cOCT2BIN.prototype.argumentsMax = 2;
+	cOCT2BIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cOCT2BIN.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -7067,6 +7085,7 @@ function (window, undefined) {
 	cOCT2HEX.prototype.name = 'OCT2HEX';
 	cOCT2HEX.prototype.argumentsMin = 1;
 	cOCT2HEX.prototype.argumentsMax = 2;
+	cOCT2HEX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cOCT2HEX.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
