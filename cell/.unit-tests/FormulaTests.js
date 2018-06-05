@@ -464,7 +464,8 @@ $( function () {
 		strictEqual( array.getElementRowCol(0,2).getValue(), getValue(-3));
 	}
 
-	function testArrayFormula2(func, minArgCount, maxArgCount, dNotSupportAreaArg) {
+	//returnOnlyValue - те функции, на вход которых всегда должны подаваться массивы и которые возвращают единственное значение
+	function testArrayFormula2(func, minArgCount, maxArgCount, dNotSupportAreaArg, returnOnlyValue) {
 
 		var getValue = function(ref, countArg) {
 			var argStr = "(";
@@ -532,20 +533,26 @@ $( function () {
 				strictEqual( array.getElementRowCol(1,1).getValue(), getValue("B101", i));
 				strictEqual( array.getElementRowCol(1,2).getValue(), getValue("C101", i));
 			} else {
-				if(!dNotSupportAreaArg) {
+				if(!(dNotSupportAreaArg || returnOnlyValue)) {
 					strictEqual( false, true);
 				}
 				console.log("func: " + func + " don't return area array");
 			}
 
-
 			oParser = new parserFormula( func + randomArgStrArr, "A1", ws );
 			oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
 			ok( oParser.parse() );
 			array = oParser.calculate();
-			strictEqual( array.getElementRowCol(0,0).getValue(), getValue(randomArray[0], i));
-			strictEqual( array.getElementRowCol(0,1).getValue(), getValue(randomArray[1], i));
-			strictEqual( array.getElementRowCol(0,2).getValue(), getValue(randomArray[2], i));
+			if(AscCommonExcel.cElementType.array === array.type) {
+				strictEqual( array.getElementRowCol(0,0).getValue(), getValue(randomArray[0], i));
+				strictEqual( array.getElementRowCol(0,1).getValue(), getValue(randomArray[1], i));
+				strictEqual( array.getElementRowCol(0,2).getValue(), getValue(randomArray[2], i));
+			} else {
+				if(!returnOnlyValue) {
+					strictEqual( false, true);
+				}
+				console.log("func: " + func + " don't return array");
+			}
 		}
 	}
 
@@ -1196,6 +1203,8 @@ $( function () {
 		oParser = new parserFormula( 'ISO.CEILING(-4.3,-2)', "A1", ws );
 		ok( oParser.parse(), 'ISO.CEILING(-4.3,-2)' );
 		strictEqual( oParser.calculate().getValue(), -4, 'ISO.CEILING(-4.3,-2)' );
+
+		testArrayFormula2("ISO.CEILING", 1, 2);
 	} );
 
 	test( "Test: \"CEILING\"", function () {
@@ -1560,10 +1569,12 @@ $( function () {
     }
 	test( "Test: \"FTEST\"", function () {
 		fTestFormulaTest();
+		testArrayFormula2("FTEST", 2, 2, null, true);
 	} );
 
 	test( "Test: \"F.TEST\"", function () {
 		fTestFormulaTest();
+		testArrayFormula2("F.TEST", 2, 2, null, true);
 	} );
 
 	test( "Test: \"T.INV\"", function () {
@@ -1744,6 +1755,8 @@ $( function () {
 		oParser = new parserFormula( "CHITEST(A2:B4,A6:B8)", "A1", ws );
 		ok( oParser.parse(), "CHITEST(A2:B4,A6:B8)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0003082, "CHITEST(A2:B4,A6:B8)" );
+
+		testArrayFormula2("CHITEST", 2, 2, null, true);
 	} );
 
 	test( "Test: \"CHISQ.TEST\"", function () {
@@ -1775,6 +1788,8 @@ $( function () {
 		oParser = new parserFormula( "CHIDIST(A2,A3)", "A1", ws );
 		ok( oParser.parse(), "CHIDIST(A2,A3)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0500006, "CHIDIST(A2,A3)" );
+
+		testArrayFormula2("CHIDIST", 2, 2);
 	} );
 
 	test( "Test: \"GAUSS\"", function () {
@@ -1790,6 +1805,8 @@ $( function () {
 		oParser = new parserFormula( "CHISQ.DIST.RT(A2,A3)", "A1", ws );
 		ok( oParser.parse(), "CHISQ.DIST.RT(A2,A3)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0500006, "CHISQ.DIST.RT(A2,A3)" );
+
+		testArrayFormula2("CHISQ.INV.RT", 2, 2);
 	} );
 
 	test( "Test: \"CHISQ.INV\"", function () {
@@ -1800,6 +1817,8 @@ $( function () {
 		oParser = new parserFormula( "CHISQ.INV(0.6,2)", "A1", ws );
 		ok( oParser.parse(), "CHISQ.INV(0.6,2)" );
 		strictEqual( oParser.calculate().getValue().toFixed(9) - 0, 1.832581464, "CHISQ.INV(0.6,2)" );
+
+		testArrayFormula2("CHISQ.INV", 2, 2);
 	} );
 
 	test( "Test: \"CHISQ.DIST\"", function () {
@@ -1819,6 +1838,8 @@ $( function () {
 		oParser = new parserFormula( "CHIINV(A2,A3)", "A1", ws );
 		ok( oParser.parse(), "CHIINV(A2,A3)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 18.306973, "CHIINV(A2,A3)" );
+
+		testArrayFormula2("CHIINV", 2, 2);
 	} );
 
 	test( "Test: \"CHISQ.INV.RT\"", function () {
@@ -2618,9 +2639,81 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "($1,234.5670)" );
 
+        testArrayFormula2("DOLLAR", 2, 2);
     } );
 
-    test( "Test: \"VALUE\"", function () {
+	test( "Test: \"EXACT\"", function () {
+
+		ws.getRange2( "A2" ).setValue( "word" );
+		ws.getRange2( "A3" ).setValue( "Word" );
+		ws.getRange2( "A4" ).setValue( "w ord" );
+		ws.getRange2( "B2" ).setValue( "word" );
+		ws.getRange2( "B3" ).setValue( "word" );
+		ws.getRange2( "B4" ).setValue( "word" );
+
+		oParser = new parserFormula( "EXACT(A2,B2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		oParser = new parserFormula( "EXACT(A3,B3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( "EXACT(A4,B4)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		testArrayFormula2("EXACT", 2, 2);
+	} );
+
+	test( "Test: \"LEFT\"", function () {
+
+		ws.getRange2( "A2" ).setValue( "Sale Price" );
+		ws.getRange2( "A3" ).setValue( "Sweden" );
+
+
+		oParser = new parserFormula( "LEFT(A2,4)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Sale" );
+
+		oParser = new parserFormula( "LEFT(A3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "S" );
+
+		testArrayFormula2("LEFT", 1, 2);
+	} );
+
+	test( "Test: \"REPT\"", function () {
+
+		oParser = new parserFormula( 'REPT("*-", 3)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "*-*-*-" );
+
+		oParser = new parserFormula( 'REPT("-",10)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "----------" );
+
+		testArrayFormula2("REPT", 2, 2);
+	} );
+
+	test( "Test: \"RIGHT\"", function () {
+
+		ws.getRange2( "A2" ).setValue( "Sale Price" );
+		ws.getRange2( "A3" ).setValue( "Stock Number" );
+
+		oParser = new parserFormula( "RIGHT(A2,5)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Price" );
+
+		oParser = new parserFormula( "RIGHT(A3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "r" );
+
+		testArrayFormula2("RIGHT", 1, 2);
+	} );
+
+
+	test( "Test: \"VALUE\"", function () {
 
         oParser = new parserFormula( "VALUE(\"123.456\")", "A2", ws );
         ok( oParser.parse() );
@@ -3061,6 +3154,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "12.5%" );
 
+		testArrayFormula2("TEXT", 2, 2);
     } );
 
 	test( "Test: \"TEXTJOIN\"", function () {
@@ -4235,6 +4329,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "MMLDVLIV" );
 
+		testArrayFormula2("ROMAN", 2, 2);
     } );
 
     test( "Test: \"SUMXMY2\"", function () {
@@ -4675,6 +4770,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
 
+        testArrayFormula2("CORREL", 2, 2, null, true)
     } );
 
     test( "Test: \"COUNT\"", function () {
@@ -4926,6 +5022,8 @@ $( function () {
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
 
 		wb.dependencyFormulas.lockRecal();
+
+		testArrayFormula2("COUNTIF", 2, 2)
 	} );
 
 	test( "Test: \"COUNTBLANK\"", function () {
@@ -4961,6 +5059,8 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( difBetween( oParser.calculate().getValue(), 0.25 ), true );
 
+		testArrayFormula2("COVAR", 2, 2, null, true)
+
     } );
     
 	test( "Test: \"COVARIANCE.P\"", function () {
@@ -4982,6 +5082,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual(oParser.calculate().getValue(), 5.2 );
 
+		testArrayFormula2("COVARIANCE.P", 2, 2, null, true);
 	} );
 
 	test( "Test: \"COVARIANCE.S\"", function () {
@@ -5002,6 +5103,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual(oParser.calculate().getValue().toFixed(9) - 0, 9.666666667 );
 
+		testArrayFormula2("COVARIANCE.S", 2, 2, null, true);
 	} );
 
     test( "Test: \"CRITBINOM\"", function () {
@@ -5718,6 +5820,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), intercept( [6, 7, 9, 15, 21], [20, 28, 31, 38, 40] ) );
 
+		testArrayFormula2("INTERCEPT", 2, 2, null, true);
     } );
 
 	test( "Test: \"INT\"", function () {
@@ -5789,6 +5892,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 4 );
 
+        //testArrayFormula2("LARGE", 2, 2)
     } );
 
 	test( "Test: \"LN\"", function () {
@@ -6034,6 +6138,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().toFixed(9) - 0, 0.164010148 );
 
+		testArrayFormula2("NORM.S.DIST", 2, 2)
 	} );
 	
 	test( "Test: \"NEGBINOMDIST\"", function () {
@@ -6227,6 +6332,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), pearson( [9, 7, 5, 3, 1], [10, 6, 1, 5, 3] ) );
 
+        testArrayFormula2("PEARSON", 2, 2, null, true)
     } );
 
     test( "Test: \"PERCENTILE\"", function () {

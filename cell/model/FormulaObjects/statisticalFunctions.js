@@ -4596,6 +4596,7 @@ function (window, undefined) {
 	cCHITEST.prototype.name = 'CHITEST';
 	cCHITEST.prototype.argumentsMin = 2;
 	cCHITEST.prototype.argumentsMax = 2;
+	cCHITEST.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cCHITEST.prototype.Calculate = function (arg) {
 
 		var arg2 = [arg[0], arg[1]];
@@ -4763,6 +4764,7 @@ function (window, undefined) {
 	cCORREL.prototype.name = 'CORREL';
 	cCORREL.prototype.argumentsMin = 2;
 	cCORREL.prototype.argumentsMax = 2;
+	cCORREL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cCORREL.prototype.Calculate = function (arg) {
 
 		function correl(x, y) {
@@ -4960,6 +4962,7 @@ function (window, undefined) {
 	cCOUNTIF.prototype.argumentsMin = 2;
 	cCOUNTIF.prototype.argumentsMax = 2;
 	cCOUNTIF.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUNTIF.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cCOUNTIF.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], _count = 0, matchingInfo;
 
@@ -5087,6 +5090,7 @@ function (window, undefined) {
 	cCOVAR.prototype.name = 'COVAR';
 	cCOVAR.prototype.argumentsMin = 2;
 	cCOVAR.prototype.argumentsMax = 2;
+	cCOVAR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cCOVAR.prototype.Calculate = function (arg) {
 
 		function covar(x, y) {
@@ -5161,6 +5165,7 @@ function (window, undefined) {
 	cCOVARIANCE_P.prototype.argumentsMin = 2;
 	cCOVARIANCE_P.prototype.argumentsMax = 2;
 	cCOVARIANCE_P.prototype.isXLFN = true;
+	cCOVARIANCE_P.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cCOVARIANCE_P.prototype.Calculate = function (arg) {
 
 		var arg2 = [arg[0], arg[1]];
@@ -5254,6 +5259,7 @@ function (window, undefined) {
 	cCOVARIANCE_S.prototype.argumentsMin = 2;
 	cCOVARIANCE_S.prototype.argumentsMax = 2;
 	cCOVARIANCE_S.prototype.isXLFN = true;
+	cCOVARIANCE_S.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cCOVARIANCE_S.prototype.Calculate = function (arg) {
 
 		var arg2 = [arg[0], arg[1]];
@@ -6360,6 +6366,7 @@ function (window, undefined) {
 	cFTEST.prototype.name = 'FTEST';
 	cFTEST.prototype.argumentsMin = 2;
 	cFTEST.prototype.argumentsMax = 2;
+	cFTEST.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cFTEST.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, cElementType.array]);
@@ -6989,6 +6996,7 @@ function (window, undefined) {
 	cINTERCEPT.prototype.name = 'INTERCEPT';
 	cINTERCEPT.prototype.argumentsMin = 2;
 	cINTERCEPT.prototype.argumentsMax = 2;
+	cINTERCEPT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cINTERCEPT.prototype.Calculate = function (arg) {
 
 		function intercept(y, x) {
@@ -7153,6 +7161,7 @@ function (window, undefined) {
 	cLARGE.prototype.argumentsMin = 2;
 	cLARGE.prototype.argumentsMax = 2;
 	cLARGE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cLARGE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cLARGE.prototype._getValue = function (arg0, arg1) {
 		if (cElementType.error === arg1.type) {
 			return arg1;
@@ -8617,6 +8626,7 @@ function (window, undefined) {
 	cPEARSON.prototype.name = 'PEARSON';
 	cPEARSON.prototype.argumentsMin = 2;
 	cPEARSON.prototype.argumentsMax = 2;
+	cPEARSON.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cPEARSON.prototype.Calculate = function (arg) {
 
 		function pearson(x, y) {

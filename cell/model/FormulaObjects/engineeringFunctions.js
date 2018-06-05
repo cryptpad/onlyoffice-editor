@@ -6763,6 +6763,7 @@ function (window, undefined) {
 	cIMSUB.prototype.name = 'IMSUB';
 	cIMSUB.prototype.argumentsMin = 2;
 	cIMSUB.prototype.argumentsMax = 2;
+	cIMSUB.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMSUB.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1];

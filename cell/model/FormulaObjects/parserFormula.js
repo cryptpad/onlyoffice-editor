@@ -447,11 +447,15 @@ var cErrorType = {
 // value_convert_area - аналогично value, но area и area3d не преобразуются в массив
 // array - умеет возвращать массив
 // используоется в returnValueType у каждой формулы
+// not_change_first_args - когда для функции нужно, чтобы первый аргумент был area/ref
+// not_change_args - не изменять предварительно аргументы
 /** @enum */
 var cReturnFormulaType = {
 		value: 0,
 		value_replace_area: 1,
-		array: 2
+		array: 2,
+		not_change_first_args: 3,
+		not_change_args: 4
 };
 
 var cExcelSignificantDigits = 15; //количество цифр в числе после запятой
@@ -5716,22 +5720,25 @@ parserFormula.prototype.setFormula = function(formula) {
 					//***array-formula***
 					//если данная функция не может возвращать массив, проходимся по всем элементам аргументов и формируем массив
 					var returnFormulaType = currentElement.returnValueType;
-					if(true === currentElement.bArrayFormula && (!returnFormulaType || cReturnFormulaType.value_replace_area === returnFormulaType)) {
+					if(true === currentElement.bArrayFormula && (!returnFormulaType || cReturnFormulaType.value_replace_area === returnFormulaType || cReturnFormulaType.not_change_first_args === returnFormulaType)) {
 
 						//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
 						var tempArgs = [], tempArg, firstArray;
 						var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
 						for (var j = 0; j < argumentsCount; j++) {
 							tempArg = arg[j];
-							if(cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
-								if(replaceAreaByValue) {
-									tempArg = tempArg.cross(opt_bbox);
-								} else {
-									tempArg = window['AscCommonExcel'].convertAreaToArray(tempArg);
+							if(!(j === 0 && cReturnFormulaType.not_change_first_args === returnFormulaType)) {
+								if(cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
+									if(replaceAreaByValue) {
+										tempArg = tempArg.cross(opt_bbox);
+									} else {
+										tempArg = window['AscCommonExcel'].convertAreaToArray(tempArg);
+									}
 								}
+
 							}
 
-							if(cElementType.array === tempArg.type) {
+							if(cElementType.array === tempArg.type && !(j === 0 && cReturnFormulaType.not_change_first_args === returnFormulaType)) {
 								//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
 								if (!firstArray ||
 									((1 === firstArray.getRowCount() || 1 === firstArray.getCountElementInRow()) &&
