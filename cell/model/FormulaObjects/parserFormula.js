@@ -5760,7 +5760,7 @@ parserFormula.prototype.setFormula = function(formula) {
 								var newArgs = [], newArg;
 								for (var j = 0; j < argumentsCount; j++) {
 									newArg = tempArgs[j];
-									if(cElementType.array === newArg.type) {
+									if(cElementType.array === newArg.type && !(j === 0 && cReturnFormulaType.not_change_first_args === returnFormulaType)) {
 										if(1 === newArg.getRowCount() && 1 === newArg.getCountElementInRow()) {
 											newArg = newArg.array[0] ? newArg.array[0][0] : null;
 										} else if(1 === newArg.getRowCount()) {

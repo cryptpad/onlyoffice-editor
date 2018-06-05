@@ -8708,6 +8708,7 @@ function (window, undefined) {
 	cPERCENTILE.prototype.argumentsMin = 2;
 	cPERCENTILE.prototype.argumentsMax = 2;
 	cPERCENTILE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cPERCENTILE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cPERCENTILE.prototype.Calculate = function (arg) {
 		function percentile(argArray) {
 
@@ -8755,6 +8756,7 @@ function (window, undefined) {
 	cPERCENTILE_EXC.prototype.argumentsMax = 2;
 	cPERCENTILE_EXC.prototype.isXLFN = true;
 	cPERCENTILE_EXC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cPERCENTILE_EXC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cPERCENTILE_EXC.prototype.Calculate = function (arg) {
 		function percentile(argArray) {
 
@@ -9203,6 +9205,7 @@ function (window, undefined) {
 	cQUARTILE.prototype.argumentsMin = 2;
 	cQUARTILE.prototype.argumentsMax = 2;
 	cQUARTILE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cQUARTILE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cQUARTILE.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array]);
@@ -9262,6 +9265,7 @@ function (window, undefined) {
 	cQUARTILE_EXC.prototype.argumentsMax = 2;
 	cQUARTILE_EXC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cQUARTILE_EXC.prototype.isXLFN = true;
+	cQUARTILE_EXC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cQUARTILE_EXC.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array]);
@@ -9452,6 +9456,7 @@ function (window, undefined) {
 	cRSQ.prototype.name = 'RSQ';
 	cRSQ.prototype.argumentsMin = 2;
 	cRSQ.prototype.argumentsMax = 2;
+	cRSQ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cRSQ.prototype.Calculate = function (arg) {
 
 		function rsq(x, y) {
@@ -9626,6 +9631,7 @@ function (window, undefined) {
 	cSLOPE.prototype.name = 'SLOPE';
 	cSLOPE.prototype.argumentsMin = 2;
 	cSLOPE.prototype.argumentsMax = 2;
+	cSLOPE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cSLOPE.prototype.Calculate = function (arg) {
 
 		function slope(y, x) {
@@ -9707,6 +9713,7 @@ function (window, undefined) {
 	cSMALL.prototype.argumentsMin = 2;
 	cSMALL.prototype.argumentsMax = 2;
 	cSMALL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cSMALL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cSMALL.prototype.Calculate = function (arg) {
 
 		var retArr = new cArray();
@@ -10146,6 +10153,7 @@ function (window, undefined) {
 	cSTEYX.prototype.name = 'STEYX';
 	cSTEYX.prototype.argumentsMin = 2;
 	cSTEYX.prototype.argumentsMax = 2;
+	cSTEYX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
 	cSTEYX.prototype.Calculate = function (arg) {
 
 		function steyx(y, x) {
