@@ -9295,20 +9295,8 @@ ParaRun.prototype.Get_TextForAutoCorrect = function(AutoCorrectEngine, RunPos)
 {
     var ActionElement = AutoCorrectEngine.Get_ActionElement();
     var nCount = this.Content.length;
-    var flag = true;
     for (var nPos = 0; nPos < nCount; nPos++)
     {
-        if (this.Content[nPos].value === 32 && (nPos !== nCount - 1)) {
-                continue;
-        } else {
-            if (this.Content.length === 1 && this.Content[nPos].value === 32) {
-                continue;
-            } else if (this.Content[nPos].value === 32 && flag) {
-                continue;
-            } else {
-                flag = false;
-            }
-        }
         var Item = this.Content[nPos];
         if (para_Math_Text === Item.Type || para_Math_BreakOperator === Item.Type)
         {
