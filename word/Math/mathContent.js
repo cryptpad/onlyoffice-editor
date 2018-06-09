@@ -5402,11 +5402,13 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
 
         oAutoCorrectControl.SetReplaceChar(AutoCorrectEngine);
 
-        // Пробуем произвести автозамену без последнего добавленного символа
-        if (0x20 === ActionElement.value)
+        if (!CanMakeAutoCorrect && this.Content.length !== AutoCorrectEngine.RemoveCount) {
+            // Пробуем произвести автозамену без последнего добавленного символа
+            if (0x20 === ActionElement.value)
             CanMakeAutoCorrectFunc = this.private_CanAutoCorrectTextFunc(AutoCorrectEngine, true);
-        else
+            else
             CanMakeAutoCorrectFunc = this.private_CanAutoCorrectTextFunc(AutoCorrectEngine, false);
+        }
 
         // Пробуем сделать формульную автозамену
         if (false === CanMakeAutoCorrectFunc)
@@ -5425,7 +5427,12 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
         var FirstElementPos = AutoCorrectEngine.Elements[this.CurPos].ElementPos;
         // FirstElement.ElementPos++;
         var bReplaseShiftContent = false;
-        var index = AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos - AutoCorrectEngine.RemoveCount;
+        var index = AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
+        if (ActionElement === AutoCorrectEngine.Elements[this.CurPos].Element.Content[index]) {
+            index -= AutoCorrectEngine.RemoveCount + 1;
+        } else {
+            index -= AutoCorrectEngine.RemoveCount;
+        }
         var FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
         if (FirstElement === ActionElement) {
             index--;
@@ -5830,7 +5837,7 @@ AutoCorrectionControl.prototype.AutoCorrectAccent = function(AutoCorrectEngine, 
     var oBase = oAccent.getBase(0);
 
     var TempElements = [];
-    var nRemoveCount = 2;
+    var nRemoveCount = 1;
 
     if (this.bOpenBrk && this.bCloseBrk)
     {
@@ -5839,7 +5846,7 @@ AutoCorrectionControl.prototype.AutoCorrectAccent = function(AutoCorrectEngine, 
         nRemoveCount = this.BrAccount.nRPos - this.BrAccount.nLPos + 2;
     }
     else
-        TempElements.splice(0, 0, AutoCorrectEngine.Elements[this.CurPos-1]);
+        TempElements.splice(0, 0, AutoCorrectEngine.Elements[this.CurPos]);
 
     this.PackTextToContent(oBase, TempElements, AutoCorrectEngine);
 
@@ -6164,7 +6171,7 @@ AutoCorrectionControl.prototype.FindFunction = function(CanMakeAutoCorrect)
     if (nCountElems < 2)
         return false;
 
-    var nCurPos = nCountElems - 1;
+    var nCurPos = this.Elements[this.CurElement].Element.State.ContentPos - 1;
 
     var oCurElem = this.Elements[this.CurElement].Element.Content[nCurPos];
     if (oCurElem.Type === para_Math_Text && oCurElem.value === 0x0020)
@@ -6671,7 +6678,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
             if (this.ActionElement.Type != para_Math_Composition && (this.ActionElementCode == 0x005E || this.ActionElementCode == 0x005F|| this.ActionElementCode == 0x002B || this.ActionElementCode == 0x002D))
                 return false;
 
-            this.chr = String.fromCharCode(Element.value);
+            this.chr = Element.value;
             this.Type = MATH_NARY;
             CurPos--;
             break;
@@ -6788,7 +6795,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
                 || (g_aMathAutoCorrectFracCharCodes[this.ActionElementCode] && TempElements.length == 0)) // \int_-
                 return false;
 
-            this.chr = String.fromCharCode(Element.value);
+            this.chr = Element.value;
             this.Type = MATH_NARY;
             //CurPos--;
             break;
@@ -6838,7 +6845,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         var FracCharCodes = false;
         while (CurPos >= 0)
         {
-            var Element = this.Elements[CurPos];
+            var Element = this.Elements[this.CurElement].Element.Content[CurPos];
             if (Element.Type != para_Math_Composition && q_aMathAutoCorrectControlAggregationCodes[Element.value]) //sum
             {
                 //введены символы _ ^ + -
@@ -6883,7 +6890,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
                     var Elem = this.Elements[this.CurElement].Element.Content[CurPos-1];
                     if (Elem.Type != para_Math_Composition && q_aMathAutoCorrectControlAggregationCodes[Elem.value])
                     {
-                        this.chr = String.fromCharCode(Elem.value);
+                        this.chr = Elem.value;
                         this.Type = MATH_NARY;
                         CurPos--;
                         break;
@@ -6905,7 +6912,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
                     var Elem = this.Elements[this.CurElement].Element.Content[CurPos-1];
                     if (Elem.Type != para_Math_Composition && q_aMathAutoCorrectControlAggregationCodes[Elem.value])
                     {
-                        this.chr = String.fromCharCode(Elem.value);
+                        this.chr = Elem.value;
                         this.Type = MATH_NARY;
                         CurPos--;
                         break;
@@ -6949,9 +6956,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
             this.PackTextToContent(DenMathContent, TempElements2, AutoCorrectEngine, true);
             this.PackTextToContent(NumMathContent, TempElements, AutoCorrectEngine, true);
 
-            AutoCorrectEngine.RemoveCount = this.Elements[this.CurElement].Element.Content.length - 1; // - CurPos - 1;
-            // if (0x20 == this.ActionElementCode)
-            //     AutoCorrectEngine.RemoveCount++;
+            AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+            if (0x20 == this.ActionElementCode && !CurPos)
+                AutoCorrectEngine.RemoveCount++;
             AutoCorrectEngine.ReplaceContent.unshift(Fraction);
 
             return true;
@@ -6981,7 +6988,11 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
             this.PackTextToContent(BaseContent, TempElements2, AutoCorrectEngine, false);
             this.PackTextToContent(IterContent, TempElements, AutoCorrectEngine, true);
 
-            AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;    //посмотреть на пробел ли в конце!
+            AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+            if (0x20 == this.ActionElementCode && !CurPos)
+                AutoCorrectEngine.RemoveCount++;
+
+            // AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1 - this.Elements[this.CurElement].Element.State.ContentPos;    //посмотреть на пробел ли в конце!
             // AutoCorrectEngine.RemoveCount -= (this.ActionElementCode === 32) ? CurPos : 0;
             // if (0x20 == this.ActionElementCode)
             //     AutoCorrectEngine.RemoveCount++;
@@ -7024,9 +7035,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
                 var BaseElems = [TempElements3[TempElements3.length-1]];
                 this.PackTextToContent(BaseContent, BaseElems, AutoCorrectEngine, true);
 
-                AutoCorrectEngine.RemoveCount += this.ElementsCount - CurPos - TempElements3.length;
-                // if (0x20 == this.ActionElementCode)
-                //     AutoCorrectEngine.RemoveCount++;
+                AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+                if (0x20 == this.ActionElementCode && !CurPos)
+                    AutoCorrectEngine.RemoveCount++;
                 AutoCorrectEngine.ReplaceContent.unshift(oDegree);
 
                 return true;
@@ -7059,9 +7070,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         }
 
 
-        AutoCorrectEngine.RemoveCount = this.Elements[this.CurElement].Element.Content.length; // - CurPos;
-        // if (0x20 == this.ActionElementCode)
-        //     AutoCorrectEngine.RemoveCount++;
+        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+        if (0x20 == this.ActionElementCode && !CurPos)
+            AutoCorrectEngine.RemoveCount++;
         AutoCorrectEngine.ReplaceContent.unshift(Radical);
         return true;
     }
@@ -7075,9 +7086,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
 
         this.PackTextToContent(Base, TempElements, AutoCorrectEngine, true);
 
-        AutoCorrectEngine.RemoveCount = this.Elements[this.CurElement].Element.Content.length; // - CurPos ;
-        // if (0x20 == this.ActionElementCode)
-        //     AutoCorrectEngine.RemoveCount++;
+        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+        if (0x20 == this.ActionElementCode && !CurPos)
+            AutoCorrectEngine.RemoveCount++;
         AutoCorrectEngine.ReplaceContent.unshift(BorderBox);
         return true;
     }
@@ -7092,14 +7103,14 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         this.PackTextToContent(Base, TempElements, AutoCorrectEngine, true);
 
         AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
-        // if (0x20 == this.ActionElementCode)
-        //     AutoCorrectEngine.RemoveCount++;
+        if (0x20 == this.ActionElementCode && !CurPos)
+            AutoCorrectEngine.RemoveCount++;
         AutoCorrectEngine.ReplaceContent.unshift(Box);
         return true;
     }
     else if (this.Type == MATH_NARY)
     {
-        if ( this.ActionElementCode == 0x005C) //slash
+         if ( this.ActionElementCode == 0x005C) //slash
             return false;
 
         if (bOf && this.CanPackToDelimiter(TempElements))
@@ -7144,7 +7155,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         }
 
         props.ctrPrp = AutoCorrectEngine.TextPr.Copy();
-        props.chr = this.chr.charCodeAt(0);
+        props.chr = this.chr;
         var oNary = new CNary(props);
 
         var oSub = oNary.getLowerIterator();
@@ -7177,8 +7188,8 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         }
 
         AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
-        // if (0x20 == this.ActionElementCode)
-        //     AutoCorrectEngine.RemoveCount++;
+        if (0x20 == this.ActionElementCode && !CurPos)
+            AutoCorrectEngine.RemoveCount++;
         AutoCorrectEngine.ReplaceContent.unshift(oNary);
 
         return true;
@@ -7193,9 +7204,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
 
         this.PackTextToContent(oBase, TempElements, AutoCorrectEngine, true);
 
-        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1; // - CurPos ;
-        // if (0x20 == this.ActionElementCode && this.BrAccount.LBracket && this.BrAccount.RBracket && CurPos != 0)
-        //     AutoCorrectEngine.RemoveCount++;
+        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+        if (0x20 == this.ActionElementCode && !CurPos)
+            AutoCorrectEngine.RemoveCount++;
         AutoCorrectEngine.ReplaceContent.unshift(oGroupChr);
         return true;
     }
@@ -7209,9 +7220,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
 
         this.PackTextToContent(oBase, TempElements, AutoCorrectEngine, true);
 
-        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1; // - CurPos ;
-        // if (0x20 == this.ActionElementCode)
-        //     AutoCorrectEngine.RemoveCount++;
+        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+        if (0x20 == this.ActionElementCode && !CurPos)
+            AutoCorrectEngine.RemoveCount++;
         AutoCorrectEngine.ReplaceContent.unshift(oBar);
         return true;
     }
@@ -7227,7 +7238,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         this.PackTextToContent(oBase, TempElements2, AutoCorrectEngine, true);
         this.PackTextToContent(oIter, TempElements, AutoCorrectEngine, true);
 
-        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1; // - CurPos ;
+        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+        if (0x20 == this.ActionElementCode && !CurPos)
+            AutoCorrectEngine.RemoveCount++;
         AutoCorrectEngine.ReplaceContent.unshift(oLimit);
         return true;
     }
@@ -7241,9 +7254,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
 
         this.PackTextToContent(oBase, TempElements, AutoCorrectEngine, true);
 
-        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1; // - CurPos ;
-        // if (0x20 == this.ActionElementCode)
-        //     AutoCorrectEngine.RemoveCount++;
+        AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
+        if (0x20 == this.ActionElementCode && !CurPos)
+            AutoCorrectEngine.RemoveCount++;
         AutoCorrectEngine.ReplaceContent.unshift(oPhantom);
         return true;
     }
@@ -7821,7 +7834,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\Alpha', 0x0391],
     ['\\amalg', 0x2210],
     ['\\angle', 0x2220],
-    ['\\aoint', 0x2233],
+    ['\\aoint', 0x222E],
     ['\\approx', 0x2248],
     ['\\asmash', 0x2B06],
     ['\\ast', 0x2217],
@@ -8285,7 +8298,7 @@ var q_aMathAutoCorrectControlCharCodes =
 //символы для mathfunc (интеграл, сумма...)
 var q_aMathAutoCorrectControlAggregationCodes =
 {
-    0x2211 : 1, 0x220F : 1, 0x2210 : 1, 0x22C0 : 1, 0x2233 : 1,
+    0x2211 : 1, 0x220F : 1, 0x2210 : 1, 0x22C0 : 1, 0x222E : 1,
     0x22C1 : 1, 0x22C3 : 1, 0x2A06 : 1, 0x2A04 : 1, 0x2A00 : 1,
     0x2A01 : 1, 0x2A02 : 1, 0x222B : 1, 0x222C : 1, 0x222D : 1,
     0x2A0C : 1, 0x222E : 1, 0x222F : 1, 0x2230 : 1, 0x2232 : 1
