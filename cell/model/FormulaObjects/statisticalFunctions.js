@@ -10554,6 +10554,7 @@ function (window, undefined) {
 	cTRIMMEAN.prototype.name = 'TRIMMEAN';
 	cTRIMMEAN.prototype.argumentsMin = 2;
 	cTRIMMEAN.prototype.argumentsMax = 2;
+	cTRIMMEAN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cTRIMMEAN.prototype.Calculate = function (arg) {
 
 		var arg2 = [arg[0], arg[1]];

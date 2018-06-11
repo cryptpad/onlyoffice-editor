@@ -2039,6 +2039,7 @@
 	cDOLLARDE.prototype.argumentsMin = 2;
 	cDOLLARDE.prototype.argumentsMax = 2;
 	cDOLLARDE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDOLLARDE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDOLLARDE.prototype.Calculate = function (arg) {
 		var fractionalDollar = arg[0], fraction = arg[1];
 
@@ -2100,6 +2101,7 @@
 	cDOLLARFR.prototype.argumentsMin = 2;
 	cDOLLARFR.prototype.argumentsMax = 2;
 	cDOLLARFR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDOLLARFR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDOLLARFR.prototype.Calculate = function (arg) {
 		var decimalDollar = arg[0], fraction = arg[1];
 
@@ -2259,6 +2261,7 @@
 	cEFFECT.prototype.argumentsMin = 2;
 	cEFFECT.prototype.argumentsMax = 2;
 	cEFFECT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cEFFECT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cEFFECT.prototype.Calculate = function (arg) {
 		var nominalRate = arg[0], npery = arg[1];
 
@@ -2634,6 +2637,7 @@
 	cIRR.prototype.argumentsMin = 1;
 	cIRR.prototype.argumentsMax = 2;
 	cIRR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cIRR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cIRR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(0.1);
 
@@ -3038,6 +3042,7 @@
 	cNOMINAL.prototype.argumentsMin = 2;
 	cNOMINAL.prototype.argumentsMax = 2;
 	cNOMINAL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cNOMINAL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cNOMINAL.prototype.Calculate = function (arg) {
 		var effectRate = arg[0], npery = arg[1];
 

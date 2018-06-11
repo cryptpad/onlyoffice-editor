@@ -926,6 +926,7 @@
 	cEDATE.prototype.argumentsMin = 2;
 	cEDATE.prototype.argumentsMax = 2;
 	cEDATE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cEDATE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cEDATE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 
@@ -997,6 +998,7 @@
 	cEOMONTH.prototype.argumentsMin = 2;
 	cEOMONTH.prototype.argumentsMax = 2;
 	cEOMONTH.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cEOMONTH.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cEOMONTH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 
@@ -1766,6 +1768,7 @@
 	cWEEKNUM.prototype.argumentsMin = 1;
 	cWEEKNUM.prototype.argumentsMax = 2;
 	cWEEKNUM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cWEEKNUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cWEEKNUM.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(1), type = 0;
 

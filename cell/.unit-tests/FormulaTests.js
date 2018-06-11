@@ -1177,6 +1177,8 @@ $( function () {
 		oParser = new parserFormula( 'CEILING.PRECISE(test)', "A1", ws );
 		ok( oParser.parse(), 'CEILING.PRECISE(test)' );
 		strictEqual( oParser.calculate().getValue(), "#NAME?", 'CEILING.PRECISE(test)' );
+
+		testArrayFormula2("CEILING.PRECISE", 1, 2);
 	} );
 
 	test( "Test: \"ISO.CEILING\"", function () {
@@ -1272,7 +1274,7 @@ $( function () {
 		ok( oParser.parse(), 'COMBINA(10,-3)' );
 		strictEqual( oParser.calculate().getValue(), "#NUM!", 'COMBINA(10,-3)' );
 
-		testArrayFormula2("COMBIN", 2, 2)
+		testArrayFormula2("COMBINA", 2, 2)
 	} );
 
 	test( "Test: \"DECIMAL\"", function () {
@@ -1287,6 +1289,8 @@ $( function () {
 		oParser = new parserFormula( 'DECIMAL("zap",36)', "A1", ws );
 		ok( oParser.parse(), 'DECIMAL("zap",36)' );
 		strictEqual( oParser.calculate().getValue(), 45745, 'DECIMAL("zap",36)' );
+
+
 	} );
 
 	test( "Test: \"BASE\"", function () {
@@ -1358,6 +1362,8 @@ $( function () {
 		oParser = new parserFormula( "T.DIST.RT(A2,A3)", "A1", ws );
 		ok( oParser.parse(), "T.DIST.RT(A2,A3)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.027322, "T.DIST.RT(A2,A3)" );
+
+		testArrayFormula2("T.DIST.RT", 2, 2);
 	} );
 
 	test( "Test: \"TTEST\"", function () {
@@ -1583,6 +1589,8 @@ $( function () {
 		oParser = new parserFormula( "T.INV(0.75,2)", "A1", ws );
 		ok( oParser.parse(), "T.INV(0.75,2)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.8164966, "T.INV(0.75,2)" );
+
+		testArrayFormula2("T.INV", 2, 2);
 	} );
 
 	test( "Test: \"T.INV.2T\"", function () {
@@ -1592,6 +1600,8 @@ $( function () {
 		oParser = new parserFormula( "T.INV.2T(A2,A3)", "A1", ws );
 		ok( oParser.parse(), "T.INV.2T(A2,A3)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.606533, "T.INV.2T(A2,A3)" );
+
+		testArrayFormula2("T.INV.2T", 2, 2);
 	} );
 
 	test( "Test: \"RANK\"", function () {
@@ -2625,6 +2635,9 @@ $( function () {
 		oParser = new parserFormula( "TRIMMEAN(A2:A12,0.2)", "A1", ws );
 		ok( oParser.parse(), "TRIMMEAN(A2:A12,0.2)" );
 		strictEqual( oParser.calculate().getValue().toFixed(3) - 0, 3.778, "TRIMMEAN(A2:A12,0.2)" );
+
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("TRIMMEAN", 2, 2)
 	} );
 
     test( "Test: \"DOLLAR\"", function () {
@@ -2820,6 +2833,8 @@ $( function () {
             ok( oParser.parse() );
             strictEqual( oParser.calculate().getValue(), 35840 );
         }
+
+        testArrayFormula2("EDATE", 2, 2, true);
     } );
 
     test( "Test: \"EOMONTH\"", function () {
@@ -2860,6 +2875,8 @@ $( function () {
             ok( oParser.parse() );
             strictEqual( oParser.calculate().getValue(), 35853 );
         }
+
+		testArrayFormula2("EOMONTH", 2, 2, true);
     } );
 
 	test( "Test: \"EVEN\"", function () {
@@ -3481,6 +3498,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 2 );
 
+        testArrayFormula2("WEEKNUM", 1, 2, true);
     } );
 
 	test( "Test: \"ISOWEEKNUM\"", function () {
@@ -3512,6 +3530,26 @@ $( function () {
 		strictEqual( oParser.calculate().getValue(), 16 );
 
 	} );
+
+	test( "Test: \"WEEKDAY\"", function () {
+
+		ws.getRange2( "A2" ).setValue( "2/14/2008" );
+
+		oParser = new parserFormula( "WEEKDAY(A2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 5 );
+
+		oParser = new parserFormula( "WEEKDAY(A2, 2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( "WEEKDAY(A2, 3)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 3 );
+
+		testArrayFormula2("WEEKDAY", 1, 2);
+	} );
+
 
 	test( "Test: \"WEIBULL\"", function () {
 
@@ -4180,6 +4218,8 @@ $( function () {
         ok( oParser.parse() );
         res = oParser.calculate().getValue();
         ok( res >= -25 && res <= -3 );
+
+        testArrayFormula2("RANDBETWEEN", 2, 2, true)
     } );
 
     test( "Test: \"QUOTIENT\"", function () {
@@ -4348,6 +4388,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#VALUE!" );
 
+		testArrayFormula2("SUMXMY2", 2, 2, null, true)
     } );
 
     test( "Test: \"SUMX2MY2\"", function () {
@@ -4364,9 +4405,10 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#VALUE!" );
 
+        testArrayFormula2("SUMX2MY2", 2, 2, null, true);
     } );
 
-    test( "Test: \"SUMX2MY2\"", function () {
+    test( "Test: \"SUMX2PY2\"", function () {
 
         oParser = new parserFormula( "SUMX2PY2({2,3,9,1,8,7,5},{6,5,11,7,5,4,4})", "A1", ws );
         ok( oParser.parse() );
@@ -4380,6 +4422,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#VALUE!" );
 
+		testArrayFormula2("SUMX2PY2", 2, 2, null, true);
     } );
 
     test( "Test: \"SERIESSUM\"", function () {
@@ -7639,6 +7682,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), effect(-1,54) );
 
+        testArrayFormula2("EFFECT", 2, 2, true)
     } );
 
     test( "Test: \"ISPMT\"", function () {
@@ -7789,6 +7833,8 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#NUM!" );
 
+        //TODO пересмотреть тест для этой функции
+        //testArrayFormula2("IRR", 1, 2, true)
     } );
 
     test( "Test: \"ACCRINT\"", function () {
@@ -7980,6 +8026,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), nominal(0.053543,-4) );
 
+        testArrayFormula2("NOMINAL", 2, 2, true);
     } );
 
     test( "Test: \"FVSCHEDULE\"", function () {
@@ -7997,7 +8044,6 @@ $( function () {
         oParser = new parserFormula( "FVSCHEDULE(1,{0.09,0.11,0.1})", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), fvschedule(1,[0.09,0.11,0.1]) );
-
     } );
 
     test( "Test: \"DISC\"", function () {
@@ -8046,6 +8092,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), dollarde( 1.1,32 ) );
 
+        testArrayFormula2("DOLLARDE", 2, 2, true);
     } );
 
     test( "Test: \"DOLLARFR\"", function () {
@@ -8077,6 +8124,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), dollarde( 1.125,32 ) );
 
+		testArrayFormula2("DOLLARFR", 2, 2, true);
     } );
 
     test( "Test: \"RECEIVED\"", function () {
