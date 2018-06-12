@@ -1500,6 +1500,8 @@ $( function () {
 		oParser = new parserFormula( "F.DIST.RT(A2,A3,A4)", "A1", ws );
 		ok( oParser.parse(), "F.DIST.RT(A2,A3,A4)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.01, "F.DIST.RT(A2,A3,A4)" );
+
+		testArrayFormula2("F.DIST.RT", 3, 3);
 	} );
 
 	test( "Test: \"FDIST\"", function () {
@@ -1520,6 +1522,8 @@ $( function () {
 		oParser = new parserFormula( "FINV(A2,A3,A4)", "A1", ws );
 		ok( oParser.parse(), "FINV(A2,A3,A4)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 15.206865, "FINV(A2,A3,A4)" );
+
+		testArrayFormula2("FINV", 3, 3);
 	} );
 
 	test( "Test: \"F.INV\"", function () {
@@ -1530,6 +1534,8 @@ $( function () {
 		oParser = new parserFormula( "F.INV(A2,A3,A4)", "A1", ws );
 		ok( oParser.parse(), "F.INV(A2,A3,A4)" );
 		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 0.10930991, "F.INV(A2,A3,A4)" );
+
+		testArrayFormula2("F.INV", 3, 3);
 	} );
 
 	test( "Test: \"F.INV.RT\"", function () {
@@ -1704,6 +1710,20 @@ $( function () {
 		oParser = new parserFormula( "LOGNORM.INV(A2, A3, A4)", "A1", ws );
 		ok( oParser.parse(), "LOGNORM.INV(A2, A3, A4)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 4.0000252, "LOGNORM.INV(A2, A3, A4)" );
+
+		testArrayFormula2("LOGNORM.INV", 3, 3);
+	} );
+
+	test( "Test: \"LOGNORMDIST\"", function () {
+		ws.getRange2( "A2" ).setValue( "4" );
+		ws.getRange2( "A3" ).setValue( "3.5" );
+		ws.getRange2( "A4" ).setValue( "1.2" );
+
+		oParser = new parserFormula( "LOGNORMDIST(A2, A3, A4)", "A1", ws );
+		ok( oParser.parse(), "LOGNORMDIST(A2, A3, A4)" );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0390836, "LOGNORMDIST(A2, A3, A4)" );
+
+		testArrayFormula2("LOGNORMDIST", 3, 3);
 	} );
 
 	test( "Test: \"GAMMA.DIST\"", function () {
@@ -1745,6 +1765,8 @@ $( function () {
 		oParser = new parserFormula( "EXPON.DIST(0.2,10,FALSE)", "A1", ws );
 		ok( oParser.parse(), "EXPON.DIST(0.2,10,FALSE)" );
 		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 1.35335283, "EXPON.DIST(0.2,10,FALSE)" );
+
+		testArrayFormula2("EXPON.DIST", 3, 3);
 	} );
 
 	test( "Test: \"CHITEST\"", function () {
@@ -1841,6 +1863,8 @@ $( function () {
 		oParser = new parserFormula( "CHISQ.DIST(2,3,FALSE)", "A1", ws );
 		ok( oParser.parse(), "CHISQ.DIST(2,3,FALSE)" );
 		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 0.20755375, "CHISQ.DIST(2,3,FALSE)" );
+
+		testArrayFormula2("CHISQ.DIST", 3, 3);
 	} );
 
 	test( "Test: \"CHIINV\"", function () {
@@ -2001,6 +2025,8 @@ $( function () {
 		oParser = new parserFormula( "GAMMA.INV(A2,A3,A4)", "A1", ws );
 		ok( oParser.parse(), "GAMMA.INV(A2,A3,A4)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 10.0000112, "GAMMA.INV(A2,A3,A4)" );
+
+		testArrayFormula2("GAMMA.INV", 3, 3);
 	} );
 
 	test( "Test: \"GAMMAINV\"", function () {
@@ -2522,6 +2548,8 @@ $( function () {
         oParser = new parserFormula( "FIXED(1234567)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "1,234,567.00" );
+
+		testArrayFormula2("FIXED", 2, 3);
     } );
 
     test( "Test: \"REPLACE\"", function () {
@@ -2566,6 +2594,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#VALUE!" );
 
+		testArrayFormula2("SEARCH", 2, 3);
     } );
 
     test( "Test: \"SUBSTITUTE\"", function () {
@@ -4781,6 +4810,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( difBetween( oParser.calculate().getValue(), 1.083909233527114 ), true );
 
+        testArrayFormula2("CONFIDENCE", 3, 3);
     } );
 
 	test( "Test: \"CONFIDENCE.NORM\"", function () {
@@ -4799,6 +4829,8 @@ $( function () {
 		oParser = new parserFormula( "CONFIDENCE.T(0.05,1,50)", "A1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().toFixed( 9 ) - 0, 0.284196855);
+
+		testArrayFormula2("CONFIDENCE.T", 3, 3);
 	} );
 
     test( "Test: \"CORREL\"", function () {
@@ -5181,6 +5213,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#NUM!" );
 
+        testArrayFormula2("CRITBINOM", 3, 3);
     } );
 
 	test( "Test: \"CONCAT\"", function () {
@@ -5245,6 +5278,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( difBetween( oParser.calculate().getValue(), 0.968254363621932 ), true );
 
+        testArrayFormula2("EXPONDIST", 3, 3);
     } );
 
 
@@ -6210,6 +6244,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), negbinomdist( 20, 10, 0.63 ) );
 
+        testArrayFormula2("NEGBINOMDIST", 3, 3);
     } );
 
 	test( "Test: \"NEGBINOM.DIST \"", function () {
@@ -6302,6 +6337,8 @@ $( function () {
         oParser = new parserFormula( "LOGINV(0,3.5,1.2)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), loginv( -10, 3.5, 1.2 ) );
+
+        testArrayFormula2("LOGINV", 3, 3);
     } );
 
     test( "Test: \"NORMINV\"", function () {
@@ -6329,6 +6366,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), norminv( -1.6782136, 7, 0 ) );
 
+        testArrayFormula2("NORMINV", 3, 3);
     } );
 
 	test( "Test: \"NORM.INV \"", function () {
@@ -10771,6 +10809,8 @@ $( function () {
 		oParser = new parserFormula( "MID(A101,20,5)", "A2", ws );
 		ok( oParser.parse(), "MID(A101,20,5)" );
 		strictEqual( oParser.calculate().getValue(), "", "MID(A101,20,5))");
+
+		testArrayFormula2("MID", 3, 3);
 	} );
 
 	test( "Test: \"MIDB\"", function () {
@@ -10822,6 +10862,8 @@ $( function () {
 		oParser = new parserFormula( 'FIND("M",A101,3)', "A2", ws );
 		ok( oParser.parse(), 'FIND("M",A101,3)' );
 		strictEqual( oParser.calculate().getValue(), 8, 'FIND("M",A101,3)');
+
+		testArrayFormula2("FIND", 2, 3);
 	} );
 
 	test( "Test: \"FINDB\"", function () {

@@ -785,7 +785,7 @@ function (window, undefined) {
 				arg0.foreach(function (elem, r, c) {
 					var a = elem;
 					var b = arg1.getElementRowCol(r, c);
-					if (a instanceof cNumber && b instanceof cNumber) {
+					if (a instanceof cNumber && b instanceof cNumber && arg2.toBool) {
 						var res = roundHelper(a.getValue(), b.getValue());
 						this.array[r][c] = toFix(res.toString(), arg2.toBool());
 					} else {
@@ -798,7 +798,7 @@ function (window, undefined) {
 			arg0.foreach(function (elem, r, c) {
 				var a = elem;
 				var b = arg1;
-				if (a instanceof cNumber && b instanceof cNumber) {
+				if (a instanceof cNumber && b instanceof cNumber && arg2.toBool) {
 					var res = roundHelper(a.getValue(), b.getValue());
 					this.array[r][c] = toFix(res.toString(), arg2.toBool());
 				} else {
@@ -810,7 +810,7 @@ function (window, undefined) {
 			arg1.foreach(function (elem, r, c) {
 				var a = arg0;
 				var b = elem;
-				if (a instanceof cNumber && b instanceof cNumber) {
+				if (a instanceof cNumber && b instanceof cNumber && arg2.toBool) {
 					var res = roundHelper(a.getValue(), b.getValue());
 					this.array[r][c] = toFix(res.toString(), arg2.toBool());
 				} else {
@@ -828,6 +828,9 @@ function (window, undefined) {
 			cNull = ".";
 			for (var i = 0; i < num_digits; i++, cNull += "0") {
 			}
+		}
+		if(!arg2.toBool) {
+			return new cError(cErrorType.wrong_value_type);
 		}
 		return new cString(oNumFormatCache.get("#" + (arg2.toBool() ? "" : ",") + "##0" + cNull)
 			.format(roundHelper(number, num_digits).getValue(), CellValueType.Number,
