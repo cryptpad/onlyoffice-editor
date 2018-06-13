@@ -8814,6 +8814,7 @@ function (window, undefined) {
 	cPERCENTRANK.prototype.name = 'PERCENTRANK';
 	cPERCENTRANK.prototype.argumentsMin = 2;
 	cPERCENTRANK.prototype.argumentsMax = 3;
+	cPERCENTRANK.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cPERCENTRANK.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array]);
@@ -8862,6 +8863,7 @@ function (window, undefined) {
 	cPERCENTRANK_EXC.prototype.argumentsMin = 2;
 	cPERCENTRANK_EXC.prototype.argumentsMax = 3;
 	cPERCENTRANK_EXC.prototype.isXLFN = true;
+	cPERCENTRANK_EXC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
 	cPERCENTRANK_EXC.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array]);

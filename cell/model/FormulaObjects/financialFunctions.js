@@ -4830,6 +4830,7 @@
 	cTBILLEQ.prototype.argumentsMin = 3;
 	cTBILLEQ.prototype.argumentsMax = 3;
 	cTBILLEQ.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTBILLEQ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cTBILLEQ.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], discount = arg[2];
 
@@ -4907,6 +4908,7 @@
 	cTBILLPRICE.prototype.argumentsMin = 3;
 	cTBILLPRICE.prototype.argumentsMax = 3;
 	cTBILLPRICE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTBILLPRICE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cTBILLPRICE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], discount = arg[2];
 
@@ -4978,6 +4980,7 @@
 	cTBILLYIELD.prototype.argumentsMin = 3;
 	cTBILLYIELD.prototype.argumentsMax = 3;
 	cTBILLYIELD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTBILLYIELD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cTBILLYIELD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], pr = arg[2];
 

@@ -4918,6 +4918,7 @@ function (window, undefined) {
 	cCOMPLEX.prototype.name = 'COMPLEX';
 	cCOMPLEX.prototype.argumentsMin = 2;
 	cCOMPLEX.prototype.argumentsMax = 3;
+	cCOMPLEX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOMPLEX.prototype.Calculate = function (arg) {
 
 		var real = arg[0], img = arg[1],
@@ -4980,6 +4981,7 @@ function (window, undefined) {
 	cCONVERT.prototype.name = 'CONVERT';
 	cCONVERT.prototype.argumentsMin = 3;
 	cCONVERT.prototype.argumentsMax = 3;
+	cCONVERT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCONVERT.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
 		var argClone = oArguments.args;

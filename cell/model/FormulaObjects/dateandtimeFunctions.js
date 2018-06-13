@@ -1329,6 +1329,7 @@
 	cNETWORKDAYS.prototype.argumentsMin = 2;
 	cNETWORKDAYS.prototype.argumentsMax = 3;
 	cNETWORKDAYS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cNETWORKDAYS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cNETWORKDAYS.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
 		var argClone = oArguments.args;
@@ -1851,6 +1852,7 @@
 	cWORKDAY.prototype.argumentsMin = 2;
 	cWORKDAY.prototype.argumentsMax = 3;
 	cWORKDAY.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cWORKDAY.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cWORKDAY.prototype.Calculate = function (arg) {
 		var t = this;
 		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
@@ -2074,6 +2076,7 @@
 	cYEARFRAC.prototype.argumentsMin = 2;
 	cYEARFRAC.prototype.argumentsMax = 3;
 	cYEARFRAC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cYEARFRAC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cYEARFRAC.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(0);
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
