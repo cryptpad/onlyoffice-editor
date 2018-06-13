@@ -2600,7 +2600,7 @@
 	cMMULT.prototype.argumentsMin = 2;
 	cMMULT.prototype.argumentsMax = 2;
 	cMMULT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
-	cMMULT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
+	cMMULT.prototype.returnValueType = {0: 1, 1: 1};
 	cMMULT.prototype.Calculate = function (arg) {
 
 		function mult(A, B) {
@@ -4660,7 +4660,7 @@
 	cSUMX2MY2.prototype.name = 'SUMX2MY2';
 	cSUMX2MY2.prototype.argumentsMin = 2;
 	cSUMX2MY2.prototype.argumentsMax = 2;
-	cSUMX2MY2.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
+	cSUMX2MY2.prototype.returnValueType = {0: 1, 1: 1};
 	cSUMX2MY2.prototype.Calculate = function (arg) {
 
 		function sumX2MY2(a, b, _3d) {
@@ -4742,7 +4742,7 @@
 	cSUMX2PY2.prototype.name = 'SUMX2PY2';
 	cSUMX2PY2.prototype.argumentsMin = 2;
 	cSUMX2PY2.prototype.argumentsMax = 2;
-	cSUMX2PY2.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
+	cSUMX2PY2.prototype.returnValueType = {0: 1, 1: 1};
 	cSUMX2PY2.prototype.Calculate = function (arg) {
 
 		function sumX2MY2(a, b, _3d) {
@@ -4824,7 +4824,7 @@
 	cSUMXMY2.prototype.name = 'SUMXMY2';
 	cSUMXMY2.prototype.argumentsMin = 2;
 	cSUMXMY2.prototype.argumentsMax = 2;
-	cSUMXMY2.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_args;
+	cSUMXMY2.prototype.returnValueType = {0: 1, 1: 1};
 	cSUMXMY2.prototype.Calculate = function (arg) {
 
 		function sumX2MY2(a, b, _3d) {

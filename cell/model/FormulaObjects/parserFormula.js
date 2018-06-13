@@ -449,13 +449,15 @@ var cErrorType = {
 // используоется в returnValueType у каждой формулы
 // not_change_first_args - когда для функции нужно, чтобы первый аргумент был area/ref
 // not_change_args - не изменять предварительно аргументы
+// так же этот параметр у формул может быть массивом - массив индексов аргментов, которые являются входными array/area
 /** @enum */
 var cReturnFormulaType = {
 		value: 0,
 		value_replace_area: 1,
-		array: 2,
-		not_change_first_args: 3,
-		not_change_args: 4
+		array: 2
+		/*not_change_first_args: 3,
+		not_change_args: 4,
+		not_change_2_3_arg: 5*/
 };
 
 var cExcelSignificantDigits = 15; //количество цифр в числе после запятой
@@ -5720,14 +5722,15 @@ parserFormula.prototype.setFormula = function(formula) {
 					//***array-formula***
 					//если данная функция не может возвращать массив, проходимся по всем элементам аргументов и формируем массив
 					var returnFormulaType = currentElement.returnValueType;
-					if(true === currentElement.bArrayFormula && (!returnFormulaType || cReturnFormulaType.value_replace_area === returnFormulaType || cReturnFormulaType.not_change_first_args === returnFormulaType)) {
+					var bIsArrayFormulaType = typeof returnFormulaType === "object";
+					if(true === currentElement.bArrayFormula && (!returnFormulaType || cReturnFormulaType.value_replace_area === returnFormulaType || bIsArrayFormulaType)) {
 
 						//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
 						var tempArgs = [], tempArg, firstArray;
 						var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
 						for (var j = 0; j < argumentsCount; j++) {
 							tempArg = arg[j];
-							if(!(j === 0 && cReturnFormulaType.not_change_first_args === returnFormulaType)) {
+							if(!(bIsArrayFormulaType && returnFormulaType[j])) {
 								if(cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
 									if(replaceAreaByValue) {
 										tempArg = tempArg.cross(opt_bbox);
@@ -5738,7 +5741,7 @@ parserFormula.prototype.setFormula = function(formula) {
 
 							}
 
-							if(cElementType.array === tempArg.type && !(j === 0 && cReturnFormulaType.not_change_first_args === returnFormulaType)) {
+							if(cElementType.array === tempArg.type && !(bIsArrayFormulaType && returnFormulaType[j])) {
 								//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
 								if (!firstArray ||
 									((1 === firstArray.getRowCount() || 1 === firstArray.getCountElementInRow()) &&
@@ -5760,7 +5763,7 @@ parserFormula.prototype.setFormula = function(formula) {
 								var newArgs = [], newArg;
 								for (var j = 0; j < argumentsCount; j++) {
 									newArg = tempArgs[j];
-									if(cElementType.array === newArg.type && !(j === 0 && cReturnFormulaType.not_change_first_args === returnFormulaType)) {
+									if(cElementType.array === newArg.type && !(bIsArrayFormulaType && returnFormulaType[j])) {
 										if(1 === newArg.getRowCount() && 1 === newArg.getCountElementInRow()) {
 											newArg = newArg.array[0] ? newArg.array[0][0] : null;
 										} else if(1 === newArg.getRowCount()) {

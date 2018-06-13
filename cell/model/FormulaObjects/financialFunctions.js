@@ -2637,7 +2637,7 @@
 	cIRR.prototype.argumentsMin = 1;
 	cIRR.prototype.argumentsMax = 2;
 	cIRR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
-	cIRR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.not_change_first_args;
+	cIRR.prototype.returnValueType = {0: 1};
 	cIRR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(0.1);
 
