@@ -5722,15 +5722,15 @@ parserFormula.prototype.setFormula = function(formula) {
 					//***array-formula***
 					//если данная функция не может возвращать массив, проходимся по всем элементам аргументов и формируем массив
 					var returnFormulaType = currentElement.returnValueType;
-					var bIsArrayFormulaType = typeof returnFormulaType === "object";
-					if(true === currentElement.bArrayFormula && (!returnFormulaType || cReturnFormulaType.value_replace_area === returnFormulaType || bIsArrayFormulaType)) {
+					var arrayIndexes = currentElement.arrayIndexes;
+					if(true === currentElement.bArrayFormula && (!returnFormulaType || cReturnFormulaType.value_replace_area === returnFormulaType || arrayIndexes)) {
 
 						//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
 						var tempArgs = [], tempArg, firstArray;
 						var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
 						for (var j = 0; j < argumentsCount; j++) {
 							tempArg = arg[j];
-							if(!(bIsArrayFormulaType && returnFormulaType[j])) {
+							if(!(arrayIndexes && arrayIndexes[j])) {
 								if(cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
 									if(replaceAreaByValue) {
 										tempArg = tempArg.cross(opt_bbox);
@@ -5741,7 +5741,7 @@ parserFormula.prototype.setFormula = function(formula) {
 
 							}
 
-							if(cElementType.array === tempArg.type && !(bIsArrayFormulaType && returnFormulaType[j])) {
+							if(cElementType.array === tempArg.type && !(arrayIndexes && arrayIndexes[j])) {
 								//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
 								if (!firstArray ||
 									((1 === firstArray.getRowCount() || 1 === firstArray.getCountElementInRow()) &&
@@ -5763,7 +5763,7 @@ parserFormula.prototype.setFormula = function(formula) {
 								var newArgs = [], newArg;
 								for (var j = 0; j < argumentsCount; j++) {
 									newArg = tempArgs[j];
-									if(cElementType.array === newArg.type && !(bIsArrayFormulaType && returnFormulaType[j])) {
+									if(cElementType.array === newArg.type && !(arrayIndexes && arrayIndexes[j])) {
 										if(1 === newArg.getRowCount() && 1 === newArg.getCountElementInRow()) {
 											newArg = newArg.array[0] ? newArg.array[0][0] : null;
 										} else if(1 === newArg.getRowCount()) {

@@ -1449,6 +1449,9 @@ $( function () {
 		oParser = new parserFormula( "2 * MIN(ZTEST(A2:A11,6), 1 - ZTEST(A2:A11,6))", "A1", ws );
 		ok( oParser.parse(), "2 * MIN(ZTEST(A2:A11,6), 1 - ZTEST(A2:A11,6))" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.273913, "2 * MIN(ZTEST(A2:A11,6), 1 - ZTEST(A2:A11,6))" );
+
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("Z.TEST", 2, 3, null, true);
 	} );
 
 	test( "Test: \"Z.TEST\"", function () {
@@ -1478,6 +1481,9 @@ $( function () {
 		oParser = new parserFormula( "2 * MIN(Z.TEST(A2:A11,6), 1 - Z.TEST(A2:A11,6))", "A1", ws );
 		ok( oParser.parse(), "2 * MIN(Z.TEST(A2:A11,6), 1 - Z.TEST(A2:A11,6))" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.273913, "2 * MIN(Z.TEST(A2:A11,6), 1 - Z.TEST(A2:A11,6))" );
+
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("Z.TEST", 2, 3, null, true);
 	} );
 
 
@@ -10735,7 +10741,7 @@ $( function () {
 		oParser = new parserFormula( 'IFS(2<1,"TEST",2<1,2,4>3,"TEST2")', "AA2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "TEST2");
-        
+
 	});
 
 	test( "Test: \"IF\"", function () {
@@ -10758,6 +10764,8 @@ $( function () {
 		ok(oParser.parse());
 		strictEqual(oParser.calculate().getValue(), "No");
 
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("IF", 2, 3);
 	});
 
 	test( "Test: \"COLUMN\"", function () {
