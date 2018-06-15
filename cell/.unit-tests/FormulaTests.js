@@ -2576,6 +2576,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "abcdefghijkXY" );
 
+        testArrayFormula2("REPLACE", 4, 4);
     } );
 
     test( "Test: \"SEARCH\"", function () {
@@ -2625,6 +2626,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "abcaxxabca" );
 
+        testArrayFormula2("SUBSTITUTE", 3, 4);
     } );
 
 	test( "Test: \"SHEET\"", function () {
@@ -4817,6 +4819,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#NUM!" );
 
+        testArrayFormula2("BINOMDIST", 4, 4);
     } );
 
 	test( "Test: \"BINOM.DIST\"", function () {

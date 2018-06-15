@@ -1854,6 +1854,7 @@
 	cWORKDAY.prototype.argumentsMax = 3;
 	cWORKDAY.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cWORKDAY.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cWORKDAY.prototype.arrayIndexes = {2: 1};
 	cWORKDAY.prototype.Calculate = function (arg) {
 		var t = this;
 		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
