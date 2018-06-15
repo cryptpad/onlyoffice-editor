@@ -5325,28 +5325,34 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
     // TODO: Надо проверить как работает весь код с автозаменой, перед тем как влючать его.
     // return;
     
-    if (ActionElement.value !== 32)   // если текущий символ не пробел то автозамена не осуществляется (чисто пока временная мера)
-        return;
+    // if (ActionElement.value !== 32)   // если текущий символ не пробел то автозамена не осуществляется (чисто пока временная мера)
+    //     return;
 
     var bNeedAutoCorrect = this.private_NeedAutoCorrect(ActionElement);
 
     var AutoCorrectEngine = new CMathAutoCorrectEngine(ActionElement);
-    AutoCorrectEngine.CurElement = this.CurPos; 
+    AutoCorrectEngine.CurElement = this.CurPos;
+    
+    //необходимо найти все скобки и запомнить что находится между ними
+    AutoCorrectEngine.Find_Bracket(this.Content);
+    //добавить все элементы между закрывающейся и открывающейся скобкой если она есть или все до текущего положения курсора
+    AutoCorrectEngine.Add_Element(this.Content);
 
     // var nCount = this.Content.length;
-    var nCount = this.CurPos;
-    for (var nPos = 0; nPos <= nCount; nPos++)
-    {
-        var Element = this.Content[nPos];
 
-        // if (para_Math_Run === AutoCorrectEngine.Type)
-        //     Element.Get_TextForAutoCorrect(AutoCorrectEngine, nPos);
-        // else if (Element.Content && Element.Content.length !== 0)                    //if (!Element['Bounds']) //пока не ясно, что делать, когда приходить объект, а не тупо текст
-            AutoCorrectEngine.Add_Element(Element, nPos);
+    // var nCount = this.CurPos;
+    // for (var nPos = 0; nPos <= nCount; nPos++)
+    // {
+    //     var Element = this.Content[nPos];
 
-        if (false === AutoCorrectEngine.CollectText)
-            break;
-    }
+    //     // if (para_Math_Run === AutoCorrectEngine.Type)
+    //     //     Element.Get_TextForAutoCorrect(AutoCorrectEngine, nPos);
+    //     // else if (Element.Content && Element.Content.length !== 0)                    //if (!Element['Bounds']) //пока не ясно, что делать, когда приходить объект, а не тупо текст
+    //         AutoCorrectEngine.Add_Element(Element, nPos);
+
+    //     if (false === AutoCorrectEngine.CollectText)
+    //         break;
+    // }
 
     // AutoCorrectEngine.Elements[0].Run.Remove_FromContent(AutoCorrectEngine.Elements[0].Pos, 1); // удалит текст в pararun
 
@@ -7772,31 +7778,43 @@ CMathBracketAcc.prototype.Compare             = function()
 
 function CMathAutoCorrectEngine(Element)
 {
-    this.ActionElement  = Element; // Элемент на которотом срабатывает автодополнение
-    this.CurElement     = 0;       // индекс текущего элемента, где стоит курсор
-    this.Elements       = [];
+    this.ActionElement   = Element; // Элемент на которотом срабатывает автодополнение
+    this.CurElement      = 0;       // индекс текущего элемента, где стоит курсор
+    this.Elements        = [];
+    this.Backets         = [];      // массив, который хранит все скобки в формуле
+    this.BacketsInActive = false;
 
-    this.CollectText    = true;
-    this.Type			= null;
-    this.Kind			= null;
-    this.Delimiter		= null;
+    this.CollectText     = true;
+    this.Type			 = null;
+    this.Kind			 = null;
+    this.Delimiter		 = null;
 
-    this.RemoveCount    = 0;
-    this.ReplaceContent = [];
-    this.Shift 			= 0;
+    this.RemoveCount     = 0;
+    this.ReplaceContent  = [];
+    this.Shift 			 = 0;
 
-    this.TextPr         = null;
-    this.MathPr         = null;
+    this.TextPr          = null;
+    this.MathPr          = null;
 }
 
-CMathAutoCorrectEngine.prototype.Add_Element = function(Element, ElementPos)
+CMathAutoCorrectEngine.prototype.Add_Element = function(Content)
 {
-    if (Element.Type === para_Math_Run) {
-        this.Elements.push({Element, ElementPos : ElementPos, Type:Element.Type});
+    if (this.BacketsInActive) {
+        // найти левую скобку парную правой и все что между ними запомнить
     } else {
-        this.Elements.push({Element, ElementPos : ElementPos, Type:Element.__proto__.kind});
-    }
-    
+        var nCount = this.CurElement;
+        for (var nPos = 0; nPos <= nCount; nPos++)
+        {
+            var Element = Content[nPos];
+            if (Element.Type === para_Math_Run) {
+                this.Elements.push({Element, ElementPos : nPos, Type:Element.Type});
+            } else {
+                this.Elements.push({Element, ElementPos : nPos, Type:Element.__proto__.kind});
+            }
+            if (false === this.CollectText)
+                break;
+        }
+    }    
 };
 
 CMathAutoCorrectEngine.prototype.Add_Text = function(Text, Run, Pos, ElementPos, Type)
@@ -7812,6 +7830,43 @@ CMathAutoCorrectEngine.prototype.Get_ActionElement = function()
 CMathAutoCorrectEngine.prototype.Stop_CollectText = function()
 {
     this.CollectText = false;
+};
+
+CMathAutoCorrectEngine.prototype.Find_Bracket = function (Content) {
+    for (let i = 0; i < Content.length; i++) {
+        if (Content[i].Type === 49) {
+            for (let k = 0; k < Content[i].Content.length; k++) {
+                if (i === this.CurElement && k >= Content[i].State.ContentPos - 1) {
+                    break;
+                }
+                if (g_MathLeftBracketAutoCorrectCharCodes[Content[i].Content[k].value]) {
+                    let Bracket = {
+                        BracketCode : Content[i].Content[k].value,
+                        ObjectPos : i,
+                        PosInObj : k,
+                        InActEl : (i === this.CurElement) ? true : false,
+                        IsLeft : true
+                    };
+                    this.Backets.push(Bracket);
+                    continue;
+                }
+                if (g_MathRightBracketAutoCorrectCharCodes[Content[i].Content[k].value]) {
+                    let Bracket = {
+                        BracketCode : Content[i].Content[k].value,
+                        ObjectPos : i,
+                        PosInObj : k,
+                        InActEl : false,
+                        IsLeft : false
+                    };
+                    if (i === this.CurElement) {
+                        this.BacketsInActive = true;
+                        Bracket.InActEl = true;
+                    }
+                    this.Backets.push(Bracket); 
+                }
+            }
+        }
+    }
 };
 
 var g_aAutoCorrectMathFuncSymbols =
@@ -8332,14 +8387,15 @@ var g_aMathAutoCorrectTriggerEquationCharCodes =
 //left brackets
 var g_MathLeftBracketAutoCorrectCharCodes =
 {
-    0x28 : 1, 0x5B : 1, 0x7B : 1, 0x7C : 1, 0x2016 : 1,
-    0x27E8 : 1, 0x2329 : 1, 0x27E6 : 1, 0x2308 : 1, 0x230A : 1,
+    0x28 : 1, 0x5B : 1, 0x7B : 1, 0x7C : 1, 0x2016 : 1, 0x27E8 : 1,
+    0x2329 : 1, 0x27E6 : 1, 0x27EA : 1, 0x2308 : 1, 0x230A : 1,
     0x3016 : 1, 0x251C : 1
 };
+//righ brackets
 var g_MathRightBracketAutoCorrectCharCodes =
 {
     0x29 : 1, 0x5D : 1, 0x7D : 1, 0x7C : 1, 0x2016 : 1, 0x27E9 : 1,
-    0x232A : 1, 0x27EB : 1, 0x27E7 : 1, 0x2309 : 1, 0x230B : 1,
+    0x232A : 1, 0x27E7 : 1, 0x27EB : 1, 0x2309 : 1, 0x230B : 1,   
     0x3017 : 1, 0x2524 : 1
 };
 //знаки (минус, сумма...)
