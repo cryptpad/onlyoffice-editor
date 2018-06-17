@@ -5608,7 +5608,7 @@ function (window, undefined) {
 	cF_DIST.prototype = Object.create(cBaseFunction.prototype);
 	cF_DIST.prototype.constructor = cF_DIST;
 	cF_DIST.prototype.name = "F.DIST";
-	cF_DIST.prototype.argumentsMin = 3;
+	cF_DIST.prototype.argumentsMin = 4;
 	cF_DIST.prototype.argumentsMax = 4;
 	cF_DIST.prototype.isXLFN = true;
 	cF_DIST.prototype.Calculate = function (arg) {
@@ -10636,6 +10636,7 @@ function (window, undefined) {
 	cTTEST.prototype.name = 'TTEST';
 	cTTEST.prototype.argumentsMin = 4;
 	cTTEST.prototype.argumentsMax = 4;
+	cTTEST.prototype.arrayIndexes = {0: 1, 1: 1};
 	cTTEST.prototype.Calculate = function (arg) {
 
 		var arg2 = [arg[0], arg[1], arg[2], arg[3]];

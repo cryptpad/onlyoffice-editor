@@ -3932,6 +3932,8 @@
 	cSERIESSUM.prototype.name = 'SERIESSUM';
 	cSERIESSUM.prototype.argumentsMin = 4;
 	cSERIESSUM.prototype.argumentsMax = 4;
+	cSERIESSUM.prototype.arrayIndexes = {3: 1};
+	cSERIESSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cSERIESSUM.prototype.Calculate = function (arg) {
 
 		function SERIESSUM(x, n, m, a) {

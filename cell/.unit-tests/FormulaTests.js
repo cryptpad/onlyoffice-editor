@@ -1394,6 +1394,9 @@ $( function () {
 		oParser = new parserFormula( "TTEST(A2:A10,B2:B10,2,1)", "A1", ws );
 		ok( oParser.parse(), "TTEST(A2:A10,B2:B10,2,1)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.196016, "TTEST(A2:A10,B2:B10,2,1)" );
+
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("TTEST", 4, 4, null, true);
 	} );
 
 	test( "Test: \"T.TEST\"", function () {
@@ -1500,6 +1503,8 @@ $( function () {
 		oParser = new parserFormula( "F.DIST(A2,A3,A4,FALSE)", "A1", ws );
 		ok( oParser.parse(), "F.DIST(A2,A3,A4,FALSE)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0012238, "F.DIST(A2,A3,A4,FALSE)" );
+
+		testArrayFormula2("F.DIST", 4, 4);
 	} );
 
 	test( "Test: \"F.DIST.RT\"", function () {
@@ -1710,6 +1715,8 @@ $( function () {
 		oParser = new parserFormula( "LOGNORM.DIST(A2,A3,A4,FALSE)", "A1", ws );
 		ok( oParser.parse(), "LOGNORM.DIST(A2,A3,A4,FALSE)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0176176, "LOGNORM.DIST(A2,A3,A4,FALSE)" );
+
+		testArrayFormula2("LOGNORM.DIST", 4, 4);
 	} );
 
 	test( "Test: \"LOGNORM.INV\"", function () {
@@ -1748,6 +1755,8 @@ $( function () {
 		oParser = new parserFormula( "GAMMA.DIST(A2,A3,A4,TRUE)", "A1", ws );
 		ok( oParser.parse(), "GAMMA.DIST(A2,A3,A4,TRUE)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.068094, "GAMMA.DIST(A2,A3,A4,TRUE)" );
+
+		testArrayFormula2("GAMMA.DIST", 4, 4);
 	} );
 
 	test( "Test: \"GAMMADIST\"", function () {
@@ -3633,6 +3642,8 @@ $( function () {
 		oParser = new parserFormula( "WEIBULL(A2,A3,A4,FALSE)", "A20", ws );
 		ok( oParser.parse(), "WEIBULL(A2,A3,A4,FALSE)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.035589 );
+
+		testArrayFormula2("WEIBULL", 4, 4);
 	} );
 
 	test( "Test: \"WEIBULL.DIST\"", function () {
@@ -4519,6 +4530,8 @@ $( function () {
         ok( oParser.parse() );
         ok( Math.abs( oParser.calculate().getValue() - (Math.PI / 4 - 1 / Math.fact( 3 ) * Math.pow( Math.PI / 4, 3 ) + 1 / Math.fact( 5 ) * Math.pow( Math.PI / 4, 5 ) - 1 / Math.fact( 7 ) * Math.pow( Math.PI / 4, 7 )) ) < dif );
 
+		//TODO нужна другая функция для тестирования
+        //testArrayFormula2("SERIESSUM", 4, 4);
     } );
 
     /*
@@ -5867,6 +5880,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#NUM!" );
 
+        testArrayFormula2("HYPGEOMDIST", 4, 4);
     } );
 
 	test( "Test: \"HYPGEOM.DIST\"", function () {
@@ -6217,6 +6231,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), normdist( 1, 40, -1.5, true ) );
 
+        testArrayFormula2("NORMDIST", 4, 4);
     } );
 
 	test( "Test: \"NORM.DIST \"", function () {
@@ -6305,6 +6320,8 @@ $( function () {
 		oParser = new parserFormula( "NEGBINOM.DIST(F202,F203,F204,FALSE)", "F1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0550487 );
+
+		testArrayFormula2("NEGBINOM.DIST", 4, 4);
 	} );
 
 	test( "Test: \"NEGBINOMDIST \"", function () {
