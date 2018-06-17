@@ -1058,6 +1058,7 @@
 	cCOUPDAYBS.prototype.argumentsMin = 3;
 	cCOUPDAYBS.prototype.argumentsMax = 4;
 	cCOUPDAYBS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPDAYBS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPDAYBS.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1135,6 +1136,7 @@
 	cCOUPDAYS.prototype.argumentsMin = 3;
 	cCOUPDAYS.prototype.argumentsMax = 4;
 	cCOUPDAYS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPDAYS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPDAYS.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1211,6 +1213,7 @@
 	cCOUPDAYSNC.prototype.argumentsMin = 3;
 	cCOUPDAYSNC.prototype.argumentsMax = 4;
 	cCOUPDAYSNC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPDAYSNC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPDAYSNC.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1287,6 +1290,7 @@
 	cCOUPNCD.prototype.argumentsMin = 3;
 	cCOUPNCD.prototype.argumentsMax = 4;
 	cCOUPNCD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPNCD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPNCD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1365,6 +1369,7 @@
 	cCOUPNUM.prototype.argumentsMin = 3;
 	cCOUPNUM.prototype.argumentsMax = 4;
 	cCOUPNUM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPNUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPNUM.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
