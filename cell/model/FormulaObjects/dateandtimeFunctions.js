@@ -697,6 +697,7 @@
 	function cDATEVALUE() {
 	}
 
+	//***array-formula***
 	cDATEVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cDATEVALUE.prototype.constructor = cDATEVALUE;
 	cDATEVALUE.prototype.name = 'DATEVALUE';
@@ -733,6 +734,7 @@
 	function cDAY() {
 	}
 
+	//***array-formula***
 	cDAY.prototype = Object.create(cBaseFunction.prototype);
 	cDAY.prototype.constructor = cDAY;
 	cDAY.prototype.name = 'DAY';
@@ -1055,6 +1057,7 @@
 	function cHOUR() {
 	}
 
+	//***array-formula***
 	cHOUR.prototype = Object.create(cBaseFunction.prototype);
 	cHOUR.prototype.constructor = cHOUR;
 	cHOUR.prototype.name = 'HOUR';
@@ -1168,6 +1171,7 @@
 	function cMINUTE() {
 	}
 
+	//***array-formula***
 	cMINUTE.prototype = Object.create(cBaseFunction.prototype);
 	cMINUTE.prototype.constructor = cMINUTE;
 	cMINUTE.prototype.name = 'MINUTE';
@@ -1247,6 +1251,7 @@
 	function cMONTH() {
 	}
 
+	//***array-formula***
 	cMONTH.prototype = Object.create(cBaseFunction.prototype);
 	cMONTH.prototype.constructor = cMONTH;
 	cMONTH.prototype.name = 'MONTH';
@@ -1494,6 +1499,7 @@
 	function cSECOND() {
 	}
 
+	//***array-formula***
 	cSECOND.prototype = Object.create(cBaseFunction.prototype);
 	cSECOND.prototype.constructor = cSECOND;
 	cSECOND.prototype.name = 'SECOND';
@@ -1630,6 +1636,7 @@
 	function cTIMEVALUE() {
 	}
 
+	//***array-formula***
 	cTIMEVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cTIMEVALUE.prototype.constructor = cTIMEVALUE;
 	cTIMEVALUE.prototype.name = 'TIMEVALUE';
@@ -2001,6 +2008,7 @@
 	function cYEAR() {
 	}
 
+	//***array-formula***
 	cYEAR.prototype = Object.create(cBaseFunction.prototype);
 	cYEAR.prototype.constructor = cYEAR;
 	cYEAR.prototype.name = 'YEAR';

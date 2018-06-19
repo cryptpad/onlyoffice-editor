@@ -4516,11 +4516,13 @@ function (window, undefined) {
 	function cBIN2DEC() {
 	}
 
+	//***array-formula***
 	cBIN2DEC.prototype = Object.create(cBaseFunction.prototype);
 	cBIN2DEC.prototype.constructor = cBIN2DEC;
 	cBIN2DEC.prototype.name = 'BIN2DEC';
 	cBIN2DEC.prototype.argumentsMin = 1;
 	cBIN2DEC.prototype.argumentsMax = 1;
+	cBIN2DEC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBIN2DEC.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -5363,12 +5365,14 @@ function (window, undefined) {
 	function cERF_PRECISE() {
 	}
 
+	//***array-formula***
 	cERF_PRECISE.prototype = Object.create(cBaseFunction.prototype);
 	cERF_PRECISE.prototype.constructor = cERF_PRECISE;
 	cERF_PRECISE.prototype.name = 'ERF.PRECISE';
 	cERF_PRECISE.prototype.argumentsMin = 1;
 	cERF_PRECISE.prototype.argumentsMax = 1;
 	cERF_PRECISE.prototype.isXLFN = true;
+	cERF_PRECISE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cERF_PRECISE.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -5396,11 +5400,13 @@ function (window, undefined) {
 	function cERFC() {
 	}
 
+	//***array-formula***
 	cERFC.prototype = Object.create(cBaseFunction.prototype);
 	cERFC.prototype.constructor = cERFC;
 	cERFC.prototype.name = 'ERFC';
 	cERFC.prototype.argumentsMin = 1;
 	cERFC.prototype.argumentsMax = 1;
+	cERFC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cERFC.prototype.Calculate = function (arg) {
 
 		var a = arg[0];
@@ -5557,6 +5563,7 @@ function (window, undefined) {
 	function cHEX2DEC() {
 	}
 
+	//***array-formula***
 	cHEX2DEC.prototype = Object.create(cBaseFunction.prototype);
 	cHEX2DEC.prototype.constructor = cHEX2DEC;
 	cHEX2DEC.prototype.name = 'HEX2DEC';
@@ -5678,6 +5685,7 @@ function (window, undefined) {
 	function cIMABS() {
 	}
 
+	//***array-formula***
 	cIMABS.prototype = Object.create(cBaseFunction.prototype);
 	cIMABS.prototype.constructor = cIMABS;
 	cIMABS.prototype.name = 'IMABS';
@@ -5719,6 +5727,7 @@ function (window, undefined) {
 	function cIMAGINARY() {
 	}
 
+	//***array-formula***
 	cIMAGINARY.prototype = Object.create(cBaseFunction.prototype);
 	cIMAGINARY.prototype.constructor = cIMAGINARY;
 	cIMAGINARY.prototype.name = 'IMAGINARY';
@@ -5760,6 +5769,7 @@ function (window, undefined) {
 	function cIMARGUMENT() {
 	}
 
+	//***array-formula***
 	cIMARGUMENT.prototype = Object.create(cBaseFunction.prototype);
 	cIMARGUMENT.prototype.constructor = cIMARGUMENT;
 	cIMARGUMENT.prototype.name = 'IMARGUMENT';
@@ -5801,6 +5811,7 @@ function (window, undefined) {
 	function cIMCONJUGATE() {
 	}
 
+	//***array-formula***
 	cIMCONJUGATE.prototype = Object.create(cBaseFunction.prototype);
 	cIMCONJUGATE.prototype.constructor = cIMCONJUGATE;
 	cIMCONJUGATE.prototype.name = 'IMCONJUGATE';
@@ -5842,6 +5853,7 @@ function (window, undefined) {
 	function cIMCOS() {
 	}
 
+	//***array-formula***
 	cIMCOS.prototype = Object.create(cBaseFunction.prototype);
 	cIMCOS.prototype.constructor = cIMCOS;
 	cIMCOS.prototype.name = 'IMCOS';
@@ -5885,6 +5897,7 @@ function (window, undefined) {
 	function cIMCOSH() {
 	}
 
+	//***array-formula***
 	cIMCOSH.prototype = Object.create(cBaseFunction.prototype);
 	cIMCOSH.prototype.constructor = cIMCOSH;
 	cIMCOSH.prototype.name = 'IMCOSH';
@@ -5933,6 +5946,7 @@ function (window, undefined) {
 	function cIMCOT() {
 	}
 
+	//***array-formula***
 	cIMCOT.prototype = Object.create(cBaseFunction.prototype);
 	cIMCOT.prototype.constructor = cIMCOT;
 	cIMCOT.prototype.name = 'IMCOT';
@@ -5984,6 +5998,7 @@ function (window, undefined) {
 	function cIMCSC() {
 	}
 
+	//***array-formula***
 	//TODO проверить!!!
 	cIMCSC.prototype = Object.create(cBaseFunction.prototype);
 	cIMCSC.prototype.constructor = cIMCSC;
@@ -6037,6 +6052,7 @@ function (window, undefined) {
 	function cIMCSCH() {
 	}
 
+	//***array-formula***
 	//TODO проверить!!!
 	cIMCSCH.prototype = Object.create(cBaseFunction.prototype);
 	cIMCSCH.prototype.constructor = cIMCSCH;
@@ -6144,6 +6160,7 @@ function (window, undefined) {
 	function cIMEXP() {
 	}
 
+	//***array-formula***
 	cIMEXP.prototype = Object.create(cBaseFunction.prototype);
 	cIMEXP.prototype.constructor = cIMEXP;
 	cIMEXP.prototype.name = 'IMEXP';
@@ -6187,6 +6204,7 @@ function (window, undefined) {
 	function cIMLN() {
 	}
 
+	//***array-formula***
 	cIMLN.prototype = Object.create(cBaseFunction.prototype);
 	cIMLN.prototype.constructor = cIMLN;
 	cIMLN.prototype.name = 'IMLN';
@@ -6234,6 +6252,7 @@ function (window, undefined) {
 	function cIMLOG10() {
 	}
 
+	//***array-formula***
 	cIMLOG10.prototype = Object.create(cBaseFunction.prototype);
 	cIMLOG10.prototype.constructor = cIMLOG10;
 	cIMLOG10.prototype.name = 'IMLOG10';
@@ -6281,6 +6300,7 @@ function (window, undefined) {
 	function cIMLOG2() {
 	}
 
+	//***array-formula***
 	cIMLOG2.prototype = Object.create(cBaseFunction.prototype);
 	cIMLOG2.prototype.constructor = cIMLOG2;
 	cIMLOG2.prototype.name = 'IMLOG2';
@@ -6484,6 +6504,7 @@ function (window, undefined) {
 	function cIMREAL() {
 	}
 
+	//***array-formula***
 	cIMREAL.prototype = Object.create(cBaseFunction.prototype);
 	cIMREAL.prototype.constructor = cIMREAL;
 	cIMREAL.prototype.name = 'IMREAL';
@@ -6525,6 +6546,7 @@ function (window, undefined) {
 	function cIMSEC() {
 	}
 
+	//***array-formula***
 	cIMSEC.prototype = Object.create(cBaseFunction.prototype);
 	cIMSEC.prototype.constructor = cIMSEC;
 	cIMSEC.prototype.name = 'IMSEC';
@@ -6573,6 +6595,7 @@ function (window, undefined) {
 	function cIMSECH() {
 	}
 
+	//***array-formula***
 	cIMSECH.prototype = Object.create(cBaseFunction.prototype);
 	cIMSECH.prototype.constructor = cIMSECH;
 	cIMSECH.prototype.name = 'IMSECH';
@@ -6622,6 +6645,7 @@ function (window, undefined) {
 	function cIMSIN() {
 	}
 
+	//***array-formula***
 	cIMSIN.prototype = Object.create(cBaseFunction.prototype);
 	cIMSIN.prototype.constructor = cIMSIN;
 	cIMSIN.prototype.name = 'IMSIN';
@@ -6669,6 +6693,7 @@ function (window, undefined) {
 	function cIMSINH() {
 	}
 
+	//***array-formula***
 	cIMSINH.prototype = Object.create(cBaseFunction.prototype);
 	cIMSINH.prototype.constructor = cIMSINH;
 	cIMSINH.prototype.name = 'IMSINH';
@@ -6717,6 +6742,7 @@ function (window, undefined) {
 	function cIMSQRT() {
 	}
 
+	//***array-formula***
 	cIMSQRT.prototype = Object.create(cBaseFunction.prototype);
 	cIMSQRT.prototype.constructor = cIMSQRT;
 	cIMSQRT.prototype.name = 'IMSQRT';
@@ -6913,6 +6939,7 @@ function (window, undefined) {
 	function cIMTAN() {
 	}
 
+	//***array-formula***
 	//TODO проверить!!!
 	cIMTAN.prototype = Object.create(cBaseFunction.prototype);
 	cIMTAN.prototype.constructor = cIMTAN;
@@ -7035,11 +7062,13 @@ function (window, undefined) {
 	function cOCT2DEC() {
 	}
 
+	//***array-formula***
 	cOCT2DEC.prototype = Object.create(cBaseFunction.prototype);
 	cOCT2DEC.prototype.constructor = cOCT2DEC;
 	cOCT2DEC.prototype.name = 'OCT2DEC';
 	cOCT2DEC.prototype.argumentsMin = 1;
 	cOCT2DEC.prototype.argumentsMax = 1;
+	cOCT2DEC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cOCT2DEC.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];

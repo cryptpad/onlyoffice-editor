@@ -120,6 +120,7 @@
 	function cISBLANK() {
 	}
 
+	//***array-formula***
 	cISBLANK.prototype = Object.create(cBaseFunction.prototype);
 	cISBLANK.prototype.constructor = cISBLANK;
 	cISBLANK.prototype.name = 'ISBLANK';
@@ -146,6 +147,7 @@
 	function cISERR() {
 	}
 
+	//***array-formula***
 	cISERR.prototype = Object.create(cBaseFunction.prototype);
 	cISERR.prototype.constructor = cISERR;
 	cISERR.prototype.name = 'ISERR';
@@ -172,9 +174,11 @@
 	 * @constructor
 	 * @extends {AscCommonExcel.cBaseFunction}
 	 */
+
 	function cISERROR() {
 	}
 
+	//***array-formula***
 	cISERROR.prototype = Object.create(cBaseFunction.prototype);
 	cISERROR.prototype.constructor = cISERROR;
 	cISERROR.prototype.name = 'ISERROR';
@@ -204,11 +208,13 @@
 	function cISEVEN() {
 	}
 
+	//***array-formula***
 	cISEVEN.prototype = Object.create(cBaseFunction.prototype);
 	cISEVEN.prototype.constructor = cISEVEN;
 	cISEVEN.prototype.name = 'ISEVEN';
 	cISEVEN.prototype.argumentsMin = 1;
 	cISEVEN.prototype.argumentsMax = 1;
+	cISEVEN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cISEVEN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -268,6 +274,7 @@
 	function cISLOGICAL() {
 	}
 
+	//***array-formula***
 	cISLOGICAL.prototype = Object.create(cBaseFunction.prototype);
 	cISLOGICAL.prototype.constructor = cISLOGICAL;
 	cISLOGICAL.prototype.name = 'ISLOGICAL';
@@ -297,6 +304,7 @@
 	function cISNA() {
 	}
 
+	//***array-formula***
 	cISNA.prototype = Object.create(cBaseFunction.prototype);
 	cISNA.prototype.constructor = cISNA;
 	cISNA.prototype.name = 'ISNA';
@@ -326,6 +334,7 @@
 	function cISNONTEXT() {
 	}
 
+	//***array-formula***
 	cISNONTEXT.prototype = Object.create(cBaseFunction.prototype);
 	cISNONTEXT.prototype.constructor = cISNONTEXT;
 	cISNONTEXT.prototype.name = 'ISNONTEXT';
@@ -354,6 +363,7 @@
 	function cISNUMBER() {
 	}
 
+	//***array-formula***
 	cISNUMBER.prototype = Object.create(cBaseFunction.prototype);
 	cISNUMBER.prototype.constructor = cISNUMBER;
 	cISNUMBER.prototype.name = 'ISNUMBER';
@@ -383,11 +393,13 @@
 	function cISODD() {
 	}
 
+	//***array-formula***
 	cISODD.prototype = Object.create(cBaseFunction.prototype);
 	cISODD.prototype.constructor = cISODD;
 	cISODD.prototype.name = 'ISODD';
 	cISODD.prototype.argumentsMin = 1;
 	cISODD.prototype.argumentsMax = 1;
+	cISODD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cISODD.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -417,11 +429,13 @@
 	function cISREF() {
 	}
 
+	//***array-formula***
 	cISREF.prototype = Object.create(cBaseFunction.prototype);
 	cISREF.prototype.constructor = cISREF;
 	cISREF.prototype.name = 'ISREF';
 	cISREF.prototype.argumentsMin = 1;
 	cISREF.prototype.argumentsMax = 1;
+	cISREF.prototype.arrayIndexes = {0:1};
 	cISREF.prototype.Calculate = function (arg) {
 		if ((arg[0] instanceof cRef || arg[0] instanceof cArea || arg[0] instanceof cArea3D ||
 			arg[0] instanceof cRef3D) && arg[0].isValid && arg[0].isValid()) {
@@ -438,6 +452,7 @@
 	function cISTEXT() {
 	}
 
+	//***array-formula***
 	cISTEXT.prototype = Object.create(cBaseFunction.prototype);
 	cISTEXT.prototype.constructor = cISTEXT;
 	cISTEXT.prototype.name = 'ISTEXT';

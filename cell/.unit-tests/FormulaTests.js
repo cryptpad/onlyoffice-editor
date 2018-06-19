@@ -1059,6 +1059,8 @@ $( function () {
 		oParser = new parserFormula( "SECOND(A204)", "A1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 0 );
+
+		testArrayFormula2("SECOND",1,1);
 	} );
 
 	test( "Test: \"FLOOR\"", function () {
@@ -1207,6 +1209,97 @@ $( function () {
 		strictEqual( oParser.calculate().getValue(), -4, 'ISO.CEILING(-4.3,-2)' );
 
 		testArrayFormula2("ISO.CEILING", 1, 2);
+	} );
+
+	test( "Test: \"ISBLANK\"", function () {
+
+		ws.getRange2( "A202" ).setValue( "" );
+		ws.getRange2( "A203" ).setValue( "test" );
+
+		oParser = new parserFormula( 'ISBLANK(A202)', "A1", ws );
+		ok( oParser.parse(), 'ISBLANK(A202)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE", 'ISBLANK(A202)' );
+
+		oParser = new parserFormula( 'ISBLANK(A203)', "A1", ws );
+		ok( oParser.parse(), 'ISBLANK(A203)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE", 'ISBLANK(A203)' );
+
+		testArrayFormula2("ISBLANK", 1, 1);
+	} );
+
+	test( "Test: \"ISERROR\"", function () {
+
+		ws.getRange2( "A202" ).setValue( "" );
+		ws.getRange2( "A203" ).setValue( "#N/A" );
+
+		oParser = new parserFormula( 'ISERROR(A202)', "A1", ws );
+		ok( oParser.parse(), 'ISERROR(A202)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE", 'ISERROR(A202)' );
+
+		oParser = new parserFormula( 'ISERROR(A203)', "A1", ws );
+		ok( oParser.parse(), 'ISERROR(A203)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE", 'ISERROR(A203)' );
+
+		testArrayFormula2("ISERROR", 1, 1);
+	} );
+
+	test( "Test: \"ISERR\"", function () {
+
+		ws.getRange2( "A202" ).setValue( "" );
+		ws.getRange2( "A203" ).setValue( "#N/A" );
+		ws.getRange2( "A204" ).setValue( "#VALUE!" );
+
+		oParser = new parserFormula( 'ISERR(A202)', "A1", ws );
+		ok( oParser.parse(), 'ISERR(A202)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE", 'ISERR(A202)' );
+
+		oParser = new parserFormula( 'ISERR(A203)', "A1", ws );
+		ok( oParser.parse(), 'ISERR(A203)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE", 'ISERR(A203)' );
+
+		oParser = new parserFormula( 'ISERR(A203)', "A1", ws );
+		ok( oParser.parse(), 'ISERR(A203)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE", 'ISERR(A203)' );
+
+		testArrayFormula2("ISERR", 1, 1);
+	} );
+
+	test( "Test: \"ISEVEN\"", function () {
+
+		oParser = new parserFormula( 'ISEVEN(-1)', "A1", ws );
+		ok( oParser.parse(), 'ISEVEN(-1)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE", 'ISEVEN(-1)' );
+
+		oParser = new parserFormula( 'ISEVEN(2.5)', "A1", ws );
+		ok( oParser.parse(), 'ISEVEN(2.5)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE", 'ISEVEN(2.5)' );
+
+		oParser = new parserFormula( 'ISEVEN(5)', "A1", ws );
+		ok( oParser.parse(), 'ISEVEN(5)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE", 'ISEVEN(5)' );
+
+		oParser = new parserFormula( 'ISEVEN(0)', "A1", ws );
+		ok( oParser.parse(), 'ISEVEN(0)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE", 'ISEVEN(0)' );
+
+		oParser = new parserFormula( 'ISEVEN(12/23/2011)', "A1", ws );
+		ok( oParser.parse(), 'ISEVEN(12/23/2011)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE", 'ISEVEN(12/23/2011)' );
+
+		testArrayFormula2("ISEVEN", 1, 1, true);
+	} );
+
+	test( "Test: \"ISLOGICAL\"", function () {
+
+		oParser = new parserFormula( 'ISLOGICAL(TRUE)', "A1", ws );
+		ok( oParser.parse(), 'ISLOGICAL(TRUE)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE", 'ISLOGICAL(TRUE)' );
+
+		oParser = new parserFormula( 'ISLOGICAL("TRUE")', "A1", ws );
+		ok( oParser.parse(), 'ISLOGICAL("TRUE")' );
+		strictEqual( oParser.calculate().getValue(), "FALSE", 'ISLOGICAL("TRUE")' );
+
+		testArrayFormula2("ISLOGICAL", 1, 1);
 	} );
 
 	test( "Test: \"CEILING\"", function () {
@@ -2109,6 +2202,46 @@ $( function () {
 		oParser = new parserFormula( "ISNA(A1)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		testArrayFormula2("ISNA",1,1);
+	} );
+
+	test( "Test: \"ISNONTEXT\"", function () {
+		oParser = new parserFormula( 'ISNONTEXT("123")', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		testArrayFormula2("ISNONTEXT",1,1);
+	} );
+
+	test( "Test: \"ISNUMBER\"", function () {
+		ws.getRange2( "A1" ).setValue( "123" );
+
+		oParser = new parserFormula( 'ISNUMBER(4)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		oParser = new parserFormula( 'ISNUMBER(A1)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		testArrayFormula2("ISNUMBER",1,1);
+	} );
+
+	test( "Test: \"ISODD\"", function () {
+		oParser = new parserFormula( 'ISODD(-1)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		oParser = new parserFormula( 'ISODD(2.5)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'ISODD(5)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		testArrayFormula2("ISODD",1,1,true);
 	} );
 
 	test( "Test: \"ROUND\"", function () {
@@ -2250,6 +2383,8 @@ $( function () {
             strictEqual( oParser.calculate().getValue(), 1909 );
         else
             strictEqual( oParser.calculate().getValue(), 1905 );
+
+        testArrayFormula2("YEAR",1,1);
     } );
 
     test( "Test: DAY", function () {
@@ -2259,6 +2394,8 @@ $( function () {
             strictEqual( oParser.calculate().getValue(), 6 );
         else
             strictEqual( oParser.calculate().getValue(), 5 );
+
+        testArrayFormula2("DAY", 1, 1);
     } );
 
 	test( "Test: DAYS", function () {
@@ -2296,6 +2433,8 @@ $( function () {
         oParser = new parserFormula( "MONTH(NOW())", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), new cDate().getUTCMonth() + 1 );
+
+        testArrayFormula2("MONTH",1,1);
     } );
 
     test( "Test: \"10-3\"", function () {
@@ -2487,7 +2626,19 @@ $( function () {
         oParser = new parserFormula( "ISREF(G0)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+        testArrayFormula2("ISREF",1,1,null,true);
     } );
+
+	test( "Test: ISTEXT", function () {
+		ws.getRange2( "S7" ).setValue( "test" );
+
+		oParser = new parserFormula( "ISTEXT(S7)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		testArrayFormula2("ISTEXT",1,1);
+	} );
 
     test( "Test: MOD", function () {
         oParser = new parserFormula( "MOD(7,3)", "A1", ws );
@@ -3607,6 +3758,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 16 );
 
+		testArrayFormula2("MINUTE",1,1);
 	} );
 
 	test( "Test: \"WEEKDAY\"", function () {
@@ -5924,6 +6076,8 @@ $( function () {
 		oParser = new parserFormula( "HOUR(A204)", "A1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 0 );
+
+		testArrayFormula2("HOUR", 1, 1);
 	} );
 
     test( "Test: \"INTERCEPT\"", function () {
@@ -9339,6 +9493,7 @@ $( function () {
         ok( oParser.assemble() == "BIN2DEC(\"Hello World!\")" );
         strictEqual( oParser.calculate().getValue(), "#NUM!" );
 
+        testArrayFormula2("BIN2DEC",1,1,true);
     });
 
     test( "Test: \"BIN2HEX\"", function () {
@@ -10039,6 +10194,7 @@ $( function () {
         ok( oParser.assemble() == "OCT2DEC(\"3777777777\")" );
         strictEqual( oParser.calculate().getValue(), 536870911);
 
+        testArrayFormula2("OCT2DEC",1,1,true);
     });
 
     test( "Test: \"OCT2HEX\"", function () {
@@ -10223,6 +10379,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 0.84270079 );
 
+		testArrayFormula2("ERF.PRECISE",1,1,true);
 	});
 
     test( "Test: \"ERFC\"", function () {
@@ -10243,6 +10400,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue().toFixed(14)-0, 1.8427007929497148.toFixed(14)-0 );
 
+        testArrayFormula2("ERFC",1,1,true);
     });
 
 	test( "Test: \"ERFC.PRECISE\"", function () {
