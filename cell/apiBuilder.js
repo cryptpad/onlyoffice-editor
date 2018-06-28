@@ -689,6 +689,38 @@
 	});
 
 	/**
+	 * Add Hyperlink
+	 * @memberof ApiWorksheet
+	 * @param {Anchor} Anchor
+	 * @param {Address} Address
+	 * @param {ScreenTip} ScreenTip
+	 * @param {TextToDisplay} TextToDisplay
+	 * */
+	ApiWorksheet.prototype.SetHyperlink = function (Anchor, Address, ScreenTip, TextToDisplay)	{
+		var range = new ApiRange(this.worksheet.getRange2(Anchor));
+		var p = /^(?:http:\/\/|https:\/\/)/;
+		if (range && range.range.isOneCell() && Address) {
+			this.worksheet.selectionRange.assign2(range.range.bbox);
+			var  Hyperlink = new Asc.asc_CHyperlink();
+			if (ScreenTip) {
+				Hyperlink.asc_setText(ScreenTip);
+			} else {
+				Hyperlink.asc_setText(Address);
+			}
+			if (TextToDisplay) {
+				Hyperlink.asc_setTooltip(TextToDisplay);
+			}
+			if (Address.match(p) || Address.search(/mailto:/i) !== -1) {
+				Hyperlink.asc_setHyperlinkUrl(Address);
+			} else {
+				Hyperlink.asc_setRange(Address);
+				Hyperlink.asc_setSheet(this.Name);
+			}
+			this.worksheet.workbook.oApi.wb.insertHyperlink(Hyperlink);
+		}
+	};
+
+	/**
 	 * Create a chart of the set type from the selected data range of the current sheet.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
@@ -2033,6 +2065,7 @@
 	ApiWorksheet.prototype["GetBottomMargin"] = ApiWorksheet.prototype.GetBottomMargin;		
 	ApiWorksheet.prototype["SetPageOrientation"] = ApiWorksheet.prototype.SetPageOrientation;
 	ApiWorksheet.prototype["GetPageOrientation"] = ApiWorksheet.prototype.GetPageOrientation;
+	ApiWorksheet.prototype["SetHyperlink"] = ApiWorksheet.prototype.SetHyperlink;
 	ApiWorksheet.prototype["AddChart"] = ApiWorksheet.prototype.AddChart;
 	ApiWorksheet.prototype["AddShape"] = ApiWorksheet.prototype.AddShape;
 	ApiWorksheet.prototype["AddImage"] = ApiWorksheet.prototype.AddImage;
