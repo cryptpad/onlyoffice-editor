@@ -299,6 +299,7 @@
 	function cNOT() {
 	}
 
+	//***array-formula***
 	cNOT.prototype = Object.create(cBaseFunction.prototype);
 	cNOT.prototype.constructor = cNOT;
 	cNOT.prototype.name = 'NOT';

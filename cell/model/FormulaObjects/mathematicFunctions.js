@@ -109,6 +109,7 @@
 	function cABS() {
 	}
 
+	//***array-formula***
 	cABS.prototype = Object.create(cBaseFunction.prototype);
 	cABS.prototype.constructor = cABS;
 	cABS.prototype.name = 'ABS';
@@ -143,6 +144,7 @@
 	function cACOS() {
 	}
 
+	//***array-formula***
 	cACOS.prototype = Object.create(cBaseFunction.prototype);
 	cACOS.prototype.constructor = cACOS;
 	cACOS.prototype.name = 'ACOS';
@@ -179,6 +181,7 @@
 	function cACOSH() {
 	}
 
+	//***array-formula***
 	cACOSH.prototype = Object.create(cBaseFunction.prototype);
 	cACOSH.prototype.constructor = cACOSH;
 	cACOSH.prototype.name = 'ACOSH';
@@ -215,6 +218,7 @@
 	function cACOT() {
 	}
 
+	//***array-formula***
 	cACOT.prototype = Object.create(cBaseFunction.prototype);
 	cACOT.prototype.constructor = cACOT;
 	cACOT.prototype.name = 'ACOT';
@@ -253,6 +257,7 @@
 	function cACOTH() {
 	}
 
+	//***array-formula***
 	cACOTH.prototype = Object.create(cBaseFunction.prototype);
 	cACOTH.prototype.constructor = cACOTH;
 	cACOTH.prototype.name = 'ACOTH';
@@ -544,6 +549,7 @@
 	function cASIN() {
 	}
 
+	//***array-formula***
 	cASIN.prototype = Object.create(cBaseFunction.prototype);
 	cASIN.prototype.constructor = cASIN;
 	cASIN.prototype.name = 'ASIN';
@@ -580,6 +586,7 @@
 	function cASINH() {
 	}
 
+	//***array-formula***
 	cASINH.prototype = Object.create(cBaseFunction.prototype);
 	cASINH.prototype.constructor = cASINH;
 	cASINH.prototype.name = 'ASINH';
@@ -616,6 +623,7 @@
 	function cATAN() {
 	}
 
+	//***array-formula***
 	cATAN.prototype = Object.create(cBaseFunction.prototype);
 	cATAN.prototype.constructor = cATAN;
 	cATAN.prototype.name = 'ATAN';
@@ -722,6 +730,7 @@
 	function cATANH() {
 	}
 
+	//***array-formula***
 	cATANH.prototype = Object.create(cBaseFunction.prototype);
 	cATANH.prototype.constructor = cATANH;
 	cATANH.prototype.name = 'ATANH';
@@ -1119,6 +1128,7 @@
 	function cCOS() {
 	}
 
+	//***array-formula***
 	cCOS.prototype = Object.create(cBaseFunction.prototype);
 	cCOS.prototype.constructor = cCOS;
 	cCOS.prototype.name = 'COS';
@@ -1155,6 +1165,7 @@
 	function cCOSH() {
 	}
 
+	//***array-formula***
 	cCOSH.prototype = Object.create(cBaseFunction.prototype);
 	cCOSH.prototype.constructor = cCOSH;
 	cCOSH.prototype.name = 'COSH';
@@ -1191,6 +1202,7 @@
 	function cCOT() {
 	}
 
+	//***array-formula***
 	cCOT.prototype = Object.create(cBaseFunction.prototype);
 	cCOT.prototype.constructor = cCOT;
 	cCOT.prototype.name = 'COT';
@@ -1242,6 +1254,7 @@
 	function cCOTH() {
 	}
 
+	//***array-formula***
 	cCOTH.prototype = Object.create(cBaseFunction.prototype);
 	cCOTH.prototype.constructor = cCOTH;
 	cCOTH.prototype.name = 'COTH';
@@ -1291,6 +1304,7 @@
 	function cCSC() {
 	}
 
+	//***array-formula***
 	cCSC.prototype = Object.create(cBaseFunction.prototype);
 	cCSC.prototype.constructor = cCSC;
 	cCSC.prototype.name = 'CSC';
@@ -1342,6 +1356,7 @@
 	function cCSCH() {
 	}
 
+	//***array-formula***
 	cCSCH.prototype = Object.create(cBaseFunction.prototype);
 	cCSCH.prototype.constructor = cCSCH;
 	cCSCH.prototype.name = 'CSCH';
@@ -1465,6 +1480,7 @@
 	function cDEGREES() {
 	}
 
+	//***array-formula***
 	cDEGREES.prototype = Object.create(cBaseFunction.prototype);
 	cDEGREES.prototype.constructor = cDEGREES;
 	cDEGREES.prototype.name = 'DEGREES';
@@ -1514,6 +1530,7 @@
 	function cEVEN() {
 	}
 
+	//***array-formula***
 	cEVEN.prototype = Object.create(cBaseFunction.prototype);
 	cEVEN.prototype.constructor = cEVEN;
 	cEVEN.prototype.name = 'EVEN';
@@ -1573,6 +1590,7 @@
 	function cEXP() {
 	}
 
+	//***array-formula***
 	cEXP.prototype = Object.create(cBaseFunction.prototype);
 	cEXP.prototype.constructor = cEXP;
 	cEXP.prototype.name = 'EXP';
@@ -1611,6 +1629,7 @@
 	function cFACT() {
 	}
 
+	//***array-formula***
 	cFACT.prototype = Object.create(cBaseFunction.prototype);
 	cFACT.prototype.constructor = cFACT;
 	cFACT.prototype.name = 'FACT';
@@ -1654,6 +1673,7 @@
 	function cFACTDOUBLE() {
 	}
 
+	//***array-formula***
 	cFACTDOUBLE.prototype = Object.create(cBaseFunction.prototype);
 	cFACTDOUBLE.prototype.constructor = cFACTDOUBLE;
 	cFACTDOUBLE.prototype.name = 'FACTDOUBLE';
@@ -1998,6 +2018,7 @@
 	function cINT() {
 	}
 
+	//***array-formula***
 	cINT.prototype = Object.create(cBaseFunction.prototype);
 	cINT.prototype.constructor = cINT;
 	cINT.prototype.name = 'INT';
@@ -2176,6 +2197,7 @@
 	function cLN() {
 	}
 
+	//***array-formula***
 	cLN.prototype = Object.create(cBaseFunction.prototype);
 	cLN.prototype.constructor = cLN;
 	cLN.prototype.name = 'LN';
@@ -2325,6 +2347,7 @@
 	function cLOG10() {
 	}
 
+	//***array-formula***
 	cLOG10.prototype = Object.create(cBaseFunction.prototype);
 	cLOG10.prototype.constructor = cLOG10;
 	cLOG10.prototype.name = 'LOG10';
@@ -2369,12 +2392,14 @@
 	function cMDETERM() {
 	}
 
+	//***array-formula***
 	cMDETERM.prototype = Object.create(cBaseFunction.prototype);
 	cMDETERM.prototype.constructor = cMDETERM;
 	cMDETERM.prototype.name = 'MDETERM';
 	cMDETERM.prototype.argumentsMin = 1;
 	cMDETERM.prototype.argumentsMax = 1;
 	cMDETERM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMDETERM.prototype.arrayIndexes = {0: 1};
 	cMDETERM.prototype.Calculate = function (arg) {
 
 		function determ(A) {

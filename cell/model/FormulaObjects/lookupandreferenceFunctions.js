@@ -303,11 +303,13 @@ function (window, undefined) {
 	function cCOLUMNS() {
 	}
 
+	//***array-formula***
 	cCOLUMNS.prototype = Object.create(cBaseFunction.prototype);
 	cCOLUMNS.prototype.constructor = cCOLUMNS;
 	cCOLUMNS.prototype.name = 'COLUMNS';
 	cCOLUMNS.prototype.argumentsMin = 1;
 	cCOLUMNS.prototype.argumentsMax = 1;
+	cCOLUMNS.prototype.arrayIndexes = {0: 1};
 	cCOLUMNS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var range;
@@ -936,11 +938,13 @@ function (window, undefined) {
 	function cROWS() {
 	}
 
+	//***array-formula***
 	cROWS.prototype = Object.create(cBaseFunction.prototype);
 	cROWS.prototype.constructor = cROWS;
 	cROWS.prototype.name = 'ROWS';
 	cROWS.prototype.argumentsMin = 1;
 	cROWS.prototype.argumentsMax = 1;
+	cROWS.prototype.arrayIndexes = {0: 1};
 	cROWS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var range;
@@ -972,12 +976,14 @@ function (window, undefined) {
 	function cTRANSPOSE() {
 	}
 
+	//***array-formula***
 	cTRANSPOSE.prototype = Object.create(cBaseFunction.prototype);
 	cTRANSPOSE.prototype.constructor = cTRANSPOSE;
 	cTRANSPOSE.prototype.name = 'TRANSPOSE';
 	cTRANSPOSE.prototype.argumentsMin = 1;
 	cTRANSPOSE.prototype.argumentsMax = 1;
 	cTRANSPOSE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTRANSPOSE.prototype.arrayIndexes = {0: 1};
 	cTRANSPOSE.prototype.Calculate = function (arg) {
 
 		function TransposeMatrix(A) {

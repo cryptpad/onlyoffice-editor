@@ -3174,6 +3174,37 @@ $( function () {
 
 	} );
 
+	test( "Test: \"N\"", function () {
+
+		ws.getRange2( "A2" ).setValue( "7" );
+		ws.getRange2( "A3" ).setValue( "Even" );
+		ws.getRange2( "A4" ).setValue( "TRUE" );
+		ws.getRange2( "A5" ).setValue( "4/17/2011" );
+
+		oParser = new parserFormula( "N(A2)", "A7", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 7 );
+
+		oParser = new parserFormula( "N(A3)", "A7", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "N(A4)", "A7", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
+
+		oParser = new parserFormula( "N(A5)", "A7", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 40650 );
+
+		oParser = new parserFormula( 'N("7")', "A7", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("N", 1, 1);
+	} );
+
     test( "Test: \"SUMIF\"", function () {
 
         ws.getRange2( "A2" ).setValue( "100000" );
@@ -3616,6 +3647,33 @@ $( function () {
 
 		testArrayFormula("TIMEVALUE");
     } );
+
+	test( "Test: \"TYPE\"", function () {
+		ws.getRange2( "A2" ).setValue( "Smith" );
+
+		oParser = new parserFormula( "TYPE(A2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'TYPE("Mr. "&A2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'TYPE(2+A2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 16 );
+
+		oParser = new parserFormula( '(2+A2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( 'TYPE({1,2;3,4})', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 64 );
+
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("TYPE", 1, 1);
+	} );
 
     test( "Test: \"DAYS360\"", function () {
 
@@ -8292,6 +8350,10 @@ $( function () {
         testArrayFormula2("NOMINAL", 2, 2, true);
     } );
 
+	test(  "Test: \"NOT\"", function () {
+		testArrayFormula2("NOT", 1, 1);
+	} );
+
     test( "Test: \"FVSCHEDULE\"", function () {
 
         function fvschedule(rate,shedList){
@@ -9018,6 +9080,47 @@ $( function () {
         strictEqual( oParser.calculate().getValue(), mduration( new cDate(Date.UTC(2008,0,1)), new cDate(Date.UTC(2016,0,1)), 0.08, 0.09, 2, 1 ) );
 
     } );
+
+	test( "Test: \"MDETERM\"", function () {
+
+		ws.getRange2( "A2" ).setValue( "1" );
+		ws.getRange2( "A3" ).setValue( "1" );
+		ws.getRange2( "A4" ).setValue( "1" );
+		ws.getRange2( "A5" ).setValue( "7" );
+
+		ws.getRange2( "B2" ).setValue( "3" );
+		ws.getRange2( "B3" ).setValue( "3" );
+		ws.getRange2( "B4" ).setValue( "1" );
+		ws.getRange2( "B5" ).setValue( "3" );
+
+		ws.getRange2( "C2" ).setValue( "8" );
+		ws.getRange2( "C3" ).setValue( "6" );
+		ws.getRange2( "C4" ).setValue( "1" );
+		ws.getRange2( "C5" ).setValue( "10" );
+
+		ws.getRange2( "D2" ).setValue( "5" );
+		ws.getRange2( "D3" ).setValue( "1" );
+		ws.getRange2( "D4" ).setValue( "0" );
+		ws.getRange2( "D5" ).setValue( "2" );
+
+
+		oParser = new parserFormula( "MDETERM(A2:D5)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 88 );
+
+		oParser = new parserFormula( "MDETERM({3,6,1;1,1,0;3,10,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
+
+		oParser = new parserFormula( "MDETERM({3,6;1,1})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), -3 );
+
+		oParser = new parserFormula( "MDETERM({1,3,8,5;1,3,6,1})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+	} );
 
     test( "Test: \"SYD\"", function () {
 
@@ -10973,6 +11076,20 @@ $( function () {
 
 	});
 
+	test( "Test: \"COLUMNS\"", function () {
+
+		oParser = new parserFormula('COLUMNS(C1:E4)', "AA2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 3);
+
+		oParser = new parserFormula('COLUMNS({1,2,3;4,5,6})', "AA2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 3);
+
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("COLUMNS", 1, 1);
+	});
+
 	test( "Test: \"ROW\"", function () {
 
 		oParser = new parserFormula('ROW(B6)', "AA2", ws);
@@ -10991,6 +11108,20 @@ $( function () {
 		ok(oParser.parse());
 		strictEqual(oParser.calculate().getValue(), 2);
 
+	});
+
+	test( "Test: \"ROWS\"", function () {
+
+		oParser = new parserFormula('ROWS(C1:E4)', "AA2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 4);
+
+		oParser = new parserFormula('ROWS({1,2,3;4,5,6})', "AA2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);
+
+		//TODO нужна другая функция для тестирования
+		//testArrayFormula2("COLUMNS", 1, 1);
 	});
 
 	test( "Test: \"SUBTOTAL\"", function () {

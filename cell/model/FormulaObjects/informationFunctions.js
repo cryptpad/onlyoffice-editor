@@ -482,12 +482,14 @@
 	function cN() {
 	}
 
+	//***array-formula***
 	cN.prototype = Object.create(cBaseFunction.prototype);
 	cN.prototype.constructor = cN;
 	cN.prototype.name = 'N';
 	cN.prototype.argumentsMin = 1;
 	cN.prototype.argumentsMax = 1;
 	cN.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cN.prototype.arrayIndexes = {0: 1};
 	cN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -627,11 +629,14 @@
 	function cTYPE() {
 	}
 
+	//***array-formula***
 	cTYPE.prototype = Object.create(cBaseFunction.prototype);
 	cTYPE.prototype.constructor = cTYPE;
 	cTYPE.prototype.name = 'TYPE';
 	cTYPE.prototype.argumentsMin = 1;
 	cTYPE.prototype.argumentsMax = 1;
+	cTYPE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cTYPE.prototype.arrayIndexes = {0: 1};
 	cTYPE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
