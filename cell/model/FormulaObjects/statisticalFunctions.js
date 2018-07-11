@@ -4932,12 +4932,14 @@ function (window, undefined) {
 	function cCOUNTBLANK() {
 	}
 
+	//***array-formula***
 	cCOUNTBLANK.prototype = Object.create(cBaseFunction.prototype);
 	cCOUNTBLANK.prototype.constructor = cCOUNTBLANK;
 	cCOUNTBLANK.prototype.name = 'COUNTBLANK';
 	cCOUNTBLANK.prototype.argumentsMin = 1;
 	cCOUNTBLANK.prototype.argumentsMax = 1;
 	cCOUNTBLANK.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUNTBLANK.prototype.arrayIndexes = {0: 1};
 	cCOUNTBLANK.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -5834,6 +5836,7 @@ function (window, undefined) {
 	function cFISHER() {
 	}
 
+	//***array-formula***
 	cFISHER.prototype = Object.create(cBaseFunction.prototype);
 	cFISHER.prototype.constructor = cFISHER;
 	cFISHER.prototype.name = 'FISHER';
@@ -5876,6 +5879,7 @@ function (window, undefined) {
 	function cFISHERINV() {
 	}
 
+	//***array-formula***
 	cFISHERINV.prototype = Object.create(cBaseFunction.prototype);
 	cFISHERINV.prototype.constructor = cFISHERINV;
 	cFISHERINV.prototype.name = 'FISHERINV';
@@ -6571,6 +6575,7 @@ function (window, undefined) {
 	function cGAMMALN() {
 	}
 
+	//***array-formula***
 	cGAMMALN.prototype = Object.create(cBaseFunction.prototype);
 	cGAMMALN.prototype.constructor = cGAMMALN;
 	cGAMMALN.prototype.name = 'GAMMALN';
@@ -8487,6 +8492,7 @@ function (window, undefined) {
 	function cNORMSDIST() {
 	}
 
+	//***array-formula***
 	cNORMSDIST.prototype = Object.create(cBaseFunction.prototype);
 	cNORMSDIST.prototype.constructor = cNORMSDIST;
 	cNORMSDIST.prototype.name = 'NORMSDIST';
@@ -8565,6 +8571,7 @@ function (window, undefined) {
 	function cNORMSINV() {
 	}
 
+	//***array-formula***
 	cNORMSINV.prototype = Object.create(cBaseFunction.prototype);
 	cNORMSINV.prototype.constructor = cNORMSINV;
 	cNORMSINV.prototype.name = 'NORMSINV';

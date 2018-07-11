@@ -2477,12 +2477,14 @@
 	function cMINVERSE() {
 	}
 
+	//***array-formula***
 	cMINVERSE.prototype = Object.create(cBaseFunction.prototype);
 	cMINVERSE.prototype.constructor = cMINVERSE;
 	cMINVERSE.prototype.name = 'MINVERSE';
 	cMINVERSE.prototype.argumentsMin = 1;
 	cMINVERSE.prototype.argumentsMax = 1;
 	cMINVERSE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMINVERSE.prototype.arrayIndexes = {0: 1};
 	cMINVERSE.prototype.Calculate = function (arg) {
 
 		function Determinant(A) {
@@ -2961,6 +2963,7 @@
 	function cODD() {
 	}
 
+	//***array-formula***
 	cODD.prototype = Object.create(cBaseFunction.prototype);
 	cODD.prototype.constructor = cODD;
 	cODD.prototype.name = 'ODD';
@@ -3240,6 +3243,7 @@
 	function cRADIANS() {
 	}
 
+	//***array-formula***
 	cRADIANS.prototype = Object.create(cBaseFunction.prototype);
 	cRADIANS.prototype.constructor = cRADIANS;
 	cRADIANS.prototype.name = 'RADIANS';
@@ -3864,6 +3868,7 @@
 	function cSEC() {
 	}
 
+	//***array-formula***
 	cSEC.prototype = Object.create(cBaseFunction.prototype);
 	cSEC.prototype.constructor = cSEC;
 	cSEC.prototype.name = 'SEC';
@@ -3911,6 +3916,7 @@
 	function cSECH() {
 	}
 
+	//***array-formula***
 	cSECH.prototype = Object.create(cBaseFunction.prototype);
 	cSECH.prototype.constructor = cSECH;
 	cSECH.prototype.name = 'SECH';
@@ -4023,6 +4029,7 @@
 	function cSIGN() {
 	}
 
+	//***array-formula***
 	cSIGN.prototype = Object.create(cBaseFunction.prototype);
 	cSIGN.prototype.constructor = cSIGN;
 	cSIGN.prototype.name = 'SIGN';
@@ -4072,6 +4079,7 @@
 	function cSIN() {
 	}
 
+	//***array-formula***
 	cSIN.prototype = Object.create(cBaseFunction.prototype);
 	cSIN.prototype.constructor = cSIN;
 	cSIN.prototype.name = 'SIN';
@@ -4108,6 +4116,7 @@
 	function cSINH() {
 	}
 
+	//***array-formula***
 	cSINH.prototype = Object.create(cBaseFunction.prototype);
 	cSINH.prototype.constructor = cSINH;
 	cSINH.prototype.name = 'SINH';
@@ -4144,6 +4153,7 @@
 	function cSQRT() {
 	}
 
+	//***array-formula***
 	cSQRT.prototype = Object.create(cBaseFunction.prototype);
 	cSQRT.prototype.constructor = cSQRT;
 	cSQRT.prototype.name = 'SQRT';
@@ -4180,6 +4190,7 @@
 	function cSQRTPI() {
 	}
 
+	//***array-formula***
 	cSQRTPI.prototype = Object.create(cBaseFunction.prototype);
 	cSQRTPI.prototype.constructor = cSQRTPI;
 	cSQRTPI.prototype.name = 'SQRTPI';
@@ -4928,6 +4939,7 @@
 	function cTAN() {
 	}
 
+	//***array-formula***
 	cTAN.prototype = Object.create(cBaseFunction.prototype);
 	cTAN.prototype.constructor = cTAN;
 	cTAN.prototype.name = 'TAN';
@@ -4964,6 +4976,7 @@
 	function cTANH() {
 	}
 
+	//***array-formula***
 	cTANH.prototype = Object.create(cBaseFunction.prototype);
 	cTANH.prototype.constructor = cTANH;
 	cTANH.prototype.name = 'TANH';

@@ -11220,6 +11220,18 @@ $( function () {
 		strictEqual( oParser.calculate().getValue(), 0 );
 	} );
 
+	/*test( "Test: \"MINVERSE\"", function () {
+
+		ws.getRange2( "A202" ).setValue( "4" );
+		ws.getRange2( "A203" ).setValue( "2" );
+		ws.getRange2( "B202" ).setValue( "-1" );
+		ws.getRange2( "B203" ).setValue( "0" );
+
+		oParser = new parserFormula( "MINVERSE({4,-1;2,0})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+	} );*/
+
 	test( "Test: \"FIND\"", function () {
 		ws.getRange2( "A101" ).setValue( "Miriam McGovern" );
 
