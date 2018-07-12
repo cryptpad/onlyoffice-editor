@@ -4829,6 +4829,7 @@
 	function cTBILLEQ() {
 	}
 
+	//***array-formula***
 	cTBILLEQ.prototype = Object.create(cBaseFunction.prototype);
 	cTBILLEQ.prototype.constructor = cTBILLEQ;
 	cTBILLEQ.prototype.name = 'TBILLEQ';

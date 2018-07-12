@@ -60,10 +60,12 @@
 	function cAND() {
 	}
 
+	//***array-formula***
 	cAND.prototype = Object.create(cBaseFunction.prototype);
 	cAND.prototype.constructor = cAND;
 	cAND.prototype.name = 'AND';
 	cAND.prototype.argumentsMin = 1;
+	cAND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cAND.prototype.Calculate = function (arg) {
 		var argResult = null;
 		for (var i = 0; i < arg.length; i++) {

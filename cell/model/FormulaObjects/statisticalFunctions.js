@@ -10710,10 +10710,12 @@ function (window, undefined) {
 	function cVAR() {
 	}
 
+	//***array-formula***
 	cVAR.prototype = Object.create(cBaseFunction.prototype);
 	cVAR.prototype.constructor = cVAR;
 	cVAR.prototype.name = 'VAR';
 	cVAR.prototype.argumentsMin = 1;
+	cVAR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cVAR.prototype.Calculate = function (arg) {
 		function _var(x) {
 			if (x.length < 1) {
@@ -10788,10 +10790,12 @@ function (window, undefined) {
 	function cVARA() {
 	}
 
+	//***array-formula***
 	cVARA.prototype = Object.create(cBaseFunction.prototype);
 	cVARA.prototype.constructor = cVARA;
 	cVARA.prototype.name = 'VARA';
 	cVARA.prototype.argumentsMin = 1;
+	cVARA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cVARA.prototype.Calculate = function (arg) {
 
 		function _var(x) {
@@ -10877,10 +10881,12 @@ function (window, undefined) {
 	function cVARP() {
 	}
 
+	//***array-formula***
 	cVARP.prototype = Object.create(cBaseFunction.prototype);
 	cVARP.prototype.constructor = cVARP;
 	cVARP.prototype.name = 'VARP';
 	cVARP.prototype.argumentsMin = 1;
+	cVARP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cVARP.prototype.Calculate = function (arg) {
 		function _var(x) {
 			if (x.length < 1) {
@@ -10954,6 +10960,7 @@ function (window, undefined) {
 	function cVAR_P() {
 	}
 
+	//***array-formula***
 	cVAR_P.prototype = Object.create(cVARP.prototype);
 	cVAR_P.prototype.constructor = cVAR_P;
 	cVAR_P.prototype.name = 'VAR.P';
@@ -10966,11 +10973,13 @@ function (window, undefined) {
 	function cVAR_S() {
 	}
 
+	//***array-formula***
 	cVAR_S.prototype = Object.create(cBaseFunction.prototype);
 	cVAR_S.prototype.constructor = cVAR_S;
 	cVAR_S.prototype.name = 'VAR.S';
 	cVAR_S.prototype.argumentsMin = 1;
 	cVAR_S.prototype.isXLFN = true;
+	cVAR_S.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cVAR_S.prototype.Calculate = function (arg) {
 		function _var(x) {
 			if (x.length <= 1) {
@@ -11043,6 +11052,7 @@ function (window, undefined) {
 	function cVARdotP() {
 	}
 
+	//***array-formula***
 	cVARdotP.prototype = Object.create(cBaseFunction.prototype);
 	cVARdotP.prototype.constructor = cVARdotP;
 	cVARdotP.prototype.name = 'VAR.P';
@@ -11056,10 +11066,12 @@ function (window, undefined) {
 	function cVARPA() {
 	}
 
+	//***array-formula***
 	cVARPA.prototype = Object.create(cBaseFunction.prototype);
 	cVARPA.prototype.constructor = cVARPA;
 	cVARPA.prototype.name = 'VARPA';
 	cVARPA.prototype.argumentsMin = 1;
+	cVARPA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cVARPA.prototype.Calculate = function (arg) {
 
 		function _var(x) {
@@ -11145,6 +11157,7 @@ function (window, undefined) {
 	function cWEIBULL() {
 	}
 
+	//***array-formula***
 	cWEIBULL.prototype = Object.create(cBaseFunction.prototype);
 	cWEIBULL.prototype.constructor = cWEIBULL;
 	cWEIBULL.prototype.name = 'WEIBULL';
@@ -11192,6 +11205,7 @@ function (window, undefined) {
 	function cWEIBULL_DIST() {
 	}
 
+	//***array-formula***
 	cWEIBULL_DIST.prototype = Object.create(cWEIBULL.prototype);
 	cWEIBULL_DIST.prototype.constructor = cWEIBULL_DIST;
 	cWEIBULL_DIST.prototype.name = 'WEIBULL.DIST';
