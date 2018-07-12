@@ -2231,7 +2231,7 @@ CMathContent.prototype.Add_ToContent = function(Pos, Item)
 };
 CMathContent.prototype.Concat_ToEnd = function(NewItems)
 {
-    this.ConcatToContent(this.Content.length, NewItems);
+    this.ConcatToContent(2, NewItems);
 };
 CMathContent.prototype.ConcatToContent = function(Pos, NewItems)
 {
@@ -5320,6 +5320,27 @@ CMathContent.prototype.private_IsMenuPropsForContent = function(Action)
 
     return bDecreaseArgSize || bIncreaseArgSize || bInsertForcedBreak || bDeleteForcedBreak;
 };
+CMathContent.prototype.ChangeContent = function(Content) { 
+    var PrevParaRun = (Content[Content.length-1] && Content[Content.length-1].Type === 49) ? true : false;
+    var RemInd = [];
+    // if (!Content[0].Content.length) {    // удалит первый пустой ран, но он все равно потом появится, поэтому не уверен, что это необходимо
+    //     PrevParaRun = false;
+    //     RemInd.push(0);
+    // }
+    for (let i = Content.length - 2; i >= 0; i--) {
+        if (Content[i].Type === 49 && PrevParaRun) {
+            Content[i].MoveCursorToEndPos();
+            for (let k in Content[i + 1].Content) {
+                Content[i].Add(Content[i + 1].Content[k], false);
+            }
+            RemInd.push(i + 1);
+        } 
+        PrevParaRun = (Content[i].Type === 49) ? true : false;
+    }
+    for (let i = 0; i < RemInd.length; i++) {
+        Content[0].Parent.Remove_FromContent(RemInd[i], 1);   // мое удаление сразу всех символов
+    }
+}
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
 {
     // TODO: Надо проверить как работает весь код с автозаменой, перед тем как влючать его.
@@ -5327,6 +5348,10 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
     
     // if (ActionElement.value !== 32)   // если текущий символ не пробел то автозамена не осуществляется (чисто пока временная мера)
     //     return;
+
+
+    // var a = this.Content[0].Parent.Copy(); // копия текущего контента
+    this.ChangeContent(this.Content);
 
     var bNeedAutoCorrect = this.private_NeedAutoCorrect(ActionElement);
 
@@ -5361,6 +5386,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
     if (null == AutoCorrectEngine.MathPr)
         AutoCorrectEngine.MathPr = new CMPrp();
 
+    
     // Создаем новую точку здесь, потому что если автозамену можно будет сделать классы сразу будут создаваться
     History.Create_NewPoint(AscDFH.historydescription_Document_MathAutoCorrect);
 
@@ -5391,19 +5417,12 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
     else
     {
         // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
-        CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
+        CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
 
-        if (false === CanMakeAutoCorrect)
+        if (false === CanMakeAutoCorrect && g_aMathAutoCorrectTriggerCharCodes[ActionElement.value])
         {
-            // Пробуем произвести автозамену без последнего добавленного символа
-            if (0x20 === ActionElement.value)
-                CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
-            else
-            {
-                // AutoCorrectEngine.Elements.splice(AutoCorrectEngine.Elements.length - 1, 1);
-                CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
-                bCursorStepRight   = true;
-            }
+            CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
+            bCursorStepRight   = true;
         }
 
         oAutoCorrectControl.SetReplaceChar(AutoCorrectEngine);
@@ -5437,11 +5456,12 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
         // if (ActionElement === AutoCorrectEngine.Elements[this.CurPos].Element.Content[index]) {
         //     index -= AutoCorrectEngine.RemoveCount + 1;
         // } else {
-            index -= AutoCorrectEngine.RemoveCount;
+            index -= AutoCorrectEngine.RemoveCount + AutoCorrectEngine.Shift;
         // }
         var FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
         if (FirstElement === ActionElement) {
             index--;
+            index = (index < 0) ? 0 : index;
             FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
         }
 
@@ -5523,12 +5543,12 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
 
         // }
 
-        // if (true === bCursorStepRight)
-        // {
-        //     // TODO: Переделать через функцию в ране
-        //     if (this.Content[this.CurPos].Content.length >= 1)
-        //         this.Content[this.CurPos].State.ContentPos = 1;
-        // }
+        if (true === bCursorStepRight)
+        {
+            // TODO: Переделать через функцию в ране
+            if (this.Content[this.CurPos].Content.length >= 1)
+                this.Content[this.CurPos].State.ContentPos = 1;
+        }
     }
     else
     {
@@ -5592,7 +5612,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
 
         if (true === Found)
         {
-            RemoveCount   = CheckStringLen + (true === bSkipLast ? 1 : 0);
+            RemoveCount = CheckStringLen + (this.ActionElementCode === 0x0020 && bSkipLast ? 1 : 0);
 
             if (undefined === AutoCorrectElement[1].length)
                 ReplaceChars[0] = AutoCorrectElement[1];
@@ -5621,6 +5641,9 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
         }
 
         AutoCorrectEngine.RemoveCount = RemoveCount;
+        if (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) {
+            AutoCorrectEngine.Shift++;
+        }
         AutoCorrectEngine.ReplaceContent.push(MathRun);
         // удалить элементы из AutoCorrectEngine.Elements и сразу из контента
         // for (var i = 0; i < RemoveCount; i++) 
@@ -6163,7 +6186,10 @@ AutoCorrectionControl.prototype.AutoCorrectRadical = function(AutoCorrectEngine,
     }
 
 
-    AutoCorrectEngine.RemoveCount = this.BrAccount.nRPos - this.BrAccount.nLPos + 2 + 1;
+    AutoCorrectEngine.RemoveCount = this.BrAccount.nRPos - this.BrAccount.nLPos + 2;
+    if (this.ActionElement.value === 0x0020) {
+        AutoCorrectEngine.RemoveCount++;
+    }
     AutoCorrectEngine.ReplaceContent.unshift(Radical);
 };
 AutoCorrectionControl.prototype.FindFunction = function(CanMakeAutoCorrect)
@@ -6418,7 +6444,7 @@ AutoCorrectionControl.prototype.FindFunction = function(CanMakeAutoCorrect)
                         oLeftCommandType = MATH_GROUP_CHARACTER;
                         this.props       = {chr : 0x23DE, pos : LOCATION_TOP, vertJc : VJUST_BOT};
                         break;
-                    case 0x24AD:
+                    case 0x221A:
                         if (bOf)
                             oLeftCommandType = MATH_RADICAL;
                         else
@@ -6623,11 +6649,13 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         else if ( 0x221A ===  Element.value)
         {
             this.Type = MATH_RADICAL;
+            CurPos--;
             break;
         }
         else if ( 0x25AD === Element.value)
         {
             this.Type = MATH_BORDER_BOX;
+            CurPos--;
             break;
         }
         else if ( 0x25A1 === Element.value)
@@ -6645,7 +6673,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         else if  (0x005E === Element.value)
         {
             //если скобки одинаковые - то степень, разные - delimiter
-            if( this.Type == MATH_NARY || !this.Type || ( this && (( this.BrAccount.LBracket == 0x28 && this.BrAccount.RBracket == 0x29) || ( this.BrAccount.LBracket == 0x3016 && this.BrAccount.RBracket == 0x3017))))
+            if( this.Type == MATH_RADICAL || this.Type == MATH_NARY || !this.Type || ( this && (( this.BrAccount.LBracket == 0x28 && this.BrAccount.RBracket == 0x29) || ( this.BrAccount.LBracket == 0x3016 && this.BrAccount.RBracket == 0x3017))))
             {
                 TempElements.Type = DEGREE_SUPERSCRIPT;
                 this.Kind = DEGREE_SUPERSCRIPT;
@@ -6657,7 +6685,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         else if  (0x005F === Element.value)
         {
             //если скобки одинаковые - то степень, разные - delimiter
-            if( this.Type == MATH_NARY || !this.Type || ( this && (( this.BrAccount.LBracket == 0x28 && this.BrAccount.RBracket == 0x29) || ( this.BrAccount.LBracket == 0x3016 && this.BrAccount.RBracket == 0x3017))))
+            if( this.Type == MATH_RADICAL || this.Type == MATH_NARY || !this.Type || ( this && (( this.BrAccount.LBracket == 0x28 && this.BrAccount.RBracket == 0x29) || ( this.BrAccount.LBracket == 0x3016 && this.BrAccount.RBracket == 0x3017))))
             {
                 TempElements.Type = DEGREE_SUBSCRIPT;
                 this.Kind = DEGREE_SUBSCRIPT;
@@ -6789,8 +6817,12 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
             CurPos--;
             break;
         }
-        else if ( 0x24AD === Element.value) // знак корня
+        else if ( 0x221A === Element.value) // знак корня
         {
+            if (this.Type === MATH_DEGREE) {
+                TempElements2.splice(0, 0, Element);
+                break;
+            }
             this.Type = MATH_RADICAL;
             break;
         }
@@ -7075,8 +7107,6 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
             else
                 this.PackTextToContent(Degree, TempElements2, AutoCorrectEngine, true);
         }
-
-
         AutoCorrectEngine.RemoveCount += this.Elements[this.CurElement].Element.Content.length - CurPos - 1;
         if (0x20 == this.ActionElementCode && !CurPos)
             AutoCorrectEngine.RemoveCount++;
