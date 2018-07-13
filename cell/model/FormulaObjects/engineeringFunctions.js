@@ -4567,6 +4567,7 @@ function (window, undefined) {
 	function cBIN2HEX() {
 	}
 
+	//***array-formula***
 	cBIN2HEX.prototype = Object.create(cBaseFunction.prototype);
 	cBIN2HEX.prototype.constructor = cBIN2HEX;
 	cBIN2HEX.prototype.name = 'BIN2HEX';
@@ -4633,6 +4634,7 @@ function (window, undefined) {
 	function cBIN2OCT() {
 	}
 
+	//***array-formula***
 	cBIN2OCT.prototype = Object.create(cBaseFunction.prototype);
 	cBIN2OCT.prototype.constructor = cBIN2OCT;
 	cBIN2OCT.prototype.name = 'BIN2OCT';
@@ -5096,6 +5098,7 @@ function (window, undefined) {
 	function cDEC2BIN() {
 	}
 
+	//***array-formula***
 	cDEC2BIN.prototype = Object.create(cBaseFunction.prototype);
 	cDEC2BIN.prototype.constructor = cDEC2BIN;
 	cDEC2BIN.prototype.name = 'DEC2BIN';
@@ -5157,6 +5160,7 @@ function (window, undefined) {
 	function cDEC2HEX() {
 	}
 
+	//***array-formula***
 	cDEC2HEX.prototype = Object.create(cBaseFunction.prototype);
 	cDEC2HEX.prototype.constructor = cDEC2HEX;
 	cDEC2HEX.prototype.name = 'DEC2HEX';
@@ -5217,6 +5221,7 @@ function (window, undefined) {
 	function cDEC2OCT() {
 	}
 
+	//***array-formula***
 	cDEC2OCT.prototype = Object.create(cBaseFunction.prototype);
 	cDEC2OCT.prototype.constructor = cDEC2OCT;
 	cDEC2OCT.prototype.name = 'DEC2OCT';
@@ -5277,6 +5282,7 @@ function (window, undefined) {
 	function cDELTA() {
 	}
 
+	//***array-formula***
 	cDELTA.prototype = Object.create(cBaseFunction.prototype);
 	cDELTA.prototype.constructor = cDELTA;
 	cDELTA.prototype.name = 'DELTA';
@@ -5322,6 +5328,7 @@ function (window, undefined) {
 	function cERF() {
 	}
 
+	//***array-formula***
 	cERF.prototype = Object.create(cBaseFunction.prototype);
 	cERF.prototype.constructor = cERF;
 	cERF.prototype.name = 'ERF';
@@ -5445,6 +5452,7 @@ function (window, undefined) {
 	function cGESTEP() {
 	}
 
+	//***array-formula***
 	cGESTEP.prototype = Object.create(cBaseFunction.prototype);
 	cGESTEP.prototype.constructor = cGESTEP;
 	cGESTEP.prototype.name = 'GESTEP';
@@ -5490,6 +5498,7 @@ function (window, undefined) {
 	function cHEX2BIN() {
 	}
 
+	//***array-formula***
 	cHEX2BIN.prototype = Object.create(cBaseFunction.prototype);
 	cHEX2BIN.prototype.constructor = cHEX2BIN;
 	cHEX2BIN.prototype.name = 'HEX2BIN';
@@ -5613,6 +5622,7 @@ function (window, undefined) {
 	function cHEX2OCT() {
 	}
 
+	//***array-formula***
 	cHEX2OCT.prototype = Object.create(cBaseFunction.prototype);
 	cHEX2OCT.prototype.constructor = cHEX2OCT;
 	cHEX2OCT.prototype.name = 'HEX2OCT';
@@ -6406,10 +6416,12 @@ function (window, undefined) {
 	function cIMPRODUCT() {
 	}
 
+	//***array-formula***
 	cIMPRODUCT.prototype = Object.create(cBaseFunction.prototype);
 	cIMPRODUCT.prototype.constructor = cIMPRODUCT;
 	cIMPRODUCT.prototype.name = 'IMPRODUCT';
 	cIMPRODUCT.prototype.argumentsMin = 1;
+	cIMPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cIMPRODUCT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], t = this;
 
@@ -6840,10 +6852,12 @@ function (window, undefined) {
 	function cIMSUM() {
 	}
 
+	//***array-formula***
 	cIMSUM.prototype = Object.create(cBaseFunction.prototype);
 	cIMSUM.prototype.constructor = cIMSUM;
 	cIMSUM.prototype.name = 'IMSUM';
 	cIMSUM.prototype.argumentsMin = 1;
+	cIMSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cIMSUM.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], t = this;
@@ -6989,6 +7003,7 @@ function (window, undefined) {
 	function cOCT2BIN() {
 	}
 
+	//***array-formula***
 	cOCT2BIN.prototype = Object.create(cBaseFunction.prototype);
 	cOCT2BIN.prototype.constructor = cOCT2BIN;
 	cOCT2BIN.prototype.name = 'OCT2BIN';
@@ -7112,6 +7127,7 @@ function (window, undefined) {
 	function cOCT2HEX() {
 	}
 
+	//***array-formula***
 	cOCT2HEX.prototype = Object.create(cBaseFunction.prototype);
 	cOCT2HEX.prototype.constructor = cOCT2HEX;
 	cOCT2HEX.prototype.name = 'OCT2HEX';

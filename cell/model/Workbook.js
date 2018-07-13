@@ -7345,22 +7345,23 @@
 		this._calculateRefType();
 		var res = this.getFormulaParsed().value;
 
-		//***array-formula***
-		if(cElementType.array === res.type) {
-			var ref = this.formulaParsed.ref;
-			if(ref) {
-				var row = 1 === res.array.length ? 0 : this.nRow - ref.r1;
-				var col = 1 === res.array[0].length ? 0 : this.nCol - ref.c1;
-				if(res.array[row] && res.array[row][col]) {
-					res = res.getElementRowCol(row, col);
-				} else {
-					res = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
-				}
-			} else {
-				res = res.getElement(0);
-			}
-		}
 		if (res) {
+			//***array-formula***
+			if(cElementType.array === res.type) {
+				var ref = this.formulaParsed.ref;
+				if(ref) {
+					var row = 1 === res.array.length ? 0 : this.nRow - ref.r1;
+					var col = 1 === res.array[0].length ? 0 : this.nCol - ref.c1;
+					if(res.array[row] && res.array[row][col]) {
+						res = res.getElementRowCol(row, col);
+					} else {
+						res = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
+					}
+				} else {
+					res = res.getElement(0);
+				}
+			}
+
 			this.cleanText();
 			switch (res.type) {
 				case cElementType.number:

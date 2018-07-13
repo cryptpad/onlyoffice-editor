@@ -1692,6 +1692,7 @@
 	function cWEEKDAY() {
 	}
 
+	//***array-formula***
 	cWEEKDAY.prototype = Object.create(cBaseFunction.prototype);
 	cWEEKDAY.prototype.constructor = cWEEKDAY;
 	cWEEKDAY.prototype.name = 'WEEKDAY';
@@ -1771,6 +1772,7 @@
 	function cWEEKNUM() {
 	}
 
+	//***array-formula***
 	cWEEKNUM.prototype = Object.create(cBaseFunction.prototype);
 	cWEEKNUM.prototype.constructor = cWEEKNUM;
 	cWEEKNUM.prototype.name = 'WEEKNUM';

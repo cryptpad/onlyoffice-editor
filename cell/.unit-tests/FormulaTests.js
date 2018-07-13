@@ -5038,6 +5038,26 @@ $( function () {
 		testArrayFormula2("AND", 1, 8, null, true);
 	} );
 
+	test( "Test: \"OR\"", function () {
+
+		ws.getRange2( "A2" ).setValue( "50" );
+		ws.getRange2( "A3" ).setValue( "100" );
+
+		oParser = new parserFormula( "AND(A2>1,A2<100)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE");
+
+		oParser = new parserFormula( 'AND(A2<A3,A2<100)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE");
+
+		oParser = new parserFormula( 'AND(A3<1,A3>100)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "FALSE");
+
+		testArrayFormula2("OR", 1, 8, null, true);
+	} );
+
     test( "Test: \"BINOMDIST\"", function () {
 
         function binomdist( x, n, p ) {

@@ -2636,6 +2636,7 @@
 	function cIRR() {
 	}
 
+	//***array-formula***
 	cIRR.prototype = Object.create(cBaseFunction.prototype);
 	cIRR.prototype.constructor = cIRR;
 	cIRR.prototype.name = 'IRR';

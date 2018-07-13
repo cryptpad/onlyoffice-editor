@@ -148,6 +148,7 @@
 	function cIF() {
 	}
 
+	//***array-formula***
 	cIF.prototype = Object.create(cBaseFunction.prototype);
 	cIF.prototype.constructor = cIF;
 	cIF.prototype.name = 'IF';
@@ -338,10 +339,12 @@
 	function cOR() {
 	}
 
+	//***array-formula***
 	cOR.prototype = Object.create(cBaseFunction.prototype);
 	cOR.prototype.constructor = cOR;
 	cOR.prototype.name = 'OR';
 	cOR.prototype.argumentsMin = 1;
+	cOR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cOR.prototype.Calculate = function (arg) {
 		var argResult = null;
 		for (var i = 0; i < arg.length; i++) {
