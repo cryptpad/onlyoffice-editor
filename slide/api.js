@@ -5247,7 +5247,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.DeleteSlide    = function()
 	{
-		var _delete_array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _delete_array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 
 		if (!this.IsSupportEmptyPresentation)
 		{
@@ -5918,7 +5918,7 @@ background-repeat: no-repeat;\
 		AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 
 		// применение темы
-		var _array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 		this.WordControl.m_oLogicDocument.changeTheme(theme_load_info, (_array.length <= 1 && !this.bSelectedSlidesTheme) ? null : _array);
 		this.WordControl.ThemeGenerateThumbnails(theme_load_info.Master);
 		// меняем шаблоны в меню
@@ -5929,7 +5929,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.ChangeLayout = function(layout_index)
 	{
-		var _array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 
 		var _master = this.WordControl.MasterLayouts;
 		this.WordControl.m_oLogicDocument.changeLayout(_array, this.WordControl.MasterLayouts, layout_index);
@@ -6447,7 +6447,7 @@ background-repeat: no-repeat;\
 			if (_cur < 0 || _cur >= _count)
 				return;
 
-            var aSelectedSlides = this.WordControl.Thumbnails.GetSelectedArray();
+            var aSelectedSlides = this.WordControl.m_oLogicDocument.GetSelectedSlides();
             for(var i = 0; i < aSelectedSlides.length; ++i)
             {
                 var _curSlide = this.WordControl.m_oLogicDocument.Slides[aSelectedSlides[i]];
