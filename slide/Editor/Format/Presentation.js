@@ -6252,6 +6252,11 @@ CPresentation.prototype =
 
     SendThemesThumbnails: function()
     {
+        if(window["NATIVE_EDITOR_ENJINE"])
+        {
+            this.DrawingDocument.CheckThemes();
+            return;
+        }
 
         if(!window['native'])
         {

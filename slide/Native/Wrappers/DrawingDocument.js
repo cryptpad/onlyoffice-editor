@@ -41,6 +41,10 @@ var COMMENT_HEIGHT  = 16;
 
 var global_mouseEvent = AscCommon.global_mouseEvent;
 
+
+var THEME_TH_WIDTH = 90;
+var THEME_TH_HEIGHT = 70;
+
 function check_KeyboardEvent(e)
 {
     AscCommon.global_keyboardEvent.AltKey     = ((e["Flags"] & 0x01) == 0x01);
@@ -750,6 +754,111 @@ CDrawingDocument.prototype.CheckTableStyles = function()
     this.Native["DD_EndNativeDraw"](stream);
 
     this.isCreatedDefaultTableStyles = true;
+};
+
+CDrawingDocument.prototype.CheckThemes = function(){   
+
+    window["native"]["DD_ClearCacheThemeThumbnails"]();
+    var logicDoc = this.m_oWordControl.m_oLogicDocument;
+    var _dst_styles = [];
+
+    // NOTE: need check
+
+    var page_w_mm = THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
+    var page_h_mm = THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
+    var page_w_px = THEME_TH_WIDTH * 2;
+    var page_h_px = THEME_TH_HEIGHT * 2;
+
+    var stream = global_memory_stream_menu;
+    var graphics = new CDrawingStream();
+    var thDrawer = new CMasterThumbnailDrawer();
+    thDrawer.DrawingDocument = this;
+
+    this.Native["DD_PrepareNativeDraw"]();
+
+    AscCommon.History.TurnOff();
+    AscCommon.g_oTableId.m_bTurnOff = true;
+
+    for (var i = 0; i < logicDoc.slideMasters.length; i++)
+    {
+        var oMaster = logicDoc.slideMasters[i];
+        if(oMaster.ThemeIndex < 0){
+            var oTheme = oMaster.Theme;
+            this.Native["DD_StartNativeDraw"](page_w_px, page_h_px, page_w_mm, page_h_mm);
+            thDrawer.WidthMM = page_w_mm;
+            thDrawer.HeightMM = page_h_mm;
+            thDrawer.WidthPx = page_w_px;
+            thDrawer.HeightPx = page_h_px;
+            thDrawer.Draw(graphics, oMaster, undefined, undefined);
+            stream["ClearNoAttack"]();
+            stream["WriteByte"](6);
+            stream["WriteLong"](oMaster.ThemeIndex);
+            var sThemeName = typeof oTheme.name === "string" && oTheme.name.length > 0 ? oTheme.name : "Doc theme " + (i + 1);
+            stream["WriteString2"](sThemeName);
+    
+            this.Native["DD_EndNativeDraw"](stream);
+            graphics.ClearParams();
+        }
+    }
+
+    AscCommon.g_oTableId.m_bTurnOff = false;
+    AscCommon.History.TurnOn();
+
+    stream["ClearNoAttack"]();
+    stream["WriteByte"](7);
+
+    this.Native["DD_EndNativeDraw"](stream);
+};
+
+CDrawingDocument.prototype.CheckLayouts = function(oMaster){   
+
+    window["native"]["DD_ClearCacheLayoutThumbnails"]();
+    var logicDoc = this.m_oWordControl.m_oLogicDocument;
+    var _dst_styles = [];
+
+    // NOTE: need check
+
+    var page_w_mm = THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
+    var page_h_mm = THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
+    var page_w_px = THEME_TH_WIDTH * 2;
+    var page_h_px = THEME_TH_HEIGHT * 2;
+
+    var stream = global_memory_stream_menu;
+    var graphics = new CDrawingStream();
+    var thDrawer = new CLayoutThumbnailDrawer();
+    thDrawer.DrawingDocument = this;
+
+    this.Native["DD_PrepareNativeDraw"]();
+
+    AscCommon.History.TurnOff();
+    AscCommon.g_oTableId.m_bTurnOff = true;
+
+    for (var i = 0; i < oMaster.sldLayoutLst.length; i++)
+    {
+        var oLayout = oMaster.sldLayoutLst[i];
+        this.Native["DD_StartNativeDraw"](page_w_px, page_h_px, page_w_mm, page_h_mm);
+        thDrawer.WidthMM = page_w_mm;
+        thDrawer.HeightMM = page_h_mm;
+        thDrawer.WidthPx = page_w_px;
+        thDrawer.HeightPx = page_h_px;
+        thDrawer.Draw(graphics, oLayout, undefined, undefined, undefined);
+        stream["ClearNoAttack"]();
+        stream["WriteByte"](8);
+        stream["WriteLong"](i);
+        var sLayoutName = typeof oLayout.cSld.name === "string" && oLayout.cSld.name.length > 0 ? oLayout.cSld.name : "Layout " + (i + 1);
+        stream["WriteString2"](sLayoutName);
+
+        this.Native["DD_EndNativeDraw"](stream);
+        graphics.ClearParams();
+    }
+
+    AscCommon.g_oTableId.m_bTurnOff = false;
+    AscCommon.History.TurnOn();
+
+    stream["ClearNoAttack"]();
+    stream["WriteByte"](9);
+
+    this.Native["DD_EndNativeDraw"](stream);
 };
 
 CDrawingDocument.prototype.OnSelectEnd = function()

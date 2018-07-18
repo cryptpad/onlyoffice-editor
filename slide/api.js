@@ -4930,9 +4930,8 @@ background-repeat: no-repeat;\
 					this.WordControl.m_oLayoutDrawer.HeightMM = presentation.Height;
 					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.Width;
 					this.WordControl.m_oMasterDrawer.HeightMM = presentation.Height;
-
-					this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 				}
+				this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 
 				this.sendEvent("asc_onPresentationSize", presentation.Width, presentation.Height);
 

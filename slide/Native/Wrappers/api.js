@@ -1420,6 +1420,10 @@ function NativeOpenFileP(_params, documentInfo){
         }
 
         _api.asc_GetDefaultTableStyles();
+        _presentation.Document_UpdateInterfaceState();
+        _presentation.DrawingDocument.CheckThemes();
+        _api.WordControl.CheckLayouts();
+
 
         return [nSlidesCount, dPresentationWidth, dPresentationHeight, aTimings];
     }
