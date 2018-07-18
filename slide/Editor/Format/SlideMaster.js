@@ -559,43 +559,12 @@ function CMasterThumbnailDrawer()
 
     this.DrawingDocument = null;
 
-    this.GetThumbnail = function(_master, use_background, use_master_shapes)
-    {
-        if(window["NATIVE_EDITOR_ENJINE"])
-        {
-            return "";
-        }
-        var h_px = 38;
-        var w_px = 85;//(this.WidthMM * h_px / this.HeightMM) >> 0;
+    this.Draw = function (g, _master, use_background, use_master_shapes) {
 
-        // пока не будем генерить для ретины
-        /*
-        if (this.IsRetina)
-        {
-            w_px <<= 1;
-            h_px <<= 1;
-        }
-        */
-
-        this.WidthPx  = w_px;
-        this.HeightPx = h_px;
-
-        if (this.CanvasImage == null)
-            this.CanvasImage = document.createElement('canvas');
-
-        this.CanvasImage.width = w_px;
-        this.CanvasImage.height = h_px;
-
-        var _ctx = this.CanvasImage.getContext('2d');
-
-        var g = new AscCommon.CGraphics();
-        g.init(_ctx, w_px, h_px, this.WidthMM, this.HeightMM);
-        g.m_oFontManager = AscCommon.g_fontManager;
-
-        g.transform(1,0,0,1,0,0);
+        var w_px = this.WidthPx;
+        var h_px = this.HeightPx;
 
         var dKoefPixToMM = this.HeightMM / h_px;
-
         // background
         var _back_fill = null;
         var RGBA = {R:0, G:0, B:0, A:255};
@@ -684,23 +653,32 @@ function CMasterThumbnailDrawer()
         var _color_y = 31;
         var _color_delta = 1;
 
-        _ctx.beginPath();
-        _ctx.fillStyle = "#FFFFFF";
-        _ctx.fillRect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5);
-        _ctx.beginPath();
 
+        g.p_color(255, 255, 255, 255);
+        g.init(g.m_oContext, w_px, h_px, w_px,  h_px);
+        g.CalculateFullTransform();
+
+        g.m_bIntegerGrid = true;
+
+        g.b_color1(255, 255, 255, 255);
+        g._s();
+        g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5);
+        g.df();
+
+
+        g._s();
         var _color = new AscFormat.CSchemeColor();
         for (var i = 0; i < 6; i++)
         {
-            _ctx.beginPath();
+            g._s();
             _color.id = i;
             _color.Calculate(_theme, null, null, _master, RGBA);
             g.b_color1(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B, 255);
-
-            _ctx.fillRect(_color_x, _color_y, _color_w, _color_h);
+            g.rect(_color_x, _color_y, _color_w, _color_h);
+            g.df();
             _color_x += (_color_w + _color_delta);
         }
-        _ctx.beginPath();
+        g._s();
 
         // text
         var _api = this.DrawingDocument.m_oWordControl.m_oApi;
@@ -723,7 +701,7 @@ function CMasterThumbnailDrawer()
 
 
         /*
-        *   var docContent = new CDocumentContent(this.m_oWordControl.m_oLogicDocument, this.m_oWordControl.m_oDrawingDocument, 0, 0,1000, 1000, false, false, true);
+         *   var docContent = new CDocumentContent(this.m_oWordControl.m_oLogicDocument, this.m_oWordControl.m_oDrawingDocument, 0, 0,1000, 1000, false, false, true);
          var par = docContent.Content[0];
 
          par.MoveCursorToStartPos();
@@ -775,7 +753,10 @@ function CMasterThumbnailDrawer()
         par.Recalculate_Page(0);
 
         // сбрасываем дпи
-        g.init(_ctx, w_px, h_px, w_px * AscCommon.g_dKoef_pix_to_mm,  h_px * AscCommon.g_dKoef_pix_to_mm);
+        // g.m_bIntegerGrid = false;
+        // g.reset();
+        // g.transform(AscCommon.g_dKoef_pix_to_mm, 0.0, 0.0, AscCommon.g_dKoef_pix_to_mm, 0.0, 0.0);
+        g.init(g.m_oContext, w_px, h_px, w_px * AscCommon.g_dKoef_pix_to_mm,  h_px * AscCommon.g_dKoef_pix_to_mm);
         g.CalculateFullTransform();
         _text_x = 8 * AscCommon.g_dKoef_pix_to_mm;
         _text_y = (h_px - 11) * AscCommon.g_dKoef_pix_to_mm;
@@ -791,6 +772,44 @@ function CMasterThumbnailDrawer()
 
         History.TurnOn();
         _api.isViewMode = _oldTurn;
+    };
+
+    this.GetThumbnail = function(_master, use_background, use_master_shapes)
+    {
+        if(window["NATIVE_EDITOR_ENJINE"])
+        {
+            return "";
+        }
+        var h_px = 38;
+        var w_px = 85;//(this.WidthMM * h_px / this.HeightMM) >> 0;
+
+        // пока не будем генерить для ретины
+        /*
+        if (this.IsRetina)
+        {
+            w_px <<= 1;
+            h_px <<= 1;
+        }
+        */
+
+        this.WidthPx  = w_px;
+        this.HeightPx = h_px;
+
+        if (this.CanvasImage == null)
+            this.CanvasImage = document.createElement('canvas');
+
+        this.CanvasImage.width = w_px;
+        this.CanvasImage.height = h_px;
+
+        var _ctx = this.CanvasImage.getContext('2d');
+
+        var g = new AscCommon.CGraphics();
+        g.init(_ctx, w_px, h_px, this.WidthMM, this.HeightMM);
+        g.m_oFontManager = AscCommon.g_fontManager;
+
+        g.transform(1,0,0,1,0,0);
+
+        this.Draw(g, _master, use_background, use_master_shapes);
 
         try
         {
