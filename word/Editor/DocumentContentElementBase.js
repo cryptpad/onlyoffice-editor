@@ -408,7 +408,7 @@ CDocumentContentElementBase.prototype.AddTextArt = function(nStyle)
 CDocumentContentElementBase.prototype.AddInlineTable = function(nCols, nRows)
 {
 };
-CDocumentContentElementBase.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText)
+CDocumentContentElementBase.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
 };
 CDocumentContentElementBase.prototype.Set_ReviewType = function(ReviewType)

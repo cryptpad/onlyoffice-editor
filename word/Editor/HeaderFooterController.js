@@ -85,9 +85,9 @@ CHdrFtrController.prototype.AddToParagraph = function(oItem, bRecalculate)
 	this.LogicDocument.Document_UpdateSelectionState();
 	this.LogicDocument.Document_UpdateUndoRedoState();
 };
-CHdrFtrController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CHdrFtrController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
-	var nResult = this.HdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	var nResult = this.HdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 	// TODO: Проверить зачем была добавлена эта заглушка. При удалении могут быть выставлены новые позиции курсора
 	//       и селекта, поэтому странно убирать селект здесь.

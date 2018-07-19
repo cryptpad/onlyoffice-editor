@@ -361,9 +361,10 @@ CDocumentControllerBase.prototype.AddToParagraph = function(oItem, bRecalculate)
  * @param {boolean} bOnlyText - удаляем только текст
  * @param {boolean} bRemoveOnlySelection - удаляем только по селекту
  * @param {boolean} bOnAddText - удаление происходит во время добавления текста (особый тип удаления)
+ * @param {boolean} isWord - производить удаление по словам
  * @returns {boolean} Выполнилось ли удаление.
  */
-CDocumentControllerBase.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText){return true;};
+CDocumentControllerBase.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord){return true;};
 /**
  * Получаем физическую позицию курсора на странице.
  */

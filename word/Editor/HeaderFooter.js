@@ -721,9 +721,9 @@ CHeaderFooter.prototype =
 		this.Content.PasteFormatting(TextPr, ParaPr, ApplyPara);
 	},
 
-    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
-        this.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+        this.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
     },
 
 	GetCursorPosXY : function()
@@ -1925,10 +1925,10 @@ CHeaderFooterController.prototype =
 			return this.CurHdrFtr.PasteFormatting(TextPr, ParaPr, ApplyPara);
 	},
 
-    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
         if ( null != this.CurHdrFtr )
-            return this.CurHdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+            return this.CurHdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
     },
 
 	GetCursorPosXY : function()

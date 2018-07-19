@@ -2980,7 +2980,7 @@ CDocumentContent.prototype.ClearParagraphFormatting = function(isClearParaPr, is
 		}
 	}
 };
-CDocumentContent.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CDocumentContent.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (true === this.ApplyToAll)
 	{
@@ -3015,9 +3015,9 @@ CDocumentContent.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelect
 		bOnTextAdd = false;
 
 	if (docpostype_DrawingObjects === this.CurPos.Type)
-		return this.LogicDocument.DrawingObjects.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+		return this.LogicDocument.DrawingObjects.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 	else //if ( docpostype_Content === this.CurPos.Type )
-		return this.private_Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+		return this.private_Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CDocumentContent.prototype.GetCursorPosXY = function()
 {

@@ -72,9 +72,9 @@ CLogicDocumentController.prototype.AddToParagraph = function(oItem)
 {
 	this.LogicDocument.controller_AddToParagraph(oItem);
 };
-CLogicDocumentController.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText)
+CLogicDocumentController.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
-	return this.LogicDocument.controller_Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText);
+	return this.LogicDocument.controller_Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord);
 };
 CLogicDocumentController.prototype.GetCursorPosXY = function()
 {

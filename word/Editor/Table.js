@@ -5762,7 +5762,7 @@ CTable.prototype.PasteFormatting = function(TextPr, ParaPr, ApplyPara)
 		this.CurCell.Content.PasteFormatting(TextPr, ParaPr, false);
 	}
 };
-CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
@@ -5774,7 +5774,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 			var Pos  = Cells_array[0];
 			var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
 			Cell.Content.SelectAll();
-			Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, true);
+			Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, true, false);
 
 			this.CurCell = Cell;
 
@@ -5799,7 +5799,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 
 				var Cell_Content = Cell.Content;
 				Cell_Content.Set_ApplyToAll(true);
-				Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, false);
+				Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, false, false);
 				Cell_Content.Set_ApplyToAll(false);
 			}
 
@@ -5824,7 +5824,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 	}
 	else
 	{
-		this.CurCell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+		this.CurCell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 		if (false === this.CurCell.Content.IsSelectionUse())
 		{

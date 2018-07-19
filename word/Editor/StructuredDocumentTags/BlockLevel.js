@@ -437,9 +437,9 @@ CBlockLevelSdt.prototype.AddInlineTable = function(nCols, nRows)
 {
 	this.Content.AddInlineTable(nCols, nRows);
 };
-CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText)
+CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
-	var Res = this.Content.Remove(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText);
+	var Res = this.Content.Remove(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord);
 
 	if (this.Is_Empty() && !bOnAddText && this.LogicDocument && true === this.LogicDocument.IsFillingFormMode())
 	{

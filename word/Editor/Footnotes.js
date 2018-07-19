@@ -1441,12 +1441,12 @@ CFootnotesController.prototype.AddToParagraph = function(oItem, bRecalculate)
 			this.CurFootnote.AddToParagraph(oItem, bRecalculate);
 	}
 };
-CFootnotesController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CFootnotesController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (false === this.private_CheckFootnotesSelectionBeforeAction())
 		return;
 
-	this.CurFootnote.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	this.CurFootnote.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CFootnotesController.prototype.GetCursorPosXY = function()
 {

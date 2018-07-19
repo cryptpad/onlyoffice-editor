@@ -341,7 +341,7 @@ CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPa
 
 	return oNumberingEngine.GetNumInfo();
 };
-CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (this.CurPos.ContentPos < 0)
 		return false;
@@ -612,7 +612,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 
 		if (type_Paragraph == this.Content[this.CurPos.ContentPos].GetType())
 		{
-			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText))
+			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord))
 			{
 				if (Count < 0)
 				{
@@ -727,7 +727,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else if (type_BlockLevelSdt === this.Content[this.CurPos.ContentPos].GetType())
 		{
-			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText))
+			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord))
 			{
 				var oLogicDocument = this.GetLogicDocument();
 				if (oLogicDocument && true === oLogicDocument.IsFillingFormMode())
@@ -771,7 +771,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else
 		{
-			this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText);
+			this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord);
 		}
 	}
 

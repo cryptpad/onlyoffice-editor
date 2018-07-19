@@ -4632,7 +4632,7 @@ CDocument.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTe
 	this.Document_UpdateSelectionState();
 	this.Document_UpdateInterfaceState();
 };
-CDocument.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CDocument.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (undefined === bRemoveOnlySelection)
 		bRemoveOnlySelection = false;
@@ -4640,7 +4640,10 @@ CDocument.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelectio
 	if (undefined === bOnTextAdd)
 		bOnTextAdd = false;
 
-	this.Controller.Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	if (undefined === isWord)
+		isWord = false;
+
+	this.Controller.Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 	this.Recalculate();
 
@@ -7257,7 +7260,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			else
 			{
-				this.Remove(-1, true);
+				this.Remove(-1, true, false, false, e.CtrlKey);
 			}
         }
         bRetValue = keydownresult_PreventAll;
@@ -7711,7 +7714,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				}
 				else
 				{
-					this.Remove(1, true);
+					this.Remove(1, true, false, false, e.CtrlKey);
 				}
             }
             bRetValue = keydownresult_PreventAll;
@@ -13687,13 +13690,13 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 	if (true === this.Is_OnRecalculate())
 		this.Document_UpdateUndoRedoState();
 };
-CDocument.prototype.controller_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CDocument.prototype.controller_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	// Делаем так, чтобы при выделении нумерации удалялась нумерация. А она удаляется по backspace.
 	if (this.IsNumberingSelection())
-		return this.Selection.Data.CurPara.Remove(-1, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+		return this.Selection.Data.CurPara.Remove(-1, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
-	this.private_Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	this.private_Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CDocument.prototype.controller_GetCursorPosXY = function()
 {

@@ -2633,8 +2633,10 @@ Paragraph.prototype.Shift = function(PageIndex, Dx, Dy)
  * @param bOnlyText - true: удаляем только текст и пробелы, false - Удаляем любые элементы
  * @param bRemoveOnlySelection
  * @param bOnAddText - удаление происходит на добавлении текста
+ * @param isWord - удаление по словам (работает только при отсутсвии селекта)
+ * @returns {boolean} Если возвращается false, то значит ничего нельзя удалить в заданном направлении
  */
-Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText)
+Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
 	var Direction = nCount;
 	var Result    = true;
@@ -2790,8 +2792,27 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 	}
 	else
 	{
-		var ContentPos = this.CurPos.ContentPos;
+		if (isWord)
+		{
+			var oStartPos  = this.Get_ParaContentPos(false, false, false);
+			var oSearchPos = new CParagraphSearchPos();
 
+			if (nCount > 0)
+				this.Get_WordEndPos(oSearchPos, oStartPos);
+			else
+				this.Get_WordStartPos(oSearchPos, oStartPos);
+
+			if (oSearchPos.Found && 0 !== oSearchPos.Pos.Compare(oStartPos))
+			{
+				this.StartSelectionFromCurPos();
+				this.SetSelectionContentPos(oStartPos, oSearchPos.Pos);
+				this.Remove(1, false, false, false, false);
+				this.RemoveSelection();
+				return true;
+			}
+		}
+
+		var ContentPos = this.CurPos.ContentPos;
 		while (false === this.Content[ContentPos].Remove(Direction, bOnAddText))
 		{
 			if (Direction < 0)
