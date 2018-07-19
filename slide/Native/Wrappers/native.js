@@ -317,6 +317,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.SetSlideProps(props);
             break;
         }
+        case 23:
+        {
+            this.SlideTimingApplyToAll();
+            break;
+        }
         
         case 50: // ASC_MENU_EVENT_TYPE_INSERT_IMAGE
         {
