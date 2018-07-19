@@ -42,8 +42,8 @@ var COMMENT_HEIGHT  = 16;
 var global_mouseEvent = AscCommon.global_mouseEvent;
 
 
-var THEME_TH_WIDTH = 90;
-var THEME_TH_HEIGHT = 70;
+var THEME_TH_WIDTH = 140;
+var THEME_TH_HEIGHT = 90;
 
 function check_KeyboardEvent(e)
 {
