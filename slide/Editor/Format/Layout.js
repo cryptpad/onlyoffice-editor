@@ -669,6 +669,7 @@ SlideLayout.prototype =
     }
 };
 
+
 function CLayoutThumbnailDrawer()
 {
     this.CanvasImage    = null;
@@ -880,7 +881,11 @@ function CLayoutThumbnailDrawer()
                     }
                     else
                     {
-
+                        g.p_width(0);
+                        g.p_color(255, 255, 255, 255);
+                        g.transform3(_sp_elem.transform);
+                        g.rect(0, 0, _sp_elem.extX, _sp_elem.extY);
+                        g.ds();
                     }
                 }
             }

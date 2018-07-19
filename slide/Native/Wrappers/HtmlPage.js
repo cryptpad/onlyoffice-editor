@@ -526,6 +526,10 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
 
 CEditorPage.prototype.GoToPage = function(lPageNum)
 {
+    if(this.m_oDrawingDocument){
+        this.m_oDrawingDocument.SlidesCount = this.m_oLogicDocument.Slides.length;
+        this.m_oDrawingDocument.SlideCurrent = this.m_oLogicDocument.CurPage;
+    }
     this.Native["DD_SetCurrentPage"](lPageNum);
 };
 
