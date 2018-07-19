@@ -14478,6 +14478,258 @@
 		}
 	};
 
+	function HeaderFooterParser() {
+		this.portions = [];
+		this.currPortion = null;
+		this.str = null;
+		this.font = null;
+	}
+
+	var c_nLeft = 0;
+	var c_nCenter = 1;
+	var c_nRight = 2;
+
+	HeaderFooterParser.prototype.parse = function (date) {
+		var c_nText = 0, c_nToken = 1, c_nFontName = 2, c_nFontStyle = 3, c_nFontHeight = 4;
+
+		this.font = new AscCommonExcel.Font();
+		this.currPortion = c_nCenter;
+		this.str = "";
+
+		var nState = c_nText;
+		var nFontHeight = 0;
+		var sFontName = "";
+		var sFontStyle = "";
+
+		for (var i = 0; i < date.length; i++) {
+			var cChar = date[i];
+			switch (nState) {
+				case c_nText: {
+					switch (cChar) {
+						case '&':
+							this.pushText();
+							nState = c_nToken;
+							break;
+						case '\n':
+							this.pushText();
+							this.pushLineBreak();
+							break;
+						default:
+							this.str += cChar;
+					}
+					break;
+				}
+
+				case c_nToken: {
+					nState = c_nText;
+
+					switch (cChar) {
+						case '&':
+							this.str.push(cChar);
+							break;
+
+						case 'L':
+							this.setPortion(c_nLeft);
+							break;
+						case 'C':
+							this.setPortion(c_nCenter);
+							break;
+						case 'R':
+							this.setPortion(c_nRight);
+							break;
+
+						case 'P':   //page number
+
+							break;
+						case 'N':   //total page count
+
+							break;
+						case 'A':   //current sheet name
+
+							break;
+
+						case 'F':   //file name
+						{
+
+							break;
+						}
+						case 'Z':   //file path
+						{
+
+						    break;
+						}
+						case 'D':   //date
+						{
+
+							break;
+						}
+						case 'T':   //time
+						{
+
+							break;
+						}
+						case 'B':   //bold
+							this.font.b = !this.font.b;
+							break;
+						case 'I':
+							this.font.i = !this.font.i;
+							break;
+						case 'U':   //underline
+
+							break;
+						case 'E':   //double underline
+
+							break;
+						case 'S':   //strikeout
+
+							break;
+						case 'X':   //superscript
+
+							break;
+						case 'Y':   //subsrcipt
+
+							break;
+						case 'O':   //outlined
+
+							break;
+						case 'H':   //shadow
+
+							break;
+
+						case 'K':   //text color
+
+							break;
+
+						case '\"':  //font name
+							sFontName = "";
+							sFontStyle = "";
+							nState = c_nFontName;
+							break;
+						default:
+							if (('0' <= cChar) && (cChar <= '9'))    // font size
+							{
+								nFontHeight = cChar - '0';
+								nState = c_nFontHeight;
+							}
+					}
+					break;
+				}
+				case c_nFontName: {
+					switch (cChar) {
+						case '\"':
+							this.convertFontName(sFontName);
+							sFontName = "";
+							nState = c_nText;
+							break;
+						case ',':
+							nState = c_nFontStyle;
+							break;
+						default:
+							sFontName += cChar;
+					}
+					break;
+				}
+				case c_nFontStyle: {
+					switch (cChar) {
+						case '\"':
+							this.convertFontName(sFontName);
+							sFontName = "";
+							this.convertFontStyle(sFontStyle);
+							sFontStyle = "";
+
+							nState = c_nText;
+							break;
+						default:
+							sFontStyle += cChar;
+					}
+					break;
+				}
+				case c_nFontHeight: {
+					if (('0' <= cChar) && (cChar <= '9')) {
+						if (nFontHeight >= 0) {
+							nFontHeight *= 10;
+							nFontHeight += (cChar - '0');
+							if (nFontHeight > 1000) {
+								nFontHeight = -1;
+							}
+						}
+					} else {
+						if (nFontHeight > 0) {
+							this.font.fs = nFontHeight;
+						}
+						nState = c_nText;
+					}
+					break;
+				}
+			}
+		}
+
+		this.endPortion();
+	};
+    
+	HeaderFooterParser.prototype.setAttr = function () {
+        /*if(!this.font) {
+         this.font = new AscCommonExcel.Font();
+         } else {
+         if(!this.portions[this.currPortion]) {
+         this.portions[this.currPortion] = [];
+         }
+         if(!this.portions[this.currPortion][this.portions[this.currPortion].length - 1]) {
+         this.portions[this.currPortion][this.portions[this.currPortion].length] = {};
+         }
+         this.portions[this.currPortion][this.portions[this.currPortion].length - 1].props = this.font.clone();
+         }*/
+	};
+
+	HeaderFooterParser.prototype.pushText = function () {
+		if (0 !== this.str.length) {
+			if (!this.portions[this.currPortion]) {
+				this.portions[this.currPortion] = [{props: this.font.clone(), val: this.str}];
+			} else {
+				this.portions[this.currPortion].push({props: this.font.clone(), val: this.str});
+			}
+
+			this.str = [];
+		}
+	};
+
+	HeaderFooterParser.prototype.pushLineBreak = function () {
+
+	};
+
+
+	HeaderFooterParser.prototype.convertFontName = function (rName) {
+		if ("" !== rName) {
+			// single dash is document default font
+			if ((rName.length === 1) && (rName[0] === '-')) {
+				this.font.fn = "DEFAULT";
+			} else {
+				this.font.fn = rName;
+			}
+		}
+	};
+
+	HeaderFooterParser.prototype.convertFontStyle = function (rStyle) {
+		this.font.b = this.font.i = false;
+		if ("italic" === rStyle.toLowerCase()) {
+			this.font.i = true;
+		}
+		if ("bold" === rStyle.toLowerCase()) {
+			this.font.b = true;
+		}
+	};
+
+	HeaderFooterParser.prototype.endPortion = function () {
+		this.pushText();
+	};
+
+	HeaderFooterParser.prototype.setPortion = function (val) {
+		if (val != this.currPortion) {
+			this.endPortion();
+			this.currPortion = val;
+		}
+	};
+
     //------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
