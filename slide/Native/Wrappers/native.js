@@ -547,6 +547,12 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 8116: //ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LAYOUT
+        {
+            this.ChangeLayout(parseInt(_params))
+            break;
+        }
+
         case 10000: // ASC_SOCKET_EVENT_TYPE_OPEN
         {
             this.CoAuthoringApi._CoAuthoringApi._onServerOpen();

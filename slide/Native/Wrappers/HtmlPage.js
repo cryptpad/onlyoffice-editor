@@ -520,6 +520,7 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
     }
     var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
     var master = slide.Layout.Master;
+    this.MasterLayouts = master;
     this.m_oDrawingDocument.CheckLayouts(master);
     this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
 };
