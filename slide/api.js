@@ -3042,7 +3042,7 @@ background-repeat: no-repeat;\
                         bg.bgPr.Fill.fill.RasterImageId = image_url; // erase documentUrl
                     }
 
-                    if (null != _image)
+                    if (null != _image || window["NATIVE_EDITOR_ENJINE"])
                     {
                         if (bg.bgPr.Fill != null && bg.bgPr.Fill.fill != null && bg.bgPr.Fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
                         {
