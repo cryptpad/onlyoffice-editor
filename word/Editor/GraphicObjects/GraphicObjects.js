@@ -2837,12 +2837,12 @@ CGraphicObjects.prototype =
 
     recalculateCurPos: DrawingObjectsController.prototype.recalculateCurPos,
 
-    remove: function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+    remove: function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
         var content = this.getTargetDocContent(true);
         if(content)
         {
-            content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+            content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
             var oTargetTextObject = AscFormat.getTargetTextObject(this);
             oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
             this.document.Recalculate();
