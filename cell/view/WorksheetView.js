@@ -2331,6 +2331,8 @@
 		//поэтому рассчет делаю 1 раз
 		var visiblePrintPages = pageBreakPreviewMode ? this._getVisiblePrintPages(range) : null;
 
+		var test = new HeaderFooterParser().parse('&L&"-,Italic"&14 11&P22&"Amiri,Bold"dd');
+
 		// Возможно сетку не нужно рисовать (при печати свои проверки)
 		if (null === drawingCtx && false === this.model.getSheetView().asc_getShowGridLines()) {
 			return;
@@ -14478,6 +14480,22 @@
 		}
 	};
 
+
+	var c_nHeaderFooterPageNumber = 0;
+	var c_nHeaderFooterPageCount = 1;
+	var c_nHeaderFooterSheetName = 2;
+	var c_nHeaderFooterFileName = 3;
+	var c_nHeaderFooterFilePath = 4;
+	var c_nHeaderFooterDate = 5;
+	var c_nHeaderFooterTime = 6;
+
+	var c_nHeaderFooterLineBreak = 7;
+
+
+	function HeaderFooterField(val) {
+		this.field = val;
+	}
+
 	function HeaderFooterParser() {
 		this.portions = [];
 		this.currPortion = null;
@@ -14527,7 +14545,6 @@
 						case '&':
 							this.str.push(cChar);
 							break;
-
 						case 'L':
 							this.setPortion(c_nLeft);
 							break;
@@ -14537,35 +14554,33 @@
 						case 'R':
 							this.setPortion(c_nRight);
 							break;
-
 						case 'P':   //page number
-
+							this.pushField(new HeaderFooterField(c_nHeaderFooterPageNumber));
 							break;
 						case 'N':   //total page count
-
+							this.pushField(new HeaderFooterField(c_nHeaderFooterPageCount));
 							break;
 						case 'A':   //current sheet name
-
+							this.pushField(new HeaderFooterField(c_nHeaderFooterSheetName));
 							break;
-
 						case 'F':   //file name
 						{
-
+							this.pushField(new HeaderFooterField(c_nHeaderFooterFileName));
 							break;
 						}
 						case 'Z':   //file path
 						{
-
+							this.pushField(new HeaderFooterField(c_nHeaderFooterFilePath));
 						    break;
 						}
 						case 'D':   //date
 						{
-
+							this.pushField(new HeaderFooterField(c_nHeaderFooterDate));
 							break;
 						}
 						case 'T':   //time
 						{
-
+							this.pushField(new HeaderFooterField(c_nHeaderFooterTime));
 							break;
 						}
 						case 'B':   //bold
@@ -14581,7 +14596,7 @@
 
 							break;
 						case 'S':   //strikeout
-
+							this.font.s = !this.font.s;
 							break;
 						case 'X':   //superscript
 
@@ -14595,11 +14610,9 @@
 						case 'H':   //shadow
 
 							break;
-
 						case 'K':   //text color
 
 							break;
-
 						case '\"':  //font name
 							sFontName = "";
 							sFontStyle = "";
@@ -14693,8 +14706,16 @@
 		}
 	};
 
-	HeaderFooterParser.prototype.pushLineBreak = function () {
+	HeaderFooterParser.prototype.pushField = function (field) {
+        if (!this.portions[this.currPortion]) {
+            this.portions[this.currPortion] = [{props: this.font.clone(), val: field}];
+        } else {
+            this.portions[this.currPortion].push({props: this.font.clone(), val: field});
+        }
+	};
 
+	HeaderFooterParser.prototype.pushLineBreak = function () {
+		this.pushField(new HeaderFooterField(c_nHeaderFooterLineBreak));
 	};
 
 
