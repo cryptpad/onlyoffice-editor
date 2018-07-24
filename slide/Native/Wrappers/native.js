@@ -311,6 +311,14 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         }
 
+        case 18: // ASC_MENU_EVENT_TYPE_SHAPE
+        {
+            var shapeProp = asc_menu_ReadShapePr(_params, _current);           
+            this.ShapeApply(shapeProp);
+            this.WordControl.m_oLogicDocument.Recalculate();
+            break;
+        }
+
         case 20: // ASC_MENU_EVENT_TYPE_SLIDE
         {
             var props = asc_menu_ReadSlidePr(_params, _current);
