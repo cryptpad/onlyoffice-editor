@@ -2857,7 +2857,7 @@ background-repeat: no-repeat;\
 				{
 					oFill.fill.asc_putUrl(image_url);
 				}
-				if (null != _image)
+				if (null != _image || window["NATIVE_EDITOR_ENJINE"])
 				{
 					oApi.WordControl.m_oLogicDocument.ShapeApply(prop);
 					if (bShapeTexture)
