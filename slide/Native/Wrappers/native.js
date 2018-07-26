@@ -708,6 +708,23 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 8120: // ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LEVEL           
+        {
+            var level = parseInt(_params);
+            
+            if (level == Asc.c_oAscDrawingLayerType.BringToFront) {
+                this.shapes_bringToFront();
+            } else if (level == Asc.c_oAscDrawingLayerType.SendToBack) {
+                this.shapes_bringToBack();
+            } else if (level == Asc.c_oAscDrawingLayerType.BringForward) {
+                this.shapes_bringForward();
+            } else if (level == Asc.c_oAscDrawingLayerType.SendBackward) {
+                this.shapes_bringBackward();
+            }
+
+            break;
+        }
+
         case 8116: //ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LAYOUT
         {
             this.ChangeLayout(parseInt(_params))
