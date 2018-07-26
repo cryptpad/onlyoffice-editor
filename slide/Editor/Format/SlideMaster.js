@@ -644,42 +644,71 @@ function CMasterThumbnailDrawer()
         g.reset();
         g.SetIntegerGrid(true);
 
-        // цвета
-        var _color_w = 6;
-        var _color_h = 3;
-        var _color_x = 4;
         var _text_x = 8 * dKoefPixToMM;
         var _text_y = (h_px - 10) * dKoefPixToMM;
-        var _color_y = 31;
-        var _color_delta = 1;
-
-
-        g.p_color(255, 255, 255, 255);
-        g.init(g.m_oContext, w_px, h_px, w_px,  h_px);
-        g.CalculateFullTransform();
-
-        g.m_bIntegerGrid = true;
-
-        g.b_color1(255, 255, 255, 255);
-        g._s();
-        g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5);
-        g.df();
-
-
-        g._s();
-        var _color = new AscFormat.CSchemeColor();
-        for (var i = 0; i < 6; i++)
+        if(!window['NATIVE_EDITOR_ENJINE'])
         {
-            g._s();
-            _color.id = i;
-            _color.Calculate(_theme, null, null, _master, RGBA);
-            g.b_color1(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B, 255);
-            g.rect(_color_x, _color_y, _color_w, _color_h);
-            g.df();
-            _color_x += (_color_w + _color_delta);
-        }
-        g._s();
+            // цвета
+            var _color_w = 6;
+            var _color_h = 3;
+            var _color_x = 4;
+            var _color_y = 31;
+            var _color_delta = 1;
 
+
+            g.p_color(255, 255, 255, 255);
+            g.init(g.m_oContext, w_px, h_px, w_px,  h_px);
+            g.CalculateFullTransform();
+
+            g.m_bIntegerGrid = true;
+
+            g.b_color1(255, 255, 255, 255);
+            g._s();
+            g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5);
+            g.df();
+
+
+            g._s();
+            var _color = new AscFormat.CSchemeColor();
+            for (var i = 0; i < 6; i++)
+            {
+                g._s();
+                _color.id = i;
+                _color.Calculate(_theme, null, null, _master, RGBA);
+                g.b_color1(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B, 255);
+                g.rect(_color_x, _color_y, _color_w, _color_h);
+                g.df();
+                _color_x += (_color_w + _color_delta);
+            }
+            g._s();
+        }
+        else {
+            var _color_w = 30 * dKoefPixToMM;
+            var _color_h = 15 * dKoefPixToMM;
+            var _color_x = 10 * dKoefPixToMM;
+            var _color_y = this.HeightMM - _color_x - _color_h;
+            var _color_delta = 2 * dKoefPixToMM;
+            g.p_color(255, 255, 255, 255);
+            g.init(g.m_oContext, w_px, h_px, w_px, h_px);
+            g.CalculateFullTransform();
+            g.m_bIntegerGrid = true;
+            g.b_color1(255, 255, 255, 255);
+            g._s();
+            g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, _color_h + 2*_color_delta);
+            g.df();
+            g._s();
+            var _color = new AscFormat.CSchemeColor;
+            for (var i = 0; i < 6; i++) {
+              g._s();
+              _color.id = i;
+              _color.Calculate(_theme, null, null, _master, RGBA);
+              g.b_color1(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B, 255);
+              g.rect(_color_x, _color_y, _color_w, _color_h);
+              g.df();
+              _color_x += _color_w + _color_delta;
+            }
+            g._s();
+          }
         // text
         var _api = this.DrawingDocument.m_oWordControl.m_oApi;
 
