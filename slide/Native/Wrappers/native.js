@@ -70,7 +70,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
         switch (this.SelectedObjectsStack[i].Type)
         {
             //case Asc.c_oAscTypeSelectElement.Paragraph:
-            //case Asc.c_oAscTypeSelectElement.Table:
+            case Asc.c_oAscTypeSelectElement.Table:
             case Asc.c_oAscTypeSelectElement.Image:
             //case Asc.c_oAscTypeSelectElement.Hyperlink:
             case Asc.c_oAscTypeSelectElement.Slide:
@@ -116,9 +116,9 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
 
             case Asc.c_oAscTypeSelectElement.Table:
             {
-                //console.log("StackObjects -> Table");
-                //_stream["WriteLong"](Asc.c_oAscTypeSelectElement.Table);
-                //asc_menu_WriteTablePr(this.SelectedObjectsStack[i].Value, _stream);
+                console.log("StackObjects -> Table");
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Table);
+                asc_menu_WriteTablePr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
             case Asc.c_oAscTypeSelectElement.Image:
@@ -303,6 +303,159 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.ImgApply(_imagePr);
             this.WordControl.m_oLogicDocument.Recalculate();
  
+            break;
+        }
+
+               case 10: // ASC_MENU_EVENT_TYPE_TABLE
+        {
+            var _tablePr = new Asc.CTableProp();
+            while (_continue)
+            {
+                var _attr = _params[_current.pos++];
+                switch (_attr)
+                {
+                    case 0:
+                    {
+                        _tablePr.CanBeFlow = _params[_current.pos++];
+                        break;
+                    }
+                    case 1:
+                    {
+                        _tablePr.CellSelect = _params[_current.pos++];
+                        break;
+                    }
+                    case 2:
+                    {
+                        _tablePr.TableWidth = _params[_current.pos++];
+                        break;
+                    }
+                    case 3:
+                    {
+                        _tablePr.TableSpacing = _params[_current.pos++];
+                        break;
+                    }
+                    case 4:
+                    {
+                        _tablePr.TableDefaultMargins = asc_menu_ReadPaddings(_params, _current);
+                        break;
+                    }
+                    case 5:
+                    {
+                        _tablePr.CellMargins = asc_menu_ReadCellMargins(_params, _current);
+                        break;
+                    }
+                    case 6:
+                    {
+                        _tablePr.TableAlignment = _params[_current.pos++];
+                        break;
+                    }
+                    case 7:
+                    {
+                        _tablePr.TableIndent = _params[_current.pos++];
+                        break;
+                    }
+                    case 8:
+                    {
+                        _tablePr.TableWrappingStyle = _params[_current.pos++];
+                        break;
+                    }
+                    case 9:
+                    {
+                        _tablePr.TablePaddings = asc_menu_ReadPaddings(_params, _current);
+                        break;
+                    }
+                    case 10:
+                    {
+                        _tablePr.TableBorders = asc_menu_ReadCellBorders(_params, _current);
+                        break;
+                    }
+                    case 11:
+                    {
+                        _tablePr.CellBorders = asc_menu_ReadCellBorders(_params, _current);
+                        break;
+                    }
+                    case 12:
+                    {
+                        _tablePr.TableBackground = asc_menu_ReadCellBackground(_params, _current);
+                        break;
+                    }
+                    case 13:
+                    {
+                        _tablePr.CellsBackground = asc_menu_ReadCellBackground(_params, _current);
+                        break;
+                    }
+                    case 14:
+                    {
+                        _tablePr.Position = asc_menu_ReadPosition(_params, _current);
+                        break;
+                    }
+                    case 15:
+                    {
+                        _tablePr.PositionH = asc_menu_ReadImagePosition(_params, _current);
+                        break;
+                    }
+                    case 16:
+                    {
+                        _tablePr.PositionV = asc_menu_ReadImagePosition(_params, _current);
+                        break;
+                    }
+                    case 17:
+                    {
+                        _tablePr.Internal_Position = asc_menu_ReadTableAnchorPosition(_params, _current);
+                        break;
+                    }
+                    case 18:
+                    {
+                        _tablePr.ForSelectedCells = _params[_current.pos++];
+                        break;
+                    }
+                    case 19:
+                    {
+                        _tablePr.TableStyle = _params[_current.pos++];
+                        break;
+                    }
+                    case 20:
+                    {
+                        _tablePr.TableLook = asc_menu_ReadTableLook(_params, _current);
+                        break;
+                    }
+                    case 21:
+                    {
+                        _tablePr.RowsInHeader = _params[_current.pos++];
+                        break;
+                    }
+                    case 22:
+                    {
+                        _tablePr.CellsVAlign = _params[_current.pos++];
+                        break;
+                    }
+                    case 23:
+                    {
+                        _tablePr.AllowOverlap = _params[_current.pos++];
+                        break;
+                    }
+                    case 24:
+                    {
+                        _tablePr.TableLayout = _params[_current.pos++];
+                        break;
+                    }
+                    case 25:
+                    {
+                        _tablePr.Locked = _params[_current.pos++];
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
+
+            this.tblApply(_tablePr);
+            this.WordControl.m_oLogicDocument.Recalculate();
+            
             break;
         }
 

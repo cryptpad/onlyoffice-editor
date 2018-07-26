@@ -719,6 +719,7 @@ function asc_menu_ReadAscStroke(_params, _cursor)
 
     return _stroke;
 };
+
 function asc_menu_WriteAscStroke(_type, _stroke, _stream)
 {
     if (!_stroke)
@@ -777,7 +778,531 @@ function asc_menu_WriteAscStroke(_type, _stroke, _stream)
     }
 
     _stream["WriteByte"](255);
+};
 
+function asc_menu_ReadParaInd(_params, _cursor)
+{
+    var _ind = new CParaInd();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _ind.Left = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _ind.Right = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _ind.FirstLine = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _ind;
+};
+
+function asc_menu_WriteParaInd(_type, _ind, _stream)
+{
+    if (!_ind)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_ind.Left !== undefined && _ind.Left !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteDouble2"](_ind.Left);
+    }
+    if (_ind.Right !== undefined && _ind.Right !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteDouble2"](_ind.Right);
+    }
+    if (_ind.FirstLine !== undefined && _ind.FirstLine !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteDouble2"](_ind.FirstLine);
+    }
+
+    _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadParaSpacing(_params, _cursor)
+{
+    var _spacing = new CParaSpacing();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _spacing.Line = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _spacing.LineRule = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _spacing.Before = _params[_cursor.pos++];
+                break;
+            }
+            case 3:
+            {
+                _spacing.BeforeAutoSpacing = _params[_cursor.pos++];
+                break;
+            }
+            case 4:
+            {
+                _spacing.After = _params[_cursor.pos++];
+                break;
+            }
+            case 5:
+            {
+                _spacing.AfterAutoSpacing = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _spacing;
+};
+
+function asc_menu_WriteParaSpacing(_type, _spacing, _stream)
+{
+    if (!_spacing)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_spacing.Line !== undefined && _spacing.Line !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteDouble2"](_spacing.Line);
+    }
+    if (_spacing.LineRule !== undefined && _spacing.LineRule !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_spacing.LineRule);
+    }
+    if (_spacing.Before !== undefined && _spacing.Before !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteDouble2"](_spacing.Before);
+    }
+    if (_spacing.BeforeAutoSpacing !== undefined && _spacing.BeforeAutoSpacing !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteBool"](_spacing.BeforeAutoSpacing);
+    }
+    if (_spacing.After !== undefined && _spacing.After !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteDouble2"](_spacing.After);
+    }
+    if (_spacing.AfterAutoSpacing !== undefined && _spacing.AfterAutoSpacing !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteBool"](_spacing.AfterAutoSpacing);
+    }
+
+    _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadParaBorder(_params, _cursor)
+{
+    var _border = new Asc.asc_CTextBorder();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _border.Color = asc_menu_ReadColor(_params, _cursor);
+                break;
+            }
+            case 1:
+            {
+                _border.Size = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _border.Value = _params[_cursor.pos++];
+                break;
+            }
+            case 3:
+            {
+                _border.Space = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _border;
+};
+
+function asc_menu_WriteParaBorder(_type, _border, _stream)
+{
+    if (!_border)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    asc_menu_WriteColor(0, _border.Color, _stream);
+
+    if (_border.Size !== undefined && _border.Size !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteDouble2"](_border.Size);
+    }
+    if (_border.Value !== undefined && _border.Value !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteLong"](_border.Value);
+    }
+    if (_border.Space !== undefined && _border.Space !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteDouble2"](_border.Space);
+    }
+
+    _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadParaBorders(_params, _cursor)
+{
+    var _border = new asc_CParagraph();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _border.Left = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 1:
+            {
+                _border.Top = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 2:
+            {
+                _border.Right = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 3:
+            {
+                _border.Bottom = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 4:
+            {
+                _border.Between = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _border;
+};
+
+function asc_menu_WriteParaBorders(_type, _borders, _stream)
+{
+    if (!_borders)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    asc_menu_WriteParaBorder(0, _borders.Left, _stream);
+    asc_menu_WriteParaBorder(1, _borders.Top, _stream);
+    asc_menu_WriteParaBorder(2, _borders.Right, _stream);
+    asc_menu_WriteParaBorder(3, _borders.Bottom, _stream);
+    asc_menu_WriteParaBorder(4, _borders.Between, _stream);
+
+    _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadParaShd(_params, _cursor)
+{
+    var _shd = new Asc.asc_CParagraphShd();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _shd.Value = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _shd.Color = asc_menu_ReadColor(_params, _cursor);
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _shd;
+};
+
+function asc_menu_WriteParaShd(_type, _shd, _stream)
+{
+    if (!_shd)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_shd.Value !== undefined && _shd.Value !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteLong"](_shd.Value);
+    }
+
+    asc_menu_WriteColor(1, _shd.Color, _stream);
+
+    _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadCellMargins(_params, _cursor)
+{
+    var _paddings = new Asc.CMargins();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _paddings.Left = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _paddings.Top = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _paddings.Right = _params[_cursor.pos++];
+                break;
+            }
+            case 3:
+            {
+                _paddings.Bottom = _params[_cursor.pos++];
+                break;
+            }
+            case 4:
+            {
+                _paddings.Flag = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _paddings;
+};
+
+function asc_menu_WriteCellMargins(_type, _margins, _stream)
+{
+    if (!_margins)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_margins.Left !== undefined && _margins.Left !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteDouble2"](_margins.Left);
+    }
+    if (_margins.Top !== undefined && _margins.Top !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteDouble2"](_margins.Top);
+    }
+    if (_margins.Right !== undefined && _margins.Right !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteDouble2"](_margins.Right);
+    }
+    if (_margins.Bottom !== undefined && _margins.Bottom !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteDouble2"](_margins.Bottom);
+    }
+    if (_margins.Flag !== undefined && _margins.Flag !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteLong"](_margins.Flag);
+    }
+
+    _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadCellBorders(_params, _cursor)
+{
+    var _borders = new Asc.CBorders();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _borders.Left = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 1:
+            {
+                _borders.Top = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 2:
+            {
+                _borders.Right = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 3:
+            {
+                _borders.Bottom = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 4:
+            {
+                _borders.InsideH = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 5:
+            {
+                _borders.InsideV = asc_menu_ReadParaBorder(_params, _cursor);
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _borders;
+};
+
+function asc_menu_WriteCellBorders(_type, _borders, _stream)
+{
+    if (!_borders)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    asc_menu_WriteParaBorder(0, _borders.Left, _stream);
+    asc_menu_WriteParaBorder(1, _borders.Top, _stream);
+    asc_menu_WriteParaBorder(2, _borders.Right, _stream);
+    asc_menu_WriteParaBorder(3, _borders.Bottom, _stream);
+    asc_menu_WriteParaBorder(4, _borders.InsideH, _stream);
+    asc_menu_WriteParaBorder(5, _borders.InsideV, _stream);
+
+    _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadCellBackground(_params, _cursor)
+{
+    var _background = new Asc.CBackground();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _background.Color = asc_menu_ReadColor(_params, _cursor);
+                break;
+            }
+            case 1:
+            {
+                _background.Value = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _background;
+};
+
+function asc_menu_WriteCellBackground(_type, _background, _stream)
+{
+    if (!_background)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    asc_menu_WriteColor(0, _background.Color, _stream);
+
+    if (_background.Value !== undefined && _background.Value !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_background.Value);
+    }
+
+    _stream["WriteByte"](255);
 };
 
 function asc_menu_ReadPosition(_params, _cursor) {
@@ -926,7 +1451,245 @@ function asc_menu_WriteImagePosition(_type, _position, _stream){
     }
 
     _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadTableAnchorPosition(_params, _cursor)
+{
+    var _position = new CTableAnchorPosition();
+
+    _position.CalcX = _params[_cursor.pos++];
+    _position.CalcY = _params[_cursor.pos++];
+    _position.W = _params[_cursor.pos++];
+    _position.H = _params[_cursor.pos++];
+    _position.X = _params[_cursor.pos++];
+    _position.Y = _params[_cursor.pos++];
+    _position.Left_Margin = _params[_cursor.pos++];
+    _position.Right_Margin = _params[_cursor.pos++];
+    _position.Top_Margin = _params[_cursor.pos++];
+    _position.Bottom_Margin = _params[_cursor.pos++];
+    _position.Page_W = _params[_cursor.pos++];
+    _position.Page_H = _params[_cursor.pos++];
+    _position.X_min = _params[_cursor.pos++];
+    _position.Y_min = _params[_cursor.pos++];
+    _position.X_max = _params[_cursor.pos++];
+    _position.Y_max = _params[_cursor.pos++];
+
+    _cursor.pos++;
 }
+function asc_menu_WriteTableAnchorPosition(_type, _position, _stream)
+{
+    if (!_position)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    _stream["WriteDouble2"](_position.CalcX);
+    _stream["WriteDouble2"](_position.CalcY);
+    _stream["WriteDouble2"](_position.W);
+    _stream["WriteDouble2"](_position.H);
+    _stream["WriteDouble2"](_position.X);
+    _stream["WriteDouble2"](_position.Y);
+    _stream["WriteDouble2"](_position.Left_Margin);
+    _stream["WriteDouble2"](_position.Right_Margin);
+    _stream["WriteDouble2"](_position.Top_Margin);
+    _stream["WriteDouble2"](_position.Bottom_Margin);
+    _stream["WriteDouble2"](_position.Page_W);
+    _stream["WriteDouble2"](_position.Page_H);
+    _stream["WriteDouble2"](_position.X_min);
+    _stream["WriteDouble2"](_position.Y_min);
+    _stream["WriteDouble2"](_position.X_max);
+    _stream["WriteDouble2"](_position.Y_max);
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_ReadTableLook(_params, _cursor)
+{
+    var _position = new CTableLook();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _position.FirstCol = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _position.FirstRow = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _position.LastCol = _params[_cursor.pos++];
+                break;
+            }
+            case 3:
+            {
+                _position.LastRow = _params[_cursor.pos++];
+                break;
+            }
+            case 4:
+            {
+                _position.BandHor = _params[_cursor.pos++];
+                break;
+            }
+            case 5:
+            {
+                _position.BandVer = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _position;
+}
+function asc_menu_WriteTableLook(_type, _look, _stream)
+{
+    if (!_look)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_look.FirstCol !== undefined && _look.FirstCol !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteBool"](_look.FirstCol);
+    }
+    if (_look.FirstRow !== undefined && _look.FirstRow !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteBool"](_look.FirstRow);
+    }
+    if (_look.LastCol !== undefined && _look.LastCol !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteBool"](_look.LastCol);
+    }
+    if (_look.LastRow !== undefined && _look.LastRow !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteBool"](_look.LastRow);
+    }
+    if (_look.BandHor !== undefined && _look.BandHor !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteBool"](_look.BandHor);
+    }
+    if (_look.BandVer !== undefined && _look.BandVer !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteBool"](_look.BandVer);
+    }
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_WriteTablePr(_tablePr, _stream)
+{
+    if (_tablePr.CanBeFlow !== undefined && _tablePr.CanBeFlow !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteBool"](_tablePr.CanBeFlow);
+    }
+    if (_tablePr.CellSelect !== undefined && _tablePr.CellSelect !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteBool"](_tablePr.CellSelect);
+    }
+    if (_tablePr.TableWidth !== undefined && _tablePr.TableWidth !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteDouble2"](_tablePr.TableWidth);
+    }
+    if (_tablePr.TableSpacing !== undefined && _tablePr.TableSpacing !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteDouble2"](_tablePr.TableSpacing);
+    }
+
+    asc_menu_WritePaddings(4, _tablePr.TableDefaultMargins, _stream);
+    asc_menu_WriteCellMargins(5, _tablePr.CellMargins, _stream);
+
+    if (_tablePr.TableAlignment !== undefined && _tablePr.TableAlignment !== null)
+    {
+        _stream["WriteByte"](6);
+        _stream["WriteLong"](_tablePr.TableAlignment);
+    }
+    if (_tablePr.TableIndent !== undefined && _tablePr.TableIndent !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteDouble2"](_tablePr.TableIndent);
+    }
+    if (_tablePr.TableWrappingStyle !== undefined && _tablePr.TableWrappingStyle !== null)
+    {
+        _stream["WriteByte"](8);
+        _stream["WriteLong"](_tablePr.TableWrappingStyle);
+    }
+
+    asc_menu_WritePaddings(9, _tablePr.TablePaddings, _stream);
+
+    asc_menu_WriteCellBorders(10, _tablePr.TableBorders, _stream);
+    asc_menu_WriteCellBorders(11, _tablePr.CellBorders, _stream);
+
+    asc_menu_WriteCellBackground(12, _tablePr.TableBackground, _stream);
+    asc_menu_WriteCellBackground(13, _tablePr.CellsBackground, _stream);
+
+    asc_menu_WritePosition(14, _tablePr.Position, _stream);
+    asc_menu_WriteImagePosition(15, _tablePr.PositionH, _stream);
+    asc_menu_WriteImagePosition(16, _tablePr.PositionV, _stream);
+
+    asc_menu_WriteTableAnchorPosition(17, _tablePr.Internal_Position, _stream);
+
+    if (_tablePr.ForSelectedCells !== undefined && _tablePr.ForSelectedCells !== null)
+    {
+        _stream["WriteByte"](18);
+        _stream["WriteBool"](_tablePr.ForSelectedCells);
+    }
+    if (_tablePr.TableStyle !== undefined && _tablePr.TableStyle !== null)
+    {
+        _stream["WriteByte"](19);
+        _stream["WriteString2"](_tablePr.TableStyle);
+    }
+
+    asc_menu_WriteTableLook(20, _tablePr.TableLook, _stream);
+
+    if (_tablePr.RowsInHeader !== undefined && _tablePr.RowsInHeader !== null)
+    {
+        _stream["WriteByte"](21);
+        _stream["WriteLong"](_tablePr.RowsInHeader);
+    }
+    if (_tablePr.CellsVAlign !== undefined && _tablePr.CellsVAlign !== null)
+    {
+        _stream["WriteByte"](22);
+        _stream["WriteLong"](_tablePr.CellsVAlign);
+    }
+    if (_tablePr.AllowOverlap !== undefined && _tablePr.AllowOverlap !== null)
+    {
+        _stream["WriteByte"](23);
+        _stream["WriteBool"](_tablePr.AllowOverlap);
+    }
+    if (_tablePr.TableLayout !== undefined && _tablePr.TableLayout !== null)
+    {
+        _stream["WriteByte"](24);
+        _stream["WriteLong"](_tablePr.TableLayout);
+    }
+    if (_tablePr.Locked !== undefined && _tablePr.Locked !== null)
+    {
+        _stream["WriteByte"](25);
+        _stream["WriteBool"](_tablePr.Locked);
+    }
+
+    _stream["WriteByte"](255);
+};
 
 function asc_menu_ReadShapePr(_params, _cursor)
 {
