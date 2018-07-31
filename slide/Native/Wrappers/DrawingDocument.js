@@ -765,8 +765,8 @@ CDrawingDocument.prototype.CheckThemes = function(){
 
     // NOTE: need check
 
-    var page_w_mm = THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
-    var page_h_mm = THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
+    var page_w_mm = logicDoc.Width;//THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
+    var page_h_mm = logicDoc.Height;//THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
     var page_w_px = THEME_TH_WIDTH * 2;
     var page_h_px = THEME_TH_HEIGHT * 2;
 
@@ -819,8 +819,8 @@ CDrawingDocument.prototype.CheckLayouts = function(oMaster){
 
     // NOTE: need check
 
-    var page_w_mm = THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
-    var page_h_mm = THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
+    var page_w_mm = logicDoc.Width;//THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
+    var page_h_mm = logicDoc.Height;//THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
     var page_w_px = THEME_TH_WIDTH * 2;
     var page_h_px = THEME_TH_HEIGHT * 2;
 
