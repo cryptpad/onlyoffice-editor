@@ -654,14 +654,13 @@ function CMasterThumbnailDrawer()
           }
           g._s();
         } else {
-          _color_w = 30 * dKoefPixToMM;
-          _color_h = 15 * dKoefPixToMM;
-          _color_x = 10 * dKoefPixToMM;
-          _color_y = this.HeightMM - _color_x - _color_h;
+          _color_w = this.WidthMM/8.0;
+          _color_h = this.HeightMM/10.0;
+          _color_x = this.WidthMM/20.0;
+          _color_y = this.HeightMM - _color_x*(w_px/this.WidthMM)*(this.HeightMM/h_px) - _color_h;
           _color_delta = 2 * dKoefPixToMM;
+            var __color_x = _color_x;
           g.p_color(255, 255, 255, 255);
-          g.init(g.m_oContext, w_px, h_px, w_px, h_px);
-          g.CalculateFullTransform();
           g.m_bIntegerGrid = true;
           g.b_color1(255, 255, 255, 255);
           g._s();
@@ -679,7 +678,7 @@ function CMasterThumbnailDrawer()
             _color_x += _color_w + _color_delta;
           }
           g._s();
-          _color_x = 10 * dKoefPixToMM;
+          _color_x = __color_x;
         }
         var _api = this.DrawingDocument.m_oWordControl.m_oApi;
         History.TurnOff();
@@ -731,7 +730,7 @@ function CMasterThumbnailDrawer()
           g.init(g.m_oContext, w_px, h_px, this.WidthMM, this.HeightMM);
           g.CalculateFullTransform();
           _text_x = _color_x;
-          _text_y = _color_y - _color_h;
+          _text_y = _color_y - _color_h/3.0;
           par.Lines[0].Ranges[0].XVisible = _text_x;
           par.Lines[0].Y = _text_y;
           var old_marks = _api.ShowParaMarks;
