@@ -306,7 +306,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
-               case 10: // ASC_MENU_EVENT_TYPE_TABLE
+        case 10: // ASC_MENU_EVENT_TYPE_TABLE
         {
             var _tablePr = new Asc.CTableProp();
             while (_continue)
@@ -526,13 +526,40 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 51: // ASC_MENU_EVENT_TYPE_INSERT_TABLE
         {
-            var obj = JSON.parse(_params[0]);
-           
-            var col = parseInt(obj["rows"]);
-            var row = parseInt(obj["cols"]);
-            var style = obj["style"];
+            var rows = 2;
+            var cols = 2;
+            var style = null;
+
+            while (_continue)
+            {
+                var _attr = _params[_current.pos++];
+                switch (_attr)
+                {
+                    case 0:
+                    {
+                        rows = _params[_current.pos++];
+                        break;
+                    }
+                    case 1:
+                    {
+                        cols = _params[_current.pos++];
+                        break;
+                    }
+                    case 2:
+                    {
+                        style = _params[_current.pos++];
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
             
-            this.put_Table(col, row);
+            this.put_Table(cols, rows);
                                        
             var properties = new Asc.CTableProp();
             properties.put_TableStyle(style);
@@ -579,6 +606,59 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             _stream["ClearNoAttack"]();
             _stream["WriteLong"](SearchEngine.Count);
             _return = _stream;
+            break;
+        }
+
+        case 71: // ASC_MENU_EVENT_TYPE_TABLE_INSERTDELETE_ROWCOLUMN
+        {
+            var _type = 0;
+            var _is_add = true;
+            var _is_above = true;
+            while (_continue)
+            {
+                var _attr = _params[_current.pos++];
+                switch (_attr)
+                {
+                    case 0:
+                    {
+                        _type = _params[_current.pos++];
+                        break;
+                    }
+                    case 1:
+                    {
+                        _is_add = _params[_current.pos++];
+                        break;
+                    }
+                    case 2:
+                    {
+                        _is_above = _params[_current.pos++];
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
+
+            if (1 == _type) {
+                if (_is_add) {
+                    _is_above ? this.addColumnLeft() : this.addColumnRight();
+                } else {
+                    this.remColumn();
+                }
+            } else if (2 == _type) {
+                if (_is_add) {
+                    _is_above ? this.addRowAbove() : this.addRowBelow(); 
+                } else {
+                    this.remRow();
+                }
+            } else if (3 == _type) {
+                this.remTable();
+            }
+
             break;
         }
         
