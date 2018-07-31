@@ -693,10 +693,12 @@ function CMasterThumbnailDrawer()
         }
         var _textPr1 = new CTextPr;
         _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};
+        _textPr1.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.majorFont.latin, Index: -1};
         _textPr1.FontSize = nFontSize;
         _textPr1.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
         var _textPr2 = new CTextPr;
         _textPr2.FontFamily = {Name:_theme.themeElements.fontScheme.minorFont.latin, Index:-1};
+        _textPr2.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.minorFont.latin, Index: -1};
         _textPr2.FontSize = nFontSize;
         _textPr2.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
         var docContent = new CDocumentContent(editor.WordControl.m_oLogicDocument, editor.WordControl.m_oDrawingDocument, 0, 0, 1000, 1000, false, false, true);
