@@ -532,6 +532,9 @@ CGraphicObjects.prototype =
                 shape_props.vert = props_by_types.shapeProps.vert;
                 shape_props.Width = props_by_types.shapeProps.w;
                 shape_props.Height = props_by_types.shapeProps.h;
+                shape_props.rot = props_by_types.shapeProps.rot;
+                shape_props.flipH = props_by_types.shapeProps.flipH;
+                shape_props.flipV = props_by_types.shapeProps.flipV;
                 shape_props.lockAspect = props_by_types.shapeProps.lockAspect;
                 if(this.selection.group){
                     shape_props.description = props_by_types.shapeProps.description;
@@ -544,6 +547,9 @@ CGraphicObjects.prototype =
                 image_props.ImageUrl = props_by_types.imageProps.ImageUrl;
                 image_props.Width = props_by_types.imageProps.w;
                 image_props.Height = props_by_types.imageProps.h;
+                image_props.rot = props_by_types.imageProps.rot;
+                image_props.flipH = props_by_types.imageProps.flipH;
+                image_props.flipV = props_by_types.imageProps.flipV;
                 image_props.lockAspect = props_by_types.imageProps.lockAspect;
 
                 image_props.pluginGuid = props_by_types.imageProps.pluginGuid;

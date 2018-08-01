@@ -3271,13 +3271,26 @@ DrawingObjectsController.prototype =
                 objects_by_type.charts[i].setNoChangeAspect(props.lockAspect ? true : undefined);
             }
         }
-        if(isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y))
+        if(isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y)
+        || AscFormat.isRealBool(props.flipH) || AscFormat.isRealBool(props.flipV) || AscFormat.isRealNumber(props.rot))
         {
+            var bPosition = isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y);
             for(i = 0; i < objects_by_type.shapes.length; ++i)
             {
                 CheckSpPrXfrm(objects_by_type.shapes[i]);
-                objects_by_type.shapes[i].spPr.xfrm.setOffX(props.Position.X);
-                objects_by_type.shapes[i].spPr.xfrm.setOffY(props.Position.Y);
+                if(bPosition){
+                    objects_by_type.shapes[i].spPr.xfrm.setOffX(props.Position.X);
+                    objects_by_type.shapes[i].spPr.xfrm.setOffY(props.Position.Y);
+                }
+                if(AscFormat.isRealBool(props.flipH)){
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(props.flipH);
+                }
+                if(AscFormat.isRealBool(props.flipV)){
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(props.flipV);
+                }
+                if(AscFormat.isRealNumber(props.rot)){
+                    objects_by_type.shapes[i].spPr.xfrm.setRot(props.rot);
+                }
                 if(objects_by_type.shapes[i].group)
                 {
                     checkObjectInArray(aGroups, objects_by_type.shapes[i].group.getMainGroup());
@@ -3287,26 +3300,38 @@ DrawingObjectsController.prototype =
             for(i = 0; i < objects_by_type.images.length; ++i)
             {
                 CheckSpPrXfrm(objects_by_type.images[i]);
-                objects_by_type.images[i].spPr.xfrm.setOffX(props.Position.X);
-                objects_by_type.images[i].spPr.xfrm.setOffY(props.Position.Y);
+                if(bPosition){
+                    objects_by_type.images[i].spPr.xfrm.setOffX(props.Position.X);
+                    objects_by_type.images[i].spPr.xfrm.setOffY(props.Position.Y);
+                }
+                if(AscFormat.isRealBool(props.flipH)){
+                    objects_by_type.images[i].spPr.xfrm.setFlipH(props.flipH);
+                }
+                if(AscFormat.isRealBool(props.flipV)){
+                    objects_by_type.images[i].spPr.xfrm.setFlipV(props.flipV);
+                }
+                if(AscFormat.isRealNumber(props.rot)){
+                    objects_by_type.images[i].spPr.xfrm.setRot(props.rot);
+                }
                 if(objects_by_type.images[i].group)
                 {
                     checkObjectInArray(aGroups, objects_by_type.images[i].group.getMainGroup());
                 }
                 objects_by_type.images[i].checkDrawingBaseCoords();
             }
-            for(i = 0; i < objects_by_type.charts.length; ++i)
-            {
-                CheckSpPrXfrm(objects_by_type.charts[i]);
-                objects_by_type.charts[i].spPr.xfrm.setOffX(props.Position.X);
-                objects_by_type.charts[i].spPr.xfrm.setOffY(props.Position.Y);
-                if(objects_by_type.charts[i].group)
+            if(bPosition){
+                for(i = 0; i < objects_by_type.charts.length; ++i)
                 {
-                    checkObjectInArray(aGroups, objects_by_type.charts[i].group.getMainGroup());
+                    CheckSpPrXfrm(objects_by_type.charts[i]);
+                    objects_by_type.charts[i].spPr.xfrm.setOffX(props.Position.X);
+                    objects_by_type.charts[i].spPr.xfrm.setOffY(props.Position.Y);
+                    if(objects_by_type.charts[i].group)
+                    {
+                        checkObjectInArray(aGroups, objects_by_type.charts[i].group.getMainGroup());
+                    }
+                    objects_by_type.charts[i].checkDrawingBaseCoords();
                 }
-                objects_by_type.charts[i].checkDrawingBaseCoords();
             }
-
             if(editorId === AscCommon.c_oEditorId.Presentation || editorId === AscCommon.c_oEditorId.Spreadsheet){
                 bCheckConnectors = true;
             }
@@ -7743,7 +7768,10 @@ DrawingObjectsController.prototype =
                         verticalTextAlign: drawing.getBodyPr().anchor,
                         vert: drawing.getBodyPr().vert,
                         w: drawing.extX,
-                        h: drawing.extY ,
+                        h: drawing.extY,
+                        rot: drawing.rot,
+                        flipH: drawing.flipH,
+                        flipV: drawing.flipV,
                         canChangeArrows: drawing.canChangeArrows(),
                         bFromChart: false,
                         locked: locked,
@@ -7770,6 +7798,9 @@ DrawingObjectsController.prototype =
                         ImageUrl: drawing.getImageUrl(),
                         w: drawing.extX,
                         h: drawing.extY,
+                        rot: drawing.rot,
+                        flipH: drawing.flipH,
+                        flipV: drawing.flipV,
                         locked: locked,
                         x: drawing.x,
                         y: drawing.y,
@@ -7791,6 +7822,12 @@ DrawingObjectsController.prototype =
                             image_props.x = null;
                         if(image_props.y != null && image_props.y !== new_image_props.y)
                             image_props.y = null;
+                        if(image_props.rot != null && image_props.rot !== new_image_props.rot)
+                            image_props.rot = null;
+                        if(image_props.flipH != null && image_props.flipH !== new_image_props.flipH)
+                            image_props.flipH = null;
+                        if(image_props.flipV != null && image_props.flipV !== new_image_props.flipV)
+                            image_props.flipV = null;
 
                         if(image_props.locked || new_image_props.locked)
                             image_props.locked = true;
@@ -7815,6 +7852,9 @@ DrawingObjectsController.prototype =
                         vert: null,
                         w: drawing.extX,
                         h: drawing.extY ,
+                        rot: drawing.rot,
+                        flipH: drawing.flipH,
+                        flipV: drawing.flipV,
                         canChangeArrows: drawing.canChangeArrows(),
                         bFromChart: false,
                         bFromImage: true,
@@ -8076,6 +8116,12 @@ DrawingObjectsController.prototype =
                                 image_props.x = null;
                             if(image_props.y != null && image_props.y !== group_drawing_props.imageProps.y)
                                 image_props.y = null;
+                            if(image_props.rot != null && image_props.rot !== group_drawing_props.imageProps.rot)
+                                image_props.rot = null;
+                            if(image_props.flipH != null && image_props.flipH !== group_drawing_props.imageProps.flipH)
+                                image_props.flipH = null;
+                            if(image_props.flipV != null && image_props.flipV !== group_drawing_props.imageProps.flipV)
+                                image_props.flipV = null;
 
                             if(image_props.locked || group_drawing_props.imageProps.locked)
                                 image_props.locked = true;
@@ -8285,6 +8331,9 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.lockAspect = props.shapeProps.lockAspect;
             shape_props.ShapeProperties.description = props.shapeProps.description;
             shape_props.ShapeProperties.title = props.shapeProps.title;
+            shape_props.ShapeProperties.rot = props.shapeProps.rot;
+            shape_props.ShapeProperties.flipH = props.shapeProps.flipH;
+            shape_props.ShapeProperties.flipV = props.shapeProps.flipV;
             shape_props.description = props.shapeProps.description;
             shape_props.title = props.shapeProps.title;
             shape_props.ShapeProperties.textArtProperties = AscFormat.CreateAscTextArtProps(props.shapeProps.textArtProperties);
@@ -8317,6 +8366,9 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.canFill = props.shapeProps.canFill;
             shape_props.Width = props.shapeProps.w;
             shape_props.Height = props.shapeProps.h;
+            shape_props.rot = props.shapeProps.rot;
+            shape_props.flipH = props.shapeProps.flipH;
+            shape_props.flipV = props.shapeProps.flipV;
             var pr = shape_props.ShapeProperties;
             if (pr.fill != null && pr.fill.fill != null && pr.fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
             {
@@ -8347,6 +8399,9 @@ DrawingObjectsController.prototype =
             image_props = new Asc.asc_CImgProperty();
             image_props.Width = props.imageProps.w;
             image_props.Height = props.imageProps.h;
+            image_props.rot = props.imageProps.rot;
+            image_props.flipH = props.imageProps.flipH;
+            image_props.flipV = props.imageProps.flipV;
             image_props.ImageUrl = props.imageProps.ImageUrl;
             image_props.Locked = props.imageProps.locked === true;
             image_props.lockAspect = props.imageProps.lockAspect;
