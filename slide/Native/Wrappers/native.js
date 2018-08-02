@@ -788,6 +788,12 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 8116: //ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LAYOUT
+        {
+            this.ChangeLayout(parseInt(_params))
+            break;
+        }
+
         case 8120: // ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LEVEL           
         {
             var level = parseInt(_params);
@@ -805,9 +811,28 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
-        case 8116: //ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LAYOUT
+        case 8121: // ASC_PRESENTATIONS_EVENT_TYPE_SHAPE_ALIGN
         {
-            this.ChangeLayout(parseInt(_params))
+            var level = parseInt(_params);
+
+            if (Asc.c_oAscAlignShapeType.ALIGN_LEFT == type) {
+                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_LEFT);
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_CENTER == type) {
+                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_CENTER);
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_RIGHT == type) {
+                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_RIGHT);
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_TOP == type) {
+                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_TOP);
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_MIDDLE == type) {
+                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_MIDDLE);
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_BOTTOM == type) {
+                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_BOTTOM);
+            } else if (6 == type) {
+                this.DistributeHorizontally();
+            } else if (7 == type) {
+                this.DistributeVertically();
+            } 
+
             break;
         }
 
