@@ -43,7 +43,7 @@ var global_mouseEvent = AscCommon.global_mouseEvent;
 
 
 var THEME_TH_WIDTH = 140;
-var THEME_TH_HEIGHT = 90;
+var THEME_TH_HEIGHT = 112;//THEME_TH_WIDTH*0.8
 
 function check_KeyboardEvent(e)
 {
@@ -790,6 +790,7 @@ CDrawingDocument.prototype.CheckThemes = function(){
             thDrawer.HeightMM = page_h_mm;
             thDrawer.WidthPx = page_w_px;
             thDrawer.HeightPx = page_h_px;
+            oMaster.recalculate();
             thDrawer.Draw(graphics, oMaster, undefined, undefined);
             stream["ClearNoAttack"]();
             stream["WriteByte"](6);
@@ -842,6 +843,9 @@ CDrawingDocument.prototype.CheckLayouts = function(oMaster){
         thDrawer.HeightMM = page_h_mm;
         thDrawer.WidthPx = page_w_px;
         thDrawer.HeightPx = page_h_px;
+
+        graphics.init(null, page_w_px, page_h_px, page_w_px, page_h_px);
+        graphics.CalculateFullTransform();
         thDrawer.Draw(graphics, oLayout, undefined, undefined, undefined);
         stream["ClearNoAttack"]();
         stream["WriteByte"](8);

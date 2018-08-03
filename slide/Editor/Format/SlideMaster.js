@@ -688,7 +688,7 @@ function CMasterThumbnailDrawer()
         _color.Calculate(_theme, null, null, _master, RGBA);
         var nFontSize = 18;
         if (window["NATIVE_EDITOR_ENJINE"]) {
-          nFontSize = 360;
+          nFontSize = 200;
         }
         var _textPr1 = new CTextPr;
         _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};
@@ -727,10 +727,8 @@ function CMasterThumbnailDrawer()
           par.Draw(0, g);
           _api.ShowParaMarks = old_marks;
         } else {
-          g.init(g.m_oContext, w_px, h_px, this.WidthMM, this.HeightMM);
-          g.CalculateFullTransform();
           _text_x = _color_x;
-          _text_y = _color_y - _color_h/3.0;
+          _text_y = _color_y - _color_h;
           par.Lines[0].Ranges[0].XVisible = _text_x;
           par.Lines[0].Y = _text_y;
           var old_marks = _api.ShowParaMarks;
