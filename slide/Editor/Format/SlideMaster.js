@@ -688,7 +688,7 @@ function CMasterThumbnailDrawer()
         _color.Calculate(_theme, null, null, _master, RGBA);
         var nFontSize = 18;
         if (window["NATIVE_EDITOR_ENJINE"]) {
-          nFontSize = 200;
+          nFontSize = 600;
         }
         var _textPr1 = new CTextPr;
         _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};

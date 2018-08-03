@@ -765,8 +765,8 @@ CDrawingDocument.prototype.CheckThemes = function(){
 
     // NOTE: need check
 
-    var page_w_mm = logicDoc.Width;//THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
-    var page_h_mm = logicDoc.Height;//THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
+    var page_w_mm = THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
+    var page_h_mm = THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
     var page_w_px = THEME_TH_WIDTH * 2;
     var page_h_px = THEME_TH_HEIGHT * 2;
 
@@ -790,8 +790,31 @@ CDrawingDocument.prototype.CheckThemes = function(){
             thDrawer.HeightMM = page_h_mm;
             thDrawer.WidthPx = page_w_px;
             thDrawer.HeightPx = page_h_px;
+            var oldW = oMaster.Width;
+            var oldH = oMaster.Height;
+            var oLayout = null;
+            oMaster.changeSize(page_w_mm, page_h_mm);
             oMaster.recalculate();
+
+            for (var j = 0; j < oMaster.sldLayoutLst.length; j++) {
+                if (oMaster.sldLayoutLst[j].type == AscFormat.nSldLtTTitle) {
+                    oLayout = oMaster.sldLayoutLst[j];
+                  break;
+                }
+              }
+              if(oLayout){
+                oLayout.changeSize(page_w_mm, page_h_mm);
+                oLayout.recalculate();
+              }
+
             thDrawer.Draw(graphics, oMaster, undefined, undefined);
+            oMaster.changeSize(oldW, oldH);
+            oMaster.recalculate();
+            if(oLayout){
+                oLayout.changeSize(oldW, oldH);
+                oLayout.recalculate();
+            }
+
             stream["ClearNoAttack"]();
             stream["WriteByte"](6);
             stream["WriteLong"](oMaster.ThemeIndex);
