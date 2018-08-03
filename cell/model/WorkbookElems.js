@@ -8042,6 +8042,46 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.asc_getPageSetup().asc_setOptions(obj.asc_getPageSetup());
 	};
 
+
+	function CHeaderFooter() {
+		this.alignWithMargins = null;
+		this.differentFirst = null;
+		this.differentOddEven = null;
+		this.scaleWithDoc = null;
+		this.evenFooter = null;
+		this.evenHeader = null;
+		this.firstFooter = null;
+		this.firstHeader = null;
+		this.oddFooter = null;
+		this.oddHeader = null;
+
+		return this;
+	}
+
+	CHeaderFooter.prototype.getAlignWithMargins = function () { return this.alignWithMargins; };
+	CHeaderFooter.prototype.getDifferentFirst = function () { return this.differentFirst; };
+	CHeaderFooter.prototype.getDifferentOddEven = function () { return this.differentOddEven; };
+	CHeaderFooter.prototype.getScaleWithDoc = function () { return this.scaleWithDoc; };
+	CHeaderFooter.prototype.getEvenFooter = function () { return this.evenFooter; };
+	CHeaderFooter.prototype.getEvenHeader = function () { return this.evenHeader; };
+	CHeaderFooter.prototype.getFirstFooter = function () { return this.firstFooter; };
+	CHeaderFooter.prototype.getFirstHeader = function () { return this.firstHeader; };
+	CHeaderFooter.prototype.getOddFooter = function () { return this.oddFooter; };
+	CHeaderFooter.prototype.getOddHeader = function () { return this.oddHeader; };
+
+	CHeaderFooter.prototype.setAlignWithMargins = function (val) { this.alignWithMargins = val; };
+	CHeaderFooter.prototype.setDifferentFirst = function (val) { this.differentFirst = val; };
+	CHeaderFooter.prototype.setDifferentOddEven = function (val) { this.differentOddEven = val; };
+	CHeaderFooter.prototype.setScaleWithDoc = function (val) { this.scaleWithDoc = val; };
+	CHeaderFooter.prototype.setEvenFooter = function (val) { this.evenFooter = val; };
+	CHeaderFooter.prototype.setEvenHeader = function (val) { this.evenHeader = val; };
+	CHeaderFooter.prototype.setFirstFooter = function (val) { this.firstFooter = val; };
+	CHeaderFooter.prototype.setFirstHeader = function (val) { this.firstHeader = val; };
+	CHeaderFooter.prototype.setOddFooter = function (val) { this.oddFooter = val; };
+	CHeaderFooter.prototype.setOddHeader = function (val) { this.oddHeader = val; };
+
+
+
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
 	window['Asc'] = window['Asc'] || {};
@@ -8238,4 +8278,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setPageSetup"] = prot.asc_setPageSetup;
 	prot["asc_setGridLines"] = prot.asc_setGridLines;
 	prot["asc_setHeadings"] = prot.asc_setHeadings;
+
+	window["Asc"]["CHeaderFooter"] = window["Asc"].CHeaderFooter = CHeaderFooter;
 })(window);

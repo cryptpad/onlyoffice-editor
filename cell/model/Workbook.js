@@ -3109,7 +3109,7 @@
 		this.selectionRange = new AscCommonExcel.SelectionRange(this);
 		this.sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
 		this.pivotTables = [];
-		this.headerFooter = null;
+		this.headerFooter = new Asc.CHeaderFooter(this);
 		this.rowBreaks = null;
 		this.colBreaks = null;
 		this.legacyDrawingHF = null;

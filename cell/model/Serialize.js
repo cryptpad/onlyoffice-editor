@@ -6468,11 +6468,6 @@
                     return oThis.ReadSparklineGroups(t, l, oWorksheet);
                 });
             } else if (c_oSerWorksheetsTypes.HeaderFooter === type) {
-                oWorksheet.headerFooter = {
-                    alignWithMargins: null, differentFirst: null, differentOddEven: null, scaleWithDoc: null,
-                    evenFooter: null, evenHeader: null, firstFooter: null, firstHeader: null, oddFooter: null,
-                    oddHeader: null
-                };
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadHeaderFooter(t, l, oWorksheet.headerFooter);
                 });
@@ -7614,13 +7609,13 @@
         this.ReadHeaderFooter = function (type, length, headerFooter) {
             var res = c_oSerConstants.ReadOk;
             if (c_oSer_HeaderFooter.AlignWithMargins === type) {
-                headerFooter.alignWithMargins = this.stream.GetBool();
+                headerFooter.setAlignWithMargins(this.stream.GetBool());
             } else if (c_oSer_HeaderFooter.DifferentFirst === type) {
-                headerFooter.differentFirst = this.stream.GetBool();
+                headerFooter.setDifferentFirst(this.stream.GetBool());
             } else if (c_oSer_HeaderFooter.DifferentOddEven === type) {
-                headerFooter.differentOddEven = this.stream.GetBool();
+                headerFooter.setDifferentOddEven(this.stream.GetBool());
             } else if (c_oSer_HeaderFooter.ScaleWithDoc === type) {
-                headerFooter.scaleWithDoc = this.stream.GetBool();
+                headerFooter.setScaleWithDoc(this.stream.GetBool());
             } else if (c_oSer_HeaderFooter.EvenFooter === type) {
                 headerFooter.evenFooter = this.stream.GetString2LE(length);
             } else if (c_oSer_HeaderFooter.EvenHeader === type) {
