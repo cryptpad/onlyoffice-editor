@@ -63,8 +63,6 @@ var c_oAscShdClear = Asc.c_oAscShdClear;
 var c_oAscShdNil = Asc.c_oAscShdNil;
 var c_oAscXAlign = Asc.c_oAscXAlign;
 
-var c_dMaxParaRunContentLength = 1000;
-
 function CDocumentReaderMode()
 {
     this.DefaultFontSize = 12;
@@ -580,7 +578,7 @@ CopyProcessor.prototype =
         var bIsNullNumPr = false;
         if(PasteElementsId.g_bIsDocumentCopyPaste)
         {
-            oNumPr = Item.Numbering_Get();
+            oNumPr = Item.GetNumPr();
             bIsNullNumPr = (null == oNumPr || 0 == oNumPr.NumId);
         }
         else
@@ -593,28 +591,38 @@ CopyProcessor.prototype =
         if(!bIsNullNumPr)
         {
             if(PasteElementsId.g_bIsDocumentCopyPaste)
-            {
-				var aNum = this.oDocument.Numbering.Get_AbstractNum( oNumPr.NumId );
-				if(null != aNum)
+			{
+				var oNum = this.oDocument.GetNumbering().GetNum(oNumPr.NumId);
+				if (oNum)
 				{
-					var LvlPr = aNum.Lvl[oNumPr.Lvl];
-					if(null != LvlPr)
+					var oNumberingLvl = oNum.GetLvl(oNumPr.Lvl);
+					if (oNumberingLvl)
 					{
-						switch(LvlPr.Format)
+						switch (oNumberingLvl.GetFormat())
 						{
-							case numbering_numfmt_Decimal: sListStyle = "decimal";break;
-							case numbering_numfmt_LowerRoman: sListStyle = "lower-roman";break;
-							case numbering_numfmt_UpperRoman: sListStyle = "upper-roman";break;
-							case numbering_numfmt_LowerLetter: sListStyle = "lower-alpha";break;
-							case numbering_numfmt_UpperLetter: sListStyle = "upper-alpha";break;
+							case Asc.c_oAscNumberingFormat.Decimal:
+								sListStyle = "decimal";
+								break;
+							case Asc.c_oAscNumberingFormat.LowerRoman:
+								sListStyle = "lower-roman";
+								break;
+							case Asc.c_oAscNumberingFormat.UpperRoman:
+								sListStyle = "upper-roman";
+								break;
+							case Asc.c_oAscNumberingFormat.LowerLetter:
+								sListStyle = "lower-alpha";
+								break;
+							case Asc.c_oAscNumberingFormat.UpperLetter:
+								sListStyle = "upper-alpha";
+								break;
 							default:
 								sListStyle = "disc";
-								bBullet = true;
+								bBullet    = true;
 								break;
 						}
 					}
 				}
-            }
+			}
             else
             {
                 var _presentation_bullet = Item.PresentationPr.Bullet;
@@ -1817,54 +1825,51 @@ CopyProcessor.prototype =
     CopyGraphicObject: function(oDomTarget, oGraphicObj, drawingCopyObject)
     {
         var sSrc = drawingCopyObject.ImageUrl;
-        if(sSrc.length > 0)
+        if(oDomTarget && sSrc.length > 0)
         {
-            if(oDomTarget)
-            {
-				var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
-				oGraphicObj.draw(_bounds_cheker, 0);
+            var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
+            oGraphicObj.draw(_bounds_cheker, 0);
 
-				var width, height;
-				if(drawingCopyObject && drawingCopyObject.ExtX)
-					width = Math.round(drawingCopyObject.ExtX * g_dKoef_mm_to_pix);
-				else
-					width = Math.round((_bounds_cheker.Bounds.max_x - _bounds_cheker.Bounds.min_x + 1) * g_dKoef_mm_to_pix);
+            var width, height;
+            if(drawingCopyObject && drawingCopyObject.ExtX)
+                width = Math.round(drawingCopyObject.ExtX * g_dKoef_mm_to_pix);
+            else
+                width = Math.round((_bounds_cheker.Bounds.max_x - _bounds_cheker.Bounds.min_x + 1) * g_dKoef_mm_to_pix);
 
-				if(drawingCopyObject && drawingCopyObject.ExtY)
-					height = Math.round(drawingCopyObject.ExtY * g_dKoef_mm_to_pix);
-				else
-					height = Math.round((_bounds_cheker.Bounds.max_y - _bounds_cheker.Bounds.min_y + 1) * g_dKoef_mm_to_pix);
+            if(drawingCopyObject && drawingCopyObject.ExtY)
+                height = Math.round(drawingCopyObject.ExtY * g_dKoef_mm_to_pix);
+            else
+                height = Math.round((_bounds_cheker.Bounds.max_y - _bounds_cheker.Bounds.min_y + 1) * g_dKoef_mm_to_pix);
 
-				var oImg = new CopyElement("img");
-				oImg.oAttributes["width"] = width;
-				oImg.oAttributes["height"] = height;
-				oImg.oAttributes["src"] = sSrc;
-				if (this.api.DocumentReaderMode)
-					oImg.oAttributes["style"] = "max-width:100%;";
-				oDomTarget.addChild(oImg);
-			}
+            var oImg = new CopyElement("img");
+            oImg.oAttributes["width"] = width;
+            oImg.oAttributes["height"] = height;
+            oImg.oAttributes["src"] = sSrc;
+            if (this.api.DocumentReaderMode)
+                oImg.oAttributes["style"] = "max-width:100%;";
+            oDomTarget.addChild(oImg);
+        }
 
 
-            if(oGraphicObj instanceof CShape)
-            {
-                this.oPresentationWriter.WriteShape(oGraphicObj);
-            }
-            else if(oGraphicObj instanceof AscFormat.CImageShape)
-            {
-                this.oPresentationWriter.WriteImage(oGraphicObj);
-            }
-            else if(oGraphicObj instanceof AscFormat.CGroupShape)
-            {
-                this.oPresentationWriter.WriteGroupShape(oGraphicObj);
-            }
-            else if(oGraphicObj instanceof AscFormat.CChartSpace)
-            {
-                this.oPresentationWriter.WriteChart(oGraphicObj);
-            }
-            else if(oGraphicObj instanceof CGraphicFrame)
-            {
-                this.oPresentationWriter.WriteTable(oGraphicObj);
-            }
+        if(oGraphicObj instanceof CShape)
+        {
+            this.oPresentationWriter.WriteShape(oGraphicObj);
+        }
+        else if(oGraphicObj instanceof AscFormat.CImageShape)
+        {
+            this.oPresentationWriter.WriteImage(oGraphicObj);
+        }
+        else if(oGraphicObj instanceof AscFormat.CGroupShape)
+        {
+            this.oPresentationWriter.WriteGroupShape(oGraphicObj);
+        }
+        else if(oGraphicObj instanceof AscFormat.CChartSpace)
+        {
+            this.oPresentationWriter.WriteChart(oGraphicObj);
+        }
+        else if(oGraphicObj instanceof CGraphicFrame)
+        {
+            this.oPresentationWriter.WriteTable(oGraphicObj);
         }
     }
 };
@@ -1966,6 +1971,11 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
       if (0 == images[nIndex].indexOf("file:/"))
         images[nIndex] = window["AscDesktopEditor"]["GetImageBase64"](images[nIndex]);
     }
+  }
+
+  if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages())
+  {
+      return AscCommon.EncryptionWorker.addCryproImagesFromUrls(images, callback);
   }
 
   var rData = {"id": api.documentId, "c": "imgurls", "userid":  api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(), "data": images};
@@ -2341,7 +2351,14 @@ PasteProcessor.prototype =
 					var curDocSelection = this.oDocument.GetSelectionState();
 					if(curDocSelection)
 					{
-						specialPasteHelper.showButtonIdParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos].Id;
+						var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
+						specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
+
+						//TODO пересмотреть для случая когда вставляем таблицу внутри BlockLevelSdt
+						if(selectParagraph.GetType && type_BlockLevelSdt === selectParagraph.GetType()) {
+							var currentParagraph = this.oDocument.GetCurrentParagraph();
+							specialPasteHelper.showButtonIdParagraph = currentParagraph ? currentParagraph.Id : null
+						}
 					}
 				}
 				else
@@ -2586,7 +2603,7 @@ PasteProcessor.prototype =
 			}
 			case Asc.c_oSpecialPasteProps.keepTextOnly:
 			{
-				var numbering =  paragraph.Numbering_Get();
+				var numbering =  paragraph.GetNumPr();
 				if(numbering)
 				{
 					//проставляем параграфам NumInfo
@@ -2594,7 +2611,7 @@ PasteProcessor.prototype =
 					for(var i = 0; i < parentContent.length; i++)
 					{
 						var tempParagraph = parentContent[i];
-						var numbering2 =  tempParagraph.Numbering_Get ? tempParagraph.Numbering_Get() : null;
+						var numbering2 =  tempParagraph.GetNumPr ? tempParagraph.GetNumPr() : null;
 
 						if(numbering2)
 						{
@@ -2859,11 +2876,11 @@ PasteProcessor.prototype =
 
 	_checkNumberingText: function(paragraph, NumInfo, numbering)
 	{
-		if(numbering)
+		if (numbering)
 		{
-			var abstractNum = this.oLogicDocument.Numbering.Get_AbstractNum(paragraph.Pr.NumPr.NumId);
+			var oNum = this.oLogicDocument.GetNumbering().GetNum(paragraph.Pr.NumPr.NumId);
 			var NumTextPr = paragraph.Get_CompiledPr2(false).TextPr.Copy();
-			var lvl = abstractNum.Lvl[paragraph.Pr.NumPr.Lvl];
+			var lvl = oNum.GetLvl(paragraph.Pr.NumPr.Lvl);
 			var numberingText = this._getNumberingText(lvl, NumInfo, NumTextPr, lvl);
 
 			var newParaRun = new ParaRun();
@@ -2912,12 +2929,12 @@ PasteProcessor.prototype =
 					var CurLvl = Text[Index].Value;
 					switch( LvlPr.Format )
 					{
-						case numbering_numfmt_Bullet:
+						case Asc.c_oAscNumberingFormat.Bullet:
 						{
 							break;
 						}
 
-						case numbering_numfmt_Decimal:
+						case Asc.c_oAscNumberingFormat.Decimal:
 						{
 							if ( CurLvl < NumInfo.length )
 							{
@@ -2932,7 +2949,7 @@ PasteProcessor.prototype =
 							break;
 						}
 
-						case numbering_numfmt_DecimalZero:
+						case Asc.c_oAscNumberingFormat.DecimalZero:
 						{
 							if ( CurLvl < NumInfo.length )
 							{
@@ -2960,8 +2977,8 @@ PasteProcessor.prototype =
 							break;
 						}
 
-						case numbering_numfmt_LowerLetter:
-						case numbering_numfmt_UpperLetter:
+						case Asc.c_oAscNumberingFormat.LowerLetter:
+						case Asc.c_oAscNumberingFormat.UpperLetter:
 						{
 							if ( CurLvl < NumInfo.length )
 							{
@@ -2974,7 +2991,7 @@ PasteProcessor.prototype =
 								var T = "";
 
 								var Letter;
-								if ( numbering_numfmt_LowerLetter === LvlPr.Format )
+								if ( Asc.c_oAscNumberingFormat.LowerLetter === LvlPr.Format )
 									Letter = String.fromCharCode( Ost + 97 );
 								else
 									Letter = String.fromCharCode( Ost + 65 );
@@ -2992,8 +3009,8 @@ PasteProcessor.prototype =
 							break;
 						}
 
-						case numbering_numfmt_LowerRoman:
-						case numbering_numfmt_UpperRoman:
+						case Asc.c_oAscNumberingFormat.LowerRoman:
+						case Asc.c_oAscNumberingFormat.UpperRoman:
 						{
 							if ( CurLvl < NumInfo.length )
 							{
@@ -3002,7 +3019,7 @@ PasteProcessor.prototype =
 								// Переводим число Num в римскую систему исчисления
 								var Rims;
 
-								if ( numbering_numfmt_LowerRoman === LvlPr.Format )
+								if ( Asc.c_oAscNumberingFormat.LowerRoman === LvlPr.Format )
 									Rims = [  'm', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i', ' '];
 								else
 									Rims = [  'M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I', ' '];
@@ -4103,7 +4120,7 @@ PasteProcessor.prototype =
 	    return AscFormat.ExecuteNoHistory(function(){
             var presentationSelectedContent = null;
             var fonts = [];
-            var arr_Images = {};
+            var arr_Images = [];
             var oThis = this;
 
             var readContent = function () {
@@ -4146,7 +4163,7 @@ PasteProcessor.prototype =
                     fonts.push(new CFont(i, 0, "", 0));
                 }
 
-                arr_Images = objects.arrImages;
+				arr_Images = arr_Images.concat(objects.arrImages);
             };
 
             var readSlideObjects = function () {
@@ -4187,7 +4204,7 @@ PasteProcessor.prototype =
                     fonts.push(new CFont(i, 0, "", 0));
                 }
 
-                var arr_Images = loader.End_UseFullUrl();
+				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
 
                 presentationSelectedContent.SlideObjects = slideCopyObjects;
             };
@@ -4195,6 +4212,9 @@ PasteProcessor.prototype =
 
             var readLayouts = function(){
                 var loader = new AscCommon.BinaryPPTYLoader();
+				if (!(bDuplicate === true)) {
+					loader.Start_UseFullUrl();
+				}
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
 
@@ -4223,11 +4243,15 @@ PasteProcessor.prototype =
                     fonts.push(new CFont(i, 0, "", 0));
                 }*/
 
+				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
                 presentationSelectedContent.Layouts = layouts;
             };
 
             var readMasters = function(){
                 var loader = new AscCommon.BinaryPPTYLoader();
+				if (!(bDuplicate === true)) {
+					loader.Start_UseFullUrl();
+				}
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
 
@@ -4243,6 +4267,7 @@ PasteProcessor.prototype =
                     }
                 }
 
+				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
                 presentationSelectedContent.Masters = array;
             };
 
@@ -4304,6 +4329,9 @@ PasteProcessor.prototype =
 
             var readThemes = function(){
                 var loader = new AscCommon.BinaryPPTYLoader();
+				if (!(bDuplicate === true)) {
+					loader.Start_UseFullUrl();
+				}
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
 
@@ -4315,6 +4343,7 @@ PasteProcessor.prototype =
                     array.push(loader.ReadTheme());
                 }
 
+				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
                 presentationSelectedContent.Themes = array;
             };
 
@@ -4427,11 +4456,10 @@ PasteProcessor.prototype =
 				var targetDocContent =  oController  && oController.getTargetDocContent();
 				if(targetDocContent && arrShapes.length === 1 && arrImages.length === 0 && arrTables.length === 0)
 				{
-					if(presentation.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props) === false)
-					{
-						var aNewContent = arrShapes[0].Drawing.txBody.content.Content;
-						oThis.InsertInPlacePresentation(aNewContent);
-					}
+                    //не проверяем на лок т. к. это делается в asc_docs_api.prototype.asc_PasteData.
+                    // При двух последовательных проверках в совместном редактировании вторая проверка всегда будет возвращать лок
+                    var aNewContent = arrShapes[0].Drawing.txBody.content.Content;
+                    oThis.InsertInPlacePresentation(aNewContent);
 				}
 				else
 				{
@@ -4845,19 +4873,25 @@ PasteProcessor.prototype =
 			var pos = oIterator.position();
 			var _char = text.charAt(pos);
 			var _charCode = oIterator.value();
-
+			var newParaRun;
 			if(0x0A === _charCode ||  pos === Count - 1){
 				if(pos === Count - 1 && 0x0A !== _charCode){
 					insertText += _char;
 				}
 				
-				var newParaRun = getNewParaRun();
+				newParaRun = getNewParaRun();
 				addTextIntoRun(newParaRun, insertText);
 				newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
 				this.aContent.push(newParagraph);
 
 				insertText = "";
 				newParagraph = getNewParagraph();
+			} else if(insertText.length === Asc.c_dMaxParaRunContentLength){//max run length
+				insertText += _char;
+				newParaRun = getNewParaRun();
+				addTextIntoRun(newParaRun, insertText);
+				newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
+				insertText = "";
 			} else if(13 === _charCode){
 				continue;
 			} else {
@@ -6420,7 +6454,7 @@ PasteProcessor.prototype =
         {
             if(true === pNoHtmlPr.bNum)
             {
-                var setListTextPr = function(AbstractNum)
+                var setListTextPr = function(oNum)
 				{
 					//текстовые настройки списка берем по настройкам первого текстового элемента
 					var oFirstTextChild = node;
@@ -6458,10 +6492,10 @@ PasteProcessor.prototype =
 					{
 						if(!t.bIsPlainText)
 						{
-							var oLvl = AbstractNum.Lvl[0];
+							var oLvl = oNum.GetLvl(0);
 							var oTextPr = t._read_rPr(oFirstTextChild);
-							if(numbering_numfmt_Bullet === num)
-								oTextPr.RFonts = oLvl.TextPr.RFonts.Copy();
+							if(Asc.c_oAscNumberingFormat.Bullet === num)
+								oTextPr.RFonts = oLvl.GetTextPr().RFonts.Copy();
 								
 							//TODO убираю пока при всатвке извне underline/bold/italic у стиля маркера
 							oTextPr.Bold = oTextPr.Underline = oTextPr.Italic = undefined;
@@ -6469,7 +6503,7 @@ PasteProcessor.prototype =
 								oTextPr.Color.Set(0, 0, 0);
 
 							//получаем настройки из node
-							AbstractNum.Apply_TextPr(0, oTextPr);
+							oNum.ApplyTextPr(0, oTextPr);
 						}
 					}
 				};
@@ -6509,11 +6543,12 @@ PasteProcessor.prototype =
 					if(null == NumId && this.pasteInExcel !== true)//create new NumId
 					{
 						// Создаем нумерацию
-						NumId  = this.oLogicDocument.Numbering.Create_AbstractNum();
-						var AbstractNum = this.oLogicDocument.Numbering.Get_AbstractNum(NumId);
-						if (numbering_numfmt_Bullet === num)
+						var oNum = this.oLogicDocument.GetNumbering().CreateNum();
+						NumId    = oNum.GetId();
+
+						if (Asc.c_oAscNumberingFormat.Bullet === num)
 						{
-							AbstractNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
+							oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 							var LvlText = String.fromCharCode(0x00B7);
 							var NumTextPr = new CTextPr();
 							NumTextPr.RFonts.Set_All("Symbol", -1);
@@ -6542,26 +6577,26 @@ PasteProcessor.prototype =
 						}
 						else
 						{
-							AbstractNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
+							oNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
 						}
 						
 						switch(num)
 						{
-							case numbering_numfmt_Bullet     : AbstractNum.SetLvlByType(level, c_oAscNumberingLevel.Bullet, LvlText, NumTextPr); break;
-							case numbering_numfmt_Decimal    : AbstractNum.SetLvlByType(level, c_oAscNumberingLevel.DecimalDot_Left); break;
-							case numbering_numfmt_LowerRoman : AbstractNum.SetLvlByType(level, c_oAscNumberingLevel.LowerRomanDot_Right); break;
-							case numbering_numfmt_UpperRoman : AbstractNum.SetLvlByType(level, c_oAscNumberingLevel.UpperRomanDot_Right); break;
-							case numbering_numfmt_LowerLetter: AbstractNum.SetLvlByType(level, c_oAscNumberingLevel.LowerLetterDot_Left); break;
-							case numbering_numfmt_UpperLetter: AbstractNum.SetLvlByType(level, c_oAscNumberingLevel.UpperLetterDot_Left); break;
+							case Asc.c_oAscNumberingFormat.Bullet     : oNum.SetLvlByType(level, c_oAscNumberingLevel.Bullet, LvlText, NumTextPr); break;
+							case Asc.c_oAscNumberingFormat.Decimal    : oNum.SetLvlByType(level, c_oAscNumberingLevel.DecimalDot_Left); break;
+							case Asc.c_oAscNumberingFormat.LowerRoman : oNum.SetLvlByType(level, c_oAscNumberingLevel.LowerRomanDot_Right); break;
+							case Asc.c_oAscNumberingFormat.UpperRoman : oNum.SetLvlByType(level, c_oAscNumberingLevel.UpperRomanDot_Right); break;
+							case Asc.c_oAscNumberingFormat.LowerLetter: oNum.SetLvlByType(level, c_oAscNumberingLevel.LowerLetterDot_Left); break;
+							case Asc.c_oAscNumberingFormat.UpperLetter: oNum.SetLvlByType(level, c_oAscNumberingLevel.UpperLetterDot_Left); break;
 						}
 						
 						//проставляем начальную позицию
 						if(null !== startPos)
 						{
-							AbstractNum.SetLvlStart(level, startPos);
+							oNum.SetLvlStart(level, startPos);
 						}
 						
-						//setListTextPr(AbstractNum);
+						//setListTextPr(oNum);
 					}
 					
 					//put into map listId
@@ -6572,12 +6607,12 @@ PasteProcessor.prototype =
 					
 					if(this.pasteInExcel !== true && Para.bFromDocument === true)
 					{
-						Para.Numbering_Set( NumId, level );
+						Para.SetNumPr( NumId, level );
 					}
 				}
 				else
 				{
-					var num = numbering_numfmt_Bullet;
+					var num = Asc.c_oAscNumberingFormat.Bullet;
 					if(null != pNoHtmlPr.numType)
 						num = pNoHtmlPr.numType;
 					var type = pNoHtmlPr["list-style-type"];
@@ -6586,12 +6621,12 @@ PasteProcessor.prototype =
 					{
 						switch(type)
 						{
-							case "disc"       : num = numbering_numfmt_Bullet;break;
-							case "decimal"    : num = numbering_numfmt_Decimal;break;
-							case "lower-roman": num = numbering_numfmt_LowerRoman;break;
-							case "upper-roman": num = numbering_numfmt_UpperRoman;break;
-							case "lower-alpha": num = numbering_numfmt_LowerLetter;break;
-							case "upper-alpha": num = numbering_numfmt_UpperLetter;break;
+							case "disc"       : num = Asc.c_oAscNumberingFormat.Bullet;break;
+							case "decimal"    : num = Asc.c_oAscNumberingFormat.Decimal;break;
+							case "lower-roman": num = Asc.c_oAscNumberingFormat.LowerRoman;break;
+							case "upper-roman": num = Asc.c_oAscNumberingFormat.UpperRoman;break;
+							case "lower-alpha": num = Asc.c_oAscNumberingFormat.LowerLetter;break;
+							case "upper-alpha": num = Asc.c_oAscNumberingFormat.UpperLetter;break;
 						}
 					}
 					//Часть кода скопирована из Document.Set_ParagraphNumbering
@@ -6602,19 +6637,19 @@ PasteProcessor.prototype =
 						var prevElem = this.aContent[this.aContent.length - 2];
 						if(null != prevElem && type_Paragraph === prevElem.GetType())
 						{
-							var PrevNumPr = prevElem.Numbering_Get();
-							if ( null != PrevNumPr && true === this.oLogicDocument.Numbering.Check_Format( PrevNumPr.NumId, PrevNumPr.Lvl, num ) )
+							var PrevNumPr = prevElem.GetNumPr();
+							if ( null != PrevNumPr && true === this.oLogicDocument.Numbering.CheckFormat( PrevNumPr.NumId, PrevNumPr.Lvl, num ) )
 								NumId  = PrevNumPr.NumId;
 						}
 					}
 					if(null == NumId && this.pasteInExcel !== true)
 					{
 						// Создаем нумерацию
-						NumId  = this.oLogicDocument.Numbering.Create_AbstractNum();
-						var AbstractNum = this.oLogicDocument.Numbering.Get_AbstractNum(NumId);
-						if (numbering_numfmt_Bullet === num)
+						var oNum = this.oLogicDocument.GetNumbering().CreateNum();
+						NumId    = oNum.GetId();
+						if (Asc.c_oAscNumberingFormat.Bullet === num)
 						{
-							AbstractNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
+							oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 							var LvlText = String.fromCharCode(0x00B7);
 							var NumTextPr = new CTextPr();
 							NumTextPr.RFonts.Set_All("Symbol", -1);
@@ -6643,36 +6678,36 @@ PasteProcessor.prototype =
 						}
 						else
 						{
-							AbstractNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
+							oNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
 						}
 						
 						for (var iLvl = 0; iLvl <= 8; iLvl++)
 						{
 							switch(num)
 							{
-								case numbering_numfmt_Bullet     : AbstractNum.SetLvlByType(iLvl, c_oAscNumberingLevel.Bullet, LvlText, NumTextPr); break;
-								case numbering_numfmt_Decimal    : AbstractNum.SetLvlByType(iLvl, c_oAscNumberingLevel.DecimalDot_Right); break;
-								case numbering_numfmt_LowerRoman : AbstractNum.SetLvlByType(iLvl, c_oAscNumberingLevel.LowerRomanDot_Right); break;
-								case numbering_numfmt_UpperRoman : AbstractNum.SetLvlByType(iLvl, c_oAscNumberingLevel.UpperRomanDot_Right); break;
-								case numbering_numfmt_LowerLetter: AbstractNum.SetLvlByType(iLvl, c_oAscNumberingLevel.LowerLetterDot_Left); break;
-								case numbering_numfmt_UpperLetter: AbstractNum.SetLvlByType(iLvl, c_oAscNumberingLevel.UpperLetterDot_Left); break;
+								case Asc.c_oAscNumberingFormat.Bullet     : oNum.SetLvlByType(iLvl, c_oAscNumberingLevel.Bullet, LvlText, NumTextPr); break;
+								case Asc.c_oAscNumberingFormat.Decimal    : oNum.SetLvlByType(iLvl, c_oAscNumberingLevel.DecimalDot_Right); break;
+								case Asc.c_oAscNumberingFormat.LowerRoman : oNum.SetLvlByType(iLvl, c_oAscNumberingLevel.LowerRomanDot_Right); break;
+								case Asc.c_oAscNumberingFormat.UpperRoman : oNum.SetLvlByType(iLvl, c_oAscNumberingLevel.UpperRomanDot_Right); break;
+								case Asc.c_oAscNumberingFormat.LowerLetter: oNum.SetLvlByType(iLvl, c_oAscNumberingLevel.LowerLetterDot_Left); break;
+								case Asc.c_oAscNumberingFormat.UpperLetter: oNum.SetLvlByType(iLvl, c_oAscNumberingLevel.UpperLetterDot_Left); break;
 							}
 						}
 						
-						setListTextPr(AbstractNum);
+						setListTextPr(oNum);
 					}
 					
 					if(this.pasteInExcel !== true && Para.bFromDocument === true)
 					{
-						Para.Numbering_Add( NumId, 0 );
+						Para.ApplyNumPr(NumId, 0);
 					}
 				}
             }
             else
             {
-                var numPr = Para.Numbering_Get();
+                var numPr = Para.GetNumPr();
                 if(numPr)
-                    Para.Numbering_Remove();
+                    Para.RemoveNumPr();
             }
         }
         else
@@ -7060,17 +7095,17 @@ PasteProcessor.prototype =
 		};
 		
 		//TODO пока делаю так, пересмотреть регулярные выражения
-		var resType = numbering_numfmt_Bullet;
+		var resType = Asc.c_oAscNumberingFormat.Bullet;
 		var number = parseInt(str);
 		var startPos = null, fullListIndex;
 		if(!isNaN(number))
 		{
-			resType = numbering_numfmt_Decimal;
+			resType = Asc.c_oAscNumberingFormat.Decimal;
 			startPos = number;
 		}
 		else if(1 === str.length && -1 !== str.indexOf("o"))
 		{
-			resType = numbering_numfmt_Bullet;
+			resType = Asc.c_oAscNumberingFormat.Bullet;
 		}
 		else
 		{
@@ -7086,7 +7121,7 @@ PasteProcessor.prototype =
 					startPos = romanToIndex(fullListIndex);
 				}
 				
-				resType = numbering_numfmt_LowerRoman;
+				resType = Asc.c_oAscNumberingFormat.LowerRoman;
 			}
 			else if(-1 !== symbolsArr[1].indexOf(firstSymbol))
 			{
@@ -7096,7 +7131,7 @@ PasteProcessor.prototype =
 					startPos = romanToIndex(fullListIndex);
 				}
 				
-				resType = numbering_numfmt_UpperRoman;
+				resType = Asc.c_oAscNumberingFormat.UpperRoman;
 			}
 			else if(-1 !== symbolsArr[2].indexOf(firstSymbol))
 			{
@@ -7106,7 +7141,7 @@ PasteProcessor.prototype =
 					startPos = latinToIndex(fullListIndex);
 				}
 				
-				resType = numbering_numfmt_LowerLetter;
+				resType = Asc.c_oAscNumberingFormat.LowerLetter;
 			}
 			else if(-1 !== symbolsArr[3].indexOf(firstSymbol))
 			{
@@ -7116,7 +7151,7 @@ PasteProcessor.prototype =
 					startPos = latinToIndex(fullListIndex);
 				}
 				
-				resType = numbering_numfmt_UpperLetter;
+				resType = Asc.c_oAscNumberingFormat.UpperLetter;
 			}
 		}
 		
@@ -7165,10 +7200,12 @@ PasteProcessor.prototype =
                 this._CommitElemToParagraph(elem);
             }
             else {
-				if(this.oCurRun.Content.length === c_dMaxParaRunContentLength) {
+				if(this.oCurRun.Content.length === Asc.c_dMaxParaRunContentLength) {
 					//создаём новый paraRun и выставляем ему настройки предыдущего
 					//сделано для того, чтобы избежать большого количества данных в paraRun
-					this._Set_Run_Pr(this.oCurRun.Pr);
+					if(this.oCurRun && this.oCurRun.Pr && this.oCurRun.Pr.Copy) {
+						this._Set_Run_Pr(this.oCurRun.Pr.Copy());
+					}
 				}
 
 				this.oCurRun.Add_ToContent(this.oCurRunContentPos, elem, false);
@@ -7863,6 +7900,15 @@ PasteProcessor.prototype =
 			{
 				value = value.replace(/^(\r|\t|\n)+|(\r|\t|\n)+$/g, '');
 				value = value.replace(/(\r|\t|\n)/g, ' ');
+
+				//TODO проверить в каких случаях пробелы учитываются, в каких игнорируются
+				//пока делаю проверку на div с пробелами
+				if(node && node.parentNode && "div" === node.parentNode.nodeName.toLowerCase()) {
+					var checkSpaces = value.replace(/(\s)/g, '');
+					if(checkSpaces === "") {
+						value = "";
+					}
+				}
 			}
 
 			var Item;
@@ -7962,10 +8008,10 @@ PasteProcessor.prototype =
 					pPr.bNum = true;
 					if (PasteElementsId.g_bIsDocumentCopyPaste) {
 						if ("ul" === sNodeName) {
-							pPr.numType = numbering_numfmt_Bullet;
+							pPr.numType = Asc.c_oAscNumberingFormat.Bullet;
 						} else if ("ol" ===
 							sNodeName) {
-							pPr.numType = numbering_numfmt_Decimal;
+							pPr.numType = Asc.c_oAscNumberingFormat.Decimal;
 						}
 					} else {
 						if ("ul" === sNodeName) {
@@ -7983,10 +8029,10 @@ PasteProcessor.prototype =
 
 					if (PasteElementsId.g_bIsDocumentCopyPaste) {
 						if ("ul" === sNodeName) {
-							pPr.numType = numbering_numfmt_Bullet;
+							pPr.numType = Asc.c_oAscNumberingFormat.Bullet;
 						} else if ("ol" ===
 							sNodeName) {
-							pPr.numType = numbering_numfmt_Decimal;
+							pPr.numType = Asc.c_oAscNumberingFormat.Decimal;
 						}
 					} else {
 						if ("ul" === sNodeName) {

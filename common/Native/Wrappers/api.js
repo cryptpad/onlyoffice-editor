@@ -2282,6 +2282,20 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
           break;
         }
 
+        case 22000: // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
+        {
+            var obj = JSON.parse(_params);
+            var type = parseInt(obj["type"]);
+            var encoding = parseInt(obj["encoding"]);
+
+            _api.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.Open;
+            _api.documentFormat = "txt";
+           
+            _api.asc_setAdvancedOptions(type, new Asc.asc_CTXTAdvancedOptions(encoding));
+            
+            break;
+        } 
+
         default:
             break;
     }
@@ -4490,15 +4504,15 @@ Asc['asc_docs_api'].prototype.UpdateParagraphProp = function(ParaPr)
     var NumSubType = -1;
     if ( !(null == ParaPr.NumPr || 0 === ParaPr.NumPr.NumId || "0" === ParaPr.NumPr.NumId) )
     {
-        var Numb = this.WordControl.m_oLogicDocument.Numbering.Get_AbstractNum( ParaPr.NumPr.NumId );
+        var oNum = this.WordControl.m_oLogicDocument.GetNumbering().GetNum(ParaPr.NumPr.NumId);
 
-        if ( undefined !== Numb && undefined !== Numb.Lvl[ParaPr.NumPr.Lvl] )
+        if (oNum && oNum.GetLvl(ParaPr.NumPr.Lvl))
         {
-            var Lvl = Numb.Lvl[ParaPr.NumPr.Lvl];
-            var NumFormat = Lvl.Format;
-            var NumText   = Lvl.LvlText;
+            var Lvl = oNum.GetLvl(ParaPr.NumPr.Lvl);
+            var NumFormat = Lvl.GetFormat();
+            var NumText   = Lvl.GetLvlText();
 
-            if ( numbering_numfmt_Bullet === NumFormat )
+            if ( Asc.c_oAscNumberingFormat.Bullet === NumFormat )
             {
                 NumType    = 0;
                 NumSubType = 0;
@@ -4534,31 +4548,31 @@ Asc['asc_docs_api'].prototype.UpdateParagraphProp = function(ParaPr)
                 {
                     var NumVal2 = NumText[1].Value;
 
-                    if ( numbering_numfmt_Decimal === NumFormat )
+                    if ( Asc.c_oAscNumberingFormat.Decimal === NumFormat )
                     {
                         if ( "." === NumVal2 )
                             NumSubType = 1;
                         else if ( ")" === NumVal2 )
                             NumSubType = 2;
                     }
-                    else if ( numbering_numfmt_UpperRoman === NumFormat )
+                    else if ( Asc.c_oAscNumberingFormat.UpperRoman === NumFormat )
                     {
                         if ( "." === NumVal2 )
                             NumSubType = 3;
                     }
-                    else if ( numbering_numfmt_UpperLetter === NumFormat )
+                    else if ( Asc.c_oAscNumberingFormat.UpperLetter === NumFormat )
                     {
                         if ( "." === NumVal2 )
                             NumSubType = 4;
                     }
-                    else if ( numbering_numfmt_LowerLetter === NumFormat )
+                    else if ( Asc.c_oAscNumberingFormat.LowerLetter === NumFormat )
                     {
                         if ( ")" === NumVal2 )
                             NumSubType = 5;
                         else if ( "." === NumVal2 )
                             NumSubType = 6;
                     }
-                    else if ( numbering_numfmt_LowerRoman === NumFormat )
+                    else if ( Asc.c_oAscNumberingFormat.LowerRoman === NumFormat )
                     {
                         if ( "." === NumVal2 )
                             NumSubType = 7;
@@ -5793,7 +5807,7 @@ function NativeOpenFile3(_params, documentInfo)
         _api.asc_registerCallback("asc_onAdvancedOptions", function(options) {
                                   var stream = global_memory_stream_menu;
                                   stream["ClearNoAttack"]();
-                                  stream["WriteLong"](options.asc_getOptionId());
+                                  stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
                                   });
 

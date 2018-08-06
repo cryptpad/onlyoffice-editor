@@ -174,16 +174,17 @@
 			this.Properties = g_oAutoFiltersOptionsProperties;
 
 			this.cellId  = null;
-            this.cellCoord  = null;
+			this.cellCoord  = null;
 			this.values  = null;
 			this.filter  = null;
 			this.sortVal = null;
 			this.automaticRowCount = null;
 			this.displayName  = null;
-            this.isTextFilter = null;
-            this.colorsFill = null;
-            this.colorsFont = null;
-            this.sortColor = null;
+			this.isTextFilter = null;
+			this.colorsFill = null;
+			this.colorsFont = null;
+			this.sortColor = null;
+			this.columnName = null;
 			
 			return this;
 		}
@@ -238,6 +239,7 @@
             asc_setColorsFill : function(val) { this.colorsFill = val; },
             asc_setColorsFont : function(val) { this.colorsFont = val; },
             asc_setSortColor : function(val) { this.sortColor = val; },
+			asc_setColumnName : function(val) { this.columnName = val; },
 			
 			asc_getCellId : function() { return this.cellId; },
             asc_getCellCoord : function() { return this.cellCoord; },
@@ -249,7 +251,8 @@
             asc_getIsTextFilter : function() { return this.isTextFilter; },
             asc_getColorsFill : function() { return this.colorsFill; },
             asc_getColorsFont : function() { return this.colorsFont; },
-            asc_getSortColor : function() { return this.sortColor; }
+            asc_getSortColor : function() { return this.sortColor; },
+			asc_getColumnName : function() { return this.columnName; }
 		};
 		
 		var g_oAdvancedTableInfoSettings = {
@@ -405,7 +408,7 @@
 				var isTurnOffHistory = worksheet.workbook.bUndoChanges || worksheet.workbook.bRedoChanges;
 				
 				
-				var filterInfo = this._getFilterInfoByAddTableProps(activeRange, addFormatTableOptionsObj);
+				var filterInfo = this._getFilterInfoByAddTableProps(activeRange, addFormatTableOptionsObj, !!styleName);
 				var addNameColumn = filterInfo.addNameColumn;
 				var filterRange = filterInfo.filterRange;
 				var rangeWithoutDiff = filterInfo.rangeWithoutDiff;
@@ -2946,6 +2949,12 @@
 									filter.TableColumns[j - tableRange.c1].Name = val;
 									if(!bUndo)
 									{
+										//если пытаемся вбить формулу в заголовок - оставляем только результат
+										//ms в данном случае генерирует новое имя, начинающееся с 0
+										//считаю, что результат формулы добавлять более логично
+										if(cell.isFormula()) {
+											cell.setValue(val);
+										}
 										cell.setType(CellValueType.String);
 									}
 									newVal = val;
@@ -3673,7 +3682,32 @@
 					if(!worksheet.AutoFilter)
 					{
 						newFilter = new AscCommonExcel.AutoFilter();
-						//ref = Asc.g_oRangeCache.getAscRange(val[0].id + ':' + val[val.length - 1].idNext).clone();
+
+						//добавляем особый именованный диапазон, так же как это делает MS
+						//без него при открытии файла в MS и последующей сортировке, будет падение
+
+						//TODO только на сохранение добавляю данный именованный диапазон
+						//код ниже нуждается в доработке. addDefName - не добавляет в историю, editDefinesNames - не добавляет с подобными префиксами имена
+
+						//1 вариант
+						/*var defNameFilter = "_xlnm._FilterDatabase";
+						var oldDefName = this.worksheet.workbook.getDefinesNames(defNameFilter, this.worksheet.Id);
+						var defNameRef = AscCommon.parserHelp.get3DRef(this.worksheet.getName(), ref.getAbsName());
+						if(oldDefName) {
+							oldDefName.setRef(defNameRef);
+						} else {
+							this.worksheet.workbook.dependencyFormulas.addDefName(defNameFilter, defNameRef, this.worksheet.Id, false);
+						}*/
+
+						//2 вариант
+						/*var defNameFilter = "_xlnm._FilterDatabase";
+						var oldDefName = this.worksheet.workbook.getDefinesNames(defNameFilter, this.worksheet.Id);
+						var defNameRef = AscCommon.parserHelp.get3DRef(this.worksheet.getName(), ref.getAbsName());
+						var newDefName = new Asc.asc_CDefName(defNameFilter, defNameRef, this.worksheet.Id, false, false);
+
+						this.worksheet.workbook.editDefinesNames(oldDefName, newDefName);*/
+
+
 						newFilter.Ref =  ref;
 						worksheet.AutoFilter = newFilter;
 					}
@@ -5105,7 +5139,7 @@
 				return res;
 			},
 
-			_getFilterInfoByAddTableProps: function(ar, addFormatTableOptionsObj)
+			_getFilterInfoByAddTableProps: function(ar, addFormatTableOptionsObj, bTable)
 			{
 				var tempRange =  new Asc.Range(ar.c1, ar.r1, ar.c2, ar.r2);
 				var addNameColumn, filterRange, bIsManualOptions = false;
@@ -5138,7 +5172,18 @@
 				}
 				else
 				{
-					filterRange = tempRange;
+					if(!bTable) {
+						//меняем range в зависимости от последних ячеек со значениями
+						//ms ещё смотрит на аналогичные значения для начала диапазона
+						//TODO если будут такие переменные со значениями начала диапазона - сделать аналогично MS
+						var definedRange =  new Asc.Range(0, 0, this.worksheet.nColsCount - 1, this.worksheet.nRowsCount - 1);
+						filterRange = tempRange.intersection(definedRange);
+						if(!filterRange) {
+							filterRange = tempRange;
+						}
+					} else {
+						filterRange = tempRange;
+					}
 				}
 
 				var rangeWithoutDiff = filterRange.clone();
@@ -5171,6 +5216,7 @@
         prot["asc_getColorsFill"]				= prot.asc_getColorsFill;
         prot["asc_getColorsFont"]				= prot.asc_getColorsFont;
         prot["asc_getSortColor"]				= prot.asc_getSortColor;
+		prot["asc_getColumnName"]				= prot.asc_getColumnName;
 		prot["asc_setFilterObj"]				= prot.asc_setFilterObj;
 		
 		window["Asc"]["AutoFilterObj"]		    = window["Asc"].AutoFilterObj = AutoFilterObj;

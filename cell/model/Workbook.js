@@ -45,6 +45,7 @@
 	var gc_nMaxRow0 = AscCommon.gc_nMaxRow0;
 	var gc_nMaxCol0 = AscCommon.gc_nMaxCol0;
 	var g_oCellAddressUtils = AscCommon.g_oCellAddressUtils;
+	var AscBrowser = AscCommon.AscBrowser;
 	var CellAddress = AscCommon.CellAddress;
 	var isRealObject = AscCommon.isRealObject;
 	var History = AscCommon.History;
@@ -1833,7 +1834,7 @@
 		}
 		//ws
 		this.forEach(function (ws) {
-			ws.initPostOpen(self.wsHandlers, bNoBuildDep);
+			ws.initPostOpen(self.wsHandlers);
 		});
 		//show active if it hidden
 		var wsActive = this.getActiveWs();
@@ -2753,7 +2754,11 @@
 	 * @returns {Number}    Ширина столбца в px
 	 */
 	Workbook.prototype.modelColWidthToColWidth = function (mcw) {
-		return Asc.floor(((256 * mcw + Asc.floor(128 / this.maxDigitWidth)) / 256) * this.maxDigitWidth);
+		var res = Asc.floor(((256 * mcw + Asc.floor(128 / this.maxDigitWidth)) / 256) * this.maxDigitWidth);
+		if (AscBrowser.isRetina) {
+			res = AscBrowser.convertToRetinaValue(res, true);
+		}
+		return res;
 	};
 	/**
 	 * Вычисляет количество символов по ширине столбца
@@ -2763,9 +2768,13 @@
 	Workbook.prototype.colWidthToCharCount = function (w) {
 		var pxInOneCharacter = this.maxDigitWidth + this.paddingPlusBorder;
 		// Когда меньше 1 символа, то просто считаем по пропорции относительно размера 1-го символа
-		return w < pxInOneCharacter ?
+		var res = w < pxInOneCharacter ?
 			(1 - Asc.floor(100 * (pxInOneCharacter - w) / pxInOneCharacter + 0.49999) / 100) :
 			Asc.floor((w - this.paddingPlusBorder) / this.maxDigitWidth * 100 + 0.5) / 100;
+		if (AscBrowser.isRetina) {
+			res = AscBrowser.convertToRetinaValue(res);
+		}
+		return res;
 	};
 	Workbook.prototype.getUndoDefName = function(ascName) {
 		if (!ascName) {
@@ -3030,10 +3039,12 @@
 			}
 			//расширяем границы
 			if(null != to){
-				if(to.r2 >= oThis.nRowsCount)
-					oThis.nRowsCount = to.r2 + 1;
-				if(to.c2 >= oThis.nColsCount)
-					oThis.nColsCount = to.c2 + 1;
+				var maxRow = gc_nMaxRow0 !== to.r2 ? to.r2 : to.r1;
+				var maxCol = gc_nMaxCol0 !== to.c2 ? to.c2 : to.c1;
+				if(maxRow >= oThis.nRowsCount)
+					oThis.nRowsCount = maxRow + 1;
+				if(maxCol >= oThis.nColsCount)
+					oThis.nColsCount = maxCol + 1;
 			}
 		});
 		this.hyperlinkManager = new RangeDataManager(function(data, from, to, oChangeParam){
@@ -3057,10 +3068,12 @@
 				data.Ref.cleanFormat();
 			//расширяем границы
 			if(null != to){
-				if(to.r2 >= oThis.nRowsCount)
-					oThis.nRowsCount = to.r2 + 1;
-				if(to.c2 >= oThis.nColsCount)
-					oThis.nColsCount = to.c2 + 1;
+				var maxRow = gc_nMaxRow0 !== to.r2 ? to.r2 : to.r1;
+				var maxCol = gc_nMaxCol0 !== to.c2 ? to.c2 : to.c1;
+				if(maxRow >= oThis.nRowsCount)
+					oThis.nRowsCount = maxRow + 1;
+				if(maxCol >= oThis.nColsCount)
+					oThis.nColsCount = maxCol + 1;
 			}
 		});
 		this.hyperlinkManager.setDependenceManager(this.mergeManager);
@@ -3081,6 +3094,8 @@
 		this.selectionRange = new AscCommonExcel.SelectionRange(this);
 		this.sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
 		this.pivotTables = [];
+
+		this.PagePrintOptions = new Asc.asc_CPageOptions();
 
 		this.lastFindOptions = null;
 
@@ -3285,11 +3300,7 @@
 	Worksheet.prototype.initColumns = function () {
 		this.aCols.forEach(this.initColumn, this);
 	};
-	Worksheet.prototype.initPostOpen = function (handlers, bNoBuildDep) {
-		if (!this.PagePrintOptions) {
-			// Даже если не было, создадим
-			this.PagePrintOptions = new Asc.asc_CPageOptions();
-		}
+	Worksheet.prototype.initPostOpen = function (handlers) {
 		this.PagePrintOptions.init();
 
 		// Sheet Views
@@ -3741,9 +3752,7 @@
 		}
 	};
 	Worksheet.prototype.getHidden=function(){
-		if(null != this.bHidden)
-			return false != this.bHidden;
-		return false;
+		return true === this.bHidden;
 	};
 	Worksheet.prototype.setHidden = function (hidden) {
 		var bOldHidden = this.bHidden, wb = this.workbook, wsActive = wb.getActiveWs(), oVisibleWs = null;
@@ -3801,8 +3810,8 @@
 	};
 	Worksheet.prototype.getRowsCount=function(){
 		var result = this.nRowsCount;
-		var pane = this.sheetViews[0].pane;
-		if (null !== pane && null !== pane.topLeftFrozenCell)
+		var pane = this.sheetViews.length && this.sheetViews[0].pane;
+		if (pane && pane.topLeftFrozenCell)
 			result = Math.max(result, pane.topLeftFrozenCell.getRow0());
 		return result;
 	};
@@ -3949,7 +3958,7 @@
 			this.getRange3(r1, c1, r2, c2)._foreachNoEmpty(function(cell) {
 				if (cell.xfs && cell.xfs.border) {
 					t._getCellNoEmpty(cell.nRow + offsetRow, cell.nCol + offsetCol, function(neighbor) {
-						if (neighbor.xfs && neighbor.xfs.border) {
+						if (neighbor && neighbor.xfs && neighbor.xfs.border) {
 							var newBorder = neighbor.xfs.border.clone();
 							newBorder.intersect(cell.xfs.border, g_oDefaultFormat.BorderAbs, true);
 							borders[bRow ? cell.nCol : cell.nRow] = newBorder;
@@ -4009,8 +4018,8 @@
 	};
 	Worksheet.prototype.getColsCount=function(){
 		var result = this.nColsCount;
-		var pane = this.sheetViews[0].pane;
-		if (null !== pane && null !== pane.topLeftFrozenCell)
+		var pane = this.sheetViews.length && this.sheetViews[0].pane;
+		if (pane && pane.topLeftFrozenCell)
 			result = Math.max(result, pane.topLeftFrozenCell.getCol0());
 		return result;
 	};
@@ -4660,18 +4669,12 @@
 		});
 
 	};
-	Worksheet.prototype._getColNoEmpty=function(col){
+	Worksheet.prototype._getColNoEmpty = function (col) {
 		//0-based
-		var oCurCol = this.aCols[col];
-		if(oCurCol)
-			return oCurCol;
-		return null;
+		return this.aCols[col] || null;
 	};
-	Worksheet.prototype._getColNoEmptyWithAll=function(col){
-		var oRes = this._getColNoEmpty(col);
-		if(null == oRes)
-			oRes = this.oAllCol;
-		return oRes;
+	Worksheet.prototype._getColNoEmptyWithAll = function (col) {
+		return this._getColNoEmpty(col) || this.oAllCol;
 	};
 	Worksheet.prototype._getRow = function(index, fAction) {
 		//0-based
@@ -8394,7 +8397,7 @@
 		History.Create_NewPoint();
 		var bRes = false;
 		this._setPropertyNoEmpty(null, null, function(cell, nRow0, nCol0, nRowStart, nColStart){
-			bRes |= cell.shiftNumFormat(nShift, aDigitsCount[nCol0 - nColStart] || 8);
+			bRes |= cell.shiftNumFormat(nShift, aDigitsCount[nCol0 - nColStart]);
 		});
 		return bRes;
 	};

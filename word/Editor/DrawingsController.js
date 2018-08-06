@@ -83,9 +83,9 @@ CDrawingsController.prototype.AddToParagraph = function(oItem, bRecalculate)
 	this.LogicDocument.Document_UpdateUndoRedoState();
 	this.LogicDocument.Document_UpdateInterfaceState();
 };
-CDrawingsController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CDrawingsController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
-	return this.DrawingObjects.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	return this.DrawingObjects.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CDrawingsController.prototype.GetCursorPosXY = function()
 {
@@ -195,10 +195,6 @@ CDrawingsController.prototype.SetParagraphTabs = function(Tabs)
 CDrawingsController.prototype.SetParagraphIndent = function(Ind)
 {
 	this.DrawingObjects.setParagraphIndent(Ind);
-};
-CDrawingsController.prototype.SetParagraphNumbering = function(NumInfo)
-{
-	this.DrawingObjects.setParagraphNumbering(NumInfo);
 };
 CDrawingsController.prototype.SetParagraphShd = function(Shd)
 {
@@ -536,4 +532,8 @@ CDrawingsController.prototype.AddContentControl = function(nContentControlType)
 CDrawingsController.prototype.GetStyleFromFormatting = function()
 {
 	return this.DrawingObjects.GetStyleFromFormatting();
+};
+CDrawingsController.prototype.GetSimilarNumbering = function(oEngine)
+{
+	// TODO: Реализовать
 };

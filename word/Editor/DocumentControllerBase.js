@@ -361,9 +361,10 @@ CDocumentControllerBase.prototype.AddToParagraph = function(oItem, bRecalculate)
  * @param {boolean} bOnlyText - удаляем только текст
  * @param {boolean} bRemoveOnlySelection - удаляем только по селекту
  * @param {boolean} bOnAddText - удаление происходит во время добавления текста (особый тип удаления)
+ * @param {boolean} isWord - производить удаление по словам
  * @returns {boolean} Выполнилось ли удаление.
  */
-CDocumentControllerBase.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText){return true;};
+CDocumentControllerBase.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord){return true;};
 /**
  * Получаем физическую позицию курсора на странице.
  */
@@ -450,11 +451,6 @@ CDocumentControllerBase.prototype.SetParagraphTabs = function(Tabs){};
  * @param Ind
  */
 CDocumentControllerBase.prototype.SetParagraphIndent = function(Ind){};
-/**
- * Установить тип нумерации параграфа.
- * @param NumInfo
- */
-CDocumentControllerBase.prototype.SetParagraphNumbering = function(NumInfo){};
 /**
  * Установить заливку параграфа.
  * @param Shd
@@ -761,7 +757,7 @@ CDocumentControllerBase.prototype.RestoreDocumentStateAfterLoadChanges = functio
 CDocumentControllerBase.prototype.GetColumnSize = function(){return {W : 0, H : 0};};
 /**
  * Получаем настройки текущей секции
- * @returns {CSectionPr?}
+ * @returns {?CSectionPr}
  */
 CDocumentControllerBase.prototype.GetCurrentSectionPr = function(){return null;};
 /**
@@ -776,3 +772,8 @@ CDocumentControllerBase.prototype.AddContentControl = function(nContentControlTy
  * Получаем стиль по выделенному фрагменту
  */
 CDocumentControllerBase.prototype.GetStyleFromFormatting = function(){return null;};
+/**
+ * Вплоть до заданного параграфа ищем последнюю похожую нумерацию
+ * @param oContinueEngine {CDocumentNumberingContinueEngine}
+ */
+CDocumentControllerBase.prototype.GetSimilarNumbering = function(oContinueEngine){};

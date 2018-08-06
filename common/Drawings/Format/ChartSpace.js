@@ -911,6 +911,7 @@ function checkPointInMap(map, worksheet, row, col)
                 var oContent = oLabel.tx.rich.content;
                 oContent.Set_ApplyToAll(true);
                 oContent.SetParagraphAlign(AscCommon.align_Left);
+                oContent.SetParagraphIndent({FirstLine: 0.0, Left: 0.0});
                 oContent.Set_ApplyToAll(false);
                 var oSize = oLabel.tx.rich.getContentOneStringSizes();
                 var fBoxW = fMultiplier*(oSize.w + oSize.h);
@@ -921,13 +922,12 @@ function checkPointInMap(map, worksheet, row, col)
                 var fX1, fY0, fXC, fYC;
                 fY0 = fAxisY + fDistance;
                 if(fDistance >= 0.0){
-                    fX1 = fCurX + oSize.h*fMultiplier;
-                    fXC = fX1 - fBoxW/2.0;
+                    fXC = fCurX - oSize.w*fMultiplier/2.0;
                     fYC = fY0 + fBoxH/2.0;
                 }
                 else{
-                    fX1 = fCurX - oSize.h*fMultiplier;
-                    fXC = fX1 + fBoxW/2.0;
+                    //fX1 = fCurX - oSize.h*fMultiplier;
+                    fXC = fCurX + oSize.w*fMultiplier/2.0;
                     fYC = fY0 - fBoxH/2.0;
                 }
                 var oTransform = oLabel.localTransformText;
@@ -1220,7 +1220,7 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
             }
             else if(AscFormat.isRealNumber(this.selection.dataLbls))
             {
-                var series = this.chart.plotArea.charts[0].series;
+                var series = this.getAllSeries();
                 var ser = series[this.selection.dataLbls];
                 if(ser)
                 {
@@ -1562,7 +1562,7 @@ CChartSpace.prototype.getParagraphTextPr = function()
     }
     else if(AscFormat.isRealNumber(this.selection.dataLbls))
     {
-        var ser = this.chart.plotArea.charts[0].series[this.selection.dataLbls];
+        var ser = this.getAllSeries()[this.selection.dataLbls];
         if(ser)
         {
             var pts = AscFormat.getPtsFromSeries(ser);
@@ -1635,16 +1635,17 @@ CChartSpace.prototype.applyLabelsFunction = function(fCallback, value)
     }
     else if(AscFormat.isRealNumber(this.selection.dataLbls))
     {
-        var ser = this.chart.plotArea.charts[0].series[this.selection.dataLbls];
+        var ser = this.getAllSeries()[this.selection.dataLbls];
         if(ser)
         {
             var pts = AscFormat.getPtsFromSeries(ser);
             if(!ser.dLbls)
             {
                 var oDlbls;
-                if(this.chart.plotArea.charts[0].dLbls)
+                var oChart = ser.parent;
+                if(oChart && oChart.dLbls)
                 {
-                    oDlbls = this.chart.plotArea.charts[0].dLbls.createDuplicate();
+                    oDlbls = oChart.dLbls.createDuplicate();
                 }
                 else
                 {
@@ -2304,16 +2305,16 @@ CChartSpace.prototype.clearFormatting = function(bNoClearShapeProps)
         }
         else if(AscFormat.isRealNumber(this.selection.dataLbls))
         {
-            var ser = this.chart.plotArea.charts[0].series[this.selection.dataLbls];
+            var ser = this.getAllSeries()[this.selection.dataLbls];
             if(ser)
             {
                 var oDlbls = ser.dLbls;
                 if(!ser.dLbls)
                 {
 
-                    if(this.chart.plotArea.charts[0].dLbls)
+                    if(ser.parent && ser.parent.dLbls)
                     {
-                        oDlbls = this.chart.plotArea.charts[0].dLbls.createDuplicate();
+                        oDlbls = ser.parent.dLbls.createDuplicate();
                     }
                     else
                     {
@@ -3559,18 +3560,26 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
     {
         var aParsedRef = this.parseChartFormula(val.numRef.f);
         var num_cache;
+        var hidden = true;
         if(!val.numRef.numCache )
         {
             num_cache = new AscFormat.CNumLit();
             num_cache.setFormatCode("General");
+            num_cache.setPtCount(0);
         }
         else
         {
             num_cache = val.numRef.numCache;
-            removePtsFromLit(num_cache);
+            if(aParsedRef.length > 0){
+                removePtsFromLit(num_cache);
+            }
+            else{
+                hidden = false;
+            }
+
         }
         var lit_format_code = typeof num_cache.formatCode === "string" && num_cache.formatCode.length > 0 ? num_cache.formatCode : "General";
-        var pt_index = 0, i, j, cell, pt,  hidden = true, row_hidden, col_hidden, nPtCount, t;
+        var pt_index = 0, i, j, cell, pt, row_hidden, col_hidden, nPtCount, t;
         for(i = 0; i < aParsedRef.length; ++i)
         {
             var oCurRef = aParsedRef[i];
@@ -3765,7 +3774,9 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                 };
             }
         }
-        num_cache.setPtCount(pt_index);
+        if(aParsedRef.length > 0){
+            num_cache.setPtCount(pt_index);
+        }
         val.numRef.setNumCache(num_cache);
         if(!(val instanceof AscFormat.CCat))
         {
@@ -3944,6 +3955,11 @@ CChartSpace.prototype.recalculateReferences = function()
         // }
     }
 
+    var aTitles = this.getAllTitles();
+    for(i = 0; i < aTitles.length; ++i){
+        var oTitle = aTitles[i];
+        this.checkCatByNumRef(this, oTitle, oTitle.tx, undefined);
+    }
     var aAxis = this.chart.plotArea.axId;
     for(i = 0; i < aAxis.length; ++i){
         var oAxis = aAxis[i];
@@ -3964,7 +3980,9 @@ CChartSpace.prototype.recalculateReferences = function()
                         oAxis.numFmt.setFormatCode(aPoints[0].formatCode);
                     }
                     else{
-                        oAxis.numFmt.setFormatCode("General");
+                        if(oAxis.numFmt.formatCode === null || oAxis.numFmt.formatCode === ""){
+                            oAxis.numFmt.setFormatCode("General");
+                        }
                     }
                 }
             }
@@ -3975,7 +3993,7 @@ CChartSpace.prototype.recalculateReferences = function()
 CChartSpace.prototype.checkEmptySeries = function()
 {
     var chart_type = this.chart.plotArea.charts[0];
-    var series = chart_type.series;
+    var series = this.getAllSeries();
     var checkEmptyVal = function(val)
     {
         if(val.numRef)
@@ -3997,7 +4015,7 @@ CChartSpace.prototype.checkEmptySeries = function()
         return false;
     };
     var nChartType = chart_type.getObjectType();
-    var nSeriesLength = (nChartType === AscDFH.historyitem_type_PieChart || nChartType === AscDFH.historyitem_type_DoughnutChart) ? Math.min(1, series.length) : series.length;
+    var nSeriesLength = (nChartType === AscDFH.historyitem_type_PieChart || nChartType === AscDFH.historyitem_type_DoughnutChart) && this.chart.plotArea.charts.length === 1 ? Math.min(1, series.length) : series.length;
     for(var i = 0; i < nSeriesLength; ++i)
     {
         var ser = series[i];
@@ -4269,8 +4287,11 @@ CChartSpace.prototype.getValAxisCrossType = function()
                 //расчитаем подписи для горизонтальной оси
                 var oSeries = oPlotArea.getSeriesWithSmallestIndexForAxis(oAxis);
                 var nPtsLen = 0;
-                oAxis.scale = [];
-;
+                var aScale = [];
+                if(Array.isArray(oAxis.scale)){
+                    aScale = aScale.concat(oAxis.scale);
+
+                }
                 if(oSeries && oSeries.cat) {
                     var  oLit;
                     var oCat = oSeries.cat;
@@ -4291,7 +4312,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
                         if(typeof oLit.formatCode === "string" && oLit.formatCode.length > 0){
                             oLitFormat = oNumFormatCache.get(oLit.formatCode);
                         }
-                        if(nAxisType === AscDFH.historyitem_type_DateAx && oAxis.numFmt && typeof oAxis.numFmt.formatCode === "string" && oAxis.numFmt.formatCode.length > 0){
+                        if(/*nAxisType === AscDFH.historyitem_type_DateAx && */oAxis.numFmt && typeof oAxis.numFmt.formatCode === "string" && oAxis.numFmt.formatCode.length > 0){
                             oLitFormat = oNumFormatCache.get(oAxis.numFmt.formatCode);
                         }
                         nPtsLen = oLit.ptCount;
@@ -4299,7 +4320,6 @@ CChartSpace.prototype.getValAxisCrossType = function()
                         var bTickSkip =  AscFormat.isRealNumber(oAxis.tickLblSkip);
                         var nTickLblSkip = AscFormat.isRealNumber(oAxis.tickLblSkip) ? oAxis.tickLblSkip : (nPtsLen < SKIP_LBL_LIMIT ?  1 :  Math.floor(nPtsLen/SKIP_LBL_LIMIT));
                         for(i = 0; i < nPtsLen; ++i){
-                            oAxis.scale.push(i);
                             if(!bTickSkip || ((i % nTickLblSkip) === 0)){
                                 var oPt = oLit.getPtByIndex(i);
                                 if(oPt){
@@ -4375,6 +4395,17 @@ CChartSpace.prototype.getValAxisCrossType = function()
                 }
                 else{
                     aStrings.splice(nPtsLength, aStrings.length - nPtsLength);
+                }
+                if(aScale.length > 0){
+                    while(aStrings.length < aScale[aScale.length - 1]){
+                        aStrings.push("");
+                    }
+                    for(i = 0; i < aScale.length; ++i){
+                        if(aScale[i] >= 0){
+                            break;
+                        }
+                        aStrings.splice(0, 0, "");
+                    }
                 }
 
                 break;
@@ -4503,7 +4534,14 @@ CChartSpace.prototype.getValAxisCrossType = function()
 
             var bCrossAt = false;
             if(AscFormat.isRealNumber(oCurAxis.crossesAt) && oCrossAxis.scale[0] <= oCurAxis.crossesAt && oCrossAxis.scale[oCrossAxis.scale.length - 1] >= oCurAxis.crossesAt){
-                fCrossValue = oCurAxis.crossesAt - 1;
+
+                if(oCrossAxis.getObjectType() === AscDFH.historyitem_type_ValAx){
+                    fCrossValue = oCurAxis.crossesAt;
+                }
+                else{
+                    fCrossValue = oCurAxis.crossesAt - 1;
+                }
+
                 bCrossAt = true;
             }
             else{
@@ -4747,18 +4785,78 @@ CChartSpace.prototype.getValAxisCrossType = function()
         return _ret;
     };
 
+
+    CChartSpace.prototype.getReplaceAxis = function(oAxis){
+        var aAxes = this.chart.plotArea.axId;
+        if(oAxis.bDelete && oAxis.getObjectType() === AscDFH.historyitem_type_ValAx){
+            var bHorizontal = (oAxis.axPos === AscFormat.AX_POS_T || oAxis.axPos === AscFormat.AX_POS_B);
+            for(var j = 0; j < aAxes.length; ++j){
+                var oCheckAxis = aAxes[j];
+                if(!oCheckAxis.bDelete){
+                    if(bHorizontal){
+                        if(oCheckAxis.axPos === AscFormat.AX_POS_T || oCheckAxis.axPos === AscFormat.AX_POS_B){
+                            if(!oAxis.crossAx || oAxis.crossAx && oCheckAxis.crossAx && oAxis.crossAx.getObjectType() === oCheckAxis.crossAx.getObjectType()){
+                                return oCheckAxis;
+                            }
+                        }
+                    }
+                    else{
+                        if(oCheckAxis.axPos === AscFormat.AX_POS_R || oCheckAxis.axPos === AscFormat.AX_POS_L){
+                            if(!oAxis.crossAx || oAxis.crossAx && oCheckAxis.crossAx && oAxis.crossAx.getObjectType() === oCheckAxis.crossAx.getObjectType()){
+                                return oCheckAxis;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    };
+
     CChartSpace.prototype.recalculateAxes = function(){
         this.plotAreaRect = null;
-        if(this.chart && this.chart.plotArea && this.chart.plotArea){
+        this.bEmptySeries = this.checkEmptySeries();
+        if(this.chart && this.chart.plotArea){
             if(!this.chartObj){
                 this.chartObj = new AscFormat.CChartsDrawer()
             }
-            this.chartObj.preCalculateData(this);
             var i, j;
+            var aCharts = this.chart.plotArea.charts, oChart;
+            var oCurAxis, oCurAxis2, aCurAxesSet;
+            //temporary add axes to charts with deleted axes
+            var oChartsToAxesCount = {};
+            var bAdd, nAxesCount;
+            var oReplaceAxis;
+            for(i = 0; i < aCharts.length; ++i){
+                bAdd = false;
+                oChart = aCharts[i];
+                if(oChart.axId){
+                    nAxesCount = oChart.axId.length;
+                    for(j = nAxesCount - 1; j > -1; --j){
+                        oCurAxis = oChart.axId[j];
+                        oReplaceAxis = this.getReplaceAxis(oCurAxis);
+                        if(oReplaceAxis){
+                            bAdd = true;
+                            oChart.axId.push(oReplaceAxis);
+                        }
+                    }
+                    if(bAdd){
+                        oChartsToAxesCount[oChart.Id] = nAxesCount;
+                    }
+                }
+            }
+            this.chartObj.preCalculateData(this);
+            for(i in oChartsToAxesCount){
+                if(oChartsToAxesCount.hasOwnProperty(i)){
+                    oChart = AscCommon.g_oTableId.Get_ById(i);
+                    if(oChart){
+                        oChart.axId.length = oChartsToAxesCount[i]
+                    }
+                }
+            }
             var oPlotArea = this.chart.plotArea;
             var aAxes = [].concat(oPlotArea.axId);
             var aAllAxes = [];//array of axes sets
-            var oCurAxis, oCurAxis2, aCurAxesSet;
 
             while(aAxes.length > 0){
                 oCurAxis = aAxes.splice(0, 1)[0];
@@ -4875,24 +4973,14 @@ CChartSpace.prototype.getValAxisCrossType = function()
             var oCheckAxis;
             for(i = 0; i < aAxes.length; ++i){
                 oCurAxis = aAxes[i];
-                if(oCurAxis.bDelete){
-                    var bHorizontal = (oCurAxis.axPos === AscFormat.AX_POS_T || oCurAxis.axPos === AscFormat.AX_POS_B);
-                    for(j = 0; j < aAxes.length; ++j){
-                        oCheckAxis = aAxes[j];
-                        if(!oCheckAxis.bDelete){
-                            if(bHorizontal){
-                                if(oCheckAxis.axPos === AscFormat.AX_POS_T || oCheckAxis.axPos === AscFormat.AX_POS_B){
-                                    oCurAxis.xPoints = oCheckAxis.xPoints;
-                                    break;
-                                }
-                            }
-                            else{
-                                if(oCheckAxis.axPos === AscFormat.AX_POS_R || oCheckAxis.axPos === AscFormat.AX_POS_L){
-                                    oCurAxis.yPoints = oCheckAxis.yPoints;
-                                    break;
-                                }
-                            }
-                        }
+                var bHorizontal = (oCurAxis.axPos === AscFormat.AX_POS_T || oCurAxis.axPos === AscFormat.AX_POS_B);
+                oReplaceAxis = this.getReplaceAxis(oCurAxis);
+                if(oReplaceAxis){
+                    if(bHorizontal){
+                        oCurAxis.xPoints = oReplaceAxis.xPoints;
+                    }
+                    else{
+                        oCurAxis.yPoints = oReplaceAxis.yPoints;
                     }
                 }
             }
@@ -11078,9 +11166,9 @@ CChartSpace.prototype.recalculateDLbls = function()
 
             var series = aCharts[t].series;
             var nDefaultPosition;
-            if(this.chart.plotArea.charts[0].getDefaultDataLabelsPosition)
+            if(aCharts[t].getDefaultDataLabelsPosition)
             {
-                nDefaultPosition = this.chart.plotArea.charts[0].getDefaultDataLabelsPosition();
+                nDefaultPosition = aCharts[t].getDefaultDataLabelsPosition();
             }
 
             var default_lbl = new AscFormat.CDLbl();
@@ -12481,15 +12569,21 @@ function getPtsFromSeries(ser)
     
 function getCatStringPointsFromSeries(ser)
 {
-    if(ser && ser.cat)
-    {
-        if(ser.cat.strRef && ser.cat.strRef.strCache)
+    if(!ser){
+        return null;
+    }
+    return getStringPointsFromCat(ser.cat);
+}
+
+function getStringPointsFromCat(oCat){
+    if(oCat){
+        if(oCat.strRef && oCat.strRef.strCache)
         {
-            return ser.cat.strRef.strCache;
+            return oCat.strRef.strCache;
         }
-        else if(ser.cat.strLit)
+        else if(oCat.strLit)
         {
-            return ser.cat.strLit;
+            return oCat.strLit;
         }
     }
     return null;
@@ -14938,4 +15032,5 @@ function checkBlipFillRasterImages(sp)
     window['AscFormat'].getArrayFillsFromBase = getArrayFillsFromBase;
     window['AscFormat'].getMaxIdx = getMaxIdx;
     window['AscFormat'].CreateSurfaceChart = CreateSurfaceChart;
+    window['AscFormat'].getStringPointsFromCat = getStringPointsFromCat;
 })(window);

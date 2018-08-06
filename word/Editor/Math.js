@@ -1630,14 +1630,6 @@ ParaMath.prototype.Get_Layout = function(DrawingLayout, UseContentPos, ContentPo
         DrawingLayout.X += this.Width;
 };
 
-ParaMath.prototype.Get_NextRunElements = function(RunElements, UseContentPos, Depth)
-{
-};
-
-ParaMath.prototype.Get_PrevRunElements = function(RunElements, UseContentPos, Depth)
-{
-};
-
 ParaMath.prototype.CollectDocumentStatistics = function(ParaStats)
 {
     // TODO: ParaMath.CollectDocumentStatistics
@@ -1760,7 +1752,7 @@ ParaMath.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
     if( this.Paragraph !== PRS.Paragraph )
     {
         this.Paragraph = PRS.Paragraph;
-        this.protected_UpdateSpellChecking();
+        this.private_UpdateSpellChecking();
     }
 
     var Para         = PRS.Paragraph;

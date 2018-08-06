@@ -515,10 +515,22 @@ CEditorPage.prototype.ThemeGenerateThumbnails = function(_master)
 
 CEditorPage.prototype.CheckLayouts = function(bIsAttack)
 {
+    if(!this.m_oLogicDocument || !this.m_oLogicDocument.Api){
+        return;
+    }
+    var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
+    var master = slide.Layout.Master;
+    this.MasterLayouts = master;
+    this.m_oDrawingDocument.CheckLayouts(master);
+    this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
 };
 
 CEditorPage.prototype.GoToPage = function(lPageNum)
 {
+    if(this.m_oDrawingDocument){
+        this.m_oDrawingDocument.SlidesCount = this.m_oLogicDocument.Slides.length;
+        this.m_oDrawingDocument.SlideCurrent = this.m_oLogicDocument.CurPage;
+    }
     this.Native["DD_SetCurrentPage"](lPageNum);
 };
 

@@ -42,6 +42,7 @@
 		var gc_nMaxRow0 = AscCommon.gc_nMaxRow0;
 		var gc_nMaxCol0 = AscCommon.gc_nMaxCol0;
 		var g_oCellAddressUtils = AscCommon.g_oCellAddressUtils;
+		var AscBrowser = AscCommon.AscBrowser;
 
 		var c_oAscSelectionType = Asc.c_oAscSelectionType;
 
@@ -76,6 +77,8 @@
 			newLines: 2  // пересчитываем новые строки
 
 		};
+
+		var sizePxinPt = 72 / 96;
 
 		function applyFunction(callback) {
 			if (kFunctionL === typeof callback) {
@@ -170,6 +173,23 @@
 		function calcDecades(num) {
 			return Math.abs(num) < 10 ? 1 : 1 + calcDecades(floor(num * 0.1));
 		}
+
+		function convertPtToPx(value) {
+			value = value / sizePxinPt;
+			value = value | value;
+			if (AscBrowser.isRetina) {
+				value = AscBrowser.convertToRetinaValue(value, true);
+			}
+			return value;
+		}
+		function convertPxToPt(value) {
+			value = value * sizePxinPt;
+			if (AscBrowser.isRetina) {
+				value = AscBrowser.convertToRetinaValue(value);
+			}
+			return value;
+		}
+
 
 		// Определяет времени работы функции
 		function profileTime(fn/*[, arguments]*/) {
@@ -1803,6 +1823,9 @@
 				// Для resize
 				this.sizeCCOrPt = obj.sizeCCOrPt;
 				this.sizePx = obj.sizePx;
+
+				//Filter
+				this.filter = obj.filter;
 			}
 
 			return this;
@@ -1818,7 +1841,8 @@
 			asc_getUserId: function () { return this.userId; },
 			asc_getLockedObjectType: function () { return this.lockedObjectType; },
 			asc_getSizeCCOrPt: function () { return this.sizeCCOrPt; },
-			asc_getSizePx: function () { return this.sizePx; }
+			asc_getSizePx: function () { return this.sizePx; },
+			asc_getFilter: function () { return this.filter; }
 		};
 
 		// Гиперссылка
@@ -1865,13 +1889,11 @@
 		};
 
 		/** @constructor */
-		function asc_CPageMargins (obj) {
-			if (obj) {
-				this.left = obj.left;
-				this.right = obj.right;
-				this.top = obj.top;
-				this.bottom = obj.bottom;
-			}
+		function asc_CPageMargins () {
+			this.left = null;
+			this.right = null;
+			this.top = null;
+			this.bottom = null;
 
 			return this;
 		}
@@ -1894,7 +1916,7 @@
 		asc_CPageMargins.prototype.asc_setTop = function (val) { this.top = val; };
 		asc_CPageMargins.prototype.asc_setBottom = function (val) { this.bottom = val; };
 		/** @constructor */
-		function asc_CPageSetup () {
+		function asc_CPageSetup() {
 			this.orientation = c_oAscPrintDefaultSettings.PageOrientation;
 			this.width = c_oAscPrintDefaultSettings.PageWidth;
 			this.height = c_oAscPrintDefaultSettings.PageHeight;
@@ -1928,23 +1950,16 @@
 		asc_CPageSetup.prototype.asc_setFitToHeight = function (val) { this.fitToHeight = val; };
 
 		/** @constructor */
-		function asc_CPageOptions (obj) {
-			if (obj) {
-				this.pageMargins = obj.pageMargins;
-				this.pageSetup = obj.pageSetup;
-				this.gridLines = obj.gridLines;
-				this.headings = obj.headings;
-			}
+		function asc_CPageOptions() {
+			this.pageMargins = new asc_CPageMargins();
+			this.pageSetup = new asc_CPageSetup();
+			this.gridLines = null;
+			this.headings = null;
 
 			return this;
 		}
 		asc_CPageOptions.prototype.init = function () {
-			if (!this.pageMargins)
-				this.pageMargins = new asc_CPageMargins();
 			this.pageMargins.init();
-
-			if (!this.pageSetup)
-				this.pageSetup = new asc_CPageSetup();
 
 			if (null == this.gridLines)
 				this.gridLines = c_oAscPrintDefaultSettings.PageGridLines;
@@ -1960,7 +1975,7 @@
 		asc_CPageOptions.prototype.asc_setGridLines = function (val) { this.gridLines = val; };
 		asc_CPageOptions.prototype.asc_setHeadings = function (val) { this.headings = val; };
 
-		function CPagePrint () {
+		function CPagePrint() {
 			this.pageWidth = 0;
 			this.pageHeight = 0;
 
@@ -1971,10 +1986,8 @@
 
 			this.pageRange = null;
 
-			this.leftFieldInPt = 0;
-			this.topFieldInPt = 0;
-			this.rightFieldInPt = 0;
-			this.bottomFieldInPt = 0;
+			this.leftFieldInPx = 0;
+			this.topFieldInPx = 0;
 
 			this.pageGridLines = false;
 			this.pageHeadings = false;
@@ -1982,7 +1995,7 @@
 			this.indexWorksheet = -1;
 
 			this.startOffset = 0;
-			this.startOffsetPt = 0;
+			this.startOffsetPx = 0;
 
 			return this;
 		}
@@ -2531,6 +2544,7 @@
 		window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 		window["AscCommonExcel"].c_oAscShiftType = c_oAscShiftType;
 		window["AscCommonExcel"].recalcType = recalcType;
+		window["AscCommonExcel"].sizePxinPt = sizePxinPt;
 		window["AscCommonExcel"].applyFunction = applyFunction;
 		window["Asc"].typeOf = typeOf;
 		window["Asc"].lastIndexOf = lastIndexOf;
@@ -2542,6 +2556,8 @@
 		window["Asc"].ceil = ceil;
 		window["Asc"].incDecFonSize = incDecFonSize;
 		window["AscCommonExcel"].calcDecades = calcDecades;
+		window["AscCommonExcel"].convertPtToPx = convertPtToPx;
+		window["AscCommonExcel"].convertPxToPt = convertPxToPt;
 		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].profileTime = profileTime;
 		window["AscCommonExcel"].getMatchingBorder = getMatchingBorder;
@@ -2578,6 +2594,7 @@
 		prot["asc_getLockedObjectType"] = prot.asc_getLockedObjectType;
 		prot["asc_getSizeCCOrPt"] = prot.asc_getSizeCCOrPt;
 		prot["asc_getSizePx"] = prot.asc_getSizePx;
+		prot["asc_getFilter"] = prot.asc_getFilter;
 
 		window["Asc"]["asc_CHyperlink"] = window["Asc"].asc_CHyperlink = asc_CHyperlink;
 		prot = asc_CHyperlink.prototype;

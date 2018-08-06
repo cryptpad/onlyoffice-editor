@@ -1543,7 +1543,7 @@ background-repeat: no-repeat;\
 	 OnParaSpacingLine( возвращается AscCommon.asc_CParagraphSpacing )
 	 OnLineSpacing( не используется? )
 	 OnTextColor( возвращается AscCommon.CColor )
-	 OnTextHightLight( возвращается AscCommon.CColor )
+	 OnTextHighLight( возвращается AscCommon.CColor )
 	 OnInitEditorFonts( возвращается массив объектов СFont )
 	 OnFontFamily( возвращается asc_CTextFontFamily )
 	 */
@@ -2130,6 +2130,9 @@ background-repeat: no-repeat;\
 	 */
 	asc_docs_api.prototype.asc_setAdvancedOptions       = function(idOption, option)
 	{
+        if (AscCommon.EncryptionWorker.asc_setAdvancedOptions(this, idOption, option))
+            return;
+
 		switch (idOption)
 		{
 			case c_oAscAdvancedOptionsID.DRM:
@@ -2854,7 +2857,7 @@ background-repeat: no-repeat;\
 				{
 					oFill.fill.asc_putUrl(image_url);
 				}
-				if (null != _image)
+				if (null != _image || window["NATIVE_EDITOR_ENJINE"])
 				{
 					oApi.WordControl.m_oLogicDocument.ShapeApply(prop);
 					if (bShapeTexture)
@@ -2894,58 +2897,15 @@ background-repeat: no-repeat;\
 					return;
 				}
 
-				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-				this.fCurCallback = function(input)
-				{
-					if (null != input && "imgurl" == input["type"])
-					{
-						if ("ok" == input["status"])
-						{
-							var data = input["data"];
-							var urls = {};
-							var firstUrl;
-							for (var i = 0; i < data.length; ++i)
-							{
-								var elem = data[i];
-								if (elem.url)
-								{
-									if (!firstUrl)
-									{
-										firstUrl = elem.url;
-									}
-									urls[elem.path] = elem.url;
-								}
-							}
-							g_oDocumentUrls.addUrls(urls);
-							if (firstUrl)
-							{
-								image_url = firstUrl;
-								fApplyCallback();
-							}
-							else
-							{
-								oApi.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-							}
-						}
-						else
-						{
-							oApi.sendEvent("asc_onError", mapAscServerErrorToAscError(parseInt(input["data"])), c_oAscError.Level.NoCritical);
-						}
-					}
-					else
-					{
-						oApi.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-					}
-					oApi.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-				};
-				var rData         = {
-					"id"        : this.documentId,
-					"userid"    : this.documentUserId,
-					"c"         : "imgurl",
-					"saveindex" : g_oDocumentUrls.getMaxIndex(),
-					"data"      : sImageUrl
-				};
-				sendCommand(this, null, rData);
+                AscCommon.sendImgUrls(this, [sImageUrl], function(data) {
+
+                    if (data && data[0])
+                    {
+                        image_url = data[0].url;
+                        fApplyCallback();
+                    }
+
+                }, false);
 			}
 		}
 		else
@@ -3037,7 +2997,7 @@ background-repeat: no-repeat;\
 		if (null == prop)
 			return;
 
-		var arr_ind    = this.WordControl.Thumbnails.GetSelectedArray();
+		var arr_ind    = this.WordControl.m_oLogicDocument.GetSelectedSlides()
 		var _back_fill = prop.get_background();
 
 		if (_back_fill)
@@ -3082,7 +3042,7 @@ background-repeat: no-repeat;\
                         bg.bgPr.Fill.fill.RasterImageId = image_url; // erase documentUrl
                     }
 
-                    if (null != _image)
+                    if (null != _image || window["NATIVE_EDITOR_ENJINE"])
                     {
                         if (bg.bgPr.Fill != null && bg.bgPr.Fill.fill != null && bg.bgPr.Fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
                         {
@@ -3124,58 +3084,15 @@ background-repeat: no-repeat;\
                         return;
                     }
 
-                    this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-                    this.fCurCallback = function(input)
-                    {
-                        if (null != input && "imgurl" == input["type"])
+                    AscCommon.sendImgUrls(this, [sImageUrl], function(data) {
+
+                        if (data && data[0])
                         {
-                            if ("ok" == input["status"])
-                            {
-                                var data = input["data"];
-                                var urls = {};
-                                var firstUrl;
-                                for (var i = 0; i < data.length; ++i)
-                                {
-                                    var elem = data[i];
-                                    if (elem.url)
-                                    {
-                                        if (!firstUrl)
-                                        {
-                                            firstUrl = elem.url;
-                                        }
-                                        urls[elem.path] = elem.url;
-                                    }
-                                }
-                                g_oDocumentUrls.addUrls(urls);
-                                if (firstUrl)
-                                {
-                                    image_url = firstUrl;
-                                    fApplyCallback();
-                                }
-                                else
-                                {
-                                    oApi.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-                                }
-                            }
-                            else
-                            {
-                                oApi.sendEvent("asc_onError", mapAscServerErrorToAscError(parseInt(input["data"])), c_oAscError.Level.NoCritical);
-                            }
+                            image_url = data[0].url;
+                            fApplyCallback();
                         }
-                        else
-                        {
-                            oApi.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-                        }
-                        oApi.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-                    };
-                    var rData         = {
-                        "id"        : this.documentId,
-                        "userid"    : this.documentUserId,
-                        "c"         : "imgurl",
-                        "saveindex" : g_oDocumentUrls.getMaxIndex(),
-                        "data"      : sImageUrl
-                    };
-                    sendCommand(this, null, rData);
+
+                    }, false);
                 }
 			}
 			else
@@ -4086,59 +4003,13 @@ background-repeat: no-repeat;\
 		}
 		else
 		{
-			var rData = {
-				"id"        : this.documentId,
-				"userid"    : this.documentUserId,
-				"c"         : "imgurl",
-				"saveindex" : g_oDocumentUrls.getMaxIndex(),
-				"data"      : url
-			};
+            var t = this;
+            AscCommon.sendImgUrls(this, [url], function(data) {
 
-			var t = this;
-			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-			this.fCurCallback = function(input)
-			{
-				if (null != input && "imgurl" == input["type"])
-				{
-					if ("ok" == input["status"])
-					{
-						var data = input["data"];
-						var urls = {};
-						var firstUrl;
-						for (var i = 0; i < data.length; ++i)
-						{
-							var elem = data[i];
-							if (elem.url)
-							{
-								if (!firstUrl)
-								{
-									firstUrl = elem.url;
-								}
-								urls[elem.path] = elem.url;
-							}
-						}
-						g_oDocumentUrls.addUrls(urls);
-						if (firstUrl)
-						{
-							t.AddImageUrlAction(firstUrl);
-						}
-						else
-						{
-							t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-						}
-					}
-					else
-					{
-						t.sendEvent("asc_onError", mapAscServerErrorToAscError(parseInt(input["data"])), c_oAscError.Level.NoCritical);
-					}
-				}
-				else
-				{
-					t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-				}
-				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-			};
-			sendCommand(this, null, rData);
+                if (data && data[0])
+                    t.AddImageUrlAction(data[0].url);
+
+            }, false);
 		}
 	};
 
@@ -4311,10 +4182,9 @@ background-repeat: no-repeat;\
 			}
 			else
 			{
-				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-
 				if (window["AscDesktopEditor"])
                 {
+                    this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
                     var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](sImageUrl);
                     _url     = g_oDocumentUrls.getImageUrl(_url);
                     ImagePr.ImageUrl = _url;
@@ -4323,58 +4193,15 @@ background-repeat: no-repeat;\
                     return;
                 }
 
-				this.fCurCallback = function(input)
-				{
-					if (null != input && "imgurl" == input["type"])
-					{
-						if ("ok" == input["status"])
-						{
-							var data = input["data"];
-							var urls = {};
-							var firstUrl;
-							for (var i = 0; i < data.length; ++i)
-							{
-								var elem = data[i];
-								if (elem.url)
-								{
-									if (!firstUrl)
-									{
-										firstUrl = elem.url;
-									}
-									urls[elem.path] = elem.url;
-								}
-							}
-							g_oDocumentUrls.addUrls(urls);
-							if (firstUrl)
-							{
-								ImagePr.ImageUrl = firstUrl;
-								fApplyCallback();
-							}
-							else
-							{
-								oApi.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-							}
-						}
-						else
-						{
-							oApi.sendEvent("asc_onError", mapAscServerErrorToAscError(parseInt(input["data"])), c_oAscError.Level.NoCritical);
-						}
-					}
-					else
-					{
-						oApi.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-					}
-					oApi.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-				};
+                AscCommon.sendImgUrls(this, [sImageUrl], function(data) {
 
-				var rData = {
-					"id"        : this.documentId,
-					"userid"    : this.documentUserId,
-					"c"         : "imgurl",
-					"saveindex" : g_oDocumentUrls.getMaxIndex(),
-					"data"      : sImageUrl
-				};
-				sendCommand(this, null, rData);
+                    if (data && data[0])
+                    {
+                        ImagePr.ImageUrl = data[0].url;
+                        fApplyCallback();
+                    }
+
+                }, false);
 			}
 		}
 		else
@@ -5064,6 +4891,11 @@ background-repeat: no-repeat;\
 				{
 					if (this.isApplyChangesOnOpenEnabled)
 					{
+                        if (AscCommon.EncryptionWorker && !AscCommon.EncryptionWorker.isChangesHandled)
+                        {
+                            return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
+                        }
+                        
 						this.isApplyChangesOnOpenEnabled = false;
 						this.bNoSendComments             = true;
 						var OtherChanges                 = AscCommon.CollaborativeEditing.m_aChanges.length > 0;
@@ -5082,6 +4914,7 @@ background-repeat: no-repeat;\
 
 				presentation.DrawingDocument.OnEndRecalculate();
 
+
 				this.asc_registerCallback('asc_doubleClickOnChart', function(){
 					// next tick
 					setTimeout(function() {
@@ -5089,15 +4922,16 @@ background-repeat: no-repeat;\
 					}, 0);
 				});
 
-				this.WordControl.m_oLayoutDrawer.IsRetina = this.WordControl.bIsRetinaSupport;
+				if(!window["NATIVE_EDITOR_ENJINE"]){
 
-				this.WordControl.m_oLayoutDrawer.WidthMM  = presentation.Width;
-				this.WordControl.m_oLayoutDrawer.HeightMM = presentation.Height;
-				this.WordControl.m_oMasterDrawer.WidthMM  = presentation.Width;
-				this.WordControl.m_oMasterDrawer.HeightMM = presentation.Height;
+					this.WordControl.m_oLayoutDrawer.IsRetina = this.WordControl.bIsRetinaSupport;
 
+					this.WordControl.m_oLayoutDrawer.WidthMM  = presentation.Width;
+					this.WordControl.m_oLayoutDrawer.HeightMM = presentation.Height;
+					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.Width;
+					this.WordControl.m_oMasterDrawer.HeightMM = presentation.Height;
+				}
 				this.WordControl.m_oLogicDocument.SendThemesThumbnails();
-
 
 				this.sendEvent("asc_onPresentationSize", presentation.Width, presentation.Height);
 
@@ -5413,7 +5247,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.DeleteSlide    = function()
 	{
-		var _delete_array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _delete_array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 
 		if (!this.IsSupportEmptyPresentation)
 		{
@@ -6084,7 +5918,7 @@ background-repeat: no-repeat;\
 		AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 
 		// применение темы
-		var _array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 		this.WordControl.m_oLogicDocument.changeTheme(theme_load_info, (_array.length <= 1 && !this.bSelectedSlidesTheme) ? null : _array);
 		this.WordControl.ThemeGenerateThumbnails(theme_load_info.Master);
 		// меняем шаблоны в меню
@@ -6095,7 +5929,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.ChangeLayout = function(layout_index)
 	{
-		var _array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 
 		var _master = this.WordControl.MasterLayouts;
 		this.WordControl.m_oLogicDocument.changeLayout(_array, this.WordControl.MasterLayouts, layout_index);
@@ -6613,7 +6447,7 @@ background-repeat: no-repeat;\
 			if (_cur < 0 || _cur >= _count)
 				return;
 
-            var aSelectedSlides = this.WordControl.Thumbnails.GetSelectedArray();
+            var aSelectedSlides = this.WordControl.m_oLogicDocument.GetSelectedSlides();
             for(var i = 0; i < aSelectedSlides.length; ++i)
             {
                 var _curSlide = this.WordControl.m_oLogicDocument.Slides[aSelectedSlides[i]];
@@ -6876,6 +6710,12 @@ background-repeat: no-repeat;\
 			else
 				window.addEventListener('beforeunload', _onbeforeunload, false);
 		}
+
+        if (this.openFileCryptBinary)
+        {
+            window.openFileCryptCallback(this.openFileCryptBinary);
+            this.openFileCryptBinary = null;
+        }
 	};
 
 	asc_docs_api.prototype._downloadAs = function(filetype, actionType, options)
@@ -6906,7 +6746,7 @@ background-repeat: no-repeat;\
 		{
 			oAdditionalData["inline"] = 1;
 		}
-		if (c_oAscFileType.PDF == filetype)
+		if (c_oAscFileType.PDF == filetype || c_oAscFileType.PDFA == filetype)
 		{
 			var dd             = this.WordControl.m_oDrawingDocument;
 			dataContainer.data = dd.ToRendererPart(isNoBase64);
@@ -7080,8 +6920,11 @@ background-repeat: no-repeat;\
 		this.ShowParaMarks   = false;
 
 		var presentation = this.WordControl.m_oLogicDocument;
-		presentation.Recalculate({Drawings : {All : true, Map : {}}});
-		presentation.DrawingDocument.OnEndRecalculate();
+		if(presentation){
+			presentation.Recalculate({Drawings : {All : true, Map : {}}});
+			presentation.DrawingDocument.OnEndRecalculate();
+		}
+
 	};
 
 	window["asc_docs_api"].prototype["asc_nativeApplyChanges"] = function(changes)
@@ -7178,6 +7021,13 @@ background-repeat: no-repeat;\
 		return writer.WriteDocument(this.WordControl.m_oLogicDocument);
 	};
 
+    window["asc_docs_api"].prototype.asc_nativeGetFile3 = function()
+    {
+        var writer = new AscCommon.CBinaryFileWriter();
+        this.WordControl.m_oLogicDocument.CalculateComments();
+        return { data: writer.WriteDocument3(this.WordControl.m_oLogicDocument, true), header: ("PPTY;v10;" + writer.pos + ";") };
+    };
+
 	window["asc_docs_api"].prototype["asc_nativeGetFileData"] = function()
 	{
 		var writer = new AscCommon.CBinaryFileWriter();
@@ -7257,6 +7107,7 @@ background-repeat: no-repeat;\
 		    pagescount = 1;
 
 		var _renderer                         = new AscCommon.CDocumentRenderer();
+        _renderer.InitPicker(AscCommon.g_oTextMeasurer.m_oManager);
 		_renderer.VectorMemoryForPrint        = new AscCommon.CMemory();
 		var _bOldShowMarks                    = this.ShowParaMarks;
 		this.ShowParaMarks                    = false;

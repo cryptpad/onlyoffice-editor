@@ -72,9 +72,9 @@ CLogicDocumentController.prototype.AddToParagraph = function(oItem)
 {
 	this.LogicDocument.controller_AddToParagraph(oItem);
 };
-CLogicDocumentController.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText)
+CLogicDocumentController.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
-	return this.LogicDocument.controller_Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText);
+	return this.LogicDocument.controller_Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord);
 };
 CLogicDocumentController.prototype.GetCursorPosXY = function()
 {
@@ -135,10 +135,6 @@ CLogicDocumentController.prototype.SetParagraphTabs = function(Tabs)
 CLogicDocumentController.prototype.SetParagraphIndent = function(Ind)
 {
 	this.LogicDocument.controller_SetParagraphIndent(Ind);
-};
-CLogicDocumentController.prototype.SetParagraphNumbering = function(NumInfo)
-{
-	this.LogicDocument.controller_SetParagraphNumbering(NumInfo);
 };
 CLogicDocumentController.prototype.SetParagraphShd = function(Shd)
 {
@@ -399,4 +395,8 @@ CLogicDocumentController.prototype.AddContentControl = function(nContentControlT
 CLogicDocumentController.prototype.GetStyleFromFormatting = function()
 {
 	return this.LogicDocument.controller_GetStyleFromFormatting();
+};
+CLogicDocumentController.prototype.GetSimilarNumbering = function(oContinueEngine)
+{
+	this.LogicDocument.controller_GetSimilarNumbering(oContinueEngine);
 };

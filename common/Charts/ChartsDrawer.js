@@ -330,8 +330,10 @@ CChartsDrawer.prototype =
 				this.plotAreaChart.draw(this, null, true);
 			}
 
-			//DRAW CHARTS
-			drawCharts();
+			//DRAW 3D CHARTS
+			if (this.nDimensionCount === 3) {
+				drawCharts();
+			}
 
 			for(var i = 0; i < this.catAxisChart.length; i++) {
 				this.catAxisChart[i].draw(this);
@@ -341,6 +343,11 @@ CChartsDrawer.prototype =
 			}
 			for(var i = 0; i < this.serAxisChart.length; i++) {
 				this.serAxisChart[i].draw(this);
+			}
+
+			//DRAW CHARTS
+			if (this.nDimensionCount !== 3) {
+				drawCharts();
 			}
 		}
 	},
@@ -430,7 +437,8 @@ CChartsDrawer.prototype =
 					break;
 				}
 				case AscDFH.historyitem_type_ValAx:
-				case AscDFH.historyitem_type_CatAx: {
+				case AscDFH.historyitem_type_CatAx:
+				case AscDFH.historyitem_type_DateAx: {
 					pos = this._calculatePositionAxisTitle(obj);
 					break;
 				}
@@ -1171,7 +1179,7 @@ CChartsDrawer.prototype =
 			for (var i = 0; i < axisCharts.length; i++) {
 				chart = axisCharts[i];
 				grouping = t.getChartGrouping(chart);
-				minMaxData = t._calculateData2(chart, grouping);
+				minMaxData = t._calculateData2(chart, grouping, axis);
 
 				/*if("stackedPer" !== grouping && isStackedType) {
 					minMaxData.min = minMaxData.min*100;
@@ -1220,7 +1228,7 @@ CChartsDrawer.prototype =
 
 			if(isStackedType) {
 				//для случая 100% stacked - если макс/мин равно определенному делению, большие/меньшие - убираем
-				if(axObj.min === axObj.scale[1]) {
+				if(axObj.scale[0] !== 0 && axObj.min === axObj.scale[1]) {
 					axObj.scale.splice(0, 1);
 				}
 				if(axObj.max === axObj.scale[axObj.scale.length - 2]) {
@@ -1247,7 +1255,7 @@ CChartsDrawer.prototype =
 		return res;
 	},
 
-	_calculateData2: function(chart, grouping)
+	_calculateData2: function(chart, grouping, axis)
 	{
 		var xNumCache, yNumCache, newArr, arrValues = [], max = 0, min = 0, minY = 0, maxY = 0;
 		var series = chart.series;
@@ -1255,66 +1263,75 @@ CChartsDrawer.prototype =
 		var t = this;
 
 		var generateArrValues = function () {
-			var isEn = false;
-			var numSeries = 0;
-			for (var l = 0; l < series.length; l++) {
-				var seria = series[l];
-				var numCache = t.getNumCache(seria.val);
-				var pts = numCache ? numCache.pts : null;
 
-				if (!pts || !pts.length || seria.isHidden === true) {
-					continue;
-				}
+			var seria, numCache, pts;
+			if(AscDFH.historyitem_type_ValAx === axis.getObjectType()) {
+				var isEn = false, numSeries = 0;
+				for (var l = 0; l < series.length; l++) {
+					seria = series[l];
+					numCache = t.getNumCache(seria.val);
+					pts = numCache ? numCache.pts : null;
 
-				var n = 0;
-				arrValues[numSeries] = [];
-				for (var col = 0; col < numCache.ptCount; col++) {
-					var curPoint = t.getIdxPoint(seria, col);
-
-					//условие дбавлено для того, чтобы диаграммы, данные которых имеют мин/макс и пустые ячейки, рисовались грамотно
-					if(!curPoint && (t.calcProp.subType === 'stackedPer' || t.calcProp.subType === 'stacked')) {
-						curPoint = {val: 0};
-					} else if (!curPoint || curPoint.isHidden === true) {
+					if (!pts || !pts.length || seria.isHidden === true) {
 						continue;
 					}
 
-					var val = curPoint.val;
-					var value = parseFloat(val);
+					var n = 0;
+					arrValues[numSeries] = [];
+					for (var col = 0; col < numCache.ptCount; col++) {
+						var curPoint = t.getIdxPoint(seria, col);
 
-					if (!isEn && !isNaN(value)) {
-						min = value;
-						max = value;
-						isEn = true;
-					}
-					if (!isNaN(value) && value > max) {
-						max = value;
-					}
-					if (!isNaN(value) && value < min) {
-						min = value;
-					}
+						//условие дбавлено для того, чтобы диаграммы, данные которых имеют мин/макс и пустые ячейки, рисовались грамотно
+						if(!curPoint && (t.calcProp.subType === 'stackedPer' || t.calcProp.subType === 'stacked')) {
+							curPoint = {val: 0};
+						} else if (!curPoint || curPoint.isHidden === true) {
+							continue;
+						}
 
-					if (isNaN(value) && val == '' && (((chartType === c_oChartTypes.Line ) && grouping === 'normal'))) {
-						value = '';
-					} else if (isNaN(value)) {
-						value = 0;
-					}
+						var val = curPoint.val;
+						var value = parseFloat(val);
 
-					if (chartType === c_oChartTypes.Pie || chartType === c_oChartTypes.DoughnutChart) {
-						value = Math.abs(value);
-					}
+						if (!isEn && !isNaN(value)) {
+							min = value;
+							max = value;
+							isEn = true;
+						}
+						if (!isNaN(value) && value > max) {
+							max = value;
+						}
+						if (!isNaN(value) && value < min) {
+							min = value;
+						}
 
-					arrValues[numSeries][n] = value;
-					n++;
+						if (isNaN(value) && val == '' && (((chartType === c_oChartTypes.Line ) && grouping === 'normal'))) {
+							value = '';
+						} else if (isNaN(value)) {
+							value = 0;
+						}
+
+						if (chartType === c_oChartTypes.Pie || chartType === c_oChartTypes.DoughnutChart) {
+							value = Math.abs(value);
+						}
+
+						arrValues[numSeries][n] = value;
+						n++;
+					}
+					numSeries++;
 				}
-				numSeries++;
-			}
 
-			if(min === max) {
-				if(min < 0) {
-					max = 0;
-				} else {
-					min = 0;
+				if(min === max) {
+					if(min < 0) {
+						max = 0;
+					} else {
+						min = 0;
+					}
 				}
+			} else {
+				//возможно стоит пройтись по всем сериям
+				seria = series[0];
+				numCache = t.getNumCache(seria.val);
+				min = 1;
+				max = numCache.ptCount;
 			}
 		};
 
@@ -1406,7 +1423,7 @@ CChartsDrawer.prototype =
 		}
 
 		//пересчёт данных для накопительных диаграмм
-		if ("stackedPer" === grouping || "stacked" === grouping) {
+		if (AscDFH.historyitem_type_ValAx === axis.getObjectType() && ("stackedPer" === grouping || "stacked" === grouping)) {
 			if (newArr) {
 				arrValues = newArr;
 			}
@@ -1421,8 +1438,19 @@ CChartsDrawer.prototype =
 	},
 
 	_getAxisValues2: function (axis, chartSpace, isStackedType) {
+		//для оси категорий берем интервал 1
+		var arrayValues;
+		if(AscDFH.historyitem_type_CatAx === axis.getObjectType() || AscDFH.historyitem_type_DateAx === axis.getObjectType()) {
+			arrayValues = [];
+			var max = axis.max;
+			for(var i = axis.min; i <= max; i++) {
+				arrayValues.push(i);
+			}
+			return arrayValues;
+		}
+
 		//chartProp.chart.plotArea.valAx.scaling.logBase
-		var axisMin, axisMax, firstDegree, step, arrayValues;
+		var axisMin, axisMax, firstDegree, step;
 
 		var yMin = axis.min;
 		var yMax = axis.max;
@@ -1681,7 +1709,8 @@ CChartsDrawer.prototype =
 			stackedPerMax = step;
 		}
 
-		for (var i = 0; i < 20; i++) {
+		var maxPointsCount = 40;
+		for (var i = 0; i < maxPointsCount; i++) {
 			if (this.calcProp.subType === 'stackedPer' && (minUnit + step * i) > stackedPerMax) {
 				break;
 			}
@@ -2202,7 +2231,7 @@ CChartsDrawer.prototype =
 			maxVal = Math.pow(logBase, parseVal[0]);
 			minVal = Math.pow(logBase, parseFloat(parseVal[0]) - 1);
 			for (var i = 0; i < yPoints.length; i++) {
-				if (yPoints[i].val < maxVal && yPoints[i].val > minVal) {
+				if (yPoints[i].val < maxVal && yPoints[i].val >= minVal) {
 					startPos = yPoints[i + 1].pos;
 					diffPos = yPoints[i].pos - yPoints[i + 1].pos;
 					break;
@@ -2393,9 +2422,14 @@ CChartsDrawer.prototype =
 		return {val: val, numPow: numPow};
 	},
 	
-	getIdxPoint: function(seria, val)
+	getIdxPoint: function(seria, val, bXVal)
 	{
-		var seriaVal = seria.val ? seria.val :  seria.yVal;
+		var seriaVal;
+		if(bXVal) {
+			seriaVal = seria.val ? seria.val :  seria.xVal;
+		} else {
+			seriaVal = seria.val ? seria.val :  seria.yVal;
+		}
 		
 		if(!seriaVal)
 			return null;
@@ -2609,13 +2643,10 @@ CChartsDrawer.prototype =
 			numCache = this.getNumCache(seriaVal);
 			if(!series[i].isHidden)
 			{
-				if(AscDFH.historyitem_type_PieChart === typeChart)
-				{
+				if (AscDFH.historyitem_type_PieChart === typeChart) {
 					ptCount = 1;
-				}
-				else
-				{
-					if(numCache) {
+				} else {
+					if (numCache && (ptCount === undefined || ptCount < numCache.ptCount)) {
 						ptCount = numCache.ptCount;
 					}
 				}
@@ -3524,6 +3555,10 @@ CChartsDrawer.prototype =
 			if(this.calcProp.type === c_oChartTypes.Radar) {
 				calculateRadarGridLines();
 			} else {
+				if(isCatAxis && points[i].val < 0) {
+					continue;
+				}
+
 				if (crossDiff) {
 					posY = (points[i].pos - crossDiff) * this.calcProp.pxToMM;
 				} else {
@@ -3597,6 +3632,10 @@ CChartsDrawer.prototype =
 		}
 
 		for (var i = 0; i < points.length; i++) {
+			if(isCatAxis && points[i].val < 0) {
+				continue;
+			}
+
 			if (crossDiff) {
 				posX = (points[i].pos - crossDiff) * this.calcProp.pxToMM;
 			} else {
@@ -3853,9 +3892,9 @@ drawBarChart.prototype = {
 		var defaultOverlap = (this.subType === "stacked" || this.subType === "stackedPer" || this.subType === "standard") ? 100 : 0;
 		var overlap = AscFormat.isRealNumber(this.chart.overlap) ? this.chart.overlap : defaultOverlap;
 		var numCache = this.cChartDrawer.getNumCache(this.chart.series[0].val);
-		var width = widthGraph / this.ptCount;
+		var width = widthGraph / xPoints.length;
 		if (this.cChartSpace.getValAxisCrossType() && numCache) {
-			width = widthGraph / (numCache.ptCount - 1);
+			width = widthGraph / (xPoints.length - 1);
 		}
 
 		var gapWidth = AscFormat.isRealNumber(this.chart.gapWidth) ? this.chart.gapWidth : 150;
@@ -4713,7 +4752,7 @@ drawLineChart.prototype = {
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
-				x = xPoints[n].pos;
+				x = this.catAx ? this.cChartDrawer.getYPosition(n + 1, this.catAx) : xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
 
 				if (!this.paths.points) {
@@ -6907,9 +6946,8 @@ drawHBarChart.prototype = {
 		var startY, width, curVal, prevVal, endBlockPosition, startBlockPosition;
 		var catAx = this.catAx;
 
-		var scaleAxis = this.valAx.scale;
-		var axisMin = scaleAxis[0] < scaleAxis[scaleAxis.length - 1] ? scaleAxis[0] : scaleAxis[scaleAxis.length - 1];
-		var axisMax = scaleAxis[0] < scaleAxis[scaleAxis.length - 1] ? scaleAxis[scaleAxis.length - 1] : scaleAxis[0];
+		var axisMin = xPoints[0].val < xPoints[xPoints.length - 1].val ? xPoints[0].val : xPoints[xPoints.length - 1].val;
+		var axisMax = xPoints[0].val < xPoints[xPoints.length - 1].val ? xPoints[xPoints.length - 1].val : xPoints[0].val;
 
 		//в ms отрисовка сделана следующим образом: если диаграмма типа normal, то стартовую точку отрисовки столбцов берем позицию X оси категорий(posX)
 		//если диаграмма типа stacked то рисуем от позиции X ноля оси категорий - getPositionZero(позиция ноля и оси могут отличиться в зависимости от настроек)
@@ -9851,7 +9889,7 @@ drawScatterChart.prototype = {
 		var yPoints = this.valAx.yPoints;
 		var betweenAxisCross = this.valAx.crossBetween === AscFormat.CROSS_BETWEEN_BETWEEN;
 
-		var seria, yVal, xVal, points, yNumCache, xNumCache, compiledMarkerSize, compiledMarkerSymbol, idxPoint;
+		var seria, yVal, xVal, points, yNumCache, compiledMarkerSize, compiledMarkerSymbol, yPoint, idx, xPoint;
 		for (var i = 0; i < this.chart.series.length; i++) {
 			seria = this.chart.series[i];
 			yNumCache = this.cChartDrawer.getNumCache(seria.yVal);
@@ -9861,12 +9899,20 @@ drawScatterChart.prototype = {
 			}
 
 			for (var n = 0; n < yNumCache.ptCount; n++) {
-				yVal = this._getYVal(n, i);
+				//idx - индекс точки по оси OY
+				idx = yNumCache.pts && undefined !== yNumCache.pts[n] ? yNumCache.pts[n].idx : null;
+				if(null === idx) {
+					continue;
+				}
 
-				xNumCache = this.cChartDrawer.getNumCache(seria.xVal);
-				if (xNumCache && xNumCache.pts[n]) {
-					if (!isNaN(parseFloat(xNumCache.pts[n].val))) {
-						xVal = parseFloat(xNumCache.pts[n].val);
+				//вычисляем yVal
+				//пытаемся вычислить xVal  в зависимости от idx точки по OY
+				yVal = this._getYVal(n, i);
+				xPoint = this.cChartDrawer.getIdxPoint(seria, idx, true);
+				if (xPoint) {
+					xVal = xPoint.val;
+					if (!isNaN(parseFloat(xVal))) {
+						xVal = parseFloat(xVal);
 					} else {
 						xVal = n + 1;
 					}
@@ -9876,9 +9922,9 @@ drawScatterChart.prototype = {
 				}
 
 
-				idxPoint = this.cChartDrawer.getIdxPoint(seria, n);
-				compiledMarkerSize = idxPoint && idxPoint.compiledMarker ? idxPoint.compiledMarker.size : null;
-				compiledMarkerSymbol = idxPoint && idxPoint.compiledMarker ? idxPoint.compiledMarker.symbol : null;
+				yPoint = this.cChartDrawer.getIdxPoint(seria, idx);
+				compiledMarkerSize = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.size : null;
+				compiledMarkerSymbol = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.symbol : null;
 
 
 				if (!this.paths.points) {
@@ -11364,6 +11410,9 @@ catAxisChart.prototype = {
 					break;
 				}
 
+				if(yPoints[k].val < 0) {
+					continue;
+				}
 				//основные линии
 				posY = yPoints[k].pos + firstDiff / 2;
 
@@ -11433,6 +11482,10 @@ catAxisChart.prototype = {
 				k = i * tickMarkSkip;
 				if (k >= xPoints.length) {
 					break;
+				}
+
+				if(xPoints[k].val < 0) {
+					continue;
 				}
 
 				posX = xPoints[k].pos - firstDiff / 2;

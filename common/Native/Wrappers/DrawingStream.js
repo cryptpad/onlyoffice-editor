@@ -609,6 +609,37 @@ function CDrawingStream(_writer)
 
 CDrawingStream.prototype =
 {
+
+    init : function(context,width_px,height_px,width_mm,height_mm)
+    {
+        this.m_oContext     = context;
+        this.m_lHeightPix   = height_px >> 0;
+        this.m_lWidthPix    = width_px >> 0;
+        this.m_dWidthMM     = width_mm;
+        this.m_dHeightMM    = height_mm;
+        this.m_dDpiX        = 25.4 * this.m_lWidthPix / this.m_dWidthMM;
+        this.m_dDpiY        = 25.4 * this.m_lHeightPix / this.m_dHeightMM;
+
+        this.m_oCoordTransform.sx   = this.m_dDpiX / 25.4;
+        this.m_oCoordTransform.sy   = this.m_dDpiY / 25.4;
+
+
+        /*
+         if (this.IsThumbnail)
+         {
+         this.TextureFillTransformScaleX *= (width_px / (width_mm * g_dKoef_mm_to_pix));
+         this.TextureFillTransformScaleY *= (height_px / (height_mm * g_dKoef_mm_to_pix))
+         }
+         */
+
+        /*
+         if (true == this.m_oContext.mozImageSmoothingEnabled)
+         this.m_oContext.mozImageSmoothingEnabled = false;
+         */
+
+        this.m_oLastFont.Clear();
+        //this.m_oContext.save();
+    },
     ClearParams : function()
     {
         this.m_oTextPr      = null;

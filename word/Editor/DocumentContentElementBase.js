@@ -408,7 +408,7 @@ CDocumentContentElementBase.prototype.AddTextArt = function(nStyle)
 CDocumentContentElementBase.prototype.AddInlineTable = function(nCols, nRows)
 {
 };
-CDocumentContentElementBase.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText)
+CDocumentContentElementBase.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
 };
 CDocumentContentElementBase.prototype.Set_ReviewType = function(ReviewType)
@@ -450,9 +450,6 @@ CDocumentContentElementBase.prototype.SetParagraphTabs = function(Tabs)
 {
 };
 CDocumentContentElementBase.prototype.SetParagraphIndent = function(Ind)
-{
-};
-CDocumentContentElementBase.prototype.SetParagraphNumbering = function(NumInfo)
 {
 };
 CDocumentContentElementBase.prototype.SetParagraphShd = function(Shd)
@@ -921,6 +918,16 @@ CDocumentContentElementBase.prototype.GetPrevParagraph = function()
 CDocumentContentElementBase.prototype.GetOutlineParagraphs = function(arrOutline, oPr)
 {
 };
+/**
+ * Вплоть до заданного параграфа ищем последнюю похожую нумерацию
+ * @param oContinueEngine {CDocumentNumberingContinueEngine}
+ * @returns {CNumPr | null}
+ */
+CDocumentContentElementBase.prototype.GetSimilarNumbering = function(oContinueEngine)
+{
+	return null;
+};
+
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CDocumentContentElementBase = CDocumentContentElementBase;

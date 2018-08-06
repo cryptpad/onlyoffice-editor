@@ -176,6 +176,7 @@
 		"../word/Editor/Numbering/AbstractNum.js",
 		"../word/Editor/Numbering/AbstractNumChanges.js",
 		"../word/Editor/Numbering/Num.js",
+		"../word/Editor/Numbering/NumChanges.js",
 		"../word/Editor/Numbering/PresentationNumbering.js",
 		"../word/Editor/Numbering/Numbering.js",
         "../word/Editor/HeaderFooter.js",
@@ -250,15 +251,12 @@
 			"min": [
 			"../common/Native/Wrappers/memory.js"
 		],
-		"common": [
-			"../cell/native/DrawingContext.js"
-		]
+		"common": []
 	  },
 	  "mobile": [	 
         "../common/Native/Wrappers/TextMeasurerWrapper.js",
         "../common/Native/Wrappers/DrawingStream.js",
 		"../common/Native/Wrappers/ShapeDrawer.js",
-        "../cell/native/TextDrawer.js",
         "../cell/native/Overlay.js",
 		"../cell/native/Graphics.js",
         "../cell/native/DrawingDocument.js",
@@ -267,7 +265,6 @@
       "exclude_mobile": [
         "../common/Overlay.js",
         "../common/Controls.js",
-		"../cell/graphics/DrawingContext.js",
         "../cell/model/DrawingObjects/ShapeDrawer.js",
         "../cell/model/DrawingObjects/DrawingDocument.js", 
 		"../common/FontsFreeType/font_engine.js",
@@ -275,7 +272,6 @@
         "../common/FontsFreeType/FontManager.js",
 		"../common/FontsFreeType/TextMeasurer.js",
 		"../cell/model/DrawingObjects/Graphics.js",
-        "../common/Drawings/TextDrawer.js",
 		"../common/Scrolls/iscroll.js",
 		"../common/Scrolls/mobileTouchManagerBase.js",
 		"../cell/view/mobileTouch.js"

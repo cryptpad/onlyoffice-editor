@@ -3567,10 +3567,10 @@ function OfflineEditor () {
             }
         };
 
-        AscCommonExcel.WorksheetView.prototype.__drawGrid = function (drawingCtx, c1, r1, c2, r2, leftFieldInPt, topFieldInPt, width, height) {
+        AscCommonExcel.WorksheetView.prototype.__drawGrid = function (drawingCtx, c1, r1, c2, r2, leftFieldInPx, topFieldInPx, width, height) {
             var range = new asc_Range(c1, r1, c2, r2);
             this._prepareCellTextMetricsCache(range);
-            this._drawGrid(drawingCtx, range, leftFieldInPt, topFieldInPt, width, height);
+            this._drawGrid(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height);
         };
 
         AscCommonExcel.WorksheetView.prototype.__drawCellsAndBorders = function (drawingCtx,  c1, r1, c2, r2, offsetXForDraw, offsetYForDraw, istoplayer) {
@@ -4153,7 +4153,7 @@ function OfflineEditor () {
                 var json = JSON.parse(chartData);
                 if (json) {
                     
-                    var nativeToEditor = 1.0 / deviceScale * (72.0 / 96.0);
+                    var nativeToEditor = 1.0 / deviceScale;
                    
                     var screenWidth = this.initSettings["screenWidth"] * nativeToEditor / 2.54 - ws.headersWidth;
                     var screenHeight = this.initSettings["screenHeight"] * nativeToEditor / 2.54 - ws.headersHeight;
@@ -4568,7 +4568,7 @@ function OfflineEditor () {
     this._updateRegion = function (worksheet, x, y, width, height) {
 
         var i = 0;
-        var nativeToEditor = 1.0 / deviceScale * (72.0 / 96.0);
+        var nativeToEditor = 1.0 / deviceScale;
 
         // координаты в СО редактора
 
@@ -4783,12 +4783,6 @@ function OfflineEditor () {
         function ascCvtRatio(fromUnits, toUnits) {
             return window["Asc"].getCvtRatio(fromUnits, toUnits, objectRender.getContext().getPPIX());
         }
-        function ptToMm(val) {
-            return val * ascCvtRatio(1, 3);
-        }
-        function pxToPt(val) {
-            return val * ascCvtRatio(0, 1);
-        }
         function pxToMm(val) {
             return val * ascCvtRatio(0, 3);
         }
@@ -4824,23 +4818,23 @@ function OfflineEditor () {
                     width /= metricCoeff;
                 }
                 
-                var findVal = pxToPt(realLeftOffset + width);
+                var findVal = realLeftOffset + width;
                 var toCell = worksheet.findCellByXY(findVal, 0, true, false, true);
                 while (toCell.col === null && worksheet.cols.length < gc_nMaxCol) {
                     worksheet.expandColsOnScroll(true);
                     toCell = worksheet.findCellByXY(findVal, 0, true, false, true);
                 }
                 object.to.col = toCell.col;
-                object.to.colOff = ptToMm(toCell.colOff);
+                object.to.colOff = pxToMm(toCell.colOff);
                 
-                findVal = pxToPt(realTopOffset + height);
+                findVal = realTopOffset + height;
                 toCell = worksheet.findCellByXY(0, findVal, true, true, false);
                 while (toCell.row === null && worksheet.rows.length < gc_nMaxRow) {
                     worksheet.expandRowsOnScroll(true);
                     toCell = worksheet.findCellByXY(0, findVal, true, true, false);
                 }
                 object.to.row = toCell.row;
-                object.to.rowOff = ptToMm(toCell.rowOff);
+                object.to.rowOff = pxToMm(toCell.rowOff);
             };
 
             var addImageObject = function (_image) {
@@ -4907,12 +4901,6 @@ function OfflineEditor () {
 
         function ascCvtRatio(fromUnits, toUnits) {
             return window["Asc"].getCvtRatio(fromUnits, toUnits, objectRender.getContext().getPPIX());
-        }
-        function ptToMm(val) {
-            return val * ascCvtRatio(1, 3);
-        }
-        function pxToPt(val) {
-            return val * ascCvtRatio(0, 1);
         }
         function pxToMm(val) {
             return val * ascCvtRatio(0, 3);
@@ -6394,7 +6382,7 @@ window["native"]["offline_calculate_complete_range"] = function(x, y, w, h) {
     range.c2 = range.columnEnd < 0 ? 0 : range.columnEnd;
     range.r2 = range.rowEnd < 0 ? 0 : range.rowEnd;
 
-    var nativeToEditor = 1.0 / deviceScale * (72.0 / 96.0);
+    var nativeToEditor = 1.0 / deviceScale;
     w = ( x + w ) * nativeToEditor + ws.headersWidth;
     h = ( y + h ) * nativeToEditor + ws.headersHeight;
     x = x * nativeToEditor + ws.headersWidth;

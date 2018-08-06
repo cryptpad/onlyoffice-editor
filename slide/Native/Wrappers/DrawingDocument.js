@@ -41,6 +41,10 @@ var COMMENT_HEIGHT  = 16;
 
 var global_mouseEvent = AscCommon.global_mouseEvent;
 
+
+var THEME_TH_WIDTH = 140;
+var THEME_TH_HEIGHT = 112;//THEME_TH_WIDTH*0.8
+
 function check_KeyboardEvent(e)
 {
     AscCommon.global_keyboardEvent.AltKey     = ((e["Flags"] & 0x01) == 0x01);
@@ -153,6 +157,8 @@ function CDrawingDocument()
 
     this.m_lCurrentRendererPage = -1;
     this.m_oDocRenderer         = null;
+
+    this.isCreatedDefaultTableStyles = false;
 };
 
 CDrawingDocument.prototype.Notes_GetWidth = function()
@@ -241,7 +247,7 @@ CDrawingDocument.prototype.StartTrackTable = function()
 
 CDrawingDocument.prototype.OnRecalculatePage = function(index, pageObject)
 {
-    var l, t, r, b;
+    var l, t, r, b, bIsHidden = !pageObject.isVisible();
     if(index === this.m_oLogicDocument.CurPage)
     {
         var oBoundsChecker = new AscFormat.CSlideBoundsChecker();
@@ -258,12 +264,13 @@ CDrawingDocument.prototype.OnRecalculatePage = function(index, pageObject)
         b = this.m_oLogicDocument.Height;
         t = 0.0;
     }
-    this.Native["DD_OnRecalculatePage"](index, l, t, r, b);
+    this.Native["DD_OnRecalculatePage"](index, l, t, r, b, bIsHidden, pageObject.Get_Id());
 };
 
 CDrawingDocument.prototype.OnEndRecalculate = function()
 {
     this.SlidesCount = this.m_oLogicDocument.Slides.length;
+    this.SlideCurrent = this.m_oLogicDocument.CurPage;
     this.Native["DD_OnEndRecalculate"]();
 };
 
@@ -661,7 +668,13 @@ CDrawingDocument.prototype.UpdateTargetTransform = function(matrix)
 
 CDrawingDocument.prototype.UpdateThumbnailsAttack = function()
 {
-    //this.m_oWordControl.Thumbnails.RecalculateAll();
+    var aSlides = this.m_oWordControl.m_oLogicDocument.Slides;
+    var DrawingDocument = this.m_oWordControl.m_oLogicDocument.DrawingDocument;
+    DrawingDocument.OnStartRecalculate(aSlides.length);
+    for(var i = 0; i < aSlides.length; ++i){
+        DrawingDocument.OnRecalculatePage(i, aSlides[i]);
+    }
+    DrawingDocument.OnEndRecalculate();
 };
 
 CDrawingDocument.prototype.CheckGuiControlColors = function(bIsAttack)
@@ -699,7 +712,181 @@ CDrawingDocument.prototype.InitGuiCanvasTextArt = function(div_id)
 };
 
 CDrawingDocument.prototype.CheckTableStyles = function()
-{
+{   
+    var logicDoc = this.m_oWordControl.m_oLogicDocument;
+    var _dst_styles = [];
+
+    // NOTE: need check
+
+    var page_w_mm = 90 * 2.54 / (72.0 / 96.0);
+    var page_h_mm = 70 * 2.54 / (72.0 / 96.0);
+    var page_w_px = 90 * 2;
+    var page_h_px = 70 * 2;
+
+    var stream = global_memory_stream_menu;
+    var graphics = new CDrawingStream();
+
+    this.Native["DD_PrepareNativeDraw"]();
+
+    AscCommon.History.TurnOff();
+    AscCommon.g_oTableId.m_bTurnOff = true;
+
+    for (var i = 0; i < logicDoc.TablesForInterface.length; i++)
+    {
+        this.Native["DD_StartNativeDraw"](page_w_px, page_h_px, page_w_mm, page_h_mm);
+        
+        logicDoc.TablesForInterface[i].graphicObject.Draw(0, graphics);
+
+        stream["ClearNoAttack"]();
+
+        stream["WriteByte"](2);
+        stream["WriteString2"]("" + logicDoc.TablesForInterface[i].graphicObject.TableStyle);
+
+        this.Native["DD_EndNativeDraw"](stream);
+        graphics.ClearParams();
+    }
+
+    AscCommon.g_oTableId.m_bTurnOff = false;
+    AscCommon.History.TurnOn();
+
+    stream["ClearNoAttack"]();
+    stream["WriteByte"](3);
+
+    this.Native["DD_EndNativeDraw"](stream);
+
+    this.isCreatedDefaultTableStyles = true;
+};
+
+CDrawingDocument.prototype.CheckThemes = function(){   
+
+    window["native"]["DD_ClearCacheThemeThumbnails"]();
+    var logicDoc = this.m_oWordControl.m_oLogicDocument;
+    var _dst_styles = [];
+
+    // NOTE: need check
+
+    var page_w_mm = THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
+    var page_h_mm = THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
+    var page_w_px = THEME_TH_WIDTH * 2;
+    var page_h_px = THEME_TH_HEIGHT * 2;
+
+    var stream = global_memory_stream_menu;
+    var graphics = new CDrawingStream();
+    var thDrawer = new CMasterThumbnailDrawer();
+    thDrawer.DrawingDocument = this;
+
+    this.Native["DD_PrepareNativeDraw"]();
+
+    AscCommon.History.TurnOff();
+    AscCommon.g_oTableId.m_bTurnOff = true;
+
+    for (var i = 0; i < logicDoc.slideMasters.length; i++)
+    {
+        var oMaster = logicDoc.slideMasters[i];
+        if(oMaster.ThemeIndex < 0){
+            var oTheme = oMaster.Theme;
+            this.Native["DD_StartNativeDraw"](page_w_px, page_h_px, page_w_mm, page_h_mm);
+            thDrawer.WidthMM = page_w_mm;
+            thDrawer.HeightMM = page_h_mm;
+            thDrawer.WidthPx = page_w_px;
+            thDrawer.HeightPx = page_h_px;
+            var oldW = oMaster.Width;
+            var oldH = oMaster.Height;
+            var oLayout = null;
+            oMaster.changeSize(page_w_mm, page_h_mm);
+            oMaster.recalculate();
+
+            for (var j = 0; j < oMaster.sldLayoutLst.length; j++) {
+                if (oMaster.sldLayoutLst[j].type == AscFormat.nSldLtTTitle) {
+                    oLayout = oMaster.sldLayoutLst[j];
+                  break;
+                }
+              }
+              if(oLayout){
+                oLayout.changeSize(page_w_mm, page_h_mm);
+                oLayout.recalculate();
+              }
+
+            thDrawer.Draw(graphics, oMaster, undefined, undefined);
+            oMaster.changeSize(oldW, oldH);
+            oMaster.recalculate();
+            if(oLayout){
+                oLayout.changeSize(oldW, oldH);
+                oLayout.recalculate();
+            }
+
+            stream["ClearNoAttack"]();
+            stream["WriteByte"](6);
+            stream["WriteLong"](oMaster.ThemeIndex);
+            var sThemeName = typeof oTheme.name === "string" && oTheme.name.length > 0 ? oTheme.name : "Doc theme " + (i + 1);
+            stream["WriteString2"](sThemeName);
+    
+            this.Native["DD_EndNativeDraw"](stream);
+            graphics.ClearParams();
+        }
+    }
+
+    AscCommon.g_oTableId.m_bTurnOff = false;
+    AscCommon.History.TurnOn();
+
+    stream["ClearNoAttack"]();
+    stream["WriteByte"](7);
+
+    this.Native["DD_EndNativeDraw"](stream);
+};
+
+CDrawingDocument.prototype.CheckLayouts = function(oMaster){   
+
+    window["native"]["DD_ClearCacheLayoutThumbnails"]();
+    var logicDoc = this.m_oWordControl.m_oLogicDocument;
+    var _dst_styles = [];
+
+    // NOTE: need check
+
+    var page_w_mm = logicDoc.Width;//THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
+    var page_h_mm = logicDoc.Height;//THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
+    var page_w_px = THEME_TH_WIDTH * 2;
+    var page_h_px = THEME_TH_HEIGHT * 2;
+
+    var stream = global_memory_stream_menu;
+    var graphics = new CDrawingStream();
+    var thDrawer = new CLayoutThumbnailDrawer();
+    thDrawer.DrawingDocument = this;
+
+    this.Native["DD_PrepareNativeDraw"]();
+
+    AscCommon.History.TurnOff();
+    AscCommon.g_oTableId.m_bTurnOff = true;
+
+    for (var i = 0; i < oMaster.sldLayoutLst.length; i++)
+    {
+        var oLayout = oMaster.sldLayoutLst[i];
+        this.Native["DD_StartNativeDraw"](page_w_px, page_h_px, page_w_mm, page_h_mm);
+        thDrawer.WidthMM = page_w_mm;
+        thDrawer.HeightMM = page_h_mm;
+        thDrawer.WidthPx = page_w_px;
+        thDrawer.HeightPx = page_h_px;
+
+        graphics.init(null, page_w_px, page_h_px, page_w_px, page_h_px);
+        graphics.CalculateFullTransform();
+        thDrawer.Draw(graphics, oLayout, undefined, undefined, undefined);
+        stream["ClearNoAttack"]();
+        stream["WriteByte"](8);
+        stream["WriteLong"](i);
+        var sLayoutName = typeof oLayout.cSld.name === "string" && oLayout.cSld.name.length > 0 ? oLayout.cSld.name : "Layout " + (i + 1);
+        stream["WriteString2"](sLayoutName);
+
+        this.Native["DD_EndNativeDraw"](stream);
+        graphics.ClearParams();
+    }
+
+    AscCommon.g_oTableId.m_bTurnOff = false;
+    AscCommon.History.TurnOn();
+
+    stream["ClearNoAttack"]();
+    stream["WriteByte"](9);
+
+    this.Native["DD_EndNativeDraw"](stream);
 };
 
 CDrawingDocument.prototype.OnSelectEnd = function()
@@ -735,15 +922,15 @@ CDrawingDocument.prototype.OnMouseUp = function(e)
 // collaborative targets
 CDrawingDocument.prototype.Collaborative_UpdateTarget = function(_id, _x, _y, _size, _page, _transform, is_from_paint)
 {
-    this.Native["DD_Collaborative_UpdateTarget"](_id, _x, _y, _size, _page, _transform, is_from_paint);
+    //this.Native["DD_Collaborative_UpdateTarget"](_id, _x, _y, _size, _page, _transform, is_from_paint);
 };
 CDrawingDocument.prototype.Collaborative_RemoveTarget = function(_id)
 {
-    this.Native["DD_Collaborative_RemoveTarget"](_id);
+    //this.Native["DD_Collaborative_RemoveTarget"](_id);
 };
 CDrawingDocument.prototype.Collaborative_TargetsUpdate = function(bIsChangePosition)
 {
-    this.Native["DD_Collaborative_TargetsUpdate"](bIsChangePosition);
+ //   this.Native["DD_Collaborative_TargetsUpdate"](bIsChangePosition);
 };
 
 
@@ -871,6 +1058,43 @@ CDrawingDocument.prototype.CheckMouseDown2 = function (e) {
         _isDrawings = oController.isPointInDrawingObjects4(pos.X, pos.Y, pos.Page, true);
     }
     return _isDrawings;
+};
+
+
+CDrawingDocument.prototype.OnKeyboardEvent = function(_params){
+    var _len = _params.length / 4;
+
+
+    for (var i = 0; i < _len; i++)
+    {
+        var _offset = i * 4;
+        switch (_params[_offset])
+        {
+            case 4: // down
+            {
+                this.IsKeyDownButNoPress = true;
+                check_KeyboardEvent_Array(_params, _offset);
+                this.bIsUseKeyPress = (this.LogicDocument.OnKeyDown(AscCommon.global_keyboardEvent) === true) ? false : true;
+                break;
+            }
+            case 5: // Press
+            {
+                check_KeyboardEvent_Array(_params, _offset);
+                this.LogicDocument.OnKeyPress(AscCommon.global_keyboardEvent);
+                break;
+            }
+            case 6: // up
+            {
+                AscCommon.global_keyboardEvent.AltKey = false;
+                AscCommon.global_keyboardEvent.CtrlKey = false;
+                AscCommon.global_keyboardEvent.ShiftKey = false;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    this.m_oWordControl.OnUpdateOverlay();
 };
 
 function DrawBackground(graphics, unifill, w, h)

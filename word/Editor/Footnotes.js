@@ -1058,15 +1058,15 @@ CFootnotesController.prototype.GotoPrevFootnote = function()
 		this.private_SetCurrentFootnoteNoSelection(oPrevFootnote);
 	}
 };
-CFootnotesController.prototype.GetNumberingInfo = function(ParaId, NumPr, oFootnote)
+CFootnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oFootnote)
 {
 	var arrFootnotes     = this.LogicDocument.Get_FootnotesList(null, oFootnote);
-	var oNumberingEngine = new CDocumentNumberingInfoEngine(ParaId, NumPr, this.Get_Numbering());
+	var oNumberingEngine = new CDocumentNumberingInfoEngine(oPara, oNumPr, this.Get_Numbering());
 	for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
 	{
-		arrFootnotes[nIndex].GetNumberingInfo(oNumberingEngine, ParaId, NumPr);
+		arrFootnotes[nIndex].GetNumberingInfo(oNumberingEngine, oPara, oNumPr);
 	}
-	return oNumberingEngine.Get_NumInfo();
+	return oNumberingEngine.GetNumInfo();
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area
@@ -1441,12 +1441,12 @@ CFootnotesController.prototype.AddToParagraph = function(oItem, bRecalculate)
 			this.CurFootnote.AddToParagraph(oItem, bRecalculate);
 	}
 };
-CFootnotesController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CFootnotesController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (false === this.private_CheckFootnotesSelectionBeforeAction())
 		return;
 
-	this.CurFootnote.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	this.CurFootnote.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CFootnotesController.prototype.GetCursorPosXY = function()
 {
@@ -2258,14 +2258,6 @@ CFootnotesController.prototype.SetParagraphIndent = function(Ind)
 	{
 		var oFootnote = this.Selection.Footnotes[sId];
 		oFootnote.SetParagraphIndent(Ind);
-	}
-};
-CFootnotesController.prototype.SetParagraphNumbering = function(NumInfo)
-{
-	for (var sId in this.Selection.Footnotes)
-	{
-		var oFootnote = this.Selection.Footnotes[sId];
-		oFootnote.SetParagraphNumbering(NumInfo);
 	}
 };
 CFootnotesController.prototype.SetParagraphShd = function(Shd)
@@ -3245,6 +3237,11 @@ CFootnotesController.prototype.GetStyleFromFormatting = function()
 		return this.CurFootnote.GetStyleFromFormatting();
 
 	return null;
+};
+CFootnotesController.prototype.GetSimilarNumbering = function(oEngine)
+{
+	if (this.CurFootnote)
+		this.CurFootnote.GetSimilarNumbering(oEngine);
 };
 
 

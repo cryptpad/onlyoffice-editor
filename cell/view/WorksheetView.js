@@ -61,7 +61,6 @@
 
     var asc = window["Asc"];
     var asc_applyFunction = AscCommonExcel.applyFunction;
-    var asc_calcnpt = asc.calcNearestPt;
     var asc_getcvt = asc.getCvtRatio;
     var asc_floor = asc.floor;
     var asc_ceil = asc.ceil;
@@ -77,9 +76,7 @@
     var asc_CFill = AscCommonExcel.asc_CFill;
     var asc_CCellInfo = AscCommonExcel.asc_CCellInfo;
     var asc_CHyperlink = asc.asc_CHyperlink;
-    var asc_CPageOptions = asc.asc_CPageOptions;
     var asc_CPageSetup = asc.asc_CPageSetup;
-    var asc_CPageMargins = asc.asc_CPageMargins;
     var asc_CPagePrint = AscCommonExcel.CPagePrint;
     var asc_CAutoFilterInfo = AscCommonExcel.asc_CAutoFilterInfo;
 
@@ -146,11 +143,21 @@
 
     var gridlineSize = 1;
 
+    var filterSizeButton = 17;
+
 	function CacheColumn() {
 	    this.isCustomWidth = false;
 	    this.left = 0;
 		this.width = 0;
 		this.innerWidth = 0;
+	}
+
+	function CacheRow() {
+		this.top = 0;
+		this.height = 0;			// Высота с точностью до 1 px
+		this.heightReal = 0;		// Реальная высота из файла (может быть не кратна 1 px, в Excel можно выставить через меню строки)
+		this.descender = 0;
+		this.isCustomHeight = false;
 	}
 
     function CacheElement() {
@@ -397,11 +404,11 @@
 	};
 	WorksheetView.prototype._initWorksheetDefaultWidth = function () {
 		// Теперь рассчитываем число px
-		var defaultColWidthChars = this.model.charCountToModelColWidth(this.model.getBaseColWidth());
-		var defaultColWidthPx = this.model.modelColWidthToColWidth(defaultColWidthChars);
+		this.defaultColWidthChars = this.model.charCountToModelColWidth(this.model.getBaseColWidth());
+		this.defaultColWidthPx = this.model.modelColWidthToColWidth(this.defaultColWidthChars);
 		// Делаем кратным 8 (http://support.microsoft.com/kb/214123)
-		this.defaultColWidthPx = asc_ceil(defaultColWidthPx / 8) * 8;
-		this.defaultColWidthChars = this.model.colWidthToCharCount(defaultColWidthPx);
+		this.defaultColWidthPx = asc_ceil(this.defaultColWidthPx / 8) * 8;
+		this.defaultColWidthChars = this.model.colWidthToCharCount(this.defaultColWidthPx);
 		AscCommonExcel.oDefaultMetrics.ColWidthChars = this.model.charCountToModelColWidth(this.defaultColWidthChars);
 		var defaultColWidth = this.model.getDefaultWidth();
 		if (null !== defaultColWidth) {
@@ -414,12 +421,11 @@
 		var tm = this._roundTextMetrics(this.stringRender.measureString("A"));
 		this.headersHeightByFont = tm.height + 1;
 
-		this.maxRowHeightPx = Asc.ceil(Asc.c_oAscMaxRowHeight * asc_getcvt(1, 0, this._getPPIY()));
-		Asc.c_oAscMaxRowHeight = this.maxRowHeightPx * asc_getcvt(0, 1, this._getPPIY());
+		this.maxRowHeightPx = AscCommonExcel.convertPtToPx(Asc.c_oAscMaxRowHeight);
 		this.defaultRowDescender = this.stringRender.lines[0].d;
 		AscCommonExcel.oDefaultMetrics.RowHeight = Math.min(Asc.c_oAscMaxRowHeight,
-			this.model.getDefaultHeight() || (this.headersHeightByFont * asc_getcvt(0, 1, this._getPPIY())));
-		this.defaultRowHeightPx = AscCommonExcel.oDefaultMetrics.RowHeight * asc_getcvt(1, 0, this._getPPIY());
+			this.model.getDefaultHeight() || AscCommonExcel.convertPxToPt(this.headersHeightByFont));
+		this.defaultRowHeightPx = AscCommonExcel.convertPtToPx(AscCommonExcel.oDefaultMetrics.RowHeight);
 
 		// ToDo refactoring
 		this.model.setDefaultHeight(AscCommonExcel.oDefaultMetrics.RowHeight);
@@ -607,13 +613,19 @@
         return null;
     };
 
+	WorksheetView.prototype.getColumnWidthInSymbols = function (index) {
+		var c = this.model._getColNoEmptyWithAll(index);
+		return (c && c.charCount) || this.defaultColWidthChars;
+	};
+
     WorksheetView.prototype.getSelectedColumnWidthInSymbols = function () {
-        var c, res = null;
+        var i, charCount, res = null;
         var range = this.model.selectionRange.getLast();
-        for (c = range.c1; c <= range.c2 && c < this.cols.length; ++c) {
+        for (i = range.c1; i <= range.c2 && i < this.cols.length; ++i) {
+			charCount = this.getColumnWidthInSymbols(i);
             if (null === res) {
-                res = this.cols[c].charCount;
-            } else if (res !== this.cols[c].charCount) {
+                res = charCount;
+            } else if (res !== charCount) {
                 return null;
             }
         }
@@ -642,6 +654,7 @@
         }
         return null;
     };
+
 
     WorksheetView.prototype.getSelectedRange = function () {
         // ToDo multiselect ?
@@ -782,6 +795,7 @@
         if (w === t.cols[col].width) {
             return;
         }
+		w = Asc.round(w / this.getZoom());
         var cc = Math.min(this.model.colWidthToCharCount(w), Asc.c_oAscMaxColumnWidth);
 
         var onChangeWidthCallback = function (isSuccess) {
@@ -825,17 +839,18 @@
         offsetY -= offsetFrozenY;
 
         var y1 = this.rows[row].top - offsetY - gridlineSize;
-        var newHeight = Math.min(this.maxRowHeightPx, Math.max(y2 - y1, 0));
+		var newHeight = Math.max(y2 - y1, 0);
         if (newHeight === this.rows[row].height) {
             return;
         }
+		newHeight = Math.min(this.maxRowHeightPx, Asc.round(newHeight / this.getZoom()));
 
         var onChangeHeightCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
             }
 
-            t.model.setRowHeight(newHeight * asc_getcvt(0, 1, t._getPPIY()), row, row, true);
+            t.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight), row, row, true);
             t.model.autoFilters.reDrawFilter(null, row);
             t._cleanCache(new asc_Range(0, row, t.cols.length - 1, row));
             t.changeWorksheet("update", {reinitRanges: true});
@@ -1236,19 +1251,15 @@
 
     WorksheetView.prototype._initCellsArea = function (type) {
         // calculate rows heights and visible rows
-        if (!(window["NATIVE_EDITOR_ENJINE"] && this.notUpdateRowHeight)) {
-            this._calcHeaderRowHeight();
-            this._calcHeightRows(type);
-        }
+		this._calcHeaderRowHeight();
+		this._calcHeightRows(type);
         this.visibleRange.r2 = 0;
         this._calcVisibleRows();
         this._updateVisibleRowsCount(/*skipScrolReinit*/true);
 
         // calculate columns widths and visible columns
-        if (!(window["NATIVE_EDITOR_ENJINE"] && this.notUpdateRowHeight)) {
-            this._calcHeaderColumnWidth();
-            this._calcWidthColumns(type);
-        }
+		this._calcHeaderColumnWidth();
+		this._calcWidthColumns(type);
         this.visibleRange.c2 = 0;
         this._calcVisibleColumns();
         this._updateVisibleColsCount(/*skipScrolReinit*/true);
@@ -1302,7 +1313,7 @@
 			isBestFit = false;
 			hiddenW = column.widthPx || this.defaultColWidthPx;
 		} else {
-			w = column.widthPx || this.defaultColWidthPx;
+			w = null === column.widthPx ? this.defaultColWidthPx : column.widthPx;
 			isBestFit = !!(column.BestFit || (null === column.BestFit && null === column.CustomWidth));
 		}
 
@@ -1315,7 +1326,7 @@
 
     /**
      * Create CacheColumn
-     * @param {Number} w  Ширина столбца в символах
+     * @param {Number} w  Ширина столбца в px
      * @returns {CacheColumn}
      */
 	WorksheetView.prototype._createCacheColumn = function (w) {
@@ -1381,7 +1392,7 @@
         var maxRowObjects = this.objectRender ? this.objectRender.getMaxColRow().row : -1;
         var l = Math.max(this.model.getRowsCount() + 1, this.nRowsCount, maxRowObjects);
         var defaultH = this.defaultRowHeightPx;
-        var i = 0, h, hR, isCustomHeight, hiddenH = 0;
+        var i = 0, r, h, hR, isCustomHeight, hiddenH = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.rows = [];
@@ -1394,10 +1405,10 @@
                i < gc_nMaxRow; ++i) {
             this.model._getRowNoEmptyWithAll(i, function(row){
 				if (!row) {
-					h = -1; // Будет использоваться дефолтная высота строки
+					hR = -1; // Будет использоваться дефолтная высота строки
 					isCustomHeight = false;
 				} else if (row.getHidden()) {
-					hR = h = 0;  // Скрытая строка, высоту выставляем 0
+					hR = 0;  // Скрытая строка, высоту выставляем 0
 					isCustomHeight = true;
 					hiddenH += row.h > 0 ? row.h - 1 : defaultH;
 				} else {
@@ -1405,22 +1416,22 @@
 					// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
 					if (row.h > 0 && (isCustomHeight || row.getCalcHeight())) {
 						hR = row.h;
-						h = hR / 0.75; // 0.75 - это размер 1px в pt (можно было 96/72)
-						h = h | h;
 					} else {
-						h = -1;
+						hR = -1;
 					}
 				}
             });
-            h = Asc.round((h < 0 ? (hR = defaultH) : h) * this.getZoom());
-            this.rows[i] = {
-                top: y,
-                height: h,												// Высота с точностью до 1 px
-                heightReal: hR,											// Реальная высота из файла (может быть не кратна 1 px, в Excel можно выставить через меню строки)
-                descender: this.defaultRowDescender,
-                isCustomHeight: isCustomHeight
-            };
-            y += this.rows[i].height;
+            if (hR < 0) {
+                hR = AscCommonExcel.oDefaultMetrics.RowHeight;
+            }
+            h = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
+            r = this.rows[i] = new CacheRow();
+			r.top = y;
+			r.height = h;
+			r.heightReal = hR;
+			r.descender = this.defaultRowDescender;
+			r.isCustomHeight = isCustomHeight;
+            y += h;
         }
 
         this.nRowsCount = Math.min(Math.max(this.nRowsCount, i), gc_nMaxRow);
@@ -1603,7 +1614,7 @@
         }
 
         var pageMargins, pageSetup, pageGridLines, pageHeadings;
-        if (pageOptions instanceof asc_CPageOptions) {
+        if (pageOptions) {
             pageMargins = pageOptions.asc_getPageMargins();
             pageSetup = pageOptions.asc_getPageSetup();
             pageGridLines = pageOptions.asc_getGridLines();
@@ -1620,7 +1631,7 @@
         }
 
         var pageLeftField, pageRightField, pageTopField, pageBottomField;
-        if (pageMargins instanceof asc_CPageMargins) {
+        if (pageMargins) {
             pageLeftField = Math.max(pageMargins.asc_getLeft(), c_oAscPrintDefaultSettings.MinPageLeftField);
             pageRightField = Math.max(pageMargins.asc_getRight(), c_oAscPrintDefaultSettings.MinPageRightField);
             pageTopField = Math.max(pageMargins.asc_getTop(), c_oAscPrintDefaultSettings.MinPageTopField);
@@ -1669,21 +1680,17 @@
         } else {
             var pageWidthWithFields = pageWidth - pageLeftField - pageRightField;
             var pageHeightWithFields = pageHeight - pageTopField - pageBottomField;
-            // 1px offset for borders
-            var pxInPt = 0.75;
-            var leftFieldInPt = pageLeftField / vector_koef + pxInPt;
-            var topFieldInPt = pageTopField / vector_koef + pxInPt;
-            var rightFieldInPt = pageRightField / vector_koef + pxInPt;
-            var bottomFieldInPt = pageBottomField / vector_koef + pxInPt;
+            var leftFieldInPx = pageLeftField / vector_koef + 1;
+            var topFieldInPx = pageTopField / vector_koef + 1;
 
             if (pageHeadings) {
                 // Рисуем заголовки, нужно чуть сдвинуться
-                leftFieldInPt += this.cellsLeft;
-                topFieldInPt += this.cellsTop;
+                leftFieldInPx += this.cellsLeft;
+				topFieldInPx += this.cellsTop;
             }
 
-            var pageWidthWithFieldsHeadings = (pageWidth - pageRightField) / vector_koef - leftFieldInPt;
-            var pageHeightWithFieldsHeadings = (pageHeight - pageBottomField) / vector_koef - topFieldInPt;
+            var pageWidthWithFieldsHeadings = (pageWidth - pageRightField) / vector_koef - leftFieldInPx;
+            var pageHeightWithFieldsHeadings = (pageHeight - pageBottomField) / vector_koef - topFieldInPx;
 
             var currentColIndex = (null !== selectionRange) ? selectionRange.c1 : 0;
             var currentWidth = 0;
@@ -1712,10 +1719,8 @@
                 newPagePrint.pageClipRectWidth = pageWidthWithFields / vector_koef;
                 newPagePrint.pageClipRectHeight = pageHeightWithFields / vector_koef;
 
-                newPagePrint.leftFieldInPt = leftFieldInPt;
-                newPagePrint.topFieldInPt = topFieldInPt;
-                newPagePrint.rightFieldInPt = rightFieldInPt;
-                newPagePrint.bottomFieldInPt = bottomFieldInPt;
+                newPagePrint.leftFieldInPx = leftFieldInPx;
+                newPagePrint.topFieldInPx = topFieldInPx;
 
                 for (rowIndex = currentRowIndex; rowIndex < maxRows; ++rowIndex) {
                     var currentRowHeight = this.rows[rowIndex].height;
@@ -1728,8 +1733,8 @@
                             var currentColWidth = this.cols[colIndex].width;
                             if (bIsAddOffset) {
                                 newPagePrint.startOffset = ++nCountOffset;
-                                newPagePrint.startOffsetPt = (pageWidthWithFieldsHeadings * newPagePrint.startOffset);
-                                currentColWidth -= newPagePrint.startOffsetPt;
+                                newPagePrint.startOffsetPx = (pageWidthWithFieldsHeadings * newPagePrint.startOffset);
+                                currentColWidth -= newPagePrint.startOffsetPx;
                             }
 
                             if (!bFitToWidth && currentWidth + currentColWidth > pageWidthWithFieldsHeadings &&
@@ -1767,6 +1772,9 @@
                     currentWidth = 0;
                 }
 
+				if (pageHeadings) {
+					currentHeight += this.cellsTop;
+				}
                 if (bFitToHeight) {
                     newPagePrint.pageClipRectHeight = Math.max(currentHeight, newPagePrint.pageClipRectHeight);
                     newPagePrint.pageHeight =
@@ -1834,10 +1842,10 @@
             drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
               printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);
 
-            var offsetCols = printPagesData.startOffsetPt;
+            var offsetCols = printPagesData.startOffsetPx;
             var range = printPagesData.pageRange;
-            var offsetX = this.cols[range.c1].left - printPagesData.leftFieldInPt + offsetCols;
-            var offsetY = this.rows[range.r1].top - printPagesData.topFieldInPt;
+            var offsetX = this.cols[range.c1].left - printPagesData.leftFieldInPx + offsetCols;
+            var offsetY = this.rows[range.r1].top - printPagesData.topFieldInPx;
 
             var tmpVisibleRange = this.visibleRange;
             // Сменим visibleRange для прохождения проверок отрисовки
@@ -1846,9 +1854,9 @@
             // Нужно отрисовать заголовки
             if (printPagesData.pageHeadings) {
                 this._drawColumnHeaders(drawingCtx, range.c1, range.c2, /*style*/ undefined, offsetX,
-                  printPagesData.topFieldInPt - this.cellsTop);
+                  printPagesData.topFieldInPx - this.cellsTop);
                 this._drawRowHeaders(drawingCtx, range.r1, range.r2, /*style*/ undefined,
-                  printPagesData.leftFieldInPt - this.cellsLeft, offsetY);
+                  printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
             }
 
             // Рисуем сетку
@@ -2272,7 +2280,7 @@
     };
 
 	/** Рисует сетку таблицы */
-	WorksheetView.prototype._drawGrid = function (drawingCtx, range, leftFieldInPt, topFieldInPt, width, height) {
+	WorksheetView.prototype._drawGrid = function (drawingCtx, range, leftFieldInPx, topFieldInPx, width, height) {
 		// Возможно сетку не нужно рисовать (при печати свои проверки)
 		if (null === drawingCtx && false === this.model.getSheetView().asc_getShowGridLines()) {
 			return;
@@ -2286,14 +2294,14 @@
 		var r = this.rows;
 		var widthCtx = (width) ? width : ctx.getWidth();
 		var heightCtx = (height) ? height : ctx.getHeight();
-		var offsetX = (undefined !== leftFieldInPt) ? leftFieldInPt : c[this.visibleRange.c1].left - this.cellsLeft;
-		var offsetY = (undefined !== topFieldInPt) ? topFieldInPt : r[this.visibleRange.r1].top - this.cellsTop;
+		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : c[this.visibleRange.c1].left - this.cellsLeft;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : r[this.visibleRange.r1].top - this.cellsTop;
 		if (null === drawingCtx && this.topLeftFrozenCell) {
-			if (undefined === leftFieldInPt) {
+			if (undefined === leftFieldInPx) {
 				var cFrozen = this.topLeftFrozenCell.getCol0();
 				offsetX -= c[cFrozen].left - c[0].left;
 			}
-			if (undefined === topFieldInPt) {
+			if (undefined === topFieldInPx) {
 				var rFrozen = this.topLeftFrozenCell.getRow0();
 				offsetY -= r[rFrozen].top - r[0].top;
 			}
@@ -3905,7 +3913,7 @@
 
         var x1 = this.cols[col].left - offsetX - gridlineSize;
         var h = ctx.getHeight();
-        var width = (x - x1);
+        var width = Asc.round((x - x1) / this.getZoom());
         if ( 0 > width ) {
             width = 0;
         }
@@ -3937,7 +3945,7 @@
 
         var y1 = this.rows[row].top - offsetY - gridlineSize;
         var w = ctx.getWidth();
-        var height = (y - y1);
+        var height = Asc.round((y - y1) / this.getZoom());
         if ( 0 > height ) {
             height = 0;
         }
@@ -3950,7 +3958,7 @@
 
         return new asc_CMM( {
             type      : Asc.c_oAscMouseMoveType.ResizeRow,
-            sizeCCOrPt: height * asc_getcvt(0, 1, this._getPPIY()),
+            sizeCCOrPt: AscCommonExcel.convertPxToPt(height),
             sizePx    : height,
             x         : this.cellsLeft,
             y         : y1 + this.rows[row].height
@@ -4125,19 +4133,17 @@
         return undefined;
     };
 
-    WorksheetView.prototype._changeColWidth = function (col, width, pad) {
+    WorksheetView.prototype._changeColWidth = function (col, width) {
+		var oldColWidth = this.getColumnWidthInSymbols(col);
+        var pad = this.settings.cells.padding * 2 + 1;
         var cc = Math.min(this.model.colWidthToCharCount(width + pad), Asc.c_oAscMaxColumnWidth);
-        var modelw = this.model.charCountToModelColWidth(cc);
-        var newCol = this._createCacheColumn(modelw);
 
-        if (newCol.width > this.cols[col].width) {
-            this.cols[col].width = newCol.width;
-            this.cols[col].innerWidth = newCol.innerWidth;
-
+        if (cc > oldColWidth) {
             History.Create_NewPoint();
             History.StartTransaction();
             // Выставляем, что это bestFit
-            this.model.setColBestFit(true, modelw, col, col);
+            this.model.setColBestFit(true, this.model.charCountToModelColWidth(cc), col, col);
+			this._calcColWidth(this.cols[col].left, col);
             History.EndTransaction();
 
             this._updateColumnPositions();
@@ -4252,14 +4258,14 @@
             stm = this._roundTextMetrics(this.stringRender.measureString(sstr, sfl, colWidth));
             // Если целая часть числа не убирается в ячейку, то расширяем столбец
             if (stm.width > colWidth) {
-                this._changeColWidth(col, stm.width, pad);
+                this._changeColWidth(col, stm.width);
             }
             // Обновленная ячейка
-            dDigitsCount = this.cols[col].charCount;
+            dDigitsCount = this.getColumnWidthInSymbols(col);
             colWidth = this.cols[col].innerWidth;
         } else if (null === mc) {
             // Обычная ячейка
-            dDigitsCount = this.cols[col].charCount;
+            dDigitsCount = this.getColumnWidthInSymbols(col);
             colWidth = this.cols[col].innerWidth;
             // подбираем ширину
             if (!this.cols[col].isCustomWidth && !fMergedColumns && !fl.wrapText &&
@@ -4269,9 +4275,9 @@
                 });
                 stm = this._roundTextMetrics(this.stringRender.measureString(sstr, fl, colWidth));
                 if (stm.width > colWidth) {
-                    this._changeColWidth(col, stm.width, pad);
+                    this._changeColWidth(col, stm.width);
                     // Обновленная ячейка
-                    dDigitsCount = this.cols[col].charCount;
+                    dDigitsCount = this.getColumnWidthInSymbols(col);
                     colWidth = this.cols[col].innerWidth;
                 }
             }
@@ -4279,7 +4285,7 @@
             // Замерженная ячейка, нужна сумма столбцов
             for (var i = mc.c1; i <= mc.c2 && i < this.cols.length; ++i) {
                 colWidth += this.cols[i].width;
-                dDigitsCount += this.cols[i].charCount;
+                dDigitsCount += this.getColumnWidthInSymbols(i);
             }
             colWidth -= pad;
         }
@@ -4405,7 +4411,7 @@
 				if (newHeight !== rowInfo.height) {
 					rowInfo.heightReal = rowInfo.height = newHeight;
 					History.TurnOff();
-                  this.model.setRowHeight(rowInfo.height * asc_getcvt(0, 1, this._getPPIY()), row, row, false);
+                  this.model.setRowHeight(AscCommonExcel.convertPxToPt(rowInfo.height), row, row, false);
 					History.TurnOn();
 
                   if (angle) {
@@ -4678,18 +4684,18 @@
               .setLineWidth(1)
               .beginPath()
               .lineDiag
-              .moveTo(_cc.pxToPt(fromx), _cc.pxToPt(fromy))
-              .lineTo(_cc.pxToPt(tox), _cc.pxToPt(toy));
-            // .dashLine(_cc.pxToPt(fromx-.5), _cc.pxToPt(fromy-.5), _cc.pxToPt(tox-.5), _cc.pxToPt(toy-.5), 15, 5)
+              .moveTo(fromx, fromy)
+              .lineTo(tox, toy);
+            // .dashLine(fromx-.5, fromy-.5, tox-.5, toy-.5, 15, 5)
             if (showArrow) {
                 context
-                  .moveTo(_cc.pxToPt(tox - headlen * Math.cos(angle - _a)),
-                    _cc.pxToPt(toy - headlen * Math.sin(angle - _a)))
-                  .lineTo(_cc.pxToPt(tox), _cc.pxToPt(toy))
-                  .lineTo(_cc.pxToPt(tox - headlen * Math.cos(angle + _a)),
-                    _cc.pxToPt(toy - headlen * Math.sin(angle + _a)))
-                  .lineTo(_cc.pxToPt(tox - headlen * Math.cos(angle - _a)),
-                    _cc.pxToPt(toy - headlen * Math.sin(angle - _a)));
+                  .moveTo(tox - headlen * Math.cos(angle - _a),
+                    toy - headlen * Math.sin(angle - _a))
+                  .lineTo(tox, toy)
+                  .lineTo(tox - headlen * Math.cos(angle + _a),
+                    toy - headlen * Math.sin(angle + _a))
+                  .lineTo(tox - headlen * Math.cos(angle - _a),
+                    toy - headlen * Math.sin(angle - _a));
             }
 
             context
@@ -4820,15 +4826,15 @@
                 if (nodeCellMetrics.apl > this.getCellLeft(0, 0) && nodeCellMetrics.apt > this.getCellTop(0, 0)) {
                     ctx.save()
                       .beginPath()
-                      .arc(_cc.pxToPt(Math.floor(nodeCellMetrics.apl)), _cc.pxToPt(Math.floor(nodeCellMetrics.apt)), 3,
+                      .arc(Math.floor(nodeCellMetrics.apl), Math.floor(nodeCellMetrics.apt), 3,
                         0, 2 * Math.PI, false, -0.5, -0.5)
                       .setFillStyle(color)
                       .fill()
                       .closePath()
                       .setLineWidth(1)
                       .setStrokeStyle(color)
-                      .rect(_cc.pxToPt(nodeCellMetrics.l), _cc.pxToPt(nodeCellMetrics.t),
-                        _cc.pxToPt(nodeCellMetrics.w - 1), _cc.pxToPt(nodeCellMetrics.h - 1))
+                      .rect(nodeCellMetrics.l, nodeCellMetrics.t,
+                        nodeCellMetrics.w - 1, nodeCellMetrics.h - 1)
                       .stroke()
                       .restore();
                 }
@@ -7088,14 +7094,17 @@
 	};
 
     // Смена селекта по нажатию правой кнопки мыши
-    WorksheetView.prototype.changeSelectionStartPointRightClick = function (x, y) {
+    WorksheetView.prototype.changeSelectionStartPointRightClick = function (x, y, target) {
         var isSelectOnShape = this._endSelectionShape();
         this.model.workbook.handlers.trigger("asc_onHideComment");
 
-        var val, c1, c2, r1, r2;
+        var val, c1, c2, r1, r2, range;
         val = this._findColUnderCursor(x, true);
         if (val) {
             c1 = c2 = val.col;
+            if (c_oTargetType.ColumnResize === target && 0 < c1 && 0 === this.cols[c1 - 1].width) {
+				c1 = c2 = c1 - 1;
+            }
         } else {
             c1 = 0;
             c2 = gc_nMaxCol0;
@@ -7103,16 +7112,20 @@
         val = this._findRowUnderCursor(y, true);
         if (val) {
             r1 = r2 = val.row;
+			if (c_oTargetType.RowResize === target && 0 < r1 && 0 === this.rows[r1 - 1].height) {
+				r1 = r2 = r1 - 1;
+			}
         } else {
             r1 = 0;
             r2 = gc_nMaxRow0;
         }
 
-        if (!this.model.selectionRange.containsRange(new asc_Range(c1, r1, c2, r2))) {
+		range = new asc_Range(c1, r1, c2, r2);
+        if (!this.model.selectionRange.containsRange(range)) {
             // Не попали в выделение (меняем первую точку)
             this.cleanSelection();
             this.model.selectionRange.clean();
-            this._moveActiveCellToXY(x, y);
+			this.setSelection(range);
             this._drawSelection();
 
             this._updateSelectionNameAndInfo();
@@ -8233,6 +8246,7 @@
             History.StartTransaction();
 
             checkRange.forEach(function (item, i) {
+                var c;
                 var range = t.model.getRange3(item.r1, item.c1, item.r2, item.c2);
                 var isLargeRange = t._isLargeRange(range.bbox);
                 var canChangeColWidth = c_oAscCanChangeColWidth.none;
@@ -8414,10 +8428,10 @@
                         break;
 
                     case "changeDigNum":
-                        res = t.cols.slice(arn.c1, arn.c2 + 1).reduce(function (r, c) {
-                            r.push(c.charCount);
-                            return r;
-                        }, []);
+                        res = [];
+                        for (c = item.c1; c < item.c2; ++c) {
+							res.push(t.getColumnWidthInSymbols(c));
+                        }
                         range.shiftNumFormat(val, res);
                         canChangeColWidth = c_oAscCanChangeColWidth.numbers;
                         break;
@@ -8706,6 +8720,10 @@
         }
 
         t.model.workbook.dependencyFormulas.unlockRecal();
+		//добавил для случая, когда вставка формулы проиходит в заголовок таблицы
+		if(arrFormula && arrFormula.length) {
+			t.model.autoFilters.renameTableColumn(t.model.selectionRange.getLast());
+		}
 
 		//for special paste
 		if(!window['AscCommon'].g_specialPasteHelper.specialPasteStart)
@@ -8759,6 +8777,7 @@
 				}
 				t.isChanged = true;
 				t.changeWorksheet("update", {reinitRanges: true});
+				t.objectRender.rebuildChartGraphicObjects(selectData);
 			}
 
 			var oSelection = History.GetSelection();
@@ -9478,32 +9497,6 @@
 			return res;
 		};
 
-		var transposeOutStack = function(outStack)
-		{
-			for(var i = 0; i < outStack.length; i++)
-			{
-				//TODO пересмотреть случаи, когда возвращается ошибка
-				var range;
-				if(elemType.cellsRange === outStack[i].type || elemType.cell === outStack[i].type || elemType.cell3D === outStack[i].type) {
-					range = outStack[i].range && outStack[i].range.bbox ? outStack[i].range.bbox : null;
-				} else if(elemType.cellsRange3D === outStack[i].type) {
-					range = outStack[i].bbox && outStack[i].bbox ? outStack[i].bbox : null;
-				}
-				if(range)
-				{
-					var diffCol1 = range.c1 - activeCellsPasteFragment.c1;
-					var diffRow1 = range.r1 - activeCellsPasteFragment.r1;
-					var diffCol2 = range.c2 - activeCellsPasteFragment.c1;
-					var diffRow2 = range.r2 - activeCellsPasteFragment.r1;
-
-					range.c1 = activeCellsPasteFragment.c1 + diffRow1;
-					range.r1 = activeCellsPasteFragment.r1 + diffCol1;
-					range.c2 = activeCellsPasteFragment.c1 + diffRow2;
-					range.r2 = activeCellsPasteFragment.r1 + diffCol2;
-				}
-			}
-		};
-		
 		//set formula - for paste from binary
 		var calculateValueAndBinaryFormula = function(newVal, firstRange, range)
 		{
@@ -9569,7 +9562,7 @@
 						if(specialPasteProps.transpose)
 						{
 							//для transpose необходимо перевернуть все дипазоны в формулах
-							transposeOutStack(_p_.outStack);
+							_p_.transpose(activeCellsPasteFragment);
 						}
 						
 						if(null !== tablesMap)
@@ -10211,8 +10204,8 @@
 			case "rowHeight":
 				functionModelAction = function () {
 					// Приводим к px (чтобы было ровно)
-					val = val / 0.75;
-					val = (val | val) * 0.75;		// 0.75 - это размер 1px в pt (можно было 96/72)
+					val = val / AscCommonExcel.sizePxinPt;
+					val = (val | val) * AscCommonExcel.sizePxinPt;
 					t.model.setRowHeight(Math.min(val, Asc.c_oAscMaxRowHeight), checkRange.r1, checkRange.r2, true);
 					isUpdateRows = true;
 					oRecalcType = AscCommonExcel.recalcType.full;
@@ -10598,7 +10591,7 @@
             r2 = this.rows.length - 1;
         }
 
-        oldColWidth = this.cols[col].charCount;
+        oldColWidth = this.getColumnWidthInSymbols(col);
 
         this.cols[col].isCustomWidth = false;
         for (row = r1; row <= r2; ++row) {
@@ -10660,7 +10653,6 @@
         } else {
             cc = this.defaultColWidthChars;
         }
-		cw = this.model.charCountToModelColWidth(cc);
 
         if (cc === oldColWidth || (onlyIfMore && cc < oldColWidth)) {
             return -1;
@@ -10678,6 +10670,7 @@
         }
         History.StartTransaction();
         // Выставляем, что это bestFit
+		cw = this.model.charCountToModelColWidth(cc);
         this.model.setColBestFit(true, cw, col, col);
         History.EndTransaction();
         return oldColWidth !== cc ? cw : -1;
@@ -10767,7 +10760,7 @@
                     height = Math.max(height, ct.metrics.height + 1);
                 }
 
-                t.model.setRowBestFit(true, Math.min(height, t.maxRowHeightPx) * asc_getcvt(0, 1, this._getPPIY()), r, r);
+                t.model.setRowBestFit(true, Math.min(height, t.maxRowHeightPx) * asc_getcvt(0, 1, t._getPPIY()), r, r);
             }
 
             t.nRowsCount = 0;
@@ -11263,13 +11256,13 @@
 			c.setValue2(val);
 			// Вызываем функцию пересчета для заголовков форматированной таблицы
 			this.model.autoFilters.renameTableColumn(bbox);
+		}
 
-			var api = window["Asc"]["editor"];
-			var bFast = api.collaborativeEditing.m_bFast;
-			var bIsSingleUser = !api.collaborativeEditing.getCollaborativeEditing();
-			if (!(bFast && !bIsSingleUser)) {
-				oAutoExpansionTable = this.model.autoFilters.checkTableAutoExpansion(bbox);
-			}
+		var api = window["Asc"]["editor"];
+		var bFast = api.collaborativeEditing.m_bFast;
+		var bIsSingleUser = !api.collaborativeEditing.getCollaborativeEditing();
+		if (!(bFast && !bIsSingleUser)) {
+			oAutoExpansionTable = this.model.autoFilters.checkTableAutoExpansion(bbox);
 		}
 
 		if (!isFormula) {
@@ -12522,8 +12515,8 @@
 		var row = props.row;
         var col = props.col;
 
-		var widthButtonPx = 17;
-		var heightButtonPx = 17;
+		var widthButtonPx = filterSizeButton;
+		var heightButtonPx = filterSizeButton;
 		if (AscBrowser.isRetina)
 		{
 			widthButtonPx = AscCommon.AscBrowser.convertToRetinaValue(widthButtonPx, true);
@@ -12531,9 +12524,7 @@
 		}
 
 		var widthBorder = 1;
-
 		var scaleIndex = 1;
-		var scaleFactor = ctx.scaleFactor;
 
 		var m_oColor = new CColor(120, 120, 120);
 
@@ -12551,7 +12542,8 @@
 
 		//стартовая позиция кнопки
 		var x1 = t.cols[col].left + t.cols[col].width - widthWithBorders - 0.5 - offsetX;
-		var y1 = t.rows[row].top + t.rows[row].height - heightWithBorders - 0.5 - offsetY;
+		//-1 смещение относительно нижней границы ячейки на 1px
+		var y1 = t.rows[row].top + t.rows[row].height - heightWithBorders - 0.5 - offsetY - 1;
 
 		var _drawButtonFrame = function(startX, startY, width, height)
 		{
@@ -12573,21 +12565,21 @@
 			var x = startX;
 			var y = startY;
 
-			var heightArrow1 = heightArrow * scaleIndex - 1/scaleFactor;
-			var height = 3 * scaleIndex * scaleFactor;
+			var heightArrow1 = heightArrow * scaleIndex;
+			var height = 3 * scaleIndex;
 			var x1, x2, y1;
 			if(isDescending)
 			{
 				for(var i = 0; i < height; i++)
 				{
-					tmp = i/scaleFactor;
+					tmp = i;
 					x1 = x - tmp;
-					x2 = x - tmp + 1/scaleFactor;
-					y1 = y - tmp + heightArrow1;
+					x2 = x - tmp + 1;
+					y1 = y - tmp + heightArrow1 - 1;
 					ctx.lineHor(x1, y1, x2);
 					x1 = x + tmp;
-					x2 = x + tmp + 1/scaleFactor;
-					y1 = y - tmp + heightArrow1;
+					x2 = x + tmp + 1;
+					y1 = y - tmp + heightArrow1 - 1;
 					ctx.lineHor(x1, y1, x2);
 				}
 			}
@@ -12595,13 +12587,13 @@
 			{
 				for(var i = 0; i < height; i++)
 				{
-				    tmp = i/scaleFactor;
+				    tmp = i;
 					x1 = x - tmp;
-					x2 = x - tmp + 1/scaleFactor;
+					x2 = x - tmp + 1;
 					y1 = y + tmp;
 					ctx.lineHor(x1, y1, x2);
 					x1 = x + tmp;
-					x2 = x + tmp + 1/scaleFactor;
+					x2 = x + tmp + 1;
 					y1 = y + tmp;
 					ctx.lineHor(x1, y1, x2);
 				}
@@ -12634,21 +12626,13 @@
 			ctx.stroke();
 
 			var heightTriangle = 4;
-			y = y - heightLine + 1 / scaleFactor;
+			y = y - heightLine + 1;
 			_drawFilterDreieck(x, y, heightTriangle, 2);
         };
 
 		var _drawFilterDreieck = function (x, y, height, base)
 		{
 			ctx.beginPath();
-
-			x = x + 1/scaleFactor;
-			var diffY = (height / 2) * scaleFactor;
-			height = height * scaleIndex*scaleFactor;
-			for(var i = 0; i < height; i++)
-			{
-				ctx.lineHor(x - (i/scaleFactor + base/scaleFactor) , y + (height - i/scaleFactor) - diffY, x + i/scaleFactor)
-			}
 
 			if(isMobileRetina)
 			{
@@ -12657,6 +12641,14 @@
 			else
 			{
 				ctx.setLineWidth(AscBrowser.retinaPixelRatio);
+			}
+
+			x = x + 1;
+			var diffY = (height / 2);
+			height = height * scaleIndex;
+			for(var i = 0; i < height; i++)
+			{
+				ctx.lineHor(x - (i + base) , y + (height - i) - diffY, x + i)
 			}
 
 			ctx.setStrokeStyle(m_oColor);
@@ -12675,25 +12667,25 @@
 
 			if(null !== isApplySortState && isApplyAutoFilter)
 			{
-				var heigthObj = Math.ceil(height / 2) + 1;
+				var heigthObj = Math.ceil(height / 2) + 2;
 				var marginTop = Math.floor((height - heigthObj) / 2);
 				centerY = upLeftYButton + heigthObj + marginTop;
 
 				_drawSortArrow(upLeftXButton + 4 * scaleIndex, upLeftYButton + 5 * scaleIndex, isApplySortState, 8);
-				_drawFilterMark(centerX + 2, centerY, heigthObj);
+				_drawFilterMark(centerX + 3, centerY, heigthObj);
 			}
 			else if(null !== isApplySortState)
 			{
 				_drawSortArrow(upLeftXButton + width - 5 * scaleIndex, upLeftYButton + 3 * scaleIndex, isApplySortState, 10);
-				_drawFilterDreieck(centerX - 4, centerY + 1, 3, 1);
+				_drawFilterDreieck(centerX - 3, centerY + 1, 3, 1);
 			}
 			else if (isApplyAutoFilter)
 			{
-				var heigthObj = Math.ceil(height / 2) + 1;
+				var heigthObj = Math.ceil(height / 2) + 2;
 				var marginTop = Math.floor((height - heigthObj) / 2);
 
 				centerY = upLeftYButton + heigthObj + marginTop;
-				_drawFilterMark(centerX, centerY, heigthObj);
+				_drawFilterMark(centerX + 1, centerY, heigthObj);
 			}
 			else
 			{
@@ -12701,6 +12693,7 @@
 			}
 		};
 
+		//TODO!!! некорректно рисуется кнопка при уменьшении масштаба и уменьшении размера строки
 		var diffX = 0;
 		var diffY = 0;
 		if ((colWidth - 2) < width && rowHeight < (height + 2))
@@ -12821,8 +12814,8 @@
 	WorksheetView.prototype._hitCursorFilterButton = function(x, y, col, row)
 	{
 		var ws = this;
-		var width = 13;
-		var height = 13;
+		var width = filterSizeButton;
+		var height = filterSizeButton;
 		var rowHeight = ws.rows[row].height;
 		if (rowHeight < height) {
 			width = width * (rowHeight / height);
@@ -12906,8 +12899,8 @@
         };
 
         if (isCellContainsAutoFilterButton(c, r)) {
-            var height = 11;
-            var width = 11;
+            var height = filterSizeButton;
+            var width = filterSizeButton;
             var rowHeight = ws.rows[r].height;
             var index = 1;
             if (rowHeight < height) {
@@ -12951,6 +12944,8 @@
 
         var rangeButton = Asc.Range(autoFilter.Ref.c1 + colId, autoFilter.Ref.r1, autoFilter.Ref.c1 + colId, autoFilter.Ref.r1);
         var cellId = ws.autoFilters._rangeToId(rangeButton);
+        var cell = this.model.getRange3(rangeButton.r1, rangeButton.c1, rangeButton.r2, rangeButton.c2);
+        var columnName = cell.getValue();
 
         var cellCoord = this.getCellCoord(autoFilter.Ref.c1 + colId, autoFilter.Ref.r1);
 
@@ -13030,6 +13025,7 @@
         autoFilterObject.asc_setAutomaticRowCount(automaticRowCount);
         autoFilterObject.asc_setDiplayName(displayName);
         autoFilterObject.asc_setSortColor(ascColor);
+		autoFilterObject.asc_setColumnName(columnName);
 
         var columnRange = Asc.Range(rangeButton.c1, autoFilter.Ref.r1 + 1, rangeButton.c1, autoFilter.Ref.r2);
 

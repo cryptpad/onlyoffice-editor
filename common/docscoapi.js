@@ -966,7 +966,10 @@
     this._msgBuffer = [];
   };
 
-  DocsCoApi.prototype._send = function(data) {
+  DocsCoApi.prototype._send = function(data, useEncryption) {
+    if (!useEncryption && data && data["type"] == "saveChanges" && AscCommon.EncryptionWorker)
+      return AscCommon.EncryptionWorker.sendChanges(this, data, AscCommon.EncryptionMessageType.Encrypt);
+
     if (data !== null && typeof data === "object") {
       if (this._state > 0) {
         this.sockjs.send(JSON.stringify(data));
@@ -1074,14 +1077,14 @@
             if (this._locks[blockTmp] && 1 !== this._locks[blockTmp].state /*asked for it*/) {
               //Exists
               //Check lock state
-              changed = !(this._locks[blockTmp].state === (lock["sessionId"] === this._id ? 2 : 3) && this._locks[blockTmp]["user"] === lock["user"] && this._locks[blockTmp]["time"] === lock["time"] && this._locks[blockTmp]["block"] === blockTmp);
+              changed = !(this._locks[blockTmp].state === (lock["user"] === this._userId ? 2 : 3) && this._locks[blockTmp]["user"] === lock["user"] && this._locks[blockTmp]["time"] === lock["time"] && this._locks[blockTmp]["block"] === blockTmp);
             }
 
             if (changed) {
-              this._locks[blockTmp] = {"state": lock["sessionId"] === this._id ? 2 : 3, "user": lock["user"], "time": lock["time"], "block": blockTmp, "blockValue": blockValue};//2-acquired by me!
+              this._locks[blockTmp] = {"state": lock["user"] === this._userId ? 2 : 3, "user": lock["user"], "time": lock["time"], "block": blockTmp, "blockValue": blockValue};//2-acquired by me!
             }
             if (this._lockCallbacks.hasOwnProperty(blockTmp)) {
-              if (lock["sessionId"] === this._id) {
+              if (lock["user"] === this._userId) {
                 //Do call back
                 this._lockCallbacks[blockTmp]({"lock": this._locks[blockTmp]});
               } else {
@@ -1128,7 +1131,10 @@
     this.onDocumentOpen(data);
   };
 
-  DocsCoApi.prototype._onSaveChanges = function(data) {
+  DocsCoApi.prototype._onSaveChanges = function(data, useEncryption) {
+    if (!useEncryption && AscCommon.EncryptionWorker)
+      return AscCommon.EncryptionWorker.sendChanges(this, data, AscCommon.EncryptionMessageType.Decrypt);
+
     if (!this.check_state()) {
       if (!this.get_isAuth()) {
         this._authOtherChanges.push(data);
@@ -1289,7 +1295,7 @@
           if (lock !== null && lock["block"]) {
             //Find in previous
             for (i = 0; i < previousLocks.length; i++) {
-              if (previousLocks[i] === lock["block"] && lock["sessionId"] === this._id) {
+              if (previousLocks[i] === lock["block"] && lock["user"] === this._userId) {
                 //Lock is ours
                 previousLocks.remove(i);
                 break;

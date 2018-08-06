@@ -2452,15 +2452,30 @@
         this.WriteDefinedNames = function()
         {
             var oThis = this;
-
             var defNameList = this.wb.dependencyFormulas.saveDefName();
+
+            var filterDefName = "_xlnm._FilterDatabase";
 
             if(null != defNameList ){
                 for(var i = 0; i < defNameList.length; i++){
-                    this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defNameList[i]);});
+                    if(defNameList[i].Name !== filterDefName) {
+						this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defNameList[i]);});
+                    }
                 }
             }
 
+            //write filters defines name
+            //TODO сделать добавление данных именованных диапазонов при добавлении а/ф
+            var ws, ref, defNameRef, defName;
+            for(var i = 0; i < wb.aWorksheets.length; i++) {
+				ws = wb.aWorksheets[i];
+                if(ws && ws.AutoFilter) {
+                    ref = ws.AutoFilter.Ref;
+					defNameRef = AscCommon.parserHelp.get3DRef(ws.getName(), ref.getAbsName());
+					defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, false, true);
+                    this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defName);});
+                }
+            }
         };
         this.WriteDefinedName = function(oDefinedName, LocalSheetId)
         {
@@ -2478,11 +2493,8 @@
             if (null !== oDefinedName.LocalSheetId){
                 this.bs.WriteItem(c_oSerDefinedNameTypes.LocalSheetId, function(){oThis.memory.WriteLong(oDefinedName.LocalSheetId);});
             }
-            if (null != oDefinedName.Hidden)
-            {
-                this.memory.WriteByte(c_oSerDefinedNameTypes.Hidden);
-                this.memory.WriteByte(c_oSerPropLenType.Byte);
-                this.memory.WriteBool(oDefinedName.Hidden);
+            if (null != oDefinedName.Hidden) {
+                this.bs.WriteItem(c_oSerDefinedNameTypes.Hidden, function(){oThis.memory.WriteBool(oDefinedName.Hidden);});
             }
         };
 		this.WriteCalcPr = function(calcPr)
@@ -3580,7 +3592,7 @@
                     si = row[colIndex];
                     if (undefined === si) {
                         row[colIndex] = si = this.sharedFormulasIndex++;
-                        if (0 !== rowIndex || 0 !== colIndex) {
+                        if (!(cell.nRow === shared.base.nRow && cell.nCol === shared.base.nCol)) {
                             cell.processFormula(function(parsed) {
                                 formula = parsed.getFormula();
                             });
@@ -3680,7 +3692,7 @@
         this.WriteComments = function(aComments, ws)
         {
             var oThis = this;
-            var i, elem, coord;
+            var i, elem;
             for(i = 0; i < aComments.length; ++i)
             {
                 elem = aComments[i];
@@ -3693,12 +3705,9 @@
 						continue;
 					}
 				}
-                coord = elem.coords;
-                if(null === coord.nLeft || null === coord.nTop || null === coord.nRight || null === coord.nBottom ||
-                    null === coord.nLeftOffset || null === coord.nTopOffset || null === coord.nRightOffset || null === coord.nBottomOffset ||
-                    null === coord.dLeftMM || null === coord.dTopMM || null === coord.dWidthMM || null === coord.dHeightMM)
-                    continue;
-                this.bs.WriteItem(c_oSerWorksheetsTypes.Comment, function(){oThis.WriteComment(elem);});
+				if (elem.coords.isValid()) {
+					this.bs.WriteItem(c_oSerWorksheetsTypes.Comment, function(){oThis.WriteComment(elem);});
+				}
             }
         };
         this.WriteComment = function(comment)
@@ -4119,7 +4128,7 @@
         this.nLastFilePos = 0;
         this.nRealTableCount = 0;
         this.bs = new BinaryCommonWriter(this.Memory);
-        this.Write = function(noBase64)
+        this.Write = function(noBase64, onlySaveBase64)
         {
             pptx_content_writer._Start();
 			if (noBase64) {
@@ -4128,7 +4137,10 @@
             this.WriteMainTable();
             pptx_content_writer._End();
 			if (noBase64) {
-				return this.Memory.GetData();
+			    if (onlySaveBase64)
+                    return this.Memory.GetBase64Memory();
+			    else
+			        return this.Memory.GetData();
 			} else {
 				return this.WriteFileHeader(this.Memory.GetCurPosition(), AscCommon.c_oSerFormat.Version) + this.Memory.GetBase64Memory();
 			}
@@ -6097,8 +6109,6 @@
             }
             else if ( c_oSerWorksheetsTypes.Cols == type )
             {
-                if(null == oWorksheet.Cols)
-                    oWorksheet.aCols = [];
                 var aTempCols = [];
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadWorksheetCols(t,l, aTempCols, oWorksheet);
@@ -6163,28 +6173,18 @@
             }
             else if ( c_oSerWorksheetsTypes.PageMargins == type )
             {
-                var oPageMargins = new Asc.asc_CPageMargins();
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
-                    return oThis.ReadPageMargins(t,l, oPageMargins);
+                    return oThis.ReadPageMargins(t,l, oWorksheet.PagePrintOptions.pageMargins);
                 });
-                if(null == oWorksheet.PagePrintOptions)
-                    oWorksheet.PagePrintOptions = new Asc.asc_CPageOptions();
-                oWorksheet.PagePrintOptions.asc_setPageMargins(oPageMargins);
             }
             else if ( c_oSerWorksheetsTypes.PageSetup == type )
             {
-                var oPageSetup = new Asc.asc_CPageSetup();
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
-                    return oThis.ReadPageSetup(t,l, oPageSetup);
+                    return oThis.ReadPageSetup(t,l, oWorksheet.PagePrintOptions.pageSetup);
                 });
-                if(null == oWorksheet.PagePrintOptions)
-                    oWorksheet.PagePrintOptions = new Asc.asc_CPageOptions();
-                oWorksheet.PagePrintOptions.asc_setPageSetup(oPageSetup);
             }
             else if ( c_oSerWorksheetsTypes.PrintOptions == type )
             {
-                if(null == oWorksheet.PagePrintOptions)
-                    oWorksheet.PagePrintOptions = new Asc.asc_CPageOptions();
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
                     return oThis.ReadPrintOptions(t,l, oWorksheet.PagePrintOptions);
                 });
@@ -6914,23 +6914,21 @@
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
                     return oThis.ReadComment(t,l, oCommentCoords, aCommentData);
                 });
-                //todo проверка
-                var i;
-                for(i = 0, length = aCommentData.length; i < length; ++i)
-                {
-					aCommentData[i].coords = oCommentCoords;
+                if (oCommentCoords.isValid()) {
+                    var i;
+                    for(i = 0, length = aCommentData.length; i < length; ++i)
+                    {
+                        aCommentData[i].coords = oCommentCoords;
 
-                    var elem = aCommentData[i];
-                    elem.asc_putRow(oCommentCoords.nRow);
-                    elem.asc_putCol(oCommentCoords.nCol);
+                        var elem = aCommentData[i];
+                        elem.asc_putRow(oCommentCoords.nRow);
+                        elem.asc_putCol(oCommentCoords.nCol);
 
-                    if (elem.asc_getDocumentFlag()) {
-                        elem.nId = "doc_" + (this.wb.aComments.length + 1);
-                        this.wb.aComments.push(elem);
-                    } else {
-                        elem.wsId = oWorksheet.Id;
-                        elem.nId = "sheet" + elem.wsId + "_" + (oWorksheet.aComments.length + 1);
-                        oWorksheet.aComments.push(elem);
+                        if (elem.asc_getDocumentFlag()) {
+                            this.wb.aComments.push(elem);
+                        } else {
+                            oWorksheet.aComments.push(elem);
+                        }
                     }
                 }
             }
@@ -6995,6 +6993,13 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadCommentData(t,l,oCommentData);
                 });
+
+				if (oCommentData.asc_getDocumentFlag()) {
+					oCommentData.nId = "doc_" + (this.wb.aComments.length + 1);
+				} else {
+					oCommentData.wsId = this.curWorksheet.Id;
+					oCommentData.nId = "sheet" + oCommentData.wsId + "_" + (this.curWorksheet.aComments.length + 1);
+				}
                 aCommentData.push(oCommentData);
             }
             else

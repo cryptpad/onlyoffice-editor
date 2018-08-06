@@ -4121,6 +4121,30 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     {
         _result_shape_prop.w = null;
     }
+    if(shapeProp1.rot === shapeProp2.rot)
+    {
+        _result_shape_prop.rot = shapeProp1.rot;
+    }
+    else
+    {
+        _result_shape_prop.rot = null;
+    }
+    if(shapeProp1.flipH === shapeProp2.flipH)
+    {
+        _result_shape_prop.flipH = shapeProp1.flipH;
+    }
+    else
+    {
+        _result_shape_prop.flipH = null;
+    }
+    if(shapeProp1.flipV === shapeProp2.flipV)
+    {
+        _result_shape_prop.flipV = shapeProp1.flipV;
+    }
+    else
+    {
+        _result_shape_prop.flipV = null;
+    }
 
     if(shapeProp1.stroke == null || shapeProp2.stroke == null)
     {
@@ -10055,6 +10079,9 @@ function CreateAscShapePropFromProp(shapeProp)
     obj.bFromImage = shapeProp.bFromImage;
     obj.w = shapeProp.w;
     obj.h = shapeProp.h;
+    obj.rot = shapeProp.rot;
+    obj.flipH = shapeProp.flipH;
+    obj.flipV = shapeProp.flipV;
     obj.vert = shapeProp.vert;
     obj.verticalTextAlign = shapeProp.verticalTextAlign;
     if(shapeProp.textArtProperties)

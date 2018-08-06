@@ -1685,7 +1685,21 @@ CDLbl.prototype =
     getDefaultTextForTxBody: function()
     {
         var compiled_string = "";
-        var separator = typeof this.separator === "string" ? this.separator +" " : "\n";
+        var separator;
+        if(typeof this.separator === "string"){
+            separator = this.separator + " ";
+        }
+        else if(this.series.getObjectType() === AscDFH.historyitem_type_PieSeries){
+            if(this.showPercent && this.showCatName && !this.showSerName && !this.showVal){
+                separator = "\n";
+            }
+            else{
+                separator = ", "
+            }
+        }
+        else{
+            separator = ", "
+        }
         if(this.showSerName)
         {
             compiled_string += this.series.getSeriesName();
@@ -2416,7 +2430,9 @@ CPlotArea.prototype =
                 if(aAxes[j] === oAxis){
                     aSeries = oChart.series;
                     for(var k = 0; k < aSeries.length; ++k){
-                        if(oRet === null || aSeries[k].idx < oRet.idx){
+                        if(oRet === null
+                            || aSeries[k].cat && !oRet.cat
+                            || aSeries[k].idx < oRet.idx && aSeries[k].cat && oRet.cat){
                             oRet = aSeries[k];
                         }
                     }
@@ -5064,6 +5080,7 @@ CValAx.prototype =
         }
         c.setAxPos(this.axPos);
         c.setCrossBetween(this.crossBetween);
+        c.setCrosses(this.crosses);
         c.setCrossesAt(this.crossesAt);
         c.setDelete(this.bDelete);
         if(this.dispUnits)
@@ -12468,6 +12485,13 @@ CTitle.prototype =
 
     getDefaultTextForTxBody: function()
     {
+        var oStrCache = AscFormat.getStringPointsFromCat(this.tx);
+        if(oStrCache){
+            var oPoint = oStrCache.getPtByIndex(0);
+            if(oPoint && oPoint.val){
+                return oPoint.val;
+            }
+        }
         var key = 'Axis Title';
         if(this.parent)
         {

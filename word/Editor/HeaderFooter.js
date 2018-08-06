@@ -721,9 +721,9 @@ CHeaderFooter.prototype =
 		this.Content.PasteFormatting(TextPr, ParaPr, ApplyPara);
 	},
 
-    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
-        this.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+        this.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
     },
 
 	GetCursorPosXY : function()
@@ -835,11 +835,6 @@ CHeaderFooter.prototype =
 	SetParagraphIndent : function(Ind)
 	{
 		return this.Content.SetParagraphIndent(Ind);
-	},
-
-	SetParagraphNumbering : function(NumInfo)
-	{
-		return this.Content.SetParagraphNumbering(NumInfo);
 	},
 
 	SetParagraphShd : function(Shd)
@@ -1930,10 +1925,10 @@ CHeaderFooterController.prototype =
 			return this.CurHdrFtr.PasteFormatting(TextPr, ParaPr, ApplyPara);
 	},
 
-    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
         if ( null != this.CurHdrFtr )
-            return this.CurHdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+            return this.CurHdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
     },
 
 	GetCursorPosXY : function()
@@ -2018,12 +2013,6 @@ CHeaderFooterController.prototype =
 	{
 		if (null != this.CurHdrFtr)
 			return this.CurHdrFtr.SetParagraphIndent(Ind);
-	},
-
-	SetParagraphNumbering : function(NumInfo)
-	{
-		if (null != this.CurHdrFtr)
-			return this.CurHdrFtr.SetParagraphNumbering(NumInfo);
 	},
 
 	SetParagraphShd : function(Shd)
@@ -2567,6 +2556,11 @@ CHeaderFooterController.prototype.GetStyleFromFormatting = function()
         return this.CurHdrFtr.Content.GetStyleFromFormatting();
 
     return null;
+};
+CHeaderFooterController.prototype.GetSimilarNumbering = function(oEngine)
+{
+	if (this.CurHdrFtr)
+		this.CurHdrFtr.Content.GetSimilarNumbering(oEngine)
 };
 CHeaderFooterController.prototype.SetParagraphFramePr = function(FramePr, bDelete)
 {
