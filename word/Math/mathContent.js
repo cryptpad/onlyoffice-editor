@@ -5613,6 +5613,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
     // IndexAdd += ElementsCount - AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
 
     var RemoveCount  = 0;
+    var Start = 0
     var ReplaceChars = [0x0020];
     var AutoCorrectCount = g_aAutoCorrectMathSymbols.length;
     for (var nIndex = 0; nIndex < AutoCorrectCount; nIndex++)
@@ -5642,6 +5643,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
         if (true === Found)
         {
             RemoveCount = CheckStringLen + (this.ActionElementCode === 0x0020 && bSkipLast ? 1 : 0);
+            Start = ElementsCount - nStringPos - 2 - IndexAdd;
 
             if (undefined === AutoCorrectElement[1].length)
                 ReplaceChars[0] = AutoCorrectElement[1];
@@ -5669,7 +5671,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
             MathRun.Add(ReplaceText, true);
         }
 
-        AutoCorrectEngine.RemoveCount = RemoveCount;
+        AutoCorrectEngine.Remove.push({Count:RemoveCount, Start:Start});
         if (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) {
             AutoCorrectEngine.Shift++;
         }
@@ -7881,7 +7883,7 @@ function CMathAutoCorrectEngine(Elem)
     this.Kind			  = null;
     this.Delimiter		  = null;
 
-    this.RemoveCount      = 0;
+    this.Remove           = [];
     this.ReplaceContent   = [];
     this.Shift 			  = 0;
 
