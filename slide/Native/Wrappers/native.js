@@ -795,7 +795,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 8117: //ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_THEME
         {
-            this.ChangeTheme(parseInt(_params)), false;
+            this.ChangeTheme(parseInt(_params), false);
             break;
         }
 
