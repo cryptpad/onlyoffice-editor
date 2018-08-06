@@ -793,6 +793,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.ChangeLayout(parseInt(_params))
             break;
         }
+        case 8117: //ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_THEME
+        {
+            this.ChangeTheme(parseInt(_params)), false;
+            break;
+        }
 
         case 8120: // ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LEVEL           
         {
