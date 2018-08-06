@@ -128,7 +128,7 @@ function CThemeLoader()
 
     this.LoadThemeJSAsync = function(theme_src)
     {
-        if(window["NATIVE_EDITOR_ENJINE"])
+        if(!window["NATIVE_EDITOR_ENJINE"])
         {
             var scriptElem = document.createElement('script');
     
