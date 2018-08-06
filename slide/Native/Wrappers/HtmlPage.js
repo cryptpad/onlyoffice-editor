@@ -522,6 +522,7 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
     var master = slide.Layout.Master;
     this.MasterLayouts = master;
     this.m_oDrawingDocument.CheckLayouts(master);
+    this.m_oLogicDocument.Api.sendEvent("asc_onUpdateThemeIndex", master.ThemeIndex);
     this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
 };
 

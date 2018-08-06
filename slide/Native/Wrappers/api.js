@@ -2121,6 +2121,13 @@ function NativeOpenFileP(_params, documentInfo){
         window["native"]["OnCallMenuEvent"](2404, stream); // ASC_SPREADSHEETS_EVENT_TYPE_COLOR_SCHEMES
     });
 
+    _api.asc_registerCallback("asc_onUpdateThemeIndex", function(nIndex) {
+        var stream = global_memory_stream_menu;
+        stream["ClearNoAttack"]();
+        stream["WriteLong"](nIndex);
+        window["native"]["OnCallMenuEvent"](8093, stream); // ASC_PRESENTATIONS_EVENT_TYPE_THEME_INDEX
+    });
+
 
     if (window.documentInfo["iscoauthoring"]) {
         _api.isSpellCheckEnable = false;
