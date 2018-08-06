@@ -767,8 +767,8 @@ CDrawingDocument.prototype.CheckThemes = function(){
 
     var page_w_mm = THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
     var page_h_mm = THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
-    var page_w_px = THEME_TH_WIDTH * 2;
-    var page_h_px = THEME_TH_HEIGHT * 2;
+    var page_w_px = THEME_TH_WIDTH * 3;
+    var page_h_px = THEME_TH_HEIGHT * 3;
 
     var stream = global_memory_stream_menu;
     var graphics = new CDrawingStream();
