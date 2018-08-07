@@ -179,7 +179,7 @@ function CThemeLoader()
             }
             AscCommon.History.MinorChanges = false;
 
-            if (oThis.IsReloadBinaryThemeEditorNow)
+            if (oThis.IsReloadBinaryThemeEditorNow || window["NATIVE_EDITOR_ENJINE"])
             {
                 oThis.asyncImagesEndLoaded();
                 oThis.IsReloadBinaryThemeEditorNow = false;
