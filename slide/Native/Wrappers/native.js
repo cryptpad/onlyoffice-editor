@@ -247,7 +247,6 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     case 14:
                     {
                         _imagePr.ChangeLevel = _params[_current.pos++];
-                        console.log("_imagePr.ChangeLevel : " + _imagePr.ChangeLevel);
                         break;
                     }
                     case 15:
@@ -286,7 +285,16 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
                         if (bIsNeed)
                         {
-                            //TODO: change image
+                           var url = this.WordControl.m_oLogicDocument.GetCurrentController().getDrawingProps().imageProps.ImageUrl;
+                           if (url != undefined) {
+                                var sizes = this.WordControl.m_oDrawingDocument.Native["DD_GetOriginalImageSize"](url);
+
+                                var w = sizes[0];
+                                var h = sizes[1];
+
+                                _imagePr.Width = (undefined !== w) ? Math.max(w * AscCommon.g_dKoef_pix_to_mm, 1) : 1;
+                                _imagePr.Height = (undefined !== h) ? Math.max(h * AscCommon.g_dKoef_pix_to_mm, 1) : 1;
+                           }
                         }
 
                         break;
