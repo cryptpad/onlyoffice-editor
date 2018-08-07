@@ -1727,7 +1727,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     }
                     case 14:
                     {
-                        _imagePr.ChangeLevel = _params[_current.pos++];
+                        _imagePr.put_ChangeLevel(parseInt(_params[_current.pos++]));
                         break;
                     }
                     case 15:
@@ -4696,6 +4696,34 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
                 }
             }
         }
+    }
+
+    /* change z-index */
+    if (AscFormat.isRealNumber(ImagePr.ChangeLevel))
+    {
+        switch (ImagePr.ChangeLevel)
+        {
+            case 0:
+            {
+                this.WordControl.m_oLogicDocument.DrawingObjects.bringToFront();
+                break;
+            }
+            case 1:
+            {
+                this.WordControl.m_oLogicDocument.DrawingObjects.bringForward();
+                break;
+            }
+            case 2:
+            {
+                this.WordControl.m_oLogicDocument.DrawingObjects.sendToBack();
+                break;
+            }
+            case 3:
+            {
+                this.WordControl.m_oLogicDocument.DrawingObjects.bringBackward();
+            }
+        }
+        return;
     }
 
     if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Image_Properties, AdditionalData) )
