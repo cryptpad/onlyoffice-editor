@@ -833,6 +833,38 @@ CDrawingDocument.prototype.CheckThemes = function(){
     stream["WriteByte"](7);
 
     this.Native["DD_EndNativeDraw"](stream);
+
+
+
+    var _masters = logicDoc.slideMasters;
+    var aDocumentThemes = logicDoc.Api.ThemeLoader.Themes.DocumentThemes;
+    var aThemeInfo = logicDoc.Api.ThemeLoader.themes_info_document;
+    aDocumentThemes.length = 0;
+    aThemeInfo.length = 0;
+    for (var i = 0; i < _masters.length; i++)
+    {
+        if (_masters[i].ThemeIndex < 0)//только темы презентации
+        {
+            var theme_load_info    = new AscCommonSlide.CThemeLoadInfo();
+            theme_load_info.Master = _masters[i];
+            theme_load_info.Theme  = _masters[i].Theme;
+            var _lay_cnt = _masters[i].sldLayoutLst.length;
+            for (var j = 0; j < _lay_cnt; j++)
+            {
+                theme_load_info.Layouts[j] = _masters[i].sldLayoutLst[j];
+            }
+            var th_info       = {};
+            th_info.Name      = "Doc Theme " + i;
+            th_info.Url       = "";
+            th_info.Thumbnail = _masters[i].ImageBase64;
+            var th = new AscCommonSlide.CAscThemeInfo(th_info);
+            aDocumentThemes[aDocumentThemes.length] = th;
+            th.Index = -logicDoc.Api.ThemeLoader.Themes.DocumentThemes.length;
+            aThemeInfo[aDocumentThemes.length - 1] = theme_load_info;
+        }
+    }
+
+
 };
 
 CDrawingDocument.prototype.CheckLayouts = function(oMaster){   
