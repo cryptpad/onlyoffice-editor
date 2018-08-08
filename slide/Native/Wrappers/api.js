@@ -2613,7 +2613,14 @@ if(window.native){
     window.native.Call_SetCurrentPage = function(param){
         if(window.editor)
         {
-            window.editor.WordControl.m_oLogicDocument.Set_CurPage(param);
+            var oWC = window.editor.WordControl;
+            oWC.m_oLogicDocument.Set_CurPage(param);
+            if(oWC.m_oDrawingDocument)
+            {
+                oWC.m_oDrawingDocument.SlidesCount = oWC.m_oLogicDocument.Slides.length;
+                oWC.m_oDrawingDocument.SlideCurrent = oWC.m_oLogicDocument.CurPage;
+            }
+            oWC.CheckLayouts(false);
         }
     };
 }

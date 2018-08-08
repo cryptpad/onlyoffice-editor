@@ -520,10 +520,12 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
     }
     var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
     var master = slide.Layout.Master;
-    this.MasterLayouts = master;
-    this.m_oDrawingDocument.CheckLayouts(master);
-    this.m_oLogicDocument.Api.sendEvent("asc_onUpdateThemeIndex", master.ThemeIndex);
-    this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
+    if(bIsAttack || this.MasterLayouts !== master){
+        this.MasterLayouts = master;
+        this.m_oDrawingDocument.CheckLayouts(master);
+        this.m_oLogicDocument.Api.sendEvent("asc_onUpdateThemeIndex", master.ThemeIndex);
+        this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
+    }
 };
 
 CEditorPage.prototype.GoToPage = function(lPageNum)
@@ -533,6 +535,7 @@ CEditorPage.prototype.GoToPage = function(lPageNum)
         this.m_oDrawingDocument.SlideCurrent = this.m_oLogicDocument.CurPage;
     }
     this.Native["DD_SetCurrentPage"](lPageNum);
+    this.CheckLayouts(false);
 };
 
 CEditorPage.prototype.GetVerticalScrollTo = function(y)
