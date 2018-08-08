@@ -151,6 +151,10 @@ ParaRun.prototype.Get_Id = function()
 {
     return this.Id;
 };
+ParaRun.prototype.GetId = function()
+{
+	return this.Id;
+};
 ParaRun.prototype.Set_ParaMath = function(ParaMath, Parent)
 {
     this.ParaMath = ParaMath;

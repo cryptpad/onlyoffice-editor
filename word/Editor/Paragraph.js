@@ -3842,6 +3842,9 @@ Paragraph.prototype.IncreaseDecreaseIndent = function(bIncrease)
  */
 Paragraph.prototype.Correct_ContentPos = function(CorrectEndLinePos)
 {
+	if (this.IsSelectionUse())
+		return;
+
 	var Count  = this.Content.length;
 	var CurPos = this.CurPos.ContentPos;
 
@@ -3868,9 +3871,20 @@ Paragraph.prototype.Correct_ContentPos = function(CorrectEndLinePos)
 	}
 
 	this.CurPos.ContentPos = CurPos;
+
+	// Если курсор попадает в какой-либо плейсхолдер, тогда мы выставляем селект этого плейсхолдера
+	var oPlaceHolderObject = this.GetPlaceHolderObject();
+	if (oPlaceHolderObject instanceof CInlineLevelSdt)
+	{
+		oPlaceHolderObject.SelectAll(1);
+		oPlaceHolderObject.SelectThisElement(1);
+	}
 };
 Paragraph.prototype.Correct_ContentPos2 = function()
 {
+	if (this.IsSelectionUse())
+		return;
+
 	var Count  = this.Content.length;
 	var CurPos = Math.min(Math.max(0, this.CurPos.ContentPos), Count - 1);
 
@@ -4282,6 +4296,8 @@ Paragraph.prototype.MoveCursorLeft = function(AddToSelect, Word)
 
 		if (true !== AddToSelect)
 		{
+			var oPlaceHolderObject = this.GetPlaceHolderObject();
+
 			// Иногда нужно скоректировать позицию, например в формулах
 			var CorrectedStartPos = this.Get_ParaContentPos(true, true, true);
 			var CorrectedEndPos   = this.Get_ParaContentPos(true, false, true);
@@ -4291,7 +4307,20 @@ Paragraph.prototype.MoveCursorLeft = function(AddToSelect, Word)
 				SelectPos = CorrectedEndPos;
 
 			this.RemoveSelection();
-			this.Set_ParaContentPos(SelectPos, true, -1, -1);
+
+			var oResultPos = SelectPos;
+
+			if (oPlaceHolderObject)
+			{
+				if (oPlaceHolderObject instanceof CInlineLevelSdt)
+				{
+					var oSearchPos = new CParagraphSearchPos();
+					this.Get_LeftPos(oSearchPos, SelectPos);
+					oResultPos = oSearchPos.Pos;
+				}
+			}
+
+			this.Set_ParaContentPos(oResultPos, true, -1, -1);
 		}
 		else
 		{
@@ -4390,6 +4419,8 @@ Paragraph.prototype.MoveCursorRight = function(AddToSelect, Word)
 			}
 			else
 			{
+				var oPlaceHolderObject = this.GetPlaceHolderObject();
+
 				// Иногда нужно скоректировать позицию, например в формулах
 				var CorrectedStartPos = this.Get_ParaContentPos(true, true, true);
 				var CorrectedEndPos   = this.Get_ParaContentPos(true, false, true);
@@ -4399,7 +4430,20 @@ Paragraph.prototype.MoveCursorRight = function(AddToSelect, Word)
 					SelectPos = CorrectedStartPos;
 
 				this.RemoveSelection();
-				this.Set_ParaContentPos(SelectPos, true, -1, -1);
+
+				var oResultPos = SelectPos;
+
+				if (oPlaceHolderObject)
+				{
+					if (oPlaceHolderObject instanceof CInlineLevelSdt)
+					{
+						var oSearchPos = new CParagraphSearchPos();
+						this.Get_RightPos(oSearchPos, SelectPos);
+						oResultPos = oSearchPos.Pos;
+					}
+				}
+
+				this.Set_ParaContentPos(oResultPos, true, -1, -1);
 			}
 		}
 		else
@@ -6334,6 +6378,7 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 		var oInfo = new CSelectedElementsInfo();
 		this.GetSelectedElementsInfo(oInfo);
 		var oField = oInfo.Get_Field();
+		var oSdt   = oInfo.GetInlineLevelSdt();
 
 		if (true === SearchPosXY.Numbering && undefined != NumPr)
 		{
@@ -6341,11 +6386,15 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 			this.Set_ParaContentPos(this.Get_StartPos(), true, -1, -1);
 			this.Parent.SelectNumbering(NumPr, this);
 		}
+		else if (oSdt && oSdt.IsPlaceHolder())
+		{
+			oSdt.SelectAll(1);
+			oSdt.SelectThisElement(1);
+		}
 		else if (oField && fieldtype_FORMTEXT === oField.Get_FieldType())
 		{
-			// TODO: Пока у нас невложенные поля так будет работать нормально. Со вложенными нужно переделать.
 			oField.SelectAll(1);
-			this.Selection.Use = true;
+			oField.SelectThisElement(1);
 		}
 		else
 		{
@@ -12733,7 +12782,7 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 	{
 
 		var oContentControl = new CInlineLevelSdt();
-		oContentControl.Add_ToContent(0, new ParaRun());
+		//oContentControl.Add_ToContent(0, new ParaRun());
 		this.Add(oContentControl);
 
 		var oContentControlPos = this.Get_PosByElement(oContentControl);
@@ -13100,6 +13149,22 @@ Paragraph.prototype.GetNumberingPage = function(isAbsolute)
 		return 0;
 
 	return isAbsolute ? this.GetAbsolutePage(this.Numbering.Page) : this.Numbering.Page;
+};
+/**
+ * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект
+ * @param {CParagraphContentPos} [oContentPos=undefined] - Если не задан, то проверяем по текущему селектку и курсору
+ * @returns {null | CInlineLevelSdt}
+ */
+Paragraph.prototype.GetPlaceHolderObject = function(oContentPos)
+{
+	var oInfo = new CSelectedElementsInfo();
+	this.GetSelectedElementsInfo(oInfo, oContentPos, 0);
+
+	var oSdt = oInfo.GetInlineLevelSdt();
+	if (oSdt && oSdt.IsPlaceHolder())
+		return oSdt;
+
+	return null;
 };
 
 var pararecalc_0_All  = 0;

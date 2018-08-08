@@ -7776,19 +7776,19 @@ background-repeat: no-repeat;\
 				}
 				else
 				{
-					if (oContentControl.IsEmpty())
-					{
-						for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
-						{
-							var nCharCode = oIterator.value();
-							if (0x0020 === nCharCode)
-								oContentControl.Add(new AscCommonWord.ParaSpace());
-							else
-								oContentControl.Add(new AscCommonWord.ParaText(nCharCode));
-
-						}
-						oContentControl.SelectThisElement();
-					}
+					// if (oContentControl.IsEmpty())
+					// {
+					// 	for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
+					// 	{
+					// 		var nCharCode = oIterator.value();
+					// 		if (0x0020 === nCharCode)
+					// 			oContentControl.Add(new AscCommonWord.ParaSpace());
+					// 		else
+					// 			oContentControl.Add(new AscCommonWord.ParaText(nCharCode));
+					//
+					// 	}
+					// 	oContentControl.SelectThisElement();
+					// }
 
 					if (oContentControlPr)
 						oContentControl.SetContentControlPr(oContentControlPr);

@@ -1694,7 +1694,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     this.ForceCopySectPr           = false; // Копировать ли настройки секции, если родительский класс параграфа не документ
     this.CopyNumberingMap          = null;  // Мап старый индекс -> новый индекс для копирования нумерации
     this.CheckLanguageOnTextAdd    = false; // Проверять ли язык при добавлении текста в ран
-	this.RemoveCommentsOnPreDelete = true; // Удалять ли комментарий при удалении объекта
+	this.RemoveCommentsOnPreDelete = true;  // Удалять ли комментарий при удалении объекта
+	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
 
     // Мап для рассылки
     this.MailMergeMap             = null;
@@ -7230,38 +7231,15 @@ CDocument.prototype.OnKeyDown = function(e)
         if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Remove, null, true, this.IsFormFieldEditing()))
         {
             this.Create_NewHistoryPoint(AscDFH.historydescription_Document_BackSpaceButton);
+			this.Remove(-1, true, false, false, e.CtrlKey);
 
-            var oSelectInfo = this.GetSelectedElementsInfo();
-            if (oSelectInfo.GetInlineLevelSdt())
-			{
-				var oSdt = oSelectInfo.GetInlineLevelSdt();
-				var sDefaultText = AscCommon.translateManager.getValue('Your text here');
-				var sText        = oSdt.GetSelectedText(true, false);
+			var oSelectInfo = this.GetSelectedElementsInfo();
+			if (oSelectInfo.GetInlineLevelSdt())
+				this.CheckInlineSdtOnDelete = oSelectInfo.GetInlineLevelSdt();
 
-				oSdt.Remove(-1, false);
-				if (oSdt.IsEmpty())
-				{
-					if (sText === sDefaultText)
-					{
-						oSdt.RemoveContentControlWrapper();
-					}
-					else
-					{
-						oSdt.ReplaceAllWithText(sDefaultText);
-						oSdt.SelectAll();
-						oSdt.SelectThisElement(1);
-					}
-				}
+			this.Remove(-1, true, false, false, e.CtrlKey);
 
-				this.Recalculate();
-
-				this.Document_UpdateInterfaceState();
-				this.Document_UpdateRulersState();
-			}
-			else
-			{
-				this.Remove(-1, true, false, false, e.CtrlKey);
-			}
+			this.CheckInlineSdtOnDelete = null;
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -7686,36 +7664,14 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_DeleteButton);
 
 				var oSelectInfo = this.GetSelectedElementsInfo();
+
+				var oSelectInfo = this.GetSelectedElementsInfo();
 				if (oSelectInfo.GetInlineLevelSdt())
-				{
-					var oSdt = oSelectInfo.GetInlineLevelSdt();
-					var sDefaultText = AscCommon.translateManager.getValue('Your text here');
-					var sText        = oSdt.GetSelectedText(true, false);
+					this.CheckInlineSdtOnDelete = oSelectInfo.GetInlineLevelSdt();
 
-					oSdt.Remove(1, false);
-					if (oSdt.IsEmpty())
-					{
-						if (sText === sDefaultText)
-						{
-							oSdt.RemoveContentControlWrapper();
-						}
-						else
-						{
-							oSdt.ReplaceAllWithText(sDefaultText);
-							oSdt.SelectAll();
-							oSdt.SelectThisElement(1);
-						}
-					}
+				this.Remove(1, true, false, false, e.CtrlKey);
 
-					this.Recalculate();
-
-					this.Document_UpdateInterfaceState();
-					this.Document_UpdateRulersState();
-				}
-				else
-				{
-					this.Remove(1, true, false, false, e.CtrlKey);
-				}
+				this.CheckInlineSdtOnDelete = null;
             }
             bRetValue = keydownresult_PreventAll;
         }
