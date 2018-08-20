@@ -50,6 +50,7 @@ var fieldtype_NUMPAGES   = fieldtype_PAGECOUNT;
 var fieldtype_ASK        = 0x0007;
 var fieldtype_REF        = 0x0008;
 var fieldtype_HYPERLINK  = 0x0009;
+var fieldtype_FORMULA    = 0x0010;
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -66,6 +67,7 @@ window['AscCommonWord'].fieldtype_NUMPAGES   = fieldtype_NUMPAGES;
 window['AscCommonWord'].fieldtype_ASK        = fieldtype_ASK;
 window['AscCommonWord'].fieldtype_REF        = fieldtype_REF;
 window['AscCommonWord'].fieldtype_HYPERLINK  = fieldtype_HYPERLINK;
+window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
 
 /**
  * Базовый класс для инструкции сложного поля.
@@ -95,6 +97,24 @@ CFieldInstructionBase.prototype.ToString = function()
 CFieldInstructionBase.prototype.SetPr = function()
 {
 };
+/**
+* FORMULA field
+* @constructor
+*/
+function CFieldInstructionFORMULA()
+{
+	CFieldInstructionBase.call(this);
+	this.Stack = [];
+}
+
+CFieldInstructionFORMULA.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionFORMULA.prototype.constructor = CFieldInstructionFORMULA;
+CFieldInstructionFORMULA.prototype.Type = fieldtype_FORMULA;
+CFieldInstructionFORMULA.prototype.SetStack = function(aStack)
+{
+	this.Stack = aStack;
+}
+
 
 /**
  * PAGE field
@@ -520,17 +540,43 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	if (!this.private_ReadNext())
 		return this.private_ReadREF("");
 
-	switch (this.Buffer.toUpperCase())
-	{
-		case "PAGE": this.private_ReadPAGE(); break;
-		case "PAGEREF": this.private_ReadPAGEREF(); break;
-		case "TOC": this.private_ReadTOC(); break;
-		case "ASK": this.private_ReadASK(); break;
-		case "REF": this.private_ReadREF(); break;
-		case "NUMPAGES": this.private_ReadNUMPAGES(); break;
-		case "HYPERLINK": this.private_ReadHYPERLINK(); break;
 
-		default: this.private_ReadREF(this.Buffer); break;
+	var sBuffer = this.Buffer.toUpperCase();
+	if("PAGE" === sBuffer)
+	{
+		this.private_ReadPAGE();
+	}
+	else if("PAGEREF" === sBuffer)
+	{
+		this.private_ReadPAGEREF();
+	}
+	else if("TOC" === sBuffer)
+	{
+		this.private_ReadTOC();
+	}
+	else if("ASC" === sBuffer)
+	{
+		this.private_ReadASK();
+	}
+	else if("REF" === sBuffer)
+	{
+		this.private_ReadREF();
+	}
+	else if("NUMPAGES" === sBuffer)
+	{
+		this.private_ReadNUMPAGES();
+	}
+	else if("HYPERLINK" === sBuffer)
+	{
+		this.private_ReadHYPERLINK();
+	}
+	else if(sBuffer.indexOf("=") === 0)
+	{
+		this.private_ReadFORMULA();
+	}
+	else
+	{
+		this.private_ReadREF();
 	}
 };
 CFieldInstructionParser.prototype.private_ReadNext = function()
@@ -663,6 +709,14 @@ CFieldInstructionParser.prototype.private_ReadPAGE = function()
 		if (this.private_IsSwitch())
 			this.private_ReadGeneralFormatSwitch();
 	}
+};
+CFieldInstructionParser.prototype.private_ReadFORMULA = function()
+{
+	this.Result = new CFieldInstructionFORMULA();
+	var oFormulaParser = new AscCommonExcel.parserFormula( this.Buffer.slice(1, this.Buffer.length), null, {});
+	var oParseResult = new AscCommonExcel.ParseResult();
+	oFormulaParser.parse(null, '.', oParseResult);
+	//this.Result.SetStack(aStack);
 };
 CFieldInstructionParser.prototype.private_ReadPAGEREF = function()
 {
@@ -842,6 +896,3 @@ CFieldInstructionParser.prototype.private_ParseIntegerRange = function(sValue)
 
 	return [nValue1, nValue2];
 };
-
-
-
