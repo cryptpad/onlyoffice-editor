@@ -710,10 +710,37 @@ CFieldInstructionParser.prototype.private_ReadPAGE = function()
 			this.private_ReadGeneralFormatSwitch();
 	}
 };
+CFieldInstructionParser.prototype.private_GetFormulaString = function()
+{
+		var sResult = this.Buffer.slice(1, this.Buffer.length);
+		sResult = this.private_CheckFunctionBraces(sResult, 'FALSE');
+		sResult = this.private_CheckFunctionBraces(sResult, 'TRUE');
+		sResult = this.private_CheckFunctionBraces(sResult, 'LEFT');
+		sResult = this.private_CheckFunctionBraces(sResult, 'RIGHT');
+		sResult = this.private_CheckFunctionBraces(sResult, 'ABOVE');
+		sResult = this.private_CheckFunctionBraces(sResult, 'BELOW');
+		return sResult;
+};
+CFieldInstructionParser.prototype.private_CheckFunctionBraces = function(sFormula, sFunctionName)
+{
+		var sRet = sFormula;
+		var nIndex = sFormula.indexOf(sFunctionName);
+
+		if(nIndex > -1)
+		{
+			if(sFormula[nIndex + sFunctionName.length] !== '(')
+			{
+				sRet = sFormula.slice(0, nIndex + sFunctionName.length) + '()' + sFormula.slice(nIndex + sFunctionName.length, sFormula.length);
+			}
+		}
+		return sRet;
+};
 CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 {
+	var oWorksheet = new AscCommonExcel.Worksheet(new AscCommonExcel.Workbook(null, null), 0, '');
 	this.Result = new CFieldInstructionFORMULA();
-	var oFormulaParser = new AscCommonExcel.parserFormula( this.Buffer.slice(1, this.Buffer.length), null, {});
+	var sFormula = this.private_GetFormulaString();
+	var oFormulaParser = new AscCommonExcel.parserFormula(sFormula, null, oWorksheet);
 	var oParseResult = new AscCommonExcel.ParseResult();
 	oFormulaParser.parse(null, '.', oParseResult);
 	//this.Result.SetStack(aStack);
