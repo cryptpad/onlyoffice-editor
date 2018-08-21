@@ -8083,13 +8083,19 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 	function CHeaderFooterData(str) {
 		this.str = str;
-		//this.parser = null;
+		this.parser = null;
 
 		return this;
 	}
 
 	CHeaderFooterData.prototype.getStr = function () { return this.str; };
 	CHeaderFooterData.prototype.setStr = function (val) { this.str = val; };
+	CHeaderFooterData.prototype.parse = function () {
+		var parser = new window["AscCommonExcel"].HeaderFooterParser();
+		parser.parse(this.str);
+		this.parser = parser;
+		return parser;
+	};
 
 
 	//----------------------------------------------------------export----------------------------------------------------

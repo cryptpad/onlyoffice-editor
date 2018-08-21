@@ -14755,4 +14755,6 @@
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
     window["AscCommonExcel"].WorksheetView = WorksheetView;
+	window["AscCommonExcel"].HeaderFooterParser = HeaderFooterParser;
+
 })(window);
