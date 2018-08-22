@@ -69,6 +69,8 @@ window['AscCommonWord'].fieldtype_REF        = fieldtype_REF;
 window['AscCommonWord'].fieldtype_HYPERLINK  = fieldtype_HYPERLINK;
 window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
 
+
+var g_oWorksheet = null;
 /**
  * Базовый класс для инструкции сложного поля.
  * @constructor
@@ -104,17 +106,21 @@ CFieldInstructionBase.prototype.SetPr = function()
 function CFieldInstructionFORMULA()
 {
 	CFieldInstructionBase.call(this);
-	this.Stack = [];
+	this.Parser = null;
+	this.Format = null;
 }
 
 CFieldInstructionFORMULA.prototype = Object.create(CFieldInstructionBase.prototype);
 CFieldInstructionFORMULA.prototype.constructor = CFieldInstructionFORMULA;
 CFieldInstructionFORMULA.prototype.Type = fieldtype_FORMULA;
-CFieldInstructionFORMULA.prototype.SetStack = function(aStack)
+CFieldInstructionFORMULA.prototype.SetParser = function(oParser)
 {
-	this.Stack = aStack;
-}
-
+	this.Parser = oParser;
+};
+CFieldInstructionFORMULA.prototype.SetFormat = function(oFormat)
+{
+    this.Format = oFormat;
+};
 
 /**
  * PAGE field
@@ -710,9 +716,9 @@ CFieldInstructionParser.prototype.private_ReadPAGE = function()
 			this.private_ReadGeneralFormatSwitch();
 	}
 };
-CFieldInstructionParser.prototype.private_GetFormulaString = function()
+CFieldInstructionParser.prototype.private_GetFormulaString = function(sFormula)
 {
-		var sResult = this.Buffer.slice(1, this.Buffer.length);
+		var sResult = sFormula;
 		sResult = this.private_CheckFunctionBraces(sResult, 'FALSE');
 		sResult = this.private_CheckFunctionBraces(sResult, 'TRUE');
 		sResult = this.private_CheckFunctionBraces(sResult, 'LEFT');
@@ -737,13 +743,53 @@ CFieldInstructionParser.prototype.private_CheckFunctionBraces = function(sFormul
 };
 CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 {
-	var oWorksheet = new AscCommonExcel.Worksheet(new AscCommonExcel.Workbook(null, null), 0, '');
+	if(null === g_oWorksheet)
+	{
+		g_oWorksheet = new AscCommonExcel.Worksheet(new AscCommonExcel.Workbook(null, null), 0, '');
+	}
 	this.Result = new CFieldInstructionFORMULA();
-	var sFormula = this.private_GetFormulaString();
-	var oFormulaParser = new AscCommonExcel.parserFormula(sFormula, null, oWorksheet);
+    var sFormula = this.Buffer.slice(1, this.Buffer.length);
+    var sFormat = null;
+    var bFormat = false;
+    var bNumFormat = false;
+    while(this.private_ReadNext())
+	{
+    	if(this.private_IsSwitch())
+    	{
+            bFormat = true;
+            if ('#' === this.Buffer.charAt(1))
+            {
+                bNumFormat = true;
+            }
+		}
+		else
+		{
+			if(bFormat)
+			{
+				if(bNumFormat)
+				{
+                    sFormat = this.Buffer;
+				}
+			}
+			else
+			{
+                sFormula += this.Buffer;
+			}
+            bFormat = false;
+            bNumFormat = false;
+		}
+	}
+    sFormula = this.private_GetFormulaString(sFormula);
+	var oFormulaParser = new AscCommonExcel.parserFormula(sFormula, null, g_oWorksheet);
 	var oParseResult = new AscCommonExcel.ParseResult();
 	oFormulaParser.parse(null, '.', oParseResult);
-	//this.Result.SetStack(aStack);
+	this.Result.SetParser(oFormulaParser);
+	var oFormat;
+	if(null !== sFormat)
+	{
+        oFormat = AscCommon.oNumFormatCache.get(sFormat);
+        this.Result.SetFormat(oFormat);
+	}
 };
 CFieldInstructionParser.prototype.private_ReadPAGEREF = function()
 {
