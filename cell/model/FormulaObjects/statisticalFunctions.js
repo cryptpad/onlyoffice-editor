@@ -8629,6 +8629,7 @@ function (window, undefined) {
 	function cPEARSON() {
 	}
 
+	//***array-formula***
 	cPEARSON.prototype = Object.create(cBaseFunction.prototype);
 	cPEARSON.prototype.constructor = cPEARSON;
 	cPEARSON.prototype.name = 'PEARSON';
@@ -8710,6 +8711,7 @@ function (window, undefined) {
 	function cPERCENTILE() {
 	}
 
+	//***array-formula***
 	cPERCENTILE.prototype = Object.create(cBaseFunction.prototype);
 	cPERCENTILE.prototype.constructor = cPERCENTILE;
 	cPERCENTILE.prototype.name = 'PERCENTILE';
@@ -8757,6 +8759,7 @@ function (window, undefined) {
 	function cPERCENTILE_EXC() {
 	}
 
+	//***array-formula***
 	cPERCENTILE_EXC.prototype = Object.create(cBaseFunction.prototype);
 	cPERCENTILE_EXC.prototype.constructor = cPERCENTILE_EXC;
 	cPERCENTILE_EXC.prototype.name = 'PERCENTILE.EXC';
@@ -8817,6 +8820,7 @@ function (window, undefined) {
 	function cPERCENTRANK() {
 	}
 
+	//***array-formula***
 	cPERCENTRANK.prototype = Object.create(cBaseFunction.prototype);
 	cPERCENTRANK.prototype.constructor = cPERCENTRANK;
 	cPERCENTRANK.prototype.name = 'PERCENTRANK';
@@ -8865,6 +8869,7 @@ function (window, undefined) {
 	function cPERCENTRANK_EXC() {
 	}
 
+	//***array-formula***
 	cPERCENTRANK_EXC.prototype = Object.create(cBaseFunction.prototype);
 	cPERCENTRANK_EXC.prototype.constructor = cPERCENTRANK_EXC;
 	cPERCENTRANK_EXC.prototype.name = 'PERCENTRANK.EXC';

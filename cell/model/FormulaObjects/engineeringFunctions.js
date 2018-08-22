@@ -4342,6 +4342,7 @@ function (window, undefined) {
 	function cBESSELI() {
 	}
 
+	//***array-formula***
 	cBESSELI.prototype = Object.create(cBaseFunction.prototype);
 	cBESSELI.prototype.constructor = cBESSELI;
 	cBESSELI.prototype.name = 'BESSELI';
@@ -4385,6 +4386,7 @@ function (window, undefined) {
 	function cBESSELJ() {
 	}
 
+	//***array-formula***
 	cBESSELJ.prototype = Object.create(cBaseFunction.prototype);
 	cBESSELJ.prototype.constructor = cBESSELJ;
 	cBESSELJ.prototype.name = 'BESSELJ';
@@ -4430,6 +4432,7 @@ function (window, undefined) {
 	function cBESSELK() {
 	}
 
+	//***array-formula***
 	cBESSELK.prototype = Object.create(cBaseFunction.prototype);
 	cBESSELK.prototype.constructor = cBESSELK;
 	cBESSELK.prototype.name = 'BESSELK';
@@ -4473,6 +4476,7 @@ function (window, undefined) {
 	function cBESSELY() {
 	}
 
+	//***array-formula***
 	cBESSELY.prototype = Object.create(cBaseFunction.prototype);
 	cBESSELY.prototype.constructor = cBESSELY;
 	cBESSELY.prototype.name = 'BESSELY';
@@ -4917,6 +4921,7 @@ function (window, undefined) {
 	function cCOMPLEX() {
 	}
 
+	//***array-formula***
 	cCOMPLEX.prototype = Object.create(cBaseFunction.prototype);
 	cCOMPLEX.prototype.constructor = cCOMPLEX;
 	cCOMPLEX.prototype.name = 'COMPLEX';
@@ -4980,6 +4985,7 @@ function (window, undefined) {
 	function cCONVERT() {
 	}
 
+	//***array-formula***
 	cCONVERT.prototype = Object.create(cBaseFunction.prototype);
 	cCONVERT.prototype.constructor = cCONVERT;
 	cCONVERT.prototype.name = 'CONVERT';
@@ -6116,6 +6122,7 @@ function (window, undefined) {
 	function cIMDIV() {
 	}
 
+	//***array-formula***
 	cIMDIV.prototype = Object.create(cBaseFunction.prototype);
 	cIMDIV.prototype.constructor = cIMDIV;
 	cIMDIV.prototype.name = 'IMDIV';
@@ -6798,6 +6805,7 @@ function (window, undefined) {
 	function cIMSUB() {
 	}
 
+	//***array-formula***
 	cIMSUB.prototype = Object.create(cBaseFunction.prototype);
 	cIMSUB.prototype.constructor = cIMSUB;
 	cIMSUB.prototype.name = 'IMSUB';

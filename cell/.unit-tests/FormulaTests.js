@@ -11476,3 +11476,192 @@ $( function () {
 
 	wb.dependencyFormulas.unlockRecal();
 } );
+
+
+	//temporary code. for generate tests files. delete after.
+	/*
+	Private Sub CommandButton1_Click()
+		Application.DisplayAlerts = False
+
+		'Workbooks.Add
+
+		Dim func As String
+		func = "DATEVALUE"
+
+		Set NewBook = Workbooks.Add
+		Do
+		FName = "C:\Users\Igor.Zotov\Documents\FORMULAARRAYFILES\" + func + ".xlsx"
+
+
+
+		ActiveSheet.Range("A1") = 1
+		ActiveSheet.Range("A2") = 2
+
+		ActiveSheet.Range("B1") = 3.123
+		ActiveSheet.Range("B2") = 4
+
+		ActiveSheet.Range("C1") = -4
+		ActiveSheet.Range("C2") = 5
+
+
+		'arg
+		ActiveSheet.Range("B6") = "=" + func + "(A1:C2)"
+		ActiveSheet.Range("B7") = "=" + func + "({1,2,3})"
+
+		'ARRAYS
+		ActiveSheet.Range("E6:H8").Select
+		Selection.FormulaArray = "=" + func + "(A1:C2)"
+
+		ActiveSheet.Range("E11:H13").Select
+		Selection.FormulaArray = "=" + func + "({'01/02/1989',2,'01/02/1959'})"
+
+		ActiveSheet.Range("E16:H19").Select
+		Selection.FormulaArray = "=" + func + "(2)"
+
+		ActiveSheet.Range("K11:N13").Select
+		Selection.FormulaArray = "=" + func + "(A1:B1)"
+
+		ActiveSheet.Range("K17:N19").Select
+		Selection.FormulaArray = "=" + func + "(A1:C2)"
+
+		ActiveSheet.Range("K22:N24").Select
+		Selection.FormulaArray = "=" + func + "(A1)"
+
+
+		'    ActiveSheet.Range("B6") = "=" + func + "(A1:C2,B1:C2)"
+		'    ActiveSheet.Range("B7") = "=" + func + "({1,2,3},{1,2})"
+		'
+		'    'ARRAYS
+		'    ActiveSheet.Range("E6:H8").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2, A1:B1)"
+		'
+		'    ActiveSheet.Range("E11:H13").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,-3}, 3)"
+		'
+		'    ActiveSheet.Range("E16:H19").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,-3},{1,3})"
+		'
+		'    ActiveSheet.Range("K11:N13").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:B1,A1:C2)"
+		'
+		'    ActiveSheet.Range("K17:N19").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2, A1:A1)"
+		'
+		'     ActiveSheet.Range("K22:N24").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2, B1:C2)"
+		'
+		'3 arg
+		'    ActiveSheet.Range("P3:S5").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:C2,A1:C2)"
+		'
+		'    ActiveSheet.Range("P8:S10").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:A1,A1:C2,A1:C2)"
+		'
+		'    ActiveSheet.Range("P13:S15").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:A1,A1:C2)"
+		'
+		'    ActiveSheet.Range("P18:S20").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:C2,A1:A1)"
+		'
+		'    ActiveSheet.Range("P23:S25").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:A2,A1:C2,A1:C2)"
+		'
+		'    ActiveSheet.Range("P28:S30").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:A2,A1:C2)"
+		'
+		'    ActiveSheet.Range("P33:S35").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:C2,A1:A2)"
+		'
+		'
+		'
+		'    ActiveSheet.Range("U3:X5").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U8:X10").Select
+		'    Selection.FormulaArray = "=" + func + "(1,{1,2,3;2,3,4},{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U13:X15").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},1,{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U18:X20").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3;2,3,4},1)"
+		'
+		'    ActiveSheet.Range("U23:X25").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U28:X30").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U33:X35").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3})"
+		'
+		'
+		'    '4 arg
+		'    ActiveSheet.Range("Z3:AC5").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:C2,A1:C2,A1:C2)"
+		'
+		'    ActiveSheet.Range("Z8:AC10").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:A1,A1:C2,A1:C2,A1:C2)"
+		'
+		'    ActiveSheet.Range("Z13:AC15").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:A1,A1:C2,A1:C2)"
+		'
+		'    ActiveSheet.Range("Z18:AC20").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:C2,A1:A1,A1:C2)"
+		'
+		'    ActiveSheet.Range("Z23:AC25").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:C2,A1:C2,A1:A1)"
+		'
+		'    ActiveSheet.Range("Z27:AC29").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:A2,A1:C2,A1:C2,A1:C2)"
+		'
+		'    ActiveSheet.Range("Z31:AC33").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:A2,A1:C2,A1:C2)"
+		'
+		'    ActiveSheet.Range("Z35:AC37").Select
+		'    Selection.FormulaArray = "=" + func + "(A1:C2,A1:C2,A1:A2,A1:C2)"
+		'
+		'
+		'
+		'    ActiveSheet.Range("U3:X5").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U8:X10").Select
+		'    Selection.FormulaArray = "=" + func + "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U13:X15").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U18:X20").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U23:X25").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U28:X30").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})"
+		'
+		'    ActiveSheet.Range("U33:X35").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4})"
+		'
+		'     ActiveSheet.Range("U37:X39").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},1)"
+		'
+		'     ActiveSheet.Range("U41:X43").Select
+		'    Selection.FormulaArray = "=" + func + "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3})"
+
+
+		Loop Until FName <> False
+		NewBook.SaveAs Filename:=FName
+
+		'ActiveWorkbook.SaveAs Filename:="C:\Test1.xlsx"
+
+
+
+		'Step 5 Save the newly created workbook
+		'ActiveWorkbook.SaveAs _
+		'Filename:="D:" + func + ".xlsx"
+		'Step 6 Turn application alerts back on
+		Application.DisplayAlerts = True
+	End Sub
+	*/
