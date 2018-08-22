@@ -398,10 +398,17 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint)
 		case fieldtype_PAGECOUNT:
 			this.private_UpdateNUMPAGES();
 			break;
+		case fieldtype_FORMULA:
+			this.private_UpdateFORMULA();
+			break;
 
 	}
 
 	this.LogicDocument.Recalculate();
+};
+CComplexField.prototype.private_UpdateFORMULA = function()
+{
+
 };
 CComplexField.prototype.private_UpdatePAGE = function()
 {

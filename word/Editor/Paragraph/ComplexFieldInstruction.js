@@ -721,10 +721,6 @@ CFieldInstructionParser.prototype.private_GetFormulaString = function(sFormula)
 		var sResult = sFormula;
 		sResult = this.private_CheckFunctionBraces(sResult, 'FALSE');
 		sResult = this.private_CheckFunctionBraces(sResult, 'TRUE');
-		sResult = this.private_CheckFunctionBraces(sResult, 'LEFT');
-		sResult = this.private_CheckFunctionBraces(sResult, 'RIGHT');
-		sResult = this.private_CheckFunctionBraces(sResult, 'ABOVE');
-		sResult = this.private_CheckFunctionBraces(sResult, 'BELOW');
 		return sResult;
 };
 CFieldInstructionParser.prototype.private_CheckFunctionBraces = function(sFormula, sFunctionName)
