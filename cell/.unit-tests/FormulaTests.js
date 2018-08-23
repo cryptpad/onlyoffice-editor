@@ -8257,11 +8257,13 @@ $( function () {
 
         oParser = new parserFormula( "ACCRINTM(DATE(2006,3,1),DATE(2006,5,1),0.1,,0)", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), 16.666666666666664 )
+        strictEqual( oParser.calculate().getValue(), 16.666666666666664 );
 
         oParser = new parserFormula( "ACCRINTM(DATE(2006,3,1),DATE(2006,5,1),0.1,)", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 16.666666666666664 );
+
+        testArrayFormula2("ACCRINTM", 4, 5, true)
 
     } );
 

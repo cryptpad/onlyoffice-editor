@@ -643,12 +643,14 @@
 	function cACCRINTM() {
 	}
 
+	//***array-formula***
 	cACCRINTM.prototype = Object.create(cBaseFunction.prototype);
 	cACCRINTM.prototype.constructor = cACCRINTM;
 	cACCRINTM.prototype.name = 'ACCRINTM';
-	cACCRINTM.prototype.argumentsMin = 3;
+	cACCRINTM.prototype.argumentsMin = 4;
 	cACCRINTM.prototype.argumentsMax = 5;
 	cACCRINTM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cACCRINTM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cACCRINTM.prototype.Calculate = function (arg) {
 		var issue = arg[0], settlement = arg[1], rate = arg[2],
 			par = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(1000),
@@ -2038,6 +2040,7 @@
 	function cDOLLARDE() {
 	}
 
+	//***array-formula***
 	cDOLLARDE.prototype = Object.create(cBaseFunction.prototype);
 	cDOLLARDE.prototype.constructor = cDOLLARDE;
 	cDOLLARDE.prototype.name = 'DOLLARDE';
@@ -2100,6 +2103,7 @@
 	function cDOLLARFR() {
 	}
 
+	//***array-formula***
 	cDOLLARFR.prototype = Object.create(cBaseFunction.prototype);
 	cDOLLARFR.prototype.constructor = cDOLLARFR;
 	cDOLLARFR.prototype.name = 'DOLLARFR';
@@ -2260,6 +2264,7 @@
 	function cEFFECT() {
 	}
 
+	//***array-formula***
 	cEFFECT.prototype = Object.create(cBaseFunction.prototype);
 	cEFFECT.prototype.constructor = cEFFECT;
 	cEFFECT.prototype.name = 'EFFECT';
@@ -3042,6 +3047,7 @@
 	function cNOMINAL() {
 	}
 
+	//***array-formula***
 	cNOMINAL.prototype = Object.create(cBaseFunction.prototype);
 	cNOMINAL.prototype.constructor = cNOMINAL;
 	cNOMINAL.prototype.name = 'NOMINAL';
@@ -4909,6 +4915,7 @@
 	function cTBILLPRICE() {
 	}
 
+	//***array-formula***
 	cTBILLPRICE.prototype = Object.create(cBaseFunction.prototype);
 	cTBILLPRICE.prototype.constructor = cTBILLPRICE;
 	cTBILLPRICE.prototype.name = 'TBILLPRICE';
@@ -4981,6 +4988,7 @@
 	function cTBILLYIELD() {
 	}
 
+	//***array-formula***
 	cTBILLYIELD.prototype = Object.create(cBaseFunction.prototype);
 	cTBILLYIELD.prototype.constructor = cTBILLYIELD;
 	cTBILLYIELD.prototype.name = 'TBILLYIELD';
