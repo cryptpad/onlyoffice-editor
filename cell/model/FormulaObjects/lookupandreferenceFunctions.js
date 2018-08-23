@@ -101,6 +101,7 @@ function (window, undefined) {
 	function cADDRESS() {
 	}
 
+	//***array-formula***
 	cADDRESS.prototype = Object.create(cBaseFunction.prototype);
 	cADDRESS.prototype.constructor = cADDRESS;
 	cADDRESS.prototype.name = 'ADDRESS';
@@ -804,6 +805,7 @@ function (window, undefined) {
 	function cOFFSET() {
 	}
 
+	//***array-formula***
 	cOFFSET.prototype = Object.create(cBaseFunction.prototype);
 	cOFFSET.prototype.constructor = cOFFSET;
 	cOFFSET.prototype.name = 'OFFSET';

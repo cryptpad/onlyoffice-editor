@@ -1756,6 +1756,7 @@
 	function cDB() {
 	}
 
+	//***array-formula***
 	cDB.prototype = Object.create(cBaseFunction.prototype);
 	cDB.prototype.constructor = cDB;
 	cDB.prototype.name = 'DB';
@@ -1865,6 +1866,7 @@
 	function cDDB() {
 	}
 
+	//***array-formula***
 	cDDB.prototype = Object.create(cBaseFunction.prototype);
 	cDDB.prototype.constructor = cDDB;
 	cDDB.prototype.name = 'DDB';
@@ -1952,12 +1954,14 @@
 	function cDISC() {
 	}
 
+	//***array-formula***
 	cDISC.prototype = Object.create(cBaseFunction.prototype);
 	cDISC.prototype.constructor = cDISC;
 	cDISC.prototype.name = 'DISC';
 	cDISC.prototype.argumentsMin = 4;
 	cDISC.prototype.argumentsMax = 5;
 	cDISC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDISC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDISC.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], pr = arg[2], redemption = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -2314,6 +2318,7 @@
 	function cFV() {
 	}
 
+	//***array-formula***
 	cFV.prototype = Object.create(cBaseFunction.prototype);
 	cFV.prototype.constructor = cFV;
 	cFV.prototype.name = 'FV';
@@ -2453,12 +2458,14 @@
 	function cINTRATE() {
 	}
 
+	//***array-formula***
 	cINTRATE.prototype = Object.create(cBaseFunction.prototype);
 	cINTRATE.prototype.constructor = cINTRATE;
 	cINTRATE.prototype.name = 'INTRATE';
 	cINTRATE.prototype.argumentsMin = 4;
 	cINTRATE.prototype.argumentsMax = 5;
 	cINTRATE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cINTRATE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cINTRATE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], investment = arg[2], redemption = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -3100,6 +3107,7 @@
 	function cNPER() {
 	}
 
+	//***array-formula***
 	cNPER.prototype = Object.create(cBaseFunction.prototype);
 	cNPER.prototype.constructor = cNPER;
 	cNPER.prototype.name = 'NPER';
@@ -3896,6 +3904,7 @@
 	function cPMT() {
 	}
 
+	//***array-formula***
 	cPMT.prototype = Object.create(cBaseFunction.prototype);
 	cPMT.prototype.constructor = cPMT;
 	cPMT.prototype.name = 'PMT';
@@ -4195,12 +4204,14 @@
 	function cPRICEDISC() {
 	}
 
+	//***array-formula***
 	cPRICEDISC.prototype = Object.create(cBaseFunction.prototype);
 	cPRICEDISC.prototype.constructor = cPRICEDISC;
 	cPRICEDISC.prototype.name = 'PRICEDISC';
 	cPRICEDISC.prototype.argumentsMin = 4;
 	cPRICEDISC.prototype.argumentsMax = 5;
 	cPRICEDISC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cPRICEDISC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cPRICEDISC.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], discount = arg[2], redemption = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -4391,6 +4402,7 @@
 	function cPV() {
 	}
 
+	//***array-formula***
 	cPV.prototype = Object.create(cBaseFunction.prototype);
 	cPV.prototype.constructor = cPV;
 	cPV.prototype.name = 'PV';
@@ -4572,12 +4584,14 @@
 	function cRECEIVED() {
 	}
 
+	//***array-formula***
 	cRECEIVED.prototype = Object.create(cBaseFunction.prototype);
 	cRECEIVED.prototype.constructor = cRECEIVED;
 	cRECEIVED.prototype.name = 'RECEIVED';
 	cRECEIVED.prototype.argumentsMin = 4;
 	cRECEIVED.prototype.argumentsMax = 5;
 	cRECEIVED.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cRECEIVED.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cRECEIVED.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], investment = arg[2], discount = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -5719,12 +5733,14 @@
 	function cYIELDDISC() {
 	}
 
+	//***array-formula***
 	cYIELDDISC.prototype = Object.create(cBaseFunction.prototype);
 	cYIELDDISC.prototype.constructor = cYIELDDISC;
 	cYIELDDISC.prototype.name = 'YIELDDISC';
 	cYIELDDISC.prototype.argumentsMin = 4;
 	cYIELDDISC.prototype.argumentsMax = 5;
 	cYIELDDISC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cYIELDDISC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cYIELDDISC.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], pr = arg[2], redemption = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);

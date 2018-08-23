@@ -7941,6 +7941,7 @@ $( function () {
         ok( oParser.parse() );
         ok( Math.abs( oParser.calculate().getValue() - fv( 0.06 / 12, 12, -100, -1000, 1 ) ) < dif );
 
+        testArrayFormula2("FV", 3, 5);
     } );
 
     test( "Test: \"PMT\"", function () {
@@ -7971,6 +7972,8 @@ $( function () {
         ok( oParser.parse() );
         ok( Math.abs( oParser.calculate().getValue() - pmt( 0.08 / 12, 10, 10000, 0, 1 ) ) < dif );
 
+
+		testArrayFormula2("PMT", 3, 5);
     } );
 
     test( "Test: \"NPER\"", function () {
@@ -8011,6 +8014,8 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), nper(0.12/12,-100,-1000) );
 
+
+		testArrayFormula2("NPER", 3, 5);
     } );
 
     test( "Test: \"PV\"", function () {
@@ -8033,6 +8038,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), pv( 0, 12 * 20, 500, 0, 0 ) );
 
+        testArrayFormula2("PV", 3, 5);
     } );
 
     test( "Test: \"NPV\"", function () {
@@ -8455,6 +8461,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), disc( new cDate(2007,0,25),new cDate(2007,5,15),97.975,100,1 ) );
 
+        testArrayFormula2("DISC",4,5,true);
     } );
 
     test( "Test: \"DOLLARDE\"", function () {
@@ -8536,6 +8543,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), received( new cDate(2008,1,15),new cDate(2008,4,15),1000000,0.0575,2 ) );
 
+        testArrayFormula2("RECEIVED", 4, 5, true);
     } );
 
     test( "Test: \"RATE\"", function () {
@@ -8677,6 +8685,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), intrate( new cDate(2008,1,15),new cDate(2008,4,15),1000000,1014420,2 ) );
 
+        testArrayFormula2("INTRATE", 4, 5, true);
     } );
 
     test( "Test: \"TBILLEQ\"", function () {
@@ -8995,6 +9004,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), pricedisc( new cDate(2008,1,16), new cDate(2008,2,1),0.0525,100,2 ) );
 
+		testArrayFormula2("PMT", 4, 5, true);
     } );
 
     test( "Test: \"PRICEMAT\"", function () {
@@ -9041,6 +9051,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), yielddisc( new cDate( 2008, 1, 16 ), new cDate( 2008, 2, 1 ), 99.795, 100, 2 ) );
 
+		testArrayFormula2("YIELDDISC", 4, 5, true);
     } );
 
     test( "Test: \"YIELDMAT\"", function () {
@@ -9383,6 +9394,8 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), db(1000000,100000,6,7,7) );
 
+        testArrayFormula2("DB",4,5);
+
     } );
 
     test( "Test: \"DDB\"", function () {
@@ -9412,6 +9425,8 @@ $( function () {
         oParser = new parserFormula( "DDB(2400,300,10,10)", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), ddb(2400,300,10,10) );
+
+		testArrayFormula2("DDB",4,5);
 
     } );
 
@@ -11474,6 +11489,7 @@ $( function () {
 		ok( oParser.parse(), "ADDRESS(1,7,,,)" );
 		strictEqual( oParser.calculate().getValue(), "$G$1", "ADDRESS(1,7,,,)");
 
+		testArrayFormula2("ADDRESS", 2, 5);
 	} );
 
 	wb.dependencyFormulas.unlockRecal();
