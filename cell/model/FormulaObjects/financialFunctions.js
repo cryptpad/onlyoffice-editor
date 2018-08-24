@@ -1054,6 +1054,7 @@
 	function cCOUPDAYBS() {
 	}
 
+	//***array-formula***
 	cCOUPDAYBS.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPDAYBS.prototype.constructor = cCOUPDAYBS;
 	cCOUPDAYBS.prototype.name = 'COUPDAYBS';
@@ -1132,6 +1133,7 @@
 	function cCOUPDAYS() {
 	}
 
+	//***array-formula***
 	cCOUPDAYS.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPDAYS.prototype.constructor = cCOUPDAYS;
 	cCOUPDAYS.prototype.name = 'COUPDAYS';
@@ -1209,6 +1211,7 @@
 	function cCOUPDAYSNC() {
 	}
 
+	//***array-formula***
 	cCOUPDAYSNC.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPDAYSNC.prototype.constructor = cCOUPDAYSNC;
 	cCOUPDAYSNC.prototype.name = 'COUPDAYSNC';
@@ -1286,6 +1289,7 @@
 	function cCOUPNCD() {
 	}
 
+	//***array-formula***
 	cCOUPNCD.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPNCD.prototype.constructor = cCOUPNCD;
 	cCOUPNCD.prototype.name = 'COUPNCD';
@@ -1365,6 +1369,7 @@
 	function cCOUPNUM() {
 	}
 
+	//***array-formula***
 	cCOUPNUM.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPNUM.prototype.constructor = cCOUPNUM;
 	cCOUPNUM.prototype.name = 'COUPNUM';
@@ -1444,12 +1449,14 @@
 	function cCOUPPCD() {
 	}
 
+	//***array-formula***
 	cCOUPPCD.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPPCD.prototype.constructor = cCOUPPCD;
 	cCOUPPCD.prototype.name = 'COUPPCD';
 	cCOUPPCD.prototype.argumentsMin = 3;
 	cCOUPPCD.prototype.argumentsMax = 4;
 	cCOUPPCD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPPCD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPPCD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -2779,6 +2786,7 @@
 	function cISPMT() {
 	}
 
+	//***array-formula***
 	cISPMT.prototype = Object.create(cBaseFunction.prototype);
 	cISPMT.prototype.constructor = cISPMT;
 	cISPMT.prototype.name = 'ISPMT';
@@ -4775,6 +4783,7 @@
 	function cSYD() {
 	}
 
+	//***array-formula***
 	cSYD.prototype = Object.create(cBaseFunction.prototype);
 	cSYD.prototype.constructor = cSYD;
 	cSYD.prototype.name = 'SYD';

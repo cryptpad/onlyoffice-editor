@@ -4220,6 +4220,7 @@ function (window, undefined) {
 	function cBINOMDIST() {
 	}
 
+	//***array-formula***
 	cBINOMDIST.prototype = Object.create(cBaseFunction.prototype);
 	cBINOMDIST.prototype.constructor = cBINOMDIST;
 	cBINOMDIST.prototype.name = 'BINOMDIST';
@@ -5607,6 +5608,7 @@ function (window, undefined) {
 	function cF_DIST() {
 	}
 
+	//***array-formula***
 	cF_DIST.prototype = Object.create(cBaseFunction.prototype);
 	cF_DIST.prototype.constructor = cF_DIST;
 	cF_DIST.prototype.name = "F.DIST";
@@ -6446,6 +6448,7 @@ function (window, undefined) {
 	function cGAMMA_DIST() {
 	}
 
+	//***array-formula***
 	cGAMMA_DIST.prototype = Object.create(cBaseFunction.prototype);
 	cGAMMA_DIST.prototype.constructor = cGAMMA_DIST;
 	cGAMMA_DIST.prototype.name = 'GAMMA.DIST';

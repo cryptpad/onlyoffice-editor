@@ -3958,6 +3958,7 @@
 	function cSERIESSUM() {
 	}
 
+	//***array-formula***
 	cSERIESSUM.prototype = Object.create(cBaseFunction.prototype);
 	cSERIESSUM.prototype.constructor = cSERIESSUM;
 	cSERIESSUM.prototype.name = 'SERIESSUM';
