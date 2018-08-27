@@ -14493,6 +14493,40 @@
 		}
 	};
 
+	WorksheetView.prototype.changePrintArea = function (type) {
+		var t = this;
+		var wb = window["Asc"]["editor"].wb;
+
+		//TODO нужно ли лочить именованные диапазоны при изменении особого именованного диапазона - _xlnm.Print_Area
+		var callback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			var printArea = t.model.workbook.getDefinesNames("_xlnm.Print_Area", t.model.getId());
+			switch (type) {
+				case Asc.c_oAscChangePrintAreaType.set: {
+					//если нет такого именнованного диапазона - создаём. если есть - меняем ref
+
+					break;
+				}
+				case Asc.c_oAscChangePrintAreaType.clear: {
+					if(printArea) {
+						wb.delDefinedNames(new Asc.asc_CDefName(printArea.name, printArea.ref, null, null, null, printArea.sheetId));
+					}
+					break;
+				}
+				case Asc.c_oAscChangePrintAreaType.add: {
+					//расширяем именованный диапазон
+
+					break;
+				}
+			}
+
+		};
+
+		return this._isLockedLayoutOptions(callback);
+	};
 
 	var c_nHeaderFooterPageNumber = 0;
 	var c_nHeaderFooterPageCount = 1;

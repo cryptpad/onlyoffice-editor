@@ -2429,7 +2429,7 @@
       return;
     }
 
-    var ws = this.getWorksheet(), t = this
+    var ws = this.getWorksheet(), t = this;
 
     if (oldName) {
 
