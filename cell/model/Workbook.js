@@ -620,7 +620,7 @@
 			var names = [], activeWS;
 
 			function getNames(defName) {
-				if (defName.ref && !defName.hidden && defName.name.indexOf("_xlnm") < 0) {
+				if (defName.ref && !defName.hidden && (defName.name.indexOf("_xlnm") < 0 || defName.name === "_xlnm.Print_Area")) {
 					names.push(defName.getAscCDefName());
 				}
 			}

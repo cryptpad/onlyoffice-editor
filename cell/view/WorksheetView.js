@@ -1858,7 +1858,7 @@
 				for(var i = 0; i < areaRefsArr.length; i++) {
 					range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) ||
 						AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
-					range = new asc_Range(range.c1, range.r1, range.c2 + 1, range.r2 + 1);
+					range = new asc_Range(range.c1, range.r1, range.c2, range.r2);
 					this._prepareCellTextMetricsCache(range);
 					this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 				}
@@ -14508,16 +14508,24 @@
 				case Asc.c_oAscChangePrintAreaType.set: {
 					//если нет такого именнованного диапазона - создаём. если есть - меняем ref
 
+					var selectionLast = t.model.selectionRange.getLast();
+					var mc = selectionLast.isOneCell() ? t.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
+
+					var oldDefName = printArea ? printArea.getAscCDefName() : null;
+					var newDefName = new Asc.asc_CDefName("_xlnm.Print_Area", parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName()));
+					wb.editDefinedNames(oldDefName, newDefName);
+
 					break;
 				}
 				case Asc.c_oAscChangePrintAreaType.clear: {
 					if(printArea) {
-						wb.delDefinedNames(new Asc.asc_CDefName(printArea.name, printArea.ref, null, null, null, printArea.sheetId));
+						wb.delDefinedNames(printArea.getAscCDefName());
 					}
 					break;
 				}
 				case Asc.c_oAscChangePrintAreaType.add: {
 					//расширяем именованный диапазон
+
 
 					break;
 				}
