@@ -1788,7 +1788,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			//offset - to support relative references in def names
 			offset = new AscCommon.CellBase(bbox.r1, bbox.c1);
 		}
-		return defName.parsedRef.calculate(this, bbox, offset, arguments[3]);
+		return defName.parsedRef.calculate(this, bbox, offset, arguments[2]);
 	};
 	cName.prototype.getDefName = function () {
 		return this.ws ? this.ws.workbook.getDefinesNames(this.value, this.ws.getId()) : null;
@@ -5532,7 +5532,7 @@ parserFormula.prototype.setFormula = function(formula) {
 					elemArr.push(_tmp);
 				}
 			} else if (currentElement.type === cElementType.name || currentElement.type === cElementType.name3D) {
-				defNameCalcArr = currentElement.Calculate(null, opt_bbox, null, true);
+				defNameCalcArr = currentElement.Calculate(null, opt_bbox, true);
 				defNameArgCount = [];
 				if(defNameCalcArr && defNameCalcArr.length) {
 					defNameArgCount = defNameCalcArr.length - 1;
