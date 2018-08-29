@@ -74,7 +74,8 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             case Asc.c_oAscTypeSelectElement.Image:
             //case Asc.c_oAscTypeSelectElement.Hyperlink:
             case Asc.c_oAscTypeSelectElement.Slide:
-            case Asc.c_oAscTypeSelectElement.Shape:           
+            case Asc.c_oAscTypeSelectElement.Shape:  
+            case Asc.c_oAscTypeSelectElement.Chart:         
             {
                 ++_naturalCount;
                 break;
@@ -106,11 +107,19 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
                 break;
             }
 
+            case Asc.c_oAscTypeSelectElement.Chart:
+            {
+                console.log("StackObjects -> Chart");
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Chart);
+                asc_menu_WriteChartPr(undefined, this.SelectedObjectsStack[i].Value, _stream); 
+                break;
+            }
+
             case Asc.c_oAscTypeSelectElement.Paragraph:
             {
-                //console.log("StackObjects -> Paragraph");
-                //_stream["WriteLong"](Asc.c_oAscTypeSelectElement.Paragraph);
-                //asc_menu_WriteParagraphPr(this.SelectedObjectsStack[i].Value, _stream);
+                console.log("StackObjects -> Paragraph");
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Paragraph);
+                asc_menu_WriteParagraphPr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
 
@@ -486,10 +495,13 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.SetSlideProps(props);
             break;
         }
-        case 23:
+
+        case 21: // ASC_MENU_EVENT_TYPE_CHART
         {
-            this.SlideTimingApplyToAll();
-            break;
+        	var chartProp = asc_menu_ReadChartPr(_params, _current);           
+            this.ChartApply(chartProp);
+            this.WordControl.m_oLogicDocument.Recalculate();
+        	break;
         }
         
         case 50: // ASC_MENU_EVENT_TYPE_INSERT_IMAGE
@@ -722,9 +734,30 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 400:   // ASC_MENU_EVENT_TYPE_INSERT_CHART
+        {
+
+            break;
+        }  
+
+        case 440:   // ASC_MENU_EVENT_TYPE_ADD_CHART_DATA
+        {
+            if (undefined !== _params) {
+                var chartData = _params[0];
+                if (chartData && chartData.length > 0) {
+                    var json = JSON.parse(chartData);
+                    if (json) {
+                        _api.asc_addChartDrawingObject(json);
+                    }
+                }
+            }
+            break;
+        } 
+
         case 450:   // ASC_MENU_EVENT_TYPE_GET_CHART_DATA
         {
-            var chart = _api.asc_getChartObject();
+            var index =  parseInt(_params);
+            var chart = _api.asc_getChartObject(index);
             
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
@@ -846,6 +879,12 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 this.DistributeVertically();
             } 
 
+            break;
+        }
+
+        case 8124: // ASC_PRESENTATIONS_EVENT_TYPE_SLIDE_TIMIN_GALL
+        {
+            this.SlideTimingApplyToAll();
             break;
         }
 
