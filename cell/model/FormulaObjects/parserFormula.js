@@ -1743,12 +1743,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.cloneTo(oRes);
 		return oRes;
 	};
-	cName.prototype.toRef = function (opt_bbox) {
+	cName.prototype.toRef = function (opt_bbox, checkMultiSelect) {
 		var defName = this.getDefName();
 		if (!defName || !defName.ref) {
 			return new cError(cErrorType.wrong_name);
 		}
-		return this.Calculate(undefined, opt_bbox);
+		return this.Calculate(undefined, opt_bbox, checkMultiSelect);
 	};
 	cName.prototype.toString = function () {
 		var defName = this.getDefName();
@@ -1788,7 +1788,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			//offset - to support relative references in def names
 			offset = new AscCommon.CellBase(bbox.r1, bbox.c1);
 		}
-		return defName.parsedRef.calculate(this, bbox, offset);
+		return defName.parsedRef.calculate(this, bbox, offset, arguments[3]);
 	};
 	cName.prototype.getDefName = function () {
 		return this.ws ? this.ws.workbook.getDefinesNames(this.value, this.ws.getId()) : null;
@@ -3502,7 +3502,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return list;
 	}
-	function getRangeByRef(ref, ws, onlyRanges) {
+	function getRangeByRef(ref, ws, onlyRanges, checkMultiSelection) {
 		// ToDo in parser formula
 		if (ref[0] === '(') {
 			ref = ref.slice(1);
@@ -3531,7 +3531,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 						case cElementType.table:
 						case cElementType.name:
 						case cElementType.name3D:
-							ref = item.oper.toRef(bbox);
+							ref = item.oper.toRef(bbox, (checkMultiSelection && (item.oper.type === cElementType.name || item.oper.type === cElementType.name3D)));
 							break;
 						case cElementType.cell:
 						case cElementType.cell3D:
@@ -3541,18 +3541,28 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 							break;
 					}
 					if (ref) {
-						switch(ref.type) {
-							case cElementType.cell:
-							case cElementType.cell3D:
-							case cElementType.cellsRange:
-							case cElementType.cellsRange3D:
-								ranges.push(ref.getRange());
-								break;
-							case cElementType.array:
-								if (!onlyRanges) {
-									ranges = ref.getMatrix();
-								}
-								break;
+						var pushRange = function(curRef) {
+							switch(curRef.type) {
+								case cElementType.cell:
+								case cElementType.cell3D:
+								case cElementType.cellsRange:
+								case cElementType.cellsRange3D:
+									ranges.push(curRef.getRange());
+									break;
+								case cElementType.array:
+									if (!onlyRanges) {
+										ranges = curRef.getMatrix();
+									}
+									break;
+							}
+						};
+
+						if(ref.length) {
+							for(var i = 0; i < ref.length; i++) {
+								pushRange(ref[i]);
+							}
+						} else {
+							pushRange(ref);
 						}
 					}
 				});
@@ -5164,7 +5174,8 @@ parserFormula.prototype.setFormula = function(formula) {
 				return false;
 			}
 
-			if (!wasLeftParentheses) {
+			//TODO заглушка для парсинга множественного диапазона в _xlnm.Print_Area. необходимо сделать общий парсинг подобного содержимого
+			if (!wasLeftParentheses && !(t.parent && t.parent instanceof window['AscCommonExcel'].DefName /*&& t.parent.name === "_xlnm.Print_Area"*/)) {
 				parseResult.setError(c_oAscError.ID.FrmlWrongCountParentheses);
 				t.outStack = [];
 				return false;
@@ -5458,7 +5469,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			this._endCalculate();
 			return this.value;
 	};
-	parserFormula.prototype.calculate = function (opt_defName, opt_bbox, opt_offset) {
+	parserFormula.prototype.calculate = function (opt_defName, opt_bbox, opt_offset, checkMultiSelect) {
 		if (this.outStack.length < 1) {
 			this.value = new cError(cErrorType.wrong_name);
 			this._endCalculate();
@@ -5471,7 +5482,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			opt_bbox = new Asc.Range(0, 0, 0, 0);
 		}
 
-		var elemArr = [], _tmp, numFormat = cNumFormatFirstCell, currentElement = null, bIsSpecialFunction, argumentsCount;
+		var elemArr = [], _tmp, numFormat = cNumFormatFirstCell, currentElement = null, bIsSpecialFunction, argumentsCount, defNameCalcArr, defNameArgCount = 0;
 		for (var i = 0; i < this.outStack.length; i++) {
 			currentElement = this.outStack[i];
 			if (currentElement.name === "(") {
@@ -5495,9 +5506,16 @@ parserFormula.prototype.setFormula = function(formula) {
 					this.value = new cError(cErrorType.unsupported_function);
 					this._endCalculate();
 					return this.value;
+				} else if(argumentsCount + defNameArgCount > currentElement.argumentsMax) {
+					//возвращаю ошибку в случае если количество аргументов(с учетом тех аргументов, которые получили из именованного диапазона)
+					//превышает максимальное допустимое количество аргументов данной функции
+					elemArr = [];
+					this.value = new cError(cErrorType.wrong_value_type);
+					this._endCalculate();
+					return this.value;
 				} else {
 					var arg = [];
-					for (var ind = 0; ind < argumentsCount; ind++) {
+					for (var ind = 0; ind < argumentsCount + defNameArgCount; ind++) {
 						if("number" === typeof(elemArr[elemArr.length - 1])){
 							elemArr.pop();
 						}
@@ -5509,10 +5527,21 @@ parserFormula.prototype.setFormula = function(formula) {
 					} else if (0 > numFormat || cNumFormatNone === currentElement.numFormat) {
 						numFormat = currentElement.numFormat;
 					}
+
+					defNameArgCount = 0;
 					elemArr.push(_tmp);
 				}
 			} else if (currentElement.type === cElementType.name || currentElement.type === cElementType.name3D) {
-				elemArr.push(currentElement.Calculate(null, opt_bbox));
+				defNameCalcArr = currentElement.Calculate(null, opt_bbox, null, true);
+				defNameArgCount = [];
+				if(defNameCalcArr && defNameCalcArr.length) {
+					defNameArgCount = defNameCalcArr.length - 1;
+					for(var j = 0; j < defNameCalcArr.length; j++) {
+						elemArr.push(defNameCalcArr[j]);
+					}
+				} else {
+					elemArr.push(defNameCalcArr);
+				}
 			} else if (currentElement.type === cElementType.table) {
 				elemArr.push(currentElement.toRef(opt_bbox));
 			} else if (opt_offset) {
@@ -5521,8 +5550,14 @@ parserFormula.prototype.setFormula = function(formula) {
 				elemArr.push(currentElement);
 			}
 		}
-		this.value = elemArr.pop();
-		this.value.numFormat = numFormat;
+
+		//TODO заглушка для парсинга множественного диапазона в _xlnm.Print_Area. Сюда попадаем только в одном случае - из функции findCell для отображения диапазона области печати
+		if(checkMultiSelect && elemArr.length > 1 && this.parent && this.parent instanceof window['AscCommonExcel'].DefName /*&& this.parent.name === "_xlnm.Print_Area"*/) {
+			this.value = elemArr;
+		} else {
+			this.value = elemArr.pop();
+			this.value.numFormat = numFormat;
+		}
 
 		this._endCalculate();
 		return this.value;
