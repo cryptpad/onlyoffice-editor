@@ -1838,6 +1838,7 @@
 
     WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages) {
 		var range, maxCell;
+		var printArea = this.model.workbook.getDefinesNames("_xlnm.Print_Area", this.model.getId());
 
 		if (printOnlySelection) {
 			for (var i = 0; i < this.model.selectionRange.ranges.length; ++i) {
@@ -1850,7 +1851,19 @@
 				}
 				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 			}
-        } else {
+		} else if(printArea) {
+			var areaRefs = printArea.ref;
+			var areaRefsArr = areaRefs.split(",");
+			if(areaRefsArr.length) {
+				for(var i = 0; i < areaRefsArr.length; i++) {
+					range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) ||
+						AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					range = new asc_Range(range.c1, range.r1, range.c2, range.r2);
+					this._prepareCellTextMetricsCache(range);
+					this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
+				}
+			}
+		} else {
 			range = new asc_Range(0, 0, this.model.getColsCount(), this.model.getRowsCount());
 			maxCell = this._checkPrintRange(range);
 			var maxCol = maxCell.col;
@@ -11495,7 +11508,7 @@
 		};
 
 	WorksheetView.prototype.findCell = function (reference) {
-		var mc, ranges = AscCommonExcel.getRangeByRef(reference, this.model, true);
+		var mc, ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
 
 		if (0 === ranges.length && this.handlers.trigger('canEdit')) {
             /*TODO: сделать поиск по названиям автофигур, должен искать до того как вызвать поиск по именованным диапазонам*/
