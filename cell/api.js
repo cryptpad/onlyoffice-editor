@@ -2151,7 +2151,7 @@ var editor;
     }
 
     ws = this.wb.getWorksheet();
-    d = ws.setSelection(d[0].getBBox0(), true);
+    d = ws.setSelection(d.length === 1 ? d[0].getBBox0() : d, true);
     this.controller.scroll(d);
   };
 

@@ -7460,28 +7460,72 @@
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
     };
     WorksheetView.prototype.setSelection = function (range, validRange) {
-        // Проверка на валидность range.
-        if (validRange) {
-            if (range.c2 >= this.nColsCount) {
-                this.expandColsOnScroll(false, true, range.c2 + 1);
-            }
-            if (range.r2 >= this.nRowsCount) {
-                this.expandRowsOnScroll(false, true, range.r2 + 1);
-            }
-        }
-        var oRes = null;
-        var type = range.getType();
-        if (type === c_oAscSelectionType.RangeCells || type === c_oAscSelectionType.RangeCol ||
-          type === c_oAscSelectionType.RangeRow || type === c_oAscSelectionType.RangeMax) {
-            this.cleanSelection();
-            this.model.selectionRange.assign2(range);
+		var oRes = null, t = this;
+
+		if(!range.length) {
+			// Проверка на валидность range.
+			if (validRange) {
+				if (range.c2 >= this.nColsCount) {
+					this.expandColsOnScroll(false, true, range.c2 + 1);
+				}
+				if (range.r2 >= this.nRowsCount) {
+					this.expandRowsOnScroll(false, true, range.r2 + 1);
+				}
+			}
+			var type = range.getType();
+			if (type === c_oAscSelectionType.RangeCells || type === c_oAscSelectionType.RangeCol ||
+				type === c_oAscSelectionType.RangeRow || type === c_oAscSelectionType.RangeMax) {
+				this.cleanSelection();
+				this.model.selectionRange.assign2(range);
+				this._fixSelectionOfMergedCells();
+				this.updateSelectionWithSparklines();
+
+				this._updateSelectionNameAndInfo();
+				oRes = this._calcActiveCellOffset();
+			}
+		} else {
+			var bbox;
+			if (validRange) {
+				for(var i = 0; i < range.length; i++) {
+					bbox = range[i].getBBox0();
+					if (bbox.c2 >= this.nColsCount) {
+						this.expandColsOnScroll(false, true, bbox.c2 + 1);
+					}
+					if (bbox.r2 >= this.nRowsCount) {
+						this.expandRowsOnScroll(false, true, bbox.r2 + 1);
+					}
+				}
+			}
+
+			var addRangesBySelection = function() {
+				var bFirstAdd = true;
+				for(var i = 0; i < range.length; i++) {
+					bbox = range[i].getBBox0();
+					var type = bbox.getType();
+					if (type === c_oAscSelectionType.RangeCells || type === c_oAscSelectionType.RangeCol ||
+						type === c_oAscSelectionType.RangeRow || type === c_oAscSelectionType.RangeMax) {
+						if(bFirstAdd) {
+							t.model.selectionRange.clean();
+							bFirstAdd = false;
+						} else {
+							t.model.selectionRange.addRange();
+						}
+						t.model.selectionRange.getLast().assign2(bbox);
+					}
+				}
+			};
+
+			this.cleanSelection();
+			addRangesBySelection();
+
 			this._fixSelectionOfMergedCells();
 			this.updateSelectionWithSparklines();
 
-            this._updateSelectionNameAndInfo();
-            oRes = this._calcActiveCellOffset();
-        }
-        return oRes;
+			this._updateSelectionNameAndInfo();
+			oRes = this._calcActiveCellOffset();
+		}
+
+		return oRes;
     };
 
 	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl) {
