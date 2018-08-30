@@ -364,6 +364,11 @@ var editor;
     this._asc_downloadAs(c_oAscFileType.PDF, c_oAscAsyncAction.Print, {downloadType: bIsDownloadEvent ? DownloadType.Print: DownloadType.None});
   };
 
+  spreadsheet_api.prototype.asc_ChangePrintArea = function(type) {
+	var ws = this.wb.getWorksheet();
+	return ws.changePrintArea(type);
+  };
+
   spreadsheet_api.prototype.asc_Copy = function() {
     if (window["AscDesktopEditor"])
     {
@@ -3490,6 +3495,8 @@ var editor;
   prot["asc_changePageMargins"] = prot.asc_changePageMargins;
   prot["asc_setPageOption"] = prot.asc_setPageOption;
   prot["asc_changePageOrient"] = prot.asc_changePageOrient;
+
+  prot["asc_ChangePrintArea"] = prot.asc_ChangePrintArea;
 
   prot["asc_decodeBuffer"] = prot.asc_decodeBuffer;
 

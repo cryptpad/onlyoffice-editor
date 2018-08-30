@@ -2344,6 +2344,8 @@
 		//поэтому рассчет делаю 1 раз
 		var visiblePrintPages = pageBreakPreviewMode ? this._getVisiblePrintPages(range) : null;
 
+		var test = new HeaderFooterParser().parse('&L&"-,Italic"&14 11&P22&"Amiri,Bold"dd');
+
 		// Возможно сетку не нужно рисовать (при печати свои проверки)
 		if (null === drawingCtx && false === this.model.getSheetView().asc_getShowGridLines()) {
 			return;
@@ -14523,6 +14525,48 @@
 		History.EndTransaction();
 	};
 
+	WorksheetView.prototype.changePrintArea = function (type) {
+		var t = this;
+		var wb = window["Asc"]["editor"].wb;
+
+		//TODO нужно ли лочить именованные диапазоны при изменении особого именованного диапазона - _xlnm.Print_Area
+		var callback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			var printArea = t.model.workbook.getDefinesNames("_xlnm.Print_Area", t.model.getId());
+			switch (type) {
+				case Asc.c_oAscChangePrintAreaType.set: {
+					//если нет такого именнованного диапазона - создаём. если есть - меняем ref
+
+					var selectionLast = t.model.selectionRange.getLast();
+					var mc = selectionLast.isOneCell() ? t.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
+
+					var oldDefName = printArea ? printArea.getAscCDefName() : null;
+					var newDefName = new Asc.asc_CDefName("_xlnm.Print_Area", parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName()));
+					wb.editDefinedNames(oldDefName, newDefName);
+
+					break;
+				}
+				case Asc.c_oAscChangePrintAreaType.clear: {
+					if(printArea) {
+						wb.delDefinedNames(printArea.getAscCDefName());
+					}
+					break;
+				}
+				case Asc.c_oAscChangePrintAreaType.add: {
+					//расширяем именованный диапазон
+
+
+					break;
+				}
+			}
+
+		};
+
+		return this._isLockedLayoutOptions(callback);
+	};
     //------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;

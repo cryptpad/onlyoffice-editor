@@ -380,7 +380,14 @@ var c_oAscPopUpSelectorType = {
 	UndoTableAutoExpansion: 0,
 	RedoTableAutoExpansion: 1
   };
-  
+
+  //изменяем Print_Area
+  var c_oAscChangePrintAreaType = {
+      set: 0,
+      clear: 1,
+      add: 2
+  };
+
   var c_kMaxPrintPages = 1500;
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -582,4 +589,10 @@ var c_oAscPopUpSelectorType = {
   prot = c_oAscAutoCorrectOptions;
   prot['UndoTableAutoExpansion'] = prot.UndoTableAutoExpansion;
   prot['RedoTableAutoExpansion'] = prot.RedoTableAutoExpansion;
+  window['Asc']['c_oAscChangePrintAreaType'] = window['Asc'].c_oAscChangePrintAreaType = c_oAscChangePrintAreaType;
+  prot = c_oAscChangePrintAreaType;
+  prot['set'] = prot.set;
+  prot['clear'] = prot.clear;
+  prot['add'] = prot.add;
+
 })(window);
