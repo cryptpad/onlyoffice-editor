@@ -1805,6 +1805,282 @@ function asc_menu_WritePosition(_type, _position, _stream) {
     _stream["WriteByte"](255);
 }
 
+function asc_menu_WriteParaTabs(_type, _tabs, _stream)
+{
+    if (!_tabs)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    var _len = _tabs.Tabs.length;
+    _stream["WriteLong"](_len);
+
+    for (var i = 0; i < _len; i++)
+    {
+        if (_tabs.Tabs[i].Pos !== undefined && _tabs.Tabs[i].Pos !== null)
+        {
+            _stream["WriteByte"](0);
+            _stream["WriteDouble2"](_tabs.Tabs[i].Pos);
+        }
+        if (_tabs.Tabs[i].Value !== undefined && _tabs.Tabs[i].Value !== null)
+        {
+            _stream["WriteByte"](1);
+            _stream["WriteLong"](_tabs.Tabs[i].Value);
+        }
+        _stream["WriteByte"](255);
+    }
+}
+
+function asc_menu_WriteFontFamily(_type, _family, _stream)
+{
+    if (!_family)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_family.Name !== undefined && _family.Name !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteString2"](_family.Name);
+    }
+    if (_family.Index !== undefined && _family.Index !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_family.Index);
+    }
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_WriteParaFrame(_type, _frame, _stream)
+{
+    if (!_frame)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_frame.FromDropCapMenu !== undefined && _frame.FromDropCapMenu !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteBool"](_frame.FromDropCapMenu);
+    }
+    if (_frame.DropCap !== undefined && _frame.DropCap !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_frame.DropCap);
+    }
+    if (_frame.W !== undefined && _frame.W !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteDouble2"](_frame.W);
+    }
+    if (_frame.H !== undefined && _frame.H !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteDouble2"](_frame.H);
+    }
+    if (_frame.HAlign !== undefined && _frame.HAlign !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteLong"](_frame.HAlign);
+    }
+    if (_frame.HRule !== undefined && _frame.HRule !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteLong"](_frame.HRule);
+    }
+    if (_frame.HSpace !== undefined && _frame.HSpace !== null)
+    {
+        _stream["WriteByte"](6);
+        _stream["WriteDouble2"](_frame.HSpace);
+    }
+    if (_frame.VAnchor !== undefined && _frame.VAnchor !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteLong"](_frame.VAnchor);
+    }
+    if (_frame.VSpace !== undefined && _frame.VSpace !== null)
+    {
+        _stream["WriteByte"](8);
+        _stream["WriteDouble2"](_frame.VSpace);
+    }
+    if (_frame.X !== undefined && _frame.X !== null)
+    {
+        _stream["WriteByte"](9);
+        _stream["WriteDouble2"](_frame.X);
+    }
+    if (_frame.Y !== undefined && _frame.Y !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteDouble2"](_frame.Y);
+    }
+    if (_frame.XAlign !== undefined && _frame.XAlign !== null)
+    {
+        _stream["WriteByte"](11);
+        _stream["WriteLong"](_frame.XAlign);
+    }
+    if (_frame.YAlign !== undefined && _frame.YAlign !== null)
+    {
+        _stream["WriteByte"](12);
+        _stream["WriteLong"](_frame.YAlign);
+    }
+    if (_frame.Lines !== undefined && _frame.Lines !== null)
+    {
+        _stream["WriteByte"](13);
+        _stream["WriteLong"](_frame.Lines);
+    }
+    if (_frame.Wrap !== undefined && _frame.Wrap !== null)
+    {
+        _stream["WriteByte"](14);
+        _stream["WriteLong"](_frame.Wrap);
+    }
+
+    asc_menu_WriteParaBorders(15, _frame.Brd, _stream);
+    asc_menu_WriteParaShd(16, _frame.Shd, _stream);
+    asc_menu_WriteFontFamily(17, _frame.FontFamily, _stream);
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_WriteParaListType(_type, _list, _stream)
+{
+    if (!_list)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_list.Type !== undefined && _list.Type !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteLong"](_list.Type);
+    }
+    if (_list.SubType !== undefined && _list.SubType !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_list.SubType);
+    }
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_WriteParagraphPr(_paraPr, _stream)
+{
+    if (_paraPr.ContextualSpacing !== undefined && _paraPr.ContextualSpacing !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteBool"](_paraPr.ContextualSpacing);
+    }
+    asc_menu_WriteParaInd(1, _paraPr.Ind, _stream);
+
+    if (_paraPr.KeepLines !== undefined && _paraPr.KeepLines !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteBool"](_paraPr.KeepLines);
+    }
+    if (_paraPr.KeepNext !== undefined && _paraPr.KeepNext !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteBool"](_paraPr.KeepNext);
+    }
+    if (_paraPr.WidowControl !== undefined && _paraPr.WidowControl !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteBool"](_paraPr.WidowControl);
+    }
+    if (_paraPr.PageBreakBefore !== undefined && _paraPr.PageBreakBefore !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteBool"](_paraPr.PageBreakBefore);
+    }
+
+    asc_menu_WriteParaSpacing(6, _paraPr.Spacing, _stream);
+    asc_menu_WriteParaBorders(7, _paraPr.Brd, _stream);
+    asc_menu_WriteParaShd(8, _paraPr.Shd, _stream);
+
+    if (_paraPr.Locked !== undefined && _paraPr.Locked !== null)
+    {
+        _stream["WriteByte"](9);
+        _stream["WriteBool"](_paraPr.Locked);
+    }
+    if (_paraPr.CanAddTable !== undefined && _paraPr.CanAddTable !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteBool"](_paraPr.CanAddTable);
+    }
+    if (_paraPr.CanAddDropCap !== undefined && _paraPr.CanAddDropCap !== null)
+    {
+        _stream["WriteByte"](11);
+        _stream["WriteBool"](_paraPr.CanAddDropCap);
+    }
+
+    if (_paraPr.DefaultTab !== undefined && _paraPr.DefaultTab !== null)
+    {
+        _stream["WriteByte"](12);
+        _stream["WriteDouble2"](_paraPr.DefaultTab);
+    }
+
+    asc_menu_WriteParaTabs(13, _paraPr.Tabs, _stream);
+    asc_menu_WriteParaFrame(14, _paraPr.FramePr, _stream);
+
+    if (_paraPr.Subscript !== undefined && _paraPr.Subscript !== null)
+    {
+        _stream["WriteByte"](15);
+        _stream["WriteBool"](_paraPr.Subscript);
+    }
+    if (_paraPr.Superscript !== undefined && _paraPr.Superscript !== null)
+    {
+        _stream["WriteByte"](16);
+        _stream["WriteBool"](_paraPr.Superscript);
+    }
+    if (_paraPr.SmallCaps !== undefined && _paraPr.SmallCaps !== null)
+    {
+        _stream["WriteByte"](17);
+        _stream["WriteBool"](_paraPr.SmallCaps);
+    }
+    if (_paraPr.AllCaps !== undefined && _paraPr.AllCaps !== null)
+    {
+        _stream["WriteByte"](18);
+        _stream["WriteBool"](_paraPr.AllCaps);
+    }
+    if (_paraPr.Strikeout !== undefined && _paraPr.Strikeout !== null)
+    {
+        _stream["WriteByte"](19);
+        _stream["WriteBool"](_paraPr.Strikeout);
+    }
+    if (_paraPr.DStrikeout !== undefined && _paraPr.DStrikeout !== null)
+    {
+        _stream["WriteByte"](20);
+        _stream["WriteBool"](_paraPr.DStrikeout);
+    }
+
+    if (_paraPr.TextSpacing !== undefined && _paraPr.TextSpacing !== null)
+    {
+        _stream["WriteByte"](21);
+        _stream["WriteDouble2"](_paraPr.TextSpacing);
+    }
+    if (_paraPr.Position !== undefined && _paraPr.Position !== null)
+    {
+        _stream["WriteByte"](22);
+        _stream["WriteDouble2"](_paraPr.Position);
+    }
+
+    asc_menu_WriteParaListType(23, _paraPr.ListType, _stream);
+
+    if (_paraPr.StyleName !== undefined && _paraPr.StyleName !== null)
+    {
+        _stream["WriteByte"](24);
+        _stream["WriteString2"](_paraPr.StyleName);
+    }
+
+    if (_paraPr.Jc !== undefined && _paraPr.Jc !== null)
+    {
+        _stream["WriteByte"](25);
+        _stream["WriteLong"](_paraPr.Jc);
+    }
+
+    _stream["WriteByte"](255);
+}
+
 function asc_menu_ReadPaddings(_params, _cursor) {
     var _paddings = new Asc.asc_CPaddings();
     var _continue = true;
