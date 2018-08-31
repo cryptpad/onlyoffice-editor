@@ -2344,8 +2344,6 @@
 		//поэтому рассчет делаю 1 раз
 		var visiblePrintPages = pageBreakPreviewMode ? this._getVisiblePrintPages(range) : null;
 
-		var test = new HeaderFooterParser().parse('&L&"-,Italic"&14 11&P22&"Amiri,Bold"dd');
-
 		// Возможно сетку не нужно рисовать (при печати свои проверки)
 		if (null === drawingCtx && false === this.model.getSheetView().asc_getShowGridLines()) {
 			return;
@@ -14529,22 +14527,25 @@
 		var t = this;
 		var wb = window["Asc"]["editor"].wb;
 
-		//TODO нужно ли лочить именованные диапазоны при изменении особого именованного диапазона - _xlnm.Print_Area
+		//TODO нужно ли лочить именованные диапазоны при изменении особого именованного диапазона - Print_Area
 		var callback = function (isSuccess) {
 			if (false === isSuccess) {
 				return;
 			}
 
-			var printArea = t.model.workbook.getDefinesNames("_xlnm.Print_Area", t.model.getId());
+			var printArea = t.model.workbook.getDefinesNames("Print_Area", t.model.getId());
+			var selectionLast, mc, oldDefName, oldScope, newRef, newDefName, oldRef;
 			switch (type) {
 				case Asc.c_oAscChangePrintAreaType.set: {
 					//если нет такого именнованного диапазона - создаём. если есть - меняем ref
 
-					var selectionLast = t.model.selectionRange.getLast();
-					var mc = selectionLast.isOneCell() ? t.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
+					selectionLast = t.model.selectionRange.getLast();
+					mc = selectionLast.isOneCell() ? t.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
 
-					var oldDefName = printArea ? printArea.getAscCDefName() : null;
-					var newDefName = new Asc.asc_CDefName("_xlnm.Print_Area", parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName()));
+					oldDefName = printArea ? printArea.getAscCDefName() : null;
+					oldScope = oldDefName ? oldDefName.asc_getScope() : t.model.index;
+					newRef = parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName());
+					newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false);
 					wb.editDefinedNames(oldDefName, newDefName);
 
 					break;
@@ -14558,6 +14559,15 @@
 				case Asc.c_oAscChangePrintAreaType.add: {
 					//расширяем именованный диапазон
 
+					selectionLast = t.model.selectionRange.getLast();
+					mc = selectionLast.isOneCell() ? t.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
+
+					oldDefName = printArea ? printArea.getAscCDefName() : null;
+					oldScope = oldDefName ? oldDefName.asc_getScope() : t.model.index;
+					oldRef = oldDefName.asc_getRef();
+					newRef = oldRef + "," +  parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName());
+					newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false);
+					wb.editDefinedNames(oldDefName, newDefName);
 
 					break;
 				}

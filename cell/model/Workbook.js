@@ -620,7 +620,7 @@
 			var names = [], activeWS;
 
 			function getNames(defName) {
-				if (defName.ref && !defName.hidden && (defName.name.indexOf("_xlnm") < 0 || defName.name === "_xlnm.Print_Area")) {
+				if (defName.ref && !defName.hidden && (defName.name.indexOf("_xlnm") < 0/* || defName.name === "_xlnm.Print_Area"*/)) {
 					names.push(defName.getAscCDefName());
 				}
 			}
@@ -653,6 +653,9 @@
 		},
 		addDefNameOpen: function(name, ref, sheetIndex, hidden, isTable) {
 			var sheetId = this.wb.getSheetIdByIndex(sheetIndex);
+			if(name === "_xlnm.Print_Area") {
+				name = "Print_Area";
+			}
 			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable);
 			this._addDefName(defName);
 			return defName;
