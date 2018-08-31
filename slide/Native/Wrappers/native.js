@@ -498,8 +498,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 21: // ASC_MENU_EVENT_TYPE_CHART
         {
-        	var chartProp = asc_menu_ReadChartPr(_params, _current);           
-            this.ChartApply(chartProp);
+            var chartProp = asc_menu_ReadChartPr(_params, _current);
+            var prop = new Asc.CAscChartProp();
+            prop.put_ChartProperties(chartProp);
+            prop.put_SeveralCharts(false);
+            this.ChartApply(prop);
             this.WordControl.m_oLogicDocument.Recalculate();
         	break;
         }
