@@ -14533,18 +14533,28 @@
 				return;
 			}
 
+			var getRangesStr = function(ranges, oldStr) {
+				var str = oldStr ? oldStr : "";
+				var selectionLast = t.model.selectionRange.getLast();
+				var mc = selectionLast.isOneCell() ? t.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
+				for(var i = 0; i < ranges.length; i++) {
+					str += parserHelp.get3DRef(t.model.getName(), (mc || ranges[i]).getAbsName());
+					if(i !== 0 && i !== ranges.length - 1) {
+						str += ",";
+					}
+				}
+			 	return str;
+			};
+
 			var printArea = t.model.workbook.getDefinesNames("Print_Area", t.model.getId());
-			var selectionLast, mc, oldDefName, oldScope, newRef, newDefName, oldRef;
+			var selectionLast, mc, oldDefName, oldScope, newRef, newDefName, oldRef, selection;
 			switch (type) {
 				case Asc.c_oAscChangePrintAreaType.set: {
 					//если нет такого именнованного диапазона - создаём. если есть - меняем ref
 
-					selectionLast = t.model.selectionRange.getLast();
-					mc = selectionLast.isOneCell() ? t.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
-
 					oldDefName = printArea ? printArea.getAscCDefName() : null;
 					oldScope = oldDefName ? oldDefName.asc_getScope() : t.model.index;
-					newRef = parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName());
+					newRef = getRangesStr(t.model.selectionRange.range);
 					newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false);
 					wb.editDefinedNames(oldDefName, newDefName);
 
@@ -14558,14 +14568,10 @@
 				}
 				case Asc.c_oAscChangePrintAreaType.add: {
 					//расширяем именованный диапазон
-
-					selectionLast = t.model.selectionRange.getLast();
-					mc = selectionLast.isOneCell() ? t.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
-
 					oldDefName = printArea ? printArea.getAscCDefName() : null;
 					oldScope = oldDefName ? oldDefName.asc_getScope() : t.model.index;
 					oldRef = oldDefName.asc_getRef();
-					newRef = oldRef + "," +  parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName());
+					newRef = getRangesStr(t.model.selectionRange.range);
 					newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false);
 					wb.editDefinedNames(oldDefName, newDefName);
 
