@@ -221,7 +221,7 @@
 		}
 	}
 
-	function DefName(wb, name, ref, sheetId, hidden, isTable) {
+	function DefName(wb, name, ref, sheetId, hidden, isTable, isXLNM) {
 		this.wb = wb;
 		this.name = name;
 		this.ref = ref;
@@ -229,13 +229,15 @@
 		this.hidden = hidden;
 		this.isTable = isTable;
 
+		this.isXLNM = isXLNM;
+
 		this.isLock = null;
 		this.parsedRef = null;
 	}
 
 	DefName.prototype = {
 		clone: function(wb){
-			return new DefName(wb, this.name, this.ref, this.sheetId, this.hidden, this.isTable);
+			return new DefName(wb, this.name, this.ref, this.sheetId, this.hidden, this.isTable, this.isXLNM);
 		},
 		removeDependencies: function() {
 			if (this.parsedRef) {
@@ -267,10 +269,10 @@
 				var sheet = this.wb.getWorksheetById(this.sheetId);
 				index = sheet.getIndex();
 			}
-			return new Asc.asc_CDefName(this.name, this.ref, index, this.isTable, this.hidden, this.isLock);
+			return new Asc.asc_CDefName(this.name, this.ref, index, this.isTable, this.hidden, this.isLock, this.isXLNM);
 		},
 		getUndoDefName: function() {
-			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable);
+			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable, this.isXLNM);
 		},
 		setUndoDefName: function(newUndoName) {
 			this.name = newUndoName.name;
@@ -280,6 +282,7 @@
 			if (this.ref != newUndoName.ref) {
 				this.setRef(newUndoName.ref);
 			}
+			this.isXLNM = newUndoName.isXLNM;
 		},
 		onFormulaEvent: function(type, eventData) {
 			if (AscCommon.c_oNotifyParentType.IsDefName === type) {
@@ -620,7 +623,7 @@
 			var names = [], activeWS;
 
 			function getNames(defName) {
-				if (defName.ref && !defName.hidden && (defName.name.indexOf("_xlnm") < 0/* || defName.name === "_xlnm.Print_Area"*/)) {
+				if (defName.ref && !defName.hidden && (defName.name.indexOf("_xlnm") < 0)) {
 					names.push(defName.getAscCDefName());
 				}
 			}
@@ -653,10 +656,12 @@
 		},
 		addDefNameOpen: function(name, ref, sheetIndex, hidden, isTable) {
 			var sheetId = this.wb.getSheetIdByIndex(sheetIndex);
+			var isXLNM = null;
 			if(name === "_xlnm.Print_Area") {
 				name = "Print_Area";
+				isXLNM = true;
 			}
-			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable);
+			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable, isXLNM);
 			this._addDefName(defName);
 			return defName;
 		},
@@ -2783,7 +2788,7 @@
 			return ascName;
 		}
 		var sheetId = this.getSheetIdByIndex(ascName.LocalSheetId);
-		return new UndoRedoData_DefinedNames(ascName.Name, ascName.Ref, sheetId, ascName.isTable);
+		return new UndoRedoData_DefinedNames(ascName.Name, ascName.Ref, sheetId, ascName.isTable, ascName.isXLNM);
 	};
 	Workbook.prototype.changeColorScheme = function (index) {
 		var scheme = AscCommon.getColorThemeByIndex(index);

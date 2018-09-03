@@ -1838,7 +1838,7 @@
 
     WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages) {
 		var range, maxCell;
-		var printArea = this.model.workbook.getDefinesNames("_xlnm.Print_Area", this.model.getId());
+		var printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
 
 		if (printOnlySelection) {
 			for (var i = 0; i < this.model.selectionRange.ranges.length; ++i) {

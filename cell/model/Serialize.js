@@ -2514,7 +2514,7 @@
                     if(defNameList[i].Name !== filterDefName) {
 						var oldName = null;
 						//на запись добавляем к области печати префикс
-						if(printAreaDefName === defNameList[i].Name && null != defNameList[i].LocalSheetId) {
+						if(printAreaDefName === defNameList[i].Name && null != defNameList[i].LocalSheetId && true === defNameList[i].isXLNM) {
 							oldName = defNameList[i].Name;
 							defNameList[i].Name = prefix + defNameList[i].Name;
 						}
