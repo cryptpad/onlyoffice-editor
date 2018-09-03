@@ -14578,9 +14578,29 @@
 		return this._isLockedLayoutOptions(callback);
 	};
 
-	WorksheetView.prototype.canAddPrintArea = function () {
-        return false;
-	};
+    WorksheetView.prototype.canAddPrintArea = function () {
+        var res = false;
+        var printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+        if(printArea) {
+            res = true;
+            var selection = this.model.selectionRange.ranges;
+
+            var ref = printArea.ref;
+            var areaRefsArr = ref.split(",");
+            if(areaRefsArr.length) {
+                for(var i = 0; i < areaRefsArr.length; i++) {
+                    var range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) || AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+                    for(var j = 0; j < selection.length; j++) {
+                        if(selection[j].intersection(range)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return res;
+    };
 
     //------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
