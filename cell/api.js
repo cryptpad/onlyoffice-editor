@@ -369,6 +369,11 @@ var editor;
 	return ws.changePrintArea(type);
   };
 
+  spreadsheet_api.prototype.asc_CanAddPrintArea = function() {
+      var ws = this.wb.getWorksheet();
+      return ws.canAddPrintArea();
+  };
+
   spreadsheet_api.prototype.asc_Copy = function() {
     if (window["AscDesktopEditor"])
     {
@@ -3497,6 +3502,8 @@ var editor;
   prot["asc_changePageOrient"] = prot.asc_changePageOrient;
 
   prot["asc_ChangePrintArea"] = prot.asc_ChangePrintArea;
+  prot["asc_CanAddPrintArea"] = prot.asc_CanAddPrintArea;
+
 
   prot["asc_decodeBuffer"] = prot.asc_decodeBuffer;
 

@@ -14577,6 +14577,11 @@
 
 		return this._isLockedLayoutOptions(callback);
 	};
+
+	WorksheetView.prototype.canAddPrintArea = function () {
+        return false;
+	};
+
     //------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
