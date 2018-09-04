@@ -155,6 +155,68 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
     window["native"]["OnCallMenuEvent"](6, global_memory_stream_menu);
 };
 
+// chat styles
+AscCommon.ChartPreviewManager.prototype.clearPreviews = function()
+{
+    window["native"]["DD_ClearCacheChartStyles"]();
+};
+
+AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex)
+{
+    return AscFormat.ExecuteNoHistory(function(){
+      if(!this.chartsByTypes[type])
+          this.chartsByTypes[type] = this.getChartByType(type);
+
+      var chart_space = this.chartsByTypes[type];
+      AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
+      chart_space.recalcInfo.recalculateReferences = false;
+      chart_space.recalculate();
+
+      // sizes for imageView
+      window["native"]["DD_StartNativeDraw"](85 * 2, 85 * 2, 75, 75);
+
+      var dKoefToMM = AscCommon.g_dKoef_pix_to_mm;
+      if (this.IsRetinaEnabled)
+          dKoefToMM /= 2;
+
+      chart_space.draw(_graphics);
+      _graphics.ClearParams();
+
+      var _stream = global_memory_stream_menu;
+      _stream["ClearNoAttack"]();
+      _stream["WriteByte"](4);
+      _stream["WriteLong"](type);
+      _stream["WriteLong"](styleIndex);
+      window["native"]["DD_EndNativeDraw"](_stream);
+
+      }, this, []);
+};
+
+AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
+{
+    if (AscFormat.isRealNumber(chartType))
+    {
+        var bIsCached = window["native"]["DD_IsCachedChartStyles"](chartType);
+        if (!bIsCached)
+        {
+            window["native"]["DD_PrepareNativeDraw"]();
+
+            var _graphics = new CDrawingStream();
+
+            if(AscCommon.g_oChartPresets[chartType]){
+                var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
+                for(var i = 0; i < nStylesCount; ++i)
+                    this.createChartPreview(_graphics, chartType, i);
+            }
+
+            var _stream = global_memory_stream_menu;
+            _stream["ClearNoAttack"]();
+            _stream["WriteByte"](5);
+            _api.WordControl.m_oDrawingDocument.Native["DD_EndNativeDraw"](_stream);
+        }
+    }
+};
+
 Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 {
     var _return = undefined;
@@ -725,6 +787,14 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             _stream["ClearNoAttack"]();
             _stream["WriteStringA"](this["asc_nativeGetFile"]());
             _return = _stream;
+            break;
+        }
+
+        case 201: // ASC_MENU_EVENT_TYPE_DOCUMENT_CHARTSTYLES
+        {
+            var typeChart = _params[0];
+            this.chartPreviewManager.getChartPreviews(typeChart);
+            _return = global_memory_stream_menu;
             break;
         }
 
