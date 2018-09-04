@@ -575,7 +575,11 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream)
     if (!_chartPr)
         return;
 
-    _stream["WriteByte"](_type);
+    if(_type !== undefined)
+    {
+        _stream["WriteByte"](_type);
+    }
+    
 
     if (_chartPr.style !== undefined && _chartPr.style !== null)
     {

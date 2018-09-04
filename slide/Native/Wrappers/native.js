@@ -111,7 +111,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             {
                 console.log("StackObjects -> Chart");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Chart);
-                asc_menu_WriteChartPr(undefined, this.SelectedObjectsStack[i].Value, _stream); 
+                asc_menu_WriteChartPr(undefined, this.SelectedObjectsStack[i].Value.ChartProperties, _stream); 
                 break;
             }
 
