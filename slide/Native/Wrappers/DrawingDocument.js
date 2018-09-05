@@ -152,6 +152,8 @@ function CDrawingDocument()
 
     this.TargetCursorColor = {R: 0, G: 0, B: 0};
 
+    this.TargetPos = {X: 0.0, Y: 0.0, Page: 0};
+
 
     this.AutoShapesTrack = new AscCommon.CAutoshapeTrack();
 
@@ -501,6 +503,9 @@ CDrawingDocument.prototype.CheckTargetDraw = function(x, y)
 
 CDrawingDocument.prototype.UpdateTarget = function(x, y, pageIndex)
 {
+    this.TargetPos.X = x;
+    this.TargetPos.Y = y;
+    this.TargetPos.Page = pageIndex;
     return this.Native["DD_UpdateTarget"](x, y, pageIndex);
 };
 
@@ -949,7 +954,125 @@ CDrawingDocument.prototype.OnMouseUp = function(e)
 {
     check_MouseUpEvent(e);
     this.m_oLogicDocument.OnMouseUp(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+    return this.CheckReturnMouseUp();
 };
+
+
+CDrawingDocument.prototype.CheckReturnMouseUp = function()
+    {
+        // return: array
+        // first: type (0 - none, 1 - onlytarget, 2 - select, 3 - tracks)
+        // type = 0: none
+        // type = 1: (double)x, (double)y, (int)page, [option: transform (6 double values)]
+        // type = 2: (double)x1, (double)y1, (int)page1, (double)x2, (double)y2, (int)page2, [option: transform (6 double values)]
+        // type = 3: (double)x, (double)y, (double)w, (double)h, (int)page, [option: transform (6 double values)]
+
+
+        var _ret = [];
+        _ret.push(0);
+
+        this.SelectRect1 = null;
+        this.SelectRect2 = null;
+
+		var oController = this.m_oLogicDocument.GetCurrentController();
+
+
+
+		var oTargetContent = oController.getTargetDocContent();
+
+		if(oTargetContent)
+		{
+			var _target = oTargetContent.IsSelectionUse();
+			var oTextTransform = oTargetContent.Get_ParentTextTransform();
+			if (_target === false)
+			{
+				_ret[0] = 1;
+
+				_ret.push(this.TargetPos.X);
+				_ret.push(this.TargetPos.Y);
+				_ret.push(this.TargetPos.Page);
+
+				if (oTextTransform && !oTextTransform.IsIdentity())
+				{
+					_ret.push(oTextTransform.sx);
+					_ret.push(oTextTransform.shy);
+					_ret.push(oTextTransform.shx);
+					_ret.push(oTextTransform.sy);
+					_ret.push(oTextTransform.tx);
+					_ret.push(oTextTransform.ty);
+				}
+
+				return _ret;
+			}
+
+			var _select = oTargetContent.GetSelectionBounds();
+			if (_select)
+			{
+
+				_ret[0] = 2;
+				var _rect1 = _select.Start;
+				var _rect2 = _select.End;
+				this.SelectRect1 = _rect1;
+				this.SelectRect2 = _rect2;
+
+				var _x1 = _rect1.X;
+				var _y1 = _rect1.Y;
+				var _y11 = _rect1.Y + _rect2.H;
+				var _x2 = _rect2.X + _rect2.W;
+				var _y2 = _rect2.Y;
+				var _y22 = _rect2.Y + _rect2.Y;
+
+				var _eps = 0.0001;
+				if (Math.abs(_x1 - _x2) < _eps &&
+					Math.abs(_y1 - _y2) < _eps &&
+					Math.abs(_y11 - _y22) < _eps)
+				{
+					_ret[0] = 0;
+
+				}
+				else
+				{
+					_ret.push(_select.Start.X);
+					_ret.push(_select.Start.Y);
+					_ret.push(_select.Start.Page);
+					_ret.push(_select.End.X + _select.End.W);
+					_ret.push(_select.End.Y + _select.End.H);
+					_ret.push(_select.End.Page);
+
+					if (oTextTransform && !oTextTransform.IsIdentity())
+					{
+
+						_ret.push(oTextTransform.sx);
+						_ret.push(oTextTransform.shy);
+						_ret.push(oTextTransform.shx);
+						_ret.push(oTextTransform.sy);
+						_ret.push(oTextTransform.tx);
+						_ret.push(oTextTransform.ty);
+					}
+
+					return _ret;
+				}
+			}
+		}
+
+        var _object_bounds = oController.getSelectedObjectsBounds();
+        if (_object_bounds)
+        {
+
+            _ret[0] = 3;
+            _ret.push(_object_bounds.minX);
+            _ret.push(_object_bounds.minY);
+            _ret.push(_object_bounds.maxX);
+            _ret.push(_object_bounds.maxY);
+            _ret.push(_object_bounds.pageIndex);
+
+            return _ret;
+        }
+
+
+        return _ret;
+    };
+
 
 // collaborative targets
 CDrawingDocument.prototype.Collaborative_UpdateTarget = function(_id, _x, _y, _size, _page, _transform, is_from_paint)

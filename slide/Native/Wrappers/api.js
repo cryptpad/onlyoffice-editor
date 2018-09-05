@@ -3302,8 +3302,9 @@ if(window.native){
     window.native.Call_OnMouseUp = function(e){
         if(window.editor)
         {
-            window.editor.WordControl.m_oDrawingDocument.OnMouseUp(e);
+            return window.editor.WordControl.m_oDrawingDocument.OnMouseUp(e);
         }
+        return [];
     };
 
     window.native.Call_OnMouseMove = function(e){
