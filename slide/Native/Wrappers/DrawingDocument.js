@@ -173,9 +173,14 @@ CDrawingDocument.prototype.Notes_OnRecalculate = function()
     return 100;
 };
 
-CDrawingDocument.prototype.RenderPage = function(nPageIndex)
+CDrawingDocument.prototype.RenderPage = function(nPageIndex, bTh)
 {
     var _graphics = new CDrawingStream();
+    if(bTh)
+    {
+        _graphics.IsNoDrawingEmptyPlaceholder = true;
+        _graphics.IsThumbnail = true;
+    }
     this.m_oWordControl.m_oLogicDocument.DrawPage(nPageIndex, _graphics);
 };
 

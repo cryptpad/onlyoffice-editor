@@ -3021,9 +3021,9 @@ Asc['asc_docs_api'].prototype["CheckSlideBounds"] = function(nSlideIndex){
     ]
 }
 
-Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex)
+Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex, bTh)
 {
-    this.WordControl.m_oDrawingDocument.RenderPage(pageIndex);
+    this.WordControl.m_oDrawingDocument.RenderPage(pageIndex, bTh);
 };
 
 
@@ -3250,6 +3250,12 @@ Asc['asc_docs_api'].prototype.Call_Menu_Context_Select = function()
     this.WordControl.m_oLogicDocument.MoveCursorRight(true, true);
     this.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
 };
+
+Asc['asc_docs_api'].prototype.Call_Menu_Context_Delete = function()
+{
+    this.WordControl.m_oLogicDocument.Remove(-1);
+};
+
 Asc['asc_docs_api'].prototype.Call_Menu_Context_SelectAll = function()
 {
     this.WordControl.m_oLogicDocument.SelectAll();
@@ -3283,9 +3289,9 @@ if(window.native){
         }
 	};
 	
-	window.native.Call_GetPageMeta = function(nIndex){
+	window.native.Call_GetPageMeta = function(nIndex, bTh){
         if(window.editor) {
-            return window.editor.GetNativePageMeta(nIndex);
+            return window.editor.GetNativePageMeta(nIndex, bTh);
         }
 	};
 
