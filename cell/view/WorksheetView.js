@@ -2419,6 +2419,8 @@
 		this._drawPageBreakPreviewLines(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, visiblePrintPages);
 		//отрисовка линий предварительного просмотра страниц без использования calcPagesPrint
 		this._drawPageBreakPreviewLines2(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height);
+		//отрисовка пунктирных линий предварительного просмотра в нормальном режиме редактирования и с использованием calcPagesPrint
+		this._drawPageBreakPreviewLines3(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, visiblePrintPages);
 	};
 
     WorksheetView.prototype._drawCellsAndBorders = function ( drawingCtx, range, offsetXForDraw, offsetYForDraw ) {
@@ -2980,6 +2982,131 @@
 			ctx.stroke();
 		}
 	};
+
+	WorksheetView.prototype._drawPageBreakPreviewLines3 = function (drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, printPages) {
+
+		/*if(!pageBreakPreviewMode) {
+			return;
+		}*/
+
+		if (range === undefined) {
+			range = this.visibleRange;
+		}
+		var ctx = drawingCtx || this.drawingCtx;
+		var c = this.cols;
+		var r = this.rows;
+
+		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : c[this.visibleRange.c1].left - this.cellsLeft;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : r[this.visibleRange.r1].top - this.cellsTop;
+
+		var frozenX = 0, frozenY = 0, cFrozen, rFrozen;
+		if (null === drawingCtx && this.topLeftFrozenCell) {
+			if (undefined === leftFieldInPx) {
+				cFrozen = this.topLeftFrozenCell.getCol0();
+				offsetX -= frozenX = c[cFrozen].left - c[0].left;
+			}
+			if (undefined === topFieldInPx) {
+				rFrozen = this.topLeftFrozenCell.getRow0();
+				offsetY -= frozenY =  r[rFrozen].top - r[0].top;
+			}
+		}
+
+
+		var i, d, d1;
+		var x1, x2, y1, y2;
+		var pageBreakPreview = true;
+		if(pageBreakPreview) {
+			var printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+			if(printArea) {
+
+				var vx1 = c[range.c1].left - offsetX;
+				var vy1 = r[range.r1].top - offsetY;
+				var vx2 = c[range.c2].left + c[range.c2].width - offsetX;
+				var vy2 = r[range.r2].top + r[range.r2].height - offsetY;
+
+				ctx.setStrokeStyle(this.settings.activeCellBorderColor);
+				ctx.setLineWidth(3).beginPath();
+
+			    for(var i = 0; i < printPages.length; i++) {
+					var pageRange = printPages[i].page.pageRange;
+
+			        x1 = c[pageRange.c1].left - offsetX;
+					y1 = r[pageRange.r1].top - offsetY;
+					x2 = c[pageRange.c2].left + c[pageRange.c2].width - offsetX;
+					y2 = r[pageRange.r2].top + r[pageRange.r2].height - offsetY;
+
+					ctx.dashLineCleverVer(x1, Math.max(y1 - frozenY, vy1 - frozenY), Math.min(y2 - frozenY, vy2 - frozenY));
+					ctx.dashLineCleverVer(x2, Math.max(y1 - frozenY, vy1 - frozenY), Math.min(y2 - frozenY, vy2 - frozenY));
+					ctx.dashLineCleverHor(Math.max(x1 - frozenX, vx1 - frozenX), y1, Math.min(x2 - frozenX, vx2 - frozenX));
+					ctx.dashLineCleverHor(Math.max(x1 - frozenX, vx1 - frozenX), y2, Math.min(x2 - frozenX, vx2 - frozenX));
+
+                }
+
+				ctx.stroke();
+
+
+
+
+
+
+			    /*var startRange = printPages[0] ? printPages[0].page.pageRange : null;
+				var endRange = printPages[0] ? printPages[printPages.length - 1].page.pageRange : null;
+				var unionRange = startRange ? new Asc.Range(startRange.c1, startRange.r1, endRange.c2, endRange.r2) : null;
+
+				//вначале закрашииваем непечатную область
+				var intersection = unionRange ? range.intersection(unionRange) : null;
+				ctx.setFillStyle(this.settings.cells.defaultState.border);
+
+
+				if(printPages[0] && intersection) {
+					x1 = c[intersection.c1].left - offsetX;
+					y1 = r[intersection.r1].top - offsetY;
+					x2 = c[intersection.c2].left + c[intersection.c2].width - offsetX;
+					y2 = r[intersection.r2].top + r[intersection.r2].height - offsetY;
+
+					//рисуем линии, ограничивающие страницы
+					ctx.setStrokeStyle(this.settings.activeCellBorderColor);
+					ctx.setLineWidth(3).beginPath();
+
+					var pageRange;
+					var pageIntersection;
+					for (i = 0, d = 0, d1 = 0; i < printPages.length; ++i) {
+						pageRange = printPages[i].page.pageRange;
+						pageIntersection = pageRange.intersection(range);
+						if(!pageIntersection) {
+							if(pageRange.r1 > range.r2 && pageRange.c1 > range.c2) {
+								break;
+							} else {
+								continue;
+							}
+						}
+
+						d = c[pageRange.c1].left - offsetX;
+						d1 = r[pageRange.r1].top - offsetY;
+						if(d >= x1 && d1 > 0) {
+							ctx.lineVerPrevPx(d, y1 - frozenY, y2);
+						}
+						if(d1 >= y1 && d > 0) {
+							ctx.lineHorPrevPx(x1 - frozenX, d1, x2);
+						}
+
+
+						d = c[pageRange.c2].left + c[pageRange.c2].width - offsetX;
+						d1 = r[pageRange.r2].top + r[pageRange.r2].height - offsetY;
+						if(d > x1 && d1 > 0) {
+							ctx.lineVerPrevPx(d, y1 - frozenY, y2);
+						}
+						if(d1 > y1 && d > 0) {
+							ctx.lineHorPrevPx(x1 - frozenX, d1, x2);
+						}
+					}
+
+					ctx.stroke();
+				}*/
+            }
+		}
+	};
+
 
 	WorksheetView.prototype._drawPageBreakPreviewText = function (drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, printPages) {
 
