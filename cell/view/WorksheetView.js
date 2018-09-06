@@ -2983,151 +2983,23 @@
 		}
 	};
 
-	WorksheetView.prototype._drawPageBreakPreviewLines3 = function () {
+	WorksheetView.prototype._drawPrintArea = function () {
 		var printOptions = this.model.PagePrintOptions;
-	    var printPages = [];
-		this.calcPagesPrint(printOptions, null, null, printPages);
-	    for (var i = 0, l = printPages.length; i < l; ++i) {
-		    this._drawElements(this._drawSelectionElement2, printPages[i].pageRange, AscCommonExcel.selectionLineType.Dash, new CColor(0, 0, 0));
-		}
-	};
 
-	WorksheetView.prototype._drawSelectionElement2 = function (visibleRange, offsetX, offsetY, args) {
-		var range = args[0];
-		var selectionLineType = args[1];
-		var strokeColor = args[2];
-		var isAllRange = args[3];
-		var colorN = this.settings.activeCellBorderColor2;
-		var ctx = this.overlayCtx;
-		var c = this.cols;
-		var r = this.rows;
-		var oIntersection = range.intersectionSimple(visibleRange);
-
-		if (!oIntersection) {
-			return true;
-		}
-
-		var fHorLine, fVerLine;
-		var canFill = AscCommonExcel.selectionLineType.Selection & selectionLineType;
-		var isDashLine = AscCommonExcel.selectionLineType.Dash & selectionLineType;
-		if (isDashLine) {
-			fHorLine = ctx.dashLineCleverHor;
-			fVerLine = ctx.dashLineCleverVer;
+		var printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+		var printPages = [];
+		if(printArea) {
+			this.calcPagesPrint(printOptions, null, null, printPages);
 		} else {
-			fHorLine = ctx.lineHorPrevPx;
-			fVerLine = ctx.lineVerPrevPx;
+			console.time("tsrta");
+			var range = new asc_Range(0, 0, this.visibleRange.c2, this.visibleRange.r2);
+			this._calcPagesPrint(range, printOptions, null, printPages);
+			console.timeEnd("tsrta");
 		}
 
-		var firstCol = oIntersection.c1 === visibleRange.c1 && !isAllRange;
-		var firstRow = oIntersection.r1 === visibleRange.r1 && !isAllRange;
-
-		var drawLeftSide = oIntersection.c1 === range.c1;
-		var drawRightSide = oIntersection.c2 === range.c2;
-		var drawTopSide = oIntersection.r1 === range.r1;
-		var drawBottomSide = oIntersection.r2 === range.r2;
-
-		var x1 = c[oIntersection.c1].left - offsetX;
-		var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-		var y1 = r[oIntersection.r1].top - offsetY;
-		var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
-
-		if (canFill) {
-			var fillColor = strokeColor.Copy();
-			fillColor.a = 0.15;
-			ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
+		for (var i = 0, l = printPages.length; i < l; ++i) {
+			this._drawElements(this._drawSelectionElement, printPages[i].pageRange, AscCommonExcel.selectionLineType.Dash, new CColor(0, 0, 0));
 		}
-
-		ctx.setLineWidth(isDashLine ? 1 : 2).setStrokeStyle(strokeColor);
-
-		ctx.beginPath();
-		if (drawTopSide && !firstRow) {
-			fHorLine.apply(ctx, [x1 - !isDashLine * 2, y1, x2 + !isDashLine * 1]);
-		}
-		if (drawBottomSide) {
-			fHorLine.apply(ctx, [x1, y2 + !isDashLine * 1, x2]);
-		}
-		if (drawLeftSide && !firstCol) {
-			fVerLine.apply(ctx, [x1, y1, y2 + !isDashLine * 1]);
-		}
-		if (drawRightSide) {
-			fVerLine.apply(ctx, [x2 + !isDashLine * 1, y1, y2 + !isDashLine * 1]);
-		}
-		ctx.closePath().stroke();
-
-		// draw active cell in selection
-		var isActive = AscCommonExcel.selectionLineType.ActiveCell & selectionLineType;
-		if (isActive) {
-			var cell = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).activeCell;
-			var fs = this.model.getMergedByCell(cell.row, cell.col);
-			fs = range.intersectionSimple(
-				fs ? fs : new asc_Range(cell.col, cell.row, cell.col, cell.row));
-			if (fs) {
-				var _x1 = c[fs.c1].left - offsetX + 1;
-				var _y1 = r[fs.r1].top - offsetY + 1;
-				var _w = c[fs.c2].left - c[fs.c1].left + c[fs.c2].width - 2;
-				var _h = r[fs.r2].top - r[fs.r1].top + r[fs.r2].height - 2;
-				if (0 < _w && 0 < _h) {
-					ctx.clearRect(_x1, _y1, _w, _h);
-				}
-			}
-		}
-
-		if (canFill) {/*Отрисовка светлой полосы при выборе ячеек для формулы*/
-			ctx.setLineWidth(1);
-			ctx.setStrokeStyle(colorN);
-			ctx.beginPath();
-			if (drawTopSide) {
-				fHorLine.apply(ctx, [x1, y1 + 1, x2 - 1]);
-			}
-			if (drawBottomSide) {
-				fHorLine.apply(ctx, [x1, y2 - 1, x2 - 1]);
-			}
-			if (drawLeftSide) {
-				fVerLine.apply(ctx, [x1 + 1, y1, y2 - 2]);
-			}
-			if (drawRightSide) {
-				fVerLine.apply(ctx, [x2 - 1, y1, y2 - 2]);
-			}
-			ctx.closePath().stroke();
-		}
-
-		// Отрисовка квадратов для move/resize
-		var isResize = AscCommonExcel.selectionLineType.Resize & selectionLineType;
-		var isPromote = AscCommonExcel.selectionLineType.Promote & selectionLineType;
-		if (isResize || isPromote) {
-			ctx.setFillStyle(colorN);
-			if (drawRightSide && drawBottomSide) {
-				ctx.fillRect(x2 - 4, y2 - 4, 7, 7);
-			}
-			ctx.setFillStyle(strokeColor);
-			if (drawRightSide && drawBottomSide) {
-				ctx.fillRect(x2 - 3, y2 - 3, 5, 5);
-			}
-
-			if (isResize) {
-				ctx.setFillStyle(colorN);
-				if (drawLeftSide && drawTopSide) {
-					ctx.fillRect(x1 - 4, y1 - 4, 7, 7);
-				}
-				if (drawRightSide && drawTopSide) {
-					ctx.fillRect(x2 - 4, y1 - 4, 7, 7);
-				}
-				if (drawLeftSide && drawBottomSide) {
-					ctx.fillRect(x1 - 4, y2 - 4, 7, 7);
-				}
-				ctx.setFillStyle(strokeColor);
-				if (drawLeftSide && drawTopSide) {
-					ctx.fillRect(x1 - 3, y1 - 3, 5, 5);
-				}
-				if (drawRightSide && drawTopSide) {
-					ctx.fillRect(x2 - 3, y1 - 3, 5, 5);
-				}
-				if (drawLeftSide && drawBottomSide) {
-					ctx.fillRect(x1 - 3, y2 - 3, 5, 5);
-				}
-			}
-		}
-		return true;
 	};
 
 
@@ -4079,7 +3951,7 @@
           .clip();
 
 		if(this.viewPrintLines) {
-			this._drawPageBreakPreviewLines3();
+			this._drawPrintArea();
 		}
 
         if (!this.isSelectionDialogMode) {
