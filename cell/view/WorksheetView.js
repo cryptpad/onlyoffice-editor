@@ -410,6 +410,8 @@
         this.skipUpdateRowHeight = false;
         this.canChangeColWidth = c_oAscCanChangeColWidth.none;
 
+        this.viewPrintLines = false;
+
         this._init();
 
         return this;
@@ -2419,8 +2421,6 @@
 		this._drawPageBreakPreviewLines(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, visiblePrintPages);
 		//отрисовка линий предварительного просмотра страниц без использования calcPagesPrint
 		this._drawPageBreakPreviewLines2(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height);
-		//отрисовка пунктирных линий предварительного просмотра в нормальном режиме редактирования и с использованием calcPagesPrint
-		this._drawPageBreakPreviewLines3(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, visiblePrintPages);
 	};
 
     WorksheetView.prototype._drawCellsAndBorders = function ( drawingCtx, range, offsetXForDraw, offsetYForDraw ) {
@@ -2983,128 +2983,151 @@
 		}
 	};
 
-	WorksheetView.prototype._drawPageBreakPreviewLines3 = function (drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, printPages) {
-
-		/*if(!pageBreakPreviewMode) {
-			return;
-		}*/
-
-		if (range === undefined) {
-			range = this.visibleRange;
+	WorksheetView.prototype._drawPageBreakPreviewLines3 = function () {
+		var printOptions = this.model.PagePrintOptions;
+	    var printPages = [];
+		this.calcPagesPrint(printOptions, null, null, printPages);
+	    for (var i = 0, l = printPages.length; i < l; ++i) {
+		    this._drawElements(this._drawSelectionElement2, printPages[i].pageRange, AscCommonExcel.selectionLineType.Dash, new CColor(0, 0, 0));
 		}
-		var ctx = drawingCtx || this.drawingCtx;
+	};
+
+	WorksheetView.prototype._drawSelectionElement2 = function (visibleRange, offsetX, offsetY, args) {
+		var range = args[0];
+		var selectionLineType = args[1];
+		var strokeColor = args[2];
+		var isAllRange = args[3];
+		var colorN = this.settings.activeCellBorderColor2;
+		var ctx = this.overlayCtx;
 		var c = this.cols;
 		var r = this.rows;
+		var oIntersection = range.intersectionSimple(visibleRange);
 
-		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : c[this.visibleRange.c1].left - this.cellsLeft;
-		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : r[this.visibleRange.r1].top - this.cellsTop;
+		if (!oIntersection) {
+			return true;
+		}
 
-		var frozenX = 0, frozenY = 0, cFrozen, rFrozen;
-		if (null === drawingCtx && this.topLeftFrozenCell) {
-			if (undefined === leftFieldInPx) {
-				cFrozen = this.topLeftFrozenCell.getCol0();
-				offsetX -= frozenX = c[cFrozen].left - c[0].left;
-			}
-			if (undefined === topFieldInPx) {
-				rFrozen = this.topLeftFrozenCell.getRow0();
-				offsetY -= frozenY =  r[rFrozen].top - r[0].top;
+		var fHorLine, fVerLine;
+		var canFill = AscCommonExcel.selectionLineType.Selection & selectionLineType;
+		var isDashLine = AscCommonExcel.selectionLineType.Dash & selectionLineType;
+		if (isDashLine) {
+			fHorLine = ctx.dashLineCleverHor;
+			fVerLine = ctx.dashLineCleverVer;
+		} else {
+			fHorLine = ctx.lineHorPrevPx;
+			fVerLine = ctx.lineVerPrevPx;
+		}
+
+		var firstCol = oIntersection.c1 === visibleRange.c1 && !isAllRange;
+		var firstRow = oIntersection.r1 === visibleRange.r1 && !isAllRange;
+
+		var drawLeftSide = oIntersection.c1 === range.c1;
+		var drawRightSide = oIntersection.c2 === range.c2;
+		var drawTopSide = oIntersection.r1 === range.r1;
+		var drawBottomSide = oIntersection.r2 === range.r2;
+
+		var x1 = c[oIntersection.c1].left - offsetX;
+		var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
+		var y1 = r[oIntersection.r1].top - offsetY;
+		var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+
+		if (canFill) {
+			var fillColor = strokeColor.Copy();
+			fillColor.a = 0.15;
+			ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
+		}
+
+		ctx.setLineWidth(isDashLine ? 1 : 2).setStrokeStyle(strokeColor);
+
+		ctx.beginPath();
+		if (drawTopSide && !firstRow) {
+			fHorLine.apply(ctx, [x1 - !isDashLine * 2, y1, x2 + !isDashLine * 1]);
+		}
+		if (drawBottomSide) {
+			fHorLine.apply(ctx, [x1, y2 + !isDashLine * 1, x2]);
+		}
+		if (drawLeftSide && !firstCol) {
+			fVerLine.apply(ctx, [x1, y1, y2 + !isDashLine * 1]);
+		}
+		if (drawRightSide) {
+			fVerLine.apply(ctx, [x2 + !isDashLine * 1, y1, y2 + !isDashLine * 1]);
+		}
+		ctx.closePath().stroke();
+
+		// draw active cell in selection
+		var isActive = AscCommonExcel.selectionLineType.ActiveCell & selectionLineType;
+		if (isActive) {
+			var cell = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).activeCell;
+			var fs = this.model.getMergedByCell(cell.row, cell.col);
+			fs = range.intersectionSimple(
+				fs ? fs : new asc_Range(cell.col, cell.row, cell.col, cell.row));
+			if (fs) {
+				var _x1 = c[fs.c1].left - offsetX + 1;
+				var _y1 = r[fs.r1].top - offsetY + 1;
+				var _w = c[fs.c2].left - c[fs.c1].left + c[fs.c2].width - 2;
+				var _h = r[fs.r2].top - r[fs.r1].top + r[fs.r2].height - 2;
+				if (0 < _w && 0 < _h) {
+					ctx.clearRect(_x1, _y1, _w, _h);
+				}
 			}
 		}
 
-
-		var i, d, d1;
-		var x1, x2, y1, y2;
-		var pageBreakPreview = true;
-		if(pageBreakPreview) {
-			var printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
-			if(printArea) {
-
-				var vx1 = c[range.c1].left - offsetX;
-				var vy1 = r[range.r1].top - offsetY;
-				var vx2 = c[range.c2].left + c[range.c2].width - offsetX;
-				var vy2 = r[range.r2].top + r[range.r2].height - offsetY;
-
-				ctx.setStrokeStyle(this.settings.activeCellBorderColor);
-				ctx.setLineWidth(3).beginPath();
-
-			    for(var i = 0; i < printPages.length; i++) {
-					var pageRange = printPages[i].page.pageRange;
-
-			        x1 = c[pageRange.c1].left - offsetX;
-					y1 = r[pageRange.r1].top - offsetY;
-					x2 = c[pageRange.c2].left + c[pageRange.c2].width - offsetX;
-					y2 = r[pageRange.r2].top + r[pageRange.r2].height - offsetY;
-
-					ctx.dashLineCleverVer(x1, Math.max(y1 - frozenY, vy1 - frozenY), Math.min(y2 - frozenY, vy2 - frozenY));
-					ctx.dashLineCleverVer(x2, Math.max(y1 - frozenY, vy1 - frozenY), Math.min(y2 - frozenY, vy2 - frozenY));
-					ctx.dashLineCleverHor(Math.max(x1 - frozenX, vx1 - frozenX), y1, Math.min(x2 - frozenX, vx2 - frozenX));
-					ctx.dashLineCleverHor(Math.max(x1 - frozenX, vx1 - frozenX), y2, Math.min(x2 - frozenX, vx2 - frozenX));
-
-                }
-
-				ctx.stroke();
-
-
-
-
-
-
-			    /*var startRange = printPages[0] ? printPages[0].page.pageRange : null;
-				var endRange = printPages[0] ? printPages[printPages.length - 1].page.pageRange : null;
-				var unionRange = startRange ? new Asc.Range(startRange.c1, startRange.r1, endRange.c2, endRange.r2) : null;
-
-				//вначале закрашииваем непечатную область
-				var intersection = unionRange ? range.intersection(unionRange) : null;
-				ctx.setFillStyle(this.settings.cells.defaultState.border);
-
-
-				if(printPages[0] && intersection) {
-					x1 = c[intersection.c1].left - offsetX;
-					y1 = r[intersection.r1].top - offsetY;
-					x2 = c[intersection.c2].left + c[intersection.c2].width - offsetX;
-					y2 = r[intersection.r2].top + r[intersection.r2].height - offsetY;
-
-					//рисуем линии, ограничивающие страницы
-					ctx.setStrokeStyle(this.settings.activeCellBorderColor);
-					ctx.setLineWidth(3).beginPath();
-
-					var pageRange;
-					var pageIntersection;
-					for (i = 0, d = 0, d1 = 0; i < printPages.length; ++i) {
-						pageRange = printPages[i].page.pageRange;
-						pageIntersection = pageRange.intersection(range);
-						if(!pageIntersection) {
-							if(pageRange.r1 > range.r2 && pageRange.c1 > range.c2) {
-								break;
-							} else {
-								continue;
-							}
-						}
-
-						d = c[pageRange.c1].left - offsetX;
-						d1 = r[pageRange.r1].top - offsetY;
-						if(d >= x1 && d1 > 0) {
-							ctx.lineVerPrevPx(d, y1 - frozenY, y2);
-						}
-						if(d1 >= y1 && d > 0) {
-							ctx.lineHorPrevPx(x1 - frozenX, d1, x2);
-						}
-
-
-						d = c[pageRange.c2].left + c[pageRange.c2].width - offsetX;
-						d1 = r[pageRange.r2].top + r[pageRange.r2].height - offsetY;
-						if(d > x1 && d1 > 0) {
-							ctx.lineVerPrevPx(d, y1 - frozenY, y2);
-						}
-						if(d1 > y1 && d > 0) {
-							ctx.lineHorPrevPx(x1 - frozenX, d1, x2);
-						}
-					}
-
-					ctx.stroke();
-				}*/
-            }
+		if (canFill) {/*Отрисовка светлой полосы при выборе ячеек для формулы*/
+			ctx.setLineWidth(1);
+			ctx.setStrokeStyle(colorN);
+			ctx.beginPath();
+			if (drawTopSide) {
+				fHorLine.apply(ctx, [x1, y1 + 1, x2 - 1]);
+			}
+			if (drawBottomSide) {
+				fHorLine.apply(ctx, [x1, y2 - 1, x2 - 1]);
+			}
+			if (drawLeftSide) {
+				fVerLine.apply(ctx, [x1 + 1, y1, y2 - 2]);
+			}
+			if (drawRightSide) {
+				fVerLine.apply(ctx, [x2 - 1, y1, y2 - 2]);
+			}
+			ctx.closePath().stroke();
 		}
+
+		// Отрисовка квадратов для move/resize
+		var isResize = AscCommonExcel.selectionLineType.Resize & selectionLineType;
+		var isPromote = AscCommonExcel.selectionLineType.Promote & selectionLineType;
+		if (isResize || isPromote) {
+			ctx.setFillStyle(colorN);
+			if (drawRightSide && drawBottomSide) {
+				ctx.fillRect(x2 - 4, y2 - 4, 7, 7);
+			}
+			ctx.setFillStyle(strokeColor);
+			if (drawRightSide && drawBottomSide) {
+				ctx.fillRect(x2 - 3, y2 - 3, 5, 5);
+			}
+
+			if (isResize) {
+				ctx.setFillStyle(colorN);
+				if (drawLeftSide && drawTopSide) {
+					ctx.fillRect(x1 - 4, y1 - 4, 7, 7);
+				}
+				if (drawRightSide && drawTopSide) {
+					ctx.fillRect(x2 - 4, y1 - 4, 7, 7);
+				}
+				if (drawLeftSide && drawBottomSide) {
+					ctx.fillRect(x1 - 4, y2 - 4, 7, 7);
+				}
+				ctx.setFillStyle(strokeColor);
+				if (drawLeftSide && drawTopSide) {
+					ctx.fillRect(x1 - 3, y1 - 3, 5, 5);
+				}
+				if (drawRightSide && drawTopSide) {
+					ctx.fillRect(x2 - 3, y1 - 3, 5, 5);
+				}
+				if (drawLeftSide && drawBottomSide) {
+					ctx.fillRect(x1 - 3, y2 - 3, 5, 5);
+				}
+			}
+		}
+		return true;
 	};
 
 
@@ -4055,6 +4078,10 @@
           .rect(this.cellsLeft, this.cellsTop, ctx.getWidth() - this.cellsLeft, ctx.getHeight() - this.cellsTop)
           .clip();
 
+		if(this.viewPrintLines) {
+			this._drawPageBreakPreviewLines3();
+		}
+
         if (!this.isSelectionDialogMode) {
             this._drawCollaborativeElements();
         }
@@ -4344,6 +4371,11 @@
                 }
             }
         }
+
+		//print lines view
+		if(this.viewPrintLines) {
+			this.overlayCtx.clear();
+		}
 
         for (i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
             this.arrActiveFormulaRanges[i].ranges.forEach(function (item) {
@@ -14687,12 +14719,15 @@
 					newRef = getRangesStr(t.model.selectionRange.ranges);
 					newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
 					wb.editDefinedNames(oldDefName, newDefName);
+					t.viewPrintLines = true;
+					t.updateSelection();
 
 					break;
 				}
 				case Asc.c_oAscChangePrintAreaType.clear: {
 					if(printArea) {
 						wb.delDefinedNames(printArea.getAscCDefName());
+						t.updateSelection();
 					}
 					break;
 				}
@@ -14705,6 +14740,8 @@
 						newRef = getRangesStr(t.model.selectionRange.ranges, oldRef);
 						newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
 						wb.editDefinedNames(oldDefName, newDefName);
+						t.viewPrintLines = true;
+						t.updateSelection();
 					}
 
 					break;
