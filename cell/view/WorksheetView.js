@@ -1579,7 +1579,7 @@
     };
 
     // ----- Drawing for print -----
-    WorksheetView.prototype._calcPagesPrint = function(range, pageOptions, indexWorksheet, arrPages) {
+    WorksheetView.prototype._calcPagesPrint = function(range, pageOptions, indexWorksheet, arrPages, pushOnlyVisibleRanges) {
         if (0 > range.r2 || 0 > range.c2) {
 			// Ничего нет
             return;
@@ -1674,7 +1674,7 @@
 		while (AscCommonExcel.c_kMaxPrintPages > arrPages.length) {
 			var newPagePrint = new asc_CPagePrint();
 
-			var colIndex = currentColIndex, rowIndex = currentRowIndex;
+			var colIndex = currentColIndex, rowIndex = currentRowIndex, pageRange;
 
 			newPagePrint.indexWorksheet = indexWorksheet;
 
@@ -1762,8 +1762,11 @@
 				newPagePrint.pageHeadings = true;
 			}
 
-			newPagePrint.pageRange = new asc_Range(currentColIndex, currentRowIndex, colIndex - 1, rowIndex - 1);
-			arrPages.push(newPagePrint);
+			pageRange = new asc_Range(currentColIndex, currentRowIndex, colIndex - 1, rowIndex - 1);
+			newPagePrint.pageRange = pageRange;
+			if(!pushOnlyVisibleRanges || (pushOnlyVisibleRanges && pageRange.intersection(this.visibleRange))){
+				arrPages.push(newPagePrint);
+			}
 
 			if (bIsAddOffset) {
 				// Мы еще не дорисовали колонку
@@ -2991,10 +2994,8 @@
 		if(printArea) {
 			this.calcPagesPrint(printOptions, null, null, printPages);
 		} else {
-			console.time("tsrta");
 			var range = new asc_Range(0, 0, this.visibleRange.c2, this.visibleRange.r2);
-			this._calcPagesPrint(range, printOptions, null, printPages);
-			console.timeEnd("tsrta");
+			this._calcPagesPrint(range, printOptions, null, printPages, true);
 		}
 
 		for (var i = 0, l = printPages.length; i < l; ++i) {
