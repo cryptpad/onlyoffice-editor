@@ -647,6 +647,11 @@
 		return (c && c.charCount) || this.defaultColWidthChars;
 	};
 
+	WorksheetView.prototype.getColumnWidthInPx = function (index) {
+		var c = this.model._getColNoEmptyWithAll(index);
+		return (c && c.widthPx) || this.defaultColWidthPx;
+	};
+
     WorksheetView.prototype.getSelectedColumnWidthInSymbols = function () {
         var i, charCount, res = null;
         var range = this.model.selectionRange.getLast();
@@ -1579,11 +1584,13 @@
     };
 
     // ----- Drawing for print -----
-    WorksheetView.prototype._calcPagesPrint = function(range, pageOptions, indexWorksheet, arrPages, pushOnlyVisibleRanges) {
+    WorksheetView.prototype._calcPagesPrint = function(range, pageOptions, indexWorksheet, arrPages) {
         if (0 > range.r2 || 0 > range.c2) {
 			// Ничего нет
             return;
         }
+
+		var bPageLayout = arguments[4];
 
 		var bFitToWidth = false;
 		var bFitToHeight = false;
@@ -1671,6 +1678,13 @@
 		var bIsAddOffset = false;
 		var nCountOffset = 0;
 
+		var t = this;
+		var getRealRowHeight = function(index) {
+			var res = (index < t.rows.length) ? t.rows[index].heightReal :
+				(!t.model.isDefaultHeightHidden()) * t.defaultRowHeightPx;
+			return  AscCommonExcel.convertPtToPx(res);
+		};
+
 		while (AscCommonExcel.c_kMaxPrintPages > arrPages.length) {
 			var newPagePrint = new asc_CPagePrint();
 
@@ -1689,14 +1703,14 @@
 			newPagePrint.topFieldInPx = topFieldInPx;
 
 			for (rowIndex = currentRowIndex; rowIndex <= range.r2; ++rowIndex) {
-				var currentRowHeight = this._getRowHeight(rowIndex);
+				var currentRowHeight = bPageLayout ? getRealRowHeight(rowIndex) : this._getRowHeight(rowIndex);
 				if (!bFitToHeight && currentHeight + currentRowHeight > pageHeightWithFieldsHeadings) {
 					// Закончили рисовать страницу
 					break;
 				}
 				if (isCalcColumnsWidth) {
 					for (colIndex = currentColIndex; colIndex <= range.c2; ++colIndex) {
-						var currentColWidth = this.cols[colIndex].width;
+						var currentColWidth = bPageLayout ? this.getColumnWidthInPx(colIndex) : this.cols[colIndex].width;
 						if (bIsAddOffset) {
 							newPagePrint.startOffset = ++nCountOffset;
 							newPagePrint.startOffsetPx = (pageWidthWithFieldsHeadings * newPagePrint.startOffset);
@@ -1764,7 +1778,7 @@
 
 			pageRange = new asc_Range(currentColIndex, currentRowIndex, colIndex - 1, rowIndex - 1);
 			newPagePrint.pageRange = pageRange;
-			if(!pushOnlyVisibleRanges || (pushOnlyVisibleRanges && pageRange.intersection(this.visibleRange))){
+			if(!bPageLayout || (bPageLayout && pageRange.intersection(this.visibleRange))){
 				arrPages.push(newPagePrint);
 			}
 
