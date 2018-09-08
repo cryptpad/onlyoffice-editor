@@ -888,25 +888,8 @@ CDrawingStream.prototype =
 
     transform3 : function(m, isNeedInvert)
     {
-        var _t = this.m_oTransform;
-        _t.sx = m.sx;
-        _t.shx = m.shx;
-        _t.shy = m.shy;
-        _t.sy = m.sy;
-        _t.tx = m.tx;
-        _t.ty = m.ty;
-        this.CalculateFullTransform(isNeedInvert);
-
-        if (!this.m_bIntegerGrid)
-        {
-            var _ft = this.m_oFullTransform;
-            this.Native["PD_transform"](_ft.sx,_ft.shy,_ft.shx,_ft.sy,_ft.tx,_ft.ty);
-        }
-        else
-        {
-            this.SetIntegerGrid(false);
-        }
-
+        
+        this.Native["PD_transform3"](m.sx,m.shy,m.shx,m.sy,m.tx,m.ty, isNeedInvert);
         // теперь трансформ выставляется ТОЛЬКО при загрузке шрифта. Здесь другого быть и не может
         /*
          if (null != this.m_oFontManager && false !== isNeedInvert)
