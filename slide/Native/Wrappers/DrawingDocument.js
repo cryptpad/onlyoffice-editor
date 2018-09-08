@@ -154,6 +154,7 @@ function CDrawingDocument()
 
     this.TargetPos = {X: 0.0, Y: 0.0, Page: 0};
 
+    this.LockEvents = false;
 
     this.AutoShapesTrack = new AscCommon.CAutoshapeTrack();
 
@@ -241,6 +242,10 @@ CDrawingDocument.prototype.UnlockCursorType = function()
 
 CDrawingDocument.prototype.OnStartRecalculate = function(pageCount)
 {
+    if(this.LockEvents)
+    {
+        return;
+    }
     this.Native["DD_OnStartRecalculate"](pageCount, this.LogicDocument.Width, this.LogicDocument.Height);
 };
 
@@ -254,6 +259,10 @@ CDrawingDocument.prototype.StartTrackTable = function()
 
 CDrawingDocument.prototype.OnRecalculatePage = function(index, pageObject)
 {
+    if(this.LockEvents)
+    {
+        return;
+    }
     var l, t, r, b, bIsHidden = !pageObject.isVisible();
     if(index === this.m_oLogicDocument.CurPage)
     {
@@ -278,6 +287,11 @@ CDrawingDocument.prototype.OnEndRecalculate = function()
 {
     this.SlidesCount = this.m_oLogicDocument.Slides.length;
     this.SlideCurrent = this.m_oLogicDocument.CurPage;
+
+    if(this.LockEvents)
+    {
+        return;
+    }
     this.Native["DD_OnEndRecalculate"]();
 };
 
@@ -681,8 +695,14 @@ CDrawingDocument.prototype.UpdateThumbnailsAttack = function()
     var aSlides = this.m_oWordControl.m_oLogicDocument.Slides;
     var DrawingDocument = this.m_oWordControl.m_oLogicDocument.DrawingDocument;
     DrawingDocument.OnStartRecalculate(aSlides.length);
-    for(var i = 0; i < aSlides.length; ++i){
-        DrawingDocument.OnRecalculatePage(i, aSlides[i]);
+    if(this.LockEvents !== true)
+    {
+        for(var i = 0; i < aSlides.length; ++i)
+        {
+            var oSlide = aSlides[i];
+            this.Native["DD_UpdateThumbnailAttack"](i, oSlide.Id, !oSlide.isVisible());
+            DrawingDocument.OnRecalculatePage(i, aSlides[i]);
+        }
     }
     DrawingDocument.OnEndRecalculate();
 };

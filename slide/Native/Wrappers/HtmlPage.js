@@ -519,6 +519,9 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
         return;
     }
     var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
+    if(!slide){
+        return;
+    }
     var master = slide.Layout.Master;
     if(bIsAttack || this.MasterLayouts !== master){
         this.MasterLayouts = master;

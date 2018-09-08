@@ -892,8 +892,10 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var _stream = global_memory_stream_menu;
             var nPos = _params[0];
             var aMoveArray = _params.slice(1);
+            this.WordControl.m_oDrawingDocument.LockEvents = true;
             this.WordControl.m_oLogicDocument.shiftSlides(nPos, aMoveArray, false);
-
+            this.WordControl.m_oDrawingDocument.LockEvents = false;
+            this.WordControl.m_oDrawingDocument.UpdateThumbnailsAttack();
             _return = _stream;
             break;
         }
