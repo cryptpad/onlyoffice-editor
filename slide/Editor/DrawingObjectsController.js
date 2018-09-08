@@ -282,7 +282,6 @@ DrawingObjectsController.prototype.editChart = function(binary)
                         this.selection.groupSelection.selectObject(chart_space, this.drawingObjects.num);
                     }
                     this.startRecalculate();
-                    this.sendGraphicObjectProps();
                     return;
                 }
             }
@@ -298,7 +297,6 @@ DrawingObjectsController.prototype.editChart = function(binary)
             this.resetSelection();
             this.selectObject(chart_space, this.drawingObjects.num);
             this.startRecalculate();
-            this.sendGraphicObjectProps();
             this.updateOverlay();
         }
     }
