@@ -1602,13 +1602,14 @@
             pageHeadings = pageOptions.asc_getHeadings();
         }
 
-        var pageWidth, pageHeight, pageOrientation;
+        var pageWidth, pageHeight, pageOrientation, scale;
         if (pageSetup instanceof asc_CPageSetup) {
             pageWidth = pageSetup.asc_getWidth();
             pageHeight = pageSetup.asc_getHeight();
             pageOrientation = pageSetup.asc_getOrientation();
             bFitToWidth = pageSetup.asc_getFitToWidth();
             bFitToHeight = pageSetup.asc_getFitToHeight();
+			scale = pageSetup.asc_getScale() / 100;
         }
 
         var pageLeftField, pageRightField, pageTopField, pageBottomField;
@@ -1666,8 +1667,9 @@
 			topFieldInPx += this.cellsTop;
 		}
 
-		var pageWidthWithFieldsHeadings = (pageWidth - pageRightField) / vector_koef - leftFieldInPx;
-		var pageHeightWithFieldsHeadings = (pageHeight - pageBottomField) / vector_koef - topFieldInPx;
+		//TODO при сравнении резальтатов рассчета страниц в зависимости от scale - LO выдаёт похожие результаты, MS - другие. Необходимо пересмотреть!
+		var pageWidthWithFieldsHeadings = ((pageWidth - pageRightField) / vector_koef - leftFieldInPx) / scale;
+		var pageHeightWithFieldsHeadings = ((pageHeight - pageBottomField) / vector_koef - topFieldInPx) / scale;
 
 		var currentColIndex = range.c1;
 		var currentWidth = 0;
@@ -1706,6 +1708,7 @@
 				var currentRowHeight = bPageLayout ? getRealRowHeight(rowIndex) : this._getRowHeight(rowIndex);
 				if (!bFitToHeight && currentHeight + currentRowHeight > pageHeightWithFieldsHeadings) {
 					// Закончили рисовать страницу
+					rowIndex = rowIndex;
 					break;
 				}
 				if (isCalcColumnsWidth) {
@@ -1719,7 +1722,8 @@
 
 						if (!bFitToWidth && currentWidth + currentColWidth > pageWidthWithFieldsHeadings &&
 							colIndex !== currentColIndex) {
-							break;
+							colIndex = colIndex;
+						    break;
 						}
 
 						currentWidth += currentColWidth;
