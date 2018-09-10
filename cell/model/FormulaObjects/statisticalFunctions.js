@@ -4052,6 +4052,7 @@ function (window, undefined) {
 	function cBETADIST() {
 	}
 
+	//***array-formula***
 	cBETADIST.prototype = Object.create(cBaseFunction.prototype);
 	cBETADIST.prototype.constructor = cBETADIST;
 	cBETADIST.prototype.name = 'BETADIST';
@@ -4164,6 +4165,7 @@ function (window, undefined) {
 	function cBETA_INV() {
 	}
 
+	//***array-formula***
 	cBETA_INV.prototype = Object.create(cBaseFunction.prototype);
 	cBETA_INV.prototype.constructor = cBETA_INV;
 	cBETA_INV.prototype.name = 'BETA.INV';
@@ -6935,6 +6937,7 @@ function (window, undefined) {
 	function cHYPGEOM_DIST() {
 	}
 
+	//***array-formula***
 	cHYPGEOM_DIST.prototype = Object.create(cBaseFunction.prototype);
 	cHYPGEOM_DIST.prototype.constructor = cHYPGEOM_DIST;
 	cHYPGEOM_DIST.prototype.name = 'HYPGEOM.DIST';

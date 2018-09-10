@@ -2009,6 +2009,8 @@ $( function () {
 		oParser = new parserFormula( "BETA.INV(A2,A3,A4,A5,A6)", "A1", ws );
 		ok( oParser.parse(), "BETA.INV(A2,A3,A4,A5,A6)" );
 		strictEqual( oParser.calculate().getValue().toFixed(1) - 0, 2, "BETA.INV(A2,A3,A4,A5,A6)" );
+
+		testArrayFormula2("BETA.INV", 3, 5);
 	} );
 
 	test( "Test: \"BETA.DIST\"", function () {
@@ -2045,6 +2047,8 @@ $( function () {
 		oParser = new parserFormula( "BETADIST(6,2,3,1,6)", "A1", ws );
 		ok( oParser.parse(), "BETADIST(6,2,3,1,6)" );
 		strictEqual( oParser.calculate().getValue(), 1, "BETADIST(6,2,3,1,6)" );
+
+		testArrayFormula2("BETADIST", 3, 5);
 	} );
 
 	test( "Test: \"BESSELJ\"", function () {
@@ -6157,6 +6161,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue() - 0, 0.5);
 
+		testArrayFormula2("HYPGEOM.DIST", 5, 5);
 	} );
 
 	test( "Test: \"HOUR\"", function () {
@@ -8349,6 +8354,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), cumipmt(0.09/12,30*12,125000,13,24,0) );
 
+        testArrayFormula2("CUMIPMT", 6, 6, true);
     } );
 
     test( "Test: \"CUMPRINC\"", function () {
@@ -8401,6 +8407,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), cumpring(0.09/12,30*12,125000,13,24,0) );
 
+		testArrayFormula2("CUMPRINC", 6, 6, true);
     } );
 
     test( "Test: \"NOMINAL\"", function () {
@@ -8644,6 +8651,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( difBetween( oParser.calculate().getValue(), rate(4*12,-200,8000)*12 ), true );
 
+        testArrayFormula2("RATE", 3, 6, true);
     } );
 
 	test( "Test: \"RRI\"", function () {
@@ -9028,6 +9036,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), pricemat( new cDate(2008,1,15),new cDate(2008,3,13),new cDate(2007,10,11),0.061,0.061,0 ) );
 
+        testArrayFormula2("PRICEMAT", 5, 6, true);
     } );
 
     test( "Test: \"YIELD\"", function () {
@@ -9061,6 +9070,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), _getyieldmat( new cDate( 2008, 2, 15 ), new cDate( 2008, 10, 3 ), new cDate( 2007, 10, 8 ), 0.0625, 100.0123, 0 ) );
 
+        testArrayFormula2("YIELDMAT", 5, 6, true);
     } );
 
 	test( "Test: \"ODD\"", function () {
@@ -9146,6 +9156,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), _duration( new cDate(Date.UTC(2008,0,1)), new cDate(Date.UTC(2016,0,1)), -0.08, 0.09, 5, 1 ) );
 
+        testArrayFormula2("DURATION", 5, 6, true);
     } );
 
     test( "Test: \"MDURATION\"", function () {
@@ -9160,6 +9171,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), mduration( new cDate(Date.UTC(2008,0,1)), new cDate(Date.UTC(2016,0,1)), 0.08, 0.09, 2, 1 ) );
 
+        testArrayFormula2("MDURATION", 5, 6, true);
     } );
 
 	test( "Test: \"MDETERM\"", function () {
@@ -9254,6 +9266,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), ppmt( 0.08,10,10,200000 ) );
 
+        testArrayFormula2("PPMT", 4, 6);
     } );
 
     test( "Test: \"MIRR\"", function () {
@@ -9329,7 +9342,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), ipmt( 0.1,3,3,8000 ) );
 
-
+		testArrayFormula2("IPMT", 4, 6);
     } );
 
     test( "Test: \"DB\"", function () {
