@@ -2555,7 +2555,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
         default_style.ParaPr.Spacing.Line = 1;
         default_style.ParaPr.Spacing.Before = 0;
         default_style.ParaPr.Spacing.After = 0;
-        default_style.ParaPr.DefaultTabSize = 25.4;
+        default_style.ParaPr.DefaultTab = 25.4;
         default_style.ParaPr.Align = AscCommon.align_Center;
         if(parent_objects.theme)
         {
@@ -2661,10 +2661,11 @@ CShape.prototype.recalculateTextStyles = function (level) {
             hierarchy_styles.splice(0, 0, ownStyle);
         }
         var shape_text_style;
-        if (isRealObject(this.style) && isRealObject(this.style.fontRef)) {
+        var compiled_style = this.getCompiledStyle && this.getCompiledStyle();
+        if (isRealObject(compiled_style) && isRealObject(compiled_style.fontRef)) {
             shape_text_style = new CStyle("shapeTextStyle", null, null, null, true);
             var first_name;
-            if (this.style.fontRef.idx === AscFormat.fntStyleInd_major)
+            if (compiled_style.fontRef.idx === AscFormat.fntStyleInd_major)
                 first_name = "+mj-";
             else
                 first_name = "+mn-";
@@ -2674,10 +2675,10 @@ CShape.prototype.recalculateTextStyles = function (level) {
             shape_text_style.TextPr.RFonts.CS = {Name: first_name + "cs", Index: -1};
             shape_text_style.TextPr.RFonts.HAnsi = {Name: first_name + "lt", Index: -1};
 
-            if (this.style.fontRef.Color != null && this.style.fontRef.Color.color != null) {
+            if (compiled_style.fontRef.Color != null && compiled_style.fontRef.Color.color != null) {
                 var unifill = new AscFormat.CUniFill();
                 unifill.fill = new AscFormat.CSolidFill();
-                unifill.fill.color = this.style.fontRef.Color;
+                unifill.fill.color = compiled_style.fontRef.Color;
                 shape_text_style.TextPr.Unifill = unifill;
             }
         }
@@ -2773,6 +2774,17 @@ CShape.prototype.recalculateBrush = function () {
     this.brush.merge(this.getCompiledFill());
     this.brush.transparent = this.getCompiledTransparent();
     this.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+    if(this.bWordShape){
+        if(this.brush.fill && this.brush.fill.type === Asc.c_oAscFill.FILL_TYPE_GRAD){
+            var oGradFill = this.brush.fill;
+            if(!oGradFill.lin && !oGradFill.path){
+                var oLin = new AscFormat.GradLin();
+                oLin.setScale(false);
+                oLin.setAngle(5400000);
+                oGradFill.setLin(oLin);
+            }
+        }
+    }
 };
 
 CShape.prototype.recalculatePen = function () {
@@ -3015,6 +3027,14 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                     {
                         this.x = 0;
                         this.y = 0;
+
+                        if(oParaDrawing.Extent && AscFormat.isRealNumber(oParaDrawing.Extent.W) && AscFormat.isRealNumber(oParaDrawing.Extent.H))
+                        {
+                            this.x = 0;
+                            this.y = 0;
+                            this.extX = oParaDrawing.Extent.W;
+                            this.extY = oParaDrawing.Extent.H;
+                        }
                         if(oParaDrawing.SizeRelH || oParaDrawing.SizeRelV)
                         {
                             this.m_oSectPr = null;
@@ -4377,7 +4397,11 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         var drawingObjects = this.getDrawingObjectsController();
         if (typeof editor !== "undefined" && editor && graphics.m_oContext !== undefined && graphics.m_oContext !== null && graphics.IsTrack === undefined && (!drawingObjects || AscFormat.getTargetTextObject(drawingObjects) !== this ))
         {
-            if (global_MatrixTransformer.IsIdentity2(_transform))
+            var angle = _transform.GetRotation();
+            if (AscFormat.fApproxEqual(angle, 0.0, 0.0) ||
+                AscFormat.fApproxEqual(angle, 90.0, 0.0) ||
+                AscFormat.fApproxEqual(angle, 180.0, 0.0) ||
+                AscFormat.fApproxEqual(angle, 270.0, 0.0))
             {
                 graphics.transform3(_transform, false);
                 var tr = graphics.m_oFullTransform;
@@ -4388,11 +4412,15 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
                 var _r = tr.TransformPointX(this.extX, this.extY);
                 var _b = tr.TransformPointY(this.extX, this.extY);
 
+                var __x = Math.min(_x, _r);
+                var __y = Math.min(_y, _b);
+                var __r = Math.max(_x, _r);
+                var __b = Math.max(_y, _b);
                 graphics.m_oContext.lineWidth = 1;
                 graphics.p_color(127, 127, 127, 255);
 
                 graphics._s();
-                editor.WordControl.m_oDrawingDocument.AutoShapesTrack.AddRectDashClever(graphics.m_oContext, _x >> 0, _y >> 0, _r >> 0, _b >> 0, 2, 2, true);
+                editor.WordControl.m_oDrawingDocument.AutoShapesTrack.AddRectDashClever(graphics.m_oContext, __x >> 0, __y >> 0, __r >> 0, __b >> 0, 2, 2, true);
                 graphics._s();
             }
             else {

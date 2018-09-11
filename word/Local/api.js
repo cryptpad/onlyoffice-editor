@@ -79,8 +79,6 @@ Asc['asc_docs_api'].prototype._OfflineAppDocumentEndLoad = function(_url, _data,
 		this.WordControl.m_oLogicDocument.Set_FastCollaborativeEditing(false);
 	}
 
-	this.WordControl.m_oLogicDocument.Set_FastCollaborativeEditing(false);
-
 	DesktopOfflineUpdateLocalName(this);
 
 	window["DesktopAfterOpen"](this);
@@ -190,6 +188,9 @@ Asc['asc_docs_api'].prototype.SetDocumentModified = function(bValue)
 
 Asc['asc_docs_api'].prototype.asc_Save = function (isNoUserSave, isSaveAs)
 {
+	if (!this.asc_isDocumentCanSave())
+		return;
+
     if (true !== isNoUserSave)
         this.IsUserSave = true;
 	

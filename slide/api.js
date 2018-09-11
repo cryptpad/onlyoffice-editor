@@ -182,7 +182,7 @@
 			this.Position        = undefined;
 			this.Locked          = false;
 			this.lockAspect      = undefined;
-			this.ChartProperties = new AscCommon.asc_ChartSettings();
+			this.ChartProperties = new Asc.asc_ChartSettings();
 
 			this.severalCharts      = false;
 			this.severalChartTypes  = undefined;
@@ -1768,13 +1768,10 @@ background-repeat: no-repeat;\
 		if (!this.WordControl.m_oLogicDocument)
 			return false;
 
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props))
-		{
-			if (AscCommon.g_clipboardBase.IsWorking())
-				return false;
+		if (AscCommon.g_clipboardBase.IsWorking())
+			return false;
 
-			return AscCommon.g_clipboardBase.Button_Paste();
-		}
+		return AscCommon.g_clipboardBase.Button_Paste();
 	};
 
 	asc_docs_api.prototype.asc_ShowSpecialPasteButton = function(props)
@@ -1943,6 +1940,11 @@ background-repeat: no-repeat;\
 	{
 	    if (!this.canEdit())
     	    return;
+
+		//slide show
+		if(this.WordControl && this.WordControl.DemonstrationManager && this.WordControl.DemonstrationManager.Mode) {
+			return;
+		}
 
 		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content, null, false)) {
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_PasteHotKey);
@@ -2601,7 +2603,7 @@ background-repeat: no-repeat;\
 
 				if (undefined != Props.DefaultTab)
 				{
-					_presentation.Set_DocumentDefaultTab(Props.DefaultTab);
+					graphicObjects.setDefaultTabSize(Props.DefaultTab);
 				}
 				var TextPr = new AscCommonWord.CTextPr();
 
@@ -5757,7 +5759,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.ClearFormating           = function()
 	{
-		this.WordControl.m_oLogicDocument.ClearParagraphFormatting();
+		this.WordControl.m_oLogicDocument.ClearParagraphFormatting(false, true);
 	};
 
 	window.ID_KEYBOARD_AREA = undefined;
@@ -6247,7 +6249,7 @@ background-repeat: no-repeat;\
 		if (data["translate"])
 			this.translateManager = AscCommon.translateManager.init(data["translate"]);
 
-		this.reporterTranslates = [data["translations"]["reset"], data["translations"]["slideOf"], data["translations"]["endSlideshow"]];
+		this.reporterTranslates = [data["translations"]["reset"], data["translations"]["slideOf"], data["translations"]["endSlideshow"], data["translations"]["finalMessage"]];
 		if (!this.WordControl)
 			return;
 
@@ -7602,6 +7604,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_GetDefaultCertificate"] 			= asc_docs_api.prototype.asc_GetDefaultCertificate;
 	asc_docs_api.prototype["asc_getSignatures"] 					= asc_docs_api.prototype.asc_getSignatures;
 	asc_docs_api.prototype["asc_isSignaturesSupport"] 				= asc_docs_api.prototype.asc_isSignaturesSupport;
+    asc_docs_api.prototype["asc_isProtectionSupport"] 				= asc_docs_api.prototype.asc_isProtectionSupport;
 	asc_docs_api.prototype["asc_RemoveSignature"] 					= asc_docs_api.prototype.asc_RemoveSignature;
 	asc_docs_api.prototype["asc_RemoveAllSignatures"] 				= asc_docs_api.prototype.asc_RemoveAllSignatures;
 	asc_docs_api.prototype["asc_gotoSignature"] 					= asc_docs_api.prototype.asc_gotoSignature;

@@ -233,7 +233,7 @@ var editor;
               }
             });
 		} else {
-			res = numFormat.formatToChart(value, cultureInfo);
+			res = numFormat.formatToChart(value, undefined, cultureInfo);
 		}
 		return res;
 	};
@@ -309,6 +309,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoPivotTables = new AscCommonExcel.UndoRedoPivotTables(wbModel);
     AscCommonExcel.g_DefNameWorksheet = new AscCommonExcel.Worksheet(wbModel, -1);
     AscCommonExcel.g_oUndoRedoSharedFormula = new AscCommonExcel.UndoRedoSharedFormula(wbModel);
+    AscCommonExcel.g_oUndoRedoLayout = new AscCommonExcel.UndoRedoRedoLayout(wbModel);
   };
 
   spreadsheet_api.prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, adjustPrint) {//передаем число соответствующее своему формату. например  c_oAscFileType.XLSX
@@ -572,7 +573,7 @@ var editor;
    exp:	asc_setAdvancedOptions(c_oAscAdvancedOptionsID.CSV, new Asc.asc_CCSVAdvancedOptions(1200, c_oAscCsvDelimiter.Comma) );
    */
   spreadsheet_api.prototype.asc_setAdvancedOptions = function(idOption, option) {
-
+    var v;
     if (AscCommon.EncryptionWorker.asc_setAdvancedOptions(this, idOption, option))
       return;
 
@@ -580,7 +581,7 @@ var editor;
       case c_oAscAdvancedOptionsID.CSV:
         // Проверяем тип состояния в данный момент
         if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Open) {
-          var v = {
+          v = {
             "id": this.documentId,
             "userid": this.documentUserId,
             "format": this.documentFormat,
@@ -594,7 +595,7 @@ var editor;
           };
 
           sendCommand(this, null, v);
-        } else if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Save) {
+        } else {
           var options = {CSVOptions: option, downloadType: this.downloadType};
           this.downloadType = DownloadType.None;
           this._asc_downloadAs(c_oAscFileType.CSV, c_oAscAsyncAction.DownloadAs, options);
@@ -603,7 +604,7 @@ var editor;
       case c_oAscAdvancedOptionsID.DRM:
         // Проверяем тип состояния в данный момент
         if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Open) {
-          var v = {
+          v = {
             "id": this.documentId,
             "userid": this.documentUserId,
             "format": this.documentFormat,
@@ -622,12 +623,44 @@ var editor;
   // Опции страницы (для печати)
   spreadsheet_api.prototype.asc_setPageOptions = function(options, index) {
     var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
-    this.wbModel.getWorksheet(sheetIndex).PagePrintOptions = options;
+    this.wb.getWorksheet(sheetIndex).setPageOptions(options);
+  };
+
+  spreadsheet_api.prototype.asc_savePagePrintOptions = function(arrPagesPrint) {
+      this.wb.savePagePrintOptions(arrPagesPrint);
   };
 
   spreadsheet_api.prototype.asc_getPageOptions = function(index) {
     var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
     return this.wbModel.getWorksheet(sheetIndex).PagePrintOptions;
+  };
+
+  spreadsheet_api.prototype.asc_setPageOption = function (func, val, index) {
+      var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+      var ws = this.wb.getWorksheet(sheetIndex);
+      ws.setPageOption(func, val);
+  };
+
+  spreadsheet_api.prototype.asc_changeDocSize = function (width, height, index) {
+    var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+    var ws = this.wb.getWorksheet(sheetIndex);
+    ws.changeDocSize(width, height);
+  };
+
+  spreadsheet_api.prototype.asc_changePageMargins = function (left, right, top, bottom, index) {
+      var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+      var ws = this.wb.getWorksheet(sheetIndex);
+      ws.changePageMargins(left, right, top, bottom);
+  };
+
+  spreadsheet_api.prototype.asc_changePageOrient = function (isPortrait, index) {
+      var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+      var ws = this.wb.getWorksheet(sheetIndex);
+      if (isPortrait) {
+          ws.changePageOrient(Asc.c_oAscPageOrientation.PagePortrait);
+      } else {
+          ws.changePageOrient(Asc.c_oAscPageOrientation.PageLandscape);
+      }
   };
 
   spreadsheet_api.prototype._onNeedParams = function(data, opt_isPassword) {
@@ -738,8 +771,6 @@ var editor;
     if (actionType) {
       this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
     }
-    // Меняем тип состояния (на сохранение)
-    this.advancedOptionsAction = c_oAscAdvancedOptionsAction.Save;
     var isNoBase64 = typeof ArrayBuffer !== 'undefined';
     //sFormat: xlsx, xls, ods, csv, html
     var dataContainer = {data: null, part: null, index: 0, count: 0};
@@ -766,7 +797,7 @@ var editor;
       }
       var cp = {'delimiter': AscCommon.c_oAscCsvDelimiter.Comma, 'codepage': AscCommon.c_oAscCodePageUtf8, 'encodings': AscCommon.getEncodingParams()};
       this.downloadType = options.downloadType;
-      this.handlers.trigger("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp), this.advancedOptionsAction);
+      this.handlers.trigger("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp), c_oAscAdvancedOptionsAction.Save);
       return;
     } else {
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
@@ -779,6 +810,8 @@ var editor;
       }
       dataContainer.data = oBinaryFileWriter.Write(isNoBase64);
     }
+    // Меняем тип состояния (на сохранение)
+    this.advancedOptionsAction = c_oAscAdvancedOptionsAction.Save;
     var fCallback = function(input) {
       var error = c_oAscError.ID.Unknown;
       if (null != input && command == input["type"]) {
@@ -857,6 +890,8 @@ var editor;
    * asc_onContextMenu			(event)												- эвент на контекстное меню
    * asc_onDocumentContentReady ()                        - эвент об окончании загрузки документа
    * asc_onFilterInfo	        (countFilter, countRecords)								- send count filtered and all records
+   * asc_onLockDocumentProps/asc_onUnLockDocumentProps    - эвент о том, что залочены опции layout
+   * asc_onUpdateDocumentProps                            - эвент о том, что необходимо обновить данные во вкладке layout
    */
 
   spreadsheet_api.prototype.asc_registerCallback = function(name, callback, replaceOldCallback) {
@@ -1157,6 +1192,9 @@ var editor;
       },
       "checkDefNameLock": function(lockElem) {
         return t._onCheckDefNameLock(lockElem);
+      },
+      "updateAllLayoutsLock": function() {
+          t._onUpdateAllLayoutsLock.apply(t, arguments);
       }
     }, this.getViewMode());
 
@@ -1202,6 +1240,9 @@ var editor;
           t._onUpdateSheetsLock(lockElem);
 
           t._onUpdateDefinedNames(lockElem);
+
+          //эвент о локе в меню вкладки layout
+          t._onUpdateLayoutLock(lockElem);
 
           var ws = t.wb.getWorksheet();
           var lockSheetId = lockElem.Element["sheetId"];
@@ -1273,6 +1314,8 @@ var editor;
           t._onUpdateSheetsLock(lockElem);
           /*снимаем лок для DefName*/
           t.handlers.trigger("asc_onLockDefNameManager",Asc.c_oAscDefinedNameReason.OK);
+          //эвент о локе в меню вкладки layout
+          t._onUpdateLayoutLock(lockElem);
         }
       }
     };
@@ -1356,7 +1399,7 @@ var editor;
       AscCommon.CollaborativeEditing.Load_Images();
       this.wb._onWSSelectionChanged();
       History.TurnOff();
-      this.wb.getWorksheet().updateVisibleRange();
+      this.wb.drawWorksheet();
       History.TurnOn();
     }
   };
@@ -1393,6 +1436,35 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype._onUpdateAllLayoutsLock = function () {
+      var t = this;
+      if (t.wbModel) {
+          var i, length, wsModel, wsIndex;
+          for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
+              wsModel = t.wbModel.getWorksheet(i);
+              wsIndex = wsModel.getIndex();
+
+              var isLocked = t.asc_isLayoutLocked(wsIndex);
+              if (isLocked) {
+                  t.handlers.trigger("asc_onLockDocumentProps", wsIndex);
+              } else {
+                  t.handlers.trigger("asc_onUnLockDocumentProps", wsIndex);
+              }
+          }
+      }
+  };
+
+  spreadsheet_api.prototype._onUpdateLayoutMenu = function (nSheetId) {
+      var t = this;
+      if (t.wbModel) {
+          var wsModel = t.wbModel.getWorksheetById(nSheetId);
+          if (wsModel) {
+              var wsIndex = wsModel.getIndex();
+              t.handlers.trigger("asc_onUpdateDocumentProps", wsIndex);
+          }
+      }
+  };
+
   spreadsheet_api.prototype._onShowDrawingObjects = function() {
     if (this.wb) {
       var ws = this.wb.getWorksheet();
@@ -1420,6 +1492,22 @@ var editor;
       var wsIndex = wsModel.getIndex();
       t.handlers.trigger("asc_onWorksheetLocked", wsIndex, t.asc_isWorksheetLockedOrDeleted(wsIndex));
     }
+  };
+
+  spreadsheet_api.prototype._onUpdateLayoutLock = function(lockElem) {
+      var t = this;
+
+      var wsModel = t.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
+      if (wsModel) {
+          var wsIndex = wsModel.getIndex();
+
+          var isLocked = t.asc_isLayoutLocked(wsIndex);
+          if(isLocked) {
+			  t.handlers.trigger("asc_onLockDocumentProps", wsIndex);
+          } else {
+			  t.handlers.trigger("asc_onUnLockDocumentProps", wsIndex);
+          }
+      }
   };
 
   spreadsheet_api.prototype._onUpdateFrozenPane = function(lockElem) {
@@ -1759,6 +1847,21 @@ var editor;
     return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
   };
 
+  // Залочена ли работа с листом
+  spreadsheet_api.prototype.asc_isLayoutLocked = function(index) {
+      var ws = this.wbModel.getWorksheet(index);
+      var sheetId = null;
+      if (null === ws || undefined === ws) {
+          sheetId = this.asc_getActiveWorksheetId();
+      } else {
+          sheetId = ws.getId();
+      }
+
+      var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, "layoutOptions");
+      // Проверим, редактирует ли кто-то лист
+      return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
+  };
+
   spreadsheet_api.prototype.asc_getHiddenWorksheets = function() {
     var model = this.wbModel;
     var len = model.getWorksheetCount();
@@ -2081,7 +2184,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_autoFitColumnWidth = function() {
-    this.wb.getWorksheet().autoFitColumnWidth();
+    this.wb.getWorksheet().autoFitColumnsWidth(null);
   };
 
   spreadsheet_api.prototype.asc_getRowHeight = function() {
@@ -2167,10 +2270,10 @@ var editor;
     return false;
   };
 
-  spreadsheet_api.prototype.asc_getChartObject = function() {		// Return new or existing chart. For image return null
+  spreadsheet_api.prototype.asc_getChartObject = function(bNoLock) {		// Return new or existing chart. For image return null
     this.asc_onOpenChartFrame();
     var ws = this.wb.getWorksheet();
-    return ws.objectRender.getAscChartObject();
+    return ws.objectRender.getAscChartObject(bNoLock);
   };
 
   spreadsheet_api.prototype.asc_addChartDrawingObject = function(chart) {
@@ -2272,6 +2375,12 @@ var editor;
     var ws = this.wb.getWorksheet();
     return ws.objectRender.setGraphicObjectLayer(layerType);
   };
+
+  spreadsheet_api.prototype.asc_setSelectedDrawingObjectAlign = function(alignType) {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.setGraphicObjectAlign(alignType);
+  };
+
   spreadsheet_api.prototype.asc_addTextArt = function(nStyle) {
     var ws = this.wb.getWorksheet();
     return ws.objectRender.addTextArt(nStyle);
@@ -2997,7 +3106,7 @@ var editor;
   ////////////////////////////AutoSave api/////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 	spreadsheet_api.prototype._autoSaveInner = function () {
-		if (this.asc_getCellEditMode()) {
+		if (this.asc_getCellEditMode() || this.asc_getIsTrackShape()) {
 		  return;
         }
 
@@ -3375,8 +3484,14 @@ var editor;
 	prot["asc_setRestriction"] = prot.asc_setRestriction;
   prot["asc_setAdvancedOptions"] = prot.asc_setAdvancedOptions;
   prot["asc_setPageOptions"] = prot.asc_setPageOptions;
+  prot["asc_savePagePrintOptions"] = prot.asc_savePagePrintOptions;
   prot["asc_getPageOptions"] = prot.asc_getPageOptions;
-	prot["asc_decodeBuffer"] = prot.asc_decodeBuffer;
+  prot["asc_changeDocSize"] = prot.asc_changeDocSize;
+  prot["asc_changePageMargins"] = prot.asc_changePageMargins;
+  prot["asc_setPageOption"] = prot.asc_setPageOption;
+  prot["asc_changePageOrient"] = prot.asc_changePageOrient;
+
+  prot["asc_decodeBuffer"] = prot.asc_decodeBuffer;
 
   prot["asc_registerCallback"] = prot.asc_registerCallback;
   prot["asc_unregisterCallback"] = prot.asc_unregisterCallback;
@@ -3399,6 +3514,7 @@ var editor;
   prot["asc_isWorksheetHidden"] = prot.asc_isWorksheetHidden;
   prot["asc_isWorksheetLockedOrDeleted"] = prot.asc_isWorksheetLockedOrDeleted;
   prot["asc_isWorkbookLocked"] = prot.asc_isWorkbookLocked;
+  prot["asc_isLayoutLocked"] = prot.asc_isLayoutLocked;
   prot["asc_getHiddenWorksheets"] = prot.asc_getHiddenWorksheets;
   prot["asc_showWorksheet"] = prot.asc_showWorksheet;
   prot["asc_hideWorksheet"] = prot.asc_hideWorksheet;
@@ -3480,6 +3596,7 @@ var editor;
   prot["asc_editChartDrawingObject"] = prot.asc_editChartDrawingObject;
   prot["asc_addImageDrawingObject"] = prot.asc_addImageDrawingObject;
   prot["asc_setSelectedDrawingObjectLayer"] = prot.asc_setSelectedDrawingObjectLayer;
+  prot["asc_setSelectedDrawingObjectAlign"] = prot.asc_setSelectedDrawingObjectAlign;
   prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
   prot["asc_getTextArtPreviews"] = prot.asc_getTextArtPreviews;
   prot['asc_getPropertyEditorShapes'] = prot.asc_getPropertyEditorShapes;
@@ -3649,6 +3766,7 @@ var editor;
   prot["asc_GetDefaultCertificate"]      = prot.asc_GetDefaultCertificate;
   prot["asc_getSignatures"] 		     = prot.asc_getSignatures;
   prot["asc_isSignaturesSupport"] 	     = prot.asc_isSignaturesSupport;
+  prot["asc_isProtectionSupport"] 		 = prot.asc_isProtectionSupport;
   prot["asc_RemoveSignature"] 		= prot.asc_RemoveSignature;
   prot["asc_RemoveAllSignatures"] 	= prot.asc_RemoveAllSignatures;
   prot["asc_gotoSignature"] 	    = prot.asc_gotoSignature;

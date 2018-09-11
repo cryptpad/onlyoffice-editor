@@ -1114,6 +1114,7 @@
 	var changestype_2_Element_and_Type       = 4; // Проверяем возможно ли сделать изменение заданного типа с заданным элементом(а не с текущим)
 	var changestype_2_ElementsArray_and_Type = 5; // Аналогично предыдущему, только идет массив элементов
 	var changestype_2_AdditionalTypes        = 6; // Дополнительные проверки типа 1
+	var changestype_2_Element_and_Type_Array = 7; // Проверяем возможно ли сделать изменения заданного типа с заданными элементами (для каждого элемента свое изменение)
 
 	var contentchanges_Add    = 1;
 	var contentchanges_Remove = 2;
@@ -1409,7 +1410,12 @@
 		Text : 0x00,
 		Num  : 0x01
 	};
-	
+
+	var c_oAscSdtAppearance = {
+		Frame  : 1,
+		Hidden : 2
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2091,6 +2097,7 @@
 	window["AscCommon"].changestype_2_Element_and_Type        = changestype_2_Element_and_Type;
 	window["AscCommon"].changestype_2_ElementsArray_and_Type  = changestype_2_ElementsArray_and_Type;
 	window["AscCommon"].changestype_2_AdditionalTypes         = changestype_2_AdditionalTypes;
+	window["AscCommon"].changestype_2_Element_and_Type_Array  = changestype_2_Element_and_Type_Array;
 	window["AscCommon"].contentchanges_Add                    = contentchanges_Add;
 	window["AscCommon"].contentchanges_Remove                 = contentchanges_Remove;
 
@@ -2157,4 +2164,8 @@
 	prot = c_oAscNumberingLvlTextType;
 	prot['Text'] = c_oAscNumberingLvlTextType.Text;
 	prot['Num']  = c_oAscNumberingLvlTextType.Num;
+
+	prot = window['Asc']['c_oAscSdtAppearance'] = window['Asc'].c_oAscSdtAppearance = c_oAscSdtAppearance;
+	prot['Frame']  = c_oAscSdtAppearance.Frame;
+	prot['Hidden'] = c_oAscSdtAppearance.Hidden;
 })(window);

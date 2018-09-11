@@ -3362,7 +3362,11 @@ CTable.prototype.UpdateCursorType = function(X, Y, CurPage)
 	if (true === this.Selection.Start || table_Selection_Border === this.Selection.Type2 || table_Selection_Border_InnerTable === this.Selection.Type2)
 		return;
 
-	if (true === this.Check_EmptyPages(CurPage - 1) && true !== this.IsEmptyPage(CurPage))
+	// Случай, когда у нас уже есть трэк вложенной таблицы и курсор выходит во внешнюю. Чтобы трэк сразу не пропадал,
+	// пока курсор находится в области табличного трэка для вложенной таблицы.
+	if (true !== this.DrawingDocument.IsCursorInTableCur(X, Y, this.GetAbsolutePage(CurPage))
+		&& true === this.Check_EmptyPages(CurPage - 1)
+		&& true !== this.IsEmptyPage(CurPage))
 	{
 		this.private_StartTrackTable(CurPage);
 	}
@@ -7125,6 +7129,28 @@ CTable.prototype.SetParagraphAlign = function(Align)
 		return this.CurCell.Content.SetParagraphAlign(Align);
 	}
 };
+CTable.prototype.SetParagraphDefaultTabSize = function(TabSize)
+{
+	if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0))
+	{
+		var Cells_array = this.Internal_Get_SelectionArray();
+		for (var Index = 0; Index < Cells_array.length; Index++)
+		{
+			var Pos  = Cells_array[Index];
+			var Row  = this.Content[Pos.Row];
+			var Cell = Row.Get_Cell(Pos.Cell);
+
+			var Cell_Content = Cell.Content;
+			Cell_Content.Set_ApplyToAll(true);
+			Cell.Content.SetParagraphDefaultTabSize(TabSize);
+			Cell_Content.Set_ApplyToAll(false);
+		}
+	}
+	else
+	{
+		return this.CurCell.Content.SetParagraphDefaultTabSize(TabSize);
+	}
+};
 CTable.prototype.SetParagraphSpacing = function(Spacing)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
@@ -9155,7 +9181,7 @@ CTable.prototype.AddTableRow = function(bBefore)
 	var Cells_info = [];
 	for (var CurCell = 0; CurCell < CellsCount; CurCell++)
 	{
-		var Cell      = Row.Get_Cell(CurCell);
+		var Cell      = Row.GetCell(CurCell);
 		var Cell_info = Row.Get_CellInfo(CurCell);
 
 		var Cell_grid_start = Cell_info.StartGridCol;
@@ -9164,11 +9190,10 @@ CTable.prototype.AddTableRow = function(bBefore)
 		var VMerge_count_before = this.Internal_GetVertMergeCount2(RowId, Cell_grid_start, Cell_grid_span);
 		var VMerge_count_after  = this.Internal_GetVertMergeCount(RowId, Cell_grid_start, Cell_grid_span);
 
-		Cells_info[CurCell] =
-			{
-				VMerge_count_before : VMerge_count_before,
-				VMerge_count_after  : VMerge_count_after
-			};
+		Cells_info[CurCell] = {
+			VMerge_count_before : VMerge_count_before,
+			VMerge_count_after  : VMerge_count_after
+		};
 	}
 
 	// TODO: Пока делаем одинаковый CellSpacing
@@ -9194,20 +9219,19 @@ CTable.prototype.AddTableRow = function(bBefore)
 			New_Cell.Copy_Pr(Old_Cell.Pr);
 
 			// Копируем также текстовые настройки и настройки параграфа
-			var FirstPara = Old_Cell.Content.Get_FirstParagraph();
-			var TextPr    = FirstPara.Get_FirstRunPr();
-			New_Cell.Content.Set_ApplyToAll(true);
-
-			// Добавляем стиль во все параграфы
-			var PStyleId = FirstPara.Style_Get();
-			if (undefined !== PStyleId && null !== this.LogicDocument)
+			var oFirstPara = Old_Cell.GetContent().GetFirstParagraph();
+			if (oFirstPara)
 			{
-				var Styles = this.LogicDocument.Get_Styles();
-				New_Cell.Content.SetParagraphStyle(Styles.Get_Name(PStyleId));
-			}
+				var oNewCellContent = New_Cell.GetContent();
 
-			New_Cell.Content.AddToParagraph(new ParaTextPr(TextPr));
-			New_Cell.Content.Set_ApplyToAll(false);
+				var arrAllParagraphs = oNewCellContent.GetAllParagraphs({All : true});
+				for (var nParaIndex = 0, nParasCount = arrAllParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+				{
+					var oTempPara = arrAllParagraphs[nParaIndex];
+					oTempPara.SetDirectParaPr(oFirstPara.GetDirectParaPr(true));
+					oTempPara.SetDirectTextPr(oFirstPara.Get_FirstRunPr(), false);
+				}
+			}
 
 			if (true === bBefore)
 			{
@@ -12302,6 +12326,78 @@ CTable.prototype.Correct_BadTable = function()
     //       из вертикально объединенных ячеек).
     this.Internal_Check_TableRows(false);
 	this.CorrectBadGrid();
+	this.CorrectHMerge();
+};
+/**
+ * Специальная функция, которая обрабатывает устаревший параметр HMerge и заменяет его на GridSpan во время открытия файла
+ */
+CTable.prototype.CorrectHMerge = function()
+{
+	// HACK: При загрузке мы запрещаем компилировать стили, но нам все-таки это здесь нужно
+	var bLoad = AscCommon.g_oIdCounter.m_bLoad;
+	var bRead = AscCommon.g_oIdCounter.m_bRead;
+	AscCommon.g_oIdCounter.m_bLoad = false;
+	AscCommon.g_oIdCounter.m_bRead = false;
+
+	var nColsCount = this.TableGrid.length;
+
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+
+		var nCurGridCol = oRow.GetBefore().Grid;
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			var oCell = oRow.GetCell(nCurCell);
+
+			var nGridSpan = oCell.GetGridSpan();
+
+			var nWType    = oCell.GetW().Type;
+			var nWValue   = oCell.GetW().W;
+
+			if (nCurCell < nCellsCount - 1)
+			{
+				var nNextCurCell = nCurCell + 1;
+				while (nNextCurCell < nCellsCount)
+				{
+					var oNextCell = oRow.GetCell(nNextCurCell);
+
+					if (vmerge_Continue === oNextCell.GetHMerge())
+					{
+						nGridSpan += oNextCell.GetGridSpan();
+						oRow.RemoveCell(nNextCurCell);
+						nCellsCount--;
+						nNextCurCell--;
+
+						if (nWType === oNextCell.GetW().Type)
+							nWValue += oNextCell.GetW().Value;
+					}
+					else
+					{
+						break;
+					}
+
+					nNextCurCell++;
+				}
+			}
+
+			if (nGridSpan !== oCell.GetGridSpan())
+			{
+				if (nGridSpan + nCurGridCol > nColsCount)
+					nGridSpan = Math.max(1, nColsCount - nCurGridCol);
+
+				oCell.SetGridSpan(nGridSpan);
+				oCell.SetW(new CTableMeasurement(nWType, nWValue));
+			}
+
+			nCurGridCol += nGridSpan;
+		}
+	}
+
+	// HACK: Восстанавливаем флаги и выставляем, что стиль всей таблицы нужно пересчитать
+	AscCommon.g_oIdCounter.m_bLoad = bLoad;
+	AscCommon.g_oIdCounter.m_bRead = bRead;
+	this.Recalc_CompiledPr2();
 };
 CTable.prototype.GetNumberingInfo = function(oNumberingEngine)
 {

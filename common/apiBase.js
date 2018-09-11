@@ -1339,6 +1339,13 @@
 			}
 			this.onEndLoadFile(null);
 		}
+
+		// for crypt mode (end waiting all system plugins)
+        if (this.asc_initAdvancedOptions_params)
+        {
+        	window["asc_initAdvancedOptions"].apply(window, this.asc_initAdvancedOptions_params);
+            delete this.asc_initAdvancedOptions_params;
+        }
 	};
 	baseEditorsApi.prototype.onEndLoadFile = function(result)
 	{
@@ -1501,6 +1508,11 @@
 	};
 
 	// plugins
+	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
+	{
+		return this.licenseResult && true === this.licenseResult['plugins'];
+	};
+
 	baseEditorsApi.prototype.asc_pluginsRegister   = function(basePath, plugins)
 	{
 		if (null != this.pluginsManager)
@@ -1899,6 +1911,12 @@
 			return window["AscDesktopEditor"]["IsSignaturesSupport"]();
 		return false;
 	};
+    baseEditorsApi.prototype.asc_isProtectionSupport = function()
+    {
+        if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsProtectionSupport"])
+            return window["AscDesktopEditor"]["IsProtectionSupport"]();
+        return false;
+    };
 
 	baseEditorsApi.prototype.asc_gotoSignature = function(guid)
 	{

@@ -150,6 +150,18 @@ function (window, undefined) {
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;
 
+	window['AscCH'].historyitem_Layout_Left = 1;
+	window['AscCH'].historyitem_Layout_Right = 2;
+	window['AscCH'].historyitem_Layout_Top = 3;
+	window['AscCH'].historyitem_Layout_Bottom = 4;
+	window['AscCH'].historyitem_Layout_Width = 5;
+	window['AscCH'].historyitem_Layout_Height = 6;
+	window['AscCH'].historyitem_Layout_FitToWidth = 7;
+	window['AscCH'].historyitem_Layout_FitToHeight = 8;
+	window['AscCH'].historyitem_Layout_GridLines = 9;
+	window['AscCH'].historyitem_Layout_Headings = 10;
+	window['AscCH'].historyitem_Layout_Orientation = 11;
+
 
 function CHistory()
 {
@@ -409,7 +421,7 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 				oRedoObjectParam.oChangeWorksheetUpdate[i],{lockDraw: true, reinitRanges: true});
 
 		for (i in Point.UpdateRigions)
-			this.workbook.handlers.trigger("cleanCellCache", i, [Point.UpdateRigions[i]], true, oRedoObjectParam.bAddRemoveRowCol);
+			this.workbook.handlers.trigger("cleanCellCache", i, [Point.UpdateRigions[i]]);
 
 		if (oRedoObjectParam.bOnSheetsChanged)
 			this.workbook.handlers.trigger("asc_onSheetsChanged");
