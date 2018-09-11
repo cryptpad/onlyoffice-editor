@@ -327,6 +327,14 @@ CDrawingsController.prototype.IsSelectionUse = function()
 {
 	return this.DrawingObjects.isSelectionUse();
 };
+CDrawingsController.prototype.IsNumberingSelection = function()
+{
+	var oTargetDocContent = this.DrawingObjects.getTargetDocContent();
+	if (oTargetDocContent && oTargetDocContent.IsNumberingSelection)
+		return  oTargetDocContent.IsNumberingSelection();
+
+	return false;
+};
 CDrawingsController.prototype.IsTextSelectionUse = function()
 {
 	return this.DrawingObjects.isTextSelectionUse();
@@ -535,5 +543,8 @@ CDrawingsController.prototype.GetStyleFromFormatting = function()
 };
 CDrawingsController.prototype.GetSimilarNumbering = function(oEngine)
 {
-	// TODO: Реализовать
+	var oDocContent = this.DrawingObjects.getTargetDocContent();
+
+	if (oDocContent && oDocContent.GetSimilarNumbering)
+		oDocContent.GetSimilarNumbering(oEngine);
 };

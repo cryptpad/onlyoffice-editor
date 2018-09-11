@@ -315,6 +315,19 @@ CNum.prototype.ClearAllLvlOverride = function()
 	}
 };
 /**
+ * Изменяем базовую нумерацию
+ * @param sId {string}
+ */
+CNum.prototype.SetAbstractNumId = function(sId)
+{
+	if (sId !== this.AbstractNumId)
+	{
+		AscCommon.History.Add(new CChangesNumAbstractNum(this, this.AbstractNumId, sId));
+		this.AbstractNumId = sId;
+		this.RecalculateRelatedParagraphs(-1);
+	}
+};
+/**
  * Сообщаем, что параграфы связанные с заданным уровнем нужно пересчитать
  * @param nLvl {number} 0..8 - заданный уровен, если -1 то для всех уровней
  */
@@ -324,7 +337,8 @@ CNum.prototype.RecalculateRelatedParagraphs = function(nLvl)
 		nLvl = undefined;
 
 	var oLogicDocument = editor.WordControl.m_oLogicDocument;
-	var arrParagraphs  = oLogicDocument.GetAllParagraphsByNumbering({NumId : this.Id, Lvl : nLvl});
+	//добавляю проверку - при чтении из бинарника oLogicDocument - это CPresentation(вставка de->pe)
+	var arrParagraphs  = oLogicDocument.GetAllParagraphsByNumbering ? oLogicDocument.GetAllParagraphsByNumbering({NumId : this.Id, Lvl : nLvl}) : [];
 
 	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 	{
@@ -872,6 +886,12 @@ CNum.prototype.FillFromAscNum = function(oAscNum)
 		oLvl.FillFromAscNumberingLvl(oAscLvl);
 		this.SetLvl(oLvl, nLvl);
 	}
+};
+//----------------------------------------------------------------------------------------------------------------------
+// Undo/Redo функции
+//----------------------------------------------------------------------------------------------------------------------
+CNum.prototype.Refresh_RecalcData = function(Data)
+{
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с совместным редактирования

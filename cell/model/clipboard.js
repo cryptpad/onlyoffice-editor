@@ -1187,13 +1187,15 @@
 				var tempWorkbook = new AscCommonExcel.Workbook();
 				var t = this;
 				var newFonts;
-				
+
+				History.TurnOff();
 				pptx_content_loader.Start_UseFullUrl();
-                pptx_content_loader.Reader.ClearConnectorsMaps();
+				pptx_content_loader.Reader.ClearConnectorsMaps();
 				oBinaryFileReader.Read(base64, tempWorkbook);
 				this.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
 				var aPastedImages = pptx_content_loader.End_UseFullUrl();
-                pptx_content_loader.Reader.AssignConnectorsId();
+				pptx_content_loader.Reader.AssignConnectorsId();
+				History.TurnOn();
 				
 				var pasteData = null;
 				if (tempWorkbook)
@@ -2122,6 +2124,7 @@
 					drawingObject.graphicObject.setWorksheet(ws.model);
 
                     drawingObject.graphicObject.checkRemoveCache &&  drawingObject.graphicObject.checkRemoveCache();
+					drawingObject.graphicObject.checkExtentsByDocContent && drawingObject.graphicObject.checkExtentsByDocContent();
                     //drawingObject.graphicObject.setDrawingDocument(ws.objectRender.drawingDocument);
 					drawingObject.graphicObject.addToDrawingObjects();
 
@@ -3397,7 +3400,9 @@
 					var api = window["Asc"]["editor"];
 					var oImageMap = {};
 					AscCommon.sendImgUrls( api, oObjectsForDownload.aUrls, function ( data ) {
+						History.TurnOff();
 						AscCommon.ResetNewUrls( data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap );
+						History.TurnOn();
 						t.aResult.props.oImageMap = oImageMap;
 						worksheet.setSelectionInfo('paste', {data: t.aResult});
 					}, true );

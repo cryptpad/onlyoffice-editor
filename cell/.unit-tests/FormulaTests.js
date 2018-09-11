@@ -2796,6 +2796,49 @@ $( function () {
 		ok(oParser.parse());
 		strictEqual(oParser.calculate().getValue(), 43010);
 
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,30),1,{\"5-1-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43222);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,30),2,{\"5-1-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43224);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,30),3,{\"5-1-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43227);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,30),1,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43224);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,30),3,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43228);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,29),1,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43220);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,29),2,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43224);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,29),3,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43227);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,29),-1,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43217);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,29),-2,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43216);
+
+		oParser = new parserFormula("WORKDAY(DATE(2018,4,29),0,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 43219);
 	});
 
 	test( "Test: \"WORKDAY.INTL\"", function () {
@@ -6457,6 +6500,22 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#REF!" );
 
+		oParser = new parserFormula( "INDEX(A651:C651,1,3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 11 );
+
+		oParser = new parserFormula( "INDEX(A651:C651,1,2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 6 );
+
+		oParser = new parserFormula( "INDEX(A651:C651,0,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1 );
+
+		oParser = new parserFormula( "INDEX(A651:C651,1,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1 );
+
     } );
 
     test( "Test: \"OFFSET\"", function () {
@@ -6485,6 +6544,74 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().toString(), "B1" );
 
+		oParser = new parserFormula( "OFFSET(B3, 0, 0, -1, 1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "B3" );
+
+		oParser = new parserFormula( "OFFSET(B3, 0, 0, -1, -1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "B3" );
+
+		oParser = new parserFormula( "OFFSET(B3, 0, 0,,)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "B3" );
+
+		oParser = new parserFormula( "OFFSET(B3, 0, 0, 1,)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "B3" );
+
+		oParser = new parserFormula( "OFFSET(B3, 0, 0, -2, -2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "A2:B3" );
+
+		oParser = new parserFormula( "OFFSET(B3, 0, 0, -1, -2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "A3:B3" );
+
+		oParser = new parserFormula( "OFFSET(B3, 0, 0, 0, -2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "#REF!" );
+
+		oParser = new parserFormula( "OFFSET(B3, 0, 0, 2, 0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "#REF!" );
+
+		oParser = new parserFormula( "OFFSET(C3:D4, 0, 0, 2, 2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "C3:D4" );
+
+		oParser = new parserFormula( "OFFSET(C3:D4, 0, 0, 3, 3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "C3:E5" );
+
+		oParser = new parserFormula( "OFFSET(C3:D4, 2, 2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "E5:F6" );
+
+		oParser = new parserFormula( "OFFSET(C3:D4,2,2,3,3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "E5:G7" );
+
+		oParser = new parserFormula( "OFFSET(C3:E6, 0, 0, 3, 3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "C3:E5" );
+
+
+		oParser = new parserFormula( "OFFSET(C3:D4, 0, 0, -2, -2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "B2:C3" );
+
+		oParser = new parserFormula( "OFFSET(C3:D4, 0, 0, -3, -3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "A1:C3" );
+
+		oParser = new parserFormula( "OFFSET(C3:E6, 0, 0, -3, -3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "A1:C3" );
+
+		oParser = new parserFormula( "OFFSET(F10:M17, 0, 0, -7,-5)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().toString(), "B4:F10" );
     } );
 
     /*
@@ -7529,7 +7656,7 @@ $( function () {
 
 		oParser = new parserFormula( 'CONVERT(1, "lbm", "kg")', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.4535923 );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.4535924 );
 
 		oParser = new parserFormula( 'CONVERT(1, "lbm", "mg")', "A2", ws );
 		ok( oParser.parse() );

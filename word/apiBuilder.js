@@ -74,10 +74,10 @@
 	}
 
 
-	/*
+	/**
 	 * Class representing paragraph bullet
 	 * @constructor
-	 * */
+	 */
 	function ApiBullet(Bullet)
 	{
 		this.Bullet = Bullet;
@@ -719,7 +719,7 @@
 		var oLogicDocument = private_GetLogicDocument();
 		var nW = private_EMU2MM(nWidth);
 		var nH = private_EMU2MM(nHeight);
-		var settings = new AscCommon.asc_ChartSettings();
+		var settings = new Asc.asc_ChartSettings();
 		switch (sType)
 		{
 			case "bar" :
@@ -4186,13 +4186,13 @@
 			{
 				this.Drawing.Set_DrawingType(drawing_Anchor);
 				this.Drawing.Set_WrappingType(WRAPPING_TYPE_TIGHT);
-				this.Drawing.Set_BehindDoc(false);
+				this.Drawing.Set_BehindDoc(true);
 			}
 			else if ("through" === sType)
 			{
 				this.Drawing.Set_DrawingType(drawing_Anchor);
 				this.Drawing.Set_WrappingType(WRAPPING_TYPE_THROUGH);
-				this.Drawing.Set_BehindDoc(false);
+				this.Drawing.Set_BehindDoc(true);
 			}
 			else if ("topAndBottom" === sType)
 			{

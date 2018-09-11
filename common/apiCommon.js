@@ -1107,6 +1107,22 @@
 						this.putShowHorAxis(true);
 						this.putShowVerAxis(true);
 					}
+					var oHorAxisProps = this.getHorAxisProps();
+						if(oHorAxisProps && oHorAxisProps.getAxisType() === c_oAscAxisType.cat){
+							if(type === c_oAscChartTypeSettings.areaNormal ||
+							type === c_oAscChartTypeSettings.areaStacked ||
+							type === c_oAscChartTypeSettings.areaStackedPer||
+							type === c_oAscChartTypeSettings.stock ||
+							type === c_oAscChartTypeSettings.surfaceNormal ||
+							type === c_oAscChartTypeSettings.surfaceWireframe ||
+							type === c_oAscChartTypeSettings.contourNormal ||
+							type === c_oAscChartTypeSettings.contourWireframe){
+								oHorAxisProps.putLabelsPosition(Asc.c_oAscLabelsPosition.byDivisions);
+							}
+							else{
+								oHorAxisProps.putLabelsPosition(Asc.c_oAscLabelsPosition.betweenDivisions);
+							}
+						}
 					break;
 				}
 				case c_oAscChartTypeSettings.hBarNormal          :
@@ -1126,6 +1142,11 @@
 						var bTemp = this.showHorAxis;
 						this.putShowHorAxis(this.showVerAxis);
 						this.putShowVerAxis(bTemp);
+					}
+
+					var oVertAxisProps = this.getVertAxisProps();
+					if(oVertAxisProps && oVertAxisProps.getAxisType() === c_oAscAxisType.cat){
+						oVertAxisProps.putLabelsPosition(Asc.c_oAscLabelsPosition.betweenDivisions);
 					}
 					//this.putHorGridLines(c_oAscGridLinesSettings.none);
 					//this.putVertGridLines(c_oAscGridLinesSettings.major);
@@ -1784,7 +1805,7 @@
 			this.Brd = (undefined != obj.Brd && null != obj.Brd) ? new asc_CParagraphBorders(obj.Brd) : null;
 			this.Shd = (undefined != obj.Shd && null != obj.Shd) ? new asc_CParagraphShd(obj.Shd) : null;
 			this.Tabs = (undefined != obj.Tabs) ? new asc_CParagraphTabs(obj.Tabs) : undefined;
-			this.DefaultTab = window["AscCommonWord"].Default_Tab_Stop;
+			this.DefaultTab = obj.DefaultTab != null ? obj.DefaultTab : window["AscCommonWord"].Default_Tab_Stop;
 			this.Locked = (undefined != obj.Locked && null != obj.Locked ) ? obj.Locked : false;
 			this.CanAddTable = (undefined != obj.CanAddTable ) ? obj.CanAddTable : true;
 
@@ -3113,7 +3134,7 @@
 	};
 	CHyperlinkProperty.prototype.is_Heading = function()
 	{
-		return (this.Heading instanceof Paragraph ? true : false)
+		return (this.Heading instanceof AscCommonWord.Paragraph ? true : false)
 	};
 	CHyperlinkProperty.prototype.put_Heading = function(oParagraph)
 	{
@@ -3817,6 +3838,9 @@
 
 		this.size = undefined;
 		this.initOnSelectionChanged = undefined;
+
+		this.events = [];
+		this.eventsMap = {};
 	}
 
 	CPluginVariation.prototype["get_Description"] = function()
@@ -3945,6 +3969,20 @@
 	{
 		this.initOnSelectionChanged = value;
 	};
+    CPluginVariation.prototype["get_Events"]           = function()
+    {
+        return this.events;
+    };
+    CPluginVariation.prototype["set_Events"]           = function(value)
+    {
+    	if (!value)
+    		return;
+
+        this.events = value.slice(0, value.length);
+        this.eventsMap = {};
+        for (var i = 0; i < this.events.length; i++)
+        	this.eventsMap[this.events[i]] = true;
+    };
 
 	CPluginVariation.prototype["serialize"]   = function()
 	{
@@ -4225,7 +4263,7 @@
 	prot["getCrossMinVal"] = prot.getCrossMinVal;
 	prot["setDefault"] = prot.setDefault;
 
-	window["AscCommon"].asc_ChartSettings = asc_ChartSettings;
+	window["Asc"]["asc_ChartSettings"] = window["Asc"].asc_ChartSettings = asc_ChartSettings;
 	prot = asc_ChartSettings.prototype;
 	prot["putStyle"] = prot.putStyle;
 	prot["putTitle"] = prot.putTitle;

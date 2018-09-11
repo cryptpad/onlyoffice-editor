@@ -228,15 +228,45 @@ Paragraph.prototype.Use_YLimit = function()
 };
 Paragraph.prototype.Set_Pr = function(oNewPr)
 {
-	var Pr_old = this.Pr;
-	var Pr_new = oNewPr;
-	History.Add(new CChangesParagraphPr(this, Pr_old, Pr_new));
+	return this.SetDirectParaPr(oNewPr);
+};
+/**
+ * Устанавливаем прямые настройки параграфа целиком
+ * @param oParaPr {CParaPr}
+ */
+Paragraph.prototype.SetDirectParaPr = function(oParaPr)
+{
+	History.Add(new CChangesParagraphPr(this, this.Pr, oParaPr));
 
-	this.Pr = oNewPr;
+	this.Pr = oParaPr;
 
 	this.Recalc_CompiledPr();
 	this.private_UpdateTrackRevisionOnChangeParaPr(true);
 	this.UpdateDocumentOutline();
+};
+/**
+ * Устанавливаем прямые настройки для текста
+ * @param oTextPr {CTextPr}
+ */
+Paragraph.prototype.SetDirectTextPr = function(oTextPr)
+{
+	// TODO: Пока мы пробегаемся только по верхним элементам параграфа (без поиска в глубину), т.к. данная функция используется
+	//       только для новых параграфов
+
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oRun = this.Content[nIndex];
+		if (oRun.Type === para_Run)
+		{
+			oRun.Set_Pr(oTextPr.Copy());
+
+			// TODO: Передалать ParaEnd
+			if (nIndex === nCount - 1)
+			{
+				this.TextPr.Set_Value(oTextPr.Copy());
+			}
+		}
+	}
 };
 Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 {
@@ -267,6 +297,10 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	for (var Index = 0; Index < Count; Index++)
 	{
 		var Item = this.Content[Index];
+
+		if (para_Comment === Item.Type && true === oPr.SkipComments)
+			continue;
+
 		Para.Internal_Content_Add(Para.Content.length, Item.Copy(false, oPr), false);
 	}
 
@@ -349,6 +383,10 @@ Paragraph.prototype.Get_FirstTextPr2 = function()
 				{
 					return HyperlinkPr;
 				}
+			}
+			else if(para_Math === this.Content[i].Type)
+			{
+				return this.Content[i].GetFirstRPrp();
 			}
 		}
 	}
@@ -6312,6 +6350,12 @@ Paragraph.prototype.Selection_SetStart = function(X, Y, CurPage, bTableBorder)
 
 	// Выставляем селект
 	this.Set_SelectionContentPos(SearchPosXY.Pos, SearchPosXY.Pos);
+
+	if (true === SearchPosXY.Numbering && undefined != this.GetNumPr())
+	{
+		this.Set_ParaContentPos(this.Get_StartPos(), true, -1, -1);
+		this.Parent.SelectNumbering(this.GetNumPr(), this);
+	}
 };
 /**
  * Данная функция может использоваться как при движении, так и при окончательном выставлении селекта.
@@ -6374,24 +6418,16 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 
 	if (0 === SelectionStartPos.Compare(SelectionEndPos) && AscCommon.g_mouse_event_type_up === MouseEvent.Type)
 	{
-		var NumPr = this.GetNumPr();
 		var oInfo = new CSelectedElementsInfo();
 		this.GetSelectedElementsInfo(oInfo);
 		var oField = oInfo.Get_Field();
 		var oSdt   = oInfo.GetInlineLevelSdt();
-
-		if (true === SearchPosXY.Numbering && undefined != NumPr)
-		{
-			// Передвигаем курсор в начало параграфа
-			this.Set_ParaContentPos(this.Get_StartPos(), true, -1, -1);
-			this.Parent.SelectNumbering(NumPr, this);
-		}
-		else if (oSdt && oSdt.IsPlaceHolder())
+		if (oSdt && oSdt.IsPlaceHolder())
 		{
 			oSdt.SelectAll(1);
 			oSdt.SelectThisElement(1);
 		}
-		else if (oField && fieldtype_FORMTEXT === oField.Get_FieldType())
+		else  if (oField && fieldtype_FORMTEXT === oField.Get_FieldType())
 		{
 			oField.SelectAll(1);
 			oField.SelectThisElement(1);
@@ -6616,8 +6652,8 @@ Paragraph.prototype.DrawSelectionOnPage = function(CurPage)
 
 			this.DrawingDocument.AddPageSelection(PageAbs, SelectX, SelectY, SelectW, SelectH);
 
-			if (selectionflag_NumberingCur === this.Selection.Flag)
-				this.DrawingDocument.AddPageSelection(PageAbs, SelectX, SelectY, SelectW2, SelectH);
+			if (selectionflag_NumberingCur === this.Selection.Flag && this.DrawingDocument.AddPageSelection2)
+				this.DrawingDocument.AddPageSelection2(PageAbs, SelectX, SelectY, SelectW2, SelectH);
 
 			break;
 		}
@@ -7366,6 +7402,9 @@ Paragraph.prototype.Is_Empty = function(Props)
 
 		if (Props.SkipComplexFields)
 			Pr.SkipComplexFields = true;
+
+		if (undefined !== Props.SkipPlcHldr)
+			Pr.SkipPlcHldr = Props.SkipPlcHldr;
 	}
 
 	var ContentLen = this.Content.length;
@@ -7482,8 +7521,8 @@ Paragraph.prototype.ApplyNumPr = function(sNumId, nLvl)
 	var SelectionUse       = this.IsSelectionUse();
 	var SelectedOneElement = this.Parent.IsSelectedSingleElement();
 
-	// Когда выделено больше 1 параграфа, нумерация не добавляется к пустым параграфам.
-	if (true === SelectionUse && true !== SelectedOneElement && true === this.Is_Empty())
+	// Когда выделено больше 1 параграфа, нумерация не добавляется к пустым параграфам без нумерации
+	if (true === SelectionUse && true !== SelectedOneElement && true === this.Is_Empty() && !this.GetNumPr())
 		return;
 
 	this.RemoveNumPr();
@@ -7560,11 +7599,13 @@ Paragraph.prototype.ApplyNumPr = function(sNumId, nLvl)
 			}
 			else
 			{
-				// Выставляем заданную нумерацию и сдвиги Ind.Left = X + NumPr.ParaPr.Ind.Left
+				// Выставляем заданную нумерацию и сдвиги. Сдвиг делаем на ближайшую остановку стандартного таба
+
 				var oNumParaPr = oNum.GetLvl(nLvl).GetParaPr();
 				if (undefined != oNumParaPr.Ind && undefined != oNumParaPr.Ind.Left)
 				{
-					oNum.ShiftLeftInd(X + oNumParaPr.Ind.Left);
+					oNum.ShiftLeftInd(X + 12.5);
+					//oNum.ShiftLeftInd(X + oNumParaPr.Ind.Left);
 
 					History.Add(new CChangesParagraphIndFirst(this, this.Pr.Ind.FirstLine, undefined));
 					History.Add(new CChangesParagraphIndLeft(this, this.Pr.Ind.Left, undefined));
@@ -7904,9 +7945,11 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet)
         this.Pr.Bullet = _OldBullet;
 		this.Set_Bullet(oBullet2.createDuplicate());
 		LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
+		var oFirstRunPr = this.Get_FirstTextPr2();
+		var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
 		if (NewType === numbering_presentationnumfrmt_Char)
 		{
-			this.Set_Ind({Left : LeftInd + 14.3, FirstLine : -14.3}, false);
+			this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
 		}
 		else if (NewType === numbering_presentationnumfrmt_None)
 		{
@@ -7932,11 +7975,11 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet)
 			{
 				if (oArabicAlphaMap[NewType])
 				{
-					this.Set_Ind({Left : LeftInd + 14.3, FirstLine : -14.3}, false);
+					this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
 				}
 				else
 				{
-					this.Set_Ind({Left : LeftInd + 15.9, FirstLine : -15.9}, false);
+					this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
 				}
 			}
 			else
@@ -8449,8 +8492,16 @@ Paragraph.prototype.GetDirectTextPr = function()
 
 	return TextPr;
 };
-Paragraph.prototype.GetDirectParaPr = function()
+/**
+ * Получаем прямые настройки параграфа
+ * @param [isCopy=true] копировать ли настройки
+ * @returns {CParaPr}
+ */
+Paragraph.prototype.GetDirectParaPr = function(isCopy)
 {
+	if (false === isCopy)
+		return this.Pr;
+
 	return this.Pr.Copy();
 };
 Paragraph.prototype.PasteFormatting = function(TextPr, oParaPr, ApplyPara)
@@ -8858,6 +8909,21 @@ Paragraph.prototype.Set_Align = function(Align)
 			if (para_Math === oElement.Type && true !== oElement.Is_Inline())
 				oElement.Set_Align(Align);
 		}
+	}
+};
+Paragraph.prototype.Set_DefaultTabSize = function(TabSize)
+{
+	if (this.Pr.DefaultTab != TabSize)
+	{
+		this.private_AddPrChange();
+
+		History.Add(new CChangesParagraphDefaultTabSize(this, this.Pr.DefaultTab, TabSize));
+		this.Pr.DefaultTab = TabSize;
+
+		// Надо пересчитать конечный стиль
+		this.CompiledPr.NeedRecalc = true;
+		this.private_UpdateTrackRevisionOnChangeParaPr(true);
+
 	}
 };
 Paragraph.prototype.Set_Shd = function(_Shd, bDeleteUndefined)
@@ -9608,11 +9674,7 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 		MMData.Type      = AscCommon.c_oAscMouseMoveDataTypes.Hyperlink;
 		MMData.Hyperlink = new Asc.CHyperlinkProperty(oHyperlink);
 
-		if (oHyperlink.GetAnchor())
-			MMData.Hyperlink.ToolTip = oHyperlink.GetToolTip();
-		else
-			MMData.Hyperlink.ToolTip = oHyperlink.GetValue();
-
+		MMData.Hyperlink.ToolTip = oHyperlink.GetToolTip();
 	}
 	else if (null !== Footnote && this.Parent instanceof CDocument)
 	{
@@ -10823,6 +10885,7 @@ Paragraph.prototype.Refresh_RecalcData = function(Data)
 		}
 
 		case AscDFH.historyitem_Paragraph_Align:
+		case AscDFH.historyitem_Paragraph_DefaultTabSize:
 		case AscDFH.historyitem_Paragraph_Ind_First:
 		case AscDFH.historyitem_Paragraph_Ind_Left:
 		case AscDFH.historyitem_Paragraph_Ind_Right:
@@ -11297,10 +11360,11 @@ Paragraph.prototype.Set_SectionPr = function(SectPr, bUpdate)
 	{
 		History.Add(new CChangesParagraphSectPr(this, this.SectPr, SectPr));
 
+		var oOldSectPr = this.SectPr;
 		this.SectPr = SectPr;
 
 		if (false !== bUpdate)
-			this.LogicDocument.Update_SectionsInfo();
+			this.LogicDocument.UpdateSectionInfo(oOldSectPr, SectPr, true);
 
 		// TODO: Когда избавимся от ParaEnd переделать тут
 		if (this.Content.length > 0 && para_Run === this.Content[this.Content.length - 1].Type)
@@ -12568,12 +12632,21 @@ Paragraph.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTe
 	{
 		var oParaTextPr = new ParaTextPr();
 		oParaTextPr.Value.Set_FromObject(new CTextPr(), true);
+
+		// Highlight и Lang не сбрасываются при очистке текстовых настроек
+		oParaTextPr.Value.Lang      = undefined;
+		oParaTextPr.Value.HighLight = undefined;
+
 		this.Add(oParaTextPr);
 	}
 };
 Paragraph.prototype.SetParagraphAlign = function(Align)
 {
 	this.Set_Align(Align);
+};
+Paragraph.prototype.SetParagraphDefaultTabSize = function(TabSize)
+{
+	this.Set_DefaultTabSize(TabSize);
 };
 Paragraph.prototype.SetParagraphSpacing = function(Spacing)
 {
@@ -13149,6 +13222,14 @@ Paragraph.prototype.GetNumberingPage = function(isAbsolute)
 		return 0;
 
 	return isAbsolute ? this.GetAbsolutePage(this.Numbering.Page) : this.Numbering.Page;
+};
+/**
+ * Получаем рассчитанное значение для нумерованного списка
+ * @returns {number} -1 - либо списка нет у данного параграфа, либо данный параграф не был рассчитан
+ */
+Paragraph.prototype.GetNumberingCalculatedValue = function()
+{
+	return this.Numbering.GetCalculatedValue();
 };
 /**
  * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект

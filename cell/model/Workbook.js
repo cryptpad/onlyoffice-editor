@@ -1041,8 +1041,7 @@
 			var tmpCellCache = this.cleanCellCache;
 			this.cleanCellCache = {};
 			for (var i in tmpCellCache) {
-				this.wb.handlers.trigger("cleanCellCache", i, [tmpCellCache[i]],
-										 AscCommonExcel.c_oAscCanChangeColWidth.none);
+				this.wb.handlers.trigger("cleanCellCache", i, [tmpCellCache[i]], true);
 			}
 			AscCommonExcel.g_oVLOOKUPCache.clean();
 			AscCommonExcel.g_oHLOOKUPCache.clean();
@@ -2918,20 +2917,36 @@
 		if (start < this.count) {
 			this.checkSize(this.count - 1 + insertCount);
 			var startOffset = start * this.structSize;
-			var endOffset = (start + insertCount) * this.structSize;
-			var endData = (this.count - insertCount) * this.structSize;
-			this.data.set(this.data.subarray(startOffset, endData), endOffset);
-			this.data.fill(0, startOffset, endOffset);
+			if (start + insertCount < this.count) {
+				var endOffset = (start + insertCount) * this.structSize;
+				var endData = (this.count - insertCount) * this.structSize;
+				this.data.set(this.data.subarray(startOffset, endData), endOffset);
+				this.data.fill(0, startOffset, endOffset);
+			} else {
+				this.data.fill(0, startOffset);
+			}
 		}
 	};
 	SheetMemory.prototype.copyRange = function(sheetMemory, startFrom, startTo, count) {
-		sheetMemory.checkSize(startFrom + count);
-		this.checkSize(startTo + count);
-		var startOffsetFrom = startFrom * this.structSize;
-		var endOffsetFrom = (startFrom + count) * this.structSize;
-		var startOffsetTo = startTo * this.structSize;
+		var countCopied = 0;
+		if (startFrom < sheetMemory.count) {
+			countCopied = Math.min(count, sheetMemory.count - startFrom);
+			this.checkSize(startTo + countCopied);
+			countCopied = Math.min(countCopied, this.count - startTo);
+			if (countCopied > 0) {
+				var startOffsetFrom = startFrom * this.structSize;
+				var endOffsetFrom = (startFrom + countCopied) * this.structSize;
+				var startOffsetTo = startTo * this.structSize;
 
-		this.data.set(sheetMemory.data.subarray(startOffsetFrom, endOffsetFrom), startOffsetTo);
+				this.data.set(sheetMemory.data.subarray(startOffsetFrom, endOffsetFrom), startOffsetTo);
+			}
+		}
+		var countErase = Math.min(count - countCopied, this.count - (startTo + countCopied));
+		if (countErase > 0) {
+			var startOffsetErase = (startTo + countCopied) * this.structSize;
+			var endOffsetErase = (startTo + countCopied + countErase) * this.structSize;
+			this.data.fill(0, startOffsetErase, endOffsetErase);
+		}
 	};
 	SheetMemory.prototype.copyRangeByChunk = function(from, fromCount, to, toCount) {
 		if (from < this.count) {
@@ -2939,7 +2954,7 @@
 			var fromStartOffset = from * this.structSize;
 			var fromEndOffset = Math.min((from + fromCount), this.count) * this.structSize;
 			var fromSubArray = this.data.subarray(fromStartOffset, fromEndOffset);
-			for (var i = to; i < to + toCount; i += fromCount) {
+			for (var i = to; i < to + toCount && i < this.count; i += fromCount) {
 				this.data.set(fromSubArray, i * this.structSize);
 			}
 		}
@@ -3094,8 +3109,13 @@
 		this.selectionRange = new AscCommonExcel.SelectionRange(this);
 		this.sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
 		this.pivotTables = [];
+		this.headerFooter = null;
+		this.rowBreaks = null;
+		this.colBreaks = null;
+		this.legacyDrawingHF = null;
+		this.picture = null;
 
-		this.PagePrintOptions = new Asc.asc_CPageOptions();
+		this.PagePrintOptions = new Asc.asc_CPageOptions(this);
 
 		this.lastFindOptions = null;
 
@@ -3292,12 +3312,17 @@
 		}
 	};
 	Worksheet.prototype.initColumn = function (column) {
-		if (null !== column.width) {
-			column.widthPx = this.modelColWidthToColWidth(column.width);
-			column.charCount = this.colWidthToCharCount(column.widthPx);
+		if (column) {
+			if (null !== column.width) {
+				column.widthPx = this.modelColWidthToColWidth(column.width);
+				column.charCount = this.colWidthToCharCount(column.widthPx);
+			} else {
+				column.widthPx = column.charCount = null;
+			}
 		}
 	};
 	Worksheet.prototype.initColumns = function () {
+		this.initColumn(this.oAllCol);
 		this.aCols.forEach(this.initColumn, this);
 	};
 	Worksheet.prototype.initPostOpen = function (handlers) {
@@ -3531,7 +3556,7 @@
 										});
 										return (-1 !== val.indexOf(text)) ? rule.dxf : null;
 									};
-							})(oRule, oRule.text.toLowerCase());
+							})(oRule, oRule.text && oRule.text.toLowerCase());
 								break;
 							case AscCommonExcel.ECfType.notContainsText:
 								compareFunction = (function(rule, text) {
@@ -3542,29 +3567,29 @@
 										});
 										return (-1 === val.indexOf(text)) ? rule.dxf : null;
 									};
-							})(oRule, oRule.text.toLowerCase());
+							})(oRule, oRule.text && oRule.text.toLowerCase());
 								break;
 							case AscCommonExcel.ECfType.beginsWith:
 								compareFunction = (function(rule, text) {
 									return function(row, col) {
 										var val;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat() : "";
+											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
 										});
 										return val.startsWith(text) ? rule.dxf : null;
 									};
-								})(oRule, oRule.text);
+								})(oRule, oRule.text && oRule.text.toLowerCase());
 								break;
 							case AscCommonExcel.ECfType.endsWith:
 								compareFunction = (function(rule, text) {
 									return function(row, col) {
 										var val;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat() : "";
+											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
 										});
 										return val.endsWith(text) ? rule.dxf : null;
 									};
-								})(oRule, oRule.text);
+								})(oRule, oRule.text && oRule.text.toLowerCase());
 								break;
 							case AscCommonExcel.ECfType.containsErrors:
 								compareFunction = (function(rule) {
@@ -3637,15 +3662,23 @@
 								}
 								break;
 							case AscCommonExcel.ECfType.cellIs:
+								var val1 = oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this);
+								var val2 = oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this);
+								if (val1 && val1.toLowerCase) {
+									val1 = val1.toLowerCase();
+								}
+								if (val2 && val2.toLowerCase) {
+									val2 = val2.toLowerCase();
+								}
 								compareFunction = (function(rule, v1, v2) {
 									return function(row, col) {
 										var val;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat() : "";
+											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
 										});
 										return rule.cellIs(val, v1, v2) ? rule.dxf : null;
 									};
-								})(oRule, oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this), oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this));
+								})(oRule, val1, val2);
 								break;
 							case AscCommonExcel.ECfType.expression:
 								var offset = new AscCommon.CellBase(0, 0);
@@ -10829,6 +10862,7 @@
 								var oOldProps = col.getWidthProp();
 								if (false == oOldProps.isEqual(oNewProps)) {
 									col.setWidthProp(oNewProps);
+									wsTo.initColumn(col);
 									History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_ColProp, wsTo.getId(), new Asc.Range(nCurIndex, 0, nCurIndex, gc_nMaxRow0), new UndoRedoData_IndexSimpleProp(nCurIndex, false, oOldProps, oNewProps));
 								}
 							}

@@ -731,10 +731,10 @@
 		  }
 	  });
 
-    this.model.handlers.add("cleanCellCache", function(wsId, oRanges, bLockDraw, updateHeight) {
+    this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight) {
       var ws = self.getWorksheetById(wsId, true);
       if (ws) {
-        ws.updateRanges(oRanges, bLockDraw || wsId != self.getWorksheet(self.wsActive).model.getId(), updateHeight);
+        ws.updateRanges(oRanges, skipHeight);
       }
     });
     this.model.handlers.add("changeWorksheetUpdate", function(wsId, val) {
@@ -1045,7 +1045,8 @@
         if (false === ct.hyperlink.hyperlinkModel.getVisited() && !isSelectOnShape) {
           ct.hyperlink.hyperlinkModel.setVisited(true);
           if (ct.hyperlink.hyperlinkModel.Ref) {
-            ws.updateRange(ct.hyperlink.hyperlinkModel.Ref.getBBox0(), false, false);
+          	ws._updateRange(ct.hyperlink.hyperlinkModel.Ref.getBBox0());
+          	ws.draw();
           }
         }
         switch (ct.hyperlink.asc_getType()) {
@@ -1075,13 +1076,13 @@
     asc_applyFunction(callback, d);
   };
 
-  WorkbookView.prototype._onUpdateWorksheet = function(canvasElem, x, y, ctrlKey, callback) {
+  WorkbookView.prototype._onUpdateWorksheet = function(x, y, ctrlKey, callback) {
     var ws = this.getWorksheet(), ct = undefined;
     var arrMouseMoveObjects = [];					// Теперь это массив из объектов, над которыми курсор
 
     //ToDo: включить определение target, если находимся в режиме редактирования ячейки.
     if (this.getCellEditMode() && !this.controller.isFormulaEditMode) {
-      canvasElem.style.cursor = "";
+      this.element.style.cursor = "";
     } else if (x === undefined && y === undefined) {
       ws.cleanHighlightedHeaders();
     } else {
@@ -1171,10 +1172,7 @@
         ct.cursor = "copy";
       }
 
-      var newHtmlCursor = AscCommon.g_oHtmlCursor.value(ct.cursor);
-      if (canvasElem.style.cursor !== newHtmlCursor) {
-        canvasElem.style.cursor = newHtmlCursor;
-      }
+      this._onUpdateCursor(ct.cursor);
       if (ct.target === c_oTargetType.ColumnHeader || ct.target === c_oTargetType.RowHeader) {
         ws.drawHighlightedHeaders(ct.col, ct.row);
       } else {
@@ -1182,6 +1180,13 @@
       }
     }
     asc_applyFunction(callback, ct);
+  };
+  
+  WorkbookView.prototype._onUpdateCursor = function (cursor) {
+  	var newHtmlCursor = AscCommon.g_oHtmlCursor.value(cursor);
+  	if (this.element.style.cursor !== newHtmlCursor) {
+		this.element.style.cursor = newHtmlCursor;
+  	}
   };
 
   WorkbookView.prototype._onResizeElement = function(target, x, y) {
@@ -1347,7 +1352,7 @@
     var ct = ws.getCursorTypeFromXY(x, y);
 
     if (ct.target === c_oTargetType.ColumnResize || ct.target === c_oTargetType.RowResize) {
-      ct.target === c_oTargetType.ColumnResize ? ws.autoFitColumnWidth() : ws.autoFitRowHeight(ct.row, ct.row);
+      ct.target === c_oTargetType.ColumnResize ? ws.autoFitColumnsWidth(ct.col) : ws.autoFitRowHeight(ct.row, ct.row);
       asc_applyFunction(callback);
     } else {
       if (ct.col >= 0 && ct.row >= 0) {
@@ -1920,6 +1925,15 @@
     for (i = 0, length = this.fmgrGraphics.length; i < length; ++i)
       this.fmgrGraphics[i].ClearFontsRasterCache();
 
+    if (AscCommon.g_fontManager) {
+        AscCommon.g_fontManager.ClearFontsRasterCache();
+        AscCommon.g_fontManager.m_pFont = null;
+    }
+    if (AscCommon.g_fontManager2) {
+        AscCommon.g_fontManager2.ClearFontsRasterCache();
+        AscCommon.g_fontManager2.m_pFont = null;
+    }
+
     var item;
     var activeIndex = this.model.getActive();
     for (i in this.wsViews) {
@@ -2480,26 +2494,28 @@
     return pdfPrinter;
   };
 
-  WorkbookView.prototype._calcPagesPrintSheet = function (index, printPagesData, onlySelection) {
+  WorkbookView.prototype._calcPagesPrintSheet = function (index, printPagesData, onlySelection, adjustPrint) {
   	var ws = this.model.getWorksheet(index);
   	var wsView = this.getWorksheet(index);
   	if (!ws.getHidden()) {
-  		wsView.calcPagesPrint(ws.PagePrintOptions, onlySelection, index, printPagesData.arrPages);
+		var pageOptionsMap = adjustPrint ? adjustPrint.asc_getPageOptionsMap() : null;
+  		var pagePrintOptions = pageOptionsMap && pageOptionsMap[index] ? pageOptionsMap[index] : ws.PagePrintOptions;
+  		wsView.calcPagesPrint(pagePrintOptions, onlySelection, index, printPagesData.arrPages);
   	}
   };
   WorkbookView.prototype.calcPagesPrint = function (adjustPrint) {
     var printPagesData = new asc_CPrintPagesData();
     var printType = adjustPrint.asc_getPrintType();
     if (printType === Asc.c_oAscPrintType.ActiveSheets) {
-      this._calcPagesPrintSheet(this.model.getActive(), printPagesData, false);
+      this._calcPagesPrintSheet(this.model.getActive(), printPagesData, false, adjustPrint);
     } else if (printType === Asc.c_oAscPrintType.EntireWorkbook) {
       // Колличество листов
       var countWorksheets = this.model.getWorksheetCount();
       for (var i = 0; i < countWorksheets; ++i) {
-      	this._calcPagesPrintSheet(i, printPagesData, false);
+      	this._calcPagesPrintSheet(i, printPagesData, false, adjustPrint);
       }
     } else if (printType === Asc.c_oAscPrintType.Selection) {
-      this._calcPagesPrintSheet(this.model.getActive(), printPagesData, true);
+      this._calcPagesPrintSheet(this.model.getActive(), printPagesData, true, adjustPrint);
     }
 
     if (AscCommonExcel.c_kMaxPrintPages === printPagesData.arrPages.length) {
@@ -3052,6 +3068,33 @@
 			}
 			this.handlers.trigger("asc_onToggleAutoCorrectOptions");
 		}
+	};
+
+	WorkbookView.prototype.savePagePrintOptions = function (arrPagesPrint) {
+		var t = this;
+
+		if(!arrPagesPrint) {
+			return;
+		}
+
+		var callback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			for(var i in arrPagesPrint) {
+				t.getWorksheet(parseInt(i)).savePageOptions(arrPagesPrint[i]);
+			}
+		};
+
+		var lockInfoArr = [];
+		var lockInfo;
+		for(var i in arrPagesPrint) {
+			lockInfo = this.getWorksheet(parseInt(i)).getLayoutLockInfo();
+			lockInfoArr.push(lockInfo);
+		}
+
+		this.collaborativeEditing.lock(lockInfoArr, callback);
 	};
 
   //------------------------------------------------------------export---------------------------------------------------
