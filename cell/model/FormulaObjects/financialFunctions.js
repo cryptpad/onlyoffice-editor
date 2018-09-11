@@ -475,12 +475,14 @@
 	function cACCRINT() {
 	}
 
+	//***array-formula***
 	cACCRINT.prototype = Object.create(cBaseFunction.prototype);
 	cACCRINT.prototype.constructor = cACCRINT;
 	cACCRINT.prototype.name = 'ACCRINT';
 	cACCRINT.prototype.argumentsMin = 6;
 	cACCRINT.prototype.argumentsMax = 8;
 	cACCRINT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cACCRINT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cACCRINT.prototype.Calculate = function (arg) {
 		var issue = arg[0], firstInterest = arg[1], settlement = arg[2], rate = arg[3],
 			par = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(1000), frequency = arg[5],
@@ -3289,12 +3291,14 @@
 	function cODDFPRICE() {
 	}
 
+	//***array-formula***
 	cODDFPRICE.prototype = Object.create(cBaseFunction.prototype);
 	cODDFPRICE.prototype.constructor = cODDFPRICE;
 	cODDFPRICE.prototype.name = 'ODDFPRICE';
 	cODDFPRICE.prototype.argumentsMin = 8;
 	cODDFPRICE.prototype.argumentsMax = 9;
 	cODDFPRICE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cODDFPRICE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cODDFPRICE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], issue = arg[2], first_coupon = arg[3], rate = arg[4], yld = arg[5],
 			redemption = arg[6], frequency = arg[7],
@@ -3423,12 +3427,14 @@
 	function cODDFYIELD() {
 	}
 
+	//***array-formula***
 	cODDFYIELD.prototype = Object.create(cBaseFunction.prototype);
 	cODDFYIELD.prototype.constructor = cODDFYIELD;
 	cODDFYIELD.prototype.name = 'ODDFYIELD';
 	cODDFYIELD.prototype.argumentsMin = 8;
 	cODDFYIELD.prototype.argumentsMax = 9;
 	cODDFYIELD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cODDFYIELD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cODDFYIELD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], issue = arg[2], first_coupon = arg[3], rate = arg[4], pr = arg[5],
 			redemption = arg[6], frequency = arg[7],
@@ -3627,6 +3633,7 @@
 	cODDLPRICE.prototype.argumentsMin = 7;
 	cODDLPRICE.prototype.argumentsMax = 8;
 	cODDLPRICE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cODDLPRICE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cODDLPRICE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], last_interest = arg[2], rate = arg[3], yld = arg[4],
 			redemption = arg[5], frequency = arg[6],
@@ -3758,6 +3765,7 @@
 	cODDLYIELD.prototype.argumentsMin = 7;
 	cODDLYIELD.prototype.argumentsMax = 8;
 	cODDLYIELD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cODDLYIELD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cODDLYIELD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], last_interest = arg[2], rate = arg[3], pr = arg[4],
 			redemption = arg[5], frequency = arg[6],

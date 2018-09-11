@@ -8260,6 +8260,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 216.66666666666666 );
 
+        testArrayFormula2("ACCRINT", 6, 8, true);
     } );
 
     test( "Test: \"ACCRINTM\"", function () {
@@ -9124,6 +9125,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), oddlprice( new cDate(Date.UTC(2008,10,11)), new cDate(Date.UTC(2021,2,1)), new cDate(Date.UTC(2008,9,15)), 0.0785, 0.0625, 100, 2, 1 ) );
 
+        testArrayFormula2("ODDLPRICE", 7, 8, true);
     } );
 
     test( "Test: \"ODDLYIELD\"", function () {
@@ -9146,6 +9148,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), oddlyield( new cDate(2008,10,11), new cDate(2021,2,1), new cDate(2008,9,15), 0.0575, 84.5, 100, 2, 0 ) );
 
+		testArrayFormula2("ODDLYIELD", 7, 8, true);
     } );
 
     test( "Test: \"DURATION\"", function () {
@@ -9639,6 +9642,7 @@ $( function () {
         ok( oParser.parse() );
         ok( difBetween(oParser.calculate().getValue(), 790.11323221867) );
 
+        testArrayFormula2("ODDFPRICE", 8, 9, true);
     } );
 
     test( "Test: \"ODDFYIELD\"", function () {
@@ -9658,6 +9662,7 @@ $( function () {
         ok( oParser.assemble() == "ODDFYIELD(DATE(2008,12,11),DATE(2021,4,1),DATE(2008,10,15),DATE(2009,4,1),6%,100,100,4,1)" );
         ok( difBetween(oParser.calculate().getValue(), 0.0599769985558904 ) );
 
+		testArrayFormula2("ODDFYIELD", 8, 9, true);
     } );
 
     /*
