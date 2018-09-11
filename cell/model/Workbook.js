@@ -3548,48 +3548,52 @@
 								})(oRule, o, oRule.type === AscCommonExcel.ECfType.duplicateValues);
 								break;
 							case AscCommonExcel.ECfType.containsText:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_containsText;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return (-1 !== val.indexOf(text)) ? rule.dxf : null;
+										return res;
 									};
-							})(oRule, oRule.text && oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.notContainsText:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_notContains;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return (-1 === val.indexOf(text)) ? rule.dxf : null;
+										return res;
 									};
-							})(oRule, oRule.text && oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.beginsWith:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_beginsWith;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return val.startsWith(text) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, oRule.text && oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.endsWith:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_endsWith;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return val.endsWith(text) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, oRule.text && oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.containsErrors:
 								compareFunction = (function(rule) {
@@ -3662,23 +3666,16 @@
 								}
 								break;
 							case AscCommonExcel.ECfType.cellIs:
-								var val1 = oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this);
-								var val2 = oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this);
-								if (val1 && val1.toLowerCase) {
-									val1 = val1.toLowerCase();
-								}
-								if (val2 && val2.toLowerCase) {
-									val2 = val2.toLowerCase();
-								}
 								compareFunction = (function(rule, v1, v2) {
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(rule.operator, cell, v1, v2) ? rule.dxf : null;
 										});
-										return rule.cellIs(val, v1, v2) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, val1, val2);
+								})(oRule, oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this),
+									oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this));
 								break;
 							case AscCommonExcel.ECfType.expression:
 								var offset = new AscCommon.CellBase(0, 0);
@@ -7079,6 +7076,10 @@
 		this._checkDirty();
 		return this.number;
 	};
+	Cell.prototype.getBoolValue = function() {
+		this._checkDirty();
+		return this.number == 1;
+	};
 	Cell.prototype.getValueText = function() {
 		this._checkDirty();
 		return this.text;
@@ -7220,29 +7221,12 @@
 				}
 		});
 	};
-	Cell.prototype._calculateRefType = function () {
-		var parsed = this.getFormulaParsed();
-		var val = parsed.value;
-		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
-			val = val.getValue();
-			if (cElementType.empty === val.type) {
-				// Bug http://bugzilla.onlyoffice.com/show_bug.cgi?id=33941
-				val.value = 0;
-				val.type = cElementType.number;
-			}
-		} else if (cElementType.array === val.type) {
-			val = val.getElement(0);
-		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
-			val = val.cross(new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), this.ws.getId());
-		}
-		parsed.value = val;
-	};
 	Cell.prototype._updateCellValue = function() {
 		if (!this.isFormula()) {
 			return;
 		}
-		this._calculateRefType();
-		var res = this.getFormulaParsed().value;
+		var parsed = this.getFormulaParsed();
+		var res = parsed.simplifyRefType(parsed.value, this);
 		if (res) {
 			this.cleanText();
 			switch (res.type) {
