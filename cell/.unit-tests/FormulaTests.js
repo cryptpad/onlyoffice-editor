@@ -2027,6 +2027,8 @@ $( function () {
 		oParser = new parserFormula( "BETA.DIST(A2,A3,A4,FALSE,A5,A6)", "A1", ws );
 		ok( oParser.parse(), "BETA.DIST(A2,A3,A4,FALSE,A5,A6)" );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 1.4837646, "BETA.DIST(A2,A3,A4,FALSE,A5,A6)" );
+
+		testArrayFormula2("BETA.DIST", 4, 6);
 	} );
 
 	test( "Test: \"BETADIST\"", function () {
@@ -8296,6 +8298,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 972 );
 
+        testArrayFormula2("AMORDEGRC", 6, 7, true);
     } );
 
     test( "Test: \"AMORLINC\"", function () {
@@ -8308,6 +8311,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 1484 );
 
+		testArrayFormula2("AMORLINC", 6, 7, true);
     } );
 
     test( "Test: \"CUMIPMT\"", function () {
@@ -9001,6 +9005,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), _getprice( new cDate( Date.UTC(2008, 1, 15 )), new cDate( Date.UTC(2017, 10, 15 )), 0.0575, 0.065, 100, 2, 0 ) );
 
+        testArrayFormula2("PRICE", 6, 7, true);
     } );
 
     test( "Test: \"PRICEDISC\"", function () {
@@ -9045,6 +9050,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), _getYield( new cDate(Date.UTC(2008,1,15)), new cDate(Date.UTC(2016,10,15)),0.0575,95.04287,100,2,0 ) );
 
+        testArrayFormula2("YIELD", 6, 7, true);
     } );
 
     test( "Test: \"YIELDDISC\"", function () {
@@ -9616,6 +9622,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), vdb(2400,300,10*12,6,18) );
 
+        testArrayFormula2("VDB", 5, 7);
     } );
 
     test( "Test: \"ODDFPRICE\"", function () {

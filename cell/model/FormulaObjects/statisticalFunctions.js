@@ -4109,6 +4109,7 @@ function (window, undefined) {
 	function cBETA_DIST() {
 	}
 
+	//***array-formula***
 	cBETA_DIST.prototype = Object.create(cBaseFunction.prototype);
 	cBETA_DIST.prototype.constructor = cBETA_DIST;
 	cBETA_DIST.prototype.name = 'BETA.DIST';
