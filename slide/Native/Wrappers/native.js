@@ -967,6 +967,21 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 8125: //ASC_PRESENTATIONS_EVENT_TYPE_PASTE_CONTENT_TYPE
+        {
+            if(_params[0]){
+                var oPasteProcessor = new oPasteProcessor(this, false, false, false);
+                var aContent = AscFormat.ExecuteNoHistory(function(){
+                    return oPasteProcessor._readPresentationSelectedContent2(_params[0]);
+                }, this, []);
+                if(Array.isArray(aContent) && aContent.length > 0){
+                    _return = aContent[0].getContentType();               
+                }
+            }
+            _return = 0;
+            break;
+        }
+
         case 10000: // ASC_SOCKET_EVENT_TYPE_OPEN
         {
             this.CoAuthoringApi._CoAuthoringApi._onServerOpen();

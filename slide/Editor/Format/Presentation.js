@@ -189,6 +189,18 @@ PresentationSelectedContent.prototype.copy = function()
     return ret;
 };
 
+PresentationSelectedContent.prototype.getContentType = function(){
+    if(this.SlideObjects.length > 0){
+        return 1;
+    }
+    else if(this.Drawings.length > 0){
+        return 2;
+    }
+    else if(this.DocContent){
+        return 3;
+    }
+    return 0;
+};
 
 function CreatePresentationTableStyles(Styles, IdMap)
 {
