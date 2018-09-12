@@ -1286,6 +1286,14 @@ CBlockLevelSdt.prototype.IsLastTableCellInRow = function(isSelection)
 {
 	return this.Parent.IsLastTableCellInRow(isSelection);
 };
+/**
+ * Можно ли удалить данный контейнер
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.CanBeDeleted = function()
+{
+	return (c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

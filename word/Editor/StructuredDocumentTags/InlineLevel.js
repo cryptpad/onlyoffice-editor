@@ -572,6 +572,15 @@ CInlineLevelSdt.prototype.GetContentControlPr = function()
 
 	return oPr;
 };
+/**
+ * Можно ли удалить данный контейнер
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.CanBeDeleted = function()
+{
+	return (c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
 //----------------------------------------------------------------------------------------------------------------------
