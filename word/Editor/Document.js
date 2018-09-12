@@ -7326,7 +7326,6 @@ CDocument.prototype.OnKeyDown = function(e)
         if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Remove, null, true, this.IsFormFieldEditing()))
         {
             this.Create_NewHistoryPoint(AscDFH.historydescription_Document_BackSpaceButton);
-			this.Remove(-1, true, false, false, e.CtrlKey);
 
 			var oSelectInfo = this.GetSelectedElementsInfo();
 			if (oSelectInfo.GetInlineLevelSdt())
