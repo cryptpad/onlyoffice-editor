@@ -14609,16 +14609,14 @@
 					oldScope = oldDefName ? oldDefName.asc_getScope() : t.model.index;
 					newRef = getRangesStr(t.model.selectionRange.ranges);
 					newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
-					wb.editDefinedNames(oldDefName, newDefName);
 					t.viewPrintLines = true;
-					t.updateSelection();
+					wb.editDefinedNames(oldDefName, newDefName);
 
 					break;
 				}
 				case Asc.c_oAscChangePrintAreaType.clear: {
 					if(printArea) {
 						wb.delDefinedNames(printArea.getAscCDefName());
-						t.updateSelection();
 					}
 					break;
 				}
@@ -14630,9 +14628,8 @@
 						oldRef = oldDefName.asc_getRef();
 						newRef = getRangesStr(t.model.selectionRange.ranges, oldRef);
 						newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
-						wb.editDefinedNames(oldDefName, newDefName);
 						t.viewPrintLines = true;
-						t.updateSelection();
+						wb.editDefinedNames(oldDefName, newDefName);
 					}
 
 					break;
