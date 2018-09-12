@@ -902,6 +902,7 @@ var editor;
    * asc_onFilterInfo	        (countFilter, countRecords)								- send count filtered and all records
    * asc_onLockDocumentProps/asc_onUnLockDocumentProps    - эвент о том, что залочены опции layout
    * asc_onUpdateDocumentProps                            - эвент о том, что необходимо обновить данные во вкладке layout
+   * asc_onLockPrintArea/asc_onUnLockPrintArea            - эвент о локе в меню опции print area во вкладке layout
    */
 
   spreadsheet_api.prototype.asc_registerCallback = function(name, callback, replaceOldCallback) {
@@ -1251,8 +1252,10 @@ var editor;
 
           t._onUpdateDefinedNames(lockElem);
 
-          //эвент о локе в меню вкладки layout
+          //эвент о локе в меню вкладки layout(кроме print area)
           t._onUpdateLayoutLock(lockElem);
+          //эвент о локе в меню опции print area во вкладке layout
+          t._onUpdatePrintAreaLock(lockElem);
 
           var ws = t.wb.getWorksheet();
           var lockSheetId = lockElem.Element["sheetId"];
@@ -1326,6 +1329,8 @@ var editor;
           t.handlers.trigger("asc_onLockDefNameManager",Asc.c_oAscDefinedNameReason.OK);
           //эвент о локе в меню вкладки layout
           t._onUpdateLayoutLock(lockElem);
+          //эвент о локе в меню опции print area во вкладке layout
+          t._onUpdatePrintAreaLock(lockElem);
         }
       }
     };
@@ -1517,6 +1522,17 @@ var editor;
           } else {
 			  t.handlers.trigger("asc_onUnLockDocumentProps", wsIndex);
           }
+      }
+  };
+
+  spreadsheet_api.prototype._onUpdatePrintAreaLock = function(lockElem) {
+      var t = this;
+
+      var isLocked = t.asc_isPrintAreaLocked();
+      if(isLocked) {
+          t.handlers.trigger("asc_onLockPrintArea");
+      } else {
+          t.handlers.trigger("asc_onUnLockPrintArea");
       }
   };
 
@@ -1870,6 +1886,11 @@ var editor;
       var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, "layoutOptions");
       // Проверим, редактирует ли кто-то лист
       return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
+  };
+
+  spreadsheet_api.prototype.asc_isPrintAreaLocked = function() {
+      var ws = this.wb.getWorksheet();
+      return !ws.handlers.trigger("getLockDefNameManagerStatus");
   };
 
   spreadsheet_api.prototype.asc_getHiddenWorksheets = function() {
@@ -3529,6 +3550,7 @@ var editor;
   prot["asc_isWorksheetLockedOrDeleted"] = prot.asc_isWorksheetLockedOrDeleted;
   prot["asc_isWorkbookLocked"] = prot.asc_isWorkbookLocked;
   prot["asc_isLayoutLocked"] = prot.asc_isLayoutLocked;
+  prot["asc_isPrintAreaLocked"] = prot.asc_isPrintAreaLocked;
   prot["asc_getHiddenWorksheets"] = prot.asc_getHiddenWorksheets;
   prot["asc_showWorksheet"] = prot.asc_showWorksheet;
   prot["asc_hideWorksheet"] = prot.asc_hideWorksheet;
