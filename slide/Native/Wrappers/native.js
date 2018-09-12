@@ -69,10 +69,10 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
     {
         switch (this.SelectedObjectsStack[i].Type)
         {
-            //case Asc.c_oAscTypeSelectElement.Paragraph:
+            case Asc.c_oAscTypeSelectElement.Paragraph:
             case Asc.c_oAscTypeSelectElement.Table:
             case Asc.c_oAscTypeSelectElement.Image:
-            //case Asc.c_oAscTypeSelectElement.Hyperlink:
+            case Asc.c_oAscTypeSelectElement.Hyperlink:
             case Asc.c_oAscTypeSelectElement.Slide:
             case Asc.c_oAscTypeSelectElement.Shape:  
             case Asc.c_oAscTypeSelectElement.Chart:         
@@ -93,7 +93,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
         {
             case Asc.c_oAscTypeSelectElement.Slide:
             {
-                console.log("StackObjects -> Slide");
+                //console.log("StackObjects -> Slide");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Slide);
                 asc_menu_WriteSlidePr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
@@ -101,7 +101,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
           
             case Asc.c_oAscTypeSelectElement.Shape:
             {
-                console.log("StackObjects -> Shape");
+                //console.log("StackObjects -> Shape");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Shape);
                 asc_menu_WriteShapePr(undefined, this.SelectedObjectsStack[i].Value, _stream); 
                 break;
@@ -109,7 +109,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
 
             case Asc.c_oAscTypeSelectElement.Chart:
             {
-                console.log("StackObjects -> Chart");
+                //console.log("StackObjects -> Chart");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Chart);
                 asc_menu_WriteChartPr(undefined, this.SelectedObjectsStack[i].Value.ChartProperties, _stream); 
                 break;
@@ -117,7 +117,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
 
             case Asc.c_oAscTypeSelectElement.Paragraph:
             {
-                console.log("StackObjects -> Paragraph");
+                //console.log("StackObjects -> Paragraph");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Paragraph);
                 asc_menu_WriteParagraphPr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
@@ -125,14 +125,14 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
 
             case Asc.c_oAscTypeSelectElement.Table:
             {
-                console.log("StackObjects -> Table");
+                //console.log("StackObjects -> Table");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Table);
                 asc_menu_WriteTablePr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
             case Asc.c_oAscTypeSelectElement.Image:
             {
-                console.log("StackObjects -> Image");
+                //console.log("StackObjects -> Image");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Image);
                 asc_menu_WriteImagePr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
@@ -140,8 +140,8 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             case Asc.c_oAscTypeSelectElement.Hyperlink:
             {
                 //console.log("StackObjects -> Hyperlink");
-               // _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Hyperlink);
-               // asc_menu_WriteHyperPr(this.SelectedObjectsStack[i].Value, _stream);
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Hyperlink);
+                asc_menu_WriteHyperPr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
             default:
