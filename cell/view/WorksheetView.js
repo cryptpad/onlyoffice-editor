@@ -14600,7 +14600,7 @@
 			};
 
 			var printArea = t.model.workbook.getDefinesNames("Print_Area", t.model.getId());
-			if(printArea.sheetId !== t.model.getId()) {
+			if(printArea && printArea.sheetId !== t.model.getId()) {
 				printArea = null;
 			}
 			var oldDefName, oldScope, newRef, newDefName, oldRef;
