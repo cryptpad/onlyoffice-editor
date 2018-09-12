@@ -5104,6 +5104,12 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.pre_Paste = function(_fonts, _images, callback)
 	{
+		if (undefined !== window["Native"] && undefined !== window["Native"]["GetImageUrl"])
+		{
+			callback();
+			return;
+		}
+
 		this.pasteCallback = callback;
 		this.pasteImageMap = _images;
 
