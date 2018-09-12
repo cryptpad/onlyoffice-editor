@@ -14600,6 +14600,9 @@
 			};
 
 			var printArea = t.model.workbook.getDefinesNames("Print_Area", t.model.getId());
+			if(printArea.sheetId !== t.model.getId()) {
+				printArea = null;
+			}
 			var oldDefName, oldScope, newRef, newDefName, oldRef;
 			switch (type) {
 				case Asc.c_oAscChangePrintAreaType.set: {
@@ -14644,7 +14647,7 @@
     WorksheetView.prototype.canAddPrintArea = function () {
         var res = false;
         var printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
-        if(printArea) {
+        if(printArea && printArea.sheetId === this.model.getId()) {
             res = true;
             var selection = this.model.selectionRange.ranges;
 
