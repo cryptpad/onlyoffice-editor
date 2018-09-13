@@ -2091,7 +2091,7 @@ PasteProcessor.prototype =
     {
         if(PasteElementsId.g_bIsDocumentCopyPaste)
         {
-			var nDocPosType = oDocument.Get_DocPosType();
+			var nDocPosType = oDocument.GetDocPosType();
 			if (docpostype_HdrFtr === nDocPosType)
 			{
 				if (null != oDocument.HdrFtr && null != oDocument.HdrFtr.CurHdrFtr && null != oDocument.HdrFtr.CurHdrFtr.Content)
@@ -2200,7 +2200,7 @@ PasteProcessor.prototype =
             var bNeedMoveCursor = History.Is_LastPointNeedRecalc();
             this.oRecalcDocument.Recalculate();
             
-            if ((oDocument.Get_DocPosType() !== docpostype_DrawingObjects || true === this.oLogicDocument.DrawingObjects.isSelectedText()) && true === bNeedMoveCursor)
+            if ((oDocument.GetDocPosType() !== docpostype_DrawingObjects || true === this.oLogicDocument.DrawingObjects.isSelectedText()) && true === bNeedMoveCursor)
             {
                 this.oLogicDocument.MoveCursorRight(false, false, true);
             }

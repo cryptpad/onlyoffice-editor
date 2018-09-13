@@ -2323,7 +2323,7 @@ DrawingObjectsController.prototype =
             {
                 this.parent.GoTo_Text();
                 this.resetSelection();
-                if(this.document && (docpostype_DrawingObjects !== this.document.Get_DocPosType() || isRealObject(getTargetTextObject(this.document.DrawingObjects))) && CDocumentContent.prototype.AddNewParagraph === docContentFunction)
+                if(this.document && (docpostype_DrawingObjects !== this.document.GetDocPosType() || isRealObject(getTargetTextObject(this.document.DrawingObjects))) && CDocumentContent.prototype.AddNewParagraph === docContentFunction)
                 {
                     this.document.AddNewParagraph(args[0]);
                 }
@@ -2332,7 +2332,7 @@ DrawingObjectsController.prototype =
             {
                 this.selectedObjects[0].parent.GoTo_Text();
                 this.resetSelection();
-                if(this.document && (docpostype_DrawingObjects !== this.document.Get_DocPosType() || isRealObject(getTargetTextObject(this))) && CDocumentContent.prototype.AddNewParagraph === docContentFunction)
+                if(this.document && (docpostype_DrawingObjects !== this.document.GetDocPosType() || isRealObject(getTargetTextObject(this))) && CDocumentContent.prototype.AddNewParagraph === docContentFunction)
                 {
                     this.document.AddNewParagraph(args[0]);
                 }
@@ -6274,7 +6274,7 @@ DrawingObjectsController.prototype =
         }
         else{
             this.resetSelection();
-            this.document.Set_DocPosType(docpostype_Content);
+            this.document.SetDocPosType(docpostype_Content);
             this.document.SelectAll();
         }
         this.updateSelectionState();
@@ -8696,7 +8696,7 @@ DrawingObjectsController.prototype =
                     oContent.Selection.StartPos = 0;
                     oContent.Selection.EndPos   = 0;
                     oContent.Selection.Flag     = selectionflag_Common;
-                    oContent.Set_DocPosType(docpostype_Content);
+                    oContent.SetDocPosType(docpostype_Content);
                     oContent.CurPos.ContentPos = 0;
                     oShape.bSelectedText = true;
                 }

@@ -6787,9 +6787,9 @@ background-repeat: no-repeat;\
 
 		var bForceRedraw  = false;
 		var LogicDocument = this.WordControl.m_oLogicDocument;
-		if (AscCommonWord.docpostype_HdrFtr !== LogicDocument.Get_DocPosType())
+		if (AscCommonWord.docpostype_HdrFtr !== LogicDocument.GetDocPosType())
 		{
-			LogicDocument.Set_DocPosType(AscCommonWord.docpostype_HdrFtr);
+			LogicDocument.SetDocPosType(AscCommonWord.docpostype_HdrFtr);
 			bForceRedraw = true;
 		}
 
@@ -6819,9 +6819,9 @@ background-repeat: no-repeat;\
 
 		var bForceRedraw  = false;
 		var LogicDocument = this.WordControl.m_oLogicDocument;
-		if (AscCommonWord.docpostype_HdrFtr !== LogicDocument.Get_DocPosType())
+		if (AscCommonWord.docpostype_HdrFtr !== LogicDocument.GetDocPosType())
 		{
-			LogicDocument.Set_DocPosType(AscCommonWord.docpostype_HdrFtr);
+			LogicDocument.SetDocPosType(AscCommonWord.docpostype_HdrFtr);
 			bForceRedraw = true;
 		}
 

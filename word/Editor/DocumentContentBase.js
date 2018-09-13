@@ -70,7 +70,7 @@ CDocumentContentBase.prototype.GetLogicDocument = function()
  * Получаем тип активной части документа.
  * @returns {(docpostype_Content | docpostype_HdrFtr | docpostype_DrawingObjects | docpostype_Footnotes)}
  */
-CDocumentContentBase.prototype.Get_DocPosType = function()
+CDocumentContentBase.prototype.GetDocPosType = function()
 {
 	return this.CurPos.Type;
 };
@@ -78,7 +78,7 @@ CDocumentContentBase.prototype.Get_DocPosType = function()
  * Выставляем тип активной части документа.
  * @param {(docpostype_Content | docpostype_HdrFtr | docpostype_DrawingObjects | docpostype_Footnotes)} nType
  */
-CDocumentContentBase.prototype.Set_DocPosType = function(nType)
+CDocumentContentBase.prototype.SetDocPosType = function(nType)
 {
 	this.CurPos.Type = nType;
 
@@ -988,7 +988,7 @@ CDocumentContentBase.prototype.FindNextFillingForm = function(isNext, isCurrent,
  */
 CDocumentContentBase.prototype.IsSelectedSingleElement = function()
 {
-	return (true === this.Selection.Use && docpostype_Content === this.Get_DocPosType() && this.Selection.Flag === selectionflag_Common && this.Selection.StartPos === this.Selection.EndPos)
+	return (true === this.Selection.Use && docpostype_Content === this.GetDocPosType() && this.Selection.Flag === selectionflag_Common && this.Selection.StartPos === this.Selection.EndPos)
 };
 CDocumentContentBase.prototype.GetOutlineParagraphs = function(arrOutline, oPr)
 {

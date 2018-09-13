@@ -412,13 +412,13 @@ CHdrFtrController.prototype.SaveDocumentStateBeforeLoadChanges = function(State)
 		State.HdrFtrDocPosType = HdrFtrContent.CurPos.Type;
 		State.HdrFtrSelection  = HdrFtrContent.Selection.Use;
 
-		if (docpostype_Content === HdrFtrContent.Get_DocPosType())
+		if (docpostype_Content === HdrFtrContent.GetDocPosType())
 		{
 			State.Pos      = HdrFtrContent.GetContentPosition(false, false, undefined);
 			State.StartPos = HdrFtrContent.GetContentPosition(true, true, undefined);
 			State.EndPos   = HdrFtrContent.GetContentPosition(true, false, undefined);
 		}
-		else if (docpostype_DrawingObjects === HdrFtrContent.Get_DocPosType())
+		else if (docpostype_DrawingObjects === HdrFtrContent.GetDocPosType())
 		{
 			this.LogicDocument.DrawingObjects.Save_DocumentStateBeforeLoadChanges(State);
 		}
@@ -433,7 +433,7 @@ CHdrFtrController.prototype.RestoreDocumentStateAfterLoadChanges = function(Stat
 		var HdrFtrContent = HdrFtr.Get_DocumentContent();
 		if (docpostype_Content === State.HdrFtrDocPosType)
 		{
-			HdrFtrContent.Set_DocPosType(docpostype_Content);
+			HdrFtrContent.SetDocPosType(docpostype_Content);
 			HdrFtrContent.Selection.Use = State.HdrFtrSelection;
 			if (true === HdrFtrContent.Selection.Use)
 			{
@@ -448,11 +448,11 @@ CHdrFtrController.prototype.RestoreDocumentStateAfterLoadChanges = function(Stat
 		}
 		else if (docpostype_DrawingObjects === State.HdrFtrDocPosType)
 		{
-			HdrFtrContent.Set_DocPosType(docpostype_DrawingObjects);
+			HdrFtrContent.SetDocPosType(docpostype_DrawingObjects);
 
 			if (true !== this.LogicDocument.DrawingObjects.Load_DocumentStateAfterLoadChanges(State))
 			{
-				HdrFtrContent.Set_DocPosType(docpostype_Content);
+				HdrFtrContent.SetDocPosType(docpostype_Content);
 				HdrFtrContent.MoveCursorToStartPos();
 			}
 		}
