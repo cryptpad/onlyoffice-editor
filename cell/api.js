@@ -1893,7 +1893,9 @@ var editor;
 		if(index !== undefined) {
 			var sheetId = this.wbModel.getWorksheet(index).getId();
 			var dN = this.wbModel.dependencyFormulas.getDefNameByName("Print_Area", sheetId);
-			res = !!dN.isLock;
+			if(dN) {
+				res = !!dN.isLock;
+			}
 		}
 
 		return res;

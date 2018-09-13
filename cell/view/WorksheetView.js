@@ -14476,6 +14476,10 @@
 			pageOptions.pageSetup.asc_setHeight(height);
 
 			History.EndTransaction();
+
+			if(t.viewPrintLines) {
+				t.updateSelection();
+			}
 		};
 
 		return this._isLockedLayoutOptions(onChangeDocSize);
@@ -14483,6 +14487,7 @@
 
 	WorksheetView.prototype.changePageOrient = function (orientation) {
 		var pageOptions = this.model.PagePrintOptions;
+		var t = this;
 
 		var callback = function (isSuccess) {
 			if (false === isSuccess) {
@@ -14495,6 +14500,10 @@
 			pageOptions.pageSetup.asc_setOrientation(orientation);
 
 			History.EndTransaction();
+
+			if(t.viewPrintLines) {
+				t.updateSelection();
+			}
 		};
 
 		return this._isLockedLayoutOptions(callback);
@@ -14519,12 +14528,17 @@
 			pageMargins.asc_setBottom(bottom);
 
 			History.EndTransaction();
+
+			if(t.viewPrintLines) {
+				t.updateSelection();
+			}
 		};
 
 		return this._isLockedLayoutOptions(callback);
 	};
 
 	WorksheetView.prototype.setPageOption = function (callback, val) {
+		var t = this;
 		var onChangeDocSize = function (isSuccess) {
 			if (false === isSuccess) {
 				return;
@@ -14536,6 +14550,10 @@
 			callback(val);
 
 			History.EndTransaction();
+
+			if(t.viewPrintLines) {
+				t.updateSelection();
+			}
 		};
 
 		return this._isLockedLayoutOptions(onChangeDocSize);
@@ -14555,6 +14573,10 @@
 			}
 
 			t.savePageOptions(obj);
+
+			if(t.viewPrintLines) {
+				t.updateSelection();
+			}
 		};
 
 		return this._isLockedLayoutOptions(onChangeDocSize);
@@ -14571,6 +14593,10 @@
 		//window["Asc"]["editor"]._onUpdateLayoutMenu(this.model.nSheetId);
 
 		History.EndTransaction();
+
+		if(t.viewPrintLines) {
+			t.updateSelection();
+		}
 	};
 
 	WorksheetView.prototype.changePrintArea = function (type) {
@@ -14641,7 +14667,7 @@
 
 		};
 
-		return this._isLockedLayoutOptions(callback);
+		return callback();
 	};
 
     WorksheetView.prototype.canAddPrintArea = function () {
