@@ -93,6 +93,8 @@ CInlineLevelSdt.prototype.Copy = function(Selected, oPr)
 	oContentControl.SetTag(this.GetTag());
 	oContentControl.SetAlias(this.GetAlias());
 	oContentControl.SetContentControlLock(this.GetContentControlLock());
+	oContentControl.SetAppearance(this.GetAppearance());
+	oContentControl.SetColor(this.GetColor());
 
 	return oContentControl;
 };
@@ -434,6 +436,12 @@ CInlineLevelSdt.prototype.SetPr = function(oPr)
 	this.SetTag(oPr.Tag);
 	this.SetLabel(oPr.Label);
 	this.SetContentControlLock(oPr.Lock);
+
+	if (undefined !== oPr.Appearance)
+		this.SetAppearance(oPr.Appearance);
+
+	if (undefined !== oPr.Color)
+		this.SetColor(oPr.Color);
 };
 CInlineLevelSdt.prototype.SetAlias = function(sAlias)
 {
@@ -564,6 +572,15 @@ CInlineLevelSdt.prototype.GetContentControlPr = function()
 
 	return oPr;
 };
+/**
+ * Можно ли удалить данный контейнер
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.CanBeDeleted = function()
+{
+	return (c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
 //----------------------------------------------------------------------------------------------------------------------

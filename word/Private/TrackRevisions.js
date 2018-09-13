@@ -283,7 +283,7 @@ CDocument.prototype.private_GetRevisionsChangeParagraph = function(Direction, Cu
 	}
     else
     {
-        var Pos = (true === this.Selection.Use && docpostype_DrawingObjects !== this.Get_DocPosType() ? (this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos) : this.CurPos.ContentPos);
+        var Pos = (true === this.Selection.Use && docpostype_DrawingObjects !== this.GetDocPosType() ? (this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos) : this.CurPos.ContentPos);
         this.private_GetRevisionsChangeParagraphInDocument(SearchEngine, Pos);
 
         if (Direction > 0)
@@ -730,7 +730,7 @@ CDocument.prototype.RejectRevisionChanges = function(Type, bAll)
 CDocument.prototype.Have_RevisionChanges = function()
 {
     this.TrackRevisionsManager.Continue_TrackRevisions();
-    return this.TrackRevisionsManager.Have_Changes();
+    return this.TrackRevisionsManager.HaveOtherUsersChanges();
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CHeaderFooterController

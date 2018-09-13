@@ -244,7 +244,7 @@ CHeaderFooter.prototype =
         {
             this.RecalcInfo.CurPage = Page_abs;
             
-            if ( docpostype_HdrFtr === this.LogicDocument.Get_DocPosType() )
+            if ( docpostype_HdrFtr === this.LogicDocument.GetDocPosType() )
             {
                 // Обновляем интерфейс, чтобы обновить настройки колонтитула, т.к. мы могли попасть в новую секцию
                 this.LogicDocument.Document_UpdateSelectionState();
@@ -330,8 +330,8 @@ CHeaderFooter.prototype =
         if (-1 === PageIndex)
             this.RecalcInfo.CurPage = -1;
 
-        var OldDocPosType = this.LogicDocument.Get_DocPosType();
-        this.LogicDocument.Set_DocPosType(docpostype_HdrFtr);
+        var OldDocPosType = this.LogicDocument.GetDocPosType();
+        this.LogicDocument.SetDocPosType(docpostype_HdrFtr);
 
         if (true === bUpdateStates && -1 !== PageIndex)
         {
@@ -351,7 +351,7 @@ CHeaderFooter.prototype =
 
     Is_ThisElementCurrent : function()
     {
-        if (this === this.Parent.CurHdrFtr && docpostype_HdrFtr === this.LogicDocument.Get_DocPosType())
+        if (this === this.Parent.CurHdrFtr && docpostype_HdrFtr === this.LogicDocument.GetDocPosType())
             return true;
 
         return false;
@@ -504,6 +504,11 @@ CHeaderFooter.prototype =
 	IsSelectionUse : function()
 	{
 		return this.Content.IsSelectionUse();
+	},
+
+	IsNumberingSelection : function()
+	{
+		return this.Content.IsNumberingSelection();
 	},
 
 	IsTextSelectionUse : function()
@@ -953,7 +958,7 @@ CHeaderFooter.prototype =
 
         if ( true === editor.isStartAddShape )
         {
-            this.Content.Set_DocPosType(docpostype_DrawingObjects);
+            this.Content.SetDocPosType(docpostype_DrawingObjects);
             this.Content.Selection.Use   = true;
             this.Content.Selection.Start = true;
 
@@ -1644,7 +1649,6 @@ CHeaderFooterController.prototype =
         }
 
         this.LogicDocument.DrawingObjects.drawBehindDocHdrFtr(nPageIndex, pGraphics);
-        this.LogicDocument.DrawingObjects.drawWrappingObjectsHdrFtr(nPageIndex, pGraphics);
 
         if (oHeader)
             oHeader.Draw(nPageIndex, pGraphics);
@@ -1796,6 +1800,14 @@ CHeaderFooterController.prototype =
 	{
 		if (null != this.CurHdrFtr)
 			return this.CurHdrFtr.IsSelectionUse();
+
+		return false;
+	},
+
+	IsNumberingSelection : function()
+	{
+		if (this.CurHdrFtr)
+			return this.CurHdrFtr.IsNumberingSelection();
 
 		return false;
 	},
@@ -2192,9 +2204,9 @@ CHeaderFooterController.prototype =
                 if ( false === editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_HdrFtr) )
                 {
                     // Меняем старый режим редактирования, чтобы при Undo/Redo возвращаться в режим редактирования документа
-                    this.LogicDocument.Set_DocPosType(docpostype_Content);
+                    this.LogicDocument.SetDocPosType(docpostype_Content);
                     History.Create_NewPoint(AscDFH.historydescription_Document_AddHeader);
-                    this.LogicDocument.Set_DocPosType(docpostype_HdrFtr);
+                    this.LogicDocument.SetDocPosType(docpostype_HdrFtr);
                     HdrFtr = this.LogicDocument.Create_SectionHdrFtr( hdrftr_Header, PageIndex );
 
                     if (this.CurHdrFtr)
@@ -2217,9 +2229,9 @@ CHeaderFooterController.prototype =
                 if ( false === editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_HdrFtr) )
                 {
                     // Меняем старый режим редактирования, чтобы при Undo/Redo возвращаться в режим редактирования документа
-                    this.LogicDocument.Set_DocPosType(docpostype_Content);
+                    this.LogicDocument.SetDocPosType(docpostype_Content);
                     History.Create_NewPoint(AscDFH.historydescription_Document_AddFooter);
-                    this.LogicDocument.Set_DocPosType(docpostype_HdrFtr);
+                    this.LogicDocument.SetDocPosType(docpostype_HdrFtr);
                     HdrFtr = this.LogicDocument.Create_SectionHdrFtr( hdrftr_Footer, PageIndex );
 
 					if (this.CurHdrFtr)
@@ -2287,7 +2299,7 @@ CHeaderFooterController.prototype =
             // не может быть разбит на несколько страниц
             var ResY = Y;
 
-            if (docpostype_DrawingObjects != this.CurHdrFtr.Content.Get_DocPosType())
+            if (docpostype_DrawingObjects != this.CurHdrFtr.Content.GetDocPosType())
             {
                 if ( PageIndex > this.CurPage )
                     ResY = this.LogicDocument.Get_PageLimits(this.CurPage).YLimit + 10;

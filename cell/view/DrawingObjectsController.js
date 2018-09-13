@@ -151,10 +151,12 @@ DrawingObjectsController.prototype.updateOverlay = function()
 {
     this.drawingObjects.OnUpdateOverlay();
 };
-DrawingObjectsController.prototype.recalculate = function(bAll, Point)
+DrawingObjectsController.prototype.recalculate = function(bAll, Point, bCheckPoint)
 {
-
-    History.Get_RecalcData(Point);//Только для таблиц
+    if(bCheckPoint !== false)
+    {
+        History.Get_RecalcData(Point);//Только для таблиц
+    }
     if(bAll)
     {
         var drawings = this.getDrawingObjects();
@@ -209,9 +211,9 @@ DrawingObjectsController.prototype.getTheme = function()
     return window["Asc"]["editor"].wbModel.theme;
 };
 
-DrawingObjectsController.prototype.startRecalculate = function()
+DrawingObjectsController.prototype.startRecalculate = function(bCheckPoint)
 {
-    this.recalculate();
+    this.recalculate(undefined, undefined, bCheckPoint);
     this.drawingObjects.showDrawingObjects(true);
     //this.updateSelectionState();
 };
@@ -351,7 +353,7 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
 {
     var drawingObjects = this.drawingObjects;
     var oThis = this;
-    this.checkSelectedObjectsAndFireCallback(function(){
+    var fCallback = function(){
         var pluginData = new Asc.CPluginData();
         pluginData.setAttribute("data", oleObject.m_sData);
         pluginData.setAttribute("guid", oleObject.m_sApplicationId);
@@ -365,7 +367,12 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
         oThis.clearPreTrackObjects();
         oThis.changeCurrentState(new AscFormat.NullState(this));
         this.onMouseUp(e, x, y);
-    }, []);
+    };
+    if(!this.canEdit()){
+        fCallback();
+        return;
+    }
+    this.checkSelectedObjectsAndFireCallback(fCallback, []);
 };
 
 DrawingObjectsController.prototype.addChartDrawingObject = function(options)

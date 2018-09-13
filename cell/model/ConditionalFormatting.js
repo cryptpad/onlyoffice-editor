@@ -38,7 +38,7 @@
 	 * -----------------------------------------------------------------------------
 	 */
 	var FT_Common = AscFonts.FT_Common;
-
+	var CellValueType = AscCommon.CellValueType;
 	/**
 	 * Отвечает за условное форматирование
 	 * -----------------------------------------------------------------------------
@@ -196,44 +196,146 @@
 		}
 		return {start: start, end: end};
 	};
-	CConditionalFormattingRule.prototype.cellIs = function(val, v1, v2) {
+	CConditionalFormattingRule.prototype.getValueCellIs = function(ws) {
+		var res;
+		if (null !== this.text) {
+			res = new AscCommonExcel.cString(this.text);
+		} else if (this.aRuleElements[1]) {
+			res = this.aRuleElements[1].getValue(ws);
+		}
+		return res;
+	};
+	CConditionalFormattingRule.prototype.cellIs = function(operator, cell, v1, v2) {
+		if (operator === AscCommonExcel.ECfOperator.Operator_beginsWith ||
+			operator === AscCommonExcel.ECfOperator.Operator_endsWith ||
+			operator === AscCommonExcel.ECfOperator.Operator_containsText ||
+			operator === AscCommonExcel.ECfOperator.Operator_notContains) {
+			return this._cellIsText(operator, cell, v1);
+		} else {
+			return this._cellIsNumber(operator, cell, v1, v2);
+		}
+	};
+	CConditionalFormattingRule.prototype._cellIsText = function(operator, cell, v1) {
+		if (!v1 || AscCommonExcel.cElementType.empty === v1.type) {
+			v1 = new AscCommonExcel.cString("");
+		}
+		if (AscCommonExcel.ECfOperator.Operator_notContains === operator) {
+			return !this._cellIsText(AscCommonExcel.ECfOperator.Operator_containsText, cell, v1);
+		}
+		var cellType = cell ? cell.type : null;
+		if (cellType === CellValueType.Error || AscCommonExcel.cElementType.error === v1.type) {
+			return false;
+		}
 		var res = false;
-		switch(this.operator) {
+		var cellVal = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+		var v1Val = v1.toLocaleString().toLowerCase();
+		switch (operator) {
 			case AscCommonExcel.ECfOperator.Operator_beginsWith:
-				res = val.endsWith(v1);
-				break;
-			case AscCommonExcel.ECfOperator.Operator_between:
-				res = v1 <= val && val <= v2;
+			case AscCommonExcel.ECfOperator.Operator_endsWith:
+				if (AscCommonExcel.cElementType.string === v1.type && (cellType === CellValueType.String || "" === v1Val)) {
+					if (AscCommonExcel.ECfOperator.Operator_beginsWith === operator) {
+						res = cellVal.startsWith(v1Val);
+					} else {
+						res = cellVal.endsWith(v1Val);
+					}
+				} else {
+					res = false;
+				}
 				break;
 			case AscCommonExcel.ECfOperator.Operator_containsText:
-				res = -1 !== val.indexOf(v1);
+				if ("" === cellVal) {
+					res = false;
+				} else {
+					res = -1 !== cellVal.indexOf(v1Val);
+				}
 				break;
-			case AscCommonExcel.ECfOperator.Operator_endsWith:
-				res = val.startsWith(v1);
-				break;
+		}
+		return res;
+	};
+	CConditionalFormattingRule.prototype._cellIsNumber = function(operator, cell, v1, v2) {
+		if (!v1 || AscCommonExcel.cElementType.empty === v1.type) {
+			v1 = new AscCommonExcel.cNumber(0);
+		}
+		if ((cell && cell.type === CellValueType.Error) || AscCommonExcel.cElementType.error === v1.type) {
+			return false;
+		}
+		var cellVal;
+		var res = false;
+		switch (operator) {
 			case AscCommonExcel.ECfOperator.Operator_equal:
-				res = val == v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_greaterThan:
-				res = val > v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual:
-				res = val >= v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_lessThan:
-				res = val < v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_lessThanOrEqual:
-				res = val <= v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_notBetween:
-				res = !(v1 <= val && val <= v2);
-				break;
-			case AscCommonExcel.ECfOperator.Operator_notContains:
-				res = -1 === val.indexOf(v1);
+				if (AscCommonExcel.cElementType.number === v1.type) {
+					if (!cell || cell.isNullTextString()) {
+						res = 0 === v1.getValue();
+					} else if (cell.type === CellValueType.Number) {
+						res = cell.getNumberValue() === v1.getValue();
+					} else {
+						res = false;
+					}
+				} else if (AscCommonExcel.cElementType.string === v1.type) {
+					if (!cell || cell.isNullTextString()) {
+						res = "" === v1.getValue().toLowerCase();
+					} else if (cell.type === CellValueType.String) {
+						cellVal = cell.getValueWithoutFormat().toLowerCase();
+						res = cellVal === v1.getValue().toLowerCase();
+					} else {
+						res = false;
+					}
+				} else if (AscCommonExcel.cElementType.bool === v1.type) {
+					if (cell && cell.type === CellValueType.Bool) {
+						res = cell.getBoolValue() === v1.toBool();
+					} else {
+						res = false;
+					}
+				}
 				break;
 			case AscCommonExcel.ECfOperator.Operator_notEqual:
-				res = val != v1;
+				res = !this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_equal, cell, v1);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_greaterThan:
+				if (AscCommonExcel.cElementType.number === v1.type) {
+					if (!cell || cell.isNullTextString()) {
+						res = 0 > v1.getValue();
+					} else if (cell.type === CellValueType.Number) {
+						res = cell.getNumberValue() > v1.getValue();
+					} else {
+						res = true;
+					}
+				} else if (AscCommonExcel.cElementType.string === v1.type) {
+					if (!cell || cell.isNullTextString()) {
+						res = "" > v1.getValue().toLowerCase();
+					} else if (cell.type === CellValueType.Number) {
+						res = false;
+					} else if (cell.type === CellValueType.String) {
+						cellVal = cell.getValueWithoutFormat().toLowerCase();
+						//todo Excel uses different string compare function
+						res = cellVal > v1.getValue().toLowerCase();
+					} else if (cell.type === CellValueType.Bool) {
+						res = true;
+					}
+				} else if (AscCommonExcel.cElementType.bool === v1.type) {
+					if (cell && cell.type === CellValueType.Bool) {
+						res = cell.getBoolValue() > v1.toBool();
+					} else {
+						res = false;
+					}
+				}
+				break;
+			case AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual:
+				res = this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_greaterThan, cell, v1) ||
+					this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_equal, cell, v1);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_lessThan:
+				res = !this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual, cell, v1);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_lessThanOrEqual:
+				res = !this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_greaterThan, cell, v1);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_between:
+				res = this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual, cell, v1) &&
+					this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_lessThanOrEqual, cell, v2);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_notBetween:
+				res = !this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_between, cell, v1, v2);
 				break;
 		}
 		return res;
@@ -380,7 +482,7 @@
 	};
 	CFormulaCF.prototype.getValue = function(ws) {
 		this.init(ws);
-		return this._f.calculate(null, null).getValue();
+		return this._f.simplifyRefType(this._f.calculate(null, null));
 	};
 	CFormulaCF.prototype.getValueRaw = function(ws, opt_parent, opt_bbox, opt_offset) {
 		this.init(ws, opt_parent);

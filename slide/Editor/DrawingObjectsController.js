@@ -103,7 +103,7 @@ DrawingObjectsController.prototype.getColorMap = function()
 DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing, oleObject, e, x, y, pageIndex)
 {
     var oPresentation = editor && editor.WordControl && editor.WordControl.m_oLogicDocument;
-    if(oPresentation && false === editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props))
+    if(oPresentation && (false === oPresentation.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props) || !oPresentation.CanEdit()))
     {
         var pluginData = new Asc.CPluginData();
         pluginData.setAttribute("data", oleObject.m_sData);
@@ -282,7 +282,6 @@ DrawingObjectsController.prototype.editChart = function(binary)
                         this.selection.groupSelection.selectObject(chart_space, this.drawingObjects.num);
                     }
                     this.startRecalculate();
-                    this.sendGraphicObjectProps();
                     return;
                 }
             }
@@ -298,7 +297,6 @@ DrawingObjectsController.prototype.editChart = function(binary)
             this.resetSelection();
             this.selectObject(chart_space, this.drawingObjects.num);
             this.startRecalculate();
-            this.sendGraphicObjectProps();
             this.updateOverlay();
         }
     }

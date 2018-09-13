@@ -1041,8 +1041,7 @@
 			var tmpCellCache = this.cleanCellCache;
 			this.cleanCellCache = {};
 			for (var i in tmpCellCache) {
-				this.wb.handlers.trigger("cleanCellCache", i, [tmpCellCache[i]],
-										 AscCommonExcel.c_oAscCanChangeColWidth.none);
+				this.wb.handlers.trigger("cleanCellCache", i, [tmpCellCache[i]], true);
 			}
 			AscCommonExcel.g_oVLOOKUPCache.clean();
 			AscCommonExcel.g_oHLOOKUPCache.clean();
@@ -2918,20 +2917,36 @@
 		if (start < this.count) {
 			this.checkSize(this.count - 1 + insertCount);
 			var startOffset = start * this.structSize;
-			var endOffset = (start + insertCount) * this.structSize;
-			var endData = (this.count - insertCount) * this.structSize;
-			this.data.set(this.data.subarray(startOffset, endData), endOffset);
-			this.data.fill(0, startOffset, endOffset);
+			if (start + insertCount < this.count) {
+				var endOffset = (start + insertCount) * this.structSize;
+				var endData = (this.count - insertCount) * this.structSize;
+				this.data.set(this.data.subarray(startOffset, endData), endOffset);
+				this.data.fill(0, startOffset, endOffset);
+			} else {
+				this.data.fill(0, startOffset);
+			}
 		}
 	};
 	SheetMemory.prototype.copyRange = function(sheetMemory, startFrom, startTo, count) {
-		sheetMemory.checkSize(startFrom + count);
-		this.checkSize(startTo + count);
-		var startOffsetFrom = startFrom * this.structSize;
-		var endOffsetFrom = (startFrom + count) * this.structSize;
-		var startOffsetTo = startTo * this.structSize;
+		var countCopied = 0;
+		if (startFrom < sheetMemory.count) {
+			countCopied = Math.min(count, sheetMemory.count - startFrom);
+			this.checkSize(startTo + countCopied);
+			countCopied = Math.min(countCopied, this.count - startTo);
+			if (countCopied > 0) {
+				var startOffsetFrom = startFrom * this.structSize;
+				var endOffsetFrom = (startFrom + countCopied) * this.structSize;
+				var startOffsetTo = startTo * this.structSize;
 
-		this.data.set(sheetMemory.data.subarray(startOffsetFrom, endOffsetFrom), startOffsetTo);
+				this.data.set(sheetMemory.data.subarray(startOffsetFrom, endOffsetFrom), startOffsetTo);
+			}
+		}
+		var countErase = Math.min(count - countCopied, this.count - (startTo + countCopied));
+		if (countErase > 0) {
+			var startOffsetErase = (startTo + countCopied) * this.structSize;
+			var endOffsetErase = (startTo + countCopied + countErase) * this.structSize;
+			this.data.fill(0, startOffsetErase, endOffsetErase);
+		}
 	};
 	SheetMemory.prototype.copyRangeByChunk = function(from, fromCount, to, toCount) {
 		if (from < this.count) {
@@ -2939,7 +2954,7 @@
 			var fromStartOffset = from * this.structSize;
 			var fromEndOffset = Math.min((from + fromCount), this.count) * this.structSize;
 			var fromSubArray = this.data.subarray(fromStartOffset, fromEndOffset);
-			for (var i = to; i < to + toCount; i += fromCount) {
+			for (var i = to; i < to + toCount && i < this.count; i += fromCount) {
 				this.data.set(fromSubArray, i * this.structSize);
 			}
 		}
@@ -3094,8 +3109,13 @@
 		this.selectionRange = new AscCommonExcel.SelectionRange(this);
 		this.sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
 		this.pivotTables = [];
+		this.headerFooter = null;
+		this.rowBreaks = null;
+		this.colBreaks = null;
+		this.legacyDrawingHF = null;
+		this.picture = null;
 
-		this.PagePrintOptions = new Asc.asc_CPageOptions();
+		this.PagePrintOptions = new Asc.asc_CPageOptions(this);
 
 		this.lastFindOptions = null;
 
@@ -3292,12 +3312,17 @@
 		}
 	};
 	Worksheet.prototype.initColumn = function (column) {
-		if (null !== column.width) {
-			column.widthPx = this.modelColWidthToColWidth(column.width);
-			column.charCount = this.colWidthToCharCount(column.widthPx);
+		if (column) {
+			if (null !== column.width) {
+				column.widthPx = this.modelColWidthToColWidth(column.width);
+				column.charCount = this.colWidthToCharCount(column.widthPx);
+			} else {
+				column.widthPx = column.charCount = null;
+			}
 		}
 	};
 	Worksheet.prototype.initColumns = function () {
+		this.initColumn(this.oAllCol);
 		this.aCols.forEach(this.initColumn, this);
 	};
 	Worksheet.prototype.initPostOpen = function (handlers) {
@@ -3523,48 +3548,52 @@
 								})(oRule, o, oRule.type === AscCommonExcel.ECfType.duplicateValues);
 								break;
 							case AscCommonExcel.ECfType.containsText:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_containsText;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return (-1 !== val.indexOf(text)) ? rule.dxf : null;
+										return res;
 									};
-							})(oRule, oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.notContainsText:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_notContains;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return (-1 === val.indexOf(text)) ? rule.dxf : null;
+										return res;
 									};
-							})(oRule, oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.beginsWith:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_beginsWith;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return val.startsWith(text) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, oRule.text);
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.endsWith:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_endsWith;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return val.endsWith(text) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, oRule.text);
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.containsErrors:
 								compareFunction = (function(rule) {
@@ -3639,13 +3668,14 @@
 							case AscCommonExcel.ECfType.cellIs:
 								compareFunction = (function(rule, v1, v2) {
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat() : "";
+											res = rule.cellIs(rule.operator, cell, v1, v2) ? rule.dxf : null;
 										});
-										return rule.cellIs(val, v1, v2) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this), oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this));
+								})(oRule, oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this),
+									oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this));
 								break;
 							case AscCommonExcel.ECfType.expression:
 								var offset = new AscCommon.CellBase(0, 0);
@@ -7046,6 +7076,10 @@
 		this._checkDirty();
 		return this.number;
 	};
+	Cell.prototype.getBoolValue = function() {
+		this._checkDirty();
+		return this.number == 1;
+	};
 	Cell.prototype.getValueText = function() {
 		this._checkDirty();
 		return this.text;
@@ -7187,29 +7221,12 @@
 				}
 		});
 	};
-	Cell.prototype._calculateRefType = function () {
-		var parsed = this.getFormulaParsed();
-		var val = parsed.value;
-		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
-			val = val.getValue();
-			if (cElementType.empty === val.type) {
-				// Bug http://bugzilla.onlyoffice.com/show_bug.cgi?id=33941
-				val.value = 0;
-				val.type = cElementType.number;
-			}
-		} else if (cElementType.array === val.type) {
-			val = val.getElement(0);
-		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
-			val = val.cross(new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), this.ws.getId());
-		}
-		parsed.value = val;
-	};
 	Cell.prototype._updateCellValue = function() {
 		if (!this.isFormula()) {
 			return;
 		}
-		this._calculateRefType();
-		var res = this.getFormulaParsed().value;
+		var parsed = this.getFormulaParsed();
+		var res = parsed.simplifyRefType(parsed.value, this);
 		if (res) {
 			this.cleanText();
 			switch (res.type) {
@@ -10829,6 +10846,7 @@
 								var oOldProps = col.getWidthProp();
 								if (false == oOldProps.isEqual(oNewProps)) {
 									col.setWidthProp(oNewProps);
+									wsTo.initColumn(col);
 									History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_ColProp, wsTo.getId(), new Asc.Range(nCurIndex, 0, nCurIndex, gc_nMaxRow0), new UndoRedoData_IndexSimpleProp(nCurIndex, false, oOldProps, oNewProps));
 								}
 							}

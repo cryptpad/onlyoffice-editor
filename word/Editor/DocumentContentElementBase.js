@@ -443,6 +443,9 @@ CDocumentContentElementBase.prototype.StartSelectionFromCurPos = function()
 CDocumentContentElementBase.prototype.SetParagraphAlign = function(Align)
 {
 };
+CDocumentContentElementBase.prototype.SetParagraphDefaultTabSize = function(TabSize)
+{
+};
 CDocumentContentElementBase.prototype.SetParagraphSpacing = function(Spacing)
 {
 };
@@ -926,6 +929,16 @@ CDocumentContentElementBase.prototype.GetOutlineParagraphs = function(arrOutline
 CDocumentContentElementBase.prototype.GetSimilarNumbering = function(oContinueEngine)
 {
 	return null;
+};
+/**
+ * Переходим к следующей ссылке на сноску
+ * @param isNext {boolean} - направление поиска
+ * @param isCurrent {boolean} - ищем начиная с текущей позиции или с края элемента
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+{
+	return false;
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

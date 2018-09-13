@@ -576,7 +576,7 @@ CTableCell.prototype =
         if ( false === Table.Selection.Use && this === Table.CurCell )
         {
             var Parent = Table.Parent;
-            if ((Parent instanceof AscFormat.CGraphicFrame) || docpostype_Content === Parent.Get_DocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos )
+            if ((Parent instanceof AscFormat.CGraphicFrame) || docpostype_Content === Parent.GetDocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos )
                 return Table.Parent.Is_ThisElementCurrent();
         }
 
@@ -1879,6 +1879,14 @@ CTableCell.prototype.GetGridSpan = function()
 	return this.Get_GridSpan();
 };
 /**
+ * Выставляем количество промежутков, которое занимает данная ячейка
+ * @param nGridSpan
+ */
+CTableCell.prototype.SetGridSpan = function(nGridSpan)
+{
+	return this.Set_GridSpan(nGridSpan);
+};
+/**
  * Получаем информацию о границе ячейки
  * @param {number} nType - 0 - Top, 1 - Right, 2- Bottom, 3- Left
  */
@@ -2021,6 +2029,67 @@ CTableCell.prototype.GetFirstElementInNextCell = function()
 
 	return oCellContent.GetElement(0);
 };
+/**
+ * Получаем предыдущий параграф
+ * @returns {?Paragraph}
+ */
+CTableCell.prototype.GetPrevParagraph = function()
+{
+	var oTable     = this.GetTable();
+	var oRow       = this.GetRow();
+	var nCellIndex = this.GetIndex();
+
+	if (0 === nCellIndex)
+	{
+		var nRowIndex = oRow.GetIndex();
+
+		if (0 === nRowIndex)
+		{
+			return oTable.GetPrevParagraph();
+		}
+		else
+		{
+			var oPrevRow  = oTable.GetRow(nRowIndex - 1);
+			var oPrevCell = oPrevRow.GetCell(oPrevRow.GetCellsCount() - 1);
+
+			if (!oPrevCell)
+				return null;
+
+			return oPrevCell.GetContent().GetLastParagraph();
+		}
+	}
+	else
+	{
+		var oPrevCell = oRow.GetCell(nCellIndex - 1);
+
+		if (!oPrevCell)
+			return null;
+
+		return oPrevCell.GetContent().GetLastParagraph();
+	}
+};
+/**
+ * Участвует ли в вертикальном объединении данная ячейка
+ * @returns {vmerge_Restart | vmerge_Continue}
+ */
+CTableCell.prototype.GetHMerge = function()
+{
+	return this.Get_CompiledPr(false).HMerge;
+};
+/**
+ * Задаем настройку участия данной ячейки в вертикальном объединении
+ * @param {vmerge_Restart | vmerge_Continue} nType
+ */
+CTableCell.prototype.SetHMerge = function(nType)
+{
+	if (nType === this.Pr.HMerge)
+		return;
+
+	History.Add(new CChangesTableCellHMerge(this, this.Pr.HMerge, nType));
+	this.Pr.HMerge = nType;
+	this.Recalc_CompiledPr();
+};
+
 
 function CTableCellRecalculateObject()
 {

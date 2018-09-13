@@ -1094,6 +1094,12 @@ CBlockLevelSdt.prototype.SetPr = function(oPr)
 
 	if (undefined !== oPr.DocPartObj)
 		this.SetDocPartObj(oPr.DocPartObj.Category, oPr.DocPartObj.Gallery, oPr.DocPartObj.Unique);
+
+	if (undefined !== oPr.Appearance)
+		this.SetAppearance(oPr.Appearance);
+
+	if (undefined !== oPr.Color)
+		this.SetColor(oPr.Color);
 };
 CBlockLevelSdt.prototype.SetAlias = function(sAlias)
 {
@@ -1252,6 +1258,10 @@ CBlockLevelSdt.prototype.ClearContentControl = function()
 	this.Content.Remove_FromContent(1, this.Content.GetElementsCount() - 1);
 	this.Content.MoveCursorToStartPos(false);
 };
+CBlockLevelSdt.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+{
+	return this.Content.GotoFootnoteRef(isNext, isCurrent);
+};
 /**
  * Получаем последний элемент содержимого
  * @returns {?CDocumentContentElementBase}
@@ -1275,6 +1285,14 @@ CBlockLevelSdt.prototype.GetOutlineParagraphs = function(arrOutline, oPr)
 CBlockLevelSdt.prototype.IsLastTableCellInRow = function(isSelection)
 {
 	return this.Parent.IsLastTableCellInRow(isSelection);
+};
+/**
+ * Можно ли удалить данный контейнер
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.CanBeDeleted = function()
+{
+	return (c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

@@ -854,7 +854,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		return new cString(this.value ? "TRUE" : "FALSE");
 	};
 	cBool.prototype.toLocaleString = function () {
-		return new cString(this.value ? cBoolLocal.t : cBoolLocal.f);
+		return this.value ? cBoolLocal.t : cBoolLocal.f;
 	};
 	cBool.prototype.tocBool = function () {
 		return this;
@@ -2731,8 +2731,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	parentLeft.prototype.Assemble2 = function (arg, start, count) {
 		return new cString("(" + arg[start + count - 1] + ")");
 	};
-	parentLeft.prototype.Assemble2Locale = function (arg, start, count) {
-		return this.Assemble2(arg, start, count);
+	parentLeft.prototype.Assemble2Locale = function (arg, start, count, locale, digitDelim) {
+		return new cString("(" + arg[start + count - 1].toLocaleString(digitDelim) + ")");
 	};
 
 	/** @constructor */
@@ -5396,7 +5396,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				//если осталось только закрыть скобки за функции с нулевым количеством аргументов
 				if(ph.pCurrPos === this.Formula.length){
 					if(elemArr[elemArr.length - 2] && 0 === elemArr[elemArr.length - 2].argumentsMax){
-						this.operand_expected = false;
+						parseResult.operand_expected = false;
 					}
 				}
 
@@ -5419,7 +5419,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 
-		if (this.operand_expected) {
+		if (parseResult.operand_expected) {
 			this.outStack = [];
 			parseResult.setError(c_oAscError.ID.FrmlOperandExpected);
 			return false;
@@ -6218,6 +6218,27 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 		return false;
+	};
+	parserFormula.prototype.simplifyRefType = function(val, opt_cell) {
+		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
+			val = val.getValue();
+			if (cElementType.empty === val.type && opt_cell) {
+				// Bug http://bugzilla.onlyoffice.com/show_bug.cgi?id=33941
+				val = new cNumber(0);
+			}
+		} else if (cElementType.array === val.type) {
+			val = val.getElement(0);
+		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
+			if (opt_cell) {
+				var range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);
+				val = val.cross(range, opt_cell.ws.getId());
+			} else if (cElementType.cellsRange === val.type) {
+				val = val.getValue2(0, 0);
+			} else {
+				val = val.getValue2(new CellAddress(val.getBBox0().r1, val.getBBox0().c1, 0));
+			}
+		}
+		return val;
 	};
 
 	function CalcRecursion() {

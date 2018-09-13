@@ -242,6 +242,461 @@ function asc_WriteColorSchemes(schemas, s) {
     }
 }
 
+function asc_menu_ReadAscValAxisSettings(_params, _cursor)
+{
+    var _settings = new AscCommon.asc_ValAxisSettings();
+
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _settings.minValRule = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _settings.minVal = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _settings.maxValRule = _params[_cursor.pos++];
+                break;
+            }
+            case 3:
+            {
+                _settings.maxVal = _params[_cursor.pos++];
+                break;
+            }
+            case 4:
+            {
+                _settings.invertValOrder = _params[_cursor.pos++];
+                break;
+            }
+            case 5:
+            {
+                _settings.logScale = _params[_cursor.pos++];
+                break;
+            }
+            case 6:
+            {
+                _settings.logBase = _params[_cursor.pos++];
+                break;
+            }
+            case 7:
+            {
+                _settings.dispUnitsRule = _params[_cursor.pos++];
+                break;
+            }
+            case 8:
+            {
+                _settings.units = _params[_cursor.pos++];
+                break;
+            }
+            case 9:
+            {
+                _settings.showUnitsOnChart = _params[_cursor.pos++];
+                break;
+            }
+            case 10:
+            {
+                _settings.majorTickMark = _params[_cursor.pos++];
+                break;
+            }
+            case 11:
+            {
+                _settings.minorTickMark = _params[_cursor.pos++];
+                break;
+            }
+            case 12:
+            {
+                _settings.tickLabelsPos = _params[_cursor.pos++];
+                break;
+            }
+            case 13:
+            {
+                _settings.crossesRule = _params[_cursor.pos++];
+                break;
+            }
+            case 14:
+            {
+                _settings.crosses = _params[_cursor.pos++];
+                break;
+            }
+            case 15:
+            {
+                _settings.axisType = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+
+    return _settings;
+};
+function asc_menu_WriteAscValAxisSettings(_type, _settings, _stream)
+{
+    if (!_settings)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_settings.minValRule !== undefined && _settings.minValRule !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteLong"](_settings.minValRule);
+    }
+    if (_settings.minVal !== undefined && _settings.minVal !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_settings.minVal);
+    }
+    if (_settings.maxValRule !== undefined && _settings.maxValRule !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteLong"](_settings.maxValRule);
+    }
+    if (_settings.maxVal !== undefined && _settings.maxVal !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteLong"](_settings.maxVal);
+    }
+    if (_settings.invertValOrder !== undefined && _settings.invertValOrder !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteBool"](_settings.invertValOrder);
+    }
+    if (_settings.logScale !== undefined && _settings.logScale !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteBool"](_settings.logScale);
+    }
+    if (_settings.logBase !== undefined && _settings.logBase !== null)
+    {
+        _stream["WriteByte"](6);
+        _stream["WriteLong"](_settings.logBase);
+    }
+    if (_settings.dispUnitsRule !== undefined && _settings.dispUnitsRule !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteLong"](_settings.dispUnitsRule);
+    }
+    if (_settings.units !== undefined && _settings.units !== null)
+    {
+        _stream["WriteByte"](8);
+        _stream["WriteLong"](_settings.units);
+    }
+    if (_settings.showUnitsOnChart !== undefined && _settings.showUnitsOnChart !== null)
+    {
+        _stream["WriteByte"](9);
+        _stream["WriteBool"](_settings.showUnitsOnChart);
+    }
+    if (_settings.majorTickMark !== undefined && _settings.majorTickMark !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteLong"](_settings.majorTickMark);
+    }
+    if (_settings.minorTickMark !== undefined && _settings.minorTickMark !== null)
+    {
+        _stream["WriteByte"](11);
+        _stream["WriteLong"](_settings.minorTickMark);
+    }
+    if (_settings.tickLabelsPos !== undefined && _settings.tickLabelsPos !== null)
+    {
+        _stream["WriteByte"](12);
+        _stream["WriteLong"](_settings.tickLabelsPos);
+    }
+    if (_settings.crossesRule !== undefined && _settings.crossesRule !== null)
+    {
+        _stream["WriteByte"](13);
+        _stream["WriteLong"](_settings.crossesRule);
+    }
+    if (_settings.crosses !== undefined && _settings.crosses !== null)
+    {
+        _stream["WriteByte"](14);
+        _stream["WriteLong"](_settings.crosses);
+    }
+    if (_settings.axisType !== undefined && _settings.axisType !== null)
+    {
+        _stream["WriteByte"](15);
+        _stream["WriteLong"](_settings.axisType);
+    }
+
+    _stream["WriteByte"](255);
+};
+
+function asc_menu_ReadChartPr(_params, _cursor)
+{
+    var _settings = new Asc.asc_ChartSettings();
+
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _settings.style = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _settings.title = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _settings.rowCols = _params[_cursor.pos++];
+                break;
+            }
+            case 3:
+            {
+                _settings.horAxisLabel = _params[_cursor.pos++];
+                break;
+            }
+            case 4:
+            {
+                _settings.vertAxisLabel = _params[_cursor.pos++];
+                break;
+            }
+            case 5:
+            {
+                _settings.legendPos = _params[_cursor.pos++];
+                break;
+            }
+            case 6:
+            {
+                _settings.dataLabelsPos = _params[_cursor.pos++];
+                break;
+            }
+            case 7:
+            {
+                _settings.horAx = _params[_cursor.pos++];
+                break;
+            }
+            case 8:
+            {
+                _settings.vertAx = _params[_cursor.pos++];
+                break;
+            }
+            case 9:
+            {
+                _settings.horGridLines = _params[_cursor.pos++];
+                break;
+            }
+            case 10:
+            {
+                _settings.vertGridLines = _params[_cursor.pos++];
+                break;
+            }
+            case 11:
+            {
+                _settings.type = _params[_cursor.pos++];
+                break;
+            }
+            case 12:
+            {
+                _settings.showSerName = _params[_cursor.pos++];
+                break;
+            }
+            case 13:
+            {
+                _settings.showCatName = _params[_cursor.pos++];
+                break;
+            }
+            case 14:
+            {
+                _settings.showVal = _params[_cursor.pos++];
+                break;
+            }
+            case 15:
+            {
+                _settings.separator = _params[_cursor.pos++];
+                break;
+            }
+            case 16:
+            {
+                _settings.horAxisProps = asc_menu_ReadAscValAxisSettings(_params, _cursor);
+                break;
+            }
+            case 17:
+            {
+                _settings.vertAxisProps = asc_menu_ReadAscValAxisSettings(_params, _cursor);
+                break;
+            }
+            case 18:
+            {
+                _settings.range = _params[_cursor.pos++];
+                break;
+            }
+            case 19:
+            {
+                _settings.inColumns = _params[_cursor.pos++];
+                break;
+            }
+            case 20:
+            {
+                _settings.showMarker = _params[_cursor.pos++];
+                break;
+            }
+            case 21:
+            {
+                _settings.bLine = _params[_cursor.pos++];
+                break;
+            }
+            case 22:
+            {
+                _settings.smooth = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+
+    return _settings;
+};
+function asc_menu_WriteChartPr(_type, _chartPr, _stream)
+{
+    if (!_chartPr)
+        return;
+
+    if(_type !== undefined)
+    {
+        _stream["WriteByte"](_type);
+    }
+    
+
+    if (_chartPr.style !== undefined && _chartPr.style !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteLong"](_chartPr.style);
+    }
+    if (_chartPr.title !== undefined && _chartPr.title !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_chartPr.title);
+    }
+    if (_chartPr.rowCols !== undefined && _chartPr.rowCols !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteLong"](_chartPr.rowCols);
+    }
+    if (_chartPr.horAxisLabel !== undefined && _chartPr.horAxisLabel !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteLong"](_chartPr.horAxisLabel);
+    }
+    if (_chartPr.vertAxisLabel !== undefined && _chartPr.vertAxisLabel !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteLong"](_chartPr.vertAxisLabel);
+    }
+    if (_chartPr.legendPos !== undefined && _chartPr.legendPos !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteLong"](_chartPr.legendPos);
+    }
+    if (_chartPr.dataLabelsPos !== undefined && _chartPr.dataLabelsPos !== null)
+    {
+        _stream["WriteByte"](6);
+        _stream["WriteLong"](_chartPr.dataLabelsPos);
+    }
+    if (_chartPr.horAx !== undefined && _chartPr.horAx !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteLong"](_chartPr.horAx);
+    }
+    if (_chartPr.vertAx !== undefined && _chartPr.vertAx !== null)
+    {
+        _stream["WriteByte"](8);
+        _stream["WriteLong"](_chartPr.vertAx);
+    }
+    if (_chartPr.horGridLines !== undefined && _chartPr.horGridLines !== null)
+    {
+        _stream["WriteByte"](9);
+        _stream["WriteLong"](_chartPr.horGridLines);
+    }
+    if (_chartPr.vertGridLines !== undefined && _chartPr.vertGridLines !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteLong"](_chartPr.vertGridLines);
+    }
+    if (_chartPr.type !== undefined && _chartPr.type !== null)
+    {
+        _stream["WriteByte"](11);
+        _stream["WriteLong"](_chartPr.type);
+    }
+
+    if (_chartPr.showSerName !== undefined && _chartPr.showSerName !== null)
+    {
+        _stream["WriteByte"](12);
+        _stream["WriteBool"](_chartPr.showSerName);
+    }
+    if (_chartPr.showCatName !== undefined && _chartPr.showCatName !== null)
+    {
+        _stream["WriteByte"](13);
+        _stream["WriteBool"](_chartPr.showCatName);
+    }
+    if (_chartPr.showVal !== undefined && _chartPr.showVal !== null)
+    {
+        _stream["WriteByte"](14);
+        _stream["WriteBool"](_chartPr.showVal);
+    }
+
+    if (_chartPr.separator !== undefined && _chartPr.separator !== null)
+    {
+        _stream["WriteByte"](15);
+        _stream["WriteString2"](_chartPr.separator);
+    }
+
+    asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
+    asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
+
+    if (_chartPr.range !== undefined && _chartPr.range !== null)
+    {
+        _stream["WriteByte"](18);
+        _stream["WriteString2"](_chartPr.range);
+    }
+
+    if (_chartPr.inColumns !== undefined && _chartPr.inColumns !== null)
+    {
+        _stream["WriteByte"](19);
+        _stream["WriteBool"](_chartPr.inColumns);
+    }
+    if (_chartPr.showMarker !== undefined && _chartPr.showMarker !== null)
+    {
+        _stream["WriteByte"](20);
+        _stream["WriteBool"](_chartPr.showMarker);
+    }
+    if (_chartPr.bLine !== undefined && _chartPr.bLine !== null)
+    {
+        _stream["WriteByte"](21);
+        _stream["WriteBool"](_chartPr.bLine);
+    }
+    if (_chartPr.smooth !== undefined && _chartPr.smooth !== null)
+    {
+        _stream["WriteByte"](22);
+        _stream["WriteBool"](_chartPr.showVal);
+    }
+
+    _stream["WriteByte"](255);
+};
+
 function asc_menu_ReadAscFill_solid(_params, _cursor)
 {
     var _fill = new Asc.asc_CFillSolid();
@@ -1354,6 +1809,282 @@ function asc_menu_WritePosition(_type, _position, _stream) {
     _stream["WriteByte"](255);
 }
 
+function asc_menu_WriteParaTabs(_type, _tabs, _stream)
+{
+    if (!_tabs)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    var _len = _tabs.Tabs.length;
+    _stream["WriteLong"](_len);
+
+    for (var i = 0; i < _len; i++)
+    {
+        if (_tabs.Tabs[i].Pos !== undefined && _tabs.Tabs[i].Pos !== null)
+        {
+            _stream["WriteByte"](0);
+            _stream["WriteDouble2"](_tabs.Tabs[i].Pos);
+        }
+        if (_tabs.Tabs[i].Value !== undefined && _tabs.Tabs[i].Value !== null)
+        {
+            _stream["WriteByte"](1);
+            _stream["WriteLong"](_tabs.Tabs[i].Value);
+        }
+        _stream["WriteByte"](255);
+    }
+}
+
+function asc_menu_WriteFontFamily(_type, _family, _stream)
+{
+    if (!_family)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_family.Name !== undefined && _family.Name !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteString2"](_family.Name);
+    }
+    if (_family.Index !== undefined && _family.Index !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_family.Index);
+    }
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_WriteParaFrame(_type, _frame, _stream)
+{
+    if (!_frame)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_frame.FromDropCapMenu !== undefined && _frame.FromDropCapMenu !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteBool"](_frame.FromDropCapMenu);
+    }
+    if (_frame.DropCap !== undefined && _frame.DropCap !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_frame.DropCap);
+    }
+    if (_frame.W !== undefined && _frame.W !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteDouble2"](_frame.W);
+    }
+    if (_frame.H !== undefined && _frame.H !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteDouble2"](_frame.H);
+    }
+    if (_frame.HAlign !== undefined && _frame.HAlign !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteLong"](_frame.HAlign);
+    }
+    if (_frame.HRule !== undefined && _frame.HRule !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteLong"](_frame.HRule);
+    }
+    if (_frame.HSpace !== undefined && _frame.HSpace !== null)
+    {
+        _stream["WriteByte"](6);
+        _stream["WriteDouble2"](_frame.HSpace);
+    }
+    if (_frame.VAnchor !== undefined && _frame.VAnchor !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteLong"](_frame.VAnchor);
+    }
+    if (_frame.VSpace !== undefined && _frame.VSpace !== null)
+    {
+        _stream["WriteByte"](8);
+        _stream["WriteDouble2"](_frame.VSpace);
+    }
+    if (_frame.X !== undefined && _frame.X !== null)
+    {
+        _stream["WriteByte"](9);
+        _stream["WriteDouble2"](_frame.X);
+    }
+    if (_frame.Y !== undefined && _frame.Y !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteDouble2"](_frame.Y);
+    }
+    if (_frame.XAlign !== undefined && _frame.XAlign !== null)
+    {
+        _stream["WriteByte"](11);
+        _stream["WriteLong"](_frame.XAlign);
+    }
+    if (_frame.YAlign !== undefined && _frame.YAlign !== null)
+    {
+        _stream["WriteByte"](12);
+        _stream["WriteLong"](_frame.YAlign);
+    }
+    if (_frame.Lines !== undefined && _frame.Lines !== null)
+    {
+        _stream["WriteByte"](13);
+        _stream["WriteLong"](_frame.Lines);
+    }
+    if (_frame.Wrap !== undefined && _frame.Wrap !== null)
+    {
+        _stream["WriteByte"](14);
+        _stream["WriteLong"](_frame.Wrap);
+    }
+
+    asc_menu_WriteParaBorders(15, _frame.Brd, _stream);
+    asc_menu_WriteParaShd(16, _frame.Shd, _stream);
+    asc_menu_WriteFontFamily(17, _frame.FontFamily, _stream);
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_WriteParaListType(_type, _list, _stream)
+{
+    if (!_list)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_list.Type !== undefined && _list.Type !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteLong"](_list.Type);
+    }
+    if (_list.SubType !== undefined && _list.SubType !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_list.SubType);
+    }
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_WriteParagraphPr(_paraPr, _stream)
+{
+    if (_paraPr.ContextualSpacing !== undefined && _paraPr.ContextualSpacing !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteBool"](_paraPr.ContextualSpacing);
+    }
+    asc_menu_WriteParaInd(1, _paraPr.Ind, _stream);
+
+    if (_paraPr.KeepLines !== undefined && _paraPr.KeepLines !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteBool"](_paraPr.KeepLines);
+    }
+    if (_paraPr.KeepNext !== undefined && _paraPr.KeepNext !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteBool"](_paraPr.KeepNext);
+    }
+    if (_paraPr.WidowControl !== undefined && _paraPr.WidowControl !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteBool"](_paraPr.WidowControl);
+    }
+    if (_paraPr.PageBreakBefore !== undefined && _paraPr.PageBreakBefore !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteBool"](_paraPr.PageBreakBefore);
+    }
+
+    asc_menu_WriteParaSpacing(6, _paraPr.Spacing, _stream);
+    asc_menu_WriteParaBorders(7, _paraPr.Brd, _stream);
+    asc_menu_WriteParaShd(8, _paraPr.Shd, _stream);
+
+    if (_paraPr.Locked !== undefined && _paraPr.Locked !== null)
+    {
+        _stream["WriteByte"](9);
+        _stream["WriteBool"](_paraPr.Locked);
+    }
+    if (_paraPr.CanAddTable !== undefined && _paraPr.CanAddTable !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteBool"](_paraPr.CanAddTable);
+    }
+    if (_paraPr.CanAddDropCap !== undefined && _paraPr.CanAddDropCap !== null)
+    {
+        _stream["WriteByte"](11);
+        _stream["WriteBool"](_paraPr.CanAddDropCap);
+    }
+
+    if (_paraPr.DefaultTab !== undefined && _paraPr.DefaultTab !== null)
+    {
+        _stream["WriteByte"](12);
+        _stream["WriteDouble2"](_paraPr.DefaultTab);
+    }
+
+    asc_menu_WriteParaTabs(13, _paraPr.Tabs, _stream);
+    asc_menu_WriteParaFrame(14, _paraPr.FramePr, _stream);
+
+    if (_paraPr.Subscript !== undefined && _paraPr.Subscript !== null)
+    {
+        _stream["WriteByte"](15);
+        _stream["WriteBool"](_paraPr.Subscript);
+    }
+    if (_paraPr.Superscript !== undefined && _paraPr.Superscript !== null)
+    {
+        _stream["WriteByte"](16);
+        _stream["WriteBool"](_paraPr.Superscript);
+    }
+    if (_paraPr.SmallCaps !== undefined && _paraPr.SmallCaps !== null)
+    {
+        _stream["WriteByte"](17);
+        _stream["WriteBool"](_paraPr.SmallCaps);
+    }
+    if (_paraPr.AllCaps !== undefined && _paraPr.AllCaps !== null)
+    {
+        _stream["WriteByte"](18);
+        _stream["WriteBool"](_paraPr.AllCaps);
+    }
+    if (_paraPr.Strikeout !== undefined && _paraPr.Strikeout !== null)
+    {
+        _stream["WriteByte"](19);
+        _stream["WriteBool"](_paraPr.Strikeout);
+    }
+    if (_paraPr.DStrikeout !== undefined && _paraPr.DStrikeout !== null)
+    {
+        _stream["WriteByte"](20);
+        _stream["WriteBool"](_paraPr.DStrikeout);
+    }
+
+    if (_paraPr.TextSpacing !== undefined && _paraPr.TextSpacing !== null)
+    {
+        _stream["WriteByte"](21);
+        _stream["WriteDouble2"](_paraPr.TextSpacing);
+    }
+    if (_paraPr.Position !== undefined && _paraPr.Position !== null)
+    {
+        _stream["WriteByte"](22);
+        _stream["WriteDouble2"](_paraPr.Position);
+    }
+
+    asc_menu_WriteParaListType(23, _paraPr.ListType, _stream);
+
+    if (_paraPr.StyleName !== undefined && _paraPr.StyleName !== null)
+    {
+        _stream["WriteByte"](24);
+        _stream["WriteString2"](_paraPr.StyleName);
+    }
+
+    if (_paraPr.Jc !== undefined && _paraPr.Jc !== null)
+    {
+        _stream["WriteByte"](25);
+        _stream["WriteLong"](_paraPr.Jc);
+    }
+
+    _stream["WriteByte"](255);
+}
+
 function asc_menu_ReadPaddings(_params, _cursor) {
     var _paddings = new Asc.asc_CPaddings();
     var _continue = true;
@@ -1831,7 +2562,7 @@ function asc_menu_WriteImagePr(_imagePr, _stream){
         _stream["WriteBool"](_imagePr.Locked);
     }
 
-    //asc_menu_WriteChartPr(12, _imagePr.ChartProperties, _stream);
+    asc_menu_WriteChartPr(12, _imagePr.ChartProperties, _stream);
     asc_menu_WriteShapePr(13, _imagePr.ShapeProperties, _stream);
 
     if (_imagePr.ChangeLevel !== undefined && _imagePr.ChangeLevel !== null)
@@ -2290,9 +3021,9 @@ Asc['asc_docs_api'].prototype["CheckSlideBounds"] = function(nSlideIndex){
     ]
 }
 
-Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex)
+Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex, bTh)
 {
-    this.WordControl.m_oDrawingDocument.RenderPage(pageIndex);
+    this.WordControl.m_oDrawingDocument.RenderPage(pageIndex, bTh);
 };
 
 
@@ -2519,6 +3250,12 @@ Asc['asc_docs_api'].prototype.Call_Menu_Context_Select = function()
     this.WordControl.m_oLogicDocument.MoveCursorRight(true, true);
     this.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
 };
+
+Asc['asc_docs_api'].prototype.Call_Menu_Context_Delete = function()
+{
+    this.WordControl.m_oLogicDocument.Remove(-1);
+};
+
 Asc['asc_docs_api'].prototype.Call_Menu_Context_SelectAll = function()
 {
     this.WordControl.m_oLogicDocument.SelectAll();
@@ -2552,9 +3289,9 @@ if(window.native){
         }
 	};
 	
-	window.native.Call_GetPageMeta = function(nIndex){
+	window.native.Call_GetPageMeta = function(nIndex, bTh){
         if(window.editor) {
-            return window.editor.GetNativePageMeta(nIndex);
+            return window.editor.GetNativePageMeta(nIndex, bTh);
         }
 	};
 
@@ -2571,8 +3308,9 @@ if(window.native){
     window.native.Call_OnMouseUp = function(e){
         if(window.editor)
         {
-            window.editor.WordControl.m_oDrawingDocument.OnMouseUp(e);
+            return window.editor.WordControl.m_oDrawingDocument.OnMouseUp(e);
         }
+        return [];
     };
 
     window.native.Call_OnMouseMove = function(e){

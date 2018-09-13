@@ -69,12 +69,13 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
     {
         switch (this.SelectedObjectsStack[i].Type)
         {
-            //case Asc.c_oAscTypeSelectElement.Paragraph:
+            case Asc.c_oAscTypeSelectElement.Paragraph:
             case Asc.c_oAscTypeSelectElement.Table:
             case Asc.c_oAscTypeSelectElement.Image:
-            //case Asc.c_oAscTypeSelectElement.Hyperlink:
+            case Asc.c_oAscTypeSelectElement.Hyperlink:
             case Asc.c_oAscTypeSelectElement.Slide:
-            case Asc.c_oAscTypeSelectElement.Shape:           
+            case Asc.c_oAscTypeSelectElement.Shape:  
+            case Asc.c_oAscTypeSelectElement.Chart:         
             {
                 ++_naturalCount;
                 break;
@@ -92,7 +93,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
         {
             case Asc.c_oAscTypeSelectElement.Slide:
             {
-                console.log("StackObjects -> Slide");
+                //console.log("StackObjects -> Slide");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Slide);
                 asc_menu_WriteSlidePr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
@@ -100,30 +101,38 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
           
             case Asc.c_oAscTypeSelectElement.Shape:
             {
-                console.log("StackObjects -> Shape");
+                //console.log("StackObjects -> Shape");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Shape);
                 asc_menu_WriteShapePr(undefined, this.SelectedObjectsStack[i].Value, _stream); 
+                break;
+            }
+
+            case Asc.c_oAscTypeSelectElement.Chart:
+            {
+                //console.log("StackObjects -> Chart");
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Chart);
+                asc_menu_WriteChartPr(undefined, this.SelectedObjectsStack[i].Value.ChartProperties, _stream); 
                 break;
             }
 
             case Asc.c_oAscTypeSelectElement.Paragraph:
             {
                 //console.log("StackObjects -> Paragraph");
-                //_stream["WriteLong"](Asc.c_oAscTypeSelectElement.Paragraph);
-                //asc_menu_WriteParagraphPr(this.SelectedObjectsStack[i].Value, _stream);
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Paragraph);
+                asc_menu_WriteParagraphPr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
 
             case Asc.c_oAscTypeSelectElement.Table:
             {
-                console.log("StackObjects -> Table");
+                //console.log("StackObjects -> Table");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Table);
                 asc_menu_WriteTablePr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
             case Asc.c_oAscTypeSelectElement.Image:
             {
-                console.log("StackObjects -> Image");
+                //console.log("StackObjects -> Image");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Image);
                 asc_menu_WriteImagePr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
@@ -131,8 +140,8 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             case Asc.c_oAscTypeSelectElement.Hyperlink:
             {
                 //console.log("StackObjects -> Hyperlink");
-               // _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Hyperlink);
-               // asc_menu_WriteHyperPr(this.SelectedObjectsStack[i].Value, _stream);
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Hyperlink);
+                asc_menu_WriteHyperPr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
             default:
@@ -144,6 +153,68 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
     }
 
     window["native"]["OnCallMenuEvent"](6, global_memory_stream_menu);
+};
+
+// chat styles
+AscCommon.ChartPreviewManager.prototype.clearPreviews = function()
+{
+    window["native"]["DD_ClearCacheChartStyles"]();
+};
+
+AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex)
+{
+    return AscFormat.ExecuteNoHistory(function(){
+      if(!this.chartsByTypes[type])
+          this.chartsByTypes[type] = this.getChartByType(type);
+
+      var chart_space = this.chartsByTypes[type];
+      AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
+      chart_space.recalcInfo.recalculateReferences = false;
+      chart_space.recalculate();
+
+      // sizes for imageView
+      window["native"]["DD_StartNativeDraw"](85 * 2, 85 * 2, 75, 75);
+
+      var dKoefToMM = AscCommon.g_dKoef_pix_to_mm;
+      if (this.IsRetinaEnabled)
+          dKoefToMM /= 2;
+
+      chart_space.draw(_graphics);
+      _graphics.ClearParams();
+
+      var _stream = global_memory_stream_menu;
+      _stream["ClearNoAttack"]();
+      _stream["WriteByte"](4);
+      _stream["WriteLong"](type);
+      _stream["WriteLong"](styleIndex);
+      window["native"]["DD_EndNativeDraw"](_stream);
+
+      }, this, []);
+};
+
+AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
+{
+    if (AscFormat.isRealNumber(chartType))
+    {
+        var bIsCached = window["native"]["DD_IsCachedChartStyles"](chartType);
+        if (!bIsCached)
+        {
+            window["native"]["DD_PrepareNativeDraw"]();
+
+            var _graphics = new CDrawingStream();
+
+            if(AscCommon.g_oChartPresets[chartType]){
+                var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
+                for(var i = 0; i < nStylesCount; ++i)
+                    this.createChartPreview(_graphics, chartType, i);
+            }
+
+            var _stream = global_memory_stream_menu;
+            _stream["ClearNoAttack"]();
+            _stream["WriteByte"](5);
+            _api.WordControl.m_oDrawingDocument.Native["DD_EndNativeDraw"](_stream);
+        }
+    }
 };
 
 Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
@@ -486,10 +557,16 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.SetSlideProps(props);
             break;
         }
-        case 23:
+
+        case 21: // ASC_MENU_EVENT_TYPE_CHART
         {
-            this.SlideTimingApplyToAll();
-            break;
+            var chartProp = asc_menu_ReadChartPr(_params, _current);
+            var prop = new Asc.CAscChartProp();
+            prop.put_ChartProperties(chartProp);
+            prop.put_SeveralCharts(false);
+            this.ChartApply(prop);
+            this.WordControl.m_oLogicDocument.Recalculate();
+        	break;
         }
         
         case 50: // ASC_MENU_EVENT_TYPE_INSERT_IMAGE
@@ -713,6 +790,14 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 201: // ASC_MENU_EVENT_TYPE_DOCUMENT_CHARTSTYLES
+        {
+            var typeChart = _params[0];
+            this.chartPreviewManager.getChartPreviews(typeChart);
+            _return = global_memory_stream_menu;
+            break;
+        }
+
         case 202: // ASC_MENU_EVENT_TYPE_DOCUMENT_PDFBASE64
         {
             var _stream = global_memory_stream_menu;
@@ -722,9 +807,34 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 400:   // ASC_MENU_EVENT_TYPE_INSERT_CHART
+        {
+
+            break;
+        }  
+
+        case 440:   // ASC_MENU_EVENT_TYPE_ADD_CHART_DATA
+        {
+            if (undefined !== _params) {
+                var chartData = _params[0];
+                if (chartData && chartData.length > 0) {
+                    var json = JSON.parse(chartData);
+                    if (json) {
+                        _api.asc_addChartDrawingObject(json);
+                    }
+                }
+            }
+            break;
+        } 
+
         case 450:   // ASC_MENU_EVENT_TYPE_GET_CHART_DATA
         {
-            var chart = _api.asc_getChartObject();
+            var index = null;
+            if (undefined !== _params) {
+                index = parseInt(_params);
+            }
+
+            var chart = _api.asc_getChartObject(index);
             
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
@@ -782,8 +892,10 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var _stream = global_memory_stream_menu;
             var nPos = _params[0];
             var aMoveArray = _params.slice(1);
+            this.WordControl.m_oDrawingDocument.LockEvents = true;
             this.WordControl.m_oLogicDocument.shiftSlides(nPos, aMoveArray, false);
-
+            this.WordControl.m_oDrawingDocument.LockEvents = false;
+            this.WordControl.m_oDrawingDocument.UpdateThumbnailsAttack();
             _return = _stream;
             break;
         }
@@ -846,6 +958,27 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 this.DistributeVertically();
             } 
 
+            break;
+        }
+
+        case 8124: // ASC_PRESENTATIONS_EVENT_TYPE_SLIDE_TIMIN_GALL
+        {
+            this.SlideTimingApplyToAll();
+            break;
+        }
+
+        case 8125: //ASC_PRESENTATIONS_EVENT_TYPE_PASTE_CONTENT_TYPE
+        {
+            if(_params[0]){
+                var oPasteProcessor = new oPasteProcessor(this, false, false, false);
+                var aContent = AscFormat.ExecuteNoHistory(function(){
+                    return oPasteProcessor._readPresentationSelectedContent2(_params[0]);
+                }, this, []);
+                if(Array.isArray(aContent) && aContent.length > 0){
+                    _return = aContent[0].getContentType();               
+                }
+            }
+            _return = 0;
             break;
         }
 

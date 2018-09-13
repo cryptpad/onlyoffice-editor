@@ -3374,10 +3374,6 @@ CStyle.prototype.CreateQuote = function()
 		Ind : {
 			Left  : 720 * g_dKoef_twips_to_mm,
 			Right : 720 * g_dKoef_twips_to_mm
-		},
-
-		Spacing : {
-			After : 0
 		}
 	});
 };
@@ -3394,24 +3390,48 @@ CStyle.prototype.CreateIntenseQuote = function()
 	});
 
 	this.SetParaPr({
+
+		ContextualSpacing : false,
+
 		Ind : {
 			Left  : 720 * g_dKoef_twips_to_mm,
 			Right : 720 * g_dKoef_twips_to_mm
 		},
 
+		Shd : {
+			Value : c_oAscShdClear,
+			Color : {r : 0xF2, g : 0xF2, b : 0xF2}
+		},
+
 		Brd : {
 
 			Left : {
-				Color   : {r : 0x59, g : 0x59, b : 0x59},
+				Color   : {r : 0xFF, g : 0xFF, b : 0xFF},
 				Space   : 10 * g_dKoef_pt_to_mm,
-				Size    : 3 * g_dKoef_pt_to_mm,
-				Value   : border_Single,
-				Unifill : AscFormat.CreateUniFillSchemeColorWidthTint(0, 0)
-			}
-		},
+				Size    : 0.5 * g_dKoef_pt_to_mm,
+				Value   : border_Single
+			},
 
-		Spacing : {
-			After : 0
+			Top : {
+				Color   : {r : 0xFF, g : 0xFF, b : 0xFF},
+				Space   : 5 * g_dKoef_pt_to_mm,
+				Size    : 0.5 * g_dKoef_pt_to_mm,
+				Value   : border_Single
+			},
+
+			Right : {
+				Color   : {r : 0xFF, g : 0xFF, b : 0xFF},
+				Space   : 10 * g_dKoef_pt_to_mm,
+				Size    : 0.5 * g_dKoef_pt_to_mm,
+				Value   : border_Single
+			},
+
+			Bottom : {
+				Color   : {r : 0xFF, g : 0xFF, b : 0xFF},
+				Space   : 5 * g_dKoef_pt_to_mm,
+				Size    : 0.5 * g_dKoef_pt_to_mm,
+				Value   : border_Single
+			}
 		}
 	});
 };
@@ -3483,6 +3503,14 @@ CStyle.prototype.SetCustom = function(isCustom)
 CStyle.prototype.IsCustom = function()
 {
 	return this.Custom;
+};
+/**
+ * Проверяем является ли данный стиль, стилем для параграфа
+ * @returns {boolean}
+ */
+CStyle.prototype.IsParagraphStyle = function()
+{
+	return (this.Type === styletype_Paragraph);
 };
 
 function CStyles(bCreateDefault)
@@ -4235,14 +4263,6 @@ CStyles.prototype =
         return "";
     },
 
-    Get : function(StyleId)
-    {
-        if (undefined != this.Style[StyleId])
-            return this.Style[StyleId];
-
-        return null;
-    },
-
     Get_Default_Paragraph : function()
     {
         return this.Default.Paragraph;
@@ -4429,7 +4449,7 @@ CStyles.prototype =
 					if (-1 != nLvl)
 						Pr.ParaPr.Merge(oNumbering.GetParaPr(Style.ParaPr.NumPr.NumId, nLvl));
 					else if (undefined !== Style.ParaPr.NumPr.Lvl)
-						Pr.ParaPr.Merge(oNumbering.GetParaPr(Style.ParaPr.NumPr.NumId, tyle.ParaPr.NumPr.Lvl));
+						Pr.ParaPr.Merge(oNumbering.GetParaPr(Style.ParaPr.NumPr.NumId, Style.ParaPr.NumPr.Lvl));
 					else
 						Pr.ParaPr.NumPr = undefined;
 				}
@@ -4460,28 +4480,32 @@ CStyles.prototype =
 			}
 			case styletype_Table:
 			{
-				Pr.ParaPr.Merge(Style.ParaPr);
-				Pr.TextPr.Merge(Style.TextPr);
-
-				if (undefined != Style.TablePr)
+				// Делаем как в Word: стиль с именем "Normal Table" используется всегда встроенный (баг 37902)
+				if ("Normal Table" !== Style.GetName())
 				{
-					Pr.TablePr.Merge(Style.TablePr);
-					Pr.TableRowPr.Merge(Style.TableRowPr);
-					Pr.TableCellPr.Merge(Style.TableCellPr);
+					Pr.ParaPr.Merge(Style.ParaPr);
+					Pr.TextPr.Merge(Style.TextPr);
 
-					Pr.TableBand1Horz.Merge(Style.TableBand1Horz);
-					Pr.TableBand1Vert.Merge(Style.TableBand1Vert);
-					Pr.TableBand2Horz.Merge(Style.TableBand2Horz);
-					Pr.TableBand2Vert.Merge(Style.TableBand2Vert);
-					Pr.TableFirstCol.Merge(Style.TableFirstCol);
-					Pr.TableFirstRow.Merge(Style.TableFirstRow);
-					Pr.TableLastCol.Merge(Style.TableLastCol);
-					Pr.TableLastRow.Merge(Style.TableLastRow);
-					Pr.TableTLCell.Merge(Style.TableTLCell);
-					Pr.TableTRCell.Merge(Style.TableTRCell);
-					Pr.TableBLCell.Merge(Style.TableBLCell);
-					Pr.TableBRCell.Merge(Style.TableBRCell);
-					Pr.TableWholeTable.Merge(Style.TableWholeTable);
+					if (undefined != Style.TablePr)
+					{
+						Pr.TablePr.Merge(Style.TablePr);
+						Pr.TableRowPr.Merge(Style.TableRowPr);
+						Pr.TableCellPr.Merge(Style.TableCellPr);
+
+						Pr.TableBand1Horz.Merge(Style.TableBand1Horz);
+						Pr.TableBand1Vert.Merge(Style.TableBand1Vert);
+						Pr.TableBand2Horz.Merge(Style.TableBand2Horz);
+						Pr.TableBand2Vert.Merge(Style.TableBand2Vert);
+						Pr.TableFirstCol.Merge(Style.TableFirstCol);
+						Pr.TableFirstRow.Merge(Style.TableFirstRow);
+						Pr.TableLastCol.Merge(Style.TableLastCol);
+						Pr.TableLastRow.Merge(Style.TableLastRow);
+						Pr.TableTLCell.Merge(Style.TableTLCell);
+						Pr.TableTRCell.Merge(Style.TableTRCell);
+						Pr.TableBLCell.Merge(Style.TableBLCell);
+						Pr.TableBRCell.Merge(Style.TableBRCell);
+						Pr.TableWholeTable.Merge(Style.TableWholeTable);
+					}
 				}
 
 				break;
@@ -4709,6 +4733,15 @@ CStyles.prototype =
             }
         }
     }
+};
+/**
+ * Получаем стиль по идентификатору
+ * @param sStyleId {string}
+ * @returns {?CStyle}
+ */
+CStyles.prototype.Get = function(sStyleId)
+{
+	return (this.Style[sStyleId] ? this.Style[sStyleId] : null);
 };
 /**
  * Получаем идентификатор стиля по его имени
@@ -6373,6 +6406,7 @@ function CTableCellPr()
     this.VMerge           = undefined;
     this.TextDirection    = undefined;
     this.NoWrap           = undefined;
+    this.HMerge           = undefined;
 }
 
 CTableCellPr.prototype =
@@ -6418,6 +6452,8 @@ CTableCellPr.prototype =
         CellPr.VMerge        = this.VMerge;
         CellPr.TextDirection = this.TextDirection;
         CellPr.NoWrap        = this.NoWrap;
+        CellPr.HMerge        = this.HMerge;
+
         return CellPr;
     },
 
@@ -6469,6 +6505,9 @@ CTableCellPr.prototype =
 
         if (undefined !== CellPr.NoWrap)
             this.NoWrap = CellPr.NoWrap;
+
+        if (undefined != CellPr.HMerge)
+        	this.HMerge = CellPr.HMerge;
     },
 
     Is_Equal : function(CellPr)
@@ -6497,7 +6536,8 @@ CTableCellPr.prototype =
             || this.VAlign !== CellPr.VAlign
             || this.VMerge !== CellPr.VMerge
             || this.TextDirection !== CellPr.TextDirection
-            || this.NoWrap !== CellPr.NoWrap)
+            || this.NoWrap !== CellPr.NoWrap
+			|| this.HMerge !== CellPr.HMerge)
             return false;
 
         return true;
@@ -6517,6 +6557,7 @@ CTableCellPr.prototype =
         this.VMerge                  = vmerge_Restart;
         this.TextDirection           = textdirection_LRTB;
         this.NoWrap                  = false;
+        this.HMerge                  = vmerge_Restart;
     },
 
     Set_FromObject : function(CellPr)
@@ -6612,6 +6653,8 @@ CTableCellPr.prototype =
         this.VMerge = CellPr.VMerge;
         this.TextDirection = CellPr.TextDirection;
         this.NoWrap = CellPr.NoWrap;
+        this.HMerge = CellPr.HMerge;
+
     },
 
     Check_PresentationPr : function(Theme)
@@ -6746,6 +6789,12 @@ CTableCellPr.prototype =
             Flags |= 65536;
         }
 
+        if (undefined !== this.HMerge)
+		{
+			Writer.WriteLong(this.HMerge);
+			Flags |= 131072;
+		}
+
         var EndPos = Writer.GetCurPosition();
         Writer.Seek( StartPos );
         Writer.WriteLong( Flags );
@@ -6836,6 +6885,9 @@ CTableCellPr.prototype =
 
         if (65536 & Flags)
             this.NoWrap = Reader.GetBool();
+
+		if (131072 & Flags)
+			this.HMerge = Reader.GetLong();
     }
 };
 CTableCellPr.prototype.Is_Empty = function()
@@ -6851,7 +6903,8 @@ CTableCellPr.prototype.Is_Empty = function()
 		|| undefined !== this.VAlign
 		|| undefined !== this.VMerge
 		|| undefined !== this.TextDirection
-		|| undefined !== this.NoWrap)
+		|| undefined !== this.NoWrap
+		|| undefined !== this.HMerge)
 		return false;
 
 	return true;
@@ -9855,7 +9908,7 @@ function CParaPr()
     this.DefaultRunPr      = undefined;
     this.Bullet            = undefined;
     this.Lvl               = undefined;
-    this.DefaultTabSize    = undefined;
+    this.DefaultTab    = undefined;
 
     this.PrChange          = undefined;
 }
@@ -9925,8 +9978,8 @@ CParaPr.prototype =
         if(undefined != this.Lvl)
             ParaPr.Lvl = this.Lvl;
 
-        if(undefined != this.DefaultTabSize)
-            ParaPr.DefaultTabSize = this.DefaultTabSize;
+        if(undefined != this.DefaultTab)
+            ParaPr.DefaultTab = this.DefaultTab;
 
         if (true === bCopyPrChange && undefined !== this.PrChange)
         {
@@ -10068,8 +10121,8 @@ CParaPr.prototype =
         if(undefined != ParaPr.Lvl)
             this.Lvl = ParaPr.Lvl;
 
-        if(undefined != ParaPr.DefaultTabSize)
-            this.DefaultTabSize = ParaPr.DefaultTabSize;
+        if(undefined != ParaPr.DefaultTab)
+            this.DefaultTab = ParaPr.DefaultTab;
 
         if (undefined !== ParaPr.OutlineLvl)
         	this.OutlineLvl = ParaPr.OutlineLvl;
@@ -10110,7 +10163,7 @@ CParaPr.prototype =
 
         this.DefaultRunPr              = undefined;
         this.Bullet                    = undefined;
-        this.DefaultTabSize            = undefined;
+        this.DefaultTab            = undefined;
     },
 
     Set_FromObject : function(ParaPr)
@@ -10227,9 +10280,9 @@ CParaPr.prototype =
             this.Bullet.Set_FromObject(ParaPr.Bullet);
         }
 
-        if(undefined != ParaPr.DefaultTabSize)
+        if(undefined != ParaPr.DefaultTab)
         {
-            this.DefaultTabSize = ParaPr.DefaultTabSize;
+            this.DefaultTab = ParaPr.DefaultTab;
         }
 
         if (undefined !== ParaPr.OutlineLvl)
@@ -10348,8 +10401,8 @@ CParaPr.prototype =
             Result_ParaPr.Lvl = this.Lvl;
 
 
-        if(undefined != this.DefaultTabSize && undefined != ParaPr.DefaultTabSize && ParaPr.DefaultTabSize === this.DefaultTabSize)
-            Result_ParaPr.DefaultTabSize = this.DefaultTabSize;
+        if(undefined != this.DefaultTab && undefined != ParaPr.DefaultTab && ParaPr.DefaultTab === this.DefaultTab)
+            Result_ParaPr.DefaultTab = this.DefaultTab;
 
         if (undefined !== this.Tabs && undefined !== ParaPr.Tabs && this.Tabs.Is_Equal(ParaPr.Tabs))
         	Result_ParaPr.Tabs = this.Tabs.Copy();
@@ -10492,9 +10545,9 @@ CParaPr.prototype =
             Flags |= 1048576;
         }
 
-        if(undefined != this.DefaultTabSize)
+        if(undefined != this.DefaultTab)
         {
-            Writer.WriteDouble(this.DefaultTabSize);
+            Writer.WriteDouble(this.DefaultTab);
             Flags |= 2097152;
         }
 
@@ -10620,7 +10673,7 @@ CParaPr.prototype =
 
         if(Flags & 2097152)
         {
-            this.DefaultTabSize = Reader.GetDouble();
+            this.DefaultTab = Reader.GetDouble();
         }
 
         if (Flags & 4194304)
@@ -11147,6 +11200,7 @@ asc_CStyle.prototype["put_Link"]    = asc_CStyle.prototype.put_Link;
 window["AscCommonWord"].CDocumentColor = CDocumentColor;
 window["AscCommonWord"].CStyle = CStyle;
 window["AscCommonWord"].CTextPr = CTextPr;
+window["AscCommonWord"].CParaPr = CParaPr;
 window["AscCommonWord"].CParaTabs = CParaTabs;
 window["AscCommonWord"].g_dKoef_pt_to_mm = g_dKoef_pt_to_mm;
 window["AscCommonWord"].border_Single = border_Single;
