@@ -1888,10 +1888,16 @@ var editor;
       return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
   };
 
-  spreadsheet_api.prototype.asc_isPrintAreaLocked = function() {
-      var ws = this.wb.getWorksheet();
-      return !ws.handlers.trigger("getLockDefNameManagerStatus");
-  };
+	spreadsheet_api.prototype.asc_isPrintAreaLocked = function(index) {
+		var res = false;
+		if(index !== undefined) {
+			var sheetId = this.wbModel.getWorksheet(index).getId();
+			var dN = this.wbModel.dependencyFormulas.getDefNameByName("Print_Area", sheetId);
+			res = !!dN.isLock;
+		}
+
+		return res;
+	};
 
   spreadsheet_api.prototype.asc_getHiddenWorksheets = function() {
     var model = this.wbModel;
