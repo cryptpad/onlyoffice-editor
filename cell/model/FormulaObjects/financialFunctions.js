@@ -5286,12 +5286,15 @@
 	function cXIRR() {
 	}
 
+	//***array-formula***
 	cXIRR.prototype = Object.create(cBaseFunction.prototype);
 	cXIRR.prototype.constructor = cXIRR;
 	cXIRR.prototype.name = 'XIRR';
 	cXIRR.prototype.argumentsMin = 2;
 	cXIRR.prototype.argumentsMax = 3;
 	cXIRR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cXIRR.prototype.arrayIndexes = {0:1, 1: 1};
+	cXIRR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cXIRR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(0.1);
 
@@ -5534,12 +5537,16 @@
 	function cXNPV() {
 	}
 
+	//***array-formula***
+	//todo формула массива имеет различия в резальтатах в случае с range - аргументами
 	cXNPV.prototype = Object.create(cBaseFunction.prototype);
 	cXNPV.prototype.constructor = cXNPV;
 	cXNPV.prototype.name = 'XNPV';
 	cXNPV.prototype.argumentsMin = 3;
 	cXNPV.prototype.argumentsMax = 3;
 	cXNPV.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cXNPV.prototype.arrayIndexes = {1: 1, 2: 1};
+	cXNPV.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cXNPV.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
 

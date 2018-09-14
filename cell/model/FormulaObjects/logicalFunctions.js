@@ -460,6 +460,7 @@
 	function cTRUE() {
 	}
 
+	//***array-formula***
 	cTRUE.prototype = Object.create(cBaseFunction.prototype);
 	cTRUE.prototype.constructor = cTRUE;
 	cTRUE.prototype.name = 'TRUE';
