@@ -5619,12 +5619,15 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 
                 if ( para_Drawing != ItemType || Item.Is_Inline() )
                 {
-                    if (true === bRemReview)
-                        aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
-                    else if (true === CurTextPr.DStrikeout)
-                        aDStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr );
-                    else if ( true === CurTextPr.Strikeout )
-                        aStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr );
+                	if (para_Drawing !== ItemType)
+					{
+						if (true === bRemReview)
+							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						else if (true === CurTextPr.DStrikeout)
+							aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+						else if (true === CurTextPr.Strikeout)
+							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+					}
 
                     if (true === bAddReview)
                         aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
