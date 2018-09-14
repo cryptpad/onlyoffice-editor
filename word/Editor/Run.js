@@ -10093,6 +10093,11 @@ ParaRun.prototype.GetLineByPosition = function(nPos)
  */
 ParaRun.prototype.PreDelete = function()
 {
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		if (para_Drawing === this.Content[nIndex].Type)
+			this.Content[nIndex].PreDelete();
+	}
 };
 ParaRun.prototype.GetCurrentComplexFields = function(arrComplexFields, isCurrent, isFieldPos)
 {
@@ -10591,6 +10596,14 @@ ParaRun.prototype.private_GetSuitableNumberedLvlForAutoCorrect = function(sText)
 	}
 
 	return null;
+};
+ParaRun.prototype.UpdateBookmarks = function(oManager)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		if (para_Drawing === this.Content[nIndex].Type)
+			this.Content[nIndex].UpdateBookmarks(oManager);
+	}
 };
 
 function CParaRunStartState(Run)
