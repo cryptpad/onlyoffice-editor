@@ -9784,6 +9784,7 @@ CDocument.prototype.Document_Undo = function(Options)
 	{
 		this.DrawingDocument.EndTrackTable(null, true);
 		this.DrawingObjects.TurnOffCheckChartSelection();
+		this.BookmarksManager.SetNeedUpdate(true);
 
 		this.History.Undo(Options);
 		this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
@@ -9806,6 +9807,7 @@ CDocument.prototype.Document_Redo = function()
 
 	this.DrawingDocument.EndTrackTable(null, true);
 	this.DrawingObjects.TurnOffCheckChartSelection();
+	this.BookmarksManager.SetNeedUpdate(true);
 
 	this.History.Redo();
 	this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
