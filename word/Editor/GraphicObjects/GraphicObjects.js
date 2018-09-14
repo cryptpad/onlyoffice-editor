@@ -2563,6 +2563,7 @@ CGraphicObjects.prototype =
         var nPageIndex = objects_for_grouping[0].parent.pageIndex;
         for(i = 0; i < objects_for_grouping.length; ++i)
         {
+            objects_for_grouping[i].parent.PreDelete();
             objects_for_grouping[i].parent.Remove_FromDocument(false);
             if(objects_for_grouping[i].setParent){
                 objects_for_grouping[i].setParent(null);
@@ -2635,6 +2636,7 @@ CGraphicObjects.prototype =
                 parent_paragraph = cur_group.parent.Get_ParentParagraph();
                 page_num = cur_group.selectStartPage;
                 cur_group.normalize();
+                cur_group.parent.PreDelete();
                 cur_group.parent.Remove_FromDocument(false);
                 cur_group.setBDeleted(true);
                 sp_tree = cur_group.spTree;
@@ -2957,6 +2959,7 @@ CGraphicObjects.prototype =
                 var arr_drawings_ = [];
                 for(var i = 0; i < this.selectedObjects.length; ++i)
                 {
+                    this.selectedObjects[i].parent.PreDelete();
                     this.selectedObjects[i].parent.Remove_FromDocument(false);
                     if(this.selectedObjects[i].signatureLine){
                         this.document.Api.sendEvent("asc_onRemoveSignature", this.selectedObjects[i].signatureLine.id);
