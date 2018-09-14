@@ -243,6 +243,7 @@ function (window, undefined) {
 	function cCHOOSE() {
 	}
 
+	//***array-formula***
 	cCHOOSE.prototype = Object.create(cBaseFunction.prototype);
 	cCHOOSE.prototype.constructor = cCHOOSE;
 	cCHOOSE.prototype.name = 'CHOOSE';

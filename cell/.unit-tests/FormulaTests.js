@@ -982,6 +982,16 @@ $( function () {
 		testArrayFormula("CSCH");
 	} );
 
+	test( "Test: \"CLEAN\"", function () {
+		ws.getRange2( "A202" ).setValue( '=CHAR(9)&"Monthly report"&CHAR(10)' );
+
+		oParser = new parserFormula( 'CLEAN(A202)', "A1", ws );
+		ok( oParser.parse());
+		strictEqual( oParser.calculate().getValue(), "Monthly report" );
+
+		testArrayFormula("CLEAN");
+	} );
+
 	test( "Test: \"DEGREES\"", function () {
 		oParser = new parserFormula( 'DEGREES(PI())', "A1", ws );
 		ok( oParser.parse(), 'DEGREES(PI())' );
@@ -1997,9 +2007,38 @@ $( function () {
 		oParser = new parserFormula( "CHISQ.INV.RT(A2,A3)", "A1", ws );
 		ok( oParser.parse(), "CHISQ.INV.RT(A2,A3)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 18.306973, "CHISQ.INV.RT(A2,A3)" );
+
+		testArrayFormula2("CHISQ.INV.RT", 2, 2);
 	} );
 
-	test( "Test: \"BETA.INV\"", function () {
+	test( "Test: \"CHOOSE\"", function () {
+		ws.getRange2( "A2" ).setValue( "st" );
+		ws.getRange2( "A3" ).setValue( "2nd" );
+		ws.getRange2( "A4" ).setValue( "3rd" );
+		ws.getRange2( "A5" ).setValue( "Finished" );
+
+		ws.getRange2( "B2" ).setValue( "Nails" );
+		ws.getRange2( "B3" ).setValue( "Screws" );
+		ws.getRange2( "B4" ).setValue( "Nuts" );
+		ws.getRange2( "B5" ).setValue( "Bolts" );
+
+		oParser = new parserFormula( "CHOOSE(2,A2,A3,A4,A5)", "A1", ws );
+		ok( oParser.parse(), "CHOOSE(2,A2,A3,A4,A5)" );
+		strictEqual( oParser.calculate().getValue().getValue(), "2nd", "CHOOSE(2,A2,A3,A4,A5)" );
+
+		oParser = new parserFormula( "CHOOSE(4,B2,B3,B4,B5)", "A1", ws );
+		ok( oParser.parse(), "CHOOSE(4,B2,B3,B4,B5)" );
+		strictEqual( oParser.calculate().getValue().getValue(), "Bolts", "CHOOSE(4,B2,B3,B4,B5))" );
+
+		oParser = new parserFormula( 'CHOOSE(3,"Wide",115,"world",8)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "world" );
+
+		//функция возвращает ref
+		//testArrayFormula2("CHOOSE", 2, 9);
+	} );
+
+	test( "Test: \"CHOOSE\"", function () {
 		ws.getRange2( "A2" ).setValue( "0.685470581" );
 		ws.getRange2( "A3" ).setValue( "8" );
 		ws.getRange2( "A4" ).setValue( "10" );
@@ -2673,12 +2712,16 @@ $( function () {
         oParser = new parserFormula( "CODE(\"abc\")", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 97 );
+
+        testArrayFormula2("CODE", 1, 1);
     } );
 
     test( "Test: \"CHAR\"", function () {
         oParser = new parserFormula( "CHAR(97)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "a" );
+
+        testArrayFormula2("CHAR", 1, 1);
     } );
 
     test( "Test: \"CHAR(CODE())\"", function () {
@@ -4799,6 +4842,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( difBetween( oParser.calculate().getValue(), 3.32 ), true );
 
+		testArrayFormula2("AVEDEV", 1, 8, null, true);
     } );
 
     test( "Test: \"AVERAGE\"", function () {
@@ -4819,6 +4863,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 2.5 );
 
+        testArrayFormula2("AVERAGE", 1, 8, null, true);
     } );
 
     test( "Test: \"AVERAGEA\"", function () {
@@ -4853,6 +4898,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 7 );
 
+		testArrayFormula2("AVERAGEA", 1, 8, null, true);
     } );
 
     test( "Test: \"AVERAGEIF\"", function () {

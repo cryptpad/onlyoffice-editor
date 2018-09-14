@@ -94,6 +94,7 @@ function (window, undefined) {
 	function cCHAR() {
 	}
 
+	//***array-formula***
 	cCHAR.prototype = Object.create(cBaseFunction.prototype);
 	cCHAR.prototype.constructor = cCHAR;
 	cCHAR.prototype.name = 'CHAR';
@@ -137,6 +138,7 @@ function (window, undefined) {
 	function cCLEAN() {
 	}
 
+	//***array-formula***
 	cCLEAN.prototype = Object.create(cBaseFunction.prototype);
 	cCLEAN.prototype.constructor = cCLEAN;
 	cCLEAN.prototype.name = 'CLEAN';
@@ -172,6 +174,7 @@ function (window, undefined) {
 	function cCODE() {
 	}
 
+	//***array-formula***
 	cCODE.prototype = Object.create(cBaseFunction.prototype);
 	cCODE.prototype.constructor = cCODE;
 	cCODE.prototype.name = 'CODE';

@@ -3709,10 +3709,12 @@ function (window, undefined) {
 	function cAVEDEV() {
 	}
 
+	//***array-formula***
 	cAVEDEV.prototype = Object.create(cBaseFunction.prototype);
 	cAVEDEV.prototype.constructor = cAVEDEV;
 	cAVEDEV.prototype.name = 'AVEDEV';
 	cAVEDEV.prototype.argumentsMin = 1;
+	cAVEDEV.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cAVEDEV.prototype.Calculate = function (arg) {
 		var count = 0, sum = new cNumber(0), arrX = [], i;
 		for (i = 0; i < arg.length; i++) {
@@ -3768,10 +3770,12 @@ function (window, undefined) {
 	function cAVERAGE() {
 	}
 
+	//***array-formula***
 	cAVERAGE.prototype = Object.create(cBaseFunction.prototype);
 	cAVERAGE.prototype.constructor = cAVERAGE;
 	cAVERAGE.prototype.name = 'AVERAGE';
 	cAVERAGE.prototype.argumentsMin = 1;
+	cAVERAGE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cAVERAGE.prototype.Calculate = function (arg) {
 		var count = 0, sum = new cNumber(0);
 		for (var i = 0; i < arg.length; i++) {
@@ -3835,10 +3839,12 @@ function (window, undefined) {
 	function cAVERAGEA() {
 	}
 
+	//***array-formula***
 	cAVERAGEA.prototype = Object.create(cBaseFunction.prototype);
 	cAVERAGEA.prototype.constructor = cAVERAGEA;
 	cAVERAGEA.prototype.name = 'AVERAGEA';
 	cAVERAGEA.prototype.argumentsMin = 1;
+	cAVERAGEA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cAVERAGEA.prototype.Calculate = function (arg) {
 		var count = 0, sum = new cNumber(0);
 		for (var i = 0; i < arg.length; i++) {
@@ -4348,6 +4354,7 @@ function (window, undefined) {
 	function cCHIDIST() {
 	}
 
+	//***array-formula***
 	cCHIDIST.prototype = Object.create(cBaseFunction.prototype);
 	cCHIDIST.prototype.constructor = cCHIDIST;
 	cCHIDIST.prototype.name = "CHIDIST";
@@ -4387,6 +4394,7 @@ function (window, undefined) {
 	function cCHIINV() {
 	}
 
+	//***array-formula***
 	cCHIINV.prototype = Object.create(cBaseFunction.prototype);
 	cCHIINV.prototype.constructor = cCHIINV;
 	cCHIINV.prototype.name = 'CHIINV';
@@ -4486,6 +4494,7 @@ function (window, undefined) {
 	function cCHISQ_DIST_RT() {
 	}
 
+	//***array-formula***
 	cCHISQ_DIST_RT.prototype = Object.create(cCHIDIST.prototype);
 	cCHISQ_DIST_RT.prototype.constructor = cCHISQ_DIST_RT;
 	cCHISQ_DIST_RT.prototype.name = 'CHISQ.DIST.RT';
@@ -4546,6 +4555,7 @@ function (window, undefined) {
 	function cCHISQ_INV_RT() {
 	}
 
+	//***array-formula***
 	//TODO check max 64 iterations(from documentaion)
 	cCHISQ_INV_RT.prototype = Object.create(cBaseFunction.prototype);
 	cCHISQ_INV_RT.prototype.constructor = cCHISQ_INV_RT;
@@ -4595,6 +4605,7 @@ function (window, undefined) {
 	function cCHITEST() {
 	}
 
+	//***array-formula***
 	cCHITEST.prototype = Object.create(cBaseFunction.prototype);
 	cCHITEST.prototype.constructor = cCHITEST;
 	cCHITEST.prototype.name = 'CHITEST';
@@ -4647,6 +4658,7 @@ function (window, undefined) {
 	function cCHISQ_TEST() {
 	}
 
+	//***array-formula***
 	cCHISQ_TEST.prototype = Object.create(cCHITEST.prototype);
 	cCHISQ_TEST.prototype.constructor = cCHISQ_TEST;
 	cCHISQ_TEST.prototype.name = 'CHISQ.TEST';
