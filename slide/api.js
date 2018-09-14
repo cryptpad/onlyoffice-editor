@@ -4147,7 +4147,11 @@ background-repeat: no-repeat;\
 
 		ImagePr.ImageUrl = obj.ImageUrl;
 
-
+		if (window["NATIVE_EDITOR_ENJINE"]) 
+		{
+		  this.WordControl.m_oLogicDocument.SetImageProps(ImagePr);
+		  return;
+		}
 		if (!AscCommon.isNullOrEmptyString(ImagePr.ImageUrl))
 		{
 			var sImageUrl = null;
