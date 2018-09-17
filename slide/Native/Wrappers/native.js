@@ -225,6 +225,309 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
     switch (type)
     {
+        case 1: // ASC_MENU_EVENT_TYPE_TEXTPR
+        {
+            var _textPr = new AscCommonWord.CTextPr();
+            while (_continue)
+            {
+                var _attr = _params[_current.pos++];
+                switch (_attr)
+                {
+                    case 0:
+                    {
+                        _textPr.Bold = _params[_current.pos++];
+                        break;
+                    }
+                    case 1:
+                    {
+                        _textPr.Italic = _params[_current.pos++];
+                        break;
+                    }
+                    case 2:
+                    {
+                        _textPr.Underline = _params[_current.pos++];
+                        break;
+                    }
+                    case 3:
+                    {
+                        _textPr.Strikeout = _params[_current.pos++];
+                        break;
+                    }
+                    case 4:
+                    {
+                        _textPr.FontFamily = asc_menu_ReadFontFamily(_params, _current);
+                        break;
+                    }
+                    case 5:
+                    {
+                        _textPr.FontSize = _params[_current.pos++];
+                        break;
+                    }
+                    case 6:
+                    {
+                        var Unifill = new AscFormat.CUniFill();
+                        Unifill.fill = new AscFormat.CSolidFill();
+                        var color = asc_menu_ReadColor(_params, _current);
+                        Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
+                        _textPr.Unifill = Unifill;
+                        break;
+                    }
+                    case 7:
+                    {
+                        _textPr.VertAlign = _params[_current.pos++];
+                        break;
+                    }
+                    case 8:
+                    {
+                        var color = asc_menu_ReadColor(_params, _current);
+                        _textPr.HighLight = { r: color.r, g: color.g, b: color.b };
+                        break;
+                    }
+                    case 9:
+                    {
+                        _textPr.DStrikeout = _params[_current.pos++];
+                        break;
+                    }
+                    case 10:
+                    {
+                        _textPr.Caps = _params[_current.pos++];
+                        break;
+                    }
+                    case 11:
+                    {
+                        _textPr.SmallCaps = _params[_current.pos++];
+                        break;
+                    }
+                    case 12:
+                    {
+                        _textPr.HighLight = AscCommonWord.highlight_None;
+                        break;
+                    }
+                    case 13:
+                    {
+                        _textPr.Spacing = _params[_current.pos++];
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
+
+            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+            this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(_textPr));
+            this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+
+            break;
+        }
+
+        case 2: // ASC_MENU_EVENT_TYPE_PARAPR
+        {
+            var _textPr = undefined;
+
+            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+
+            while (_continue)
+            {
+                var _attr = _params[_current.pos++];
+                switch (_attr)
+                {
+                    case 0:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphContextualSpacing( _params[_current.pos++] );
+                        break;
+                    }
+                    case 1:
+                    {
+                        var _ind = asc_menu_ReadParaInd(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphIndent( _ind );
+                        break;
+                    }
+                    case 2:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphKeepLines( _params[_current.pos++] );
+                        break;
+                    }
+                    case 3:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphKeepNext( _params[_current.pos++] );
+                        break;
+                    }
+                    case 4:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphWidowControl( _params[_current.pos++] );
+                        break;
+                    }
+                    case 5:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphPageBreakBefore( _params[_current.pos++] );
+                        break;
+                    }
+                    case 6:
+                    {
+                        var _spacing = asc_menu_ReadParaSpacing(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphSpacing( _spacing );
+                        break;
+                    }
+                    case 7:
+                    {
+                        // TODO:
+                        var _brds = asc_menu_ReadParaBorders(_params, _current);
+
+                        if (_brds.Left && _brds.Left.Color)
+                        {
+                            _brds.Left.Unifill = AscFormat.CreateUnifillFromAscColor(_brds.Left.Color);
+                        }
+                        if (_brds.Top && _brds.Top.Color)
+                        {
+                            _brds.Top.Unifill = AscFormat.CreateUnifillFromAscColor(_brds.Top.Color);
+                        }
+                        if (_brds.Right && _brds.Right.Color)
+                        {
+                            _brds.Right.Unifill = AscFormat.CreateUnifillFromAscColor(_brds.Right.Color);
+                        }
+                        if (_brds.Bottom && _brds.Bottom.Color)
+                        {
+                            _brds.Bottom.Unifill = AscFormat.CreateUnifillFromAscColor(_brds.Bottom.Color);
+                        }
+
+                        this.WordControl.m_oLogicDocument.SetParagraphBorders( _brds );
+                        break;
+                    }
+                    case 8:
+                    {
+                        var _shd = asc_menu_ReadParaShd(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphShd( _shd );
+                        break;
+                    }
+                    case 9:
+                    case 10:
+                    case 11:
+                    {
+                        // nothing
+                        _current.pos++;
+                        break;
+                    }
+                    case 12:
+                    {
+                        this.WordControl.m_oLogicDocument.Set_DocumentDefaultTab( _params[_current.pos++] );
+                        break;
+                    }
+                    case 13:
+                    {
+                        var _tabs = asc_menu_ReadParaTabs(_params, _current);
+                        // TODO:
+                        this.WordControl.m_oLogicDocument.SetParagraphTabs( _tabs.Tabs );
+                        break;
+                    }
+                    case 14:
+                    {
+                        var _framePr = asc_menu_ReadParaFrame(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphFramePr( _framePr );
+                        break;
+                    }
+                    case 15:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        if (true == _params[_current.pos++])
+                            _textPr.VertAlign = AscCommon.vertalign_SubScript;
+                        else
+                            _textPr.VertAlign = AscCommon.vertalign_Baseline;
+                        break;
+                    }
+                    case 16:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        if (true == _params[_current.pos++])
+                            _textPr.VertAlign = AscCommon.vertalign_SuperScript;
+                        else
+                            _textPr.VertAlign = AscCommon.vertalign_Baseline;
+                        break;
+                    }
+                    case 17:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.SmallCaps = _params[_current.pos++];
+                        _textPr.Caps   = false;
+                        break;
+                    }
+                    case 18:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.Caps = _params[_current.pos++];
+                        if (true == _textPr.Caps)
+                            _textPr.SmallCaps = false;
+                        break;
+                    }
+                    case 19:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.Strikeout  = _params[_current.pos++];
+                        _textPr.DStrikeout = false;
+                        break;
+                    }
+                    case 20:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.DStrikeout  = _params[_current.pos++];
+                        if (true == _textPr.DStrikeout)
+                            _textPr.Strikeout = false;
+                        break;
+                    }
+                    case 21:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.TextSpacing = _params[_current.pos++];
+                        break;
+                    }
+                    case 22:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.Position = _params[_current.pos++];
+                        break;
+                    }
+                    case 23:
+                    {
+                        var _listType = asc_menu_ReadParaListType(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphNumbering( _listType );
+                        break;
+                    }
+                    case 24:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphStyle( _params[_current.pos++] );
+                        break;
+                    }
+                    case 25:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphAlign( _params[_current.pos++] );
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
+
+            if (undefined !== _textPr)
+                this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(_textPr));
+
+            this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+            break;
+        }
         case 3: // ASC_MENU_EVENT_TYPE_UNDO
         {
             this.WordControl.m_oLogicDocument.Document_Undo();
