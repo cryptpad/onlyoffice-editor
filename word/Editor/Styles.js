@@ -5193,12 +5193,12 @@ CDocumentShd.prototype =
 
 function CDocumentBorder()
 {
-    this.Color = new CDocumentColor( 0, 0, 0 );
-    this.Unifill = undefined;
-    this.LineRef = undefined;
-    this.Space = 0;
-    this.Size  = 0.5 * g_dKoef_pt_to_mm;
-    this.Value = border_None;
+	this.Color   = new CDocumentColor(0, 0, 0);
+	this.Unifill = undefined;
+	this.LineRef = undefined;
+	this.Space   = 0;                      // Это значение учитывается всегда, даже когда Value = none (поэтому важно, что по умолчанию 0)
+	this.Size    = 0.5 * g_dKoef_pt_to_mm; // Размер учитываем в зависимости от Value
+	this.Value   = border_None;
 }
 
 CDocumentBorder.prototype =
@@ -11065,6 +11065,32 @@ CParaPr.prototype.WriteToBinary = function(oWriter)
 CParaPr.prototype.ReadFromBinary = function(oReader)
 {
 	return this.Read_FromBinary(oReader);
+};
+CParaPr.prototype.private_CorrectBorderSpace = function(nValue)
+{
+	var dKoef = (32 * 25.4 / 72);
+	return (nValue - Math.floor(nValue / dKoef) * dKoef);
+};
+CParaPr.prototype.CheckBorderSpaces = function()
+{
+	// MSWordHack: Специальная заглушка под MS Word
+	// В Word значение Space ограничивается 0..31пт. Судя по всему у них это значение реализуется ровно 5 битами, т.к.
+	// значение 32пт, уже воспринимается как 0, 33=1,34=2 и т.д.
+
+	if (this.Brd.Top)
+		this.Brd.Top.Space = this.private_CorrectBorderSpace(this.Brd.Top.Space);
+
+	if (this.Brd.Bottom)
+		this.Brd.Bottom.Space = this.private_CorrectBorderSpace(this.Brd.Bottom.Space);
+
+	if (this.Brd.Left)
+		this.Brd.Left.Space = this.private_CorrectBorderSpace(this.Brd.Left.Space);
+
+	if (this.Brd.Right)
+		this.Brd.Right.Space = this.private_CorrectBorderSpace(this.Brd.Right.Space);
+
+	if (this.Brd.Between)
+		this.Brd.Between.Space = this.private_CorrectBorderSpace(this.Brd.Between.Space);
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CParaPr Export
