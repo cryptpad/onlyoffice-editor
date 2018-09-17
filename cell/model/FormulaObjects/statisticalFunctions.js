@@ -10268,6 +10268,7 @@ function (window, undefined) {
 	function cTDIST() {
 	}
 
+	//***array-formula***
 	cTDIST.prototype = Object.create(cBaseFunction.prototype);
 	cTDIST.prototype.constructor = cTDIST;
 	cTDIST.prototype.name = 'TDIST';

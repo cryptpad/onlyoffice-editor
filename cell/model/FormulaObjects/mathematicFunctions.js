@@ -4329,10 +4329,12 @@
 	function cSUM() {
 	}
 
+	//***array-formula***
 	cSUM.prototype = Object.create(cBaseFunction.prototype);
 	cSUM.prototype.constructor = cSUM;
 	cSUM.prototype.name = 'SUM';
 	cSUM.prototype.argumentsMin = 1;
+	cSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSUM.prototype.Calculate = function (arg) {
 		var element, _arg, arg0 = new cNumber(0);
 		for (var i = 0; i < arg.length; i++) {

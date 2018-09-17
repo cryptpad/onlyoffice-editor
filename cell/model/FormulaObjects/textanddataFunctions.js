@@ -1840,6 +1840,7 @@ function (window, undefined) {
 	function cTRIM() {
 	}
 
+	//***array-formula***
 	cTRIM.prototype = Object.create(cBaseFunction.prototype);
 	cTRIM.prototype.constructor = cTRIM;
 	cTRIM.prototype.name = 'TRIM';

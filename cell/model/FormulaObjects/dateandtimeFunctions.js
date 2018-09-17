@@ -1674,6 +1674,7 @@
 	function cTODAY() {
 	}
 
+	//***array-formula***
 	cTODAY.prototype = Object.create(cBaseFunction.prototype);
 	cTODAY.prototype.constructor = cTODAY;
 	cTODAY.prototype.name = 'TODAY';

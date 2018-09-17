@@ -2200,6 +2200,8 @@ $( function () {
         oParser = new parserFormula( 'SUM(1,2,3)', "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 1 + 2 + 3 );
+
+        testArrayFormula2("SUM", 1, 8, null, true);
     } );
 
     test( "Test: \"\"s\"&5\"", function () {
@@ -2867,6 +2869,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "First Quarter Earnings" );
 
+		testArrayFormula2("TRIM", 1, 1);
     } );
 
 	test( "Test: \"TRIMMEAN\"", function () {
