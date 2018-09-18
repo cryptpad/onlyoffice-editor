@@ -242,6 +242,36 @@ function asc_WriteColorSchemes(schemas, s) {
     }
 }
 
+function asc_menu_ReadFontFamily(_params, _cursor)
+{
+    var _fontfamily = { Name : undefined, Index : -1 };
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _fontfamily.Name = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _fontfamily.Index = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _fontfamily;
+}
+
 function asc_menu_ReadAscValAxisSettings(_params, _cursor)
 {
     var _settings = new AscCommon.asc_ValAxisSettings();
