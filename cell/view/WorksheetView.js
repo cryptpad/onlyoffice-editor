@@ -1910,6 +1910,8 @@
                   printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
             }
 
+			this._drawHeaderFooter(drawingCtx);
+
             // Рисуем сетку
             if (printPagesData.pageGridLines) {
                 this._drawGrid(drawingCtx, range, offsetX, offsetY, printPagesData.pageWidth / vector_koef,
@@ -2266,6 +2268,31 @@
 		ctx.setFillStyle(st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
 		ctx.RemoveClipRect();
     };
+
+	WorksheetView.prototype._drawHeaderFooter = function (drawingCtx) {
+		/*this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
+
+		var ctx = drawingCtx || this.drawingCtx;
+		var style = 0;
+		var st = this.settings.header.style[style];
+		var x2 = 0;
+		var y2 = 0;
+		var x2WithoutBorder = x2;
+		var y2WithoutBorder = y2;
+
+		var index = 0;
+
+		var text = "asdasdasdasdasd";
+		var sr = this.stringRender;
+		var tm = this._roundTextMetrics(sr.measureString(text));
+
+		var textX = 100;
+		var textY = 100;
+
+		//ctx.AddClipRect(x, y, w, h);
+		ctx.setFillStyle(st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
+		//ctx.RemoveClipRect();*/
+	};
 
     WorksheetView.prototype._cleanColumnHeaders = function (colStart, colEnd) {
         var offsetX = this.cols[this.visibleRange.c1].left - this.cellsLeft;
