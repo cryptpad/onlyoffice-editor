@@ -1271,7 +1271,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
         if (this.Check_FirstPage(CurPage, true))
 		{
 			// Добавляем расстояние до параграфа (Pr.Spacing.Before)
-			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS, ParaPr))
+			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS.Parent, PRS.GetPageAbs(), ParaPr))
 				BaseLineOffset += ParaPr.Spacing.Before;
 
 			// Добавляем толщину границы параграфа (если граница задана)
@@ -1311,7 +1311,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 
         if (CurLine === this.Pages[CurPage].FirstLine && this.Check_FirstPage(CurPage, true))
 		{
-			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS, ParaPr))
+			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS.Parent, PRS.GetPageAbs(), ParaPr))
 			{
 				Top2    = Top + ParaPr.Spacing.Before;
 				Bottom2 = Top + ParaPr.Spacing.Before + this.Lines[0].Metrics.Ascent + this.Lines[0].Metrics.Descent;
@@ -1380,7 +1380,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 			Top  = PRS.Y;
 			Top2 = PRS.Y;
 
-			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS, ParaPr))
+			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS.Parent, PRS.GetPageAbs(), ParaPr))
 			{
 				Top2    = Top + ParaPr.Spacing.Before;
 				Bottom2 = Top + ParaPr.Spacing.Before + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
@@ -2308,7 +2308,7 @@ Paragraph.prototype.private_RecalculateMoveLineToNextPage = function(CurLine, Cu
 	}
 };
 
-Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, PRS, ParaPr)
+Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, PageAbs, ParaPr)
 {
 	if (CurPage <= 0)
 		return true;
@@ -2322,12 +2322,15 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, PRS, Para
 			return false;
 	}
 
-	if (true === ParaPr.PageBreakBefore)
+	if (this.LogicDocument
+		&& this.LogicDocument.GetCompatibilityMode
+		&& this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14
+		&& true === ParaPr.PageBreakBefore)
 		return true;
 
-	if (!(PRS.Parent instanceof CDocument))
+	if (!(Parent instanceof CDocument))
 	{
-		if (PRS.Parent instanceof AscFormat.CDrawingDocContent && 0 !== CurPage)
+		if (Parent instanceof AscFormat.CDrawingDocContent && 0 !== CurPage)
 			return false;
 
 		return true;
@@ -2337,11 +2340,11 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, PRS, Para
 	// тогда добавляем расстояние, а если нет - нет. Но подсчет первой страницы здесь не совпадает с тем, как она
 	// считается для нумерации. Если разрыв секции идет на текущей странице, то первой считается сразу данная страница.
 
-	var LogicDocument = PRS.Parent;
-	var SectionIndex = LogicDocument.GetSectionIndexByElementIndex(this.Get_Index());
-	var FirstElement = LogicDocument.GetFirstElementInSection(SectionIndex);
+	var LogicDocument = Parent;
+	var SectionIndex  = LogicDocument.GetSectionIndexByElementIndex(this.Get_Index());
+	var FirstElement  = LogicDocument.GetFirstElementInSection(SectionIndex);
 
-	if (0 !== SectionIndex && (!FirstElement || FirstElement.Get_AbsolutePage(0) === PRS.GetPageAbs()))
+	if (0 !== SectionIndex && (!FirstElement || FirstElement.Get_AbsolutePage(0) === PageAbs))
 		return true;
 
 	return false;
