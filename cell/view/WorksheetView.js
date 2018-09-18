@@ -781,7 +781,7 @@
     };
 
     WorksheetView.prototype.getFrozenPaneOffset = function (noX, noY) {
-        var offsetX = 0, offsetY = 0, c = this.cols, r = this.rows;
+        var offsetX = 0, offsetY = 0, c = this.cols;
         if (this.topLeftFrozenCell) {
             if (!noX) {
                 var cFrozen = this.topLeftFrozenCell.getCol0();
@@ -789,7 +789,7 @@
             }
             if (!noY) {
                 var rFrozen = this.topLeftFrozenCell.getRow0();
-                offsetY = r[rFrozen].top - r[0].top;
+                offsetY = this._getRowTop(rFrozen) - this._getRowTop(0);
             }
         }
         return {offsetX: offsetX, offsetY: offsetY};
@@ -1426,7 +1426,7 @@
             this.rows = [];
         } else if (AscCommonExcel.recalcType.newLines === type) {
             i = this.rows.length;
-            y = this.rows[i - 1].top + this.rows[i - 1].height;
+            y = this._getRowTop(i);
         }
         for (; i < l; ++i) {
             this.model._getRowNoEmptyWithAll(i, function(row){
@@ -1533,9 +1533,8 @@
         var w = t.drawingCtx.getWidth() - t.cellsLeft;
         var h = t.drawingCtx.getHeight() - t.cellsTop;
         var c = t.cols;
-        var r = t.rows;
         var vw = c[vr.c2].left + c[vr.c2].width - c[vr.c1].left;
-        var vh = r[vr.r2].top + r[vr.r2].height - r[vr.r1].top;
+        var vh = this._getRowTop(vr.r2 + 1) - this._getRowTop(vr.r1);
         var i;
 
         var offsetFrozen = t.getFrozenPaneOffset();
@@ -1560,7 +1559,7 @@
 
         if ( vh < h ) {
             for ( i = vr.r1 - 1; i >= 0; --i ) {
-                vh += r[i].height;
+                vh += this._getRowHeight(i);
                 if ( vh > h ) {
                     break;
                 }
@@ -2116,9 +2115,9 @@
         if (null === drawingCtx && this.topLeftFrozenCell && undefined === offsetYForDraw) {
             var rFrozen = this.topLeftFrozenCell.getRow0();
             if (start < vr.r1) {
-                offsetY = 0;
-            } else {
-                offsetY -= this._getRowTop(rFrozen) - this.cellsTop;
+				offsetY = this._getRowTop(0) - this.cellsTop;
+			} else {
+                offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
             }
         }
 
@@ -2286,7 +2285,7 @@
         var t, h, i, rFrozen = 0;
         if (this.topLeftFrozenCell) {
             rFrozen = this.topLeftFrozenCell.getRow0();
-            offsetY -= this.rows[rFrozen].top - this.rows[0].top;
+            offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
         }
 
         if (rowEnd === undefined) {
@@ -2304,7 +2303,7 @@
 			t += h;
         }
         if (0 !== rFrozen) {
-            offsetY = this.rows[0].top - this.cellsTop;
+            offsetY = this._getRowTop(0) - this.cellsTop;
             // Почистим для pane
             rowStart = Math.max(0, rowStart);
             rowEnd = Math.min(rFrozen, rowEnd);
@@ -2350,11 +2349,11 @@
 		if (null === drawingCtx && this.topLeftFrozenCell) {
 			if (undefined === leftFieldInPx) {
 				var cFrozen = this.topLeftFrozenCell.getCol0();
-				offsetX -= c[cFrozen].left - this.cellsLeft;
+				offsetX -= c[cFrozen].left - c[0].left;
 			}
 			if (undefined === topFieldInPx) {
 				var rFrozen = this.topLeftFrozenCell.getRow0();
-				offsetY -= this._getRowTop(rFrozen) - this.cellsTop;
+				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
 			}
 		}
 		var x1 = c[range.c1].left - offsetX;
@@ -3441,7 +3440,7 @@
             var tmpRange, offsetX, offsetY;
             if ( 0 < row && 0 < col ) {
                 offsetX = this.cols[0].left - this.cellsLeft;
-                offsetY = this.rows[0].top - this.cellsTop;
+                offsetY = this._getRowTop(0) - this.cellsTop;
                 tmpRange = new asc_Range( 0, 0, col - 1, row - 1 );
                 if ( !noCells ) {
                     this._drawGrid( null, tmpRange, offsetX, offsetY );
@@ -3451,7 +3450,7 @@
             if ( 0 < row ) {
                 row -= 1;
                 offsetX = undefined;
-                offsetY = this.rows[0].top - this.cellsTop;
+                offsetY = this._getRowTop(0) - this.cellsTop;
                 tmpRange = new asc_Range( this.visibleRange.c1, 0, this.visibleRange.c2, row );
                 this._drawRowHeaders( null, 0, row, kHeaderDefault, offsetX, offsetY );
                 if ( !noCells ) {
@@ -3495,7 +3494,7 @@
 			var row = this.topLeftFrozenCell.getRow0();
 			var col = this.topLeftFrozenCell.getCol0();
 			if (0 < row) {
-				fHorLine.apply(ctx, [0, this.rows[row].top, ctx.getWidth()]);
+				fHorLine.apply(ctx, [0, this._getRowTop(row), ctx.getWidth()]);
 			} else {
 				fHorLine.apply(ctx, [0, this.headersHeight, this.headersWidth]);
 			}
@@ -3541,13 +3540,13 @@
                 data = this._findRowUnderCursor( y, true, true );
                 if ( data ) {
                     data.row += 1;
-                    if ( 0 <= data.row && data.row < this.rows.length ) {
+                    if ( 0 <= data.row && data.row < this.nRowsCount ) {
                         var w = ctx.getWidth();
-                        var offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop;
+                        var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
                         offsetFrozen = this.getFrozenPaneOffset( true, false );
                         offsetY -= offsetFrozen.offsetY;
                         ctx.setFillPattern( this.settings.ptrnLineDotted1 )
-                            .fillRect( 0, this.rows[data.row].top - offsetY - 1, w, 1 );
+                            .fillRect( 0, this._getRowTop(data.row) - offsetY - 1, w, 1 );
                     }
                 }
                 break;
@@ -3619,7 +3618,7 @@
                     data = t._findRowUnderCursor( y, true, true );
                     if ( data ) {
                         data.row += 1;
-                        if ( 0 <= data.row && data.row < t.rows.length ) {
+                        if ( 0 <= data.row && data.row < t.nRowsCount ) {
                             lastRow = data.row;
                         }
                     }
@@ -3863,20 +3862,20 @@
     /**Отрисовывает диапазон с заданными параметрами*/
     WorksheetView.prototype._drawElements = function (drawFunction) {
         var cFrozen = 0, rFrozen = 0, args = Array.prototype.slice.call(arguments,
-          1), c = this.cols, r = this.rows, offsetX = c[this.visibleRange.c1].left -
-          this.cellsLeft, offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop, res;
+          1), c = this.cols, offsetX = c[this.visibleRange.c1].left - this.cellsLeft,
+            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop, res;
         if (this.topLeftFrozenCell) {
             cFrozen = this.topLeftFrozenCell.getCol0();
             rFrozen = this.topLeftFrozenCell.getRow0();
             offsetX -= this.cols[cFrozen].left - this.cols[0].left;
-            offsetY -= this.rows[rFrozen].top - this.rows[0].top;
+            offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
 
             var oFrozenRange;
             cFrozen -= 1;
             rFrozen -= 1;
             if (0 <= cFrozen && 0 <= rFrozen) {
                 oFrozenRange = new asc_Range(0, 0, cFrozen, rFrozen);
-                res = drawFunction.call(this, oFrozenRange, c[0].left - this.cellsLeft, r[0].top - this.cellsTop, args);
+                res = drawFunction.call(this, oFrozenRange, c[0].left - this.cellsLeft, this._getRowTop(0) - this.cellsTop, args);
                 if (!res) {
                     return;
                 }
@@ -3890,7 +3889,7 @@
             }
             if (0 <= rFrozen) {
                 oFrozenRange = new asc_Range(this.visibleRange.c1, 0, this.visibleRange.c2, rFrozen);
-                res = drawFunction.call(this, oFrozenRange, offsetX, r[0].top - this.cellsTop, args);
+                res = drawFunction.call(this, oFrozenRange, offsetX, this._getRowTop(0) - this.cellsTop, args);
                 if (!res) {
                     return;
                 }
@@ -4096,7 +4095,7 @@
             var cFrozen = this.topLeftFrozenCell.getCol0();
             var rFrozen = this.topLeftFrozenCell.getRow0();
             diffWidth = this.cols[cFrozen].left - this.cols[0].left;
-            diffHeight = this.rows[rFrozen].top - this.rows[0].top;
+            diffHeight = this._getRowTop(rFrozen) - this._getRowTop(0);
 
             if (!isFrozen) {
                 var oFrozenRange;
@@ -5582,7 +5581,7 @@
             cFrozen = this.topLeftFrozenCell.getCol0();
             rFrozen = this.topLeftFrozenCell.getRow0();
             diffWidth = this.cols[cFrozen].left - this.cols[0].left;
-            diffHeight = this.rows[rFrozen].top - this.rows[0].top;
+            diffHeight = this._getRowTop(rFrozen) - this._getRowTop(0);
         }
         var oldVRE_isPartial = this._isRowDrawnPartially(vr.r2, vr.r1, diffHeight);
         var oldVR = vr.clone();
@@ -5707,7 +5706,7 @@
                     }
                     if (0 < rFrozen) {
                         r_ = new asc_Range(vr.c2, 0, vr.c2, rFrozen - 1);
-                        offsetY = this.rows[0].top - this.cellsTop;
+                        offsetY = this._getRowTop(0) - this.cellsTop;
                         this._drawGrid(null, r_, /*offsetXForDraw*/undefined, offsetY);
                         this._drawCellsAndBorders(null, r_, /*offsetXForDraw*/undefined, offsetY);
                     }
@@ -5802,7 +5801,7 @@
             rFrozen = this.topLeftFrozenCell.getRow0();
             cFrozen = this.topLeftFrozenCell.getCol0();
             diffWidth = this.cols[cFrozen].left - this.cols[0].left;
-            diffHeight = this.rows[rFrozen].top - this.rows[0].top;
+            diffHeight = this._getRowTop(rFrozen) - this._getRowTop(0);
             x += diffWidth;
             oldW -= diffWidth;
         }
@@ -5891,7 +5890,7 @@
             if (rFrozen) {
                 range.r1 = 0;
                 range.r2 = rFrozen - 1;
-                offsetY = this.rows[0].top - this.cellsTop;
+                offsetY = this._getRowTop(0) - this.cellsTop;
                 this._drawGrid(null, range, undefined, offsetY);
                 this._drawCellsAndBorders(null, range, undefined, offsetY);
                 this.af_drawButtons(range, offsetX, offsetY);
@@ -6047,7 +6046,7 @@
 		if (y >= this.cellsTop) {
 			if (this.topLeftFrozenCell) {
 				rFrozen = this.topLeftFrozenCell.getRow0();
-				heightDiff = this.rows[rFrozen].top - this.rows[0].top;
+				heightDiff = this._getRowTop(rFrozen) - this._getRowTop(0);
 				if (y < this.cellsTop + heightDiff && 0 !== heightDiff) {
 					r = 0;
 					heightDiff = 0;
@@ -6285,7 +6284,7 @@
 			cFrozen = this.topLeftFrozenCell.getCol0();
 			rFrozen = this.topLeftFrozenCell.getRow0();
 			widthDiff = this.cols[cFrozen].left - this.cols[0].left;
-			heightDiff = this.rows[rFrozen].top - this.rows[0].top;
+			heightDiff = this._getRowTop(rFrozen) - this._getRowTop(0);
 
 			offsetX = (x < this.cellsLeft + widthDiff) ? 0 : offsetX - widthDiff;
 			offsetY = (y < this.cellsTop + heightDiff) ? 0 : offsetY - heightDiff;
@@ -11892,8 +11891,8 @@
 					var vro = getVisibleRangeObject();
 					var i, w, h, arrLeftS = [], arrRightS = [], arrBottomS = [];
 					var offsX = tc[vro.vr.c1].left - tc[0].left - vro.offsetX;
-					var offsY = tr[vro.vr.r1].top - tr[0].top - vro.offsetY;
-					var cellX = tc[_c1].left - offsX, cellY = tr[_r1].top - offsY;
+					var offsY = t._getRowTop(vro.vr.r1) - t._getRowTop(0) - vro.offsetY;
+					var cellX = tc[_c1].left - offsX, cellY = t._getRowTop(_r1) - offsY;
 					for (i = _c1; i >= vro.vr.c1; --i) {
 						if (0 < tc[i].width) {
 							arrLeftS.push(tc[i].left - offsX);
@@ -11920,11 +11919,13 @@
 					if (_r2 > vro.vr.r2) {
 						_r2 = vro.vr.r2;
 					}
+					var _top = cellY;
 					for (i = _r1; i <= vro.vr.r2; ++i) {
-						h = tr[i].height;
+						h = t._getRowHeight(i);
 						if (0 < h) {
-							arrBottomS.push(tr[i].top + h - offsY);
+							arrBottomS.push(_top + h);
 						}
+						_top += h;
 						if (_r2 === i) {
 							bi = arrBottomS.length - 1;
 						}
@@ -14323,7 +14324,7 @@
 			}
 
 			rFrozen = this.topLeftFrozenCell.getRow0();
-			heightDiff = this.rows[rFrozen].top - this.rows[0].top;
+			heightDiff = this._getRowTop(rFrozen) - this._getRowTop(0);
 			if (y < this.cellsTop + heightDiff && 0 !== heightDiff) {
 				r = 0;
 			}
@@ -14351,7 +14352,7 @@
 			}
 
 			rFrozen = this.topLeftFrozenCell.getRow0();
-			heightDiff = this.rows[rFrozen].top - this.rows[0].top;
+			heightDiff = this._getRowTop(rFrozen) - this._getRowTop(0);
 			if (yL < heightDiff && 0 !== heightDiff) {
 				r = 0;
 				heightDiff = 0;
