@@ -1495,7 +1495,8 @@
   };
 
   WorkbookView.prototype._onAddRow = function() {
-    var res = this.getWorksheet().expandRowsOnScroll(true);
+    //var res = this.getWorksheet().expandRowsOnScroll(true);
+    var res = this.getWorksheet().expandRowsOnScroll2();
     this._onScrollReinitialize(/*vertical*/1, !res);
   };
 
