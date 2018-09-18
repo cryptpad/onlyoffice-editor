@@ -4566,10 +4566,12 @@
 	function cSUMPRODUCT() {
 	}
 
+	//***array-formula***
 	cSUMPRODUCT.prototype = Object.create(cBaseFunction.prototype);
 	cSUMPRODUCT.prototype.constructor = cSUMPRODUCT;
 	cSUMPRODUCT.prototype.name = 'SUMPRODUCT';
 	cSUMPRODUCT.prototype.argumentsMin = 1;
+	cSUMPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSUMPRODUCT.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), resArr = [], col = 0, row = 0, res = 1, _res = [], i;
 
@@ -4643,10 +4645,12 @@
 	function cSUMSQ() {
 	}
 
+	//***array-formula***
 	cSUMSQ.prototype = Object.create(cBaseFunction.prototype);
 	cSUMSQ.prototype.constructor = cSUMSQ;
 	cSUMSQ.prototype.name = 'SUMSQ';
 	cSUMSQ.prototype.argumentsMin = 1;
+	cSUMSQ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSUMSQ.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), _arg;
 

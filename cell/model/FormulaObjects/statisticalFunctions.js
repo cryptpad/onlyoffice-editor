@@ -9877,11 +9877,13 @@ function (window, undefined) {
 	function cSTDEV() {
 	}
 
+	//***array-formula***
 	cSTDEV.prototype = Object.create(cBaseFunction.prototype);
 	cSTDEV.prototype.constructor = cSTDEV;
 	cSTDEV.prototype.name = 'STDEV';
 	cSTDEV.prototype.argumentsMin = 1;
 	cSTDEV.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cSTDEV.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSTDEV.prototype.Calculate = function (arg) {
 		var i, element, count = 0, sum = new cNumber(0), member = [];
 		for (i = 0; i < arg.length; i++) {
@@ -9944,6 +9946,7 @@ function (window, undefined) {
 	function cSTDEV_S() {
 	}
 
+	//***array-formula***
 	cSTDEV_S.prototype = Object.create(cSTDEV.prototype);
 	cSTDEV_S.prototype.constructor = cSTDEV_S;
 	cSTDEV_S.prototype.name = 'STDEV.S';
@@ -9957,10 +9960,12 @@ function (window, undefined) {
 	function cSTDEVA() {
 	}
 
+	//***array-formula***
 	cSTDEVA.prototype = Object.create(cBaseFunction.prototype);
 	cSTDEVA.prototype.constructor = cSTDEVA;
 	cSTDEVA.prototype.name = 'STDEVA';
 	cSTDEVA.prototype.argumentsMin = 1;
+	cSTDEVA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSTDEVA.prototype.Calculate = function (arg) {
 		var count = 0, sum = new cNumber(0), member = [], i;
 		for (i = 0; i < arg.length; i++) {
@@ -10015,10 +10020,12 @@ function (window, undefined) {
 	function cSTDEVP() {
 	}
 
+	//***array-formula***
 	cSTDEVP.prototype = Object.create(cBaseFunction.prototype);
 	cSTDEVP.prototype.constructor = cSTDEVP;
 	cSTDEVP.prototype.name = 'STDEVP';
 	cSTDEVP.prototype.argumentsMin = 1;
+	cSTDEVP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSTDEVP.prototype.Calculate = function (arg) {
 		function _var(x) {
 			var i, tA = [], sumSQRDeltaX = 0, _x = 0, xLength = 0;
@@ -10099,10 +10106,12 @@ function (window, undefined) {
 	function cSTDEVPA() {
 	}
 
+	//***array-formula***
 	cSTDEVPA.prototype = Object.create(cBaseFunction.prototype);
 	cSTDEVPA.prototype.constructor = cSTDEVPA;
 	cSTDEVPA.prototype.name = 'STDEVPA';
 	cSTDEVPA.prototype.argumentsMin = 1;
+	cSTDEVPA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSTDEVPA.prototype.Calculate = function (arg) {
 
 		function _var(x) {
@@ -10495,6 +10504,7 @@ function (window, undefined) {
 	function cT_INV_2T() {
 	}
 
+	//***array-formula***
 	cT_INV_2T.prototype = Object.create(cBaseFunction.prototype);
 	cT_INV_2T.prototype.constructor = cT_INV_2T;
 	cT_INV_2T.prototype.name = 'T.INV.2T';
@@ -10541,6 +10551,7 @@ function (window, undefined) {
 	 * @constructor
 	 * @extends {cT_INV_2T}
 	 */
+	//***array-formula***
 	function cTINV() {
 	}
 

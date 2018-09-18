@@ -447,17 +447,12 @@ var cErrorType = {
 // value_convert_area - аналогично value, но area и area3d не преобразуются в массив
 // array - умеет возвращать массив
 // используоется в returnValueType у каждой формулы
-// not_change_first_args - когда для функции нужно, чтобы первый аргумент был area/ref
-// not_change_args - не изменять предварительно аргументы
 // так же этот параметр у формул может быть массивом - массив индексов аргментов, которые являются входными array/area
 /** @enum */
 var cReturnFormulaType = {
 		value: 0,
 		value_replace_area: 1,
 		array: 2
-		/*not_change_first_args: 3,
-		not_change_args: 4,
-		not_change_2_3_arg: 5*/
 };
 
 var cExcelSignificantDigits = 15; //количество цифр в числе после запятой

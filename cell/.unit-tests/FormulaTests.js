@@ -3007,6 +3007,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), AscCommon.g_oFormatParser.parse( "16:48:00" ).value - AscCommon.g_oFormatParser.parse( "12:17:12" ).value );
 
+        testArrayFormula2("value", 1, 1);
     } );
 
 	test( "Test: \"DATE\"", function () {
@@ -4135,6 +4136,8 @@ $( function () {
 		oParser = new parserFormula( "SUMPRODUCT({1,2,3,3,TRUE})", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 9 );
+
+		testArrayFormula2("SUMPRODUCT", 1, 8, null, true);
     } );
 
     test( "Test: \"SINH\"", function () {
@@ -4679,6 +4682,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#VALUE!" );
 
+        testArrayFormula2("SUMSQ", 1, 8, null, true);
     } );
 
     test( "Test: \"ROMAN\"", function () {
@@ -7537,6 +7541,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), stdeva( 123, 134, 143, 173, 112, 109 ) );
 
+        testArrayFormula2("STDEVA", 1, 8, null, true);
     } );
 
 	test( "Test: \"SWITCH\"", function () {
@@ -10933,6 +10938,76 @@ $( function () {
 
 	});
 
+	test( "Test: \"STDEVPA\"", function () {
+
+		ws.getRange2( "A103" ).setValue( "1345" );
+
+		ws.getRange2( "A104" ).setValue( "1301" );
+
+		ws.getRange2( "A105" ).setValue( "1368" );
+		ws.getRange2( "A106" ).setValue( "1322" );
+		ws.getRange2( "A107" ).setValue( "1310" );
+		ws.getRange2( "A108" ).setValue( "1370" );
+		ws.getRange2( "A109" ).setValue( "1318" );
+		ws.getRange2( "A110" ).setValue( "1350" );
+
+		ws.getRange2( "A111" ).setValue( "1303" );
+		ws.getRange2( "A112" ).setValue( "1299" );
+
+		oParser = new parserFormula( 'STDEVPA(A103:A112)', "AA2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(5) - 0, 26.05456);
+
+		testArrayFormula2("STDEVPA", 1, 8, null, true);
+	});
+
+	test( "Test: \"STDEVP\"", function () {
+
+		ws.getRange2( "A103" ).setValue( "1345" );
+
+		ws.getRange2( "A104" ).setValue( "1301" );
+
+		ws.getRange2( "A105" ).setValue( "1368" );
+		ws.getRange2( "A106" ).setValue( "1322" );
+		ws.getRange2( "A107" ).setValue( "1310" );
+		ws.getRange2( "A108" ).setValue( "1370" );
+		ws.getRange2( "A109" ).setValue( "1318" );
+		ws.getRange2( "A110" ).setValue( "1350" );
+
+		ws.getRange2( "A111" ).setValue( "1303" );
+		ws.getRange2( "A112" ).setValue( "1299" );
+
+		oParser = new parserFormula( 'STDEVP(A103:A112)', "AA2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(5) - 0, 26.05456);
+
+		testArrayFormula2("STDEVP", 1, 8, null, true);
+	});
+
+	test( "Test: \"STDEV\"", function () {
+
+		ws.getRange2( "A103" ).setValue( "1345" );
+
+		ws.getRange2( "A104" ).setValue( "1301" );
+
+		ws.getRange2( "A105" ).setValue( "1368" );
+		ws.getRange2( "A106" ).setValue( "1322" );
+		ws.getRange2( "A107" ).setValue( "1310" );
+		ws.getRange2( "A108" ).setValue( "1370" );
+		ws.getRange2( "A109" ).setValue( "1318" );
+		ws.getRange2( "A110" ).setValue( "1350" );
+
+		ws.getRange2( "A111" ).setValue( "1303" );
+		ws.getRange2( "A112" ).setValue( "1299" );
+
+		oParser = new parserFormula( 'STDEV(A103:A112)', "AA2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(5) - 0, 27.46392);
+
+		testArrayFormula2("STDEV", 1, 8, null, true);
+	});
+
+
 	test( "Test: \"DSUM\"", function () {
 
 		putDataForDatabase();
@@ -11017,6 +11092,21 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "1");
 
+	});
+
+	test( "Test: \"UPPER\"", function () {
+		ws.getRange2( "A2" ).setValue( "total" );
+		ws.getRange2( "A3" ).setValue( "Yield" );
+
+		oParser = new parserFormula( 'UPPER(A2)', "AA2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TOTAL");
+
+		oParser = new parserFormula( 'UPPER(A3)', "AA2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "YIELD");
+
+		testArrayFormula2("UPPER", 1, 1);
 	});
 
 	test( "Test: \"GROWTH\"", function () {

@@ -1949,6 +1949,7 @@ function (window, undefined) {
 	function cUPPER() {
 	}
 
+	//***array-formula***
 	cUPPER.prototype = Object.create(cBaseFunction.prototype);
 	cUPPER.prototype.constructor = cUPPER;
 	cUPPER.prototype.name = 'UPPER';
@@ -1978,6 +1979,7 @@ function (window, undefined) {
 	function cVALUE() {
 	}
 
+	//***array-formula***
 	cVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cVALUE.prototype.constructor = cVALUE;
 	cVALUE.prototype.name = 'VALUE';
