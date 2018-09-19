@@ -11453,6 +11453,10 @@ CDocument.prototype.Is_WordSelection = function()
 {
 	return this.Selection.WordSelected;
 };
+CDocument.prototype.IsStartSelection = function()
+{
+	return this.Selection.Start;
+};
 CDocument.prototype.Get_EditingType = function()
 {
 	return this.EditingType;
