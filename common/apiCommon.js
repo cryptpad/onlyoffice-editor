@@ -1821,6 +1821,7 @@
 			this.DStrikeout = (undefined != obj.DStrikeout) ? obj.DStrikeout : undefined;
 			this.TextSpacing = (undefined != obj.TextSpacing) ? obj.TextSpacing : undefined;
 			this.Position = (undefined != obj.Position) ? obj.Position : undefined;
+			this.Jc = (undefined != obj.Jc) ? obj.Jc : undefined;
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -1860,6 +1861,7 @@
 			this.DStrikeout = undefined;
 			this.TextSpacing = undefined;
 			this.Position = undefined;
+			this.Jc = undefined;
 		}
 	}
 
@@ -1873,6 +1875,10 @@
 			return this.Ind;
 		}, asc_putInd: function (v) {
 			this.Ind = v;
+		}, asc_getJc: function () {
+			return this.Jc;
+		}, asc_putJc: function (v) {
+			this.Jc = v;
 		}, asc_getKeepLines: function () {
 			return this.KeepLines;
 		}, asc_putKeepLines: function (v) {
@@ -4477,6 +4483,8 @@
 	prot["put_ContextualSpacing"] = prot["asc_putContextualSpacing"] = prot.asc_putContextualSpacing;
 	prot["get_Ind"] = prot["asc_getInd"] = prot.asc_getInd;
 	prot["put_Ind"] = prot["asc_putInd"] = prot.asc_putInd;
+	prot["get_Jc"] = prot["asc_getJc"] = prot.asc_getJc;
+	prot["put_Jc"] = prot["asc_putJc"] = prot.asc_putJc;
 	prot["get_KeepLines"] = prot["asc_getKeepLines"] = prot.asc_getKeepLines;
 	prot["put_KeepLines"] = prot["asc_putKeepLines"] = prot.asc_putKeepLines;
 	prot["get_KeepNext"] = prot["asc_getKeepNext"] = prot.asc_getKeepNext;
