@@ -4468,7 +4468,7 @@ function CDrawingDocument()
 		var _curPage;
 		var _color;
 
-		var isNoButtons = this.m_oWordControl.m_oLogicDocument.IsFillingFormMode();
+		var isNoButtons = this.m_oWordControl.m_oLogicDocument ? this.m_oWordControl.m_oLogicDocument.IsFillingFormMode() : false;
 		var buttonsCount = 0;
 
 		for (var nIndexContentControl = 0; nIndexContentControl < this.ContentControlObjects.length; nIndexContentControl++)
@@ -7808,7 +7808,7 @@ function CDrawingDocument()
 			return true;
 		}
 
-        var isNoButtons = oWordControl.m_oLogicDocument.IsFillingFormMode();
+        var isNoButtons = oWordControl.m_oLogicDocument ? oWordControl.m_oLogicDocument.IsFillingFormMode() : false;
 
 		if (this.FrameRect.IsActive)
 		{
@@ -8032,7 +8032,7 @@ function CDrawingDocument()
 	this.checkMouseDown_DrawingOnUp = function (pos)
 	{
 		var oWordControl = this.m_oWordControl;
-        var isNoButtons = oWordControl.m_oLogicDocument.IsFillingFormMode();
+        var isNoButtons = oWordControl.m_oLogicDocument ? oWordControl.m_oLogicDocument.IsFillingFormMode() : false;
 
 		for (var i = 0; i < this.ContentControlObjects.length; i++)
 		{
@@ -8118,7 +8118,7 @@ function CDrawingDocument()
 	this.checkMouseMove_Drawing = function (pos)
 	{
 		var oWordControl = this.m_oWordControl;
-        var isNoButtons = oWordControl.m_oLogicDocument.IsFillingFormMode();
+        var isNoButtons = oWordControl.m_oLogicDocument ? oWordControl.m_oLogicDocument.IsFillingFormMode() : false;
 
 		if (this.TableOutlineDr.bIsTracked)
 		{
