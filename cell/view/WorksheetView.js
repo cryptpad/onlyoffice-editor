@@ -2269,7 +2269,79 @@
 		ctx.RemoveClipRect();
     };
 
+
+
+
+	/** Рисует текст ячейки */
+	WorksheetView.prototype._drawHeaderFooterText = function (drawingCtx, headerFooterParser) {
+
+		var getFragmentText = function(val) {
+			if ( asc_typeof(val) === "string" ){
+				return val;
+			} else {
+				return val.getText();
+			}
+		};
+
+		var getFragments = function(portion) {
+			var res = [];
+			for(var i = 0; i < portion.length; i++){
+				var str = new AscCommonExcel.Fragment();
+				str.text = getFragmentText(portion[i].val);
+				str.format = portion[i].props;
+				res.push(str);
+			}
+			return res;
+		};
+
+		var leftPortion = headerFooterParser.portions[0];
+		var fragments = getFragments(leftPortion);
+
+		this.stringRender.setString(fragments);
+
+		var textMetrics = this.stringRender._measureChars();
+		var tX1 = textMetrics.width / 2;
+		var tX2 = textMetrics.width / 2;
+		var tY1 = textMetrics.height / 2;
+		var tY2 = textMetrics.height / 2;
+
+		this.stringRender.render(drawingCtx, tX1 + 100, tY1 + 100, 100, this.settings.activeCellBorderColor);
+
+
+		/*for(var i = 0; i < leftPortion.length; i++) {
+			this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
+
+			var ctx = drawingCtx || this.drawingCtx;
+			var style = 0;
+			var st = this.settings.header.style[style];
+			var x2 = 0;
+			var y2 = 0;
+			var x2WithoutBorder = x2;
+			var y2WithoutBorder = y2;
+
+			var index = 0;
+
+			var text = "TEST";
+			var sr = this.stringRender;
+			var tm = this._roundTextMetrics(sr.measureString(text));
+
+			var textX = 100;
+			var textY = 100;
+
+			ctx.setFillStyle(st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
+		}*/
+
+	};
+
+
 	WorksheetView.prototype._drawHeaderFooter = function (drawingCtx) {
+
+		var addHeaderStr = this.model.headerFooter.oddHeader.str;
+		this.model.headerFooter.oddHeader.parser = new HeaderFooterParser();
+		this.model.headerFooter.oddHeader.parser.parse(addHeaderStr);
+		this._drawHeaderFooterText(drawingCtx, this.model.headerFooter.oddHeader.parser);
+
+
 		/*this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
 
 		var ctx = drawingCtx || this.drawingCtx;
@@ -14577,6 +14649,41 @@
 	function HeaderFooterField(val) {
 		this.field = val;
 	}
+	HeaderFooterField.prototype.getText = function () {
+		var res = "";
+		switch(this.field) {
+			case c_nHeaderFooterPageNumber: {
+
+				break;
+			}
+			case c_nHeaderFooterPageCount: {
+
+				break;
+			}
+			case c_nHeaderFooterSheetName: {
+
+				break;
+			}
+			case c_nHeaderFooterFileName: {
+
+				break;
+			}
+			case c_nHeaderFooterFilePath: {
+
+				break;
+			}
+			case c_nHeaderFooterDate: {
+
+				break;
+			}
+			case c_nHeaderFooterTime: {
+
+				break;
+			}
+		}
+		return res;
+	};
+
 
 	function HeaderFooterParser() {
 		this.portions = [];
@@ -14752,6 +14859,7 @@
 						if (nFontHeight > 0) {
 							this.font.fs = nFontHeight;
 						}
+						i--;
 						nState = c_nText;
 					}
 					break;
