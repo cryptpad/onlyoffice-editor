@@ -2429,9 +2429,6 @@ background-repeat: no-repeat;\
             this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Lang : {Val : value}}), false);
 
             this.WordControl.m_oLogicDocument.Spelling.Check_CurParas();
-
-            //if (true === this.isMarkerFormat)
-            //    this.sync_MarkerFormatCallback(false);
         }
     };
 
