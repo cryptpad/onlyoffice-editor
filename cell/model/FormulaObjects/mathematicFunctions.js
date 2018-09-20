@@ -3023,6 +3023,7 @@
 	function cPI() {
 	}
 
+	//***array-formula***
 	cPI.prototype = Object.create(cBaseFunction.prototype);
 	cPI.prototype.constructor = cPI;
 	cPI.prototype.name = 'PI';
@@ -3117,10 +3118,12 @@
 	function cPRODUCT() {
 	}
 
+	//***array-formula***
 	cPRODUCT.prototype = Object.create(cBaseFunction.prototype);
 	cPRODUCT.prototype.constructor = cPRODUCT;
 	cPRODUCT.prototype.name = 'PRODUCT';
 	cPRODUCT.prototype.argumentsMin = 1;
+	cPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cPRODUCT.prototype.Calculate = function (arg) {
 		var element, arg0 = new cNumber(1);
 		for (var i = 0; i < arg.length; i++) {
@@ -3166,6 +3169,7 @@
 	function cQUOTIENT() {
 	}
 
+	//***array-formula***
 	cQUOTIENT.prototype = Object.create(cBaseFunction.prototype);
 	cQUOTIENT.prototype.constructor = cQUOTIENT;
 	cQUOTIENT.prototype.name = 'QUOTIENT';

@@ -1205,6 +1205,7 @@ function (window, undefined) {
 	function cPROPER() {
 	}
 
+	//***array-formula***
 	cPROPER.prototype = Object.create(cBaseFunction.prototype);
 	cPROPER.prototype.constructor = cPROPER;
 	cPROPER.prototype.name = 'PROPER';
@@ -1575,6 +1576,7 @@ function (window, undefined) {
 	function cSUBSTITUTE() {
 	}
 
+	//***array-formula***
 	cSUBSTITUTE.prototype = Object.create(cBaseFunction.prototype);
 	cSUBSTITUTE.prototype.constructor = cSUBSTITUTE;
 	cSUBSTITUTE.prototype.name = 'SUBSTITUTE';

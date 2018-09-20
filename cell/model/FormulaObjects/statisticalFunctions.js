@@ -8827,6 +8827,7 @@ function (window, undefined) {
 	function cPERCENTILE_INC() {
 	}
 
+	//***array-formula***
 	cPERCENTILE_INC.prototype = Object.create(cPERCENTILE.prototype);
 	cPERCENTILE_INC.prototype.constructor = cPERCENTILE_INC;
 	cPERCENTILE_INC.prototype.name = 'PERCENTILE.INC';
@@ -8938,6 +8939,7 @@ function (window, undefined) {
 	function cPERCENTRANK_INC() {
 	}
 
+	//***array-formula***
 	cPERCENTRANK_INC.prototype = Object.create(cPERCENTRANK.prototype);
 	cPERCENTRANK_INC.prototype.constructor = cPERCENTRANK_INC;
 	cPERCENTRANK_INC.prototype.name = 'PERCENTRANK.INC';
@@ -9062,6 +9064,7 @@ function (window, undefined) {
 	function cPOISSON() {
 	}
 
+	//***array-formula***
 	cPOISSON.prototype = Object.create(cBaseFunction.prototype);
 	cPOISSON.prototype.constructor = cPOISSON;
 	cPOISSON.prototype.name = 'POISSON';
@@ -9113,6 +9116,7 @@ function (window, undefined) {
 	function cPOISSON_DIST() {
 	}
 
+	//***array-formula***
 	cPOISSON_DIST.prototype = Object.create(cPOISSON.prototype);
 	cPOISSON_DIST.prototype.constructor = cPOISSON_DIST;
 	cPOISSON_DIST.prototype.name = 'POISSON.DIST';
@@ -9233,6 +9237,7 @@ function (window, undefined) {
 	function cQUARTILE() {
 	}
 
+	//***array-formula***
 	cQUARTILE.prototype = Object.create(cBaseFunction.prototype);
 	cQUARTILE.prototype.constructor = cQUARTILE;
 	cQUARTILE.prototype.name = 'QUARTILE';
@@ -9292,6 +9297,7 @@ function (window, undefined) {
 	function cQUARTILE_EXC() {
 	}
 
+	//***array-formula***
 	cQUARTILE_EXC.prototype = Object.create(cBaseFunction.prototype);
 	cQUARTILE_EXC.prototype.constructor = cQUARTILE_EXC;
 	cQUARTILE_EXC.prototype.name = 'QUARTILE.EXC';
@@ -9352,6 +9358,7 @@ function (window, undefined) {
 	function cQUARTILE_INC() {
 	}
 
+	//***array-formula***
 	cQUARTILE_INC.prototype = Object.create(cQUARTILE.prototype);
 	cQUARTILE_INC.prototype.constructor = cQUARTILE_INC;
 	cQUARTILE_INC.prototype.name = 'QUARTILE.INC';
@@ -9569,10 +9576,12 @@ function (window, undefined) {
 	function cSKEW() {
 	}
 
+	//***array-formula***
 	cSKEW.prototype = Object.create(cBaseFunction.prototype);
 	cSKEW.prototype.constructor = cSKEW;
 	cSKEW.prototype.name = 'SKEW';
 	cSKEW.prototype.argumentsMin = 1;
+	cSKEW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSKEW.prototype.Calculate = function (arg) {
 
 		var arr0 = [];
@@ -9818,6 +9827,7 @@ function (window, undefined) {
 	function cSTANDARDIZE() {
 	}
 
+	//***array-formula***
 	cSTANDARDIZE.prototype = Object.create(cBaseFunction.prototype);
 	cSTANDARDIZE.prototype.constructor = cSTANDARDIZE;
 	cSTANDARDIZE.prototype.name = 'STANDARDIZE';

@@ -2742,6 +2742,8 @@ $( function () {
         oParser = new parserFormula( "PROPER(\"this is a TITLE\")", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "This Is A Title" );
+
+        testArrayFormula2("PROPER", 1, 1);
     } );
 
     test( "Test: \"GCD\"", function () {
@@ -3994,6 +3996,23 @@ $( function () {
 
         testArrayFormula2("DATEDIF", 3, 3);
     } );
+
+	test( "Test: \"PRODUCT\"", function () {
+
+		ws.getRange2( "A2" ).setValue( "5" );
+		ws.getRange2( "A3" ).setValue( "15" );
+		ws.getRange2( "A4" ).setValue( "30" );
+
+		oParser = new parserFormula( "PRODUCT(A2:A4)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2250 );
+
+		oParser = new parserFormula( "PRODUCT(A2:A4, 2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4500 );
+
+		testArrayFormula2("PRODUCT", 1, 8, null, true);
+	} );
 
     test( "Test: \"SUMPRODUCT\"", function () {
 
@@ -7079,6 +7098,8 @@ $( function () {
 		oParser = new parserFormula( "POISSON.DIST(A202,A203,FALSE)", "A1", ws );
 		ok( oParser.parse(), "POISSON.DIST(A202,A203,FALSE)" );
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.084224, "POISSON.DIST(A202,A203,FALSE)" );
+
+		testArrayFormula2("POISSON.DIST", 3, 3);
 	} );
 
     test( "Test: \"PROB\"", function () {
@@ -7321,6 +7342,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), skew( [2, 3, 9, 1, 8, 7, 5, 6, 5, 11, 7, 5, 4, 4] ) );
 
+        testArrayFormula2("SKEW", 1, 8, null, true);
     } );
 
 	test( "Test: \"SKEW.P\"", function () {
