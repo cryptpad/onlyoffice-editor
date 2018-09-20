@@ -2836,6 +2836,56 @@ function asc_menu_ReadTiming(_params, _cursor)
     return _settings;
 };
 
+function asc_menu_ReadParaListType(_params, _cursor)
+{
+    var _list = new AscCommon.asc_CListType();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _list.Type = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _list.SubType = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _list;
+}
+function asc_menu_WriteParaListType(_type, _list, _stream)
+{
+    if (!_list)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_list.Type !== undefined && _list.Type !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteLong"](_list.Type);
+    }
+    if (_list.SubType !== undefined && _list.SubType !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_list.SubType);
+    }
+
+    _stream["WriteByte"](255);
+}
+
 function NativeOpenFileP(_params, documentInfo){
     window["CreateMainTextMeasurerWrapper"]();
     window.g_file_path = "native_open_file";
