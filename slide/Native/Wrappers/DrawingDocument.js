@@ -564,6 +564,12 @@ CDrawingDocument.prototype.SelectEnabled = function(bIsEnabled)
 };
 CDrawingDocument.prototype.SelectClear = function()
 {
+    if (!this.SelectClearLock)
+    {
+        this.SelectDrag = -1;
+        this.SelectRect1 = null;
+        this.SelectRect2 = null;
+    }
     return this.Native["DD_SelectClear"]();
 };
 CDrawingDocument.prototype.SearchClear = function()
@@ -963,22 +969,220 @@ CDrawingDocument.prototype.GetCommentHeight = function(type)
 {
 };
 
+CDrawingDocument.prototype.GetMouseMoveCoords = function()
+{
+    return {X: global_mouseEvent.X, Y: global_mouseEvent.Y, Page: this.LogicDocument.CurPage};
+};
+
+CDrawingDocument.prototype.StartUpdateOverlay = function()
+{
+    this.IsUpdateOverlayOnlyEnd = true;
+};
+
+CDrawingDocument.prototype.EndUpdateOverlay = function()
+{
+    if (this.IsUpdateOverlayOnlyEndReturn)
+        return;
+
+    this.IsUpdateOverlayOnlyEnd = false;
+    if (this.IsUpdateOverlayOnEndCheck)
+        this.OnUpdateOverlay();
+
+    this.IsUpdateOverlayOnEndCheck = false;
+};
+
 CDrawingDocument.prototype.OnMouseDown = function(e)
 {
     check_MouseDownEvent(e, true);
-    this.m_oLogicDocument.OnMouseDown(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+
+    // у Илюхи есть проблема при вводе с клавы, пока нажата кнопка мыши
+    if ((0 == global_mouseEvent.Button) || (undefined == global_mouseEvent.Button))
+        this.m_bIsMouseLock = true;
+
+    this.StartUpdateOverlay();
+
+    if ((0 == global_mouseEvent.Button) || (undefined == global_mouseEvent.Button))
+    {
+        var pos = {X: global_mouseEvent.X, Y: global_mouseEvent.Y, Page: this.LogicDocument.CurPage};
+
+        // if (pos.Page == -1)
+        // {
+        //     this.EndUpdateOverlay();
+        //     return;
+        // }
+
+        // if (this.IsFreezePage(pos.Page))
+        // {
+        //     this.EndUpdateOverlay();
+        //     return;
+        // }
+
+        // теперь проверить трек таблиц
+        /*
+         var ret = this.Native["checkMouseDown_Drawing"](pos.X, pos.Y, pos.Page);
+         if (ret === true)
+         return;
+         */
+        // var is_drawing = this.checkMouseDown_Drawing(pos);
+        // if (is_drawing === true) {
+        //     return;
+        // }
+
+        //this.Native["DD_NeedScrollToTargetFlag"](true);
+        this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
+        //this.Native["DD_NeedScrollToTargetFlag"](false);
+    }
+
+    //this.Native["DD_CheckTimerScroll"](true);
+    this.EndUpdateOverlay();
 };
 
 CDrawingDocument.prototype.OnMouseMove = function(e)
+    {
+        check_MouseMoveEvent(e);
+
+        var pos = this.GetMouseMoveCoords();
+        if (pos.Page == -1)
+            return;
+
+        // if (this.IsFreezePage(pos.Page))
+        //     return;
+
+        // if (this.m_sLockedCursorType != "")
+        //     this.SetCursorType("default");
+
+        this.StartUpdateOverlay();
+
+        /*
+         var is_drawing = this.Native["checkMouseMove_Drawing"](pos.X, pos.Y, pos.Page);
+         if (is_drawing === true)
+         return;
+         */
+        // var is_drawing = this.checkMouseMove_Drawing(pos);
+        // if (is_drawing === true)
+        //     return;
+
+        //this.TableOutlineDr.bIsNoTable = true;
+
+        if (this.SelectDrag == 1 || this.SelectDrag == 2)
+        {
+            this.SelectClearLock = true;
+            var _oldShift = global_mouseEvent.ShiftKey;
+            global_mouseEvent.ShiftKey = true;
+            this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            global_mouseEvent.ShiftKey = _oldShift;
+            this.SelectClearLock = false;
+        }
+        else
+        {
+            this.LogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
+        }
+
+        this.EndUpdateOverlay();
+    };
+
+
+    CDrawingDocument.prototype.OnMouseUp = function(e)
+    {
+        check_MouseUpEvent(e);
+
+        var pos = this.GetMouseMoveCoords();
+        var _is_select = false;
+        if (this.SelectDrag == 1 || this.SelectDrag == 2)
+        {
+            _is_select = true;
+        }
+        this.SelectDrag = -1;
+
+        if (pos.Page == -1)
+            return this.CheckReturnMouseUp();
+
+        // if (this.IsFreezePage(pos.Page))
+        //     return this.CheckReturnMouseUp();
+
+        // this.UnlockCursorType();
+
+        this.StartUpdateOverlay();
+
+        // восстанавливаем фокус
+        this.m_bIsMouseLock = false;
+
+        /*
+         var is_drawing = this.Native["checkMouseUp_Drawing"](pos.X, pos.Y, pos.Page);
+         if (is_drawing === true)
+         return;
+         */
+        // var is_drawing = this.checkMouseUp_Drawing(pos);
+        // if (is_drawing === true)
+        //     return this.CheckReturnMouseUp();
+
+        // this.Native["DD_CheckTimerScroll"](false);
+
+        // this.Native.m_bIsMouseUpSend = true;
+
+        // this.Native["DD_NeedScrollToTargetFlag"](true);
+
+        if (_is_select)
+        {
+            var _oldShift = global_mouseEvent.ShiftKey;
+            global_mouseEvent.ShiftKey = true;
+            this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            global_mouseEvent.ShiftKey = _oldShift;
+        }
+        else
+        {
+            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
+        }
+        // this.Native["DD_NeedScrollToTargetFlag"](false);
+
+        // this.Native.m_bIsMouseUpSend = false;
+        this.LogicDocument.Document_UpdateInterfaceState();
+        this.LogicDocument.Document_UpdateRulersState();
+
+        this.EndUpdateOverlay();
+        return this.CheckReturnMouseUp();
+    };
+
+CDrawingDocument.prototype.OnMouseMove_____ = function(e)
 {
     check_MouseMoveEvent(e);
-    this.m_oLogicDocument.OnMouseMove(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+
+    if (this.SelectDrag == 1 || this.SelectDrag == 2)
+    {
+        this.SelectClearLock = true;
+        var _oldShift = global_mouseEvent.ShiftKey;
+        global_mouseEvent.ShiftKey = true;
+        this.LogicDocumentOnMouseDown(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+        this.LogicDocumentOnMouseUp(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+        global_mouseEvent.ShiftKey = _oldShift;
+        this.SelectClearLock = false;
+    }
+    else
+    {
+        this.m_oLogicDocument.OnMouseMove(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+    }
+    
 };
 
-CDrawingDocument.prototype.OnMouseUp = function(e)
+CDrawingDocument.prototype.OnMouseUp_______ = function(e)
 {
     check_MouseUpEvent(e);
-    this.m_oLogicDocument.OnMouseUp(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+
+    if (this.SelectDrag == 1 || this.SelectDrag == 2)
+        {
+            var _oldShift = global_mouseEvent.ShiftKey;
+            global_mouseEvent.ShiftKey = true;
+            this.LogicDocumentOnMouseDown(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+            this.LogicDocumentOnMouseUp(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+            global_mouseEvent.ShiftKey = _oldShift;
+        }
+        else
+        {
+            this.m_oLogicDocument.OnMouseUp(global_mouseEvent, global_mouseEvent.X, global_mouseEvent.Y, e["CurPage"]);
+        }
+    
     return this.CheckReturnMouseUp();
 };
 
@@ -1121,27 +1325,70 @@ CDrawingDocument.prototype.DrawVerAnchor = function(pageIndex, y)
 {
 };
 
+CDrawingDocument.prototype.CheckSelectMobile = function()
+{
+    this.SelectRect1 = null;
+    this.SelectRect2 = null;
+
+    var _select = this.LogicDocument.GetSelectionBounds();
+    if (!_select)
+        return;
+
+    var _rect1 = _select.Start;
+    var _rect2 = _select.End;
+
+    if (!_rect1 || !_rect2)
+        return;
+
+    this.SelectRect1 = _rect1;
+    this.SelectRect2 = _rect2;
+
+    this.Native["DD_DrawMobileSelection"](_rect1.X, _rect1.Y, _rect1.W, _rect1.H, _rect1.Page,
+        _rect2.X, _rect2.Y, _rect2.W, _rect2.H, _rect2.Page);
+};
+
+
+CDrawingDocument.prototype.LogicDocumentOnMouseDown = function(e, x, y, page)
+{
+    if (this.m_bIsMouseLockDocument)
+    {
+        this.LogicDocument.OnMouseUp(e, x, y, page);
+        this.m_bIsMouseLockDocument = false;
+    }
+    this.LogicDocument.OnMouseDown(e, x, y, page);
+    this.m_bIsMouseLockDocument = true;
+};
+
+CDrawingDocument.prototype.LogicDocumentOnMouseUp = function(e, x, y, page)
+{
+    if (!this.m_bIsMouseLockDocument)
+    {
+        this.LogicDocument.OnMouseDown(e, x, y, page);
+        this.m_bIsMouseLockDocument = true;
+    }
+    this.LogicDocument.OnMouseUp(e, x, y, page);
+    this.m_bIsMouseLockDocument = false;
+};
+
 CDrawingDocument.prototype.OnCheckMouseDown = function(e)
 {
     // 0 - none
     // 1 - select markers
     // 2 - drawing track
+
+    var oController = this.LogicDocument.GetCurrentController();
+    var matrixCheck = null;
+    if(oController)
+    {
+        matrixCheck = oController.getTargetTransform();
+    }
+
     check_MouseDownEvent(e, false);
+
     var pos = {X: global_mouseEvent.X, Y: global_mouseEvent.Y, Page: this.LogicDocument.CurPage};
     if (pos.Page == -1)
         return 0;
 
-    this.SelectRect1 = null;
-    this.SelectRect2 = null;
-    var _select = this.LogicDocument.GetSelectionBounds();
-    if (_select)
-    {
-        var _rect1 = _select.Start;
-        var _rect2 = _select.End;
-
-        this.SelectRect1 = _rect1;
-        this.SelectRect2 = _rect2;
-    }
     this.SelectDrag = -1;
     if (this.SelectRect1 && this.SelectRect2)
     {
@@ -1156,7 +1403,6 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
         var _circlePos2_x = 0;
         var _circlePos2_y = 0;
 
-        var matrixCheck = this.LogicDocument.GetTextTransformMatrix();
         if (!matrixCheck)
         {
             _circlePos1_x = this.SelectRect1.X;
@@ -1189,56 +1435,75 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
         if (_distance2 < _distance1)
             candidate = 2;
 
+
         if (1 == candidate && _distance1 < _selectCircleEpsMM_square)
         {
+            this.SelectClearLock = true;
             this.SelectDrag = 1;
+            this.LogicDocument.MoveCursorRight();
+
+            var _oldShift = global_mouseEvent.ShiftKey;
+            global_mouseEvent.ShiftKey = true;
+            this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            global_mouseEvent.ShiftKey = _oldShift;
+
+            this.SelectClearLock = false;
         }
 
         if (2 == candidate && _distance2 < _selectCircleEpsMM_square)
         {
+            this.SelectClearLock = true;
             this.SelectDrag = 2;
+            this.LogicDocument.MoveCursorLeft();
+
+            var _oldShift = global_mouseEvent.ShiftKey;
+            global_mouseEvent.ShiftKey = true;
+            this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            global_mouseEvent.ShiftKey = _oldShift;
+
+            this.SelectClearLock = false;
         }
 
         if (this.SelectDrag != -1)
             return 1;
     }
 
-    // проверям н]а попадание в графические объекты (грубо говоря - треки)
-    if (!this.IsViewMode)
+    if (true)
     {
-        global_mouseEvent.KoefPixToMM = 5;
-
-        if (this.Native["GetDeviceDPI"])
+        // проверям н]а попадание в графические объекты (грубо говоря - треки)
+        if (!this.IsViewMode)
         {
-            // 1см
-            global_mouseEvent.AscHitToHandlesEpsilon = 5 * this.Native["GetDeviceDPI"]() / (25.4 * this.Native["DD_GetDotsPerMM"]() );
-        }
+            global_mouseEvent.KoefPixToMM = 5;
 
-        var oController = this.LogicDocument.GetCurrentController();
-        var _isDrawings = false;
-        if(oController){
-            _isDrawings = oController.isPointInDrawingObjects3(pos.X, pos.Y, pos.Page, true);
+            if (this.Native["GetDeviceDPI"])
+            {
+                // 1см
+                global_mouseEvent.AscHitToHandlesEpsilon = 5 * this.Native["GetDeviceDPI"]() / (25.4 * this.Native["DD_GetDotsPerMM"]() );
+            }
+
+            var oController = this.LogicDocument.GetCurrentController();
+            var _isDrawings = false;
+            if(oController)
+            {
+                _isDrawings = oController.isPointInDrawingObjects4(pos.X, pos.Y, pos.Page, true);
+            }
+            
+
+            if (_isDrawings) {
+                this.OnMouseDown(e);
+            }
+
+            global_mouseEvent.KoefPixToMM = 1;
+
+            if (_isDrawings)
+                return 2;
         }
-        global_mouseEvent.KoefPixToMM = 1;
-        if (_isDrawings)
-            return 2;
     }
+
     return 0;
-};
-
-CDrawingDocument.prototype.CheckMouseDown2 = function (e) {
-    check_MouseDownEvent(e, false);
-    var pos = {X: global_mouseEvent.X, Y: global_mouseEvent.Y, Page: this.LogicDocument.CurPage};
-    if (pos.Page == -1)
-        return 0;
-
-    var oController = this.LogicDocument.GetCurrentController();
-    var _isDrawings = 0;
-    if(oController){
-        _isDrawings = oController.isPointInDrawingObjects4(pos.X, pos.Y, pos.Page, true);
-    }
-    return _isDrawings;
-};
+}
 
 
 CDrawingDocument.prototype.OnKeyboardEvent = function(_params){

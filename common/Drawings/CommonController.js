@@ -1631,7 +1631,7 @@ DrawingObjectsController.prototype =
         var object;
         if(AscCommon.isRealObject(oResult)){
             if(oResult.cursorType === "text"){
-                nRet = 1;
+                nRet = 0;
             }
             else if(oResult.cursorType === "move"){
                 object = g_oTableId.Get_ById(oResult.objectId);

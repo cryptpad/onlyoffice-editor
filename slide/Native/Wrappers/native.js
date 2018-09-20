@@ -1220,21 +1220,21 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             var level = parseInt(_params);
 
-            if (Asc.c_oAscAlignShapeType.ALIGN_LEFT == type) {
+            if (Asc.c_oAscAlignShapeType.ALIGN_LEFT == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_LEFT);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_CENTER == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_CENTER == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_CENTER);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_RIGHT == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_RIGHT == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_RIGHT);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_TOP == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_TOP == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_TOP);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_MIDDLE == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_MIDDLE == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_MIDDLE);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_BOTTOM == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_BOTTOM == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_BOTTOM);
-            } else if (6 == type) {
+            } else if (6 == level) {
                 this.DistributeHorizontally();
-            } else if (7 == type) {
+            } else if (7 == level) {
                 this.DistributeVertically();
             } 
 
