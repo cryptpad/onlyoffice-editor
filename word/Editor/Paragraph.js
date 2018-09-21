@@ -1968,8 +1968,8 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 			{
 				if (Pr.ParaPr.Brd.Top.Value === border_Single || Asc.c_oAscShdClear === Pr.ParaPr.Shd.Value)
 				{
-					if (( true === Pr.ParaPr.Brd.First && ( 0 === CurPage || true === this.Parent.IsTableCellContent() || true === Pr.ParaPr.PageBreakBefore ) ) ||
-						( true !== Pr.ParaPr.Brd.First && ( ( 0 === CurPage && null === this.Get_DocumentPrev() ) || ( 1 === CurPage && true === this.IsStartFromNewPage() )  ) ))
+					if ((true === Pr.ParaPr.Brd.First && this.private_CheckNeedBeforeSpacing(CurPage, this.Parent, this.GetAbsolutePage(CurPage), Pr.ParaPr)) ||
+						(true !== Pr.ParaPr.Brd.First && ((0 === CurPage && null === this.Get_DocumentPrev()) || (1 === CurPage && true === this.IsStartFromNewPage()))))
 						TempTop += Pr.ParaPr.Spacing.Before;
 				}
 			}
@@ -2474,7 +2474,8 @@ Paragraph.prototype.Internal_Draw_6 = function(CurPage, pGraphics, Pr)
 	if (bDrawTop)
 	{
 		var Y_top = this.Pages[CurPage].Y;
-		if (0 === CurPage || true === this.Parent.IsTableCellContent() || true === Pr.ParaPr.PageBreakBefore)
+
+		if (this.private_CheckNeedBeforeSpacing(CurPage, this.Parent, this.GetAbsolutePage(CurPage), Pr.ParaPr))
 			Y_top += Pr.ParaPr.Spacing.Before;
 
 		RGBA = Pr.ParaPr.Brd.Top.Get_Color(this);
@@ -8314,6 +8315,8 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 
 		// Считываем свойства для текущего стиля
 		var Pr = Styles.Get_Pr(StyleId, styletype_Paragraph, TableStyle, ShapeStyle);
+
+		Pr.ParaPr.CheckBorderSpaces();
 
 		// Если в стиле была задана нумерация сохраним это в специальном поле
 		if (undefined != Pr.ParaPr.NumPr)

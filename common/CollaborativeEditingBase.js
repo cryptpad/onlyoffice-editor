@@ -1157,6 +1157,7 @@ CCollaborativeEditingBase.prototype.private_RestoreDocumentState = function(DocS
                 if (!oDrawing.CheckCorrect())
                 {
                     var oParentParagraph = oDrawing.Get_ParentParagraph();
+                    oDrawing.PreDelete();
                     oDrawing.Remove_FromDocument(false);
                     if (oParentParagraph)
                     {

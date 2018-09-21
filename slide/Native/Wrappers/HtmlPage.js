@@ -409,6 +409,7 @@ CEditorPage.prototype.OnUpdateOverlay = function()
         if (this.m_oLogicDocument.CurPage > -1)
         {
             this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage].drawSelect(1);
+            drDoc.CheckSelectMobile();
         }
         drDoc.AutoShapesTrack.SetCurrentPage(-100);
         this.Native["DD_Overlay_EndDrawSelection"]();

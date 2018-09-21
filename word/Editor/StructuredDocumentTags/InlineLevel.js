@@ -76,13 +76,7 @@ CInlineLevelSdt.prototype.GetId = function()
 };
 CInlineLevelSdt.prototype.Add = function(Item)
 {
-	if (1 === this.Content.length && this.Content[0] === this.PlaceHolder)
-	{
-		this.RemoveFromContent(0, 1);
-		this.AddToContent(0, new ParaRun());
-		this.MoveCursorToStartPos();
-	}
-
+	this.private_ReplacePlaceHolderWithContent();
 	CParagraphContentWithParagraphLikeContent.prototype.Add.apply(this, arguments);
 };
 CInlineLevelSdt.prototype.Copy = function(Selected, oPr)
@@ -212,6 +206,12 @@ CInlineLevelSdt.prototype.Get_RightPos = function(SearchPos, ContentPos, Depth, 
 };
 CInlineLevelSdt.prototype.Remove = function(nDirection, bOnAddText)
 {
+	if (this.IsPlaceHolder())
+	{
+		this.private_ReplacePlaceHolderWithContent();
+		return;
+	}
+
 	CParagraphContentWithParagraphLikeContent.prototype.Remove.call(this, nDirection, bOnAddText);
 
 	if (this.Is_Empty()
@@ -221,7 +221,7 @@ CInlineLevelSdt.prototype.Remove = function(nDirection, bOnAddText)
 		&& true === this.Paragraph.LogicDocument.IsFillingFormMode())
 		|| (this === this.Paragraph.LogicDocument.CheckInlineSdtOnDelete)))
 	{
-		this.Content = [this.PlaceHolder];
+		this.private_ReplaceContentWithPlaceHolder();
 	}
 };
 CInlineLevelSdt.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange)
@@ -301,7 +301,7 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 	if (!this.Paragraph && this.Paragraph.LogicDocument)
 		return;
 
-	var oDrawingDocument = this.Paragraph.LogicDocument.Get_DrawingDocument();
+	var oDrawingDocument = this.Paragraph.LogicDocument.GetDrawingDocument();
 
 	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance())
 	{
@@ -412,11 +412,33 @@ CInlineLevelSdt.prototype.IsPlaceHolder = function()
 {
 	return (this.Content.length === 1 && this.Content[0] === this.PlaceHolder);
 };
+CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
+{
+	if (!this.IsPlaceHolder())
+		return;
+
+	this.RemoveFromContent(0, this.GetElementsCount());
+	this.AddToContent(0, new ParaRun());
+	this.RemoveSelection();
+	this.MoveCursorToStartPos();
+};
+CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
+{
+	if (this.IsPlaceHolder())
+		return;
+
+	this.RemoveFromContent(0, this.GetElementsCount());
+	this.AddToContent(0, this.PlaceHolder);
+	this.SelectContentControl();
+};
 CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, EndContentPos, Depth, StartFlag, EndFlag)
 {
 	if (this.IsPlaceHolder())
 	{
-		this.SelectAll(1);
+		if (this.Paragraph && this.Paragraph.Get_SelectionDirection() > 0)
+			this.SelectAll(1);
+		else
+			this.SelectAll(-1);
 	}
 	else
 	{

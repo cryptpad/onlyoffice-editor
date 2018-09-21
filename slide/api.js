@@ -2429,9 +2429,6 @@ background-repeat: no-repeat;\
             this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Lang : {Val : value}}), false);
 
             this.WordControl.m_oLogicDocument.Spelling.Check_CurParas();
-
-            //if (true === this.isMarkerFormat)
-            //    this.sync_MarkerFormatCallback(false);
         }
     };
 
@@ -4147,7 +4144,11 @@ background-repeat: no-repeat;\
 
 		ImagePr.ImageUrl = obj.ImageUrl;
 
-
+		if (window["NATIVE_EDITOR_ENJINE"]) 
+		{
+		  this.WordControl.m_oLogicDocument.SetImageProps(ImagePr);
+		  return;
+		}
 		if (!AscCommon.isNullOrEmptyString(ImagePr.ImageUrl))
 		{
 			var sImageUrl = null;
