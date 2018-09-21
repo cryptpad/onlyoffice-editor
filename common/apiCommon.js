@@ -1863,7 +1863,7 @@
 			this.TextSpacing = undefined;
 			this.Position = undefined;
 			this.Jc = undefined;
-			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
+			this.ListType = undefined;
 		}
 	}
 
