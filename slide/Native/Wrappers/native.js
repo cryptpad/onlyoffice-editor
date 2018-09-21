@@ -1141,6 +1141,18 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+
+        case 8001: //ASC_PRESENTATIONS_EVENT_TYPE_ALL_TRANSITIONS
+        {
+            var aTimings = [];
+            var slides = this.WordControl.m_oLogicDocument.Slides;
+            for(var i = 0; i < slides.length; ++i){
+                aTimings.push(slides[i].timing.ToArray());
+            }
+            _return = aTimings;
+            break;
+        }
+
         case 8111: // ASC_PRESENTATIONS_EVENT_TYPE_ADD_SLIDE
         {
             var index = parseInt(_params);

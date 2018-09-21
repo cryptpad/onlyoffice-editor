@@ -2865,26 +2865,6 @@ function asc_menu_ReadParaListType(_params, _cursor)
     }
     return _list;
 }
-function asc_menu_WriteParaListType(_type, _list, _stream)
-{
-    if (!_list)
-        return;
-
-    _stream["WriteByte"](_type);
-
-    if (_list.Type !== undefined && _list.Type !== null)
-    {
-        _stream["WriteByte"](0);
-        _stream["WriteLong"](_list.Type);
-    }
-    if (_list.SubType !== undefined && _list.SubType !== null)
-    {
-        _stream["WriteByte"](1);
-        _stream["WriteLong"](_list.SubType);
-    }
-
-    _stream["WriteByte"](255);
-}
 
 function NativeOpenFileP(_params, documentInfo){
     window["CreateMainTextMeasurerWrapper"]();

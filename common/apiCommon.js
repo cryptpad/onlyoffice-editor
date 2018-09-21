@@ -1822,6 +1822,7 @@
 			this.TextSpacing = (undefined != obj.TextSpacing) ? obj.TextSpacing : undefined;
 			this.Position = (undefined != obj.Position) ? obj.Position : undefined;
 			this.Jc = (undefined != obj.Jc) ? obj.Jc : undefined;
+			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -1862,6 +1863,7 @@
 			this.TextSpacing = undefined;
 			this.Position = undefined;
 			this.Jc = undefined;
+			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 		}
 	}
 
