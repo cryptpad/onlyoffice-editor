@@ -526,6 +526,7 @@
 	function cNA() {
 	}
 
+	//***array-formula***
 	cNA.prototype = Object.create(cBaseFunction.prototype);
 	cNA.prototype.constructor = cNA;
 	cNA.prototype.name = 'NA';

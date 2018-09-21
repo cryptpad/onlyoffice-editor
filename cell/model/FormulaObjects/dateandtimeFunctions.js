@@ -1479,6 +1479,7 @@
 	function cNOW() {
 	}
 
+	//***array-formula***
 	cNOW.prototype = Object.create(cBaseFunction.prototype);
 	cNOW.prototype.constructor = cNOW;
 	cNOW.prototype.name = 'NOW';

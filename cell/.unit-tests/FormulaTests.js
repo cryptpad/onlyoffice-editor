@@ -6479,6 +6479,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), mode( [1, 9, 5, 5, 9, 5, 6, 6] ) );
 
+        testArrayFormula2("mode", 1, 8, null, true);
     } );
 
 	test( "Test: \"MODE.MULT \"", function () {

@@ -8147,10 +8147,12 @@ function (window, undefined) {
 	function cMODE() {
 	}
 
+	//***array-formula***
 	cMODE.prototype = Object.create(cBaseFunction.prototype);
 	cMODE.prototype.constructor = cMODE;
 	cMODE.prototype.name = 'MODE';
 	cMODE.prototype.argumentsMin = 1;
+	cMODE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMODE.prototype.Calculate = function (arg) {
 
 		function mode(x) {
@@ -8239,6 +8241,7 @@ function (window, undefined) {
 	function cMODE_MULT() {
 	}
 
+	//***array-formula***
 	cMODE_MULT.prototype = Object.create(cMODE.prototype);
 	cMODE_MULT.prototype.constructor = cMODE_MULT;
 	cMODE_MULT.prototype.name = 'MODE.MULT';
@@ -8251,6 +8254,7 @@ function (window, undefined) {
 	function cMODE_SNGL() {
 	}
 
+	//***array-formula***
 	cMODE_SNGL.prototype = Object.create(cMODE.prototype);
 	cMODE_SNGL.prototype.constructor = cMODE_SNGL;
 	cMODE_SNGL.prototype.name = 'MODE.SNGL';
@@ -8440,6 +8444,7 @@ function (window, undefined) {
 	function cNORMINV() {
 	}
 
+	//***array-formula***
 	cNORMINV.prototype = Object.create(cBaseFunction.prototype);
 	cNORMINV.prototype.constructor = cNORMINV;
 	cNORMINV.prototype.name = 'NORMINV';
@@ -8499,6 +8504,7 @@ function (window, undefined) {
 	function cNORM_INV() {
 	}
 
+	//***array-formula***
 	cNORM_INV.prototype = Object.create(cNORMINV.prototype);
 	cNORM_INV.prototype.constructor = cNORM_INV;
 	cNORM_INV.prototype.name = 'NORM.INV';
@@ -8636,6 +8642,7 @@ function (window, undefined) {
 	function cNORM_S_INV() {
 	}
 
+	//***array-formula***
 	cNORM_S_INV.prototype = Object.create(cNORMSINV.prototype);
 	cNORM_S_INV.prototype.constructor = cNORM_S_INV;
 	cNORM_S_INV.prototype.name = 'NORM.S.INV';
