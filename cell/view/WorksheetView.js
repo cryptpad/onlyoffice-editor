@@ -2270,7 +2270,7 @@
     };
 
 	/** Рисует текст ячейки */
-	WorksheetView.prototype._drawHeaderFooterText = function (drawingCtx, headerFooterParser, indexPrintPage, countPrintPages) {
+	WorksheetView.prototype._drawHeaderFooterText = function (drawingCtx, headerFooterParser, indexPrintPage, countPrintPages, bFooter) {
         var t = this;
 
 		var getFragmentText = function(val) {
@@ -2292,50 +2292,64 @@
 			return res;
 		};
 
-		var leftPortion = headerFooterParser.portions[0];
-		var fragments = getFragments(leftPortion);
+		var drawPortion = function(portion, tempDiff) {
+			if(!portion) {
+				return;
+			}
 
-		this.stringRender.setString(fragments);
+			var fragments = getFragments(portion);
+			t.stringRender.setString(fragments);
 
-		var textMetrics = this.stringRender._measureChars();
-		var tX1 = textMetrics.width / 2;
-		var tX2 = textMetrics.width / 2;
-		var tY1 = textMetrics.height / 2;
-		var tY2 = textMetrics.height / 2;
+			var textMetrics = t.stringRender._measureChars();
+			var tX1 = textMetrics.width / 2;
+			var tX2 = textMetrics.width / 2;
+			var tY1 = textMetrics.height / 2;
+			var tY2 = textMetrics.height / 2;
 
-		this.stringRender.render(drawingCtx, tX1 + 100, tY1 + 100, 100, this.settings.activeCellBorderColor);
+			t.stringRender.render(drawingCtx, tX1 + tempDiff, tY1 + 100, 100, t.settings.activeCellBorderColor);
+		};
+
+		drawPortion(headerFooterParser.portions[c_nPortionLeft], 100);
+		drawPortion(headerFooterParser.portions[c_nPortionCenter], 200);
+		drawPortion(headerFooterParser.portions[c_nPortionRight], 300);
 	};
 
 	WorksheetView.prototype._drawHeaderFooter = function (drawingCtx, indexPrintPage, countPrintPages) {
+		//odd - нечетные страницы, even - четные. в случае если флаг differentOddEven не выставлен, используем odd
+		var headerFooterModel = this.model.headerFooter;
+		var curHeader;
+		if(indexPrintPage === 0 && headerFooterModel.differentFirst) {
+			curHeader = headerFooterModel.getFirstHeader();
+		} else if(headerFooterModel.differentOddEven) {
+			curHeader = 0 === (indexPrintPage + 1) % 2 ? headerFooterModel.getEvenHeader() : headerFooterModel.getOddHeader();
+		} else {
+			curHeader = headerFooterModel.getOddHeader();
+		}
 
-		var addHeaderStr = this.model.headerFooter.oddHeader.str;
-		this.model.headerFooter.oddHeader.parser = new HeaderFooterParser();
-		this.model.headerFooter.oddHeader.parser.parse(addHeaderStr);
-		this._drawHeaderFooterText(drawingCtx, this.model.headerFooter.oddHeader.parser, indexPrintPage, countPrintPages);
+		if(curHeader) {
+			if(!curHeader.parser) {
+				curHeader.parser = new HeaderFooterParser();
+				curHeader.parser.parse(curHeader.str);
+			}
+			this._drawHeaderFooterText(drawingCtx, curHeader.parser, indexPrintPage, countPrintPages);
+		}
 
+		var curFooter;
+		if(indexPrintPage === 0 && headerFooterModel.differentFirst) {
+			curFooter = headerFooterModel.getFirstFooter();
+		} else if(headerFooterModel.differentOddEven) {
+			curFooter = 0 === (indexPrintPage + 1) % 2 ? headerFooterModel.getEvenFooter() : headerFooterModel.getOddFooter();
+		} else {
+			curFooter = headerFooterModel.getOddFooter();
+		}
 
-		/*this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
-
-		var ctx = drawingCtx || this.drawingCtx;
-		var style = 0;
-		var st = this.settings.header.style[style];
-		var x2 = 0;
-		var y2 = 0;
-		var x2WithoutBorder = x2;
-		var y2WithoutBorder = y2;
-
-		var index = 0;
-
-		var text = "asdasdasdasdasd";
-		var sr = this.stringRender;
-		var tm = this._roundTextMetrics(sr.measureString(text));
-
-		var textX = 100;
-		var textY = 100;
-
-		//ctx.AddClipRect(x, y, w, h);
-		ctx.setFillStyle(st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
-		//ctx.RemoveClipRect();*/
+		if(curFooter) {
+			if(!curFooter.parser) {
+				curFooter.parser = new HeaderFooterParser();
+				curFooter.parser.parse(curFooter.str);
+			}
+			this._drawHeaderFooterText(drawingCtx, curFooter.parser, indexPrintPage, countPrintPages, true);
+		}
 	};
 
     WorksheetView.prototype._cleanColumnHeaders = function (colStart, colEnd) {
@@ -14664,15 +14678,15 @@
 		this.font = null;
 	}
 
-	var c_nLeft = 0;
-	var c_nCenter = 1;
-	var c_nRight = 2;
+	var c_nPortionLeft = 0;
+	var c_nPortionCenter = 1;
+	var c_nPortionRight = 2;
 
 	HeaderFooterParser.prototype.parse = function (date) {
 		var c_nText = 0, c_nToken = 1, c_nFontName = 2, c_nFontStyle = 3, c_nFontHeight = 4;
 
 		this.font = new AscCommonExcel.Font();
-		this.currPortion = c_nCenter;
+		this.currPortion = c_nPortionCenter;
 		this.str = "";
 
 		var nState = c_nText;
@@ -14707,13 +14721,13 @@
 							this.str.push(cChar);
 							break;
 						case 'L':
-							this.setPortion(c_nLeft);
+							this.setPortion(c_nPortionLeft);
 							break;
 						case 'C':
-							this.setPortion(c_nCenter);
+							this.setPortion(c_nPortionCenter);
 							break;
 						case 'R':
-							this.setPortion(c_nRight);
+							this.setPortion(c_nPortionRight);
 							break;
 						case 'P':   //page number
 							this.pushField(new HeaderFooterField(c_nHeaderFooterPageNumber));
