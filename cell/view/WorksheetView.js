@@ -1883,7 +1883,7 @@
 		}
 	};
 
-    WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData) {
+    WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
         if (null === printPagesData) {
             // Напечатаем пустую страницу
             drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
@@ -1910,7 +1910,7 @@
                   printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
             }
 
-			this._drawHeaderFooter(drawingCtx);
+			this._drawHeaderFooter(drawingCtx, indexPrintPage, countPrintPages);
 
             // Рисуем сетку
             if (printPagesData.pageGridLines) {
@@ -2269,17 +2269,15 @@
 		ctx.RemoveClipRect();
     };
 
-
-
-
 	/** Рисует текст ячейки */
-	WorksheetView.prototype._drawHeaderFooterText = function (drawingCtx, headerFooterParser) {
+	WorksheetView.prototype._drawHeaderFooterText = function (drawingCtx, headerFooterParser, indexPrintPage, countPrintPages) {
+        var t = this;
 
 		var getFragmentText = function(val) {
 			if ( asc_typeof(val) === "string" ){
 				return val;
 			} else {
-				return val.getText();
+				return val.getText(t, indexPrintPage, countPrintPages);
 			}
 		};
 
@@ -2306,40 +2304,14 @@
 		var tY2 = textMetrics.height / 2;
 
 		this.stringRender.render(drawingCtx, tX1 + 100, tY1 + 100, 100, this.settings.activeCellBorderColor);
-
-
-		/*for(var i = 0; i < leftPortion.length; i++) {
-			this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
-
-			var ctx = drawingCtx || this.drawingCtx;
-			var style = 0;
-			var st = this.settings.header.style[style];
-			var x2 = 0;
-			var y2 = 0;
-			var x2WithoutBorder = x2;
-			var y2WithoutBorder = y2;
-
-			var index = 0;
-
-			var text = "TEST";
-			var sr = this.stringRender;
-			var tm = this._roundTextMetrics(sr.measureString(text));
-
-			var textX = 100;
-			var textY = 100;
-
-			ctx.setFillStyle(st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
-		}*/
-
 	};
 
-
-	WorksheetView.prototype._drawHeaderFooter = function (drawingCtx) {
+	WorksheetView.prototype._drawHeaderFooter = function (drawingCtx, indexPrintPage, countPrintPages) {
 
 		var addHeaderStr = this.model.headerFooter.oddHeader.str;
 		this.model.headerFooter.oddHeader.parser = new HeaderFooterParser();
 		this.model.headerFooter.oddHeader.parser.parse(addHeaderStr);
-		this._drawHeaderFooterText(drawingCtx, this.model.headerFooter.oddHeader.parser);
+		this._drawHeaderFooterText(drawingCtx, this.model.headerFooter.oddHeader.parser, indexPrintPage, countPrintPages);
 
 
 		/*this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
@@ -14649,19 +14621,19 @@
 	function HeaderFooterField(val) {
 		this.field = val;
 	}
-	HeaderFooterField.prototype.getText = function () {
+	HeaderFooterField.prototype.getText = function (ws, indexPrintPage, countPrintPages) {
 		var res = "";
 		switch(this.field) {
 			case c_nHeaderFooterPageNumber: {
-
+				res = indexPrintPage + 1 + "";
 				break;
 			}
 			case c_nHeaderFooterPageCount: {
-
+				res = countPrintPages + "";
 				break;
 			}
 			case c_nHeaderFooterSheetName: {
-
+				res = ws.model.sName;
 				break;
 			}
 			case c_nHeaderFooterFileName: {

@@ -2488,7 +2488,7 @@
           ws = this.getWorksheet(indexWorksheetTmp);
           indexWorksheet = indexWorksheetTmp;
         }
-        ws.drawForPrint(pdfPrinter, printPagesData.arrPages[i]);
+        ws.drawForPrint(pdfPrinter, printPagesData.arrPages[i], i, printPagesData.arrPages.length);
       }
     }
     return pdfPrinter;
