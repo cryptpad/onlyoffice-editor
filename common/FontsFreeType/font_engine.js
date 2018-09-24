@@ -13890,7 +13890,7 @@ function tt_face_get_metrics(face, vertical, gindex)
     var header = (vertical == 1) ? face.vertical : face.horizontal;
 
     var longs_m = null;
-    var k = header.number_Of_HMetrics;
+    var k = (vertical == 1) ? header.number_Of_VMetrics : header.number_Of_HMetrics;
 
     var v1 = 0;
     var v2 = 0;
@@ -27321,7 +27321,7 @@ function TT_Face()
     this.max_components = 0;
     //#endif
 
-    this.vertical_info = false;
+    this.vertical_info = 0;
     this.vertical = new TT_VertHeader();
 
     this.num_names = 0;
@@ -28359,7 +28359,7 @@ function TT_Get_HMetrics(face, idx)
 }
 function TT_Get_VMetrics(face, idx, yMax)
 {
-    if (face.vertical_info === true)
+    if (face.vertical_info === 1)
         return face.sfnt.get_metrics(face, 1, idx);
     else if (face.os2.version != 0xFFFF)
         return {bearing : (face.os2.sTypoAscender - yMax), advance : (face.os2.sTypoAscender - face.os2.sTypoDescender)};
@@ -29554,7 +29554,7 @@ function compute_glyph_metrics(loader, glyph_index)
     var top;
     var advance;
 
-    if (face.vertical_info === true && face.vertical.number_Of_VMetrics > 0)
+    if (face.vertical_info === 1 && face.vertical.number_Of_VMetrics > 0)
     {
         top = FT_DivFix(loader.pp3.y - bbox.yMax, y_scale);
 
