@@ -138,7 +138,7 @@ CParagraphContentBase.prototype.GetSelectedText = function(bAll, bClearText, oPr
 {
 	return "";
 };
-CParagraphContentBase.prototype.Get_SelectionDirection = function()
+CParagraphContentBase.prototype.GetSelectDirection = function()
 {
 	return 1;
 };
@@ -958,7 +958,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GetSelectedText = function(b
 
     return Str;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Get_SelectionDirection = function()
+CParagraphContentWithParagraphLikeContent.prototype.GetSelectDirection = function()
 {
     if (true !== this.Selection.Use)
         return 0;
@@ -968,7 +968,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_SelectionDirection = fun
     else if (this.Selection.StartPos > this.Selection.EndPos)
         return -1;
 
-    return this.Content[this.Selection.StartPos].Get_SelectionDirection();
+    return this.Content[this.Selection.StartPos].GetSelectDirection();
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_TextPr = function(_ContentPos, Depth)
 {

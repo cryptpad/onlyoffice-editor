@@ -153,7 +153,7 @@ ParaComment.prototype =
         return "";
     },
 
-    Get_SelectionDirection : function()
+	GetSelectDirection : function()
     {
         return 1;
     },

@@ -7628,13 +7628,13 @@ CDocumentContent.prototype.SetParagraphFramePr = function(FramePr, bDelete)
 		}
 	}
 };
-CDocumentContent.prototype.Add_ToContent = function(Pos, Item)
+CDocumentContent.prototype.Add_ToContent = function(Pos, Item, isCorrectContent)
 {
-    this.Internal_Content_Add(Pos, Item);
+    this.Internal_Content_Add(Pos, Item, isCorrectContent);
 };
-CDocumentContent.prototype.Remove_FromContent = function(Pos, Count)
+CDocumentContent.prototype.Remove_FromContent = function(Pos, Count, isCorrectContent)
 {
-    this.Internal_Content_Remove(Pos, Count);
+    this.Internal_Content_Remove(Pos, Count, isCorrectContent);
 };
 CDocumentContent.prototype.Concat_Paragraphs = function(Pos)
 {
@@ -8008,6 +8008,19 @@ CDocumentContent.prototype.IsEmptyPage = function(nCurPage)
 CDocumentContent.prototype.GetParent = function()
 {
 	return this.Parent;
+};
+CDocumentContent.prototype.GetPlaceHolderObject = function()
+{
+	var nCurPos = this.CurPos.ContentPos;
+	if (this.Selection.Use)
+	{
+		if (this.Selection.StartPos === this.Selection.EndPos)
+			nCurPos = this.Selection.StartPos;
+		else
+			return null;
+	}
+
+	return this.Content[nCurPos].GetPlaceHolderObject();
 };
 
 function CDocumentContentStartState(DocContent)

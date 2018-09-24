@@ -2345,7 +2345,7 @@ ParaRun.prototype.GetSelectedText = function(bAll, bClearText, oPr)
     return Str;
 };
 
-ParaRun.prototype.Get_SelectionDirection = function()
+ParaRun.prototype.GetSelectDirection = function()
 {
     if (true !== this.Selection.Use)
         return 0;

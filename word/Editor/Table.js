@@ -13880,6 +13880,13 @@ CTable.prototype.GetLastParagraph = function()
 
 	return oRow.GetCell(nCellsCount - 1).GetContent().GetLastParagraph();
 };
+CTable.prototype.GetPlaceHolderObject = function()
+{
+	if (this.IsCellSelection())
+		return null;
+
+	return this.CurCell.GetContent().GetPlaceHolderObject();
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook
 //----------------------------------------------------------------------------------------------------------------------

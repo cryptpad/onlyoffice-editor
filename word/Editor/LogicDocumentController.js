@@ -404,3 +404,7 @@ CLogicDocumentController.prototype.GetSimilarNumbering = function(oContinueEngin
 {
 	this.LogicDocument.controller_GetSimilarNumbering(oContinueEngine);
 };
+CLogicDocumentController.prototype.GetPlaceHolderObject = function()
+{
+	return this.LogicDocument.controller_GetPlaceHolderObject();
+};

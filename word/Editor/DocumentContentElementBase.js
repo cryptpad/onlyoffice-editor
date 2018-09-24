@@ -940,6 +940,14 @@ CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurre
 {
 	return false;
 };
+/**
+ * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект
+ * @returns {?Object}
+ */
+CDocumentContentElementBase.prototype.GetPlaceHolderObject = function()
+{
+	return null;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

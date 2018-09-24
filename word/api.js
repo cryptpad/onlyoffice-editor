@@ -7734,21 +7734,21 @@ background-repeat: no-repeat;\
 					if (oContentControlPr)
 						oContentControl.SetContentControlPr(oContentControlPr);
 
-					if (oContentControl.IsEmpty())
-					{
-						// TODO: Разобраться с тем, чтобы пересчет не вызывался в фунции AddToParagraph
-						oLogicDocument.TurnOff_Recalculate();
-						for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
-						{
-							var nCharCode = oIterator.value();
-							if (0x0020 === nCharCode)
-								oContentControl.AddToParagraph(new AscCommonWord.ParaSpace());
-							else
-								oContentControl.AddToParagraph(new AscCommonWord.ParaText(nCharCode));
-						}
-						oLogicDocument.SelectContentControl(oContentControl.GetId());
-						oLogicDocument.TurnOn_Recalculate();
-					}
+					// if (oContentControl.IsEmpty())
+					// {
+					// 	// TODO: Разобраться с тем, чтобы пересчет не вызывался в фунции AddToParagraph
+					// 	oLogicDocument.TurnOff_Recalculate();
+					// 	for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
+					// 	{
+					// 		var nCharCode = oIterator.value();
+					// 		if (0x0020 === nCharCode)
+					// 			oContentControl.AddToParagraph(new AscCommonWord.ParaSpace());
+					// 		else
+					// 			oContentControl.AddToParagraph(new AscCommonWord.ParaText(nCharCode));
+					// 	}
+					// 	oLogicDocument.SelectContentControl(oContentControl.GetId());
+					// 	oLogicDocument.TurnOn_Recalculate();
+					// }
 
 					oLogicDocument.Recalculate();
 					oLogicDocument.Document_UpdateInterfaceState();

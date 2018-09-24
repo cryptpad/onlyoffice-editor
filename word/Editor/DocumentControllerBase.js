@@ -782,3 +782,8 @@ CDocumentControllerBase.prototype.GetStyleFromFormatting = function(){return nul
  * @param oContinueEngine {CDocumentNumberingContinueEngine}
  */
 CDocumentControllerBase.prototype.GetSimilarNumbering = function(oContinueEngine){};
+/**
+ * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект
+ * @returns {?Object}
+ */
+CDocumentControllerBase.prototype.GetPlaceHolderObject = function(){return null;};

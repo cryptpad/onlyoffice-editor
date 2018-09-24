@@ -1058,22 +1058,24 @@ CDocumentContentBase.prototype.GetElement = function(nIndex)
  * Добавляем новый элемент (с записью в историю)
  * @param nPos
  * @param oItem
+ * @param {booleam} [isCorrectContent=true]
  */
-CDocumentContentBase.prototype.AddToContent = function(nPos, oItem)
+CDocumentContentBase.prototype.AddToContent = function(nPos, oItem, isCorrectContent)
 {
-	this.Add_ToContent(nPos, oItem);
+	this.Add_ToContent(nPos, oItem, isCorrectContent);
 };
 /**
  * Удаляем заданное количество элементов (с записью в историю)
  * @param {number} nPos
  * @param {number} [nCount=1]
+ * @param {boolean} [isCorrectContent=true]
  */
-CDocumentContentBase.prototype.RemoveFromContent = function(nPos, nCount)
+CDocumentContentBase.prototype.RemoveFromContent = function(nPos, nCount, isCorrectContent)
 {
 	if (undefined === nCount || null === nCount)
 		nCount = 1;
 
-	this.Remove_FromContent(nPos, nCount);
+	this.Remove_FromContent(nPos, nCount, isCorrectContent);
 };
 /**
  * Получаем текущий TableOfContents, это может быть просто поле или поле вместе с оберткой Sdt
@@ -1342,4 +1344,3 @@ CDocumentContentBase.prototype.GetSimilarNumbering = function(oContinueEngine)
 			break;
 	}
 };
-

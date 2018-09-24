@@ -6993,9 +6993,9 @@ Paragraph.prototype.GetSelectionBounds = function()
 			Page : this.Get_AbsolutePage(EndPage)
 		};
 
-	return {Start : BeginRect, End : EndRect, Direction : this.Get_SelectionDirection()};
+	return {Start : BeginRect, End : EndRect, Direction : this.GetSelectDirection()};
 };
-Paragraph.prototype.Get_SelectionDirection = function()
+Paragraph.prototype.GetSelectDirection = function()
 {
 	if (true !== this.Selection.Use)
 		return 0;
@@ -7005,7 +7005,7 @@ Paragraph.prototype.Get_SelectionDirection = function()
 	else if (this.Selection.StartPos > this.Selection.EndPos)
 		return -1;
 
-	return this.Content[this.Selection.StartPos].Get_SelectionDirection();
+	return this.Content[this.Selection.StartPos].GetSelectDirection();
 };
 Paragraph.prototype.GetSelectionAnchorPos = function()
 {
@@ -13236,7 +13236,7 @@ Paragraph.prototype.GetNumberingCalculatedValue = function()
 };
 /**
  * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект
- * @param {CParagraphContentPos} [oContentPos=undefined] - Если не задан, то проверяем по текущему селектку и курсору
+ * @param {CParagraphContentPos} [oContentPos=undefined] - Если не задан, то проверяем по текущему селекту и курсору
  * @returns {null | CInlineLevelSdt}
  */
 Paragraph.prototype.GetPlaceHolderObject = function(oContentPos)

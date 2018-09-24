@@ -7778,8 +7778,6 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_DeleteButton);
 
 				var oSelectInfo = this.GetSelectedElementsInfo();
-
-				var oSelectInfo = this.GetSelectedElementsInfo();
 				if (oSelectInfo.GetInlineLevelSdt())
 					this.CheckInlineSdtOnDelete = oSelectInfo.GetInlineLevelSdt();
 
@@ -11109,6 +11107,8 @@ CDocument.prototype.private_UpdateCursorXY = function(bUpdateX, bUpdateY)
 
 	if (true === this.Selection.Use && true !== this.Selection.Start)
 		this.private_OnSelectionEnd();
+
+	this.private_CheckCursorInPlaceHolder();
 };
 CDocument.prototype.private_MoveCursorDown = function(StartX, StartY, AddToSelect)
 {
@@ -11441,6 +11441,18 @@ CDocument.prototype.private_ProcessTemplateReplacement = function(TemplateReplac
 		this.SearchEngine.Replace_All(TemplateReplacementData[Id], false);
 	}
 };
+CDocument.prototype.private_CheckCursorInPlaceHolder = function()
+{
+	var oPlaceHolder = this.GetPlaceHolderObject();
+	if (oPlaceHolder)
+	{
+		if (oPlaceHolder instanceof CInlineLevelSdt || oPlaceHolder instanceof CBlockLevelSdt)
+		{
+			oPlaceHolder.SelectContentControl();
+		}
+	}
+};
+
 CDocument.prototype.Reset_WordSelection = function()
 {
 	this.Selection.WordSelected = false;
@@ -11589,13 +11601,13 @@ CDocument.prototype.Get_SectPr = function(Index)
 {
 	return this.SectionsInfo.Get_SectPr(Index).SectPr;
 };
-CDocument.prototype.Add_ToContent = function(Pos, Item)
+CDocument.prototype.Add_ToContent = function(Pos, Item, isCorrectContent)
 {
-	this.Internal_Content_Add(Pos, Item);
+	this.Internal_Content_Add(Pos, Item, isCorrectContent);
 };
-CDocument.prototype.Remove_FromContent = function(Pos, Count)
+CDocument.prototype.Remove_FromContent = function(Pos, Count, isCorrectContent)
 {
-	this.Internal_Content_Remove(Pos, Count);
+	this.Internal_Content_Remove(Pos, Count, isCorrectContent);
 };
 CDocument.prototype.Concat_Paragraphs = function(Pos)
 {
@@ -13954,7 +13966,15 @@ CDocument.prototype.controller_MoveCursorLeft = function(AddToSelect, Word)
 				Start = this.Selection.EndPos;
 
 			this.CurPos.ContentPos = Start;
-			this.Content[this.CurPos.ContentPos].MoveCursorLeft(false, Word);
+			if (false === this.Content[this.CurPos.ContentPos].MoveCursorLeft(false, Word))
+			{
+				if (this.CurPos.ContentPos > 0)
+				{
+					this.CurPos.ContentPos--;
+					this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false, false);
+				}
+			}
+
 			this.RemoveSelection();
 		}
 	}
@@ -16184,6 +16204,19 @@ CDocument.prototype.controller_GetSimilarNumbering = function(oContinueEngine)
 {
 	this.GetSimilarNumbering(oContinueEngine);
 };
+CDocument.prototype.controller_GetPlaceHolderObject = function()
+{
+	var nCurPos = this.CurPos.ContentPos;
+	if (this.Selection.Use)
+	{
+		if (this.Selection.StartPos === this.Selection.EndPos)
+			nCurPos = this.Selection.StartPos;
+		else
+			return null;
+	}
+
+	return this.Content[nCurPos].GetPlaceHolderObject();
+};
 //----------------------------------------------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------------------------------------------
@@ -17345,6 +17378,14 @@ CDocument.prototype.GetUserId = function(isConnectionId)
 		return this.GetApi().CoAuthoringApi.getUserConnectionId();
 
 	return this.GetApi().DocInfo.get_UserId();
+};
+/**
+ * Получаем объект, внутри которого в данный момент используется PlaceHolder (т.е. мы там стоим курсором или он выделен целиком)
+ * @returns {?object}
+ */
+CDocument.prototype.GetPlaceHolderObject = function()
+{
+	return this.Controller.GetPlaceHolderObject();
 };
 
 function CDocumentSelectionState()

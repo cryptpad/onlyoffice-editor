@@ -4976,7 +4976,7 @@ CMathContent.prototype.IsStartLine = function(Line)
 {
     return Line == this.StartLine;
 };
-CMathContent.prototype.Get_SelectionDirection = function()
+CMathContent.prototype.GetSelectDirection = function()
 {
     if (true !== this.Selection.Use)
         return 0;
@@ -4986,7 +4986,7 @@ CMathContent.prototype.Get_SelectionDirection = function()
     else if (this.Selection.StartPos > this.Selection.EndPos)
         return -1;
 
-    return this.Content[this.Selection.StartPos].Get_SelectionDirection();
+    return this.Content[this.Selection.StartPos].GetSelectDirection();
 };
 CMathContent.prototype.MoveCursorToStartPos = function()
 {
