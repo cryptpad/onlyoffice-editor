@@ -1386,11 +1386,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			_val.push(new cError(cErrorType.bad_reference));
 			return _val;
 		}
-		_r[0]._foreachNoEmpty(function (_cell) {
-			if (cell.getID() === _cell.getName()) {
+
+		if(_r[0].worksheet) {
+			_r[0].worksheet._getCellNoEmpty(cell.row - 1, cell.col - 1, function(_cell) {
 				_val.push(checkTypeCell(_cell));
-			}
-		});
+			});
+		}
 
 		return (null == _val[0]) ? new cEmpty() : _val[0];
 	};

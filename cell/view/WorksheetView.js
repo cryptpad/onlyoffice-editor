@@ -11702,6 +11702,8 @@
 		var oldMode = this.isFormulaEditMode;
 		this.isFormulaEditMode = false;
 
+		t.model.workbook.dependencyFormulas.lockRecal();
+
 		if (!isNotHistory) {
 			History.Create_NewPoint();
 			History.StartTransaction();
@@ -11721,6 +11723,7 @@
 			if (!ret) {
 				this.isFormulaEditMode = oldMode;
 				History.EndTransaction();
+				t.model.workbook.dependencyFormulas.unlockRecal();
 				return false;
 			}
 			isFormula = c.isFormula();
@@ -11771,6 +11774,7 @@
 		}
 
 		// если вернуть false, то редактор не закроется
+		t.model.workbook.dependencyFormulas.unlockRecal();
 		return true;
 	};
 
