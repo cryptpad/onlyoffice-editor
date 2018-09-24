@@ -9866,4 +9866,25 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype['asc_getRepliesCount'] = asc_CCommentDataWord.prototype.asc_getRepliesCount;
 	asc_CCommentDataWord.prototype['asc_getDocumentFlag'] = asc_CCommentDataWord.prototype.asc_getDocumentFlag;
 	asc_CCommentDataWord.prototype['asc_putDocumentFlag'] = asc_CCommentDataWord.prototype.asc_putDocumentFlag;
+
+	AscCommon.setUpAllFonts = function()
+	{
+		window.testFontsCount = AscFonts.g_font_infos.length;
+		window.testFontCurrent = 0;
+
+		window.testFontsInterval = setInterval(function(){
+			if (window.testFontCurrent >= window.testFontsCount)
+			{
+				clearInterval(window.testFontsInterval);
+                delete window.testFontsInterval;
+                delete window.testFontsCount;
+                delete window.testFontCurrent;
+                return;
+			}
+			var _info = AscFonts.g_font_infos[window.testFontCurrent++];
+			editor.put_TextPrFontName(_info.Name);
+			console.log("[ " + window.testFontCurrent + " of " + window.testFontsCount + " ]");
+		}, 2000);
+	};
+
 })(window, window.document);

@@ -88,6 +88,18 @@
                 }
             }
 
+            if (bIsUseTypeAttack)
+            {
+                console.log(face.family_name);
+                if (face.os2.version != 0xFFFF)
+                {
+                    font.m_lAscender  = face.os2.sTypoAscender;
+                    font.m_lDescender = face.os2.sTypoDescender;
+
+                    font.m_lLineHeight = (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap);
+                }
+            }
+
             /*
             // что-то типо этого в экселе... пока выключаем
             if (fontManager.IsCellMode)
