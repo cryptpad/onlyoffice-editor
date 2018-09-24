@@ -587,6 +587,9 @@
         return null;
     };
 
+    WorksheetView.prototype._getRowDescender = function (i) {
+        return (i < this.rows.length) ? this.rows[i].descender : this.defaultRowDescender;
+	};
 	WorksheetView.prototype._getRowTop = function (i) {
 		var l = this.rows.length;
 		return (i < l) ? this.rows[i].top : (((0 === l) ? this.cellsTop :
@@ -2240,9 +2243,7 @@
         var text = isColHeader ? this._getColumnTitle(index) : this._getRowTitle(index);
         var sr = this.stringRender;
         var tm = this._roundTextMetrics(sr.measureString(text));
-		var bl = y2WithoutBorder - Asc.round(
-			((isColHeader || index >= this.rows.length) ? this.defaultRowDescender : this.rows[index].descender) *
-			this.getZoom());
+		var bl = y2WithoutBorder - Asc.round((isColHeader ? this.defaultRowDescender : this._getRowDescender(index)) * this.getZoom());
         var textX = this._calcTextHorizPos(x, x2WithoutBorder, tm, tm.width < w ? AscCommon.align_Center : AscCommon.align_Left);
         var textY = this._calcTextVertPos(y, y2WithoutBorder, bl, tm, Asc.c_oAscVAlign.Bottom);
 
@@ -2638,9 +2639,7 @@
 			var h = this._getRowTop(rowB + 1) - offsetY - y1;
 			var x2 = x1 + w - (isTrimmedR ? 0 : gridlineSize);
 			var y2 = y1 + h - gridlineSize;
-			var bl = y2 - Asc.round(
-					(isMerged ? (ct.metrics.height - ct.metrics.baseline - 1) : this.rows[rowB].descender) *
-					this.getZoom());
+			var bl = y2 - Asc.round((isMerged ? (ct.metrics.height - ct.metrics.baseline - 1) : this._getRowDescender(rowB)) * this.getZoom());
 			var x1ct = isMerged ? x1 : this.cols[col].left - offsetX;
 			var x2ct = isMerged ? x2 : x1ct + this.cols[col].width - gridlineSize;
 			var textX = this._calcTextHorizPos(x1ct, x2ct, ct.metrics, ct.cellHA);
