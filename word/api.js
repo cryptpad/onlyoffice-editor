@@ -9869,22 +9869,83 @@ background-repeat: no-repeat;\
 
 	AscCommon.setUpAllFonts = function()
 	{
-		window.testFontsCount = AscFonts.g_font_infos.length;
-		window.testFontCurrent = 0;
+		var testFontCurrent = 0;
+		var testFontsInterval = 0;
 
-		window.testFontsInterval = setInterval(function(){
-			if (window.testFontCurrent >= window.testFontsCount)
+		var _fonts = [];
+		for (var i = 0; i < AscFonts.g_font_infos.length; i++)
+			_fonts.push(new AscFonts.CFont(AscFonts.g_font_infos[i].Name, 0, "", 0, null));
+
+		console.log("start...");
+
+		function logFont(font, name)
+		{
+			var face = font.m_pFace;
+			if (!face.os2 || face.os2.version == 0xFFFF)
+				return;
+
+			if ((face.os2.fsSelection & 128) == 0)
+				return;
+
+			console.log(face.family_name + " [" + name + "]");
+
+			if (face.height != (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap))
 			{
-				clearInterval(window.testFontsInterval);
-                delete window.testFontsInterval;
-                delete window.testFontsCount;
-                delete window.testFontCurrent;
-                return;
+				console.log(face.ascender + ", " + face.descender + ", " + face.height);
+                console.log(face.os2.sTypoAscender + ", " + face.os2.sTypoDescender + ", " + (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap));
 			}
-			var _info = AscFonts.g_font_infos[window.testFontCurrent++];
-			editor.put_TextPrFontName(_info.Name);
-			console.log("[ " + window.testFontCurrent + " of " + window.testFontsCount + " ]");
-		}, 2000);
+		}
+
+        editor.asyncMethodCallback = function() {
+
+            testFontsInterval = setInterval(function(){
+                if (testFontCurrent >= AscFonts.g_font_infos.length)
+                {
+                    clearInterval(testFontsInterval);
+                    console.log("end");
+                    return;
+                }
+
+                var _info = AscFonts.g_font_infos[testFontCurrent++];
+                //console.log(testFontCurrent);
+
+                if (_info.indexR != -1)
+				{
+					var fontfile = AscCommon.g_font_loader.fontFiles[_info.indexR];
+                    var pFontFile = AscCommon.g_fontManager.LoadFont(fontfile, _info.faceIndexR, 12, false, false, false, false, true);
+
+					logFont(pFontFile, "regular");
+                }
+
+                if (_info.indexB != -1)
+                {
+                    var fontfile = AscCommon.g_font_loader.fontFiles[_info.indexB];
+                    var pFontFile = AscCommon.g_fontManager.LoadFont(fontfile, _info.faceIndexB, 12, true, false, false, false, true);
+
+                    logFont(pFontFile, "bold");
+                }
+
+                if (_info.indexI != -1)
+                {
+                    var fontfile = AscCommon.g_font_loader.fontFiles[_info.indexI];
+                    var pFontFile = AscCommon.g_fontManager.LoadFont(fontfile, _info.faceIndexI, 12, false, true, false, false, true);
+
+                    logFont(pFontFile, "italic");
+                }
+
+                if (_info.indexBI != -1)
+                {
+                    var fontfile = AscCommon.g_font_loader.fontFiles[_info.indexBI];
+                    var pFontFile = AscCommon.g_fontManager.LoadFont(fontfile, _info.faceIndexBI, 12, true, true, false, false, true);
+
+                    logFont(pFontFile, "bold italic");
+                }
+
+            }, 10);
+
+        };
+
+        AscCommon.g_font_loader.LoadDocumentFonts2(_fonts);
 	};
 
 })(window, window.document);

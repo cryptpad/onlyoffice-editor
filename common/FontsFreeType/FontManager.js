@@ -90,7 +90,6 @@
 
             if (bIsUseTypeAttack)
             {
-                console.log(face.family_name);
                 if (face.os2.version != 0xFFFF)
                 {
                     font.m_lAscender  = face.os2.sTypoAscender;
