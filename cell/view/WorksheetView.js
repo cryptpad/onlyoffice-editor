@@ -1887,9 +1887,17 @@
         if (null === printPagesData) {
             // Напечатаем пустую страницу
             drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
+
+			//draw header/footer
+			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
+
             drawingCtx.EndPage();
         } else {
             drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
+
+			//draw header/footer
+			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
+
             drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
               printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);
 
@@ -1910,9 +1918,7 @@
                   printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
             }
 
-			this._drawHeaderFooter(drawingCtx, indexPrintPage, countPrintPages);
-
-            // Рисуем сетку
+			// Рисуем сетку
             if (printPagesData.pageGridLines) {
                 this._drawGrid(drawingCtx, range, offsetX, offsetY, printPagesData.pageWidth / vector_koef,
                   printPagesData.pageHeight / vector_koef);
@@ -2269,8 +2275,48 @@
 		ctx.RemoveClipRect();
     };
 
+	WorksheetView.prototype._drawHeaderFooter = function (drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
+		//odd - нечетные страницы, even - четные. в случае если флаг differentOddEven не выставлен, используем odd
+		var headerFooterModel = this.model.headerFooter;
+		//HEADER
+		var curHeader;
+		if(indexPrintPage === 0 && headerFooterModel.differentFirst) {
+			curHeader = headerFooterModel.getFirstHeader();
+		} else if(headerFooterModel.differentOddEven) {
+			curHeader = 0 === (indexPrintPage + 1) % 2 ? headerFooterModel.getEvenHeader() : headerFooterModel.getOddHeader();
+		} else {
+			curHeader = headerFooterModel.getOddHeader();
+		}
+
+		if(curHeader) {
+			if(!curHeader.parser) {
+				curHeader.parser = new HeaderFooterParser();
+				curHeader.parser.parse(curHeader.str);
+			}
+			this._drawHeaderFooterText(drawingCtx, printPagesData, curHeader.parser, indexPrintPage, countPrintPages);
+		}
+
+		//FOOTER
+		var curFooter;
+		if(indexPrintPage === 0 && headerFooterModel.differentFirst) {
+			curFooter = headerFooterModel.getFirstFooter();
+		} else if(headerFooterModel.differentOddEven) {
+			curFooter = 0 === (indexPrintPage + 1) % 2 ? headerFooterModel.getEvenFooter() : headerFooterModel.getOddFooter();
+		} else {
+			curFooter = headerFooterModel.getOddFooter();
+		}
+
+		if(curFooter) {
+			if(!curFooter.parser) {
+				curFooter.parser = new HeaderFooterParser();
+				curFooter.parser.parse(curFooter.str);
+			}
+			this._drawHeaderFooterText(drawingCtx, printPagesData, curFooter.parser, indexPrintPage, countPrintPages, true);
+		}
+	};
+
 	/** Рисует текст ячейки */
-	WorksheetView.prototype._drawHeaderFooterText = function (drawingCtx, headerFooterParser, indexPrintPage, countPrintPages, bFooter) {
+	WorksheetView.prototype._drawHeaderFooterText = function (drawingCtx, printPagesData, headerFooterParser, indexPrintPage, countPrintPages, bFooter) {
         var t = this;
 
 		var getFragmentText = function(val) {
@@ -2292,7 +2338,7 @@
 			return res;
 		};
 
-		var drawPortion = function(portion, tempDiff) {
+		var drawPortion = function(portion, x, y) {
 			if(!portion) {
 				return;
 			}
@@ -2301,55 +2347,35 @@
 			t.stringRender.setString(fragments);
 
 			var textMetrics = t.stringRender._measureChars();
-			var tX1 = textMetrics.width / 2;
-			var tX2 = textMetrics.width / 2;
-			var tY1 = textMetrics.height / 2;
-			var tY2 = textMetrics.height / 2;
 
-			t.stringRender.render(drawingCtx, tX1 + tempDiff, tY1 + 100, 100, t.settings.activeCellBorderColor);
+
+			t.stringRender.render(drawingCtx, x, y, 100, t.settings.activeCellBorderColor);
 		};
 
-		drawPortion(headerFooterParser.portions[c_nPortionLeft], 100);
-		drawPortion(headerFooterParser.portions[c_nPortionCenter], 200);
-		drawPortion(headerFooterParser.portions[c_nPortionRight], 300);
-	};
-
-	WorksheetView.prototype._drawHeaderFooter = function (drawingCtx, indexPrintPage, countPrintPages) {
-		//odd - нечетные страницы, even - четные. в случае если флаг differentOddEven не выставлен, используем odd
-		var headerFooterModel = this.model.headerFooter;
-		var curHeader;
-		if(indexPrintPage === 0 && headerFooterModel.differentFirst) {
-			curHeader = headerFooterModel.getFirstHeader();
-		} else if(headerFooterModel.differentOddEven) {
-			curHeader = 0 === (indexPrintPage + 1) % 2 ? headerFooterModel.getEvenHeader() : headerFooterModel.getOddHeader();
-		} else {
-			curHeader = headerFooterModel.getOddHeader();
+		if(headerFooterParser.portions[c_nPortionLeft]) {
+		    drawPortion(headerFooterParser.portions[c_nPortionLeft], 0, 0);
 		}
 
-		if(curHeader) {
-			if(!curHeader.parser) {
-				curHeader.parser = new HeaderFooterParser();
-				curHeader.parser.parse(curHeader.str);
-			}
-			this._drawHeaderFooterText(drawingCtx, curHeader.parser, indexPrintPage, countPrintPages);
+		if(headerFooterParser.portions[c_nPortionCenter]) {
+			var fragments = getFragments(headerFooterParser.portions[c_nPortionCenter]);
+			t.stringRender.setString(fragments);
+
+			var textMetrics = t.stringRender._measureChars();
+			drawPortion(headerFooterParser.portions[c_nPortionCenter], (printPagesData.pageWidth / 2) / AscCommonExcel.vector_koef - textMetrics.width / 2, 0);
 		}
 
-		var curFooter;
-		if(indexPrintPage === 0 && headerFooterModel.differentFirst) {
-			curFooter = headerFooterModel.getFirstFooter();
-		} else if(headerFooterModel.differentOddEven) {
-			curFooter = 0 === (indexPrintPage + 1) % 2 ? headerFooterModel.getEvenFooter() : headerFooterModel.getOddFooter();
-		} else {
-			curFooter = headerFooterModel.getOddFooter();
+		if(headerFooterParser.portions[c_nPortionRight]) {
+			var fragments = getFragments(headerFooterParser.portions[c_nPortionRight]);
+			t.stringRender.setString(fragments);
+
+			var textMetrics = t.stringRender._measureChars();
+			drawPortion(headerFooterParser.portions[c_nPortionRight], printPagesData.pageWidth / AscCommonExcel.vector_koef - textMetrics.width, 0);
 		}
 
-		if(curFooter) {
-			if(!curFooter.parser) {
-				curFooter.parser = new HeaderFooterParser();
-				curFooter.parser.parse(curFooter.str);
-			}
-			this._drawHeaderFooterText(drawingCtx, curFooter.parser, indexPrintPage, countPrintPages, true);
-		}
+		drawingCtx.stroke();
+
+		//drawPortion(headerFooterParser.portions[c_nPortionCenter], 200);
+		//drawPortion(headerFooterParser.portions[c_nPortionRight], 300);
 	};
 
     WorksheetView.prototype._cleanColumnHeaders = function (colStart, colEnd) {
@@ -2428,8 +2454,6 @@
 		//и отрисовка происходит в два этапа - сначала текст - до линий сетки, потом линии печати - после линий сетки
 		//поэтому рассчет делаю 1 раз
 		var visiblePrintPages = pageBreakPreviewMode ? this._getVisiblePrintPages(range) : null;
-
-		var test = new HeaderFooterParser().parse('&L&"-,Italic"&14 11&P22&"Amiri,Bold"dd');
 
 		// Возможно сетку не нужно рисовать (при печати свои проверки)
 		if (null === drawingCtx && false === this.model.getSheetView().asc_getShowGridLines()) {
@@ -14786,7 +14810,12 @@
 
 							break;
 						case 'K':   //text color
-
+							if( i + 6 < date.length )
+							{
+								// eat the following 6 characters
+								this.font.c = this.convertFontColor( date.substr(i + 1, 6) );
+								i += 6;
+							}
 							break;
 						case '\"':  //font name
 							sFontName = "";
@@ -14855,7 +14884,20 @@
 
 		this.endPortion();
 	};
-    
+
+	HeaderFooterParser.prototype.convertFontColor = function(rColor) {
+		var color;
+		if( (rColor[ 2 ] == '+') || (rColor[ 2 ] == '-') ) {
+			var theme = rColor.substr(0, 2) - 0;
+			var tint = rColor.substr(2) - 0;
+			color = AscCommonExcel.g_oColorManager.getThemeColor(theme, tint / 100);
+
+		} else {
+			color = new AscCommonExcel.RgbColor(AscCommonExcel.g_clipboardExcel.pasteProcessor._getBinaryColor(rColor));
+		}
+		return color;
+	};
+
 	HeaderFooterParser.prototype.setAttr = function () {
         /*if(!this.font) {
          this.font = new AscCommonExcel.Font();
