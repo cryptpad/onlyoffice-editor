@@ -1585,7 +1585,8 @@ CPresentation.prototype =
 
     Stop_Recalculate : function()
     {
-        this.DrawingDocument.OnStartRecalculate( 0 );
+        this.clearThemeTimeouts();
+//        this.DrawingDocument.OnStartRecalculate( 0 );
     },
 
     OnContentReDraw : function(StartPage, EndPage)
