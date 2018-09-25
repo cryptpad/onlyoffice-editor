@@ -2317,7 +2317,9 @@
 
 	/** Рисует текст ячейки */
 	WorksheetView.prototype._drawHeaderFooterText = function (drawingCtx, printPagesData, headerFooterParser, indexPrintPage, countPrintPages, bFooter) {
-        var t = this;
+        //TODO нужно проверить на retina!!!
+
+		var t = this;
 
 		var getFragmentText = function(val) {
 			if ( asc_typeof(val) === "string" ){
@@ -2352,8 +2354,15 @@
 			t.stringRender.render(drawingCtx, x, y, 100, t.settings.activeCellBorderColor);
 		};
 
+
+		var margins = this.model.PagePrintOptions.asc_getPageMargins();
+		var left =  margins.left / AscCommonExcel.vector_koef;
+		var right = margins.right / AscCommonExcel.vector_koef;
+		var width = printPagesData.pageWidth / AscCommonExcel.vector_koef;
+
+
 		if(headerFooterParser.portions[c_nPortionLeft]) {
-		    drawPortion(headerFooterParser.portions[c_nPortionLeft], 0, 0);
+		    drawPortion(headerFooterParser.portions[c_nPortionLeft], left, 0);
 		}
 
 		if(headerFooterParser.portions[c_nPortionCenter]) {
@@ -2361,7 +2370,7 @@
 			t.stringRender.setString(fragments);
 
 			var textMetrics = t.stringRender._measureChars();
-			drawPortion(headerFooterParser.portions[c_nPortionCenter], (printPagesData.pageWidth / 2) / AscCommonExcel.vector_koef - textMetrics.width / 2, 0);
+			drawPortion(headerFooterParser.portions[c_nPortionCenter], ((width - left - right) / 2 + left) - textMetrics.width / 2, 0);
 		}
 
 		if(headerFooterParser.portions[c_nPortionRight]) {
@@ -2369,13 +2378,10 @@
 			t.stringRender.setString(fragments);
 
 			var textMetrics = t.stringRender._measureChars();
-			drawPortion(headerFooterParser.portions[c_nPortionRight], printPagesData.pageWidth / AscCommonExcel.vector_koef - textMetrics.width, 0);
+			drawPortion(headerFooterParser.portions[c_nPortionRight], width - right - textMetrics.width, 0);
 		}
 
 		drawingCtx.stroke();
-
-		//drawPortion(headerFooterParser.portions[c_nPortionCenter], 200);
-		//drawPortion(headerFooterParser.portions[c_nPortionRight], 300);
 	};
 
     WorksheetView.prototype._cleanColumnHeaders = function (colStart, colEnd) {
