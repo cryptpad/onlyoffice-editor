@@ -567,7 +567,9 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 						// Пока у нас параграфы будут объединяться всегда и настройки будут браться из первого
 						// параграфа, кроме случая, когда первый параграф полностью удаляется.
 
-						if (true === this.Content[StartPos].IsEmpty() && this.Content.length > 1)
+						if (this.Content.length > 1
+							&& (true === this.Content[StartPos].IsEmpty()
+							|| (type_BlockLevelSdt === this.Content[StartPos].GetType() && this.Content[StartPos].IsPlaceHolder() && (!this.GetLogicDocument() || !this.GetLogicDocument().IsFillingFormMode()))))
 						{
 							this.Internal_Content_Remove(StartPos, 1);
 

@@ -480,13 +480,16 @@ CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelecti
 {
 	if (this.IsPlaceHolder())
 	{
+		if (!bOnAddText)
+			return false;
+
 		this.private_ReplacePlaceHolderWithContent();
 		return true;
 	}
 
 	var bResult = this.Content.Remove(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord);
 
-	if (this.IsEmpty() && !bOnAddText && this.LogicDocument && true === this.LogicDocument.IsFillingFormMode())
+	if (this.IsEmpty() && !bOnAddText)
 	{
 		this.private_ReplaceContentWithPlaceHolder();
 		return true;
