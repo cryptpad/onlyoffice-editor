@@ -36931,7 +36931,6 @@ function CFF_Driver()
         }
 
 		FT_Error = 0;
-        console.log(face.family_name);
         return face;
     }
 }
