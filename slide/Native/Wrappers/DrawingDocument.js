@@ -162,6 +162,9 @@ function CDrawingDocument()
     this.m_oDocRenderer         = null;
 
     this.isCreatedDefaultTableStyles = false;
+
+	this.CollaborativeTargets            = [];
+	this.CollaborativeTargetsUpdateTasks = [];
 };
 
 CDrawingDocument.prototype.Notes_GetWidth = function()
@@ -640,6 +643,7 @@ CDrawingDocument.prototype.CheckFontCache = function()
 
 CDrawingDocument.prototype.CheckFontNeeds = function()
 {
+    this.m_oWordControl.m_oLogicDocument.Fonts = [];
 };
 
 CDrawingDocument.prototype.CorrectRulerPosition = function(pos)
@@ -655,12 +659,12 @@ CDrawingDocument.prototype.DrawTrack = function(type, matrix, left, top, width, 
 
 CDrawingDocument.prototype.LockSlide = function(slideNum)
 {
-    this.Native["DD_LockSlide"](slideNum);
+    //this.Native["DD_LockSlide"](slideNum);
 };
 
 CDrawingDocument.prototype.UnLockSlide = function(slideNum)
 {
-    this.Native["DD_UnLockSlide"](slideNum);
+    //this.Native["DD_UnLockSlide"](slideNum);
 };
 
 CDrawingDocument.prototype.DrawTrackSelectShapes = function(x, y, w, h)
@@ -1542,6 +1546,86 @@ CDrawingDocument.prototype.OnKeyboardEvent = function(_params){
     this.m_oWordControl.OnUpdateOverlay();
 };
 
+
+	// collaborative targets
+	CDrawingDocument.prototype.Collaborative_UpdateTarget      = function(_id, _shortId, _x, _y, _size, _page, _transform, is_from_paint)
+	{
+		if (is_from_paint !== true)
+		{
+			this.CollaborativeTargetsUpdateTasks.push([_id, _shortId, _x, _y, _size, _page, _transform]);
+			return;
+		}
+
+		for (var i = 0; i < this.CollaborativeTargets.length; i++)
+		{
+			if (_id == this.CollaborativeTargets[i].Id)
+			{
+				this.CollaborativeTargets[i].CheckPosition(this, _x, _y, _size, _page, _transform);
+				return;
+			}
+		}
+		var _target     = new CDrawingCollaborativeTarget();
+		_target.Id      = _id;
+		_target.ShortId = _shortId;
+		_target.CheckPosition(this, _x, _y, _size, _page, _transform);
+		this.CollaborativeTargets[this.CollaborativeTargets.length] = _target;
+	};
+	CDrawingDocument.prototype.Collaborative_RemoveTarget      = function(_id)
+	{
+		var i = 0;
+		for (i = 0; i < this.CollaborativeTargets.length; i++)
+		{
+			if (_id == this.CollaborativeTargets[i].Id)
+			{
+				this.CollaborativeTargets[i].Remove(this);
+				this.CollaborativeTargets.splice(i, 1);
+				i--;
+			}
+		}
+
+		for (i = 0; i < this.CollaborativeTargetsUpdateTasks.length; i++)
+		{
+			var _tmp = this.CollaborativeTargetsUpdateTasks[i];
+			if (_tmp[0] == _id)
+			{
+				this.CollaborativeTargetsUpdateTasks.splice(i, 1);
+				i--;
+			}
+		}
+	};
+	CDrawingDocument.prototype.Collaborative_TargetsUpdate     = function(bIsChangePosition)
+	{
+		var _len_tasks = this.CollaborativeTargetsUpdateTasks.length;
+		var i          = 0;
+		for (i = 0; i < _len_tasks; i++)
+		{
+			var _tmp = this.CollaborativeTargetsUpdateTasks[i];
+			this.Collaborative_UpdateTarget(_tmp[0], _tmp[1], _tmp[2], _tmp[3], _tmp[4], _tmp[5], _tmp[6], true);
+		}
+		if (_len_tasks != 0)
+			this.CollaborativeTargetsUpdateTasks.splice(0, _len_tasks);
+
+		if (bIsChangePosition)
+		{
+			for (i = 0; i < this.CollaborativeTargets.length; i++)
+			{
+				this.CollaborativeTargets[i].Update(this);
+			}
+		}
+	};
+	CDrawingDocument.prototype.Collaborative_GetTargetPosition = function(UserId)
+	{
+		for (var i = 0; i < this.CollaborativeTargets.length; i++)
+		{
+			if (UserId == this.CollaborativeTargets[i].Id)
+				return {X : this.CollaborativeTargets[i].HtmlElementX, Y : this.CollaborativeTargets[i].HtmlElementY};
+		}
+
+		return null;
+	};
+
+
+
 function DrawBackground(graphics, unifill, w, h)
 {
     // первым делом рисуем белый рект!
@@ -1595,7 +1679,27 @@ function DrawBackground(graphics, unifill, w, h)
     shape_drawer.draw(null);
 }
 
+function CSlideDrawer()
+{
+	this.CONST_BORDER               = 10; // in px
 
+	this.CheckRecalculateSlide = function()
+	{
+	};
+
+	this.CheckSlideSize = function(zoom, slideNum)
+	{
+	};
+
+	this.CheckSlide = function(slideNum)
+	{
+		
+	};
+
+	this.DrawSlide = function(outputCtx, scrollX, scrollX_max, scrollY, scrollY_max, slideNum)
+	{
+	};
+}
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};
 window['AscCommon'].CDrawingDocument = CDrawingDocument;
