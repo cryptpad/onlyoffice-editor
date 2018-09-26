@@ -58,57 +58,58 @@
             font.m_lDescender = face.descender;
             font.m_lLineHeight = face.height;
 
-            // flag for use always typo (os2 spec)
-            var bIsUseTypeAttack = (face.os2 && ((face.os2.fsSelection & 128) == 128)) ? true : false;
-            if (fontManager.IsCellMode)
-                bIsUseTypeAttack = false;
-
-            if (fontManager.IsUseWinOS2Params &&
-                face.os2 && face.os2.version != 0xFFFF &&
-                !bIsUseTypeAttack)
+            if (fontManager.IsUseWinOS2Params && face.os2 && face.os2.version != 0xFFFF)
             {
-                var _winAscent = face.os2.usWinAscent;
-                var _winDescent = -face.os2.usWinDescent;
-
-                // experimantal: for cjk fonts lineheight *= 1.3
-                if ((face.os2.ulUnicodeRange2 & 0x2DF00000) != 0)
+                var _os2 = face.os2;
+                if (this.IsCellMode)
                 {
-                    var _addidive = (0.3 * (_winAscent - _winDescent)) >> 0;
-                    _winAscent += ((_addidive + 1) >> 1);
-                    _winDescent -= (_addidive >> 1);
+                    /*
+                    // что-то типо этого в экселе... пока выключаем
+                    var _addidive = (0.15 * font.m_lLineHeight) >> 0;
+                    font.m_lAscender += ((_addidive + 1) >> 1);
+                    font.m_lDescender -= (_addidive >> 1);
+                    font.m_lLineHeight += _addidive;
+                    */
+
+                    var _winAscent = face.os2.usWinAscent;
+                    var _winDescent = -face.os2.usWinDescent;
+
+                    // experimantal: for cjk fonts lineheight *= 1.3
+                    if ((face.os2.ulUnicodeRange2 & 0x2DF00000) != 0)
+                    {
+                        var _addidive = (0.3 * (_winAscent - _winDescent)) >> 0;
+                        _winAscent += ((_addidive + 1) >> 1);
+                        _winDescent -= (_addidive >> 1);
+                    }
+
+                    // TODO:
+                    // https://www.microsoft.com/typography/otspec/recom.htm - hhea, not typo!!!
+                    if (font.m_lLineHeight < (_winAscent - _winDescent))
+                    {
+                        font.m_lAscender = _winAscent;
+                        font.m_lDescender = _winDescent;
+                        font.m_lLineHeight = _winAscent - _winDescent;
+                    }
                 }
-
-                // TODO:
-                // https://www.microsoft.com/typography/otspec/recom.htm - hhea, not typo!!!
-                if (font.m_lLineHeight < (_winAscent - _winDescent))
+                else
                 {
-                    font.m_lAscender = _winAscent;
-                    font.m_lDescender = _winDescent;
-                    font.m_lLineHeight = _winAscent - _winDescent;
+                    var bIsUseTypeAttack = ((_os2.fsSelection & 128) == 128) ? true : false;
+                    if (bIsUseTypeAttack)
+                    {
+                        font.m_lAscender  = face.os2.sTypoAscender;
+                        font.m_lDescender = face.os2.sTypoDescender;
+
+                        font.m_lLineHeight = (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap);
+                    }
+                    else if (false)
+                    {
+                        font.m_lAscender  = face.os2.usWinAscent;
+                        font.m_lDescender = -face.os2.usWinDescent;
+
+                        font.m_lLineHeight = (face.os2.usWinAscent + face.os2.usWinDescent);
+                    }
                 }
             }
-
-            if (bIsUseTypeAttack)
-            {
-                if (face.os2.version != 0xFFFF)
-                {
-                    font.m_lAscender  = face.os2.sTypoAscender;
-                    font.m_lDescender = face.os2.sTypoDescender;
-
-                    font.m_lLineHeight = (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap);
-                }
-            }
-
-            /*
-            // что-то типо этого в экселе... пока выключаем
-            if (fontManager.IsCellMode)
-            {
-                var _addidive = (0.15 * font.m_lLineHeight) >> 0;
-                font.m_lAscender += ((_addidive + 1) >> 1);
-                font.m_lDescender -= (_addidive >> 1);
-                font.m_lLineHeight += _addidive;
-            }
-            */
 
             font.m_nNum_charmaps = face.num_charmaps;
 

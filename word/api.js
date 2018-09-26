@@ -9884,16 +9884,23 @@ background-repeat: no-repeat;\
 			if (!face.os2 || face.os2.version == 0xFFFF)
 				return;
 
-			if ((face.os2.fsSelection & 128) == 0)
-				return;
+			var isTypo = ((face.os2.fsSelection & 128) != 0);
+			//if (!isTypo)
+			//	return;
 
-			console.log(face.family_name + " [" + name + "]");
-
-			if (face.height != (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap))
+			if (isTypo && (face.height != (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap)))
 			{
+			    console.log("[" + face.family_name + "] typo");
 				console.log(face.ascender + ", " + face.descender + ", " + face.height);
                 console.log(face.os2.sTypoAscender + ", " + face.os2.sTypoDescender + ", " + (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap));
 			}
+
+            if (!isTypo && (face.height != (face.os2.usWinAscent + face.os2.usWinDescent)))
+            {
+                console.log("[" + face.family_name + "] win");
+                console.log(face.ascender + ", " + face.descender + ", " + face.height);
+                console.log(face.os2.usWinAscent + ", " + face.os2.usWinDescent + ", " + (face.os2.usWinAscent + face.os2.usWinDescent));
+            }
 		}
 
         editor.asyncMethodCallback = function() {
@@ -9907,7 +9914,6 @@ background-repeat: no-repeat;\
                 }
 
                 var _info = AscFonts.g_font_infos[testFontCurrent++];
-                //console.log(testFontCurrent);
 
                 if (_info.indexR != -1)
 				{
