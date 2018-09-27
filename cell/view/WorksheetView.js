@@ -2359,10 +2359,16 @@
 		var left =  margins.left / AscCommonExcel.vector_koef;
 		var right = margins.right / AscCommonExcel.vector_koef;
 		var width = printPagesData.pageWidth / AscCommonExcel.vector_koef;
+		var top = margins.header / AscCommonExcel.vector_koef;
+		var bottom = margins.footer / AscCommonExcel.vector_koef;
 
+		var rowTop = this._getRowTop(0);
+		if(top < rowTop) {
+			top = rowTop;
+		}
 
 		if(headerFooterParser.portions[c_nPortionLeft]) {
-		    drawPortion(headerFooterParser.portions[c_nPortionLeft], left, 0);
+			drawPortion(headerFooterParser.portions[c_nPortionLeft], left, top);
 		}
 
 		if(headerFooterParser.portions[c_nPortionCenter]) {
@@ -2370,7 +2376,7 @@
 			t.stringRender.setString(fragments);
 
 			var textMetrics = t.stringRender._measureChars();
-			drawPortion(headerFooterParser.portions[c_nPortionCenter], ((width - left - right) / 2 + left) - textMetrics.width / 2, 0);
+			drawPortion(headerFooterParser.portions[c_nPortionCenter], ((width - left - right) / 2 + left) - textMetrics.width / 2, top);
 		}
 
 		if(headerFooterParser.portions[c_nPortionRight]) {
@@ -2378,7 +2384,7 @@
 			t.stringRender.setString(fragments);
 
 			var textMetrics = t.stringRender._measureChars();
-			drawPortion(headerFooterParser.portions[c_nPortionRight], width - right - textMetrics.width, 0);
+			drawPortion(headerFooterParser.portions[c_nPortionRight], width - right - textMetrics.width, top);
 		}
 
 		drawingCtx.stroke();

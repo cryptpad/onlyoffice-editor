@@ -7810,6 +7810,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.top = null;
 		this.bottom = null;
 
+		//TODO в историю нужно будет записывать эти параметры
+		this.header = null;
+		this.footer = null;
+
 		this.ws = ws;
 
 		return this;
@@ -7823,11 +7827,17 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			this.right = c_oAscPrintDefaultSettings.PageRightField;
 		if (null == this.bottom)
 			this.bottom = c_oAscPrintDefaultSettings.PageBottomField;
+		if (null == this.header)
+			this.header = c_oAscPrintDefaultSettings.PageHeaderField;
+		if (null == this.footer)
+			this.footer = c_oAscPrintDefaultSettings.PageFooterField;
 	};
 	asc_CPageMargins.prototype.asc_getLeft = function () { return this.left; };
 	asc_CPageMargins.prototype.asc_getRight = function () { return this.right; };
 	asc_CPageMargins.prototype.asc_getTop = function () { return this.top; };
 	asc_CPageMargins.prototype.asc_getBottom = function () { return this.bottom; };
+	asc_CPageMargins.prototype.asc_getHeader = function () { return this.header; };
+	asc_CPageMargins.prototype.asc_getFooter = function () { return this.footer; };
 
 	asc_CPageMargins.prototype.asc_setLeft = function (newVal) {
 		var oldVal = this.left;
@@ -7860,6 +7870,23 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Bottom, this.ws.getId(),
 				null, new UndoRedoData_Layout(oldVal, newVal));
 		}
+	};
+
+	asc_CPageMargins.prototype.asc_setHeader = function (newVal) {
+		var oldVal = this.header;
+		this.header = newVal;
+		/*if (this.ws && History.Is_On() && oldVal !== this.top) {
+			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Top, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}*/
+	};
+	asc_CPageMargins.prototype.asc_setFooter = function (newVal) {
+		var oldVal = this.footer;
+		this.footer = newVal;
+		/*if (this.ws && History.Is_On() && oldVal !== this.bottom) {
+			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Bottom, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}*/
 	};
 	asc_CPageMargins.prototype.asc_setOptions = function (obj) {
 		var prop;
@@ -8270,6 +8297,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setRight"] = prot.asc_setRight;
 	prot["asc_setTop"] = prot.asc_setTop;
 	prot["asc_setBottom"] = prot.asc_setBottom;
+	prot["asc_setHeader"] = prot.asc_setHeader;
+	prot["asc_setFooter"] = prot.asc_setFooter;
 
 	window["Asc"]["asc_CPageSetup"] = window["Asc"].asc_CPageSetup = asc_CPageSetup;
 	prot = asc_CPageSetup.prototype;
