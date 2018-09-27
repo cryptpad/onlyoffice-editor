@@ -2340,21 +2340,6 @@
 			return res;
 		};
 
-		var drawPortion = function(portion, x, y) {
-			if(!portion) {
-				return;
-			}
-
-			var fragments = getFragments(portion);
-			t.stringRender.setString(fragments);
-
-			var textMetrics = t.stringRender._measureChars();
-
-
-			t.stringRender.render(drawingCtx, x, y, 100, t.settings.activeCellBorderColor);
-		};
-
-
 		var margins = this.model.PagePrintOptions.asc_getPageMargins();
 		var left =  margins.left / AscCommonExcel.vector_koef;
 		var right = margins.right / AscCommonExcel.vector_koef;
@@ -2368,55 +2353,44 @@
 		if(top < rowTop) {
 			top = rowTop;
 		}
+		var footerStartPos = height - bottom;
 
-		if(!bFooter) {
-			if(headerFooterParser.portions[c_nPortionLeft]) {
-				drawPortion(headerFooterParser.portions[c_nPortionLeft], left, top);
+		var drawPortion = function(index) {
+			var portion = headerFooterParser.portions[index];
+			if(!portion) {
+				return;
 			}
 
-			if(headerFooterParser.portions[c_nPortionCenter]) {
-				var fragments = getFragments(headerFooterParser.portions[c_nPortionCenter]);
-				t.stringRender.setString(fragments);
+			var fragments = getFragments(portion);
+			t.stringRender.setString(fragments);
 
-				var textMetrics = t.stringRender._measureChars();
-				drawPortion(headerFooterParser.portions[c_nPortionCenter], ((width - left - right) / 2 + left) - textMetrics.width / 2, top);
+			var textMetrics = t.stringRender._measureChars();
+			var x, y;
+			switch(index) {
+				case c_nPortionLeft: {
+					x = left;
+					y = !bFooter ? top : footerStartPos - textMetrics.height;
+					break;
+				}
+				case c_nPortionCenter: {
+					x = ((width - left - right) / 2 + left) - textMetrics.width / 2;
+					y = !bFooter ? top : footerStartPos - textMetrics.height;
+					break;
+				}
+				case c_nPortionRight: {
+					x = width - right - textMetrics.width;
+					y = !bFooter ? top : footerStartPos - textMetrics.height;
+					break;
+				}
 			}
 
-			if(headerFooterParser.portions[c_nPortionRight]) {
-				var fragments = getFragments(headerFooterParser.portions[c_nPortionRight]);
-				t.stringRender.setString(fragments);
+			t.stringRender.render(drawingCtx, x, y, 100, t.settings.activeCellBorderColor);
+		};
 
-				var textMetrics = t.stringRender._measureChars();
-				drawPortion(headerFooterParser.portions[c_nPortionRight], width - right - textMetrics.width, top);
-			}
-		} else {
-
-			var footerStartPos = height - bottom;
-			if(headerFooterParser.portions[c_nPortionLeft]) {
-				var fragments = getFragments(headerFooterParser.portions[c_nPortionLeft]);
-				t.stringRender.setString(fragments);
-
-				var textMetrics = t.stringRender._measureChars();
-				drawPortion(headerFooterParser.portions[c_nPortionLeft], left, footerStartPos - textMetrics.height);
-			}
-
-			if(headerFooterParser.portions[c_nPortionCenter]) {
-				var fragments = getFragments(headerFooterParser.portions[c_nPortionCenter]);
-				t.stringRender.setString(fragments);
-
-				var textMetrics = t.stringRender._measureChars();
-				drawPortion(headerFooterParser.portions[c_nPortionCenter], ((width - left - right) / 2 + left) - textMetrics.width / 2, footerStartPos - textMetrics.height);
-			}
-
-			if(headerFooterParser.portions[c_nPortionRight]) {
-				var fragments = getFragments(headerFooterParser.portions[c_nPortionRight]);
-				t.stringRender.setString(fragments);
-
-				var textMetrics = t.stringRender._measureChars();
-				drawPortion(headerFooterParser.portions[c_nPortionRight], width - right - textMetrics.width, footerStartPos - textMetrics.height);
-			}
+		for(var i = 0; i < headerFooterParser.portions.length; i++) {
+			drawPortion(i);
 		}
-
+		
 		drawingCtx.stroke();
 	};
 
