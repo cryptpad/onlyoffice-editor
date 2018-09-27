@@ -430,6 +430,7 @@ CEditorPage.prototype.OnUpdateOverlay = function()
             drDoc.AutoShapesTrack.CorrectOverlayBounds();
         }
     }
+    drDoc.Collaborative_TargetsUpdate();
     this.Native["DD_Overlay_UpdateEnd"]();
     return true;
 };
