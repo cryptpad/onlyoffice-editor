@@ -9243,7 +9243,7 @@ ParaRun.prototype.UpdLastElementForGaps = function(_CurLine, _CurRange, GapsInfo
 };
 ParaRun.prototype.IsPlaceholder = function()
 {
-    return this.Content.length == 1 && this.Content[0].IsPlaceHolder && this.Content[0].IsPlaceholder();
+    return this.Content.length == 1 && this.Content[0].IsPlaceholder && this.Content[0].IsPlaceholder();
 };
 ParaRun.prototype.AddMathPlaceholder = function()
 {
