@@ -1070,13 +1070,22 @@ CDrawingDocument.prototype.OnMouseMove = function(e)
 
         if (this.SelectDrag == 1 || this.SelectDrag == 2)
         {
-            this.SelectClearLock = true;
-            var _oldShift = global_mouseEvent.ShiftKey;
-            global_mouseEvent.ShiftKey = true;
-            this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
-            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
-            global_mouseEvent.ShiftKey = _oldShift;
-            this.SelectClearLock = false;
+            var oController = this.LogicDocument.GetCurrentController();
+            if(oController)
+            {
+                this.SelectClearLock = true;
+                var oTargetTextObject = AscFormat.getTargetTextObject(oController);
+                if(oTargetTextObject){
+                    var _oldShift = global_mouseEvent.ShiftKey;
+                    global_mouseEvent.ShiftKey = true;
+                    oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                    oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                    global_mouseEvent.ShiftKey = _oldShift;
+                    this.LogicDocument.Document_UpdateSelectionState();
+                    this.m_oWordControl.OnUpdateOverlay();
+                }
+                this.SelectClearLock = false;
+            }
         }
         else
         {
@@ -1129,15 +1138,28 @@ CDrawingDocument.prototype.OnMouseMove = function(e)
 
         if (_is_select)
         {
-            var _oldShift = global_mouseEvent.ShiftKey;
-            global_mouseEvent.ShiftKey = true;
-            this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
-            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
-            global_mouseEvent.ShiftKey = _oldShift;
+            var oController = this.LogicDocument.GetCurrentController();
+            if(oController)
+            {
+                this.SelectClearLock = true;
+                var oTargetTextObject = AscFormat.getTargetTextObject(oController);
+                if(oTargetTextObject){
+                    var _oldShift = global_mouseEvent.ShiftKey;
+                    global_mouseEvent.ShiftKey = true;
+                    oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                    oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                    global_mouseEvent.ShiftKey = _oldShift;
+                    this.LogicDocument.Document_UpdateSelectionState();
+                    this.m_oWordControl.OnUpdateOverlay();
+                }
+                this.SelectClearLock = false;
+            }
         }
         else
         {
             this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
+            this.LogicDocument.Document_UpdateSelectionState();
+            this.m_oWordControl.OnUpdateOverlay();
         }
         // this.Native["DD_NeedScrollToTargetFlag"](false);
 
@@ -1410,6 +1432,10 @@ CDrawingDocument.prototype.LogicDocumentOnMouseUp = function(e, x, y, page)
     this.m_bIsMouseLockDocument = false;
 };
 
+CDrawingDocument.prototype.GetInvertTextMatrix = function(oController){
+    
+};
+
 CDrawingDocument.prototype.OnCheckMouseDown = function(e)
 {
     // 0 - none
@@ -1417,14 +1443,21 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
     // 2 - drawing track
 
     var oController = this.LogicDocument.GetCurrentController();
-    var matrixCheck = null;
-    if(oController)
-    {
-        matrixCheck = oController.getTargetTransform();
+    check_MouseDownEvent(e, false);
+    if(!oController){
+        return -1;
     }
 
-    check_MouseDownEvent(e, false);
-
+    var oTargetTextObject = AscFormat.getTargetTextObject(oController);
+    var matrixCheck = oController.getTargetTransform();
+    var oInvertMaxtrix;
+    if(oTargetTextObject && oTargetTextObject.invertTransformText){
+        oInvertMaxtrix = oTargetTextObject.invertTransformText;
+    }
+    else{
+        oInvertMaxtrix =  AscCommon.global_MatrixTransformer.Invert(matrixCheck);
+    }
+    var oDocContent;
     var pos = {X: global_mouseEvent.X, Y: global_mouseEvent.Y, Page: this.LogicDocument.CurPage};
     if (pos.Page == -1)
         return 0;
@@ -1480,14 +1513,18 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
         {
             this.SelectClearLock = true;
             this.SelectDrag = 1;
-            this.LogicDocument.MoveCursorRight();
 
-            var _oldShift = global_mouseEvent.ShiftKey;
-            global_mouseEvent.ShiftKey = true;
-            this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
-            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
-            global_mouseEvent.ShiftKey = _oldShift;
-
+            var oTargetTextObject = AscFormat.getTargetTextObject(oController);
+            if(oTargetTextObject){
+                var _oldShift = global_mouseEvent.ShiftKey;
+                global_mouseEvent.ShiftKey = true;
+                oController.cursorMoveRight(false, false);
+                oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                global_mouseEvent.ShiftKey = _oldShift;
+                this.LogicDocument.Document_UpdateSelectionState();
+                this.m_oWordControl.OnUpdateOverlay();
+            }
             this.SelectClearLock = false;
         }
 
@@ -1495,13 +1532,17 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
         {
             this.SelectClearLock = true;
             this.SelectDrag = 2;
-            this.LogicDocument.MoveCursorLeft();
-
-            var _oldShift = global_mouseEvent.ShiftKey;
-            global_mouseEvent.ShiftKey = true;
-            this.LogicDocumentOnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
-            this.LogicDocumentOnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
-            global_mouseEvent.ShiftKey = _oldShift;
+            var oTargetTextObject = AscFormat.getTargetTextObject(oController);
+            if(oTargetTextObject){
+                var _oldShift = global_mouseEvent.ShiftKey;
+                global_mouseEvent.ShiftKey = true;
+                oController.cursorMoveLeft(false, false);
+                oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                global_mouseEvent.ShiftKey = _oldShift;
+                this.LogicDocument.Document_UpdateSelectionState();
+                this.m_oWordControl.OnUpdateOverlay();
+            }
 
             this.SelectClearLock = false;
         }
@@ -1525,10 +1566,7 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
 
             var oController = this.LogicDocument.GetCurrentController();
             var _isDrawings = false;
-            if(oController)
-            {
-                _isDrawings = oController.isPointInDrawingObjects4(pos.X, pos.Y, pos.Page, true);
-            }
+            _isDrawings = oController.isPointInDrawingObjects4(pos.X, pos.Y, pos.Page, true);
             
 
             if (_isDrawings) {
