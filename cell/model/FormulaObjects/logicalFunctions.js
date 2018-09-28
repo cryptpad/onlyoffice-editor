@@ -187,6 +187,7 @@
 	function cIFERROR() {
 	}
 
+	//***array-formula***
 	cIFERROR.prototype = Object.create(cBaseFunction.prototype);
 	cIFERROR.prototype.constructor = cIFERROR;
 	cIFERROR.prototype.name = 'IFERROR';

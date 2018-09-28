@@ -7096,10 +7096,12 @@ function (window, undefined) {
 	function cKURT() {
 	}
 
+	//***array-formula***
 	cKURT.prototype = Object.create(cBaseFunction.prototype);
 	cKURT.prototype.constructor = cKURT;
 	cKURT.prototype.name = 'KURT';
 	cKURT.prototype.argumentsMin = 1;
+	cKURT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cKURT.prototype.Calculate = function (arg) {
 
 		function kurt(x) {
@@ -7552,10 +7554,12 @@ function (window, undefined) {
 	function cMAX() {
 	}
 
+	//***array-formula***
 	cMAX.prototype = Object.create(cBaseFunction.prototype);
 	cMAX.prototype.constructor = cMAX;
 	cMAX.prototype.name = 'MAX';
 	cMAX.prototype.argumentsMin = 1;
+	cMAX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMAX.prototype.Calculate = function (arg) {
 		var v, element, argIVal, max = Number.NEGATIVE_INFINITY;
 		for (var i = 0; i < arg.length; i++) {
@@ -7630,10 +7634,12 @@ function (window, undefined) {
 	function cMAXA() {
 	}
 
+	//***array-formula***
 	cMAXA.prototype = Object.create(cBaseFunction.prototype);
 	cMAXA.prototype.constructor = cMAXA;
 	cMAXA.prototype.name = 'MAXA';
 	cMAXA.prototype.argumentsMin = 1;
+	cMAXA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMAXA.prototype.Calculate = function (arg) {
 		var argI, argIVal, max = Number.NEGATIVE_INFINITY, v;
 		for (var i = 0; i < arg.length; i++) {
@@ -7917,10 +7923,12 @@ function (window, undefined) {
 	function cMEDIAN() {
 	}
 
+	//***array-formula***
 	cMEDIAN.prototype = Object.create(cBaseFunction.prototype);
 	cMEDIAN.prototype.constructor = cMEDIAN;
 	cMEDIAN.prototype.name = 'MEDIAN';
 	cMEDIAN.prototype.argumentsMin = 1;
+	cMEDIAN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMEDIAN.prototype.Calculate = function (arg) {
 
 		function median(x) {
@@ -7988,10 +7996,12 @@ function (window, undefined) {
 	function cMIN() {
 	}
 
+	//***array-formula***
 	cMIN.prototype = Object.create(cBaseFunction.prototype);
 	cMIN.prototype.constructor = cMIN;
 	cMIN.prototype.name = 'MIN';
 	cMIN.prototype.argumentsMin = 1;
+	cMIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMIN.prototype.Calculate = function (arg) {
 		var v, element, argIVal, min = Number.POSITIVE_INFINITY;
 		for (var i = 0; i < arg.length; i++) {
@@ -8067,10 +8077,12 @@ function (window, undefined) {
 	function cMINA() {
 	}
 
+	//***array-formula***
 	cMINA.prototype = Object.create(cBaseFunction.prototype);
 	cMINA.prototype.constructor = cMINA;
 	cMINA.prototype.name = 'MINA';
 	cMINA.prototype.argumentsMin = 1;
+	cMINA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMINA.prototype.Calculate = function (arg) {
 		var argI, argIVal, min = Number.POSITIVE_INFINITY, v;
 		for (var i = 0; i < arg.length; i++) {

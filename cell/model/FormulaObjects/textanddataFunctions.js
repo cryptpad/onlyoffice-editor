@@ -917,6 +917,7 @@ function (window, undefined) {
 	function cLEN() {
 	}
 
+	//***array-formula***
 	cLEN.prototype = Object.create(cBaseFunction.prototype);
 	cLEN.prototype.constructor = cLEN;
 	cLEN.prototype.name = 'LEN';
@@ -949,6 +950,7 @@ function (window, undefined) {
 	function cLENB() {
 	}
 
+	//***array-formula***
 	cLENB.prototype = Object.create(cLEN.prototype);
 	cLENB.prototype.constructor = cLENB;
 	cLENB.prototype.name = 'LENB';
@@ -960,6 +962,7 @@ function (window, undefined) {
 	function cLOWER() {
 	}
 
+	//***array-formula***
 	cLOWER.prototype = Object.create(cBaseFunction.prototype);
 	cLOWER.prototype.constructor = cLOWER;
 	cLOWER.prototype.name = 'LOWER';
@@ -991,6 +994,7 @@ function (window, undefined) {
 	function cMID() {
 	}
 
+	//***array-formula***
 	cMID.prototype = Object.create(cBaseFunction.prototype);
 	cMID.prototype.constructor = cMID;
 	cMID.prototype.name = 'MID';
@@ -1058,6 +1062,7 @@ function (window, undefined) {
 	function cMIDB() {
 	}
 
+	//***array-formula***
 	cMIDB.prototype = Object.create(cMID.prototype);
 	cMIDB.prototype.constructor = cMIDB;
 	cMIDB.prototype.name = 'MIDB';
