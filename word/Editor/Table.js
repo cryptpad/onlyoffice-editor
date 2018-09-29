@@ -7695,7 +7695,7 @@ CTable.prototype.GetDirectParaPr = function()
 
 	return this.CurCell.Content.GetDirectParaPr();
 };
-CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	if (arrSelectedParagraphs)
 	{
@@ -7710,12 +7710,12 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 			{
 				oCellContent.Set_ApplyToAll(true);
-				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs);
+				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 				oCellContent.Set_ApplyToAll(false);
 			}
 			else
 			{
-				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs);
+				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 			}
 		}
 
@@ -7724,7 +7724,7 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 	else if (true === bIgnoreSelection)
 	{
 		if (this.CurCell)
-			return this.CurCell.Content.GetCurrentParagraph(bIgnoreSelection, null);
+			return this.CurCell.Content.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 		else
 			null;
 	}
@@ -7741,13 +7741,13 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 			{
 				oCellContent.Set_ApplyToAll(true);
-				var oRes = oCellContent.GetCurrentParagraph(bIgnoreSelection, null);
+				var oRes = oCellContent.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 				oCellContent.Set_ApplyToAll(false);
 				return oRes;
 			}
 			else
 			{
-				return oCellContent.GetCurrentParagraph(bIgnoreSelection, null);
+				return oCellContent.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 			}
 		}
 	}

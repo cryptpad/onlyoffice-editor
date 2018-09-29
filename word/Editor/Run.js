@@ -4066,7 +4066,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 
 				if (para_FootnoteReference === ItemType)
 				{
-					var oFootnote = Item.Get_Footnote();
+					var oFootnote = Item.GetFootnote();
 					oFootnote.UpdatePositionInfo(this.Paragraph, this, _CurLine, _CurRange, PRSA.X, WidthVisible);
 				}
 
@@ -9948,14 +9948,14 @@ ParaRun.prototype.Set_CompositeInput = function(oCompositeInput)
 {
     this.CompositeInput = oCompositeInput;
 };
-ParaRun.prototype.Get_FootnotesList = function(oEngine)
+ParaRun.prototype.GetFootnotesList = function(oEngine)
 {
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		var oItem = this.Content[nIndex];
 		if (para_FootnoteReference === oItem.Type)
 		{
-			oEngine.Add(oItem.Get_Footnote(), oItem, this);
+			oEngine.Add(oItem.GetFootnote(), oItem, this);
 		}
 	}
 };
@@ -10184,6 +10184,46 @@ ParaRun.prototype.RemoveTabsForTOC = function(_isTab)
 	}
 
 	return isTab;
+};
+ParaRun.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	var nStartPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos)
+		: 0;
+
+	var nEndPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos)
+		: this.Content.length;
+
+	for (var nPos = nStartPos; nPos < nEndPos; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_FieldChar === oItem.Type)
+		{
+			var oComplexField = oItem.GetComplexField();
+
+			var isNeedAdd = true;
+			for (var nFieldIndex = 0, nFieldsCount = arrFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+			{
+				if (oComplexField === arrFields[nFieldIndex])
+				{
+					isNeedAdd = false;
+					break;
+				}
+			}
+
+			if (isNeedAdd)
+				arrFields.push(oComplexField);
+		}
+		else if (para_Drawing === oItem.Type)
+		{
+			oItem.GetAllFields(false, arrFields);
+		}
+		else if (para_FootnoteReference === oItem.Type)
+		{
+			oItem.GetFootnote().GetAllFields(false, arrFields);
+		}
+	}
 };
 ParaRun.prototype.AddToContent = function(nPos, oItem, isUpdatePositions)
 {

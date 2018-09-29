@@ -294,9 +294,9 @@ CHdrFtrController.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.HdrFtr.GetSelectedText(bClearText, oPr);
 };
-CHdrFtrController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CHdrFtrController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
-	return this.HdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	return this.HdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
 CHdrFtrController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -508,4 +508,12 @@ CHdrFtrController.prototype.GetStyleFromFormatting = function()
 CHdrFtrController.prototype.GetSimilarNumbering = function(oEngine)
 {
 	this.HdrFtr.GetSimilarNumbering(oEngine)
+};
+CHdrFtrController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	// Поиск по всем колонтитулам должен происходить не здесь
+	if (!isUseSelection)
+		return arrFields ? arrFields : [];
+
+	return this.HdrFtr.GetAllFields(isUseSelection, arrFields);
 };

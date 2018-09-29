@@ -2356,9 +2356,9 @@ CHeaderFooterController.prototype =
             return { X : -1, Y : -1, Height : -1 };
     },
 
-	GetCurrentParagraph : function(bIgnoreSelection, arrSelectedParagraphs)
+	GetCurrentParagraph : function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 	{
-		return this.CurHdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+		return this.CurHdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 	},
 
 	StartSelectionFromCurPos : function()
@@ -2653,6 +2653,13 @@ CHeaderFooterController.prototype.HavePageCountElement = function()
 	}
 
 	return nStartPage;
+};
+CHeaderFooterController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if (this.CurHdrFtr)
+		return this.CurHdrFtr.GetContent().GetAllFields(isUseSelection, arrFields);
+
+	return arrFields ? arrFields : [];
 };
 
 function CHdrFtrPage()

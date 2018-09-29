@@ -3910,14 +3910,6 @@ Paragraph.prototype.Correct_ContentPos = function(CorrectEndLinePos)
 	}
 
 	this.CurPos.ContentPos = CurPos;
-
-	// Если курсор попадает в какой-либо плейсхолдер, тогда мы выставляем селект этого плейсхолдера
-	var oPlaceHolderObject = this.GetPlaceHolderObject();
-	if (oPlaceHolderObject instanceof CInlineLevelSdt)
-	{
-		oPlaceHolderObject.SelectAll(1);
-		oPlaceHolderObject.SelectThisElement(1);
-	}
 };
 Paragraph.prototype.Correct_ContentPos2 = function()
 {
@@ -12379,13 +12371,13 @@ Paragraph.prototype.private_CompareBorderSettings = function(Pr1, Pr2)
 
 	return true;
 };
-Paragraph.prototype.Get_FootnotesList = function(oEngine)
+Paragraph.prototype.GetFootnotesList = function(oEngine)
 {
 	oEngine.SetCurrentParagraph(this);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.Content[nIndex].Get_FootnotesList)
-			this.Content[nIndex].Get_FootnotesList(oEngine);
+		if (this.Content[nIndex].GetFootnotesList)
+			this.Content[nIndex].GetFootnotesList(oEngine);
 
 		if (oEngine.IsRangeFull())
 			return;
@@ -12495,7 +12487,7 @@ Paragraph.prototype.CheckFootnote = function(X, Y, CurPage)
 		for (var nIndex = 0, nCount = arrFootnoteRefs.length; nIndex < nCount; ++nIndex)
 		{
 			var oFootnoteRef = arrFootnoteRefs[nIndex];
-			var oFootnote    = oFootnoteRef.Get_Footnote();
+			var oFootnote    = oFootnoteRef.GetFootnote();
 			var oPosInfo     = oFootnote.GetPositionInfo();
 
 			if (Math.abs(X - oPosInfo.X) < nMinDiff || Math.abs(X - (oPosInfo.X + oPosInfo.W)) < nMinDiff)
@@ -12726,7 +12718,7 @@ Paragraph.prototype.IncreaseDecreaseFontSize = function(bIncrease)
 {
 	this.IncDec_FontSize(bIncrease);
 };
-Paragraph.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+Paragraph.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	if (arrSelectedParagraphs)
 		arrSelectedParagraphs.push(this);
@@ -13249,6 +13241,31 @@ Paragraph.prototype.GetPlaceHolderObject = function(oContentPos)
 		return oSdt;
 
 	return null;
+};
+Paragraph.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if (!arrFields)
+		arrFields = [];
+
+	if (isUseSelection && true !== this.Selection.Use)
+	{
+		return this.GetCurrentComplexFields();
+	}
+
+	var nStartPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos)
+		: 0;
+
+	var nEndPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos)
+		: this.Content.length - 1;
+
+	for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+	{
+		this.Content[nIndex].GetAllFields(isUseSelection, arrFields);
+	}
+
+	return arrFields;
 };
 
 var pararecalc_0_All  = 0;

@@ -264,9 +264,9 @@ CLogicDocumentController.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.LogicDocument.controller_GetSelectedText(bClearText, oPr);
 };
-CLogicDocumentController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CLogicDocumentController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
-	return this.LogicDocument.controller_GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	return this.LogicDocument.controller_GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
 CLogicDocumentController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -407,4 +407,8 @@ CLogicDocumentController.prototype.GetSimilarNumbering = function(oContinueEngin
 CLogicDocumentController.prototype.GetPlaceHolderObject = function()
 {
 	return this.LogicDocument.controller_GetPlaceHolderObject();
+};
+CLogicDocumentController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	return this.LogicDocument.controller_GetAllFields(isUseSelection, arrFields);
 };

@@ -2642,6 +2642,12 @@ ParaDrawing.prototype.CheckContentControlDeletingLock = function(){
         this.DocumentContent.CheckContentControlDeletingLock();
 	}
 };
+ParaDrawing.prototype.GetAllFields = function(isUseSeleciton, arrFields)
+{
+	// TODO: Реализовать
+
+	return arrFields ? arrFields : [];
+};
 
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.

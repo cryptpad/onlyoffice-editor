@@ -619,8 +619,11 @@ CBlockLevelSdt.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.Content.GetSelectedText(bClearText, oPr);
 };
-CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
+	if (oPr && true === oPr.ReplacePlaceHolder)
+		this.private_ReplacePlaceHolderWithContent();
+
 	return this.Content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
 };
 CBlockLevelSdt.prototype.AddTableRow = function(bBefore)
@@ -1425,6 +1428,13 @@ CBlockLevelSdt.prototype.GetPlaceHolderObject = function()
 		return this;
 
 	return this.Content.GetPlaceHolderObject();
+};
+CBlockLevelSdt.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if (this.IsPlaceHolder())
+		return arrFields ? arrFields : [];
+
+	return this.Content.GetAllFields(isUseSelection, arrFields);
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

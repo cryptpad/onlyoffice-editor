@@ -8062,6 +8062,13 @@ CDocument.prototype.OnKeyDown = function(e)
 	//
 	// 	bRetValue = keydownresult_PreventAll;
 	// }
+	else if (e.KeyCode == 120) // F9 - обновление полей
+	{
+		this.UpdateFields(true);
+
+		bUpdateSelection = false;
+		bRetValue        = keydownresult_PreventAll;
+	}
 	else if (e.KeyCode == 121 && true === e.ShiftKey) // Shift + F10 - контекстное меню
     {
         var X_abs, Y_abs, oPosition, ConvertedPos;
@@ -9206,19 +9213,20 @@ CDocument.prototype.GetSelectedText = function(bClearText, oPr)
  * @param bIgnoreSelection Если true, тогда используется текущая позиция, даже если есть селект
  * @param bReturnSelectedArray (Используется, только если bIgnoreSelection==false) Если true, тогда возвращаем массив из
  * из параграфов, которые попали в выделение.
+ * @param {object}
  * @returns {Paragraph | [Paragraph]}
  */
-CDocument.prototype.GetCurrentParagraph = function(bIgnoreSelection, bReturnSelectedArray)
+CDocument.prototype.GetCurrentParagraph = function(bIgnoreSelection, bReturnSelectedArray, oPr)
 {
 	if (true !== bIgnoreSelection && true === bReturnSelectedArray)
 	{
 		var arrSelectedParagraphs = [];
-		this.Controller.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+		this.Controller.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 		return arrSelectedParagraphs;
 	}
 	else
 	{
-		return this.Controller.GetCurrentParagraph(bIgnoreSelection, null);
+		return this.Controller.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 	}
 };
 /**
@@ -13010,7 +13018,7 @@ CDocument.prototype.RemoveAllFootnotes = function()
 	var arrParagraphs = this.GetAllParagraphs({OnlyMainDocument : true, All : true});
 	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 	{
-		arrParagraphs[nIndex].Get_FootnotesList(oEngine);
+		arrParagraphs[nIndex].GetFootnotesList(oEngine);
 	}
 
 	var arrFootnotes  = oEngine.GetRange();
@@ -13142,12 +13150,12 @@ CDocument.prototype.IsCursorInFootnote = function()
 {
 	return (docpostype_Footnotes === this.GetDocPosType() ? true : false);
 };
-CDocument.prototype.Get_FootnotesList = function(oFirstFootnote, oLastFootnote)
+CDocument.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 {
 	if (null === oFirstFootnote && null === oLastFootnote && null !== this.AllFootnotesList)
 		return this.AllFootnotesList;
 
-	var arrFootnotes = CDocumentContentBase.prototype.Get_FootnotesList.apply(this, arguments);
+	var arrFootnotes = CDocumentContentBase.prototype.GetFootnotesList.apply(this, arguments);
 
 	if (null === oFirstFootnote && null === oLastFootnote)
 		this.AllFootnotesList = arrFootnotes;
@@ -15505,7 +15513,7 @@ CDocument.prototype.controller_GetSelectedText = function(bClearText, oPr)
 
 	return null;
 };
-CDocument.prototype.controller_GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CDocument.prototype.controller_GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	if (null !== arrSelectedParagraphs)
 	{
@@ -15515,12 +15523,12 @@ CDocument.prototype.controller_GetCurrentParagraph = function(bIgnoreSelection, 
 			var nEndPos   = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
 			for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
 			{
-				this.Content[nPos].GetCurrentParagraph(false, arrSelectedParagraphs);
+				this.Content[nPos].GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 			}
 		}
 		else
 		{
-			this.Content[this.CurPos.ContentPos].GetCurrentParagraph(false, arrSelectedParagraphs);
+			this.Content[this.CurPos.ContentPos].GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 		}
 	}
 	else
@@ -15529,7 +15537,7 @@ CDocument.prototype.controller_GetCurrentParagraph = function(bIgnoreSelection, 
 		if (Pos < 0 || Pos >= this.Content.length)
 			return null;
 
-		return this.Content[Pos].GetCurrentParagraph(bIgnoreSelection, null);
+		return this.Content[Pos].GetCurrentParagraph(bIgnoreSelection, null, oPr);
 	}
 };
 CDocument.prototype.controller_GetSelectedElementsInfo = function(Info)
@@ -16217,6 +16225,30 @@ CDocument.prototype.controller_GetPlaceHolderObject = function()
 
 	return this.Content[nCurPos].GetPlaceHolderObject();
 };
+CDocument.prototype.controller_GetAllFields = function(isUseSelection, arrFields)
+{
+	if (!arrFields)
+		arrFields = [];
+
+	var nStartPos = isUseSelection ?
+		(this.Selection.Use ?
+			(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos)
+			: this.CurPos.ContentPos)
+		: 0;
+
+	var nEndPos = isUseSelection ?
+		(this.Selection.Use ?
+			(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos)
+			: this.CurPos.ContentPos)
+		: this.Content.length - 1;
+
+	for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+	{
+		this.Content[nIndex].GetAllFields(isUseSelection, arrFields);
+	}
+
+	return arrFields;
+};
 //----------------------------------------------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------------------------------------------
@@ -16533,7 +16565,7 @@ CDocument.prototype.AddField = function(nType, oPr)
 };
 CDocument.prototype.AddFieldWithInstruction = function(sInstruction)
 {
-	var oParagraph = this.GetCurrentParagraph();
+	var oParagraph = this.GetCurrentParagraph(false, false, {ReplacePlaceHolder : true});
 	if (!oParagraph)
 		return null;
 
@@ -16708,6 +16740,82 @@ CDocument.prototype.GetComplexFieldsByContentPos = function(oDocPos)
 	this.SetContentPosition(oCurrentDocPos, 0, 0);
 
 	return arrComplexFields;
+};
+/**
+ * Получаем массив все полей в документе (простых и сложных)
+ * @param {boolean} isUseSelection
+ * @returns {Array}
+ */
+CDocument.prototype.GetAllFields = function(isUseSelection)
+{
+	var arrFields = [];
+
+	if (isUseSelection)
+	{
+		this.Controller.GetAllFields(isUseSelection, arrFields);
+	}
+	else
+	{
+		// По сноскам и автофигурам мы пробегаемся при поиске в основной части документа
+
+		this.LogicDocumentController.GetAllFields(false, arrFields);
+
+		var arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
+		for (var nIndex = 0, nCount = arrHdrFtrs.length; nIndex < nCount; ++nIndex)
+		{
+			arrHdrFtrs[nIndex].GetContent().GetAllFields(true, arrFields);
+		}
+	}
+
+	return arrFields;
+};
+/**
+ * Обновляем поля в документе по выледелнию или вообще все
+ * @param isBySelection {boolean}
+ */
+CDocument.prototype.UpdateFields = function(isBySelection)
+{
+	var arrFields = this.GetAllFields(isBySelection);
+
+	var oDocState = this.SaveDocumentState();
+
+	var arrParagraphs = [];
+	for (var nIndex = 0, nCount = arrFields.length; nIndex < nCount; ++nIndex)
+	{
+		var oField = arrFields[nIndex];
+		if (oField instanceof CComplexField)
+		{
+			oField.SelectField();
+			arrParagraphs = arrParagraphs.concat(this.GetCurrentParagraph(false, true));
+		}
+		else if (oField instanceof ParaField)
+		{
+			if (oField.GetParagraph())
+				arrParagraphs.push(oField.GetParagraph());
+		}
+	}
+
+	if (!this.Document_Is_SelectionLocked(changestype_None, {
+			Type      : changestype_2_ElementsArray_and_Type,
+			Elements  : arrParagraphs,
+			CheckType : changestype_Paragraph_Content
+		}))
+	{
+		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_UpdateFields);
+
+
+		for (var nIndex = 0, nCount = arrFields.length; nIndex < nCount; ++nIndex)
+		{
+			arrFields[nIndex].Update(false, false);
+		}
+
+		this.LoadDocumentState(oDocState);
+
+		this.Recalculate();
+		this.Document_UpdateInterfaceState();
+		this.Document_UpdateSelectionState();
+	}
+
 };
 /**
  * Получаем ссылку на класс, управляющий закладками
@@ -17432,20 +17540,6 @@ CDocumentSectionsInfo.prototype =
         return -1;
     },
 
-    Get_AllHdrFtrs : function()
-    {
-        var HdrFtrs = [];
-
-        var Count = this.Elements.length;
-        for (var Index = 0; Index < Count; Index++)
-        {
-            var SectPr = this.Elements[Index].SectPr;
-            SectPr.Get_AllHdrFtrs(HdrFtrs);
-        }
-
-        return HdrFtrs;
-    },
-
     Reset_HdrFtrRecalculateCache : function()
     {
         var Count = this.Elements.length;
@@ -17729,6 +17823,23 @@ CDocumentSectionsInfo.prototype =
                 this.Elements[Index].Index -= Count;
         }
     }
+};
+/**
+ * Получаем массив всех колонтитулов, используемых в данно документе
+ * @returns {Array.CHeaderFooter}
+ */
+CDocumentSectionsInfo.prototype.GetAllHdrFtrs = function()
+{
+	var HdrFtrs = [];
+
+	var Count = this.Elements.length;
+	for (var Index = 0; Index < Count; Index++)
+	{
+		var SectPr = this.Elements[Index].SectPr;
+		SectPr.GetAllHdrFtrs(HdrFtrs);
+	}
+
+	return HdrFtrs;
 };
 CDocumentSectionsInfo.prototype.GetAllContentControls = function(arrContentControls)
 {

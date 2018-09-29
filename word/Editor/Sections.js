@@ -194,7 +194,7 @@ CSectionPr.prototype =
         this.Set_Footer_Default(null);
     },
 
-    Get_AllHdrFtrs : function(HdrFtrs)
+	GetAllHdrFtrs : function(HdrFtrs)
     {
         if (!HdrFtrs)
             HdrFtrs = [];

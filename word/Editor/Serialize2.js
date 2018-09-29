@@ -5054,7 +5054,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 	this.WriteFootnoteRef = function(footnoteReference)
 	{
 		var oThis = this;
-		var footnote = footnoteReference.Get_Footnote();
+		var footnote = footnoteReference.GetFootnote();
 		if (null != footnoteReference.CustomMark) {
 			this.bs.WriteItem(c_oSerNotes.RefCustomMarkFollows, function() {oThis.memory.WriteBool(footnoteReference.CustomMark);});
 		}

@@ -1976,7 +1976,7 @@ Paragraph.prototype.private_RecalculateLineCheckFootnotes = function(CurLine, Cu
 	var oLineBreakPos = this.GetLineEndPos(CurLine);
 	for (var nIndex = 0, nCount = PRS.Footnotes.length; nIndex < nCount; ++nIndex)
 	{
-		var oFootnote = PRS.Footnotes[nIndex].FootnoteReference.Get_Footnote();
+		var oFootnote = PRS.Footnotes[nIndex].FootnoteReference.GetFootnote();
 		var oPos      = PRS.Footnotes[nIndex].Pos;
 
 		// Проверим позицию

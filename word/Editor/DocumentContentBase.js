@@ -180,7 +180,7 @@ CDocumentContentBase.prototype.Reassign_ImageUrls = function(mapUrls)
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа
  * @param {?CFootEndnote} oLastFootnote - если null, то ищем до конца документа
  */
-CDocumentContentBase.prototype.Get_FootnotesList = function(oFirstFootnote, oLastFootnote)
+CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 {
 	var oEngine = new CDocumentFootnotesRangeEngine();
 	oEngine.Init(oFirstFootnote, oLastFootnote);
@@ -192,7 +192,7 @@ CDocumentContentBase.prototype.Get_FootnotesList = function(oFirstFootnote, oLas
 	{
 		var oParagraph = arrParagraphs[nIndex];
 
-		if (true === oParagraph.Get_FootnotesList(oEngine))
+		if (true === oParagraph.GetFootnotesList(oEngine))
 			return arrFootnotes;
 	}
 

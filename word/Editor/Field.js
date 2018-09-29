@@ -309,6 +309,11 @@ ParaField.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseC
 		SearchPos.Found     = true;
 	}
 };
+ParaField.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	arrFields.push(this);
+	return CParagraphContentWithParagraphLikeContent.prototype.GetAllFields.apply(this, arguments);
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Работа с данными поля
 //----------------------------------------------------------------------------------------------------------------------
@@ -478,6 +483,10 @@ ParaField.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 		return this;
 
 	return null;
+};
+ParaField.prototype.Update = function(isCreateHistoryPoint, isRecalculate)
+{
+	// TODO: Реализовать
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования

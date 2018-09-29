@@ -621,7 +621,7 @@ CDocumentControllerBase.prototype.GetSelectedText = function(bClearText, oPr){re
  * Получаем текущий параграф.
  * @returns {?Paragraph}
  */
-CDocumentControllerBase.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs){return null};
+CDocumentControllerBase.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr){return null};
 /**
  * Собираем информацию о выделенной части документа.
  * @param oInfo
@@ -787,3 +787,10 @@ CDocumentControllerBase.prototype.GetSimilarNumbering = function(oContinueEngine
  * @returns {?Object}
  */
 CDocumentControllerBase.prototype.GetPlaceHolderObject = function(){return null;};
+/**
+ * Получаем массив все полей в документе (простых и сложных)
+ * @param isUseSelection {boolean} ищем по селекут или вообще все
+ * @param arrFields - массив, который мы заполняем, если не задан, то создается новый и возвращается
+ * @returns {Array}
+ */
+CDocumentControllerBase.prototype.GetAllFields = function(isUseSelection, arrFields){return arrFields ? arrFields : [];};
