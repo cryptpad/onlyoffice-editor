@@ -1091,6 +1091,7 @@ CBlockLevelSdt.prototype.SetPr = function(oPr)
 	this.SetTag(oPr.Tag);
 	this.SetLabel(oPr.Label);
 	this.SetContentControlLock(oPr.Lock);
+	this.SetContentControlId(oPr.Id);
 
 	if (undefined !== oPr.DocPartObj)
 		this.SetDocPartObj(oPr.DocPartObj.Category, oPr.DocPartObj.Gallery, oPr.DocPartObj.Unique);
