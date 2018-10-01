@@ -9657,6 +9657,8 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 		}
 	}
 
+	var isInText = this.IsInText(X, Y, CurPage);
+
 	var oContentControl = oInfo.GetInlineLevelSdt();
 	var oHyperlink      = oInfo.GetHyperlink();
 	if (oContentControl)
@@ -9664,23 +9666,25 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 
 	var Footnote  = this.CheckFootnote(X, Y, CurPage);
 
-	if (null != oHyperlink && (Y <= this.Pages[CurPage].Bounds.Bottom && Y >= this.Pages[CurPage].Bounds.Top))
+	if (isInText && null != oHyperlink && (Y <= this.Pages[CurPage].Bounds.Bottom && Y >= this.Pages[CurPage].Bounds.Top))
 	{
 		MMData.Type      = AscCommon.c_oAscMouseMoveDataTypes.Hyperlink;
 		MMData.Hyperlink = new Asc.CHyperlinkProperty(oHyperlink);
 
 		MMData.Hyperlink.ToolTip = oHyperlink.GetToolTip();
 	}
-	else if (null !== Footnote && this.Parent instanceof CDocument)
+	else if (isInText && null !== Footnote && this.Parent instanceof CDocument)
 	{
 		MMData.Type   = AscCommon.c_oAscMouseMoveDataTypes.Footnote;
 		MMData.Text   = Footnote.GetHint();
 		MMData.Number = Footnote.GetNumber();
 	}
 	else
+	{
 		MMData.Type = AscCommon.c_oAscMouseMoveDataTypes.Common;
+	}
 
-	if ((null != oHyperlink || bPageRefLink) && true === AscCommon.global_keyboardEvent.CtrlKey)
+	if (isInText && (null != oHyperlink || bPageRefLink) && true === AscCommon.global_keyboardEvent.CtrlKey)
 		this.DrawingDocument.SetCursorType("pointer", MMData);
 	else
 		this.DrawingDocument.SetCursorType("text", MMData);

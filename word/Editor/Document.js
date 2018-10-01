@@ -6546,41 +6546,44 @@ CDocument.prototype.Selection_SetEnd = function(X, Y, MouseEvent)
         {
             this.Selection.Use = false;
 
-            if (null != this.Selection.Data && this.Selection.Data.Hyperlink)
-            {
-				var oHyperlink    = this.Selection.Data.Hyperlink;
-				var sBookmarkName = oHyperlink.GetAnchor();
-				var sValue        = oHyperlink.GetValue();
-
-				if (oHyperlink.IsTopOfDocument())
-				{
-					this.MoveCursorToStartOfDocument();
-				}
-				else if (sBookmarkName)
-				{
-					var oBookmark = this.BookmarksManager.GetBookmarkByName(sBookmarkName);
-					if (oBookmark)
-						oBookmark[0].GoToBookmark();
-				}
-				else if (sValue)
-				{
-					editor.sync_HyperlinkClickCallback(sValue);
-
-					oHyperlink.SetVisited(true);
-					for (var PageIdx = Item.Get_AbsolutePage(0); PageIdx < Item.Get_AbsolutePage(0) + Item.Get_PagesCount(); PageIdx++)
-						this.DrawingDocument.OnRecalculatePage(PageIdx, this.Pages[PageIdx]);
-
-					this.DrawingDocument.OnEndRecalculate(false, true);
-				}
-            }
-            else if (null !== this.Selection.Data && this.Selection.Data.PageRef)
+            if (this.IsInText(X, Y, this.CurPage))
 			{
-				var oInstruction  = this.Selection.Data.PageRef.GetInstruction();
-				if (oInstruction && fieldtype_PAGEREF === oInstruction.GetType())
+				if (null != this.Selection.Data && this.Selection.Data.Hyperlink)
 				{
-					var oBookmark = this.BookmarksManager.GetBookmarkByName(oInstruction.GetBookmarkName());
-					if (oBookmark)
-						oBookmark[0].GoToBookmark();
+					var oHyperlink    = this.Selection.Data.Hyperlink;
+					var sBookmarkName = oHyperlink.GetAnchor();
+					var sValue        = oHyperlink.GetValue();
+
+					if (oHyperlink.IsTopOfDocument())
+					{
+						this.MoveCursorToStartOfDocument();
+					}
+					else if (sBookmarkName)
+					{
+						var oBookmark = this.BookmarksManager.GetBookmarkByName(sBookmarkName);
+						if (oBookmark)
+							oBookmark[0].GoToBookmark();
+					}
+					else if (sValue)
+					{
+						editor.sync_HyperlinkClickCallback(sValue);
+
+						oHyperlink.SetVisited(true);
+						for (var PageIdx = Item.Get_AbsolutePage(0); PageIdx < Item.Get_AbsolutePage(0) + Item.Get_PagesCount(); PageIdx++)
+							this.DrawingDocument.OnRecalculatePage(PageIdx, this.Pages[PageIdx]);
+
+						this.DrawingDocument.OnEndRecalculate(false, true);
+					}
+				}
+				else if (null !== this.Selection.Data && this.Selection.Data.PageRef)
+				{
+					var oInstruction = this.Selection.Data.PageRef.GetInstruction();
+					if (oInstruction && fieldtype_PAGEREF === oInstruction.GetType())
+					{
+						var oBookmark = this.BookmarksManager.GetBookmarkByName(oInstruction.GetBookmarkName());
+						if (oBookmark)
+							oBookmark[0].GoToBookmark();
+					}
 				}
 			}
         }

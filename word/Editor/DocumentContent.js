@@ -6022,52 +6022,55 @@ CDocumentContent.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent
 		{
 			this.Selection.Use = false;
 
-			if (null != this.Selection.Data && this.Selection.Data.Hyperlink)
+			if (this.IsInText(X, Y, this.Get_AbsolutePage(this.CurPage)))
 			{
-				var oHyperlink    = this.Selection.Data.Hyperlink;
-				var sBookmarkName = oHyperlink.GetAnchor();
-				var sValue        = oHyperlink.GetValue();
+				if (null != this.Selection.Data && this.Selection.Data.Hyperlink)
+				{
+					var oHyperlink    = this.Selection.Data.Hyperlink;
+					var sBookmarkName = oHyperlink.GetAnchor();
+					var sValue        = oHyperlink.GetValue();
 
-				if (oHyperlink.IsTopOfDocument())
-				{
-					if (this.LogicDocument && this.LogicDocument.MoveCursorToStartOfDocument)
-						this.LogicDocument.MoveCursorToStartOfDocument();
-				}
-				else if (sBookmarkName)
-				{
-					var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
-					var oBookmark          = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(sBookmarkName) : null;
-					if (oBookmark)
-						oBookmark[0].GoToBookmark();
-				}
-				else if (sValue)
-				{
-					editor && editor.sync_HyperlinkClickCallback(sValue);
-					this.Selection.Data.Hyperlink.SetVisited(true);
-					if (this.DrawingDocument.m_oLogicDocument)
+					if (oHyperlink.IsTopOfDocument())
 					{
-						if (editor.isDocumentEditor)
+						if (this.LogicDocument && this.LogicDocument.MoveCursorToStartOfDocument)
+							this.LogicDocument.MoveCursorToStartOfDocument();
+					}
+					else if (sBookmarkName)
+					{
+						var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
+						var oBookmark          = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(sBookmarkName) : null;
+						if (oBookmark)
+							oBookmark[0].GoToBookmark();
+					}
+					else if (sValue)
+					{
+						editor && editor.sync_HyperlinkClickCallback(sValue);
+						this.Selection.Data.Hyperlink.SetVisited(true);
+						if (this.DrawingDocument.m_oLogicDocument)
 						{
-							for (var PageIdx = Item.Get_AbsolutePage(0); PageIdx < Item.Get_AbsolutePage(0) + Item.Get_PagesCount(); PageIdx++)
-								this.DrawingDocument.OnRecalculatePage(PageIdx, this.DrawingDocument.m_oLogicDocument.Pages[PageIdx]);
+							if (editor.isDocumentEditor)
+							{
+								for (var PageIdx = Item.Get_AbsolutePage(0); PageIdx < Item.Get_AbsolutePage(0) + Item.Get_PagesCount(); PageIdx++)
+									this.DrawingDocument.OnRecalculatePage(PageIdx, this.DrawingDocument.m_oLogicDocument.Pages[PageIdx]);
+							}
+							else
+							{
+								this.DrawingDocument.OnRecalculatePage(PageIdx, this.DrawingDocument.m_oLogicDocument.Slides[PageIdx]);
+							}
+							this.DrawingDocument.OnEndRecalculate(false, true);
 						}
-						else
-						{
-							this.DrawingDocument.OnRecalculatePage(PageIdx, this.DrawingDocument.m_oLogicDocument.Slides[PageIdx]);
-						}
-						this.DrawingDocument.OnEndRecalculate(false, true);
 					}
 				}
-			}
-			else if (null !== this.Selection.Data && this.Selection.Data.PageRef)
-			{
-				var oInstruction  = this.Selection.Data.PageRef.GetInstruction();
-				if (oInstruction && fieldtype_PAGEREF === oInstruction.GetType())
+				else if (null !== this.Selection.Data && this.Selection.Data.PageRef)
 				{
-					var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
-					var oBookmark = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(oInstruction.GetBookmarkName()) : null;
-					if (oBookmark)
-						oBookmark[0].GoToBookmark();
+					var oInstruction = this.Selection.Data.PageRef.GetInstruction();
+					if (oInstruction && fieldtype_PAGEREF === oInstruction.GetType())
+					{
+						var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
+						var oBookmark          = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(oInstruction.GetBookmarkName()) : null;
+						if (oBookmark)
+							oBookmark[0].GoToBookmark();
+					}
 				}
 			}
 		}
