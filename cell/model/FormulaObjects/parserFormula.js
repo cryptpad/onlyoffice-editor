@@ -1246,6 +1246,17 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		});
 		return arr;
 	};
+	cArea.prototype.getMatrixNoEmpty = function () {
+		var arr = [], r = this.getRange(), res;
+		r._foreachNoEmpty(function (cell, i, j, r1, c1) {
+			if (!arr[i - r1]) {
+				arr[i - r1] = [];
+			}
+
+			arr[i - r1][j - c1] = checkTypeCell(cell);
+		});
+		return arr;
+	};
 	cArea.prototype.getValuesNoEmpty = function (checkExclude, excludeHiddenRows, excludeErrorsVal, excludeNestedStAg) {
 		var arr = [], r = this.getRange();
 
