@@ -1518,6 +1518,21 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return arr;
 	};
+	cArea3D.prototype.getMatrixNoEmpty = function () {
+		var arr = [], r = this.getRanges(), res;
+		for (var k = 0; k < r.length; k++) {
+			arr[k] = [];
+			r[k]._foreachNoEmpty(function (cell, i, j, r1, c1) {
+				if (!arr[k][i - r1]) {
+					arr[k][i - r1] = [];
+				}
+				res = checkTypeCell(cell);
+
+				arr[k][i - r1][j - c1] = res;
+			});
+		}
+		return arr;
+	};
 	cArea3D.prototype.foreach2 = function (action) {
 		var _wsA = this.wsRange();
 		if (_wsA.length >= 1) {
