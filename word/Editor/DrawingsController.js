@@ -550,10 +550,5 @@ CDrawingsController.prototype.GetSimilarNumbering = function(oEngine)
 };
 CDrawingsController.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
-	// Поиск по всем автофигурам должен происходить не здесь
-	if (!isUseSelection)
-		return arrFields ? arrFields : [];
-
-	// TODO: Реализовать
-	return arrFields ? arrFields : [];
+	return this.DrawingObjects.GetAllFields(isUseSelection, arrFields);
 };

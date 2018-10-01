@@ -2642,10 +2642,12 @@ ParaDrawing.prototype.CheckContentControlDeletingLock = function(){
         this.DocumentContent.CheckContentControlDeletingLock();
 	}
 };
-ParaDrawing.prototype.GetAllFields = function(isUseSeleciton, arrFields)
+ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
-	// TODO: Реализовать
-
+	if(this.GraphicObj)
+	{
+		return this.GraphicObj.GetAllFields(isUseSelection, arrFields);
+	}
 	return arrFields ? arrFields : [];
 };
 
