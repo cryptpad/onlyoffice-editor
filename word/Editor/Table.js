@@ -2797,13 +2797,6 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 };
 CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount)
 {
-	if (this.Parent.RecalcInfo.FlowObject === this && c_oAscVAnchor.Text === this.PositionV.RelativeFrom)
-	{
-		this.Y -= this.PositionV.Value;
-		this.YLimit -= this.PositionV.Value;
-		return;
-	}
-
 	this.X_origin = X;
 	this.X        = X;
 	this.Y        = Y + 0.001; // Погрешность для Flow-таблиц
