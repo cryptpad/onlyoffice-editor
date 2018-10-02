@@ -810,6 +810,8 @@ function (window, undefined) {
 	cMATCH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
 
+		return new cError(cErrorType.not_available);
+
 		var bArray = false, array, a1RowCount, a1ColumnCount;
 
 		function search(a0, a1, a2) {
@@ -828,7 +830,7 @@ function (window, undefined) {
 				arr = a1[0];
 			} else {
 				arr = [];
-				for (i = 0; i < a1RowCount; i++) {
+				for (i = 0; i < a1.length; i++) {
 					if(a1[i]) {
 						arr[i] = a1[i][0];
 					}
@@ -948,18 +950,20 @@ function (window, undefined) {
 				} else {
 					return new cError(cErrorType.not_available);
 				}
-				return search(a0, a1, a2)
+				return search(a0, a1, a2);
 			} else if(0 === a2Value) {
-				if (cElementType.array === arg1.type || cElementType.cellsRange === arg1.type) {
-					arg1 = arg1.getMatrix();
-				} else if (cElementType.cellsRange3D === arg1.type && arg1.isSingleSheet()) {
-					arg1 = arg1.getMatrixNoEmpty()[0];
-				} else if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type) {
-					arg1 = arg1.getMatrix();
+				if (cElementType.array === a1.type) {
+					a1 = a1.getMatrix();
+				} else if(cElementType.cellsRange === a1.type) {
+					a1 = a1.getMatrixNoEmpty();
+				} else if (cElementType.cellsRange3D === a1.type && a1.isSingleSheet()) {
+					a1 = a1.getMatrixNoEmpty()[0];
+				} else if (cElementType.cell === a1.type || cElementType.cell3D === a1.type) {
+					a1 = a1.getMatrix();
 				} else {
 					return new cError(cErrorType.not_available);
 				}
-				return search(arg0, arg1, arg2)
+				return search(a0, a1, a2);
 			} else {
 				return binarySearch(a0Value, a0Type, a2Value);
 			}
@@ -993,7 +997,7 @@ function (window, undefined) {
 			return new cError(cErrorType.not_available);
 		}
 
-		//TODO ограничить макимум строк
+		//TODO ограничить макcимум строк
 		a1RowCount = bArray ? array.length : array.bbox.r2 - array.bbox.r1 + 1;
 		a1ColumnCount = bArray ? array[0].length : array.bbox.c2 - array.bbox.c1 + 1;
 
