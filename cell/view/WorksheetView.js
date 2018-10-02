@@ -1822,17 +1822,15 @@
 					maxCol = Math.max(maxCol, c);
 					maxRow = Math.max(maxRow, r);
 				}
-				if (rowCache && rowCache.columnsWithText[c]) {
+				var ct = t._getCellTextCache(c, r);
+				if (ct !== undefined) {
 					rightSide = 0;
-					var ct = t._getCellTextCache(c, r);
-					if (ct !== undefined) {
-						if (!ct.flags.isMerged() && !ct.flags.wrapText) {
-							rightSide = ct.sideR;
-						}
-
-						maxCol = Math.max(maxCol, c + rightSide);
-						maxRow = Math.max(maxRow, r);
+					if (!ct.flags.isMerged() && !ct.flags.wrapText) {
+						rightSide = ct.sideR;
 					}
+
+					maxCol = Math.max(maxCol, c + rightSide);
+					maxRow = Math.max(maxRow, r);
 				}
 			}
 		});
@@ -2607,13 +2605,12 @@
 	/** Рисует текст ячейки */
 	WorksheetView.prototype._drawCellText =
 		function (drawingCtx, col, row, colStart, colEnd, offsetX, offsetY, drawMergedCells) {
-			var r = this._getRowCache(row);
-	        if (!(r && r.columnsWithText[col])) {
+			var ct = this._getCellTextCache(col, row);
+	        if (!ct) {
 				return null;
             }
 			var c = this._getVisibleCell(col, row);
 			var color = c.getFont().getColor();
-			var ct = this._getCellTextCache(col, row);
 			var isMerged = ct.flags.isMerged(), range = undefined, isWrapped = ct.flags.wrapText;
 			var ctx = drawingCtx || this.drawingCtx;
 
@@ -4517,7 +4514,7 @@
 
     WorksheetView.prototype._getCellCache = function (col, row) {
         var r = this.cache.rows[row];
-        return r && r.columns[col];
+		return r && r.columnsWithText[col] && r.columns[col];
     };
 
     WorksheetView.prototype._getCellTextCache = function (col, row, dontLookupMergedCells) {
