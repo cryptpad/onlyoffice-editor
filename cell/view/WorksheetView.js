@@ -2361,8 +2361,11 @@
 				return;
 			}
 
+			//добавляю флаги для учета переноса строки
+			var cellFlags = new AscCommonExcel.CellFlags();
+			cellFlags.wrapText = true;
 			var fragments = getFragments(portion);
-			t.stringRender.setString(fragments);
+			t.stringRender.setString(fragments, cellFlags);
 
 			var textMetrics = t.stringRender._measureChars();
 			var x, y;
@@ -14704,6 +14707,11 @@
 			}
 			case c_nHeaderFooterTime: {
 
+				break;
+			}
+			case c_nHeaderFooterLineBreak: {
+				//TODO возможно стоит добавлять символ переноса строки к предыдущему параграфу
+				res = "\n";
 				break;
 			}
 		}
