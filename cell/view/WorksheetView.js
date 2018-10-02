@@ -4271,6 +4271,7 @@
             }
         }
 
+		//TODO пересмотреть! возможно стоит очищать частями в зависимости от print_area
 		//print lines view
 		if(this.viewPrintLines) {
 			this.overlayCtx.clear();
