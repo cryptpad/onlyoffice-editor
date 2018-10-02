@@ -1078,8 +1078,8 @@ CDrawingDocument.prototype.OnMouseMove = function(e)
                 if(oTargetTextObject){
                     var _oldShift = global_mouseEvent.ShiftKey;
                     global_mouseEvent.ShiftKey = true;
-                    oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, pos.Page);
-                    oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                    oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, 0);
+                    oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, 0);
                     global_mouseEvent.ShiftKey = _oldShift;
                     this.LogicDocument.Document_UpdateSelectionState();
                     this.m_oWordControl.OnUpdateOverlay();
@@ -1146,8 +1146,8 @@ CDrawingDocument.prototype.OnMouseMove = function(e)
                 if(oTargetTextObject){
                     var _oldShift = global_mouseEvent.ShiftKey;
                     global_mouseEvent.ShiftKey = true;
-                    oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, pos.Page);
-                    oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                    oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, 0);
+                    oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, 0);
                     global_mouseEvent.ShiftKey = _oldShift;
                     this.LogicDocument.Document_UpdateSelectionState();
                     this.m_oWordControl.OnUpdateOverlay();
@@ -1519,8 +1519,8 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
                 var _oldShift = global_mouseEvent.ShiftKey;
                 global_mouseEvent.ShiftKey = true;
                 oController.cursorMoveRight(false, false);
-                oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, pos.Page);
-                oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, 0);
+                oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, 0);
                 global_mouseEvent.ShiftKey = _oldShift;
                 this.LogicDocument.Document_UpdateSelectionState();
                 this.m_oWordControl.OnUpdateOverlay();
@@ -1537,8 +1537,8 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
                 var _oldShift = global_mouseEvent.ShiftKey;
                 global_mouseEvent.ShiftKey = true;
                 oController.cursorMoveLeft(false, false);
-                oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, pos.Page);
-                oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, pos.Page);
+                oTargetTextObject.selectionSetStart(global_mouseEvent, pos.X, pos.Y, 0);
+                oTargetTextObject.selectionSetEnd(global_mouseEvent, pos.X, pos.Y, 0);
                 global_mouseEvent.ShiftKey = _oldShift;
                 this.LogicDocument.Document_UpdateSelectionState();
                 this.m_oWordControl.OnUpdateOverlay();
