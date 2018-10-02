@@ -835,11 +835,6 @@
 		return b - a;
 	}
 
-	function fOnlyUnique(value, index, self)
-	{
-		return self.indexOf(value) === index;
-	}
-
 	function isLeadingSurrogateChar(nCharCode)
 	{
 		return (nCharCode >= 0xD800 && nCharCode <= 0xDFFF);
@@ -4092,7 +4087,6 @@
 	window["AscCommon"].getFullImageSrc2 = getFullImageSrc2;
 	window["AscCommon"].fSortAscending = fSortAscending;
 	window["AscCommon"].fSortDescending = fSortDescending;
-	window["AscCommon"].fOnlyUnique = fOnlyUnique;
 	window["AscCommon"].isLeadingSurrogateChar = isLeadingSurrogateChar;
 	window["AscCommon"].decodeSurrogateChar = decodeSurrogateChar;
 	window["AscCommon"].encodeSurrogateChar = encodeSurrogateChar;

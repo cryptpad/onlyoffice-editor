@@ -895,7 +895,7 @@
 
     // Проверяет, есть ли числовые значения в диапазоне
     WorksheetView.prototype._hasNumberValueInActiveRange = function () {
-        var cell, cellType, isNumberFormat, arrCols = [], arrRows = [];
+        var cell, cellType, exist = false, setCols = {}, setRows = {};
         // ToDo multiselect
         var selectionRange = this.model.selectionRange.getLast();
         if (selectionRange.isOneCell()) {
@@ -914,18 +914,21 @@
                 if (cell) {
                     // Нашли не пустую ячейку, проверим формат
                     cellType = cell.cellType;
-                    isNumberFormat = (null == cellType || CellValueType.Number === cellType);
-                    if (isNumberFormat) {
-                        arrCols.push(c);
-                        arrRows.push(r);
+                    if (null == cellType || CellValueType.Number === cellType) {
+						exist = setRows[r] = setCols[c] = true;
                     }
                 }
             }
         }
-        if (0 !== arrCols.length) {
+        if (exist) {
             // Делаем массивы уникальными и сортируем
-            arrCols = arrCols.filter(AscCommon.fOnlyUnique);
-            arrRows = arrRows.filter(AscCommon.fOnlyUnique);
+            var i, arrCols = [], arrRows = [];
+            for(i in setCols) {
+				arrCols.push(+i);
+            }
+			for(i in setRows) {
+				arrRows.push(+i);
+			}
             return {arrCols: arrCols.sort(fSortAscending), arrRows: arrRows.sort(fSortAscending)};
         } else {
             return null;

@@ -11525,8 +11525,8 @@
 		this.hiddenRowsSum = [];
 		this.hiddenColsSum = [];
 		this.dirty = true;
-		this.recalcHiddenRows = [];
-		this.recalcHiddenCols = [];
+		this.recalcHiddenRows = {};
+		this.recalcHiddenCols = {};
 		this.hiddenRowMin = gc_nMaxRow0;
 		this.hiddenRowMax = 0;
 	}
@@ -11535,7 +11535,7 @@
 		this.hiddenRowMax = 0;
 	};
 	HiddenManager.prototype.addHidden = function (isRow, index) {
-		(isRow ? this.recalcHiddenRows : this.recalcHiddenCols).push(index);
+		(isRow ? this.recalcHiddenRows : this.recalcHiddenCols)[index] = true;
 		if (isRow) {
 			this.hiddenRowMin = Math.min(this.hiddenRowMin, index);
 			this.hiddenRowMax = Math.max(this.hiddenRowMax, index);
@@ -11544,18 +11544,17 @@
 	};
 	HiddenManager.prototype.getRecalcHidden = function () {
 		var res = [];
-		this.recalcHiddenRows.filter(function (value, index, self) {
-			if (AscCommon.fOnlyUnique(value, index, self)) {
-				res.push(new Asc.Range(0, value, gc_nMaxCol0, value));
-			}
-		});
-		this.recalcHiddenCols.filter(function (value, index, self) {
-			if (AscCommon.fOnlyUnique(value, index, self)) {
-				res.push(new Asc.Range(value, 0, value, gc_nMaxRow0));
-			}
-		});
-		this.recalcHiddenRows = [];
-		this.recalcHiddenCols = [];
+		var i;
+		for (i in this.recalcHiddenRows) {
+			i = +i;
+			res.push(new Asc.Range(0, i, gc_nMaxCol0, i));
+		}
+		for (i in this.recalcHiddenCols) {
+			i = +i;
+			res.push(new Asc.Range(i, 0, i, gc_nMaxRow0));
+		}
+		this.recalcHiddenRows = {};
+		this.recalcHiddenCols = {};
 		return res;
 	};
 	HiddenManager.prototype.getHiddenRowsRange = function() {
