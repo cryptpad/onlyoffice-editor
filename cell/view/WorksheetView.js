@@ -11743,11 +11743,6 @@
 			History.EndTransaction();
 		}
 
-		this.canChangeColWidth = isNotHistory ? c_oAscCanChangeColWidth.none : c_oAscCanChangeColWidth.numbers;
-		this._updateRange(bbox);
-		this.canChangeColWidth = c_oAscCanChangeColWidth.none;
-		this.draw(lockDraw);
-
 		if (oAutoExpansionTable) {
 			var callback = function () {
 				var options = {
@@ -11764,6 +11759,11 @@
 
 		// если вернуть false, то редактор не закроется
 		t.model.workbook.dependencyFormulas.unlockRecal();
+
+		this.canChangeColWidth = isNotHistory ? c_oAscCanChangeColWidth.none : c_oAscCanChangeColWidth.numbers;
+		this._updateRange(bbox);
+		this.canChangeColWidth = c_oAscCanChangeColWidth.none;
+		this.draw(lockDraw);
 		return true;
 	};
 
