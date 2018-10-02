@@ -6029,22 +6029,34 @@ CTable.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 			else
 			{
 				// Если текущая ячейка - последняя в последней строке, тогда мы выделаяем последнюю строку
-				var LastRow = this.Content[this.Content.length - 1];
-				var EndRow  = this.Content[EndPos.Row];
+				var oLastRow = this.GetRow(this.GetRowsCount() - 1);
+				var oEndRow  = this.GetRow(EndPos.Row);
 
 				var bRet = true;
-				if ((LastRow.Get_CellsCount() - 1 == EndPos.Cell && this.Content.length - 1 == EndPos.Row) || (!this.Parent.IsSelectedSingleElement() && this.Content.length - 1 == EndPos.Row && this.Content.length - 1 == StartPos.Row ))
+
+				if (EndPos.Cell < oEndRow.GetCellsCount() - 1 && this.Parent.IsSelectedSingleElement())
 				{
-					this.Selection.EndPos.Pos = {Cell : LastRow.Get_CellsCount() - 1, Row : LastRow.Index};
-					bRet                      = false;
-				}
-				else if (EndPos.Cell < EndRow.Get_CellsCount() - 1 && this.Parent.IsSelectedSingleElement())
-					this.Selection.EndPos.Pos = {Cell : EndPos.Cell + 1, Row : EndPos.Row};
-				else
 					this.Selection.EndPos.Pos = {
-						Cell : this.Content[EndPos.Row + 1].Get_CellsCount() - 1,
+						Cell : EndPos.Cell + 1,
+						Row  : EndPos.Row
+					};
+				}
+				else if (this.GetRowsCount() - 1 <= EndPos.Row)
+				{
+					this.Selection.EndPos.Pos = {
+						Cell : oLastRow.GetCellsCount() - 1,
+						Row  : oLastRow.Index
+					};
+
+					bRet = false;
+				}
+				else
+				{
+					this.Selection.EndPos.Pos = {
+						Cell : this.GetRow(EndPos.Row + 1).GetCellsCount() - 1,
 						Row  : EndPos.Row + 1
 					};
+				}
 
 				var bForceSelectByLines = false;
 				if (false === bRet && true == this.Is_Inline())
@@ -6094,24 +6106,39 @@ CTable.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 				this.Selection.Type = table_Selection_Cell;
 
 				// Если текущая ячейка - последняя в последней строке, тогда мы выделаяем последнюю строку
-				var LastRow = this.Content[this.Content.length - 1];
-				var CurRow  = this.CurCell.Row;
+				var oLastRow = this.GetRow(this.GetRowsCount() - 1);
+				var oCurRow  = this.CurCell.Row;
 
-				var bRet                    = true;
-				this.Selection.StartPos.Pos = {Cell : this.CurCell.Index, Row : this.CurCell.Row.Index};
+				this.Selection.StartPos.Pos = {
+					Cell : this.CurCell.Index,
+					Row  : this.CurCell.Row.Index
+				};
 
-				if (LastRow.Get_CellsCount() - 1 == this.CurCell.Index && LastRow.Index == this.CurCell.Row.Index)
+				var bRet = true;
+
+				if (this.CurCell.Index < oCurRow.Get_CellsCount() - 1)
 				{
-					this.Selection.EndPos.Pos = {Cell : LastRow.Get_CellsCount() - 1, Row : LastRow.Index};
-					bRet                      = false;
-				}
-				else if (this.CurCell.Index < CurRow.Get_CellsCount() - 1)
-					this.Selection.EndPos.Pos = {Cell : this.CurCell.Index + 1, Row : this.CurCell.Row.Index};
-				else
 					this.Selection.EndPos.Pos = {
-						Cell : this.Content[this.CurCell.Row.Index + 1].Get_CellsCount() - 1,
+						Cell : this.CurCell.Index + 1,
+						Row  : this.CurCell.Row.Index
+					};
+				}
+				else if (this.CurCell.Row.Index >= this.GetRowsCount() - 1)
+				{
+					this.Selection.EndPos.Pos = {
+						Cell : oLastRow.GetCellsCount() - 1,
+						Row  : oLastRow.Index
+					};
+
+					bRet = false;
+				}
+				else
+				{
+					this.Selection.EndPos.Pos = {
+						Cell : this.GetRoe(this.CurCell.Row.Index + 1).GetCellsCount() - 1,
 						Row  : this.CurCell.Row.Index + 1
 					};
+				}
 
 				var bForceSelectByLines = false;
 				if (false === bRet && true == this.Is_Inline())
