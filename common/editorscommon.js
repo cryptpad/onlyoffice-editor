@@ -3605,6 +3605,8 @@
 
         this.editorId = null;
 
+        this.nextChangesTimeoutId = -1;
+
         this.isNeedCrypt = function()
 		{
 			if (!window.g_asc_plugins)
@@ -3697,8 +3699,9 @@
 
         this.nextChanges = function()
 		{
-			setTimeout(function() {
+            this.nextChangesTimeoutId = setTimeout(function() {
 				AscCommon.EncryptionWorker.sendChanges(undefined, undefined);
+                this.nextChangesTimeoutId = -1;
 			}, 10);
 		};
 
@@ -3730,6 +3733,17 @@
 
             if (undefined !== type && 1 != this.arrData.length)
             	return; // вызовется на коллбэке
+
+			if (undefined !== type && -1 != this.nextChangesTimeoutId)
+			{
+				// вызвали send, когда данные на receiveChanges были удалены - и запустился nextChanges
+				// но так как он сделан на таймере - то просто он не успел отработать.
+				// тут запускаем единственное изменение - это и есть как бы next.
+				// убиваем таймер
+
+				clearTimeout(this.nextChangesTimeoutId);
+				this.nextChangesTimeoutId = -1;
+			}
 
             if (AscCommon.EncryptionMessageType.Encrypt == this.arrData[0].type)
             {
