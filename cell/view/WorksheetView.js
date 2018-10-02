@@ -7475,7 +7475,7 @@
 	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl) {
 		this.cleanSelection();
 
-		var activeCell = this.model.selectionRange.activeCell.clone();
+		var activeCell = this._getSelection().activeCell.clone();
 
 		if (!this.isFormulaEditMode) {
 			this.cleanFormulaRanges();
