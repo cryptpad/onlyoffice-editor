@@ -373,13 +373,14 @@
 	};
 
 	/** @constructor */
-	function asc_CDefName(n, r, s, t, h, l) {
+	function asc_CDefName(n, r, s, t, h, l, x) {
 		this.Name = n;
 		this.LocalSheetId = s;
 		this.Ref = r;
 		this.isTable = t;
 		this.Hidden = h;
 		this.isLock = l;
+		this.isXLNM = x;
 	}
 
 	asc_CDefName.prototype = {
@@ -395,6 +396,8 @@
 			return this.Hidden;
 		}, asc_getIsLock: function () {
 			return this.isLock;
+		}, asc_getIsXlnm: function () {
+			return this.isXLNM;
 		}
 	};
 
@@ -519,6 +522,7 @@
 	prot["asc_getIsTable"] = prot.asc_getIsTable;
 	prot["asc_getIsHidden"] = prot.asc_getIsHidden;
 	prot["asc_getIsLock"] = prot.asc_getIsLock;
+	prot["asc_getIsXlnm"] = prot.asc_getIsXlnm;
 
 	window["Asc"].asc_CCheckDefName = window["Asc"]["asc_CCheckDefName"] = asc_CCheckDefName;
 	prot = asc_CCheckDefName.prototype;

@@ -2392,6 +2392,9 @@
         t.handlers.trigger("asc_onError", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
       }
       t._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
+      if(ws.viewPrintLines) {
+		  ws.updateSelection();
+	  }
     };
     var defNameId;
     if (oldName) {
@@ -2428,7 +2431,7 @@
       return;
     }
 
-    var ws = this.getWorksheet(), t = this
+    var ws = this.getWorksheet(), t = this;
 
     if (oldName) {
 
@@ -2440,6 +2443,9 @@
           t.handlers.trigger("asc_onError", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
         }
         t._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
+		if(ws.viewPrintLines) {
+		  ws.updateSelection();
+		}
       };
       var defNameId = t.model.getDefinedName(oldName).getNodeId();
 
