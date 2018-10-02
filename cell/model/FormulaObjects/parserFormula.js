@@ -854,7 +854,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		return new cString(this.value ? "TRUE" : "FALSE");
 	};
 	cBool.prototype.toLocaleString = function () {
-		return new cString(this.value ? cBoolLocal.t : cBoolLocal.f);
+		return this.value ? cBoolLocal.t : cBoolLocal.f;
 	};
 	cBool.prototype.tocBool = function () {
 		return this;
@@ -1246,6 +1246,17 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		});
 		return arr;
 	};
+	cArea.prototype.getMatrixNoEmpty = function () {
+		var arr = [], r = this.getRange(), res;
+		r._foreachNoEmpty(function (cell, i, j, r1, c1) {
+			if (!arr[i - r1]) {
+				arr[i - r1] = [];
+			}
+
+			arr[i - r1][j - c1] = checkTypeCell(cell);
+		});
+		return arr;
+	};
 	cArea.prototype.getValuesNoEmpty = function (checkExclude, excludeHiddenRows, excludeErrorsVal, excludeNestedStAg) {
 		var arr = [], r = this.getRange();
 
@@ -1386,11 +1397,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			_val.push(new cError(cErrorType.bad_reference));
 			return _val;
 		}
-		_r[0]._foreachNoEmpty(function (_cell) {
-			if (cell.getID() === _cell.getName()) {
+
+		if(_r[0].worksheet) {
+			_r[0].worksheet._getCellNoEmpty(cell.row - 1, cell.col - 1, function(_cell) {
 				_val.push(checkTypeCell(_cell));
-			}
-		});
+			});
+		}
 
 		return (null == _val[0]) ? new cEmpty() : _val[0];
 	};
@@ -1496,6 +1508,21 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		for (var k = 0; k < r.length; k++) {
 			arr[k] = [];
 			r[k]._foreach2(function (cell, i, j, r1, c1) {
+				if (!arr[k][i - r1]) {
+					arr[k][i - r1] = [];
+				}
+				res = checkTypeCell(cell);
+
+				arr[k][i - r1][j - c1] = res;
+			});
+		}
+		return arr;
+	};
+	cArea3D.prototype.getMatrixNoEmpty = function () {
+		var arr = [], r = this.getRanges(), res;
+		for (var k = 0; k < r.length; k++) {
+			arr[k] = [];
+			r[k]._foreachNoEmpty(function (cell, i, j, r1, c1) {
 				if (!arr[k][i - r1]) {
 					arr[k][i - r1] = [];
 				}
@@ -6253,6 +6280,27 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 		return false;
+	};
+	parserFormula.prototype.simplifyRefType = function(val, opt_cell) {
+		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
+			val = val.getValue();
+			if (cElementType.empty === val.type && opt_cell) {
+				// Bug http://bugzilla.onlyoffice.com/show_bug.cgi?id=33941
+				val = new cNumber(0);
+			}
+		} else if (cElementType.array === val.type) {
+			val = val.getElement(0);
+		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
+			if (opt_cell) {
+				var range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);
+				val = val.cross(range, opt_cell.ws.getId());
+			} else if (cElementType.cellsRange === val.type) {
+				val = val.getValue2(0, 0);
+			} else {
+				val = val.getValue2(new CellAddress(val.getBBox0().r1, val.getBBox0().c1, 0));
+			}
+		}
+		return val;
 	};
 
 	function CalcRecursion() {

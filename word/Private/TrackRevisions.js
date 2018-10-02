@@ -283,7 +283,7 @@ CDocument.prototype.private_GetRevisionsChangeParagraph = function(Direction, Cu
 	}
     else
     {
-        var Pos = (true === this.Selection.Use && docpostype_DrawingObjects !== this.Get_DocPosType() ? (this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos) : this.CurPos.ContentPos);
+        var Pos = (true === this.Selection.Use && docpostype_DrawingObjects !== this.GetDocPosType() ? (this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos) : this.CurPos.ContentPos);
         this.private_GetRevisionsChangeParagraphInDocument(SearchEngine, Pos);
 
         if (Direction > 0)
@@ -324,7 +324,7 @@ CDocument.prototype.private_GetRevisionsChangeParagraphInDocument = function(Sea
 };
 CDocument.prototype.private_GetRevisionsChangeParagraphInHdrFtr = function(SearchEngine, HdrFtr)
 {
-    var AllHdrFtrs = this.SectionsInfo.Get_AllHdrFtrs();
+    var AllHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
     var Count = AllHdrFtrs.length;
 
     if (Count <= 0)
@@ -364,7 +364,7 @@ CDocument.prototype.private_GetRevisionsChangeParagraphInHdrFtr = function(Searc
 };
 CDocument.prototype.private_GetRevisionsChangeParagraphInFooters = function(SearchEngine, oFootnote)
 {
-	var arrFootnotes = this.Get_FootnotesList(null, null);
+	var arrFootnotes = this.GetFootnotesList(null, null);
 	var nCount = arrFootnotes.length;
 	if (nCount <= 0)
 		return;

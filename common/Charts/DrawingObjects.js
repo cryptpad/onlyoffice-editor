@@ -3144,8 +3144,6 @@ function DrawingObjects() {
             graphics.m_oFontManager = AscCommon.g_fontManager;
         }
 
-        var _offX = offsetX* Asc.getCvtRatio(0, 3, oDrawingContext.getPPIX());
-        var _offY = offsetY* Asc.getCvtRatio(0, 3, oDrawingContext.getPPIY());
         for(i = 0; i < aSparklineGroups.length; ++i) {
             var oSparklineGroup = aSparklineGroups[i];
 
@@ -3175,7 +3173,7 @@ function DrawingObjects() {
                     graphics.SetBaseTransform(_baseTransform);
                 }
 
-				sparkline.oCacheView.draw(graphics, _offX, _offY);
+				sparkline.oCacheView.draw(graphics, offsetX, offsetY);
 
                 if(oDrawingContext instanceof AscCommonExcel.CPdfPrinter)
                 {
@@ -4638,12 +4636,12 @@ function ObjectLocker(ws) {
     // For array of objects -=Use reset before use=-
     _t.checkObjects = function(callback) {
 
-        function callbackEx(result, sync) {
+        var callbackEx = function(result, sync) {
             //if ( worksheet )
             //	worksheet._drawCollaborativeElements(true);
             if ( callback )
                 callback(result, sync);
-        }
+        };
 
         if(Asc.editor && Asc.editor.collaborativeEditing && Asc.editor.collaborativeEditing.getGlobalLock()){
             callbackEx(false, true);
@@ -4665,7 +4663,7 @@ function ObjectLocker(ws) {
             if ( false === worksheet.collaborativeEditing.getCollaborativeEditing() ) {
                 // Пользователь редактирует один: не ждем ответа, а сразу продолжаем редактирование
                 asc_applyFunction(callbackEx, true, true);
-                callback = undefined;
+                callbackEx = undefined;
             }
             if ( false !== worksheet.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeMine) ) {
                 // Редактируем сами, проверяем дальше

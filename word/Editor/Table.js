@@ -2797,13 +2797,6 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 };
 CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount)
 {
-	if (this.Parent.RecalcInfo.FlowObject === this && c_oAscVAnchor.Text === this.PositionV.RelativeFrom)
-	{
-		this.Y -= this.PositionV.Value;
-		this.YLimit -= this.PositionV.Value;
-		return;
-	}
-
 	this.X_origin = X;
 	this.X        = X;
 	this.Y        = Y + 0.001; // Погрешность для Flow-таблиц
@@ -3362,7 +3355,11 @@ CTable.prototype.UpdateCursorType = function(X, Y, CurPage)
 	if (true === this.Selection.Start || table_Selection_Border === this.Selection.Type2 || table_Selection_Border_InnerTable === this.Selection.Type2)
 		return;
 
-	if (true === this.Check_EmptyPages(CurPage - 1) && true !== this.IsEmptyPage(CurPage))
+	// Случай, когда у нас уже есть трэк вложенной таблицы и курсор выходит во внешнюю. Чтобы трэк сразу не пропадал,
+	// пока курсор находится в области табличного трэка для вложенной таблицы.
+	if (true !== this.DrawingDocument.IsCursorInTableCur(X, Y, this.GetAbsolutePage(CurPage))
+		&& true === this.Check_EmptyPages(CurPage - 1)
+		&& true !== this.IsEmptyPage(CurPage))
 	{
 		this.private_StartTrackTable(CurPage);
 	}
@@ -5762,7 +5759,7 @@ CTable.prototype.PasteFormatting = function(TextPr, ParaPr, ApplyPara)
 		this.CurCell.Content.PasteFormatting(TextPr, ParaPr, false);
 	}
 };
-CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
@@ -5774,7 +5771,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 			var Pos  = Cells_array[0];
 			var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
 			Cell.Content.SelectAll();
-			Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, true);
+			Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, true, false);
 
 			this.CurCell = Cell;
 
@@ -5799,7 +5796,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 
 				var Cell_Content = Cell.Content;
 				Cell_Content.Set_ApplyToAll(true);
-				Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, false);
+				Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, false, false);
 				Cell_Content.Set_ApplyToAll(false);
 			}
 
@@ -5824,7 +5821,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 	}
 	else
 	{
-		this.CurCell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+		this.CurCell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 		if (false === this.CurCell.Content.IsSelectionUse())
 		{
@@ -7691,7 +7688,7 @@ CTable.prototype.GetDirectParaPr = function()
 
 	return this.CurCell.Content.GetDirectParaPr();
 };
-CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	if (arrSelectedParagraphs)
 	{
@@ -7706,12 +7703,12 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 			{
 				oCellContent.Set_ApplyToAll(true);
-				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs);
+				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 				oCellContent.Set_ApplyToAll(false);
 			}
 			else
 			{
-				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs);
+				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 			}
 		}
 
@@ -7720,7 +7717,7 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 	else if (true === bIgnoreSelection)
 	{
 		if (this.CurCell)
-			return this.CurCell.Content.GetCurrentParagraph(bIgnoreSelection, null);
+			return this.CurCell.Content.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 		else
 			null;
 	}
@@ -7737,13 +7734,13 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 			{
 				oCellContent.Set_ApplyToAll(true);
-				var oRes = oCellContent.GetCurrentParagraph(bIgnoreSelection, null);
+				var oRes = oCellContent.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 				oCellContent.Set_ApplyToAll(false);
 				return oRes;
 			}
 			else
 			{
-				return oCellContent.GetCurrentParagraph(bIgnoreSelection, null);
+				return oCellContent.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 			}
 		}
 	}
@@ -9177,7 +9174,7 @@ CTable.prototype.AddTableRow = function(bBefore)
 	var Cells_info = [];
 	for (var CurCell = 0; CurCell < CellsCount; CurCell++)
 	{
-		var Cell      = Row.Get_Cell(CurCell);
+		var Cell      = Row.GetCell(CurCell);
 		var Cell_info = Row.Get_CellInfo(CurCell);
 
 		var Cell_grid_start = Cell_info.StartGridCol;
@@ -9186,11 +9183,10 @@ CTable.prototype.AddTableRow = function(bBefore)
 		var VMerge_count_before = this.Internal_GetVertMergeCount2(RowId, Cell_grid_start, Cell_grid_span);
 		var VMerge_count_after  = this.Internal_GetVertMergeCount(RowId, Cell_grid_start, Cell_grid_span);
 
-		Cells_info[CurCell] =
-			{
-				VMerge_count_before : VMerge_count_before,
-				VMerge_count_after  : VMerge_count_after
-			};
+		Cells_info[CurCell] = {
+			VMerge_count_before : VMerge_count_before,
+			VMerge_count_after  : VMerge_count_after
+		};
 	}
 
 	// TODO: Пока делаем одинаковый CellSpacing
@@ -9216,20 +9212,19 @@ CTable.prototype.AddTableRow = function(bBefore)
 			New_Cell.Copy_Pr(Old_Cell.Pr);
 
 			// Копируем также текстовые настройки и настройки параграфа
-			var FirstPara = Old_Cell.Content.Get_FirstParagraph();
-			var TextPr    = FirstPara.Get_FirstRunPr();
-			New_Cell.Content.Set_ApplyToAll(true);
-
-			// Добавляем стиль во все параграфы
-			var PStyleId = FirstPara.Style_Get();
-			if (undefined !== PStyleId && null !== this.LogicDocument)
+			var oFirstPara = Old_Cell.GetContent().GetFirstParagraph();
+			if (oFirstPara)
 			{
-				var Styles = this.LogicDocument.Get_Styles();
-				New_Cell.Content.SetParagraphStyle(Styles.Get_Name(PStyleId));
-			}
+				var oNewCellContent = New_Cell.GetContent();
 
-			New_Cell.Content.AddToParagraph(new ParaTextPr(TextPr));
-			New_Cell.Content.Set_ApplyToAll(false);
+				var arrAllParagraphs = oNewCellContent.GetAllParagraphs({All : true});
+				for (var nParaIndex = 0, nParasCount = arrAllParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+				{
+					var oTempPara = arrAllParagraphs[nParaIndex];
+					oTempPara.SetDirectParaPr(oFirstPara.GetDirectParaPr(true));
+					oTempPara.SetDirectTextPr(oFirstPara.Get_FirstRunPr(), false);
+				}
+			}
 
 			if (true === bBefore)
 			{
@@ -13877,6 +13872,13 @@ CTable.prototype.GetLastParagraph = function()
 		return null;
 
 	return oRow.GetCell(nCellsCount - 1).GetContent().GetLastParagraph();
+};
+CTable.prototype.GetPlaceHolderObject = function()
+{
+	if (this.IsCellSelection())
+		return null;
+
+	return this.CurCell.GetContent().GetPlaceHolderObject();
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook

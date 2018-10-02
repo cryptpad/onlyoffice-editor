@@ -114,9 +114,13 @@ function CEditorPage(api)
     this.m_oDrawingDocument = new AscCommon.CDrawingDocument();
     this.m_oLogicDocument   = null;
 
+
+    this.SlideDrawer = new CSlideDrawer();
+
     this.m_oDrawingDocument.m_oWordControl = this;
     this.m_oDrawingDocument.m_oLogicDocument = this.m_oLogicDocument;
     this.m_oApi = api;
+
     this.Native = window["native"];
 }
 
@@ -409,6 +413,7 @@ CEditorPage.prototype.OnUpdateOverlay = function()
         if (this.m_oLogicDocument.CurPage > -1)
         {
             this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage].drawSelect(1);
+            drDoc.CheckSelectMobile();
         }
         drDoc.AutoShapesTrack.SetCurrentPage(-100);
         this.Native["DD_Overlay_EndDrawSelection"]();
@@ -425,6 +430,7 @@ CEditorPage.prototype.OnUpdateOverlay = function()
             drDoc.AutoShapesTrack.CorrectOverlayBounds();
         }
     }
+    drDoc.Collaborative_TargetsUpdate();
     this.Native["DD_Overlay_UpdateEnd"]();
     return true;
 };
@@ -519,13 +525,26 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
         return;
     }
     var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
+    if(!slide){
+        return;
+    }
     var master = slide.Layout.Master;
-    this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
+    if(bIsAttack || this.MasterLayouts !== master){
+        this.MasterLayouts = master;
+        this.m_oDrawingDocument.CheckLayouts(master);
+        this.m_oLogicDocument.Api.sendEvent("asc_onUpdateThemeIndex", master.ThemeIndex);
+        this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
+    }
 };
 
 CEditorPage.prototype.GoToPage = function(lPageNum)
 {
+    if(this.m_oDrawingDocument){
+        this.m_oDrawingDocument.SlidesCount = this.m_oLogicDocument.Slides.length;
+        this.m_oDrawingDocument.SlideCurrent = this.m_oLogicDocument.CurPage;
+    }
     this.Native["DD_SetCurrentPage"](lPageNum);
+    this.CheckLayouts(false);
 };
 
 CEditorPage.prototype.GetVerticalScrollTo = function(y)

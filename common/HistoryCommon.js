@@ -1091,7 +1091,9 @@
 			case AscDFH.historydescription_Document_SetGlobalSdtShowHighlight:
 				sString = "Document_SetGlobalSdtShowHighlight";
 				break;
-
+			case AscDFH.historydescription_Document_UpdateFields:
+				sString = "Document_UpdateFields";
+				break;
 		}
 		return sString;
 	}
@@ -3054,6 +3056,7 @@
 	window['AscDFH'].historydescription_Document_AutoCorrectHyphensWithDash         = 0x0159;
 	window['AscDFH'].historydescription_Document_SetGlobalSdtHighlightColor         = 0x015a;
 	window['AscDFH'].historydescription_Document_SetGlobalSdtShowHighlight          = 0x015b;
+	window['AscDFH'].historydescription_Document_UpdateFields                       = 0x015c;
 
 
 

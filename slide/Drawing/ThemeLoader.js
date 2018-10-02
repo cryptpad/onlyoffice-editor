@@ -128,23 +128,34 @@ function CThemeLoader()
 
     this.LoadThemeJSAsync = function(theme_src)
     {
-        var scriptElem = document.createElement('script');
-
-        if (scriptElem.readyState && false)
+        if(!window["NATIVE_EDITOR_ENJINE"])
         {
-            scriptElem.onreadystatechange = function () {
-                if (this.readyState == 'complete' || this.readyState == 'loaded')
-                {
-                    scriptElem.onreadystatechange = null;
-                    setTimeout(oThis._callback_theme_load, 0);
+            var scriptElem = document.createElement('script');
+    
+            if (scriptElem.readyState && false)
+            {
+                scriptElem.onreadystatechange = function () {
+                    if (this.readyState == 'complete' || this.readyState == 'loaded')
+                    {
+                        scriptElem.onreadystatechange = null;
+                        setTimeout(oThis._callback_theme_load, 0);
+                    }
                 }
             }
+            scriptElem.onload = scriptElem.onerror = oThis._callback_theme_load;
+    
+            scriptElem.setAttribute('src',theme_src);
+            scriptElem.setAttribute('type','text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(scriptElem);
         }
-        scriptElem.onload = scriptElem.onerror = oThis._callback_theme_load;
-
-        scriptElem.setAttribute('src',theme_src);
-        scriptElem.setAttribute('type','text/javascript');
-        document.getElementsByTagName('head')[0].appendChild(scriptElem);
+        else
+        {
+            window['native']['WC_LoadTheme'](theme_src);
+            if(window["g_theme" + (oThis.CurrentLoadThemeIndex + 1)])
+            {
+                this._callback_theme_load();
+            }
+        }
     };
 
     this._callback_theme_load = function()
@@ -168,7 +179,7 @@ function CThemeLoader()
             }
             AscCommon.History.MinorChanges = false;
 
-            if (oThis.IsReloadBinaryThemeEditorNow)
+            if (oThis.IsReloadBinaryThemeEditorNow || window["NATIVE_EDITOR_ENJINE"])
             {
                 oThis.asyncImagesEndLoaded();
                 oThis.IsReloadBinaryThemeEditorNow = false;

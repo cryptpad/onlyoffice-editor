@@ -311,7 +311,7 @@ NullState.prototype =
         }
 
         var drawing_page;
-        if(this.drawingObjects.document.Get_DocPosType() !== docpostype_HdrFtr)
+        if(this.drawingObjects.document.GetDocPosType() !== docpostype_HdrFtr)
         {
             drawing_page = this.drawingObjects.graphicPages[pageIndex];
         }

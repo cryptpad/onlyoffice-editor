@@ -1015,6 +1015,7 @@
 		[26, 1255, "windows-1255", "Hebrew (Windows)"],
 
 		[27, 932, "Shift_JIS", "Japanese (Shift-JIS)"],
+		[52, 950, "EUC-JP", "Japanese (EUC-JP)"],
 
 		[28, 949, "KS_C_5601-1987", "Korean (Windows)"],
 		[29, 51949, "EUC-KR", "Korean (EUC)"],

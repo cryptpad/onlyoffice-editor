@@ -1699,7 +1699,7 @@ ParaFootnoteReference.prototype.Read_FromBinary = function(Reader)
 	if (false === Reader.GetBool())
 		this.CustomMark = Reader.GetString2();
 };
-ParaFootnoteReference.prototype.Get_Footnote = function()
+ParaFootnoteReference.prototype.GetFootnote = function()
 {
 	return this.Footnote;
 };
@@ -1832,7 +1832,7 @@ ParaFootnoteRef.prototype.Get_Type = function()
 };
 ParaFootnoteRef.prototype.Copy = function()
 {
-	return new ParaFootnoteRef(this.Get_Footnote());
+	return new ParaFootnoteRef(this.GetFootnote());
 };
 ParaFootnoteRef.prototype.UpdateNumber = function(oFootnote)
 {

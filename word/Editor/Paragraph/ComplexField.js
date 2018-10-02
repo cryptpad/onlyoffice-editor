@@ -365,7 +365,7 @@ CComplexField.prototype.SetSeparateChar = function(oChar)
 	this.SeparateChar = oChar;
 	this.EndChar      = null;
 };
-CComplexField.prototype.Update = function(isCreateHistoryPoint)
+CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculate)
 {
 	this.private_UpdateInstruction();
 
@@ -401,7 +401,8 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint)
 
 	}
 
-	this.LogicDocument.Recalculate();
+	if (false !== isNeedRecalculate)
+		this.LogicDocument.Recalculate();
 };
 CComplexField.prototype.private_UpdatePAGE = function()
 {
@@ -528,11 +529,11 @@ CComplexField.prototype.private_UpdateTOC = function()
 			}
 
 			var isAddTabForNumbering = false;
-			if (oSrcParagraph.HaveNumbering())
+			if (oSrcParagraph.HaveNumbering() && oSrcParagraph.GetParent())
 			{
 				var oNumPr     = oSrcParagraph.GetNumPr();
 				var oNumbering = this.LogicDocument.GetNumbering();
-				var oNumInfo   = this.LogicDocument.CalculateNumberingValues(oSrcParagraph, oNumPr);
+				var oNumInfo   = oSrcParagraph.GetParent().CalculateNumberingValues(oSrcParagraph, oNumPr);
 				var sText      = oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo);
 				var oNumTextPr = oSrcParagraph.GetNumberingCompiledPr();
 

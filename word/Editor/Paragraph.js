@@ -228,15 +228,45 @@ Paragraph.prototype.Use_YLimit = function()
 };
 Paragraph.prototype.Set_Pr = function(oNewPr)
 {
-	var Pr_old = this.Pr;
-	var Pr_new = oNewPr;
-	History.Add(new CChangesParagraphPr(this, Pr_old, Pr_new));
+	return this.SetDirectParaPr(oNewPr);
+};
+/**
+ * Устанавливаем прямые настройки параграфа целиком
+ * @param oParaPr {CParaPr}
+ */
+Paragraph.prototype.SetDirectParaPr = function(oParaPr)
+{
+	History.Add(new CChangesParagraphPr(this, this.Pr, oParaPr));
 
-	this.Pr = oNewPr;
+	this.Pr = oParaPr;
 
 	this.Recalc_CompiledPr();
 	this.private_UpdateTrackRevisionOnChangeParaPr(true);
 	this.UpdateDocumentOutline();
+};
+/**
+ * Устанавливаем прямые настройки для текста
+ * @param oTextPr {CTextPr}
+ */
+Paragraph.prototype.SetDirectTextPr = function(oTextPr)
+{
+	// TODO: Пока мы пробегаемся только по верхним элементам параграфа (без поиска в глубину), т.к. данная функция используется
+	//       только для новых параграфов
+
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oRun = this.Content[nIndex];
+		if (oRun.Type === para_Run)
+		{
+			oRun.Set_Pr(oTextPr.Copy());
+
+			// TODO: Передалать ParaEnd
+			if (nIndex === nCount - 1)
+			{
+				this.TextPr.Set_Value(oTextPr.Copy());
+			}
+		}
+	}
 };
 Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 {
@@ -1938,8 +1968,8 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 			{
 				if (Pr.ParaPr.Brd.Top.Value === border_Single || Asc.c_oAscShdClear === Pr.ParaPr.Shd.Value)
 				{
-					if (( true === Pr.ParaPr.Brd.First && ( 0 === CurPage || true === this.Parent.IsTableCellContent() || true === Pr.ParaPr.PageBreakBefore ) ) ||
-						( true !== Pr.ParaPr.Brd.First && ( ( 0 === CurPage && null === this.Get_DocumentPrev() ) || ( 1 === CurPage && true === this.IsStartFromNewPage() )  ) ))
+					if ((true === Pr.ParaPr.Brd.First && this.private_CheckNeedBeforeSpacing(CurPage, this.Parent, this.GetAbsolutePage(CurPage), Pr.ParaPr)) ||
+						(true !== Pr.ParaPr.Brd.First && ((0 === CurPage && null === this.Get_DocumentPrev()) || (1 === CurPage && true === this.IsStartFromNewPage()))))
 						TempTop += Pr.ParaPr.Spacing.Before;
 				}
 			}
@@ -2444,7 +2474,8 @@ Paragraph.prototype.Internal_Draw_6 = function(CurPage, pGraphics, Pr)
 	if (bDrawTop)
 	{
 		var Y_top = this.Pages[CurPage].Y;
-		if (0 === CurPage || true === this.Parent.IsTableCellContent() || true === Pr.ParaPr.PageBreakBefore)
+
+		if (this.private_CheckNeedBeforeSpacing(CurPage, this.Parent, this.GetAbsolutePage(CurPage), Pr.ParaPr))
 			Y_top += Pr.ParaPr.Spacing.Before;
 
 		RGBA = Pr.ParaPr.Brd.Top.Get_Color(this);
@@ -2641,8 +2672,10 @@ Paragraph.prototype.Shift = function(PageIndex, Dx, Dy)
  * @param bOnlyText - true: удаляем только текст и пробелы, false - Удаляем любые элементы
  * @param bRemoveOnlySelection
  * @param bOnAddText - удаление происходит на добавлении текста
+ * @param isWord - удаление по словам (работает только при отсутсвии селекта)
+ * @returns {boolean} Если возвращается false, то значит ничего нельзя удалить в заданном направлении
  */
-Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText)
+Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
 	var Direction = nCount;
 	var Result    = true;
@@ -2798,8 +2831,27 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 	}
 	else
 	{
-		var ContentPos = this.CurPos.ContentPos;
+		if (isWord)
+		{
+			var oStartPos  = this.Get_ParaContentPos(false, false, false);
+			var oSearchPos = new CParagraphSearchPos();
 
+			if (nCount > 0)
+				this.Get_WordEndPos(oSearchPos, oStartPos);
+			else
+				this.Get_WordStartPos(oSearchPos, oStartPos);
+
+			if (oSearchPos.Found && 0 !== oSearchPos.Pos.Compare(oStartPos))
+			{
+				this.StartSelectionFromCurPos();
+				this.SetSelectionContentPos(oStartPos, oSearchPos.Pos);
+				this.Remove(1, false, false, false, false);
+				this.RemoveSelection();
+				return true;
+			}
+		}
+
+		var ContentPos = this.CurPos.ContentPos;
 		while (false === this.Content[ContentPos].Remove(Direction, bOnAddText))
 		{
 			if (Direction < 0)
@@ -3829,6 +3881,9 @@ Paragraph.prototype.IncreaseDecreaseIndent = function(bIncrease)
  */
 Paragraph.prototype.Correct_ContentPos = function(CorrectEndLinePos)
 {
+	if (this.IsSelectionUse())
+		return;
+
 	var Count  = this.Content.length;
 	var CurPos = this.CurPos.ContentPos;
 
@@ -3858,6 +3913,9 @@ Paragraph.prototype.Correct_ContentPos = function(CorrectEndLinePos)
 };
 Paragraph.prototype.Correct_ContentPos2 = function()
 {
+	if (this.IsSelectionUse())
+		return;
+
 	var Count  = this.Content.length;
 	var CurPos = Math.min(Math.max(0, this.CurPos.ContentPos), Count - 1);
 
@@ -4269,6 +4327,8 @@ Paragraph.prototype.MoveCursorLeft = function(AddToSelect, Word)
 
 		if (true !== AddToSelect)
 		{
+			var oPlaceHolderObject = this.GetPlaceHolderObject();
+
 			// Иногда нужно скоректировать позицию, например в формулах
 			var CorrectedStartPos = this.Get_ParaContentPos(true, true, true);
 			var CorrectedEndPos   = this.Get_ParaContentPos(true, false, true);
@@ -4278,7 +4338,20 @@ Paragraph.prototype.MoveCursorLeft = function(AddToSelect, Word)
 				SelectPos = CorrectedEndPos;
 
 			this.RemoveSelection();
-			this.Set_ParaContentPos(SelectPos, true, -1, -1);
+
+			var oResultPos = SelectPos;
+
+			if (oPlaceHolderObject)
+			{
+				if (oPlaceHolderObject instanceof CInlineLevelSdt)
+				{
+					var oSearchPos = new CParagraphSearchPos();
+					this.Get_LeftPos(oSearchPos, SelectPos);
+					oResultPos = oSearchPos.Pos;
+				}
+			}
+
+			this.Set_ParaContentPos(oResultPos, true, -1, -1);
 		}
 		else
 		{
@@ -4377,6 +4450,8 @@ Paragraph.prototype.MoveCursorRight = function(AddToSelect, Word)
 			}
 			else
 			{
+				var oPlaceHolderObject = this.GetPlaceHolderObject();
+
 				// Иногда нужно скоректировать позицию, например в формулах
 				var CorrectedStartPos = this.Get_ParaContentPos(true, true, true);
 				var CorrectedEndPos   = this.Get_ParaContentPos(true, false, true);
@@ -4386,7 +4461,20 @@ Paragraph.prototype.MoveCursorRight = function(AddToSelect, Word)
 					SelectPos = CorrectedStartPos;
 
 				this.RemoveSelection();
-				this.Set_ParaContentPos(SelectPos, true, -1, -1);
+
+				var oResultPos = SelectPos;
+
+				if (oPlaceHolderObject)
+				{
+					if (oPlaceHolderObject instanceof CInlineLevelSdt)
+					{
+						var oSearchPos = new CParagraphSearchPos();
+						this.Get_RightPos(oSearchPos, SelectPos);
+						oResultPos = oSearchPos.Pos;
+					}
+				}
+
+				this.Set_ParaContentPos(oResultPos, true, -1, -1);
 			}
 		}
 		else
@@ -6255,6 +6343,12 @@ Paragraph.prototype.Selection_SetStart = function(X, Y, CurPage, bTableBorder)
 
 	// Выставляем селект
 	this.Set_SelectionContentPos(SearchPosXY.Pos, SearchPosXY.Pos);
+
+	if (true === SearchPosXY.Numbering && undefined != this.GetNumPr())
+	{
+		this.Set_ParaContentPos(this.Get_StartPos(), true, -1, -1);
+		this.Parent.SelectNumbering(this.GetNumPr(), this);
+	}
 };
 /**
  * Данная функция может использоваться как при движении, так и при окончательном выставлении селекта.
@@ -6317,22 +6411,19 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 
 	if (0 === SelectionStartPos.Compare(SelectionEndPos) && AscCommon.g_mouse_event_type_up === MouseEvent.Type)
 	{
-		var NumPr = this.GetNumPr();
 		var oInfo = new CSelectedElementsInfo();
 		this.GetSelectedElementsInfo(oInfo);
 		var oField = oInfo.Get_Field();
-
-		if (true === SearchPosXY.Numbering && undefined != NumPr)
+		var oSdt   = oInfo.GetInlineLevelSdt();
+		if (oSdt && oSdt.IsPlaceHolder())
 		{
-			// Передвигаем курсор в начало параграфа
-			this.Set_ParaContentPos(this.Get_StartPos(), true, -1, -1);
-			this.Parent.SelectNumbering(NumPr, this);
+			oSdt.SelectAll(1);
+			oSdt.SelectThisElement(1);
 		}
-		else if (oField && fieldtype_FORMTEXT === oField.Get_FieldType())
+		else  if (oField && fieldtype_FORMTEXT === oField.Get_FieldType())
 		{
-			// TODO: Пока у нас невложенные поля так будет работать нормально. Со вложенными нужно переделать.
 			oField.SelectAll(1);
-			this.Selection.Use = true;
+			oField.SelectThisElement(1);
 		}
 		else
 		{
@@ -6894,9 +6985,9 @@ Paragraph.prototype.GetSelectionBounds = function()
 			Page : this.Get_AbsolutePage(EndPage)
 		};
 
-	return {Start : BeginRect, End : EndRect, Direction : this.Get_SelectionDirection()};
+	return {Start : BeginRect, End : EndRect, Direction : this.GetSelectDirection()};
 };
-Paragraph.prototype.Get_SelectionDirection = function()
+Paragraph.prototype.GetSelectDirection = function()
 {
 	if (true !== this.Selection.Use)
 		return 0;
@@ -6906,7 +6997,7 @@ Paragraph.prototype.Get_SelectionDirection = function()
 	else if (this.Selection.StartPos > this.Selection.EndPos)
 		return -1;
 
-	return this.Content[this.Selection.StartPos].Get_SelectionDirection();
+	return this.Content[this.Selection.StartPos].GetSelectDirection();
 };
 Paragraph.prototype.GetSelectionAnchorPos = function()
 {
@@ -7423,8 +7514,8 @@ Paragraph.prototype.ApplyNumPr = function(sNumId, nLvl)
 	var SelectionUse       = this.IsSelectionUse();
 	var SelectedOneElement = this.Parent.IsSelectedSingleElement();
 
-	// Когда выделено больше 1 параграфа, нумерация не добавляется к пустым параграфам.
-	if (true === SelectionUse && true !== SelectedOneElement && true === this.Is_Empty())
+	// Когда выделено больше 1 параграфа, нумерация не добавляется к пустым параграфам без нумерации
+	if (true === SelectionUse && true !== SelectedOneElement && true === this.Is_Empty() && !this.GetNumPr())
 		return;
 
 	this.RemoveNumPr();
@@ -8217,6 +8308,8 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 		// Считываем свойства для текущего стиля
 		var Pr = Styles.Get_Pr(StyleId, styletype_Paragraph, TableStyle, ShapeStyle);
 
+		Pr.ParaPr.CheckBorderSpaces();
+
 		// Если в стиле была задана нумерация сохраним это в специальном поле
 		if (undefined != Pr.ParaPr.NumPr)
 			Pr.ParaPr.StyleNumPr = Pr.ParaPr.NumPr.Copy();
@@ -8394,8 +8487,16 @@ Paragraph.prototype.GetDirectTextPr = function()
 
 	return TextPr;
 };
-Paragraph.prototype.GetDirectParaPr = function()
+/**
+ * Получаем прямые настройки параграфа
+ * @param [isCopy=true] копировать ли настройки
+ * @returns {CParaPr}
+ */
+Paragraph.prototype.GetDirectParaPr = function(isCopy)
 {
+	if (false === isCopy)
+		return this.Pr;
+
 	return this.Pr.Copy();
 };
 Paragraph.prototype.PasteFormatting = function(TextPr, oParaPr, ApplyPara)
@@ -9556,6 +9657,8 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 		}
 	}
 
+	var isInText = this.IsInText(X, Y, CurPage);
+
 	var oContentControl = oInfo.GetInlineLevelSdt();
 	var oHyperlink      = oInfo.GetHyperlink();
 	if (oContentControl)
@@ -9563,23 +9666,25 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 
 	var Footnote  = this.CheckFootnote(X, Y, CurPage);
 
-	if (null != oHyperlink && (Y <= this.Pages[CurPage].Bounds.Bottom && Y >= this.Pages[CurPage].Bounds.Top))
+	if (isInText && null != oHyperlink && (Y <= this.Pages[CurPage].Bounds.Bottom && Y >= this.Pages[CurPage].Bounds.Top))
 	{
 		MMData.Type      = AscCommon.c_oAscMouseMoveDataTypes.Hyperlink;
 		MMData.Hyperlink = new Asc.CHyperlinkProperty(oHyperlink);
 
 		MMData.Hyperlink.ToolTip = oHyperlink.GetToolTip();
 	}
-	else if (null !== Footnote && this.Parent instanceof CDocument)
+	else if (isInText && null !== Footnote && this.Parent instanceof CDocument)
 	{
 		MMData.Type   = AscCommon.c_oAscMouseMoveDataTypes.Footnote;
 		MMData.Text   = Footnote.GetHint();
 		MMData.Number = Footnote.GetNumber();
 	}
 	else
+	{
 		MMData.Type = AscCommon.c_oAscMouseMoveDataTypes.Common;
+	}
 
-	if ((null != oHyperlink || bPageRefLink) && true === AscCommon.global_keyboardEvent.CtrlKey)
+	if (isInText && (null != oHyperlink || bPageRefLink) && true === AscCommon.global_keyboardEvent.CtrlKey)
 		this.DrawingDocument.SetCursorType("pointer", MMData);
 	else
 		this.DrawingDocument.SetCursorType("text", MMData);
@@ -9842,7 +9947,7 @@ Paragraph.prototype.Is_ThisElementCurrent = function()
 	var Parent = this.Parent;
 
 	Parent.Update_ContentIndexing();
-	if (docpostype_Content === Parent.Get_DocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos && Parent.Content[this.Index] === this)
+	if (docpostype_Content === Parent.GetDocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos && Parent.Content[this.Index] === this)
 		return this.Parent.Is_ThisElementCurrent();
 
 	return false;
@@ -12270,13 +12375,13 @@ Paragraph.prototype.private_CompareBorderSettings = function(Pr1, Pr2)
 
 	return true;
 };
-Paragraph.prototype.Get_FootnotesList = function(oEngine)
+Paragraph.prototype.GetFootnotesList = function(oEngine)
 {
 	oEngine.SetCurrentParagraph(this);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.Content[nIndex].Get_FootnotesList)
-			this.Content[nIndex].Get_FootnotesList(oEngine);
+		if (this.Content[nIndex].GetFootnotesList)
+			this.Content[nIndex].GetFootnotesList(oEngine);
 
 		if (oEngine.IsRangeFull())
 			return;
@@ -12386,7 +12491,7 @@ Paragraph.prototype.CheckFootnote = function(X, Y, CurPage)
 		for (var nIndex = 0, nCount = arrFootnoteRefs.length; nIndex < nCount; ++nIndex)
 		{
 			var oFootnoteRef = arrFootnoteRefs[nIndex];
-			var oFootnote    = oFootnoteRef.Get_Footnote();
+			var oFootnote    = oFootnoteRef.GetFootnote();
 			var oPosInfo     = oFootnote.GetPositionInfo();
 
 			if (Math.abs(X - oPosInfo.X) < nMinDiff || Math.abs(X - (oPosInfo.X + oPosInfo.W)) < nMinDiff)
@@ -12617,7 +12722,7 @@ Paragraph.prototype.IncreaseDecreaseFontSize = function(bIncrease)
 {
 	this.IncDec_FontSize(bIncrease);
 };
-Paragraph.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+Paragraph.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	if (arrSelectedParagraphs)
 		arrSelectedParagraphs.push(this);
@@ -12749,7 +12854,7 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 	{
 
 		var oContentControl = new CInlineLevelSdt();
-		oContentControl.Add_ToContent(0, new ParaRun());
+		//oContentControl.Add_ToContent(0, new ParaRun());
 		this.Add(oContentControl);
 
 		var oContentControlPos = this.Get_PosByElement(oContentControl);
@@ -13124,6 +13229,47 @@ Paragraph.prototype.GetNumberingPage = function(isAbsolute)
 Paragraph.prototype.GetNumberingCalculatedValue = function()
 {
 	return this.Numbering.GetCalculatedValue();
+};
+/**
+ * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект
+ * @param {CParagraphContentPos} [oContentPos=undefined] - Если не задан, то проверяем по текущему селекту и курсору
+ * @returns {null | CInlineLevelSdt}
+ */
+Paragraph.prototype.GetPlaceHolderObject = function(oContentPos)
+{
+	var oInfo = new CSelectedElementsInfo();
+	this.GetSelectedElementsInfo(oInfo, oContentPos, 0);
+
+	var oSdt = oInfo.GetInlineLevelSdt();
+	if (oSdt && oSdt.IsPlaceHolder())
+		return oSdt;
+
+	return null;
+};
+Paragraph.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if (!arrFields)
+		arrFields = [];
+
+	if (isUseSelection && true !== this.Selection.Use)
+	{
+		return this.GetCurrentComplexFields();
+	}
+
+	var nStartPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos)
+		: 0;
+
+	var nEndPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos)
+		: this.Content.length - 1;
+
+	for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+	{
+		this.Content[nIndex].GetAllFields(isUseSelection, arrFields);
+	}
+
+	return arrFields;
 };
 
 var pararecalc_0_All  = 0;

@@ -1688,9 +1688,9 @@ ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 	return "";
 };
 
-ParaMath.prototype.Get_SelectionDirection = function()
+ParaMath.prototype.GetSelectDirection = function()
 {
-    return this.Root.Get_SelectionDirection();
+    return this.Root.GetSelectDirection();
 };
 
 ParaMath.prototype.Clear_TextFormatting = function( DefHyper )

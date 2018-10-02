@@ -53,6 +53,11 @@ function CInlineLevelSdt()
 	this.BoundsPaths          = null;
 	this.BoundsPathsStartPage = -1;
 
+	this.PlaceHolder = new ParaRun();
+	this.PlaceHolder.AddText(AscCommon.translateManager.getValue('Your text here'));
+	this.PlaceHolder.PlaceHolder = true;
+	this.AddToContent(0, this.PlaceHolder);
+
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
 }
@@ -68,6 +73,11 @@ CInlineLevelSdt.prototype.Get_Id = function()
 CInlineLevelSdt.prototype.GetId = function()
 {
 	return this.Get_Id();
+};
+CInlineLevelSdt.prototype.Add = function(Item)
+{
+	this.private_ReplacePlaceHolderWithContent();
+	CParagraphContentWithParagraphLikeContent.prototype.Add.apply(this, arguments);
 };
 CInlineLevelSdt.prototype.Copy = function(Selected, oPr)
 {
@@ -196,12 +206,22 @@ CInlineLevelSdt.prototype.Get_RightPos = function(SearchPos, ContentPos, Depth, 
 };
 CInlineLevelSdt.prototype.Remove = function(nDirection, bOnAddText)
 {
+	if (this.IsPlaceHolder())
+	{
+		this.private_ReplacePlaceHolderWithContent();
+		return;
+	}
+
 	CParagraphContentWithParagraphLikeContent.prototype.Remove.call(this, nDirection, bOnAddText);
 
-	if (this.Is_Empty() && !bOnAddText && this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsFillingFormMode())
+	if (this.Is_Empty()
+		&& this.Paragraph
+		&& this.Paragraph.LogicDocument
+		&& ((!bOnAddText
+		&& true === this.Paragraph.LogicDocument.IsFillingFormMode())
+		|| (this === this.Paragraph.LogicDocument.CheckInlineSdtOnDelete)))
 	{
-		var sDefaultText = "     ";
-		this.ReplaceAllWithText(sDefaultText);
+		this.private_ReplaceContentWithPlaceHolder();
 	}
 };
 CInlineLevelSdt.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange)
@@ -281,7 +301,7 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 	if (!this.Paragraph && this.Paragraph.LogicDocument)
 		return;
 
-	var oDrawingDocument = this.Paragraph.LogicDocument.Get_DrawingDocument();
+	var oDrawingDocument = this.Paragraph.LogicDocument.GetDrawingDocument();
 
 	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance())
 	{
@@ -378,6 +398,52 @@ CInlineLevelSdt.prototype.Document_UpdateInterfaceState = function()
 		this.Paragraph.LogicDocument.Api.sync_ContentControlCallback(this.GetContentControlPr());
 
 	CParagraphContentWithParagraphLikeContent.prototype.Document_UpdateInterfaceState.apply(this, arguments);
+};
+CInlineLevelSdt.prototype.SetParagraph = function(oParagraph)
+{
+	this.PlaceHolder.SetParagraph(oParagraph);
+	CParagraphContentWithParagraphLikeContent.prototype.SetParagraph.apply(this, arguments);
+};
+/**
+ * Активен PlaceHolder сейчас или нет
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.IsPlaceHolder = function()
+{
+	return (this.Content.length === 1 && this.Content[0] === this.PlaceHolder);
+};
+CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
+{
+	if (!this.IsPlaceHolder())
+		return;
+
+	this.RemoveFromContent(0, this.GetElementsCount());
+	this.AddToContent(0, new ParaRun());
+	this.RemoveSelection();
+	this.MoveCursorToStartPos();
+};
+CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
+{
+	if (this.IsPlaceHolder())
+		return;
+
+	this.RemoveFromContent(0, this.GetElementsCount());
+	this.AddToContent(0, this.PlaceHolder);
+	this.SelectContentControl();
+};
+CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, EndContentPos, Depth, StartFlag, EndFlag)
+{
+	if (this.IsPlaceHolder())
+	{
+		if (this.Paragraph && this.Paragraph.GetSelectDirection() > 0)
+			this.SelectAll(1);
+		else
+			this.SelectAll(-1);
+	}
+	else
+	{
+		CParagraphContentWithParagraphLikeContent.prototype.Set_SelectionContentPos.apply(this, arguments);
+	}
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Выставление настроек
@@ -528,6 +594,15 @@ CInlineLevelSdt.prototype.GetContentControlPr = function()
 
 	return oPr;
 };
+/**
+ * Можно ли удалить данный контейнер
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.CanBeDeleted = function()
+{
+	return (c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
 //----------------------------------------------------------------------------------------------------------------------
@@ -538,6 +613,7 @@ CInlineLevelSdt.prototype.Write_ToBinary2 = function(Writer)
 	// String : Id
 	// Long   : Количество элементов
 	// Array of Strings : массив с Id элементов
+	// String : PlaceHolder Id
 
 	Writer.WriteString2(this.Id);
 
@@ -545,12 +621,15 @@ CInlineLevelSdt.prototype.Write_ToBinary2 = function(Writer)
 	Writer.WriteLong(Count);
 	for (var Index = 0; Index < Count; Index++)
 		Writer.WriteString2(this.Content[Index].Get_Id());
+
+	Writer.WriteString2(this.PlaceHolder.GetId());
 };
 CInlineLevelSdt.prototype.Read_FromBinary2 = function(Reader)
 {
 	// String : Id
 	// Long   : Количество элементов
 	// Array of Strings : массив с Id элементов
+	// String : PlaceHolder Id
 
 	this.Id = Reader.GetString2();
 
@@ -562,6 +641,8 @@ CInlineLevelSdt.prototype.Read_FromBinary2 = function(Reader)
 		if (null !== Element)
 			this.Content.push(Element);
 	}
+
+	this.PlaceHolder = AscCommon.g_oTableId.Get_ById(Reader.GetString2());
 };
 CInlineLevelSdt.prototype.Write_ToBinary = function(Writer)
 {

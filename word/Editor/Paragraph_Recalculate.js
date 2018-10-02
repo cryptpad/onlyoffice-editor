@@ -1260,23 +1260,34 @@ Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPa
 
 Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPage, PRS, ParaPr)
 {
+	// Важно: Значение Border.Space учитывается всегда, даже когда Border.Value = none, а
+	//        вот Border.Size зависит уже от Border.Value
+
     var BaseLineOffset = 0;
     if (CurLine === this.Pages[CurPage].FirstLine)
     {
         BaseLineOffset = this.Lines[CurLine].Metrics.Ascent;
 
         if (this.Check_FirstPage(CurPage, true))
-        {
+		{
 			// Добавляем расстояние до параграфа (Pr.Spacing.Before)
-			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS, ParaPr))
+			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS.Parent, PRS.GetPageAbs(), ParaPr))
 				BaseLineOffset += ParaPr.Spacing.Before;
 
-            // Добавляем толщину границы параграфа (если граница задана)
-            if ((true === ParaPr.Brd.First || 1 === CurPage) && border_Single === ParaPr.Brd.Top.Value)
-                BaseLineOffset += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-            else if (false === ParaPr.Brd.First && border_Single === ParaPr.Brd.Between.Value)
-                BaseLineOffset += ParaPr.Brd.Between.Size + ParaPr.Brd.Between.Space;
-        }
+			// Добавляем толщину границы параграфа (если граница задана)
+			if ((true === ParaPr.Brd.First || 1 === CurPage))
+			{
+				BaseLineOffset += ParaPr.Brd.Top.Space;
+				if (border_Single === ParaPr.Brd.Top.Value)
+					BaseLineOffset += ParaPr.Brd.Top.Size;
+			}
+			else if (false === ParaPr.Brd.First)
+			{
+				BaseLineOffset += ParaPr.Brd.Between.Space;
+				if (border_Single === ParaPr.Brd.Between.Value)
+					BaseLineOffset += ParaPr.Brd.Between.Size;
+			}
+		}
 
         PRS.BaseLineOffset = BaseLineOffset;
     }
@@ -1299,116 +1310,148 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
         Top2 = PRS.Y;
 
         if (CurLine === this.Pages[CurPage].FirstLine && this.Check_FirstPage(CurPage, true))
-        {
-			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS, ParaPr))
-            {
-                Top2    = Top + ParaPr.Spacing.Before;
-                Bottom2 = Top + ParaPr.Spacing.Before + this.Lines[0].Metrics.Ascent + this.Lines[0].Metrics.Descent;
+		{
+			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS.Parent, PRS.GetPageAbs(), ParaPr))
+			{
+				Top2    = Top + ParaPr.Spacing.Before;
+				Bottom2 = Top + ParaPr.Spacing.Before + this.Lines[0].Metrics.Ascent + this.Lines[0].Metrics.Descent;
 
-                if ( true === ParaPr.Brd.First && border_Single === ParaPr.Brd.Top.Value )
-                {
-                    Top2    += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-                    Bottom2 += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-                }
-                else if ( false === ParaPr.Brd.First && border_Single === ParaPr.Brd.Between.Value )
-                {
-                    Top2    += ParaPr.Brd.Between.Size + ParaPr.Brd.Between.Space;
-                    Bottom2 += ParaPr.Brd.Between.Size + ParaPr.Brd.Between.Space;
-                }
-            }
-            else
-            {
-                // Параграф начинается с новой страницы
-                Bottom2 = Top + this.Lines[0].Metrics.Ascent + this.Lines[0].Metrics.Descent;
+				if (true === ParaPr.Brd.First)
+				{
+					Top2 += ParaPr.Brd.Top.Space;
+					Bottom2 += ParaPr.Brd.Top.Space;
+					if (border_Single === ParaPr.Brd.Top.Value)
+					{
+						Top2 += ParaPr.Brd.Top.Size;
+						Bottom2 += ParaPr.Brd.Top.Size;
+					}
+				}
+				else if (false === ParaPr.Brd.First)
+				{
+					Top2 += ParaPr.Brd.Between.Space;
+					Bottom2 += ParaPr.Brd.Between.Space;
 
-                if ( border_Single === ParaPr.Brd.Top.Value )
-                {
-                    Top2    += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-                    Bottom2 += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-                }
-            }
-        }
+					if (border_Single === ParaPr.Brd.Between.Value)
+					{
+						Top2 += ParaPr.Brd.Between.Size;
+						Bottom2 += ParaPr.Brd.Between.Size;
+					}
+				}
+			}
+			else
+			{
+				// Параграф начинается с новой страницы
+				Bottom2 = Top + this.Lines[0].Metrics.Ascent + this.Lines[0].Metrics.Descent;
+
+				Top2 += ParaPr.Brd.Top.Space;
+				Bottom2 += ParaPr.Brd.Top.Space;
+
+				if (border_Single === ParaPr.Brd.Top.Value)
+				{
+					Top2 += ParaPr.Brd.Top.Size;
+					Bottom2 += ParaPr.Brd.Top.Size;
+				}
+			}
+		}
         else
         {
             Bottom2 = Top + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
         }
     }
     else
-    {
-        if (CurLine !== this.Pages[CurPage].FirstLine || !this.Check_FirstPage(CurPage, true))
-        {
-            if ( CurLine !== this.Pages[CurPage].FirstLine )
-            {
-                Top     = PRS.Y + BaseLineOffset + this.Lines[CurLine - 1].Metrics.Descent + this.Lines[CurLine - 1].Metrics.LineGap;
-                Top2    = Top;
-                Bottom2 = Top + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
-            }
-            else
-            {
-                Top     = this.Pages[CurPage].Y;
-                Top2    = Top;
-                Bottom2 = Top + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
-            }
-        }
-        else
-        {
-            Top  = PRS.Y;
-            Top2 = PRS.Y;
+	{
+		if (CurLine !== this.Pages[CurPage].FirstLine || !this.Check_FirstPage(CurPage, true))
+		{
+			if (CurLine !== this.Pages[CurPage].FirstLine)
+			{
+				Top     = PRS.Y + BaseLineOffset + this.Lines[CurLine - 1].Metrics.Descent + this.Lines[CurLine - 1].Metrics.LineGap;
+				Top2    = Top;
+				Bottom2 = Top + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
+			}
+			else
+			{
+				Top     = this.Pages[CurPage].Y;
+				Top2    = Top;
+				Bottom2 = Top + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
+			}
+		}
+		else
+		{
+			Top  = PRS.Y;
+			Top2 = PRS.Y;
 
-			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS, ParaPr))
-            {
-                Top2    = Top + ParaPr.Spacing.Before;
-                Bottom2 = Top + ParaPr.Spacing.Before + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
+			if (this.private_CheckNeedBeforeSpacing(CurPage, PRS.Parent, PRS.GetPageAbs(), ParaPr))
+			{
+				Top2    = Top + ParaPr.Spacing.Before;
+				Bottom2 = Top + ParaPr.Spacing.Before + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
 
-                if ( true === ParaPr.Brd.First && border_Single === ParaPr.Brd.Top.Value )
-                {
-                    Top2    += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-                    Bottom2 += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-                }
-                else if ( false === ParaPr.Brd.First && border_Single === ParaPr.Brd.Between.Value )
-                {
-                    Top2    += ParaPr.Brd.Between.Size + ParaPr.Brd.Between.Space;
-                    Bottom2 += ParaPr.Brd.Between.Size + ParaPr.Brd.Between.Space;
-                }
-            }
-            else
-            {
-                // Параграф начинается с новой страницы
-                Bottom2 = Top + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
+				if (true === ParaPr.Brd.First)
+				{
+					Top2 += ParaPr.Brd.Top.Space;
+					Bottom2 += ParaPr.Brd.Top.Space;
 
-                if ( border_Single === ParaPr.Brd.Top.Value )
-                {
-                    Top2    += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-                    Bottom2 += ParaPr.Brd.Top.Size + ParaPr.Brd.Top.Space;
-                }
-            }
-        }
-    }
+					if (border_Single === ParaPr.Brd.Top.Value)
+					{
+						Top2 += ParaPr.Brd.Top.Size;
+						Bottom2 += ParaPr.Brd.Top.Size;
+					}
+				}
+				else if (false === ParaPr.Brd.First)
+				{
+					Top2 += ParaPr.Brd.Between.Space;
+					Bottom2 += ParaPr.Brd.Between.Space;
+
+					if (border_Single === ParaPr.Brd.Between.Value)
+					{
+						Top2 += ParaPr.Brd.Between.Size;
+						Bottom2 += ParaPr.Brd.Between.Size;
+					}
+				}
+			}
+			else
+			{
+				// Параграф начинается с новой страницы
+				Bottom2 = Top + this.Lines[CurLine].Metrics.Ascent + this.Lines[CurLine].Metrics.Descent;
+
+				Top2 += ParaPr.Brd.Top.Space;
+				Bottom2 += ParaPr.Brd.Top.Space;
+
+				if (border_Single === ParaPr.Brd.Top.Value)
+				{
+					Top2 += ParaPr.Brd.Top.Size;
+					Bottom2 += ParaPr.Brd.Top.Size;
+				}
+			}
+		}
+	}
 
     Bottom  = Bottom2;
     Bottom += this.Lines[CurLine].Metrics.LineGap;
 
     // Если данная строка последняя, тогда подкорректируем нижнюю границу
     if ( true === PRS.End )
-    {
-        Bottom += ParaPr.Spacing.After;
+	{
+		Bottom += ParaPr.Spacing.After;
 
-        // Если нижняя граница Between, тогда она учитывается в следующем параграфе
-        if ( true === ParaPr.Brd.Last && border_Single === ParaPr.Brd.Bottom.Value )
-        {
-            Bottom += ParaPr.Brd.Bottom.Size + ParaPr.Brd.Bottom.Space;
-        }
-        else if ( border_Single === ParaPr.Brd.Between.Value )
-        {
-            Bottom += ParaPr.Brd.Between.Space;
-        }
+		// Если нижняя граница Between, тогда она учитывается в следующем параграфе
+		if (true === ParaPr.Brd.Last)
+		{
+			Bottom += ParaPr.Brd.Bottom.Space;
+
+			if (border_Single === ParaPr.Brd.Bottom.Value)
+				Bottom += ParaPr.Brd.Bottom.Size;
+		}
+		else
+		{
+			Bottom += ParaPr.Brd.Between.Space;
+		}
 
 		// TODO: Здесь нужно сделать корректировку YLimit с учетом сносок. Надо разобраться почему вообще здесь
 		// используется this.YLimit вместо Page.YLimit
 
-        if ( false === this.Parent.IsTableCellContent() && Bottom > this.YLimit && Bottom - this.YLimit <= ParaPr.Spacing.After )
-            Bottom = this.YLimit;
-    }
+		if (false === this.Parent.IsTableCellContent() && Bottom > this.YLimit && Bottom - this.YLimit <= ParaPr.Spacing.After)
+			Bottom = this.YLimit;
+	}
 
     // Верхнюю границу мы сохраняем только для первой строки данной страницы
     if (CurLine === this.Pages[CurPage].FirstLine && !(this.Lines[CurLine].Info & paralineinfo_RangeY))
@@ -1933,7 +1976,7 @@ Paragraph.prototype.private_RecalculateLineCheckFootnotes = function(CurLine, Cu
 	var oLineBreakPos = this.GetLineEndPos(CurLine);
 	for (var nIndex = 0, nCount = PRS.Footnotes.length; nIndex < nCount; ++nIndex)
 	{
-		var oFootnote = PRS.Footnotes[nIndex].FootnoteReference.Get_Footnote();
+		var oFootnote = PRS.Footnotes[nIndex].FootnoteReference.GetFootnote();
 		var oPos      = PRS.Footnotes[nIndex].Pos;
 
 		// Проверим позицию
@@ -2265,7 +2308,7 @@ Paragraph.prototype.private_RecalculateMoveLineToNextPage = function(CurLine, Cu
 	}
 };
 
-Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, PRS, ParaPr)
+Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, PageAbs, ParaPr)
 {
 	if (CurPage <= 0)
 		return true;
@@ -2279,12 +2322,15 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, PRS, Para
 			return false;
 	}
 
-	if (true === ParaPr.PageBreakBefore)
+	if (this.LogicDocument
+		&& this.LogicDocument.GetCompatibilityMode
+		&& this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14
+		&& true === ParaPr.PageBreakBefore)
 		return true;
 
-	if (!(PRS.Parent instanceof CDocument))
+	if (!(Parent instanceof CDocument))
 	{
-		if (PRS.Parent instanceof AscFormat.CDrawingDocContent && 0 !== CurPage)
+		if (Parent instanceof AscFormat.CDrawingDocContent && 0 !== CurPage)
 			return false;
 
 		return true;
@@ -2294,11 +2340,11 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, PRS, Para
 	// тогда добавляем расстояние, а если нет - нет. Но подсчет первой страницы здесь не совпадает с тем, как она
 	// считается для нумерации. Если разрыв секции идет на текущей странице, то первой считается сразу данная страница.
 
-	var LogicDocument = PRS.Parent;
-	var SectionIndex = LogicDocument.GetSectionIndexByElementIndex(this.Get_Index());
-	var FirstElement = LogicDocument.GetFirstElementInSection(SectionIndex);
+	var LogicDocument = Parent;
+	var SectionIndex  = LogicDocument.GetSectionIndexByElementIndex(this.Get_Index());
+	var FirstElement  = LogicDocument.GetFirstElementInSection(SectionIndex);
 
-	if (0 !== SectionIndex && (!FirstElement || FirstElement.Get_AbsolutePage(0) === PRS.GetPageAbs()))
+	if (0 !== SectionIndex && (!FirstElement || FirstElement.Get_AbsolutePage(0) === PageAbs))
 		return true;
 
 	return false;

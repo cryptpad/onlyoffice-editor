@@ -1821,6 +1821,8 @@
 			this.DStrikeout = (undefined != obj.DStrikeout) ? obj.DStrikeout : undefined;
 			this.TextSpacing = (undefined != obj.TextSpacing) ? obj.TextSpacing : undefined;
 			this.Position = (undefined != obj.Position) ? obj.Position : undefined;
+			this.Jc = (undefined != obj.Jc) ? obj.Jc : undefined;
+			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -1860,6 +1862,8 @@
 			this.DStrikeout = undefined;
 			this.TextSpacing = undefined;
 			this.Position = undefined;
+			this.Jc = undefined;
+			this.ListType = undefined;
 		}
 	}
 
@@ -1873,6 +1877,10 @@
 			return this.Ind;
 		}, asc_putInd: function (v) {
 			this.Ind = v;
+		}, asc_getJc: function () {
+			return this.Jc;
+		}, asc_putJc: function (v) {
+			this.Jc = v;
 		}, asc_getKeepLines: function () {
 			return this.KeepLines;
 		}, asc_putKeepLines: function (v) {
@@ -2048,6 +2056,10 @@
         this.columnNumber = null;
         this.columnSpace = null;
         this.signatureId = null;
+
+		this.rot = null;
+		this.flipH = null;
+		this.flipV = null;
 	}
 
 	asc_CShapeProperty.prototype = {
@@ -2150,6 +2162,30 @@
 
 		asc_putFromImage: function(v){
 			this.bFromImage = v;
+		},
+
+		asc_getRot: function(){
+			return this.rot;
+		},
+
+		asc_putRot: function(v){
+			this.rot = v;
+		},
+
+		asc_getFlipH: function(){
+			return this.flipH;
+		},
+
+		asc_putFlipH: function(v){
+			this.flipH = v;
+		},
+
+		asc_getFlipV: function(){
+			return this.flipV;
+		},
+
+		asc_putFlipV: function(v){
+			this.flipV = v;
 		}
 	};
 
@@ -2360,6 +2396,10 @@
             this.columnNumber =  obj.columnNumber != undefined ? obj.columnNumber : undefined;
             this.columnSpace =  obj.columnSpace != undefined ? obj.columnSpace : undefined;
 
+			this.rot = obj.rot != undefined ? obj.rot : undefined;
+			this.flipH = obj.flipH != undefined ? obj.flipH : undefined;
+			this.flipV = obj.flipV != undefined ? obj.flipV : undefined;
+
 		} else {
 			this.CanBeFlow = true;
 			this.Width = undefined;
@@ -2401,6 +2441,11 @@
 
             this.columnNumber = undefined;
             this.columnSpace =  undefined;
+
+
+			this.rot = undefined;
+			this.flipH = undefined;
+			this.flipV = undefined;
 		}
 	}
 
@@ -2650,6 +2695,30 @@
 			if (this.ShapeProperties)
 				return this.ShapeProperties.asc_getSignatureId();
 			return undefined;
+		},
+
+		asc_getRot: function(){
+			return this.rot;
+		},
+
+		asc_putRot: function(v){
+			this.rot = v;
+		},
+
+		asc_getFlipH: function(){
+			return this.flipH;
+		},
+
+		asc_putFlipH: function(v){
+			this.flipH = v;
+		},
+
+		asc_getFlipV: function(){
+			return this.flipV;
+		},
+
+		asc_putFlipV: function(v){
+			this.flipV = v;
 		}
 	};
 
@@ -3073,7 +3142,7 @@
 	};
 	CHyperlinkProperty.prototype.is_Heading = function()
 	{
-		return (this.Heading instanceof Paragraph ? true : false)
+		return (this.Heading instanceof AscCommonWord.Paragraph ? true : false)
 	};
 	CHyperlinkProperty.prototype.put_Heading = function(oParagraph)
 	{
@@ -4416,6 +4485,8 @@
 	prot["put_ContextualSpacing"] = prot["asc_putContextualSpacing"] = prot.asc_putContextualSpacing;
 	prot["get_Ind"] = prot["asc_getInd"] = prot.asc_getInd;
 	prot["put_Ind"] = prot["asc_putInd"] = prot.asc_putInd;
+	prot["get_Jc"] = prot["asc_getJc"] = prot.asc_getJc;
+	prot["put_Jc"] = prot["asc_putJc"] = prot.asc_putJc;
 	prot["get_KeepLines"] = prot["asc_getKeepLines"] = prot.asc_getKeepLines;
 	prot["put_KeepLines"] = prot["asc_putKeepLines"] = prot.asc_putKeepLines;
 	prot["get_KeepNext"] = prot["asc_getKeepNext"] = prot.asc_getKeepNext;
@@ -4521,6 +4592,12 @@
 	prot["put_SignatureId"] = prot["asc_putSignatureId"] = prot.asc_putSignatureId;
 	prot["get_FromImage"] = prot["asc_getFromImage"] = prot.asc_getFromImage;
 	prot["put_FromImage"] = prot["asc_putFromImage"] = prot.asc_putFromImage;
+	prot["get_Rot"] = prot["asc_getRot"] = prot.asc_getRot;
+	prot["put_Rot"] = prot["asc_putRot"] = prot.asc_putRot;
+	prot["get_FlipH"] = prot["asc_getFlipH"] = prot.asc_getFlipH;
+	prot["put_FlipH"] = prot["asc_putFlipH"] = prot.asc_putFlipH;
+	prot["get_FlipV"] = prot["asc_getFlipV"] = prot.asc_getFlipV;
+	prot["put_FlipV"] = prot["asc_putFlipV"] = prot.asc_putFlipV;
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;
@@ -4623,6 +4700,12 @@
 	prot["put_PluginGuid"] = prot["asc_putPluginGuid"] = prot.asc_putPluginGuid;
 	prot["get_PluginData"] = prot["asc_getPluginData"] = prot.asc_getPluginData;
 	prot["put_PluginData"] = prot["asc_putPluginData"] = prot.asc_putPluginData;
+	prot["get_Rot"] = prot["asc_getRot"] = prot.asc_getRot;
+	prot["put_Rot"] = prot["asc_putRot"] = prot.asc_putRot;
+	prot["get_FlipH"] = prot["asc_getFlipH"] = prot.asc_getFlipH;
+	prot["put_FlipH"] = prot["asc_putFlipH"] = prot.asc_putFlipH;
+	prot["get_FlipV"] = prot["asc_getFlipV"] = prot.asc_getFlipV;
+	prot["put_FlipV"] = prot["asc_putFlipV"] = prot.asc_putFlipV;
 
 	prot["get_Title"] = prot["asc_getTitle"] = prot.asc_getTitle;
 	prot["put_Title"] = prot["asc_putTitle"] = prot.asc_putTitle;

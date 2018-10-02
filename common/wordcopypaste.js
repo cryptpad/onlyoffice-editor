@@ -2091,7 +2091,7 @@ PasteProcessor.prototype =
     {
         if(PasteElementsId.g_bIsDocumentCopyPaste)
         {
-			var nDocPosType = oDocument.Get_DocPosType();
+			var nDocPosType = oDocument.GetDocPosType();
 			if (docpostype_HdrFtr === nDocPosType)
 			{
 				if (null != oDocument.HdrFtr && null != oDocument.HdrFtr.CurHdrFtr && null != oDocument.HdrFtr.CurHdrFtr.Content)
@@ -2200,7 +2200,7 @@ PasteProcessor.prototype =
             var bNeedMoveCursor = History.Is_LastPointNeedRecalc();
             this.oRecalcDocument.Recalculate();
             
-            if ((oDocument.Get_DocPosType() !== docpostype_DrawingObjects || true === this.oLogicDocument.DrawingObjects.isSelectedText()) && true === bNeedMoveCursor)
+            if ((oDocument.GetDocPosType() !== docpostype_DrawingObjects || true === this.oLogicDocument.DrawingObjects.isSelectedText()) && true === bNeedMoveCursor)
             {
                 this.oLogicDocument.MoveCursorRight(false, false, true);
             }
@@ -4127,6 +4127,7 @@ PasteProcessor.prototype =
             var fonts = [];
             var arr_Images = [];
             var oThis = this;
+            var oFontMap = {};
 
             var readContent = function () {
                 var docContent = oThis.ReadPresentationText(stream);
@@ -4138,7 +4139,7 @@ PasteProcessor.prototype =
 
                 //перебираем шрифты
                 for (var i in oThis.oFonts) {
-                    fonts.push(new CFont(i, 0, "", 0));
+                    oFontMap[i] = 1;
                 }
 
 				bIsEmptyContent = false;
@@ -4157,17 +4158,11 @@ PasteProcessor.prototype =
                 presentationSelectedContent.Drawings = objects.arrShapes;
 
                 var arr_shapes = objects.arrShapes;
-                var font_map = {};
                 for (var i = 0; i < arr_shapes.length; ++i) {
                     if (arr_shapes[i].Drawing.getAllFonts) {
-                        arr_shapes[i].Drawing.getAllFonts(font_map);
+                        arr_shapes[i].Drawing.getAllFonts(oFontMap);
                     }
                 }
-
-                for (var i in font_map) {
-                    fonts.push(new CFont(i, 0, "", 0));
-                }
-
 				arr_Images = arr_Images.concat(objects.arrImages);
             };
 
@@ -4199,14 +4194,11 @@ PasteProcessor.prototype =
                 var slideCopyObjects = [];
                 for (var i = 0; i < arr_slides.length; ++i) {
                     if (arr_slides[i] && arr_slides[i].getAllFonts) {
-                        arr_slides[i].getAllFonts(font_map);
+                        arr_slides[i].fontMap = {};
+                        arr_slides[i].getAllFonts(arr_slides[i].fontMap);
                     }
 
                     slideCopyObjects[i] = arr_slides[i];
-                }
-
-                for (var i in font_map) {
-                    fonts.push(new CFont(i, 0, "", 0));
                 }
 
 				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
@@ -4441,6 +4433,49 @@ PasteProcessor.prototype =
                 }
             }
 
+            if(presentationSelectedContent) {
+                var aSlides = presentationSelectedContent.SlideObjects;
+                if(Array.isArray(aSlides)) {
+                    for(var i = 0; i < aSlides.length; ++i) {
+                        var oCurSlide = aSlides[i];
+                        var oSlideFontMap = oCurSlide.fontMap;
+                        if(oSlideFontMap) {
+                            var oTheme = null;
+                            if(Array.isArray(presentationSelectedContent.LayoutsIndexes)) {
+                                var nLayoutIndex = presentationSelectedContent.LayoutsIndexes[i];
+                                if(AscFormat.isRealNumber(nLayoutIndex)){
+                                    if(Array.isArray(presentationSelectedContent.MastersIndexes)){
+                                        var nMasterIndex = presentationSelectedContent.MastersIndexes[nLayoutIndex];
+                                        if(AscFormat.isRealNumber(nMasterIndex)){
+                                            if(Array.isArray(presentationSelectedContent.ThemesIndexes)){
+                                                var nThemeIndex = presentationSelectedContent.ThemesIndexes[nMasterIndex];
+                                                if(AscFormat.isRealNumber(nThemeIndex)) {
+                                                    if(Array.isArray(presentationSelectedContent.Themes)) {
+                                                        oTheme = presentationSelectedContent.Themes[nThemeIndex];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if(oTheme) {
+                                AscFormat.checkThemeFonts(oSlideFontMap, oTheme.themeElements.fontScheme);
+                            }
+                            for(var key in oSlideFontMap) {
+                                if(oSlideFontMap.hasOwnProperty(key)) {
+                                    oFontMap[key] = 1;
+                                }
+                            }
+                            AscFormat.checkThemeFonts(oFontMap, {});
+                            delete oCurSlide.fontMap;
+                        }
+                    }
+                }
+                for (var key in oFontMap) {
+                    fonts.push(new CFont(key, 0, "", 0));
+                }
+            }
 			if(bIsEmptyContent) {
 				presentationSelectedContent = null;
 			}
@@ -5412,7 +5447,7 @@ PasteProcessor.prototype =
                     }
                 }
             }
-            table.SetTableLayout(tbllayout_AutoFit);
+            table.SetTableLayout(tbllayout_Fixed);
             return table;
         }, this, []);
         return oTable;
@@ -5473,6 +5508,7 @@ PasteProcessor.prototype =
 		var presentation = editor.WordControl.m_oLogicDocument;
 		var graphicFrame = new CGraphicFrame(presentation.Slides[presentation.CurPage]);
 		var table = new CTable(this.oDocument.DrawingDocument, graphicFrame, true, 0, 0, grid, true);
+        table.SetTableLayout(tbllayout_Fixed);
 		graphicFrame.setGraphicObject(table);
 		graphicFrame.setNvSpPr(new AscFormat.UniNvPr());
 
