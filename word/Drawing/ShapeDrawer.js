@@ -485,7 +485,12 @@ CShapeDrawer.prototype =
             if ((this.Ln.headEnd != null && this.Ln.headEnd.type != null) || (this.Ln.tailEnd != null && this.Ln.tailEnd.type != null))
             {
                 if (true === graphics.IsTrack)
-                    graphics.Graphics.ArrayPoints = [];
+                {
+                    if(graphics.Graphics)
+                    {
+                        graphics.Graphics.ArrayPoints = [];
+                    }
+                }
                 else
                     graphics.ArrayPoints = [];
             }
