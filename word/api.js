@@ -5605,9 +5605,9 @@ background-repeat: no-repeat;\
 	//-----------------------------------------------------------------
 	// Функции для работы с орфографией
 	//-----------------------------------------------------------------
-	asc_docs_api.prototype.sync_SpellCheckCallback = function(Word, Checked, Variants, ParaId, ElemId)
+	asc_docs_api.prototype.sync_SpellCheckCallback = function(Word, Checked, Variants, ParaId, Element)
 	{
-		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.SpellCheck, new AscCommon.asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, ElemId));
+		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.SpellCheck, new AscCommon.asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, Element));
 	};
 
 	asc_docs_api.prototype.sync_SpellCheckVariantsFound = function()
@@ -5618,7 +5618,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_replaceMisspelledWord = function(Word, SpellCheckProperty)
 	{
 		var ParaId = SpellCheckProperty.ParaId;
-		var ElemId = SpellCheckProperty.ElemId;
 
 		var Paragraph = g_oTableId.Get_ById(ParaId);
 		if (null != Paragraph && false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_None, {
@@ -5628,7 +5627,7 @@ background-repeat: no-repeat;\
 			}))
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_ReplaceMisspelledWord);
-			Paragraph.Replace_MisspelledWord(Word, ElemId);
+			Paragraph.ReplaceMisspelledWord(Word, SpellCheckProperty.Element);
 			this.WordControl.m_oLogicDocument.Recalculate();
 			Paragraph.Document_SetThisElementCurrent(true);
 		}
@@ -5639,12 +5638,11 @@ background-repeat: no-repeat;\
 		if (false === bAll)
 		{
 			var ParaId = SpellCheckProperty.ParaId;
-			var ElemId = SpellCheckProperty.ElemId;
 
 			var Paragraph = g_oTableId.Get_ById(ParaId);
 			if (null != Paragraph)
 			{
-				Paragraph.Ignore_MisspelledWord(ElemId);
+				Paragraph.IgnoreMisspelledWord(SpellCheckProperty.Element);
 			}
 		}
 		else

@@ -1309,13 +1309,12 @@ CPresentation.prototype =
 
     replaceMisspelledWord: function(Word, SpellCheckProperty){
         var ParaId = SpellCheckProperty.ParaId;
-        var ElemId = SpellCheckProperty.ElemId;
         var Paragraph = g_oTableId.Get_ById(ParaId);
         Paragraph.Document_SetThisElementCurrent(true);
         var oController = this.GetCurrentController();
         if(oController){
             oController.checkSelectedObjectsAndCallback(function(){
-                Paragraph.Replace_MisspelledWord(Word, ElemId);
+                Paragraph.ReplaceMisspelledWord(Word, SpellCheckProperty.Element);
             }, [], false, AscDFH.historydescription_Document_ReplaceMisspelledWord);
         }
     },
