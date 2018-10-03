@@ -3174,6 +3174,11 @@
 			if(drawing)
 				drawing.getAllFonts(oFontMap);
 		}
+
+		//пробегаемся по header/footer
+		if(this.headerFooter){
+			this.headerFooter.getAllFonts(oFontMap);
+		}
 	};
 	Worksheet.prototype.getAllImageUrls = function(aImages){
 		for(var i = 0; i < this.Drawings.length; ++i){
@@ -3327,6 +3332,7 @@
 	};
 	Worksheet.prototype.initPostOpen = function (handlers) {
 		this.PagePrintOptions.init();
+		this.headerFooter.init();
 
 		// Sheet Views
 		if (0 === this.sheetViews.length) {

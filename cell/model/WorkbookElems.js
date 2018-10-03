@@ -8107,6 +8107,46 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CHeaderFooter.prototype.setOddFooter = function (val) { this.oddFooter = val; };
 	CHeaderFooter.prototype.setOddHeader = function (val) { this.oddHeader = val; };
 
+	CHeaderFooter.prototype.init = function () {
+		if(this.evenFooter) {
+			this.evenFooter.parse();
+		}
+		if(this.evenHeader) {
+			this.evenHeader.parse();
+		}
+		if(this.firstFooter) {
+			this.firstFooter.parse();
+		}
+		if(this.firstHeader) {
+			this.firstHeader.parse();
+		}
+		if(this.oddFooter) {
+			this.oddFooter.parse();
+		}
+		if(this.oddHeader) {
+			this.oddHeader.parse();
+		}
+	};
+	CHeaderFooter.prototype.getAllFonts = function (oFontMap) {
+		if(this.evenFooter) {
+			this.evenFooter.getAllFonts(oFontMap);
+		}
+		if(this.evenHeader) {
+			this.evenHeader.getAllFonts(oFontMap);
+		}
+		if(this.firstFooter) {
+			this.firstFooter.getAllFonts(oFontMap);
+		}
+		if(this.firstHeader) {
+			this.firstHeader.getAllFonts(oFontMap);
+		}
+		if(this.oddFooter) {
+			this.oddFooter.getAllFonts(oFontMap);
+		}
+		if(this.oddHeader) {
+			this.oddHeader.getAllFonts(oFontMap);
+		}
+	};
 
 	function CHeaderFooterData(str) {
 		this.str = str;
@@ -8122,6 +8162,11 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		parser.parse(this.str);
 		this.parser = parser;
 		return parser;
+	};
+	CHeaderFooterData.prototype.getAllFonts = function (oFontMap) {
+		if(this.parser) {
+			this.parser.getAllFonts(oFontMap);
+		}
 	};
 
 

@@ -14730,6 +14730,8 @@
 		this.currPortion = null;
 		this.str = null;
 		this.font = null;
+
+		this.allFontsMap = [];
 	}
 
 	var c_nPortionLeft = 0;
@@ -14971,9 +14973,13 @@
 		if ("" !== rName) {
 			// single dash is document default font
 			if ((rName.length === 1) && (rName[0] === '-')) {
-				this.font.fn = "DEFAULT";
+				//пересмотреть
+				var defaultFont = window["Asc"]["editor"].getDefaultFontFamily();
+				this.font.fn = defaultFont;
+				this.allFontsMap[defaultFont] = 1;
 			} else {
 				this.font.fn = rName;
+				this.allFontsMap[rName] = 1;
 			}
 		}
 	};
@@ -15001,6 +15007,14 @@
 		if (val != this.currPortion) {
 			this.endPortion();
 			this.currPortion = val;
+		}
+	};
+
+	HeaderFooterParser.prototype.getAllFonts = function (oFontMap) {
+		for(var i in this.allFontsMap) {
+			if(!oFontMap[i]) {
+				oFontMap[i] = 1;
+			}
 		}
 	};
 
