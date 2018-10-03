@@ -2393,7 +2393,7 @@
 				}
 			}
 
-			t.stringRender.render(drawingCtx, x, y, 100, t.settings.activeCellBorderColor);
+			t.stringRender.render(drawingCtx, x, y, textMetrics.width, t.settings.activeCellBorderColor);
 		};
 
 		for(var i = 0; i < headerFooterParser.portions.length; i++) {
