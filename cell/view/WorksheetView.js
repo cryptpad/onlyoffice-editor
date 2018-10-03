@@ -2277,6 +2277,11 @@
 
 	WorksheetView.prototype._drawHeaderFooter = function (drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
 		//odd - нечетные страницы, even - четные. в случае если флаг differentOddEven не выставлен, используем odd
+
+		if(!printPagesData) {
+			return;
+		}
+
 		var headerFooterModel = this.model.headerFooter;
 		//HEADER
 		var curHeader;
@@ -2364,6 +2369,7 @@
 			//добавляю флаги для учета переноса строки
 			var cellFlags = new AscCommonExcel.CellFlags();
 			cellFlags.wrapText = true;
+			cellFlags.textAlign = index === c_nPortionCenter ? AscCommon.align_Center : index === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
 			var fragments = getFragments(portion);
 			t.stringRender.setString(fragments, cellFlags);
 
@@ -14979,6 +14985,11 @@
 		}
 		if ("bold" === rStyle.toLowerCase()) {
 			this.font.b = true;
+		}
+		//в ms жесткая завязка на "bold italic". в lo - ддопускаются следующие строчки - "bold italic bold"  и тп
+		if ("bold italic" === rStyle.toLowerCase()) {
+			this.font.b = true;
+			this.font.i = true;
 		}
 	};
 
