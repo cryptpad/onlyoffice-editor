@@ -2042,7 +2042,7 @@ CChartsDrawer.prototype =
 				}
 
 				if(numCache){
-					point = numCache.getPtByIndex(j + pointDiff);
+					point = numCache.pts[j + pointDiff];
 					if (point && point.pen) {
 						pen = point.pen;
 					}
@@ -2609,6 +2609,27 @@ CChartsDrawer.prototype =
 		}
 	},
 	
+	getPointByIndex: function(seria, index, bXVal)
+	{
+		var seriaVal;
+		if(bXVal) {
+			seriaVal = seria.val ? seria.val :  seria.xVal;
+		} else {
+			seriaVal = seria.val ? seria.val :  seria.yVal;
+		}
+
+		if(!seriaVal)
+			return null;
+
+		//todo use getNumCache
+		var pts = seriaVal.numRef &&  seriaVal.numRef.numCache ? seriaVal.numRef.numCache.pts : seriaVal.numLit ? seriaVal.numLit.pts : null;
+
+		if(pts == null)
+			return null;
+
+		return pts[index];
+	},
+
 	getPtCount: function(series)
 	{
 		var numCache;
@@ -5190,7 +5211,7 @@ drawLineChart.prototype = {
 
 		if (this.subType === "stacked") {
 			for (var k = 0; k <= i; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					val += tempVal;
@@ -5199,7 +5220,7 @@ drawLineChart.prototype = {
 		} else if (this.subType === "stackedPer") {
 			var summVal = 0;
 			for (var k = 0; k < this.chart.series.length; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
@@ -5210,7 +5231,7 @@ drawLineChart.prototype = {
 			}
 			val = val / summVal;
 		} else {
-			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
+			idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
 			val = idxPoint ? parseFloat(idxPoint.val) : null;
 		}
 		return val;
@@ -6613,7 +6634,7 @@ drawAreaChart.prototype = {
 
 		if (this.subType === "stacked") {
 			for (var k = 0; k <= i; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					val += tempVal;
@@ -6622,7 +6643,7 @@ drawAreaChart.prototype = {
 		} else if (this.subType === "stackedPer") {
 			var summVal = 0;
 			for (var k = 0; k < this.chart.series.length; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
@@ -6633,7 +6654,7 @@ drawAreaChart.prototype = {
 			}
 			val = val / summVal;
 		} else {
-			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
+			idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
 			val = idxPoint ? parseFloat(idxPoint.val) : null;
 		}
 		return val;
@@ -9587,7 +9608,7 @@ drawDoughnutChart.prototype = {
 					continue;
 				}
 
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[n], k);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[n], k);
 
 				brush = idxPoint ? idxPoint.brush : null;
 				pen = idxPoint ? idxPoint.pen : null;
@@ -9633,7 +9654,7 @@ drawDoughnutChart.prototype = {
 			//рисуем против часовой стрелки, поэтому цикл с конца
 			for (var k = numCache.ptCount - 1; k >= 0; k--) {
 
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[n], k);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[n], k);
 				curVal = idxPoint ? idxPoint.val : 0;
 				angle = Math.abs((parseFloat(curVal / sumData)) * (Math.PI * 2));
 
@@ -10335,7 +10356,7 @@ drawScatterChart.prototype = {
 	},
 
 	_getYVal: function (n, i) {
-		var idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
+		var idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
 		return idxPoint ? parseFloat(idxPoint.val) : null;
 	},
 
