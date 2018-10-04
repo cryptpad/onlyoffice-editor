@@ -3754,6 +3754,8 @@
 				}
 			}
 			this.workbook.dependencyFormulas.calcTree();
+		} else {
+			console.log(new Error('The sheet name must be less than 31 characters.'));
 		}
 	};
 	Worksheet.prototype.getTabColor=function(){
