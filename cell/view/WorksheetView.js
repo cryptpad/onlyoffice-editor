@@ -5495,22 +5495,13 @@
                 var rowHeight = Asc.round(this.defaultRowHeightPx * this.getZoom());
                 this.nRowsCount = Math.min(this.nRowsCount + Asc.ceil(missingHeight / rowHeight), gc_nMaxCol);
 				this._calcVisibleRows();
+				isUpdate = true;
             }
 
 			if (!skipScrollReinit && isUpdate) {
 				this.handlers.trigger("reinitializeScrollY");
 			}
         }
-/*
-        while (this._isVisibleY() && !this.isMaxRow()) {
-            // Добавим еще строки, чтоб не было видно фон под таблицей
-            this.expandRowsOnScroll(true);
-            this._calcVisibleRows();
-            isUpdate = true;
-        }
-        if (!skipScrollReinit && isUpdate) {
-            this.handlers.trigger("reinitializeScrollY");
-        }*/
     };
 
     WorksheetView.prototype._updateVisibleColsCount = function (skipScrollReinit) {
