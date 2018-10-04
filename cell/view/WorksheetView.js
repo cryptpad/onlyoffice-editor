@@ -6533,7 +6533,7 @@
     WorksheetView.prototype._findVisibleRow = function (from, dr, flag) {
         var to = dr < 0 ? -1 : this.nRowsCount, r;
         for (r = from; r !== to; r += dr) {
-            if (0 < this_getRowHeigh(r)){
+            if (0 < this._getRowHeight(r)){
                 return r;
             }
         }
