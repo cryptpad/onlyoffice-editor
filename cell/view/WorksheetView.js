@@ -1127,6 +1127,7 @@
 
                 asc_applyFunction(functionAction);
                 t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+                t.draw();
 
                 History.EndTransaction();
             };
