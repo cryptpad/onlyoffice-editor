@@ -466,7 +466,7 @@
 
 	WorksheetView.prototype._initRowsCount = function () {
 	    var old = this.nRowsCount;
-		this.nRowsCount = Math.min(Math.max(this.model.getRowsCount() + 1, this.visibleRange.r2), gc_nMaxRow);
+		this.nRowsCount = Math.min(Math.max(this.model.getRowsCount(), this.visibleRange.r2) + 1, gc_nMaxRow);
 		return old !== this.nRowsCount;
 	};
 
