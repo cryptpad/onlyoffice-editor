@@ -461,7 +461,13 @@
 		// Инициализируем число колонок и строк (при открытии). Причем нужно поставить на 1 больше,
 		// чтобы могли показать последнюю строку/столбец (http://bugzilla.onlyoffice.com/show_bug.cgi?id=23513)
 		this.nColsCount = Math.min(this.model.getColsCount() + 1, gc_nMaxCol);
-		this.nRowsCount = Math.min(this.model.getRowsCount() + 1, gc_nMaxRow);
+		this._initRowsCount();
+	};
+
+	WorksheetView.prototype._initRowsCount = function () {
+	    var old = this.nRowsCount;
+		this.nRowsCount = Math.min(Math.max(this.model.getRowsCount() + 1, this.visibleRange.r2), gc_nMaxRow);
+		return old !== this.nRowsCount;
 	};
 
     WorksheetView.prototype.getCellVisibleRange = function (col, row) {
