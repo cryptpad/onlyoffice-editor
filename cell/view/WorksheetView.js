@@ -1284,7 +1284,6 @@
 		this._calcHeaderRowHeight();
 		this._calcHeightRows(type);
         this.visibleRange.r2 = 0;
-        this._calcVisibleRows();
         this._updateVisibleRowsCount(/*skipScrolReinit*/true);
 
         // calculate columns widths and visible columns
