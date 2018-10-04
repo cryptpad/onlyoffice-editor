@@ -1480,10 +1480,9 @@
 
     /** Вычисляет диапазон индексов видимых строк */
     WorksheetView.prototype._calcVisibleRows = function () {
-        var l = this.nRowsCount;
         var h = this.drawingCtx.getHeight();
         var sumH = this.topLeftFrozenCell ? this._getRowTop(this.topLeftFrozenCell.getRow0()) : this.cellsTop;
-        for (var i = this.visibleRange.r1, f = false; i < l && sumH < h; ++i) {
+        for (var i = this.visibleRange.r1, f = false; i < this.nRowsCount && sumH < h; ++i) {
             sumH += this._getRowHeight(i);
             f = true;
         }
