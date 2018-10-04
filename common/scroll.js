@@ -3046,6 +3046,8 @@ function _HEXTORGB_( colorHEX ) {
 	ScrollObject.prototype.evt_mouseup = function ( e ) {
 		var evt = e || window.event;
 
+		this.that.handleEvents( "onmouseup", evt );
+
 		// prevent pointer events on all iframes (while only plugin!)
 		if (window.g_asc_plugins)
 			window.g_asc_plugins.enablePointerEvents();
@@ -3058,18 +3060,7 @@ function _HEXTORGB_( colorHEX ) {
 		var mousePos = this.that.getMousePosition( evt );
 		this.that.scrollTimeout && clearTimeout( this.that.scrollTimeout );
 		this.that.scrollTimeout = null;
-		if ( !this.that.scrollerMouseDown ) {
-			if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowDown( mousePos ) ) {
-				this.that.handleEvents( "onmouseup", evt );
-				this.that._drawArrow( ArrowStatus.upLeftArrowNonActive_downRightArrowHover );
-			}
-			else if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowUp( mousePos ) ) {
-				this.that.handleEvents( "onmouseup", evt );
-				this.that._drawArrow( ArrowStatus.upLeftArrowHover_downRightArrowNonActive );
-			}
-			this.that.mouseDownArrow = false;
-		}
-		else {
+		if ( this.that.scrollerMouseDown ) {
 			this.that.mouseDown = false;
 			this.that.mouseUp = true;
 			this.that.scrollerMouseDown = false;
@@ -3082,13 +3073,20 @@ function _HEXTORGB_( colorHEX ) {
 			}
 			this.that._drawArrow();
 			this.that._draw();
+		} else {
+			if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowDown( mousePos ) ) {
+				this.that._drawArrow( ArrowStatus.upLeftArrowNonActive_downRightArrowHover );
+			}
+			else if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowUp( mousePos ) ) {
+				this.that._drawArrow( ArrowStatus.upLeftArrowHover_downRightArrowNonActive );
+			}
+			this.that.mouseDownArrow = false;
 		}
 
 		//for unlock global mouse event
 		if ( this.that.onLockMouse && this.that.offLockMouse ) {
 			this.that.offLockMouse( evt );
 		}
-		this.that.handleEvents( "onmouseup", evt );
 	};
 	ScrollObject.prototype.evt_mousedown = function ( e ) {
 		var evt = e || window.event;
