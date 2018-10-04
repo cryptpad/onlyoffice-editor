@@ -340,10 +340,15 @@
 
 				this.vsbApi = new AscCommon.ScrollObject(this.vsb.id, settings);
 				this.vsbApi.bind("scrollvertical", function(evt) {
-					self.handlers.trigger("scrollY", evt.scrollPositionY / self.settings.vscrollStep);
+					self.handlers.trigger("scrollY", evt.scrollPositionY / self.settings.vscrollStep, !self.vsbApi.scrollerMouseDown);
 				});
 				this.vsbApi.bind("scrollVEnd", function(evt) {
 					self.handlers.trigger("addRow");
+				});
+				this.vsbApi.bind("mouseup", function(evt) {
+					if (self.vsbApi.scrollerMouseDown) {
+						self.handlers.trigger('initRowsCount');
+					}
 				});
 				this.vsbApi.onLockMouse = function(evt){
                     self.vsbApiLockMouse = true;

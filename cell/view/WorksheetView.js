@@ -5541,7 +5541,7 @@
         return colsCount <= colsCountCurrent && this.model.isDefaultWidthHidden();
     };
 
-    WorksheetView.prototype.scrollVertical = function (delta, editor) {
+    WorksheetView.prototype.scrollVertical = function (delta, editor, initRowsCount) {
         var vr = this.visibleRange;
         var fixStartRow = new asc_Range(vr.c1, vr.r1, vr.c2, vr.r1);
         this._fixSelectionOfHiddenCells(0, delta >= 0 ? +1 : -1, fixStartRow);
@@ -5740,7 +5740,7 @@
         }
 
 
-        if (reinitScrollY) {
+        if (reinitScrollY || (0 > delta && initRowsCount && this._initRowsCount())) {
             this.handlers.trigger("reinitializeScrollY");
         }
 

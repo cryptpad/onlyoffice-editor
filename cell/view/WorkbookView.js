@@ -317,6 +317,8 @@
 		  this.controller.init(this, this.element, /*this.canvasOverlay*/ this.canvasGraphicOverlay, /*handlers*/{
 			  "resize": function () {
 				  self.resize.apply(self, arguments);
+			  }, "initRowsCount": function () {
+				  self._onInitRowsCount.apply(self, arguments);
 			  }, "scrollY": function () {
 				  self._onScrollY.apply(self, arguments);
 			  }, "scrollX": function () {
@@ -948,11 +950,17 @@
 		}
 	};
 
-  WorkbookView.prototype._onScrollY = function(pos) {
+	WorkbookView.prototype._onInitRowsCount = function () {
+		var ws = this.getWorksheet();
+		if (ws._initRowsCount()) {
+			this._onScrollReinitialize(/*vertical*/1);
+		}
+	};
+  WorkbookView.prototype._onScrollY = function(pos, initRowsCount) {
     var ws = this.getWorksheet();
     var delta = asc_round(pos - ws.getFirstVisibleRow(/*allowPane*/true));
     if (delta !== 0) {
-      ws.scrollVertical(delta, this.cellEditor);
+      ws.scrollVertical(delta, this.cellEditor, initRowsCount);
     }
   };
 
