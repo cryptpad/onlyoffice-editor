@@ -1060,7 +1060,7 @@ CFootnotesController.prototype.GotoPrevFootnote = function()
 };
 CFootnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oFootnote)
 {
-	var arrFootnotes     = this.LogicDocument.Get_FootnotesList(null, oFootnote);
+	var arrFootnotes     = this.LogicDocument.GetFootnotesList(null, oFootnote);
 	var oNumberingEngine = new CDocumentNumberingInfoEngine(oPara, oNumPr, this.Get_Numbering());
 	for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
 	{
@@ -1286,7 +1286,7 @@ CFootnotesController.prototype.private_GetPrevFootnote = function(oFootnote)
 	if (!oFootnote)
 		return null;
 
-	var arrList = this.LogicDocument.Get_FootnotesList(null, oFootnote);
+	var arrList = this.LogicDocument.GetFootnotesList(null, oFootnote);
 	if (!arrList || arrList.length <= 1 || arrList[arrList.length - 1] !== oFootnote)
 		return null;
 
@@ -1297,7 +1297,7 @@ CFootnotesController.prototype.private_GetNextFootnote = function(oFootnote)
 	if (!oFootnote)
 		return null;
 
-	var arrList = this.LogicDocument.Get_FootnotesList(oFootnote, null);
+	var arrList = this.LogicDocument.GetFootnotesList(oFootnote, null);
 	if (!arrList || arrList.length <= 1 || arrList[0] !== oFootnote)
 		return null;
 
@@ -1309,7 +1309,7 @@ CFootnotesController.prototype.private_GetDirection = function(oFootnote1, oFoot
 	if (oFootnote1 == oFootnote2)
 		return 0;
 
-	var arrList = this.LogicDocument.Get_FootnotesList(null, null);
+	var arrList = this.LogicDocument.GetFootnotesList(null, null);
 
 	for (var nPos = 0, nCount = arrList.length; nPos < nCount; ++nPos)
 	{
@@ -1323,7 +1323,7 @@ CFootnotesController.prototype.private_GetDirection = function(oFootnote1, oFoot
 };
 CFootnotesController.prototype.private_GetFootnotesLogicRange = function(oFootnote1, oFootnote2)
 {
-	return this.LogicDocument.Get_FootnotesList(oFootnote1, oFootnote2);
+	return this.LogicDocument.GetFootnotesList(oFootnote1, oFootnote2);
 };
 CFootnotesController.prototype.private_GetSelectionArray = function()
 {
@@ -1468,7 +1468,7 @@ CFootnotesController.prototype.MoveCursorToStartPos = function(AddToSelect)
 		if (true === this.Selection.Use)
 			oFootnote = this.Selection.Start.Footnote;
 
-		var arrRange = this.LogicDocument.Get_FootnotesList(null, oFootnote);
+		var arrRange = this.LogicDocument.GetFootnotesList(null, oFootnote);
 		if (arrRange.length <= 0)
 			return;
 
@@ -1510,7 +1510,7 @@ CFootnotesController.prototype.MoveCursorToEndPos = function(AddToSelect)
 		if (true === this.Selection.Use)
 			oFootnote = this.Selection.Start.Footnote;
 
-		var arrRange = this.LogicDocument.Get_FootnotesList(oFootnote, null);
+		var arrRange = this.LogicDocument.GetFootnotesList(oFootnote, null);
 		if (arrRange.length <= 0)
 			return;
 
@@ -2662,9 +2662,9 @@ CFootnotesController.prototype.GetSelectedText = function(bClearText, oPr)
 		return sResult;
 	}
 };
-CFootnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CFootnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
-	return this.CurFootnote.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	return this.CurFootnote.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
 CFootnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -3249,6 +3249,14 @@ CFootnotesController.prototype.GetSimilarNumbering = function(oEngine)
 {
 	if (this.CurFootnote)
 		this.CurFootnote.GetSimilarNumbering(oEngine);
+};
+CFootnotesController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	// Поиск по всем сноскам должен происходить не здесь
+	if (!isUseSelection || !this.CurFootnote)
+		return arrFields ? arrFields : [];
+
+	return this.CurFootnote.GetAllFields(isUseSelection, arrFields);
 };
 
 

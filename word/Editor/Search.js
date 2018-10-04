@@ -253,7 +253,7 @@ CDocument.prototype.Search = function(Str, Props, bDraw)
     this.SectionsInfo.Search( Str, Props, this.SearchEngine );
 
     // Ищем в сносках
-	var arrFootnotes = this.Get_FootnotesList(null, null);
+	var arrFootnotes = this.GetFootnotesList(null, null);
 	this.SearchEngine.SetFootnotes(arrFootnotes);
 	for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
 	{

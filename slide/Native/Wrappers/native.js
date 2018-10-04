@@ -846,6 +846,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         }
 
+        case 13: // ASC_MENU_EVENT_TYPE_INCREASEPARAINDENT
+        {
+            this.IncreaseIndent();
+            break;
+        }
+        case 14: // ASC_MENU_EVENT_TYPE_DECREASEPARAINDENT
+        {
+            this.DecreaseIndent();
+            break;
+        }
+
         case 18: // ASC_MENU_EVENT_TYPE_SHAPE
         {
             var shapeProp = asc_menu_ReadShapePr(_params, _current);           

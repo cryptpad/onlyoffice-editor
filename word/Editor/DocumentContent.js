@@ -360,10 +360,14 @@ CDocumentContent.prototype.GetNumbering = function()
 };
 CDocumentContent.prototype.Get_Styles = function(lvl)
 {
-	if (this.Content[0] && this.Content[0].bFromDocument)
+	if(!this.bPresentation)
+	{
 		return this.Styles;
+	}
 	else
+	{
 		return this.Parent.Get_Styles(lvl);
+	}
 };
 CDocumentContent.prototype.Get_TableStyleForPara = function()
 {
@@ -1664,11 +1668,11 @@ CDocumentContent.prototype.Is_CurrentElementParagraph = function()
 
 	return true;
 };
-CDocumentContent.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CDocumentContent.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
-		return this.LogicDocument.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+		return this.LogicDocument.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 	}
 	else //if ( docpostype_Content === this.CurPos.Type )
 	{
@@ -1679,7 +1683,7 @@ CDocumentContent.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrS
 				for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 				{
 					this.Content[nPos].Set_ApplyToAll(true);
-					this.Content[nPos].GetCurrentParagraph(false, arrSelectedParagraphs);
+					this.Content[nPos].GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 					this.Content[nPos].Set_ApplyToAll(false);
 				}
 			}
@@ -1689,12 +1693,12 @@ CDocumentContent.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrS
 				var nEndPos   = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
 				for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
 				{
-					this.Content[nPos].GetCurrentParagraph(false, arrSelectedParagraphs);
+					this.Content[nPos].GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 				}
 			}
 			else
 			{
-				this.Content[this.CurPos.ContentPos].GetCurrentParagraph(false, arrSelectedParagraphs);
+				this.Content[this.CurPos.ContentPos].GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 			}
 		}
 		else
@@ -1703,7 +1707,7 @@ CDocumentContent.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrS
 			if (Pos < 0 || Pos >= this.Content.length)
 				return null;
 
-			return this.Content[Pos].GetCurrentParagraph(bIgnoreSelection, null);
+			return this.Content[Pos].GetCurrentParagraph(bIgnoreSelection, null, oPr);
 		}
 	}
 
@@ -6018,52 +6022,55 @@ CDocumentContent.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent
 		{
 			this.Selection.Use = false;
 
-			if (null != this.Selection.Data && this.Selection.Data.Hyperlink)
+			if (this.IsInText(X, Y, this.Get_AbsolutePage(this.CurPage)))
 			{
-				var oHyperlink    = this.Selection.Data.Hyperlink;
-				var sBookmarkName = oHyperlink.GetAnchor();
-				var sValue        = oHyperlink.GetValue();
+				if (null != this.Selection.Data && this.Selection.Data.Hyperlink)
+				{
+					var oHyperlink    = this.Selection.Data.Hyperlink;
+					var sBookmarkName = oHyperlink.GetAnchor();
+					var sValue        = oHyperlink.GetValue();
 
-				if (oHyperlink.IsTopOfDocument())
-				{
-					if (this.LogicDocument && this.LogicDocument.MoveCursorToStartOfDocument)
-						this.LogicDocument.MoveCursorToStartOfDocument();
-				}
-				else if (sBookmarkName)
-				{
-					var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
-					var oBookmark          = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(sBookmarkName) : null;
-					if (oBookmark)
-						oBookmark[0].GoToBookmark();
-				}
-				else if (sValue)
-				{
-					editor && editor.sync_HyperlinkClickCallback(sValue);
-					this.Selection.Data.Hyperlink.SetVisited(true);
-					if (this.DrawingDocument.m_oLogicDocument)
+					if (oHyperlink.IsTopOfDocument())
 					{
-						if (editor.isDocumentEditor)
+						if (this.LogicDocument && this.LogicDocument.MoveCursorToStartOfDocument)
+							this.LogicDocument.MoveCursorToStartOfDocument();
+					}
+					else if (sBookmarkName)
+					{
+						var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
+						var oBookmark          = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(sBookmarkName) : null;
+						if (oBookmark)
+							oBookmark[0].GoToBookmark();
+					}
+					else if (sValue)
+					{
+						editor && editor.sync_HyperlinkClickCallback(sValue);
+						this.Selection.Data.Hyperlink.SetVisited(true);
+						if (this.DrawingDocument.m_oLogicDocument)
 						{
-							for (var PageIdx = Item.Get_AbsolutePage(0); PageIdx < Item.Get_AbsolutePage(0) + Item.Get_PagesCount(); PageIdx++)
-								this.DrawingDocument.OnRecalculatePage(PageIdx, this.DrawingDocument.m_oLogicDocument.Pages[PageIdx]);
+							if (editor.isDocumentEditor)
+							{
+								for (var PageIdx = Item.Get_AbsolutePage(0); PageIdx < Item.Get_AbsolutePage(0) + Item.Get_PagesCount(); PageIdx++)
+									this.DrawingDocument.OnRecalculatePage(PageIdx, this.DrawingDocument.m_oLogicDocument.Pages[PageIdx]);
+							}
+							else
+							{
+								this.DrawingDocument.OnRecalculatePage(PageIdx, this.DrawingDocument.m_oLogicDocument.Slides[PageIdx]);
+							}
+							this.DrawingDocument.OnEndRecalculate(false, true);
 						}
-						else
-						{
-							this.DrawingDocument.OnRecalculatePage(PageIdx, this.DrawingDocument.m_oLogicDocument.Slides[PageIdx]);
-						}
-						this.DrawingDocument.OnEndRecalculate(false, true);
 					}
 				}
-			}
-			else if (null !== this.Selection.Data && this.Selection.Data.PageRef)
-			{
-				var oInstruction  = this.Selection.Data.PageRef.GetInstruction();
-				if (oInstruction && fieldtype_PAGEREF === oInstruction.GetType())
+				else if (null !== this.Selection.Data && this.Selection.Data.PageRef)
 				{
-					var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
-					var oBookmark = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(oInstruction.GetBookmarkName()) : null;
-					if (oBookmark)
-						oBookmark[0].GoToBookmark();
+					var oInstruction = this.Selection.Data.PageRef.GetInstruction();
+					if (oInstruction && fieldtype_PAGEREF === oInstruction.GetType())
+					{
+						var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
+						var oBookmark          = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(oInstruction.GetBookmarkName()) : null;
+						if (oBookmark)
+							oBookmark[0].GoToBookmark();
+					}
 				}
 			}
 		}
@@ -7628,13 +7635,13 @@ CDocumentContent.prototype.SetParagraphFramePr = function(FramePr, bDelete)
 		}
 	}
 };
-CDocumentContent.prototype.Add_ToContent = function(Pos, Item)
+CDocumentContent.prototype.Add_ToContent = function(Pos, Item, isCorrectContent)
 {
-    this.Internal_Content_Add(Pos, Item);
+    this.Internal_Content_Add(Pos, Item, isCorrectContent);
 };
-CDocumentContent.prototype.Remove_FromContent = function(Pos, Count)
+CDocumentContent.prototype.Remove_FromContent = function(Pos, Count, isCorrectContent)
 {
-    this.Internal_Content_Remove(Pos, Count);
+    this.Internal_Content_Remove(Pos, Count, isCorrectContent);
 };
 CDocumentContent.prototype.Concat_Paragraphs = function(Pos)
 {
@@ -8008,6 +8015,43 @@ CDocumentContent.prototype.IsEmptyPage = function(nCurPage)
 CDocumentContent.prototype.GetParent = function()
 {
 	return this.Parent;
+};
+CDocumentContent.prototype.GetPlaceHolderObject = function()
+{
+	var nCurPos = this.CurPos.ContentPos;
+	if (this.Selection.Use)
+	{
+		if (this.Selection.StartPos === this.Selection.EndPos)
+			nCurPos = this.Selection.StartPos;
+		else
+			return null;
+	}
+
+	return this.Content[nCurPos].GetPlaceHolderObject();
+};
+CDocumentContent.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if (!arrFields)
+		arrFields = [];
+
+	var nStartPos = isUseSelection ?
+		(this.Selection.Use ?
+			(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos)
+			: this.CurPos.ContentPos)
+		: 0;
+
+	var nEndPos = isUseSelection ?
+		(this.Selection.Use ?
+			(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos)
+			: this.CurPos.ContentPos)
+		: this.Content.length - 1;
+
+	for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+	{
+		this.Content[nIndex].GetAllFields(isUseSelection, arrFields);
+	}
+
+	return arrFields;
 };
 
 function CDocumentContentStartState(DocContent)

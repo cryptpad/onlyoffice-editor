@@ -365,7 +365,7 @@ CComplexField.prototype.SetSeparateChar = function(oChar)
 	this.SeparateChar = oChar;
 	this.EndChar      = null;
 };
-CComplexField.prototype.Update = function(isCreateHistoryPoint)
+CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculate)
 {
 	this.private_UpdateInstruction();
 
@@ -404,7 +404,8 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint)
 
 	}
 
-	this.LogicDocument.Recalculate();
+	if (false !== isNeedRecalculate)
+		this.LogicDocument.Recalculate();
 };
 CComplexField.prototype.private_UpdateFORMULA = function()
 {

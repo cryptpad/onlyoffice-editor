@@ -12,6 +12,8 @@ Implement the function to continue a numbering
 Implement the function to separate a numbering
 Add automatic creating a numbering as user typing
 
+Add updating the fields (F9 and print)
+
 ### Spreadsheet Editor
 * Add support comment mode
 * The following functions are added: GetRows, GetCols, GetCount, GetHidden, SetHidden, GetColumnWidth, SetColumnWidth, GetRowHeight, SetRowHeight, GetWpar, SetOffset, 

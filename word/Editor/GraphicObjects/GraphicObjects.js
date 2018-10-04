@@ -233,6 +233,14 @@ CGraphicObjects.prototype =
         return this.Id;
     },
 
+    GetAllFields: function(isUseSelection, arrFields){
+        var _arrFields = arrFields ? arrFields : [];
+        for(var i = 0; i < this.selectedObjects.length; ++i){
+            this.selectedObjects[i].GetAllFields(isUseSelection, arrFields);
+        }
+        return _arrFields;
+    },
+
     TurnOffCheckChartSelection: function()
     {
         this.bNoCheckChartTextSelection = true;

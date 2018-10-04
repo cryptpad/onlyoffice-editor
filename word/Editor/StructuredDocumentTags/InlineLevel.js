@@ -435,7 +435,7 @@ CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, En
 {
 	if (this.IsPlaceHolder())
 	{
-		if (this.Paragraph && this.Paragraph.Get_SelectionDirection() > 0)
+		if (this.Paragraph && this.Paragraph.GetSelectDirection() > 0)
 			this.SelectAll(1);
 		else
 			this.SelectAll(-1);

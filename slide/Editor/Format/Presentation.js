@@ -1585,7 +1585,8 @@ CPresentation.prototype =
 
     Stop_Recalculate : function()
     {
-        this.DrawingDocument.OnStartRecalculate( 0 );
+        this.clearThemeTimeouts();
+//        this.DrawingDocument.OnStartRecalculate( 0 );
     },
 
     OnContentReDraw : function(StartPage, EndPage)
@@ -2481,7 +2482,7 @@ CPresentation.prototype =
 
     GetSelectedBounds: function(){
         var oController = this.GetCurrentController();
-        if(oController.selectedObjects.length > 0){
+        if(oController && oController.selectedObjects.length > 0){
             return oController.getBoundsForGroup([oController.selectedObjects[0]]);
         }
         return new AscFormat.CGraphicBounds(0, 0, 0, 0);

@@ -1798,6 +1798,21 @@ function CGroupShape()
     CGroupShape.prototype.getCopyWithSourceFormatting = function(oIdMap){
         return this.copy(oIdMap, true);
     };
+
+    CGroupShape.prototype.GetAllFields = function(isUseSelection, arrFields){
+        var _arrFields = arrFields ? arrFields : [], i;
+        if(isUseSelection){
+            for(i = 0; i < this.selectedObjects.length; ++i){
+                this.selectedObjects[i].GetAllFields(isUseSelection, _arrFields);
+            }
+        }
+        else{
+            for(i = 0; i < this.spTree.length; ++i){
+                this.spTree[i].GetAllFields(isUseSelection, _arrFields);
+            }
+        }
+        return _arrFields;
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGroupShape = CGroupShape;

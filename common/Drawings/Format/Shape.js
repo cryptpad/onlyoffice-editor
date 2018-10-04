@@ -5728,6 +5728,14 @@ CShape.prototype.getColumnNumber = function(){
         }
         return null;
     };
+
+    CShape.prototype.GetAllFields = function(isUseSelection, arrFields){
+        var oContent = this.getDocContent();
+        if(oContent){
+            return oContent.GetAllFields(isUseSelection, arrFields)
+        }
+        return arrFields ? arrFields : [];
+    };
 function CreateBinaryReader(szSrc, offset, srcLen)
 {
     var nWritten = 0;
