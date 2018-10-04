@@ -208,7 +208,9 @@ var c_oSerProp_tblPrType = {
 	RowBandSize: 15,
 	ColBandSize: 16,
 	tblCaption: 17,
-	tblDescription: 18
+	tblDescription: 18,
+	TableIndTwips: 19,
+	TableCellSpacingTwips: 20
 };
 var c_oSer_tblpPrType = {
     Page:0,
@@ -223,7 +225,9 @@ var c_oSer_tblpPrType2 = {
 	VertAnchor: 3,
 	TblpY: 4,
 	TblpYSpec: 5,
-	Paddings: 6
+	Paddings: 6,
+	TblpXTwips: 7,
+	TblpYTwips: 8
 };
 var c_oSerProp_pPrType = {
     contextualSpacing:0,
@@ -259,7 +263,14 @@ var c_oSerProp_pPrType = {
 	numPr_Ins: 32,
 	pPrChange: 33,
 	outlineLvl: 34,
-	Tab_Item_Leader: 35
+	Tab_Item_Leader: 35,
+	Ind_LeftTwips: 36,
+	Ind_RightTwips: 37,
+	Ind_FirstLineTwips: 38,
+	Spacing_LineTwips: 39,
+	Spacing_BeforeTwips: 40,
+	Spacing_AfterTwips: 41,
+	Tab_Item_PosTwips: 42
 };
 var c_oSerProp_rPrType = {
     Bold:0,
@@ -299,7 +310,9 @@ var c_oSerProp_rPrType = {
 	Ins: 34,
 	rPrChange: 35,
 	MoveFrom: 36,
-	MoveTo: 37
+	MoveTo: 37,
+	SpacingTwips:38,
+	PositionHps: 39
 };
 var c_oSerProp_rowPrType = {
     CantSplit:0,
@@ -319,7 +332,9 @@ var c_oSerProp_rowPrType = {
     TableHeader:14,
     Del: 15,
     Ins: 16,
-    trPrChange: 17
+    trPrChange: 17,
+	TableCellSpacingTwips: 18,
+	Height_ValueTwips: 19
 };
 var c_oSerProp_cellPrType = {
     GridSpan:0,
@@ -411,7 +426,8 @@ var c_oSerDocTableType = {
     tblGridChange: 9,
 	Sdt: 10,
 	BookmarkStart: 11,
-	BookmarkEnd: 12
+	BookmarkEnd: 12,
+	tblGrid_ItemTwips: 13
 };
 var c_oSerRunType = {
     run:0,
@@ -488,23 +504,34 @@ var c_oSerImageType2 = {
 	SizeRelH: 27,
 	SizeRelV: 28,
 	GraphicFramePr: 30,
-	DocPr: 31
+	DocPr: 31,
+	DistBEmu: 32,
+	DistLEmu: 33,
+	DistREmu: 34,
+	DistTEmu: 35
 };
 var c_oSerEffectExtent = {
 	Left: 0,
 	Top: 1,
 	Right: 2,
-	Bottom: 3
+	Bottom: 3,
+	LeftEmu: 4,
+	TopEmu: 5,
+	RightEmu: 6,
+	BottomEmu: 7
 };
 var c_oSerExtent = {
 	Cx: 0,
-	Cy: 1
+	Cy: 1,
+	CxEmu: 2,
+	CyEmu: 3
 };
 var c_oSerPosHV = {
 	RelativeFrom: 0,
 	Align: 1,
 	PosOffset: 2,
-	PctOffset: 3
+	PctOffset: 3,
+	PosOffsetEmu: 4
 };
 var c_oSerSizeRelHV = {
 	RelativeFrom: 0,
@@ -512,7 +539,9 @@ var c_oSerSizeRelHV = {
 };
 var c_oSerSimplePos = {
 	X: 0,
-	Y: 1
+	Y: 1,
+	XEmu: 2,
+	YEmu: 3
 };
 var c_oSerWrapSquare = {
 	DistL: 0,
@@ -520,18 +549,26 @@ var c_oSerWrapSquare = {
 	DistR: 2,
 	DistB: 3,
 	WrapText: 4,
-	EffectExtent: 5
+	EffectExtent: 5,
+	DistLEmu: 6,
+	DistTEmu: 7,
+	DistREmu: 8,
+	DistBEmu: 9
 };
 var c_oSerWrapThroughTight = {
 	DistL: 0,
 	DistR: 1,
 	WrapText: 2,
-	WrapPolygon: 3
+	WrapPolygon: 3,
+	DistLEmu: 4,
+	DistREmu: 5
 };
 var c_oSerWrapTopBottom = {
 	DistT: 0,
 	DistB: 1,
-	EffectExtent: 2
+	EffectExtent: 2,
+	DistTEmu: 3,
+	DistBEmu: 4
 };
 var c_oSerWrapPolygon = {
 	Edited: 0,
@@ -541,7 +578,9 @@ var c_oSerWrapPolygon = {
 };
 var c_oSerPoint2D = {
 	X: 0,
-	Y: 1
+	Y: 1,
+	XEmu: 2,
+	YEmu: 3
 };
 var c_oSerMarginsType = {
     left:0,
@@ -557,7 +596,9 @@ var c_oSerWidthType = {
 var c_oSer_pgSzType = {
     W:0,
     H:1,
-    Orientation:2
+    Orientation:2,
+	WTwips: 3,
+	HTwips: 4
 };
 var c_oSer_pgMarType = {
     Left:0,
@@ -565,7 +606,13 @@ var c_oSer_pgMarType = {
     Right:2,
     Bottom:3,
     Header:4,
-    Footer:5
+    Footer:5,
+	LeftTwips: 6,
+	TopTwips: 7,
+	RightTwips: 8,
+	BottomTwips: 9,
+	HeaderTwips: 10,
+	FooterTwips: 11
 };
 var c_oSer_CommentsType = {
 	Comment: 0,
@@ -596,7 +643,8 @@ var c_oSer_SettingsType = {
 	EndnotePr: 5,
 	SdtGlobalColor: 6,
 	SdtGlobalShowHighlight: 7,
-	Compat: 8
+	Compat: 8,
+	DefaultTabStopTwips: 9
 };
 var c_oSer_MathPrType = {
 	BrkBin: 0,
@@ -703,7 +751,8 @@ var c_oSer_OMathBottomNodesType = {
 };
 var c_oSer_OMathBottomNodesValType = {
 	Val: 0,
-	AlnAt: 1
+	AlnAt: 1,
+	ValTwips: 2
 };
 var c_oSer_OMathChrType =
 {
@@ -1825,23 +1874,23 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         //Left
         if(null != Ind.Left)
         {
-            this.memory.WriteByte(c_oSerProp_pPrType.Ind_Left);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(Ind.Left);
+            this.memory.WriteByte(c_oSerProp_pPrType.Ind_LeftTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(Ind.Left);
         }
         //Right
         if(null != Ind.Right)
         {
-            this.memory.WriteByte(c_oSerProp_pPrType.Ind_Right);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(Ind.Right);
+            this.memory.WriteByte(c_oSerProp_pPrType.Ind_RightTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(Ind.Right);
         }
         //FirstLine
         if(null != Ind.FirstLine)
         {
-            this.memory.WriteByte(c_oSerProp_pPrType.Ind_FirstLine);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(Ind.FirstLine);
+            this.memory.WriteByte(c_oSerProp_pPrType.Ind_FirstLineTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(Ind.FirstLine);
         }
     };
     this.WriteSpacing = function(Spacing)
@@ -1849,9 +1898,10 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         //Line
         if(null != Spacing.Line)
         {
-            this.memory.WriteByte(c_oSerProp_pPrType.Spacing_Line);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(Spacing.Line);
+            var line = Asc.linerule_Auto === Spacing.LineRule ? Math.round(Spacing.Line * 240) : (this.bs.mmToTwips(Spacing.Line));
+            this.memory.WriteByte(c_oSerProp_pPrType.Spacing_LineTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.memory.WriteLong(line);
         }
         //LineRule
         if(null != Spacing.LineRule)
@@ -1869,9 +1919,9 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         }
         if(null != Spacing.Before)
         {
-            this.memory.WriteByte(c_oSerProp_pPrType.Spacing_Before);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(Spacing.Before);
+            this.memory.WriteByte(c_oSerProp_pPrType.Spacing_BeforeTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(Spacing.Before);
         }
         //After
         if(null != Spacing.AfterAutoSpacing)
@@ -1882,9 +1932,9 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         }
         if(null != Spacing.After)
         {
-            this.memory.WriteByte(c_oSerProp_pPrType.Spacing_After);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(Spacing.After);
+            this.memory.WriteByte(c_oSerProp_pPrType.Spacing_AfterTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(Spacing.After);
         }
     };
     this.WriteTabs = function(Tab)
@@ -1914,9 +1964,9 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 		}
         
         //pos
-        this.memory.WriteByte(c_oSerProp_pPrType.Tab_Item_Pos);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(TabItem.Pos);
+        this.memory.WriteByte(c_oSerProp_pPrType.Tab_Item_PosTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(TabItem.Pos);
 
 		this.memory.WriteByte(c_oSerProp_pPrType.Tab_Item_Leader);
 		this.memory.WriteByte(c_oSerPropLenType.Byte);
@@ -1951,7 +2001,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         {
             this.memory.WriteByte(c_oSer_FramePrType.H);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(g_dKoef_mm_to_twips * oFramePr.H);
+            this.bs.writeMmToTwips(oFramePr.H);
         }
 		if(null != oFramePr.HAnchor)
         {
@@ -1969,7 +2019,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         {
             this.memory.WriteByte(c_oSer_FramePrType.HSpace);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(g_dKoef_mm_to_twips * oFramePr.HSpace);
+            this.bs.writeMmToTwips(oFramePr.HSpace);
         }
 		if(null != oFramePr.Lines)
         {
@@ -1987,13 +2037,13 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         {
             this.memory.WriteByte(c_oSer_FramePrType.VSpace);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(g_dKoef_mm_to_twips * oFramePr.VSpace);
+            this.bs.writeMmToTwips(oFramePr.VSpace);
         }
 		if(null != oFramePr.W)
         {
             this.memory.WriteByte(c_oSer_FramePrType.W);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(g_dKoef_mm_to_twips * oFramePr.W);
+            this.bs.writeMmToTwips(oFramePr.W);
         }
 		if(null != oFramePr.Wrap)
         {
@@ -2014,7 +2064,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         {
             this.memory.WriteByte(c_oSer_FramePrType.X);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(g_dKoef_mm_to_twips * oFramePr.X);
+            this.bs.writeMmToTwips(oFramePr.X);
         }
 		if(null != oFramePr.XAlign)
         {
@@ -2026,7 +2076,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         {
             this.memory.WriteByte(c_oSer_FramePrType.Y);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(g_dKoef_mm_to_twips * oFramePr.Y);
+            this.bs.writeMmToTwips(oFramePr.Y);
         }
 		if(null != oFramePr.YAlign)
         {
@@ -2099,13 +2149,13 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
     {
         var oThis = this;
         //W
-        this.memory.WriteByte(c_oSer_pgSzType.W);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(sectPr.Get_PageWidth());
+        this.memory.WriteByte(c_oSer_pgSzType.WTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(sectPr.Get_PageWidth());
         //H
-        this.memory.WriteByte(c_oSer_pgSzType.H);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(sectPr.Get_PageHeight());
+        this.memory.WriteByte(c_oSer_pgSzType.HTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(sectPr.Get_PageHeight());
         //Orientation
         this.memory.WriteByte(c_oSer_pgSzType.Orientation);
         this.memory.WriteByte(c_oSerPropLenType.Byte);
@@ -2114,30 +2164,30 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
     this.WritePageMargin = function(sectPr, oDocument)
     {
         //Left
-        this.memory.WriteByte(c_oSer_pgMarType.Left);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(sectPr.Get_PageMargin_Left());
+        this.memory.WriteByte(c_oSer_pgMarType.LeftTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(sectPr.Get_PageMargin_Left());
         //Top
-        this.memory.WriteByte(c_oSer_pgMarType.Top);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(sectPr.Get_PageMargin_Top());
+        this.memory.WriteByte(c_oSer_pgMarType.TopTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(sectPr.Get_PageMargin_Top());
         //Right
-        this.memory.WriteByte(c_oSer_pgMarType.Right);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(sectPr.Get_PageMargin_Right());
+        this.memory.WriteByte(c_oSer_pgMarType.RightTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(sectPr.Get_PageMargin_Right());
         //Bottom
-        this.memory.WriteByte(c_oSer_pgMarType.Bottom);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(sectPr.Get_PageMargin_Bottom());
+        this.memory.WriteByte(c_oSer_pgMarType.BottomTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(sectPr.Get_PageMargin_Bottom());
         
         //Header
-        this.memory.WriteByte(c_oSer_pgMarType.Header);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(sectPr.Get_PageMargins_Header());
+        this.memory.WriteByte(c_oSer_pgMarType.HeaderTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(sectPr.Get_PageMargins_Header());
         //Footer
-        this.memory.WriteByte(c_oSer_pgMarType.Footer);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(sectPr.Get_PageMargins_Footer());
+        this.memory.WriteByte(c_oSer_pgMarType.FooterTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.bs.writeMmToTwips(sectPr.Get_PageMargins_Footer());
     };
 	this.WritePageSetting = function(sectPr, oDocument)
     {
@@ -2234,7 +2284,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
             this.bs.WriteItem(c_oSerProp_Columns.Sep, function(){oThis.memory.WriteBool(cols.Sep);});
         }
         if (null != cols.Space) {
-            this.bs.WriteItem(c_oSerProp_Columns.Space, function(){oThis.memory.WriteLong(g_dKoef_mm_to_twips * cols.Space);});
+            this.bs.WriteItem(c_oSerProp_Columns.Space, function(){oThis.bs.writeMmToTwips(cols.Space);});
         }
         for (var i = 0; i < cols.Cols.length; ++i) {
             this.bs.WriteItem(c_oSerProp_Columns.Column, function(){oThis.WriteColumn(cols.Cols[i]);});
@@ -2244,10 +2294,10 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
     {
         var oThis = this;
         if (null != col.Space) {
-            this.bs.WriteItem(c_oSerProp_Columns.ColumnSpace, function(){oThis.memory.WriteLong(g_dKoef_mm_to_twips * col.Space);});
+            this.bs.WriteItem(c_oSerProp_Columns.ColumnSpace, function(){oThis.bs.writeMmToTwips(col.Space);});
         }
         if (null != col.W) {
-            this.bs.WriteItem(c_oSerProp_Columns.ColumnW, function(){oThis.memory.WriteLong(g_dKoef_mm_to_twips * col.W);});
+            this.bs.WriteItem(c_oSerProp_Columns.ColumnW, function(){oThis.bs.writeMmToTwips(col.W);});
         }
     }
 	this.WritePgBorders = function(pageBorders)
@@ -2294,12 +2344,12 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			if (null != border.Space) {
 				this.memory.WriteByte(c_oSerPageBorders.Space);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.memory.WriteLong(Math.round(g_dKoef_mm_to_pt * border.Space));
+				this.bs.writeMmToPt(border.Space);
 			}
 			if (null != border.Size) {
 				this.memory.WriteByte(c_oSerPageBorders.Sz);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.memory.WriteLong(Math.round(8 * g_dKoef_mm_to_pt * border.Size));
+				this.bs.writeMmToPt(8 * border.Size);
 			}
 			if (null != border.Unifill || (null != border.Color && border.Color.Auto)) {
 				this.memory.WriteByte(c_oSerPageBorders.ColorTheme);
@@ -2447,9 +2497,9 @@ function Binary_rPrWriter(memory, saveParams)
 		//Spacing
         if(null != rPr.Spacing)
         {
-		    this.memory.WriteByte(c_oSerProp_rPrType.Spacing);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(rPr.Spacing);
+		    this.memory.WriteByte(c_oSerProp_rPrType.SpacingTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(rPr.Spacing);
 		}
 		//DStrikeout
         if(null != rPr.DStrikeout)
@@ -2475,9 +2525,9 @@ function Binary_rPrWriter(memory, saveParams)
 		//Position
         if(null != rPr.Position)
         {
-		    this.memory.WriteByte(c_oSerProp_rPrType.Position);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(rPr.Position);
+		    this.memory.WriteByte(c_oSerProp_rPrType.PositionHps);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToPt(2 * rPr.Position);
 		}
 		//BoldCs
 		if(null != rPr.BoldCS)
@@ -3715,7 +3765,7 @@ Binary_tblPrWriter.prototype =
         //TableInd
         if(null != tblPr.TableInd)
         {
-            this.bs.WriteItem(c_oSerProp_tblPrType.TableInd, function(){oThis.memory.WriteDouble(tblPr.TableInd);});
+            this.bs.WriteItem(c_oSerProp_tblPrType.TableIndTwips, function(){oThis.bs.writeMmToTwips(tblPr.TableInd);});
         }
         //TableW
         if(null != tblPr.TableW)
@@ -3754,7 +3804,7 @@ Binary_tblPrWriter.prototype =
         }
 		if(null != tblPr.TableCellSpacing)
 		{
-			this.bs.WriteItem(c_oSerProp_tblPrType.TableCellSpacing, function(){oThis.memory.WriteDouble(tblPr.TableCellSpacing);});
+			this.bs.WriteItem(c_oSerProp_tblPrType.TableCellSpacingTwips, function(){oThis.bs.writeMmToTwips(tblPr.TableCellSpacing);});
 		}
 		if(null != tblPr.TableCaption)
 		{
@@ -3811,9 +3861,9 @@ Binary_tblPrWriter.prototype =
 			}
 			else
 			{
-				this.memory.WriteByte(c_oSer_tblpPrType2.TblpX);
-				this.memory.WriteByte(c_oSerPropLenType.Double);
-				this.memory.WriteDouble(PositionH.Value);
+				this.memory.WriteByte(c_oSer_tblpPrType2.TblpXTwips);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.bs.writeMmToTwips(PositionH.Value);
 			}
         }
 		if(null != table.PositionV)
@@ -3833,9 +3883,9 @@ Binary_tblPrWriter.prototype =
 			}
 			else
 			{
-				this.memory.WriteByte(c_oSer_tblpPrType2.TblpY);
-				this.memory.WriteByte(c_oSerPropLenType.Double);
-				this.memory.WriteDouble(PositionV.Value);
+				this.memory.WriteByte(c_oSer_tblpPrType2.TblpYTwips);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.bs.writeMmToTwips(PositionV.Value);
 			}
         }
 		if(null != table.Distance)
@@ -3879,9 +3929,9 @@ Binary_tblPrWriter.prototype =
         //TableCellSpacing
         if(null != rowPr.TableCellSpacing)
         {
-            this.memory.WriteByte(c_oSerProp_rowPrType.TableCellSpacing);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(rowPr.TableCellSpacing);
+            this.memory.WriteByte(c_oSerProp_rowPrType.TableCellSpacingTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(rowPr.TableCellSpacing);
         }
         //Height
         if(null != rowPr.Height && Asc.linerule_Auto != rowPr.Height.HRule)
@@ -3946,9 +3996,9 @@ Binary_tblPrWriter.prototype =
         //Value
         if(null != rowHeight.Value)
         {
-            this.memory.WriteByte(c_oSerProp_rowPrType.Height_Value);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(rowHeight.Value);
+            this.memory.WriteByte(c_oSerProp_rowPrType.Height_ValueTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(rowHeight.Value);
         }
     },
     WriteW: function(WAfter)
@@ -3965,7 +4015,7 @@ Binary_tblPrWriter.prototype =
 		{
 			var nVal = WAfter.W;
 			if(tblwidth_Mm == WAfter.Type)
-				nVal = Math.round(g_dKoef_mm_to_twips * WAfter.W);
+				nVal = this.bs.mmToTwips(WAfter.W);
 			else if(tblwidth_Pct == WAfter.Type)
 				nVal = Math.round(100 * WAfter.W / 2);
 			this.memory.WriteByte(c_oSerWidthType.WDocx);
@@ -5121,27 +5171,27 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			}
 			if(null != img.Distance.L)
 			{
-				this.memory.WriteByte(c_oSerImageType2.DistL);
-				this.memory.WriteByte(c_oSerPropLenType.Double);
-				this.memory.WriteDouble(img.Distance.L);
+				this.memory.WriteByte(c_oSerImageType2.DistLEmu);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.bs.writeMmToUEmu(img.Distance.L);
 			}
 			if(null != img.Distance.T)
 			{
-				this.memory.WriteByte(c_oSerImageType2.DistT);
-				this.memory.WriteByte(c_oSerPropLenType.Double);
-				this.memory.WriteDouble(img.Distance.T);
+				this.memory.WriteByte(c_oSerImageType2.DistTEmu);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.bs.writeMmToUEmu(img.Distance.T);
 			}
 			if(null != img.Distance.R)
 			{
-				this.memory.WriteByte(c_oSerImageType2.DistR);
-				this.memory.WriteByte(c_oSerPropLenType.Double);
-				this.memory.WriteDouble(img.Distance.R);
+				this.memory.WriteByte(c_oSerImageType2.DistREmu);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.bs.writeMmToUEmu(img.Distance.R);
 			}
 			if(null != img.Distance.B)
 			{
-				this.memory.WriteByte(c_oSerImageType2.DistB);
-				this.memory.WriteByte(c_oSerPropLenType.Double);
-				this.memory.WriteDouble(img.Distance.B);
+				this.memory.WriteByte(c_oSerImageType2.DistBEmu);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.bs.writeMmToUEmu(img.Distance.B);
 			}
             if(null != img.LayoutInCell)
             {
@@ -5312,42 +5362,42 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 	{
 		if(null != EffectExtent.L)
 		{
-			this.memory.WriteByte(c_oSerEffectExtent.Left);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(EffectExtent.L);
+			this.memory.WriteByte(c_oSerEffectExtent.LeftEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToEmu(EffectExtent.L);
 		}
 		if(null != EffectExtent.T)
 		{
-			this.memory.WriteByte(c_oSerEffectExtent.Top);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(EffectExtent.T);
+			this.memory.WriteByte(c_oSerEffectExtent.TopEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToEmu(EffectExtent.T);
 		}
 		if(null != EffectExtent.R)
 		{
-			this.memory.WriteByte(c_oSerEffectExtent.Right);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(EffectExtent.R);
+			this.memory.WriteByte(c_oSerEffectExtent.RightEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToEmu(EffectExtent.R);
 		}
 		if(null != EffectExtent.B)
 		{
-			this.memory.WriteByte(c_oSerEffectExtent.Bottom);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(EffectExtent.B);
+			this.memory.WriteByte(c_oSerEffectExtent.BottomEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToEmu(EffectExtent.B);
 		}
 	}
 	this.WriteExtent = function(Extent)
 	{
 		if(null != Extent.W)
 		{
-			this.memory.WriteByte(c_oSerExtent.Cx);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(Extent.W);
+			this.memory.WriteByte(c_oSerExtent.CxEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToUEmu(Extent.W);
 		}
 		if(null != Extent.H)
 		{
-			this.memory.WriteByte(c_oSerExtent.Cy);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(Extent.H);
+			this.memory.WriteByte(c_oSerExtent.CyEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToUEmu(Extent.H);
 		}
 	}
 	this.WritePositionHV = function(PositionH)
@@ -5368,11 +5418,13 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		{
 			if (true == PositionH.Percent) {
 				this.memory.WriteByte(c_oSerPosHV.PctOffset);
+				this.memory.WriteByte(c_oSerPropLenType.Double);
+				this.memory.WriteDouble(PositionH.Value);
 			} else {
-				this.memory.WriteByte(c_oSerPosHV.PosOffset);
+				this.memory.WriteByte(c_oSerPosHV.PosOffsetEmu);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.bs.writeMmToEmu(PositionH.Value);
 			}
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(PositionH.Value);
 		}
 	}
 	this.WriteSizeRelHV = function(SizeRelHV)
@@ -5392,15 +5444,15 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 	{
 		if(null != oSimplePos.X)
 		{
-			this.memory.WriteByte(c_oSerSimplePos.X);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(oSimplePos.X);
+			this.memory.WriteByte(c_oSerSimplePos.XEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToEmu(oSimplePos.X);
 		}
 		if(null != oSimplePos.Y)
 		{
-			this.memory.WriteByte(c_oSerSimplePos.Y);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(oSimplePos.Y);
+			this.memory.WriteByte(c_oSerSimplePos.YEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToEmu(oSimplePos.Y);
 		}
 	}
 	this.WriteWrapThroughTight = function(wrappingPolygon, Contour)
@@ -5445,15 +5497,15 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 	{
 		if(null != oPoint.x)
 		{
-			this.memory.WriteByte(c_oSerPoint2D.X);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(oPoint.x);
+			this.memory.WriteByte(c_oSerPoint2D.XEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToEmu(oPoint.x);
 		}
 		if(null != oPoint.y)
 		{
-			this.memory.WriteByte(c_oSerPoint2D.Y);
-			this.memory.WriteByte(c_oSerPropLenType.Double);
-			this.memory.WriteDouble(oPoint.y);
+			this.memory.WriteByte(c_oSerPoint2D.YEmu);
+			this.memory.WriteByte(c_oSerPropLenType.Long);
+			this.bs.writeMmToEmu(oPoint.y);
 		}
 	}
 	this.WriteDocTable = function(table, aRowElems, nMinGrid, nMaxGrid)
@@ -5487,9 +5539,9 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
         var oThis = this;
         for(var i = 0, length = grid.length; i < length; i++)
         {
-            this.memory.WriteByte(c_oSerDocTableType.tblGrid_Item);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(grid[i]);
+            this.memory.WriteByte(c_oSerDocTableType.tblGrid_ItemTwips);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.bs.writeMmToTwips(grid[i]);
         }
     };
     this.WriteTableContent = function(Content, aRowElems)
@@ -5872,7 +5924,7 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
     {
         var oThis = this;
 		this.bs.WriteItem(c_oSer_SettingsType.ClrSchemeMapping, function(){oThis.WriteColorSchemeMapping();});
-		this.bs.WriteItem(c_oSer_SettingsType.DefaultTabStop, function(){oThis.memory.WriteDouble(AscCommonWord.Default_Tab_Stop);});
+		this.bs.WriteItem(c_oSer_SettingsType.DefaultTabStopTwips, function(){oThis.bs.writeMmToTwips(AscCommonWord.Default_Tab_Stop);});
 		this.bs.WriteItem(c_oSer_SettingsType.MathPr, function(){oThis.WriteMathPr();});
 		this.bs.WriteItem(c_oSer_SettingsType.TrackRevisions, function(){oThis.memory.WriteBool(oThis.Document.Is_TrackRevisions());});
 		this.bs.WriteItem(c_oSer_SettingsType.FootnotePr, function(){oThis.WriteFootnotePr();});
@@ -5992,9 +6044,9 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 	}
 	this.WriteMathInterSp = function(InterSp)
 	{
-		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.Val);
-		this.memory.WriteByte(c_oSerPropLenType.Double);
-		this.memory.WriteDouble(InterSp);
+		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.ValTwips);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.bs.writeMmToTwips(InterSp);
 	}
 	this.WriteMathIntLim = function(IntLim)
 	{
@@ -6010,15 +6062,15 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 	}
 	this.WriteMathIntraSp = function(IntraSp)
 	{
-		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.Val);
-		this.memory.WriteByte(c_oSerPropLenType.Double);
-		this.memory.WriteDouble(IntraSp);
+		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.ValTwips);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.bs.writeMmToTwips(IntraSp);
 	}
 	this.WriteMathLMargin = function(LMargin)
 	{
-		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.Val);
-		this.memory.WriteByte(c_oSerPropLenType.Double);
-		this.memory.WriteDouble(LMargin);
+		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.ValTwips);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.bs.writeMmToTwips(LMargin);
 	}
 	this.WriteMathMathFont = function(MathFont)
 	{
@@ -6040,21 +6092,21 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 	}
 	this.WriteMathPostSp = function(PostSp)
 	{
-		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.Val);
-		this.memory.WriteByte(c_oSerPropLenType.Double);
-		this.memory.WriteDouble(PostSp);
+		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.ValTwips);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.bs.writeMmToTwips(PostSp);
 	}
 	this.WriteMathPreSp = function(PreSp)
 	{
-		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.Val);
-		this.memory.WriteByte(c_oSerPropLenType.Double);
-		this.memory.WriteDouble(PreSp);
+		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.ValTwips);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.bs.writeMmToTwips(PreSp);
 	}
 	this.WriteMathRMargin = function(RMargin)
 	{
-		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.Val);
-		this.memory.WriteByte(c_oSerPropLenType.Double);
-		this.memory.WriteDouble(RMargin);
+		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.ValTwips);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.bs.writeMmToTwips(RMargin);
 	}
 	this.WriteMathSmallFrac = function(SmallFrac)
 	{
@@ -6064,9 +6116,9 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 	}
 	this.WriteMathWrapIndent = function(WrapIndent)
 	{
-		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.Val);
-		this.memory.WriteByte(c_oSerPropLenType.Double);
-		this.memory.WriteDouble(WrapIndent);
+		this.memory.WriteByte(c_oSer_OMathBottomNodesValType.ValTwips);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.bs.writeMmToTwips(WrapIndent);
 	}
 	this.WriteMathWrapRight = function(WrapRight)
 	{
@@ -7573,9 +7625,21 @@ function Binary_pPrReader(doc, oReadResult, stream)
 				pPr.PageBreakBefore = this.stream.GetBool();
                 break;
             case c_oSerProp_pPrType.Spacing:
+            	var spacingTmp = {lineTwips: null};
                 res = this.bcr.Read2(length, function(t, l){
-                        return oThis.ReadSpacing(t, l, pPr.Spacing);
+                        return oThis.ReadSpacing(t, l, pPr.Spacing, spacingTmp);
                     });
+				if (null !== spacingTmp.lineTwips) {
+					if (spacingTmp.lineTwips < 0) {
+						spacingTmp.lineTwips = -spacingTmp.lineTwips;
+						pPr.Spacing.LineRule = Asc.linerule_Exact;
+					}
+					if (Asc.linerule_Auto == pPr.Spacing.LineRule) {
+						pPr.Spacing.Line = spacingTmp.lineTwips / 240;
+					} else {
+						pPr.Spacing.Line = g_dKoef_twips_to_mm * spacingTmp.lineTwips;
+					}
+				}
                 break;
             case c_oSerProp_pPrType.Shd:
                 pPr.Shd = new CDocumentShd();
@@ -7698,10 +7762,18 @@ function Binary_pPrReader(doc, oReadResult, stream)
         {
             Border.Space = this.bcr.ReadDouble();
         }
+		else if( c_oSerBorderType.SpacePoint === type )
+		{
+			Border.Space = g_dKoef_pt_to_mm * this.stream.GetULongLE();
+		}
         else if( c_oSerBorderType.Size === type )
         {
             Border.Size = this.bcr.ReadDouble();
         }
+		else if( c_oSerBorderType.Size8Point === type )
+		{
+			Border.Size = g_dKoef_pt_to_mm * this.stream.GetULongLE() / 8;
+		}
         else if( c_oSerBorderType.Value === type )
         {
             Border.Value = this.stream.GetUChar();
@@ -7813,21 +7885,27 @@ function Binary_pPrReader(doc, oReadResult, stream)
             case c_oSerProp_pPrType.Ind_Left: Ind.Left = this.bcr.ReadDouble();break;
             case c_oSerProp_pPrType.Ind_Right: Ind.Right = this.bcr.ReadDouble();break;
             case c_oSerProp_pPrType.Ind_FirstLine: Ind.FirstLine = this.bcr.ReadDouble();break;
+			case c_oSerProp_pPrType.Ind_LeftTwips: Ind.Left = g_dKoef_twips_to_mm * this.stream.GetULongLE();break;
+			case c_oSerProp_pPrType.Ind_RightTwips: Ind.Right = g_dKoef_twips_to_mm * this.stream.GetULongLE();break;
+			case c_oSerProp_pPrType.Ind_FirstLineTwips: Ind.FirstLine = g_dKoef_twips_to_mm * this.stream.GetULongLE();break;
             default:
                 res = c_oSerConstants.ReadUnknown;
                 break;
         }
         return res;
     };
-    this.ReadSpacing = function(type, length, Spacing)
+    this.ReadSpacing = function(type, length, Spacing, spacingTmp)
     {
         var res = c_oSerConstants.ReadOk;
         switch(type)
         {
             case c_oSerProp_pPrType.Spacing_Line: Spacing.Line = this.bcr.ReadDouble();break;
+			case c_oSerProp_pPrType.Spacing_LineTwips: spacingTmp.lineTwips = this.stream.GetULongLE();break;
             case c_oSerProp_pPrType.Spacing_LineRule: Spacing.LineRule = this.stream.GetUChar();break;
             case c_oSerProp_pPrType.Spacing_Before: Spacing.Before = this.bcr.ReadDouble();break;
+			case c_oSerProp_pPrType.Spacing_BeforeTwips: Spacing.Before = g_dKoef_twips_to_mm * this.stream.GetULongLE();break;
             case c_oSerProp_pPrType.Spacing_After: Spacing.After = this.bcr.ReadDouble();break;
+			case c_oSerProp_pPrType.Spacing_AfterTwips: Spacing.After = g_dKoef_twips_to_mm * this.stream.GetULongLE();break;
             case c_oSerProp_pPrType.Spacing_BeforeAuto: Spacing.BeforeAutoSpacing = (this.stream.GetUChar() != 0);break;
             case c_oSerProp_pPrType.Spacing_AfterAuto: Spacing.AfterAutoSpacing = (this.stream.GetUChar() != 0);break;
             default:
@@ -7869,7 +7947,9 @@ function Binary_pPrReader(doc, oReadResult, stream)
 			}
 		}
         else if(c_oSerProp_pPrType.Tab_Item_Pos === type)
-            tab.Pos = this.bcr.ReadDouble();
+			tab.Pos = this.bcr.ReadDouble();
+		else if(c_oSerProp_pPrType.Tab_Item_PosTwips === type)
+			tab.Pos = g_dKoef_twips_to_mm * this.stream.GetULongLE();
 		else if(c_oSerProp_pPrType.Tab_Item_Leader === type)
 			tab.Leader = this.stream.GetUChar();
         else
@@ -8108,10 +8188,18 @@ function Binary_pPrReader(doc, oReadResult, stream)
         {
             oSize.W = this.bcr.ReadDouble();
         }
+		else if( c_oSer_pgSzType.WTwips === type )
+		{
+			oSize.W = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
         else if( c_oSer_pgSzType.H === type )
         {
             oSize.H = this.bcr.ReadDouble();
         }
+		else if( c_oSer_pgSzType.HTwips === type )
+		{
+			oSize.H = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -8124,26 +8212,50 @@ function Binary_pPrReader(doc, oReadResult, stream)
         {
             oMar.L = this.bcr.ReadDouble();
         }
+		else if( c_oSer_pgMarType.LeftTwips === type )
+		{
+			oMar.L = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
         else if( c_oSer_pgMarType.Top === type )
         {
             oMar.T = this.bcr.ReadDouble();
         }
+		else if( c_oSer_pgMarType.TopTwips === type )
+		{
+			oMar.T = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
         else if( c_oSer_pgMarType.Right === type )
         {
             oMar.R = this.bcr.ReadDouble();
         }
+		else if( c_oSer_pgMarType.RightTwips === type )
+		{
+			oMar.R = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
         else if( c_oSer_pgMarType.Bottom === type )
         {
             oMar.B = this.bcr.ReadDouble();
         }
+		else if( c_oSer_pgMarType.BottomTwips === type )
+		{
+			oMar.B = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else if( c_oSer_pgMarType.Header === type )
         {
 			oSectPr.Set_PageMargins_Header(this.bcr.ReadDouble());
         }
+		else if( c_oSer_pgMarType.HeaderTwips === type )
+		{
+			oSectPr.Set_PageMargins_Header(g_dKoef_twips_to_mm * this.stream.GetULongLE());
+		}
 		else if( c_oSer_pgMarType.Footer === type )
         {
 			oSectPr.Set_PageMargins_Footer(this.bcr.ReadDouble());
         }
+		else if( c_oSer_pgMarType.FooterTwips === type )
+		{
+			oSectPr.Set_PageMargins_Footer(g_dKoef_twips_to_mm * this.stream.GetULongLE());
+		}
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -8394,6 +8506,9 @@ function Binary_rPrReader(doc, oReadResult, stream)
 			case c_oSerProp_rPrType.Spacing:
 				rPr.Spacing = this.bcr.ReadDouble();
                 break;
+			case c_oSerProp_rPrType.SpacingTwips:
+				rPr.Spacing = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+				break;
 			case c_oSerProp_rPrType.DStrikeout:
 				rPr.DStrikeout = (this.stream.GetUChar() != 0);
                 break;
@@ -8406,6 +8521,9 @@ function Binary_rPrReader(doc, oReadResult, stream)
 			case c_oSerProp_rPrType.Position:
 				rPr.Position = this.bcr.ReadDouble();
                 break;
+			case c_oSerProp_rPrType.PositionHps:
+				rPr.Position = g_dKoef_pt_to_mm * this.stream.GetULongLE() / 2;
+				break;
 			case c_oSerProp_rPrType.FontHint:
 				var nHint;
 				switch(this.stream.GetUChar())
@@ -8575,6 +8693,10 @@ Binary_tblPrReader.prototype =
         {
             Pr.TableInd = this.bcr.ReadDouble();
         }
+		else if( c_oSerProp_tblPrType.TableIndTwips === type )
+		{
+			Pr.TableInd = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
         else if( c_oSerProp_tblPrType.TableW === type )
         {
             var oW = {Type: null, W: null, WDocx: null};
@@ -8637,6 +8759,10 @@ Binary_tblPrReader.prototype =
 		else if( c_oSerProp_tblPrType.TableCellSpacing === type )
 		{
 			Pr.TableCellSpacing = this.bcr.ReadDouble();
+		}
+		else if( c_oSerProp_tblPrType.TableCellSpacingTwips === type )
+		{
+			Pr.TableCellSpacing = g_dKoef_twips_to_mm * this.stream.GetULongLE();
 		}
 		else if( c_oSerProp_tblPrType.tblCaption === type )
 		{
@@ -8811,7 +8937,7 @@ Binary_tblPrReader.prototype =
             if(null == oAdditionalPr.Paddings)
                 oAdditionalPr.Paddings = {L : 0, T : 0, R : 0, B : 0};
             res = this.bcr.Read2(length, function(t, l){
-                return oThis.ReadPaddings2(t, l, oAdditionalPr.Paddings);
+                return oThis.ReadPaddings(t, l, oAdditionalPr.Paddings);
             });
         }
         else
@@ -8829,6 +8955,11 @@ Binary_tblPrReader.prototype =
 			oAdditionalPr.HAlign = false;
             oAdditionalPr.HValue = this.bcr.ReadDouble();
 		}
+		else if( c_oSer_tblpPrType2.TblpXTwips === type )
+		{
+			oAdditionalPr.HAlign = false;
+			oAdditionalPr.HValue = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else if( c_oSer_tblpPrType2.TblpXSpec === type )
 		{
 			oAdditionalPr.HAlign = true;
@@ -8840,6 +8971,11 @@ Binary_tblPrReader.prototype =
 		{
 			oAdditionalPr.VAlign = false;
             oAdditionalPr.VValue = this.bcr.ReadDouble();
+		}
+		else if( c_oSer_tblpPrType2.TblpYTwips === type )
+		{
+			oAdditionalPr.VAlign = false;
+			oAdditionalPr.VValue = g_dKoef_twips_to_mm * this.stream.GetULongLE();
 		}
 		else if( c_oSer_tblpPrType2.TblpYSpec === type )
 		{
@@ -8885,6 +9021,10 @@ Binary_tblPrReader.prototype =
         {
             Pr.TableCellSpacing = this.bcr.ReadDouble();
         }
+		else if( c_oSerProp_rowPrType.TableCellSpacingTwips === type )
+		{
+			Pr.TableCellSpacing = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
         else if( c_oSerProp_rowPrType.Height === type )
         {
             if(null == Pr.Height)
@@ -8965,6 +9105,10 @@ Binary_tblPrReader.prototype =
         {
             Height.Value = this.bcr.ReadDouble();
         }
+		else if( c_oSerProp_rowPrType.Height_ValueTwips === type )
+		{
+			Height.Value = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -9093,12 +9237,20 @@ Binary_tblPrReader.prototype =
         var res = c_oSerConstants.ReadOk;
         if (c_oSerPaddingType.left === type)
             paddings.L = this.bcr.ReadDouble();
+		else if (c_oSerPaddingType.leftTwips === type)
+			paddings.L = g_dKoef_twips_to_mm * this.stream.GetULongLE();
         else if (c_oSerPaddingType.top === type)
             paddings.T = this.bcr.ReadDouble();
+		else if (c_oSerPaddingType.topTwips === type)
+			paddings.T = g_dKoef_twips_to_mm * this.stream.GetULongLE();
         else if (c_oSerPaddingType.right === type)
             paddings.R = this.bcr.ReadDouble();
+		else if (c_oSerPaddingType.rightTwips === type)
+			paddings.R = g_dKoef_twips_to_mm * this.stream.GetULongLE();
         else if (c_oSerPaddingType.bottom === type)
             paddings.B = this.bcr.ReadDouble();
+		else if (c_oSerPaddingType.bottomTwips === type)
+			paddings.B = g_dKoef_twips_to_mm * this.stream.GetULongLE();
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -10574,18 +10726,34 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         {
             oParaDrawing.Set_Distance(Math.abs(this.bcr.ReadDouble()), null, null, null);
         }
+		else if( c_oSerImageType2.DistLEmu === type )
+		{
+			oParaDrawing.Set_Distance(Math.abs(g_dKoef_emu_to_mm * this.stream.GetULongLE()), null, null, null);
+		}
 		else if( c_oSerImageType2.DistT === type )
         {
             oParaDrawing.Set_Distance(null, Math.abs(this.bcr.ReadDouble()), null, null);
         }
+		else if( c_oSerImageType2.DistTEmu === type )
+		{
+			oParaDrawing.Set_Distance(null, Math.abs(g_dKoef_emu_to_mm * this.stream.GetULongLE()), null, null);
+		}
 		else if( c_oSerImageType2.DistR === type )
         {
             oParaDrawing.Set_Distance(null, null, Math.abs(this.bcr.ReadDouble()), null);
         }
+		else if( c_oSerImageType2.DistREmu === type )
+		{
+			oParaDrawing.Set_Distance(null, null, Math.abs(g_dKoef_emu_to_mm * this.stream.GetULongLE()), null);
+		}
 		else if( c_oSerImageType2.DistB === type )
         {
             oParaDrawing.Set_Distance(null, null, null, Math.abs(this.bcr.ReadDouble()));
         }
+		else if( c_oSerImageType2.DistBEmu === type )
+		{
+			oParaDrawing.Set_Distance(null, null, null, Math.abs(g_dKoef_emu_to_mm * this.stream.GetULongLE()));
+		}
 		else if( c_oSerImageType2.Hidden === type )
         {
             var Hidden = this.stream.GetBool();
@@ -10772,6 +10940,14 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			oEffectExtent.R = this.bcr.ReadDouble();
 		else if( c_oSerEffectExtent.Bottom === type )
 			oEffectExtent.B = this.bcr.ReadDouble();
+		else if( c_oSerEffectExtent.LeftEmu === type )
+			oEffectExtent.L = g_dKoef_emu_to_mm * this.stream.GetLongLE();
+		else if( c_oSerEffectExtent.TopEmu === type )
+			oEffectExtent.T = g_dKoef_emu_to_mm * this.stream.GetLongLE();
+		else if( c_oSerEffectExtent.RightEmu === type )
+			oEffectExtent.R = g_dKoef_emu_to_mm * this.stream.GetLongLE();
+		else if( c_oSerEffectExtent.BottomEmu === type )
+			oEffectExtent.B = g_dKoef_emu_to_mm * this.stream.GetLongLE();
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -10784,6 +10960,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			oExtent.W = this.bcr.ReadDouble();
 		else if( c_oSerExtent.Cy === type )
 			oExtent.H = this.bcr.ReadDouble();
+		else if( c_oSerExtent.CxEmu === type )
+			oExtent.W = g_dKoef_emu_to_mm * this.stream.GetULongLE();
+		else if( c_oSerExtent.CyEmu === type )
+			oExtent.H = g_dKoef_emu_to_mm * this.stream.GetULongLE();
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -10803,6 +10983,11 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		{
 			PositionH.Align = false;
 			PositionH.Value = this.bcr.ReadDouble();
+		}
+		else if( c_oSerPosHV.PosOffsetEmu === type )
+		{
+			PositionH.Align = false;
+			PositionH.Value = g_dKoef_emu_to_mm * this.stream.GetLongLE();
 		}
 		else if( c_oSerPosHV.PctOffset === type )
 		{
@@ -10834,6 +11019,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			oSimplePos.X = this.bcr.ReadDouble();
 		else if( c_oSerSimplePos.Y === type )
 			oSimplePos.Y = this.bcr.ReadDouble();
+		else if( c_oSerSimplePos.XEmu === type )
+			oSimplePos.X = g_dKoef_emu_to_mm * this.stream.GetLongLE();
+		else if( c_oSerSimplePos.YEmu === type )
+			oSimplePos.Y = g_dKoef_emu_to_mm * this.stream.GetLongLE();
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -10850,6 +11039,14 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			var DistR = this.bcr.ReadDouble();
 		else if( c_oSerWrapSquare.DistB === type )
 			var DistB = this.bcr.ReadDouble();
+		else if( c_oSerWrapSquare.DistLEmu === type )
+			var DistL = g_dKoef_emu_to_mm * this.stream.GetULongLE();
+		else if( c_oSerWrapSquare.DistTEmu === type )
+			var DistT = g_dKoef_emu_to_mm * this.stream.GetULongLE();
+		else if( c_oSerWrapSquare.DistREmu === type )
+			var DistR = g_dKoef_emu_to_mm * this.stream.GetULongLE();
+		else if( c_oSerWrapSquare.DistBEmu === type )
+			var DistB = g_dKoef_emu_to_mm * this.stream.GetULongLE();
 		else if( c_oSerWrapSquare.WrapText === type )
 			var WrapText = this.stream.GetUChar();
 		else if( c_oSerWrapSquare.EffectExtent === type )
@@ -10871,6 +11068,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			var DistL = this.bcr.ReadDouble();
 		else if( c_oSerWrapThroughTight.DistR === type )
 			var DistR = this.bcr.ReadDouble();
+		else  if( c_oSerWrapThroughTight.DistLEmu === type )
+			var DistL = g_dKoef_emu_to_mm * this.stream.GetULongLE();
+		else if( c_oSerWrapThroughTight.DistREmu === type )
+			var DistR = g_dKoef_emu_to_mm * this.stream.GetULongLE();
 		else if( c_oSerWrapThroughTight.WrapText === type )
 			var WrapText = this.stream.GetUChar();
 		else if( c_oSerWrapThroughTight.WrapPolygon === type && wrappingPolygon !== undefined)
@@ -10897,6 +11098,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			var DistT = this.bcr.ReadDouble();
 		else if( c_oSerWrapTopBottom.DistB === type )
 			var DistB = this.bcr.ReadDouble();
+		else if( c_oSerWrapTopBottom.DistTEmu === type )
+			var DistT = g_dKoef_emu_to_mm * this.stream.GetULongLE();
+		else if( c_oSerWrapTopBottom.DistBEmu === type )
+			var DistB = g_dKoef_emu_to_mm * this.stream.GetULongLE();
 		else if( c_oSerWrapTopBottom.EffectExtent === type )
 		{
 			var EffectExtent = {L: null, T: null, R: null, B: null};
@@ -10955,6 +11160,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
             oPoint.x = (this.bcr.ReadDouble()*36000 >> 0);
         else if( c_oSerPoint2D.Y === type )
             oPoint.y = (this.bcr.ReadDouble()*36000 >> 0);
+		else if( c_oSerPoint2D.XEmu === type )
+			oPoint.x = this.stream.GetLongLE();
+		else if( c_oSerPoint2D.YEmu === type )
+			oPoint.y = this.stream.GetLongLE();
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -11002,6 +11211,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         {
             tblGrid.push(this.bcr.ReadDouble());
         }
+        else if( c_oSerDocTableType.tblGrid_ItemTwips === type )
+		{
+			tblGrid.push(g_dKoef_twips_to_mm * this.stream.GetULongLE());
+		}
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -14099,6 +14312,13 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			if(dNewTab_Stop > 0)
 				AscCommonWord.Default_Tab_Stop = dNewTab_Stop;
         }
+		else if ( c_oSer_SettingsType.DefaultTabStopTwips === type )
+		{
+			var dNewTab_Stop = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+			//word поддерживает 0, но наш редактор к такому не готов.
+			if(dNewTab_Stop > 0)
+				AscCommonWord.Default_Tab_Stop = dNewTab_Stop;
+		}
 		else if ( c_oSer_SettingsType.MathPr === type )
         {			
 			var props = new CMathPropertiesSettings();
@@ -14339,6 +14559,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
         {
 			props.interSp = this.bcr.ReadDouble();
         }
+        else if (c_oSer_OMathBottomNodesValType.ValTwips === type)
+		{
+			props.interSp = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -14381,6 +14605,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
         {
 			props.intraSp = this.bcr.ReadDouble();
         }
+		else if (c_oSer_OMathBottomNodesValType.ValTwips === type)
+		{
+			props.intraSp = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -14393,6 +14621,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
         {
 			props.lMargin = this.bcr.ReadDouble();
         }
+		else if (c_oSer_OMathBottomNodesValType.ValTwips === type)
+		{
+			props.lMargin = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -14423,6 +14655,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
         {
 			props.postSp = this.bcr.ReadDouble();
         }
+		else if (c_oSer_OMathBottomNodesValType.ValTwips === type)
+		{
+			props.postSp = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -14435,6 +14671,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
         {
 			props.preSp = this.bcr.ReadDouble();
         }
+		else if (c_oSer_OMathBottomNodesValType.ValTwips === type)
+		{
+			props.preSp = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -14447,6 +14687,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
         {
 			props.rMargin = this.bcr.ReadDouble();
         }
+		else if (c_oSer_OMathBottomNodesValType.ValTwips === type)
+		{
+			props.rMargin = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -14471,6 +14715,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
         {
 			props.wrapIndent = this.bcr.ReadDouble();
         }
+		else if (c_oSer_OMathBottomNodesValType.ValTwips === type)
+		{
+			props.wrapIndent = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		}
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
