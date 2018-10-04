@@ -217,12 +217,15 @@
 	function cDAVERAGE() {
 	}
 
+	//***array-formula***
 	cDAVERAGE.prototype = Object.create(cBaseFunction.prototype);
 	cDAVERAGE.prototype.constructor = cDAVERAGE;
 	cDAVERAGE.prototype.name = "DAVERAGE";
 	cDAVERAGE.prototype.argumentsMin = 3;
 	cDAVERAGE.prototype.argumentsMax = 3;
 	cDAVERAGE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDAVERAGE.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDAVERAGE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDAVERAGE.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -264,12 +267,15 @@
 	function cDCOUNT() {
 	}
 
+	//***array-formula***
 	cDCOUNT.prototype = Object.create(cBaseFunction.prototype);
 	cDCOUNT.prototype.constructor = cDCOUNT;
 	cDCOUNT.prototype.name = "DCOUNT";
 	cDCOUNT.prototype.argumentsMin = 3;
 	cDCOUNT.prototype.argumentsMax = 3;
 	cDCOUNT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDCOUNT.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDCOUNT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDCOUNT.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -310,12 +316,15 @@
 	function cDCOUNTA() {
 	}
 
+	//***array-formula***
 	cDCOUNTA.prototype = Object.create(cBaseFunction.prototype);
 	cDCOUNTA.prototype.constructor = cDCOUNTA;
 	cDCOUNTA.prototype.name = "DCOUNTA";
 	cDCOUNTA.prototype.argumentsMin = 3;
 	cDCOUNTA.prototype.argumentsMax = 3;
 	cDCOUNTA.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDCOUNTA.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDCOUNTA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDCOUNTA.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -348,12 +357,15 @@
 	function cDGET() {
 	}
 
+	//***array-formula***
 	cDGET.prototype = Object.create(cBaseFunction.prototype);
 	cDGET.prototype.constructor = cDGET;
 	cDGET.prototype.name = "DGET";
 	cDGET.prototype.argumentsMin = 3;
 	cDGET.prototype.argumentsMax = 3;
 	cDGET.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDGET.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDGET.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDGET.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -383,12 +395,15 @@
 	function cDMAX() {
 	}
 
+	//***array-formula***
 	cDMAX.prototype = Object.create(cBaseFunction.prototype);
 	cDMAX.prototype.constructor = cDMAX;
 	cDMAX.prototype.name = "DMAX";
 	cDMAX.prototype.argumentsMin = 3;
 	cDMAX.prototype.argumentsMax = 3;
 	cDMAX.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDMAX.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDMAX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDMAX.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -419,12 +434,15 @@
 	function cDMIN() {
 	}
 
+	//***array-formula***
 	cDMIN.prototype = Object.create(cBaseFunction.prototype);
 	cDMIN.prototype.constructor = cDMIN;
 	cDMIN.prototype.name = "DMIN";
 	cDMIN.prototype.argumentsMin = 3;
 	cDMIN.prototype.argumentsMax = 3;
 	cDMIN.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDMIN.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDMIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDMIN.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -456,12 +474,15 @@
 	function cDPRODUCT() {
 	}
 
+	//***array-formula***
 	cDPRODUCT.prototype = Object.create(cBaseFunction.prototype);
 	cDPRODUCT.prototype.constructor = cDPRODUCT;
 	cDPRODUCT.prototype.name = "DPRODUCT";
 	cDPRODUCT.prototype.argumentsMin = 3;
 	cDPRODUCT.prototype.argumentsMax = 3;
 	cDPRODUCT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDPRODUCT.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDPRODUCT.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -500,12 +521,15 @@
 	function cDSTDEV() {
 	}
 
+	//***array-formula***
 	cDSTDEV.prototype = Object.create(cBaseFunction.prototype);
 	cDSTDEV.prototype.constructor = cDSTDEV;
 	cDSTDEV.prototype.name = "DSTDEV";
 	cDSTDEV.prototype.argumentsMin = 3;
 	cDSTDEV.prototype.argumentsMax = 3;
 	cDSTDEV.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDSTDEV.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDSTDEV.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDSTDEV.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -552,12 +576,15 @@
 	function cDSTDEVP() {
 	}
 
+	//***array-formula***
 	cDSTDEVP.prototype = Object.create(cBaseFunction.prototype);
 	cDSTDEVP.prototype.constructor = cDSTDEVP;
 	cDSTDEVP.prototype.name = "DSTDEVP";
 	cDSTDEVP.prototype.argumentsMin = 3;
 	cDSTDEVP.prototype.argumentsMax = 3;
 	cDSTDEVP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDSTDEVP.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDSTDEVP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDSTDEVP.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -605,12 +632,15 @@
 	function cDSUM() {
 	}
 
+	//***array-formula***
 	cDSUM.prototype = Object.create(cBaseFunction.prototype);
 	cDSUM.prototype.constructor = cDSUM;
 	cDSUM.prototype.name = "DSUM";
 	cDSUM.prototype.argumentsMin = 3;
 	cDSUM.prototype.argumentsMax = 3;
 	cDSUM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDSUM.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDSUM.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -645,12 +675,15 @@
 	function cDVAR() {
 	}
 
+	//***array-formula***
 	cDVAR.prototype = Object.create(cBaseFunction.prototype);
 	cDVAR.prototype.constructor = cDVAR;
 	cDVAR.prototype.name = "DVAR";
 	cDVAR.prototype.argumentsMin = 3;
 	cDVAR.prototype.argumentsMax = 3;
 	cDVAR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDVAR.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDVAR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDVAR.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -704,12 +737,15 @@
 	function cDVARP() {
 	}
 
+	//***array-formula***
 	cDVARP.prototype = Object.create(cBaseFunction.prototype);
 	cDVARP.prototype.constructor = cDVARP;
 	cDVARP.prototype.name = "DVARP";
 	cDVARP.prototype.argumentsMin = 3;
 	cDVARP.prototype.argumentsMax = 3;
 	cDVARP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDVARP.prototype.arrayIndexes = {0: 1, 2: 1};
+	cDVARP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDVARP.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
