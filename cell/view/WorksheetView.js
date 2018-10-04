@@ -5477,11 +5477,10 @@
     };
 
     WorksheetView.prototype._getMissingHeight = function () {
-        var vr = this.visibleRange;
-        var visibleHeight = this._getRowTop(vr.r2 + 1) - this._getRowTop(vr.r1);
+        var visibleHeight = this.cellsTop + this._getRowTop(this.nRowsCount) - this._getRowTop(this.visibleRange.r1);
         var offsetFrozen = this.getFrozenPaneOffset(true, false);
 		visibleHeight += offsetFrozen.offsetY;
-        return this.drawingCtx.getHeight() - (visibleHeight + this.cellsTop);
+        return this.drawingCtx.getHeight() - visibleHeight;
     };
 
     WorksheetView.prototype._updateVisibleRowsCount = function (skipScrollReinit) {
