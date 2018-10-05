@@ -3510,8 +3510,12 @@
 	CSignatureDrawer.prototype.selectImage = CSignatureDrawer.prototype["selectImage"] = function()
 	{
 		this.Text = "";
-		window["AscDesktopEditor"]["OpenFilenameDialog"]("images", false, function(file) {
-            if (file == "")
+		window["AscDesktopEditor"]["OpenFilenameDialog"]("images", false, function(_file) {
+            var file = _file;
+            if (Array.isArray(file))
+                file = file[0];
+
+			if (file == "")
                 return;
 
             var _drawer = window.Asc.g_signature_drawer;
