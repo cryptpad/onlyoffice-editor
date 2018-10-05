@@ -392,13 +392,13 @@ BinaryCommonWriter.prototype.writeMmToTwips = function(val) {
 	return this.memory.WriteLong(this.mmToTwips(val));
 };
 BinaryCommonWriter.prototype.writeMmToPt = function(val) {
-	return this.memory.WriteLong(Math.round(g_dKoef_mm_to_pt * val));
+	return this.memory.WriteLong(Math.round(AscCommonWord.g_dKoef_mm_to_pt * val));
 };
 BinaryCommonWriter.prototype.writeMmToEmu = function(val) {
-	return this.memory.WriteLong(Math.round(g_dKoef_mm_to_emu * val));
+	return this.memory.WriteLong(Math.round(AscCommonWord.g_dKoef_mm_to_emu * val));
 };
 BinaryCommonWriter.prototype.writeMmToUEmu = function(val) {
-	return this.memory.WriteULong(Math.round(g_dKoef_mm_to_emu * val));
+	return this.memory.WriteULong(Math.round(AscCommonWord.g_dKoef_mm_to_emu * val));
 };
 function Binary_CommonReader(stream)
 {
