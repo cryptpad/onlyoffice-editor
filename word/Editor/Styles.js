@@ -11231,6 +11231,7 @@ window["AscCommonWord"].CTextPr = CTextPr;
 window["AscCommonWord"].CParaPr = CParaPr;
 window["AscCommonWord"].CParaTabs = CParaTabs;
 window["AscCommonWord"].g_dKoef_pt_to_mm = g_dKoef_pt_to_mm;
+window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;
