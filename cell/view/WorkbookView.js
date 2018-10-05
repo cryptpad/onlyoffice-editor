@@ -316,6 +316,8 @@
 		  this.controller.init(this, this.element, /*this.canvasOverlay*/ this.canvasGraphicOverlay, /*handlers*/{
 			  "resize": function () {
 				  self.resize.apply(self, arguments);
+			  }, "initRowsCount": function () {
+				  self._onInitRowsCount.apply(self, arguments);
 			  }, "scrollY": function () {
 				  self._onScrollY.apply(self, arguments);
 			  }, "scrollX": function () {
@@ -376,8 +378,8 @@
 				  self.redo.apply(self, arguments);
 			  }, "addColumn": function () {
 				  self._onAddColumn.apply(self, arguments);
-			  }, "addRow": function () {
-				  self._onAddRow.apply(self, arguments);
+			  }, "addRows": function () {
+				  self._onAddRows.apply(self, arguments);
 			  }, "mouseDblClick": function () {
 				  self._onMouseDblClick.apply(self, arguments);
 			  }, "showNextPrevWorksheet": function () {
@@ -947,11 +949,17 @@
 		}
 	};
 
-  WorkbookView.prototype._onScrollY = function(pos) {
+	WorkbookView.prototype._onInitRowsCount = function () {
+		var ws = this.getWorksheet();
+		if (ws._initRowsCount()) {
+			this._onScrollReinitialize(/*vertical*/1);
+		}
+	};
+  WorkbookView.prototype._onScrollY = function(pos, initRowsCount) {
     var ws = this.getWorksheet();
     var delta = asc_round(pos - ws.getFirstVisibleRow(/*allowPane*/true));
     if (delta !== 0) {
-      ws.scrollVertical(delta, this.cellEditor);
+      ws.scrollVertical(delta, this.cellEditor, initRowsCount);
     }
   };
 
@@ -1493,8 +1501,8 @@
     this._onScrollReinitialize(/*horizontal*/2, !res);
   };
 
-  WorkbookView.prototype._onAddRow = function() {
-    var res = this.getWorksheet().expandRowsOnScroll(true);
+  WorkbookView.prototype._onAddRows = function(count) {
+    var res = this.getWorksheet().expandRowsOnScroll2(count);
     this._onScrollReinitialize(/*vertical*/1, !res);
   };
 

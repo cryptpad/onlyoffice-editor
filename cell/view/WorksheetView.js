@@ -460,7 +460,13 @@
 		// Инициализируем число колонок и строк (при открытии). Причем нужно поставить на 1 больше,
 		// чтобы могли показать последнюю строку/столбец (http://bugzilla.onlyoffice.com/show_bug.cgi?id=23513)
 		this.nColsCount = Math.min(this.model.getColsCount() + 1, gc_nMaxCol);
-		this.nRowsCount = Math.min(this.model.getRowsCount() + 1, gc_nMaxRow);
+		this._initRowsCount();
+	};
+
+	WorksheetView.prototype._initRowsCount = function () {
+	    var old = this.nRowsCount;
+		this.nRowsCount = Math.min(Math.max(this.model.getRowsCount(), this.visibleRange.r2) + 1, gc_nMaxRow);
+		return old !== this.nRowsCount;
 	};
 
     WorksheetView.prototype.getCellVisibleRange = function (col, row) {
@@ -472,21 +478,21 @@
                 vr = new asc_Range(0, 0, cFrozen, rFrozen);
             } else if (col <= cFrozen) {
                 vr = new asc_Range(0, this.visibleRange.r1, cFrozen, this.visibleRange.r2);
-                offsetY -= this.rows[rFrozen + 1].top - this.cellsTop;
+                offsetY -= this._getRowTop(rFrozen + 1) - this.cellsTop;
             } else if (row <= rFrozen) {
                 vr = new asc_Range(this.visibleRange.c1, 0, this.visibleRange.c2, rFrozen);
                 offsetX -= this.cols[cFrozen + 1].left - this.cellsLeft;
             } else {
                 vr = this.visibleRange;
                 offsetX -= this.cols[cFrozen + 1].left - this.cellsLeft;
-                offsetY -= this.rows[rFrozen + 1].top - this.cellsTop;
+                offsetY -= this._getRowTop(rFrozen + 1) - this.cellsTop;
             }
         } else {
             vr = this.visibleRange;
         }
 
         offsetX += this.cols[vr.c1].left - this.cellsLeft;
-        offsetY += this.rows[vr.r1].top - this.cellsTop;
+        offsetY += this._getRowTop(vr.r1) - this.cellsTop;
 
         return vr.contains(col, row) ? new asc_VR(vr, offsetX, offsetY) : null;
     };
@@ -561,8 +567,8 @@
 
     WorksheetView.prototype.getVerticalScrollRange = function () {
         var ctxH = this.drawingCtx.getHeight() - this.cellsTop;
-        for (var h = 0, i = this.rows.length - 1; i >= 0; --i) {
-            h += this.rows[i].height;
+        for (var h = 0, i = this.nRowsCount - 1; i >= 0; --i) {
+            h += this._getRowHeight(i);
             if (h > ctxH) {
                 break;
             }
@@ -586,11 +592,14 @@
         return null;
     };
 
+    WorksheetView.prototype._getRowDescender = function (i) {
+        return (i < this.rows.length) ? this.rows[i].descender : this.defaultRowDescender;
+	};
 	WorksheetView.prototype._getRowTop = function (i) {
 		var l = this.rows.length;
-		return (i < l) ? this.rows[i].top :
-			this.rows[l - 1].top + this.rows[l - 1].height + (!this.model.isDefaultHeightHidden()) *
-			Asc.round(this.defaultRowHeightPx * this.getZoom()) * (i - l);
+		return (i < l) ? this.rows[i].top : (((0 === l) ? this.cellsTop :
+            this.rows[l - 1].top + this.rows[l - 1].height) + (!this.model.isDefaultHeightHidden()) *
+            Asc.round(this.defaultRowHeightPx * this.getZoom()) * (i - l));
 	};
     WorksheetView.prototype.getCellTop = function (row, units) {
 		var u = units >= 0 && units <= 3 ? units : 0;
@@ -615,20 +624,20 @@
     };
 
     WorksheetView.prototype.getCellTopRelative = function (row, units) {
-        if (row < 0 || row >= this.rows.length) {
+        if (row < 0 || row >= this.nRowsCount) {
             return null;
         }
         // С учетом видимой области
         var offsetY = 0;
         if (this.topLeftFrozenCell) {
             var rFrozen = this.topLeftFrozenCell.getRow0();
-            offsetY = (row < rFrozen) ? 0 : this.rows[this.visibleRange.r1].top - this.rows[rFrozen].top;
+            offsetY = (row < rFrozen) ? 0 : this._getRowTop(this.visibleRange.r1) - this._getRowTop(rFrozen);
         } else {
-            offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop;
+            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
         }
 
         var u = units >= 0 && units <= 3 ? units : 0;
-        return (this.rows[row].top - offsetY) * asc_getcvt(0/*px*/, u, this._getPPIY());
+        return (this._getRowTop(row) - offsetY) * asc_getcvt(0/*px*/, u, this._getPPIY());
     };
 
     WorksheetView.prototype.getColumnWidth = function (index, units) {
@@ -780,7 +789,7 @@
     };
 
     WorksheetView.prototype.getFrozenPaneOffset = function (noX, noY) {
-        var offsetX = 0, offsetY = 0, c = this.cols, r = this.rows;
+        var offsetX = 0, offsetY = 0, c = this.cols;
         if (this.topLeftFrozenCell) {
             if (!noX) {
                 var cFrozen = this.topLeftFrozenCell.getCol0();
@@ -788,7 +797,7 @@
             }
             if (!noY) {
                 var rFrozen = this.topLeftFrozenCell.getRow0();
-                offsetY = r[rFrozen].top - r[0].top;
+                offsetY = this._getRowTop(rFrozen) - this._getRowTop(0);
             }
         }
         return {offsetX: offsetX, offsetY: offsetY};
@@ -857,14 +866,14 @@
                 if (row < r1) {
                     r1 = 0;
                 } else {
-                    offsetFrozenY = this.rows[rFrozen].top + this.rows[rFrozen].height - this.rows[0].top;
+                    offsetFrozenY = this._getRowTop(rFrozen + 1) - this._getRowTop(0);
                 }
             }
         }
-        var offsetY = this.rows[r1].top - t.cellsTop;
+        var offsetY = this._getRowTop(r1) - t.cellsTop;
         offsetY -= offsetFrozenY;
 
-        var y1 = this.rows[row].top - offsetY - gridlineSize;
+        var y1 = this._getRowTop(row) - offsetY - gridlineSize;
 		var newHeight = Math.max(y2 - y1, 0);
         if (newHeight === this.rows[row].height) {
             return;
@@ -1284,7 +1293,6 @@
 		this._calcHeaderRowHeight();
 		this._calcHeightRows(type);
         this.visibleRange.r2 = 0;
-        this._calcVisibleRows();
         this._updateVisibleRowsCount(/*skipScrolReinit*/true);
 
         // calculate columns widths and visible columns
@@ -1419,8 +1427,9 @@
     WorksheetView.prototype._calcHeightRows = function (type) {
         var y = this.cellsTop;
         var visibleH = this.drawingCtx.getHeight();
-        var maxRowObjects = this.objectRender ? this.objectRender.getMaxColRow().row : -1;
-        var l = Math.max(this.model.getRowsCount() + 1, this.nRowsCount, maxRowObjects);
+        var l = this.model.getRowsCount();
+		//var maxRowObjects = this.objectRender ? this.objectRender.getMaxColRow().row : -1;
+        //var l = Math.max(this.model.getRowsCount() + 1, this.nRowsCount, maxRowObjects);
         var defaultH = this.defaultRowHeightPx;
         var i = 0, r, h, hR, isCustomHeight, hiddenH = 0;
 
@@ -1428,11 +1437,9 @@
             this.rows = [];
         } else if (AscCommonExcel.recalcType.newLines === type) {
             i = this.rows.length;
-            y = this.rows[i - 1].top + this.rows[i - 1].height;
+            y = this._getRowTop(i);
         }
-        // ToDo calc all rows (not visible)
-        for (; ((AscCommonExcel.recalcType.recalc !== type) ? i < l || y + hiddenH < visibleH : i < this.rows.length) &&
-               i < gc_nMaxRow; ++i) {
+        for (; i < l; ++i) {
             this.model._getRowNoEmptyWithAll(i, function(row){
 				if (!row) {
 					hR = -1; // Будет использоваться дефолтная высота строки
@@ -1481,11 +1488,10 @@
 
     /** Вычисляет диапазон индексов видимых строк */
     WorksheetView.prototype._calcVisibleRows = function () {
-        var l = this.rows.length;
         var h = this.drawingCtx.getHeight();
-        var sumH = this.topLeftFrozenCell ? this.rows[this.topLeftFrozenCell.getRow0()].top : this.cellsTop;
-        for (var i = this.visibleRange.r1, f = false; i < l && sumH < h; ++i) {
-            sumH += this.rows[i].height;
+        var sumH = this.topLeftFrozenCell ? this._getRowTop(this.topLeftFrozenCell.getRow0()) : this.cellsTop;
+        for (var i = this.visibleRange.r1, f = false; i < this.nRowsCount && sumH < h; ++i) {
+            sumH += this._getRowHeight(i);
             f = true;
         }
         this.visibleRange.r2 = i - (f ? 1 : 0);
@@ -1537,9 +1543,8 @@
         var w = t.drawingCtx.getWidth() - t.cellsLeft;
         var h = t.drawingCtx.getHeight() - t.cellsTop;
         var c = t.cols;
-        var r = t.rows;
         var vw = c[vr.c2].left + c[vr.c2].width - c[vr.c1].left;
-        var vh = r[vr.r2].top + r[vr.r2].height - r[vr.r1].top;
+        var vh = this._getRowTop(vr.r2 + 1) - this._getRowTop(vr.r1);
         var i;
 
         var offsetFrozen = t.getFrozenPaneOffset();
@@ -1564,7 +1569,7 @@
 
         if ( vh < h ) {
             for ( i = vr.r1 - 1; i >= 0; --i ) {
-                vh += r[i].height;
+                vh += this._getRowHeight(i);
                 if ( vh > h ) {
                     break;
                 }
@@ -1817,7 +1822,7 @@
 			var r = cell.nRow;
 			if (curRow !== r) {
 				curRow = r;
-				hiddenRow = 0 === t.rows[r].height;
+				hiddenRow = 0 === t._getRowHeight(r);
 				rowCache = t._getRowCache(r);
 			}
 			if(!hiddenRow && 0 < t.cols[c].width){
@@ -2122,15 +2127,14 @@
             return;
         }
         var vr = this.visibleRange;
-        var r = this.rows;
         var offsetX = (undefined !== offsetXForDraw) ? offsetXForDraw : this.headersLeft;
         var offsetY = (undefined !== offsetYForDraw) ? offsetYForDraw : this._getRowTop(vr.r1) - this.cellsTop;
         if (null === drawingCtx && this.topLeftFrozenCell && undefined === offsetYForDraw) {
             var rFrozen = this.topLeftFrozenCell.getRow0();
             if (start < vr.r1) {
-                offsetY = 0;
-            } else {
-                offsetY -= this._getRowTop(rFrozen) - this.cellsTop;
+				offsetY = this._getRowTop(0) - this.cellsTop;
+			} else {
+                offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
             }
         }
 
@@ -2253,9 +2257,7 @@
         var text = isColHeader ? this._getColumnTitle(index) : this._getRowTitle(index);
         var sr = this.stringRender;
         var tm = this._roundTextMetrics(sr.measureString(text));
-		var bl = y2WithoutBorder - Asc.round(
-			((isColHeader || index >= this.rows.length) ? this.defaultRowDescender : this.rows[index].descender) *
-			this.getZoom());
+		var bl = y2WithoutBorder - Asc.round((isColHeader ? this.defaultRowDescender : this._getRowDescender(index)) * this.getZoom());
         var textX = this._calcTextHorizPos(x, x2WithoutBorder, tm, tm.width < w ? AscCommon.align_Center : AscCommon.align_Left);
         var textY = this._calcTextVertPos(y, h, bl, tm, Asc.c_oAscVAlign.Bottom);
 
@@ -2294,11 +2296,11 @@
     };
 
     WorksheetView.prototype._cleanRowHeaders = function (rowStart, rowEnd) {
-        var offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop;
-        var i, rFrozen = 0;
+        var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+        var t, h, i, rFrozen = 0;
         if (this.topLeftFrozenCell) {
             rFrozen = this.topLeftFrozenCell.getRow0();
-            offsetY -= this.rows[rFrozen].top - this.rows[0].top;
+            offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
         }
 
         if (rowEnd === undefined) {
@@ -2306,24 +2308,28 @@
         }
         var rowStartTmp = Math.max(this.visibleRange.r1, rowStart);
         var rowEndTmp = Math.min(this.visibleRange.r2, rowEnd);
+		t = this._getRowTop(rowStartTmp) - offsetY;
         for (i = rowStartTmp; i <= rowEndTmp; ++i) {
-            if (0 === this.rows[i].height) {
+			h = this._getRowHeight(i);
+            if (0 === h) {
                 continue;
             }
-            this.drawingCtx.clearRectByY(this.headersLeft, this.rows[i].top - offsetY, this.headersWidth,
-              this.rows[i].height);
+            this.drawingCtx.clearRectByY(this.headersLeft, t, this.headersWidth, h);
+			t += h;
         }
         if (0 !== rFrozen) {
-            offsetY = this.rows[0].top - this.cellsTop;
+            offsetY = this._getRowTop(0) - this.cellsTop;
             // Почистим для pane
             rowStart = Math.max(0, rowStart);
             rowEnd = Math.min(rFrozen, rowEnd);
+			t = this._getRowTop(rowStart) - offsetY;
             for (i = rowStart; i <= rowEnd; ++i) {
-                if (0 === this.rows[i].height) {
+				h = this._getRowHeight(i);
+                if (0 === h) {
                     continue;
                 }
-                this.drawingCtx.clearRectByY(this.headersLeft, this.rows[i].top - offsetY, this.headersWidth,
-                  this.rows[i].height);
+                this.drawingCtx.clearRectByY(this.headersLeft, t, this.headersWidth, h);
+				t += h;
             }
         }
     };
@@ -2358,11 +2364,11 @@
 		if (null === drawingCtx && this.topLeftFrozenCell) {
 			if (undefined === leftFieldInPx) {
 				var cFrozen = this.topLeftFrozenCell.getCol0();
-				offsetX -= c[cFrozen].left - this.cellsLeft;
+				offsetX -= c[cFrozen].left - c[0].left;
 			}
 			if (undefined === topFieldInPx) {
 				var rFrozen = this.topLeftFrozenCell.getRow0();
-				offsetY -= this._getRowTop(rFrozen) - this.cellsTop;
+				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
 			}
 		}
 		var x1 = c[range.c1].left - offsetX;
@@ -2530,13 +2536,13 @@
                 for ( var i = mc.c1 + 1; i <= mc.c2 && i < this.cols.length; ++i ) {
                     mwidth += this.cols[i].width;
                 }
-                for ( var j = mc.r1 + 1; j <= mc.r2 && j < this.rows.length; ++j ) {
+                for ( var j = mc.r1 + 1; j <= mc.r2 && j < this.nRowsCount; ++j ) {
                     mheight += this.getRowHeight(j);
                 }
             }
             else {
                 if ( bg === null ) {
-                    if ( col === colEnd && col < this.cols.length - 1 && row < this.rows.length - 1 ) {
+                    if ( col === colEnd && col < this.cols.length - 1 && row < this.nRowsCount - 1 ) {
                         var c2 = this._getVisibleCell( col + 1, row );
                             var bg2 = c2.getFill();
                             if ( bg2 !== null ) {
@@ -2641,14 +2647,12 @@
 			}
 
 			var x1 = this.cols[colL].left - offsetX;
-			var y1 = this.rows[rowT].top - offsetY;
+			var y1 = this._getRowTop(rowT) - offsetY;
 			var w = this.cols[colR].left + this.cols[colR].width - offsetX - x1;
-			var h = this.rows[rowB].top + this.rows[rowB].height - offsetY - y1;
+			var h = this._getRowTop(rowB + 1) - offsetY - y1;
 			var x2 = x1 + w - (isTrimmedR ? 0 : gridlineSize);
 			var y2 = y1 + h - gridlineSize;
-			var bl = y2 - Asc.round(
-					(isMerged ? (ct.metrics.height - ct.metrics.baseline - 1) : this.rows[rowB].descender) *
-					this.getZoom());
+			var bl = y2 - Asc.round((isMerged ? (ct.metrics.height - ct.metrics.baseline - 1) : this._getRowDescender(rowB)) * this.getZoom());
 			var x1ct = isMerged ? x1 : this.cols[col].left - offsetX;
 			var x2ct = isMerged ? x2 : x1ct + this.cols[col].width - gridlineSize;
 			var textX = this._calcTextHorizPos(x1ct, x2ct, ct.metrics, ct.cellHA);
@@ -2661,9 +2665,9 @@
 			if (ct.angle) {
 
 				xb1 = this.cols[col].left - offsetX;
-				yb1 = this.rows[row].top - offsetY;
+				yb1 = this._getRowTop(row) - offsetY;
 				wb = this.cols[col].width;
-				hb = this.rows[row].height;
+				hb = this._getRowHeight(row);
 
 				txtRotX = xb1 - ct.textBound.offsetX;
 				txtRotW = ct.textBound.width + xb1 - ct.textBound.offsetX;
@@ -2679,7 +2683,7 @@
 					hb = 0;
 
 					for (i = rowT; i <= rowB && i < this.nRowsCount; ++i) {
-						hb += this.rows[i].height;
+						hb += this._getRowHeight(i);
 					}
 
 					ctx.AddClipRect(xb1, yb1, wb, hb);
@@ -2790,7 +2794,7 @@
 		var r = this.rows;
 
 		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : c[this.visibleRange.c1].left - this.cellsLeft;
-		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : r[this.visibleRange.r1].top - this.cellsTop;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 
 		var frozenX = 0, frozenY = 0, cFrozen, rFrozen;
 		if (null === drawingCtx && this.topLeftFrozenCell) {
@@ -2800,7 +2804,7 @@
 			}
 			if (undefined === topFieldInPx) {
 				rFrozen = this.topLeftFrozenCell.getRow0();
-				offsetY -= frozenY =  r[rFrozen].top - r[0].top;
+				offsetY -= frozenY =  this._getRowTop(rFrozen) - this._getRowTop(0);
 			}
 		}
 
@@ -2827,9 +2831,9 @@
 				ctx.setFillStyle(this.settings.cells.defaultState.border);
 				for(i = 0; i < fillRanges.length; i++) {
 					x1 = Math.max(c[fillRanges[i].c1].left, c[range.c1].left);
-					y1 = Math.max(r[fillRanges[i].r1].top, r[range.r1].top);
+					y1 = Math.max(this._getRowTop(fillRanges[i].r1), this._getRowTop(range.r1));
 					x2 = Math.min(c[fillRanges[i].c2].left + c[fillRanges[i].c2].width - this.cellsLeft, c[range.c2].left + c[range.c2].width - this.cellsLeft);
-					y2 = Math.min(r[fillRanges[i].r2].top + r[fillRanges[i].r2].height - this.cellsTop, r[range.r2].top + r[range.r2].height - this.cellsTop);
+					y2 = Math.min(this._getRowTop(fillRanges[i].r2 + 1) - this.cellsTop, this._getRowTop(range.r2 + 1) - this.cellsTop);
 
 					ctx.fillRect(x1 - offsetX, y1 - offsetY, x2 - offsetX, y2 - offsetY);
 				}
@@ -2838,9 +2842,9 @@
 
 			if(printPages[0] && intersection) {
 				x1 = c[intersection.c1].left - offsetX;
-				y1 = r[intersection.r1].top - offsetY;
+				y1 = this._getRowTop(intersection.r1) - offsetY;
 				x2 = c[intersection.c2].left + c[intersection.c2].width - offsetX;
-				y2 = r[intersection.r2].top + r[intersection.r2].height - offsetY;
+				y2 = this._getRowTop(intersection.r2 + 1) - offsetY;
 
 				//рисуем линии, ограничивающие страницы
 				ctx.setStrokeStyle(this.settings.activeCellBorderColor);
@@ -2860,7 +2864,7 @@
 					}
 
 					d = c[pageRange.c2].left + c[pageRange.c2].width - offsetX;
-					d1 = r[pageRange.r2].top + r[pageRange.r2].height - offsetY;
+					d1 = this._getRowTop(pageRange.r2 + 1) - offsetY;
 					if(d > x1 && d1 > 0) {
 						ctx.lineVerPrevPx(d, y1 - frozenY, y2);
 					}
@@ -2890,7 +2894,7 @@
 		var widthCtx = (width) ? width : ctx.getWidth();
 		var heightCtx = (height) ? height : ctx.getHeight();
 		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : c[this.visibleRange.c1].left - this.cellsLeft;
-		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : r[this.visibleRange.r1].top - this.cellsTop;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 
 		var frozenX = 0, frozenY = 0, cFrozen, rFrozen;
 		if (null === drawingCtx && this.topLeftFrozenCell) {
@@ -2900,7 +2904,7 @@
 			}
 			if (undefined === topFieldInPx) {
 				rFrozen = this.topLeftFrozenCell.getRow0();
-				offsetY -= frozenY =  r[rFrozen].top - r[0].top;
+				offsetY -= frozenY =  this._getRowTop(rFrozen) - this._getRowTop(0);
 			}
 		}
 
@@ -2919,9 +2923,9 @@
 		var x1, x2, y1, y2;
 		if(pageBreakGrid) {
 			x1 = c[range.c1].left - offsetX;
-			y1 = r[range.r1].top - offsetY;
+			y1 = this._getRowTop(range.r1) - offsetY;
 			x2 = Math.min(c[range.c2].left - offsetX + c[range.c2].width, widthCtx);
-			y2 = Math.min(r[range.r2].top - offsetY + r[range.r2].height, heightCtx);
+			y2 = Math.min(this._getRowTop(range.r2 + 1) - offsetY, heightCtx);
 
 			if (Asc.c_oAscPageOrientation.PageLandscape === orientation) {
 				var tmp = width;
@@ -2957,20 +2961,22 @@
 				d1 += c[i].width;
 			}
 
+			var h;
 			for(i = 0, d = 0, d1 = 0; i < r.length; i++) {
 				if(d1 > y2 + offsetY) {
 					break;
 				}
 
-				if(d + r[i].height > heightPage) {
+				h = this._getRowHeight(i);
+				if(d + h > heightPage) {
 					if(d1 > y1 + offsetY && d1 < y2 + offsetY) {
 						var headingHeight = /*headings ? this.cellsTop : 0;*/this.cellsTop;
 						ctx.lineHorPrevPx(x1, d1 + headingHeight - offsetY, x2);
 					}
 					d = 0;
 				}
-				d += r[i].height;
-				d1 += r[i].height;
+				d += h;
+				d1 += h;
 			}
 
 			ctx.stroke();
@@ -2992,7 +2998,7 @@
 		var r = this.rows;
 
 		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : c[this.visibleRange.c1].left - this.cellsLeft;
-		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : r[this.visibleRange.r1].top - this.cellsTop;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 
 		var frozenX = 0, frozenY = 0, cFrozen, rFrozen;
 		if (null === drawingCtx && this.topLeftFrozenCell) {
@@ -3002,7 +3008,7 @@
 			}
 			if (undefined === topFieldInPx) {
 				rFrozen = this.topLeftFrozenCell.getRow0();
-				offsetY -= frozenY =  r[rFrozen].top - r[0].top;
+				offsetY -= frozenY =  this._getRowTop(rFrozen) - this._getRowTop(0);
 			}
 		}
 
@@ -3048,9 +3054,9 @@
 
 			if(printPages[0] && intersection) {
 				x1 = c[range.c1].left - offsetX;
-				y1 = r[range.r1].top - offsetY;
+				y1 = this._getRowTop(range.r1) - offsetY;
 				x2 = c[range.c2].left + c[range.c2].width - offsetX;
-				y2 = r[range.r2].top + r[range.r2].height - offsetY;
+				y2 = this._getRowTop(range.r2 + 1) - offsetY;
 
 
 				var pageRange;
@@ -3068,9 +3074,9 @@
 					}
 
 					var widthPage = (c[pageRange.c2].left + c[pageRange.c2].width) - c[pageRange.c1].left;
-					var heightPage = (r[pageRange.r2].top + r[pageRange.r2].height) - r[pageRange.r1].top;
+					var heightPage = this._getRowTop(pageRange.r2 + 1) - this._getRowTop(pageRange.r1);
 					var centerX = c[pageRange.c1].left + (widthPage) / 2 - offsetX;
-					var centerY = r[pageRange.r1].top + (heightPage) / 2 - offsetY;
+					var centerY = this._getRowTop(pageRange.r1) + (heightPage) / 2 - offsetY;
 
 					//TODO подобрать такой размер шрифта, чтобы у текста была нужная нам ширина(1/3 от ширины страницы)
 					var font = new AscCommonExcel.Font();
@@ -3139,7 +3145,7 @@
                 continue;
             }
 
-            ctx.fillRect( this.cols[col].left + this.cols[col].width - offsetX - gridlineSize, this.rows[row].top - offsetY, gridlineSize, this.rows[row].height - gridlineSize );
+            ctx.fillRect( this.cols[col].left + this.cols[col].width - offsetX - gridlineSize, this._getRowTop(row) - offsetY, gridlineSize, this._getRowHeight(row) - gridlineSize );
         }
     };
 
@@ -3448,7 +3454,7 @@
             var tmpRange, offsetX, offsetY;
             if ( 0 < row && 0 < col ) {
                 offsetX = this.cols[0].left - this.cellsLeft;
-                offsetY = this.rows[0].top - this.cellsTop;
+                offsetY = this._getRowTop(0) - this.cellsTop;
                 tmpRange = new asc_Range( 0, 0, col - 1, row - 1 );
                 if ( !noCells ) {
                     this._drawGrid( null, tmpRange, offsetX, offsetY );
@@ -3458,7 +3464,7 @@
             if ( 0 < row ) {
                 row -= 1;
                 offsetX = undefined;
-                offsetY = this.rows[0].top - this.cellsTop;
+                offsetY = this._getRowTop(0) - this.cellsTop;
                 tmpRange = new asc_Range( this.visibleRange.c1, 0, this.visibleRange.c2, row );
                 this._drawRowHeaders( null, 0, row, kHeaderDefault, offsetX, offsetY );
                 if ( !noCells ) {
@@ -3502,7 +3508,7 @@
 			var row = this.topLeftFrozenCell.getRow0();
 			var col = this.topLeftFrozenCell.getCol0();
 			if (0 < row) {
-				fHorLine.apply(ctx, [0, this.rows[row].top, ctx.getWidth()]);
+				fHorLine.apply(ctx, [0, this._getRowTop(row), ctx.getWidth()]);
 			} else {
 				fHorLine.apply(ctx, [0, this.headersHeight, this.headersWidth]);
 			}
@@ -3548,13 +3554,13 @@
                 data = this._findRowUnderCursor( y, true, true );
                 if ( data ) {
                     data.row += 1;
-                    if ( 0 <= data.row && data.row < this.rows.length ) {
+                    if ( 0 <= data.row && data.row < this.nRowsCount ) {
                         var w = ctx.getWidth();
-                        var offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop;
+                        var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
                         offsetFrozen = this.getFrozenPaneOffset( true, false );
                         offsetY -= offsetFrozen.offsetY;
                         ctx.setFillPattern( this.settings.ptrnLineDotted1 )
-                            .fillRect( 0, this.rows[data.row].top - offsetY - 1, w, 1 );
+                            .fillRect( 0, this._getRowTop(data.row) - offsetY - 1, w, 1 );
                     }
                 }
                 break;
@@ -3626,7 +3632,7 @@
                     data = t._findRowUnderCursor( y, true, true );
                     if ( data ) {
                         data.row += 1;
-                        if ( 0 <= data.row && data.row < t.rows.length ) {
+                        if ( 0 <= data.row && data.row < t.nRowsCount ) {
                             lastRow = data.row;
                         }
                     }
@@ -3765,8 +3771,8 @@
 
         var x1 = c[oIntersection.c1].left - offsetX;
         var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-        var y1 = r[oIntersection.r1].top - offsetY;
-        var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+        var y1 = this._getRowTop(oIntersection.r1) - offsetY;
+        var y2 = this._getRowTop(oIntersection.r2 + 1) - offsetY;
 
         if (canFill) {
             var fillColor = strokeColor.Copy();
@@ -3799,10 +3805,11 @@
 			fs = range.intersectionSimple(
 				fs ? fs : new asc_Range(cell.col, cell.row, cell.col, cell.row));
 			if (fs) {
+			    var top = this._getRowTop(fs.r1);
 				var _x1 = c[fs.c1].left - offsetX + 1;
-				var _y1 = r[fs.r1].top - offsetY + 1;
+				var _y1 = top - offsetY + 1;
 				var _w = c[fs.c2].left - c[fs.c1].left + c[fs.c2].width - 2;
-				var _h = r[fs.r2].top - r[fs.r1].top + r[fs.r2].height - 2;
+				var _h = this._getRowTop(fs.r2 + 1) - top - 2;
 				if (0 < _w && 0 < _h) {
 					ctx.clearRect(_x1, _y1, _w, _h);
 				}
@@ -3869,20 +3876,20 @@
     /**Отрисовывает диапазон с заданными параметрами*/
     WorksheetView.prototype._drawElements = function (drawFunction) {
         var cFrozen = 0, rFrozen = 0, args = Array.prototype.slice.call(arguments,
-          1), c = this.cols, r = this.rows, offsetX = c[this.visibleRange.c1].left -
-          this.cellsLeft, offsetY = r[this.visibleRange.r1].top - this.cellsTop, res;
+          1), c = this.cols, offsetX = c[this.visibleRange.c1].left - this.cellsLeft,
+            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop, res;
         if (this.topLeftFrozenCell) {
             cFrozen = this.topLeftFrozenCell.getCol0();
             rFrozen = this.topLeftFrozenCell.getRow0();
             offsetX -= this.cols[cFrozen].left - this.cols[0].left;
-            offsetY -= this.rows[rFrozen].top - this.rows[0].top;
+            offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
 
             var oFrozenRange;
             cFrozen -= 1;
             rFrozen -= 1;
             if (0 <= cFrozen && 0 <= rFrozen) {
                 oFrozenRange = new asc_Range(0, 0, cFrozen, rFrozen);
-                res = drawFunction.call(this, oFrozenRange, c[0].left - this.cellsLeft, r[0].top - this.cellsTop, args);
+                res = drawFunction.call(this, oFrozenRange, c[0].left - this.cellsLeft, this._getRowTop(0) - this.cellsTop, args);
                 if (!res) {
                     return;
                 }
@@ -3896,7 +3903,7 @@
             }
             if (0 <= rFrozen) {
                 oFrozenRange = new asc_Range(this.visibleRange.c1, 0, this.visibleRange.c2, rFrozen);
-                res = drawFunction.call(this, oFrozenRange, offsetX, r[0].top - this.cellsTop, args);
+                res = drawFunction.call(this, oFrozenRange, offsetX, this._getRowTop(0) - this.cellsTop, args);
                 if (!res) {
                     return;
                 }
@@ -3980,9 +3987,9 @@
 			type = range.getType();
             if (c_oAscSelectionType.RangeMax === type) {
                 range.c2 = this.cols.length - 1;
-                range.r2 = this.rows.length - 1;
+                range.r2 = this.nRowsCount - 1;
             } else if (c_oAscSelectionType.RangeCol === type) {
-                range.r2 = this.rows.length - 1;
+                range.r2 = this.nRowsCount - 1;
             } else if (c_oAscSelectionType.RangeRow === type) {
                 range.c2 = this.cols.length - 1;
             }
@@ -4102,7 +4109,7 @@
             var cFrozen = this.topLeftFrozenCell.getCol0();
             var rFrozen = this.topLeftFrozenCell.getRow0();
             diffWidth = this.cols[cFrozen].left - this.cols[0].left;
-            diffHeight = this.rows[rFrozen].top - this.rows[0].top;
+            diffHeight = this._getRowTop(rFrozen) - this._getRowTop(0);
 
             if (!isFrozen) {
                 var oFrozenRange;
@@ -4130,10 +4137,10 @@
                 diffHeight = 0;
             }
             offsetX = this.cols[range.c1].left - this.cellsLeft - diffWidth;
-            offsetY = this.rows[range.r1].top - this.cellsTop - diffHeight;
+            offsetY = this._getRowTop(range.r1) - this.cellsTop - diffHeight;
         } else {
             offsetX = this.cols[this.visibleRange.c1].left - this.cellsLeft - diffWidth;
-            offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop - diffHeight;
+            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop - diffHeight;
         }
 
         this._activateOverlayCtx();
@@ -4144,8 +4151,8 @@
                 _x1 = t.cols[arnIntersection.c1].left - offsetX - 2;
                 _x2 = t.cols[arnIntersection.c2].left + t.cols[arnIntersection.c2].width - offsetX +
                   1 + /* Это ширина "квадрата" для автофильтра от границы ячейки */2;
-                _y1 = t.rows[arnIntersection.r1].top - offsetY - 2;
-                _y2 = t.rows[arnIntersection.r2].top + t.rows[arnIntersection.r2].height - offsetY +
+                _y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2;
+                _y2 = t._getRowTop(arnIntersection.r2 + 1) - offsetY +
                   1 + /* Это высота "квадрата" для автофильтра от границы ячейки */2;
 
                 x1 = Math.min(x1, _x1);
@@ -4168,8 +4175,8 @@
             // Координаты для автозаполнения
             _x1 = this.cols[activeFillClone.c1].left - offsetX - 2;
             _x2 = this.cols[activeFillClone.c2].left + this.cols[activeFillClone.c2].width - offsetX + 1 + 2;
-            _y1 = this.rows[activeFillClone.r1].top - offsetY - 2;
-            _y2 = this.rows[activeFillClone.r2].top + this.rows[activeFillClone.r2].height - offsetY + 1 + 2;
+            _y1 = this._getRowTop(activeFillClone.r1) - offsetY - 2;
+            _y2 = this._getRowTop(activeFillClone.r2 + 1) - offsetY + 1 + 2;
 
             // Выбираем наибольший range для очистки
             x1 = Math.min(x1, _x1);
@@ -4201,8 +4208,8 @@
                         // Координаты для автозаполнения
                         _x1 = this.cols[aFormulaIntersection.c1].left - offsetX - 2;
                         _x2 = this.cols[aFormulaIntersection.c2].left + this.cols[aFormulaIntersection.c2].width - offsetX + 1 + 2;
-                        _y1 = this.rows[aFormulaIntersection.r1].top - offsetY - 2;
-                        _y2 = this.rows[aFormulaIntersection.r2].top + this.rows[aFormulaIntersection.r2].height - offsetY + 1 + 2;
+                        _y1 = this._getRowTop(aFormulaIntersection.r1) - offsetY - 2;
+                        _y2 = this._getRowTop(aFormulaIntersection.r2 + 1) - offsetY + 1 + 2;
 
                         // Выбираем наибольший range для очистки
                         x1 = Math.min(x1, _x1);
@@ -4221,8 +4228,8 @@
                     _x1 = t.cols[arnIntersection.c1].left - offsetX - 3;
                     _x2 = arnIntersection.c2 > t.cols.length ? width :
                     t.cols[arnIntersection.c2].left + t.cols[arnIntersection.c2].width - offsetX + 1 + 2;
-                    _y1 = t.rows[arnIntersection.r1].top - offsetY - 3;
-                    _y2 = arnIntersection.r2 > t.rows.length ? height : t.rows[arnIntersection.r2].top + t.rows[arnIntersection.r2].height - offsetY + 1 + 2;
+                    _y1 = t._getRowTop(arnIntersection.r1) - offsetY - 3;
+                    _y2 = arnIntersection.r2 > t.nRowsCount ? height : t._getRowTop(arnIntersection.r2 + 1) - offsetY + 1 + 2;
 
                     x1 = Math.min(x1, _x1);
                     x2 = Math.max(x2, _x2);
@@ -4238,9 +4245,8 @@
                     _x1 = t.cols[arnIntersection.c1].left - offsetX - 3;
                     _x2 = arnIntersection.c2 > t.cols.length ? width :
                     t.cols[arnIntersection.c2].left + t.cols[arnIntersection.c2].width - offsetX + 1 + 2;
-                    _y1 = t.rows[arnIntersection.r1].top - offsetY - 3;
-                    _y2 = arnIntersection.r2 > t.rows.length ? height :
-                    t.rows[arnIntersection.r2].top + t.rows[arnIntersection.r2].height - offsetY + 1 + 2;
+                    _y1 = t._getRowTop(arnIntersection.r1) - offsetY - 3;
+                    _y2 = arnIntersection.r2 > t.nRowsCount ? height : t._getRowTop(arnIntersection.r2 + 1) - offsetY + 1 + 2;
 
                     x1 = Math.min(x1, _x1);
                     x2 = Math.max(x2, _x2);
@@ -4256,8 +4262,8 @@
 				// Координаты для перемещения диапазона
 				_x1 = this.cols[arnIntersection.c1].left - offsetX - 2;
 				_x2 = this.cols[arnIntersection.c2].left + this.cols[arnIntersection.c2].width - offsetX + 1 + 2;
-				_y1 = this.rows[arnIntersection.r1].top - offsetY - 2;
-				_y2 = this.rows[arnIntersection.r2].top + this.rows[arnIntersection.r2].height - offsetY + 1 + 2;
+				_y1 = this._getRowTop(arnIntersection.r1) - offsetY - 2;
+				_y2 = this._getRowTop(arnIntersection.r2 + 1) - offsetY + 1 + 2;
 
 				// Выбираем наибольший range для очистки
 				x1 = Math.min(x1, _x1);
@@ -4273,8 +4279,8 @@
                 if (arnIntersection) {
                     _x1 = t.cols[arnIntersection.c1].left - offsetX - 2;
                     _x2 = t.cols[arnIntersection.c2].left + t.cols[arnIntersection.c2].width - offsetX + 1 + /* Это ширина "квадрата" для автофильтра от границы ячейки */2;
-                    _y1 = t.rows[arnIntersection.r1].top - offsetY - 2;
-                    _y2 = t.rows[arnIntersection.r2].top + t.rows[arnIntersection.r2].height - offsetY + 1 + /* Это высота "квадрата" для автофильтра от границы ячейки */2;
+                    _y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2;
+                    _y2 = t._getRowTop(arnIntersection.r2 + 1) - offsetY + 1 + /* Это высота "квадрата" для автофильтра от границы ячейки */2;
 
                     x1 = Math.min(x1, _x1);
                     x2 = Math.max(x2, _x2);
@@ -4344,11 +4350,11 @@
         y += mouseY;
 
         var ctx = this.overlayCtx;
-        var offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop;
+        var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
         var offsetFrozen = this.getFrozenPaneOffset( true, false );
         offsetY -= offsetFrozen.offsetY;
 
-        var y1 = this.rows[row].top - offsetY - gridlineSize;
+        var y1 = this._getRowTop(row) - offsetY - gridlineSize;
         var w = ctx.getWidth();
         var height = Asc.round((y - y1) / this.getZoom());
         if ( 0 > height ) {
@@ -4366,7 +4372,7 @@
             sizeCCOrPt: AscCommonExcel.convertPxToPt(height),
             sizePx    : height,
             x         : AscCommon.AscBrowser.convertToRetinaValue(this.cellsLeft),
-            y         : AscCommon.AscBrowser.convertToRetinaValue(y1 + this.rows[row].height)
+            y         : AscCommon.AscBrowser.convertToRetinaValue(y1 + this._getRowHeight(row))
         } );
     };
 
@@ -4572,7 +4578,7 @@
             bUpdateScrollX = this.expandColsOnScroll(/*isNotActive*/ false, /*updateColsCount*/ true);
         }
         // Проверка на увеличение колличества строк
-        if (row >= this.rows.length) {
+        if (row >= this.nRowsCount) {
             bUpdateScrollY = this.expandRowsOnScroll(/*isNotActive*/ false, /*updateRowsCount*/ true);
         }
         if (bUpdateScrollX && bUpdateScrollY) {
@@ -4685,7 +4691,7 @@
             colWidth -= pad;
         }
 
-        var rowHeight = this.rows[row].height;
+        var rowHeight = this._getRowHeight(row);
 
         // ToDo dDigitsCount нужно рассчитывать исходя не из дефалтового шрифта и размера, а исходя из текущего шрифта и размера ячейки
         str = c.getValue2(dDigitsCount, makeFnIsGoodNumFormat(fl, colWidth));
@@ -4714,7 +4720,7 @@
                 rowHeight = 0;
 
                 for (var j = mc.r1; j <= mc.r2 && j < this.nRowsCount; ++j) {
-                    rowHeight += this.rows[j].height;
+                    rowHeight += this._getRowHeight(j);
                 }
             }
 
@@ -5160,7 +5166,7 @@
                 var startCol = (mergedRange.c1 > fvc) ? mergedRange.c1 : fvc;
                 var startRow = (mergedRange.r1 > fvr) ? mergedRange.r1 : fvr;
 
-                metrics.top = _this.getCellTop(startRow, 0) - _this.getCellTop(fvr, 0) + _this.getCellTop(0, 0);
+                metrics.top = _this._getRowTop(startRow) - _this._getRowTop(fvr) + _this._getRowTop(0);
                 metrics.left = _this.getCellLeft(startCol, 0) - _this.getCellLeft(fvc, 0) + _this.getCellLeft(0, 0);
 
                 for (var i = startCol; i <= mergedRange.c2; i++) {
@@ -5172,10 +5178,10 @@
                 metrics.result = true;
             } else {
 
-                metrics.top = _this.getCellTop(row, 0) - _this.getCellTop(fvr, 0) + _this.getCellTop(0, 0);
+                metrics.top = _this._getRowTop(row) - _this._getRowTop(fvr) + _this._getRowTop(0);
                 metrics.left = _this.getCellLeft(col, 0) - _this.getCellLeft(fvc, 0) + _this.getCellLeft(0, 0);
                 metrics.width = _this.getColumnWidth(col, 0);
-                metrics.height = _this.getRowHeight(row, 0);
+                metrics.height = _this._getRowHeight(row);
                 metrics.result = true;
             }
 
@@ -5360,7 +5366,7 @@
             var state = t._isCellNullText(col, row);
             var i = col + dx;
             var j = row + dy;
-            while (i >= 0 && i < t.cols.length && j >= 0 && j < t.rows.length) {
+            while (i >= 0 && i < t.cols.length && j >= 0 && j < t.nRowsCount) {
                 var newState = t._isCellNullText(i, j);
                 if (newState !== state) {
                     var ret = {};
@@ -5377,7 +5383,7 @@
             // Проверки для перехода в самый конец (ToDo пока убрал, чтобы не добавлять тормозов)
             /*if (i === t.cols.length && state)
              i = gc_nMaxCol;
-             if (j === t.rows.length && state)
+             if (j === t.nRowsCount && state)
              j = gc_nMaxRow;*/
             return {col: i - dx, row: j - dy};
         }
@@ -5448,14 +5454,14 @@
             t.nColsCount = newCol + 1;
             t._calcWidthColumns(AscCommonExcel.recalcType.newLines);
         }
-        if (newRow >= t.rows.length && newRow <= gc_nMaxRow0) {
+        if (newRow >= t.nRowsCount && newRow <= gc_nMaxRow0) {
             t.nRowsCount = newRow + 1;
-            t._calcHeightRows(AscCommonExcel.recalcType.newLines);
+            //t._calcHeightRows(AscCommonExcel.recalcType.newLines);
         }
 
         return {
             col: newCol < 0 ? 0 : Math.min(newCol, t.cols.length - 1),
-            row: newRow < 0 ? 0 : Math.min(newRow, t.rows.length - 1)
+            row: newRow < 0 ? 0 : Math.min(newRow, t.nRowsCount - 1)
         };
     };
 
@@ -5473,8 +5479,7 @@
             return false;
         }
         diffHeight = diffHeight ? diffHeight : 0;
-        var r = this.rows;
-        return r[row].top + r[row].height - r[topRow].top + this.cellsTop + diffHeight > this.drawingCtx.getHeight();
+        return this._getRowTop(row + 1) - this._getRowTop(topRow) + this.cellsTop + diffHeight > this.drawingCtx.getHeight();
     };
 
     WorksheetView.prototype._isVisibleX = function () {
@@ -5486,26 +5491,28 @@
         return x - c[vr.c1].left + this.cellsLeft < this.drawingCtx.getWidth();
     };
 
-    WorksheetView.prototype._isVisibleY = function () {
-        var vr = this.visibleRange;
-        var r = this.rows;
-        var y = r[vr.r2].top + r[vr.r2].height;
+    WorksheetView.prototype._getMissingHeight = function () {
+        var visibleHeight = this.cellsTop + this._getRowTop(this.nRowsCount) - this._getRowTop(this.visibleRange.r1);
         var offsetFrozen = this.getFrozenPaneOffset(true, false);
-        y += offsetFrozen.offsetY;
-        return y - r[vr.r1].top + this.cellsTop < this.drawingCtx.getHeight();
+		visibleHeight += offsetFrozen.offsetY;
+        return this.drawingCtx.getHeight() - visibleHeight;
     };
 
     WorksheetView.prototype._updateVisibleRowsCount = function (skipScrollReinit) {
         var isUpdate = false;
         this._calcVisibleRows();
-        while (this._isVisibleY() && !this.isMaxRow()) {
-            // Добавим еще строки, чтоб не было видно фон под таблицей
-            this.expandRowsOnScroll(true);
-            this._calcVisibleRows();
-            isUpdate = true;
-        }
-        if (!skipScrollReinit && isUpdate) {
-            this.handlers.trigger("reinitializeScrollY");
+        var missingHeight = this._getMissingHeight();
+        if (0 < missingHeight && !this.isMaxRow()) {
+            if (!this.model.isDefaultHeightHidden()) {
+                var rowHeight = Asc.round(this.defaultRowHeightPx * this.getZoom());
+                this.nRowsCount = Math.min(this.nRowsCount + Asc.ceil(missingHeight / rowHeight), gc_nMaxCol);
+				this._calcVisibleRows();
+				isUpdate = true;
+            }
+
+			if (!skipScrollReinit && isUpdate) {
+				this.handlers.trigger("reinitializeScrollY");
+			}
         }
     };
 
@@ -5543,7 +5550,7 @@
         return colsCount <= colsCountCurrent && this.model.isDefaultWidthHidden();
     };
 
-    WorksheetView.prototype.scrollVertical = function (delta, editor) {
+    WorksheetView.prototype.scrollVertical = function (delta, editor, initRowsCount) {
         var vr = this.visibleRange;
         var fixStartRow = new asc_Range(vr.c1, vr.r1, vr.c2, vr.r1);
         this._fixSelectionOfHiddenCells(0, delta >= 0 ? +1 : -1, fixStartRow);
@@ -5578,7 +5585,7 @@
             cFrozen = this.topLeftFrozenCell.getCol0();
             rFrozen = this.topLeftFrozenCell.getRow0();
             diffWidth = this.cols[cFrozen].left - this.cols[0].left;
-            diffHeight = this.rows[rFrozen].top - this.rows[0].top;
+            diffHeight = this._getRowTop(rFrozen) - this._getRowTop(0);
         }
         var oldVRE_isPartial = this._isRowDrawnPartially(vr.r2, vr.r1, diffHeight);
         var oldVR = vr.clone();
@@ -5608,12 +5615,13 @@
 
         var oldDec = Math.max(AscCommonExcel.calcDecades(oldEnd + 1), 3);
         var oldW, x, dx;
-        var dy = this.rows[start].top - this.rows[oldStart].top;
+        var topOldStart = this._getRowTop(oldStart);
+        var dy = this._getRowTop(start) - topOldStart;
         var oldH = ctxH - this.cellsTop - Math.abs(dy) - diffHeight;
         var scrollDown = (dy > 0 && oldH > 0);
         var y = this.cellsTop + (scrollDown ? dy : 0) + diffHeight;
         var lastRowHeight = (scrollDown && oldVRE_isPartial) ?
-        ctxH - (this.rows[oldEnd].top - this.rows[oldStart].top + this.cellsTop + diffHeight) : 0;
+        ctxH - (this._getRowTop(oldEnd) - topOldStart + this.cellsTop + diffHeight) : 0;
 
         if (this.isCellEditMode && editor && this.model.selectionRange.activeCell.row >= rFrozen) {
             editor.move(this.cellsLeft + (this.model.selectionRange.activeCell.col >= cFrozen ? diffWidth : 0),
@@ -5702,14 +5710,14 @@
                     }
                     if (0 < rFrozen) {
                         r_ = new asc_Range(vr.c2, 0, vr.c2, rFrozen - 1);
-                        offsetY = this.rows[0].top - this.cellsTop;
+                        offsetY = this._getRowTop(0) - this.cellsTop;
                         this._drawGrid(null, r_, /*offsetXForDraw*/undefined, offsetY);
                         this._drawCellsAndBorders(null, r_, /*offsetXForDraw*/undefined, offsetY);
                     }
                 }
             }
             offsetX = this.cols[this.visibleRange.c1].left - this.cellsLeft - diffWidth;
-            offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop - diffHeight;
+            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop - diffHeight;
             this._drawGrid(null, range);
 
             this._drawCellsAndBorders(null, range);
@@ -5741,7 +5749,7 @@
         }
 
 
-        if (reinitScrollY) {
+        if (reinitScrollY || (0 > delta && initRowsCount && this._initRowsCount())) {
             this.handlers.trigger("reinitializeScrollY");
         }
 
@@ -5797,7 +5805,7 @@
             rFrozen = this.topLeftFrozenCell.getRow0();
             cFrozen = this.topLeftFrozenCell.getCol0();
             diffWidth = this.cols[cFrozen].left - this.cols[0].left;
-            diffHeight = this.rows[rFrozen].top - this.rows[0].top;
+            diffHeight = this._getRowTop(rFrozen) - this._getRowTop(0);
             x += diffWidth;
             oldW -= diffWidth;
         }
@@ -5874,7 +5882,7 @@
             }
             var range = new asc_Range(c1, vr.r1, c2, vr.r2);
             offsetX = this.cols[this.visibleRange.c1].left - this.cellsLeft - diffWidth;
-            offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop - diffHeight;
+            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop - diffHeight;
             this._drawColumnHeaders(null, c1, c2);
             this._drawGrid(null, range);
             this._drawCellsAndBorders(null, range);
@@ -5886,7 +5894,7 @@
             if (rFrozen) {
                 range.r1 = 0;
                 range.r2 = rFrozen - 1;
-                offsetY = this.rows[0].top - this.cellsTop;
+                offsetY = this._getRowTop(0) - this.cellsTop;
                 this._drawGrid(null, range, undefined, offsetY);
                 this._drawCellsAndBorders(null, range, undefined, offsetY);
                 this.af_drawButtons(range, offsetX, offsetY);
@@ -5941,9 +5949,8 @@
             }
         }
         if (!skipRow) {
-            while (r < this.rows.length) {
-                tmpRow = this.rows[r];
-                if (y <= tmpRow.top + tmpRow.height) {
+            while (r < this.nRowsCount) {
+                if (y <= this._getRowTop(r + 1)) {
                     result.row = r;
                     break;
                 }
@@ -5951,7 +5958,7 @@
             }
 
             if (null !== result.row) {
-                result.rowOff = y - this.rows[result.row].top;
+                result.rowOff = y - this._getRowTop(result.row);
             }
         }
 
@@ -6035,28 +6042,29 @@
 	 */
 	WorksheetView.prototype._findRowUnderCursor = function (y, canReturnNull, half) {
 		var activeCellRow = half ? this._getSelection().activeCell.row : -1;
-		var dy = 0;
+		var h, dy = 0;
 		var r = this.visibleRange.r1;
-		var offset = this.rows[r].top - this.cellsTop;
+		var offset = this._getRowTop(r) - this.cellsTop;
 		var r2, y1, y2, rFrozen, heightDiff = 0;
 		if (y >= this.cellsTop) {
 			if (this.topLeftFrozenCell) {
 				rFrozen = this.topLeftFrozenCell.getRow0();
-				heightDiff = this.rows[rFrozen].top - this.rows[0].top;
+				heightDiff = this._getRowTop(rFrozen) - this._getRowTop(0);
 				if (y < this.cellsTop + heightDiff && 0 !== heightDiff) {
 					r = 0;
 					heightDiff = 0;
 				}
 			}
-			for (y1 = this.cellsTop + heightDiff, r2 = this.rows.length - 1; r <= r2; ++r, y1 = y2) {
-				y2 = y1 + this.rows[r].height;
-				dy = half ? this.rows[r].height / 2.0 * Math.sign(r - activeCellRow) : 0;
+			for (y1 = this.cellsTop + heightDiff, r2 = this.nRowsCount - 1; r <= r2; ++r, y1 = y2) {
+			    h = this._getRowHeight(r);
+				y2 = y1 + h;
+				dy = half ? h / 2.0 * Math.sign(r - activeCellRow) : 0;
 				if (y1 + dy > y) {
 					if (r !== this.visibleRange.r1) {
 						if (dy) {
 							r -= 1;
 							y2 = y1;
-							y1 -= this.rows[r].height;
+							y1 -= h;
 						}
 						return {row: r, top: y1, bottom: y2};
 					} else {
@@ -6068,25 +6076,25 @@
 				}
 			}
 			if (!canReturnNull) {
-				y1 = this.rows[r2].top - offset;
-				return {row: r2, top: y1, bottom: y1 + this.rows[r2].height};
+				y1 = this._getRowTop(r2) - offset;
+				return {row: r2, top: y1, bottom: y1 + this._getRowHeight(r2)};
 			}
 		} else {
 			if (this.topLeftFrozenCell) {
 				rFrozen = this.topLeftFrozenCell.getRow0();
 				if (0 !== rFrozen) {
 					r = 0;
-					offset = this.rows[r].top - this.cellsTop;
+					offset = this._getRowTop(r) - this.cellsTop;
 				}
 			}
-			for (y2 = this.cellsTop + this.rows[r].height, r2 = 0; r >= r2; --r, y2 = y1) {
-				y1 = this.rows[r].top - offset;
+			for (y2 = this.cellsTop + this._getRowHeight(r), r2 = 0; r >= r2; --r, y2 = y1) {
+				y1 = this._getRowTop(r) - offset;
 				if (y1 <= y && y < y2) {
 					return {row: r, top: y1, bottom: y2};
 				}
 			}
 			if (!canReturnNull) {
-				return {row: r2, top: y1, bottom: y1 + this.rows[r2].height};
+				return {row: r2, top: y1, bottom: y1 + this._getRowHeight(r2)};
 			}
 		}
 		return null;
@@ -6105,8 +6113,8 @@
         if (oFormulaRangeIn) {
             x1 = this.cols[oFormulaRangeIn.c1].left - offsetX;
             x2 = this.cols[oFormulaRangeIn.c2].left + this.cols[oFormulaRangeIn.c2].width - offsetX;
-            y1 = this.rows[oFormulaRangeIn.r1].top - offsetY;
-            y2 = this.rows[oFormulaRangeIn.r2].top + this.rows[oFormulaRangeIn.r2].height - offsetY;
+            y1 = this._getRowTop(oFormulaRangeIn.r1) - offsetY;
+            y2 = this._getRowTop(oFormulaRangeIn.r2 + 1) - offsetY;
 
             isResize = AscCommonExcel.selectionLineType.Resize & rangeType;
 
@@ -6274,12 +6282,12 @@
 
 		var cFrozen = -1, rFrozen = -1;
 		offsetX = this.cols[this.visibleRange.c1].left - this.cellsLeft;
-		offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop;
+		offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 		if (this.topLeftFrozenCell) {
 			cFrozen = this.topLeftFrozenCell.getCol0();
 			rFrozen = this.topLeftFrozenCell.getRow0();
 			widthDiff = this.cols[cFrozen].left - this.cols[0].left;
-			heightDiff = this.rows[rFrozen].top - this.rows[0].top;
+			heightDiff = this._getRowTop(rFrozen) - this._getRowTop(0);
 
 			offsetX = (x < this.cellsLeft + widthDiff) ? 0 : offsetX - widthDiff;
 			offsetY = (y < this.cellsTop + heightDiff) ? 0 : offsetY - heightDiff;
@@ -6532,9 +6540,9 @@
         return flag ? -1 : this._findVisibleCol(from, dc * -1, true);
     };
     WorksheetView.prototype._findVisibleRow = function (from, dr, flag) {
-        var to = dr < 0 ? -1 : this.rows.length, r;
+        var to = dr < 0 ? -1 : this.nRowsCount, r;
         for (r = from; r !== to; r += dr) {
-            if (0 < this.rows[r].height) {
+            if (0 < this._getRowHeight(r)){
                 return r;
             }
         }
@@ -6574,11 +6582,11 @@
         }
 
         if (ar.r2 === ar.r1) {
-            if (0 === this.rows[ar.r1].height) {
+            if (0 === this._getRowHeight(ar.r1)) {
                 r1 = r2 = this._findVisibleRow(ar.r1, dr);
             }
         } else {
-            if (0 !== dr && this.nRowsCount > ar.r2 && 0 === this.rows[ar.r2].height) {
+            if (0 !== dr && this.nRowsCount > ar.r2 && 0 === this._getRowHeight(ar.r2)) {
                 //Проверка для одновременно замерженных и скрытых ячеек (A1:A3 merge, 2:3 hidden)
                 for (mc = null, i = arn.c1; i <= arn.c2; ++i) {
                     mc = this.model.getMergedByCell(ar.r2, i);
@@ -6666,11 +6674,11 @@
         var t = this, cell = this.model.selectionRange.activeCell;
 
         // Если мы на скрытой строке или ячейке, то двигаться в выделении нельзя (так делает и Excel)
-        if (0 === this.cols[cell.col].width || 0 === this.rows[cell.row].height) {
+        if (0 === this.cols[cell.col].width || 0 === this._getRowHeight(cell.row)) {
             return;
         }
         return this.model.selectionRange.offsetCell(dr, dc, true, function (row, col) {
-            return (0 <= row) ? (0 === t.rows[row].height) : (0 === t.cols[col].width);
+            return (0 === ((0 <= row) ? t._getRowHeight(row) : t.cols[col].width));
         });
     };
 
@@ -6726,7 +6734,7 @@
             c2 = this._findVisibleCol(c2, dc);
             bIsHidden = true;
         }
-        if (0 !== dr && 0 === this.rows[r2].height) {
+        if (0 !== dr && 0 === this._getRowHeight(r2)) {
             r2 = this._findVisibleRow(r2, dr);
             bIsHidden = true;
         }
@@ -6982,7 +6990,7 @@
             var range = t.model.getRange3(item.r1, item.c1, item.r2, item.c2);
             range._setPropertyNoEmpty(null, null, function (cell, r) {
                 var idCell = cell.nCol + '-' + cell.nRow;
-                if (!oExistCells[idCell] && !cell.isNullTextString() && 0 < t.rows[r].height) {
+                if (!oExistCells[idCell] && !cell.isNullTextString() && 0 < t._getRowHeight(r)) {
                     oExistCells[idCell] = true;
                     ++oSelectionMathInfo.count;
                     if (CellValueType.Number === cell.getType()) {
@@ -7403,7 +7411,7 @@
         var yL = this.getCellTop( row, /*px*/0 );
         // Пересчитываем X и Y относительно видимой области
         xL -= (this.cols[vrCol].left - this.cellsLeft);
-        yL -= (this.rows[vrRow].top - this.cellsTop);
+        yL -= (this._getRowTop(vrRow) - this.cellsTop);
         // Пересчитываем X и Y относительно закрепленной области
         xL += offsetX;
         yL += offsetY;
@@ -7554,7 +7562,7 @@
         val = this._findRowUnderCursor(y, true);
         if (val) {
             r1 = r2 = val.row;
-			if (c_oTargetType.RowResize === target && 0 < r1 && 0 === this.rows[r1 - 1].height) {
+			if (c_oTargetType.RowResize === target && 0 < r1 && 0 === this._getRowHeight(r1 - 1)) {
 				r1 = r2 = r1 - 1;
 			}
         } else {
@@ -7750,10 +7758,10 @@
         var ar = this.model.selectionRange.getLast().clone(true);
         // Получаем координаты левого верхнего угла выделения
         var xL = this.getCellLeft(ar.c1, /*px*/0);
-        var yL = this.getCellTop(ar.r1, /*px*/0);
+        var yL = this._getRowTop(ar.r1);
         // Получаем координаты правого нижнего угла выделения
         var xR = this.getCellLeft(ar.c2, /*px*/0) + this.cols[ar.c2].width;
-        var yR = this.getCellTop(ar.r2, /*px*/0) + this.rows[ar.r2].height;
+        var yR = this._getRowTop(ar.r2 + 1);
 
         // range для пересчета видимой области
         var activeFillHandleCopy;
@@ -7770,7 +7778,7 @@
 
         // Пересчитываем X и Y относительно видимой области
         x += (this.cols[this.visibleRange.c1].left - this.cellsLeft);
-        y += (this.rows[this.visibleRange.r1].top - this.cellsTop);
+        y += (this._getRowTop(this.visibleRange.r1) - this.cellsTop);
 
         // Вычисляем расстояние от (x, y) до (xL, yL)
         var dXL = x - xL;
@@ -10280,7 +10288,7 @@
 
 				var cursorPos = range;
 				var offsetX = this.cols[this.visibleRange.c1].left - this.cellsLeft;
-				var offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop;
+				var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 				var posX = curShape.transformText.TransformPointX(cursorPos.X, cursorPos.Y) * mmToPx - offsetX + this.cellsLeft;
 				var posY = curShape.transformText.TransformPointY(cursorPos.X, cursorPos.Y) * mmToPx - offsetY + this.cellsTop;
 
@@ -10965,6 +10973,27 @@
 				onChangeWorksheetCallback(true);
 				break;
 		}
+	};
+
+	WorksheetView.prototype.expandRowsOnScroll2 = function (count) {
+	    var res = false;
+		var old = this.nRowsCount;
+		if (this.model.isDefaultHeightHidden()) {
+			this.nRowsCount = gc_nMaxRow;
+			return res;
+		} else {
+			this.nRowsCount += count;
+		}
+
+		if (gc_nMaxRow < this.nRowsCount) {
+			this.nRowsCount = gc_nMaxRow;
+		}
+
+		res = old !== this.nRowsCount;
+		if (res && this.objectRender && this.objectRender.drawingArea) {
+			this.objectRender.drawingArea.reinitRanges();
+		}
+		return res;
 	};
 
     WorksheetView.prototype.expandColsOnScroll = function (isNotActive, updateColsCount, newColsCount) {
@@ -11794,7 +11823,7 @@
 					}
 					if (0 < rFrozen) {
 						if (row >= rFrozen) {
-							offsetY = tr[rFrozen].top - tr[0].top;
+							offsetY = t._getRowTop(rFrozen) - t._getRowTop(0);
 						} else {
 							vr.r1 = 0;
 							vr.r2 = rFrozen - 1;
@@ -11874,8 +11903,8 @@
 					var vro = getVisibleRangeObject();
 					var i, w, h, arrLeftS = [], arrRightS = [], arrBottomS = [];
 					var offsX = tc[vro.vr.c1].left - tc[0].left - vro.offsetX;
-					var offsY = tr[vro.vr.r1].top - tr[0].top - vro.offsetY;
-					var cellX = tc[_c1].left - offsX, cellY = tr[_r1].top - offsY;
+					var offsY = t._getRowTop(vro.vr.r1) - t._getRowTop(0) - vro.offsetY;
+					var cellX = tc[_c1].left - offsX, cellY = t._getRowTop(_r1) - offsY;
 					for (i = _c1; i >= vro.vr.c1; --i) {
 						if (0 < tc[i].width) {
 							arrLeftS.push(tc[i].left - offsX);
@@ -11902,11 +11931,13 @@
 					if (_r2 > vro.vr.r2) {
 						_r2 = vro.vr.r2;
 					}
+					var _top = cellY;
 					for (i = _r1; i <= vro.vr.r2; ++i) {
-						h = tr[i].height;
+						h = t._getRowHeight(i);
 						if (0 < h) {
-							arrBottomS.push(tr[i].top + h - offsY);
+							arrBottomS.push(_top + h);
 						}
+						_top += h;
 						if (_r2 === i) {
 							bi = arrBottomS.length - 1;
 						}
@@ -12902,7 +12933,7 @@
 		var width = widthButtonPx - widthBorder * 2;
 		var height = heightButtonPx - widthBorder * 2;
 		var colWidth = t.cols[col].width;
-		var rowHeight = t.rows[row].height;
+		var rowHeight = t._getRowHeight(row);
 		if (rowHeight < heightWithBorders)
 		{
 			widthWithBorders = widthWithBorders * (rowHeight / heightWithBorders);
@@ -12912,7 +12943,7 @@
 		//стартовая позиция кнопки
 		var x1 = t.cols[col].left + t.cols[col].width - widthWithBorders - 0.5 - offsetX;
 		//-1 смещение относительно нижней границы ячейки на 1px
-		var y1 = t.rows[row].top + t.rows[row].height - heightWithBorders - 0.5 - offsetY - 1;
+		var y1 = t._getRowTop(row + 1) - heightWithBorders - 0.5 - offsetY - 1;
 
 		var _drawButtonFrame = function(startX, startY, width, height)
 		{
@@ -13185,16 +13216,17 @@
 		var ws = this;
 		var width, height;
 		width = height = this.getFilterButtonSize();
-		var rowHeight = ws.rows[row].height;
+		var rowHeight = this._getRowHeight(row);
 		if (rowHeight < height) {
 			width = width * (rowHeight / height);
 			height = rowHeight;
 		}
 
+		var top = this._getRowTop(row + 1);
 		var x1 = ws.cols[col].left + ws.cols[col].width - width - 0.5;
-		var y1 = ws.rows[row].top + ws.rows[row].height - height - 0.5;
+		var y1 = top - height - 0.5;
 		var x2 = ws.cols[col].left + ws.cols[col].width - 0.5;
-		var y2 = ws.rows[row].top + ws.rows[row].height - 0.5;
+		var y2 = top - 0.5;
 
 		return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
 	};
@@ -13270,7 +13302,7 @@
         if (isCellContainsAutoFilterButton(c, r)) {
 			var width, height;
 			width = height = this.getFilterButtonSize();
-            var rowHeight = ws.rows[r].height;
+            var rowHeight = this._getRowHeight(r);
             var index = 1;
             if (rowHeight < height) {
                 index = rowHeight / height;
@@ -14305,14 +14337,14 @@
 			}
 
 			rFrozen = this.topLeftFrozenCell.getRow0();
-			heightDiff = this.rows[rFrozen].top - this.rows[0].top;
+			heightDiff = this._getRowTop(rFrozen) - this._getRowTop(0);
 			if (y < this.cellsTop + heightDiff && 0 !== heightDiff) {
 				r = 0;
 			}
 		}
 
 		x += this.cols[c].left - this.cellsLeft - this.cellsLeft;
-		y += this.rows[r].top - this.cellsTop - this.cellsTop;
+		y += this._getRowTop(r) - this.cellsTop - this.cellsTop;
 
 		x *= asc_getcvt(0/*px*/, 3/*mm*/, this._getPPIX());
 		y *= asc_getcvt(0/*px*/, 3/*mm*/, this._getPPIY());
@@ -14333,7 +14365,7 @@
 			}
 
 			rFrozen = this.topLeftFrozenCell.getRow0();
-			heightDiff = this.rows[rFrozen].top - this.rows[0].top;
+			heightDiff = this._getRowTop(rFrozen) - this._getRowTop(0);
 			if (yL < heightDiff && 0 !== heightDiff) {
 				r = 0;
 				heightDiff = 0;
@@ -14341,7 +14373,7 @@
 		}
 
 		xL -= (this.cols[c].left - widthDiff - this.cellsLeft - this.cellsLeft);
-		yL -= (this.rows[r].top - heightDiff - this.cellsTop - this.cellsTop);
+		yL -= (this._getRowTop(r) - heightDiff - this.cellsTop - this.cellsTop);
 		return {X: xL, Y: yL};
 	};
 
