@@ -14919,6 +14919,7 @@
 		}
 
 		this.endPortion();
+		this.assembleText();
 	};
 
 	HeaderFooterParser.prototype.convertFontColor = function(rColor) {
@@ -15022,20 +15023,21 @@
 		}
 	};
 
-	HeaderFooterParser.prototype.assembleDate = function () {
+	HeaderFooterParser.prototype.assembleText = function () {
 		var newStr = "";
-		var curPortion = assemblePortionText(this, c_nPortionLeft);
+		var curPortion = this.assemblePortionText(c_nPortionLeft);
 		if(curPortion) {
 			newStr += curPortion;
 		}
-		curPortion = assemblePortionText(this, c_nPortionCenter);
+		curPortion = this.assemblePortionText( c_nPortionCenter);
 		if(curPortion) {
 			newStr += curPortion;
 		}
-		curPortion = assemblePortionText(this, c_nPortionRight);
+		curPortion = this.assemblePortionText(c_nPortionRight);
 		if(curPortion) {
 			newStr += curPortion;
 		}
+		this.date = newStr;
 	};
 
 	HeaderFooterParser.prototype.splitByParagraph = function (cPortionCode) {
@@ -15054,18 +15056,12 @@
 				}
 				res[index].push(curPortion[i]);
 			}
-
 		}
 
 		return res;
 	};
 
-
-	function assemblePortionText(hfParser, cPortion) {
-		if (!hfParser) {
-			return;
-		}
-
+	HeaderFooterParser.prototype.assemblePortionText = function (cPortion) {
 		var symbolPortion;
 		switch (cPortion) {
 			case c_nPortionLeft: {
@@ -15087,106 +15083,105 @@
 
 		var aText = "";
 		var prevFont = new AscCommonExcel.Font();
-		var paragraphs = hfParser.splitByParagraph(cPortion);
+		var paragraphs = this.splitByParagraph(cPortion);
 		for (var j = 0; j < paragraphs.length; ++j) {
 			var aParaText = "";
 			var aPosList = paragraphs[j];
 
 			for (var i = 0; i < aPosList.length; ++i) {
-				if (true) {
-					var aFont = aPosList[i].props;
 
-					// font name and style
-					var newFont = aPosList[i].props;
-					var bNewFontName = !(prevFont.fn == newFont.fn);
-					var bNewStyle = (prevFont.b != newFont.b) || (prevFont.i != newFont.i);
+				var aFont = aPosList[i].props;
 
-					if (bNewFontName || (bNewStyle && fontList)) {
-						aParaText += "&\"" + newFont.fn;
-						//TODO Font Style!!!
+				// font name and style
+				var newFont = aPosList[i].props;
+				var bNewFontName = !(prevFont.fn == newFont.fn);
+				var bNewStyle = (prevFont.b != newFont.b) || (prevFont.i != newFont.i);
+
+				if (bNewFontName || (bNewStyle && fontList)) {
+					aParaText += "&\"" + newFont.fn;
+					//TODO Font Style!!!
 
 
-						aParaText += "\"";
+					aParaText += "\"";
+				}
+
+				//font size
+				newFont.fs = aFont.fs;
+				var bFontHtChanged = (prevFont.fs != newFont.fs);
+				if (bFontHtChanged) {
+					aParaText += "&" + newFont.fs;
+				}
+
+				// underline
+				if (prevFont.u != newFont.u) {
+					var underline = (newFont.u == Asc.EUnderline.u) ? prevFont.u : newFont.u;
+					(underline == Asc.EUnderline.underlineSingle) ? aParaText += "&U" : aParaText += "&E";
+				}
+
+				// strikeout
+				if (prevFont.s != newFont.s) {
+					aParaText += "&S";
+				}
+
+				// super/sub script
+				if (prevFont.va != newFont.va) {
+					aParaText += "&S";
+
+					switch(newFont.va)
+					{
+						// close the previous super/sub script.
+						case vertalign_Baseline:  (prevFont.va === AscCommon.vertalign_SuperScript) ? aParaText += "&X" : aParaText += "&Y"; break;
+						case AscCommon.vertalign_SuperScript: aParaText += "&X";  break;
+						case AscCommon.vertalign_SubScript:   aParaText += "&Y";  break;
+						default: break;
 					}
+				}
 
-					//font size
-					newFont.fs = aFont.fs;
-					var bFontHtChanged = (prevFont.fs != newFont.fs);
-					if (bFontHtChanged) {
-						aParaText += "&" + newFont.fs;
-					}
+				prevFont = newFont;
 
-					// underline
-					if (prevFont.u != newFont.u) {
-						var underline = (newFont.u == Asc.EUnderline.u) ? prevFont.u : newFont.u;
-						(underline == Asc.EUnderline.underlineSingle) ? aParaText += "&U" : aParaText += "&E";
-					}
+				if (aPosList[i].val instanceof HeaderFooterField) {
+					if (aPosList[i].val.field !== undefined) {
+						switch(aPosList[i].val.field) {
+							case c_nHeaderFooterPageNumber: {
+								aParaText += "&P";
+								break;
+							}
+							case c_nHeaderFooterPageCount: {
+								aParaText += "&N";
+								break;
+							}
+							case c_nHeaderFooterDate: {
+								aParaText += "&D";
+								break;
+							}
+							case c_nHeaderFooterTime: {
+								aParaText += "&T";
+								break;
+							}
+							case c_nHeaderFooterSheetName: {
+								aParaText += "&A";
+								break;
+							}
+							case c_nHeaderFooterFileName: {
+								aParaText += "&F";
+								break;
+							}
+							case c_nHeaderFooterFilePath: {
 
-					// strikeout
-					if (prevFont.s != newFont.s) {
-						aParaText += "&S";
-					}
-
-					// super/sub script
-					if (prevFont.va != newFont.va) {
-						aParaText += "&S";
-
-						switch(newFont.va)
-						{
-							// close the previous super/sub script.
-							case vertalign_Baseline:  (aFontData.va === AscCommon.vertalign_SuperScript) ? aParaText += "&X" : aParaText += "&Y"; break;
-							case AscCommon.vertalign_SuperScript: aParaText += "&X";  break;
-							case AscCommon.vertalign_SubScript:   aParaText += "&Y";  break;
-							default: break;
-						}
-					}
-
-					prevFont = newFont;
-
-					if (aPosList[i].val instanceof HeaderFooterField) {
-						if (aPosList[i].val.field !== undefined) {
-							switch(aPosList[i].val.field) {
-								case c_nHeaderFooterPageNumber: {
-									aParaText += "&P";
-									break;
-								}
-								case c_nHeaderFooterPageCount: {
-									aParaText += "&N";
-									break;
-								}
-								case c_nHeaderFooterDate: {
-									aParaText += "&D";
-									break;
-								}
-								case c_nHeaderFooterTime: {
-									aParaText += "&T";
-									break;
-								}
-								case c_nHeaderFooterSheetName: {
-									aParaText += "&A";
-									break;
-								}
-								case c_nHeaderFooterFileName: {
-									aParaText += "&F";
-									break;
-								}
-								case c_nHeaderFooterFilePath: {
-
-									break;
-								}
+								break;
 							}
 						}
-					} else {
-						var aPortionText = aPosList[i].val;
-						if (bFontHtChanged && aParaText.length && "" !== aPortionText) {
-							var cLast = aParaText[aParaText.length - 1];
-							var cFirst = aPortionText[0];
-							if (('0' <= cLast) && (cLast <= '9') && ('0' <= cFirst) && (cFirst <= '9')) {
-								aParaText += " ";
-							}
-						}
-						aParaText += aPortionText;
 					}
+				} else {
+					var aPortionText = aPosList[i].val;
+					if (bFontHtChanged && aParaText.length && "" !== aPortionText) {
+						var cLast = aParaText[aParaText.length - 1];
+						var cFirst = aPortionText[0];
+						if (('0' <= cLast) && (cLast <= '9') && ('0' <= cFirst) && (cFirst <= '9')) {
+							aParaText += " ";
+						}
+					}
+					aParaText += aPortionText;
 				}
 			}
 
@@ -15201,7 +15196,7 @@
 		}
 
 		return res;
-	}
+	};
 
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
