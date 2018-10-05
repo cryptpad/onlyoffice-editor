@@ -1645,7 +1645,7 @@ var editor;
 		this.wb._onSetSelection(range, /*validRange*/ true);
 	};
 
-	spreadsheet_api.prototype._onSaveCallbackInner = function (isUndoRequest) {
+	spreadsheet_api.prototype._onSaveCallbackInner = function () {
 		var t = this;
 		AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
 		// Принимаем чужие изменения

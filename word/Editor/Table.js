@@ -483,15 +483,20 @@ CTable.prototype.Get_Props = function()
 				var nCurRow = oRow.GetIndex();
 
 				var nRowSummaryH = 0;
-				for (var nCurPage in this.RowsInfo[nCurRow].H)
-					nRowSummaryH += this.RowsInfo[nCurRow].H[nCurPage];
 
-				if (null !== Pr.TableSpacing)
-					nRowSummaryH += Pr.TableSpacing;
-				else if (this.RowsInfo[nCurRow] && this.RowsInfo[nCurRow].TopDy[0])
-					nRowSummaryH -= this.RowsInfo[nCurRow].TopDy[0];
+				// Проверка на случай непересчитанной таблицы
+				if (this.RowsInfo[nCurRow])
+				{
+					for (var nCurPage in this.RowsInfo[nCurRow].H)
+						nRowSummaryH += this.RowsInfo[nCurRow].H[nCurPage];
 
-				nRowSummaryH -= oRow.GetTopMargin() + oRow.GetBottomMargin();
+					if (null !== Pr.TableSpacing)
+						nRowSummaryH += Pr.TableSpacing;
+					else if (this.RowsInfo[nCurRow].TopDy[0])
+						nRowSummaryH -= this.RowsInfo[nCurRow].TopDy[0];
+
+					nRowSummaryH -= oRow.GetTopMargin() + oRow.GetBottomMargin();
+				}
 
 				nCurRowHeight = nRowSummaryH;
 			}
@@ -726,15 +731,20 @@ CTable.prototype.Get_Props = function()
 			var nCurRow = oRow.GetIndex();
 
 			var nRowSummaryH = 0;
-			for (var nCurPage in this.RowsInfo[nCurRow].H)
-				nRowSummaryH += this.RowsInfo[nCurRow].H[nCurPage];
 
-			if (null !== Pr.TableSpacing)
-				nRowSummaryH += Pr.TableSpacing;
-			else if (this.RowsInfo[nCurRow] && this.RowsInfo[nCurRow].TopDy[0])
-				nRowSummaryH -= this.RowsInfo[nCurRow].TopDy[0];
+			if (this.RowsInfo[nCurRow])
+			{
+				for (var nCurPage in this.RowsInfo[nCurRow].H)
+					nRowSummaryH += this.RowsInfo[nCurRow].H[nCurPage];
 
-			nRowSummaryH -= oRow.GetTopMargin() + oRow.GetBottomMargin();
+				if (null !== Pr.TableSpacing)
+					nRowSummaryH += Pr.TableSpacing;
+				else if (this.RowsInfo[nCurRow].TopDy[0])
+					nRowSummaryH -= this.RowsInfo[nCurRow].TopDy[0];
+
+				nRowSummaryH -= oRow.GetTopMargin() + oRow.GetBottomMargin();
+			}
+
 			Pr.RowHeight = nRowSummaryH;
 		}
 		else

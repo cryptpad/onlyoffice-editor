@@ -2007,7 +2007,7 @@ background-repeat: no-repeat;\
 		_logicDoc.Remove(1, true, true);
 	};
 
-	asc_docs_api.prototype._onSaveCallbackInner = function(isUndoRequest)
+	asc_docs_api.prototype._onSaveCallbackInner = function()
 	{
 		var t = this;
 		if (c_oAscCollaborativeMarksShowType.LastChanges === this.CollaborativeMarksShowType)
@@ -2055,10 +2055,11 @@ background-repeat: no-repeat;\
 		}
 
 		// Пересылаем свои изменения
-		if (isUndoRequest)
+		if (this.forceSaveUndoRequest)
 		{
 			AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 			AscCommon.CollaborativeEditing.Undo();
+			this.forceSaveUndoRequest = false;
 		}
 		else
 		{

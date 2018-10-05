@@ -1222,7 +1222,13 @@ CPresentation.prototype =
     Continue_FastCollaborativeEditing: function()
     {
         if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
-            return;
+		{
+			if (this.Api.forceSaveUndoRequest)
+				this.Api.asc_Save(true);
+
+			return;
+		}
+
         if (this.Api.isLongAction())
             return;
         if (true !== AscCommon.CollaborativeEditing.Is_Fast() || true === AscCommon.CollaborativeEditing.Is_SingleUser())
@@ -5060,7 +5066,7 @@ CPresentation.prototype =
             if (this.CollaborativeEditing.CanUndo() && true === this.Api.canSave)
             {
                 this.CollaborativeEditing.Set_GlobalLock(true);
-                this.Api.asc_Save(true, true);
+                this.Api.forceSaveUndoRequest = true;
             }
         }
         else

@@ -2268,7 +2268,7 @@ background-repeat: no-repeat;\
 		}
 	};
 	
-	asc_docs_api.prototype._onSaveCallbackInner = function(isUndoRequest)
+	asc_docs_api.prototype._onSaveCallbackInner = function()
 	{
 		var t = this;
 		History.CheckUnionLastPoints();
@@ -2322,10 +2322,11 @@ background-repeat: no-repeat;\
 			CursorInfo = History.Get_DocumentPositionBinary();
 		}
 
-		if (isUndoRequest)
+		if (this.forceSaveUndoRequest)
 		{
 			AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 			AscCommon.CollaborativeEditing.Undo();
+			this.forceSaveUndoRequest = false;
 		}
 		else
 		{
