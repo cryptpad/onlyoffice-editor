@@ -10965,17 +10965,25 @@
 		}
 	};
 
-	WorksheetView.prototype.expandRowsOnScroll2 = function () {
-		if (gc_nMaxRow === this.nRowsCount) {
-			return false;
+	WorksheetView.prototype.expandRowsOnScroll2 = function (count) {
+	    var res = false;
+		var old = this.nRowsCount;
+		if (this.model.isDefaultHeightHidden()) {
+			this.nRowsCount = gc_nMaxRow;
+			return res;
+		} else {
+			this.nRowsCount += count;
 		}
 
-		this.nRowsCount += 1;
+		if (gc_nMaxRow < this.nRowsCount) {
+			this.nRowsCount = gc_nMaxRow;
+		}
 
-		if (this.objectRender && this.objectRender.drawingArea) {
+		res = old !== this.nRowsCount;
+		if (res && this.objectRender && this.objectRender.drawingArea) {
 			this.objectRender.drawingArea.reinitRanges();
 		}
-		return true;
+		return res;
 	};
 
     WorksheetView.prototype.expandColsOnScroll = function (isNotActive, updateColsCount, newColsCount) {

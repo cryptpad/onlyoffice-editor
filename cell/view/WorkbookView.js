@@ -379,8 +379,8 @@
 				  self.redo.apply(self, arguments);
 			  }, "addColumn": function () {
 				  self._onAddColumn.apply(self, arguments);
-			  }, "addRow": function () {
-				  self._onAddRow.apply(self, arguments);
+			  }, "addRows": function () {
+				  self._onAddRows.apply(self, arguments);
 			  }, "mouseDblClick": function () {
 				  self._onMouseDblClick.apply(self, arguments);
 			  }, "showNextPrevWorksheet": function () {
@@ -1502,9 +1502,8 @@
     this._onScrollReinitialize(/*horizontal*/2, !res);
   };
 
-  WorkbookView.prototype._onAddRow = function() {
-    //var res = this.getWorksheet().expandRowsOnScroll(true);
-    var res = this.getWorksheet().expandRowsOnScroll2();
+  WorkbookView.prototype._onAddRows = function(count) {
+    var res = this.getWorksheet().expandRowsOnScroll2(count);
     this._onScrollReinitialize(/*vertical*/1, !res);
   };
 

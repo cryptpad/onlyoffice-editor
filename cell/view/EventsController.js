@@ -342,8 +342,8 @@
 				this.vsbApi.bind("scrollvertical", function(evt) {
 					self.handlers.trigger("scrollY", evt.scrollPositionY / self.settings.vscrollStep, !self.vsbApi.scrollerMouseDown);
 				});
-				this.vsbApi.bind("scrollVEnd", function(evt) {
-					self.handlers.trigger("addRow");
+				this.vsbApi.bind("scrollVEnd", function(count) {
+					self.handlers.trigger("addRows", Math.ceil(count / self.settings.vscrollStep));
 				});
 				this.vsbApi.bind("mouseup", function(evt) {
 					if (self.vsbApi.scrollerMouseDown) {

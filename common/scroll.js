@@ -2015,13 +2015,8 @@ function _HEXTORGB_( colorHEX ) {
 			isBottom = false;
 		}
 		else if ( destY > this.maxScrollY && !this.endByY ) {
-			// Новое смещение превышает maxScroll, надо вызвать ивент, спрашивающий что делать.
-			// Чтобы не создавать новый, использую onscrollVEnd, он все равно больше нигде не используется
-			// 50 = max число wheelScrollLine, если она больше, то будет работать неправильно
-			for ( var c = 50; destY > this.maxScrollY && c > 0; --c ) {
-				this.handleEvents( "onscrollVEnd", {} );
-				vend = true;
-			}
+			this.handleEvents( "onscrollVEnd", destY - this.maxScrollY );
+			vend = true;
 			if ( destY > this.maxScrollY ) {
 				// Обработчик onscrollVEnd решил, что расширение области скрола не нужно, изменяем destY
 				destY = this.maxScrollY;
