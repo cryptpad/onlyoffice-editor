@@ -386,7 +386,7 @@ BinaryCommonWriter.prototype.WriteBookmark = function(bookmark) {
 	}
 };
 BinaryCommonWriter.prototype.mmToTwips = function(val) {
-	return Math.round(g_dKoef_mm_to_twips * val);
+	return Math.round(AscCommonWord.g_dKoef_mm_to_twips * val);
 };
 BinaryCommonWriter.prototype.writeMmToTwips = function(val) {
 	return this.memory.WriteLong(this.mmToTwips(val));
