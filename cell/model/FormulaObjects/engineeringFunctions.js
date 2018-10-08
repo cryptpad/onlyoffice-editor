@@ -5446,6 +5446,7 @@ function (window, undefined) {
 	function cERFC_PRECISE() {
 	}
 
+	//***array-formula***
 	cERFC_PRECISE.prototype = Object.create(cERFC.prototype);
 	cERFC_PRECISE.prototype.constructor = cERFC_PRECISE;
 	cERFC_PRECISE.prototype.name = 'ERFC.PRECISE';

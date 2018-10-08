@@ -818,6 +818,7 @@
 	function cCEILING() {
 	}
 
+	//***array-formula***
 	cCEILING.prototype = Object.create(cBaseFunction.prototype);
 	cCEILING.prototype.constructor = cCEILING;
 	cCEILING.prototype.name = 'CEILING';
@@ -1519,6 +1520,7 @@
 	function cECMA_CEILING() {
 	}
 
+	//***array-formula***
 	cECMA_CEILING.prototype = Object.create(cCEILING.prototype);
 	cECMA_CEILING.prototype.constructor = cECMA_CEILING;
 	cECMA_CEILING.prototype.name = 'ECMA.CEILING';
@@ -1834,6 +1836,7 @@
 	function cFLOOR_PRECISE() {
 	}
 
+	//***array-formula***
 	cFLOOR_PRECISE.prototype = Object.create(cBaseFunction.prototype);
 	cFLOOR_PRECISE.prototype.constructor = cFLOOR_PRECISE;
 	cFLOOR_PRECISE.prototype.name = 'FLOOR.PRECISE';
@@ -1929,6 +1932,7 @@
 	cGCD.prototype.constructor = cGCD;
 	cGCD.prototype.name = 'GCD';
 	cGCD.prototype.argumentsMin = 1;
+	cGCD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cGCD.prototype.Calculate = function (arg) {
 
 		var _gcd = 0, argArr;
@@ -3304,6 +3308,7 @@
 	function cRANDBETWEEN() {
 	}
 
+	//***array-formula***
 	cRANDBETWEEN.prototype = Object.create(cBaseFunction.prototype);
 	cRANDBETWEEN.prototype.constructor = cRANDBETWEEN;
 	cRANDBETWEEN.prototype.name = 'RANDBETWEEN';

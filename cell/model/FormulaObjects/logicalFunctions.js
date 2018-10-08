@@ -133,6 +133,7 @@
 	function cFALSE() {
 	}
 
+	//***array-formula***
 	cFALSE.prototype = Object.create(cBaseFunction.prototype);
 	cFALSE.prototype.constructor = cFALSE;
 	cFALSE.prototype.name = 'FALSE';

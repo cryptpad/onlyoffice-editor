@@ -1334,6 +1334,7 @@ $( function () {
 		ok( oParser.parse(), 'CEILING(0.234, 0.01)' );
 		strictEqual( oParser.calculate().getValue(), 0.24, 'CEILING(0.234, 0.01)' );
 
+		testArrayFormula2("CEILING", 2, 2);
 	} );
 
 	test( "Test: \"ECMA.CEILING\"", function () {
@@ -2779,6 +2780,8 @@ $( function () {
         oParser = new parserFormula( "GCD(-1,39,52)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#NUM!" );
+
+        testArrayFormula2("GCD", 1, 8, null, true);
     } );
 
     test( "Test: \"FIXED\"", function () {
@@ -5329,6 +5332,8 @@ $( function () {
 		oParser = new parserFormula( "COUNT(S6:S9)", "A1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 1 );
+
+		testArrayFormula2("COUNT", 2, 2, null, true);
     } );
 
     test( "Test: \"COUNTA\"", function () {
@@ -5698,6 +5703,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( difBetween( oParser.calculate().getValue(), 6.906666666666665 ), true );
 
+        testArrayFormula2("DEVSQ", 1, 8, null, true);
     } );
 
     test( "Test: \"EXPONDIST\"", function () {
@@ -8606,6 +8612,8 @@ $( function () {
         oParser = new parserFormula( "FVSCHEDULE(1,{0.09,0.11,0.1})", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), fvschedule(1,[0.09,0.11,0.1]) );
+
+        //testArrayFormula2("FVSCHEDULE", 2, 2, true, true);
     } );
 
     test( "Test: \"DISC\"", function () {
@@ -9477,6 +9485,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), mirr( [-120000,39000,30000,21000,37000,46000],0.1,0.14 ) );
 
+        //testArrayFormula2("MIRR", 3, 3, null, true);
     } );
 
     test( "Test: \"IPMT\"", function () {

@@ -4671,6 +4671,7 @@ function (window, undefined) {
 	function cCONFIDENCE() {
 	}
 
+	//***array-formula***
 	cCONFIDENCE.prototype = Object.create(cBaseFunction.prototype);
 	cCONFIDENCE.prototype.constructor = cCONFIDENCE;
 	cCONFIDENCE.prototype.name = 'CONFIDENCE';
@@ -4712,6 +4713,7 @@ function (window, undefined) {
 	function cCONFIDENCE_NORM() {
 	}
 
+	//***array-formula***
 	cCONFIDENCE_NORM.prototype = Object.create(cCONFIDENCE.prototype);
 	cCONFIDENCE_NORM.prototype.constructor = cCONFIDENCE_NORM;
 	cCONFIDENCE_NORM.prototype.name = 'CONFIDENCE.NORM';
@@ -4855,11 +4857,13 @@ function (window, undefined) {
 	function cCOUNT() {
 	}
 
+	//***array-formula***
 	cCOUNT.prototype = Object.create(cBaseFunction.prototype);
 	cCOUNT.prototype.constructor = cCOUNT;
 	cCOUNT.prototype.name = 'COUNT';
 	cCOUNT.prototype.argumentsMin = 1;
 	cCOUNT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUNT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cCOUNT.prototype.Calculate = function (arg) {
 		var count = 0;
 		for (var i = 0; i < arg.length; i++) {
@@ -4904,11 +4908,13 @@ function (window, undefined) {
 	function cCOUNTA() {
 	}
 
+	//***array-formula***
 	cCOUNTA.prototype = Object.create(cBaseFunction.prototype);
 	cCOUNTA.prototype.constructor = cCOUNTA;
 	cCOUNTA.prototype.name = 'COUNTA';
 	cCOUNTA.prototype.argumentsMin = 1;
 	cCOUNTA.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUNTA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cCOUNTA.prototype.Calculate = function (arg) {
 		var element, count = 0;
 		for (var i = 0; i < arg.length; i++) {
@@ -5446,10 +5452,12 @@ function (window, undefined) {
 	function cDEVSQ() {
 	}
 
+	//***array-formula***
 	cDEVSQ.prototype = Object.create(cBaseFunction.prototype);
 	cDEVSQ.prototype.constructor = cDEVSQ;
 	cDEVSQ.prototype.name = 'DEVSQ';
 	cDEVSQ.prototype.argumentsMin = 1;
+	cDEVSQ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cDEVSQ.prototype.Calculate = function (arg) {
 
 		function devsq(x) {

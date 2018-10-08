@@ -2423,12 +2423,15 @@
 	function cFVSCHEDULE() {
 	}
 
+	//***array-formula***
 	cFVSCHEDULE.prototype = Object.create(cBaseFunction.prototype);
 	cFVSCHEDULE.prototype.constructor = cFVSCHEDULE;
 	cFVSCHEDULE.prototype.name = 'FVSCHEDULE';
 	cFVSCHEDULE.prototype.argumentsMin = 2;
 	cFVSCHEDULE.prototype.argumentsMax = 2;
 	cFVSCHEDULE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cFVSCHEDULE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cFVSCHEDULE.prototype.arrayIndexes = {1: 1};
 	cFVSCHEDULE.prototype.Calculate = function (arg) {
 		var principal = arg[0], schedule = arg[1], shedList = [];
 
@@ -2969,12 +2972,14 @@
 	function cMIRR() {
 	}
 
+	//***array-formula***
 	cMIRR.prototype = Object.create(cBaseFunction.prototype);
 	cMIRR.prototype.constructor = cMIRR;
 	cMIRR.prototype.name = 'MIRR';
 	cMIRR.prototype.argumentsMin = 3;
 	cMIRR.prototype.argumentsMax = 3;
 	cMIRR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMIRR.prototype.arrayIndexes = {0: 1};
 	cMIRR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], invest = arg[1], reinvest = arg[2];
 
