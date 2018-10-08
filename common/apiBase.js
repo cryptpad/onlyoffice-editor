@@ -221,6 +221,8 @@
 
 			t._onEndLoadSdk();
 			t.onEndLoadDocInfo();
+		}, function(err) {
+			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
 		});
 
 		var oldOnError = window.onerror;

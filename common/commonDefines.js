@@ -115,6 +115,7 @@
 			KeyExpire             : -21,
 			UserCountExceed       : -22,
 			AccessDeny            : -23,
+			LoadingScriptError    : -24,
 
 			SplitCellMaxRows     : -30,
 			SplitCellMaxCols     : -31,

@@ -3162,11 +3162,11 @@
 		this.Dark = new CColor(R, G, B, 255);
 	};
 
-	function loadScript(url, callback)
+	function loadScript(url, onSuccess, onError)
 	{
 		if (window["NATIVE_EDITOR_ENJINE"] === true || window["Native"] !== undefined)
 		{
-			callback();
+			onSuccess();
 			return;
 		}
 
@@ -3175,7 +3175,7 @@
 			var _context = {
 				"completeLoad": function ()
 								{
-									return callback();
+									return onSuccess();
 								}
 			};
 			window["local_load_add"](_context, "sdk-all-from-min", url);
@@ -3184,7 +3184,7 @@
 				window["local_load_remove"](url);
 			if (_ret_param == 1)
 			{
-				setTimeout(callback, 1);
+				setTimeout(onSuccess, 1);
 				return;
 			}
 			else if (_ret_param == 2)
@@ -3194,21 +3194,22 @@
 		var script = document.createElement('script');
 		script.type = 'text/javascript';
 		script.src = url;
-		script.onload = script.onerror = callback;
+		script.onload = onSuccess;
+		script.onerror = onError;
 
 		// Fire the loading
 		document.head.appendChild(script);
 	}
 
-	function loadSdk(sdkName, callback)
+	function loadSdk(sdkName, onSuccess, onError)
 	{
 		if (window['AscNotLoadAllScript'])
 		{
-			callback();
+			onSuccess();
 		}
 		else
 		{
-			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', callback);
+			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', onSuccess, onError);
 		}
 	}
 
