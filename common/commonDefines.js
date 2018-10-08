@@ -1483,6 +1483,7 @@
 	prot['KeyExpire']                        = prot.KeyExpire;
 	prot['UserCountExceed']                  = prot.UserCountExceed;
 	prot['AccessDeny']                       = prot.AccessDeny;
+	prot['LoadingScriptError']               = prot.LoadingScriptError;
 	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
 	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
 	prot['SplitCellRowsDivider']             = prot.SplitCellRowsDivider;
