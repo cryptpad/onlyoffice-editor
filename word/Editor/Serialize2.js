@@ -3804,7 +3804,7 @@ Binary_tblPrWriter.prototype =
         }
 		if(null != tblPr.TableCellSpacing)
 		{
-			this.bs.WriteItem(c_oSerProp_tblPrType.TableCellSpacingTwips, function(){oThis.bs.writeMmToTwips(tblPr.TableCellSpacing);});
+			this.bs.WriteItem(c_oSerProp_tblPrType.TableCellSpacingTwips, function(){oThis.bs.writeMmToTwips(tblPr.TableCellSpacing / 2);});
 		}
 		if(null != tblPr.TableCaption)
 		{
@@ -3931,7 +3931,7 @@ Binary_tblPrWriter.prototype =
         {
             this.memory.WriteByte(c_oSerProp_rowPrType.TableCellSpacingTwips);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.bs.writeMmToTwips(rowPr.TableCellSpacing);
+            this.bs.writeMmToTwips(rowPr.TableCellSpacing / 2);
         }
         //Height
         if(null != rowPr.Height && Asc.linerule_Auto != rowPr.Height.HRule)
@@ -8762,7 +8762,8 @@ Binary_tblPrReader.prototype =
 		}
 		else if( c_oSerProp_tblPrType.TableCellSpacingTwips === type )
 		{
-			Pr.TableCellSpacing = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+			//different understanding of TableCellSpacing with Word
+			Pr.TableCellSpacing = 2 * g_dKoef_twips_to_mm * this.stream.GetULongLE();
 		}
 		else if( c_oSerProp_tblPrType.tblCaption === type )
 		{
@@ -9023,7 +9024,8 @@ Binary_tblPrReader.prototype =
         }
 		else if( c_oSerProp_rowPrType.TableCellSpacingTwips === type )
 		{
-			Pr.TableCellSpacing = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+			//different understanding of TableCellSpacing with Word
+			Pr.TableCellSpacing = 2 * g_dKoef_twips_to_mm * this.stream.GetULongLE();
 		}
         else if( c_oSerProp_rowPrType.Height === type )
         {
