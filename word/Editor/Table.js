@@ -10759,15 +10759,28 @@ CTable.prototype.private_GetRowsInfo = function()
 
 		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 		{
-			var oCell         = oRow.GetCell(nCurCell);
-			var nCurGridStart = oRow.GetCellInfo(nCurCell).StartGridCol;
-			var nCurGridEnd   = nCurGridStart + oCell.Get_GridSpan() - 1;
+			var oCell     = oRow.GetCell(nCurCell);
+			var oCellInfo = oRow.GetCellInfo(nCurCell);
 
-			arrRowsInfo[nCurRow].push({
-				W        : this.TableSumGrid[nCurGridEnd] - this.TableSumGrid[nCurGridStart - 1],
-				Type     : 0,
-				GridSpan : 1
-			});
+			if (!oCellInfo)
+			{
+				arrRowsInfo[nCurRow].push({
+					W        : 0,
+					Type     : 0,
+					GridSpan : 1
+				});
+			}
+			else
+			{
+				var nCurGridStart = oCellInfo.StartGridCol;
+				var nCurGridEnd   = nCurGridStart + oCell.Get_GridSpan() - 1;
+
+				arrRowsInfo[nCurRow].push({
+					W        : this.TableSumGrid[nCurGridEnd] - this.TableSumGrid[nCurGridStart - 1],
+					Type     : 0,
+					GridSpan : 1
+				});
+			}
 		}
 	}
 
