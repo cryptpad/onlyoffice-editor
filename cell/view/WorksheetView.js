@@ -14979,9 +14979,10 @@
 			// single dash is document default font
 			if ((rName.length === 1) && (rName[0] === '-')) {
 				//пересмотреть
-				var defaultFont = window["Asc"]["editor"].getDefaultFontFamily();
+				this.font.fn = null;
+				/*var defaultFont = window["Asc"]["editor"].getDefaultFontFamily();
 				this.font.fn = defaultFont;
-				this.allFontsMap[defaultFont] = 1;
+				this.allFontsMap[defaultFont] = 1;*/
 			} else {
 				this.font.fn = rName;
 				this.allFontsMap[rName] = 1;
@@ -14990,17 +14991,16 @@
 	};
 
 	HeaderFooterParser.prototype.convertFontStyle = function (rStyle) {
+		//в ms жесткая завязка на font style. в lo - ддопускаются следующие строчки - "bold italic bold"  и тп
 		this.font.b = this.font.i = false;
-		if ("italic" === rStyle.toLowerCase()) {
-			this.font.i = true;
-		}
-		if ("bold" === rStyle.toLowerCase()) {
-			this.font.b = true;
-		}
-		//в ms жесткая завязка на "bold italic". в lo - ддопускаются следующие строчки - "bold italic bold"  и тп
-		if ("bold italic" === rStyle.toLowerCase()) {
-			this.font.b = true;
-			this.font.i = true;
+
+		var fontStyleArr = rStyle.split(" ");
+		for(var i = 0; i < fontStyleArr.length; i++) {
+			if("italic" === fontStyleArr[i].toLowerCase()) {
+				this.font.i = true;
+			} else if("bold" === fontStyleArr[i].toLowerCase()) {
+				this.font.b = true;
+			}
 		}
 	};
 
@@ -15079,7 +15079,7 @@
 		}
 
 		var res = "";
-		var fontList = null;
+		var fontList = true;
 
 		var aText = "";
 		var prevFont = new AscCommonExcel.Font();
@@ -15098,10 +15098,38 @@
 				var bNewStyle = (prevFont.b != newFont.b) || (prevFont.i != newFont.i);
 
 				if (bNewFontName || (bNewStyle && fontList)) {
-					aParaText += "&\"" + newFont.fn;
-					//TODO Font Style!!!
+					if(null === newFont.fn) {
+						aParaText += "&\"" + "-";
+					} else {
+						aParaText += "&\"" + newFont.fn;
+					}
 
+					//TODO пересмотреть. MS каждый раз прописывает новый font style:
+					// сли у предыдущего фрагмента был bold, у нового bold и italic - то у нового будет прописаны и bold и italic
+					var fontStyleStr = null;
+					if(prevFont.b !== newFont.b) {
+						fontStyleStr = ",";
+						if(newFont.b === true) {
+							fontStyleStr += "Bold";
+						} else {
+							fontStyleStr += "Regular";
+						}
+					}
+					if(prevFont.i !== newFont.i) {
+						if(null === fontStyleStr) {
+							fontStyleStr = ",";
+						} else {
+							fontStyleStr += " ";
+						}
 
+						if(newFont.i === true) {
+							fontStyleStr += "Italic";
+						} else if(-1 === fontStyleStr.indexOf("Regular")){
+							fontStyleStr += "Regular";
+						}
+					}
+
+					aParaText += fontStyleStr;
 					aParaText += "\"";
 				}
 
