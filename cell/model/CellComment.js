@@ -689,11 +689,11 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 
 		var pos;
 		var left = mergedRange ? mergedRange.c2 : comment.nCol;
-		var x = this.worksheet.getCellLeft(left, 0) + this.worksheet.getColumnWidth(left, 0) + Asc.round(14 * zoom);
+		var x = this.worksheet._getColLeft(left + 1) + Asc.round(14 * zoom);
 		pos = this.worksheet._findColUnderCursor(x, true);
 		coords.nLeft = pos ? pos.col : 0;
 		coords.dLeftMM = this.pxToMm(Asc.round(x / zoom));
-		coords.nLeftOffset = Asc.round((x - this.worksheet.getCellLeft(coords.nLeft, 0)) / zoom);
+		coords.nLeftOffset = Asc.round((x - this.worksheet._getColLeft(coords.nLeft)) / zoom);
 
 		var top = mergedRange ? mergedRange.r1 : comment.nRow;
 		var y = this.worksheet._getRowTop(top) - Asc.round(11 * zoom);
@@ -705,7 +705,7 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		x += Asc.round(dWidthPX * zoom);
 		pos = this.worksheet._findColUnderCursor(x, true);
 		coords.nRight = pos ? pos.col : 0;
-		coords.nRightOffset = Asc.round((x - this.worksheet.getCellLeft(coords.nRight, 0)) / zoom);
+		coords.nRightOffset = Asc.round((x - this.worksheet._getColLeft(coords.nRight)) / zoom);
 
 		y += Asc.round(dHeightPX * zoom);
 		pos = this.worksheet._findRowUnderCursor(y, true);
@@ -740,7 +740,7 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 			}
 		}
 
-		pos.dReverseLeftPX = this.worksheet.getCellLeft(left, 0) - this.worksheet.getCellLeft(fvc, 0) +
+		pos.dReverseLeftPX = this.worksheet._getColLeft(left) - this.worksheet._getColLeft(fvc) +
 			headerCellsOffset.left + frozenOffset.offsetX;
 		pos.dLeftPX = pos.dReverseLeftPX + this.worksheet.getColumnWidth(left, 0);
 		pos.dTopPX = this.worksheet._getRowTop(top) + ((this.worksheet._getRowTop(top) / 2) | 0) -
