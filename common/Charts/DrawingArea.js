@@ -764,12 +764,12 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.LeftBottom){
 			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
-			fLeft = 0;//this.worksheet.getCellLeft(0, 0);
+			fLeft = 0;
 			fRight = this.worksheet.getCellLeft(this.frozenPlaces[i].frozenCell.col, 0);
 			autoShapeTrack.drawImage(AscFormat.sFrozenImageUrl, fLeft, fTop, fRight, nShadowLength);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.RightTop){
-			fTop = 0;//this.worksheet.getCellTop(0, 0);
+			fTop = 0;
 			fLeft = this.worksheet.getCellLeft(this.frozenPlaces[i].frozenCell.col, 0);
 			fBottom = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
 			autoShapeTrack.drawImage(AscFormat.sFrozenImageRotUrl, fLeft, fTop, nShadowLength, fBottom);

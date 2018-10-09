@@ -5114,9 +5114,9 @@
         var color = new CColor(0, 0, 255);
 
         function draw_arrow(context, fromx, fromy, tox, toy) {
-            var headlen = 9, showArrow = tox > that.getCellLeft(0, 0) && toy > that.getCellTop(0, 0), dx = tox -
+            var headlen = 9, showArrow = tox > that.getCellLeft(0, 0) && toy > that._getRowTop(0), dx = tox -
               fromx, dy = toy - fromy, tox = tox > that.getCellLeft(0, 0) ? tox : that.getCellLeft(0, 0), toy = toy >
-            that.getCellTop(0, 0) ? toy : that.getCellTop(0, 0), angle = Math.atan2(dy, dx), _a = Math.PI / 18;
+            that._getRowTop(0) ? toy : that._getRowTop(0), angle = Math.atan2(dy, dx), _a = Math.PI / 18;
 
             // ToDo посмотреть на четкость moveTo, lineTo
             context.save()
@@ -5217,8 +5217,8 @@
                     continue;
                 }
 
-                if (y1 < this.getCellTop(0, 0)) {
-                    y1 -= this.getCellTop(0, 0);
+                if (y1 < this._getRowTop(0)) {
+                    y1 -= this._getRowTop(0);
                 }
 
                 if (y1 < 0 && y2 > 0) {
@@ -5258,11 +5258,11 @@
                 }
 
                 draw_arrow(ctx, x1 < this.getCellLeft(0, 0) ? this.getCellLeft(0, 0) : x1,
-                  y1 < this.getCellTop(0, 0) ? this.getCellTop(0, 0) : y1, x2, y2);
+                  y1 < this._getRowTop(0) ? this._getRowTop(0) : y1, x2, y2);
                 // draw_arrow(ctx, x1, y1, x2, y2);
 
                 // ToDo посмотреть на четкость rect
-                if (nodeCellMetrics.apl > this.getCellLeft(0, 0) && nodeCellMetrics.apt > this.getCellTop(0, 0)) {
+                if (nodeCellMetrics.apl > this.getCellLeft(0, 0) && nodeCellMetrics.apt > this._getRowTop(0)) {
                     ctx.save()
                       .beginPath()
                       .arc(Math.floor(nodeCellMetrics.apl), Math.floor(nodeCellMetrics.apt), 3,
