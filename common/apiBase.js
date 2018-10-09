@@ -307,6 +307,7 @@
 		if (AscCommon.chartMode === this.documentUrl)
 		{
 			this.isChartEditor = true;
+            AscCommon.EncryptionWorker.isChartEditor = true;
 			this.DocInfo.put_OfflineApp(true);
 		}
 		else if (AscCommon.offlineMode === this.documentUrl)
@@ -319,7 +320,7 @@
 			window["AscDesktopEditor"]["SetDocumentName"](this.documentTitle);
 		}
 
-        if (undefined !== window["AscDesktopEditor"] && undefined !== window["AscDesktopEditor"]["CryptoMode"])
+        if (!this.isChartEditor && undefined !== window["AscDesktopEditor"] && undefined !== window["AscDesktopEditor"]["CryptoMode"])
         {
             this.DocInfo.put_Encrypted(0 < window["AscDesktopEditor"]["CryptoMode"]);
         }

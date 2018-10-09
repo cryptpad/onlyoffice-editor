@@ -3597,6 +3597,7 @@
         this.isChangesHandled = false;
 
         this.cryptoMode = 0; // start crypto mode
+		this.isChartEditor = false;
 
         this.isExistDecryptedChanges = false; // был ли хоть один запрос на расшифровку данных (были ли чужие изменения)
 
@@ -3617,6 +3618,9 @@
 
             if (!window["AscDesktopEditor"])
                 return false;
+
+            if (this.isChartEditor)
+            	return false;
 
             if (2 == this.cryptoMode)
             	return true;
@@ -3731,7 +3735,7 @@
             if (this.arrData.length == 0)
                 return;
 
-            if (undefined !== type && 1 != this.arrData.length)
+            if (undefined !== type && ((1 != this.arrData.length) || !this.isChangesHandled))
             	return; // вызовется на коллбэке
 
 			if (undefined !== type && -1 != this.nextChangesTimeoutId)
@@ -3794,7 +3798,6 @@
 				}
                 this.isChangesHandled = true;
 				this.handleChangesCallback.callback.call(this.handleChangesCallback.sender);
-                this.isChangesHandled = false;
 				this.handleChangesCallback = null;
 
                 this.nextChanges();
@@ -3922,7 +3925,6 @@
 
 				this.isChangesHandled = true;
 				_callback.call(_sender);
-                this.isChangesHandled = false;
                 return;
 			}
 
