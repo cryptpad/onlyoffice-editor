@@ -562,7 +562,7 @@
     WorksheetView.prototype.getHorizontalScrollRange = function () {
         var ctxW = this.drawingCtx.getWidth() - this.cellsLeft;
         for (var w = 0, i = this.nColsCount - 1; i >= 0; --i) {
-            w += this.getColumnWidth(i);
+            w += this._getColumnWidth(i);
             if (w > ctxW) {
                 break;
             }
@@ -2536,7 +2536,7 @@
                     mwidth += this._getColumnWidth(i);
                 }
                 for ( var j = mc.r1 + 1; j <= mc.r2 && j < this.nRowsCount; ++j ) {
-                    mheight += this.getRowHeight(j);
+                    mheight += this._getRowHeight(j);
                 }
             }
             else {
@@ -5162,17 +5162,17 @@
                 metrics.left = _this.getCellLeft(startCol, 0) - _this.getCellLeft(fvc, 0) + _this.getCellLeft(0, 0);
 
                 for (var i = startCol; i <= mergedRange.c2; i++) {
-                    metrics.width += _this.getColumnWidth(i, 0)
+                    metrics.width += _this._getColumnWidth(i)
                 }
                 for (var i = startRow; i <= mergedRange.r2; i++) {
-                    metrics.height += _this.getRowHeight(i, 0)
+                    metrics.height += _this._getRowHeight(i)
                 }
                 metrics.result = true;
             } else {
 
                 metrics.top = _this._getRowTop(row) - _this._getRowTop(fvr) + _this._getRowTop(0);
                 metrics.left = _this.getCellLeft(col, 0) - _this.getCellLeft(fvc, 0) + _this.getCellLeft(0, 0);
-                metrics.width = _this.getColumnWidth(col, 0);
+                metrics.width = _this._getColumnWidth(col);
                 metrics.height = _this._getRowHeight(row);
                 metrics.result = true;
             }
@@ -6202,8 +6202,8 @@
 					var frozenCell = this.topLeftFrozenCell ? this.topLeftFrozenCell :
 						new AscCommon.CellAddress(0, 0, 0);
 					userId = isLocked.UserId;
-					lockRangePosLeft = this.getCellLeft(frozenCell.getCol0(), 0);
-					lockRangePosTop = this.getCellTop(frozenCell.getRow0(), 0);
+					lockRangePosLeft = this._getColLeft(frozenCell.getCol0());
+					lockRangePosTop = this._getRowTop(frozenCell.getRow0());
 				}
 				return {
 					cursor: frozenCursor.cursor,
@@ -6394,8 +6394,8 @@
 						r1Recalc = this.collaborativeEditing.m_oRecalcIndexRows[sheetId].getLockOther(lockRange["r1"],
 							c_oAscLockTypes.kLockTypeOther);
 						if (null !== c1Recalc && null !== r1Recalc) {
-							lockRangePosLeft = this.getCellLeft(c1Recalc, /*px*/0);
-							lockRangePosTop = this.getCellTop(r1Recalc, /*px*/0);
+							lockRangePosLeft = this._getColLeft(c1Recalc);
+							lockRangePosTop = this._getRowTop(r1Recalc);
 							// Пересчитываем X и Y относительно видимой области
 							lockRangePosLeft -= offsetX;
 							lockRangePosTop -= offsetY;
@@ -7401,8 +7401,8 @@
             }
         }
 
-        var xL = this.getCellLeft( col, /*px*/0 );
-        var yL = this.getCellTop( row, /*px*/0 );
+        var xL = this._getColLeft(col);
+        var yL = this._getRowTop(row);
         // Пересчитываем X и Y относительно видимой области
         xL -= (this._getColLeft(vrCol) - this.cellsLeft);
         yL -= (this._getRowTop(vrRow) - this.cellsTop);
@@ -7410,8 +7410,8 @@
         xL += offsetX;
         yL += offsetY;
 
-        var width = this.getColumnWidth( col, /*px*/0 );
-        var height = this.getRowHeight( row, /*px*/0 );
+        var width = this._getColumnWidth(col);
+        var height = this._getRowHeight(row);
 
         if ( AscBrowser.isRetina ) {
             xL = AscCommon.AscBrowser.convertToRetinaValue(xL);
