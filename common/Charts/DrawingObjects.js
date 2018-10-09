@@ -3454,19 +3454,21 @@ function DrawingObjects() {
                         var coords = _this.coordsManager.calculateCoords(metrics.from);
 
 
-                        var rot = AscFormat.isRealNumber(obj.graphicObject.spPr.xfrm.rot) ? obj.graphicObject.spPr.xfrm.rot : 0;
-                        rot = AscFormat.normalizeRotate(rot);
-                        if (AscFormat.checkNormalRotate(rot))
-                        {
-                            obj.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x));
-                            obj.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y));
+                        if(obj.graphicObject.spPr && obj.graphicObject.spPr.xfrm){
+                            var rot = AscFormat.isRealNumber(obj.graphicObject.spPr.xfrm.rot) ? obj.graphicObject.spPr.xfrm.rot : 0;
+                            rot = AscFormat.normalizeRotate(rot);
+                            if (AscFormat.checkNormalRotate(rot))
+                            {
+                                obj.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x));
+                                obj.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y));
+                            }
+                            else
+                            {
+                                obj.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x) - obj.graphicObject.spPr.xfrm.extX/2 + obj.graphicObject.spPr.xfrm.extY/2);
+                                obj.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y) - obj.graphicObject.spPr.xfrm.extY/2 + obj.graphicObject.spPr.xfrm.extX/2);
+                            }
+                            obj.graphicObject.checkDrawingBaseCoords();
                         }
-                        else
-                        {
-                            obj.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x) - obj.graphicObject.spPr.xfrm.extX/2 + obj.graphicObject.spPr.xfrm.extY/2);
-                            obj.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y) - obj.graphicObject.spPr.xfrm.extY/2 + obj.graphicObject.spPr.xfrm.extX/2);
-                        }
-                        obj.graphicObject.checkDrawingBaseCoords();
                         obj.graphicObject.recalculate();
                         bNeedRedraw = true;
                     }
