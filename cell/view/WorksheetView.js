@@ -151,7 +151,6 @@
 	    this.isCustomWidth = false;
 	    this.left = 0;
 		this.width = 0;
-		this.innerWidth = 0;
 	}
 
 	function CacheRow() {
@@ -650,6 +649,9 @@
         return (this._getRowTop(row) - offsetY) * asc_getcvt(0/*px*/, u, this._getPPIY());
     };
 
+	WorksheetView.prototype._getColumnWidthInner = function (i) {
+		return Math.max(this._getColumnWidth(i) - this.settings.cells.padding * 2 - gridlineSize, 0);
+	};
 	WorksheetView.prototype._getColumnWidth = function (i) {
 		return (i < this.cols.length) ? this.cols[i].width :
 			(!this.model.isDefaultWidthHidden()) * Asc.round(this.defaultColWidthPx * this.getZoom());
@@ -1366,23 +1368,12 @@
 			isBestFit = !!(column.BestFit || (null === column.BestFit && null === column.CustomWidth));
 		}
 
-		this.cols[i] = this._createCacheColumn(w);
+		this.cols[i] = new CacheColumn(w);
+		this.cols[i].width = Asc.round(w * this.getZoom());
 		this.cols[i].isCustomWidth = !isBestFit;
 		this.cols[i].left = x;
 
 		return hiddenW;
-	};
-
-    /**
-     * Create CacheColumn
-     * @param {Number} w  Ширина столбца в px
-     * @returns {CacheColumn}
-     */
-	WorksheetView.prototype._createCacheColumn = function (w) {
-		var res = new CacheColumn();
-		res.width = Asc.round(w * this.getZoom());
-		res.innerWidth = Math.max(res.width - this.settings.cells.padding * 2 - gridlineSize, 0);
-		return res;
 	};
 
     /** Вычисляет ширину колонки заголовков */
@@ -4642,7 +4633,7 @@
         if (!this.cols[col].isCustomWidth && fl.isNumberFormat && !(mergeType & c_oAscMergeType.cols) &&
           (c_oAscCanChangeColWidth.numbers === this.canChangeColWidth ||
           c_oAscCanChangeColWidth.all === this.canChangeColWidth)) {
-            colWidth = this.cols[col].innerWidth;
+            colWidth = this._getColumnWidthInner(col);
             // Измеряем целую часть числа
             sstr = c.getValue2(gc_nMaxDigCountView, function () {
                 return true;
@@ -4664,11 +4655,11 @@
             }
             // Обновленная ячейка
             dDigitsCount = this.getColumnWidthInSymbols(col);
-            colWidth = this.cols[col].innerWidth;
+            colWidth = this._getColumnWidthInner(col);
         } else if (null === mc) {
             // Обычная ячейка
             dDigitsCount = this.getColumnWidthInSymbols(col);
-            colWidth = this.cols[col].innerWidth;
+            colWidth = this._getColumnWidthInner(col);
             // подбираем ширину
             if (!this.cols[col].isCustomWidth && !(mergeType & c_oAscMergeType.cols) && !fl.wrapText &&
               c_oAscCanChangeColWidth.all === this.canChangeColWidth) {
@@ -4680,7 +4671,7 @@
                     this._changeColWidth(col, stm.width);
                     // Обновленная ячейка
                     dDigitsCount = this.getColumnWidthInSymbols(col);
-                    colWidth = this.cols[col].innerWidth;
+                    colWidth = this._getColumnWidthInner(col);
                 }
             }
         } else {
@@ -4701,7 +4692,7 @@
           this._calcMaxWidth(col, row, mc) : undefined;
         tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
         var cto = (mergeType || fl.wrapText || fl.shrinkToFit) ? {
-            maxWidth: maxW - this.cols[col].innerWidth + this.cols[col].width, leftSide: 0, rightSide: 0
+            maxWidth: maxW - this._getColumnWidthInner(col) + this.cols[col].width, leftSide: 0, rightSide: 0
         } : this._calcCellTextOffset(col, row, ha, tm.width);
 
         // check right side of cell text and append columns if it exceeds existing cells borders
@@ -4881,10 +4872,10 @@
 
     WorksheetView.prototype._calcMaxWidth = function (col, row, mc) {
         if (null === mc) {
-            return this.cols[col].innerWidth;
+            return this._getColumnWidthInner(col);
         }
 
-        var width = this.cols[mc.c1].innerWidth;
+        var width = this._getColumnWidthInner(mc.c1);
         for (var c = mc.c1 + 1; c <= mc.c2 && c < this.cols.length; ++c) {
             width += this.cols[c].width;
         }
