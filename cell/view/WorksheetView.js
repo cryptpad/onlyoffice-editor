@@ -1437,10 +1437,7 @@
      */
     WorksheetView.prototype._calcHeightRows = function (type) {
         var y = this.cellsTop;
-        var visibleH = this.drawingCtx.getHeight();
         var l = this.model.getRowsCount();
-		//var maxRowObjects = this.objectRender ? this.objectRender.getMaxColRow().row : -1;
-        //var l = Math.max(this.model.getRowsCount() + 1, this.nRowsCount, maxRowObjects);
         var defaultH = this.defaultRowHeightPx;
         var i = 0, r, h, hR, isCustomHeight, hiddenH = 0;
 
