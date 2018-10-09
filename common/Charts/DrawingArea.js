@@ -495,7 +495,7 @@ function FrozenPlace(ws, type) {
 			case FrozenAreaType.Top:
 			case FrozenAreaType.Bottom: {
 				//scroll = _this.worksheet.getCellLeft(fv.col, 0) - headerPx - headerPx;
-				scroll = -(_this.worksheet.cols[fv.col].left - _this.worksheet.cellsLeft) + headerPx;
+				scroll = -(_this.worksheet._getColLeft(fv.col) - _this.worksheet.cellsLeft) + headerPx;
 			}
 			break;
 			
@@ -506,7 +506,7 @@ function FrozenPlace(ws, type) {
 			
 			case FrozenAreaType.Right: {
 				//scroll = _this.worksheet.getCellLeft(fv.col, 0) - _this.worksheet.getCellLeft(_this.frozenCell.col, 0) + headerPx;
-				scroll = -(_this.worksheet.cols[fv.col].left - _this.worksheet.cols[_this.frozenCell.col].left) + headerPx;
+				scroll = -(_this.worksheet._getColLeft(fv.col) - _this.worksheet._getColLeft(_this.frozenCell.col)) + headerPx;
 			}
 			break;
 			
@@ -520,14 +520,14 @@ function FrozenPlace(ws, type) {
 			case FrozenAreaType.RightTop:
 			case FrozenAreaType.RightBottom: {
 				//scroll = _this.worksheet.getCellLeft(fv.col, 0) - _this.worksheet.getCellLeft(_this.frozenCell.col, 0) + headerPx;
-				scroll = -(_this.worksheet.cols[fv.col].left - _this.worksheet.cols[_this.frozenCell.col].left) + headerPx;
+				scroll = -(_this.worksheet._getColLeft(fv.col) - _this.worksheet._getColLeft(_this.frozenCell.col)) + headerPx;
 			}
 			break;			
 			
 			// No frozen areas
 			case FrozenAreaType.Center: {
 				//scroll = _this.worksheet.getCellLeft(fv.col, 0);// - headerPx - headerPx;
-				scroll = -(_this.worksheet.cols[fv.col].left - _this.worksheet.cellsLeft) + headerPx;
+				scroll = -(_this.worksheet._getColLeft(fv.col) - _this.worksheet.cellsLeft) + headerPx;
 			}
 			break;
 		}
