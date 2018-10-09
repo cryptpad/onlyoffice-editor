@@ -674,34 +674,42 @@ var editor;
         return;
       }
     }
-    if (opt_isPassword) {
-      t.handlers.trigger("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), this.advancedOptionsAction);
-    } else if (data) {
-		// ToDo разделитель пока только "," http://bugzilla.onlyoffice.com/show_bug.cgi?id=31009
-		var cp = {
-			'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
-			'encodings': AscCommon.getEncodingParams()
-		};
-		var options;
-		if (typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-			AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
-				if (err) {
-					t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-				} else {
-					var dataUint = new Uint8Array(data);
-					var bom = AscCommon.getEncodingByBOM(dataUint);
-					if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
-						cp['codepage'] = bom.encoding;
-						data = dataUint.subarray(bom.size);
-					}
-					cp['data'] = data;
-					options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
-					t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
-				}
-			});
+	if (opt_isPassword) {
+		if (t.handlers.hasTrigger("asc_onAdvancedOptions")) {
+			t.handlers.trigger("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), this.advancedOptionsAction);
 		} else {
-			options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
-			t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+			t.handlers.trigger("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
+		}
+	} else if (data) {
+		if (t.handlers.hasTrigger("asc_onAdvancedOptions")) {
+			// ToDo разделитель пока только "," http://bugzilla.onlyoffice.com/show_bug.cgi?id=31009
+			var cp = {
+				'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
+				'encodings': AscCommon.getEncodingParams()
+			};
+			var options;
+			if (typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
+				AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
+					if (err) {
+						t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+					} else {
+						var dataUint = new Uint8Array(data);
+						var bom = AscCommon.getEncodingByBOM(dataUint);
+						if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
+							cp['codepage'] = bom.encoding;
+							data = dataUint.subarray(bom.size);
+						}
+						cp['data'] = data;
+						options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
+						t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+					}
+				});
+			} else {
+				options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
+				t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+			}
+		} else {
+			this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.CSV, new asc.asc_CCSVAdvancedOptions(AscCommon.c_oAscCodePageUtf8, AscCommon.c_oAscCsvDelimiter.Comma));
 		}
     } else {
       t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);

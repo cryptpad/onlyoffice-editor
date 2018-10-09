@@ -7114,23 +7114,31 @@ background-repeat: no-repeat;\
 		var t = this;
 		var options;
 		if (opt_isPassword) {
-			options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM);
-			t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
-		} else {
-			var cp = {'codepage': AscCommon.c_oAscCodePageUtf8, 'encodings': AscCommon.getEncodingParams()};
-			if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-				AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
-					if (err) {
-						t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-					} else {
-						cp['data'] = data;
-						options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
-						t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
-					}
-				});
-			} else {
-				options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
+			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
+				options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM);
 				t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+			} else {
+				t.sendEvent("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
+			}
+		} else {
+			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
+				var cp = {'codepage': AscCommon.c_oAscCodePageUtf8, 'encodings': AscCommon.getEncodingParams()};
+				if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
+					AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
+						if (err) {
+							t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+						} else {
+							cp['data'] = data;
+							options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
+							t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+						}
+					});
+				} else {
+					options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
+					t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+				}
+			} else {
+				this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.TXT, new Asc.asc_CTXTAdvancedOptions(AscCommon.c_oAscCodePageUtf8));
 			}
 		}
 	};

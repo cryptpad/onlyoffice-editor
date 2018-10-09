@@ -6631,7 +6631,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._onNeedParams  = function(data, opt_isPassword)
 	{
 		if (opt_isPassword) {
-			this.sendEvent("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), c_oAscAdvancedOptionsAction.Open);
+			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
+				this.sendEvent("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), c_oAscAdvancedOptionsAction.Open);
+			} else {
+				this.sendEvent("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
+			}
 		}
 	};
 
