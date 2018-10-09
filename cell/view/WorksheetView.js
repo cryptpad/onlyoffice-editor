@@ -2650,7 +2650,7 @@
 			var textY = this._calcTextVertPos(y1, h, bl, ct.metrics, ct.cellVA);
 			var textW = this._calcTextWidth(x1ct, x2ct, ct.metrics, ct.cellHA);
 
-			var xb1, yb1, wb, hb, colLeft, colRight, i;
+			var xb1, yb1, wb, hb, colLeft, colRight;
 			var txtRotX, txtRotW, clipUse = false;
 
 			if (ct.angle) {
