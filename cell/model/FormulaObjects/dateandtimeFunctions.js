@@ -1328,6 +1328,7 @@
 	function cNETWORKDAYS() {
 	}
 
+	//***array-formula***
 	cNETWORKDAYS.prototype = Object.create(cBaseFunction.prototype);
 	cNETWORKDAYS.prototype.constructor = cNETWORKDAYS;
 	cNETWORKDAYS.prototype.name = 'NETWORKDAYS';

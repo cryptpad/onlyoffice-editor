@@ -4617,7 +4617,10 @@ $( function () {
         oParser = new parserFormula( "LCM(24,36,15)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 360 );
+
+		testArrayFormula2("LCM", 1, 8, null, true);
     } );
+
 
     test( "Test: \"RANDBETWEEN\"", function () {
         var res;
@@ -4729,6 +4732,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#VALUE!" );
 
+        testArrayFormula2("MULTINOMIAL", 1, 8, null, true);
     } );
 
     test( "Test: \"SUMSQ\"", function () {
@@ -6184,6 +6188,7 @@ $( function () {
 		ok( oParser.parse(), "GAMMALN.PRECISE(-4.5)" );
 		strictEqual( oParser.calculate().getValue(), "#NUM!", "GAMMALN.PRECISE(-4.5)" );
 
+		testArrayFormula2("GAMMALN.PRECISE", 1, 1);
 	} );
 
     test( "Test: \"GEOMEAN\"", function () {
@@ -6236,6 +6241,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "#NUM!" );
 
+        testArrayFormula2("HARMEAN", 1, 8, null, true);
     } );
 
     test( "Test: \"HYPGEOMDIST\"", function () {

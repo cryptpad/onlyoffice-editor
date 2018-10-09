@@ -555,6 +555,7 @@ function (window, undefined) {
 	function cFIND() {
 	}
 
+	//***array-formula***
 	cFIND.prototype = Object.create(cBaseFunction.prototype);
 	cFIND.prototype.constructor = cFIND;
 	cFIND.prototype.name = 'FIND';
@@ -639,6 +640,7 @@ function (window, undefined) {
 	function cFINDB() {
 	}
 
+	//***array-formula***
 	cFINDB.prototype = Object.create(cFIND.prototype);
 	cFINDB.prototype.constructor = cFINDB;
 	cFINDB.prototype.name = 'FINDB';

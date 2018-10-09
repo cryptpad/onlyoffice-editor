@@ -5375,6 +5375,7 @@ function (window, undefined) {
 	function cCRITBINOM() {
 	}
 
+	//***array-formula***
 	cCRITBINOM.prototype = Object.create(cBaseFunction.prototype);
 	cCRITBINOM.prototype.constructor = cCRITBINOM;
 	cCRITBINOM.prototype.name = 'CRITBINOM';
@@ -5440,6 +5441,7 @@ function (window, undefined) {
 	function cBINOM_INV() {
 	}
 
+	//***array-formula***
 	cBINOM_INV.prototype = Object.create(cCRITBINOM.prototype);
 	cBINOM_INV.prototype.constructor = cBINOM_INV;
 	cBINOM_INV.prototype.name = 'BINOM.INV';
@@ -5526,6 +5528,7 @@ function (window, undefined) {
 	function cEXPON_DIST() {
 	}
 
+	//***array-formula***
 	cEXPON_DIST.prototype = Object.create(cBaseFunction.prototype);
 	cEXPON_DIST.prototype.constructor = cEXPON_DIST;
 	cEXPON_DIST.prototype.name = 'EXPON.DIST';
@@ -5573,6 +5576,7 @@ function (window, undefined) {
 	function cEXPONDIST() {
 	}
 
+	//***array-formula***
 	cEXPONDIST.prototype = Object.create(cBaseFunction.prototype);
 	cEXPONDIST.prototype.constructor = cEXPONDIST;
 	cEXPONDIST.prototype.name = 'EXPONDIST';
@@ -5684,6 +5688,7 @@ function (window, undefined) {
 	function cF_DIST_RT() {
 	}
 
+	//***array-formula***
 	cF_DIST_RT.prototype = Object.create(cBaseFunction.prototype);
 	cF_DIST_RT.prototype.constructor = cF_DIST_RT;
 	cF_DIST_RT.prototype.name = "F.DIST.RT";
@@ -5730,6 +5735,7 @@ function (window, undefined) {
 	function cFDIST() {
 	}
 
+	//***array-formula***
 	cFDIST.prototype = Object.create(cF_DIST_RT.prototype);
 	cFDIST.prototype.constructor = cFDIST;
 	cFDIST.prototype.name = 'FDIST';
@@ -5742,6 +5748,7 @@ function (window, undefined) {
 	function cF_INV() {
 	}
 
+	//***array-formula***
 	cF_INV.prototype = Object.create(cBaseFunction.prototype);
 	cF_INV.prototype.constructor = cF_INV;
 	cF_INV.prototype.name = 'F.INV';
@@ -5796,6 +5803,7 @@ function (window, undefined) {
 	function cFINV() {
 	}
 
+	//***array-formula***
 	cFINV.prototype = Object.create(cBaseFunction.prototype);
 	cFINV.prototype.constructor = cFINV;
 	cFINV.prototype.name = "FINV";
@@ -5849,6 +5857,7 @@ function (window, undefined) {
 	function cF_INV_RT() {
 	}
 
+	//***array-formula***
 	cF_INV_RT.prototype = Object.create(cFINV.prototype);
 	cF_INV_RT.prototype.constructor = cF_INV_RT;
 	cF_INV_RT.prototype.name = 'F.INV.RT';
@@ -6522,6 +6531,7 @@ function (window, undefined) {
 	function cGAMMADIST() {
 	}
 
+	//***array-formula***
 	cGAMMADIST.prototype = Object.create(cGAMMA_DIST.prototype);
 	cGAMMADIST.prototype.constructor = cGAMMADIST;
 	cGAMMADIST.prototype.name = 'GAMMADIST';
@@ -6533,6 +6543,7 @@ function (window, undefined) {
 	function cGAMMA_INV() {
 	}
 
+	//***array-formula***
 	cGAMMA_INV.prototype = Object.create(cBaseFunction.prototype);
 	cGAMMA_INV.prototype.constructor = cGAMMA_INV;
 	cGAMMA_INV.prototype.name = 'GAMMA.INV';
@@ -6590,6 +6601,7 @@ function (window, undefined) {
 	function cGAMMAINV() {
 	}
 
+	//***array-formula***
 	cGAMMAINV.prototype = Object.create(cGAMMA_INV.prototype);
 	cGAMMAINV.prototype.constructor = cGAMMAINV;
 	cGAMMAINV.prototype.name = 'GAMMAINV';
@@ -6646,6 +6658,7 @@ function (window, undefined) {
 	function cGAMMALN_PRECISE() {
 	}
 
+	//***array-formula***
 	cGAMMALN_PRECISE.prototype = Object.create(cBaseFunction.prototype);
 	cGAMMALN_PRECISE.prototype.constructor = cGAMMALN_PRECISE;
 	cGAMMALN_PRECISE.prototype.name = 'GAMMALN.PRECISE';
@@ -6710,10 +6723,12 @@ function (window, undefined) {
 	function cGEOMEAN() {
 	}
 
+	//***array-formula***
 	cGEOMEAN.prototype = Object.create(cBaseFunction.prototype);
 	cGEOMEAN.prototype.constructor = cGEOMEAN;
 	cGEOMEAN.prototype.name = 'GEOMEAN';
 	cGEOMEAN.prototype.argumentsMin = 1;
+	cGEOMEAN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cGEOMEAN.prototype.Calculate = function (arg) {
 
 		function geommean(x) {
@@ -6811,10 +6826,12 @@ function (window, undefined) {
 	function cHARMEAN() {
 	}
 
+	//***array-formula***
 	cHARMEAN.prototype = Object.create(cBaseFunction.prototype);
 	cHARMEAN.prototype.constructor = cHARMEAN;
 	cHARMEAN.prototype.name = 'HARMEAN';
 	cHARMEAN.prototype.argumentsMin = 1;
+	cHARMEAN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cHARMEAN.prototype.Calculate = function (arg) {
 
 		function harmmean(x) {
@@ -8326,6 +8343,7 @@ function (window, undefined) {
 	function cNEGBINOM_DIST() {
 	}
 
+	//***array-formula***
 	cNEGBINOM_DIST.prototype = Object.create(cBaseFunction.prototype);
 	cNEGBINOM_DIST.prototype.constructor = cNEGBINOM_DIST;
 	cNEGBINOM_DIST.prototype.name = 'NEGBINOM.DIST';

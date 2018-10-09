@@ -483,6 +483,7 @@ function (window, undefined) {
 	function cINDIRECT() {
 	}
 
+
 	cINDIRECT.prototype = Object.create(cBaseFunction.prototype);
 	cINDIRECT.prototype.constructor = cINDIRECT;
 	cINDIRECT.prototype.name = 'INDIRECT';

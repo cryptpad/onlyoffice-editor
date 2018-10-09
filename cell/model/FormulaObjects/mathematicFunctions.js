@@ -2104,10 +2104,12 @@
 	function cLCM() {
 	}
 
+	//***array-formula***
 	cLCM.prototype = Object.create(cBaseFunction.prototype);
 	cLCM.prototype.constructor = cLCM;
 	cLCM.prototype.name = 'LCM';
 	cLCM.prototype.argumentsMin = 1;
+	cLCM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cLCM.prototype.Calculate = function (arg) {
 
 		var _lcm = 1, argArr;
@@ -2878,10 +2880,12 @@
 	function cMULTINOMIAL() {
 	}
 
+	//***array-formula***
 	cMULTINOMIAL.prototype = Object.create(cBaseFunction.prototype);
 	cMULTINOMIAL.prototype.constructor = cMULTINOMIAL;
 	cMULTINOMIAL.prototype.name = 'MULTINOMIAL';
 	cMULTINOMIAL.prototype.argumentsMin = 1;
+	cMULTINOMIAL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMULTINOMIAL.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), fact = 1;
 
@@ -2891,14 +2895,14 @@
 				for (var j = 0; j < _arrVal.length; j++) {
 					if (_arrVal[j] instanceof cNumber) {
 						if (_arrVal[j].getValue() < 0) {
-							return new cError(cError.not_numeric);
+							return new cError(cErrorType.not_numeric);
 						}
 						arg0 = _func[arg0.type][_arrVal[j].type](arg0, _arrVal[j], "+");
 						fact *= Math.fact(_arrVal[j].getValue());
 					} else if (_arrVal[j] instanceof cError) {
 						return _arrVal[j];
 					} else {
-						return new cError(cError.wrong_value_type);
+						return new cError(cErrorType.wrong_value_type);
 					}
 				}
 			} else if (arg[i] instanceof cArray) {
