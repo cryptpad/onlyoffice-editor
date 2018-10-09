@@ -3263,6 +3263,8 @@ Asc['asc_docs_api'].prototype.openDocument = function(sData)
 
     this.WordControl.m_oDrawingDocument.Collaborative_TargetsUpdate(true);
 
+    _api.asc_GetDefaultTableStyles();
+
     var t = this;
     setInterval(function() {
         t._autoSave();
