@@ -459,14 +459,20 @@
 
 		// Инициализируем число колонок и строк (при открытии). Причем нужно поставить на 1 больше,
 		// чтобы могли показать последнюю строку/столбец (http://bugzilla.onlyoffice.com/show_bug.cgi?id=23513)
-		this.nColsCount = Math.min(this.model.getColsCount() + 1, gc_nMaxCol);
 		this._initRowsCount();
+		this._initColsCount();
 	};
 
 	WorksheetView.prototype._initRowsCount = function () {
 	    var old = this.nRowsCount;
 		this.nRowsCount = Math.min(Math.max(this.model.getRowsCount(), this.visibleRange.r2) + 1, gc_nMaxRow);
 		return old !== this.nRowsCount;
+	};
+
+	WorksheetView.prototype._initColsCount = function () {
+		var old = this.nColsCount;
+		this.nColsCount = Math.min(Math.max(this.model.getColsCount(), this.visibleRange.c2) + 1, gc_nMaxCol);
+		return old !== this.nColsCount;
 	};
 
     WorksheetView.prototype.getCellVisibleRange = function (col, row) {
@@ -556,8 +562,8 @@
 
     WorksheetView.prototype.getHorizontalScrollRange = function () {
         var ctxW = this.drawingCtx.getWidth() - this.cellsLeft;
-        for (var w = 0, i = this.cols.length - 1; i >= 0; --i) {
-            w += this.cols[i].width;
+        for (var w = 0, i = this.nColsCount - 1; i >= 0; --i) {
+            w += this.getColumnWidth(i);
             if (w > ctxW) {
                 break;
             }
@@ -584,12 +590,15 @@
         };
     };
 
+	WorksheetView.prototype._getColLeft = function (i) {
+		var l = this.cols.length;
+		return (i < l) ? this.cols[i].left : (((0 === l) ? this.cellsLeft :
+			this.cols[l - 1].left + this.cols[l - 1].width) + (!this.model.isDefaultWidthHidden()) *
+			Asc.round(this.defaultColWidthPx * this.getZoom()) * (i - l));
+	};
     WorksheetView.prototype.getCellLeft = function (column, units) {
-        if (column >= 0 && column < this.cols.length) {
-            var u = units >= 0 && units <= 3 ? units : 0;
-            return this.cols[column].left * asc_getcvt(0/*px*/, u, this._getPPIX());
-        }
-        return null;
+		var u = units >= 0 && units <= 3 ? units : 0;
+		return this._getColLeft(column) * asc_getcvt(0/*px*/, u, this._getPPIX());
     };
 
     WorksheetView.prototype._getRowDescender = function (i) {
@@ -607,20 +616,20 @@
     };
 
     WorksheetView.prototype.getCellLeftRelative = function (col, units) {
-        if (col < 0 || col >= this.cols.length) {
+        if (col < 0 || col >= this.nColsCount) {
             return null;
         }
         // С учетом видимой области
         var offsetX = 0;
         if (this.topLeftFrozenCell) {
             var cFrozen = this.topLeftFrozenCell.getCol0();
-            offsetX = (col < cFrozen) ? 0 : this.cols[this.visibleRange.c1].left - this.cols[cFrozen].left;
+            offsetX = (col < cFrozen) ? 0 : this._getColLeft(this.visibleRange.c1) - this._getColLeft(cFrozen);
         } else {
-            offsetX = this.cols[this.visibleRange.c1].left - this.cellsLeft;
+            offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
         }
 
         var u = units >= 0 && units <= 3 ? units : 0;
-        return (this.cols[col].left - offsetX) * asc_getcvt(0/*px*/, u, this._getPPIX());
+        return (this._getColLeft(col) - offsetX) * asc_getcvt(0/*px*/, u, this._getPPIX());
     };
 
     WorksheetView.prototype.getCellTopRelative = function (row, units) {
@@ -640,12 +649,14 @@
         return (this._getRowTop(row) - offsetY) * asc_getcvt(0/*px*/, u, this._getPPIY());
     };
 
+	WorksheetView.prototype._getColumnWidth = function (i) {
+		return (i < this.cols.length) ? this.cols[i].width :
+			(!this.model.isDefaultWidthHidden()) * Asc.round(this.defaultColWidthPx * this.getZoom());
+	};
+
     WorksheetView.prototype.getColumnWidth = function (index, units) {
-        if (index >= 0 && index < this.cols.length) {
-            var u = units >= 0 && units <= 3 ? units : 0;
-            return this.cols[index].width * asc_getcvt(0/*px*/, u, this._getPPIX());
-        }
-        return null;
+		var u = units >= 0 && units <= 3 ? units : 0;
+		return this._getColumnWidth(index) * asc_getcvt(0/*px*/, u, this._getPPIX());
     };
 
 	WorksheetView.prototype.getColumnWidthInSymbols = function (index) {
@@ -5762,7 +5773,7 @@
         return this;
     };
 
-    WorksheetView.prototype.scrollHorizontal = function (delta, editor) {
+    WorksheetView.prototype.scrollHorizontal = function (delta, editor, initColsCount) {
         var vr = this.visibleRange;
         var fixStartCol = new asc_Range(vr.c1, vr.r1, vr.c1, vr.r2);
         this._fixSelectionOfHiddenCells(delta >= 0 ? +1 : -1, 0, fixStartCol);
@@ -5910,7 +5921,7 @@
         this._fixSelectionOfMergedCells();
         this._drawSelection();
 
-        if (reinitScrollX) {
+		if (reinitScrollX || (0 > delta && initColsCount && this._initColsCount())) {
             this.handlers.trigger("reinitializeScrollX");
         }
 
@@ -10990,6 +11001,27 @@
 		}
 
 		res = old !== this.nRowsCount;
+		if (res && this.objectRender && this.objectRender.drawingArea) {
+			this.objectRender.drawingArea.reinitRanges();
+		}
+		return res;
+	};
+
+	WorksheetView.prototype.expandColsOnScroll2 = function (count) {
+		var res = false;
+		var old = this.nColsCount;
+		if (this.model.isDefaultWidthHidden()) {
+			this.nColsCount = gc_nMaxCol;
+			return res;
+		} else {
+			this.nColsCount += count;
+		}
+
+		if (gc_nMaxCol < this.nColsCount) {
+			this.nColsCount = gc_nMaxCol;
+		}
+
+		res = old !== this.nColsCount;
 		if (res && this.objectRender && this.objectRender.drawingArea) {
 			this.objectRender.drawingArea.reinitRanges();
 		}

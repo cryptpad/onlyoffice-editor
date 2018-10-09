@@ -372,11 +372,16 @@
 
 				this.hsbApi = new AscCommon.ScrollObject(this.hsb.id, settings);
 				this.hsbApi.bind("scrollhorizontal",function(evt) {
-					self.handlers.trigger("scrollX", evt.scrollPositionX / self.settings.hscrollStep);
+					self.handlers.trigger("scrollX", evt.scrollPositionX / self.settings.hscrollStep, !self.hsbApi.scrollerMouseDown);
 				});
-				this.hsbApi.bind("scrollHEnd",function(evt) {
-						self.handlers.trigger("addColumn");
-					});
+				this.hsbApi.bind("scrollHEnd", function (count) {
+					self.handlers.trigger("addColumns", Math.ceil(count / self.settings.hscrollStep));
+				});
+				this.hsbApi.bind("mouseup", function(evt) {
+					if (self.hsbApi.scrollerMouseDown) {
+						self.handlers.trigger('initColsCount');
+					}
+				});
 				this.hsbApi.onLockMouse = function(){
                     self.hsbApiLockMouse = true;
 				};

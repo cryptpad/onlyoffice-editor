@@ -318,6 +318,8 @@
 				  self.resize.apply(self, arguments);
 			  }, "initRowsCount": function () {
 				  self._onInitRowsCount.apply(self, arguments);
+			  }, "initColsCount": function () {
+				  self._onInitColsCount.apply(self, arguments);
 			  }, "scrollY": function () {
 				  self._onScrollY.apply(self, arguments);
 			  }, "scrollX": function () {
@@ -376,10 +378,10 @@
 				  self.undo.apply(self, arguments);
 			  }, "redo": function () {
 				  self.redo.apply(self, arguments);
-			  }, "addColumn": function () {
-				  self._onAddColumn.apply(self, arguments);
 			  }, "addRows": function () {
 				  self._onAddRows.apply(self, arguments);
+			  }, "addColumns": function () {
+				  self._onAddColumns.apply(self, arguments);
 			  }, "mouseDblClick": function () {
 				  self._onMouseDblClick.apply(self, arguments);
 			  }, "showNextPrevWorksheet": function () {
@@ -955,6 +957,14 @@
 			this._onScrollReinitialize(/*vertical*/1);
 		}
 	};
+
+	WorkbookView.prototype._onInitColsCount = function () {
+		var ws = this.getWorksheet();
+		if (ws._initColsCount()) {
+			this._onScrollReinitialize(/*horizontal*/2);
+		}
+	};
+
   WorkbookView.prototype._onScrollY = function(pos, initRowsCount) {
     var ws = this.getWorksheet();
     var delta = asc_round(pos - ws.getFirstVisibleRow(/*allowPane*/true));
@@ -963,11 +973,11 @@
     }
   };
 
-  WorkbookView.prototype._onScrollX = function(pos) {
+  WorkbookView.prototype._onScrollX = function(pos, initColsCount) {
     var ws = this.getWorksheet();
     var delta = asc_round(pos - ws.getFirstVisibleCol(/*allowPane*/true));
     if (delta !== 0) {
-      ws.scrollHorizontal(delta, this.cellEditor);
+      ws.scrollHorizontal(delta, this.cellEditor, initColsCount);
     }
   };
 
@@ -1496,15 +1506,15 @@
     this.getWorksheet().emptySelection(c_oAscCleanOptions.Text);
   };
 
-  WorkbookView.prototype._onAddColumn = function() {
-    var res = this.getWorksheet().expandColsOnScroll(true);
-    this._onScrollReinitialize(/*horizontal*/2, !res);
-  };
+	WorkbookView.prototype._onAddRows = function (count) {
+		var res = this.getWorksheet().expandRowsOnScroll2(count);
+		this._onScrollReinitialize(/*vertical*/1, !res);
+	};
 
-  WorkbookView.prototype._onAddRows = function(count) {
-    var res = this.getWorksheet().expandRowsOnScroll2(count);
-    this._onScrollReinitialize(/*vertical*/1, !res);
-  };
+	WorkbookView.prototype._onAddColumns = function (count) {
+		var res = this.getWorksheet().expandColsOnScroll2(count);
+		this._onScrollReinitialize(/*horizontal*/2, !res);
+	};
 
   WorkbookView.prototype._onShowNextPrevWorksheet = function(direction) {
     // Колличество листов
