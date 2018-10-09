@@ -4880,7 +4880,7 @@
 
     WorksheetView.prototype._calcCellTextOffset = function (col, row, textAlign, textWidth) {
         var sideL = [0], sideR = [0], i;
-        var maxWidth = this.cols[col].width;
+        var maxWidth = this._getColumnWidth(col);
         var ls = 0, rs = 0;
         var textW = textAlign === AscCommon.align_Center ? (textWidth + maxWidth) * 0.5 : textWidth + this.settings.cells.padding;
 
@@ -4917,7 +4917,7 @@
             if (i !== colBeg && !this._isCellEmptyOrMerged(i, row)) {
                 break;
             }
-            res.push(this.cols[i].width);
+            res.push(this._getColumnWidth(i));
             if (res.length > 1) {
                 res[res.length - 1] += res[res.length - 2];
             }
@@ -6016,7 +6016,7 @@
 				}
 			}
 			if (!canReturnNull) {
-				return {col: c2, left: x1, right: x1 + this.cols[c2].width};
+				return {col: c2, left: x1, right: x1 + this._getColumnWidth(c2)};
 			}
 		}
 		return null;
