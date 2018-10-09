@@ -2451,7 +2451,7 @@ CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
         var PageNum = LastPara.PageNum;
 
         NewParagraph.Reset(X0, Y0, XLimit, YLimit, PageNum);
-        var RecalcResult = NewParagraph.Recalculate_Page(PageNum);
+        var RecalcResult = NewParagraph.Recalculate_Page(0);
 
         if (!(RecalcResult & recalcresult_NextElement))
         {
