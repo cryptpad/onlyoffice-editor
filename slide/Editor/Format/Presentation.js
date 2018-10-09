@@ -6716,7 +6716,7 @@ CPresentation.prototype =
     shiftSlides: function(pos, array, bCopy)
     {
         if(!this.CanEdit()){
-            return;
+            return this.CurPage;
         }
         History.Create_NewPoint(AscDFH.historydescription_Presentation_ShiftSlides);
         array.sort(AscCommon.fSortAscending);
@@ -6768,6 +6768,7 @@ CPresentation.prototype =
         this.DrawingDocument.OnEndRecalculate();
         this.DrawingDocument.UpdateThumbnailsAttack();
         this.DrawingDocument.m_oWordControl.GoToPage(_newSelectedPage);
+        return _newSelectedPage;
     },
 
     deleteSlides: function(array)
