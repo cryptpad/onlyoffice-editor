@@ -2664,19 +2664,8 @@
 				txtRotW = ct.textBound.width + xb1 - ct.textBound.offsetX;
 
 				if (isMerged) {
-
-					wb = 0;
-
-					for (i = colL; i <= colR && i < this.nColsCount; ++i) {
-						wb += this._getColumnWidth(i);
-					}
-
-					hb = 0;
-
-					for (i = rowT; i <= rowB && i < this.nRowsCount; ++i) {
-						hb += this._getRowHeight(i);
-					}
-
+					wb = this._getColLeft(colR + 1) - this._getColLeft(colL);
+					hb = this._getRowTop(rowB + 1) - this._getRowTop(rowT);
 					ctx.AddClipRect(xb1, yb1, wb, hb);
 					clipUse = true;
 				}
