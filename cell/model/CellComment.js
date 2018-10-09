@@ -696,11 +696,11 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		coords.nLeftOffset = Asc.round((x - this.worksheet.getCellLeft(coords.nLeft, 0)) / zoom);
 
 		var top = mergedRange ? mergedRange.r1 : comment.nRow;
-		var y = this.worksheet.getCellTop(top, 0) - Asc.round(11 * zoom);
+		var y = this.worksheet._getRowTop(top) - Asc.round(11 * zoom);
 		pos = this.worksheet._findRowUnderCursor(y, true);
 		coords.nTop = pos ? pos.row : 0;
 		coords.dTopMM = this.pxToMm(Asc.round(y / zoom));
-		coords.nTopOffset = Asc.round((y - this.worksheet.getCellTop(coords.nTop, 0)) / zoom);
+		coords.nTopOffset = Asc.round((y - this.worksheet._getRowTop(coords.nTop)) / zoom);
 
 		x += Asc.round(dWidthPX * zoom);
 		pos = this.worksheet._findColUnderCursor(x, true);
@@ -710,7 +710,7 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		y += Asc.round(dHeightPX * zoom);
 		pos = this.worksheet._findRowUnderCursor(y, true);
 		coords.nBottom = pos ? pos.row : 0;
-		coords.nBottomOffset = Asc.round((y - this.worksheet.getCellTop(coords.nBottom, 0)) / zoom);
+		coords.nBottomOffset = Asc.round((y - this.worksheet._getRowTop(coords.nBottom)) / zoom);
 
 		History.Add(AscCommonExcel.g_oUndoRedoComment, AscCH.historyitem_Comment_Coords, this.model.getId(), null,
 			new AscCommonExcel.UndoRedoData_FromTo(lastCoords, coords.clone()));
@@ -743,8 +743,8 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		pos.dReverseLeftPX = this.worksheet.getCellLeft(left, 0) - this.worksheet.getCellLeft(fvc, 0) +
 			headerCellsOffset.left + frozenOffset.offsetX;
 		pos.dLeftPX = pos.dReverseLeftPX + this.worksheet.getColumnWidth(left, 0);
-		pos.dTopPX = this.worksheet.getCellTop(top, 0) + ((this.worksheet.getRowHeight(top, 0) / 2) | 0) -
-			this.worksheet.getCellTop(fvr, 0) + headerCellsOffset.top + frozenOffset.offsetY;
+		pos.dTopPX = this.worksheet._getRowTop(top) + ((this.worksheet._getRowTop(top) / 2) | 0) -
+			this.worksheet._getRowTop(fvr) + headerCellsOffset.top + frozenOffset.offsetY;
 
 		if (AscCommon.AscBrowser.isRetina) {
 			pos.dLeftPX = AscCommon.AscBrowser.convertToRetinaValue(pos.dLeftPX);

@@ -1933,7 +1933,7 @@
 					}
 					
 					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws.getCellLeft(activeCol, 0) - ws.getCellLeft(0, 0), 0, 3);
-					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws.getCellTop(activeRow, 0)  - ws.getCellTop(0, 0), 0, 3);
+					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(activeRow)  - ws._getRowTop(0), 0, 3);
 
 					drawingObject = ws.objectRender.cloneDrawingObject(drawingObject);
 					drawingObject.graphicObject.setDrawingBase(drawingObject);
@@ -2112,7 +2112,7 @@
 					xfrm = drawingObject.graphicObject.spPr.xfrm;
 
 					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws.getCellLeft(addImagesFromWord[i].col + activeRange.c1) - ws.getCellLeft(0, 0), 0, 3);
-					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws.getCellTop(addImagesFromWord[i].row + activeRange.r1) - ws.getCellTop(0, 0), 0, 3);
+					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(addImagesFromWord[i].row + activeRange.r1) - ws._getRowTop(0), 0, 3);
 					
 					xfrm.setOffX(curCol);
 					xfrm.setOffY(curRow);

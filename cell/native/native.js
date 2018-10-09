@@ -4811,7 +4811,7 @@ function OfflineEditor () {
                     height /= metricCoeff;
                 }
                 
-                var areaHeight = worksheet.getCellTop(worksheet.getLastVisibleRow(), 0) - worksheet.getCellTop(worksheet.getFirstVisibleRow(true), 0);     // по высоте
+                var areaHeight = worksheet._getRowTop(worksheet.getLastVisibleRow()) - worksheet._getRowTop(worksheet.getFirstVisibleRow(true));     // по высоте
                 if (areaHeight < height) {
                     metricCoeff = height / areaHeight;
                     
