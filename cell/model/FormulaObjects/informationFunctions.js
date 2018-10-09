@@ -62,6 +62,7 @@
 	function cERROR_TYPE() {
 	}
 
+	//***array-formula***
 	cERROR_TYPE.prototype = Object.create(cBaseFunction.prototype);
 	cERROR_TYPE.prototype.constructor = cERROR_TYPE;
 	cERROR_TYPE.prototype.name = 'ERROR.TYPE';

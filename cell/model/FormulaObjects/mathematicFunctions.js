@@ -296,12 +296,15 @@
 	function cAGGREGATE() {
 	}
 
+	//***array-formula***
 	cAGGREGATE.prototype = Object.create(cBaseFunction.prototype);
 	cAGGREGATE.prototype.constructor = cAGGREGATE;
 	cAGGREGATE.prototype.name = 'AGGREGATE';
 	cAGGREGATE.prototype.argumentsMin = 3;
 	cAGGREGATE.prototype.argumentsMax = 253;
 	cAGGREGATE.prototype.isXLFN = true;
+	//TODO начиная со 3 аргумента все оставшиеся - массивы
+	cAGGREGATE.prototype.arrayIndexes = {2: 1, 3: 1, 4: 1, 5: 1, 6: 1};
 	cAGGREGATE.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
 		var argClone = oArguments.args;

@@ -3900,11 +3900,13 @@ function (window, undefined) {
 	function cAVERAGEIF() {
 	}
 
+	//***array-formula***
 	cAVERAGEIF.prototype = Object.create(cBaseFunction.prototype);
 	cAVERAGEIF.prototype.constructor = cAVERAGEIF;
 	cAVERAGEIF.prototype.name = 'AVERAGEIF';
 	cAVERAGEIF.prototype.argumentsMin = 2;
 	cAVERAGEIF.prototype.argumentsMax = 3;
+	cAVERAGEIF.prototype.arrayIndexes = {0: 1, 2: 1};
 	cAVERAGEIF.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : arg[0], _sum = 0, _count = 0, matchingInfo, ws;
 		if ((cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type && cElementType.cellsRange !==
@@ -3982,6 +3984,7 @@ function (window, undefined) {
 	cAVERAGEIFS.prototype.constructor = cAVERAGEIFS;
 	cAVERAGEIFS.prototype.name = 'AVERAGEIFS';
 	cAVERAGEIFS.prototype.argumentsMin = 3;
+	//cAVERAGEIFS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cAVERAGEIFS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&

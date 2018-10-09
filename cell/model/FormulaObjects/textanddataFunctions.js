@@ -218,6 +218,7 @@ function (window, undefined) {
 	function cCONCATENATE() {
 	}
 
+	//***array-formula***
 	//TODO пересмотреть функцию!!!
 	cCONCATENATE.prototype = Object.create(cBaseFunction.prototype);
 	cCONCATENATE.prototype.constructor = cCONCATENATE;

@@ -383,6 +383,7 @@ function (window, undefined) {
 	cHLOOKUP.prototype.name = 'HLOOKUP';
 	cHLOOKUP.prototype.argumentsMin = 3;
 	cHLOOKUP.prototype.argumentsMax = 4;
+	cHLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
 	cHLOOKUP.prototype.Calculate = function (arg) {
 		return g_oHLOOKUPCache.calculate(arg);
 	};
@@ -405,6 +406,7 @@ function (window, undefined) {
 	function cINDEX() {
 	}
 
+	//***array-formula***
 	cINDEX.prototype = Object.create(cBaseFunction.prototype);
 	cINDEX.prototype.constructor = cINDEX;
 	cINDEX.prototype.name = 'INDEX';

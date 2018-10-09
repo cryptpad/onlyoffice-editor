@@ -4989,6 +4989,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 26 );
 
+        testArrayFormula2("AVERAGEIF", 2, 3, null, true);
     } );
 
 	test( "Test: \"AVERAGEIFS\"", function () {
@@ -5684,6 +5685,38 @@ $( function () {
 		oParser = new parserFormula("CONCAT(AA1:BB7)", "A3", ws);
 		ok(oParser.parse(), "CONCAT(AA1:BB7)");
 		strictEqual(oParser.calculate().getValue(), "a1b1a2b2a4b4a5b5a6b6a7b7", "CONCAT(AA1:BB7)");
+	});
+
+	test( "Test: \"CONCATENATE\"", function () {
+
+		ws.getRange2( "AA2" ).setValue( "brook trout" );
+		ws.getRange2( "AA3" ).setValue( "species" );
+		ws.getRange2( "AA4" ).setValue( "32" );
+
+		ws.getRange2( "AB2" ).setValue( "Andreas" );
+		ws.getRange2( "AB3" ).setValue( "Fourth" );
+
+		ws.getRange2( "AC2" ).setValue( "Hauser" );
+		ws.getRange2( "AC3" ).setValue( "Pine" );
+
+		oParser = new parserFormula( 'CONCATENATE("Stream population for ", AA2, " ", AA3, " is ", AA4, "/mile.")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Stream population for brook trout species is 32/mile." );
+
+		oParser = new parserFormula( 'CONCATENATE(AB2, " ", AC2)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Andreas Hauser" );
+
+		oParser = new parserFormula( 'CONCATENATE(AC2, ", ", AB2)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Hauser, Andreas" );
+
+		oParser = new parserFormula( 'CONCATENATE(AB3, " & ", AC3)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Fourth & Pine" );
+
+
+		testArrayFormula2("CONCATENATE", 1, 8);
 	});
 
     test( "Test: \"DEVSQ\"", function () {
