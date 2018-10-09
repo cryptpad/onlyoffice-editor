@@ -5147,30 +5147,23 @@
             var mergedRange = _this.model.getMergedByCell(row, col);
 
             if (mergedRange && (fvc < mergedRange.c2) && (fvr < mergedRange.r2)) {
-
                 var startCol = (mergedRange.c1 > fvc) ? mergedRange.c1 : fvc;
                 var startRow = (mergedRange.r1 > fvr) ? mergedRange.r1 : fvr;
 
                 metrics.top = _this._getRowTop(startRow) - _this._getRowTop(fvr) + _this._getRowTop(0);
                 metrics.left = _this._getColLeft(startCol) - _this._getColLeft(fvc) + _this._getColLeft(0);
 
-                for (var i = startCol; i <= mergedRange.c2; i++) {
-                    metrics.width += _this._getColumnWidth(i)
-                }
-                for (var i = startRow; i <= mergedRange.r2; i++) {
-                    metrics.height += _this._getRowHeight(i)
-                }
-                metrics.result = true;
+				metrics.width = _this._getColLeft(mergedRange.c2 + 1) - _this._getColLeft(startCol);
+				metrics.height = _this._getRowHeight(mergedRange.r2 + 1) - _this._getRowHeight(startRow);
             } else {
-
                 metrics.top = _this._getRowTop(row) - _this._getRowTop(fvr) + _this._getRowTop(0);
                 metrics.left = _this._getColLeft(col) - _this._getColLeft(fvc) + _this._getColLeft(0);
                 metrics.width = _this._getColumnWidth(col);
                 metrics.height = _this._getRowHeight(row);
-                metrics.result = true;
             }
+			metrics.result = true;
 
-            return metrics
+            return metrics;
         }
 
         for (var id in this.depDrawCells) {
