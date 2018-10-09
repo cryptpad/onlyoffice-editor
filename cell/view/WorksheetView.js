@@ -148,7 +148,6 @@
     var filterSizeButton = 17;
 
 	function CacheColumn() {
-	    this.isCustomWidth = false;
 	    this.left = 0;
 		this.width = 0;
 	}
@@ -1353,24 +1352,20 @@
     };
 
 	WorksheetView.prototype._calcColWidth = function (x, i) {
-		var w, isBestFit, hiddenW = 0;
+		var w, hiddenW = 0;
 		// Получаем свойства колонки
 		var column = this.model._getColNoEmptyWithAll(i);
 		if (!column) {
 			w = this.defaultColWidthPx; // Используем дефолтное значение
-			isBestFit = true; // Это уже оптимальная ширина
 		} else if (column.getHidden()) {
 			w = 0;            // Если столбец скрытый, ширину выставляем 0
-			isBestFit = false;
 			hiddenW = column.widthPx || this.defaultColWidthPx;
 		} else {
 			w = null === column.widthPx ? this.defaultColWidthPx : column.widthPx;
-			isBestFit = !!(column.BestFit || (null === column.BestFit && null === column.CustomWidth));
 		}
 
 		this.cols[i] = new CacheColumn(w);
 		this.cols[i].width = Asc.round(w * this.getZoom());
-		this.cols[i].isCustomWidth = !isBestFit;
 		this.cols[i].left = x;
 
 		return hiddenW;
@@ -4629,8 +4624,9 @@
         var numFormatStr = c.getNumFormatStr();
         var pad = this.settings.cells.padding * 2 + 1;
         var sstr, sfl, stm;
+        var isCustomWidth = this.model.getColCustomWidth(col);
 
-        if (!this.cols[col].isCustomWidth && fl.isNumberFormat && !(mergeType & c_oAscMergeType.cols) &&
+        if (!isCustomWidth && fl.isNumberFormat && !(mergeType & c_oAscMergeType.cols) &&
           (c_oAscCanChangeColWidth.numbers === this.canChangeColWidth ||
           c_oAscCanChangeColWidth.all === this.canChangeColWidth)) {
             colWidth = this._getColumnWidthInner(col);
@@ -4661,7 +4657,7 @@
             dDigitsCount = this.getColumnWidthInSymbols(col);
             colWidth = this._getColumnWidthInner(col);
             // подбираем ширину
-            if (!this.cols[col].isCustomWidth && !(mergeType & c_oAscMergeType.cols) && !fl.wrapText &&
+            if (!isCustomWidth && !(mergeType & c_oAscMergeType.cols) && !fl.wrapText &&
               c_oAscCanChangeColWidth.all === this.canChangeColWidth) {
                 sstr = c.getValue2(gc_nMaxDigCountView, function () {
                     return true;
@@ -11087,7 +11083,6 @@
         oldColWidth = this.getColumnWidthInSymbols(col);
 
         this.canChangeColWidth = c_oAscCanChangeColWidth.all;
-        this.cols[col].isCustomWidth = false;
         for (row = r1; row <= r2; ++row) {
             // пересчет метрик текста
             this._addCellTextToCache(col, row);
@@ -11176,7 +11171,6 @@
 		var w = this.onChangeWidthCallback(col, null, null);
 		if (-1 !== w) {
 			this._calcColWidth(0, col);
-			this.cols[col].isCustomWidth = false;
 			res = true;
 
 			this._cleanCache(new asc_Range(col, 0, col, this.rows.length - 1));

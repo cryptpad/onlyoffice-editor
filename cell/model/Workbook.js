@@ -4316,6 +4316,18 @@
 			}
 		}
 	};
+	Worksheet.prototype.getColCustomWidth = function (index) {
+		var isBestFit;
+		var column = this._getColNoEmptyWithAll(index);
+		if (!column) {
+			isBestFit = true;
+		} else if (column.getHidden()) {
+			isBestFit = false;
+		} else {
+			isBestFit = !!(column.BestFit || (null === column.BestFit && null === column.CustomWidth));
+		}
+		return !isBestFit;
+	};
 	Worksheet.prototype.setColBestFit=function(bBestFit, width, start, stop){
 		//start, stop 0 based
 		if(null == start)
