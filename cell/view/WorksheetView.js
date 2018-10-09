@@ -2527,12 +2527,9 @@
                 if ( col !== mc.c1 || row !== mc.r1 ) {
                     continue;
                 }
-                for ( var i = mc.c1 + 1; i <= mc.c2 && i < this.nColsCount; ++i ) {
-                    mwidth += this._getColumnWidth(i);
-                }
-                for ( var j = mc.r1 + 1; j <= mc.r2 && j < this.nRowsCount; ++j ) {
-                    mheight += this._getRowHeight(j);
-                }
+
+				mwidth = this._getColLeft(mc.c2 + 1) - this._getColLeft(mc.c1 + 1);
+				mheight = this._getRowTop(mc.r2 + 1) - this._getRowTop(mc.r1 + 1);
             }
             else {
                 if ( bg === null ) {
