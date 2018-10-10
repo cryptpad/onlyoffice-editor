@@ -728,9 +728,6 @@
 			if (ar.c2 >= this.nColsCount) {
 				this.expandColsOnScroll(false, true, ar.c2 + 1);
 			}
-			if (ar.r2 >= this.nRowsCount) {
-				this.expandRowsOnScroll(false, true, ar.r2 + 1);
-			}
 			var d = this._calcActiveRangeOffset();
 			if (d.col) {
 				this.scrollHorizontal(d.col);
@@ -762,9 +759,6 @@
 		var ar = this._getSelection().getLast();
 		if (ar.c2 >= this.nColsCount) {
 			this.expandColsOnScroll(false, true, ar.c2 + 1);
-		}
-		if (ar.r2 >= this.nRowsCount) {
-			this.expandRowsOnScroll(false, true, ar.r2 + 1);
 		}
 		var d = this._calcActiveRangeOffset();
 		if (d.col) {
@@ -1120,10 +1114,6 @@
 					if (range.c2 >= t.nColsCount) {
 						updateScroll = true;
 						t.expandColsOnScroll(false, true, range.c2 + 1);
-					}
-					if (range.r2 >= t.nRowsCount) {
-						updateScroll = true;
-						t.expandRowsOnScroll(false, true, range.r2 + 1);
 					}
                 };
 
@@ -3708,9 +3698,6 @@
         this.visibleRange.r1 = row;
         if (col >= this.nColsCount) {
             this.expandColsOnScroll(false, true);
-        }
-        if (row >= this.nRowsCount) {
-            this.expandRowsOnScroll(false, true);
         }
 
         this.visibleRange.r2 = 0;
@@ -7473,9 +7460,6 @@
             if (range.c2 >= this.nColsCount) {
                 this.expandColsOnScroll(false, true, range.c2 + 1);
             }
-            if (range.r2 >= this.nRowsCount) {
-                this.expandRowsOnScroll(false, true, range.r2 + 1);
-            }
         }
         var oRes = null;
         var type = range.getType();
@@ -7713,7 +7697,6 @@
             }
 
             t.expandColsOnScroll(false, true, to.c2 + 1);
-            t.expandRowsOnScroll(false, true, to.r2 + 1);
 
             // Сбрасываем параметры
             if (c_oAscFormatPainterState.kMultiple !== t.stateFormatPainter) {
