@@ -3848,8 +3848,6 @@ function DrawingObjects() {
 
         var response = { result: true, x: 0, y: 0 };
 
-        var bottom = worksheet.getCellTop(worksheet.rows.length - 1, 3) + worksheet.getRowHeight(worksheet.rows.length - 1, 3) - worksheet.getCellTop(0, 3);
-        var right = worksheet.getCellLeft(worksheet.cols.length - 1, 3) + worksheet.getColumnWidth(worksheet.cols.length - 1, 3) - worksheet.getCellLeft(0, 3);
 
         // выход за границу слева или сверху
         if ( y < 0 ) {
@@ -3859,45 +3857,6 @@ function DrawingObjects() {
         if ( x < 0 ) {
             response.result = false;
             response.x = Math.abs(x);
-        }
-
-        // выход за границу справа
-        if ( x + w > right ) {
-            var scrollX = scrollOffset.getX();
-            var foundCol = worksheet._findColUnderCursor(mmToPx(x + w) + scrollX, true);
-            while ( foundCol == null ) {
-                if ( worksheet.isMaxCol() )
-                {
-                    var lastCol = worksheet.cols[worksheet.nColsCount - 1];
-                    if ( mmToPx(x + w) + scrollX > lastCol.left ) {
-                        response.result = false;
-                        response.x = pxToMm( lastCol.left - (mmToPx(x + w) + scrollX) );
-                    }
-                    break;
-                }
-                worksheet.expandColsOnScroll(true);
-                worksheet.handlers.trigger("reinitializeScrollX");
-                foundCol = worksheet._findColUnderCursor(mmToPx(x + w) + scrollX, true);
-            }
-        }
-        // выход за границу снизу
-        if ( y + h > bottom ) {
-            var scrollY = scrollOffset.getY();
-            var foundRow = worksheet._findRowUnderCursor(mmToPx(y + h) + scrollY, true);
-            while ( foundRow == null ) {
-                if ( worksheet.isMaxRow() )
-                {
-                    var lastRow = worksheet.rows[worksheet.nRowsCount - 1];
-                    if ( mmToPx(y + h) + scrollY > lastRow.top ) {
-                        response.result = false;
-                        response.y = pxToMm( lastRow.top - (mmToPx(y + h) + scrollY) );
-                    }
-                    break;
-                }
-                worksheet.expandRowsOnScroll(true);
-                worksheet.handlers.trigger("reinitializeScrollY");
-                foundRow = worksheet._findRowUnderCursor(mmToPx(y + h) + scrollY, true);
-            }
         }
 
         return response;
