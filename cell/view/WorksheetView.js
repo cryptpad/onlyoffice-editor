@@ -4658,7 +4658,7 @@
         } else {
             // Замерженная ячейка, нужна сумма столбцов
             for (var i = mc.c1; i <= mc.c2 && i < this.cols.length; ++i) {
-                colWidth += this.cols[i].width;
+                colWidth += this._getColumnWidth(i);
                 dDigitsCount += this.getColumnWidthInSymbols(i);
             }
             colWidth -= pad;
