@@ -1247,11 +1247,11 @@ function DrawingObjects() {
     var ScrollOffset = function() {
 
         this.getX = function() {
-            return 2 * worksheet.getCellLeft(0, 0) - worksheet.getCellLeft(worksheet.getFirstVisibleCol(true));
+            return 2 * worksheet._getColLeft(0) - worksheet._getColLeft(worksheet.getFirstVisibleCol(true));
         };
 
         this.getY = function() {
-            return 2 * worksheet.getCellTop(0, 0) - worksheet.getCellTop(worksheet.getFirstVisibleRow(true));
+            return 2 * worksheet._getRowTop(0) - worksheet._getRowTop(worksheet.getFirstVisibleRow(true));
         }
     };
 
@@ -1587,34 +1587,34 @@ function DrawingObjects() {
     // Реальное смещение по высоте
     DrawingBase.prototype.getRealTopOffset = function() {
         var _t = this;
-        var val = _t.worksheet.getCellTop(_t.from.row, 0) + mmToPx(_t.from.rowOff);
+        var val = _t.worksheet._getRowTop(_t.from.row) + mmToPx(_t.from.rowOff);
         return asc.round(val);
     };
 
     // Реальное смещение по ширине
     DrawingBase.prototype.getRealLeftOffset = function() {
         var _t = this;
-        var val = _t.worksheet.getCellLeft(_t.from.col, 0) + mmToPx(_t.from.colOff);
+        var val = _t.worksheet._getColLeft(_t.from.col) + mmToPx(_t.from.colOff);
         return asc.round(val);
     };
 
     // Ширина по координатам
     DrawingBase.prototype.getWidthFromTo = function() {
-        return (this.worksheet.getCellLeft(this.to.col, 0) + mmToPx(this.to.colOff) -
-			this.worksheet.getCellLeft(this.from.col, 0) - mmToPx(this.from.colOff));
+        return (this.worksheet._getColLeft(this.to.col) + mmToPx(this.to.colOff) -
+			this.worksheet._getColLeft(this.from.col) - mmToPx(this.from.colOff));
     };
 
     // Высота по координатам
     DrawingBase.prototype.getHeightFromTo = function() {
-        return this.worksheet.getCellTop(this.to.row, 0) + mmToPx(this.to.rowOff) -
-			this.worksheet.getCellTop(this.from.row, 0) - mmToPx(this.from.rowOff);
+        return this.worksheet._getRowTop(this.to.row) + mmToPx(this.to.rowOff) -
+			this.worksheet._getRowTop(this.from.row) - mmToPx(this.from.rowOff);
     };
 
     // Видимое смещение объекта от первой видимой строки
     DrawingBase.prototype.getVisibleTopOffset = function(withHeader) {
         var _t = this;
-        var headerRowOff = _t.worksheet.getCellTop(0, 0);
-        var fvr = _t.worksheet.getCellTop(_t.worksheet.getFirstVisibleRow(true), 0);
+        var headerRowOff = _t.worksheet._getRowTop(0);
+        var fvr = _t.worksheet._getRowTop(_t.worksheet.getFirstVisibleRow(true));
         var off = _t.getRealTopOffset() - fvr;
         off = (off > 0) ? off : 0;
         return withHeader ? headerRowOff + off : off;
@@ -1623,8 +1623,8 @@ function DrawingObjects() {
     // Видимое смещение объекта от первой видимой колонки
     DrawingBase.prototype.getVisibleLeftOffset = function(withHeader) {
         var _t = this;
-        var headerColOff = _t.worksheet.getCellLeft(0, 0);
-        var fvc = _t.worksheet.getCellLeft(_t.worksheet.getFirstVisibleCol(true), 0);
+        var headerColOff = _t.worksheet._getColLeft(0);
+        var fvc = _t.worksheet._getColLeft(_t.worksheet.getFirstVisibleCol(true));
         var off = _t.getRealLeftOffset() - fvc;
         off = (off > 0) ? off : 0;
         return withHeader ? headerColOff + off : off;
@@ -2116,10 +2116,10 @@ function DrawingObjects() {
                     var updatedRect = { x: 0, y: 0, w: 0, h: 0 };
                     var updatedRange = graphicOption.getUpdatedRange();
 
-					var x1 = worksheet.getCellLeft(updatedRange.c1, 0);
-                    var y1 = worksheet.getCellTop(updatedRange.r1, 0);
-                    var x2 = worksheet.getCellLeft(updatedRange.c2, 0) + worksheet.getColumnWidth(updatedRange.c2, 0);
-                    var y2 = worksheet.getCellTop(updatedRange.r2, 0) + worksheet.getRowHeight(updatedRange.r2, 0);
+					var x1 = worksheet._getColLeft(updatedRange.c1);
+                    var y1 = worksheet._getRowTop(updatedRange.r1);
+                    var x2 = worksheet._getColLeft(updatedRange.c2 + 1);
+                    var y2 = worksheet._getRowTop(updatedRange.r2 + 1);
                     var w = x2 - x1;
                     var h = y2 - y1;
 					var offset = worksheet.getCellsOffset(0);
@@ -2322,17 +2322,17 @@ function DrawingObjects() {
                 var updatedRange = graphicOption.getUpdatedRange();
 
                 var offset = worksheet.getCellsOffset();
-                var offsetX = worksheet.getCellLeft(worksheet.getFirstVisibleCol(true), 0) - offset.left;
-                var offsetY = worksheet.getCellTop(worksheet.getFirstVisibleRow(true), 0) - offset.top;
+                var offsetX = worksheet._getColLeft(worksheet.getFirstVisibleCol(true)) - offset.left;
+                var offsetY = worksheet._getRowTop(worksheet.getFirstVisibleRow(true)) - offset.top;
 
                 var vr = worksheet.visibleRange;
                 var borderOffsetX = (updatedRange.c1 <= vr.c1) ? 0 : 3;
                 var borderOffsetY = (updatedRange.r1 <= vr.r1) ? 0 : 3;
 
-                x = worksheet.getCellLeft(updatedRange.c1, 0) - offsetX - borderOffsetX;
-                y = worksheet.getCellTop(updatedRange.r1, 0) - offsetY - borderOffsetY;
-                w = worksheet.getCellLeft(updatedRange.c2, 0) - worksheet.getCellLeft(updatedRange.c1, 0) + 3;
-                h = worksheet.getCellTop(updatedRange.r2, 0) - worksheet.getCellTop(updatedRange.r1, 0) + 3;
+                x = worksheet._getColLeft(updatedRange.c1) - offsetX - borderOffsetX;
+                y = worksheet._getRowTop(updatedRange.r1) - offsetY - borderOffsetY;
+                w = worksheet._getColLeft(updatedRange.c2) - worksheet._getColLeft(updatedRange.c1) + 3;
+                h = worksheet._getRowTop(updatedRange.r2) - worksheet._getRowTop(updatedRange.r1) + 3;
 
                 /*canvas.m_oContext.beginPath();
                  canvas.m_oContext.strokeStyle = "#FF0000";
@@ -2340,8 +2340,8 @@ function DrawingObjects() {
                  canvas.m_oContext.stroke();*/
             }
             else {
-                x = worksheet.getCellLeft(0, 0);
-                y = worksheet.getCellTop(0, 0);
+                x = worksheet._getColLeft(0);
+                y = worksheet._getRowTop(0);
                 w = shapeCtx.m_lWidthPix - x;
                 h = shapeCtx.m_lHeightPix - y;
             }
@@ -2378,7 +2378,7 @@ function DrawingObjects() {
         var realTopOffset = coordsFrom.y;
         var realLeftOffset = coordsFrom.x;
 
-        var areaWidth = worksheet.getCellLeft(worksheet.getLastVisibleCol(), 0) - worksheet.getCellLeft(worksheet.getFirstVisibleCol(true), 0); 	// по ширине
+        var areaWidth = worksheet._getColLeft(worksheet.getLastVisibleCol()) - worksheet._getColLeft(worksheet.getFirstVisibleCol(true)); 	// по ширине
         if (areaWidth < width) {
             metricCoeff = width / areaWidth;
 
@@ -2386,7 +2386,7 @@ function DrawingObjects() {
             height /= metricCoeff;
         }
 
-        var areaHeight = worksheet.getCellTop(worksheet.getLastVisibleRow(), 0) - worksheet.getCellTop(worksheet.getFirstVisibleRow(true), 0); 	// по высоте
+        var areaHeight = worksheet._getRowTop(worksheet.getLastVisibleRow()) - worksheet._getRowTop(worksheet.getFirstVisibleRow(true)); 	// по высоте
         if (areaHeight < height) {
             metricCoeff = height / areaHeight;
 
@@ -4291,12 +4291,12 @@ function DrawingObjects() {
         var tmp = worksheet._findColUnderCursor(x, true);
         if (tmp) {
             info.col = tmp.col;
-            info.colOff = pxToMm(x - worksheet.getCellLeft(info.col, 0));
+            info.colOff = pxToMm(x - worksheet._getColLeft(info.col));
         }
         tmp = worksheet._findRowUnderCursor(y, true);
         if (tmp) {
             info.row = tmp.row;
-            info.rowOff = pxToMm(y - worksheet.getCellTop(info.row, 0));
+            info.rowOff = pxToMm(y - worksheet._getRowTop(info.row));
         }
 
         return info;
@@ -4641,8 +4641,8 @@ function CoordsManager(ws) {
         var _x = x + offset.left;
         var _y = y + offset.top;
 
-        var offsetX = worksheet.getCellLeft(worksheet.getFirstVisibleCol(true), 0) - offset.left;
-        var offsetY = worksheet.getCellTop(worksheet.getFirstVisibleRow(true), 0) - offset.top;
+        var offsetX = worksheet._getColLeft(worksheet.getFirstVisibleCol(true)) - offset.left;
+        var offsetY = worksheet._getRowTop(worksheet.getFirstVisibleRow(true)) - offset.top;
 
         /* Проверки на максимум в листе */
         function isMaxCol() {
@@ -4675,12 +4675,12 @@ function CoordsManager(ws) {
                 delta++;
         }
         cell.col = col.col;
-        cell.colOffPx = Math.max(0, _x - worksheet.getCellLeft(cell.col, 0));
+        cell.colOffPx = Math.max(0, _x - worksheet._getColLeft(cell.col));
         cell.colOff = worksheet.objectRender.convertMetric(cell.colOffPx, 0, 3);
 
 		var row = worksheet.findCellByXY(0, _y - offsetY, true, true, false);
         cell.row = row.row;
-        cell.rowOffPx = Math.max(0, _y - worksheet.getCellTop(cell.row, 0));
+        cell.rowOffPx = Math.max(0, _y - worksheet._getRowTop(cell.row));
         cell.rowOff = worksheet.objectRender.convertMetric(cell.rowOffPx, 0, 3);
 
         return cell;
@@ -4695,8 +4695,8 @@ function CoordsManager(ws) {
             var colWidth = worksheet.getColumnWidth(cell.col, 3);
             var resultRowOff = cell.rowOff > rowHeight ? rowHeight : cell.rowOff;
             var resultColOff = cell.colOff > colWidth ? colWidth : cell.colOff;
-            coords.y = worksheet.getCellTop(cell.row, 0) + worksheet.objectRender.convertMetric(resultRowOff, 3, 0) - worksheet.getCellTop(0, 0);
-            coords.x = worksheet.getCellLeft(cell.col, 0) + worksheet.objectRender.convertMetric(resultColOff, 3, 0) - worksheet.getCellLeft(0, 0);
+            coords.y = worksheet._getRowTop(cell.row) + worksheet.objectRender.convertMetric(resultRowOff, 3, 0) - worksheet._getRowTop(0);
+            coords.x = worksheet._getColLeft(cell.col) + worksheet.objectRender.convertMetric(resultColOff, 3, 0) - worksheet._getColLeft(0);
         }
         return coords;
     }

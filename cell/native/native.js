@@ -4803,7 +4803,7 @@ function OfflineEditor () {
                 var realTopOffset = coordsFrom.y;
                 var realLeftOffset = coordsFrom.x;
                 
-                var areaWidth = worksheet.getCellLeft(worksheet.getLastVisibleCol(), 0) - worksheet.getCellLeft(worksheet.getFirstVisibleCol(true), 0);     // по ширине
+                var areaWidth = worksheet._getColLeft(worksheet.getLastVisibleCol()) - worksheet._getColLeft(worksheet.getFirstVisibleCol(true));     // по ширине
                 if (areaWidth < width) {
                     metricCoeff = width / areaWidth;
                     
@@ -4811,7 +4811,7 @@ function OfflineEditor () {
                     height /= metricCoeff;
                 }
                 
-                var areaHeight = worksheet.getCellTop(worksheet.getLastVisibleRow(), 0) - worksheet.getCellTop(worksheet.getFirstVisibleRow(true), 0);     // по высоте
+                var areaHeight = worksheet._getRowTop(worksheet.getLastVisibleRow()) - worksheet._getRowTop(worksheet.getFirstVisibleRow(true));     // по высоте
                 if (areaHeight < height) {
                     metricCoeff = height / areaHeight;
                     

@@ -2078,10 +2078,8 @@ function _HEXTORGB_( colorHEX ) {
 			isBottom = false;
 		}
 		else if ( destX > this.maxScrollX && !this.endByX ) {
-			for ( var c = 50; destX > this.maxScrollX && c > 0; --c ) {
-				this.handleEvents( "onscrollHEnd", {} );
-				hend = true;
-			}
+			this.handleEvents( "onscrollHEnd", destX - this.maxScrollX );
+			hend = true;
 			if ( destX > this.maxScrollX ) {
 				destX = this.maxScrollX;
 			}
