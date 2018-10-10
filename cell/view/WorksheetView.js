@@ -3582,7 +3582,7 @@
         }
 
         // vertical
-        var _x = this._getColLeft(frozenCell.getCol0()) - 0.5;
+        var _x = this.getCellLeft(frozenCell.getCol0(), 0) - 0.5;
         var _y = _this.headersTop;
         var w = 0;
         var h = _this.headersHeight;
@@ -3593,7 +3593,7 @@
 
         // horizontal
         _x = _this.headersLeft;
-        _y = this._getRowTop(frozenCell.getRow0()) - 0.5;
+        _y = this.getCellTop(frozenCell.getRow0(), 0) - 0.5;
         w = _this.headersWidth - 0.5;
         h = 0;
         if ( isPointInAnchor( x, y, _x, _y, w, h ) ) {
