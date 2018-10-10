@@ -1478,7 +1478,7 @@ function DrawingObjects() {
                 this.ext.cy = _t.graphicObject.extX;
             }
 
-            var bReinitHorScroll = false, bReinitVertScroll = false;
+            var bReinitHorScroll = false;
 
             var fromColCell = worksheet.findCellByXY(fromX, fromY, true, false, true);
             while(fromColCell.col === null && worksheet.cols.length < gc_nMaxCol)
@@ -1492,19 +1492,6 @@ function DrawingObjects() {
                 fromColCell.col = gc_nMaxCol;
             }
             var fromRowCell = worksheet.findCellByXY(fromX, fromY, true, true, false);
-
-            while(fromRowCell.row === null && worksheet.rows.length < gc_nMaxRow)
-            {
-                worksheet.expandRowsOnScroll(true);
-                fromRowCell = worksheet.findCellByXY(fromX, fromY, true, true, false);
-                bReinitVertScroll = true;
-            }
-            if(fromRowCell.row === null)
-            {
-                fromRowCell.row = gc_nMaxRow;
-            }
-
-
             var toColCell = worksheet.findCellByXY(toX, toY, true, false, true);
             while(toColCell.col === null && worksheet.cols.length < gc_nMaxCol)
             {
@@ -1518,17 +1505,6 @@ function DrawingObjects() {
             }
             var toRowCell = worksheet.findCellByXY(toX, toY, true, true, false);
 
-            while(toRowCell.row === null && worksheet.rows.length < gc_nMaxRow)
-            {
-                worksheet.expandRowsOnScroll(true);
-                toRowCell = worksheet.findCellByXY(toX, toY, true, true, false);
-                bReinitVertScroll = true;
-            }
-            if(toRowCell.row === null)
-            {
-                toRowCell.row = gc_nMaxRow;
-            }
-
             _t.from.col = fromColCell.col;
             _t.from.colOff = pxToMm(fromColCell.colOff);
             _t.from.row = fromRowCell.row;
@@ -1541,10 +1517,6 @@ function DrawingObjects() {
             if(bReinitHorScroll)
             {
                 worksheet.handlers.trigger("reinitializeScrollX");
-            }
-            if(bReinitVertScroll)
-            {
-                worksheet.handlers.trigger("reinitializeScrollY");
             }
         }
     };
