@@ -5820,7 +5820,7 @@
 
     // x,y - абсолютные координаты относительно листа (без учета заголовков)
     WorksheetView.prototype.findCellByXY = function (x, y, canReturnNull, skipCol, skipRow) {
-        var r = 0, c = 0, i, sum, size, tmpCol, result = new AscFormat.CCellObjectInfo();
+        var i, sum, size, result = new AscFormat.CCellObjectInfo();
         if (canReturnNull) {
             result.col = result.row = null;
         }
@@ -5828,17 +5828,28 @@
         x += this.cellsLeft;
         y += this.cellsTop;
         if (!skipCol) {
-            while (c < this.nColsCount) {
-                if (x <= this._getColLeft(c + 1)) {
-                    result.col = c;
-                    break;
-                }
-                ++c;
-            }
+			sum = this._getColLeft(this.nColsCount);
+			if (sum < x) {
+				result.col = this.nColsCount;
+				if (!this.model.isDefaultWidthHidden()) {
+					result.col += ((x - sum) / (this.defaultColWidthPx * this.getZoom())) | 0;
+					result.col = Math.min(result.col, gc_nMaxCol0);
+				}
+			} else {
+				sum = this.cellsLeft;
+				for (i = 0; i < this.nColsCount; ++i) {
+					size = this._getColumnWidth(i);
+					if (sum + size > x) {
+						break;
+					}
+					sum += size;
+				}
+				result.col = i;
+			}
 
-            if (null !== result.col) {
-                result.colOff = x - this._getColLeft(result.col);
-            }
+			if (null !== result.col) {
+				result.colOff = x - sum;
+			}
         }
         if (!skipRow) {
             sum = this._getRowTop(this.nRowsCount);
@@ -5859,7 +5870,6 @@
                 }
 				result.row = i;
             }
-
 
             if (null !== result.row) {
                 result.rowOff = y - sum;
