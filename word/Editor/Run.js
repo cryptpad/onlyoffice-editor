@@ -8449,7 +8449,7 @@ CParaRunRecalcInfo.prototype.OnAdd = function(nPos)
 	for (var nIndex = 0, nCount = this.MeasurePositions.length; nIndex < nCount; ++nIndex)
 	{
 		if (this.MeasurePositions[nIndex] >= nPos)
-			this.MeasurePositions[nIndex] = nPos;
+			this.MeasurePositions[nIndex]++;
 	}
 
 	this.MeasurePositions.push(nPos);
@@ -8461,7 +8461,7 @@ CParaRunRecalcInfo.prototype.OnAdd = function(nPos)
  */
 CParaRunRecalcInfo.prototype.OnRemove = function(nPos, nCount)
 {
-	for (var nIndex = 0, nCount = this.MeasurePositions.length; nIndex < nCount; ++nIndex)
+	for (var nIndex = 0, nLen = this.MeasurePositions.length; nIndex < nLen; ++nIndex)
 	{
 		if (nPos <= this.MeasurePositions[nIndex] && this.MeasurePositions[nIndex] <= nPos + nCount - 1)
 		{
