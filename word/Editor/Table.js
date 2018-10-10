@@ -12377,6 +12377,7 @@ CTable.prototype.Correct_BadTable = function()
     this.Internal_Check_TableRows(false);
 	this.CorrectBadGrid();
 	this.CorrectHMerge();
+	this.CorrectVMerge();
 };
 /**
  * Специальная функция, которая обрабатывает устаревший параметр HMerge и заменяет его на GridSpan во время открытия файла
@@ -12442,6 +12443,37 @@ CTable.prototype.CorrectHMerge = function()
 
 			nCurGridCol += nGridSpan;
 		}
+	}
+
+	// HACK: Восстанавливаем флаги и выставляем, что стиль всей таблицы нужно пересчитать
+	AscCommon.g_oIdCounter.m_bLoad = bLoad;
+	AscCommon.g_oIdCounter.m_bRead = bRead;
+	this.Recalc_CompiledPr2();
+};
+/**
+ * Специальная функция, проверяющая, чтобы в первой строке не было ячеек с параметром vmerge_Continue
+ * @constructor
+ */
+CTable.prototype.CorrectVMerge = function()
+{
+	if (this.GetRowsCount() <= 0)
+		return;
+
+	// HACK: При загрузке мы запрещаем компилировать стили, но нам все-таки это здесь нужно
+	var bLoad = AscCommon.g_oIdCounter.m_bLoad;
+	var bRead = AscCommon.g_oIdCounter.m_bRead;
+	AscCommon.g_oIdCounter.m_bLoad = false;
+	AscCommon.g_oIdCounter.m_bRead = false;
+
+	var oRow = this.GetRow(0);
+
+	for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+	{
+		var oCell   = oRow.GetCell(nCurCell);
+		var nVMerge = oCell.GetVMerge();
+
+		if (vmerge_Continue === oCell.GetVMerge())
+			oCell.SetVMerge(vmerge_Restart);
 	}
 
 	// HACK: Восстанавливаем флаги и выставляем, что стиль всей таблицы нужно пересчитать
