@@ -1506,27 +1506,6 @@
         }
     };
 
-    /**
-     * Добавляет колонки, пока общая ширина листа не превысит rightSide
-     * @param {Number} rightSide Правая граница
-     */
-    WorksheetView.prototype._appendColumns = function (rightSide) {
-        var i = this.cols.length;
-        var lc = this.cols[i - 1];
-        var done = false;
-
-        for (var x = lc.left + lc.width; i < gc_nMaxCol && (x < rightSide || !done); ++i) {
-            if (x >= rightSide) {
-                // add +1 column at the end and exit cycle
-                done = true;
-            }
-			this._calcColWidth(x, i);
-            x += this.cols[i].width;
-            this.isChanged = true;
-        }
-        this.nColsCount = Math.min(Math.max(this.nColsCount, i), gc_nMaxCol);
-    };
-
     /** Устанаваливает видимый диапазон ячеек максимально возможным */
     WorksheetView.prototype._normalizeViewRange = function () {
         var t = this;
@@ -4676,17 +4655,7 @@
             maxWidth: maxW - this._getColumnWidthInner(col) + this.cols[col].width, leftSide: 0, rightSide: 0
         } : this._calcCellTextOffset(col, row, ha, tm.width);
 
-        // check right side of cell text and append columns if it exceeds existing cells borders
-        if (!mergeType) {
-            var rside = this.cols[col - cto.leftSide].left + tm.width;
-            var lc = this.cols[this.cols.length - 1];
-            if (rside > lc.left + lc.width) {
-                this._appendColumns(rside);
-                cto = this._calcCellTextOffset(col, row, ha, tm.width);
-            }
-        }
         var textBound = {};
-
         if (angle) {
             //  повернутый текст учитывает мерж ячеек по строкам
             if (mergeType & c_oAscMergeType.rows) {
@@ -4859,32 +4828,37 @@
     };
 
     WorksheetView.prototype._calcCellTextOffset = function (col, row, textAlign, textWidth) {
-        var sideL = [0], sideR = [0], i;
-        var maxWidth = this._getColumnWidth(col);
-        var ls = 0, rs = 0;
-        var textW = textAlign === AscCommon.align_Center ? (textWidth + maxWidth) * 0.5 : textWidth + this.settings.cells.padding;
+		var ls = 0, rs = 0, i, size;
+        var width = this._getColumnWidth(col);
+		textWidth = textWidth + this.settings.cells.padding;
+		if (textAlign === AscCommon.align_Center) {
+			textWidth /= 2;
+			width /= 2;
+		}
 
-        if (textAlign === AscCommon.align_Right || textAlign === AscCommon.align_Center) {
-            sideL = this._calcCellsWidth(col, 0, row);
-            // condition (sideL.lenght >= 1) is always true
-            for (i = 0; i < sideL.length && textW > sideL[i]; ++i) {/* do nothing */
-            }
-            ls = i !== sideL.length ? i : i - 1;
-        }
-
-        if (textAlign !== AscCommon.align_Right) {
-            sideR = this._calcCellsWidth(col, this.cols.length - 1, row);
-            // condition (sideR.lenght >= 1) is always true
-            for (i = 0; i < sideR.length && textW > sideR[i]; ++i) {/* do nothing */
-            }
-            rs = i !== sideR.length ? i : i - 1;
-        }
-
-        if (textAlign === AscCommon.align_Center) {
-            maxWidth = (sideL[ls] - sideL[0]) + sideR[rs];
-        } else {
-            maxWidth = textAlign === AscCommon.align_Right ? sideL[ls] : sideR[rs];
-        }
+		var maxWidth = 0;
+		if (textAlign !== AscCommon.align_Left) {
+			size = width;
+			for (i = col - 1; i >= 0 && this._isCellEmptyOrMerged(i, row); --i) {
+				if (textWidth <= size) {
+					break;
+				}
+				size += this._getColumnWidth(i);
+			}
+			ls = Math.max(col - i - 1, 0);
+			maxWidth += size;
+		}
+		if (textAlign !== AscCommon.align_Right) {
+			size = width;
+			for (i = col + 1; i < gc_nMaxCol && this._isCellEmptyOrMerged(i, row); ++i) {
+				if (textWidth <= size) {
+					break;
+				}
+				size += this._getColumnWidth(i);
+			}
+			rs = Math.max(i - col - 1, 0);
+			maxWidth += size;
+		}
 
         return {
             maxWidth: maxWidth, leftSide: ls, rightSide: rs
@@ -4910,7 +4884,7 @@
         var r = this._getRowCache(row);
         if (r) {
             for (var i in r.columnsWithText) {
-                if (!r.columns[i] || 0 === this.cols[i].width) {
+                if (!r.columns[i] || 0 === this._getColumnWidth(i)) {
                     continue;
                 }
                 var ct = r.columns[i];
