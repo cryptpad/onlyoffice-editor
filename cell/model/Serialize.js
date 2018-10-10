@@ -2837,7 +2837,7 @@
             if(ws.aCols.length > 0 || null != ws.oAllCol)
                 this.bs.WriteItem(c_oSerWorksheetsTypes.Cols, function(){oThis.WriteWorksheetCols(ws);});
             
-            if(!oThis.isCopyPaste)
+            //if(!oThis.isCopyPaste)
                this.bs.WriteItem(c_oSerWorksheetsTypes.SheetViews, function(){oThis.WriteSheetViews(ws);});
 
             if (null !== ws.sheetPr)
@@ -3095,13 +3095,13 @@
         };
 		this.WriteSheetView = function (ws, oSheetView) {
             var oThis = this;
-            if (null !== oSheetView.showGridLines)
+            if (null !== oSheetView.showGridLines && !oThis.isCopyPaste)
                 this.bs.WriteItem(c_oSer_SheetView.ShowGridLines, function(){oThis.memory.WriteBool(oSheetView.showGridLines);});
-            if (null !== oSheetView.showRowColHeaders)
+            if (null !== oSheetView.showRowColHeaders && !oThis.isCopyPaste)
                 this.bs.WriteItem(c_oSer_SheetView.ShowRowColHeaders, function(){oThis.memory.WriteBool(oSheetView.showRowColHeaders);});
-			if (null !== oSheetView.zoomScale)
+			if (null !== oSheetView.zoomScale && !oThis.isCopyPaste)
 				this.bs.WriteItem(c_oSer_SheetView.ZoomScale, function(){oThis.memory.WriteLong(oSheetView.zoomScale);});
-            if (null !== oSheetView.pane && oSheetView.pane.isInit())
+            if (null !== oSheetView.pane && oSheetView.pane.isInit() && !oThis.isCopyPaste)
                 this.bs.WriteItem(c_oSer_SheetView.Pane, function(){oThis.WriteSheetViewPane(oSheetView.pane);});
 			if (null !== ws.selectionRange)
 				this.bs.WriteItem(c_oSer_SheetView.Selection, function(){oThis.WriteSheetViewSelection(ws.selectionRange);});

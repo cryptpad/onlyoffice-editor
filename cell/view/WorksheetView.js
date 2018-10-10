@@ -9939,6 +9939,29 @@
 			t._setPastedDataByCurrentRange(range, pastedRangeProps, formulaProps, specialPasteProps);
 		};
 
+		//случай, когда при копировании был выделен целый стобец/строка
+		var fromSelectionRange = val.selectionRange.getLast();
+		var fromSelectionRangeType = fromSelectionRange.getType();
+		//MS для случая копирования полностью выделенных столбцов/строк по-разному осуществляет вставку
+		//в этот же документ вставляется вся строка/столбец, затирая все данные в строке/столбце
+		//в другой документ вставляется лишь фрагмент с данными
+		//сделал как 2 вариант в ms - стоит пересмотреть
+		if(Asc.c_oAscSelectionType.RangeCol === fromSelectionRangeType || Asc.c_oAscSelectionType.RangeRow === fromSelectionRangeType || Asc.c_oAscSelectionType.RangeMax === fromSelectionRangeType) {
+			maxARow = 1;
+			maxACol = 1;
+		}
+
+		/*var cells;
+		 if(Asc.c_oAscSelectionType.RangeMax === fromSelectionRangeType) {
+		 cells = this.model.getRange3(0, 0, gc_nMaxRow0, gc_nMaxCol0);
+		 cells.cleanAll();
+		 } else if(Asc.c_oAscSelectionType.RangeRow === fromSelectionRangeType) {
+
+		 } else if(Asc.c_oAscSelectionType.RangeCol === fromSelectionRangeType) {
+
+		 }*/
+
+
         for (var autoR = 0; autoR < maxARow; ++autoR) {
             for (var autoC = 0; autoC < maxACol; ++autoC) {
                 for (var r = 0; r < rMax - arn.r1; ++r) {
