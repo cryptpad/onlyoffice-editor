@@ -736,11 +736,6 @@
             this._normalizeViewRange();
             this._cleanCellsTextMetricsCache();
 
-            // ToDo fix with sheetView->topLeftCell on open
-			var ar = this._getSelection().getLast();
-			if (ar.c2 >= this.nColsCount) {
-				this.expandColsOnScroll(false, true, ar.c2 + 1);
-			}
 			var d = this._calcActiveRangeOffset();
 			if (d.col) {
 				this.scrollHorizontal(d.col);
@@ -768,11 +763,6 @@
         this._normalizeViewRange();
         this._cleanCellsTextMetricsCache();
 
-		// ToDo fix with sheetView->topLeftCell on open
-		var ar = this._getSelection().getLast();
-		if (ar.c2 >= this.nColsCount) {
-			this.expandColsOnScroll(false, true, ar.c2 + 1);
-		}
 		var d = this._calcActiveRangeOffset();
 		if (d.col) {
 			this.scrollHorizontal(d.col);
@@ -1121,24 +1111,6 @@
                 History.SetSelection(arHistorySelect.clone());
                 History.SetSelectionRedo(arCopy.clone());
                 History.StartTransaction();
-
-				var updateScroll = false;
-                var checkExpand = function (range) {
-					if (range.c2 >= t.nColsCount) {
-						updateScroll = true;
-						t.expandColsOnScroll(false, true, range.c2 + 1);
-					}
-                };
-
-                if (Array.isArray(changedRange)) {
-                    changedRange.forEach(changedRange);
-				} else {
-					checkExpand(changedRange);
-				}
-
-				if (updateScroll) {
-					t.handlers.trigger("reinitializeScroll");
-				}
 
                 asc_applyFunction(functionAction);
                 t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
@@ -3651,9 +3623,6 @@
         }
         this.visibleRange.c1 = col;
         this.visibleRange.r1 = row;
-        if (col >= this.nColsCount) {
-            this.expandColsOnScroll(false, true);
-        }
 
         this.visibleRange.r2 = 0;
         this._calcVisibleRows();
@@ -7393,12 +7362,6 @@
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
     };
     WorksheetView.prototype.setSelection = function (range, validRange) {
-        // Проверка на валидность range.
-        if (validRange) {
-            if (range.c2 >= this.nColsCount) {
-                this.expandColsOnScroll(false, true, range.c2 + 1);
-            }
-        }
         var oRes = null;
         var type = range.getType();
         if (type === c_oAscSelectionType.RangeCells || type === c_oAscSelectionType.RangeCol ||
@@ -7633,8 +7596,6 @@
             if (true === isSuccess) {
                 AscCommonExcel.promoteFromTo(from, t.model, to, t.model);
             }
-
-            t.expandColsOnScroll(false, true, to.c2 + 1);
 
             // Сбрасываем параметры
             if (c_oAscFormatPainterState.kMultiple !== t.stateFormatPainter) {

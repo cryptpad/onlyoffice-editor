@@ -1478,31 +1478,9 @@ function DrawingObjects() {
                 this.ext.cy = _t.graphicObject.extX;
             }
 
-            var bReinitHorScroll = false;
-
             var fromColCell = worksheet.findCellByXY(fromX, fromY, true, false, true);
-            while(fromColCell.col === null && worksheet.cols.length < gc_nMaxCol)
-            {
-                worksheet.expandColsOnScroll(true);
-                fromColCell = worksheet.findCellByXY(fromX, fromY, true, false, true);
-                bReinitHorScroll = true;
-            }
-            if(fromColCell.col === null)
-            {
-                fromColCell.col = gc_nMaxCol;
-            }
             var fromRowCell = worksheet.findCellByXY(fromX, fromY, true, true, false);
             var toColCell = worksheet.findCellByXY(toX, toY, true, false, true);
-            while(toColCell.col === null && worksheet.cols.length < gc_nMaxCol)
-            {
-                worksheet.expandColsOnScroll(true);
-                toColCell = worksheet.findCellByXY(toX, toY, true, false, true);
-                bReinitHorScroll = true;
-            }
-            if(toColCell.col === null)
-            {
-                toColCell.col = gc_nMaxCol;
-            }
             var toRowCell = worksheet.findCellByXY(toX, toY, true, true, false);
 
             _t.from.col = fromColCell.col;
@@ -1514,10 +1492,6 @@ function DrawingObjects() {
             _t.to.colOff = pxToMm(toColCell.colOff);
             _t.to.row = toRowCell.row;
             _t.to.rowOff = pxToMm(toRowCell.rowOff);
-            if(bReinitHorScroll)
-            {
-                worksheet.handlers.trigger("reinitializeScrollX");
-            }
         }
     };
 
@@ -1541,31 +1515,10 @@ function DrawingObjects() {
             {
                 toY = 0;
             }
-            var bReinitHorScroll = false;
 
             var fromColCell = worksheet.findCellByXY(fromX, fromY, true, false, true);
-            while(fromColCell.col === null && worksheet.cols.length < gc_nMaxCol)
-            {
-                worksheet.expandColsOnScroll(true);
-                fromColCell = worksheet.findCellByXY(fromX, fromY, true, false, true);
-                bReinitHorScroll = true;
-            }
-            if(fromColCell.col === null)
-            {
-                fromColCell.col = gc_nMaxCol;
-            }
             var fromRowCell = worksheet.findCellByXY(fromX, fromY, true, true, false);
             var toColCell = worksheet.findCellByXY(toX, toY, true, false, true);
-            while(toColCell.col === null && worksheet.cols.length < gc_nMaxCol)
-            {
-                worksheet.expandColsOnScroll(true);
-                toColCell = worksheet.findCellByXY(toX, toY, true, false, true);
-                bReinitHorScroll = true;
-            }
-            if(toColCell.col === null)
-            {
-                toColCell.col = gc_nMaxCol;
-            }
             var toRowCell = worksheet.findCellByXY(toX, toY, true, true, false);
 
             _t.boundsFromTo.from.col = fromColCell.col;
@@ -1577,10 +1530,6 @@ function DrawingObjects() {
             _t.boundsFromTo.to.colOff = pxToMm(toColCell.colOff);
             _t.boundsFromTo.to.row = toRowCell.row;
             _t.boundsFromTo.to.rowOff = pxToMm(toRowCell.rowOff);
-            if(bReinitHorScroll)
-            {
-                worksheet.handlers.trigger("reinitializeScrollX");
-            }
         }
     };
 
@@ -1852,12 +1801,6 @@ function DrawingObjects() {
             // Check drawing area
             drawingObject.drawingArea = _this.drawingArea;
             drawingObject.worksheet = currentSheet;
-            if ( !worksheet.cols[drawingObject.to.col] ) {
-                while ( !worksheet.cols[drawingObject.to.col] ) {
-                    worksheet.expandColsOnScroll(true);
-                }
-                worksheet.expandColsOnScroll(true); 	// для colOff
-            }
             var metrics = drawingObject.getGraphicObjectMetrics();
             drawingObject.graphicObject.drawingBase = aObjects[i];
             drawingObject.graphicObject.drawingObjects = _this;
@@ -2394,21 +2337,11 @@ function DrawingObjects() {
             width /= metricCoeff;
         }
 
-        var findVal = realLeftOffset + width;
-        var toCell = worksheet.findCellByXY(findVal, 0, true, false, true);
-        while (toCell.col === null && worksheet.cols.length < gc_nMaxCol) {
-            worksheet.expandColsOnScroll(true);
-            toCell = worksheet.findCellByXY(findVal, 0, true, false, true);
-        }
+        var toCell = worksheet.findCellByXY(realLeftOffset + width, realTopOffset + height, true, false, false);
         object.to.col = toCell.col;
         object.to.colOff = pxToMm(toCell.colOff);
-
-        findVal = realTopOffset + height;
-        toCell = worksheet.findCellByXY(0, findVal, true, true, false);
         object.to.row = toCell.row;
         object.to.rowOff = pxToMm(toCell.rowOff);
-
-        worksheet.handlers.trigger("reinitializeScroll");
     };
 
 
@@ -2424,12 +2357,6 @@ function DrawingObjects() {
             var activeCell = worksheet.model.selectionRange.activeCell;
             drawingObject.from.col = isOption ? options.cell.col : activeCell.col;
             drawingObject.from.row = isOption ? options.cell.row : activeCell.row;
-
-            // Проверяем начальные координаты при вставке
-            while (!worksheet.cols[drawingObject.from.col]) {
-                worksheet.expandColsOnScroll(true);
-            }
-            worksheet.expandColsOnScroll(true); 	// для colOff
 
             _this.calculateObjectMetrics(drawingObject, isOption ? options.width : _image.Image.width, isOption ? options.height : _image.Image.height);
 
@@ -2795,9 +2722,6 @@ function DrawingObjects() {
                                         if(range)
                                         {
 											range = range.bbox;
-                                            while ( worksheet.cols.length < range.c2 ) {
-                                                worksheet.expandColsOnScroll(true);
-                                            }
 
                                             if(range.r1 > max_r)
                                                 max_r = range.r1;
@@ -3709,12 +3633,6 @@ function DrawingObjects() {
         var activeCell = worksheet.model.selectionRange.activeCell;
         drawingObject.from.col = activeCell.col;
         drawingObject.from.row = activeCell.row;
-
-        // Проверяем начальные координаты при вставке
-        while (!worksheet.cols[drawingObject.from.col]) {
-            worksheet.expandColsOnScroll(true);
-        }
-        worksheet.expandColsOnScroll(true); 	// для colOff
 
         _this.calculateObjectMetrics(drawingObject, nWidthPix, nHeightPix);
 
