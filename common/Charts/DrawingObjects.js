@@ -2864,15 +2864,12 @@ function DrawingObjects() {
                                     var source_worksheet = model.workbook.getWorksheetByName(parsed_ref.sheet);
                                     if(source_worksheet === model)
                                     {
-                                        var range1 = source_worksheet.getRange2(parsed_ref.range);
-                                        if(range1)
+                                        var range = source_worksheet.getRange2(parsed_ref.range);
+                                        if(range)
                                         {
-                                            var range = range1.bbox;
+											range = range.bbox;
                                             while ( worksheet.cols.length < range.c2 ) {
                                                 worksheet.expandColsOnScroll(true);
-                                            }
-                                            while ( worksheet.rows.length < range.r2 ) {
-                                                worksheet.expandRowsOnScroll(true);
                                             }
 
                                             if(range.r1 > max_r)
