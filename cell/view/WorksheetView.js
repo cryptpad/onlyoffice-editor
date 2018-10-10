@@ -4855,12 +4855,7 @@
         if (null === mc) {
             return this._getColumnWidthInner(col);
         }
-
-        var width = this._getColumnWidthInner(mc.c1);
-        for (var c = mc.c1 + 1; c <= mc.c2 && c < this.cols.length; ++c) {
-            width += this.cols[c].width;
-        }
-        return width;
+        return this._getColumnWidthInner(mc.c1) + (this._getColLeft(mc.c2 + 1) - this._getColLeft(mc.c1 + 1));
     };
 
     WorksheetView.prototype._calcCellTextOffset = function (col, row, textAlign, textWidth) {
