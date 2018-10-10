@@ -242,6 +242,29 @@ function asc_WriteColorSchemes(schemas, s) {
     }
 }
 
+function asc_menu_WriteHyperPr(_hyperPr, _stream)
+{
+    if (_hyperPr.Text !== undefined && _hyperPr.Text !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteString2"](_hyperPr.Text);
+    }
+
+    if (_hyperPr.Value !== undefined && _hyperPr.Value !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteString2"](_hyperPr.Value);
+    }
+
+    if (_hyperPr.ToolTip !== undefined && _hyperPr.ToolTip !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteString2"](_hyperPr.ToolTip);
+    }
+
+    _stream["WriteByte"](255);
+};
+
 function asc_menu_ReadFontFamily(_params, _cursor)
 {
     var _fontfamily = { Name : undefined, Index : -1 };
