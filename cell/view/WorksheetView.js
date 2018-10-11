@@ -8977,6 +8977,11 @@
             } else {
 				var newRange = val.fromBinary ? this._pasteFromBinary(val.data, true) : this._pasteFromHTML(val.data, true);
 				checkRange = [newRange];
+
+				if(!this.intersectionFormulaArray(newRange)) {
+					t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+					return false;
+				}
             }
         } else if (onlyActive) {
 			checkRange.push(new asc_Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
@@ -14408,30 +14413,28 @@
 		//TODO вместо getRange3 нужна функция, которая может заканчивать цикл по ячейкам
 		if(!ctrlKey) {
 			//проверяем from, затрагиваем ли мы часть формулы массива
-			this.model.getRange3(from.r1, from.c1, from.r2, from.c2)._foreachNoEmpty(function(cell) {
-				if(cell.isFormula()) {
-					var formulaParsed = cell.getFormulaParsed();
-					var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
-					if(arrayFormulaRef && !from.containsRange(arrayFormulaRef)) {
-						res = false;
-					}
-				}
-			});
+			res = this.intersectionFormulaArray(from);
 		}
 
 		//проверяем to, затрагиваем ли мы часть формулы массива
 		if(res) {
-			this.model.getRange3(to.r1, to.c1, to.r2, to.c2)._foreachNoEmpty(function(cell) {
-				if(cell.isFormula()) {
-					var formulaParsed = cell.getFormulaParsed();
-					var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
-					if(arrayFormulaRef && !to.containsRange(arrayFormulaRef)) {
-						res = false;
-					}
-				}
-			});
+			res = this.intersectionFormulaArray(to);
 		}
 
+		return res;
+	};
+
+	WorksheetView.prototype.intersectionFormulaArray = function(range) {
+		var res = true;
+		this.model.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
+			if(cell.isFormula()) {
+				var formulaParsed = cell.getFormulaParsed();
+				var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
+				if(arrayFormulaRef && !range.containsRange(arrayFormulaRef)) {
+					res = false;
+				}
+			}
+		});
 		return res;
 	};
 
