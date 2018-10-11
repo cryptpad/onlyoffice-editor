@@ -672,12 +672,8 @@
 			  return self.Api.canEdit();
 		  }, "isRestrictionComments": function () {
 			  return self.Api.isRestrictionComments();
-		  }, "reinitializeScroll": function () {
-			  self._onScrollReinitialize(/*All*/);
-		  }, "reinitializeScrollY": function () {
-			  self._onScrollReinitialize(/*vertical*/1);
-		  }, "reinitializeScrollX": function () {
-			  self._onScrollReinitialize(/*horizontal*/2);
+		  }, "reinitializeScroll": function (type) {
+			  self._onScrollReinitialize(type);
 		  }, "selectionChanged": function () {
 			  self._onWSSelectionChanged();
 		  }, "selectionNameChanged": function () {
@@ -933,20 +929,20 @@
   };
 
 
-	WorkbookView.prototype._onScrollReinitialize = function (whichSB, endScroll) {
+	WorkbookView.prototype._onScrollReinitialize = function (type, endScroll) {
 		if (window["NATIVE_EDITOR_ENJINE"]) {
 			return;
 		}
 
 		var ws = this.getWorksheet();
-		if (!whichSB || 2 === whichSB) {
+		if (AscCommonExcel.c_oAscScrollType.ScrollHorizontal & type) {
 			this.controller.reinitScrollX(ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), endScroll);
 		}
-		if (!whichSB || 1 === whichSB) {
+		if (AscCommonExcel.c_oAscScrollType.ScrollVertical & type) {
 			this.controller.reinitScrollY(ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), endScroll);
 		}
 
-		if (this.Api.isMobileVersion) {
+		if (type && this.Api.isMobileVersion) {
 			this.MobileTouchManager.Resize();
 		}
 	};
@@ -954,14 +950,14 @@
 	WorkbookView.prototype._onInitRowsCount = function () {
 		var ws = this.getWorksheet();
 		if (ws._initRowsCount()) {
-			this._onScrollReinitialize(/*vertical*/1);
+			this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical);
 		}
 	};
 
 	WorkbookView.prototype._onInitColsCount = function () {
 		var ws = this.getWorksheet();
 		if (ws._initColsCount()) {
-			this._onScrollReinitialize(/*horizontal*/2);
+			this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 		}
 	};
 
@@ -1508,12 +1504,12 @@
 
 	WorkbookView.prototype._onAddRows = function (count) {
 		var res = this.getWorksheet().expandRowsOnScroll2(count);
-		this._onScrollReinitialize(/*vertical*/1, !res);
+		this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical, !res);
 	};
 
 	WorkbookView.prototype._onAddColumns = function (count) {
 		var res = this.getWorksheet().expandColsOnScroll2(count);
-		this._onScrollReinitialize(/*horizontal*/2, !res);
+		this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollHorizontal, !res);
 	};
 
   WorkbookView.prototype._onShowNextPrevWorksheet = function(direction) {
@@ -1630,7 +1626,7 @@
 		ws.draw();
 		ws.objectRender.controller.updateSelectionState();
 		ws.objectRender.controller.updateOverlay();
-		this._onScrollReinitialize();
+		this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
 	};
 
   /**
@@ -1744,7 +1740,7 @@
       this._onWSSelectionChanged();
       this._onSelectionMathInfoChanged(ws.getSelectionMathInfo());
     }
-    this._onScrollReinitialize();
+    this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
     // Zoom теперь на каждом листе одинаковый, не отправляем смену
 
     //TODO при добавлении любого действия в историю (например добавление нового листа), мы можем его потом отменить с повощью опции авторазвертывания
@@ -1964,7 +1960,7 @@
       }
     }
 
-    this._onScrollReinitialize();
+    this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
     this.handlers.trigger("asc_onZoomChanged", this.getZoom());
   };
 

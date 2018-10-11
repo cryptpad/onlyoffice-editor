@@ -811,12 +811,12 @@ CCellCommentator.prototype.selectComment = function(id, bMove) {
 			if ( (row < fvr) || (row > lvr) ) {
 				offset = row - fvr - Math.round(( lvr - fvr ) / 2);
 				this.worksheet.scrollVertical(offset);
-				this.worksheet.handlers.trigger("reinitializeScrollY");
+				this.worksheet.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
 			}
 			if ( (col < fvc) || (col > lvc) ) {
 				offset = col - fvc - Math.round(( lvc - fvc ) / 2);
 				this.worksheet.scrollHorizontal(offset);
-				this.worksheet.handlers.trigger("reinitializeScrollX");
+				this.worksheet.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 			}
 		}
 

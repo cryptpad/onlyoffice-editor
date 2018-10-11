@@ -85,7 +85,6 @@
 	var c_oAscMergeType = AscCommonExcel.c_oAscMergeType;
     var c_oAscLockTypeElemSubType = AscCommonExcel.c_oAscLockTypeElemSubType;
     var c_oAscLockTypeElem = AscCommonExcel.c_oAscLockTypeElem;
-    var c_oAscGraphicOption = AscCommonExcel.c_oAscGraphicOption;
     var c_oAscError = asc.c_oAscError;
     var c_oAscMergeOptions = asc.c_oAscMergeOptions;
     var c_oAscInsertOptions = asc.c_oAscInsertOptions;
@@ -3628,7 +3627,7 @@
         this._calcVisibleRows();
         this.visibleRange.c2 = 0;
         this._calcVisibleColumns();
-        this.handlers.trigger("reinitializeScroll");
+        this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
 
         if (this.objectRender && this.objectRender.drawingArea) {
             this.objectRender.drawingArea.init();
@@ -4478,23 +4477,20 @@
             return col;
         }
 
-        var bUpdateScrollX = false;
-        var bUpdateScrollY = false;
+        var type = 0;
         // Проверка на увеличение колличества столбцов
         if (col >= this.nColsCount) {
-            bUpdateScrollX = this.expandColsOnScroll(/*isNotActive*/ false, /*updateColsCount*/ true);
+            if (this.expandColsOnScroll(/*isNotActive*/ false, /*updateColsCount*/ true)) {
+				type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
+			}
         }
         // Проверка на увеличение колличества строк
         if (row >= this.nRowsCount) {
-            bUpdateScrollY = this.expandRowsOnScroll(/*isNotActive*/ false, /*updateRowsCount*/ true);
+            if (this.expandRowsOnScroll(/*isNotActive*/ false, /*updateRowsCount*/ true)) {
+				type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
+			}
         }
-        if (bUpdateScrollX && bUpdateScrollY) {
-            this.handlers.trigger("reinitializeScroll");
-        } else if (bUpdateScrollX) {
-            this.handlers.trigger("reinitializeScrollX");
-        } else if (bUpdateScrollY) {
-            this.handlers.trigger("reinitializeScrollY");
-        }
+		this.handlers.trigger("reinitializeScroll", type);
 
         var str, tm, strCopy;
 
@@ -4773,7 +4769,7 @@
 			this.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: range.r1}, true);
 		}
 
-		this.handlers.trigger("reinitializeScroll");
+		this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
 	};
 
     WorksheetView.prototype._calcMaxWidth = function (col, row, mc) {
@@ -5399,7 +5395,7 @@
             }
 
 			if (!skipScrollReinit && isUpdate) {
-				this.handlers.trigger("reinitializeScrollY");
+				this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
 			}
         }
     };
@@ -5417,7 +5413,7 @@
 			}
 
 			if (!skipScrollReinit && isUpdate) {
-				this.handlers.trigger("reinitializeScrollX");
+				this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 			}
 		}
     };
@@ -5459,7 +5455,7 @@
 
         if (start === vr.r1) {
             if (reinitScrollY) {
-                this.handlers.trigger("reinitializeScrollY");
+                this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
             }
             return this;
         }
@@ -5615,7 +5611,7 @@
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
             this.objectRender.showDrawingObjectsEx(false,
-              new AscFormat.GraphicOption(this, c_oAscGraphicOption.ScrollVertical, range, {
+              new AscFormat.GraphicOption(this, AscCommonExcel.c_oAscScrollType.ScrollVertical, range, {
                   offsetX: offsetX, offsetY: offsetY
               }));
             if (0 < cFrozen) {
@@ -5626,7 +5622,7 @@
                 this._drawCellsAndBorders(null, range, offsetX);
                 this.af_drawButtons(range, offsetX, offsetY);
                 this.objectRender.showDrawingObjectsEx(false,
-                  new AscFormat.GraphicOption(this, c_oAscGraphicOption.ScrollVertical, range, {
+                  new AscFormat.GraphicOption(this, AscCommonExcel.c_oAscScrollType.ScrollVertical, range, {
                       offsetX: offsetX, offsetY: offsetY
                   }));
             }
@@ -5636,14 +5632,14 @@
         this._fixSelectionOfMergedCells();
         this._drawSelection();
 
+        var type = 0;
         if (widthChanged) {
-            this.handlers.trigger("reinitializeScrollX");
+        	type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
         }
-
-
         if (reinitScrollY || (0 > delta && initRowsCount && this._initRowsCount())) {
-            this.handlers.trigger("reinitializeScrollY");
+        	type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
         }
+		this.handlers.trigger("reinitializeScroll", type);
 
         this.handlers.trigger("onDocumentPlaceChanged");
         //ToDo this.drawDepCells();
@@ -5671,7 +5667,7 @@
 
         if (start === vr.c1) {
             if (reinitScrollX) {
-                this.handlers.trigger("reinitializeScrollX");
+                this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
             }
             return this;
         }
@@ -5781,7 +5777,7 @@
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
             this.objectRender.showDrawingObjectsEx(false,
-              new AscFormat.GraphicOption(this, c_oAscGraphicOption.ScrollHorizontal, range, {
+              new AscFormat.GraphicOption(this, AscCommonExcel.c_oAscScrollType.ScrollHorizontal, range, {
                   offsetX: offsetX, offsetY: offsetY
               }));
             if (rFrozen) {
@@ -5792,7 +5788,7 @@
                 this._drawCellsAndBorders(null, range, undefined, offsetY);
                 this.af_drawButtons(range, offsetX, offsetY);
                 this.objectRender.showDrawingObjectsEx(false,
-                  new AscFormat.GraphicOption(this, c_oAscGraphicOption.ScrollHorizontal, range, {
+                  new AscFormat.GraphicOption(this, AscCommonExcel.c_oAscScrollType.ScrollHorizontal, range, {
                       offsetX: offsetX, offsetY: offsetY
                   }));
             }
@@ -5804,7 +5800,7 @@
         this._drawSelection();
 
 		if (reinitScrollX || (0 > delta && initColsCount && this._initColsCount())) {
-            this.handlers.trigger("reinitializeScrollX");
+            this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
         }
 
         this.handlers.trigger("onDocumentPlaceChanged");
@@ -6783,7 +6779,7 @@
                 }
             } catch (e) {
                 this.expandColsOnScroll(true);
-                this.handlers.trigger("reinitializeScrollX");
+                this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
             }
         }
         if (adjustBottom) {
@@ -6793,7 +6789,7 @@
                 }
             } catch (e) {
                 this.expandRowsOnScroll(true);
-                this.handlers.trigger("reinitializeScrollY");
+                this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
             }
         }
         return new AscCommon.CellBase(incY, incX);
@@ -10466,7 +10462,7 @@
 			}
 			t.draw(lockDraw);
 
-			t.handlers.trigger("reinitializeScroll");
+			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
 
 			if (isUpdateCols) {
 				t._updateVisibleColsCount();
@@ -11913,6 +11909,7 @@
     };
     // ToDo избавиться от этой функции!!!!Заглушка для принятия изменений
     WorksheetView.prototype._checkUpdateRange = function (range) {
+		var type = 0;
         // Для принятия изменения нужно делать расширение диапазона
         if (this.model.workbook.bCollaborativeChanges) {
             var bIsUpdateX = false, bIsUpdateY = false;
@@ -11925,7 +11922,7 @@
                     }
                     range.c2 = this.nColsCount - 1;
                 }
-                bIsUpdateX = true;
+				type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
             }
             if (range.r2 >= this.nRowsCount) {
                 this.expandRowsOnScroll(false, true, 0); // Передаем 0, чтобы увеличить размеры
@@ -11936,16 +11933,10 @@
                     }
                     range.r2 = this.nRowsCount - 1;
                 }
-                bIsUpdateY = true;
+				type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
             }
 
-            if (bIsUpdateX && bIsUpdateY) {
-                this.handlers.trigger("reinitializeScroll");
-            } else if (bIsUpdateX) {
-                this.handlers.trigger("reinitializeScrollX");
-            } else if (bIsUpdateY) {
-                this.handlers.trigger("reinitializeScrollY");
-            }
+			this.handlers.trigger("reinitializeScroll", type);
         }
     };
 
@@ -11973,6 +11964,9 @@
 			this.model.onUpdateRanges(ranges);
 			this.objectRender.rebuildChartGraphicObjects(ranges);
 			this.cellCommentator.updateActiveComment();
+
+
+			this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
 			this.handlers.trigger("onDocumentPlaceChanged");
 		}
 	};
@@ -12639,7 +12633,7 @@
 			this.model.onUpdateRanges(arrChanged);
 			this.objectRender.rebuildChartGraphicObjects(arrChanged);
 			this.draw();
-			this.handlers.trigger("reinitializeScroll");
+			this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
 			this._updateSelectionNameAndInfo();
             return;
         }
@@ -12676,7 +12670,7 @@
 			this.model.onUpdateRanges(arrChanged);
             this.objectRender.rebuildChartGraphicObjects(arrChanged);
             this.draw();
-            this.handlers.trigger("reinitializeScroll");
+            this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
 			this._updateSelectionNameAndInfo();
         } else {
             // Просто отрисуем

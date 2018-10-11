@@ -1228,7 +1228,7 @@ function GraphicOption(ws, type, range, offset) {
 }
 
 GraphicOption.prototype.isScrollType = function() {
-	return ((this.type === AscCommonExcel.c_oAscGraphicOption.ScrollVertical) || (this.type === AscCommonExcel.c_oAscGraphicOption.ScrollHorizontal));
+	return ((this.type === AscCommonExcel.c_oAscScrollType.ScrollVertical) || (this.type === AscCommonExcel.c_oAscScrollType.ScrollHorizontal));
 };
 
 GraphicOption.prototype.getUpdatedRange = function() {
