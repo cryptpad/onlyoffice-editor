@@ -930,7 +930,7 @@
 
 
 	WorkbookView.prototype._onScrollReinitialize = function (type, endScroll) {
-		if (window["NATIVE_EDITOR_ENJINE"]) {
+		if (window["NATIVE_EDITOR_ENJINE"] || !type) {
 			return;
 		}
 
@@ -942,7 +942,7 @@
 			this.controller.reinitScrollY(ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), endScroll);
 		}
 
-		if (type && this.Api.isMobileVersion) {
+		if (this.Api.isMobileVersion) {
 			this.MobileTouchManager.Resize();
 		}
 	};
