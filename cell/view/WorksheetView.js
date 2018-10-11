@@ -12600,6 +12600,10 @@
             this.setSelection(range);
         }
 
+        // ToDo refactoring this!!!
+		this._calcHeightRows(AscCommonExcel.recalcType.newLines);
+		this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
+
         var i, r = range.r1, bIsUpdate = false, w;
         // AutoFit column with by headers of table
         for (i = range.c1; i <= range.c2; ++i) {
