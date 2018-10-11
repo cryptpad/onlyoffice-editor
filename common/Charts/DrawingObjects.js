@@ -4562,42 +4562,11 @@ function CoordsManager(ws) {
         var offsetX = worksheet._getColLeft(worksheet.getFirstVisibleCol(true)) - offset.left;
         var offsetY = worksheet._getRowTop(worksheet.getFirstVisibleRow(true)) - offset.top;
 
-        /* Проверки на максимум в листе */
-        function isMaxCol() {
-            var result = false;
-            if ( worksheet.cols.length >= gc_nMaxCol )
-                result = true;
-            return result;
-        }
-
-        function isMaxRow() {
-            var result = false;
-            if ( worksheet.rows.length >= gc_nMaxRow )
-                result = true;
-            return result;
-        }
-        //
-
-        var delta = 0;
-        var what = _x - offsetX;
-        var col = worksheet._findColUnderCursor( what, true );
-        while (col == null) {
-            if ( isMaxCol() ) {
-                col = worksheet._findColUnderCursor( worksheet.cols[gc_nMaxCol - 1].left - 1, true );
-                break;
-            }
-            worksheet.expandColsOnScroll(true);
-            worksheet.handlers.trigger("reinitializeScrollX");
-            col = worksheet._findColUnderCursor( what + delta, true );
-            if ( what < 0 )
-                delta++;
-        }
-        cell.col = col.col;
+        var _cell = worksheet.findCellByXY(_x - offsetX, _y - offsetY, true, false, false);
+        cell.col = _cell.col;
         cell.colOffPx = Math.max(0, _x - worksheet._getColLeft(cell.col));
         cell.colOff = worksheet.objectRender.convertMetric(cell.colOffPx, 0, 3);
-
-		var row = worksheet.findCellByXY(0, _y - offsetY, true, true, false);
-        cell.row = row.row;
+        cell.row = _cell.row;
         cell.rowOffPx = Math.max(0, _y - worksheet._getRowTop(cell.row));
         cell.rowOff = worksheet.objectRender.convertMetric(cell.rowOffPx, 0, 3);
 

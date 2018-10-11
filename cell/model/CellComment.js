@@ -677,16 +677,7 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		coords.nRow = comment.nRow;
 
 		var mergedRange = this.model.getMergedByCell(comment.nRow, comment.nCol);
-		/*coords.nLeft = (mergedRange ? mergedRange.c2 : comment.nCol) + 1;
-		 if ( !this.worksheet.cols[coords.nLeft] ) {
-		 this.worksheet.expandColsOnScroll(true);
-		 this.worksheet.handlers.trigger("reinitializeScrollX");
-		 }
-
-		 coords.nTop = mergedRange ? mergedRange.r1 : comment.nRow;
-		 coords.nLeftOffset = 0;
-		 coords.nTopOffset = 0;*/
-
+		
 		var pos;
 		var left = mergedRange ? mergedRange.c2 : comment.nCol;
 		var x = this.worksheet._getColLeft(left + 1) + Asc.round(14 * zoom);
