@@ -11965,8 +11965,15 @@
 			this.objectRender.rebuildChartGraphicObjects(ranges);
 			this.cellCommentator.updateActiveComment();
 
+			var type = 0;
+			if (this._initRowsCount()) {
+				type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
+			}
+			if (this._initColsCount()) {
+				type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
+			}
+			this.handlers.trigger("reinitializeScroll", type);
 
-			this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 			this.handlers.trigger("onDocumentPlaceChanged");
 		}
 	};
