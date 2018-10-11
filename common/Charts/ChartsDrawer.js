@@ -5125,7 +5125,9 @@ drawLineChart.prototype = {
 				path = curSer[val][2];
 			}
 		} else {
-			path = this.paths.points[ser][val].path;
+			if(this.paths.points[ser] && this.paths.points[ser][val]){
+				path = this.paths.points[ser][val].path;
+			}
 		}
 
 		if (!AscFormat.isRealNumber(path)) {
@@ -9955,8 +9957,10 @@ drawRadarChart.prototype = {
 				oCommand = oPath.getCommandByIndex(0);
 			}
 		} else if (this.paths.points) {
-			oPath = this.cChartSpace.GetPath(this.paths.points[ser][val].path);
-			oCommand = oPath.getCommandByIndex(0);
+			if(this.paths.points[ser] && this.paths.points[ser][val]) {
+				oPath = this.cChartSpace.GetPath(this.paths.points[ser][val].path);
+				oCommand = oPath.getCommandByIndex(0);
+			}
 		}
 
 		if (!oCommand) {
