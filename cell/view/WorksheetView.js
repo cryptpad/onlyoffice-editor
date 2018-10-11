@@ -11888,41 +11888,8 @@
     WorksheetView.prototype.updateRanges = function (ranges, skipHeight) {
         if (0 < ranges.length) {
 			for (var i = 0; i < ranges.length; ++i) {
-				this._checkUpdateRange(ranges[i]);
 				this._updateRange(ranges[i], skipHeight);
 			}
-        }
-    };
-    // ToDo избавиться от этой функции!!!!Заглушка для принятия изменений
-    WorksheetView.prototype._checkUpdateRange = function (range) {
-		var type = 0;
-        // Для принятия изменения нужно делать расширение диапазона
-        if (this.model.workbook.bCollaborativeChanges) {
-            var bIsUpdateX = false, bIsUpdateY = false;
-            if (range.c2 >= this.nColsCount) {
-                this.expandColsOnScroll(false, true, 0); // Передаем 0, чтобы увеличить размеры
-                // Проверка, вдруг пришел диапазон за пределами существующей области
-                if (range.c2 >= this.nColsCount) {
-                    if (range.c1 >= this.nColsCount) {
-                        return;
-                    }
-                    range.c2 = this.nColsCount - 1;
-                }
-				type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
-            }
-            if (range.r2 >= this.nRowsCount) {
-                this.expandRowsOnScroll(false, true, 0); // Передаем 0, чтобы увеличить размеры
-                // Проверка, вдруг пришел диапазон за пределами существующей области
-                if (range.r2 >= this.nRowsCount) {
-                    if (range.r1 >= this.nRowsCount) {
-                        return;
-                    }
-                    range.r2 = this.nRowsCount - 1;
-                }
-				type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
-            }
-
-			this.handlers.trigger("reinitializeScroll", type);
         }
     };
 
@@ -12610,8 +12577,6 @@
      */
     WorksheetView.prototype._onUpdateFormatTable = function (range, recalc, changeRowsOrMerge) {
 		var arrChanged;
-        //ToDo заглушка, чтобы не падало. Нужно полностью переделывать этот код!!!! (Перенес выше из-за бага http://bugzilla.onlyoffice.com/show_bug.cgi?id=26705)
-        this._checkUpdateRange(range);
 
         if (!recalc) {
             // ToDo сделать правильное обновление при скрытии/раскрытии строк/столбцов
