@@ -4477,21 +4477,6 @@
             return col;
         }
 
-        var type = 0;
-        // Проверка на увеличение колличества столбцов
-        if (col >= this.nColsCount) {
-            if (this.expandColsOnScroll(/*isNotActive*/ false, /*updateColsCount*/ true)) {
-				type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
-			}
-        }
-        // Проверка на увеличение колличества строк
-        if (row >= this.nRowsCount) {
-            if (this.expandRowsOnScroll(/*isNotActive*/ false, /*updateRowsCount*/ true)) {
-				type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
-			}
-        }
-		this.handlers.trigger("reinitializeScroll", type);
-
         var str, tm, strCopy;
 
         // Range для замерженной ячейки
