@@ -4818,22 +4818,10 @@ function OfflineEditor () {
                     height = areaHeight;
                     width /= metricCoeff;
                 }
-                
-                var findVal = realLeftOffset + width;
-                var toCell = worksheet.findCellByXY(findVal, 0, true, false, true);
-                while (toCell.col === null && worksheet.cols.length < gc_nMaxCol) {
-                    worksheet.expandColsOnScroll(true);
-                    toCell = worksheet.findCellByXY(findVal, 0, true, false, true);
-                }
+
+                var toCell = worksheet.findCellByXY(realLeftOffset + width, realTopOffset + height, true, false, false);
                 object.to.col = toCell.col;
                 object.to.colOff = pxToMm(toCell.colOff);
-                
-                findVal = realTopOffset + height;
-                toCell = worksheet.findCellByXY(0, findVal, true, true, false);
-                while (toCell.row === null && worksheet.rows.length < gc_nMaxRow) {
-                    worksheet.expandRowsOnScroll(true);
-                    toCell = worksheet.findCellByXY(0, findVal, true, true, false);
-                }
                 object.to.row = toCell.row;
                 object.to.rowOff = pxToMm(toCell.rowOff);
             };
@@ -4846,17 +4834,6 @@ function OfflineEditor () {
                 var activeCell = worksheet.model.selectionRange.activeCell;
                 drawingObject.from.col = activeCell.col;
                 drawingObject.from.row = activeCell.row;
-                
-                // Проверяем начальные координаты при вставке
-                while (!worksheet.cols[drawingObject.from.col]) {
-                    worksheet.expandColsOnScroll(true);
-                }
-                worksheet.expandColsOnScroll(true);     // для colOff
-                
-                while (!worksheet.rows[drawingObject.from.row]) {
-                    worksheet.expandRowsOnScroll(true);
-                }
-                worksheet.expandRowsOnScroll(true);     // для rowOff
 
                 calculateObjectMetrics(drawingObject, options[1], options[2]);
 
