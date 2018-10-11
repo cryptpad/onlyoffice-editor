@@ -1626,7 +1626,7 @@
 		ws.draw();
 		ws.objectRender.controller.updateSelectionState();
 		ws.objectRender.controller.updateOverlay();
-		this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
+		this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 	};
 
   /**
@@ -1740,7 +1740,7 @@
       this._onWSSelectionChanged();
       this._onSelectionMathInfoChanged(ws.getSelectionMathInfo());
     }
-    this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
+    this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
     // Zoom теперь на каждом листе одинаковый, не отправляем смену
 
     //TODO при добавлении любого действия в историю (например добавление нового листа), мы можем его потом отменить с повощью опции авторазвертывания
@@ -1960,7 +1960,7 @@
       }
     }
 
-    this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | c_oAscScrollType.ScrollHorizontal);
+    this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
     this.handlers.trigger("asc_onZoomChanged", this.getZoom());
   };
 
