@@ -4396,7 +4396,7 @@ function DrawingObjects() {
         var ws = this.getWorksheet();
 		var coords = {x: 0, y: 0};
 		//0 - px, 1 - pt, 2 - in, 3 - mm
-		if (cell) {
+		if (cell && ws) {
 			var rowHeight = ws.getRowHeight(cell.row, 3);
 			var colWidth = ws.getColumnWidth(cell.col, 3);
 			var resultRowOff = cell.rowOff > rowHeight ? rowHeight : cell.rowOff;
