@@ -4608,7 +4608,7 @@
           this._calcMaxWidth(col, row, mc) : undefined;
         tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
         var cto = (mergeType || fl.wrapText || fl.shrinkToFit) ? {
-            maxWidth: maxW - this._getColumnWidthInner(col) + this.cols[col].width, leftSide: 0, rightSide: 0
+            maxWidth: maxW - this._getColumnWidthInner(col) + this._getColumnWidth(col), leftSide: 0, rightSide: 0
         } : this._calcCellTextOffset(col, row, ha, tm.width);
 
         var textBound = {};
