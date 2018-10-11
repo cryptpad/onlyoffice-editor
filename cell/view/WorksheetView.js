@@ -10986,7 +10986,7 @@
             r1 = 0;
         }
         if (null == r2) {
-            r2 = this.rows.length - 1;
+            r2 = this.model.getRowsCount() - 1;
         }
 
         oldColWidth = this.getColumnWidthInSymbols(col);
@@ -11155,7 +11155,8 @@
             for (var r = row1; r <= row2; ++r) {
                 height = t.defaultRowHeightPx;
 
-                for (col = 0; col < t.cols.length; ++col) {
+                var l = this.model.getColsCount();
+                for (col = 0; col < l; ++col) {
                     ct = t._getCellTextCache(col, r);
                     if (ct === undefined) {
                         continue;
