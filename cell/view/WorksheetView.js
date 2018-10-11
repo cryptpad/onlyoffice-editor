@@ -1366,7 +1366,7 @@
             this.cols = [];
         } else if (AscCommonExcel.recalcType.newLines === type) {
             i = this.cols.length;
-            x = this._getRowTop(i);
+            x = this._getColLeft(i);
         }
 		for (; i < l; ++i) {
 			hiddenW += this._calcColWidth(x, i);
