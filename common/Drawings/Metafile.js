@@ -623,6 +623,10 @@
 			this.data[this.pos++] = (val >>> 16) & 0xFF;
 			this.data[this.pos++] = (val >>> 24) & 0xFF;
 		}
+		this.WriteULong          = function(val)
+		{
+			this.WriteLong(AscFonts.FT_Common.UintToInt(val));
+		}
 		this.WriteDouble        = function(val)
 		{
 			this.CheckSize(4);

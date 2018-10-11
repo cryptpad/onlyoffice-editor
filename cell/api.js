@@ -369,6 +369,11 @@ var editor;
 	return ws.changePrintArea(type);
   };
 
+  spreadsheet_api.prototype.asc_CanAddPrintArea = function() {
+      var ws = this.wb.getWorksheet();
+      return ws.canAddPrintArea();
+  };
+
   spreadsheet_api.prototype.asc_Copy = function() {
     if (window["AscDesktopEditor"])
     {
@@ -897,6 +902,7 @@ var editor;
    * asc_onFilterInfo	        (countFilter, countRecords)								- send count filtered and all records
    * asc_onLockDocumentProps/asc_onUnLockDocumentProps    - эвент о том, что залочены опции layout
    * asc_onUpdateDocumentProps                            - эвент о том, что необходимо обновить данные во вкладке layout
+   * asc_onLockPrintArea/asc_onUnLockPrintArea            - эвент о локе в меню опции print area во вкладке layout
    */
 
   spreadsheet_api.prototype.asc_registerCallback = function(name, callback, replaceOldCallback) {
@@ -1246,8 +1252,10 @@ var editor;
 
           t._onUpdateDefinedNames(lockElem);
 
-          //эвент о локе в меню вкладки layout
+          //эвент о локе в меню вкладки layout(кроме print area)
           t._onUpdateLayoutLock(lockElem);
+          //эвент о локе в меню опции print area во вкладке layout
+          t._onUpdatePrintAreaLock(lockElem);
 
           var ws = t.wb.getWorksheet();
           var lockSheetId = lockElem.Element["sheetId"];
@@ -1321,6 +1329,8 @@ var editor;
           t.handlers.trigger("asc_onLockDefNameManager",Asc.c_oAscDefinedNameReason.OK);
           //эвент о локе в меню вкладки layout
           t._onUpdateLayoutLock(lockElem);
+          //эвент о локе в меню опции print area во вкладке layout
+          t._onUpdatePrintAreaLock(lockElem);
         }
       }
     };
@@ -1427,19 +1437,18 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype._onUpdateAllSheetsLock = function() {
-    var t = this;
-    if (t.wbModel) {
-      // Шлем update для листов
-      t.handlers.trigger("asc_onWorkbookLocked", t.asc_isWorkbookLocked());
-      var i, length, wsModel, wsIndex;
-      for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
-        wsModel = t.wbModel.getWorksheet(i);
-        wsIndex = wsModel.getIndex();
-        t.handlers.trigger("asc_onWorksheetLocked", wsIndex, t.asc_isWorksheetLockedOrDeleted(wsIndex));
-      }
-    }
-  };
+	spreadsheet_api.prototype._onUpdateAllSheetsLock = function () {
+		if (this.wbModel) {
+			// Шлем update для листов
+			this.handlers.trigger("asc_onWorkbookLocked", this.asc_isWorkbookLocked());
+			var i, length, wsModel, wsIndex;
+			for (i = 0, length = this.wbModel.getWorksheetCount(); i < length; ++i) {
+				wsModel = this.wbModel.getWorksheet(i);
+				wsIndex = wsModel.getIndex();
+				this.handlers.trigger("asc_onWorksheetLocked", wsIndex, this.asc_isWorksheetLockedOrDeleted(wsIndex));
+			}
+		}
+	};
 
   spreadsheet_api.prototype._onUpdateAllLayoutsLock = function () {
       var t = this;
@@ -1485,19 +1494,19 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype._onUpdateSheetsLock = function(lockElem) {
-    var t = this;
-    // Шлем update для листов, т.к. нужно залочить лист
-    if (c_oAscLockTypeElem.Sheet === lockElem.Element["type"]) {
-      t.handlers.trigger("asc_onWorkbookLocked", t.asc_isWorkbookLocked());
-    }
-    // Шлем update для листа
-    var wsModel = t.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
-    if (wsModel) {
-      var wsIndex = wsModel.getIndex();
-      t.handlers.trigger("asc_onWorksheetLocked", wsIndex, t.asc_isWorksheetLockedOrDeleted(wsIndex));
-    }
-  };
+	spreadsheet_api.prototype._onUpdateSheetsLock = function (lockElem) {
+		// Шлем update для листов, т.к. нужно залочить лист
+		if (c_oAscLockTypeElem.Sheet === lockElem.Element["type"]) {
+			this._onUpdateAllSheetsLock();
+		} else {
+			// Шлем update для листа
+			var wsModel = this.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
+			if (wsModel) {
+				var wsIndex = wsModel.getIndex();
+				this.handlers.trigger("asc_onWorksheetLocked", wsIndex, this.asc_isWorksheetLockedOrDeleted(wsIndex));
+			}
+		}
+	};
 
   spreadsheet_api.prototype._onUpdateLayoutLock = function(lockElem) {
       var t = this;
@@ -1512,6 +1521,17 @@ var editor;
           } else {
 			  t.handlers.trigger("asc_onUnLockDocumentProps", wsIndex);
           }
+      }
+  };
+
+  spreadsheet_api.prototype._onUpdatePrintAreaLock = function(lockElem) {
+      var t = this;
+
+      var isLocked = t.asc_isPrintAreaLocked();
+      if(isLocked) {
+          t.handlers.trigger("asc_onLockPrintArea");
+      } else {
+          t.handlers.trigger("asc_onUnLockPrintArea");
       }
   };
 
@@ -1867,6 +1887,19 @@ var editor;
       return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
   };
 
+	spreadsheet_api.prototype.asc_isPrintAreaLocked = function(index) {
+		var res = false;
+		if(index !== undefined) {
+			var sheetId = this.wbModel.getWorksheet(index).getId();
+			var dN = this.wbModel.dependencyFormulas.getDefNameByName("Print_Area", sheetId);
+			if(dN) {
+				res = !!dN.isLock;
+			}
+		}
+
+		return res;
+	};
+
   spreadsheet_api.prototype.asc_getHiddenWorksheets = function() {
     var model = this.wbModel;
     var len = model.getWorksheetCount();
@@ -2156,7 +2189,7 @@ var editor;
     }
 
     ws = this.wb.getWorksheet();
-    d = ws.setSelection(d[0].getBBox0(), true);
+    d = ws.setSelection(d.length === 1 ? d[0].getBBox0() : d, true);
     this.controller.scroll(d);
   };
 
@@ -3498,6 +3531,8 @@ var editor;
   prot["asc_changePageOrient"] = prot.asc_changePageOrient;
 
   prot["asc_ChangePrintArea"] = prot.asc_ChangePrintArea;
+  prot["asc_CanAddPrintArea"] = prot.asc_CanAddPrintArea;
+
 
   prot["asc_decodeBuffer"] = prot.asc_decodeBuffer;
 
@@ -3523,6 +3558,7 @@ var editor;
   prot["asc_isWorksheetLockedOrDeleted"] = prot.asc_isWorksheetLockedOrDeleted;
   prot["asc_isWorkbookLocked"] = prot.asc_isWorkbookLocked;
   prot["asc_isLayoutLocked"] = prot.asc_isLayoutLocked;
+  prot["asc_isPrintAreaLocked"] = prot.asc_isPrintAreaLocked;
   prot["asc_getHiddenWorksheets"] = prot.asc_getHiddenWorksheets;
   prot["asc_showWorksheet"] = prot.asc_showWorksheet;
   prot["asc_hideWorksheet"] = prot.asc_hideWorksheet;

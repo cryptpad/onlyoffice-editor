@@ -347,9 +347,9 @@ CDrawingsController.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.DrawingObjects.getSelectedText(bClearText, oPr);
 };
-CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
-	return this.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	return this.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
 CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -547,4 +547,8 @@ CDrawingsController.prototype.GetSimilarNumbering = function(oEngine)
 
 	if (oDocContent && oDocContent.GetSimilarNumbering)
 		oDocContent.GetSimilarNumbering(oEngine);
+};
+CDrawingsController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	return this.DrawingObjects.GetAllFields(isUseSelection, arrFields);
 };

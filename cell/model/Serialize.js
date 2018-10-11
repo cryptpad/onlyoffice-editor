@@ -1125,17 +1125,17 @@
         this.oSizes = [
             {id:EPageSize.pagesizeLetterPaper, w_mm: 215.9, h_mm: 279.4},
             {id:EPageSize.pagesizeLetterSmall, w_mm: 215.9, h_mm: 279.4},
-            {id:EPageSize.pagesizeTabloidPaper, w_mm: 279.4, h_mm: 431.7},
+            {id:EPageSize.pagesizeTabloidPaper, w_mm: 279.4, h_mm: 431.8},
             {id:EPageSize.pagesizeLedgerPaper, w_mm: 431.8, h_mm: 279.4},
             {id:EPageSize.pagesizeLegalPaper, w_mm: 215.9, h_mm: 355.6},
             {id:EPageSize.pagesizeStatementPaper, w_mm: 495.3, h_mm: 215.9},
             {id:EPageSize.pagesizeExecutivePaper, w_mm: 184.2, h_mm: 266.7},
-            {id:EPageSize.pagesizeA3Paper, w_mm: 297, h_mm: 420.1},
+            {id:EPageSize.pagesizeA3Paper, w_mm: 297, h_mm: 420},
             {id:EPageSize.pagesizeA4Paper, w_mm: 210, h_mm: 297},
             {id:EPageSize.pagesizeA4SmallPaper, w_mm: 210, h_mm: 297},
-            {id:EPageSize.pagesizeA5Paper, w_mm: 148.1, h_mm: 209.9},
+            {id:EPageSize.pagesizeA5Paper, w_mm: 148, h_mm: 210},
             {id:EPageSize.pagesizeB4Paper, w_mm: 250, h_mm: 353},
-            {id:EPageSize.pagesizeB5Paper, w_mm: 176, h_mm: 250.1},
+            {id:EPageSize.pagesizeB5Paper, w_mm: 176, h_mm: 250},
             {id:EPageSize.pagesizeFolioPaper, w_mm: 215.9, h_mm: 330.2},
             {id:EPageSize.pagesizeQuartoPaper, w_mm: 215, h_mm: 275},
             {id:EPageSize.pagesizeStandardPaper1, w_mm: 254, h_mm: 355.6},
@@ -1149,7 +1149,7 @@
             {id:EPageSize.pagesizeCPaper, w_mm: 431.8, h_mm: 558.8},
             {id:EPageSize.pagesizeDPaper, w_mm: 558.8, h_mm: 863.6},
             {id:EPageSize.pagesizeEPaper, w_mm: 863.6, h_mm: 1117.6},
-            {id:EPageSize.pagesizeDLEnvelope, w_mm: 110.1, h_mm: 220.1},
+            {id:EPageSize.pagesizeDLEnvelope, w_mm: 110, h_mm: 220},
             {id:EPageSize.pagesizeC5Envelope, w_mm: 162, h_mm: 229},
             {id:EPageSize.pagesizeC3Envelope, w_mm: 324, h_mm: 458},
             {id:EPageSize.pagesizeC4Envelope, w_mm: 229, h_mm: 324},
@@ -2506,11 +2506,22 @@
             var defNameList = this.wb.dependencyFormulas.saveDefName();
 
             var filterDefName = "_xlnm._FilterDatabase";
+			var printAreaDefName = "Print_Area";
+			var prefix = "_xlnm.";
 
             if(null != defNameList ){
                 for(var i = 0; i < defNameList.length; i++){
                     if(defNameList[i].Name !== filterDefName) {
+						var oldName = null;
+						//на запись добавляем к области печати префикс
+						if(printAreaDefName === defNameList[i].Name && null != defNameList[i].LocalSheetId && true === defNameList[i].isXLNM) {
+							oldName = defNameList[i].Name;
+							defNameList[i].Name = prefix + defNameList[i].Name;
+						}
 						this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defNameList[i]);});
+						if(null !== oldName) {
+							defNameList[i].Name = oldName;
+						}
                     }
                 }
             }
@@ -2826,7 +2837,7 @@
             if(ws.aCols.length > 0 || null != ws.oAllCol)
                 this.bs.WriteItem(c_oSerWorksheetsTypes.Cols, function(){oThis.WriteWorksheetCols(ws);});
             
-            if(!oThis.isCopyPaste)
+            //if(!oThis.isCopyPaste)
                this.bs.WriteItem(c_oSerWorksheetsTypes.SheetViews, function(){oThis.WriteSheetViews(ws);});
 
             if (null !== ws.sheetPr)
@@ -3084,13 +3095,13 @@
         };
 		this.WriteSheetView = function (ws, oSheetView) {
             var oThis = this;
-            if (null !== oSheetView.showGridLines)
+            if (null !== oSheetView.showGridLines && !oThis.isCopyPaste)
                 this.bs.WriteItem(c_oSer_SheetView.ShowGridLines, function(){oThis.memory.WriteBool(oSheetView.showGridLines);});
-            if (null !== oSheetView.showRowColHeaders)
+            if (null !== oSheetView.showRowColHeaders && !oThis.isCopyPaste)
                 this.bs.WriteItem(c_oSer_SheetView.ShowRowColHeaders, function(){oThis.memory.WriteBool(oSheetView.showRowColHeaders);});
-			if (null !== oSheetView.zoomScale)
+			if (null !== oSheetView.zoomScale && !oThis.isCopyPaste)
 				this.bs.WriteItem(c_oSer_SheetView.ZoomScale, function(){oThis.memory.WriteLong(oSheetView.zoomScale);});
-            if (null !== oSheetView.pane && oSheetView.pane.isInit())
+            if (null !== oSheetView.pane && oSheetView.pane.isInit() && !oThis.isCopyPaste)
                 this.bs.WriteItem(c_oSer_SheetView.Pane, function(){oThis.WriteSheetViewPane(oSheetView.pane);});
 			if (null !== ws.selectionRange)
 				this.bs.WriteItem(c_oSer_SheetView.Selection, function(){oThis.WriteSheetViewSelection(ws.selectionRange);});
@@ -6796,7 +6807,10 @@
                     tmp.prevCol++;
                     tmp.cell.setRowCol(tmp.prevRow, tmp.prevCol);
                 }
-				this.setFormulaOpen(tmp);
+				//use only excel
+				if(!(this.copyPasteObj && this.copyPasteObj.isCopyPaste && typeof editor != "undefined" && editor)) {
+					this.setFormulaOpen(tmp);
+				}
 				tmp.cell.saveContent();
                 if (tmp.cell.nCol >= tmp.ws.nColsCount) {
                     tmp.ws.nColsCount = tmp.cell.nCol + 1;
@@ -6863,9 +6877,7 @@
 			}
 			if (curFormula) {
 				cell.setFormulaInternal(curFormula.parsed);
-				//TODO в версии 5.1.5 при открытии ячейки с формулой и пустым текстом попадали в changedCell по условию !cell.getValueWithoutFormat()
-				//TODO добавляю данное условие для правки бага. до выпуска обязательно пересмотреть!!!
-				if (curFormula.parsed.ca || cell.isNullTextString() || !cell.getValueWithoutFormat()) {
+				if (curFormula.parsed.ca || cell.isNullTextString()) {
 					tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
 				}
 			}

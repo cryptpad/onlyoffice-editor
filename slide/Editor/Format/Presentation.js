@@ -1585,7 +1585,8 @@ CPresentation.prototype =
 
     Stop_Recalculate : function()
     {
-        this.DrawingDocument.OnStartRecalculate( 0 );
+        this.clearThemeTimeouts();
+//        this.DrawingDocument.OnStartRecalculate( 0 );
     },
 
     OnContentReDraw : function(StartPage, EndPage)
@@ -2141,8 +2142,9 @@ CPresentation.prototype =
                 _h = this.Slides[this.CurPage].Height;
                 var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
                 var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
-                _w      = Math.max(5, Math.min(_w, __w));
-                _h      = Math.max(5, Math.min((_w * __h / __w)));
+                var fKoeff = Math.min(1.0, 1.0/Math.max(__w/_w, __h/_h));
+                _w      = Math.max(5, __w*fKoeff);
+                _h      = Math.max(5, __h*fKoeff);
                 var Image = oController.createImage(_image.src, (this.Slides[this.CurPage].Width - _w)/2, (this.Slides[this.CurPage].Height - _h)/2, _w, _h);
                 Image.setParent(this.Slides[this.CurPage]);
                 Image.addToDrawingObjects();
@@ -2480,7 +2482,7 @@ CPresentation.prototype =
 
     GetSelectedBounds: function(){
         var oController = this.GetCurrentController();
-        if(oController.selectedObjects.length > 0){
+        if(oController && oController.selectedObjects.length > 0){
             return oController.getBoundsForGroup([oController.selectedObjects[0]]);
         }
         return new AscFormat.CGraphicBounds(0, 0, 0, 0);
@@ -6714,7 +6716,7 @@ CPresentation.prototype =
     shiftSlides: function(pos, array, bCopy)
     {
         if(!this.CanEdit()){
-            return;
+            return this.CurPage;
         }
         History.Create_NewPoint(AscDFH.historydescription_Presentation_ShiftSlides);
         array.sort(AscCommon.fSortAscending);
@@ -6766,6 +6768,7 @@ CPresentation.prototype =
         this.DrawingDocument.OnEndRecalculate();
         this.DrawingDocument.UpdateThumbnailsAttack();
         this.DrawingDocument.m_oWordControl.GoToPage(_newSelectedPage);
+        return _newSelectedPage;
     },
 
     deleteSlides: function(array)

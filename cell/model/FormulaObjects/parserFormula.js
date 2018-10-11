@@ -1246,6 +1246,17 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		});
 		return arr;
 	};
+	cArea.prototype.getMatrixNoEmpty = function () {
+		var arr = [], r = this.getRange(), res;
+		r._foreachNoEmpty(function (cell, i, j, r1, c1) {
+			if (!arr[i - r1]) {
+				arr[i - r1] = [];
+			}
+
+			arr[i - r1][j - c1] = checkTypeCell(cell);
+		});
+		return arr;
+	};
 	cArea.prototype.getValuesNoEmpty = function (checkExclude, excludeHiddenRows, excludeErrorsVal, excludeNestedStAg) {
 		var arr = [], r = this.getRange();
 
@@ -1386,11 +1397,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			_val.push(new cError(cErrorType.bad_reference));
 			return _val;
 		}
-		_r[0]._foreachNoEmpty(function (_cell) {
-			if (cell.getID() === _cell.getName()) {
+
+		if(_r[0].worksheet) {
+			_r[0].worksheet._getCellNoEmpty(cell.row - 1, cell.col - 1, function(_cell) {
 				_val.push(checkTypeCell(_cell));
-			}
-		});
+			});
+		}
 
 		return (null == _val[0]) ? new cEmpty() : _val[0];
 	};
@@ -1496,6 +1508,21 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		for (var k = 0; k < r.length; k++) {
 			arr[k] = [];
 			r[k]._foreach2(function (cell, i, j, r1, c1) {
+				if (!arr[k][i - r1]) {
+					arr[k][i - r1] = [];
+				}
+				res = checkTypeCell(cell);
+
+				arr[k][i - r1][j - c1] = res;
+			});
+		}
+		return arr;
+	};
+	cArea3D.prototype.getMatrixNoEmpty = function () {
+		var arr = [], r = this.getRanges(), res;
+		for (var k = 0; k < r.length; k++) {
+			arr[k] = [];
+			r[k]._foreachNoEmpty(function (cell, i, j, r1, c1) {
 				if (!arr[k][i - r1]) {
 					arr[k][i - r1] = [];
 				}

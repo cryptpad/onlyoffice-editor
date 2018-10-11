@@ -7965,6 +7965,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	asc_CPageSetup.prototype.asc_getFitToWidth = function () { return this.fitToWidth; };
 	asc_CPageSetup.prototype.asc_getFitToHeight = function () { return this.fitToHeight; };
 
+	asc_CPageSetup.prototype.asc_getScale = function () { return this.scale; };
+
 	asc_CPageSetup.prototype.asc_setFitToWidth = function (newVal) {
 		var oldVal = this.fitToWidth;
 		this.fitToWidth = newVal;

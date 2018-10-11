@@ -2945,6 +2945,8 @@ background-repeat: no-repeat;\
 						Index : -1
 					}
 				}));
+
+				this.UpdateInterfaceState();
 			}
 		}
 	};
@@ -2955,9 +2957,7 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextFontSize);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({FontSize : Math.min(size, 100)}));
 
-			// для мобильной версии это важно
-			if (this.isMobileVersion)
-				this.UpdateInterfaceState();
+			this.UpdateInterfaceState();
 		}
 	};
 
@@ -2967,6 +2967,7 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextBold);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Bold : value}));
+			this.UpdateInterfaceState();
 		}
 	};
 	asc_docs_api.prototype.put_TextPrItalic     = function(value)
@@ -2975,6 +2976,7 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextItalic);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Italic : value}));
+			this.UpdateInterfaceState();
 		}
 	};
 	asc_docs_api.prototype.put_TextPrUnderline  = function(value)
@@ -2983,9 +2985,7 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextUnderline);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Underline : value}));
-
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 	asc_docs_api.prototype.put_TextPrStrikeout  = function(value)
@@ -2997,9 +2997,7 @@ background-repeat: no-repeat;\
 				Strikeout  : value,
 				DStrikeout : false
 			}));
-
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 	asc_docs_api.prototype.put_TextPrDStrikeout = function(value)
@@ -3011,9 +3009,7 @@ background-repeat: no-repeat;\
 				DStrikeout : value,
 				Strikeout  : false
 			}));
-
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 	asc_docs_api.prototype.put_TextPrSpacing    = function(value)
@@ -3022,9 +3018,7 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextSpacing);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Spacing : value}));
-
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 
@@ -3037,9 +3031,7 @@ background-repeat: no-repeat;\
 				Caps      : value,
 				SmallCaps : false
 			}));
-
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 
@@ -3052,9 +3044,7 @@ background-repeat: no-repeat;\
 				SmallCaps : value,
 				Caps      : false
 			}));
-
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 
@@ -3065,9 +3055,7 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextPosition);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Position : value}));
-
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 
@@ -3077,11 +3065,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextLang);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Lang : {Val : value}}));
-
 			this.WordControl.m_oLogicDocument.Spelling.Check_CurParas();
-
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 
@@ -3416,6 +3401,7 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextVertAlign);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({VertAlign : value}));
+			this.UpdateInterfaceState();
 		}
 	};
 	/*
@@ -3875,8 +3861,7 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
 			}
 
-			if (true === this.isMarkerFormat)
-				this.sync_MarkerFormatCallback(false);
+			this.UpdateInterfaceState();
 		}
 	};
 	asc_docs_api.prototype.put_ParagraphShade     = function(is_flag, color, isOnlyPara)
@@ -7749,21 +7734,21 @@ background-repeat: no-repeat;\
 					if (oContentControlPr)
 						oContentControl.SetContentControlPr(oContentControlPr);
 
-					if (oContentControl.IsEmpty())
-					{
-						// TODO: Разобраться с тем, чтобы пересчет не вызывался в фунции AddToParagraph
-						oLogicDocument.TurnOff_Recalculate();
-						for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
-						{
-							var nCharCode = oIterator.value();
-							if (0x0020 === nCharCode)
-								oContentControl.AddToParagraph(new AscCommonWord.ParaSpace());
-							else
-								oContentControl.AddToParagraph(new AscCommonWord.ParaText(nCharCode));
-						}
-						oLogicDocument.SelectContentControl(oContentControl.GetId());
-						oLogicDocument.TurnOn_Recalculate();
-					}
+					// if (oContentControl.IsEmpty())
+					// {
+					// 	// TODO: Разобраться с тем, чтобы пересчет не вызывался в фунции AddToParagraph
+					// 	oLogicDocument.TurnOff_Recalculate();
+					// 	for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
+					// 	{
+					// 		var nCharCode = oIterator.value();
+					// 		if (0x0020 === nCharCode)
+					// 			oContentControl.AddToParagraph(new AscCommonWord.ParaSpace());
+					// 		else
+					// 			oContentControl.AddToParagraph(new AscCommonWord.ParaText(nCharCode));
+					// 	}
+					// 	oLogicDocument.SelectContentControl(oContentControl.GetId());
+					// 	oLogicDocument.TurnOn_Recalculate();
+					// }
 
 					oLogicDocument.Recalculate();
 					oLogicDocument.Document_UpdateInterfaceState();
@@ -9094,12 +9079,6 @@ background-repeat: no-repeat;\
 
 	window["asc_docs_api"].prototype["pluginMethod_InsertAndReplaceContentControls"] = function(arrDocuments)
 	{
-		if (!this._checkLicenseApiFunctions())
-		{
-			this.sendEvent('asc_onLicenseError');
-			return;
-		}
-
 		var _worker = new CContentControlPluginWorker(this, arrDocuments);
 		return _worker.start();
 	};
@@ -9110,12 +9089,6 @@ background-repeat: no-repeat;\
 	};
 	window["asc_docs_api"].prototype["pluginMethod_GetAllContentControls"] = function()
 	{
-		if (!this._checkLicenseApiFunctions())
-		{
-			this.sendEvent('asc_onLicenseError');
-			return [];
-		}
-
 		var _blocks = this.WordControl.m_oLogicDocument.GetAllContentControls();
 		var _ret = [];
 		var _obj = null;
@@ -9152,12 +9125,6 @@ background-repeat: no-repeat;\
 	};
 	window["asc_docs_api"].prototype["pluginMethod_SelectContentControl"] = function(id)
 	{
-		if (!this._checkLicenseApiFunctions())
-		{
-			this.sendEvent('asc_onLicenseError');
-			return [];
-		}
-
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return;

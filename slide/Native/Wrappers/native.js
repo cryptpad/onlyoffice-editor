@@ -225,6 +225,309 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
     switch (type)
     {
+        case 1: // ASC_MENU_EVENT_TYPE_TEXTPR
+        {
+            var _textPr = new AscCommonWord.CTextPr();
+            while (_continue)
+            {
+                var _attr = _params[_current.pos++];
+                switch (_attr)
+                {
+                    case 0:
+                    {
+                        _textPr.Bold = _params[_current.pos++];
+                        break;
+                    }
+                    case 1:
+                    {
+                        _textPr.Italic = _params[_current.pos++];
+                        break;
+                    }
+                    case 2:
+                    {
+                        _textPr.Underline = _params[_current.pos++];
+                        break;
+                    }
+                    case 3:
+                    {
+                        _textPr.Strikeout = _params[_current.pos++];
+                        break;
+                    }
+                    case 4:
+                    {
+                        _textPr.FontFamily = asc_menu_ReadFontFamily(_params, _current);
+                        break;
+                    }
+                    case 5:
+                    {
+                        _textPr.FontSize = _params[_current.pos++];
+                        break;
+                    }
+                    case 6:
+                    {
+                        var Unifill = new AscFormat.CUniFill();
+                        Unifill.fill = new AscFormat.CSolidFill();
+                        var color = asc_menu_ReadColor(_params, _current);
+                        Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
+                        _textPr.Unifill = Unifill;
+                        break;
+                    }
+                    case 7:
+                    {
+                        _textPr.VertAlign = _params[_current.pos++];
+                        break;
+                    }
+                    case 8:
+                    {
+                        var color = asc_menu_ReadColor(_params, _current);
+                        _textPr.HighLight = { r: color.r, g: color.g, b: color.b };
+                        break;
+                    }
+                    case 9:
+                    {
+                        _textPr.DStrikeout = _params[_current.pos++];
+                        break;
+                    }
+                    case 10:
+                    {
+                        _textPr.Caps = _params[_current.pos++];
+                        break;
+                    }
+                    case 11:
+                    {
+                        _textPr.SmallCaps = _params[_current.pos++];
+                        break;
+                    }
+                    case 12:
+                    {
+                        _textPr.HighLight = AscCommonWord.highlight_None;
+                        break;
+                    }
+                    case 13:
+                    {
+                        _textPr.Spacing = _params[_current.pos++];
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
+
+            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+            this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(_textPr));
+            this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+
+            break;
+        }
+
+        case 2: // ASC_MENU_EVENT_TYPE_PARAPR
+        {
+            var _textPr = undefined;
+
+            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+
+            while (_continue)
+            {
+                var _attr = _params[_current.pos++];
+                switch (_attr)
+                {
+                    case 0:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphContextualSpacing( _params[_current.pos++] );
+                        break;
+                    }
+                    case 1:
+                    {
+                        var _ind = asc_menu_ReadParaInd(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphIndent( _ind );
+                        break;
+                    }
+                    case 2:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphKeepLines( _params[_current.pos++] );
+                        break;
+                    }
+                    case 3:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphKeepNext( _params[_current.pos++] );
+                        break;
+                    }
+                    case 4:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphWidowControl( _params[_current.pos++] );
+                        break;
+                    }
+                    case 5:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphPageBreakBefore( _params[_current.pos++] );
+                        break;
+                    }
+                    case 6:
+                    {
+                        var _spacing = asc_menu_ReadParaSpacing(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphSpacing( _spacing );
+                        break;
+                    }
+                    case 7:
+                    {
+                        // TODO:
+                        var _brds = asc_menu_ReadParaBorders(_params, _current);
+
+                        if (_brds.Left && _brds.Left.Color)
+                        {
+                            _brds.Left.Unifill = AscFormat.CreateUnifillFromAscColor(_brds.Left.Color);
+                        }
+                        if (_brds.Top && _brds.Top.Color)
+                        {
+                            _brds.Top.Unifill = AscFormat.CreateUnifillFromAscColor(_brds.Top.Color);
+                        }
+                        if (_brds.Right && _brds.Right.Color)
+                        {
+                            _brds.Right.Unifill = AscFormat.CreateUnifillFromAscColor(_brds.Right.Color);
+                        }
+                        if (_brds.Bottom && _brds.Bottom.Color)
+                        {
+                            _brds.Bottom.Unifill = AscFormat.CreateUnifillFromAscColor(_brds.Bottom.Color);
+                        }
+
+                        this.WordControl.m_oLogicDocument.SetParagraphBorders( _brds );
+                        break;
+                    }
+                    case 8:
+                    {
+                        var _shd = asc_menu_ReadParaShd(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphShd( _shd );
+                        break;
+                    }
+                    case 9:
+                    case 10:
+                    case 11:
+                    {
+                        // nothing
+                        _current.pos++;
+                        break;
+                    }
+                    case 12:
+                    {
+                        this.WordControl.m_oLogicDocument.Set_DocumentDefaultTab( _params[_current.pos++] );
+                        break;
+                    }
+                    case 13:
+                    {
+                        var _tabs = asc_menu_ReadParaTabs(_params, _current);
+                        // TODO:
+                        this.WordControl.m_oLogicDocument.SetParagraphTabs( _tabs.Tabs );
+                        break;
+                    }
+                    case 14:
+                    {
+                        var _framePr = asc_menu_ReadParaFrame(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphFramePr( _framePr );
+                        break;
+                    }
+                    case 15:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        if (true == _params[_current.pos++])
+                            _textPr.VertAlign = AscCommon.vertalign_SubScript;
+                        else
+                            _textPr.VertAlign = AscCommon.vertalign_Baseline;
+                        break;
+                    }
+                    case 16:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        if (true == _params[_current.pos++])
+                            _textPr.VertAlign = AscCommon.vertalign_SuperScript;
+                        else
+                            _textPr.VertAlign = AscCommon.vertalign_Baseline;
+                        break;
+                    }
+                    case 17:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.SmallCaps = _params[_current.pos++];
+                        _textPr.Caps   = false;
+                        break;
+                    }
+                    case 18:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.Caps = _params[_current.pos++];
+                        if (true == _textPr.Caps)
+                            _textPr.SmallCaps = false;
+                        break;
+                    }
+                    case 19:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.Strikeout  = _params[_current.pos++];
+                        _textPr.DStrikeout = false;
+                        break;
+                    }
+                    case 20:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.DStrikeout  = _params[_current.pos++];
+                        if (true == _textPr.DStrikeout)
+                            _textPr.Strikeout = false;
+                        break;
+                    }
+                    case 21:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.TextSpacing = _params[_current.pos++];
+                        break;
+                    }
+                    case 22:
+                    {
+                        if (_textPr === undefined)
+                            _textPr = new AscCommonWord.CTextPr();
+                        _textPr.Position = _params[_current.pos++];
+                        break;
+                    }
+                    case 23:
+                    {
+                        var _listType = asc_menu_ReadParaListType(_params, _current);
+                        this.WordControl.m_oLogicDocument.SetParagraphNumbering( _listType );
+                        break;
+                    }
+                    case 24:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphStyle( _params[_current.pos++] );
+                        break;
+                    }
+                    case 25:
+                    {
+                        this.WordControl.m_oLogicDocument.SetParagraphAlign( _params[_current.pos++] );
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
+
+            if (undefined !== _textPr)
+                this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(_textPr));
+
+            this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+            break;
+        }
         case 3: // ASC_MENU_EVENT_TYPE_UNDO
         {
             this.WordControl.m_oLogicDocument.Document_Undo();
@@ -543,6 +846,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         }
 
+        case 13: // ASC_MENU_EVENT_TYPE_INCREASEPARAINDENT
+        {
+            this.IncreaseIndent();
+            break;
+        }
+        case 14: // ASC_MENU_EVENT_TYPE_DECREASEPARAINDENT
+        {
+            this.DecreaseIndent();
+            break;
+        }
+
         case 18: // ASC_MENU_EVENT_TYPE_SHAPE
         {
             var shapeProp = asc_menu_ReadShapePr(_params, _current);           
@@ -571,41 +885,12 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         
         case 50: // ASC_MENU_EVENT_TYPE_INSERT_IMAGE
         {
-            var url = _params[0];
-            var w = _params[1];
-            var h = _params[2];
-
-            var logicDocument = this.WordControl.m_oLogicDocument;
-
-            this.WordControl.Thumbnails && this.WordControl.Thumbnails.SetFocusElement(FOCUS_OBJECT_MAIN);
-            logicDocument.FocusOnNotes = false;
-           
-            var oController = logicDocument.Slides[logicDocument.CurPage].graphicObjects;
-           
-            History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
-            oController.resetSelection();
-                
-            var _w, _h;
-                
-            _w = logicDocument.Slides[logicDocument.CurPage].Width;
-            _h = logicDocument.Slides[logicDocument.CurPage].Height;
-           
-            var __w = Math.max((w * AscCommon.g_dKoef_pix_to_mm), 1);
-            var __h = Math.max((h * AscCommon.g_dKoef_pix_to_mm), 1);
-           
-            _w = Math.max(5, Math.min(_w, __w));
-            _h = Math.max(5, Math.min((_w * __h / __w)));
-           
-            var Image = oController.createImage(url, (logicDocument.Slides[logicDocument.CurPage].Width - _w)/2,
-                                                                    (logicDocument.Slides[logicDocument.CurPage].Height - _h)/2, _w, _h);
-            Image.setParent(logicDocument.Slides[logicDocument.CurPage]);
-            Image.addToDrawingObjects();
-            oController.selectObject(Image, 0);
-
-            logicDocument.Recalculate();
-            logicDocument.Document_UpdateInterfaceState();
-            logicDocument.CheckEmptyPlaceholderNotes();
-
+            var oImageObject = {};
+            oImageObject.src = _params[0];
+            oImageObject.Image = {};
+            oImageObject.Image.width = _params[1];
+            oImageObject.Image.height = _params[2];
+            this.WordControl.m_oLogicDocument.addImages([oImageObject]);
             break;
         }
 
@@ -867,6 +1152,18 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+
+        case 8001: //ASC_PRESENTATIONS_EVENT_TYPE_ALL_TRANSITIONS
+        {
+            var aTimings = [];
+            var slides = this.WordControl.m_oLogicDocument.Slides;
+            for(var i = 0; i < slides.length; ++i){
+                aTimings.push(slides[i].timing.ToArray());
+            }
+            _return = aTimings;
+            break;
+        }
+
         case 8111: // ASC_PRESENTATIONS_EVENT_TYPE_ADD_SLIDE
         {
             var index = parseInt(_params);
@@ -899,7 +1196,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var nPos = _params[0];
             var aMoveArray = _params.slice(1);
             this.WordControl.m_oDrawingDocument.LockEvents = true;
-            this.WordControl.m_oLogicDocument.shiftSlides(nPos, aMoveArray, false);
+            this.WordControl.m_oLogicDocument.CurPage = this.WordControl.m_oLogicDocument.shiftSlides(nPos, aMoveArray, false);
             this.WordControl.m_oDrawingDocument.LockEvents = false;
             this.WordControl.m_oDrawingDocument.UpdateThumbnailsAttack();
             _return = _stream;
@@ -946,21 +1243,21 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             var level = parseInt(_params);
 
-            if (Asc.c_oAscAlignShapeType.ALIGN_LEFT == type) {
+            if (Asc.c_oAscAlignShapeType.ALIGN_LEFT == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_LEFT);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_CENTER == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_CENTER == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_CENTER);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_RIGHT == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_RIGHT == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_RIGHT);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_TOP == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_TOP == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_TOP);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_MIDDLE == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_MIDDLE == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_MIDDLE);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_BOTTOM == type) {
+            } else if (Asc.c_oAscAlignShapeType.ALIGN_BOTTOM == level) {
                 this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_BOTTOM);
-            } else if (6 == type) {
+            } else if (6 == level) {
                 this.DistributeHorizontally();
-            } else if (7 == type) {
+            } else if (7 == level) {
                 this.DistributeVertically();
             } 
 

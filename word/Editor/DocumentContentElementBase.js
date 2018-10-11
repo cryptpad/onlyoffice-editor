@@ -940,6 +940,24 @@ CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurre
 {
 	return false;
 };
+/**
+ * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект
+ * @returns {?Object}
+ */
+CDocumentContentElementBase.prototype.GetPlaceHolderObject = function()
+{
+	return null;
+};
+/**
+ * Получаем массив все полей в документе (простых и сложных)
+ * @param isUseSelection {boolean} ищем по селекут или вообще все
+ * @param arrFields - массив, который мы заполняем, если не задан, то создается новый и возвращается
+ * @returns {Array}
+ */
+CDocumentContentElementBase.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	return arrFields ? arrFields : [];
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

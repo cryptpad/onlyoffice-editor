@@ -180,7 +180,7 @@ CDocumentContentBase.prototype.Reassign_ImageUrls = function(mapUrls)
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа
  * @param {?CFootEndnote} oLastFootnote - если null, то ищем до конца документа
  */
-CDocumentContentBase.prototype.Get_FootnotesList = function(oFirstFootnote, oLastFootnote)
+CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 {
 	var oEngine = new CDocumentFootnotesRangeEngine();
 	oEngine.Init(oFirstFootnote, oLastFootnote);
@@ -192,7 +192,7 @@ CDocumentContentBase.prototype.Get_FootnotesList = function(oFirstFootnote, oLas
 	{
 		var oParagraph = arrParagraphs[nIndex];
 
-		if (true === oParagraph.Get_FootnotesList(oEngine))
+		if (true === oParagraph.GetFootnotesList(oEngine))
 			return arrFootnotes;
 	}
 
@@ -567,7 +567,9 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 						// Пока у нас параграфы будут объединяться всегда и настройки будут браться из первого
 						// параграфа, кроме случая, когда первый параграф полностью удаляется.
 
-						if (true === this.Content[StartPos].IsEmpty() && this.Content.length > 1)
+						if (this.Content.length > 1
+							&& (true === this.Content[StartPos].IsEmpty()
+							|| (type_BlockLevelSdt === this.Content[StartPos].GetType() && this.Content[StartPos].IsPlaceHolder() && (!this.GetLogicDocument() || !this.GetLogicDocument().IsFillingFormMode()))))
 						{
 							this.Internal_Content_Remove(StartPos, 1);
 
@@ -1058,22 +1060,24 @@ CDocumentContentBase.prototype.GetElement = function(nIndex)
  * Добавляем новый элемент (с записью в историю)
  * @param nPos
  * @param oItem
+ * @param {booleam} [isCorrectContent=true]
  */
-CDocumentContentBase.prototype.AddToContent = function(nPos, oItem)
+CDocumentContentBase.prototype.AddToContent = function(nPos, oItem, isCorrectContent)
 {
-	this.Add_ToContent(nPos, oItem);
+	this.Add_ToContent(nPos, oItem, isCorrectContent);
 };
 /**
  * Удаляем заданное количество элементов (с записью в историю)
  * @param {number} nPos
  * @param {number} [nCount=1]
+ * @param {boolean} [isCorrectContent=true]
  */
-CDocumentContentBase.prototype.RemoveFromContent = function(nPos, nCount)
+CDocumentContentBase.prototype.RemoveFromContent = function(nPos, nCount, isCorrectContent)
 {
 	if (undefined === nCount || null === nCount)
 		nCount = 1;
 
-	this.Remove_FromContent(nPos, nCount);
+	this.Remove_FromContent(nPos, nCount, isCorrectContent);
 };
 /**
  * Получаем текущий TableOfContents, это может быть просто поле или поле вместе с оберткой Sdt
@@ -1342,4 +1346,3 @@ CDocumentContentBase.prototype.GetSimilarNumbering = function(oContinueEngine)
 			break;
 	}
 };
-
