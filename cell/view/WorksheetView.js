@@ -9030,9 +9030,6 @@
             return;
         }
 
-        this.expandColsOnScroll(false, true);
-        this.expandRowsOnScroll(false, true);
-
         var arrFormula = selectData[1];
         for (var i = 0; i < arrFormula.length; ++i) {
             var rangeF = arrFormula[i].range;
