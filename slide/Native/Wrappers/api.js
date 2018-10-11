@@ -2889,6 +2889,66 @@ function asc_menu_ReadParaListType(_params, _cursor)
     return _list;
 }
 
+function asc_menu_ReadHyperPr(_params, _cursor)
+{
+    var _settings = new Asc.CHyperlinkProperty();
+
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _settings.Text = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _settings.Value = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _settings.ToolTip = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+
+    return _settings;
+};
+
+function asc_menu_WriteHyperPr(_hyperPr, _stream)
+{
+    if (_hyperPr.Text !== undefined && _hyperPr.Text !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteString2"](_hyperPr.Text);
+    }
+
+    if (_hyperPr.Value !== undefined && _hyperPr.Value !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteString2"](_hyperPr.Value);
+    }
+
+    if (_hyperPr.ToolTip !== undefined && _hyperPr.ToolTip !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteString2"](_hyperPr.ToolTip);
+    }
+
+    _stream["WriteByte"](255);
+};
+
 function NativeOpenFileP(_params, documentInfo){
     window["CreateMainTextMeasurerWrapper"]();
     window.g_file_path = "native_open_file";

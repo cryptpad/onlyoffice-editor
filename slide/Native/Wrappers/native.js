@@ -938,6 +938,13 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             break;
         }
+
+        case 52: // ASC_MENU_EVENT_TYPE_INSERT_HYPERLINK
+        {
+            var props = asc_menu_ReadHyperPr(_params, _current);
+            this.add_Hyperlink(props);
+            break;
+        }
       
         case 53: // ASC_MENU_EVENT_TYPE_INSERT_SHAPE
         {
@@ -964,7 +971,38 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             }
             break;
         }
-       
+        
+        case 58: // ASC_MENU_EVENT_TYPE_CAN_ADD_HYPERLINK
+        {
+            var bCanAdd = this.can_AddHyperlink();
+
+            var _stream = global_memory_stream_menu;
+            _stream["ClearNoAttack"]();
+            if ( true === bCanAdd )
+            {
+                var _text = this.WordControl.m_oLogicDocument.GetSelectedText(true);
+                if (null == _text)
+                    _stream["WriteByte"](1);
+                else
+                {
+                    _stream["WriteByte"](2);
+                    _stream["WriteString2"](_text);
+                }
+            }
+            else
+            {
+                _stream["WriteByte"](0);
+            }
+            _return = _stream;
+            break;
+        }
+
+        case 59: // ASC_MENU_EVENT_TYPE_REMOVE_HYPERLINK
+        {
+            this.remove_Hyperlink();
+            break;
+        }
+
         case 62: //ASC_MENU_EVENT_TYPE_SEARCH_FINDTEXT
         {
             var SearchEngine = this.WordControl.m_oLogicDocument.Search(_params[0], {MatchCase : _params[2]});
@@ -1282,6 +1320,12 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 }
             }
             _return = 0;
+            break;
+        }
+
+        case 8200: // ASC_PRESENTATIONS_EVENT_TYPE_GO_TO_INTERNAL_LINK 
+        {
+
             break;
         }
 
