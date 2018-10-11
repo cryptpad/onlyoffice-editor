@@ -12229,6 +12229,9 @@ CChartSpace.prototype.recalculateMarkers = function()
                 var RGBA = {R:0, G:0, B:0, A: 255};
                 if(oCurChart.varyColors && (oCurChart.series.length === 1 || oCurChart.getObjectType() === AscDFH.historyitem_type_PieChart || oCurChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart))
                 {
+                    if(oCurChart.series.length < 1){
+                        return;
+                    }
                     var ser = oCurChart.series[0], pts;
                     if(ser.marker && ser.marker.symbol === AscFormat.SYMBOL_NONE && (!Array.isArray(ser.dPt) || ser.dPt.length === 0))
                         return;
