@@ -229,6 +229,9 @@
 				navigator.platform + ' isLoadFullApi: ' + t.isLoadFullApi + ' isDocumentLoadComplete: ' +
 				t.isDocumentLoadComplete + ' StackTrace: ' + (errorObj ? errorObj.stack : "");
 			t.CoAuthoringApi.sendChangesError(msg);
+
+			t.asc_setViewMode(true);
+			t.sendEvent("asc_onError", Asc.c_oAscError.ID.EditingError, c_oAscError.Level.NoCritical);
 			//send only first error to reduce number of requests. also following error may be consequences of first
 			window.onerror = oldOnError;
 			if (oldOnError) {
