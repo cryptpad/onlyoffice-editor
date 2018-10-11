@@ -1408,6 +1408,9 @@
 	cNETWORKDAYS_INTL.prototype.argumentsMin = 2;
 	cNETWORKDAYS_INTL.prototype.argumentsMax = 4;
 	cNETWORKDAYS_INTL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cNETWORKDAYS_INTL.prototype.arrayIndexes = {2: 1, 3: 1};
+	//TODO в данном случае есть различия с ms. при 3 и 4 аргументах - замена результата на ошибку не происходит.
+	cNETWORKDAYS_INTL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cNETWORKDAYS_INTL.prototype.Calculate = function (arg) {
 		var tempArgs = arg[2] ? [arg[0], arg[1], arg[2]] : [arg[0], arg[1]];
 		var oArguments = this._prepareArguments(tempArgs, arguments[1]);
@@ -1926,12 +1929,16 @@
 	function cWORKDAY_INTL() {
 	}
 
+	//***array-formula***
 	cWORKDAY_INTL.prototype = Object.create(cBaseFunction.prototype);
 	cWORKDAY_INTL.prototype.constructor = cWORKDAY_INTL;
 	cWORKDAY_INTL.prototype.name = 'WORKDAY.INTL';
 	cWORKDAY_INTL.prototype.argumentsMin = 2;
 	cWORKDAY_INTL.prototype.argumentsMax = 4;
 	cWORKDAY_INTL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cWORKDAY_INTL.prototype.arrayIndexes = {2: 1, 3: 1};
+	//TODO в данном случае есть различия с ms. при 3 и 4 аргументах - замена результата на ошибку не происходит.
+	cWORKDAY_INTL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cWORKDAY_INTL.prototype.Calculate = function (arg) {
 		//TODO проблема с формулами следующего типа - WORKDAY.INTL(8,60,"0000000")
 		var t = this;

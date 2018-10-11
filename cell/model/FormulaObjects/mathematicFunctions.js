@@ -4245,10 +4245,13 @@
 	function cSUBTOTAL() {
 	}
 
+	//***array-formula***
 	cSUBTOTAL.prototype = Object.create(cBaseFunction.prototype);
 	cSUBTOTAL.prototype.constructor = cSUBTOTAL;
 	cSUBTOTAL.prototype.name = 'SUBTOTAL';
 	cSUBTOTAL.prototype.argumentsMin = 1;
+	//TODO все оставшиеся аргументы приходят на вход функции как массивы
+	cSUBTOTAL.prototype.arrayIndexes = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1};
 	cSUBTOTAL.prototype.Calculate = function (arg) {
 		var f, exclude = false, arg0 = arg[0];
 
@@ -4400,11 +4403,13 @@
 	function cSUMIF() {
 	}
 
+	//***array-formula***
 	cSUMIF.prototype = Object.create(cBaseFunction.prototype);
 	cSUMIF.prototype.constructor = cSUMIF;
 	cSUMIF.prototype.name = 'SUMIF';
 	cSUMIF.prototype.argumentsMin = 2;
 	cSUMIF.prototype.argumentsMax = 3;
+	cSUMIF.prototype.arrayIndexes = {0: 1, 2: 1};
 	cSUMIF.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : arg[0], _sum = 0, matchingInfo;
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&
@@ -4468,10 +4473,13 @@
 	function cSUMIFS() {
 	}
 
+	//TODO есть расхождение с MS - смотри в файле + arrayIndexes - нужно формировать при условии что все нечетные аргумента - массивы(начиная с 3 аргумента)
+	//***array-formula***
 	cSUMIFS.prototype = Object.create(cBaseFunction.prototype);
 	cSUMIFS.prototype.constructor = cSUMIFS;
 	cSUMIFS.prototype.name = 'SUMIFS';
 	cSUMIFS.prototype.argumentsMin = 3;
+	cSUMIFS.prototype.arrayIndexes = {0: 1, 1: 1, 3: 1, 5: 1, 7: 1};
 	cSUMIFS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&

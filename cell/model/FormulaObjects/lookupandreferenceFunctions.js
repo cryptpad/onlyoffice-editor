@@ -570,11 +570,13 @@ function (window, undefined) {
 	function cLOOKUP() {
 	}
 
+	//***array-formula***
 	cLOOKUP.prototype = Object.create(cBaseFunction.prototype);
 	cLOOKUP.prototype.constructor = cLOOKUP;
 	cLOOKUP.prototype.name = 'LOOKUP';
 	cLOOKUP.prototype.argumentsMin = 2;
 	cLOOKUP.prototype.argumentsMax = 3;
+	cLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
 	cLOOKUP.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = 2 === arg.length ? arg1 : arg[2], resC = -1, resR = -1,
 			t = this;
@@ -718,11 +720,13 @@ function (window, undefined) {
 	function cMATCH() {
 	}
 
+	//***array-formula***
 	cMATCH.prototype = Object.create(cBaseFunction.prototype);
 	cMATCH.prototype.constructor = cMATCH;
 	cMATCH.prototype.name = 'MATCH';
 	cMATCH.prototype.argumentsMin = 2;
 	cMATCH.prototype.argumentsMax = 3;
+	cMATCH.prototype.arrayIndexes = {1: 1};
 	cMATCH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
 
