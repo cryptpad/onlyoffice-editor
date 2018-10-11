@@ -1411,22 +1411,26 @@ function DrawingObjects() {
             }
             case c_oAscCellAnchorType.cellanchorOneCell:
             {
-				coordsFrom = _this.calculateCoords(_t.from);
-				metrics.x = pxToMm( coordsFrom.x );
-				metrics.y = pxToMm( coordsFrom.y );
-				metrics.extX = this.ext.cx;
-				metrics.extY = this.ext.cy;
+                if (_this.worksheet) {
+					coordsFrom = _this.calculateCoords(_t.from);
+					metrics.x = pxToMm( coordsFrom.x );
+					metrics.y = pxToMm( coordsFrom.y );
+					metrics.extX = this.ext.cx;
+					metrics.extY = this.ext.cy;
+                }
                 break;
             }
             case c_oAscCellAnchorType.cellanchorTwoCell:
             {
-				coordsFrom = _this.calculateCoords(_t.from);
-				metrics.x = pxToMm( coordsFrom.x );
-				metrics.y = pxToMm( coordsFrom.y );
+				if (_this.worksheet) {
+					coordsFrom = _this.calculateCoords(_t.from);
+					metrics.x = pxToMm( coordsFrom.x );
+					metrics.y = pxToMm( coordsFrom.y );
 
-				coordsTo = _this.calculateCoords(_t.to);
-				metrics.extX = pxToMm( coordsTo.x - coordsFrom.x );
-				metrics.extY = pxToMm( coordsTo.y - coordsFrom.y );
+					coordsTo = _this.calculateCoords(_t.to);
+					metrics.extX = pxToMm( coordsTo.x - coordsFrom.x );
+					metrics.extY = pxToMm( coordsTo.y - coordsFrom.y );
+				}
                 break;
             }
         }
