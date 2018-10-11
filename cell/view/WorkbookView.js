@@ -1340,7 +1340,7 @@
 
   WorkbookView.prototype._onGraphicObjectMouseUpEx = function(e, x, y) {
     //var ws = this.getWorksheet();
-    //ws.objectRender.coordsManager.calculateCell(x, y);
+    //ws.objectRender.calculateCell(x, y);
   };
 
   WorkbookView.prototype._onGraphicObjectWindowKeyDown = function(e) {

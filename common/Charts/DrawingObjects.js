@@ -1284,7 +1284,6 @@ function DrawingObjects() {
     _this.canEdit = null;
     _this.objectLocker = null;
     _this.drawingArea = null;
-    _this.coordsManager = null;
     _this.drawingDocument = null;
     _this.asyncImageEndLoaded = null;
     _this.asyncImagesDocumentEndLoaded = null;
@@ -1412,28 +1411,22 @@ function DrawingObjects() {
             }
             case c_oAscCellAnchorType.cellanchorOneCell:
             {
-                if(_this.coordsManager)
-                {
-                    coordsFrom = _this.coordsManager.calculateCoords(_t.from);
-                    metrics.x = pxToMm( coordsFrom.x );
-                    metrics.y = pxToMm( coordsFrom.y );
-                    metrics.extX = this.ext.cx;
-                    metrics.extY = this.ext.cy;
-                }
+				coordsFrom = _this.calculateCoords(_t.from);
+				metrics.x = pxToMm( coordsFrom.x );
+				metrics.y = pxToMm( coordsFrom.y );
+				metrics.extX = this.ext.cx;
+				metrics.extY = this.ext.cy;
                 break;
             }
             case c_oAscCellAnchorType.cellanchorTwoCell:
             {
-                if(_this.coordsManager)
-                {
-                    coordsFrom = _this.coordsManager.calculateCoords(_t.from);
-                    metrics.x = pxToMm( coordsFrom.x );
-                    metrics.y = pxToMm( coordsFrom.y );
+				coordsFrom = _this.calculateCoords(_t.from);
+				metrics.x = pxToMm( coordsFrom.x );
+				metrics.y = pxToMm( coordsFrom.y );
 
-                    coordsTo = _this.coordsManager.calculateCoords(_t.to);
-                    metrics.extX = pxToMm( coordsTo.x - coordsFrom.x );
-                    metrics.extY = pxToMm( coordsTo.y - coordsFrom.y );
-                }
+				coordsTo = _this.calculateCoords(_t.to);
+				metrics.extX = pxToMm( coordsTo.x - coordsFrom.x );
+				metrics.extY = pxToMm( coordsTo.y - coordsFrom.y );
                 break;
             }
         }
@@ -1495,6 +1488,20 @@ function DrawingObjects() {
         }
     };
 
+	DrawingBase.prototype.calculateCoords = function (cell) {
+
+		var coords = {x: 0, y: 0};
+		//0 - px, 1 - pt, 2 - in, 3 - mm
+		if (cell) {
+			var rowHeight = this.worksheet.getRowHeight(cell.row, 3);
+			var colWidth = this.worksheet.getColumnWidth(cell.col, 3);
+			var resultRowOff = cell.rowOff > rowHeight ? rowHeight : cell.rowOff;
+			var resultColOff = cell.colOff > colWidth ? colWidth : cell.colOff;
+			coords.y = this.worksheet._getRowTop(cell.row) + this.worksheet.objectRender.convertMetric(resultRowOff, 3, 0) - this.worksheet._getRowTop(0);
+			coords.x = this.worksheet._getColLeft(cell.col) + this.worksheet.objectRender.convertMetric(resultColOff, 3, 0) - this.worksheet._getColLeft(0);
+		}
+		return coords;
+	};
 
     DrawingBase.prototype.checkBoundsFromTo = function() {
         var _t = this;
@@ -1613,7 +1620,7 @@ function DrawingObjects() {
                     metrics.rowOff = 0;
 
 
-                    var coordsFrom = _this.coordsManager.calculateCoords(metrics);
+                    var coordsFrom = _this.calculateCoords(metrics);
 
 
 
@@ -1779,7 +1786,6 @@ function DrawingObjects() {
         _this.objectLocker = new ObjectLocker(worksheet);
         _this.drawingArea = currentSheet.drawingArea;
         _this.drawingArea.init();
-        _this.coordsManager = new CoordsManager(worksheet, true);
         _this.drawingDocument = currentSheet.model.DrawingDocument ? currentSheet.model.DrawingDocument : new AscCommon.CDrawingDocument(this);
         _this.drawingDocument.drawingObjects = this;
         _this.drawingDocument.AutoShapesTrack = autoShapeTrack;
@@ -2317,7 +2323,7 @@ function DrawingObjects() {
         // Обработка картинок большого разрешения
         var metricCoeff = 1;
 
-        var coordsFrom = _this.coordsManager.calculateCoords(object.from);
+        var coordsFrom = _this.calculateCoords(object.from);
         var realTopOffset = coordsFrom.y;
         var realLeftOffset = coordsFrom.x;
 
@@ -2360,8 +2366,8 @@ function DrawingObjects() {
 
             _this.calculateObjectMetrics(drawingObject, isOption ? options.width : _image.Image.width, isOption ? options.height : _image.Image.height);
 
-            var coordsFrom = _this.coordsManager.calculateCoords(drawingObject.from);
-            var coordsTo = _this.coordsManager.calculateCoords(drawingObject.to);
+            var coordsFrom = _this.calculateCoords(drawingObject.from);
+            var coordsTo = _this.calculateCoords(drawingObject.to);
             _this.controller.addImageFromParams(_image.src, pxToMm(coordsFrom.x) + MOVE_DELTA, pxToMm(coordsFrom.y) + MOVE_DELTA, pxToMm(coordsTo.x - coordsFrom.x), pxToMm(coordsTo.y - coordsFrom.y));
         }
     };
@@ -2459,7 +2465,6 @@ function DrawingObjects() {
                 }, [], false, AscDFH.historydescription_Spreadsheet_CreateGroup);
                 return;
             }
-            var oVisibleRange = worksheet.getVisibleRange();
 
             _this.objectLocker.reset();
             _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
@@ -2469,15 +2474,7 @@ function DrawingObjects() {
                 _this.controller.resetSelection();
 
                 var activeCell = worksheet.model.selectionRange.activeCell;
-                var dLeft = worksheet.getCellLeft(activeCell.col, 3);
-                var dTop = worksheet.getCellTop(activeCell.row, 3);
-                var dRight = worksheet.getCellLeft(oVisibleRange.c2, 3) + worksheet.getColumnWidth(oVisibleRange.c2, 3);
-                var dBottom = worksheet.getCellTop(oVisibleRange.r2, 3) + worksheet.getRowHeight(oVisibleRange.r2, 3);
-
-
-
-                var coordsFrom = _this.coordsManager.calculateCoords({col: activeCell.col, row: activeCell.row, colOff: 0, rowOff: 0});
-
+                var coordsFrom = _this.calculateCoords({col: activeCell.col, row: activeCell.row, colOff: 0, rowOff: 0});
 
                 History.Create_NewPoint();
                 var oTextArt = _this.controller.createTextArt(0, false, worksheet.model, "");
@@ -3299,7 +3296,7 @@ function DrawingObjects() {
                         obj.to.rowOff = metrics.to.rowOff;
                         */
 
-                        var coords = _this.coordsManager.calculateCoords(metrics.from);
+                        var coords = _this.calculateCoords(metrics.from);
 
 
                         if(obj.graphicObject.spPr && obj.graphicObject.spPr.xfrm){
@@ -3391,7 +3388,7 @@ function DrawingObjects() {
                 drawingObject = aObjects[i];
 
                 if (drawingObject.from.row >= target.row) {
-                    coords = _this.coordsManager.calculateCoords(drawingObject.from);
+                    coords = _this.calculateCoords(drawingObject.from);
                     AscFormat.CheckSpPrXfrm(drawingObject.graphicObject);
 
                     var rot = AscFormat.isRealNumber(drawingObject.graphicObject.spPr.xfrm.rot) ? drawingObject.graphicObject.spPr.xfrm.rot : 0;
@@ -3412,7 +3409,7 @@ function DrawingObjects() {
                 drawingObject = aObjects[i];
 
                 if (drawingObject.from.col >= target.col) {
-                    coords = _this.coordsManager.calculateCoords(drawingObject.from);
+                    coords = _this.calculateCoords(drawingObject.from);
                     AscFormat.CheckSpPrXfrm(drawingObject.graphicObject);
 
                     var rot = AscFormat.isRealNumber(drawingObject.graphicObject.spPr.xfrm.rot) ? drawingObject.graphicObject.spPr.xfrm.rot : 0;
@@ -3636,7 +3633,7 @@ function DrawingObjects() {
 
         _this.calculateObjectMetrics(drawingObject, nWidthPix, nHeightPix);
 
-        var coordsFrom = _this.coordsManager.calculateCoords(drawingObject.from);
+        var coordsFrom = _this.calculateCoords(drawingObject.from);
 
         _this.objectLocker.reset();
         _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
@@ -4545,51 +4542,6 @@ ClickCounter.prototype.mouseMoveEvent = function(x, y) {
 ClickCounter.prototype.getClickCount = function() {
     return this.clickCount;
 };
-
-function CoordsManager(ws) {
-
-    var _t = this;
-    var worksheet = ws;
-
-    _t.calculateCell = function(x, y) {
-
-        var cell = new CCellObjectInfo();
-        var offset = worksheet.getCellsOffset(0);
-
-        var _x = x + offset.left;
-        var _y = y + offset.top;
-
-        var offsetX = worksheet._getColLeft(worksheet.getFirstVisibleCol(true)) - offset.left;
-        var offsetY = worksheet._getRowTop(worksheet.getFirstVisibleRow(true)) - offset.top;
-
-        var _cell = worksheet.findCellByXY(_x - offsetX, _y - offsetY, true, false, false);
-        cell.col = _cell.col;
-        cell.colOffPx = Math.max(0, _x - worksheet._getColLeft(cell.col));
-        cell.colOff = worksheet.objectRender.convertMetric(cell.colOffPx, 0, 3);
-        cell.row = _cell.row;
-        cell.rowOffPx = Math.max(0, _y - worksheet._getRowTop(cell.row));
-        cell.rowOff = worksheet.objectRender.convertMetric(cell.rowOffPx, 0, 3);
-
-        return cell;
-    };
-
-    _t.calculateCoords = function(cell) {
-
-        var coords = { x: 0, y: 0 };
-        //0 - px, 1 - pt, 2 - in, 3 - mm
-        if ( cell ) {
-            var rowHeight = worksheet.getRowHeight(cell.row, 3);
-            var colWidth = worksheet.getColumnWidth(cell.col, 3);
-            var resultRowOff = cell.rowOff > rowHeight ? rowHeight : cell.rowOff;
-            var resultColOff = cell.colOff > colWidth ? colWidth : cell.colOff;
-            coords.y = worksheet._getRowTop(cell.row) + worksheet.objectRender.convertMetric(resultRowOff, 3, 0) - worksheet._getRowTop(0);
-            coords.x = worksheet._getColLeft(cell.col) + worksheet.objectRender.convertMetric(resultColOff, 3, 0) - worksheet._getColLeft(0);
-        }
-        return coords;
-    }
-}
-
-
 
 //--------------------------------------------------------export----------------------------------------------------
     var prot;

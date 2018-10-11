@@ -4799,7 +4799,7 @@ function OfflineEditor () {
                 // Обработка картинок большого разрешения
                 var metricCoeff = 1;
                 
-                var coordsFrom = _this.coordsManager.calculateCoords(object.from);
+                var coordsFrom = _this.calculateCoords(object.from);
                 var realTopOffset = coordsFrom.y;
                 var realLeftOffset = coordsFrom.x;
                 
@@ -4837,8 +4837,8 @@ function OfflineEditor () {
 
                 calculateObjectMetrics(drawingObject, options[1], options[2]);
 
-                var coordsFrom = _this.coordsManager.calculateCoords(drawingObject.from);
-                var coordsTo = _this.coordsManager.calculateCoords(drawingObject.to);
+                var coordsFrom = _this.calculateCoords(drawingObject.from);
+                var coordsTo = _this.calculateCoords(drawingObject.to);
                 
                 // CImage
                 _this.objectLocker.reset();
