@@ -1488,21 +1488,6 @@ function DrawingObjects() {
         }
     };
 
-	DrawingBase.prototype.calculateCoords = function (cell) {
-
-		var coords = {x: 0, y: 0};
-		//0 - px, 1 - pt, 2 - in, 3 - mm
-		if (cell) {
-			var rowHeight = this.worksheet.getRowHeight(cell.row, 3);
-			var colWidth = this.worksheet.getColumnWidth(cell.col, 3);
-			var resultRowOff = cell.rowOff > rowHeight ? rowHeight : cell.rowOff;
-			var resultColOff = cell.colOff > colWidth ? colWidth : cell.colOff;
-			coords.y = this.worksheet._getRowTop(cell.row) + this.worksheet.objectRender.convertMetric(resultRowOff, 3, 0) - this.worksheet._getRowTop(0);
-			coords.x = this.worksheet._getColLeft(cell.col) + this.worksheet.objectRender.convertMetric(resultColOff, 3, 0) - this.worksheet._getColLeft(0);
-		}
-		return coords;
-	};
-
     DrawingBase.prototype.checkBoundsFromTo = function() {
         var _t = this;
 
@@ -4406,6 +4391,21 @@ function DrawingObjects() {
         return val * ascCvtRatio(0, 3);
     }
 }
+
+	DrawingObjects.prototype.calculateCoords = function (cell) {
+        var ws = this.getWorksheet();
+		var coords = {x: 0, y: 0};
+		//0 - px, 1 - pt, 2 - in, 3 - mm
+		if (cell) {
+			var rowHeight = ws.getRowHeight(cell.row, 3);
+			var colWidth = ws.getColumnWidth(cell.col, 3);
+			var resultRowOff = cell.rowOff > rowHeight ? rowHeight : cell.rowOff;
+			var resultColOff = cell.colOff > colWidth ? colWidth : cell.colOff;
+			coords.y = ws._getRowTop(cell.row) + ws.objectRender.convertMetric(resultRowOff, 3, 0) - ws._getRowTop(0);
+			coords.x = ws._getColLeft(cell.col) + ws.objectRender.convertMetric(resultColOff, 3, 0) - ws._getColLeft(0);
+		}
+		return coords;
+	};
 
 //-----------------------------------------------------------------------------------
 // Universal object locker/checker
