@@ -1411,7 +1411,7 @@ function DrawingObjects() {
             }
             case c_oAscCellAnchorType.cellanchorOneCell:
             {
-                if (_this.worksheet) {
+                if (worksheet) {
 					coordsFrom = _this.calculateCoords(_t.from);
 					metrics.x = pxToMm( coordsFrom.x );
 					metrics.y = pxToMm( coordsFrom.y );
@@ -1422,7 +1422,7 @@ function DrawingObjects() {
             }
             case c_oAscCellAnchorType.cellanchorTwoCell:
             {
-				if (_this.worksheet) {
+				if (worksheet) {
 					coordsFrom = _this.calculateCoords(_t.from);
 					metrics.x = pxToMm( coordsFrom.x );
 					metrics.y = pxToMm( coordsFrom.y );
