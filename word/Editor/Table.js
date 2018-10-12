@@ -3802,6 +3802,7 @@ CTable.prototype.CanMergeTableCells = function()
 //----------------------------------------------------------------------------------------------------------------------
 CTable.prototype.GetSelectionState = function()
 {
+	console.log("GetState " + this.Selection.Type2);
 	var TableState       = {};
 	TableState.Selection = {
 		Start    : this.Selection.Start,
@@ -3834,7 +3835,7 @@ CTable.prototype.GetSelectionState = function()
 		},
 		Type     : this.Selection.Type,
 		Data     : null,
-		Type2    : this.Selection.Type2,
+		Type2    : table_Selection_Common,
 		Data2    : null,
 		CurRow   : this.Selection.CurRow
 	};
@@ -3896,7 +3897,7 @@ CTable.prototype.SetSelectionState = function(State, StateIndex)
 		},
 		Type     : TableState.Selection.Type,
 		Data     : null,
-		Type2    : TableState.Selection.Type2,
+		Type2    : table_Selection_Common,
 		Data2    : null,
 		CurRow   : TableState.Selection.CurRow
 	};
