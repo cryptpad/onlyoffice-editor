@@ -1868,6 +1868,21 @@ $( function () {
 		testArrayFormula2("LOWER", 1, 1);
 	} );
 
+	test( "Test: \"EXPON.DIST\"", function () {
+		ws.getRange2( "A2" ).setValue( "0.2" );
+		ws.getRange2( "A3" ).setValue( "10" );
+
+		oParser = new parserFormula( "EXPON.DIST(A2,A3,TRUE)", "A1", ws );
+		ok( oParser.parse(), "EXPON.DIST(A2,A3,TRUE)" );
+		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 0.86466472, "EXPON.DIST(A2,A3,TRUE)" );
+
+		oParser = new parserFormula( "EXPON.DIST(0.2,10,FALSE)", "A1", ws );
+		ok( oParser.parse(), "EXPON.DIST(0.2,10,FALSE)" );
+		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 1.35335283, "EXPON.DIST(0.2,10,FALSE)" );
+
+		testArrayFormula2("EXPON.DIST", 3, 3);
+	} );
+
 	test( "Test: \"GAMMA.DIST\"", function () {
 		ws.getRange2( "A2" ).setValue( "10.00001131" );
 		ws.getRange2( "A3" ).setValue( "9" );
