@@ -770,6 +770,7 @@
 	function cBASE() {
 	}
 
+	//***array-formula***
 	cBASE.prototype = Object.create(cBaseFunction.prototype);
 	cBASE.prototype.constructor = cBASE;
 	cBASE.prototype.name = 'BASE';
@@ -916,6 +917,7 @@
 	function cCEILING_MATH() {
 	}
 
+	//***array-formula***
 	cCEILING_MATH.prototype = Object.create(cBaseFunction.prototype);
 	cCEILING_MATH.prototype.constructor = cCEILING_MATH;
 	cCEILING_MATH.prototype.name = 'CEILING.MATH';
@@ -1007,6 +1009,7 @@
 	function cCOMBIN() {
 	}
 
+	//***array-formula***
 	cCOMBIN.prototype = Object.create(cBaseFunction.prototype);
 	cCOMBIN.prototype.constructor = cCOMBIN;
 	cCOMBIN.prototype.name = 'COMBIN';
@@ -1091,6 +1094,7 @@
 	function cCOMBINA() {
 	}
 
+	//***array-formula***
 	cCOMBINA.prototype = Object.create(cBaseFunction.prototype);
 	cCOMBINA.prototype.constructor = cCOMBINA;
 	cCOMBINA.prototype.name = 'COMBINA';
@@ -1410,6 +1414,7 @@
 	function cDECIMAL() {
 	}
 
+	//***array-formula***
 	cDECIMAL.prototype = Object.create(cBaseFunction.prototype);
 	cDECIMAL.prototype.constructor = cDECIMAL;
 	cDECIMAL.prototype.name = 'DECIMAL';
@@ -1880,6 +1885,7 @@
 	function cFLOOR_MATH() {
 	}
 
+	//***array-formula***
 	cFLOOR_MATH.prototype = Object.create(cBaseFunction.prototype);
 	cFLOOR_MATH.prototype.constructor = cFLOOR_MATH;
 	cFLOOR_MATH.prototype.name = 'FLOOR.MATH';

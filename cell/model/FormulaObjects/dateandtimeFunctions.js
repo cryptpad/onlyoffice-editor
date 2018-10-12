@@ -821,6 +821,7 @@
 	function cDAYS() {
 	}
 
+	//***array-formula***
 	cDAYS.prototype = Object.create(cBaseFunction.prototype);
 	cDAYS.prototype.constructor = cDAYS;
 	cDAYS.prototype.name = 'DAYS';

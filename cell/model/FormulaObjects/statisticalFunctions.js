@@ -4303,6 +4303,7 @@ function (window, undefined) {
 	function cBINOM_DIST_RANGE() {
 	}
 
+	//***array-formula***
 	cBINOM_DIST_RANGE.prototype = Object.create(cBaseFunction.prototype);
 	cBINOM_DIST_RANGE.prototype.constructor = cBINOM_DIST_RANGE;
 	cBINOM_DIST_RANGE.prototype.name = 'BINOM.DIST.RANGE';
@@ -6448,6 +6449,7 @@ function (window, undefined) {
 	function cGAMMA() {
 	}
 
+	//***array-formula***
 	cGAMMA.prototype = Object.create(cBaseFunction.prototype);
 	cGAMMA.prototype.constructor = cGAMMA;
 	cGAMMA.prototype.name = 'GAMMA';
@@ -6694,6 +6696,7 @@ function (window, undefined) {
 	function cGAUSS() {
 	}
 
+	//***array-formula***
 	cGAUSS.prototype = Object.create(cBaseFunction.prototype);
 	cGAUSS.prototype.constructor = cGAUSS;
 	cGAUSS.prototype.name = 'GAUSS';

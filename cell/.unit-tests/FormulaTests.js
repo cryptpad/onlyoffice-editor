@@ -1141,6 +1141,8 @@ $( function () {
 		oParser = new parserFormula( 'FLOOR.MATH(-5.5, 2, -1)', "A1", ws );
 		ok( oParser.parse(), 'FLOOR.MATH(-5.5, 2, -1)' );
 		strictEqual( oParser.calculate().getValue(), -4, 'FLOOR.MATH(-5.5, 2, -1)' );
+
+		testArrayFormula2("FLOOR.MATH", 1, 3);
 	} );
 
 	test( "Test: \"CEILING.MATH\"", function () {
@@ -1159,6 +1161,8 @@ $( function () {
 		oParser = new parserFormula( 'CEILING.MATH(-5.5, 2, -1)', "A1", ws );
 		ok( oParser.parse(), 'CEILING.MATH(-5.5, 2, -1)' );
 		strictEqual( oParser.calculate().getValue(), -6, 'CEILING.MATH(-5.5, 2, -1)' );
+
+		testArrayFormula2("CEILING.MATH", 1, 3);
 	} );
 
 	test( "Test: \"CEILING.PRECISE\"", function () {
@@ -1394,7 +1398,7 @@ $( function () {
 		ok( oParser.parse(), 'DECIMAL("zap",36)' );
 		strictEqual( oParser.calculate().getValue(), 45745, 'DECIMAL("zap",36)' );
 
-
+		testArrayFormula2("DECIMAL", 2, 2);
 	} );
 
 	test( "Test: \"BASE\"", function () {
@@ -1409,6 +1413,8 @@ $( function () {
 		oParser = new parserFormula( 'BASE(15,2,10)', "A1", ws );
 		ok( oParser.parse(), 'BASE(15,2,10)' );
 		strictEqual( oParser.calculate().getValue(), "0000001111", 'BASE(15,2,10)' );
+
+		testArrayFormula2("BASE", 2, 3);
 	} );
 
 	test( "Test: \"ARABIC('LVII')\"", function () {
@@ -1892,19 +1898,38 @@ $( function () {
 		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.068094, "GAMMADIST(A2,A3,A4,TRUE)" );
 	} );
 
-	test( "Test: \"EXPON.DIST\"", function () {
-		ws.getRange2( "A2" ).setValue( "0.2" );
-		ws.getRange2( "A3" ).setValue( "10" );
+	test( "Test: \"GAMMADIST\"", function () {
 
-		oParser = new parserFormula( "EXPON.DIST(A2,A3,TRUE)", "A1", ws );
-		ok( oParser.parse(), "EXPON.DIST(A2,A3,TRUE)" );
-		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 0.86466472, "EXPON.DIST(A2,A3,TRUE)" );
+		oParser = new parserFormula( "GAMMADIST(A2,A3,A4,FALSE)", "A1", ws );
+		ok( oParser.parse(), "GAMMADIST(A2,A3,A4,FALSE)" );
+		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.032639, "GAMMADIST(A2,A3,A4,FALSE)" );
 
-		oParser = new parserFormula( "EXPON.DIST(0.2,10,FALSE)", "A1", ws );
-		ok( oParser.parse(), "EXPON.DIST(0.2,10,FALSE)" );
-		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 1.35335283, "EXPON.DIST(0.2,10,FALSE)" );
+		oParser = new parserFormula( "GAMMADIST(A2,A3,A4,TRUE)", "A1", ws );
+		ok( oParser.parse(), "GAMMADIST(A2,A3,A4,TRUE)" );
+		strictEqual( oParser.calculate().getValue().toFixed(6) - 0, 0.068094, "GAMMADIST(A2,A3,A4,TRUE)" );
+	} );
 
-		testArrayFormula2("EXPON.DIST", 3, 3);
+
+	test( "Test: \"GAMMA\"", function () {
+
+		oParser = new parserFormula( "GAMMA(2.5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(3), "1.329" );
+
+		oParser = new parserFormula( "GAMMA(-3.75)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(3), "0.268" );
+
+		oParser = new parserFormula( "GAMMA(0)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
+
+		oParser = new parserFormula( "GAMMA(-2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
+
+
+		testArrayFormula2("GAMMA", 1, 1);
 	} );
 
 	test( "Test: \"CHITEST\"", function () {
@@ -1968,6 +1993,8 @@ $( function () {
 		oParser = new parserFormula( "GAUSS(2)", "A1", ws );
 		ok( oParser.parse(), "GAUSS(2)" );
 		strictEqual( oParser.calculate().getValue().toFixed(5) - 0, 0.47725, "GAUSS(2)" );
+
+		testArrayFormula2("GAUSS", 1, 1);
 	} );
 
 	test( "Test: \"CHISQ.DIST.RT\"", function () {
@@ -2472,6 +2499,8 @@ $( function () {
 		oParser = new parserFormula( "DAYS(A2,A3)", "A1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 364 );
+
+		testArrayFormula2("DAYS", 2, 2);
 	} );
 
     test( "Test: DAY 2", function () {
@@ -5238,6 +5267,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().toFixed( 3 ) - 0, 0.524);
 
+		testArrayFormula2("BINOM.DIST.RANGE", 3, 4);
 	} );
 
     test( "Test: \"CONFIDENCE\"", function () {
@@ -10844,6 +10874,7 @@ $( function () {
 		ok( oParser.parse(), 'BITAND(13,25)' );
 		strictEqual( oParser.calculate().getValue(), 9, 'BITAND(13,25)' );
 
+		testArrayFormula2("BITAND", 2, 2);
 	});
 
 	test( "Test: \"BITOR\"", function () {
@@ -10852,6 +10883,7 @@ $( function () {
 		ok( oParser.parse());
 		strictEqual( oParser.calculate().getValue(), 31 );
 
+		testArrayFormula2("BITOR", 2, 2);
 	});
 
 	test( "Test: \"BITXOR\"", function () {
@@ -10860,6 +10892,7 @@ $( function () {
 		ok( oParser.parse());
 		strictEqual( oParser.calculate().getValue(), 6 );
 
+		testArrayFormula2("BITXOR", 2, 2);
 	});
 
 	test( "Test: \"BITRSHIFT\"", function () {
@@ -10868,6 +10901,7 @@ $( function () {
 		ok( oParser.parse());
 		strictEqual( oParser.calculate().getValue(), 3 );
 
+		testArrayFormula2("BITRSHIFT", 2, 2);
 	});
 
 	test( "Test: \"BITLSHIFT\"", function () {
@@ -10876,6 +10910,7 @@ $( function () {
 		ok( oParser.parse());
 		strictEqual( oParser.calculate().getValue(), 16 );
 
+		testArrayFormula2("BITLSHIFT", 2, 2);
 	});
 
 	function putDataForDatabase(){

@@ -4705,6 +4705,7 @@ function (window, undefined) {
 	function cBITAND() {
 	}
 
+	//***array-formula***
 	cBITAND.prototype = Object.create(cBaseFunction.prototype);
 	cBITAND.prototype.constructor = cBITAND;
 	cBITAND.prototype.name = 'BITAND';
@@ -4745,6 +4746,7 @@ function (window, undefined) {
 	function cBITLSHIFT() {
 	}
 
+	//***array-formula***
 	cBITLSHIFT.prototype = Object.create(cBaseFunction.prototype);
 	cBITLSHIFT.prototype.constructor = cBITLSHIFT;
 	cBITLSHIFT.prototype.name = 'BITLSHIFT';
@@ -4793,6 +4795,7 @@ function (window, undefined) {
 	function cBITOR() {
 	}
 
+	//***array-formula***
 	cBITOR.prototype = Object.create(cBaseFunction.prototype);
 	cBITOR.prototype.constructor = cBITOR;
 	cBITOR.prototype.name = 'BITOR';
@@ -4833,6 +4836,7 @@ function (window, undefined) {
 	function cBITRSHIFT() {
 	}
 
+	//***array-formula***
 	cBITRSHIFT.prototype = Object.create(cBaseFunction.prototype);
 	cBITRSHIFT.prototype.constructor = cBITRSHIFT;
 	cBITRSHIFT.prototype.name = 'BITRSHIFT';
@@ -4881,6 +4885,7 @@ function (window, undefined) {
 	function cBITXOR() {
 	}
 
+	//***array-formula***
 	cBITXOR.prototype = Object.create(cBaseFunction.prototype);
 	cBITXOR.prototype.constructor = cBITXOR;
 	cBITXOR.prototype.name = 'BITXOR';
