@@ -3802,7 +3802,6 @@ CTable.prototype.CanMergeTableCells = function()
 //----------------------------------------------------------------------------------------------------------------------
 CTable.prototype.GetSelectionState = function()
 {
-	console.log("GetState " + this.Selection.Type2);
 	var TableState       = {};
 	TableState.Selection = {
 		Start    : this.Selection.Start,
