@@ -11908,6 +11908,10 @@
 
 		if (0 < ranges.length) {
 			this.arrRecalcRanges = [];
+			// ToDo refactoring this!!!
+			this._calcHeightRows(AscCommonExcel.recalcType.newLines);
+			this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
+
 			this._updateRowsHeight();
 			this._updateSelectionNameAndInfo();
 
