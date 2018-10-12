@@ -4507,6 +4507,19 @@
 		}
 		this.workbook.dependencyFormulas.calcTree();
 	};
+	Worksheet.prototype.getRowCustomHeight = function (index) {
+		var isCustomHeight = false;
+		this._getRowNoEmptyWithAll(index, function (row) {
+			if (!row) {
+				isCustomHeight = false;
+			} else if (row.getHidden()) {
+				isCustomHeight = true;
+			} else {
+				isCustomHeight = row.getCustomHeight();
+			}
+		});
+		return isCustomHeight;
+	};
 	Worksheet.prototype.setRowBestFit=function(bBestFit, height, start, stop){
 		//start, stop 0 based
 		if(null == start)

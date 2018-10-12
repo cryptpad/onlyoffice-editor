@@ -156,7 +156,6 @@
 		this.height = 0;			// Высота с точностью до 1 px
 		this.heightReal = 0;		// Реальная высота из файла (может быть не кратна 1 px, в Excel можно выставить через меню строки)
 		this.descender = 0;
-		this.isCustomHeight = false;
 	}
 
     function CacheElement() {
@@ -1384,7 +1383,7 @@
         var y = this.cellsTop;
         var l = this.model.getRowsCount();
         var defaultH = this.defaultRowHeightPx;
-        var i = 0, r, h, hR, isCustomHeight, hiddenH = 0;
+        var i = 0, r, h, hR, hiddenH = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.rows = [];
@@ -1396,15 +1395,12 @@
             this.model._getRowNoEmptyWithAll(i, function(row){
 				if (!row) {
 					hR = -1; // Будет использоваться дефолтная высота строки
-					isCustomHeight = false;
 				} else if (row.getHidden()) {
 					hR = 0;  // Скрытая строка, высоту выставляем 0
-					isCustomHeight = true;
 					hiddenH += row.h > 0 ? row.h - 1 : defaultH;
 				} else {
-					isCustomHeight = row.getCustomHeight();
 					// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
-					if (row.h > 0 && (isCustomHeight || row.getCalcHeight())) {
+					if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
 						hR = row.h;
 					} else {
 						hR = -1;
@@ -1420,7 +1416,6 @@
 			r.height = h;
 			r.heightReal = hR;
 			r.descender = this.defaultRowDescender;
-			r.isCustomHeight = isCustomHeight;
             y += h;
         }
 
@@ -4606,7 +4601,7 @@
             var textW = tm.width;
             if (fl.wrapText) {
 
-                if (this.rows[row].isCustomHeight) {
+                if (this.model.getRowCustomHeight(row)) {
                     tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, rowHeight));
                     textBound =
                       this.stringRender.getTransformBound(angle, colWidth, rowHeight, tm.width, ha, va, rowHeight);
@@ -4682,9 +4677,10 @@
 			rowInfo.descender = Math.max(rowInfo.descender, tm.height - tm.baseline - 1);
 		}
 
+		var isCustomHeight = this.model.getRowCustomHeight(row);
 		// update row's height
 		// Замерженная ячейка (с 2-мя или более строками) не влияет на высоту строк!
-		if (!rowInfo.isCustomHeight && !(window["NATIVE_EDITOR_ENJINE"] && this.notUpdateRowHeight) && !isMergedRows) {
+		if (!isCustomHeight && !(window["NATIVE_EDITOR_ENJINE"] && this.notUpdateRowHeight) && !isMergedRows) {
 			var newHeight = tm.height;
 			var oldHeight = AscCommonExcel.convertPtToPx(rowInfo.heightReal);
 			if (cache.angle && textBound) {
@@ -4700,7 +4696,7 @@
 				History.TurnOn();
 
 				if (cache.angle) {
-					if (cache.flags.wrapText && !rowInfo.isCustomHeight) {
+					if (cache.flags.wrapText && !isCustomHeight) {
 						maxW = tm.width;
 					}
 
@@ -4722,7 +4718,7 @@
 		for (var j = 0; j < this.arrRecalcRangesWithHeight.length; ++j) {
 		    range = this.arrRecalcRangesWithHeight[j];
 			for (var r = range.r1; r <= range.r2 && r < this.rows.length; ++r) {
-				if (this.rows[r].isCustomHeight || duplicate[r]) {
+				if (this.model.getRowCustomHeight(r) || duplicate[r]) {
 					continue;
 				}
 
