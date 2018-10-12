@@ -11133,7 +11133,7 @@
             for (var r = row1; r <= row2; ++r) {
                 height = t.defaultRowHeightPx;
 
-                var l = this.model.getColsCount();
+                var l = t.model.getColsCount();
                 for (col = 0; col < l; ++col) {
                     ct = t._getCellTextCache(col, r);
                     if (ct === undefined) {
