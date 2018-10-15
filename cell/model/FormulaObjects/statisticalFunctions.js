@@ -5960,6 +5960,7 @@ function (window, undefined) {
 	function cFORECAST() {
 	}
 
+	//***array-formula***
 	cFORECAST.prototype = Object.create(cBaseFunction.prototype);
 	cFORECAST.prototype.constructor = cFORECAST;
 	cFORECAST.prototype.name = 'FORECAST';
@@ -6309,6 +6310,7 @@ function (window, undefined) {
 	function cFORECAST_LINEAR() {
 	}
 
+	//***array-formula***
 	cFORECAST_LINEAR.prototype = Object.create(cFORECAST.prototype);
 	cFORECAST_LINEAR.prototype.constructor = cFORECAST_LINEAR;
 	cFORECAST_LINEAR.prototype.name = 'FORECAST.LINEAR';
@@ -9080,6 +9082,7 @@ function (window, undefined) {
 	function cPHI() {
 	}
 
+	//***array-formula***
 	cPHI.prototype = Object.create(cBaseFunction.prototype);
 	cPHI.prototype.constructor = cPHI;
 	cPHI.prototype.name = 'PHI';
@@ -9675,11 +9678,13 @@ function (window, undefined) {
 	function cSKEW_P() {
 	}
 
+	//***array-formula***
 	cSKEW_P.prototype = Object.create(cBaseFunction.prototype);
 	cSKEW_P.prototype.constructor = cSKEW_P;
 	cSKEW_P.prototype.name = 'SKEW.P';
 	cSKEW_P.prototype.argumentsMin = 1;
 	cSKEW_P.prototype.isXLFN = true;
+	cSKEW_P.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSKEW_P.prototype.Calculate = function (arg) {
 
 		var arr0 = [];

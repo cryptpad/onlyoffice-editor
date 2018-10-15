@@ -1138,6 +1138,7 @@
 	function cISOWEEKNUM() {
 	}
 
+	//***array-formula***
 	cISOWEEKNUM.prototype = Object.create(cBaseFunction.prototype);
 	cISOWEEKNUM.prototype.constructor = cISOWEEKNUM;
 	cISOWEEKNUM.prototype.name = 'ISOWEEKNUM';

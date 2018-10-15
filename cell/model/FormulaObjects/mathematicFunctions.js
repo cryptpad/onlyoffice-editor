@@ -479,6 +479,7 @@
 	function cARABIC() {
 	}
 
+	//***array-formula***
 	cARABIC.prototype = Object.create(cBaseFunction.prototype);
 	cARABIC.prototype.constructor = cARABIC;
 	cARABIC.prototype.name = 'ARABIC';

@@ -3900,6 +3900,7 @@
 	function cPDURATION() {
 	}
 
+	//***array-formula***
 	cPDURATION.prototype = Object.create(cBaseFunction.prototype);
 	cPDURATION.prototype.constructor = cPDURATION;
 	cPDURATION.prototype.name = 'PDURATION';

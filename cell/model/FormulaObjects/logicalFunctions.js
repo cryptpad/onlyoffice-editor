@@ -220,6 +220,7 @@
 	function cIFNA() {
 	}
 
+	//***array-formula***
 	cIFNA.prototype = Object.create(cBaseFunction.prototype);
 	cIFNA.prototype.constructor = cIFNA;
 	cIFNA.prototype.name = 'IFNA';
@@ -478,12 +479,14 @@
 	function cXOR() {
 	}
 
+	//***array-formula***
 	cXOR.prototype = Object.create(cBaseFunction.prototype);
 	cXOR.prototype.constructor = cXOR;
 	cXOR.prototype.name = 'XOR';
 	cXOR.prototype.argumentsMin = 1;
 	cXOR.prototype.argumentsMax = 254;
 	cXOR.prototype.isXLFN = true;
+	cXOR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cXOR.prototype.Calculate = function (arg) {
 		var argResult = null;
 		var nTrueValues = 0;
@@ -500,7 +503,7 @@
 							argResult = new cBool(argResult.value || argArr[j].tocBool().value);
 						}
 					}
-					if (argResult.value === true) {
+					if (argResult && argResult.value === true) {
 						nTrueValues++;
 					}
 				}

@@ -1278,6 +1278,7 @@ function (window, undefined) {
 	function cREPLACE() {
 	}
 
+	//***array-formula***
 	cREPLACE.prototype = Object.create(cBaseFunction.prototype);
 	cREPLACE.prototype.constructor = cREPLACE;
 	cREPLACE.prototype.name = 'REPLACE';
@@ -1354,6 +1355,7 @@ function (window, undefined) {
 	function cREPLACEB() {
 	}
 
+	//***array-formula***
 	cREPLACEB.prototype = Object.create(cREPLACE.prototype);
 	cREPLACEB.prototype.constructor = cREPLACEB;
 	cREPLACEB.prototype.name = 'REPLACEB';
@@ -1884,6 +1886,7 @@ function (window, undefined) {
 	function cUNICHAR() {
 	}
 
+	//***array-formula***
 	cUNICHAR.prototype = Object.create(cBaseFunction.prototype);
 	cUNICHAR.prototype.constructor = cUNICHAR;
 	cUNICHAR.prototype.name = 'UNICHAR';
@@ -1926,6 +1929,7 @@ function (window, undefined) {
 	function cUNICODE() {
 	}
 
+	//***array-formula***
 	cUNICODE.prototype = Object.create(cBaseFunction.prototype);
 	cUNICODE.prototype.constructor = cUNICODE;
 	cUNICODE.prototype.name = 'UNICODE';

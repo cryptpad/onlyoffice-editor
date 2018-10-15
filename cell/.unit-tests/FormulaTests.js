@@ -3962,7 +3962,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 16 );
 
-		testArrayFormula2("MINUTE",1,1);
+		testArrayFormula2("ISOWEEKNUM",1,1);
 	} );
 
 	test( "Test: \"WEEKDAY\"", function () {
@@ -4563,6 +4563,8 @@ $( function () {
 		oParser = new parserFormula( 'XOR(3>12,4<6)', "A2", ws );
 		ok( oParser.parse(), 'XOR(3>12,4<6)' );
 		strictEqual( oParser.calculate().getValue(), "TRUE", 'XOR(3>12,4<6)' );
+
+		testArrayFormula2("XOR", 1, 8, null, true);
 	} );
 
     test( "Test: \"COMBIN\"", function () {
@@ -7176,6 +7178,8 @@ $( function () {
 		oParser = new parserFormula( "PHI(0.75)", "A1", ws );
 		ok( oParser.parse(), "PHI(0.75)" );
 		strictEqual( oParser.calculate().getValue().toFixed(9) - 0, 0.301137432, "PHI(0.75)" );
+
+		testArrayFormula2("PHI", 1, 1);
 	} );
 
 	test( "Test: \"POISSON\"", function () {
@@ -11448,7 +11452,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#VALUE!");
 
-
+		testArrayFormula2("PDURATION", 3, 3);
 	});
 
 	test( "Test: \"IFS\"", function () {
