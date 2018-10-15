@@ -540,6 +540,13 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 8: // ASC_MENU_EVENT_TYPE_HYPERLINK
+        {
+            var props = asc_menu_ReadHyperPr(_params, _current);
+            this.change_Hyperlink(props);
+            break;
+        }
+
         case 9 : // ASC_MENU_EVENT_TYPE_IMAGE
         {
             var _imagePr = new Asc.asc_CImgProperty();
@@ -974,25 +981,18 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         
         case 58: // ASC_MENU_EVENT_TYPE_CAN_ADD_HYPERLINK
         {
-            var bCanAdd = this.can_AddHyperlink();
+            var canAdd = this.can_AddHyperlink();
 
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
-            if ( true === bCanAdd )
-            {
+
+            if (canAdd !== false) {
                 var _text = this.WordControl.m_oLogicDocument.GetSelectedText(true);
-                if (null == _text)
-                    _stream["WriteByte"](1);
-                else
-                {
-                    _stream["WriteByte"](2);
+                if (null != _text) {
                     _stream["WriteString2"](_text);
                 }
             }
-            else
-            {
-                _stream["WriteByte"](0);
-            }
+
             _return = _stream;
             break;
         }
@@ -1323,7 +1323,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
-        case 8200: // ASC_PRESENTATIONS_EVENT_TYPE_GO_TO_INTERNAL_LINK 
+        case 5000: // ASC_MENU_EVENT_TYPE_GO_TO_INTERNAL_LINK 
         {
 
             break;
