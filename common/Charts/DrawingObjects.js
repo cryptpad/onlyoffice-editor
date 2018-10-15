@@ -2089,8 +2089,8 @@ function DrawingObjects() {
                             _this.printGraphicObject(drawingObject.graphicObject, printOptions.ctx.DocumentRenderer, top, left);
 
                             if ( printPagesData.pageHeadings ) {
-                                worksheet._drawColumnHeaders(printOptions.ctx, range.c1, range.c2, /*style*/ undefined, worksheet.cols[range.c1].left - printPagesData.leftFieldInPx + offsetCols, printPagesData.topFieldInPx - worksheet.cellsTop);
-                                worksheet._drawRowHeaders(printOptions.ctx, range.r1, range.r2, /*style*/ undefined, printPagesData.leftFieldInPx - worksheet.cellsLeft, worksheet.rows[range.r1].top - printPagesData.topFieldInPx);
+                                worksheet._drawColumnHeaders(printOptions.ctx, range.c1, range.c2, /*style*/ undefined, worksheet._getColLeft(range.c1) - printPagesData.leftFieldInPx + offsetCols, printPagesData.topFieldInPx - worksheet.cellsTop);
+                                worksheet._drawRowHeaders(printOptions.ctx, range.r1, range.r2, /*style*/ undefined, printPagesData.leftFieldInPx - worksheet.cellsLeft, worksheet._getRowTop(range.r1) - printPagesData.topFieldInPx);
                             }
                         }
                         else {
