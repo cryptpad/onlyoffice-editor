@@ -1662,8 +1662,8 @@
 					var cellsTop = worksheet.cellsTop;
 
 					var cursorPos = isIntoShape.GetCursorPosXY();
-					var offsetX = worksheet.cols[worksheet.visibleRange.c1].left - cellsLeft;
-					var offsetY = worksheet.rows[worksheet.visibleRange.r1].top - cellsTop;
+					var offsetX = worksheet._getColLeft(worksheet.visibleRange.c1) - cellsLeft;
+					var offsetY = worksheet._getRowTop(worksheet.visibleRange.r1) - cellsTop;
 					var posX = curShape.transformText.TransformPointX(cursorPos.X, cursorPos.Y) * mmToPx - offsetX + cellsLeft;
 					var posY = curShape.transformText.TransformPointY(cursorPos.X, cursorPos.Y) * mmToPx - offsetY + cellsTop;
 					var position = {x: posX, y: posY};
