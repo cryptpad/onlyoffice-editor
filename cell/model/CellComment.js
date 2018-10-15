@@ -734,7 +734,7 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		pos.dReverseLeftPX = this.worksheet._getColLeft(left) - this.worksheet._getColLeft(fvc) +
 			headerCellsOffset.left + frozenOffset.offsetX;
 		pos.dLeftPX = pos.dReverseLeftPX + this.worksheet.getColumnWidth(left, 0);
-		pos.dTopPX = this.worksheet._getRowTop(top) + ((this.worksheet._getRowTop(top) / 2) | 0) -
+		pos.dTopPX = this.worksheet._getRowTop(top) + ((this.worksheet._getRowHeight(top) / 2) | 0) -
 			this.worksheet._getRowTop(fvr) + headerCellsOffset.top + frozenOffset.offsetY;
 
 		if (AscCommon.AscBrowser.isRetina) {
