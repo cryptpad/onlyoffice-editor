@@ -100,6 +100,7 @@
     var asc_CSelectionMathInfo = AscCommonExcel.asc_CSelectionMathInfo;
 
     var pageBreakPreviewMode = false;
+	var pageBreakPreviewModeLayout = false;
 
     /*
      * Constants
@@ -3012,6 +3013,63 @@
 		}
 	};
 
+	WorksheetView.prototype._drawPageBreakPreviewLinesLayout = function () {
+		//функция для отрисовки на layout разметки страницы(специальный режим предварительного просмотра страниц)
+		//для того, чтобы отрисовка происходила при смене различных опций - добавить вызовы обновления селекта аналогично функции _drawPrintArea
+		//текст всегда рисуем на основной канве, поскольку сетка в ms рисуется поверх
+
+		if(!pageBreakPreviewModeLayout) {
+			return;
+		}
+
+		var t = this;
+		var printPages = this._getVisiblePrintPages();
+
+		//закрашиваем то, что не входит в область печати
+		var drawCurArea = function (visibleRange, offsetX, offsetY, args) {
+			var range = args[0];
+			var ctx = t.overlayCtx;
+			var c = t.cols;
+			var r = t.rows;
+			var oIntersection = range.intersectionSimple(visibleRange);
+
+			if (!oIntersection) {
+				return true;
+			}
+
+			var x1 = c[oIntersection.c1].left - offsetX;
+			var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
+			var y1 = r[oIntersection.r1].top - offsetY;
+			var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+
+			var fillColor = t.settings.cells.defaultState.border.Copy();
+			ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
+		};
+
+		//рисуем страницы
+		if(printPages && printPages.length) {
+
+			//рисуем общую область
+			var startRange = printPages[0].page.pageRange;
+			var endRange = printPages[printPages.length - 1].page.pageRange;
+			var allPagesRange = new Asc.Range(startRange.c1, startRange.r1, endRange.c2, endRange.r2);
+			var difference = allPagesRange.difference(this.visibleRange);
+			if(difference && difference.length) {
+				for(var i = 0; i < difference.length; i++) {
+					this._drawElements(drawCurArea, difference[i]);
+				}
+			}
+
+			for (var i = 0, l = printPages.length; i < l; ++i) {
+				this._drawElements(this._drawSelectionElement, printPages[i].page.pageRange, AscCommonExcel.selectionLineType.Dash, this.settings.activeCellBorderColor);
+			}
+
+			this._drawElements(this._drawSelectionElement, allPagesRange, AscCommonExcel.selectionLineType.Select, this.settings.activeCellBorderColor);
+		} else {
+			this._drawElements(drawCurArea, this.visibleRange);
+		}
+	};
+
 	WorksheetView.prototype._drawPrintArea = function () {
 		var printOptions = this.model.PagePrintOptions;
 
@@ -3981,6 +4039,10 @@
 			this._drawPrintArea();
 		}
 
+		if(pageBreakPreviewModeLayout) {
+			this._drawPageBreakPreviewLinesLayout();
+		}
+
         if (!this.isSelectionDialogMode) {
             this._drawCollaborativeElements();
         }
@@ -4274,6 +4336,9 @@
 		//TODO пересмотреть! возможно стоит очищать частями в зависимости от print_area
 		//print lines view
 		if(this.viewPrintLines) {
+			this.overlayCtx.clear();
+		}
+		if(pageBreakPreviewModeLayout) {
 			this.overlayCtx.clear();
 		}
 
