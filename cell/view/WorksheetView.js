@@ -5231,7 +5231,7 @@
             var state = t._isCellNullText(col, row);
             var i = col + dx;
             var j = row + dy;
-            while (i >= 0 && i < t.cols.length && j >= 0 && j < t.nRowsCount) {
+            while (i >= 0 && i < t.nColsCount && j >= 0 && j < t.nRowsCount) {
                 var newState = t._isCellNullText(i, j);
                 if (newState !== state) {
                     var ret = {};
@@ -5246,10 +5246,12 @@
                 j += dy;
             }
             // Проверки для перехода в самый конец (ToDo пока убрал, чтобы не добавлять тормозов)
-            /*if (i === t.cols.length && state)
-             i = gc_nMaxCol;
-             if (j === t.nRowsCount && state)
-             j = gc_nMaxRow;*/
+			/*if (i === t.nColsCount && state) {
+				i = gc_nMaxCol;
+			}
+			if (j === t.nRowsCount && state) {
+				j = gc_nMaxRow;
+			}*/
             return {col: i - dx, row: j - dy};
         }
 
@@ -5275,10 +5277,10 @@
         var newCol = (function () {
             if (dc > +0.0001 && dc < +0.9999) {
                 return c + (vr.c2 - vr.c1 + 1);
-            }        // PageDown
+            }  // PageDown
             if (dc < -0.0001 && dc > -0.9999) {
                 return c - (vr.c2 - vr.c1 + 1);
-            }        // PageUp
+            }  // PageUp
             if (dc > +1.0001 && dc < +1.9999) {
                 return findNextCell(c, r, +1, 0).col;
             }  // Ctrl + ->
@@ -5290,7 +5292,7 @@
             }  // End
             if (dc < -2.0001 && dc > -2.9999) {
                 return 0;
-            }                              // Home
+            }  // Home
             return c + dc;
         })();
         var newRow = (function () {
