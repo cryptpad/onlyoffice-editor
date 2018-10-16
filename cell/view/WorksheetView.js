@@ -99,7 +99,7 @@
     var c_oAscChangeSelectionFormatTable = asc.c_oAscChangeSelectionFormatTable;
     var asc_CSelectionMathInfo = AscCommonExcel.asc_CSelectionMathInfo;
 
-    var pageBreakPreviewMode = true;
+    var pageBreakPreviewMode = false;
 	var pageBreakPreviewModeLayout = false;
 
     /*
