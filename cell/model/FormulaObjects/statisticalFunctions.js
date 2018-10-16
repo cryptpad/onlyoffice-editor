@@ -9183,12 +9183,14 @@ function (window, undefined) {
 	function cPROB() {
 	}
 
+	//***array-formula***
 	cPROB.prototype = Object.create(cBaseFunction.prototype);
 	cPROB.prototype.constructor = cPROB;
 	cPROB.prototype.name = 'PROB';
 	cPROB.prototype.argumentsMin = 3;
 	cPROB.prototype.argumentsMax = 4;
 	cPROB.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cPROB.prototype.arrayIndexes = {0: 1, 1: 1};
 	cPROB.prototype.Calculate = function (arg) {
 
 		function prob(x, p, l, u) {

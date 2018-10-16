@@ -4718,6 +4718,7 @@
 	function cRRI() {
 	}
 
+	//***array-formula***
 	cRRI.prototype = Object.create(cBaseFunction.prototype);
 	cRRI.prototype.constructor = cRRI;
 	cRRI.prototype.name = 'RRI';

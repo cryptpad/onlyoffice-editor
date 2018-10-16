@@ -2918,6 +2918,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#NAME?" );
 
+		testArrayFormula2("SHEET", 1, 1, null, true);
 	} );
 
 	test( "Test: \"SHEETS\"", function () {
@@ -2929,6 +2930,8 @@ $( function () {
 		oParser = new parserFormula( "SHEETS()", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 1 );
+
+		testArrayFormula2("SHEETS", 1, 1, null, true);
 	} );
 
     test( "Test: \"TRIM\"", function () {
@@ -6673,6 +6676,7 @@ $( function () {
 		ok( oParser.parse(), 'NUMBERVALUE(123123,6,6)');
 		strictEqual( oParser.calculate().getValue(), "#VALUE!", 'NUMBERVALUE(123123,6,6)');
 
+		testArrayFormula2("NUMBERVALUE", 1, 3);
 	});
 
     test( "Test: \"NORMDIST\"", function () {
@@ -8927,6 +8931,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), -2 );
 
+		testArrayFormula2("RRI", 3, 3);
 	} );
 
     test( "Test: \"INTRATE\"", function () {

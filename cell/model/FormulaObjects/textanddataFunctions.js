@@ -1077,6 +1077,7 @@ function (window, undefined) {
 	function cNUMBERVALUE() {
 	}
 
+	//***array-formula***
 	cNUMBERVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cNUMBERVALUE.prototype.constructor = cNUMBERVALUE;
 	cNUMBERVALUE.prototype.name = 'NUMBERVALUE';
@@ -1427,6 +1428,7 @@ function (window, undefined) {
 	function cRIGHT() {
 	}
 
+	//***array-formula***
 	cRIGHT.prototype = Object.create(cBaseFunction.prototype);
 	cRIGHT.prototype.constructor = cRIGHT;
 	cRIGHT.prototype.name = 'RIGHT';
@@ -1475,6 +1477,7 @@ function (window, undefined) {
 	function cRIGHTB() {
 	}
 
+	//***array-formula***
 	cRIGHTB.prototype = Object.create(cRIGHT.prototype);
 	cRIGHTB.prototype.constructor = cRIGHTB;
 	cRIGHTB.prototype.name = 'RIGHTB';
@@ -1486,6 +1489,7 @@ function (window, undefined) {
 	function cSEARCH() {
 	}
 
+	//***array-formula***
 	cSEARCH.prototype = Object.create(cBaseFunction.prototype);
 	cSEARCH.prototype.constructor = cSEARCH;
 	cSEARCH.prototype.name = 'SEARCH';
@@ -1575,6 +1579,7 @@ function (window, undefined) {
 	function cSEARCHB() {
 	}
 
+	//***array-formula***
 	cSEARCHB.prototype = Object.create(cSEARCH.prototype);
 	cSEARCHB.prototype.constructor = cSEARCHB;
 	cSEARCHB.prototype.name = 'SEARCHB';

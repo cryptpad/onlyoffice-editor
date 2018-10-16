@@ -543,12 +543,14 @@
 	function cSHEET() {
 	}
 
+	//***array-formula***
 	cSHEET.prototype = Object.create(cBaseFunction.prototype);
 	cSHEET.prototype.constructor = cSHEET;
 	cSHEET.prototype.name = 'SHEET';
 	cSHEET.prototype.argumentsMin = 0;
 	cSHEET.prototype.argumentsMax = 1;
 	cSHEET.prototype.isXLFN = true;
+	cSHEET.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSHEET.prototype.Calculate = function (arg, opt_bbox, opt_defName, ws) {
 
 		var res = null;
@@ -589,12 +591,14 @@
 	function cSHEETS() {
 	}
 
+	//***array-formula***
 	cSHEETS.prototype = Object.create(cBaseFunction.prototype);
 	cSHEETS.prototype.constructor = cSHEETS;
 	cSHEETS.prototype.name = 'SHEETS';
 	cSHEETS.prototype.argumentsMin = 0;
 	cSHEETS.prototype.argumentsMax = 1;
 	cSHEETS.prototype.isXLFN = true;
+	cSHEETS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSHEETS.prototype.Calculate = function (arg, opt_bbox, opt_defName, ws) {
 
 		var res;
