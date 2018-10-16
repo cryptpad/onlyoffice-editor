@@ -4904,14 +4904,7 @@
      * @return {Range}
      */
     WorksheetView.prototype._getCell = function (col, row) {
-        if (this.nRowsCount < this.model.getRowsCount() + 1) {
-            this.expandRowsOnScroll(false, true, 0);
-        } // Передаем 0, чтобы увеличить размеры
-        if (this.nColsCount < this.model.getColsCount() + 1) {
-            this.expandColsOnScroll(false, true, 0);
-        } // Передаем 0, чтобы увеличить размеры
-
-        if (col < 0 || col >= this.nColsCount || row < 0 || row >= this.nRowsCount) {
+        if (col < 0 || col > gc_nMaxCol0 || row < 0 || row > this.gc_nMaxRow0) {
             return null;
         }
 
