@@ -4674,7 +4674,11 @@
 		var rowInfo = this.rows[row];
 		// update row's descender
 		if (va !== Asc.c_oAscVAlign.Top && va !== Asc.c_oAscVAlign.Center && !mergeType && !cache.angle) {
-			rowInfo.descender = Math.max(rowInfo.descender, tm.height - tm.baseline - 1);
+			// ToDo move descender in model
+			var newDescender = tm.height - tm.baseline - 1;
+			if (newDescender > this._getRowDescender()) {
+				rowInfo.descender = newDescender;
+			}
 		}
 
 		var isCustomHeight = this.model.getRowCustomHeight(row);
