@@ -1864,7 +1864,7 @@
 		return new AscCommon.CellBase(maxRow, maxCol);
 	};
 
-    WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages) {
+    WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages, arrRanges) {
 		var range, maxCell;
 		var printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
 
@@ -1880,6 +1880,10 @@
 				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 			}
 		} else if(printArea) {
+			//когда printArea мультиселект - при отрисовке областей печати в специальном режиме
+			// необходимо возвращать массив из фрагментов
+			//для этого добавил arrRanges
+
 			var areaRefs = printArea.ref;
 			var areaRefsArr = areaRefs.split(",");
 			if(areaRefsArr.length) {
@@ -1887,6 +1891,10 @@
 					range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) ||
 						AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
 					range = new asc_Range(range.c1, range.r1, range.c2, range.r2);
+					if(arrRanges) {
+						arrRanges.push(range);
+					}
+
 					this._prepareCellTextMetricsCache(range);
 					this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 				}
@@ -2374,7 +2382,7 @@
 		//добавлено сюда потому что отрисовка проиходит одновеременно с отрисовкой сетки
 		//и отрисовка происходит в два этапа - сначала текст - до линий сетки, потом линии печати - после линий сетки
 		//поэтому рассчет делаю 1 раз
-		var visiblePrintPages = pageBreakPreviewMode ? this._getVisiblePrintPages(range) : null;
+		var visiblePrintPages = pageBreakPreviewMode ? this._getVisiblePrintPages(range).printPages : null;
 
 		// Возможно сетку не нужно рисовать (при печати свои проверки)
 		if (null === drawingCtx && false === this.model.getSheetView().asc_getShowGridLines()) {
@@ -3023,7 +3031,9 @@
 		}
 
 		var t = this;
-		var printPages = this._getVisiblePrintPages();
+		var printPagesObj = this._getVisiblePrintPages();
+		var printPages = printPagesObj.printPages;
+		var printRanges = printPagesObj.printRanges;
 
 		//закрашиваем то, что не входит в область печати
 		var drawCurArea = function (visibleRange, offsetX, offsetY, args) {
@@ -3049,22 +3059,55 @@
 		//рисуем страницы
 		if(printPages && printPages.length) {
 
-			//рисуем общую область
-			var startRange = printPages[0].page.pageRange;
-			var endRange = printPages[printPages.length - 1].page.pageRange;
-			var allPagesRange = new Asc.Range(startRange.c1, startRange.r1, endRange.c2, endRange.r2);
-			var difference = allPagesRange.difference(this.visibleRange);
-			if(difference && difference.length) {
-				for(var i = 0; i < difference.length; i++) {
-					this._drawElements(drawCurArea, difference[i]);
+			//закрашиваем общую область за исключением области печати
+			if(printRanges && printRanges.length) {
+				//необходимо закрасить всю визуальную область за исключением printRanges
+				//TODO долгие операции! возможно стоит изначально в данном режиме рисовать только ту часть таблицы, которая пойдёт на печать
+				
+				var rangesBackground;
+				for(var i = 0; i < printRanges.length; i++) {
+					if(i === 0) {
+						rangesBackground = printRanges[i].difference(this.visibleRange);
+						continue;
+					}
+
+					var curRanges = [];
+					for(var j = 0; j < rangesBackground.length; j++) {
+						Array.prototype.push.apply(curRanges, printRanges[i].difference(rangesBackground[j]));
+					}
+					rangesBackground = curRanges;
+				}
+
+				if(rangesBackground) {
+					for(var i = 0; i < rangesBackground.length; i++) {
+						this._drawElements(drawCurArea, rangesBackground[i]);
+					}
+				}
+			} else {
+				var startRange = printPages[0].page.pageRange;
+				var endRange = printPages[printPages.length - 1].page.pageRange;
+				var allPagesRange = new Asc.Range(startRange.c1, startRange.r1, endRange.c2, endRange.r2);
+				var difference = allPagesRange.difference(this.visibleRange);
+				if(difference && difference.length) {
+					for(var i = 0; i < difference.length; i++) {
+						this._drawElements(drawCurArea, difference[i]);
+					}
 				}
 			}
 
+			//орисовываем границы страниц
 			for (var i = 0, l = printPages.length; i < l; ++i) {
 				this._drawElements(this._drawSelectionElement, printPages[i].page.pageRange, AscCommonExcel.selectionLineType.Dash, this.settings.activeCellBorderColor);
 			}
 
-			this._drawElements(this._drawSelectionElement, allPagesRange, AscCommonExcel.selectionLineType.Select, this.settings.activeCellBorderColor);
+			//рисуем границы либо общей области, либо если определен printArea - рисуем границы каждой области(может быть мультиселект)
+			if(printRanges && printRanges.length) {
+				for(var i = 0, l = printRanges.length; i < l; ++i) {
+					this._drawElements(this._drawSelectionElement, printRanges[i], AscCommonExcel.selectionLineType.Select, this.settings.activeCellBorderColor);
+				}
+			} else {
+				this._drawElements(this._drawSelectionElement, allPagesRange, AscCommonExcel.selectionLineType.Select, this.settings.activeCellBorderColor);
+			}
 		} else {
 			this._drawElements(drawCurArea, this.visibleRange);
 		}
@@ -3212,7 +3255,8 @@
 	WorksheetView.prototype._getVisiblePrintPages = function (range) {
 		var printOptions = this.model.PagePrintOptions;
 		var printPages = [];
-		this.calcPagesPrint(printOptions, null, null, printPages);
+		var printRanges = [];
+		this.calcPagesPrint(printOptions, null, null, printPages, printRanges);
 
 		var res = [];
 		if (range === undefined) {
@@ -3226,7 +3270,15 @@
 			}
 		}
 
-		return res;
+		var visiblePrintRanges = [];
+		for (var i = 0; i < printRanges.length; ++i) {
+
+			if(printRanges[i].intersection(range)) {
+				visiblePrintRanges.push(printRanges[i]);
+			}
+		}
+
+		return {printPages: res, printRanges: visiblePrintRanges};
 	};
 
     /** Удаляет вертикальные границы ячейки, если текст выходит за границы и соседние ячейки пусты */
