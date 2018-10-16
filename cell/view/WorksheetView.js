@@ -11383,11 +11383,12 @@
 				var cell = aReplaceCells[options.indexInArray];
 				++options.indexInArray;
 				if (false !== isSuccess) {
-					++options.countReplace;
-
 					var c = t._getVisibleCell(cell.c1, cell.r1);
 					var cellValue = c.getValueForEdit();
-					cellValue = cellValue.replace(valueForSearching, options.replaceWith);
+					cellValue = cellValue.replace(valueForSearching, function() {
+						++options.countReplace;
+						return options.replaceWith;
+					});
 
 					var v, newValue;
 					// get first fragment and change its text
