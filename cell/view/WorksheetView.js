@@ -2449,7 +2449,7 @@
 		//рисуем текст для преварительного просмотра
 		this._drawPageBreakPreviewLines(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, visiblePrintPages);
 		//отрисовка линий предварительного просмотра страниц без использования calcPagesPrint
-		this._drawPageBreakPreviewLines2(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height);
+		//this._drawPageBreakPreviewLines2(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height);
 	};
 
     WorksheetView.prototype._drawCellsAndBorders = function ( drawingCtx, range, offsetXForDraw, offsetYForDraw ) {
@@ -3077,7 +3077,7 @@
 				str = new AscCommonExcel.Fragment();
 				str.text = basePageString + (index + 1);
 				str.format = font;
-				t.stringRender.setString(str);
+				t.stringRender.setString([str]);
 				textMetrics = t.stringRender._measureChars();
 
 				if (textMetrics.width === needWidth && textMetrics.height === needHeight) {
@@ -3131,7 +3131,7 @@
 					var str = new AscCommonExcel.Fragment();
 					str.text = basePageString + (index + 1);
 					str.format = font;
-					this.stringRender.setString(str);
+					this.stringRender.setString([str]);
 
 					var textMetrics = this.stringRender._measureChars();
 					tX1 = centerX - textMetrics.width / 2;
