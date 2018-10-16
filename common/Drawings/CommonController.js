@@ -9101,9 +9101,7 @@ DrawingObjectsController.prototype =
         }
         else
         {
-            History.Create_NewPoint(AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
-            this.setGraphicObjectLayerCallBack(layerType);
-            this.startRecalculate();
+            this.checkSelectedObjectsAndCallback(this.setGraphicObjectLayerCallBack, [layerType], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
         }
        // this.checkSelectedObjectsAndCallback(this.setGraphicObjectLayerCallBack, [layerType]);
         //oAscDrawingLayerType

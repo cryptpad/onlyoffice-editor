@@ -199,4 +199,24 @@ CImageShape.prototype.hitInPath = CShape.prototype.hitInPath;
 CImageShape.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CImageShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CImageShape.prototype.check_bounds = CShape.prototype.check_bounds;
+
+
+    CImageShape.prototype.Clear_ContentChanges = function(){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Clear();
+        }
+    };
+
+    CImageShape.prototype.Add_ContentChanges = function(Changes){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Add( Changes );
+        }
+    };
+
+    CImageShape.prototype.Refresh_ContentChanges = function(){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Refresh();
+        }
+    };
+
 })(window);
