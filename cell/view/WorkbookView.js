@@ -977,10 +977,10 @@
     }
   };
 
-  WorkbookView.prototype._onSetSelection = function(range, validRange) {
+  WorkbookView.prototype._onSetSelection = function(range) {
     var ws = this.getWorksheet();
     ws._endSelectionShape();
-    var d = ws.setSelection(range, validRange);
+    var d = ws.setSelection(range);
     this.controller.scroll(d);
   };
 
