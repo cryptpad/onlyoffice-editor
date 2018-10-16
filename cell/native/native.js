@@ -3774,7 +3774,7 @@ function OfflineEditor () {
             this.model.workbook.handlers.trigger("asc_onHideComment");
 
             return isCoord ? this._calcActiveRangeOffsetIsCoord(x, y) :
-            this._calcActiveRangeOffset();
+            this._calcRangeOffset();
         };
 
         AscCommonExcel.WorksheetView.prototype.__chartsRanges = function(ranges) {

@@ -604,7 +604,7 @@ DrawingObjectsController.prototype.canIncreaseParagraphLevel = function(bIncreas
                     var oRange = new Asc.Range(oCell.col, oCell.row, oCell.col, oCell.row, false);
                     var oVisibleRange = oWorksheet.getVisibleRange();
                     if(!oRange.isIntersect(oVisibleRange)){
-                        var oOffset = oWorksheet._calcFillHandleOffset(oRange);
+                        var oOffset = oWorksheet._calcRangeOffset(oRange);
                         var _api = window["Asc"]["editor"];
                         if (_api.wb.MobileTouchManager)
 						{

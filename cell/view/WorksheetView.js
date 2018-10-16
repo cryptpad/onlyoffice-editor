@@ -734,7 +734,7 @@
             this._normalizeViewRange();
             this._cleanCellsTextMetricsCache();
 
-			var d = this._calcActiveRangeOffset();
+			var d = this._calcRangeOffset();
 			if (d.col) {
 				this.scrollHorizontal(d.col);
             }
@@ -761,7 +761,7 @@
         this._normalizeViewRange();
         this._cleanCellsTextMetricsCache();
 
-		var d = this._calcActiveRangeOffset();
+		var d = this._calcRangeOffset();
 		if (d.col) {
 			this.scrollHorizontal(d.col);
 		}
@@ -6671,9 +6671,9 @@
         return d;
     };
 
-    WorksheetView.prototype._calcActiveRangeOffset = function () {
+    WorksheetView.prototype._calcRangeOffset = function (range) {
         var vr = this.visibleRange;
-        var ar = this._getSelection().getLast();
+        var ar = range || this._getSelection().getLast();
         if (this.isFormulaEditMode) {
             // Для формул нужно сделать ограничение по range (у нас хранится полный диапазон)
             if (ar.c2 >= this.nColsCount || ar.r2 >= this.nRowsCount) {
@@ -6736,41 +6736,6 @@
         }
 		return new AscCommon.CellBase(type === c_oAscSelectionType.RangeRow || type === c_oAscSelectionType.RangeCells ?
 			incY : 0, type === c_oAscSelectionType.RangeCol || type === c_oAscSelectionType.RangeCells ? incX : 0);
-    };
-
-    WorksheetView.prototype._calcFillHandleOffset = function (range) {
-        var vr = this.visibleRange;
-        var ar = range ? range : this.activeFillHandle;
-        var arn = ar.clone(true);
-        var isMC = this._isMergedCells(arn);
-        var adjustRight = ar.c2 >= vr.c2 || ar.c1 >= vr.c2 && isMC;
-        var adjustBottom = ar.r2 >= vr.r2 || ar.r1 >= vr.r2 && isMC;
-        var incX = ar.c1 < vr.c1 && isMC ? arn.c1 - vr.c1 : ar.c2 < vr.c1 ? ar.c2 - vr.c1 : 0;
-        var incY = ar.r1 < vr.r1 && isMC ? arn.r1 - vr.r1 : ar.r2 < vr.r1 ? ar.r2 - vr.r1 : 0;
-
-        var offsetFrozen = this.getFrozenPaneOffset();
-
-        if (adjustRight) {
-            try {
-                while (this._isColDrawnPartially(isMC ? arn.c2 : ar.c2, vr.c1 + incX, offsetFrozen.offsetX)) {
-                    ++incX;
-                }
-            } catch (e) {
-                this.expandColsOnScroll(true);
-                this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
-            }
-        }
-        if (adjustBottom) {
-            try {
-                while (this._isRowDrawnPartially(isMC ? arn.r2 : ar.r2, vr.r1 + incY, offsetFrozen.offsetY)) {
-                    ++incY;
-                }
-            } catch (e) {
-                this.expandRowsOnScroll(true);
-                this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
-            }
-        }
-        return new AscCommon.CellBase(incY, incX);
     };
 
     // Потеряем ли мы что-то при merge ячеек
@@ -7388,7 +7353,7 @@
 			comment = this.cellCommentator.getComment(x, y);
 			// move active range to offset x,y
 			this._moveActiveCellToOffset(activeCell, x, y);
-			ret = this._calcActiveRangeOffset();
+			ret = this._calcRangeOffset();
 		}
 
 		if (!comment) {
@@ -7505,7 +7470,7 @@
 
         this.model.workbook.handlers.trigger("asc_onHideComment");
 
-        return isCoord ? this._calcActiveRangeOffsetIsCoord(x, y) : this._calcActiveRangeOffset();
+        return isCoord ? this._calcActiveRangeOffsetIsCoord(x, y) : this._calcRangeOffset();
     };
 
     // Окончание выделения
@@ -7952,7 +7917,7 @@
         this._drawSelection();
 
         // Смотрим, ушли ли мы за границу видимой области
-        ret = this._calcFillHandleOffset(activeFillHandleCopy);
+        ret = this._calcRangeOffset(activeFillHandleCopy);
         this.model.workbook.handlers.trigger("asc_onHideComment");
 
         return ret;
