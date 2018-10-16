@@ -10856,67 +10856,6 @@
 		return res;
 	};
 
-    WorksheetView.prototype.expandColsOnScroll = function (isNotActive, updateColsCount, newColsCount) {
-        var maxColObjects = this.objectRender ? this.objectRender.getMaxColRow().col : -1;
-        var maxc = Math.max(this.model.getColsCount() + 1, this.cols.length, maxColObjects);
-        if (newColsCount) {
-            maxc = Math.max(maxc, newColsCount);
-        }
-
-        // Сохраняем старое значение
-        var nLastCols = this.nColsCount;
-        if (isNotActive) {
-            this.nColsCount = maxc + 1;
-        } else if (updateColsCount) {
-            this.nColsCount = maxc;
-            if (this.cols.length < this.nColsCount) {
-                nLastCols = this.cols.length;
-            }
-        }
-        // Проверяем ограничения по столбцам
-        if (gc_nMaxCol < this.nColsCount) {
-            this.nColsCount = gc_nMaxCol;
-        }
-
-        this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
-
-        if (this.objectRender && this.objectRender.drawingArea) {
-            this.objectRender.drawingArea.reinitRanges();
-        }
-
-        return nLastCols !== this.nColsCount;
-    };
-
-    WorksheetView.prototype.expandRowsOnScroll = function (isNotActive, updateRowsCount, newRowsCount) {
-        var maxRowObjects = this.objectRender ? this.objectRender.getMaxColRow().row : -1;
-        var maxr = Math.max(this.model.getRowsCount() + 1, this.rows.length, maxRowObjects);
-        if (newRowsCount) {
-            maxr = Math.max(maxr, newRowsCount);
-        }
-
-        // Сохраняем старое значение
-        var nLastRows = this.nRowsCount;
-        if (isNotActive) {
-            this.nRowsCount = maxr + 1;
-        } else if (updateRowsCount) {
-            this.nRowsCount = maxr;
-            if (this.rows.length < this.nRowsCount) {
-                nLastRows = this.rows.length;
-            }
-        }
-        // Проверяем ограничения по строкам
-        if (gc_nMaxRow < this.nRowsCount) {
-            this.nRowsCount = gc_nMaxRow;
-        }
-
-        this._calcHeightRows(AscCommonExcel.recalcType.newLines);
-        if (this.objectRender && this.objectRender.drawingArea) {
-            this.objectRender.drawingArea.reinitRanges();
-        }
-
-        return nLastRows !== this.nRowsCount;
-    };
-
     WorksheetView.prototype.onChangeWidthCallback = function (col, r1, r2, onlyIfMore) {
         var width = null;
         var row, ct, c, fl, str, maxW, tm, mc, isMerged, oldWidth, oldColWidth;
