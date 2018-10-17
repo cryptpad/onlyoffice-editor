@@ -5371,59 +5371,33 @@
     };
 
     WorksheetView.prototype._updateVisibleRowsCount = function (skipScrollReinit) {
-        var isUpdate = false;
         this._calcVisibleRows();
-        var missingHeight = this._getMissingHeight();
-        if (0 < missingHeight && !this.isMaxRow()) {
-            if (!this.model.isDefaultHeightHidden()) {
-                var rowHeight = Asc.round(this.defaultRowHeightPx * this.getZoom());
-                this.nRowsCount = Math.min(this.nRowsCount + Asc.ceil(missingHeight / rowHeight), gc_nMaxRow);
+        if (gc_nMaxRow !== this.nRowsCount && !this.model.isDefaultHeightHidden()) {
+			var missingHeight = this._getMissingHeight();
+			if (0 < missingHeight) {
+				var rowHeight = Asc.round(this.defaultRowHeightPx * this.getZoom());
+				this.nRowsCount = Math.min(this.nRowsCount + Asc.ceil(missingHeight / rowHeight), gc_nMaxRow);
 				this._calcVisibleRows();
-				isUpdate = true;
-            }
-
-			if (!skipScrollReinit && isUpdate) {
-				this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
-			}
-        }
-    };
-
-    WorksheetView.prototype._updateVisibleColsCount = function (skipScrollReinit) {
-        var isUpdate = false;
-        this._calcVisibleColumns();
-		var missingWidth = this._getMissingWidth();
-		if (0 < missingWidth && !this.isMaxCol()) {
-			if (!this.model.isDefaultWidthHidden()) {
-				var colWidth = Asc.round(this.defaultColWidthPx * this.getZoom());
-				this.nColsCount = Math.min(this.nColsCount + Asc.ceil(missingWidth / colWidth), gc_nMaxCol);
-				this._calcVisibleColumns();
-				isUpdate = true;
-			}
-
-			if (!skipScrollReinit && isUpdate) {
-				this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+				if (!skipScrollReinit) {
+					this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
+				}
 			}
 		}
     };
 
-    WorksheetView.prototype.isMaxRow = function () {
-        var rowsCountCurrent = this.rows.length;
-        if (gc_nMaxRow === rowsCountCurrent) {
-            return true;
-        }
-
-        var rowsCount = this.model.getRowsCount() + 1;
-        return rowsCount <= rowsCountCurrent && this.model.isDefaultHeightHidden();
-    };
-
-    WorksheetView.prototype.isMaxCol = function () {
-        var colsCountCurrent = this.cols.length;
-        if (gc_nMaxCol === colsCountCurrent) {
-            return true;
-        }
-
-        var colsCount = this.model.getColsCount() + 1;
-        return colsCount <= colsCountCurrent && this.model.isDefaultWidthHidden();
+    WorksheetView.prototype._updateVisibleColsCount = function (skipScrollReinit) {
+        this._calcVisibleColumns();
+		if (gc_nMaxCol !== this.nColsCount && !this.model.isDefaultWidthHidden()) {
+			var missingWidth = this._getMissingWidth();
+			if (0 < missingWidth) {
+				var colWidth = Asc.round(this.defaultColWidthPx * this.getZoom());
+				this.nColsCount = Math.min(this.nColsCount + Asc.ceil(missingWidth / colWidth), gc_nMaxCol);
+				this._calcVisibleColumns();
+				if (!skipScrollReinit) {
+					this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+				}
+			}
+		}
     };
 
     WorksheetView.prototype.scrollVertical = function (delta, editor, initRowsCount) {
