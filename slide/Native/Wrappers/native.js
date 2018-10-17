@@ -1326,6 +1326,16 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 5000: // ASC_MENU_EVENT_TYPE_GO_TO_INTERNAL_LINK 
         {
 
+            var aStack = this.SelectedObjectsStack;
+            for(var  i = 0; i < aStack.length; ++i){
+                if(aStack[i].Type === Asc.c_oAscTypeSelectElement.Hyperlink){
+                    var value = aStack[i].Value && aStack[i].Value.Value;
+                    if(value){
+                        this.sync_HyperlinkClickCallback(value);
+                    }
+                    break;
+                }
+            }
             break;
         }
 
