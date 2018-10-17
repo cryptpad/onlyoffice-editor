@@ -557,25 +557,35 @@
     };
 
     WorksheetView.prototype.getHorizontalScrollRange = function () {
-        var ctxW = this.drawingCtx.getWidth() - this.cellsLeft;
+		var offsetFrozen = this.getFrozenPaneOffset(false, true);
+        var ctxW = this.drawingCtx.getWidth() - offsetFrozen.offsetX - this.cellsLeft;
         for (var w = 0, i = this.nColsCount - 1; i >= 0; --i) {
             w += this._getColumnWidth(i);
             if (w > ctxW) {
                 break;
             }
         }
-        return i; // Диапазон скрола должен быть меньше количества столбцов, чтобы не было прибавления столбцов при перетаскивании бегунка
+		var tmp = 0;
+		if (this.topLeftFrozenCell) {
+			tmp = this.topLeftFrozenCell.getCol0();
+		}
+        return Math.max(0, i - tmp); // Диапазон скрола должен быть меньше количества столбцов, чтобы не было прибавления столбцов при перетаскивании бегунка
     };
 
     WorksheetView.prototype.getVerticalScrollRange = function () {
-        var ctxH = this.drawingCtx.getHeight() - this.cellsTop;
+		var offsetFrozen = this.getFrozenPaneOffset(true, false);
+        var ctxH = this.drawingCtx.getHeight() - offsetFrozen.offsetY - this.cellsTop;
         for (var h = 0, i = this.nRowsCount - 1; i >= 0; --i) {
             h += this._getRowHeight(i);
             if (h > ctxH) {
                 break;
             }
         }
-        return i; // Диапазон скрола должен быть меньше количества строк, чтобы не было прибавления строк при перетаскивании бегунка
+		var tmp = 0;
+		if (this.topLeftFrozenCell) {
+			tmp = this.topLeftFrozenCell.getRow0();
+		}
+		return Math.max(0, i - tmp); // Диапазон скрола должен быть меньше количества строк, чтобы не было прибавления строк при перетаскивании бегунка
     };
 
     WorksheetView.prototype.getCellsOffset = function (units) {
@@ -10818,7 +10828,6 @@
 	    var res = false;
 		var old = this.nRowsCount;
 		if (this.model.isDefaultHeightHidden()) {
-			this.nRowsCount = gc_nMaxRow;
 			return res;
 		} else {
 			this.nRowsCount += count;
@@ -10839,7 +10848,6 @@
 		var res = false;
 		var old = this.nColsCount;
 		if (this.model.isDefaultWidthHidden()) {
-			this.nColsCount = gc_nMaxCol;
 			return res;
 		} else {
 			this.nColsCount += count;

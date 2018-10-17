@@ -2016,13 +2016,15 @@ function _HEXTORGB_( colorHEX ) {
 		}
 		else if ( destY > this.maxScrollY && !this.endByY ) {
 			this.handleEvents( "onscrollVEnd", destY - this.maxScrollY );
-			vend = true;
-			if ( destY > this.maxScrollY ) {
-				// Обработчик onscrollVEnd решил, что расширение области скрола не нужно, изменяем destY
-				destY = this.maxScrollY;
-			}
-			isTop = false;
-			isBottom = true;
+			if (!this.endByY) {
+				vend = true;
+				if ( destY > this.maxScrollY ) {
+					// Обработчик onscrollVEnd решил, что расширение области скрола не нужно, изменяем destY
+					destY = this.maxScrollY;
+				}
+				isTop = false;
+				isBottom = true;
+            }
 		}
 
 		this.scroller.y = destY / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
@@ -2079,12 +2081,14 @@ function _HEXTORGB_( colorHEX ) {
 		}
 		else if ( destX > this.maxScrollX && !this.endByX ) {
 			this.handleEvents( "onscrollHEnd", destX - this.maxScrollX );
-			hend = true;
-			if ( destX > this.maxScrollX ) {
-				destX = this.maxScrollX;
-			}
-			isTop = false;
-			isBottom = true;
+			if (!this.endByX) {
+				hend = true;
+				if ( destX > this.maxScrollX ) {
+					destX = this.maxScrollX;
+				}
+				isTop = false;
+				isBottom = true;
+            }
 		}
 
 		this.scroller.x = destX / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;

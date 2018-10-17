@@ -963,7 +963,7 @@
 
   WorkbookView.prototype._onScrollY = function(pos, initRowsCount) {
     var ws = this.getWorksheet();
-    var delta = asc_round(pos - ws.getFirstVisibleRow(/*allowPane*/true));
+    var delta = asc_round(pos - ws.getFirstVisibleRow(true));
     if (delta !== 0) {
       ws.scrollVertical(delta, this.cellEditor, initRowsCount);
     }
@@ -971,7 +971,7 @@
 
   WorkbookView.prototype._onScrollX = function(pos, initColsCount) {
     var ws = this.getWorksheet();
-    var delta = asc_round(pos - ws.getFirstVisibleCol(/*allowPane*/true));
+    var delta = asc_round(pos - ws.getFirstVisibleCol(true));
     if (delta !== 0) {
       ws.scrollHorizontal(delta, this.cellEditor, initColsCount);
     }
