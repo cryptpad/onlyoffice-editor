@@ -999,7 +999,7 @@
       if (ws && ws.objectRender && ws.objectRender.controller) {
         ws.objectRender.controller.setSelectionState(state);
         ws.setSelectionShape(true);
-        var d = ws._calcActiveCellOffset(ws.objectRender.getSelectedDrawingsRange());
+        var d = ws._calcRangeOffset(ws.objectRender.getSelectedDrawingsRange());
         this.controller.scroll(d);
         ws.objectRender.showDrawingObjectsEx(true);
         ws.objectRender.controller.updateOverlay();

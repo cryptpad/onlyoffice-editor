@@ -2869,7 +2869,7 @@ function DrawingObjects() {
                     oNewChartSpace.spPr.xfrm.setOffY(pos_y);
                     oNewChartSpace.checkDrawingBaseCoords();
                     oNewChartSpace.recalculate();
-                    var d = worksheet._calcActiveCellOffset(_this.getSelectedDrawingsRange());
+                    var d = worksheet._calcRangeOffset(_this.getSelectedDrawingsRange());
                     window["Asc"]["editor"].wb.controller.scroll(d);
                     _this.showDrawingObjects(false);
                     _this.controller.resetSelection();
