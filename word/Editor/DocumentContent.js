@@ -6637,8 +6637,7 @@ CDocumentContent.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum)
     {
         var Item = this.Content[InlineElements[Pos + 1]];
 
-		var PageBounds = Item.GetPageBounds(0);
-		if (Y < PageBounds.Top)
+		if (Item.GetPagesCount() <= 0 || Y < Item.GetPageBounds(0).Top)
 			return InlineElements[Pos];
 
         if (Item.GetPagesCount() > 1)
