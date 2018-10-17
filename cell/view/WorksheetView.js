@@ -10681,6 +10681,10 @@
 				var offsetY = this.rows[this.visibleRange.r1].top - this.cellsTop;
 				var posX = curShape.transformText.TransformPointX(cursorPos.X, cursorPos.Y) * mmToPx - offsetX + this.cellsLeft;
 				var posY = curShape.transformText.TransformPointY(cursorPos.X, cursorPos.Y) * mmToPx - offsetY + this.cellsTop;
+				if ( AscCommon.AscBrowser.isRetina ) {
+					posX = AscCommon.AscBrowser.convertToRetinaValue(posX);
+					posY = AscCommon.AscBrowser.convertToRetinaValue(posY);
+				}
 
 
 				cellCoord = [new AscCommon.asc_CRect( posX, posY, 0, 0 )];
