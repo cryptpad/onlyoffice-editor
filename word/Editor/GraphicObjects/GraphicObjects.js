@@ -233,6 +233,14 @@ CGraphicObjects.prototype =
         return this.Id;
     },
 
+    GetAllFields: function(isUseSelection, arrFields){
+        var _arrFields = arrFields ? arrFields : [];
+        for(var i = 0; i < this.selectedObjects.length; ++i){
+            this.selectedObjects[i].GetAllFields(isUseSelection, arrFields);
+        }
+        return _arrFields;
+    },
+
     TurnOffCheckChartSelection: function()
     {
         this.bNoCheckChartTextSelection = true;
@@ -524,6 +532,9 @@ CGraphicObjects.prototype =
                 shape_props.vert = props_by_types.shapeProps.vert;
                 shape_props.Width = props_by_types.shapeProps.w;
                 shape_props.Height = props_by_types.shapeProps.h;
+                shape_props.rot = props_by_types.shapeProps.rot;
+                shape_props.flipH = props_by_types.shapeProps.flipH;
+                shape_props.flipV = props_by_types.shapeProps.flipV;
                 shape_props.lockAspect = props_by_types.shapeProps.lockAspect;
                 if(this.selection.group){
                     shape_props.description = props_by_types.shapeProps.description;
@@ -536,6 +547,9 @@ CGraphicObjects.prototype =
                 image_props.ImageUrl = props_by_types.imageProps.ImageUrl;
                 image_props.Width = props_by_types.imageProps.w;
                 image_props.Height = props_by_types.imageProps.h;
+                image_props.rot = props_by_types.imageProps.rot;
+                image_props.flipH = props_by_types.imageProps.flipH;
+                image_props.flipV = props_by_types.imageProps.flipV;
                 image_props.lockAspect = props_by_types.imageProps.lockAspect;
 
                 image_props.pluginGuid = props_by_types.imageProps.pluginGuid;
@@ -1181,11 +1195,11 @@ CGraphicObjects.prototype =
 
     addShapeOnPage: function(sPreset, nPageIndex, dX, dY, dExtX, dExtY)
     {
-        if ( docpostype_HdrFtr !== this.document.Get_DocPosType() || null !== this.document.HdrFtr.CurHdrFtr )
+        if ( docpostype_HdrFtr !== this.document.GetDocPosType() || null !== this.document.HdrFtr.CurHdrFtr )
         {
-            if (docpostype_HdrFtr !== this.document.Get_DocPosType())
+            if (docpostype_HdrFtr !== this.document.GetDocPosType())
             {
-                this.document.Set_DocPosType(docpostype_DrawingObjects);
+                this.document.SetDocPosType(docpostype_DrawingObjects);
                 this.document.Selection.Use   = true;
                 this.document.Selection.Start = true;
             }
@@ -1197,7 +1211,7 @@ CGraphicObjects.prototype =
                 var CurHdrFtr = this.document.HdrFtr.CurHdrFtr;
                 var DocContent = CurHdrFtr.Content;
 
-                DocContent.Set_DocPosType(docpostype_DrawingObjects);
+                DocContent.SetDocPosType(docpostype_DrawingObjects);
                 DocContent.Selection.Use   = true;
                 DocContent.Selection.Start = true;
             }
@@ -2557,6 +2571,7 @@ CGraphicObjects.prototype =
         var nPageIndex = objects_for_grouping[0].parent.pageIndex;
         for(i = 0; i < objects_for_grouping.length; ++i)
         {
+            objects_for_grouping[i].parent.PreDelete();
             objects_for_grouping[i].parent.Remove_FromDocument(false);
             if(objects_for_grouping[i].setParent){
                 objects_for_grouping[i].setParent(null);
@@ -2629,6 +2644,7 @@ CGraphicObjects.prototype =
                 parent_paragraph = cur_group.parent.Get_ParentParagraph();
                 page_num = cur_group.selectStartPage;
                 cur_group.normalize();
+                cur_group.parent.PreDelete();
                 cur_group.parent.Remove_FromDocument(false);
                 cur_group.setBDeleted(true);
                 sp_tree = cur_group.spTree;
@@ -2817,12 +2833,12 @@ CGraphicObjects.prototype =
 
     recalculateCurPos: DrawingObjectsController.prototype.recalculateCurPos,
 
-    remove: function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+    remove: function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
         var content = this.getTargetDocContent(true);
         if(content)
         {
-            content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+            content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
             var oTargetTextObject = AscFormat.getTargetTextObject(this);
             oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
             this.document.Recalculate();
@@ -2951,6 +2967,7 @@ CGraphicObjects.prototype =
                 var arr_drawings_ = [];
                 for(var i = 0; i < this.selectedObjects.length; ++i)
                 {
+                    this.selectedObjects[i].parent.PreDelete();
                     this.selectedObjects[i].parent.Remove_FromDocument(false);
                     if(this.selectedObjects[i].signatureLine){
                         this.document.Api.sendEvent("asc_onRemoveSignature", this.selectedObjects[i].signatureLine.id);
@@ -3373,7 +3390,7 @@ CGraphicObjects.prototype =
     getLeftTopSelectedObjectByPage: function(pageIndex)
     {
         var oDrawingPage, oRes;
-        if(this.document.Get_DocPosType() === docpostype_HdrFtr)
+        if(this.document.GetDocPosType() === docpostype_HdrFtr)
         {
             if(this.graphicPages[pageIndex])
             {

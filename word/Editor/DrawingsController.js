@@ -83,9 +83,9 @@ CDrawingsController.prototype.AddToParagraph = function(oItem, bRecalculate)
 	this.LogicDocument.Document_UpdateUndoRedoState();
 	this.LogicDocument.Document_UpdateInterfaceState();
 };
-CDrawingsController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CDrawingsController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
-	return this.DrawingObjects.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	return this.DrawingObjects.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CDrawingsController.prototype.GetCursorPosXY = function()
 {
@@ -347,9 +347,9 @@ CDrawingsController.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.DrawingObjects.getSelectedText(bClearText, oPr);
 };
-CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
-	return this.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	return this.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
 CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -501,7 +501,7 @@ CDrawingsController.prototype.RestoreDocumentStateAfterLoadChanges = function(St
 	if (true !== this.DrawingObjects.Load_DocumentStateAfterLoadChanges(State))
 	{
 		var LogicDocument = this.LogicDocument;
-		LogicDocument.Set_DocPosType(docpostype_Content);
+		LogicDocument.SetDocPosType(docpostype_Content);
 
 		var ContentPos = 0;
 		if (LogicDocument.Pages[LogicDocument.CurPage])
@@ -547,4 +547,8 @@ CDrawingsController.prototype.GetSimilarNumbering = function(oEngine)
 
 	if (oDocContent && oDocContent.GetSimilarNumbering)
 		oDocContent.GetSimilarNumbering(oEngine);
+};
+CDrawingsController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	return this.DrawingObjects.GetAllFields(isUseSelection, arrFields);
 };

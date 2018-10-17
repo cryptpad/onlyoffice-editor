@@ -605,7 +605,7 @@
 		this.bAlignBySelected     = false;
 		this.bSelectedSlidesTheme = false;
 
-		this.isPaintFormat              = false;
+		this.isPaintFormat              = AscCommon.c_oAscFormatPainterState.kOff;
 		this.isShowTableEmptyLine       = false;//true;
 		this.isShowTableEmptyLineAttack = false;//true;
 
@@ -2070,6 +2070,10 @@ background-repeat: no-repeat;\
 		}
 	};
 	asc_docs_api.prototype._autoSaveInner = function () {
+		if (this.WordControl.DemonstrationManager && this.WordControl.DemonstrationManager.Mode) {
+			return;
+		}
+
 		var _curTime = new Date();
 		if (null === this.lastSaveTime) {
 			this.lastSaveTime = _curTime;
@@ -2080,7 +2084,7 @@ background-repeat: no-repeat;\
 		} else {
 			var _bIsWaitScheme = false;
 			if (this.WordControl.m_oDrawingDocument &&
-				!this.WordControl.m_oDrawingDocument.TransitionSlide.IsPlaying() && History.Points &&
+				(!this.WordControl.m_oDrawingDocument.TransitionSlide || !this.WordControl.m_oDrawingDocument.TransitionSlide.IsPlaying()) && History.Points &&
 				History.Index >= 0 && History.Index < History.Points.length) {
 				if ((_curTime - History.Points[History.Index].Time) < this.intervalWaitAutoSave) {
 					_bIsWaitScheme = true;
@@ -2101,7 +2105,7 @@ background-repeat: no-repeat;\
 		}
 	};
 	asc_docs_api.prototype._saveCheck = function() {
-		return !this.isLongAction();
+		return !this.isLongAction() && !(this.WordControl.DemonstrationManager && this.WordControl.DemonstrationManager.Mode);
 	};
 	asc_docs_api.prototype._haveOtherChanges = function () {
 		return AscCommon.CollaborativeEditing.Have_OtherChanges();
@@ -2859,7 +2863,7 @@ background-repeat: no-repeat;\
 				{
 					oFill.fill.asc_putUrl(image_url);
 				}
-				if (null != _image)
+				if (null != _image || window["NATIVE_EDITOR_ENJINE"])
 				{
 					oApi.WordControl.m_oLogicDocument.ShapeApply(prop);
 					if (bShapeTexture)
@@ -3044,7 +3048,7 @@ background-repeat: no-repeat;\
                         bg.bgPr.Fill.fill.RasterImageId = image_url; // erase documentUrl
                     }
 
-                    if (null != _image)
+                    if (null != _image || window["NATIVE_EDITOR_ENJINE"])
                     {
                         if (bg.bgPr.Fill != null && bg.bgPr.Fill.fill != null && bg.bgPr.Fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
                         {
@@ -4147,7 +4151,11 @@ background-repeat: no-repeat;\
 
 		ImagePr.ImageUrl = obj.ImageUrl;
 
-
+		if (window["NATIVE_EDITOR_ENJINE"]) 
+		{
+		  this.WordControl.m_oLogicDocument.SetImageProps(ImagePr);
+		  return;
+		}
 		if (!AscCommon.isNullOrEmptyString(ImagePr.ImageUrl))
 		{
 			var sImageUrl = null;
@@ -4932,9 +4940,8 @@ background-repeat: no-repeat;\
 					this.WordControl.m_oLayoutDrawer.HeightMM = presentation.Height;
 					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.Width;
 					this.WordControl.m_oMasterDrawer.HeightMM = presentation.Height;
-
-					this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 				}
+				this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 
 				this.sendEvent("asc_onPresentationSize", presentation.Width, presentation.Height);
 
@@ -5105,6 +5112,12 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.pre_Paste = function(_fonts, _images, callback)
 	{
+		if (undefined !== window["Native"] && undefined !== window["Native"]["GetImageUrl"])
+		{
+			callback();
+			return;
+		}
+
 		this.pasteCallback = callback;
 		this.pasteImageMap = _images;
 
@@ -5250,7 +5263,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.DeleteSlide    = function()
 	{
-		var _delete_array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _delete_array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 
 		if (!this.IsSupportEmptyPresentation)
 		{
@@ -5921,7 +5934,7 @@ background-repeat: no-repeat;\
 		AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 
 		// применение темы
-		var _array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 		this.WordControl.m_oLogicDocument.changeTheme(theme_load_info, (_array.length <= 1 && !this.bSelectedSlidesTheme) ? null : _array);
 		this.WordControl.ThemeGenerateThumbnails(theme_load_info.Master);
 		// меняем шаблоны в меню
@@ -5932,7 +5945,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.ChangeLayout = function(layout_index)
 	{
-		var _array = this.WordControl.Thumbnails.GetSelectedArray();
+		var _array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 
 		var _master = this.WordControl.MasterLayouts;
 		this.WordControl.m_oLogicDocument.changeLayout(_array, this.WordControl.MasterLayouts, layout_index);
@@ -6450,7 +6463,7 @@ background-repeat: no-repeat;\
 			if (_cur < 0 || _cur >= _count)
 				return;
 
-            var aSelectedSlides = this.WordControl.Thumbnails.GetSelectedArray();
+            var aSelectedSlides = this.WordControl.m_oLogicDocument.GetSelectedSlides();
             for(var i = 0; i < aSelectedSlides.length; ++i)
             {
                 var _curSlide = this.WordControl.m_oLogicDocument.Slides[aSelectedSlides[i]];

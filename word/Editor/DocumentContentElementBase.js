@@ -408,7 +408,7 @@ CDocumentContentElementBase.prototype.AddTextArt = function(nStyle)
 CDocumentContentElementBase.prototype.AddInlineTable = function(nCols, nRows)
 {
 };
-CDocumentContentElementBase.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText)
+CDocumentContentElementBase.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
 };
 CDocumentContentElementBase.prototype.Set_ReviewType = function(ReviewType)
@@ -939,6 +939,24 @@ CDocumentContentElementBase.prototype.GetSimilarNumbering = function(oContinueEn
 CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 {
 	return false;
+};
+/**
+ * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект
+ * @returns {?Object}
+ */
+CDocumentContentElementBase.prototype.GetPlaceHolderObject = function()
+{
+	return null;
+};
+/**
+ * Получаем массив все полей в документе (простых и сложных)
+ * @param isUseSelection {boolean} ищем по селекут или вообще все
+ * @param arrFields - массив, который мы заполняем, если не задан, то создается новый и возвращается
+ * @returns {Array}
+ */
+CDocumentContentElementBase.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	return arrFields ? arrFields : [];
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

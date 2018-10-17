@@ -3714,7 +3714,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                             if(AscFormat.isRealNumber(value))
                             {
                                 pt = new AscFormat.CNumericPoint();
-                                pt.setIdx(pt_index);
+                                pt.setIdx(nPtCount);
                                 pt.setVal(value);
                                 if(cell.getNumFormatStr() !== lit_format_code)
                                 {
@@ -3735,7 +3735,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                     }
                                     aSpanPoints.length = 0;
                                 }
-                                nLastNoEmptyIndex = pt_index;
+                                nLastNoEmptyIndex = nPtCount;
                                 nSpliceIndex = num_cache.pts.length;
                                 dLastNoEmptyVal = pt.val;
                             }
@@ -3746,7 +3746,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                     if(this.displayEmptyCellsAs === 2 || ((typeof sCellValue === "string") && sCellValue.length > 0))
                                     {
                                         pt = new AscFormat.CNumericPoint();
-                                        pt.setIdx(pt_index);
+                                        pt.setIdx(nPtCount);
                                         pt.setVal(0);
                                         num_cache.addPt(pt);
                                         if(aSpanPoints.length > 0 )
@@ -3762,14 +3762,14 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                             }
                                             aSpanPoints.length = 0;
                                         }
-                                        nLastNoEmptyIndex = pt_index;
+                                        nLastNoEmptyIndex = nPtCount;
                                         nSpliceIndex = num_cache.pts.length;
                                         dLastNoEmptyVal = pt.val;
                                     }
                                     else if(this.displayEmptyCellsAs === 0 && ser.getObjectType() === AscDFH.historyitem_type_LineSeries)
                                     {
                                         pt = new AscFormat.CNumericPoint();
-                                        pt.setIdx(pt_index);
+                                        pt.setIdx(nPtCount);
                                         pt.setVal(0);
                                         aSpanPoints.push(pt);
                                     }
@@ -3800,7 +3800,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                             if(AscFormat.isRealNumber(value))
                             {
                                 pt = new AscFormat.CNumericPoint();
-                                pt.setIdx(pt_index);
+                                pt.setIdx(nPtCount);
                                 pt.setVal(value);
                                 if(cell.getNumFormatStr() !== lit_format_code)
                                 {
@@ -3815,7 +3815,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                     if(this.displayEmptyCellsAs === 2 || ((typeof sCellValue === "string") && sCellValue.length > 0))
                                     {
                                         pt = new AscFormat.CNumericPoint();
-                                        pt.setIdx(pt_index);
+                                        pt.setIdx(nPtCount);
                                         pt.setVal(0);
                                         num_cache.addPt(pt);
                                         if(aSpanPoints.length > 0 )
@@ -3831,14 +3831,14 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                             }
                                             aSpanPoints.length = 0;
                                         }
-                                        nLastNoEmptyIndex = pt_index;
+                                        nLastNoEmptyIndex = nPtCount;
                                         nSpliceIndex = num_cache.pts.length;
                                         dLastNoEmptyVal = pt.val;
                                     }
                                     else if(this.displayEmptyCellsAs === 0 && ser.getObjectType() === AscDFH.historyitem_type_LineSeries)
                                     {
                                         pt = new AscFormat.CNumericPoint();
-                                        pt.setIdx(pt_index);
+                                        pt.setIdx(nPtCount);
                                         pt.setVal(0);
                                         aSpanPoints.push(pt);
                                     }

@@ -2614,8 +2614,22 @@ ParaDrawing.prototype.GetAllContentControls = function(arrContentControls)
 		this.GraphicObj.GetAllContentControls(arrContentControls);
 	}
 };
-
-
+ParaDrawing.prototype.UpdateBookmarks = function(oManager)
+{
+	var arrDocContents = this.GetAllDocContents();
+	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
+	{
+		arrDocContents[nIndex].UpdateBookmarks(oManager);
+	}
+};
+ParaDrawing.prototype.PreDelete = function()
+{
+	var arrDocContents = this.GetAllDocContents();
+	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
+	{
+		arrDocContents[nIndex].PreDelete();
+	}
+};
 ParaDrawing.prototype.CheckContentControlEditingLock = function(){
 	if(this.DocumentContent && this.DocumentContent.CheckContentControlEditingLock){
         this.DocumentContent.CheckContentControlEditingLock();
@@ -2627,6 +2641,14 @@ ParaDrawing.prototype.CheckContentControlDeletingLock = function(){
 	if(this.DocumentContent && this.DocumentContent.CheckContentControlDeletingLock){
         this.DocumentContent.CheckContentControlDeletingLock();
 	}
+};
+ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if(this.GraphicObj)
+	{
+		return this.GraphicObj.GetAllFields(isUseSelection, arrFields);
+	}
+	return arrFields ? arrFields : [];
 };
 
 /**

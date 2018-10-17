@@ -1285,15 +1285,16 @@ function (window, undefined) {
 		}
 	};
 
-	function UndoRedoData_DefinedNames(name, ref, sheetId, isTable) {
+	function UndoRedoData_DefinedNames(name, ref, sheetId, isTable, isXLNM) {
 		this.name = name;
 		this.ref = ref;
 		this.sheetId = sheetId;
 		this.isTable = isTable;
+		this.isXLNM = isXLNM;
 	}
 
 	UndoRedoData_DefinedNames.prototype.Properties = {
-		name: 0, ref: 1, sheetId: 2, isTable: 4
+		name: 0, ref: 1, sheetId: 2, isTable: 4, isXLNM: 5
 	};
 	UndoRedoData_DefinedNames.prototype.getType = function () {
 		return UndoRedoDataTypes.DefinedName;
@@ -1315,6 +1316,9 @@ function (window, undefined) {
 			case this.Properties.isTable:
 				return this.isTable;
 				break;
+			case this.Properties.isXLNM:
+				return this.isXLNM;
+				break;
 		}
 		return null;
 	};
@@ -1331,6 +1335,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.isTable:
 				this.isTable = value;
+				break;
+			case this.Properties.isXLNM:
+				this.isXLNM = value;
 				break;
 		}
 	};

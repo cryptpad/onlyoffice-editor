@@ -882,6 +882,11 @@
     {
     };
 
+    CGraphicObjectBase.prototype.GetAllFields = function(isUseSelection, arrFields)
+    {
+        return arrFields ? arrFields : [];
+    };
+
     CGraphicObjectBase.prototype.convertToConnectionParams = function(rot, flipH, flipV, oTransform, oBounds, oConnectorInfo){
         var _ret =  new AscFormat.ConnectionParams();
         var _rot = oConnectorInfo.ang*AscFormat.cToRad + rot;

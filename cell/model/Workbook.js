@@ -222,7 +222,7 @@
 		}
 	}
 
-	function DefName(wb, name, ref, sheetId, hidden, isTable) {
+	function DefName(wb, name, ref, sheetId, hidden, isTable, isXLNM) {
 		this.wb = wb;
 		this.name = name;
 		this.ref = ref;
@@ -230,13 +230,15 @@
 		this.hidden = hidden;
 		this.isTable = isTable;
 
+		this.isXLNM = isXLNM;
+
 		this.isLock = null;
 		this.parsedRef = null;
 	}
 
 	DefName.prototype = {
 		clone: function(wb){
-			return new DefName(wb, this.name, this.ref, this.sheetId, this.hidden, this.isTable);
+			return new DefName(wb, this.name, this.ref, this.sheetId, this.hidden, this.isTable, this.isXLNM);
 		},
 		removeDependencies: function() {
 			if (this.parsedRef) {
@@ -268,10 +270,10 @@
 				var sheet = this.wb.getWorksheetById(this.sheetId);
 				index = sheet.getIndex();
 			}
-			return new Asc.asc_CDefName(this.name, this.ref, index, this.isTable, this.hidden, this.isLock);
+			return new Asc.asc_CDefName(this.name, this.ref, index, this.isTable, this.hidden, this.isLock, this.isXLNM);
 		},
 		getUndoDefName: function() {
-			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable);
+			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable, this.isXLNM);
 		},
 		setUndoDefName: function(newUndoName) {
 			this.name = newUndoName.name;
@@ -281,6 +283,7 @@
 			if (this.ref != newUndoName.ref) {
 				this.setRef(newUndoName.ref);
 			}
+			this.isXLNM = newUndoName.isXLNM;
 		},
 		onFormulaEvent: function(type, eventData) {
 			if (AscCommon.c_oNotifyParentType.IsDefName === type) {
@@ -621,7 +624,7 @@
 			var names = [], activeWS;
 
 			function getNames(defName) {
-				if (defName.ref && !defName.hidden && defName.name.indexOf("_xlnm") < 0) {
+				if (defName.ref && !defName.hidden && (defName.name.indexOf("_xlnm") < 0)) {
 					names.push(defName.getAscCDefName());
 				}
 			}
@@ -654,7 +657,12 @@
 		},
 		addDefNameOpen: function(name, ref, sheetIndex, hidden, isTable) {
 			var sheetId = this.wb.getSheetIdByIndex(sheetIndex);
-			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable);
+			var isXLNM = null;
+			if(name === "_xlnm.Print_Area") {
+				name = "Print_Area";
+				isXLNM = true;
+			}
+			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable, isXLNM);
 			this._addDefName(defName);
 			return defName;
 		},
@@ -2771,11 +2779,7 @@
 	 * @returns {Number}    Ширина столбца в px
 	 */
 	Workbook.prototype.modelColWidthToColWidth = function (mcw) {
-		var res = Asc.floor(((256 * mcw + Asc.floor(128 / this.maxDigitWidth)) / 256) * this.maxDigitWidth);
-		if (AscBrowser.isRetina) {
-			res = AscBrowser.convertToRetinaValue(res, true);
-		}
-		return res;
+		return Asc.floor(((256 * mcw + Asc.floor(128 / this.maxDigitWidth)) / 256) * this.maxDigitWidth);
 	};
 	/**
 	 * Вычисляет количество символов по ширине столбца
@@ -2785,20 +2789,16 @@
 	Workbook.prototype.colWidthToCharCount = function (w) {
 		var pxInOneCharacter = this.maxDigitWidth + this.paddingPlusBorder;
 		// Когда меньше 1 символа, то просто считаем по пропорции относительно размера 1-го символа
-		var res = w < pxInOneCharacter ?
+		return w < pxInOneCharacter ?
 			(1 - Asc.floor(100 * (pxInOneCharacter - w) / pxInOneCharacter + 0.49999) / 100) :
 			Asc.floor((w - this.paddingPlusBorder) / this.maxDigitWidth * 100 + 0.5) / 100;
-		if (AscBrowser.isRetina) {
-			res = AscBrowser.convertToRetinaValue(res);
-		}
-		return res;
 	};
 	Workbook.prototype.getUndoDefName = function(ascName) {
 		if (!ascName) {
 			return ascName;
 		}
 		var sheetId = this.getSheetIdByIndex(ascName.LocalSheetId);
-		return new UndoRedoData_DefinedNames(ascName.Name, ascName.Ref, sheetId, ascName.isTable);
+		return new UndoRedoData_DefinedNames(ascName.Name, ascName.Ref, sheetId, ascName.isTable, ascName.isXLNM);
 	};
 	Workbook.prototype.changeColorScheme = function (index) {
 		var scheme = AscCommon.getColorThemeByIndex(index);
@@ -2977,11 +2977,11 @@
 			}
 		}
 	};
-	SheetMemory.prototype.fill = function(value, start, end) {
-		this.checkSize(end - 1);
-		var startOffset = start * this.structSize;
-		var endOffset = end * this.structSize;
-		this.data.fill(value, startOffset, endOffset);
+	SheetMemory.prototype.clear = function(start, end) {
+		end = Math.min(end, this.count);
+		if (start < end) {
+			this.data.fill(0, start * this.structSize, end * this.structSize);
+		}
 	};
 	SheetMemory.prototype.getUint8 = function(index, offset) {
 		offset += index * this.structSize;
@@ -3569,48 +3569,52 @@
 								})(oRule, o, oRule.type === AscCommonExcel.ECfType.duplicateValues);
 								break;
 							case AscCommonExcel.ECfType.containsText:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_containsText;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return (-1 !== val.indexOf(text)) ? rule.dxf : null;
+										return res;
 									};
-							})(oRule, oRule.text && oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.notContainsText:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_notContains;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return (-1 === val.indexOf(text)) ? rule.dxf : null;
+										return res;
 									};
-							})(oRule, oRule.text && oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.beginsWith:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_beginsWith;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return val.startsWith(text) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, oRule.text && oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.endsWith:
-								compareFunction = (function(rule, text) {
+								compareFunction = (function(rule, v1) {
+									var operator = AscCommonExcel.ECfOperator.Operator_endsWith;
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
 										});
-										return val.endsWith(text) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, oRule.text && oRule.text.toLowerCase());
+								})(oRule, oRule.getValueCellIs(this));
 								break;
 							case AscCommonExcel.ECfType.containsErrors:
 								compareFunction = (function(rule) {
@@ -3683,23 +3687,16 @@
 								}
 								break;
 							case AscCommonExcel.ECfType.cellIs:
-								var val1 = oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this);
-								var val2 = oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this);
-								if (val1 && val1.toLowerCase) {
-									val1 = val1.toLowerCase();
-								}
-								if (val2 && val2.toLowerCase) {
-									val2 = val2.toLowerCase();
-								}
 								compareFunction = (function(rule, v1, v2) {
 									return function(row, col) {
-										var val;
+										var res;
 										t._getCellNoEmpty(row, col, function(cell) {
-											val = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+											res = rule.cellIs(rule.operator, cell, v1, v2) ? rule.dxf : null;
 										});
-										return rule.cellIs(val, v1, v2) ? rule.dxf : null;
+										return res;
 									};
-								})(oRule, val1, val2);
+								})(oRule, oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this),
+									oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this));
 								break;
 							case AscCommonExcel.ECfType.expression:
 								var offset = new AscCommon.CellBase(0, 0);
@@ -4908,16 +4905,8 @@
 		if(!copyRange){
 			this.workbook.dependencyFormulas.move(this.Id, oBBoxFrom, offset);
 		}
-		//modify nRowsCount/nColsCount for correct foreach functions
-		if(oBBoxFrom.r2 >= this.nRowsCount)
-			this.nRowsCount = oBBoxFrom.r2 + 1;
-		if(oBBoxFrom.c2 >= this.nColsCount)
-			this.nColsCount = oBBoxFrom.c2 + 1;
-		if(oBBoxTo.r2 >= this.nRowsCount)
-			this.nRowsCount = oBBoxTo.r2 + 1;
-		if(oBBoxTo.c2 >= this.nColsCount)
-			this.nColsCount = oBBoxTo.c2 + 1;
-		
+		var nRowsCountNew = 0;
+		var nColsCountNew = 0;
 		//todo avoid double getRange3
 		this.getRange3(oBBoxFrom.r1, oBBoxFrom.c1, oBBoxFrom.r2, oBBoxFrom.c2)._foreachNoEmpty(function(cell) {
 			cell.transformSharedFormula();
@@ -4930,20 +4919,24 @@
 				toData.copyRange(fromData, r1From, r1To, count);
 				if(!copyRange|| (copyRange && oThis.workbook.bUndoChanges)){
 					if(from !== to) {
-						fromData.fill(0, r1From, r1From + count);
+						fromData.clear(r1From, r1From + count);
 					} else {
 						if (r1From < r1To) {
-							fromData.fill(0, r1From, Math.min(r1From + count, r1To));
+							fromData.clear(r1From, Math.min(r1From + count, r1To));
 						} else {
-							fromData.fill(0, Math.max(r1From, r1To + count), r1From + count);
+							fromData.clear(Math.max(r1From, r1To + count), r1From + count);
 						}
 					}
 				}
 			} else {
 				toData = oThis.getColDataNoEmpty(to);
 				if(toData) {
-					toData.fill(0, r1To, r1To + count);
+					toData.clear(r1To, r1To + count);
 				}
+			}
+			if (toData) {
+				nRowsCountNew = Math.max(nRowsCountNew, toData.getSize());
+				nColsCountNew = Math.max(nColsCountNew, to + 1);
 			}
 		};
 		if(oBBoxFrom.c1 < oBBoxTo.c1){
@@ -4956,6 +4949,9 @@
 			}
 		}
 		var shiftedArrayFormula = {};
+		//modify nRowsCount/nColsCount for correct foreach functions
+		this.nRowsCount = Math.max(this.nRowsCount, nRowsCountNew);
+		this.nColsCount = Math.max(this.nColsCount, nColsCountNew);
 		this.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2)._foreachNoEmpty(function(cell){
 			var formula = cell.getFormulaParsed();
 			if (formula) {
@@ -5087,7 +5083,7 @@
 			var sheetMemoryFrom = this.getColDataNoEmpty(i);
 			if (sheetMemoryFrom) {
 				this.getColData(i + dif).copyRange(sheetMemoryFrom, oBBox.r1, oBBox.r1, oBBox.r2 - oBBox.r1 + 1);
-				sheetMemoryFrom.fill(0, oBBox.r1, oBBox.r2 + 1);
+				sheetMemoryFrom.clear(oBBox.r1, oBBox.r2 + 1);
 			}
 		}
 		//notifyChanged after move cells to get new locations(for intersect ranges)
@@ -5144,7 +5140,7 @@
 				if (i + dif <= gc_nMaxCol0) {
 					this.getColData(i + dif).copyRange(sheetMemoryFrom, oBBox.r1, oBBox.r1, oBBox.r2 - oBBox.r1 + 1);
 				}
-				sheetMemoryFrom.fill(0, oBBox.r1, oBBox.r2 + 1);
+				sheetMemoryFrom.clear(oBBox.r1, oBBox.r2 + 1);
 			}
 		}
 		if (nLeft > 0 && false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))
@@ -7167,6 +7163,10 @@
 		this._checkDirty();
 		return this.number;
 	};
+	Cell.prototype.getBoolValue = function() {
+		this._checkDirty();
+		return this.number == 1;
+	};
 	Cell.prototype.getValueText = function() {
 		this._checkDirty();
 		return this.text;
@@ -7342,23 +7342,30 @@
 		if (!this.isFormula()) {
 			return;
 		}
-		this._calculateRefType();
-		var res = this.getFormulaParsed().value;
+		var parsed = this.getFormulaParsed();
+		var res = parsed.simplifyRefType(parsed.value, this);
 
 		if (res) {
+			//при мерже добавилась функция simplifyRefType, она возвращает значение вместо массива
+			//раньше использовалась фунция _calculateRefType, которая подменяла parsed.value, а res = this.getFormulaParsed().value
+			//в данном случае, если мы работаем с формулой массива, нужен именно массив
+			//поэтому добавляю заглушку и использую parsed.value вместо res, и res далее подменяю
+			//TODO стоит пересмотреть и возможно добавить обработчик для формул массива в функцию simplifyRefType
+
 			//***array-formula***
-			if(cElementType.array === res.type) {
+			var value = parsed.value;
+			if(value && cElementType.array === value.type) {
 				var ref = this.formulaParsed.ref;
 				if(ref) {
-					var row = 1 === res.array.length ? 0 : this.nRow - ref.r1;
-					var col = 1 === res.array[0].length ? 0 : this.nCol - ref.c1;
-					if(res.array[row] && res.array[row][col]) {
-						res = res.getElementRowCol(row, col);
+					var row = 1 === value.array.length ? 0 : this.nRow - ref.r1;
+					var col = 1 === value.array[0].length ? 0 : this.nCol - ref.c1;
+					if(value.array[row] && value.array[row][col]) {
+						res = value.getElementRowCol(row, col);
 					} else {
 						res = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
 					}
 				} else {
-					res = res.getElement(0);
+					res = value.getElement(0);
 				}
 			}
 

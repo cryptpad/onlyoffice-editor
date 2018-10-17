@@ -63,8 +63,10 @@ var g_dKoef_pt_to_mm = 25.4 / 72;
 var g_dKoef_pc_to_mm = g_dKoef_pt_to_mm / 12;
 var g_dKoef_in_to_mm = 25.4;
 var g_dKoef_twips_to_mm = g_dKoef_pt_to_mm / 20;
+var g_dKoef_emu_to_mm = 1 / 36000;
 var g_dKoef_mm_to_pt = 1 / g_dKoef_pt_to_mm;
 var g_dKoef_mm_to_twips = 1 / g_dKoef_twips_to_mm;
+var g_dKoef_mm_to_emu = 36000;
 
 var tblwidth_Auto = 0x00;
 var tblwidth_Mm   = 0x01;
@@ -3504,6 +3506,14 @@ CStyle.prototype.IsCustom = function()
 {
 	return this.Custom;
 };
+/**
+ * Проверяем является ли данный стиль, стилем для параграфа
+ * @returns {boolean}
+ */
+CStyle.prototype.IsParagraphStyle = function()
+{
+	return (this.Type === styletype_Paragraph);
+};
 
 function CStyles(bCreateDefault)
 {
@@ -4255,14 +4265,6 @@ CStyles.prototype =
         return "";
     },
 
-    Get : function(StyleId)
-    {
-        if (undefined != this.Style[StyleId])
-            return this.Style[StyleId];
-
-        return null;
-    },
-
     Get_Default_Paragraph : function()
     {
         return this.Default.Paragraph;
@@ -4735,6 +4737,15 @@ CStyles.prototype =
     }
 };
 /**
+ * Получаем стиль по идентификатору
+ * @param sStyleId {string}
+ * @returns {?CStyle}
+ */
+CStyles.prototype.Get = function(sStyleId)
+{
+	return (this.Style[sStyleId] ? this.Style[sStyleId] : null);
+};
+/**
  * Получаем идентификатор стиля по его имени
  * @param {string} sName
  * @param {boolean} [isReturnParaDefault=false] Возвращать ли дефолтовый стиль для параграфа, если стиль не найден
@@ -5184,12 +5195,12 @@ CDocumentShd.prototype =
 
 function CDocumentBorder()
 {
-    this.Color = new CDocumentColor( 0, 0, 0 );
-    this.Unifill = undefined;
-    this.LineRef = undefined;
-    this.Space = 0;
-    this.Size  = 0.5 * g_dKoef_pt_to_mm;
-    this.Value = border_None;
+	this.Color   = new CDocumentColor(0, 0, 0);
+	this.Unifill = undefined;
+	this.LineRef = undefined;
+	this.Space   = 0;                      // Это значение учитывается всегда, даже когда Value = none (поэтому важно, что по умолчанию 0)
+	this.Size    = 0.5 * g_dKoef_pt_to_mm; // Размер учитываем в зависимости от Value
+	this.Value   = border_None;
 }
 
 CDocumentBorder.prototype =
@@ -11057,6 +11068,32 @@ CParaPr.prototype.ReadFromBinary = function(oReader)
 {
 	return this.Read_FromBinary(oReader);
 };
+CParaPr.prototype.private_CorrectBorderSpace = function(nValue)
+{
+	var dKoef = (32 * 25.4 / 72);
+	return (nValue - Math.floor(nValue / dKoef) * dKoef);
+};
+CParaPr.prototype.CheckBorderSpaces = function()
+{
+	// MSWordHack: Специальная заглушка под MS Word
+	// В Word значение Space ограничивается 0..31пт. Судя по всему у них это значение реализуется ровно 5 битами, т.к.
+	// значение 32пт, уже воспринимается как 0, 33=1,34=2 и т.д.
+
+	if (this.Brd.Top)
+		this.Brd.Top.Space = this.private_CorrectBorderSpace(this.Brd.Top.Space);
+
+	if (this.Brd.Bottom)
+		this.Brd.Bottom.Space = this.private_CorrectBorderSpace(this.Brd.Bottom.Space);
+
+	if (this.Brd.Left)
+		this.Brd.Left.Space = this.private_CorrectBorderSpace(this.Brd.Left.Space);
+
+	if (this.Brd.Right)
+		this.Brd.Right.Space = this.private_CorrectBorderSpace(this.Brd.Right.Space);
+
+	if (this.Brd.Between)
+		this.Brd.Between.Space = this.private_CorrectBorderSpace(this.Brd.Between.Space);
+};
 //----------------------------------------------------------------------------------------------------------------------
 // CParaPr Export
 //----------------------------------------------------------------------------------------------------------------------
@@ -11194,6 +11231,9 @@ window["AscCommonWord"].CTextPr = CTextPr;
 window["AscCommonWord"].CParaPr = CParaPr;
 window["AscCommonWord"].CParaTabs = CParaTabs;
 window["AscCommonWord"].g_dKoef_pt_to_mm = g_dKoef_pt_to_mm;
+window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
+window["AscCommonWord"].g_dKoef_mm_to_pt = g_dKoef_mm_to_pt;
+window["AscCommonWord"].g_dKoef_mm_to_emu = g_dKoef_mm_to_emu;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;

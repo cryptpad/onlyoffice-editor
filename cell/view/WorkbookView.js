@@ -293,17 +293,16 @@
     this._canResize();
 
     // Shapes
-    var vector_koef = AscCommonExcel.vector_koef;
     var canvasWidth = this.canvasGraphic.width;
     var canvasHeight = this.canvasGraphic.height;
     this.buffers.shapeCtx = new AscCommon.CGraphics();
-    this.buffers.shapeCtx.init(this.drawingGraphicCtx.ctx, canvasWidth, canvasHeight, canvasWidth * vector_koef, canvasHeight * vector_koef);
+    this.buffers.shapeCtx.init(this.drawingGraphicCtx.ctx, canvasWidth, canvasHeight, canvasWidth * 25.4 / this.drawingGraphicCtx.ppiX, canvasHeight * 25.4 / this.drawingGraphicCtx.ppiY);
     this.buffers.shapeCtx.m_oFontManager = this.fmgrGraphics[2];
 
     var overlayWidth = this.canvasGraphicOverlay.width;
     var overlayHeight = this.canvasGraphicOverlay.height;
     this.buffers.shapeOverlayCtx = new AscCommon.CGraphics();
-    this.buffers.shapeOverlayCtx.init(this.overlayGraphicCtx.ctx, overlayWidth, overlayHeight, overlayWidth * vector_koef, overlayHeight * vector_koef);
+    this.buffers.shapeOverlayCtx.init(this.overlayGraphicCtx.ctx, overlayWidth, overlayHeight, overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX, overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY);
     this.buffers.shapeOverlayCtx.m_oFontManager = this.fmgrGraphics[2];
 
     this.stringRender = new AscCommonExcel.StringRender(this.buffers.main);
@@ -2393,6 +2392,9 @@
         t.handlers.trigger("asc_onError", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
       }
       t._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
+      if(ws.viewPrintLines) {
+		  ws.updateSelection();
+	  }
     };
     var defNameId;
     if (oldName) {
@@ -2429,7 +2431,7 @@
       return;
     }
 
-    var ws = this.getWorksheet(), t = this
+    var ws = this.getWorksheet(), t = this;
 
     if (oldName) {
 
@@ -2441,6 +2443,9 @@
           t.handlers.trigger("asc_onError", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
         }
         t._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
+		if(ws.viewPrintLines) {
+		  ws.updateSelection();
+		}
       };
       var defNameId = t.model.getDefinedName(oldName).getNodeId();
 
@@ -3072,6 +3077,7 @@
 
 	WorkbookView.prototype.savePagePrintOptions = function (arrPagesPrint) {
 		var t = this;
+		var viewMode = !this.Api.canEdit();
 
 		if(!arrPagesPrint) {
 			return;
@@ -3083,7 +3089,7 @@
 			}
 
 			for(var i in arrPagesPrint) {
-				t.getWorksheet(parseInt(i)).savePageOptions(arrPagesPrint[i]);
+				t.getWorksheet(parseInt(i)).savePageOptions(arrPagesPrint[i], viewMode);
 			}
 		};
 
@@ -3094,7 +3100,11 @@
 			lockInfoArr.push(lockInfo);
 		}
 
-		this.collaborativeEditing.lock(lockInfoArr, callback);
+		if(viewMode) {
+			callback();
+		} else {
+			this.collaborativeEditing.lock(lockInfoArr, callback);
+		}
 	};
 
   //------------------------------------------------------------export---------------------------------------------------

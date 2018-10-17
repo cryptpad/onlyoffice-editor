@@ -540,7 +540,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                }
            }
 
-            if((ShiftKey === true || window.AscAlwaysSaveAspectOnResizeTrack === true || this.originalObject.getNoChangeAspect()) && this.bAspect === true)
+            if((ShiftKey === true || (window.AscAlwaysSaveAspectOnResizeTrack === true && !this.isLine) || this.originalObject.getNoChangeAspect()) && this.bAspect === true)
             {
                 var _new_aspect = this.aspect*(Math.abs(kd1/ kd2));
 

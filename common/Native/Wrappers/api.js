@@ -4702,7 +4702,7 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
         }
     }
 
-        /* change z-index */
+    /* change z-index */
     if (AscFormat.isRealNumber(ImagePr.ChangeLevel))
     {
         switch (ImagePr.ChangeLevel)

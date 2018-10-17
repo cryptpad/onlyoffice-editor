@@ -33,6 +33,7 @@
 "use strict";
 function CParagraphContentBase()
 {
+	this.Type      = para_Unknown;
 	this.Paragraph = null;
 
 	this.StartLine  = -1;
@@ -41,6 +42,14 @@ function CParagraphContentBase()
 	this.Lines       = [];
 	this.LinesLength = 0;
 }
+CParagraphContentBase.prototype.GetType = function()
+{
+	return this.Type;
+};
+CParagraphContentBase.prototype.Get_Type = function()
+{
+	return this.Type;
+};
 CParagraphContentBase.prototype.CanSplit = function()
 {
 	return false;
@@ -138,7 +147,7 @@ CParagraphContentBase.prototype.GetSelectedText = function(bAll, bClearText, oPr
 {
 	return "";
 };
-CParagraphContentBase.prototype.Get_SelectionDirection = function()
+CParagraphContentBase.prototype.GetSelectDirection = function()
 {
 	return 1;
 };
@@ -582,6 +591,10 @@ CParagraphContentBase.prototype.GetDirectTextPr = function()
 {
 	return null;
 };
+CParagraphContentBase.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	return arrFields ? arrFields : [];
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -958,7 +971,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GetSelectedText = function(b
 
     return Str;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Get_SelectionDirection = function()
+CParagraphContentWithParagraphLikeContent.prototype.GetSelectDirection = function()
 {
     if (true !== this.Selection.Use)
         return 0;
@@ -968,7 +981,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_SelectionDirection = fun
     else if (this.Selection.StartPos > this.Selection.EndPos)
         return -1;
 
-    return this.Content[this.Selection.StartPos].Get_SelectionDirection();
+    return this.Content[this.Selection.StartPos].GetSelectDirection();
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_TextPr = function(_ContentPos, Depth)
 {
@@ -3276,12 +3289,12 @@ CParagraphContentWithParagraphLikeContent.prototype.private_CheckUpdateBookmarks
 		}
 	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Get_FootnotesList = function(oEngine)
+CParagraphContentWithParagraphLikeContent.prototype.GetFootnotesList = function(oEngine)
 {
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.Content[nIndex].Get_FootnotesList)
-			this.Content[nIndex].Get_FootnotesList(oEngine);
+		if (this.Content[nIndex].GetFootnotesList)
+			this.Content[nIndex].GetFootnotesList(oEngine);
 
 		if (oEngine.IsRangeFull())
 			return;
@@ -3627,6 +3640,26 @@ CParagraphContentWithParagraphLikeContent.prototype.GetDirectTextPr = function()
 	{
 		return this.Content[this.State.ContentPos].GetDirectTextPr();
 	}
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if (!arrFields)
+		arrFields = [];
+
+	var nStartPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos)
+		: 0;
+
+	var nEndPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos)
+		: this.Content.length - 1;
+
+	for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+	{
+		this.Content[nIndex].GetAllFields(isUseSelection, arrFields);
+	}
+
+	return arrFields;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции, которые должны быть реализованы в классах наследниках

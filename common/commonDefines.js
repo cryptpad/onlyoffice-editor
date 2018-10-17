@@ -115,6 +115,7 @@
 			KeyExpire             : -21,
 			UserCountExceed       : -22,
 			AccessDeny            : -23,
+			EditingError          :	-25,
 
 			SplitCellMaxRows     : -30,
 			SplitCellMaxCols     : -31,
@@ -1017,6 +1018,7 @@
 		[26, 1255, "windows-1255", "Hebrew (Windows)"],
 
 		[27, 932, "Shift_JIS", "Japanese (Shift-JIS)"],
+		[52, 950, "EUC-JP", "Japanese (EUC-JP)"],
 
 		[28, 949, "KS_C_5601-1987", "Korean (Windows)"],
 		[29, 51949, "EUC-KR", "Korean (EUC)"],
@@ -1484,6 +1486,7 @@
 	prot['KeyExpire']                        = prot.KeyExpire;
 	prot['UserCountExceed']                  = prot.UserCountExceed;
 	prot['AccessDeny']                       = prot.AccessDeny;
+	prot['EditingError']                     = prot.EditingError;
 	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
 	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
 	prot['SplitCellRowsDivider']             = prot.SplitCellRowsDivider;

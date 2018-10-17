@@ -5102,12 +5102,19 @@ CShape.prototype.hitToAdjustment = function (x, y) {
     t_x = invert_transform.TransformPointX(x, y);
     t_y = invert_transform.TransformPointY(x, y);
     var _calcGeoem = this.calcGeometry || (this.spPr && this.spPr.geometry);
+    var _dist;
+	if (global_mouseEvent && global_mouseEvent.AscHitToHandlesEpsilon) {
+        _dist = global_mouseEvent.AscHitToHandlesEpsilon;
+    }
+    else{
+        _dist = this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS);
+    }
     if (_calcGeoem)
     {
         invert_transform = this.getInvertTransform();
         t_x = invert_transform.TransformPointX(x, y);
         t_y = invert_transform.TransformPointY(x, y);
-        ret = _calcGeoem.hitToAdj(t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
+        ret = _calcGeoem.hitToAdj(t_x, t_y, _dist);
         if(ret.hit)
         {
             ret.warp = false;
@@ -5119,7 +5126,7 @@ CShape.prototype.hitToAdjustment = function (x, y) {
         invert_transform = this.invertTransformTextWordArt;
         t_x = invert_transform.TransformPointX(x, y);
         t_y = invert_transform.TransformPointY(x, y);
-        ret = this.recalcInfo.warpGeometry.hitToAdj(t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
+        ret = this.recalcInfo.warpGeometry.hitToAdj(t_x, t_y, _dist);
         ret.warp = true;
         return ret;
     }
@@ -5720,6 +5727,14 @@ CShape.prototype.getColumnNumber = function(){
             return this.signatureLine.id;
         }
         return null;
+    };
+
+    CShape.prototype.GetAllFields = function(isUseSelection, arrFields){
+        var oContent = this.getDocContent();
+        if(oContent){
+            return oContent.GetAllFields(isUseSelection, arrFields)
+        }
+        return arrFields ? arrFields : [];
     };
 function CreateBinaryReader(szSrc, offset, srcLen)
 {

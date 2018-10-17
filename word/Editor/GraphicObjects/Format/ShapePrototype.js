@@ -229,6 +229,23 @@ CShape.prototype.handleUpdateLn = function()
     this.recalcContent();
     this.recalcTransformText();
     this.addToRecalculate();
+    if(this.recalcInfo && this.recalcInfo.recalculateTransform){
+        if(this.group)
+        {
+            var oMainGroup = this.getMainGroup && this.getMainGroup();
+            if(oMainGroup.parent && oMainGroup.parent.Refresh_RecalcData)
+            {
+                oMainGroup.parent.Refresh_RecalcData({Type: AscDFH.historyitem_Drawing_SetExtent});
+            }
+        }
+        else
+        {
+            if(this.parent && this.parent.Refresh_RecalcData)
+            {
+                this.parent.Refresh_RecalcData({Type: AscDFH.historyitem_Drawing_SetExtent});
+            }
+        }
+    }
 };
 CShape.prototype.handleUpdateGeometry = function()
 {
@@ -693,12 +710,12 @@ CShape.prototype.Set_CurrentElement = function(bUpdate, pageIndex)
         var hdr_ftr = para_drawing.DocumentContent.IsHdrFtr(true);
         if(hdr_ftr)
         {
-            hdr_ftr.Content.Set_DocPosType(docpostype_DrawingObjects);
+            hdr_ftr.Content.SetDocPosType(docpostype_DrawingObjects);
             hdr_ftr.Set_CurrentElement(bUpdate);
         }
         else
         {
-            drawing_objects.document.Set_DocPosType(docpostype_DrawingObjects);
+            drawing_objects.document.SetDocPosType(docpostype_DrawingObjects);
             drawing_objects.document.Selection.Use = true;
 
             if ( true === bUpdate )

@@ -184,6 +184,8 @@
 
         this.openFileCryptBinary = null;
 
+        this.copyOutEnabled = (config['copyoutenabled'] !== false);
+
 		//config['watermark_on_draw'] = window.TEST_WATERMARK_STRING;
 		this.watermarkDraw =
 			config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
@@ -222,13 +224,18 @@
 
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
+			//send only first error to reduce number of requests. also following error may be consequences of first
+			window.onerror = oldOnError;
 			var msg = 'Error: ' + errorMsg + ' Script: ' + url + ' Line: ' + lineNumber + ':' + column +
 				' userAgent: ' + (navigator.userAgent || navigator.vendor || window.opera) + ' platform: ' +
 				navigator.platform + ' isLoadFullApi: ' + t.isLoadFullApi + ' isDocumentLoadComplete: ' +
 				t.isDocumentLoadComplete + ' StackTrace: ' + (errorObj ? errorObj.stack : "");
 			t.CoAuthoringApi.sendChangesError(msg);
-			//send only first error to reduce number of requests. also following error may be consequences of first
-			window.onerror = oldOnError;
+			if (t.isLoadFullApi && t.isDocumentLoadComplete) {
+				//todo disconnect and downloadAs ability
+				t.asc_setViewMode(true);
+				t.sendEvent("asc_onError", Asc.c_oAscError.ID.EditingError, c_oAscError.Level.NoCritical);
+			}
 			if (oldOnError) {
 				return oldOnError.apply(this, arguments);
 			} else {
@@ -339,7 +346,7 @@
 	};
 	baseEditorsApi.prototype.isCopyOutEnabled                = function()
 	{
-		return true;
+		return this.copyOutEnabled;
 	};
 	// target pos
 	baseEditorsApi.prototype.asc_LockTargetUpdate		     = function(isLock)
@@ -1510,7 +1517,7 @@
 	// plugins
 	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
 	{
-		return this.licenseResult && Asc.c_oLicenseBranding.ApiFunctions === this.licenseResult['branding'];
+		return this.licenseResult && true === this.licenseResult['plugins'];
 	};
 
 	baseEditorsApi.prototype.asc_pluginsRegister   = function(basePath, plugins)
