@@ -279,10 +279,12 @@ function (window, undefined) {
 	function cCOLUMN() {
 	}
 
+	//***array-formula***
 	cCOLUMN.prototype = Object.create(cBaseFunction.prototype);
 	cCOLUMN.prototype.constructor = cCOLUMN;
 	cCOLUMN.prototype.name = 'COLUMN';
 	cCOLUMN.prototype.argumentsMax = 1;
+	cCOLUMN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cCOLUMN.prototype.Calculate = function (arg) {
 		var bbox;
 		if (0 === arg.length) {
@@ -1147,10 +1149,12 @@ function (window, undefined) {
 	function cROW() {
 	}
 
+	//***array-formula***
 	cROW.prototype = Object.create(cBaseFunction.prototype);
 	cROW.prototype.constructor = cROW;
 	cROW.prototype.name = 'ROW';
 	cROW.prototype.argumentsMax = 1;
+	cROW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cROW.prototype.Calculate = function (arg) {
 		var bbox;
 		if (0 === arg.length) {

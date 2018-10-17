@@ -452,7 +452,8 @@ var cErrorType = {
 var cReturnFormulaType = {
 		value: 0,
 		value_replace_area: 1,
-		array: 2
+		array: 2,
+		area_to_ref: 3
 };
 
 var cExcelSignificantDigits = 15; //количество цифр в числе после запятой
@@ -2446,6 +2447,19 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			this.countElement += arr[i].length;
 		}
 	};
+	cArray.prototype.fillEmptyFromRange = function (range) {
+		if(!range) {
+			return;
+		}
+
+		for(var i = range.r1; i <= range.r2; i++) {
+			this.addRow();
+			for(var j = range.c1; j <= range.c2; j++) {
+				this.addElement(null);
+			}
+		}
+	};
+
 
 	/**
 	 * @constructor
@@ -5763,17 +5777,26 @@ parserFormula.prototype.setFormula = function(formula) {
 					//если данная функция не может возвращать массив, проходимся по всем элементам аргументов и формируем массив
 					var returnFormulaType = currentElement.returnValueType;
 					var arrayIndexes = currentElement.arrayIndexes;
-					if(true === currentElement.bArrayFormula && (!returnFormulaType || cReturnFormulaType.value_replace_area === returnFormulaType || arrayIndexes)) {
+					var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
+					var replaceAreaByRefs = cReturnFormulaType.area_to_ref === returnFormulaType;
+					if(true === currentElement.bArrayFormula && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes)) {
 
 						//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
 						var tempArgs = [], tempArg, firstArray;
-						var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
 						for (var j = 0; j < argumentsCount; j++) {
 							tempArg = arg[j];
 							if(!(arrayIndexes && arrayIndexes[j])) {
 								if(cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
 									if(replaceAreaByValue) {
 										tempArg = tempArg.cross(opt_bbox);
+									} else if(replaceAreaByRefs) {
+										//добавляю специальные заглушки для функций row/column
+										//они работают с аргументами иначе, чем все остальные
+										//row - игнорируем в area колонки и проходимся только по строчкам и берём 1 колонку
+										//к примеру, area A1:B2 разбиваем на [a1,a1;a2,a2] вместо нормального [a1,b1;a2,b2]
+										var useOnlyFirstRow = "column" === currentElement.name.toLowerCase() ? this.ref : null;
+										var useOnlyFirstColumn = "row" === currentElement.name.toLowerCase() ? this.ref : null;
+										tempArg = window['AscCommonExcel'].convertAreaToArrayRefs(tempArg, useOnlyFirstRow, useOnlyFirstColumn);
 									} else {
 										tempArg = window['AscCommonExcel'].convertAreaToArray(tempArg);
 									}
@@ -5790,6 +5813,13 @@ parserFormula.prototype.setFormula = function(formula) {
 								}
 							}
 							tempArgs.push(tempArg);
+						}
+
+						//для функций row/column с нулевым количеством аргументов необходимо рассчитывать
+						//значение для каждой ячейки массива, изменяя при этом opt_bbox
+						if(replaceAreaByRefs && 0 === argumentsCount) {
+							firstArray = new cArray();
+							firstArray.fillEmptyFromRange(this.ref);
 						}
 
 						if(firstArray) {
@@ -5821,7 +5851,13 @@ parserFormula.prototype.setFormula = function(formula) {
 									newArgs.push(newArg);
 								}
 
-								array.addElement(currentElement.Calculate(newArgs, opt_bbox, opt_defName, t.ws, bIsSpecialFunction));
+								//для случая с 0 аргументов
+								//возможно стоит убрать проверку на количество аргументови всегда заменять bbox
+								var temp_opt_bbox = opt_bbox;
+								if(0 === argumentsCount && t.ref) {
+									temp_opt_bbox = new Asc.Range(c + t.ref.c1, r + t.ref.r1, c + t.ref.c1, r + t.ref.r1);
+								}
+								array.addElement(currentElement.Calculate(newArgs, temp_opt_bbox, opt_defName, t.ws, bIsSpecialFunction));
 							});
 
 							_tmp = array;
@@ -7083,6 +7119,37 @@ function rtl_math_erfc( x ) {
 		return retArr;
 	}
 
+	function convertAreaToArrayRefs(area, useOnlyFirstRow, useOnlyFirstColumn){
+		var retArr = new cArray(), ref, is3d;
+		var range, ws;
+		if(cElementType.cellsRange === area.type) {
+			range = area.range;
+			ws = area.ws;
+		} else if (cElementType.cellsRange3D === area.type && area.isSingleSheet()) {
+			range = area.getRanges()[0];
+			ws = area.wsFrom;
+			is3d = true;
+		}
+
+		if(range) {
+			var bbox = range.bbox;
+			var countRow = useOnlyFirstRow ? useOnlyFirstRow.r2 - useOnlyFirstRow.r1 : bbox.r2 - bbox.r1;
+			var countCol = useOnlyFirstColumn ? useOnlyFirstColumn.c2 - useOnlyFirstColumn.c1 : bbox.c2 - bbox.c1;
+
+			for ( var iRow = bbox.r1; iRow <= countRow; iRow++, iRow <= countRow ? retArr.addRow() : true ) {
+				for ( var iCol = bbox.c1; iCol <= countCol; iCol++ ) {
+					var curCol = useOnlyFirstColumn ? bbox.c1 : iCol;
+					var curRow = useOnlyFirstRow ? bbox.r1 : iRow;
+					ref = new Asc.Range(curCol, curRow, curCol, curRow);
+					ref = is3d ? new cRef3D(ref.getName(), ws) : new cRef(ref.getName(), ws);
+					retArr.addElement(ref);
+				}
+			}
+		}
+
+		return retArr;
+	}
+
 	function specialFuncArrayToArray(arg0, arg1, what){
 		var retArr = null, _arg0, _arg1;
 		if (arg0.getRowCount() === arg1.getRowCount() && 1 === arg0.getCountElementInRow()) {
@@ -7203,6 +7270,7 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].cDate = cDate;
 
 	window['AscCommonExcel'].convertAreaToArray = convertAreaToArray;
+	window['AscCommonExcel'].convertAreaToArrayRefs = convertAreaToArrayRefs;
 
 	window["Asc"]["cDate"] = window["Asc"].cDate = cDate;
 	prot									     = cDate.prototype;
