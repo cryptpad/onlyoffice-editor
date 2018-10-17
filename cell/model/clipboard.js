@@ -1789,16 +1789,15 @@
                             bInsertMath = true;
                         }
                     }
-                    if(!bInsertMath){
-                        paragraph.Check_NearestPos(NearPos);
-                        target_doc_content.Insert_Content(selectedContent, NearPos);
-                    }
-					
-					worksheet.objectRender.controller.cursorMoveRight(false, false);
-					
+                    if(!bInsertMath) {
+						paragraph.Check_NearestPos(NearPos);
+						target_doc_content.Insert_Content(selectedContent, NearPos);
+					}
 					var oTargetTextObject = AscFormat.getTargetTextObject(worksheet.objectRender.controller);
 					oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
 					worksheet.objectRender.controller.startRecalculate();
+					worksheet.objectRender.controller.cursorMoveRight(false, false);
+
 				}
 			},
 			
