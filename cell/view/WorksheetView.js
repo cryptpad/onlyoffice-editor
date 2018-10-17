@@ -5333,18 +5333,16 @@
     };
 
     WorksheetView.prototype._isColDrawnPartially = function (col, leftCol, diffWidth) {
-        if (col <= leftCol || col >= this.nColsCount) {
+        if (col <= leftCol || col > gc_nMaxCol0) {
             return false;
         }
-        diffWidth = diffWidth ? diffWidth : 0;
-        return this._getColLeft(col+ 1) - this._getColLeft(leftCol) + this.cellsLeft + diffWidth > this.drawingCtx.getWidth();
+        return this._getColLeft(col + 1) - this._getColLeft(leftCol) + this.cellsLeft + diffWidth > this.drawingCtx.getWidth();
     };
 
     WorksheetView.prototype._isRowDrawnPartially = function (row, topRow, diffHeight) {
-        if (row <= topRow || row >= this.nRowsCount) {
+        if (row <= topRow || row > gc_nMaxRow0) {
             return false;
         }
-        diffHeight = diffHeight ? diffHeight : 0;
         return this._getRowTop(row + 1) - this._getRowTop(topRow) + this.cellsTop + diffHeight > this.drawingCtx.getHeight();
     };
 
@@ -7323,7 +7321,7 @@
 			this.updateSelectionWithSparklines();
 
             this._updateSelectionNameAndInfo();
-            oRes = this._calcActiveCellOffset();
+            oRes = this._calcRangeOffset();
         }
         return oRes;
     };
