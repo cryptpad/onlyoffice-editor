@@ -11813,6 +11813,7 @@
 			this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
 
 			this._updateRowsHeight();
+			this._updateVisibleRowsCount(/*skipScrolReinit*/true);
 			this._updateSelectionNameAndInfo();
 
 			this.model.onUpdateRanges(ranges);
