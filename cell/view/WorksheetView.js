@@ -11594,7 +11594,7 @@
 
 	WorksheetView.prototype.openCellEditor =
 		function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
-			var t = this, tc = this.cols, col, row, c, fl, mc, bg, isMerged;
+			var t = this, col, row, c, fl, mc, bg, isMerged;
 
 			if (selectionRange) {
 				this.model.selectionRange = selectionRange;
