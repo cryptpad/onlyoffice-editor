@@ -100,7 +100,7 @@
     var asc_CSelectionMathInfo = AscCommonExcel.asc_CSelectionMathInfo;
 
     var pageBreakPreviewMode = false;
-	var pageBreakPreviewModeLayout = false;
+	var pageBreakPreviewModeOverlay = false;
 
     /*
      * Constants
@@ -3177,7 +3177,7 @@
 		//для того, чтобы отрисовка происходила при смене различных опций - добавить вызовы обновления селекта аналогично функции _drawPrintArea
 		//текст всегда рисуем на основной канве, поскольку сетка в ms рисуется поверх
 
-		if(!pageBreakPreviewModeLayout) {
+		if(!pageBreakPreviewModeOverlay) {
 			return;
 		}
 
@@ -4242,7 +4242,7 @@
 			this._drawPrintArea();
 		}
 
-		if(pageBreakPreviewModeLayout) {
+		if(pageBreakPreviewModeOverlay) {
 			this._drawPageBreakPreviewLinesOverlay();
 		}
 
@@ -4541,7 +4541,7 @@
 		if(this.viewPrintLines) {
 			this.overlayCtx.clear();
 		}
-		if(pageBreakPreviewModeLayout) {
+		if(pageBreakPreviewModeOverlay) {
 			this.overlayCtx.clear();
 		}
 
