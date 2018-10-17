@@ -227,19 +227,19 @@
 			this.isSelectionDialogMode = isSelectionDialogMode;
 		};
 
-		asc_CEventsController.prototype.reinitScrollX = function (pos, max, endScroll) {
+		asc_CEventsController.prototype.reinitScrollX = function (pos, max, max2) {
 			var step = this.settings.hscrollStep;
 			this.hsbMax = Math.max(max * step, 1);
 			this.hsbHSt.width = (this.hsb.offsetWidth + this.hsbMax) + "px";
-			this.hsbApi.endByX = !!endScroll;
 			this.hsbApi.Reinit(this.settings, pos * step);
+			this.hsbApi.maxScrollX2 = Math.max(max2 * step, 1);
 		};
-		asc_CEventsController.prototype.reinitScrollY = function (pos, max, endScroll) {
+		asc_CEventsController.prototype.reinitScrollY = function (pos, max, max2) {
 			var step = this.settings.vscrollStep;
 			this.vsbMax = Math.max(max * step, 1);
 			this.vsbHSt.height = (this.vsb.offsetHeight + this.vsbMax) + "px";
-			this.vsbApi.endByY = !!endScroll;
 			this.vsbApi.Reinit(this.settings, pos * step);
+			this.vsbApi.maxScrollY2 = Math.max(max2 * step, 1);
 		};
 
 		/**
@@ -342,9 +342,6 @@
 				this.vsbApi.bind("scrollvertical", function(evt) {
 					self.handlers.trigger("scrollY", evt.scrollPositionY / self.settings.vscrollStep, !self.vsbApi.scrollerMouseDown);
 				});
-				this.vsbApi.bind("scrollVEnd", function(count) {
-					self.handlers.trigger("addRows", Math.ceil(count / self.settings.vscrollStep));
-				});
 				this.vsbApi.bind("mouseup", function(evt) {
 					if (self.vsbApi.scrollerMouseDown) {
 						self.handlers.trigger('initRowsCount');
@@ -373,9 +370,6 @@
 				this.hsbApi = new AscCommon.ScrollObject(this.hsb.id, settings);
 				this.hsbApi.bind("scrollhorizontal",function(evt) {
 					self.handlers.trigger("scrollX", evt.scrollPositionX / self.settings.hscrollStep, !self.hsbApi.scrollerMouseDown);
-				});
-				this.hsbApi.bind("scrollHEnd", function (count) {
-					self.handlers.trigger("addColumns", Math.ceil(count / self.settings.hscrollStep));
 				});
 				this.hsbApi.bind("mouseup", function(evt) {
 					if (self.hsbApi.scrollerMouseDown) {

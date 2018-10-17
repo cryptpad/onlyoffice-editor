@@ -1574,13 +1574,12 @@ function _HEXTORGB_( colorHEX ) {
 
 		this.maxScrollY = 0;
 		this.maxScrollX = 0;
+		this.maxScrollY2 = 0;
+		this.maxScrollX2 = 0;
 
 		this.scrollCoeff = 0;
 
 		this.scroller = {x:0, y:1, h:0, w:0};
-
-		this.endByX = false;
-		this.endByY = false;
 
 		this.canvas = null;
 		this.context = null;
@@ -1712,8 +1711,8 @@ function _HEXTORGB_( colorHEX ) {
 		}
 
 		this._setDimension( holder.clientHeight, holder.clientWidth );
-		this.maxScrollY = holder.firstElementChild.clientHeight - this.settings.screenH > 0 ? holder.firstElementChild.clientHeight - this.settings.screenH : 0;
-		this.maxScrollX = holder.firstElementChild.clientWidth - this.settings.screenW > 0 ? holder.firstElementChild.clientWidth - this.settings.screenW : 0;
+		this.maxScrollY = this.maxScrollY2 = holder.firstElementChild.clientHeight - this.settings.screenH > 0 ? holder.firstElementChild.clientHeight - this.settings.screenH : 0;
+		this.maxScrollX = this.maxScrollX2 = holder.firstElementChild.clientWidth - this.settings.screenW > 0 ? holder.firstElementChild.clientWidth - this.settings.screenW : 0;
 
 		this.isVerticalScroll = holder.firstElementChild.clientHeight / Math.max( this.canvasH, 1 ) > 1;
 		this.isHorizontalScroll = holder.firstElementChild.clientWidth / Math.max( this.canvasW, 1 ) > 1;
@@ -1867,8 +1866,8 @@ function _HEXTORGB_( colorHEX ) {
 		var _firstChildH = GetClientHeight( this.canvas.parentNode.firstElementChild );
 
 		this._setDimension( _parentClientH, _parentClientW );
-		this.maxScrollY = _firstChildH - settings.screenH > 0 ? _firstChildH - settings.screenH : 0;
-		this.maxScrollX = _firstChildW - settings.screenW > 0 ? _firstChildW - settings.screenW : 0;
+		this.maxScrollY = this.maxScrollY2 = _firstChildH - settings.screenH > 0 ? _firstChildH - settings.screenH : 0;
+		this.maxScrollX = this.maxScrollX2 = _firstChildW - settings.screenW > 0 ? _firstChildW - settings.screenW : 0;
 
 		this.isVerticalScroll = _firstChildH / Math.max( this.canvasH, 1 ) > 1 || this.isVerticalScroll || (true === bIsVerAttack);
 		this.isHorizontalScroll = _firstChildW / Math.max( this.canvasW, 1 ) > 1 || this.isHorizontalScroll || (true === bIsHorAttack);
@@ -1912,10 +1911,10 @@ function _HEXTORGB_( colorHEX ) {
 		this._setDimension( this.canvas.parentNode.clientHeight, this.canvas.parentNode.clientWidth );
 
 		size = this.canvas.parentNode.firstElementChild.clientHeight - (settings.screenH || this.canvas.parentNode.offsetHeight);
-		this.maxScrollY = 0 < size ? size : 0;
+		this.maxScrollY = this.maxScrollY2 = 0 < size ? size : 0;
 
 		size = this.canvas.parentNode.firstElementChild.clientWidth - (settings.screenH || this.canvas.parentNode.offsetWidth);
-		this.maxScrollX = 0 < size ? size : 0;
+		this.maxScrollX = this.maxScrollX2 = 0 < size ? size : 0;
 
 		this.isVerticalScroll = this.canvas.parentNode.firstElementChild.clientHeight / Math.max( this.canvasH, 1 ) > 1 || this.isVerticalScroll;
 		this.isHorizontalScroll = this.canvas.parentNode.firstElementChild.clientWidth / Math.max( this.canvasW, 1 ) > 1 || this.isHorizontalScroll;
@@ -2014,17 +2013,12 @@ function _HEXTORGB_( colorHEX ) {
 			isTop = true;
 			isBottom = false;
 		}
-		else if ( destY > this.maxScrollY && !this.endByY ) {
+		else if ( destY > this.maxScrollY2 ) {
 			this.handleEvents( "onscrollVEnd", destY - this.maxScrollY );
-			if (!this.endByY) {
-				vend = true;
-				if ( destY > this.maxScrollY ) {
-					// Обработчик onscrollVEnd решил, что расширение области скрола не нужно, изменяем destY
-					destY = this.maxScrollY;
-				}
-				isTop = false;
-				isBottom = true;
-            }
+			vend = true;
+			destY = this.maxScrollY2;
+			isTop = false;
+			isBottom = true;
 		}
 
 		this.scroller.y = destY / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
@@ -2079,16 +2073,12 @@ function _HEXTORGB_( colorHEX ) {
 			isTop = true;
 			isBottom = false;
 		}
-		else if ( destX > this.maxScrollX && !this.endByX ) {
+		else if ( destX > this.maxScrollX2 ) {
 			this.handleEvents( "onscrollHEnd", destX - this.maxScrollX );
-			if (!this.endByX) {
-				hend = true;
-				if ( destX > this.maxScrollX ) {
-					destX = this.maxScrollX;
-				}
-				isTop = false;
-				isBottom = true;
-            }
+			hend = true;
+			destX = this.maxScrollX2;
+			isTop = false;
+			isBottom = true;
 		}
 
 		this.scroller.x = destX / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;

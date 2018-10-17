@@ -378,10 +378,6 @@
 				  self.undo.apply(self, arguments);
 			  }, "redo": function () {
 				  self.redo.apply(self, arguments);
-			  }, "addRows": function () {
-				  self._onAddRows.apply(self, arguments);
-			  }, "addColumns": function () {
-				  self._onAddColumns.apply(self, arguments);
 			  }, "mouseDblClick": function () {
 				  self._onMouseDblClick.apply(self, arguments);
 			  }, "showNextPrevWorksheet": function () {
@@ -929,17 +925,17 @@
   };
 
 
-	WorkbookView.prototype._onScrollReinitialize = function (type, endScroll) {
+	WorkbookView.prototype._onScrollReinitialize = function (type) {
 		if (window["NATIVE_EDITOR_ENJINE"] || !type) {
 			return;
 		}
 
 		var ws = this.getWorksheet();
 		if (AscCommonExcel.c_oAscScrollType.ScrollHorizontal & type) {
-			this.controller.reinitScrollX(ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), endScroll);
+			this.controller.reinitScrollX(ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
 		}
 		if (AscCommonExcel.c_oAscScrollType.ScrollVertical & type) {
-			this.controller.reinitScrollY(ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), endScroll);
+			this.controller.reinitScrollY(ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
 		}
 
 		if (this.Api.isMobileVersion) {
@@ -1501,16 +1497,6 @@
   WorkbookView.prototype._onEmpty = function() {
     this.getWorksheet().emptySelection(c_oAscCleanOptions.Text);
   };
-
-	WorkbookView.prototype._onAddRows = function (count) {
-		var res = this.getWorksheet().expandRowsOnScroll2(count);
-		this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical, !res);
-	};
-
-	WorkbookView.prototype._onAddColumns = function (count) {
-		var res = this.getWorksheet().expandColsOnScroll2(count);
-		this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollHorizontal, !res);
-	};
 
   WorkbookView.prototype._onShowNextPrevWorksheet = function(direction) {
     // Колличество листов

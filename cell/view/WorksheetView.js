@@ -588,6 +588,22 @@
 		return Math.max(0, i - tmp); // Диапазон скрола должен быть меньше количества строк, чтобы не было прибавления строк при перетаскивании бегунка
     };
 
+	WorksheetView.prototype.getHorizontalScrollMax = function () {
+		var tmp = 0;
+		if (this.topLeftFrozenCell) {
+			tmp = this.topLeftFrozenCell.getCol0();
+		}
+		return (this.model.isDefaultWidthHidden() ? this.nColsCount : gc_nMaxCol) - tmp - 1;
+	};
+
+	WorksheetView.prototype.getVerticalScrollMax = function () {
+		var tmp = 0;
+		if (this.topLeftFrozenCell) {
+			tmp = this.topLeftFrozenCell.getRow0();
+		}
+		return (this.model.isDefaultHeightHidden() ? this.nRowsCount : gc_nMaxRow) - tmp - 1;
+	};
+
     WorksheetView.prototype.getCellsOffset = function (units) {
         var u = units >= 0 && units <= 3 ? units : 0;
         return {
@@ -10796,46 +10812,6 @@
 				onChangeWorksheetCallback(true);
 				break;
 		}
-	};
-
-	WorksheetView.prototype.expandRowsOnScroll2 = function (count) {
-	    var res = false;
-		var old = this.nRowsCount;
-		if (this.model.isDefaultHeightHidden()) {
-			return res;
-		} else {
-			this.nRowsCount += count;
-		}
-
-		if (gc_nMaxRow < this.nRowsCount) {
-			this.nRowsCount = gc_nMaxRow;
-		}
-
-		res = old !== this.nRowsCount;
-		if (res && this.objectRender && this.objectRender.drawingArea) {
-			this.objectRender.drawingArea.reinitRanges();
-		}
-		return res;
-	};
-
-	WorksheetView.prototype.expandColsOnScroll2 = function (count) {
-		var res = false;
-		var old = this.nColsCount;
-		if (this.model.isDefaultWidthHidden()) {
-			return res;
-		} else {
-			this.nColsCount += count;
-		}
-
-		if (gc_nMaxCol < this.nColsCount) {
-			this.nColsCount = gc_nMaxCol;
-		}
-
-		res = old !== this.nColsCount;
-		if (res && this.objectRender && this.objectRender.drawingArea) {
-			this.objectRender.drawingArea.reinitRanges();
-		}
-		return res;
 	};
 
     WorksheetView.prototype.onChangeWidthCallback = function (col, r1, r2, onlyIfMore) {
