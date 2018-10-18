@@ -7822,7 +7822,7 @@ CDocumentContent.prototype.SetContentPosition = function(DocPos, Depth, Flag)
 CDocumentContent.prototype.private_GetElementPageIndex = function(ElementPos, PageIndex, ColumnIndex, ColumnsCount)
 {
     var Element = this.Content[ElementPos];
-    if (!Element)
+    if (!Element || Element.GetPagesCount() <= 0)
         return 0;
 
     var StartPage   = Element.Get_StartPage_Relative();

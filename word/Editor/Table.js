@@ -3997,14 +3997,16 @@ CTable.prototype.Refresh_RecalcData = function(Data)
 		this.Refresh_RecalcData2(nRowIndex, 0);
 	}
 };
-CTable.prototype.Refresh_RecalcData2 = function(RowIndex, Page_rel)
+CTable.prototype.Refresh_RecalcData2 = function(nRowIndex, nCurPage)
 {
 	// Если Index < 0, значит данный элемент еще не был добавлен в родительский класс
 	if (this.Index >= 0)
 	{
-		var _RowIndex = Math.min(RowIndex, this.RowsInfo.length - 1);
-		var _Page_rel = ( _RowIndex < 0 ? this.PageNum : Page_rel + this.PageNum );
-		this.Parent.Refresh_RecalcData2(this.Index, _Page_rel);
+
+		if (Math.min(nRowIndex, this.RowsInfo.length - 1) < 0)
+			this.Parent.Refresh_RecalcData2(this.Index, this.private_GetRelativePageIndex(0));
+		else
+			this.Parent.Refresh_RecalcData2(this.Index, this.private_GetRelativePageIndex(nCurPage));
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------

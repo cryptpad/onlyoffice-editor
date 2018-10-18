@@ -496,6 +496,9 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 };
 Paragraph.prototype.Get_PageBounds = function(CurPage)
 {
+	if (!this.Pages[CurPage])
+		return new CDocumentBounds(0, 0, 0, 0);
+
 	return this.Pages[CurPage].Bounds;
 };
 Paragraph.prototype.GetContentBounds = function(CurPage)
