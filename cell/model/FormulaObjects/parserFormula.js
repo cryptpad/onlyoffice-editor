@@ -2947,6 +2947,104 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 
 	};
+	cBaseFunction.prototype.checkFormulaArray = function (arg, opt_bbox, opt_defName, parserFormula, bIsSpecialFunction, argumentsCount) {
+		var res = null;
+		var t = this;
+
+		var returnFormulaType = this.returnValueType;
+		var arrayIndexes = this.arrayIndexes;
+		var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
+		var replaceAreaByRefs = cReturnFormulaType.area_to_ref === returnFormulaType;
+		if(true === this.bArrayFormula && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes)) {
+			//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
+			var tempArgs = [], tempArg, firstArray;
+			for (var j = 0; j < argumentsCount; j++) {
+				tempArg = arg[j];
+				if (!(arrayIndexes && arrayIndexes[j])) {
+					if (cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
+						if (replaceAreaByValue) {
+							tempArg = tempArg.cross(opt_bbox);
+						} else if (replaceAreaByRefs) {
+							//добавляю специальные заглушки для функций row/column
+							//они работают с аргументами иначе, чем все остальные
+							//row - игнорируем в area колонки и проходимся только по строчкам и берём 1 колонку
+							//к примеру, area A1:B2 разбиваем на [a1,a1;a2,a2] вместо нормального [a1,b1;a2,b2]
+							var useOnlyFirstRow = "column" === this.name.toLowerCase() ? parserFormula.ref : null;
+							var useOnlyFirstColumn = "row" === this.name.toLowerCase() ? parserFormula.ref : null;
+							tempArg = window['AscCommonExcel'].convertAreaToArrayRefs(tempArg, useOnlyFirstRow,
+								useOnlyFirstColumn);
+						} else {
+							tempArg = window['AscCommonExcel'].convertAreaToArray(tempArg);
+						}
+					}
+
+				}
+
+				if (cElementType.array === tempArg.type && !(arrayIndexes && arrayIndexes[j])) {
+					//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
+					if (!firstArray || ((1 === firstArray.getRowCount() || 1 === firstArray.getCountElementInRow()) &&
+						1 !== tempArg.getRowCount() && 1 !== tempArg.getCountElementInRow())) {
+						firstArray = tempArg;
+					}
+				}
+				tempArgs.push(tempArg);
+			}
+
+			//для функций row/column с нулевым количеством аргументов необходимо рассчитывать
+			//значение для каждой ячейки массива, изменяя при этом opt_bbox
+			if (replaceAreaByRefs && 0 === argumentsCount) {
+				firstArray = new cArray();
+				firstArray.fillEmptyFromRange(parserFormula.ref);
+			}
+
+			if (firstArray) {
+				var array = new cArray();
+				firstArray.foreach(function (elem, r, c) {
+					if (!array.array[r]) {
+						array.addRow();
+					}
+
+					//формируем новые аргументы(берем r/c элмент массива у каждого аргумента)
+					var newArgs = [], newArg;
+					for (var j = 0; j < argumentsCount; j++) {
+						newArg = tempArgs[j];
+						if (cElementType.array === newArg.type && !(arrayIndexes && arrayIndexes[j])) {
+							if (1 === newArg.getRowCount() && 1 === newArg.getCountElementInRow()) {
+								newArg = newArg.array[0] ? newArg.array[0][0] : null;
+							} else if (1 === newArg.getRowCount()) {
+								newArg = newArg.array[0] ? newArg.array[0][c] : null;
+							} else if (1 === newArg.getCountElementInRow()) {
+								newArg = newArg.array[r] ? newArg.array[r][0] : null;
+							} else {
+								newArg = newArg.array[r] ? newArg.array[r][c] : null;
+							}
+							if (!newArg) {
+								newArg = new cError(cErrorType.not_available);
+							}
+						}
+
+						newArgs.push(newArg);
+					}
+
+					//для случая с 0 аргументов
+					//возможно стоит убрать проверку на количество аргументови всегда заменять bbox
+					var temp_opt_bbox = opt_bbox;
+					if (0 === argumentsCount && parserFormula.ref) {
+						temp_opt_bbox = new Asc.Range(c + parserFormula.ref.c1, r + parserFormula.ref.r1, c + parserFormula.ref.c1, r + parserFormula.ref.r1);
+					}
+					array.addElement(t.Calculate(newArgs, temp_opt_bbox, opt_defName, parserFormula.ws, bIsSpecialFunction));
+				});
+
+				res = array;
+
+			} else {
+				res = this.Calculate(arg, opt_bbox, opt_defName, parserFormula.ws, bIsSpecialFunction);
+			}
+		}
+
+		return res;
+	};
+
 
 	/** @constructor */
 	function cUnknownFunction(name) {
@@ -5772,99 +5870,11 @@ parserFormula.prototype.setFormula = function(formula) {
 						arg.unshift(elemArr.pop());
 					}
 
-
 					//***array-formula***
 					//если данная функция не может возвращать массив, проходимся по всем элементам аргументов и формируем массив
-					var returnFormulaType = currentElement.returnValueType;
-					var arrayIndexes = currentElement.arrayIndexes;
-					var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
-					var replaceAreaByRefs = cReturnFormulaType.area_to_ref === returnFormulaType;
-					if(true === currentElement.bArrayFormula && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes)) {
-
-						//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
-						var tempArgs = [], tempArg, firstArray;
-						for (var j = 0; j < argumentsCount; j++) {
-							tempArg = arg[j];
-							if(!(arrayIndexes && arrayIndexes[j])) {
-								if(cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
-									if(replaceAreaByValue) {
-										tempArg = tempArg.cross(opt_bbox);
-									} else if(replaceAreaByRefs) {
-										//добавляю специальные заглушки для функций row/column
-										//они работают с аргументами иначе, чем все остальные
-										//row - игнорируем в area колонки и проходимся только по строчкам и берём 1 колонку
-										//к примеру, area A1:B2 разбиваем на [a1,a1;a2,a2] вместо нормального [a1,b1;a2,b2]
-										var useOnlyFirstRow = "column" === currentElement.name.toLowerCase() ? this.ref : null;
-										var useOnlyFirstColumn = "row" === currentElement.name.toLowerCase() ? this.ref : null;
-										tempArg = window['AscCommonExcel'].convertAreaToArrayRefs(tempArg, useOnlyFirstRow, useOnlyFirstColumn);
-									} else {
-										tempArg = window['AscCommonExcel'].convertAreaToArray(tempArg);
-									}
-								}
-
-							}
-
-							if(cElementType.array === tempArg.type && !(arrayIndexes && arrayIndexes[j])) {
-								//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
-								if (!firstArray ||
-									((1 === firstArray.getRowCount() || 1 === firstArray.getCountElementInRow()) &&
-									1 !== tempArg.getRowCount() && 1 !== tempArg.getCountElementInRow())) {
-									firstArray = tempArg;
-								}
-							}
-							tempArgs.push(tempArg);
-						}
-
-						//для функций row/column с нулевым количеством аргументов необходимо рассчитывать
-						//значение для каждой ячейки массива, изменяя при этом opt_bbox
-						if(replaceAreaByRefs && 0 === argumentsCount) {
-							firstArray = new cArray();
-							firstArray.fillEmptyFromRange(this.ref);
-						}
-
-						if(firstArray) {
-							var array = new cArray();
-							firstArray.foreach(function (elem, r, c) {
-								if ( !array.array[r] ) {
-									array.addRow();
-								}
-
-								//формируем новые аргументы(берем r/c элмент массива у каждого аргумента)
-								var newArgs = [], newArg;
-								for (var j = 0; j < argumentsCount; j++) {
-									newArg = tempArgs[j];
-									if(cElementType.array === newArg.type && !(arrayIndexes && arrayIndexes[j])) {
-										if(1 === newArg.getRowCount() && 1 === newArg.getCountElementInRow()) {
-											newArg = newArg.array[0] ? newArg.array[0][0] : null;
-										} else if(1 === newArg.getRowCount()) {
-											newArg = newArg.array[0] ? newArg.array[0][c] : null;
-										} else if(1 === newArg.getCountElementInRow()) {
-											newArg = newArg.array[r] ? newArg.array[r][0] : null;
-										} else {
-											newArg = newArg.array[r] ? newArg.array[r][c] : null;
-										}
-										if(!newArg) {
-											newArg = new cError(cErrorType.not_available);
-										}
-									}
-
-									newArgs.push(newArg);
-								}
-
-								//для случая с 0 аргументов
-								//возможно стоит убрать проверку на количество аргументови всегда заменять bbox
-								var temp_opt_bbox = opt_bbox;
-								if(0 === argumentsCount && t.ref) {
-									temp_opt_bbox = new Asc.Range(c + t.ref.c1, r + t.ref.r1, c + t.ref.c1, r + t.ref.r1);
-								}
-								array.addElement(currentElement.Calculate(newArgs, temp_opt_bbox, opt_defName, t.ws, bIsSpecialFunction));
-							});
-
-							_tmp = array;
-
-						} else {
-							_tmp = currentElement.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
-						}
+					var formulaArray = currentElement.checkFormulaArray ? currentElement.checkFormulaArray(arg, opt_bbox, opt_defName, this, bIsSpecialFunction, argumentsCount) : null;
+					if(formulaArray) {
+						_tmp = formulaArray;
 					} else {
 						_tmp = currentElement.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
 					}
