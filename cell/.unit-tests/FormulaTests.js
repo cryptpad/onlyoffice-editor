@@ -576,9 +576,20 @@ $( function () {
 			var subSplitStr = splitStr[i].split(",");
 			for(var j = 0; j < subSplitStr.length; j++) {
 				var valMs = subSplitStr[j];
-				var element = array.getElementRowCol ? array.getElementRowCol(i,j) : array;
+				var element;
+				if(array.getElementRowCol) {
+					var row = 1 === array.array.length ? 0 : i;
+					var col = 1 === array.array[0].length ? 0 : j;
+					if(array.array[row] && array.array[row][col]) {
+						element = array.getElementRowCol(row, col);
+					} else {
+						element = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
+					}
+				} else {
+					element = array;
+				}
 				var ourVal = element && element.value ? element.value.toString() : "#N/A";
-				strictEqual(valMs, ourVal)
+				strictEqual(valMs, ourVal, "formula: " + formula + " i: " + i + " j: " + j)
 			}
 		}
 	}
@@ -11592,6 +11603,10 @@ $( function () {
 		ok(oParser.parse());
 		strictEqual(oParser.calculate().getValue(), 2);
 
+		testArrayFormulaEqualsValues("6,6,6,6;7,7,7,7;8,8,8,8", "ROW()");
+		testArrayFormulaEqualsValues("1,1,1,1;2,2,2,2;#N/A,#N/A,#N/A,#N/A", "ROW(A1:C2)");
+		testArrayFormulaEqualsValues("1,1,1,1;1,1,1,1;1,1,1,1", "ROW(A1:B1)");
+		testArrayFormulaEqualsValues("1,1,1,1;1,1,1,1;1,1,1,1", "ROW(A1)");
 	});
 
 	test( "Test: \"ROWS\"", function () {
