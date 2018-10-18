@@ -500,28 +500,16 @@
     };
 
     WorksheetView.prototype.getCellMetrics = function (col, row) {
-        var vr, nColSize, nRowSize;
+        var vr;
         if (vr = this.getCellVisibleRange(col, row)) {
-            nColSize = this.getColSize(col);
-            nRowSize = this.getRowSize(row);
-            if (nColSize && nRowSize) {
-                return {
-                    left: nColSize.left - vr.offsetX,
-                    top: nRowSize.top - vr.offsetY,
-                    width: nColSize.width,
-                    height: nRowSize.height
-                };
-            }
+			return {
+				left: this._getColLeft(col) - vr.offsetX,
+				top: this._getRowTop(row) - vr.offsetY,
+				width: this._getColumnWidth(col),
+				height: this._getRowHeight(row)
+			};
         }
         return null;
-    };
-
-    WorksheetView.prototype.getColSize = function (col) {
-        return (col >= 0 && col < this.cols.length) ? this.cols[col] : null;
-    };
-
-    WorksheetView.prototype.getRowSize = function (row) {
-        return (row >= 0 && row < this.rows.length) ? this.rows[row] : null;
     };
 
     WorksheetView.prototype.getFrozenCell = function () {
