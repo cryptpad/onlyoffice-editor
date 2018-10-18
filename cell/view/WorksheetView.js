@@ -4406,9 +4406,8 @@
      * @param {Asc.Range} range  description
      */
     WorksheetView.prototype._calcCellsTextMetrics = function (range) {
-        var colsLength = this.cols.length;
-        if (range === undefined) {
-            range = new Asc.Range(0, 0, colsLength - 1, this.rows.length - 1);
+        if (!range) {
+            range = new Asc.Range(0, 0, this.cols.length - 1, this.rows.length - 1);
         }
         var t = this;
 		this.model.bExcludeHiddenRows = true;
