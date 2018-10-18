@@ -7136,8 +7136,8 @@ function rtl_math_erfc( x ) {
 			var countRow = useOnlyFirstRow ? useOnlyFirstRow.r2 - useOnlyFirstRow.r1 : bbox.r2 - bbox.r1;
 			var countCol = useOnlyFirstColumn ? useOnlyFirstColumn.c2 - useOnlyFirstColumn.c1 : bbox.c2 - bbox.c1;
 
-			for ( var iRow = bbox.r1; iRow <= countRow; iRow++, iRow <= countRow ? retArr.addRow() : true ) {
-				for ( var iCol = bbox.c1; iCol <= countCol; iCol++ ) {
+			for ( var iRow = bbox.r1; iRow <= countRow + bbox.r1; iRow++, iRow <= countRow + bbox.r1 ? retArr.addRow() : true ) {
+				for ( var iCol = bbox.c1; iCol <= countCol + bbox.c1; iCol++ ) {
 					var curCol = useOnlyFirstColumn ? bbox.c1 : iCol;
 					var curRow = useOnlyFirstRow ? bbox.r1 : iRow;
 					ref = new Asc.Range(curCol, curRow, curCol, curRow);
