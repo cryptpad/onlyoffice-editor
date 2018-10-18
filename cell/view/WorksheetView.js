@@ -1801,7 +1801,7 @@
 				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 			}
         } else {
-			range = new asc_Range(0, 0, this.model.getColsCount(), this.model.getRowsCount());
+			range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
 			maxCell = this._checkPrintRange(range);
 			var maxCol = maxCell.col;
 			var maxRow = maxCell.row;
