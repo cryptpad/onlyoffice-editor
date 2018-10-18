@@ -1,7 +1,7 @@
 /*
- Copyright (c) Ascensio System SIA 2012-2018. All rights reserved
+ @@AppCopyright
 
- http://www.onlyoffice.com
+ @@PublisherUrl
 
  Version: @@Version (build:@@Build)
 */

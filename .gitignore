@@ -14,3 +14,4 @@ common/Images/fonts_thumbnail.png
 common/Images/fonts_thumbnail@2x.png
 *~
 .DS_Store
+/deploy
