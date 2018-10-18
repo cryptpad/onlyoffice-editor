@@ -1,7 +1,7 @@
 /*
- @@AppCopyright
-
- @@PublisherUrl
-
- Version: @@Version (build:@@Build)
-*/
+ * @@AppCopyright
+ *
+ * @@PublisherUrl
+ *
+ *Version: @@Version (build:@@Build)
+ */
