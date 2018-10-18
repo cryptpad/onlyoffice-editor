@@ -1672,11 +1672,13 @@ function (window, undefined) {
 	function cT() {
 	}
 
+	//***array-formula***
 	cT.prototype = Object.create(cBaseFunction.prototype);
 	cT.prototype.constructor = cT;
 	cT.prototype.name = 'T';
 	cT.prototype.argumentsMin = 1;
 	cT.prototype.argumentsMax = 1;
+	cT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.replace_only_array;
 	cT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
@@ -1684,7 +1686,7 @@ function (window, undefined) {
 		} else if (arg0 instanceof cString || arg0 instanceof cError) {
 			return arg0;
 		} else if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]);
+			return arg0.getValue2(0,0);
 		} else if (arg[0] instanceof cArray) {
 			arg0 = arg[0].getElementRowCol(0, 0);
 		}

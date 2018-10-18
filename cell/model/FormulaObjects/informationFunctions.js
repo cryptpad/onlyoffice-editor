@@ -245,12 +245,14 @@
 	function cISFORMULA() {
 	}
 
+	//***array-formula***
 	cISFORMULA.prototype = Object.create(cBaseFunction.prototype);
 	cISFORMULA.prototype.constructor = cISFORMULA;
 	cISFORMULA.prototype.name = 'ISFORMULA';
 	cISFORMULA.prototype.argumentsMin = 1;
 	cISFORMULA.prototype.argumentsMax = 1;
 	cISFORMULA.prototype.isXLFN = true;
+	cISFORMULA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cISFORMULA.prototype.Calculate = function (arg) {
 		//есть различия в поведении этой формулы для ms и lo(для нескольких ячеек с данными)
 		var arg0 = arg[0];

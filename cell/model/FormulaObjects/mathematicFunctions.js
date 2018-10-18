@@ -3306,11 +3306,13 @@
 	function cRAND() {
 	}
 
+	//***array-formula***
 	cRAND.prototype = Object.create(cBaseFunction.prototype);
 	cRAND.prototype.constructor = cRAND;
 	cRAND.prototype.name = 'RAND';
 	cRAND.prototype.argumentsMax = 0;
 	cRAND.prototype.ca = true;
+	cRAND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cRAND.prototype.Calculate = function () {
 		return new cNumber(Math.random());
 	};

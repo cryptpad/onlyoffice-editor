@@ -556,7 +556,7 @@ $( function () {
 		}
 	}
 
-	function testArrayFormulaEqualsValues(str, formula) {
+	function testArrayFormulaEqualsValues(str, formula,isNotLowerCase) {
 		//***array-formula***
 		ws.getRange2( "A1" ).setValue( "1" );
 		ws.getRange2( "B1" ).setValue( "3.123" );
@@ -588,7 +588,11 @@ $( function () {
 				} else {
 					element = array;
 				}
-				var ourVal = element && element.value ? element.value.toString() : "#N/A";
+				var ourVal = element && undefined != element.value ? element.value.toString() : "#N/A";
+				if(!isNotLowerCase) {
+					valMs = valMs.toLowerCase();
+					ourVal = ourVal.toLowerCase();
+				}
 				strictEqual(valMs, ourVal, "formula: " + formula + " i: " + i + " j: " + j)
 			}
 		}
@@ -8385,6 +8389,10 @@ $( function () {
 		oParser = new parserFormula( "ISFORMULA(C153)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().toString(), "TRUE" );
+
+		testArrayFormulaEqualsValues("FALSE,FALSE,FALSE,#N/A;FALSE,FALSE,FALSE,#N/A;#N/A,#N/A,#N/A,#N/A", "ISFORMULA(A1:C2)");
+		testArrayFormulaEqualsValues("FALSE,FALSE,#N/A,#N/A;FALSE,FALSE,#N/A,#N/A;FALSE,FALSE,#N/A,#N/A", "ISFORMULA(A1:B1)");
+		testArrayFormulaEqualsValues("FALSE,FALSE,FALSE,FALSE;FALSE,FALSE,FALSE,FALSE;FALSE,FALSE,FALSE,FALSE", "ISFORMULA(A1)");
 	} );
 
 

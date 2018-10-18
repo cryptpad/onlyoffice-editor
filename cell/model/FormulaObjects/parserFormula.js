@@ -448,12 +448,17 @@ var cErrorType = {
 // array - умеет возвращать массив
 // используоется в returnValueType у каждой формулы
 // так же этот параметр у формул может быть массивом - массив индексов аргментов, которые являются входными array/area
+// area_to_ref - заменяем area на массив ссылок на ячейку(REF)
+// replace_only_array - в случае с Area - оставляем его в аргументах и рассчитываем только 1 значение(аналогично array)
+// replace_only_array - в слуае с массивом - обрабатываем стандартно по элементам
+
 /** @enum */
 var cReturnFormulaType = {
 		value: 0,
 		value_replace_area: 1,
 		array: 2,
-		area_to_ref: 3
+		area_to_ref: 3,
+		replace_only_array: 4
 };
 
 var cExcelSignificantDigits = 15; //количество цифр в числе после запятой
@@ -2955,7 +2960,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var arrayIndexes = this.arrayIndexes;
 		var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
 		var replaceAreaByRefs = cReturnFormulaType.area_to_ref === returnFormulaType;
-		if(true === this.bArrayFormula && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes)) {
+		//добавлен специальный тип для функции сT, она использует из области всегда первый аргумент
+		var replaceOnlyArray = cReturnFormulaType.replace_only_array === returnFormulaType;
+
+		if(true === this.bArrayFormula && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes || replaceOnlyArray)) {
 			//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
 			var tempArgs = [], tempArg, firstArray;
 			for (var j = 0; j < argumentsCount; j++) {
@@ -2971,13 +2979,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 							//к примеру, area A1:B2 разбиваем на [a1,a1;a2,a2] вместо нормального [a1,b1;a2,b2]
 							var useOnlyFirstRow = "column" === this.name.toLowerCase() ? parserFormula.ref : null;
 							var useOnlyFirstColumn = "row" === this.name.toLowerCase() ? parserFormula.ref : null;
-							tempArg = window['AscCommonExcel'].convertAreaToArrayRefs(tempArg, useOnlyFirstRow,
-								useOnlyFirstColumn);
-						} else {
+							tempArg = window['AscCommonExcel'].convertAreaToArrayRefs(tempArg, useOnlyFirstRow, useOnlyFirstColumn);
+						} else if(!replaceOnlyArray){
 							tempArg = window['AscCommonExcel'].convertAreaToArray(tempArg);
 						}
 					}
-
 				}
 
 				if (cElementType.array === tempArg.type && !(arrayIndexes && arrayIndexes[j])) {
@@ -3037,6 +3043,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 				res = array;
 
+			} else if(replaceOnlyArray && tempArgs && tempArgs.length) {
+				res = this.Calculate(tempArgs, opt_bbox, opt_defName, parserFormula.ws, bIsSpecialFunction);
 			} else {
 				res = this.Calculate(arg, opt_bbox, opt_defName, parserFormula.ws, bIsSpecialFunction);
 			}
