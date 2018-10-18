@@ -5486,8 +5486,8 @@
         if (widthChanged) {
             x = this.cellsLeft;
             this._calcHeaderColumnWidth();
-            this._updateColumnPositions();
-            this._calcVisibleColumns();
+			this._updateColumnPositions();
+			this._updateVisibleColsCount(true);
             this._drawCorner();
             this._cleanColumnHeadersRect();
             this._drawColumnHeaders(null);

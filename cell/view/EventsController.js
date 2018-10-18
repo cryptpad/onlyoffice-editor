@@ -247,8 +247,8 @@
 		 */
 		asc_CEventsController.prototype.scroll = function (delta) {
 			if (delta) {
-				if (delta.row) {this.scrollVertical(delta.row);}
 				if (delta.col) {this.scrollHorizontal(delta.col);}
+				if (delta.row) {this.scrollVertical(delta.row);}
 			}
 		};
 
