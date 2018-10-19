@@ -10216,6 +10216,12 @@
 			}
 			pastedRangeProps.colsWidth = colsWidth;
 
+			//***array-formula***
+			/*var test;
+			val._getCell(pasteRow, pasteCol, function (cell) {
+				test = cell;
+			});*/
+
 			//apply props by cell
 			var formulaProps = {firstRange: firstRange, arrFormula: arrFormula, tablesMap: tablesMap, newVal: newVal, isOneMerge: isOneMerge, val: val, activeCellsPasteFragment: activeCellsPasteFragment, transposeRange: transposeRange};
 			t._setPastedDataByCurrentRange(range, pastedRangeProps, formulaProps, specialPasteProps);

@@ -7756,11 +7756,14 @@ function (window, undefined) {
 	function cMAXIFS() {
 	}
 
+	//***array-formula***
 	cMAXIFS.prototype = Object.create(cBaseFunction.prototype);
 	cMAXIFS.prototype.constructor = cMAXIFS;
 	cMAXIFS.prototype.name = 'MAXIFS';
 	cMAXIFS.prototype.argumentsMin = 3;
 	cMAXIFS.prototype.isXLFN = true;
+	//TODO все нечетные массивы
+	cMAXIFS.prototype.arrayIndexes = {0: 1, 1: 1, 3: 1, 5: 1, 7: 1, 9: 1};
 	cMAXIFS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&
@@ -7860,11 +7863,14 @@ function (window, undefined) {
 	function cMINIFS() {
 	}
 
+	//***array-formula***
 	cMINIFS.prototype = Object.create(cBaseFunction.prototype);
 	cMINIFS.prototype.constructor = cMINIFS;
 	cMINIFS.prototype.name = 'MINIFS';
 	cMINIFS.prototype.argumentsMin = 3;
 	cMINIFS.prototype.isXLFN = true;
+	//TODO все нечетные массивы
+	cMINIFS.prototype.arrayIndexes = {0: 1, 1: 1, 3: 1, 5: 1, 7: 1, 9: 1};
 	cMINIFS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&

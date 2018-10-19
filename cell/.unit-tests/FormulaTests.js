@@ -3558,6 +3558,10 @@ $( function () {
 		oParser = new parserFormula( 'MAXIFS(AAA2:AAA6,BBB2:BBB6,"a",DDD2:DDD6,">200")', "A22", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 0 );
+
+		testArrayFormulaEqualsValues("1,3.123,-4,#N/A;2,4,5,#N/A;#N/A,#N/A,#N/A,#N/A","MAXIFS(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)");
+		testArrayFormulaEqualsValues("1,0,0,#N/A;0,0,0,#N/A;#N/A,#N/A,#N/A,#N/A","MAXIFS(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2,A1:C2)");
+		testArrayFormulaEqualsValues("1,0,0,#N/A;2,0,0,#N/A;#N/A,#N/A,#N/A,#N/A","MAXIFS(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)");
 	} );
 
 	test( "Test: \"MINIFS\"", function () {
@@ -3590,6 +3594,10 @@ $( function () {
 		oParser = new parserFormula( 'MINIFS(AAA2:AAA6,BBB2:BBB6,"a",DDD2:DDD6,">200")', "A22", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 0 );
+
+		testArrayFormulaEqualsValues("1,3.123,-4,#N/A;2,4,5,#N/A;#N/A,#N/A,#N/A,#N/A","MINIFS(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)");
+		testArrayFormulaEqualsValues("1,0,0,#N/A;0,0,0,#N/A;#N/A,#N/A,#N/A,#N/A","MINIFS(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2,A1:C2)");
+		testArrayFormulaEqualsValues("1,0,0,#N/A;2,0,0,#N/A;#N/A,#N/A,#N/A,#N/A","MINIFS(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)");
 	} );
 
     test( "Test: \"TEXT\"", function () {
@@ -5785,6 +5793,8 @@ $( function () {
 		oParser = new parserFormula("CONCAT(AA1:BB7)", "A3", ws);
 		ok(oParser.parse(), "CONCAT(AA1:BB7)");
 		strictEqual(oParser.calculate().getValue(), "a1b1a2b2a4b4a5b5a6b6a7b7", "CONCAT(AA1:BB7)");
+
+		testArrayFormulaEqualsValues("13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245;13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245;13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245,13.123-424513.123-424513.123-4245", "CONCAT(A1:C2,A1:C2,A1:C2)")
 	});
 
 	test( "Test: \"CONCATENATE\"", function () {
@@ -11538,6 +11548,7 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "TEST2");
 
+		testArrayFormulaEqualsValues("1,3.123,-4,#N/A;2,4,5,#N/A;#N/A,#N/A,#N/A,#N/A","IFS(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2)");
 	});
 
 	test( "Test: \"IF\"", function () {

@@ -262,11 +262,13 @@ function (window, undefined) {
 	function cCONCAT() {
 	}
 
+	//***array-formula***
 	cCONCAT.prototype = Object.create(cBaseFunction.prototype);
 	cCONCAT.prototype.constructor = cCONCAT;
 	cCONCAT.prototype.name = 'CONCAT';
 	cCONCAT.prototype.argumentsMin = 1;
 	cCONCAT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCONCAT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cCONCAT.prototype.Calculate = function (arg) {
 		var arg0 = new cString(""), argI;
 

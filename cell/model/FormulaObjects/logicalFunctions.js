@@ -253,6 +253,7 @@
 	function cIFS() {
 	}
 
+	//***array-formula***
 	cIFS.prototype = Object.create(cBaseFunction.prototype);
 	cIFS.prototype.constructor = cIFS;
 	cIFS.prototype.name = 'IFS';
