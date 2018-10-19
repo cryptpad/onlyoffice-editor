@@ -10853,7 +10853,7 @@ Paragraph.prototype.Refresh_RecalcData = function(Data)
 			if (this.Parent)
 			{
 				var oDrawingShape = this.Parent.Is_DrawingShape(true);
-				if (oDrawingShape)
+				if (oDrawingShape && oDrawingShape.getObjectType && oDrawingShape.getObjectType() === AscDFH.historyitem_type_Shape)
 				{
 					if (oDrawingShape.chekBodyPrTransform(oDrawingShape.getBodyPr()) || oDrawingShape.checkContentWordArt(oDrawingShape.getDocContent()))
 					{
