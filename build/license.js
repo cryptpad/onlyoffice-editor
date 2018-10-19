@@ -3,5 +3,5 @@
  *
  * @@PublisherUrl
  *
- *Version: @@Version (build:@@Build)
+ * Version: @@Version (build:@@Build)
  */
