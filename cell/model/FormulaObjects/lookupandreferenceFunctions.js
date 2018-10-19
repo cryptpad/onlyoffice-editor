@@ -334,12 +334,14 @@ function (window, undefined) {
 	function cFORMULATEXT() {
 	}
 
+	//***array-formula***
 	cFORMULATEXT.prototype = Object.create(cBaseFunction.prototype);
 	cFORMULATEXT.prototype.constructor = cFORMULATEXT;
 	cFORMULATEXT.prototype.name = 'FORMULATEXT';
 	cFORMULATEXT.prototype.argumentsMin = 1;
 	cFORMULATEXT.prototype.argumentsMax = 1;
 	cFORMULATEXT.prototype.isXLFN = true;
+	cFORMULATEXT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cFORMULATEXT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];

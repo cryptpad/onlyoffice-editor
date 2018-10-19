@@ -5112,6 +5112,9 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 87.5 );
 
+		testArrayFormulaEqualsValues("1,3.123,-4,#N/A;2,4,5,#N/A;#N/A,#N/A,#N/A,#N/A", "AVERAGEIFS(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)");
+		testArrayFormulaEqualsValues("1,#DIV/0!,#DIV/0!,#N/A;#DIV/0!,#DIV/0!,#DIV/0!,#N/A;#N/A,#N/A,#N/A,#N/A", "AVERAGEIFS(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2,A1:C2)");
+		testArrayFormulaEqualsValues("1,#DIV/0!,#DIV/0!,#N/A;2,#DIV/0!,#DIV/0!,#N/A;#N/A,#N/A,#N/A,#N/A", "AVERAGEIFS(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)");
 	} );
 
 	test( "Test: \"AGGREGATE\"", function () {
@@ -5536,6 +5539,11 @@ $( function () {
 		oParser = new parserFormula( "COUNTIFS(D15:D20,\"<\" & D19,E15:E20,\"<\" & E17)", "E1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 2 );
+
+
+		testArrayFormulaEqualsValues("1,1,1,#N/A;1,1,1,#N/A;#N/A,#N/A,#N/A,#N/A", "COUNTIFS(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2)");
+		testArrayFormulaEqualsValues("1,0,0,#N/A;1,0,0,#N/A;#N/A,#N/A,#N/A,#N/A", "COUNTIFS(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)");
+		testArrayFormulaEqualsValues("#VALUE!,#VALUE!,#VALUE!,#N/A;#VALUE!,#VALUE!,#VALUE!,#N/A;#N/A,#N/A,#N/A,#N/A", "COUNTIFS(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2)");
 
     } );
 
@@ -6262,6 +6270,8 @@ $( function () {
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
 
 		wb.dependencyFormulas.lockRecal();
+
+		testArrayFormulaEqualsValues("#N/A,#N/A,#N/A,#N/A;#N/A,#N/A,#N/A,#N/A;#N/A,#N/A,#N/A,#N/A", "FORMULATEXT(A1:C2)");
 	} );
 
     test( "Test: \"FREQUENCY\"", function () {

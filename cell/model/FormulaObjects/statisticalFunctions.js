@@ -3980,11 +3980,14 @@ function (window, undefined) {
 	function cAVERAGEIFS() {
 	}
 
+	//***array-formula***
 	cAVERAGEIFS.prototype = Object.create(cBaseFunction.prototype);
 	cAVERAGEIFS.prototype.constructor = cAVERAGEIFS;
 	cAVERAGEIFS.prototype.name = 'AVERAGEIFS';
 	cAVERAGEIFS.prototype.argumentsMin = 3;
-	//cAVERAGEIFS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	//TODO все нечетные - на вход должны приходить как array/area
+	cAVERAGEIFS.prototype.arrayIndexes = {0: 1, 1: 1, 3: 1, 5: 1, 7: 1, 9: 1};
+	cAVERAGEIFS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cAVERAGEIFS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&
@@ -4984,6 +4987,7 @@ function (window, undefined) {
 	function cCOUNTIF() {
 	}
 
+	//***array-formula***
 	cCOUNTIF.prototype = Object.create(cBaseFunction.prototype);
 	cCOUNTIF.prototype.constructor = cCOUNTIF;
 	cCOUNTIF.prototype.name = 'COUNTIF';
@@ -5042,12 +5046,16 @@ function (window, undefined) {
 	function cCOUNTIFS() {
 	}
 
+	//***array-formula***
 	cCOUNTIFS.prototype = Object.create(cBaseFunction.prototype);
 	cCOUNTIFS.prototype.constructor = cCOUNTIFS;
 	cCOUNTIFS.prototype.name = 'COUNTIFS';
 	cCOUNTIFS.prototype.argumentsMin = 2;
 	cCOUNTIFS.prototype.argumentsMax = 254;
 	cCOUNTIFS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	//TODO все четные - на вход должны приходить как array/area
+	cCOUNTIFS.prototype.arrayIndexes = {0: 1, 2: 1, 4: 1, 6: 1, 8: 1};
+	cCOUNTIFS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cCOUNTIFS.prototype.Calculate = function (arg) {
 		var i, j, arg0, arg1, matchingInfo, arg0Matrix, arg1Matrix, _count = 0;
 		for (var k = 0; k < arg.length; k += 2) {
