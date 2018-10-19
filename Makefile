@@ -24,7 +24,7 @@ GRUNT_ENV += PUBLISHER_URL="$(PUBLISHER_URL)"
 WEBAPPS_DIR ?= web-apps
 
 ifeq ($(PRODUCT_NAME),$(filter $(PRODUCT_NAME),documentserver-de documentserver-ie))
-WEBAPPS_DIR ?= web-apps-pro
+WEBAPPS_DIR := web-apps-pro
 endif
 
 WEBAPPS = $(OUTPUT)/$(WEBAPPS_DIR)
