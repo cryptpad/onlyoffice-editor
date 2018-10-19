@@ -141,6 +141,7 @@
     var kNewLine = "\n";
 
     var kMaxAutoCompleteCellEdit = 20000;
+	var kRowsCacheSize = 64;
 
     var gridlineSize = 1;
 
@@ -216,7 +217,8 @@
         //   },
         //
         //   sectors: [
-        //     0 : Range
+        //     0 : true
+		//     9 : true
         //   ]
         //
         // }
@@ -4327,19 +4329,7 @@
 
     /** Очищает кэш метрик текста ячеек */
     WorksheetView.prototype._cleanCellsTextMetricsCache = function () {
-        var s = this.cache.sectors = [];
-        var vr = this.visibleRange;
-        var h = vr.r2 + 1 - vr.r1;
-        var rl = this.rows.length;
-        var rc = asc_floor(rl / h) + (rl % h > 0 ? 1 : 0);
-        var range = new asc_Range(0, 0, this.cols.length - 1, h - 1);
-        var j;
-        for (j = rc; j > 0; --j, range.r1 += h, range.r2 += h) {
-            if (j === 1 && rl % h > 0) {
-                range.r2 = rl - 1;
-            }
-            s.push(range.clone());
-        }
+        this.cache.sectors = [];
     };
 
     /**
@@ -4389,15 +4379,15 @@
     WorksheetView.prototype._prepareCellTextMetricsCache2 = function (range) {
         var firstUpdateRow = null;
         var s = this.cache.sectors;
-        for (var i = 0; i < s.length;) {
-            if (s[i].isIntersect(range)) {
-                this._calcCellsTextMetrics(s[i]);
-                s.splice(i, 1);
-                firstUpdateRow = null !== firstUpdateRow ? Math.min(range.r1, firstUpdateRow) : range.r1;
-                continue;
-            }
-            ++i;
-        }
+        for (var i = Asc.floor(range.r1 / kRowsCacheSize), l = Asc.floor(range.r2 / kRowsCacheSize); i <= l; ++i) {
+        	if (!s[i]) {
+        		if (null === firstUpdateRow) {
+					firstUpdateRow = i * kRowsCacheSize;
+				}
+				s[i] = true;
+				this._calcCellsTextMetrics(new Asc.Range(0, i * kRowsCacheSize, this.cols.length - 1, (i + 1) * kRowsCacheSize - 1));
+			}
+		}
         return firstUpdateRow;
     };
 
@@ -4406,9 +4396,6 @@
      * @param {Asc.Range} range  description
      */
     WorksheetView.prototype._calcCellsTextMetrics = function (range) {
-        if (!range) {
-            range = new Asc.Range(0, 0, this.cols.length - 1, this.rows.length - 1);
-        }
         var t = this;
 		this.model.bExcludeHiddenRows = true;
 		this.model.getRange3(range.r1, 0, range.r2, range.c2)._foreachNoEmpty(function(cell, row, col) {
