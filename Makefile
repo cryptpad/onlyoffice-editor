@@ -47,6 +47,7 @@ $(SDKJS_FILES): $(NODE_MODULES)
 		$(GRUNT_ENV) $(GRUNT) build_$(@D) $(GRUNT_FLAGS)
 
 desktop: GRUNT_FLAGS += --desktop=true
+desktop: WEBAPPS_DIR = web-apps-pro
 desktop: all
 	
 clean:
