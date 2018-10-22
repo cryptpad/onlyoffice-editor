@@ -1707,6 +1707,7 @@ function (window, undefined) {
 	function cTEXT() {
 	}
 
+	//***array-formula***
 	cTEXT.prototype = Object.create(cBaseFunction.prototype);
 	cTEXT.prototype.constructor = cTEXT;
 	cTEXT.prototype.name = 'TEXT';
@@ -1776,6 +1777,7 @@ function (window, undefined) {
 	function cTEXTJOIN() {
 	}
 
+	//***array-formula***
 	cTEXTJOIN.prototype = Object.create(cBaseFunction.prototype);
 	cTEXTJOIN.prototype.constructor = cTEXTJOIN;
 	cTEXTJOIN.prototype.name = 'TEXTJOIN';
@@ -1783,6 +1785,8 @@ function (window, undefined) {
 	cTEXTJOIN.prototype.argumentsMax = 255;
 	cTEXTJOIN.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cTEXTJOIN.prototype.isXLFN = true;
+	//TODO все, кроме 2 аргумента - массивы
+	cTEXTJOIN.prototype.arrayIndexes = {0: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1};
 	cTEXTJOIN.prototype.Calculate = function (arg) {
 
 		var argClone = [arg[0], arg[1]];

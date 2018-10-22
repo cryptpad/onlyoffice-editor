@@ -519,6 +519,7 @@
 	function cDATE() {
 	}
 
+	//***array-formula***
 	cDATE.prototype = Object.create(cBaseFunction.prototype);
 	cDATE.prototype.constructor = cDATE;
 	cDATE.prototype.name = 'DATE';
@@ -585,6 +586,7 @@
 	function cDATEDIF() {
 	}
 
+	//***array-formula***
 	cDATEDIF.prototype = Object.create(cBaseFunction.prototype);
 	cDATEDIF.prototype.constructor = cDATEDIF;
 	cDATEDIF.prototype.name = 'DATEDIF';
@@ -861,6 +863,7 @@
 	function cDAYS360() {
 	}
 
+	//***array-formula***
 	cDAYS360.prototype = Object.create(cBaseFunction.prototype);
 	cDAYS360.prototype.constructor = cDAYS360;
 	cDAYS360.prototype.name = 'DAYS360';
@@ -923,6 +926,7 @@
 	function cEDATE() {
 	}
 
+	//***array-formula***
 	cEDATE.prototype = Object.create(cBaseFunction.prototype);
 	cEDATE.prototype.constructor = cEDATE;
 	cEDATE.prototype.name = 'EDATE';
@@ -995,6 +999,7 @@
 	function cEOMONTH() {
 	}
 
+	//***array-formula***
 	cEOMONTH.prototype = Object.create(cBaseFunction.prototype);
 	cEOMONTH.prototype.constructor = cEOMONTH;
 	cEOMONTH.prototype.name = 'EOMONTH';
@@ -1404,6 +1409,7 @@
 	function cNETWORKDAYS_INTL() {
 	}
 
+	//***array-formula***
 	cNETWORKDAYS_INTL.prototype = Object.create(cBaseFunction.prototype);
 	cNETWORKDAYS_INTL.prototype.constructor = cNETWORKDAYS_INTL;
 	cNETWORKDAYS_INTL.prototype.name = 'NETWORKDAYS.INTL';
@@ -1588,6 +1594,7 @@
 	function cTIME() {
 	}
 
+	//***array-formula***
 	cTIME.prototype = Object.create(cBaseFunction.prototype);
 	cTIME.prototype.constructor = cTIME;
 	cTIME.prototype.name = 'TIME';
@@ -1864,6 +1871,7 @@
 	function cWORKDAY() {
 	}
 
+	//***array-formula***
 	cWORKDAY.prototype = Object.create(cBaseFunction.prototype);
 	cWORKDAY.prototype.constructor = cWORKDAY;
 	cWORKDAY.prototype.name = 'WORKDAY';
@@ -2094,6 +2102,7 @@
 	function cYEARFRAC() {
 	}
 
+	//***array-formula***
 	cYEARFRAC.prototype = Object.create(cBaseFunction.prototype);
 	cYEARFRAC.prototype.constructor = cYEARFRAC;
 	cYEARFRAC.prototype.name = 'YEARFRAC';

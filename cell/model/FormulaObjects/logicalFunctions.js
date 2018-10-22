@@ -413,6 +413,7 @@
 	function cSWITCH() {
 	}
 
+	//***array-formula***
 	cSWITCH.prototype = Object.create(cBaseFunction.prototype);
 	cSWITCH.prototype.constructor = cSWITCH;
 	cSWITCH.prototype.name = 'SWITCH';
@@ -433,12 +434,13 @@
 			arg0 = arg0.getValue()
 		}
 
+
 		var res = null;
 		for (var i = 1; i < argClone.length; i++) {
 			var argN = argClone[i].getValue();
 			if (arg0 === argN) {
 				if (!argClone[i + 1]) {
-					return cErrorType.not_available;
+					return new cError(cErrorType.not_available);
 				} else {
 					res = argClone[i + 1];
 					break;
