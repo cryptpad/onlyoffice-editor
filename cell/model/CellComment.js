@@ -899,7 +899,7 @@ CCellCommentator.prototype.changeComment = function(id, oComment, bChangeCoords,
 			History.Add(AscCommonExcel.g_oUndoRedoComment, AscCH.historyitem_Comment_Change, t.model.getId(), null,
 				new AscCommonExcel.UndoRedoData_FromTo(from, comment.clone()));
 			if (bChangeCoords) {
-				this.updateAreaComment(comment);
+				t.updateAreaComment(comment);
 			}
 		}
 
