@@ -2959,7 +2959,15 @@ function NativeOpenFileP(_params, documentInfo){
     }
 
     sdkCheck = documentInfo["sdkCheck"];
-    _api = new window["Asc"]["asc_docs_api"]("");
+
+    var translations = documentInfo["translations"];
+    if (undefined != translations && null != translations && translations.length > 0) {
+        translations = JSON.parse(translations)
+    } else {
+        translations = "";
+    }
+
+    _api = new window["Asc"]["asc_docs_api"](translations);
     AscCommon.g_clipboardBase.Init(_api);
     _api.Native_Editor_Initialize_Settings(_params);
     window.documentInfo = documentInfo;
