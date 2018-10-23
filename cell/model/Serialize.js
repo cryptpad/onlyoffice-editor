@@ -3772,7 +3772,7 @@
 						continue;
 					}
 				}
-				if (elem.coords.isValid()) {
+				if (elem.coords && elem.coords.isValid()) {
 					this.bs.WriteItem(c_oSerWorksheetsTypes.Comment, function(){oThis.WriteComment(elem);});
 				}
             }
