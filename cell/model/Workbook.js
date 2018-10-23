@@ -10242,12 +10242,9 @@
 		}
 		//собираем массив обьектов для сортировки
 		var aSortElems = [];
-		var aHiddenRow = {};
 		var fAddSortElems = function(oCell, nRow0, nCol0,nRowStart0, nColStart0){
 			//не сортируем сткрытие строки
-			if (oThis.worksheet.getRowHidden(nRow0)) {
-				aHiddenRow[nRow0] = 1;
-			} else {
+			if (!oThis.worksheet.getRowHidden(nRow0)) {
 				if(nLastRow0 < nRow0)
 					nLastRow0 = nRow0;
 				var val = oCell.getValueWithoutFormat();
@@ -10398,7 +10395,7 @@
 		{
 			var item = aSortElems[i];
 			var nNewIndex = i * nMergedHeight + nRowFirst0 + nHiddenCount;
-			while(null != aHiddenRow[nNewIndex])
+			while(false != oThis.worksheet.getRowHidden(nNewIndex))
 			{
 				nHiddenCount++;
 				nNewIndex = i * nMergedHeight + nRowFirst0 + nHiddenCount;
@@ -10423,11 +10420,11 @@
 			//добавляем индексы перехода пустых ячеек(нужно для сортировки комментариев)
 			for(var i = nRowMin; i <= nRowMax; ++i)
 			{
-				if(null == oFromArray[i] && null == aHiddenRow[i])
+				if(null == oFromArray[i] && false == oThis.worksheet.getRowHidden(i))
 				{
 					var nFrom = i;
 					var nTo = ++nToMax;
-					while(null != aHiddenRow[nTo])
+					while(false != oThis.worksheet.getRowHidden(nTo))
 						nTo = ++nToMax;
 					if(nFrom != nTo)
 					{
