@@ -1323,6 +1323,7 @@
 	window['AscDFH'].historyitem_type_Cnx                    = 1130 << 16;
 	window['AscDFH'].historyitem_type_PresentationSection    = 1131 << 16;
 	window['AscDFH'].historyitem_type_PivotTableDefinition   = 1132 << 16;
+	window['AscDFH'].historyitem_type_LockedCanvas           = 1133 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

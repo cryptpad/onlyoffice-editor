@@ -5435,11 +5435,17 @@ function BinaryPPTYLoader()
         }
     };
 
-    this.ReadGroupShape = function()
+    this.ReadGroupShape = function(type)
     {
         var s = this.stream;
 
-        var shape = new AscFormat.CGroupShape();
+        var shape;
+        if(type === 9){
+            shape = new AscFormat.CLockedCanvas();
+        }
+        else {
+            shape = new AscFormat.CGroupShape();
+        }
         shape.setBDeleted(false);
         this.TempGroupObject = shape;
 
@@ -9257,6 +9263,14 @@ function CPres()
                     case 5:
                     {
                         s.SkipRecord();
+                        break;
+                    }
+                    case 9:
+                    {
+                        GrObject = this.Reader.ReadGroupShape(9);
+                        if(paraDrawing){
+                            GrObject.setParent(paraDrawing);
+                        }
                         break;
                     }
                     default:

@@ -3668,9 +3668,16 @@ function CBinaryFileWriter()
         }
     }
 
-    this.WriteGroupShape = function(group)
+    this.WriteGroupShape = function(group, type)
     {
-        oThis.StartRecord(4);
+        if(AscFormat.isRealNumber(type))
+        {
+            oThis.StartRecord(type);
+        }
+        else
+        {
+            oThis.StartRecord(4);
+        }
 
         group.spPr.WriteXfrm = group.spPr.xfrm;
         if(group.nvGrpSpPr)
@@ -5078,6 +5085,11 @@ function CBinaryFileWriter()
                 case AscDFH.historyitem_type_GroupShape:
                 {
                     this.WriteGroup(grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
+                    break;
+                }
+                case AscDFH.historyitem_type_LockedCanvas:
+                {
+                    this.BinaryFileWriter.WriteGroupShape(grObject, 9);
                     break;
                 }
 				case AscDFH.historyitem_type_ChartSpace:
