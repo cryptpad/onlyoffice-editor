@@ -610,9 +610,9 @@
 
 	WorksheetView.prototype._getColLeft = function (i) {
 		var l = this.cols.length;
-		return (i < l) ? this.cols[i].left : (((0 === l) ? this.cellsLeft :
+		return this.cellsLeft + ((i < l) ? this.cols[i].left : (((0 === l) ? 0 :
 			this.cols[l - 1].left + this.cols[l - 1].width) + (!this.model.isDefaultWidthHidden()) *
-			Asc.round(this.defaultColWidthPx * this.getZoom()) * (i - l));
+			Asc.round(this.defaultColWidthPx * this.getZoom()) * (i - l)));
 	};
     WorksheetView.prototype.getCellLeft = function (column, units) {
 		var u = units >= 0 && units <= 3 ? units : 0;
@@ -1369,7 +1369,7 @@
      * @param {AscCommonExcel.recalcType} type
      */
     WorksheetView.prototype._calcWidthColumns = function (type) {
-        var x = this.cellsLeft;
+        var x = 0;
         var l = this.model.getColsCount();
         var i = 0, hiddenW = 0;
 
@@ -1377,7 +1377,7 @@
             this.cols = [];
         } else if (AscCommonExcel.recalcType.newLines === type) {
             i = this.cols.length;
-            x = this._getColLeft(i);
+            x = this._getColLeft(i) - this.cellsLeft;
         }
 		for (; i < l; ++i) {
 			hiddenW += this._calcColWidth(x, i);
@@ -4446,7 +4446,7 @@
             History.StartTransaction();
             // Выставляем, что это bestFit
             this.model.setColBestFit(true, this.model.charCountToModelColWidth(cc), col, col);
-			this._calcColWidth(this._getColLeft(col), col);
+			this._calcColWidth(this._getColLeft(col) - this.cellsLeft, col);
             History.EndTransaction();
 
             this._updateColumnPositions();
@@ -5468,7 +5468,6 @@
         if (widthChanged) {
             x = this.cellsLeft;
             this._calcHeaderColumnWidth();
-			this._updateColumnPositions();
 			this._updateVisibleColsCount(true);
             this._drawCorner();
             this._cleanColumnHeadersRect();
