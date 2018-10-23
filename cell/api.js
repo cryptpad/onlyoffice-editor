@@ -2158,8 +2158,7 @@ var editor;
     }
 
     ws = this.wb.getWorksheet();
-    d = ws.setSelection(d[0].getBBox0());
-    this.controller.scroll(d);
+    ws.setSelection(d[0].getBBox0());
   };
 
 	spreadsheet_api.prototype.asc_closeCellEditor = function (cancel) {

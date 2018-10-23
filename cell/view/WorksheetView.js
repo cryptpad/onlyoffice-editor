@@ -750,13 +750,8 @@
             this._normalizeViewRange();
             this._cleanCellsTextMetricsCache();
 
-			var d = this._calcRangeOffset();
-			if (d.col) {
-				this.scrollHorizontal(d.col);
-            }
-            if (d.row) {
-			    this.scrollVertical(d.row);
-            }
+            // ToDo check this
+			this._scrollToRange();
 
             this._prepareCellTextMetricsCache();
             this.cellCommentator.updateActiveComment();
@@ -777,13 +772,8 @@
         this._normalizeViewRange();
         this._cleanCellsTextMetricsCache();
 
-		var d = this._calcRangeOffset();
-		if (d.col) {
-			this.scrollHorizontal(d.col);
-		}
-		if (d.row) {
-			this.scrollVertical(d.row);
-		}
+		// ToDo check this
+		this._scrollToRange();
 
         this._prepareCellTextMetricsCache();
         this.cellCommentator.updateActiveComment();
@@ -6679,6 +6669,55 @@
 		return new AscCommon.CellBase(type === c_oAscSelectionType.RangeRow || type === c_oAscSelectionType.RangeCells ?
 			incY : 0, type === c_oAscSelectionType.RangeCol || type === c_oAscSelectionType.RangeCells ? incX : 0);
     };
+	WorksheetView.prototype._scrollToRange = function (range) {
+		var vr = this.visibleRange;
+		var nRowsCount = this.nRowsCount;
+		var nColsCount = this.nColsCount;
+		var ar = range || this._getSelection().getLast();
+		if (this.isFormulaEditMode) {
+			// Для формул нужно сделать ограничение по range (у нас хранится полный диапазон)
+			if (ar.c2 >= this.nColsCount || ar.r2 >= this.nRowsCount) {
+				ar = ar.clone(true);
+				ar.c2 = (ar.c2 >= this.nColsCount) ? this.nColsCount - 1 : ar.c2;
+				ar.r2 = (ar.r2 >= this.nRowsCount) ? this.nRowsCount - 1 : ar.r2;
+			}
+		}
+		var arn = ar.clone(true);
+
+		var scroll = 0;
+		if (arn.r1 < vr.r1) {
+			scroll = arn.r1 - vr.r1;
+		} else if (arn.r1 >= vr.r2) {
+			this.nRowsCount = arn.r2 + 1 + 1;
+			scroll = this.getVerticalScrollRange();
+			if (scroll > arn.r1) {
+				scroll = arn.r1;
+			}
+			scroll -= vr.r1;
+			this.nRowsCount = nRowsCount;
+		}
+		if (scroll) {
+			this.scrollVertical(scroll, null, true);
+		}
+
+		scroll = 0;
+		if (arn.c1 < vr.c1) {
+			scroll = arn.c1 - vr.c1;
+		} else if (arn.c1 >= vr.c2) {
+			this.nColsCount = arn.c2 + 1 + 1;
+			scroll = this.getHorizontalScrollRange();
+			if (scroll > arn.c1) {
+				scroll = arn.c1;
+			}
+			scroll -= vr.c1;
+			this.nColsCount = nColsCount;
+		}
+		if (scroll) {
+			this.scrollHorizontal(scroll, null, true);
+		}
+
+		return null;
+	};
 
     /**
      * @param {Range} [range]
@@ -7295,9 +7334,8 @@
 			this.updateSelectionWithSparklines();
 
             this._updateSelectionNameAndInfo();
-            oRes = this._calcRangeOffset();
+            this._scrollToRange();
         }
-        return oRes;
     };
 
 	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl) {

@@ -976,8 +976,7 @@
   WorkbookView.prototype._onSetSelection = function(range) {
     var ws = this.getWorksheet();
     ws._endSelectionShape();
-    var d = ws.setSelection(range);
-    this.controller.scroll(d);
+    ws.setSelection(range);
   };
 
   WorkbookView.prototype._onGetSelectionState = function() {
@@ -995,8 +994,7 @@
       if (ws && ws.objectRender && ws.objectRender.controller) {
         ws.objectRender.controller.setSelectionState(state);
         ws.setSelectionShape(true);
-        var d = ws._calcRangeOffset(ws.objectRender.getSelectedDrawingsRange());
-        this.controller.scroll(d);
+        ws._scrollToRange(ws.objectRender.getSelectedDrawingsRange());
         ws.objectRender.showDrawingObjectsEx(true);
         ws.objectRender.controller.updateOverlay();
         ws.objectRender.controller.updateSelectionState();
