@@ -559,6 +559,9 @@
 		if (this.topLeftFrozenCell) {
 			tmp = this.topLeftFrozenCell.getCol0();
 		}
+		if (gc_nMaxCol === this.nColsCount || this.model.isDefaultWidthHidden()) {
+			tmp -= 1;
+		}
         return Math.max(0, i - tmp); // Диапазон скрола должен быть меньше количества столбцов, чтобы не было прибавления столбцов при перетаскивании бегунка
     };
 
@@ -574,6 +577,9 @@
 		var tmp = 0;
 		if (this.topLeftFrozenCell) {
 			tmp = this.topLeftFrozenCell.getRow0();
+		}
+		if (gc_nMaxRow === this.nRowsCount || this.model.isDefaultHeightHidden()) {
+			tmp -= 1;
 		}
 		return Math.max(0, i - tmp); // Диапазон скрола должен быть меньше количества строк, чтобы не было прибавления строк при перетаскивании бегунка
     };
