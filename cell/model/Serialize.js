@@ -6274,9 +6274,9 @@
 							var rangeFormulaArray = tmp.ws.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
 							rangeFormulaArray._foreach(function(cell){
 								cell.setFormulaInternal(curFormula);
-								//if (curFormula.ca || cell.isNullTextString()) {
+								if (curFormula.ca || cell.isNullTextString()) {
 									tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
-								//}
+								}
 							});
 						}
 					}
