@@ -7973,6 +7973,8 @@
 	function ignoreFirstRowSort(worksheet, bbox) {
 		var res = false;
 
+		var oldExcludeVal = worksheet.bExcludeHiddenRows;
+		worksheet.bExcludeHiddenRows = false;
 		if(bbox.r1 < bbox.r2) {
 			var rowFirst = worksheet.getRange3(bbox.r1, bbox.c1, bbox.r1, bbox.c2);
 			var rowSecond = worksheet.getRange3(bbox.r1 + 1, bbox.c1, bbox.r1 + 1, bbox.c2);
@@ -8008,6 +8010,7 @@
 				}
 			}
 		}
+		worksheet.bExcludeHiddenRows = oldExcludeVal;
 
 		return res;
 	}
@@ -10185,7 +10188,9 @@
 			//если тип ячеек первого и второго row попарно совпадает, то считаем первую строку заголовком
 			//todo рассмотреть замерженые ячейки. стили тоже влияют, но непонятно как сравнивать border
 
+
 			var bIgnoreFirstRow = ignoreFirstRowSort(this.worksheet, bbox);
+
 			if(bIgnoreFirstRow) {
 				bbox = bbox.clone();
 				bbox.r1++;
