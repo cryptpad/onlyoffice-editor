@@ -6875,8 +6875,10 @@
 							sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
 							parsed.setShared(sharedRef, newFormulaParent);
 						} else if(formula.t === ECellFormulaType.cellformulatypeArray) {//***array-formula***
-							parsed.ref = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
-							tmp.formulaArray.push(parsed);
+							if(window['AscCommonExcel'] && window['AscCommonExcel'].bIsSupportArrayFormula) {
+								parsed.ref = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
+								tmp.formulaArray.push(parsed);
+							}
 						}
 					}
 					curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);

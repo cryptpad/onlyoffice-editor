@@ -2147,6 +2147,9 @@
 				t.handlers.trigger("applyCloseEvent", event);
 			}
 		};
+		if(!window['AscCommonExcel'].bIsSupportArrayFormula) {
+			bApplyByArray = false;
+		}
 		this.close(true, bApplyByArray, callback);
 	};
 

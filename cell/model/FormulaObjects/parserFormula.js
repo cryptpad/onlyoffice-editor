@@ -48,6 +48,8 @@ function (window, undefined) {
   var g_oFormatParser = AscCommon.g_oFormatParser;
   var CellAddress = AscCommon.CellAddress;
 
+  var bIsSupportArrayFormula = true;
+
   var prot;
 
   var c_oAscError = Asc.c_oAscError;
@@ -7245,6 +7247,8 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].g_cCalcRecursion = g_cCalcRecursion;
 	window['AscCommonExcel'].g_ProcessShared = false;
 	window['AscCommonExcel'].cReturnFormulaType = cReturnFormulaType;
+
+	window['AscCommonExcel'].bIsSupportArrayFormula = bIsSupportArrayFormula;
 
 	window['AscCommonExcel'].cNumber = cNumber;
 	window['AscCommonExcel'].cString = cString;
