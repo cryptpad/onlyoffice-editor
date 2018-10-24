@@ -15417,8 +15417,7 @@
 	};
 
 
-	function CHeaderFooterEditor(id, api, w, h)
-	{
+	function CHeaderFooterEditor(id, api, w, h) {
 		this.Api = api;
 		this.CanvasParent = document.getElementById(id);
 
@@ -15429,10 +15428,12 @@
 
 		var _width = parseInt(this.CanvasParent.offsetWidth);
 		var _height = parseInt(this.CanvasParent.offsetHeight);
-		if (0 == _width)
+		if (0 == _width) {
 			_width = 300;
-		if (0 == _height)
+		}
+		if (0 == _height) {
 			_height = 80;
+		}
 
 		this.Canvas.width = _width;
 		this.Canvas.height = _height;
@@ -15440,12 +15441,10 @@
 		this.CanvasParent.appendChild(this.Canvas);
 	}
 
-	CHeaderFooterEditor.prototype.getCanvas = function()
-	{
+	CHeaderFooterEditor.prototype.getCanvas = function () {
 		return (this.CanvasReturn == null) ? this.Canvas : this.CanvasReturn;
 	};
-	CHeaderFooterEditor.prototype.click = function()
-	{
+	CHeaderFooterEditor.prototype.click = function () {
 
 	};
 
