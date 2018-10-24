@@ -15416,10 +15416,48 @@
 		return res;
 	};
 
+
+	function CHeaderFooterEditor(id, api, w, h)
+	{
+		this.Api = api;
+		this.CanvasParent = document.getElementById(id);
+
+		this.Canvas = document.createElement('canvas');
+		this.Canvas.style.position = "absolute";
+		this.Canvas.style.left = "0px";
+		this.Canvas.style.top = "0px";
+
+		var _width = parseInt(this.CanvasParent.offsetWidth);
+		var _height = parseInt(this.CanvasParent.offsetHeight);
+		if (0 == _width)
+			_width = 300;
+		if (0 == _height)
+			_height = 80;
+
+		this.Canvas.width = _width;
+		this.Canvas.height = _height;
+
+		this.CanvasParent.appendChild(this.Canvas);
+	}
+
+	CHeaderFooterEditor.prototype.getCanvas = function()
+	{
+		return (this.CanvasReturn == null) ? this.Canvas : this.CanvasReturn;
+	};
+	CHeaderFooterEditor.prototype.click = function()
+	{
+
+	};
+
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
     window["AscCommonExcel"].WorksheetView = WorksheetView;
 	window["AscCommonExcel"].HeaderFooterParser = HeaderFooterParser;
+
+	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommon"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
+	var prot = CHeaderFooterEditor.prototype;
+	prot["click"] 	= prot.click;
 
 })(window);
