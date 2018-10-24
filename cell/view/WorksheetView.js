@@ -10217,13 +10217,13 @@
 			pastedRangeProps.colsWidth = colsWidth;
 
 			//***array-formula***
-			/*var test;
+			var fromCell;
 			val._getCell(pasteRow, pasteCol, function (cell) {
-				test = cell;
-			});*/
+				fromCell = cell;
+			});
 
 			//apply props by cell
-			var formulaProps = {firstRange: firstRange, arrFormula: arrFormula, tablesMap: tablesMap, newVal: newVal, isOneMerge: isOneMerge, val: val, activeCellsPasteFragment: activeCellsPasteFragment, transposeRange: transposeRange};
+			var formulaProps = {firstRange: firstRange, arrFormula: arrFormula, tablesMap: tablesMap, newVal: newVal, isOneMerge: isOneMerge, val: val, activeCellsPasteFragment: activeCellsPasteFragment, transposeRange: transposeRange, cell: fromCell};
 			t._setPastedDataByCurrentRange(range, pastedRangeProps, formulaProps, specialPasteProps);
 		};
 
@@ -10414,6 +10414,8 @@
 					var assemb, _p_ = new AscCommonExcel.parserFormula(value2[0].sFormula, null, t.model);
 					if (_p_.parse()) {
 
+						//TODO need offset arrayFormulaRef
+						var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
 						if(specialPasteProps.transpose)
 						{
 							//для transpose необходимо перевернуть все дипазоны в формулах
@@ -10433,7 +10435,7 @@
 							assemb = _p_.changeOffset(offset).assemble(true);
 						}
 
-						rangeStyle.formula = {range: range, val: "=" + assemb};
+						rangeStyle.formula = {range: range, val: "=" + assemb, arrayRef: arrayFormulaRef};
 
 						//arrFormula.push({range: range, val: "=" + assemb});
 					}
@@ -10541,6 +10543,7 @@
 
 
 		//***value***
+		//если формула - добавляем в массив и обрабатываем уже в _pasteData
 		if(rangeStyle.formula && specialPasteProps.formula)
 		{
 			arrFormula.push(rangeStyle.formula);
@@ -12170,8 +12173,10 @@
 			}
 
 			//***array-formula***
-			History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
-				new Asc.Range(c.bbox.c1, c.bbox.r1, c.bbox.c2, c.bbox.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(c.bbox, ftext));
+			if(flags.bApplyByArray) {
+				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
+					new Asc.Range(c.bbox.c1, c.bbox.r1, c.bbox.c2, c.bbox.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(c.bbox, ftext));
+			}
 
 			isFormula = c.isFormula();
 			this.model.autoFilters.renameTableColumn(bbox);
