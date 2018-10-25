@@ -188,22 +188,27 @@
 		this.sAutoComplete = null;
 
 		if (null != this.element) {
+			var ceCanvasOuterId = settings.menuEditor ? "ce-canvas-outer-menu" : "ce-canvas-outer";
+			var ceCanvasId = settings.menuEditor ? "ce-canvas-menu" : "ce-canvas";
+			var ceCanvasOverlay = settings.menuEditor ? "ce-canvas-overlay-menu" : "ce-canvas-overlay";
+			var ceCursor = settings.menuEditor ? "ce-cursor-menu" : "ce-cursor";
+
 			t.canvasOuter = document.createElement('div');
-			t.canvasOuter.id = "ce-canvas-outer";
+			t.canvasOuter.id = ceCanvasOuterId;
 			t.canvasOuter.style.position = "absolute";
 			t.canvasOuter.style.display = "none";
 			t.canvasOuter.style.zIndex = z;
-			var innerHTML = '<canvas id="ce-canvas" style="z-index: ' + (z + 1) + '"></canvas>';
-			innerHTML += '<canvas id="ce-canvas-overlay" style="z-index: ' + (z + 2) + '; cursor: ' + t.defaults.cursorShape +
+			var innerHTML = '<canvas id='+ ceCanvasId +' style="z-index: ' + (z + 1) + '"></canvas>';
+			innerHTML += '<canvas id='+ ceCanvasOverlay +' style="z-index: ' + (z + 2) + '; cursor: ' + t.defaults.cursorShape +
 				'"></canvas>';
-			innerHTML += '<div id="ce-cursor" style="display: none; z-index: ' + (z + 3) + '"></div>';
+			innerHTML += '<div id='+ ceCursor +' style="display: none; z-index: ' + (z + 3) + '"></div>';
 			t.canvasOuter.innerHTML = innerHTML;
 			this.element.appendChild(t.canvasOuter);
 
 			t.canvasOuterStyle = t.canvasOuter.style;
-			t.canvas = document.getElementById("ce-canvas");
-			t.canvasOverlay = document.getElementById("ce-canvas-overlay");
-			t.cursor = document.getElementById("ce-cursor");
+			t.canvas = document.getElementById(ceCanvasId);
+			t.canvasOverlay = document.getElementById(ceCanvasOverlay);
+			t.cursor = document.getElementById(ceCursor);
 			t.cursorStyle = t.cursor.style;
 		}
 

@@ -15418,12 +15418,17 @@
 
 
 	function CHeaderFooterEditor(idLeft, idCenter, idRight, width) {
+		window.Asc.g_header_footer_editor = this;
+
 		this.CanvasParentLeft = document.getElementById(idLeft);
 		this.CanvasParentCenter = document.getElementById(idCenter);
 		this.CanvasParentRight = document.getElementById(idRight);
 		this.parentWidth = width;
 		this.curParentFocus = null;
 		this.editorElem = null;
+		this.cellEditor = null;
+
+		this.wbCellEditor = null;
 	}
 
 	CHeaderFooterEditor.prototype.getCanvas = function () {
@@ -15445,16 +15450,20 @@
 		this.curParent = document.getElementById(id.replace("#", ""));
 
 
-		var z = 500;
-		if(!this.editorElem) {
-			this._createEditorElem();
-			this.curParent.appendChild(this.editorElem);
-			this._changeCellEditor();
+		if(!this.cellEditor) {
+			this.cellEditor = new AscCommonExcel.CellEditor(this.curParent, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
+					font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true
+				});
+			this.editorElem = document.getElementById("ce-canvas-outer-menu");
+
+			//временно меняем cellEditor у wb
+			this.wbCellEditor = wb.cellEditor;
+			wb.cellEditor = this.cellEditor;
 		} else {
 			this.curParent.appendChild(this.editorElem);
 		}
 
-		ws.openCellEditor(wb.cellEditor, /*fragments*/undefined, /*cursorPos*/undefined, false, false,
+		ws.openCellEditor(this.cellEditor, /*fragments*/undefined, /*cursorPos*/undefined, false, false,
 			/*isHideCursor*/false, /*isQuickInput*/false);
 
 		api.asc_enableKeyEvents(true);
@@ -15462,69 +15471,10 @@
 
 	CHeaderFooterEditor.prototype.destroy = function () {
 		//возвращаем cellEditor к прежнему состоянию
-
-	};
-
-	CHeaderFooterEditor.prototype._createEditorElem = function() {
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
-
-		var z = 500;
-		var canvasOuter = document.createElement('div');
-		canvasOuter.id = "ce-canvas-outer-menu";
-		canvasOuter.style.position = "absolute";
-		canvasOuter.style.display = "none";
-		canvasOuter.style.zIndex = z;
-		var innerHTML = '<canvas id="ce-canvas-menu" style="z-index: ' + (z + 1) + '; border: 0; position: absolute; left: 0; top: 0"></canvas>';
-		innerHTML += '<canvas id="ce-canvas-overlay-menu" style="z-index: ' + (z + 2) + '; cursor: ' + wb.cellEditor.defaults.cursorShape +
-			'; border: 0; position: absolute; left: 0; top: 0"></canvas>';
-		innerHTML += '<div id="ce-cursor-menu" style="display: none; z-index: ' + (z + 3) + '; position: absolute; background-color: #000; width: 1px; height: 11pt; cursor: text;"></div>';
-		canvasOuter.innerHTML = innerHTML;
-
-		this.editorElem = canvasOuter;
+		wb.cellEditor = this.wbCellEditor;
 	};
-
-	CHeaderFooterEditor.prototype._changeCellEditor = function() {
-		var api = window["Asc"]["editor"];
-		var wb = api.wb;
-
-		wb.cellEditor.canvasOuter = this.editorElem;
-
-
-		wb.cellEditor.canvasOuterStyle = wb.cellEditor.canvasOuter.style;
-		wb.cellEditor.canvas = document.getElementById("ce-canvas-menu");
-		wb.cellEditor.canvasOverlay = document.getElementById("ce-canvas-overlay-menu");
-		wb.cellEditor.cursor = document.getElementById("ce-cursor-menu");
-		wb.cellEditor.cursorStyle = wb.cellEditor.cursor.style;
-
-		// create text render
-		wb.cellEditor.drawingCtx = new asc.DrawingContext({
-			canvas: wb.cellEditor.canvas, units: 0/*px*/, fmgrGraphics: wb.cellEditor.fmgrGraphics, font: wb.cellEditor.m_oFont
-		});
-		wb.cellEditor.overlayCtx = new asc.DrawingContext({
-			canvas: wb.cellEditor.canvasOverlay, units: 0/*px*/, fmgrGraphics: wb.cellEditor.fmgrGraphics, font: wb.cellEditor.m_oFont
-		});
-		wb.cellEditor.textRender = new AscCommonExcel.CellTextRender(wb.cellEditor.drawingCtx);
-		wb.cellEditor.textRender.setDefaultFont(wb.defaultFont);
-
-
-		// bind event handlers
-		if (wb.cellEditor.canvasOuter && wb.cellEditor.canvasOuter.addEventListener) {
-			wb.cellEditor.canvasOuter.addEventListener("mousedown", function () {
-				return wb.cellEditor._onMouseDown.apply(wb.cellEditor, arguments);
-			}, false);
-			wb.cellEditor.canvasOuter.addEventListener("mouseup", function () {
-				return wb.cellEditor._onMouseUp.apply(wb.cellEditor, arguments);
-			}, false);
-			wb.cellEditor.canvasOuter.addEventListener("mousemove", function () {
-				return wb.cellEditor._onMouseMove.apply(wb.cellEditor, arguments);
-			}, false);
-			wb.cellEditor.canvasOuter.addEventListener("mouseleave", function () {
-				return wb.cellEditor._onMouseLeave.apply(wb.cellEditor, arguments);
-			}, false);
-		}
-	};
-
 
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -15535,5 +15485,6 @@
 	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommon"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
 	var prot = CHeaderFooterEditor.prototype;
 	prot["click"] 	= prot.click;
+	prot["destroy"] = prot.destroy;
 
 })(window);
