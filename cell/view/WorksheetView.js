@@ -15417,35 +15417,146 @@
 	};
 
 
-	function CHeaderFooterEditor(id, api, w, h) {
-		this.Api = api;
-		this.CanvasParent = document.getElementById(id);
-
-		this.Canvas = document.createElement('canvas');
-		this.Canvas.style.position = "absolute";
-		this.Canvas.style.left = "0px";
-		this.Canvas.style.top = "0px";
-
-		var _width = parseInt(this.CanvasParent.offsetWidth);
-		var _height = parseInt(this.CanvasParent.offsetHeight);
-		if (0 == _width) {
-			_width = 300;
-		}
-		if (0 == _height) {
-			_height = 80;
-		}
-
-		this.Canvas.width = _width;
-		this.Canvas.height = _height;
-
-		this.CanvasParent.appendChild(this.Canvas);
+	function CHeaderFooterEditor(idLeft, idCenter, idRight, width) {
+		this.CanvasParentLeft = document.getElementById(idLeft);
+		this.CanvasParentCenter = document.getElementById(idCenter);
+		this.CanvasParentRight = document.getElementById(idRight);
+		this.parentWidth = width;
+		this.curParentFocus = null;
 	}
 
 	CHeaderFooterEditor.prototype.getCanvas = function () {
 		return (this.CanvasReturn == null) ? this.Canvas : this.CanvasReturn;
 	};
-	CHeaderFooterEditor.prototype.click = function () {
+	CHeaderFooterEditor.prototype.click = function (id, x, y) {
+		var api = window["Asc"]["editor"];
+		var wb = api.wb;
+		var ws = wb.wsViews[0];
 
+		//если находимся в том же элементе
+		if(this.curParentFocus === id) {
+			api.asc_enableKeyEvents(true);
+			return;
+		}
+
+
+		this.curParentFocus = id;
+		this.curParent = document.getElementById(id.replace("#", ""));
+
+
+		var z = 500;
+		if(wb.cellEditor.canvasOuter.id !== "ce-canvas-outer-menu") {
+			wb.cellEditor.canvasOuter = document.createElement('div');
+			wb.cellEditor.canvasOuter.id = "ce-canvas-outer-menu";
+			wb.cellEditor.canvasOuter.style.position = "absolute";
+			wb.cellEditor.canvasOuter.style.display = "none";
+			wb.cellEditor.canvasOuter.style.zIndex = z;
+			var innerHTML = '<canvas id="ce-canvas-menu" style="z-index: ' + (z + 1) + '; border: 0; position: absolute; left: 0; top: 0"></canvas>';
+			innerHTML += '<canvas id="ce-canvas-overlay-menu" style="z-index: ' + (z + 2) + '; cursor: ' + wb.cellEditor.defaults.cursorShape +
+				'; border: 0; position: absolute; left: 0; top: 0"></canvas>';
+			innerHTML += '<div id="ce-cursor-menu" style="display: none; z-index: ' + (z + 3) + '; position: absolute; background-color: #000; width: 1px; height: 11pt; cursor: text;"></div>';
+			wb.cellEditor.canvasOuter.innerHTML = innerHTML;
+
+
+			this.curParent.appendChild(wb.cellEditor.canvasOuter);
+
+
+			wb.cellEditor.canvasOuterStyle = wb.cellEditor.canvasOuter.style;
+			wb.cellEditor.canvas = document.getElementById("ce-canvas-menu");
+			wb.cellEditor.canvasOverlay = document.getElementById("ce-canvas-overlay-menu");
+			wb.cellEditor.cursor = document.getElementById("ce-cursor-menu");
+			wb.cellEditor.cursorStyle = wb.cellEditor.cursor.style;
+
+			/*wb.cellEditor.drawingCtx.canvas = wb.cellEditor.canvas;
+			 wb.cellEditor.drawingCtx.ctx.canvas = wb.cellEditor.canvas;
+			 wb.cellEditor.overlayCtx.canvas = wb.cellEditor.canvasOverlay;*/
+
+			// create text render
+			wb.cellEditor.drawingCtx = new asc.DrawingContext({
+				canvas: wb.cellEditor.canvas, units: 0/*px*/, fmgrGraphics: wb.cellEditor.fmgrGraphics, font: wb.cellEditor.m_oFont
+			});
+			wb.cellEditor.overlayCtx = new asc.DrawingContext({
+				canvas: wb.cellEditor.canvasOverlay, units: 0/*px*/, fmgrGraphics: wb.cellEditor.fmgrGraphics, font: wb.cellEditor.m_oFont
+			});
+			wb.cellEditor.textRender = new AscCommonExcel.CellTextRender(wb.cellEditor.drawingCtx);
+			wb.cellEditor.textRender.setDefaultFont(wb.defaultFont);
+
+
+			// bind event handlers
+			if (wb.cellEditor.canvasOuter && wb.cellEditor.canvasOuter.addEventListener) {
+				wb.cellEditor.canvasOuter.addEventListener("mousedown", function () {
+					return wb.cellEditor._onMouseDown.apply(wb.cellEditor, arguments);
+				}, false);
+				wb.cellEditor.canvasOuter.addEventListener("mouseup", function () {
+					return wb.cellEditor._onMouseUp.apply(wb.cellEditor, arguments);
+				}, false);
+				wb.cellEditor.canvasOuter.addEventListener("mousemove", function () {
+					return wb.cellEditor._onMouseMove.apply(wb.cellEditor, arguments);
+				}, false);
+				wb.cellEditor.canvasOuter.addEventListener("mouseleave", function () {
+					return wb.cellEditor._onMouseLeave.apply(wb.cellEditor, arguments);
+				}, false);
+			}
+
+			// check input, it may have zero len, for mobile version
+			if (wb.cellEditor.input && wb.cellEditor.input.addEventListener) {
+				wb.cellEditor.input.addEventListener("focus", function () {
+					return wb.cellEditor.isOpened ? wb.cellEditor._topLineGotFocus.apply(wb.cellEditor, arguments) : true;
+				}, false);
+				wb.cellEditor.input.addEventListener("mousedown", function () {
+					return wb.cellEditor.isOpened ? (wb.cellEditor.callTopLineMouseup = true) : true;
+				}, false);
+				wb.cellEditor.input.addEventListener("mouseup", function () {
+					return wb.cellEditor.isOpened ? wb.cellEditor._topLineMouseUp.apply(wb.cellEditor, arguments) : true;
+				}, false);
+				wb.cellEditor.input.addEventListener("input", function () {
+					return wb.cellEditor._onInputTextArea.apply(wb.cellEditor, arguments);
+				}, false);
+
+				// Не поддерживаем drop на верхнюю строку
+				wb.cellEditor.input.addEventListener("drop", function (e) {
+					e.preventDefault();
+					return false;
+				}, false);
+			}
+
+			this.fKeyMouseUp = function () {
+				return t._onWindowMouseUp.apply(t, arguments);
+			};
+			this.fKeyMouseMove = function () {
+				return t._onWindowMouseMove.apply(t, arguments);
+			};
+
+		} else {
+			this.curParent.appendChild(document.getElementById("ce-canvas-outer-menu"));
+		}
+
+
+
+		this.element = this.Canvas;
+
+
+		/*wb.cellEditor.canvasOuter.style.zIndex = "2000";
+		wb.cellEditor.canvas.style.zIndex = "2001";
+		wb.cellEditor.canvasOverlay.style.zIndex = "2002";
+		wb.cellEditor.cursor.style.zIndex = "2003";*/
+
+
+		ws.openCellEditor(wb.cellEditor, /*fragments*/undefined, /*cursorPos*/undefined, false, false,
+			/*isHideCursor*/false, /*isQuickInput*/false);
+
+		/*wb.cellEditor.canvasOuter.style.zIndex = "2000";
+		wb.cellEditor.canvas.style.zIndex = "2001";
+		wb.cellEditor.canvasOverlay.style.zIndex = "2002";
+		wb.cellEditor.cursor.style.zIndex = "2003";*/
+
+		api.asc_enableKeyEvents(true);
+
+		return;
+	};
+
+	CHeaderFooterEditor.prototype.destroy = function () {
+		window.Asc.g_signature_drawer.CanvasParent.removeChild(this.Canvas);
 	};
 
 
