@@ -551,7 +551,7 @@
         var ctxW = this.drawingCtx.getWidth() - offsetFrozen.offsetX - this.cellsLeft;
         for (var w = 0, i = this.nColsCount - 1; i >= 0; --i) {
             w += this._getColumnWidth(i);
-            if (w > ctxW) {
+            if (w >= ctxW) {
                 break;
             }
         }
@@ -570,7 +570,7 @@
         var ctxH = this.drawingCtx.getHeight() - offsetFrozen.offsetY - this.cellsTop;
         for (var h = 0, i = this.nRowsCount - 1; i >= 0; --i) {
             h += this._getRowHeight(i);
-            if (h > ctxH) {
+            if (h >= ctxH) {
                 break;
             }
         }
@@ -1277,13 +1277,10 @@
         // calculate rows heights and visible rows
 		this._calcHeaderRowHeight();
 		this._calcHeightRows(type);
-        this.visibleRange.r2 = 0;
         this._updateVisibleRowsCount(/*skipScrolReinit*/true);
 
         // calculate columns widths and visible columns
-		this._calcHeaderColumnWidth();
 		this._calcWidthColumns(type);
-        this.visibleRange.c2 = 0;
         this._updateVisibleColsCount(/*skipScrolReinit*/true);
     };
 
@@ -1345,6 +1342,7 @@
 
     /** Вычисляет ширину колонки заголовков */
     WorksheetView.prototype._calcHeaderColumnWidth = function () {
+    	var old = this.cellsLeft;
         if (false === this.model.getSheetView().asc_getShowRowColHeaders()) {
             this.headersWidth = 0;
         } else {
@@ -1355,6 +1353,7 @@
         }
 
         this.cellsLeft = this.headersLeft + this.headersWidth;
+        return old !== this.cellsLeft;
     };
 
     /** Вычисляет высоту строки заголовков */
@@ -1454,6 +1453,9 @@
             f = true;
         }
         this.visibleRange.r2 = i - (f ? 1 : 0);
+		if (this._calcHeaderColumnWidth()) {
+			this._updateVisibleColsCount(true);
+		}
     };
 
     /** Обновляет позицию колонок */
@@ -3629,11 +3631,8 @@
         }
         this.visibleRange.c1 = col;
         this.visibleRange.r1 = row;
-
-        this.visibleRange.r2 = 0;
-        this._calcVisibleRows();
-        this.visibleRange.c2 = 0;
-        this._calcVisibleColumns();
+		this._updateVisibleRowsCount(true);
+        this._updateVisibleColsCount(true);
         this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 
         if (this.objectRender && this.objectRender.drawingArea) {
@@ -5427,6 +5426,7 @@
         var oldVR = vr.clone();
         var oldStart = vr.r1;
         var oldEnd = vr.r2;
+		var x = this.cellsLeft;
 
         // ToDo стоит тут переделать весь scroll
         vr.r1 = start;
@@ -5449,8 +5449,8 @@
 			return this;
 		}
 
-        var oldDec = Math.max(AscCommonExcel.calcDecades(oldEnd + 1), 3);
-        var oldW, x, dx;
+		var type = 0;
+        var oldW, dx;
         var topOldStart = this._getRowTop(oldStart);
         var dy = this._getRowTop(start) - topOldStart;
         var oldH = ctxH - this.cellsTop - Math.abs(dy) - diffHeight;
@@ -5464,11 +5464,8 @@
               this.cellsTop + diffHeight, ctxW, ctxH);
         }
 
-        var widthChanged = Math.max(AscCommonExcel.calcDecades(vr.r2 + 1), 3) !== oldDec;
-        if (widthChanged) {
-            x = this.cellsLeft;
-            this._calcHeaderColumnWidth();
-			this._updateVisibleColsCount(true);
+        if (x !== this.cellsLeft) {
+			type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
             this._drawCorner();
             this._cleanColumnHeadersRect();
             this._drawColumnHeaders(null);
@@ -5579,10 +5576,6 @@
         this._fixSelectionOfMergedCells();
         this._drawSelection();
 
-        var type = 0;
-        if (widthChanged) {
-        	type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
-        }
         if (reinitScrollY || (0 > delta && initRowsCount && this._initRowsCount())) {
         	type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
         }
