@@ -15417,56 +15417,104 @@
 	};
 
 
+	function CHeaderFooterEditorField(id, width) {
+		this.id = id;
+		this.width = width;
+		this.fragments = null;
+		this.canvas = null;
+	}
+	CHeaderFooterEditorField.prototype.setFragments = function (val) {
+		this.fragments = val;
+	};
+	CHeaderFooterEditorField.prototype.getFragments = function () {
+		return this.fragments;
+	};
+	CHeaderFooterEditorField.prototype.drawText = function () {
+		if(null === this.canvas) {
+
+		}
+		
+	};
+	CHeaderFooterEditorField.prototype.getElem = function () {
+		return document.getElementById(this.id);
+	};
+	CHeaderFooterEditorField.prototype.appendEditor = function (editorElemId) {
+		var curElem = this.getElem();
+		var editorElem = document.getElementById(editorElemId);
+		curElem.appendChild(editorElem);
+	};
+
+
+
+
 	function CHeaderFooterEditor(idLeft, idCenter, idRight, width) {
 		window.Asc.g_header_footer_editor = this;
 
-		this.CanvasParentLeft = document.getElementById(idLeft);
-		this.CanvasParentCenter = document.getElementById(idCenter);
-		this.CanvasParentRight = document.getElementById(idRight);
+		this.leftField = new CHeaderFooterEditorField(idLeft, width);
+		this.centerField = new CHeaderFooterEditorField(idCenter, width);
+		this.rightField = new CHeaderFooterEditorField(idRight, width);
+
 		this.parentWidth = width;
-		this.curParentFocus = null;
-		this.editorElem = null;
+		this.curParentFocusId = null;
 		this.cellEditor = null;
+		this.editorElemId = "ce-canvas-outer-menu";
 
 		this.wbCellEditor = null;
+
+		this.api = window["Asc"]["editor"];
 	}
 
-	CHeaderFooterEditor.prototype.getCanvas = function () {
-		return (this.CanvasReturn == null) ? this.Canvas : this.CanvasReturn;
+	CHeaderFooterEditor.prototype.getFieldById = function (id) {
+		if(id === this.leftField.id) {
+			return this.leftField;
+		}
+		if(id === this.centerField.id) {
+			return this.centerField;
+		}
+		if(id === this.rightField.id) {
+			return this.rightField;
+		}
 	};
+
 	CHeaderFooterEditor.prototype.click = function (id, x, y) {
-		var api = window["Asc"]["editor"];
+		var api = this.api;
 		var wb = api.wb;
 		var ws = wb.wsViews[0];
 
 		//если находимся в том же элементе
-		if(this.curParentFocus === id) {
+		if(this.curParentFocusId === id) {
 			api.asc_enableKeyEvents(true);
 			return;
 		}
 
+		//если перед этим редактировали другое поле, сохраняем данные
+		if(null !== this.curParentFocusId) {
+			var prevField = this.getFieldById(this.curParentFocusId);
+			var prevFragments = this.cellEditor.options.fragments;
+			prevField.setFragments(prevFragments);
+			prevField.drawText();
+		}
 
-		this.curParentFocus = id;
-		this.curParent = document.getElementById(id.replace("#", ""));
+		this.curParentFocusId = id.replace("#", "");
 
 
-		var self = wb;
+		var curField = this.getFieldById(this.curParentFocusId);
+		var curParent = curField.getElem();
+		var fragments = curField.getFragments();
 		if(!this.cellEditor) {
-			this.cellEditor = new AscCommonExcel.CellEditor(this.curParent, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
+			this.cellEditor = new AscCommonExcel.CellEditor(curParent, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
 					font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
-			this.editorElem = document.getElementById("ce-canvas-outer-menu");
 
 			//временно меняем cellEditor у wb
 			this.wbCellEditor = wb.cellEditor;
 			wb.cellEditor = this.cellEditor;
 		} else {
 			this.cellEditor.close();
-			this.curParent.appendChild(this.editorElem);
+			curField.appendEditor(this.editorElemId);
 		}
 
 
-		this.openCellEditor(this.cellEditor, /*fragments*/undefined, /*cursorPos*/undefined, false, false,
-			/*isHideCursor*/false, /*isQuickInput*/false);
+		this.openCellEditor(this.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false);
 		wb.setCellEditMode(true);
 		ws.setCellEditMode(true);
 
@@ -15480,79 +15528,7 @@
 		var wb = api.wb;
 		var ws = wb.wsViews[0];
 
-			/*if (selectionRange) {
-				this.model.selectionRange = selectionRange;
-			}
-			if (0 < this.arrActiveFormulaRanges.length) {
-				this.cleanSelection();
-				this.cleanFormulaRanges();
-				this._drawSelection();
-			}
-
-			var cell = this.model.selectionRange.activeCell;
-
-			function getVisibleRangeObject() {
-				var vr = t.visibleRange.clone(), offsetX = 0, offsetY = 0;
-				if (t.topLeftFrozenCell) {
-					var cFrozen = t.topLeftFrozenCell.getCol0();
-					var rFrozen = t.topLeftFrozenCell.getRow0();
-					if (0 < cFrozen) {
-						if (col >= cFrozen) {
-							offsetX = tc[cFrozen].left - tc[0].left;
-						} else {
-							vr.c1 = 0;
-							vr.c2 = cFrozen - 1;
-						}
-					}
-					if (0 < rFrozen) {
-						if (row >= rFrozen) {
-							offsetY = tr[rFrozen].top - tr[0].top;
-						} else {
-							vr.r1 = 0;
-							vr.r2 = rFrozen - 1;
-						}
-					}
-				}
-				return {vr: vr, offsetX: offsetX, offsetY: offsetY};
-			}
-
-			col = cell.col;
-			row = cell.row;
-
-			// Возможно стоит заменить на ячейку из кеша
-			c = this._getVisibleCell(col, row);
-			fl = this._getCellFlags(c);
-			isMerged = fl.isMerged();
-			if (isMerged) {
-				mc = fl.merged;
-				c = this._getVisibleCell(mc.c1, mc.r1);
-				fl = this._getCellFlags(c);
-			}
-
-			// Выставляем режим 'не редактируем' (иначе мы попытаемся переместить редактор, который еще не открыт)
-			this.isCellEditMode = false;
-			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
-			this.isCellEditMode = true;
-
-			bg = c.getFill();
-			this.isFormulaEditMode = false;
-
-			var font = c.getFont();
-			// Скрываем окно редактирования комментария
-			this.model.workbook.handlers.trigger("asc_onHideComment");
-
-			if (fragments === undefined) {
-				var _fragmentsTmp = c.getValueForEdit2();
-				fragments = [];
-				for (var i = 0; i < _fragmentsTmp.length; ++i) {
-					fragments.push(_fragmentsTmp[i].clone());
-				}
-			}
-
-			var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
-			var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);*/
-
-		if (fragments === undefined) {
+		if (!fragments) {
 			fragments = [];
 			var tempFragment = new AscCommonExcel.Fragment();
 			tempFragment.text = "";
@@ -15560,9 +15536,11 @@
 			fragments.push(tempFragment);
 		}
 
+			var flags = new window["AscCommonExcel"].CellFlags();
+			flags.wrapText = true;
 			editor.open({
 				fragments: fragments,
-				flags: new window["AscCommonExcel"].CellFlags(),
+				flags: flags,
 				//font: new asc.FontProperties(font.getName(), font.getSize()),
 				background: ws.settings.cells.defaultState.background,
 				textColor: new window['AscCommonExcel'].RgbColor(0),
@@ -15581,8 +15559,13 @@
 
 				},*/
 				getSides: function () {
-					return {l: 0, r: 0, b: 0, cellX: 0, cellY: 0, ri: 0, bi: 0};
-				}
+					var bottomArr = [];
+					for(var i = 0; i < 30; i++) {
+						bottomArr.push(100 + i * 19);
+					}
+					return {l: [0], r: [t.parentWidth], b: bottomArr, cellX: 0, cellY: 0, ri: 0, bi: 0};
+				},
+				menuEditor: true
 			});
 			return true;
 		};

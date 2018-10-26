@@ -1181,7 +1181,10 @@
 		}
 
 		this._renderText();  // вызов нужен для пересчета поля line.startX, которое используется в _updateCursorPosition
-		this._fireUpdated(); // вызов нужен для обновление текста верхней строки, перед обновлением позиции курсора
+		// вызов нужен для обновление текста верхней строки, перед обновлением позиции курсора
+		if(!(this.options && this.options.menuEditor)) {
+			this._fireUpdated();
+		}
 		this._updateCursorPosition(true);
 		this._showCursor();
 
