@@ -747,6 +747,8 @@ CFieldInstructionParser.prototype.private_CheckFunctionBraces = function(sFormul
 };
 CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 {
+	this.private_ReadREF();
+	return;
 	if(null === g_oWorksheet)
 	{
 		g_oWorksheet = new AscCommonExcel.Worksheet(new AscCommonExcel.Workbook(null, null), 0, '');
