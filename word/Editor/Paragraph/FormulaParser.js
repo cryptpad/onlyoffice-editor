@@ -104,6 +104,9 @@
     CFormulaNode.prototype.isFunction = function () {
         return false;
     };
+    CFormulaNode.prototype.isOperator = function () {
+        return false;
+    };
 
 
     function CNumberNode() {
@@ -125,6 +128,9 @@
 
     COperatorNode.prototype = Object.create(CFormulaNode.prototype);
     COperatorNode.prototype.precedence = 0;
+    COperatorNode.prototype.isOperator = function(){
+        return true;
+    };
 
     function CUnaryMinusOperatorNode(){
         COperatorNode.call(this);
@@ -472,61 +478,21 @@
 
 
     function CLeftParenOperatorNode(){
-        COperatorNode.call(this);
+        CFormulaNode.call(this);
     }
 
-    CLeftParenOperatorNode.prototype = Object.create(COperatorNode.prototype);
+    CLeftParenOperatorNode.prototype = Object.create(CFormulaNode.prototype);
     CLeftParenOperatorNode.prototype.precedence = 1;
     CLeftParenOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
-            return;
-        }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = (a >= oResult.value) ? 1.0 : 0.0;
-            }
-        }
     };
 
     function CRightParenOperatorNode(){
-        COperatorNode.call(this);
+        CFormulaNode.call(this);
     }
 
-    CRightParenOperatorNode.prototype = Object.create(COperatorNode.prototype);
+    CRightParenOperatorNode.prototype = Object.create(CFormulaNode.prototype);
     CRightParenOperatorNode.prototype.precedence = 1;
     CRightParenOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
-            return;
-        }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = (a >= oResult.value) ? 1.0 : 0.0;
-            }
-        }
     };
 
     var oOperatorsMap = {};
@@ -1066,19 +1032,50 @@
         var aStack = [], aQueue = [];
         var ret = [];
         while (oCurToken = this.parseCurrent()){
-            if(oCurToken instanceof CNumberNode){
+            if(oCurToken instanceof CNumberNode || oCurToken instanceof CCellRangeNode){
                 aQueue.push(oCurToken);
             }
             if(oCurToken.isFunction()){
                 aStack.push(oCurToken);
             }
             if(oCurToken instanceof CListSeparatorNode){
-                while(!(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
+                while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
                    aQueue.push(aStack.pop());
                 }
+                if(aStack.length === 0){
+                    throw "Error in formula";
+                }
+            }
+            if(oCurToken instanceof CLeftParenOperatorNode){
+                aStack.push(oCurToken);
+            }
+            if(oCurToken instanceof CRightParenOperatorNode){
+                while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
+                    aQueue.push(aStack.pop());
+                }
+                if(aStack.length === 0){
+                    throw "Error in formula";
+                }
+                aStack.pop();
+                if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
+                    aQueue.push(aStack.pop());
+                }
+            }
+            if(oCurToken.isOperator()){
+                while(aStack.length > 0 && (!aStack[aStack.length-1].isFunction() || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
+                    aQueue.push(aStack.pop());
+                }
+                aStack.push(oCurToken);
             }
         }
-        return ret;
+        while (aStack.length > 0){
+            oCurToken = aStack.pop();
+            if(oCurToken instanceof CLeftParenOperatorNode || oCurToken instanceof CRightParenOperatorNode){
+                throw "Error in formula";
+            }
+            aQueue.push(oCurToken);
+        }
+        return aQueue;
     };
     window['AscCommonWord'] = window['AscCommonWord'] || {};
     window['AscCommonWord'].CFormulaParser = CFormulaParser;
