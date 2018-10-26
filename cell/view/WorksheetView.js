@@ -15450,30 +15450,149 @@
 		this.curParent = document.getElementById(id.replace("#", ""));
 
 
+		var self = wb;
 		if(!this.cellEditor) {
 			this.cellEditor = new AscCommonExcel.CellEditor(this.curParent, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
-					font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true
-				});
+					font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
 			this.editorElem = document.getElementById("ce-canvas-outer-menu");
 
 			//временно меняем cellEditor у wb
 			this.wbCellEditor = wb.cellEditor;
 			wb.cellEditor = this.cellEditor;
 		} else {
+			this.cellEditor.close();
 			this.curParent.appendChild(this.editorElem);
 		}
 
-		ws.openCellEditor(this.cellEditor, /*fragments*/undefined, /*cursorPos*/undefined, false, false,
+
+		this.openCellEditor(this.cellEditor, /*fragments*/undefined, /*cursorPos*/undefined, false, false,
 			/*isHideCursor*/false, /*isQuickInput*/false);
+		wb.setCellEditMode(true);
+		ws.setCellEditMode(true);
 
 		api.asc_enableKeyEvents(true);
 	};
 
+	CHeaderFooterEditor.prototype.openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
+		var t = this, tc = this.cols, tr = this.rows, col, row, c, fl, mc, bg, isMerged;
+
+		var api = window["Asc"]["editor"];
+		var wb = api.wb;
+		var ws = wb.wsViews[0];
+
+			/*if (selectionRange) {
+				this.model.selectionRange = selectionRange;
+			}
+			if (0 < this.arrActiveFormulaRanges.length) {
+				this.cleanSelection();
+				this.cleanFormulaRanges();
+				this._drawSelection();
+			}
+
+			var cell = this.model.selectionRange.activeCell;
+
+			function getVisibleRangeObject() {
+				var vr = t.visibleRange.clone(), offsetX = 0, offsetY = 0;
+				if (t.topLeftFrozenCell) {
+					var cFrozen = t.topLeftFrozenCell.getCol0();
+					var rFrozen = t.topLeftFrozenCell.getRow0();
+					if (0 < cFrozen) {
+						if (col >= cFrozen) {
+							offsetX = tc[cFrozen].left - tc[0].left;
+						} else {
+							vr.c1 = 0;
+							vr.c2 = cFrozen - 1;
+						}
+					}
+					if (0 < rFrozen) {
+						if (row >= rFrozen) {
+							offsetY = tr[rFrozen].top - tr[0].top;
+						} else {
+							vr.r1 = 0;
+							vr.r2 = rFrozen - 1;
+						}
+					}
+				}
+				return {vr: vr, offsetX: offsetX, offsetY: offsetY};
+			}
+
+			col = cell.col;
+			row = cell.row;
+
+			// Возможно стоит заменить на ячейку из кеша
+			c = this._getVisibleCell(col, row);
+			fl = this._getCellFlags(c);
+			isMerged = fl.isMerged();
+			if (isMerged) {
+				mc = fl.merged;
+				c = this._getVisibleCell(mc.c1, mc.r1);
+				fl = this._getCellFlags(c);
+			}
+
+			// Выставляем режим 'не редактируем' (иначе мы попытаемся переместить редактор, который еще не открыт)
+			this.isCellEditMode = false;
+			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
+			this.isCellEditMode = true;
+
+			bg = c.getFill();
+			this.isFormulaEditMode = false;
+
+			var font = c.getFont();
+			// Скрываем окно редактирования комментария
+			this.model.workbook.handlers.trigger("asc_onHideComment");
+
+			if (fragments === undefined) {
+				var _fragmentsTmp = c.getValueForEdit2();
+				fragments = [];
+				for (var i = 0; i < _fragmentsTmp.length; ++i) {
+					fragments.push(_fragmentsTmp[i].clone());
+				}
+			}
+
+			var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
+			var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);*/
+
+		if (fragments === undefined) {
+			fragments = [];
+			var tempFragment = new AscCommonExcel.Fragment();
+			tempFragment.text = "";
+			tempFragment.format = new AscCommonExcel.Font();
+			fragments.push(tempFragment);
+		}
+
+			editor.open({
+				fragments: fragments,
+				flags: new window["AscCommonExcel"].CellFlags(),
+				//font: new asc.FontProperties(font.getName(), font.getSize()),
+				background: ws.settings.cells.defaultState.background,
+				textColor: new window['AscCommonExcel'].RgbColor(0),
+				cursorPos: cursorPos,
+				//zoom: this.getZoom(),
+				focus: isFocus,
+				isClearCell: isClearCell,
+				isHideCursor: isHideCursor,
+				isQuickInput: isQuickInput,
+				autoComplete: [],
+				autoCompleteLC: [],
+				//isAddPersentFormat: isQuickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
+				//cellName: c.getName(),
+				//cellNumFormat: c.getNumFormatType(),
+				/*saveValueCallback: function (val, flags) {
+
+				},*/
+				getSides: function () {
+					return {l: 0, r: 0, b: 0, cellX: 0, cellY: 0, ri: 0, bi: 0};
+				}
+			});
+			return true;
+		};
+
 	CHeaderFooterEditor.prototype.destroy = function () {
-		//возвращаем cellEditor к прежнему состоянию
+		//возвращаем cellEditor у wb
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
 		wb.cellEditor = this.wbCellEditor;
+		wb.cellEditor.close();
 	};
 
 	//------------------------------------------------------------export---------------------------------------------------
