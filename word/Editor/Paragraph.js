@@ -7379,6 +7379,10 @@ Paragraph.prototype.GetCalculatedParaPr = function()
 {
 	var ParaPr = this.Get_CompiledPr2(false).ParaPr;
 	ParaPr.Locked = this.Lock.Is_Locked();
+
+	if (!ParaPr.PStyle && this.LogicDocument)
+		ParaPr.PStyle = this.LogicDocument.GetStyles().GetDefaultParagraph();
+
 	return ParaPr;
 };
 /**
