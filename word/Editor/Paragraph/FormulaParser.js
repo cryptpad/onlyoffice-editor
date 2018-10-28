@@ -23,7 +23,7 @@
     var sCellReference = '(' + sCellRange + ')|(' + sCellName + ')';
     var sBookmark = "[_A-Za-z]([A-Za-z0-9]{0,39})";
     var sBookmarkCellRef = sBookmark + '( +(' + sCellReference + '))*';
-    var sFunctions = "ABS|AND|AVERAGE|COUNT|DEFINED|FALSE|INT|MAX|MIN|MOD|NOT|OR|PRODUCT|ROUND|SIGN|SUM|TRUE" ;
+    var sFunctions = "(ABS|AND|AVERAGE|COUNT|DEFINED|FALSE|INT|MAX|MIN|MOD|NOT|OR|PRODUCT|ROUND|SIGN|SUM|TRUE)" ;
 
     const oComparisonOpRegExp = new RegExp(sComparison, 'g');
     const oColumnNameRegExp = new RegExp(sColumnName, 'g');
@@ -829,6 +829,13 @@
         if(oFirstCell === null){
             return null;
         }
+        while (this.formula[this.pos] === ' '){
+            ++this.pos;
+        }
+        ++this.pos;
+        while (this.formula[this.pos] === ' '){
+            ++this.pos;
+        }
         oSecondCell = this.checkExpression(oCellNameRegExp, this.parseCellName);
         if(oSecondCell === null){
             return null;
@@ -851,7 +858,13 @@
         if(r1 === null){
             return null;
         }
-        this.pos++;
+        while (this.formula[this.pos] === ' '){
+            ++this.pos;
+        }
+        ++this.pos;
+        while (this.formula[this.pos] === ' '){
+            ++this.pos;
+        }
         r2 = this.checkExpression(oRowNameRegExp, this.parseRow);
         if(r2 === null){
             return null;
@@ -868,7 +881,13 @@
         if(c1 === null){
             return null;
         }
-        this.pos++;
+        while (this.formula[this.pos] === ' '){
+            ++this.pos;
+        }
+        ++this.pos;
+        while (this.formula[this.pos] === ' '){
+            ++this.pos;
+        }
         c2 = this.checkExpression(oColumnNameRegExp, this.parseCol);
         if(c2 === null){
             return null;
@@ -953,7 +972,7 @@
     };
 
     CFormulaParser.prototype.parseFunction = function(nStartPos, nEndPos){
-        var sFunction = this.formula.slice(nStartPos, nEndPos);
+        var sFunction = this.formula.slice(nStartPos, nEndPos).toUpperCase();
         if(oFuncMap[sFunction]){
             return new oFuncMap[sFunction]();
         }
@@ -999,17 +1018,17 @@
         if(oRet){
             return oRet;
         }
-        //check bookmark
-        oRet = this.checkExpression(oBookmarkCellRefRegExp, this.parseBookmarkCellRef);
-        if(oRet){
-            this.bUnary = false;
-            return oRet;
-        }
         //check cell reference
         var oRes = this.checkExpression(oCellReferenceRegExp, this.parseCellRef);
         if(oRes){
             this.bUnary = false;
             return oRes;
+        }
+        //check bookmark
+        oRet = this.checkExpression(oBookmarkCellRefRegExp, this.parseBookmarkCellRef);
+        if(oRet){
+            this.bUnary = false;
+            return oRet;
         }
         return null;
     };
@@ -1034,9 +1053,11 @@
         while (oCurToken = this.parseCurrent()){
             if(oCurToken instanceof CNumberNode || oCurToken instanceof CCellRangeNode){
                 aQueue.push(oCurToken);
+                continue;
             }
             if(oCurToken.isFunction()){
                 aStack.push(oCurToken);
+                continue;
             }
             if(oCurToken instanceof CListSeparatorNode){
                 while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
@@ -1045,9 +1066,11 @@
                 if(aStack.length === 0){
                     throw "Error in formula";
                 }
+                continue;
             }
             if(oCurToken instanceof CLeftParenOperatorNode){
                 aStack.push(oCurToken);
+                continue;
             }
             if(oCurToken instanceof CRightParenOperatorNode){
                 while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
@@ -1060,12 +1083,14 @@
                 if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
                     aQueue.push(aStack.pop());
                 }
+                continue;
             }
             if(oCurToken.isOperator()){
-                while(aStack.length > 0 && (!aStack[aStack.length-1].isFunction() || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
+                while(aStack.length > 0 && (aStack[aStack.length-1].isFunction() || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
                     aQueue.push(aStack.pop());
                 }
                 aStack.push(oCurToken);
+                continue;
             }
         }
         while (aStack.length > 0){
