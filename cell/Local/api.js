@@ -281,7 +281,7 @@ var c_oAscError = Asc.c_oAscError;
 		{
 			if (window.g_asc_plugins && window.g_asc_plugins.isRunnedEncryption())
 			{
-                editor._callbackPluginEndAction = function()
+                asc["editor"]._callbackPluginEndAction = function()
                 {
                     this._callbackPluginEndAction = null;
                     window["AscDesktopEditor"]["buildCryptedEnd"](true);
