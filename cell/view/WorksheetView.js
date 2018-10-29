@@ -15422,6 +15422,11 @@
 		return this.fragments;
 	};
 	CHeaderFooterEditorField.prototype.drawText = function (cellEditor) {
+		if(!this.fragments) {
+			//возможно стоит очищать канву в данном случае
+			return;
+		}
+
 		if(null === this.canvas) {
 			this.canvas = document.createElement('canvas');
 			this.canvas.id = this.id + "-canvas";
@@ -15435,6 +15440,7 @@
 
 		//draw
 		//добавляю флаги для учета переноса строки
+		var wb = window["Asc"]["editor"].wb;
 		var ws = window["Asc"]["editor"].wb.getWorksheet();
 		var t = this;
 		var cellFlags = new AscCommonExcel.CellFlags();
@@ -15451,7 +15457,7 @@
 		ws.stringRender.setString(this.fragments, cellFlags);
 
 		var textMetrics = ws.stringRender._measureChars(cellEditorWidth);
-		ws.stringRender.render(this.drawingCtx, cellEditor.defaults.padding, 0, cellEditorWidth, ws.settings.activeCellBorderColor);
+		ws.stringRender.render(this.drawingCtx, wb.defaults.worksheetView.cells.padding, 0, cellEditorWidth, ws.settings.activeCellBorderColor);
 	};
 	CHeaderFooterEditorField.prototype.getElem = function () {
 		return document.getElementById(this.id);
@@ -15463,8 +15469,43 @@
 	};
 
 
+	function convertFieldToMenuText(val) {
+		var textField;
+		switch (val){
+			case asc.c_oAscHeaderFooterField.pageNumber: {
+				textField = "&[Page]";
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.pageCount: {
+				textField = "&[Pages]";
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.date: {
+				textField = "&[Date]";
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.time: {
+				textField += "&[Time]";
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.sheetName: {
+
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.fileName: {
+
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.filePath: {
+
+				break;
+			}
+		}
+		return textField;
+	}
 
 
+	window.Asc.g_header_footer_editor = null;
 	function CHeaderFooterEditor(idLeft, idCenter, idRight, width) {
 		window.Asc.g_header_footer_editor = this;
 
@@ -15481,7 +15522,60 @@
 
 		this.api = window["Asc"]["editor"];
 		this.wb = this.api.wb;
+
+		this.init();
 	}
+
+	CHeaderFooterEditor.prototype.init = function () {
+		var ws = this.wb.getWorksheet();
+		var getFragments = function(textPropsArr) {
+			if(!textPropsArr) {
+				return null;
+			}
+			var res = [];
+			for(var i = 0; i < textPropsArr.length; i++) {
+				var curProps = textPropsArr[i];
+				var text = asc_typeof(curProps.val) === "string" ? curProps.val : convertFieldToMenuText(curProps.val.field);
+				if(null !== text) {
+					var tempFragment = new AscCommonExcel.Fragment();
+					tempFragment.text = text;
+					tempFragment.format = curProps.props;
+					res.push(tempFragment);
+				}
+			}
+			return res;
+		};
+
+		if(ws.model.headerFooter && ws.model.headerFooter.oddHeader && ws.model.headerFooter.oddHeader.parser) {
+			var parser = ws.model.headerFooter.oddHeader.parser.portions;
+			var leftFragments = getFragments(parser[0]);
+			if(null !== leftFragments) {
+				this.leftField.fragments = leftFragments;
+			}
+			var centerFragments = getFragments(parser[1]);
+			if(null !== centerFragments) {
+				this.centerField.fragments = centerFragments;
+			}
+			var rightFragments = getFragments(parser[2]);
+			if(null !== rightFragments) {
+				this.rightField.fragments = rightFragments;
+			}
+		}
+
+		//DRAW AFTER OPEN MENU
+		//TODO создаю здесь cellEditor для того, чтобы отрисовать поля. возможно стоит избавиться от использования cellEditor в drawText
+		var wb = this.wb;
+		var fieldElem = this.leftField.getElem();
+		this.cellEditor = new AscCommonExcel.CellEditor(fieldElem, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
+			font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
+
+		//временно меняем cellEditor у wb
+		this.wbCellEditor = wb.cellEditor;
+		wb.cellEditor = this.cellEditor;
+		this.leftField.drawText(this.cellEditor);
+		this.centerField.drawText(this.cellEditor);
+		this.rightField.drawText(this.cellEditor);
+	};
 
 	CHeaderFooterEditor.prototype.getFieldById = function (id) {
 		if(id === this.leftField.id) {
@@ -15562,9 +15656,7 @@
 		flags.wrapText = true;
 		flags.textAlign = curField.portion === c_nPortionCenter ? AscCommon.align_Center : curField.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
 
-		/*var cellEditorWidth = editor._getContentWidth();
-		editor.textRender.setString(fragments, flags);
-		editor.textRender._measureChars(cellEditorWidth);*/
+
 		var options = {
 			fragments: fragments,
 			flags: flags,
@@ -15579,12 +15671,6 @@
 			isQuickInput: isQuickInput,
 			autoComplete: [],
 			autoCompleteLC: [],
-			//isAddPersentFormat: isQuickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
-			//cellName: c.getName(),
-			//cellNumFormat: c.getNumFormatType(),
-			/*saveValueCallback: function (val, flags) {
-
-			 },*/
 			getSides: function () {
 				var bottomArr = [];
 				for(var i = 0; i < 30; i++) {
@@ -15600,7 +15686,7 @@
 		editor.textRender.measureString(fragments, flags, editor._getContentWidth());
 		editor._renderText();
 		
-		//TODO из меняю сразу присылать относительные кординаты?!
+		//TODO из меню сразу присылать относительные кординаты?!
 		var fieldCoord = fieldElem.getBoundingClientRect();
 		cursorPos = editor._findCursorPosition({x: x - fieldCoord.left, y: y - fieldCoord.top});
 
@@ -15609,12 +15695,20 @@
 		return true;
 	};
 
-	CHeaderFooterEditor.prototype.destroy = function () {
+	CHeaderFooterEditor.prototype.destroy = function (bSave) {
+		if(bSave /*&& bChanged*/) {
+			
+		}
+
 		//возвращаем cellEditor у wb
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
-		wb.cellEditor = this.wbCellEditor;
-		wb.cellEditor.close();
+		if(this.wbCellEditor) {
+			wb.cellEditor = this.wbCellEditor;
+			wb.cellEditor.close();
+		}
+
+		delete window.Asc.g_header_footer_editor;
 	};
 
 	CHeaderFooterEditor.prototype.setFontName = function(fontName) {
@@ -15670,37 +15764,7 @@
 	};
 
 	CHeaderFooterEditor.prototype.addField = function(val) {
-		var textField = null;
-		switch (val){
-			case asc.c_oAscHeaderFooterField.pageNumber: {
-				textField = "&[Page]";
-				break;
-			}
-			case asc.c_oAscHeaderFooterField.pageCount: {
-				textField = "&[Pages]";
-				break;
-			}
-			case asc.c_oAscHeaderFooterField.date: {
-				textField = "&[Date]";
-				break;
-			}
-			case asc.c_oAscHeaderFooterField.time: {
-				textField += "&[Time]";
-				break;
-			}
-			case asc.c_oAscHeaderFooterField.sheetName: {
-
-				break;
-			}
-			case asc.c_oAscHeaderFooterField.fileName: {
-
-				break;
-			}
-			case asc.c_oAscHeaderFooterField.filePath: {
-
-				break;
-			}
-		}
+		var textField = convertFieldToMenuText(val);
 		if(null !== textField) {
 			this.cellEditor.pasteText(textField);
 		}
@@ -15724,6 +15788,7 @@
 	prot["setUnderline"] = prot.setUnderline;
 	prot["setStrikeout"] = prot.setStrikeout;
 	prot["setSubscript"] = prot.setSubscript;
+	prot["setSuperscript"] = prot.setSuperscript;
 	prot["setTextColor"] = prot.setTextColor;
 	prot["addField"] = prot.addField;
 
