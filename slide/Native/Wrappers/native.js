@@ -1385,11 +1385,26 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.CoAuthoringApi._CoAuthoringApi._reconnect();
             break;
         }
-
         case 21000: // ASC_COAUTH_EVENT_TYPE_INSERT_URL_IMAGE
         {
+            var urls = JSON.parse(_params[0]);
+            AscCommon.g_oDocumentUrls.addUrls(urls);
+            var firstUrl;
+            for (var i in urls) {
+                if (urls.hasOwnProperty(i)) {
+                    firstUrl = urls[i];
+                    break;
+                }
+            }
+            var oImageObject = {};
+            oImageObject.src = firstUrl;
+            oImageObject.Image = {};
+            oImageObject.Image.width = _params[1];
+            oImageObject.Image.height = _params[2];
+            this.WordControl.m_oLogicDocument.addImages([oImageObject]);
             break;
         }
+
 
         case 21001: // ASC_COAUTH_EVENT_TYPE_LOAD_URL_IMAGE
         {
