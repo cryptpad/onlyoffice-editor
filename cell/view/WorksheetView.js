@@ -15417,11 +15417,13 @@
 	};
 
 
-	function CHeaderFooterEditorField(id, width) {
+	function CHeaderFooterEditorField(id, portion, width) {
 		this.id = id;
+		this.portion = portion;
 		this.width = width;
 		this.fragments = null;
 		this.canvas = null;
+		this.drawingCtx = null;
 	}
 	CHeaderFooterEditorField.prototype.setFragments = function (val) {
 		this.fragments = val;
@@ -15429,11 +15431,37 @@
 	CHeaderFooterEditorField.prototype.getFragments = function () {
 		return this.fragments;
 	};
-	CHeaderFooterEditorField.prototype.drawText = function () {
+	CHeaderFooterEditorField.prototype.drawText = function (cellEditor) {
 		if(null === this.canvas) {
+			this.canvas = document.createElement('canvas');
+			this.canvas.id = this.id + "-canvas";
 
+			var curElem = this.getElem();
+			curElem.appendChild(this.canvas);
 		}
-		
+		this.canvas.width = this.width;
+		this.canvas.height = cellEditor.canvas.height;
+
+
+		//draw
+		//добавляю флаги для учета переноса строки
+		var ws = window["Asc"]["editor"].wb.wsViews[0];
+		var t = this;
+		var cellFlags = new AscCommonExcel.CellFlags();
+		cellFlags.wrapText = true;
+		cellFlags.textAlign = this.portion === c_nPortionCenter ? AscCommon.align_Center : this.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
+
+		if(!this.drawingCtx) {
+			this.drawingCtx = new asc.DrawingContext({
+				canvas: t.canvas, units: 0/*px*/, fmgrGraphics: cellEditor.fmgrGraphics, font: cellEditor.m_oFont
+			});
+		}
+
+		var cellEditorWidth = cellEditor._getContentWidth();
+		ws.stringRender.setString(this.fragments, cellFlags);
+
+		var textMetrics = ws.stringRender._measureChars(cellEditorWidth);
+		ws.stringRender.render(this.drawingCtx, cellEditor.defaults.padding, 0, cellEditorWidth, ws.settings.activeCellBorderColor);
 	};
 	CHeaderFooterEditorField.prototype.getElem = function () {
 		return document.getElementById(this.id);
@@ -15450,9 +15478,9 @@
 	function CHeaderFooterEditor(idLeft, idCenter, idRight, width) {
 		window.Asc.g_header_footer_editor = this;
 
-		this.leftField = new CHeaderFooterEditorField(idLeft, width);
-		this.centerField = new CHeaderFooterEditorField(idCenter, width);
-		this.rightField = new CHeaderFooterEditorField(idRight, width);
+		this.leftField = new CHeaderFooterEditorField(idLeft, c_nPortionLeft, width);
+		this.centerField = new CHeaderFooterEditorField(idCenter, c_nPortionCenter, width);
+		this.rightField = new CHeaderFooterEditorField(idRight, c_nPortionRight, width);
 
 		this.parentWidth = width;
 		this.curParentFocusId = null;
@@ -15481,6 +15509,8 @@
 		var wb = api.wb;
 		var ws = wb.wsViews[0];
 
+		id = id.replace("#", "");
+
 		//если находимся в том же элементе
 		if(this.curParentFocusId === id) {
 			api.asc_enableKeyEvents(true);
@@ -15492,17 +15522,17 @@
 			var prevField = this.getFieldById(this.curParentFocusId);
 			var prevFragments = this.cellEditor.options.fragments;
 			prevField.setFragments(prevFragments);
-			prevField.drawText();
+			prevField.drawText(this.cellEditor);
 		}
 
-		this.curParentFocusId = id.replace("#", "");
+		this.curParentFocusId = id;
 
 
-		var curField = this.getFieldById(this.curParentFocusId);
-		var curParent = curField.getElem();
-		var fragments = curField.getFragments();
+		var cField = this.getFieldById(this.curParentFocusId);
+		var fieldElem = cField.getElem();
+		var fragments = cField.getFragments();
 		if(!this.cellEditor) {
-			this.cellEditor = new AscCommonExcel.CellEditor(curParent, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
+			this.cellEditor = new AscCommonExcel.CellEditor(fieldElem, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
 					font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
 
 			//временно меняем cellEditor у wb
@@ -15510,19 +15540,19 @@
 			wb.cellEditor = this.cellEditor;
 		} else {
 			this.cellEditor.close();
-			curField.appendEditor(this.editorElemId);
+			cField.appendEditor(this.editorElemId);
 		}
 
 
-		this.openCellEditor(this.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false);
+		this.openCellEditor(this.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, fieldElem);
 		wb.setCellEditMode(true);
 		ws.setCellEditMode(true);
 
 		api.asc_enableKeyEvents(true);
 	};
 
-	CHeaderFooterEditor.prototype.openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
-		var t = this, tc = this.cols, tr = this.rows, col, row, c, fl, mc, bg, isMerged;
+	CHeaderFooterEditor.prototype.openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, fieldElem) {
+		var t = this;
 
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
@@ -15536,39 +15566,57 @@
 			fragments.push(tempFragment);
 		}
 
-			var flags = new window["AscCommonExcel"].CellFlags();
-			flags.wrapText = true;
-			editor.open({
-				fragments: fragments,
-				flags: flags,
-				//font: new asc.FontProperties(font.getName(), font.getSize()),
-				background: ws.settings.cells.defaultState.background,
-				textColor: new window['AscCommonExcel'].RgbColor(0),
-				cursorPos: cursorPos,
-				//zoom: this.getZoom(),
-				focus: isFocus,
-				isClearCell: isClearCell,
-				isHideCursor: isHideCursor,
-				isQuickInput: isQuickInput,
-				autoComplete: [],
-				autoCompleteLC: [],
-				//isAddPersentFormat: isQuickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
-				//cellName: c.getName(),
-				//cellNumFormat: c.getNumFormatType(),
-				/*saveValueCallback: function (val, flags) {
+		var curField = this.getFieldById(this.curParentFocusId);
+		var flags = new window["AscCommonExcel"].CellFlags();
+		flags.wrapText = true;
+		flags.textAlign = curField.portion === c_nPortionCenter ? AscCommon.align_Center : curField.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
 
-				},*/
-				getSides: function () {
-					var bottomArr = [];
-					for(var i = 0; i < 30; i++) {
-						bottomArr.push(100 + i * 19);
-					}
-					return {l: [0], r: [t.parentWidth], b: bottomArr, cellX: 0, cellY: 0, ri: 0, bi: 0};
-				},
-				menuEditor: true
-			});
-			return true;
+		/*var cellEditorWidth = editor._getContentWidth();
+		editor.textRender.setString(fragments, flags);
+		editor.textRender._measureChars(cellEditorWidth);*/
+		var options = {
+			fragments: fragments,
+			flags: flags,
+			//font: new asc.FontProperties(font.getName(), font.getSize()),
+			background: ws.settings.cells.defaultState.background,
+			textColor: new window['AscCommonExcel'].RgbColor(0),
+			cursorPos: cursorPos,
+			//zoom: this.getZoom(),
+			focus: isFocus,
+			isClearCell: isClearCell,
+			isHideCursor: isHideCursor,
+			isQuickInput: isQuickInput,
+			autoComplete: [],
+			autoCompleteLC: [],
+			//isAddPersentFormat: isQuickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
+			//cellName: c.getName(),
+			//cellNumFormat: c.getNumFormatType(),
+			/*saveValueCallback: function (val, flags) {
+
+			 },*/
+			getSides: function () {
+				var bottomArr = [];
+				for(var i = 0; i < 30; i++) {
+					bottomArr.push(100 + i * 19);
+				}
+				return {l: [0], r: [t.parentWidth], b: bottomArr, cellX: 0, cellY: 0, ri: 0, bi: 0};
+			},
+			menuEditor: true
 		};
+
+		//TODO для определение позиции первого клика прадварительно выставляю опции и измеряю. Рассмотреть, если ли другой вариант?
+		editor._setOptions(options);
+		editor.textRender.measureString(fragments, flags, editor._getContentWidth());
+		editor._renderText();
+		
+		//TODO из меняю сразу присылать относительные кординаты?!
+		var fieldCoord = fieldElem.getBoundingClientRect();
+		cursorPos = editor._findCursorPosition({x: x - fieldCoord.left, y: y - fieldCoord.top});
+
+		options.cursorPos = cursorPos;
+		editor.open(options);
+		return true;
+	};
 
 	CHeaderFooterEditor.prototype.destroy = function () {
 		//возвращаем cellEditor у wb
