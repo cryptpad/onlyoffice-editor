@@ -390,6 +390,18 @@ var c_oAscPopUpSelectorType = {
       add: 2
   };
 
+  //поля header/footer
+  var c_oAscHeaderFooterField = {
+      pageNumber: 0,
+      pageCount: 1,
+      sheetName: 2,
+      fileName: 3,
+      filePath: 4,
+      date: 5,
+      time: 6,
+      lineBreak: 7
+  };
+
   var c_kMaxPrintPages = 1500;
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -598,5 +610,15 @@ var c_oAscPopUpSelectorType = {
   prot['set'] = prot.set;
   prot['clear'] = prot.clear;
   prot['add'] = prot.add;
+  window['Asc']['c_oAscHeaderFooterField'] = window['Asc'].c_oAscHeaderFooterField = c_oAscHeaderFooterField;
+  prot = c_oAscHeaderFooterField;
+  prot['pageNumber'] = prot.pageNumber;
+  prot['pageCount'] = prot.pageCount;
+  prot['sheetName'] = prot.sheetName;
+  prot['fileName'] = prot.fileName;
+  prot['filePath'] = prot.filePath;
+  prot['date'] = prot.date;
+  prot['time'] = prot.time;
+  prot['lineBreak'] = prot.lineBreak;
 
 })(window);

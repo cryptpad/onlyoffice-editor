@@ -14860,52 +14860,41 @@
 		return res;
 	};
 
-	var c_nHeaderFooterPageNumber = 0;
-	var c_nHeaderFooterPageCount = 1;
-	var c_nHeaderFooterSheetName = 2;
-	var c_nHeaderFooterFileName = 3;
-	var c_nHeaderFooterFilePath = 4;
-	var c_nHeaderFooterDate = 5;
-	var c_nHeaderFooterTime = 6;
-
-	var c_nHeaderFooterLineBreak = 7;
-
-
 	function HeaderFooterField(val) {
 		this.field = val;
 	}
 	HeaderFooterField.prototype.getText = function (ws, indexPrintPage, countPrintPages) {
 		var res = "";
 		switch(this.field) {
-			case c_nHeaderFooterPageNumber: {
+			case asc.c_oAscHeaderFooterField.pageNumber: {
 				res = indexPrintPage + 1 + "";
 				break;
 			}
-			case c_nHeaderFooterPageCount: {
+			case asc.c_oAscHeaderFooterField.pageCount: {
 				res = countPrintPages + "";
 				break;
 			}
-			case c_nHeaderFooterSheetName: {
+			case asc.c_oAscHeaderFooterField.sheetName: {
 				res = ws.model.sName;
 				break;
 			}
-			case c_nHeaderFooterFileName: {
+			case asc.c_oAscHeaderFooterField.fileName: {
 
 				break;
 			}
-			case c_nHeaderFooterFilePath: {
+			case asc.c_oAscHeaderFooterField.filePath: {
 
 				break;
 			}
-			case c_nHeaderFooterDate: {
+			case asc.c_oAscHeaderFooterField.date: {
 
 				break;
 			}
-			case c_nHeaderFooterTime: {
+			case asc.c_oAscHeaderFooterField.time: {
 
 				break;
 			}
-			case c_nHeaderFooterLineBreak: {
+			case asc.c_oAscHeaderFooterField.lineBreak: {
 				//TODO возможно стоит добавлять символ переноса строки к предыдущему параграфу
 				res = "\n";
 				break;
@@ -14966,6 +14955,7 @@
 				case c_nToken: {
 					nState = c_nText;
 
+
 					switch (cChar) {
 						case '&':
 							this.str.push(cChar);
@@ -14980,32 +14970,32 @@
 							this.setPortion(c_nPortionRight);
 							break;
 						case 'P':   //page number
-							this.pushField(new HeaderFooterField(c_nHeaderFooterPageNumber));
+							this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber));
 							break;
 						case 'N':   //total page count
-							this.pushField(new HeaderFooterField(c_nHeaderFooterPageCount));
+							this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.pageCount));
 							break;
 						case 'A':   //current sheet name
-							this.pushField(new HeaderFooterField(c_nHeaderFooterSheetName));
+							this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.sheetName));
 							break;
 						case 'F':   //file name
 						{
-							this.pushField(new HeaderFooterField(c_nHeaderFooterFileName));
+							this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName));
 							break;
 						}
 						case 'Z':   //file path
 						{
-							this.pushField(new HeaderFooterField(c_nHeaderFooterFilePath));
+							this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.filePath));
 							break;
 						}
 						case 'D':   //date
 						{
-							this.pushField(new HeaderFooterField(c_nHeaderFooterDate));
+							this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.date));
 							break;
 						}
 						case 'T':   //time
 						{
-							this.pushField(new HeaderFooterField(c_nHeaderFooterTime));
+							this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.time));
 							break;
 						}
 						case 'B':   //bold
@@ -15360,31 +15350,31 @@
 				if (aPosList[i].val instanceof HeaderFooterField) {
 					if (aPosList[i].val.field !== undefined) {
 						switch(aPosList[i].val.field) {
-							case c_nHeaderFooterPageNumber: {
+							case asc.c_oAscHeaderFooterField.pageNumber: {
 								aParaText += "&P";
 								break;
 							}
-							case c_nHeaderFooterPageCount: {
+							case asc.c_oAscHeaderFooterField.pageCount: {
 								aParaText += "&N";
 								break;
 							}
-							case c_nHeaderFooterDate: {
+							case asc.c_oAscHeaderFooterField.date: {
 								aParaText += "&D";
 								break;
 							}
-							case c_nHeaderFooterTime: {
+							case asc.c_oAscHeaderFooterField.time: {
 								aParaText += "&T";
 								break;
 							}
-							case c_nHeaderFooterSheetName: {
+							case asc.c_oAscHeaderFooterField.sheetName: {
 								aParaText += "&A";
 								break;
 							}
-							case c_nHeaderFooterFileName: {
+							case asc.c_oAscHeaderFooterField.fileName: {
 								aParaText += "&F";
 								break;
 							}
-							case c_nHeaderFooterFilePath: {
+							case asc.c_oAscHeaderFooterField.filePath: {
 
 								break;
 							}
@@ -15445,7 +15435,7 @@
 
 		//draw
 		//добавляю флаги для учета переноса строки
-		var ws = window["Asc"]["editor"].wb.wsViews[0];
+		var ws = window["Asc"]["editor"].wb.getWorksheet();
 		var t = this;
 		var cellFlags = new AscCommonExcel.CellFlags();
 		cellFlags.wrapText = true;
@@ -15490,6 +15480,7 @@
 		this.wbCellEditor = null;
 
 		this.api = window["Asc"]["editor"];
+		this.wb = this.api.wb;
 	}
 
 	CHeaderFooterEditor.prototype.getFieldById = function (id) {
@@ -15506,8 +15497,8 @@
 
 	CHeaderFooterEditor.prototype.click = function (id, x, y) {
 		var api = this.api;
-		var wb = api.wb;
-		var ws = wb.wsViews[0];
+		var wb = this.wb;
+		var ws = wb.getWorksheet();
 
 		id = id.replace("#", "");
 
@@ -15555,8 +15546,8 @@
 		var t = this;
 
 		var api = window["Asc"]["editor"];
-		var wb = api.wb;
-		var ws = wb.wsViews[0];
+		var wb = this.wb;
+		var ws = wb.getWorksheet();
 
 		if (!fragments) {
 			fragments = [];
@@ -15626,6 +15617,96 @@
 		wb.cellEditor.close();
 	};
 
+	CHeaderFooterEditor.prototype.setFontName = function(fontName) {
+		var t = this, fonts = {};
+		fonts[fontName] = 1;
+		t.api._loadFonts(fonts, function() {
+			t.cellEditor.setTextStyle("fn", fontName);
+			t.wb.restoreFocus();
+		});
+	};
+
+	CHeaderFooterEditor.prototype.setFontSize = function(fontSize) {
+		this.cellEditor.setTextStyle("fs", fontSize);
+		this.wb.restoreFocus();
+	};
+
+	CHeaderFooterEditor.prototype.setBold = function(isBold) {
+		this.cellEditor.setTextStyle("b", isBold);
+		this.wb.restoreFocus();
+	};
+
+	CHeaderFooterEditor.prototype.setItalic = function(isItalic) {
+		this.cellEditor.setTextStyle("i", isItalic);
+		this.wb.restoreFocus();
+	};
+
+	CHeaderFooterEditor.prototype.setUnderline = function(isUnderline) {
+		this.cellEditor.setTextStyle("u", isUnderline ? Asc.EUnderline.underlineSingle : Asc.EUnderline.underlineNone);
+		this.wb.restoreFocus();
+	};
+
+	CHeaderFooterEditor.prototype.setStrikeout = function(isStrikeout) {
+		this.cellEditor.setTextStyle("s", isStrikeout);
+		this.wb.restoreFocus();
+	};
+
+	CHeaderFooterEditor.prototype.setSubscript = function(isSubscript) {
+		this.cellEditor.setTextStyle("fa", isSubscript ? AscCommon.vertalign_SubScript : null);
+		this.wb.restoreFocus();
+	};
+
+	CHeaderFooterEditor.prototype.setSuperscript = function(isSuperscript) {
+		this.cellEditor.setTextStyle("fa", isSuperscript ? AscCommon.vertalign_SuperScript : null);
+		this.wb.restoreFocus();
+	};
+
+	CHeaderFooterEditor.prototype.setTextColor = function(color) {
+		if (color instanceof Asc.asc_CColor) {
+			color = AscCommonExcel.CorrectAscColor(color);
+			this.cellEditor.setTextStyle("c", color);
+			this.wb.restoreFocus();
+		}
+	};
+
+	CHeaderFooterEditor.prototype.addField = function(val) {
+		var textField = null;
+		switch (val){
+			case asc.c_oAscHeaderFooterField.pageNumber: {
+				textField = "&[Page]";
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.pageCount: {
+				textField = "&[Pages]";
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.date: {
+				textField = "&[Date]";
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.time: {
+				textField += "&[Time]";
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.sheetName: {
+
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.fileName: {
+
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.filePath: {
+
+				break;
+			}
+		}
+		if(null !== textField) {
+			this.cellEditor.pasteText(textField);
+		}
+	};
+
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
@@ -15636,5 +15717,14 @@
 	var prot = CHeaderFooterEditor.prototype;
 	prot["click"] 	= prot.click;
 	prot["destroy"] = prot.destroy;
+	prot["setFontName"] = prot.setFontName;
+	prot["setFontSize"] = prot.setFontSize;
+	prot["setBold"] = prot.setBold;
+	prot["setItalic"] = prot.setItalic;
+	prot["setUnderline"] = prot.setUnderline;
+	prot["setStrikeout"] = prot.setStrikeout;
+	prot["setSubscript"] = prot.setSubscript;
+	prot["setTextColor"] = prot.setTextColor;
+	prot["addField"] = prot.addField;
 
 })(window);
