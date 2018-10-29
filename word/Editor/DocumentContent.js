@@ -2712,12 +2712,10 @@ CDocumentContent.prototype.AddInlineTable = function(Cols, Rows)
 			NewTable.Set_ParagraphPrOnAdd(Item);
 
 			// Проверим позицию в текущем параграфе
-			if (true === Item.IsCursorAtEnd())
+			if (true === Item.IsCursorAtBegin())
 			{
-				// Выставляем курсор в начало таблицы
-				NewTable.MoveCursorToStartPos();
-				this.Internal_Content_Add(this.CurPos.ContentPos + 1, NewTable);
-				this.CurPos.ContentPos++;
+				NewTable.MoveCursorToStartPos(false);
+				this.Internal_Content_Add(this.CurPos.ContentPos, NewTable);
 			}
 			else
 			{

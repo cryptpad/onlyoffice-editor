@@ -13557,14 +13557,10 @@ CDocument.prototype.controller_AddInlineTable = function(Cols, Rows)
 		var NewTable = new CTable(this.DrawingDocument, this, true, Rows, Cols, Grid);
 		NewTable.Set_ParagraphPrOnAdd(Item);
 
-		// Проверим позицию в текущем параграфе
-		if (true === Item.IsCursorAtEnd() && undefined === Item.Get_SectionPr())
+		if (true === Item.IsCursorAtBegin() && undefined === Item.Get_SectionPr())
 		{
-			// Выставляем курсор в начало таблицы
 			NewTable.MoveCursorToStartPos(false);
-			this.Internal_Content_Add(this.CurPos.ContentPos + 1, NewTable);
-
-			this.CurPos.ContentPos++;
+			this.Internal_Content_Add(this.CurPos.ContentPos, NewTable);
 		}
 		else
 		{
