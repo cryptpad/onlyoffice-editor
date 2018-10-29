@@ -15407,6 +15407,16 @@
 	};
 
 
+		/*EvenFooter: 4,
+		EvenHeader: 5,
+		FirstFooter: 6,
+		FirstHeader: 7,
+		OddFooter: 8,
+		OddHeader: 9*/
+	function CHeaderFooterEditController(type) {
+
+	}
+
 	function CHeaderFooterEditorField(id, portion, width) {
 		this.id = id;
 		this.portion = portion;
@@ -15421,7 +15431,7 @@
 	CHeaderFooterEditorField.prototype.getFragments = function () {
 		return this.fragments;
 	};
-	CHeaderFooterEditorField.prototype.drawText = function (cellEditor) {
+	CHeaderFooterEditorField.prototype.drawText = function () {
 		if(!this.fragments) {
 			//возможно стоит очищать канву в данном случае
 			return;
@@ -15435,7 +15445,6 @@
 			curElem.appendChild(this.canvas);
 		}
 		this.canvas.width = this.width;
-		this.canvas.height = cellEditor.canvas.height;
 
 
 		//draw
@@ -15449,14 +15458,15 @@
 
 		if(!this.drawingCtx) {
 			this.drawingCtx = new asc.DrawingContext({
-				canvas: t.canvas, units: 0/*px*/, fmgrGraphics: cellEditor.fmgrGraphics, font: cellEditor.m_oFont
+				canvas: t.canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont
 			});
 		}
 
-		var cellEditorWidth = cellEditor._getContentWidth();
+		var cellEditorWidth = this.width - 2 * wb.defaults.worksheetView.cells.padding + 1;
 		ws.stringRender.setString(this.fragments, cellFlags);
 
 		var textMetrics = ws.stringRender._measureChars(cellEditorWidth);
+		this.canvas.height = textMetrics.height > 150 ? textMetrics.height : 150;
 		ws.stringRender.render(this.drawingCtx, wb.defaults.worksheetView.cells.padding, 0, cellEditorWidth, ws.settings.activeCellBorderColor);
 	};
 	CHeaderFooterEditorField.prototype.getElem = function () {
@@ -15563,18 +15573,9 @@
 		}
 
 		//DRAW AFTER OPEN MENU
-		//TODO создаю здесь cellEditor для того, чтобы отрисовать поля. возможно стоит избавиться от использования cellEditor в drawText
-		var wb = this.wb;
-		var fieldElem = this.leftField.getElem();
-		this.cellEditor = new AscCommonExcel.CellEditor(fieldElem, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
-			font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
-
-		//временно меняем cellEditor у wb
-		this.wbCellEditor = wb.cellEditor;
-		wb.cellEditor = this.cellEditor;
-		this.leftField.drawText(this.cellEditor);
-		this.centerField.drawText(this.cellEditor);
-		this.rightField.drawText(this.cellEditor);
+		this.leftField.drawText();
+		this.centerField.drawText();
+		this.rightField.drawText();
 	};
 
 	CHeaderFooterEditor.prototype.getFieldById = function (id) {
@@ -15697,7 +15698,7 @@
 
 	CHeaderFooterEditor.prototype.destroy = function (bSave) {
 		if(bSave /*&& bChanged*/) {
-			
+
 		}
 
 		//возвращаем cellEditor у wb
