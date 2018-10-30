@@ -5916,18 +5916,26 @@ CTable.prototype.MoveCursorLeft = function(AddToSelect, Word)
 				{
 					if (0 != this.CurCell.Index)
 					{
-						this.CurCell = this.Internal_Get_StartMergedCell2(this.CurCell.Index - 1, this.Selection.CurRow);
+						var oStartMergedCell = this.GetStartMergedCell(this.CurCell.Index - 1, this.Selection.CurRow);
+
+						if (oStartMergedCell)
+							this.CurCell = oStartMergedCell;
 					}
 					else //if ( 0 != this.CurCell.Row.Index  )
 					{
 						this.Selection.CurRow = Math.max(this.Selection.CurRow - 1, 0);
-						this.CurCell          = this.Internal_Get_StartMergedCell2(this.Content[this.Selection.CurRow].Get_CellsCount() - 1, this.Selection.CurRow);
+
+						var oStartMergedCell = this.GetStartMergedCell(this.Content[this.Selection.CurRow].Get_CellsCount() - 1, this.Selection.CurRow);
+						if (oStartMergedCell)
+							this.CurCell = oStartMergedCell;
 					}
 
 					this.CurCell.Content.MoveCursorToEndPos();
 				}
 				else
+				{
 					return false;
+				}
 			}
 			else
 			{
@@ -6068,12 +6076,17 @@ CTable.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 				{
 					if (this.Content[this.CurCell.Row.Index].Get_CellsCount() - 1 > this.CurCell.Index)
 					{
-						this.CurCell = this.Internal_Get_StartMergedCell2(this.CurCell.Index + 1, this.Selection.CurRow);
+						var oStartMergedCell = this.GetStartMergedCell(this.CurCell.Index + 1, this.Selection.CurRow);
+						if (oStartMergedCell)
+							this.CurCell = oStartMergedCell;
 					}
 					else //if ( this.Content.length - 1 > this.CurCell.Row.Index  )
 					{
 						this.Selection.CurRow = Math.min(this.Content.length - 1, this.Selection.CurRow + 1);
-						this.CurCell          = this.Internal_Get_StartMergedCell2(0, this.Selection.CurRow);
+
+						var oStartMergedCell = this.GetStartMergedCell(0, this.Selection.CurRow);
+						if (oStartMergedCell)
+							this.CurCell = oStartMergedCell;
 					}
 
 					this.CurCell.Content.MoveCursorToStartPos();
@@ -6308,6 +6321,13 @@ CTable.prototype.MoveCursorUp = function(AddToSelect)
 					{
 						Cell         = PrevRow.Get_Cell(CurCell);
 						var CellInfo = PrevRow.Get_CellInfo(CurCell);
+
+						if (!CellInfo)
+						{
+							Cell = null;
+							break;
+						}
+
 						if (X <= CellInfo.X_grid_end)
 							break;
 					}
@@ -6315,7 +6335,10 @@ CTable.prototype.MoveCursorUp = function(AddToSelect)
 					if (null === Cell)
 						return true;
 
-					Cell = this.Internal_Get_StartMergedCell2(Cell.Index, Cell.Row.Index);
+					Cell = this.GetStartMergedCell(Cell.Index, Cell.Row.Index);
+					if (!Cell)
+						return true;
+
 					Cell.Content_MoveCursorUpToLastRow(X, Y, false);
 					this.CurCell              = Cell;
 					this.Selection.EndPos.Pos = {Cell : Cell.Index, Row : Cell.Row.Index};
@@ -6614,13 +6637,25 @@ CTable.prototype.MoveCursorUpToLastRow = function(X, Y, AddToSelect)
 		{
 			Cell         = Row.Get_Cell(CurCell);
 			var CellInfo = Row.Get_CellInfo(CurCell);
+
+			if (!CellInfo)
+			{
+				Cell = null;
+				break;
+			}
+
 			if (X <= CellInfo.X_grid_end)
 				break;
 		}
 
-		if (null === Cell)
+		if (!Cell)
 			return;
-		Cell = this.Internal_Get_StartMergedCell2(Cell.Index, Cell.Row.Index);
+
+		Cell = this.GetStartMergedCell(Cell.Index, Cell.Row.Index);
+
+		if (!Cell)
+			return;
+
 		Cell.Content_MoveCursorUpToLastRow(X, Y, false);
 		this.Selection.CurRow = Cell.Row.Index;
 
@@ -6920,8 +6955,9 @@ CTable.prototype.GetSelectedContent = function(SelectedContent)
 					// началось и проверяем была ли она выделена (эту ячейку мы уже проверяли, т.к. она находится
 					// выше).
 
-					var StartMergedCell = this.Internal_Get_StartMergedCell2(CurCell, CurRow);
-					bSelected           = RowsInfoArray[StartMergedCell.Row.Index].CellsInfoArray[StartMergedCell.Index + 1].Selected;
+					var StartMergedCell = this.GetStartMergedCell(CurCell, CurRow);
+					if (StartMergedCell)
+						bSelected = RowsInfoArray[StartMergedCell.Row.Index].CellsInfoArray[StartMergedCell.Index + 1].Selected;
 				}
 
 				if (false === bSelected)
@@ -11017,19 +11053,23 @@ CTable.prototype.private_GetCellsPosArrayByCellsArray = function(CellsArray)
 };
 /**
  * Получаем левую верхнюю ячейку в текущем объединении
- * @returns {CTableCell}
+ * @param {number} nCellIndex
+ * @param {number} nRowIndex
+ * @returns {?CTableCell}
  */
 CTable.prototype.GetStartMergedCell = function(nCellIndex, nRowIndex)
 {
-	return this.Internal_Get_StartMergedCell2(nCellIndex, nRowIndex);
-};
-CTable.prototype.Internal_Get_StartMergedCell2 = function(CellIndex, RowIndex)
-{
-	var Row      = this.Content[RowIndex];
-	var Cell     = Row.Get_Cell(CellIndex);
-	var CellInfo = Row.Get_CellInfo(CellIndex);
+	var oRow = this.GetRow(nRowIndex);
+	if (!oRow)
+		return null;
 
-	return this.Internal_Get_StartMergedCell(RowIndex, CellInfo.StartGridCol, Cell.Get_GridSpan());
+	var oCell     = oRow.GetCell(nCellIndex);
+	var oCellInfo = oRow.GetCellInfo(nCellIndex);
+
+	if (!oCell || !oCellInfo)
+		return null;
+
+	return this.Internal_Get_StartMergedCell(nRowIndex, oCellInfo.StartGridCol, oCell.GetGridSpan());
 };
 /**
  * Получаем количество ячеек (=количество строк) попавших в вертикальное объединения, начиная с заданной ячейки внизю

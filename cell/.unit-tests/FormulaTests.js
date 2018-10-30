@@ -2449,6 +2449,29 @@ $( function () {
 		testArrayFormula2("ROUNDUP", 2, 2)
     } );
 
+	test( "Test: \"ROUNDUP\"", function () {
+		oParser = new parserFormula( "ROUNDUP(2.1123,4)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(4) - 0, 2.1123 );
+
+		oParser = new parserFormula( "ROUNDUP(2,4)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( "ROUNDUP(2,0)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( "ROUNDUP(2.1123,-1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 10 );
+
+		oParser = new parserFormula( "ROUNDUP(2.1123,0)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 3 );
+	} );
+
+
     test( "Test: \"ROUNDDOWN(31415.92654,-2)\"", function () {
         oParser = new parserFormula( "ROUNDDOWN(31415.92654,-2)", "A1", ws );
         ok( oParser.parse() );
