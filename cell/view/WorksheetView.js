@@ -15490,23 +15490,12 @@
 		return textField;
 	}
 
-
-	//если не будем переключаться в одном окне между header/footer можно сделать отдельную костанту
-	var c_nPageHFType = {
-		firstHeader: 0,
-		oddHeader: 1,
-		evenHeader: 2,
-		firstFooter: 3,
-		oddFooter: 4,
-		evenFooter: 5
-	};
-
 	window.Asc.g_header_footer_editor = null;
 	function CHeaderFooterEditor(idLeft, idCenter, idRight, width, pageHFType) {
 		window.Asc.g_header_footer_editor = this;
 
 		this.parentWidth = width;
-		this.pageHFType = undefined === pageHFType ? c_nPageHFType.oddHeader : pageHFType;
+		this.pageHFType = undefined === pageHFType ? asc.c_oAscPageHFType.oddHeader : pageHFType;
 		this.canvas = [];
 		this.sections = [];
 
