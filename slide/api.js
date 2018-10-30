@@ -1776,6 +1776,11 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_ShowSpecialPasteButton = function(props)
 	{
+		if (window["NATIVE_EDITOR_ENJINE"])
+		{
+			return;
+		}
+
 		var presentation = editor.WordControl.m_oLogicDocument;
 		var drawingDocument = presentation.DrawingDocument;
 		var notesFocus = presentation.IsFocusOnNotes();
@@ -1827,11 +1832,19 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_HideSpecialPasteButton = function()
 	{
+		if (window["NATIVE_EDITOR_ENJINE"])
+		{
+			return;
+		}
 		this.sendEvent("asc_onHideSpecialPasteOptions");
 	};
 
 	asc_docs_api.prototype.asc_UpdateSpecialPasteButton = function()
 	{
+		if (window["NATIVE_EDITOR_ENJINE"])
+		{
+			return;
+		}
 		var props = AscCommon.g_specialPasteHelper.buttonInfo;
 		var presentation = editor.WordControl.m_oLogicDocument;
 		var drawingDocument = presentation.DrawingDocument;
