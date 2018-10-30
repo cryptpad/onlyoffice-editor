@@ -444,7 +444,6 @@ CDrawingDocument.prototype.ClearCachePages = function()
 CDrawingDocument.prototype.FirePaint = function()
 {
     this.Native["DD_FirePaint"]();
-	this.UpdateThumbnailsAttack();
 };
 
 

@@ -1408,9 +1408,18 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 21001: // ASC_COAUTH_EVENT_TYPE_LOAD_URL_IMAGE
         {
-            this.WordControl.m_oDrawingDocument.ClearCachePages();
-            this.WordControl.m_oDrawingDocument.FirePaint();
-
+            if(this.RedrawTimer != null){
+                clearTimeout(this.RedrawTimer);
+            }
+            var oThis = this;
+            this.RedrawTimer = setTimeout(function(){
+                oThis.WordControl.m_oDrawingDocument.ClearCachePages();
+                oThis.WordControl.m_oDrawingDocument.FirePaint();
+                oThis.WordControl.m_oDrawingDocument.UpdateThumbnailsAttack();
+                oThis.WordControl.m_oDrawingDocument.CheckThemes();
+                oThis.WordControl.CheckLayouts(true);
+                oThis.RedrawTimer = null;
+            }, 1000);
             break;
         }
 
