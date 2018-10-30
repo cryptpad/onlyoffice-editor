@@ -7057,7 +7057,10 @@ function BinaryPPTYLoader()
         var ln = this.ReadLn();
 
         var border = new CDocumentBorder();
-        border.Unifill = ln.Fill;
+        if(ln.Fill)
+        {
+            border.Unifill = ln.Fill;
+        }
         border.Size = (ln.w == null) ? 12700 : ((ln.w) >> 0);
         border.Size /= 36000;
 

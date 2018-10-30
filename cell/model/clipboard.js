@@ -1662,8 +1662,8 @@
 					var cellsTop = worksheet.cellsTop;
 
 					var cursorPos = isIntoShape.GetCursorPosXY();
-					var offsetX = worksheet.cols[worksheet.visibleRange.c1].left - cellsLeft;
-					var offsetY = worksheet.rows[worksheet.visibleRange.r1].top - cellsTop;
+					var offsetX = worksheet._getColLeft(worksheet.visibleRange.c1) - cellsLeft;
+					var offsetY = worksheet._getRowTop(worksheet.visibleRange.r1) - cellsTop;
 					var posX = curShape.transformText.TransformPointX(cursorPos.X, cursorPos.Y) * mmToPx - offsetX + cellsLeft;
 					var posY = curShape.transformText.TransformPointY(cursorPos.X, cursorPos.Y) * mmToPx - offsetY + cellsTop;
 					var position = {x: posX, y: posY};
@@ -1789,16 +1789,15 @@
                             bInsertMath = true;
                         }
                     }
-                    if(!bInsertMath){
-                        paragraph.Check_NearestPos(NearPos);
-                        target_doc_content.Insert_Content(selectedContent, NearPos);
-                    }
-					
-					worksheet.objectRender.controller.cursorMoveRight(false, false);
-					
+                    if(!bInsertMath) {
+						paragraph.Check_NearestPos(NearPos);
+						target_doc_content.Insert_Content(selectedContent, NearPos);
+					}
 					var oTargetTextObject = AscFormat.getTargetTextObject(worksheet.objectRender.controller);
 					oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
 					worksheet.objectRender.controller.startRecalculate();
+					worksheet.objectRender.controller.cursorMoveRight(false, false);
+
 				}
 			},
 			
@@ -1922,18 +1921,8 @@
 						activeCol = isIntoShape.Parent.parent.drawingBase.from.col;
 					}
 					
-					//TODO пересмотреть вставку графических объектов. возможно, не стоит привязываться к положению активной ячейки.
-					if(!ws.cols[activeCol])
-					{
-						ws.expandColsOnScroll(true);
-					}
-					if(!ws.rows[activeCol])
-					{
-						ws.expandRowsOnScroll(true);
-					}
-					
-					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws.getCellLeft(activeCol, 0) - ws.getCellLeft(0, 0), 0, 3);
-					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws.getCellTop(activeRow, 0)  - ws.getCellTop(0, 0), 0, 3);
+					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws._getColLeft(activeCol) - ws._getColLeft(0), 0, 3);
+					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(activeRow) - ws._getRowTop(0), 0, 3);
 
 					drawingObject = ws.objectRender.cloneDrawingObject(drawingObject);
 					drawingObject.graphicObject.setDrawingBase(drawingObject);
@@ -2111,8 +2100,8 @@
 					AscFormat.CheckSpPrXfrm(drawingObject.graphicObject);
 					xfrm = drawingObject.graphicObject.spPr.xfrm;
 
-					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws.getCellLeft(addImagesFromWord[i].col + activeRange.c1) - ws.getCellLeft(0, 0), 0, 3);
-					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws.getCellTop(addImagesFromWord[i].row + activeRange.r1) - ws.getCellTop(0, 0), 0, 3);
+					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws._getColLeft(addImagesFromWord[i].col + activeRange.c1) - ws._getColLeft(0), 0, 3);
+					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(addImagesFromWord[i].row + activeRange.r1) - ws._getRowTop(0), 0, 3);
 					
 					xfrm.setOffX(curCol);
 					xfrm.setOffY(curRow);

@@ -435,4 +435,22 @@ CChartSpace.prototype.recalculateLocalTransform = CShape.prototype.recalculateLo
 
 CChartSpace.prototype.Get_Theme = CShape.prototype.Get_Theme;
 CChartSpace.prototype.Get_ColorMap = CShape.prototype.Get_ColorMap;
+
+    CChartSpace.prototype.Clear_ContentChanges = function(){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Clear();
+        }
+    };
+
+    CChartSpace.prototype.Add_ContentChanges = function(Changes){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Add( Changes );
+        }
+    };
+
+    CChartSpace.prototype.Refresh_ContentChanges = function(){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Refresh();
+        }
+    };
 })(window);

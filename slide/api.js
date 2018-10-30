@@ -2007,7 +2007,7 @@ background-repeat: no-repeat;\
 		_logicDoc.Remove(1, true, true);
 	};
 
-	asc_docs_api.prototype._onSaveCallbackInner = function(isUndoRequest)
+	asc_docs_api.prototype._onSaveCallbackInner = function()
 	{
 		var t = this;
 		if (c_oAscCollaborativeMarksShowType.LastChanges === this.CollaborativeMarksShowType)
@@ -2055,10 +2055,11 @@ background-repeat: no-repeat;\
 		}
 
 		// Пересылаем свои изменения
-		if (isUndoRequest)
+		if (this.forceSaveUndoRequest)
 		{
 			AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 			AscCommon.CollaborativeEditing.Undo();
+			this.forceSaveUndoRequest = false;
 		}
 		else
 		{
@@ -5488,9 +5489,9 @@ background-repeat: no-repeat;\
     //-----------------------------------------------------------------
     // Функции для работы с орфографией
     //-----------------------------------------------------------------
-    asc_docs_api.prototype.sync_SpellCheckCallback = function(Word, Checked, Variants, ParaId, ElemId)
+    asc_docs_api.prototype.sync_SpellCheckCallback = function(Word, Checked, Variants, ParaId, Element)
     {
-        this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.SpellCheck, new AscCommon.asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, ElemId));
+        this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.SpellCheck, new AscCommon.asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, Element));
     };
 
     asc_docs_api.prototype.sync_SpellCheckVariantsFound = function()
@@ -5510,12 +5511,11 @@ background-repeat: no-repeat;\
         if (false === bAll)
         {
             var ParaId = SpellCheckProperty.ParaId;
-            var ElemId = SpellCheckProperty.ElemId;
 
             var Paragraph = g_oTableId.Get_ById(ParaId);
             if (null != Paragraph)
             {
-                Paragraph.Ignore_MisspelledWord(ElemId);
+                Paragraph.IgnoreMisspelledWord(SpellCheckProperty.Element);
             }
         }
         else
@@ -6631,7 +6631,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._onNeedParams  = function(data, opt_isPassword)
 	{
 		if (opt_isPassword) {
-			this.sendEvent("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), c_oAscAdvancedOptionsAction.Open);
+			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
+				this.sendEvent("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), c_oAscAdvancedOptionsAction.Open);
+			} else {
+				this.sendEvent("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
+			}
 		}
 	};
 
@@ -6727,6 +6731,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype._downloadAs = function(filetype, actionType, options)
 	{
+		var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
 		var t = this;
 		if (!options)
 		{
@@ -6736,7 +6741,7 @@ background-repeat: no-repeat;\
 		{
 			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
 		}
-		var isNoBase64 = typeof ArrayBuffer !== 'undefined';
+		var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
 
 		var dataContainer               = {data : null, part : null, index : 0, count : 0};
 		var command                     = "save";
@@ -6760,6 +6765,13 @@ background-repeat: no-repeat;\
 		}
 		else
 			dataContainer.data = this.WordControl.SaveDocument(isNoBase64);
+
+        if (isCloudCrypto)
+        {
+        	window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, filetype);
+            return;
+        }
+
 		var fCallback     = function(input)
 		{
 			var error = c_oAscError.ID.Unknown;
@@ -7158,11 +7170,6 @@ background-repeat: no-repeat;\
 		//TODO переделать и отдавать дефолтовый шрифт
 		var defaultSize = 11;
 		return defaultSize;
-	};
-
-	window["AscDesktopEditor_Save"] = function()
-	{
-		return editor.asc_Save(false);
 	};
 
 	//-------------------------------------------------------------export---------------------------------------------------

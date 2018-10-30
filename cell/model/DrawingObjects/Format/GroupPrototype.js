@@ -253,4 +253,22 @@ CGroupShape.prototype.recalculate = function()
         }
     }, this, []);
 };
+
+    CGroupShape.prototype.Clear_ContentChanges = function(){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Clear();
+        }
+    };
+
+    CGroupShape.prototype.Add_ContentChanges = function(Changes){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Add( Changes );
+        }
+    };
+
+    CGroupShape.prototype.Refresh_ContentChanges = function(){
+        if(this.worksheet && this.worksheet.contentChanges){
+            this.worksheet.contentChanges.Refresh();
+        }
+    };
 })(window);

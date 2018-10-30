@@ -160,7 +160,9 @@ module.exports = function(grunt) {
 		var tmp_sdk_path = sdkDstFolder + '/sdk-js-tmp.js';
 		var sdkAllMinDst = sdkDstFolder + '/sdk-all-min.js';
 		var sdkAllDst = sdkDstFolder + '/sdk-all.js';
-		var sdkAllCache = sdkDstFolder + '/*.cache'
+		var sdkAllCache = sdkDstFolder + '/*.cache';
+		const appCopyright = "Copyright (C) Ascensio System SIA 2012-" + grunt.template.today('yyyy') +". All rights reserved";
+		const publisherUrl = "https://www.onlyoffice.com/";
 		var sdkOpt = {
 			jscomp_off: 'checkVars',
 			compilation_level: level,
@@ -222,6 +224,8 @@ module.exports = function(grunt) {
 						patterns: [
 							{
 								json: {
+									AppCopyright: process.env['APP_COPYRIGHT'] || appCopyright,
+									PublisherUrl: process.env['PUBLISHER_URL'] || publisherUrl,
 									Version: process.env['PRODUCT_VERSION'] || '0.0.0',
 									Build: process.env['BUILD_NUMBER'] || '0'
 								}

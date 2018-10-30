@@ -3357,14 +3357,14 @@
 
 
 	/** @constructor */
-    function asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, ElemId)
+    function asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, Element)
     {
         this.Word     = Word;
         this.Checked  = Checked;
         this.Variants = Variants;
 
-        this.ParaId = ParaId;
-        this.ElemId = ElemId;
+        this.ParaId  = ParaId;
+        this.Element = Element;
     }
 
     asc_CSpellCheckProperty.prototype.get_Word     = function()

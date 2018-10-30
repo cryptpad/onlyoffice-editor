@@ -793,6 +793,14 @@ function SetXfrmFromMetrics(oDrawing, metrics)
         this.signer2 =  AscFormat.readString(reader);
         this.email =  AscFormat.readString(reader);
     };
+    CSignatureLine.prototype.copy = function(){
+        var ret = new CSignatureLine();
+        ret.id =  this.id;
+        ret.signer = this.signer;
+        ret.signer2 = this.signer2;
+        ret.email = this.email;
+        return ret;
+    };
 
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ShapeSetBodyPr] = AscFormat.CBodyPr;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ShapeSetSignature] = CSignatureLine;
@@ -2513,6 +2521,9 @@ CShape.prototype.fillObject = function(copy){
     }
     if (this.textBoxContent) {
         copy.setTextBoxContent(this.textBoxContent.Copy(copy));
+    }
+    if(this.signatureLine && copy.setSignature){
+        copy.setSignature(this.signatureLine.copy());
     }
     copy.setWordShape(this.bWordShape);
     copy.setBDeleted(this.bDeleted);

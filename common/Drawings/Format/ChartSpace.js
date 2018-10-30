@@ -2556,12 +2556,14 @@ CChartSpace.prototype.rebuildSeriesFromAsc = function(asc_chart)
 
         var oFirstSpPrPreset = 0;
         if(chart_type.getObjectType() === AscDFH.historyitem_type_PieChart || chart_type.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-            if(chart_type.series[0].dPt[0] && chart_type.series[0].dPt[0].spPr){
+            if(chart_type.series[0] && chart_type.series[0].dPt[0] && chart_type.series[0].dPt[0].spPr){
                 oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(chart_type.series[0].dPt[0].spPr);
             }
         }
         else{
-            oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(chart_type.series[0].spPr);
+            if(chart_type.series[0]){
+                oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(chart_type.series[0].spPr);
+            }
         }
 
         if(first_series.spPr){
@@ -4109,49 +4111,56 @@ CChartSpace.prototype.recalculateReferences = function()
     }
 };
 
-CChartSpace.prototype.checkEmptySeries = function()
-{
-    for(var t = 0; t < this.chart.plotArea.charts.length; ++t){
-        var chart_type = this.chart.plotArea.charts[t];
-        var series = this.getAllSeries();
-        var checkEmptyVal = function(val)
+    CChartSpace.prototype.checkEmptyVal = function(val)
+    {
+        if(val.numRef)
         {
-            if(val.numRef)
-            {
-                if(!val.numRef.numCache)
-                    return true;
-                if(val.numRef.numCache.pts.length === 0)
-                    return true;
-            }
-            else if(val.numLit)
-            {
-                if(val.numLit.pts.length === 0)
-                    return true;
-            }
-            else
-            {
+            if(!val.numRef.numCache)
                 return true;
-            }
-            return false;
-        };
-        var nChartType = chart_type.getObjectType();
-        var nSeriesLength = (nChartType === AscDFH.historyitem_type_PieChart || nChartType === AscDFH.historyitem_type_DoughnutChart) && this.chart.plotArea.charts.length === 1 ? Math.min(1, series.length) : series.length;
-        for(var i = 0; i < nSeriesLength; ++i)
+            if(val.numRef.numCache.pts.length === 0)
+                return true;
+        }
+        else if(val.numLit)
         {
+            if(val.numLit.pts.length === 0)
+                return true;
+        }
+        else
+        {
+            return true;
+        }
+        return false;
+    };
+
+    CChartSpace.prototype.isEmptySeries = function(series, nSeriesLength){
+        for(var i = 0; i < series.length && i < nSeriesLength; ++i){
             var ser = series[i];
             if(ser.val)
             {
-                if(!checkEmptyVal(ser.val))
+                if(!this.checkEmptyVal(ser.val))
                     return false;
             }
             if(ser.yVal)
             {
-                if(!checkEmptyVal(ser.yVal))
+                if(!this.checkEmptyVal(ser.yVal))
                     return false;
             }
         }
+        return true;
+    };
+
+CChartSpace.prototype.checkEmptySeries = function()
+{
+    for(var t = 0; t < this.chart.plotArea.charts.length; ++t){
+        var chart_type = this.chart.plotArea.charts[t];
+        var series = chart_type.series;
+        var nChartType = chart_type.getObjectType();
+        var nSeriesLength = (nChartType === AscDFH.historyitem_type_PieChart || nChartType === AscDFH.historyitem_type_DoughnutChart) && this.chart.plotArea.charts.length === 1 ? Math.min(1, series.length) : series.length;
+        if(this.isEmptySeries(series, nSeriesLength)){
+            return true;
+        }
     }
-    return true;
+    return t < 1;
 };
 
 CChartSpace.prototype.getNeedReflect = function()
@@ -12222,6 +12231,9 @@ CChartSpace.prototype.recalculateMarkers = function()
                 var RGBA = {R:0, G:0, B:0, A: 255};
                 if(oCurChart.varyColors && (oCurChart.series.length === 1 || oCurChart.getObjectType() === AscDFH.historyitem_type_PieChart || oCurChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart))
                 {
+                    if(oCurChart.series.length < 1){
+                        return;
+                    }
                     var ser = oCurChart.series[0], pts;
                     if(ser.marker && ser.marker.symbol === AscFormat.SYMBOL_NONE && (!Array.isArray(ser.dPt) || ser.dPt.length === 0))
                         return;

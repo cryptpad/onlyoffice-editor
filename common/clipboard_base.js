@@ -270,7 +270,14 @@
                                 }
                             };
 
-                            reader.readAsDataURL(blob);
+                            try
+							{
+                                reader.readAsDataURL(blob);
+                            }
+                            catch(err)
+							{
+                                g_clipboardBase.PasteImagesCounter++;
+							}
                         }
                         else
                         {

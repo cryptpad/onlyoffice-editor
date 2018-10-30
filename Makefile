@@ -10,13 +10,21 @@ PRODUCT_NAME ?= documentserver
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
 
+PUBLISHER_NAME ?= Ascensio System SIA
+
+APP_COPYRIGHT ?= Copyright (C) $(subst ",\",$(PUBLISHER_NAME)) 2012-$(shell date +%Y). All rights reserved
+
+PUBLISHER_URL ?= https://www.onlyoffice.com/
+
 GRUNT_ENV += PRODUCT_VERSION=$(PRODUCT_VERSION)
 GRUNT_ENV += BUILD_NUMBER=$(BUILD_NUMBER)
+GRUNT_ENV += APP_COPYRIGHT="$(APP_COPYRIGHT)"
+GRUNT_ENV += PUBLISHER_URL="$(PUBLISHER_URL)"
 
-WEBAPPS_DIR = web-apps
+WEBAPPS_DIR ?= web-apps
 
 ifeq ($(PRODUCT_NAME),$(filter $(PRODUCT_NAME),documentserver-de documentserver-ie))
-WEBAPPS_DIR = web-apps-pro
+WEBAPPS_DIR := web-apps-pro
 endif
 
 WEBAPPS = $(OUTPUT)/$(WEBAPPS_DIR)

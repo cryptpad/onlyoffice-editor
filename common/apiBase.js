@@ -153,6 +153,7 @@
         this.forceSaveButtonContinue = false;
         this.forceSaveTimeoutTimeout = null;
 		this.disconnectOnSave = null;
+		this.forceSaveUndoRequest = false; // Флаг нужен, чтобы мы знали, что данное сохранение пришло по запросу Undo в совместке
 
 		// Version History
 		this.VersionHistory = null;				// Объект, который отвечает за точку в списке версий
@@ -220,6 +221,8 @@
 
 			t._onEndLoadSdk();
 			t.onEndLoadDocInfo();
+		}, function(err) {
+			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
 		});
 
 		var oldOnError = window.onerror;
@@ -304,6 +307,7 @@
 		if (AscCommon.chartMode === this.documentUrl)
 		{
 			this.isChartEditor = true;
+            AscCommon.EncryptionWorker.isChartEditor = true;
 			this.DocInfo.put_OfflineApp(true);
 		}
 		else if (AscCommon.offlineMode === this.documentUrl)
@@ -316,7 +320,7 @@
 			window["AscDesktopEditor"]["SetDocumentName"](this.documentTitle);
 		}
 
-        if (undefined !== window["AscDesktopEditor"] && undefined !== window["AscDesktopEditor"]["CryptoMode"])
+        if (!this.isChartEditor && undefined !== window["AscDesktopEditor"] && undefined !== window["AscDesktopEditor"]["CryptoMode"])
         {
             this.DocInfo.put_Encrypted(0 < window["AscDesktopEditor"]["CryptoMode"]);
         }
@@ -601,7 +605,7 @@
 	baseEditorsApi.prototype._haveOtherChanges = function () {
 		return false;
 	};
-	baseEditorsApi.prototype._onSaveCallback = function (e, isUndoRequest) {
+	baseEditorsApi.prototype._onSaveCallback = function (e) {
 		var t = this;
 		var nState;
 		if (false == e["saveLock"]) {
@@ -630,7 +634,7 @@
 			this.canStartCoAuthoring = false;
 			this.canUnlockDocument = false;
 
-			this._onSaveCallbackInner(isUndoRequest);
+			this._onSaveCallbackInner();
 		} else {
 			nState = this.CoAuthoringApi.get_state();
 			if (AscCommon.ConnectionState.ClosedCoAuth === nState || AscCommon.ConnectionState.ClosedAll === nState) {
@@ -649,14 +653,14 @@
 
 				setTimeout(function() {
 					t.CoAuthoringApi.askSaveChanges(function(event) {
-						t._onSaveCallback(event, isUndoRequest);
+						t._onSaveCallback(event);
 					});
 				}, 1000);
 			}
 		}
 	};
 	// Функция сохранения. Переопределяется во всех редакторах
-	baseEditorsApi.prototype._onSaveCallbackInner = function (isUndoRequest) {
+	baseEditorsApi.prototype._onSaveCallbackInner = function () {
 	};
 	baseEditorsApi.prototype._autoSave = function () {
 		if (this.canSave && !this.isViewMode && (this.canUnlockDocument || 0 !== this.autoSaveGap)) {
@@ -664,7 +668,7 @@
 				this.lastSaveTime = new Date();
 				// Check edit mode after unlock document http://bugzilla.onlyoffice.com/show_bug.cgi?id=35971
 				// Close cell edit without errors (isIdle = true)
-				this.asc_Save(true, false, true);
+				this.asc_Save(true, true);
 			} else {
 				this._autoSaveInner();
 			}
@@ -843,7 +847,7 @@
 				extendSession = false;
 			}
 			if (!extendSession) {
-				if (t.asc_Save(false, false, true)) {
+				if (t.asc_Save(false, true)) {
 					//enter view mode because save async
 					t.setViewModeDisconnect();
 					t.disconnectOnSave = {code: code, reason: reason};
@@ -951,6 +955,14 @@
 			}
 		};
 		this.CoAuthoringApi.onDocumentOpen = function (inputWrap) {
+			if (AscCommon.EncryptionWorker.isNeedCrypt())
+			{
+                if (t.fCurCallback) {
+                	t.fCurCallback(inputWrap ? inputWrap["data"] : undefined);
+                	t.fCurCallback = null;
+                }
+				return;
+			}
 			if (inputWrap["data"]) {
 				var input = inputWrap["data"];
 				switch (input["type"]) {
@@ -1272,20 +1284,21 @@
 	baseEditorsApi.prototype.asc_undoAllChanges = function()
 	{
 	};
-	baseEditorsApi.prototype.asc_Save = function (isAutoSave, isUndoRequest, isIdle) {
+	baseEditorsApi.prototype.asc_Save = function (isAutoSave, isIdle) {
 		var t = this;
 		var res = false;
 		if (this.canSave && this._saveCheck()) {
 			this.IsUserSave = !isAutoSave;
 
-			if (this.asc_isDocumentCanSave() || AscCommon.History.Have_Changes() || this._haveOtherChanges() || isUndoRequest ||
-				this.canUnlockDocument) {
+			if (this.asc_isDocumentCanSave() || AscCommon.History.Have_Changes() || this._haveOtherChanges() ||
+				this.canUnlockDocument || this.forceSaveUndoRequest) {
 				if (this._prepareSave(isIdle)) {
 					// Не даем пользователю сохранять, пока не закончится сохранение (если оно началось)
 					this.canSave = false;
 					this.CoAuthoringApi.askSaveChanges(function (e) {
-						t._onSaveCallback(e, isUndoRequest);
+						t._onSaveCallback(e);
 					});
+					res = true;
 				}
 			} else if (this.isForceSaveOnUserSave && this.IsUserSave) {
 				this.forceSave();
@@ -1657,6 +1670,7 @@
                 }
 
                 var _ret = _editor.asc_nativeGetFile3();
+                AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
                 window["AscDesktopEditor"]["buildCryptedStart"](_ret.data, _ret.header, obj["password"], obj["docinfo"] ? obj["docinfo"] : "");
                 break;
             }
@@ -1667,6 +1681,7 @@
                     var _param = ("<m_sPassword>" + AscCommon.CopyPasteCorrectString(obj["password"]) + "</m_sPassword>");
                     _editor.currentPassword = obj["password"];
 
+                    AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
                     window["AscDesktopEditor"]["SetAdvancedOptions"](_param);
                 }
                 else

@@ -1160,6 +1160,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.InitViewer = function()
 	{
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer = new AscCommonWord.CDocMeta();
+        this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.Init();
 		this.WordControl.m_oDrawingDocument.showTarget(false);
 		this.WordControl.HideRulers();
 	};
@@ -2268,7 +2269,7 @@ background-repeat: no-repeat;\
 		}
 	};
 	
-	asc_docs_api.prototype._onSaveCallbackInner = function(isUndoRequest)
+	asc_docs_api.prototype._onSaveCallbackInner = function()
 	{
 		var t = this;
 		History.CheckUnionLastPoints();
@@ -2322,10 +2323,11 @@ background-repeat: no-repeat;\
 			CursorInfo = History.Get_DocumentPositionBinary();
 		}
 
-		if (isUndoRequest)
+		if (this.forceSaveUndoRequest)
 		{
 			AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 			AscCommon.CollaborativeEditing.Undo();
+			this.forceSaveUndoRequest = false;
 		}
 		else
 		{
@@ -5605,9 +5607,9 @@ background-repeat: no-repeat;\
 	//-----------------------------------------------------------------
 	// Функции для работы с орфографией
 	//-----------------------------------------------------------------
-	asc_docs_api.prototype.sync_SpellCheckCallback = function(Word, Checked, Variants, ParaId, ElemId)
+	asc_docs_api.prototype.sync_SpellCheckCallback = function(Word, Checked, Variants, ParaId, Element)
 	{
-		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.SpellCheck, new AscCommon.asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, ElemId));
+		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.SpellCheck, new AscCommon.asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, Element));
 	};
 
 	asc_docs_api.prototype.sync_SpellCheckVariantsFound = function()
@@ -5618,7 +5620,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_replaceMisspelledWord = function(Word, SpellCheckProperty)
 	{
 		var ParaId = SpellCheckProperty.ParaId;
-		var ElemId = SpellCheckProperty.ElemId;
 
 		var Paragraph = g_oTableId.Get_ById(ParaId);
 		if (null != Paragraph && false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_None, {
@@ -5628,7 +5629,7 @@ background-repeat: no-repeat;\
 			}))
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_ReplaceMisspelledWord);
-			Paragraph.Replace_MisspelledWord(Word, ElemId);
+			Paragraph.ReplaceMisspelledWord(Word, SpellCheckProperty.Element);
 			this.WordControl.m_oLogicDocument.Recalculate();
 			Paragraph.Document_SetThisElementCurrent(true);
 		}
@@ -5639,12 +5640,11 @@ background-repeat: no-repeat;\
 		if (false === bAll)
 		{
 			var ParaId = SpellCheckProperty.ParaId;
-			var ElemId = SpellCheckProperty.ElemId;
 
 			var Paragraph = g_oTableId.Get_ById(ParaId);
 			if (null != Paragraph)
 			{
-				Paragraph.Ignore_MisspelledWord(ElemId);
+				Paragraph.IgnoreMisspelledWord(SpellCheckProperty.Element);
 			}
 		}
 		else
@@ -7115,23 +7115,31 @@ background-repeat: no-repeat;\
 		var t = this;
 		var options;
 		if (opt_isPassword) {
-			options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM);
-			t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
-		} else {
-			var cp = {'codepage': AscCommon.c_oAscCodePageUtf8, 'encodings': AscCommon.getEncodingParams()};
-			if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-				AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
-					if (err) {
-						t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-					} else {
-						cp['data'] = data;
-						options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
-						t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
-					}
-				});
-			} else {
-				options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
+			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
+				options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM);
 				t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+			} else {
+				t.sendEvent("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
+			}
+		} else {
+			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
+				var cp = {'codepage': AscCommon.c_oAscCodePageUtf8, 'encodings': AscCommon.getEncodingParams()};
+				if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
+					AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
+						if (err) {
+							t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+						} else {
+							cp['data'] = data;
+							options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
+							t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+						}
+					});
+				} else {
+					options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
+					t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+				}
+			} else {
+				this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.TXT, new Asc.asc_CTXTAdvancedOptions(AscCommon.c_oAscCodePageUtf8));
 			}
 		}
 	};
@@ -7150,6 +7158,10 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype._downloadAs    = function(command, filetype, actionType, options, fCallbackRequest)
 	{
+        var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
+        if (isCloudCrypto)
+            window.isCloudCryptoDownloadAs = true;
+
 		if (this.WordControl && this.WordControl.m_oDrawingDocument && (c_oAscFileType.PDF == filetype || c_oAscFileType.PDFA == filetype))
 		{
 			if (this.WordControl.m_oDrawingDocument.CheckPrint([command, filetype, actionType, options, fCallbackRequest]))
@@ -7167,7 +7179,7 @@ background-repeat: no-repeat;\
 		}
 		// Меняем тип состояния (на сохранение)
 		this.advancedOptionsAction = c_oAscAdvancedOptionsAction.Save;
-		var isNoBase64 = typeof ArrayBuffer !== 'undefined';
+		var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
 		var _fCallbackRequest = fCallbackRequest;
 
 		var dataContainer               = {data : null, part : null, index : 0, count : 0};
@@ -7292,6 +7304,14 @@ background-repeat: no-repeat;\
 				}, fCallback, fCallbackRequest, oAdditionalData, dataContainer);
 			}
 		}
+
+        if (isCloudCrypto)
+        {
+            var sParamXml = ("<m_nCsvTxtEncoding>" + oAdditionalData["codepage"] + "</m_nCsvTxtEncoding>");
+            window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, filetype, sParamXml);
+            return;
+        }
+
 		var fCallback = null;
 		if (!options.isNoCallback)
 		{
@@ -9234,11 +9254,6 @@ background-repeat: no-repeat;\
 		return defaultSize;
 	};
 
-	window["AscDesktopEditor_Save"] = function()
-	{
-		return editor.asc_Save(false);
-	};
-
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
 	CAscSection.prototype['get_PageWidth']                              = CAscSection.prototype.get_PageWidth;
@@ -9866,4 +9881,92 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype['asc_getRepliesCount'] = asc_CCommentDataWord.prototype.asc_getRepliesCount;
 	asc_CCommentDataWord.prototype['asc_getDocumentFlag'] = asc_CCommentDataWord.prototype.asc_getDocumentFlag;
 	asc_CCommentDataWord.prototype['asc_putDocumentFlag'] = asc_CCommentDataWord.prototype.asc_putDocumentFlag;
+
+	AscCommon.setUpAllFonts = function()
+	{
+		var testFontCurrent = 0;
+		var testFontsInterval = 0;
+
+		var _fonts = [];
+		for (var i = 0; i < AscFonts.g_font_infos.length; i++)
+			_fonts.push(new AscFonts.CFont(AscFonts.g_font_infos[i].Name, 0, "", 0, null));
+
+		console.log("start...");
+
+		function logFont(font, name)
+		{
+			var face = font.m_pFace;
+			if (!face.os2 || face.os2.version == 0xFFFF)
+				return;
+
+			var isTypo = ((face.os2.fsSelection & 128) != 0);
+			//if (!isTypo)
+			//	return;
+
+			if (isTypo && (face.height != (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap)))
+			{
+			    console.log("[" + face.family_name + "] typo");
+				console.log(face.ascender + ", " + face.descender + ", " + face.height);
+                console.log(face.os2.sTypoAscender + ", " + face.os2.sTypoDescender + ", " + (face.os2.sTypoAscender - face.os2.sTypoDescender + face.os2.sTypoLineGap));
+			}
+
+            if (!isTypo && (face.height != (face.os2.usWinAscent + face.os2.usWinDescent)))
+            {
+                console.log("[" + face.family_name + "] win");
+                console.log(face.ascender + ", " + face.descender + ", " + face.height);
+                console.log(face.os2.usWinAscent + ", " + face.os2.usWinDescent + ", " + (face.os2.usWinAscent + face.os2.usWinDescent));
+            }
+		}
+
+        editor.asyncMethodCallback = function() {
+
+            testFontsInterval = setInterval(function(){
+                if (testFontCurrent >= AscFonts.g_font_infos.length)
+                {
+                    clearInterval(testFontsInterval);
+                    console.log("end");
+                    return;
+                }
+
+                var _info = AscFonts.g_font_infos[testFontCurrent++];
+
+                if (_info.indexR != -1)
+				{
+					var fontfile = AscCommon.g_font_loader.fontFiles[_info.indexR];
+                    var pFontFile = AscCommon.g_fontManager.LoadFont(fontfile, _info.faceIndexR, 12, false, false, false, false, true);
+
+					logFont(pFontFile, "regular");
+                }
+
+                if (_info.indexB != -1)
+                {
+                    var fontfile = AscCommon.g_font_loader.fontFiles[_info.indexB];
+                    var pFontFile = AscCommon.g_fontManager.LoadFont(fontfile, _info.faceIndexB, 12, true, false, false, false, true);
+
+                    logFont(pFontFile, "bold");
+                }
+
+                if (_info.indexI != -1)
+                {
+                    var fontfile = AscCommon.g_font_loader.fontFiles[_info.indexI];
+                    var pFontFile = AscCommon.g_fontManager.LoadFont(fontfile, _info.faceIndexI, 12, false, true, false, false, true);
+
+                    logFont(pFontFile, "italic");
+                }
+
+                if (_info.indexBI != -1)
+                {
+                    var fontfile = AscCommon.g_font_loader.fontFiles[_info.indexBI];
+                    var pFontFile = AscCommon.g_fontManager.LoadFont(fontfile, _info.faceIndexBI, 12, true, true, false, false, true);
+
+                    logFont(pFontFile, "bold italic");
+                }
+
+            }, 10);
+
+        };
+
+        AscCommon.g_font_loader.LoadDocumentFonts2(_fonts);
+	};
+
 })(window, window.document);

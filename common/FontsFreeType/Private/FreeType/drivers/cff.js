@@ -3585,7 +3585,6 @@ function CFF_Decoder()
 function cff_builder_init(builder, face, size, glyph, hinting)
 {
     builder.path_begun  = 0;
-    builder.path_begun  = 0;
     builder.load_points = 1;
 
     builder.face   = face;
@@ -4053,7 +4052,7 @@ function cff_decoder_parse_charstrings(decoder, charstring_base, charstring_len)
             {
                 if (ip.pos + 3 >= limit)
                     return FT_Common.FT_Err_Invalid_File_Format;
-                val = (ip.data[ip.pos] << 24 )| (ip.data[ip.pos + 1] << 16) | (ip.data[ip.po + 2] << 8) | ip.data[ip.pos + 3];
+                val = (ip.data[ip.pos] << 24 )| (ip.data[ip.pos + 1] << 16) | (ip.data[ip.pos + 2] << 8) | ip.data[ip.pos + 3];
                 ip.pos += 4;
                 if (charstring_type == 2)
                     shift = 0;
