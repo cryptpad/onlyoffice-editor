@@ -561,11 +561,18 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
     if(!this.m_oLogicDocument || !this.m_oLogicDocument.Api){
         return;
     }
+    
+    var master;
     var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
-    if(!slide){
+    if (slide) {
+        master = slide.Layout.Master;
+    }
+    else{
+        master = this.m_oLogicDocument.slideMasters[0];
+    }
+    if(!master){
         return;
     }
-    var master = slide.Layout.Master;
     if(bIsAttack || this.MasterLayouts !== master){
         this.MasterLayouts = master;
         this.m_oDrawingDocument.CheckLayouts(master);
