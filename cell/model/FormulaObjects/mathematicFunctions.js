@@ -3722,7 +3722,7 @@
 				return new cNumber(number);
 			}
 			var x = number * Math.pow(10, num_digits);
-			x = (x | x) + (x > 0 ? 1 : x < 0 ? -1 : 0) * 1;
+			x = (x | x) + ((x ^ 0) === x ? 0 : x > 0 ? 1 : x < 0 ? -1 : 0) * 1;
 			return new cNumber(x * significance);
 		}
 
