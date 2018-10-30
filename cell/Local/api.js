@@ -92,8 +92,6 @@ var c_oAscError = Asc.c_oAscError;
 	};
 	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url)
 	{
-		var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](url);
-		
 		var ws = this.wb.getWorksheet();
 		if (ws) 
 		{
@@ -281,6 +279,11 @@ var c_oAscError = Asc.c_oAscError;
 		{
 			if (window.g_asc_plugins && window.g_asc_plugins.isRunnedEncryption())
 			{
+                asc["editor"]._callbackPluginEndAction = function()
+                {
+                    this._callbackPluginEndAction = null;
+                    window["AscDesktopEditor"]["buildCryptedEnd"](true);
+                };
 				window.g_asc_plugins.sendToEncryption({"type": "setPasswordByFile", "hash": hash, "password": password});
 			}
 		}
