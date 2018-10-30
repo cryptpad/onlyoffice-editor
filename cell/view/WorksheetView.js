@@ -15406,73 +15406,49 @@
 		return res;
 	};
 
-
-		/*EvenFooter: 4,
-		EvenHeader: 5,
-		FirstFooter: 6,
-		FirstHeader: 7,
-		OddFooter: 8,
-		OddHeader: 9*/
-	function CHeaderFooterEditController(type) {
-
-	}
-
-	function CHeaderFooterEditorField(id, portion, width) {
-		this.id = id;
+	
+	function CHeaderFooterEditorSection(type, portion, canvasObj) {
+		this.type = type;
 		this.portion = portion;
-		this.width = width;
+		this.canvasObj = canvasObj;
 		this.fragments = null;
-		this.canvas = null;
-		this.drawingCtx = null;
 	}
-	CHeaderFooterEditorField.prototype.setFragments = function (val) {
+	CHeaderFooterEditorSection.prototype.setFragments = function (val) {
 		this.fragments = val;
 	};
-	CHeaderFooterEditorField.prototype.getFragments = function () {
+	CHeaderFooterEditorSection.prototype.getFragments = function () {
 		return this.fragments;
 	};
-	CHeaderFooterEditorField.prototype.drawText = function () {
+	CHeaderFooterEditorSection.prototype.drawText = function () {
 		if(!this.fragments) {
 			//возможно стоит очищать канву в данном случае
 			return;
 		}
 
-		if(null === this.canvas) {
-			this.canvas = document.createElement('canvas');
-			this.canvas.id = this.id + "-canvas";
-
-			var curElem = this.getElem();
-			curElem.appendChild(this.canvas);
-		}
-		this.canvas.width = this.width;
-
+		var canvas = this.canvasObj.canvas;
+		var width = this.canvasObj.width;
+		var drawingCtx = this.canvasObj.drawingCtx;
 
 		//draw
 		//добавляю флаги для учета переноса строки
 		var wb = window["Asc"]["editor"].wb;
 		var ws = window["Asc"]["editor"].wb.getWorksheet();
-		var t = this;
 		var cellFlags = new AscCommonExcel.CellFlags();
 		cellFlags.wrapText = true;
 		cellFlags.textAlign = this.portion === c_nPortionCenter ? AscCommon.align_Center : this.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
 
-		if(!this.drawingCtx) {
-			this.drawingCtx = new asc.DrawingContext({
-				canvas: t.canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont
-			});
-		}
 
-		var cellEditorWidth = this.width - 2 * wb.defaults.worksheetView.cells.padding + 1;
+		var cellEditorWidth = width - 2 * wb.defaults.worksheetView.cells.padding + 1;
 		ws.stringRender.setString(this.fragments, cellFlags);
 
 		var textMetrics = ws.stringRender._measureChars(cellEditorWidth);
-		this.canvas.height = textMetrics.height > 150 ? textMetrics.height : 150;
-		ws.stringRender.render(this.drawingCtx, wb.defaults.worksheetView.cells.padding, 0, cellEditorWidth, ws.settings.activeCellBorderColor);
+		canvas.height = textMetrics.height > 150 ? textMetrics.height : 150;
+		ws.stringRender.render(drawingCtx, wb.defaults.worksheetView.cells.padding, 0, cellEditorWidth, ws.settings.activeCellBorderColor);
 	};
-	CHeaderFooterEditorField.prototype.getElem = function () {
-		return document.getElementById(this.id);
+	CHeaderFooterEditorSection.prototype.getElem = function () {
+		return document.getElementById(this.canvasObj.idParent);
 	};
-	CHeaderFooterEditorField.prototype.appendEditor = function (editorElemId) {
+	CHeaderFooterEditorSection.prototype.appendEditor = function (editorElemId) {
 		var curElem = this.getElem();
 		var editorElem = document.getElementById(editorElemId);
 		curElem.appendChild(editorElem);
@@ -15515,29 +15491,83 @@
 	}
 
 
+	//если не будем переключаться в одном окне между header/footer можно сделать отдельную костанту
+	var c_nPageHFType = {
+		firstHeader: 0,
+		oddHeader: 1,
+		evenHeader: 2,
+		firstFooter: 3,
+		oddFooter: 4,
+		evenFooter: 5
+	};
+
 	window.Asc.g_header_footer_editor = null;
-	function CHeaderFooterEditor(idLeft, idCenter, idRight, width) {
+	function CHeaderFooterEditor(idLeft, idCenter, idRight, width, pageHFType) {
 		window.Asc.g_header_footer_editor = this;
 
-		this.leftField = new CHeaderFooterEditorField(idLeft, c_nPortionLeft, width);
-		this.centerField = new CHeaderFooterEditorField(idCenter, c_nPortionCenter, width);
-		this.rightField = new CHeaderFooterEditorField(idRight, c_nPortionRight, width);
-
 		this.parentWidth = width;
+		this.pageHFType = undefined === pageHFType ? c_nPageHFType.oddHeader : pageHFType;
+		this.canvas = [];
+		this.sections = [];
+
 		this.curParentFocusId = null;
 		this.cellEditor = null;
+		this.wbCellEditor = null;
 		this.editorElemId = "ce-canvas-outer-menu";
 
-		this.wbCellEditor = null;
 
 		this.api = window["Asc"]["editor"];
 		this.wb = this.api.wb;
 
-		this.init();
+		this.init(idLeft, idCenter, idRight);
 	}
 
-	CHeaderFooterEditor.prototype.init = function () {
-		var ws = this.wb.getWorksheet();
+	CHeaderFooterEditor.prototype.init = function (idLeft, idCenter, idRight) {
+		//создаем 3 канвы(+ добавляем их в дом структуру внутрь элемента от меню) + 3 drawingCtx, необходимые для отрисовки 3 поля
+		//делается это только 1 раз при инициализации класса
+		//потом эти 3 канвы используются для отрисовки всех first/odd/even
+		var t = this;
+		var createAndPushCanvasObj = function(id) {
+			var obj = {};
+			obj.idParent = id;
+			obj.id = id + "-canvas";
+			obj.width = t.parentWidth;
+			obj.canvas = document.createElement('canvas');
+			obj.canvas.id = obj.id;
+			obj.canvas.width = t.parentWidth;
+
+			var curElem = document.getElementById(id);
+			curElem.appendChild(obj.canvas);
+
+			obj.drawingCtx = new asc.DrawingContext({
+				canvas: obj.canvas, units: 0/*px*/, fmgrGraphics: t.wb.fmgrGraphics, font: t.wb.m_oFont
+			});
+			return obj;
+		};
+		this.canvas[c_nPortionLeft] = createAndPushCanvasObj(idLeft);
+		this.canvas[c_nPortionCenter] = createAndPushCanvasObj(idCenter);
+		this.canvas[c_nPortionRight] = createAndPushCanvasObj(idRight);
+
+
+		//далее создаем классы, где будем хранить fragments всех типов колонтитулов + выполнять отрисовку
+		//хранить будем в следующем виде: [c_nPageHFType.firstHeader/.../][c_nPortionLeft/.../c_nPortionRight]
+		this.createAndDrawSections();
+	};
+
+	CHeaderFooterEditor.prototype.switchHeaderFooterType = function (type) {
+		this.curParentFocusId = null;
+		this.cellEditor = null;
+		this.pageHFType = type;
+
+		//ещё возможно нужно будет заново добавлять в parent созданную канву(reinit)
+		this.createAndDrawSections();
+	};
+
+	CHeaderFooterEditor.prototype.createAndDrawSections = function(pageHFType) {
+		if(undefined === pageHFType) {
+			pageHFType = this.pageHFType;
+		}
+
 		var getFragments = function(textPropsArr) {
 			if(!textPropsArr) {
 				return null;
@@ -15556,38 +15586,85 @@
 			return res;
 		};
 
-		if(ws.model.headerFooter && ws.model.headerFooter.oddHeader && ws.model.headerFooter.oddHeader.parser) {
-			var parser = ws.model.headerFooter.oddHeader.parser.portions;
-			var leftFragments = getFragments(parser[0]);
-			if(null !== leftFragments) {
-				this.leftField.fragments = leftFragments;
-			}
-			var centerFragments = getFragments(parser[1]);
-			if(null !== centerFragments) {
-				this.centerField.fragments = centerFragments;
-			}
-			var rightFragments = getFragments(parser[2]);
-			if(null !== rightFragments) {
-				this.rightField.fragments = rightFragments;
+		if(!this.sections[pageHFType]) {
+			this.sections[pageHFType] = [];
+
+			//создаём секции, если они уже не созданы
+			this.sections[pageHFType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageHFType, c_nPortionLeft, this.canvas[c_nPortionLeft]);
+			this.sections[pageHFType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageHFType, c_nPortionCenter, this.canvas[c_nPortionCenter]);
+			this.sections[pageHFType][c_nPortionRight] = new CHeaderFooterEditorSection(pageHFType, c_nPortionRight, this.canvas[c_nPortionRight]);
+
+			//получаем из модели необходимый нам элемент
+			var curPageHF = this.getCurPageHF(pageHFType);
+			if(curPageHF && curPageHF.parser && curPageHF.parser.portions) {
+				var parser = curPageHF.parser.portions;
+				var leftFragments = getFragments(parser[0]);
+				if(null !== leftFragments) {
+					this.sections[pageHFType][c_nPortionLeft].fragments = leftFragments;
+				}
+				var centerFragments = getFragments(parser[1]);
+				if(null !== centerFragments) {
+					this.sections[pageHFType][c_nPortionCenter].fragments = centerFragments;
+				}
+				var rightFragments = getFragments(parser[2]);
+				if(null !== rightFragments) {
+					this.sections[pageHFType][c_nPortionRight].fragments = rightFragments;
+				}
 			}
 		}
 
 		//DRAW AFTER OPEN MENU
-		this.leftField.drawText();
-		this.centerField.drawText();
-		this.rightField.drawText();
+		this.sections[pageHFType][c_nPortionLeft].drawText();
+		this.sections[pageHFType][c_nPortionCenter].drawText();
+		this.sections[pageHFType][c_nPortionRight].drawText();
 	};
 
-	CHeaderFooterEditor.prototype.getFieldById = function (id) {
-		if(id === this.leftField.id) {
-			return this.leftField;
+	CHeaderFooterEditor.prototype.getCurPageHF = function (type) {
+		var res = null;
+		var ws = this.wb.getWorksheet();
+
+		//TODO можно у класса CHeaderFooter реализовать данную функцию
+		if(ws.model.headerFooter) {
+			switch (type){
+				case c_nPageHFType.firstHeader: {
+					res = ws.model.headerFooter.firstHeader;
+					break;
+				}
+				case c_nPageHFType.oddHeader: {
+					res = ws.model.headerFooter.oddHeader;
+					break;
+				}
+				case c_nPageHFType.evenHeader: {
+					res = ws.model.headerFooter.evenHeader;
+					break;
+				}
+				case c_nPageHFType.firstFooter: {
+					res = ws.model.headerFooter.firstFooter;
+					break;
+				}
+				case c_nPageHFType.oddFooter: {
+					res = ws.model.headerFooter.oddFooter;
+					break;
+				}
+				case c_nPageHFType.evenFooter: {
+					res = ws.model.headerFooter.evenFooter;
+					break;
+				}
+			}
 		}
-		if(id === this.centerField.id) {
-			return this.centerField;
+		return res;
+	};
+
+	CHeaderFooterEditor.prototype.getSectionById = function (id) {
+		var res = null;
+		if(this.sections && this.sections[this.pageHFType]) {
+			for(var i = 0; i < this.sections[this.pageHFType].length; i++) {
+				if(id === this.sections[this.pageHFType][i].canvasObj.idParent) {
+					return this.sections[this.pageHFType][i];
+				}
+			}
 		}
-		if(id === this.rightField.id) {
-			return this.rightField;
-		}
+		return res;
 	};
 
 	CHeaderFooterEditor.prototype.click = function (id, x, y) {
@@ -15603,44 +15680,46 @@
 			return;
 		}
 
+		//TODO ещё нужно учитывать, что находимся в той же вкладке - odd/even/...
 		//если перед этим редактировали другое поле, сохраняем данные
 		if(null !== this.curParentFocusId) {
-			var prevField = this.getFieldById(this.curParentFocusId);
+			var prevField = this.getSectionById(this.curParentFocusId);
 			var prevFragments = this.cellEditor.options.fragments;
 			prevField.setFragments(prevFragments);
-			prevField.drawText(this.cellEditor);
+			prevField.drawText();
 		}
 
 		this.curParentFocusId = id;
 
 
-		var cField = this.getFieldById(this.curParentFocusId);
-		var fieldElem = cField.getElem();
-		var fragments = cField.getFragments();
-		if(!this.cellEditor) {
-			this.cellEditor = new AscCommonExcel.CellEditor(fieldElem, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
+		var cSection = this.getSectionById(id);
+		if(cSection) {
+			var sectionElem = cSection.getElem();
+			var fragments = cSection.getFragments();
+			if(!this.cellEditor) {
+				this.cellEditor = new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
 					font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
 
-			//временно меняем cellEditor у wb
-			this.wbCellEditor = wb.cellEditor;
-			wb.cellEditor = this.cellEditor;
-		} else {
-			this.cellEditor.close();
-			cField.appendEditor(this.editorElemId);
+				//временно меняем cellEditor у wb
+				this.wbCellEditor = wb.cellEditor;
+				wb.cellEditor = this.cellEditor;
+			} else {
+				this.cellEditor.close();
+				cSection.appendEditor(this.editorElemId);
+			}
+
+
+			this.openCellEditor(this.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, sectionElem);
+			wb.setCellEditMode(true);
+
+			api.asc_enableKeyEvents(true);
 		}
 
-
-		this.openCellEditor(this.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, fieldElem);
-		wb.setCellEditMode(true);
-		ws.setCellEditMode(true);
-
-		api.asc_enableKeyEvents(true);
 	};
 
-	CHeaderFooterEditor.prototype.openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, fieldElem) {
+	CHeaderFooterEditor.prototype.openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, sectionElem) {
 		var t = this;
 
-		var api = window["Asc"]["editor"];
 		var wb = this.wb;
 		var ws = wb.getWorksheet();
 
@@ -15652,7 +15731,7 @@
 			fragments.push(tempFragment);
 		}
 
-		var curField = this.getFieldById(this.curParentFocusId);
+		var curField = this.getSectionById(this.curParentFocusId);
 		var flags = new window["AscCommonExcel"].CellFlags();
 		flags.wrapText = true;
 		flags.textAlign = curField.portion === c_nPortionCenter ? AscCommon.align_Center : curField.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
@@ -15688,7 +15767,7 @@
 		editor._renderText();
 		
 		//TODO из меню сразу присылать относительные кординаты?!
-		var fieldCoord = fieldElem.getBoundingClientRect();
+		var fieldCoord = sectionElem.getBoundingClientRect();
 		cursorPos = editor._findCursorPosition({x: x - fieldCoord.left, y: y - fieldCoord.top});
 
 		options.cursorPos = cursorPos;
