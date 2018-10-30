@@ -3759,6 +3759,8 @@
 				}
 			}
 			this.workbook.dependencyFormulas.calcTree();
+		} else {
+			console.log(new Error('The sheet name must be less than 31 characters.'));
 		}
 	};
 	Worksheet.prototype.getTabColor=function(){
@@ -4319,6 +4321,18 @@
 			}
 		}
 	};
+	Worksheet.prototype.getColCustomWidth = function (index) {
+		var isBestFit;
+		var column = this._getColNoEmptyWithAll(index);
+		if (!column) {
+			isBestFit = true;
+		} else if (column.getHidden()) {
+			isBestFit = false;
+		} else {
+			isBestFit = !!(column.BestFit || (null === column.BestFit && null === column.CustomWidth));
+		}
+		return !isBestFit;
+	};
 	Worksheet.prototype.setColBestFit=function(bBestFit, width, start, stop){
 		//start, stop 0 based
 		if(null == start)
@@ -4497,6 +4511,19 @@
 			}
 		}
 		this.workbook.dependencyFormulas.calcTree();
+	};
+	Worksheet.prototype.getRowCustomHeight = function (index) {
+		var isCustomHeight = false;
+		this._getRowNoEmptyWithAll(index, function (row) {
+			if (!row) {
+				isCustomHeight = false;
+			} else if (row.getHidden()) {
+				isCustomHeight = true;
+			} else {
+				isCustomHeight = row.getCustomHeight();
+			}
+		});
+		return isCustomHeight;
 	};
 	Worksheet.prototype.setRowBestFit=function(bBestFit, height, start, stop){
 		//start, stop 0 based
@@ -7938,6 +7965,8 @@
 	function ignoreFirstRowSort(worksheet, bbox) {
 		var res = false;
 
+		var oldExcludeVal = worksheet.bExcludeHiddenRows;
+		worksheet.bExcludeHiddenRows = false;
 		if(bbox.r1 < bbox.r2) {
 			var rowFirst = worksheet.getRange3(bbox.r1, bbox.c1, bbox.r1, bbox.c2);
 			var rowSecond = worksheet.getRange3(bbox.r1 + 1, bbox.c1, bbox.r1 + 1, bbox.c2);
@@ -7973,6 +8002,7 @@
 				}
 			}
 		}
+		worksheet.bExcludeHiddenRows = oldExcludeVal;
 
 		return res;
 	}
@@ -10150,7 +10180,9 @@
 			//если тип ячеек первого и второго row попарно совпадает, то считаем первую строку заголовком
 			//todo рассмотреть замерженые ячейки. стили тоже влияют, но непонятно как сравнивать border
 
+
 			var bIgnoreFirstRow = ignoreFirstRowSort(this.worksheet, bbox);
+
 			if(bIgnoreFirstRow) {
 				bbox = bbox.clone();
 				bbox.r1++;
@@ -10202,12 +10234,9 @@
 		}
 		//собираем массив обьектов для сортировки
 		var aSortElems = [];
-		var aHiddenRow = {};
 		var fAddSortElems = function(oCell, nRow0, nCol0,nRowStart0, nColStart0){
 			//не сортируем сткрытие строки
-			if (oThis.worksheet.getRowHidden(nRow0)) {
-				aHiddenRow[nRow0] = 1;
-			} else {
+			if (!oThis.worksheet.getRowHidden(nRow0)) {
 				if(nLastRow0 < nRow0)
 					nLastRow0 = nRow0;
 				var val = oCell.getValueWithoutFormat();
@@ -10358,7 +10387,7 @@
 		{
 			var item = aSortElems[i];
 			var nNewIndex = i * nMergedHeight + nRowFirst0 + nHiddenCount;
-			while(null != aHiddenRow[nNewIndex])
+			while(false != oThis.worksheet.getRowHidden(nNewIndex))
 			{
 				nHiddenCount++;
 				nNewIndex = i * nMergedHeight + nRowFirst0 + nHiddenCount;
@@ -10383,11 +10412,11 @@
 			//добавляем индексы перехода пустых ячеек(нужно для сортировки комментариев)
 			for(var i = nRowMin; i <= nRowMax; ++i)
 			{
-				if(null == oFromArray[i] && null == aHiddenRow[i])
+				if(null == oFromArray[i] && false == oThis.worksheet.getRowHidden(i))
 				{
 					var nFrom = i;
 					var nTo = ++nToMax;
-					while(null != aHiddenRow[nTo])
+					while(false != oThis.worksheet.getRowHidden(nTo))
 						nTo = ++nToMax;
 					if(nFrom != nTo)
 					{
@@ -11517,8 +11546,8 @@
 		this.hiddenRowsSum = [];
 		this.hiddenColsSum = [];
 		this.dirty = true;
-		this.recalcHiddenRows = [];
-		this.recalcHiddenCols = [];
+		this.recalcHiddenRows = {};
+		this.recalcHiddenCols = {};
 		this.hiddenRowMin = gc_nMaxRow0;
 		this.hiddenRowMax = 0;
 	}
@@ -11527,7 +11556,7 @@
 		this.hiddenRowMax = 0;
 	};
 	HiddenManager.prototype.addHidden = function (isRow, index) {
-		(isRow ? this.recalcHiddenRows : this.recalcHiddenCols).push(index);
+		(isRow ? this.recalcHiddenRows : this.recalcHiddenCols)[index] = true;
 		if (isRow) {
 			this.hiddenRowMin = Math.min(this.hiddenRowMin, index);
 			this.hiddenRowMax = Math.max(this.hiddenRowMax, index);
@@ -11536,18 +11565,17 @@
 	};
 	HiddenManager.prototype.getRecalcHidden = function () {
 		var res = [];
-		this.recalcHiddenRows.filter(function (value, index, self) {
-			if (AscCommon.fOnlyUnique(value, index, self)) {
-				res.push(new Asc.Range(0, value, gc_nMaxCol0, value));
-			}
-		});
-		this.recalcHiddenCols.filter(function (value, index, self) {
-			if (AscCommon.fOnlyUnique(value, index, self)) {
-				res.push(new Asc.Range(value, 0, value, gc_nMaxRow0));
-			}
-		});
-		this.recalcHiddenRows = [];
-		this.recalcHiddenCols = [];
+		var i;
+		for (i in this.recalcHiddenRows) {
+			i = +i;
+			res.push(new Asc.Range(0, i, gc_nMaxCol0, i));
+		}
+		for (i in this.recalcHiddenCols) {
+			i = +i;
+			res.push(new Asc.Range(i, 0, i, gc_nMaxRow0));
+		}
+		this.recalcHiddenRows = {};
+		this.recalcHiddenCols = {};
 		return res;
 	};
 	HiddenManager.prototype.getHiddenRowsRange = function() {

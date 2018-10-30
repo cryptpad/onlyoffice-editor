@@ -128,11 +128,12 @@ function getNumberParts(x)
 		var parts2 = getNumberParts(val2);
 		if (parts1.sign === parts2.sign) {
 			if (parts1.exponent === parts2.exponent) {
-				if (parts1.mantissa !== parts2.mantissa) {
-					res = parts1.mantissa - parts2.mantissa;
-				}
+				res = parts1.mantissa - parts2.mantissa;
 			} else {
 				res = parts1.exponent - parts2.exponent;
+			}
+			if (SignType.Negative === parts1.sign) {
+				res = -res;
 			}
 		} else {
 			res = parts1.sign - parts2.sign;

@@ -3774,7 +3774,7 @@ function OfflineEditor () {
             this.model.workbook.handlers.trigger("asc_onHideComment");
 
             return isCoord ? this._calcActiveRangeOffsetIsCoord(x, y) :
-            this._calcActiveRangeOffset();
+            this._calcRangeOffset();
         };
 
         AscCommonExcel.WorksheetView.prototype.__chartsRanges = function(ranges) {
@@ -4799,11 +4799,11 @@ function OfflineEditor () {
                 // Обработка картинок большого разрешения
                 var metricCoeff = 1;
                 
-                var coordsFrom = _this.coordsManager.calculateCoords(object.from);
+                var coordsFrom = _this.calculateCoords(object.from);
                 var realTopOffset = coordsFrom.y;
                 var realLeftOffset = coordsFrom.x;
                 
-                var areaWidth = worksheet.getCellLeft(worksheet.getLastVisibleCol(), 0) - worksheet.getCellLeft(worksheet.getFirstVisibleCol(true), 0);     // по ширине
+                var areaWidth = worksheet._getColLeft(worksheet.getLastVisibleCol()) - worksheet._getColLeft(worksheet.getFirstVisibleCol(true));     // по ширине
                 if (areaWidth < width) {
                     metricCoeff = width / areaWidth;
                     
@@ -4811,29 +4811,17 @@ function OfflineEditor () {
                     height /= metricCoeff;
                 }
                 
-                var areaHeight = worksheet.getCellTop(worksheet.getLastVisibleRow(), 0) - worksheet.getCellTop(worksheet.getFirstVisibleRow(true), 0);     // по высоте
+                var areaHeight = worksheet._getRowTop(worksheet.getLastVisibleRow()) - worksheet._getRowTop(worksheet.getFirstVisibleRow(true));     // по высоте
                 if (areaHeight < height) {
                     metricCoeff = height / areaHeight;
                     
                     height = areaHeight;
                     width /= metricCoeff;
                 }
-                
-                var findVal = realLeftOffset + width;
-                var toCell = worksheet.findCellByXY(findVal, 0, true, false, true);
-                while (toCell.col === null && worksheet.cols.length < gc_nMaxCol) {
-                    worksheet.expandColsOnScroll(true);
-                    toCell = worksheet.findCellByXY(findVal, 0, true, false, true);
-                }
+
+                var toCell = worksheet.findCellByXY(realLeftOffset + width, realTopOffset + height, true, false, false);
                 object.to.col = toCell.col;
                 object.to.colOff = pxToMm(toCell.colOff);
-                
-                findVal = realTopOffset + height;
-                toCell = worksheet.findCellByXY(0, findVal, true, true, false);
-                while (toCell.row === null && worksheet.rows.length < gc_nMaxRow) {
-                    worksheet.expandRowsOnScroll(true);
-                    toCell = worksheet.findCellByXY(0, findVal, true, true, false);
-                }
                 object.to.row = toCell.row;
                 object.to.rowOff = pxToMm(toCell.rowOff);
             };
@@ -4846,22 +4834,11 @@ function OfflineEditor () {
                 var activeCell = worksheet.model.selectionRange.activeCell;
                 drawingObject.from.col = activeCell.col;
                 drawingObject.from.row = activeCell.row;
-                
-                // Проверяем начальные координаты при вставке
-                while (!worksheet.cols[drawingObject.from.col]) {
-                    worksheet.expandColsOnScroll(true);
-                }
-                worksheet.expandColsOnScroll(true);     // для colOff
-                
-                while (!worksheet.rows[drawingObject.from.row]) {
-                    worksheet.expandRowsOnScroll(true);
-                }
-                worksheet.expandRowsOnScroll(true);     // для rowOff
 
                 calculateObjectMetrics(drawingObject, options[1], options[2]);
 
-                var coordsFrom = _this.coordsManager.calculateCoords(drawingObject.from);
-                var coordsTo = _this.coordsManager.calculateCoords(drawingObject.to);
+                var coordsFrom = _this.calculateCoords(drawingObject.from);
+                var coordsTo = _this.calculateCoords(drawingObject.to);
                 
                 // CImage
                 _this.objectLocker.reset();

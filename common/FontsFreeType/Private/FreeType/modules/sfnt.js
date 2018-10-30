@@ -597,6 +597,8 @@ function tt_face_load_font_dir(face, stream)
     face.format_tag = sfnt.format_tag;
 
     face.dir_tables = new Array(face.num_tables);
+    for (var dtNum = 0; dtNum < face.num_tables; dtNum++)
+        face.dir_tables[dtNum] = new TT_Table();
 
     error = stream.Seek(sfnt.offset + 12);
     if (0 == error)
@@ -609,7 +611,6 @@ function tt_face_load_font_dir(face, stream)
     var cur = 0;
     for (var nn = 0; nn < sfnt.num_tables; nn++ )
     {
-        face.dir_tables[cur] = new TT_Table();
         var entry = face.dir_tables[cur];
         entry.Tag      = stream.GetULong();
         entry.CheckSum = stream.GetULong();
@@ -1243,7 +1244,7 @@ function tt_face_get_metrics(face, vertical, gindex)
     var header = (vertical == 1) ? face.vertical : face.horizontal;
 
     var longs_m = null;
-    var k = header.number_Of_HMetrics;
+    var k = (vertical == 1) ? header.number_Of_VMetrics : header.number_Of_HMetrics;
 
     var v1 = 0;
     var v2 = 0;

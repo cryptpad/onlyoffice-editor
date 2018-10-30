@@ -316,6 +316,10 @@
 		  this.controller.init(this, this.element, /*this.canvasOverlay*/ this.canvasGraphicOverlay, /*handlers*/{
 			  "resize": function () {
 				  self.resize.apply(self, arguments);
+			  }, "initRowsCount": function () {
+				  self._onInitRowsCount.apply(self, arguments);
+			  }, "initColsCount": function () {
+				  self._onInitColsCount.apply(self, arguments);
 			  }, "scrollY": function () {
 				  self._onScrollY.apply(self, arguments);
 			  }, "scrollX": function () {
@@ -374,10 +378,6 @@
 				  self.undo.apply(self, arguments);
 			  }, "redo": function () {
 				  self.redo.apply(self, arguments);
-			  }, "addColumn": function () {
-				  self._onAddColumn.apply(self, arguments);
-			  }, "addRow": function () {
-				  self._onAddRow.apply(self, arguments);
 			  }, "mouseDblClick": function () {
 				  self._onMouseDblClick.apply(self, arguments);
 			  }, "showNextPrevWorksheet": function () {
@@ -668,12 +668,8 @@
 			  return self.Api.canEdit();
 		  }, "isRestrictionComments": function () {
 			  return self.Api.isRestrictionComments();
-		  }, "reinitializeScroll": function () {
-			  self._onScrollReinitialize(/*All*/);
-		  }, "reinitializeScrollY": function () {
-			  self._onScrollReinitialize(/*vertical*/1);
-		  }, "reinitializeScrollX": function () {
-			  self._onScrollReinitialize(/*horizontal*/2);
+		  }, "reinitializeScroll": function (type) {
+			  self._onScrollReinitialize(type);
 		  }, "selectionChanged": function () {
 			  self._onWSSelectionChanged();
 		  }, "selectionNameChanged": function () {
@@ -929,17 +925,17 @@
   };
 
 
-	WorkbookView.prototype._onScrollReinitialize = function (whichSB, endScroll) {
-		if (window["NATIVE_EDITOR_ENJINE"]) {
+	WorkbookView.prototype._onScrollReinitialize = function (type) {
+		if (window["NATIVE_EDITOR_ENJINE"] || !type) {
 			return;
 		}
 
 		var ws = this.getWorksheet();
-		if (!whichSB || 2 === whichSB) {
-			this.controller.reinitScrollX(ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), endScroll);
+		if (AscCommonExcel.c_oAscScrollType.ScrollHorizontal & type) {
+			this.controller.reinitScrollX(ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
 		}
-		if (!whichSB || 1 === whichSB) {
-			this.controller.reinitScrollY(ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), endScroll);
+		if (AscCommonExcel.c_oAscScrollType.ScrollVertical & type) {
+			this.controller.reinitScrollY(ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
 		}
 
 		if (this.Api.isMobileVersion) {
@@ -947,27 +943,40 @@
 		}
 	};
 
-  WorkbookView.prototype._onScrollY = function(pos) {
+	WorkbookView.prototype._onInitRowsCount = function () {
+		var ws = this.getWorksheet();
+		if (ws._initRowsCount()) {
+			this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical);
+		}
+	};
+
+	WorkbookView.prototype._onInitColsCount = function () {
+		var ws = this.getWorksheet();
+		if (ws._initColsCount()) {
+			this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+		}
+	};
+
+  WorkbookView.prototype._onScrollY = function(pos, initRowsCount) {
     var ws = this.getWorksheet();
-    var delta = asc_round(pos - ws.getFirstVisibleRow(/*allowPane*/true));
+    var delta = asc_round(pos - ws.getFirstVisibleRow(true));
     if (delta !== 0) {
-      ws.scrollVertical(delta, this.cellEditor);
+      ws.scrollVertical(delta, this.cellEditor, initRowsCount);
     }
   };
 
-  WorkbookView.prototype._onScrollX = function(pos) {
+  WorkbookView.prototype._onScrollX = function(pos, initColsCount) {
     var ws = this.getWorksheet();
-    var delta = asc_round(pos - ws.getFirstVisibleCol(/*allowPane*/true));
+    var delta = asc_round(pos - ws.getFirstVisibleCol(true));
     if (delta !== 0) {
-      ws.scrollHorizontal(delta, this.cellEditor);
+      ws.scrollHorizontal(delta, this.cellEditor, initColsCount);
     }
   };
 
-  WorkbookView.prototype._onSetSelection = function(range, validRange) {
+  WorkbookView.prototype._onSetSelection = function(range) {
     var ws = this.getWorksheet();
     ws._endSelectionShape();
-    var d = ws.setSelection(range, validRange);
-    this.controller.scroll(d);
+    ws.setSelection(range);
   };
 
   WorkbookView.prototype._onGetSelectionState = function() {
@@ -985,8 +994,7 @@
       if (ws && ws.objectRender && ws.objectRender.controller) {
         ws.objectRender.controller.setSelectionState(state);
         ws.setSelectionShape(true);
-        var d = ws._calcActiveCellOffset(ws.objectRender.getSelectedDrawingsRange());
-        this.controller.scroll(d);
+        ws._scrollToRange(ws.objectRender.getSelectedDrawingsRange());
         ws.objectRender.showDrawingObjectsEx(true);
         ws.objectRender.controller.updateOverlay();
         ws.objectRender.controller.updateSelectionState();
@@ -1322,7 +1330,7 @@
 
   WorkbookView.prototype._onGraphicObjectMouseUpEx = function(e, x, y) {
     //var ws = this.getWorksheet();
-    //ws.objectRender.coordsManager.calculateCell(x, y);
+    //ws.objectRender.calculateCell(x, y);
   };
 
   WorkbookView.prototype._onGraphicObjectWindowKeyDown = function(e) {
@@ -1488,16 +1496,6 @@
     this.getWorksheet().emptySelection(c_oAscCleanOptions.Text);
   };
 
-  WorkbookView.prototype._onAddColumn = function() {
-    var res = this.getWorksheet().expandColsOnScroll(true);
-    this._onScrollReinitialize(/*horizontal*/2, !res);
-  };
-
-  WorkbookView.prototype._onAddRow = function() {
-    var res = this.getWorksheet().expandRowsOnScroll(true);
-    this._onScrollReinitialize(/*vertical*/1, !res);
-  };
-
   WorkbookView.prototype._onShowNextPrevWorksheet = function(direction) {
     // Колличество листов
     var countWorksheets = this.model.getWorksheetCount();
@@ -1612,7 +1610,7 @@
 		ws.draw();
 		ws.objectRender.controller.updateSelectionState();
 		ws.objectRender.controller.updateOverlay();
-		this._onScrollReinitialize();
+		this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 	};
 
   /**
@@ -1726,7 +1724,7 @@
       this._onWSSelectionChanged();
       this._onSelectionMathInfoChanged(ws.getSelectionMathInfo());
     }
-    this._onScrollReinitialize();
+    this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
     // Zoom теперь на каждом листе одинаковый, не отправляем смену
 
     //TODO при добавлении любого действия в историю (например добавление нового листа), мы можем его потом отменить с повощью опции авторазвертывания
@@ -1946,7 +1944,7 @@
       }
     }
 
-    this._onScrollReinitialize();
+    this._onScrollReinitialize(AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
     this.handlers.trigger("asc_onZoomChanged", this.getZoom());
   };
 

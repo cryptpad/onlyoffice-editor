@@ -496,6 +496,9 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 };
 Paragraph.prototype.Get_PageBounds = function(CurPage)
 {
+	if (!this.Pages[CurPage])
+		return new CDocumentBounds(0, 0, 0, 0);
+
 	return this.Pages[CurPage].Bounds;
 };
 Paragraph.prototype.GetContentBounds = function(CurPage)
@@ -10922,7 +10925,7 @@ Paragraph.prototype.Refresh_RecalcData = function(Data)
 			if (this.Parent)
 			{
 				var oDrawingShape = this.Parent.Is_DrawingShape(true);
-				if (oDrawingShape)
+				if (oDrawingShape && oDrawingShape.getObjectType && oDrawingShape.getObjectType() === AscDFH.historyitem_type_Shape)
 				{
 					if (oDrawingShape.chekBodyPrTransform(oDrawingShape.getBodyPr()) || oDrawingShape.checkContentWordArt(oDrawingShape.getDocContent()))
 					{
@@ -11299,9 +11302,23 @@ Paragraph.prototype.RemoveCommentMarks = function(Id)
 		}
 	}
 };
-Paragraph.prototype.Replace_MisspelledWord = function(Word, WordId)
+Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 {
-	var Element = this.SpellChecker.Elements[WordId];
+	var Element = null;
+	if (oElement)
+	{
+		for (var nWordId in this.SpellChecker.Elements)
+		{
+			if (oElement === this.SpellChecker.Elements[nWordId])
+			{
+				Element = oElement;
+				break;
+			}
+		}
+	}
+
+	if (!Element)
+		return;
 
 	// Сначала вставим новое слово
 	var Class = Element.StartRun;
@@ -11344,11 +11361,19 @@ Paragraph.prototype.Replace_MisspelledWord = function(Word, WordId)
 
 	Element.Checked = null;
 };
-Paragraph.prototype.Ignore_MisspelledWord = function(WordId)
+Paragraph.prototype.IgnoreMisspelledWord = function(oElement)
 {
-	var Element     = this.SpellChecker.Elements[WordId];
-	Element.Checked = true;
-	this.ReDraw();
+	if (oElement)
+	{
+		for (var nWordId in this.SpellChecker.Elements)
+		{
+			if (oElement === this.SpellChecker.Elements[nWordId])
+			{
+				oElement.Checked = true;
+				this.ReDraw();
+			}
+		}
+	}
 };
 Paragraph.prototype.Get_SectionPr = function()
 {

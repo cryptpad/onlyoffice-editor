@@ -195,7 +195,7 @@ Paragraph.prototype.Recalculate_FastWholeParagraph = function()
  */
 Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
 {
-    if (this.Pages.length <= 0)
+	if (this.Pages.length <= 0)
         return -1;
 
     if (true === this.Parent.IsHdrFtr(false))
@@ -208,6 +208,12 @@ Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
 
     var Line  = ParaPos.Line;
     var Range = ParaPos.Range;
+
+    // Такое возможно, если у нас шел долгий пересчет (например, из-за изменений второго пользователя) и в это же время
+	// запустился быстрый (ввод символа). Долгий пересчет успел сбросить рассчет данного параграфа, но не пересчитал параграф
+	// до конца, а в это время у данного параграфа запросился быстрый пересчет.
+    if (this.Lines.length <= ParaPos.Line)
+    	return -1;
 
     // TODO: Отключаем это ускорение в таблицах, т.к. в таблицах и так есть свое ускорение. Но можно и это ускорение
     // подключить, для этого надо проверять изменились ли MinMax ширины и набираем ли мы в строке заголовков.

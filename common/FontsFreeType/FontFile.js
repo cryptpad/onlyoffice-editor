@@ -1666,6 +1666,7 @@
                 if (!_fontFilePick)
                 	return null;
 
+                _fontFilePick.CheckHintsSupport();
                 this.FontFiles[name] = _fontFilePick;
 			}
 

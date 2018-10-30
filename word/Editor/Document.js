@@ -7394,7 +7394,7 @@ CDocument.prototype.OnKeyDown = function(e)
             else
             {
                 var Paragraph = SelectedInfo.GetParagraph();
-                var ParaPr    = Paragraph.Get_CompiledPr2(false).ParaPr;
+                var ParaPr    = Paragraph ? Paragraph.Get_CompiledPr2(false).ParaPr : null;
                 if (null != Paragraph && ( true === Paragraph.IsCursorAtBegin() || true === Paragraph.Selection_IsFromStart() ) && ( undefined != Paragraph.GetNumPr() || ( true != Paragraph.IsEmpty() && ParaPr.Tabs.Tabs.length <= 0 ) ))
                 {
                     if (false === this.Document_Is_SelectionLocked(changestype_None, {
@@ -9786,7 +9786,7 @@ CDocument.prototype.Document_Undo = function(Options)
 		if (this.CollaborativeEditing.CanUndo() && true === this.Api.canSave)
 		{
 			this.CollaborativeEditing.Set_GlobalLock(true);
-			this.Api.asc_Save(true, true);
+			this.Api.forceSaveUndoRequest = true;
 		}
 	}
 	else
@@ -11319,6 +11319,9 @@ CDocument.prototype.MoveCursorPageDown = function(AddToSelect, NextPage)
 };
 CDocument.prototype.private_MoveCursorPageDown = function(StartX, StartY, AddToSelect, NextPage)
 {
+	if (this.Pages.length <= 0)
+		return true;
+
 	var Dy        = 0;
 	var StartPage = this.CurPage;
 	if (NextPage)
@@ -11336,27 +11339,37 @@ CDocument.prototype.private_MoveCursorPageDown = function(StartX, StartY, AddToS
 	}
 	else
 	{
-		Dy = this.DrawingDocument.GetVisibleMMHeight();
-		if (StartY + Dy > this.Get_PageLimits(this.CurPage).YLimit)
+		if (this.CurPage >= this.Pages.length)
 		{
-			this.CurPage++;
-			var PageH = this.Get_PageLimits(this.CurPage).YLimit;
-			Dy -= PageH - StartY;
-			StartY    = 0;
-			while (Dy > PageH)
+			this.CurPage    = this.Pages.length - 1;
+			var LastElement = this.Content[this.Pages[this.CurPage].EndPos];
+			Dy              = LastElement.GetPageBounds(LastElement.GetPagesCount() - 1).Bottom;
+			StartPage       = this.CurPage;
+		}
+		else
+		{
+			Dy = this.DrawingDocument.GetVisibleMMHeight();
+			if (StartY + Dy > this.Get_PageLimits(this.CurPage).YLimit)
 			{
-				Dy -= PageH;
 				this.CurPage++;
-			}
+				var PageH = this.Get_PageLimits(this.CurPage).YLimit;
+				Dy -= PageH - StartY;
+				StartY    = 0;
+				while (Dy > PageH)
+				{
+					Dy -= PageH;
+					this.CurPage++;
+				}
 
-			if (this.CurPage >= this.Pages.length)
-			{
-				this.CurPage    = this.Pages.length - 1;
-				var LastElement = this.Content[this.Pages[this.CurPage].EndPos];
-				Dy              = LastElement.GetPageBounds(LastElement.GetPagesCount() - 1).Bottom;
-			}
+				if (this.CurPage >= this.Pages.length)
+				{
+					this.CurPage    = this.Pages.length - 1;
+					var LastElement = this.Content[this.Pages[this.CurPage].EndPos];
+					Dy              = LastElement.GetPageBounds(LastElement.GetPagesCount() - 1).Bottom;
+				}
 
-			StartPage = this.CurPage;
+				StartPage = this.CurPage;
+			}
 		}
 	}
 
@@ -11394,6 +11407,16 @@ CDocument.prototype.MoveCursorPageUp = function(AddToSelect, PrevPage)
 };
 CDocument.prototype.private_MoveCursorPageUp = function(StartX, StartY, AddToSelect, PrevPage)
 {
+	if (this.Pages.length <= 0)
+		return true;
+
+	if (this.CurPage >= this.Pages.length)
+	{
+		this.CurPage    = this.Pages.length - 1;
+		var LastElement = this.Content[this.Pages[this.CurPage].EndPos];
+		StartY          = LastElement.GetPageBounds(LastElement.GetPagesCount() - 1).Bottom;
+	}
+
 	var Dy        = 0;
 	var StartPage = this.CurPage;
 	if (PrevPage)
@@ -11654,7 +11677,12 @@ CDocument.prototype.Set_FastCollaborativeEditing = function(isOn)
 CDocument.prototype.Continue_FastCollaborativeEditing = function()
 {
 	if (true === this.CollaborativeEditing.Get_GlobalLock())
+	{
+		if (this.Api.forceSaveUndoRequest)
+			this.Api.asc_Save(true);
+
 		return;
+	}
 
 	if (this.Api.isLongAction())
 		return;

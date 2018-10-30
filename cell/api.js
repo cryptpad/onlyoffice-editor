@@ -684,37 +684,43 @@ var editor;
         return;
       }
     }
-    if (opt_isPassword) {
-      t.handlers.trigger("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), this.advancedOptionsAction);
-    } else if (data) {
-		// ToDo разделитель пока только "," http://bugzilla.onlyoffice.com/show_bug.cgi?id=31009
-		var cp = {
-			'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
-			'encodings': AscCommon.getEncodingParams()
-		};
-		var options;
-		if (typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-			AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
-				if (err) {
-					t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-				} else {
-					var dataUint = new Uint8Array(data);
-					var bom = AscCommon.getEncodingByBOM(dataUint);
-					if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
-						cp['codepage'] = bom.encoding;
-						data = dataUint.subarray(bom.size);
-					}
-					cp['data'] = data;
-					options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
-					t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
-				}
-			});
+	if (opt_isPassword) {
+		if (t.handlers.hasTrigger("asc_onAdvancedOptions")) {
+			t.handlers.trigger("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), this.advancedOptionsAction);
 		} else {
-			options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
-			t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+			t.handlers.trigger("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
 		}
-    } else {
-      t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+	} else {
+		if (t.handlers.hasTrigger("asc_onAdvancedOptions")) {
+			// ToDo разделитель пока только "," http://bugzilla.onlyoffice.com/show_bug.cgi?id=31009
+			var cp = {
+				'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
+				'encodings': AscCommon.getEncodingParams()
+			};
+			var options;
+			if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
+				AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
+					if (err) {
+						t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+					} else {
+						var dataUint = new Uint8Array(data);
+						var bom = AscCommon.getEncodingByBOM(dataUint);
+						if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
+							cp['codepage'] = bom.encoding;
+							data = dataUint.subarray(bom.size);
+						}
+						cp['data'] = data;
+						options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
+						t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+					}
+				});
+			} else {
+				options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
+				t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+			}
+		} else {
+			this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.CSV, new asc.asc_CCSVAdvancedOptions(AscCommon.c_oAscCodePageUtf8, AscCommon.c_oAscCsvDelimiter.Comma));
+		}
     }
   };
   spreadsheet_api.prototype._onOpenCommand = function(data) {
@@ -774,6 +780,10 @@ var editor;
   };
 
   spreadsheet_api.prototype._asc_downloadAs = function(sFormat, actionType, options) { //fCallback({returnCode:"", ...})
+    var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
+    if (isCloudCrypto)
+      window.isCloudCryptoDownloadAs = true;
+
     var t = this;
     if (!options) {
       options = {};
@@ -781,7 +791,7 @@ var editor;
     if (actionType) {
       this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
     }
-    var isNoBase64 = typeof ArrayBuffer !== 'undefined';
+    var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
     //sFormat: xlsx, xls, ods, csv, html
     var dataContainer = {data: null, part: null, index: 0, count: 0};
     var command = "save";
@@ -822,6 +832,15 @@ var editor;
     }
     // Меняем тип состояния (на сохранение)
     this.advancedOptionsAction = c_oAscAdvancedOptionsAction.Save;
+
+    if (isCloudCrypto)
+    {
+      var sParamXml = ("<m_nCsvTxtEncoding>" + oAdditionalData["codepage"] + "</m_nCsvTxtEncoding>");
+      sParamXml += ("<m_nCsvDelimiter>" + oAdditionalData["delimiter"] + "</m_nCsvDelimiter>");
+      window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, sFormat, sParamXml);
+      return;
+    }
+
     var fCallback = function(input) {
       var error = c_oAscError.ID.Unknown;
       if (null != input && command == input["type"]) {
@@ -1671,7 +1690,7 @@ var editor;
 		this.wb._onSetSelection(range, /*validRange*/ true);
 	};
 
-	spreadsheet_api.prototype._onSaveCallbackInner = function (isUndoRequest) {
+	spreadsheet_api.prototype._onSaveCallbackInner = function () {
 		var t = this;
 		AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
 		// Принимаем чужие изменения
@@ -2189,8 +2208,7 @@ var editor;
     }
 
     ws = this.wb.getWorksheet();
-    d = ws.setSelection(d.length === 1 ? d[0].getBBox0() : d, true);
-    this.controller.scroll(d);
+    ws.setSelection(1 === d.length ? d[0].getBBox0() : d);
   };
 
 	spreadsheet_api.prototype.asc_closeCellEditor = function (cancel) {
@@ -3479,10 +3497,6 @@ var editor;
    * Export
    * -----------------------------------------------------------------------------
    */
-
-  window["AscDesktopEditor_Save"] = function() {
-    return window["Asc"]["editor"].asc_Save(false);
-  };
 
   asc["spreadsheet_api"] = spreadsheet_api;
   prot = spreadsheet_api.prototype;

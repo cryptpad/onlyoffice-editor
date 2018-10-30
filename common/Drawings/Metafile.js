@@ -1363,6 +1363,12 @@
 			if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsFilePrinting"])
 				isLocalUse = ((!window["AscDesktopEditor"]["IsLocalFile"]()) && window["AscDesktopEditor"]["IsFilePrinting"]()) ? false : true;
 
+            if (window["AscDesktopEditor"] && !isLocalUse)
+            {
+                if ((undefined !== window["AscDesktopEditor"]["CryptoMode"]) && (0 < window["AscDesktopEditor"]["CryptoMode"]))
+                    isLocalUse = true;
+            }
+
 			if (this.BrushType != MetaBrushType.Texture)
 			{
 				this.Memory.WriteByte(CommandType.ctBrushType);
@@ -1603,6 +1609,12 @@
 			var isLocalUse = true;
 			if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsFilePrinting"])
 				isLocalUse = ((!window["AscDesktopEditor"]["IsLocalFile"]()) && window["AscDesktopEditor"]["IsFilePrinting"]()) ? false : true;
+
+			if (window["AscDesktopEditor"] && !isLocalUse)
+			{
+				if ((undefined !== window["AscDesktopEditor"]["CryptoMode"]) && (0 < window["AscDesktopEditor"]["CryptoMode"]))
+					isLocalUse = true;
+			}
 
 			if (!window.editor)
 			{

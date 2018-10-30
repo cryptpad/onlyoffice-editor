@@ -2451,7 +2451,7 @@ CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
         var PageNum = LastPara.PageNum;
 
         NewParagraph.Reset(X0, Y0, XLimit, YLimit, PageNum);
-        var RecalcResult = NewParagraph.Recalculate_Page(PageNum);
+        var RecalcResult = NewParagraph.Recalculate_Page(0);
 
         if (!(RecalcResult & recalcresult_NextElement))
         {
@@ -6644,8 +6644,7 @@ CDocumentContent.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum)
     {
         var Item = this.Content[InlineElements[Pos + 1]];
 
-		var PageBounds = Item.GetPageBounds(0);
-		if (Y < PageBounds.Top)
+		if (Item.GetPagesCount() <= 0 || Y < Item.GetPageBounds(0).Top)
 			return InlineElements[Pos];
 
         if (Item.GetPagesCount() > 1)
@@ -7830,7 +7829,7 @@ CDocumentContent.prototype.SetContentPosition = function(DocPos, Depth, Flag)
 CDocumentContent.prototype.private_GetElementPageIndex = function(ElementPos, PageIndex, ColumnIndex, ColumnsCount)
 {
     var Element = this.Content[ElementPos];
-    if (!Element)
+    if (!Element || Element.GetPagesCount() <= 0)
         return 0;
 
     var StartPage   = Element.Get_StartPage_Relative();

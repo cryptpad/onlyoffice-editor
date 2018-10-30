@@ -1056,37 +1056,47 @@ CTableCell.prototype =
         }
 
         // Margins
-        if ( undefined === OtherPr.TableCellMar )
-            this.Set_Margins( undefined );
+        if (!OtherPr.TableCellMar)
+		{
+			this.Set_Margins(undefined);
+		}
         else
         {
-            var Margins_new = ( null === OtherPr.TableCellMar ? null :
-            {
-                Top :
-                {
-                    W    : OtherPr.TableCellMar.Top.W,
-                    Type : OtherPr.TableCellMar.Top.Type
-                },
-                Left :
-                {
-                    W    : OtherPr.TableCellMar.Left.W,
-                    Type : OtherPr.TableCellMar.Left.Type
-                },
+        	var oMarginsNew = {};
 
-                Bottom :
-                {
-                    W    : OtherPr.TableCellMar.Bottom.W,
-                    Type : OtherPr.TableCellMar.Bottom.Type
-                },
+        	if (OtherPr.TableCellMar.Top)
+			{
+				oMarginsNew.Top = {
+					W    : OtherPr.TableCellMar.Top.W,
+					Type : OtherPr.TableCellMar.Top.Type
+				};
+			}
 
-                Right :
-                {
-                    W    : OtherPr.TableCellMar.Right.W,
-                    Type : OtherPr.TableCellMar.Right.Type
-                }
-            } );
+			if (OtherPr.TableCellMar.Left)
+			{
+				oMarginsNew.Left = {
+					W    : OtherPr.TableCellMar.Left.W,
+					Type : OtherPr.TableCellMar.Left.Type
+				};
+			}
 
-            this.Set_Margins( Margins_new, -1 );
+			if (OtherPr.TableCellMar.Bottom)
+			{
+				oMarginsNew.Bottom = {
+					W    : OtherPr.TableCellMar.Bottom.W,
+					Type : OtherPr.TableCellMar.Bottom.Type
+				};
+			}
+
+			if (OtherPr.TableCellMar.Right)
+			{
+				oMarginsNew.Right = {
+					W    : OtherPr.TableCellMar.Right.W,
+					Type : OtherPr.TableCellMar.Right.Type
+				};
+			}
+
+            this.Set_Margins(oMarginsNew, -1);
         }
 
         // W
@@ -1205,14 +1215,29 @@ CTableCell.prototype =
 			{
 				bNeedChange = true;
 
-				Margins_new.Top.W       = Margin.Top.W;
-				Margins_new.Top.Type    = Margin.Top.Type;
-				Margins_new.Right.W     = Margin.Right.W;
-				Margins_new.Right.Type  = Margin.Right.Type;
-				Margins_new.Bottom.W    = Margin.Bottom.W;
-				Margins_new.Bottom.Type = Margin.Bottom.Type;
-				Margins_new.Left.W      = Margin.Left.W;
-				Margins_new.Left.Type   = Margin.Left.Type;
+				if (Margin.Top)
+				{
+					Margins_new.Top.W    = Margin.Top.W;
+					Margins_new.Top.Type = Margin.Top.Type;
+				}
+
+				if (Margin.Right)
+				{
+					Margins_new.Right.W    = Margin.Right.W;
+					Margins_new.Right.Type = Margin.Right.Type;
+				}
+
+				if (Margin.Bottom)
+				{
+					Margins_new.Bottom.W    = Margin.Bottom.W;
+					Margins_new.Bottom.Type = Margin.Bottom.Type;
+				}
+
+				if (Margin.Left)
+				{
+					Margins_new.Left.W    = Margin.Left.W;
+					Margins_new.Left.Type = Margin.Left.Type;
+				}
 
 				break;
 			}

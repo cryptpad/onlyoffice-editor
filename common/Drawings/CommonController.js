@@ -9156,9 +9156,7 @@ DrawingObjectsController.prototype =
         }
         else
         {
-            History.Create_NewPoint(AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
-            this.setGraphicObjectLayerCallBack(layerType);
-            this.startRecalculate();
+            this.checkSelectedObjectsAndCallback(this.setGraphicObjectLayerCallBack, [layerType], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
         }
        // this.checkSelectedObjectsAndCallback(this.setGraphicObjectLayerCallBack, [layerType]);
         //oAscDrawingLayerType
@@ -10880,23 +10878,23 @@ function CollectSettingsFromChart(oChartSpace)
         var oChart = oPlotArea.charts[0];
         oRet.push(CollectDLbls(oChart.dLbls));
         if(oChart.getObjectType() === AscDFH.historyitem_type_PieChart || oChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-            oRet.push(CollectSettingsSpPr(oChart.series[0].dPt[0] && oChart.series[0].dPt[0].spPr));
+            oRet.push(CollectSettingsSpPr(oChart.series[0] && oChart.series[0].dPt[0] && oChart.series[0].dPt[0].spPr));
         }
         else{
-            oRet.push(CollectSettingsSpPr(oChart.series[0].spPr));
+            oRet.push(CollectSettingsSpPr(oChart.series[0] && oChart.series[0].spPr));
         }
 
         if(oChart.getObjectType() === AscDFH.historyitem_type_PieChart || oChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-            if(oChart.series[0].dLbls && oChart.series[0].dLbls.dLbl[0]){
+            if(oChart.series[0] && oChart.series[0].dLbls && oChart.series[0].dLbls.dLbl[0]){
                 oRet.push(CollectDLbls(oChart.series[0].dLbls && oChart.series[0].dLbls.dLbl[0] && oChart.series[0].dLbls.dLbl[0]));
             }
             else{
-                oRet.push(CollectDLbls(oChart.series[0].dLbls));
+                oRet.push(CollectDLbls(oChart.series[0] && oChart.series[0].dLbls));
             }
 
         }
         else{
-            oRet.push(CollectDLbls(oChart.series[0].dLbls));
+            oRet.push(CollectDLbls(oChart.series[0] && oChart.series[0].dLbls));
         }
 
 
@@ -10937,7 +10935,7 @@ function CollectSettingsFromChart(oChartSpace)
         oRet.push(0);
     }
     oRet.push(CollectMarker(oChart.marker));
-    oRet.push(CollectMarker(oChart.series[0].marker));
+    oRet.push(CollectMarker(oChart.series[0] && oChart.series[0].marker));
     oRet.push(CollectSettingsSpPr(oChart.hiLowLines));
     if(oChart.upDownBars){
         oRet.push([CollectSettingsSpPr(oChart.upDownBars.downBars), oChart.upDownBars.gapWidth, CollectSettingsSpPr(oChart.upDownBars.upBars)]);

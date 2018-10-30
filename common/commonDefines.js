@@ -115,6 +115,7 @@
 			KeyExpire             : -21,
 			UserCountExceed       : -22,
 			AccessDeny            : -23,
+			LoadingScriptError    : -24,
 			EditingError          :	-25,
 
 			SplitCellMaxRows     : -30,
@@ -1484,6 +1485,7 @@
 	prot['KeyExpire']                        = prot.KeyExpire;
 	prot['UserCountExceed']                  = prot.UserCountExceed;
 	prot['AccessDeny']                       = prot.AccessDeny;
+	prot['LoadingScriptError']               = prot.LoadingScriptError;
 	prot['EditingError']                     = prot.EditingError;
 	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
 	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
