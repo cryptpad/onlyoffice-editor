@@ -92,8 +92,6 @@ var c_oAscError = Asc.c_oAscError;
 	};
 	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url)
 	{
-		var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](url);
-		
 		var ws = this.wb.getWorksheet();
 		if (ws) 
 		{
