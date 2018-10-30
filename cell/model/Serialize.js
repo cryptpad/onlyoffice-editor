@@ -7464,7 +7464,7 @@
             var oThis = this;
             var oSheetView = null;
 
-            if (c_oSerWorksheetsTypes.SheetView === type) {
+            if (c_oSerWorksheetsTypes.SheetView === type && 0 == aSheetViews.length) {
                 oSheetView = new AscCommonExcel.asc_CSheetViewSettings();
                 res = this.bcr.Read1(length, function (t, l) {
                     return oThis.ReadSheetView(t, l, oSheetView);
