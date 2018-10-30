@@ -2067,7 +2067,7 @@ background-repeat: no-repeat;\
 				UserId      : this.CoAuthoringApi.getUserConnectionId(),
 				UserShortId : this.DocInfo.get_UserId(),
 				CursorInfo  : CursorInfo
-			});
+			}, undefined, true);
 		}
 	};
 	asc_docs_api.prototype._autoSaveInner = function () {

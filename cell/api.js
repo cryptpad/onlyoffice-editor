@@ -1381,7 +1381,7 @@ var editor;
     };
 	  };
 
-  spreadsheet_api.prototype._onSaveChanges = function(recalcIndexColumns, recalcIndexRows) {
+  spreadsheet_api.prototype._onSaveChanges = function(recalcIndexColumns, recalcIndexRows, isAfterAskSave) {
     if (this.isDocumentLoadComplete) {
       var arrChanges = this.wbModel.SerializeHistory();
       var deleteIndex = History.GetDeleteIndex();
@@ -1397,7 +1397,7 @@ var editor;
         this.CoAuthoringApi.saveChanges(arrChanges, deleteIndex, excelAdditionalInfo, this.canUnlockDocument2, bCollaborative);
         History.CanNotAddChanges = true;
       } else {
-        this.CoAuthoringApi.unLockDocument(true, this.canUnlockDocument2, null, bCollaborative);
+        this.CoAuthoringApi.unLockDocument(!!isAfterAskSave, this.canUnlockDocument2, null, bCollaborative);
       }
       this.canUnlockDocument2 = false;
     }
@@ -1704,7 +1704,7 @@ var editor;
 			}
 		};
 		// Пересылаем свои изменения
-		this.collaborativeEditing.sendChanges(this.IsUserSave);
+		this.collaborativeEditing.sendChanges(this.IsUserSave, true);
 	};
 
   // Залочена ли панель для закрепления
