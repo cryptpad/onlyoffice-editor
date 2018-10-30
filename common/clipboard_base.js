@@ -1066,6 +1066,9 @@
 		{
 			if(!this.Api || !this.Api.asc_specialPasteShowButton || this.doNotShowButton)
 			{
+				if(this.doNotShowButton) {
+					this.showButtonIdParagraph = null;
+				}
 				return;
 			}
 
