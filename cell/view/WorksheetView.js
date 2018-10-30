@@ -15754,10 +15754,9 @@
 		editor._setOptions(options);
 		editor.textRender.measureString(fragments, flags, editor._getContentWidth());
 		editor._renderText();
-		
-		//TODO из меню сразу присылать относительные кординаты?!
-		var fieldCoord = sectionElem.getBoundingClientRect();
-		cursorPos = editor._findCursorPosition({x: x - fieldCoord.left, y: y - fieldCoord.top});
+
+		//при клике на одну из секций определяем стартовую позицию
+		cursorPos = editor._findCursorPosition({x: x, y: y});
 
 		options.cursorPos = cursorPos;
 		editor.open(options);
@@ -15766,7 +15765,7 @@
 
 	CHeaderFooterEditor.prototype.destroy = function (bSave) {
 		if(bSave /*&& bChanged*/) {
-
+			this.saveToModel();
 		}
 
 		//возвращаем cellEditor у wb
@@ -15778,6 +15777,14 @@
 		}
 
 		delete window.Asc.g_header_footer_editor;
+	};
+
+	CHeaderFooterEditor.prototype.saveToModel = function () {
+		for(var i = 0; i < this.sections.length; i++) {
+			for(var j = 0; j < this.sections[i].length; j++) {
+				
+			}
+		}
 	};
 
 	CHeaderFooterEditor.prototype.setFontName = function(fontName) {
