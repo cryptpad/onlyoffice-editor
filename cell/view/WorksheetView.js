@@ -15456,7 +15456,7 @@
 
 
 	function convertFieldToMenuText(val) {
-		var textField;
+		var textField = null;
 		switch (val){
 			case asc.c_oAscHeaderFooterField.pageNumber: {
 				textField = "&[Page]";
@@ -15471,7 +15471,7 @@
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.time: {
-				textField += "&[Time]";
+				textField = "&[Time]";
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.sheetName: {
