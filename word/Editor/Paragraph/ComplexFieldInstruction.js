@@ -70,7 +70,6 @@ window['AscCommonWord'].fieldtype_HYPERLINK  = fieldtype_HYPERLINK;
 window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
 
 
-var g_oWorksheet = null;
 /**
  * Базовый класс для инструкции сложного поля.
  * @constructor
@@ -106,20 +105,46 @@ CFieldInstructionBase.prototype.SetPr = function()
 function CFieldInstructionFORMULA()
 {
 	CFieldInstructionBase.call(this);
-	this.Parser = null;
+	this.ParseQueue = null;
+	this.Error = null;
 	this.Format = null;
 }
 
 CFieldInstructionFORMULA.prototype = Object.create(CFieldInstructionBase.prototype);
 CFieldInstructionFORMULA.prototype.constructor = CFieldInstructionFORMULA;
 CFieldInstructionFORMULA.prototype.Type = fieldtype_FORMULA;
-CFieldInstructionFORMULA.prototype.SetParser = function(oParser)
-{
-	this.Parser = oParser;
-};
 CFieldInstructionFORMULA.prototype.SetFormat = function(oFormat)
 {
     this.Format = oFormat;
+};
+CFieldInstructionFORMULA.prototype.SetParseQueue = function(oParseQueue)
+{
+    this.ParseQueue = oParseQueue;
+};
+CFieldInstructionFORMULA.prototype.SetError = function(oError)
+{
+    this.Error = oError;
+};
+CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
+{
+	if(this.Error){
+		return AscCommon.translateManager.getValue(this.Error.Type) + ' ' + this.Error.Data;
+	}
+	if(this.ParseQueue){
+		var oCalcError = this.ParseQueue.calculate(oLogicDocument);
+		if(oCalcError){
+			return AscCommon.translateManager.getValue(oCalcError.Type) + ' ' + oCalcError.Data;
+		}
+		if(AscFormat.isRealNumber(this.ParseQueue.result)){
+			if(this.Format){
+				return this.Format.formatToChart(this.ParseQueue.result);
+			}
+			else{
+				return '' + this.ParseQueue.result;
+			}
+		}
+	}
+	return '';
 };
 
 /**
@@ -724,35 +749,8 @@ CFieldInstructionParser.prototype.private_ReadPAGE = function()
 			this.private_ReadGeneralFormatSwitch();
 	}
 };
-CFieldInstructionParser.prototype.private_GetFormulaString = function(sFormula)
-{
-		var sResult = sFormula;
-		sResult = this.private_CheckFunctionBraces(sResult, 'FALSE');
-		sResult = this.private_CheckFunctionBraces(sResult, 'TRUE');
-		return sResult;
-};
-CFieldInstructionParser.prototype.private_CheckFunctionBraces = function(sFormula, sFunctionName)
-{
-		var sRet = sFormula;
-		var nIndex = sFormula.indexOf(sFunctionName);
-
-		if(nIndex > -1)
-		{
-			if(sFormula[nIndex + sFunctionName.length] !== '(')
-			{
-				sRet = sFormula.slice(0, nIndex + sFunctionName.length) + '()' + sFormula.slice(nIndex + sFunctionName.length, sFormula.length);
-			}
-		}
-		return sRet;
-};
 CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 {
-	this.private_ReadREF();
-	return;
-	if(null === g_oWorksheet)
-	{
-		g_oWorksheet = new AscCommonExcel.Worksheet(new AscCommonExcel.Workbook(null, null), 0, '');
-	}
 	this.Result = new CFieldInstructionFORMULA();
     var sFormula = this.Buffer.slice(1, this.Buffer.length);
     var sFormat = null;
@@ -785,17 +783,18 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
             bNumFormat = false;
 		}
 	}
-    sFormula = this.private_GetFormulaString(sFormula);
-	var oFormulaParser = new AscCommonExcel.parserFormula(sFormula, null, g_oWorksheet);
-	var oParseResult = new AscCommonExcel.ParseResult();
-	oFormulaParser.parse(null, '.', oParseResult);
-	this.Result.SetParser(oFormulaParser);
+	sFormula = sFormula.toUpperCase();
+	var oParser = new AscCommonWord.CFormulaParser();
+	oParser.parse(sFormula);
 	var oFormat;
 	if(null !== sFormat)
 	{
         oFormat = AscCommon.oNumFormatCache.get(sFormat);
         this.Result.SetFormat(oFormat);
 	}
+	this.Result.SetParseQueue(oParser.parseQueue);
+	this.Result.SetError(oParser.error);
+
 };
 CFieldInstructionParser.prototype.private_ReadPAGEREF = function()
 {

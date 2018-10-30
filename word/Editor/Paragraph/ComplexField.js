@@ -409,7 +409,8 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 };
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
-
+	var sText = "";
+	this.LogicDocument.AddText(sText);
 };
 CComplexField.prototype.private_UpdatePAGE = function()
 {
