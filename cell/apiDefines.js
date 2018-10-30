@@ -402,6 +402,17 @@ var c_oAscPopUpSelectorType = {
       lineBreak: 7
   };
 
+  var c_oAscPageHFType = {
+      firstHeader: 0,
+      oddHeader: 1,
+      evenHeader: 2,
+      firstFooter: 3,
+      oddFooter: 4,
+      evenFooter: 5
+  };
+
+
+
   var c_kMaxPrintPages = 1500;
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -620,5 +631,13 @@ var c_oAscPopUpSelectorType = {
   prot['date'] = prot.date;
   prot['time'] = prot.time;
   prot['lineBreak'] = prot.lineBreak;
+  window['Asc']['c_oAscPageHFType'] = window['Asc'].c_oAscPageHFType = c_oAscPageHFType;
+  prot = c_oAscHeaderFooterField;
+  prot['firstHeader'] = prot.firstHeader;
+  prot['oddHeader'] = prot.oddHeader;
+  prot['evenHeader'] = prot.evenHeader;
+  prot['firstFooter'] = prot.firstFooter;
+  prot['oddFooter'] = prot.oddFooter;
+  prot['evenFooter'] = prot.evenFooter;
 
 })(window);

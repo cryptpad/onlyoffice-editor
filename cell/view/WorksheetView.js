@@ -15626,27 +15626,27 @@
 		//TODO можно у класса CHeaderFooter реализовать данную функцию
 		if(ws.model.headerFooter) {
 			switch (type){
-				case c_nPageHFType.firstHeader: {
+				case asc.c_oAscPageHFType.firstHeader: {
 					res = ws.model.headerFooter.firstHeader;
 					break;
 				}
-				case c_nPageHFType.oddHeader: {
+				case asc.c_oAscPageHFType.oddHeader: {
 					res = ws.model.headerFooter.oddHeader;
 					break;
 				}
-				case c_nPageHFType.evenHeader: {
+				case asc.c_oAscPageHFType.evenHeader: {
 					res = ws.model.headerFooter.evenHeader;
 					break;
 				}
-				case c_nPageHFType.firstFooter: {
+				case asc.c_oAscPageHFType.firstFooter: {
 					res = ws.model.headerFooter.firstFooter;
 					break;
 				}
-				case c_nPageHFType.oddFooter: {
+				case asc.c_oAscPageHFType.oddFooter: {
 					res = ws.model.headerFooter.oddFooter;
 					break;
 				}
-				case c_nPageHFType.evenFooter: {
+				case asc.c_oAscPageHFType.evenFooter: {
 					res = ws.model.headerFooter.evenFooter;
 					break;
 				}
@@ -15871,5 +15871,6 @@
 	prot["setSuperscript"] = prot.setSuperscript;
 	prot["setTextColor"] = prot.setTextColor;
 	prot["addField"] = prot.addField;
+	prot["switchHeaderFooterType"] = prot.switchHeaderFooterType;
 
 })(window);
