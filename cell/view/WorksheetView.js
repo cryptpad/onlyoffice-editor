@@ -3715,8 +3715,7 @@
 		if (isActive) {
 			var cell = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).activeCell;
 			var fs = this.model.getMergedByCell(cell.row, cell.col);
-			fs = range.intersectionSimple(
-				fs ? fs : new asc_Range(cell.col, cell.row, cell.col, cell.row));
+			fs = oIntersection.intersectionSimple(fs || new asc_Range(cell.col, cell.row, cell.col, cell.row));
 			if (fs) {
 			    var top = this._getRowTop(fs.r1);
 			    var left = this._getColLeft(fs.c1);
