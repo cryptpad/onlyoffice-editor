@@ -240,30 +240,6 @@ Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
     if (this.Lines[Line].Info & paralineinfo_BreakPage || (this.Lines[Line].Info & paralineinfo_Empty &&  this.Lines[Line].Info & paralineinfo_End))
         return  -1;
 
-    // Если у нас отрезок, в котором произошли изменения является отрезком с нумерацией, тогда надо запустить
-    // обычный пересчет.
-    if ( null !== this.Numbering.Item && ( Line < this.Numbering.Line || ( Line === this.Numbering.Line && Range <= this.Numbering.Range ) ))
-    {
-        // TODO: Сделать проверку на само изменение, переместилась ли нумерация
-        var CompiledParaPr = this.Get_CompiledPr2(false).ParaPr;
-        if(this.Numbering.Type === para_Numbering)
-        {
-            var NumPr = CompiledParaPr.NumPr;
-            if(( undefined !== NumPr && undefined !== NumPr.NumId && 0 !== NumPr.NumId && "0" !== NumPr.NumId ))
-            {
-                return -1;
-            }
-        }
-        else
-        {
-            var Bullet = this.Numbering.Bullet;
-            if ( Bullet &&  null !== Bullet.m_oTextPr && null !== Bullet.m_nNum && null != Bullet.m_sString && Bullet.m_sString.length !== 0)
-            {
-                return -1;
-            }
-        }
-    }
-
     if ( 0 === Line && 0 === Range && undefined !== this.Get_SectionPr() )
     {
         return -1;
@@ -280,67 +256,92 @@ Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
     // вариант, при котором предыдущий или/и следующий отрезки - пустые, т.е. там нет ни одного текстового элемента
     // тогда мы начинаем проверять с отрезка, в котором есть хоть что-то.
 
-    var PrevLine  = Line;
-    var PrevRange = Range;
+	var PrevLine  = Line;
+	var PrevRange = Range;
 
+	while (PrevLine >= 0)
+	{
+		PrevRange--;
+
+		if (PrevRange < 0)
+		{
+			PrevLine--;
+
+			if (PrevLine < 0)
+				break;
+
+			PrevRange = this.Lines[PrevLine].Ranges.length - 1;
+		}
+
+		if (true === this.Is_EmptyRange(PrevLine, PrevRange))
+			continue;
+		else
+			break;
+	}
+
+	if (PrevLine < 0)
+	{
+		PrevLine  = Line;
+		PrevRange = Range;
+	}
+
+	var NextLine  = Line;
+	var NextRange = Range;
+
+	var LinesCount = this.Lines.length;
+
+	while (NextLine <= LinesCount - 1)
+	{
+		NextRange++;
+
+		if (NextRange > this.Lines[NextLine].Ranges.length - 1)
+		{
+			NextLine++;
+
+			if (NextLine > LinesCount - 1)
+				break;
+
+			NextRange = 0;
+		}
+
+		if (true === this.Is_EmptyRange(NextLine, NextRange))
+			continue;
+		else
+			break;
+	}
+
+	if (NextLine > LinesCount - 1)
+	{
+		NextLine  = Line;
+		NextRange = Range;
+	}
+
+	// Если у нас отрезок, в котором произошли изменения является отрезком с нумерацией, тогда надо запустить
+	// обычный пересчет.
+	if (null !== this.Numbering.Item && (PrevLine < this.Numbering.Line || (PrevLine === this.Numbering.Line && PrevRange <= this.Numbering.Range)))
+	{
+		// TODO: Сделать проверку на само изменение, переместилась ли нумерация
+		var CompiledParaPr = this.Get_CompiledPr2(false).ParaPr;
+		if (this.Numbering.Type === para_Numbering)
+		{
+			var NumPr = CompiledParaPr.NumPr;
+			if (undefined !== NumPr && undefined !== NumPr.NumId && 0 !== NumPr.NumId && "0" !== NumPr.NumId)
+			{
+				return -1;
+			}
+		}
+		else
+		{
+			var Bullet = this.Numbering.Bullet;
+			if (Bullet && null !== Bullet.m_oTextPr && null !== Bullet.m_nNum && null != Bullet.m_sString && Bullet.m_sString.length !== 0)
+			{
+				return -1;
+			}
+		}
+	}
+
+	// Если мы дошли до данного места, значит быстрый пересчет отрезка разрешен
 	this.m_oPRSW.SetFast(true);
-
-    while ( PrevLine >= 0 )
-    {
-        PrevRange--;
-
-        if ( PrevRange < 0 )
-        {
-            PrevLine--;
-
-            if ( PrevLine < 0 )
-                break;
-
-            PrevRange = this.Lines[PrevLine].Ranges.length - 1;
-        }
-
-        if ( true === this.Is_EmptyRange( PrevLine, PrevRange ) )
-            continue;
-        else
-            break;
-    }
-
-    if ( PrevLine < 0 )
-    {
-        PrevLine  = Line;
-        PrevRange = Range;
-    }
-
-    var NextLine  = Line;
-    var NextRange = Range;
-
-    var LinesCount = this.Lines.length;
-
-    while ( NextLine <= LinesCount - 1 )
-    {
-        NextRange++;
-
-        if ( NextRange > this.Lines[NextLine].Ranges.length - 1 )
-        {
-            NextLine++
-
-            if ( NextLine > LinesCount - 1 )
-                break;
-
-            NextRange = 0;
-        }
-
-        if ( true === this.Is_EmptyRange( NextLine, NextRange ) )
-            continue;
-        else
-            break;
-    }
-
-    if ( NextLine > LinesCount - 1 )
-    {
-        NextLine  = Line;
-        NextRange = Range;
-    }
 
     var CurLine  = PrevLine;
     var CurRange = PrevRange;
@@ -660,13 +661,15 @@ Paragraph.prototype.private_RecalculatePage            = function(CurPage, bFirs
         }
         else if (RecalcResult & recalcresult_PrevLine)
         {
-            if (PRS.Line < this.Pages[CurPage].StartLine)
-                PRS.Restore_RunRecalcInfo();
-            else
-            {
-                RecalcResult = this.private_RecalculatePage(CurPage, false);
-                break;
-            }
+			PRS.Restore_RunRecalcInfo();
+
+            // if (PRS.Line < this.Pages[CurPage].StartLine)
+            //     PRS.Restore_RunRecalcInfo();
+            // else
+            // {
+            //     RecalcResult = this.private_RecalculatePage(CurPage, false);
+            //     break;
+            // }
         }
         else if (RecalcResult & recalcresult_CurLine)
         {
