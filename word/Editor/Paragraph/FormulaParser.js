@@ -986,17 +986,18 @@
         this.parseQueue = new CParseQueue();
         var oCurToken;
         var aStack = [], aQueue = [];
-        var ret = [];
+        var oLastFunction;
+        var aOperandCountStack = [];
+        var oLastToken;
         while (oCurToken = this.parseCurrent()){
             if(oCurToken instanceof CNumberNode || oCurToken instanceof CCellRangeNode){
                 aQueue.push(oCurToken);
-                continue;
-            }
-            if(oCurToken.isFunction()){
+            } else if(oCurToken.isFunction()){
                 aStack.push(oCurToken);
-                continue;
-            }
-            if(oCurToken instanceof CListSeparatorNode){
+            } else if(oCurToken instanceof CListSeparatorNode){
+                if(aOperandCountStack.length > 0){
+                    ++aOperandCountStack[aOperandCountStack.length-1];
+                }
                 while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
                    aQueue.push(aStack.pop());
                 }
@@ -1004,16 +1005,20 @@
                     this.setError("Error in formula", this.formula[this.pos]);
                     return;
                 }
-                continue;
-            }
-            if(oCurToken instanceof CLeftParenOperatorNode){
+            } else if(oCurToken instanceof CLeftParenOperatorNode){
+                if(oLastToken && oLastToken.isFunction()){
+                    aOperandCountStack.push(0);
+                }
                 aStack.push(oCurToken);
-                continue;
-            }
-            if(oCurToken instanceof CRightParenOperatorNode){
+            } else if(oCurToken instanceof CRightParenOperatorNode){
+                if(aOperandCountStack.length > 0 && aStack[0] && aStack[0].isFunction()){
+                    ++aOperandCountStack[aOperandCountStack.length-1];
+                    aStack[0].argumentsCount = aOperandCountStack.pop();
+                }
                 while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
                     aQueue.push(aStack.pop());
                 }
+
                 if(aStack.length === 0){
                     this.setError("Error in formula", this.formula[this.pos]);
                     return;
@@ -1022,15 +1027,13 @@
                 if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
                     aQueue.push(aStack.pop());
                 }
-                continue;
-            }
-            if(oCurToken.isOperator()){
+            } else if(oCurToken.isOperator()){
                 while(aStack.length > 0 && (aStack[aStack.length-1].isFunction() || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
                     aQueue.push(aStack.pop());
                 }
                 aStack.push(oCurToken);
-                continue;
             }
+            oLastToken = oCurToken;
         }
         while (aStack.length > 0){
             oCurToken = aStack.pop();
