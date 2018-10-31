@@ -9845,16 +9845,16 @@ function (window, undefined) {
 						return A[i][j];
 					} else if (A[i][j] instanceof cNumber) {
 						tA.push(A[i][j].getValue());
-					} else if (A[i][j] instanceof cBool) {
+					} /*else if (A[i][j] instanceof cBool) {
 						tA.push(A[i][j].tocNumber().getValue());
-					}
+					}*/
 				}
 			}
 
 			tA.sort(fSortAscending);
 
 			if (k.getValue() > tA.length || k.getValue() <= 0) {
-				return new cError(cErrorType.not_available);
+				return new cError(cErrorType.not_numeric);
 			} else {
 				return new cNumber(tA[k.getValue() - 1]);
 			}

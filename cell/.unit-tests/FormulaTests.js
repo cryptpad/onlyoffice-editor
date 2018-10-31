@@ -7606,6 +7606,22 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 5 );
 
+		oParser = new parserFormula( "SMALL({1,TRUE,FALSE,3,4,5,32,5,4,3},9)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
+
+		oParser = new parserFormula( "SMALL({1,TRUE,FALSE,3,4,5,32,5,4,3},8)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 32 );
+
+		oParser = new parserFormula( "SMALL({1,TRUE,10,3,4,5,32,5,4,3},10)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
+
+		oParser = new parserFormula( "SMALL({1,TRUE,10,3,4,5,32,5,4,3},1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
+
 		//TODO нужна другая функция для тестирования
         //testArrayFormula2("SMALL", 2, 2)
     } );
