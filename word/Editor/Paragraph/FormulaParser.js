@@ -85,9 +85,11 @@
 
     function CFormulaNode() {
         this.document = null;
-        this.children = [];
+        this.result = null;
+        this.error = null;
+       // aArgs = [];
     }
-    CFormulaNode.prototype.calculate = function (oResult) {
+    CFormulaNode.prototype.calculate = function (aArgs) {
     };
     CFormulaNode.prototype.isFunction = function () {
         return false;
@@ -95,6 +97,14 @@
     CFormulaNode.prototype.isOperator = function () {
         return false;
     };
+    CFormulaNode.prototype.setError = function (Type, Data) {
+        this.error = new CError();
+        this.error.Type = Type;
+        this.error.Data = Data;
+    };
+
+
+    CFormulaNode.prototype.argumentsCount = 0;
 
 
     function CNumberNode() {
@@ -116,6 +126,7 @@
 
     COperatorNode.prototype = Object.create(CFormulaNode.prototype);
     COperatorNode.prototype.precedence = 0;
+    COperatorNode.prototype.argumentsCount = 2;
     COperatorNode.prototype.isOperator = function(){
         return true;
     };
@@ -126,17 +137,13 @@
 
     CUnaryMinusOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CUnaryMinusOperatorNode.prototype.precedence = 13;
-    CUnaryMinusOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 1){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CUnaryMinusOperatorNode.prototype.argumentsCount = 1;
+    CUnaryMinusOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 1){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-
-        this.children[0].calculate(oResult);
-        if(!oResult.isError){
-            oResult.value = -oResult.value;
-        }
+        this.result = -aArgs[0];
     };
 
     function CPowersAndRootsOperatorNode(){
@@ -145,21 +152,12 @@
 
     CPowersAndRootsOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CPowersAndRootsOperatorNode.prototype.precedence = 12;
-    CPowersAndRootsOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CPowersAndRootsOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-            if(!oResult.isError){
-                oResult.value = Math.pow(a, oResult.value);
-            }
-        }
+        this.result = Math.pow(aArgs[0], aArgs[1]);
     };
     function CMultiplicationOperatorNode(){
         COperatorNode.call(this);
@@ -167,21 +165,12 @@
 
     CMultiplicationOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CMultiplicationOperatorNode.prototype.precedence = 11;
-    CMultiplicationOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CMultiplicationOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-            if(!oResult.isError){
-                oResult.value = a * oResult.value;
-            }
-        }
+        this.result = aArgs[0] * aArgs[1];
     };
 
     function CDivisionOperatorNode(){
@@ -190,27 +179,16 @@
 
     CDivisionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CDivisionOperatorNode.prototype.precedence = 10;
-    CDivisionOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CDivisionOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = a / oResult.value;
-            }
+        if(AscFormat.fApproxEqual(0.0, aArgs[1])){
+            this.setError("Error in Formula", "Cannot divide by zero");
+            return;
         }
+        this.result = aArgs[0]/aArgs[1];
     };
 
     function CPercentageOperatorNode(){
@@ -219,16 +197,12 @@
 
     CPercentageOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CPercentageOperatorNode.prototype.precedence = 8;
-    CPercentageOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 1){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CPercentageOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 1){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        if(!oResult.isError){
-            oResult.value /= 100.0;
-        }
+        this.result = aArgs[0] / 100.0;
     };
 
 
@@ -238,27 +212,12 @@
 
     CAdditionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CAdditionOperatorNode.prototype.precedence = 7;
-    CAdditionOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CAdditionOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = a + oResult.value;
-            }
-        }
+        this.result = aArgs[0] + aArgs[1];
     };
 
     function CSubtractionOperatorNode(){
@@ -267,27 +226,12 @@
 
     CSubtractionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CSubtractionOperatorNode.prototype.precedence = 7;
-    CSubtractionOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CSubtractionOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = a - oResult.value;
-            }
-        }
+        this.result = aArgs[0] - aArgs[1];
     };
     function CSubtractionOperatorNode(){
         COperatorNode.call(this);
@@ -299,27 +243,13 @@
 
     CEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CEqualToOperatorNode.prototype.precedence = 6;
-    CEqualToOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CEqualToOperatorNode.prototype.calculate = function (aArgs) {
+
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = (a === oResult.value) ? 1.0 : 0.0;
-            }
-        }
+        this.result = AscFormat.fApproxEqual(aArgs[0], aArgs[1]) ? 1.0 : 0.0;
     };
 
     function CNotEqualToOperatorNode(){
@@ -328,27 +258,12 @@
 
     CNotEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CNotEqualToOperatorNode.prototype.precedence = 5;
-    CNotEqualToOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CNotEqualToOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = (a !== oResult.value) ? 1.0 : 0.0;
-            }
-        }
+        this.result = AscFormat.fApproxEqual(aArgs[0], aArgs[1]) ? 0.0 : 1.0;
     };
     function CLessThanOperatorNode(){
         COperatorNode.call(this);
@@ -356,27 +271,12 @@
 
     CLessThanOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CLessThanOperatorNode.prototype.precedence = 4;
-    CLessThanOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CLessThanOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = (a < oResult.value) ? 1.0 : 0.0;
-            }
-        }
+        this.result = (aArgs[0] < aArgs[1]) ? 1.0 : 0.0;
     };
     function CLessThanOrEqualToOperatorNode(){
         COperatorNode.call(this);
@@ -384,27 +284,12 @@
 
     CLessThanOrEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CLessThanOrEqualToOperatorNode.prototype.precedence = 3;
-    CLessThanOrEqualToOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CLessThanOrEqualToOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = (a <= oResult.value) ? 1.0 : 0.0;
-            }
-        }
+        this.result = (aArgs[0] <= aArgs[1]) ? 1.0 : 0.0;
     };
     function CGreaterThanOperatorNode(){
         COperatorNode.call(this);
@@ -412,27 +297,12 @@
 
     CGreaterThanOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CGreaterThanOperatorNode.prototype.precedence = 2;
-    CGreaterThanOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CGreaterThanOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = (a > oResult.value) ? 1.0 : 0.0;
-            }
-        }
+        this.result = (aArgs[0] > aArgs[1]) ? 1.0 : 0.0;
     };
     function CGreaterThanOrEqualOperatorNode(){
         COperatorNode.call(this);
@@ -440,27 +310,12 @@
 
     CGreaterThanOrEqualOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CGreaterThanOrEqualOperatorNode.prototype.precedence = 1;
-    CGreaterThanOrEqualOperatorNode.prototype.calculate = function (oResult) {
-        if(this.children.length != 2){
-            oResult.isError = true;
-            oResult.error = "Error in Formula";
+    CGreaterThanOrEqualOperatorNode.prototype.calculate = function (aArgs) {
+        if(aArgs.length != 2){
+            this.setError("Error in Formula", "Calculation Error");
             return;
         }
-        this.children[0].calculate(oResult);
-        var a;
-        if(!oResult.isError){
-            a = oResult.value;
-            this.children[1].calculate(oResult);
-
-            if(!oResult.isError){
-                if(AscFormat.fApproxEqual(0.0, oResult.value)){
-                    oResult.isError = true;
-                    oResult.error = "Error in Formula";
-                    return;
-                }
-                oResult.value = (a >= oResult.value) ? 1.0 : 0.0;
-            }
-        }
+        this.result = (aArgs[0] >= aArgs[1]) ? 1.0 : 0.0;
     };
 
 
@@ -471,7 +326,7 @@
 
     CLeftParenOperatorNode.prototype = Object.create(CFormulaNode.prototype);
     CLeftParenOperatorNode.prototype.precedence = 1;
-    CLeftParenOperatorNode.prototype.calculate = function (oResult) {
+    CLeftParenOperatorNode.prototype.calculate = function (aArgs) {
     };
 
     function CRightParenOperatorNode(){
@@ -480,7 +335,7 @@
 
     CRightParenOperatorNode.prototype = Object.create(CFormulaNode.prototype);
     CRightParenOperatorNode.prototype.precedence = 1;
-    CRightParenOperatorNode.prototype.calculate = function (oResult) {
+    CRightParenOperatorNode.prototype.calculate = function (aArgs) {
     };
 
     var oOperatorsMap = {};
@@ -533,13 +388,9 @@
     CFunctionNode.prototype.precedence = 14;
     CFunctionNode.prototype.minArgumentsCount = 0;
     CFunctionNode.prototype.maxArgumentsCount = 0;
-    CFunctionNode.prototype.calculate = function (oResult) {
-        if(oResult.bError){
-            return;
-        }
-        if(this.arguments.length < this.minArgumentsCount
-            || this.arguments.length > this.maxArgumentsCount){
-            oResult.bError = true;
+    CFunctionNode.prototype.calculate = function (aArgs) {
+        if(this.minArgumentsCount > aArgs.length || this.maxArgumentsCount < aArgs.length){
+            this.setError("Error in formula", "Arguments count");
         }
     };
     CFunctionNode.prototype.isFunction = function () {
@@ -553,22 +404,12 @@
     CABSFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CABSFunctionNode.prototype.minArgumentsCount = 1;
     CABSFunctionNode.prototype.maxArgumentsCount = 1;
-    CABSFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
-        if(oResult.bError){
+    CABSFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
             return;
         }
-        var oArg = this.arguments[0];
-        if(oArg instanceof CCellRangeNode){
-            if(oArg.isCell()){
-                oResult.value = Math.abs(oArg.getValList()[0]);
-                return;
-            }
-            else{
-                oResult.bError = true;
-                oResult.error = "Error in Formula";
-            }
-        }
+        this.result = Math.abs(aArgs[0]);
     };
 
     function CANDFunctionNode(){
@@ -577,8 +418,12 @@
     CANDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CANDFunctionNode.prototype.minArgumentsCount = 2;
     CANDFunctionNode.prototype.maxArgumentsCount = 2;
-    CANDFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CANDFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        this.result = (AscFormat.fApproxEqual(aArgs[0], 0.0) || AscFormat.fApproxEqual(aArgs[1], 0.0)) ? 0.0 : 1.0;
     };
 
     function CAVERAGEFunctionNode(){
@@ -587,8 +432,16 @@
     CAVERAGEFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CAVERAGEFunctionNode.prototype.minArgumentsCount = 2;
     CAVERAGEFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CAVERAGEFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CAVERAGEFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        var summ = 0.0;
+        for(var i = 0; i < aArgs.length; ++i){
+            summ += aArgs[i];
+        }
+        this.result = summ/aArgs.length;
     };
 
     function CCOUNTFunctionNode(){
@@ -597,8 +450,12 @@
     CCOUNTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CCOUNTFunctionNode.prototype.minArgumentsCount = 2;
     CCOUNTFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CCOUNTFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CCOUNTFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        this.result = aArgs.length;
     };
 
 
@@ -608,18 +465,26 @@
     CDEFINEDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CDEFINEDFunctionNode.prototype.minArgumentsCount = 2;
     CDEFINEDFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CDEFINEDFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CDEFINEDFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return 0.0;//TODO
     };
 
     function CFALSEFunctionNode(){
         CFunctionNode.call(this);
     }
     CFALSEFunctionNode.prototype = Object.create(CFunctionNode.prototype);
-    CFALSEFunctionNode.prototype.minArgumentsCount = 2;
-    CFALSEFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CFALSEFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CFALSEFunctionNode.prototype.minArgumentsCount = 0;
+    CFALSEFunctionNode.prototype.maxArgumentsCount = 0;
+    CFALSEFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return 0.0;
     };
 
     function CINTFunctionNode(){
@@ -628,8 +493,12 @@
     CINTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CINTFunctionNode.prototype.minArgumentsCount = 2;
     CINTFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CINTFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CINTFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return (aArgs[0] >> 0);
     };
     function CMAXFunctionNode(){
         CFunctionNode.call(this);
@@ -637,8 +506,12 @@
     CMAXFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CMAXFunctionNode.prototype.minArgumentsCount = 2;
     CMAXFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CMAXFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CMAXFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return Math.max.apply(Math, aArgs);
     };
 
     function CMINFunctionNode(){
@@ -647,8 +520,12 @@
     CMINFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CMINFunctionNode.prototype.minArgumentsCount = 2;
     CMINFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CMINFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CMINFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return Math.min.apply(Math, aArgs);
     };
 
     function CMODFunctionNode(){
@@ -656,19 +533,27 @@
     }
     CMODFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CMODFunctionNode.prototype.minArgumentsCount = 2;
-    CMODFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CMODFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CMODFunctionNode.prototype.maxArgumentsCount = 2;
+    CMODFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return aArgs[0] % aArgs[1];//TODO
     };
 
     function CNOTFunctionNode(){
         CFunctionNode.call(this);
     }
     CNOTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
-    CNOTFunctionNode.prototype.minArgumentsCount = 2;
-    CNOTFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CNOTFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CNOTFunctionNode.prototype.minArgumentsCount = 1;
+    CNOTFunctionNode.prototype.maxArgumentsCount = 1;
+    CNOTFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return AscFormat.fApproxEqual(aArgs[0], 0.0);
     };
 
     function CORFunctionNode(){
@@ -676,9 +561,13 @@
     }
     CORFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CORFunctionNode.prototype.minArgumentsCount = 2;
-    CORFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CORFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CORFunctionNode.prototype.maxArgumentsCount = 2;
+    CORFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return !AscFormat.fApproxEqual(aArgs[0], 0.0) || !AscFormat.fApproxEqual(aArgs[1], 0.0);
     };
 
     function CPRODUCTFunctionNode(){
@@ -687,8 +576,15 @@
     CPRODUCTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CPRODUCTFunctionNode.prototype.minArgumentsCount = 2;
     CPRODUCTFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CPRODUCTFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CPRODUCTFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        this.result = 1;
+        for(var i = 0; i < aArgs.length; ++i){
+            this.result *= aArgs[i];
+        }
     };
 
     function CROUNDFunctionNode(){
@@ -697,8 +593,12 @@
     CROUNDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CROUNDFunctionNode.prototype.minArgumentsCount = 2;
     CROUNDFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CROUNDFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CROUNDFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        return Math.round(aArgs[0]);
     };
 
 
@@ -706,10 +606,22 @@
         CFunctionNode.call(this);
     }
     CSIGNFunctionNode.prototype = Object.create(CFunctionNode.prototype);
-    CSIGNFunctionNode.prototype.minArgumentsCount = 2;
-    CSIGNFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CSIGNFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CSIGNFunctionNode.prototype.minArgumentsCount = 1;
+    CSIGNFunctionNode.prototype.maxArgumentsCount = 1;
+    CSIGNFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        if(aArgs[0] < 0.0){
+            this.result = -1.0;
+        }
+        else if(aArgs[1] > 0.0){
+            this.result = 1.0;
+        }
+        else{
+            this.result = 0.0;
+        }
     };
 
     function CSUMFunctionNode(){
@@ -718,8 +630,15 @@
     CSUMFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CSUMFunctionNode.prototype.minArgumentsCount = 2;
     CSUMFunctionNode.prototype.maxArgumentsCount = +Infinity;
-    CSUMFunctionNode.prototype.calculate = function (oResult) {
-        CFunctionNode.prototype.calculate.call(this, oResult);
+    CSUMFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        this.result = 0.0;
+        for(var i = 0; i < aArgs.length; ++i){
+            this.result += aArgs[i];
+        }
     };
 
     function CParseQueue() {
@@ -729,18 +648,22 @@
 
     CParseQueue.prototype.calculate = function(oDocument){
         var aQueue = this.queue.slice();
-        while (aQueue.length > 0){
-            var pos = 0;
-            for (var i = 0; i < aQueue.length; ++i){
-                var oCurToken = aQueue[i];
-                if(oCurToken.isOperator() || oCurToken.isFunction()){
-                    aQueue.slice()
-                    for(var j = 0; j < oCurToken.argumentsCount; ++j){
-
-                    }
+        for (var i = 0; i < aQueue.length; ++i){
+            var oCurToken = aQueue[i];
+            if(oCurToken.isOperator() || oCurToken.isFunction()){
+                var aArgs = aQueue.splice(i - oCurToken.argumentsCount, oCurToken.argumentsCount);
+                oCurToken.calculate(aArgs);
+                if(oCurToken.error){
+                    return oCurToken.error;
                 }
+                aQueue[i - oCurToken.argumentsCount] = oCurToken.result;
+                i = i - oCurToken.argumentsCount;
+            }
+            else if(oCurToken instanceof CNumberNode){
+                aQueue[i] = oCurToken.value;
             }
         }
+        this.result = aQueue[0];
         return null;
     };
     function CError(){
