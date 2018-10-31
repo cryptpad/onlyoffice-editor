@@ -7655,7 +7655,7 @@
     };
     WorksheetView.prototype.setSelection = function (range) {
     	if (!Array.isArray(range)) {
-    		range = [new AscCommonExcel.prototype.createFromBBox(this.model, range)];
+    		range = [AscCommonExcel.prototype.createFromBBox(this.model, range)];
 		}
 
 		this.cleanSelection();
