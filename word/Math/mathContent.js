@@ -5479,21 +5479,27 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
 
         // FirstElement.ElementPos++;
         // var bReplaseShiftContent = false;
-        var index = AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
+        // 23.10
+        // var index = AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
+
         // if (ActionElement === AutoCorrectEngine.Elements[this.CurPos].Element.Content[index]) {
         //     index -= AutoCorrectEngine.RemoveCount + 1;
         // } else {
-            index -= AutoCorrectEngine.RemoveCount + AutoCorrectEngine.Shift;
+            // 23.10
+            // index -= AutoCorrectEngine.RemoveCount + AutoCorrectEngine.Shift;
+
         // }
         
-        var FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
-        if (FirstElement === ActionElement) {
-            index--;
-            index = (index < 0) ? 0 : index;
-            FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
-        }
+        // 23.10
+        // var FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
+        // if (FirstElement === ActionElement) {
+        //     index--;
+        //     index = (index < 0) ? 0 : index;
+        //     FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
+        // }
 
-        FirstElement.Parent.Remove_FromContent(index, AutoCorrectEngine.RemoveCount);   // мое удаление сразу всех символов
+        // FirstElement.Parent.Remove_FromContent(index, AutoCorrectEngine.RemoveCount);   // мое удаление сразу всех символов
+        
         // AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos = index;       // мое восстановление положения курсора
 
         //удаление по 1 символу
@@ -5524,11 +5530,13 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
             }
         }*/
 
-        if (FirstElement.Type != para_Math_Composition)
-        {
-            var NewRun = FirstElement.Parent.Split2();
-            this.Internal_Content_Add(this.CurPos + 1, NewRun, false);
-        }
+
+        // 23.10
+        // if (FirstElement.Type != para_Math_Composition)
+        // {
+        //     var NewRun = FirstElement.Parent.Split2();
+        //     this.Internal_Content_Add(this.CurPos + 1, NewRun, false);
+        // }
 
         var NewElementsCount = AutoCorrectEngine.ReplaceContent.length;
         // AutoCorrectEngine.ReplaceContent[NewElementsCount-1].Content.push(ActionElement);
@@ -5943,11 +5951,15 @@ AutoCorrectionControl.prototype.AutoCorrectDelimiter = function(AutoCorrectEngin
     var oBase = oDelimiter.getBase();
     var TempElements = [];
     for( var i = this.BrAccount.nRPos-1; i>this.BrAccount.nLPos; i--)
-        TempElements.splice(0, 0, AutoCorrectEngine.Elements[this.CurElement].Element.Content[i]);
+        TempElements.splice(0, 0, AutoCorrectEngine.Elements[i].Element);
+
+        // TempElements.splice(0, 0, AutoCorrectEngine.Elements[this.CurElement].Element.Content[i]);
 
     this.PackTextToContent(oBase, TempElements, AutoCorrectEngine);
 
-    AutoCorrectEngine.Shift = AutoCorrectEngine.Elements[this.CurElement].Element.Content.length - 1 - this.BrAccount.nRPos;
+    AutoCorrectEngine.Shift = AutoCorrectEngine.Elements.length - 1 - this.BrAccount.nRPos;
+    // AutoCorrectEngine.Shift = AutoCorrectEngine.Elements[this.CurElement].Element.Content.length - 1 - this.BrAccount.nRPos;
+
     if (0x20 == this.ActionElementCode)
         AutoCorrectEngine.Shift--;
 
@@ -6349,7 +6361,7 @@ AutoCorrectionControl.prototype.FindFunction = function(CanMakeAutoCorrect)
             this.BrAccount.Elems.unshift(i, code);
 
             if (this.bCloseBrk == false)
-            {
+            { 
                 this.BrAccount.CorrectRight(oCurElem, i, oCurElem.value);
                 this.bCloseBrk = true;
             }
@@ -7908,29 +7920,46 @@ CMathAutoCorrectEngine.prototype.Add_Element = function(Content) {
             }
             if (Content[i].Type === 49) {
                 for (let k = Content[i].Content.length - 1; k >= 0; k--) {
+                    if (Fbreak) {
+                        break;
+                    }
                     if (i === this.CurElement && k > Content[i].State.ContentPos - 1) {
                         continue;
                     }
-                    if (Content[i].Content[k].value === 32) {
+                    if (Content[i].Content[k].value === 32 && k !== Content[i].Content.length - 1) {
+                        Fbreak = true;
                         // if (PrevSpace) {
-                            Fbreak = true;
-                            break;
+                        //     Fbreak = true;
+                        //     break;
                         // } else {
                         //     this.Elements.unshift({Element: Content[i].Content[k], ElPos: i, ContPos: k});
                         //     PrevSpace = true;
                         // }
                     } else {
                         this.Elements.unshift({Element: Content[i].Content[k], ElPos: i, ContPos: k});
-                        PrevSpace = false;
+                        // PrevSpace = false;
                     }
                 }
             } else {
-                this.Elements.unshift({Element: Content[i].Content[k], ElPos : i, ContPos: k});
-                break;
+                this.Elements.unshift({Element: Content[i], ElPos: i});
+                break;   //before the first object
             }
         }
     } else {
-        // to do
+        // to do if btackets was found
+        for (let i = nCount; i >= 0; i--) {
+            if (Content[i].Type === 49) {
+                for (let k = Content[i].Content.length - 1; k >= 0; k--) {
+                    if (i === this.CurElement && k > Content[i].State.ContentPos - 1) {
+                        continue;
+                    }
+                    this.Elements.unshift({Element: Content[i].Content[k], ElPos: i, ContPos: k});
+                }
+            } else {
+                this.Elements.unshift({Element: Content[i], ElPos: i});
+                // break;   //before the first object
+            }
+        }
     }
     
     
@@ -8081,7 +8110,7 @@ CMathAutoCorrectEngine.prototype.Calc_Brackets_Count = function (Content) {
             }
         }
     }
-    if ((RFirst.obj > LFirst.obj) || (RFirst.obj <= LFirst.obj && RFirst.pos > LFirst.pos)) {
+    if (RFirst && LFirst && ((RFirst.obj > LFirst.obj) || (RFirst.obj <= LFirst.obj && RFirst.pos > LFirst.pos))) {
         this.Brackets.SkipLeft = false; 
     }
 };
