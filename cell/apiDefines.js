@@ -99,7 +99,7 @@ var c_oAscSelectionDialogType = {
   FormatTableChangeRange: 4
 };
 
-var c_oAscGraphicOption = {
+var c_oAscScrollType = {
   ScrollVertical: 1,
   ScrollHorizontal: 2
 };
@@ -395,7 +395,7 @@ var c_oAscPopUpSelectorType = {
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window['AscCommonExcel'].c_oAscDrawDepOptions = c_oAscDrawDepOptions;
-  window['AscCommonExcel'].c_oAscGraphicOption = c_oAscGraphicOption;
+  window['AscCommonExcel'].c_oAscScrollType = c_oAscScrollType;
   window['AscCommonExcel'].c_oAscLockTypeElem = c_oAscLockTypeElem;
   window['AscCommonExcel'].c_oAscLockTypeElemSubType = c_oAscLockTypeElemSubType;
   window['AscCommonExcel'].c_oAscRecalcIndexTypes = c_oAscRecalcIndexTypes;

@@ -1372,7 +1372,7 @@ CChartsDrawer.prototype =
 					var n = 0;
 					arrValues[numSeries] = [];
 					for (var col = 0; col < numCache.ptCount; col++) {
-						var curPoint = t.getIdxPoint(seria, col);
+						var curPoint = numCache.pts[col];
 
 						//условие дбавлено для того, чтобы диаграммы, данные которых имеют мин/макс и пустые ячейки, рисовались грамотно
 						if(!curPoint && (t.calcProp.subType === 'stackedPer' || t.calcProp.subType === 'stacked')) {
@@ -2042,7 +2042,7 @@ CChartsDrawer.prototype =
 				}
 
 				if(numCache){
-					point = numCache.getPtByIndex(j + pointDiff);
+					point = numCache.pts[j + pointDiff];
 					if (point && point.pen) {
 						pen = point.pen;
 					}
@@ -2609,6 +2609,27 @@ CChartsDrawer.prototype =
 		}
 	},
 	
+	getPointByIndex: function(seria, index, bXVal)
+	{
+		var seriaVal;
+		if(bXVal) {
+			seriaVal = seria.val ? seria.val :  seria.xVal;
+		} else {
+			seriaVal = seria.val ? seria.val :  seria.yVal;
+		}
+
+		if(!seriaVal)
+			return null;
+
+		//todo use getNumCache
+		var pts = seriaVal.numRef &&  seriaVal.numRef.numCache ? seriaVal.numRef.numCache.pts : seriaVal.numLit ? seriaVal.numLit.pts : null;
+
+		if(pts == null)
+			return null;
+
+		return pts[index];
+	},
+
 	getPtCount: function(series)
 	{
 		var numCache;
@@ -4162,18 +4183,18 @@ drawBarChart.prototype = {
 
 				//стартовая позиция колонки X
 				if (this.catAx.scaling.orientation === ORIENTATION_MIN_MAX) {
-					if (xPoints[1] && xPoints[1].pos && xPoints[idx]) {
-						startXPosition = xPoints[idx].pos - Math.abs((xPoints[1].pos - xPoints[0].pos) / 2);
-					} else if(xPoints[idx]){
-						startXPosition = xPoints[idx].pos - Math.abs(xPoints[0].pos - this.valAx.posX);
+					if (xPoints[1] && xPoints[1].pos && xPoints[j]) {
+						startXPosition = xPoints[j].pos - Math.abs((xPoints[1].pos - xPoints[0].pos) / 2);
+					} else if(xPoints[j]){
+						startXPosition = xPoints[j].pos - Math.abs(xPoints[0].pos - this.valAx.posX);
 					} else {
 						startXPosition = xPoints[0].pos - Math.abs(xPoints[0].pos - this.valAx.posX);
 					}
 				} else {
-					if (xPoints[1] && xPoints[1].pos && xPoints[idx]) {
-						startXPosition = xPoints[idx].pos + Math.abs((xPoints[1].pos - xPoints[0].pos) / 2);
-					} else if(xPoints[idx]){
-						startXPosition = xPoints[idx].pos + Math.abs(xPoints[0].pos - this.valAx.posX);
+					if (xPoints[1] && xPoints[1].pos && xPoints[j]) {
+						startXPosition = xPoints[j].pos + Math.abs((xPoints[1].pos - xPoints[0].pos) / 2);
+					} else if(xPoints[j]){
+						startXPosition = xPoints[j].pos + Math.abs(xPoints[0].pos - this.valAx.posX);
 					} else {
 						startXPosition = xPoints[0].pos + Math.abs(xPoints[0].pos - this.valAx.posX);
 					}
@@ -5104,7 +5125,9 @@ drawLineChart.prototype = {
 				path = curSer[val][2];
 			}
 		} else {
-			path = this.paths.points[ser][val].path;
+			if(this.paths.points[ser] && this.paths.points[ser][val]){
+				path = this.paths.points[ser][val].path;
+			}
 		}
 
 		if (!AscFormat.isRealNumber(path)) {
@@ -5190,7 +5213,7 @@ drawLineChart.prototype = {
 
 		if (this.subType === "stacked") {
 			for (var k = 0; k <= i; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					val += tempVal;
@@ -5199,7 +5222,7 @@ drawLineChart.prototype = {
 		} else if (this.subType === "stackedPer") {
 			var summVal = 0;
 			for (var k = 0; k < this.chart.series.length; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
@@ -5210,7 +5233,7 @@ drawLineChart.prototype = {
 			}
 			val = val / summVal;
 		} else {
-			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
+			idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
 			val = idxPoint ? parseFloat(idxPoint.val) : null;
 		}
 		return val;
@@ -6613,7 +6636,7 @@ drawAreaChart.prototype = {
 
 		if (this.subType === "stacked") {
 			for (var k = 0; k <= i; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					val += tempVal;
@@ -6622,7 +6645,7 @@ drawAreaChart.prototype = {
 		} else if (this.subType === "stackedPer") {
 			var summVal = 0;
 			for (var k = 0; k < this.chart.series.length; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
@@ -6633,7 +6656,7 @@ drawAreaChart.prototype = {
 			}
 			val = val / summVal;
 		} else {
-			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
+			idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
 			val = idxPoint ? parseFloat(idxPoint.val) : null;
 		}
 		return val;
@@ -6991,18 +7014,18 @@ drawHBarChart.prototype = {
 
 				//стартовая позиция колонки Y
 				if (this.catAx.scaling.orientation === ORIENTATION_MIN_MAX) {
-					if (yPoints[1] && yPoints[1].pos) {
-						startYPosition = yPoints[idx].pos + Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
-					} else if(yPoints[idx]){
-						startYPosition = yPoints[idx].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
+					if (yPoints[1] && yPoints[1].pos && yPoints[j]) {
+						startYPosition = yPoints[j].pos + Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
+					} else if(yPoints[j]){
+						startYPosition = yPoints[j].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
 					} else {
 						startYPosition = yPoints[0].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
 					}
 				} else {
-					if (yPoints[1] && yPoints[1].pos) {
-						startYPosition = yPoints[idx].pos - Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
-					} else if(yPoints[idx]){
-						startYPosition = yPoints[idx].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
+					if (yPoints[1] && yPoints[1].pos && yPoints[j]) {
+						startYPosition = yPoints[j].pos - Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
+					} else if(yPoints[j]){
+						startYPosition = yPoints[j].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
 					} else {
 						startYPosition = yPoints[0].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
 					}
@@ -9587,7 +9610,7 @@ drawDoughnutChart.prototype = {
 					continue;
 				}
 
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[n], k);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[n], k);
 
 				brush = idxPoint ? idxPoint.brush : null;
 				pen = idxPoint ? idxPoint.pen : null;
@@ -9633,7 +9656,7 @@ drawDoughnutChart.prototype = {
 			//рисуем против часовой стрелки, поэтому цикл с конца
 			for (var k = numCache.ptCount - 1; k >= 0; k--) {
 
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[n], k);
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[n], k);
 				curVal = idxPoint ? idxPoint.val : 0;
 				angle = Math.abs((parseFloat(curVal / sumData)) * (Math.PI * 2));
 
@@ -9934,8 +9957,10 @@ drawRadarChart.prototype = {
 				oCommand = oPath.getCommandByIndex(0);
 			}
 		} else if (this.paths.points) {
-			oPath = this.cChartSpace.GetPath(this.paths.points[ser][val].path);
-			oCommand = oPath.getCommandByIndex(0);
+			if(this.paths.points[ser] && this.paths.points[ser][val]) {
+				oPath = this.cChartSpace.GetPath(this.paths.points[ser][val].path);
+				oCommand = oPath.getCommandByIndex(0);
+			}
 		}
 
 		if (!oCommand) {
@@ -10335,7 +10360,7 @@ drawScatterChart.prototype = {
 	},
 
 	_getYVal: function (n, i) {
-		var idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
+		var idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
 		return idxPoint ? parseFloat(idxPoint.val) : null;
 	},
 

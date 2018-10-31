@@ -13243,6 +13243,8 @@ function tt_face_load_font_dir(face, stream)
     face.format_tag = sfnt.format_tag;
 
     face.dir_tables = new Array(face.num_tables);
+    for (var dtNum = 0; dtNum < face.num_tables; dtNum++)
+        face.dir_tables[dtNum] = new TT_Table();
 
     error = stream.Seek(sfnt.offset + 12);
     if (0 == error)
@@ -13255,7 +13257,6 @@ function tt_face_load_font_dir(face, stream)
     var cur = 0;
     for (var nn = 0; nn < sfnt.num_tables; nn++ )
     {
-        face.dir_tables[cur] = new TT_Table();
         var entry = face.dir_tables[cur];
         entry.Tag      = stream.GetULong();
         entry.CheckSum = stream.GetULong();
@@ -13890,7 +13891,7 @@ function tt_face_get_metrics(face, vertical, gindex)
     var header = (vertical == 1) ? face.vertical : face.horizontal;
 
     var longs_m = null;
-    var k = header.number_Of_HMetrics;
+    var k = (vertical == 1) ? header.number_Of_VMetrics : header.number_Of_HMetrics;
 
     var v1 = 0;
     var v2 = 0;
@@ -27321,7 +27322,7 @@ function TT_Face()
     this.max_components = 0;
     //#endif
 
-    this.vertical_info = false;
+    this.vertical_info = 0;
     this.vertical = new TT_VertHeader();
 
     this.num_names = 0;
@@ -28359,7 +28360,7 @@ function TT_Get_HMetrics(face, idx)
 }
 function TT_Get_VMetrics(face, idx, yMax)
 {
-    if (face.vertical_info === true)
+    if (face.vertical_info === 1)
         return face.sfnt.get_metrics(face, 1, idx);
     else if (face.os2.version != 0xFFFF)
         return {bearing : (face.os2.sTypoAscender - yMax), advance : (face.os2.sTypoAscender - face.os2.sTypoDescender)};
@@ -29554,7 +29555,7 @@ function compute_glyph_metrics(loader, glyph_index)
     var top;
     var advance;
 
-    if (face.vertical_info === true && face.vertical.number_Of_VMetrics > 0)
+    if (face.vertical_info === 1 && face.vertical.number_Of_VMetrics > 0)
     {
         top = FT_DivFix(loader.pp3.y - bbox.yMax, y_scale);
 
@@ -34532,7 +34533,6 @@ function CFF_Decoder()
 function cff_builder_init(builder, face, size, glyph, hinting)
 {
     builder.path_begun  = 0;
-    builder.path_begun  = 0;
     builder.load_points = 1;
 
     builder.face   = face;
@@ -35000,7 +35000,7 @@ function cff_decoder_parse_charstrings(decoder, charstring_base, charstring_len)
             {
                 if (ip.pos + 3 >= limit)
                     return 3;
-                val = (ip.data[ip.pos] << 24 )| (ip.data[ip.pos + 1] << 16) | (ip.data[ip.po + 2] << 8) | ip.data[ip.pos + 3];
+                val = (ip.data[ip.pos] << 24 )| (ip.data[ip.pos + 1] << 16) | (ip.data[ip.pos + 2] << 8) | ip.data[ip.pos + 3];
                 ip.pos += 4;
                 if (charstring_type == 2)
                     shift = 0;

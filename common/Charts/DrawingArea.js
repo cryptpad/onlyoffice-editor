@@ -441,7 +441,7 @@ function FrozenPlace(ws, type) {
 		// No scroll for Top, LeftTop, RightTop
 		var scroll = 0;
 		var fv = _this.getFirstVisible();
-		var headerPx = _this.worksheet.getCellTop(0, 0);
+		var headerPx = _this.worksheet._getRowTop(0);
 		
 		switch (_this.type) {
 			// Two places
@@ -451,15 +451,13 @@ function FrozenPlace(ws, type) {
 			break;
 			
 			case FrozenAreaType.Bottom: {
-				//scroll = _this.worksheet.getCellTop(fv.row, 0) - _this.worksheet.getCellTop(_this.frozenCell.row, 0) + headerPx;
-				scroll = -(_this.worksheet.rows[fv.row].top - _this.worksheet.rows[_this.frozenCell.row].top) + headerPx;
+				scroll = -(_this.worksheet._getRowTop(fv.row) - _this.worksheet._getRowTop(_this.frozenCell.row)) + headerPx;
 			}
 			break;
 			
 			case FrozenAreaType.Left:
 			case FrozenAreaType.Right: {
-				//scroll = _this.worksheet.getCellTop(fv.row, 0) - headerPx - headerPx;
-				scroll = -(_this.worksheet.rows[fv.row].top - _this.worksheet.cellsTop) + headerPx;
+				scroll = -(_this.worksheet._getRowTop(fv.row) - _this.worksheet.cellsTop) + headerPx;
 			}
 			break;
 			
@@ -472,15 +470,13 @@ function FrozenPlace(ws, type) {
 			
 			case FrozenAreaType.LeftBottom:
 			case FrozenAreaType.RightBottom: {
-				//scroll = _this.worksheet.getCellTop(fv.row, 0) - _this.worksheet.getCellTop(_this.frozenCell.row, 0) + headerPx;
-				scroll = -(_this.worksheet.rows[fv.row].top - _this.worksheet.rows[_this.frozenCell.row].top) + headerPx;
+				scroll = -(_this.worksheet._getRowTop(fv.row) - _this.worksheet._getRowTop(_this.frozenCell.row)) + headerPx;
 			}
 			break;
 			
 			// No frozen areas
 			case FrozenAreaType.Center: {
-				//scroll = _this.worksheet.getCellTop(fv.row, 0);// - headerPx - headerPx;
-				scroll = -(_this.worksheet.rows[fv.row].top - _this.worksheet.cellsTop) + headerPx;
+				scroll = -(_this.worksheet._getRowTop(fv.row) - _this.worksheet.cellsTop) + headerPx;
 			}
 			break;
 		}
@@ -492,14 +488,13 @@ function FrozenPlace(ws, type) {
 		// No scroll for Left, LeftTop, LeftBottom
 		var scroll = 0;
 		var fv = _this.getFirstVisible();
-		var headerPx = _this.worksheet.getCellLeft(0, 0);
+		var headerPx = _this.worksheet._getColLeft(0);
 		
 		switch (_this.type) {
 			// Two places
 			case FrozenAreaType.Top:
 			case FrozenAreaType.Bottom: {
-				//scroll = _this.worksheet.getCellLeft(fv.col, 0) - headerPx - headerPx;
-				scroll = -(_this.worksheet.cols[fv.col].left - _this.worksheet.cellsLeft) + headerPx;
+				scroll = -(_this.worksheet._getColLeft(fv.col) - _this.worksheet.cellsLeft) + headerPx;
 			}
 			break;
 			
@@ -509,8 +504,7 @@ function FrozenPlace(ws, type) {
 			break;
 			
 			case FrozenAreaType.Right: {
-				//scroll = _this.worksheet.getCellLeft(fv.col, 0) - _this.worksheet.getCellLeft(_this.frozenCell.col, 0) + headerPx;
-				scroll = -(_this.worksheet.cols[fv.col].left - _this.worksheet.cols[_this.frozenCell.col].left) + headerPx;
+				scroll = -(_this.worksheet._getColLeft(fv.col) - _this.worksheet._getColLeft(_this.frozenCell.col)) + headerPx;
 			}
 			break;
 			
@@ -523,15 +517,13 @@ function FrozenPlace(ws, type) {
 			
 			case FrozenAreaType.RightTop:
 			case FrozenAreaType.RightBottom: {
-				//scroll = _this.worksheet.getCellLeft(fv.col, 0) - _this.worksheet.getCellLeft(_this.frozenCell.col, 0) + headerPx;
-				scroll = -(_this.worksheet.cols[fv.col].left - _this.worksheet.cols[_this.frozenCell.col].left) + headerPx;
+				scroll = -(_this.worksheet._getColLeft(fv.col) - _this.worksheet._getColLeft(_this.frozenCell.col)) + headerPx;
 			}
 			break;			
 			
 			// No frozen areas
 			case FrozenAreaType.Center: {
-				//scroll = _this.worksheet.getCellLeft(fv.col, 0);// - headerPx - headerPx;
-				scroll = -(_this.worksheet.cols[fv.col].left - _this.worksheet.cellsLeft) + headerPx;
+				scroll = -(_this.worksheet._getColLeft(fv.col) - _this.worksheet.cellsLeft) + headerPx;
 			}
 			break;
 		}
@@ -750,32 +742,32 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
 		var fLeft, fTop, fRight, fBottom;
 		if(this.frozenPlaces[i].type === FrozenAreaType.Bottom){
 			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
-			fTop = this.worksheet.getCellTop(this.frozenPlaces[i].frozenCell.row, 0);
-			fLeft = 0;//this.worksheet.getCellLeft(0, 0);
+			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
+			fLeft = 0;
 			autoShapeTrack.drawImage(AscFormat.sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.Right){
-			fTop = 0;//this.worksheet.getCellTop(0, 0);
-			fLeft = this.worksheet.getCellLeft(this.frozenPlaces[i].frozenCell.col, 0);
+			fTop = 0;
+			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
 			autoShapeTrack.drawImage(AscFormat.sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.RightBottom){
 			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
-			fTop = this.worksheet.getCellTop(this.frozenPlaces[i].frozenCell.row, 0);
-			fLeft = this.worksheet.getCellLeft(this.frozenPlaces[i].frozenCell.col, 0);
+			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
+			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
 			autoShapeTrack.drawImage(AscFormat.sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
 			autoShapeTrack.drawImage(AscFormat.sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.LeftBottom){
-			fTop = this.worksheet.getCellTop(this.frozenPlaces[i].frozenCell.row, 0);
-			fLeft = 0;//this.worksheet.getCellLeft(0, 0);
-			fRight = this.worksheet.getCellLeft(this.frozenPlaces[i].frozenCell.col, 0);
+			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
+			fLeft = 0;
+			fRight = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
 			autoShapeTrack.drawImage(AscFormat.sFrozenImageUrl, fLeft, fTop, fRight, nShadowLength);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.RightTop){
-			fTop = 0;//this.worksheet.getCellTop(0, 0);
-			fLeft = this.worksheet.getCellLeft(this.frozenPlaces[i].frozenCell.col, 0);
-			fBottom = this.worksheet.getCellTop(this.frozenPlaces[i].frozenCell.row, 0);
+			fTop = 0;
+			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
+			fBottom = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
 			autoShapeTrack.drawImage(AscFormat.sFrozenImageRotUrl, fLeft, fTop, nShadowLength, fBottom);
 		}
 

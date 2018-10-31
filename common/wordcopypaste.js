@@ -4886,7 +4886,7 @@ PasteProcessor.prototype =
 				if(pasteIntoParagraphPr)
 				{
 					copyParaPr = pasteIntoParagraphPr.Copy();
-					copyParaPr.NumPr = null;
+					copyParaPr.NumPr = undefined;
 					paragraph.Set_Pr(copyParaPr);
 
 					if(paragraph.TextPr && pasteIntoParaRunPr)

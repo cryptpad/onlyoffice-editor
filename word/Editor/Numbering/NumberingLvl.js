@@ -1069,5 +1069,5 @@ CNumberingLvlLegacy.prototype.ReadFromBinary = function(oReader)
 	// Long : Space
 	this.Legacy = oReader.GetBool();
 	this.Indent = oReader.GetLong();
-	this.Space  = oReader.GetSpace();
+	this.Space  = oReader.GetLong();
 };

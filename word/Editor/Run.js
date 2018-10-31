@@ -8456,7 +8456,7 @@ CParaRunRecalcInfo.prototype.OnAdd = function(nPos)
 	for (var nIndex = 0, nCount = this.MeasurePositions.length; nIndex < nCount; ++nIndex)
 	{
 		if (this.MeasurePositions[nIndex] >= nPos)
-			this.MeasurePositions[nIndex] = nPos;
+			this.MeasurePositions[nIndex]++;
 	}
 
 	this.MeasurePositions.push(nPos);
@@ -8468,7 +8468,7 @@ CParaRunRecalcInfo.prototype.OnAdd = function(nPos)
  */
 CParaRunRecalcInfo.prototype.OnRemove = function(nPos, nCount)
 {
-	for (var nIndex = 0, nCount = this.MeasurePositions.length; nIndex < nCount; ++nIndex)
+	for (var nIndex = 0, nLen = this.MeasurePositions.length; nIndex < nLen; ++nIndex)
 	{
 		if (nPos <= this.MeasurePositions[nIndex] && this.MeasurePositions[nIndex] <= nPos + nCount - 1)
 		{
@@ -9250,7 +9250,7 @@ ParaRun.prototype.UpdLastElementForGaps = function(_CurLine, _CurRange, GapsInfo
 };
 ParaRun.prototype.IsPlaceholder = function()
 {
-    return this.Content.length == 1 && this.Content[0].IsPlaceHolder && this.Content[0].IsPlaceholder();
+    return this.Content.length == 1 && this.Content[0].IsPlaceholder && this.Content[0].IsPlaceholder();
 };
 ParaRun.prototype.AddMathPlaceholder = function()
 {

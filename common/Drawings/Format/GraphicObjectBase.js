@@ -634,6 +634,20 @@
     };
 
 
+
+    CGraphicObjectBase.prototype.Clear_ContentChanges = function()
+    {
+    };
+
+    CGraphicObjectBase.prototype.Add_ContentChanges = function(Changes)
+    {
+    };
+
+    CGraphicObjectBase.prototype.Refresh_ContentChanges = function()
+    {
+    };
+
+
     CGraphicObjectBase.prototype.CheckCorrect = function(){
         return this.checkCorrect();
     };

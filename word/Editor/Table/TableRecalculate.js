@@ -2188,7 +2188,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
         }
         else
         {
-            this.RowsInfo[CurRow].Pages++;
+            this.RowsInfo[CurRow].Pages = CurPage - this.RowsInfo[CurRow].StartPage + 1;
         }
 
         this.TableRowsBottom[CurRow][CurPage] = Y;

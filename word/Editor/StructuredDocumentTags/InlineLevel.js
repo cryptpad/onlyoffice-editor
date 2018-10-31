@@ -458,6 +458,7 @@ CInlineLevelSdt.prototype.SetPr = function(oPr)
 	this.SetTag(oPr.Tag);
 	this.SetLabel(oPr.Label);
 	this.SetContentControlLock(oPr.Lock);
+	this.SetContentControlId(oPr.Id);
 
 	if (undefined !== oPr.Appearance)
 		this.SetAppearance(oPr.Appearance);
