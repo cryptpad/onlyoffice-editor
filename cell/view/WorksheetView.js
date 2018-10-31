@@ -2369,8 +2369,8 @@
 			var res = [];
 			for(var i = 0; i < portion.length; i++){
 				var str = new AscCommonExcel.Fragment();
-				str.text = getFragmentText(portion[i].val);
-				str.format = portion[i].props;
+				str.text = getFragmentText(portion[i].text);
+				str.format = portion[i].format;
 				res.push(str);
 			}
 			return res;
@@ -15132,9 +15132,9 @@
 	HeaderFooterParser.prototype.pushText = function () {
 		if (0 !== this.str.length) {
 			if (!this.portions[this.currPortion]) {
-				this.portions[this.currPortion] = [{props: this.font.clone(), val: this.str}];
+				this.portions[this.currPortion] = [{format: this.font.clone(), text: this.str}];
 			} else {
-				this.portions[this.currPortion].push({props: this.font.clone(), val: this.str});
+				this.portions[this.currPortion].push({format: this.font.clone(), text: this.str});
 			}
 
 			this.str = [];
@@ -15143,9 +15143,9 @@
 
 	HeaderFooterParser.prototype.pushField = function (field) {
 		if (!this.portions[this.currPortion]) {
-			this.portions[this.currPortion] = [{props: this.font.clone(), val: field}];
+			this.portions[this.currPortion] = [{format: this.font.clone(), text: field}];
 		} else {
-			this.portions[this.currPortion].push({props: this.font.clone(), val: field});
+			this.portions[this.currPortion].push({format: this.font.clone(), text: field});
 		}
 	};
 
@@ -15270,10 +15270,10 @@
 
 			for (var i = 0; i < aPosList.length; ++i) {
 
-				var aFont = aPosList[i].props;
+				var aFont = aPosList[i].format;
 
 				// font name and style
-				var newFont = aPosList[i].props;
+				var newFont = aPosList[i].format;
 				var bNewFontName = !(prevFont.fn == newFont.fn);
 				var bNewStyle = (prevFont.b != newFont.b) || (prevFont.i != newFont.i);
 
@@ -15286,7 +15286,7 @@
 
 					//TODO пересмотреть. MS каждый раз прописывает новый font style:
 					// сли у предыдущего фрагмента был bold, у нового bold и italic - то у нового будет прописаны и bold и italic
-					var fontStyleStr = null;
+					var fontStyleStr = "";
 					if(prevFont.b !== newFont.b) {
 						fontStyleStr = ",";
 						if(newFont.b === true) {
@@ -15347,9 +15347,9 @@
 
 				prevFont = newFont;
 
-				if (aPosList[i].val instanceof HeaderFooterField) {
-					if (aPosList[i].val.field !== undefined) {
-						switch(aPosList[i].val.field) {
+				if (aPosList[i].text instanceof HeaderFooterField) {
+					if (aPosList[i].text.field !== undefined) {
+						switch(aPosList[i].text.field) {
 							case asc.c_oAscHeaderFooterField.pageNumber: {
 								aParaText += "&P";
 								break;
@@ -15381,7 +15381,7 @@
 						}
 					}
 				} else {
-					var aPortionText = aPosList[i].val;
+					var aPortionText = aPosList[i].text;
 					if (bFontHtChanged && aParaText.length && "" !== aPortionText) {
 						var cLast = aParaText[aParaText.length - 1];
 						var cFirst = aPortionText[0];
@@ -15412,6 +15412,8 @@
 		this.portion = portion;
 		this.canvasObj = canvasObj;
 		this.fragments = null;
+
+		this.changed = false;
 	}
 	CHeaderFooterEditorSection.prototype.setFragments = function (val) {
 		this.fragments = val;
@@ -15564,11 +15566,11 @@
 			var res = [];
 			for(var i = 0; i < textPropsArr.length; i++) {
 				var curProps = textPropsArr[i];
-				var text = asc_typeof(curProps.val) === "string" ? curProps.val : convertFieldToMenuText(curProps.val.field);
+				var text = asc_typeof(curProps.text) === "string" ? curProps.text : convertFieldToMenuText(curProps.text.field);
 				if(null !== text) {
 					var tempFragment = new AscCommonExcel.Fragment();
 					tempFragment.text = text;
-					tempFragment.format = curProps.props;
+					tempFragment.format = curProps.format;
 					res.push(tempFragment);
 				}
 			}
@@ -15720,10 +15722,11 @@
 			fragments.push(tempFragment);
 		}
 
-		var curField = this.getSectionById(this.curParentFocusId);
+		var curSection = this.getSectionById(this.curParentFocusId);
+		curSection.changed = true;
 		var flags = new window["AscCommonExcel"].CellFlags();
 		flags.wrapText = true;
-		flags.textAlign = curField.portion === c_nPortionCenter ? AscCommon.align_Center : curField.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
+		flags.textAlign = curSection.portion === c_nPortionCenter ? AscCommon.align_Center : curSection.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
 
 
 		var options = {
@@ -15780,10 +15783,53 @@
 	};
 
 	CHeaderFooterEditor.prototype.saveToModel = function () {
-		for(var i = 0; i < this.sections.length; i++) {
-			for(var j = 0; j < this.sections[i].length; j++) {
-				
+		if(null !== this.curParentFocusId) {
+			var prevField = this.getSectionById(this.curParentFocusId);
+			var prevFragments = this.cellEditor.options.fragments;
+			prevField.setFragments(prevFragments);
+		}
+
+		var convertFragments = function(fragments) {
+			//TODO возможно стоит созадавать portions внутри парсера с элементами Fragments
+			var res = [];
+			for(var j = 0; j < fragments.length; j++) {
+				res[j] = {text: fragments[j].text, format: fragments[j].format};
 			}
+			return res;
+		};
+
+		for(var i = 0; i < this.sections.length; i++) {
+			if(!this.sections[i]) {
+				continue;
+			}
+
+			//сначала формируем новый объект, затем доблавляем в модель и записываем в историю полученную строку
+			//возможно стоит пересмотреть(получать вначале строку) - создаём вначале парсер,
+			//добавляем туда полученные при редактировании фрагменты, затем получаем строку
+			var curHeaderFooter = this.getCurPageHF(i);
+			if(null === curHeaderFooter) {
+				curHeaderFooter = new Asc.CHeaderFooterData();
+			}
+			if(!curHeaderFooter.parser) {
+				curHeaderFooter.parser = new window["AscCommonExcel"].HeaderFooterParser();
+			}
+
+			var isChanged = false;
+			if(this.sections[i][c_nPortionLeft] && this.sections[i][c_nPortionLeft].changed) {
+				curHeaderFooter.parser.portions[c_nPortionLeft] = convertFragments(this.sections[i][c_nPortionLeft].fragments);
+				isChanged = true;
+			}
+			if(this.sections[i][c_nPortionCenter] && this.sections[i][c_nPortionCenter].changed) {
+				curHeaderFooter.parser.portions[c_nPortionCenter] = convertFragments(this.sections[i][c_nPortionCenter].fragments);
+				isChanged = true;
+			}
+			if(this.sections[i][c_nPortionRight] && this.sections[i][c_nPortionRight].changed) {
+				curHeaderFooter.parser.portions[c_nPortionRight] = convertFragments(this.sections[i][c_nPortionRight].fragments);
+				isChanged = true;
+			}
+			//нужно добавлять в историю
+			curHeaderFooter.parser.assembleText();
+			curHeaderFooter.setStr(curHeaderFooter.parser.date);
 		}
 	};
 
