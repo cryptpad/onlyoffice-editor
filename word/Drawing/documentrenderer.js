@@ -3347,6 +3347,8 @@ CDocMeta.prototype =
 
     OnMouseUp : function()
     {
+        if (this.Selection.IsSelection)
+            editor.sendEvent("asc_onSelectionEnd");
         this.Selection.IsSelection = false;
     },
 
@@ -3478,6 +3480,8 @@ CDocMeta.prototype =
                 this.OnUpdateSelection();
             }
         }
+
+        editor.sendEvent("asc_onSelectionEnd");
     },
 
     selectAllCheckStart : function()
