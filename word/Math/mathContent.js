@@ -5364,8 +5364,6 @@ CMathContent.prototype.ChangeContent = function(Content) {
     }
 };
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
-    // TODO: Надо проверить как работает весь код с автозаменой, перед тем как влючать его.
-    // return;
 
     // var a = this.Content[0].Parent.Copy(); // копия текущего контента
     // this.ChangeContent(a.Content);  //объединит все подряд идущие ParaRun в один
@@ -5373,11 +5371,10 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
 
     var bNeedAutoCorrect = this.private_NeedAutoCorrect(ActionElement);
 
-    var AutoCorrectEngine = new CMathAutoCorrectEngine(ActionElement);
-    AutoCorrectEngine.CurElement = this.CurPos;
+    var AutoCorrectEngine = new CMathAutoCorrectEngine(ActionElement, this.CurPos);
     
     //необходимо найти все скобки и запомнить что находится между ними
-    AutoCorrectEngine.Find_All_Brackets(this.Content);
+    // AutoCorrectEngine.Find_All_Brackets(this.Content);
     //добавить все элементы между закрывающейся и открывающейся скобкой если они есть или от текущего положения курсора влево до конца или двух пробелов или объекта
     AutoCorrectEngine.Add_Element(this.Content);
 
@@ -5436,11 +5433,11 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
 
         // if (false === CanMakeAutoCorrect && g_aMathAutoCorrectTriggerCharCodes[ActionElement.value])
         // {
-            if (0x20 === ActionElement.value) {
+            // if (0x20 === ActionElement.value) {
                 CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
-            } else {
-                CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
-            }
+            // } else {
+            //     CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
+            // }
             // CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
             // bCursorStepRight   = true;
         // }
@@ -5459,7 +5456,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
         // Пробуем сделать формульную автозамену
         if (false === CanMakeAutoCorrectFunc) {
             if (CanMakeAutoCorrect || ( 0x28 != ActionElement.value && 0x5C != ActionElement.value)) {
-                CanMakeAutoCorrectEquation = oAutoCorrectControl.private_CanAutoCorrectEquation(AutoCorrectEngine, CanMakeAutoCorrect, bCursorStepRight);
+                // CanMakeAutoCorrectEquation = oAutoCorrectControl.private_CanAutoCorrectEquation(AutoCorrectEngine, CanMakeAutoCorrect, bCursorStepRight);
             }
         }
     }
@@ -5532,7 +5529,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
         //     var NewRun = FirstElement.Parent.Split2();
         //     this.Internal_Content_Add(this.CurPos + 1, NewRun, false);
         // }
-        var CurPos = this.Content[this.CurPos].State.ContentPos;
+        var CurPos = this.Content[this.CurPos].State.ContentPos - AutoCorrectEngine.Shift;
     
         for (var i = 0; i < AutoCorrectEngine.Remove.length; i++) {
             var FirstElementPos = CurPos - AutoCorrectEngine.Remove[i].Count;
@@ -5552,9 +5549,16 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
         }
         if (this.Content[this.CurPos].Content.length === 0) {
             this.CurPos += NewElementsCount + 1;
-            this.Content[this.CurPos].MoveCursorToStartPos()
+            if (AutoCorrectEngine.Shift == 0)
+                this.Content[this.CurPos].MoveCursorToStartPos();
+            else
+                this.Content[this.CurPos].MoveCursorToEndPos();
         } else {
             this.CurPos += NewElementsCount;
+            if (AutoCorrectEngine.Shift == 0)
+                this.Content[this.CurPos].MoveCursorToStartPos();
+            else
+                this.Content[this.CurPos].MoveCursorToEndPos();
         }
 
         // this.CurPos = FirstElementPos + NewElementsCount;
@@ -5650,8 +5654,8 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
         }
 
         if (true === Found) {
-            RemoveCount = CheckStringLen + (AutoCorrectEngine.ActionElement.value === 0x0020 && bSkipLast ? 1 : 0);
-            Start = ElementsCount - nStringPos - IndexAdd;
+            RemoveCount = CheckStringLen; // + (AutoCorrectEngine.ActionElement.value === 0x0020 && bSkipLast ? 1 : 0);
+            Start = ElementsCount - nStringPos;
 
             if (undefined === AutoCorrectElement[1].length) {
                 ReplaceChars[0] = AutoCorrectElement[1];
@@ -5729,7 +5733,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
 
  return true;
  };*/
-CMathContent.prototype.private_CanAutoCorrectTextFunc = function( AutoCorrectEngine, bSkipLast) {
+CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngine, bSkipLast) {
     var IndexAdd = (true === bSkipLast ? 1 : 0);
 
     // var ElementsCount = AutoCorrectEngine.Elements[this.CurPos].Element.Content.length;
@@ -7875,9 +7879,9 @@ CMathBracketAcc.prototype.Compare             = function()
 };
 
 
-function CMathAutoCorrectEngine(Elem) {
+function CMathAutoCorrectEngine(Elem, CurPos) {
     this.ActionElement    = Elem;                             // Элемент на которотом срабатывает автодополнение
-    this.CurElement       = 0;                                   // индекс текущего элемента, где стоит курсор
+    this.CurElement       = CurPos;                                   // индекс текущего элемента, где стоит курсор
     this.Elements         = [];
     this.Brackets         = {countL : 0, countR : 0, lv : 0}; // объект, который хранит все скобки в формуле по уровням вложенности
     this.BracketsInActive = false;
@@ -8110,10 +8114,15 @@ var g_aAutoCorrectMathSymbols =
     ['\\biguplus', 0x2A04],
     ['\\bigvee', 0x22C1],
     ['\\bigwedge', 0x22C0],
+    ['\\binomial',[0x0028, 0x0061, 0x002B, 0x0062, 0x0029, 0x005E, 0x005E, 0x003D, 0x2211, 0x005F, 0x0028, 0x006B, 0x003D, 0x0030, 0x0029, 0x005E, 0x006E, 0x0020, 0x2592, 0x0028, 0x006E, 0x00A6, 0x006B, 0x0029, 0x0061, 0x005E, 0x006B, 0x0020, 0x0062, 0x005E, 0x0028, 0x006E, 0x002D, 0x006B, 0x0029]],
     ['\\bot', 0x22A5],
     ['\\bowtie', 0x22C8],
     ['\\box', 0x25A1],
+    ['\\boxdot', 0x22A1],
+    ['\\boxminus', 0x229F],
+    ['\\boxplus', 0x229E],
     ['\\bra', 0x27E8],
+    ['\\break', 0x2936],
     ['\\breve', 0x0306],
     ['\\bullet', 0x2219],
     ['\\cap', 0x2229],
@@ -8140,9 +8149,13 @@ var g_aAutoCorrectMathSymbols =
     ['\\dddot', 0x20DB],
     ['\\ddot', 0x0308],
     ['\\ddots', 0x22F1],
+    ['\\defeq', 0x225D],
+    ['\\degc', 0x2103],
+    ['\\degf', 0x2109],
     ['\\degree', 0x00B0],
     ['\\delta', 0x03B4],
     ['\\Delta', 0x0394],
+    ['\\Deltaeq', 0x225C],
     ['\\diamond', 0x22C4],
     ['\\diamondsuit', 0x2662],
     ['\\div', 0x00F7],
@@ -8207,6 +8220,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\ee', 0x2147],
     ['\\ell', 0x2113],
     ['\\emptyset', 0x2205],
+    ['\\emsp', 0x2003],
     ['\\end', 0x3017],
     ['\\ensp', 0x2002],
     ['\\epsilon', 0x03F5],
@@ -8269,7 +8283,9 @@ var g_aAutoCorrectMathSymbols =
     ['\\frakturY', 0x1D51C],
     ['\\frakturz', 0x1D537],
     ['\\frakturZ', 0x2128],
+    ['\\frown', 0x2311],
     ['\\funcapply', 0x2061],
+    ['\\G', 0x0393],
     ['\\gamma', 0x03B3],
     ['\\Gamma', 0x0393],
     ['\\ge', 0x2265],
@@ -8285,19 +8301,24 @@ var g_aAutoCorrectMathSymbols =
     ['\\hookleftarrow', 0x21A9],
     ['\\hookrightarrow', 0x21AA],
     ['\\hphantom', 0x2B04],
+    ['\\hsmash', 0x2B0C],
     ['\\hvec', 0x20D1],
+    ['\\identitymatrix', [0x0028, 0x25A0, 0x0028, 0x0031, 0x0026, 0x0030, 0x0026, 0x0030, 0x0040, 0x0030, 0x0026,0x0031, 0x0026, 0x0030, 0x0030, 0x0040, 0x0030, 0x0026, 0x0030, 0x0026, 0x0031, 0x0029, 0x0029]],
     ['\\ii', 0x2148],
     ['\\iiint', 0x222D],
     ['\\iint', 0x222C],
     ['\\iiiint', 0x2A0C],
     ['\\Im', 0x2111],
+    ['\\imath', 0x0131],
     ['\\in', 0x2208],
     ['\\inc', 0x2206],
     ['\\infty', 0x221E],
     ['\\int', 0x222B],
     ['\\iota', 0x03B9],
     ['\\Iota', 0x0399],
+    ['\\j', [0x004A, 0x0061, 0x0079]],
     ['\\jj', 0x2149],
+    ['\\jmath', 0x0237],
     ['\\kappa', 0x03BA],
     ['\\Kappa', 0x039A],
     ['\\ket', 0x27E9],
@@ -8320,14 +8341,21 @@ var g_aAutoCorrectMathSymbols =
     ['\\leftrightarrow', 0x2194],
     ['\\Leftrightarrow', 0x21D4],
     ['\\leq', 0x2264],
-    ['\\lvec', 0x20D0],
     ['\\lfloor', 0x230A],
+    ['\\lhvec', 0x20D0],
+    ['\\limit', [0x006C, 0x0069, 0x006D, 0x005F, 0x0028, 0x006E, 0x2192, 0x221E, 0x0029, 0x2061, 0x3016, 0x0028, 0x0031, 0x002B, 0x0031, 0x002F, 0x006E, 0x0029, 0x005E, 0x006E, 0x3017, 0x003D, 0x0065]],
     ['\\ll', 0x226A],
+    ['\\lmoust', 0x23B0],
+    ['\\Longleftarrow', 0x27F8],
+    ['\\Longleftrightarrow', 0x27FA],
+    ['\\Longrightarrow', 0x27F9],
+    ['\\lrhar', 0x21CB],
     ['\\lvec', 0x20D6],
     ['\\mapsto', 0x21A6],
     ['\\matrix', 0x25A0],
     ['\\medsp', 0x205F],
     ['\\mid', 0x2223],
+    ['\\middle', 0x24DC],
     ['\\models', 0x22A8],
     ['\\mp', 0x2213],
     ['\\mu', 0x03BC],
@@ -8342,6 +8370,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\norm', 0x2016],
     ['\\notcontain', 0x220C],
     ['\\notelement', 0x2209],
+    ['\\notine', 0x2209],
     ['\\nu', 0x03BD],
     ['\\Nu', 0x039D],
     ['\\nwarrow', 0x2196],
@@ -8361,6 +8390,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\over', 0x002F],
     ['\\overbar', 0x00AF],
     ['\\overbrace', 0x23DE],
+    ['\\overbracket', 0x23B4],
     ['\\overline', 0x00AF],
     ['\\overparen', 0x23DC],
     ['\\overshell', 0x23E0],
@@ -8404,6 +8434,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\Rightarrow', 0x21D2],
     ['\\rightharpoondown', 0x21C1],
     ['\\rightharpoonup', 0x21C0],
+    ['\\rmoust', 0x23B1],
     ['\\root', 0x24AD],
     ['\\scripta', 0x1D4B6],
     ['\\scriptA', 0x1D49C],
@@ -8466,6 +8497,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\sim', 0x223C],
     ['\\simeq', 0x2243],
     ['\\smash', 0x2B0D],
+    ['\\smile', 0x2323],
     ['\\spadesuit', 0x2660],
     ['\\sqcap', 0x2293],
     ['\\sqcup', 0x2294],
@@ -8497,6 +8529,8 @@ var g_aAutoCorrectMathSymbols =
     ['\\Ubar', 0x0333],
     ['\\underbar', 0x2581],
     ['\\underbrace', 0x23DF],
+    ['\\underbracket', 0x23B5],
+    ['\\underline', 0x25B1],
     ['\\underparen', 0x23DD],
     ['\\uparrow', 0x2191],
     ['\\Uparrow', 0x21D1],
@@ -8616,11 +8650,11 @@ var g_aMathAutoCorrectDegreeCharCodes =
 //символы для определения необходимости автозамены
 var g_aMathAutoCorrectTriggerCharCodes =
 {
-    0x20 : 1, 0x21 : 1, 0x22 : 1, 0x23 : 1, 0x24 : 1, 0x25 : 1, 0x26 : 1,
+    0x20 : 1, 0x21 : 1, 0x22 : 1, 0x23 : 1, 0x24 : 1, 0x25 : 1, /*0x26 : 1,*/
     0x27 : 1, /*0x28 : 1, 0x29 : 1,*/ 0x2A : 1, 0x2B : 1, 0x2C : 1, 0x2D : 1,
-    0x2E : 1, 0x2F : 1, 0x3A : 1, 0x3B : 1, 0x3C : 1, 0x3D : 1, 0x3E : 1,
-    0x3F : 1, 0x40 : 1, 0x5B : 1, 0x5D : 1, 0x5C : 1, 0x5E : 1, 0x5F : 1,
-    0x60 : 1, 0x7B : 1, 0x7D : 1, 0x7C : 1, 0x7E : 1 /*,0x2592 : 1*/
+    0x2E : 1, /*0x2F : 1,*/ 0x3A : 1, 0x3B : 1, 0x3C : 1, 0x3D : 1, 0x3E : 1,
+    0x3F : 1, 0x40 : 1, /*0x5B : 1, 0x5D : 1,*/ 0x5C : 1, 0x5E : 1, 0x5F : 1,
+    0x60 : 1, /*0x7B : 1, 0x7D : 1, 0x7C : 1,*/ 0x7E : 1 /*,0x2592 : 1*/
 };
 
 //--------------------------------------------------------export----------------------------------------------------
