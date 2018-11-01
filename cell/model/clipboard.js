@@ -555,6 +555,12 @@
 					var selectionRange = activeRange ? activeRange : worksheet.model.selectionRange.getLast();
 					var maxRowCol = this._getRangeMaxRowCol(worksheet, selectionRange);
 					if(null !== maxRowCol){
+						if(maxRowCol.col < selectionRange.c1) {
+							maxRowCol.col = selectionRange.c1;
+						}
+						if(maxRowCol.row < selectionRange.r1) {
+							maxRowCol.row = selectionRange.r1;
+						}
 						selectionRange = new Asc.Range(selectionRange.c1, selectionRange.r1, maxRowCol.col, maxRowCol.row);
 					}
 

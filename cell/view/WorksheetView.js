@@ -9390,7 +9390,7 @@
             //если кратны, то обрабатываем
             if (widthArea % widthPasteFr === 0 && heightArea % heightPasteFr === 0) {
 				//Для случая, когда выделен весь диапазон, запрещаю множественную вставку
-            	if(arn.getType() !== window["Asc"].c_oAscSelectionType.RangeMax) {
+				if(arn.getType() !== window["Asc"].c_oAscSelectionType.RangeMax && arn.getType() !== window["Asc"].c_oAscSelectionType.RangeCol && arn.getType() !== window["Asc"].c_oAscSelectionType.RangeRow) {
 					isMultiple = true;
 				}
             } else if (firstCell.hasMerged() !== null)//в противном случае ошибка
