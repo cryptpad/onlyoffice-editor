@@ -273,9 +273,7 @@ Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
 			PrevRange = this.Lines[PrevLine].Ranges.length - 1;
 		}
 
-		if (true === this.Is_EmptyRange(PrevLine, PrevRange))
-			continue;
-		else
+		if (!this.IsEmptyRange(PrevLine, PrevRange))
 			break;
 	}
 
@@ -304,9 +302,7 @@ Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
 			NextRange = 0;
 		}
 
-		if (true === this.Is_EmptyRange(NextLine, NextRange))
-			continue;
-		else
+		if (!this.IsEmptyRange(NextLine, NextRange))
 			break;
 	}
 
@@ -661,15 +657,13 @@ Paragraph.prototype.private_RecalculatePage            = function(CurPage, bFirs
         }
         else if (RecalcResult & recalcresult_PrevLine)
         {
-			PRS.Restore_RunRecalcInfo();
-
-            // if (PRS.Line < this.Pages[CurPage].StartLine)
-            //     PRS.Restore_RunRecalcInfo();
-            // else
-            // {
-            //     RecalcResult = this.private_RecalculatePage(CurPage, false);
-            //     break;
-            // }
+            if (PRS.Line < this.Pages[CurPage].StartLine)
+                PRS.Restore_RunRecalcInfo();
+            else
+            {
+                RecalcResult = this.private_RecalculatePage(CurPage, false);
+                break;
+            }
         }
         else if (RecalcResult & recalcresult_CurLine)
         {

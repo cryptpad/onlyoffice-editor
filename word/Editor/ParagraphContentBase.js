@@ -287,7 +287,13 @@ CParagraphContentBase.prototype.LoadRecalculateObject = function(RecalcObj, Pare
 CParagraphContentBase.prototype.PrepareRecalculateObject = function()
 {
 };
-CParagraphContentBase.prototype.Is_EmptyRange = function(_CurLine, _CurRange)
+/**
+ * Пустой ли заданный отрезок
+ * @param nCurLine {number}
+ * @param nCurRange {number}
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.IsEmptyRange = function(nCurLine, nCurRange)
 {
 	return true;
 };
@@ -1966,21 +1972,21 @@ CParagraphContentWithParagraphLikeContent.prototype.PrepareRecalculateObject = f
 		this.Content[Index].PrepareRecalculateObject();
 	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Is_EmptyRange = function(_CurLine, _CurRange)
+CParagraphContentWithParagraphLikeContent.prototype.IsEmptyRange = function(_CurLine, _CurRange)
 {
-    var CurLine = _CurLine - this.StartLine;
-    var CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
+	var CurLine  = _CurLine - this.StartLine;
+	var CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
 
-    var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
-    var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
+	var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
+	var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
 
-    for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-    {
-        if ( false === this.Content[CurPos].Is_EmptyRange(_CurLine, _CurRange) )
-            return false;
-    }
+	for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+	{
+		if (false === this.Content[CurPos].IsEmptyRange(_CurLine, _CurRange))
+			return false;
+	}
 
-    return true;
+	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Check_Range_OnlyMath = function(Checker, _CurRange, _CurLine)
 {

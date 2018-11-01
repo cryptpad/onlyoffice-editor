@@ -2386,21 +2386,12 @@ CMathBase.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _C
         }
     }
 };
-CMathBase.prototype.IsEmptyRange = function(_CurLine, _CurRange)
+CMathBase.prototype.IsEmptyRange = function(nCurLine, nCurRange)
 {
-    var bEmpty = false;
-    var Numb = this.NumBreakContent;
+	if (!this.bOneLine)
+		return this.Content[this.NumBreakContent].IsEmptyRange(nCurLine, nCurRange);
 
-    if(this.bOneLine == false)
-    {
-        bEmpty = this.Content[Numb].IsEmptyRange(_CurLine, _CurRange);
-    }
-
-    return bEmpty;
-};
-CMathBase.prototype.Is_EmptyRange = function(_CurLine, _CurRange)
-{
-    return this.bOneLine == true ? false : this.Content[this.NumBreakContent].Is_EmptyRange(_CurLine, _CurRange);
+	return false;
 };
 CMathBase.prototype.Get_LineBound = function(_CurLine, _CurRange)
 {
