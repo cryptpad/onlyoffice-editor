@@ -604,6 +604,9 @@ function CPresentation(DrawingDocument)
     //------------------------------------------------------------------------
 
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
+    //Props
+    this.App = null;
+    this.Core = null;
 
     this.StartPage = 0; // Для совместимости с CDocumentContent
     this.CurPage   = 0;

@@ -77,7 +77,8 @@ var c_oSerTableTypes = {
 	Endnotes: 11,
 	Background: 12,
 	VbaProject: 13,
-	App: 14
+	App: 15,
+	Core: 16
 };
 var c_oSerSigTypes = {
     Version:0
@@ -6381,7 +6382,8 @@ function BinaryFileReader(doc, openParams)
 		var nSettingTableSeek = -1;
 		var nDocumentTableSeek = -1;
 		var nFootnoteTableSeek = -1;
-        for(var i = 0; i < mtLen; ++i)
+		var fileStream;
+		for(var i = 0; i < mtLen; ++i)
         {
             //mtItem
             res = this.stream.EnterFrame(5);
@@ -6492,7 +6494,18 @@ function BinaryFileReader(doc, openParams)
                     // res = (new Binary_OtherTableReader(this.Document, this.stream)).Read();
                     // break;
 				case c_oSerTableTypes.App:
-					res = (new Binary_AppTableReader(this.oReadResult, this.stream)).Read();
+					this.stream.Seek2(mtiOffBits);
+					fileStream = this.stream.ToFileStream();
+					this.Document.App = new AscCommon.CApp();
+					this.Document.App.fromStream(fileStream);
+					this.stream.FromFileStream(fileStream);
+					break;
+				case c_oSerTableTypes.Core:
+					this.stream.Seek2(mtiOffBits);
+					fileStream = this.stream.ToFileStream();
+					this.Document.Core = new AscCommon.CCore();
+					this.Document.Core.fromStream(fileStream);
+					this.stream.FromFileStream(fileStream);
 					break;
             }
             if(c_oSerConstants.ReadOk != res)
@@ -14935,28 +14948,6 @@ function Binary_NotesTableReader(doc, oReadResult, openParams, stream)
 		return res;
 	};
 };
-function Binary_AppTableReader(oReadResult, stream) {
-	this.oReadResult = oReadResult;
-	this.stream = stream;
-	this.bcr = new Binary_CommonReader(this.stream);
-	this.Read = function() {
-		var oThis = this;
-		return this.bcr.ReadTable(function(t, l) {
-			return oThis.ReadProperties(t, l);
-		});
-	};
-	this.ReadProperties = function(type, length) {
-		var res = c_oSerConstants.ReadOk;
-		if (c_oSerApp.Application === type) {
-			this.oReadResult.Application = this.stream.GetString2LE(length);
-		} else if (c_oSerApp.AppVersion === type) {
-			this.oReadResult.AppVersion = this.stream.GetString2LE(length);
-		} else {
-			res = c_oSerConstants.ReadUnknown;
-		}
-		return res;
-	};
-}
 function GetTableOffsetCorrection(tbl)
 {
     var X = 0;

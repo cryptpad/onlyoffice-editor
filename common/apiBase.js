@@ -275,6 +275,14 @@
 	{
 		return this.documentTitle;
 	};
+	baseEditorsApi.prototype.asc_getAppProps                 = function()
+	{
+		return null;
+	};
+	baseEditorsApi.prototype.asc_getCoreProps                = function()
+	{
+		return null;
+	};
 	baseEditorsApi.prototype.asc_setDocInfo                  = function(oDocInfo)
 	{
 		var oldInfo = this.DocInfo;

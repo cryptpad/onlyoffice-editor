@@ -783,6 +783,19 @@ FT_Stream2.prototype.GetBuffer = function(length) {
 	}
 	return res;
 };
+FT_Stream2.prototype.ToFileStream = function() {
+	var res = new AscCommon.FileStream();
+	res.obj = this.obj;
+	res.data = this.data;
+	res.size = this.size;
+	res.pos = this.pos;
+	res.cur= this.cur;
+	return res;
+};
+FT_Stream2.prototype.FromFileStream = function(stream) {
+	this.pos = stream.pos;
+	this.cur = stream.cur;
+};
 var gc_nMaxRow = 1048576;
 var gc_nMaxCol = 16384;
 var gc_nMaxRow0 = gc_nMaxRow - 1;

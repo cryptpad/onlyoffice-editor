@@ -1570,6 +1570,9 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     //__________________________________________________________________________________________________________________
 
     this.Id = this.IdCounter.Get_NewId();
+	//Props
+	this.App = null;
+	this.Core = null;
 
     // Сначала настраиваем размеры страницы и поля
     this.SectPr = new CSectionPr(this);
