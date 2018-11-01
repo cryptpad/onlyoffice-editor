@@ -2275,7 +2275,7 @@ ParaMath.prototype.Save_MathInfo = function(Copy)
         PageInfo:           this.PageInfo,
         bInline:            this.ParaMathRPI.bInline,
         Align:              this.Get_Align(),
-        bEmptyFirstRange:   this.Root.Is_EmptyRange(this.Root.StartLine, this.Root.StartRange)
+        bEmptyFirstRange:   this.Root.IsEmptyRange(this.Root.StartLine, this.Root.StartRange)
     };
 
     RecalculateObject.Fill(StructRecalc);
@@ -2398,9 +2398,9 @@ ParaMath.prototype.PrepareRecalculateObject = function()
 {
 	this.Root.PrepareRecalculateObject();
 };
-ParaMath.prototype.Is_EmptyRange = function(_CurLine, _CurRange)
+ParaMath.prototype.IsEmptyRange = function(nCurLine, nCurRange)
 {
-    return this.Root.Is_EmptyRange(_CurLine, _CurRange);
+	return this.Root.IsEmptyRange(nCurLine, nCurRange);
 };
 ParaMath.prototype.Check_Range_OnlyMath = function(Checker, CurRange, CurLine)
 {

@@ -254,7 +254,7 @@ ParaComment.prototype =
     {
     },
 
-    Is_EmptyRange : function(_CurLine, _CurRange)
+    IsEmptyRange : function(_CurLine, _CurRange)
     {
         return true;
     },
