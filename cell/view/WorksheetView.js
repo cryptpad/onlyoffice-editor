@@ -15783,6 +15783,7 @@
 	};
 
 	CHeaderFooterEditor.prototype.saveToModel = function () {
+		var ws = this.wb.getWorksheet();
 		if(null !== this.curParentFocusId) {
 			var prevField = this.getSectionById(this.curParentFocusId);
 			var prevFragments = this.cellEditor.options.fragments;
@@ -15828,8 +15829,12 @@
 				isChanged = true;
 			}
 			//нужно добавлять в историю
-			curHeaderFooter.parser.assembleText();
-			curHeaderFooter.setStr(curHeaderFooter.parser.date);
+			if(isChanged) {
+				curHeaderFooter.parser.assembleText();
+				curHeaderFooter.setStr(curHeaderFooter.parser.date);
+
+				ws.model.headerFooter.setHeaderFooterData(curHeaderFooter, i);
+			}
 		}
 	};
 

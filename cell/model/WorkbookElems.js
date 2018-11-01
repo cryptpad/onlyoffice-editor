@@ -8109,6 +8109,35 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CHeaderFooter.prototype.setOddFooter = function (val) { this.oddFooter = val; };
 	CHeaderFooter.prototype.setOddHeader = function (val) { this.oddHeader = val; };
 
+	CHeaderFooter.prototype.setHeaderFooterData = function(data, type) {
+		switch (type){
+			case Asc.c_oAscPageHFType.firstHeader: {
+				this.setFirstHeader(data);
+				break;
+			}
+			case Asc.c_oAscPageHFType.oddHeader: {
+				this.setOddHeader(data);
+				break;
+			}
+			case Asc.c_oAscPageHFType.evenHeader: {
+				this.setEvenHeader(data);
+				break;
+			}
+			case Asc.c_oAscPageHFType.firstFooter: {
+				this.setFirstFooter(data);
+				break;
+			}
+			case Asc.c_oAscPageHFType.oddFooter: {
+				this.setOddFooter(data);
+				break;
+			}
+			case Asc.c_oAscPageHFType.evenFooter: {
+				this.setEvenFooter(data);
+				break;
+			}
+		}
+	};
+
 	CHeaderFooter.prototype.init = function () {
 		if(this.evenFooter) {
 			this.evenFooter.parse();
