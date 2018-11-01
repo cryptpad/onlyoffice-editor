@@ -1543,6 +1543,21 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return arr;
 	};
+	cArea3D.prototype.getMatrixAllRange = function () {
+		var arr = [], r = this.getRanges(), res;
+		for (var k = 0; k < r.length; k++) {
+			arr[k] = [];
+			r[k]._foreach(function (cell, i, j, r1, c1) {
+				if (!arr[k][i - r1]) {
+					arr[k][i - r1] = [];
+				}
+				res = checkTypeCell(cell);
+
+				arr[k][i - r1][j - c1] = res;
+			});
+		}
+		return arr;
+	};
 	cArea3D.prototype.getMatrixNoEmpty = function () {
 		var arr = [], r = this.getRanges(), res;
 		for (var k = 0; k < r.length; k++) {
@@ -5882,7 +5897,7 @@ parserFormula.prototype.setFormula = function(formula) {
 
 					//***array-formula***
 					//если данная функция не может возвращать массив, проходимся по всем элементам аргументов и формируем массив
-					var formulaArray = currentElement.checkFormulaArray ? currentElement.checkFormulaArray(arg, opt_bbox, opt_defName, this, bIsSpecialFunction, argumentsCount) : null;
+					var formulaArray = cBaseFunction.prototype.checkFormulaArray.call(currentElement, arg, opt_bbox, opt_defName, this, bIsSpecialFunction, argumentsCount);/*currentElement.checkFormulaArray ? currentElement.checkFormulaArray(arg, opt_bbox, opt_defName, this, bIsSpecialFunction, argumentsCount) : null*/;
 					if(formulaArray) {
 						_tmp = formulaArray;
 					} else {
@@ -7124,7 +7139,7 @@ function rtl_math_erfc( x ) {
 	function convertAreaToArray(area){
 		var retArr = new cArray(), _arg0;
 		if(area instanceof cArea3D) {
-			area = area.getMatrix()[0];
+			area = area.getMatrixAllRange()[0];
 		} else {
 			area = area.getMatrix();
 		}
@@ -7153,8 +7168,13 @@ function rtl_math_erfc( x ) {
 
 		if(range) {
 			var bbox = range.bbox;
-			var countRow = useOnlyFirstRow ? useOnlyFirstRow.r2 - useOnlyFirstRow.r1 : bbox.r2 - bbox.r1;
-			var countCol = useOnlyFirstColumn ? useOnlyFirstColumn.c2 - useOnlyFirstColumn.c1 : bbox.c2 - bbox.c1;
+
+
+			var countRow = useOnlyFirstRow ? useOnlyFirstRow.r2 - useOnlyFirstRow.r1 : 0;
+			var countCol = useOnlyFirstColumn ? useOnlyFirstColumn.c2 - useOnlyFirstColumn.c1 : 0;
+
+			countRow = Math.max(bbox.r2 - bbox.r1, countRow);
+			countCol = Math.max(bbox.c2 - bbox.c1, countCol);
 
 			for ( var iRow = bbox.r1; iRow <= countRow + bbox.r1; iRow++, iRow <= countRow + bbox.r1 ? retArr.addRow() : true ) {
 				for ( var iCol = bbox.c1; iCol <= countCol + bbox.c1; iCol++ ) {
