@@ -236,8 +236,8 @@
 			t.CoAuthoringApi.sendChangesError(msg);
 			if (t.isLoadFullApi && t.isDocumentLoadComplete) {
 				//todo disconnect and downloadAs ability
-				t.asc_setViewMode(true);
 				t.sendEvent("asc_onError", Asc.c_oAscError.ID.EditingError, c_oAscError.Level.NoCritical);
+				t.asc_setViewMode(true);
 			}
 			if (oldOnError) {
 				return oldOnError.apply(this, arguments);
