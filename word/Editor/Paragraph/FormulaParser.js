@@ -87,7 +87,6 @@
         this.document = null;
         this.result = null;
         this.error = null;
-       // aArgs = [];
     }
     CFormulaNode.prototype.calculate = function (aArgs) {
     };
@@ -103,9 +102,7 @@
         this.error.Data = Data;
     };
 
-
     CFormulaNode.prototype.argumentsCount = 0;
-
 
     function CNumberNode() {
         CFormulaNode.call(this);
@@ -659,9 +656,9 @@
                 aQueue[i - oCurToken.argumentsCount] = oCurToken.result;
                 i = i - oCurToken.argumentsCount;
             }
-            else if(oCurToken instanceof CNumberNode){
-                aQueue[i] = oCurToken.value;
-            }
+            // else if(oCurToken instanceof CNumberNode){
+            //     aQueue[i] = oCurToken.value;
+            // }
         }
         this.result = aQueue[0];
         return null;
@@ -691,6 +688,18 @@
     oFuncMap['SUM'] = CSUMFunctionNode;
 
 
+    var PARSER_MASK_LEFT_PAREN      = 1;
+    var PARSER_MASK_RIGHT_PAREN     = 2;
+    var PARSER_MASK_LIST_SEPARATOR  = 4;
+    var PARSER_MASK_BINARY_OPERATOR = 8;
+    var PARSER_MASK_UNARY_OPERATOR  = 16;
+    var PARSER_MASK_NUMBER          = 32;
+    var PARSER_MASK_FUNCTION        = 64;
+    var PARSER_MASK_CELL_NAME       = 128;
+    var PARSER_MASK_CELL_RANGE      = 256;
+    var PARSER_MASK_BOOKMARK        = 512;
+    var PARSER_MASK_BOOKMARK_CELL_REF = 1024;
+
     function CFormulaParser(sListSeparator, sDigitSeparator){
         this.listSeparator = sListSeparator;
         this.digitSeparator = sDigitSeparator;
@@ -700,8 +709,17 @@
         this.parseQueue = null;
         this.error = null;
         this.bUnary = true;
-        this.error = null;
+        this.flags = 0;//[unary opearor, binary operator,]
     }
+
+    CFormulaParser.prototype.setFlag = function(nMask, bVal){
+        if(bVal){
+            this.flags |= nMask;
+        }
+        else{
+            this.flags &= (~nMask);
+        }
+    };
 
     CFormulaParser.prototype.checkExpression = function(oRegExp, fCallback){
         oRegExp.lastIndex = this.pos;
@@ -979,6 +997,7 @@
         this.formula = sFormula;
         this.parseQueue = null;
         this.error = null;
+
         if(typeof sFormula !== "string"){
             this.setError("Illegal Argument Type", "");
             return;
@@ -986,9 +1005,19 @@
         this.parseQueue = new CParseQueue();
         var oCurToken;
         var aStack = [], aQueue = [];
-        var oLastFunction;
         var aOperandCountStack = [];
         var oLastToken;
+        this.setFlag(PARSER_MASK_LEFT_PAREN, true);
+        this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
+        this.setFlag(PARSER_MASK_LIST_SEPARATOR, false);
+        this.setFlag(PARSER_MASK_BINARY_OPERATOR, false);
+        this.setFlag(PARSER_MASK_UNARY_OPERATOR, true);
+        this.setFlag(PARSER_MASK_NUMBER, true);
+        this.setFlag(PARSER_MASK_FUNCTION, true);
+        this.setFlag(PARSER_MASK_CELL_NAME, true);
+        this.setFlag(PARSER_MASK_CELL_RANGE, false);
+        this.setFlag(PARSER_MASK_BOOKMARK, true);
+        this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
         while (oCurToken = this.parseCurrent()){
             if(oCurToken instanceof CNumberNode || oCurToken instanceof CCellRangeNode){
                 aQueue.push(oCurToken);
