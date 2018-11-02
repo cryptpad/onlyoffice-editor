@@ -372,8 +372,26 @@
     };
 
     CCellRangeNode.prototype.isCell = function(){
-        return this.c1 !== null && this.r1 !== null
-            && this.c2 === null && this.r2 === null;
+        return this.bookmarkName === null && this.c1 !== null && this.r1 !== null && this.c2 === null && this.r2 === null;
+    };
+    CCellRangeNode.prototype.isDir = function(){
+        return this.dir !== null;
+    };
+    CCellRangeNode.prototype.isBookmarkCellRange = function(){
+        return this.bookmarkName !== null && (this.c1 !== null || this.r1 !== null) && (this.c2 !== null || this.r2 !== null);
+    };
+    CCellRangeNode.prototype.isCellRange = function(){
+        return this.bookmarkName === null && (this.c1 !== null || this.r1 !== null) && (this.c2 !== null || this.r2 !== null);
+    };
+
+    CCellRangeNode.prototype.isBookmarkCell = function(){
+        return this.bookmarkName !== null && this.c1 !== null && this.r1 !== null && this.c2 === null && this.r2 === null;
+    };
+    CCellRangeNode.prototype.isBookmarkCellRange = function(){
+        return this.bookmarkName !== null && (this.c1 !== null || this.r1 !== null) && (this.c2 !== null || this.r2 !== null);
+    };
+    CCellRangeNode.prototype.isBookmark = function(){
+        return this.bookmarkName !== null && this.c1 === null && this.r1 === null && this.c2 === null && this.r2 === null;
     };
 
     function CFunctionNode(){
@@ -481,7 +499,20 @@
         if(this.error){
             return;
         }
-        return 0.0;
+        return this.result = 0.0;
+    };
+    function CTRUEFunctionNode(){
+        CFunctionNode.call(this);
+    }
+    CTRUEFunctionNode.prototype = Object.create(CFunctionNode.prototype);
+    CTRUEFunctionNode.prototype.minArgumentsCount = 0;
+    CTRUEFunctionNode.prototype.maxArgumentsCount = 0;
+    CTRUEFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        this.result = 1;
     };
 
     function CINTFunctionNode(){
@@ -700,15 +731,17 @@
     var PARSER_MASK_BOOKMARK        = 512;
     var PARSER_MASK_BOOKMARK_CELL_REF = 1024;
 
+    var ERROR_TYPE_SYNTAX_ERROR = "Syntax Error";
+    var ERROR_TYPE_MISSING_OPERATOR = "Missing Operator";
+
     function CFormulaParser(sListSeparator, sDigitSeparator){
-        this.listSeparator = sListSeparator;
+        this.listSeparator = ',';
         this.digitSeparator = sDigitSeparator;
 
         this.formula = null;
         this.pos = 0;
         this.parseQueue = null;
         this.error = null;
-        this.bUnary = true;
         this.flags = 0;//[unary opearor, binary operator,]
     }
 
@@ -734,9 +767,15 @@
 
 
     CFormulaParser.prototype.parseNumber = function(nStartPos, nEndPos){
-        var ret = new CNumberNode();
-        ret.value = parseFloat(this.formula.slice(nStartPos, nEndPos));
-        return ret;
+        if(this.flags & PARSER_MASK_NUMBER){
+            var number = parseFloat(this.formula.slice(nStartPos, nEndPos));
+            if(!AscFormat.isRealNumber(number)){
+                var ret = new CNumberNode();
+                ret.value = number;
+                return ret;
+            }
+        }
+        return null;
     };
 
 
@@ -869,36 +908,47 @@
 
     CFormulaParser.prototype.parseCellRef = function(nStartPos, nEndPos){
         var oRet;
-        oRet = this.checkExpression(oCellRangeRegExp, this.parseCellRange);
-        if(oRet){
-            return oRet;
+        if(this.flags & PARSER_MASK_CELL_RANGE){
+            oRet = this.checkExpression(oCellRangeRegExp, this.parseCellRange);
+            if(oRet){
+                return oRet;
+            }
         }
-        oRet = this.checkExpression(oCellNameRegExp, this.parseCellName);
-        if(oRet){
-            return oRet;
+        if(this.flags & PARSER_MASK_CELL_NAME){
+            oRet = this.checkExpression(oCellNameRegExp, this.parseCellName);
+            if(oRet){
+                return oRet;
+            }
         }
         return null;
     };
 
     CFormulaParser.prototype.parseBookmark = function (nStartPos, nEndPos) {
-        var oRet = new CCellRangeNode();
-        oRet.bookmarkName = this.formula.slice(nStartPos, nEndPos);
-        return oRet;
+        if(this.flags & PARSER_MASK_BOOKMARK){
+            var oRet = new CCellRangeNode();
+            oRet.bookmarkName = this.formula.slice(nStartPos, nEndPos);
+            return oRet;
+        }
+        return null;
     };
 
     CFormulaParser.prototype.parseBookmarkCellRef = function(nStartPos, nEndPos){
+
         var oResult = this.checkExpression(oBookmarkNameRegExp, this.parseBookmark);
         if(oResult === null){
             return null;
         }
-        if(this.pos < nEndPos){
-            while(this.formula[this.pos] === ' '){
-                ++this.pos;
-            }
-            var oRes = this.checkExpression(oCellReferenceRegExp, this.parseCellRef);
-            if(oRes){
-                oRes.bookmarkName = oResult.bookmarkName;
-                return oRes;
+
+        if(this.flags & PARSER_MASK_BOOKMARK_CELL_REF){
+            if(this.pos < nEndPos){
+                while(this.formula[this.pos] === ' '){
+                    ++this.pos;
+                }
+                var oRes = this.checkExpression(oCellReferenceRegExp, this.parseCellRef);
+                if(oRes){
+                    oRes.bookmarkName = oResult.bookmarkName;
+                    return oRes;
+                }
             }
         }
         return oResult;
@@ -908,25 +958,27 @@
     CFormulaParser.prototype.parseOperator = function(nStartPos, nEndPos){
         var sOperator = this.formula.slice(nStartPos, nEndPos);
         if(sOperator === '-'){
-            if(this.bUnary){
+            if(this.flags & PARSER_MASK_UNARY_OPERATOR){
                 return new CUnaryMinusOperatorNode();
             }
-            else {
-                this.bUnary = true;
+            else if(this.flags & PARSER_MASK_BINARY_OPERATOR) {
                 return new CSubtractionOperatorNode();
             }
         }
-        if(oOperatorsMap[sOperator]){
-            this.bUnary = true;
-            return new oOperatorsMap[sOperator]();
+        if(this.flags & PARSER_MASK_BINARY_OPERATOR) {
+            if(oOperatorsMap[sOperator]){
+                return new oOperatorsMap[sOperator]();
+            }
         }
         return null;
     };
 
     CFormulaParser.prototype.parseFunction = function(nStartPos, nEndPos){
-        var sFunction = this.formula.slice(nStartPos, nEndPos).toUpperCase();
-        if(oFuncMap[sFunction]){
-            return new oFuncMap[sFunction]();
+        if(this.flags & PARSER_MASK_FUNCTION){
+            var sFunction = this.formula.slice(nStartPos, nEndPos).toUpperCase();
+            if(oFuncMap[sFunction]){
+                return new oFuncMap[sFunction]();
+            }
         }
         return null;
     };
@@ -939,17 +991,15 @@
             return null;
         }
         //check parentheses
-        if(this.formula[this.pos] === '('){
+        if((this.flags & PARSER_MASK_LEFT_PAREN) && this.formula[this.pos] === '('){
             ++this.pos;
-            this.bUnary = true;
             return new CLeftParenOperatorNode();
         }
-        if(this.formula[this.pos] === ')'){
+        if((this.flags & PARSER_MASK_RIGHT_PAREN) && this.formula[this.pos] === ')'){
             ++this.pos;
-            this.bUnary = false;
             return new CRightParenOperatorNode();
         }
-        if(this.formula[this.pos] === ','){
+        if((this.flags & PARSER_MASK_LIST_SEPARATOR) && this.formula[this.pos] === this.listSeparator){
             ++this.pos;
             return new CListSeparatorNode();
         }
@@ -962,7 +1012,6 @@
         //check number
         oRet = this.checkExpression(oConstantRegExp, this.parseNumber);
         if(oRet){
-            this.bUnary = false;
             return oRet;
         }
         //check function
@@ -973,13 +1022,11 @@
         //check cell reference
         var oRes = this.checkExpression(oCellReferenceRegExp, this.parseCellRef);
         if(oRes){
-            this.bUnary = false;
             return oRes;
         }
         //check bookmark
         oRet = this.checkExpression(oBookmarkCellRefRegExp, this.parseBookmarkCellRef);
         if(oRet){
-            this.bUnary = false;
             return oRet;
         }
         return null;
@@ -990,6 +1037,22 @@
         this.error = new CError();
         this.error.Type = Type;
         this.error.Data = Data;
+    };
+
+    CFormulaParser.prototype.getErrorString = function(startPos, endPos){
+        var nStartPos = startPos;
+        while (nStartPos < this.formula.length){
+            if(this.formula[nStartPos] === ' '){
+                nStartPos++;
+            }
+            else{
+                break;
+            }
+        }
+        if(nStartPos < endPos){
+            return this.formula.splice(nStartPos, endPos);
+        }
+        return "";
     };
 
     CFormulaParser.prototype.parse = function(sFormula){
@@ -1005,7 +1068,7 @@
         this.parseQueue = new CParseQueue();
         var oCurToken;
         var aStack = [], aQueue = [];
-        var aOperandCountStack = [];
+        var aFunctionsStack = [];
         var oLastToken;
         this.setFlag(PARSER_MASK_LEFT_PAREN, true);
         this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
@@ -1018,14 +1081,58 @@
         this.setFlag(PARSER_MASK_CELL_RANGE, false);
         this.setFlag(PARSER_MASK_BOOKMARK, true);
         this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
+        var nStartPos = this.pos;
         while (oCurToken = this.parseCurrent()){
-            if(oCurToken instanceof CNumberNode || oCurToken instanceof CCellRangeNode){
+            if(oCurToken instanceof CNumberNode){
+                if(oLastToken instanceof CNumberNode){
+                    this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
+                    return;
+                }
+                if(this.flags & PARSER_MASK_NUMBER){
+                    aQueue.push(oCurToken);
+                    this.setFlag(PARSER_MASK_NUMBER, true);
+                    this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
+                    this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                    this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
+                    this.setFlag(PARSER_MASK_BINARY_OPERATOR, true);
+                    this.setFlag(PARSER_MASK_FUNCTION, false);
+                    this.setFlag(PARSER_MASK_LIST_SEPARATOR, aFunctionsStack.length > 0);
+                    this.setFlag(PARSER_MASK_CELL_NAME, false);
+                    this.setFlag(PARSER_MASK_CELL_RANGE, false);
+                    this.setFlag(PARSER_MASK_BOOKMARK, false);
+                    this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
+                }
+                else{
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                }
+            } else if(oCurToken instanceof CCellRangeNode){
+                if(oCurToken.isDir() || oCurToken.isBookmarkCellRange() || oCurToken.isR)
                 aQueue.push(oCurToken);
             } else if(oCurToken.isFunction()){
-                aStack.push(oCurToken);
+                if(this.flags & PARSER_MASK_FUNCTION){
+                    aStack.push(oCurToken);
+                    this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
+                    if(oCurToken.maxArgumentsCount < 1){
+                        this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                    }
+                    else{
+                        this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                    }
+                }
+                else{
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                }
             } else if(oCurToken instanceof CListSeparatorNode){
-                if(aOperandCountStack.length > 0){
-                    ++aOperandCountStack[aOperandCountStack.length-1];
+                if(aFunctionsStack.length > 0){
+                    ++aFunctionsStack[aFunctionsStack.length-1].argumentsCount;
+                    if(aFunctionsStack[aFunctionsStack.length-1].argumentsCount >= aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                        return;
+                    }
+                }
+                else{
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                    return;
                 }
                 while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
                    aQueue.push(aStack.pop());
@@ -1036,20 +1143,20 @@
                 }
             } else if(oCurToken instanceof CLeftParenOperatorNode){
                 if(oLastToken && oLastToken.isFunction()){
-                    aOperandCountStack.push(0);
+                    aFunctionsStack.push(oLastToken);
                 }
                 aStack.push(oCurToken);
             } else if(oCurToken instanceof CRightParenOperatorNode){
-                if(aOperandCountStack.length > 0 && aStack[0] && aStack[0].isFunction()){
-                    ++aOperandCountStack[aOperandCountStack.length-1];
-                    aStack[0].argumentsCount = aOperandCountStack.pop();
+                if(aFunctionsStack.length > 0 && aStack[0] && aStack[0].isFunction()){
+                    ++aFunctionsStack[aFunctionsStack.length-1].argumentsCount;
+                    aFunctionsStack.pop();
                 }
                 while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
                     aQueue.push(aStack.pop());
                 }
 
                 if(aStack.length === 0){
-                    this.setError("Error in formula", this.formula[this.pos]);
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     return;
                 }
                 aStack.pop();
@@ -1063,6 +1170,7 @@
                 aStack.push(oCurToken);
             }
             oLastToken = oCurToken;
+            nStartPos = this.pos;
         }
         while (aStack.length > 0){
             oCurToken = aStack.pop();
