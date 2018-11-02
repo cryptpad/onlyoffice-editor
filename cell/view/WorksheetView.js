@@ -2214,7 +2214,7 @@
         var y2WithoutBorder = y2 - gridlineSize;
 
         // background только для видимых
-        if (!isZeroHeader) {
+        if (!isZeroHeader && !window["IS_NATIVE_EDITOR"]) {
             // draw background
             ctx.setFillStyle(st.background)
               .fillRect(x, y, w, h);
@@ -2223,15 +2223,19 @@
         ctx.setStrokeStyle(st.border)
           .setLineWidth(1)
           .beginPath();
-        if (style !== kHeaderDefault && !isColHeader) {
+        if (style !== kHeaderDefault && !isColHeader && !window["IS_NATIVE_EDITOR"]) {
             // Select row (top border)
             ctx.lineHorPrevPx(x, y, x2);
         }
 
         // Right border
-        ctx.lineVerPrevPx(x2, y, y2);
+		if (isColHeader || !window["IS_NATIVE_EDITOR"]) {
+			ctx.lineVerPrevPx(x2, y, y2);
+		}
         // Bottom border
-        ctx.lineHorPrevPx(x, y2, x2);
+		if (!isColHeader || !window["IS_NATIVE_EDITOR"]) {
+			ctx.lineHorPrevPx(x, y2, x2);
+		}
 
         if (style !== kHeaderDefault && isColHeader) {
             // Select col (left border)
