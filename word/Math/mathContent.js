@@ -5341,7 +5341,7 @@ CMathContent.prototype.ChangeContent = function(Content) {
     //     PrevParaRun = false;
     //     RemInd.push(0);
     // }
-    for (let i = Content.length - 2; i >= 0; i--) {
+    for (var i = Content.length - 2; i >= 0; i--) {
         if (Content[i].Type === 49 && PrevParaRun) {
             if (i < this.CurPos) {
                 var temp = Content[i].Content.length + Content[i + 1].State.ContentPos;
@@ -5349,7 +5349,7 @@ CMathContent.prototype.ChangeContent = function(Content) {
                 var temp = Content[i].State.ContentPos;
             }
             Content[i].MoveCursorToEndPos();
-            for (let k in Content[i + 1].Content) {
+            for (var k in Content[i + 1].Content) {
                 Content[i].Add(Content[i + 1].Content[k], false);
             }
             RemInd.push(i + 1);
@@ -5359,7 +5359,7 @@ CMathContent.prototype.ChangeContent = function(Content) {
         } 
         PrevParaRun = (Content[i].Type === 49) ? true : false;
     }
-    for (let i = 0; i < RemInd.length; i++) {
+    for (var i = 0; i < RemInd.length; i++) {
         Content[0].Parent.Remove_Content(RemInd[i], 1);   // мое удаление сразу всех символов
     }
 };
@@ -5396,12 +5396,12 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
 
     // AutoCorrectEngine.Elements[0].Run.Remove_FromContent(AutoCorrectEngine.Elements[0].Pos, 1); // удалит текст в pararun
 
-    if (null == AutoCorrectEngine.TextPr)
+    if (null == AutoCorrectEngine.TextPr) {
         AutoCorrectEngine.TextPr = new CTextPr();
-    if (null == AutoCorrectEngine.MathPr)
+    }
+    if (null == AutoCorrectEngine.MathPr) {
         AutoCorrectEngine.MathPr = new CMPrp();
-
-    
+    }
     // Создаем новую точку здесь, потому что если автозамену можно будет сделать классы сразу будут создаваться
     History.Create_NewPoint(AscDFH.historydescription_Document_MathAutoCorrect);
 
@@ -5429,21 +5429,18 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
 
     } else {
         // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
-        // CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
-
-        // if (false === CanMakeAutoCorrect && g_aMathAutoCorrectTriggerCharCodes[ActionElement.value])
-        // {
-            // if (0x20 === ActionElement.value) {
+        CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
+        if (false === CanMakeAutoCorrect) {
+            // Пробуем произвести автозамену без последнего добавленного символа
+            if (0x20 === ActionElement.value) {
                 CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
-            // } else {
-            //     CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
-            // }
-            // CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
-            // bCursorStepRight   = true;
-        // }
-
+            } else {
+                AutoCorrectEngine.Elements.splice(AutoCorrectEngine.Elements.length - 1, 1);
+                CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
+                bCursorStepRight = true;
+            }
+        }
         oAutoCorrectControl.SetReplaceChar(AutoCorrectEngine);
-
         if (!CanMakeAutoCorrect && AutoCorrectEngine.Remove[0] && this.Content.length !== AutoCorrectEngine.Remove[0].Count) {
             // Пробуем произвести автозамену без последнего добавленного символа
             if (0x20 === ActionElement.value) {
@@ -5460,139 +5457,61 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
             }
         }
     }
-
     if (bFindFunction || CanMakeAutoCorrect || CanMakeAutoCorrectEquation || CanMakeAutoCorrectFunc) {
-        // var ElementsCount = AutoCorrectEngine.Elements[this.CurPos].Element.Content.length;
-        // var ElementsCount = AutoCorrectEngine.Elements.length;
-        // var LastElement   = null;
-
-        // var FirstElement    = AutoCorrectEngine.Elements[this.CurPos].Element.Content[ElementsCount - 1 - AutoCorrectEngine.Shift];  //old
-        // var FirstElementPos = AutoCorrectEngine.Elements[this.CurPos].ElementPos;
-
-        // FirstElement.ElementPos++;
-        // var bReplaseShiftContent = false;
-        // 23.10
-        // var index = AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
-
-        // if (ActionElement === AutoCorrectEngine.Elements[this.CurPos].Element.Content[index]) {
-        //     index -= AutoCorrectEngine.RemoveCount + 1;
-        // } else {
-            // 23.10
-            // index -= AutoCorrectEngine.RemoveCount + AutoCorrectEngine.Shift;
-
-        // }
-        
-        // 23.10
-        // var FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
-        // if (FirstElement === ActionElement) {
-        //     index--;
-        //     index = (index < 0) ? 0 : index;
-        //     FirstElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[index];
-        // }
-
-        // FirstElement.Parent.Remove_FromContent(index, AutoCorrectEngine.RemoveCount);   // мое удаление сразу всех символов
-        
-        // AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos = index;       // мое восстановление положения курсора
-
-        //удаление по 1 символу
-        /*for (var nPos = index - AutoCorrectEngine.RemoveCount + 1, nCount = index; nPos < nCount; nPos++)
-        {
-            // if (CanMakeAutoCorrectEquation && AutoCorrectEngine.ActionElement.value == 0x20 && bReplaseShiftContent === false)
-            // {
-            //     bReplaseShiftContent = true;
-            //     nPos++;
-            //     AutoCorrectEngine.RemoveCount--;
-            //     nCount--;
-            //     if (nPos >= nCount)
-            //         break;
-            // }
-            LastElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[nPos - 1 - AutoCorrectEngine.Shift];
-
-            if (undefined !== LastElement.Parent)
-            {
-                if (FirstElement.Parent === LastElement.Parent)
-                    FirstElement.ElementPos--;
-
-                LastElement.Parent.Remove_FromContent(LastElement.ElementPos, 1);
-            }
-            else
-            {
-                this.Remove_FromContent(LastElement.ElementPos, 1);
-                FirstElementPos--;
-            }
-        }*/
-
-
-        // 23.10
-        // if (FirstElement.Type != para_Math_Composition)
-        // {
-        //     var NewRun = FirstElement.Parent.Split2();
-        //     this.Internal_Content_Add(this.CurPos + 1, NewRun, false);
-        // }
-        var CurPos = this.Content[this.CurPos].State.ContentPos - AutoCorrectEngine.Shift;
-    
-        for (var i = 0; i < AutoCorrectEngine.Remove.length; i++) {
-            var FirstElementPos = CurPos - AutoCorrectEngine.Remove[i].Count;
-            var FirstElement = this.Content[this.CurPos].Content[FirstElementPos];
-            FirstElement.Parent.Remove_FromContent(FirstElementPos, AutoCorrectEngine.Remove[i].Count);   // мое удаление сразу всех символов
-            if (FirstElement.Type != para_Math_Composition) {
-                var NewRun = FirstElement.Parent.Split2(FirstElementPos);
-                this.Internal_Content_Add(this.CurPos + 1, NewRun, false);
+        var ElCount = AutoCorrectEngine.Elements.length;
+        var LastEl = null;
+        var FirstEl = AutoCorrectEngine.Elements[ElCount - 1 - AutoCorrectEngine.Shift];
+        var FirstElPos = FirstEl.ElPos;
+        FirstEl.ContPos++;
+        for (var nPos = 0, nCount = AutoCorrectEngine.Remove[0].Count; nPos < nCount; nPos++) {
+            LastEl = AutoCorrectEngine.Elements[ElCount - nPos - 1 - AutoCorrectEngine.Shift];
+            if (undefined !== LastEl.Element.Parent) {
+                if (FirstEl.Element.Parent === LastEl.Element.Parent) {
+                    FirstEl.ContPos--;
+                }
+                LastEl.Element.Parent.Remove_FromContent(LastEl.ContPos, 1);
+            } else {
+                this.Remove_FromContent(LastEl.ElementPos, 1);
+                FirstElPos--;
             }
         }
 
-        var NewElementsCount = AutoCorrectEngine.ReplaceContent.length;
-        // AutoCorrectEngine.ReplaceContent[NewElementsCount-1].Content.push(ActionElement);
-        // AutoCorrectEngine.ReplaceContent[NewElementsCount-1].State.ContentPos++;
-        for (var nPos = 0; nPos < NewElementsCount; nPos++) {
-            this.Internal_Content_Add(this.CurPos + 1, AutoCorrectEngine.ReplaceContent[nPos], false);
+        if (FirstEl.Element.Type != para_Math_Composition) {
+            var NewRun = FirstEl.Element.Parent.Split2(FirstEl.ContPos);
+            this.Internal_Content_Add(FirstElPos + 1, NewRun, false);
         }
-        if (this.Content[this.CurPos].Content.length === 0) {
-            this.CurPos += NewElementsCount + 1;
-            if (AutoCorrectEngine.Shift == 0)
-                this.Content[this.CurPos].MoveCursorToStartPos();
-            else
-                this.Content[this.CurPos].MoveCursorToEndPos();
+        var NewElCount = AutoCorrectEngine.ReplaceContent.length;
+        for (var nPos = 0; nPos < NewElCount; nPos++) {
+            this.Internal_Content_Add(nPos + FirstElPos + 1, AutoCorrectEngine.ReplaceContent[nPos], false);
+        }
+        this.CurPos = FirstElPos + NewElCount;
+        if (CanMakeAutoCorrectEquation && AutoCorrectEngine.Type == MATH_NARY) {
+            // var oContentElem = this.Content[this.CurPos];
+            // this.Correct_Content(true);
+
+            // var CurrentContent = new CParagraphContentPos();
+            // this.ParaMath.Get_ParaContentPos(false, false, CurrentContent);
+
+            // var LeftContentPos = new CParagraphSearchPos();
+            // this.ParaMath.Get_LeftPos(LeftContentPos, CurrentContent, 0, true);
+            // this.ParaMath.Set_ParaContentPos(LeftContentPos.ContPos, 0);
+
+            // this.CurPos++;
+            // oContentElem.CurPos = 2;
+            // oContentElem.Content[2].MoveCursorToStartPos();
         } else {
-            this.CurPos += NewElementsCount;
-            if (AutoCorrectEngine.Shift == 0)
+            this.CurPos++;
+            if (AutoCorrectEngine.Shift == 0) {
                 this.Content[this.CurPos].MoveCursorToStartPos();
-            else
+            } else {
                 this.Content[this.CurPos].MoveCursorToEndPos();
+            }
         }
-
-        // this.CurPos = FirstElementPos + NewElementsCount;
-
-        // if (CanMakeAutoCorrectEquation && AutoCorrectEngine.Type == MATH_NARY)
-        // {
-        //     var oContentElem = this.Content[this.CurPos];
-        //     this.Correct_Content(true);
-
-        //     var CurrentContent = new CParagraphContentPos();
-        //     this.ParaMath.Get_ParaContentPos(false, false, CurrentContent);
-
-        //     var LeftContentPos = new CParagraphSearchPos();
-        //     this.ParaMath.Get_LeftPos(LeftContentPos, CurrentContent, 0, true);
-        //     this.ParaMath.Set_ParaContentPos(LeftContentPos.Pos, 0);
-
-        //     this.CurPos++;
-        //     oContentElem.CurPos = 2;
-        //     oContentElem.Content[2].MoveCursorToStartPos();
-        // }
-        // else
-        // {
-        //     this.CurPos++;
-        //     if (AutoCorrectEngine.Shift == 0)
-        //         this.Content[this.CurPos].MoveCursorToStartPos();
-        //     else
-        //         this.Content[this.CurPos].MoveCursorToEndPos();
-
-        // }
-
         if (true === bCursorStepRight) {
             // TODO: Переделать через функцию в ране
-            if (this.Content[this.CurPos].Content.length >= 1)
+            if (this.Content[this.CurPos].Content.length >= 1) {
                 this.Content[this.CurPos].State.ContentPos = 1;
+            }
         }
     } else {
         History.Remove_LastPoint();
@@ -5612,23 +5531,13 @@ CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
 };
 CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, bSkipLast) {
     var IndexAdd = (true === bSkipLast ? 1 : 0);
-    var ElementsCount = AutoCorrectEngine.Elements.length - IndexAdd;
-    AutoCorrectEngine.CurElement = ElementsCount;
-    // if (AutoCorrectEngine.Elements[this.CurPos].Type === para_Math_Run) {
-    //     var ElementsCount = AutoCorrectEngine.Elements[this.CurPos].Element.Content.length;
-    // } else {
-    //     return false;   //пока что работаем только с текстом
-    // }
-    if (ElementsCount < 2 + IndexAdd) {
+    var ElCount = AutoCorrectEngine.Elements.length;
+    if (ElCount < 2 + IndexAdd) {
         return false;
     }
-
     var Result = false;
-
-    // IndexAdd += ElementsCount - AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
-
     var RemoveCount  = 0;
-    var Start = 0
+    var Start = 0;
     var ReplaceChars = [0x0020];
     var AutoCorrectCount = g_aAutoCorrectMathSymbols.length;
     for (var nIndex = 0; nIndex < AutoCorrectCount; nIndex++) {
@@ -5636,26 +5545,20 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
         var CheckString = AutoCorrectElement[0];
         var CheckStringLen = CheckString.length;
 
-        if (ElementsCount < CheckStringLen) {
+        if (ElCount < CheckStringLen) {
             continue;
         }
         var Found = true;
-
-        // Начинаем проверять с конца строки
         for (var nStringPos = 0; nStringPos < CheckStringLen; nStringPos++) {
-            // var LastElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[ElementsCount - nStringPos - 1 - IndexAdd];  //c конца
-            var LastElement = AutoCorrectEngine.Elements[ElementsCount - nStringPos - 1];     // с конца строки
-            if (undefined === LastElement.ContPos || String.fromCharCode(LastElement.Element.value) !== CheckString.charAt(CheckStringLen - nStringPos -1))  // с конца
-            // if (undefined === LastElement.Text || LastElement.Text !== CheckString.charAt(nStringPos)) // с начала
-            {
+            var LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 1 - IndexAdd];
+            if (String.fromCharCode(LastEl.Element.value) !== CheckString[CheckStringLen - nStringPos - 1]) {
                 Found = false;
                 break;
             }
         }
-
         if (true === Found) {
-            RemoveCount = CheckStringLen; // + (AutoCorrectEngine.ActionElement.value === 0x0020 && bSkipLast ? 1 : 0);
-            Start = ElementsCount - nStringPos;
+            RemoveCount = CheckStringLen + IndexAdd;
+            Start = ElCount - nStringPos;
 
             if (undefined === AutoCorrectElement[1].length) {
                 ReplaceChars[0] = AutoCorrectElement[1];
@@ -5664,10 +5567,8 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
                     ReplaceChars[i] = AutoCorrectElement[1][i];
                 }
             }
-
         }
     }
-
     if (RemoveCount > 0) {
         var MathRun = new ParaRun(this.ParaMath.Paragraph, true);
         MathRun.Set_Pr(AutoCorrectEngine.TextPr.Copy());
@@ -5678,28 +5579,19 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
             ReplaceText.add(ReplaceChars[i]);
             MathRun.Add(ReplaceText, true);
         }
-
         AutoCorrectEngine.Remove.push({Count:RemoveCount, Start:Start});
-        if (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) {
-            AutoCorrectEngine.Shift++;
-        }
         AutoCorrectEngine.ReplaceContent.push(MathRun);
-        // удалить элементы из AutoCorrectEngine.Elements и сразу из контента
-        // for (var i = 0; i < RemoveCount; i++) 
-        //     AutoCorrectEngine.Elements.splice(0, 1);
-        AutoCorrectEngine.CurElement -= RemoveCount;
         Result = true;
     }
-
     return Result;
 };
 /*CMathContent.prototype.private_AutoCorrectDelimiter = function( AutoCorrectEngine, ActionElement)
  {
- var ElementsCount = AutoCorrectEngine.Elements.length;
- if (ElementsCount < 2)
+ var ElCount = AutoCorrectEngine.Elements.length;
+ if (ElCount < 2)
  return false;
 
- var oLastElem = AutoCorrectEngine.Elements[ElementsCount-2];
+ var oLastElem = AutoCorrectEngine.Elements[ElCount-2];
  if (oLastElem.Type != para_Math_Text && oLastElem.Text != ')')
  return false;
 
@@ -5707,7 +5599,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
  var bOpen = false;
  var TempElements = [];
  var BrAccount = new CMathBracketAcc();
- for (var i = ElementsCount-1; i >= 0; i--)
+ for (var i = ElCount-1; i >= 0; i--)
  {
  var oCurElem = AutoCorrectEngine.Elements[i];
  if (oCurElem.Type === para_Math_Text && oCurElem.Text == '(')
@@ -5736,16 +5628,16 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
 CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngine, bSkipLast) {
     var IndexAdd = (true === bSkipLast ? 1 : 0);
 
-    // var ElementsCount = AutoCorrectEngine.Elements[this.CurPos].Element.Content.length;
-    var ElementsCount = AutoCorrectEngine.Elements.length;
-    if (ElementsCount < 2 + IndexAdd) {
+    // var ElCount = AutoCorrectEngine.Elements[this.CurPos].Element.Content.length;
+    var ElCount = AutoCorrectEngine.Elements.length;
+    if (ElCount < 2 + IndexAdd) {
         return false;
     }
 
     var Result = false;
     var RemoveElem = null;
 
-    // IndexAdd += ElementsCount - AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
+    // IndexAdd += ElCount - AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
 
     // var RemoveCount  = 0;
     // var ReplaceChars = [0x0020];
@@ -5759,10 +5651,10 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
         var Start = 0;
 
         // if (bSkipLast) {
-        //     if (ElementsCount - 1 < CheckStringLen)
+        //     if (ElCount - 1 < CheckStringLen)
         //         continue;
         // } else {
-            if (ElementsCount < CheckStringLen)
+            if (ElCount < CheckStringLen)
             continue;
         // }
             
@@ -5774,16 +5666,16 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
             if (nStringPos > AutoCorrectEngine.CurElement) {
                 continue;
             }
-            // var LastElement = AutoCorrectEngine.Elements[this.CurPos].Element.Content[ElementsCount - nStringPos - 1 - IndexAdd];
-            var LastElement = AutoCorrectEngine.Elements[ElementsCount - nStringPos - 1 - IndexAdd];
-            if (undefined === LastElement.ContPos || String.fromCharCode(LastElement.Element.value) !== CheckString.charAt(CheckStringLen - nStringPos - 1)) {
+            // var LastEl = AutoCorrectEngine.Elements[this.CurPos].Element.Content[ElCount - nStringPos - 1 - IndexAdd];
+            var LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 1 - IndexAdd];
+            if (undefined === LastEl.ContPos || String.fromCharCode(LastEl.Element.value) !== CheckString.charAt(CheckStringLen - nStringPos - 1)) {
                 Found = false;
                 break;
             }
         }
         if (Found === true) {
-            Start = ElementsCount - nStringPos - IndexAdd;
-            // var nFirstElem = ElementsCount - CheckStringLen - 1 - IndexAdd;
+            Start = ElCount - nStringPos - IndexAdd;
+            // var nFirstElem = ElCount - CheckStringLen - 1 - IndexAdd;
             // if (nFirstElem < 0 || (CheckStringLen >= 0 && (AutoCorrectEngine.Elements[nFirstElem].Type === para_Math_Composition || AutoCorrectEngine.Elements[nFirstElem].Text.charCodeAt(0) == 0x0020)))
                 RemoveElem = AutoCorrectElement;
             // else
@@ -5854,7 +5746,7 @@ function AutoCorrectionControl (AutoCorrectEngine, ParaMath) {
 
     this.RemoveCount = AutoCorrectEngine.RemoveCount;
     this.Elements = AutoCorrectEngine.Elements;
-    this.ElementsCount = AutoCorrectEngine.Elements.length;
+    this.ElCount = AutoCorrectEngine.Elements.length;
     this.CurElement = AutoCorrectEngine.CurElement;
 
 }
@@ -5864,7 +5756,7 @@ AutoCorrectionControl.prototype.SetReplaceChar = function(AutoCorrectEngine) {
         this.ReplaceCode = AutoCorrectEngine.ReplaceContent[0].Content[0].value;
     if (AutoCorrectEngine.Remove[0])
         this.RemoveCount = AutoCorrectEngine.Remove[0].Count;
-    this.ElementsCount = AutoCorrectEngine.Elements.length;
+    this.ElCount = AutoCorrectEngine.Elements.length;
 };
 AutoCorrectionControl.prototype.PackTextToContent = function(Element, TempElements, AutoCorrectEngine, bReplaceBrackets) {
     var len = TempElements.length;
@@ -6263,7 +6155,7 @@ AutoCorrectionControl.prototype.FindFunction = function(CanMakeAutoCorrect)
     {
         nCurPos--;
         // nCountElems--;
-        this.ElementsCount--;
+        this.ElCount--;
         // oCurElem = this.Elements[this.CurElement].Element.Content[nCurPos];
         oCurElem = this.Elements[nCurPos].Element;
 
@@ -7393,50 +7285,39 @@ AutoCorrectionControl.prototype.CanPackToDelimiter = function(TempElements)
 
     return false;
 };
-CMathContent.prototype.ReplaceAutoCorrect = function(AutoCorrectEngine, bCursorStepRight)
-{
-    var ElementsCount = AutoCorrectEngine.Elements.length;
-    var LastElement = null;
-
-    var FirstElement    = AutoCorrectEngine.Elements[ElementsCount - 1];
-    var FirstElementPos = FirstElement.ElementPos;
-    FirstElement.Pos++;
-    for (var nPos = 0, nCount = AutoCorrectEngine.RemoveCount; nPos < nCount; nPos++)
-    {
-        LastElement = AutoCorrectEngine.Elements[ElementsCount - nPos - 1];
-
-        if (undefined !== LastElement.Run)
-        {
-            if (FirstElement.Run === LastElement.Run)
-                FirstElement.Pos--;
-
-            LastElement.Run.Remove_FromContent(LastElement.Pos, 1);
-        }
-        else
-        {
-            this.Remove_FromContent(LastElement.ElementPos, 1);
-            FirstElementPos--;
+CMathContent.prototype.ReplaceAutoCorrect = function(AutoCorrectEngine, bCursorStepRight) {
+    var ElCount = AutoCorrectEngine.Elements.length;
+    var LastEl = null;
+    var FirstEl = AutoCorrectEngine.Elements[ElCount - 1];
+    var FirstElPos = FirstEl.ElementPos;
+    FirstEl.Pos++;
+    for (var nPos = 0, nCount = AutoCorrectEngine.Remove[0].Count; nPos < nCount; nPos++) {
+        LastEl = AutoCorrectEngine.Elements[ElCount - nPos - 1];
+        if (undefined !== LastEl.Element.Parent) {
+            if (FirstEl.Element.Parent === LastEl.Element.Parent){
+                FirstEl.Pos--;
+            }
+            LastEl.Element.Parent.Remove_FromContent(LastEl.Pos, 1);
+        } else {
+            this.Remove_FromContent(LastEl.ElementPos, 1);
+            FirstElPos--;
         }
     }
-
-    var NewRun = FirstElement.Run.Split2(FirstElement.Pos);
-
-    this.Internal_Content_Add(FirstElementPos + 1, NewRun, false);
-
-    var NewElementsCount = AutoCorrectEngine.ReplaceContent.length;
-    for (var nPos = 0; nPos < NewElementsCount; nPos++)
-    {
-        this.Internal_Content_Add(nPos + FirstElementPos + 1, AutoCorrectEngine.ReplaceContent[nPos], false);
+    var NewRun = FirstEl.Element.Parent.Split2(FirstEl.Pos);
+    this.Internal_Content_Add(FirstElPos + 1, NewRun, false);
+    var NewElCount = AutoCorrectEngine.ReplaceContent.length;
+    for (var nPos = 0; nPos < NewElCount; nPos++) {
+        this.Internal_Content_Add(nPos + FirstElPos + 1, AutoCorrectEngine.ReplaceContent[nPos], false);
     }
 
-    this.CurPos = FirstElementPos + NewElementsCount + 1;
+    this.CurPos = FirstElPos + NewElCount + 1;
     this.Content[this.CurPos].MoveCursorToStartPos();
 
-    if (true === bCursorStepRight)
-    {
+    if (true === bCursorStepRight) {
         // TODO: Переделать через функцию в ране
-        if (this.Content[this.CurPos].Content.length >= 1)
+        if (this.Content[this.CurPos].Content.length >= 1) {
             this.Content[this.CurPos].State.ContentPos = 1;
+        }
     }
 };
 
@@ -7900,10 +7781,10 @@ function CMathAutoCorrectEngine(Elem, CurPos) {
 };
 
 CMathAutoCorrectEngine.prototype.Add_Element = function(Content) {
-    let nCount = this.CurElement;
-    let Fbreak = false;
+    var nCount = this.CurElement;
+    var Fbreak = false;
     if (!this.Brackets.lv) {    //if brackets not found
-        for (let i = nCount; i >= 0; i--) {
+        for (var i = nCount; i >= 0; i--) {
             if (Fbreak) {
                 break;
             }
@@ -7914,7 +7795,7 @@ CMathAutoCorrectEngine.prototype.Add_Element = function(Content) {
                 } else {
                     kStart = Content[i].Content.length;
                 }
-                for (let k = kStart - 1; k >= 0; k--) {
+                for (var k = kStart - 1; k >= 0; k--) {
                     if (Fbreak) {
                         break;
                     }
@@ -7960,9 +7841,9 @@ CMathAutoCorrectEngine.prototype.Find_All_Brackets = function (Content) {
     }
     var level = 1;
     var flag = false;
-    for (let i = 0; i < Content.length; i++) {
+    for (var i = 0; i < Content.length; i++) {
         if (Content[i].Type === 49) {
-            for (let k = 0; k < Content[i].Content.length; k++) {
+            for (var k = 0; k < Content[i].Content.length; k++) {
                 if (i === this.CurElement && k > Content[i].State.ContentPos - 1) {
                     break;
                 }
@@ -7994,7 +7875,7 @@ CMathAutoCorrectEngine.prototype.Find_All_Brackets = function (Content) {
                     }
                 }
                 if (g_MathRightBracketAutoCorrectCharCodes[Content[i].Content[k].value]) {
-                    let index = (this.Brackets[level - 1]) ? 1 : 0;
+                    var index = (this.Brackets[level - 1]) ? 1 : 0;
                     if (!this.Brackets[level - index]) {
                         this.Brackets[level - index] = {};
                         this.Brackets[level - index]['left'] = [];
@@ -8029,9 +7910,9 @@ CMathAutoCorrectEngine.prototype.Calc_Brackets_Count = function (Content) {
     var LFirst = null;
     var RFirst = null;
     this.Brackets.SkipLeft = true;
-    for (let i = 0; i < Content.length; i++) {
+    for (var i = 0; i < Content.length; i++) {
         if (Content[i].Type === 49) {
-            for (let k = 0; k < Content[i].Content.length; k++) {
+            for (var k = 0; k < Content[i].Content.length; k++) {
                 if (i === this.CurElement && k > Content[i].State.ContentPos - 1) {
                     break;
                 }
