@@ -2214,7 +2214,7 @@
         var y2WithoutBorder = y2 - gridlineSize;
 
         // background только для видимых
-        if (!isZeroHeader && !window["IS_NATIVE_EDITOR"]) {
+        if (!isZeroHeader) {
             // draw background
             ctx.setFillStyle(st.background)
               .fillRect(x, y, w, h);

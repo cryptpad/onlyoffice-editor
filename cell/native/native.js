@@ -4350,13 +4350,13 @@ function OfflineEditor () {
         if (colRowHeaders.asc_getShowGridLines() && false == istoplayer) {
             worksheet.__drawGrid(undefined,
                                  region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
-                                 worksheet._getColLeft(region.columnBeg) + region.columnOff, worksheet._getRowTop(region.rowBeg) + region.rowOff,
+                                 region.columnOff, region.rowOff,
                                  width + region.columnOff, height + region.rowOff);
         }
         
         worksheet.__drawCellsAndBorders(undefined,
                                         region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
-                                        worksheet._getColLeft(region.columnBeg) + region.columnOff, worksheet._getRowTop(region.rowBeg) + region.rowOff, istoplayer);
+                                        region.columnOff, region.rowOff, istoplayer);
     };
     this.drawHeader = function (x, y, width, height, type, ratio) {
         
@@ -4370,9 +4370,9 @@ function OfflineEditor () {
         var isRow = type == PageType.PageLeftType || type == PageType.PageCornerType;
         
         if (!isColumn && isRow)
-            worksheet._drawRowHeaders(null, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff + worksheet._getRowTop(region.rowBeg));
+            worksheet._drawRowHeaders(null, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff);
         else if (isColumn && !isRow)
-            worksheet._drawColumnHeaders(null, region.columnBeg, region.columnEnd, undefined, region.columnOff + worksheet._getColLeft(region.columnBeg), 0);
+            worksheet._drawColumnHeaders(null, region.columnBeg, region.columnEnd, undefined, region.columnOff, 0);
         else if (isColumn && isRow)
             worksheet._drawCorner();
     };
@@ -4423,7 +4423,7 @@ function OfflineEditor () {
                 if (-1 === columnBeg) {
                     if (worksheet._getColLeft(i) <= logicX && logicX < worksheet._getColLeft(i) + worksheet._getColumnWidth(i)) {
                         columnBeg = i;
-                        columnOff = logicX - worksheet._getColLeft(i);
+                        columnOff = logicX;
                     }
                 }
                 
@@ -4457,7 +4457,7 @@ function OfflineEditor () {
                 if (-1 === rowBeg) {
                     if (worksheet._getRowTop(i) <= logicY && logicY < worksheet._getRowTop(i) + worksheet._getRowHeight(i)) {
                         rowBeg = i;
-                        rowOff = logicY - worksheet._getRowTop(i);
+                        rowOff = logicY;
                     }
                 }
                 
