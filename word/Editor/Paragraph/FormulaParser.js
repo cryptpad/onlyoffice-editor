@@ -411,6 +411,9 @@
     CFunctionNode.prototype.isFunction = function () {
         return true;
     };
+    CFunctionNode.prototype.listSupport = function () {
+        return false;
+    };
 
 
     function CABSFunctionNode(){
@@ -447,6 +450,9 @@
     CAVERAGEFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CAVERAGEFunctionNode.prototype.minArgumentsCount = 2;
     CAVERAGEFunctionNode.prototype.maxArgumentsCount = +Infinity;
+    CAVERAGEFunctionNode.prototype.listSupport = function () {
+        return true;
+    };
     CAVERAGEFunctionNode.prototype.calculate = function (aArgs) {
         CFunctionNode.prototype.calculate.call(this, aArgs);
         if(this.error){
@@ -465,6 +471,9 @@
     CCOUNTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CCOUNTFunctionNode.prototype.minArgumentsCount = 2;
     CCOUNTFunctionNode.prototype.maxArgumentsCount = +Infinity;
+    CCOUNTFunctionNode.prototype.listSupport = function () {
+        return true;
+    };
     CCOUNTFunctionNode.prototype.calculate = function (aArgs) {
         CFunctionNode.prototype.calculate.call(this, aArgs);
         if(this.error){
@@ -534,6 +543,9 @@
     CMAXFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CMAXFunctionNode.prototype.minArgumentsCount = 2;
     CMAXFunctionNode.prototype.maxArgumentsCount = +Infinity;
+    CMAXFunctionNode.prototype.listSupport = function () {
+        return true;
+    };
     CMAXFunctionNode.prototype.calculate = function (aArgs) {
         CFunctionNode.prototype.calculate.call(this, aArgs);
         if(this.error){
@@ -548,6 +560,9 @@
     CMINFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CMINFunctionNode.prototype.minArgumentsCount = 2;
     CMINFunctionNode.prototype.maxArgumentsCount = +Infinity;
+    CMINFunctionNode.prototype.listSupport = function () {
+        return true;
+    };
     CMINFunctionNode.prototype.calculate = function (aArgs) {
         CFunctionNode.prototype.calculate.call(this, aArgs);
         if(this.error){
@@ -604,6 +619,9 @@
     CPRODUCTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CPRODUCTFunctionNode.prototype.minArgumentsCount = 2;
     CPRODUCTFunctionNode.prototype.maxArgumentsCount = +Infinity;
+    CPRODUCTFunctionNode.prototype.listSupport = function () {
+        return true;
+    };
     CPRODUCTFunctionNode.prototype.calculate = function (aArgs) {
         CFunctionNode.prototype.calculate.call(this, aArgs);
         if(this.error){
@@ -658,6 +676,9 @@
     CSUMFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CSUMFunctionNode.prototype.minArgumentsCount = 2;
     CSUMFunctionNode.prototype.maxArgumentsCount = +Infinity;
+    CSUMFunctionNode.prototype.listSupport = function () {
+        return true;
+    };
     CSUMFunctionNode.prototype.calculate = function (aArgs) {
         CFunctionNode.prototype.calculate.call(this, aArgs);
         if(this.error){
@@ -1106,7 +1127,9 @@
                     this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                 }
             } else if(oCurToken instanceof CCellRangeNode){
-                if(oCurToken.isDir() || oCurToken.isBookmarkCellRange() || oCurToken.isR)
+                if(oCurToken.isDir() || oCurToken.isBookmarkCellRange() || oCurToken.isCellRange()){
+
+                }
                 aQueue.push(oCurToken);
             } else if(oCurToken.isFunction()){
                 if(this.flags & PARSER_MASK_FUNCTION){
@@ -1144,6 +1167,7 @@
             } else if(oCurToken instanceof CLeftParenOperatorNode){
                 if(oLastToken && oLastToken.isFunction()){
                     aFunctionsStack.push(oLastToken);
+                    this.setFlag(PARSER_MASK_CELL_RANGE, true);
                 }
                 aStack.push(oCurToken);
             } else if(oCurToken instanceof CRightParenOperatorNode){
