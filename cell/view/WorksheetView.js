@@ -2073,6 +2073,12 @@
           if (!drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
               return;
           }
+
+		  if (window["IS_NATIVE_EDITOR"]) {
+			  // for ios (TODO check the need)
+			  this._prepareCellTextMetricsCache(new asc_Range(start, 0, end, 1));
+		  }
+
           var vr = this.visibleRange;
           var offsetX = (undefined !== offsetXForDraw) ? offsetXForDraw : this._getColLeft(vr.c1) - this.cellsLeft;
           var offsetY = (undefined !== offsetYForDraw) ? offsetYForDraw : this.headersTop;
@@ -2098,7 +2104,7 @@
           this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
 
           // draw column headers
-		  var l = this._getColLeft(start) - offsetX, w
+		  var l = this._getColLeft(start) - offsetX, w;
           for (var i = start; i <= end; ++i) {
           	w = this._getColumnWidth(i);
               this._drawHeader(drawingCtx, l, offsetY, w, this.headersHeight, style, true, i);

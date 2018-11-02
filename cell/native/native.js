@@ -3388,49 +3388,7 @@ function OfflineEditor () {
         var kHeaderDefault = 0;
         var kHeaderActive = 1;
         var kHeaderHighlighted = 2;
-        
-        AscCommonExcel.WorksheetView.prototype.__drawColumnHeaders = function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
-            if (undefined === drawingCtx && false === this.model.sheetViews[0].asc_getShowRowColHeaders())
-                return;
-            
-            var range = new asc_Range(start, 0, end, 1);
-            this._prepareCellTextMetricsCache(range);
-            
-            var vr  = this.visibleRange;
-            var c = this.cols;
-            var offsetX = (undefined !== offsetXForDraw) ? offsetXForDraw : this._getColLeft(vr.c1) - this.cellsLeft;
-            var offsetY = (undefined !== offsetYForDraw) ? offsetYForDraw : this.headersTop;
-            if (undefined === drawingCtx && this.topLeftFrozenCell && undefined === offsetXForDraw) {
-                var cFrozen = this.topLeftFrozenCell.getCol0();
-                if (start < vr.c1)
-                    offsetX = this._getColLeft(0) - this.cellsLeft;
-                else
-                    offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
-            }
-            
-            if (asc_typeof(start) !== "number") {start = vr.c1;}
-            if (asc_typeof(end) !== "number") {end = vr.c2;}
-            if (style === undefined) {style = kHeaderDefault;}
-            
-            this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
-            
-            var ctx = (drawingCtx) ? drawingCtx : this.drawingCtx;
-            var st = this.settings.header.style[style];
-            //ctx.setFillStyle(st.border)                                                                                   // for ios
-            //.fillRect( - offsetX, offsetY, this._getColLeft(end) - this._getColLeft(start), this.headersHeight * 2);      // for ios
 
-            for (var i = start; i <= end; ++i) {
-                this.__drawHeader(drawingCtx,
-                                  this._getColLeft(i) - this._getColLeft(start) - offsetX,
-                                  offsetY,
-                                  this._getColumnWidth(i),
-                                  this.headersHeight,
-                                  style,
-                                  true,
-                                  i);
-            }
-        };
-        
         AscCommonExcel.WorksheetView.prototype.__drawRowHeaders = function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
             if (null === drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
                 return;
@@ -4561,7 +4519,7 @@ function OfflineEditor () {
         if (!isColumn && isRow)
             worksheet.__drawRowHeaders(undefined, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff);
         else if (isColumn && !isRow)
-            worksheet.__drawColumnHeaders(undefined, region.columnBeg, region.columnEnd, undefined, region.columnOff, 0);
+            worksheet._drawColumnHeaders(null, region.columnBeg, region.columnEnd, undefined, region.columnOff, 0);
         else if (isColumn && isRow)
             worksheet._drawCorner();
     };
