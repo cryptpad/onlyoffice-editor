@@ -15810,7 +15810,10 @@
 			//сначала формируем новый объект, затем доблавляем в модель и записываем в историю полученную строку
 			//возможно стоит пересмотреть(получать вначале строку) - создаём вначале парсер,
 			//добавляем туда полученные при редактировании фрагменты, затем получаем строку
-			var curHeaderFooter = new Asc.CHeaderFooterData();
+			var curHeaderFooter = this.getCurPageHF(i);
+			if(null === curHeaderFooter) {
+				curHeaderFooter = new Asc.CHeaderFooterData();
+			}
 			if(!curHeaderFooter.parser) {
 				curHeaderFooter.parser = new window["AscCommonExcel"].HeaderFooterParser();
 			}

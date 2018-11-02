@@ -7644,32 +7644,32 @@
             } else if (c_oSer_HeaderFooter.EvenFooter === type) {
 				sVal = this.stream.GetString2LE(length);
 				if(sVal) {
-					headerFooter.setEvenFooter(new Asc.CHeaderFooterData(sVal));
+					headerFooter.setEvenFooter(sVal);
                 }
             } else if (c_oSer_HeaderFooter.EvenHeader === type) {
 				sVal = this.stream.GetString2LE(length);
 				if(sVal) {
-					headerFooter.setEvenHeader(new Asc.CHeaderFooterData(sVal));
+					headerFooter.setEvenHeader(sVal);
 				}
             } else if (c_oSer_HeaderFooter.FirstFooter === type) {
 				sVal = this.stream.GetString2LE(length);
 				if(sVal) {
-					headerFooter.setFirstFooter(new Asc.CHeaderFooterData(sVal));
+					headerFooter.setFirstFooter(sVal);
 				}
             } else if (c_oSer_HeaderFooter.FirstHeader === type) {
 				sVal = this.stream.GetString2LE(length);
 				if(sVal) {
-					headerFooter.setFirstHeader(new Asc.CHeaderFooterData(sVal));
+					headerFooter.setFirstHeader(sVal);
 				}
             } else if (c_oSer_HeaderFooter.OddFooter === type) {
 				sVal = this.stream.GetString2LE(length);
 				if(sVal) {
-					headerFooter.setOddFooter(new Asc.CHeaderFooterData(sVal));
+					headerFooter.setOddFooter(sVal);
 				}
             } else if (c_oSer_HeaderFooter.OddHeader === type) {
 				sVal = this.stream.GetString2LE(length);
 				if(sVal) {
-					headerFooter.setOddHeader(new Asc.CHeaderFooterData(sVal));
+					headerFooter.setOddHeader(sVal);
 				}
             } else
                 res = c_oSerConstants.ReadUnknown;
