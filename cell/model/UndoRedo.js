@@ -2715,6 +2715,51 @@ function (window, undefined) {
 	};
 
 
+	function UndoRedoHeaderFooter(wb) {
+		this.wb = wb;
+		this.nType = UndoRedoClassTypes.Add(function () {
+			return AscCommonExcel.g_oUndoRedoHeaderFooter;
+		});
+	}
+
+	UndoRedoHeaderFooter.prototype.getClassType = function () {
+		return this.nType;
+	};
+	UndoRedoHeaderFooter.prototype.Undo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, true);
+	};
+	UndoRedoHeaderFooter.prototype.Redo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, false);
+	};
+	UndoRedoHeaderFooter.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+		var ws = this.wb.getWorksheetById(nSheetId);
+		if (!ws) {
+			return;
+		}
+
+		var value = bUndo ? Data.from : Data.to;
+		switch (Type) {
+			case AscCH.historyitem_Header_First:
+				pageMargins.asc_setLeft(value);
+				break;
+			case AscCH.historyitem_Header_Even:
+				pageMargins.asc_setRight(value);
+				break;
+			case AscCH.historyitem_Header_Odd:
+				pageMargins.asc_setTop(value);
+				break;
+			case AscCH.historyitem_Footer_First:
+				pageMargins.asc_setBottom(value);
+				break;
+			case AscCH.historyitem_Footer_Even:
+				pageSetup.asc_setWidth(value);
+				break;
+			case AscCH.historyitem_Footer_Odd:
+				pageSetup.asc_setHeight(value);
+				break;
+		}
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].UndoRedoItemSerializable = UndoRedoItemSerializable;
@@ -2748,6 +2793,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoPivotTables = UndoRedoPivotTables;
 	window['AscCommonExcel'].UndoRedoSharedFormula = UndoRedoSharedFormula;
 	window['AscCommonExcel'].UndoRedoRedoLayout = UndoRedoRedoLayout;
+	window['AscCommonExcel'].UndoRedoHeaderFooter = UndoRedoHeaderFooter;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;
 	window['AscCommonExcel'].g_oUndoRedoCell = null;
@@ -2760,4 +2806,6 @@ function (window, undefined) {
 	window['AscCommonExcel'].g_oUndoRedoPivotTables = null;
 	window['AscCommonExcel'].g_oUndoRedoSharedFormula = null;
 	window['AscCommonExcel'].g_oUndoRedoLayout = null;
+	window['AscCommonExcel'].g_oUndoRedoHeaderFooter = null;
+
 })(window);

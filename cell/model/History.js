@@ -162,6 +162,12 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Layout_Headings = 10;
 	window['AscCH'].historyitem_Layout_Orientation = 11;
 
+	window['AscCH'].historyitem_Header_First = 1;
+	window['AscCH'].historyitem_Header_Even = 2;
+	window['AscCH'].historyitem_Header_Odd = 3;
+	window['AscCH'].historyitem_Footer_First = 4;
+	window['AscCH'].historyitem_Footer_Even = 5;
+	window['AscCH'].historyitem_Footer_Odd = 6;
 
 function CHistory()
 {

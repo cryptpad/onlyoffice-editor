@@ -8072,7 +8072,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 
 
-	function CHeaderFooter() {
+	function CHeaderFooter(ws) {
+		this.ws = ws;
+
 		this.alignWithMargins = null;
 		this.differentFirst = null;
 		this.differentOddEven = null;
@@ -8102,12 +8104,68 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CHeaderFooter.prototype.setDifferentFirst = function (val) { this.differentFirst = val; };
 	CHeaderFooter.prototype.setDifferentOddEven = function (val) { this.differentOddEven = val; };
 	CHeaderFooter.prototype.setScaleWithDoc = function (val) { this.scaleWithDoc = val; };
-	CHeaderFooter.prototype.setEvenFooter = function (val) { this.evenFooter = val; };
-	CHeaderFooter.prototype.setEvenHeader = function (val) { this.evenHeader = val; };
-	CHeaderFooter.prototype.setFirstFooter = function (val) { this.firstFooter = val; };
-	CHeaderFooter.prototype.setFirstHeader = function (val) { this.firstHeader = val; };
-	CHeaderFooter.prototype.setOddFooter = function (val) { this.oddFooter = val; };
-	CHeaderFooter.prototype.setOddHeader = function (val) { this.oddHeader = val; };
+	CHeaderFooter.prototype.setEvenFooter = function (val) {
+		var oldVal = this.evenFooter ? this.evenFooter.str : null;
+		var newVal = val ? val.str : null;
+		this.evenFooter = val;
+
+		if (this.ws && History.Is_On() && oldVal !== newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_Even, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}
+	};
+	CHeaderFooter.prototype.setEvenHeader = function (val) {
+		var oldVal = this.evenHeader ? this.evenHeader.str : null;
+		var newVal = val ? val.str : null;
+		this.evenHeader = val;
+
+		if (this.ws && History.Is_On() && oldVal !== newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_Even, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}
+	};
+	CHeaderFooter.prototype.setFirstFooter = function (val) {
+		this.firstFooter = val;
+
+		var oldVal = this.firstFooter ? this.firstFooter.str : null;
+		var newVal = val ? val.str : null;
+		this.firstFooter = val;
+
+		if (this.ws && History.Is_On() && oldVal !== newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_First, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}
+	};
+	CHeaderFooter.prototype.setFirstHeader = function (val) {
+		var oldVal = this.firstHeader ? this.firstHeader.str : null;
+		var newVal = val ? val.str : null;
+		this.firstHeader = val;
+
+		if (this.ws && History.Is_On() && oldVal !== newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_First, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}
+	};
+	CHeaderFooter.prototype.setOddFooter = function (val) {
+		var oldVal = this.oddFooter ? this.oddFooter.str : null;
+		var newVal = val ? val.str : null;
+		this.oddFooter = val;
+
+		if (this.ws && History.Is_On() && oldVal !== newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_Odd, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}
+	};
+	CHeaderFooter.prototype.setOddHeader = function (val) {
+		var oldVal = this.oddHeader ? this.oddHeader.str : null;
+		var newVal = val ? val.str : null;
+		this.oddHeader = val;
+
+		if (this.ws && History.Is_On() && oldVal !== newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_Odd, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}
+	};
 
 	CHeaderFooter.prototype.setHeaderFooterData = function(data, type) {
 		switch (type){

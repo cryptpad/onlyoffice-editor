@@ -15767,16 +15767,16 @@
 	};
 
 	CHeaderFooterEditor.prototype.destroy = function (bSave) {
-		if(bSave /*&& bChanged*/) {
-			this.saveToModel();
-		}
-
 		//возвращаем cellEditor у wb
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
 		if(this.wbCellEditor) {
 			wb.cellEditor = this.wbCellEditor;
 			wb.cellEditor.close();
+		}
+
+		if(bSave /*&& bChanged*/) {
+			this.saveToModel();
 		}
 
 		delete window.Asc.g_header_footer_editor;
@@ -15807,10 +15807,7 @@
 			//сначала формируем новый объект, затем доблавляем в модель и записываем в историю полученную строку
 			//возможно стоит пересмотреть(получать вначале строку) - создаём вначале парсер,
 			//добавляем туда полученные при редактировании фрагменты, затем получаем строку
-			var curHeaderFooter = this.getCurPageHF(i);
-			if(null === curHeaderFooter) {
-				curHeaderFooter = new Asc.CHeaderFooterData();
-			}
+			var curHeaderFooter = new Asc.CHeaderFooterData();
 			if(!curHeaderFooter.parser) {
 				curHeaderFooter.parser = new window["AscCommonExcel"].HeaderFooterParser();
 			}
@@ -15830,10 +15827,15 @@
 			}
 			//нужно добавлять в историю
 			if(isChanged) {
+				History.Create_NewPoint();
+				History.StartTransaction();
+
 				curHeaderFooter.parser.assembleText();
 				curHeaderFooter.setStr(curHeaderFooter.parser.date);
 
 				ws.model.headerFooter.setHeaderFooterData(curHeaderFooter, i);
+
+				History.EndTransaction();
 			}
 		}
 	};
