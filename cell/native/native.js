@@ -3379,57 +3379,13 @@ function OfflineEditor () {
         };
         
         var asc_Range = window["Asc"].Range;
-        var asc_typeof = window["Asc"].typeOf;
         
         /**
          * header styles
          * @const
          */
         var kHeaderDefault = 0;
-        var kHeaderActive = 1;
-        var kHeaderHighlighted = 2;
 
-        AscCommonExcel.WorksheetView.prototype.__drawRowHeaders = function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
-            if (null === drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
-                return;
-            }
-            var vr = this.visibleRange;
-            var offsetX = (undefined !== offsetXForDraw) ? offsetXForDraw : this.headersLeft;
-            var offsetY = (undefined !== offsetYForDraw) ? offsetYForDraw : this._getRowTop(vr.r1) - this.cellsTop;
-            if (null === drawingCtx && this.topLeftFrozenCell && undefined === offsetYForDraw) {
-                var rFrozen = this.topLeftFrozenCell.getRow0();
-                if (start < vr.r1) {
-                    offsetY = this._getRowTop(0) - this.cellsTop;
-                } else {
-                    offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
-                }
-            }
-            
-            if (asc_typeof(start) !== "number") {
-                start = vr.r1;
-            }
-            if (asc_typeof(end) !== "number") {
-                end = vr.r2;
-            }
-            if (style === undefined) {
-                style = kHeaderDefault;
-            }
-            
-            this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
-            
-            var t = this._getRowTop(start) - offsetY;
-            for (var i = start; i <= end; ++i) {
-                this.__drawHeader(drawingCtx,
-                                  offsetX,
-                                  this._getRowTop(i) - this._getRowTop(start) - offsetY,
-                                  this.headersWidth,
-                                  this._getRowHeight(i),
-                                  style,
-                                  false,
-                                  i);
-            }
-        };
-        
         AscCommonExcel.WorksheetView.prototype.__drawHeader = function (drawingCtx, x, y, w, h, style, isColHeader, index) {
             
             // Для отрисовки невидимого столбца/строки
@@ -4517,7 +4473,7 @@ function OfflineEditor () {
         var isRow = type == PageType.PageLeftType || type == PageType.PageCornerType;
         
         if (!isColumn && isRow)
-            worksheet.__drawRowHeaders(undefined, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff);
+            worksheet._drawRowHeaders(null, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff);
         else if (isColumn && !isRow)
             worksheet._drawColumnHeaders(null, region.columnBeg, region.columnEnd, undefined, region.columnOff, 0);
         else if (isColumn && isRow)
