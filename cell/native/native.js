@@ -4370,9 +4370,9 @@ function OfflineEditor () {
         var isRow = type == PageType.PageLeftType || type == PageType.PageCornerType;
         
         if (!isColumn && isRow)
-            worksheet._drawRowHeaders(null, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff);
+            worksheet._drawRowHeaders(null, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff + worksheet._getRowTop(region.rowBeg));
         else if (isColumn && !isRow)
-            worksheet._drawColumnHeaders(null, region.columnBeg, region.columnEnd, undefined, region.columnOff, 0);
+            worksheet._drawColumnHeaders(null, region.columnBeg, region.columnEnd, undefined, region.columnOff + worksheet._getColLeft(region.columnBeg), 0);
         else if (isColumn && isRow)
             worksheet._drawCorner();
     };
