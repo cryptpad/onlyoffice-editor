@@ -15338,7 +15338,7 @@
 					switch(newFont.va)
 					{
 						// close the previous super/sub script.
-						case vertalign_Baseline:  (prevFont.va === AscCommon.vertalign_SuperScript) ? aParaText += "&X" : aParaText += "&Y"; break;
+						case AscCommon.vertalign_Baseline:  (prevFont.va === AscCommon.vertalign_SuperScript) ? aParaText += "&X" : aParaText += "&Y"; break;
 						case AscCommon.vertalign_SuperScript: aParaText += "&X";  break;
 						case AscCommon.vertalign_SubScript:   aParaText += "&Y";  break;
 						default: break;
@@ -15690,8 +15690,59 @@
 		if(cSection) {
 			var sectionElem = cSection.getElem();
 			var fragments = cSection.getFragments();
+			var self = wb;
 			if(!this.cellEditor) {
-				this.cellEditor = new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, null, /*settings*/{
+				this.cellEditor = new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
+					"closed": function () {
+						self._onCloseCellEditor.apply(self, arguments);
+					}, "updated": function () {
+						self.Api.checkLastWork();
+						self._onUpdateCellEditor.apply(self, arguments);
+					}, "gotFocus": function (hasFocus) {
+						self.controller.setFocus(!hasFocus);
+					}, "updateEditorState": function (state) {
+						self.handlers.trigger("asc_onEditCell", state);
+					}, "isGlobalLockEditCell": function () {
+						return self.collaborativeEditing.getGlobalLockEditCell();
+					}, "updateFormulaEditModEnd": function () {
+						if (!self.lockDraw) {
+							self.getWorksheet().updateSelection();
+						}
+					}, "newRange": function (range, ws) {
+						if (!ws) {
+							self.getWorksheet().addFormulaRange(range);
+						} else {
+							self.getWorksheet(self.model.getWorksheetIndexByName(ws)).addFormulaRange(range);
+						}
+					}, "existedRange": function (range, ws) {
+						var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.copyActiveSheet;
+						if (-1 === editRangeSheet || editRangeSheet === self.wsActive) {
+							self.getWorksheet().activeFormulaRange(range);
+						} else {
+							self.getWorksheet(editRangeSheet).removeFormulaRange(range);
+							self.getWorksheet().addFormulaRange(range);
+						}
+					}, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
+						self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
+						self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
+					}, "applyCloseEvent": function () {
+						self.controller._onWindowKeyDown.apply(self.controller, arguments);
+					}, "canEdit": function () {
+						return self.Api.canEdit();
+					}, "getFormulaRanges": function () {
+						return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
+					}, "getCellFormulaEnterWSOpen": function () {
+						return self.cellFormulaEnterWSOpen;
+					}, "getActiveWS": function () {
+						return self.getWorksheet().model;
+					}, "setStrictClose": function (val) {
+						self.controller.setStrictClose(val);
+					}, "updateEditorSelectionInfo": function (info) {
+						self.handlers.trigger("asc_onEditorSelectionChanged", info);
+					}, "onContextMenu": function (event) {
+						self.handlers.trigger("asc_onContextMenu", event);
+					}
+				}, /*settings*/{
 					font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
 
 				//временно меняем cellEditor у wb
@@ -15740,12 +15791,15 @@
 			textColor: new window['AscCommonExcel'].RgbColor(0),
 			cursorPos: cursorPos,
 			//zoom: this.getZoom(),
-			focus: isFocus,
+			focus: true,
 			isClearCell: isClearCell,
 			isHideCursor: isHideCursor,
 			isQuickInput: isQuickInput,
 			autoComplete: [],
 			autoCompleteLC: [],
+			saveValueCallback: function (val, flags) {
+				//TODO добавил для того, чтобы при нажатии на стрелки не было падения
+			},
 			getSides: function () {
 				var bottomArr = [];
 				for(var i = 0; i < 30; i++) {
@@ -15764,8 +15818,13 @@
 		//при клике на одну из секций определяем стартовую позицию
 		cursorPos = editor._findCursorPosition({x: x, y: y});
 
+		wb.setCellEditMode(true);
+		ws.setCellEditMode(true);
 		options.cursorPos = cursorPos;
 		editor.open(options);
+		wb.input.disabled = false;
+		wb.handlers.trigger("asc_onEditCell", window['Asc'].c_oAscCellEditorState.editStart);
+
 		return true;
 	};
 
