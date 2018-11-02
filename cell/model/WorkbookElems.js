@@ -8104,93 +8104,133 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CHeaderFooter.prototype.setDifferentFirst = function (val) { this.differentFirst = val; };
 	CHeaderFooter.prototype.setDifferentOddEven = function (val) { this.differentOddEven = val; };
 	CHeaderFooter.prototype.setScaleWithDoc = function (val) { this.scaleWithDoc = val; };
-	CHeaderFooter.prototype.setEvenFooter = function (val) {
+	CHeaderFooter.prototype.setEvenFooter = function (newVal) {
 		var oldVal = this.evenFooter ? this.evenFooter.str : null;
-		var newVal = val ? val.str : null;
-		this.evenFooter = val;
 
-		if (this.ws && History.Is_On() && oldVal !== newVal) {
-			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_Even, this.ws.getId(),
-				null, new UndoRedoData_Layout(oldVal, newVal));
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.evenFooter = null;
+			} else {
+				this.evenFooter = new Asc.CHeaderFooterData();
+				this.evenFooter.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_Even, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
 		}
 	};
-	CHeaderFooter.prototype.setEvenHeader = function (val) {
+	CHeaderFooter.prototype.setEvenHeader = function (newVal) {
 		var oldVal = this.evenHeader ? this.evenHeader.str : null;
-		var newVal = val ? val.str : null;
-		this.evenHeader = val;
 
-		if (this.ws && History.Is_On() && oldVal !== newVal) {
-			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_Even, this.ws.getId(),
-				null, new UndoRedoData_Layout(oldVal, newVal));
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.evenHeader = null;
+			} else {
+				this.evenHeader = new Asc.CHeaderFooterData();
+				this.evenHeader.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_Even, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
 		}
 	};
-	CHeaderFooter.prototype.setFirstFooter = function (val) {
-		this.firstFooter = val;
-
+	CHeaderFooter.prototype.setFirstFooter = function (newVal) {
 		var oldVal = this.firstFooter ? this.firstFooter.str : null;
-		var newVal = val ? val.str : null;
-		this.firstFooter = val;
 
-		if (this.ws && History.Is_On() && oldVal !== newVal) {
-			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_First, this.ws.getId(),
-				null, new UndoRedoData_Layout(oldVal, newVal));
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.firstFooter = null;
+			} else {
+				this.firstFooter = new Asc.CHeaderFooterData();
+				this.firstFooter.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_First, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
 		}
 	};
-	CHeaderFooter.prototype.setFirstHeader = function (val) {
+	CHeaderFooter.prototype.setFirstHeader = function (newVal) {
 		var oldVal = this.firstHeader ? this.firstHeader.str : null;
-		var newVal = val ? val.str : null;
-		this.firstHeader = val;
 
-		if (this.ws && History.Is_On() && oldVal !== newVal) {
-			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_First, this.ws.getId(),
-				null, new UndoRedoData_Layout(oldVal, newVal));
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.firstHeader = null;
+			} else {
+				this.firstHeader = new Asc.CHeaderFooterData();
+				this.firstHeader.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_First, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
 		}
 	};
-	CHeaderFooter.prototype.setOddFooter = function (val) {
+	CHeaderFooter.prototype.setOddFooter = function (newVal) {
 		var oldVal = this.oddFooter ? this.oddFooter.str : null;
-		var newVal = val ? val.str : null;
-		this.oddFooter = val;
 
-		if (this.ws && History.Is_On() && oldVal !== newVal) {
-			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_Odd, this.ws.getId(),
-				null, new UndoRedoData_Layout(oldVal, newVal));
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.oddFooter = null;
+			} else {
+				this.oddFooter = new Asc.CHeaderFooterData();
+				this.oddFooter.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_Odd, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
 		}
 	};
-	CHeaderFooter.prototype.setOddHeader = function (val) {
+	CHeaderFooter.prototype.setOddHeader = function (newVal) {
 		var oldVal = this.oddHeader ? this.oddHeader.str : null;
-		var newVal = val ? val.str : null;
-		this.oddHeader = val;
 
-		if (this.ws && History.Is_On() && oldVal !== newVal) {
-			History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_Odd, this.ws.getId(),
-				null, new UndoRedoData_Layout(oldVal, newVal));
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.oddHeader = null;
+			} else {
+				this.oddHeader = new Asc.CHeaderFooterData();
+				this.oddHeader.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_Odd, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
 		}
 	};
 
-	CHeaderFooter.prototype.setHeaderFooterData = function(data, type) {
+	CHeaderFooter.prototype.setHeaderFooterData = function(str, type) {
 		switch (type){
 			case Asc.c_oAscPageHFType.firstHeader: {
-				this.setFirstHeader(data);
+				this.setFirstHeader(str);
 				break;
 			}
 			case Asc.c_oAscPageHFType.oddHeader: {
-				this.setOddHeader(data);
+				this.setOddHeader(str);
 				break;
 			}
 			case Asc.c_oAscPageHFType.evenHeader: {
-				this.setEvenHeader(data);
+				this.setEvenHeader(str);
 				break;
 			}
 			case Asc.c_oAscPageHFType.firstFooter: {
-				this.setFirstFooter(data);
+				this.setFirstFooter(str);
 				break;
 			}
 			case Asc.c_oAscPageHFType.oddFooter: {
-				this.setOddFooter(data);
+				this.setOddFooter(str);
 				break;
 			}
 			case Asc.c_oAscPageHFType.evenFooter: {
-				this.setEvenFooter(data);
+				this.setEvenFooter(str);
 				break;
 			}
 		}

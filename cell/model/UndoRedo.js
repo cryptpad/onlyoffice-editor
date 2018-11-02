@@ -2737,25 +2737,26 @@ function (window, undefined) {
 			return;
 		}
 
+		var headerFooter = ws.headerFooter;
 		var value = bUndo ? Data.from : Data.to;
 		switch (Type) {
 			case AscCH.historyitem_Header_First:
-				pageMargins.asc_setLeft(value);
+				headerFooter.setFirstHeader(value);
 				break;
 			case AscCH.historyitem_Header_Even:
-				pageMargins.asc_setRight(value);
+				headerFooter.setEvenHeader(value);
 				break;
 			case AscCH.historyitem_Header_Odd:
-				pageMargins.asc_setTop(value);
+				headerFooter.setOddHeader(value);
 				break;
 			case AscCH.historyitem_Footer_First:
-				pageMargins.asc_setBottom(value);
+				headerFooter.setFirstFooter(value);
 				break;
 			case AscCH.historyitem_Footer_Even:
-				pageSetup.asc_setWidth(value);
+				headerFooter.setEvenFooter(value);
 				break;
 			case AscCH.historyitem_Footer_Odd:
-				pageSetup.asc_setHeight(value);
+				headerFooter.setOddFooter(value);
 				break;
 		}
 	};

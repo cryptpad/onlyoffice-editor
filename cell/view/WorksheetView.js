@@ -15587,7 +15587,10 @@
 
 			//получаем из модели необходимый нам элемент
 			var curPageHF = this.getCurPageHF(pageHFType);
-			if(curPageHF && curPageHF.parser && curPageHF.parser.portions) {
+			if(curPageHF && curPageHF.str) {
+				if(!curPageHF.parser) {
+					curPageHF.parse();
+				}
 				var parser = curPageHF.parser.portions;
 				var leftFragments = getFragments(parser[0]);
 				if(null !== leftFragments) {
@@ -15831,9 +15834,9 @@
 				History.StartTransaction();
 
 				curHeaderFooter.parser.assembleText();
-				curHeaderFooter.setStr(curHeaderFooter.parser.date);
+				//curHeaderFooter.setStr(curHeaderFooter.parser.date);
 
-				ws.model.headerFooter.setHeaderFooterData(curHeaderFooter, i);
+				ws.model.headerFooter.setHeaderFooterData(curHeaderFooter.parser.date, i);
 
 				History.EndTransaction();
 			}
