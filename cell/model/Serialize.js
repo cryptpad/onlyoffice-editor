@@ -69,7 +69,9 @@
         Styles: 2,
         Workbook: 3,
         Worksheets: 4,
-        CalcChain: 5
+        CalcChain: 5,
+        App: 6,
+        Core: 7
     };
     /** @enum */
     var c_oSerStylesTypes =
@@ -8301,6 +8303,7 @@
             var nSharedStringTableOffset = null;
             var nStyleTableOffset = null;
             var nWorkbookTableOffset = null;
+            var fileStream;
             for(var i = 0; i < mtLen; ++i)
             {
                 //mtItem
@@ -8375,6 +8378,20 @@
                         // case c_oSerTableTypes.Other:
                         // res = (new Binary_OtherTableReader(this.stream, oMediaArray)).Read();
                         // break;
+                        case c_oSerTableTypes.App:
+                            this.stream.Seek2(mtiOffBits);
+                            fileStream = this.stream.ToFileStream();
+                            wb.App = new AscCommon.CApp();
+                            wb.App.fromStream(fileStream);
+                            this.stream.FromFileStream(fileStream);
+                            break;
+                        case c_oSerTableTypes.Core:
+                            this.stream.Seek2(mtiOffBits);
+                            fileStream = this.stream.ToFileStream();
+                            wb.Core = new AscCommon.CCore();
+                            wb.Core.fromStream(fileStream);
+                            this.stream.FromFileStream(fileStream);
+                            break;
                     }
                     if(c_oSerConstants.ReadOk != res)
                         break;

@@ -2070,13 +2070,19 @@
     /** Рисует заголовки видимых колонок */
     WorksheetView.prototype._drawColumnHeaders =
       function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
-          if (null === drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
+          if (!drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
               return;
           }
+
+		  if (window["IS_NATIVE_EDITOR"]) {
+			  // for ios (TODO check the need)
+			  this._prepareCellTextMetricsCache(new asc_Range(start, 0, end, 1));
+		  }
+
           var vr = this.visibleRange;
           var offsetX = (undefined !== offsetXForDraw) ? offsetXForDraw : this._getColLeft(vr.c1) - this.cellsLeft;
           var offsetY = (undefined !== offsetYForDraw) ? offsetYForDraw : this.headersTop;
-          if (null === drawingCtx && this.topLeftFrozenCell && undefined === offsetXForDraw) {
+          if (!drawingCtx && this.topLeftFrozenCell && undefined === offsetXForDraw) {
               var cFrozen = this.topLeftFrozenCell.getCol0();
               if (start < vr.c1) {
                   offsetX = this._getColLeft(0) - this.cellsLeft;
@@ -2098,7 +2104,7 @@
           this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
 
           // draw column headers
-		  var l = this._getColLeft(start) - offsetX, w
+		  var l = this._getColLeft(start) - offsetX, w;
           for (var i = start; i <= end; ++i) {
           	w = this._getColumnWidth(i);
               this._drawHeader(drawingCtx, l, offsetY, w, this.headersHeight, style, true, i);
@@ -2108,13 +2114,13 @@
 
     /** Рисует заголовки видимых строк */
     WorksheetView.prototype._drawRowHeaders = function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
-        if (null === drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
+        if (!drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
             return;
         }
         var vr = this.visibleRange;
         var offsetX = (undefined !== offsetXForDraw) ? offsetXForDraw : this.headersLeft;
         var offsetY = (undefined !== offsetYForDraw) ? offsetYForDraw : this._getRowTop(vr.r1) - this.cellsTop;
-        if (null === drawingCtx && this.topLeftFrozenCell && undefined === offsetYForDraw) {
+        if (!drawingCtx && this.topLeftFrozenCell && undefined === offsetYForDraw) {
             var rFrozen = this.topLeftFrozenCell.getRow0();
             if (start < vr.r1) {
 				offsetY = this._getRowTop(0) - this.cellsTop;
@@ -2217,15 +2223,19 @@
         ctx.setStrokeStyle(st.border)
           .setLineWidth(1)
           .beginPath();
-        if (style !== kHeaderDefault && !isColHeader) {
+        if (style !== kHeaderDefault && !isColHeader && !window["IS_NATIVE_EDITOR"]) {
             // Select row (top border)
             ctx.lineHorPrevPx(x, y, x2);
         }
 
         // Right border
-        ctx.lineVerPrevPx(x2, y, y2);
+		if (isColHeader || !window["IS_NATIVE_EDITOR"]) {
+			ctx.lineVerPrevPx(x2, y, y2);
+		}
         // Bottom border
-        ctx.lineHorPrevPx(x, y2, x2);
+		if (!isColHeader || !window["IS_NATIVE_EDITOR"]) {
+			ctx.lineHorPrevPx(x, y2, x2);
+		}
 
         if (style !== kHeaderDefault && isColHeader) {
             // Select col (left border)
@@ -2339,7 +2349,7 @@
 		var visiblePrintPages = pageBreakPreviewMode ? this._getVisiblePrintPages(range).printPages : null;
 
 		// Возможно сетку не нужно рисовать (при печати свои проверки)
-		if (null === drawingCtx && false === this.model.getSheetView().asc_getShowGridLines()) {
+		if (!drawingCtx && false === this.model.getSheetView().asc_getShowGridLines()) {
 			return;
 		}
 
@@ -2351,7 +2361,7 @@
 		var heightCtx = (height) ? height : ctx.getHeight();
 		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
 		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
-		if (null === drawingCtx && this.topLeftFrozenCell) {
+		if (!drawingCtx && this.topLeftFrozenCell) {
 			if (undefined === leftFieldInPx) {
 				var cFrozen = this.topLeftFrozenCell.getCol0();
 				offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
@@ -2424,7 +2434,7 @@
         var left, top, cFrozen, rFrozen;
         var offsetX = (undefined === offsetXForDraw) ? this._getColLeft(this.visibleRange.c1) - this.cellsLeft : offsetXForDraw;
         var offsetY = (undefined === offsetYForDraw) ? this._getRowTop(this.visibleRange.r1) - this.cellsTop : offsetYForDraw;
-        if ( null === drawingCtx && this.topLeftFrozenCell ) {
+        if ( !drawingCtx && this.topLeftFrozenCell ) {
             if ( undefined === offsetXForDraw ) {
                 cFrozen = this.topLeftFrozenCell.getCol0();
                 offsetX -= this._getColLeft(cFrozen) - this.cellsLeft;
@@ -2773,7 +2783,7 @@
 		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 
 		var frozenX = 0, frozenY = 0, cFrozen, rFrozen;
-		if (null === drawingCtx && this.topLeftFrozenCell) {
+		if (!drawingCtx && this.topLeftFrozenCell) {
 			if (undefined === leftFieldInPx) {
 				cFrozen = this.topLeftFrozenCell.getCol0();
 				offsetX -= frozenX = this._getColLeft(cFrozen) - this._getColLeft(0);
@@ -2871,7 +2881,7 @@
 		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 
 		var frozenX = 0, frozenY = 0, cFrozen, rFrozen;
-		if (null === drawingCtx && this.topLeftFrozenCell) {
+		if (!drawingCtx && this.topLeftFrozenCell) {
 			if (undefined === leftFieldInPx) {
 				cFrozen = this.topLeftFrozenCell.getCol0();
 				offsetX -= frozenX = this._getColLeft(cFrozen) - this._getColLeft(0);
@@ -3232,7 +3242,7 @@
 		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 
 		var frozenX = 0, frozenY = 0, cFrozen, rFrozen;
-		if (null === drawingCtx && this.topLeftFrozenCell) {
+		if (!drawingCtx && this.topLeftFrozenCell) {
 			if (undefined === leftFieldInPx) {
 				cFrozen = this.topLeftFrozenCell.getCol0();
 				offsetX -= frozenX = this._getColLeft(cFrozen) - this._getColLeft(0);

@@ -3492,6 +3492,14 @@ var editor;
 	    this.wb.drawWS();
       }
 	};
+	spreadsheet_api.prototype.asc_getAppProps = function()
+	{
+		return this.wbModel && this.wbModel.App || null;
+	};
+	spreadsheet_api.prototype.asc_getCoreProps = function()
+	{
+		return this.wbModel && this.wbModel.Core || null;
+	};
 
   /*
    * Export
@@ -3525,6 +3533,8 @@ var editor;
   prot["asc_Redo"] = prot.asc_Redo;
 
   prot["asc_getDocumentName"] = prot.asc_getDocumentName;
+	prot["asc_getAppProps"] = prot.asc_getAppProps;
+	prot["asc_getCoreProps"] = prot.asc_getCoreProps;
   prot["asc_isDocumentModified"] = prot.asc_isDocumentModified;
   prot["asc_isDocumentCanSave"] = prot.asc_isDocumentCanSave;
 	prot["asc_getCanUndo"] = prot.asc_getCanUndo;

@@ -3379,196 +3379,7 @@ function OfflineEditor () {
         };
         
         var asc_Range = window["Asc"].Range;
-        var asc_typeof = window["Asc"].typeOf;
-        
-        /**
-         * header styles
-         * @const
-         */
-        var kHeaderDefault = 0;
-        var kHeaderActive = 1;
-        var kHeaderHighlighted = 2;
-        
-        AscCommonExcel.WorksheetView.prototype.__drawColumnHeaders = function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
-            if (undefined === drawingCtx && false === this.model.sheetViews[0].asc_getShowRowColHeaders())
-                return;
-            
-            var range = new asc_Range(start, 0, end, 1);
-            this._prepareCellTextMetricsCache(range);
-            
-            var vr  = this.visibleRange;
-            var c = this.cols;
-            var offsetX = (undefined !== offsetXForDraw) ? offsetXForDraw : this._getColLeft(vr.c1) - this.cellsLeft;
-            var offsetY = (undefined !== offsetYForDraw) ? offsetYForDraw : this.headersTop;
-            if (undefined === drawingCtx && this.topLeftFrozenCell && undefined === offsetXForDraw) {
-                var cFrozen = this.topLeftFrozenCell.getCol0();
-                if (start < vr.c1)
-                    offsetX = this._getColLeft(0) - this.cellsLeft;
-                else
-                    offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
-            }
-            
-            if (asc_typeof(start) !== "number") {start = vr.c1;}
-            if (asc_typeof(end) !== "number") {end = vr.c2;}
-            if (style === undefined) {style = kHeaderDefault;}
-            
-            this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
-            
-            var ctx = (drawingCtx) ? drawingCtx : this.drawingCtx;
-            var st = this.settings.header.style[style];
-            //ctx.setFillStyle(st.border)                                                                                   // for ios
-            //.fillRect( - offsetX, offsetY, this._getColLeft(end) - this._getColLeft(start), this.headersHeight * 2);      // for ios
 
-            for (var i = start; i <= end; ++i) {
-                this.__drawHeader(drawingCtx,
-                                  this._getColLeft(i) - this._getColLeft(start) - offsetX,
-                                  offsetY,
-                                  this._getColumnWidth(i),
-                                  this.headersHeight,
-                                  style,
-                                  true,
-                                  i);
-            }
-        };
-        
-        AscCommonExcel.WorksheetView.prototype.__drawRowHeaders = function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
-            if (null === drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
-                return;
-            }
-            var vr = this.visibleRange;
-            var offsetX = (undefined !== offsetXForDraw) ? offsetXForDraw : this.headersLeft;
-            var offsetY = (undefined !== offsetYForDraw) ? offsetYForDraw : this._getRowTop(vr.r1) - this.cellsTop;
-            if (null === drawingCtx && this.topLeftFrozenCell && undefined === offsetYForDraw) {
-                var rFrozen = this.topLeftFrozenCell.getRow0();
-                if (start < vr.r1) {
-                    offsetY = this._getRowTop(0) - this.cellsTop;
-                } else {
-                    offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
-                }
-            }
-            
-            if (asc_typeof(start) !== "number") {
-                start = vr.r1;
-            }
-            if (asc_typeof(end) !== "number") {
-                end = vr.r2;
-            }
-            if (style === undefined) {
-                style = kHeaderDefault;
-            }
-            
-            this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
-            
-            var t = this._getRowTop(start) - offsetY;
-            for (var i = start; i <= end; ++i) {
-                this.__drawHeader(drawingCtx,
-                                  offsetX,
-                                  this._getRowTop(i) - this._getRowTop(start) - offsetY,
-                                  this.headersWidth,
-                                  this._getRowHeight(i),
-                                  style,
-                                  false,
-                                  i);
-            }
-        };
-        
-        AscCommonExcel.WorksheetView.prototype.__drawHeader = function (drawingCtx, x, y, w, h, style, isColHeader, index) {
-            
-            // Для отрисовки невидимого столбца/строки
-            var isZeroHeader = false;
-            if (-1 !== index) {
-                if (isColHeader) {
-                    if (0 === w) {
-                        if (style !== kHeaderDefault) {
-                            return;
-                        }
-                        // Это невидимый столбец
-                        isZeroHeader = true;
-                        // Отрисуем только границу
-                        w = 1;
-                        // Возможно мы уже рисовали границу невидимого столбца (для последовательности невидимых)
-                        if (0 < index && 0 === this._getColumnWidth(index - 1)) {
-                            // Мы уже нарисовали border для невидимой границы
-                            return;
-                        }
-                    } else if (0 < index && 0 === this._getColumnWidth(index - 1)) {
-                        // Мы уже нарисовали border для невидимой границы (поэтому нужно чуть меньше рисовать для соседнего столбца)
-                        w -= 1;
-                        x += 1;
-                    }
-                } else {
-                    if (0 === h) {
-                        if (style !== kHeaderDefault) {
-                            return;
-                        }
-                        // Это невидимая строка
-                        isZeroHeader = true;
-                        // Отрисуем только границу
-                        h = 1;
-                        // Возможно мы уже рисовали границу невидимой строки (для последовательности невидимых)
-                        if (0 < index && 0 === this._getRowHeight(index - 1)) {
-                            // Мы уже нарисовали border для невидимой границы
-                            return;
-                        }
-                    } else if (0 < index && 0 === this._getRowHeight(index - 1)) {
-                        // Мы уже нарисовали border для невидимой границы (поэтому нужно чуть меньше рисовать для соседней строки)
-                        h -= 1;
-                        y += 1;
-                    }
-                }
-            }
-            
-            var ctx = drawingCtx || this.drawingCtx;
-            var st = this.settings.header.style[style];
-            var x2 = x + w;
-            var y2 = y + h;
-            var x2WithoutBorder = x2 - 1;//this.gridlineSize;   // for ios
-            var y2WithoutBorder = y2 - 1;//this.gridlineSize;   // for ios
-            
-            // background только для видимых
-            if (!isZeroHeader) {
-                // draw background
-                //ctx.setFillStyle(st.background)               // for ios
-                //  .fillRect(x, y, w, h);                      // for ios
-            }
-            // draw border
-            ctx.setStrokeStyle(st.border)
-            .setLineWidth(1)
-            .beginPath();
-            if (style !== kHeaderDefault && !isColHeader) {
-                // Select row (top border)
-                //ctx.lineHorPrevPx(x, y, x2);                  // for ios
-            }
-            
-            // Right border
-            if (isColHeader) ctx.lineVerPrevPx(x2, y, y2);
-            // Bottom border
-            if (!isColHeader) ctx.lineHorPrevPx(x, y2, x2);
-            
-            if (style !== kHeaderDefault && isColHeader) {
-                // Select col (left border)
-                ctx.lineVerPrevPx(x, y, y2);
-            }
-            ctx.stroke();
-            
-            // Для невидимых кроме border-а ничего не рисуем
-            if (isZeroHeader || -1 === index) {
-                return;
-            }
-            
-            // draw text
-            var text = isColHeader ? this._getColumnTitle(index) : this._getRowTitle(index);
-            var sr = this.stringRender;
-            var tm = this._roundTextMetrics(sr.measureString(text));
-            var bl = y2WithoutBorder - Asc.round((isColHeader ? this.defaultRowDescender : this._getRowDescender(index)) * this.getZoom());
-            var textX = this._calcTextHorizPos(x, x2WithoutBorder, tm, tm.width < w ? AscCommon.align_Center : AscCommon.align_Left);
-            var textY = this._calcTextVertPos(y, h, bl, tm, Asc.c_oAscVAlign.Bottom);
-            
-            ctx.AddClipRect(x, y, w, h);
-            ctx.setFillStyle(st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
-            ctx.RemoveClipRect();
-        };
-        
         AscCommonExcel.WorksheetView.prototype.__drawGrid = function (drawingCtx, c1, r1, c2, r2, leftFieldInPx, topFieldInPx, width, height) {
             var range = new asc_Range(c1, r1, c2, r2);
             this._prepareCellTextMetricsCache(range);
@@ -4539,13 +4350,13 @@ function OfflineEditor () {
         if (colRowHeaders.asc_getShowGridLines() && false == istoplayer) {
             worksheet.__drawGrid(undefined,
                                  region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
-                                 worksheet._getColLeft(region.columnBeg) + region.columnOff, worksheet._getRowTop(region.rowBeg) + region.rowOff,
+                                 region.columnOff, region.rowOff,
                                  width + region.columnOff, height + region.rowOff);
         }
         
         worksheet.__drawCellsAndBorders(undefined,
                                         region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
-                                        worksheet._getColLeft(region.columnBeg) + region.columnOff, worksheet._getRowTop(region.rowBeg) + region.rowOff, istoplayer);
+                                        region.columnOff, region.rowOff, istoplayer);
     };
     this.drawHeader = function (x, y, width, height, type, ratio) {
         
@@ -4559,9 +4370,9 @@ function OfflineEditor () {
         var isRow = type == PageType.PageLeftType || type == PageType.PageCornerType;
         
         if (!isColumn && isRow)
-            worksheet.__drawRowHeaders(undefined, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff);
+            worksheet._drawRowHeaders(null, region.rowBeg, region.rowEnd, undefined, 0, region.rowOff);
         else if (isColumn && !isRow)
-            worksheet.__drawColumnHeaders(undefined, region.columnBeg, region.columnEnd, undefined, region.columnOff, 0);
+            worksheet._drawColumnHeaders(null, region.columnBeg, region.columnEnd, undefined, region.columnOff, 0);
         else if (isColumn && isRow)
             worksheet._drawCorner();
     };
@@ -4612,7 +4423,7 @@ function OfflineEditor () {
                 if (-1 === columnBeg) {
                     if (worksheet._getColLeft(i) <= logicX && logicX < worksheet._getColLeft(i) + worksheet._getColumnWidth(i)) {
                         columnBeg = i;
-                        columnOff = logicX - worksheet._getColLeft(i);
+                        columnOff = logicX;
                     }
                 }
                 
@@ -4646,7 +4457,7 @@ function OfflineEditor () {
                 if (-1 === rowBeg) {
                     if (worksheet._getRowTop(i) <= logicY && logicY < worksheet._getRowTop(i) + worksheet._getRowHeight(i)) {
                         rowBeg = i;
-                        rowOff = logicY - worksheet._getRowTop(i);
+                        rowOff = logicY;
                     }
                 }
                 

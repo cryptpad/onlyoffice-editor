@@ -1778,6 +1778,8 @@
 		this.handlers = eventsHandlers;
 		this.dependencyFormulas = new DependencyGraph(this);
 		this.nActive = 0;
+		this.App = null;
+		this.Core = null;
 
 		this.theme = null;
 		this.clrSchemeMap = null;

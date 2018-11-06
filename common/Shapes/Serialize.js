@@ -34,6 +34,7 @@
 
 (function(window, undefined){
 
+var prot;
 // Import
 var g_memory = AscFonts.g_memory;
 var DecodeBase64Char = AscFonts.DecodeBase64Char;
@@ -8898,87 +8899,107 @@ function CApp()
     this.SharedDoc = null;
     this.HyperlinksChanged = null;
     this.AppVersion = null;
+}
+CApp.prototype.fromStream = function(s)
+{
+    var _type = s.GetUChar();
+    var _len = s.GetULong();
 
-    this.fromStream = function(s)
+    // attributes
+    var _sa = s.GetUChar();
+
+    while (true)
     {
-        var _type = s.GetUChar();
-        var _len = s.GetULong();
+        var _at = s.GetUChar();
 
-        // attributes
-        var _sa = s.GetUChar();
+        if (_at == g_nodeAttributeEnd)
+            break;
 
-        while (true)
+        switch (_at)
         {
-            var _at = s.GetUChar();
+            case 0: { this.Template = s.GetString2(); break; }
+            case 1: { this.Application = s.GetString2(); break; }
+            case 2: { this.PresentationFormat = s.GetString2(); break; }
+            case 3: { this.Company = s.GetString2(); break; }
+            case 4: { this.AppVersion = s.GetString2(); break; }
 
-            if (_at == g_nodeAttributeEnd)
-                break;
+            case 5: { this.TotalTime = s.GetLong(); break; }
+            case 6: { this.Words = s.GetLong(); break; }
+            case 7: { this.Paragraphs = s.GetLong(); break; }
+            case 8: { this.Slides = s.GetLong(); break; }
+            case 9: { this.Notes = s.GetLong(); break; }
+            case 10: { this.HiddenSlides = s.GetLong(); break; }
+            case 11: { this.MMClips = s.GetLong(); break; }
 
-            switch (_at)
-            {
-                case 0: { this.Template = s.GetString2(); break; }
-                case 1: { this.Application = s.GetString2(); break; }
-                case 2: { this.PresentationFormat = s.GetString2(); break; }
-                case 3: { this.Company = s.GetString2(); break; }
-                case 4: { this.AppVersion = s.GetString2(); break; }
-
-                case 5: { this.TotalTime = s.GetLong(); break; }
-                case 6: { this.Words = s.GetLong(); break; }
-                case 7: { this.Paragraphs = s.GetLong(); break; }
-                case 8: { this.Slides = s.GetLong(); break; }
-                case 9: { this.Notes = s.GetLong(); break; }
-                case 10: { this.HiddenSlides = s.GetLong(); break; }
-                case 11: { this.MMClips = s.GetLong(); break; }
-
-                case 12: { this.ScaleCrop = s.GetBool(); break; }
-                case 13: { this.LinksUpToDate = s.GetBool(); break; }
-                case 14: { this.SharedDoc = s.GetBool(); break; }
-                case 15: { this.HyperlinksChanged = s.GetBool(); break; }
-                default:
-                    return;
-            }
+            case 12: { this.ScaleCrop = s.GetBool(); break; }
+            case 13: { this.LinksUpToDate = s.GetBool(); break; }
+            case 14: { this.SharedDoc = s.GetBool(); break; }
+            case 15: { this.HyperlinksChanged = s.GetBool(); break; }
+            default:
+                return;
         }
     }
-}
+};
+CApp.prototype.asc_getTemplate = function(){return this.Template;};
+CApp.prototype.asc_getTotalTime = function(){return this.TotalTime;};
+CApp.prototype.asc_getWords = function(){return this.Words;};
+CApp.prototype.asc_getApplication = function(){return this.Application;};
+CApp.prototype.asc_getPresentationFormat = function(){return this.PresentationFormat;};
+CApp.prototype.asc_getParagraphs = function(){return this.Paragraphs;};
+CApp.prototype.asc_getSlides = function(){return this.Slides;};
+CApp.prototype.asc_getNotes = function(){return this.Notes;};
+CApp.prototype.asc_getHiddenSlides = function(){return this.HiddenSlides;};
+CApp.prototype.asc_getMMClips = function(){return this.MMClips;};
+CApp.prototype.asc_getScaleCrop = function(){return this.ScaleCrop;};
+CApp.prototype.asc_getCompany = function(){return this.Company;};
+CApp.prototype.asc_getLinksUpToDate = function(){return this.LinksUpToDate;};
+CApp.prototype.asc_getSharedDoc = function(){return this.SharedDoc;};
+CApp.prototype.asc_getHyperlinksChanged = function(){return this.HyperlinksChanged;};
+CApp.prototype.asc_getAppVersion = function(){return this.AppVersion;};
 
-function CCore()
-{
+
+function CCore() {
     this.title = null;
     this.creator = null;
     this.lastModifiedBy = null;
     this.revision = null;
     this.created = null;
     this.modified = null;
+}
+CCore.prototype.fromStream = function(s)
+{
+    var _type = s.GetUChar();
+    var _len = s.GetULong();
 
-    this.fromStream = function(s)
+    // attributes
+    var _sa = s.GetUChar();
+
+    while (true)
     {
-        var _type = s.GetUChar();
-        var _len = s.GetULong();
+        var _at = s.GetUChar();
 
-        // attributes
-        var _sa = s.GetUChar();
+        if (_at == g_nodeAttributeEnd)
+            break;
 
-        while (true)
+        switch (_at)
         {
-            var _at = s.GetUChar();
-
-            if (_at == g_nodeAttributeEnd)
-                break;
-
-            switch (_at)
-            {
-                case 0: { this.title = s.GetString2(); break; }
-                case 1: { this.creator = s.GetString2(); break; }
-                case 2: { this.lastModifiedBy = s.GetString2(); break; }
-                case 3: { this.revision = s.GetString2(); break; }
-                case 4: { this.created = s.GetString2(); break; }
-                case 5: { this.modified = s.GetString2(); break; }
-                default:
-                    return;
-            }
+            case 0: { this.title = s.GetString2(); break; }
+            case 1: { this.creator = s.GetString2(); break; }
+            case 2: { this.lastModifiedBy = s.GetString2(); break; }
+            case 3: { this.revision = s.GetString2(); break; }
+            case 4: { this.created = s.GetString2(); break; }
+            case 5: { this.modified = s.GetString2(); break; }
+            default:
+                return;
         }
     }
-}
+};
+CCore.prototype.asc_getTitle = function(){return this.title;};
+CCore.prototype.asc_getCreator = function(){return this.creator;};
+CCore.prototype.asc_getLastModifiedBy = function(){return this.lastModifiedBy;};
+CCore.prototype.asc_getRevision = function(){return this.revision;};
+CCore.prototype.asc_getCreated = function(){return this.created;};
+CCore.prototype.asc_getModified = function(){return this.modified;};
 
 function CPres()
 {
@@ -10290,4 +10311,30 @@ function CPres()
     window['AscCommon'].BinaryPPTYLoader = BinaryPPTYLoader;
     window['AscCommon'].IsHiddenObj = IsHiddenObj;
     window['AscCommon'].pptx_content_loader = new CPPTXContentLoader();
+    window['AscCommon'].CApp = CApp;
+    prot = CApp.prototype;
+    prot["asc_getTemplate"] = prot.asc_getTemplate;
+    prot["asc_getTotalTime"] = prot.asc_getTotalTime;
+    prot["asc_getWords"] = prot.asc_getWords;
+    prot["asc_getApplication"] = prot.asc_getApplication;
+    prot["asc_getPresentationFormat"] = prot.asc_getPresentationFormat;
+    prot["asc_getParagraphs"] = prot.asc_getParagraphs;
+    prot["asc_getSlides"] = prot.asc_getSlides;
+    prot["asc_getNotes"] = prot.asc_getNotes;
+    prot["asc_getHiddenSlides"] = prot.asc_getHiddenSlides;
+    prot["asc_getMMClips"] = prot.asc_getMMClips;
+    prot["asc_getScaleCrop"] = prot.asc_getScaleCrop;
+    prot["asc_getCompany"] = prot.asc_getCompany;
+    prot["asc_getLinksUpToDate"] = prot.asc_getLinksUpToDate;
+    prot["asc_getSharedDoc"] = prot.asc_getSharedDoc;
+    prot["asc_getHyperlinksChanged"] = prot.asc_getHyperlinksChanged;
+    prot["asc_getAppVersion"] = prot.asc_getAppVersion;
+    window['AscCommon'].CCore = CCore;
+    prot = CCore.prototype;
+    prot["asc_getTitle"] = prot.asc_getTitle;
+    prot["asc_getCreator"] = prot.asc_getCreator;
+    prot["asc_getLastModifiedBy"] = prot.asc_getLastModifiedBy;
+    prot["asc_getRevision"] = prot.asc_getRevision;
+    prot["asc_getCreated"] = prot.asc_getCreated;
+    prot["asc_getModified"] = prot.asc_getModified;
 })(window);
