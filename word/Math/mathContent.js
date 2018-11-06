@@ -5341,12 +5341,13 @@ CMathContent.prototype.ChangeContent = function(Content) {
     //     PrevParaRun = false;
     //     RemInd.push(0);
     // }
+    var temp = null;
     for (var i = Content.length - 2; i >= 0; i--) {
         if (Content[i].Type === 49 && PrevParaRun) {
             if (i < this.CurPos) {
-                var temp = Content[i].Content.length + Content[i + 1].State.ContentPos;
+                temp = Content[i].Content.length + Content[i + 1].State.ContentPos;
             } else if (i === this.CurPos) {
-                var temp = Content[i].State.ContentPos;
+                temp = Content[i].State.ContentPos;
             }
             Content[i].MoveCursorToEndPos();
             for (var k in Content[i + 1].Content) {
@@ -6389,12 +6390,12 @@ AutoCorrectionControl.prototype.FindFunction = function(CanMakeAutoCorrect)
                         oLeftCommandType = MATH_GROUP_CHARACTER;
                         this.props       = {chr : 0x23DE, pos : LOCATION_TOP, vertJc : VJUST_BOT};
                         break;
-                    case 0x221A:
-                        if (bOf)
-                            oLeftCommandType = MATH_RADICAL;
-                        else
-                            return false;
-                        break;
+                    // case 0x221A:
+                    //     if (bOf)
+                    //         oLeftCommandType = MATH_RADICAL;
+                    //     else
+                    //         return false;
+                    //     break;
 
                 }
             }
@@ -7778,7 +7779,7 @@ function CMathAutoCorrectEngine(Elem, CurPos) {
 
     this.TextPr           = null;
     this.MathPr           = null;
-};
+}
 
 CMathAutoCorrectEngine.prototype.Add_Element = function(Content) {
     var nCount = this.CurElement;
