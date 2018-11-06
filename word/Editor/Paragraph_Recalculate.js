@@ -648,30 +648,20 @@ Paragraph.prototype.private_RecalculatePage            = function(CurPage, bFirs
         RecalcResult = PRS.RecalcResult;
 
         if (RecalcResult & recalcresult_NextLine)
-        {
-            // В эту ветку мы попадаем, если строка пересчиталась в нормальном режиме и можно переходить к следующей.
-            CurLine++;
-            PRS.Reset_Ranges();
-            PRS.Reset_RunRecalcInfo();
-            PRS.Reset_MathRecalcInfo();
-        }
+		{
+			// В эту ветку мы попадаем, если строка пересчиталась в нормальном режиме и можно переходить к следующей.
+			CurLine++;
+
+			PRS.Reset_Ranges();
+			PRS.Reset_RunRecalcInfo();
+			PRS.Reset_MathRecalcInfo();
+		}
         else if (RecalcResult & recalcresult_ParaMath)
         {
         	// В эту ветку попадаем, если нужно заново пересчитать неинлайновую формулу с начала
-
 			CurLine = PRS.GetMathRecalcInfoLine();
 
 			PRS.Reset_RunRecalcInfo();
-
-			PRS.SetRangesFromMathRecalcInfo();
-
-            // if (PRS.Line < this.Pages[CurPage].StartLine)
-            //     PRS.Restore_RunRecalcInfo();
-            // else
-            // {
-            //     RecalcResult = this.private_RecalculatePage(CurPage, false);
-            //     break;
-            // }
         }
         else if (RecalcResult & recalcresult_CurLine)
         {
@@ -1635,19 +1625,19 @@ Paragraph.prototype.private_RecalculateLineCheckRangeY = function(CurLine, CurPa
     // Если строка пустая в следствии того, что у нас было обтекание, тогда мы не добавляем новую строку,
     // а просто текущую смещаем ниже.
 
+	if (true === PRS.EmptyLine && true === PRS.bMathRangeY) // нужный PRS.Y выставляется в ParaMath
+	{
+		PRS.bMathRangeY = false;
 
-    if(true === PRS.EmptyLine && true === PRS.bMathRangeY) // нужный PRS.Y выставляется в ParaMath
-    {
-        PRS.bMathRangeY = false;
-        // Отмечаем, что данная строка переносится по Y из-за обтекания
-        PRS.RangeY = true;
+		// Отмечаем, что данная строка переносится по Y из-за обтекания
+		PRS.RangeY = true;
 
-        // Пересчитываем заново данную строку
-        PRS.Reset_Ranges();
-        PRS.RecalcResult = recalcresult_CurLine;
+		// Пересчитываем заново данную строку
+		PRS.Reset_Ranges();
+		PRS.RecalcResult = recalcresult_CurLine;
 
-        return false;
-    }
+		return false;
+	}
     else if (true !== PRS.End && true === PRS.EmptyLine && PRS.RangesCount > 0)
     {
         // Найдем верхнюю точку объектов обтекания (т.е. так чтобы при новом обсчете не учитывался только
@@ -1665,7 +1655,7 @@ Paragraph.prototype.private_RecalculateLineCheckRangeY = function(CurLine, CurPa
         if (Math.abs(RangesMaxY - PRS.Y) < 0.001)
             PRS.Y = RangesMaxY + 1; // смещаемся по 1мм
         else
-            PRS.Y = RangesMaxY + (25.4 / 1440) + 0.001; // Добавляем 0.001, чтобы избавиться от погрешности
+            PRS.Y = RangesMaxY + AscCommon.TwipsToMM(1) + 0.001; // Добавляем 0.001, чтобы избавиться от погрешности
 
         // Отмечаем, что данная строка переносится по Y из-за обтекания
         PRS.RangeY = true;
@@ -2860,9 +2850,7 @@ function CParagraphRecalculateStateWrap(Para)
     // Управляющий объект для пересчета неинлайновой формулы
     this.MathRecalcInfo = {
     	Line        : 0,    // Номер строки, с которой начинается формула на текущей странице
-		Math        : null, // Сам объект формулы
-		Ranges      : [],   // Общие отрезки обтекания для все формулы
-		RangesCount : 0
+		Math        : null  // Сам объект формулы
 	};
 
     this.Footnotes                  = [];
@@ -3310,17 +3298,13 @@ CParagraphRecalculateStateWrap.prototype.GetTopIndex = function()
 };
 CParagraphRecalculateStateWrap.prototype.ResetMathRecalcInfo = function()
 {
-	this.MathRecalcInfo.Line        = 0;
-	this.MathRecalcInfo.Math        = null;
-	this.MathRecalcInfo.Ranges      = [];
-	this.MathRecalcInfo.RangesCount = 0;
+	this.MathRecalcInfo.Line = 0;
+	this.MathRecalcInfo.Math = null;
 };
-CParagraphRecalculateStateWrap.prototype.SetMathRecalcInfo = function(nLine, oMath, arrRanges, nRangesCount)
+CParagraphRecalculateStateWrap.prototype.SetMathRecalcInfo = function(nLine, oMath)
 {
-	this.MathRecalcInfo.Line        = nLine;
-	this.MathRecalcInfo.Math        = oMath;
-	this.MathRecalcInfo.Ranges      = arrRanges;
-	this.MathRecalcInfo.RangesCount = nRangesCount;
+	this.MathRecalcInfo.Line = nLine;
+	this.MathRecalcInfo.Math = oMath;
 };
 CParagraphRecalculateStateWrap.prototype.GetMathRecalcInfoObject = function()
 {
@@ -3337,11 +3321,6 @@ CParagraphRecalculateStateWrap.prototype.GetMathRecalcInfoLine = function()
 CParagraphRecalculateStateWrap.prototype.SetMathRecalcInfoLine = function(nLine)
 {
 	this.MathRecalcInfo.Line = nLine;
-};
-CParagraphRecalculateStateWrap.prototype.SetRangesFromMathRecalcInfo = function()
-{
-	this.Ranges      = this.MathRecalcInfo.Ranges;
-	this.RangesCount = this.MathRecalcInfo.RangesCount;
 };
 
 function CParagraphRecalculateStateCounter()

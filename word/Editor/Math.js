@@ -699,7 +699,7 @@ function CParaMathLineParameters(FirstLineNumber)
     this.bMathWordLarge   = false;
     this.NeedUpdateWrap   = true;
 }
-CParaMathLineParameters.prototype.IsNeedUpdateWidth = function(Line, W)
+CParaMathLineParameters.prototype.UpdateWidth = function(Line, W)
 {
     var bUpdMaxWidth = false;
     var NumLine = this.private_GetNumberLine(Line);
@@ -924,9 +924,9 @@ CMathPageInfo.prototype.Get_CurrentStateWordLarge = function()
 {
     return this.WPages[this.CurPage].Is_Large();
 };
-CMathPageInfo.prototype.IsNeedUpdateWidth = function(_Line, Width)
+CMathPageInfo.prototype.UpdateWidth = function(_Line, Width)
 {
-    return this.WPages[this.CurPage].IsNeedUpdateWidth(_Line - this.StartLine, Width);
+    return this.WPages[this.CurPage].UpdateWidth(_Line - this.StartLine, Width);
 };
 CMathPageInfo.prototype.Get_MaxWidthOnCurrentPage = function()
 {
@@ -934,7 +934,7 @@ CMathPageInfo.prototype.Get_MaxWidthOnCurrentPage = function()
 };
 CMathPageInfo.prototype.Get_FirstLineOnPage = function(_Page)
 {
-    var FirstLineOnPage = null;
+    var FirstLineOnPage = this.StartLine;
     var Page = _Page - this.StartPage;
 
     if(Page >= 0 && Page < this.WPages.length)
@@ -2211,13 +2211,12 @@ ParaMath.prototype.Set_EmptyRange = function(PRS)
 };
 ParaMath.prototype.private_UpdateRangeY = function(PRS, RY)
 {
-    if (Math.abs(RY - PRS.Y) < 0.001)
-        PRS.Y = RY + 1; // смещаемся по 1мм
-    else
-        PRS.Y = RY + 0.001; // Добавляем 0.001, чтобы избавиться от погрешности
+	if (Math.abs(RY - PRS.Y) < 0.001)
+		PRS.Y = RY + 1; // смещаемся по 1мм
+	else
+		PRS.Y = RY + AscCommon.TwipsToMM(1) + 0.001; // Добавляем 0.001, чтобы избавиться от погрешности
 
-
-    PRS.NewRange = true;
+	PRS.NewRange = true;
 };
 ParaMath.prototype.private_SetShiftY = function(PRS, RY)
 {
@@ -2346,16 +2345,7 @@ ParaMath.prototype.UpdateWidthLine = function(PRS, Width)
 	if (PrevRecalcObject == null || PrevRecalcObject == this)
 	{
 		var W = Width - PRS.OperGapRight - PRS.OperGapLeft;
-
-		if (this.PageInfo.IsNeedUpdateWidth(PRS.Line, W) && !this.IsInline() && align_Justify == this.Get_Align())
-		{
-			var Page = this.Paragraph == null ? 0 : this.Paragraph.Get_AbsolutePage(PRS.Page);
-			var Line = this.PageInfo.Get_FirstLineOnPage(Page);
-
-			PRS.SetMathRecalcInfoObject(Line, this);
-			PRS.RecalcResult = recalcresult_ParaMath;
-			PRS.NewRange     = true;
-		}
+		this.PageInfo.UpdateWidth(PRS.Line, W);
 	}
 };
 ParaMath.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange, _CurPage)
