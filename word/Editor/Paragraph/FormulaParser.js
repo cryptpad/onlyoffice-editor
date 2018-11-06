@@ -738,8 +738,7 @@
     oFuncMap['ROUND'] = CROUNDFunctionNode;
     oFuncMap['SIGN'] = CSIGNFunctionNode;
     oFuncMap['SUM'] = CSUMFunctionNode;
-
-
+    
     var PARSER_MASK_LEFT_PAREN      = 1;
     var PARSER_MASK_RIGHT_PAREN     = 2;
     var PARSER_MASK_LIST_SEPARATOR  = 4;
@@ -1105,7 +1104,7 @@
         var nStartPos = this.pos;
         while (oCurToken = this.parseCurrent()){
             if(oCurToken instanceof CNumberNode){
-                if(oLastToken instanceof CNumberNode){
+                if(oLastToken instanceof CNumberNode || oLastToken instanceof CCellRangeNode || oLastToken instanceof CRightParenOperatorNode){
                     this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
                     return;
                 }
@@ -1114,23 +1113,44 @@
                     this.setFlag(PARSER_MASK_NUMBER, true);
                     this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
                     this.setFlag(PARSER_MASK_LEFT_PAREN, false);
-                    this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
+                    this.setFlag(PARSER_MASK_RIGHT_PAREN, true);
                     this.setFlag(PARSER_MASK_BINARY_OPERATOR, true);
                     this.setFlag(PARSER_MASK_FUNCTION, false);
                     this.setFlag(PARSER_MASK_LIST_SEPARATOR, aFunctionsStack.length > 0);
                     this.setFlag(PARSER_MASK_CELL_NAME, false);
                     this.setFlag(PARSER_MASK_CELL_RANGE, false);
-                    this.setFlag(PARSER_MASK_BOOKMARK, false);
+                    this.setFlag(PARSER_MASK_BOOKMARK, true);
                     this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
                 }
                 else{
                     this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                    return;
                 }
             } else if(oCurToken instanceof CCellRangeNode){
-                if(oCurToken.isDir() || oCurToken.isBookmarkCellRange() || oCurToken.isCellRange()){
-
+                if((oCurToken.isDir() || oCurToken.isCellRange()) && !(this.flags & PARSER_MASK_CELL_RANGE)){
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, ':');
+                    return;
+                }
+                if(oCurToken.isBookmarkCellRange() && !(this.flags & PARSER_MASK_BOOKMARK_CELL_REF)){
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, ':');//TODO: Send cell range
+                    return;
+                }
+                if((oCurToken.isCell() || oCurToken.isBookmark()) && (oLastToken instanceof CNumberNode || oLastToken instanceof CCellRangeNode || oLastToken instanceof CRightParenOperatorNode)){
+                    this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
+                    return;
                 }
                 aQueue.push(oCurToken);
+                this.setFlag(PARSER_MASK_NUMBER, true);
+                this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
+                this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                this.setFlag(PARSER_MASK_RIGHT_PAREN, true);
+                this.setFlag(PARSER_MASK_BINARY_OPERATOR, oCurToken.isCell() || oCurToken.isBookmark());
+                this.setFlag(PARSER_MASK_FUNCTION, false);
+                this.setFlag(PARSER_MASK_LIST_SEPARATOR, aFunctionsStack.length > 0);
+                this.setFlag(PARSER_MASK_CELL_NAME, false);
+                this.setFlag(PARSER_MASK_CELL_RANGE, false);
+                this.setFlag(PARSER_MASK_BOOKMARK, false);
+                this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
             } else if(oCurToken.isFunction()){
                 if(this.flags & PARSER_MASK_FUNCTION){
                     aStack.push(oCurToken);
@@ -1139,40 +1159,89 @@
                         this.setFlag(PARSER_MASK_LEFT_PAREN, false);
                     }
                     else{
-                        this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                        this.setFlag(PARSER_MASK_LEFT_PAREN, true);
+                        this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
+                        this.setFlag(PARSER_MASK_LIST_SEPARATOR, false);
+                        this.setFlag(PARSER_MASK_BINARY_OPERATOR, false);
+                        this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
+                        this.setFlag(PARSER_MASK_NUMBER, false);
+                        this.setFlag(PARSER_MASK_FUNCTION, false);
+                        this.setFlag(PARSER_MASK_CELL_NAME, false);
+                        this.setFlag(PARSER_MASK_CELL_RANGE, false);
+                        this.setFlag(PARSER_MASK_BOOKMARK, false);
+                        this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
                     }
                 }
                 else{
                     this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                    return;
                 }
             } else if(oCurToken instanceof CListSeparatorNode){
-                if(aFunctionsStack.length > 0){
-                    ++aFunctionsStack[aFunctionsStack.length-1].argumentsCount;
-                    if(aFunctionsStack[aFunctionsStack.length-1].argumentsCount >= aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
+                if(!(this.flags & PARSER_MASK_FUNCTION)){
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                    return;
+                }
+                else{
+                    if(aFunctionsStack.length > 0){
+                        ++aFunctionsStack[aFunctionsStack.length-1].argumentsCount;
+                        if(aFunctionsStack[aFunctionsStack.length-1].argumentsCount >= aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
+                            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                            return;
+                        }
+                        while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
+                            aQueue.push(aStack.pop());
+                        }
+                        if(aStack.length === 0){
+                            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));//TODO
+                            return;
+                        }
+                    }
+                    else{
                         this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                         return;
                     }
+
+                    this.setFlag(PARSER_MASK_LEFT_PAREN, true);
+                    this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
+                    this.setFlag(PARSER_MASK_LIST_SEPARATOR, false);
+                    this.setFlag(PARSER_MASK_BINARY_OPERATOR, false);
+                    this.setFlag(PARSER_MASK_UNARY_OPERATOR, true);
+                    this.setFlag(PARSER_MASK_NUMBER, true);
+                    this.setFlag(PARSER_MASK_FUNCTION, true);
+                    this.setFlag(PARSER_MASK_CELL_NAME, true);
+                    this.setFlag(PARSER_MASK_CELL_RANGE, aFunctionsStack.length > 0 && aFunctionsStack[aFunctionsStack.length-1].listSupport());
+                    this.setFlag(PARSER_MASK_BOOKMARK, true);
+                    this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, aFunctionsStack.length > 0 && aFunctionsStack[aFunctionsStack.length-1].listSupport());
+                }
+            } else if(oCurToken instanceof CLeftParenOperatorNode){
+                if(this.flags && PARSER_MASK_LEFT_PAREN){
+                    if(oLastToken.isFunction(oLastToken)){
+                        aFunctionsStack.push(oLastToken);
+                    }
+                    this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                    this.setFlag(PARSER_MASK_RIGHT_PAREN, true);
+                    this.setFlag(PARSER_MASK_LIST_SEPARATOR, false);
+                    this.setFlag(PARSER_MASK_BINARY_OPERATOR, false);
+                    this.setFlag(PARSER_MASK_UNARY_OPERATOR, true);
+                    this.setFlag(PARSER_MASK_NUMBER, true);
+                    this.setFlag(PARSER_MASK_FUNCTION, true);
+                    this.setFlag(PARSER_MASK_CELL_NAME, true);
+                    this.setFlag(PARSER_MASK_CELL_RANGE, aFunctionsStack.length > 0 && aFunctionsStack[aFunctionsStack.length-1].listSupport());
+                    this.setFlag(PARSER_MASK_BOOKMARK, false);
+                    this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, aFunctionsStack.length > 0 && aFunctionsStack[aFunctionsStack.length-1].listSupport());
                 }
                 else{
                     this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     return;
-                }
-                while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
-                   aQueue.push(aStack.pop());
-                }
-                if(aStack.length === 0){
-                    this.setError("Error in formula", this.formula[this.pos]);
-                    return;
-                }
-            } else if(oCurToken instanceof CLeftParenOperatorNode){
-                if(oLastToken && oLastToken.isFunction()){
-                    aFunctionsStack.push(oLastToken);
-                    this.setFlag(PARSER_MASK_CELL_RANGE, true);
                 }
                 aStack.push(oCurToken);
             } else if(oCurToken instanceof CRightParenOperatorNode){
                 if(aFunctionsStack.length > 0 && aStack[0] && aStack[0].isFunction()){
                     ++aFunctionsStack[aFunctionsStack.length-1].argumentsCount;
+                    if(aFunctionsStack[aFunctionsStack.length-1].argumentsCount > aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                        return;
+                    }
                     aFunctionsStack.pop();
                 }
                 while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
@@ -1187,6 +1256,17 @@
                 if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
                     aQueue.push(aStack.pop());
                 }
+                this.setFlag(PARSER_MASK_NUMBER, true);
+                this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
+                this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                this.setFlag(PARSER_MASK_RIGHT_PAREN, true);
+                this.setFlag(PARSER_MASK_BINARY_OPERATOR, oCurToken.isCell() || oCurToken.isBookmark());
+                this.setFlag(PARSER_MASK_FUNCTION, false);
+                this.setFlag(PARSER_MASK_LIST_SEPARATOR, aFunctionsStack.length > 0);
+                this.setFlag(PARSER_MASK_CELL_NAME, false);
+                this.setFlag(PARSER_MASK_CELL_RANGE, false);
+                this.setFlag(PARSER_MASK_BOOKMARK, false);
+                this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
             } else if(oCurToken.isOperator()){
                 while(aStack.length > 0 && (aStack[aStack.length-1].isFunction() || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
                     aQueue.push(aStack.pop());
