@@ -738,7 +738,7 @@
     oFuncMap['ROUND'] = CROUNDFunctionNode;
     oFuncMap['SIGN'] = CSIGNFunctionNode;
     oFuncMap['SUM'] = CSUMFunctionNode;
-    
+
     var PARSER_MASK_LEFT_PAREN      = 1;
     var PARSER_MASK_RIGHT_PAREN     = 2;
     var PARSER_MASK_LIST_SEPARATOR  = 4;
@@ -1103,8 +1103,8 @@
         this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
         var nStartPos = this.pos;
         while (oCurToken = this.parseCurrent()){
-            if(oCurToken instanceof CNumberNode){
-                if(oLastToken instanceof CNumberNode || oLastToken instanceof CCellRangeNode || oLastToken instanceof CRightParenOperatorNode){
+            if(oCurToken instanceof CNumberNode || oCurToken instanceof CFALSEFunctionNode || oCurToken instanceof CTRUEFunctionNode){
+                if(oLastToken instanceof CNumberNode || oLastToken instanceof CCellRangeNode || oLastToken instanceof CRightParenOperatorNode || oLastToken instanceof CFALSEFunctionNode || oLastToken instanceof CTRUEFunctionNode){
                     this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
                     return;
                 }
@@ -1135,7 +1135,7 @@
                     this.setError(ERROR_TYPE_SYNTAX_ERROR, ':');//TODO: Send cell range
                     return;
                 }
-                if((oCurToken.isCell() || oCurToken.isBookmark()) && (oLastToken instanceof CNumberNode || oLastToken instanceof CCellRangeNode || oLastToken instanceof CRightParenOperatorNode)){
+                if((oCurToken.isCell() || oCurToken.isBookmark()) && (oLastToken instanceof CNumberNode || oLastToken instanceof CCellRangeNode || oLastToken instanceof CRightParenOperatorNode || oLastToken instanceof CFALSEFunctionNode || oLastToken instanceof CTRUEFunctionNode)){
                     this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
                     return;
                 }
@@ -1268,7 +1268,32 @@
                 this.setFlag(PARSER_MASK_BOOKMARK, false);
                 this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
             } else if(oCurToken.isOperator()){
-                while(aStack.length > 0 && (aStack[aStack.length-1].isFunction() || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
+                if(oCurToken instanceof CUnaryMinusOperatorNode){
+                    if(!(this.flags & PARSER_MASK_UNARY_OPERATOR)){
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                        return;
+                    }
+                    this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
+                }
+                else{
+                    if(!(this.flags & PARSER_MASK_BINARY_OPERATOR)){
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                        return;
+                    }
+
+                    this.setFlag(PARSER_MASK_UNARY_OPERATOR, true);
+                }
+                this.setFlag(PARSER_MASK_NUMBER, true);
+                this.setFlag(PARSER_MASK_LEFT_PAREN, true);
+                this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
+                this.setFlag(PARSER_MASK_BINARY_OPERATOR, false);
+                this.setFlag(PARSER_MASK_FUNCTION, true);
+                this.setFlag(PARSER_MASK_LIST_SEPARATOR, false);
+                this.setFlag(PARSER_MASK_CELL_NAME, true);
+                this.setFlag(PARSER_MASK_CELL_RANGE, false);
+                this.setFlag(PARSER_MASK_BOOKMARK, true);
+                this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
+                while(aStack.length > 0 && ((aStack[aStack.length-1] instanceof CLeftParenOperatorNode) || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
                     aQueue.push(aStack.pop());
                 }
                 aStack.push(oCurToken);
@@ -1279,7 +1304,7 @@
         while (aStack.length > 0){
             oCurToken = aStack.pop();
             if(oCurToken instanceof CLeftParenOperatorNode || oCurToken instanceof CRightParenOperatorNode){
-                this.setError("Error in formula", this.formula[this.pos]);
+                this.setError(ERROR_TYPE_SYNTAX_ERROR, "");//TODO
                 return;
             }
             aQueue.push(oCurToken);
