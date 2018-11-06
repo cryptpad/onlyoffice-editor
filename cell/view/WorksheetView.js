@@ -15855,8 +15855,113 @@
 		var convertFragments = function(fragments) {
 			//TODO возможно стоит созадавать portions внутри парсера с элементами Fragments
 			var res = [];
+
+			var bToken, text, symbol, startToken, tokenText;
 			for(var j = 0; j < fragments.length; j++) {
-				res[j] = {text: fragments[j].text, format: fragments[j].format};
+				text = "";
+				for(var n = 0; n < fragments[j].text.length; n++) {
+					symbol = fragments[j].text[n];
+					text += symbol;
+
+					//если несколько таких символов подряд, ms оставляет 1 как текст
+					//пока игнорируем данную ситуацию
+					if(symbol === "&") {
+						bToken = true;
+					} else if(startToken) {
+						if(symbol === "]") {
+							switch(tokenText) {
+								case "&[Page]": {
+
+									break;
+								}
+								case "&[Pages]": {
+
+									break;
+								}
+								case "&[Date]": {
+
+									break;
+								}
+								case "&[Time]": {
+
+									break;
+								}
+								case "&[Tab]": {
+
+									break;
+								}
+								case "&[File]": {
+
+									break;
+								}
+								case "&[Path]&[File]": {
+
+									break;
+								}
+							}
+							bToken = false;
+							startToken = false;
+						} else {
+							tokenText += symbol;
+						}
+					} else if(bToken) {
+						//начинаем просматривать аргумент
+						if(symbol === "[") {
+							startToken = true;
+							tokenText = "";
+						} else {
+							//если за "&" следует спецсимвол
+							switch(symbol) {
+								case 'L':
+								case 'C':
+								case 'R':
+								case 'B':   //bold
+								case 'I':
+								case 'U':   //underline
+								case 'E':   //double underline
+								case 'S':   //strikeout
+								case 'X':   //superscript
+								case 'Y':   //subsrcipt
+								case 'O':   //outlined
+								case 'H':   //shadow
+								case 'K':   //text color
+								case '\"':  //font name
+
+									break;
+								case 'P':   //page number
+									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber));
+									break;
+								case 'N':   //total page count
+									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.pageCount));
+									break;
+								case 'A':   //current sheet name
+									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.sheetName));
+									break;
+								case 'F':   //file name
+								{
+									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName));
+									break;
+								}
+								case 'Z':   //file path
+								{
+									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.filePath));
+									break;
+								}
+								case 'D':   //date
+								{
+									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.date));
+									break;
+								}
+								case 'T':   //time
+								{
+									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.time));
+									break;
+								}
+							}
+							bToken = false;
+						}
+					}
+				}
 			}
 			return res;
 		};
