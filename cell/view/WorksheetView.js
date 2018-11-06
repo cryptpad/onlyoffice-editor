@@ -15099,7 +15099,6 @@
 		}
 
 		this.endPortion();
-		this.assembleText();
 	};
 
 	HeaderFooterParser.prototype.convertFontColor = function(rColor) {
@@ -15230,10 +15229,10 @@
 				if(!res[index]) {
 					res[index] = [];
 				}
-				if(curPortion[i] instanceof HeaderFooterField) {
+				/*if(curPortion[i] instanceof HeaderFooterField) {
 					index++;
 					continue;
-				}
+				}*/
 				res[index].push(curPortion[i]);
 			}
 		}
@@ -15856,7 +15855,7 @@
 			//TODO возможно стоит созадавать portions внутри парсера с элементами Fragments
 			var res = [];
 
-			var bToken, text, symbol, startToken, tokenText;
+			var bToken, text, symbol, startToken, tokenText, tokenFormat;
 			for(var j = 0; j < fragments.length; j++) {
 				text = "";
 				for(var n = 0; n < fragments[j].text.length; n++) {
@@ -15867,35 +15866,33 @@
 					//пока игнорируем данную ситуацию
 					if(symbol === "&") {
 						bToken = true;
+						tokenFormat = fragments[j].format;
 					} else if(startToken) {
 						if(symbol === "]") {
 							switch(tokenText) {
-								case "&[Page]": {
-
+								case "Page": {
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber), format: tokenFormat});
 									break;
 								}
-								case "&[Pages]": {
-
+								case "Pages": {
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageCount), format: tokenFormat});
 									break;
 								}
-								case "&[Date]": {
-
+								case "Date": {
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.date), format: tokenFormat});
 									break;
 								}
-								case "&[Time]": {
-
+								case "Time": {
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.time), format: tokenFormat});
 									break;
 								}
-								case "&[Tab]": {
-
+								case "Tab": {
 									break;
 								}
-								case "&[File]": {
-
+								case "File": {
 									break;
 								}
 								case "&[Path]&[File]": {
-
 									break;
 								}
 							}
@@ -15926,40 +15923,47 @@
 								case 'H':   //shadow
 								case 'K':   //text color
 								case '\"':  //font name
-
 									break;
 								case 'P':   //page number
-									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber));
+								{
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber), format: tokenFormat});
 									break;
+								}
 								case 'N':   //total page count
-									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.pageCount));
+								{
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageCount), format: tokenFormat});
 									break;
+								}
 								case 'A':   //current sheet name
-									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.sheetName));
+								{
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.sheetName), format: tokenFormat});
 									break;
+								}
 								case 'F':   //file name
 								{
-									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName));
+									//res.push((new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName)));
 									break;
 								}
 								case 'Z':   //file path
 								{
-									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.filePath));
+									//res.push((new HeaderFooterField(asc.c_oAscHeaderFooterField.filePath)));
 									break;
 								}
 								case 'D':   //date
 								{
-									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.date));
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.date), format: tokenFormat});
 									break;
 								}
 								case 'T':   //time
 								{
-									this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.time));
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.time), format: tokenFormat});
 									break;
 								}
 							}
 							bToken = false;
 						}
+					} else {
+						res.push({text: text, format: fragments[j].format});
 					}
 				}
 			}
