@@ -1270,6 +1270,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			return new cError(cErrorType.bad_reference);
 		}
 	};
+	cArea.prototype.changeSheet = function (wsLast, wsNew) {
+		if (this.ws === wsLast) {
+			this.ws = wsNew;
+			if (this.range) {
+				this.range.worksheet = wsNew;
+			}
+		}
+	};
 
 	/**
 	 * @constructor
@@ -1600,6 +1608,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return excludeHiddenRows && this.isValid() && this.ws.getRowHidden(this.getRange().r1);
 	};
+	cRef.prototype.changeSheet = function (wsLast, wsNew) {
+		if (this.ws === wsLast) {
+			this.ws = wsNew;
+			if (this.range) {
+				this.range.worksheet = wsNew;
+			}
+		}
+	};
 
 	/**
 	 * @constructor
@@ -1671,6 +1687,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cRef3D.prototype.changeSheet = function (wsLast, wsNew) {
 		if (this.ws === wsLast) {
 			this.ws = wsNew;
+			if (this.range) {
+				this.range.worksheet = wsNew;
+			}
 		}
 	};
 	cRef3D.prototype.toString = function () {
@@ -1809,6 +1828,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cName.prototype.getWS = function () {
 		return this.ws;
+	};
+	cName.prototype.changeSheet = function (wsLast, wsNew) {
+		if (this.ws === wsLast) {
+			this.ws = wsNew;
+		}
 	};
 
 	/**
@@ -2187,6 +2211,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return bRes;
 	};
+	cStrucTable.prototype.changeSheet = function(wsLast, wsNew) {
+		if (this.ws === wsLast) {
+			this.ws = wsNew;
+			if (this.area && this.area.changeSheet) {
+				this.area.changeSheet(wsLast, wsNew);
+			}
+		}
+	};
 
 	/**
 	 * @constructor
@@ -2209,11 +2241,6 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var oRes = new cName3D(this.value, ws);
 		this.cloneTo(oRes);
 		return oRes;
-	};
-	cName3D.prototype.changeSheet = function (wsLast, wsNew) {
-		if (this.ws === wsLast) {
-			this.ws = wsNew;
-		}
 	};
 	cName3D.prototype.toString = function () {
 		return parserHelp.getEscapeSheetName(this.ws.getName()) + "!" + cName.prototype.toString.call(this);
@@ -5822,18 +5849,22 @@ parserFormula.prototype.setFormula = function(formula) {
 
 		for (var i = 0; i < this.outStack.length; i++) {
 			var elem = this.outStack[i];
-			if (cElementType.cell3D === elem.type) {
-				if (params.offset) {
-					elem = this._changeOffsetElem(elem, this.outStack, i, params.offset);
+			if (params.offset && (cElementType.cell === elem.type || cElementType.cellsRange === elem.type ||
+				cElementType.cell3D === elem.type || cElementType.cellsRange3D === elem.type)) {
+				elem = this._changeOffsetElem(elem, this.outStack, i, params.offset);
+			}
+			if (params.tableNameMap && cElementType.table === elem.type) {
+				var newTableName = params.tableNameMap[elem.tableName];
+				if (newTableName) {
+					elem.tableName = newTableName;
 				}
-				if (wsLast && wsNew) {
+			}
+			if (wsLast && wsNew) {
+				if (cElementType.cell === elem.type || cElementType.cell3D === elem.type ||
+					cElementType.cellsRange === elem.type || cElementType.table === elem.type ||
+					cElementType.name === elem.type || cElementType.name3D === elem.type) {
 					elem.changeSheet(wsLast, wsNew);
-				}
-			} else if (cElementType.cellsRange3D === elem.type) {
-				if (params.offset) {
-					elem = this._changeOffsetElem(elem, this.outStack, i, params.offset);
-				}
-				if (wsLast && wsNew) {
+				} else if (cElementType.cellsRange3D === elem.type) {
 					if (elem.isSingleSheet()) {
 						elem.changeSheet(wsLast, wsNew);
 					} else {
@@ -5841,15 +5872,6 @@ parserFormula.prototype.setFormula = function(formula) {
 							this.outStack[i] = new cError(cErrorType.bad_reference);
 						}
 					}
-				}
-			} else if (params.offset && (cElementType.cellsRange === elem.type || cElementType.cell === elem.type)) {
-				elem = this._changeOffsetElem(elem, this.outStack, i, params.offset);
-			} else if (wsLast && wsNew && cElementType.name3D === elem.type) {
-				elem.changeSheet(wsLast, wsNew);
-			} else if (params.tableNameMap && cElementType.table === elem.type) {
-				var newTableName = params.tableNameMap[elem.tableName];
-				if (newTableName) {
-					elem.tableName = newTableName;
 				}
 			}
 		}

@@ -371,6 +371,8 @@
 				var vertexIndex = getVertexIndex(bbox);
 				var areaSheetElem = sheetContainer.areaMap[vertexIndex];
 				if (!areaSheetElem) {
+					//todo clone inside or outside startListeningRange?
+					bbox = bbox.clone();
 					areaSheetElem = {id: null, bbox: bbox, count: 0, listeners: {}};
 					sheetContainer.areaMap[vertexIndex] = areaSheetElem;
 					sheetContainer.areaTree.add(bbox, areaSheetElem);
@@ -4895,15 +4897,19 @@
 		var nColsCountNew = 0;
 		//todo avoid double getRange3
 		this.getRange3(oBBoxFrom.r1, oBBoxFrom.c1, oBBoxFrom.r2, oBBoxFrom.c2)._foreachNoEmpty(function(cell) {
-			cell.transformSharedFormula();
+			if (cell.transformSharedFormula()) {
+				var parsed = cell.getFormulaParsed();
+				parsed.buildDependencies();
+			}
 		});
+		var isClearFromArea = !copyRange || (copyRange && oThis.workbook.bUndoChanges);
 		var moveCells = function(copyRange, from, to, r1From, r1To, count){
 			var fromData = oThis.getColDataNoEmpty(from);
 			var toData;
 			if(fromData){
 				toData = oThis.getColData(to);
 				toData.copyRange(fromData, r1From, r1To, count);
-				if(!copyRange|| (copyRange && oThis.workbook.bUndoChanges)){
+				if (isClearFromArea) {
 					if(from !== to) {
 						fromData.clear(r1From, r1From + count);
 					} else {
@@ -4947,7 +4953,7 @@
 					var newFormula = formula.clone(null, cellWithFormula, oThis);
 					newFormula.changeOffset(offset, false, true);
 					newFormula.setFormulaString(newFormula.assemble(true));
-					cell.setFormulaInternal(newFormula);
+					cell.setFormulaInternal(newFormula, !isClearFromArea);
 					History.TurnOn();
 				} else {
 					cellWithFormula.nRow = cell.nRow;
