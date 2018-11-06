@@ -10863,9 +10863,15 @@ function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMa
                 }
             }
             if(oObject.brush){
+                if(oTheme && oColorMap){
+                    oObject.brush.check(oTheme, oColorMap);
+                }
                 oObjectCopy.spPr.setFill(oObject.brush.saveSourceFormatting());
             }
             if(oObject.pen){
+                if(oObject.pen.Fill && oTheme && oColorMap){
+                    oObject.pen.Fill.check(oTheme, oColorMap);
+                }
                 oObjectCopy.spPr.setLn(oObject.pen.createDuplicate(true));
             }
         }
