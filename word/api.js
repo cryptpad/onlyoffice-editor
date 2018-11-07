@@ -3579,7 +3579,7 @@ background-repeat: no-repeat;\
 			return -1;
 
 		var oNumPr = oLogicDocument.GetSelectedNum(true);
-		if (!oNumPr)
+		if (!oNumPr || !oNumPr.Lvl)
 			return -1;
 
 		return oNumPr.Lvl;
