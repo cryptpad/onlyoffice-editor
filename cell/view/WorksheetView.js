@@ -15898,6 +15898,7 @@
 							}
 							bToken = false;
 							startToken = false;
+							text = "";
 						} else {
 							tokenText += symbol;
 						}
@@ -15961,8 +15962,9 @@
 								}
 							}
 							bToken = false;
+							text = "";
 						}
-					} else {
+					} else if("" !== text && n === fragments[j].text.length - 1) {
 						res.push({text: text, format: fragments[j].format});
 					}
 				}
