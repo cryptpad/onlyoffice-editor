@@ -7865,25 +7865,39 @@ PasteProcessor.prototype =
 		//Удаляем параграф, который создается в таблице по умолчанию
         cell.Content.Internal_Content_Remove(0, 1);
     },
-	_CheckIsPlainText : function(node)
+	_CheckIsPlainText : function(node, dNotCheckFirstElem)
 	{
 		var bIsPlainText = true;
-		for(var i = 0, length = node.childNodes.length; i < length; i++)
-		{
+
+		var checkStyle = function (elem) {
+			var res = false;
+			var sClass = elem.getAttribute("class");
+			var sStyle = elem.getAttribute("style");
+			var sHref = elem.getAttribute("href");
+
+			if (sClass || sStyle || sHref) {
+				res = true;
+			}
+			return res;
+		};
+
+		//проверяем верхний элемент
+		//в случае с плагинами - контент оборачивается в дивку, которая может иметь свои стили
+		if ("body" !== node.nodeName.toLowerCase() && !dNotCheckFirstElem) {
+			if (Node.ELEMENT_NODE === node.nodeType) {
+				if (checkStyle(node)) {
+					return false;
+				}
+			}
+		}
+
+		for (var i = 0, length = node.childNodes.length; i < length; i++) {
 			var child = node.childNodes[i];
-			if(Node.ELEMENT_NODE === child.nodeType)
-			{
-				var sClass = child.getAttribute("class");
-				var sStyle = child.getAttribute("style");
-				var sHref = child.getAttribute("href");
-				
-				if(sClass || sStyle || sHref)
-				{
+			if (Node.ELEMENT_NODE === child.nodeType) {
+				if (checkStyle(child)) {
 					bIsPlainText = false;
 					break;
-				}
-				else if(!this._CheckIsPlainText(child))
-				{
+				} else if (!this._CheckIsPlainText(child, true)) {
 					bIsPlainText = false;
 					break;
 				}
