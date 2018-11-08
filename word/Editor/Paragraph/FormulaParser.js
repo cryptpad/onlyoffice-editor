@@ -535,7 +535,20 @@
         if(this.error){
             return;
         }
-        return (aArgs[0] >> 0);
+        this.result = (aArgs[0] >> 0);
+    };
+    function CIFFunctionNode(){
+        CFunctionNode.call(this);
+    }
+    CIFFunctionNode.prototype = Object.create(CFunctionNode.prototype);
+    CIFFunctionNode.prototype.minArgumentsCount = 3;
+    CIFFunctionNode.prototype.maxArgumentsCount = 3;
+    CIFFunctionNode.prototype.calculate = function (aArgs) {
+        CFunctionNode.prototype.calculate.call(this, aArgs);
+        if(this.error){
+            return;
+        }
+        this.result =(aArgs[0] !== 0.0) ? aArgs[1] : aArgs[2];
     };
     function CMAXFunctionNode(){
         CFunctionNode.call(this);
@@ -787,13 +800,11 @@
 
 
     CFormulaParser.prototype.parseNumber = function(nStartPos, nEndPos){
-        if(this.flags & PARSER_MASK_NUMBER){
-            var number = parseFloat(this.formula.slice(nStartPos, nEndPos));
-            if(!AscFormat.isRealNumber(number)){
-                var ret = new CNumberNode();
-                ret.value = number;
-                return ret;
-            }
+        var number = parseFloat(this.formula.slice(nStartPos, nEndPos));
+        if(AscFormat.isRealNumber(number)){
+            var ret = new CNumberNode();
+            ret.value = number;
+            return ret;
         }
         return null;
     };
@@ -928,28 +939,21 @@
 
     CFormulaParser.prototype.parseCellRef = function(nStartPos, nEndPos){
         var oRet;
-        if(this.flags & PARSER_MASK_CELL_RANGE){
-            oRet = this.checkExpression(oCellRangeRegExp, this.parseCellRange);
-            if(oRet){
-                return oRet;
-            }
+        oRet = this.checkExpression(oCellRangeRegExp, this.parseCellRange);
+        if(oRet){
+            return oRet;
         }
-        if(this.flags & PARSER_MASK_CELL_NAME){
-            oRet = this.checkExpression(oCellNameRegExp, this.parseCellName);
-            if(oRet){
-                return oRet;
-            }
+        oRet = this.checkExpression(oCellNameRegExp, this.parseCellName);
+        if(oRet){
+            return oRet;
         }
         return null;
     };
 
     CFormulaParser.prototype.parseBookmark = function (nStartPos, nEndPos) {
-        if(this.flags & PARSER_MASK_BOOKMARK){
-            var oRet = new CCellRangeNode();
-            oRet.bookmarkName = this.formula.slice(nStartPos, nEndPos);
-            return oRet;
-        }
-        return null;
+        var oRet = new CCellRangeNode();
+        oRet.bookmarkName = this.formula.slice(nStartPos, nEndPos);
+        return oRet;
     };
 
     CFormulaParser.prototype.parseBookmarkCellRef = function(nStartPos, nEndPos){
@@ -958,17 +962,14 @@
         if(oResult === null){
             return null;
         }
-
-        if(this.flags & PARSER_MASK_BOOKMARK_CELL_REF){
-            if(this.pos < nEndPos){
-                while(this.formula[this.pos] === ' '){
-                    ++this.pos;
-                }
-                var oRes = this.checkExpression(oCellReferenceRegExp, this.parseCellRef);
-                if(oRes){
-                    oRes.bookmarkName = oResult.bookmarkName;
-                    return oRes;
-                }
+        if(this.pos < nEndPos){
+            while(this.formula[this.pos] === ' '){
+                ++this.pos;
+            }
+            var oRes = this.checkExpression(oCellReferenceRegExp, this.parseCellRef);
+            if(oRes){
+                oRes.bookmarkName = oResult.bookmarkName;
+                return oRes;
             }
         }
         return oResult;
@@ -981,24 +982,18 @@
             if(this.flags & PARSER_MASK_UNARY_OPERATOR){
                 return new CUnaryMinusOperatorNode();
             }
-            else if(this.flags & PARSER_MASK_BINARY_OPERATOR) {
-                return new CSubtractionOperatorNode();
-            }
+            return new CSubtractionOperatorNode();
         }
-        if(this.flags & PARSER_MASK_BINARY_OPERATOR) {
-            if(oOperatorsMap[sOperator]){
-                return new oOperatorsMap[sOperator]();
-            }
+        if(oOperatorsMap[sOperator]){
+            return new oOperatorsMap[sOperator]();
         }
         return null;
     };
 
     CFormulaParser.prototype.parseFunction = function(nStartPos, nEndPos){
-        if(this.flags & PARSER_MASK_FUNCTION){
-            var sFunction = this.formula.slice(nStartPos, nEndPos).toUpperCase();
-            if(oFuncMap[sFunction]){
-                return new oFuncMap[sFunction]();
-            }
+        var sFunction = this.formula.slice(nStartPos, nEndPos).toUpperCase();
+        if(oFuncMap[sFunction]){
+            return new oFuncMap[sFunction]();
         }
         return null;
     };
@@ -1011,15 +1006,15 @@
             return null;
         }
         //check parentheses
-        if((this.flags & PARSER_MASK_LEFT_PAREN) && this.formula[this.pos] === '('){
+        if(this.formula[this.pos] === '('){
             ++this.pos;
             return new CLeftParenOperatorNode();
         }
-        if((this.flags & PARSER_MASK_RIGHT_PAREN) && this.formula[this.pos] === ')'){
+        if(this.formula[this.pos] === ')'){
             ++this.pos;
             return new CRightParenOperatorNode();
         }
-        if((this.flags & PARSER_MASK_LIST_SEPARATOR) && this.formula[this.pos] === this.listSeparator){
+        if(this.formula[this.pos] === this.listSeparator){
             ++this.pos;
             return new CListSeparatorNode();
         }
@@ -1365,7 +1360,6 @@
         var ret = [];
         ret.push("jsdj");
         ret.push("jsdj1");
-        ret.push("2js2dj");
         return ret;
     }
 
@@ -1411,7 +1405,7 @@
         return ret;
     }
 
-    var nMaxArgCount = 2;
+    var nMaxArgCount = 3;
     function createExpression(aExp){
         var ret = [];
         var oArgsMap = {};
@@ -1441,7 +1435,7 @@
                         var aList = aArgs[i1];
                         var sStr = key + "(";
                         for(var j1 = 0; j1 < aList.length - 1; ++j1){
-                            sStr += (aList[j1] + ",");
+                            sStr += (aList[j1] + sListSeparator + " ");
                         }
                         sStr += (aList[j1] + ")");
                         aFunctions.push(sStr);
@@ -1454,7 +1448,7 @@
     }
 
     function TEST2(){
-        return createExpression(createExpression(createConstant().concat(createBookmark().concat.createBookMarkCellRef().concat(createCellReference()))))
+        return createExpression(createConstant().concat(createBookmark().concat(createBookMarkCellRef().concat(createCellReference()))));
     }
     window['AscCommonWord'].createExpression = TEST2;
 })();
