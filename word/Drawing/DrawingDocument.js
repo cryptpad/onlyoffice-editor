@@ -3859,7 +3859,7 @@ function CDrawingDocument()
 
 		this.m_oWordControl.m_oLogicDocument.Set_TargetPos(x, y, pageIndex);
 
-		if (this.UpdateTargetFromPaint === false)
+		if (this.UpdateTargetFromPaint === false && this.m_lCurrentPage != -1)
 		{
 			this.UpdateTargetCheck = true;
 			return;
