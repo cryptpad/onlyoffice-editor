@@ -10607,6 +10607,12 @@
 		return cellCoord;
 	};
 
+	WorksheetView.prototype._isLockedHeaderFooter = function (callback) {
+		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, this.model.getId(),
+			AscCommonExcel.c_oAscHeaderFooterEdit);
+		this.collaborativeEditing.lock([lockInfo], callback);
+	};
+
 	WorksheetView.prototype._isLockedLayoutOptions = function (callback) {
 		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, this.model.getId(),
 			AscCommonExcel.c_oAscLockLayoutOptions);
@@ -15664,6 +15670,7 @@
 		var api = this.api;
 		var wb = this.wb;
 		var ws = wb.getWorksheet();
+		var t = this;
 
 		id = id.replace("#", "");
 
@@ -15752,13 +15759,20 @@
 				cSection.appendEditor(this.editorElemId);
 			}
 
+			var editLockCallback = function(isSuccess) {
+				if (false === isSuccess) {
+					ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+					return;
+				}
 
-			this.openCellEditor(this.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, sectionElem);
-			wb.setCellEditMode(true);
+				t.openCellEditor(t.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, sectionElem);
+				wb.setCellEditMode(true);
 
-			api.asc_enableKeyEvents(true);
+				api.asc_enableKeyEvents(true);
+            };
+
+			ws._isLockedHeaderFooter(editLockCallback);
 		}
-
 	};
 
 	CHeaderFooterEditor.prototype.openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, sectionElem) {
