@@ -9224,7 +9224,18 @@ function Check_LoadingDataBeforePrepaste(_api, _fonts, _images, _callback)
 				aImagesToDownload.push(src);
 		}
         else if (!g_oDocumentUrls.getImageUrl(src) && !g_oDocumentUrls.getImageLocal(src))
-            aImagesToDownload.push(src);
+        {
+            if (window["AscDesktopEditor"] && (undefined !== window["AscDesktopEditor"]["CryptoMode"]) && (window["AscDesktopEditor"]["CryptoMode"] > 0))
+            {
+                // local image (open crypto file)
+                if (0 != src.indexOf("image"))
+                    aImagesToDownload.push(src);
+            }
+            else
+            {
+                aImagesToDownload.push(src);
+            }
+        }
     }
     if (aImagesToDownload.length > 0)
     {
