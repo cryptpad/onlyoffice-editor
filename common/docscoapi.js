@@ -834,8 +834,8 @@
     }
   };
 
-  DocsCoApi.prototype._reSaveChanges = function() {
-    this.saveChanges(this.arrayChanges, this.currentIndex, undefined, undefined, true);
+  DocsCoApi.prototype._reSaveChanges = function(reSaveType) {
+    this.saveChanges(this.arrayChanges, this.currentIndex, undefined, undefined, reSaveType);
   };
 
   DocsCoApi.prototype.saveChanges = function(arrayChanges, currentIndex, deleteIndex, excelAdditionalInfo, reSave) {
@@ -864,7 +864,7 @@
     var t = this;
     this.saveCallbackErrorTimeOutId = window.setTimeout(function() {
       t.saveCallbackErrorTimeOutId = null;
-      t._reSaveChanges();
+      t._reSaveChanges(1);
     }, this.errorTimeOutSave);
 
     // Выставляем состояние сохранения
@@ -1447,7 +1447,7 @@
       if (this._isReSaveAfterAuth) {
         var callbackAskSaveChanges = function(e) {
           if (false === e["saveLock"]) {
-            t._reSaveChanges();
+            t._reSaveChanges(2);
           } else {
             setTimeout(function() {
               t.askSaveChanges(callbackAskSaveChanges);
