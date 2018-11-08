@@ -1709,6 +1709,8 @@
 			return this.Lvl[0];
 		else if (nLvl > 8)
 			return this.Lvl[8];
+		else if (!this.Lvl[nLvl])
+			return this.Lvl[0];
 
 		return this.Lvl[nLvl];
 	};

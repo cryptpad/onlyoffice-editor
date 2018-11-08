@@ -12766,7 +12766,7 @@ CDocument.prototype.Statistics_Stop = function()
 // Private
 //----------------------------------------------------------------------------------------------------------------------
 CDocument.prototype.EndPreview_MailMergeResult = function(){};
-CDocument.prototype.Continue_TrackRevisions = function(){};
+CDocument.prototype.ContinueTrackRevisions = function(){};
 CDocument.prototype.Set_TrackRevisions = function(bTrack){};
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с составным вводом
@@ -17862,31 +17862,25 @@ CTrackRevisionsManager.prototype.Get_ParagraphChanges = function(ParaId)
 
     return [];
 };
-CTrackRevisionsManager.prototype.Continue_TrackRevisions = function()
+CTrackRevisionsManager.prototype.ContinueTrackRevisions = function()
 {
 	// За раз обрабатываем не больше 50 параграфов, чтобы не подвешивать клиент на открытии файлов
 	var nMaxCounter = 50,
 		nCounter    = 0;
 
-    var bNeedUpdate = false;
-    for (var ParaId in this.CheckPara)
-    {
-        delete this.CheckPara[ParaId];
-        var Para = g_oTableId.Get_ById(ParaId);
-        if (Para && Para instanceof Paragraph && Para.Is_UseInDocument())
-        {
-            delete this.Changes[ParaId];
-            Para.Check_RevisionsChanges(this);
-            bNeedUpdate = true;
-        }
+	var bNeedUpdate = false;
+	for (var sParaId in this.CheckPara)
+	{
+		if (this.private_TrackChangesForParagraph(sParaId))
+			bNeedUpdate = true;
 
-        ++nCounter;
-        if (nCounter >= nMaxCounter)
-        	break;
-    }
+		++nCounter;
+		if (nCounter >= nMaxCounter)
+			break;
+	}
 
-    if (bNeedUpdate)
-        this.LogicDocument.Document_UpdateInterfaceState();
+	if (bNeedUpdate)
+		this.LogicDocument.Document_UpdateInterfaceState();
 };
 CTrackRevisionsManager.prototype.Get_NextChange = function()
 {
@@ -18212,10 +18206,10 @@ CTrackRevisionsManager.prototype.Get_AllChangesLogicDocuments = function()
 
     return LogicDocuments;
 };
-CTrackRevisionsManager.prototype.Get_ChangeRelatedParagraphs = function(Change, bAccept)
+CTrackRevisionsManager.prototype.GetChangeRelatedParagraphs = function(oChange, bAccept)
 {
     var RelatedParas = {};
-    this.private_GetChangeRelatedParagraphs(Change, bAccept, RelatedParas);
+    this.private_GetChangeRelatedParagraphs(oChange, bAccept, RelatedParas);
     return this.private_ConvertParagraphsObjectToArray(RelatedParas);
 };
 CTrackRevisionsManager.prototype.private_GetChangeRelatedParagraphs = function(Change, bAccept, RelatedParas)
@@ -18338,7 +18332,40 @@ CTrackRevisionsManager.prototype.private_IsAllParagraphsChecked = function()
 CTrackRevisionsManager.prototype.CompleteTrackChanges = function()
 {
 	while (!this.private_IsAllParagraphsChecked())
-		this.Continue_TrackRevisions();
+		this.ContinueTrackRevisions();
+};
+/**
+ * Завершаем проверку рецензирования для заданных элементов
+ * @param arrElements
+ * @returns {boolean}
+ */
+CTrackRevisionsManager.prototype.CompleteTrackChangesForElements = function(arrElements)
+{
+	var isChecked = false;
+	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
+	{
+		var sElementId = arrElements[nIndex].GetId();
+		if (this.private_TrackChangesForParagraph(sElementId))
+			isChecked = true;
+	}
+
+	return isChecked;
+};
+CTrackRevisionsManager.prototype.private_TrackChangesForParagraph = function(sParaId)
+{
+	if (this.CheckPara[sParaId])
+	{
+		delete this.CheckPara[sParaId];
+		var oParagraph = g_oTableId.Get_ById(sParaId);
+		if (oParagraph && oParagraph instanceof Paragraph && oParagraph.Is_UseInDocument())
+		{
+			delete this.Changes[sParaId];
+			oParagraph.Check_RevisionsChanges(this);
+			return true;
+		}
+	}
+
+	return false;
 };
 
 function CRevisionsChangeParagraphSearchEngine(Direction, CurrentPara, TrackManager)
