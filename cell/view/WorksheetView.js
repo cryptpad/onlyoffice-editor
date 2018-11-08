@@ -15672,107 +15672,108 @@
 		var ws = wb.getWorksheet();
 		var t = this;
 
-		id = id.replace("#", "");
-
-		//если находимся в том же элементе
-		if(this.curParentFocusId === id) {
-			api.asc_enableKeyEvents(true);
-			return;
-		}
-
-		//TODO ещё нужно учитывать, что находимся в той же вкладке - odd/even/...
-		//если перед этим редактировали другое поле, сохраняем данные
-		if(null !== this.curParentFocusId) {
-			var prevField = this.getSectionById(this.curParentFocusId);
-			var prevFragments = this.cellEditor.options.fragments;
-			prevField.setFragments(prevFragments);
-			prevField.drawText();
-		}
-
-		this.curParentFocusId = id;
-
-
-		var cSection = this.getSectionById(id);
-		if(cSection) {
-			var sectionElem = cSection.getElem();
-			var fragments = cSection.getFragments();
-			var self = wb;
-			if(!this.cellEditor) {
-				this.cellEditor = new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
-					"closed": function () {
-						self._onCloseCellEditor.apply(self, arguments);
-					}, "updated": function () {
-						self.Api.checkLastWork();
-						self._onUpdateCellEditor.apply(self, arguments);
-					}, "gotFocus": function (hasFocus) {
-						self.controller.setFocus(!hasFocus);
-					}, "updateEditorState": function (state) {
-						self.handlers.trigger("asc_onEditCell", state);
-					}, "isGlobalLockEditCell": function () {
-						return self.collaborativeEditing.getGlobalLockEditCell();
-					}, "updateFormulaEditModEnd": function () {
-						if (!self.lockDraw) {
-							self.getWorksheet().updateSelection();
-						}
-					}, "newRange": function (range, ws) {
-						if (!ws) {
-							self.getWorksheet().addFormulaRange(range);
-						} else {
-							self.getWorksheet(self.model.getWorksheetIndexByName(ws)).addFormulaRange(range);
-						}
-					}, "existedRange": function (range, ws) {
-						var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.copyActiveSheet;
-						if (-1 === editRangeSheet || editRangeSheet === self.wsActive) {
-							self.getWorksheet().activeFormulaRange(range);
-						} else {
-							self.getWorksheet(editRangeSheet).removeFormulaRange(range);
-							self.getWorksheet().addFormulaRange(range);
-						}
-					}, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
-						self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
-						self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
-					}, "applyCloseEvent": function () {
-						self.controller._onWindowKeyDown.apply(self.controller, arguments);
-					}, "canEdit": function () {
-						return self.Api.canEdit();
-					}, "getFormulaRanges": function () {
-						return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
-					}, "getCellFormulaEnterWSOpen": function () {
-						return self.cellFormulaEnterWSOpen;
-					}, "getActiveWS": function () {
-						return self.getWorksheet().model;
-					}, "setStrictClose": function (val) {
-						self.controller.setStrictClose(val);
-					}, "updateEditorSelectionInfo": function (info) {
-						self.handlers.trigger("asc_onEditorSelectionChanged", info);
-					}, "onContextMenu": function (event) {
-						self.handlers.trigger("asc_onContextMenu", event);
-					}
-				}, /*settings*/{
-					font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
-
-				//временно меняем cellEditor у wb
-				this.wbCellEditor = wb.cellEditor;
-				wb.cellEditor = this.cellEditor;
-			} else {
-				this.cellEditor.close();
-				cSection.appendEditor(this.editorElemId);
+		var editLockCallback = function(isSuccess) {
+			if (false === isSuccess) {
+				ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+				return;
 			}
 
-			var editLockCallback = function(isSuccess) {
-				if (false === isSuccess) {
-					ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
-					return;
+			id = id.replace("#", "");
+
+			//если находимся в том же элементе
+			if(t.curParentFocusId === id) {
+				api.asc_enableKeyEvents(true);
+				return;
+			}
+
+			//TODO ещё нужно учитывать, что находимся в той же вкладке - odd/even/...
+			//если перед этим редактировали другое поле, сохраняем данные
+			if(null !== t.curParentFocusId) {
+				var prevField = t.getSectionById(t.curParentFocusId);
+				var prevFragments = t.cellEditor.options.fragments;
+				prevField.setFragments(prevFragments);
+				prevField.drawText();
+			}
+
+			t.curParentFocusId = id;
+
+
+			var cSection = t.getSectionById(id);
+			if(cSection) {
+				var sectionElem = cSection.getElem();
+				var fragments = cSection.getFragments();
+				var self = wb;
+				if(!t.cellEditor) {
+					t.cellEditor = new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
+						"closed": function () {
+							self._onCloseCellEditor.apply(self, arguments);
+						}, "updated": function () {
+							self.Api.checkLastWork();
+							self._onUpdateCellEditor.apply(self, arguments);
+						}, "gotFocus": function (hasFocus) {
+							self.controller.setFocus(!hasFocus);
+						}, "updateEditorState": function (state) {
+							self.handlers.trigger("asc_onEditCell", state);
+						}, "isGlobalLockEditCell": function () {
+							return self.collaborativeEditing.getGlobalLockEditCell();
+						}, "updateFormulaEditModEnd": function () {
+							if (!self.lockDraw) {
+								self.getWorksheet().updateSelection();
+							}
+						}, "newRange": function (range, ws) {
+							if (!ws) {
+								self.getWorksheet().addFormulaRange(range);
+							} else {
+								self.getWorksheet(self.model.getWorksheetIndexByName(ws)).addFormulaRange(range);
+							}
+						}, "existedRange": function (range, ws) {
+							var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.copyActiveSheet;
+							if (-1 === editRangeSheet || editRangeSheet === self.wsActive) {
+								self.getWorksheet().activeFormulaRange(range);
+							} else {
+								self.getWorksheet(editRangeSheet).removeFormulaRange(range);
+								self.getWorksheet().addFormulaRange(range);
+							}
+						}, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
+							self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
+							self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
+						}, "applyCloseEvent": function () {
+							self.controller._onWindowKeyDown.apply(self.controller, arguments);
+						}, "canEdit": function () {
+							return self.Api.canEdit();
+						}, "getFormulaRanges": function () {
+							return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
+						}, "getCellFormulaEnterWSOpen": function () {
+							return self.cellFormulaEnterWSOpen;
+						}, "getActiveWS": function () {
+							return self.getWorksheet().model;
+						}, "setStrictClose": function (val) {
+							self.controller.setStrictClose(val);
+						}, "updateEditorSelectionInfo": function (info) {
+							self.handlers.trigger("asc_onEditorSelectionChanged", info);
+						}, "onContextMenu": function (event) {
+							self.handlers.trigger("asc_onContextMenu", event);
+						}
+					}, /*settings*/{
+						font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
+
+					//временно меняем cellEditor у wb
+					t.wbCellEditor = wb.cellEditor;
+					wb.cellEditor = t.cellEditor;
+				} else {
+					t.cellEditor.close();
+					cSection.appendEditor(t.editorElemId);
 				}
 
 				t.openCellEditor(t.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, sectionElem);
 				wb.setCellEditMode(true);
 
 				api.asc_enableKeyEvents(true);
-            };
+			}
+		};
 
-			ws._isLockedHeaderFooter(editLockCallback);
-		}
+		ws._isLockedHeaderFooter(editLockCallback);
+
 	};
 
 	CHeaderFooterEditor.prototype.openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, sectionElem) {
@@ -16068,6 +16069,10 @@
 	};
 
 	CHeaderFooterEditor.prototype.setFontName = function(fontName) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		var t = this, fonts = {};
 		fonts[fontName] = 1;
 		t.api._loadFonts(fonts, function() {
@@ -16077,41 +16082,73 @@
 	};
 
 	CHeaderFooterEditor.prototype.setFontSize = function(fontSize) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		this.cellEditor.setTextStyle("fs", fontSize);
 		this.wb.restoreFocus();
 	};
 
 	CHeaderFooterEditor.prototype.setBold = function(isBold) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		this.cellEditor.setTextStyle("b", isBold);
 		this.wb.restoreFocus();
 	};
 
 	CHeaderFooterEditor.prototype.setItalic = function(isItalic) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		this.cellEditor.setTextStyle("i", isItalic);
 		this.wb.restoreFocus();
 	};
 
 	CHeaderFooterEditor.prototype.setUnderline = function(isUnderline) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		this.cellEditor.setTextStyle("u", isUnderline ? Asc.EUnderline.underlineSingle : Asc.EUnderline.underlineNone);
 		this.wb.restoreFocus();
 	};
 
 	CHeaderFooterEditor.prototype.setStrikeout = function(isStrikeout) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		this.cellEditor.setTextStyle("s", isStrikeout);
 		this.wb.restoreFocus();
 	};
 
 	CHeaderFooterEditor.prototype.setSubscript = function(isSubscript) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		this.cellEditor.setTextStyle("fa", isSubscript ? AscCommon.vertalign_SubScript : null);
 		this.wb.restoreFocus();
 	};
 
 	CHeaderFooterEditor.prototype.setSuperscript = function(isSuperscript) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		this.cellEditor.setTextStyle("fa", isSuperscript ? AscCommon.vertalign_SuperScript : null);
 		this.wb.restoreFocus();
 	};
 
 	CHeaderFooterEditor.prototype.setTextColor = function(color) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		if (color instanceof Asc.asc_CColor) {
 			color = AscCommonExcel.CorrectAscColor(color);
 			this.cellEditor.setTextStyle("c", color);
@@ -16120,6 +16157,10 @@
 	};
 
 	CHeaderFooterEditor.prototype.addField = function(val) {
+		if(null === this.cellEditor) {
+			return;
+		}
+
 		var textField = convertFieldToMenuText(val);
 		if(null !== textField) {
 			this.cellEditor.pasteText(textField);
