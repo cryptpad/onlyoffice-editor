@@ -1034,6 +1034,31 @@
         if(oRet){
             return oRet;
         }
+        //directions
+        if(this.formula.indexOf('LEFT', this.pos) === this.pos){
+            this.pos += 'LEFT'.length;
+            oRet = new CCellRangeNode();
+            oRet.dir = LEFT;
+            return oRet;
+        }
+        if(this.formula.indexOf('ABOVE', this.pos) === this.pos){
+            this.pos += 'ABOVE'.length;
+            oRet = new CCellRangeNode();
+            oRet.dir = ABOVE;
+            return oRet;
+        }
+        if(this.formula.indexOf('BELOW', this.pos) === this.pos){
+            this.pos += 'BELOW'.length;
+            oRet = new CCellRangeNode();
+            oRet.dir = BELOW;
+            return oRet;
+        }
+        if(this.formula.indexOf('RIGHT', this.pos) === this.pos){
+            this.pos += 'RIGHT'.length;
+            oRet = new CCellRangeNode();
+            oRet.dir = BELOW;
+            return oRet;
+        }
         //check cell reference
         var oRes = this.checkExpression(oCellReferenceRegExp, this.parseCellRef);
         if(oRes){
@@ -1071,15 +1096,16 @@
     };
 
     CFormulaParser.prototype.parse = function(sFormula){
-        this.pos = 0;
-        this.formula = sFormula;
-        this.parseQueue = null;
-        this.error = null;
-
         if(typeof sFormula !== "string"){
             this.setError("Illegal Argument Type", "");
             return;
         }
+        this.pos = 0;
+        this.formula = sFormula.toUpperCase();
+        this.parseQueue = null;
+        this.error = null;
+
+
         this.parseQueue = new CParseQueue();
         var oCurToken;
         var aStack = [], aQueue = [];
@@ -1360,6 +1386,10 @@
         var ret = [];
         ret.push("jsdj");
         ret.push("jsdj1");
+        ret.push("LeFt");
+        ret.push("AboVe");
+        ret.push("RIGHT");
+        ret.push("below");
         return ret;
     }
 
@@ -1385,16 +1415,15 @@
     }
 
     function getAllCombinations(aExp, len){
-        var ret = [];
+        var ret = [], i;
         if(len === 1){
-            for(var i = 0; i < aExp.length; ++i){
+            for(i = 0; i < aExp.length; ++i){
                 ret.push([aExp[i]]);
             }
             return ret;
         }
         var aSets = getAllCombinations(aExp, len - 1);
-        var ret = [];
-        for(var i = 0; i < aExp.length; ++i){
+        for(i = 0; i < aExp.length; ++i){
             var sExp = aExp[i];
             for(var j = 0; j < aSets.length; ++j){
                 var aSet = [].concat(aSets[j]);
