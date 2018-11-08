@@ -15860,47 +15860,71 @@
 				text = "";
 				for(var n = 0; n < fragments[j].text.length; n++) {
 					symbol = fragments[j].text[n];
-					text += symbol;
+					if(symbol !== "&") {
+						text += symbol;
+					}
 
 					//если несколько таких символов подряд, ms оставляет 1 как текст
 					//пока игнорируем данную ситуацию
 					if(symbol === "&") {
+						if("" !== text) {
+							res.push({text: text, format: fragments[j].format});
+							text = "";
+						}
+
 						bToken = true;
 						tokenFormat = fragments[j].format;
 					} else if(startToken) {
 						if(symbol === "]") {
-							switch(tokenText) {
-								case "Page": {
+							switch(tokenText.toLowerCase()) {
+								case "page": {
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber), format: tokenFormat});
 									break;
 								}
-								case "Pages": {
+								case "pages": {
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageCount), format: tokenFormat});
 									break;
 								}
-								case "Date": {
+								case "date": {
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.date), format: tokenFormat});
 									break;
 								}
-								case "Time": {
+								case "time": {
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.time), format: tokenFormat});
 									break;
 								}
-								case "Tab": {
+								case "tab": {
+									text = "";
 									break;
 								}
-								case "File": {
+								case "file": {
+									text = "";
 									break;
 								}
 								case "&[Path]&[File]": {
+									text = "";
+									break;
+								}
+								default: {
+									if("" !== text && j ===  fragments.length - 1 && n === fragments[j].text.length - 1) {
+										res.push({text: text, format: fragments[j].format});
+										text = "";
+									}
 									break;
 								}
 							}
 							bToken = false;
 							startToken = false;
-							text = "";
 						} else {
 							tokenText += symbol;
+						}
+
+						if("" !== text && j ===  fragments.length - 1 && n === fragments[j].text.length - 1) {
+							res.push({text: text, format: fragments[j].format});
 						}
 					} else if(bToken) {
 						//начинаем просматривать аргумент
@@ -15910,59 +15934,72 @@
 						} else {
 							//если за "&" следует спецсимвол
 							switch(symbol) {
-								case 'L':
-								case 'C':
-								case 'R':
-								case 'B':   //bold
-								case 'I':
-								case 'U':   //underline
-								case 'E':   //double underline
-								case 'S':   //strikeout
-								case 'X':   //superscript
-								case 'Y':   //subsrcipt
-								case 'O':   //outlined
-								case 'H':   //shadow
-								case 'K':   //text color
+								case 'l':
+								case 'c':
+								case 'r':
+								case 'b':   //bold
+								case 'i':
+								case 'u':   //underline
+								case 'e':   //double underline
+								case 's':   //strikeout
+								case 'x':   //superscript
+								case 'y':   //subsrcipt
+								case 'o':   //outlined
+								case 'h':   //shadow
+								case 'k':   //text color
 								case '\"':  //font name
 									break;
-								case 'P':   //page number
+								case 'p':   //page number
 								{
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber), format: tokenFormat});
 									break;
 								}
-								case 'N':   //total page count
+								case 'n':   //total page count
 								{
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageCount), format: tokenFormat});
 									break;
 								}
-								case 'A':   //current sheet name
+								case 'a':   //current sheet name
 								{
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.sheetName), format: tokenFormat});
 									break;
 								}
-								case 'F':   //file name
+								case 'f':   //file name
 								{
+									text = "";
 									//res.push((new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName)));
 									break;
 								}
-								case 'Z':   //file path
+								case 'z':   //file path
 								{
+									text = "";
 									//res.push((new HeaderFooterField(asc.c_oAscHeaderFooterField.filePath)));
 									break;
 								}
-								case 'D':   //date
+								case 'd':   //date
 								{
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.date), format: tokenFormat});
 									break;
 								}
-								case 'T':   //time
+								case 't':   //time
 								{
+									text = "";
 									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.time), format: tokenFormat});
+									break;
+								}
+								default: {
+									if("" !== text && j ===  fragments.length - 1 && n === fragments[j].text.length - 1) {
+										res.push({text: text, format: fragments[j].format});
+										text = "";
+									}
 									break;
 								}
 							}
 							bToken = false;
-							text = "";
 						}
 					} else if("" !== text && n === fragments[j].text.length - 1) {
 						res.push({text: text, format: fragments[j].format});
