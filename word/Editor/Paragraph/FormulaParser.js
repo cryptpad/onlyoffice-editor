@@ -87,9 +87,37 @@
         this.document = null;
         this.result = null;
         this.error = null;
+        this.parseQueue = null;
     }
-    CFormulaNode.prototype.calculate = function (aArgs) {
+    CFormulaNode.prototype.argumentsCount = 0;
+    CFormulaNode.prototype.calculate = function () {
+        this.error = null;
+        this.result = null;
+        if(!this.parseQueue){
+            this.setError("Error", "");
+            return;
+        }
+        var aArgs = [];
+        for(var i = 0; i < this.argumentsCount; ++i){
+            var oArg = this.parseQueue.getNext();
+            if(!oArg){
+                this.setError("Missing argument", "");
+                return;
+            }
+            oArg.calculate();
+            if(oArg.error){
+                this.error = oArg.error;
+                return;
+            }
+            aArgs.push(oArg);
+        }
+        this._calculate(aArgs);
     };
+
+    CFormulaNode.prototype._calculate = function(aArgs){
+        this.setError("Function is not implemented", "");
+    };
+
     CFormulaNode.prototype.isFunction = function () {
         return false;
     };
@@ -101,6 +129,9 @@
         this.error.Type = Type;
         this.error.Data = Data;
     };
+    CFormulaNode.prototype.setParseQueue = function(oQueue){
+        this.parseQueue = oQueue;
+    };
 
     CFormulaNode.prototype.argumentsCount = 0;
 
@@ -110,6 +141,18 @@
     }
     CNumberNode.prototype = Object.create(CFormulaNode.prototype);
     CNumberNode.prototype.precedence = 15;
+    CNumberNode.prototype.getValue = function () {
+        return this.value;
+    };
+    CNumberNode.prototype._calculate = function () {
+        if(AscFormat.isRealNumber(this.value)){
+            this.result = this.value;
+        }
+        else{
+            this.setError("Not a number", null);
+        }
+        return this.error;
+    };
 
     function CListSeparatorNode() {
         CFormulaNode.call(this);
@@ -135,12 +178,8 @@
     CUnaryMinusOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CUnaryMinusOperatorNode.prototype.precedence = 13;
     CUnaryMinusOperatorNode.prototype.argumentsCount = 1;
-    CUnaryMinusOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 1){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = -aArgs[0];
+    CUnaryMinusOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = -aArgs[0].result;
     };
 
     function CPowersAndRootsOperatorNode(){
@@ -149,12 +188,8 @@
 
     CPowersAndRootsOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CPowersAndRootsOperatorNode.prototype.precedence = 12;
-    CPowersAndRootsOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = Math.pow(aArgs[0], aArgs[1]);
+    CPowersAndRootsOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = Math.pow(aArgs[0].result, aArgs[1].result);
     };
     function CMultiplicationOperatorNode(){
         COperatorNode.call(this);
@@ -162,12 +197,8 @@
 
     CMultiplicationOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CMultiplicationOperatorNode.prototype.precedence = 11;
-    CMultiplicationOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = aArgs[0] * aArgs[1];
+    CMultiplicationOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = aArgs[0].result * aArgs[1].result;
     };
 
     function CDivisionOperatorNode(){
@@ -176,16 +207,12 @@
 
     CDivisionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CDivisionOperatorNode.prototype.precedence = 10;
-    CDivisionOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
+    CDivisionOperatorNode.prototype._calculate = function (aArgs) {
+        if(AscFormat.fApproxEqual(0.0, aArgs[1].result)){
+            this.setError("Zero Divide", null);
             return;
         }
-        if(AscFormat.fApproxEqual(0.0, aArgs[1])){
-            this.setError("Error in Formula", "Cannot divide by zero");
-            return;
-        }
-        this.result = aArgs[0]/aArgs[1];
+        this.result = aArgs[0].result/aArgs[1].result;
     };
 
     function CPercentageOperatorNode(){
@@ -194,12 +221,9 @@
 
     CPercentageOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CPercentageOperatorNode.prototype.precedence = 8;
-    CPercentageOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 1){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = aArgs[0] / 100.0;
+    CPercentageOperatorNode.prototype.argumentsCount = 1;
+    CPercentageOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = aArgs[0].result / 100.0;//TODO: Fix parsing. % goes after one argument
     };
 
 
@@ -209,12 +233,8 @@
 
     CAdditionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CAdditionOperatorNode.prototype.precedence = 7;
-    CAdditionOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = aArgs[0] + aArgs[1];
+    CAdditionOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = aArgs[0].result + aArgs[1].result;
     };
 
     function CSubtractionOperatorNode(){
@@ -223,12 +243,8 @@
 
     CSubtractionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CSubtractionOperatorNode.prototype.precedence = 7;
-    CSubtractionOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = aArgs[0] - aArgs[1];
+    CSubtractionOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = aArgs[0].result - aArgs[1].result;
     };
 
     function CEqualToOperatorNode(){
@@ -237,13 +253,8 @@
 
     CEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CEqualToOperatorNode.prototype.precedence = 6;
-    CEqualToOperatorNode.prototype.calculate = function (aArgs) {
-
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = AscFormat.fApproxEqual(aArgs[0], aArgs[1]) ? 1.0 : 0.0;
+    CEqualToOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = AscFormat.fApproxEqual(aArgs[0].result, aArgs[1].result) ? 1.0 : 0.0;
     };
 
     function CNotEqualToOperatorNode(){
@@ -252,12 +263,8 @@
 
     CNotEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CNotEqualToOperatorNode.prototype.precedence = 5;
-    CNotEqualToOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = AscFormat.fApproxEqual(aArgs[0], aArgs[1]) ? 0.0 : 1.0;
+    CNotEqualToOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = AscFormat.fApproxEqual(aArgs[0].result, aArgs[1].result) ? 0.0 : 1.0;
     };
     function CLessThanOperatorNode(){
         COperatorNode.call(this);
@@ -265,12 +272,8 @@
 
     CLessThanOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CLessThanOperatorNode.prototype.precedence = 4;
-    CLessThanOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = (aArgs[0] < aArgs[1]) ? 1.0 : 0.0;
+    CLessThanOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = (aArgs[0].result < aArgs[1].result) ? 1.0 : 0.0;
     };
     function CLessThanOrEqualToOperatorNode(){
         COperatorNode.call(this);
@@ -278,12 +281,8 @@
 
     CLessThanOrEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CLessThanOrEqualToOperatorNode.prototype.precedence = 3;
-    CLessThanOrEqualToOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = (aArgs[0] <= aArgs[1]) ? 1.0 : 0.0;
+    CLessThanOrEqualToOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = (aArgs[0].result <= aArgs[1].result) ? 1.0 : 0.0;
     };
     function CGreaterThanOperatorNode(){
         COperatorNode.call(this);
@@ -291,12 +290,8 @@
 
     CGreaterThanOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CGreaterThanOperatorNode.prototype.precedence = 2;
-    CGreaterThanOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = (aArgs[0] > aArgs[1]) ? 1.0 : 0.0;
+    CGreaterThanOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = (aArgs[0].result > aArgs[1].result) ? 1.0 : 0.0;
     };
     function CGreaterThanOrEqualOperatorNode(){
         COperatorNode.call(this);
@@ -304,12 +299,8 @@
 
     CGreaterThanOrEqualOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CGreaterThanOrEqualOperatorNode.prototype.precedence = 1;
-    CGreaterThanOrEqualOperatorNode.prototype.calculate = function (aArgs) {
-        if(aArgs.length != 2){
-            this.setError("Error in Formula", "Calculation Error");
-            return;
-        }
-        this.result = (aArgs[0] >= aArgs[1]) ? 1.0 : 0.0;
+    CGreaterThanOrEqualOperatorNode.prototype._calculate = function (aArgs) {
+        this.result = (aArgs[0].result >= aArgs[1].result) ? 1.0 : 0.0;
     };
 
 
@@ -320,7 +311,7 @@
 
     CLeftParenOperatorNode.prototype = Object.create(CFormulaNode.prototype);
     CLeftParenOperatorNode.prototype.precedence = 1;
-    CLeftParenOperatorNode.prototype.calculate = function (aArgs) {
+    CLeftParenOperatorNode.prototype._calculate = function (aArgs) {
     };
 
     function CRightParenOperatorNode(){
@@ -329,7 +320,7 @@
 
     CRightParenOperatorNode.prototype = Object.create(CFormulaNode.prototype);
     CRightParenOperatorNode.prototype.precedence = 1;
-    CRightParenOperatorNode.prototype.calculate = function (aArgs) {
+    CRightParenOperatorNode.prototype._calculate = function (aArgs) {
     };
 
     var oOperatorsMap = {};
@@ -400,11 +391,6 @@
     CFunctionNode.prototype.precedence = 14;
     CFunctionNode.prototype.minArgumentsCount = 0;
     CFunctionNode.prototype.maxArgumentsCount = 0;
-    CFunctionNode.prototype.calculate = function (aArgs) {
-        if(this.minArgumentsCount > aArgs.length || this.maxArgumentsCount < aArgs.length){
-            this.setError("Error in formula", "Arguments count");
-        }
-    };
     CFunctionNode.prototype.isFunction = function () {
         return true;
     };
@@ -419,12 +405,8 @@
     CABSFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CABSFunctionNode.prototype.minArgumentsCount = 1;
     CABSFunctionNode.prototype.maxArgumentsCount = 1;
-    CABSFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        this.result = Math.abs(aArgs[0]);
+    CABSFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = Math.abs(aArgs[0].result);
     };
 
     function CANDFunctionNode(){
@@ -433,12 +415,8 @@
     CANDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CANDFunctionNode.prototype.minArgumentsCount = 2;
     CANDFunctionNode.prototype.maxArgumentsCount = 2;
-    CANDFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        this.result = (AscFormat.fApproxEqual(aArgs[0], 0.0) || AscFormat.fApproxEqual(aArgs[1], 0.0)) ? 0.0 : 1.0;
+    CANDFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = (AscFormat.fApproxEqual(aArgs[0].result, 0.0) || AscFormat.fApproxEqual(aArgs[1].result, 0.0)) ? 0.0 : 1.0;
     };
 
     function CAVERAGEFunctionNode(){
@@ -450,14 +428,10 @@
     CAVERAGEFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CAVERAGEFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
+    CAVERAGEFunctionNode.prototype._calculate = function (aArgs) {
         var summ = 0.0;
         for(var i = 0; i < aArgs.length; ++i){
-            summ += aArgs[i];
+            summ += aArgs[i].result;
         }
         this.result = summ/aArgs.length;
     };
@@ -472,10 +446,6 @@
         return true;
     };
     CCOUNTFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
         this.result = aArgs.length;
     };
 
@@ -486,12 +456,8 @@
     CDEFINEDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CDEFINEDFunctionNode.prototype.minArgumentsCount = 1;
     CDEFINEDFunctionNode.prototype.maxArgumentsCount = 1;
-    CDEFINEDFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        return 0.0;//TODO
+    CDEFINEDFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = 0.0;//TODO: Implement
     };
 
     function CFALSEFunctionNode(){
@@ -500,11 +466,7 @@
     CFALSEFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CFALSEFunctionNode.prototype.minArgumentsCount = 0;
     CFALSEFunctionNode.prototype.maxArgumentsCount = 0;
-    CFALSEFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
+    CFALSEFunctionNode.prototype._calculate = function (aArgs) {
         return this.result = 0.0;
     };
     function CTRUEFunctionNode(){
@@ -513,12 +475,8 @@
     CTRUEFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CTRUEFunctionNode.prototype.minArgumentsCount = 0;
     CTRUEFunctionNode.prototype.maxArgumentsCount = 0;
-    CTRUEFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        this.result = 1;
+    CTRUEFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = 1.0;
     };
 
     function CINTFunctionNode(){
@@ -527,12 +485,8 @@
     CINTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CINTFunctionNode.prototype.minArgumentsCount = 1;
     CINTFunctionNode.prototype.maxArgumentsCount = 1;
-    CINTFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        this.result = (aArgs[0] >> 0);
+    CINTFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = (aArgs[0].result >> 0);
     };
     function CIFFunctionNode(){
         CFunctionNode.call(this);
@@ -540,12 +494,8 @@
     CIFFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CIFFunctionNode.prototype.minArgumentsCount = 3;
     CIFFunctionNode.prototype.maxArgumentsCount = 3;
-    CIFFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        this.result =(aArgs[0] !== 0.0) ? aArgs[1] : aArgs[2];
+    CIFFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = ((aArgs[0].result !== 0.0) ? aArgs[1] : aArgs[2]);
     };
     function CMAXFunctionNode(){
         CFunctionNode.call(this);
@@ -556,12 +506,14 @@
     CMAXFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CMAXFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
+    CMAXFunctionNode.prototype._calculate = function (aArgs) {
+        var fMax = aArgs[0].result;
+        for(var i = 1; i < aArgs.length; ++i){
+            if(fMax < aArgs[i].result){
+                fMax = aArgs[i].result;
+            }
         }
-        return Math.max.apply(Math, aArgs);
+        return fMax;
     };
 
     function CMINFunctionNode(){
@@ -573,12 +525,14 @@
     CMINFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CMINFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
+    CMINFunctionNode.prototype._calculate = function (aArgs) {
+        var fMin = aArgs[0].result;
+        for(var i = 1; i < aArgs.length; ++i){
+            if(fMin > aArgs[i].result){
+                fMin = aArgs[i].result;
+            }
         }
-        return Math.min.apply(Math, aArgs);
+        return fMin;
     };
 
     function CMODFunctionNode(){
@@ -587,12 +541,8 @@
     CMODFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CMODFunctionNode.prototype.minArgumentsCount = 2;
     CMODFunctionNode.prototype.maxArgumentsCount = 2;
-    CMODFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        return aArgs[0] % aArgs[1];//TODO
+    CMODFunctionNode.prototype._calculate = function (aArgs) {
+        return aArgs[0].result % aArgs[1].result;//TODO
     };
 
     function CNOTFunctionNode(){
@@ -601,12 +551,8 @@
     CNOTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CNOTFunctionNode.prototype.minArgumentsCount = 1;
     CNOTFunctionNode.prototype.maxArgumentsCount = 1;
-    CNOTFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        return AscFormat.fApproxEqual(aArgs[0], 0.0);
+    CNOTFunctionNode.prototype._calculate = function (aArgs) {
+        return AscFormat.fApproxEqual(aArgs[0].result, 0.0);
     };
 
     function CORFunctionNode(){
@@ -615,12 +561,8 @@
     CORFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CORFunctionNode.prototype.minArgumentsCount = 2;
     CORFunctionNode.prototype.maxArgumentsCount = 2;
-    CORFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        return !AscFormat.fApproxEqual(aArgs[0], 0.0) || !AscFormat.fApproxEqual(aArgs[1], 0.0);
+    CORFunctionNode.prototype._calculate = function (aArgs) {
+        return !AscFormat.fApproxEqual(aArgs[0].result, 0.0) || !AscFormat.fApproxEqual(aArgs[1].result, 0.0);
     };
 
     function CPRODUCTFunctionNode(){
@@ -632,14 +574,10 @@
     CPRODUCTFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CPRODUCTFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
+    CPRODUCTFunctionNode.prototype._calculate = function (aArgs) {
         this.result = 1;
         for(var i = 0; i < aArgs.length; ++i){
-            this.result *= aArgs[i];
+            this.result *= aArgs[i].result;
         }
     };
 
@@ -649,12 +587,8 @@
     CROUNDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CROUNDFunctionNode.prototype.minArgumentsCount = 2;
     CROUNDFunctionNode.prototype.maxArgumentsCount = 2;
-    CROUNDFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        return Math.round(aArgs[0]);
+    CROUNDFunctionNode.prototype._calculate = function (aArgs) {
+        return Math.round(aArgs[0].result);//TODO
     };
 
 
@@ -703,9 +637,23 @@
     function CParseQueue() {
         this.queue = [];
         this.result = null;
+        this.pos = -1;
     }
+    CParseQueue.prototype.add = function(oToken){
+        oToken.setParseQueue(this);
+        this.queue.push(oToken);
+    };
+    CParseQueue.prototype.getNext = function(){
+        if(this.pos > -1){
+            return this.queue[--this.pos];
+        }
+        return null;
+    };
+
+
 
     CParseQueue.prototype.calculate = function(oDocument){
+        this.pos = this.queue.length - 1;
         var aQueue = this.queue.slice();
         for (var i = 0; i < aQueue.length; ++i){
             var oCurToken = aQueue[i];
@@ -1105,7 +1053,7 @@
 
         this.parseQueue = new CParseQueue();
         var oCurToken;
-        var aStack = [], aQueue = [];
+        var aStack = [];
         var aFunctionsStack = [];
         var oLastToken;
         this.setFlag(PARSER_MASK_LEFT_PAREN, true);
@@ -1127,7 +1075,7 @@
                     return;
                 }
                 if(this.flags & PARSER_MASK_NUMBER){
-                    aQueue.push(oCurToken);
+                    this.parseQueue.add(oCurToken);
                     this.setFlag(PARSER_MASK_NUMBER, true);
                     this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
                     this.setFlag(PARSER_MASK_LEFT_PAREN, false);
@@ -1157,7 +1105,7 @@
                     this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
                     return;
                 }
-                aQueue.push(oCurToken);
+                this.parseQueue.add(oCurToken);
                 this.setFlag(PARSER_MASK_NUMBER, true);
                 this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
                 this.setFlag(PARSER_MASK_LEFT_PAREN, false);
@@ -1207,7 +1155,7 @@
                             return;
                         }
                         while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
-                            aQueue.push(aStack.pop());
+                            this.parseQueue.add(aStack.pop());
                         }
                         if(aStack.length === 0){
                             this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));//TODO
@@ -1263,7 +1211,7 @@
                     aFunctionsStack.pop();
                 }
                 while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
-                    aQueue.push(aStack.pop());
+                    this.parseQueue.add(aStack.pop());
                 }
 
                 if(aStack.length === 0){
@@ -1272,7 +1220,7 @@
                 }
                 aStack.pop();
                 if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
-                    aQueue.push(aStack.pop());
+                    this.parseQueue.add(aStack.pop());
                 }
                 this.setFlag(PARSER_MASK_NUMBER, true);
                 this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
@@ -1312,7 +1260,7 @@
                 this.setFlag(PARSER_MASK_BOOKMARK, true);
                 this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
                 while(aStack.length > 0 && ((aStack[aStack.length-1] instanceof CLeftParenOperatorNode) || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
-                    aQueue.push(aStack.pop());
+                    this.parseQueue.add(aStack.pop());
                 }
                 aStack.push(oCurToken);
             }
@@ -1325,10 +1273,8 @@
                 this.setError(ERROR_TYPE_SYNTAX_ERROR, "");//TODO
                 return;
             }
-            aQueue.push(oCurToken);
+            this.parseQueue.add(oCurToken);
         }
-        this.parseQueue.queue = aQueue;
-        return aQueue;
     };
     window['AscCommonWord'] = window['AscCommonWord'] || {};
     window['AscCommonWord'].CFormulaParser = CFormulaParser;
