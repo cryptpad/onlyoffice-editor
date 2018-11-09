@@ -4525,12 +4525,7 @@
                 return true;
             });
             if ("General" === numFormatStr && c_oAscCanChangeColWidth.all !== this.canChangeColWidth) {
-                // asc.truncFracPart изменяет исходный массив, поэтому клонируем
-                var fragmentsTmp = [];
-                for (var k = 0; k < sstr.length; ++k) {
-                    fragmentsTmp.push(sstr[k].clone());
-                }
-                sstr = asc.truncFracPart(fragmentsTmp);
+				sstr = AscCommonExcel.dropDecimalAutofit(sstr);
             }
             sfl = fl.clone();
             sfl.wrapText = false;

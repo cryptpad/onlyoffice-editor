@@ -1760,17 +1760,17 @@
 			return false;
 		}
 
-		function truncFracPart(f) {
+		function dropDecimalAutofit(f) {
 			var s = getFragmentsText(f);
 			// Проверка scientific format
 			if (s.search(/E/i) >= 0) {
 				return f;
 			}
 			// Поиск десятичной точки
-			var pos = s.search(/[,\.]/);
-			if (pos >= 0) {
+			var pos = s.indexOf(AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator);
+			if (-1 !== pos) {
+				f = [f[0].clone()];
 				f[0].text = s.slice(0, pos);
-				f.splice(1, f.length - 1);
 			}
 			return f;
 		}
@@ -2487,7 +2487,7 @@
 		window["Asc"].trim = trim;
 		window["Asc"].arrayToLowerCase = arrayToLowerCase;
 		window["Asc"].isFixedWidthCell = isFixedWidthCell;
-		window["Asc"].truncFracPart = truncFracPart;
+		window["AscCommonExcel"].dropDecimalAutofit = dropDecimalAutofit;
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
 		window["Asc"].getEndValueRange = getEndValueRange;
 
