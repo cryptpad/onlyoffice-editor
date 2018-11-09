@@ -43,44 +43,44 @@
 
 
     var oLettersMap = {};
-    oLettersMap['A'] = 0;
-    oLettersMap['B'] = 1;
-    oLettersMap['C'] = 2;
-    oLettersMap['D'] = 3;
-    oLettersMap['E'] = 4;
-    oLettersMap['F'] = 5;
-    oLettersMap['G'] = 6;
-    oLettersMap['H'] = 7;
-    oLettersMap['I'] = 8;
-    oLettersMap['J'] = 9;
-    oLettersMap['K'] = 10;
-    oLettersMap['L'] = 11;
-    oLettersMap['M'] = 12;
-    oLettersMap['N'] = 13;
-    oLettersMap['O'] = 14;
-    oLettersMap['P'] = 15;
-    oLettersMap['Q'] = 16;
-    oLettersMap['R'] = 17;
-    oLettersMap['S'] = 18;
-    oLettersMap['T'] = 19;
-    oLettersMap['U'] = 20;
-    oLettersMap['V'] = 21;
-    oLettersMap['W'] = 22;
-    oLettersMap['X'] = 23;
-    oLettersMap['Y'] = 24;
-    oLettersMap['Z'] = 25;
+    oLettersMap['A'] = 1;
+    oLettersMap['B'] = 2;
+    oLettersMap['C'] = 3;
+    oLettersMap['D'] = 4;
+    oLettersMap['E'] = 5;
+    oLettersMap['F'] = 6;
+    oLettersMap['G'] = 7;
+    oLettersMap['H'] = 8;
+    oLettersMap['I'] = 9;
+    oLettersMap['J'] = 10;
+    oLettersMap['K'] = 11;
+    oLettersMap['L'] = 12;
+    oLettersMap['M'] = 13;
+    oLettersMap['N'] = 14;
+    oLettersMap['O'] = 15;
+    oLettersMap['P'] = 16;
+    oLettersMap['Q'] = 17;
+    oLettersMap['R'] = 18;
+    oLettersMap['S'] = 19;
+    oLettersMap['T'] = 20;
+    oLettersMap['U'] = 21;
+    oLettersMap['V'] = 22;
+    oLettersMap['W'] = 23;
+    oLettersMap['X'] = 24;
+    oLettersMap['Y'] = 25;
+    oLettersMap['Z'] = 26;
 
     var oDigitMap = {};
-    oDigitMap['0'] = -1;
-    oDigitMap['1'] = 0;
-    oDigitMap['2'] = 1;
-    oDigitMap['3'] = 2;
-    oDigitMap['4'] = 3;
-    oDigitMap['5'] = 4;
-    oDigitMap['6'] = 5;
-    oDigitMap['7'] = 6;
-    oDigitMap['8'] = 7;
-    oDigitMap['9'] = 8;
+    oDigitMap['0'] = 0;
+    oDigitMap['1'] = 1;
+    oDigitMap['2'] = 2;
+    oDigitMap['3'] = 3;
+    oDigitMap['4'] = 4;
+    oDigitMap['5'] = 5;
+    oDigitMap['6'] = 6;
+    oDigitMap['7'] = 7;
+    oDigitMap['8'] = 8;
+    oDigitMap['9'] = 9;
 
 
     function CFormulaNode() {
@@ -230,9 +230,6 @@
         }
         this.result = aArgs[0] - aArgs[1];
     };
-    function CSubtractionOperatorNode(){
-        COperatorNode.call(this);
-    }
 
     function CEqualToOperatorNode(){
         COperatorNode.call(this);
@@ -821,11 +818,11 @@
     };
 
     CFormulaParser.prototype.parseCol = function(nStartPos, nEndPos){
-        return this.parseCoord(nStartPos, nEndPos, oLettersMap, 26);
+        return this.parseCoord(nStartPos, nEndPos, oLettersMap, 26) - 1;
     };
 
     CFormulaParser.prototype.parseRow = function(nStartPos, nEndPos){
-        return this.parseCoord(nStartPos, nEndPos, oDigitMap, 10);
+        return this.parseCoord(nStartPos, nEndPos, oDigitMap, 10) - 1;
     };
 
     CFormulaParser.prototype.parseCellName = function(){
