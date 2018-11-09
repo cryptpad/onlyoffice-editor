@@ -430,10 +430,22 @@
     };
     CAVERAGEFunctionNode.prototype._calculate = function (aArgs) {
         var summ = 0.0;
+        var count = 0;
+        var result;
         for(var i = 0; i < aArgs.length; ++i){
-            summ += aArgs[i].result;
+            result = aArgs[i].result;
+            if(Array.isArray(result)){
+                for(var j = 0; j < result.length; ++j){
+                    summ += result[j];
+                }
+                count += result.length;
+            }
+            else {
+                summ += result;
+                ++count;
+            }
         }
-        this.result = summ/aArgs.length;
+        this.result = summ/count;
     };
 
     function CCOUNTFunctionNode(){
@@ -445,8 +457,19 @@
     CCOUNTFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CCOUNTFunctionNode.prototype.calculate = function (aArgs) {
-        this.result = aArgs.length;
+    CCOUNTFunctionNode.prototype._calculate = function (aArgs) {
+        var count = 0;
+        var result;
+        for(var i = 0; i < aArgs.length; ++i){
+            result = aArgs[i].result;
+            if(Array.isArray(result)){
+                count += result.length;
+            }
+            else {
+                ++count;
+            }
+        }
+        this.result = count;
     };
 
 
@@ -506,14 +529,36 @@
     CMAXFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CMAXFunctionNode.prototype._calculate = function (aArgs) {
-        var fMax = aArgs[0].result;
+
+
+    CMAXFunctionNode.prototype.findMax = function (aArgs) {
+        var fMax;
+        var result = aArgs[0].result;
+        if(Array.isArray(result)){
+            fMax = this.findMax(result);
+        }
+        else {
+            fMax = result;
+        }
         for(var i = 1; i < aArgs.length; ++i){
-            if(fMax < aArgs[i].result){
-                fMax = aArgs[i].result;
+            result = aArgs[i].result;
+            if(Array.isArray(result)){
+                var fMax_ = this.findMax(result);
+                if(fMax_ > fMax){
+                    fMax = fMax_;
+                }
+            }
+            else{
+                if(fMax < result){
+                    fMax = result;
+                }
             }
         }
         return fMax;
+    };
+
+    CMAXFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = this.findMax(aArgs);
     };
 
     function CMINFunctionNode(){
@@ -525,14 +570,34 @@
     CMINFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CMINFunctionNode.prototype._calculate = function (aArgs) {
-        var fMin = aArgs[0].result;
+    CMINFunctionNode.prototype.findMin = function(aArgs){
+        var fMin;
+        var result = aArgs[0].result;
+        if(Array.isArray(result)){
+            fMin = this._calculate(result);
+        }
+        else {
+            fMin = result;
+        }
         for(var i = 1; i < aArgs.length; ++i){
-            if(fMin > aArgs[i].result){
-                fMin = aArgs[i].result;
+            result = aArgs[i].result;
+            if(Array.isArray(result)){
+                var fMin_ = this._calculate(result);
+                if(fMin_ < fMin){
+                    fMin = fMin_;
+                }
+            }
+            else{
+                if(fMin > result){
+                    fMin = result;
+                }
             }
         }
         return fMin;
+    };
+    CMINFunctionNode.prototype._calculate = function (aArgs) {
+
+        this.result = this.findMin(aArgs);
     };
 
     function CMODFunctionNode(){
@@ -574,11 +639,21 @@
     CPRODUCTFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CPRODUCTFunctionNode.prototype._calculate = function (aArgs) {
-        this.result = 1;
+    CPRODUCTFunctionNode.prototype.product = function(aArgs){
+        var res = 1.0;
         for(var i = 0; i < aArgs.length; ++i){
-            this.result *= aArgs[i].result;
+            var result = aArgs[i].result;
+            if(Array.isArray(result)){
+                res *= this.product(result);
+            }
+            else{
+                res *= result;
+            }
         }
+        return res;
+    };
+    CPRODUCTFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = this.product(aArgs);
     };
 
     function CROUNDFunctionNode(){
@@ -598,11 +673,7 @@
     CSIGNFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CSIGNFunctionNode.prototype.minArgumentsCount = 1;
     CSIGNFunctionNode.prototype.maxArgumentsCount = 1;
-    CSIGNFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
+    CSIGNFunctionNode.prototype._calculate = function (aArgs) {
         if(aArgs[0] < 0.0){
             this.result = -1.0;
         }
@@ -623,15 +694,20 @@
     CSUMFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CSUMFunctionNode.prototype.calculate = function (aArgs) {
-        CFunctionNode.prototype.calculate.call(this, aArgs);
-        if(this.error){
-            return;
-        }
-        this.result = 0.0;
+    CSUMFunctionNode.prototype.sumArray = function (aArgs) {
+        var ret = 0.0;
         for(var i = 0; i < aArgs.length; ++i){
-            this.result += aArgs[i];
+            if(Array.isArray(aArgs[i])){
+                ret += this.sumArray(aArgs[i]);
+            }
+            else {
+                ret += aArgs[i];
+            }
         }
+        return ret;
+    };
+    CSUMFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = this.sumArray(aArgs);
     };
 
     function CParseQueue() {
