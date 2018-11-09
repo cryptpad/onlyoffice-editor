@@ -6852,6 +6852,13 @@
 				} else {
 					offsetRow = 1;
 				}
+				//проверка на ECellFormulaType.cellformulatypeArray нужна для:
+				//1.формула массива не может быть шаренной
+				//2.в случае, когда две ячейки в одном столбце - каждая формула массива
+				//и далее они становятся двумя шаренными
+				//после того, как формула становится шаренной, ref array у второй начинает ссылаться на первую ячейку
+				//поэтому при изменении второй ячейки из двух шаренных в функции _saveCellValueAfterEdit
+				//берём array ref и присваиваем ему введенные данные, и поэтому в первой ячейки появляются данные второй
 				if (prevFormula && formula.t !== ECellFormulaType.cellformulatypeArray &&
 					prevFormula.t !== ECellFormulaType.cellformulatypeArray &&
 					prevFormula.nRow + offsetRow === cell.nRow &&
