@@ -1772,7 +1772,7 @@
 				f[0].text = s.slice(0, pos);
 				f.splice(1, f.length - 1);
 			}
-			return frag;
+			return f;
 		}
 
 		function getFragmentsText(f) {
