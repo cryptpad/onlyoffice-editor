@@ -6852,7 +6852,9 @@
 				} else {
 					offsetRow = 1;
 				}
-				if (prevFormula && prevFormula.nRow + offsetRow === cell.nRow &&
+				if (prevFormula && formula.t !== ECellFormulaType.cellformulatypeArray &&
+					prevFormula.t !== ECellFormulaType.cellformulatypeArray &&
+					prevFormula.nRow + offsetRow === cell.nRow &&
 					AscCommonExcel.compareFormula(prevFormula.formula, prevFormula.refPos, formula.v, offsetRow)) {
 					if (!(shared && shared.ref)) {
 						sharedRef = new Asc.Range(cell.nCol, prevFormula.nRow, cell.nCol, cell.nRow);
