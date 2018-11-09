@@ -8716,7 +8716,7 @@
 
                     case "changeDigNum":
                         res = [];
-                        for (c = item.c1; c < item.c2; ++c) {
+                        for (c = item.c1; c <= item.c2; ++c) {
 							res.push(t.getColumnWidthInSymbols(c));
                         }
                         range.shiftNumFormat(val, res);
