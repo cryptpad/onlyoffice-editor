@@ -487,8 +487,8 @@
         CFunctionNode.call(this);
     }
     CDEFINEDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
-    CDEFINEDFunctionNode.prototype.minArgumentsCount = 2;
-    CDEFINEDFunctionNode.prototype.maxArgumentsCount = +Infinity;
+    CDEFINEDFunctionNode.prototype.minArgumentsCount = 1;
+    CDEFINEDFunctionNode.prototype.maxArgumentsCount = 1;
     CDEFINEDFunctionNode.prototype.calculate = function (aArgs) {
         CFunctionNode.prototype.calculate.call(this, aArgs);
         if(this.error){
@@ -528,8 +528,8 @@
         CFunctionNode.call(this);
     }
     CINTFunctionNode.prototype = Object.create(CFunctionNode.prototype);
-    CINTFunctionNode.prototype.minArgumentsCount = 2;
-    CINTFunctionNode.prototype.maxArgumentsCount = +Infinity;
+    CINTFunctionNode.prototype.minArgumentsCount = 1;
+    CINTFunctionNode.prototype.maxArgumentsCount = 1;
     CINTFunctionNode.prototype.calculate = function (aArgs) {
         CFunctionNode.prototype.calculate.call(this, aArgs);
         if(this.error){
@@ -1386,6 +1386,10 @@
         var ret = [];
         ret.push("jsdj");
         ret.push("jsdj1");
+        return ret;
+    }
+    function createDir(){
+        var ret = [];
         ret.push("LeFt");
         ret.push("AboVe");
         ret.push("RIGHT");
@@ -1436,7 +1440,7 @@
 
     var nMaxArgCount = 3;
     function createExpression(aExp){
-        var ret = [];
+        var ret = [].concat(aExp);
         var oArgsMap = {};
         oArgsMap[1] = getAllCombinations(aExp, 1);
         for(var i = 0; i < oArgsMap[1].length; ++i){
@@ -1477,7 +1481,7 @@
     }
 
     function TEST2(){
-        return createExpression(createConstant().concat(createBookmark().concat(createBookMarkCellRef().concat(createCellReference()))));
+        return createExpression(createExpression(createConstant().concat(createBookmark().concat(createBookMarkCellRef().concat(createCellReference().concat(createDir()))))));
     }
     window['AscCommonWord'].createExpression = TEST2;
 })();
