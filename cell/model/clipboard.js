@@ -292,7 +292,7 @@
 					
 					if(null !== fragments)
 					{
-						_data = wb.cellEditor._getFragmentsText(fragments);
+						_data = AscCommonExcel.getFragmentsText(fragments);
 					}
 
 					if(null !== _data)

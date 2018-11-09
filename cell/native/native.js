@@ -6180,7 +6180,7 @@ window["native"]["offline_copy"] = function() {
     if (_api.wb.cellEditor.isOpened) {
         var v = _api.wb.cellEditor.copySelection();
         if (v) {
-            dataBuffer.text = _api.wb.cellEditor._getFragmentsText(v);
+            dataBuffer.text = AscCommonExcel.getFragmentsText(v);
         }
     } else {
 
@@ -6251,7 +6251,7 @@ window["native"]["offline_cut"] = function() {
     if (_api.wb.cellEditor.isOpened) {
         var v = _api.wb.cellEditor.copySelection();
         if (v) {
-            dataBuffer.text = _api.wb.cellEditor._getFragmentsText(v);
+            dataBuffer.text = AscCommonExcel.getFragmentsText(v);
             _api.wb.cellEditor.cutSelection();
         }
 

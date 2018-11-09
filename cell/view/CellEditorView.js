@@ -776,7 +776,7 @@
 	};
 
 	CellEditor.prototype._parseFormulaRanges = function () {
-		var s = this._getFragmentsText(
+		var s = AscCommonExcel.getFragmentsText(
 			this.options.fragments), t = this, ret = false, range, wsOPEN = this.handlers.trigger(
 			"getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
 
@@ -1057,7 +1057,7 @@
 		if ( undefined === isFormula ) {
 			isFormula = this.isFormula();
 		}
-		var editorState = isFormula ? c_oAscCellEditorState.editFormula : "" === this._getFragmentsText( this.options.fragments ) ? c_oAscCellEditorState.editEmptyCell : c_oAscCellEditorState.editText;
+		var editorState = isFormula ? c_oAscCellEditorState.editFormula : "" === AscCommonExcel.getFragmentsText( this.options.fragments ) ? c_oAscCellEditorState.editEmptyCell : c_oAscCellEditorState.editText;
 
 		if ( this.m_nEditorState !== editorState ) {
 			this.m_nEditorState = editorState;
@@ -1138,7 +1138,7 @@
 		this._adjustCanvas();
 		this._showCanvas();
 		this._renderText();
-		this.input.value = this._getFragmentsText(fragments);
+		this.input.value = AscCommonExcel.getFragmentsText(fragments);
 		this._updateCursorPosition();
 		this._showCursor();
 	};
@@ -1183,12 +1183,12 @@
 		this._updateUndoRedoChanged();
 
 		if (window['IS_NATIVE_EDITOR']) {
-			window['native']['onCellEditorChangeText'](this._getFragmentsText(this.options.fragments));
+			window['native']['onCellEditorChangeText'](AscCommonExcel.getFragmentsText(this.options.fragments));
 		}
 	};
 
 	CellEditor.prototype._fireUpdated = function () {
-		var s = this._getFragmentsText(this.options.fragments);
+		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
 		var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
 		var funcPos, funcName, match;
 
@@ -1613,10 +1613,10 @@
 
 	CellEditor.prototype._syncEditors = function () {
 		var t = this;
-		var s1 = t._getFragmentsText(t.options.fragments);
+		var s1 = AscCommonExcel.getFragmentsText(t.options.fragments);
 		var s2 = t.input.value;
 		var l = Math.min(s1.length, s2.length);
-		var i1 = 0, i2 = 0;
+		var i1 = 0, i2;
 
 		while (i1 < l && s1.charAt(i1) === s2.charAt(i1)) {
 			++i1;
@@ -2003,12 +2003,6 @@
 		return f.length > 0 ? f.reduce( function ( pv, cv ) {
 			return pv + cv.text.length;
 		}, 0 ) : 0;
-	};
-
-	CellEditor.prototype._getFragmentsText = function ( f ) {
-		return f.length > 0 ? f.reduce( function ( pv, cv ) {
-			return pv + cv.text;
-		}, "" ) : "";
 	};
 
 	CellEditor.prototype._setFormatProperty = function (format, prop, val) {
@@ -2560,7 +2554,7 @@
 			t._updateCursorPosition();
 		}
 		if (t.textRender.getEndOfText() === t.cursorPos && !t.isFormula()) {
-			var s = t._getFragmentsText(t.options.fragments);
+			var s = AscCommonExcel.getFragmentsText(t.options.fragments);
 			if (!AscCommon.isNumber(s)) {
 				var arrAutoComplete = t._getAutoComplete(s.toLowerCase());
 				var lengthInput = s.length;

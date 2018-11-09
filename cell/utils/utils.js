@@ -1760,19 +1760,25 @@
 			return false;
 		}
 
-		function truncFracPart(frag) {
-			var s = frag.reduce(function (prev,val) {return prev + val.text;}, "");
+		function truncFracPart(f) {
+			var s = getFragmentsText(f);
 			// Проверка scientific format
 			if (s.search(/E/i) >= 0) {
-				return frag;
+				return f;
 			}
 			// Поиск десятичной точки
 			var pos = s.search(/[,\.]/);
 			if (pos >= 0) {
-				frag[0].text = s.slice(0, pos);
-				frag.splice(1, frag.length - 1);
+				f[0].text = s.slice(0, pos);
+				f.splice(1, f.length - 1);
 			}
 			return frag;
+		}
+
+		function getFragmentsText(f) {
+			return f.reduce(function (pv, cv) {
+				return pv + cv.text;
+			}, "");
 		}
 
 		function getEndValueRange (dx, start, v1, v2) {
@@ -2482,6 +2488,7 @@
 		window["Asc"].arrayToLowerCase = arrayToLowerCase;
 		window["Asc"].isFixedWidthCell = isFixedWidthCell;
 		window["Asc"].truncFracPart = truncFracPart;
+		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
 		window["Asc"].getEndValueRange = getEndValueRange;
 
 		window["AscCommonExcel"].referenceType = referenceType;
