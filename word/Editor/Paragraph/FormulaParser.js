@@ -1024,11 +1024,6 @@
         if(oRet){
             return oRet;
         }
-        //check number
-        oRet = this.checkExpression(oConstantRegExp, this.parseNumber);
-        if(oRet){
-            return oRet;
-        }
         //check function
         oRet = this.checkExpression(oFunctionsRegExp, this.parseFunction);
         if(oRet){
@@ -1064,6 +1059,11 @@
         if(oRes){
             return oRes;
         }
+        //check number
+        oRet = this.checkExpression(oConstantRegExp, this.parseNumber);
+        if(oRet){
+            return oRet;
+        }
         //check bookmark
         oRet = this.checkExpression(oBookmarkCellRefRegExp, this.parseBookmarkCellRef);
         if(oRet){
@@ -1090,7 +1090,7 @@
             }
         }
         if(nStartPos < endPos){
-            return this.formula.splice(nStartPos, endPos);
+            return this.formula.slice(nStartPos, endPos);
         }
         return "";
     };
@@ -1198,7 +1198,7 @@
                     return;
                 }
             } else if(oCurToken instanceof CListSeparatorNode){
-                if(!(this.flags & PARSER_MASK_FUNCTION)){
+                if(!(this.flags & PARSER_MASK_LIST_SEPARATOR)){
                     this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     return;
                 }
@@ -1236,7 +1236,7 @@
                 }
             } else if(oCurToken instanceof CLeftParenOperatorNode){
                 if(this.flags && PARSER_MASK_LEFT_PAREN){
-                    if(oLastToken.isFunction(oLastToken)){
+                    if(oLastToken && oLastToken.isFunction(oLastToken)){
                         aFunctionsStack.push(oLastToken);
                     }
                     this.setFlag(PARSER_MASK_LEFT_PAREN, false);
@@ -1281,7 +1281,7 @@
                 this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
                 this.setFlag(PARSER_MASK_LEFT_PAREN, false);
                 this.setFlag(PARSER_MASK_RIGHT_PAREN, true);
-                this.setFlag(PARSER_MASK_BINARY_OPERATOR, oCurToken.isCell() || oCurToken.isBookmark());
+                this.setFlag(PARSER_MASK_BINARY_OPERATOR, true);
                 this.setFlag(PARSER_MASK_FUNCTION, false);
                 this.setFlag(PARSER_MASK_LIST_SEPARATOR, aFunctionsStack.length > 0);
                 this.setFlag(PARSER_MASK_CELL_NAME, false);
@@ -1346,15 +1346,6 @@
     function addParens(sExpression){
         var ret = [];
         ret.push("(" + sExpression + ")");
-        return ret;
-    }
-
-    function createComparisons(sExpression1, sExpression2){
-        var ret = [];
-        ret.push(sExpression1 + "<" + sExpression2);
-        ret.push(sExpression1 + ">" + sExpression2);
-        ret.push(sExpression1 + "<=" + sExpression2);
-        ret.push(sExpression1 + "=<" + sExpression2);
         return ret;
     }
 
@@ -1481,7 +1472,19 @@
     }
 
     function TEST2(){
-        return createExpression(createExpression(createConstant().concat(createBookmark().concat(createBookMarkCellRef().concat(createCellReference().concat(createDir()))))));
+        var aExp = (createExpression(createConstant().concat(createBookmark().concat(createBookMarkCellRef().concat(createCellReference().concat(createDir()))))));
+        var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
+        for(var i = 0; i < aExp.length; ++i){
+            var sExp = aExp[i];
+            oParser.parse(sExp);
+            console.log("\n___________EXPRESSION____________");
+            console.log("Expression: " + sExp);
+            console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
+            console.log("ERROR: " + JSON.stringify(oParser.error));
+            console.log("__________________________________");
+
+        }
+
     }
     window['AscCommonWord'].createExpression = TEST2;
 })();
