@@ -6807,7 +6807,15 @@
 			var formula = tmp.formula;
 			var curFormula;
 			var prevFormula = tmp.prevFormulas[cell.nCol];
-			if (formula.v && formula.v.length <= AscCommon.c_oAscMaxFormulaLength) {
+			if (null !== formula.si && (curFormula = tmp.sharedFormulas[formula.si])) {
+				curFormula.parsed.getShared().ref.union3(cell.nCol, cell.nRow);
+				if (prevFormula !== curFormula) {
+					if (prevFormula && !tmp.bNoBuildDep && !tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
+						prevFormula.parsed.buildDependencies();
+					}
+					tmp.prevFormulas[cell.nCol] = curFormula;
+				}
+			} else if (formula.v && formula.v.length <= AscCommon.c_oAscMaxFormulaLength) {
 				var offsetRow;
 				var shared;
 				var sharedRef;
@@ -6835,26 +6843,17 @@
 					parsed.ca = formula.ca;
 					parsed.parse(undefined, undefined, parseResult);
 					if (null !== formula.ref) {
-						sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
-						parsed.setShared(sharedRef, newFormulaParent);
+						if(formula.t === ECellFormulaType.cellformulatypeShared) {
+							sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
+							parsed.setShared(sharedRef, newFormulaParent);
+						}
 					}
 					curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);
 					tmp.prevFormulas[cell.nCol] = curFormula;
 				}
-				if (null !== formula.si) {
+				if (null !== formula.si && curFormula.parsed.getShared()) {
 					tmp.sharedFormulas[formula.si] = curFormula;
 					tmp.siFormulas[curFormula.parsed.getListenerId()] = curFormula.parsed;
-				}
-			} else if (null !== formula.si) {
-				curFormula = tmp.sharedFormulas[formula.si];
-				if (curFormula) {
-					curFormula.parsed.getShared().ref.union3(cell.nCol, cell.nRow);
-				}
-				if (prevFormula !== curFormula) {
-					if (prevFormula && !tmp.bNoBuildDep && !tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
-						prevFormula.parsed.buildDependencies();
-					}
-					tmp.prevFormulas[cell.nCol] = curFormula;
 				}
 			}
 			if (curFormula) {
