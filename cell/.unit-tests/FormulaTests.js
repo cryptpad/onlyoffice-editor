@@ -11452,35 +11452,35 @@ $( function () {
 
 		oParser = new parserFormula( "GROWTH(B102:B107,A102:A107,A109:A110)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(4) - 0, 320196.7184);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(4) - 0, 320196.7184);
 
 		oParser = new parserFormula( "GROWTH(B102:B107,A102:A107)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(5) - 0, 32618.20377);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(5) - 0, 32618.20377);
 
 		oParser = new parserFormula( "GROWTH(A102:C102,A103:C104,A105:C106,1)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 11.00782679);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 11.00782679);
 
 		oParser = new parserFormula( "GROWTH(A102:C102,A103:C104,A105:C106,1)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 11.00782679);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 11.00782679);
 
 		oParser = new parserFormula( "GROWTH(A103:C103,A104:C105,A106:C107,1)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 12.00187209);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 12.00187209);
 
 		oParser = new parserFormula( "GROWTH(A103:C103,A104:C105,A106:C107,10)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 12.00187209);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 12.00187209);
 
 		oParser = new parserFormula( "GROWTH(A103:C103,A104:C105,A106:C107,0)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 1.0017632);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.0017632);
 
 		oParser = new parserFormula( "GROWTH({1,2,3},A104:C105,A106:C107,1)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(8) - 0, 1.00038318);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.00038318);
 
 		oParser = new parserFormula( "GROWTH({1,2,3},A104:C105,A106:C107,A106:C107)", "A2", ws );
 		ok( oParser.parse() );

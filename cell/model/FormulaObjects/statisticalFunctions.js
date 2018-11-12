@@ -6811,11 +6811,13 @@ function (window, undefined) {
 	function cGROWTH() {
 	}
 
+	//***array-formula***
 	cGROWTH.prototype = Object.create(cBaseFunction.prototype);
 	cGROWTH.prototype.constructor = cGROWTH;
 	cGROWTH.prototype.name = 'GROWTH';
 	cGROWTH.prototype.argumentsMin = 1;
 	cGROWTH.prototype.argumentsMax = 4;
+	cGROWTH.prototype.arrayIndexes = {0: 1, 1: 1, 2: 1};
 	cGROWTH.prototype.Calculate = function (arg) {
 
 		var prepeareArgs = prepeareGrowthTrendCalculation(this, arg);
@@ -6829,7 +6831,14 @@ function (window, undefined) {
 		var res = CalculateTrendGrowth(pMatY, pMatX, pMatNewX, bConstant, true);
 
 		if (res && res[0] && res[0][0]) {
-			return new cNumber(res[0][0]);
+			var array = new cArray();
+			for(var i = 0; i < res.length; i++) {
+				array.addRow();
+				for(var j = 0; j < res.length; j++) {
+					array.addElement(new cNumber(res[i][j]));
+				}
+			}
+			return array;
 		} else {
 			return new cError(cErrorType.wrong_value_type);
 		}
