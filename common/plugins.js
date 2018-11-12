@@ -514,6 +514,19 @@
 						// теперь выше задается
 						break;
 					}
+					case Asc.EPluginDataType.desktop:
+					{
+						if (plugin.variations[runObject.currentVariation].initData == "encryption")
+						{
+                            // for crypt mode (end waiting all system plugins)
+                            if (this.api.asc_initAdvancedOptions_params)
+                            {
+                            	window["asc_initAdvancedOptions"].apply(window, this.api.asc_initAdvancedOptions_params);
+                                delete this.api.asc_initAdvancedOptions_params;
+                            }
+						}
+						break;
+					}
 				}
 			}
 			else

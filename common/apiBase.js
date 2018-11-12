@@ -1354,13 +1354,6 @@
 			}
 			this.onEndLoadFile(null);
 		}
-
-		// for crypt mode (end waiting all system plugins)
-        if (this.asc_initAdvancedOptions_params)
-        {
-        	window["asc_initAdvancedOptions"].apply(window, this.asc_initAdvancedOptions_params);
-            delete this.asc_initAdvancedOptions_params;
-        }
 	};
 	baseEditorsApi.prototype.onEndLoadFile = function(result)
 	{
@@ -1682,7 +1675,15 @@
                     _editor.currentPassword = obj["password"];
 
                     AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
-                    window["AscDesktopEditor"]["SetAdvancedOptions"](_param);
+
+                    if (window.isNativeOpenPassword)
+                    {
+                        window["AscDesktopEditor"]["NativeViewerOpen"](obj["password"]);
+                    }
+                    else
+					{
+						window["AscDesktopEditor"]["SetAdvancedOptions"](_param);
+                    }
                 }
                 else
                 {

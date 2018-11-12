@@ -4179,6 +4179,11 @@
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
 {
+    if (window.isNativeOpenPassword)
+	{
+		return window["NativeFileOpen_error"](window.isNativeOpenPassword, _file_hash, _docInfo);
+	}
+
     var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
 
     if (_code == 90 || _code == 91)
@@ -4461,13 +4466,32 @@ window["buildCryptoFile_End"] = function(url, error, hash, password)
     window.g_asc_plugins.sendToEncryption({"type": "setPasswordByFile", "hash": hash, "password": password});
 };
 
-window["NativeFileOpen_error"] = function(error)
+window["NativeFileOpen_error"] = function(error, _file_hash, _docInfo)
 {
     var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
 
     if ("password" == error)
     {
         window.isNativeOpenPassword = error;
+
+        if (window["AscDesktopEditor"] && (0 !== window["AscDesktopEditor"]["CryptoMode"]) && !_api.isLoadFullApi)
+        {
+            // ждем инициализации
+            _api.asc_initAdvancedOptions_params = [];
+            _api.asc_initAdvancedOptions_params.push(90);
+            _api.asc_initAdvancedOptions_params.push(_file_hash);
+            _api.asc_initAdvancedOptions_params.push(_docInfo);
+            return;
+        }
+
+        if (AscCommon.EncryptionWorker.isNeedCrypt() && !window.checkPasswordFromPlugin)
+        {
+            window.checkPasswordFromPlugin = true;
+            window.g_asc_plugins.sendToEncryption({ "type": "getPasswordByFile", "hash": _file_hash, "docinfo": _docInfo });
+            return;
+        }
+
+        window.checkPasswordFromPlugin = false;
         _api._onNeedParams(undefined, true);
     }
     else if ("error" == error)

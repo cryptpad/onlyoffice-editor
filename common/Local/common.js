@@ -630,10 +630,17 @@ _proto.prototype["pluginMethod_OnEncryption"] = function(obj)
 		{
 			if ("" != obj["password"])
 			{
-				var _param = ("<m_sPassword>" + AscCommon.CopyPasteCorrectString(obj["password"]) + "</m_sPassword>");
 				_editor.currentPassword = obj["password"];
 
-				window["AscDesktopEditor"]["SetAdvancedOptions"](_param);
+                if (window.isNativeOpenPassword)
+                {
+                    window["AscDesktopEditor"]["NativeViewerOpen"](obj["password"]);
+                }
+                else
+                {
+                    var _param = ("<m_sPassword>" + AscCommon.CopyPasteCorrectString(obj["password"]) + "</m_sPassword>");
+                    window["AscDesktopEditor"]["SetAdvancedOptions"](_param);
+                }
 			}
 			else
 			{
