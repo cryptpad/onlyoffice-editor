@@ -7232,6 +7232,7 @@ function (window, undefined) {
 	function cLARGE() {
 	}
 
+	//***array-formula***
 	cLARGE.prototype = Object.create(cBaseFunction.prototype);
 	cLARGE.prototype.constructor = cLARGE;
 	cLARGE.prototype.name = 'LARGE';
@@ -7302,11 +7303,13 @@ function (window, undefined) {
 	function cLINEST() {
 	}
 
+	//***array-formula***
 	cLINEST.prototype = Object.create(cBaseFunction.prototype);
 	cLINEST.prototype.constructor = cLINEST;
 	cLINEST.prototype.name = 'LINEST';
 	cLINEST.prototype.argumentsMin = 1;
 	cLINEST.prototype.argumentsMax = 4;
+	cLINEST.prototype.arrayIndexes = {0: 1, 1: 1};
 	cLINEST.prototype.Calculate = function (arg) {
 
 		arg[0] = tryNumberToArray(arg[0]);
@@ -7330,7 +7333,14 @@ function (window, undefined) {
 		var res = CalculateRGPRKP(pMatY, pMatX, bConstant, bStats);
 
 		if (res && res[0] && res[0][0]) {
-			return new cNumber(res[0][0]);
+			var array = new cArray();
+			for(var i = 0; i < res.length; i++) {
+				array.addRow();
+				for(var j = 0; j < res.length; j++) {
+					array.addElement(new cNumber(res[i][j]));
+				}
+			}
+			return array;
 		} else {
 			return new cError(cErrorType.wrong_value_type);
 		}
