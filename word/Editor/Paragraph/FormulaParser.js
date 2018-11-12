@@ -205,11 +205,11 @@
     CDivisionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CDivisionOperatorNode.prototype.precedence = 10;
     CDivisionOperatorNode.prototype._calculate = function (aArgs) {
-        if(AscFormat.fApproxEqual(0.0, aArgs[1].result)){
+        if(AscFormat.fApproxEqual(0.0, aArgs[0].result)){
             this.setError("Zero Divide", null);
             return;
         }
-        this.result = aArgs[0].result/aArgs[1].result;
+        this.result = aArgs[1].result/aArgs[0].result;
     };
 
     function CPercentageOperatorNode(){
@@ -231,7 +231,7 @@
     CAdditionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CAdditionOperatorNode.prototype.precedence = 7;
     CAdditionOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = aArgs[0].result + aArgs[1].result;
+        this.result = aArgs[1].result + aArgs[0].result;
     };
 
     function CSubtractionOperatorNode(){
@@ -241,7 +241,7 @@
     CSubtractionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CSubtractionOperatorNode.prototype.precedence = 7;
     CSubtractionOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = aArgs[0].result - aArgs[1].result;
+        this.result = aArgs[1].result - aArgs[0].result;
     };
 
     function CEqualToOperatorNode(){
@@ -251,7 +251,7 @@
     CEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CEqualToOperatorNode.prototype.precedence = 6;
     CEqualToOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = AscFormat.fApproxEqual(aArgs[0].result, aArgs[1].result) ? 1.0 : 0.0;
+        this.result = AscFormat.fApproxEqual(aArgs[1].result, aArgs[0].result) ? 1.0 : 0.0;
     };
 
     function CNotEqualToOperatorNode(){
@@ -261,7 +261,7 @@
     CNotEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CNotEqualToOperatorNode.prototype.precedence = 5;
     CNotEqualToOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = AscFormat.fApproxEqual(aArgs[0].result, aArgs[1].result) ? 0.0 : 1.0;
+        this.result = AscFormat.fApproxEqual(aArgs[1].result, aArgs[0].result) ? 0.0 : 1.0;
     };
     function CLessThanOperatorNode(){
         COperatorNode.call(this);
@@ -270,7 +270,7 @@
     CLessThanOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CLessThanOperatorNode.prototype.precedence = 4;
     CLessThanOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = (aArgs[0].result < aArgs[1].result) ? 1.0 : 0.0;
+        this.result = (aArgs[1].result < aArgs[0].result) ? 1.0 : 0.0;
     };
     function CLessThanOrEqualToOperatorNode(){
         COperatorNode.call(this);
@@ -279,7 +279,7 @@
     CLessThanOrEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CLessThanOrEqualToOperatorNode.prototype.precedence = 3;
     CLessThanOrEqualToOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = (aArgs[0].result <= aArgs[1].result) ? 1.0 : 0.0;
+        this.result = (aArgs[1].result <= aArgs[0].result) ? 1.0 : 0.0;
     };
     function CGreaterThanOperatorNode(){
         COperatorNode.call(this);
@@ -288,7 +288,7 @@
     CGreaterThanOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CGreaterThanOperatorNode.prototype.precedence = 2;
     CGreaterThanOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = (aArgs[0].result > aArgs[1].result) ? 1.0 : 0.0;
+        this.result = (aArgs[1].result > aArgs[0].result) ? 1.0 : 0.0;
     };
     function CGreaterThanOrEqualOperatorNode(){
         COperatorNode.call(this);
@@ -297,7 +297,7 @@
     CGreaterThanOrEqualOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CGreaterThanOrEqualOperatorNode.prototype.precedence = 1;
     CGreaterThanOrEqualOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = (aArgs[0].result >= aArgs[1].result) ? 1.0 : 0.0;
+        this.result = (aArgs[1].result >= aArgs[0].result) ? 1.0 : 0.0;
     };
 
 
@@ -353,12 +353,9 @@
     }
     CCellRangeNode.prototype = Object.create(CFormulaNode.prototype);
     CCellRangeNode.prototype.argumentsCount = 0;
-    CCellRangeNode.prototype._calculate = function(){
-        if(this.isBookmark()){
-
-        }
-        return [];
-    };
+    // CCellRangeNode.prototype._calculate = function(){
+    //     //TODO:
+    // };
 
     CCellRangeNode.prototype.isCell = function(){
         return this.bookmarkName === null && this.c1 !== null && this.r1 !== null && this.c2 === null && this.r2 === null;
@@ -416,7 +413,7 @@
     CANDFunctionNode.prototype.minArgumentsCount = 2;
     CANDFunctionNode.prototype.maxArgumentsCount = 2;
     CANDFunctionNode.prototype._calculate = function (aArgs) {
-        this.result = (AscFormat.fApproxEqual(aArgs[0].result, 0.0) || AscFormat.fApproxEqual(aArgs[1].result, 0.0)) ? 0.0 : 1.0;
+        this.result = (AscFormat.fApproxEqual(aArgs[1].result, 0.0) || AscFormat.fApproxEqual(aArgs[0].result, 0.0)) ? 0.0 : 1.0;
     };
 
     function CAVERAGEFunctionNode(){
@@ -518,7 +515,7 @@
     CIFFunctionNode.prototype.minArgumentsCount = 3;
     CIFFunctionNode.prototype.maxArgumentsCount = 3;
     CIFFunctionNode.prototype._calculate = function (aArgs) {
-        this.result = ((aArgs[0].result !== 0.0) ? aArgs[1] : aArgs[2]);
+        this.result = ((aArgs[2].result !== 0.0) ? aArgs[1] : aArgs[0]);
     };
     function CMAXFunctionNode(){
         CFunctionNode.call(this);
@@ -607,7 +604,7 @@
     CMODFunctionNode.prototype.minArgumentsCount = 2;
     CMODFunctionNode.prototype.maxArgumentsCount = 2;
     CMODFunctionNode.prototype._calculate = function (aArgs) {
-        return aArgs[0].result % aArgs[1].result;//TODO
+        return aArgs[1].result % aArgs[0].result;//TODO
     };
 
     function CNOTFunctionNode(){
@@ -627,7 +624,7 @@
     CORFunctionNode.prototype.minArgumentsCount = 2;
     CORFunctionNode.prototype.maxArgumentsCount = 2;
     CORFunctionNode.prototype._calculate = function (aArgs) {
-        return !AscFormat.fApproxEqual(aArgs[0].result, 0.0) || !AscFormat.fApproxEqual(aArgs[1].result, 0.0);
+        return !AscFormat.fApproxEqual(aArgs[1].result, 0.0) || !AscFormat.fApproxEqual(aArgs[0].result, 0.0);
     };
 
     function CPRODUCTFunctionNode(){
@@ -677,7 +674,7 @@
         if(aArgs[0] < 0.0){
             this.result = -1.0;
         }
-        else if(aArgs[1] > 0.0){
+        else if(aArgs[0] > 0.0){
             this.result = 1.0;
         }
         else{
@@ -726,28 +723,16 @@
         return null;
     };
 
-
-
     CParseQueue.prototype.calculate = function(oDocument){
         this.pos = this.queue.length - 1;
-        var aQueue = this.queue.slice();
-        for (var i = 0; i < aQueue.length; ++i){
-            var oCurToken = aQueue[i];
-            if(oCurToken.isOperator() || oCurToken.isFunction()){
-                var aArgs = aQueue.splice(i - oCurToken.argumentsCount, oCurToken.argumentsCount);
-                oCurToken.calculate(aArgs);
-                if(oCurToken.error){
-                    return oCurToken.error;
-                }
-                aQueue[i - oCurToken.argumentsCount] = oCurToken.result;
-                i = i - oCurToken.argumentsCount;
-            }
-            // else if(oCurToken instanceof CNumberNode){
-            //     aQueue[i] = oCurToken.value;
-            // }
+        if(this.pos <= 0){
+            return "ERROR";
         }
-        this.result = aQueue[0];
-        return null;
+        var oLastToken = this.queue[this.pos];
+        oLastToken.calculate();
+        this.error = oLastToken.error;
+        this.result = oLastToken.result;
+        return this.error;
     };
     function CError(){
         this.Type = null;
