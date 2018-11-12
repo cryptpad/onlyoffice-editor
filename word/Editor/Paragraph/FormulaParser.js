@@ -141,9 +141,6 @@
     }
     CNumberNode.prototype = Object.create(CFormulaNode.prototype);
     CNumberNode.prototype.precedence = 15;
-    CNumberNode.prototype.getValue = function () {
-        return this.value;
-    };
     CNumberNode.prototype._calculate = function () {
         if(AscFormat.isRealNumber(this.value)){
             this.result = this.value;
@@ -355,7 +352,11 @@
         this.dir = null;
     }
     CCellRangeNode.prototype = Object.create(CFormulaNode.prototype);
-    CCellRangeNode.prototype.getValList = function(){
+    CCellRangeNode.prototype.argumentsCount = 0;
+    CCellRangeNode.prototype._calculate = function(){
+        if(this.isBookmark()){
+
+        }
         return [];
     };
 
@@ -384,7 +385,6 @@
 
     function CFunctionNode(){
         CFormulaNode.call(this);
-        this.arguments = [];
     }
 
     CFunctionNode.prototype = Object.create(CFormulaNode.prototype);
