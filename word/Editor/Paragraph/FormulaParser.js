@@ -659,9 +659,9 @@
     CROUNDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CROUNDFunctionNode.prototype.minArgumentsCount = 2;
     CROUNDFunctionNode.prototype.maxArgumentsCount = 2;
-    CROUNDFunctionNode.prototype._calculate = function (aArgs) {
-        return Math.round(aArgs[0].result);//TODO
-    };
+    // CROUNDFunctionNode.prototype._calculate = function (aArgs) {
+    //     return Math.round(aArgs[0].result);//TODO
+    // };
 
 
     function CSIGNFunctionNode(){
@@ -725,13 +725,20 @@
 
     CParseQueue.prototype.calculate = function(oDocument){
         this.pos = this.queue.length - 1;
+
+        this.error = null;
+        this.result = null;
         if(this.pos <= 0){
-            return "ERROR";
+            this.setError("Error", null);
+            return;
         }
         var oLastToken = this.queue[this.pos];
         oLastToken.calculate();
         this.error = oLastToken.error;
         this.result = oLastToken.result;
+        if(AscFormat.isRealNumber(this.result)){
+            this.result = ((this.result*100 + 0.5) >> 0)/100.0;
+        }
         return this.error;
     };
     function CError(){
