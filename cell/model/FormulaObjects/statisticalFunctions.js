@@ -8320,6 +8320,7 @@ function (window, undefined) {
 	}
 
 	//***array-formula***
+	//TODO другое поведение для формул массива!!!
 	cMODE_MULT.prototype = Object.create(cMODE.prototype);
 	cMODE_MULT.prototype.constructor = cMODE_MULT;
 	cMODE_MULT.prototype.name = 'MODE.MULT';

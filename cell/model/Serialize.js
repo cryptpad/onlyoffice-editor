@@ -6886,7 +6886,7 @@
 						} else if(formula.t === ECellFormulaType.cellformulatypeArray) {//***array-formula***
 							if(window['AscCommonExcel'] && window['AscCommonExcel'].bIsSupportArrayFormula) {
 								parsed.ref = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
-								console.log(parsed.ref.getName());
+								console.log("ref: " + parsed.ref.getName() + " ws: " + parsed.ws.sName);
 								tmp.formulaArray.push(parsed);
 							}
 						}
