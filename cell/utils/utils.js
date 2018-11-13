@@ -732,11 +732,13 @@
 		};
 
 		Range.prototype.getName = function () {
+			var type = this.getType();
+
 			var sRes = "";
 			var c1Abs = this.isAbsCol(this.refType1), c2Abs = this.isAbsCol(this.refType2);
 			var r1Abs = this.isAbsRow(this.refType1), r2Abs = this.isAbsRow(this.refType2);
 
-			if (0 == this.c1 && gc_nMaxCol0 == this.c2 && c1Abs === c2Abs) {
+			if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type) && c1Abs === c2Abs) {
 				if (r1Abs) {
 					sRes += "$";
 				}
@@ -745,7 +747,7 @@
 					sRes += "$";
 				}
 				sRes += (this.r2 + 1);
-			} else if (0 == this.r1 && gc_nMaxRow0 == this.r2 && r1Abs === r2Abs) {
+			} else if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type) && r1Abs === r2Abs) {
 				if (c1Abs) {
 					sRes += "$";
 				}
