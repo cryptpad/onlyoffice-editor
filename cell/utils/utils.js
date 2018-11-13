@@ -747,7 +747,7 @@
 					sRes += "$";
 				}
 				sRes += (this.r2 + 1);
-			} else if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type) && r1Abs === r2Abs) {
+			} else if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeCol === type) && r1Abs === r2Abs) {
 				if (c1Abs) {
 					sRes += "$";
 				}
