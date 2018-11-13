@@ -21,7 +21,7 @@
     var sColumnRange = sColumnName + sColon + sColumnName;
     var sCellRange = '(' + sCellCellRange + ')|(' + sRowRange + ')|(' + sColumnRange + ')';
     var sCellReference = '(' + sCellRange + ')|(' + sCellName + ')';
-    var sBookmark = "[_A-Z]([A-Z0-9]{0,39})";//TODO: not only latin
+    var sBookmark = "(\\pL)(\\pL|\_|\\pN){0,39}";//TODO: not only latin
     var sBookmarkCellRef = sBookmark + '( +(' + sCellReference + '))*';
     var sFunctions = "(ABS|AND|AVERAGE|COUNT|DEFINED|FALSE|INT|MAX|MIN|MOD|NOT|OR|PRODUCT|ROUND|SIGN|SUM|TRUE)" ;
 
@@ -1484,7 +1484,8 @@
             } else if(oCurToken instanceof CRightParenOperatorNode){
                 if(aFunctionsStack.length > 0 && aStack[0] && aStack[0].isFunction()){
                     ++aFunctionsStack[aFunctionsStack.length-1].argumentsCount;
-                    if(aFunctionsStack[aFunctionsStack.length-1].argumentsCount > aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
+                    if(aFunctionsStack[aFunctionsStack.length-1].argumentsCount > aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount
+                    || aFunctionsStack[aFunctionsStack.length-1].argumentsCount < aFunctionsStack[aFunctionsStack.length-1].minArgumentsCount){
                         this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                         return;
                     }
