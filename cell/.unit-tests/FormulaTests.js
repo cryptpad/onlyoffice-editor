@@ -8141,6 +8141,18 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().getValue(), 1 );
 
+		oParser = new parserFormula( "INDEX(A651:C651,2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 6 );
+
+		oParser = new parserFormula( "INDEX(A651:C651,3)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 11 );
+
+		oParser = new parserFormula( "INDEX(A651:C651,4)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
     } );
 
     test( "Test: \"OFFSET\"", function () {

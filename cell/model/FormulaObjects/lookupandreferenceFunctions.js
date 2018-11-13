@@ -425,13 +425,12 @@ function (window, undefined) {
 	cINDEX.prototype.constructor = cINDEX;
 	cINDEX.prototype.name = 'INDEX';
 	cINDEX.prototype.argumentsMin = 2;
-	cINDEX.prototype.argumentsMax = 4;
+	cINDEX.prototype.argumentsMax = 3;
 	cINDEX.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cINDEX.prototype.arrayIndexes = {0: 1};
 	cINDEX.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] && (cElementType.empty !== arg[1].type) ? arg[1] : new cNumber(1),
-			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1),
-			arg3 = arg[3] && (cElementType.empty !== arg[3].type) ? arg[3] : new cNumber(1), res;
+			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1), res;
 
 		if (cElementType.cellsRange3D === arg0.type) {
 			arg0 = arg0.tocArea();
@@ -444,26 +443,44 @@ function (window, undefined) {
 
 		arg1 = arg1.tocNumber();
 		arg2 = arg2.tocNumber();
-		arg3 = arg3.tocNumber();
 
-		if (cElementType.error === arg1.type || cElementType.error === arg2.type || cElementType.error === arg3.type) {
+		if (cElementType.error === arg1.type || cElementType.error === arg2.type) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
 		arg1 = arg1.getValue();
 		arg2 = arg2.getValue();
-		arg3 = arg3.getValue();
 
 		if (arg1 < 0 || arg2 < 0) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
 		if (cElementType.array === arg0.type) {
-			res = arg0.getValue2((1 === arg0.rowCount || 0 === arg1) ? 0 : arg1 - 1, 0 === arg2 ? 0 : arg2 - 1);
+			if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
+				res = arg0.getValue2(0, arg1 - 1);
+			} else if(undefined === arg[2] && 1 === arg0.getCountElementInRow()) {//если последний аргумент опущен, и выделен 1 столбец
+				res = arg0.getValue2(arg1 - 1, 0);
+			} else {
+				res = arg0.getValue2((1 === arg0.rowCount || 0 === arg1) ? 0 : arg1 - 1, 0 === arg2 ? 0 : arg2 - 1);
+			}
 		} else if (cElementType.cellsRange === arg0.type) {
 			var ws = arg0.getWS(), bbox = arg0.getBBox0();
 
-			if (bbox.r1 === bbox.r2) {/*одна строка*/
+			if(undefined === arg[2] && bbox.r1 === bbox.r2) {//если последний аргумент опущен, и выделенa 1 строка
+				if (arg1 > Math.abs(bbox.c1 - bbox.c2) + 1) {
+					res = new cError(cErrorType.bad_reference);
+				} else {
+					res = new Asc.Range(bbox.c1 + arg1 - 1, bbox.r1, bbox.c1 + arg1 - 1, bbox.r1);
+					res = new cRef(res.getName(), ws);
+				}
+			} else if(undefined === arg[2] && bbox.c1 === bbox.c2) {//если последний аргумент опущен, и выделен 1 столбец
+				if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1) {
+					res = new cError(cErrorType.bad_reference);
+				} else {
+					res = new Asc.Range(bbox.c1, bbox.r1 + arg1 - 1, bbox.c1, bbox.r1 + arg1 - 1);
+					res = new cRef(res.getName(), ws);
+				}
+			} else if (bbox.r1 === bbox.r2) {/*одна строка*/
 				res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r1);
 				res = new cRef(res.getName(), ws);
 			} else {
