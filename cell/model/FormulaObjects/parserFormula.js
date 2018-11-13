@@ -5952,6 +5952,14 @@ parserFormula.prototype.setFormula = function(formula) {
 				this._endCalculate();
 				this.parent = oldParent;
 			} else {
+				//TODO пересмотреть для формул массива, таких как: "=Sheet1'!$S$2:$S$1217"
+				/*if(true) {
+					var array = this.value.getMatrix()[0];
+					var nArray = new cArray();
+					nArray.fillFromArray(array);
+					this.value = nArray;
+				}*/
+
 				this._endCalculate();
 			}
 			//***array-formula***
