@@ -736,7 +736,7 @@
 			var c1Abs = this.isAbsCol(this.refType1), c2Abs = this.isAbsCol(this.refType2);
 			var r1Abs = this.isAbsRow(this.refType1), r2Abs = this.isAbsRow(this.refType2);
 
-			if (0 == this.c1 && gc_nMaxCol0 == this.c2 && false == c1Abs && false == c2Abs) {
+			if (0 == this.c1 && gc_nMaxCol0 == this.c2 && c1Abs === c2Abs) {
 				if (r1Abs) {
 					sRes += "$";
 				}
@@ -745,7 +745,7 @@
 					sRes += "$";
 				}
 				sRes += (this.r2 + 1);
-			} else if (0 == this.r1 && gc_nMaxRow0 == this.r2 && false == r1Abs && false == r2Abs) {
+			} else if (0 == this.r1 && gc_nMaxRow0 == this.r2 && r1Abs === r2Abs) {
 				if (c1Abs) {
 					sRes += "$";
 				}
