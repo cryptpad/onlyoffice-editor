@@ -125,6 +125,8 @@ var editor;
 
     this.formulasList = null;	// Список всех формул
 
+	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, pivots: {}};
+
     this._init();
     return this;
   }
@@ -284,13 +286,17 @@ var editor;
 	spreadsheet_api.prototype.asc_getLocale = function() {
 		return AscCommon.g_oDefaultCultureInfo.LCID;
 	};
-
+	spreadsheet_api.prototype.getOrCreateWorkbook = function() {
+		if (!this.wbModel) {
+			this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
+			this.initGlobalObjects(this.wbModel);
+		}
+		return this.wbModel;
+	};
   spreadsheet_api.prototype._openDocument = function(data) {
-    this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
-    this.initGlobalObjects(this.wbModel);
     AscFonts.IsCheckSymbols = true;
     var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
-    oBinaryFileReader.Read(data, this.wbModel);
+    oBinaryFileReader.Read(data, this.getOrCreateWorkbook());
     AscFonts.IsCheckSymbols = false;
   };
 
@@ -723,6 +729,29 @@ var editor;
 		}
     }
   };
+	spreadsheet_api.prototype._onEndOpen = function() {
+		var t = this;
+		if (this.openingEnd.bin && this.openingEnd.xlsx) {
+			for (var wsIndex in this.openingEnd.pivots) {
+				if (this.openingEnd.pivots.hasOwnProperty(wsIndex)) {
+					var ws = t.wbModel.getWorksheet(parseInt(wsIndex));
+					ws.insertPivotTable(this.openingEnd.pivots[wsIndex]);
+				}
+			}
+
+			g_oIdCounter.Set_Load(false);
+			AscCommon.checkCultureInfoFontPicker();
+			AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
+			t.FontLoader.LoadDocumentFonts(t.wbModel.generateFontMap2());
+
+			// Какая-то непонятная заглушка, чтобы не падало в ipad
+			if (t.isMobileVersion) {
+				AscCommon.AscBrowser.isSafariMacOs = false;
+				AscCommon.PasteElementsId.PASTE_ELEMENT_ID = "wrd_pastebin";
+				AscCommon.PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
+			}
+		}
+	};
   spreadsheet_api.prototype._onOpenCommand = function(data) {
     var t = this;
     AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result) {
@@ -733,8 +762,27 @@ var editor;
       }
 
       t.onEndLoadFile(result.data);
+      t.openingEnd.bin = true;
+      t._onEndOpen();
     });
+    this._onOpenCommandXlsx();
   };
+	spreadsheet_api.prototype._onOpenCommandXlsx = function() {
+		var t = this;
+		if (this.openingEnd.xlsxStart) {
+			return;
+		}
+		this.openingEnd.xlsxStart = true;
+		this.openDocumentFromZip(AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx')).then(function() {
+			t.openingEnd.xlsx = true;
+			t._onEndOpen();
+		}).catch(function(err) {
+			if (window.console && window.console.log) {
+				window.console.log(err);
+			}
+			t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+		});
+	};
 
   spreadsheet_api.prototype._OfflineAppDocumentEndLoad = function() {
     this.onEndLoadFile(AscCommonExcel.getEmptyWorkbook());
@@ -1003,26 +1051,10 @@ var editor;
   spreadsheet_api.prototype.openDocument = function(sData) {
     var t = this;
 	this._openDocument(sData);
-	this.openDocumentFromZip(this.wbModel, AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx')).then(function() {
-		g_oIdCounter.Set_Load(false);
-		AscCommon.checkCultureInfoFontPicker();
-		AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
-		t.FontLoader.LoadDocumentFonts(t.wbModel.generateFontMap2());
-
-		// Какая-то непонятная заглушка, чтобы не падало в ipad
-		if (t.isMobileVersion) {
-			AscCommon.AscBrowser.isSafariMacOs = false;
-			AscCommon.PasteElementsId.PASTE_ELEMENT_ID = "wrd_pastebin";
-			AscCommon.PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
-		}
-	}).catch(function(err) {
-		if (window.console && window.console.log) {
-			window.console.log(err);
-		}
-		t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-	});
+	this._onOpenCommandXlsx();
   };
-	spreadsheet_api.prototype.openDocumentFromZip = function (wb, opt_url, opt_path) {
+	spreadsheet_api.prototype.openDocumentFromZip = function (opt_url, opt_path) {
+		var wb = this.getOrCreateWorkbook();
 		var t = this;
 		return new Promise(function (resolve, reject) {
 			var openXml = AscCommon.openXml;
@@ -1034,7 +1066,6 @@ var editor;
 			var processData = function (err, data, path) {
 				var nextPromise;
 				if (!err && (data || path)) {
-					openXml.SaxParserDataTransfer.wb = wb;
 					var doc = new openXml.OpenXmlPackage();
 					var wbPart = null;
 					var wbXml = null;
@@ -1097,14 +1128,13 @@ var editor;
 									}
 								}).then(function (res) {
 									if (res) {
-										var ws = wb.getWorksheet(wsIndex);
 										for (var i = 0; i < res.length; ++i) {
 											var pivotTable = new Asc.CT_pivotTableDefinition();
 											new openXml.SaxParserBase().parse(res[i], pivotTable);
 											var cacheDefinition = pivotCaches[pivotTable.cacheId];
 											if (cacheDefinition) {
 												pivotTable.cacheDefinition = cacheDefinition;
-												ws.insertPivotTable(pivotTable);
+												t.openingEnd.pivots[wsIndex] = pivotTable;
 											}
 										}
 									}
@@ -3290,7 +3320,7 @@ var editor;
 		t._coAuthoringInit();
 		t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
 	};
-	return this.openDocumentFromZip(this.wbModel, undefined, xlsxPath).then(thenCallback, thenCallback);
+	return this.openDocumentFromZip(undefined, xlsxPath).then(thenCallback, thenCallback);
   };
 
   spreadsheet_api.prototype.asc_nativeCalculateFile = function() {
