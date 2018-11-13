@@ -315,7 +315,7 @@
 
 	function getVertexIndex(bbox) {
 		//without $
-		return bbox.getAbsName2(false, false, false, false);
+		return bbox.getName(AscCommonExcel.referenceType.R);
 	}
 
 	function DependencyGraph(wb) {

@@ -731,12 +731,20 @@
 			}
 		};
 
-		Range.prototype.getName = function () {
+		Range.prototype.getName = function (refType) {
 			var type = this.getType();
-
 			var sRes = "";
-			var c1Abs = this.isAbsCol(this.refType1), c2Abs = this.isAbsCol(this.refType2);
-			var r1Abs = this.isAbsRow(this.refType1), r2Abs = this.isAbsRow(this.refType2);
+			var c1Abs, c2Abs, r1Abs, r2Abs;
+			if (referenceType.A === refType) {
+				c1Abs = c2Abs = r1Abs = r2Abs = true;
+			} else if (referenceType.R === refType) {
+				c1Abs = c2Abs = r1Abs = r2Abs = false;
+			} else {
+				c1Abs = this.isAbsCol(this.refType1);
+				c2Abs = this.isAbsCol(this.refType2);
+				r1Abs = this.isAbsRow(this.refType1);
+				r2Abs = this.isAbsRow(this.refType2);
+			}
 
 			if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type) && c1Abs === c2Abs) {
 				if (r1Abs) {
@@ -781,81 +789,7 @@
 		};
 
 		Range.prototype.getAbsName = function () {
-			var sRes = "";
-			var c1Abs = this.isAbsCol(this.refType1), c2Abs = this.isAbsCol(this.refType2);
-			var r1Abs = this.isAbsRow(this.refType1), r2Abs = this.isAbsRow(this.refType2);
-
-			if (0 == this.c1 && gc_nMaxCol0 == this.c2 && false == c1Abs && false == c2Abs) {
-				sRes += "$";
-				sRes += (this.r1 + 1) + ":";
-				sRes += "$";
-				sRes += (this.r2 + 1);
-			} else if (0 == this.r1 && gc_nMaxRow0 == this.r2 && false == r1Abs && false == r2Abs) {
-				sRes += "$";
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1) + ":";
-				sRes += "$";
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-			} else {
-				sRes += "$";
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1);
-				sRes += "$";
-				sRes += (this.r1 + 1);
-				if (!this.isOneCell()) {
-					sRes += ":";
-					sRes += "$";
-					sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-					sRes += "$";
-					sRes += (this.r2 + 1);
-				}
-			}
-			return sRes;
-		};
-
-		Range.prototype.getAbsName2 = function (absCol1, absRow1, absCol2, absRow2) {
-			var sRes = "";
-			var c1Abs = this.isAbsCol(this.refType1), c2Abs = this.isAbsCol(this.refType2);
-			var r1Abs = this.isAbsRow(this.refType1), r2Abs = this.isAbsRow(this.refType2);
-
-			if (0 == this.c1 && gc_nMaxCol0 == this.c2 && false == c1Abs && false == c2Abs) {
-				if (absRow1) {
-					sRes += "$";
-				}
-				sRes += (this.r1 + 1) + ":";
-				if (absRow2) {
-					sRes += "$";
-				}
-				sRes += (this.r2 + 1);
-			} else if (0 == this.r1 && gc_nMaxRow0 == this.r2 && false == r1Abs && false == r2Abs) {
-				if (absCol1) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1) + ":";
-				if (absCol2) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-			} else {
-				if (absCol1) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1);
-				if (absRow1) {
-					sRes += "$";
-				}
-				sRes += (this.r1 + 1);
-				if (!this.isOneCell()) {
-					sRes += ":";
-					if (absCol2) {
-						sRes += "$";
-					}
-					sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-					if (absRow2) {
-						sRes += "$";
-					}
-					sRes += (this.r2 + 1);
-				}
-			}
-			return sRes;
+			return this.getName(referenceType.A);
 		};
 
 		Range.prototype.getAllRange = function () {
