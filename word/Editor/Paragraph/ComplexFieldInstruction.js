@@ -107,6 +107,8 @@ function CFieldInstructionFORMULA()
 	CFieldInstructionBase.call(this);
 	this.ParseQueue = null;
 	this.Error = null;
+	this.ErrStr = null;
+	this.ResultStr = null;
 	this.Format = null;
 	this.ParentContent = null;
 }
@@ -126,29 +128,53 @@ CFieldInstructionFORMULA.prototype.SetError = function(oError)
 {
     this.Error = oError;
 };
+
+CFieldInstructionFORMULA.prototype.GetErrorStr = function (oErr) {
+	var ret = "!";
+	if(oErr)
+	{
+		if(typeof oErr.Type === 'string')
+		{
+			ret += AscCommon.translateManager.getValue(oErr.Type);
+		}
+		if(typeof oErr.Data === 'string')
+		{
+			ret += (", " + oErr.Data);
+		}
+	}
+	return ret;
+};
+
 CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 {
+	this.ErrStr = null;
+	this.ResultStr = null;
 	if(this.Error)
 	{
-		return AscCommon.translateManager.getValue(this.Error.Type) + ' ' + this.Error.Data;
+		this.ErrStr = this.GetErrorStr(this.Error);
+		return;
 	}
 	if(this.ParseQueue)
 	{
 		var oCalcError = this.ParseQueue.calculate(oLogicDocument);
 		if(oCalcError)
 		{
-			return AscCommon.translateManager.getValue(oCalcError.Type) + ' ' + oCalcError.Data;
+			this.ErrStr = this.GetErrorStr(oCalcError);
+			return;
 		}
-		if(AscFormat.isRealNumber(this.ParseQueue.result)){
-			if(this.Format){
-				return this.Format.formatToChart(this.ParseQueue.result);
+		if(AscFormat.isRealNumber(this.ParseQueue.result))
+		{
+			if(this.Format)
+			{
+				this.ResultStr = this.Format.formatToChart(this.ParseQueue.result);
 			}
-			else{
-				return '' + this.ParseQueue.result;
+			else
+			{
+				this.ResultStr = '' + this.ParseQueue.result;
 			}
 		}
 	}
-	return '';
+	this.ResultStr = '';
 };
 
 CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){

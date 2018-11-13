@@ -409,7 +409,38 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 };
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
-	this.LogicDocument.AddText(this.Instruction.Calculate());
+	this.Instruction.Calculate();
+	if(this.Instruction.ErrStr !== null)
+	{
+		var oSelectedContent = new CSelectedContent();
+		var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+		var oRun  = new ParaRun(oPara, false);
+		oRun.Set_Bold(true);
+		oRun.AddText(this.Instruction.ErrStr);
+		oPara.AddToContent(0, oRun);
+		oSelectedContent.Add(new CSelectedElement(oPara, true));
+		this.LogicDocument.TurnOff_Recalculate();
+		this.LogicDocument.TurnOff_InterfaceEvents();
+		this.LogicDocument.Remove(1, false, false, false);
+		this.LogicDocument.TurnOn_Recalculate(false);
+		this.LogicDocument.TurnOn_InterfaceEvents(false);
+		oRun       = this.BeginChar.GetRun();
+		var oParagraph = oRun.GetParagraph();
+		var oNearPos   = {
+			Paragraph  : oParagraph,
+			ContentPos : oParagraph.Get_ParaContentPos(false, false)
+		};
+		oParagraph.Check_NearestPos(oNearPos);
+		oSelectedContent.DoNotAddEmptyPara = true;
+		oParagraph.Parent.Insert_Content(oSelectedContent, oNearPos);
+	}
+	else
+	{
+		if(this.Instruction.ResultStr !== null)
+		{
+			this.LogicDocument.AddText(this.Instruction.ResultStr);
+		}
+	}
 };
 CComplexField.prototype.private_UpdatePAGE = function()
 {
