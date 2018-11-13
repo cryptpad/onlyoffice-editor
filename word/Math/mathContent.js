@@ -4657,22 +4657,22 @@ CMathContent.prototype.IsEmptyRange = function(_CurLine, _CurRange)
 };
 CMathContent.prototype.Displace_BreakOperator = function(isForward, bBrkBefore, CountOperators)
 {
-    var Pos = this.CurPos;
+	var Pos = this.CurPos;
 
-    if(this.Content[Pos].Type == para_Math_Run)
-    {
-        var bApplyBreak = this.Content[Pos].Displace_BreakOperator(isForward, bBrkBefore, CountOperators);
-        var NewPos = bBrkBefore ? Pos + 1 : Pos - 1;
+	if (this.Content[Pos].Type == para_Math_Run)
+	{
+		var bApplyBreak = this.Content[Pos].Displace_BreakOperator(isForward, bBrkBefore, CountOperators);
+		var NewPos      = bBrkBefore ? Pos + 1 : Pos - 1;
 
-        if(bApplyBreak == false && (this.Content[NewPos].Type == para_Math_Run || this.Content[NewPos].kind == MATH_BOX))
-        {
-            this.Content[NewPos].Displace_BreakOperator(isForward, bBrkBefore, CountOperators);
-        }
-    }
-    else
-    {
-        this.Content[Pos].Displace_BreakOperator(isForward, bBrkBefore, CountOperators);
-    }
+		if (this.Content[NewPos] && bApplyBreak == false && (this.Content[NewPos].Type == para_Math_Run || this.Content[NewPos].kind == MATH_BOX))
+		{
+			this.Content[NewPos].Displace_BreakOperator(isForward, bBrkBefore, CountOperators);
+		}
+	}
+	else
+	{
+		this.Content[Pos].Displace_BreakOperator(isForward, bBrkBefore, CountOperators);
+	}
 };
 CMathContent.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
 {

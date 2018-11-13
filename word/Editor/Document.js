@@ -7372,7 +7372,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 }))
             {
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTabToMath);
-                ParaMath.Handle_Tab(!e.ShiftKey);
+                ParaMath.HandleTab(!e.ShiftKey);
                 this.Recalculate();
             }
         }
