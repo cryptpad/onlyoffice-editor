@@ -108,6 +108,7 @@ function CFieldInstructionFORMULA()
 	this.ParseQueue = null;
 	this.Error = null;
 	this.Format = null;
+	this.ParentContent = null;
 }
 
 CFieldInstructionFORMULA.prototype = Object.create(CFieldInstructionBase.prototype);
@@ -127,12 +128,15 @@ CFieldInstructionFORMULA.prototype.SetError = function(oError)
 };
 CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 {
-	if(this.Error){
+	if(this.Error)
+	{
 		return AscCommon.translateManager.getValue(this.Error.Type) + ' ' + this.Error.Data;
 	}
-	if(this.ParseQueue){
+	if(this.ParseQueue)
+	{
 		var oCalcError = this.ParseQueue.calculate(oLogicDocument);
-		if(oCalcError){
+		if(oCalcError)
+		{
 			return AscCommon.translateManager.getValue(oCalcError.Type) + ' ' + oCalcError.Data;
 		}
 		if(AscFormat.isRealNumber(this.ParseQueue.result)){
@@ -145,6 +149,24 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 		}
 	}
 	return '';
+};
+
+CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
+	CFieldInstructionBase.prototype.SetComplexField.call(this, oComplexField);
+	this.ParentContent = null;
+	var oBeginChar = oComplexField.BeginChar;
+	if(oBeginChar)
+	{
+		var oRun = oBeginChar.Run;
+		if(oRun)
+		{
+			var oParagraph = oRun.Paragraph;
+			if(oParagraph)
+			{
+				this.ParentContent = oParagraph.Parent;
+			}
+		}
+	}
 };
 
 /**
