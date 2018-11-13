@@ -1033,7 +1033,7 @@
                     for (i = 0; i < hasNumber.arrCols.length; ++i) {
                         c = hasNumber.arrCols[i];
                         cell = t._getVisibleCell(c, arCopy.r2);
-                        text = t._getCellTitle(c, arCopy.r1) + ":" + t._getCellTitle(c, arCopy.r2 - 1);
+						text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         // ToDo - при вводе формулы в заголовок автофильтра надо писать "0"
                         cell.setValue(val);
@@ -1042,13 +1042,13 @@
                     for (i = 0; i < hasNumber.arrRows.length; ++i) {
                         r = hasNumber.arrRows[i];
                         cell = t._getVisibleCell(arCopy.c2, r);
-                        text = t._getCellTitle(arCopy.c1, r) + ":" + t._getCellTitle(arCopy.c2 - 1, r);
+                        text = (new asc_Range(arCopy.c1, r, arCopy.c2 - 1, r)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         cell.setValue(val);
                     }
                     // Значение в правой нижней ячейке
                     cell = t._getVisibleCell(arCopy.c2, arCopy.r2);
-                    text = t._getCellTitle(arCopy.c1, arCopy.r2) + ":" + t._getCellTitle(arCopy.c2 - 1, arCopy.r2);
+                    text = (new asc_Range(arCopy.c1, arCopy.r2, arCopy.c2 - 1, arCopy.r2)).getName();
                     val = "=" + functionName + "(" + text + ")";
                     cell.setValue(val);
                 };
@@ -1062,7 +1062,7 @@
                     for (i = 0; i < hasNumber.arrRows.length; ++i) {
                         r = hasNumber.arrRows[i];
                         cell = t._getVisibleCell(arCopy.c2, r);
-                        text = t._getCellTitle(arCopy.c1, r) + ":" + t._getCellTitle(arCopy.c2 - 1, r);
+                        text = (new asc_Range(arCopy.c1, r, arCopy.c2 - 1, r)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         cell.setValue(val);
                     }
@@ -1077,7 +1077,7 @@
                     for (i = 0; i < hasNumber.arrCols.length; ++i) {
                         c = hasNumber.arrCols[i];
                         cell = t._getVisibleCell(c, arCopy.r2);
-                        text = t._getCellTitle(c, arCopy.r1) + ":" + t._getCellTitle(c, arCopy.r2 - 1);
+                        text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         cell.setValue(val);
                     }
@@ -1090,7 +1090,7 @@
                         // Одна строка или только в последней строке есть значения...
                         cell = t._getVisibleCell(arCopy.c2, arCopy.r2);
                         // ToDo вводить в первое свободное место, а не сразу за диапазоном
-                        text = t._getCellTitle(arCopy.c1, arCopy.r2) + ":" + t._getCellTitle(arCopy.c2 - 1, arCopy.r2);
+                        text = (new asc_Range(arCopy.c1, arCopy.r2, arCopy.c2 - 1, arCopy.r2)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         cell.setValue(val);
                     };
@@ -1104,7 +1104,7 @@
                             c = hasNumber.arrCols[i];
                             cell = t._getVisibleCell(c, arCopy.r2);
                             // ToDo вводить в первое свободное место, а не сразу за диапазоном
-                            text = t._getCellTitle(c, arCopy.r1) + ":" + t._getCellTitle(c, arCopy.r2 - 1);
+                            text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
                             val = "=" + functionName + "(" + text + ")";
                             cell.setValue(val);
                         }
@@ -1212,11 +1212,7 @@
                 result = new asc_Range(c, leftCell.r, c, leftCell.r);
             }
             this._fixSelectionOfMergedCells(result);
-            if (result.c1 === result.c2 && result.r1 === result.r2) {
-                result.text = this._getCellTitle(result.c1, result.r1);
-            } else {
-                result.text = this._getCellTitle(result.c1, result.r1) + ":" + this._getCellTitle(result.c2, result.r2);
-            }
+			result.text = result.getName();
             return result;
         }
 
@@ -1250,11 +1246,7 @@
                 result = new asc_Range(topCell.c, r, topCell.c, r);
             }
             this._fixSelectionOfMergedCells(result);
-            if (result.c1 === result.c2 && result.r1 === result.r2) {
-                result.text = this._getCellTitle(result.c1, result.r1);
-            } else {
-                result.text = this._getCellTitle(result.c1, result.r1) + ":" + this._getCellTitle(result.c2, result.r2);
-            }
+			result.text = result.getName();
             return result;
         }
     };
@@ -4874,16 +4866,6 @@
      */
     WorksheetView.prototype._getRowTitle = function (row) {
         return "" + (row + 1);
-    };
-
-    /**
-     * Возвращает заголовок ячейки по индексу
-     * @param {Number} col  Индекс колонки
-     * @param {Number} row  Индекс строки
-     * @return {String}
-     */
-    WorksheetView.prototype._getCellTitle = function (col, row) {
-        return this._getColumnTitle(col) + this._getRowTitle(row);
     };
 
     /**
