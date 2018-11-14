@@ -5304,11 +5304,11 @@ parserFormula.prototype.setFormula = function(formula) {
 				if (parserHelp.isArea.call(ph, t.Formula, ph.pCurrPos)) {
 					found_operand = new cArea3D(ph.operand_str.toUpperCase(), wsF, wsT);
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
-				} else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos)) {
+				} else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos, null, t.parent)) {
 					if (wsT !== wsF) {
 						found_operand = new cArea3D(ph.operand_str.toUpperCase(), wsF, wsT);
 					} else {
-						found_operand = new cRef3D(ph.operand_str.toUpperCase(), wsF);
+						found_operand = new cRef3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF);
 					}
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
 				} else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos)) {
@@ -6856,5 +6856,5 @@ function rtl_math_erfc( x ) {
 	prot									     = cDate.prototype;
 	prot["getExcelDateWithTime"]	             = prot.getExcelDateWithTime;
 
-	window['AscCommonExcel'].c_bRowColFormat = false;
+	window['AscCommonExcel'].c_bRowColFormat = true;
 })(window);
