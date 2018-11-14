@@ -89,6 +89,7 @@ var editor;
     this.wbModel = null;
     this.tmpLocale = null;
     this.tmpLocalization = null;
+    this.tmpR1C1Mode = null;
 
     this.documentFormatSave = c_oAscFileType.XLSX;
 
@@ -2180,7 +2181,15 @@ var editor;
 		return result;
 	};
 
-	spreadsheet_api.prototype.asc_setIsR1C1Mode = function (value) {
+	spreadsheet_api.prototype.asc_setR1C1Mode = function (value) {
+		if (!this.isLoadFullApi) {
+			this.tmpR1C1Mode = value;
+			return;
+		}
+		if (null === value) {
+			return;
+		}
+
 		this.wbModel.isR1C1Mode = value;
 		this._onUpdateAfterApplyChanges();
 	};
@@ -3408,6 +3417,7 @@ var editor;
 		this.formulasList = AscCommonExcel.getFormulasInfo();
 		this.asc_setLocale(this.tmpLocale);
 		this.asc_setLocalization(this.tmpLocalization);
+		this.asc_setR1C1Mode(this.tmpR1C1Mode);
 		this.asc_setViewMode(this.isViewMode);
 
         if (this.openFileCryptBinary)
@@ -3554,7 +3564,7 @@ var editor;
   prot["asc_findCell"] = prot.asc_findCell;
   prot["asc_closeCellEditor"] = prot.asc_closeCellEditor;
 
-  prot["asc_setIsR1C1Mode"] = prot.asc_setIsR1C1Mode;
+  prot["asc_setR1C1Mode"] = prot.asc_setR1C1Mode;
 
   // Spreadsheet interface
 
