@@ -11627,7 +11627,7 @@
 				isAddPersentFormat: isQuickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
 				autoComplete: arrAutoComplete,
 				autoCompleteLC: arrAutoCompleteLC,
-				cellName: c.getName(),
+				bbox: c.bbox,
 				cellNumFormat: c.getNumFormatType(),
 				saveValueCallback: function (val, flags) {
 					return t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);

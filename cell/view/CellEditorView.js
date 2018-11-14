@@ -804,7 +804,7 @@
 //             var __e__ = new Date().getTime();
 //             console.log("e-s "+ (__e__ - __s__));
 
-		var bbox = AscCommonExcel.g_oRangeCache.getActiveRange(this.options.cellName);
+		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), null, ws);
 		this._formula.parse(true, true, this._parseResult);
@@ -931,7 +931,7 @@
 		var r, offset, _e, _s, wsName = null, ret = false, refStr, isName = false, _sColorPos, wsOPEN = this.handlers.trigger(
 			"getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
 
-		var bbox = AscCommonExcel.g_oRangeCache.getActiveRange(this.options.cellName);
+		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), null, ws);
 		this._formula.parse(true, true, this._parseResult);
