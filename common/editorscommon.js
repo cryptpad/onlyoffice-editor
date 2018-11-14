@@ -1765,6 +1765,7 @@
 		rgRows                = /^(\$?\d+:\$?\d+)(?:[-+*\/^&%<=>: ;),]|$)/,
 		rx_ref                = /^ *(\$?[A-Za-z]{1,3}\$?(\d{1,7}))([-+*\/^&%<=>: ;),]|$)/,
 		rx_refAll             = /^(\$?[A-Za-z]+\$?(\d+))([-+*\/^&%<=>: ;),]|$)/,
+		rx_refR1C1             = /^(([Rr]{1}(\[)?(-?\d+)(\])?)([Cc]{1}(\[)?(-?\d+)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rx_ref3D_non_quoted   = new XRegExp("^(?<name_from>[" + str_namedRanges + "][" + str_namedRanges + "\\d.]*)(:(?<name_to>[" + str_namedRanges + "][" + str_namedRanges + "\\d.]*))?!", "i"),
 		rx_ref3D_quoted       = new XRegExp("^'(?<name_from>(?:''|[^\\[\\]'\\/*?:])*)(?::(?<name_to>(?:''|[^\\[\\]'\\/*?:])*))?'!"),
 		rx_ref3D              = new XRegExp("^(?<name_from>[^:]+)(:(?<name_to>[^:]+))?!"),
@@ -1957,31 +1958,61 @@
 		}
 		return false;
 	};
-	parserHelper.prototype.isRef = function (formula, start_pos, allRef)
+	parserHelper.prototype.isRef = function (formula, start_pos, allRef, parent)
 	{
 		if (this instanceof parserHelper)
 		{
 			this._reset();
 		}
-		var substr = formula.substring(start_pos);
-		var match = substr.match(rx_ref);
-		if (match != null)
-		{
-			var m0 = match[0], m1 = match[1], m2 = match[2];
-			if (g_oCellAddressUtils.getCellAddress(m1).isValid() /*match.length >= 3 && g_oCellAddressUtils.colstrToColnum( m1.substr( 0, (m1.length - m2.length) ) ) <= gc_nMaxCol && parseInt( m2 ) <= gc_nMaxRow*/)
-			{
-				this.pCurrPos += m0.indexOf(" ") > -1 ? m0.length - 1 : m1.length;
-				this.operand_str = m1;
-				return true;
+
+		var convertRCToRef = function(r, c, isAbsRow, isAbsCol) {
+			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && parent ? parent.nCol + 1 + c : c);
+			var rowStr = !isAbsRow && parent ? parent.nRow + 1 + r : r;
+			if(isAbsCol) {
+				colStr = "$" + colStr;
 			}
-			else if (allRef)
+			if(isAbsRow) {
+				rowStr = "$" + rowStr;
+			}
+			return colStr + rowStr;
+		};
+
+		var substr = formula.substring(start_pos), match;
+		var m0, m1, m2;
+		if(!window['AscCommonExcel'].c_bRowColFormat) {
+			match = substr.match(rx_ref);
+			if (match != null)
 			{
-				match = substr.match(rx_refAll);
-				if ((match != null || match != undefined) && match.length >= 3)
+				m0 = match[0], m1 = match[1], m2 = match[2];
+				if (g_oCellAddressUtils.getCellAddress(m1).isValid() /*match.length >= 3 && g_oCellAddressUtils.colstrToColnum( m1.substr( 0, (m1.length - m2.length) ) ) <= gc_nMaxCol && parseInt( m2 ) <= gc_nMaxRow*/)
 				{
-					var m1 = match[1];
-					this.pCurrPos += m1.length;
+					this.pCurrPos += m0.indexOf(" ") > -1 ? m0.length - 1 : m1.length;
 					this.operand_str = m1;
+					return true;
+				}
+				else if (allRef)
+				{
+					match = substr.match(rx_refAll);
+					if ((match != null || match != undefined) && match.length >= 3)
+					{
+						m1 = match[1];
+						this.pCurrPos += m1.length;
+						this.operand_str = m1;
+						return true;
+					}
+				}
+			}
+		} else {
+			match = substr.match(rx_refR1C1);
+
+			if (match != null && (match[3] === match[5] || (match[3] === "[" && match[5] === "]")) && (match[7] === match[9] || (match[7] === "[" && match[9] === "]"))) {
+				m0 = match[0], m1 = match[1];
+				var ref = convertRCToRef(parseInt(match[4]), parseInt(match[8]), !match[3], !match[7]);
+				if (g_oCellAddressUtils.getCellAddress(ref).isValid()) {
+					this.pCurrPos += m0.indexOf(" ") > -1 ? m0.length - 1 : m1.length;
+					this.operand_str = m1;
+					this.real_str = ref;
+
 					return true;
 				}
 			}

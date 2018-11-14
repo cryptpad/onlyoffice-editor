@@ -806,7 +806,8 @@
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
-		this._formula = new AscCommonExcel.parserFormula(s.substr(1), null, ws);
+		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
+		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
 		this._formula.parse(true, true, this._parseResult);
 
 		var r, offset, _e, _s, wsName = null, refStr, isName = false, _sColorPos;
@@ -933,8 +934,9 @@
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
-		this._formula = new AscCommonExcel.parserFormula(s.substr(1), null, ws);
-		this._formula.parse(true, true, this._parseResult);
+		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
+		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
+		this._formula.parse(true, true, this._parseResult, bbox);
 
 		if (this._parseResult.refPos && this._parseResult.refPos.length > 0) {
 			for (var index = 0; index < this._parseResult.refPos.length; index++) {

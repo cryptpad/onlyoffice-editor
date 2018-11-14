@@ -1580,11 +1580,22 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cRef.prototype.tocBool = function () {
 		return this.getValue().tocBool();
 	};
-	cRef.prototype.toString = function () {
+	cRef.prototype.toString = function (cellWithFormula) {
 		if (AscCommonExcel.g_ProcessShared) {
 			return this.range.getName();
 		} else {
-		return this.value;
+			if(window['AscCommonExcel'].c_bRowColFormat) {
+				return convertRefToRowCol(this.value, cellWithFormula);
+			} else {
+				return this.value;
+			}
+		}
+	};
+	cRef.prototype.toLocaleString = function (digitDelim, cellWithFormula) {
+		if(window['AscCommonExcel'].c_bRowColFormat) {
+			return convertRefToRowCol(this.value, cellWithFormula);
+		} else {
+			return this.value.toString();
 		}
 	};
 	cRef.prototype.getRange = function () {
@@ -5311,8 +5322,9 @@ parserFormula.prototype.setFormula = function(formula) {
 				found_operand = new cArea(ph.operand_str.toUpperCase(), t.ws);
 				parseResult.addRefPos(ph.pCurrPos - ph.operand_str.length, ph.pCurrPos, t.outStack.length, found_operand);
 			}
-			/* Referens to cell A4 */ else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos)) {
-				found_operand = new cRef(ph.operand_str.toUpperCase(), t.ws);
+			/* Referens to cell A4 */ else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos, null, t.parent)) {
+
+				found_operand = new cRef(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), t.ws);
 				parseResult.addRefPos(ph.pCurrPos - ph.operand_str.length, ph.pCurrPos, t.outStack.length, found_operand);
 			}
 
@@ -6022,7 +6034,7 @@ parserFormula.prototype.setFormula = function(formula) {
 		}
 
 		if (res != undefined && res != null) {
-			return bLocale ? res.toLocaleString(digitDelim) : res.toString();
+			return bLocale ? res.toLocaleString(digitDelim, this.parent) : res.toString(this.parent);
 		} else {
 			return this.Formula;
 		}
@@ -6707,6 +6719,18 @@ function rtl_math_erfc( x ) {
 		return retArr;
 	}
 
+
+	function convertRefToRowCol (ref, curRef) {
+		var cellAddress = new AscCommon.CellAddress(ref);
+
+		var res = "R";
+		res += !cellAddress.bRowAbs && curRef ? "[" + (cellAddress.row - curRef.nRow - 1) + "]" : cellAddress.row;
+		res += "C";
+		res += !cellAddress.bColAbs && curRef ? "[" + (cellAddress.col - curRef.nCol - 1) + "]" : cellAddress.col;
+
+		return res;
+	}
+
 	function specialFuncArrayToArray(arg0, arg1, what){
 		var retArr = null, _arg0, _arg1;
 		if (arg0.getRowCount() === arg1.getRowCount() && 1 === arg0.getCountElementInRow()) {
@@ -6825,7 +6849,12 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].compareFormula = compareFormula;
 	window['AscCommonExcel'].cDate = cDate;
 
+
+	window['AscCommonExcel'].convertRefToRowCol = convertRefToRowCol;
+
 	window["Asc"]["cDate"] = window["Asc"].cDate = cDate;
 	prot									     = cDate.prototype;
 	prot["getExcelDateWithTime"]	             = prot.getExcelDateWithTime;
+
+	window['AscCommonExcel'].c_bRowColFormat = false;
 })(window);
