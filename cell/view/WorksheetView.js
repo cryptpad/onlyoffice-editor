@@ -11808,7 +11808,7 @@
         if (editor.formulaIsOperator() && cFEWSO && cFEWSO.model.getId() != this.model.getId()) {
             sheetName = parserHelp.getEscapeSheetName(this.model.getName()) + "!";
         }
-        editor.enterCellRange(/*defName || */sheetName + currentRange.getAllRange().getName());
+        editor.enterCellRange(/*defName || */sheetName + currentRange.getAllRange().getName(null, this.model.getR1C1Mode(), editor.options.bbox));
 
         for (var tmpRange, i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
             tmpRange = this.arrActiveFormulaRanges[i];
