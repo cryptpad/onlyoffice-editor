@@ -2376,7 +2376,7 @@ CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _R
 			this.FullRecalc.Id = null;
 			this.DrawingDocument.OnEndRecalculate(false);
 
-			if (this.FullRecalc.StartIndex < StartIndex)
+			if (this.FullRecalc.StartIndex <= StartIndex)
 			{
 				StartIndex = this.FullRecalc.StartIndex;
 				StartPage  = this.FullRecalc.PageIndex;
@@ -11140,6 +11140,10 @@ CDocument.prototype.private_MoveCursorDown = function(StartX, StartY, AddToSelec
 	var StartPage = this.CurPage;
 	var CurY      = StartY;
 
+	// Если данная страница еще не успела пересчитаться, тогда не даем смещаться
+	if (StartPage >= this.Pages.length)
+		return true;
+
 	var PageH = this.Pages[this.CurPage].Height;
 
 	this.TurnOff_InterfaceEvents();
@@ -11224,6 +11228,10 @@ CDocument.prototype.private_MoveCursorUp = function(StartX, StartY, AddToSelect)
 {
 	var StartPage = this.CurPage;
 	var CurY      = StartY;
+
+	// Если данная страница еще не успела пересчитаться, тогда не даем смещаться
+	if (StartPage >= this.Pages.length)
+		return true;
 
 	var PageH = this.Pages[this.CurPage].Height;
 
