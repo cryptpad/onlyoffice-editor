@@ -736,7 +736,7 @@
 			if (isCol && !isR1C1Mode) {
 				val = g_oCellAddressUtils.colnumToColstr(val);
 			}
-			return (isR1C1Mode ? (isCol ? 'C' : 'R') : '') + (abs ? (isR1C1Mode ? val : '$' + val) : (isR1C1Mode ? '[' + refVal - val + ']' : val));
+			return (isR1C1Mode ? (isCol ? 'C' : 'R') : '') + (abs ? (isR1C1Mode ? val : '$' + val) : (isR1C1Mode ? '[' + (refVal - val) + ']' : val));
 		};
 		Range.prototype.getName = function (refType, isR1C1Mode, refVal) {
 			refVal = refVal ? refVal : this;
