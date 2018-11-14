@@ -2183,7 +2183,7 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_setR1C1Mode = function (value) {
-		this.tmpR1C1Mode = value;
+		this.isR1C1Mode = value;
 		if (this.wbModel) {
 			this.wbModel.isR1C1Mode = value;
 			this._onUpdateAfterApplyChanges();
