@@ -1581,19 +1581,15 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		return this.getValue().tocBool();
 	};
 	cRef.prototype.toString = function (cellWithFormula) {
-		if (AscCommonExcel.g_ProcessShared) {
-			return this.range.getName();
+		if (AscCommonExcel.g_ProcessShared || this.ws.getR1C1Mode()) {
+			return this.range.getName(this.ws.getR1C1Mode(), cellWithFormula);
 		} else {
-			if(this.range.worksheet.getR1C1Mode()) {
-				this.range.getName();
-			} else {
-				return this.value;
-			}
+			return this.value;
 		}
 	};
 	cRef.prototype.toLocaleString = function (digitDelim, cellWithFormula) {
-		if(this.range.worksheet.getR1C1Mode()) {
-			return convertRefToRowCol(this.value, cellWithFormula);
+		if (this.ws.getR1C1Mode()) {
+			return this.range.getName(this.ws.getR1C1Mode(), cellWithFormula);
 		} else {
 			return this.value.toString();
 		}

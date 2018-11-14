@@ -6912,7 +6912,8 @@
         }
 
         var isR1C1Mode = this.model.getR1C1Mode();
-        return (new Asc.Range(c1, r1, c1, r1)).getName(isR1C1Mode ? AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R, isR1C1Mode);
+        return (new Asc.Range(c1, r1, c1, r1)).getName(isR1C1Mode ?
+			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R, isR1C1Mode);
     };
 
 	WorksheetView.prototype.getSelectionRangeValue = function () {
