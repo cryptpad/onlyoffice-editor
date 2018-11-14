@@ -4856,7 +4856,7 @@
      * @return {String}
      */
     WorksheetView.prototype._getColumnTitle = function (col) {
-        return AscCommon.g_oCellAddressUtils.colnumToColstrFromWsView(col + 1);
+		return this.model.getR1C1Mode() ? this._getRowTitle(col) : AscCommon.g_oCellAddressUtils.colnumToColstrFromWsView(col + 1);
     };
 
     /**
@@ -6911,7 +6911,8 @@
             return defName;
         }
 
-        return this._getColumnTitle(c1) + this._getRowTitle(r1);
+        var isR1C1Mode = this.model.getR1C1Mode();
+        return (new Asc.Range(c1, r1, c1, r1)).getName(isR1C1Mode ? AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R, isR1C1Mode);
     };
 
 	WorksheetView.prototype.getSelectionRangeValue = function () {
