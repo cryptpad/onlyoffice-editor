@@ -89,7 +89,7 @@ var editor;
     this.wbModel = null;
     this.tmpLocale = null;
     this.tmpLocalization = null;
-    this.tmpR1C1Mode = null;
+    this.isR1C1Mode = false;
 
     this.documentFormatSave = c_oAscFileType.XLSX;
 
@@ -288,6 +288,7 @@ var editor;
 
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
+    this.wbModel.isR1C1Mode = this.isR1C1Mode;
     this.initGlobalObjects(this.wbModel);
     AscFonts.IsCheckSymbols = true;
     var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
@@ -2182,16 +2183,11 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_setR1C1Mode = function (value) {
-		if (!this.isLoadFullApi) {
-			this.tmpR1C1Mode = value;
-			return;
-		}
-		if (null === value) {
-			return;
-		}
-
-		this.wbModel.isR1C1Mode = value;
-		this._onUpdateAfterApplyChanges();
+		this.tmpR1C1Mode = value;
+		if (this.wbModel) {
+			this.wbModel.isR1C1Mode = value;
+			this._onUpdateAfterApplyChanges();
+        }
 	};
 
 
@@ -3417,7 +3413,6 @@ var editor;
 		this.formulasList = AscCommonExcel.getFormulasInfo();
 		this.asc_setLocale(this.tmpLocale);
 		this.asc_setLocalization(this.tmpLocalization);
-		this.asc_setR1C1Mode(this.tmpR1C1Mode);
 		this.asc_setViewMode(this.isViewMode);
 
         if (this.openFileCryptBinary)
