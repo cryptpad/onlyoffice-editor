@@ -731,8 +731,16 @@
 			}
 		};
 
-		Range.prototype.getName = function (refType) {
-			var type = this.getType();
+		Range.prototype._getName = function (val, isCol, abs, isR1C1Mode, refVal) {
+			val += 1;
+			if (isCol && !isR1C1Mode) {
+				val = g_oCellAddressUtils.colnumToColstr(val);
+			}
+			return (isR1C1Mode ? (isCol ? 'C' : 'R') : '') + (abs ? (isR1C1Mode ? val : '$' + val) : (isR1C1Mode ? '[' + refVal - val + ']' : val));
+		};
+		Range.prototype.getName = function (refType, isR1C1Mode, refVal) {
+			refVal = refVal ? refVal : this;
+			var c, r, type = this.getType();
 			var sRes = "";
 			var c1Abs, c2Abs, r1Abs, r2Abs;
 			if (referenceType.A === refType) {
@@ -747,42 +755,24 @@
 			}
 
 			if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type) && c1Abs === c2Abs) {
-				if (r1Abs) {
-					sRes += "$";
+				sRes = this._getName(this.r1, false, r1Abs, isR1C1Mode, refVal.r1);
+				if (this.r1 !== this.r2 || r1Abs !== r2Abs || !isR1C1Mode) {
+					sRes += ':' + this._getName(this.r2, false, r2Abs, isR1C1Mode, refVal.r1);
 				}
-				sRes += (this.r1 + 1) + ":";
-				if (r2Abs) {
-					sRes += "$";
-				}
-				sRes += (this.r2 + 1);
 			} else if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeCol === type) && r1Abs === r2Abs) {
-				if (c1Abs) {
-					sRes += "$";
+				sRes = this._getName(this.c1, true, c1Abs, isR1C1Mode, refVal.c1);
+				if (this.c1 !== this.c2 || c1Abs !== c2Abs || !isR1C1Mode) {
+					sRes += ':' + this._getName(this.c2, true, c2Abs, isR1C1Mode, refVal.c1);
 				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1) + ":";
-				if (c2Abs) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
 			} else {
-				if (c1Abs) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1);
-				if (r1Abs) {
-					sRes += "$";
-				}
-				sRes += (this.r1 + 1);
+				r = this._getName(this.r1, false, r1Abs, isR1C1Mode, refVal.r1);
+				c = this._getName(this.c1, true, c1Abs, isR1C1Mode, refVal.c1);
+				sRes = isR1C1Mode ? r + c : c + r;
+
 				if (!this.isOneCell() || r1Abs !== r2Abs || c1Abs !== c2Abs) {
-					sRes += ":";
-					if (c2Abs) {
-						sRes += "$";
-					}
-					sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-					if (r2Abs) {
-						sRes += "$";
-					}
-					sRes += (this.r2 + 1);
+					r = this._getName(this.r2, false, r2Abs, isR1C1Mode, refVal.r1);
+					c = this._getName(this.c2, true, c2Abs, isR1C1Mode, refVal.c1);
+					sRes += ':' + (isR1C1Mode ? r + c : c + r);
 				}
 			}
 			return sRes;
