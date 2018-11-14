@@ -6949,7 +6949,6 @@
         var isNumberFormat = (!cellType || CellValueType.Number === cellType);
 
         var cell_info = new asc_CCellInfo();
-        cell_info.name = this._getColumnTitle(c1) + this._getRowTitle(r1);
         cell_info.formula = c.getFormula();
 
         cell_info.text = c.getValueForEdit();
