@@ -1584,15 +1584,15 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		if (AscCommonExcel.g_ProcessShared) {
 			return this.range.getName();
 		} else {
-			if(window['AscCommonExcel'].c_bRowColFormat) {
-				return convertRefToRowCol(this.value, cellWithFormula);
+			if(this.range.worksheet.getR1C1Mode()) {
+				this.range.getName();
 			} else {
 				return this.value;
 			}
 		}
 	};
 	cRef.prototype.toLocaleString = function (digitDelim, cellWithFormula) {
-		if(window['AscCommonExcel'].c_bRowColFormat) {
+		if(this.range.worksheet.getR1C1Mode()) {
 			return convertRefToRowCol(this.value, cellWithFormula);
 		} else {
 			return this.value.toString();
@@ -5304,7 +5304,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				if (parserHelp.isArea.call(ph, t.Formula, ph.pCurrPos)) {
 					found_operand = new cArea3D(ph.operand_str.toUpperCase(), wsF, wsT);
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
-				} else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos, null, t.parent)) {
+				} else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos, null, t)) {
 					if (wsT !== wsF) {
 						found_operand = new cArea3D(ph.operand_str.toUpperCase(), wsF, wsT);
 					} else {
@@ -5322,7 +5322,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				found_operand = new cArea(ph.operand_str.toUpperCase(), t.ws);
 				parseResult.addRefPos(ph.pCurrPos - ph.operand_str.length, ph.pCurrPos, t.outStack.length, found_operand);
 			}
-			/* Referens to cell A4 */ else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos, null, t.parent)) {
+			/* Referens to cell A4 */ else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos, null, t)) {
 
 				found_operand = new cRef(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), t.ws);
 				parseResult.addRefPos(ph.pCurrPos - ph.operand_str.length, ph.pCurrPos, t.outStack.length, found_operand);
@@ -6855,6 +6855,4 @@ function rtl_math_erfc( x ) {
 	window["Asc"]["cDate"] = window["Asc"].cDate = cDate;
 	prot									     = cDate.prototype;
 	prot["getExcelDateWithTime"]	             = prot.getExcelDateWithTime;
-
-	window['AscCommonExcel'].c_bRowColFormat = true;
 })(window);
