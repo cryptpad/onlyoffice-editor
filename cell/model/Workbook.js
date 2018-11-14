@@ -1802,6 +1802,7 @@
 
 		this.openErrors = [];
 
+		this.isR1C1Mode = false;
 		this.maxDigitWidth = 0;
 		this.paddingPlusBorder = 0;
 
@@ -3133,6 +3134,9 @@
 	};
 	Worksheet.prototype.getColDataLength = function() {
 		return this.cellsByCol.length;
+	};
+	Worksheet.prototype.getR1C1Mode = function () {
+		return this.workbook.isR1C1Mode;
 	};
 	Worksheet.prototype.getSnapshot = function(wb) {
 		var ws = new Worksheet(wb, this.index, this.Id);

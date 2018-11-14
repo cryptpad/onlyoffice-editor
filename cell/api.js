@@ -2180,6 +2180,11 @@ var editor;
 		return result;
 	};
 
+	spreadsheet_api.prototype.asc_setIsR1C1Mode = function (value) {
+		this.wbModel.isR1C1Mode = value;
+		this._onUpdateAfterApplyChanges();
+	};
+
 
   // Spreadsheet interface
 
@@ -3548,6 +3553,8 @@ var editor;
   prot["asc_endFindText"] = prot.asc_endFindText;
   prot["asc_findCell"] = prot.asc_findCell;
   prot["asc_closeCellEditor"] = prot.asc_closeCellEditor;
+
+  prot["asc_setIsR1C1Mode"] = prot.asc_setIsR1C1Mode;
 
   // Spreadsheet interface
 
