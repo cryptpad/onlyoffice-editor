@@ -190,8 +190,13 @@ CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
 			if(oParagraph)
 			{
 				this.ParentContent = oParagraph.Parent;
+
 			}
 		}
+	}
+	if(this.ParseQueue)
+	{
+		this.ParseQueue.ParentContent = this.ParentContent;
 	}
 };
 
