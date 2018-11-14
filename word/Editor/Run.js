@@ -3662,47 +3662,46 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
     PRS.bForcedBreak        = bForcedBreak;
 
 
-    if(this.Type == para_Math_Run)
-    {
-        if(true === NewRange)
-        {
-            var WidthLine = X - XRange;
+	if (this.Type == para_Math_Run)
+	{
+		if (true === NewRange)
+		{
+			var WidthLine = X - XRange;
 
-            if(this.ParaMath.Is_BrkBinBefore() == false)
-                WidthLine += SpaceLen;
+			if (this.ParaMath.Is_BrkBinBefore() == false)
+				WidthLine += SpaceLen;
 
-            this.ParaMath.UpdateWidthLine(PRS, WidthLine);
-        }
-        else
-        {
-            // для пустого Run, обновляем LineBreakPos на случай, если пустой Run находится между break_operator (мат. объект) и мат объектом
-            if(this.Content.length == 0)
-            {
-                if(PRS.bForcedBreak == true)
-                {
-                    PRS.MoveToLBP = true;
-                    PRS.NewRange = true;
-                    PRS.Set_LineBreakPos(0, PRS.FirstItemOnLine);
-                }
-                else if(this.ParaMath.Is_BrkBinBefore() == false && Word == false && PRS.bBreakBox == true)
-                {
-                    PRS.Set_LineBreakPos(Pos, PRS.FirstItemOnLine);
-                    PRS.X += SpaceLen;
-                    PRS.SpaceLen = 0;
-                }
-            }
+			this.ParaMath.UpdateWidthLine(PRS, WidthLine);
+		}
+		else
+		{
+			// для пустого Run, обновляем LineBreakPos на случай, если пустой Run находится между break_operator (мат. объект) и мат объектом
+			if (this.Content.length == 0)
+			{
+				if (PRS.bForcedBreak == true)
+				{
+					PRS.MoveToLBP = true;
+					PRS.NewRange  = true;
+					PRS.Set_LineBreakPos(0, PRS.FirstItemOnLine);
+				}
+				else if (this.ParaMath.Is_BrkBinBefore() == false && Word == false && PRS.bBreakBox == true)
+				{
+					PRS.Set_LineBreakPos(Pos, PRS.FirstItemOnLine);
+					PRS.X += SpaceLen;
+					PRS.SpaceLen = 0;
+				}
+			}
 
-            // запоминаем конец Run
-            PRS.PosEndRun.Set(PRS.CurPos);
-            PRS.PosEndRun.Update2(this.Content.length, Depth);
+			// запоминаем конец Run
+			PRS.PosEndRun.Set(PRS.CurPos);
+			PRS.PosEndRun.Update2(this.Content.length, Depth);
+		}
+	}
 
-        }
-    }
-
-    if ( Pos >= ContentLen )
-    {
-        RangeEndPos = Pos;
-    }
+	if (Pos >= ContentLen)
+	{
+		RangeEndPos = Pos;
+	}
 
     this.protected_FillRange(CurLine, CurRange, RangeStartPos, RangeEndPos);
 

@@ -3058,7 +3058,12 @@ function NativeOpenFileP(_params, documentInfo){
         _api.documentId = "1";
         _api.WordControl.m_oDrawingDocument.AfterLoad();
         Api = _api;
-
+        if (window.documentInfo["viewmode"]) {
+            _api.ShowParaMarks = false;
+            AscCommon.CollaborativeEditing.Set_GlobalLock(true);
+            _api.isViewMode = true;
+            _api.WordControl.m_oDrawingDocument.IsViewMode = true;
+          }
         var _presentation = _api.WordControl.m_oLogicDocument;
 
         var nSlidesCount = _presentation.Slides.length;

@@ -1392,6 +1392,15 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
             break;
         }
+        case 22003: //ASC_MENU_EVENT_TYPE_ON_EDIT_TEXT
+        {
+            var oController = this.WordControl.m_oLogicDocument.DrawingObjects;
+            if(oController)
+            {
+                oController.startEditTextCurrentShape();
+            }
+            break;
+        }
         case 3: // ASC_MENU_EVENT_TYPE_UNDO
         {
             this.WordControl.m_oLogicDocument.Document_Undo();
