@@ -520,7 +520,6 @@
                     }
                 }
             }
-            this.result = this.getContentValue(oContent);
             return;
         }
         else if(this.isCellRange()){
@@ -824,6 +823,9 @@
         return true;
     };
     CPRODUCTFunctionNode.prototype.product = function(aArgs){
+        if(aArgs.length === 0){
+            return 0.0;
+        }
         var res = 1.0;
         for(var i = 0; i < aArgs.length; ++i){
             var result = aArgs[i].result;
@@ -1279,7 +1281,7 @@
         if(this.formula.indexOf('RIGHT', this.pos) === this.pos){
             this.pos += 'RIGHT'.length;
             oRet = new CCellRangeNode();
-            oRet.dir = BELOW;
+            oRet.dir = RIGHT;
             return oRet;
         }
         //check cell reference
@@ -1615,7 +1617,7 @@
         oRet = this.checkExpression(oConstantRegExp, this.parseNumber);
         var oRes;
         if(oRet){
-            while(this.formula[this.pos] !== '(' && this.formula[this.pos] !== ')' &&
+            while(this.pos < this.formula.length && this.formula[this.pos] !== '(' && this.formula[this.pos] !== ')' &&
             !((oOperatorRegExp.lastIndex = this.pos) && (oRes = oOperatorRegExp.exec(this.formula)) && oRes.index === this.pos)){
                 ++this.pos;
             }

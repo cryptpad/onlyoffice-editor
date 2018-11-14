@@ -174,7 +174,10 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 			}
 		}
 	}
-	this.ResultStr = '';
+	else
+	{
+		this.ResultStr = '';
+	}
 };
 
 CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
