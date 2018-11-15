@@ -1445,6 +1445,7 @@
       this._applyPrebuffered();
 
       if (this._isReSaveAfterAuth) {
+        this._isReSaveAfterAuth = false;
         var callbackAskSaveChanges = function(e) {
           if (false === e["saveLock"]) {
             t._reSaveChanges(2);
@@ -1730,6 +1731,7 @@
 			// Очищаем предыдущий таймер
 			if (null !== this.saveCallbackErrorTimeOutId) {
 				clearTimeout(this.saveCallbackErrorTimeOutId);
+				this.saveCallbackErrorTimeOutId = null;
 			}
 		}
 		this._state = ConnectionState.Reconnect;
