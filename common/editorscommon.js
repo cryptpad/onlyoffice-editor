@@ -1940,13 +1940,14 @@
 		}
 		return false;
 	};
-	parserHelper.prototype.isArea = function (formula, start_pos, parserFormula)
+	parserHelper.prototype.isArea = function (formula, start_pos)
 	{
 		if (this instanceof parserHelper)
 		{
 			this._reset();
 		}
 
+		var activeCell = AscCommonExcel.g_ActiveCell;
 		var checkAbs = function(val1, val2) {
 			var res = null;
 			if(val1 === val2 && val1 === undefined) {
@@ -1958,7 +1959,6 @@
 		};
 
 		var convertRCToRef = function(r, c, isAbsRow, isAbsCol) {
-			var parent = parserFormula ? parserFormula.parent : null;
 			if(isNaN(r)) {
 				r = 0;
 				isAbsRow = false;
@@ -1968,8 +1968,8 @@
 				isAbsCol = false;
 			}
 
-			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && parent ? parent.nCol + 1 + c : c);
-			var rowStr = !isAbsRow && parent ? parent.nRow + 1 + r : r;
+			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
+			var rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r : r;
 			if(isAbsCol) {
 				colStr = "$" + colStr;
 			}
@@ -1980,12 +1980,11 @@
 		};
 
 		var convertCCToRef1 = function(c, isAbsCol) {
-			var parent = parserFormula ? parserFormula.parent : null;
 			if(isNaN(c)) {
 				c = 0;
 				isAbsCol = false;
 			}
-			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && parent ? parent.nCol + 1 + c : c);
+			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
 			if(isAbsCol) {
 				colStr = "$" + colStr;
 			}
@@ -1993,19 +1992,18 @@
 		};
 
 		var convertRRToRef1 = function(r, isAbsRow) {
-			var parent = parserFormula ? parserFormula.parent : null;
 			if(isNaN(r)) {
 				r = 0;
 				isAbsRow = false;
 			}
-			var rowStr = !isAbsRow && parent ? parent.nRow + 1 + r + "" : r + "";
+			var rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r + "" : r + "";
 			if(isAbsRow) {
 				rowStr = "$" + rowStr;
 			}
 			return rowStr;
 		};
 
-		var R1C1Mode = parserFormula && parserFormula.ws && parserFormula.ws.getR1C1Mode();
+		var R1C1Mode = window['AscCommonExcel'].g_R1C1Mode;
 		var subSTR = formula.substring(start_pos);
 
 		var match;
@@ -2073,15 +2071,15 @@
 		}
 		return false;
 	};
-	parserHelper.prototype.isRef = function (formula, start_pos, allRef, parserFormula)
+	parserHelper.prototype.isRef = function (formula, start_pos, allRef)
 	{
 		if (this instanceof parserHelper)
 		{
 			this._reset();
 		}
 
+		var activeCell = AscCommonExcel.g_ActiveCell;
 		var convertRCToRef = function(r, c, isAbsRow, isAbsCol) {
-			var parent = parserFormula ? parserFormula.parent : null;
 			if(isNaN(r)) {
 				r = 0;
 				isAbsRow = false;
@@ -2091,8 +2089,8 @@
 				isAbsCol = false;
 			}
 
-			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && parent ? parent.nCol + 1 + c : c);
-			var rowStr = !isAbsRow && parent ? parent.nRow + 1 + r : r;
+			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
+			var rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r : r;
 			if(isAbsCol) {
 				colStr = "$" + colStr;
 			}
@@ -2102,7 +2100,7 @@
 			return colStr + rowStr;
 		};
 
-		var R1C1Mode = parserFormula && parserFormula.ws && parserFormula.ws.getR1C1Mode();
+		var R1C1Mode = window['AscCommonExcel'].g_R1C1Mode;
 		var substr = formula.substring(start_pos), match;
 		var m0, m1;
 		if(!R1C1Mode) {

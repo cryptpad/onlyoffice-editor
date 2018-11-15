@@ -5293,7 +5293,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				if (parserHelp.isArea.call(ph, t.Formula, ph.pCurrPos)) {
 					found_operand = new cArea3D(ph.operand_str.toUpperCase(), wsF, wsT);
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
-				} else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos, null, t)) {
+				} else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos)) {
 					if (wsT !== wsF) {
 						found_operand = new cArea3D(ph.operand_str.toUpperCase(), wsF, wsT);
 					} else {
@@ -5307,11 +5307,11 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 
 			/* Referens to cells area A1:A10 */ else if (parserHelp.isArea.call(ph, t.Formula,
-					ph.pCurrPos, t)) {
+					ph.pCurrPos)) {
 				found_operand = new cArea(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), t.ws);
 				parseResult.addRefPos(ph.pCurrPos - ph.operand_str.length, ph.pCurrPos, t.outStack.length, found_operand);
 			}
-			/* Referens to cell A4 */ else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos, null, t)) {
+			/* Referens to cell A4 */ else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos)) {
 
 				found_operand = new cRef(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), t.ws);
 				parseResult.addRefPos(ph.pCurrPos - ph.operand_str.length, ph.pCurrPos, t.outStack.length, found_operand);
