@@ -12785,7 +12785,7 @@ CDocument.prototype.Set_TrackRevisions = function(bTrack){};
  */
 CDocument.prototype.Begin_CompositeInput = function()
 {
-	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true))
+	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, this.IsFormFieldEditing()))
 	{
 		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_CompositeInput);
 		this.DrawingObjects.CreateDocContent();
