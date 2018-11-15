@@ -125,7 +125,7 @@ var editor;
 
     this.formulasList = null;	// Список всех формул
 
-	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, pivots: {}};
+	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
 
     this._init();
     return this;
@@ -286,17 +286,12 @@ var editor;
 	spreadsheet_api.prototype.asc_getLocale = function() {
 		return AscCommon.g_oDefaultCultureInfo.LCID;
 	};
-	spreadsheet_api.prototype.getOrCreateWorkbook = function() {
-		if (!this.wbModel) {
-			this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
-			this.initGlobalObjects(this.wbModel);
-		}
-		return this.wbModel;
-	};
   spreadsheet_api.prototype._openDocument = function(data) {
+    this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
+    this.initGlobalObjects(this.wbModel);
     AscFonts.IsCheckSymbols = true;
     var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
-    oBinaryFileReader.Read(data, this.getOrCreateWorkbook());
+    oBinaryFileReader.Read(data, this.wbModel);
     AscFonts.IsCheckSymbols = false;
   };
 
@@ -732,24 +727,25 @@ var editor;
 	spreadsheet_api.prototype._onEndOpen = function() {
 		var t = this;
 		if (this.openingEnd.bin && this.openingEnd.xlsx) {
-			for (var wsIndex in this.openingEnd.pivots) {
-				if (this.openingEnd.pivots.hasOwnProperty(wsIndex)) {
-					var ws = t.wbModel.getWorksheet(parseInt(wsIndex));
-					ws.insertPivotTable(this.openingEnd.pivots[wsIndex]);
+			//opening xlsx depends on getBinaryOtherTableGVar(called after Editor.bin)
+			this.openDocumentFromZip(t.wbModel, this.openingEnd.data).then(function() {
+				g_oIdCounter.Set_Load(false);
+				AscCommon.checkCultureInfoFontPicker();
+				AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
+				t.FontLoader.LoadDocumentFonts(t.wbModel.generateFontMap2());
+
+				// Какая-то непонятная заглушка, чтобы не падало в ipad
+				if (t.isMobileVersion) {
+					AscCommon.AscBrowser.isSafariMacOs = false;
+					AscCommon.PasteElementsId.PASTE_ELEMENT_ID = "wrd_pastebin";
+					AscCommon.PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
 				}
-			}
-
-			g_oIdCounter.Set_Load(false);
-			AscCommon.checkCultureInfoFontPicker();
-			AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
-			t.FontLoader.LoadDocumentFonts(t.wbModel.generateFontMap2());
-
-			// Какая-то непонятная заглушка, чтобы не падало в ipad
-			if (t.isMobileVersion) {
-				AscCommon.AscBrowser.isSafariMacOs = false;
-				AscCommon.PasteElementsId.PASTE_ELEMENT_ID = "wrd_pastebin";
-				AscCommon.PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
-			}
+			}).catch(function(err) {
+				if (window.console && window.console.log) {
+					window.console.log(err);
+				}
+				t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+			});
 		}
 	};
   spreadsheet_api.prototype._onOpenCommand = function(data) {
@@ -773,15 +769,24 @@ var editor;
 			return;
 		}
 		this.openingEnd.xlsxStart = true;
-		this.openDocumentFromZip(AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx')).then(function() {
+		var url = AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx');
+		if (url) {
+			AscCommon.getJSZipUtils().getBinaryContent(url, function(err, data) {
+				if (err) {
+					if (window.console && window.console.log) {
+						window.console.log(err);
+					}
+					t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+				} else {
+					t.openingEnd.xlsx = true;
+					t.openingEnd.data = data;
+					t._onEndOpen();
+				}
+			});
+		} else {
 			t.openingEnd.xlsx = true;
 			t._onEndOpen();
-		}).catch(function(err) {
-			if (window.console && window.console.log) {
-				window.console.log(err);
-			}
-			t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-		});
+		}
 	};
 
   spreadsheet_api.prototype._OfflineAppDocumentEndLoad = function() {
@@ -1053,8 +1058,7 @@ var editor;
 	this._openDocument(sData);
 	this._onOpenCommandXlsx();
   };
-	spreadsheet_api.prototype.openDocumentFromZip = function (opt_url, opt_path) {
-		var wb = this.getOrCreateWorkbook();
+	spreadsheet_api.prototype.openDocumentFromZip = function (wb, data) {
 		var t = this;
 		return new Promise(function (resolve, reject) {
 			var openXml = AscCommon.openXml;
@@ -1063,112 +1067,101 @@ var editor;
 				resolve();
 				return;
 			}
-			var processData = function (err, data, path) {
-				var nextPromise;
-				if (!err && (data || path)) {
-					var doc = new openXml.OpenXmlPackage();
-					var wbPart = null;
-					var wbXml = null;
-					var pivotCaches = {};
-					var jsZipWrapper = new AscCommon.JSZipWrapper();
-					nextPromise = jsZipWrapper.loadAsync(data || path).then(function (zip) {
-						return doc.openFromZip(zip);
-					}).then(function () {
-						wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
-						return wbPart.getDocumentContent();
-					}).then(function (contentWorkbook) {
-						wbXml = new AscCommonExcel.CT_Workbook();
-						new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
-						if (wbXml.pivotCaches) {
-							return wbXml.pivotCaches.reduce(function (prevVal, wbPivotCacheXml) {
-								var pivotTableCacheDefinitionPart;
-								var pivotTableCacheDefinition;
-								return prevVal.then(function () {
-									if (null !== wbPivotCacheXml.cacheId && null !== wbPivotCacheXml.id) {
-										pivotTableCacheDefinitionPart = wbPart.getPartById(wbPivotCacheXml.id);
-										return pivotTableCacheDefinitionPart.getDocumentContent();
-									}
-								}).then(function (content) {
-									if (content) {
-										pivotTableCacheDefinition = new Asc.CT_PivotCacheDefinition();
-										new openXml.SaxParserBase().parse(content, pivotTableCacheDefinition);
-										if (pivotTableCacheDefinition.isValidCacheSource()) {
-											pivotCaches[wbPivotCacheXml.cacheId] = pivotTableCacheDefinition;
-											if (pivotTableCacheDefinition.id) {
-												var partPivotTableCacheRecords = pivotTableCacheDefinitionPart.getPartById(
-													pivotTableCacheDefinition.id);
-												return partPivotTableCacheRecords.getDocumentContent();
-											}
+			var nextPromise;
+			if (data) {
+				var doc = new openXml.OpenXmlPackage();
+				var wbPart = null;
+				var wbXml = null;
+				var pivotCaches = {};
+				var jsZipWrapper = new AscCommon.JSZipWrapper();
+				nextPromise = jsZipWrapper.loadAsync(data || path).then(function (zip) {
+					return doc.openFromZip(zip);
+				}).then(function () {
+					wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
+					return wbPart.getDocumentContent();
+				}).then(function (contentWorkbook) {
+					wbXml = new AscCommonExcel.CT_Workbook();
+					new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
+					if (wbXml.pivotCaches) {
+						return wbXml.pivotCaches.reduce(function (prevVal, wbPivotCacheXml) {
+							var pivotTableCacheDefinitionPart;
+							var pivotTableCacheDefinition;
+							return prevVal.then(function () {
+								if (null !== wbPivotCacheXml.cacheId && null !== wbPivotCacheXml.id) {
+									pivotTableCacheDefinitionPart = wbPart.getPartById(wbPivotCacheXml.id);
+									return pivotTableCacheDefinitionPart.getDocumentContent();
+								}
+							}).then(function (content) {
+								if (content) {
+									pivotTableCacheDefinition = new Asc.CT_PivotCacheDefinition();
+									new openXml.SaxParserBase().parse(content, pivotTableCacheDefinition);
+									if (pivotTableCacheDefinition.isValidCacheSource()) {
+										pivotCaches[wbPivotCacheXml.cacheId] = pivotTableCacheDefinition;
+										if (pivotTableCacheDefinition.id) {
+											var partPivotTableCacheRecords = pivotTableCacheDefinitionPart.getPartById(
+												pivotTableCacheDefinition.id);
+											return partPivotTableCacheRecords.getDocumentContent();
 										}
 									}
-								}).then(function (content) {
-									if (content) {
-										var pivotTableCacheRecords = new Asc.CT_PivotCacheRecords();
-										new openXml.SaxParserBase().parse(content, pivotTableCacheRecords);
-										pivotTableCacheDefinition.cacheRecords = pivotTableCacheRecords;
-									}
-								});
-							}, Promise.resolve());
-						}
-					}).then(function () {
-						if (wbXml.sheets) {
-							var wsIndex = 0;
-							return wbXml.sheets.reduce(function (prevVal, wbSheetXml) {
-								var wsPart;
-								return prevVal.then(function () {
-									if (null !== wbSheetXml.id) {
-										var actions = [];
-										wsPart = wbPart.getPartById(wbSheetXml.id);
-										var pivotParts = wsPart.getPartsByRelationshipType(
-											openXml.relationshipTypes.pivotTable);
-										for (var i = 0; i < pivotParts.length; ++i) {
-											actions.push(pivotParts[i].getDocumentContent());
-										}
-										return Promise.all(actions);
-									}
-								}).then(function (res) {
-									if (res) {
-										for (var i = 0; i < res.length; ++i) {
-											var pivotTable = new Asc.CT_pivotTableDefinition();
-											new openXml.SaxParserBase().parse(res[i], pivotTable);
-											var cacheDefinition = pivotCaches[pivotTable.cacheId];
-											if (cacheDefinition) {
-												pivotTable.cacheDefinition = cacheDefinition;
-												t.openingEnd.pivots[wsIndex] = pivotTable;
-											}
-										}
-									}
-									wsIndex++;
-								});
-							}, Promise.resolve());
-						}
-					}).catch(function (err) {
-						//don't show error.(case of open xls, ods, csv)
-						if (window.console && window.console.log) {
-							window.console.log(err);
-						}
-					}).then(function () {
-						jsZipWrapper.close();
-					});
-				} else {
-					if (err) {
-						if (window.console && window.console.log) {
-							window.console.log(err);
-						}
+								}
+							}).then(function (content) {
+								if (content) {
+									var pivotTableCacheRecords = new Asc.CT_PivotCacheRecords();
+									new openXml.SaxParserBase().parse(content, pivotTableCacheRecords);
+									pivotTableCacheDefinition.cacheRecords = pivotTableCacheRecords;
+								}
+							});
+						}, Promise.resolve());
 					}
-					nextPromise = Promise.resolve();
-				}
-				nextPromise.then(function (err) {
-					//clean up
-					openXml.SaxParserDataTransfer = {};
-					return Asc.ReadDefTableStyles(wb);
-				}).then(resolve, reject);
-			};
-			if (opt_url) {
-				AscCommon.getJSZipUtils().getBinaryContent(opt_url, processData);
+				}).then(function () {
+					if (wbXml.sheets) {
+						var wsIndex = 0;
+						return wbXml.sheets.reduce(function (prevVal, wbSheetXml) {
+							var wsPart;
+							return prevVal.then(function () {
+								if (null !== wbSheetXml.id) {
+									var actions = [];
+									wsPart = wbPart.getPartById(wbSheetXml.id);
+									var pivotParts = wsPart.getPartsByRelationshipType(
+										openXml.relationshipTypes.pivotTable);
+									for (var i = 0; i < pivotParts.length; ++i) {
+										actions.push(pivotParts[i].getDocumentContent());
+									}
+									return Promise.all(actions);
+								}
+							}).then(function (res) {
+								if (res) {
+									var ws = t.wbModel.getWorksheet(wsIndex);
+									for (var i = 0; i < res.length; ++i) {
+										var pivotTable = new Asc.CT_pivotTableDefinition();
+										new openXml.SaxParserBase().parse(res[i], pivotTable);
+										var cacheDefinition = pivotCaches[pivotTable.cacheId];
+										if (cacheDefinition) {
+											pivotTable.cacheDefinition = cacheDefinition;
+											ws.insertPivotTable(pivotTable);
+										}
+									}
+								}
+								wsIndex++;
+							});
+						}, Promise.resolve());
+					}
+				}).catch(function (err) {
+					//don't show error.(case of open xls, ods, csv)
+					if (window.console && window.console.log) {
+						window.console.log(err);
+					}
+				}).then(function () {
+					jsZipWrapper.close();
+				});
 			} else {
-				processData(undefined, undefined, opt_path);
+				nextPromise = Promise.resolve();
 			}
+			nextPromise.then(function (err) {
+				//clean up
+				openXml.SaxParserDataTransfer = {};
+				return Asc.ReadDefTableStyles(wb);
+			}).then(resolve, reject);
 		});
 	};
 
@@ -3320,7 +3313,7 @@ var editor;
 		t._coAuthoringInit();
 		t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
 	};
-	return this.openDocumentFromZip(undefined, xlsxPath).then(thenCallback, thenCallback);
+	return this.openDocumentFromZip(t.wbModel, xlsxPath).then(thenCallback, thenCallback);
   };
 
   spreadsheet_api.prototype.asc_nativeCalculateFile = function() {
