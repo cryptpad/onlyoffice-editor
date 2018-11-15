@@ -1761,8 +1761,11 @@
 		rx_operators          = /^ *[-+*\/^&%<=>:] */,
 		rg                    = new XRegExp("^((?:_xlfn.)?[\\p{L}\\d.]+ *)[-+*/^&%<=>:;\\(\\)]"),
 		rgRange               = /^(\$?[A-Za-z]+\$?\d+:\$?[A-Za-z]+\$?\d+)(?:[-+*\/^&%<=>: ;),]|$)/,
+		rgRangeR1C1           = /^(([Rr]{1}(\[)?(-?\d+)(\])?)([Cc]{1}(\[)?(-?\d+)(\])?):([Rr]{1}(\[)?(-?\d+)(\])?)([Cc]{1}(\[)?(-?\d+)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rgCols                = /^(\$?[A-Za-z]+:\$?[A-Za-z]+)(?:[-+*\/^&%<=>: ;),]|$)/,
+		rgColsR1C1            = /^(([Cc]{1}(\[)?(-?\d*)(\])?(:)?)([Cc]{1}(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rgRows                = /^(\$?\d+:\$?\d+)(?:[-+*\/^&%<=>: ;),]|$)/,
+		rgRowsR1C1            = /^(([Rr]{1}(\[)?(-?\d*)(\])?(:)?)([Rr]{1}(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rx_ref                = /^ *(\$?[A-Za-z]{1,3}\$?(\d{1,7}))([-+*\/^&%<=>: ;),]|$)/,
 		rx_refAll             = /^(\$?[A-Za-z]+\$?(\d+))([-+*\/^&%<=>: ;),]|$)/,
 		rx_refR1C1             = /^(([Rr]{1}(\[)?(-?\d+)(\])?)([Cc]{1}(\[)?(-?\d+)(\])?))([-+*\/^&%<=>: ;),]|$)/,
@@ -1937,23 +1940,127 @@
 		}
 		return false;
 	};
-	parserHelper.prototype.isArea = function (formula, start_pos)
+	parserHelper.prototype.isArea = function (formula, start_pos, parserFormula)
 	{
 		if (this instanceof parserHelper)
 		{
 			this._reset();
 		}
 
+		var checkAbs = function(val1, val2) {
+			var res = null;
+			if(val1 === val2 && val1 === undefined) {
+				res = true;
+			} else if(val1 === "[" && val2 === "]") {
+				res = false;
+			}
+			return res;
+		};
+
+		var convertRCToRef = function(r, c, isAbsRow, isAbsCol) {
+			var parent = parserFormula ? parserFormula.parent : null;
+			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && parent ? parent.nCol + 1 + c : c);
+			var rowStr = !isAbsRow && parent ? parent.nRow + 1 + r : r;
+			if(isAbsCol) {
+				colStr = "$" + colStr;
+			}
+			if(isAbsRow) {
+				rowStr = "$" + rowStr;
+			}
+			return colStr + rowStr;
+		};
+
+		var convertCCToRef1 = function(c, isAbsCol) {
+			var parent = parserFormula ? parserFormula.parent : null;
+			//TODO проверить на 0 - в excel нумерация начинается с 1
+			if(isNaN(c)) {
+				c = 0;
+				isAbsCol = false;
+			}
+			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && parent ? parent.nCol + 1 + c : c);
+			if(isAbsCol) {
+				colStr = "$" + colStr;
+			}
+			return colStr;
+		};
+
+		var convertRRToRef1 = function(r, isAbsRow) {
+			var parent = parserFormula ? parserFormula.parent : null;
+			if(isNaN(r)) {
+				r = 0;
+				isAbsRow = false;
+			}
+			var rowStr = !isAbsRow && parent ? parent.nRow + 1 + r + "" : r + "";
+			if(isAbsRow) {
+				rowStr = "$" + rowStr;
+			}
+			return rowStr;
+		};
+
+		var R1C1Mode = parserFormula && parserFormula.ws && parserFormula.ws.getR1C1Mode();
 		var subSTR = formula.substring(start_pos);
-		var match = subSTR.match(rgRange) || subSTR.match(rgCols) || subSTR.match(rgRows);
-		if (match != null)
-		{
-			var m0 = match[1].split(":");
-			if (g_oCellAddressUtils.getCellAddress(m0[0]).isValid() && g_oCellAddressUtils.getCellAddress(m0[1]).isValid())
+
+		var match;
+		if(!R1C1Mode) {
+			match = subSTR.match(rgRange) || subSTR.match(rgCols) || subSTR.match(rgRows);
+			if (match != null)
 			{
-				this.pCurrPos += match[1].length;
-				this.operand_str = match[1];
-				return true;
+				var m0 = match[1].split(":");
+				if (g_oCellAddressUtils.getCellAddress(m0[0]).isValid() && g_oCellAddressUtils.getCellAddress(m0[1]).isValid())
+				{
+					this.pCurrPos += match[1].length;
+					this.operand_str = match[1];
+					return true;
+				}
+			}
+		} else {
+			var abs1Val, abs2Val, abs3Val, abs4Val, ref1, ref2;
+			if((match = subSTR.match(rgRangeR1C1)) !== null) {
+				abs1Val = checkAbs(match[3], match[5]);
+				abs2Val = checkAbs(match[7], match[9]);
+				abs3Val = checkAbs(match[11], match[13]);
+				abs4Val = checkAbs(match[15], match[17]);
+				if(abs1Val !== null && abs2Val !== null && abs3Val !== null && abs4Val !== null) {
+					ref1 = convertRCToRef(parseInt(match[4]), parseInt(match[8]), abs1Val, abs2Val);
+					ref2 = convertRCToRef(parseInt(match[12]), parseInt(match[16]), abs3Val, abs4Val);
+					if (g_oCellAddressUtils.getCellAddress(ref1).isValid() && g_oCellAddressUtils.getCellAddress(ref2).isValid()) {
+						this.pCurrPos += match[1].length;
+						this.operand_str = match[1];
+						this.real_str = ref1 + ":" + ref2;
+
+						return true;
+					}
+				}
+			} else if(null != (match = subSTR.match(rgColsR1C1))) {
+				abs1Val = checkAbs(match[3], match[5]);
+				abs2Val = checkAbs(match[8], match[10]);
+				if(abs1Val !== null && abs2Val !== null) {
+
+					ref1 = convertCCToRef1(parseInt(match[4]), abs1Val);
+					ref2 = convertCCToRef1(parseInt(match[9]), abs2Val);
+					if (g_oCellAddressUtils.getCellAddress(ref1).isValid() && g_oCellAddressUtils.getCellAddress(ref2).isValid()) {
+						this.pCurrPos += match[1].length;
+						this.operand_str = match[1];
+						this.real_str = ref1 + ":" + ref2;
+
+						return true;
+					}
+				}
+			} else if(null != (match = subSTR.match(rgRowsR1C1))) {
+				abs1Val = checkAbs(match[3], match[5]);
+				abs2Val = checkAbs(match[8], match[10]);
+				if(abs1Val !== null && abs2Val !== null) {
+
+					ref1 = convertRRToRef1(parseInt(match[4]), abs1Val);
+					ref2 = convertRRToRef1(parseInt(match[9]), abs2Val);
+					if (g_oCellAddressUtils.getCellAddress(ref1).isValid() && g_oCellAddressUtils.getCellAddress(ref2).isValid()) {
+						this.pCurrPos += match[1].length;
+						this.operand_str = match[1];
+						this.real_str = ref1 + ":" + ref2;
+
+						return true;
+					}
+				}
 			}
 		}
 		return false;
