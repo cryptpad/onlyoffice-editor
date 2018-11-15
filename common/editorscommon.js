@@ -2040,10 +2040,6 @@
 					}
 				}
 			} else if(null != (match = subSTR.match(rgColsR1C1))) {
-				//заглушка для с-
-				if(match[1] === "c-") {
-					match[1] = "c", match[2] = "c", match[4] = "",match[11] = "-";
-				}
 				abs1Val = checkAbs(match[3], match[5]);
 				abs2Val = checkAbs(match[8], match[10]);
 				if(abs1Val !== null && abs2Val !== null) {
@@ -2059,11 +2055,6 @@
 					}
 				}
 			} else if(null != (match = subSTR.match(rgRowsR1C1))) {
-				//заглушка для r-
-				if(match[1] === "r-") {
-					match[1] = "r", match[2] = "r", match[4] = "",match[11] = "-";
-				}
-
 				abs1Val = checkAbs(match[3], match[5]);
 				abs2Val = checkAbs(match[8], match[10]);
 				if(abs1Val !== null && abs2Val !== null) {

@@ -1580,18 +1580,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cRef.prototype.tocBool = function () {
 		return this.getValue().tocBool();
 	};
-	cRef.prototype.toString = function (cellWithFormula) {
-		if (AscCommonExcel.g_ProcessShared || this.ws.getR1C1Mode()) {
-			return this.range.getName(this.ws.getR1C1Mode(), cellWithFormula);
+	cRef.prototype.toString = function () {
+		if (AscCommonExcel.g_ProcessShared || AscCommonExcel.g_R1C1Mode) {
+			return this.range.getName();
 		} else {
 			return this.value;
-		}
-	};
-	cRef.prototype.toLocaleString = function (digitDelim, cellWithFormula) {
-		if (this.ws.getR1C1Mode()) {
-			return this.range.getName(this.ws.getR1C1Mode(), cellWithFormula);
-		} else {
-			return this.value.toString();
 		}
 	};
 	cRef.prototype.getRange = function () {
@@ -6030,7 +6023,7 @@ parserFormula.prototype.setFormula = function(formula) {
 		}
 
 		if (res != undefined && res != null) {
-			return bLocale ? res.toLocaleString(digitDelim, this.parent) : res.toString(this.parent);
+			return bLocale ? res.toLocaleString(digitDelim) : res.toString();
 		} else {
 			return this.Formula;
 		}
