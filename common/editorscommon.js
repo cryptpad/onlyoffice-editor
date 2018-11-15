@@ -1768,7 +1768,7 @@
 		rgRowsR1C1            = /^(([Rr]{1}(\[)?(-?\d*)(\])?(:)?)([Rr]?(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rx_ref                = /^ *(\$?[A-Za-z]{1,3}\$?(\d{1,7}))([-+*\/^&%<=>: ;),]|$)/,
 		rx_refAll             = /^(\$?[A-Za-z]+\$?(\d+))([-+*\/^&%<=>: ;),]|$)/,
-		rx_refR1C1             = /^(([Rr]{1}(\[)?(-?\d+)(\])?)([Cc]{1}(\[)?(-?\d+)(\])?))([-+*\/^&%<=>: ;),]|$)/,
+		rx_refR1C1             = /^(([Rr]{1}(\[)?(-?\d*)(\])?)([Cc]{1}(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rx_ref3D_non_quoted   = new XRegExp("^(?<name_from>[" + str_namedRanges + "][" + str_namedRanges + "\\d.]*)(:(?<name_to>[" + str_namedRanges + "][" + str_namedRanges + "\\d.]*))?!", "i"),
 		rx_ref3D_quoted       = new XRegExp("^'(?<name_from>(?:''|[^\\[\\]'\\/*?:])*)(?::(?<name_to>(?:''|[^\\[\\]'\\/*?:])*))?'!"),
 		rx_ref3D              = new XRegExp("^(?<name_from>[^:]+)(:(?<name_to>[^:]+))?!"),
@@ -1972,7 +1972,6 @@
 
 		var convertCCToRef1 = function(c, isAbsCol) {
 			var parent = parserFormula ? parserFormula.parent : null;
-			//TODO проверить на 0 - в excel нумерация начинается с 1
 			if(isNaN(c)) {
 				c = 0;
 				isAbsCol = false;
@@ -2032,6 +2031,10 @@
 					}
 				}
 			} else if(null != (match = subSTR.match(rgColsR1C1))) {
+				//заглушка для с-
+				if(match[1] === "c-") {
+					match[1] = "c", match[2] = "c", match[4] = "",match[11] = "-";
+				}
 				abs1Val = checkAbs(match[3], match[5]);
 				abs2Val = checkAbs(match[8], match[10]);
 				if(abs1Val !== null && abs2Val !== null) {
@@ -2047,12 +2050,17 @@
 					}
 				}
 			} else if(null != (match = subSTR.match(rgRowsR1C1))) {
+				//заглушка для r-
+				if(match[1] === "r-") {
+					match[1] = "r", match[2] = "r", match[4] = "",match[11] = "-";
+				}
+
 				abs1Val = checkAbs(match[3], match[5]);
 				abs2Val = checkAbs(match[8], match[10]);
 				if(abs1Val !== null && abs2Val !== null) {
 
 					ref1 = convertRRToRef1(parseInt(match[4]), abs1Val);
-					ref2 = convertRRToRef1(parseInt(match[9]), abs2Val);
+					ref2 = "" !== match[7] ? convertRRToRef1(parseInt(match[9]), abs2Val) : ref1;
 					if (g_oCellAddressUtils.getCellAddress(ref1).isValid() && g_oCellAddressUtils.getCellAddress(ref2).isValid()) {
 						this.pCurrPos += match[1].length;
 						this.operand_str = match[1];
@@ -2074,6 +2082,15 @@
 
 		var convertRCToRef = function(r, c, isAbsRow, isAbsCol) {
 			var parent = parserFormula ? parserFormula.parent : null;
+			if(isNaN(r)) {
+				r = 0;
+				isAbsRow = false;
+			}
+			if(isNaN(c)) {
+				c = 0;
+				isAbsCol = false;
+			}
+
 			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && parent ? parent.nCol + 1 + c : c);
 			var rowStr = !isAbsRow && parent ? parent.nRow + 1 + r : r;
 			if(isAbsCol) {
