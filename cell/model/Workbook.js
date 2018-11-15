@@ -8367,9 +8367,8 @@
 		//0 - based
 		return this.bbox;
 	};
-	Range.prototype.getName=function(isR1C1Mode, cellWithFormula){
-		return this.bbox.getName(null, isR1C1Mode, cellWithFormula ? new Asc.Range(cellWithFormula.nCol,
-			cellWithFormula.nRow, cellWithFormula.nCol, cellWithFormula.nRow) : cellWithFormula);
+	Range.prototype.getName=function(){
+		return this.bbox.getName();
 	};
 	Range.prototype.setValue=function(val,callback, isCopyPaste){
 		History.Create_NewPoint();

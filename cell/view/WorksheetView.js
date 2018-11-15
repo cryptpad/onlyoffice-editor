@@ -6952,7 +6952,11 @@
         var cell_info = new asc_CCellInfo();
         cell_info.formula = c.getFormula();
 
+		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
+		AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
         cell_info.text = c.getValueForEdit();
+		AscCommonExcel.g_ActiveCell = null;
+		AscCommonExcel.g_R1C1Mode = false;
 
 		cell_info.halign = align.getAlignHorizontal();
 		cell_info.valign = align.getAlignVertical();
@@ -11613,6 +11617,9 @@
 			var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
 			var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);
 
+			AscCommonExcel.g_ActiveCell = c.bbox;
+			AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
+
 			editor.open({
 				fragments: fragments,
 				flags: fl,
@@ -11631,7 +11638,12 @@
 				bbox: c.bbox,
 				cellNumFormat: c.getNumFormatType(),
 				saveValueCallback: function (val, flags) {
-					return t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
+					var res = t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
+					if (res) {
+						AscCommonExcel.g_ActiveCell = null;
+						AscCommonExcel.g_R1C1Mode = false;
+					}
+					return res;
 				},
 				getSides: function () {
 					var _c1, _r1, _c2, _r2, ri = 0, bi = 0;
@@ -11809,7 +11821,7 @@
         if (editor.formulaIsOperator() && cFEWSO && cFEWSO.model.getId() != this.model.getId()) {
             sheetName = parserHelp.getEscapeSheetName(this.model.getName()) + "!";
         }
-        editor.enterCellRange(/*defName || */sheetName + currentRange.getAllRange().getName(null, this.model.getR1C1Mode(), editor.options.bbox));
+        editor.enterCellRange(/*defName || */sheetName + currentRange.getAllRange().getName());
 
         for (var tmpRange, i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
             tmpRange = this.arrActiveFormulaRanges[i];
