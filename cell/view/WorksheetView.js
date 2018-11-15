@@ -11544,7 +11544,7 @@
 	};
 
 	WorksheetView.prototype.openCellEditor =
-		function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
+		function (editor, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
 			var t = this, col, row, c, fl, mc, bg, isMerged;
 
 			if (selectionRange) {
@@ -11607,20 +11607,18 @@
 			var font = c.getFont();
 			// Скрываем окно редактирования комментария
 			this.model.workbook.handlers.trigger("asc_onHideComment");
+			
+			AscCommonExcel.g_ActiveCell = c.bbox;
+			AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
 
-			if (fragments === undefined) {
-				var _fragmentsTmp = c.getValueForEdit2();
-				fragments = [];
-				for (var i = 0; i < _fragmentsTmp.length; ++i) {
-					fragments.push(_fragmentsTmp[i].clone());
-				}
+			var _fragmentsTmp = c.getValueForEdit2();
+			var fragments = [];
+			for (var i = 0; i < _fragmentsTmp.length; ++i) {
+				fragments.push(_fragmentsTmp[i].clone());
 			}
 
 			var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
 			var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);
-
-			AscCommonExcel.g_ActiveCell = c.bbox;
-			AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
 
 			editor.open({
 				fragments: fragments,
@@ -11727,7 +11725,7 @@
         copyValue = [];
         copyValue[0] = new AscCommonExcel.Fragment({text: text, format: v[0].format.clone()});
 
-        var bSuccess = t.openCellEditor(editor, /*fragments*/undefined, /*cursorPos*/undefined, isFocus, /*isClearCell*/
+        var bSuccess = t.openCellEditor(editor, /*cursorPos*/undefined, isFocus, /*isClearCell*/
           true, /*isHideCursor*/false, /*isQuickInput*/false, selectionRange);
         if (bSuccess) {
             editor.paste(copyValue, cursorPos);
