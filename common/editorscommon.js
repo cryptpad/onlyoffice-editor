@@ -1761,7 +1761,7 @@
 		rx_operators          = /^ *[-+*\/^&%<=>:] */,
 		rg                    = new XRegExp("^((?:_xlfn.)?[\\p{L}\\d.]+ *)[-+*/^&%<=>:;\\(\\)]"),
 		rgRange               = /^(\$?[A-Za-z]+\$?\d+:\$?[A-Za-z]+\$?\d+)(?:[-+*\/^&%<=>: ;),]|$)/,
-		rgRangeR1C1           = /^(([Rr]{1}(\[)?(-?\d+)(\])?)([Cc]{1}(\[)?(-?\d+)(\])?):([Rr]{1}(\[)?(-?\d+)(\])?)([Cc]{1}(\[)?(-?\d+)(\])?))([-+*\/^&%<=>: ;),]|$)/,
+		rgRangeR1C1           = /^(([Rr]{1}(\[)?(-?\d*)(\])?)([Cc]{1}(\[)?(-?\d*)(\])?):([Rr]{1}(\[)?(-?\d*)(\])?)([Cc]{1}(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rgCols                = /^(\$?[A-Za-z]+:\$?[A-Za-z]+)(?:[-+*\/^&%<=>: ;),]|$)/,
 		rgColsR1C1            = /^(([Cc]{1}(\[)?(-?\d*)(\])?(:)?)([Cc]?(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rgRows                = /^(\$?\d+:\$?\d+)(?:[-+*\/^&%<=>: ;),]|$)/,
@@ -1959,6 +1959,15 @@
 
 		var convertRCToRef = function(r, c, isAbsRow, isAbsCol) {
 			var parent = parserFormula ? parserFormula.parent : null;
+			if(isNaN(r)) {
+				r = 0;
+				isAbsRow = false;
+			}
+			if(isNaN(c)) {
+				c = 0;
+				isAbsCol = false;
+			}
+
 			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && parent ? parent.nCol + 1 + c : c);
 			var rowStr = !isAbsRow && parent ? parent.nRow + 1 + r : r;
 			if(isAbsCol) {
