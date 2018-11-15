@@ -1581,11 +1581,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		return this.getValue().tocBool();
 	};
 	cRef.prototype.toString = function () {
-		if (AscCommonExcel.g_ProcessShared || AscCommonExcel.g_R1C1Mode) {
+		if (AscCommonExcel.g_ProcessShared) {
 			return this.range.getName();
 		} else {
 			return this.value;
 		}
+	};
+	cRef.prototype.toLocaleString = function () {
+		return this.range.getName();
 	};
 	cRef.prototype.getRange = function () {
 		return this.range;
