@@ -192,9 +192,9 @@ Asc['asc_docs_api'].prototype.SetDocumentModified = function(bValue)
     }
 };
 
-Asc['asc_docs_api'].prototype.asc_Save = function (isNoUserSave, isSaveAs)
+Asc['asc_docs_api'].prototype.asc_Save = function (isNoUserSave, isSaveAs, isResaveAttack)
 {
-	if (!isSaveAs && !this.asc_isDocumentCanSave())
+	if (!isResaveAttack && !isSaveAs && !this.asc_isDocumentCanSave())
 		return;
 
     if (true !== isNoUserSave)

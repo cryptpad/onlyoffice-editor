@@ -2082,12 +2082,12 @@
 	baseEditorsApi.prototype.asc_setCurrentPassword = function(password)
 	{
 		this.currentPassword = password;
-		this.asc_Save(false);
+		this.asc_Save(false, undefined, true);
 	};
 	baseEditorsApi.prototype.asc_resetPassword = function()
 	{
 		this.currentPassword = "";
-		this.asc_Save(false);
+		this.asc_Save(false, undefined, true);
 	};
 
 	baseEditorsApi.prototype.asc_setMacros = function(sData)
