@@ -2282,6 +2282,24 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onShowSpecialPasteOptions", props);
 		}
 	};
+
+    asc_docs_api.prototype.beginInlineDropTarget = function(e)
+    {
+    	if (this.WordControl.m_oLogicDocument && this.WordControl.m_oDrawingDocument)
+		{
+			this.WordControl.m_oDrawingDocument.StartTrackText();
+            this.WordControl.StartUpdateOverlay();
+			this.WordControl.onMouseMove(e);
+            this.WordControl.EndUpdateOverlay();
+		}
+    };
+    asc_docs_api.prototype.endInlineDropTarget = function(e)
+    {
+        if (this.WordControl.m_oLogicDocument && this.WordControl.m_oDrawingDocument)
+        {
+            this.WordControl.m_oDrawingDocument.EndTrackText(true);
+        }
+    };
 	
 	asc_docs_api.prototype._onSaveCallbackInner = function()
 	{

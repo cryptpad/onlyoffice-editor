@@ -319,20 +319,48 @@ AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
 		oHtmlElement["ondragover"] = function (e) {
 			e.preventDefault();
 			e.dataTransfer.dropEffect = AscCommon.CanDropFiles(e) ? 'copy' : 'none';
+            if (e.dataTransfer.dropEffect == "copy")
+            {
+                var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+                editor.beginInlineDropTarget(e);
+            }
 			return false;
 		};
 		oHtmlElement["ondrop"] = function (e) {
 			e.preventDefault();
-			
+
+            var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+            editor.endInlineDropTarget(e);
+
 			var _files = window["AscDesktopEditor"]["GetDropFiles"]();
-			for (var i = 0; i < _files.length; i++)
+			if (0 == _files.length)
 			{
-				if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
-				{
-					window["DesktopOfflineAppDocumentAddImageEnd"](_files[i]);
-					break;
-				}
+                // test html
+                var htmlValue = e.dataTransfer.getData("text/html");
+                if (htmlValue)
+                {
+                    editor["pluginMethod_PasteHtml"](htmlValue);
+                    return;
+                }
+
+                var textValue = e.dataTransfer.getData("text/plain");
+                if (textValue)
+                {
+                    editor["pluginMethod_PasteText"](textValue);
+                    return;
+                }
 			}
+			else
+			{
+                for (var i = 0; i < _files.length; i++)
+                {
+                    if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
+                    {
+                        window["DesktopOfflineAppDocumentAddImageEnd"](_files[i]);
+                        break;
+                    }
+                }
+            }
 		};
 	}
 };

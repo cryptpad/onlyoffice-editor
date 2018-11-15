@@ -1550,6 +1550,13 @@
 		this.pluginsManager.onEnableMouseEvents(isEnable);
 	};
 
+    baseEditorsApi.prototype.beginInlineDropTarget = function(e)
+    {
+    };
+    baseEditorsApi.prototype.endInlineDropTarget = function(e)
+    {
+    };
+
     baseEditorsApi.prototype["pluginMethod_GetFontList"] = function()
     {
     	return AscFonts.g_fontApplication.g_fontSelections.SerializeList();
@@ -1572,6 +1579,12 @@
 
 				_elem.style.fontWeight = (true === textPr.TextPr.Bold) ? "bold" : "normal";
 				_elem.style.fontStyle = (true === textPr.TextPr.Italic) ? "italic" : "normal";
+
+				var _color = textPr.TextPr.Color;
+				if (_color)
+                    _elem.style.color = "rgb(" + _color.r + "," + _color.g + "," + _color.b + ")";
+				else
+                    _elem.style.color = "rgb(0,0,0)";
 			}
 		}
 		else if (this.editorId == c_oEditorId.Spreadsheet)
