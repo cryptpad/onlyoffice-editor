@@ -129,6 +129,11 @@ CFieldInstructionFORMULA.prototype.SetError = function(oError)
     this.Error = oError;
 };
 
+CFieldInstructionFORMULA.prototype.SetFormula = function(sFormula)
+{
+    this.Formula = sFormula;
+};
+
 CFieldInstructionFORMULA.prototype.GetErrorStr = function (oErr) {
 	var ret = "!";
 	if(oErr)
@@ -171,6 +176,10 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 			else
 			{
 				this.ResultStr = '' + this.ParseQueue.result;
+			}
+			if(this.Formula[0] === '(' && this.Formula[this.Formula.length - 1] === ')')
+			{
+				this.ResultStr = '(' + this.ResultStr + ')';
 			}
 		}
 	}
@@ -850,6 +859,7 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 	}
 	this.Result.SetParseQueue(oParser.parseQueue);
 	this.Result.SetError(oParser.error);
+	this.Result.SetFormula(sFormula);
 
 };
 CFieldInstructionParser.prototype.private_ReadPAGEREF = function()

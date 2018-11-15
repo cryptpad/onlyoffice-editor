@@ -70,7 +70,8 @@
     oLettersMap['Y'] = 25;
     oLettersMap['Z'] = 26;
 
-    var oDigitMap = {};
+
+  var oDigitMap = {};
     oDigitMap['0'] = 0;
     oDigitMap['1'] = 1;
     oDigitMap['2'] = 2;
@@ -88,6 +89,7 @@
         this.result = null;
         this.error = null;
         this.parseQueue = null;
+        this.parent = null;
     }
     CFormulaNode.prototype.argumentsCount = 0;
     CFormulaNode.prototype.calculate = function () {
@@ -104,6 +106,7 @@
                 this.setError("Missing argument", "");
                 return;
             }
+            oArg.parent = this;
             oArg.calculate();
             if(oArg.error){
                 this.error = oArg.error;
@@ -186,7 +189,7 @@
     CPowersAndRootsOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CPowersAndRootsOperatorNode.prototype.precedence = 12;
     CPowersAndRootsOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = Math.pow(aArgs[0].result, aArgs[1].result);
+        this.result = Math.pow(aArgs[1].result, aArgs[0].result);
     };
     function CMultiplicationOperatorNode(){
         COperatorNode.call(this);
@@ -220,7 +223,7 @@
     CPercentageOperatorNode.prototype.precedence = 8;
     CPercentageOperatorNode.prototype.argumentsCount = 1;
     CPercentageOperatorNode.prototype._calculate = function (aArgs) {
-        this.result = aArgs[0].result / 100.0;//TODO: Fix parsing. % goes after one argument
+        this.result = aArgs[0].result / 100.0;
     };
 
 
@@ -343,6 +346,8 @@
     const ABOVE = 2;
     const BELOW = 3;
 
+    var sLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    var sDigits = "1234567890";
 
     function CCellRangeNode(){
         CFormulaNode.call(this);
@@ -356,14 +361,30 @@
     CCellRangeNode.prototype = Object.create(CFormulaNode.prototype);
     CCellRangeNode.prototype.argumentsCount = 0;
 
+    CCellRangeNode.prototype.getCellName = function(c, r){
+        var _c = c;
+        var _r = r;
+
+        var sColName = sLetters[(_c % 26)];
+        _c = ((_c / 26) >> 0);
+        while(_c !== 0){
+            sColName = sLetters[(_c % 26)] + sColName;
+            _c = ((_c / 26) >> 0);
+        }
+        var sRowName = sDigits[(_r % 10)];
+        _r = ((_r / 10) >> 0);
+        while(_r!== 0){
+            sRowName = sDigits[(_r % 10)] + sRowName;
+            _r = ((_r / 10) >> 0);
+        }
+        return sColName + sRowName;
+    };
+
     CCellRangeNode.prototype.parseText = function(sText){
         var oParser = new CTextParser();
         oParser.parse(sText);
         oParser.parseQueue.calculate(null);
-        if(AscFormat.isRealNumber(oParser.parseQueue.result)){
-            return oParser.parseQueue.result;
-        }
-        return 0.0;
+        return oParser.parseQueue.result;
     };
 
     CCellRangeNode.prototype.getContentValue = function(oContent){
@@ -394,7 +415,10 @@
         for(var i = nStart; i <= nEnd && i < nCellsCount; ++i){
             var oCurCell = oRow.Get_Cell(i);
             if(oCurCell){
-                this.result.push(this.getContentValue(oCurCell.GetContent()));
+                var res = this.getContentValue(oCurCell.GetContent());
+                if(res !== null){
+                    this.result.push(res);
+                }
             }
         }
     };
@@ -406,13 +430,18 @@
             if(oRow){
                 var oCurCell = oRow.Get_Cell(nColIndex);
                 if(oCurCell){
-                    this.result.push(this.getContentValue(oCurCell.GetContent()));
+                    var res = this.getContentValue(oCurCell.GetContent());
+                    if(res !== null){
+                        this.result.push(res);
+                    }
                 }
             }
         }
     };
 
     CCellRangeNode.prototype.calculateCellRange = function(oTable){
+        this.result = [];
+
         var nStartCol, nEndCol, nStartRow, nEndRow;
         if(this.c1 !== null && this.c2 !== null){
             nStartCol = this.c1;
@@ -445,7 +474,12 @@
             }
             oCell = this.getCell(oTable, this.r1, this.c1);
             if(!oCell){
-                this.result = 0.0;
+                if(this.parent === null){
+                    this.setError(this.getCellName(this.c1, this.r1)+ " Is Not In Table", null);
+                }
+                else{
+                    this.result = 0.0;
+                }
                 return;
             }
             oContent = oCell.GetContent();
@@ -454,6 +488,9 @@
                 return;
             }
             this.result = this.getContentValue(oContent);
+            if(this.result === null){
+                this.result = 0.0;
+            }
             return;
         }
         else if(this.isDir()){
@@ -481,7 +518,10 @@
                 for(i = oCell.Index - 1; i > -1; --i){
                     oCurCell = oRow.Get_Cell(i);
                     if(oCurCell){
-                        this.result.push(this.getContentValue(oCurCell.GetContent()));
+                        var res = this.getContentValue(oCurCell.GetContent());
+                        if(res !== null){
+                            this.result.push(res);
+                        }
                     }
                 }
             }
@@ -495,7 +535,10 @@
                     oCurRow = oTable.Get_Row(i);
                     oCurCell = oCurRow.Get_Cell(oCell.Index);
                     if(oCurCell){
-                        this.result.push(this.getContentValue(oCurCell.GetContent()));
+                        var res = this.getContentValue(oCurCell.GetContent());
+                        if(res !== null){
+                            this.result.push(res);
+                        }
                     }
                 }
             }
@@ -505,7 +548,10 @@
                 for(i = oCell.Index + 1; i < nCellCount; ++i){
                     oCurCell = oRow.Get_Cell(i);
                     if(oCurCell){
-                        this.result.push(this.getContentValue(oCurCell.GetContent()));
+                        var res = this.getContentValue(oCurCell.GetContent());
+                        if(res !== null){
+                            this.result.push(res);
+                        }
                     }
                 }
             }
@@ -516,7 +562,10 @@
                     oCurRow = oTable.Get_Row(i);
                     oCurCell = oCurRow.Get_Cell(oCell.Index);
                     if(oCurCell){
-                        this.result.push(this.getContentValue(oCurCell.GetContent()));
+                        var res = this.getContentValue(oCurCell.GetContent());
+                        if(res !== null){
+                            this.result.push(res);
+                        }
                     }
                 }
             }
@@ -953,7 +1002,7 @@
         oLastToken.calculate();
         this.error = oLastToken.error;
         this.result = oLastToken.result;
-        if(AscFormat.isRealNumber(this.result)){
+        if(AscFormat.isRealNumber(this.result) && !(oLastToken instanceof CNumberNode) && !(oLastToken instanceof CCellRangeNode && oLastToken.isCell())){
             this.result = ((this.result*100 + 0.5) >> 0)/100.0;
         }
         return this.error;
@@ -1229,6 +1278,7 @@
     };
 
     CFormulaParser.prototype.parseCurrent = function () {
+        //TODO: R1C1
         while(this.formula[this.pos] === ' '){
             ++this.pos;
         }
@@ -1356,7 +1406,9 @@
         var nStartPos = this.pos;
         while (oCurToken = this.parseCurrent()){
             if(oCurToken instanceof CNumberNode || oCurToken instanceof CFALSEFunctionNode || oCurToken instanceof CTRUEFunctionNode){
-                if(oLastToken instanceof CNumberNode || oLastToken instanceof CCellRangeNode || oLastToken instanceof CRightParenOperatorNode || oLastToken instanceof CFALSEFunctionNode || oLastToken instanceof CTRUEFunctionNode){
+                if(oLastToken instanceof CNumberNode || oLastToken instanceof CCellRangeNode
+                    || oLastToken instanceof CRightParenOperatorNode || oLastToken instanceof CFALSEFunctionNode
+                    || oLastToken instanceof CTRUEFunctionNode || oLastToken instanceof CPercentageOperatorNode){
                     this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
                     return;
                 }
@@ -1556,20 +1608,36 @@
 
                     this.setFlag(PARSER_MASK_UNARY_OPERATOR, true);
                 }
-                this.setFlag(PARSER_MASK_NUMBER, true);
-                this.setFlag(PARSER_MASK_LEFT_PAREN, true);
-                this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
-                this.setFlag(PARSER_MASK_BINARY_OPERATOR, false);
-                this.setFlag(PARSER_MASK_FUNCTION, true);
-                this.setFlag(PARSER_MASK_LIST_SEPARATOR, false);
-                this.setFlag(PARSER_MASK_CELL_NAME, true);
-                this.setFlag(PARSER_MASK_CELL_RANGE, false);
-                this.setFlag(PARSER_MASK_BOOKMARK, true);
-                this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
                 while(aStack.length > 0 && ((aStack[aStack.length-1] instanceof CLeftParenOperatorNode) || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
                     this.parseQueue.add(aStack.pop());
                 }
-                aStack.push(oCurToken);
+                if(oCurToken instanceof CPercentageOperatorNode){
+                    this.parseQueue.add(oCurToken);
+                    this.setFlag(PARSER_MASK_NUMBER, true);
+                    this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
+                    this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                    this.setFlag(PARSER_MASK_RIGHT_PAREN, true);
+                    this.setFlag(PARSER_MASK_BINARY_OPERATOR, true);
+                    this.setFlag(PARSER_MASK_FUNCTION, false);
+                    this.setFlag(PARSER_MASK_LIST_SEPARATOR, aFunctionsStack.length > 0);
+                    this.setFlag(PARSER_MASK_CELL_NAME, false);
+                    this.setFlag(PARSER_MASK_CELL_RANGE, false);
+                    this.setFlag(PARSER_MASK_BOOKMARK, true);
+                    this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
+                }
+                else{
+                    this.setFlag(PARSER_MASK_NUMBER, true);
+                    this.setFlag(PARSER_MASK_LEFT_PAREN, true);
+                    this.setFlag(PARSER_MASK_RIGHT_PAREN, false);
+                    this.setFlag(PARSER_MASK_BINARY_OPERATOR, false);
+                    this.setFlag(PARSER_MASK_FUNCTION, true);
+                    this.setFlag(PARSER_MASK_LIST_SEPARATOR, false);
+                    this.setFlag(PARSER_MASK_CELL_NAME, true);
+                    this.setFlag(PARSER_MASK_CELL_RANGE, false);
+                    this.setFlag(PARSER_MASK_BOOKMARK, true);
+                    this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
+                    aStack.push(oCurToken);
+                }
             }
             oLastToken = oCurToken;
             nStartPos = this.pos;
@@ -1761,19 +1829,46 @@
     }
 
     function TEST2(){
-        var aExp = (createExpression(createConstant().concat(createBookmark().concat(createBookMarkCellRef().concat(createCellReference().concat(createDir()))))));
-        var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
+        var aExp = (createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
+        //console.log(JSON.stringify(aExp));
+        //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
+        var sRes = "";
+        var aFields = [];
+        editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
+        AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
+        var oComplexField = aFields[0];
         for(var i = 0; i < aExp.length; ++i){
             var sExp = aExp[i];
-            oParser.parse(sExp);
-            console.log("\n___________EXPRESSION____________");
-            console.log("Expression: " + sExp);
-            console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
-            console.log("ERROR: " + JSON.stringify(oParser.error));
-            console.log("__________________________________");
+            oComplexField.InstructionLine = '=' + sExp;
+            oComplexField.Instruction = null;
+            // oComplexField.private_UpdateInstruction();
+            // if(oComplexField.Instruction){
+            //     oComplexField.Instruction.Calculate(editor.WordControl.m_oLogicDocument);
+            // }
+            oComplexField.Update(true, true);
+            if(oComplexField.Instruction.ErrStr !== null)
+            {
+                sRes += oComplexField.Instruction.ErrStr;
+            }
+            else
+            {
+                if(oComplexField.Instruction.ResultStr !== null)
+                {
+                    sRes += oComplexField.Instruction.ResultStr;
+                }
+            }
+
+            sRes += '\n';
+            // oParser.parse(sExp);
+            // console.log("\n___________EXPRESSION____________");
+             //console.log(sExp);
+            // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
+            // console.log("ERROR: " + JSON.stringify(oParser.error));
+            // console.log("__________________________________");
 
         }
-
+        editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
+        return sRes;
     }
     window['AscCommonWord'].createExpression = TEST2;
 })();
