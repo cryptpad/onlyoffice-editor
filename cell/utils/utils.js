@@ -738,8 +738,8 @@
 				val = g_oCellAddressUtils.colnumToColstr(val);
 			}
 			return (isR1C1Mode ? (isCol ? 'C' : 'R') : '') + (abs ? (isR1C1Mode ? val : '$' + val) :
-				(isR1C1Mode ? '[' + ((isCol ? AscCommonExcel.g_ActiveCell.c1 :
-					AscCommonExcel.g_ActiveCell.r1) - val) + ']' : val));
+				(isR1C1Mode ? ((0 !== (val = (val - (isCol ? AscCommonExcel.g_ActiveCell.c1 :
+					AscCommonExcel.g_ActiveCell.r1) - 1))) ? '[' + val + ']' : '') : val));
 		};
 		Range.prototype.getName = function (refType) {
 			var isR1C1Mode = AscCommonExcel.g_R1C1Mode;
