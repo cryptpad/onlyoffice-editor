@@ -1298,8 +1298,8 @@
     this.getWorksheet().cellCommentator.showCommentByXY(x, y);
   };
 
-  WorkbookView.prototype._onUpdateSelectionName = function() {
-    if (this.canUpdateAfterShiftUp) {
+  WorkbookView.prototype._onUpdateSelectionName = function (forcibly) {
+    if (this.canUpdateAfterShiftUp || forcibly) {
       this.canUpdateAfterShiftUp = false;
       var ws = this.getWorksheet();
       this._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));

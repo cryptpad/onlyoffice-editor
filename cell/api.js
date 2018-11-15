@@ -2187,6 +2187,7 @@ var editor;
 		if (this.wbModel) {
 			this.wbModel.isR1C1Mode = value;
 			this._onUpdateAfterApplyChanges();
+			this.wb._onUpdateSelectionName(true);
         }
 	};
 
