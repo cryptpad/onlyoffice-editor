@@ -2058,8 +2058,9 @@ CDocument.prototype.Is_OnRecalculate = function()
  * @param bOneParagraph
  * @param bRecalcContentLast
  * @param _RecalcData
+ * @param [isForceStrictRecalc=false] {boolean} Запускать ли пересчет первый раз без таймера
  */
-CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _RecalcData)
+CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _RecalcData, isForceStrictRecalc)
 {
 	if (this.RecalcInfo.Is_NeedRecalculateFromStart())
 	{
@@ -2311,6 +2312,8 @@ CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _R
 	var StartPage  = 0;
 	var StartIndex = 0;
 
+	var isUseTimeout = false;
+
 	if (ChangeIndex < 0 && true === RecalcData.NotesEnd)
 	{
 		// Сюда мы попадаем при рассчете сносок, которые выходят за пределы самого документа
@@ -2376,15 +2379,15 @@ CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _R
 
 		if (null != this.FullRecalc.Id)
 		{
+			// В такой ситуации не надо запускать заново пересчет
+			if (this.FullRecalc.StartIndex < StartIndex || (this.FullRecalc.StartIndex === StartIndex && this.FullRecalc.PageIndex <= StartPage))
+				return;
+
 			clearTimeout(this.FullRecalc.Id);
 			this.FullRecalc.Id = null;
 			this.DrawingDocument.OnEndRecalculate(false);
 
-			if (this.FullRecalc.StartIndex < StartIndex)
-			{
-				StartIndex = this.FullRecalc.StartIndex;
-				StartPage  = this.FullRecalc.PageIndex;
-			}
+			isUseTimeout = true;
 		}
 		else if (null !== this.HdrFtrRecalc.Id)
 		{
@@ -2414,7 +2417,20 @@ CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _R
         this.FullRecalc.MainStartPos = StartIndex;
 
     this.DrawingDocument.OnStartRecalculate(StartPage);
-    this.Recalculate_Page();
+
+
+    // TODO: По большому счету всегда можно запускать пересчет с нулевым таймаутом, но сейчас при переносе картинок и
+	//       некоторых других действиях нам важно, чтобы пересчет первый раз сработал сразу. Поэтому запускаем пересчет
+	//       на таймере ТОЛЬКО если он уже был запущен на таймере до этого. Если избавиться от первого условия, то
+	//       запускать на таймере можно будет всегда.
+    if (isUseTimeout && !isForceStrictRecalc)
+	{
+		this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 0);
+	}
+    else
+	{
+		this.Recalculate_Page();
+	}
 };
 /**
  * Пересчитываем следующую страницу.
@@ -9794,18 +9810,21 @@ CDocument.prototype.Document_Undo = function(Options)
 	}
 	else
 	{
-		this.DrawingDocument.EndTrackTable(null, true);
-		this.DrawingObjects.TurnOffCheckChartSelection();
-		this.BookmarksManager.SetNeedUpdate(true);
+		if (this.History.Can_Undo())
+		{
+			this.DrawingDocument.EndTrackTable(null, true);
+			this.DrawingObjects.TurnOffCheckChartSelection();
+			this.BookmarksManager.SetNeedUpdate(true);
 
-		this.History.Undo(Options);
-		this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
-		this.DrawingObjects.TurnOnCheckChartSelection();
-		this.Recalculate(false, false, this.History.RecalculateData);
+			this.History.Undo(Options);
+			this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
+			this.DrawingObjects.TurnOnCheckChartSelection();
+			this.Recalculate(false, false, this.History.RecalculateData);
 
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateRulersState();
+			this.Document_UpdateSelectionState();
+			this.Document_UpdateInterfaceState();
+			this.Document_UpdateRulersState();
+		}
 	}
 };
 CDocument.prototype.Document_Redo = function()
@@ -9817,18 +9836,21 @@ CDocument.prototype.Document_Redo = function()
 	this.SetLastNumberedList(null);
 	this.SetLastBulletList(null);
 
-	this.DrawingDocument.EndTrackTable(null, true);
-	this.DrawingObjects.TurnOffCheckChartSelection();
-	this.BookmarksManager.SetNeedUpdate(true);
+	if (this.History.Can_Redo())
+	{
+		this.DrawingDocument.EndTrackTable(null, true);
+		this.DrawingObjects.TurnOffCheckChartSelection();
+		this.BookmarksManager.SetNeedUpdate(true);
 
-	this.History.Redo();
-	this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
-	this.DrawingObjects.TurnOnCheckChartSelection();
-	this.Recalculate(false, false, this.History.RecalculateData);
+		this.History.Redo();
+		this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
+		this.DrawingObjects.TurnOnCheckChartSelection();
+		this.Recalculate(false, false, this.History.RecalculateData);
 
-	this.Document_UpdateSelectionState();
-	this.Document_UpdateInterfaceState();
-	this.Document_UpdateRulersState();
+		this.Document_UpdateSelectionState();
+		this.Document_UpdateInterfaceState();
+		this.Document_UpdateRulersState();
+	}
 };
 CDocument.prototype.GetSelectionState = function()
 {
@@ -13840,8 +13862,7 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 			}
 			else
 			{
-				// Нам нужно пересчитать все изменения, начиная с текущего элемента
-				this.Recalculate(true);
+				this.Recalculate();
 			}
 
 			if (false === this.TurnOffRecalcCurPos)

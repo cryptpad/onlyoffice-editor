@@ -1214,8 +1214,7 @@ CDocumentContent.prototype.OnContentRecalculate = function(bNeedRecalc, PageNum,
 	}
 	else
 	{
-		// Ставим номер +1, потому что текущий элемент уже рассчитан
-		this.Recalculate(false, DocumentIndex + 1);
+		this.Recalculate();
 	}
 };
 CDocumentContent.prototype.OnContentReDraw = function(StartPage, EndPage)

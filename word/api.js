@@ -6436,7 +6436,7 @@ background-repeat: no-repeat;\
 					if (!this.isOnlyReaderMode)
 					{
 						if (false === this.isSaveFonts_Images)
-							Document.Recalculate(false, false, RecalculateData);
+							Document.Recalculate(false, false, RecalculateData, true);
 
 						this.WordControl.m_oDrawingDocument.TargetStart();
 					}
