@@ -2372,15 +2372,12 @@ CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _R
 
 		if (null != this.FullRecalc.Id)
 		{
+			if (this.FullRecalc.StartIndex < StartIndex || (this.FullRecalc.StartIndex < StartIndex && this.FullRecalc.PageIndex <= StartPage))
+				return;
+
 			clearTimeout(this.FullRecalc.Id);
 			this.FullRecalc.Id = null;
 			this.DrawingDocument.OnEndRecalculate(false);
-
-			if (this.FullRecalc.StartIndex <= StartIndex)
-			{
-				StartIndex = this.FullRecalc.StartIndex;
-				StartPage  = this.FullRecalc.PageIndex;
-			}
 		}
 		else if (null !== this.HdrFtrRecalc.Id)
 		{
