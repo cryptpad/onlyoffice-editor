@@ -3859,6 +3859,9 @@ function CDrawingDocument()
 
 		this.m_oWordControl.m_oLogicDocument.Set_TargetPos(x, y, pageIndex);
 
+        if(window["NATIVE_EDITOR_ENJINE"])
+        	return;
+
 		if (this.UpdateTargetFromPaint === false && this.m_lCurrentPage != -1)
 		{
 			this.UpdateTargetCheck = true;
