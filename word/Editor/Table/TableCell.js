@@ -923,7 +923,7 @@ CTableCell.prototype =
 
     Recalculate : function()
     {
-        this.Content.Recalculate(false);
+        this.Content.Recalculate();
     },
 
     Content_Merge : function(OtherContent)

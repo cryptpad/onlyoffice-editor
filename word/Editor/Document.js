@@ -1843,7 +1843,7 @@ CDocument.prototype.Add_TestDocument               = function()
         this.Internal_Content_Add(this.Content.length, Para);
     }
 
-	this.Recalculate_FromStart(true);
+	this.RecalculateFromStart(true);
 };
 CDocument.prototype.LoadEmptyDocument              = function()
 {
@@ -2055,17 +2055,15 @@ CDocument.prototype.Is_OnRecalculate = function()
 };
 /**
  * Запускаем пересчет документа.
- * @param bOneParagraph
- * @param bRecalcContentLast
  * @param _RecalcData
  * @param [isForceStrictRecalc=false] {boolean} Запускать ли пересчет первый раз без таймера
  */
-CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _RecalcData, isForceStrictRecalc)
+CDocument.prototype.Recalculate = function(_RecalcData, isForceStrictRecalc)
 {
 	if (this.RecalcInfo.Is_NeedRecalculateFromStart())
 	{
 		this.RecalcInfo.Set_NeedRecalculateFromStart(false);
-		this.Recalculate_FromStart();
+		this.RecalculateFromStart();
 		return;
 	}
 
@@ -3837,7 +3835,7 @@ CDocument.prototype.OnContentRecalculate                     = function(bNeedRec
     }
     else
     {
-        this.Recalculate(false, false);
+        this.Recalculate();
     }
 };
 CDocument.prototype.OnContentReDraw                          = function(StartPage, EndPage)
@@ -9819,7 +9817,7 @@ CDocument.prototype.Document_Undo = function(Options)
 			this.History.Undo(Options);
 			this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
 			this.DrawingObjects.TurnOnCheckChartSelection();
-			this.Recalculate(false, false, this.History.RecalculateData);
+			this.Recalculate(this.History.RecalculateData);
 
 			this.Document_UpdateSelectionState();
 			this.Document_UpdateInterfaceState();
@@ -9845,7 +9843,7 @@ CDocument.prototype.Document_Redo = function()
 		this.History.Redo();
 		this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
 		this.DrawingObjects.TurnOnCheckChartSelection();
-		this.Recalculate(false, false, this.History.RecalculateData);
+		this.Recalculate(this.History.RecalculateData);
 
 		this.Document_UpdateSelectionState();
 		this.Document_UpdateInterfaceState();
@@ -11006,7 +11004,7 @@ CDocument.prototype.Set_UseTextShd = function(bUse)
 {
 	this.UseTextShd = bUse;
 };
-CDocument.prototype.Recalculate_FromStart = function(bUpdateStates)
+CDocument.prototype.RecalculateFromStart = function(bUpdateStates)
 {
 	var RecalculateData = {
 		Inline   : {Pos : 0, PageNum : 0},
@@ -11016,7 +11014,7 @@ CDocument.prototype.Recalculate_FromStart = function(bUpdateStates)
 	};
 
 	this.Reset_RecalculateCache();
-	this.Recalculate(false, false, RecalculateData);
+	this.Recalculate(RecalculateData, true);
 
 	if (true === bUpdateStates)
 	{

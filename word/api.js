@@ -6416,27 +6416,13 @@ background-repeat: no-repeat;\
 						this.isApplyChangesOnOpen = true;
 					}
 
-					//                History.RecalcData_Add( { Type : AscDFH.historyitem_recalctype_Inline, Data : { Pos : 0, PageNum : 0 } } );
-
 					//Recalculate для Document
-					Document.CurPos.ContentPos = 0;
-					//                History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, All: true});
-
-					var RecalculateData =
-						{
-							Inline   : {Pos : 0, PageNum : 0},
-							Flow     : [],
-							HdrFtr   : [],
-							Drawings : {
-								All : true,
-								Map : {}
-							}
-						};
+					Document.MoveCursorToStartPos(false);
 
 					if (!this.isOnlyReaderMode)
 					{
 						if (false === this.isSaveFonts_Images)
-							Document.Recalculate(false, false, RecalculateData, true);
+							Document.RecalculateFromStart();
 
 						this.WordControl.m_oDrawingDocument.TargetStart();
 					}
@@ -7679,7 +7665,7 @@ background-repeat: no-repeat;\
 		if (!this.WordControl.m_oLogicDocument)
 			return;
 
-		return this.WordControl.m_oLogicDocument.Recalculate_FromStart(bIsUpdateInterface);
+		return this.WordControl.m_oLogicDocument.RecalculateFromStart(bIsUpdateInterface);
 	};
 
 	asc_docs_api.prototype.asc_canPaste = function()
@@ -7725,7 +7711,7 @@ background-repeat: no-repeat;\
 		}
 
 		if (!this.isLongAction())
-			oLogicDocument.Recalculate_FromStart();
+			oLogicDocument.RecalculateFromStart();
 	};
 	//----------------------------------------------------------------------------------------------------------------------
 	// Работаем с ContentControl
@@ -8765,20 +8751,8 @@ background-repeat: no-repeat;\
 			}
 		}
 
-		Document.CurPos.ContentPos = 0;
-
-		var RecalculateData =
-			{
-				Inline   : {Pos : 0, PageNum : 0},
-				Flow     : [],
-				HdrFtr   : [],
-				Drawings : {
-					All : true,
-					Map : {}
-				}
-			};
-
-		Document.Recalculate(false, false, RecalculateData);
+		Document.MoveCursorToStartPos();
+		Document.RecalculateFromStart();
 
 		Document.Document_UpdateInterfaceState();
 		//Document.Document_UpdateRulersState();
