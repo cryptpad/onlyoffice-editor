@@ -2040,7 +2040,7 @@
 				if(abs1Val !== null && abs2Val !== null) {
 
 					ref1 = convertCCToRef1(parseInt(match[4]), abs1Val);
-					ref2 = convertCCToRef1(parseInt(match[9]), abs2Val);
+					ref2 = "" !== match[7] ? convertCCToRef1(parseInt(match[9]), abs2Val) : ref1;
 					if (g_oCellAddressUtils.getCellAddress(ref1).isValid() && g_oCellAddressUtils.getCellAddress(ref2).isValid()) {
 						this.pCurrPos += match[1].length;
 						this.operand_str = match[1];
