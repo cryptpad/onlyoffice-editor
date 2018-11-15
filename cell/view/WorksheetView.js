@@ -6911,10 +6911,11 @@
             return defName;
         }
 
+		var oldMode = AscCommonExcel.g_R1C1Mode;
         var isR1C1Mode = AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
         var res = (new Asc.Range(c1, r1, c1, r1)).getName(isR1C1Mode ?
 			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R, isR1C1Mode);
-		AscCommonExcel.g_R1C1Mode = false;
+		AscCommonExcel.g_R1C1Mode = oldMode;
 		return res;
     };
 
@@ -6954,11 +6955,13 @@
         var cell_info = new asc_CCellInfo();
         cell_info.formula = c.getFormula();
 
+        var oldAC = AscCommonExcel.g_ActiveCell;
+		var oldMode = AscCommonExcel.g_R1C1Mode;
 		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
 		AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
         cell_info.text = c.getValueForEdit();
-		AscCommonExcel.g_ActiveCell = null;
-		AscCommonExcel.g_R1C1Mode = false;
+		AscCommonExcel.g_ActiveCell = oldAC;
+		AscCommonExcel.g_R1C1Mode = oldMode;
 
 		cell_info.halign = align.getAlignHorizontal();
 		cell_info.valign = align.getAlignVertical();
