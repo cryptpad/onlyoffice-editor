@@ -1485,6 +1485,16 @@
 			return this._getRange(sRange, 3);
 		};
 		RangeCache.prototype._getRange = function (sRange, type) {
+			if (AscCommonExcel.g_R1C1Mode) {
+				var o = {
+					Formula: sRange, pCurrPos: 0
+				};
+				if (AscCommon.parserHelp.isArea.call(o, o.Formula, o.pCurrPos)) {
+					sRange = o.real_str;
+				} else if (AscCommon.parserHelp.isRef.call(o, o.Formula, o.pCurrPos)) {
+					sRange = o.real_str;
+				}
+			}
 			var oRes = null;
 			var oCacheVal = this.oCache[sRange];
 			if (null == oCacheVal) {
