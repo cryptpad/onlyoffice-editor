@@ -293,6 +293,8 @@ var editor;
     var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
     oBinaryFileReader.Read(data, this.wbModel);
     AscFonts.IsCheckSymbols = false;
+    this.openingEnd.bin = true;
+    this._onEndOpen();
   };
 
   spreadsheet_api.prototype.initGlobalObjects = function(wbModel) {
@@ -758,8 +760,6 @@ var editor;
       }
 
       t.onEndLoadFile(result.data);
-      t.openingEnd.bin = true;
-      t._onEndOpen();
     });
     this._onOpenCommandXlsx();
   };
