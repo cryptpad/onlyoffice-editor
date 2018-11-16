@@ -14918,17 +14918,17 @@ function parseSeriesHeaders (ws, rangeBBox) {
 }
 
 function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
-	var api = window["Asc"]["editor"];
-	var ws = null;
-	var range = null;
+	AscCommonExcel.g_R1C1Mode = worksheet.getR1C1Mode();
+	var ws, range;
 	var result = parserHelp.parse3DRef(options.range);
-	if (null !== result) {
+	if (result) {
 		ws = worksheet.workbook.getWorksheetByName(result.sheet);
 		if (ws)
 			range = ws.getRange2(result.range);
 	}
 
-	if (null === range)
+	AscCommonExcel.g_R1C1Mode = false;
+	if (!range)
 		return null;
 
 	var bbox = range.getBBox0();
