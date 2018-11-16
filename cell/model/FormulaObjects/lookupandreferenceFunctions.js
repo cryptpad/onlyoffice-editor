@@ -515,11 +515,14 @@ function (window, undefined) {
 			}
 		}
 
+		var oldR1C1Mode = window['AscCommonExcel'].g_R1C1Mode;
 		if (cElementType.array === arg0.type) {
 			ret = new cArray();
 			arg0.foreach(function (elem, r) {
 				o = {Formula: elem.toString(), pCurrPos: 0};
+				window['AscCommonExcel'].g_R1C1Mode = !!(arg1 && arg1.value === false);
 				parseReference();
+				window['AscCommonExcel'].g_R1C1Mode = oldR1C1Mode;
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
@@ -528,7 +531,9 @@ function (window, undefined) {
 			return ret;
 		} else {
 			o.Formula = arg0.toString();
+			window['AscCommonExcel'].g_R1C1Mode = !!(arg1 && arg1.value === false);
 			parseReference();
+			window['AscCommonExcel'].g_R1C1Mode = oldR1C1Mode;
 			if (found_operand) {
 				if (cElementType.name === found_operand.type) {
 					found_operand = found_operand.toRef(arguments[1]);
