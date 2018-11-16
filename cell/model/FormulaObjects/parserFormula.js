@@ -1169,6 +1169,20 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cArea.prototype.toString = function () {
 		var _c;
 
+		if (AscCommonExcel.g_ProcessShared && this.range) {
+			_c = this.range.getName();
+		} else {
+			_c = this.value;
+		}
+
+		if (_c.indexOf(":") < 0) {
+			_c = _c + ":" + _c;
+		}
+		return _c;
+	};
+	cArea.prototype.toLocaleString = function () {
+		var _c;
+
 		if (this.range) {
 			_c = this.range.getName();
 		} else {
@@ -1411,6 +1425,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 	};
 	cArea3D.prototype.toString = function () {
+		var wsFrom = this.wsFrom.getName();
+		var wsTo = this.wsTo.getName();
+		var name = AscCommonExcel.g_ProcessShared && this.bbox ? this.bbox.getName() : this.value;
+		return parserHelp.get3DRef(wsFrom !== wsTo ? wsFrom + ':' + wsTo : wsFrom, name);
+	};
+	cArea3D.prototype.toLocaleString = function () {
 		var wsFrom = this.wsFrom.getName();
 		var wsTo = this.wsTo.getName();
 		var name = this.bbox ? this.bbox.getName() : this.value;
@@ -1699,8 +1719,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		if (AscCommonExcel.g_ProcessShared) {
 			return parserHelp.get3DRef(this.ws.getName(), this.range.getName());
 		} else {
-		return parserHelp.get3DRef(this.ws.getName(), this.value);
+			return parserHelp.get3DRef(this.ws.getName(), this.value);
 		}
+	};
+	cRef3D.prototype.toLocaleString = function () {
+		return parserHelp.get3DRef(this.ws.getName(), this.range.getName());
 	};
 	cRef3D.prototype.getWS = function () {
 		return this.ws;
@@ -5294,11 +5317,11 @@ parserFormula.prototype.setFormula = function(formula) {
 					return false;
 				}
 				if (parserHelp.isArea.call(ph, t.Formula, ph.pCurrPos)) {
-					found_operand = new cArea3D(ph.operand_str.toUpperCase(), wsF, wsT);
+					found_operand = new cArea3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF, wsT);
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
 				} else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos)) {
 					if (wsT !== wsF) {
-						found_operand = new cArea3D(ph.operand_str.toUpperCase(), wsF, wsT);
+						found_operand = new cArea3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF, wsT);
 					} else {
 						found_operand = new cRef3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF);
 					}
