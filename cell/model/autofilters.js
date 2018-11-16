@@ -823,6 +823,8 @@
 			
 			getAddFormatTableOptions: function(activeCells, userRange)
 			{
+				AscCommonExcel.g_R1C1Mode = this.worksheet.getR1C1Mode();
+
 				var res;
 				
 				if(userRange)
@@ -870,13 +872,11 @@
 					res = new AddFormatTableOptions();
 
 					var bIsTitle = this._isAddNameColumn(addRange);
-					var range = addRange.clone();
-					
-					addRange.setAbs(true, true, true, true);
 					res.asc_setIsTitle(bIsTitle);
-					res.asc_setRange(range.getAbsName());
+					res.asc_setRange(addRange.getAbsName());
 				}
-				
+
+				AscCommonExcel.g_R1C1Mode = false;
 				return res;
 			},
 			
