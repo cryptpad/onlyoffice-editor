@@ -5442,7 +5442,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
             }
         }
         oAutoCorrectControl.SetReplaceChar(AutoCorrectEngine);
-        if (!CanMakeAutoCorrect && AutoCorrectEngine.Remove[0] && this.Content.length !== AutoCorrectEngine.Remove[0].Count) {
+        if (!CanMakeAutoCorrect) { //&& AutoCorrectEngine.Remove[0] && this.Content.length !== AutoCorrectEngine.Remove[0].Count) {
             // Пробуем произвести автозамену без последнего добавленного символа
             if (0x20 === ActionElement.value) {
                 CanMakeAutoCorrectFunc = this.private_CanAutoCorrectTextFunc(AutoCorrectEngine, true);
@@ -5628,59 +5628,35 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
  };*/
 CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngine, bSkipLast) {
     var IndexAdd = (true === bSkipLast ? 1 : 0);
-
-    // var ElCount = AutoCorrectEngine.Elements[this.CurPos].Element.Content.length;
     var ElCount = AutoCorrectEngine.Elements.length;
     if (ElCount < 2 + IndexAdd) {
         return false;
     }
-
     var Result = false;
     var RemoveElem = null;
-
     // IndexAdd += ElCount - AutoCorrectEngine.Elements[this.CurPos].Element.State.ContentPos;
-
-    // var RemoveCount  = 0;
-    // var ReplaceChars = [0x0020];
+    var RemoveCount  = 0;
     var AutoCorrectCount = g_aAutoCorrectMathFuncSymbols.length;
     for (var nIndex = 0; nIndex < AutoCorrectCount; nIndex++) {
-        // if (Found) 
-        //     break;
         var AutoCorrectElement = g_aAutoCorrectMathFuncSymbols[nIndex];
-        var CheckString = AutoCorrectElement;
-        var CheckStringLen = CheckString.length;
+        var CheckStringLen = AutoCorrectElement.length;
         var Start = 0;
-
-        // if (bSkipLast) {
-        //     if (ElCount - 1 < CheckStringLen)
-        //         continue;
-        // } else {
-            if (ElCount < CheckStringLen)
+        if (ElCount !== CheckStringLen + IndexAdd) {
             continue;
-        // }
-            
-
+        }
         var Found = true;
-
         // Начинаем проверять с конца строки
         for (var nStringPos = 0; nStringPos < CheckStringLen; nStringPos++) {
-            if (nStringPos > AutoCorrectEngine.CurElement) {
-                continue;
-            }
-            // var LastEl = AutoCorrectEngine.Elements[this.CurPos].Element.Content[ElCount - nStringPos - 1 - IndexAdd];
             var LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 1 - IndexAdd];
-            if (undefined === LastEl.ContPos || String.fromCharCode(LastEl.Element.value) !== CheckString.charAt(CheckStringLen - nStringPos - 1)) {
+            if (String.fromCharCode(LastEl.Element.value) !== AutoCorrectElement[CheckStringLen - nStringPos - 1]) {
                 Found = false;
                 break;
             }
         }
         if (Found === true) {
             Start = ElCount - nStringPos - IndexAdd;
-            // var nFirstElem = ElCount - CheckStringLen - 1 - IndexAdd;
-            // if (nFirstElem < 0 || (CheckStringLen >= 0 && (AutoCorrectEngine.Elements[nFirstElem].Type === para_Math_Composition || AutoCorrectEngine.Elements[nFirstElem].Text.charCodeAt(0) == 0x0020)))
+            RemoveCount = CheckStringLen + IndexAdd;
                 RemoveElem = AutoCorrectElement;
-            // else
-                break;
         }
     }
 
@@ -5688,7 +5664,6 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
         var Pr = {ctrPrp: new CTextPr()};
         var MathFunc = new CMathFunc(Pr);
         var MathContent = MathFunc.getFName();
-
         var MathRun = new ParaRun(this.Paragraph, true);
         for (var nCharPos = 0, nTextLen = RemoveElem.length; nCharPos < nTextLen; nCharPos++) {
             var oText = null;
@@ -5702,15 +5677,10 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
         }
         MathRun.Math_Apply_Style(STY_PLAIN);
         MathContent.Internal_Content_Add(0, MathRun);
-
-
-        // AutoCorrectEngine.RemoveCount = CheckStringLen + IndexAdd;
-        AutoCorrectEngine.Remove.push({Count:CheckStringLen, Start:Start});
+        AutoCorrectEngine.Remove.push({Count:RemoveCount, Start:Start});
         AutoCorrectEngine.ReplaceContent.push(MathFunc);
-        AutoCorrectEngine.CurElement -= CheckStringLen;
         Result = true;
     }
-
     return Result;
 };
 CMathContent.prototype.Clear_ContentChanges = function()
@@ -7762,10 +7732,10 @@ CMathBracketAcc.prototype.Compare             = function()
 
 
 function CMathAutoCorrectEngine(Elem, CurPos) {
-    this.ActionElement    = Elem;                             // Элемент на которотом срабатывает автодополнение
-    this.CurElement       = CurPos;                                   // индекс текущего элемента, где стоит курсор
+    this.ActionElement    = Elem;                       // Элемент на которотом срабатывает автодополнение
+    this.CurElement       = CurPos;                     // индекс текущего элемента, где стоит курсор
     this.Elements         = [];
-    this.Brackets         = {countL : 0, countR : 0, lv : 0}; // объект, который хранит все скобки в формуле по уровням вложенности
+    this.Brackets         = {countL : 0, countR : 0};   // объект, который хранит все скобки в формуле по уровням вложенности
     this.BracketsInActive = false;
 
     this.CollectText      = true;
@@ -7958,7 +7928,7 @@ var g_aAutoCorrectMathFuncSymbols =
     'sin', 'sec', 'asin', 'asec', 'arcsin', 'arcsec',
     'cos', 'csc', 'acos', 'acsc', 'arccos', 'arccsc',
     'tan', 'cot', 'atan', 'acot', 'arctan', 'arccot',
-    'sinh', 'sech', 'asinh', 'asech', 'arcsinh', 'arcech',
+    'sinh', 'sech', 'asinh', 'asech', 'arcsinh', 'arcsech',
     'cosh', 'csch', 'acosh', 'acsch', 'arccosh', 'arccsch',
     'tanh', 'coth', 'atanh', 'acoth', 'arctanh', 'arccoth',
     'arg', 'det', 'exp', 'inf', 'lim', 'min',
