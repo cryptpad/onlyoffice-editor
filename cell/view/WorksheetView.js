@@ -6941,6 +6941,9 @@
     };
 
     WorksheetView.prototype._getSelectionInfoCell = function () {
+		var oldAC = AscCommonExcel.g_ActiveCell;
+		var oldMode = AscCommonExcel.g_R1C1Mode;
+
         var selectionRange = this.model.selectionRange;
         var cell = selectionRange.activeCell;
         var mc = this.model.getMergedByCell(cell.row, cell.col);
@@ -6957,13 +6960,9 @@
         var cell_info = new asc_CCellInfo();
         cell_info.formula = c.getFormula();
 
-        var oldAC = AscCommonExcel.g_ActiveCell;
-		var oldMode = AscCommonExcel.g_R1C1Mode;
 		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
 		AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
         cell_info.text = c.getValueForEdit();
-		AscCommonExcel.g_ActiveCell = oldAC;
-		AscCommonExcel.g_R1C1Mode = oldMode;
 
 		cell_info.halign = align.getAlignHorizontal();
 		cell_info.valign = align.getAlignVertical();
@@ -7104,6 +7103,9 @@
 				cell_info.isLockedPivotTable = true;
 			}
 		}
+
+		AscCommonExcel.g_ActiveCell = oldAC;
+		AscCommonExcel.g_R1C1Mode = oldMode;
 
         return cell_info;
 	};
