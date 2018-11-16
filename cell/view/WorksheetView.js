@@ -13994,7 +13994,9 @@
     WorksheetView.prototype.af_changeTableRange = function (tableName, range, callbackAfterChange) {
         var t = this;
         if(typeof range === "string"){
+			AscCommonExcel.g_R1C1Mode = this.worksheet.getR1C1Mode();
 			range = AscCommonExcel.g_oRangeCache.getAscRange(range);
+			AscCommonExcel.g_R1C1Mode = false;
 		}
 
 		if (!window['AscCommonExcel'].filteringMode) {
