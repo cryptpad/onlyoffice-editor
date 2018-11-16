@@ -7533,7 +7533,7 @@
 
     WorksheetView.prototype.applyFormatPainter = function () {
         var t = this;
-        var from = t.handlers.trigger('getRangeFormatPainter').getLast(), to = this.model.selectionRange.getLast().getAllRange();
+        var from = t.handlers.trigger('getRangeFormatPainter').getLast(), to = this.model.selectionRange.getLast().clone();
         var onApplyFormatPainterCallback = function (isSuccess) {
             // Очищаем выделение
             t.cleanSelection();
@@ -8810,7 +8810,7 @@
 			checkRange.push(new asc_Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
 		} else {
 			this.model.selectionRange.ranges.forEach(function (item) {
-				checkRange.push(item.getAllRange());
+				checkRange.push(item.clone());
 			});
 		}
 
@@ -10351,7 +10351,7 @@
 
 		var t = this;
 		var arn = this.model.selectionRange.getLast().clone();
-		var checkRange = arn.getAllRange();
+		var checkRange = arn.clone();
 
 		var range, count;
 		var oRecalcType = AscCommonExcel.recalcType.recalc;
@@ -11824,7 +11824,7 @@
         if (editor.formulaIsOperator() && cFEWSO && cFEWSO.model.getId() != this.model.getId()) {
             sheetName = parserHelp.getEscapeSheetName(this.model.getName()) + "!";
         }
-        editor.enterCellRange(/*defName || */sheetName + currentRange.getAllRange().getName());
+        editor.enterCellRange(/*defName || */sheetName + currentRange.getName());
 
         for (var tmpRange, i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
             tmpRange = this.arrActiveFormulaRanges[i];

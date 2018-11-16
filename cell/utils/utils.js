@@ -354,8 +354,7 @@
 		};
 
 		Range.prototype.containsRange = function (range) {
-			var allRange = this.getAllRange();
-			return allRange.contains(range.c1, range.r1) && allRange.contains(range.c2, range.r2);
+			return this.contains(range.c1, range.r1) && this.contains(range.c2, range.r2);
 		};
 
 		Range.prototype.containsFirstLineRange = function (range) {
@@ -783,21 +782,6 @@
 
 		Range.prototype.getAbsName = function () {
 			return this.getName(referenceType.A);
-		};
-
-		Range.prototype.getAllRange = function () {
-			var result, type = this.getType();
-			if (c_oAscSelectionType.RangeMax === type) {
-				result = new Range(0, 0, gc_nMaxCol0, gc_nMaxRow0);
-			} else if (c_oAscSelectionType.RangeCol === type) {
-				result = new Range(this.c1, 0, this.c2, gc_nMaxRow0);
-			} else if (c_oAscSelectionType.RangeRow === type) {
-				result = new Range(0, this.r1, gc_nMaxCol0, this.r2);
-			} else {
-				result = this.clone();
-			}
-
-			return result;
 		};
 
 		Range.prototype.getType = function () {

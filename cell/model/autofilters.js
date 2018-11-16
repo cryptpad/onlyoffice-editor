@@ -829,10 +829,6 @@
 				{
 					activeCells = AscCommonExcel.g_oRangeCache.getAscRange(userRange);
 				}
-
-				if(activeCells.getAllRange){
-					activeCells = activeCells.getAllRange();
-				}
 				
 				//данная функция возвращает false в двух случаях - при смене стиля ф/т или при поптыке добавить ф/т к части а/ф
 				
