@@ -2635,6 +2635,8 @@
 	 */
 	parserHelper.prototype.checkDataRange = function (model, wb, dialogType, dataRange, fullCheck, isRows, chartType)
 	{
+		var oldMode = AscCommonExcel.g_R1C1Mode;
+		AscCommonExcel.g_R1C1Mode = model.isR1C1Mode;
 		var sDataRange = dataRange, sheetModel;
 		if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
 		{
@@ -2644,16 +2646,23 @@
 				if (dataRange)
 				{
 					sheetModel = model.getWorksheetByName(dataRange.sheet);
+					if (!sheetModel)
+					{
+						dataRange = null;
+					}
+				}
+				if (dataRange)
+				{
+					dataRange = AscCommonExcel.g_oRangeCache.getAscRange(dataRange.range);
 				}
 			}
-			if (null === dataRange || !sheetModel)
-				return Asc.c_oAscError.ID.DataRangeError;
-			dataRange = AscCommonExcel.g_oRangeCache.getAscRange(dataRange.range);
 		}
 		else
 			dataRange = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 
-		if (null === dataRange)
+		AscCommonExcel.g_R1C1Mode = oldMode;
+
+		if (!dataRange)
 			return Asc.c_oAscError.ID.DataRangeError;
 
 		if (fullCheck)
