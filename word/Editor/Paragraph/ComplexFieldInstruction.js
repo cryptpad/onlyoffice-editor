@@ -202,14 +202,13 @@ CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
 			if(oParagraph)
 			{
 				this.ParentContent = oParagraph.Parent;
-
 			}
 		}
 	}
-	if(this.ParseQueue)
-	{
-		this.ParseQueue.ParentContent = this.ParentContent;
-	}
+	var oParser = new AscCommonWord.CFormulaParser();
+	oParser.parse(this.Formula, this.ParentContent);
+	this.SetParseQueue(oParser.parseQueue);
+	this.SetError(oParser.error);
 };
 
 /**
@@ -849,16 +848,12 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 		}
 	}
 	sFormula = sFormula.toUpperCase();
-	var oParser = new AscCommonWord.CFormulaParser();
-	oParser.parse(sFormula);
 	var oFormat;
 	if(null !== sFormat)
 	{
         oFormat = AscCommon.oNumFormatCache.get(sFormat);
         this.Result.SetFormat(oFormat);
 	}
-	this.Result.SetParseQueue(oParser.parseQueue);
-	this.Result.SetError(oParser.error);
 	this.Result.SetFormula(sFormula);
 
 };
