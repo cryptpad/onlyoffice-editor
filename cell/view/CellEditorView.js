@@ -856,7 +856,7 @@
 						refStr = r.oper.value;
 						wsName = r.oper.getWS().getName();
 						_s = _e - r.oper.value.length;
-						_sColorPos = _e - r.oper.toString().length;
+						_sColorPos = _e - r.oper.toLocaleString().length;
 						break;
 					}
 					case cElementType.table          :
