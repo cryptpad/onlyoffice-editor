@@ -498,18 +498,18 @@ function (window, undefined) {
 					return new cError(cErrorType.bad_reference);
 				}
 				if (parserHelp.isArea.call(o, o.Formula, o.pCurrPos)) {
-					found_operand = new cArea3D(o.operand_str.toUpperCase(), wsFrom, wsTo);
+					found_operand = new cArea3D(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), wsFrom, wsTo);
 				} else if (parserHelp.isRef.call(o, o.Formula, o.pCurrPos)) {
 					if (wsTo !== wsFrom) {
-						found_operand = new cArea3D(o.operand_str.toUpperCase(), wsFrom, wsTo);
+						found_operand = new cArea3D(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), wsFrom, wsTo);
 					} else {
-						found_operand = new cRef3D(o.operand_str.toUpperCase(), wsFrom);
+						found_operand = new cRef3D(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), wsFrom);
 					}
 				}
 			} else if (parserHelp.isArea.call(o, o.Formula, o.pCurrPos)) {
-				found_operand = new cArea(o.operand_str.toUpperCase(), ws);
+				found_operand = new cArea(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
 			} else if (parserHelp.isRef.call(o, o.Formula, o.pCurrPos, true)) {
-				found_operand = new cRef(o.operand_str.toUpperCase(), ws);
+				found_operand = new cRef(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
 			} else if (parserHelp.isName.call(o, o.Formula, o.pCurrPos, wb)[0]) {
 				found_operand = new AscCommonExcel.cName(o.operand_str, ws);
 			}
