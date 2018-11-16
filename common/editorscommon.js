@@ -2005,6 +2005,52 @@
 		}
 		return false;
 	};
+	parserHelper.prototype.convertFromR1C1 = function (r, c, isAbsRow, isAbsCol)
+	{
+		var activeCell = AscCommonExcel.g_ActiveCell;
+		var colStr, rowStr, res = "";
+		if(r !== null && c !== null) {
+			if(isNaN(r)) {
+				r = 0;
+				isAbsRow = false;
+			}
+			if(isNaN(c)) {
+				c = 0;
+				isAbsCol = false;
+			}
+
+			colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
+			rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r : r;
+			if(isAbsCol) {
+				colStr = "$" + colStr;
+			}
+			if(isAbsRow) {
+				rowStr = "$" + rowStr;
+			}
+			res = colStr + rowStr;
+		} else if(c !== null) {
+			if(isNaN(c)) {
+				c = 0;
+				isAbsCol = false;
+			}
+			colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
+			if(isAbsCol) {
+				colStr = "$" + colStr;
+			}
+			res = colStr;
+		} else if(r !== null) {
+			if(isNaN(r)) {
+				r = 0;
+				isAbsRow = false;
+			}
+			rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r + "" : r + "";
+			if(isAbsRow) {
+				rowStr = "$" + rowStr;
+			}
+			res = rowStr;
+		}
+		return res;
+	};
 	parserHelper.prototype.isArea = function (formula, start_pos)
 	{
 		if (this instanceof parserHelper)
@@ -2012,7 +2058,6 @@
 			this._reset();
 		}
 
-		var activeCell = AscCommonExcel.g_ActiveCell;
 		var checkAbs = function(val1, val2) {
 			var res = null;
 			if(val1 === val2 && val1 === undefined) {
@@ -2035,51 +2080,6 @@
 			}
 
 			return res;
-		};
-
-		var convertRCToRef = function(r, c, isAbsRow, isAbsCol) {
-			if(isNaN(r)) {
-				r = 0;
-				isAbsRow = false;
-			}
-			if(isNaN(c)) {
-				c = 0;
-				isAbsCol = false;
-			}
-
-			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
-			var rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r : r;
-			if(isAbsCol) {
-				colStr = "$" + colStr;
-			}
-			if(isAbsRow) {
-				rowStr = "$" + rowStr;
-			}
-			return colStr + rowStr;
-		};
-
-		var convertCCToRef1 = function(c, isAbsCol) {
-			if(isNaN(c)) {
-				c = 0;
-				isAbsCol = false;
-			}
-			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
-			if(isAbsCol) {
-				colStr = "$" + colStr;
-			}
-			return colStr;
-		};
-
-		var convertRRToRef1 = function(r, isAbsRow) {
-			if(isNaN(r)) {
-				r = 0;
-				isAbsRow = false;
-			}
-			var rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r + "" : r + "";
-			if(isAbsRow) {
-				rowStr = "$" + rowStr;
-			}
-			return rowStr;
 		};
 
 		var R1C1Mode = window['AscCommonExcel'].g_R1C1Mode;
@@ -2106,8 +2106,8 @@
 				abs3Val = checkAbs(match[11], match[13]);
 				abs4Val = checkAbs(match[15], match[17]);
 				if(abs1Val !== null && abs2Val !== null && abs3Val !== null && abs4Val !== null) {
-					ref1 = convertRCToRef(parseInt(match[4]), parseInt(match[8]), abs1Val, abs2Val);
-					ref2 = convertRCToRef(parseInt(match[12]), parseInt(match[16]), abs3Val, abs4Val);
+					ref1 = AscCommon.parserHelp.convertFromR1C1(parseInt(match[4]), parseInt(match[8]), abs1Val, abs2Val);
+					ref2 = AscCommon.parserHelp.convertFromR1C1(parseInt(match[12]), parseInt(match[16]), abs3Val, abs4Val);
 					if (g_oCellAddressUtils.getCellAddress(ref1).isValid() && g_oCellAddressUtils.getCellAddress(ref2).isValid()) {
 						this.pCurrPos += match[1].length;
 						this.operand_str = match[1];
@@ -2122,8 +2122,8 @@
 					abs2Val = checkAbs(match[8], match[10]);
 					if(abs1Val !== null && abs2Val !== null) {
 
-						ref1 = convertCCToRef1(parseInt(match[4]), abs1Val);
-						ref2 = "" !== match[7] ? convertCCToRef1(parseInt(match[9]), abs2Val) : ref1;
+						ref1 = AscCommon.parserHelp.convertFromR1C1(null, parseInt(match[4]), null, abs1Val);
+						ref2 = "" !== match[7] ? AscCommon.parserHelp.convertFromR1C1(null, parseInt(match[9]), null, abs2Val) : ref1;
 						if (g_oCellAddressUtils.getCellAddress(ref1).isValid() && g_oCellAddressUtils.getCellAddress(ref2).isValid()) {
 							this.pCurrPos += match[1].length;
 							this.operand_str = match[1];
@@ -2139,8 +2139,8 @@
 					abs2Val = checkAbs(match[8], match[10]);
 					if(abs1Val !== null && abs2Val !== null) {
 
-						ref1 = convertRRToRef1(parseInt(match[4]), abs1Val);
-						ref2 = "" !== match[7] ? convertRRToRef1(parseInt(match[9]), abs2Val) : ref1;
+						ref1 = AscCommon.parserHelp.convertFromR1C1(parseInt(match[4]), null, abs1Val);
+						ref2 = "" !== match[7] ? AscCommon.parserHelp.convertFromR1C1(parseInt(match[9]), null, abs2Val) : ref1;
 						if (g_oCellAddressUtils.getCellAddress(ref1).isValid() && g_oCellAddressUtils.getCellAddress(ref2).isValid()) {
 							this.pCurrPos += match[1].length;
 							this.operand_str = match[1];
@@ -2160,28 +2160,6 @@
 		{
 			this._reset();
 		}
-
-		var activeCell = AscCommonExcel.g_ActiveCell;
-		var convertRCToRef = function(r, c, isAbsRow, isAbsCol) {
-			if(isNaN(r)) {
-				r = 0;
-				isAbsRow = false;
-			}
-			if(isNaN(c)) {
-				c = 0;
-				isAbsCol = false;
-			}
-
-			var colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
-			var rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r : r;
-			if(isAbsCol) {
-				colStr = "$" + colStr;
-			}
-			if(isAbsRow) {
-				rowStr = "$" + rowStr;
-			}
-			return colStr + rowStr;
-		};
 
 		var R1C1Mode = window['AscCommonExcel'].g_R1C1Mode;
 		var substr = formula.substring(start_pos), match;
@@ -2216,7 +2194,7 @@
 			if (match != null && (match[3] === match[5] || (match[3] === "[" && match[5] === "]")) && (match[7] === match[9] || (match[7] === "[" && match[9] === "]"))) {
 				m0 = match[0];
 				m1 = match[1];
-				var ref = convertRCToRef(parseInt(match[4]), parseInt(match[8]), !match[3], !match[7]);
+				var ref = AscCommon.parserHelp.convertFromR1C1(parseInt(match[4]), parseInt(match[8]), !match[3], !match[7]);
 				if (g_oCellAddressUtils.getCellAddress(ref).isValid()) {
 					this.pCurrPos += m0.indexOf(" ") > -1 ? m0.length - 1 : m1.length;
 					this.operand_str = m1;
