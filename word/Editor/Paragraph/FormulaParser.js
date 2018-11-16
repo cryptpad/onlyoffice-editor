@@ -428,6 +428,9 @@
                 if(res !== null){
                     this.result.push(res);
                 }
+                // else{
+                //     this.result.push(0);
+                // }
             }
         }
     };
@@ -443,6 +446,9 @@
                     if(res !== null){
                         this.result.push(res);
                     }
+                    // else{
+                    //     this.result.push(0);
+                    // }
                 }
             }
         }
@@ -946,10 +952,10 @@
     CSIGNFunctionNode.prototype.minArgumentsCount = 1;
     CSIGNFunctionNode.prototype.maxArgumentsCount = 1;
     CSIGNFunctionNode.prototype._calculate = function (aArgs) {
-        if(aArgs[0] < 0.0){
+        if(aArgs[0].result < 0.0){
             this.result = -1.0;
         }
-        else if(aArgs[0] > 0.0){
+        else if(aArgs[0].result > 0.0){
             this.result = 1.0;
         }
         else{
@@ -1886,8 +1892,8 @@
         var ret = [];
         ret.push("Cd3");
         ret.push("a:B");
-        ret.push("2:10");
-        ret.push("d1:C3");
+        ret.push("3:10");
+        ret.push("a1:B3");
         return ret;
     }
 
@@ -1966,23 +1972,24 @@
     }
 
     function TEST2(){
-        var aExp = (createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
+        var aExp =  ["AVERAGE(a:B, a:B)"];//(createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
         //console.log(JSON.stringify(aExp));
         //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
         var sRes = "";
         var aFields = [];
         editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
         AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
-        var oComplexField = aFields[0];
+        var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
+        oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
         for(var i = 0; i < aExp.length; ++i){
             var sExp = aExp[i];
             oComplexField.InstructionLine = '=' + sExp;
             oComplexField.Instruction = null;
-            // oComplexField.private_UpdateInstruction();
-            // if(oComplexField.Instruction){
-            //     oComplexField.Instruction.Calculate(editor.WordControl.m_oLogicDocument);
-            // }
-            oComplexField.Update(true, true);
+            oComplexField.private_UpdateInstruction();
+            if(oComplexField.Instruction){
+                oComplexField.Instruction.Calculate(editor.WordControl.m_oLogicDocument);
+            }
+           // oComplexField.Update(true, true);
             if(oComplexField.Instruction.ErrStr !== null)
             {
                 sRes += oComplexField.Instruction.ErrStr;
@@ -2007,5 +2014,32 @@
         editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
         return sRes;
     }
+
+    function TEST3(){
+        var aExp = (createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
+        //console.log(JSON.stringify(aExp));
+        //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
+        var sRes = "";
+        var aFields = [];
+        editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
+        AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
+        var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
+        oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
+        for(var i = 0; i < aExp.length; ++i){
+            var sExp = aExp[i];
+            sRes += sExp;
+            sRes += '\n';
+            // oParser.parse(sExp);
+            // console.log("\n___________EXPRESSION____________");
+            //console.log(sExp);
+            // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
+            // console.log("ERROR: " + JSON.stringify(oParser.error));
+            // console.log("__________________________________");
+
+        }
+        editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
+        return sRes;
+    }
     window['AscCommonWord'].createExpression = TEST2;
+    window['AscCommonWord'].TEST3 = TEST3;
 })();
