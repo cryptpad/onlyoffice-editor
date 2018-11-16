@@ -6922,7 +6922,9 @@
 	WorksheetView.prototype.getSelectionRangeValue = function () {
 		// ToDo проблема с выбором целого столбца/строки
 		var ar = this.model.selectionRange.getLast().clone(true);
+		AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
 		var sAbsName = ar.getAbsName();
+		AscCommonExcel.g_R1C1Mode = false;
 		var sName = (c_oAscSelectionDialogType.FormatTable === this.selectionDialogType) ? sAbsName :
 			parserHelp.get3DRef(this.model.getName(), sAbsName);
 		var type = ar.type;
