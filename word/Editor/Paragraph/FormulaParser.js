@@ -92,6 +92,15 @@
         this.parent = null;
     }
     CFormulaNode.prototype.argumentsCount = 0;
+    CFormulaNode.prototype.inFunction = function(){
+        if(this.isFunction()){
+            return this;
+        }
+        if(!this.parent){
+            return this.parent;
+        }
+        return this.parent.inFunction();
+    };
     CFormulaNode.prototype.calculate = function () {
         this.error = null;
         this.result = null;
@@ -346,8 +355,8 @@
     const ABOVE = 2;
     const BELOW = 3;
 
-    var sLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    var sDigits = "1234567890";
+    var sLetters = "ZABCDEFGHIJKLMNOPQRSTUVWXY";
+    var sDigits = "0123456789";
 
     function CCellRangeNode(){
         CFormulaNode.call(this);
@@ -362,8 +371,8 @@
     CCellRangeNode.prototype.argumentsCount = 0;
 
     CCellRangeNode.prototype.getCellName = function(c, r){
-        var _c = c;
-        var _r = r;
+        var _c = c + 1 ;
+        var _r = r + 1;
 
         var sColName = sLetters[(_c % 26)];
         _c = ((_c / 26) >> 0);
@@ -474,11 +483,12 @@
             }
             oCell = this.getCell(oTable, this.r1, this.c1);
             if(!oCell){
-                if(this.parent === null){
+                var oFunction = this.inFunction();
+                if(!oFunction || !oFunction.listSupport()){
                     this.setError(this.getCellName(this.c1, this.r1)+ " Is Not In Table", null);
                 }
                 else{
-                    this.result = 0.0;
+                    this.result = [];
                 }
                 return;
             }
@@ -764,6 +774,9 @@
 
 
     CMAXFunctionNode.prototype.findMax = function (aArgs) {
+        if(aArgs.length === 0){
+            return 0;
+        }
         var fMax;
         var result = aArgs[0].result;
         if(Array.isArray(result)){
@@ -803,6 +816,9 @@
         return true;
     };
     CMINFunctionNode.prototype.findMin = function(aArgs){
+        if(aArgs.length === 0){
+            return 0;
+        }
         var fMin;
         var result = aArgs[0].result;
         if(Array.isArray(result)){
