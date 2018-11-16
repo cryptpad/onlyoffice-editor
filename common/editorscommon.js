@@ -2635,34 +2635,26 @@
 	 */
 	parserHelper.prototype.checkDataRange = function (model, wb, dialogType, dataRange, fullCheck, isRows, chartType)
 	{
-		var oldMode = AscCommonExcel.g_R1C1Mode;
 		AscCommonExcel.g_R1C1Mode = model.isR1C1Mode;
-		var sDataRange = dataRange, sheetModel;
+		var result, range, sheetModel;
 		if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
 		{
-			if(dataRange)
+			result = parserHelp.parse3DRef(dataRange);
+			if (result)
 			{
-				dataRange = parserHelp.parse3DRef(dataRange);
-				if (dataRange)
+				sheetModel = model.getWorksheetByName(result.sheet);
+				if (sheetModel)
 				{
-					sheetModel = model.getWorksheetByName(dataRange.sheet);
-					if (!sheetModel)
-					{
-						dataRange = null;
-					}
-				}
-				if (dataRange)
-				{
-					dataRange = AscCommonExcel.g_oRangeCache.getAscRange(dataRange.range);
+					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 				}
 			}
 		}
 		else
-			dataRange = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
+			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 
-		AscCommonExcel.g_R1C1Mode = oldMode;
+		AscCommonExcel.g_R1C1Mode = false;
 
-		if (!dataRange)
+		if (!range)
 			return Asc.c_oAscError.ID.DataRangeError;
 
 		if (fullCheck)
@@ -2677,20 +2669,20 @@
 				var intervalValues, intervalSeries;
 				if (isRows)
 				{
-					intervalSeries = dataRange.r2 - dataRange.r1 + 1;
-					intervalValues = dataRange.c2 - dataRange.c1 + 1;
+					intervalSeries = range.r2 - range.r1 + 1;
+					intervalValues = range.c2 - range.c1 + 1;
 				}
 				else
 				{
-					intervalSeries = dataRange.c2 - dataRange.c1 + 1;
-					intervalValues = dataRange.r2 - dataRange.r1 + 1;
+					intervalSeries = range.c2 - range.c1 + 1;
+					intervalValues = range.r2 - range.r1 + 1;
 				}
 
 				if (Asc.c_oAscChartTypeSettings.stock === chartType)
 				{
 					var chartSettings = new Asc.asc_ChartSettings();
 					chartSettings.putType(Asc.c_oAscChartTypeSettings.stock);
-					chartSettings.putRange(sDataRange);
+					chartSettings.putRange(range);
 					chartSettings.putInColumns(!isRows);
 					var chartSeries = AscFormat.getChartSeries(sheetModel, chartSettings).series;
 					if (minStockVal !== chartSeries.length || !chartSeries[0].Val || !chartSeries[0].Val.NumCache || chartSeries[0].Val.NumCache.length < minStockVal)
@@ -2706,13 +2698,13 @@
 			else if (Asc.c_oAscSelectionDialogType.FormatTable === dialogType)
 			{
 				// ToDo убрать эту проверку, заменить на более грамотную после правки функции _searchFilters
-				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(dataRange))
+				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(range))
 					return Asc.c_oAscError.ID.AutoFilterDataRangeError;
 			}
 			else if (Asc.c_oAscSelectionDialogType.FormatTableChangeRange === dialogType)
 			{
 				// ToDo убрать эту проверку, заменить на более грамотную после правки функции _searchFilters
-				var checkChangeRange = wb.getWorksheet().af_checkChangeRange(dataRange);
+				var checkChangeRange = wb.getWorksheet().af_checkChangeRange(range);
 				if (null !== checkChangeRange)
 					return checkChangeRange;
 			}
