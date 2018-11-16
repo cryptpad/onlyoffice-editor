@@ -1471,7 +1471,6 @@
                     var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
 					editor.beginInlineDropTarget(e);
                 }
-
 				return false;
 			};
 			oHtmlElement["ondrop"] = function (e)
@@ -1485,20 +1484,53 @@
 
 				if (nError == c_oAscServerError.UploadCountFiles)
 				{
-                    // test html
-					var htmlValue = e.dataTransfer.getData("text/html");
-					if (htmlValue)
+					try
 					{
-						editor["pluginMethod_PasteHtml"](htmlValue);
-						return;
-                    }
+                        // test html
+                        var htmlValue = e.dataTransfer.getData("text/html");
+                        if (htmlValue && !AscCommon.AscBrowser.isIE)
+                        {
+                            // text html!
+                            var index = htmlValue.indexOf("StartHTML");
+                            var indexHtml = htmlValue.indexOf("<html");
+                            if (-1 == indexHtml)
+                                indexHtml = htmlValue.indexOf("<HTML");
+                            if (index > 0 && indexHtml > 0 && index < indexHtml)
+                                htmlValue = htmlValue.substr(indexHtml);
 
-                    var textValue = e.dataTransfer.getData("text/plain");
-					if (textValue)
+                            editor["pluginMethod_PasteHtml"](htmlValue);
+                            return;
+                        }
+                    }
+                    catch(err)
 					{
-                        editor["pluginMethod_PasteText"](textValue);
-                        return;
 					}
+
+					try
+					{
+                        var textValue = e.dataTransfer.getData("text/plain");
+                        if (textValue)
+                        {
+                            editor["pluginMethod_PasteText"](textValue);
+                            return;
+                        }
+                    }
+                    catch(err)
+					{
+					}
+
+                    try
+                    {
+                        var textValue = e.dataTransfer.getData("Text");
+                        if (textValue)
+                        {
+                            editor["pluginMethod_PasteText"](textValue);
+                            return;
+                        }
+                    }
+                    catch(err)
+                    {
+                    }
 				}
 
 				callback(mapAscServerErrorToAscError(nError), files);
@@ -1693,8 +1725,8 @@
 		{
 			for (var i = 0, length = event.dataTransfer.types.length; i < length; ++i)
 			{
-				var type = event.dataTransfer.types[i];
-				if (type == "Files")
+				var type = event.dataTransfer.types[i].toLowerCase();
+				if (type == "files")
 				{
 					if (event.dataTransfer.items)
 					{
@@ -1722,19 +1754,9 @@
 						bRes = true;
 					break;
 				}
-				else if (type == "text/plain" || type == "text/html")
+				else if (type == "text" || type == "text/plain" || type == "text/html")
 				{
-                    if (event.dataTransfer.items)
-                    {
-                        for (var j = 0, length2 = event.dataTransfer.items.length; j < length2; j++)
-                        {
-                            var item = event.dataTransfer.items[j];
-                            if (item.type && item.kind && "string" == item.kind.toLowerCase())
-                            {
-                                bRes = true;
-                            }
-                        }
-                    }
+                    bRes = true;
                     break;
 				}
 			}
