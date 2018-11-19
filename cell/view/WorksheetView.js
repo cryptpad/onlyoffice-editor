@@ -4436,10 +4436,10 @@
             History.StartTransaction();
             // Выставляем, что это bestFit
             this.model.setColBestFit(true, this.model.charCountToModelColWidth(cc), col, col);
-			this._calcColWidth(this._getColLeft(col) - this.cellsLeft, col);
             History.EndTransaction();
 
-            this._updateColumnPositions();
+			// ToDo refactoring this!!!
+			this._calcWidthColumns(AscCommonExcel.recalcType.recalc);
             this.isChanged = true;
         }
     };
