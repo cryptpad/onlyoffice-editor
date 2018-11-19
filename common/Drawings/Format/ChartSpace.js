@@ -3222,15 +3222,12 @@ CChartSpace.prototype.getRangeObjectStr = function()
                }
            }
        }
-        var startCell = new CellAddress(r1, c1, 0);
-        var endCell = new CellAddress(r2, c2, 0);
 
-        var sStartCellId, sEndCellId;
         if (this.bbox.worksheet) {
-            sStartCellId = startCell.getIDAbsolute();
-            sEndCellId = endCell.getIDAbsolute();
-            ret.range = parserHelp.get3DRef(this.bbox.worksheet.sName, sStartCellId === sEndCellId ?
-                sStartCellId : sStartCellId + ':' + sEndCellId);
+            AscCommonExcel.g_R1C1Mode = this.bbox.worksheet.getR1C1Mode();
+            var sRef = (new Asc.Range(c1, r1, c2, r2)).getName(AscCommonExcel.referenceType.A);
+            AscCommonExcel.g_R1C1Mode = false;
+            ret.range = parserHelp.get3DRef(this.bbox.worksheet.sName, sRef);
         }
     }
     return ret;

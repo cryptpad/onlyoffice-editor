@@ -3510,17 +3510,11 @@ function DrawingObjects() {
                         //}
                     }
 
-                    var startCell = new AscCommon.CellAddress(final_bbox.r1, final_bbox.c1, 0);
-                    var endCell = new AscCommon.CellAddress(final_bbox.r2, final_bbox.c2, 0);
+                    AscCommonExcel.g_R1C1Mode = worksheet.model.getR1C1Mode();
+                    var sRef = (new Asc.Range(final_bbox.c1, final_bbox.r1, final_bbox.c2, final_bbox.r2)).getName(AscCommonExcel.referenceType.A);
+                    AscCommonExcel.g_R1C1Mode = false;
+                    options.range = parserHelp.get3DRef(worksheet.model.sName, sRef);
 
-
-                    if (startCell && endCell)
-                    {
-                        var sStartCellId = startCell.getIDAbsolute(), sEndCellId = endCell.getIDAbsolute();
-						options.range = parserHelp.get3DRef(worksheet.model.sName,
-                            sStartCellId === sEndCellId ? sStartCellId :
-                                sStartCellId + ':' + sEndCellId);
-                    }
 					var chartSeries = AscFormat.getChartSeries(worksheet.model, options, catHeadersBBox, serHeadersBBox);
 					drawingObject.rebuildSeriesFromAsc(chartSeries);
                     _this.controller.startRecalculate();
