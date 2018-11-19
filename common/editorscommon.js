@@ -2660,7 +2660,7 @@
 				{
 					var chartSettings = new Asc.asc_ChartSettings();
 					chartSettings.putType(Asc.c_oAscChartTypeSettings.stock);
-					chartSettings.putRange(range);
+					chartSettings.putRange(dataRange);
 					chartSettings.putInColumns(!isRows);
 					var chartSeries = AscFormat.getChartSeries(sheetModel, chartSettings).series;
 					if (minStockVal !== chartSeries.length || !chartSeries[0].Val || !chartSeries[0].Val.NumCache || chartSeries[0].Val.NumCache.length < minStockVal)
