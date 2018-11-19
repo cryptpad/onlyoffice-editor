@@ -97,6 +97,11 @@
 		this.guidAsyncMethod = "";
 
 		this.sendsToInterface = {};
+
+		this.sendEncryptionDataCounter = 0;
+
+		if (this.api.isCheckCryptoReporter)
+			this.checkCryptoReporter();
 	}
 
 	CPluginsManager.prototype =
@@ -518,6 +523,20 @@
 					{
 						if (plugin.variations[runObject.currentVariation].initData == "encryption")
 						{
+							if (this.api.isReporterMode)
+							{
+                                this.sendEncryptionDataCounter++;
+                                if (2 <= this.sendEncryptionDataCounter)
+                                {
+                                    runObject.startData.setAttribute("data", {
+                                        "type": "setPassword",
+                                        "password": this.api.currentPassword,
+                                        "hash": this.api.currentDocumentHash,
+                                        "docinfo": this.api.currentDocumentInfo
+                                    });
+                                }
+                            }
+
                             // for crypt mode (end waiting all system plugins)
                             if (this.api.asc_initAdvancedOptions_params)
                             {
@@ -737,6 +756,19 @@
             if (!_plugin)
             	return;
             this.init(_plugin.guid, data);
+        },
+        checkCryptoReporter : function()
+        {
+            this.sendEncryptionDataCounter++;
+            if (2 <= this.sendEncryptionDataCounter)
+            {
+                this.sendToEncryption({
+                    "type" : "setPassword",
+                    "password" : this.api.currentPassword,
+                    "hash" : this.api.currentDocumentHash,
+                    "docinfo" : this.api.currentDocumentInfo
+                });
+            }
         }
         /* -------------------------------- */
 	};

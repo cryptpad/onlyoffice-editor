@@ -6187,6 +6187,13 @@ background-repeat: no-repeat;\
 				data: _this.reporterStartObject
 			};
 
+			if (AscCommon.EncryptionWorker.isPasswordCryptoPresent)
+			{
+                _msg_.data["cryptoCurrentPassword"] = this.currentPassword;
+                _msg_.data["cryptoCurrentDocumentHash"] = this.currentDocumentHash;
+                _msg_.data["cryptoCurrentDocumentInfo"] = this.currentDocumentInfo;
+            }
+
 			this.reporterStartObject = null;
 			_this.sendToReporter(JSON.stringify(_msg_));
 
@@ -6269,6 +6276,19 @@ background-repeat: no-repeat;\
 			this.translateManager = AscCommon.translateManager.init(data["translate"]);
 
 		this.reporterTranslates = [data["translations"]["reset"], data["translations"]["slideOf"], data["translations"]["endSlideshow"], data["translations"]["finalMessage"]];
+
+        if (data["cryptoCurrentPassword"])
+        {
+            this.currentPassword = data["cryptoCurrentPassword"];
+            this.currentDocumentHash = data["cryptoCurrentDocumentHash"];
+            this.currentDocumentInfo = data["cryptoCurrentDocumentInfo"];
+
+            if (this.pluginsManager)
+                this.pluginsManager.checkCryptoReporter();
+            else
+                this.isCheckCryptoReporter = true;
+        }
+
 		if (!this.WordControl)
 			return;
 

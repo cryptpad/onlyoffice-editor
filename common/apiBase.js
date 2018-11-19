@@ -1686,6 +1686,8 @@
                 {
                     var _param = ("<m_sPassword>" + AscCommon.CopyPasteCorrectString(obj["password"]) + "</m_sPassword>");
                     _editor.currentPassword = obj["password"];
+                    _editor.currentDocumentHash = obj["hash"];
+                    _editor.currentDocumentInfo = obj["docinfo"];
 
                     AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
 
