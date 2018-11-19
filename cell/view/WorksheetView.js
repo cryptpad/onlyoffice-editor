@@ -1136,6 +1136,13 @@
             return result;
         }
 
+		var mc = this.model.getMergedByCell(activeCell.row, activeCell.col);
+		var c1 = mc ? mc.c1 : activeCell.col;
+		var r1 = mc ? mc.r1 : activeCell.row;
+
+		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
+		AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
+
         // Ищем первую ячейку с числом
         for (; r >= vr.r1; --r) {
             cell = this._getCellTextCache(activeCell.col, r);
@@ -1213,7 +1220,6 @@
             }
             this._fixSelectionOfMergedCells(result);
 			result.text = result.getName();
-            return result;
         }
 
         if (topCell) {
@@ -1247,8 +1253,11 @@
             }
             this._fixSelectionOfMergedCells(result);
 			result.text = result.getName();
-            return result;
         }
+
+		AscCommonExcel.g_ActiveCell = null;
+		AscCommonExcel.g_R1C1Mode = false;
+		return result;
     };
 
     WorksheetView.prototype._prepareComments = function () {
