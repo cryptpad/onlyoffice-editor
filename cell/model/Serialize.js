@@ -3696,6 +3696,13 @@
 					ref = arrayFormula;
 					type = ECellFormulaType.cellformulatypeArray;
 					formula = parsed.getFormula();
+				} else if(this.isCopyPaste) {
+					//если выделена часть формулы, и первая ячейка формулы массива не входит в выделение
+					if(this.isCopyPaste.r1 === cell.nRow && this.isCopyPaste.c1 === cell.nCol) {
+						ref = new Asc.Range(this.isCopyPaste.c1, this.isCopyPaste.r1, arrayFormula.c2, arrayFormula.r2);
+						type = ECellFormulaType.cellformulatypeArray;
+						formula = parsed.getFormula();
+					}
 				}
 			} else {
 				formula = parsed.getFormula();
