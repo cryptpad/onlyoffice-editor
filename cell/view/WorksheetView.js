@@ -11683,7 +11683,7 @@
 						if (0 < w) {
 							arrLeftS.push(_left);
 						}
-						_left += w;
+						_left -= w;
 					}
 
 					if (_c2 > vro.vr.c2) {
