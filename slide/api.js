@@ -4912,9 +4912,11 @@ background-repeat: no-repeat;\
 				{
 					if (this.isApplyChangesOnOpenEnabled)
 					{
-                        if (AscCommon.EncryptionWorker && !AscCommon.EncryptionWorker.isChangesHandled)
+                        if (AscCommon.EncryptionWorker)
                         {
-                            return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
+                            AscCommon.EncryptionWorker.init();
+                            if (!AscCommon.EncryptionWorker.isChangesHandled)
+                            	return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
                         }
                         
 						this.isApplyChangesOnOpenEnabled = false;

@@ -1575,9 +1575,11 @@ var editor;
 			return;
 		}
 
-        if (AscCommon.EncryptionWorker && !AscCommon.EncryptionWorker.isChangesHandled)
+        if (AscCommon.EncryptionWorker)
         {
-            return AscCommon.EncryptionWorker.handleChanges(this.collaborativeEditing.m_arrChanges, this, this._openDocumentEndCallback);
+            AscCommon.EncryptionWorker.init();
+            if (!AscCommon.EncryptionWorker.isChangesHandled)
+                return AscCommon.EncryptionWorker.handleChanges(this.collaborativeEditing.m_arrChanges, this, this._openDocumentEndCallback);
         }
 
 		if (0 === this.wbModel.getWorksheetCount()) {

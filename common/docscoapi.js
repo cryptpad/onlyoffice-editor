@@ -967,7 +967,7 @@
   };
 
   DocsCoApi.prototype._send = function(data, useEncryption) {
-    if (!useEncryption && data && data["type"] == "saveChanges" && AscCommon.EncryptionWorker)
+    if (!useEncryption && data && data["type"] == "saveChanges" && AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isInit())
       return AscCommon.EncryptionWorker.sendChanges(this, data, AscCommon.EncryptionMessageType.Encrypt);
 
     if (data !== null && typeof data === "object") {
@@ -1138,7 +1138,7 @@
       }
       return;
     }
-    if (!useEncryption && AscCommon.EncryptionWorker)
+    if (!useEncryption && AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isInit())
       return AscCommon.EncryptionWorker.sendChanges(this, data, AscCommon.EncryptionMessageType.Decrypt);
     if (data["locks"]) {
       var bSendEnd = false;

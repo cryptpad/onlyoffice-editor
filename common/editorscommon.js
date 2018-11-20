@@ -3809,6 +3809,8 @@
     };
     function CEncryptionData()
     {
+    	this._init = false;
+
         this.arrData = [];
         this.arrImages = [];
 
@@ -3828,6 +3830,16 @@
         this.nextChangesTimeoutId = -1;
 
         this.isPasswordCryptoPresent = false;
+
+        this.init = function()
+		{
+			this._init = true;
+		};
+
+        this.isInit = function()
+        {
+			return this._init;
+        };
 
         this.isNeedCrypt = function()
 		{

@@ -6450,10 +6450,12 @@ background-repeat: no-repeat;\
 
 					if (this.isApplyChangesOnOpenEnabled)
 					{
-						if (AscCommon.EncryptionWorker && !AscCommon.EncryptionWorker.isChangesHandled)
-						{
-                            return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
-						}
+                        if (AscCommon.EncryptionWorker)
+                        {
+                            AscCommon.EncryptionWorker.init();
+                            if (!AscCommon.EncryptionWorker.isChangesHandled)
+                                return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
+                        }
 
 						this.isApplyChangesOnOpenEnabled = false;
 						this._applyPreOpenLocks();
