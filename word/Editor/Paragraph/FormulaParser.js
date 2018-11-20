@@ -31,8 +31,8 @@
     const oRowNameRegExp = new RegExp(sRowName, 'g');
     const oCellRangeRegExp = new RegExp(sCellRange, 'g');
     const oCellCellRangeRegExp = new RegExp(sCellCellRange, 'g');
-    const oRowRangeRegExp = new RegExp(sRowRange);
-    const oColRangeRegExp = new RegExp(sColumnRange);
+    const oRowRangeRegExp = new RegExp(sRowRange, 'g');
+    const oColRangeRegExp = new RegExp(sColumnRange, 'g');
     const oCellReferenceRegExp = new RegExp(sCellReference, 'g');
     const oIdentifierRegExp = new RegExp(sIdentifier, 'g');
     const oBookmarkNameRegExp = new RegExp(sBookmark, 'g');
@@ -824,7 +824,7 @@
     CMINFunctionNode.prototype.listSupport = function () {
         return true;
     };
-    CMINFunctionNode.prototype.findMin = function(aArgs){
+    CMINFunctionNode.prototype._calculate = function (aArgs) {
         var ret = null;
         for(var i = 0; i < aArgs.length; ++i){
             if(!aArgs[i].error){
@@ -854,10 +854,6 @@
         else{
             this.result = 0.0;
         }
-    };
-    CMINFunctionNode.prototype._calculate = function (aArgs) {
-
-        this.result = this.findMin(aArgs);
     };
 
     function CMODFunctionNode(parseQueue){
@@ -1972,7 +1968,7 @@
     }
 
     function TEST2(){
-        var aExp =  ["AVERAGE(a:B, a:B)"];//(createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
+        var aExp =  (createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
         //console.log(JSON.stringify(aExp));
         //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
         var sRes = "";
