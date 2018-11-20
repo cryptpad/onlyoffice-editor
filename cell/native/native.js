@@ -7427,7 +7427,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(sData) {
                                                       t.collaborativeEditing, t.fontRenderingMode);
                };
                
-               t.openDocumentFromZip(t.wbModel, undefined, window["native"]["GetXlsxPath"]()).then(thenCallback, thenCallback);
+               t.openDocumentFromZip(t.wbModel, window["native"]["GetXlsxPath"]()).then(thenCallback, thenCallback);
                
                if (!sdkCheck) {
                

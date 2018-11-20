@@ -229,7 +229,7 @@ CWordCollaborativeEditing.prototype.OnEnd_Load_Objects = function()
 
     LogicDocument.Reset_RecalculateCache();
 
-    LogicDocument.Recalculate(false, false, RecalculateData);
+    LogicDocument.Recalculate(RecalculateData);
     LogicDocument.Document_UpdateSelectionState();
     LogicDocument.Document_UpdateInterfaceState();
 
@@ -626,7 +626,7 @@ CWordCollaborativeEditing.prototype.Update_ForeignCursorLabelPosition = function
 
 
 CWordCollaborativeEditing.prototype.private_RecalculateDocument = function(oRecalcData){
-    this.m_oLogicDocument.Recalculate(false, false, oRecalcData);
+    this.m_oLogicDocument.Recalculate(oRecalcData);
 };
 
 
