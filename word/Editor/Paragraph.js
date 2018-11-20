@@ -10628,10 +10628,15 @@ Paragraph.prototype.Get_FrameAnchorPara = function()
 	return Next;
 };
 /**
- * Разделяем данный параграф
+ * Разделяем данный параграф, возвращаем правую часть
+ * @param {Paragraph} [NewParagraph=undefined] Если не задан, тогда мы создаем новый
+ * @returns {Paragraph}
  */
-Paragraph.prototype.Split = function(NewParagraph, Pos)
+Paragraph.prototype.Split = function(NewParagraph)
 {
+	if (!NewParagraph)
+		NewParagraph = new Paragraph(this.DrawingDocument, this.Parent);
+
 	NewParagraph.DeleteCommentOnRemove = false;
 	this.DeleteCommentOnRemove         = false;
 
@@ -10698,6 +10703,8 @@ Paragraph.prototype.Split = function(NewParagraph, Pos)
 
 	NewParagraph.DeleteCommentOnRemove = true;
 	this.DeleteCommentOnRemove         = true;
+	
+	return NewParagraph;
 };
 /**
  * Присоединяем контент параграфа Para к текущему параграфу

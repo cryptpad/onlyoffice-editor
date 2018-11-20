@@ -17544,6 +17544,73 @@ CDocument.prototype.GetPlaceHolderObject = function()
 {
 	return this.Controller.GetPlaceHolderObject();
 };
+/**
+ * Добавляем пустую страницу в текущее положение курсор
+ */
+CDocument.prototype.AddBlankPage = function()
+{
+	if (this.LogicDocumentController === this.Controller)
+	{
+		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content))
+		{
+			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddBlankPage);
+
+			if (this.IsSelectionUse())
+			{
+				this.MoveCursorLeft(false, false);
+				this.RemoveSelection();
+			}
+
+			var oElement = this.Content[this.CurPos.ContentPos];
+			if (oElement.IsParagraph())
+			{
+				if (this.CurPos.ContentPos === this.Content.length - 1 && oElement.IsCursorAtEnd())
+				{
+					var oBreakParagraph = oElement.Split();
+					var oEmptyParagraph = oElement.Split();
+
+					oBreakParagraph.AddToParagraph(new ParaNewLine(break_Page));
+					this.AddToContent(this.CurPos.ContentPos + 1, oBreakParagraph);
+					this.AddToContent(this.CurPos.ContentPos + 2, oEmptyParagraph);
+
+					this.CurPos.ContentPos = this.CurPos.ContentPos + 2;
+				}
+				else
+				{
+					var oNext   = oElement.Split();
+					var oBreak1 = oElement.Split();
+					var oBreak2 = oElement.Split();
+					var oEmpty  = oElement.Split();
+
+					oBreak1.AddToParagraph(new ParaNewLine(break_Page));
+					oBreak2.AddToParagraph(new ParaNewLine(break_Page));
+
+					this.AddToContent(this.CurPos.ContentPos + 1, oNext);
+					this.AddToContent(this.CurPos.ContentPos + 1, oBreak2);
+					this.AddToContent(this.CurPos.ContentPos + 1, oEmpty);
+					this.AddToContent(this.CurPos.ContentPos + 1, oBreak1);
+
+					this.CurPos.ContentPos = this.CurPos.ContentPos + 2;
+
+				}
+			}
+			else if (oElement.IsTable())
+			{
+
+			}
+			else
+			{
+				oElement.AddBlankPage();
+			}
+
+
+			this.Recalculate();
+
+			this.Document_UpdateInterfaceState();
+			this.Document_UpdateSelectionState();
+		}
+	}
+};
 
 function CDocumentSelectionState()
 {
