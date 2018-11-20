@@ -2076,11 +2076,11 @@
 			if (isNotFunction) {
 				name = "=" + name;
 			} else {
-				if (cellRange) {
-					if (cellRange.notEditCell) {
-						// Мы уже ввели все что нужно, редактор открывать не нужно
-						return;
-					}
+				if (cellRange.notEditCell) {
+					// Мы уже ввели все что нужно, редактор открывать не нужно
+					return;
+				}
+				if (cellRange.text) {
 					// Меняем значение ячейки
 					name = "=" + name + "(" + cellRange.text + ")";
 				} else {
