@@ -11913,7 +11913,10 @@
 			var res = false;
 			var worksheet = t.model;
 
+			var oldR1C1Mode = AscCommonExcel.g_R1C1Mode;
+			AscCommonExcel.g_R1C1Mode = t.model.getR1C1Mode();
 			var activeRange = AscCommonExcel.g_oRangeCache.getAscRange(addFormatTableOptionsObj.asc_getRange());
+			AscCommonExcel.g_R1C1Mode = oldR1C1Mode;
 			if (activeRange && worksheet.AutoFilter && activeRange.containsRange(worksheet.AutoFilter.Ref) &&
 				activeRange.r1 === worksheet.AutoFilter.Ref.r1) {
 				res = true;

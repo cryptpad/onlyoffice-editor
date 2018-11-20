@@ -489,6 +489,10 @@
 						var newDisplayName = newTablePart && newTablePart.DisplayName ? newTablePart.DisplayName : null;
 
 						//history
+						//FOR R1C1 - add into history only A1B1 format
+						if(addFormatTableOptionsObj && addFormatTableOptionsObj.range && rangeWithoutDiff) {
+							addFormatTableOptionsObj.range = rangeWithoutDiff.getName();
+						}
 						t._addHistoryObj({Ref: filterRange}, AscCH.historyitem_AutoFilter_Add,
 							{activeCells: filterRange, styleName: styleName, addFormatTableOptionsObj: addFormatTableOptionsObj, displayName: newDisplayName, tablePart: tablePart}, null, filterRange, bWithoutFilter);
 						History.SetSelectionRedo(filterRange);
