@@ -447,7 +447,7 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
             if (Point.SelectionState) {
                 this.workbook.handlers.trigger("setSelectionState", Point.SelectionState);
             } else {
-                this.workbook.handlers.trigger("setSelection", Point.SelectRange.clone(), /*validRange*/false);
+                this.workbook.handlers.trigger("setSelection", Point.SelectRange.clone());
             }
         } else {
             if (null !== oState && oState[0] && oState[0].focus) {

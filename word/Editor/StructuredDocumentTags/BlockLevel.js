@@ -1025,8 +1025,12 @@ CBlockLevelSdt.prototype.Get_PageContentStartPos = function(CurPage)
 
 	if (this.Parent instanceof CDocumentContent)
 	{
-		StartPage   = this.Parent.StartPage;
+		StartPage   = this.Parent.Get_AbsolutePage(0) - StartPage;
 		StartColumn = this.Parent.StartColumn;
+
+		// Такого не должно быть, но на всякий случай
+		if (StartPage < 0)
+			StartPage = 0;
 	}
 
 	return this.Parent.Get_PageContentStartPos2(StartPage, StartColumn, CurPage, this.Index);
@@ -1188,6 +1192,7 @@ CBlockLevelSdt.prototype.SetPr = function(oPr)
 	this.SetTag(oPr.Tag);
 	this.SetLabel(oPr.Label);
 	this.SetContentControlLock(oPr.Lock);
+	this.SetContentControlId(oPr.Id);
 
 	if (undefined !== oPr.DocPartObj)
 		this.SetDocPartObj(oPr.DocPartObj.Category, oPr.DocPartObj.Gallery, oPr.DocPartObj.Unique);

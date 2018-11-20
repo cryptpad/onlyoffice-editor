@@ -70,6 +70,30 @@ CDocumentContentElementBase.prototype.GetType = function()
 {
 	return type_Unknown;
 };
+/**
+ * Является ли данный элемент параграфом
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.IsParagraph = function()
+{
+	return (this.GetType() === type_Paragraph);
+};
+/**
+ * Является ли данный элемент таблицей
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.IsTable = function()
+{
+	return (this.GetType() === type_Table);
+};
+/**
+ * Является ли данный элемент блочным контейнером
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.IsBlockLevelSdt = function()
+{
+	return (this.GetType() === type_BlockLevelSdt);
+};
 CDocumentContentElementBase.prototype.Is_Inline = function()
 {
 	return true;

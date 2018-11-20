@@ -1574,13 +1574,12 @@ function _HEXTORGB_( colorHEX ) {
 
 		this.maxScrollY = 0;
 		this.maxScrollX = 0;
+		this.maxScrollY2 = 0;
+		this.maxScrollX2 = 0;
 
 		this.scrollCoeff = 0;
 
 		this.scroller = {x:0, y:1, h:0, w:0};
-
-		this.endByX = false;
-		this.endByY = false;
 
 		this.canvas = null;
 		this.context = null;
@@ -1712,8 +1711,8 @@ function _HEXTORGB_( colorHEX ) {
 		}
 
 		this._setDimension( holder.clientHeight, holder.clientWidth );
-		this.maxScrollY = holder.firstElementChild.clientHeight - this.settings.screenH > 0 ? holder.firstElementChild.clientHeight - this.settings.screenH : 0;
-		this.maxScrollX = holder.firstElementChild.clientWidth - this.settings.screenW > 0 ? holder.firstElementChild.clientWidth - this.settings.screenW : 0;
+		this.maxScrollY = this.maxScrollY2 = holder.firstElementChild.clientHeight - this.settings.screenH > 0 ? holder.firstElementChild.clientHeight - this.settings.screenH : 0;
+		this.maxScrollX = this.maxScrollX2 = holder.firstElementChild.clientWidth - this.settings.screenW > 0 ? holder.firstElementChild.clientWidth - this.settings.screenW : 0;
 
 		this.isVerticalScroll = holder.firstElementChild.clientHeight / Math.max( this.canvasH, 1 ) > 1;
 		this.isHorizontalScroll = holder.firstElementChild.clientWidth / Math.max( this.canvasW, 1 ) > 1;
@@ -1867,8 +1866,8 @@ function _HEXTORGB_( colorHEX ) {
 		var _firstChildH = GetClientHeight( this.canvas.parentNode.firstElementChild );
 
 		this._setDimension( _parentClientH, _parentClientW );
-		this.maxScrollY = _firstChildH - settings.screenH > 0 ? _firstChildH - settings.screenH : 0;
-		this.maxScrollX = _firstChildW - settings.screenW > 0 ? _firstChildW - settings.screenW : 0;
+		this.maxScrollY = this.maxScrollY2 = _firstChildH - settings.screenH > 0 ? _firstChildH - settings.screenH : 0;
+		this.maxScrollX = this.maxScrollX2 = _firstChildW - settings.screenW > 0 ? _firstChildW - settings.screenW : 0;
 
 		this.isVerticalScroll = _firstChildH / Math.max( this.canvasH, 1 ) > 1 || this.isVerticalScroll || (true === bIsVerAttack);
 		this.isHorizontalScroll = _firstChildW / Math.max( this.canvasW, 1 ) > 1 || this.isHorizontalScroll || (true === bIsHorAttack);
@@ -1912,10 +1911,10 @@ function _HEXTORGB_( colorHEX ) {
 		this._setDimension( this.canvas.parentNode.clientHeight, this.canvas.parentNode.clientWidth );
 
 		size = this.canvas.parentNode.firstElementChild.clientHeight - (settings.screenH || this.canvas.parentNode.offsetHeight);
-		this.maxScrollY = 0 < size ? size : 0;
+		this.maxScrollY = this.maxScrollY2 = 0 < size ? size : 0;
 
 		size = this.canvas.parentNode.firstElementChild.clientWidth - (settings.screenH || this.canvas.parentNode.offsetWidth);
-		this.maxScrollX = 0 < size ? size : 0;
+		this.maxScrollX = this.maxScrollX2 = 0 < size ? size : 0;
 
 		this.isVerticalScroll = this.canvas.parentNode.firstElementChild.clientHeight / Math.max( this.canvasH, 1 ) > 1 || this.isVerticalScroll;
 		this.isHorizontalScroll = this.canvas.parentNode.firstElementChild.clientWidth / Math.max( this.canvasW, 1 ) > 1 || this.isHorizontalScroll;
@@ -2014,18 +2013,10 @@ function _HEXTORGB_( colorHEX ) {
 			isTop = true;
 			isBottom = false;
 		}
-		else if ( destY > this.maxScrollY && !this.endByY ) {
-			// Новое смещение превышает maxScroll, надо вызвать ивент, спрашивающий что делать.
-			// Чтобы не создавать новый, использую onscrollVEnd, он все равно больше нигде не используется
-			// 50 = max число wheelScrollLine, если она больше, то будет работать неправильно
-			for ( var c = 50; destY > this.maxScrollY && c > 0; --c ) {
-				this.handleEvents( "onscrollVEnd", {} );
-				vend = true;
-			}
-			if ( destY > this.maxScrollY ) {
-				// Обработчик onscrollVEnd решил, что расширение области скрола не нужно, изменяем destY
-				destY = this.maxScrollY;
-			}
+		else if ( destY > this.maxScrollY2 ) {
+			this.handleEvents( "onscrollVEnd", destY - this.maxScrollY );
+			vend = true;
+			destY = this.maxScrollY2;
 			isTop = false;
 			isBottom = true;
 		}
@@ -2082,14 +2073,10 @@ function _HEXTORGB_( colorHEX ) {
 			isTop = true;
 			isBottom = false;
 		}
-		else if ( destX > this.maxScrollX && !this.endByX ) {
-			for ( var c = 50; destX > this.maxScrollX && c > 0; --c ) {
-				this.handleEvents( "onscrollHEnd", {} );
-				hend = true;
-			}
-			if ( destX > this.maxScrollX ) {
-				destX = this.maxScrollX;
-			}
+		else if ( destX > this.maxScrollX2 ) {
+			this.handleEvents( "onscrollHEnd", destX - this.maxScrollX );
+			hend = true;
+			destX = this.maxScrollX2;
 			isTop = false;
 			isBottom = true;
 		}
@@ -3046,6 +3033,8 @@ function _HEXTORGB_( colorHEX ) {
 	ScrollObject.prototype.evt_mouseup = function ( e ) {
 		var evt = e || window.event;
 
+		this.that.handleEvents( "onmouseup", evt );
+
 		// prevent pointer events on all iframes (while only plugin!)
 		if (window.g_asc_plugins)
 			window.g_asc_plugins.enablePointerEvents();
@@ -3058,18 +3047,7 @@ function _HEXTORGB_( colorHEX ) {
 		var mousePos = this.that.getMousePosition( evt );
 		this.that.scrollTimeout && clearTimeout( this.that.scrollTimeout );
 		this.that.scrollTimeout = null;
-		if ( !this.that.scrollerMouseDown ) {
-			if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowDown( mousePos ) ) {
-				this.that.handleEvents( "onmouseup", evt );
-				this.that._drawArrow( ArrowStatus.upLeftArrowNonActive_downRightArrowHover );
-			}
-			else if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowUp( mousePos ) ) {
-				this.that.handleEvents( "onmouseup", evt );
-				this.that._drawArrow( ArrowStatus.upLeftArrowHover_downRightArrowNonActive );
-			}
-			this.that.mouseDownArrow = false;
-		}
-		else {
+		if ( this.that.scrollerMouseDown ) {
 			this.that.mouseDown = false;
 			this.that.mouseUp = true;
 			this.that.scrollerMouseDown = false;
@@ -3082,13 +3060,20 @@ function _HEXTORGB_( colorHEX ) {
 			}
 			this.that._drawArrow();
 			this.that._draw();
+		} else {
+			if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowDown( mousePos ) ) {
+				this.that._drawArrow( ArrowStatus.upLeftArrowNonActive_downRightArrowHover );
+			}
+			else if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowUp( mousePos ) ) {
+				this.that._drawArrow( ArrowStatus.upLeftArrowHover_downRightArrowNonActive );
+			}
+			this.that.mouseDownArrow = false;
 		}
 
 		//for unlock global mouse event
 		if ( this.that.onLockMouse && this.that.offLockMouse ) {
 			this.that.offLockMouse( evt );
 		}
-		this.that.handleEvents( "onmouseup", evt );
 	};
 	ScrollObject.prototype.evt_mousedown = function ( e ) {
 		var evt = e || window.event;

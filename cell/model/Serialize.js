@@ -69,7 +69,9 @@
         Styles: 2,
         Workbook: 3,
         Worksheets: 4,
-        CalcChain: 5
+        CalcChain: 5,
+        App: 6,
+        Core: 7
     };
     /** @enum */
     var c_oSerStylesTypes =
@@ -3799,7 +3801,7 @@
 						continue;
 					}
 				}
-				if (elem.coords.isValid()) {
+				if (elem.coords && elem.coords.isValid()) {
 					this.bs.WriteItem(c_oSerWorksheetsTypes.Comment, function(){oThis.WriteComment(elem);});
 				}
             }
@@ -8350,6 +8352,7 @@
             var nSharedStringTableOffset = null;
             var nStyleTableOffset = null;
             var nWorkbookTableOffset = null;
+            var fileStream;
             for(var i = 0; i < mtLen; ++i)
             {
                 //mtItem
@@ -8424,6 +8427,20 @@
                         // case c_oSerTableTypes.Other:
                         // res = (new Binary_OtherTableReader(this.stream, oMediaArray)).Read();
                         // break;
+                        case c_oSerTableTypes.App:
+                            this.stream.Seek2(mtiOffBits);
+                            fileStream = this.stream.ToFileStream();
+                            wb.App = new AscCommon.CApp();
+                            wb.App.fromStream(fileStream);
+                            this.stream.FromFileStream(fileStream);
+                            break;
+                        case c_oSerTableTypes.Core:
+                            this.stream.Seek2(mtiOffBits);
+                            fileStream = this.stream.ToFileStream();
+                            wb.Core = new AscCommon.CCore();
+                            wb.Core.fromStream(fileStream);
+                            this.stream.FromFileStream(fileStream);
+                            break;
                     }
                     if(c_oSerConstants.ReadOk != res)
                         break;
@@ -8928,7 +8945,7 @@
 				newContext.readAttributes(attr, uq);
 			}
 		} else if ("numFmts" === elem) {
-			openXml.SaxParserDataTransfer.numFmts = this.numFmts;
+			;
 		} else if ("numFmt" === elem) {
 			newContext = new AscCommonExcel.Num();
 			if (newContext.readAttributes) {
@@ -8936,7 +8953,7 @@
 			}
 			this.numFmts.push(newContext);
 		} else if ("fonts" === elem) {
-			openXml.SaxParserDataTransfer.fonts = this.fonts;
+			;
 		} else if ("font" === elem) {
 			newContext = new AscCommonExcel.Font();
 			if (newContext.readAttributes) {
@@ -8944,7 +8961,6 @@
 			}
 			this.fonts.push(newContext);
 		} else if ("fills" === elem) {
-			openXml.SaxParserDataTransfer.fills = this.fills;
 			openXml.SaxParserDataTransfer.priorityBg = false;
 		} else if ("fill" === elem) {
 			newContext = new AscCommonExcel.Fill();
@@ -8953,7 +8969,7 @@
 			}
 			this.fills.push(newContext);
 		} else if ("borders" === elem) {
-			openXml.SaxParserDataTransfer.borders = this.borders;
+			;
 		} else if ("border" === elem) {
 			newContext = new AscCommonExcel.Border();
 			if (newContext.readAttributes) {

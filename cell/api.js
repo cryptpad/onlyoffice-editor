@@ -125,6 +125,8 @@ var editor;
 
     this.formulasList = null;	// Список всех формул
 
+	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
+
     this._init();
     return this;
   }
@@ -284,7 +286,6 @@ var editor;
 	spreadsheet_api.prototype.asc_getLocale = function() {
 		return AscCommon.g_oDefaultCultureInfo.LCID;
 	};
-
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
     this.initGlobalObjects(this.wbModel);
@@ -292,6 +293,8 @@ var editor;
     var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
     oBinaryFileReader.Read(data, this.wbModel);
     AscFonts.IsCheckSymbols = false;
+    this.openingEnd.bin = true;
+    this._onEndOpen();
   };
 
   spreadsheet_api.prototype.initGlobalObjects = function(wbModel) {
@@ -685,39 +688,69 @@ var editor;
         return;
       }
     }
-    if (opt_isPassword) {
-      t.handlers.trigger("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), this.advancedOptionsAction);
-    } else if (data) {
-		// ToDo разделитель пока только "," http://bugzilla.onlyoffice.com/show_bug.cgi?id=31009
-		var cp = {
-			'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
-			'encodings': AscCommon.getEncodingParams()
-		};
-		var options;
-		if (typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-			AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
-				if (err) {
-					t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-				} else {
-					var dataUint = new Uint8Array(data);
-					var bom = AscCommon.getEncodingByBOM(dataUint);
-					if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
-						cp['codepage'] = bom.encoding;
-						data = dataUint.subarray(bom.size);
-					}
-					cp['data'] = data;
-					options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
-					t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
-				}
-			});
+	if (opt_isPassword) {
+		if (t.handlers.hasTrigger("asc_onAdvancedOptions")) {
+			t.handlers.trigger("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), this.advancedOptionsAction);
 		} else {
-			options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
-			t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+			t.handlers.trigger("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
 		}
-    } else {
-      t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+	} else {
+		if (t.handlers.hasTrigger("asc_onAdvancedOptions")) {
+			// ToDo разделитель пока только "," http://bugzilla.onlyoffice.com/show_bug.cgi?id=31009
+			var cp = {
+				'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
+				'encodings': AscCommon.getEncodingParams()
+			};
+			var options;
+			if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
+				AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
+					if (err) {
+						t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+					} else {
+						var dataUint = new Uint8Array(data);
+						var bom = AscCommon.getEncodingByBOM(dataUint);
+						if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
+							cp['codepage'] = bom.encoding;
+							data = dataUint.subarray(bom.size);
+						}
+						cp['data'] = data;
+						options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
+						t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+					}
+				});
+			} else {
+				options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.CSV, cp);
+				t.handlers.trigger("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+			}
+		} else {
+			this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.CSV, new asc.asc_CCSVAdvancedOptions(AscCommon.c_oAscCodePageUtf8, AscCommon.c_oAscCsvDelimiter.Comma));
+		}
     }
   };
+	spreadsheet_api.prototype._onEndOpen = function() {
+		var t = this;
+		if (this.openingEnd.bin && this.openingEnd.xlsx) {
+			//opening xlsx depends on getBinaryOtherTableGVar(called after Editor.bin)
+			this.openDocumentFromZip(t.wbModel, this.openingEnd.data).then(function() {
+				g_oIdCounter.Set_Load(false);
+				AscCommon.checkCultureInfoFontPicker();
+				AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
+				t.FontLoader.LoadDocumentFonts(t.wbModel.generateFontMap2());
+
+				// Какая-то непонятная заглушка, чтобы не падало в ipad
+				if (t.isMobileVersion) {
+					AscCommon.AscBrowser.isSafariMacOs = false;
+					AscCommon.PasteElementsId.PASTE_ELEMENT_ID = "wrd_pastebin";
+					AscCommon.PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
+				}
+			}).catch(function(err) {
+				if (window.console && window.console.log) {
+					window.console.log(err);
+				}
+				t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+			});
+		}
+	};
   spreadsheet_api.prototype._onOpenCommand = function(data) {
     var t = this;
     AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result) {
@@ -729,7 +762,33 @@ var editor;
 
       t.onEndLoadFile(result.data);
     });
+    this._onOpenCommandXlsx();
   };
+	spreadsheet_api.prototype._onOpenCommandXlsx = function() {
+		var t = this;
+		if (this.openingEnd.xlsxStart) {
+			return;
+		}
+		this.openingEnd.xlsxStart = true;
+		var url = AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx');
+		if (url) {
+			AscCommon.getJSZipUtils().getBinaryContent(url, function(err, data) {
+				if (err) {
+					if (window.console && window.console.log) {
+						window.console.log(err);
+					}
+					t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+				} else {
+					t.openingEnd.xlsx = true;
+					t.openingEnd.data = data;
+					t._onEndOpen();
+				}
+			});
+		} else {
+			t.openingEnd.xlsx = true;
+			t._onEndOpen();
+		}
+	};
 
   spreadsheet_api.prototype._OfflineAppDocumentEndLoad = function() {
     this.onEndLoadFile(AscCommonExcel.getEmptyWorkbook());
@@ -775,6 +834,10 @@ var editor;
   };
 
   spreadsheet_api.prototype._asc_downloadAs = function(sFormat, actionType, options) { //fCallback({returnCode:"", ...})
+    var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
+    if (isCloudCrypto)
+      window.isCloudCryptoDownloadAs = true;
+
     var t = this;
     if (!options) {
       options = {};
@@ -782,7 +845,7 @@ var editor;
     if (actionType) {
       this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
     }
-    var isNoBase64 = typeof ArrayBuffer !== 'undefined';
+    var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
     //sFormat: xlsx, xls, ods, csv, html
     var dataContainer = {data: null, part: null, index: 0, count: 0};
     var command = "save";
@@ -823,6 +886,15 @@ var editor;
     }
     // Меняем тип состояния (на сохранение)
     this.advancedOptionsAction = c_oAscAdvancedOptionsAction.Save;
+
+    if (isCloudCrypto)
+    {
+      var sParamXml = ("<m_nCsvTxtEncoding>" + oAdditionalData["codepage"] + "</m_nCsvTxtEncoding>");
+      sParamXml += ("<m_nCsvDelimiter>" + oAdditionalData["delimiter"] + "</m_nCsvDelimiter>");
+      window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, sFormat, sParamXml);
+      return;
+    }
+
     var fCallback = function(input) {
       var error = c_oAscError.ID.Unknown;
       if (null != input && command == input["type"]) {
@@ -985,26 +1057,9 @@ var editor;
   spreadsheet_api.prototype.openDocument = function(sData) {
     var t = this;
 	this._openDocument(sData);
-	this.openDocumentFromZip(this.wbModel, AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx')).then(function() {
-		g_oIdCounter.Set_Load(false);
-		AscCommon.checkCultureInfoFontPicker();
-		AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
-		t.FontLoader.LoadDocumentFonts(t.wbModel.generateFontMap2());
-
-		// Какая-то непонятная заглушка, чтобы не падало в ipad
-		if (t.isMobileVersion) {
-			AscCommon.AscBrowser.isSafariMacOs = false;
-			AscCommon.PasteElementsId.PASTE_ELEMENT_ID = "wrd_pastebin";
-			AscCommon.PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
-		}
-	}).catch(function(err) {
-		if (window.console && window.console.log) {
-			window.console.log(err);
-		}
-		t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-	});
+	this._onOpenCommandXlsx();
   };
-	spreadsheet_api.prototype.openDocumentFromZip = function (wb, opt_url, opt_path) {
+	spreadsheet_api.prototype.openDocumentFromZip = function (wb, data) {
 		var t = this;
 		return new Promise(function (resolve, reject) {
 			var openXml = AscCommon.openXml;
@@ -1013,114 +1068,101 @@ var editor;
 				resolve();
 				return;
 			}
-			var processData = function (err, data, path) {
-				var nextPromise;
-				if (!err && (data || path)) {
-					openXml.SaxParserDataTransfer.wb = wb;
-					var doc = new openXml.OpenXmlPackage();
-					var wbPart = null;
-					var wbXml = null;
-					var pivotCaches = {};
-					var jsZipWrapper = new AscCommon.JSZipWrapper();
-					nextPromise = jsZipWrapper.loadAsync(data || path).then(function (zip) {
-						return doc.openFromZip(zip);
-					}).then(function () {
-						wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
-						return wbPart.getDocumentContent();
-					}).then(function (contentWorkbook) {
-						wbXml = new AscCommonExcel.CT_Workbook();
-						new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
-						if (wbXml.pivotCaches) {
-							return wbXml.pivotCaches.reduce(function (prevVal, wbPivotCacheXml) {
-								var pivotTableCacheDefinitionPart;
-								var pivotTableCacheDefinition;
-								return prevVal.then(function () {
-									if (null !== wbPivotCacheXml.cacheId && null !== wbPivotCacheXml.id) {
-										pivotTableCacheDefinitionPart = wbPart.getPartById(wbPivotCacheXml.id);
-										return pivotTableCacheDefinitionPart.getDocumentContent();
-									}
-								}).then(function (content) {
-									if (content) {
-										pivotTableCacheDefinition = new Asc.CT_PivotCacheDefinition();
-										new openXml.SaxParserBase().parse(content, pivotTableCacheDefinition);
-										if (pivotTableCacheDefinition.isValidCacheSource()) {
-											pivotCaches[wbPivotCacheXml.cacheId] = pivotTableCacheDefinition;
-											if (pivotTableCacheDefinition.id) {
-												var partPivotTableCacheRecords = pivotTableCacheDefinitionPart.getPartById(
-													pivotTableCacheDefinition.id);
-												return partPivotTableCacheRecords.getDocumentContent();
-											}
+			var nextPromise;
+			if (data) {
+				var doc = new openXml.OpenXmlPackage();
+				var wbPart = null;
+				var wbXml = null;
+				var pivotCaches = {};
+				var jsZipWrapper = new AscCommon.JSZipWrapper();
+				nextPromise = jsZipWrapper.loadAsync(data || path).then(function (zip) {
+					return doc.openFromZip(zip);
+				}).then(function () {
+					wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
+					return wbPart.getDocumentContent();
+				}).then(function (contentWorkbook) {
+					wbXml = new AscCommonExcel.CT_Workbook();
+					new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
+					if (wbXml.pivotCaches) {
+						return wbXml.pivotCaches.reduce(function (prevVal, wbPivotCacheXml) {
+							var pivotTableCacheDefinitionPart;
+							var pivotTableCacheDefinition;
+							return prevVal.then(function () {
+								if (null !== wbPivotCacheXml.cacheId && null !== wbPivotCacheXml.id) {
+									pivotTableCacheDefinitionPart = wbPart.getPartById(wbPivotCacheXml.id);
+									return pivotTableCacheDefinitionPart.getDocumentContent();
+								}
+							}).then(function (content) {
+								if (content) {
+									pivotTableCacheDefinition = new Asc.CT_PivotCacheDefinition();
+									new openXml.SaxParserBase().parse(content, pivotTableCacheDefinition);
+									if (pivotTableCacheDefinition.isValidCacheSource()) {
+										pivotCaches[wbPivotCacheXml.cacheId] = pivotTableCacheDefinition;
+										if (pivotTableCacheDefinition.id) {
+											var partPivotTableCacheRecords = pivotTableCacheDefinitionPart.getPartById(
+												pivotTableCacheDefinition.id);
+											return partPivotTableCacheRecords.getDocumentContent();
 										}
 									}
-								}).then(function (content) {
-									if (content) {
-										var pivotTableCacheRecords = new Asc.CT_PivotCacheRecords();
-										new openXml.SaxParserBase().parse(content, pivotTableCacheRecords);
-										pivotTableCacheDefinition.cacheRecords = pivotTableCacheRecords;
-									}
-								});
-							}, Promise.resolve());
-						}
-					}).then(function () {
-						if (wbXml.sheets) {
-							var wsIndex = 0;
-							return wbXml.sheets.reduce(function (prevVal, wbSheetXml) {
-								var wsPart;
-								return prevVal.then(function () {
-									if (null !== wbSheetXml.id) {
-										var actions = [];
-										wsPart = wbPart.getPartById(wbSheetXml.id);
-										var pivotParts = wsPart.getPartsByRelationshipType(
-											openXml.relationshipTypes.pivotTable);
-										for (var i = 0; i < pivotParts.length; ++i) {
-											actions.push(pivotParts[i].getDocumentContent());
-										}
-										return Promise.all(actions);
-									}
-								}).then(function (res) {
-									if (res) {
-										var ws = wb.getWorksheet(wsIndex);
-										for (var i = 0; i < res.length; ++i) {
-											var pivotTable = new Asc.CT_pivotTableDefinition();
-											new openXml.SaxParserBase().parse(res[i], pivotTable);
-											var cacheDefinition = pivotCaches[pivotTable.cacheId];
-											if (cacheDefinition) {
-												pivotTable.cacheDefinition = cacheDefinition;
-												ws.insertPivotTable(pivotTable);
-											}
-										}
-									}
-									wsIndex++;
-								});
-							}, Promise.resolve());
-						}
-					}).catch(function (err) {
-						//don't show error.(case of open xls, ods, csv)
-						if (window.console && window.console.log) {
-							window.console.log(err);
-						}
-					}).then(function () {
-						jsZipWrapper.close();
-					});
-				} else {
-					if (err) {
-						if (window.console && window.console.log) {
-							window.console.log(err);
-						}
+								}
+							}).then(function (content) {
+								if (content) {
+									var pivotTableCacheRecords = new Asc.CT_PivotCacheRecords();
+									new openXml.SaxParserBase().parse(content, pivotTableCacheRecords);
+									pivotTableCacheDefinition.cacheRecords = pivotTableCacheRecords;
+								}
+							});
+						}, Promise.resolve());
 					}
-					nextPromise = Promise.resolve();
-				}
-				nextPromise.then(function (err) {
-					//clean up
-					openXml.SaxParserDataTransfer = {};
-					return Asc.ReadDefTableStyles(wb);
-				}).then(resolve, reject);
-			};
-			if (opt_url) {
-				AscCommon.getJSZipUtils().getBinaryContent(opt_url, processData);
+				}).then(function () {
+					if (wbXml.sheets) {
+						var wsIndex = 0;
+						return wbXml.sheets.reduce(function (prevVal, wbSheetXml) {
+							var wsPart;
+							return prevVal.then(function () {
+								if (null !== wbSheetXml.id) {
+									var actions = [];
+									wsPart = wbPart.getPartById(wbSheetXml.id);
+									var pivotParts = wsPart.getPartsByRelationshipType(
+										openXml.relationshipTypes.pivotTable);
+									for (var i = 0; i < pivotParts.length; ++i) {
+										actions.push(pivotParts[i].getDocumentContent());
+									}
+									return Promise.all(actions);
+								}
+							}).then(function (res) {
+								if (res) {
+									var ws = t.wbModel.getWorksheet(wsIndex);
+									for (var i = 0; i < res.length; ++i) {
+										var pivotTable = new Asc.CT_pivotTableDefinition();
+										new openXml.SaxParserBase().parse(res[i], pivotTable);
+										var cacheDefinition = pivotCaches[pivotTable.cacheId];
+										if (cacheDefinition) {
+											pivotTable.cacheDefinition = cacheDefinition;
+											ws.insertPivotTable(pivotTable);
+										}
+									}
+								}
+								wsIndex++;
+							});
+						}, Promise.resolve());
+					}
+				}).catch(function (err) {
+					//don't show error.(case of open xls, ods, csv)
+					if (window.console && window.console.log) {
+						window.console.log(err);
+					}
+				}).then(function () {
+					jsZipWrapper.close();
+				});
 			} else {
-				processData(undefined, undefined, opt_path);
+				nextPromise = Promise.resolve();
 			}
+			nextPromise.then(function (err) {
+				//clean up
+				openXml.SaxParserDataTransfer = {};
+				return Asc.ReadDefTableStyles(wb);
+			}).then(resolve, reject);
 		});
 	};
 
@@ -1672,7 +1714,7 @@ var editor;
 		this.wb._onSetSelection(range, /*validRange*/ true);
 	};
 
-	spreadsheet_api.prototype._onSaveCallbackInner = function (isUndoRequest) {
+	spreadsheet_api.prototype._onSaveCallbackInner = function () {
 		var t = this;
 		AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
 		// Принимаем чужие изменения
@@ -1889,6 +1931,14 @@ var editor;
   };
 
 	spreadsheet_api.prototype.asc_isPrintAreaLocked = function(index) {
+		//проверка лока для именованного диапазона -  области печати
+		//локи для именованных диапазонов устроены следующем образом: если изменяется хоть один именованный диапазон
+		//добавлять новые/редактировать старые/удалять измененные нельзя, но зато разрешается удалять не измененные
+		//в данном случае для области печати логика следующая - если был добавлен именованный диапазон(в тч и область печати)
+		//не даём возможность добавлять/редактировть область печати на всех листах, но разрешаем удалять не измененные области печати
+		//если вторым пользователем добавлена область печати, первым удалять разершается по общей схеме
+		//но поскольку изменения не приняты, этой области печати ещё нет у первого пользователя - удаления не произойдёт
+
 		var res = false;
 		if(index !== undefined) {
 			var sheetId = this.wbModel.getWorksheet(index).getId();
@@ -2190,8 +2240,7 @@ var editor;
     }
 
     ws = this.wb.getWorksheet();
-    d = ws.setSelection(d.length === 1 ? d[0].getBBox0() : d, true);
-    this.controller.scroll(d);
+    ws.setSelection(1 === d.length ? d[0].getBBox0() : d);
   };
 
 	spreadsheet_api.prototype.asc_closeCellEditor = function (cancel) {
@@ -3265,7 +3314,7 @@ var editor;
 		t._coAuthoringInit();
 		t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
 	};
-	return this.openDocumentFromZip(this.wbModel, undefined, xlsxPath).then(thenCallback, thenCallback);
+	return this.openDocumentFromZip(t.wbModel, xlsxPath).then(thenCallback, thenCallback);
   };
 
   spreadsheet_api.prototype.asc_nativeCalculateFile = function() {
@@ -3475,15 +3524,19 @@ var editor;
 	    this.wb.drawWS();
       }
 	};
+	spreadsheet_api.prototype.asc_getAppProps = function()
+	{
+		return this.wbModel && this.wbModel.App || null;
+	};
+	spreadsheet_api.prototype.asc_getCoreProps = function()
+	{
+		return this.wbModel && this.wbModel.Core || null;
+	};
 
   /*
    * Export
    * -----------------------------------------------------------------------------
    */
-
-  window["AscDesktopEditor_Save"] = function() {
-    return window["Asc"]["editor"].asc_Save(false);
-  };
 
   asc["spreadsheet_api"] = spreadsheet_api;
   prot = spreadsheet_api.prototype;
@@ -3512,6 +3565,8 @@ var editor;
   prot["asc_Redo"] = prot.asc_Redo;
 
   prot["asc_getDocumentName"] = prot.asc_getDocumentName;
+	prot["asc_getAppProps"] = prot.asc_getAppProps;
+	prot["asc_getCoreProps"] = prot.asc_getCoreProps;
   prot["asc_isDocumentModified"] = prot.asc_isDocumentModified;
   prot["asc_isDocumentCanSave"] = prot.asc_isDocumentCanSave;
 	prot["asc_getCanUndo"] = prot.asc_getCanUndo;

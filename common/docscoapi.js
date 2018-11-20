@@ -1132,15 +1132,14 @@
   };
 
   DocsCoApi.prototype._onSaveChanges = function(data, useEncryption) {
-    if (!useEncryption && AscCommon.EncryptionWorker)
-      return AscCommon.EncryptionWorker.sendChanges(this, data, AscCommon.EncryptionMessageType.Decrypt);
-
     if (!this.check_state()) {
       if (!this.get_isAuth()) {
         this._authOtherChanges.push(data);
       }
       return;
     }
+    if (!useEncryption && AscCommon.EncryptionWorker)
+      return AscCommon.EncryptionWorker.sendChanges(this, data, AscCommon.EncryptionMessageType.Decrypt);
     if (data["locks"]) {
       var bSendEnd = false;
       for (var block in data["locks"]) {

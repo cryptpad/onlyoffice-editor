@@ -604,6 +604,9 @@ function CPresentation(DrawingDocument)
     //------------------------------------------------------------------------
 
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
+    //Props
+    this.App = null;
+    this.Core = null;
 
     this.StartPage = 0; // Для совместимости с CDocumentContent
     this.CurPage   = 0;
@@ -1234,7 +1237,13 @@ CPresentation.prototype =
     Continue_FastCollaborativeEditing: function()
     {
         if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
-            return;
+		{
+			if (this.Api.forceSaveUndoRequest)
+				this.Api.asc_Save(true);
+
+			return;
+		}
+
         if (this.Api.isLongAction())
             return;
         if (true !== AscCommon.CollaborativeEditing.Is_Fast() || true === AscCommon.CollaborativeEditing.Is_SingleUser())
@@ -1321,13 +1330,12 @@ CPresentation.prototype =
 
     replaceMisspelledWord: function(Word, SpellCheckProperty){
         var ParaId = SpellCheckProperty.ParaId;
-        var ElemId = SpellCheckProperty.ElemId;
         var Paragraph = g_oTableId.Get_ById(ParaId);
         Paragraph.Document_SetThisElementCurrent(true);
         var oController = this.GetCurrentController();
         if(oController){
             oController.checkSelectedObjectsAndCallback(function(){
-                Paragraph.Replace_MisspelledWord(Word, ElemId);
+                Paragraph.ReplaceMisspelledWord(Word, SpellCheckProperty.Element);
             }, [], false, AscDFH.historydescription_Document_ReplaceMisspelledWord);
         }
     },
@@ -5075,7 +5083,7 @@ CPresentation.prototype =
             if (this.CollaborativeEditing.CanUndo() && true === this.Api.canSave)
             {
                 this.CollaborativeEditing.Set_GlobalLock(true);
-                this.Api.asc_Save(true, true);
+                this.Api.forceSaveUndoRequest = true;
             }
         }
         else

@@ -1789,6 +1789,8 @@ CGraphicObjects.prototype =
         }
     },
 
+
+
     updateParentParagraphParaPr : function()
     {
         var majorParaDrawing = this.getMajorParaDrawing();
@@ -2279,6 +2281,8 @@ CGraphicObjects.prototype =
     },
 
     selectAll: DrawingObjectsController.prototype.selectAll,
+
+    startEditTextCurrentShape: DrawingObjectsController.prototype.startEditTextCurrentShape,
 
     drawSelect: function(pageIndex)
     {

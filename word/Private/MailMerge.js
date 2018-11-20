@@ -276,7 +276,7 @@ CDocument.prototype.Preview_MailMergeResult = function(Index)
     }
 
     this.FieldsManager.Update_MailMergeFields(this.MailMergeMap[Index]);
-    this.Recalculate_FromStart(true);
+    this.RecalculateFromStart(true);
 
     editor.sync_PreviewMailMergeResult(Index);
 };
@@ -289,7 +289,7 @@ CDocument.prototype.EndPreview_MailMergeResult = function()
     AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 
     this.FieldsManager.Restore_MailMergeTemplate();
-    this.Recalculate_FromStart(true);
+    this.RecalculateFromStart(true);
 
     editor.sync_EndPreviewMailMergeResult();
 };

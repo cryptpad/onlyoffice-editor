@@ -4435,7 +4435,7 @@ CMathContent.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
             }
             else
             {
-                if(PRS.MathFirstItem == true && false == Item.Is_EmptyRange(PRS.Line, PRS.Range))
+                if(PRS.MathFirstItem == true && false == Item.IsEmptyRange(PRS.Line, PRS.Range))
                 {
                     PRS.MathFirstItem = false;
                 }
@@ -4947,7 +4947,7 @@ CMathContent.prototype.Get_AlignBrk = function(_CurLine, bBrkBefore)
 
         var bCheckNextBox = bEndRun == true && bNextBox == true && bBrkBefore == true;
 
-        var bRunEmptyRange = this.Content[EndPos].Type == para_Math_Run && this.Content[EndPos].Is_EmptyRange(_CurLine - 1, RangesCount - 1),
+        var bRunEmptyRange = this.Content[EndPos].Type == para_Math_Run && this.Content[EndPos].IsEmptyRange(_CurLine - 1, RangesCount - 1),
             bPrevBox = EndPos > 0 && this.Content[EndPos - 1].kind == MATH_BOX;
 
         var bCheckPrevNextBox = bRunEmptyRange == true && bPrevBox == true && bBrkBefore == false;
