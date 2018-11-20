@@ -542,6 +542,8 @@
                             {
                             	window["asc_initAdvancedOptions"].apply(window, this.api.asc_initAdvancedOptions_params);
                                 delete this.api.asc_initAdvancedOptions_params;
+                                // already sended in asc_initAdvancedOptions
+                                return;
                             }
 						}
 						break;
