@@ -10597,9 +10597,7 @@ CDocument.prototype.Add_SectionBreak = function(SectionBreakType)
 		// Если мы стоим в параграфе, тогда делим данный параграф на 2 в текущей точке(даже если мы стоим в начале
 		// или в конце параграфа) и к первому параграфу приписываем конец секкции.
 
-		var NewParagraph = new Paragraph(this.DrawingDocument, this);
-
-		Element.Split(NewParagraph);
+		var NewParagraph = Element.Split();
 
 		this.CurPos.ContentPos++;
 		NewParagraph.MoveCursorToStartPos(false);
@@ -10617,7 +10615,7 @@ CDocument.prototype.Add_SectionBreak = function(SectionBreakType)
 		// параграф перед ней.
 
 		var NewParagraph = new Paragraph(this.DrawingDocument, this);
-		var NewTable     = Element.Split_Table();
+		var NewTable     = Element.Split();
 
 		if (null === NewTable)
 		{
@@ -17591,16 +17589,37 @@ CDocument.prototype.AddBlankPage = function()
 					this.AddToContent(this.CurPos.ContentPos + 1, oBreak1);
 
 					this.CurPos.ContentPos = this.CurPos.ContentPos + 2;
-
 				}
+
+				this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
 			}
 			else if (oElement.IsTable())
 			{
+				var oNewTable = oElement.Split();
+				var oBreak1   = new Paragraph(this.DrawingDocument, this);
+				var oEmpty    = new Paragraph(this.DrawingDocument, this);
+				var oBreak2   = new Paragraph(this.DrawingDocument, this);
 
-			}
-			else
-			{
-				oElement.AddBlankPage();
+				oBreak1.AddToParagraph(new ParaNewLine(break_Page));
+				oBreak2.AddToParagraph(new ParaNewLine(break_Page));
+
+				if (!oNewTable)
+				{
+					this.AddToContent(this.CurPos.ContentPos, oBreak2);
+					this.AddToContent(this.CurPos.ContentPos, oEmpty);
+					this.AddToContent(this.CurPos.ContentPos, oBreak1);
+					this.CurPos.ContentPos = this.CurPos.ContentPos + 1;
+				}
+				else
+				{
+					this.AddToContent(this.CurPos.ContentPos + 1, oNewTable);
+					this.AddToContent(this.CurPos.ContentPos + 1, oBreak2);
+					this.AddToContent(this.CurPos.ContentPos + 1, oEmpty);
+					this.AddToContent(this.CurPos.ContentPos + 1, oBreak1);
+					this.CurPos.ContentPos = this.CurPos.ContentPos + 2;
+				}
+
+				this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
 			}
 
 
