@@ -1096,7 +1096,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val) {
+			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+			AscCommonExcel.g_R1C1Mode = false;
 			this.range = ws.getRange2(val);
+			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 		}
 	}
 
@@ -1302,7 +1305,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 		this.bbox = null;
 		if (val) {
+			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+			AscCommonExcel.g_R1C1Mode = false;
 			var bbox = AscCommonExcel.g_oRangeCache.getAscRange(val);
+			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 			if (null != bbox) {
 				this.bbox = bbox.clone();
 			}
@@ -1561,7 +1567,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val) {
+			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+			AscCommonExcel.g_R1C1Mode = false;
 			this.range = ws.getRange2(val.replace(AscCommon.rx_space_g, ""));
+			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 		}
 	}
 
@@ -1650,7 +1659,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val && this.ws) {
+			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+			AscCommonExcel.g_R1C1Mode = false;
 			this.range = this.ws.getRange2(val);
+			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 		}
 	}
 
