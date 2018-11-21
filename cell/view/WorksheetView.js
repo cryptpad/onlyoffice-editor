@@ -8733,7 +8733,11 @@
 		}
 
 		//***array-formula***
-		if (!this.checkMoveFormulaArray(arnFrom, arnTo, ctrlKey)) {
+		//теперь не передаю 3 параметром в функцию checkMoveFormulaArray ctrlKey, поскольку undo/redo для
+		//клонирования части формулы работает некорректно
+		//при undo созданную формулу обходимо не переносить, а удалять
+		//TODO пересомтреть!
+		if (!this.checkMoveFormulaArray(arnFrom, arnTo)) {
 			this._cleanSelectionMoveRange();
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 			return;
