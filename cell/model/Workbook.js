@@ -315,7 +315,14 @@
 
 	function getVertexIndex(bbox) {
 		//without $
-		return bbox.getName(AscCommonExcel.referenceType.R);
+		//значения в areaMap хранятся в виде A1B1
+		//данная функция используется только для получения данных из areaMap
+		var res;
+		var oldR1C1Mode = AscCommonExcel.g_R1C1Mode;
+		AscCommonExcel.g_R1C1Mode = false;
+		res = bbox.getName(AscCommonExcel.referenceType.R);
+		AscCommonExcel.g_R1C1Mode = oldR1C1Mode;
+		return res;
 	}
 
 	function DependencyGraph(wb) {
