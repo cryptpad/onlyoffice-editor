@@ -1932,6 +1932,7 @@
 		return this.aWorksheets.length;
 	};
 	Workbook.prototype.createWorksheet=function(indexBefore, sName, sId){
+		this.dependencyFormulas.lockRecal();
 		History.Create_NewPoint();
 		History.TurnOff();
 		var wsActive = this.getActiveWs();
@@ -1953,6 +1954,7 @@
 		History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_SheetAdd, null, null, new UndoRedoData_SheetAdd(indexBefore, oNewWorksheet.getName(), null, oNewWorksheet.getId()));
 		History.SetSheetUndo(wsActive.getId());
 		History.SetSheetRedo(oNewWorksheet.getId());
+		this.dependencyFormulas.unlockRecal();
 		return oNewWorksheet.index;
 	};
 	Workbook.prototype.copyWorksheet=function(index, insertBefore, sName, sId, bFromRedo, tableNames){
