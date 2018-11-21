@@ -6823,7 +6823,7 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].g_cCalcRecursion = g_cCalcRecursion;
 	window['AscCommonExcel'].g_ProcessShared = false;
 	window['AscCommonExcel'].g_ActiveCell = null; // Active Cell for calculate (in R1C1 mode for relative cell)
-	window['AscCommonExcel'].g_R1C1Mode = false; // Now calculate in R1C1 mode
+	window['AscCommonExcel'].g_R1C1Mode = false; // No calculate in R1C1 mode
 
 	window['AscCommonExcel'].cNumber = cNumber;
 	window['AscCommonExcel'].cString = cString;

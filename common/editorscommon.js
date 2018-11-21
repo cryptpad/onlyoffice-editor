@@ -2082,7 +2082,7 @@
 			return res;
 		};
 
-		var R1C1Mode = window['AscCommonExcel'].g_R1C1Mode;
+		var R1C1Mode = AscCommonExcel.g_R1C1Mode;
 		var subSTR = formula.substring(start_pos);
 
 		var match;
@@ -2161,7 +2161,7 @@
 			this._reset();
 		}
 
-		var R1C1Mode = window['AscCommonExcel'].g_R1C1Mode;
+		var R1C1Mode = AscCommonExcel.g_R1C1Mode;
 		var substr = formula.substring(start_pos), match;
 		var m0, m1;
 		if(!R1C1Mode) {
