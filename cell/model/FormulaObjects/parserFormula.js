@@ -6638,7 +6638,7 @@ parserFormula.prototype.setFormula = function(formula) {
 		//возвращаем ТОЛЬКО главную ячейку
 		var res = null;
 		if(this.ref) {
-			if(this.parent && cell.nCol === this.parent.nCol && cell.nRow === this.parent.nRow) {
+			if(this.parent && cell.nCol === this.ref.c1 && cell.nRow === this.ref.r1) {
 				res = true;
 			}
 		}
