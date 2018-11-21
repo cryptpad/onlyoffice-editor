@@ -11407,6 +11407,10 @@
 
     WorksheetView.prototype.setCellEditMode = function ( isCellEditMode ) {
         this.isCellEditMode = isCellEditMode;
+        if (!this.isCellEditMode) {
+			AscCommonExcel.g_ActiveCell = null;
+			AscCommonExcel.g_R1C1Mode = false;
+		}
     };
 
     WorksheetView.prototype.setFormulaEditMode = function ( isFormulaEditMode ) {
@@ -11654,12 +11658,7 @@
 				bbox: c.bbox,
 				cellNumFormat: c.getNumFormatType(),
 				saveValueCallback: function (val, flags) {
-					var res = t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
-					if (res) {
-						AscCommonExcel.g_ActiveCell = null;
-						AscCommonExcel.g_R1C1Mode = false;
-					}
-					return res;
+					return t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
 				},
 				getSides: function () {
 					var _c1, _r1, _c2, _r2, ri = 0, bi = 0;
