@@ -6683,7 +6683,18 @@ parserFormula.prototype.setFormula = function(formula) {
 				val = new cNumber(0);
 			}
 		} else if (cElementType.array === val.type) {
-			val = val.getElement(0);
+			var ref = this.getArrayFormulaRef();
+			if(ref && opt_cell) {
+				var row = 1 === val.array.length ? 0 : opt_cell.nRow - ref.r1;
+				var col = 1 === val.array[0].length ? 0 : opt_cell.nCol - ref.c1;
+				if(val.array[row] && val.array[row][col]) {
+					val = val.getElementRowCol(row, col);
+				} else {
+					val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
+				}
+			} else {
+				val = val.getElement(0);
+			}
 		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
 			if (opt_cell) {
 				var range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);

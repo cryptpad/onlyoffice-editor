@@ -7350,23 +7350,6 @@
 				}
 		});
 	};
-	Cell.prototype._calculateRefType = function () {
-		var parsed = this.getFormulaParsed();
-		var val = parsed.value;
-		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
-			val = val.getValue();
-			if (cElementType.empty === val.type) {
-				// Bug http://bugzilla.onlyoffice.com/show_bug.cgi?id=33941
-				val.value = 0;
-				val.type = cElementType.number;
-			}
-		} else if (cElementType.array === val.type && !parsed.ref) {//***array-formula***
-			val = val.getElement(0);
-		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
-			val = val.cross(new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), this.ws.getId());
-		}
-		parsed.value = val;
-	};
 	Cell.prototype._updateCellValue = function() {
 		if (!this.isFormula()) {
 			return;
@@ -7375,29 +7358,6 @@
 		var res = parsed.simplifyRefType(parsed.value, this);
 
 		if (res) {
-			//при мерже добавилась функция simplifyRefType, она возвращает значение вместо массива
-			//раньше использовалась фунция _calculateRefType, которая подменяла parsed.value, а res = this.getFormulaParsed().value
-			//в данном случае, если мы работаем с формулой массива, нужен именно массив
-			//поэтому добавляю заглушку и использую parsed.value вместо res, и res далее подменяю
-			//TODO стоит пересмотреть и возможно добавить обработчик для формул массива в функцию simplifyRefType
-
-			//***array-formula***
-			var value = parsed.value;
-			if(value && cElementType.array === value.type) {
-				var ref = this.formulaParsed.ref;
-				if(ref) {
-					var row = 1 === value.array.length ? 0 : this.nRow - ref.r1;
-					var col = 1 === value.array[0].length ? 0 : this.nCol - ref.c1;
-					if(value.array[row] && value.array[row][col]) {
-						res = value.getElementRowCol(row, col);
-					} else {
-						res = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
-					}
-				} else {
-					res = value.getElement(0);
-				}
-			}
-
 			this.cleanText();
 			switch (res.type) {
 				case cElementType.number:
