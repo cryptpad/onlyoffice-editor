@@ -6147,7 +6147,7 @@ CTable.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 				else
 				{
 					this.Selection.EndPos.Pos = {
-						Cell : this.GetRoe(this.CurCell.Row.Index + 1).GetCellsCount() - 1,
+						Cell : this.GetRow(this.CurCell.Row.Index + 1).GetCellsCount() - 1,
 						Row  : this.CurCell.Row.Index + 1
 					};
 				}
