@@ -7279,7 +7279,7 @@
 						//добавлен последний параметр для обработки формулы массива
 						if(parsed.getArrayFormulaRef()) {
 							if(parsed.checkFirstCellArray(t)) {
-								parsed.calculate(null, null, null, t);
+								parsed.calculate();
 							} else {
 								var oldParent = parsed.parent;
 								parsed.parent = new AscCommonExcel.CCellWithFormula(t.ws, t.nRow, t.nCol);
