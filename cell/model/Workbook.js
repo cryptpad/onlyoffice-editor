@@ -341,6 +341,7 @@
 		this.buildCell = {};
 		this.buildDefName = {};
 		this.buildShared = {};
+		this.buildArrayFormula = {};
 		this.cleanCellCache = {};
 		//lock
 		this.lockCounter = 0;
@@ -879,7 +880,7 @@
 			}
 			changedSheet[name] = bbox;
 		},
-		addToChangedCell: function(cell, eventData) {
+		addToChangedCell: function(cell) {
 			var t = this;
 			var sheetId = cell.ws.getId();
 			if (!this.changedCell) {
@@ -908,18 +909,7 @@
 				changedSheet[cellIndex] = 1;
 			};
 
-			//***array-formula***
-			//TODO без серьёзных изменений пока есть вариант добавлять в changedSheet все ячейки формулы массива
-			if(eventData && eventData.formula && eventData.formula.ref) {
-				var formulaRef = eventData.formula.ref;
-				for(var i = formulaRef.r1; i <= formulaRef.r2; i++) {
-					for(var j = formulaRef.c1; j <= formulaRef.c2; j++) {
-						addChangedSheet(i, j);
-					}
-				}
-			} else {
-				addChangedSheet(cell.nRow, cell.nCol);
-			}
+			addChangedSheet(cell.nRow, cell.nCol);
 		},
 		addToChangedDefName: function(defName) {
 			if (!this.changedDefName) {
@@ -987,6 +977,9 @@
 		addToBuildDependencyShared: function(shared) {
 			this.buildShared[shared.getIndexNumber()] = shared;
 		},
+		addToBuildDependencyArray: function(f) {
+			this.buildArrayFormula[f.getIndexNumber()] = f;
+		},
 		addToCleanCellCache: function(sheetId, row, col) {
 			var sheetArea = this.cleanCellCache[sheetId];
 			if (sheetArea) {
@@ -1039,9 +1032,21 @@
 					}
 				}
 			}
+			for (var index in this.buildArrayFormula) {
+				if (this.buildArrayFormula.hasOwnProperty(index)) {
+					var parsed = this.wb.workbookFormulas.get(index - 0);
+					if (parsed) {
+						parsed.parse();
+						parsed.buildDependencies();
+						var array = parsed.getArrayFormulaRef();
+						this.wb.dependencyFormulas.addToChangedRange2(parsed.getWs().getId(), array);
+					}
+				}
+			}
 			this.buildCell = {};
 			this.buildDefName = {};
 			this.buildShared = {};
+			this.buildArrayFormula = {};
 		},
 		calcTree: function() {
 			if (this.lockCounter > 0) {
@@ -3949,7 +3954,6 @@
 						var newArrayRef = arrayFormula.clone();
 						newArrayRef.setOffset(offset);
 						parsed.setArrayFormulaRef(newArrayRef);
-						formulaRefObj = {formula: {ref: newArrayRef}};
 					} else {
 						processed = c_oSharedShiftType.Processed;
 					}
@@ -3965,7 +3969,7 @@
 					cellWithFormula = parsed.getParent();
 					cellWithFormula.nRow = newNRow;
 					cellWithFormula.nCol = newNCol;
-					t.workbook.dependencyFormulas.addToChangedCell(cellWithFormula, formulaRefObj);
+					t.workbook.dependencyFormulas.addToChangedCell(cellWithFormula);
 				}
 			}
 			if (newNRow >= t.nRowsCount) {
@@ -7917,17 +7921,20 @@
 	CCellWithFormula.prototype._onChange = function(eventData) {
 		var areaData = eventData.notifyData.areaData;
 		var shared = eventData.formula.getShared();
+		var arrayF = eventData.formula.getArrayFormulaRef();
+		var dependencyFormulas = this.ws.workbook.dependencyFormulas;
 		if (shared) {
-			var dependencyFormulas = this.ws.workbook.dependencyFormulas;
 			if (areaData) {
 				var bbox = areaData.bbox;
 				var changedRange = bbox.getSharedIntersect(shared.ref, areaData.cellsInArea);
 				dependencyFormulas.addToChangedRange2(this.ws.getId(), changedRange);
 			} else {
 				dependencyFormulas.addToChangedRange2(this.ws.getId(), shared.ref);
-				}
+			}
+		} else if(arrayF) {
+			dependencyFormulas.addToChangedRange2(this.ws.getId(), arrayF);
 		} else {
-			this.ws.workbook.dependencyFormulas.addToChangedCell(this, eventData);
+			this.ws.workbook.dependencyFormulas.addToChangedCell(this);
 		}
 	};
 	CCellWithFormula.prototype._onChangeFormula = function(eventData) {
