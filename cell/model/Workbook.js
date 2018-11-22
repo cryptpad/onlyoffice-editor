@@ -341,7 +341,7 @@
 		this.buildCell = {};
 		this.buildDefName = {};
 		this.buildShared = {};
-		this.buildArrayFormula = {};
+		this.buildArrayFormula = [];
 		this.cleanCellCache = {};
 		//lock
 		this.lockCounter = 0;
@@ -978,7 +978,10 @@
 			this.buildShared[shared.getIndexNumber()] = shared;
 		},
 		addToBuildDependencyArray: function(f) {
-			this.buildArrayFormula[f.getIndexNumber()] = f;
+			//TODO переммотреть! добавлять по индексу!
+			//добавляю не по индексу потому на момент вызова(setValue) ещё не проставились индексы формулам
+			//происходит это позже - в Cell.prototype.saveContent
+			this.buildArrayFormula.push(f);
 		},
 		addToCleanCellCache: function(sheetId, row, col) {
 			var sheetArea = this.cleanCellCache[sheetId];
@@ -1033,20 +1036,18 @@
 				}
 			}
 			for (var index in this.buildArrayFormula) {
-				if (this.buildArrayFormula.hasOwnProperty(index)) {
-					var parsed = this.wb.workbookFormulas.get(index - 0);
-					if (parsed) {
-						parsed.parse();
-						parsed.buildDependencies();
-						var array = parsed.getArrayFormulaRef();
-						this.wb.dependencyFormulas.addToChangedRange2(parsed.getWs().getId(), array);
-					}
+				var parsed = this.buildArrayFormula[index];
+				if (parsed) {
+					parsed.parse();
+					parsed.buildDependencies();
+					var array = parsed.getArrayFormulaRef();
+					this.wb.dependencyFormulas.addToChangedRange2(parsed.getWs().getId(), array);
 				}
 			}
 			this.buildCell = {};
 			this.buildDefName = {};
 			this.buildShared = {};
-			this.buildArrayFormula = {};
+			this.buildArrayFormula = [];
 		},
 		calcTree: function() {
 			if (this.lockCounter > 0) {
@@ -6697,7 +6698,13 @@
 
 		if (newFP) {
 			this.setFormulaInternal(newFP);
-			wb.dependencyFormulas.addToBuildDependencyCell(this);
+			if(byRef) {
+				if(isFirstArrayFormulaCell) {
+					wb.dependencyFormulas.addToBuildDependencyArray(newFP);
+				}
+			} else {
+				wb.dependencyFormulas.addToBuildDependencyCell(this);
+			}
 		} else if (val) {
 			this._setValue(val);
 			wb.dependencyFormulas.addToChangedCell(this);
