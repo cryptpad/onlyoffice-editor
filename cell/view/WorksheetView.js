@@ -11057,6 +11057,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}*/
 
 						functionModelAction = function () {
 							History.Create_NewPoint();
@@ -11081,6 +11085,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}*/
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11181,6 +11189,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}*/
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11212,6 +11224,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}*/
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
