@@ -2282,7 +2282,7 @@ CGraphicObjects.prototype =
 
     selectAll: DrawingObjectsController.prototype.selectAll,
 
-    startEditTextCurrentShape: DrawingObjectsController.startEditTextCurrentShape,
+    startEditTextCurrentShape: DrawingObjectsController.prototype.startEditTextCurrentShape,
 
     drawSelect: function(pageIndex)
     {

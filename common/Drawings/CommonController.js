@@ -1059,17 +1059,28 @@ DrawingObjectsController.prototype =
             oContent.MoveCursorToEndPos(false);
             this.updateSelectionState();
             this.updateOverlay();
+            if(this.document){
+                oContent.Set_CurrentElement(0, true);
+            }
         }
         else
         {
             var oThis = this;
             this.checkSelectedObjectsAndCallback(function(){
-                oShape.createTextBody();
+                if(!oShape.bWordShape){
+                    oShape.createTextBody();
+                }
+                else{
+                    oShape.createTextBoxContent();
+                }
                 var oContent = oShape.getDocContent();
                 oSelector.resetInternalSelection();
                 oSelector.selection.textSelection = oShape;
                 oContent.MoveCursorToEndPos(false);
                 oThis.updateSelectionState();
+                if(this.document){
+                    oContent.Set_CurrentElement(0, true);
+                }
             }, [], false, AscDFH.historydescription_Spreadsheet_AddNewParagraph);
         }
     },
