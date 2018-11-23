@@ -751,6 +751,9 @@
     CDEFINEDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CDEFINEDFunctionNode.prototype.minArgumentsCount = 1;
     CDEFINEDFunctionNode.prototype.maxArgumentsCount = 1;
+    CDEFINEDFunctionNode.prototype.supportErrorArgs = function () {
+        return true;
+    };
     CDEFINEDFunctionNode.prototype._calculate = function (aArgs) {
         if(aArgs[0].error){
             this.result = 0.0;
@@ -1104,7 +1107,7 @@
                     this.result = 1.0;
                 }
                 else{
-                    this.result = parseFloat((this.result + 0.005).toFixed(2));
+                    this.result = parseFloat((this.result).toFixed(2));
                 }
             }
             else{
@@ -1112,7 +1115,7 @@
                     this.result = -1.0;
                 }
                 else{
-                    this.result = parseFloat((this.result - 0.005).toFixed(2));
+                    this.result = parseFloat((this.result).toFixed(2));
                 }
             }
         }
@@ -1893,7 +1896,7 @@
         // ret.push(sDisitSeparator + "163");
         ret.push("153");
         ret.push("12" /*+ sDisitSeparator*/);
-        ret.push("0" + sDisitSeparator + "0");
+        //ret.push("0" + sDisitSeparator + "0");
         return ret;
     }
 
@@ -2085,7 +2088,82 @@
         }, oRes);
         console.log(oRes.sString);
     }
+
+
+    function TEST5(){
+        var aExp = ["AND(Cd3, LeFt)"];//(createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
+        //console.log(JSON.stringify(aExp));
+        //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
+        var sRes = "";
+        var aFields = [];
+        editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
+        AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
+        var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
+        oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
+        for(var i = 0; i < aExp.length; ++i){
+            var sExp = aExp[i];
+            oComplexField.InstructionLine = '=' + sExp;
+            oComplexField.Instruction = null;
+            oComplexField.private_UpdateInstruction();
+            if(oComplexField.Instruction){
+                oComplexField.Instruction.Calculate(editor.WordControl.m_oLogicDocument);
+            }
+            // oComplexField.Update(true, true);
+            if(oComplexField.Instruction.ErrStr !== null)
+            {
+                sRes += oComplexField.Instruction.ErrStr;
+            }
+            else
+            {
+                if(oComplexField.Instruction.ResultStr !== null)
+                {
+                    sRes += oComplexField.Instruction.ResultStr;
+                }
+            }
+
+            sRes += '\n';
+            // oParser.parse(sExp);
+            // console.log("\n___________EXPRESSION____________");
+            //console.log(sExp);
+            // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
+            // console.log("ERROR: " + JSON.stringify(oParser.error));
+            // console.log("__________________________________");
+
+        }
+        editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
+        return sRes;
+    }
+
+    function TEST6(){
+        var aExp = (createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
+        //console.log(JSON.stringify(aExp));
+        //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
+        var sRes = "";
+        var aFields = [];
+        editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
+        AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
+        var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
+        oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
+        for(var i = 0; i < aExp.length; ++i){
+            var sExp = aExp[i];
+            sRes += sExp;
+            sRes += '\n';
+            // oParser.parse(sExp);
+            // console.log("\n___________EXPRESSION____________");
+            //console.log(sExp);
+            // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
+            // console.log("ERROR: " + JSON.stringify(oParser.error));
+            // console.log("__________________________________");
+
+        }
+        editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
+        return sRes;
+    }
+
+
     window['AscCommonWord'].createExpression = TEST2;
+    window['AscCommonWord'].createExpression2 = TEST5;
     window['AscCommonWord'].TEST3 = TEST3;
+    window['AscCommonWord'].TEST6 = TEST6;
 })();
 //window['AscCommonWord'].createExpression();
