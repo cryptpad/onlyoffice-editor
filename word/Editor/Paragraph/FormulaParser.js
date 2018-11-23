@@ -1,6 +1,7 @@
 /**
  * Created by Sergey on 06.10.2018.
  */
+//var window = {};
 (function (undefined) {
 
     var sIdentifier = '(\u0009|\u0000A|\u0000D|[\u0020-\uD7FF]|[\uE000-\uFFFD]|[\u10000-\u10FFFF])+';
@@ -958,10 +959,22 @@
     CROUNDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
     CROUNDFunctionNode.prototype.minArgumentsCount = 2;
     CROUNDFunctionNode.prototype.maxArgumentsCount = 2;
-    // CROUNDFunctionNode.prototype._calculate = function (aArgs) {
-    //     return Math.round(aArgs[0].result);//TODO
-    // };
-
+    CROUNDFunctionNode.prototype._calculate = function (aArgs) {
+        var number = aArgs[1].result;
+        var precision = (aArgs[0].result >> 0);
+        if (precision == 0) {
+            return Math.round(number);
+        }
+        var sign = 1;
+        if (number < 0) {
+            sign = -1;
+            number = Math.abs(number);
+        }
+        number = number.toString().split('e');
+        number = Math.round(+(number[0] + 'e' + (number[1] ? (+number[1] + precision) : precision)));
+        number = number.toString().split('e');
+        this.result = +(number[0] + 'e' + (number[1] ? (+number[1] - precision) : -precision)) * sign;
+    };
 
     function CSIGNFunctionNode(parseQueue){
         CFunctionNode.call(this, parseQueue);
@@ -1660,7 +1673,7 @@
                     if(oLastToken && oLastToken.isFunction(oLastToken)){
                         aFunctionsStack.push(oLastToken);
                     }
-                    this.setFlag(PARSER_MASK_LEFT_PAREN, false);
+                    this.setFlag(PARSER_MASK_LEFT_PAREN, true);
                     this.setFlag(PARSER_MASK_RIGHT_PAREN, true);
                     this.setFlag(PARSER_MASK_LIST_SEPARATOR, false);
                     this.setFlag(PARSER_MASK_BINARY_OPERATOR, false);
@@ -1679,9 +1692,24 @@
                 aStack.push(oCurToken);
             }
             else if(oCurToken instanceof CRightParenOperatorNode){
-                if(aFunctionsStack.length > 0 && aStack[0] && aStack[0].isFunction()){
+                while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
+                    oToken = aStack.pop();
+                    this.parseQueue.add(oToken);
+                    oToken.calculate();
+                    if(oToken.error){
+                        this.error = oToken.error;
+                        return;
+                    }
+                }
+
+                if(aStack.length === 0){
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                    return;
+                }
+                aStack.pop();//remove left paren
+                if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
                     aOperands.push(this.parseQueue.last());
-                    oLastFunction = aFunctionsStack[aFunctionsStack.length-1];
+                    oLastFunction = aStack[aStack.length-1];
                     if(aOperands.length > oLastFunction.maxArgumentsCount){
                         this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                         return;
@@ -1706,29 +1734,7 @@
                         }
                     }
                     oLastFunction.argumentsCount = aOperands.length;
-                    // aFunctionsStack.pop();
-                    // oLastFunction.calculate();
-                    // if(oLastFunction.error){
-                    //     this.error = oLastFunction.error;
-                    //     return;
-                    // }
-                }
-                while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
-                    oToken = aStack.pop();
-                    this.parseQueue.add(oToken);
-                    oToken.calculate();
-                    if(oToken.error){
-                        this.error = oToken.error;
-                        return;
-                    }
-                }
 
-                if(aStack.length === 0){
-                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
-                    return;
-                }
-                aStack.pop();
-                if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
                     oToken = aStack.pop();
                     this.parseQueue.add(oToken);
                     oToken.calculate();
@@ -1765,7 +1771,7 @@
 
                     this.setFlag(PARSER_MASK_UNARY_OPERATOR, true);
                 }
-                while(aStack.length > 0 && ((aStack[aStack.length-1] instanceof CLeftParenOperatorNode) || aStack[aStack.length-1].precedence >= oCurToken.precedence)){
+                while(aStack.length > 0 && (!(aStack[aStack.length-1] instanceof CLeftParenOperatorNode) && aStack[aStack.length-1].precedence >= oCurToken.precedence)){
                     oToken = aStack.pop();
                     this.parseQueue.add(oToken);
                     oToken.calculate();
@@ -1868,6 +1874,8 @@
     };
 
 
+
+
 //GENERATE TEST DATA
     var sListSeparator = ",";
     var sDisitSeparator = ".";
@@ -1885,6 +1893,7 @@
         // ret.push(sDisitSeparator + "163");
         ret.push("153");
         ret.push("12" /*+ sDisitSeparator*/);
+        ret.push("0" + sDisitSeparator + "0");
         return ret;
     }
 
@@ -2001,75 +2010,82 @@
         return ret;
     }
 
+    function fTest(fTextFunction, oResObject){
+
+        var aExp1 = createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))));
+        fTextFunction(createExpression(aExp1), oResObject);
+        return;
+        var aExp2 = ["(153>=153)"];//(createExpression(aExp1));
+        var aExp3;
+        var i = 0;
+        while(i < aExp2.length){
+            console.log("4");
+            aExp3 = createExpression(aExp2.slice(i, i + aExp1.length));
+            i+= aExp1.length;
+            fTextFunction(aExp3, oResObject);
+        }
+    }
+
     function TEST2(){
-        var aExp = ["AND(Cd3, LeFt)"];//(createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
-        //console.log(JSON.stringify(aExp));
-        //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
-        var sRes = "";
-        var aFields = [];
-        editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
-        AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
-        var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
-        oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
-        for(var i = 0; i < aExp.length; ++i){
-            var sExp = aExp[i];
-            oComplexField.InstructionLine = '=' + sExp;
-            oComplexField.Instruction = null;
-            oComplexField.private_UpdateInstruction();
-            if(oComplexField.Instruction){
-                oComplexField.Instruction.Calculate(editor.WordControl.m_oLogicDocument);
-            }
-           // oComplexField.Update(true, true);
-            if(oComplexField.Instruction.ErrStr !== null)
-            {
-                sRes += oComplexField.Instruction.ErrStr;
-            }
-            else
-            {
-                if(oComplexField.Instruction.ResultStr !== null)
-                {
-                    sRes += oComplexField.Instruction.ResultStr;
+        var oRes = {sString: ""};
+        fTest(function (aExp, oRes) {
+            var sRes = "";
+            var aFields = [];
+            editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
+            AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
+            var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
+            oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
+            for(var i = 0; i < aExp.length; ++i) {
+                var sExp = aExp[i];
+                oComplexField.InstructionLine = '=' + sExp;
+                oComplexField.Instruction = null;
+                oComplexField.private_UpdateInstruction();
+                if (oComplexField.Instruction) {
+                    oComplexField.Instruction.Calculate(editor.WordControl.m_oLogicDocument);
+                }
+                // oComplexField.Update(true, true);
+                if (oComplexField.Instruction.ErrStr !== null) {
+                    oRes.sString += (oComplexField.Instruction.ErrStr + '\n');
+                }
+                else {
+                    if (oComplexField.Instruction.ResultStr !== null) {
+                        sRes += oComplexField.Instruction.ResultStr;
+                        oRes.sString += (oComplexField.Instruction.ResultStr + '\n');
+                    }
+                    else{
+                        oRes.sString += '\n';
+                    }
                 }
             }
-
-            sRes += '\n';
-            // oParser.parse(sExp);
-            // console.log("\n___________EXPRESSION____________");
-             //console.log(sExp);
-            // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
-            // console.log("ERROR: " + JSON.stringify(oParser.error));
-            // console.log("__________________________________");
-
-        }
-        editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
-        return sRes;
+        }, oRes);
+        console.log(oRes.sString);
     }
 
     function TEST3(){
-        var aExp = (createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
-        //console.log(JSON.stringify(aExp));
-        //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
-        var sRes = "";
-        var aFields = [];
-        editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
-        AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
-        var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
-        oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
-        for(var i = 0; i < aExp.length; ++i){
-            var sExp = aExp[i];
-            sRes += sExp;
-            sRes += '\n';
-            // oParser.parse(sExp);
-            // console.log("\n___________EXPRESSION____________");
-            //console.log(sExp);
-            // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
-            // console.log("ERROR: " + JSON.stringify(oParser.error));
-            // console.log("__________________________________");
+        var oRes = {sString: ""};
+        fTest(function (aExp, oRes) {
+            var aFields = [];
+            editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
+            AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
+            var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
+            oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
+            for(var i = 0; i < aExp.length; ++i){
+                var sExp = aExp[i];
+                oRes.sString += sExp;
+                oRes.sString += '\n';
+                // oParser.parse(sExp);
+                // console.log("\n___________EXPRESSION____________");
+                //console.log(sExp);
+                // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
+                // console.log("ERROR: " + JSON.stringify(oParser.error));
+                // console.log("__________________________________");
 
-        }
-        editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
-        return sRes;
+            }
+            editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
+        }, oRes);
+        console.log(oRes.sString);
     }
     window['AscCommonWord'].createExpression = TEST2;
     window['AscCommonWord'].TEST3 = TEST3;
 })();
+//window['AscCommonWord'].createExpression();
