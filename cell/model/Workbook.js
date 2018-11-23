@@ -4983,6 +4983,7 @@
 			}
 		}
 		var shiftedArrayFormula = {};
+		var oldNewArrayFormulaMap = {};
 		//modify nRowsCount/nColsCount for correct foreach functions
 		this.nRowsCount = Math.max(this.nRowsCount, nRowsCountNew);
 		this.nColsCount = Math.max(this.nColsCount, nColsCountNew);
@@ -4991,12 +4992,12 @@
 			if (formula) {
 				var cellWithFormula = formula.getParent();
 				var arrayFormula = formula.getArrayFormulaRef();
-				var preMoveCell, newArrayRef, newFormula;
+				var newArrayRef, newFormula;
+				var preMoveCell = {nRow: cell.nRow - offset.row, nCol: cell.nCol - offset.col};
+				var isFirstCellArray = formula.checkFirstCellArray(preMoveCell) && !shiftedArrayFormula[formula.getListenerId()];
 				if (copyRange) {
 					History.TurnOff();
 					//***array-formula***
-					preMoveCell = {nRow: cell.nRow - offset.row, nCol: cell.nCol - offset.col};
-					var isFirstCellArray = formula.checkFirstCellArray(preMoveCell) && !shiftedArrayFormula[formula.getListenerId()];
 					if(!arrayFormula || (arrayFormula && isFirstCellArray)) {
 						cellWithFormula = new CCellWithFormula(cellWithFormula.ws, cell.nRow, cell.nCol);
 						newFormula = formula.clone(null, cellWithFormula, oThis);
@@ -5009,15 +5010,17 @@
 							newArrayRef.setOffset(offset);
 							newFormula.setArrayFormulaRef(newArrayRef);
 							shiftedArrayFormula[newFormula.getListenerId()] = 1;
+							oldNewArrayFormulaMap[formula.getListenerId()] = newFormula;
 						}
+					} else if(arrayFormula && oldNewArrayFormulaMap[formula.getListenerId()]) {
+						cell.setFormulaInternal(oldNewArrayFormulaMap[formula.getListenerId()]);
 					}
 					History.TurnOn();
 				} else {
 					//***array-formula***
 					//TODO возможно стоит это делать в dependencyFormulas.move
 					if(arrayFormula) {
-						preMoveCell = {nRow: cell.nRow - offset.row, nCol: cell.nCol - offset.col};
-						if(!shiftedArrayFormula[formula.getListenerId()] && formula.checkFirstCellArray(preMoveCell)) {
+						if(isFirstCellArray) {
 
 							shiftedArrayFormula[formula.getListenerId()] = 1;
 							newArrayRef = arrayFormula.clone();
@@ -5032,7 +5035,16 @@
 						cellWithFormula.nCol = cell.nCol;
 					}
 				}
-				oThis.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
+				if(arrayFormula) {
+					if(isFirstCellArray) {
+						oThis.workbook.dependencyFormulas.addToBuildDependencyArray(formula);
+						if(newFormula) {
+							oThis.workbook.dependencyFormulas.addToBuildDependencyArray(newFormula);
+						}
+					}
+				} else {
+					oThis.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
+				}
 			}
 		});
 
