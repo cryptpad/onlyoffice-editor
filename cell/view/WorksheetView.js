@@ -10334,6 +10334,20 @@
 		};
 
 
+		var searchRangeIntoFormulaArrays = function(arr, curRange) {
+			var res = false;
+			if(arr && curRange && curRange.bbox) {
+				for(var i = 0; i < arr.length; i++) {
+					var refArray = arr[i].arrayRef;
+					if(refArray && refArray.intersection(curRange.bbox)) {
+						res = true;
+						break;
+					}
+				}
+			}
+			return res;
+		};
+
 		//column width
 		var col = range.bbox.c1;
 		if(specialPasteProps.width && rangeStyle.colsWidth[col])
@@ -10416,6 +10430,10 @@
 		if(rangeStyle.formula && specialPasteProps.formula)
 		{
 			arrFormula.push(rangeStyle.formula);
+		}
+		else if(specialPasteProps.formula && searchRangeIntoFormulaArrays(arrFormula, range))
+		{
+			//если ячейка является частью формулы массива-> в этом случае не нужно делать setValueData
 		}
 		else if(rangeStyle.cellValueData2 && specialPasteProps.font && specialPasteProps.val)
 		{
