@@ -205,7 +205,7 @@ CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
 			}
 		}
 	}
-	var oParser = new AscCommonWord.CFormulaParser();
+	var oParser = new AscCommonWord.CFormulaParser(",", ".");//TODO: take list separator and digits separator from settings
 	oParser.parse(this.Formula, this.ParentContent);
 	this.SetParseQueue(oParser.parseQueue);
 	this.SetError(oParser.error);

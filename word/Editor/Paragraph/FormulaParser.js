@@ -350,6 +350,15 @@
     // CRightParenOperatorNode.prototype._calculate = function (aArgs) {
     // };
 
+    function CLineSeparatorOperatorNode(parseQueue){
+        CFormulaNode.call(this, parseQueue);
+    }
+
+    CLineSeparatorOperatorNode.prototype = Object.create(CFormulaNode.prototype);
+    CLineSeparatorOperatorNode.prototype.precedence = 1;
+    // CRightParenOperatorNode.prototype._calculate = function (aArgs) {
+    // };
+
     var oOperatorsMap = {};
     oOperatorsMap["-"] = CUnaryMinusOperatorNode;
     oOperatorsMap["^"] = CPowersAndRootsOperatorNode;
@@ -409,15 +418,37 @@
 
     CCellRangeNode.prototype.parseText = function(sText){
         var oParser = new CTextParser();
-        oParser.parse(sText);
-        oParser.parseQueue.calculate(null);
-        return oParser.parseQueue.result;
+        oParser.setFlag(PARSER_MASK_CLEAN, true);
+        oParser.parse(Asc.trim(sText));
+        if(oParser.parseQueue){
+            oParser.parseQueue.flags = oParser.flags;
+            oParser.parseQueue.calculate(null);
+            if(!AscFormat.isRealNumber(oParser.parseQueue.result) || oParser.parseQueue.pos > 0){
+                var aQueue = oParser.parseQueue.queue;
+                var fSumm = 0.0;
+                for(var i = 0; i < aQueue.length; ++i){
+                    if(aQueue[i] instanceof CNumberNode){
+                        fSumm += aQueue[i].value;
+                    }
+                    else if(aQueue[i] instanceof CLineSeparatorOperatorNode){
+                        continue;
+                    }
+                    else{
+                        break;
+                    }
+                }
+                if(aQueue.length === i){
+                    oParser.parseQueue.result = fSumm;
+                }
+            }
+        }
+        return oParser.parseQueue;
     };
 
     CCellRangeNode.prototype.getContentValue = function(oContent){
         var sString;
         oContent.Set_ApplyToAll(true);
-        sString = oContent.GetSelectedText(false, {NewLineParagraph : false, NewLine : false});
+        sString = oContent.GetSelectedText(false, {NewLineParagraph : true, NewLine : true});
         oContent.Set_ApplyToAll(false);
         return this.parseText(sString);
     };
@@ -427,10 +458,7 @@
         if (!Row)
             return null;
 
-        var Cell = Row.Get_Cell(nCol);
-        if (!Cell)
-            return;
-        return Cell
+        return Row.Get_Cell(nCol);
     };
 
     CCellRangeNode.prototype.calculateInRow = function(oTable, nRowIndex, nStart, nEnd){
@@ -443,8 +471,8 @@
             var oCurCell = oRow.Get_Cell(i);
             if(oCurCell){
                 var res = this.getContentValue(oCurCell.GetContent());
-                if(res !== null){
-                    this.result.push(res);
+                if(res && AscFormat.isRealNumber(res.result)){
+                    this.result.push(res.result);
                 }
                 // else{
                 //     this.result.push(0);
@@ -461,8 +489,8 @@
                 var oCurCell = oRow.Get_Cell(nColIndex);
                 if(oCurCell){
                     var res = this.getContentValue(oCurCell.GetContent());
-                    if(res !== null){
-                        this.result.push(res);
+                    if(res && AscFormat.isRealNumber(res.result)){
+                        this.result.push(res.result);
                     }
                     // else{
                     //     this.result.push(0);
@@ -527,9 +555,12 @@
                 this.result = 0.0;
                 return;
             }
-            this.result = this.getContentValue(oContent);
-            if(this.result === null){
+            var oRes = this.getContentValue(oContent);
+            if(oRes && !AscFormat.isRealNumber(oRes.result)){
                 this.result = 0.0;
+            }
+            else{
+                this.result = oRes.result;
             }
             return;
         }
@@ -549,18 +580,31 @@
                 this.setError("The Formula Not In Table", null);
                 return
             }
+            var bClean = true;
             if(this.dir === LEFT){
                 if(oCell.Index === 0){
                     this.setError("Table Index Cannot be Zero", null);
                     return;
                 }
                 this.result = [];
+
                 for(i = oCell.Index - 1; i > -1; --i){
                     oCurCell = oRow.Get_Cell(i);
                     if(oCurCell){
                         var res = this.getContentValue(oCurCell.GetContent());
-                        if(res !== null){
-                            this.result.push(res);
+                        if(res && res.result !== null){
+                            if(!(res.flags & PARSER_MASK_CLEAN)){
+                                if(bClean === true && this.result.length > 0){
+                                    break;
+                                }
+                                else{
+                                    bClean = false;
+                                    this.result.push(res.result);
+                                }
+                            }
+                            else{
+                                this.result.push(res.result);
+                            }
                         }
                     }
                 }
@@ -576,8 +620,19 @@
                     oCurCell = oCurRow.Get_Cell(oCell.Index);
                     if(oCurCell){
                         var res = this.getContentValue(oCurCell.GetContent());
-                        if(res !== null){
-                            this.result.push(res);
+                        if(res && res.result !== null){
+                            if(!(res.flags & PARSER_MASK_CLEAN)){
+                                if(bClean === true && this.result.length > 0){
+                                    break;
+                                }
+                                else{
+                                    bClean = false;
+                                    this.result.push(res.result);
+                                }
+                            }
+                            else{
+                                this.result.push(res.result);
+                            }
                         }
                     }
                 }
@@ -589,8 +644,19 @@
                     oCurCell = oRow.Get_Cell(i);
                     if(oCurCell){
                         var res = this.getContentValue(oCurCell.GetContent());
-                        if(res !== null){
-                            this.result.push(res);
+                        if(res && res.result !== null){
+                            if(!(res.flags & PARSER_MASK_CLEAN)){
+                                if(bClean === true && this.result.length > 0){
+                                    break;
+                                }
+                                else{
+                                    bClean = false;
+                                    this.result.push(res.result);
+                                }
+                            }
+                            else{
+                                this.result.push(res.result);
+                            }
                         }
                     }
                 }
@@ -603,8 +669,19 @@
                     oCurCell = oCurRow.Get_Cell(oCell.Index);
                     if(oCurCell){
                         var res = this.getContentValue(oCurCell.GetContent());
-                        if(res !== null){
-                            this.result.push(res);
+                        if(res && res.result !== null){
+                            if(!(res.flags & PARSER_MASK_CLEAN)){
+                                if(bClean === true && this.result.length > 0){
+                                    break;
+                                }
+                                else{
+                                    bClean = false;
+                                    this.result.push(res.result);
+                                }
+                            }
+                            else{
+                                this.result.push(res.result);
+                            }
                         }
                     }
                 }
@@ -1156,12 +1233,13 @@
     var PARSER_MASK_CELL_RANGE      = 256;
     var PARSER_MASK_BOOKMARK        = 512;
     var PARSER_MASK_BOOKMARK_CELL_REF = 1024;
+    var PARSER_MASK_CLEAN = 2048;
 
     var ERROR_TYPE_SYNTAX_ERROR = "Syntax Error";
     var ERROR_TYPE_MISSING_OPERATOR = "Missing Operator";
 
     function CFormulaParser(sListSeparator, sDigitSeparator){
-        this.listSeparator = ',';
+        this.listSeparator = sListSeparator;
         this.digitSeparator = sDigitSeparator;
 
         this.formula = null;
@@ -1816,7 +1894,9 @@
                     aStack.push(oCurToken);
                 }
             }
-            oLastToken = oCurToken;
+            if(!(oCurToken instanceof CLineSeparatorOperatorNode)){
+                oLastToken = oCurToken;
+            }
             nStartPos = this.pos;
         }
         while (aStack.length > 0){
@@ -1838,12 +1918,18 @@
 
 
     function CTextParser(){
-        CFormulaParser.call(this);
+        CFormulaParser.call(this, ",", ".");//TODO: take list separator and digits separator from settings
+        this.clean =  true;
     }
     CTextParser.prototype = Object.create(CFormulaParser.prototype);
+    CTextParser.prototype.checkSingularToken = function(oToken){
+        return false;
+    };
+
     CTextParser.prototype.parseCurrent = function () {
         while(this.formula[this.pos] === ' '){
             ++this.pos;
+            this.setFlag(PARSER_MASK_CLEAN, false);
         }
         if(this.pos >= this.formula.length){
             return null;
@@ -1851,32 +1937,42 @@
         //check parentheses
         if(this.formula[this.pos] === '('){
             ++this.pos;
+            this.setFlag(PARSER_MASK_CLEAN, false);
             return new CLeftParenOperatorNode(this.parseQueue);
         }
         if(this.formula[this.pos] === ')'){
             ++this.pos;
+            this.setFlag(PARSER_MASK_CLEAN, false);
             return new CRightParenOperatorNode(this.parseQueue);
+        }
+        if(this.formula[this.pos] === '\n' || this.formula[this.pos] === '\t' || this.formula[this.pos] === '\r'){
+            ++this.pos;
+            this.setFlag(PARSER_MASK_CLEAN, false);
+            return new CLineSeparatorOperatorNode(this.parseQueue);
         }
         var oRet;
         //check operators
         oRet = this.checkExpression(oOperatorRegExp, this.parseOperator);
         if(oRet){
+            this.setFlag(PARSER_MASK_CLEAN, false);
             return oRet;
         }
+
+        //check bookmark
+        oRet = this.checkExpression(oBookmarkCellRefRegExp, this.parseBookmarkCellRef);
+        if(oRet){
+            this.setFlag(PARSER_MASK_CLEAN, false);
+            return new CLineSeparatorOperatorNode(this.parseQueue);
+        }
+
         //check number
         oRet = this.checkExpression(oConstantRegExp, this.parseNumber);
         var oRes;
         if(oRet){
-            while(this.pos < this.formula.length && this.formula[this.pos] !== '(' && this.formula[this.pos] !== ')' &&
-            !((oOperatorRegExp.lastIndex = this.pos) && (oRes = oOperatorRegExp.exec(this.formula)) && oRes.index === this.pos)){
-                ++this.pos;
-            }
             return oRet;
         }
         return null;
     };
-
-
 
 
 //GENERATE TEST DATA
