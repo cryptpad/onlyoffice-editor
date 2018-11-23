@@ -6336,6 +6336,12 @@ RangeDataManager.prototype = {
 	TableColumn.prototype.getTotalsRowFormula = function () {
 		return this.TotalsRowFormula ? this.TotalsRowFormula.getFormula() : null;
 	};
+	TableColumn.prototype.getTotalsRowFunction = function () {
+		return this.TotalsRowFunction;
+	};
+	TableColumn.prototype.getTotalsRowLabel = function () {
+		return this.TotalsRowLabel ? this.TotalsRowFormula.TotalsRowLabel : null;
+	};
 	TableColumn.prototype.setTotalsRowFormula = function (val, ws) {
 		this.cleanTotalsData();
 		if ("=" === val[0]) {
@@ -6344,10 +6350,15 @@ RangeDataManager.prototype = {
 		this.applyTotalRowFormula(val, ws, true);
 		this.TotalsRowFunction = Asc.ETotalsRowFunction.totalrowfunctionCustom;
 	};
+	TableColumn.prototype.setTotalsRowFunction = function (val) {
+		//функция работает только на undo/redo
+		//для того, чтобы работала из меню, необходимо генерировать и добавлять формулу в ячейку
+		this.cleanTotalsData();
+		this.TotalsRowFunction = val;
+	};
 
 	TableColumn.prototype.setTotalsRowLabel = function (val) {
 		this.cleanTotalsData();
-
 		this.TotalsRowLabel = val;
 	};
 

@@ -2871,6 +2871,7 @@
 					oHistoryObject.nCol       	        = redoObject.nCol;
 					oHistoryObject.nRow         	    = redoObject.nRow;
 					oHistoryObject.formula         	    = redoObject.formula;
+					oHistoryObject.totalFunction        = redoObject.totalFunction;
 				}
 				else
 				{
@@ -2999,66 +3000,57 @@
 					worksheet.workbook.dependencyFormulas.unlockRecal();
 				}
 			},
-			
-			_changeTotalsRowData: function(tablePart, range, props)
-			{
-				if(!tablePart || !range || !tablePart.TotalsRowCount)
-				{
+
+			_changeTotalsRowData: function (tablePart, range, props) {
+				if (!tablePart || !range || !tablePart.TotalsRowCount) {
 					return false;
 				}
-				
+
 				var worksheet = this.worksheet;
-				
+
 				var tableRange = tablePart.Ref;
 				var totalRange = new Asc.Range(tableRange.c1, tableRange.r2, tableRange.c2, tableRange.r2);
 				var isIntersection = totalRange.intersection(range);
-				
-				if(isIntersection)
-				{
-					for(var j = isIntersection.c1; j <= isIntersection.c2; j++)
-					{
+
+				if (isIntersection) {
+					for (var j = isIntersection.c1; j <= isIntersection.c2; j++) {
 						var cell = worksheet.getCell3(tableRange.r2, j);
 						var tableColumn = tablePart.TableColumns[j - tableRange.c1];
-						
+
 						var formula = null;
 						var label = null;
-						if(props)
-						{
-							if(props.formula)
-							{
+						var totalFunction;
+						if (props) {
+							if (props.formula) {
 								formula = props.formula;
-							}
-							else
-							{
+							} else if (props.totalFunction) {
+								totalFunction = props.totalFunction;
+							} else {
 								label = props.val;
 							}
-						}
-						else
-						{
-							if(cell.isFormula())
-							{
+						} else {
+							if (cell.isFormula()) {
 								formula = cell.getFormula();
-							}
-							else
-							{
+							} else {
 								label = cell.getValue();
 							}
 						}
-						
-						var oldLabel = tableColumn.TotalsRowLabel;
+
+						var oldLabel = tableColumn.getTotalsRowLabel();
 						var oldFormula = tableColumn.getTotalsRowFormula();
-						
-						if(null !== formula)
-						{
+						var oldTotalFunction = tableColumn.getTotalsRowFunction();
+
+						if (null !== formula) {
 							tableColumn.setTotalsRowFormula(formula, worksheet);
-						}
-						else
-						{
+						} else if (totalFunction) {
+							tableColumn.setTotalsRowFunction(totalFunction);
+						} else {
 							tableColumn.setTotalsRowLabel(label);
 							cell.setType(CellValueType.String);
 						}
-						
-						this._addHistoryObj({nCol: cell.bbox.c1, nRow: cell.bbox.r1, formula: oldFormula, val: oldLabel}, AscCH.historyitem_AutoFilter_ChangeTotalRow, {activeCells: range, nCol: cell.bbox.c1, nRow: cell.bbox.r1, formula: formula, val: label});
+
+						this._addHistoryObj({nCol: cell.bbox.c1, nRow: cell.bbox.r1, formula: oldFormula, val: oldLabel, totalFunction: oldTotalFunction
+						}, AscCH.historyitem_AutoFilter_ChangeTotalRow, {activeCells: range, nCol: cell.bbox.c1, nRow: cell.bbox.r1, formula: formula, val: label, totalFunction: totalFunction});
 					}
 				}
 			},
