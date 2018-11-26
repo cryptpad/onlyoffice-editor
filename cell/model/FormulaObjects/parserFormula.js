@@ -2127,7 +2127,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			}
 		}
 		if (tableData.range) {
+			//всегда получаем диапазон в виде A1B1
+			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+			AscCommonExcel.g_R1C1Mode = false;
 			var refName = tableData.range.getName();
+			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+
 			var wsFrom = this.wb.getWorksheetById(tableData.wsID);
 			if (tableData.range.isOneCell()) {
 				this.area = new cRef3D(refName, wsFrom);
