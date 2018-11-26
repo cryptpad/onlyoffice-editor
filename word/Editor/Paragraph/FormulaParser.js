@@ -736,6 +736,7 @@
 
     function CFunctionNode(parseQueue){
         CFormulaNode.call(this, parseQueue);
+        this.operands = [];
     }
 
     CFunctionNode.prototype = Object.create(CFormulaNode.prototype);
@@ -1594,7 +1595,6 @@
         var oCurToken;
         var aStack = [];
         var aFunctionsStack = [];
-        var aOperands = [];
         var oLastToken = null;
         var oLastFunction = null;
         var oToken;
@@ -1714,8 +1714,8 @@
                 }
                 else{
                     if(aFunctionsStack.length > 0){
-                        aOperands.push(this.parseQueue.last());
-                        if(aOperands.length >= aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
+                        aFunctionsStack[aFunctionsStack.length-1].operands.push(this.parseQueue.last());
+                        if(aFunctionsStack[aFunctionsStack.length-1].operands.length >= aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
                             this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                             return;
                         }
@@ -1791,33 +1791,32 @@
                 }
                 aStack.pop();//remove left paren
                 if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
-                    aOperands.push(this.parseQueue.last());
+                    aStack[aStack.length-1].operands.push(this.parseQueue.last());
                     oLastFunction = aStack[aStack.length-1];
-                    if(aOperands.length > oLastFunction.maxArgumentsCount){
+                    if(oLastFunction.operands.length > oLastFunction.maxArgumentsCount){
                         this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                         return;
                     }
-                    if(aOperands.length < oLastFunction.minArgumentsCount){
+                    if(oLastFunction.operands.length < oLastFunction.minArgumentsCount){
                         if(!oLastFunction.listSupport()){
                             this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                             return;
                         }
                         else{
-                            for(var i = 0; i < aOperands.length; ++i){
-                                if(aOperands[i] instanceof CCellRangeNode){
-                                    if(aOperands[i].isCellRange() || aOperands[i].isBookmarkCellRange() || aOperands[i].isDir()){
+                            for(var i = 0; i < oLastFunction.operands.length; ++i){
+                                if(oLastFunction.operands[i] instanceof CCellRangeNode){
+                                    if(oLastFunction.operands[i].isCellRange() || oLastFunction.operands[i].isBookmarkCellRange() || oLastFunction.operands[i].isDir()){
                                         break;
                                     }
                                 }
                             }
-                            if(i === aOperands.length){
+                            if(i === oLastFunction.operands.length){
                                 this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                                 return;
                             }
                         }
                     }
-                    oLastFunction.argumentsCount = aOperands.length;
-
+                    oLastFunction.argumentsCount = oLastFunction.operands.length;
                     oToken = aStack.pop();
                     this.parseQueue.add(oToken);
                     oToken.calculate();
@@ -2138,6 +2137,9 @@
             oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
             for(var i = 0; i < aExp.length; ++i) {
                 var sExp = aExp[i];
+                if(i < aExp.length - 1){
+                    sExp += ("+" + aExp[i+1]);
+                }
                 oComplexField.InstructionLine = '=' + sExp;
                 oComplexField.Instruction = null;
                 oComplexField.private_UpdateInstruction();
@@ -2146,7 +2148,7 @@
                 }
                 // oComplexField.Update(true, true);
                 if (oComplexField.Instruction.ErrStr !== null) {
-                    oRes.sString += (oComplexField.Instruction.ErrStr + '\n');
+                    oRes.sString += (sExp + "  " + oComplexField.Instruction.ErrStr + '\n');
                 }
                 else {
                     if (oComplexField.Instruction.ResultStr !== null) {
