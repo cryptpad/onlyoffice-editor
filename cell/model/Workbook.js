@@ -258,10 +258,25 @@
 				this.wb.dependencyFormulas.addToBuildDependencyDefName(this);
 			}
 		},
+		getRef: function(bLocale) {
+			var res;
+			if(!this.parsedRef.isParsed) {
+				this.parsedRef.parse();
+			}
+			if(bLocale) {
+				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+				AscCommonExcel.g_R1C1Mode = this.wb.isR1C1Mode;
+				res = this.parsedRef.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);
+				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			} else {
+				res = this.parsedRef.assemble();
+			}
+			return res;
+		},
 		getNodeId: function() {
 			return getDefNameId(this.sheetId, this.name);
 		},
-		getAscCDefName: function() {
+		getAscCDefName: function(bLocale) {
 			var index = null;
 			if (this.sheetId) {
 				var sheet = this.wb.getWorksheetById(this.sheetId);
@@ -625,12 +640,12 @@
 			}
 			return res;
 		},
-		getDefinedNamesWB: function(type) {
+		getDefinedNamesWB: function(type, bLocale) {
 			var names = [], activeWS;
 
 			function getNames(defName) {
 				if (defName.ref && !defName.hidden && defName.name.indexOf("_xlnm") < 0) {
-					names.push(defName.getAscCDefName());
+					names.push(defName.getAscCDefName(bLocale));
 				}
 			}
 
@@ -2281,8 +2296,8 @@
 	Workbook.prototype.checkDefName = function (checkName, scope) {
 		return this.dependencyFormulas.checkDefName(checkName, scope);
 	};
-	Workbook.prototype.getDefinedNamesWB = function (defNameListId) {
-		return this.dependencyFormulas.getDefinedNamesWB(defNameListId);
+	Workbook.prototype.getDefinedNamesWB = function (defNameListId, bLocale) {
+		return this.dependencyFormulas.getDefinedNamesWB(defNameListId, bLocale);
 	};
 	Workbook.prototype.getDefinesNames = function ( name, sheetId ) {
 		return this.dependencyFormulas.getDefNameByName( name, sheetId );
