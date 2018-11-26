@@ -536,6 +536,9 @@ CTableRow.prototype =
 
     Get_CellInfo : function(Index)
     {
+    	if (!this.CellsInfo[Index] || undefined === this.CellsInfo[Index].StartGridCol)
+			this.GetTable().private_RecalculateGridCols();
+
         return this.CellsInfo[Index];
     },
 

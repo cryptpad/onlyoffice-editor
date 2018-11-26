@@ -3557,11 +3557,11 @@ CTable.prototype.Document_UpdateRulersState = function(CurPage)
 
 	if (true == this.Selection.Use && table_Selection_Cell == this.Selection.Type)
 	{
-		this.Internal_Update_TableMarkup(this.Selection.EndPos.Pos.Row, this.Selection.EndPos.Pos.Cell, CurPage);
+		this.private_UpdateTableMarkup(this.Selection.EndPos.Pos.Row, this.Selection.EndPos.Pos.Cell, CurPage);
 	}
 	else
 	{
-		this.Internal_Update_TableMarkup(this.CurCell.Row.Index, this.CurCell.Index, CurPage);
+		this.private_UpdateTableMarkup(this.CurCell.Row.Index, this.CurCell.Index, CurPage);
 		this.CurCell.Content.Document_UpdateRulersState(CurPage - this.CurCell.Content.Get_StartPage_Relative());
 	}
 };
@@ -4640,7 +4640,7 @@ CTable.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEvent)
 	}
 	else
 	{
-		this.Internal_Update_TableMarkup(Pos.Row, Pos.Cell, CurPage);
+		this.private_UpdateTableMarkup(Pos.Row, Pos.Cell, CurPage);
 		this.Selection.Type2         = table_Selection_Border;
 		this.Selection.Data2         = {};
 		this.Selection.Data2.PageNum = CurPage;
@@ -8513,22 +8513,22 @@ CTable.prototype.Internal_CheckMerge = function()
 	{
 		var Pos  = this.Selection.Data[Index];
 		var Row  = this.Content[Pos.Row];
-		var Cell = Row.Get_Cell(Pos.Cell);
+		var Cell = Row.GetCell(Pos.Cell);
 
-		var StartGridCol = Row.Get_CellInfo(Pos.Cell).StartGridCol;
-		var EndGridCol   = StartGridCol + Cell.Get_GridSpan() - 1;
+		var CellInfo     = Row.GetCellInfo(Pos.Cell);
+		var StartGridCol = CellInfo.StartGridCol;
+		var EndGridCol   = StartGridCol + Cell.GetGridSpan() - 1;
 
-		var VMergeCount = this.Internal_GetVertMergeCount(Pos.Row, Row.Get_CellInfo(Pos.Cell).StartGridCol, Cell.Get_GridSpan());
+		var VMergeCount = this.Internal_GetVertMergeCount(Pos.Row, CellInfo.StartGridCol, Cell.GetGridSpan());
 
 		for (var RowIndex = Pos.Row; RowIndex <= Pos.Row + VMergeCount - 1; RowIndex++)
 		{
 			if ("undefined" === typeof(RowsInfo[RowIndex]))
 			{
-				RowsInfo[RowIndex] =
-					{
-						Grid_start : StartGridCol,
-						Grid_end   : EndGridCol
-					};
+				RowsInfo[RowIndex] = {
+					Grid_start : StartGridCol,
+					Grid_end   : EndGridCol
+				};
 
 				if (-1 === nRowMax || RowIndex > nRowMax)
 					nRowMax = RowIndex;
@@ -11157,58 +11157,63 @@ CTable.prototype.private_GetCellIndexByStartGridCol = function(nCurRow, nStartGr
 
 	return -1;
 };
-CTable.prototype.Internal_Update_TableMarkup = function(RowIndex, CellIndex, PageNum)
+CTable.prototype.private_UpdateTableMarkup = function(nRowIndex, nCellIndex, nCurPage)
 {
-	this.Markup.Internal =
-		{
-			RowIndex  : RowIndex,
-			CellIndex : CellIndex,
-			PageNum   : PageNum
-		};
+	this.Markup.Internal = {
+		RowIndex  : nRowIndex,
+		CellIndex : nCellIndex,
+		PageNum   : nCurPage
+	};
 
-	var Page      = this.Pages[PageNum];
-	this.Markup.X = Page.X;
+	var oPage = this.Pages[nCurPage];
+	if (!oPage)
+		return;
 
-	var Row         = this.Content[RowIndex];
-	var CellSpacing = ( null === Row.Get_CellSpacing() ? 0 : Row.Get_CellSpacing() );
-	var CellsCount  = Row.Get_CellsCount();
+	this.Markup.X = oPage.X;
 
-	var GridBefore = Row.Get_Before().GridBefore;
-	this.Markup.X += this.TableSumGrid[GridBefore - 1];
+	var oRow         = this.GetRow(nRowIndex);
+	var nCellSpacing = null === oRow.GetCellSpacing() ? 0 : oRow.GetCellSpacing();
+	var nCellsCount  = oRow.GetCellsCount();
+	var nGridBefore  = oRow.GetBefore().Grid;
 
+	this.Markup.X += this.TableSumGrid[nGridBefore - 1];
 	this.Markup.Cols    = [];
 	this.Markup.Margins = [];
-	for (var CurCell = 0; CurCell < CellsCount; CurCell++)
+
+	for (var nCurCell = 0; nCurCell < nCellsCount; ++nCurCell)
 	{
-		var Cell         = Row.Get_Cell(CurCell);
-		var StartGridCol = Row.Get_CellInfo(CurCell).StartGridCol;
-		var GridSpan     = Cell.Get_GridSpan();
-		var CellMargin   = Cell.GetMargins();
+		var oCell     = oRow.GetCell(nCurCell);
+		var oCellInfo = oRow.GetCellInfo(nCurCell);
 
-		this.Markup.Cols.push(this.TableSumGrid[StartGridCol + GridSpan - 1] - this.TableSumGrid[StartGridCol - 1]);
+		var nStartGridCol = oCellInfo.StartGridCol;
+		var nGridSpan     = oCell.GetGridSpan();
+		var oCellMargin   = oCell.GetMargins();
 
-		var Margin_left  = CellMargin.Left.W;
-		var Margin_right = CellMargin.Right.W;
-		if (0 === CurCell)
-			Margin_left += CellSpacing;
+		this.Markup.Cols.push(this.TableSumGrid[nStartGridCol + nGridSpan - 1] - this.TableSumGrid[nStartGridCol - 1]);
+
+		var nMarginLeft  = oCellMargin.Left.W;
+		var nMarginRight = oCellMargin.Right.W;
+
+		if (0 === nCurCell)
+			nMarginLeft += nCellSpacing;
 		else
-			Margin_left += CellSpacing / 2;
+			nMarginLeft += nCellSpacing / 2;
 
-		if (CellsCount - 1 === CurCell)
-			Margin_right += CellSpacing;
+		if (nCellsCount - 1 === nCurCell)
+			nMarginRight += nCellSpacing;
 		else
-			Margin_right += CellSpacing / 2;
+			nMarginRight += nCellSpacing / 2;
 
-		this.Markup.Margins.push({Left : Margin_left, Right : Margin_right});
+		this.Markup.Margins.push({Left : nMarginLeft, Right : nMarginRight});
 	}
 
 	// Определим какие строки попадают на данную страницу
-	var Row_start = this.Pages[PageNum].FirstRow;
+	var Row_start = this.Pages[nCurPage].FirstRow;
 	var Row_last  = Row_start;
 
-	if (PageNum + 1 < this.Pages.length)
+	if (nCurPage + 1 < this.Pages.length)
 	{
-		Row_last = this.Pages[PageNum + 1].FirstRow;
+		Row_last = this.Pages[nCurPage + 1].FirstRow;
 
 		// Возможно, на данной странице строку, с которой началось разбиение на стрнице,
 		// не надо рисовать. (Если начальная и конечная строки совпадают, тогда это 2
@@ -11222,12 +11227,12 @@ CTable.prototype.Internal_Update_TableMarkup = function(RowIndex, CellIndex, Pag
 	this.Markup.Rows = [];
 	for (var CurRow = Row_start; CurRow <= Row_last; CurRow++)
 	{
-		if (this.RowsInfo[CurRow] && this.RowsInfo[CurRow].Y[PageNum] && this.RowsInfo[CurRow].H[PageNum])
-			this.Markup.Rows.push({Y : this.RowsInfo[CurRow].Y[PageNum], H : this.RowsInfo[CurRow].H[PageNum]});
+		if (this.RowsInfo[CurRow] && this.RowsInfo[CurRow].Y[nCurPage] && this.RowsInfo[CurRow].H[nCurPage])
+			this.Markup.Rows.push({Y : this.RowsInfo[CurRow].Y[nCurPage], H : this.RowsInfo[CurRow].H[nCurPage]});
 	}
 
-	this.Markup.CurCol = CellIndex;
-	this.Markup.CurRow = RowIndex - Row_start;
+	this.Markup.CurCol = nCellIndex;
+	this.Markup.CurRow = nRowIndex - Row_start;
 
 	var Transform = this.Get_ParentTextTransform();
 	this.DrawingDocument.Set_RulerState_Table(this.Markup, Transform);
@@ -11771,7 +11776,7 @@ CTable.prototype.private_UpdateTableRulerOnBorderMove = function(Pos)
 	// Обновляем Markup по ячейке в которой мы двигаем границу. Так делаем, потому что мы можем находится изначально
 	// на другой странице данной таблице, а там Markup может быть совершенно другим. В конце движения границы
 	// произойдет обновление селекта, и Markup обновится по текущему положению курсора.
-	this.Internal_Update_TableMarkup(this.Selection.Data2.Pos.Row, this.Selection.Data2.Pos.Cell, this.Selection.Data2.PageNum);
+	this.private_UpdateTableMarkup(this.Selection.Data2.Pos.Row, this.Selection.Data2.Pos.Cell, this.Selection.Data2.PageNum);
 	this.DrawingDocument.UpdateTableRuler(this.Selection.Data2.bCol, this.Selection.Data2.Index, Pos);
 
 	return Pos;
