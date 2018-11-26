@@ -426,19 +426,21 @@
             if(!AscFormat.isRealNumber(oParser.parseQueue.result) || oParser.parseQueue.pos > 0){
                 var aQueue = oParser.parseQueue.queue;
                 var fSumm = 0.0;
-                for(var i = 0; i < aQueue.length; ++i){
-                    if(aQueue[i] instanceof CNumberNode){
-                        fSumm += aQueue[i].value;
+                if(aQueue.length > 0){
+                    for(var i = 0; i < aQueue.length; ++i){
+                        if(aQueue[i] instanceof CNumberNode){
+                            fSumm += aQueue[i].value;
+                        }
+                        else if(aQueue[i] instanceof CLineSeparatorOperatorNode){
+                            continue;
+                        }
+                        else{
+                            break;
+                        }
                     }
-                    else if(aQueue[i] instanceof CLineSeparatorOperatorNode){
-                        continue;
+                    if(aQueue.length === i){
+                        oParser.parseQueue.result = fSumm;
                     }
-                    else{
-                        break;
-                    }
-                }
-                if(aQueue.length === i){
-                    oParser.parseQueue.result = fSumm;
                 }
             }
         }
