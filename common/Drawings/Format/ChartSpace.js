@@ -3224,9 +3224,7 @@ CChartSpace.prototype.getRangeObjectStr = function()
        }
 
         if (this.bbox.worksheet) {
-            AscCommonExcel.g_R1C1Mode = this.bbox.worksheet.getR1C1Mode();
             var sRef = (new Asc.Range(c1, r1, c2, r2)).getName(AscCommonExcel.referenceType.A);
-            AscCommonExcel.g_R1C1Mode = false;
             ret.range = parserHelp.get3DRef(this.bbox.worksheet.sName, sRef);
         }
     }
@@ -14915,7 +14913,6 @@ function parseSeriesHeaders (ws, rangeBBox) {
 }
 
 function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
-	AscCommonExcel.g_R1C1Mode = worksheet.getR1C1Mode();
 	var ws, range;
 	var result = parserHelp.parse3DRef(options.range);
 	if (result) {
@@ -14924,7 +14921,6 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
 			range = ws.getRange2(result.range);
 	}
 
-	AscCommonExcel.g_R1C1Mode = false;
 	if (!range)
 		return null;
 

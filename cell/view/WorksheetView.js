@@ -1136,13 +1136,6 @@
             return result;
         }
 
-		var mc = this.model.getMergedByCell(activeCell.row, activeCell.col);
-		var c1 = mc ? mc.c1 : activeCell.col;
-		var r1 = mc ? mc.r1 : activeCell.row;
-
-		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
-		AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
-
         // Ищем первую ячейку с числом
         for (; r >= vr.r1; --r) {
             cell = this._getCellTextCache(activeCell.col, r);
@@ -1255,8 +1248,6 @@
 			result.text = result.getName();
         }
 
-		AscCommonExcel.g_ActiveCell = null;
-		AscCommonExcel.g_R1C1Mode = false;
 		return result;
     };
 
@@ -4865,7 +4856,7 @@
      * @return {String}
      */
     WorksheetView.prototype._getColumnTitle = function (col) {
-		return this.model.getR1C1Mode() ? this._getRowTitle(col) : AscCommon.g_oCellAddressUtils.colnumToColstrFromWsView(col + 1);
+		return AscCommonExcel.g_R1C1Mode ? this._getRowTitle(col) : AscCommon.g_oCellAddressUtils.colnumToColstrFromWsView(col + 1);
     };
 
     /**
@@ -6920,20 +6911,14 @@
             return defName;
         }
 
-		var oldMode = AscCommonExcel.g_R1C1Mode;
-        var isR1C1Mode = AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
-        var res = (new Asc.Range(c1, r1, c1, r1)).getName(isR1C1Mode ?
-			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R, isR1C1Mode);
-		AscCommonExcel.g_R1C1Mode = oldMode;
-		return res;
+        return (new Asc.Range(c1, r1, c1, r1)).getName(AscCommonExcel.g_R1C1Mode ?
+			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
     };
 
 	WorksheetView.prototype.getSelectionRangeValue = function () {
 		// ToDo проблема с выбором целого столбца/строки
 		var ar = this.model.selectionRange.getLast().clone(true);
-		AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
 		var sAbsName = ar.getAbsName();
-		AscCommonExcel.g_R1C1Mode = false;
 		var sName = (c_oAscSelectionDialogType.FormatTable === this.selectionDialogType) ? sAbsName :
 			parserHelp.get3DRef(this.model.getName(), sAbsName);
 		var type = ar.type;
@@ -6950,9 +6935,6 @@
     };
 
     WorksheetView.prototype._getSelectionInfoCell = function () {
-		var oldAC = AscCommonExcel.g_ActiveCell;
-		var oldMode = AscCommonExcel.g_R1C1Mode;
-
         var selectionRange = this.model.selectionRange;
         var cell = selectionRange.activeCell;
         var mc = this.model.getMergedByCell(cell.row, cell.col);
@@ -6970,7 +6952,6 @@
         cell_info.formula = c.getFormula();
 
 		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
-		AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
         cell_info.text = c.getValueForEdit();
 
 		cell_info.halign = align.getAlignHorizontal();
@@ -7112,9 +7093,6 @@
 				cell_info.isLockedPivotTable = true;
 			}
 		}
-
-		AscCommonExcel.g_ActiveCell = oldAC;
-		AscCommonExcel.g_R1C1Mode = oldMode;
 
         return cell_info;
 	};
@@ -11407,10 +11385,6 @@
 
     WorksheetView.prototype.setCellEditMode = function ( isCellEditMode ) {
         this.isCellEditMode = isCellEditMode;
-        if (!this.isCellEditMode) {
-			AscCommonExcel.g_ActiveCell = null;
-			AscCommonExcel.g_R1C1Mode = false;
-		}
     };
 
     WorksheetView.prototype.setFormulaEditMode = function ( isFormulaEditMode ) {
@@ -11627,9 +11601,6 @@
 			var font = c.getFont();
 			// Скрываем окно редактирования комментария
 			this.model.workbook.handlers.trigger("asc_onHideComment");
-			
-			AscCommonExcel.g_ActiveCell = c.bbox;
-			AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
 
 			var _fragmentsTmp = c.getValueForEdit2();
 			var fragments = [];
@@ -11912,10 +11883,7 @@
 			var res = false;
 			var worksheet = t.model;
 
-			var oldR1C1Mode = AscCommonExcel.g_R1C1Mode;
-			AscCommonExcel.g_R1C1Mode = t.model.getR1C1Mode();
 			var activeRange = AscCommonExcel.g_oRangeCache.getAscRange(addFormatTableOptionsObj.asc_getRange());
-			AscCommonExcel.g_R1C1Mode = oldR1C1Mode;
 			if (activeRange && worksheet.AutoFilter && activeRange.containsRange(worksheet.AutoFilter.Ref) &&
 				activeRange.r1 === worksheet.AutoFilter.Ref.r1) {
 				res = true;
@@ -14005,9 +13973,7 @@
     WorksheetView.prototype.af_changeTableRange = function (tableName, range, callbackAfterChange) {
         var t = this;
         if(typeof range === "string"){
-			AscCommonExcel.g_R1C1Mode = this.model.getR1C1Mode();
 			range = AscCommonExcel.g_oRangeCache.getAscRange(range);
-			AscCommonExcel.g_R1C1Mode = false;
 		}
 
 		if (!window['AscCommonExcel'].filteringMode) {

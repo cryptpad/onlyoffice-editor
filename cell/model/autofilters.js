@@ -827,8 +827,6 @@
 			
 			getAddFormatTableOptions: function(activeCells, userRange)
 			{
-				AscCommonExcel.g_R1C1Mode = this.worksheet.getR1C1Mode();
-
 				var res;
 				
 				if(userRange)
@@ -880,7 +878,6 @@
 					res.asc_setRange(addRange.getAbsName());
 				}
 
-				AscCommonExcel.g_R1C1Mode = false;
 				return res;
 			},
 			
@@ -5141,7 +5138,6 @@
 
 			_getFilterInfoByAddTableProps: function(ar, addFormatTableOptionsObj, bTable)
 			{
-				AscCommonExcel.g_R1C1Mode = this.worksheet.getR1C1Mode();
 				var tempRange =  new Asc.Range(ar.c1, ar.r1, ar.c2, ar.r2);
 				var addNameColumn, filterRange, bIsManualOptions = false;
 
@@ -5160,7 +5156,6 @@
 				{
 					addNameColumn = false;
 				}
-				AscCommonExcel.g_R1C1Mode = false;
 
 				//expand range
 				var tablePartsContainsRange = this._isTablePartsContainsRange(tempRange);

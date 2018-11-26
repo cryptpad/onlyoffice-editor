@@ -3533,7 +3533,6 @@ DrawingObjectsController.prototype =
         if(this.drawingObjects && this.drawingObjects.getWorksheet && typeof sRange === "string" && sRange.length > 0)
         {
             var ws_view = this.drawingObjects.getWorksheet();
-            AscCommonExcel.g_R1C1Mode = ws_view.model.getR1C1Mode();
             var parsed_formula = parserHelp.parse3DRef(sRange);
             if(parsed_formula)
             {
@@ -3579,7 +3578,6 @@ DrawingObjectsController.prototype =
                     }
                 }
             }
-            AscCommonExcel.g_R1C1Mode = false;
         }
 
 

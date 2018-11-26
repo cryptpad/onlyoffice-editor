@@ -3510,9 +3510,7 @@ function DrawingObjects() {
                         //}
                     }
 
-                    AscCommonExcel.g_R1C1Mode = worksheet.model.getR1C1Mode();
                     var sRef = (new Asc.Range(final_bbox.c1, final_bbox.r1, final_bbox.c2, final_bbox.r2)).getName(AscCommonExcel.referenceType.A);
-                    AscCommonExcel.g_R1C1Mode = false;
                     options.range = parserHelp.get3DRef(worksheet.model.sName, sRef);
 
 					var chartSeries = AscFormat.getChartSeries(worksheet.model, options, catHeadersBBox, serHeadersBBox);

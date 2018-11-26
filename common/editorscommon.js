@@ -2613,7 +2613,6 @@
 	 */
 	parserHelper.prototype.checkDataRange = function (model, wb, dialogType, dataRange, fullCheck, isRows, chartType)
 	{
-		AscCommonExcel.g_R1C1Mode = model.isR1C1Mode;
 		var result, range, sheetModel;
 		if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
 		{
@@ -2629,8 +2628,6 @@
 		}
 		else
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
-
-		AscCommonExcel.g_R1C1Mode = false;
 
 		if (!range)
 			return Asc.c_oAscError.ID.DataRangeError;

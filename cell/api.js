@@ -89,7 +89,6 @@ var editor;
     this.wbModel = null;
     this.tmpLocale = null;
     this.tmpLocalization = null;
-    this.isR1C1Mode = false;
 
     this.documentFormatSave = c_oAscFileType.XLSX;
 
@@ -288,7 +287,6 @@ var editor;
 
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
-    this.wbModel.isR1C1Mode = this.isR1C1Mode;
     this.initGlobalObjects(this.wbModel);
     AscFonts.IsCheckSymbols = true;
     var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
@@ -2185,9 +2183,8 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_setR1C1Mode = function (value) {
-		this.isR1C1Mode = value;
+		AscCommonExcel.g_R1C1Mode = value;
 		if (this.wbModel) {
-			this.wbModel.isR1C1Mode = value;
 			this._onUpdateAfterApplyChanges();
 			this.wb._onUpdateSelectionName(true);
         }
