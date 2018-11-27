@@ -167,20 +167,13 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 			this.ErrStr = this.GetErrorStr(oCalcError);
 			return;
 		}
-		if(AscFormat.isRealNumber(this.ParseQueue.result))
+		if(typeof this.ParseQueue.resultS === "string")
 		{
-			if(this.Format)
-			{
-				this.ResultStr = this.Format.formatToChart(this.ParseQueue.result);
-			}
-			else
-			{
-				this.ResultStr = '' + this.ParseQueue.result;
-			}
-			if(this.Formula[0] === '(' && this.Formula[this.Formula.length - 1] === ')')
-			{
-				this.ResultStr = '(' + this.ResultStr + ')';
-			}
+			this.ResultStr = this.ParseQueue.resultS;
+		}
+		else
+		{
+			this.ResultStr = '';
 		}
 	}
 	else
@@ -207,7 +200,11 @@ CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
 	}
 	var oParser = new AscCommonWord.CFormulaParser(",", ".");//TODO: take list separator and digits separator from settings
 	oParser.parse(this.Formula, this.ParentContent);
+
 	this.SetParseQueue(oParser.parseQueue);
+	if(oParser.parseQueue){
+		oParser.parseQueue.format = this.Format;
+	}
 	this.SetError(oParser.error);
 };
 

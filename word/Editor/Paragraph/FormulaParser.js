@@ -106,6 +106,71 @@
         return this.parent.inFunction();
     };
 
+    CFormulaNode.prototype.formatResult = function(){
+        var sResult = null;
+        if(AscFormat.isRealNumber(this.result)){
+            if(this.parseQueue.format){
+                return this.parseQueue.format.formatToChart(this.result, 14);
+            }
+            sResult = "";
+            var _result = this.result;
+            if(_result < 0){
+                _result = -_result;
+            }
+            var i;
+            var sRes = _result.toExponential(13);
+            var aDigits = sRes.split('e');
+            var nPow = parseInt(aDigits[1]);
+            var sNum = aDigits[0];
+            var t = sNum.split('.');
+            if(nPow < 0){
+                for(i = t[1].length - 1; i > -1; --i){
+                    if(t[1][i] !== '0'){
+                        break;
+                    }
+                }
+                if(i > -1){
+                    sResult += t[1].slice(0, i + 1);
+                }
+                sResult = t[0] + sResult;
+                nPow = -nPow - 1;
+                for(i = 0; i < nPow; ++i){
+                    sResult = "0" + sResult;
+                }
+                sResult = ("0" + this.digitSeparator + sResult);
+            }
+            else{
+                sResult += t[0];
+
+                for(i = 0; i < nPow; ++i){
+                    if(t[1] && i < t[1].length){
+                        sResult += t[1][i];
+                    }
+                    else{
+                        sResult += '0';
+                    }
+                }
+                if(t[1] && nPow < t[1].length){
+                    for(i = t[1].length - 1; i >= nPow; --i){
+                        if(t[1][i] !== '0'){
+                            break;
+                        }
+                    }
+                    var sStr = "";
+                    for(; i >= nPow; --i){
+                        sStr = t[1][i] + sStr;
+                    }
+                    if(sStr !== ""){
+                        sResult += (this.digitSeparator + sStr);
+                    }
+                }
+            }
+            if(this.result < 0){
+                sResult = '-' + sResult;
+            }
+        }
+        return sResult;
+    };
 
     CFormulaNode.prototype.calculate = function () {
         this.error = null;
@@ -1125,13 +1190,16 @@
     function CParseQueue() {
         this.queue = [];
         this.result = null;
+        this.resultS = null;
+        this.format = null;
+        this.digitSeparator = null;
         this.pos = -1;
         this.ParentContent = null;
         this.Document = null;
     }
     CParseQueue.prototype.add = function(oToken){
         oToken.setParseQueue(this);
-
+        oToken.digitSeparator = this.digitSeparator;
         this.queue.push(oToken);
         this.pos = this.queue.length - 1;
     };
@@ -1168,7 +1236,7 @@
         this.error.Type = Type;
         this.error.Data = Data;
     };
-    CParseQueue.prototype.calculate = function(oDocument){
+    CParseQueue.prototype.calculate = function(){
         this.pos = this.queue.length - 1;
 
         this.error = null;
@@ -1181,24 +1249,7 @@
         oLastToken.calculate();
         this.error = oLastToken.error;
         this.result = oLastToken.result;
-        if(AscFormat.isRealNumber(this.result) && !(oLastToken instanceof CNumberNode) && !(oLastToken instanceof CCellRangeNode && oLastToken.isCell())){
-            if(this.result >= 0.0){
-                if(this.result === Infinity){
-                    this.result = 1.0;
-                }
-                else{
-                    this.result = parseFloat((this.result).toFixed(2));
-                }
-            }
-            else{
-                if(this.result === -Infinity){
-                    this.result = -1.0;
-                }
-                else{
-                    this.result = parseFloat((this.result).toFixed(2));
-                }
-            }
-        }
+        this.resultS = oLastToken.formatResult();
         return this.error;
     };
     function CError(){
@@ -1591,6 +1642,8 @@
 
 
         this.parseQueue = new CParseQueue();
+        this.parseQueue.digitSeparator = this.digitSeparator;
+        this.parseQueue.ParentContent = oParentContent;
         this.parseQueue.ParentContent = oParentContent;
         var oCurToken;
         var aStack = [];
@@ -2137,9 +2190,9 @@
             oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
             for(var i = 0; i < aExp.length; ++i) {
                 var sExp = aExp[i];
-                if(i < aExp.length - 1){
-                    sExp += ("+" + aExp[i+1]);
-                }
+                // if(i < aExp.length - 1){
+                //     sExp += ("+" + aExp[i+1]);
+                // }
                 oComplexField.InstructionLine = '=' + sExp;
                 oComplexField.Instruction = null;
                 oComplexField.private_UpdateInstruction();
@@ -2148,7 +2201,7 @@
                 }
                 // oComplexField.Update(true, true);
                 if (oComplexField.Instruction.ErrStr !== null) {
-                    oRes.sString += (sExp + "  " + oComplexField.Instruction.ErrStr + '\n');
+                    oRes.sString += ( oComplexField.Instruction.ErrStr + '\n');
                 }
                 else {
                     if (oComplexField.Instruction.ResultStr !== null) {
