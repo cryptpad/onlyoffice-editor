@@ -11272,8 +11272,11 @@
 				// ToDo multiselect defined names
 				var selectionLast = this.model.selectionRange.getLast();
 				mc = selectionLast.isOneCell() ? this.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
+				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+				AscCommonExcel.g_R1C1Mode = false;
 				var defName = this.model.workbook.editDefinesNames(null, new Asc.asc_CDefName(reference,
 					parserHelp.get3DRef(this.model.getName(), (mc || selectionLast).getAbsName())));
+				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 
 				if (defName) {
 					this._isLockedDefNames(null, defName.getNodeId());
