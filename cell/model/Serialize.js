@@ -2506,10 +2506,15 @@
             var defNameList = this.wb.dependencyFormulas.saveDefName();
 
             var filterDefName = "_xlnm._FilterDatabase";
+			var tempMap = {};
 
             if(null != defNameList ){
                 for(var i = 0; i < defNameList.length; i++){
                     if(defNameList[i].Name !== filterDefName) {
+						//TODO временная правка. на открытие может приходить _FilterDatabase. защищаемся от записи двух одинаковых именванных диапазона
+						if(defNameList[i].Name === "_FilterDatabase") {
+							tempMap[defNameList[i].LocalSheetId] = 1;
+						}
 						this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defNameList[i]);});
                     }
                 }
@@ -2520,7 +2525,7 @@
             var ws, ref, defNameRef, defName;
             for(var i = 0; i < wb.aWorksheets.length; i++) {
 				ws = wb.aWorksheets[i];
-                if(ws && ws.AutoFilter && ws.AutoFilter.Ref) {
+                if(ws && ws.AutoFilter && ws.AutoFilter.Ref && !tempMap[ws.index]) {
                     ref = ws.AutoFilter.Ref;
 					defNameRef = AscCommon.parserHelp.get3DRef(ws.getName(), ref.getAbsName());
 					defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, false, true);
