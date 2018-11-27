@@ -8256,6 +8256,7 @@
         };
         this.Read = function(data, wb)
         {
+            var t = this;
             pptx_content_loader.Clear();
 			var pasteBinaryFromExcel = false;
 			if(this.copyPasteObj && this.copyPasteObj.isCopyPaste && typeof editor != "undefined" && editor)
@@ -8264,7 +8265,10 @@
 			this.stream = this.getbase64DecodedData(data);
 			if(!pasteBinaryFromExcel)
 				History.TurnOff();
-            this.ReadFile(wb);
+
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				t.ReadMainTable(wb);
+			});
 
             if(!this.copyPasteObj.isCopyPaste)
             {
@@ -8276,10 +8280,6 @@
 				History.TurnOn();
 			//чтобы удалялся stream с бинарником
 			pptx_content_loader.Clear(true);
-        };
-        this.ReadFile = function(wb)
-        {
-            return this.ReadMainTable(wb);
         };
         this.ReadMainTable = function(wb)
         {
