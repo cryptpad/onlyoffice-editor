@@ -243,25 +243,45 @@
 				this.parsedRef = null;
 			}
 		},
-		setRef: function(ref, opt_noRemoveDependencies, opt_forceBuild) {
+		setRef: function(ref, opt_noRemoveDependencies, opt_forceBuild, opt_open) {
 			if(!opt_noRemoveDependencies){
 				this.removeDependencies();
 			}
+			//для R1C1: ref - всегда строка в виде A1B1
+			//флаг opt_open - на открытие, undo/redo, принятие изменений - строка приходит в виде A1B1 - преобразовывать не нужно
+			//во всех остальных случаях парсим ref и заменяем на формат A1B1
+			opt_open = opt_open || this.wb.bRedoChanges || this.wb.bUndoChanges;
+
 			this.ref = ref;
 			//all ref should be 3d, so worksheet can be anyone
 			this.parsedRef = new parserFormula(ref, this, AscCommonExcel.g_DefNameWorksheet);
 			this.parsedRef.setIsTable(this.isTable);
 			if (opt_forceBuild) {
+				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+				if(opt_open) {
+					AscCommonExcel.g_R1C1Mode = false;
+				}
 				this.parsedRef.parse();
+				if(opt_open) {
+					AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+				}
 				this.parsedRef.buildDependencies();
 			} else {
+				if(!opt_open) {
+					this.parsedRef.parse();
+					this.ref = this.parsedRef.assemble();
+				}
 				this.wb.dependencyFormulas.addToBuildDependencyDefName(this);
 			}
 		},
 		getRef: function(bLocale) {
+			//R1C1 - отдаём в зависимости от флага bLocale(для меню в виде R1C1)
 			var res;
 			if(!this.parsedRef.isParsed) {
+				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+				AscCommonExcel.g_R1C1Mode = false;
 				this.parsedRef.parse();
+				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 			}
 			if(bLocale) {
 				res = this.parsedRef.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);
@@ -279,7 +299,7 @@
 				var sheet = this.wb.getWorksheetById(this.sheetId);
 				index = sheet.getIndex();
 			}
-			return new Asc.asc_CDefName(this.name, this.ref, index, this.isTable, this.hidden, this.isLock);
+			return new Asc.asc_CDefName(this.name, this.getRef(bLocale), index, this.isTable, this.hidden, this.isLock);
 		},
 		getUndoDefName: function() {
 			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable);
@@ -1068,7 +1088,7 @@
 		},
 		initOpen: function() {
 			this._foreachDefName(function(defName) {
-				defName.setRef(defName.ref, true, true);
+				defName.setRef(defName.ref, true, true, true);
 			});
 		},
 		getSnapshot: function(wb) {
