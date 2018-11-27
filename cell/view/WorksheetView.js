@@ -9064,7 +9064,9 @@
 		//paste from excel binary
 		if(fromBinaryExcel)
 		{
-			selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+			});
 		}
 		else
 		{
@@ -9097,22 +9099,30 @@
 						}
 					}
 
-					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+					});
 					AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 				} else {
 					oImageMap = pasteContent.props.oImageMap;
 					if (window["NATIVE_EDITOR_ENJINE"]) {
 						//TODO для мобильных приложений  - не рабочий код!
 						AscCommon.ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
-						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						AscCommonExcel.executeInR1C1Mode(false, function () {
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						});
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					} else {
-						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						AscCommonExcel.executeInR1C1Mode(false, function () {
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						});
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					}
 				}
 			} else {
-				selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+				});
 			}
 
             History.EndTransaction();
