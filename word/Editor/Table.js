@@ -12803,41 +12803,37 @@ CTable.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 
 	return false;
 };
-CTable.prototype.CanUpdateTarget = function(CurPage)
+/**
+ * Проверяем можно ли обновлять положение курсора на заданной странице
+ * @param nCurPage
+ * @returns {boolean}
+ */
+CTable.prototype.CanUpdateTarget = function(nCurPage)
 {
-	if (this.Pages.length <= 0)
-		return false;
-
-	if (this.Pages.length <= CurPage)
-		return true;
-
-	if (!this.Pages[CurPage])
+	if (this.Pages.length <= 0 || !this.Pages[nCurPage])
 		return false;
 
 	var oRow, oCell;
 	if (this.IsSelectionUse())
 	{
-		oCell = this.CurCell;
-		oRow  = this.CurCell.Row;
+		oRow  = this.GetRow(this.Selection.EndPos.Pos.Row);
+		oCell = oRow.GetCell(this.Selection.EndPos.Pos.Cell);
 	}
 	else
 	{
-		var CurCell = this.Selection.EndPos.Pos.Cell;
-		var CurRow  = this.Selection.EndPos.Pos.Row;
-
-		oRow  = this.Content[CurRow];
-		oCell = oRow.Get_Cell(CurCell);
+		oCell = this.CurCell;
+		oRow  = this.CurCell.GetRow();
 	}
 
 	if (!oRow || !oCell)
 		return false;
 
-	if (this.Pages[CurPage].LastRow > oRow.Index)
+	if (this.Pages[nCurPage].LastRow > oRow.Index)
 		return true;
-	else if (this.Pages[CurPage].LastRow < oRow.Index)
+	else if (this.Pages[nCurPage].LastRow < oRow.Index)
 		return false;
 
-	return oCell.Content.CanUpdateTarget(CurPage - oCell.Content.Get_StartPage_Relative());
+	return oCell.Content.CanUpdateTarget(nCurPage - oCell.Content.Get_StartPage_Relative());
 };
 /**
  * Проверяем, выделение идет по  ячейкам или нет
