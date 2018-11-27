@@ -1096,10 +1096,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val) {
-			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
-			AscCommonExcel.g_R1C1Mode = false;
-			this.range = ws.getRange2(val);
-			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			executeInR1C1Mode(false, function () {
+				val = ws.getRange2(val);
+			});
+			this.range = val;
 		}
 	}
 
@@ -1305,12 +1305,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 		this.bbox = null;
 		if (val) {
-			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
-			AscCommonExcel.g_R1C1Mode = false;
-			var bbox = AscCommonExcel.g_oRangeCache.getAscRange(val);
-			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
-			if (null != bbox) {
-				this.bbox = bbox.clone();
+			executeInR1C1Mode(false, function () {
+				val = AscCommonExcel.g_oRangeCache.getAscRange(val);
+			});
+			if (val) {
+				this.bbox = val.clone();
 			}
 		}
 		this.wsFrom = wsFrom;
@@ -1567,10 +1566,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val) {
-			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
-			AscCommonExcel.g_R1C1Mode = false;
-			this.range = ws.getRange2(val.replace(AscCommon.rx_space_g, ""));
-			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			executeInR1C1Mode(false, function () {
+				val = ws.getRange2(val.replace(AscCommon.rx_space_g, ""));
+			});
+			this.range = val;
 		}
 	}
 
@@ -1659,10 +1658,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val && this.ws) {
-			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
-			AscCommonExcel.g_R1C1Mode = false;
-			this.range = this.ws.getRange2(val);
-			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			executeInR1C1Mode(false, function () {
+				val = ws.getRange2(val);
+			});
+			this.range = val;
 		}
 	}
 
@@ -2061,7 +2060,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cStrucTable.prototype._updateArea = function (bbox, toRef, bConvertTableFormulaToRef) {
 		var paramObj = {param: null, startCol: null, endCol: null, cell: bbox, toRef: toRef, bConvertTableFormulaToRef: bConvertTableFormulaToRef};
 		var isThisRow = false;
-		var tableData;
+		var tableData, refName;
 		if (this.oneColumnIndex) {
 			paramObj.param = AscCommon.FormulaTablePartInfo.columns;
 			paramObj.startCol = this.oneColumnIndex.name;
@@ -2128,10 +2127,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		if (tableData.range) {
 			//всегда получаем диапазон в виде A1B1
-			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
-			AscCommonExcel.g_R1C1Mode = false;
-			var refName = tableData.range.getName();
-			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			executeInR1C1Mode(false, function () {
+				refName = tableData.range.getName();
+			});
 
 			var wsFrom = this.wb.getWorksheetById(tableData.wsID);
 			if (tableData.range.isOneCell()) {
@@ -3629,6 +3627,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			}
 		});
 		return ranges;
+	}
+	function executeInR1C1Mode(mode, runFunction) {
+		var oldMode = AscCommonExcel.g_R1C1Mode;
+		AscCommonExcel.g_R1C1Mode = mode;
+		runFunction();
+		AscCommonExcel.g_R1C1Mode = oldMode;
 	}
 
 /*--------------------------------------------------------------------------*/
@@ -6865,6 +6869,7 @@ function rtl_math_erfc( x ) {
 
 	window['AscCommonExcel'].getFormulasInfo = getFormulasInfo;
 	window['AscCommonExcel'].getRangeByRef = getRangeByRef;
+	window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 
 	window['AscCommonExcel']._func = _func;
 
@@ -6882,7 +6887,6 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].getArrayMin = getArrayMin;
 	window['AscCommonExcel'].compareFormula = compareFormula;
 	window['AscCommonExcel'].cDate = cDate;
-
 
 	window['AscCommonExcel'].convertRefToRowCol = convertRefToRowCol;
 

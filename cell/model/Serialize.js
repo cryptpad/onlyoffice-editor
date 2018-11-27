@@ -4345,14 +4345,14 @@
         this.bs = new BinaryCommonWriter(this.Memory);
         this.Write = function(noBase64, onlySaveBase64)
         {
+            var t = this;
             pptx_content_writer._Start();
 			if (noBase64) {
 				this.Memory.WriteXmlString(this.WriteFileHeader(0, Asc.c_nVersionNoBase64));
 			}
-			var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
-			AscCommonExcel.g_R1C1Mode = false;
-            this.WriteMainTable();
-			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				t.WriteMainTable();
+			});
             pptx_content_writer._End();
 			if (noBase64) {
 			    if (onlySaveBase64)
