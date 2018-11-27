@@ -9793,12 +9793,12 @@
 				rangeStyle.val = newVal.getValue();
 			}
 
+			var sFormula = newVal.getFormula();
+			var sId = newVal.getName();
 			var value2 = newVal.getValue2();
-			var isFromula = false;
+			var isFromula = !!sFormula;
 			for (var nF = 0; nF < value2.length; nF++) {
-				if (value2[nF] && value2[nF].sId) {
-					isFromula = true;
-				} else if (value2[nF] && value2[nF].format && value2[nF].format.getSkip()) {
+				if (value2[nF] && value2[nF].format && value2[nF].format.getSkip()) {
 					skipFormat = true;
 				} else if (value2[nF] && value2[nF].format && !value2[nF].format.getSkip()) {
 					noSkipVal = nF;
@@ -9813,21 +9813,21 @@
 				}
 
 				//formula
-				if (newVal.getFormula() && !isOneMerge) {
+				if (sFormula && !isOneMerge) {
 
 					var offset, callAdress;
 					if(specialPasteProps.transpose && transposeRange)
 					{
 						//для transpose необходимо брать offset перевернутого range
-						callAdress = new AscCommon.CellAddress(value2[0].sId);
+						callAdress = new AscCommon.CellAddress(sId);
 						offset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
 					}
 					else
 					{
-						callAdress = new AscCommon.CellAddress(value2[0].sId);
+						callAdress = new AscCommon.CellAddress(sId);
 						offset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
 					}
-					var assemb, _p_ = new AscCommonExcel.parserFormula(value2[0].sFormula, null, t.model);
+					var assemb, _p_ = new AscCommonExcel.parserFormula(sFormula, null, t.model);
 					if (_p_.parse()) {
 
 						if(specialPasteProps.transpose)

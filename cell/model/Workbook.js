@@ -7131,13 +7131,7 @@
 			fIsFitMeasurer = function(aText){return true;};
 		if(null == dDigitsCount)
 			dDigitsCount = AscCommon.gc_nMaxDigCountView;
-		var aRes = this._getValue2(dDigitsCount, fIsFitMeasurer);
-		var formula = this.getFormula();
-		if (formula) {
-			aRes[0].sFormula = formula;
-			aRes[0].sId = this.getName();
-		}
-		return aRes;
+		return this._getValue2(dDigitsCount, fIsFitMeasurer);
 	};
 	Cell.prototype.getNumberValue = function() {
 		this._checkDirty();

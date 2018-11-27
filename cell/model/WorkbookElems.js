@@ -468,8 +468,6 @@ g_oColorManager = new ColorManager();
 	function Fragment(val) {
 		this.text = null;
 		this.format = null;
-		this.sFormula = null;
-		this.sId = null;
 		if (null != val) {
 			this.set(val);
 		}
@@ -484,12 +482,6 @@ g_oColorManager = new ColorManager();
 		}
 		if (null != oVal.format) {
 			this.format = oVal.format;
-		}
-		if (null != oVal.sFormula) {
-			this.sFormula = oVal.sFormula;
-		}
-		if (null != oVal.sId) {
-			this.sId = oVal.sId;
 		}
 	};
 	Fragment.prototype.checkVisitedHyperlink = function (row, col, hyperlinkManager) {
