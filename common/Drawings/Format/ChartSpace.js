@@ -1968,7 +1968,11 @@ CChartSpace.prototype.changeLine = function (line)
 CChartSpace.prototype.parseChartFormula = function(sFormula)
 {
     if(this.worksheet && typeof sFormula === "string" && sFormula.length > 0){
-        return AscCommonExcel.getRangeByRef(sFormula, this.worksheet);
+        var res, ws = this.worksheet;
+		AscCommonExcel.executeInR1C1Mode(false, function () {
+			res = AscCommonExcel.getRangeByRef(sFormula, ws);
+		});
+        return res;
     }
     return [];
 };
