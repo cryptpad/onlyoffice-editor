@@ -264,10 +264,7 @@
 				this.parsedRef.parse();
 			}
 			if(bLocale) {
-				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
-				AscCommonExcel.g_R1C1Mode = this.wb.isR1C1Mode;
 				res = this.parsedRef.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);
-				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 			} else {
 				res = this.parsedRef.assemble();
 			}
