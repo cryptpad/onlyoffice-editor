@@ -130,23 +130,8 @@ CTable.prototype.StartFromNewPage = function()
 	this.HeaderInfo.Pages[0]      = {};
 	this.HeaderInfo.Pages[0].Draw = false;
 
-	this.RowsInfo[0]              = {};
-	this.RowsInfo[0].Pages        = 1;
-	this.RowsInfo[0].Y            = [];
-	this.RowsInfo[0].H            = [];
-	this.RowsInfo[0].TopDy        = [];
-	this.RowsInfo[0].MaxTopBorder = [];
-	this.RowsInfo[0].FirstPage    = false;
-	this.RowsInfo[0].StartPage    = 0;
-
-	this.RowsInfo[0].X0           = 0;
-	this.RowsInfo[0].X1           = 0;
-	this.RowsInfo[0].MaxBotBorder = 0;
-
-	this.RowsInfo[0].Y[0]            = 0.0;
-	this.RowsInfo[0].H[0]            = 0.0;
-	this.RowsInfo[0].TopDy[0]        = 0.0;
-	this.RowsInfo[0].MaxTopBorder[0] = 0.0;
+	this.RowsInfo[0] = new CTableRowsInfo();
+	this.RowsInfo[0].Init();
 
 	// Обнуляем таблицу суммарных высот ячеек
 	for (var Index = -1; Index < this.Content.length; Index++)
@@ -2176,15 +2161,9 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
 		if ((0 === CurRow && true === this.Check_EmptyPages(CurPage - 1)) || CurRow != FirstRow || (CurRow === FirstRow && true === ResetStartElement))
         {
-            this.RowsInfo[CurRow] = {};
-            this.RowsInfo[CurRow].Pages        = 1;
-            this.RowsInfo[CurRow].Y            = [];
-            this.RowsInfo[CurRow].H            = [];
-            this.RowsInfo[CurRow].TopDy        = [];
-            this.RowsInfo[CurRow].MaxTopBorder = [];
-            this.RowsInfo[CurRow].FirstPage    = true;
-            this.RowsInfo[CurRow].StartPage    = CurPage;
-            this.TableRowsBottom[CurRow]       = [];
+            this.RowsInfo[CurRow] = new CTableRowsInfo();
+            this.RowsInfo[CurRow].StartPage = CurPage;
+            this.TableRowsBottom[CurRow]    = [];
         }
         else
         {

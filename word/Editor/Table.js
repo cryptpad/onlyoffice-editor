@@ -10528,15 +10528,7 @@ CTable.prototype.Internal_Add_Row = function(Index, CellsCount, bReIndexing, _Ne
 
 	this.Content.splice(Index, 0, NewRow);
 	this.TableRowsBottom.splice(Index, 0, {});
-	this.RowsInfo.splice(Index, 0, {
-		Pages        : 1,
-		Y            : [],
-		H            : [],
-		TopDy        : [],
-		MaxTopBorder : [],
-		FirstPage    : true,
-		StartPage    : 0
-	});
+	this.RowsInfo.splice(Index, 0, new CTableRowsInfo());
 
 	if (true === bReIndexing)
 	{
@@ -14433,6 +14425,27 @@ CTableAnchorPosition.prototype =
 
         return Value;
     }
+};
+
+function CTableRowsInfo()
+{
+	this.Pages        = 1;
+	this.Y            = [];
+	this.H            = [];
+	this.TopDy        = [];
+	this.MaxTopBorder = [];
+	this.FirstPage    = true;
+	this.StartPage    = 0;
+	this.X0           = 0;
+	this.X1           = 0;
+	this.MaxBotBorder = 0;
+}
+CTableRowsInfo.prototype.Init = function()
+{
+	this.Y[0]            = 0.0;
+	this.H[0]            = 0.0;
+	this.TopDy[0]        = 0.0;
+	this.MaxTopBorder[0] = 0.0;
 };
 
 //--------------------------------------------------------export----------------------------------------------------
