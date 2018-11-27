@@ -491,7 +491,10 @@
 						//history
 						//FOR R1C1 - add into history only A1B1 format
 						if(addFormatTableOptionsObj && addFormatTableOptionsObj.range && rangeWithoutDiff) {
+							var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+							AscCommonExcel.g_R1C1Mode = false;
 							addFormatTableOptionsObj.range = rangeWithoutDiff.getName();
+							AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 						}
 						t._addHistoryObj({Ref: filterRange}, AscCH.historyitem_AutoFilter_Add,
 							{activeCells: filterRange, styleName: styleName, addFormatTableOptionsObj: addFormatTableOptionsObj, displayName: newDisplayName, tablePart: tablePart}, null, filterRange, bWithoutFilter);
