@@ -668,7 +668,6 @@
             else{
                 this.result = oRes.result;
             }
-            return;
         }
         else if(this.isDir()){
             oTable = this.parseQueue.getParentTable();
@@ -796,23 +795,30 @@
         }
         else if(this.isCellRange()){
             this.calculateCellRange(this.parseQueue.getParentTable());
-            return;
         }
         else if(this.isBookmark()){
-            this.setError("ERROR", "BOOKMARK ON TABLE");//TODO
+            var oDocument = this.parseQueue.document;
+            if(!oDocument || !oDocument.BookmarksManager){
+                this.setError("ERROR", null);
+                return;
+            }
+            var oSelectionState = oDocument.GetSelectionState();
+            if(oDocument.BookmarksManager.SelectBookmark(this.bookmarkName)){
+
+            }
+            else{
+                this.setError("Undefined Bookmark", this.bookmarkName);
+            }
+            oDocument.SetSelectionState(oSelectionState);
         }
         else if(this.isBookmarkCell()){
             this.setError("ERROR", "BOOKMARK ON TABLE");//TODO
-            return;
         }
         else if(this.isBookmarkCellRange()){
             this.setError("ERROR", "BOOKMARK ON TABLE");//TODO
-            return;
         }
         else{
-
-            this.setError("ERROR", "ERROR");//TODO
-            return;
+            this.setError("ERROR", null);
         }
     };
 
