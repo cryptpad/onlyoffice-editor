@@ -10888,6 +10888,20 @@ Paragraph.prototype.Refresh_RecalcData = function(Data)
 			}
 			break;
 		}
+		case AscDFH.historyitem_Paragraph_SectionPr:
+		{
+			if (this.Parent instanceof CDocument)
+			{
+				this.Parent.UpdateContentIndexing();
+				var nSectionIndex = this.Parent.GetSectionIndexByElementIndex(this.GetIndex());
+				var oFirstElement = this.Parent.GetFirstElementInSection(nSectionIndex);
+
+				if (oFirstElement)
+					this.Parent.Refresh_RecalcData2(oFirstElement.GetIndex(), oFirstElement.private_GetRelativePageIndex(0));
+			}
+
+			break;
+		}
 	}
 
 	if (true === bNeedRecalc)
