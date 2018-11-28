@@ -717,7 +717,8 @@ var editor;
     var t = this;
     AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result) {
       if (error || !result.bSerFormat) {
-        var oError = {returnCode: c_oAscError.Level.Critical, val: c_oAscError.ID.Unknown};
+        var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
+        var oError = {returnCode: c_oAscError.Level.Critical, val: err};
         t.handlers.trigger("asc_onError", oError.val, oError.returnCode);
         return;
       }

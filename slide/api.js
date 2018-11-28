@@ -6682,7 +6682,8 @@ background-repeat: no-repeat;\
 		{
 			if (error || !result.bSerFormat)
 			{
-				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
+				t.sendEvent("asc_onError", err, c_oAscError.Level.Critical);
 				return;
 			}
 			t.onEndLoadFile(result);

@@ -565,11 +565,7 @@
 						var stream = initStreamFromResponse(httpRequest);
 						if (stream) {
 							oResult.bSerFormat = checkStreamSignature(stream, Signature);
-							if (oResult.bSerFormat) {
-								oResult.data = stream;
-							} else {
-								oResult.data = stream;
-							}
+							oResult.data = stream;
 						} else {
 							bError = true;
 						}
@@ -643,12 +639,7 @@
 
             if (stream) {
                 oResult.bSerFormat = checkStreamSignature(stream, Signature);
- 
-                if (oResult.bSerFormat) {
-                    oResult.data = stream;
-                } else {
-                    oResult.data = stream;
-                }
+				oResult.data = stream;
             } else {
                 bError = true;
             }
