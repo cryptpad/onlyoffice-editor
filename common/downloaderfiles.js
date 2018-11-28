@@ -41,8 +41,8 @@ function FileHandler() {
 
     this.get = function ( file ) {
         if ( AscCommon.AscBrowser.isAppleDevices ) {
+            //this approach replaces tab, iframe approach do nothing
             var downloadWindow = window.open( file, "_parent", "", false );
-            downloadWindow.document.title = "Downloading...";
             window.focus();
         }
         else {
