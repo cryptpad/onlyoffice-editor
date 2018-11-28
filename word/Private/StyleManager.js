@@ -210,7 +210,7 @@ CStyles.prototype.Create_StyleFromInterface = function(oAscStyle, bCheckLink)
 		}
 
 		oStyle.Set_TextPr(NewStyleTextPr);
-		oStyle.Set_ParaPr(NewStyleParaPr);
+		oStyle.Set_ParaPr(NewStyleParaPr, true);
 
 		return oStyle;
 	}
@@ -223,7 +223,7 @@ CStyles.prototype.Create_StyleFromInterface = function(oAscStyle, bCheckLink)
 		oStyle.Set_Next(this.GetStyleIdByName(oAscStyle.get_Next()));
 		oStyle.Set_Type(oAscStyle.get_Type());
 		oStyle.Set_TextPr(oAscStyle.get_TextPr());
-		oStyle.Set_ParaPr(oAscStyle.get_ParaPr());
+		oStyle.Set_ParaPr(oAscStyle.get_ParaPr(), true);
 		oStyle.Set_Name(sStyleName);
 		oStyle.SetCustom(true);
 

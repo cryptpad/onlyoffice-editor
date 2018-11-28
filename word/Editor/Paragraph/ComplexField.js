@@ -789,7 +789,7 @@ CComplexField.prototype.SelectField = function()
 CComplexField.prototype.GetTopDocumentContent = function()
 {
 	if (!this.BeginChar || !this.SeparateChar || !this.EndChar)
-		return;
+		return null;
 
 	var oTopDocument = this.BeginChar.GetTopDocumentContent();
 
