@@ -6465,7 +6465,9 @@
 		this.processFormula(function(parsed) {
 			//todo without parse
 			var newFormula = new parserFormula(parsed.getFormula(), oNewCell, t.ws);
-			newFormula.parse();
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				newFormula.parse();
+			});
 			oNewCell.setFormulaInternal(newFormula);
 		});
 		return oNewCell;
