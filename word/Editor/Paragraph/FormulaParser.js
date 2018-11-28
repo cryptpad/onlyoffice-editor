@@ -112,8 +112,8 @@
             this.setError("Number Too Large To Format", null);
         }
     };
-    CFormulaNode.prototype.checkRoundNumber = function(_result){
-        return _result;
+    CFormulaNode.prototype.checkRoundNumber = function(number){
+        return fRoundNumber(number, 2);
     };
 
     CFormulaNode.prototype.checkBraces = function(_result){
@@ -266,6 +266,9 @@
             CFormulaNode.prototype.checkSizeFormated.call(this, _result);
         }
     };
+    CNumberNode.prototype.checkRoundNumber = function(number){
+        return number;
+    };
     CNumberNode.prototype._calculate = function () {
         if(AscFormat.isRealNumber(this.value)){
             this.result = this.value;
@@ -335,9 +338,6 @@
             return;
         }
         this.result = aArgs[1].result/aArgs[0].result;
-    };
-    CDivisionOperatorNode.prototype.checkRoundNumber = function (number) {
-        return fRoundNumber(number, 2);
     };
 
     function CPercentageOperatorNode(parseQueue){
@@ -810,6 +810,7 @@
             return;
         }
         else{
+
             this.setError("ERROR", "ERROR");//TODO
             return;
         }
@@ -853,10 +854,6 @@
     CFunctionNode.prototype.listSupport = function () {
         return false;
     };
-    CFunctionNode.prototype.checkRoundNumber = function (number) {
-        return fRoundNumber(number, 2);
-    };
-
 
     function CABSFunctionNode(parseQueue){
         CFunctionNode.call(this, parseQueue);
@@ -2224,7 +2221,7 @@
     function fTest(fTextFunction, oResObject){
 
         var aExp1 = createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))));
-        fTextFunction(["PRODUCT(LeFt, 3:10, 153)"]/*createExpression(aExp1)*/, oResObject);
+        fTextFunction(createExpression(aExp1), oResObject);
         return;
         var aExp2 = ["(153>=153)"];//(createExpression(aExp1));
         var aExp3;
