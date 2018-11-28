@@ -6511,6 +6511,10 @@
 			//todo without parse
 			var newFormula = new parserFormula(parsed.getFormula(), oNewCell, t.ws);
 			newFormula.parse();
+			var arrayFormulaRef = parsed.getArrayFormulaRef();
+			if(arrayFormulaRef) {
+				newFormula.setArrayFormulaRef(arrayFormulaRef);
+			}
 			oNewCell.setFormulaInternal(newFormula);
 		});
 		return oNewCell;
