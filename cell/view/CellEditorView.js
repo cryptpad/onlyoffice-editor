@@ -829,7 +829,7 @@
 							wsName = wsOPEN.model.getName();
 						}
 						ret = true;
-						refStr = r.oper.value;
+						refStr = r.oper.toLocaleString();
 						break;
 					}
 					case cElementType.cell3D        : {
@@ -845,7 +845,7 @@
 							wsName = wsOPEN.model.getName();
 						}
 						ret = true;
-						refStr = r.oper.value;
+						refStr = r.oper.toLocaleString();
 						break;
 					}
 					case cElementType.cellsRange3D  : {
@@ -952,7 +952,7 @@
 						if (wsOPEN) {
 							wsName = wsOPEN.model.getName();
 						}
-						refStr = r.oper.value;
+						refStr = r.oper.toLocaleString();
 						ret = true;
 						break;
 					}
@@ -968,7 +968,7 @@
 						if (wsOPEN) {
 							wsName = wsOPEN.model.getName();
 						}
-						refStr = r.oper.value;
+						refStr = r.oper.toLocaleString();
 						ret = true;
 						break;
 					}
@@ -1013,7 +1013,7 @@
 				}
 
 				if (ret && t.cursorPos > _s && t.cursorPos <= _s + r.oper.value.length) {
-					range = t._parseRangeStr(r.oper.value);
+					range = t._parseRangeStr(refStr);
 					if (range) {
 						if (this.handlers.trigger("getActiveWS") && this.handlers.trigger("getActiveWS").getName() != wsName) {
 							return {index: -1, length: 0, range: null};
