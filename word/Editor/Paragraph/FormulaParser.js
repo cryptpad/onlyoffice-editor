@@ -106,17 +106,38 @@
         return this.parent.inFunction();
     };
 
+
+    CFormulaNode.prototype.checkSizeFormated = function(_result){
+        if(_result.length > 63){
+            this.setError("Number Too Large To Format", null);
+        }
+    };
+    CFormulaNode.prototype.checkRoundNumber = function(_result){
+        return _result;
+    };
+
+    CFormulaNode.prototype.checkBraces = function(_result){
+        return _result;
+    };
+
     CFormulaNode.prototype.formatResult = function(){
         var sResult = null;
         if(AscFormat.isRealNumber(this.result)){
+            var _result = this.result;
+            if(_result === Infinity){
+                _result = 1.0;
+            }
+            if(_result === -Infinity){
+                _result = -1.0;
+            }
             if(this.parseQueue.format){
-                return this.parseQueue.format.formatToChart(this.result, 14);
+                return this.parseQueue.format.formatToChart(_result, 14);
             }
             sResult = "";
-            var _result = this.result;
             if(_result < 0){
                 _result = -_result;
             }
+            _result = this.checkRoundNumber(_result);
             var i;
             var sRes = _result.toExponential(13);
             var aDigits = sRes.split('e');
@@ -165,9 +186,11 @@
                     }
                 }
             }
+            this.checkSizeFormated(sResult);
             if(this.result < 0){
                 sResult = '-' + sResult;
             }
+            sResult = this.checkBraces(sResult);
         }
         return sResult;
     };
@@ -230,6 +253,19 @@
     }
     CNumberNode.prototype = Object.create(CFormulaNode.prototype);
     CNumberNode.prototype.precedence = 15;
+    CNumberNode.prototype.checkBraces = function(_result){
+        var sFormula = this.parseQueue.formula;
+        if(sFormula[0] === '(' && sFormula[sFormula.length - 1] === ')'){
+            return '(' + _result + ')';
+        }
+        return _result;
+    };
+    CNumberNode.prototype.checkSizeFormated = function(_result){
+        var sFormula = this.parseQueue.formula;
+        if(sFormula[0] === '(' && sFormula[sFormula.length - 1] === ')'){
+            CFormulaNode.prototype.checkSizeFormated.call(this, _result);
+        }
+    };
     CNumberNode.prototype._calculate = function () {
         if(AscFormat.isRealNumber(this.value)){
             this.result = this.value;
@@ -299,6 +335,9 @@
             return;
         }
         this.result = aArgs[1].result/aArgs[0].result;
+    };
+    CDivisionOperatorNode.prototype.checkRoundNumber = function (number) {
+        return fRoundNumber(number, 2);
     };
 
     function CPercentageOperatorNode(parseQueue){
@@ -814,6 +853,9 @@
     CFunctionNode.prototype.listSupport = function () {
         return false;
     };
+    CFunctionNode.prototype.checkRoundNumber = function (number) {
+        return fRoundNumber(number, 2);
+    };
 
 
     function CABSFunctionNode(parseQueue){
@@ -1101,15 +1143,7 @@
         }
     };
 
-    function CROUNDFunctionNode(parseQueue){
-        CFunctionNode.call(this, parseQueue);
-    }
-    CROUNDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
-    CROUNDFunctionNode.prototype.minArgumentsCount = 2;
-    CROUNDFunctionNode.prototype.maxArgumentsCount = 2;
-    CROUNDFunctionNode.prototype._calculate = function (aArgs) {
-        var number = aArgs[1].result;
-        var precision = (aArgs[0].result >> 0);
+    function fRoundNumber(number, precision){
         if (precision == 0) {
             return Math.round(number);
         }
@@ -1121,7 +1155,17 @@
         number = number.toString().split('e');
         number = Math.round(+(number[0] + 'e' + (number[1] ? (+number[1] + precision) : precision)));
         number = number.toString().split('e');
-        this.result = +(number[0] + 'e' + (number[1] ? (+number[1] - precision) : -precision)) * sign;
+        return (+(number[0] + 'e' + (number[1] ? (+number[1] - precision) : -precision)) * sign);
+    }
+
+    function CROUNDFunctionNode(parseQueue){
+        CFunctionNode.call(this, parseQueue);
+    }
+    CROUNDFunctionNode.prototype = Object.create(CFunctionNode.prototype);
+    CROUNDFunctionNode.prototype.minArgumentsCount = 2;
+    CROUNDFunctionNode.prototype.maxArgumentsCount = 2;
+    CROUNDFunctionNode.prototype._calculate = function (aArgs) {
+        this.result = fRoundNumber(aArgs[1].result, (aArgs[0].result >> 0));
     };
 
     function CSIGNFunctionNode(parseQueue){
@@ -1194,6 +1238,7 @@
         this.format = null;
         this.digitSeparator = null;
         this.pos = -1;
+        this.formula = null;
         this.ParentContent = null;
         this.Document = null;
     }
@@ -1247,9 +1292,9 @@
         }
         var oLastToken = this.queue[this.pos];
         oLastToken.calculate();
+        this.resultS = oLastToken.formatResult();
         this.error = oLastToken.error;
         this.result = oLastToken.result;
-        this.resultS = oLastToken.formatResult();
         return this.error;
     };
     function CError(){
@@ -1642,6 +1687,7 @@
 
 
         this.parseQueue = new CParseQueue();
+        this.parseQueue.formula = this.formula;
         this.parseQueue.digitSeparator = this.digitSeparator;
         this.parseQueue.ParentContent = oParentContent;
         this.parseQueue.ParentContent = oParentContent;
