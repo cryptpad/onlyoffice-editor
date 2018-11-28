@@ -526,7 +526,7 @@
         oParser.parse(Asc.trim(sText));
         if(oParser.parseQueue){
             oParser.parseQueue.flags = oParser.flags;
-            oParser.parseQueue.calculate(null);
+            oParser.parseQueue.calculate(false);
             if(!AscFormat.isRealNumber(oParser.parseQueue.result) || oParser.parseQueue.pos > 0){
                 var aQueue = oParser.parseQueue.queue;
                 var fSumm = 0.0;
@@ -1281,7 +1281,7 @@
         this.error.Type = Type;
         this.error.Data = Data;
     };
-    CParseQueue.prototype.calculate = function(){
+    CParseQueue.prototype.calculate = function(bFormat){
         this.pos = this.queue.length - 1;
 
         this.error = null;
@@ -1292,7 +1292,9 @@
         }
         var oLastToken = this.queue[this.pos];
         oLastToken.calculate();
-        this.resultS = oLastToken.formatResult();
+        if(bFormat !== false){
+            this.resultS = oLastToken.formatResult();
+        }
         this.error = oLastToken.error;
         this.result = oLastToken.result;
         return this.error;
@@ -1768,6 +1770,16 @@
                         return;
                     }
                 }
+                else{
+                    // var oFunction = aFunctionsStack[aFunctionsStack.length - 1];
+                    // if(oCurToken.isCell() && !oFunction.listSupport()){
+                    //     oCurToken.calculate();
+                    //     if(oCurToken.error){
+                    //         this.error = oCurToken.error;
+                    //         return;
+                    //     }
+                    // }
+                }
                 this.setFlag(PARSER_MASK_NUMBER, true);
                 this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
                 this.setFlag(PARSER_MASK_LEFT_PAREN, false);
@@ -2212,7 +2224,7 @@
     function fTest(fTextFunction, oResObject){
 
         var aExp1 = createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))));
-        fTextFunction(createExpression(aExp1), oResObject);
+        fTextFunction(["PRODUCT(LeFt, 3:10, 153)"]/*createExpression(aExp1)*/, oResObject);
         return;
         var aExp2 = ["(153>=153)"];//(createExpression(aExp1));
         var aExp3;
