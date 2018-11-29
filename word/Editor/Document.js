@@ -6474,13 +6474,6 @@ CDocument.prototype.Selection_SetEnd = function(X, Y, MouseEvent)
 
     var ContentPos = this.Internal_GetContentPosByXY(X, Y);
 
-    var OldPos      = this.CurPos.ContentPos;
-    var OldInnerPos = null;
-    if (type_Paragraph === this.Content[OldPos].GetType())
-        OldInnerPos = this.Content[OldPos].CurPos.ContentPos;
-    else //if ( type_Table === this.Content[OldPos].GetType() )
-        OldInnerPos = this.Content[OldPos].CurCell;
-
     this.CurPos.ContentPos = ContentPos;
     var OldEndPos          = this.Selection.EndPos;
     this.Selection.EndPos  = ContentPos;
