@@ -154,6 +154,7 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 {
 	this.ErrStr = null;
 	this.ResultStr = null;
+	this.private_Calculate();
 	if(this.Error)
 	{
 		this.ErrStr = this.GetErrorStr(this.Error);
@@ -182,6 +183,19 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 	}
 };
 
+
+CFieldInstructionFORMULA.prototype.private_Calculate = function ()
+{
+	var oParser = new AscCommonWord.CFormulaParser(",", ".");//TODO: take list separator and digits separator from settings
+	oParser.parse(this.Formula, this.ParentContent);
+
+	this.SetParseQueue(oParser.parseQueue);
+	if(oParser.parseQueue){
+		oParser.parseQueue.format = this.Format;
+	}
+	this.SetError(oParser.error);
+};
+
 CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
 	CFieldInstructionBase.prototype.SetComplexField.call(this, oComplexField);
 	this.ParentContent = null;
@@ -198,14 +212,6 @@ CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
 			}
 		}
 	}
-	var oParser = new AscCommonWord.CFormulaParser(",", ".");//TODO: take list separator and digits separator from settings
-	oParser.parse(this.Formula, this.ParentContent);
-
-	this.SetParseQueue(oParser.parseQueue);
-	if(oParser.parseQueue){
-		oParser.parseQueue.format = this.Format;
-	}
-	this.SetError(oParser.error);
 };
 
 /**

@@ -806,6 +806,7 @@
                 this.setError("ERROR", null);
                 return;
             }
+            oDocument.TurnOff_InterfaceEvents();
             var oSelectionState = oDocument.GetSelectionState();
             if(oDocument.BookmarksManager.SelectBookmark(this.bookmarkName)){
                 var oCurrentParagraph = oDocument.GetCurrentParagraph();
@@ -878,6 +879,7 @@
                 this.setError("Undefined Bookmark", this.bookmarkName);
             }
             oDocument.SetSelectionState(oSelectionState);
+            oDocument.TurnOn_InterfaceEvents(false);
         }
         else{
             this.setError("ERROR", null);
@@ -1757,7 +1759,7 @@
         this.parseQueue.formula = this.formula;
         this.parseQueue.digitSeparator = this.digitSeparator;
         this.parseQueue.ParentContent = oParentContent;
-        this.parseQueue.ParentContent = oParentContent;
+        this.parseQueue.document = editor.WordControl.m_oLogicDocument;
         var oCurToken;
         var aStack = [];
         var aFunctionsStack = [];
