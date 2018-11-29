@@ -7196,12 +7196,12 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_getAppProps = function()
 	{
-		return this.WordControl && this.WordControl.m_oLogicDocument.App || null;
+		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.App || null;
 	};
 
 	asc_docs_api.prototype.asc_getCoreProps = function()
 	{
-		return this.WordControl && this.WordControl.m_oLogicDocument.Core || null;
+		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.Core || null;
 	};
 
 	//-------------------------------------------------------------export---------------------------------------------------
