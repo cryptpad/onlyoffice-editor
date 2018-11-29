@@ -2068,7 +2068,7 @@
 			var selectionRange = ws.model.selectionRange.clone();
 
 			// Редактор закрыт
-			var cellRange = null;
+			var cellRange = {};
 			// Если нужно сделать автозаполнение формулы, то ищем ячейки)
 			if (autoComplete) {
 				cellRange = ws.autoCompleteFormula(name);
