@@ -631,6 +631,38 @@
         }
     };
 
+    CCellRangeNode.prototype.calculateCell = function(oTable){
+        var oCell, oContent;
+        oCell = this.getCell(oTable, this.r1, this.c1);
+        if(!oCell){
+            var oFunction = this.inFunction();
+            if(!oFunction){
+                this.setError(this.getCellName(this.c1, this.r1) + " Is Not In Table", null);
+            }
+            else{
+                if(this.c1 > 63 && oFunction.listSupport()){
+                    this.setError("Index Too Large", null);
+                }
+                else{
+                    this.setError(this.getCellName(this.c1, this.r1) + " Is Not In Table", null);
+                }
+            }
+            return;
+        }
+        oContent = oCell.GetContent();
+        if(!oContent){
+            this.result = 0.0;
+            return;
+        }
+        var oRes = this.getContentValue(oContent);
+        if(oRes && !AscFormat.isRealNumber(oRes.result)){
+            this.result = 0.0;
+        }
+        else{
+            this.result = oRes.result;
+        }
+    };
+
     CCellRangeNode.prototype._calculate = function(){
         var oTable, oCell, oContent, oRow, i, oCurCell, oCurRow, nCellCount;
         if(this.isCell()){
@@ -639,35 +671,7 @@
                 this.result = 0.0;
                 return
             }
-            oCell = this.getCell(oTable, this.r1, this.c1);
-            if(!oCell){
-
-                var oFunction = this.inFunction();
-                if(!oFunction){
-                    this.setError(this.getCellName(this.c1, this.r1) + " Is Not In Table", null);
-                }
-                else{
-                    if(this.c1 > 63 && oFunction.listSupport()){
-                        this.setError("Index Too Large", null);
-                    }
-                    else{
-                        this.setError(this.getCellName(this.c1, this.r1) + " Is Not In Table", null);
-                    }
-                }
-                return;
-            }
-            oContent = oCell.GetContent();
-            if(!oContent){
-                this.result = 0.0;
-                return;
-            }
-            var oRes = this.getContentValue(oContent);
-            if(oRes && !AscFormat.isRealNumber(oRes.result)){
-                this.result = 0.0;
-            }
-            else{
-                this.result = oRes.result;
-            }
+            this.calculateCell(oTable);
         }
         else if(this.isDir()){
             oTable = this.parseQueue.getParentTable();
@@ -796,7 +800,7 @@
         else if(this.isCellRange()){
             this.calculateCellRange(this.parseQueue.getParentTable());
         }
-        else if(this.isBookmark()){
+        else if(this.isBookmark() || this.isBookmarkCell() || this.isBookmarkCellRange()){
             var oDocument = this.parseQueue.document;
             if(!oDocument || !oDocument.BookmarksManager){
                 this.setError("ERROR", null);
@@ -804,18 +808,76 @@
             }
             var oSelectionState = oDocument.GetSelectionState();
             if(oDocument.BookmarksManager.SelectBookmark(this.bookmarkName)){
-
+                var oCurrentParagraph = oDocument.GetCurrentParagraph();
+                if(oCurrentParagraph.Parent){
+                    oCell = oCurrentParagraph.Parent.IsTableCellContent(true);
+                    if(oCell){
+                        oRow = oCell.GetRow();
+                        if(oRow){
+                            oTable = oRow.GetTable();
+                        }
+                    }
+                    if(oTable && !oTable.IsCellSelection()){
+                        oTable = null;
+                    }
+                    if(this.isBookmark()){
+                        if(!oTable){
+                            var sString = oDocument.GetSelectedText(false, {NewLineParagraph : true, NewLine : true});
+                            var oRes = this.parseText(sString);
+                            if(oRes && !AscFormat.isRealNumber(oRes.result)){
+                                this.result = 0.0;
+                            }
+                            else{
+                                this.result = oRes.result;
+                            }
+                        }
+                        else {
+                            this.r1 = 0;
+                            this.r2 = oTable.Get_RowsCount() - 1;
+                            this.calculateCellRange(oTable);
+                            this.r1 = null;
+                            this.r2 = null;
+                            var dResult = 0;
+                            for(i = 0; i < this.result.length; ++i){
+                                dResult += this.result[i];
+                            }
+                            this.result = dResult;
+                        }
+                    }
+                    else{
+                        if(oTable){
+                            if(this.isBookmarkCell()){
+                                this.calculateCell(oTable);
+                            }
+                            else {
+                                this.calculateCellRange(oTable);
+                            }
+                        }
+                        else{
+                            var sData = "";
+                            if(this.isBookmarkCell()){
+                                sData = this.getCellName(this.c1, this.r1);
+                            }
+                            else {
+                                if(this.c1 !== null && this.r1 !== null){
+                                    sData = this.getCellName(this.c1, this.r1);
+                                }
+                                else{
+                                    sData = ":"
+                                }
+                            }
+                            this.setError(ERROR_TYPE_SYNTAX_ERROR, sData);
+                        }
+                    }
+                }
+                else {
+                    this.setError("ERROR", null);
+                }
             }
             else{
                 this.setError("Undefined Bookmark", this.bookmarkName);
             }
             oDocument.SetSelectionState(oSelectionState);
-        }
-        else if(this.isBookmarkCell()){
-            this.setError("ERROR", "BOOKMARK ON TABLE");//TODO
-        }
-        else if(this.isBookmarkCellRange()){
-            this.setError("ERROR", "BOOKMARK ON TABLE");//TODO
         }
         else{
             this.setError("ERROR", null);
