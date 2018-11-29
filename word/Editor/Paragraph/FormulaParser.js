@@ -1814,7 +1814,7 @@
                     return;
                 }
                 if(oCurToken.isBookmarkCellRange() && !(this.flags & PARSER_MASK_BOOKMARK_CELL_REF)){
-                    this.setError(ERROR_TYPE_SYNTAX_ERROR, ':');//TODO: Send cell range
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, ':');
                     return;
                 }
 
@@ -1907,7 +1907,7 @@
                             }
                         }
                         if(aStack.length === 0){
-                            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));//TODO
+                            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                             return;
                         }
                     }
@@ -2080,8 +2080,12 @@
         }
         while (aStack.length > 0){
             oCurToken = aStack.pop();
-            if(oCurToken instanceof CLeftParenOperatorNode || oCurToken instanceof CRightParenOperatorNode){
-                this.setError(ERROR_TYPE_SYNTAX_ERROR, "");//TODO
+            if(oCurToken instanceof CLeftParenOperatorNode){
+                this.setError(ERROR_TYPE_SYNTAX_ERROR, "Unexpected End of Formula");//TODO
+                return;
+            } else
+            if(oCurToken instanceof CRightParenOperatorNode){
+                this.setError(ERROR_TYPE_SYNTAX_ERROR, '');//
                 return;
             }
             this.parseQueue.add(oCurToken);
