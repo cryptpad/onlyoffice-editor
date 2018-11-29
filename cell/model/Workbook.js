@@ -11152,6 +11152,7 @@
 					nColDx = 1;
 				}
 			}
+			var formulaArrayObj = [];
 			for(var i = nStartRow; i <= nEndRow; i ++)
 			{
 				oPromoteHelper.setIndex(i - nStartRow);
@@ -11199,9 +11200,43 @@
 										// if(oCopyCell.isEmptyTextString())
 										// wsTo._getHyperlink().remove({r1: oCopyCell.nRow, c1: oCopyCell.nCol, r2: oCopyCell.nRow, c2: oCopyCell.nCol});
 									} else {
-										var _p_ = oFromCell.getFormulaParsed().clone(null, oFromCell, this);
-										var assemb = _p_.changeOffset(oCopyCell.getOffset2(oFromCell.getName())).assemble(true);
-										oCopyCell.setFormula(assemb);
+										var fromFormulaParsed = oFromCell.getFormulaParsed();
+										var formulaArrayRef = fromFormulaParsed.getArrayFormulaRef();
+										var _p_,offset,assemb;
+										if(formulaArrayRef) {
+											var intersection = from.intersection(formulaArrayRef);
+											if(intersection) {
+												if(intersection.c1 === oFromCell.nCol && intersection.r1 === oFromCell.nRow) {
+													_p_ = oFromCell.getFormulaParsed().clone(null, oFromCell, this);
+													offset = oCopyCell.getOffset2(oFromCell.getName());
+													assemb = _p_.changeOffset(offset).assemble(true);
+													oCopyCell.setFormula(assemb);
+
+													intersection.setOffset(offset);
+													oCopyCell.getFormulaParsed().setArrayFormulaRef(intersection);
+													formulaArrayObj.push({array: intersection, f: oCopyCell.getFormulaParsed()});
+
+													/*History.Add(AscCommonExcel.g_oUndoRedoArrayFormula,
+														AscCH.historyitem_ArrayFromula_AddFormula, oCopyCell.ws.getId(),
+														new Asc.Range(intersection.c1, intersection.r1, intersection.c2, intersection.r2),
+														new AscCommonExcel.UndoRedoData_ArrayFormula(intersection, oCopyCell.getFormulaParsed().assemble()));*/
+												} else {
+													for(var i = 0; i < formulaArrayObj.length; i++) {
+														if(formulaArrayObj[i].array.contains(oCopyCell.nCol, oCopyCell.nRow)) {
+															oCopyCell.setFormulaParsed(formulaArrayObj[i].f);
+															break;
+														}
+													}
+												}
+
+											}
+										} else {
+											_p_ = oFromCell.getFormulaParsed().clone(null, oFromCell, this);
+											offset = oCopyCell.getOffset2(oFromCell.getName());
+											assemb = _p_.changeOffset(offset).assemble(true);
+											oCopyCell.setFormula(assemb);
+										}
+
 									}
 								}
 							}
