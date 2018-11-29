@@ -1794,7 +1794,7 @@
 			asc_getTooltip: function () { return this.hyperlinkModel.Tooltip; },
 			asc_getLocation: function () { return this.hyperlinkModel.getLocation(); },
 			asc_getSheet: function () { return this.hyperlinkModel.LocationSheet; },
-			asc_getRange: function () { return this.hyperlinkModel.LocationRange; },
+			asc_getRange: function () {return this.hyperlinkModel.getLocationRange();},
 			asc_getText: function () { return this.text; },
 
 			asc_setType: function (val) {

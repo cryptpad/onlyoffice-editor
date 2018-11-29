@@ -8731,8 +8731,8 @@
                     case "hyperlink":
                         if (val && val.hyperlinkModel) {
                             if (Asc.c_oAscHyperlinkType.RangeLink === val.asc_getType()) {
-                                var hyperlinkRangeTmp = t.model.getRange2(val.asc_getRange());
-                                if (null === hyperlinkRangeTmp) {
+								val.hyperlinkModel._updateLocation();
+                                if (null === val.hyperlinkModel.LocationRangeBbox) {
                                     bIsUpdate = false;
                                     break;
                                 }

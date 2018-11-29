@@ -3020,6 +3020,7 @@ function Hyperlink () {
 	this.Location = null;
 	this.LocationSheet = null;
 	this.LocationRange = null;
+	this.LocationRangeBbox = null;
 	this.bUpdateLocation = false;
 	
 	this.bVisited = false;
@@ -3035,6 +3036,8 @@ Hyperlink.prototype = {
 			oNewHyp.LocationSheet = this.LocationSheet;
 		if (null !== this.LocationRange)
 			oNewHyp.LocationRange = this.LocationRange;
+		if (null !== this.LocationRangeBbox)
+			oNewHyp.LocationRangeBbox = this.LocationRangeBbox.clone();
 		if (null !== this.Hyperlink)
 			oNewHyp.Hyperlink = this.Hyperlink;
 		if (null !== this.Tooltip)
@@ -3061,32 +3064,56 @@ Hyperlink.prototype = {
 	},
 	setLocationRange : function (LocationRange) {
 		this.LocationRange = LocationRange;
+		this.LocationRangeBbox = null;
 		this.bUpdateLocation = true;
 	},
 	setLocation : function (Location) {
-		this.bUpdateLocation = false;
-		this.Location = Location;
-		this.LocationSheet = this.LocationRange = null;
+		this.bUpdateLocation = true;
+		this.LocationSheet = this.LocationRange = this.LocationRangeBbox = null;
 
-		if (null !== this.Location) {
-			var result = parserHelp.parse3DRef(this.Location);
+		if (null !== Location) {
+			var result = parserHelp.parse3DRef(Location);
+			if (!result) {
+				// Can be in all mods. Excel bug...
+				AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
+					result = parserHelp.parse3DRef(Location);
+				});
+			}
 			if (null !== result) {
 				this.LocationSheet = result.sheet;
 				this.LocationRange = result.range;
 			}
 		}
+		this._updateLocation();
 	},
 	getLocation : function () {
 		if (this.bUpdateLocation)
 			this._updateLocation();
 		return this.Location;
 	},
+	getLocationRange : function () {
+		return this.LocationRangeBbox && this.LocationRangeBbox.getName(AscCommonExcel.g_R1C1Mode ?
+			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
+	},
 	_updateLocation : function () {
+		var t = this;
+		this.Location = null;
 		this.bUpdateLocation = false;
-		if (null === this.LocationSheet || null === this.LocationRange)
-			this.Location = null;
-		else
-			this.Location = parserHelp.get3DRef(this.LocationSheet, this.LocationRange);
+		if (null !== this.LocationSheet && null !== this.LocationRange) {
+			this.LocationRangeBbox = AscCommonExcel.g_oRangeCache.getAscRange(this.LocationRange);
+			if (!this.LocationRangeBbox) {
+				// Can be in all mods. Excel bug...
+				AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
+					t.LocationRangeBbox = AscCommonExcel.g_oRangeCache.getAscRange(t.LocationRange);
+				});
+			}
+			if (this.LocationRangeBbox) {
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					t.LocationRange = t.LocationRangeBbox.getName(AscCommonExcel.referenceType.R);
+				});
+				this.Location = parserHelp.get3DRef(this.LocationSheet, this.LocationRange);
+			}
+		}
 	},
 	setVisited : function (bVisited) {
 		this.bVisited = bVisited;
