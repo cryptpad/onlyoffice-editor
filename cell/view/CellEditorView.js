@@ -810,7 +810,7 @@
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
 		this._formula.parse(true, true, this._parseResult);
 
-		var r, offset, _e, _s, wsName = null, refStr, isName = false, _sColorPos;
+		var r, offset, _e, _s, wsName = null, refStr, isName = false, _sColorPos, localStrObj;
 
 		if (this._parseResult.refPos && this._parseResult.refPos.length > 0) {
 			for (var index = 0; index < this._parseResult.refPos.length; index++) {
@@ -833,11 +833,12 @@
 						break;
 					}
 					case cElementType.cell3D        : {
+						localStrObj = r.oper.toLocaleStringObj();
+						refStr = localStrObj[1];
 						ret = true;
 						wsName = r.oper.getWS().getName();
-						_s = _e - r.oper.value.length;
-						_sColorPos = _e - r.oper.toString().length;
-						refStr = r.oper.value;
+						_s = _e - localStrObj[1].length;
+						_sColorPos = _e - localStrObj[0].length;
 						break;
 					}
 					case cElementType.cellsRange    : {
@@ -853,10 +854,11 @@
 							continue;
 						}
 						ret = true;
-						refStr = r.oper.value;
+						localStrObj = r.oper.toLocaleStringObj();
+						refStr = localStrObj[1];
 						wsName = r.oper.getWS().getName();
-						_s = _e - r.oper.value.length;
-						_sColorPos = _e - r.oper.toLocaleString().length;
+						_s = _e - localStrObj[1].length;
+						_sColorPos = _e - localStrObj[0].length;
 						break;
 					}
 					case cElementType.table          :
@@ -876,9 +878,10 @@
 							case cElementType.cellsRange          :
 							case cElementType.cell3D        : {
 								ret = true;
-								refStr = nameRef.value;
+								localStrObj = r.oper.toLocaleStringObj();
+								refStr = localStrObj[1];
 								wsName = nameRef.getWS().getName();
-								_s = _e - r.oper.value.length;
+								_s = _e - localStrObj[1].length;
 								break;
 							}
 						}
@@ -930,7 +933,7 @@
 
 		/*не нашли диапазонов под курсором, парсим формулу*/
 		var r, offset, _e, _s, wsName = null, ret = false, refStr, isName = false, _sColorPos, wsOPEN = this.handlers.trigger(
-			"getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+			"getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS"), localStrObj;
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
@@ -957,11 +960,12 @@
 						break;
 					}
 					case cElementType.cell3D        : {
-						refStr = r.oper.value;
+						localStrObj = r.oper.toLocaleStringObj();
+						refStr = localStrObj[1];
 						ret = true;
 						wsName = r.oper.getWS().getName();
-						_s = _e - r.oper.value.length + 1;
-						_sColorPos = _e - r.oper.toString().length;
+						_s = _e - localStrObj[1].length + 1;
+						_sColorPos = _e - localStrObj[0].length;
 						break;
 					}
 					case cElementType.cellsRange    : {
@@ -977,9 +981,10 @@
 							continue;
 						}
 						ret = true;
-						refStr = r.oper.value;
+						localStrObj = r.oper.toLocaleStringObj();
+						refStr = localStrObj[1];
 						wsName = r.oper.getWS().getName();
-						_s = _e - r.oper.value.length + 1;
+						_s = _e - localStrObj[1].length + 1;
 						break;
 					}
 					case cElementType.table          :
@@ -999,9 +1004,10 @@
 							case cElementType.cellsRange          :
 							case cElementType.cell3D        : {
 								ret = true;
-								refStr = nameRef.value;
+								localStrObj = nameRef.toLocaleStringObj();
+								refStr = localStrObj[1];
 								wsName = nameRef.getWS().getName();
-								_s = _e - r.oper.value.length;
+								_s = _e - localStrObj[1].length;
 								break;
 							}
 						}

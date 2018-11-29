@@ -732,6 +732,20 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cBaseType.prototype.toLocaleString = function () {
 		return this.toString();
 	};
+	cBaseType.prototype.toLocaleStringObj = function () {
+		var localStr = this.toLocaleString();
+		var localStrWithoutSheet;
+		if(localStr) {
+			var splitRes = localStr.split("!");
+			if(splitRes && splitRes[1]) {
+				localStrWithoutSheet = splitRes[1];
+			}
+		} else {
+			localStr = this.value;
+			localStrWithoutSheet = this.value;
+		}
+		return [localStr, localStrWithoutSheet];
+	};
 
 	/*Basic types of an elements used into formulas*/
 	/**
