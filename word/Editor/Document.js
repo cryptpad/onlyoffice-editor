@@ -16598,7 +16598,7 @@ CDocument.prototype.IsFastCollaboartionBeforeViewModeInReview = function()
 };
 CDocument.prototype.CheckComplexFieldsInSelection = function()
 {
-	if (true !== this.Selection.Use)
+	if (true !== this.Selection.Use || this.Controller !== this.LogicDocumentController)
 		return;
 
 	// Смотрим сколько полей открытых в начальной и конечной позициях.
