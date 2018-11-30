@@ -11201,25 +11201,34 @@
 									} else {
 										var fromFormulaParsed = oFromCell.getFormulaParsed();
 										var formulaArrayRef = fromFormulaParsed.getArrayFormulaRef();
-										var _p_,offset,assemb;
+
+										var _p_,offset, offsetArray, assemb;
 										if(formulaArrayRef) {
-											var intersection = from.intersection(formulaArrayRef);
-											if(intersection) {
-												if(intersection.c1 === oFromCell.nCol && intersection.r1 === oFromCell.nRow) {
+											var intersectionFrom = from.intersection(formulaArrayRef);
+											if(intersectionFrom) {
+												if(intersectionFrom.c1 === oFromCell.nCol && intersectionFrom.r1 === oFromCell.nRow) {
 													_p_ = oFromCell.getFormulaParsed().clone(null, oFromCell, this);
-													offset = oCopyCell.getOffset2(oFromCell.getName());
+
+													offset = oCopyCell.getOffset3(formulaArrayRef.c1 + 1, formulaArrayRef.r1 + 1);
 													_p_.changeOffset(offset);
-													intersection.setOffset(offset);
 
-													var rangeFormulaArray = oCopyCell.ws.getRange3(intersection.r1, intersection.c1, intersection.r2, intersection.c2);
-													rangeFormulaArray.setValue("=" + _p_.assemble(), function (r) {
-														//ret = r;
-													}, null, intersection);
+													offsetArray = oCopyCell.getOffset2(oFromCell.getName());
+													intersectionFrom.setOffset(offsetArray);
 
-													History.Add(AscCommonExcel.g_oUndoRedoArrayFormula,
-														AscCH.historyitem_ArrayFromula_AddFormula, oCopyCell.ws.getId(),
-														new Asc.Range(intersection.c1, intersection.r1, intersection.c2, intersection.r2),
-														new AscCommonExcel.UndoRedoData_ArrayFormula(intersection, "=" + oCopyCell.getFormulaParsed().assemble()));
+													var intersectionTo = intersectionFrom.intersection(to);
+
+													if(intersectionTo) {
+														var rangeFormulaArray = oCopyCell.ws.getRange3(intersectionTo.r1, intersectionTo.c1, intersectionTo.r2, intersectionTo.c2);
+
+														rangeFormulaArray.setValue("=" + _p_.assemble(), function (r) {
+														}, null, intersectionTo);
+
+														History.Add(AscCommonExcel.g_oUndoRedoArrayFormula,
+															AscCH.historyitem_ArrayFromula_AddFormula, oCopyCell.ws.getId(),
+															new Asc.Range(intersectionTo.c1, intersectionTo.r1, intersectionTo.c2, intersectionTo.r2),
+															new AscCommonExcel.UndoRedoData_ArrayFormula(intersectionTo, "=" + oCopyCell.getFormulaParsed().assemble()));
+													}
+
 												}
 											}
 										} else {
