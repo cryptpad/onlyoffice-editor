@@ -109,7 +109,7 @@
 
     CFormulaNode.prototype.checkSizeFormated = function(_result){
         if(_result.length > 63){
-            this.setError("Number Too Large To Format", null);
+            this.setError(ERROR_TYPE_LARGE_NUMBER, null);
         }
     };
     CFormulaNode.prototype.checkRoundNumber = function(number){
@@ -199,14 +199,14 @@
         this.error = null;
         this.result = null;
         if(!this.parseQueue){
-            this.setError("Error", "");
+            this.setError("ERROR", null);
             return;
         }
         var aArgs = [];
         for(var i = 0; i < this.argumentsCount; ++i){
             var oArg = this.parseQueue.getNext();
             if(!oArg){
-                this.setError("Missing argument", "");
+                this.setError(ERROR_TYPE_MISSING_ARGUMENT, null);
                 return;
             }
             oArg.parent = this;
@@ -227,7 +227,7 @@
     };
 
     CFormulaNode.prototype._calculate = function(aArgs){
-        this.setError("Function is not implemented", "");
+        this.setError("ERROR", null);//not implemented
     };
 
     CFormulaNode.prototype.isFunction = function () {
@@ -274,7 +274,7 @@
             this.result = this.value;
         }
         else{
-            this.setError("Not a number", null);
+            this.setError("ERROR", null);//not a number
         }
         return this.error;
     };
@@ -334,7 +334,7 @@
     CDivisionOperatorNode.prototype.precedence = 10;
     CDivisionOperatorNode.prototype._calculate = function (aArgs) {
         if(AscFormat.fApproxEqual(0.0, aArgs[0].result)){
-            this.setError("Zero Divide", null);
+            this.setError(ERROR_TYPE_ZERO_DIVIDE, null);
             return;
         }
         this.result = aArgs[1].result/aArgs[0].result;
@@ -1405,6 +1405,9 @@
 
     var ERROR_TYPE_SYNTAX_ERROR = "Syntax Error";
     var ERROR_TYPE_MISSING_OPERATOR = "Missing Operator";
+    var ERROR_TYPE_MISSING_ARGUMENT = "Missing Argument";
+    var ERROR_TYPE_LARGE_NUMBER = "Number Too Large To Format";
+    var ERROR_TYPE_ZERO_DIVIDE = "Zero Divide";
 
     function CFormulaParser(sListSeparator, sDigitSeparator){
         this.listSeparator = sListSeparator;
@@ -2081,11 +2084,11 @@
         while (aStack.length > 0){
             oCurToken = aStack.pop();
             if(oCurToken instanceof CLeftParenOperatorNode){
-                this.setError(ERROR_TYPE_SYNTAX_ERROR, "Unexpected End of Formula");//TODO
+                this.setError("Unexpected End of Formula", null);
                 return;
             } else
             if(oCurToken instanceof CRightParenOperatorNode){
-                this.setError(ERROR_TYPE_SYNTAX_ERROR, '');//
+                this.setError(ERROR_TYPE_SYNTAX_ERROR, '');
                 return;
             }
             this.parseQueue.add(oCurToken);
