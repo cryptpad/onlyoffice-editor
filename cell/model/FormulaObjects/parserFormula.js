@@ -1110,7 +1110,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val) {
-			executeInR1C1Mode(false, function () {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
 				val = ws.getRange2(val);
 			});
 			this.range = val;
@@ -1319,7 +1319,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 		this.bbox = null;
 		if (val) {
-			executeInR1C1Mode(false, function () {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
 				val = AscCommonExcel.g_oRangeCache.getAscRange(val);
 			});
 			if (val) {
@@ -1580,7 +1580,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val) {
-			executeInR1C1Mode(false, function () {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
 				val = ws.getRange2(val.replace(AscCommon.rx_space_g, ""));
 			});
 			this.range = val;
@@ -1672,7 +1672,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		this.ws = ws;
 		this.range = null;
 		if (val && this.ws) {
-			executeInR1C1Mode(false, function () {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
 				val = ws.getRange2(val);
 			});
 			this.range = val;
@@ -2141,7 +2141,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		if (tableData.range) {
 			//всегда получаем диапазон в виде A1B1
-			executeInR1C1Mode(false, function () {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
 				refName = tableData.range.getName();
 			});
 
@@ -3641,12 +3641,6 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			}
 		});
 		return ranges;
-	}
-	function executeInR1C1Mode(mode, runFunction) {
-		var oldMode = AscCommonExcel.g_R1C1Mode;
-		AscCommonExcel.g_R1C1Mode = mode;
-		runFunction();
-		AscCommonExcel.g_R1C1Mode = oldMode;
 	}
 
 /*--------------------------------------------------------------------------*/
@@ -6857,8 +6851,6 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].cNumFormatNone = cNumFormatNone;
 	window['AscCommonExcel'].g_cCalcRecursion = g_cCalcRecursion;
 	window['AscCommonExcel'].g_ProcessShared = false;
-	window['AscCommonExcel'].g_ActiveCell = null; // Active Cell for calculate (in R1C1 mode for relative cell)
-	window['AscCommonExcel'].g_R1C1Mode = false; // No calculate in R1C1 mode
 
 	window['AscCommonExcel'].cNumber = cNumber;
 	window['AscCommonExcel'].cString = cString;
@@ -6883,7 +6875,6 @@ function rtl_math_erfc( x ) {
 
 	window['AscCommonExcel'].getFormulasInfo = getFormulasInfo;
 	window['AscCommonExcel'].getRangeByRef = getRangeByRef;
-	window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 
 	window['AscCommonExcel']._func = _func;
 

@@ -1704,6 +1704,13 @@
 			}, "");
 		}
 
+		function executeInR1C1Mode(mode, runFunction) {
+			var oldMode = AscCommonExcel.g_R1C1Mode;
+			AscCommonExcel.g_R1C1Mode = mode;
+			runFunction();
+			AscCommonExcel.g_R1C1Mode = oldMode;
+		}
+
 		function getEndValueRange (dx, start, v1, v2) {
 			var x1, x2;
 			if (0 !== dx) {
@@ -2387,6 +2394,8 @@
 		var prot;
 		window['Asc'] = window['Asc'] || {};
 		window['AscCommonExcel'] = window['AscCommonExcel'] || {};
+		window['AscCommonExcel'].g_ActiveCell = null; // Active Cell for calculate (in R1C1 mode for relative cell)
+		window['AscCommonExcel'].g_R1C1Mode = false; // No calculate in R1C1 mode
 		window["AscCommonExcel"].c_oAscShiftType = c_oAscShiftType;
 		window["AscCommonExcel"].recalcType = recalcType;
 		window["AscCommonExcel"].sizePxinPt = sizePxinPt;
@@ -2412,6 +2421,7 @@
 		window["Asc"].isFixedWidthCell = isFixedWidthCell;
 		window["AscCommonExcel"].dropDecimalAutofit = dropDecimalAutofit;
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
+		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 		window["Asc"].getEndValueRange = getEndValueRange;
 
 		window["AscCommonExcel"].referenceType = referenceType;
