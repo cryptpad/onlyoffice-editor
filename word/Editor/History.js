@@ -456,6 +456,9 @@ CHistory.prototype =
             _Class.WriteToBinary(this.BinaryWriter);
         }
 
+        if (Class && Class.SetIsRecalculated)
+        	Class.SetIsRecalculated(false);
+
 		var Binary_Len = this.BinaryWriter.GetCurPosition() - Binary_Pos;
 		var Item       = {
 			Class  : Class,

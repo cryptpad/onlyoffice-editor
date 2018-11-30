@@ -1217,7 +1217,7 @@ Paragraph.prototype.Internal_Recalculate_CurPos = function(Pos, UpdateCurPos, Up
 {
 	var Transform = this.Get_ParentTextTransform();
 
-	if (this.Lines.length <= 0)
+	if (!this.IsRecalculated() || this.Lines.length <= 0)
 	{
 		return {
 			X         : 0,
