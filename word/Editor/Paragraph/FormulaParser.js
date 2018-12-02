@@ -593,7 +593,7 @@
     };
 
     CCellRangeNode.prototype.parseText = function(sText){
-        var oParser = new CTextParser();
+        var oParser = new CTextParser(',', this.digitSeparator);
         oParser.setFlag(PARSER_MASK_CLEAN, true);
         oParser.parse(Asc.trim(sText));
         if(oParser.parseQueue){
@@ -2181,8 +2181,8 @@
     window['AscCommonWord'].CFormulaParser = CFormulaParser;
 
 
-    function CTextParser(){
-        CFormulaParser.call(this, ",", ".");//TODO: take list separator and digits separator from settings
+    function CTextParser(sListSeparator, sDigitSeparator){
+        CFormulaParser.call(this, sListSeparator, sDigitSeparator);//TODO: take list separator and digits separator from settings
         this.clean =  true;
     }
     CTextParser.prototype = Object.create(CFormulaParser.prototype);
@@ -2218,7 +2218,9 @@
         //check operators
         oRet = this.checkExpression(oOperatorRegExp, this.parseOperator);
         if(oRet){
-            this.setFlag(PARSER_MASK_CLEAN, false);
+            if(!(oRet instanceof CUnaryMinusOperatorNode)){
+                this.setFlag(PARSER_MASK_CLEAN, false);
+            }
             return oRet;
         }
 
