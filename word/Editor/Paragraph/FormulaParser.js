@@ -106,10 +106,14 @@
         return this.parent.inFunction();
     };
 
+    CFormulaNode.prototype.isCell = function(){
+        return false;
+    };
+
 
     CFormulaNode.prototype.checkSizeFormated = function(_result){
         if(_result.length > 63){
-            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_LARGE_NUMBER), null);
+            this.setError((ERROR_TYPE_LARGE_NUMBER), null);
         }
     };
     CFormulaNode.prototype.checkRoundNumber = function(number){
@@ -199,14 +203,14 @@
         this.error = null;
         this.result = null;
         if(!this.parseQueue){
-            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ERROR), null);
+            this.setError(ERROR_TYPE_ERROR, null);
             return;
         }
         var aArgs = [];
         for(var i = 0; i < this.argumentsCount; ++i){
             var oArg = this.parseQueue.getNext();
             if(!oArg){
-                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_MISSING_ARGUMENT), null);
+                this.setError(ERROR_TYPE_MISSING_ARGUMENT, null);
                 return;
             }
             oArg.parent = this;
@@ -223,11 +227,14 @@
                 }
             }
         }
+        if(this.isOperator()){
+
+        }
         this._calculate(aArgs);
     };
 
     CFormulaNode.prototype._calculate = function(aArgs){
-        this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ERROR), null);//not implemented
+        this.setError(ERROR_TYPE_ERROR, null);//not implemented
     };
 
     CFormulaNode.prototype.isFunction = function () {
@@ -237,9 +244,7 @@
         return false;
     };
     CFormulaNode.prototype.setError = function (Type, Data) {
-        this.error = new CError();
-        this.error.Type = Type;
-        this.error.Data = Data;
+        this.error = new CError(Type, Data);
     };
     CFormulaNode.prototype.setParseQueue = function(oQueue){
         this.parseQueue = oQueue;
@@ -274,7 +279,7 @@
             this.result = this.value;
         }
         else{
-            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ERROR), null);//not a number
+            this.setError(ERROR_TYPE_ERROR, null);//not a number
         }
         return this.error;
     };
@@ -295,6 +300,18 @@
     COperatorNode.prototype.isOperator = function(){
         return true;
     };
+    COperatorNode.prototype.checkCellInFunction = function (aArgs) {
+        var i, oArg;
+        if(this.parent && this.parent.isFunction() && this.parent.listSupport()){
+            for(i = aArgs.length - 1; i > -1; --i){
+                oArg = aArgs[i];
+                if(oArg.isCell()){
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, oArg.getOwnCellName());
+                    return;
+                }
+            }
+        }
+    };
 
     function CUnaryMinusOperatorNode(parseQueue){
         COperatorNode.call(this, parseQueue);
@@ -304,6 +321,10 @@
     CUnaryMinusOperatorNode.prototype.precedence = 13;
     CUnaryMinusOperatorNode.prototype.argumentsCount = 1;
     CUnaryMinusOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = -aArgs[0].result;
     };
 
@@ -314,6 +335,10 @@
     CPowersAndRootsOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CPowersAndRootsOperatorNode.prototype.precedence = 12;
     CPowersAndRootsOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = Math.pow(aArgs[1].result, aArgs[0].result);
     };
     function CMultiplicationOperatorNode(parseQueue){
@@ -323,6 +348,10 @@
     CMultiplicationOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CMultiplicationOperatorNode.prototype.precedence = 11;
     CMultiplicationOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = aArgs[0].result * aArgs[1].result;
     };
 
@@ -333,8 +362,12 @@
     CDivisionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CDivisionOperatorNode.prototype.precedence = 10;
     CDivisionOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         if(AscFormat.fApproxEqual(0.0, aArgs[0].result)){
-            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ZERO_DIVIDE), null);
+            this.setError(ERROR_TYPE_ZERO_DIVIDE, null);
             return;
         }
         this.result = aArgs[1].result/aArgs[0].result;
@@ -348,8 +381,12 @@
     CPercentageOperatorNode.prototype.precedence = 8;
     CPercentageOperatorNode.prototype.argumentsCount = 1;
     CPercentageOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         if(aArgs[0].error){
-            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), "%");
+            this.setError(ERROR_TYPE_SYNTAX_ERROR, "%");
             return;
         }
         this.result = aArgs[0].result / 100.0;
@@ -365,6 +402,10 @@
     CAdditionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CAdditionOperatorNode.prototype.precedence = 7;
     CAdditionOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = aArgs[1].result + aArgs[0].result;
     };
 
@@ -375,6 +416,10 @@
     CSubtractionOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CSubtractionOperatorNode.prototype.precedence = 7;
     CSubtractionOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = aArgs[1].result - aArgs[0].result;
     };
 
@@ -385,6 +430,10 @@
     CEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CEqualToOperatorNode.prototype.precedence = 6;
     CEqualToOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = AscFormat.fApproxEqual(aArgs[1].result, aArgs[0].result) ? 1.0 : 0.0;
     };
 
@@ -395,6 +444,10 @@
     CNotEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CNotEqualToOperatorNode.prototype.precedence = 5;
     CNotEqualToOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = AscFormat.fApproxEqual(aArgs[1].result, aArgs[0].result) ? 0.0 : 1.0;
     };
     function CLessThanOperatorNode(parseQueue){
@@ -404,6 +457,10 @@
     CLessThanOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CLessThanOperatorNode.prototype.precedence = 4;
     CLessThanOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = (aArgs[1].result < aArgs[0].result) ? 1.0 : 0.0;
     };
     function CLessThanOrEqualToOperatorNode(parseQueue){
@@ -413,6 +470,10 @@
     CLessThanOrEqualToOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CLessThanOrEqualToOperatorNode.prototype.precedence = 3;
     CLessThanOrEqualToOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = (aArgs[1].result <= aArgs[0].result) ? 1.0 : 0.0;
     };
     function CGreaterThanOperatorNode(parseQueue){
@@ -422,6 +483,10 @@
     CGreaterThanOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CGreaterThanOperatorNode.prototype.precedence = 2;
     CGreaterThanOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = (aArgs[1].result > aArgs[0].result) ? 1.0 : 0.0;
     };
     function CGreaterThanOrEqualOperatorNode(parseQueue){
@@ -431,6 +496,10 @@
     CGreaterThanOrEqualOperatorNode.prototype = Object.create(COperatorNode.prototype);
     CGreaterThanOrEqualOperatorNode.prototype.precedence = 1;
     CGreaterThanOrEqualOperatorNode.prototype._calculate = function (aArgs) {
+        this.checkCellInFunction(aArgs);
+        if(this.error){
+            return;
+        }
         this.result = (aArgs[1].result >= aArgs[0].result) ? 1.0 : 0.0;
     };
 
@@ -518,6 +587,9 @@
             _r = ((_r / 10) >> 0);
         }
         return sColName + sRowName;
+    };
+    CCellRangeNode.prototype.getOwnCellName = function(c, r){
+        return this.getCellName(this.c1, this.r1);
     };
 
     CCellRangeNode.prototype.parseText = function(sText){
@@ -641,7 +713,7 @@
             }
             else{
                 if(this.c1 > 63 && oFunction.listSupport()){
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_INDEX_TOO_LARGE), null);
+                    this.setError(ERROR_TYPE_INDEX_TOO_LARGE, null);
                 }
                 else{
                     this.setError(this.getCellName(this.c1, this.r1) + " " + AscCommon.translateManager.getValue(ERROR_TYPE_IS_NOT_IN_TABLE), null);
@@ -676,23 +748,23 @@
         else if(this.isDir()){
             oTable = this.parseQueue.getParentTable();
             if(!oTable){
-                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_FORMULA_NOT_IN_TABLE), null);
+                this.setError(ERROR_TYPE_FORMULA_NOT_IN_TABLE, null);
                 return
             }
             oCell = this.parseQueue.getParentCell();
             if(!oCell){
-                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_FORMULA_NOT_IN_TABLE), null);
+                this.setError(ERROR_TYPE_FORMULA_NOT_IN_TABLE, null);
                 return
             }
             oRow = oCell.GetRow();
             if(!oRow){
-                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_FORMULA_NOT_IN_TABLE), null);
+                this.setError(ERROR_TYPE_FORMULA_NOT_IN_TABLE, null);
                 return
             }
             var bClean = true;
             if(this.dir === LEFT){
                 if(oCell.Index === 0){
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_INDEX_ZERO), null);
+                    this.setError(ERROR_TYPE_INDEX_ZERO, null);
                     return;
                 }
                 this.result = [];
@@ -720,7 +792,7 @@
             }
             else if(this.dir === ABOVE){
                 if(oRow.Index === 0){
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_INDEX_ZERO), null);
+                    this.setError(ERROR_TYPE_INDEX_ZERO, null);
                     return;
                 }
                 this.result = [];
@@ -803,7 +875,7 @@
         else if(this.isBookmark() || this.isBookmarkCell() || this.isBookmarkCellRange()){
             var oDocument = this.parseQueue.document;
             if(!oDocument || !oDocument.BookmarksManager){
-                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ERROR), null);
+                this.setError(ERROR_TYPE_ERROR, null);
                 return;
             }
             oDocument.TurnOff_InterfaceEvents();
@@ -867,22 +939,22 @@
                                     sData = ":"
                                 }
                             }
-                            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), sData);
+                            this.setError(ERROR_TYPE_SYNTAX_ERROR, sData);
                         }
                     }
                 }
                 else {
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ERROR), null);
+                    this.setError(ERROR_TYPE_ERROR, null);
                 }
             }
             else{
-                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_UNDEFINED_BOOKMARK), this.bookmarkName);
+                this.setError(ERROR_TYPE_UNDEFINED_BOOKMARK, this.bookmarkName);
             }
             oDocument.SetSelectionState(oSelectionState);
             oDocument.TurnOn_InterfaceEvents(false);
         }
         else{
-            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ERROR), null);
+            this.setError(ERROR_TYPE_ERROR, null);
         }
     };
 
@@ -1344,9 +1416,7 @@
         return null;
     };
     CParseQueue.prototype.setError = function(Type, Data){
-        this.error = new CError();
-        this.error.Type = Type;
-        this.error.Data = Data;
+        this.error = new CError(Type, Data);
     };
     CParseQueue.prototype.calculate = function(bFormat){
         this.pos = this.queue.length - 1;
@@ -1354,7 +1424,7 @@
         this.error = null;
         this.result = null;
         if(this.pos < 0){
-            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ERROR), null);
+            this.setError(ERROR_TYPE_ERROR, null);
             return this.error;
         }
         var oLastToken = this.queue[this.pos];
@@ -1366,9 +1436,9 @@
         this.result = oLastToken.result;
         return this.error;
     };
-    function CError(){
-        this.Type = null;
-        this.Data = null;
+    function CError(Type, Data){
+        this.Type = AscCommon.translateManager.getValue(Type);
+        this.Data = Data;
     }
 
 
@@ -1724,9 +1794,7 @@
 
     CFormulaParser.prototype.setError = function(Type, Data){
         this.parseQueue = null;
-        this.error = new CError();
-        this.error.Type = Type;
-        this.error.Data = Data;
+        this.error = new CError(Type, Data);
     };
 
     CFormulaParser.prototype.getErrorString = function(startPos, endPos){
@@ -1756,7 +1824,7 @@
 
     CFormulaParser.prototype.parse = function(sFormula, oParentContent){
         if(typeof sFormula !== "string"){
-            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_ERROR), null);
+            this.setError(ERROR_TYPE_ERROR, null);
             return;
         }
         this.pos = 0;
@@ -1791,7 +1859,7 @@
         while (oCurToken = this.parseCurrent()){
             if(oCurToken instanceof CNumberNode || oCurToken instanceof CFALSEFunctionNode || oCurToken instanceof CTRUEFunctionNode){
                 if(this.checkSingularToken(oLastToken)){
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_MISSING_OPERATOR), null);
+                    this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
                     return;
                 }
                 if(this.flags & PARSER_MASK_NUMBER){
@@ -1814,26 +1882,26 @@
                     this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
                 }
                 else{
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     return;
                 }
             }
             else if(oCurToken instanceof CCellRangeNode){
                 if((oCurToken.isDir() || oCurToken.isCellRange()) && !(this.flags & PARSER_MASK_CELL_RANGE)){
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), ':');
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, ':');
                     return;
                 }
                 if(oCurToken.isBookmarkCellRange() && !(this.flags & PARSER_MASK_BOOKMARK_CELL_REF)){
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), ':');
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, ':');
                     return;
                 }
 
                 if((oCurToken.isCell() || oCurToken.isBookmark()) && this.checkSingularToken(oLastToken)){
                     if(oLastToken instanceof CPercentageOperatorNode){
-                        this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     }
                     else{
-                        this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_MISSING_OPERATOR), null);
+                        this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
                     }
                     return;
                 }
@@ -1891,24 +1959,21 @@
                     }
                 }
                 else{
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     return;
                 }
             }
             else if(oCurToken instanceof CListSeparatorNode){
                 if(!(this.flags & PARSER_MASK_LIST_SEPARATOR)){
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     return;
                 }
                 else{
                     if(aFunctionsStack.length > 0){
-                        aFunctionsStack[aFunctionsStack.length-1].operands.push(this.parseQueue.last());
-                        if(aFunctionsStack[aFunctionsStack.length-1].operands.length >= aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
-                            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
-                            return;
-                        }
+
                         while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenOperatorNode)){
                             oToken = aStack.pop();
+
                             this.parseQueue.add(oToken);
                             oToken.calculate();
                             if(oToken.error){
@@ -1917,12 +1982,17 @@
                             }
                         }
                         if(aStack.length === 0){
-                            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                            return;
+                        }
+                        aFunctionsStack[aFunctionsStack.length-1].operands.push(this.parseQueue.last());
+                        if(aFunctionsStack[aFunctionsStack.length-1].operands.length >= aFunctionsStack[aFunctionsStack.length-1].maxArgumentsCount){
+                            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                             return;
                         }
                     }
                     else{
-                        this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                         return;
                     }
 
@@ -1957,7 +2027,7 @@
                     this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, aFunctionsStack.length > 0 && aFunctionsStack[aFunctionsStack.length-1].listSupport());
                 }
                 else{
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     return;
                 }
                 aStack.push(oCurToken);
@@ -1974,20 +2044,21 @@
                 }
 
                 if(aStack.length === 0){
-                    this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                    this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                     return;
                 }
                 aStack.pop();//remove left paren
                 if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
+                    aFunctionsStack.pop();
                     aStack[aStack.length-1].operands.push(this.parseQueue.last());
                     oLastFunction = aStack[aStack.length-1];
                     if(oLastFunction.operands.length > oLastFunction.maxArgumentsCount){
-                        this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                         return;
                     }
                     if(oLastFunction.operands.length < oLastFunction.minArgumentsCount){
                         if(!oLastFunction.listSupport()){
-                            this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                             return;
                         }
                         else{
@@ -1999,7 +2070,7 @@
                                 }
                             }
                             if(i === oLastFunction.operands.length){
-                                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                                this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                                 return;
                             }
                         }
@@ -2028,14 +2099,14 @@
             else if(oCurToken.isOperator()){
                 if(oCurToken instanceof CUnaryMinusOperatorNode){
                     if(!(this.flags & PARSER_MASK_UNARY_OPERATOR)){
-                        this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                         return;
                     }
                     this.setFlag(PARSER_MASK_UNARY_OPERATOR, false);
                 }
                 else{
                     if(!(this.flags & PARSER_MASK_BINARY_OPERATOR)){
-                        this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), this.getErrorString(nStartPos, this.pos));
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
                         return;
                     }
 
@@ -2091,11 +2162,11 @@
         while (aStack.length > 0){
             oCurToken = aStack.pop();
             if(oCurToken instanceof CLeftParenOperatorNode){
-                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_UNEXPECTED_END), null);
+                this.setError(ERROR_TYPE_UNEXPECTED_END, null);
                 return;
             } else
             if(oCurToken instanceof CRightParenOperatorNode){
-                this.setError(AscCommon.translateManager.getValue(ERROR_TYPE_SYNTAX_ERROR), '');
+                this.setError(ERROR_TYPE_SYNTAX_ERROR, '');
                 return;
             }
             this.parseQueue.add(oCurToken);
