@@ -382,6 +382,8 @@
         this.startCellMoveRange = null;
         // Дипазон перемещения
         this.activeMoveRange = null;
+        // Range for drag and drop
+		this.dragAndDropRange = null;
         // Range fillHandle
         this.activeFillHandle = null;
         // Горизонтальное (0) или вертикальное (1) направление автозаполнения
@@ -8083,7 +8085,7 @@
 
         //если выделена ячейка заголовка ф/т, меняем выделение с ячейки на столбец ф/т
         //если выделена вся видимая часть форматированной таблицы, но не выделены последние скрытые строчки
-        var selectionRange = this.model.selectionRange.getLast().clone();
+        var selectionRange = (this.dragAndDropRange || this.model.selectionRange.getLast()).clone();
         if (null === this.startCellMoveRange) {
             this.af_changeSelectionTablePart(selectionRange);
         }

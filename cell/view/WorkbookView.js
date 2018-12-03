@@ -592,6 +592,22 @@
         }
         return res;
       };
+      this.Api.beginInlineDropTarget = function (event) {
+      	if (!self.controller.isMoveRangeMode) {
+      		self.controller.isMoveRangeMode = true;
+			self.getWorksheet().dragAndDropRange = new Asc.Range(0, 0, 0, 0);
+		}
+      	self.controller._onMouseMove(event);
+	  };
+      this.Api.endInlineDropTarget = function (event) {
+      	self.controller.isMoveRangeMode = false;
+      	var ws = self.getWorksheet();
+      	var newSelection = ws.activeMoveRange.clone();
+      	ws._cleanSelectionMoveRange();
+      	ws.dragAndDropRange = null;
+      	self._onSetSelection(newSelection);
+	  };
+
       AscCommon.InitBrowserInputContext(this.Api, "id_target_cursor");
     }
 
