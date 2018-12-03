@@ -3302,13 +3302,13 @@ DrawingObjectsController.prototype =
                     objects_by_type.shapes[i].spPr.xfrm.setOffY(props.Position.Y);
                 }
                 if(AscFormat.isRealBool(props.flipH)){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(props.flipH);
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(!objects_by_type.shapes[i].spPr.xfrm.flipH);
                 }
                 if(AscFormat.isRealBool(props.flipV)){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(props.flipV);
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(!objects_by_type.shapes[i].spPr.xfrm.flipV);
                 }
                 if(AscFormat.isRealNumber(props.rot)){
-                    objects_by_type.shapes[i].spPr.xfrm.setRot(props.rot);
+                    objects_by_type.shapes[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(objects_by_type.shapes[i].rot + props.rot));
                 }
                 if(objects_by_type.shapes[i].group)
                 {
@@ -3324,13 +3324,13 @@ DrawingObjectsController.prototype =
                     objects_by_type.images[i].spPr.xfrm.setOffY(props.Position.Y);
                 }
                 if(AscFormat.isRealBool(props.flipH)){
-                    objects_by_type.images[i].spPr.xfrm.setFlipH(props.flipH);
+                    objects_by_type.images[i].spPr.xfrm.setFlipH(!objects_by_type.images[i].spPr.xfrm.flipH);
                 }
                 if(AscFormat.isRealBool(props.flipV)){
-                    objects_by_type.images[i].spPr.xfrm.setFlipV(props.flipV);
+                    objects_by_type.images[i].spPr.xfrm.setFlipV(!objects_by_type.images[i].spPr.xfrm.flipV);
                 }
                 if(AscFormat.isRealNumber(props.rot)){
-                    objects_by_type.images[i].spPr.xfrm.setRot(props.rot);
+                    objects_by_type.images[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(objects_by_type.images[i].rot + props.rot));
                 }
                 if(objects_by_type.images[i].group)
                 {
