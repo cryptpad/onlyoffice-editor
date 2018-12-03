@@ -16856,7 +16856,7 @@ CDocument.prototype.UpdateFields = function(isBySelection)
 			arrFields[nIndex].Update(false, false);
 		}
 
-		//this.LoadDocumentState(oDocState);
+		this.LoadDocumentState(oDocState);
 
 		this.Recalculate();
 		this.Document_UpdateInterfaceState();
