@@ -230,6 +230,8 @@
         this.shrinkToFit = false;
         this.merged = null;
         this.textAlign = null;
+
+        this.bApplyByArray = null;
     }
 
     CellFlags.prototype.clone = function () {
@@ -7317,7 +7319,7 @@
         cell_info.name = this._getColumnTitle(c1) + this._getRowTitle(r1);
         cell_info.formula = c.getFormula();
 
-        cell_info.text = c.getValueForEdit();
+        cell_info.text = c.getValueForEdit(true);
 
 		cell_info.halign = align.getAlignHorizontal();
 		cell_info.valign = align.getAlignVertical();
@@ -8441,6 +8443,19 @@
 				return;
 			}
 
+
+			if (!this.intersectionFormulaArray(changedRange)) {
+				// Сбрасываем параметры автозаполнения
+				this.activeFillHandle = null;
+				this.fillHandleDirection = -1;
+				// Перерисовываем
+				this._drawSelection();
+
+				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray,
+					c_oAscError.Level.NoCritical);
+				return;
+			}
+
             // Можно ли применять автозаполнение ?
             this._isLockedCells(changedRange, /*subType*/null, applyFillHandleCallback);
         } else {
@@ -8727,6 +8742,17 @@
 		if (this.model.inPivotTable([arnFrom, arnTo])) {
 			this._cleanSelectionMoveRange();
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+			return;
+		}
+
+		//***array-formula***
+		//теперь не передаю 3 параметром в функцию checkMoveFormulaArray ctrlKey, поскольку undo/redo для
+		//клонирования части формулы работает некорректно
+		//при undo созданную формулу обходимо не переносить, а удалять
+		//TODO пересомтреть!
+		if (!this.checkMoveFormulaArray(arnFrom, arnTo)) {
+			this._cleanSelectionMoveRange();
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 			return;
 		}
 
@@ -9176,6 +9202,11 @@
             } else {
 				var newRange = val.fromBinary ? this._pasteFromBinary(val.data, true) : this._pasteFromHTML(val.data, true);
 				checkRange = [newRange];
+
+				if(!this.intersectionFormulaArray(newRange)) {
+					t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+					return false;
+				}
             }
         } else if (onlyActive) {
 			checkRange.push(new asc_Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
@@ -9269,7 +9300,7 @@
         var arnToRange = t.model.selectionRange.getLast();
 		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
 		var activeCellsPasteFragment = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
-        var tablesMap = null;
+        var tablesMap = null, intersectionRangeWithTableParts;
         if (fromBinary && val.TableParts && val.TableParts.length && specialPasteProps.formatTable) {
             var range, tablePartRange, tables = val.TableParts, diffRow, diffCol, curTable, bIsAddTable;
             var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
@@ -9288,7 +9319,7 @@
 				}
 
                 //если область вставки содержит форматированную таблицу, которая пересекается с вставляемой форматированной таблицей
-                var intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(range.bbox);
+                intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(range.bbox);
                 if (intersectionRangeWithTableParts) {
                     continue;
                 }
@@ -9327,7 +9358,7 @@
         }
 
         //делаем unmerge ф/т
-        var intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(arnToRange);
+        intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(arnToRange);
         if (intersectionRangeWithTableParts && intersectionRangeWithTableParts.length) {
             var tablePart;
             for (var i = 0; i < intersectionRangeWithTableParts.length; i++) {
@@ -9359,7 +9390,17 @@
         for (var i = 0; i < arrFormula.length; ++i) {
             var rangeF = arrFormula[i].range;
             var valF = arrFormula[i].val;
-            if (rangeF.isOneCell()) {
+			var arrayRef = arrFormula[i].arrayRef;
+
+			//***array-formula***
+			if(arrayRef && window['AscCommonExcel'].bIsSupportArrayFormula) {
+				var rangeFormulaArray = this.model.getRange3(arrayRef.r1, arrayRef.c1, arrayRef.r2, arrayRef.c2);
+				rangeFormulaArray.setValue(valF, function (r) {
+					//ret = r;
+				}, null, arrayRef);
+				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
+					new Asc.Range(arrayRef.c1, arrayRef.r1, arrayRef.c2, arrayRef.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(arrayRef, valF));
+			} else if (rangeF.isOneCell()) {
                 rangeF.setValue(valF, null, true);
             } else {
                 var oBBox = rangeF.getBBox0();
@@ -10041,8 +10082,25 @@
 			}
 			pastedRangeProps.colsWidth = colsWidth;
 
+			//***array-formula***
+			var fromCell;
+			val._getCell(pasteRow, pasteCol, function (cell) {
+				fromCell = cell;
+			});
+
 			//apply props by cell
-			var formulaProps = {firstRange: firstRange, arrFormula: arrFormula, tablesMap: tablesMap, newVal: newVal, isOneMerge: isOneMerge, val: val, activeCellsPasteFragment: activeCellsPasteFragment, transposeRange: transposeRange};
+			var formulaProps = {
+				firstRange: firstRange,
+				arrFormula: arrFormula,
+				tablesMap: tablesMap,
+				newVal: newVal,
+				isOneMerge: isOneMerge,
+				val: val,
+				activeCellsPasteFragment: activeCellsPasteFragment,
+				transposeRange: transposeRange,
+				cell: fromCell,
+				fromRange: activeCellsPasteFragment
+			};
 			t._setPastedDataByCurrentRange(range, pastedRangeProps, formulaProps, specialPasteProps);
 		};
 
@@ -10143,7 +10201,6 @@
 	WorksheetView.prototype._setPastedDataByCurrentRange = function(range, rangeStyle, formulaProps, specialPasteProps)
 	{
 		var t = this;
-		var elemType = AscCommonExcel.cElementType;
 
 		var firstRange, arrFormula, tablesMap, newVal, isOneMerge, val, activeCellsPasteFragment, transposeRange;
 		if(formulaProps)
@@ -10233,6 +10290,14 @@
 					var assemb, _p_ = new AscCommonExcel.parserFormula(value2[0].sFormula, null, t.model);
 					if (_p_.parse()) {
 
+						//array-formula
+						var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
+						if(arrayFormulaRef) {
+							if(!formulaProps.fromRange.containsRange(arrayFormulaRef)) {
+								arrayFormulaRef = arrayFormulaRef.intersection(formulaProps.fromRange);
+							}
+							arrayFormulaRef.setOffset(offset);
+						}
 						if(specialPasteProps.transpose)
 						{
 							//для transpose необходимо перевернуть все дипазоны в формулах
@@ -10252,7 +10317,7 @@
 							assemb = _p_.changeOffset(offset).assemble(true);
 						}
 
-						rangeStyle.formula = {range: range, val: "=" + assemb};
+						rangeStyle.formula = {range: range, val: "=" + assemb, arrayRef: arrayFormulaRef};
 
 						//arrFormula.push({range: range, val: "=" + assemb});
 					}
@@ -10281,6 +10346,20 @@
 			}
 		};
 
+
+		var searchRangeIntoFormulaArrays = function(arr, curRange) {
+			var res = false;
+			if(arr && curRange && curRange.bbox) {
+				for(var i = 0; i < arr.length; i++) {
+					var refArray = arr[i].arrayRef;
+					if(refArray && refArray.intersection(curRange.bbox)) {
+						res = true;
+						break;
+					}
+				}
+			}
+			return res;
+		};
 
 		//column width
 		var col = range.bbox.c1;
@@ -10360,9 +10439,14 @@
 
 
 		//***value***
+		//если формула - добавляем в массив и обрабатываем уже в _pasteData
 		if(rangeStyle.formula && specialPasteProps.formula)
 		{
 			arrFormula.push(rangeStyle.formula);
+		}
+		else if(specialPasteProps.formula && searchRangeIntoFormulaArrays(arrFormula, range))
+		{
+			//если ячейка является частью формулы массива-> в этом случае не нужно делать setValueData
 		}
 		else if(rangeStyle.cellValueData2 && specialPasteProps.font && specialPasteProps.val)
 		{
@@ -11004,6 +11088,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}*/
 
 						functionModelAction = function () {
 							History.Create_NewPoint();
@@ -11028,6 +11116,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}*/
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11128,6 +11220,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}*/
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11159,6 +11255,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}*/
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11879,27 +11979,67 @@
 			History.StartTransaction();
 		}
 
+		//***array-formula***
+		var changeRangesIfArrayFormula = function() {
+			if(flags.bApplyByArray) {
+				c = t.getSelectedRange();
+				if(c.bbox.isOneCell()) {
+					//проверяем, есть ли формула массива в этой ячейке
+					t.model._getCell(c.bbox.r1, c.bbox.c1, function(cell){
+						var formulaRef = cell && cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+						if(formulaRef) {
+							c = t.model.getRange3(formulaRef.r1, formulaRef.c1, formulaRef.r2, formulaRef.c2);
+						}
+					});
+				}
+				bbox = c.bbox;
+			}
+		};
+
 		var oAutoExpansionTable;
 		var isFormula = this._isFormula(val);
 		if (isFormula) {
 			var ftext = val.reduce(function (pv, cv) {
 				return pv + cv.text;
 			}, "");
-			var ret = true;
+
 			// ToDo - при вводе формулы в заголовок автофильтра надо писать "0"
+			//***array-formula***
+			var ret = true;
+			changeRangesIfArrayFormula();
+			if(flags.bApplyByArray) {
+				this.model.workbook.dependencyFormulas.lockRecal();
+			}
+
 			c.setValue(ftext, function (r) {
 				ret = r;
-			});
+			}, null, flags.bApplyByArray ? bbox : null);
+
+			//***array-formula***
+			if(flags.bApplyByArray) {
+				this.model.workbook.dependencyFormulas.unlockRecal();
+			}
+
 			if (!ret) {
 				this.isFormulaEditMode = oldMode;
 				History.EndTransaction();
 				t.model.workbook.dependencyFormulas.unlockRecal();
 				return false;
 			}
+
+			//***array-formula***
+			if(flags.bApplyByArray) {
+				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
+					new Asc.Range(c.bbox.c1, c.bbox.r1, c.bbox.c2, c.bbox.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(c.bbox, ftext));
+			}
+
 			isFormula = c.isFormula();
 			this.model.autoFilters.renameTableColumn(bbox);
 		} else {
+			//***array-formula***
+			changeRangesIfArrayFormula();
 			c.setValue2(val);
+
 			// Вызываем функцию пересчета для заголовков форматированной таблицы
 			this.model.autoFilters.renameTableColumn(bbox);
 		}
@@ -12042,8 +12182,59 @@
 				autoCompleteLC: arrAutoCompleteLC,
 				cellName: c.getName(),
 				cellNumFormat: c.getNumFormatType(),
-				saveValueCallback: function (val, flags) {
-					return t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
+				saveValueCallback: function (val, flags, callback) {
+					var saveCellValueCallback = function(success) {
+						if(!success) {
+							if(callback) {
+								return callback(false);
+							} else {
+								return false;
+							}
+						}
+
+						var bRes = t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
+						if(callback) {
+							return callback(bRes);
+						} else {
+							return bRes;
+						}
+					};
+
+					//***array-formula***
+					var ref = null;
+					if(flags.bApplyByArray) {
+						//необходимо проверить на выделение массива частично
+						var activeRange = t.getSelectedRange();
+						var doNotApply = false;
+						if(!activeRange.bbox.isOneCell()) {
+							activeRange._foreachNoEmpty(function(cell, row, col) {
+								ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+
+								if(ref && !activeRange.bbox.containsRange(ref)) {
+									doNotApply = true;
+									return false;
+								}
+							});
+						}
+						if(doNotApply) {
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
+							return false;
+						} else {
+							t._isLockedCells(activeRange.bbox, /*subType*/null, saveCellValueCallback);
+						}
+					} else {
+						//проверяем activeCell на наличие форулы массива
+						var activeCell = t.model.selectionRange.activeCell;
+						t.model._getCell(activeCell.row, activeCell.col, function(cell) {
+							ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+						});
+						if(ref && !ref.isOneCell()) {
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return false;
+						} else {
+							return saveCellValueCallback(true);
+						}
+					}
 				},
 				getSides: function () {
 					var _c1, _r1, _c2, _r2, ri = 0, bi = 0;
@@ -14464,6 +14655,38 @@
 
         return res;
     };
+
+	WorksheetView.prototype.checkMoveFormulaArray = function(from, to, ctrlKey) {
+		//***array-formula***
+		var res = true;
+
+		//TODO вместо getRange3 нужна функция, которая может заканчивать цикл по ячейкам
+		if(!ctrlKey) {
+			//проверяем from, затрагиваем ли мы часть формулы массива
+			res = this.intersectionFormulaArray(from);
+		}
+
+		//проверяем to, затрагиваем ли мы часть формулы массива
+		if(res) {
+			res = this.intersectionFormulaArray(to);
+		}
+
+		return res;
+	};
+
+	WorksheetView.prototype.intersectionFormulaArray = function(range) {
+		var res = true;
+		this.model.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
+			if(cell.isFormula()) {
+				var formulaParsed = cell.getFormulaParsed();
+				var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
+				if(arrayFormulaRef && !range.containsRange(arrayFormulaRef)) {
+					res = false;
+				}
+			}
+		});
+		return res;
+	};
 
     // Convert coordinates methods
 	WorksheetView.prototype.ConvertXYToLogic = function (x, y) {

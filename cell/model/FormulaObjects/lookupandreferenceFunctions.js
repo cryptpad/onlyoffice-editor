@@ -101,6 +101,7 @@ function (window, undefined) {
 	function cADDRESS() {
 	}
 
+	//***array-formula***
 	cADDRESS.prototype = Object.create(cBaseFunction.prototype);
 	cADDRESS.prototype.constructor = cADDRESS;
 	cADDRESS.prototype.name = 'ADDRESS';
@@ -242,6 +243,7 @@ function (window, undefined) {
 	function cCHOOSE() {
 	}
 
+	//***array-formula***
 	cCHOOSE.prototype = Object.create(cBaseFunction.prototype);
 	cCHOOSE.prototype.constructor = cCHOOSE;
 	cCHOOSE.prototype.name = 'CHOOSE';
@@ -277,10 +279,12 @@ function (window, undefined) {
 	function cCOLUMN() {
 	}
 
+	//***array-formula***
 	cCOLUMN.prototype = Object.create(cBaseFunction.prototype);
 	cCOLUMN.prototype.constructor = cCOLUMN;
 	cCOLUMN.prototype.name = 'COLUMN';
 	cCOLUMN.prototype.argumentsMax = 1;
+	cCOLUMN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cCOLUMN.prototype.Calculate = function (arg) {
 		var bbox;
 		if (0 === arg.length) {
@@ -303,11 +307,13 @@ function (window, undefined) {
 	function cCOLUMNS() {
 	}
 
+	//***array-formula***
 	cCOLUMNS.prototype = Object.create(cBaseFunction.prototype);
 	cCOLUMNS.prototype.constructor = cCOLUMNS;
 	cCOLUMNS.prototype.name = 'COLUMNS';
 	cCOLUMNS.prototype.argumentsMin = 1;
 	cCOLUMNS.prototype.argumentsMax = 1;
+	cCOLUMNS.prototype.arrayIndexes = {0: 1};
 	cCOLUMNS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var range;
@@ -328,12 +334,14 @@ function (window, undefined) {
 	function cFORMULATEXT() {
 	}
 
+	//***array-formula***
 	cFORMULATEXT.prototype = Object.create(cBaseFunction.prototype);
 	cFORMULATEXT.prototype.constructor = cFORMULATEXT;
 	cFORMULATEXT.prototype.name = 'FORMULATEXT';
 	cFORMULATEXT.prototype.argumentsMin = 1;
 	cFORMULATEXT.prototype.argumentsMax = 1;
 	cFORMULATEXT.prototype.isXLFN = true;
+	cFORMULATEXT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cFORMULATEXT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -374,12 +382,23 @@ function (window, undefined) {
 	function cHLOOKUP() {
 	}
 
+	//***array-formula***
 	cHLOOKUP.prototype = Object.create(cBaseFunction.prototype);
 	cHLOOKUP.prototype.constructor = cHLOOKUP;
 	cHLOOKUP.prototype.name = 'HLOOKUP';
 	cHLOOKUP.prototype.argumentsMin = 3;
 	cHLOOKUP.prototype.argumentsMax = 4;
+	cHLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
 	cHLOOKUP.prototype.Calculate = function (arg) {
+		//TODO  с excel есть несоостветствие - в тестовом файле - E11:H13
+		if(this.bArrayFormula) {
+			//исключение, когда в формуле массива берется из одного аргумента только 1 элемент
+			if(cElementType.cellsRange3D === arg[2].type || cElementType.cellsRange === arg[2].type) {
+				arg[2] = arg[2].getValue2(0,0);
+			} else if(cElementType.array === arg[2].type) {
+				arg[2] = arg[2].getValue2(0,0);
+			}
+		}
 		return g_oHLOOKUPCache.calculate(arg);
 	};
 
@@ -401,16 +420,17 @@ function (window, undefined) {
 	function cINDEX() {
 	}
 
+	//***array-formula***
 	cINDEX.prototype = Object.create(cBaseFunction.prototype);
 	cINDEX.prototype.constructor = cINDEX;
 	cINDEX.prototype.name = 'INDEX';
 	cINDEX.prototype.argumentsMin = 2;
-	cINDEX.prototype.argumentsMax = 4;
+	cINDEX.prototype.argumentsMax = 3;
 	cINDEX.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cINDEX.prototype.arrayIndexes = {0: 1};
 	cINDEX.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] && (cElementType.empty !== arg[1].type) ? arg[1] : new cNumber(1),
-			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1),
-			arg3 = arg[3] && (cElementType.empty !== arg[3].type) ? arg[3] : new cNumber(1), res;
+			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1), res;
 
 		if (cElementType.cellsRange3D === arg0.type) {
 			arg0 = arg0.tocArea();
@@ -423,26 +443,44 @@ function (window, undefined) {
 
 		arg1 = arg1.tocNumber();
 		arg2 = arg2.tocNumber();
-		arg3 = arg3.tocNumber();
 
-		if (cElementType.error === arg1.type || cElementType.error === arg2.type || cElementType.error === arg3.type) {
+		if (cElementType.error === arg1.type || cElementType.error === arg2.type) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
 		arg1 = arg1.getValue();
 		arg2 = arg2.getValue();
-		arg3 = arg3.getValue();
 
 		if (arg1 < 0 || arg2 < 0) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
 		if (cElementType.array === arg0.type) {
-			res = arg0.getValue2((1 === arg0.rowCount || 0 === arg1) ? 0 : arg1 - 1, 0 === arg2 ? 0 : arg2 - 1);
+			if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
+				res = arg0.getValue2(0, arg1 - 1);
+			} else if(undefined === arg[2] && 1 === arg0.getCountElementInRow()) {//если последний аргумент опущен, и выделен 1 столбец
+				res = arg0.getValue2(arg1 - 1, 0);
+			} else {
+				res = arg0.getValue2((1 === arg0.rowCount || 0 === arg1) ? 0 : arg1 - 1, 0 === arg2 ? 0 : arg2 - 1);
+			}
 		} else if (cElementType.cellsRange === arg0.type) {
 			var ws = arg0.getWS(), bbox = arg0.getBBox0();
 
-			if (bbox.r1 === bbox.r2) {/*одна строка*/
+			if(undefined === arg[2] && bbox.r1 === bbox.r2) {//если последний аргумент опущен, и выделенa 1 строка
+				if (arg1 > Math.abs(bbox.c1 - bbox.c2) + 1) {
+					res = new cError(cErrorType.bad_reference);
+				} else {
+					res = new Asc.Range(bbox.c1 + arg1 - 1, bbox.r1, bbox.c1 + arg1 - 1, bbox.r1);
+					res = new cRef(res.getName(), ws);
+				}
+			} else if(undefined === arg[2] && bbox.c1 === bbox.c2) {//если последний аргумент опущен, и выделен 1 столбец
+				if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1) {
+					res = new cError(cErrorType.bad_reference);
+				} else {
+					res = new Asc.Range(bbox.c1, bbox.r1 + arg1 - 1, bbox.c1, bbox.r1 + arg1 - 1);
+					res = new cRef(res.getName(), ws);
+				}
+			} else if (bbox.r1 === bbox.r2) {/*одна строка*/
 				res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r1);
 				res = new cRef(res.getName(), ws);
 			} else {
@@ -478,6 +516,8 @@ function (window, undefined) {
 	function cINDIRECT() {
 	}
 
+	//TODO есть разница с MS - в тестовом файле E6
+	//***array-formula***
 	cINDIRECT.prototype = Object.create(cBaseFunction.prototype);
 	cINDIRECT.prototype.constructor = cINDIRECT;
 	cINDIRECT.prototype.name = 'INDIRECT';
@@ -551,11 +591,13 @@ function (window, undefined) {
 	function cLOOKUP() {
 	}
 
+	//***array-formula***
 	cLOOKUP.prototype = Object.create(cBaseFunction.prototype);
 	cLOOKUP.prototype.constructor = cLOOKUP;
 	cLOOKUP.prototype.name = 'LOOKUP';
 	cLOOKUP.prototype.argumentsMin = 2;
 	cLOOKUP.prototype.argumentsMax = 3;
+	cLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
 	cLOOKUP.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = 2 === arg.length ? arg1 : arg[2], resC = -1, resR = -1,
 			t = this;
@@ -699,11 +741,13 @@ function (window, undefined) {
 	function cMATCH() {
 	}
 
+	//***array-formula***
 	cMATCH.prototype = Object.create(cBaseFunction.prototype);
 	cMATCH.prototype.constructor = cMATCH;
 	cMATCH.prototype.name = 'MATCH';
 	cMATCH.prototype.argumentsMin = 2;
 	cMATCH.prototype.argumentsMax = 3;
+	cMATCH.prototype.arrayIndexes = {1: 1};
 	cMATCH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
 
@@ -1180,6 +1224,7 @@ function (window, undefined) {
 	function cOFFSET() {
 	}
 
+	//***array-formula***
 	cOFFSET.prototype = Object.create(cBaseFunction.prototype);
 	cOFFSET.prototype.constructor = cOFFSET;
 	cOFFSET.prototype.name = 'OFFSET';
@@ -1288,10 +1333,12 @@ function (window, undefined) {
 	function cROW() {
 	}
 
+	//***array-formula***
 	cROW.prototype = Object.create(cBaseFunction.prototype);
 	cROW.prototype.constructor = cROW;
 	cROW.prototype.name = 'ROW';
 	cROW.prototype.argumentsMax = 1;
+	cROW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cROW.prototype.Calculate = function (arg) {
 		var bbox;
 		if (0 === arg.length) {
@@ -1314,11 +1361,13 @@ function (window, undefined) {
 	function cROWS() {
 	}
 
+	//***array-formula***
 	cROWS.prototype = Object.create(cBaseFunction.prototype);
 	cROWS.prototype.constructor = cROWS;
 	cROWS.prototype.name = 'ROWS';
 	cROWS.prototype.argumentsMin = 1;
 	cROWS.prototype.argumentsMax = 1;
+	cROWS.prototype.arrayIndexes = {0: 1};
 	cROWS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var range;
@@ -1350,12 +1399,14 @@ function (window, undefined) {
 	function cTRANSPOSE() {
 	}
 
+	//***array-formula***
 	cTRANSPOSE.prototype = Object.create(cBaseFunction.prototype);
 	cTRANSPOSE.prototype.constructor = cTRANSPOSE;
 	cTRANSPOSE.prototype.name = 'TRANSPOSE';
 	cTRANSPOSE.prototype.argumentsMin = 1;
 	cTRANSPOSE.prototype.argumentsMax = 1;
 	cTRANSPOSE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTRANSPOSE.prototype.arrayIndexes = {0: 1};
 	cTRANSPOSE.prototype.Calculate = function (arg) {
 
 		function TransposeMatrix(A) {
@@ -1595,8 +1646,19 @@ function (window, undefined) {
 	cVLOOKUP.prototype.name = 'VLOOKUP';
 	cVLOOKUP.prototype.argumentsMin = 3;
 	cVLOOKUP.prototype.argumentsMax = 4;
+	cVLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
 	cVLOOKUP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cVLOOKUP.prototype.Calculate = function (arg) {
+		//TODO  с excel есть несоостветствие - в тестовом файле - E11:H13
+		if(this.bArrayFormula) {
+			//исключение, когда в формуле массива берется из одного аргумента только 1 элемент
+			if(cElementType.cellsRange3D === arg[2].type || cElementType.cellsRange === arg[2].type) {
+				arg[2] = arg[2].getValue2(0,0);
+			} else if(cElementType.array === arg[2].type) {
+				arg[2] = arg[2].getValue2(0,0);
+			}
+		}
+
 		return g_oVLOOKUPCache.calculate(arg);
 	};
 
