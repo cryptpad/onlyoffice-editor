@@ -290,7 +290,7 @@
     {
         var _ret = [];
         var oBodyShape = this.getBodyShape();
-        if(oBodyShape){
+        if(oBodyShape && oBodyShape.getObjectType() === AscDFH.historyitem_type_Shape){
             _ret.push(oBodyShape);
         }
         return _ret;
