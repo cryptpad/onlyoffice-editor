@@ -7301,7 +7301,6 @@
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
     };
     WorksheetView.prototype.setSelection = function (range) {
-        var oRes = null;
         var type = range.getType();
         if (type === c_oAscSelectionType.RangeCells || type === c_oAscSelectionType.RangeCol ||
           type === c_oAscSelectionType.RangeRow || type === c_oAscSelectionType.RangeMax) {
