@@ -1711,6 +1711,10 @@
 
 	function CanDropFiles(event)
 	{
+        var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+        if (!editor.isEnabledDropTarget())
+        	return false;
+
 		var bRes = false;
 		if (event.dataTransfer.types)
 		{

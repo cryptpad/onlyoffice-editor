@@ -1550,6 +1550,10 @@
 		this.pluginsManager.onEnableMouseEvents(isEnable);
 	};
 
+    baseEditorsApi.prototype.isEnabledDropTarget = function()
+    {
+    	return true;
+    };
     baseEditorsApi.prototype.beginInlineDropTarget = function(e)
     {
     };
