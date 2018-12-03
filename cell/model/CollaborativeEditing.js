@@ -458,8 +458,8 @@
 						// Не учитываем lock от Insert
 						if (c_oAscLockTypeElemSubType.InsertRows === oUnlockElement["subType"] || c_oAscLockTypeElemSubType.InsertColumns === oUnlockElement["subType"])
 							continue;
-						rangeTmp1 = oUnlockElement["rangeOrObjectId"];
-						rangeTmp2 = element["rangeOrObjectId"];
+						rangeTmp1 = element["rangeOrObjectId"];
+						rangeTmp2 = oUnlockElement["rangeOrObjectId"];
 						if (rangeTmp2["c1"] > rangeTmp1["c2"] || rangeTmp2["c2"] < rangeTmp1["c1"] || rangeTmp2["r1"] > rangeTmp1["r2"] || rangeTmp2["r2"] < rangeTmp1["r1"])
 							continue;
 						return arrayElements[i];
