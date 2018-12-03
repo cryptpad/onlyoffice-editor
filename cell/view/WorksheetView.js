@@ -8443,6 +8443,19 @@
 				return;
 			}
 
+
+			if (!this.intersectionFormulaArray(changedRange)) {
+				// Сбрасываем параметры автозаполнения
+				this.activeFillHandle = null;
+				this.fillHandleDirection = -1;
+				// Перерисовываем
+				this._drawSelection();
+
+				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray,
+					c_oAscError.Level.NoCritical);
+				return;
+			}
+
             // Можно ли применять автозаполнение ?
             this._isLockedCells(changedRange, /*subType*/null, applyFillHandleCallback);
         } else {
