@@ -2275,6 +2275,28 @@ CTable.prototype.GetAllFloatElements = function(FloatObjs)
 
 	return FloatObjs;
 };
+CTable.prototype.GetAllFields = function(isSelection, arrFields)
+{
+	if (!arrFields)
+		arrFields = [];
+	if(isSelection)
+	{
+		var Cells_array = this.Internal_Get_SelectionArray();
+		for (var Index = 0; Index < Cells_array.length; Index++)
+		{
+			var CurPos      = Cells_array[Index];
+			var CurCell     = this.Content[CurPos.Row].Get_Cell(CurPos.Cell);
+			var CellContent = CurCell.Content;
+
+			CellContent.GetAllFields(isSelection, arrFields);
+		}
+	}
+	else
+	{
+		this.CurCell.Content.GetAllFields(isSelection, arrFields);
+	}
+	return arrFields;
+};
 /**
  * Данная функция запрашивает новую позицию для содержимого у ячейки, разбивающейся на несколько страниц
  */
