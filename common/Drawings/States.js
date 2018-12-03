@@ -207,7 +207,7 @@ StartAddNewShape.prototype =
         this.drawingObjects.updateOverlay();
         if(Asc["editor"])
         {
-            if(!e.fromWindow)
+            if(!e.fromWindow || this.bStart)
             {
                 Asc["editor"].asc_endAddShape();
             }
