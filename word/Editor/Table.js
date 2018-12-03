@@ -5931,22 +5931,41 @@ CTable.prototype.MoveCursorLeft = function(AddToSelect, Word)
 		{
 			if (false === AddToSelect)
 			{
-				if (0 != this.CurCell.Index || 0 != this.CurCell.Row.Index)
+				var nCurCell = this.CurCell.GetIndex();
+				var nCurRow  = this.CurCell.GetRow().GetIndex();
+				if (0 !== nCurCell || 0 !== nCurRow)
 				{
-					if (0 != this.CurCell.Index)
+					while (true)
 					{
-						this.CurCell = this.Internal_Get_StartMergedCell2(this.CurCell.Index - 1, this.Selection.CurRow);
-					}
-					else //if ( 0 != this.CurCell.Row.Index  )
-					{
-						this.Selection.CurRow = Math.max(this.Selection.CurRow - 1, 0);
-						this.CurCell          = this.Internal_Get_StartMergedCell2(this.Content[this.Selection.CurRow].Get_CellsCount() - 1, this.Selection.CurRow);
+						if (nCurCell > 0)
+						{
+							nCurCell--;
+						}
+						else if (nCurRow > 0)
+						{
+							nCurRow--;
+							nCurCell = this.GetRow(nCurRow).GetCellsCount() - 1;
+						}
+						else
+						{
+							this.CurCell = this.GetRow(0).GetCell(0);
+							break;
+						}
+
+						var oTempCell = this.GetRow(nCurRow).GetCell(nCurCell);
+						if (vmerge_Restart !== oTempCell.GetVMerge())
+							continue;
+
+						this.CurCell = oTempCell;
+						break;
 					}
 
 					this.CurCell.Content.MoveCursorToEndPos();
 				}
 				else
+				{
 					return false;
+				}
 			}
 			else
 			{
@@ -6095,22 +6114,45 @@ CTable.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 		{
 			if (false === AddToSelect)
 			{
-				if (this.Content.length - 1 > this.CurCell.Row.Index || this.Content[this.CurCell.Row.Index].Get_CellsCount() - 1 > this.CurCell.Index)
+				var nCurCell    = this.CurCell.GetIndex();
+				var nCurRow     = this.CurCell.GetRow().GetIndex();
+				var nCellsCount = this.GetRow(nCurRow).GetCellsCount();
+				var nRowsCount  = this.GetRowsCount();
+				if (this.Content.length - 1 > nCurRow || nCellsCount - 1 > nCurCell)
 				{
-					if (this.Content[this.CurCell.Row.Index].Get_CellsCount() - 1 > this.CurCell.Index)
+					while (true)
 					{
-						this.CurCell = this.Internal_Get_StartMergedCell2(this.CurCell.Index + 1, this.Selection.CurRow);
-					}
-					else //if ( this.Content.length - 1 > this.CurCell.Row.Index  )
-					{
-						this.Selection.CurRow = Math.min(this.Content.length - 1, this.Selection.CurRow + 1);
-						this.CurCell          = this.Internal_Get_StartMergedCell2(0, this.Selection.CurRow);
+						if (nCurCell < nCellsCount - 1)
+						{
+							nCurCell++;
+						}
+						else if (nCurRow < nRowsCount - 1)
+						{
+							nCurRow++;
+							nCurCell = 0;
+							nCellsCount = this.GetRow(nCurRow).GetCellsCount();
+						}
+						else
+						{
+							var oLastRow = this.GetRow(this.GetRowsCount() - 1);
+							this.CurCell = oLastRow.GetCell(oLastRow.GetCellsCount() - 1);
+							break;
+						}
+
+						var oTempCell = this.GetRow(nCurRow).GetCell(nCurCell);
+						if (vmerge_Restart !== oTempCell.GetVMerge())
+							continue;
+
+						this.CurCell = oTempCell;
+						break;
 					}
 
 					this.CurCell.Content.MoveCursorToStartPos();
 				}
 				else
+				{
 					return false;
+				}
 			}
 			else
 			{
