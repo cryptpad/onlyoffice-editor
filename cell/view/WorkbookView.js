@@ -607,6 +607,10 @@
       	ws.dragAndDropRange = null;
       	self._onSetSelection(newSelection);
 	  };
+      this.Api.isEnabledDropTarget = function () {
+      	return !self.isCellEditMode;
+	  };
+
 
       AscCommon.InitBrowserInputContext(this.Api, "id_target_cursor");
     }
