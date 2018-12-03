@@ -418,7 +418,7 @@ CComplexField.prototype.private_UpdateFORMULA = function()
 		oRun.Set_Bold(true);
 		oRun.AddText(this.Instruction.ErrStr);
 		oPara.AddToContent(0, oRun);
-		oSelectedContent.Add(new CSelectedElement(oPara, true));
+		oSelectedContent.Add(new CSelectedElement(oPara, false));
 		this.LogicDocument.TurnOff_Recalculate();
 		this.LogicDocument.TurnOff_InterfaceEvents();
 		this.LogicDocument.Remove(1, false, false, false);
