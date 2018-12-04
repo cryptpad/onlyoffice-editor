@@ -2507,7 +2507,7 @@ CDocument.prototype.Recalculate_Page = function()
                             //if (window["native"]["WC_CheckSuspendRecalculate"]())
                             //    return;
 
-                            this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 100);
+                            this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 10);
                             return;
                         }
                     }
@@ -2518,7 +2518,7 @@ CDocument.prototype.Recalculate_Page = function()
 
                 if (PageIndex + 1 > this.FullRecalc.StartPage + 2)
                 {
-                    this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 200);
+                    this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 20);
                 }
                 else
                     this.Recalculate_Page();
@@ -3128,7 +3128,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
                     //if (window["native"]["WC_CheckSuspendRecalculate"]())
                     //    return;
 
-                    this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 100);
+                    this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 10);
                     return;
                 }
             }
@@ -3139,7 +3139,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 
         if (_PageIndex > this.FullRecalc.StartPage + 2)
         {
-            this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 200);
+            this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 20);
         }
         else
         {
@@ -3697,7 +3697,7 @@ CDocument.prototype.private_RecalculateHdrFtrPageCountUpdate = function()
 			else
 			{
 				this.HdrFtrRecalc.PageIndex = nPageAbs + 1;
-				this.HdrFtrRecalc.Id        = setTimeout(Document_Recalculate_HdrFtrPageCount, 200);
+				this.HdrFtrRecalc.Id        = setTimeout(Document_Recalculate_HdrFtrPageCount, 20);
 				return;
 			}
 		}
