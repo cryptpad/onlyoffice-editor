@@ -750,6 +750,7 @@ function (window, undefined) {
 	cMATCH.prototype.arrayIndexes = {1: 1};
 	cMATCH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
+		//return g_oMatchCache.calculate(arg);
 
 		function findMatch(a0, a1, a2) {
 			var i, item, a1RowCount = a1.length, a1ColumnCount = a1[0].length, a2Value = a2.getValue(), arr, index = -1;
@@ -1634,6 +1635,240 @@ function (window, undefined) {
 		this.cacheRanges = {};
 	};
 
+	function MatchCache() {
+		this.cacheId = {};
+		this.cacheRanges = {};
+	}
+
+	MatchCache.prototype = Object.create(VHLOOKUPCache.prototype);
+	MatchCache.prototype.constructor = MatchCache;
+	MatchCache.prototype.calculate = function (arg) {
+
+		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
+
+		if (cElementType.cellsRange3D === arg0.type || cElementType.array === arg0.type ||
+			cElementType.cellsRange === arg0.type) {
+			return new cError(cErrorType.wrong_value_type);
+		} else if (cElementType.error === arg0.type) {
+			return arg0;
+		}
+
+		if (cElementType.number === arg2.type || cElementType.bool === arg2.type) {
+		} else if (cElementType.error === arg2.type) {
+			return arg2;
+		} else {
+			return new cError(cErrorType.not_available);
+		}
+
+		var a2Value = arg2.getValue();
+		if (!(-1 === a2Value || 0 === a2Value || 1 === a2Value)) {
+			return new cError(cErrorType.not_numeric);
+		}
+
+		if(cElementType.error === arg1.type) {
+			return new cError(cErrorType.not_available);
+		} else if (cElementType.array === arg1.type) {
+			arg1 = arg1.getMatrix();
+			//cache[argTest.value] = arg1;
+		}
+
+		if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type ||
+			cElementType.cellsRange === arg1.type || cElementType.cellsRange3D === arg1.type) {
+			var oSearchRange = arg1.getRange();
+
+			if (!oSearchRange) {
+				return new cError(cErrorType.bad_reference);
+			}
+
+
+			var a1RowCount = oSearchRange.bbox.r2 - oSearchRange.bbox.r1 + 1, a1ColumnCount = oSearchRange.bbox.c2 - oSearchRange.bbox.c1 + 1;
+			var bHor = false;
+			if (a1RowCount > 1 && a1ColumnCount > 1) {
+				return new cError(cErrorType.not_available);
+			} else if (a1RowCount === 1 && a1ColumnCount >= 1) {
+				bHor = true;
+			}
+
+			return this._get(oSearchRange, arg0, arg2, bHor);
+		} else {
+			return new cError(cErrorType.not_available);
+		}
+	};
+	MatchCache.prototype._get = function (range, arg0, arg2, bHor) {
+		var res, _this = this, wsId = range.getWorksheet().getId(),
+			sRangeName = wsId + g_cCharDelimiter + range.getName(), cacheElem = this.cacheId[sRangeName];
+		var arg2Value = arg2.getValue();
+		var valueForSearching = arg0.getValue();
+		if (!cacheElem) {
+			cacheElem = {elements: [], results: {}};
+
+			range._foreachNoEmpty(function (cell, r, c) {
+				cacheElem.elements.push({v: checkTypeCell(cell), i: (bHor ? c - range.bbox.c1 + 1 : r -  range.bbox.r1 + 1)});
+			});
+			this.cacheId[sRangeName] = cacheElem;
+			var cacheRange = this.cacheRanges[wsId];
+			if (!cacheRange) {
+				cacheRange = new AscCommonExcel.RangeDataManager(null);
+				this.cacheRanges[wsId] = cacheRange;
+			}
+			cacheRange.add(range.getBBox0(), cacheElem);
+		}
+		var sInputKey = valueForSearching + g_cCharDelimiter + arg2Value;
+		res = cacheElem.results[sInputKey];
+		if (!res) {
+			cacheElem.results[sInputKey] = res = this._calculate(cacheElem.elements, arg0, arg2);
+		}
+		return res;
+	};
+	MatchCache.prototype._calculate = function (arr, a0, a2) {
+
+		var a2Value = a2.getValue();
+		var a0Type = a0.type;
+		var a0Value = a0.getValue();
+		if (!(cElementType.number === a0Type || cElementType.string === a0Type || cElementType.bool === a0Type ||
+			cElementType.error === a0Type || cElementType.empty === a0Type)) {
+			a0Type = a0Value.type;
+			a0Value = a0Value.getValue();
+		}
+
+		var item, index = -1;
+		for (var i = 0; i < arr.length; ++i) {
+			item = arr[i].v;
+			if (item.type === a0Type) {
+				if (0 === a2Value) {
+					if (cElementType.string === a0Type) {
+						if (AscCommonExcel.searchRegExp2(item.toString(), a0Value)) {
+							index = arr[i].i;
+							break;
+						}
+					} else {
+						if (item == a0Value) {
+							index = arr[i].i;
+							break;
+						}
+					}
+				} else if (1 === a2Value) {
+					if (item <= a0Value) {
+						index = arr[i].i;
+					} else {
+						break;
+					}
+				} else if (-1 === a2Value) {
+					if (item >= a0Value) {
+						index = arr[i].i;
+					} else {
+						break;
+					}
+				}
+			}
+		}
+
+		return (-1 < index) ? new cNumber(index + 1) : new cError(cErrorType.not_available);
+	};
+
+	MatchCache.prototype.Calculate = function (arg) {
+		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
+		return g_oMatchCache.calculate(arg);
+
+
+		function findMatch(a0, a1, a2) {
+			var i, item, a1RowCount = a1.length, a1ColumnCount = a1[0].length, a2Value = a2.getValue(), arr, index = -1;
+			var a0Type = a0.type;
+			var a0Value = a0.getValue();
+			if (!(cElementType.number === a0Type || cElementType.string === a0Type || cElementType.bool === a0Type ||
+				cElementType.error === a0Type || cElementType.empty === a0Type)) {
+				a0Type = a0Value.type;
+				a0Value = a0Value.getValue();
+			}
+
+			if (a1RowCount > 1 && a1ColumnCount > 1) {
+				return new cError(cErrorType.not_available);
+			} else if (a1RowCount === 1 && a1ColumnCount >= 1) {
+				arr = a1[0];
+			} else {
+				arr = [];
+				for (i = 0; i < a1RowCount; i++) {
+					arr[i] = a1[i][0];
+				}
+			}
+
+			if (!(-1 === a2Value || 0 === a2Value || 1 === a2Value)) {
+				return new cError(cErrorType.not_numeric);
+			}
+
+			for (i = 0; i < arr.length; ++i) {
+				item = arr[i];
+				if (arr[i].type === a0Type) {
+					if (0 === a2Value) {
+						if (cElementType.string === a0Type) {
+							if (AscCommonExcel.searchRegExp2(item.toString(), a0Value)) {
+								index = i;
+								break;
+							}
+						} else {
+							if (item == a0Value) {
+								index = i;
+								break;
+							}
+						}
+					} else if (1 === a2Value) {
+						if (item <= a0Value) {
+							index = i;
+						} else {
+							break;
+						}
+					} else if (-1 === a2Value) {
+						if (item >= a0Value) {
+							index = i;
+						} else {
+							break;
+						}
+					}
+				}
+			}
+
+			return (-1 < index) ? new cNumber(index + 1) : new cError(cErrorType.not_available);
+
+		}
+
+		if (cElementType.cellsRange3D === arg0.type || cElementType.array === arg0.type ||
+			cElementType.cellsRange === arg0.type) {
+			return new cError(cErrorType.wrong_value_type);
+		} else if (cElementType.error === arg0.type) {
+			return arg0;
+		}
+		var argTest = arg1;
+
+		if(cElementType.error === arg1.type) {
+			return new cError(cErrorType.not_available);
+		} else if(cache[argTest.value]) {
+			arg1 = cache[argTest.value];
+		} else if (cElementType.array === arg1.type || cElementType.cellsRange === arg1.type) {
+			arg1 = arg1.getMatrix();
+			//cache[argTest.value] = arg1;
+		} else if (cElementType.cellsRange3D === arg1.type && arg1.isSingleSheet()) {
+			arg1 = arg1.getMatrix()[0];
+			//cache[argTest.value] = arg1;
+		} else if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type) {
+			arg1 = arg1.getMatrix();
+			//cache[argTest.value] = arg1;
+		} else {
+			return new cError(cErrorType.not_available);
+		}
+
+		if (cElementType.number === arg2.type || cElementType.bool === arg2.type) {
+		} else if (cElementType.error === arg2.type) {
+			return arg2;
+		} else {
+			return new cError(cErrorType.not_available);
+		}
+
+
+		return findMatch(arg0, arg1, arg2);
+	};
+
+
+
 	/**
 	 * @constructor
 	 * @extends {AscCommonExcel.cBaseFunction}
@@ -1664,9 +1899,11 @@ function (window, undefined) {
 
 	var g_oVLOOKUPCache = new VHLOOKUPCache(false);
 	var g_oHLOOKUPCache = new VHLOOKUPCache(true);
+	var g_oMatchCache = new MatchCache();
 
 //----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].g_oVLOOKUPCache = g_oVLOOKUPCache;
 	window['AscCommonExcel'].g_oHLOOKUPCache = g_oHLOOKUPCache;
+	window['AscCommonExcel'].g_oMatchCache = g_oMatchCache;
 })(window);
