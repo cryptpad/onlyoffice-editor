@@ -736,9 +736,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var localStr = this.toLocaleString();
 		var localStrWithoutSheet;
 		if(localStr) {
-			var splitRes = localStr.split("!");
-			if(splitRes && splitRes[1]) {
-				localStrWithoutSheet = splitRes[1];
+			var result = parserHelp.parse3DRef(localStr);
+			if (result) {
+				localStrWithoutSheet = result.range;
+			} else {
+				localStrWithoutSheet = localStr;
 			}
 		} else {
 			localStr = this.value;
