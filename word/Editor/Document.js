@@ -17891,9 +17891,9 @@ CTrackRevisionsManager.prototype.Get_NextChange = function()
     var OldCurPara   = this.CurPara;
 
     var NextPara = null;
-    if (null !== this.CurChange && null !== this.CurPara)
+    if (null !== this.CurChange && null !== this.CurPara && this.Changes[this.CurPara.GetId()])
     {
-        var ChangesArray = this.Changes[this.CurPara.Get_Id()];
+        var ChangesArray = this.Changes[this.CurPara.GetId()];
         var ChangeIndex = -1;
         for (var Index = 0, Count = ChangesArray.length; Index < Count; Index++)
         {

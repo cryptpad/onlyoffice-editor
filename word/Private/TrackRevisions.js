@@ -461,7 +461,9 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
 {
     var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
     if (null !== CurrentChange)
-        this.Accept_RevisionChange(CurrentChange);
+	{
+		this.Accept_RevisionChange(CurrentChange);
+	}
     else
     {
         var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
@@ -476,13 +478,16 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
         }
     }
 
+    this.TrackRevisionsManager.Clear_CurrentChange();
     this.Get_NextRevisionChange();
 };
 CDocument.prototype.RejectRevisionChangesBySelection = function()
 {
     var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
     if (null !== CurrentChange)
-        this.Reject_RevisionChange(CurrentChange);
+	{
+		this.Reject_RevisionChange(CurrentChange);
+	}
     else
     {
         var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
@@ -497,6 +502,7 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
         }
     }
 
+	this.TrackRevisionsManager.Clear_CurrentChange();
     this.Get_NextRevisionChange();
 };
 CDocument.prototype.Accept_AllRevisionChanges = function(isSkipCheckLock)
