@@ -2372,7 +2372,7 @@ CDocument.prototype.Recalculate = function(bOneParagraph, bRecalcContentLast, _R
 
 		if (null != this.FullRecalc.Id)
 		{
-			if (this.FullRecalc.StartIndex < StartIndex || (this.FullRecalc.StartIndex < StartIndex && this.FullRecalc.PageIndex <= StartPage))
+			if (this.FullRecalc.StartIndex < StartIndex || (this.FullRecalc.StartIndex === StartIndex && this.FullRecalc.PageIndex <= StartPage))
 				return;
 
 			clearTimeout(this.FullRecalc.Id);
@@ -2507,7 +2507,7 @@ CDocument.prototype.Recalculate_Page = function()
                             //if (window["native"]["WC_CheckSuspendRecalculate"]())
                             //    return;
 
-                            this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 10);
+                            this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 100);
                             return;
                         }
                     }
@@ -2518,7 +2518,7 @@ CDocument.prototype.Recalculate_Page = function()
 
                 if (PageIndex + 1 > this.FullRecalc.StartPage + 2)
                 {
-                    this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 20);
+                    this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 200);
                 }
                 else
                     this.Recalculate_Page();
@@ -3128,7 +3128,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
                     //if (window["native"]["WC_CheckSuspendRecalculate"]())
                     //    return;
 
-                    this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 10);
+                    this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 100);
                     return;
                 }
             }
@@ -3139,7 +3139,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 
         if (_PageIndex > this.FullRecalc.StartPage + 2)
         {
-            this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 20);
+            this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 200);
         }
         else
         {
@@ -3697,7 +3697,7 @@ CDocument.prototype.private_RecalculateHdrFtrPageCountUpdate = function()
 			else
 			{
 				this.HdrFtrRecalc.PageIndex = nPageAbs + 1;
-				this.HdrFtrRecalc.Id        = setTimeout(Document_Recalculate_HdrFtrPageCount, 20);
+				this.HdrFtrRecalc.Id        = setTimeout(Document_Recalculate_HdrFtrPageCount, 200);
 				return;
 			}
 		}
