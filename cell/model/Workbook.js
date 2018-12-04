@@ -2027,7 +2027,7 @@
 			History.SetSheetRedo(newSheet.getId());
 			if(!(bFromRedo === true))
 			{
-				wsFrom.copyDrawingObjects(newSheet, wsFrom);
+				wsFrom.copyObjects(newSheet, wsFrom);
 			}
 			this.sortDependency();
 		}
@@ -3311,7 +3311,7 @@
 
 		return renameParams;
 	};
-	Worksheet.prototype.copyDrawingObjects = function (oNewWs, wsFrom) {
+	Worksheet.prototype.copyObjects = function (oNewWs, wsFrom) {
 		var i;
 		if (null != this.Drawings && this.Drawings.length > 0) {
 			var drawingObjects = new AscFormat.DrawingObjects();

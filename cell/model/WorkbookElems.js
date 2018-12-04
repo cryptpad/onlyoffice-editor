@@ -5309,9 +5309,12 @@ RangeDataManager.prototype = {
 		this._f = AscCommonExcel.g_oRangeCache.getRange3D(this.f);
 	};
 	sparkline.prototype.updateWorksheet = function (sheet, oldSheet) {
+		var t = this;
 		if (this._f && oldSheet === this._f.sheet && (null === this._f.sheet2 || oldSheet === this._f.sheet2)) {
 			this._f.setSheet(sheet);
-			this.f = this._f.getName();
+			AscCommonExcel.executeInR1C1Mode(false,function (){
+				t.f = t._f.getName();
+			});
 		}
 	};
 	sparkline.prototype.checkInRange = function (range) {
