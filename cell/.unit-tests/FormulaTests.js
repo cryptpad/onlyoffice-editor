@@ -8075,6 +8075,54 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 2 );
 
+		ws.getRange2( "F3" ).setValue( "" );
+
+		ws.getRange2( "F106" ).setValue( "1" );
+		ws.getRange2( "F107" ).setValue( "" );
+		ws.getRange2( "F108" ).setValue( "" );
+		ws.getRange2( "F109" ).setValue( "" );
+		ws.getRange2( "F110" ).setValue( "2" );
+		ws.getRange2( "F111" ).setValue( "123" );
+		ws.getRange2( "F112" ).setValue( "4" );
+		ws.getRange2( "F113" ).setValue( "5" );
+		ws.getRange2( "F114" ).setValue( "6" );
+		ws.getRange2( "F115" ).setValue( "0" );
+		ws.getRange2( "F116" ).setValue( "" );
+		ws.getRange2( "F117" ).setValue( "0" );
+
+		oParser = new parserFormula( "MATCH(F3,F106:F114,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#N/A" );
+
+		oParser = new parserFormula( "MATCH(F3,F106:F117,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 10 );
+
+		oParser = new parserFormula( "MATCH(0,F106:F114,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#N/A" );
+
+		oParser = new parserFormula( "MATCH(0,F106:F117,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 10 );
+
+		oParser = new parserFormula( "MATCH(6,F106:F117,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 9 );
+
+		oParser = new parserFormula( "MATCH(6,F106:F117,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 5 );
+
+		oParser = new parserFormula( "MATCH(6,F106:F117,-1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#N/A" );
+
+		//TODO excel по-другому работает
+		/*oParser = new parserFormula( "MATCH(123,F106:F117,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 6 );*/
+
     } );
 
     test( "Test: \"INDEX\"", function () {

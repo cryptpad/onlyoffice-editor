@@ -750,14 +750,17 @@ function (window, undefined) {
 	cMATCH.prototype.arrayIndexes = {1: 1};
 	cMATCH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
-		//return g_oMatchCache.calculate(arg);
 
-		function findMatch(a0, a1, a2) {
+		/*function findMatch(a0, a1, a2) {
 			var i, item, a1RowCount = a1.length, a1ColumnCount = a1[0].length, a2Value = a2.getValue(), arr, index = -1;
 			var a0Type = a0.type;
 			var a0Value = a0.getValue();
 			if (!(cElementType.number === a0Type || cElementType.string === a0Type || cElementType.bool === a0Type ||
 					cElementType.error === a0Type || cElementType.empty === a0Type)) {
+				if(cElementType.empty === a0Value.type) {
+					a0Value = a0Value.tocNumber();
+				}
+
 				a0Type = a0Value.type;
 				a0Value = a0Value.getValue();
 			}
@@ -836,8 +839,9 @@ function (window, undefined) {
 			return new cError(cErrorType.not_available);
 		}
 
-		return findMatch(arg0, arg1, arg2)
+		return findMatch(arg0, arg1, arg2);*/
 
+		return g_oMatchCache.calculate(arg);
 	};
 
 	/**
@@ -1669,7 +1673,20 @@ function (window, undefined) {
 			return new cError(cErrorType.not_available);
 		} else if (cElementType.array === arg1.type) {
 			arg1 = arg1.getMatrix();
-			//cache[argTest.value] = arg1;
+
+			var i, a1RowCount = arg1.length, a1ColumnCount = arg1[0].length, arr;
+
+			if (a1RowCount > 1 && a1ColumnCount > 1) {
+				return new cError(cErrorType.not_available);
+			} else if (a1RowCount === 1 && a1ColumnCount >= 1) {
+				arr = arg1[0];
+			} else {
+				arr = [];
+				for (i = 0; i < a1RowCount; i++) {
+					arr[i] = arg1[i][0];
+				}
+			}
+			return this._calculate(arr, arg0, arg2);
 		}
 
 		if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type ||
@@ -1703,7 +1720,7 @@ function (window, undefined) {
 			cacheElem = {elements: [], results: {}};
 
 			range._foreachNoEmpty(function (cell, r, c) {
-				cacheElem.elements.push({v: checkTypeCell(cell), i: (bHor ? c - range.bbox.c1 + 1 : r -  range.bbox.r1 + 1)});
+				cacheElem.elements.push({v: checkTypeCell(cell), i: (bHor ? c - range.bbox.c1 : r -  range.bbox.r1)});
 			});
 			this.cacheId[sRangeName] = cacheElem;
 			var cacheRange = this.cacheRanges[wsId];
@@ -1727,35 +1744,39 @@ function (window, undefined) {
 		var a0Value = a0.getValue();
 		if (!(cElementType.number === a0Type || cElementType.string === a0Type || cElementType.bool === a0Type ||
 			cElementType.error === a0Type || cElementType.empty === a0Type)) {
+			if(cElementType.empty === a0Value.type) {
+				a0Value = a0Value.tocNumber();
+			}
 			a0Type = a0Value.type;
 			a0Value = a0Value.getValue();
 		}
 
-		var item, index = -1;
+		var item, index = -1, curIndex;
 		for (var i = 0; i < arr.length; ++i) {
-			item = arr[i].v;
+			item = undefined !== arr[i].v ? arr[i].v : arr[i];
+			curIndex = undefined !== arr[i].i ? arr[i].i : i;
 			if (item.type === a0Type) {
 				if (0 === a2Value) {
 					if (cElementType.string === a0Type) {
 						if (AscCommonExcel.searchRegExp2(item.toString(), a0Value)) {
-							index = arr[i].i;
+							index = curIndex;
 							break;
 						}
 					} else {
 						if (item == a0Value) {
-							index = arr[i].i;
+							index = curIndex;
 							break;
 						}
 					}
 				} else if (1 === a2Value) {
 					if (item <= a0Value) {
-						index = arr[i].i;
+						index = curIndex;
 					} else {
 						break;
 					}
 				} else if (-1 === a2Value) {
 					if (item >= a0Value) {
-						index = arr[i].i;
+						index = curIndex;
 					} else {
 						break;
 					}
@@ -1765,108 +1786,6 @@ function (window, undefined) {
 
 		return (-1 < index) ? new cNumber(index + 1) : new cError(cErrorType.not_available);
 	};
-
-	MatchCache.prototype.Calculate = function (arg) {
-		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
-		return g_oMatchCache.calculate(arg);
-
-
-		function findMatch(a0, a1, a2) {
-			var i, item, a1RowCount = a1.length, a1ColumnCount = a1[0].length, a2Value = a2.getValue(), arr, index = -1;
-			var a0Type = a0.type;
-			var a0Value = a0.getValue();
-			if (!(cElementType.number === a0Type || cElementType.string === a0Type || cElementType.bool === a0Type ||
-				cElementType.error === a0Type || cElementType.empty === a0Type)) {
-				a0Type = a0Value.type;
-				a0Value = a0Value.getValue();
-			}
-
-			if (a1RowCount > 1 && a1ColumnCount > 1) {
-				return new cError(cErrorType.not_available);
-			} else if (a1RowCount === 1 && a1ColumnCount >= 1) {
-				arr = a1[0];
-			} else {
-				arr = [];
-				for (i = 0; i < a1RowCount; i++) {
-					arr[i] = a1[i][0];
-				}
-			}
-
-			if (!(-1 === a2Value || 0 === a2Value || 1 === a2Value)) {
-				return new cError(cErrorType.not_numeric);
-			}
-
-			for (i = 0; i < arr.length; ++i) {
-				item = arr[i];
-				if (arr[i].type === a0Type) {
-					if (0 === a2Value) {
-						if (cElementType.string === a0Type) {
-							if (AscCommonExcel.searchRegExp2(item.toString(), a0Value)) {
-								index = i;
-								break;
-							}
-						} else {
-							if (item == a0Value) {
-								index = i;
-								break;
-							}
-						}
-					} else if (1 === a2Value) {
-						if (item <= a0Value) {
-							index = i;
-						} else {
-							break;
-						}
-					} else if (-1 === a2Value) {
-						if (item >= a0Value) {
-							index = i;
-						} else {
-							break;
-						}
-					}
-				}
-			}
-
-			return (-1 < index) ? new cNumber(index + 1) : new cError(cErrorType.not_available);
-
-		}
-
-		if (cElementType.cellsRange3D === arg0.type || cElementType.array === arg0.type ||
-			cElementType.cellsRange === arg0.type) {
-			return new cError(cErrorType.wrong_value_type);
-		} else if (cElementType.error === arg0.type) {
-			return arg0;
-		}
-		var argTest = arg1;
-
-		if(cElementType.error === arg1.type) {
-			return new cError(cErrorType.not_available);
-		} else if(cache[argTest.value]) {
-			arg1 = cache[argTest.value];
-		} else if (cElementType.array === arg1.type || cElementType.cellsRange === arg1.type) {
-			arg1 = arg1.getMatrix();
-			//cache[argTest.value] = arg1;
-		} else if (cElementType.cellsRange3D === arg1.type && arg1.isSingleSheet()) {
-			arg1 = arg1.getMatrix()[0];
-			//cache[argTest.value] = arg1;
-		} else if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type) {
-			arg1 = arg1.getMatrix();
-			//cache[argTest.value] = arg1;
-		} else {
-			return new cError(cErrorType.not_available);
-		}
-
-		if (cElementType.number === arg2.type || cElementType.bool === arg2.type) {
-		} else if (cElementType.error === arg2.type) {
-			return arg2;
-		} else {
-			return new cError(cErrorType.not_available);
-		}
-
-
-		return findMatch(arg0, arg1, arg2);
-	};
-
 
 
 	/**

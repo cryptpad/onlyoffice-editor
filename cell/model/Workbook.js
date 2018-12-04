@@ -1077,6 +1077,7 @@
 			}
 			AscCommonExcel.g_oVLOOKUPCache.clean();
 			AscCommonExcel.g_oHLOOKUPCache.clean();
+			AscCommonExcel.g_oMatchCache.clean();
 		},
 		initOpen: function() {
 			this._foreachDefName(function(defName) {
@@ -7410,6 +7411,7 @@
 			this.ws.workbook.dependencyFormulas.addToCleanCellCache(this.ws.getId(), this.nRow, this.nCol);
 			AscCommonExcel.g_oVLOOKUPCache.remove(this);
 			AscCommonExcel.g_oHLOOKUPCache.remove(this);
+			AscCommonExcel.g_oMatchCache.remove(this);
 		}
 	};
 	Cell.prototype.cleanText = function() {
