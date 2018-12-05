@@ -1183,7 +1183,9 @@
 		this._adjustCanvas();
 		this._showCanvas();
 		this._renderText();
-		this.input.value = this._getFragmentsText(fragments);
+		if(!this.options.isNotDrawInput) {
+			this.input.value = this._getFragmentsText(fragments);
+		}
 		this._updateCursorPosition();
 		this._showCursor();
 	};

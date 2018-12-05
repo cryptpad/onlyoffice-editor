@@ -16081,7 +16081,8 @@
 				}
 				return {l: [0], r: [t.parentWidth], b: bottomArr, cellX: 0, cellY: 0, ri: 0, bi: 0};
 			},
-			menuEditor: true
+			menuEditor: true,
+			isNotDrawInput: true
 		};
 
 		//TODO для определение позиции первого клика прадварительно выставляю опции и измеряю. Рассмотреть, если ли другой вариант?
