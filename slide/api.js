@@ -2341,7 +2341,9 @@ background-repeat: no-repeat;\
 		this.sync_SearchStartCallback();
 
 		if (null != this.WordControl.m_oLogicDocument)
-			this.WordControl.m_oLogicDocument.Search_Start(what);
+		{
+
+		}
 		else
 			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.StartSearch(what);
 	};
@@ -2364,6 +2366,17 @@ background-repeat: no-repeat;\
 
 		this.WordControl.m_oLogicDocument.Search_Stop();
 	};
+
+	asc_docs_api.prototype.sync_ReplaceAllCallback = function(ReplaceCount, OverallCount)
+	{
+		this.sendEvent("asc_onReplaceAll", ReplaceCount, OverallCount);
+	};
+
+	asc_docs_api.prototype.sync_SearchEndCallback = function()
+	{
+		this.sendEvent("asc_onSearchEnd");
+	};
+
 	asc_docs_api.prototype.findText             = function(text, isNext)
 	{
 
@@ -2378,6 +2391,35 @@ background-repeat: no-repeat;\
 
 		//return this.WordControl.m_oLogicDocument.findText(text, scanForward);
 	};
+
+	asc_docs_api.prototype.asc_replaceText = function(text, replaceWith, isReplaceAll, isMatchCase)
+	{
+		if (null == this.WordControl.m_oLogicDocument)
+			return;
+
+		this.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
+
+		if (true === isReplaceAll)
+			this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, true, -1);
+		else
+		{
+			var CurId      = this.WordControl.m_oLogicDocument.SearchEngine.CurId;
+			var bDirection = this.WordControl.m_oLogicDocument.SearchEngine.Direction;
+			if (-1 != CurId)
+				this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, false, CurId);
+
+			var Id = this.WordControl.m_oLogicDocument.Search_GetId(bDirection);
+
+			if (null != Id)
+			{
+				this.WordControl.m_oLogicDocument.Search_Select(Id);
+				return true;
+			}
+
+			return false;
+		}
+	};
+
 
 	asc_docs_api.prototype.asc_searchEnabled = function(bIsEnabled)
 	{
