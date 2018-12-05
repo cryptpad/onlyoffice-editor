@@ -1066,7 +1066,11 @@
 
 				switch (type) {
 					case AscCH.historyitem_AutoFilter_Add:
-						this.isEmptyAutoFilters(cloneData.Ref);
+						if(cloneData.Ref && (cloneData instanceof AscCommonExcel.AutoFilter || cloneData instanceof AscCommonExcel.TablePart)) {
+							undo_apply();
+						} else {
+							this.isEmptyAutoFilters(cloneData.Ref);
+						}
 						break;
 					case AscCH.historyitem_AutoFilter_ChangeTableStyle:
 						this.changeTableStyleInfo(cloneData.name, data.activeCells);

@@ -1776,6 +1776,11 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_ShowSpecialPasteButton = function(props)
 	{
+		if (window["NATIVE_EDITOR_ENJINE"])
+		{
+			return;
+		}
+
 		var presentation = editor.WordControl.m_oLogicDocument;
 		var drawingDocument = presentation.DrawingDocument;
 		var notesFocus = presentation.IsFocusOnNotes();
@@ -1827,11 +1832,19 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_HideSpecialPasteButton = function()
 	{
+		if (window["NATIVE_EDITOR_ENJINE"])
+		{
+			return;
+		}
 		this.sendEvent("asc_onHideSpecialPasteOptions");
 	};
 
 	asc_docs_api.prototype.asc_UpdateSpecialPasteButton = function()
 	{
+		if (window["NATIVE_EDITOR_ENJINE"])
+		{
+			return;
+		}
 		var props = AscCommon.g_specialPasteHelper.buttonInfo;
 		var presentation = editor.WordControl.m_oLogicDocument;
 		var drawingDocument = presentation.DrawingDocument;
@@ -2007,7 +2020,7 @@ background-repeat: no-repeat;\
 		_logicDoc.Remove(1, true, true);
 	};
 
-	asc_docs_api.prototype._onSaveCallbackInner = function(isUndoRequest)
+	asc_docs_api.prototype._onSaveCallbackInner = function()
 	{
 		var t = this;
 		if (c_oAscCollaborativeMarksShowType.LastChanges === this.CollaborativeMarksShowType)
@@ -2055,10 +2068,11 @@ background-repeat: no-repeat;\
 		}
 
 		// Пересылаем свои изменения
-		if (isUndoRequest)
+		if (this.forceSaveUndoRequest)
 		{
 			AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 			AscCommon.CollaborativeEditing.Undo();
+			this.forceSaveUndoRequest = false;
 		}
 		else
 		{
@@ -5497,9 +5511,9 @@ background-repeat: no-repeat;\
     //-----------------------------------------------------------------
     // Функции для работы с орфографией
     //-----------------------------------------------------------------
-    asc_docs_api.prototype.sync_SpellCheckCallback = function(Word, Checked, Variants, ParaId, ElemId)
+    asc_docs_api.prototype.sync_SpellCheckCallback = function(Word, Checked, Variants, ParaId, Element)
     {
-        this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.SpellCheck, new AscCommon.asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, ElemId));
+        this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.SpellCheck, new AscCommon.asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, Element));
     };
 
     asc_docs_api.prototype.sync_SpellCheckVariantsFound = function()
@@ -5519,12 +5533,11 @@ background-repeat: no-repeat;\
         if (false === bAll)
         {
             var ParaId = SpellCheckProperty.ParaId;
-            var ElemId = SpellCheckProperty.ElemId;
 
             var Paragraph = g_oTableId.Get_ById(ParaId);
             if (null != Paragraph)
             {
-                Paragraph.Ignore_MisspelledWord(ElemId);
+                Paragraph.IgnoreMisspelledWord(SpellCheckProperty.Element);
             }
         }
         else
@@ -6640,7 +6653,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._onNeedParams  = function(data, opt_isPassword)
 	{
 		if (opt_isPassword) {
-			this.sendEvent("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), c_oAscAdvancedOptionsAction.Open);
+			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
+				this.sendEvent("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), c_oAscAdvancedOptionsAction.Open);
+			} else {
+				this.sendEvent("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
+			}
 		}
 	};
 
@@ -6736,6 +6753,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype._downloadAs = function(filetype, actionType, options)
 	{
+		var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
 		var t = this;
 		if (!options)
 		{
@@ -6745,7 +6763,7 @@ background-repeat: no-repeat;\
 		{
 			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
 		}
-		var isNoBase64 = typeof ArrayBuffer !== 'undefined';
+		var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
 
 		var dataContainer               = {data : null, part : null, index : 0, count : 0};
 		var command                     = "save";
@@ -6769,6 +6787,13 @@ background-repeat: no-repeat;\
 		}
 		else
 			dataContainer.data = this.WordControl.SaveDocument(isNoBase64);
+
+        if (isCloudCrypto)
+        {
+        	window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, filetype);
+            return;
+        }
+
 		var fCallback     = function(input)
 		{
 			var error = c_oAscError.ID.Unknown;
@@ -7169,9 +7194,14 @@ background-repeat: no-repeat;\
 		return defaultSize;
 	};
 
-	window["AscDesktopEditor_Save"] = function()
+	asc_docs_api.prototype.asc_getAppProps = function()
 	{
-		return editor.asc_Save(false);
+		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.App || null;
+	};
+
+	asc_docs_api.prototype.asc_getCoreProps = function()
+	{
+		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.Core || null;
 	};
 
 	//-------------------------------------------------------------export---------------------------------------------------
@@ -7210,6 +7240,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['SetInterfaceDrawImagePlaceTextArt']   = asc_docs_api.prototype.SetInterfaceDrawImagePlaceTextArt;
 	asc_docs_api.prototype['OpenDocument2']                       = asc_docs_api.prototype.OpenDocument2;
 	asc_docs_api.prototype['asc_getDocumentName']                 = asc_docs_api.prototype.asc_getDocumentName;
+	asc_docs_api.prototype['asc_getAppProps']                     = asc_docs_api.prototype.asc_getAppProps;
+	asc_docs_api.prototype['asc_getCoreProps']                    = asc_docs_api.prototype.asc_getCoreProps;
 	asc_docs_api.prototype['asc_registerCallback']                = asc_docs_api.prototype.asc_registerCallback;
 	asc_docs_api.prototype['asc_unregisterCallback']              = asc_docs_api.prototype.asc_unregisterCallback;
 	asc_docs_api.prototype['asc_checkNeedCallback']               = asc_docs_api.prototype.asc_checkNeedCallback;

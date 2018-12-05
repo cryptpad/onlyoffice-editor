@@ -115,6 +115,8 @@
 			KeyExpire             : -21,
 			UserCountExceed       : -22,
 			AccessDeny            : -23,
+			LoadingScriptError    : -24,
+			EditingError          :	-25,
 
 			SplitCellMaxRows     : -30,
 			SplitCellMaxCols     : -31,
@@ -181,6 +183,8 @@
 			OpenWarning : 500,
 
             DataEncrypted : -600,
+
+			CannotChangeFormulaArray: -450,
 		}
 	};
 
@@ -1485,6 +1489,8 @@
 	prot['KeyExpire']                        = prot.KeyExpire;
 	prot['UserCountExceed']                  = prot.UserCountExceed;
 	prot['AccessDeny']                       = prot.AccessDeny;
+	prot['LoadingScriptError']               = prot.LoadingScriptError;
+	prot['EditingError']                     = prot.EditingError;
 	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
 	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
 	prot['SplitCellRowsDivider']             = prot.SplitCellRowsDivider;
@@ -1529,6 +1535,7 @@
 	prot['LockedCellPivot']                  = prot.LockedCellPivot;
 	prot['ForceSaveButton']                  = prot.ForceSaveButton;
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
+	prot['CannotChangeFormulaArray']         = prot.CannotChangeFormulaArray;
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;

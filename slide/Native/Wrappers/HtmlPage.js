@@ -228,11 +228,44 @@ CEditorPage.prototype.onButtonTabsDraw = function()
 
 CEditorPage.prototype.onPrevPage = function()
 {
+    var DD = this.m_oDrawingDocument;
+    if(DD)
+    {
+        if (0 < DD.SlideCurrent)
+        {
+            this.GoToPage(DD.SlideCurrent - 1);
+        }
+        else
+        {
+            this.GoToPage(0);
+        }
+    }
 };
-
 CEditorPage.prototype.onNextPage = function()
 {
+    var oWordControl = this;
+    if ((oWordControl.m_oDrawingDocument.SlidesCount - 1) > oWordControl.m_oDrawingDocument.SlideCurrent)
+    {
+        oWordControl.GoToPage(oWordControl.m_oDrawingDocument.SlideCurrent + 1);
+    }
+    else if (oWordControl.m_oDrawingDocument.SlidesCount > 0)
+    {
+        oWordControl.GoToPage(oWordControl.m_oDrawingDocument.SlidesCount - 1);
+    }
+    var DD = this.m_oDrawingDocument;
+    if(DD)
+    {
+        if (DD.SlidesCount - 1 > DD.SlideCurrent)
+        {
+            this.GoToPage(DD.SlideCurrent + 1);
+        }
+        else
+        {
+            this.GoToPage(oWordControl.m_oDrawingDocument.SlidesCount - 1);
+        }
+    }
 };
+
 
 CEditorPage.prototype.horRulerMouseDown = function(e)
 {
@@ -528,11 +561,18 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
     if(!this.m_oLogicDocument || !this.m_oLogicDocument.Api){
         return;
     }
+    
+    var master;
     var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
-    if(!slide){
+    if (slide) {
+        master = slide.Layout.Master;
+    }
+    else{
+        master = this.m_oLogicDocument.slideMasters[0];
+    }
+    if(!master){
         return;
     }
-    var master = slide.Layout.Master;
     if(bIsAttack || this.MasterLayouts !== master){
         this.MasterLayouts = master;
         this.m_oDrawingDocument.CheckLayouts(master);

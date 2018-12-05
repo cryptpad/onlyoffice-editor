@@ -1881,6 +1881,7 @@ function CBinaryFileWriter()
             var spacing = pPr.Spacing;
             if (spacing !== undefined && spacing != null)
             {
+                var _value;
                 switch (spacing.LineRule)
                 {
                     case Asc.linerule_Auto:
@@ -1893,7 +1894,14 @@ function CBinaryFileWriter()
                     case Asc.linerule_Exact:
                         oThis.StartRecord(0);
                         oThis.WriteUChar(g_nodeAttributeStart);
-                        oThis._WriteInt1(1, (spacing.Line / 0.00352777778) >> 0);
+                        _value = ((spacing.Line / 0.00352777778) >> 0);
+                        if(_value < 0){
+                            _value = 0;
+                        }
+                        if(_value > 158400){
+                            _value = 158400;
+                        }
+                        oThis._WriteInt1(1, _value);
                         oThis.WriteUChar(g_nodeAttributeEnd);
                         oThis.EndRecord();
                         break;
@@ -1901,20 +1909,34 @@ function CBinaryFileWriter()
                         break;
                 }
 
-                if (spacing.After !== undefined)
+                if (spacing.After !== undefined && spacing.After !== null)
                 {
                     oThis.StartRecord(1);
                     oThis.WriteUChar(g_nodeAttributeStart);
-                    oThis._WriteInt1(1, (spacing.After / 0.00352777778) >> 0);
+                    _value = ((spacing.After / 0.00352777778) >> 0);
+                    if(_value < 0){
+                        _value = 0;
+                    }
+                    if(_value > 158400){
+                        _value = 158400;
+                    }
+                    oThis._WriteInt1(1, _value);
                     oThis.WriteUChar(g_nodeAttributeEnd);
                     oThis.EndRecord();
                 }
 
-                if (spacing.Before !== undefined)
+                if (spacing.Before !== undefined && spacing.Before !== null)
                 {
                     oThis.StartRecord(2);
                     oThis.WriteUChar(g_nodeAttributeStart);
-                    oThis._WriteInt1(1, (spacing.Before / 0.00352777778) >> 0);
+                    _value = ((spacing.Before / 0.00352777778) >> 0);
+                    if(_value < 0){
+                        _value = 0;
+                    }
+                    if(_value > 158400){
+                        _value = 158400;
+                    }
+                    oThis._WriteInt1(1, _value);
                     oThis.WriteUChar(g_nodeAttributeEnd);
                     oThis.EndRecord();
                 }
@@ -3668,9 +3690,16 @@ function CBinaryFileWriter()
         }
     }
 
-    this.WriteGroupShape = function(group)
+    this.WriteGroupShape = function(group, type)
     {
-        oThis.StartRecord(4);
+        if(AscFormat.isRealNumber(type))
+        {
+            oThis.StartRecord(type);
+        }
+        else
+        {
+            oThis.StartRecord(4);
+        }
 
         group.spPr.WriteXfrm = group.spPr.xfrm;
         if(group.nvGrpSpPr)
@@ -5078,6 +5107,11 @@ function CBinaryFileWriter()
                 case AscDFH.historyitem_type_GroupShape:
                 {
                     this.WriteGroup(grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
+                    break;
+                }
+                case AscDFH.historyitem_type_LockedCanvas:
+                {
+                    this.BinaryFileWriter.WriteGroupShape(grObject, 9);
                     break;
                 }
 				case AscDFH.historyitem_type_ChartSpace:

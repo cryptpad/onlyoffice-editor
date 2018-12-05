@@ -457,7 +457,7 @@
 							return arrayElements[i];
 					} else if (element["type"] === c_oAscLockTypeElem.Range) {
 						// Не учитываем lock от Insert
-						if (c_oAscLockTypeElemSubType.InsertRows === oUnlockElement["subType"] || c_oAscLockTypeElemSubType.InsertColumns === oUnlockElement["subType"])
+						if (c_oAscLockTypes.kLockTypeMine === type || c_oAscLockTypeElemSubType.InsertRows === oUnlockElement["subType"] || c_oAscLockTypeElemSubType.InsertColumns === oUnlockElement["subType"])
 							continue;
 						rangeTmp1 = oUnlockElement["rangeOrObjectId"];
 						rangeTmp2 = element["rangeOrObjectId"];

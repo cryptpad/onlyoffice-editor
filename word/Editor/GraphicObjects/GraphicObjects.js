@@ -634,7 +634,8 @@ CGraphicObjects.prototype =
             }
         }
         this.applyDrawingProps(oApplyProps);
-        if(AscFormat.isRealNumber(oApplyProps.Width) || AscFormat.isRealNumber(oApplyProps.Height))
+        if(AscFormat.isRealNumber(oApplyProps.Width) || AscFormat.isRealNumber(oApplyProps.Height) || AscFormat.isRealNumber(oApplyProps.rot)
+            || AscFormat.isRealBool(oApplyProps.flipH)|| AscFormat.isRealBool(oApplyProps.flipV))
         {
             /*в случае если в насторойках ParaDrawing стоит UseAlign - пересчитываем drawing, т. к. ширина и высото ParaDrawing рассчитывается по bounds*/
             var aSelectedObjects = this.selectedObjects;
@@ -1789,6 +1790,8 @@ CGraphicObjects.prototype =
         }
     },
 
+
+
     updateParentParagraphParaPr : function()
     {
         var majorParaDrawing = this.getMajorParaDrawing();
@@ -2279,6 +2282,8 @@ CGraphicObjects.prototype =
     },
 
     selectAll: DrawingObjectsController.prototype.selectAll,
+
+    startEditTextCurrentShape: DrawingObjectsController.prototype.startEditTextCurrentShape,
 
     drawSelect: function(pageIndex)
     {

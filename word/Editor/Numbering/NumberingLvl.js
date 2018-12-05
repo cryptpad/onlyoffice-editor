@@ -75,6 +75,14 @@ CNumberingLvl.prototype.GetPStyle = function()
 	return this.PStyle;
 };
 /**
+ * Устанавливаем связанный стиль
+ * @param {string} sStyleId
+ */
+CNumberingLvl.prototype.SetPStyle = function(sStyleId)
+{
+	this.PStyle = sStyleId;
+};
+/**
  * Доступ к начальному значению для данного уровня
  * @returns {number}
  */
@@ -1069,5 +1077,5 @@ CNumberingLvlLegacy.prototype.ReadFromBinary = function(oReader)
 	// Long : Space
 	this.Legacy = oReader.GetBool();
 	this.Indent = oReader.GetLong();
-	this.Space  = oReader.GetSpace();
+	this.Space  = oReader.GetLong();
 };

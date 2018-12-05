@@ -835,11 +835,6 @@
 		return b - a;
 	}
 
-	function fOnlyUnique(value, index, self)
-	{
-		return self.indexOf(value) === index;
-	}
-
 	function isLeadingSurrogateChar(nCharCode)
 	{
 		return (nCharCode >= 0xD800 && nCharCode <= 0xDFFF);
@@ -3167,11 +3162,11 @@
 		this.Dark = new CColor(R, G, B, 255);
 	};
 
-	function loadScript(url, callback)
+	function loadScript(url, onSuccess, onError)
 	{
 		if (window["NATIVE_EDITOR_ENJINE"] === true || window["Native"] !== undefined)
 		{
-			callback();
+			onSuccess();
 			return;
 		}
 
@@ -3180,7 +3175,7 @@
 			var _context = {
 				"completeLoad": function ()
 								{
-									return callback();
+									return onSuccess();
 								}
 			};
 			window["local_load_add"](_context, "sdk-all-from-min", url);
@@ -3189,7 +3184,7 @@
 				window["local_load_remove"](url);
 			if (_ret_param == 1)
 			{
-				setTimeout(callback, 1);
+				setTimeout(onSuccess, 1);
 				return;
 			}
 			else if (_ret_param == 2)
@@ -3199,21 +3194,22 @@
 		var script = document.createElement('script');
 		script.type = 'text/javascript';
 		script.src = url;
-		script.onload = script.onerror = callback;
+		script.onload = onSuccess;
+		script.onerror = onError;
 
 		// Fire the loading
 		document.head.appendChild(script);
 	}
 
-	function loadSdk(sdkName, callback)
+	function loadSdk(sdkName, onSuccess, onError)
 	{
 		if (window['AscNotLoadAllScript'])
 		{
-			callback();
+			onSuccess();
 		}
 		else
 		{
-			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', callback);
+			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', onSuccess, onError);
 		}
 	}
 
@@ -3515,8 +3511,12 @@
 	CSignatureDrawer.prototype.selectImage = CSignatureDrawer.prototype["selectImage"] = function()
 	{
 		this.Text = "";
-		window["AscDesktopEditor"]["OpenFilenameDialog"]("images", false, function(file) {
-            if (file == "")
+		window["AscDesktopEditor"]["OpenFilenameDialog"]("images", false, function(_file) {
+            var file = _file;
+            if (Array.isArray(file))
+                file = file[0];
+
+			if (file == "")
                 return;
 
             var _drawer = window.Asc.g_signature_drawer;
@@ -3597,6 +3597,7 @@
         this.isChangesHandled = false;
 
         this.cryptoMode = 0; // start crypto mode
+		this.isChartEditor = false;
 
         this.isExistDecryptedChanges = false; // был ли хоть один запрос на расшифровку данных (были ли чужие изменения)
 
@@ -3604,6 +3605,10 @@
         this.cryptoPrefixLen = this.cryptoPrefix.length;
 
         this.editorId = null;
+
+        this.nextChangesTimeoutId = -1;
+
+        this.isPasswordCryptoPresent = false;
 
         this.isNeedCrypt = function()
 		{
@@ -3616,6 +3621,9 @@
             if (!window["AscDesktopEditor"])
                 return false;
 
+            if (this.isChartEditor)
+            	return false;
+
             if (2 == this.cryptoMode)
             	return true;
 
@@ -3627,7 +3635,7 @@
 
 		this.isCryptoImages = function()
 		{
-            return this.isNeedCrypt();
+            return (this.isNeedCrypt() && this.isPasswordCryptoPresent);
 		};
 
         this.addCryproImagesFromDialog = function(callback)
@@ -3697,8 +3705,9 @@
 
         this.nextChanges = function()
 		{
-			setTimeout(function() {
+            this.nextChangesTimeoutId = setTimeout(function() {
 				AscCommon.EncryptionWorker.sendChanges(undefined, undefined);
+                this.nextChangesTimeoutId = -1;
 			}, 10);
 		};
 
@@ -3728,8 +3737,19 @@
             if (this.arrData.length == 0)
                 return;
 
-            if (undefined !== type && 1 != this.arrData.length)
+            if (undefined !== type && ((1 != this.arrData.length) || !this.isChangesHandled))
             	return; // вызовется на коллбэке
+
+			if (undefined !== type && -1 != this.nextChangesTimeoutId)
+			{
+				// вызвали send, когда данные на receiveChanges были удалены - и запустился nextChanges
+				// но так как он сделан на таймере - то просто он не успел отработать.
+				// тут запускаем единственное изменение - это и есть как бы next.
+				// убиваем таймер
+
+				clearTimeout(this.nextChangesTimeoutId);
+				this.nextChangesTimeoutId = -1;
+			}
 
             if (AscCommon.EncryptionMessageType.Encrypt == this.arrData[0].type)
             {
@@ -3780,7 +3800,6 @@
 				}
                 this.isChangesHandled = true;
 				this.handleChangesCallback.callback.call(this.handleChangesCallback.sender);
-                this.isChangesHandled = false;
 				this.handleChangesCallback = null;
 
                 this.nextChanges();
@@ -3795,7 +3814,13 @@
             	if (obj.options && obj.options.isImageCrypt)
 				{
                     for (var i = 0; i < data.length; i++)
-                        data[i] = "ENCRYPTED;" + obj.options.ext[i] + ";" + data[i];
+					{
+						if (this.cryptoPrefix == data[i].substr(0, this.cryptoPrefixLen))
+						{
+							// дописываем extension
+                            data[i] = this.cryptoPrefix + obj.options.ext[i] + ";" + data[i].substr(this.cryptoPrefixLen);
+						}
+					}
 
 					if (!obj.options.isUrls)
 						obj.options.callback(Asc.c_oAscError.ID.No, data);
@@ -3908,7 +3933,6 @@
 
 				this.isChangesHandled = true;
 				_callback.call(_sender);
-                this.isChangesHandled = false;
                 return;
 			}
 
@@ -3936,6 +3960,14 @@
 
         this.asc_setAdvancedOptions = function(api, idOption, option)
 		{
+            if (window.isNativeOpenPassword)
+            {
+                window["AscDesktopEditor"]["NativeViewerOpen"](option.asc_getPassword());
+                return;
+            }
+            if (window.isCloudCryptoDownloadAs)
+            	return false;
+
 			if (!this.isNeedCrypt())
 				return false;
 
@@ -4078,7 +4110,6 @@
 	window["AscCommon"].getFullImageSrc2 = getFullImageSrc2;
 	window["AscCommon"].fSortAscending = fSortAscending;
 	window["AscCommon"].fSortDescending = fSortDescending;
-	window["AscCommon"].fOnlyUnique = fOnlyUnique;
 	window["AscCommon"].isLeadingSurrogateChar = isLeadingSurrogateChar;
 	window["AscCommon"].decodeSurrogateChar = decodeSurrogateChar;
 	window["AscCommon"].encodeSurrogateChar = encodeSurrogateChar;
@@ -4428,4 +4459,38 @@ window["buildCryptoFile_End"] = function(url, error, hash, password)
 		xhr.send(null);
 	};
     window.g_asc_plugins.sendToEncryption({"type": "setPasswordByFile", "hash": hash, "password": password});
+};
+
+window["NativeFileOpen_error"] = function(error)
+{
+    var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+
+    if ("password" == error)
+    {
+        window.isNativeOpenPassword = error;
+        _api._onNeedParams(undefined, true);
+    }
+    else if ("error" == error)
+    {
+        _api.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+        return;
+    }
+};
+
+window["CryptoDownloadAsEnd"] = function()
+{
+    var _editor = window.Asc.editor ? window.Asc.editor : window.editor;
+    _editor.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.DownloadAs);
+
+    window.isCloudCryptoDownloadAs = undefined;
+};
+
+window["AscDesktopEditor_Save"] = function()
+{
+    var _editor = window.Asc.editor ? window.Asc.editor : window.editor;
+    if (!_editor.asc_Save(false))
+    {
+    	// сейва не будет. сами посылаем callback
+        window["AscDesktopEditor"]["OnSave"]();
+    }
 };

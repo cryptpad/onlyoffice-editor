@@ -463,51 +463,58 @@ CParaSpellChecker.prototype =
     },
 
     Document_UpdateInterfaceState : function(StartPos, EndPos)
-    {
-        // Надо определить, попадает ли какое-либо неверно набранное слово в заданный промежуток, и одно ли оно
-        var Count = this.Elements.length;
-        var FoundElement = null;
-        var FoundIndex   = -1;
-        for ( var Index = 0; Index < Count; Index++ )
-        {
-            var Element = this.Elements[Index];
-            if ( Element.StartPos.Compare(EndPos) <= 0 && Element.EndPos.Compare(StartPos) >= 0 && false === Element.Checked )
-            {
-                if ( null != FoundElement )
-                {
-                    FoundElement = null;
-                    break;
-                }
-                else
-                {
-                    FoundIndex   = Index;
-                    FoundElement = Element;
-                }
-            }
-        }
+	{
+		// Надо определить, попадает ли какое-либо неверно набранное слово в заданный промежуток, и одно ли оно
+		var Count        = this.Elements.length;
+		var FoundElement = null;
+		var FoundIndex   = -1;
+		for (var Index = 0; Index < Count; Index++)
+		{
+			var Element = this.Elements[Index];
+			if (Element.StartPos.Compare(EndPos) <= 0 && Element.EndPos.Compare(StartPos) >= 0 && false === Element.Checked)
+			{
+				if (null != FoundElement)
+				{
+					FoundElement = null;
+					break;
+				}
+				else
+				{
+					FoundIndex   = Index;
+					FoundElement = Element;
+				}
+			}
+		}
 
-        var Word     = "";
-        var Variants = null;
-        var Checked  = null;
+		var Word     = "";
+		var Variants = null;
+		var Checked  = null;
 
-        if ( null != FoundElement )
-        {
-            Word     = FoundElement.Word;
-            Variants = FoundElement.Variants;
-            Checked  = FoundElement.Checked;
+		if (null != FoundElement)
+		{
+			Word     = FoundElement.Word;
+			Variants = FoundElement.Variants;
+			Checked  = FoundElement.Checked;
 
-            if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph))
-            {
-                editor.spellCheck({"type": "suggest", "ParagraphId": this.ParaId, "RecalcId" : this.RecalcId, "ElementId" : FoundIndex, "usrWords" : [Word], "usrLang" : [FoundElement.Lang] });
-            }
-        }
+			if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph))
+			{
+				editor.spellCheck({
+					"type"        : "suggest",
+					"ParagraphId" : this.ParaId,
+					"RecalcId"    : this.RecalcId,
+					"ElementId"   : FoundIndex,
+					"usrWords"    : [Word],
+					"usrLang"     : [FoundElement.Lang]
+				});
+			}
+		}
 
-        // Неопределенное слово посылаем как хорошее в интерфейс
-        if ( null === Checked )
-            Checked = true;
+		// Неопределенное слово посылаем как хорошее в интерфейс
+		if (null === Checked)
+			Checked = true;
 
-        editor.sync_SpellCheckCallback( Word, Checked, Variants, this.ParaId, FoundIndex );
-    },
+		editor.sync_SpellCheckCallback(Word, Checked, Variants, this.ParaId, FoundElement);
+	},
 
     Check_CallBack2: function(RecalcId, ElementId, usrVariants)
     {

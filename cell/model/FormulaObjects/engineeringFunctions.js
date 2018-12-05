@@ -4342,11 +4342,13 @@ function (window, undefined) {
 	function cBESSELI() {
 	}
 
+	//***array-formula***
 	cBESSELI.prototype = Object.create(cBaseFunction.prototype);
 	cBESSELI.prototype.constructor = cBESSELI;
 	cBESSELI.prototype.name = 'BESSELI';
 	cBESSELI.prototype.argumentsMin = 2;
 	cBESSELI.prototype.argumentsMax = 2;
+	cBESSELI.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBESSELI.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
 		var argClone = oArguments.args;
@@ -4384,11 +4386,13 @@ function (window, undefined) {
 	function cBESSELJ() {
 	}
 
+	//***array-formula***
 	cBESSELJ.prototype = Object.create(cBaseFunction.prototype);
 	cBESSELJ.prototype.constructor = cBESSELJ;
 	cBESSELJ.prototype.name = 'BESSELJ';
 	cBESSELJ.prototype.argumentsMin = 2;
 	cBESSELJ.prototype.argumentsMax = 2;
+	cBESSELJ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBESSELJ.prototype.Calculate = function (arg) {
 		//результаты вычислений как в LO
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -4428,11 +4432,13 @@ function (window, undefined) {
 	function cBESSELK() {
 	}
 
+	//***array-formula***
 	cBESSELK.prototype = Object.create(cBaseFunction.prototype);
 	cBESSELK.prototype.constructor = cBESSELK;
 	cBESSELK.prototype.name = 'BESSELK';
 	cBESSELK.prototype.argumentsMin = 2;
 	cBESSELK.prototype.argumentsMax = 2;
+	cBESSELK.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBESSELK.prototype.Calculate = function (arg) {
 		//результаты вычислений как в LO
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -4470,11 +4476,13 @@ function (window, undefined) {
 	function cBESSELY() {
 	}
 
+	//***array-formula***
 	cBESSELY.prototype = Object.create(cBaseFunction.prototype);
 	cBESSELY.prototype.constructor = cBESSELY;
 	cBESSELY.prototype.name = 'BESSELY';
 	cBESSELY.prototype.argumentsMin = 2;
 	cBESSELY.prototype.argumentsMax = 2;
+	cBESSELY.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBESSELY.prototype.Calculate = function (arg) {
 		//результаты вычислений как в LO
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -4512,11 +4520,13 @@ function (window, undefined) {
 	function cBIN2DEC() {
 	}
 
+	//***array-formula***
 	cBIN2DEC.prototype = Object.create(cBaseFunction.prototype);
 	cBIN2DEC.prototype.constructor = cBIN2DEC;
 	cBIN2DEC.prototype.name = 'BIN2DEC';
 	cBIN2DEC.prototype.argumentsMin = 1;
 	cBIN2DEC.prototype.argumentsMax = 1;
+	cBIN2DEC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBIN2DEC.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -4561,11 +4571,13 @@ function (window, undefined) {
 	function cBIN2HEX() {
 	}
 
+	//***array-formula***
 	cBIN2HEX.prototype = Object.create(cBaseFunction.prototype);
 	cBIN2HEX.prototype.constructor = cBIN2HEX;
 	cBIN2HEX.prototype.name = 'BIN2HEX';
 	cBIN2HEX.prototype.argumentsMin = 1;
 	cBIN2HEX.prototype.argumentsMax = 2;
+	cBIN2HEX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBIN2HEX.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -4626,11 +4638,13 @@ function (window, undefined) {
 	function cBIN2OCT() {
 	}
 
+	//***array-formula***
 	cBIN2OCT.prototype = Object.create(cBaseFunction.prototype);
 	cBIN2OCT.prototype.constructor = cBIN2OCT;
 	cBIN2OCT.prototype.name = 'BIN2OCT';
 	cBIN2OCT.prototype.argumentsMin = 1;
 	cBIN2OCT.prototype.argumentsMax = 2;
+	cBIN2OCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cBIN2OCT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -4691,6 +4705,7 @@ function (window, undefined) {
 	function cBITAND() {
 	}
 
+	//***array-formula***
 	cBITAND.prototype = Object.create(cBaseFunction.prototype);
 	cBITAND.prototype.constructor = cBITAND;
 	cBITAND.prototype.name = 'BITAND';
@@ -4731,6 +4746,7 @@ function (window, undefined) {
 	function cBITLSHIFT() {
 	}
 
+	//***array-formula***
 	cBITLSHIFT.prototype = Object.create(cBaseFunction.prototype);
 	cBITLSHIFT.prototype.constructor = cBITLSHIFT;
 	cBITLSHIFT.prototype.name = 'BITLSHIFT';
@@ -4779,6 +4795,7 @@ function (window, undefined) {
 	function cBITOR() {
 	}
 
+	//***array-formula***
 	cBITOR.prototype = Object.create(cBaseFunction.prototype);
 	cBITOR.prototype.constructor = cBITOR;
 	cBITOR.prototype.name = 'BITOR';
@@ -4819,6 +4836,7 @@ function (window, undefined) {
 	function cBITRSHIFT() {
 	}
 
+	//***array-formula***
 	cBITRSHIFT.prototype = Object.create(cBaseFunction.prototype);
 	cBITRSHIFT.prototype.constructor = cBITRSHIFT;
 	cBITRSHIFT.prototype.name = 'BITRSHIFT';
@@ -4867,6 +4885,7 @@ function (window, undefined) {
 	function cBITXOR() {
 	}
 
+	//***array-formula***
 	cBITXOR.prototype = Object.create(cBaseFunction.prototype);
 	cBITXOR.prototype.constructor = cBITXOR;
 	cBITXOR.prototype.name = 'BITXOR';
@@ -4907,11 +4926,13 @@ function (window, undefined) {
 	function cCOMPLEX() {
 	}
 
+	//***array-formula***
 	cCOMPLEX.prototype = Object.create(cBaseFunction.prototype);
 	cCOMPLEX.prototype.constructor = cCOMPLEX;
 	cCOMPLEX.prototype.name = 'COMPLEX';
 	cCOMPLEX.prototype.argumentsMin = 2;
 	cCOMPLEX.prototype.argumentsMax = 3;
+	cCOMPLEX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOMPLEX.prototype.Calculate = function (arg) {
 
 		var real = arg[0], img = arg[1],
@@ -4969,11 +4990,13 @@ function (window, undefined) {
 	function cCONVERT() {
 	}
 
+	//***array-formula***
 	cCONVERT.prototype = Object.create(cBaseFunction.prototype);
 	cCONVERT.prototype.constructor = cCONVERT;
 	cCONVERT.prototype.name = 'CONVERT';
 	cCONVERT.prototype.argumentsMin = 3;
 	cCONVERT.prototype.argumentsMax = 3;
+	cCONVERT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCONVERT.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
 		var argClone = oArguments.args;
@@ -5086,11 +5109,13 @@ function (window, undefined) {
 	function cDEC2BIN() {
 	}
 
+	//***array-formula***
 	cDEC2BIN.prototype = Object.create(cBaseFunction.prototype);
 	cDEC2BIN.prototype.constructor = cDEC2BIN;
 	cDEC2BIN.prototype.name = 'DEC2BIN';
 	cDEC2BIN.prototype.argumentsMin = 1;
 	cDEC2BIN.prototype.argumentsMax = 2;
+	cDEC2BIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDEC2BIN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
 
@@ -5146,11 +5171,13 @@ function (window, undefined) {
 	function cDEC2HEX() {
 	}
 
+	//***array-formula***
 	cDEC2HEX.prototype = Object.create(cBaseFunction.prototype);
 	cDEC2HEX.prototype.constructor = cDEC2HEX;
 	cDEC2HEX.prototype.name = 'DEC2HEX';
 	cDEC2HEX.prototype.argumentsMin = 1;
 	cDEC2HEX.prototype.argumentsMax = 2;
+	cDEC2HEX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDEC2HEX.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
 
@@ -5205,11 +5232,13 @@ function (window, undefined) {
 	function cDEC2OCT() {
 	}
 
+	//***array-formula***
 	cDEC2OCT.prototype = Object.create(cBaseFunction.prototype);
 	cDEC2OCT.prototype.constructor = cDEC2OCT;
 	cDEC2OCT.prototype.name = 'DEC2OCT';
 	cDEC2OCT.prototype.argumentsMin = 1;
 	cDEC2OCT.prototype.argumentsMax = 2;
+	cDEC2OCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDEC2OCT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
 
@@ -5264,11 +5293,13 @@ function (window, undefined) {
 	function cDELTA() {
 	}
 
+	//***array-formula***
 	cDELTA.prototype = Object.create(cBaseFunction.prototype);
 	cDELTA.prototype.constructor = cDELTA;
 	cDELTA.prototype.name = 'DELTA';
 	cDELTA.prototype.argumentsMin = 1;
 	cDELTA.prototype.argumentsMax = 2;
+	cDELTA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDELTA.prototype.Calculate = function (arg) {
 
 		var number1 = arg[0], number2 = !arg[1] ? new cNumber(0) : arg[1];
@@ -5308,11 +5339,13 @@ function (window, undefined) {
 	function cERF() {
 	}
 
+	//***array-formula***
 	cERF.prototype = Object.create(cBaseFunction.prototype);
 	cERF.prototype.constructor = cERF;
 	cERF.prototype.name = 'ERF';
 	cERF.prototype.argumentsMin = 1;
 	cERF.prototype.argumentsMax = 2;
+	cERF.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cERF.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -5350,12 +5383,14 @@ function (window, undefined) {
 	function cERF_PRECISE() {
 	}
 
+	//***array-formula***
 	cERF_PRECISE.prototype = Object.create(cBaseFunction.prototype);
 	cERF_PRECISE.prototype.constructor = cERF_PRECISE;
 	cERF_PRECISE.prototype.name = 'ERF.PRECISE';
 	cERF_PRECISE.prototype.argumentsMin = 1;
 	cERF_PRECISE.prototype.argumentsMax = 1;
 	cERF_PRECISE.prototype.isXLFN = true;
+	cERF_PRECISE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cERF_PRECISE.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -5383,11 +5418,13 @@ function (window, undefined) {
 	function cERFC() {
 	}
 
+	//***array-formula***
 	cERFC.prototype = Object.create(cBaseFunction.prototype);
 	cERFC.prototype.constructor = cERFC;
 	cERFC.prototype.name = 'ERFC';
 	cERFC.prototype.argumentsMin = 1;
 	cERFC.prototype.argumentsMax = 1;
+	cERFC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cERFC.prototype.Calculate = function (arg) {
 
 		var a = arg[0];
@@ -5414,6 +5451,7 @@ function (window, undefined) {
 	function cERFC_PRECISE() {
 	}
 
+	//***array-formula***
 	cERFC_PRECISE.prototype = Object.create(cERFC.prototype);
 	cERFC_PRECISE.prototype.constructor = cERFC_PRECISE;
 	cERFC_PRECISE.prototype.name = 'ERFC.PRECISE';
@@ -5426,11 +5464,13 @@ function (window, undefined) {
 	function cGESTEP() {
 	}
 
+	//***array-formula***
 	cGESTEP.prototype = Object.create(cBaseFunction.prototype);
 	cGESTEP.prototype.constructor = cGESTEP;
 	cGESTEP.prototype.name = 'GESTEP';
 	cGESTEP.prototype.argumentsMin = 1;
 	cGESTEP.prototype.argumentsMax = 2;
+	cGESTEP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cGESTEP.prototype.Calculate = function (arg) {
 
 		var number1 = arg[0], number2 = !arg[1] ? new cNumber(0) : arg[1];
@@ -5470,11 +5510,13 @@ function (window, undefined) {
 	function cHEX2BIN() {
 	}
 
+	//***array-formula***
 	cHEX2BIN.prototype = Object.create(cBaseFunction.prototype);
 	cHEX2BIN.prototype.constructor = cHEX2BIN;
 	cHEX2BIN.prototype.name = 'HEX2BIN';
 	cHEX2BIN.prototype.argumentsMin = 1;
 	cHEX2BIN.prototype.argumentsMax = 2;
+	cHEX2BIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cHEX2BIN.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -5542,11 +5584,13 @@ function (window, undefined) {
 	function cHEX2DEC() {
 	}
 
+	//***array-formula***
 	cHEX2DEC.prototype = Object.create(cBaseFunction.prototype);
 	cHEX2DEC.prototype.constructor = cHEX2DEC;
 	cHEX2DEC.prototype.name = 'HEX2DEC';
 	cHEX2DEC.prototype.argumentsMin = 1;
 	cHEX2DEC.prototype.argumentsMax = 1;
+	cHEX2DEC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cHEX2DEC.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5590,11 +5634,13 @@ function (window, undefined) {
 	function cHEX2OCT() {
 	}
 
+	//***array-formula***
 	cHEX2OCT.prototype = Object.create(cBaseFunction.prototype);
 	cHEX2OCT.prototype.constructor = cHEX2OCT;
 	cHEX2OCT.prototype.name = 'HEX2OCT';
 	cHEX2OCT.prototype.argumentsMin = 1;
 	cHEX2OCT.prototype.argumentsMax = 2;
+	cHEX2OCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cHEX2OCT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -5661,11 +5707,13 @@ function (window, undefined) {
 	function cIMABS() {
 	}
 
+	//***array-formula***
 	cIMABS.prototype = Object.create(cBaseFunction.prototype);
 	cIMABS.prototype.constructor = cIMABS;
 	cIMABS.prototype.name = 'IMABS';
 	cIMABS.prototype.argumentsMin = 1;
 	cIMABS.prototype.argumentsMax = 1;
+	cIMABS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMABS.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5701,11 +5749,13 @@ function (window, undefined) {
 	function cIMAGINARY() {
 	}
 
+	//***array-formula***
 	cIMAGINARY.prototype = Object.create(cBaseFunction.prototype);
 	cIMAGINARY.prototype.constructor = cIMAGINARY;
 	cIMAGINARY.prototype.name = 'IMAGINARY';
 	cIMAGINARY.prototype.argumentsMin = 1;
 	cIMAGINARY.prototype.argumentsMax = 1;
+	cIMAGINARY.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMAGINARY.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5741,11 +5791,13 @@ function (window, undefined) {
 	function cIMARGUMENT() {
 	}
 
+	//***array-formula***
 	cIMARGUMENT.prototype = Object.create(cBaseFunction.prototype);
 	cIMARGUMENT.prototype.constructor = cIMARGUMENT;
 	cIMARGUMENT.prototype.name = 'IMARGUMENT';
 	cIMARGUMENT.prototype.argumentsMin = 1;
 	cIMARGUMENT.prototype.argumentsMax = 1;
+	cIMARGUMENT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMARGUMENT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5781,11 +5833,13 @@ function (window, undefined) {
 	function cIMCONJUGATE() {
 	}
 
+	//***array-formula***
 	cIMCONJUGATE.prototype = Object.create(cBaseFunction.prototype);
 	cIMCONJUGATE.prototype.constructor = cIMCONJUGATE;
 	cIMCONJUGATE.prototype.name = 'IMCONJUGATE';
 	cIMCONJUGATE.prototype.argumentsMin = 1;
 	cIMCONJUGATE.prototype.argumentsMax = 1;
+	cIMCONJUGATE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMCONJUGATE.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5821,11 +5875,13 @@ function (window, undefined) {
 	function cIMCOS() {
 	}
 
+	//***array-formula***
 	cIMCOS.prototype = Object.create(cBaseFunction.prototype);
 	cIMCOS.prototype.constructor = cIMCOS;
 	cIMCOS.prototype.name = 'IMCOS';
 	cIMCOS.prototype.argumentsMin = 1;
 	cIMCOS.prototype.argumentsMax = 1;
+	cIMCOS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMCOS.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5863,12 +5919,14 @@ function (window, undefined) {
 	function cIMCOSH() {
 	}
 
+	//***array-formula***
 	cIMCOSH.prototype = Object.create(cBaseFunction.prototype);
 	cIMCOSH.prototype.constructor = cIMCOSH;
 	cIMCOSH.prototype.name = 'IMCOSH';
 	cIMCOSH.prototype.argumentsMin = 1;
 	cIMCOSH.prototype.argumentsMax = 1;
 	cIMCOSH.prototype.isXLFN = true;
+	cIMCOSH.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMCOSH.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5910,12 +5968,14 @@ function (window, undefined) {
 	function cIMCOT() {
 	}
 
+	//***array-formula***
 	cIMCOT.prototype = Object.create(cBaseFunction.prototype);
 	cIMCOT.prototype.constructor = cIMCOT;
 	cIMCOT.prototype.name = 'IMCOT';
 	cIMCOT.prototype.argumentsMin = 1;
 	cIMCOT.prototype.argumentsMax = 1;
 	cIMCOT.prototype.isXLFN = true;
+	cIMCOT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMCOT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -5960,6 +6020,7 @@ function (window, undefined) {
 	function cIMCSC() {
 	}
 
+	//***array-formula***
 	//TODO проверить!!!
 	cIMCSC.prototype = Object.create(cBaseFunction.prototype);
 	cIMCSC.prototype.constructor = cIMCSC;
@@ -5967,6 +6028,7 @@ function (window, undefined) {
 	cIMCSC.prototype.argumentsMin = 1;
 	cIMCSC.prototype.argumentsMax = 1;
 	cIMCSC.prototype.isXLFN = true;
+	cIMCSC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMCSC.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6012,6 +6074,7 @@ function (window, undefined) {
 	function cIMCSCH() {
 	}
 
+	//***array-formula***
 	//TODO проверить!!!
 	cIMCSCH.prototype = Object.create(cBaseFunction.prototype);
 	cIMCSCH.prototype.constructor = cIMCSCH;
@@ -6019,6 +6082,7 @@ function (window, undefined) {
 	cIMCSCH.prototype.argumentsMin = 1;
 	cIMCSCH.prototype.argumentsMax = 1;
 	cIMCSCH.prototype.isXLFN = true;
+	cIMCSCH.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMCSCH.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6064,11 +6128,13 @@ function (window, undefined) {
 	function cIMDIV() {
 	}
 
+	//***array-formula***
 	cIMDIV.prototype = Object.create(cBaseFunction.prototype);
 	cIMDIV.prototype.constructor = cIMDIV;
 	cIMDIV.prototype.name = 'IMDIV';
 	cIMDIV.prototype.argumentsMin = 2;
 	cIMDIV.prototype.argumentsMax = 2;
+	cIMDIV.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMDIV.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1];
@@ -6117,11 +6183,13 @@ function (window, undefined) {
 	function cIMEXP() {
 	}
 
+	//***array-formula***
 	cIMEXP.prototype = Object.create(cBaseFunction.prototype);
 	cIMEXP.prototype.constructor = cIMEXP;
 	cIMEXP.prototype.name = 'IMEXP';
 	cIMEXP.prototype.argumentsMin = 1;
 	cIMEXP.prototype.argumentsMax = 1;
+	cIMEXP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMEXP.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6159,11 +6227,13 @@ function (window, undefined) {
 	function cIMLN() {
 	}
 
+	//***array-formula***
 	cIMLN.prototype = Object.create(cBaseFunction.prototype);
 	cIMLN.prototype.constructor = cIMLN;
 	cIMLN.prototype.name = 'IMLN';
 	cIMLN.prototype.argumentsMin = 1;
 	cIMLN.prototype.argumentsMax = 1;
+	cIMLN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMLN.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6205,11 +6275,13 @@ function (window, undefined) {
 	function cIMLOG10() {
 	}
 
+	//***array-formula***
 	cIMLOG10.prototype = Object.create(cBaseFunction.prototype);
 	cIMLOG10.prototype.constructor = cIMLOG10;
 	cIMLOG10.prototype.name = 'IMLOG10';
 	cIMLOG10.prototype.argumentsMin = 1;
 	cIMLOG10.prototype.argumentsMax = 1;
+	cIMLOG10.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMLOG10.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6251,11 +6323,13 @@ function (window, undefined) {
 	function cIMLOG2() {
 	}
 
+	//***array-formula***
 	cIMLOG2.prototype = Object.create(cBaseFunction.prototype);
 	cIMLOG2.prototype.constructor = cIMLOG2;
 	cIMLOG2.prototype.name = 'IMLOG2';
 	cIMLOG2.prototype.argumentsMin = 1;
 	cIMLOG2.prototype.argumentsMax = 1;
+	cIMLOG2.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMLOG2.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6302,6 +6376,7 @@ function (window, undefined) {
 	cIMPOWER.prototype.name = 'IMPOWER';
 	cIMPOWER.prototype.argumentsMin = 2;
 	cIMPOWER.prototype.argumentsMax = 2;
+	cIMPOWER.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMPOWER.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1];
@@ -6354,10 +6429,12 @@ function (window, undefined) {
 	function cIMPRODUCT() {
 	}
 
+	//***array-formula***
 	cIMPRODUCT.prototype = Object.create(cBaseFunction.prototype);
 	cIMPRODUCT.prototype.constructor = cIMPRODUCT;
 	cIMPRODUCT.prototype.name = 'IMPRODUCT';
 	cIMPRODUCT.prototype.argumentsMin = 1;
+	cIMPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cIMPRODUCT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], t = this;
 
@@ -6452,11 +6529,13 @@ function (window, undefined) {
 	function cIMREAL() {
 	}
 
+	//***array-formula***
 	cIMREAL.prototype = Object.create(cBaseFunction.prototype);
 	cIMREAL.prototype.constructor = cIMREAL;
 	cIMREAL.prototype.name = 'IMREAL';
 	cIMREAL.prototype.argumentsMin = 1;
 	cIMREAL.prototype.argumentsMax = 1;
+	cIMREAL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMREAL.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6492,12 +6571,14 @@ function (window, undefined) {
 	function cIMSEC() {
 	}
 
+	//***array-formula***
 	cIMSEC.prototype = Object.create(cBaseFunction.prototype);
 	cIMSEC.prototype.constructor = cIMSEC;
 	cIMSEC.prototype.name = 'IMSEC';
 	cIMSEC.prototype.argumentsMin = 1;
 	cIMSEC.prototype.argumentsMax = 1;
 	cIMSEC.prototype.isXLFN = true;
+	cIMSEC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMSEC.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6539,12 +6620,14 @@ function (window, undefined) {
 	function cIMSECH() {
 	}
 
+	//***array-formula***
 	cIMSECH.prototype = Object.create(cBaseFunction.prototype);
 	cIMSECH.prototype.constructor = cIMSECH;
 	cIMSECH.prototype.name = 'IMSECH';
 	cIMSECH.prototype.argumentsMin = 1;
 	cIMSECH.prototype.argumentsMax = 1;
 	cIMSECH.prototype.isXLFN = true;
+	cIMSECH.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMSECH.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6587,11 +6670,13 @@ function (window, undefined) {
 	function cIMSIN() {
 	}
 
+	//***array-formula***
 	cIMSIN.prototype = Object.create(cBaseFunction.prototype);
 	cIMSIN.prototype.constructor = cIMSIN;
 	cIMSIN.prototype.name = 'IMSIN';
 	cIMSIN.prototype.argumentsMin = 1;
 	cIMSIN.prototype.argumentsMax = 1;
+	cIMSIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMSIN.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6633,12 +6718,14 @@ function (window, undefined) {
 	function cIMSINH() {
 	}
 
+	//***array-formula***
 	cIMSINH.prototype = Object.create(cBaseFunction.prototype);
 	cIMSINH.prototype.constructor = cIMSINH;
 	cIMSINH.prototype.name = 'IMSINH';
 	cIMSINH.prototype.argumentsMin = 1;
 	cIMSINH.prototype.argumentsMax = 1;
 	cIMSINH.prototype.isXLFN = true;
+	cIMSINH.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMSINH.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6680,11 +6767,13 @@ function (window, undefined) {
 	function cIMSQRT() {
 	}
 
+	//***array-formula***
 	cIMSQRT.prototype = Object.create(cBaseFunction.prototype);
 	cIMSQRT.prototype.constructor = cIMSQRT;
 	cIMSQRT.prototype.name = 'IMSQRT';
 	cIMSQRT.prototype.argumentsMin = 1;
 	cIMSQRT.prototype.argumentsMax = 1;
+	cIMSQRT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMSQRT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6722,11 +6811,13 @@ function (window, undefined) {
 	function cIMSUB() {
 	}
 
+	//***array-formula***
 	cIMSUB.prototype = Object.create(cBaseFunction.prototype);
 	cIMSUB.prototype.constructor = cIMSUB;
 	cIMSUB.prototype.name = 'IMSUB';
 	cIMSUB.prototype.argumentsMin = 2;
 	cIMSUB.prototype.argumentsMax = 2;
+	cIMSUB.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMSUB.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1];
@@ -6775,10 +6866,12 @@ function (window, undefined) {
 	function cIMSUM() {
 	}
 
+	//***array-formula***
 	cIMSUM.prototype = Object.create(cBaseFunction.prototype);
 	cIMSUM.prototype.constructor = cIMSUM;
 	cIMSUM.prototype.name = 'IMSUM';
 	cIMSUM.prototype.argumentsMin = 1;
+	cIMSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cIMSUM.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], t = this;
@@ -6874,6 +6967,7 @@ function (window, undefined) {
 	function cIMTAN() {
 	}
 
+	//***array-formula***
 	//TODO проверить!!!
 	cIMTAN.prototype = Object.create(cBaseFunction.prototype);
 	cIMTAN.prototype.constructor = cIMTAN;
@@ -6881,6 +6975,7 @@ function (window, undefined) {
 	cIMTAN.prototype.argumentsMin = 1;
 	cIMTAN.prototype.argumentsMax = 1;
 	cIMTAN.prototype.isXLFN = true;
+	cIMTAN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cIMTAN.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -6922,11 +7017,13 @@ function (window, undefined) {
 	function cOCT2BIN() {
 	}
 
+	//***array-formula***
 	cOCT2BIN.prototype = Object.create(cBaseFunction.prototype);
 	cOCT2BIN.prototype.constructor = cOCT2BIN;
 	cOCT2BIN.prototype.name = 'OCT2BIN';
 	cOCT2BIN.prototype.argumentsMin = 1;
 	cOCT2BIN.prototype.argumentsMax = 2;
+	cOCT2BIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cOCT2BIN.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();
@@ -6994,11 +7091,13 @@ function (window, undefined) {
 	function cOCT2DEC() {
 	}
 
+	//***array-formula***
 	cOCT2DEC.prototype = Object.create(cBaseFunction.prototype);
 	cOCT2DEC.prototype.constructor = cOCT2DEC;
 	cOCT2DEC.prototype.name = 'OCT2DEC';
 	cOCT2DEC.prototype.argumentsMin = 1;
 	cOCT2DEC.prototype.argumentsMax = 1;
+	cOCT2DEC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cOCT2DEC.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -7042,11 +7141,13 @@ function (window, undefined) {
 	function cOCT2HEX() {
 	}
 
+	//***array-formula***
 	cOCT2HEX.prototype = Object.create(cBaseFunction.prototype);
 	cOCT2HEX.prototype.constructor = cOCT2HEX;
 	cOCT2HEX.prototype.name = 'OCT2HEX';
 	cOCT2HEX.prototype.argumentsMin = 1;
 	cOCT2HEX.prototype.argumentsMax = 2;
+	cOCT2HEX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cOCT2HEX.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cUndefined();

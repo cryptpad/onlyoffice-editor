@@ -1094,6 +1094,9 @@
 			case AscDFH.historydescription_Document_UpdateFields:
 				sString = "Document_UpdateFields";
 				break;
+			case AscDFH.historydescription_Document_AddBlankPage:
+				sString = "Document_AddBlankPage";
+				break;
 		}
 		return sString;
 	}
@@ -1323,6 +1326,7 @@
 	window['AscDFH'].historyitem_type_Cnx                    = 1130 << 16;
 	window['AscDFH'].historyitem_type_PresentationSection    = 1131 << 16;
 	window['AscDFH'].historyitem_type_PivotTableDefinition   = 1132 << 16;
+	window['AscDFH'].historyitem_type_LockedCanvas           = 1133 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3057,6 +3061,7 @@
 	window['AscDFH'].historydescription_Document_SetGlobalSdtHighlightColor         = 0x015a;
 	window['AscDFH'].historydescription_Document_SetGlobalSdtShowHighlight          = 0x015b;
 	window['AscDFH'].historydescription_Document_UpdateFields                       = 0x015c;
+	window['AscDFH'].historydescription_Document_AddBlankPage                       = 0x015d;
 
 
 

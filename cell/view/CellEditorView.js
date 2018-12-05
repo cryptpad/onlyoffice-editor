@@ -322,8 +322,51 @@
 		this._updateUndoRedoChanged();
 	};
 
-	CellEditor.prototype.close = function (saveValue) {
+	CellEditor.prototype.close = function (saveValue, bApplyByArray, callback) {
 		var opt = this.options;
+		var t = this;
+
+		var localSaveValueCallback = function(isSuccess) {
+			t.textFlags.bApplyByArray = null;
+			if(!isSuccess) {
+				t.handlers.trigger('setStrictClose', true);
+				if(callback) {
+					callback(false);
+				}
+				return false;
+			}
+
+			t.isOpened = false;
+
+			t._formula = null;
+			t._parseResult = null;
+
+			if (!window['IS_NATIVE_EDITOR']) {
+				if (window.removeEventListener) {
+					window.removeEventListener("mouseup", t.fKeyMouseUp, false);
+					window.removeEventListener("mousemove", t.fKeyMouseMove, false);
+				}
+				t.input.blur();
+				t.isTopLineActive = false;
+				t.input.isFocused = false;
+				t._hideCursor();
+				// hide
+				t._hideCanvas();
+			}
+
+			// delete autoComplete
+			t.objAutoComplete = {};
+
+			// Сброс состояния редактора
+			t.m_nEditorState = c_oAscCellEditorState.editEnd;
+			t.handlers.trigger("closed");
+
+			if(callback) {
+				callback(true);
+			} else {
+				return true;
+			}
+		};
 
 		if (saveValue) {
 			// Пересчет делаем всегда для не пустой ячейки или если были изменения. http://bugzilla.onlyoffice.com/show_bug.cgi?id=34864
@@ -338,11 +381,8 @@
 					this.noUpdateMode = false;
 				}
 
-				if (!opt.saveValueCallback(opt.fragments, this.textFlags)) {
-					// При ошибке нужно выставить флаг, чтобы по стрелкам не закрывался редактор
-					this.handlers.trigger('setStrictClose', true);
-					return false;
-				}
+				this.textFlags.bApplyByArray = bApplyByArray;
+				return opt.saveValueCallback(opt.fragments, this.textFlags, localSaveValueCallback);
 			}
 		}
 
@@ -2107,10 +2147,18 @@
 		t.undoMode = false;
 	};
 
-	CellEditor.prototype._tryCloseEditor = function (event) {
-		if (this.close(true)) {
-			this.handlers.trigger("applyCloseEvent", event);
+	CellEditor.prototype._tryCloseEditor = function (event, bApplyByArray) {
+		var t = this;
+		var callback = function(success) {
+			//для случая, когда пользователь нажимает ctrl+shift+enter переход на новую строку не осуществляется
+			if(!bApplyByArray && success) {
+				t.handlers.trigger("applyCloseEvent", event);
+			}
+		};
+		if(!window['AscCommonExcel'].bIsSupportArrayFormula) {
+			bApplyByArray = false;
 		}
+		this.close(true, bApplyByArray, callback);
 	};
 
 	CellEditor.prototype._getAutoComplete = function (str) {
@@ -2224,7 +2272,7 @@
 							t._addNewLine();
 						} else {
 							if (false === t.handlers.trigger("isGlobalLockEditCell")) {
-								t._tryCloseEditor(event);
+								t._tryCloseEditor(event, event.shiftKey&&event.ctrlKey);
 							}
 						}
 					}

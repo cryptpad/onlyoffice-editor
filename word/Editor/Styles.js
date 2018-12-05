@@ -349,11 +349,29 @@ CStyle.prototype =
 		History.Add(new CChangesStyleTextPr(this, Old, New));
 	},
 
-	Set_ParaPr : function(Value)
+	Set_ParaPr : function(Value, isHandleNumbering)
 	{
 		var Old = this.ParaPr;
 		var New = new CParaPr();
 		New.Set_FromObject(Value);
+
+		if (isHandleNumbering && Value.NumPr instanceof CNumPr && Value.NumPr.IsValid())
+		{
+			var oLogicDocument = editor.WordControl.m_oLogicDocument;
+			if (oLogicDocument)
+			{
+				var oNumbering = oLogicDocument.GetNumbering();
+				var oNum = oNumbering.GetNum(Value.NumPr.NumId);
+				if (oNum)
+				{
+					var oNumLvl = oNum.GetLvl(Value.NumPr.Lvl).Copy();
+					oNumLvl.SetPStyle(this.GetId());
+					oNum.SetLvl(oNumLvl, Value.NumPr.Lvl);
+
+					New.NumPr = new CNumPr(Value.NumPr.NumId);
+				}
+			}
+		}
 
 		this.ParaPr = New;
 

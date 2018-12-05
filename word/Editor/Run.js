@@ -3662,47 +3662,46 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
     PRS.bForcedBreak        = bForcedBreak;
 
 
-    if(this.Type == para_Math_Run)
-    {
-        if(true === NewRange)
-        {
-            var WidthLine = X - XRange;
+	if (this.Type == para_Math_Run)
+	{
+		if (true === NewRange)
+		{
+			var WidthLine = X - XRange;
 
-            if(this.ParaMath.Is_BrkBinBefore() == false)
-                WidthLine += SpaceLen;
+			if (this.ParaMath.Is_BrkBinBefore() == false)
+				WidthLine += SpaceLen;
 
-            this.ParaMath.UpdateWidthLine(PRS, WidthLine);
-        }
-        else
-        {
-            // для пустого Run, обновляем LineBreakPos на случай, если пустой Run находится между break_operator (мат. объект) и мат объектом
-            if(this.Content.length == 0)
-            {
-                if(PRS.bForcedBreak == true)
-                {
-                    PRS.MoveToLBP = true;
-                    PRS.NewRange = true;
-                    PRS.Set_LineBreakPos(0, PRS.FirstItemOnLine);
-                }
-                else if(this.ParaMath.Is_BrkBinBefore() == false && Word == false && PRS.bBreakBox == true)
-                {
-                    PRS.Set_LineBreakPos(Pos, PRS.FirstItemOnLine);
-                    PRS.X += SpaceLen;
-                    PRS.SpaceLen = 0;
-                }
-            }
+			this.ParaMath.UpdateWidthLine(PRS, WidthLine);
+		}
+		else
+		{
+			// для пустого Run, обновляем LineBreakPos на случай, если пустой Run находится между break_operator (мат. объект) и мат объектом
+			if (this.Content.length == 0)
+			{
+				if (PRS.bForcedBreak == true)
+				{
+					PRS.MoveToLBP = true;
+					PRS.NewRange  = true;
+					PRS.Set_LineBreakPos(0, PRS.FirstItemOnLine);
+				}
+				else if (this.ParaMath.Is_BrkBinBefore() == false && Word == false && PRS.bBreakBox == true)
+				{
+					PRS.Set_LineBreakPos(Pos, PRS.FirstItemOnLine);
+					PRS.X += SpaceLen;
+					PRS.SpaceLen = 0;
+				}
+			}
 
-            // запоминаем конец Run
-            PRS.PosEndRun.Set(PRS.CurPos);
-            PRS.PosEndRun.Update2(this.Content.length, Depth);
+			// запоминаем конец Run
+			PRS.PosEndRun.Set(PRS.CurPos);
+			PRS.PosEndRun.Update2(this.Content.length, Depth);
+		}
+	}
 
-        }
-    }
-
-    if ( Pos >= ContentLen )
-    {
-        RangeEndPos = Pos;
-    }
+	if (Pos >= ContentLen)
+	{
+		RangeEndPos = Pos;
+	}
 
     this.protected_FillRange(CurLine, CurRange, RangeStartPos, RangeEndPos);
 
@@ -4554,16 +4553,16 @@ ParaRun.prototype.PrepareRecalculateObject = function()
 			Item.PrepareRecalculateObject();
 	}
 };
-ParaRun.prototype.Is_EmptyRange = function(_CurLine, _CurRange)
+ParaRun.prototype.IsEmptyRange = function(_CurLine, _CurRange)
 {
-    var CurLine  = _CurLine - this.StartLine;
-    var CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
+	var CurLine  = _CurLine - this.StartLine;
+	var CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
 
-    var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
-    var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
+	var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
+	var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
 
-    if ( EndPos <= StartPos )
-        return true;
+	if (EndPos <= StartPos)
+		return true;
 
     return false;
 };
@@ -8456,7 +8455,7 @@ CParaRunRecalcInfo.prototype.OnAdd = function(nPos)
 	for (var nIndex = 0, nCount = this.MeasurePositions.length; nIndex < nCount; ++nIndex)
 	{
 		if (this.MeasurePositions[nIndex] >= nPos)
-			this.MeasurePositions[nIndex] = nPos;
+			this.MeasurePositions[nIndex]++;
 	}
 
 	this.MeasurePositions.push(nPos);
@@ -8468,7 +8467,7 @@ CParaRunRecalcInfo.prototype.OnAdd = function(nPos)
  */
 CParaRunRecalcInfo.prototype.OnRemove = function(nPos, nCount)
 {
-	for (var nIndex = 0, nCount = this.MeasurePositions.length; nIndex < nCount; ++nIndex)
+	for (var nIndex = 0, nLen = this.MeasurePositions.length; nIndex < nLen; ++nIndex)
 	{
 		if (nPos <= this.MeasurePositions[nIndex] && this.MeasurePositions[nIndex] <= nPos + nCount - 1)
 		{
@@ -9250,7 +9249,7 @@ ParaRun.prototype.UpdLastElementForGaps = function(_CurLine, _CurRange, GapsInfo
 };
 ParaRun.prototype.IsPlaceholder = function()
 {
-    return this.Content.length == 1 && this.Content[0].IsPlaceHolder && this.Content[0].IsPlaceholder();
+    return this.Content.length == 1 && this.Content[0].IsPlaceholder && this.Content[0].IsPlaceholder();
 };
 ParaRun.prototype.AddMathPlaceholder = function()
 {

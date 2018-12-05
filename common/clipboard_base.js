@@ -270,7 +270,14 @@
                                 }
                             };
 
-                            reader.readAsDataURL(blob);
+                            try
+							{
+                                reader.readAsDataURL(blob);
+                            }
+                            catch(err)
+							{
+                                g_clipboardBase.PasteImagesCounter++;
+							}
                         }
                         else
                         {
@@ -1066,6 +1073,9 @@
 		{
 			if(!this.Api || !this.Api.asc_specialPasteShowButton || this.doNotShowButton)
 			{
+				if(this.doNotShowButton) {
+					this.showButtonIdParagraph = null;
+				}
 				return;
 			}
 

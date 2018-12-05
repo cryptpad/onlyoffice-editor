@@ -1214,8 +1214,7 @@ CDocumentContent.prototype.OnContentRecalculate = function(bNeedRecalc, PageNum,
 	}
 	else
 	{
-		// Ставим номер +1, потому что текущий элемент уже рассчитан
-		this.Recalculate(false, DocumentIndex + 1);
+		this.Recalculate();
 	}
 };
 CDocumentContent.prototype.OnContentReDraw = function(StartPage, EndPage)
@@ -2451,7 +2450,7 @@ CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
         var PageNum = LastPara.PageNum;
 
         NewParagraph.Reset(X0, Y0, XLimit, YLimit, PageNum);
-        var RecalcResult = NewParagraph.Recalculate_Page(PageNum);
+        var RecalcResult = NewParagraph.Recalculate_Page(0);
 
         if (!(RecalcResult & recalcresult_NextElement))
         {
@@ -2712,12 +2711,10 @@ CDocumentContent.prototype.AddInlineTable = function(Cols, Rows)
 			NewTable.Set_ParagraphPrOnAdd(Item);
 
 			// Проверим позицию в текущем параграфе
-			if (true === Item.IsCursorAtEnd())
+			if (true === Item.IsCursorAtBegin())
 			{
-				// Выставляем курсор в начало таблицы
-				NewTable.MoveCursorToStartPos();
-				this.Internal_Content_Add(this.CurPos.ContentPos + 1, NewTable);
-				this.CurPos.ContentPos++;
+				NewTable.MoveCursorToStartPos(false);
+				this.Internal_Content_Add(this.CurPos.ContentPos, NewTable);
 			}
 			else
 			{
@@ -6646,8 +6643,7 @@ CDocumentContent.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum)
     {
         var Item = this.Content[InlineElements[Pos + 1]];
 
-		var PageBounds = Item.GetPageBounds(0);
-		if (Y < PageBounds.Top)
+		if (Item.GetPagesCount() <= 0 || Y < Item.GetPageBounds(0).Top)
 			return InlineElements[Pos];
 
         if (Item.GetPagesCount() > 1)
@@ -7832,7 +7828,7 @@ CDocumentContent.prototype.SetContentPosition = function(DocPos, Depth, Flag)
 CDocumentContent.prototype.private_GetElementPageIndex = function(ElementPos, PageIndex, ColumnIndex, ColumnsCount)
 {
     var Element = this.Content[ElementPos];
-    if (!Element)
+    if (!Element || Element.GetPagesCount() <= 0)
         return 0;
 
     var StartPage   = Element.Get_StartPage_Relative();

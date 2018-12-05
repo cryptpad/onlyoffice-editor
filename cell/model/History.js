@@ -161,6 +161,9 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Layout_GridLines = 9;
 	window['AscCH'].historyitem_Layout_Headings = 10;
 	window['AscCH'].historyitem_Layout_Orientation = 11;
+	
+	window['AscCH'].historyitem_ArrayFromula_AddFormula = 1;
+	window['AscCH'].historyitem_ArrayFromula_DeleteFormula = 2;
 
 	window['AscCH'].historyitem_Header_First = 1;
 	window['AscCH'].historyitem_Header_Even = 2;
@@ -451,7 +454,7 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
             if (Point.SelectionState) {
                 this.workbook.handlers.trigger("setSelectionState", Point.SelectionState);
             } else {
-                this.workbook.handlers.trigger("setSelection", Point.SelectRange.clone(), /*validRange*/false);
+                this.workbook.handlers.trigger("setSelection", Point.SelectRange.clone());
             }
         } else {
             if (null !== oState && oState[0] && oState[0].focus) {

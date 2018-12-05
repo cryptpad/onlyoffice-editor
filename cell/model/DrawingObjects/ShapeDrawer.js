@@ -422,7 +422,14 @@ CShapeDrawer.prototype =
                 }
                 case c_oAscFill.FILL_TYPE_SOLID:
                 {
-                    this.FillUniColor = _fill.color.RGBA;
+                    if(_fill.color)
+                    {
+                        this.FillUniColor = _fill.color.RGBA;
+                    }
+                    else
+                    {
+                        this.FillUniColor = new AscFormat.CUniColor().RGBA;
+                    }
                     break;
                 }
                 case c_oAscFill.FILL_TYPE_GRAD:
@@ -431,7 +438,16 @@ CShapeDrawer.prototype =
                     if (_c.length == 0)
                         this.FillUniColor = new AscFormat.CUniColor().RGBA;
                     else
-                        this.FillUniColor = _fill.colors[0].color.RGBA;
+                    {
+                        if(_fill.colors[0])
+                        {
+                            this.FillUniColor = _fill.colors[0].color.RGBA;
+                        }
+                        else
+                        {
+                            this.FillUniColor = new AscFormat.CUniColor().RGBA;
+                        }
+                    }
 
                     bIsCheckBounds = true;
 
@@ -469,7 +485,14 @@ CShapeDrawer.prototype =
                 }
                 case c_oAscFill.FILL_TYPE_SOLID:
                 {
-                    this.StrokeUniColor = _fill.color.RGBA;
+                    if(_fill.color)
+                    {
+                        this.StrokeUniColor = _fill.color.RGBA;
+                    }
+                    else
+                    {
+                        this.StrokeUniColor = new AscFormat.CUniColor().RGBA;
+                    }
                     break;
                 }
                 case c_oAscFill.FILL_TYPE_GRAD:
@@ -478,13 +501,29 @@ CShapeDrawer.prototype =
                     if (_c == 0)
                         this.StrokeUniColor = new AscFormat.CUniColor().RGBA;
                     else
-                        this.StrokeUniColor = _fill.colors[0].color.RGBA;
+                    {
+                        if(_fill.colors[0].color)
+                        {
+                            this.StrokeUniColor = _fill.colors[0].color.RGBA;
+                        }
+                        else
+                        {
+                            this.StrokeUniColor = new AscFormat.CUniColor().RGBA;
+                        }
+                    }
 
                     break;
                 }
                 case c_oAscFill.FILL_TYPE_PATT:
                 {
-                    this.StrokeUniColor = _fill.fgClr.RGBA;
+                    if(_fill.fgClr)
+                    {
+                        this.StrokeUniColor = _fill.fgClr.RGBA;
+                    }
+                    else
+                    {
+                        this.StrokeUniColor = new AscFormat.CUniColor().RGBA;
+                    }
                     break;
                 }
                 case c_oAscFill.FILL_TYPE_NOFILL:

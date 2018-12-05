@@ -242,6 +242,29 @@ function asc_WriteColorSchemes(schemas, s) {
     }
 }
 
+function asc_menu_WriteHyperPr(_hyperPr, _stream)
+{
+    if (_hyperPr.Text !== undefined && _hyperPr.Text !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteString2"](_hyperPr.Text);
+    }
+
+    if (_hyperPr.Value !== undefined && _hyperPr.Value !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteString2"](_hyperPr.Value);
+    }
+
+    if (_hyperPr.ToolTip !== undefined && _hyperPr.ToolTip !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteString2"](_hyperPr.ToolTip);
+    }
+
+    _stream["WriteByte"](255);
+};
+
 function asc_menu_ReadFontFamily(_params, _cursor)
 {
     var _fontfamily = { Name : undefined, Index : -1 };
@@ -2866,6 +2889,66 @@ function asc_menu_ReadParaListType(_params, _cursor)
     return _list;
 }
 
+function asc_menu_ReadHyperPr(_params, _cursor)
+{
+    var _settings = new Asc.CHyperlinkProperty();
+
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _settings.Text = _params[_cursor.pos++];
+                break;
+            }
+            case 1:
+            {
+                _settings.Value = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _settings.ToolTip = _params[_cursor.pos++];
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+
+    return _settings;
+};
+
+function asc_menu_WriteHyperPr(_hyperPr, _stream)
+{
+    if (_hyperPr.Text !== undefined && _hyperPr.Text !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteString2"](_hyperPr.Text);
+    }
+
+    if (_hyperPr.Value !== undefined && _hyperPr.Value !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteString2"](_hyperPr.Value);
+    }
+
+    if (_hyperPr.ToolTip !== undefined && _hyperPr.ToolTip !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteString2"](_hyperPr.ToolTip);
+    }
+
+    _stream["WriteByte"](255);
+};
+
 function NativeOpenFileP(_params, documentInfo){
     window["CreateMainTextMeasurerWrapper"]();
     window.g_file_path = "native_open_file";
@@ -2876,7 +2959,15 @@ function NativeOpenFileP(_params, documentInfo){
     }
 
     sdkCheck = documentInfo["sdkCheck"];
-    _api = new window["Asc"]["asc_docs_api"]("");
+
+    var translations = documentInfo["translations"];
+    if (undefined != translations && null != translations && translations.length > 0) {
+        translations = JSON.parse(translations)
+    } else {
+        translations = "";
+    }
+
+    _api = new window["Asc"]["asc_docs_api"](translations);
     AscCommon.g_clipboardBase.Init(_api);
     _api.Native_Editor_Initialize_Settings(_params);
     window.documentInfo = documentInfo;
@@ -2967,7 +3058,12 @@ function NativeOpenFileP(_params, documentInfo){
         _api.documentId = "1";
         _api.WordControl.m_oDrawingDocument.AfterLoad();
         Api = _api;
-
+        if (window.documentInfo["viewmode"]) {
+            _api.ShowParaMarks = false;
+            AscCommon.CollaborativeEditing.Set_GlobalLock(true);
+            _api.isViewMode = true;
+            _api.WordControl.m_oDrawingDocument.IsViewMode = true;
+          }
         var _presentation = _api.WordControl.m_oLogicDocument;
 
         var nSlidesCount = _presentation.Slides.length;

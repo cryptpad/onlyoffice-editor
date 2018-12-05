@@ -217,6 +217,24 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
     }
 };
 
+window["AscCommon"].getFullImageSrc2 = function (src) {
+
+    var start = src.slice(0, 6);
+    if (0 === start.indexOf('theme') && editor.ThemeLoader){
+        return  editor.ThemeLoader.ThemesUrlAbs + src;
+    }
+
+    if (0 !== start.indexOf('http:') && 0 !== start.indexOf('data:') && 0 !== start.indexOf('https:') &&
+        0 !== start.indexOf('file:') && 0 !== start.indexOf('ftp:')){
+        var srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
+        if(srcFull){
+            window["native"]["loadUrlImage"](srcFull, src);
+            return srcFull;
+        }
+    }
+    return src;
+}
+
 Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 {
     var _return = undefined;
@@ -528,6 +546,15 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
             break;
         }
+        case 22003: //ASC_MENU_EVENT_TYPE_ON_EDIT_TEXT
+        {
+            var oController = this.WordControl.m_oLogicDocument.GetCurrentController();
+            if(oController)
+            {
+                oController.startEditTextCurrentShape();
+            }
+            break;
+        }
         case 3: // ASC_MENU_EVENT_TYPE_UNDO
         {
             this.WordControl.m_oLogicDocument.Document_Undo();
@@ -537,6 +564,13 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 4: // ASC_MENU_EVENT_TYPE_REDO
         {
             this.WordControl.m_oLogicDocument.Document_Redo();
+            break;
+        }
+
+        case 8: // ASC_MENU_EVENT_TYPE_HYPERLINK
+        {
+            var props = asc_menu_ReadHyperPr(_params, _current);
+            this.change_Hyperlink(props);
             break;
         }
 
@@ -938,6 +972,13 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             break;
         }
+
+        case 52: // ASC_MENU_EVENT_TYPE_INSERT_HYPERLINK
+        {
+            var props = asc_menu_ReadHyperPr(_params, _current);
+            this.add_Hyperlink(props);
+            break;
+        }
       
         case 53: // ASC_MENU_EVENT_TYPE_INSERT_SHAPE
         {
@@ -964,7 +1005,31 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             }
             break;
         }
-       
+        
+        case 58: // ASC_MENU_EVENT_TYPE_CAN_ADD_HYPERLINK
+        {
+            var canAdd = this.can_AddHyperlink();
+
+            var _stream = global_memory_stream_menu;
+            _stream["ClearNoAttack"]();
+
+            if (canAdd !== false) {
+                var _text = this.WordControl.m_oLogicDocument.GetSelectedText(true);
+                if (null != _text) {
+                    _stream["WriteString2"](_text);
+                }
+            }
+
+            _return = _stream;
+            break;
+        }
+
+        case 59: // ASC_MENU_EVENT_TYPE_REMOVE_HYPERLINK
+        {
+            this.remove_Hyperlink();
+            break;
+        }
+
         case 62: //ASC_MENU_EVENT_TYPE_SEARCH_FINDTEXT
         {
             var SearchEngine = this.WordControl.m_oLogicDocument.Search(_params[0], {MatchCase : _params[2]});
@@ -1285,6 +1350,22 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 5000: // ASC_MENU_EVENT_TYPE_GO_TO_INTERNAL_LINK 
+        {
+
+            var aStack = this.SelectedObjectsStack;
+            for(var  i = 0; i < aStack.length; ++i){
+                if(aStack[i].Type === Asc.c_oAscTypeSelectElement.Hyperlink){
+                    var value = aStack[i].Value && aStack[i].Value.Value;
+                    if(value){
+                        this.sync_HyperlinkClickCallback(value);
+                    }
+                    break;
+                }
+            }
+            break;
+        }
+
         case 10000: // ASC_SOCKET_EVENT_TYPE_OPEN
         {
             this.CoAuthoringApi._CoAuthoringApi._onServerOpen();
@@ -1313,17 +1394,41 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.CoAuthoringApi._CoAuthoringApi._reconnect();
             break;
         }
-
         case 21000: // ASC_COAUTH_EVENT_TYPE_INSERT_URL_IMAGE
         {
+            var urls = JSON.parse(_params[0]);
+            AscCommon.g_oDocumentUrls.addUrls(urls);
+            var firstUrl;
+            for (var i in urls) {
+                if (urls.hasOwnProperty(i)) {
+                    firstUrl = urls[i];
+                    break;
+                }
+            }
+            var oImageObject = {};
+            oImageObject.src = firstUrl;
+            oImageObject.Image = {};
+            oImageObject.Image.width = _params[1];
+            oImageObject.Image.height = _params[2];
+            this.WordControl.m_oLogicDocument.addImages([oImageObject]);
             break;
         }
 
+
         case 21001: // ASC_COAUTH_EVENT_TYPE_LOAD_URL_IMAGE
         {
-            this.WordControl.m_oDrawingDocument.ClearCachePages();
-            this.WordControl.m_oDrawingDocument.FirePaint();
-
+            if(this.RedrawTimer != null){
+                clearTimeout(this.RedrawTimer);
+            }
+            var oThis = this;
+            this.RedrawTimer = setTimeout(function(){
+                oThis.WordControl.m_oDrawingDocument.ClearCachePages();
+                oThis.WordControl.m_oDrawingDocument.FirePaint();
+                oThis.WordControl.m_oDrawingDocument.UpdateThumbnailsAttack();
+                oThis.WordControl.m_oDrawingDocument.CheckThemes();
+                oThis.WordControl.CheckLayouts(true);
+                oThis.RedrawTimer = null;
+            }, 1000);
             break;
         }
 

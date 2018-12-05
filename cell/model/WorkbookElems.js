@@ -6078,7 +6078,6 @@ RangeDataManager.prototype = {
 					}
 
 					var currentValue = (isDateTimeFormat || isNumberFilter) ? cell.getValueWithoutFormat() : cell.getValueWithFormat();
-					currentValue = window["Asc"].trim(currentValue);
 					var isSetHidden = newFilterColumn.isHideValue(currentValue, isDateTimeFormat, null, cell);
 
 					if (isSetHidden !== worksheet.getRowHidden(i) && minChangeRow === null) {
@@ -6630,6 +6629,7 @@ RangeDataManager.prototype = {
 	Filters.prototype.isHideValue = function (val, isDateTimeFormat) {
 		var res = false;
 
+		val = window["Asc"].trim(val);
 		if (isDateTimeFormat && this.Dates) {
 			if (val === "") {
 				res = !this.Blank ? true : false;

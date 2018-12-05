@@ -69,7 +69,9 @@
         Styles: 2,
         Workbook: 3,
         Worksheets: 4,
-        CalcChain: 5
+        CalcChain: 5,
+        App: 6,
+        Core: 7
     };
     /** @enum */
     var c_oSerStylesTypes =
@@ -3660,6 +3662,7 @@
 			var ref;
 			var type;
 			var shared = parsed.getShared();
+			var arrayFormula = parsed.getArrayFormulaRef();
             if (shared) {
                 var sharedToWrite = this.sharedFormulas[parsed.getIndexNumber()];
                 if (!sharedToWrite) {
@@ -3696,8 +3699,24 @@
                         formula = parsed.getFormula();
                     });
                 }
-            } else {
-                formula = parsed.getFormula();
+			} else if(null !== arrayFormula) {
+				//***array-formula***
+				var bIsFirstCellArray = parsed.checkFirstCellArray(cell);
+				if(bIsFirstCellArray) {
+					ref = arrayFormula;
+					type = ECellFormulaType.cellformulatypeArray;
+					formula = parsed.getFormula();
+				} else if(this.isCopyPaste) {
+					//если выделена часть формулы, и первая ячейка формулы массива не входит в выделение
+					var intersection = arrayFormula.intersection(this.isCopyPaste);
+					if(intersection && intersection.r1 === cell.nRow && intersection.c1 === cell.nCol) {
+						ref = new Asc.Range(intersection.c1, intersection.r1, intersection.c2, intersection.r2);
+						type = ECellFormulaType.cellformulatypeArray;
+						formula = parsed.getFormula();
+					}
+				}
+			} else {
+				formula = parsed.getFormula();
             }
 
             // if(null != oFormula.aca)
@@ -3791,7 +3810,7 @@
 						continue;
 					}
 				}
-				if (elem.coords.isValid()) {
+				if (elem.coords && elem.coords.isValid()) {
 					this.bs.WriteItem(c_oSerWorksheetsTypes.Comment, function(){oThis.WriteComment(elem);});
 				}
             }
@@ -6257,12 +6276,28 @@
 				var tmp = {
 					pos: null, len: null, bNoBuildDep: bNoBuildDep, ws: ws, row: new AscCommonExcel.Row(ws),
 					cell: new AscCommonExcel.Cell(ws), formula: new OpenFormula(), sharedFormulas: {},
-					prevFormulas: {}, siFormulas: {}, prevRow: -1, prevCol: -1
+					prevFormulas: {}, siFormulas: {}, prevRow: -1, prevCol: -1, formulaArray: []
 				};
 				res = this.bcr.Read1(sheetDataElem.len, function(t, l) {
 					return oThis.ReadSheetData(t, l, tmp);
 				});
 				if (!bNoBuildDep) {
+					//TODO возможно стоит делать это в worksheet после полного чтения
+					//***array-formula***
+					//добавление ко всем ячейкам массива головной формулы
+					for(var j = 0; j < tmp.formulaArray.length; j++) {
+						var curFormula = tmp.formulaArray[j];
+						var ref = curFormula.ref;
+						if(ref) {
+							var rangeFormulaArray = tmp.ws.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
+							rangeFormulaArray._foreach(function(cell){
+								cell.setFormulaInternal(curFormula);
+								if (curFormula.ca || cell.isNullTextString()) {
+									tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
+								}
+							});
+						}
+					}
 					for (var nCol in tmp.prevFormulas) {
 						if (tmp.prevFormulas.hasOwnProperty(nCol)) {
 							var prevFormula = tmp.prevFormulas[nCol];
@@ -6834,10 +6869,19 @@
 				} else {
 					offsetRow = 1;
 				}
-				if (prevFormula && prevFormula.nRow + offsetRow === cell.nRow &&
+				//проверка на ECellFormulaType.cellformulatypeArray нужна для:
+				//1.формула массива не может быть шаренной
+				//2.в случае, когда две ячейки в одном столбце - каждая формула массива
+				//и далее они становятся двумя шаренными
+				//после того, как формула становится шаренной, ref array у второй начинает ссылаться на первую ячейку
+				//поэтому при изменении второй ячейки из двух шаренных в функции _saveCellValueAfterEdit
+				//берём array ref и присваиваем ему введенные данные, и поэтому в первой ячейки появляются данные второй
+				if (prevFormula && formula.t !== ECellFormulaType.cellformulatypeArray &&
+					prevFormula.t !== ECellFormulaType.cellformulatypeArray &&
+					prevFormula.nRow + offsetRow === cell.nRow &&
 					AscCommonExcel.compareFormula(prevFormula.formula, prevFormula.refPos, formula.v, offsetRow)) {
 					if (!(shared && shared.ref)) {
-					    sharedRef = new Asc.Range(cell.nCol, prevFormula.nRow, cell.nCol, cell.nRow);
+						sharedRef = new Asc.Range(cell.nCol, prevFormula.nRow, cell.nCol, cell.nRow);
 						prevFormula.parsed.setShared(sharedRef, prevFormula.base);
 					} else {
 						shared.ref.union3(cell.nCol, cell.nRow);
@@ -6853,8 +6897,15 @@
 					parsed.ca = formula.ca;
 					parsed.parse(undefined, undefined, parseResult);
 					if (null !== formula.ref) {
-						sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
-						parsed.setShared(sharedRef, newFormulaParent);
+						if(formula.t === ECellFormulaType.cellformulatypeShared) {
+							sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
+							parsed.setShared(sharedRef, newFormulaParent);
+						} else if(formula.t === ECellFormulaType.cellformulatypeArray) {//***array-formula***
+							if(AscCommonExcel.bIsSupportArrayFormula) {
+								parsed.setArrayFormulaRef(AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone());
+								tmp.formulaArray.push(parsed);
+							}
+						}
 					}
 					curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);
 					tmp.prevFormulas[cell.nCol] = curFormula;
@@ -8327,6 +8378,7 @@
             var nSharedStringTableOffset = null;
             var nStyleTableOffset = null;
             var nWorkbookTableOffset = null;
+            var fileStream;
             for(var i = 0; i < mtLen; ++i)
             {
                 //mtItem
@@ -8401,6 +8453,20 @@
                         // case c_oSerTableTypes.Other:
                         // res = (new Binary_OtherTableReader(this.stream, oMediaArray)).Read();
                         // break;
+                        case c_oSerTableTypes.App:
+                            this.stream.Seek2(mtiOffBits);
+                            fileStream = this.stream.ToFileStream();
+                            wb.App = new AscCommon.CApp();
+                            wb.App.fromStream(fileStream);
+                            this.stream.FromFileStream(fileStream);
+                            break;
+                        case c_oSerTableTypes.Core:
+                            this.stream.Seek2(mtiOffBits);
+                            fileStream = this.stream.ToFileStream();
+                            wb.Core = new AscCommon.CCore();
+                            wb.Core.fromStream(fileStream);
+                            this.stream.FromFileStream(fileStream);
+                            break;
                     }
                     if(c_oSerConstants.ReadOk != res)
                         break;
@@ -8905,7 +8971,7 @@
 				newContext.readAttributes(attr, uq);
 			}
 		} else if ("numFmts" === elem) {
-			openXml.SaxParserDataTransfer.numFmts = this.numFmts;
+			;
 		} else if ("numFmt" === elem) {
 			newContext = new AscCommonExcel.Num();
 			if (newContext.readAttributes) {
@@ -8913,7 +8979,7 @@
 			}
 			this.numFmts.push(newContext);
 		} else if ("fonts" === elem) {
-			openXml.SaxParserDataTransfer.fonts = this.fonts;
+			;
 		} else if ("font" === elem) {
 			newContext = new AscCommonExcel.Font();
 			if (newContext.readAttributes) {
@@ -8921,7 +8987,6 @@
 			}
 			this.fonts.push(newContext);
 		} else if ("fills" === elem) {
-			openXml.SaxParserDataTransfer.fills = this.fills;
 			openXml.SaxParserDataTransfer.priorityBg = false;
 		} else if ("fill" === elem) {
 			newContext = new AscCommonExcel.Fill();
@@ -8930,7 +8995,7 @@
 			}
 			this.fills.push(newContext);
 		} else if ("borders" === elem) {
-			openXml.SaxParserDataTransfer.borders = this.borders;
+			;
 		} else if ("border" === elem) {
 			newContext = new AscCommonExcel.Border();
 			if (newContext.readAttributes) {
