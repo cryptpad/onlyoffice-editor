@@ -1079,6 +1079,9 @@
 		}
 	};
 	CellEditor.prototype._updateFormulaEditMod = function ( bIsOpen ) {
+		if(this.options.menuEditor) {
+			return;
+		}
 		var isFormula = this.isFormula();
 		if ( !bIsOpen ) {
 			this._updateEditorState( isFormula );
@@ -1183,7 +1186,7 @@
 		this._adjustCanvas();
 		this._showCanvas();
 		this._renderText();
-		if(!this.options.isNotDrawInput) {
+		if(!this.options.menuEditor) {
 			this.input.value = this._getFragmentsText(fragments);
 		}
 		this._updateCursorPosition();
