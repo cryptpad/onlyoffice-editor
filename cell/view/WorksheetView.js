@@ -8489,12 +8489,11 @@
             if (false === isSuccess) {
                 return;
             }
-            var bIsUpdate = true;
             var hasUpdates = false;
 
             var callTrigger = false;
             var res;
-            var mc, r, c, cell;
+            var mc, r, cell;
 
             function makeBorder(b) {
                 var border = new AscCommonExcel.BorderProp();
@@ -8518,12 +8517,12 @@
 
             checkRange.forEach(function (item, i) {
                 var c;
+				var bIsUpdate = true;
                 var range = t.model.getRange3(item.r1, item.c1, item.r2, item.c2);
                 var isLargeRange = t._isLargeRange(range.bbox);
                 var canChangeColWidth = c_oAscCanChangeColWidth.none;
 
-                if(t.model.autoFilters.bIsExcludeHiddenRows(arn, activeCell))
-				{
+				if (t.model.autoFilters.bIsExcludeHiddenRows(arn, activeCell)) {
 					t.model.excludeHiddenRows(true);
 				}
 
@@ -8764,13 +8763,11 @@
 				t.model.excludeHiddenRows(false);
 
                 if (bIsUpdate) {
-
 					t.canChangeColWidth = canChangeColWidth;
 					t._updateRange(item);
 					t.canChangeColWidth = c_oAscCanChangeColWidth.none;
 
                     hasUpdates = true;
-                    bIsUpdate = false;
                 }
             });
 
