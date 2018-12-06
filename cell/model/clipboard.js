@@ -387,6 +387,7 @@
 					window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord = false;
 				}
 
+				var cellEditor = window["Asc"]["editor"].wb.cellEditor;
 				var text;
 				switch (_format)
 				{
@@ -404,8 +405,18 @@
 								var pasteFragments = fragments.fragments;
 								var newFonts = fragments.fonts;
 								ws._loadFonts(newFonts, function() {
-									window["Asc"]["editor"].wb.cellEditor.paste(pasteFragments);
+									cellEditor.paste(pasteFragments);
 									window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+
+									//TODO пересмотреть! по возможности вызывать из меню!
+									//при использовании рекдактора ячейки в качестве редактора HF
+									//в функции onLongActionEnd(ф-я меню) не вызывается asc_enableKeyEvents(true)
+									//из-за этого enableKeyEvents остаётся выставленным в false
+									//поэтому приходится вызывать здесь, после того, как пройдет загрузка шрифтов
+
+									if(cellEditor.options && cellEditor.options.menuEditor) {
+										window["Asc"]["editor"].asc_enableKeyEvents(true);
+									}
 								});
 
 							}else{
@@ -414,8 +425,12 @@
 								{
 									AscFonts.FontPickerByCharacter.getFontsByString(text);
 									ws._loadFonts([], function() {
-										window["Asc"]["editor"].wb.cellEditor.pasteText(text);
+										cellEditor.pasteText(text);
 										window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+
+										if(cellEditor.options && cellEditor.options.menuEditor) {
+											window["Asc"]["editor"].asc_enableKeyEvents(true);
+										}
 									});
 								}
 							}
@@ -436,8 +451,12 @@
 							{
 								AscFonts.FontPickerByCharacter.getFontsByString(text);
 								ws._loadFonts([], function() {
-									window["Asc"]["editor"].wb.cellEditor.pasteText(text);
+									cellEditor.pasteText(text);
 									window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+
+									if(cellEditor.options && cellEditor.options.menuEditor) {
+										window["Asc"]["editor"].asc_enableKeyEvents(true);
+									}
 								});
 							}
 						}
@@ -456,8 +475,12 @@
 							{
 								AscFonts.FontPickerByCharacter.getFontsByString(data1);
 								ws._loadFonts([], function() {
-									window["Asc"]["editor"].wb.cellEditor.pasteText(data1);
+									cellEditor.pasteText(data1);
 									window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+
+									if(cellEditor.options && cellEditor.options.menuEditor) {
+										window["Asc"]["editor"].asc_enableKeyEvents(true);
+									}
 								});
 							}
 						}
