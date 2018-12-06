@@ -2084,6 +2084,8 @@ function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel)
 	this.apiEditor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window["editor"];
 
 	this.msoComments = [];
+
+	this.startMsoAnnotation = undefined;
 }
 PasteProcessor.prototype =
 {
@@ -8419,8 +8421,23 @@ PasteProcessor.prototype =
 				var sChildNodeName = child.nodeName.toLowerCase();
 				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
 					sChildNodeName === "#comment" || sChildNodeName === "script") {
+					if(sChildNodeName === "#comment") {
+						if(child.nodeValue === "[if !supportAnnotations]") {
+							oThis.startMsoAnnotation = true;
+						} else if(oThis.startMsoAnnotation && child.nodeValue === "[endif]") {
+							oThis.startMsoAnnotation = false;
+						}
+					}
 					return;
 				}
+
+				//добавляю пока флаг startMsoAnnotation для игнорирования комментариев при вставке из ms
+				//TODO в дальнейшем необходимо поддержать вставку комментариев из ms
+				//так же рассмотреть где ещё используется тег [if !supportAnnotations]
+				if(oThis.startMsoAnnotation) {
+					return;
+				}
+
 				//попускам элеметы состоящие только из \t,\n,\r
 				if (Node.TEXT_NODE === child.nodeType) {
 					var value = child.nodeValue;
