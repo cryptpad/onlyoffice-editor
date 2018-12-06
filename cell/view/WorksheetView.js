@@ -15271,10 +15271,10 @@
 							this.font.i = !this.font.i;
 							break;
 						case 'U':   //underline
-
+							this.font.u = Asc.EUnderline.underlineSingle;
 							break;
 						case 'E':   //double underline
-
+							this.font.u = Asc.EUnderline.underlineDouble;
 							break;
 						case 'S':   //strikeout
 							this.font.s = !this.font.s;
