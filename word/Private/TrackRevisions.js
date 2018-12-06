@@ -778,22 +778,27 @@ CDocumentContent.prototype.AcceptRevisionChanges = function(Type, bAll)
     {
         if (true === this.Selection.Use || true === bAll)
         {
-            var StartPos = this.Selection.StartPos;
-            var EndPos   = this.Selection.EndPos;
-            if (StartPos > EndPos)
-            {
-                StartPos = this.Selection.EndPos;
-                EndPos   = this.Selection.StartPos;
-            }
-            var LastElement = this.Content[EndPos];
-            var LastParaEnd = (type_Paragraph === LastElement.Get_Type() && true === LastElement.Selection_CheckParaEnd() ? true : false);
+        	var StartPos, EndPos, LastParaEnd;
 
-            if (true === bAll)
-            {
-                StartPos    = 0;
-                EndPos      = this.Content.length - 1;
-                LastParaEnd = true;
-            }
+			if (true === bAll)
+			{
+				StartPos    = 0;
+				EndPos      = this.Content.length - 1;
+				LastParaEnd = true;
+			}
+			else
+			{
+				StartPos = this.Selection.StartPos;
+				EndPos   = this.Selection.EndPos;
+				if (StartPos > EndPos)
+				{
+					StartPos = this.Selection.EndPos;
+					EndPos   = this.Selection.StartPos;
+				}
+
+				var LastElement = this.Content[EndPos];
+				LastParaEnd = type_Paragraph === LastElement.GetType() && true === LastElement.Selection_CheckParaEnd() ? true : false;
+			}
 
             if (undefined === Type || c_oAscRevisionsChangeType.ParaPr === Type)
             {
@@ -847,22 +852,26 @@ CDocumentContent.prototype.RejectRevisionChanges = function(Type, bAll)
     {
         if (true === this.Selection.Use || true === bAll)
         {
-            var StartPos = this.Selection.StartPos;
-            var EndPos = this.Selection.EndPos;
-            if (StartPos > EndPos)
-            {
-                StartPos = this.Selection.EndPos;
-                EndPos = this.Selection.StartPos;
-            }
-            var LastElement = this.Content[EndPos];
-            var LastParaEnd = (type_Paragraph === LastElement.Get_Type() && true === LastElement.Selection_CheckParaEnd() ? true : false);
+        	var StartPos, EndPos, LastParaEnd;
+			if (true === bAll)
+			{
+				StartPos = 0;
+				EndPos = this.Content.length - 1;
+				LastParaEnd = true;
+			}
+			else
+			{
+				StartPos = this.Selection.StartPos;
+				EndPos   = this.Selection.EndPos;
+				if (StartPos > EndPos)
+				{
+					StartPos = this.Selection.EndPos;
+					EndPos   = this.Selection.StartPos;
+				}
 
-            if (true === bAll)
-            {
-                StartPos = 0;
-                EndPos = this.Content.length - 1;
-                LastParaEnd = true;
-            }
+				var LastElement = this.Content[EndPos];
+				LastParaEnd = type_Paragraph === LastElement.GetType() && true === LastElement.Selection_CheckParaEnd() ? true : false;
+			}
 
             if (undefined === Type || c_oAscRevisionsChangeType.ParaPr === Type)
             {
