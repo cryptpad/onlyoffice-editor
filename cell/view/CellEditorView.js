@@ -2275,6 +2275,8 @@
 					if (!(event.altKey && event.shiftKey)) {
 						if (event.altKey) {
 							t._addNewLine();
+						} else if(t.options.menuEditor) {
+							t._addNewLine();
 						} else {
 							if (false === t.handlers.trigger("isGlobalLockEditCell")) {
 								t._tryCloseEditor(event, event.shiftKey&&event.ctrlKey);

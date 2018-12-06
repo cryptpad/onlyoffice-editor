@@ -15415,7 +15415,7 @@
 	};
 
 	HeaderFooterParser.prototype.pushLineBreak = function () {
-		this.pushField(new HeaderFooterField(c_nHeaderFooterLineBreak));
+		this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.lineBreak));
 	};
 
 
@@ -15751,6 +15751,10 @@
 			}
 			case asc.c_oAscHeaderFooterField.filePath: {
 
+				break;
+			}
+			case asc.c_oAscHeaderFooterField.lineBreak: {
+				textField = "\n";
 				break;
 			}
 		}
