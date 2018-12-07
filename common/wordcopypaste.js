@@ -2071,7 +2071,8 @@ function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel)
     this.MsoStyles = {"mso-style-type": 1, "mso-pagination": 1, "mso-line-height-rule": 1, "mso-style-textfill-fill-color": 1, "mso-tab-count": 1,
         "tab-stops": 1, "list-style-type": 1, "mso-special-character": 1, "mso-column-break-before": 1, "mso-break-type": 1, "mso-padding-alt": 1, "mso-border-insidev": 1,
         "mso-border-insideh": 1, "mso-row-margin-left": 1, "mso-row-margin-right": 1, "mso-cellspacing": 1, "mso-border-alt": 1,
-        "mso-border-left-alt": 1, "mso-border-top-alt": 1, "mso-border-right-alt": 1, "mso-border-bottom-alt": 1, "mso-border-between": 1, "mso-list": 1};
+        "mso-border-left-alt": 1, "mso-border-top-alt": 1, "mso-border-right-alt": 1, "mso-border-bottom-alt": 1, "mso-border-between": 1, "mso-list": 1,
+		"mso-comment-reference": 1, "mso-comment-date": 1, "mso-comment-continuation": 1};
     this.oBorderCache = {};
 	
 	this.msoListMap = [];
@@ -5995,7 +5996,7 @@ PasteProcessor.prototype =
 				if(Node.TEXT_NODE === child.nodeType) {
 					var value = child.nodeValue;
 					//пропускаем неразрывный пробел перед комментарием
-					if(value === " " && child.nextSibling && child.nextSibling.nodeName === "#comment" && child.nextSibling.nodeValue === "[if !supportAnnotations]") {
+					if(value === " " && child.parentElement && child.parentElement.getAttribute("style") === "mso-special-character:comment") {
 						continue;
 					}
 					if (!value) {
