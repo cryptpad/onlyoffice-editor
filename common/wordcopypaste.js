@@ -5964,21 +5964,50 @@ PasteProcessor.prototype =
 		}
     },
 	_parseMsoElementComment: function (node) {
-		var msoComment = this._getMsoCommentText(node);
-		this.msoComments.push(msoComment);
+		var msoTextNode = node.getElementsByClassName("MsoCommentText");
+		if(msoTextNode && msoTextNode[0]) {
+			var msoComment = this._getMsoCommentText(msoTextNode[0]);
+			this.msoComments.push(msoComment);
+		}
 	},
 	_getMsoCommentText: function(node) {
-		var res = null;
-		var elems = node.getElementsByClassName("MsoCommentText");
+		var res = "";
+		var bMsoAnnotation = false;
+		var elems = node.childNodes;
 		if(elems && elems.length) {
 			for(var i = 0; i < elems.length; i++) {
 				var child = elems[i];
 
-				if(!(child.getAttribute && child.getAttribute("class")==="MsoCommentReference")) {
-					if(res === null) {
-						res = "";
+				//нужно исключить <![if !supportAnnotations]>
+				//пока собираем только текст(не форматированный), в дальнейшем, когда будет полная поддержка отображения
+				//коментариев, можно преобразовывать уже в структуру и вставлять в комм. форматированный текст
+				if(child.nodeName === "#comment") {
+					if(child.nodeValue === "[if !supportAnnotations]") {
+						bMsoAnnotation = true;
+					} else if(bMsoAnnotation && child.nodeValue === "[endif]") {
+						bMsoAnnotation = false;
 					}
-					res += child.innerText;
+				}
+				if(bMsoAnnotation) {
+					continue;
+				}
+
+				if(Node.TEXT_NODE === child.nodeType) {
+					var value = child.nodeValue;
+					//пропускаем неразрывный пробел перед комментарием
+					if(value === " " && child.nextSibling && child.nextSibling.nodeName === "#comment" && child.nextSibling.nodeValue === "[if !supportAnnotations]") {
+						continue;
+					}
+					if (!value) {
+						continue;
+					}
+					value = value.replace(/(\r|\t|\n)/g, '');
+					if ("" === value) {
+						continue;
+					}
+					res += value;
+				} else {
+					res += this._getMsoCommentText(child);
 				}
 			}
 		}
