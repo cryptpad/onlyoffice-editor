@@ -2377,10 +2377,10 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onSearchEnd");
 	};
 
-	asc_docs_api.prototype.findText             = function(text, isNext)
+	asc_docs_api.prototype.findText             = function(text, isNext, isMatchCase)
 	{
 
-		var SearchEngine = editor.WordControl.m_oLogicDocument.Search(text, {MatchCase : false});
+		var SearchEngine = editor.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
 
 		var Id = this.WordControl.m_oLogicDocument.Search_GetId(isNext);
 
@@ -2414,6 +2414,12 @@ background-repeat: no-repeat;\
 			{
 				this.WordControl.m_oLogicDocument.Search_Select(Id);
 				return true;
+			}
+			else
+			{
+				this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+				this.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
+				this.WordControl.OnUpdateOverlay();
 			}
 
 			return false;

@@ -663,7 +663,6 @@ function CPresentation(DrawingDocument)
     this.Width = 254;
     this.Height = 142;
     this.recalcMap = {};
-    this.bClearSearch = true;
     this.bNeedUpdateTh = false;
     this.needSelectPages = [];
 
@@ -1379,10 +1378,10 @@ CPresentation.prototype =
                 }
             }
         }
-        if(this.bClearSearch)
+        if(this.SearchEngine.ClearOnRecalc)
         {
             this.SearchEngine.Clear();
-            this.bClearSearch = false;
+            this.SearchEngine.ClearOnRecalc = false;
         }
         var _RecalcData = RecalcData ? RecalcData : History.Get_RecalcData(), key, recalcMap, bSync = true, i, bRedrawAllSlides = false, aToRedrawSlides = [], redrawSlideIndexMap = {}, slideIndex;
         this.updateSlideIndexes();
@@ -1760,7 +1759,7 @@ CPresentation.prototype =
         }
         this.DrawingDocument.ClearCachePages();
         this.DrawingDocument.FirePaint();
-        this.bClearSearch = true;
+        this.SearchEngine.ClearOnRecalc = true;
         return this.SearchEngine;
     },
 
@@ -2040,7 +2039,16 @@ CPresentation.prototype =
     {
         var bResult = false;
 
-        this.RemoveSelection();
+        var oController = this.GetCurrentController();
+        if(!oController)
+        {
+            return bResult;
+        }
+        var oContent = oController.getTargetDocContent();
+        if(oContent)
+        {
+            oContent.RemoveSelection();
+        }
 
         var CheckParagraphs = [];
         if ( true === bAll )
@@ -2082,20 +2090,16 @@ CPresentation.prototype =
         }
 
         this.SearchEngine.ClearOnRecalc = false;
+        this.TurnOffInterfaceEvents = true;
         this.Recalculate();
         this.SearchEngine.ClearOnRecalc = true;
-
         this.RecalculateCurPos();
-
+        this.TurnOffInterfaceEvents = false;
         bResult = true;
 
         if (true === bAll && false !== bInterfaceEvent)
             editor.sync_ReplaceAllCallback(AllCount, AllCount);
 
-
-        this.Document_UpdateInterfaceState();
-        this.Document_UpdateSelectionState();
-        this.Document_UpdateRulersState();
 
         return bResult;
     },
