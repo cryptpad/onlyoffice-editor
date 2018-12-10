@@ -1220,8 +1220,40 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 		this.Y = this.Internal_Position.Calculate_Y(bInline, this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
 	}
 
+	this.updatePosition3(this.PageNum, this.X, this.Y, OldPageNum);
+	this.useWrap = this.Use_TextWrap();
+};
+ParaDrawing.prototype.Update_PositionYHeaderFooter = function(TopMarginY, BottomMarginY)
+{
+	this.Internal_Position.Update_PositionYHeaderFooter(TopMarginY, BottomMarginY);
+	this.Internal_Position.Calculate_Y(this.Is_Inline(), this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
+	this.Y = this.Internal_Position.CalcY;
+	this.updatePosition3(this.PageNum, this.X, this.Y, this.PageNum);
+};
+ParaDrawing.prototype.Reset_SavedPosition = function()
+{
+	this.PositionV_Old = undefined;
+	this.PositionH_Old = undefined;
+};
+ParaDrawing.prototype.setParagraphBorders = function(val)
+{
+	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphBorders === "function")
+		this.GraphicObj.setParagraphBorders(val);
+};
+ParaDrawing.prototype.deselect = function()
+{
+	this.selected = false;
+	if (this.GraphicObj && this.GraphicObj.deselect)
+		this.GraphicObj.deselect();
+};
+ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
+{
+
+	var _x = x, _y = y;
 	var DiffX = 0.0, DiffY = 0.0;
-	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align)
+	var oEffectExtent = this.EffectExtent;
+	var bCell;
+	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent .IsTableCellContent(false))))
 	{
 		var extX, extY, rot;
 		if (this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm )
@@ -1259,44 +1291,18 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 			extX = extY;
 			extY = t;
 		}
-		var oEffectExtent = this.EffectExtent;
-		if(this.Is_Inline() || this.PositionH.Align)
+		if(bCell || this.Is_Inline() || this.PositionH.Align)
 		{
 			DiffX = AscFormat.getValOrDefault(oEffectExtent.L, 0.0) - (xc - extX / 2) + oBounds.l;
 		}
-		if(this.Is_Inline() || this.PositionV.Align)
+		if(/*bCell ||*/ this.Is_Inline() || this.PositionV.Align)
 		{
 			DiffY = AscFormat.getValOrDefault(oEffectExtent.T, 0.0) - (yc - extY / 2) + oBounds.t;
 		}
 	}
-	this.updatePosition3(this.PageNum, this.X + DiffX, this.Y - DiffY, OldPageNum);
-	this.useWrap = this.Use_TextWrap();
-};
-ParaDrawing.prototype.Update_PositionYHeaderFooter = function(TopMarginY, BottomMarginY)
-{
-	this.Internal_Position.Update_PositionYHeaderFooter(TopMarginY, BottomMarginY);
-	this.Internal_Position.Calculate_Y(this.Is_Inline(), this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
-	this.Y = this.Internal_Position.CalcY;
-	this.updatePosition3(this.PageNum, this.X, this.Y, this.PageNum);
-};
-ParaDrawing.prototype.Reset_SavedPosition = function()
-{
-	this.PositionV_Old = undefined;
-	this.PositionH_Old = undefined;
-};
-ParaDrawing.prototype.setParagraphBorders = function(val)
-{
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphBorders === "function")
-		this.GraphicObj.setParagraphBorders(val);
-};
-ParaDrawing.prototype.deselect = function()
-{
-	this.selected = false;
-	if (this.GraphicObj && this.GraphicObj.deselect)
-		this.GraphicObj.deselect();
-};
-ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
-{
+	_x += DiffX;
+	_y -= DiffY;
+
 	this.graphicObjects.removeById(pageIndex, this.Get_Id());
 	if (AscFormat.isRealNumber(oldPageNum))
 	{
@@ -1309,8 +1315,8 @@ ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
 		this.GraphicObj.setStartPage(pageIndex, bIsHfdFtr, bIsHfdFtr);
 	}
 	var bInline = this.Is_Inline();
-	var _x      = (this.PositionH.Align || bInline) ? x - this.GraphicObj.bounds.x : x;
-	var _y      = (this.PositionV.Align || bInline) ? y - this.GraphicObj.bounds.y : y;
+	_x      = (this.PositionH.Align || bInline) ? _x - this.GraphicObj.bounds.x : _x;
+	_y      = (this.PositionV.Align || bInline) ? _y - this.GraphicObj.bounds.y : _y;
 
 	if (!(this.DocumentContent && this.DocumentContent.IsHdrFtr() && this.DocumentContent.Get_StartPage_Absolute() !== pageIndex))
 	{
