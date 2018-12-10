@@ -5974,7 +5974,7 @@ PasteProcessor.prototype =
 			if(msoCommentId){
 				var id = msoCommentId.split("_com_");
 				if(id && undefined !== id[1]) {
-					this.msoComments[id[1]] = msoComment;
+					this.msoComments[id[1]] = {text: msoComment, start: false};
 				}
 			}
 		}
@@ -7279,7 +7279,12 @@ PasteProcessor.prototype =
     _AddToParagraph: function (elem)
     {
         if (null != this.oCurRun) {
-            if (para_Hyperlink === elem.Type) {
+			if(this.needAddCommentStart) {
+				this._CommitElemToParagraph(this.needAddCommentStart);
+				this.needAddCommentStart = null;
+			}
+
+			if (para_Hyperlink === elem.Type) {
                 this._CommitRunToParagraph(true);
                 this._CommitElemToParagraph(elem);
             }
@@ -8473,6 +8478,17 @@ PasteProcessor.prototype =
 				//TODO в дальнейшем необходимо поддержать вставку комментариев из ms
 				//так же рассмотреть где ещё используется тег [if !supportAnnotations]
 				if(oThis.startMsoAnnotation) {
+					if(child.id) {
+						//ориентируюсь по id для закрытия комментариев
+						var idAnchor = child.id.split("_anchor_");
+						if(idAnchor && idAnchor[1] && oThis.msoComments[idAnchor[1]] && oThis.msoComments[idAnchor[1]].start) {
+							if (null != oThis.oCurRun) {
+								var endComment = new ParaComment(false, oThis.msoComments[idAnchor[1]].start);
+								oThis._CommitElemToParagraph(endComment);
+								delete oThis.msoComments[idAnchor[1]];
+							}
+						}
+					}
 					return;
 				}
 
@@ -8482,14 +8498,13 @@ PasteProcessor.prototype =
 					var commentId = msoCommentReference.split("_");
 					if(commentId && undefined !== commentId[1]) {
 						var startComment = oThis.msoComments[commentId[1]];
-						if(startComment) {
+						if(startComment && !startComment.start) {
 							//добавляем комментарий CComment и получаем его id
-							var newCCommentId = oThis._addComment({Date: pPr["mso-comment-date"], Text: startComment});
+							var newCCommentId = oThis._addComment({Date: pPr["mso-comment-date"], Text: startComment.text});
 							//удаляем из map
-							delete oThis.msoComments[commentId[1]];
+							oThis.msoComments[commentId[1]].start = newCCommentId;
 							//добавляем paraComment
-							var newParaComment = new ParaComment(true, newCCommentId);
-							//oThis._CommitElemToParagraph(newParaComment);
+							oThis.needAddCommentStart = new ParaComment(true, newCCommentId);
 						}
 					}
 				}
@@ -9224,25 +9239,48 @@ PasteProcessor.prototype =
 
 	_addComment: function(oOldComment) {
 
-		var fInitCommentData = function(comment)
-		{
+		var convertMsDate = function(msDate) {
+			var res = "";
+
+			if(msDate) {
+				var dateTimeSplit = msDate.split("T");
+				if(dateTimeSplit[0] && dateTimeSplit[1]) {
+					var year = dateTimeSplit[0].substring(0, 4);
+					var month = dateTimeSplit[0].substring(4, 6);
+					var day = dateTimeSplit[0].substring(6, 8);
+					var hour = dateTimeSplit[1].substring(0, 2);
+					var min = dateTimeSplit[1].substring(2, 4);
+					var date = new Date(year, month - 1, day, hour, min);
+					res = (date.getTime() - (new Date()).getTimezoneOffset() * 60000).toString();
+				}
+			}
+
+			return res;
+		};
+		var fInitCommentData = function (comment) {
 			var oCommentObj = new CCommentData();
-			if(null != comment.UserName)
+			if (null != comment.UserName) {
 				oCommentObj.m_sUserName = comment.UserName;
-			if(null != comment.UserId)
+			}
+			if (null != comment.UserId) {
 				oCommentObj.m_sUserId = comment.UserId;
-			if(null != comment.Date)
-				oCommentObj.m_sTime = comment.Date;
-			if(null != comment.m_sQuoteText)
+			}
+			if (null != comment.Date) {
+				oCommentObj.m_sTime = convertMsDate(comment.Date);
+			}
+			if (null != comment.m_sQuoteText) {
 				oCommentObj.m_sQuoteText = comment.m_sQuoteText;
-			if(null != comment.Text)
+			}
+			if (null != comment.Text) {
 				oCommentObj.m_sText = comment.Text;
-			if(null != comment.Solved)
+			}
+			if (null != comment.Solved) {
 				oCommentObj.m_bSolved = comment.Solved;
-			if(null != comment.Replies)
-			{
-				for(var  i = 0, length = comment.Replies.length; i < length; ++i)
+			}
+			if (null != comment.Replies) {
+				for (var i = 0, length = comment.Replies.length; i < length; ++i) {
 					oCommentObj.Add_Reply(fInitCommentData(comment.Replies[i]));
+				}
 			}
 			return oCommentObj;
 		};
