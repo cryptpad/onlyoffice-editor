@@ -5968,7 +5968,15 @@ PasteProcessor.prototype =
 		var msoTextNode = node.getElementsByClassName("MsoCommentText");
 		if(msoTextNode && msoTextNode[0]) {
 			var msoComment = this._getMsoCommentText(msoTextNode[0]);
-			this.msoComments.push(msoComment);
+			var msoCommentId = msoTextNode[0].parentElement.id;
+			//в качестве id использую индекс из id у родительского элемента
+			//id вида _com_1
+			if(msoCommentId){
+				var id = msoCommentId.split("_com_");
+				if(id && undefined !== id[1]) {
+					this.msoComments[id[1]] = msoComment;
+				}
+			}
 		}
 	},
 	_getMsoCommentText: function(node) {
@@ -8468,6 +8476,24 @@ PasteProcessor.prototype =
 					return;
 				}
 
+				//comments start
+				var msoCommentReference = pPr["mso-comment-reference"];
+				if(msoCommentReference) {
+					var commentId = msoCommentReference.split("_");
+					if(commentId && undefined !== commentId[1]) {
+						var startComment = oThis.msoComments[commentId[1]];
+						if(startComment) {
+							//добавляем комментарий CComment и получаем его id
+							var newCCommentId = oThis._addComment({Date: pPr["mso-comment-date"], Text: startComment});
+							//удаляем из map
+							delete oThis.msoComments[commentId[1]];
+							//добавляем paraComment
+							var newParaComment = new ParaComment(true, newCCommentId);
+							//oThis._CommitElemToParagraph(newParaComment);
+						}
+					}
+				}
+
 				//попускам элеметы состоящие только из \t,\n,\r
 				if (Node.TEXT_NODE === child.nodeType) {
 					var value = child.nodeValue;
@@ -9194,6 +9220,46 @@ PasteProcessor.prototype =
 				var theme = cTable.Get_Theme();*/
 			}
 		}
+	},
+
+	_addComment: function(oOldComment) {
+
+		var fInitCommentData = function(comment)
+		{
+			var oCommentObj = new CCommentData();
+			if(null != comment.UserName)
+				oCommentObj.m_sUserName = comment.UserName;
+			if(null != comment.UserId)
+				oCommentObj.m_sUserId = comment.UserId;
+			if(null != comment.Date)
+				oCommentObj.m_sTime = comment.Date;
+			if(null != comment.m_sQuoteText)
+				oCommentObj.m_sQuoteText = comment.m_sQuoteText;
+			if(null != comment.Text)
+				oCommentObj.m_sText = comment.Text;
+			if(null != comment.Solved)
+				oCommentObj.m_bSolved = comment.Solved;
+			if(null != comment.Replies)
+			{
+				for(var  i = 0, length = comment.Replies.length; i < length; ++i)
+					oCommentObj.Add_Reply(fInitCommentData(comment.Replies[i]));
+			}
+			return oCommentObj;
+		};
+
+		var oCommentsNewId = {};
+		//меняем CDocumentContent на Document для возможности вставки комментариев в колонтитул и таблицу
+		var isIntoShape = this.oDocument && this.oDocument.Parent && this.oDocument.Parent instanceof AscFormat.CShape ? true : false;
+		var isIntoDocumentContent = this.oDocument instanceof CDocumentContent ? true : false;
+		var document = this.oDocument && isIntoDocumentContent && !isIntoShape ? this.oDocument.LogicDocument : this.oDocument;
+
+		var oNewComment = new CComment(document.Comments, fInitCommentData(oOldComment));
+		document.Comments.Add(oNewComment);
+
+		//посылаем событие о добавлении комментариев
+		this.api.sync_AddComment( oNewComment.Id, oNewComment.Data );
+
+		return oNewComment.Id;
 	}
 };
 
