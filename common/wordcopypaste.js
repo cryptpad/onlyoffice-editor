@@ -7279,11 +7279,6 @@ PasteProcessor.prototype =
     _AddToParagraph: function (elem)
     {
         if (null != this.oCurRun) {
-			if(this.needAddCommentStart) {
-				this._CommitElemToParagraph(this.needAddCommentStart);
-				this.needAddCommentStart = null;
-			}
-
 			if (para_Hyperlink === elem.Type) {
                 this._CommitRunToParagraph(true);
                 this._CommitElemToParagraph(elem);
@@ -8058,10 +8053,24 @@ PasteProcessor.prototype =
 
 				//TODO поправить проблему с лишними прообелами в начале новой строки при копировании из MS EXCEL ячеек с текстом, разделенным alt+enter
 				//bIsPreviousSpace - игнорируем несколько пробелов подряд
-				var bIsPreviousSpace = false;
-
+				var bIsPreviousSpace = false, clonePr;
 				for (var oIterator = value.getUnicodeIterator(); oIterator.check(); oIterator.next())
 				{
+					if(oThis.needAddCommentStart) {
+						oThis._CommitElemToParagraph(oThis.needAddCommentStart);
+						clonePr = oThis.oCurRun.Pr.Copy();
+						oThis.oCurRun = new ParaRun(oThis.oCurPar);
+						oThis.oCurRun.Set_Pr(clonePr);
+						oThis.needAddCommentStart = null;
+					} else if(oThis.needAddCommentEnd) {
+						oThis._CommitElemToParagraph(oThis.needAddCommentEnd);
+						clonePr = oThis.oCurRun.Pr.Copy();
+						oThis.oCurRun = new ParaRun(oThis.oCurPar);
+						oThis.oCurRun.Set_Pr(clonePr);
+						oThis.needAddCommentEnd = null;
+					}
+
+
 					var nUnicode = oIterator.value();
 
 					if (bPresentation)
@@ -8483,8 +8492,7 @@ PasteProcessor.prototype =
 						var idAnchor = child.id.split("_anchor_");
 						if(idAnchor && idAnchor[1] && oThis.msoComments[idAnchor[1]] && oThis.msoComments[idAnchor[1]].start) {
 							if (null != oThis.oCurRun) {
-								var endComment = new ParaComment(false, oThis.msoComments[idAnchor[1]].start);
-								oThis._CommitElemToParagraph(endComment);
+								oThis.needAddCommentEnd = new ParaComment(false, oThis.msoComments[idAnchor[1]].start);
 								delete oThis.msoComments[idAnchor[1]];
 							}
 						}
