@@ -1339,7 +1339,12 @@ CShape.prototype.getPaddings = function () {
     var shape = this;
     var body_pr;
     if (shape.txBody) {
-        body_pr = shape.txBody.bodyPr;
+        if(shape.txBody.compiledBodyPr){
+            body_pr = shape.txBody.compiledBodyPr;
+        }
+        else{
+            body_pr = shape.txBody.getCompiledBodyPr();
+        }
     }
     else if (shape.textBoxContent) {
         body_pr = shape.bodyPr;
