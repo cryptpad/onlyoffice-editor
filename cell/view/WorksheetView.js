@@ -14199,6 +14199,7 @@
 	WorksheetView.prototype.setPageOptions = function (obj) {
 		var t = this;
 		var pageOptions = t.model.PagePrintOptions;
+		var viewMode = !window["Asc"]["editor"].canEdit();
 
 		if(!obj) {
 			return;
@@ -14209,10 +14210,10 @@
 				return;
 			}
 
-			t.savePageOptions(obj);
+			t.savePageOptions(obj, viewMode);
 		};
 
-		return this._isLockedLayoutOptions(onChangeDocSize);
+		return viewMode ? onChangeDocSize(true) : this._isLockedLayoutOptions(onChangeDocSize);
 	};
 
 	WorksheetView.prototype.savePageOptions = function (obj, viewMode) {
