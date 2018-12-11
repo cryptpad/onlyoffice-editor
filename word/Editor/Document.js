@@ -2384,7 +2384,6 @@ CDocument.prototype.Recalculate = function(_RecalcData, isForceStrictRecalc)
 			clearTimeout(this.FullRecalc.Id);
 			this.FullRecalc.Id = null;
 			this.DrawingDocument.OnEndRecalculate(false);
-			}
 		}
 		else if (null !== this.HdrFtrRecalc.Id)
 		{
