@@ -1548,37 +1548,51 @@ background-repeat: no-repeat;\
 			if (window["AscDesktopEditor"]["IsLocalFile"] && !window["AscDesktopEditor"]["IsLocalFile"]())
 			{
 				this.sendEvent('asc_onSpellCheckInit', [
-					"1027",
-					"1029",
-					"1030",
-					"1031",
-					"1032",
-					"1033",
-					"1036",
-					"1038",
-					"1040",
-					"1042",
-					"1043",
-					"1044",
-					"1045",
-					"1046",
-					"1048",
-					"1049",
-					"1051",
-					"1053",
-					"1055",
-					"1058",
-					"1062",
-					"1063",
-					"1066",
-					"1068",
-					"2055",
-					"2057",
-					"2068",
-					"2070",
-					"3079",
-					"3081",
-					"3082"
+                    "1026",
+                    "1027",
+                    "1029",
+                    "1030",
+                    "1031",
+                    "1032",
+                    "1033",
+                    "1036",
+                    "1038",
+                    "1040",
+                    "1042",
+                    "1043",
+                    "1044",
+                    "1045",
+                    "1046",
+                    "1048",
+                    "1049",
+                    "1050",
+                    "1051",
+                    "1053",
+                    "1055",
+                    "1057",
+                    "1058",
+                    "1060",
+                    "1062",
+                    "1063",
+                    "1066",
+                    "1068",
+                    "1069",
+                    "1087",
+                    "1104",
+                    "1110",
+                    "1134",
+                    "2051",
+                    "2055",
+                    "2057",
+                    "2068",
+                    "2070",
+                    "3079",
+                    "3081",
+                    "3082",
+                    "4105",
+                    "7177",
+                    "9242",
+                    "10266"
 				]);
 			}
 		} else {
@@ -2268,6 +2282,24 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onShowSpecialPasteOptions", props);
 		}
 	};
+
+    asc_docs_api.prototype.beginInlineDropTarget = function(e)
+    {
+    	if (this.WordControl.m_oLogicDocument && this.WordControl.m_oDrawingDocument)
+		{
+			this.WordControl.m_oDrawingDocument.StartTrackText();
+            this.WordControl.StartUpdateOverlay();
+			this.WordControl.onMouseMove(e);
+            this.WordControl.EndUpdateOverlay();
+		}
+    };
+    asc_docs_api.prototype.endInlineDropTarget = function(e)
+    {
+        if (this.WordControl.m_oLogicDocument && this.WordControl.m_oDrawingDocument)
+        {
+            this.WordControl.m_oDrawingDocument.EndTrackText(true);
+        }
+    };
 	
 	asc_docs_api.prototype._onSaveCallbackInner = function()
 	{
@@ -2336,7 +2368,7 @@ background-repeat: no-repeat;\
 				UserId      : this.CoAuthoringApi.getUserConnectionId(),
 				UserShortId : this.DocInfo.get_UserId(),
 				CursorInfo  : CursorInfo
-			}, HaveOtherChanges);
+			}, HaveOtherChanges, true);
 		}
 	};
 	asc_docs_api.prototype._autoSaveInner = function () {
@@ -3565,7 +3597,7 @@ background-repeat: no-repeat;\
 			return -1;
 
 		var oNumPr = oLogicDocument.GetSelectedNum(true);
-		if (!oNumPr)
+		if (!oNumPr || !oNumPr.Lvl)
 			return -1;
 
 		return oNumPr.Lvl;
@@ -6418,10 +6450,12 @@ background-repeat: no-repeat;\
 
 					if (this.isApplyChangesOnOpenEnabled)
 					{
-						if (AscCommon.EncryptionWorker && !AscCommon.EncryptionWorker.isChangesHandled)
-						{
-                            return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
-						}
+                        if (AscCommon.EncryptionWorker)
+                        {
+                            AscCommon.EncryptionWorker.init();
+                            if (!AscCommon.EncryptionWorker.isChangesHandled)
+                                return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
+                        }
 
 						this.isApplyChangesOnOpenEnabled = false;
 						this._applyPreOpenLocks();
@@ -7148,9 +7182,10 @@ background-repeat: no-repeat;\
 		var t = this;
 		AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
 		{
-			if (error)
+			if (error || (!result.bSerFormat && !Asc.c_rUneditableTypes.test(t.DocInfo && t.DocInfo.get_Format())))
 			{
-				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
+				t.sendEvent("asc_onError",  err, c_oAscError.Level.Critical);
 				return;
 			}
 			t.onEndLoadFile(result);

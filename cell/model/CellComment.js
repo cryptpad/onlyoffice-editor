@@ -221,7 +221,8 @@ function (window, undefined) {
 
 	asc_CCommentData.prototype.asc_putQuoteText = function(val) {};
 	asc_CCommentData.prototype.asc_getQuoteText = function() {
-		return this.bDocument ? null : AscCommon.g_oCellAddressUtils.getCellId(this.nRow, this.nCol);
+		return this.bDocument ? null : (new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow)).getName(
+			AscCommonExcel.g_R1C1Mode ? AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
 	};
 
 	asc_CCommentData.prototype.asc_putRow = function(val) { this.nRow = val; };

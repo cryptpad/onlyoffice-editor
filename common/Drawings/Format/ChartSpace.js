@@ -1968,7 +1968,11 @@ CChartSpace.prototype.changeLine = function (line)
 CChartSpace.prototype.parseChartFormula = function(sFormula)
 {
     if(this.worksheet && typeof sFormula === "string" && sFormula.length > 0){
-        return AscCommonExcel.getRangeByRef(sFormula, this.worksheet);
+        var res, ws = this.worksheet;
+		AscCommonExcel.executeInR1C1Mode(false, function () {
+			res = AscCommonExcel.getRangeByRef(sFormula, ws);
+		});
+        return res;
     }
     return [];
 };
@@ -3222,15 +3226,10 @@ CChartSpace.prototype.getRangeObjectStr = function()
                }
            }
        }
-        var startCell = new CellAddress(r1, c1, 0);
-        var endCell = new CellAddress(r2, c2, 0);
 
-        var sStartCellId, sEndCellId;
         if (this.bbox.worksheet) {
-            sStartCellId = startCell.getIDAbsolute();
-            sEndCellId = endCell.getIDAbsolute();
-            ret.range = parserHelp.get3DRef(this.bbox.worksheet.sName, sStartCellId === sEndCellId ?
-                sStartCellId : sStartCellId + ':' + sEndCellId);
+            var sRef = (new Asc.Range(c1, r1, c2, r2)).getName(AscCommonExcel.referenceType.A);
+            ret.range = parserHelp.get3DRef(this.bbox.worksheet.sName, sRef);
         }
     }
     return ret;
@@ -14918,17 +14917,15 @@ function parseSeriesHeaders (ws, rangeBBox) {
 }
 
 function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
-	var api = window["Asc"]["editor"];
-	var ws = null;
-	var range = null;
+	var ws, range;
 	var result = parserHelp.parse3DRef(options.range);
-	if (null !== result) {
+	if (result) {
 		ws = worksheet.workbook.getWorksheetByName(result.sheet);
 		if (ws)
 			range = ws.getRange2(result.range);
 	}
 
-	if (null === range)
+	if (!range)
 		return null;
 
 	var bbox = range.getBBox0();

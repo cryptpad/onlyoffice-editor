@@ -5784,7 +5784,7 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
 
         t.setCellEditMode(true);
         ws.setCellEditMode(true);
-        ws.openCellEditor(t.cellEditor, /*fragments*/undefined, /*cursorPos*/undefined, isFocus, isClearCell,
+        ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
                           /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
         //t.input.disabled = false;
         t.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editStart);
@@ -6180,7 +6180,7 @@ window["native"]["offline_copy"] = function() {
     if (_api.wb.cellEditor.isOpened) {
         var v = _api.wb.cellEditor.copySelection();
         if (v) {
-            dataBuffer.text = _api.wb.cellEditor._getFragmentsText(v);
+            dataBuffer.text = AscCommonExcel.getFragmentsText(v);
         }
     } else {
 
@@ -6251,7 +6251,7 @@ window["native"]["offline_cut"] = function() {
     if (_api.wb.cellEditor.isOpened) {
         var v = _api.wb.cellEditor.copySelection();
         if (v) {
-            dataBuffer.text = _api.wb.cellEditor._getFragmentsText(v);
+            dataBuffer.text = AscCommonExcel.getFragmentsText(v);
             _api.wb.cellEditor.cutSelection();
         }
 

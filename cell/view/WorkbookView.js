@@ -592,6 +592,26 @@
         }
         return res;
       };
+      this.Api.beginInlineDropTarget = function (event) {
+      	if (!self.controller.isMoveRangeMode) {
+      		self.controller.isMoveRangeMode = true;
+			self.getWorksheet().dragAndDropRange = new Asc.Range(0, 0, 0, 0);
+		}
+      	self.controller._onMouseMove(event);
+	  };
+      this.Api.endInlineDropTarget = function (event) {
+      	self.controller.isMoveRangeMode = false;
+      	var ws = self.getWorksheet();
+      	var newSelection = ws.activeMoveRange.clone();
+      	ws._cleanSelectionMoveRange();
+      	ws.dragAndDropRange = null;
+      	self._onSetSelection(newSelection);
+	  };
+      this.Api.isEnabledDropTarget = function () {
+      	return !self.isCellEditMode;
+	  };
+
+
       AscCommon.InitBrowserInputContext(this.Api, "id_target_cursor");
     }
 
@@ -1298,8 +1318,8 @@
     this.getWorksheet().cellCommentator.showCommentByXY(x, y);
   };
 
-  WorkbookView.prototype._onUpdateSelectionName = function() {
-    if (this.canUpdateAfterShiftUp) {
+  WorkbookView.prototype._onUpdateSelectionName = function (forcibly) {
+    if (this.canUpdateAfterShiftUp || forcibly) {
       this.canUpdateAfterShiftUp = false;
       var ws = this.getWorksheet();
       this._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
@@ -1410,7 +1430,7 @@
     var editFunction = function() {
       t.setCellEditMode(true);
       ws.setCellEditMode(true);
-      ws.openCellEditor(t.cellEditor, /*fragments*/undefined, /*cursorPos*/undefined, isFocus, isClearCell,
+      ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
       t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editStart);
@@ -2068,7 +2088,7 @@
 			var selectionRange = ws.model.selectionRange.clone();
 
 			// Редактор закрыт
-			var cellRange = null;
+			var cellRange = {};
 			// Если нужно сделать автозаполнение формулы, то ищем ячейки)
 			if (autoComplete) {
 				cellRange = ws.autoCompleteFormula(name);
@@ -2076,11 +2096,11 @@
 			if (isNotFunction) {
 				name = "=" + name;
 			} else {
-				if (cellRange) {
-					if (cellRange.notEditCell) {
-						// Мы уже ввели все что нужно, редактор открывать не нужно
-						return;
-					}
+				if (cellRange.notEditCell) {
+					// Мы уже ввели все что нужно, редактор открывать не нужно
+					return;
+				}
+				if (cellRange.text) {
 					// Меняем значение ячейки
 					name = "=" + name + "(" + cellRange.text + ")";
 				} else {
@@ -2354,7 +2374,7 @@
   };
 
   WorkbookView.prototype.getDefinedNames = function(defNameListId) {
-    return this.model.getDefinedNamesWB(defNameListId);
+    return this.model.getDefinedNamesWB(defNameListId, true);
   };
 
   WorkbookView.prototype.setDefinedNames = function(defName) {

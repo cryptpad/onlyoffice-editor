@@ -1051,37 +1051,51 @@
 			if (window["AscDesktopEditor"]["IsLocalFile"] && !window["AscDesktopEditor"]["IsLocalFile"]())
 			{
 				this.sendEvent('asc_onSpellCheckInit', [
-					"1027",
-					"1029",
-					"1030",
-					"1031",
-					"1032",
-					"1033",
-					"1036",
-					"1038",
-					"1040",
-					"1042",
-					"1043",
-					"1044",
-					"1045",
-					"1046",
-					"1048",
-					"1049",
-					"1051",
-					"1053",
-					"1055",
-					"1058",
-					"1062",
-					"1063",
-					"1066",
-					"1068",
-					"2055",
-					"2057",
-					"2068",
-					"2070",
-					"3079",
-					"3081",
-					"3082"
+                    "1026",
+                    "1027",
+                    "1029",
+                    "1030",
+                    "1031",
+                    "1032",
+                    "1033",
+                    "1036",
+                    "1038",
+                    "1040",
+                    "1042",
+                    "1043",
+                    "1044",
+                    "1045",
+                    "1046",
+                    "1048",
+                    "1049",
+                    "1050",
+                    "1051",
+                    "1053",
+                    "1055",
+                    "1057",
+                    "1058",
+                    "1060",
+                    "1062",
+                    "1063",
+                    "1066",
+                    "1068",
+                    "1069",
+                    "1087",
+                    "1104",
+                    "1110",
+                    "1134",
+                    "2051",
+                    "2055",
+                    "2057",
+                    "2068",
+                    "2070",
+                    "3079",
+                    "3081",
+                    "3082",
+                    "4105",
+                    "7177",
+                    "9242",
+                    "10266"
 				]);
 			}
         } else {
@@ -2067,7 +2081,7 @@ background-repeat: no-repeat;\
 				UserId      : this.CoAuthoringApi.getUserConnectionId(),
 				UserShortId : this.DocInfo.get_UserId(),
 				CursorInfo  : CursorInfo
-			});
+			}, undefined, true);
 		}
 	};
 	asc_docs_api.prototype._autoSaveInner = function () {
@@ -4898,9 +4912,11 @@ background-repeat: no-repeat;\
 				{
 					if (this.isApplyChangesOnOpenEnabled)
 					{
-                        if (AscCommon.EncryptionWorker && !AscCommon.EncryptionWorker.isChangesHandled)
+                        if (AscCommon.EncryptionWorker)
                         {
-                            return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
+                            AscCommon.EncryptionWorker.init();
+                            if (!AscCommon.EncryptionWorker.isChangesHandled)
+                            	return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
                         }
                         
 						this.isApplyChangesOnOpenEnabled = false;
@@ -6173,6 +6189,13 @@ background-repeat: no-repeat;\
 				data: _this.reporterStartObject
 			};
 
+			if (AscCommon.EncryptionWorker.isPasswordCryptoPresent)
+			{
+                _msg_.data["cryptoCurrentPassword"] = this.currentPassword;
+                _msg_.data["cryptoCurrentDocumentHash"] = this.currentDocumentHash;
+                _msg_.data["cryptoCurrentDocumentInfo"] = this.currentDocumentInfo;
+            }
+
 			this.reporterStartObject = null;
 			_this.sendToReporter(JSON.stringify(_msg_));
 
@@ -6255,6 +6278,19 @@ background-repeat: no-repeat;\
 			this.translateManager = AscCommon.translateManager.init(data["translate"]);
 
 		this.reporterTranslates = [data["translations"]["reset"], data["translations"]["slideOf"], data["translations"]["endSlideshow"], data["translations"]["finalMessage"]];
+
+        if (data["cryptoCurrentPassword"])
+        {
+            this.currentPassword = data["cryptoCurrentPassword"];
+            this.currentDocumentHash = data["cryptoCurrentDocumentHash"];
+            this.currentDocumentInfo = data["cryptoCurrentDocumentInfo"];
+
+            if (this.pluginsManager)
+                this.pluginsManager.checkCryptoReporter();
+            else
+                this.isCheckCryptoReporter = true;
+        }
+
 		if (!this.WordControl)
 			return;
 
@@ -6646,7 +6682,8 @@ background-repeat: no-repeat;\
 		{
 			if (error || !result.bSerFormat)
 			{
-				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
+				t.sendEvent("asc_onError", err, c_oAscError.Level.Critical);
 				return;
 			}
 			t.onEndLoadFile(result);

@@ -233,11 +233,11 @@ function CCollaborativeEditingBase()
     this.m_aCursorsToUpdate        = {}; // Курсоры, которые нужно обновить после принятия изменений
     this.m_aCursorsToUpdateShortId = {};
 
-    //// CollaborativeEditing LOG
-    //this.m_nErrorLog_PointChangesCount = 0;
-    //this.m_nErrorLog_SavedPCC          = 0;
-    //this.m_nErrorLog_CurPointIndex     = -1;
-    //this.m_nErrorLog_SumIndex          = 0;
+    // // CollaborativeEditing LOG
+    // this.m_nErrorLog_PointChangesCount = 0;
+    // this.m_nErrorLog_SavedPCC          = 0;
+    // this.m_nErrorLog_CurPointIndex     = -1;
+    // this.m_nErrorLog_SumIndex          = 0;
 
     this.m_bFast  = false;
 
@@ -386,8 +386,8 @@ CCollaborativeEditingBase.prototype.Apply_OtherChanges = function()
 
         var Changes = this.m_aChanges[i];
         Changes.Apply_Data();
-        //// CollaborativeEditing LOG
-        //this.m_nErrorLog_PointChangesCount++;
+        // // CollaborativeEditing LOG
+        // this.m_nErrorLog_PointChangesCount++;
     }
 
     this.private_ClearChanges();

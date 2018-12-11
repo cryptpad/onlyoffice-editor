@@ -2874,18 +2874,19 @@ PasteProcessor.prototype =
 		return obj;
 	},
 
-	_checkNumberingText: function(paragraph, NumInfo, numbering)
+	_checkNumberingText: function(paragraph, oNumInfo, oNumPr)
 	{
-		if (numbering)
+		if (oNumPr)
 		{
-			var oNum = this.oLogicDocument.GetNumbering().GetNum(paragraph.Pr.NumPr.NumId);
-			var NumTextPr = paragraph.Get_CompiledPr2(false).TextPr.Copy();
-			var lvl = oNum.GetLvl(paragraph.Pr.NumPr.Lvl);
-			var numberingText = this._getNumberingText(lvl, NumInfo, NumTextPr, lvl);
+			var oNum = this.oLogicDocument.GetNumbering().GetNum(oNumPr.NumId);
+			if (oNum)
+			{
+				var sNumberingText = oNum.GetText(oNumPr.Lvl, oNumInfo);
 
-			var newParaRun = new ParaRun();
-			addTextIntoRun(newParaRun, numberingText, false, true, true);
-			paragraph.Internal_Content_Add(0, newParaRun, false);
+				var newParaRun = new ParaRun();
+				addTextIntoRun(newParaRun, sNumberingText, false, true, true);
+				paragraph.Internal_Content_Add(0, newParaRun, false);
+			}
 		}
 	},
 
@@ -7865,25 +7866,39 @@ PasteProcessor.prototype =
 		//Удаляем параграф, который создается в таблице по умолчанию
         cell.Content.Internal_Content_Remove(0, 1);
     },
-	_CheckIsPlainText : function(node)
+	_CheckIsPlainText : function(node, dNotCheckFirstElem)
 	{
 		var bIsPlainText = true;
-		for(var i = 0, length = node.childNodes.length; i < length; i++)
-		{
+
+		var checkStyle = function (elem) {
+			var res = false;
+			var sClass = elem.getAttribute("class");
+			var sStyle = elem.getAttribute("style");
+			var sHref = elem.getAttribute("href");
+
+			if (sClass || sStyle || sHref) {
+				res = true;
+			}
+			return res;
+		};
+
+		//проверяем верхний элемент
+		//в случае с плагинами - контент оборачивается в дивку, которая может иметь свои стили
+		if ("body" !== node.nodeName.toLowerCase() && !dNotCheckFirstElem) {
+			if (Node.ELEMENT_NODE === node.nodeType) {
+				if (checkStyle(node)) {
+					return false;
+				}
+			}
+		}
+
+		for (var i = 0, length = node.childNodes.length; i < length; i++) {
 			var child = node.childNodes[i];
-			if(Node.ELEMENT_NODE === child.nodeType)
-			{
-				var sClass = child.getAttribute("class");
-				var sStyle = child.getAttribute("style");
-				var sHref = child.getAttribute("href");
-				
-				if(sClass || sStyle || sHref)
-				{
+			if (Node.ELEMENT_NODE === child.nodeType) {
+				if (checkStyle(child)) {
 					bIsPlainText = false;
 					break;
-				}
-				else if(!this._CheckIsPlainText(child))
-				{
+				} else if (!this._CheckIsPlainText(child, true)) {
 					bIsPlainText = false;
 					break;
 				}
@@ -9224,7 +9239,18 @@ function Check_LoadingDataBeforePrepaste(_api, _fonts, _images, _callback)
 				aImagesToDownload.push(src);
 		}
         else if (!g_oDocumentUrls.getImageUrl(src) && !g_oDocumentUrls.getImageLocal(src))
-            aImagesToDownload.push(src);
+        {
+            if (window["AscDesktopEditor"] && (undefined !== window["AscDesktopEditor"]["CryptoMode"]) && (window["AscDesktopEditor"]["CryptoMode"] > 0))
+            {
+                // local image (open crypto file)
+                if (0 != src.indexOf("image"))
+                    aImagesToDownload.push(src);
+            }
+            else
+            {
+                aImagesToDownload.push(src);
+            }
+        }
     }
     if (aImagesToDownload.length > 0)
     {

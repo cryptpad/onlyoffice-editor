@@ -57,7 +57,7 @@ function CCollaborativeEditing()
 CCollaborativeEditing.prototype = Object.create(AscCommon.CCollaborativeEditingBase.prototype);
 CCollaborativeEditing.prototype.constructor = CCollaborativeEditing;
 
-CCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, AdditionalInfo)
+CCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, AdditionalInfo, IsUpdateInterface, isAfterAskSave)
 {
     // Пересчитываем позиции
     this.Refresh_DCChanges();
@@ -209,7 +209,7 @@ CCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, AdditionalIn
         editor.CoAuthoringApi.saveChanges(aChanges, deleteIndex, AdditionalInfo, editor.canUnlockDocument2, bCollaborative);
         AscCommon.History.CanNotAddChanges = true;
     } else
-        editor.CoAuthoringApi.unLockDocument(true, editor.canUnlockDocument2, null, bCollaborative);
+        editor.CoAuthoringApi.unLockDocument(!!isAfterAskSave, editor.canUnlockDocument2, null, bCollaborative);
 	editor.canUnlockDocument2 = false;
 
     if ( -1 === this.m_nUseType )

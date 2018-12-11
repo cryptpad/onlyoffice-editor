@@ -70,6 +70,8 @@ Paragraph.prototype.Recalculate_FastWholeParagraph = function()
     if (1 === this.Lines.length && true !== this.Is_Inline())
         return [];
 
+    this.SetIsRecalculated(true);
+
     // Здесь мы отдельно обрабатываем случаи быстрого пересчета параграфов, которые были разбиты на 1-2
     // страницы. Если параграф был разбит более чем на 2 страницы, то такое ускорение уже не имеет смысла.
     if (1 === this.Pages.length)
@@ -372,8 +374,9 @@ Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
     this.CurPos.Range = -1;
 
     this.Internal_CheckSpelling();
+	this.SetIsRecalculated(true);
 
-    //console.log("Recalc Fast Range");
+	//console.log("Recalc Fast Range");
 
 	this.m_oPRSW.SetFast(false);
     return this.Get_AbsolutePage(Result);
@@ -392,6 +395,7 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
     // Во время пересчета сбрасываем привязку курсора к строке.
     this.CurPos.Line  = -1;
     this.CurPos.Range = -1;
+	this.SetIsRecalculated(true);
 
     this.FontMap.NeedRecalc = true;
 
