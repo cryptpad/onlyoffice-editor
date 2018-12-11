@@ -8736,17 +8736,16 @@ Paragraph.prototype.Clear_Formatting = function()
 };
 Paragraph.prototype.Clear_TextFormatting = function()
 {
-	var Styles, DefHyper;
-	if (this.bFromDocument)
+	var sDefHyperlink = null;
+	if (this.bFromDocument && this.LogicDocument)
 	{
-		Styles   = this.Parent.Get_Styles();
-		DefHyper = Styles.GetDefaultHyperlink();
+		sDefHyperlink = this.LogicDocument.GetStyles().GetDefaultHyperlink();
 	}
 
 	for (var Index = 0; Index < this.Content.length; Index++)
 	{
 		var Item = this.Content[Index];
-		Item.Clear_TextFormatting(DefHyper);
+		Item.Clear_TextFormatting(sDefHyperlink);
 	}
 
 	this.TextPr.Clear_Style();
