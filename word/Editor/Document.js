@@ -2384,8 +2384,7 @@ CDocument.prototype.Recalculate = function(_RecalcData, isForceStrictRecalc)
 			clearTimeout(this.FullRecalc.Id);
 			this.FullRecalc.Id = null;
 			this.DrawingDocument.OnEndRecalculate(false);
-
-			isUseTimeout = true;
+			}
 		}
 		else if (null !== this.HdrFtrRecalc.Id)
 		{
@@ -6084,16 +6083,21 @@ CDocument.prototype.Interface_Update_HdrFtrPr = function()
 		this.Api.sync_HeadersAndFootersPropCallback(this.HdrFtr.Get_Props());
 	}
 };
-CDocument.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum, ColumnsInfo)
+CDocument.prototype.Internal_GetContentPosByXY = function(X, Y, nCurPage, ColumnsInfo)
 {
     if (!ColumnsInfo)
         ColumnsInfo = {Column : 0, ColumnsCount : 1};
 
-    if (undefined === PageNum || null === PageNum)
-        PageNum = this.CurPage;
+    if (undefined === nCurPage || null === nCurPage)
+		nCurPage = this.CurPage;
+
+    if (nCurPage >= this.Pages.length)
+    	nCurPage = this.Pages.length - 1;
+    else if (nCurPage < 0)
+    	nCurPage = 0;
 
     // Сначала проверим Flow-таблицы
-    var FlowTable = this.DrawingObjects.getTableByXY(X, Y, PageNum, this);
+    var FlowTable = this.DrawingObjects.getTableByXY(X, Y, nCurPage, this);
     if (null != FlowTable)
     {
         var ElementPos;
@@ -6126,10 +6130,10 @@ CDocument.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum, Columns
     }
 
     // Теперь проверим пустые параграфы с окончанием секций
-    var SectCount = this.Pages[PageNum].EndSectionParas.length;
+    var SectCount = this.Pages[nCurPage].EndSectionParas.length;
     for (var Index = 0; Index < SectCount; ++Index)
     {
-        var Item   = this.Pages[PageNum].EndSectionParas[Index];
+        var Item   = this.Pages[nCurPage].EndSectionParas[Index];
         var Bounds = Item.Pages[0].Bounds;
 
         if (Y < Bounds.Bottom && Y > Bounds.Top && X > Bounds.Left && X < Bounds.Right)
@@ -6142,7 +6146,7 @@ CDocument.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum, Columns
     }
 
     // Сначала мы определим секцию и колонку, в которую попали
-    var Page = this.Pages[PageNum];
+    var Page = this.Pages[nCurPage];
 
     var SectionIndex = 0;
     for (var SectionsCount = Page.Sections.length; SectionIndex < SectionsCount - 1; ++SectionIndex)
@@ -6151,7 +6155,7 @@ CDocument.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum, Columns
             break;
     }
 
-    var PageSection  = this.Pages[PageNum].Sections[SectionIndex];
+    var PageSection  = this.Pages[nCurPage].Sections[SectionIndex];
     var ColumnsCount = PageSection.Columns.length;
     var ColumnIndex  = 0;
     for (; ColumnIndex < ColumnsCount - 1; ++ColumnIndex)
@@ -6512,13 +6516,6 @@ CDocument.prototype.Selection_SetEnd = function(X, Y, MouseEvent)
         return;
 
     var ContentPos = this.Internal_GetContentPosByXY(X, Y);
-
-    var OldPos      = this.CurPos.ContentPos;
-    var OldInnerPos = null;
-    if (type_Paragraph === this.Content[OldPos].GetType())
-        OldInnerPos = this.Content[OldPos].CurPos.ContentPos;
-    else //if ( type_Table === this.Content[OldPos].GetType() )
-        OldInnerPos = this.Content[OldPos].CurCell;
 
     this.CurPos.ContentPos = ContentPos;
     var OldEndPos          = this.Selection.EndPos;
@@ -7387,7 +7384,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 }))
             {
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTabToMath);
-                ParaMath.Handle_Tab(!e.ShiftKey);
+                ParaMath.HandleTab(!e.ShiftKey);
                 this.Recalculate();
             }
         }
@@ -11147,6 +11144,10 @@ CDocument.prototype.private_MoveCursorDown = function(StartX, StartY, AddToSelec
 	var StartPage = this.CurPage;
 	var CurY      = StartY;
 
+	// Если данная страница еще не успела пересчитаться, тогда не даем смещаться
+	if (StartPage >= this.Pages.length)
+		return true;
+
 	var PageH = this.Pages[this.CurPage].Height;
 
 	this.TurnOff_InterfaceEvents();
@@ -11231,6 +11232,10 @@ CDocument.prototype.private_MoveCursorUp = function(StartX, StartY, AddToSelect)
 {
 	var StartPage = this.CurPage;
 	var CurY      = StartY;
+
+	// Если данная страница еще не успела пересчитаться, тогда не даем смещаться
+	if (StartPage >= this.Pages.length)
+		return true;
 
 	var PageH = this.Pages[this.CurPage].Height;
 
@@ -12789,7 +12794,7 @@ CDocument.prototype.Statistics_Stop = function()
 // Private
 //----------------------------------------------------------------------------------------------------------------------
 CDocument.prototype.EndPreview_MailMergeResult = function(){};
-CDocument.prototype.Continue_TrackRevisions = function(){};
+CDocument.prototype.ContinueTrackRevisions = function(){};
 CDocument.prototype.Set_TrackRevisions = function(bTrack){};
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с составным вводом
@@ -12800,7 +12805,7 @@ CDocument.prototype.Set_TrackRevisions = function(bTrack){};
  */
 CDocument.prototype.Begin_CompositeInput = function()
 {
-	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true))
+	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, this.IsFormFieldEditing()))
 	{
 		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_CompositeInput);
 		this.DrawingObjects.CreateDocContent();
@@ -16663,7 +16668,7 @@ CDocument.prototype.IsFastCollaboartionBeforeViewModeInReview = function()
 };
 CDocument.prototype.CheckComplexFieldsInSelection = function()
 {
-	if (true !== this.Selection.Use)
+	if (true !== this.Selection.Use || this.Controller !== this.LogicDocumentController)
 		return;
 
 	// Смотрим сколько полей открытых в начальной и конечной позициях.
@@ -18100,31 +18105,25 @@ CTrackRevisionsManager.prototype.Get_ParagraphChanges = function(ParaId)
 
     return [];
 };
-CTrackRevisionsManager.prototype.Continue_TrackRevisions = function()
+CTrackRevisionsManager.prototype.ContinueTrackRevisions = function()
 {
 	// За раз обрабатываем не больше 50 параграфов, чтобы не подвешивать клиент на открытии файлов
 	var nMaxCounter = 50,
 		nCounter    = 0;
 
-    var bNeedUpdate = false;
-    for (var ParaId in this.CheckPara)
-    {
-        delete this.CheckPara[ParaId];
-        var Para = g_oTableId.Get_ById(ParaId);
-        if (Para && Para instanceof Paragraph && Para.Is_UseInDocument())
-        {
-            delete this.Changes[ParaId];
-            Para.Check_RevisionsChanges(this);
-            bNeedUpdate = true;
-        }
+	var bNeedUpdate = false;
+	for (var sParaId in this.CheckPara)
+	{
+		if (this.private_TrackChangesForParagraph(sParaId))
+			bNeedUpdate = true;
 
-        ++nCounter;
-        if (nCounter >= nMaxCounter)
-        	break;
-    }
+		++nCounter;
+		if (nCounter >= nMaxCounter)
+			break;
+	}
 
-    if (bNeedUpdate)
-        this.LogicDocument.Document_UpdateInterfaceState();
+	if (bNeedUpdate)
+		this.LogicDocument.Document_UpdateInterfaceState();
 };
 CTrackRevisionsManager.prototype.Get_NextChange = function()
 {
@@ -18132,9 +18131,9 @@ CTrackRevisionsManager.prototype.Get_NextChange = function()
     var OldCurPara   = this.CurPara;
 
     var NextPara = null;
-    if (null !== this.CurChange && null !== this.CurPara)
+    if (null !== this.CurChange && null !== this.CurPara && this.Changes[this.CurPara.GetId()])
     {
-        var ChangesArray = this.Changes[this.CurPara.Get_Id()];
+        var ChangesArray = this.Changes[this.CurPara.GetId()];
         var ChangeIndex = -1;
         for (var Index = 0, Count = ChangesArray.length; Index < Count; Index++)
         {
@@ -18450,10 +18449,10 @@ CTrackRevisionsManager.prototype.Get_AllChangesLogicDocuments = function()
 
     return LogicDocuments;
 };
-CTrackRevisionsManager.prototype.Get_ChangeRelatedParagraphs = function(Change, bAccept)
+CTrackRevisionsManager.prototype.GetChangeRelatedParagraphs = function(oChange, bAccept)
 {
     var RelatedParas = {};
-    this.private_GetChangeRelatedParagraphs(Change, bAccept, RelatedParas);
+    this.private_GetChangeRelatedParagraphs(oChange, bAccept, RelatedParas);
     return this.private_ConvertParagraphsObjectToArray(RelatedParas);
 };
 CTrackRevisionsManager.prototype.private_GetChangeRelatedParagraphs = function(Change, bAccept, RelatedParas)
@@ -18576,7 +18575,40 @@ CTrackRevisionsManager.prototype.private_IsAllParagraphsChecked = function()
 CTrackRevisionsManager.prototype.CompleteTrackChanges = function()
 {
 	while (!this.private_IsAllParagraphsChecked())
-		this.Continue_TrackRevisions();
+		this.ContinueTrackRevisions();
+};
+/**
+ * Завершаем проверку рецензирования для заданных элементов
+ * @param arrElements
+ * @returns {boolean}
+ */
+CTrackRevisionsManager.prototype.CompleteTrackChangesForElements = function(arrElements)
+{
+	var isChecked = false;
+	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
+	{
+		var sElementId = arrElements[nIndex].GetId();
+		if (this.private_TrackChangesForParagraph(sElementId))
+			isChecked = true;
+	}
+
+	return isChecked;
+};
+CTrackRevisionsManager.prototype.private_TrackChangesForParagraph = function(sParaId)
+{
+	if (this.CheckPara[sParaId])
+	{
+		delete this.CheckPara[sParaId];
+		var oParagraph = g_oTableId.Get_ById(sParaId);
+		if (oParagraph && oParagraph instanceof Paragraph && oParagraph.Is_UseInDocument())
+		{
+			delete this.Changes[sParaId];
+			oParagraph.Check_RevisionsChanges(this);
+			return true;
+		}
+	}
+
+	return false;
 };
 
 function CRevisionsChangeParagraphSearchEngine(Direction, CurrentPara, TrackManager)

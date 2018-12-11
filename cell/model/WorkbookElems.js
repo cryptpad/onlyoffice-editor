@@ -468,8 +468,6 @@ g_oColorManager = new ColorManager();
 	function Fragment(val) {
 		this.text = null;
 		this.format = null;
-		this.sFormula = null;
-		this.sId = null;
 		if (null != val) {
 			this.set(val);
 		}
@@ -484,12 +482,6 @@ g_oColorManager = new ColorManager();
 		}
 		if (null != oVal.format) {
 			this.format = oVal.format;
-		}
-		if (null != oVal.sFormula) {
-			this.sFormula = oVal.sFormula;
-		}
-		if (null != oVal.sId) {
-			this.sId = oVal.sId;
 		}
 	};
 	Fragment.prototype.checkVisitedHyperlink = function (row, col, hyperlinkManager) {
@@ -3028,6 +3020,7 @@ function Hyperlink () {
 	this.Location = null;
 	this.LocationSheet = null;
 	this.LocationRange = null;
+	this.LocationRangeBbox = null;
 	this.bUpdateLocation = false;
 	
 	this.bVisited = false;
@@ -3043,6 +3036,8 @@ Hyperlink.prototype = {
 			oNewHyp.LocationSheet = this.LocationSheet;
 		if (null !== this.LocationRange)
 			oNewHyp.LocationRange = this.LocationRange;
+		if (null !== this.LocationRangeBbox)
+			oNewHyp.LocationRangeBbox = this.LocationRangeBbox.clone();
 		if (null !== this.Hyperlink)
 			oNewHyp.Hyperlink = this.Hyperlink;
 		if (null !== this.Tooltip)
@@ -3069,32 +3064,56 @@ Hyperlink.prototype = {
 	},
 	setLocationRange : function (LocationRange) {
 		this.LocationRange = LocationRange;
+		this.LocationRangeBbox = null;
 		this.bUpdateLocation = true;
 	},
 	setLocation : function (Location) {
-		this.bUpdateLocation = false;
-		this.Location = Location;
-		this.LocationSheet = this.LocationRange = null;
+		this.bUpdateLocation = true;
+		this.LocationSheet = this.LocationRange = this.LocationRangeBbox = null;
 
-		if (null !== this.Location) {
-			var result = parserHelp.parse3DRef(this.Location);
+		if (null !== Location) {
+			var result = parserHelp.parse3DRef(Location);
+			if (!result) {
+				// Can be in all mods. Excel bug...
+				AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
+					result = parserHelp.parse3DRef(Location);
+				});
+			}
 			if (null !== result) {
 				this.LocationSheet = result.sheet;
 				this.LocationRange = result.range;
 			}
 		}
+		this._updateLocation();
 	},
 	getLocation : function () {
 		if (this.bUpdateLocation)
 			this._updateLocation();
 		return this.Location;
 	},
+	getLocationRange : function () {
+		return this.LocationRangeBbox && this.LocationRangeBbox.getName(AscCommonExcel.g_R1C1Mode ?
+			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
+	},
 	_updateLocation : function () {
+		var t = this;
+		this.Location = null;
 		this.bUpdateLocation = false;
-		if (null === this.LocationSheet || null === this.LocationRange)
-			this.Location = null;
-		else
-			this.Location = parserHelp.get3DRef(this.LocationSheet, this.LocationRange);
+		if (null !== this.LocationSheet && null !== this.LocationRange) {
+			this.LocationRangeBbox = AscCommonExcel.g_oRangeCache.getAscRange(this.LocationRange);
+			if (!this.LocationRangeBbox) {
+				// Can be in all mods. Excel bug...
+				AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
+					t.LocationRangeBbox = AscCommonExcel.g_oRangeCache.getAscRange(t.LocationRange);
+				});
+			}
+			if (this.LocationRangeBbox) {
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					t.LocationRange = t.LocationRangeBbox.getName(AscCommonExcel.referenceType.R);
+				});
+				this.Location = parserHelp.get3DRef(this.LocationSheet, this.LocationRange);
+			}
+		}
 	},
 	setVisited : function (bVisited) {
 		this.bVisited = bVisited;
@@ -5290,9 +5309,12 @@ RangeDataManager.prototype = {
 		this._f = AscCommonExcel.g_oRangeCache.getRange3D(this.f);
 	};
 	sparkline.prototype.updateWorksheet = function (sheet, oldSheet) {
+		var t = this;
 		if (this._f && oldSheet === this._f.sheet && (null === this._f.sheet2 || oldSheet === this._f.sheet2)) {
 			this._f.setSheet(sheet);
-			this.f = this._f.getName();
+			AscCommonExcel.executeInR1C1Mode(false,function (){
+				t.f = t._f.getName();
+			});
 		}
 	};
 	sparkline.prototype.checkInRange = function (range) {
@@ -6335,6 +6357,12 @@ RangeDataManager.prototype = {
 	TableColumn.prototype.getTotalsRowFormula = function () {
 		return this.TotalsRowFormula ? this.TotalsRowFormula.getFormula() : null;
 	};
+	TableColumn.prototype.getTotalsRowFunction = function () {
+		return this.TotalsRowFunction;
+	};
+	TableColumn.prototype.getTotalsRowLabel = function () {
+		return this.TotalsRowLabel ? this.TotalsRowFormula.TotalsRowLabel : null;
+	};
 	TableColumn.prototype.setTotalsRowFormula = function (val, ws) {
 		this.cleanTotalsData();
 		if ("=" === val[0]) {
@@ -6343,10 +6371,15 @@ RangeDataManager.prototype = {
 		this.applyTotalRowFormula(val, ws, true);
 		this.TotalsRowFunction = Asc.ETotalsRowFunction.totalrowfunctionCustom;
 	};
+	TableColumn.prototype.setTotalsRowFunction = function (val) {
+		//функция работает только на undo/redo
+		//для того, чтобы работала из меню, необходимо генерировать и добавлять формулу в ячейку
+		this.cleanTotalsData();
+		this.TotalsRowFunction = val;
+	};
 
 	TableColumn.prototype.setTotalsRowLabel = function (val) {
 		this.cleanTotalsData();
-
 		this.TotalsRowLabel = val;
 	};
 

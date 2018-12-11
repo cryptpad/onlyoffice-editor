@@ -2504,6 +2504,9 @@ CMathBase.prototype.Get_Range_VisibleWidth = function(RangeW, _CurLine, _CurRang
 };
 CMathBase.prototype.Displace_BreakOperator = function(isForward, bBrkBefore, CountOperators)
 {
+	if (!this.Content[this.NumBreakContent])
+		return;
+
     this.Content[this.NumBreakContent].Displace_BreakOperator(isForward, bBrkBefore, CountOperators);
 };
 CMathBase.prototype.Get_AlignBrk = function(_CurLine, bBrkBefore)

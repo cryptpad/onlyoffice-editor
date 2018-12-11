@@ -1128,7 +1128,11 @@ Slide.prototype =
             }
             else{
                 this.notesShape = this.notes.getBodyShape();
+                if(this.notesShape && this.notesShape.getObjectType() !== AscDFH.historyitem_type_Shape){
+                    this.notesShape = null;
+                }
             }
+
             if(this.notesShape){
                 this.notes.slide = this;
                 this.notes.graphicObjects.selectObject(this.notesShape, 0);

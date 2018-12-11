@@ -5969,13 +5969,6 @@ CDocumentContent.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent
 
 	var ContentPos = this.Internal_GetContentPosByXY(X, Y);
 
-	var OldPos      = this.CurPos.ContentPos;
-	var OldInnerPos = null;
-	if (type_Paragraph === this.Content[OldPos].GetType())
-		OldInnerPos = this.Content[OldPos].CurPos.ContentPos;
-	else //if ( type_Table === this.Content[OldPos].GetType() )
-		OldInnerPos = this.Content[OldPos].CurCell;
-
 	this.CurPos.ContentPos = ContentPos;
 	var OldEndPos          = this.Selection.EndPos;
 	this.Selection.EndPos  = ContentPos;
@@ -6273,9 +6266,15 @@ CDocumentContent.prototype.SetSelectionToBeginEnd = function(isSelectionStart, i
 		this.Content[0].SetSelectionUse(true);
 		this.Content[0].SetSelectionToBeginEnd(isSelectionStart, true);
 		if (isSelectionStart)
+		{
 			this.Selection.StartPos = 0;
+			this.Selection.EndPos   = this.CurPos.ContentPos;
+		}
 		else
-			this.Selection.EndPos = 0;
+		{
+			this.Selection.StartPos = this.CurPos.ContentPos;
+			this.Selection.EndPos   = 0;
+		}
 	}
 	else
 	{
@@ -6283,9 +6282,15 @@ CDocumentContent.prototype.SetSelectionToBeginEnd = function(isSelectionStart, i
 		this.Content[this.Content.length - 1].SetSelectionToBeginEnd(isSelectionStart, false);
 
 		if (isSelectionStart)
+		{
 			this.Selection.StartPos = this.Content.length - 1;
+			this.Selection.EndPos   = this.CurPos.ContentPos;
+		}
 		else
-			this.Selection.EndPos = this.Content.length - 1;
+		{
+			this.Selection.StartPos = this.CurPos.ContentPos;
+			this.Selection.EndPos   = this.Content.length - 1;
+		}
 	}
 };
 CDocumentContent.prototype.Select_DrawingObject      = function(Id)

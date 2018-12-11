@@ -1217,7 +1217,8 @@ Paragraph.prototype.Internal_Recalculate_CurPos = function(Pos, UpdateCurPos, Up
 {
 	var Transform = this.Get_ParentTextTransform();
 
-	if (this.Lines.length <= 0)
+	if (!this.IsRecalculated() || this.Lines.length <= 0)
+	{
 		return {
 			X         : 0,
 			Y         : 0,
@@ -1226,10 +1227,12 @@ Paragraph.prototype.Internal_Recalculate_CurPos = function(Pos, UpdateCurPos, Up
 			Internal  : {Line : 0, Page : 0, Range : 0},
 			Transform : Transform
 		};
+	}
 
 	var LinePos = this.Get_CurrentParaPos();
 
 	if (-1 === LinePos.Line || LinePos.Line >= this.Lines.length)
+	{
 		return {
 			X         : 0,
 			Y         : 0,
@@ -1238,6 +1241,7 @@ Paragraph.prototype.Internal_Recalculate_CurPos = function(Pos, UpdateCurPos, Up
 			Internal  : {Line : 0, Page : 0, Range : 0},
 			Transform : Transform
 		};
+	}
 
 	var CurLine  = LinePos.Line;
 	var CurRange = LinePos.Range;
@@ -1248,6 +1252,18 @@ Paragraph.prototype.Internal_Recalculate_CurPos = function(Pos, UpdateCurPos, Up
 	{
 		CurLine  = this.CurPos.Line;
 		CurRange = this.CurPos.Range;
+	}
+
+	if (this.Lines[CurLine].Ranges.length <= 0)
+	{
+		return {
+			X         : 0,
+			Y         : 0,
+			Height    : 0,
+			PageNum   : 0,
+			Internal  : {Line : 0, Page : 0, Range : 0},
+			Transform : Transform
+		};
 	}
 
 	var X = this.Lines[CurLine].Ranges[CurRange].XVisible;
@@ -4225,7 +4241,11 @@ Paragraph.prototype.Get_ParaContentPosByXY = function(X, Y, PageIndex, bYLine, S
 	var CurRange    = 0;
 	var RangesCount = this.Lines[CurLine].Ranges.length;
 
-	if (RangesCount > 1)
+	if (RangesCount <= 0)
+	{
+		return SearchPos;
+	}
+	else if (RangesCount > 1)
 	{
 		for (; CurRange < RangesCount - 1; CurRange++)
 		{
@@ -10951,6 +10971,20 @@ Paragraph.prototype.Refresh_RecalcData = function(Data)
 				if (this.Parent.IsTableHeader())
 					bNeedRecalc = true;
 			}
+			break;
+		}
+		case AscDFH.historyitem_Paragraph_SectionPr:
+		{
+			if (this.Parent instanceof CDocument)
+			{
+				this.Parent.UpdateContentIndexing();
+				var nSectionIndex = this.Parent.GetSectionIndexByElementIndex(this.GetIndex());
+				var oFirstElement = this.Parent.GetFirstElementInSection(nSectionIndex);
+
+				if (oFirstElement)
+					this.Parent.Refresh_RecalcData2(oFirstElement.GetIndex(), oFirstElement.private_GetRelativePageIndex(0));
+			}
+
 			break;
 		}
 	}

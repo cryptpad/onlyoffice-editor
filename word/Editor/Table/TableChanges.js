@@ -645,7 +645,7 @@ CChangesTableAddRow.prototype.Redo = function()
 
 	oTable.Content.splice(this.Pos, 0, this.Items[0]);
 	oTable.TableRowsBottom.splice(this.Pos, 0, {});
-	oTable.RowsInfo.splice(this.Pos, 0, {});
+	oTable.RowsInfo.splice(this.Pos, 0, new CTableRowsInfo());
 
 	oTable.Internal_ReIndexing(this.Pos);
 	oTable.Recalc_CompiledPr2();
@@ -708,7 +708,7 @@ CChangesTableRemoveRow.prototype.Undo = function()
 
 	oTable.Content.splice(this.Pos, 0, this.Items[0]);
 	oTable.TableRowsBottom.splice(this.Pos, 0, {});
-	oTable.RowsInfo.splice(this.Pos, 0, {});
+	oTable.RowsInfo.splice(this.Pos, 0, new CTableRowsInfo());
 
 	oTable.Internal_ReIndexing(this.Pos);
 	oTable.Recalc_CompiledPr2();

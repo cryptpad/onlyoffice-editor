@@ -273,7 +273,6 @@
 
 	/** @constructor */
 	function asc_CCellInfo() {
-		this.name = null;
 		this.formula = "";
 		this.text = "";
 		this.halign = "left";
@@ -299,9 +298,6 @@
 		this.pivotTableInfo = null;
 	}
 
-	asc_CCellInfo.prototype.asc_getName = function () {
-		return this.name;
-	};
 	asc_CCellInfo.prototype.asc_getFormula = function () {
 		return this.formula;
 	};
