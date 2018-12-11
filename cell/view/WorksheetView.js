@@ -15380,6 +15380,57 @@
 		return color;
 	};
 
+	HeaderFooterParser.prototype.convertFontColorFromObj = function(obj) {
+		var color = null;
+
+		if(obj instanceof AscCommonExcel.ThemeColor) {
+			var theme = obj.theme.toString();
+			if(theme.length === 1) {
+				theme = "0" + theme;
+			}
+			var tint = (obj.tint * 100).toFixed(0);
+			if(1 === tint.length) {
+				tint = "00" + tint;
+			} else if(2 === tint.length) {
+				tint = "0" + tint;
+			}
+			color = theme + "+" + tint;
+		} else if(obj instanceof AscCommonExcel.RgbColor) {
+			//"rgb(" + (n >> 16 & 0xFF) + "," + (n >> 8 & 0xFF) + "," + (n & 0xFF) + ")"
+			/*var bin, m, x, type, r, g, b, a, s;
+
+			if (typeof c === "number") {
+				bin = c;
+			} else {
+
+				m = reColor.exec(c);
+				if (!m) {return null;}
+
+				if (m[1]) {
+					x = [ m[1].slice(0, 2), m[1].slice(2, 4), m[1].slice(4) ];
+					type = 1;
+				} else if (m[2]) {
+					x = [ m[2].slice(0, 1), m[2].slice(1, 2), m[2].slice(2) ];
+					type = 0;
+				} else {
+
+					type = x.length === 3 ? 2 : 3;
+				}
+
+				r = parseInt(type !== 0 ? x[0] : x[0] + x[0], type < 2 ? 16 : 10);
+				g = parseInt(type !== 0 ? x[1] : x[1] + x[1], type < 2 ? 16 : 10);
+				b = parseInt(type !== 0 ? x[2] : x[2] + x[2], type < 2 ? 16 : 10);
+				a = type === 3 ? (Math.round(parseFloat(x[3]) * 100) * 0.01) : 1;
+				bin = (r << 16) | (g << 8) | b;
+
+			}
+			return bin;*/
+			color = obj.rgb;
+		}
+
+		return color;
+	};
+
 	HeaderFooterParser.prototype.setAttr = function () {
         /*if(!this.font) {
          this.font = new AscCommonExcel.Font();
@@ -15523,6 +15574,15 @@
 			}
 		}
 
+		var compareColors = function(color1, color2) {
+			var isEqual = true;
+
+			if(color1 !== color2 || (color1 && color2 && color1.rgb !== color2.rgb)) {
+				isEqual = false;
+			}
+
+			return isEqual;
+		};
 		var res = "";
 		var fontList = true;
 
@@ -15607,6 +15667,15 @@
 						case AscCommon.vertalign_SuperScript: aParaText += "&X";  break;
 						case AscCommon.vertalign_SubScript:   aParaText += "&Y";  break;
 						default: break;
+					}
+				}
+
+
+				if(!compareColors(prevFont.c, newFont.c)) {
+					var newColor = this.convertFontColorFromObj(newFont.c);
+					if(null !== newColor) {
+						aParaText += "&K";
+						aParaText += newColor;
 					}
 				}
 
