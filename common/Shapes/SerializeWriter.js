@@ -2556,7 +2556,10 @@ function CBinaryFileWriter()
 						if(imageUrl){
 							_src = imageUrl;
 						}
-					}
+                    }
+                    if(window["native"] && window["native"]["GetImageTmpPath"]){
+                        _src = window["native"]["GetImageTmpPath"](_src);
+                    }
                 }
 
                 oThis.StartRecord(0);

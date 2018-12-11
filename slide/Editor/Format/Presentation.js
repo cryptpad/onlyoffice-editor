@@ -663,7 +663,6 @@ function CPresentation(DrawingDocument)
     this.Width = 254;
     this.Height = 142;
     this.recalcMap = {};
-    this.bClearSearch = true;
     this.bNeedUpdateTh = false;
     this.needSelectPages = [];
 
@@ -1379,10 +1378,10 @@ CPresentation.prototype =
                 }
             }
         }
-        if(this.bClearSearch)
+        if(this.SearchEngine.ClearOnRecalc)
         {
             this.SearchEngine.Clear();
-            this.bClearSearch = false;
+            this.SearchEngine.ClearOnRecalc = false;
         }
         var _RecalcData = RecalcData ? RecalcData : History.Get_RecalcData(), key, recalcMap, bSync = true, i, bRedrawAllSlides = false, aToRedrawSlides = [], redrawSlideIndexMap = {}, slideIndex;
         this.updateSlideIndexes();
@@ -1760,7 +1759,7 @@ CPresentation.prototype =
         }
         this.DrawingDocument.ClearCachePages();
         this.DrawingDocument.FirePaint();
-        this.bClearSearch = true;
+        this.SearchEngine.ClearOnRecalc = true;
         return this.SearchEngine;
     },
 
@@ -2035,6 +2034,76 @@ CPresentation.prototype =
        // this.Document_UpdateRulersState();
         editor.WordControl.OnUpdateOverlay();
     },
+
+    Search_Replace : function(NewStr, bAll, Id, bInterfaceEvent)
+    {
+        var bResult = false;
+
+        var oController = this.GetCurrentController();
+        if(!oController)
+        {
+            return bResult;
+        }
+        var oContent = oController.getTargetDocContent();
+        if(oContent)
+        {
+            oContent.RemoveSelection();
+        }
+
+        var CheckParagraphs = [];
+        if ( true === bAll )
+        {
+            var CheckParagraphsObj = {};
+            for (var Id in this.SearchEngine.Elements)
+            {
+                CheckParagraphsObj[this.SearchEngine.Elements[Id].Get_Id()] = this.SearchEngine.Elements[Id];
+            }
+
+            for (var ParaId in CheckParagraphsObj)
+            {
+                CheckParagraphs.push(CheckParagraphsObj[ParaId]);
+            }
+        }
+        else
+        {
+            if ( undefined !== this.SearchEngine.Elements[Id] )
+                CheckParagraphs.push( this.SearchEngine.Elements[Id] );
+        }
+
+        var AllCount = this.SearchEngine.Count;
+
+
+        AscCommon.History.Create_NewPoint(bAll ? AscDFH.historydescription_Document_ReplaceAll : AscDFH.historydescription_Document_ReplaceSingle);
+
+        if (true === bAll)
+        {
+            this.SearchEngine.Replace_All(NewStr, true);
+        }
+        else
+        {
+            this.SearchEngine.Replace(NewStr, Id, false);
+
+            // TODO: В будушем надо будет переделать, чтобы искалось заново только в том параграфе, в котором произошла замена
+            //       Тут появляется проблема с вложенным поиском, если то что мы заменяем содержится в том, на что мы заменяем.
+            if (true === this.Is_TrackRevisions())
+                this.SearchEngine.Reset();
+        }
+
+        this.SearchEngine.ClearOnRecalc = false;
+        this.TurnOffInterfaceEvents = true;
+        this.Recalculate();
+        this.SearchEngine.ClearOnRecalc = true;
+        this.RecalculateCurPos();
+        this.TurnOffInterfaceEvents = false;
+        bResult = true;
+
+        if (true === bAll && false !== bInterfaceEvent)
+            editor.sync_ReplaceAllCallback(AllCount, AllCount);
+
+
+        return bResult;
+    },
+
 
     findText: function(text, scanForward)
     {

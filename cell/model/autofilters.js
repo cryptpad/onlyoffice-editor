@@ -2941,7 +2941,7 @@
 									continue;	
 									
 								cell = worksheet.getCell3(ref.r1, j);
-								val = props ? props.val : cell.getValue();
+								val = props ? props.val : cell.getValueWithFormat();
 								
 								//проверка на повторение уже существующих заголовков
 								if(checkRepeateColumnName(val, filter.TableColumns, j - tableRange.c1))
@@ -2960,9 +2960,12 @@
 										//если пытаемся вбить формулу в заголовок - оставляем только результат
 										//ms в данном случае генерирует новое имя, начинающееся с 0
 										//считаю, что результат формулы добавлять более логично
-										if(cell.isFormula()) {
-											cell.setValue(val);
-										}
+										var valueData = new AscCommonExcel.UndoRedoData_CellValueData(null, new AscCommonExcel.CCellValue({text: cell.getValueWithFormat()}));
+										cell.setValueData(valueData);
+										/*if(cell.isFormula()) {
+											var valueData = new AscCommonExcel.UndoRedoData_CellValueData(null, new AscCommonExcel.CCellValue({text: cell.getValueWithFormat()}));
+											cell.setValueData(valueData);
+										}*/
 										cell.setType(CellValueType.String);
 									}
 									newVal = val;

@@ -2341,7 +2341,9 @@ background-repeat: no-repeat;\
 		this.sync_SearchStartCallback();
 
 		if (null != this.WordControl.m_oLogicDocument)
-			this.WordControl.m_oLogicDocument.Search_Start(what);
+		{
+
+		}
 		else
 			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.StartSearch(what);
 	};
@@ -2364,10 +2366,21 @@ background-repeat: no-repeat;\
 
 		this.WordControl.m_oLogicDocument.Search_Stop();
 	};
-	asc_docs_api.prototype.findText             = function(text, isNext)
+
+	asc_docs_api.prototype.sync_ReplaceAllCallback = function(ReplaceCount, OverallCount)
+	{
+		this.sendEvent("asc_onReplaceAll", ReplaceCount, OverallCount);
+	};
+
+	asc_docs_api.prototype.sync_SearchEndCallback = function()
+	{
+		this.sendEvent("asc_onSearchEnd");
+	};
+
+	asc_docs_api.prototype.findText             = function(text, isNext, isMatchCase)
 	{
 
-		var SearchEngine = editor.WordControl.m_oLogicDocument.Search(text, {MatchCase : false});
+		var SearchEngine = editor.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
 
 		var Id = this.WordControl.m_oLogicDocument.Search_GetId(isNext);
 
@@ -2378,6 +2391,41 @@ background-repeat: no-repeat;\
 
 		//return this.WordControl.m_oLogicDocument.findText(text, scanForward);
 	};
+
+	asc_docs_api.prototype.asc_replaceText = function(text, replaceWith, isReplaceAll, isMatchCase)
+	{
+		if (null == this.WordControl.m_oLogicDocument)
+			return;
+
+		this.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
+
+		if (true === isReplaceAll)
+			this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, true, -1);
+		else
+		{
+			var CurId      = this.WordControl.m_oLogicDocument.SearchEngine.CurId;
+			var bDirection = this.WordControl.m_oLogicDocument.SearchEngine.Direction;
+			if (-1 != CurId)
+				this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, false, CurId);
+
+			var Id = this.WordControl.m_oLogicDocument.Search_GetId(bDirection);
+
+			if (null != Id)
+			{
+				this.WordControl.m_oLogicDocument.Search_Select(Id);
+				return true;
+			}
+			else
+			{
+				this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+				this.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
+				this.WordControl.OnUpdateOverlay();
+			}
+
+			return false;
+		}
+	};
+
 
 	asc_docs_api.prototype.asc_searchEnabled = function(bIsEnabled)
 	{
@@ -5132,6 +5180,11 @@ background-repeat: no-repeat;\
 			return;
 		}
 
+		if(window['IS_NATIVE_EDITOR'])
+		{
+			callback();
+			return;
+		}
 		this.pasteCallback = callback;
 		this.pasteImageMap = _images;
 
@@ -7312,6 +7365,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['findText']                            = asc_docs_api.prototype.findText;
 	asc_docs_api.prototype['asc_searchEnabled']                   = asc_docs_api.prototype.asc_searchEnabled;
 	asc_docs_api.prototype['asc_findText']                        = asc_docs_api.prototype.asc_findText;
+	asc_docs_api.prototype['asc_replaceText']                     = asc_docs_api.prototype.asc_replaceText;
 	asc_docs_api.prototype['sync_SearchFoundCallback']            = asc_docs_api.prototype.sync_SearchFoundCallback;
 	asc_docs_api.prototype['sync_SearchStartCallback']            = asc_docs_api.prototype.sync_SearchStartCallback;
 	asc_docs_api.prototype['sync_SearchStopCallback']             = asc_docs_api.prototype.sync_SearchStopCallback;

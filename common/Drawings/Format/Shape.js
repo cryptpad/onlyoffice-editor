@@ -4403,7 +4403,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         shape_drawer.fromShape2(this, graphics, geometry);
         shape_drawer.draw(geometry);
     }
-    if (!this.bWordShape && this.isEmptyPlaceholder() && !(this.pen && this.pen.Fill && this.pen.Fill.fill) && graphics.IsNoDrawingEmptyPlaceholder !== true  && !AscCommon.IsShapeToImageConverter)
+    if (!this.bWordShape && this.isEmptyPlaceholder() && !(this.pen && this.pen.Fill && this.pen.Fill.fill && !(this.pen.Fill.fill instanceof AscFormat.CNoFill)) && graphics.IsNoDrawingEmptyPlaceholder !== true  && !AscCommon.IsShapeToImageConverter)
     {
         var drawingObjects = this.getDrawingObjectsController();
         if (typeof editor !== "undefined" && editor && graphics.m_oContext !== undefined && graphics.m_oContext !== null && graphics.IsTrack === undefined && (!drawingObjects || AscFormat.getTargetTextObject(drawingObjects) !== this ))
