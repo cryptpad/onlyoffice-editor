@@ -690,17 +690,18 @@
 		{
 			var ElemToSelect = this.CommonDiv;
 
-			ElemToSelect.style.display                 = AscBrowser.isSafari ? "block" : "none";
+			if (ElemToSelect)
+			{
+                ElemToSelect.style.display       = AscBrowser.isSafari ? "block" : "none";
+                ElemToSelect.style.MozUserSelect = "none";
+			}
 			document.body.style.MozUserSelect          = "none";
 			document.body.style["-khtml-user-select"]  = "none";
 			document.body.style["-o-user-select"]      = "none";
 			document.body.style["user-select"]         = "none";
 			document.body.style["-webkit-user-select"] = "none";
-
 			document.body.style["background-color"] = this.ClosureParams.backgroundcolorBody;
-
-			ElemToSelect.style.MozUserSelect = "none";
-			document.body.style.overflow     = this.ClosureParams.overflowBody;
+			document.body.style.overflow = this.ClosureParams.overflowBody;
 
 			this.CopyFlag = false;
 			this.EndFocus();

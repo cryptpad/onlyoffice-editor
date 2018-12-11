@@ -5949,21 +5949,19 @@ CDocumentContent.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent
 	// Обрабатываем движение границы у таблиц
 	if (null != this.Selection.Data && true === this.Selection.Data.TableBorder && type_Table == this.Content[this.Selection.Data.Pos].GetType())
 	{
-		var Item             = this.Content[this.Selection.Data.Pos];
-		var ElementPageIndex = this.private_GetElementPageIndexByXY(this.Selection.Data.Pos, X, Y, this.CurPage);
-		Item.Selection_SetEnd(X, Y, ElementPageIndex, MouseEvent);
+		var nPos = this.Selection.Data.Pos;
 
+		// Убираем селект раньше, чтобы при создании точки в истории не сохранялось состояние передвижения границы таблицы
 		if (AscCommon.g_mouse_event_type_up == MouseEvent.Type)
 		{
 			this.Selection.Start = false;
-
-			if (true != this.Selection.Data.Selection)
-			{
-				this.Selection.Use = false;
-			}
-			this.Selection.Data = null;
+			this.Selection.Use   = this.Selection.Data.Selection;
+			this.Selection.Data  = null;
 		}
 
+		var Item             = this.Content[nPos];
+		var ElementPageIndex = this.private_GetElementPageIndexByXY(nPos, X, Y, this.CurPage);
+		Item.Selection_SetEnd(X, Y, ElementPageIndex, MouseEvent);
 		return;
 	}
 
