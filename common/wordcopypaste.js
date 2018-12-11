@@ -2087,6 +2087,8 @@ function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel)
 	this.msoComments = [];
 
 	this.startMsoAnnotation = undefined;
+	this.needAddCommentStart;
+	this.needAddCommentEnd;
 }
 PasteProcessor.prototype =
 {
@@ -8057,16 +8059,20 @@ PasteProcessor.prototype =
 				for (var oIterator = value.getUnicodeIterator(); oIterator.check(); oIterator.next())
 				{
 					if(oThis.needAddCommentStart) {
-						oThis._CommitElemToParagraph(oThis.needAddCommentStart);
-						clonePr = oThis.oCurRun.Pr.Copy();
-						oThis.oCurRun = new ParaRun(oThis.oCurPar);
-						oThis.oCurRun.Set_Pr(clonePr);
+						for(var i = 0; i < oThis.needAddCommentStart.length; i++) {
+							oThis._CommitElemToParagraph(oThis.needAddCommentStart[i]);
+							clonePr = oThis.oCurRun.Pr.Copy();
+							oThis.oCurRun = new ParaRun(oThis.oCurPar);
+							oThis.oCurRun.Set_Pr(clonePr);
+						}
 						oThis.needAddCommentStart = null;
 					} else if(oThis.needAddCommentEnd) {
-						oThis._CommitElemToParagraph(oThis.needAddCommentEnd);
-						clonePr = oThis.oCurRun.Pr.Copy();
-						oThis.oCurRun = new ParaRun(oThis.oCurPar);
-						oThis.oCurRun.Set_Pr(clonePr);
+						for(var i = 0; i < oThis.needAddCommentEnd.length; i++) {
+							oThis._CommitElemToParagraph(oThis.needAddCommentEnd[i]);
+							clonePr = oThis.oCurRun.Pr.Copy();
+							oThis.oCurRun = new ParaRun(oThis.oCurPar);
+							oThis.oCurRun.Set_Pr(clonePr);
+						}
 						oThis.needAddCommentEnd = null;
 					}
 
@@ -8394,6 +8400,7 @@ PasteProcessor.prototype =
 		};
 
 		var parseChildNodes = function(){
+			var sChildNodeName;
 			if (bPresentation) {
 				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType)) {
 					return;
@@ -8409,7 +8416,7 @@ PasteProcessor.prototype =
 						return;
 					}
 				}
-				var sChildNodeName = child.nodeName.toLowerCase();
+				sChildNodeName = child.nodeName.toLowerCase();
 				var bIsBlockChild = oThis._IsBlockElem(sChildNodeName);
 				if (bRoot) {
 					oThis.bInBlock = false;
@@ -8470,7 +8477,7 @@ PasteProcessor.prototype =
 					bAddParagraph = true;
 				}
 			} else {
-				var sChildNodeName = child.nodeName.toLowerCase();
+				sChildNodeName = child.nodeName.toLowerCase();
 				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
 					sChildNodeName === "#comment" || sChildNodeName === "script") {
 					if(sChildNodeName === "#comment") {
@@ -8492,7 +8499,10 @@ PasteProcessor.prototype =
 						var idAnchor = child.id.split("_anchor_");
 						if(idAnchor && idAnchor[1] && oThis.msoComments[idAnchor[1]] && oThis.msoComments[idAnchor[1]].start) {
 							if (null != oThis.oCurRun) {
-								oThis.needAddCommentEnd = new ParaComment(false, oThis.msoComments[idAnchor[1]].start);
+								if(!oThis.needAddCommentEnd) {
+									oThis.needAddCommentEnd = [];
+								}
+								oThis.needAddCommentEnd.push(new ParaComment(false, oThis.msoComments[idAnchor[1]].start));
 								delete oThis.msoComments[idAnchor[1]];
 							}
 						}
@@ -8512,9 +8522,17 @@ PasteProcessor.prototype =
 							//удаляем из map
 							oThis.msoComments[commentId[1]].start = newCCommentId;
 							//добавляем paraComment
-							oThis.needAddCommentStart = new ParaComment(true, newCCommentId);
+							if(!oThis.needAddCommentStart) {
+								oThis.needAddCommentStart = [];
+							}
+							oThis.needAddCommentStart.push(new ParaComment(true, newCCommentId));
 						}
 					}
+				}
+
+				//пропускаем одиночный неразрывный пробел перед комментарием
+				if("comment" === pPr["mso-special-character"]) {
+					return;
 				}
 
 				//попускам элеметы состоящие только из \t,\n,\r
