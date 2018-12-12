@@ -711,10 +711,24 @@ ParaDrawing.prototype.getXfrmExtY = function()
 };
 ParaDrawing.prototype.Get_Bounds = function()
 {
-    var W, H;
-    W = this.GraphicObj.bounds.w;
-    H = this.GraphicObj.bounds.h;
-    return {Left : this.X, Top : this.Y, Bottom : this.Y + H, Right : this.X + W};
+	var oCorrection = this.GetPosCorrection();
+	var InsL, InsT, InsR, InsB;
+	InsL = 0.0;
+	InsT = 0.0;
+	InsR = 0.0;
+	InsB = 0.0;
+	if(!this.Is_Inline())
+	{
+		var oDistance = this.Get_Distance();
+		if(oDistance)
+		{
+			InsL = oDistance.L;
+			InsT = oDistance.T;
+			InsR = oDistance.R;
+			InsB = oDistance.B;
+		}
+	}
+    return {Left : this.X + oCorrection.DiffX - InsL, Top : this.Y - oCorrection.DiffY - InsT, Bottom : this.Y + this.GraphicObj.bounds.h + this.EffectExtent.B +  InsB, Right : this.X  + this.GraphicObj.bounds.w + this.EffectExtent.R  + InsR};
 };
 ParaDrawing.prototype.Search = function(Str, Props, SearchEngine, Type)
 {
@@ -1246,13 +1260,14 @@ ParaDrawing.prototype.deselect = function()
 	if (this.GraphicObj && this.GraphicObj.deselect)
 		this.GraphicObj.deselect();
 };
-ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
+
+ParaDrawing.prototype.GetPosCorrection = function()
 {
 
-	var _x = x, _y = y;
 	var DiffX = 0.0, DiffY = 0.0;
-	var oEffectExtent = this.EffectExtent;
 	var bCell;
+
+	var oEffectExtent = this.EffectExtent;
 	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent .IsTableCellContent(false))))
 	{
 		var extX, extY, rot;
@@ -1300,8 +1315,15 @@ ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
 			DiffY = AscFormat.getValOrDefault(oEffectExtent.T, 0.0) - (yc - extY / 2) + oBounds.t;
 		}
 	}
-	_x += DiffX;
-	_y -= DiffY;
+	return {DiffX: DiffX, DiffY: DiffY, ExtX: extX, ExtY: extY, Rot: rot};
+};
+
+ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
+{
+	var _x = x, _y = y;
+	var oPosCorrection = this.GetPosCorrection();
+	_x += oPosCorrection.DiffX;
+	_y -= oPosCorrection.DiffY;
 
 	this.graphicObjects.removeById(pageIndex, this.Get_Id());
 	if (AscFormat.isRealNumber(oldPageNum))
