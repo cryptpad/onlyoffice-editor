@@ -1044,6 +1044,16 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 63: // ASC_MENU_EVENT_TYPE_SEARCH_REPLACETEXT
+        {
+            var _ret = this.asc_replaceText(_params[0], _params[1], _params[2], _params[3]);
+            var _stream = global_memory_stream_menu;
+            _stream["ClearNoAttack"]();
+            _stream["WriteBool"](_ret);
+            _return = _stream;
+            break;
+        }
+
         case 71: // ASC_MENU_EVENT_TYPE_TABLE_INSERTDELETE_ROWCOLUMN
         {
             var _type = 0;
