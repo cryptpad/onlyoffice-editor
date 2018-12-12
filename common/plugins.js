@@ -100,6 +100,8 @@
 
 		this.sendEncryptionDataCounter = 0;
 
+		this.language = "en-EN";
+
 		if (this.api.isCheckCryptoReporter)
 			this.checkCryptoReporter();
 	}
@@ -576,6 +578,9 @@
 
 			if (undefined == pluginData.getAttribute("data"))
 				pluginData.setAttribute("data", "");
+
+            pluginData.setAttribute("isViewMode", this.api.isViewMode);
+            pluginData.setAttribute("lang", this.language);
 		},
 		loadExtensionPlugins : function(_plugins)
 		{
@@ -1042,6 +1047,29 @@
 			}, 10);
 
 		});
+
+        if (true)
+        {
+            var _langSearch = window.location.search;
+            var _pos1 = _langSearch.indexOf("lang=");
+            var _pos2 = (-1 != _pos1) ? _langSearch.indexOf("&", _pos1) : -1;
+            if (_pos1 >= 0)
+            {
+                _pos1 += 5;
+
+                if (_pos2 < 0)
+                    _pos2 = _langSearch.length;
+
+                var _lang = _langSearch.substr(_pos1, _pos2 - _pos1);
+                if (_lang.length == 2)
+                {
+                    _lang = (_lang.toLowerCase() + "-" + _lang.toUpperCase());
+                }
+
+                if (5 == _lang.length)
+                    window.g_asc_plugins.language = _lang;
+            }
+        }
 
 		if (window["AscDesktopEditor"] && window["UpdateSystemPlugins"])
 			window["UpdateSystemPlugins"]();
