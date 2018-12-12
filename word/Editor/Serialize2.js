@@ -10030,12 +10030,15 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			}
 		} else if ( c_oSerParType.Sdt === type) {
 			var oSdt = new AscCommonWord.CInlineLevelSdt();
+			oSdt.ReplacePlaceHolderWithContent();
 			oSdt.SetParagraph(oParStruct.paragraph);
 			var oSdtStruct = new OpenParStruct(oSdt, oParStruct.paragraph);
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadSdt(t,l, oSdt, 1, oSdtStruct);
 			});
 			oSdtStruct.commitAll();
+			if (oSdt.IsEmpty())
+				oSdt.ReplaceContentWithPlaceHolder();
 			oParStruct.addToContent(oSdt);
 		} else if ( c_oSerParType.BookmarkStart === type) {
 			var bookmark = this.oReadResult.bookmarkForRead;
