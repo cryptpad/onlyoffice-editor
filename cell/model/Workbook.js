@@ -5050,7 +5050,7 @@
 						newFormula = formula.clone(null, cellWithFormula, oThis);
 						newFormula.changeOffset(offset, false, true);
 						newFormula.setFormulaString(newFormula.assemble(true));
-						cell.setFormulaInternal(newFormula);
+						cell.setFormulaInternal(newFormula, !isClearFromArea);
 
 						if(isFirstCellArray) {
 							newArrayRef = arrayFormula.clone();
@@ -5060,7 +5060,7 @@
 							oldNewArrayFormulaMap[formula.getListenerId()] = newFormula;
 						}
 					} else if(arrayFormula && oldNewArrayFormulaMap[formula.getListenerId()]) {
-						cell.setFormulaInternal(oldNewArrayFormulaMap[formula.getListenerId()]);
+						cell.setFormulaInternal(oldNewArrayFormulaMap[formula.getListenerId()], !isClearFromArea);
 					}
 					History.TurnOn();
 				} else {
