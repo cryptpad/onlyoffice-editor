@@ -15396,36 +15396,15 @@
 			}
 			color = theme + "+" + tint;
 		} else if(obj instanceof AscCommonExcel.RgbColor) {
-			//"rgb(" + (n >> 16 & 0xFF) + "," + (n >> 8 & 0xFF) + "," + (n & 0xFF) + ")"
-			/*var bin, m, x, type, r, g, b, a, s;
 
-			if (typeof c === "number") {
-				bin = c;
-			} else {
+			var toHex = function componentToHex(c) {
+				var res = c.toString(16);
+				return res.length == 1 ? "0" + res : res;
+			};
 
-				m = reColor.exec(c);
-				if (!m) {return null;}
-
-				if (m[1]) {
-					x = [ m[1].slice(0, 2), m[1].slice(2, 4), m[1].slice(4) ];
-					type = 1;
-				} else if (m[2]) {
-					x = [ m[2].slice(0, 1), m[2].slice(1, 2), m[2].slice(2) ];
-					type = 0;
-				} else {
-
-					type = x.length === 3 ? 2 : 3;
-				}
-
-				r = parseInt(type !== 0 ? x[0] : x[0] + x[0], type < 2 ? 16 : 10);
-				g = parseInt(type !== 0 ? x[1] : x[1] + x[1], type < 2 ? 16 : 10);
-				b = parseInt(type !== 0 ? x[2] : x[2] + x[2], type < 2 ? 16 : 10);
-				a = type === 3 ? (Math.round(parseFloat(x[3]) * 100) * 0.01) : 1;
-				bin = (r << 16) | (g << 8) | b;
-
-			}
-			return bin;*/
-			color = obj.rgb;
+			color = toHex(obj.getR()) + toHex(obj.getG()) + toHex(obj.getB());
+		} else if(obj === null){
+			color = "01+000";
 		}
 
 		return color;
