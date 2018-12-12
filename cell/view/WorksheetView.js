@@ -15600,7 +15600,7 @@
 						}
 					}
 					if(prevFont.i !== newFont.i) {
-						if(null === fontStyleStr) {
+						if("" === fontStyleStr) {
 							fontStyleStr = ",";
 						} else {
 							fontStyleStr += " ";
