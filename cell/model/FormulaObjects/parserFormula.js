@@ -5845,6 +5845,12 @@ parserFormula.prototype.setFormula = function(formula) {
 		while (ph.pCurrPos < this.Formula.length) {
 			ph.operand_str = this.Formula[ph.pCurrPos];
 
+			//TODO сделать так, чтобы добавлялся особый элемент - перенос строки и учитывался при сборке!!!!
+			if(ph.operand_str=="\n") {
+				ph.pCurrPos++;
+				continue;
+			}
+
 			/* Operators*/
 			if (parserHelp.isOperator.call(ph, this.Formula, ph.pCurrPos) || parserHelp.isNextPtg.call(ph, this.Formula, ph.pCurrPos)) {
 				if(!parseOperators()){
