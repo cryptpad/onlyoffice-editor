@@ -771,6 +771,22 @@ CDocumentContentElementBase.prototype.GetAbsoluteColumn = function(CurPage)
 {
 	return this.Get_AbsoluteColumn(CurPage);
 };
+/**
+ * Получаем начальный номер страницы данного элемента относительно родительского класса
+ * @returns {number}
+ */
+CDocumentContentElementBase.prototype.GetStartPageRelative = function()
+{
+	return this.PageNum;
+};
+/**
+ * Получаем обсолютный начальный номер страницы данного элемента
+ * @returns {number}
+ */
+CDocumentContentElementBase.prototype.GetStartPageAbsolute = function()
+{
+	return this.private_GetAbsolutePageIndex(0);
+};
 //----------------------------------------------------------------------------------------------------------------------
 CDocumentContentElementBase.prototype.GetPagesCount = function()
 {
