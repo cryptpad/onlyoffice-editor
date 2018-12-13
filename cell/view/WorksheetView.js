@@ -15228,12 +15228,15 @@
 							break;
 						case 'L':
 							this.setPortion(c_nPortionLeft);
+							this.font = new AscCommonExcel.Font();
 							break;
 						case 'C':
 							this.setPortion(c_nPortionCenter);
+							this.font = new AscCommonExcel.Font();
 							break;
 						case 'R':
 							this.setPortion(c_nPortionRight);
+							this.font = new AscCommonExcel.Font();
 							break;
 						case 'P':   //page number
 							this.pushField(new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber));
@@ -15280,10 +15283,18 @@
 							this.font.s = !this.font.s;
 							break;
 						case 'X':   //superscript
-
+							if(this.font.va === AscCommon.vertalign_SuperScript) {
+								this.font.va = AscCommon.vertalign_Baseline;
+							} else {
+								this.font.va = AscCommon.vertalign_SuperScript;
+							}
 							break;
 						case 'Y':   //subsrcipt
-
+							if(this.font.va === AscCommon.vertalign_SubScript) {
+								this.font.va = AscCommon.vertalign_Baseline;
+							} else {
+								this.font.va = AscCommon.vertalign_SubScript;
+							}
 							break;
 						case 'O':   //outlined
 
@@ -15637,15 +15648,14 @@
 
 				// super/sub script
 				if (prevFont.va != newFont.va) {
-					aParaText += "&S";
+					//aParaText += "&S";
 
 					switch(newFont.va)
 					{
 						// close the previous super/sub script.
-						case AscCommon.vertalign_Baseline:  (prevFont.va === AscCommon.vertalign_SuperScript) ? aParaText += "&X" : aParaText += "&Y"; break;
 						case AscCommon.vertalign_SuperScript: aParaText += "&X";  break;
 						case AscCommon.vertalign_SubScript:   aParaText += "&Y";  break;
-						default: break;
+						default: (prevFont.va === AscCommon.vertalign_SuperScript) ? aParaText += "&X" : aParaText += "&Y"; break;
 					}
 				}
 
