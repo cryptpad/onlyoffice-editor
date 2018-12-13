@@ -686,6 +686,8 @@
 	  this.wsViewHandlers = new AscCommonExcel.asc_CHandlersList(/*handlers*/{
 		  "canEdit": function () {
 			  return self.Api.canEdit();
+		  }, "getViewMode": function () {
+			  return self.Api.getViewMode();
 		  }, "isRestrictionComments": function () {
 			  return self.Api.isRestrictionComments();
 		  }, "reinitializeScroll": function (type) {

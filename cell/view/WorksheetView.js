@@ -815,6 +815,7 @@
 
     // mouseX - это разница стартовых координат от мыши при нажатии и границы
     WorksheetView.prototype.changeColumnWidth = function (col, x2, mouseX) {
+		var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
         // Учитываем координаты точки, где мы начали изменение размера
         x2 += mouseX;
@@ -847,6 +848,9 @@
                 return;
             }
 
+            if (viewMode) {
+				History.TurnOff();
+			}
             t.model.setColWidth(cc, col, col);
             t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
             t.changeWorksheet("update", {reinitRanges: true});
@@ -857,12 +861,20 @@
                 t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.ColumnResize, col: col});
 				t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
             }
+			if (viewMode) {
+				History.TurnOn();
+			}
         };
-        this._isLockedAll(onChangeWidthCallback);
+        if (viewMode) {
+			onChangeWidthCallback(true);
+		} else {
+			this._isLockedAll(onChangeWidthCallback);
+		}
     };
 
     // mouseY - это разница стартовых координат от мыши при нажатии и границы
     WorksheetView.prototype.changeRowHeight = function (row, y2, mouseY) {
+		var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
         // Учитываем координаты точки, где мы начали изменение размера
         y2 += mouseY;
@@ -894,6 +906,9 @@
                 return;
             }
 
+			if (viewMode) {
+				History.TurnOff();
+			}
             t.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight), row, row, true);
             t.model.autoFilters.reDrawFilter(null, row);
             t._cleanCache(new asc_Range(0, row, t.cols.length - 1, row));
@@ -905,9 +920,16 @@
                 t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: row});
 				t.objectRender.rebuildChartGraphicObjects([new asc_Range(0, row, gc_nMaxCol0, row)]);
             }
+			if (viewMode) {
+				History.TurnOn();
+			}
         };
 
-        this._isLockedAll(onChangeHeightCallback);
+		if (viewMode) {
+			onChangeHeightCallback(true);
+		} else {
+			this._isLockedAll(onChangeHeightCallback);
+		}
     };
 
 
@@ -6019,6 +6041,7 @@
 
 	WorksheetView.prototype.getCursorTypeFromXY = function (x, y) {
 	    var canEdit = this.handlers.trigger('canEdit');
+		var viewMode = this.handlers.trigger('getViewMode');
 		this.handlers.trigger("checkLastWork");
 		var res, c, r, f, offsetX, offsetY, cellCursor;
 		var sheetId = this.model.getId(), userId, lockRangePosLeft, lockRangePosTop, lockInfo, oHyperlink;
@@ -6129,7 +6152,7 @@
 				return oResDefault;
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
-			f = canEdit && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize);
+			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize);
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurRowResize : kCurRowSelect,
@@ -6145,7 +6168,7 @@
 				return oResDefault;
 			}
 			isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = canEdit && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize);
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize);
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurColResize : kCurColSelect,
