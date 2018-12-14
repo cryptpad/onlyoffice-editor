@@ -3684,7 +3684,10 @@ PasteProcessor.prototype =
 			Asc.c_oSpecialPasteProps.keepTextOnly === window['AscCommon'].g_specialPasteHelper.specialPasteProps) {
 			oThis.api.pre_Paste([], [], fPrepasteCallback);
 		} else if (oObjectsForDownload.aUrls.length > 0) {
-			if (bIsOnlyFromBinary && window["NativeCorrectImageUrlOnPaste"]) {
+			if(window["IS_NATIVE_EDITOR"]){
+				oThis.api.pre_Paste(aContent.fonts, aContent.images, fPrepasteCallback);
+			}
+			else if (bIsOnlyFromBinary && window["NativeCorrectImageUrlOnPaste"]) {
 				var url;
 				for (var i = 0, length = aContent.aPastedImages.length; i < length; ++i) {
 					url = window["NativeCorrectImageUrlOnPaste"](aContent.aPastedImages[i].Url);

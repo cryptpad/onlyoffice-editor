@@ -1198,7 +1198,11 @@
 				{
 					if(pasteData.Drawings && pasteData.Drawings.length)
 					{
-                        if (window["NativeCorrectImageUrlOnPaste"]) 
+						if(window["IS_NATIVE_EDITOR"])
+						{
+                            t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
+						}
+                        else if (window["NativeCorrectImageUrlOnPaste"]) 
 						{
                             var url;
                             for(var i = 0, length = aPastedImages.length; i < length; ++i)
