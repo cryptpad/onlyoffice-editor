@@ -3361,7 +3361,7 @@ ParaMath.prototype.Set_ReviewType = function(ReviewType, RemovePrChange)
 {
     return this.Root.Set_ReviewType(ReviewType, RemovePrChange);
 };
-ParaMath.prototype.Handle_Tab = function(isForward)
+ParaMath.prototype.HandleTab = function(isForward)
 {
     if(this.ParaMathRPI.bInline == false)
     {

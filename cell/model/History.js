@@ -383,7 +383,7 @@ CHistory.prototype.RedoExecute = function(Point, oRedoObjectParam)
 	}
 };
 CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
-	var wsViews, i, oState = null, bCoaut = false;
+	var wsViews, i, oState = null, bCoaut = false, t = this;
 	if (!bUndo && null == Point) {
 		Point = this.Points[this.Index];
 		AscCommon.CollaborativeEditing.Apply_LinkData();
@@ -399,8 +399,9 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
         }
 	}
 
-	/* возвращаем отрисовку. и перерисовываем ячейки с предварительным пересчетом */
-	this.workbook.dependencyFormulas.unlockRecal();
+	AscCommonExcel.executeInR1C1Mode(false, function () {
+		t.workbook.dependencyFormulas.unlockRecal();
+	});
 
 	if (null != Point) {
 		//синхронизация index и id worksheet

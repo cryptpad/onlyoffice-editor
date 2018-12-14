@@ -385,6 +385,8 @@
         this.startCellMoveRange = null;
         // Дипазон перемещения
         this.activeMoveRange = null;
+        // Range for drag and drop
+		this.dragAndDropRange = null;
         // Range fillHandle
         this.activeFillHandle = null;
         // Горизонтальное (0) или вертикальное (1) направление автозаполнения
@@ -1043,7 +1045,7 @@
                     for (i = 0; i < hasNumber.arrCols.length; ++i) {
                         c = hasNumber.arrCols[i];
                         cell = t._getVisibleCell(c, arCopy.r2);
-                        text = t._getCellTitle(c, arCopy.r1) + ":" + t._getCellTitle(c, arCopy.r2 - 1);
+						text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         // ToDo - при вводе формулы в заголовок автофильтра надо писать "0"
                         cell.setValue(val);
@@ -1052,13 +1054,13 @@
                     for (i = 0; i < hasNumber.arrRows.length; ++i) {
                         r = hasNumber.arrRows[i];
                         cell = t._getVisibleCell(arCopy.c2, r);
-                        text = t._getCellTitle(arCopy.c1, r) + ":" + t._getCellTitle(arCopy.c2 - 1, r);
+                        text = (new asc_Range(arCopy.c1, r, arCopy.c2 - 1, r)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         cell.setValue(val);
                     }
                     // Значение в правой нижней ячейке
                     cell = t._getVisibleCell(arCopy.c2, arCopy.r2);
-                    text = t._getCellTitle(arCopy.c1, arCopy.r2) + ":" + t._getCellTitle(arCopy.c2 - 1, arCopy.r2);
+                    text = (new asc_Range(arCopy.c1, arCopy.r2, arCopy.c2 - 1, arCopy.r2)).getName();
                     val = "=" + functionName + "(" + text + ")";
                     cell.setValue(val);
                 };
@@ -1072,7 +1074,7 @@
                     for (i = 0; i < hasNumber.arrRows.length; ++i) {
                         r = hasNumber.arrRows[i];
                         cell = t._getVisibleCell(arCopy.c2, r);
-                        text = t._getCellTitle(arCopy.c1, r) + ":" + t._getCellTitle(arCopy.c2 - 1, r);
+                        text = (new asc_Range(arCopy.c1, r, arCopy.c2 - 1, r)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         cell.setValue(val);
                     }
@@ -1087,7 +1089,7 @@
                     for (i = 0; i < hasNumber.arrCols.length; ++i) {
                         c = hasNumber.arrCols[i];
                         cell = t._getVisibleCell(c, arCopy.r2);
-                        text = t._getCellTitle(c, arCopy.r1) + ":" + t._getCellTitle(c, arCopy.r2 - 1);
+                        text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         cell.setValue(val);
                     }
@@ -1100,7 +1102,7 @@
                         // Одна строка или только в последней строке есть значения...
                         cell = t._getVisibleCell(arCopy.c2, arCopy.r2);
                         // ToDo вводить в первое свободное место, а не сразу за диапазоном
-                        text = t._getCellTitle(arCopy.c1, arCopy.r2) + ":" + t._getCellTitle(arCopy.c2 - 1, arCopy.r2);
+                        text = (new asc_Range(arCopy.c1, arCopy.r2, arCopy.c2 - 1, arCopy.r2)).getName();
                         val = "=" + functionName + "(" + text + ")";
                         cell.setValue(val);
                     };
@@ -1114,7 +1116,7 @@
                             c = hasNumber.arrCols[i];
                             cell = t._getVisibleCell(c, arCopy.r2);
                             // ToDo вводить в первое свободное место, а не сразу за диапазоном
-                            text = t._getCellTitle(c, arCopy.r1) + ":" + t._getCellTitle(c, arCopy.r2 - 1);
+                            text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
                             val = "=" + functionName + "(" + text + ")";
                             cell.setValue(val);
                         }
@@ -1222,12 +1224,7 @@
                 result = new asc_Range(c, leftCell.r, c, leftCell.r);
             }
             this._fixSelectionOfMergedCells(result);
-            if (result.c1 === result.c2 && result.r1 === result.r2) {
-                result.text = this._getCellTitle(result.c1, result.r1);
-            } else {
-                result.text = this._getCellTitle(result.c1, result.r1) + ":" + this._getCellTitle(result.c2, result.r2);
-            }
-            return result;
+			result.text = result.getName();
         }
 
         if (topCell) {
@@ -1260,13 +1257,10 @@
                 result = new asc_Range(topCell.c, r, topCell.c, r);
             }
             this._fixSelectionOfMergedCells(result);
-            if (result.c1 === result.c2 && result.r1 === result.r2) {
-                result.text = this._getCellTitle(result.c1, result.r1);
-            } else {
-                result.text = this._getCellTitle(result.c1, result.r1) + ":" + this._getCellTitle(result.c2, result.r2);
-            }
-            return result;
+			result.text = result.getName();
         }
+
+		return result;
     };
 
     WorksheetView.prototype._prepareComments = function () {
@@ -4178,8 +4172,7 @@
 		if (isActive) {
 			var cell = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).activeCell;
 			var fs = this.model.getMergedByCell(cell.row, cell.col);
-			fs = range.intersectionSimple(
-				fs ? fs : new asc_Range(cell.col, cell.row, cell.col, cell.row));
+			fs = oIntersection.intersectionSimple(fs || new asc_Range(cell.col, cell.row, cell.col, cell.row));
 			if (fs) {
 			    var top = this._getRowTop(fs.r1);
 			    var left = this._getColLeft(fs.c1);
@@ -4925,10 +4918,10 @@
             History.StartTransaction();
             // Выставляем, что это bestFit
             this.model.setColBestFit(true, this.model.charCountToModelColWidth(cc), col, col);
-			this._calcColWidth(this._getColLeft(col) - this.cellsLeft, col);
             History.EndTransaction();
 
-            this._updateColumnPositions();
+			// ToDo refactoring this!!!
+			this._calcWidthColumns(AscCommonExcel.recalcType.recalc);
             this.isChanged = true;
         }
     };
@@ -5006,12 +4999,7 @@
                 return true;
             });
             if ("General" === numFormatStr && c_oAscCanChangeColWidth.all !== this.canChangeColWidth) {
-                // asc.truncFracPart изменяет исходный массив, поэтому клонируем
-                var fragmentsTmp = [];
-                for (var k = 0; k < sstr.length; ++k) {
-                    fragmentsTmp.push(sstr[k].clone());
-                }
-                sstr = asc.truncFracPart(fragmentsTmp);
+				sstr = AscCommonExcel.dropDecimalAutofit(sstr);
             }
             sfl = fl.clone();
             sfl.wrapText = false;
@@ -5350,7 +5338,7 @@
      * @return {String}
      */
     WorksheetView.prototype._getColumnTitle = function (col) {
-        return AscCommon.g_oCellAddressUtils.colnumToColstrFromWsView(col + 1);
+		return AscCommonExcel.g_R1C1Mode ? this._getRowTitle(col) : AscCommon.g_oCellAddressUtils.colnumToColstrFromWsView(col + 1);
     };
 
     /**
@@ -5360,16 +5348,6 @@
      */
     WorksheetView.prototype._getRowTitle = function (row) {
         return "" + (row + 1);
-    };
-
-    /**
-     * Возвращает заголовок ячейки по индексу
-     * @param {Number} col  Индекс колонки
-     * @param {Number} row  Индекс строки
-     * @return {String}
-     */
-    WorksheetView.prototype._getCellTitle = function (col, row) {
-        return this._getColumnTitle(col) + this._getRowTitle(row);
     };
 
     /**
@@ -7415,7 +7393,8 @@
             return defName;
         }
 
-        return this._getColumnTitle(c1) + this._getRowTitle(r1);
+        return (new Asc.Range(c1, r1, c1, r1)).getName(AscCommonExcel.g_R1C1Mode ?
+			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
     };
 
 	WorksheetView.prototype.getSelectionRangeValue = function () {
@@ -7452,9 +7431,9 @@
         var isNumberFormat = (!cellType || CellValueType.Number === cellType);
 
         var cell_info = new asc_CCellInfo();
-        cell_info.name = this._getColumnTitle(c1) + this._getRowTitle(r1);
         cell_info.formula = c.getFormula();
 
+		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
         cell_info.text = c.getValueForEdit(true);
 
 		cell_info.halign = align.getAlignHorizontal();
@@ -8042,7 +8021,7 @@
 
     WorksheetView.prototype.applyFormatPainter = function () {
         var t = this;
-        var from = t.handlers.trigger('getRangeFormatPainter').getLast(), to = this.model.selectionRange.getLast().getAllRange();
+        var from = t.handlers.trigger('getRangeFormatPainter').getLast(), to = this.model.selectionRange.getLast().clone();
         var onApplyFormatPainterCallback = function (isSuccess) {
             // Очищаем выделение
             t.cleanSelection();
@@ -8614,7 +8593,7 @@
 
         //если выделена ячейка заголовка ф/т, меняем выделение с ячейки на столбец ф/т
         //если выделена вся видимая часть форматированной таблицы, но не выделены последние скрытые строчки
-        var selectionRange = this.model.selectionRange.getLast().clone();
+        var selectionRange = (this.dragAndDropRange || this.model.selectionRange.getLast()).clone();
         if (null === this.startCellMoveRange) {
             this.af_changeSelectionTablePart(selectionRange);
         }
@@ -9030,12 +9009,11 @@
             if (false === isSuccess) {
                 return;
             }
-            var bIsUpdate = true;
             var hasUpdates = false;
 
             var callTrigger = false;
             var res;
-            var mc, r, c, cell;
+            var mc, r, cell;
 
             function makeBorder(b) {
                 var border = new AscCommonExcel.BorderProp();
@@ -9059,12 +9037,12 @@
 
             checkRange.forEach(function (item, i) {
                 var c;
+				var bIsUpdate = true;
                 var range = t.model.getRange3(item.r1, item.c1, item.r2, item.c2);
                 var isLargeRange = t._isLargeRange(range.bbox);
                 var canChangeColWidth = c_oAscCanChangeColWidth.none;
 
-                if(t.model.autoFilters.bIsExcludeHiddenRows(arn, activeCell))
-				{
+				if (t.model.autoFilters.bIsExcludeHiddenRows(arn, activeCell)) {
 					t.model.excludeHiddenRows(true);
 				}
 
@@ -9241,7 +9219,7 @@
 
                     case "changeDigNum":
                         res = [];
-                        for (c = item.c1; c < item.c2; ++c) {
+                        for (c = item.c1; c <= item.c2; ++c) {
 							res.push(t.getColumnWidthInSymbols(c));
                         }
                         range.shiftNumFormat(val, res);
@@ -9273,8 +9251,8 @@
                     case "hyperlink":
                         if (val && val.hyperlinkModel) {
                             if (Asc.c_oAscHyperlinkType.RangeLink === val.asc_getType()) {
-                                var hyperlinkRangeTmp = t.model.getRange2(val.asc_getRange());
-                                if (null === hyperlinkRangeTmp) {
+								val.hyperlinkModel._updateLocation();
+                                if (null === val.hyperlinkModel.LocationRangeBbox) {
                                     bIsUpdate = false;
                                     break;
                                 }
@@ -9305,13 +9283,11 @@
 				t.model.excludeHiddenRows(false);
 
                 if (bIsUpdate) {
-
 					t.canChangeColWidth = canChangeColWidth;
 					t._updateRange(item);
 					t.canChangeColWidth = c_oAscCanChangeColWidth.none;
 
                     hasUpdates = true;
-                    bIsUpdate = false;
                 }
             });
 
@@ -9348,7 +9324,7 @@
 			checkRange.push(new asc_Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
 		} else {
 			this.model.selectionRange.ranges.forEach(function (item) {
-				checkRange.push(item.getAllRange());
+				checkRange.push(item.clone());
 			});
 		}
 
@@ -9621,7 +9597,9 @@
 		//paste from excel binary
 		if(fromBinaryExcel)
 		{
-			selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+			});
 		}
 		else
 		{
@@ -9654,22 +9632,30 @@
 						}
 					}
 
-					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+					});
 					AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 				} else {
 					oImageMap = pasteContent.props.oImageMap;
 					if (window["NATIVE_EDITOR_ENJINE"]) {
 						//TODO для мобильных приложений  - не рабочий код!
 						AscCommon.ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
-						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						AscCommonExcel.executeInR1C1Mode(false, function () {
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						});
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					} else {
-						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						AscCommonExcel.executeInR1C1Mode(false, function () {
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						});
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					}
 				}
 			} else {
-				selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+				});
 			}
 
             History.EndTransaction();
@@ -9925,7 +9911,7 @@
             //если кратны, то обрабатываем
             if (widthArea % widthPasteFr === 0 && heightArea % heightPasteFr === 0) {
 				//Для случая, когда выделен весь диапазон, запрещаю множественную вставку
-            	if(arn.getType() !== window["Asc"].c_oAscSelectionType.RangeMax) {
+				if(arn.getType() !== window["Asc"].c_oAscSelectionType.RangeMax && arn.getType() !== window["Asc"].c_oAscSelectionType.RangeCol && arn.getType() !== window["Asc"].c_oAscSelectionType.RangeRow) {
 					isMultiple = true;
 				}
             } else if (firstCell.hasMerged() !== null)//в противном случае ошибка
@@ -10389,12 +10375,12 @@
 				rangeStyle.val = newVal.getValue();
 			}
 
+			var sFormula = newVal.getFormula();
+			var sId = newVal.getName();
 			var value2 = newVal.getValue2();
-			var isFromula = false;
+			var isFromula = !!sFormula;
 			for (var nF = 0; nF < value2.length; nF++) {
-				if (value2[nF] && value2[nF].sId) {
-					isFromula = true;
-				} else if (value2[nF] && value2[nF].format && value2[nF].format.getSkip()) {
+				if (value2[nF] && value2[nF].format && value2[nF].format.getSkip()) {
 					skipFormat = true;
 				} else if (value2[nF] && value2[nF].format && !value2[nF].format.getSkip()) {
 					noSkipVal = nF;
@@ -10409,21 +10395,21 @@
 				}
 
 				//formula
-				if (newVal.getFormula() && !isOneMerge) {
+				if (sFormula && !isOneMerge) {
 
 					var offset, callAdress;
 					if(specialPasteProps.transpose && transposeRange)
 					{
 						//для transpose необходимо брать offset перевернутого range
-						callAdress = new AscCommon.CellAddress(value2[0].sId);
+						callAdress = new AscCommon.CellAddress(sId);
 						offset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
 					}
 					else
 					{
-						callAdress = new AscCommon.CellAddress(value2[0].sId);
+						callAdress = new AscCommon.CellAddress(sId);
 						offset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
 					}
-					var assemb, _p_ = new AscCommonExcel.parserFormula(value2[0].sFormula, null, t.model);
+					var assemb, _p_ = new AscCommonExcel.parserFormula(sFormula, null, t.model);
 					if (_p_.parse()) {
 
 						//array-formula
@@ -10975,7 +10961,7 @@
 
 		var t = this;
 		var arn = this.model.selectionRange.getLast().clone();
-		var checkRange = arn.getAllRange();
+		var checkRange = arn.clone();
 
 		var range, count;
 		var oRecalcType = AscCommonExcel.recalcType.recalc;
@@ -11921,8 +11907,11 @@
 				// ToDo multiselect defined names
 				var selectionLast = this.model.selectionRange.getLast();
 				mc = selectionLast.isOneCell() ? this.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
+				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+				AscCommonExcel.g_R1C1Mode = false;
 				var defName = this.model.workbook.editDefinesNames(null, new Asc.asc_CDefName(reference,
 					parserHelp.get3DRef(this.model.getName(), (mc || selectionLast).getAbsName())));
+				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
 
 				if (defName) {
 					this._isLockedDefNames(null, defName.getNodeId());
@@ -12232,7 +12221,7 @@
 	};
 
 	WorksheetView.prototype.openCellEditor =
-		function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
+		function (editor, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
 			var t = this, col, row, c, fl, mc, bg, isMerged;
 
 			if (selectionRange) {
@@ -12296,12 +12285,10 @@
 			// Скрываем окно редактирования комментария
 			this.model.workbook.handlers.trigger("asc_onHideComment");
 
-			if (fragments === undefined) {
-				var _fragmentsTmp = c.getValueForEdit2();
-				fragments = [];
-				for (var i = 0; i < _fragmentsTmp.length; ++i) {
-					fragments.push(_fragmentsTmp[i].clone());
-				}
+			var _fragmentsTmp = c.getValueForEdit2();
+			var fragments = [];
+			for (var i = 0; i < _fragmentsTmp.length; ++i) {
+				fragments.push(_fragmentsTmp[i].clone());
 			}
 
 			var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
@@ -12322,7 +12309,7 @@
 				isAddPersentFormat: isQuickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
 				autoComplete: arrAutoComplete,
 				autoCompleteLC: arrAutoCompleteLC,
-				cellName: c.getName(),
+				bbox: c.bbox,
 				cellNumFormat: c.getNumFormatType(),
 				saveValueCallback: function (val, flags, callback) {
 					var saveCellValueCallback = function(success) {
@@ -12400,7 +12387,7 @@
 						if (0 < w) {
 							arrLeftS.push(_left);
 						}
-						_left += w;
+						_left -= w;
 					}
 
 					if (_c2 > vro.vr.c2) {
@@ -12458,7 +12445,7 @@
         copyValue = [];
         copyValue[0] = new AscCommonExcel.Fragment({text: text, format: v[0].format.clone()});
 
-        var bSuccess = t.openCellEditor(editor, /*fragments*/undefined, /*cursorPos*/undefined, isFocus, /*isClearCell*/
+        var bSuccess = t.openCellEditor(editor, /*cursorPos*/undefined, isFocus, /*isClearCell*/
           true, /*isHideCursor*/false, /*isQuickInput*/false, selectionRange);
         if (bSuccess) {
             editor.paste(copyValue, cursorPos);
@@ -12554,7 +12541,7 @@
         if (editor.formulaIsOperator() && cFEWSO && cFEWSO.model.getId() != this.model.getId()) {
             sheetName = parserHelp.getEscapeSheetName(this.model.getName()) + "!";
         }
-        editor.enterCellRange(/*defName || */sheetName + currentRange.getAllRange().getName());
+        editor.enterCellRange(/*defName || */sheetName + currentRange.getName());
 
         for (var tmpRange, i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
             tmpRange = this.arrActiveFormulaRanges[i];

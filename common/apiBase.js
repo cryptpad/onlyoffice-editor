@@ -1367,13 +1367,6 @@
 			}
 			this.onEndLoadFile(null);
 		}
-
-		// for crypt mode (end waiting all system plugins)
-        if (this.asc_initAdvancedOptions_params)
-        {
-        	window["asc_initAdvancedOptions"].apply(window, this.asc_initAdvancedOptions_params);
-            delete this.asc_initAdvancedOptions_params;
-        }
 	};
 	baseEditorsApi.prototype.onEndLoadFile = function(result)
 	{
@@ -1570,6 +1563,17 @@
 		this.pluginsManager.onEnableMouseEvents(isEnable);
 	};
 
+    baseEditorsApi.prototype.isEnabledDropTarget = function()
+    {
+    	return true;
+    };
+    baseEditorsApi.prototype.beginInlineDropTarget = function(e)
+    {
+    };
+    baseEditorsApi.prototype.endInlineDropTarget = function(e)
+    {
+    };
+
     baseEditorsApi.prototype["pluginMethod_GetFontList"] = function()
     {
     	return AscFonts.g_fontApplication.g_fontSelections.SerializeList();
@@ -1592,6 +1596,12 @@
 
 				_elem.style.fontWeight = (true === textPr.TextPr.Bold) ? "bold" : "normal";
 				_elem.style.fontStyle = (true === textPr.TextPr.Italic) ? "italic" : "normal";
+
+				var _color = textPr.TextPr.Color;
+				if (_color)
+                    _elem.style.color = "rgb(" + _color.r + "," + _color.g + "," + _color.b + ")";
+				else
+                    _elem.style.color = "rgb(0,0,0)";
 			}
 		}
 		else if (this.editorId == c_oEditorId.Spreadsheet)
@@ -1693,9 +1703,19 @@
                 {
                     var _param = ("<m_sPassword>" + AscCommon.CopyPasteCorrectString(obj["password"]) + "</m_sPassword>");
                     _editor.currentPassword = obj["password"];
+                    _editor.currentDocumentHash = obj["hash"];
+                    _editor.currentDocumentInfo = obj["docinfo"];
 
                     AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
-                    window["AscDesktopEditor"]["SetAdvancedOptions"](_param);
+
+                    if (window.isNativeOpenPassword)
+                    {
+                        window["AscDesktopEditor"]["NativeViewerOpen"](obj["password"]);
+                    }
+                    else
+					{
+						window["AscDesktopEditor"]["SetAdvancedOptions"](_param);
+                    }
                 }
                 else
                 {
@@ -2094,12 +2114,12 @@
 	baseEditorsApi.prototype.asc_setCurrentPassword = function(password)
 	{
 		this.currentPassword = password;
-		this.asc_Save(false);
+		this.asc_Save(false, undefined, true);
 	};
 	baseEditorsApi.prototype.asc_resetPassword = function()
 	{
 		this.currentPassword = "";
-		this.asc_Save(false);
+		this.asc_Save(false, undefined, true);
 	};
 
 	baseEditorsApi.prototype.asc_setMacros = function(sData)

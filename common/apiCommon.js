@@ -143,7 +143,8 @@
 		none: "none",
 		text: "text",
 		ole: "ole",
-		html: "html"
+		html: "html",
+        desktop: "desktop"
 	};
 
 	/** @constructor */

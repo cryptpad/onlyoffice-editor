@@ -1941,7 +1941,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 8: // ASC_MENU_EVENT_TYPE_HYPERLINK
         {
             var _props = asc_menu_ReadHyperPr(_params, _current);
-            if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
+            var oHyperProps = null;
+            for(var i = 0; i < this.SelectedObjectsStack.length; ++i)
+            {
+                if(this.SelectedObjectsStack[i].Type === Asc.c_oAscTypeSelectElement.Hyperlink)
+                {
+                    oHyperProps = this.SelectedObjectsStack[i].Value;
+                    _props.Class = oHyperProps.Class;
+                    break;
+                }
+            }
+            if ( oHyperProps && false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
             {
                 this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
                 this.WordControl.m_oLogicDocument.ModifyHyperlink( _props );
@@ -1950,10 +1960,20 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 59: // ASC_MENU_EVENT_TYPE_REMOVE_HYPERLINK
         {
-            if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
+
+            var oHyperProps = null;
+            for(var i = 0; i < this.SelectedObjectsStack.length; ++i)
+            {
+                if(this.SelectedObjectsStack[i].Type === Asc.c_oAscTypeSelectElement.Hyperlink)
+                {
+                    oHyperProps = this.SelectedObjectsStack[i].Value;
+                    break;
+                }
+            }
+            if (oHyperProps && false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
             {
                 this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
-                this.WordControl.m_oLogicDocument.RemoveHyperlink();
+                this.WordControl.m_oLogicDocument.RemoveHyperlink(oHyperProps);
             }
             break;
         }

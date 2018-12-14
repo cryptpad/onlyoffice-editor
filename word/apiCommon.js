@@ -1160,7 +1160,7 @@
 			this.Italic = (undefined != obj.Italic) ? obj.Italic : null;
 			this.Underline = (undefined != obj.Underline) ? obj.Underline : null;
 			this.Strikeout = (undefined != obj.Strikeout) ? obj.Strikeout : null;
-			this.FontFamily = (undefined != obj.FontFamily && null != obj.FontFamily) ? new AscCommon.asc_CTextFontFamily(obj.FontFamily) : null;
+			this.FontFamily = (undefined != obj.FontFamily && null != obj.FontFamily) ? new AscCommon.asc_CTextFontFamily(obj.FontFamily) : new AscCommon.asc_CTextFontFamily({Name : "", Index : -1});
 			this.FontSize = (undefined != obj.FontSize) ? obj.FontSize : null;
 			this.Color = (undefined != obj.Color && null != obj.Color) ? AscCommon.CreateAscColorCustom(obj.Color.r, obj.Color.g, obj.Color.b) : null;
 			this.VertAlign = (undefined != obj.VertAlign) ? obj.VertAlign : null;
@@ -1709,6 +1709,8 @@
 			return this.Lvl[0];
 		else if (nLvl > 8)
 			return this.Lvl[8];
+		else if (!this.Lvl[nLvl])
+			return this.Lvl[0];
 
 		return this.Lvl[nLvl];
 	};

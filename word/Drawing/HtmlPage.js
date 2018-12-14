@@ -3444,7 +3444,7 @@ function CEditorPage(api)
 		}
 
 		oThis.m_oLogicDocument.ContinueCheckSpelling();
-		oThis.m_oLogicDocument.Continue_TrackRevisions();
+		oThis.m_oLogicDocument.ContinueTrackRevisions();
 	};
 	this.OnScroll       = function()
 	{

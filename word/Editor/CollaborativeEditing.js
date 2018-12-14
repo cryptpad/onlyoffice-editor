@@ -59,7 +59,7 @@ CWordCollaborativeEditing.prototype.Clear = function()
 	AscCommon.CCollaborativeEditingBase.prototype.Clear.apply(this, arguments);
 	this.Remove_AllForeignCursors();
 };
-CWordCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, AdditionalInfo, IsUpdateInterface)
+CWordCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, AdditionalInfo, IsUpdateInterface, isAfterAskSave)
 {
     // Пересчитываем позиции
     this.Refresh_DCChanges();
@@ -137,7 +137,7 @@ CWordCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, Addition
 	}
 	else
 	{
-		editor.CoAuthoringApi.unLockDocument(true, editor.canUnlockDocument2, null, bCollaborative);
+		editor.CoAuthoringApi.unLockDocument(!!isAfterAskSave, editor.canUnlockDocument2, null, bCollaborative);
 	}
 	editor.canUnlockDocument2 = false;
 

@@ -273,236 +273,196 @@
 			return this;
 		}
 
-		Clipboard.prototype = {
+		Clipboard.prototype.checkCopyToClipboard = function(ws, _clipboard, _formats)
+		{
+			var _data = null;
+			var activeRange = ws.getSelectedRange();
+			var wb = window["Asc"]["editor"].wb;
 
-			constructor: Clipboard,
-			
-			checkCopyToClipboard: function(ws, _clipboard, _formats)
+			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
+
+			if(ws.getCellEditMode() === true)//text in cell
 			{
-				var _data = null;
-				var activeRange = ws.getSelectedRange();
-				var wb = window["Asc"]["editor"].wb;
+				//only TEXT
+				var fragments = wb.cellEditor.copySelection();
 
-				window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-				
-				if(ws.getCellEditMode() === true)//text in cell
+				if(null !== fragments)
 				{
-					//only TEXT
-					var fragments = wb.cellEditor.copySelection();
-					
-					if(null !== fragments)
+					_data = AscCommonExcel.getFragmentsText(fragments);
+				}
+
+				if(null !== _data)
+				{
+					_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Text, _data);
+				}
+			}
+			else
+			{
+				//если мультиселект, то запрещаем копирование
+				if(1 !== ws.model.selectionRange.ranges.length)
+				{
+					var selectedDrawings = ws.objectRender.getSelectedGraphicObjects();
+					if(0 === selectedDrawings.length)
 					{
-						_data = wb.cellEditor._getFragmentsText(fragments);
+						ws.handlers.trigger ("onErrorEvent", Asc.c_oAscError.ID.CopyMultiselectAreaError, Asc.c_oAscError.Level.NoCritical);
+						return;
 					}
+				}
+
+				//ignore hidden rows
+				var selectionRange = activeRange ? activeRange : ws.model.selectionRange.getLast();
+				var activeCell = ws.model.selectionRange.activeCell.clone();
+				if(ws.model.autoFilters.bIsExcludeHiddenRows(selectionRange, activeCell))
+				{
+					ws.model.excludeHiddenRows(true);
+				}
+
+				//TEXT
+				if (AscCommon.c_oAscClipboardDataFormat.Text & _formats)
+				{
+					_data = this.copyProcessor.getText(activeRange, ws);
 
 					if(null !== _data)
 					{
 						_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Text, _data);
 					}
 				}
-				else
-				{	
-					//если мультиселект, то запрещаем копирование
-					if(1 !== ws.model.selectionRange.ranges.length)
-					{
-						var selectedDrawings = ws.objectRender.getSelectedGraphicObjects();
-						if(0 === selectedDrawings.length)
-						{
-							ws.handlers.trigger ("onErrorEvent", Asc.c_oAscError.ID.CopyMultiselectAreaError, Asc.c_oAscError.Level.NoCritical);
-							return;
-						}
-					}
+				//HTML
+				if(AscCommon.c_oAscClipboardDataFormat.Html & _formats)
+				{
+					_data = this.copyProcessor.getHtml(activeRange, ws);
 
-					//ignore hidden rows
-					var selectionRange = activeRange ? activeRange : ws.model.selectionRange.getLast();
-					var activeCell = ws.model.selectionRange.activeCell.clone();
-					if(ws.model.autoFilters.bIsExcludeHiddenRows(selectionRange, activeCell))
+					if(null !== _data)
 					{
-						ws.model.excludeHiddenRows(true);
+						_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Html, _data.html)
 					}
-
-					//TEXT
-					if (AscCommon.c_oAscClipboardDataFormat.Text & _formats)
+				}
+				//INTERNAL
+				if(AscCommon.c_oAscClipboardDataFormat.Internal & _formats)
+				{
+					if(window["NATIVE_EDITOR_ENJINE"])
 					{
-						_data = this.copyProcessor.getText(activeRange, ws);
-
-						if(null !== _data)
-						{
-							_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Text, _data);
-						}
+						_data = this.copyProcessor.getBinaryForMobile();
 					}
-					//HTML
-					if(AscCommon.c_oAscClipboardDataFormat.Html & _formats)
-					{	
-						_data = this.copyProcessor.getHtml(activeRange, ws);
-						
-						if(null !== _data)
-						{
-							_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Html, _data.html)
-						}
-					}
-					//INTERNAL
-					if(AscCommon.c_oAscClipboardDataFormat.Internal & _formats)
+					else
 					{
-						if(window["NATIVE_EDITOR_ENJINE"])
+						if(_data && _data.base64)
 						{
-							_data = this.copyProcessor.getBinaryForMobile();
+							_data = _data.base64;
 						}
 						else
 						{
-							if(_data && _data.base64)
-							{
-								_data = _data.base64;
-							}
-							else
-							{
-								_data = this.copyProcessor.getBinaryForCopy(ws);
-							}
-						}
-
-						if(null !== _data)
-						{
-							_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Internal, _data);
+							_data = this.copyProcessor.getBinaryForCopy(ws);
 						}
 					}
 
-					ws.model.excludeHiddenRows(false);
+					if(null !== _data)
+					{
+						_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Internal, _data);
+					}
 				}
-			},
 
-			pasteData: function(ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton)
+				ws.model.excludeHiddenRows(false);
+			}
+		};
+
+		Clipboard.prototype.pasteData = function(ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton)
+		{
+			var t = this;
+			t.pasteProcessor.clean();
+
+			if(!window['AscCommon'].g_specialPasteHelper.specialPasteStart)
 			{
-				var t = this;
-				t.pasteProcessor.clean();
+				window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
+			}
+			window['AscCommon'].g_specialPasteHelper.Paste_Process_Start(doNotShowButton);
 
-				if(!window['AscCommon'].g_specialPasteHelper.specialPasteStart)
-				{
-					window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-				}
-				window['AscCommon'].g_specialPasteHelper.Paste_Process_Start(doNotShowButton);
-				
-				if(!bIsSpecialPaste)
-				{
-					window['AscCommon'].g_specialPasteHelper.specialPasteData.activeRange = ws.model.selectionRange.clone(ws.model);
-					window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord = false;
-				}
+			if(!bIsSpecialPaste)
+			{
+				window['AscCommon'].g_specialPasteHelper.specialPasteData.activeRange = ws.model.selectionRange.clone(ws.model);
+				window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord = false;
+			}
 
-				var cellEditor = window["Asc"]["editor"].wb.cellEditor;
-				var text;
-				switch (_format)
+			switch (_format)
+			{
+				case AscCommon.c_oAscClipboardDataFormat.HtmlElement:
 				{
-					case AscCommon.c_oAscClipboardDataFormat.HtmlElement:
+					if(ws.getCellEditMode())
 					{
-						if(ws.getCellEditMode() === true)
-						{
-							//fragments = пока только для плагина вставка символов
-							var fragments;
-							if(window['AscCommon'].g_clipboardBase.bSaveFormat){
-								//проверяем иероглифы внутри
-								fragments = this.pasteProcessor._getFragmentsFromHtml(data1);
-							}
-							if(fragments){
-								var pasteFragments = fragments.fragments;
-								var newFonts = fragments.fonts;
-								ws._loadFonts(newFonts, function() {
-									cellEditor.paste(pasteFragments);
-									window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
-
-									//TODO пересмотреть! по возможности вызывать из меню!
-									//при использовании рекдактора ячейки в качестве редактора HF
-									//в функции onLongActionEnd(ф-я меню) не вызывается asc_enableKeyEvents(true)
-									//из-за этого enableKeyEvents остаётся выставленным в false
-									//поэтому приходится вызывать здесь, после того, как пройдет загрузка шрифтов
-
-									if(cellEditor.options && cellEditor.options.menuEditor) {
-										window["Asc"]["editor"].asc_enableKeyEvents(true);
-									}
-								});
-
-							}else{
-								text = text_data ? text_data : data1.innerText;
-								if(text)
-								{
-									AscFonts.FontPickerByCharacter.getFontsByString(text);
-									ws._loadFonts([], function() {
-										cellEditor.pasteText(text);
-										window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
-
-										if(cellEditor.options && cellEditor.options.menuEditor) {
-											window["Asc"]["editor"].asc_enableKeyEvents(true);
-										}
-									});
-								}
-							}
+						//fragments = пока только для плагина вставка символов
+						var fragments;
+						if(window['AscCommon'].g_clipboardBase.bSaveFormat){
+							//проверяем иероглифы внутри
+							fragments = this.pasteProcessor._getFragmentsFromHtml(data1);
 						}
-						else
-						{
-							t.pasteProcessor.editorPasteExec(ws, data1);
-						}
+						if (fragments) {
+							ws._loadFonts(fragments.fonts, function() {
+								window["Asc"]["editor"].wb.cellEditor.paste(fragments.fragments);
+								window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+							});
 
-						break;
+						} else {
+							this._pasteTextInCellEditor(text_data || data1.innerText);
+						}
 					}
-					case AscCommon.c_oAscClipboardDataFormat.Internal:
+					else
 					{
-						if(ws.getCellEditMode() === true)
-						{
-							text = t.pasteProcessor.pasteFromBinary(ws, data1, true);
-							if(text)
-							{
-								AscFonts.FontPickerByCharacter.getFontsByString(text);
-								ws._loadFonts([], function() {
-									cellEditor.pasteText(text);
-									window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
-
-									if(cellEditor.options && cellEditor.options.menuEditor) {
-										window["Asc"]["editor"].asc_enableKeyEvents(true);
-									}
-								});
-							}
-						}
-						else
-						{
-							t.pasteProcessor.pasteFromBinary(ws, data1);
-						}
-						
-						break;
+						t.pasteProcessor.editorPasteExec(ws, data1);
 					}
-					case AscCommon.c_oAscClipboardDataFormat.Text:
-					{
-						if(ws.getCellEditMode() === true)
-						{
-							if(data1)
-							{
-								AscFonts.FontPickerByCharacter.getFontsByString(data1);
-								ws._loadFonts([], function() {
-									cellEditor.pasteText(data1);
-									window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 
-									if(cellEditor.options && cellEditor.options.menuEditor) {
-										window["Asc"]["editor"].asc_enableKeyEvents(true);
-									}
-								});
-							}
-						}
-						else
-						{
-							//не показываем иконку с/в если вставляется только текст
-							window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
-							t.pasteProcessor.pasteTextOnSheet(ws, data1);
-						}
-						
-						break;
-					}
+					break;
 				}
-				
-				if(!bIsSpecialPaste)
+				case AscCommon.c_oAscClipboardDataFormat.Internal:
 				{
-					window['AscCommon'].g_specialPasteHelper.specialPasteData._format = _format;
-					window['AscCommon'].g_specialPasteHelper.specialPasteData.data1 = data1;
-					window['AscCommon'].g_specialPasteHelper.specialPasteData.data2 = data2;
-					window['AscCommon'].g_specialPasteHelper.specialPasteData.text_data = text_data;
+					if(ws.getCellEditMode())
+					{
+						this._pasteTextInCellEditor(this.pasteProcessor.pasteFromBinary(ws, data1, true));
+
+					}
+					else
+					{
+						t.pasteProcessor.pasteFromBinary(ws, data1);
+					}
+
+					break;
+				}
+				case AscCommon.c_oAscClipboardDataFormat.Text:
+				{
+					if(ws.getCellEditMode())
+					{
+						this._pasteTextInCellEditor(data1);
+					}
+					else
+					{
+						//не показываем иконку с/в если вставляется только текст
+						window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
+						t.pasteProcessor.pasteTextOnSheet(ws, data1);
+					}
+
+					break;
 				}
 			}
+
+			if(!bIsSpecialPaste)
+			{
+				window['AscCommon'].g_specialPasteHelper.specialPasteData._format = _format;
+				window['AscCommon'].g_specialPasteHelper.specialPasteData.data1 = data1;
+				window['AscCommon'].g_specialPasteHelper.specialPasteData.data2 = data2;
+				window['AscCommon'].g_specialPasteHelper.specialPasteData.text_data = text_data;
+			}
+		};
+		Clipboard.prototype._pasteTextInCellEditor = function (text) {
+			if (!text) {
+				return;
+			}
+			var editor = window["Asc"]["editor"];
+			AscFonts.FontPickerByCharacter.getFontsByString(text);
+			editor._loadFonts([], function() {
+				editor.wb.skipHelpSelector = true;
+				editor.wb.cellEditor.pasteText(text);
+				AscCommon.g_specialPasteHelper.Paste_Process_End();
+				editor.wb.skipHelpSelector = false;
+			});
 		};
 
 		
@@ -578,6 +538,12 @@
 					var selectionRange = activeRange ? activeRange : worksheet.model.selectionRange.getLast();
 					var maxRowCol = this._getRangeMaxRowCol(worksheet, selectionRange);
 					if(null !== maxRowCol){
+						if(maxRowCol.col < selectionRange.c1) {
+							maxRowCol.col = selectionRange.c1;
+						}
+						if(maxRowCol.row < selectionRange.r1) {
+							maxRowCol.row = selectionRange.r1;
+						}
 						selectionRange = new Asc.Range(selectionRange.c1, selectionRange.r1, maxRowCol.col, maxRowCol.row);
 					}
 

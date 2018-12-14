@@ -3786,6 +3786,15 @@ function setCurrentCultureInfo(val) {
 		return dateElems.join('/');
 	}
 
+	function getShortTimeFormat(opt_cultureInfo) {
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		if (cultureInfo.AMDesignator.length > 0 && cultureInfo.PMDesignator.length > 0) {
+			return 'h:mm AM/PM;@';
+		} else {
+			return 'h:mm;@'
+		}
+	}
+
 	function getNumberFormatSimple(opt_separate, opt_fraction) {
 		var numberFormat = opt_separate ? '#,##0' : '0';
 		if (opt_fraction > 0) {
@@ -4406,6 +4415,7 @@ var g_oDefaultCultureInfo = g_aCultureInfos[1033];//en-US//1033//fr-FR//1036//ba
 	window["AscCommon"].checkCultureInfoFontPicker = checkCultureInfoFontPicker;
 	window['AscCommon'].getShortDateFormat = getShortDateFormat;
 	window['AscCommon'].getShortDateFormat2 = getShortDateFormat2;
+	window['AscCommon'].getShortTimeFormat = getShortTimeFormat;
 	window['AscCommon'].getShortDateMonthFormat = getShortDateMonthFormat;
 	window['AscCommon'].getNumberFormatSimple = getNumberFormatSimple;
 	window['AscCommon'].getNumberFormat = getNumberFormat;

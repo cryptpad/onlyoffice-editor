@@ -354,8 +354,7 @@
 		};
 
 		Range.prototype.containsRange = function (range) {
-			var allRange = this.getAllRange();
-			return allRange.contains(range.c1, range.r1) && allRange.contains(range.c2, range.r2);
+			return this.contains(range.c1, range.r1) && this.contains(range.c2, range.r2);
 		};
 
 		Range.prototype.containsFirstLineRange = function (range) {
@@ -731,144 +730,58 @@
 			}
 		};
 
-		Range.prototype.getName = function () {
+		Range.prototype._getName = function (val, isCol, abs) {
+			var isR1C1Mode = AscCommonExcel.g_R1C1Mode;
+			val += 1;
+			if (isCol && !isR1C1Mode) {
+				val = g_oCellAddressUtils.colnumToColstr(val);
+			}
+			return (isR1C1Mode ? (isCol ? 'C' : 'R') : '') + (abs ? (isR1C1Mode ? val : '$' + val) :
+				(isR1C1Mode ? ((0 !== (val = (val - (isCol ? AscCommonExcel.g_ActiveCell.c1 :
+					AscCommonExcel.g_ActiveCell.r1) - 1))) ? '[' + val + ']' : '') : val));
+		};
+		Range.prototype.getName = function (refType) {
+			var isR1C1Mode = AscCommonExcel.g_R1C1Mode;
+			var c, r, type = this.getType();
 			var sRes = "";
-			var c1Abs = this.isAbsCol(this.refType1), c2Abs = this.isAbsCol(this.refType2);
-			var r1Abs = this.isAbsRow(this.refType1), r2Abs = this.isAbsRow(this.refType2);
-
-			if (0 == this.c1 && gc_nMaxCol0 == this.c2 && false == c1Abs && false == c2Abs) {
-				if (r1Abs) {
-					sRes += "$";
-				}
-				sRes += (this.r1 + 1) + ":";
-				if (r2Abs) {
-					sRes += "$";
-				}
-				sRes += (this.r2 + 1);
-			} else if (0 == this.r1 && gc_nMaxRow0 == this.r2 && false == r1Abs && false == r2Abs) {
-				if (c1Abs) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1) + ":";
-				if (c2Abs) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
+			var c1Abs, c2Abs, r1Abs, r2Abs;
+			if (referenceType.A === refType) {
+				c1Abs = c2Abs = r1Abs = r2Abs = true;
+			} else if (referenceType.R === refType) {
+				c1Abs = c2Abs = r1Abs = r2Abs = false;
 			} else {
-				if (c1Abs) {
-					sRes += "$";
+				c1Abs = this.isAbsCol(this.refType1);
+				c2Abs = this.isAbsCol(this.refType2);
+				r1Abs = this.isAbsRow(this.refType1);
+				r2Abs = this.isAbsRow(this.refType2);
+			}
+
+			if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type) && c1Abs === c2Abs) {
+				sRes = this._getName(this.r1, false, r1Abs);
+				if (this.r1 !== this.r2 || r1Abs !== r2Abs || !isR1C1Mode) {
+					sRes += ':' + this._getName(this.r2, false, r2Abs);
 				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1);
-				if (r1Abs) {
-					sRes += "$";
+			} else if ((c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeCol === type) && r1Abs === r2Abs) {
+				sRes = this._getName(this.c1, true, c1Abs);
+				if (this.c1 !== this.c2 || c1Abs !== c2Abs || !isR1C1Mode) {
+					sRes += ':' + this._getName(this.c2, true, c2Abs);
 				}
-				sRes += (this.r1 + 1);
+			} else {
+				r = this._getName(this.r1, false, r1Abs);
+				c = this._getName(this.c1, true, c1Abs);
+				sRes = isR1C1Mode ? r + c : c + r;
+
 				if (!this.isOneCell() || r1Abs !== r2Abs || c1Abs !== c2Abs) {
-					sRes += ":";
-					if (c2Abs) {
-						sRes += "$";
-					}
-					sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-					if (r2Abs) {
-						sRes += "$";
-					}
-					sRes += (this.r2 + 1);
+					r = this._getName(this.r2, false, r2Abs);
+					c = this._getName(this.c2, true, c2Abs);
+					sRes += ':' + (isR1C1Mode ? r + c : c + r);
 				}
 			}
 			return sRes;
 		};
 
 		Range.prototype.getAbsName = function () {
-			var sRes = "";
-			var c1Abs = this.isAbsCol(this.refType1), c2Abs = this.isAbsCol(this.refType2);
-			var r1Abs = this.isAbsRow(this.refType1), r2Abs = this.isAbsRow(this.refType2);
-
-			if (0 == this.c1 && gc_nMaxCol0 == this.c2 && false == c1Abs && false == c2Abs) {
-				sRes += "$";
-				sRes += (this.r1 + 1) + ":";
-				sRes += "$";
-				sRes += (this.r2 + 1);
-			} else if (0 == this.r1 && gc_nMaxRow0 == this.r2 && false == r1Abs && false == r2Abs) {
-				sRes += "$";
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1) + ":";
-				sRes += "$";
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-			} else {
-				sRes += "$";
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1);
-				sRes += "$";
-				sRes += (this.r1 + 1);
-				if (!this.isOneCell()) {
-					sRes += ":";
-					sRes += "$";
-					sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-					sRes += "$";
-					sRes += (this.r2 + 1);
-				}
-			}
-			return sRes;
-		};
-
-		Range.prototype.getAbsName2 = function (absCol1, absRow1, absCol2, absRow2) {
-			var sRes = "";
-			var c1Abs = this.isAbsCol(this.refType1), c2Abs = this.isAbsCol(this.refType2);
-			var r1Abs = this.isAbsRow(this.refType1), r2Abs = this.isAbsRow(this.refType2);
-
-			if (0 == this.c1 && gc_nMaxCol0 == this.c2 && false == c1Abs && false == c2Abs) {
-				if (absRow1) {
-					sRes += "$";
-				}
-				sRes += (this.r1 + 1) + ":";
-				if (absRow2) {
-					sRes += "$";
-				}
-				sRes += (this.r2 + 1);
-			} else if (0 == this.r1 && gc_nMaxRow0 == this.r2 && false == r1Abs && false == r2Abs) {
-				if (absCol1) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1) + ":";
-				if (absCol2) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-			} else {
-				if (absCol1) {
-					sRes += "$";
-				}
-				sRes += g_oCellAddressUtils.colnumToColstr(this.c1 + 1);
-				if (absRow1) {
-					sRes += "$";
-				}
-				sRes += (this.r1 + 1);
-				if (!this.isOneCell()) {
-					sRes += ":";
-					if (absCol2) {
-						sRes += "$";
-					}
-					sRes += g_oCellAddressUtils.colnumToColstr(this.c2 + 1);
-					if (absRow2) {
-						sRes += "$";
-					}
-					sRes += (this.r2 + 1);
-				}
-			}
-			return sRes;
-		};
-
-		Range.prototype.getAllRange = function () {
-			var result, type = this.getType();
-			if (c_oAscSelectionType.RangeMax === type) {
-				result = new Range(0, 0, gc_nMaxCol0, gc_nMaxRow0);
-			} else if (c_oAscSelectionType.RangeCol === type) {
-				result = new Range(this.c1, 0, this.c2, gc_nMaxRow0);
-			} else if (c_oAscSelectionType.RangeRow === type) {
-				result = new Range(0, this.r1, gc_nMaxCol0, this.r2);
-			} else {
-				result = this.clone();
-			}
-
-			return result;
+			return this.getName(referenceType.A);
 		};
 
 		Range.prototype.getType = function () {
@@ -1572,6 +1485,16 @@
 			return this._getRange(sRange, 3);
 		};
 		RangeCache.prototype._getRange = function (sRange, type) {
+			if (AscCommonExcel.g_R1C1Mode) {
+				var o = {
+					Formula: sRange, pCurrPos: 0
+				};
+				if (AscCommon.parserHelp.isArea.call(o, o.Formula, o.pCurrPos)) {
+					sRange = o.real_str;
+				} else if (AscCommon.parserHelp.isRef.call(o, o.Formula, o.pCurrPos)) {
+					sRange = o.real_str;
+				}
+			}
 			var oRes = null;
 			var oCacheVal = this.oCache[sRange];
 			if (null == oCacheVal) {
@@ -1760,19 +1683,32 @@
 			return false;
 		}
 
-		function truncFracPart(frag) {
-			var s = frag.reduce(function (prev,val) {return prev + val.text;}, "");
+		function dropDecimalAutofit(f) {
+			var s = getFragmentsText(f);
 			// Проверка scientific format
 			if (s.search(/E/i) >= 0) {
-				return frag;
+				return f;
 			}
 			// Поиск десятичной точки
-			var pos = s.search(/[,\.]/);
-			if (pos >= 0) {
-				frag[0].text = s.slice(0, pos);
-				frag.splice(1, frag.length - 1);
+			var pos = s.indexOf(AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator);
+			if (-1 !== pos) {
+				f = [f[0].clone()];
+				f[0].text = s.slice(0, pos);
 			}
-			return frag;
+			return f;
+		}
+
+		function getFragmentsText(f) {
+			return f.reduce(function (pv, cv) {
+				return pv + cv.text;
+			}, "");
+		}
+
+		function executeInR1C1Mode(mode, runFunction) {
+			var oldMode = AscCommonExcel.g_R1C1Mode;
+			AscCommonExcel.g_R1C1Mode = mode;
+			runFunction();
+			AscCommonExcel.g_R1C1Mode = oldMode;
 		}
 
 		function getEndValueRange (dx, start, v1, v2) {
@@ -1865,7 +1801,7 @@
 			asc_getTooltip: function () { return this.hyperlinkModel.Tooltip; },
 			asc_getLocation: function () { return this.hyperlinkModel.getLocation(); },
 			asc_getSheet: function () { return this.hyperlinkModel.LocationSheet; },
-			asc_getRange: function () { return this.hyperlinkModel.LocationRange; },
+			asc_getRange: function () {return this.hyperlinkModel.getLocationRange();},
 			asc_getText: function () { return this.text; },
 
 			asc_setType: function (val) {
@@ -2458,6 +2394,8 @@
 		var prot;
 		window['Asc'] = window['Asc'] || {};
 		window['AscCommonExcel'] = window['AscCommonExcel'] || {};
+		window['AscCommonExcel'].g_ActiveCell = null; // Active Cell for calculate (in R1C1 mode for relative cell)
+		window['AscCommonExcel'].g_R1C1Mode = false; // No calculate in R1C1 mode
 		window["AscCommonExcel"].c_oAscShiftType = c_oAscShiftType;
 		window["AscCommonExcel"].recalcType = recalcType;
 		window["AscCommonExcel"].sizePxinPt = sizePxinPt;
@@ -2481,7 +2419,9 @@
 		window["Asc"].trim = trim;
 		window["Asc"].arrayToLowerCase = arrayToLowerCase;
 		window["Asc"].isFixedWidthCell = isFixedWidthCell;
-		window["Asc"].truncFracPart = truncFracPart;
+		window["AscCommonExcel"].dropDecimalAutofit = dropDecimalAutofit;
+		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
+		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 		window["Asc"].getEndValueRange = getEndValueRange;
 
 		window["AscCommonExcel"].referenceType = referenceType;

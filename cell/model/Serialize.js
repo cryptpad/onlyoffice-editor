@@ -2508,12 +2508,17 @@
             var defNameList = this.wb.dependencyFormulas.saveDefName();
 
             var filterDefName = "_xlnm._FilterDatabase";
+			var tempMap = {};
 			var printAreaDefName = "Print_Area";
 			var prefix = "_xlnm.";
 
             if(null != defNameList ){
                 for(var i = 0; i < defNameList.length; i++){
                     if(defNameList[i].Name !== filterDefName) {
+						//TODO временная правка. на открытие может приходить _FilterDatabase. защищаемся от записи двух одинаковых именванных диапазона
+						if(defNameList[i].Name === "_FilterDatabase") {
+							tempMap[defNameList[i].LocalSheetId] = 1;
+						}
 						var oldName = null;
 						//на запись добавляем к области печати префикс
 						if(printAreaDefName === defNameList[i].Name && null != defNameList[i].LocalSheetId && true === defNameList[i].isXLNM) {
@@ -2533,7 +2538,7 @@
             var ws, ref, defNameRef, defName;
             for(var i = 0; i < wb.aWorksheets.length; i++) {
 				ws = wb.aWorksheets[i];
-                if(ws && ws.AutoFilter && ws.AutoFilter.Ref) {
+                if(ws && ws.AutoFilter && ws.AutoFilter.Ref && !tempMap[ws.index]) {
                     ref = ws.AutoFilter.Ref;
 					defNameRef = AscCommon.parserHelp.get3DRef(ws.getName(), ref.getAbsName());
 					defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, false, true);
@@ -4383,11 +4388,14 @@
         this.bs = new BinaryCommonWriter(this.Memory);
         this.Write = function(noBase64, onlySaveBase64)
         {
+            var t = this;
             pptx_content_writer._Start();
 			if (noBase64) {
 				this.Memory.WriteXmlString(this.WriteFileHeader(0, Asc.c_nVersionNoBase64));
 			}
-            this.WriteMainTable();
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				t.WriteMainTable();
+			});
             pptx_content_writer._End();
 			if (noBase64) {
 			    if (onlySaveBase64)
@@ -6860,7 +6868,15 @@
 			var formula = tmp.formula;
 			var curFormula;
 			var prevFormula = tmp.prevFormulas[cell.nCol];
-			if (formula.v && formula.v.length <= AscCommon.c_oAscMaxFormulaLength) {
+			if (null !== formula.si && (curFormula = tmp.sharedFormulas[formula.si])) {
+				curFormula.parsed.getShared().ref.union3(cell.nCol, cell.nRow);
+				if (prevFormula !== curFormula) {
+					if (prevFormula && !tmp.bNoBuildDep && !tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
+						prevFormula.parsed.buildDependencies();
+					}
+					tmp.prevFormulas[cell.nCol] = curFormula;
+				}
+			} else if (formula.v && formula.v.length <= AscCommon.c_oAscMaxFormulaLength) {
 				var offsetRow;
 				var shared;
 				var sharedRef;
@@ -6910,20 +6926,9 @@
 					curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);
 					tmp.prevFormulas[cell.nCol] = curFormula;
 				}
-				if (null !== formula.si) {
+				if (null !== formula.si && curFormula.parsed.getShared()) {
 					tmp.sharedFormulas[formula.si] = curFormula;
 					tmp.siFormulas[curFormula.parsed.getListenerId()] = curFormula.parsed;
-				}
-			} else if (null !== formula.si) {
-				curFormula = tmp.sharedFormulas[formula.si];
-				if (curFormula) {
-					curFormula.parsed.getShared().ref.union3(cell.nCol, cell.nRow);
-				}
-				if (prevFormula !== curFormula) {
-					if (prevFormula && !tmp.bNoBuildDep && !tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
-						prevFormula.parsed.buildDependencies();
-					}
-					tmp.prevFormulas[cell.nCol] = curFormula;
 				}
 			}
 			if (curFormula) {
@@ -7531,7 +7536,7 @@
             var oThis = this;
             var oSheetView = null;
 
-            if (c_oSerWorksheetsTypes.SheetView === type) {
+            if (c_oSerWorksheetsTypes.SheetView === type && 0 == aSheetViews.length) {
                 oSheetView = new AscCommonExcel.asc_CSheetViewSettings();
                 res = this.bcr.Read1(length, function (t, l) {
                     return oThis.ReadSheetView(t, l, oSheetView);
@@ -8340,6 +8345,7 @@
         };
         this.Read = function(data, wb)
         {
+            var t = this;
             pptx_content_loader.Clear();
 			var pasteBinaryFromExcel = false;
 			if(this.copyPasteObj && this.copyPasteObj.isCopyPaste && typeof editor != "undefined" && editor)
@@ -8348,7 +8354,10 @@
 			this.stream = this.getbase64DecodedData(data);
 			if(!pasteBinaryFromExcel)
 				History.TurnOff();
-            this.ReadFile(wb);
+
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				t.ReadMainTable(wb);
+			});
 
             if(!this.copyPasteObj.isCopyPaste)
             {
@@ -8360,10 +8369,6 @@
 				History.TurnOn();
 			//чтобы удалялся stream с бинарником
 			pptx_content_loader.Clear(true);
-        };
-        this.ReadFile = function(wb)
-        {
-            return this.ReadMainTable(wb);
         };
         this.ReadMainTable = function(wb)
         {

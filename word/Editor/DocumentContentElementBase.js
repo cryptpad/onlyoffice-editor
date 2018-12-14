@@ -53,6 +53,8 @@ function CDocumentContentElementBase(oParent)
 	this.Next   = null;
 	this.Index  = -1; // перед тем как пользоваться этим параметром нужно у родительского класса вызывать this.Parent.Update_ContentIndexing();
 
+	this.Recalculated = false; // Данный параметр управляет тем, были ли у нас произведены изменения с элементом с момента последнего пересчета
+
 	this.X            = 0;
 	this.Y            = 0;
 	this.XLimit       = 0;
@@ -963,6 +965,22 @@ CDocumentContentElementBase.prototype.GetSimilarNumbering = function(oContinueEn
 CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 {
 	return false;
+};
+/**
+ * Сообщаем, пересчитан ли данный элемент с момента внесения в него изменений
+ * @param {boolean} isRecalculated
+ */
+CDocumentContentElementBase.prototype.SetIsRecalculated = function(isRecalculated)
+{
+	this.Recalculated = isRecalculated;
+};
+/**
+ * Узнаем рассчитан ли данный параграф
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.IsRecalculated = function()
+{
+	return this.Recalculated;
 };
 /**
  * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект

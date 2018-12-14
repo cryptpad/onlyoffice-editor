@@ -3570,43 +3570,47 @@ DrawingObjectsController.prototype =
         {
             var ws_view = this.drawingObjects.getWorksheet();
             var parsed_formula = parserHelp.parse3DRef(sRange);
-            var ws = ws_view.model.workbook.getWorksheetByName(parsed_formula.sheet);
-            var new_bbox;
-            var range_object = ws.getRange2(parsed_formula.range);
-            if(range_object)
+            if(parsed_formula)
             {
-                new_bbox = range_object.bbox;
-            }
-            if( parsed_formula && ws && new_bbox )
-            {
-                var oCommonBBox = chart_space.getCommonBBox();
-                var b_equal_bbox = oCommonBBox && oCommonBBox.r1 === new_bbox.r1
-                    && oCommonBBox.r2 === new_bbox.r2
-                    && oCommonBBox.c1 === new_bbox.c1
-                    && oCommonBBox.c2 === new_bbox.c2;
-                var b_equal_ws = chart_space.bbox && chart_space.bbox.worksheet === ws;
-                var b_equal_vert = chart_space.bbox && chartSettings.getInColumns() === !chart_space.bbox.seriesBBox.bVert;
 
-                var bLimit = (Math.abs(new_bbox.r2 - new_bbox.r1) > 4096 || Math.abs(new_bbox.c2 - new_bbox.c1) > 4096);
-                if(!(chart_space.bbox && chart_space.bbox.seriesBBox && b_equal_ws
-                    && b_equal_bbox && b_equal_vert ) && !bLimit)
+                var ws = ws_view.model.workbook.getWorksheetByName(parsed_formula.sheet);
+                var new_bbox;
+                var range_object = ws.getRange2(parsed_formula.range);
+                if(range_object)
                 {
-                    var catHeadersBBox, serHeadersBBox;
-                    if(chart_space.bbox && b_equal_bbox && b_equal_ws && !b_equal_vert)
+                    new_bbox = range_object.bbox;
+                }
+                if(ws && new_bbox )
+                {
+                    var oCommonBBox = chart_space.getCommonBBox();
+                    var b_equal_bbox = oCommonBBox && oCommonBBox.r1 === new_bbox.r1
+                        && oCommonBBox.r2 === new_bbox.r2
+                        && oCommonBBox.c1 === new_bbox.c1
+                        && oCommonBBox.c2 === new_bbox.c2;
+                    var b_equal_ws = chart_space.bbox && chart_space.bbox.worksheet === ws;
+                    var b_equal_vert = chart_space.bbox && chartSettings.getInColumns() === !chart_space.bbox.seriesBBox.bVert;
+
+                    var bLimit = (Math.abs(new_bbox.r2 - new_bbox.r1) > 4096 || Math.abs(new_bbox.c2 - new_bbox.c1) > 4096);
+                    if(!(chart_space.bbox && chart_space.bbox.seriesBBox && b_equal_ws
+                        && b_equal_bbox && b_equal_vert ) && !bLimit)
                     {
-                        if(chart_space.bbox.catBBox)
-                            serHeadersBBox = {r1: chart_space.bbox.catBBox.r1, r2: chart_space.bbox.catBBox.r2,
-                                c1: chart_space.bbox.catBBox.c1, c2: chart_space.bbox.catBBox.c2};
-                        if(chart_space.bbox.serBBox)
-                            catHeadersBBox = {r1: chart_space.bbox.serBBox.r1, r2: chart_space.bbox.serBBox.r2,
-                                c1: chart_space.bbox.serBBox.c1, c2: chart_space.bbox.serBBox.c2};
-                    }
-                    var chartSeries = AscFormat.getChartSeries(ws_view.model, chartSettings, catHeadersBBox, serHeadersBBox);
-                    //chart_space.clearFormatting(true);
-                    b_clear_formatting = true;
-                    chart_space.rebuildSeriesFromAsc(chartSeries);
-                    if(chart_space.pivotSource){
-                        chart_space.setPivotSource(null);
+                        var catHeadersBBox, serHeadersBBox;
+                        if(chart_space.bbox && b_equal_bbox && b_equal_ws && !b_equal_vert)
+                        {
+                            if(chart_space.bbox.catBBox)
+                                serHeadersBBox = {r1: chart_space.bbox.catBBox.r1, r2: chart_space.bbox.catBBox.r2,
+                                    c1: chart_space.bbox.catBBox.c1, c2: chart_space.bbox.catBBox.c2};
+                            if(chart_space.bbox.serBBox)
+                                catHeadersBBox = {r1: chart_space.bbox.serBBox.r1, r2: chart_space.bbox.serBBox.r2,
+                                    c1: chart_space.bbox.serBBox.c1, c2: chart_space.bbox.serBBox.c2};
+                        }
+                        var chartSeries = AscFormat.getChartSeries(ws_view.model, chartSettings, catHeadersBBox, serHeadersBBox);
+                        //chart_space.clearFormatting(true);
+                        b_clear_formatting = true;
+                        chart_space.rebuildSeriesFromAsc(chartSeries);
+                        if(chart_space.pivotSource){
+                            chart_space.setPivotSource(null);
+                        }
                     }
                 }
             }

@@ -3859,7 +3859,10 @@ function CDrawingDocument()
 
 		this.m_oWordControl.m_oLogicDocument.Set_TargetPos(x, y, pageIndex);
 
-		if (this.UpdateTargetFromPaint === false)
+        if(window["NATIVE_EDITOR_ENJINE"])
+        	return;
+
+		if (this.UpdateTargetFromPaint === false && this.m_lCurrentPage != -1)
 		{
 			this.UpdateTargetCheck = true;
 			return;
@@ -8738,11 +8741,23 @@ function CDrawingDocument()
 		this.InlineTextTrack = null;
 		this.InlineTextTrackPage = -1;
 	}
-	this.EndTrackText = function ()
+	this.EndTrackText = function (isOnlyMoveTarget)
 	{
 		this.InlineTextTrackEnabled = false;
 
-		this.m_oWordControl.m_oLogicDocument.OnEndTextDrag(this.InlineTextTrack, AscCommon.global_keyboardEvent.CtrlKey);
+		if (true !== isOnlyMoveTarget)
+			this.m_oWordControl.m_oLogicDocument.OnEndTextDrag(this.InlineTextTrack, AscCommon.global_keyboardEvent.CtrlKey);
+		else if (this.InlineTextTrack)
+		{
+            var Paragraph = this.InlineTextTrack.Paragraph;
+            Paragraph.Cursor_MoveToNearPos(this.InlineTextTrack);
+            Paragraph.Document_SetThisElementCurrent(false);
+
+            this.m_oWordControl.m_oLogicDocument.Document_UpdateSelectionState();
+            this.m_oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+            this.m_oWordControl.m_oLogicDocument.Document_UpdateRulersState();
+		}
+
 		this.InlineTextTrack = null;
 		this.InlineTextTrackPage = -1;
 	}

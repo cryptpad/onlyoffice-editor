@@ -656,6 +656,9 @@ CDocMeta.prototype =
 
     InitDocument : function(drDoc)
     {
+        drDoc.m_arrPages = [];
+        drDoc.m_lPagesCount = 0;
+
         for (var i = 0; i < this.PagesCount; i++)
         {
             var _page = new AscCommon.CPage();
@@ -665,7 +668,6 @@ CDocMeta.prototype =
             drDoc.m_arrPages[i] = _page;
         }
 
-        drDoc.m_arrPages.splice(0, drDoc.m_lPagesCount);
         drDoc.m_lCurrentPage = 0;
         drDoc.m_lPagesCount = this.PagesCount;
         drDoc.m_lCountCalculatePages = this.PagesCount;
@@ -3347,6 +3349,8 @@ CDocMeta.prototype =
 
     OnMouseUp : function()
     {
+        if (this.Selection.IsSelection)
+            editor.sendEvent("asc_onSelectionEnd");
         this.Selection.IsSelection = false;
     },
 
@@ -3478,6 +3482,8 @@ CDocMeta.prototype =
                 this.OnUpdateSelection();
             }
         }
+
+        editor.sendEvent("asc_onSelectionEnd");
     },
 
     selectAllCheckStart : function()

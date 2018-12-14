@@ -756,7 +756,8 @@ var editor;
     var t = this;
     AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result) {
       if (error || !result.bSerFormat) {
-        var oError = {returnCode: c_oAscError.Level.Critical, val: c_oAscError.ID.Unknown};
+        var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
+        var oError = {returnCode: c_oAscError.Level.Critical, val: err};
         t.handlers.trigger("asc_onError", oError.val, oError.returnCode);
         return;
       }
@@ -1428,7 +1429,7 @@ var editor;
     };
 	  };
 
-  spreadsheet_api.prototype._onSaveChanges = function(recalcIndexColumns, recalcIndexRows) {
+  spreadsheet_api.prototype._onSaveChanges = function(recalcIndexColumns, recalcIndexRows, isAfterAskSave) {
     if (this.isDocumentLoadComplete) {
       var arrChanges = this.wbModel.SerializeHistory();
       var deleteIndex = History.GetDeleteIndex();
@@ -1444,7 +1445,7 @@ var editor;
         this.CoAuthoringApi.saveChanges(arrChanges, deleteIndex, excelAdditionalInfo, this.canUnlockDocument2, bCollaborative);
         History.CanNotAddChanges = true;
       } else {
-        this.CoAuthoringApi.unLockDocument(true, this.canUnlockDocument2, null, bCollaborative);
+        this.CoAuthoringApi.unLockDocument(!!isAfterAskSave, this.canUnlockDocument2, null, bCollaborative);
       }
       this.canUnlockDocument2 = false;
     }
@@ -1665,9 +1666,11 @@ var editor;
 			return;
 		}
 
-        if (AscCommon.EncryptionWorker && !AscCommon.EncryptionWorker.isChangesHandled)
+        if (AscCommon.EncryptionWorker)
         {
-            return AscCommon.EncryptionWorker.handleChanges(this.collaborativeEditing.m_arrChanges, this, this._openDocumentEndCallback);
+            AscCommon.EncryptionWorker.init();
+            if (!AscCommon.EncryptionWorker.isChangesHandled)
+                return AscCommon.EncryptionWorker.handleChanges(this.collaborativeEditing.m_arrChanges, this, this._openDocumentEndCallback);
         }
 
 		if (0 === this.wbModel.getWorksheetCount()) {
@@ -1796,7 +1799,7 @@ var editor;
 			}
 		};
 		// Пересылаем свои изменения
-		this.collaborativeEditing.sendChanges(this.IsUserSave);
+		this.collaborativeEditing.sendChanges(this.IsUserSave, true);
 	};
 
   // Залочена ли панель для закрепления
@@ -2306,6 +2309,14 @@ var editor;
 			result = this.wb.closeCellEditor(cancel);
 		}
 		return result;
+	};
+
+	spreadsheet_api.prototype.asc_setR1C1Mode = function (value) {
+		AscCommonExcel.g_R1C1Mode = value;
+		if (this.wbModel) {
+			this._onUpdateAfterApplyChanges();
+			this.wb._onUpdateSelectionName(true);
+        }
 	};
 
 
@@ -3692,6 +3703,8 @@ var editor;
   prot["asc_endFindText"] = prot.asc_endFindText;
   prot["asc_findCell"] = prot.asc_findCell;
   prot["asc_closeCellEditor"] = prot.asc_closeCellEditor;
+
+  prot["asc_setR1C1Mode"] = prot.asc_setR1C1Mode;
 
   // Spreadsheet interface
 

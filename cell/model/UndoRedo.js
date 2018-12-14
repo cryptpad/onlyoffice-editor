@@ -1386,6 +1386,7 @@ function (window, undefined) {
 		this.nCol = null;
 		this.nRow = null;
 		this.formula = null;
+		this.totalFunction = null;
 	}
 
 	UndoRedoData_AutoFilter.prototype.Properties = {
@@ -1410,7 +1411,8 @@ function (window, undefined) {
 		tablePart: 18,
 		nCol: 19,
 		nRow: 20,
-		formula: 21
+		formula: 21,
+		totalFunction: 22
 	};
 	UndoRedoData_AutoFilter.prototype.getType = function () {
 		return UndoRedoDataTypes.AutoFilter;
@@ -1495,6 +1497,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.formula:
 				return this.formula;
+				break;
+			case this.Properties.totalFunction:
+				return this.totalFunction;
 				break;
 		}
 
@@ -1597,6 +1602,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.formula:
 				this.formula = value;
+				break;
+			case this.Properties.totalFunction:
+				this.totalFunction = value;
 				break;
 		}
 		return null;

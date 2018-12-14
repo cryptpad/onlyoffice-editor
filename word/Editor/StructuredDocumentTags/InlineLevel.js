@@ -445,6 +445,14 @@ CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, En
 		CParagraphContentWithParagraphLikeContent.prototype.Set_SelectionContentPos.apply(this, arguments);
 	}
 };
+CInlineLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
+{
+	this.private_ReplacePlaceHolderWithContent();
+};
+CInlineLevelSdt.prototype.ReplaceContentWithPlaceHolder = function()
+{
+	this.private_ReplaceContentWithPlaceHolder();
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Выставление настроек
 //----------------------------------------------------------------------------------------------------------------------

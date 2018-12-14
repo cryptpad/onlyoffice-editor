@@ -246,31 +246,63 @@
 				this.parsedRef = null;
 			}
 		},
-		setRef: function(ref, opt_noRemoveDependencies, opt_forceBuild) {
+		setRef: function(ref, opt_noRemoveDependencies, opt_forceBuild, opt_open) {
 			if(!opt_noRemoveDependencies){
 				this.removeDependencies();
 			}
+			//для R1C1: ref - всегда строка в виде A1B1
+			//флаг opt_open - на открытие, undo/redo, принятие изменений - строка приходит в виде A1B1 - преобразовывать не нужно
+			//во всех остальных случаях парсим ref и заменяем на формат A1B1
+			opt_open = opt_open || this.wb.bRedoChanges || this.wb.bUndoChanges;
+
 			this.ref = ref;
 			//all ref should be 3d, so worksheet can be anyone
 			this.parsedRef = new parserFormula(ref, this, AscCommonExcel.g_DefNameWorksheet);
 			this.parsedRef.setIsTable(this.isTable);
 			if (opt_forceBuild) {
+				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+				if(opt_open) {
+					AscCommonExcel.g_R1C1Mode = false;
+				}
 				this.parsedRef.parse();
+				if(opt_open) {
+					AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+				}
 				this.parsedRef.buildDependencies();
 			} else {
+				if(!opt_open) {
+					this.parsedRef.parse();
+					this.ref = this.parsedRef.assemble();
+				}
 				this.wb.dependencyFormulas.addToBuildDependencyDefName(this);
 			}
+		},
+		getRef: function(bLocale) {
+			//R1C1 - отдаём в зависимости от флага bLocale(для меню в виде R1C1)
+			var res;
+			if(!this.parsedRef.isParsed) {
+				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+				AscCommonExcel.g_R1C1Mode = false;
+				this.parsedRef.parse();
+				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			}
+			if(bLocale) {
+				res = this.parsedRef.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);
+			} else {
+				res = this.parsedRef.assemble();
+			}
+			return res;
 		},
 		getNodeId: function() {
 			return getDefNameId(this.sheetId, this.name);
 		},
-		getAscCDefName: function() {
+		getAscCDefName: function(bLocale) {
 			var index = null;
 			if (this.sheetId) {
 				var sheet = this.wb.getWorksheetById(this.sheetId);
 				index = sheet.getIndex();
 			}
-			return new Asc.asc_CDefName(this.name, this.ref, index, this.isTable, this.hidden, this.isLock, this.isXLNM);
+			return new Asc.asc_CDefName(this.name, this.getRef(bLocale), index, this.isTable, this.hidden, this.isLock, this.isXLNM);
 		},
 		getUndoDefName: function() {
 			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable, this.isXLNM);
@@ -319,7 +351,13 @@
 
 	function getVertexIndex(bbox) {
 		//without $
-		return bbox.getAbsName2(false, false, false, false);
+		//значения в areaMap хранятся в виде A1B1
+		//данная функция используется только для получения данных из areaMap
+		var res;
+		AscCommonExcel.executeInR1C1Mode(false, function () {
+			res = bbox.getName(AscCommonExcel.referenceType.R);
+		});
+		return res;
 	}
 
 	function DependencyGraph(wb) {
@@ -376,6 +414,8 @@
 				var vertexIndex = getVertexIndex(bbox);
 				var areaSheetElem = sheetContainer.areaMap[vertexIndex];
 				if (!areaSheetElem) {
+					//todo clone inside or outside startListeningRange?
+					bbox = bbox.clone();
 					areaSheetElem = {id: null, bbox: bbox, count: 0, listeners: {}};
 					sheetContainer.areaMap[vertexIndex] = areaSheetElem;
 					sheetContainer.areaTree.add(bbox, areaSheetElem);
@@ -621,12 +661,12 @@
 			}
 			return res;
 		},
-		getDefinedNamesWB: function(type) {
+		getDefinedNamesWB: function(type, bLocale) {
 			var names = [], activeWS;
 
 			function getNames(defName) {
 				if (defName.ref && !defName.hidden && (defName.name.indexOf("_xlnm") < 0)) {
-					names.push(defName.getAscCDefName());
+					names.push(defName.getAscCDefName(bLocale));
 				}
 			}
 
@@ -1081,7 +1121,7 @@
 		},
 		initOpen: function() {
 			this._foreachDefName(function(defName) {
-				defName.setRef(defName.ref, true, true);
+				defName.setRef(defName.ref, true, true, true);
 			});
 		},
 		getSnapshot: function(wb) {
@@ -1957,6 +1997,7 @@
 		return this.aWorksheets.length;
 	};
 	Workbook.prototype.createWorksheet=function(indexBefore, sName, sId){
+		this.dependencyFormulas.lockRecal();
 		History.Create_NewPoint();
 		History.TurnOff();
 		var wsActive = this.getActiveWs();
@@ -1978,6 +2019,7 @@
 		History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_SheetAdd, null, null, new UndoRedoData_SheetAdd(indexBefore, oNewWorksheet.getName(), null, oNewWorksheet.getId()));
 		History.SetSheetUndo(wsActive.getId());
 		History.SetSheetRedo(oNewWorksheet.getId());
+		this.dependencyFormulas.unlockRecal();
 		return oNewWorksheet.index;
 	};
 	Workbook.prototype.copyWorksheet=function(index, insertBefore, sName, sId, bFromRedo, tableNames){
@@ -2020,7 +2062,7 @@
 			History.SetSheetRedo(newSheet.getId());
 			if(!(bFromRedo === true))
 			{
-				wsFrom.copyDrawingObjects(newSheet, wsFrom);
+				wsFrom.copyObjects(newSheet, wsFrom);
 			}
 			this.sortDependency();
 		}
@@ -2304,8 +2346,8 @@
 	Workbook.prototype.checkDefName = function (checkName, scope) {
 		return this.dependencyFormulas.checkDefName(checkName, scope);
 	};
-	Workbook.prototype.getDefinedNamesWB = function (defNameListId) {
-		return this.dependencyFormulas.getDefinedNamesWB(defNameListId);
+	Workbook.prototype.getDefinedNamesWB = function (defNameListId, bLocale) {
+		return this.dependencyFormulas.getDefinedNamesWB(defNameListId, bLocale);
 	};
 	Workbook.prototype.getDefinesNames = function ( name, sheetId ) {
 		return this.dependencyFormulas.getDefNameByName( name, sheetId );
@@ -3312,7 +3354,7 @@
 
 		return renameParams;
 	};
-	Worksheet.prototype.copyDrawingObjects = function (oNewWs, wsFrom) {
+	Worksheet.prototype.copyObjects = function (oNewWs, wsFrom) {
 		var i;
 		if (null != this.Drawings && this.Drawings.length > 0) {
 			var drawingObjects = new AscFormat.DrawingObjects();
@@ -4950,15 +4992,19 @@
 		var nColsCountNew = 0;
 		//todo avoid double getRange3
 		this.getRange3(oBBoxFrom.r1, oBBoxFrom.c1, oBBoxFrom.r2, oBBoxFrom.c2)._foreachNoEmpty(function(cell) {
-			cell.transformSharedFormula();
+			if (cell.transformSharedFormula()) {
+				var parsed = cell.getFormulaParsed();
+				parsed.buildDependencies();
+			}
 		});
+		var isClearFromArea = !copyRange || (copyRange && oThis.workbook.bUndoChanges);
 		var moveCells = function(copyRange, from, to, r1From, r1To, count){
 			var fromData = oThis.getColDataNoEmpty(from);
 			var toData;
 			if(fromData){
 				toData = oThis.getColData(to);
 				toData.copyRange(fromData, r1From, r1To, count);
-				if(!copyRange|| (copyRange && oThis.workbook.bUndoChanges)){
+				if (isClearFromArea) {
 					if(from !== to) {
 						fromData.clear(r1From, r1From + count);
 					} else {
@@ -5010,7 +5056,7 @@
 						newFormula = formula.clone(null, cellWithFormula, oThis);
 						newFormula.changeOffset(offset, false, true);
 						newFormula.setFormulaString(newFormula.assemble(true));
-						cell.setFormulaInternal(newFormula);
+						cell.setFormulaInternal(newFormula, !isClearFromArea);
 
 						if(isFirstCellArray) {
 							newArrayRef = arrayFormula.clone();
@@ -5020,7 +5066,7 @@
 							oldNewArrayFormulaMap[formula.getListenerId()] = newFormula;
 						}
 					} else if(arrayFormula && oldNewArrayFormulaMap[formula.getListenerId()]) {
-						cell.setFormulaInternal(oldNewArrayFormulaMap[formula.getListenerId()]);
+						cell.setFormulaInternal(oldNewArrayFormulaMap[formula.getListenerId()], !isClearFromArea);
 					}
 					History.TurnOn();
 				} else {
@@ -6517,7 +6563,9 @@
 		this.processFormula(function(parsed) {
 			//todo without parse
 			var newFormula = new parserFormula(parsed.getFormula(), oNewCell, t.ws);
-			newFormula.parse();
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				newFormula.parse();
+			});
 			var arrayFormulaRef = parsed.getArrayFormulaRef();
 			if(arrayFormulaRef) {
 				newFormula.setArrayFormulaRef(arrayFormulaRef);
@@ -7214,13 +7262,7 @@
 			fIsFitMeasurer = function(aText){return true;};
 		if(null == dDigitsCount)
 			dDigitsCount = AscCommon.gc_nMaxDigCountView;
-		var aRes = this._getValue2(dDigitsCount, fIsFitMeasurer);
-		var formula = this.getFormula();
-		if (formula) {
-			aRes[0].sFormula = formula;
-			aRes[0].sId = this.getName();
-		}
-		return aRes;
+		return this._getValue2(dDigitsCount, fIsFitMeasurer);
 	};
 	Cell.prototype.getNumberValue = function() {
 		this._checkDirty();
