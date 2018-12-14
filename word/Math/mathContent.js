@@ -5466,13 +5466,13 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
         FirstEl.ContPos++;
         for (var nPos = 0, nCount = AutoCorrectEngine.Remove[0].Count; nPos < nCount; nPos++) {
             LastEl = AutoCorrectEngine.Elements[ElCount - nPos - 1 - AutoCorrectEngine.Shift];
-            if (undefined !== LastEl.Element.Parent) {
+            if (undefined !== LastEl.Element.Parent && !LastEl.Element.kind) {
                 if (FirstEl.Element.Parent === LastEl.Element.Parent) {
                     FirstEl.ContPos--;
                 }
                 LastEl.Element.Parent.Remove_FromContent(LastEl.ContPos, 1);
             } else {
-                this.Remove_FromContent(LastEl.ElementPos, 1);
+                this.Remove_FromContent(LastEl.ElPos, 1);
                 FirstElPos--;
             }
         }
@@ -5741,7 +5741,7 @@ AutoCorrectionControl.prototype.PackTextToContent = function(Element, TempElemen
     }
     for (var nPos = 0; nPos < len; nPos++) {
         if (undefined === TempElements[nPos].value) {
-            Element.Internal_Content_Add(nPos, TempElements[nPos].Element);
+            Element.Internal_Content_Add(nPos, TempElements[nPos]);
         } else {
             var MathRun = new ParaRun(this.ParaMath.Paragraph, true);
 
@@ -5757,12 +5757,12 @@ AutoCorrectionControl.prototype.PackTextToContent = function(Element, TempElemen
 };
 AutoCorrectionControl.prototype.AutoCorrectAccent = function(AutoCorrectEngine, CanMakeAutoCorrect)
 {
-    var CurPos = AutoCorrectEngine.Elements[this.CurElement].Element.State.ContentPos;
-    if (this.ActionElement.value === 0x20) {
-        CurPos--;
-    }
+    var CurPos = this.CurPos;
+    // if (this.ActionElement.value === 0x20 && CurPos) {
+    //     CurPos--;
+    // }
     var props = new CMathAccentPr();
-    props.chr = this.Elements[this.CurElement].Element.Content[CurPos - 1].value;
+    props.chr = this.Elements[CurPos].Element.value;
     var oAccent = new CAccent(props);
 
     var oBase = oAccent.getBase();
@@ -5770,13 +5770,13 @@ AutoCorrectionControl.prototype.AutoCorrectAccent = function(AutoCorrectEngine, 
     var TempElements = [];
     var nRemoveCount = 1;
   
-    if (this.bOpenBrk && this.bCloseBrk) {
+    if (this.bOpenBrk && this.bCloseBrk) { //добавление контета в cBox доработать (все, что между скобок)
         for (var i = this.BrAccount.nRPos-1; i>this.BrAccount.nLPos; i--) {
-            TempElements.splice(0, 0, this.Elements[this.CurElement].Element.Content[i]);
+            TempElements.splice(0, 0, this.Elements[i].Element);
         }
         nRemoveCount = this.BrAccount.nRPos - this.BrAccount.nLPos + 2;
-    } else if (AutoCorrectEngine.Elements[this.CurElement].Element.Content.length > 2) {     //добавление контета в cBox доработать (слева один символ или все, что в скобках)
-        TempElements.splice(0, 0, AutoCorrectEngine.Elements[this.CurElement].Element.Content[CurPos - 2]);
+    } else if (AutoCorrectEngine.Elements.length > 2 && CurPos) {     //добавление контета в cBox доработать (слева один символ)
+        TempElements.splice(0, 0, AutoCorrectEngine.Elements[CurPos - 1].Element);
         nRemoveCount++;
     }
 
@@ -6845,9 +6845,9 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         if ( 0x5E === this.ActionElementCode || 0x5F === this.ActionElementCode) {
             return false;
         } else if (TempElements2.length > 0 || TempElements3.length > 0) {
-            if (TempElements3.length === 0) {
-                return false;
-            } else {
+            // if (TempElements3.length === 0) {
+            //     return false;
+            // } else {
                 var props = new CMathDegreePr();
                 props.ctrPrp = AutoCorrectEngine.TextPr.Copy();
                 props.type = this.Kind;
@@ -6881,7 +6881,7 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
                 AutoCorrectEngine.Remove.push({Count:RemoveCount, Start:Start});
                 AutoCorrectEngine.ReplaceContent.unshift(oDegree);
                 return true;
-            }
+            // }
         }
     } else if (this.Type == MATH_RADICAL) {
         if (!g_aMathAutoCorrectFracCharCodes[this.ActionElementCode]) { // \sqrt(a+b)^
@@ -7033,11 +7033,12 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         // AutoCorrectEngine.RemoveCount = TempElements.length + TempElements2.length + 1;
         // if (0x20 == this.ActionElementCode)
         //     AutoCorrectEngine.RemoveCount++;
-        RemoveCount = TempElements.length + TempElements2.length + 1;
-        Start = AutoCorrectEngine.Elements.length - RemoveCount;
+        RemoveCount += TempElements.length + TempElements2.length + TempElements3.length + 1;
+        RemoveCount += (!props.subHide && !props.supHide) ? 2 : (!props.subHide || !props.supHide) ? 1 : 0;
         if (0x20 == this.ActionElementCode) {
             RemoveCount++;
         }
+        Start = AutoCorrectEngine.Elements.length - RemoveCount;
         AutoCorrectEngine.Remove.push({Count:RemoveCount, Start:Start});
         AutoCorrectEngine.ReplaceContent.unshift(oNary);
         return true;
@@ -7074,10 +7075,10 @@ AutoCorrectionControl.prototype.private_CanAutoCorrectEquation = function(AutoCo
         // if (0x20 == this.ActionElementCode)
         //     AutoCorrectEngine.RemoveCount++;
         RemoveCount = TempElements.length + TempElements2.length + 1;
-        Start = AutoCorrectEngine.Elements.length - RemoveCount;
         if (0x20 == this.ActionElementCode) {
             RemoveCount++;
         }
+        Start = AutoCorrectEngine.Elements.length - RemoveCount;
         AutoCorrectEngine.Remove.push({Count:RemoveCount, Start:Start});
         AutoCorrectEngine.ReplaceContent.unshift(oBar);
         return true;
