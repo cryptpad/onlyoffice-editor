@@ -107,6 +107,11 @@ function CTableCell(Row, ColW)
         Y_VAlign_offset : [] // Сдвиг, который нужно сделать из-за VAlign (массив по страницам)
     };
 
+    this.CachedMinMax = {
+    	RecalcId : -1,
+		MinMax   : null
+	};
+
     this.Index = 0;
 
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
@@ -606,7 +611,7 @@ CTableCell.prototype =
 
     Get_AbsolutePage : function(CurPage)
     {
-        return this.Row.Table.Get_AbsolutePage(CurPage);
+		return this.Row.Table.Get_AbsolutePage(CurPage);
     },
 
     Get_AbsoluteColumn : function(CurPage)
@@ -870,7 +875,21 @@ CTableCell.prototype =
         if (true === this.Is_VerticalText())
             isRotated = true === isRotated ? false : true;
 
-        var Result = this.Content.RecalculateMinMaxContentWidth(isRotated);
+        var Result;
+        if (this.GetTable() && this.GetTable().LogicDocument && this.GetTable().LogicDocument.RecalcId === this.CachedMinMax.RecalcId)
+		{
+			Result = this.CachedMinMax.MinMax;
+		}
+        else
+		{
+			Result = this.Content.RecalculateMinMaxContentWidth(isRotated);
+
+			if (this.GetTable() && this.GetTable().LogicDocument)
+			{
+				this.CachedMinMax.RecalcId = this.GetTable().LogicDocument.RecalcId;
+				this.CachedMinMax.MinMax   = Result;
+			}
+		}
 
         if (true !== isRotated && true === this.Get_NoWrap())
             Result.Min = Math.max(Result.Min, Result.Max);

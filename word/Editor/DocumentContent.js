@@ -5782,9 +5782,11 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 	this.CurPage = CurPage;
 	var AbsPage  = this.Get_AbsolutePage(this.CurPage);
 
+	var isTopDocumentContent = this === this.GetTopDocumentContent();
+
 	// Сначала проверим, не попали ли мы в один из "плавающих" объектов
-	var bInText      = (null === this.IsInText(X, Y, AbsPage) ? false : true);
-	var bTableBorder = (null === this.IsTableBorder(X, Y, AbsPage) ? false : true);
+	var bInText      = null !== this.IsInText(X, Y, AbsPage);
+	var bTableBorder = null !== this.IsTableBorder(X, Y, AbsPage);
 	var nInDrawing   = this.LogicDocument && this.LogicDocument.DrawingObjects.IsInDrawingObject(X, Y, AbsPage, this);
 
 	if (this.Parent instanceof CHeaderFooter && ( nInDrawing === DRAWING_ARRAY_TYPE_BEFORE || nInDrawing === DRAWING_ARRAY_TYPE_INLINE || ( false === bTableBorder && false === bInText && nInDrawing >= 0 ) ))
@@ -5835,7 +5837,6 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 
 		var SelectionUse_old = this.Selection.Use;
 		var Item             = this.Content[ContentPos];
-		var bTableBorder     = (null != Item.IsTableBorder(X, Y, AbsPage) ? true : false);
 
 		// Убираем селект, кроме случаев либо текущего параграфа, либо при движении границ внутри таблицы
 		if (!(true === SelectionUse_old && true === MouseEvent.ShiftKey && true === bOldSelectionIsCommon))
@@ -5850,7 +5851,10 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 
 		if (true === SelectionUse_old && true === MouseEvent.ShiftKey && true === bOldSelectionIsCommon)
 		{
-			this.Selection_SetEnd(X, Y, this.CurPage, {Type : AscCommon.g_mouse_event_type_up, ClickCount : 1});
+			this.Selection_SetEnd(X, Y, this.CurPage, {
+				Type           : AscCommon.g_mouse_event_type_up,
+				ClickCount     : 1
+			});
 			this.Selection.Use    = true;
 			this.Selection.Start  = true;
 			this.Selection.EndPos = ContentPos;
@@ -5867,7 +5871,13 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 				return;
 			}
 
-			Item.Selection_SetEnd(X, Y, ElementPageIndex, {Type : AscCommon.g_mouse_event_type_move, ClickCount : 1});
+			if (isTopDocumentContent)
+			{
+				Item.Selection_SetEnd(X, Y, ElementPageIndex, {
+					Type           : AscCommon.g_mouse_event_type_move,
+					ClickCount     : 1
+				});
+			}
 
 			if (true !== bTableBorder)
 			{
