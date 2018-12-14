@@ -15119,6 +15119,7 @@
 	HeaderFooterField.prototype.getText = function (ws, indexPrintPage, countPrintPages) {
 		var res = "";
 		var curDate, curDateNum;
+		var api = window["Asc"]["editor"];
 		switch(this.field) {
 			case asc.c_oAscHeaderFooterField.pageNumber: {
 				res = indexPrintPage + 1 + "";
@@ -15133,7 +15134,7 @@
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.fileName: {
-
+				res = api.DocInfo.Title;
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.filePath: {
@@ -15143,13 +15144,13 @@
 			case asc.c_oAscHeaderFooterField.date: {
 				curDate = new cDate();
 				curDateNum = curDate.getExcelDate();
-				res = window["Asc"]["editor"].asc_getLocaleExample(AscCommon.getShortDateFormat(), curDateNum);
+				res = api.asc_getLocaleExample(AscCommon.getShortDateFormat(), curDateNum);
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.time: {
 				curDate = new cDate();
 				curDateNum = curDate.getExcelDateWithTime(true);
-				res = window["Asc"]["editor"].asc_getLocaleExample(AscCommon.getShortTimeFormat(), curDateNum);
+				res = api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), curDateNum);
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.lineBreak: {
@@ -15792,11 +15793,11 @@
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.sheetName: {
-
+				textField = "&[Tab]";
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.fileName: {
-
+				textField = "&[File]";
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.filePath: {
@@ -16228,10 +16229,12 @@
 								}
 								case "tab": {
 									text = "";
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.sheetName), format: tokenFormat});
 									break;
 								}
 								case "file": {
 									text = "";
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName), format: tokenFormat});
 									break;
 								}
 								case "&[Path]&[File]": {
@@ -16299,7 +16302,7 @@
 								case 'f':   //file name
 								{
 									text = "";
-									//res.push((new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName)));
+									res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName), format: tokenFormat});
 									break;
 								}
 								case 'z':   //file path
