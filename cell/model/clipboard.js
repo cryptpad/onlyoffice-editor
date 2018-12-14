@@ -383,6 +383,8 @@
 				window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord = false;
 			}
 
+			var cellEditor = window["Asc"]["editor"].wb.cellEditor;
+			var text;
 			switch (_format)
 			{
 				case AscCommon.c_oAscClipboardDataFormat.HtmlElement:
@@ -396,9 +398,21 @@
 							fragments = this.pasteProcessor._getFragmentsFromHtml(data1);
 						}
 						if (fragments) {
-							ws._loadFonts(fragments.fonts, function() {
-								window["Asc"]["editor"].wb.cellEditor.paste(fragments.fragments);
+							var pasteFragments = fragments.fragments;
+							var newFonts = fragments.fonts;
+							ws._loadFonts(newFonts, function() {
+								cellEditor.paste(pasteFragments);
 								window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+
+								//TODO пересмотреть! по возможности вызывать из меню!
+								//при использовании рекдактора ячейки в качестве редактора HF
+								//в функции onLongActionEnd(ф-я меню) не вызывается asc_enableKeyEvents(true)
+								//из-за этого enableKeyEvents остаётся выставленным в false
+								//поэтому приходится вызывать здесь, после того, как пройдет загрузка шрифтов
+
+								if(cellEditor.options && cellEditor.options.menuEditor) {
+									window["Asc"]["editor"].asc_enableKeyEvents(true);
+								}
 							});
 
 						} else {
@@ -462,6 +476,10 @@
 				editor.wb.cellEditor.pasteText(text);
 				AscCommon.g_specialPasteHelper.Paste_Process_End();
 				editor.wb.skipHelpSelector = false;
+
+				if(editor.wb.cellEditor.options && editor.wb.cellEditor.options.menuEditor) {
+					editor.asc_enableKeyEvents(true);
+				}
 			});
 		};
 
