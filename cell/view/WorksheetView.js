@@ -15118,6 +15118,7 @@
 	}
 	HeaderFooterField.prototype.getText = function (ws, indexPrintPage, countPrintPages) {
 		var res = "";
+		var curDate, curDateNum;
 		switch(this.field) {
 			case asc.c_oAscHeaderFooterField.pageNumber: {
 				res = indexPrintPage + 1 + "";
@@ -15140,13 +15141,15 @@
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.date: {
-				var curDate = new cDate();
-				var curDateNum = curDate.getExcelDate();
+				curDate = new cDate();
+				curDateNum = curDate.getExcelDate();
 				res = window["Asc"]["editor"].asc_getLocaleExample(AscCommon.getShortDateFormat(), curDateNum);
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.time: {
-
+				curDate = new cDate();
+				curDateNum = curDate.getExcelDateWithTime(true);
+				res = window["Asc"]["editor"].asc_getLocaleExample(AscCommon.getShortTimeFormat(), curDateNum);
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.lineBreak: {

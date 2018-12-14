@@ -7680,7 +7680,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		{
 			date = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day));
 			startDate = date.getExcelDateWithTime();
-			date.addDays(1)
+			date.addDays(1);
 			endDate = date.getExcelDateWithTime();
 			break;
 		}
@@ -7700,7 +7700,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		{
 			date = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, 1));
 			startDate = date.getExcelDateWithTime();
-			date.addMonths(1)
+			date.addMonths(1);
 			endDate = date.getExcelDateWithTime();
 			break;
 		}
@@ -7714,7 +7714,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		{
 			date = new cDate(Date.UTC( oDateGroupItem.Year, 0));
 			startDate = date.getExcelDateWithTime();
-			date.addYears(1)
+			date.addYears(1);
 			endDate = date.getExcelDateWithTime();
 			break;
 		}
