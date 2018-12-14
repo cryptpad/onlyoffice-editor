@@ -15153,7 +15153,9 @@
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.date: {
-
+				var curDate = new cDate();
+				var curDateNum = curDate.getExcelDate();
+				res = window["Asc"]["editor"].asc_getLocaleExample(AscCommon.getShortDateFormat(), curDateNum);
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.time: {
