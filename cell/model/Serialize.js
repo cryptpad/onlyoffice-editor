@@ -3593,7 +3593,7 @@
 				{
 					this.bs.WriteItem(c_oSerCellTypes.Style, function(){oThis.memory.WriteLong(nXfsId);});
 				}
-				if (cell.isFormula()) {
+				if (cell.isFormula() && !(this.isCopyPaste && cell.ws && cell.ws.bIgnoreWriteFormulas)) {
 					this.bs.WriteItem(c_oSerCellTypes.Formula, function() {oThis.WriteFormula(cell);});
 				}
 				if(!cell.isNullTextString())

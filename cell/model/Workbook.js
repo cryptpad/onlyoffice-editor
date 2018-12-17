@@ -3074,6 +3074,7 @@
 		this.aComments = [];
 		var oThis = this;
 		this.bExcludeHiddenRows = false;
+		this.bIgnoreWriteFormulas = false;
 		this.mergeManager = new RangeDataManager(function(data, from, to){
 			if(History.Is_On() && (null != from || null != to))
 			{
@@ -6267,6 +6268,9 @@
 	};
 	Worksheet.prototype.excludeHiddenRows = function (bExclude) {
 		this.bExcludeHiddenRows = bExclude;
+	};
+	Worksheet.prototype.ignoreWriteFormulas = function (val) {
+		this.bIgnoreWriteFormulas = val;
 	};
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;

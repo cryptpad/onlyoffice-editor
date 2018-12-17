@@ -312,9 +312,12 @@
 				//ignore hidden rows
 				var selectionRange = activeRange ? activeRange : ws.model.selectionRange.getLast();
 				var activeCell = ws.model.selectionRange.activeCell.clone();
-				if(ws.model.autoFilters.bIsExcludeHiddenRows(selectionRange, activeCell))
+
+				//TODO игнорировать нужно и формулы и скрытые строчки в случае, если селект их задевает + стандартные условия в bIsExcludeHiddenRows
+				if(ws.model.autoFilters.bIsExcludeHiddenRows(selectionRange, activeCell, true))
 				{
 					ws.model.excludeHiddenRows(true);
+					ws.model.ignoreWriteFormulas(true);
 				}
 
 				//TEXT
@@ -363,6 +366,7 @@
 				}
 
 				ws.model.excludeHiddenRows(false);
+				ws.model.ignoreWriteFormulas(false);
 			}
 		};
 

@@ -4981,7 +4981,7 @@
 				return result;
 			},
 
-			bIsExcludeHiddenRows: function(range, activeCell)
+			bIsExcludeHiddenRows: function(range, activeCell, checkHiddenRows)
 			{
 				var worksheet = this.worksheet;
 				var result = false;
@@ -4994,6 +4994,16 @@
 				else if(this._getTableIntersectionWithActiveCell(activeCell, true))//если activeCell лежит внутри таблицы c примененным фильтром
 				{
 					result = true;
+				}
+
+				if(result && checkHiddenRows) {
+					var range3 = range && range.bbox ? range : worksheet.getRange3(range.r1, range.c1, range.r2, range.c2);
+					result = false;
+					range3._foreachRow(function (row) {
+						if(row.getHidden()) {
+							result = true;
+						}
+					});
 				}
 
 				return result;
