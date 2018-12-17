@@ -76,6 +76,10 @@ function CheckWordArtTextPr(oRun)
 function hitToHandles(x, y, object)
 {
     var invert_transform = object.getInvertTransform();
+    if(!invert_transform)
+    {
+        return -1;
+    }
     var t_x, t_y;
     t_x = invert_transform.TransformPointX(x, y);
     t_y = invert_transform.TransformPointY(x, y);
@@ -4679,6 +4683,10 @@ CShape.prototype.getRotateAngle = function (x, y) {
     var rot_y_t = transform.TransformPointY(hc, -rotate_distance);
 
     var invert_transform = this.getInvertTransform();
+    if(!invert_transform)
+    {
+        return 0.0;
+    }
     var rel_x = invert_transform.TransformPointX(x, y);
 
     var v1_x, v1_y, v2_x, v2_y;
@@ -5108,31 +5116,35 @@ CShape.prototype.changeLine = function (line)
 };
 
 CShape.prototype.hitToAdjustment = function (x, y) {
-    var invert_transform = this.getInvertTransform();
+    var invert_transform;
     var t_x, t_y, ret;
-    t_x = invert_transform.TransformPointX(x, y);
-    t_y = invert_transform.TransformPointY(x, y);
     var _calcGeoem = this.calcGeometry || (this.spPr && this.spPr.geometry);
     if (_calcGeoem)
     {
         invert_transform = this.getInvertTransform();
-        t_x = invert_transform.TransformPointX(x, y);
-        t_y = invert_transform.TransformPointY(x, y);
-        ret = _calcGeoem.hitToAdj(t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
-        if(ret.hit)
+        if(invert_transform)
         {
-            ret.warp = false;
-            return ret;
+            t_x = invert_transform.TransformPointX(x, y);
+            t_y = invert_transform.TransformPointY(x, y);
+            ret = _calcGeoem.hitToAdj(t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
+            if(ret.hit)
+            {
+                ret.warp = false;
+                return ret;
+            }
         }
     }
     if(this.recalcInfo.warpGeometry && this.invertTransformTextWordArt)
     {
         invert_transform = this.invertTransformTextWordArt;
-        t_x = invert_transform.TransformPointX(x, y);
-        t_y = invert_transform.TransformPointY(x, y);
-        ret = this.recalcInfo.warpGeometry.hitToAdj(t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
-        ret.warp = true;
-        return ret;
+        if(invert_transform)
+        {
+            t_x = invert_transform.TransformPointX(x, y);
+            t_y = invert_transform.TransformPointY(x, y);
+            ret = this.recalcInfo.warpGeometry.hitToAdj(t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
+            ret.warp = true;
+            return ret;
+        }
     }
 
     return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
@@ -5154,6 +5166,10 @@ CShape.prototype.hitInPath = function (x, y) {
     if(!this.checkHitToBounds(x, y))
         return false;
     var invert_transform = this.getInvertTransform();
+    if(!invert_transform)
+    {
+        return false;
+    }
     var x_t = invert_transform.TransformPointX(x, y);
     var y_t = invert_transform.TransformPointY(x, y);
     if (isRealObject(this.spPr) && isRealObject(this.spPr.geometry))
@@ -5167,6 +5183,10 @@ CShape.prototype.hitInInnerArea = function (x, y) {
     if ((this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_ChartSpace || this.getObjectType() === AscDFH.historyitem_type_Title) || (this.brush != null && this.brush.fill != null
         && this.brush.fill.type != c_oAscFill.FILL_TYPE_NOFILL || this.blipFill) && this.checkHitToBounds(x, y)) {
         var invert_transform = this.getInvertTransform();
+        if(!invert_transform)
+        {
+            return false;
+        }
         var x_t = invert_transform.TransformPointX(x, y);
         var y_t = invert_transform.TransformPointY(x, y);
         if (isRealObject(this.spPr) && isRealObject(this.spPr.geometry) && this.spPr.geometry.pathLst.length > 0 && !(this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_ChartSpace))
@@ -5181,6 +5201,10 @@ CShape.prototype.hitInBoundingRect = function (x, y) {
         return false;
     }
     var invert_transform = this.getInvertTransform();
+    if(!invert_transform)
+    {
+        return false;
+    }
     var x_t = invert_transform.TransformPointX(x, y);
     var y_t = invert_transform.TransformPointY(x, y);
 

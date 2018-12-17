@@ -615,6 +615,9 @@ CGraphicFrame.prototype.getSnapArrays = function(snapX, snapY)
 CGraphicFrame.prototype.hitInInnerArea = function(x, y)
     {
         var invert_transform = this.getInvertTransform();
+        if(!invert_transform){
+            return false;
+        }
         var x_t = invert_transform.TransformPointX(x, y);
         var y_t = invert_transform.TransformPointY(x, y);
         return x_t > 0 && x_t < this.extX && y_t > 0 && y_t < this.extY;
@@ -635,6 +638,9 @@ CGraphicFrame.prototype.getInvertTransform = function()
 CGraphicFrame.prototype.hitInBoundingRect = function(x, y)
     {
         var invert_transform = this.getInvertTransform();
+        if(!invert_transform){
+            return false;
+        }
         var x_t = invert_transform.TransformPointX(x, y);
         var y_t = invert_transform.TransformPointY(x, y);
 

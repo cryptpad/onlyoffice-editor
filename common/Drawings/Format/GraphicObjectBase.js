@@ -1141,6 +1141,9 @@
         cy = this.extY > 0 ? this.extY : 0.01;
 
         var invert_transform = this.getInvertTransform();
+        if(!invert_transform){
+            return { kd1: 1, kd2: 1 };
+        }
         var t_x = invert_transform.TransformPointX(x, y);
         var t_y = invert_transform.TransformPointY(x, y);
 
