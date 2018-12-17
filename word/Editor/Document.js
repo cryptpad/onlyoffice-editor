@@ -774,7 +774,7 @@ function CDocumentPage()
 
     this.Bounds = new CDocumentBounds(0,0,0,0);
     this.Pos    = 0;
-    this.EndPos = -1;
+    this.EndPos = 0;
 
     this.X      = 0;
     this.Y      = 0;
