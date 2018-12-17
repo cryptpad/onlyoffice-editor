@@ -11755,15 +11755,16 @@
 
 	WorksheetView.prototype.findCell = function (reference) {
 		var mc, ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
-		var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+		var oldR1C1mode = AscCommonExcel.g_R1C1Mode, t = this;
 
 		if (0 === ranges.length && this.handlers.trigger('canEdit')) {
 
 			//проверяем на совпадение с именем диапазона в другом формате
-			AscCommonExcel.g_R1C1Mode = !oldR1C1mode;
-			var changeModeRanges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
-			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
-			if(changeModeRanges.length){
+			var changeModeRanges;
+			AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
+				changeModeRanges = AscCommonExcel.getRangeByRef(reference, t.model, true, true);
+			});
+			if(changeModeRanges && changeModeRanges.length){
 				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.InvalidReferenceOrName,
 					c_oAscError.Level.NoCritical);
 				return ranges;
