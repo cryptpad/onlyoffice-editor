@@ -752,6 +752,14 @@
 			var res = new Asc.asc_CCheckDefName();
 			var range = AscCommonExcel.g_oRangeCache.getRange3D(name) ||
 				AscCommonExcel.g_oRangeCache.getAscRange(name);
+			if(!range) {
+				//проверяем на совпадение с именем диапазона в другом формате
+				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
+				AscCommonExcel.g_R1C1Mode = !oldR1C1mode;
+				range = AscCommonExcel.g_oRangeCache.getRange3D(name) ||
+					AscCommonExcel.g_oRangeCache.getAscRange(name);
+				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			}
 			if (range || !AscCommon.rx_defName.test(name.toLowerCase())) {
 				res.status = false;
 				res.reason = c_oAscDefinedNameReason.WrongName;

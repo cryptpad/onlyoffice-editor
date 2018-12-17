@@ -11755,9 +11755,21 @@
 
 	WorksheetView.prototype.findCell = function (reference) {
 		var mc, ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
+		var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
 
 		if (0 === ranges.length && this.handlers.trigger('canEdit')) {
-            /*TODO: сделать поиск по названиям автофигур, должен искать до того как вызвать поиск по именованным диапазонам*/
+
+			//проверяем на совпадение с именем диапазона в другом формате
+			AscCommonExcel.g_R1C1Mode = !oldR1C1mode;
+			var changeModeRanges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
+			AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+			if(changeModeRanges.length){
+				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.InvalidReferenceOrName,
+					c_oAscError.Level.NoCritical);
+				return ranges;
+			}
+
+			/*TODO: сделать поиск по названиям автофигур, должен искать до того как вызвать поиск по именованным диапазонам*/
 			if (this.collaborativeEditing.getGlobalLock() || !this.handlers.trigger("getLockDefNameManagerStatus")) {
 				this.handlers.trigger("onErrorEvent", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
 				this._updateSelectionNameAndInfo();
@@ -11765,7 +11777,6 @@
 				// ToDo multiselect defined names
 				var selectionLast = this.model.selectionRange.getLast();
 				mc = selectionLast.isOneCell() ? this.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
-				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
 				AscCommonExcel.g_R1C1Mode = false;
 				var defName = this.model.workbook.editDefinesNames(null, new Asc.asc_CDefName(reference,
 					parserHelp.get3DRef(this.model.getName(), (mc || selectionLast).getAbsName())));
