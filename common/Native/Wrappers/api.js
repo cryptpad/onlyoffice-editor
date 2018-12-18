@@ -6140,3 +6140,9 @@ window["AscCommon"].getFullImageSrc2 = function (src) {
     }
     return src;
 };
+
+window["AscCommon"].sendImgUrls = function(api, images, callback)
+{
+	var _data = [];
+	callback(_data);
+};

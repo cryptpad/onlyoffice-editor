@@ -6614,7 +6614,11 @@ background-repeat: no-repeat;\
 			callback();
 			return;
 		}
-
+		if(window['IS_NATIVE_EDITOR'])
+		{
+			callback();
+			return;
+		}
 		this.pasteCallback = callback;
 		this.pasteImageMap = _images;
 

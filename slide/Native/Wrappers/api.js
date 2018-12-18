@@ -34,6 +34,8 @@ var global_memory_stream_menu = CreateNativeMemoryStream();
 
 window.IS_NATIVE_EDITOR = true;
 
+
+
 var sdkCheck = true;
 // endsectionPr -----------------------------------------------------------------------------------------
 
@@ -3617,4 +3619,12 @@ if(window.native){
 window.native.Call_Menu_Event = function (type, _params)
 {
     return _api.Call_Menu_Event(type, _params);
+};
+
+
+window["AscCommon"] = window["AscCommon"] || {};
+window["AscCommon"].sendImgUrls = function(api, images, callback)
+{
+	var _data = [];
+	callback(_data);
 };
