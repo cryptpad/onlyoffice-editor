@@ -827,7 +827,12 @@
 								imageUrl = cloneImg.graphicObject.getImageUrl();
 							}
 							if (isImage && imageUrl) {
-								url = AscCommon.getFullImageSrc2(imageUrl);
+								//desktop - пишем все урлы в виде base64
+								if(window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsLocalFile"]()) {
+									url = cloneImg.graphicObject.getBase64Img();
+								} else {
+									url = AscCommon.getFullImageSrc2(imageUrl);
+								}
 							} else {
 								url = cloneImg.graphicObject.getBase64Img();
 							}
