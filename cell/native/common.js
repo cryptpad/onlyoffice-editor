@@ -375,17 +375,6 @@ window["NativeCorrectImageUrlOnCopy"] = function(url) {
     return window["native"]["CorrectImageUrlOnCopy"](url);
 };
 
-AscCommon.sendImgUrls = function(api, images, callback)
-{
-	var _data = [];
-	callback(_data);
-};
-
 var global_memory_stream_menu = CreateNativeMemoryStream();
 
 window['SockJS'] = createSockJS();
-window["AscCommon"].sendImgUrls = function(api, images, callback)
-{
-	var _data = [];
-	callback(_data);
-};
