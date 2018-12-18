@@ -1715,10 +1715,14 @@ CDLbl.prototype =
             if(compiled_string.length > 0)
                 compiled_string += separator;
             var sFormatCode;
-            if(typeof this.pt.formatCode === "string" && this.pt.formatCode.length > 0){
+            if(this.numFmt && typeof this.numFmt.formatCode === "string" && this.numFmt.formatCode.length > 0){
+                sFormatCode = this.numFmt.formatCode;
+            }
+            else if(typeof this.pt.formatCode === "string" && this.pt.formatCode.length > 0){
                 sFormatCode =  this.pt.formatCode;
             }
             else{
+
                 sFormatCode = this.series.getFormatCode();
             }
 
@@ -1928,7 +1932,7 @@ CDLbl.prototype =
 
     recalculateTxBody: function()
     {
-        if(this.tx && this.tx.rich)
+        if(this.tx && this.tx.rich && !((this instanceof CDLbl) && (!this.tx.rich.content || this.tx.rich.content.IsEmpty())))
         {
             this.txBody = this.tx.rich;
             this.txBody.parent = this;
