@@ -11755,7 +11755,10 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                             {
                                                 if(ser.dPt[k].spPr)
                                                 {
-                                                    compiled_brush.merge(ser.dPt[k].spPr.Fill);
+                                                    if(ser.dPt[k].spPr.Fill && ser.dPt[k].spPr.Fill.fill)
+                                                    {
+                                                        compiled_brush = ser.dPt[k].spPr.Fill.createDuplicate();
+                                                    }
                                                 }
                                                 break;
                                             }
@@ -12072,7 +12075,10 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                         {
                                             if(ser.dPt[k].spPr)
                                             {
-                                                compiled_brush.merge(ser.dPt[k].spPr.Fill);
+                                                if(ser.dPt[k].spPr.Fill && ser.dPt[k].spPr.Fill.fill)
+                                                {
+                                                    compiled_brush = ser.dPt[k].spPr.Fill.createDuplicate();
+                                                }
                                             }
                                             break;
                                         }
