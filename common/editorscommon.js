@@ -4477,7 +4477,7 @@ window.openFileCryptCallback = function(_binary)
 
 window["asc_IsNeedBuildCryptedFile"] = function()
 {
-    if (!window["AscDesktopEditor"])
+    if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["CryptoMode"])
         return false;
 
     var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;

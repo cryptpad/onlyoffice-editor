@@ -647,7 +647,9 @@ _proto.prototype["pluginMethod_OnEncryption"] = function(obj)
 
 				_editor.LastUserSavedIndex = undefined;
 
-				_editor.sendEvent("asc_onError", "There is no connection with the blockchain", c_oAscError.Level.Critical);
+				_editor.sendEvent("asc_onError", "There is no connection with the blockchain! End-to-end encryption mode is disabled.", c_oAscError.Level.NoCritical);
+				if (window["AscDesktopEditor"])
+					window["AscDesktopEditor"]["CryptoMode"] = 0;
 				return;
 			}
 
