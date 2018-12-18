@@ -1978,6 +1978,12 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
       return AscCommon.EncryptionWorker.addCryproImagesFromUrls(images, callback);
   }
 
+  	if(window["IS_NATIVE_EDITOR"])
+  	{
+		callback([]);
+		return;
+	}
+
   var rData = {"id": api.documentId, "c": "imgurls", "userid":  api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(), "data": images};
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 
