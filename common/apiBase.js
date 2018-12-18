@@ -1660,7 +1660,7 @@
 	{
 		this.sync_EndAction((type == "Block") ? c_oAscAsyncActionType.BlockInteraction : c_oAscAsyncActionType.Information, description);
 
-		if (window["AscDesktopEditor"] && status !== undefined && status != "")
+		if (window["AscDesktopEditor"] && status != null && status != "")
 		{
 			// error!!!
             if (!window["AscDesktopEditor"]["IsLocalFile"]())
