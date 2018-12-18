@@ -1666,6 +1666,7 @@
             if (!window["AscDesktopEditor"]["IsLocalFile"]())
 			{
                 this.sendEvent("asc_onError", "Encryption error: " + status + ". The file was not compiled.", c_oAscError.Level.Critical);
+                window["AscDesktopEditor"]["CryptoMode"] = 0;
 			}
 			else
 			{
