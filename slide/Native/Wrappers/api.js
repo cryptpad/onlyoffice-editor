@@ -2991,13 +2991,14 @@ function NativeOpenFileP(_params, documentInfo){
         docInfo.put_Permissions(JSON.parse(permissions));
     }
     _api.asc_setDocInfo(docInfo);
-    // _api.asc_registerCallback("asc_onAdvancedOptions", function(options) {
-    //     var stream = global_memory_stream_menu;
-    //     stream["ClearNoAttack"]();
-    //     stream["WriteString2"](JSON.stringify(options));
-    //     window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
-    // });
-    //
+    
+    _api.asc_registerCallback("asc_onAdvancedOptions", function(options) {
+        var stream = global_memory_stream_menu;
+        stream["ClearNoAttack"]();
+        stream["WriteString2"](JSON.stringify(options));
+        window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
+    });
+    
     _api.asc_registerCallback("asc_onSendThemeColorSchemes", function(schemes) {
         var stream = global_memory_stream_menu;
         stream["ClearNoAttack"]();
