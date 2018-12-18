@@ -1932,7 +1932,7 @@ CDLbl.prototype =
 
     recalculateTxBody: function()
     {
-        if(this.tx && this.tx.rich && !((this instanceof CDLbl) && (!this.tx.rich.content || this.tx.rich.content.IsEmpty())))
+        if(this.tx && this.tx.rich)
         {
             this.txBody = this.tx.rich;
             this.txBody.parent = this;
