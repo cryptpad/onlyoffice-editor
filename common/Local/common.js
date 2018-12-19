@@ -654,6 +654,7 @@ _proto.prototype["pluginMethod_OnEncryption"] = function(obj)
 			}
 
 			window["DesktopOfflineAppDocumentStartSave"](window.doadssIsSaveAs, obj["password"], true, obj["docinfo"] ? obj["docinfo"] : "");
+            window["AscDesktopEditor"]["buildCryptedStart"]();
 			break;
 		}
 		case "getPasswordByFile":
