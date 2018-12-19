@@ -4681,7 +4681,7 @@
 		if (va !== Asc.c_oAscVAlign.Top && va !== Asc.c_oAscVAlign.Center && !mergeType && !cache.angle) {
 			// ToDo move descender in model
 			var newDescender = tm.height - tm.baseline - 1;
-			if (newDescender > this._getRowDescender()) {
+			if (newDescender > this._getRowDescender(row)) {
 				rowInfo.descender = newDescender;
 			}
 		}
