@@ -8865,6 +8865,10 @@ drawPieChart.prototype = {
 
 		var calculateFrontFace = function (startAng, swapAng, startAng2, swapAng2) {
 
+			if(isNaN(startAng) || isNaN(swapAng)) {
+				return null;
+			}
+
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);
 
@@ -8886,6 +8890,10 @@ drawPieChart.prototype = {
 
 		var calculateUpFace = function (startAng, swapAng) {
 
+			if(isNaN(startAng) ||  isNaN(swapAng)) {
+				return null;
+			}
+
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);
 
@@ -8904,6 +8912,10 @@ drawPieChart.prototype = {
 		};
 
 		var calculateDownFace = function (startAng, swapAng) {
+
+			if(isNaN(startAng) ||  isNaN(swapAng)) {
+				return null;
+			}
 
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);
