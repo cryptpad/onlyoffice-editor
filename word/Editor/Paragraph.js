@@ -1610,7 +1610,7 @@ Paragraph.prototype.Internal_Draw_2 = function(CurPage, pGraphics, Pr)
 Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 {
 	var LogicDocument = this.LogicDocument;
-	if (!this.bFromDocument || !LogicDocument)
+	if (!LogicDocument)
 		return;
 
 	var bDrawBorders = this.Is_NeedDrawBorders();
@@ -1626,12 +1626,12 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 	var DocumentComments = LogicDocument.Comments;
 	var Page_abs         = this.Get_AbsolutePage(CurPage);
 
-	var DrawComm           = DocumentComments.Is_Use();
+	var DrawComm           = DocumentComments ? DocumentComments.Is_Use() : false;
 	var DrawFind           = LogicDocument.SearchEngine.Selection;
 	var DrawColl           = undefined !== pGraphics.RENDERER_PDF_FLAG;
-	var DrawMMFields       = !!(this.LogicDocument && true === this.LogicDocument.Is_HighlightMailMergeFields());
-	var DrawSolvedComments = DocumentComments.IsUseSolved();
-	var SdtHighlightColor  = this.LogicDocument.GetSdtGlobalShowHighlight() && undefined === pGraphics.RENDERER_PDF_FLAG ? this.LogicDocument.GetSdtGlobalColor() : null;
+	var DrawMMFields       = !!(this.LogicDocument && this.LogicDocument.Is_HighlightMailMergeFields && true === this.LogicDocument.Is_HighlightMailMergeFields());
+	var DrawSolvedComments = DocumentComments ? DocumentComments.IsUseSolved() : false;
+	var SdtHighlightColor  = this.LogicDocument.GetSdtGlobalShowHighlight && this.LogicDocument.GetSdtGlobalShowHighlight() && undefined === pGraphics.RENDERER_PDF_FLAG ? this.LogicDocument.GetSdtGlobalColor() : null;
 
 	PDSH.Reset(this, pGraphics, DrawColl, DrawFind, DrawComm, DrawMMFields, this.GetEndInfoByPage(CurPage - 1), DrawSolvedComments);
 
@@ -14172,6 +14172,10 @@ CParagraphDrawStateHighlights.prototype.RemoveComment = function(Id)
 };
 CParagraphDrawStateHighlights.prototype.Check_CommentsFlag = function()
 {
+	if(!this.Paragraph.bFromDocument)
+	{
+		return;
+	}
 	// Проверяем флаг
 	var Para             = this.Paragraph;
 	var DocumentComments = Para.LogicDocument.Comments;

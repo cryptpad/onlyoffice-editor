@@ -7521,6 +7521,39 @@ function BinaryPPTYLoader()
                     s.SkipRecord();
                     break;
                 }
+                case 12:
+                {
+                    //highlight
+                    var end_rec__ = s.cur + s.GetULong() + 4;
+
+                    s.Skip2(1); // start attributes
+                    var  at__;
+                    while (true)
+                    {
+                        at__ = s.GetUChar();
+                        if (at__ === g_nodeAttributeEnd)
+                            break;
+                    }
+                    while (s.cur < end_rec__)
+                    {
+                        at__ = s.GetUChar();
+                        switch (at__)
+                        {
+                            case 0:
+                            {
+                                rPr.HighlightColor = this.ReadUniColor();
+                                break;
+                            }
+                            default:
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    s.Seek2(end_rec__);
+                    break;
+                }
                 default:
                 {
                     s.SkipRecord();

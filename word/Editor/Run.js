@@ -5024,6 +5024,13 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 	}
 
     var HighLight = oCompiledPr.HighLight;
+    if(oCompiledPr.HighlightColor)
+    {
+        var Theme = this.Paragraph.Get_Theme(), ColorMap = this.Paragraph.Get_ColorMap(), RGBA;
+        oCompiledPr.HighlightColor.check(Theme, ColorMap);
+        RGBA = oCompiledPr.HighlightColor.RGBA;
+        HighLight = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+    }
 
     var SearchMarksCount = this.SearchMarks.length;
 

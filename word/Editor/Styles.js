@@ -7382,6 +7382,7 @@ function CTextPr()
 
     this.TextOutline = undefined;
     this.TextFill    = undefined;
+	this.HighlightColor = undefined;
 }
 
 CTextPr.prototype =
@@ -7417,6 +7418,7 @@ CTextPr.prototype =
         this.Vanish     = undefined;
         this.TextOutline = undefined;
         this.TextFill    = undefined;
+		this.HighlightColor = undefined;
         this.AscFill    = undefined;
         this.AscUnifill = undefined;
         this.AscLine    = undefined;
@@ -7481,6 +7483,10 @@ CTextPr.prototype =
         {
             TextPr.TextFill = this.TextFill.createDuplicate();
         }
+        if(undefined !== this.HighlightColor)
+		{
+			TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+		}
 
         return TextPr;
     },
@@ -7599,6 +7605,10 @@ CTextPr.prototype =
         {
             this.TextFill = TextPr.TextFill.createDuplicate();
         }
+        if(undefined !== TextPr.HighlightColor)
+		{
+			this.HighlightColor = TextPr.HighlightColor.createDuplicate();
+		}
     },
 
     Init_Default : function()
@@ -7636,6 +7646,7 @@ CTextPr.prototype =
 
         this.TextOutline = undefined;
         this.TextFill    = undefined;
+		this.HighlightColor = undefined;
     },
 
     Set_FromObject : function(TextPr, isUndefinedToNull)
@@ -7708,6 +7719,7 @@ CTextPr.prototype =
 		this.Unifill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.Unifill);
 		this.FontRef     = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontRef);
 		this.TextFill    = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextFill);
+		this.HighlightColor = CheckUndefinedToNull(isUndefinedToNull, TextPr.HighlightColor);
 		this.TextOutline = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextOutline);
 		this.AscFill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscFill);
 		this.AscUnifill  = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscUnifill);
@@ -7865,6 +7877,15 @@ CTextPr.prototype =
             this.TextFill = AscFormat.CompareUniFill(this.TextFill, TextPr.TextFill);
             if(null === this.TextFill){
                 this.TextFill = undefined;
+            }
+        }
+
+        if(undefined !== this.HighlightColor &&  !this.HighlightColor.IsIdentical(TextPr.HighlightColor))
+        {
+            this.HighlightColor = this.HighlightColor.compare(TextPr.HighlightColor);
+            if(null === this.HighlightColor)
+            {
+                this.HighlightColor = undefined;
             }
         }
 
@@ -8078,6 +8099,11 @@ CTextPr.prototype =
             this.ReviewInfo.Write_ToBinary(Writer);
             Flags |= 536870912;
         }
+        if (undefined != this.HighlightColor)
+        {
+			this.HighlightColor.Write_ToBinary(Writer);
+            Flags |= 1073741824;
+        }
 
         var EndPos = Writer.GetCurPosition();
         Writer.Seek( StartPos );
@@ -8238,6 +8264,12 @@ CTextPr.prototype =
             this.PrChange.Read_FromBinary(Reader);
             this.ReviewInfo.Read_FromBinary(Reader);
         }
+
+		if (Flags & 1073741824)
+		{
+			this.HighlightColor = new AscFormat.CUniColor();
+			this.HighlightColor.Read_FromBinary(Reader);
+		}
     },
 
     Check_NeedRecalc : function()
@@ -8515,6 +8547,9 @@ CTextPr.prototype =
         if ((undefined === this.TextFill && undefined !== TextPr.TextFill) || (undefined !== this.TextFill && (undefined === TextPr.TextFill || true !== this.TextFill.IsIdentical(TextPr.TextFill))))
             return false;
 
+        if ((undefined === this.HighlightColor && undefined !== TextPr.HighlightColor) || (undefined !== this.HighlightColor && (undefined === TextPr.HighlightColor || true !== this.HighlightColor.IsIdentical(TextPr.HighlightColor))))
+            return false;
+
         if (this.Vanish !== TextPr.Vanish)
             return false;
 
@@ -8651,6 +8686,9 @@ CTextPr.prototype =
         if (undefined !== this.TextFill && (undefined === PrChange.TextFill || true !== this.TextFill.IsIdentical(PrChange.TextFill)))
             TextPr.TextFill = this.TextFill.createDuplicate();
 
+        if (undefined !== this.HighlightColor && (undefined === PrChange.HighlightColor || true !== this.HighlightColor.IsIdentical(PrChange.HighlightColor)))
+            TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+
         if (this.Vanish !== PrChange.Vanish)
             TextPr.Vanish = this.Vanish;
 
@@ -8775,7 +8813,8 @@ CTextPr.prototype.Is_Empty = function()
 		|| undefined !== this.Shd
 		|| undefined !== this.Vanish
 		|| undefined !== this.TextOutline
-		|| undefined !== this.TextFill)
+		|| undefined !== this.TextFill
+		|| undefined !== this.HighlightColor)
 		return false;
 
 	return true;

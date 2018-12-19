@@ -2147,10 +2147,23 @@ function CBinaryFileWriter()
                 oThis.WriteRecord2(5, rPr.RFonts.CS, oThis.WriteTextFontTypeface);
         }
 
+
         if (hlinkObj != null && hlinkObj !== undefined)
         {
             oThis.WriteRecord1(7, hlinkObj, oThis.WriteHyperlink);
         }
+
+        if (rPr.HighlightColor)
+        {
+            oThis.WriteRecord1(12, rPr.HighlightColor, oThis.WriteHighlightColor);
+        }
+    }
+
+    this.WriteHighlightColor = function (HighlightColor) {
+
+        oThis.WriteUChar(g_nodeAttributeStart);
+        oThis.WriteUChar(g_nodeAttributeEnd);
+        oThis.WriteRecord1(0, HighlightColor, oThis.WriteUniColor);
     }
 
     this.WriteHyperlink = function(hlink)
