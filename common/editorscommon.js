@@ -3865,6 +3865,10 @@
 		{
 			var _this = this;
             window["AscDesktopEditor"]["OpenFilenameDialog"]("images", true, function(files) {
+
+                if (!Array.isArray(files)) // string detect
+                    files = [files];
+
 				var _files = [];
 
 				var _options = { isImageCrypt: true, callback: callback, ext : [] };
