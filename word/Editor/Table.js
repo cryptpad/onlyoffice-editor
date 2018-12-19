@@ -9368,6 +9368,16 @@ CTable.prototype.AddTableRow = function(bBefore)
 	this.Selection.Type = table_Selection_Cell;
 
 	var StartRow = ( true === bBefore ? RowId : RowId + 1 );
+
+	this.Selection.StartPos.Pos = {
+		Row  : StartRow,
+		Cell : 0
+	};
+	this.Selection.EndPos.Pos = {
+		Row  : StartRow + Count - 1,
+		Cell : this.Content[StartRow + Count - 1].GetCellsCount() - 1
+	};
+
 	for (var Index = 0; Index < Count; Index++)
 	{
 		var Row        = this.Content[StartRow + Index];
