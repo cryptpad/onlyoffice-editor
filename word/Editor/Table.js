@@ -2626,7 +2626,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 	{
 		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties, null, true))
 		{
-			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveInlineTable);
+			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveFlowTable);
 
 			// Переносим привязку (если получается, что заносим таблицу саму в себя, тогда привязку не меняем)
 			var NewDocContent = NearestPos.Paragraph.Parent;
@@ -2726,6 +2726,31 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 
 			editor.WordControl.m_oLogicDocument.Recalculate();
 			oTargetTable.Start_TrackTable();
+
+			// Если так случилось, что после пересчета позиции не пересчитались, тогда нам нужно оставить привязку к
+			// странице, чтобы таблица правильна расположилась. Такое происходит, если перемещать таблицу больше,
+			// чем на 3 страницы и до пересчета успевает пройти сохранение.
+			if (undefined !== oTargetTable.PositionH_Old)
+			{
+				// Восстанови старые значения, чтобы в историю изменений все нормально записалось
+				oTargetTable.PositionH.RelativeFrom = oTargetTable.PositionH_Old.RelativeFrom;
+				oTargetTable.PositionH.Align        = oTargetTable.PositionH_Old.Align;
+				oTargetTable.PositionH.Value        = oTargetTable.PositionH_Old.Value;
+
+				oTargetTable.Set_PositionH(c_oAscHAnchor.Page, false, X);
+				oTargetTable.PositionH_Old = undefined;
+			}
+
+			if (undefined !== oTargetTable.PositionV_Old)
+			{
+				// Восстанови старые значения, чтобы в историю изменений все нормально записалось
+				oTargetTable.PositionV.RelativeFrom = oTargetTable.PositionV_Old.RelativeFrom;
+				oTargetTable.PositionV.Align        = oTargetTable.PositionV_Old.Align;
+				oTargetTable.PositionV.Value        = oTargetTable.PositionV_Old.Value;
+
+				oTargetTable.Set_PositionV(c_oAscVAnchor.Page, false, Y);
+				oTargetTable.PositionV_Old = undefined;
+			}
 		}
 	}
 	else
@@ -2738,7 +2763,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 				Y       : Y
 			}, true))
 		{
-			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveFlowTable);
+			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveInlineTable);
 
 			var NewDocContent = NearestPos.Paragraph.Parent;
 			var OldDocContent = this.Parent;
