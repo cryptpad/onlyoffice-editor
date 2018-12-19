@@ -3740,6 +3740,8 @@ var editor;
   prot["asc_stopSaving"] = prot.asc_stopSaving;
   prot["asc_continueSaving"] = prot.asc_continueSaving;
 
+  prot['sendEvent'] = prot.sendEvent;
+
   // Version History
   prot["asc_undoAllChanges"] = prot.asc_undoAllChanges;
 
