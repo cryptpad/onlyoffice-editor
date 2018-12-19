@@ -17424,7 +17424,7 @@ CDocument.prototype.private_GetSelectionPos = function(isSaveDirection)
 		nEndPos   = this.Selection.EndPos;
 	}
 
-	if (true !== isSaveDirection && nStartPos > nEndPos)
+	if (false === isSaveDirection && nStartPos > nEndPos)
 	{
 		var nTemp = nStartPos;
 		nStartPos = nEndPos;
