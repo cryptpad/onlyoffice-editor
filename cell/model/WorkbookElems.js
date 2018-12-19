@@ -6362,7 +6362,7 @@ RangeDataManager.prototype = {
 		return this.TotalsRowFunction;
 	};
 	TableColumn.prototype.getTotalsRowLabel = function () {
-		return this.TotalsRowLabel ? this.TotalsRowFormula.TotalsRowLabel : null;
+		return this.TotalsRowLabel ? this.TotalsRowLabel : null;
 	};
 	TableColumn.prototype.setTotalsRowFormula = function (val, ws) {
 		this.cleanTotalsData();
