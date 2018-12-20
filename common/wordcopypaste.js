@@ -8307,7 +8307,9 @@ PasteProcessor.prototype =
 
 		var parseChildNodes = function(){
 			if (bPresentation) {
-				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType)) {
+				var sChildNodeName = child.nodeName.toLowerCase();
+				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
+					sChildNodeName === "#comment" || sChildNodeName === "script") {
 					return;
 				}
 				//попускам элеметы состоящие только из \t,\n,\r
