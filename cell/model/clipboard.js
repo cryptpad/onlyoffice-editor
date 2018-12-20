@@ -3138,6 +3138,12 @@
 				var res = null;
 				if(html && html.children){
 					for(var i = 0; i < html.children.length; i++){
+						if(html.children[i] && html.children[i].nodeName) {
+							var sChildNodeName = html.children[i].nodeName.toLowerCase();
+							if(sChildNodeName === "style" || sChildNodeName === "#comment" || sChildNodeName === "script") {
+								continue;
+							}
+						}
 
 						if(!res){
 							res = {fragments: [], fonts: {}};
