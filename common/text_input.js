@@ -1211,10 +1211,7 @@
 		apiCompositeReplace : function(_value)
 		{
 			if (this.Api.isLongAction())
-			{
-				AscCommon.stopEvent(e);
 				return false;
-			}
 
 			if (!this.ApiIsComposition)
 			{

@@ -3835,11 +3835,11 @@
 
         this.isNeedCrypt = function()
 		{
-			if (!window.g_asc_plugins)
-				return false;
-
-            if (!window.g_asc_plugins.isRunnedEncryption())
-                return false;
+			if (window.g_asc_plugins)
+			{
+                if (!window.g_asc_plugins.isRunnedEncryption())
+                    return false;
+            }
 
             if (!window["AscDesktopEditor"])
                 return false;
