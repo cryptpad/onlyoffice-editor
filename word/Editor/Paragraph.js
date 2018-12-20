@@ -4009,8 +4009,10 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 	// Удалим отметки о старом селекте
 	if (OldStartPos < StartPos && OldStartPos < EndPos)
 	{
-		var TempLimit = Math.min(StartPos, EndPos);
-		for (var CurPos = OldStartPos; CurPos < TempLimit; CurPos++)
+		var TempStart = Math.max(0, OldStartPos);
+		var TempEnd   = Math.min(Math.min(StartPos, EndPos), this.Content.length);
+
+		for (var CurPos = TempStart; CurPos < TempEnd; CurPos++)
 		{
 			this.Content[CurPos].RemoveSelection();
 		}
@@ -4018,8 +4020,10 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 
 	if (OldEndPos > StartPos && OldEndPos > EndPos)
 	{
-		var TempLimit = Math.max(StartPos, EndPos);
-		for (var CurPos = TempLimit + 1; CurPos <= OldEndPos; CurPos++)
+		var TempStart = Math.max(Math.max(StartPos, EndPos) + 1, 0);
+		var TempEnd   = Math.min(OldEndPos, this.Content.length - 1);
+
+		for (var CurPos = TempStart; CurPos <= TempEnd; CurPos++)
 		{
 			this.Content[CurPos].RemoveSelection();
 		}
