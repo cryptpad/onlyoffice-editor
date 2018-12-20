@@ -4458,12 +4458,22 @@ CTable.prototype.GetSelectionBounds = function()
 		var Cells_array = this.Internal_Get_SelectionArray();
 
 		var StartPos = Cells_array[0];
+		var EndPos   = Cells_array[Cells_array.length - 1];
 
 		var Row  = this.Content[StartPos.Row];
 		var Cell = Row.Get_Cell(StartPos.Cell);
 
 		var X0 = Cell.Metrics.X_cell_start;
 		var X1 = Cell.Metrics.X_cell_end;
+
+		if (!this.RowsInfo[StartPos.Row] || !this.RowsInfo[EndPos.Row] || !this.Pages[this.RowsInfo[StartPos.Row].StartPage])
+		{
+			return {
+				Start     : {X : 0, Y : 0, W : 0, H : 0, Page : 0},
+				End       : {X : 0, Y : 0, W : 0, H : 0, Page : 0},
+				Direction : 1
+			};
+		}
 
 		var CurPage = this.RowsInfo[StartPos.Row].StartPage;
 
@@ -4474,7 +4484,6 @@ CTable.prototype.GetSelectionBounds = function()
 
 		var BeginRect = {X : TableX + X0, Y : Y, W : X1 - X0, H : H, Page : CurPage + this.Get_StartPage_Absolute()};
 
-		var EndPos = Cells_array[Cells_array.length - 1];
 
 		Row  = this.Content[EndPos.Row];
 		Cell = Row.Get_Cell(EndPos.Cell);
