@@ -1517,9 +1517,9 @@
 			var indexTop = 0;
 			var indexBottom = 0;
 			var indexCell = 0;
-			var curRow = {};
+			var tree = new AscCommon.DataIntervalTree();
 			var affected = [];
-			var i, curY, elem;
+			var curY, elem;
 			if (indexCell < cells.length) {
 				getFromCellIndex(cells[indexCell]);
 			}
@@ -1533,7 +1533,7 @@
 				}
 				//process cells before curY
 				while (indexCell < cells.length && g_FCI.row < curY) {
-					this._broadcastRangesByCellsIntersect(curRow, g_FCI.row, g_FCI.col, affected);
+					this._broadcastRangesByCellsIntersect(tree, g_FCI.row, g_FCI.col, affected);
 					indexCell++;
 					if (indexCell < cells.length) {
 						getFromCellIndex(cells[indexCell]);
@@ -1542,12 +1542,12 @@
 				while (indexTop < rangesTop.length && curY === rangesTop[indexTop].bbox.r1) {
 					elem = rangesTop[indexTop];
 					if (elem.isActive) {
-						curRow[getVertexIndex(elem.bbox)] = elem;
+						tree.insert(elem.bbox.c1, elem.bbox.c2, elem);
 					}
 					indexTop++;
 				}
 				while (indexCell < cells.length && g_FCI.row <= curY) {
-					this._broadcastRangesByCellsIntersect(curRow, g_FCI.row, g_FCI.col, affected);
+					this._broadcastRangesByCellsIntersect(tree, g_FCI.row, g_FCI.col, affected);
 					indexCell++;
 					if (indexCell < cells.length) {
 						getFromCellIndex(cells[indexCell]);
@@ -1556,7 +1556,7 @@
 				while (indexBottom < rangesBottom.length && curY === rangesBottom[indexBottom].bbox.r2) {
 					elem = rangesBottom[indexBottom];
 					if (elem.isActive) {
-						curRow[getVertexIndex(elem.bbox)] = undefined;
+						tree.remove(elem.bbox.c1, elem.bbox.c2, elem);
 					}
 					indexBottom++;
 				}
@@ -1571,8 +1571,8 @@
 			var indexTop = 0;
 			var indexBottom = 0;
 			var indexCell = 0;
-			var curRow = {};
-			var i, curY, bbox;
+			var tree = new AscCommon.DataIntervalTree();
+			var curY, bbox;
 			if (indexCell < cells.length) {
 				getFromCellIndex(cells[indexCell].cellIndex);
 			}
@@ -1586,7 +1586,7 @@
 				}
 				//process cells before curY
 				while (indexCell < cells.length && g_FCI.row < curY) {
-					if (curRow[g_FCI.col]) {
+					if (tree.search(g_FCI.col, g_FCI.col).length > 0) {
 						this._broadcastNotifyListeners(cells[indexCell].listeners, notifyData);
 					}
 					indexCell++;
@@ -1596,17 +1596,11 @@
 				}
 				while (indexTop < rangesTop.length && curY === rangesTop[indexTop].r1) {
 					bbox = rangesTop[indexTop];
-					for (i = bbox.c1; i <= bbox.c2; ++i) {
-						if (undefined === curRow[i]) {
-							curRow[i] = 1;
-						} else {
-							curRow[i]++;
-						}
-					}
+					tree.insert(bbox.c1, bbox.c2, bbox);
 					indexTop++;
 				}
 				while (indexCell < cells.length && g_FCI.row <= curY) {
-					if (curRow[g_FCI.col]) {
+					if (tree.search(g_FCI.col, g_FCI.col).length > 0) {
 						this._broadcastNotifyListeners(cells[indexCell].listeners, notifyData);
 					}
 					indexCell++;
@@ -1616,9 +1610,7 @@
 				}
 				while (indexBottom < rangesBottom.length && curY === rangesBottom[indexBottom].r2) {
 					bbox = rangesBottom[indexBottom];
-					for (i = bbox.c1; i <= bbox.c2; ++i) {
-						curRow[i]--;
-					}
+					tree.remove(bbox.c1, bbox.c2, bbox);
 					indexBottom++;
 				}
 			}
@@ -1633,10 +1625,10 @@
 			var indexBottom = 0;
 			var indexTopChanged = 0;
 			var indexBottomChanged = 0;
-			var curRow = {};
-			var curRowChanged = {};
+			var tree = new AscCommon.DataIntervalTree();
+			var treeChanged = new AscCommon.DataIntervalTree();
 			var affected = [];
-			var i, curY, elem, bbox, id;
+			var curY, elem, bbox;
 			//scanline by Y
 			while (indexBottom < rangesBottom.length && indexBottomChanged < rangesBottomChanged.length) {
 				//next curY
@@ -1650,28 +1642,16 @@
 
 				while (indexTopChanged < rangesTopChanged.length && curY === rangesTopChanged[indexTopChanged].r1) {
 					bbox = rangesTopChanged[indexTopChanged];
-					curRowChanged[getVertexIndex(bbox)] = bbox;
-					for (id in curRow) {
-						if (curRow.hasOwnProperty(id)) {
-							elem = curRow[id];
-							if (elem) {
-								this._broadcastRangesByRangesIntersect(elem, bbox, curRow, affected);
-							}
-						}
-					}
+					treeChanged.insert(bbox.c1, bbox.c2, bbox);
+					this._broadcastRangesByRangesIntersect(bbox, tree, affected);
 					indexTopChanged++;
 				}
 				while (indexTop < rangesTop.length && curY === rangesTop[indexTop].bbox.r1) {
 					elem = rangesTop[indexTop];
 					if (elem.isActive) {
-						curRow[getVertexIndex(elem.bbox)] = elem;
-						for (id in curRowChanged) {
-							if (curRowChanged.hasOwnProperty(id)) {
-								bbox = curRowChanged[id];
-								if (bbox) {
-									this._broadcastRangesByRangesIntersect(elem, bbox, curRow, affected);
-								}
-							}
+						tree.insert(elem.bbox.c1, elem.bbox.c2, elem);
+						if (treeChanged.search(elem.bbox.c1, elem.bbox.c2).length > 0) {
+							this._broadcastNotifyListeners(elem.listeners, notifyData);
 						}
 					}
 					indexTop++;
@@ -1680,61 +1660,29 @@
 				while (indexBottomChanged < rangesBottomChanged.length &&
 				curY === rangesBottomChanged[indexBottomChanged].r2) {
 					bbox = rangesBottomChanged[indexBottomChanged];
-					curRowChanged[getVertexIndex(bbox)] = undefined;
+					treeChanged.remove(bbox.c1, bbox.c2, bbox);
 					indexBottomChanged++;
 				}
 				while (indexBottom < rangesBottom.length && curY === rangesBottom[indexBottom].bbox.r2) {
 					elem = rangesBottom[indexBottom];
 					if (elem.isActive) {
-						curRow[getVertexIndex(elem.bbox)] = undefined;
+						tree.remove(elem.bbox.c1, elem.bbox.c2, elem);
 					}
 					indexBottom++;
 				}
 			}
 			this._broadcastNotifyRanges(affected, notifyData);
 		},
-		_broadcastRangesByCellsIntersect: function(curRow, row, col, output) {
-			for (var name in curRow) {
-				if (curRow.hasOwnProperty(name)) {
-					var elem = curRow[name];
-					if (elem && elem.bbox.contains(col, row)) {
-						var sharedBroadcast = elem.sharedBroadcast;
-						if (!sharedBroadcast) {
-							output.push(elem);
-							elem.isActive = false;
-							curRow[getVertexIndex(elem.bbox)] = undefined;
-						} else if (!(sharedBroadcast.changedBBox && sharedBroadcast.changedBBox.contains(col, row))) {
-							if (!sharedBroadcast.changedBBox ||
-								sharedBroadcast.changedBBox.isEqual(sharedBroadcast.prevChangedBBox)) {
-								sharedBroadcast.recursion++;
-								if (sharedBroadcast.recursion >= this.maxSharedRecursion) {
-									sharedBroadcast.changedBBox = elem.bbox.clone();
-								}
-								output.push(elem);
-							}
-							if (sharedBroadcast.changedBBox) {
-								sharedBroadcast.changedBBox.union3(col, row);
-							} else {
-								sharedBroadcast.changedBBox = new Asc.Range(col, row, col, row);
-							}
-							if (sharedBroadcast.changedBBox.isEqual(elem.bbox)) {
-								elem.isActive = false;
-								curRow[getVertexIndex(elem.bbox)] = undefined;
-							}
-						}
-					}
-				}
-			}
-		},
-		_broadcastRangesByRangesIntersect: function(elem, bbox, curRow, output) {
-			var intersect = elem.bbox.intersectionSimple(bbox);
-			if (intersect) {
+		_broadcastRangesByCellsIntersect: function(tree, row, col, output) {
+			var intervals = tree.search(col, col);
+			for(var i = 0; i < intervals.length; ++i){
+				var elem = intervals[i];
 				var sharedBroadcast = elem.sharedBroadcast;
 				if (!sharedBroadcast) {
 					output.push(elem);
 					elem.isActive = false;
-					curRow[getVertexIndex(elem.bbox)] = undefined;
-				} else if (!(sharedBroadcast.changedBBox && sharedBroadcast.changedBBox.containsRange(intersect))) {
+					tree.remove(elem.bbox.c1, elem.bbox.c2, elem);
+				} else if (!(sharedBroadcast.changedBBox && sharedBroadcast.changedBBox.contains(col, row))) {
 					if (!sharedBroadcast.changedBBox ||
 						sharedBroadcast.changedBBox.isEqual(sharedBroadcast.prevChangedBBox)) {
 						sharedBroadcast.recursion++;
@@ -1744,13 +1692,46 @@
 						output.push(elem);
 					}
 					if (sharedBroadcast.changedBBox) {
-						sharedBroadcast.changedBBox.union2(intersect);
+						sharedBroadcast.changedBBox.union3(col, row);
 					} else {
-						sharedBroadcast.changedBBox = intersect;
+						sharedBroadcast.changedBBox = new Asc.Range(col, row, col, row);
 					}
 					if (sharedBroadcast.changedBBox.isEqual(elem.bbox)) {
 						elem.isActive = false;
-						curRow[getVertexIndex(elem.bbox)] = undefined;
+						tree.remove(elem.bbox.c1, elem.bbox.c2, elem);
+					}
+				}
+			}
+		},
+		_broadcastRangesByRangesIntersect: function(bbox, tree, output) {
+			var intervals = tree.search(bbox.c1, bbox.c2);
+			for(var i = 0; i < intervals.length; ++i){
+				var elem = intervals[i];
+				if (elem) {
+					var intersect = elem.bbox.intersectionSimple(bbox);
+					var sharedBroadcast = elem.sharedBroadcast;
+					if (!sharedBroadcast) {
+						output.push(elem);
+						elem.isActive = false;
+						tree.remove(elem.bbox.c1, elem.bbox.c2, elem);
+					} else if (!(sharedBroadcast.changedBBox && sharedBroadcast.changedBBox.containsRange(intersect))) {
+						if (!sharedBroadcast.changedBBox ||
+							sharedBroadcast.changedBBox.isEqual(sharedBroadcast.prevChangedBBox)) {
+							sharedBroadcast.recursion++;
+							if (sharedBroadcast.recursion >= this.maxSharedRecursion) {
+								sharedBroadcast.changedBBox = elem.bbox.clone();
+							}
+							output.push(elem);
+						}
+						if (sharedBroadcast.changedBBox) {
+							sharedBroadcast.changedBBox.union2(intersect);
+						} else {
+							sharedBroadcast.changedBBox = intersect;
+						}
+						if (sharedBroadcast.changedBBox.isEqual(elem.bbox)) {
+							elem.isActive = false;
+							tree.remove(elem.bbox.c1, elem.bbox.c2, elem);
+						}
 					}
 				}
 			}
