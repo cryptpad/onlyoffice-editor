@@ -7402,6 +7402,27 @@
 			return xfs.font;
 		return g_oDefaultFormat.Font;
 	};
+	Cell.prototype.getFill = function () {
+		var xfs = this.getCompiledStyle();
+		if(null != xfs && null != xfs.fill)
+			return xfs.fill.bg;
+		return g_oDefaultFormat.Fill.bg;
+	};
+	Cell.prototype.getBorderSrc = function () {
+		var xfs = this.getCompiledStyle();
+		if(null != xfs && null != xfs.border)
+			return xfs.border;
+		return g_oDefaultFormat.Border;
+	};
+	Cell.prototype.getBorder = function () {
+		return this.getBorderSrc();
+	};
+	Cell.prototype.getAlign=function(){
+		var xfs = this.getCompiledStyle();
+		if(null != xfs && null != xfs.align)
+			return xfs.align;
+		return g_oDefaultFormat.Align;
+	};
 	Cell.prototype._adjustCellFormat = function() {
 		var t = this;
 		this.processFormula(function(parsed) {
@@ -9541,23 +9562,9 @@
 		var nCol = this.bbox.c1;
 		var align = g_oDefaultFormat.Align;
 		this.worksheet._getCellNoEmpty(nRow, nCol, function(cell) {
-			if(null != cell)
-			{
-				var xfs = cell.getCompiledStyle();
-				if(null != xfs)
-				{
-					if(null != xfs.align)
-						align = xfs.align;
-					else
-						align = g_oDefaultFormat.AlignAbs;
-				}
-			}
-			else
-			{
-				var xfs = t.worksheet.getCompiledStyle(nRow, nCol);
-				if (null != xfs && null != xfs.align) {
-					align = xfs.align;
-				}
+			var xfs = cell ? cell.getCompiledStyle() : t.worksheet.getCompiledStyle(nRow, nCol);
+			if (null != xfs && null != xfs.align) {
+				align = xfs.align;
 			}
 		});
 		return align;
