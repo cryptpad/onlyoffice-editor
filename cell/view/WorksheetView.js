@@ -7141,6 +7141,7 @@
 				//далее проверяем есть ли смежные ячейки у startCol/startRow
 				var activeCell = this.model.selectionRange.activeCell;
 				var activeCellRange = new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row);
+				//TODO стоит заменить на expandRange ?
 				var expandRange = this.model.autoFilters._getAdjacentCellsAF(activeCellRange);
 
 				//если диапазон не расширяется за счет близлежащих ячеек - не выдаем сообщение и не расширяем
@@ -12953,6 +12954,7 @@
 					var selectionRange = t.model.selectionRange;
 					var activeCell = selectionRange.activeCell.clone();
 					var activeRange = selectionRange.getLast();
+					//TODO стоит заменить на expandRange ?
 					var expandRange = t.model.autoFilters._getAdjacentCellsAF(activeRange, true, true, true);
 
 					var bIgnoreFirstRow = window['AscCommonExcel'].ignoreFirstRowSort(t.model, expandRange);
@@ -13587,6 +13589,7 @@
 				result = false;
 			} else if (!styleName && filterByCellContextMenu &&
 				false === worksheet.autoFilters._getAdjacentCellsAF(activeRange, this).isIntersect(activeRange)) {
+				//TODO _getAdjacentCellsAF стоит заменить на expandRange ?
 				//add filter to empty range
 				worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError,
 					c_oAscError.Level.NoCritical);
