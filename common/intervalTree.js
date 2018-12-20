@@ -360,49 +360,41 @@
             // important in searching, as the tree has a high chance of degenerating without the rebalancing
             this._rebalance();
         };
-        Node.prototype._getOverlappingRecords = function (currentNode, low, high) {
+        Node.prototype._getOverlappingRecords = function (currentNode, low, high, output) {
             if (currentNode.key <= high && low <= currentNode.getNodeHigh()) {
                 // Nodes are overlapping, check if individual records in the node are overlapping
-                var tempResults = [];
                 for (var i = 0; i < currentNode.records.length; i++) {
                     if (currentNode.records[i].high >= low) {
-                        tempResults.push(currentNode.records[i]);
+                        output.push(currentNode.records[i]);
                     }
                 }
-                return tempResults;
             }
-            return [];
         };
-        Node.prototype.search = function (low, high) {
+        Node.prototype.search = function (low, high, output) {
             // Don't search nodes that don't exist
             if (this === undefined) {
-                return [];
+                return;
             }
-            var leftSearch = [];
-            var ownSearch = [];
-            var rightSearch = [];
             // If interval is to the right of the rightmost point of any interval in this node and all its
             // children, there won't be any matches
             if (low > this.max) {
-                return [];
+                return;
             }
             // Search left children
             if (this.left !== undefined && this.left.max >= low) {
-                leftSearch = this.left.search(low, high);
+                this.left.search(low, high, output);
             }
             // Check this node
-            ownSearch = this._getOverlappingRecords(this, low, high);
+            this._getOverlappingRecords(this, low, high, output);
             // If interval is to the left of the start of this interval, then it can't be in any child to
             // the right
             if (high < this.key) {
-                return leftSearch.concat(ownSearch);
+                return;
             }
             // Otherwise, search right children
             if (this.right !== undefined) {
-                rightSearch = this.right.search(low, high);
+                this.right.search(low, high, output);
             }
-            // Return accumulated results, if any
-            return leftSearch.concat(ownSearch, rightSearch);
         };
         // Searches for a node by a `key` value
         Node.prototype.searchExisting = function (low) {
@@ -552,7 +544,9 @@
                 return [];
             }
             else {
-                return this.root.search(low, high);
+                var res = [];
+                this.root.search(low, high, res);
+                return res;
             }
         };
         IntervalTree.prototype.remove = function (record) {
@@ -670,8 +664,11 @@
         DataIntervalTree.prototype.remove = function (low, high, data) {
             return this.tree.remove({ low: low, high: high, data: data });
         };
+        DataIntervalTree.prototype.searchNodes = function (low, high) {
+            return this.tree.search(low, high);
+        };
         DataIntervalTree.prototype.search = function (low, high) {
-            return this.tree.search(low, high).map(function (v) { return v.data; });
+            return this.searchNodes(low, high).map(function (v) { return v.data; });
         };
         DataIntervalTree.prototype.inOrder = function () {
             return this.tree.inOrder();

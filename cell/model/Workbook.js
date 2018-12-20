@@ -1586,7 +1586,7 @@
 				}
 				//process cells before curY
 				while (indexCell < cells.length && g_FCI.row < curY) {
-					if (tree.search(g_FCI.col, g_FCI.col).length > 0) {
+					if (tree.searchNodes(g_FCI.col, g_FCI.col).length > 0) {
 						this._broadcastNotifyListeners(cells[indexCell].listeners, notifyData);
 					}
 					indexCell++;
@@ -1600,7 +1600,7 @@
 					indexTop++;
 				}
 				while (indexCell < cells.length && g_FCI.row <= curY) {
-					if (tree.search(g_FCI.col, g_FCI.col).length > 0) {
+					if (tree.searchNodes(g_FCI.col, g_FCI.col).length > 0) {
 						this._broadcastNotifyListeners(cells[indexCell].listeners, notifyData);
 					}
 					indexCell++;
@@ -1650,7 +1650,7 @@
 					elem = rangesTop[indexTop];
 					if (elem.isActive) {
 						tree.insert(elem.bbox.c1, elem.bbox.c2, elem);
-						if (treeChanged.search(elem.bbox.c1, elem.bbox.c2).length > 0) {
+						if (treeChanged.searchNodes(elem.bbox.c1, elem.bbox.c2).length > 0) {
 							this._broadcastNotifyListeners(elem.listeners, notifyData);
 						}
 					}
@@ -1674,9 +1674,10 @@
 			this._broadcastNotifyRanges(affected, notifyData);
 		},
 		_broadcastRangesByCellsIntersect: function(tree, row, col, output) {
-			var intervals = tree.search(col, col);
+			var intervals = tree.searchNodes(col, col);
 			for(var i = 0; i < intervals.length; ++i){
-				var elem = intervals[i];
+				var interval = intervals[i];
+				var elem = interval.data;
 				var sharedBroadcast = elem.sharedBroadcast;
 				if (!sharedBroadcast) {
 					output.push(elem);
@@ -1704,9 +1705,10 @@
 			}
 		},
 		_broadcastRangesByRangesIntersect: function(bbox, tree, output) {
-			var intervals = tree.search(bbox.c1, bbox.c2);
+			var intervals = tree.searchNodes(bbox.c1, bbox.c2);
 			for(var i = 0; i < intervals.length; ++i){
-				var elem = intervals[i];
+				var interval = intervals[i];
+				var elem = interval.data;
 				if (elem) {
 					var intersect = elem.bbox.intersectionSimple(bbox);
 					var sharedBroadcast = elem.sharedBroadcast;
