@@ -406,13 +406,14 @@
 
 			constructor: AutoFilters,
 			
-			addAutoFilter: function(styleName, activeRange, addFormatTableOptionsObj, offLock, props)
+			addAutoFilter: function(styleName, activeRange, addFormatTableOptionsObj, offLock, props, filterInfo)
 			{
 				var worksheet = this.worksheet, t = this, cloneFilter;
 				var isTurnOffHistory = worksheet.workbook.bUndoChanges || worksheet.workbook.bRedoChanges;
 				
-				
-				var filterInfo = this._getFilterInfoByAddTableProps(activeRange, addFormatTableOptionsObj, !!styleName);
+				if(!filterInfo) {
+					filterInfo = this._getFilterInfoByAddTableProps(activeRange, addFormatTableOptionsObj, !!styleName);
+				}
 				var addNameColumn = filterInfo.addNameColumn;
 				var filterRange = filterInfo.filterRange;
 				var rangeWithoutDiff = filterInfo.rangeWithoutDiff;
@@ -3673,6 +3674,210 @@
 				return range;
 			},
 
+			_expandRange2: function(activeRange) {
+				var ws = this.worksheet;
+				var t = this;
+
+				console.time("sdf");
+				var iter = 0;
+
+				var intersectionTables = function (tempRange) {
+					var tableParts = ws.TableParts;
+
+					for (var i = 0; i < tableParts.length; i++) {
+						if (tempRange.intersection(tableParts[i].Ref)) {
+							return true;
+						}
+					}
+
+					//пересекается, но не равен фильтрованному диапазону. если равен - то фильтр превращается в таблицу
+					if (ws.AutoFilter && ws.AutoFilter.Ref && tempRange.intersection(ws.AutoFilter.Ref)) {
+						return true;
+					}
+
+					return false;
+				};
+
+				//если вдруг встретили мерженную ячейку в диапазоне, расширяем
+				var mergeOffset = null;
+				var lockLeft, lockRight, lockUp, lockDown, isLock;
+				var checkEmptyCell = function(row, col){
+					var cell = ws.getCell3(row, col);
+					mergeOffset = null;
+					//isLock = intersectionTables(cell.bbox);
+					if(isLock) {
+						return false;
+					}
+
+					if(!cell.isEmptyTextString()){
+						iter++;
+						return false;
+					}
+					iter++;
+					return true;
+				};
+
+				var checkEmptyRange = function(r1, c1, r2, c2){
+					var range3 = ws.getRange3(r1, c1, r2, c2);
+					var res = true;
+					mergeOffset = null;
+					//isLock = intersectionTables(range3.bbox);
+					if(isLock) {
+						return false;
+					}
+
+					range3._foreachNoEmpty(function (cell) {
+						if (!cell.isEmptyTextString()) {
+							res = false;
+							return null;
+						}
+					});
+
+					return res;
+				};
+
+
+				var range = activeRange.clone();
+				var countI = 0;
+				while(true) {
+					countI++;
+					if(countI > 10000000) {
+						break;
+					}
+					//идем влево
+					if(!lockLeft && range.c1 >= 1 && !checkEmptyCell(range.r2, range.c1 - 1)) {
+						isLock ? lockLeft = true : range.c1--;
+						continue;
+					}
+
+					//вниз
+					if(!lockDown && !checkEmptyCell(range.r2 + 1, range.c1)) {
+						isLock ? lockDown = true : range.r2++;
+						continue;
+					}
+
+					//вправо
+					if(!lockRight && !checkEmptyCell(range.r1, range.c2 + 1)) {
+						isLock ? lockRight = true : range.c2++;
+						continue;
+					}
+
+					//вверх
+					if(!lockUp && range.r1 >= 1 && !checkEmptyCell(range.r1 - 1, range.c2)) {
+						isLock ? lockUp = true : range.r1--;
+						continue;
+					}
+
+					//проверяем диагональные элементы
+					//левый нижний
+					if(range.c1 >= 1 && !checkEmptyCell(range.r2 + 1, range.c1 - 1)) {
+						if(!isLock) {
+							range.c1--;
+							range.r2++;
+						}
+						continue;
+					}
+					//левый верхний
+					if(range.c1 >= 1 && range.r1 >= 1 && !checkEmptyCell(range.r1 - 1, range.c1 - 1)) {
+						if(!isLock) {
+							range.c1--;
+							range.r1--;
+						}
+						continue;
+					}
+					//правый нижний
+					if(!checkEmptyCell(range.r2 + 1, range.c2 + 1)) {
+						if(!isLock) {
+							range.c2++;
+							range.r2++;
+						}
+						continue;
+					}
+					//правый верхний
+					if(range.r1 >= 1 && !checkEmptyCell(range.r1 - 1, range.c2 + 1)) {
+						if(!isLock) {
+							range.c2++;
+							range.r1--;
+						}
+						continue;
+					}
+
+					//проверяем сверху range
+					if(!lockUp && range.r1 >= 1 && !checkEmptyRange(range.r1-1, range.c1, range.r1-1, range.c2)) {
+						isLock ? lockUp = true : range.r1--;
+						continue;
+					}
+					//проверяем снизу range
+					if(!lockDown && !checkEmptyRange(range.r2 + 1, range.c1, range.r2, range.c2)) {
+						isLock ? lockDown = true : range.r2++;
+						continue;
+					}
+					//проверяем слева range
+					if(!lockLeft && range.c1 >= 1 && !checkEmptyRange(range.r1, range.c1-1, range.r2, range.c1-1)) {
+						isLock ? lockLeft = true : range.c1--;
+						continue;
+					}
+					//проверяем справа range
+					if(!lockRight && !checkEmptyRange(range.r2, range.c2 + 1, range.r2, range.c2 + 1)) {
+						isLock ? lockRight = true : range.c2++;
+						continue;
+					}
+
+					break;
+				}
+
+				//далее необходимо найти пересечения со всеми ф/т и а/ф
+				if(ws.TableParts) {
+					for (var k = 0; k < ws.TableParts.length; k++) {
+						if (ws.TableParts[k]) {
+							var intersection = ws.TableParts[k].Ref.intersection(range);
+							if(intersection) {
+								var tempRange;
+								//область слева
+								if(range.c1 < intersection.c1) {
+									tempRange = new Asc.Range(range.c1, range.r1, intersection.c1 - 1, range.r2);
+									if(tempRange.containsRange(activeRange)) {
+										range = tempRange;
+										continue;
+									}
+								}
+								//область справа
+								if(range.c2 > intersection.c2) {
+									tempRange = new Asc.Range(intersection.c2 + 1, range.r1, range.c2, range.r2);
+									if(tempRange.containsRange(activeRange)) {
+										range = tempRange;
+										continue;
+									}
+								}
+								//область сверху
+								if(range.r1 < intersection.r1) {
+									tempRange = new Asc.Range(range.c1, range.r1, range.c2, intersection.r1 - 1);
+									if(tempRange.containsRange(activeRange)) {
+										range = tempRange;
+										continue;
+									}
+								}
+								//область снизу
+								if(range.r2 < intersection.r2) {
+									tempRange = new Asc.Range(range.c1, intersection.r2 + 1, range.c2, range.r2);
+									if(tempRange.containsRange(activeRange)) {
+										range = tempRange;
+										continue;
+									}
+								}
+
+							}
+						}
+					}
+				}
+
+
+				console.timeEnd("sdf");
+				console.log("iter: " + iter + " r1: " + range.r1 + " c1: " + range.c1 + " r2: " + range.r2 + " c2: " + range.c2);
+
+				return range;
+			},
+
 			_addNewFilter: function(ref, style, bWithoutFilter, tablePartDisplayName, tablePart, offset)
 			{
 				var worksheet = this.worksheet;
@@ -5171,6 +5376,7 @@
 				else if(tempRange.isOneCell() && !bIsManualOptions)
 				{
 					filterRange = this._getAdjacentCellsAF(tempRange, this.worksheet);
+					//filterRange = this._expandRange2(tempRange);
 				}
 				else
 				{

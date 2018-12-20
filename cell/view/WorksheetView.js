@@ -12541,7 +12541,7 @@
 					}
 
 					//add to model
-					t.model.autoFilters.addAutoFilter(styleName, ar, addFormatTableOptionsObj);
+					t.model.autoFilters.addAutoFilter(styleName, ar, addFormatTableOptionsObj, null, null, filterInfo);
 
 					//updates
 					if (styleName && addNameColumn) {
@@ -12565,6 +12565,7 @@
 		};
 
 		//calculate filter range
+		var filterInfo;
 		if (addFormatTableOptionsObj && isChangeAutoFilterToTablePart(addFormatTableOptionsObj) === true) {
 			filterRange = t.model.AutoFilter.Ref.clone();
 
@@ -12580,7 +12581,7 @@
 			if (styleName === null) {
 				filterRange = ar;
 			} else {
-				var filterInfo = t.model.autoFilters._getFilterInfoByAddTableProps(ar, addFormatTableOptionsObj, true);
+				filterInfo = t.model.autoFilters._getFilterInfoByAddTableProps(ar, addFormatTableOptionsObj, true);
 				filterRange = filterInfo.filterRange;
 				addNameColumn = filterInfo.addNameColumn;
 			}
