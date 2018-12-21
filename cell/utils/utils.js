@@ -292,6 +292,16 @@
 			return normalize ? this.normalize() : this;
 		}
 
+		Range.prototype.compareCell = function (c1, r1, c2, r2) {
+			var dif = r1 - r2;
+			return 0 !== dif ? dif : c1 - c2;
+		};
+		Range.prototype.compareByLeftTop = function (a, b) {
+			return Range.prototype.compareCell(a.c1, a.r1, b.c1, b.r1);
+		};
+		Range.prototype.compareByRightBottom = function (a, b) {
+			return Range.prototype.compareCell(a.c2, a.r2, b.c2, b.r2);
+		};
 		Range.prototype.assign = function (c1, r1, c2, r2, normalize) {
 			if (typeOf(c1) !== kNumberL || typeOf(c2) !== kNumberL || typeOf(r1) !== kNumberL || typeOf(r2) !== kNumberL) {
 				throw "Error: range.assign(" + c1 + "," + r1 + "," + c2 + "," + r2 + ") - numerical args are expected";

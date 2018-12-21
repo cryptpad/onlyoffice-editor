@@ -98,6 +98,8 @@
 		
 		"../common/easysax.js",
 		"../common/openxml.js",
+		
+		"../common/intervalTree.js",
 
         "../cell/document/empty-workbook.js",
         "../cell/model/UndoRedo.js",
