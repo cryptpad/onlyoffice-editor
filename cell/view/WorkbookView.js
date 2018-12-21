@@ -3086,10 +3086,12 @@
 				}
 			}
 		} else {
-			if (val) {
-				this.autoCorrectStore = null;
+			if(this.autoCorrectStore) {
+				if (val) {
+					this.autoCorrectStore = null;
+				}
+				this.handlers.trigger("asc_onToggleAutoCorrectOptions");
 			}
-			this.handlers.trigger("asc_onToggleAutoCorrectOptions");
 		}
 	};
 
