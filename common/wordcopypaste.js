@@ -3981,13 +3981,26 @@ PasteProcessor.prototype =
 					var elem = data[i];
 					if (null != elem.url) {
 						var name = g_oDocumentUrls.imagePath2Local(elem.path);
-						var imageElem = arrImages[i];
+						var imageElem = oObjectsForDownload.aBuilderImagesByUrl[i];
 						if (null != imageElem) {
-							//для вставки graphicFrame в виде картинки(если было при копировании выделено несколько графических объектов)
-							if (imageElem.ImageShape && imageElem.ImageShape.base64) {
-								imageElem.ImageShape.base64 = name;
+							if (Array.isArray(imageElem)) {
+								for (var j = 0; j < imageElem.length; ++j) {
+									var curImageElem = imageElem[j];
+									if (null != curImageElem) {
+										if (curImageElem.ImageShape && curImageElem.ImageShape.base64) {
+											curImageElem.ImageShape.base64 = name;
+										} else {
+											curImageElem.SetUrl(name);
+										}
+									}
+								}
 							} else {
-								imageElem.SetUrl(name);
+								//для вставки graphicFrame в виде картинки(если было при копировании выделено несколько графических объектов)
+								if (imageElem.ImageShape && imageElem.ImageShape.base64) {
+									imageElem.ImageShape.base64 = name;
+								} else {
+									imageElem.SetUrl(name);
+								}
 							}
 						}
 						image_map[i] = name;
