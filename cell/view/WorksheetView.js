@@ -13848,13 +13848,19 @@
 
 			//font colors
 			var multiText = cell.getValueMultiText();
+			var fontColor = null;
 			if (null !== multiText) {
 				for (var j = 0; j < multiText.length; j++) {
-					var fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
-					addFontColorsToArray(fontColor);
+					fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
+					if(null !== fontColor) {
+						addFontColorsToArray(fontColor);
+					} else {
+						fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+						addFontColorsToArray(fontColor);
+					}
 				}
 			} else {
-				var fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+				fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
 				addFontColorsToArray(fontColor);
 			}
 

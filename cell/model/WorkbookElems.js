@@ -6899,6 +6899,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 	{
 		var filterColor = this.dxf.fill.bg;
 		cell.getLeftTopCellNoEmpty(function(cell) {
+			var fontColor;
 			if(false === t.CellColor)//font color
 			{
 				var multiText;
@@ -6906,7 +6907,10 @@ ColorFilter.prototype.isHideValue = function(cell) {
 				{
 					for(var j = 0; j < multiText.length; j++)
 					{
-						var fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
+						fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
+						if(null === fontColor) {
+							fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+						}
 						if(isEqualColors(filterColor,fontColor ))
 						{
 							res = false;
@@ -6916,7 +6920,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 				}
 				else
 				{
-					var fontColor = cell && cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+					fontColor = cell && cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
 					if(isEqualColors(filterColor,fontColor))
 					{
 						res = false;
