@@ -3254,7 +3254,7 @@ CTable.prototype.IsStartFromNewPage = function()
 };
 CTable.prototype.IsContentOnFirstPage = function()
 {
-	if (this.Pages.length >= 1 && true === this.RowsInfo[0].FirstPage)
+	if (this.Pages.length >= 1 && true === this.RowsInfo[0].FirstPage && this.Pages[0].LastRow >= this.Pages[0].FirstRow)
 		return true;
 
 	return false;

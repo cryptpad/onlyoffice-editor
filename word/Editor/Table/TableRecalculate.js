@@ -124,8 +124,9 @@ CTable.prototype.PrepareRecalculateObject = function()
 };
 CTable.prototype.StartFromNewPage = function()
 {
-	this.Pages.length = 1;
-	this.Pages[0]     = new CTablePage(0, 0, 0, 0, 0, 0);
+	this.Pages.length     = 1;
+	this.Pages[0]         = new CTablePage(0, 0, 0, 0, 0, 0);
+	this.Pages[0].LastRow = -1;
 
 	this.HeaderInfo.Pages[0]      = {};
 	this.HeaderInfo.Pages[0].Draw = false;
