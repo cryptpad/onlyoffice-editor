@@ -5031,7 +5031,7 @@ function OfflineEditor () {
                 ++styleIndex;
             }
         };
-        AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, stringRenderer, oStyle, sStyleName, nIndex) {
+        AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
 
             var oColor = oStyle.getFill();
             if (null !== oColor) {
@@ -5068,7 +5068,7 @@ function OfflineEditor () {
 
             var width_padding = 3; // 4 * 72 / 96
 
-            var tm = stringRenderer.measureString(sStyleName);
+            var tm = sr.measureString(sStyleName);
             // Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
             var textY = 0.5 * (this.styleThumbnailHeightPt - tm.height);
             oGraphics.setFont(oFont);
