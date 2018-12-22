@@ -10263,14 +10263,18 @@
 				if (sFormula && !isOneMerge) {
 
 					var offset, callAdress;
-					if(specialPasteProps.transpose && transposeRange)
-					{
+					//в случае, если вставляем после того как вырезали
+					//правка вношу для конкретного бага - 38239
+					//если ориентироваться на ms, то нужно отличать вставку на разные страницы одного и того документа
+					//если вставляем на другую страницу после того как вырезали, то необходимо ссылаться на тот лист
+					//с которого вырезали. а в случае с разными документами - вставляют не формулу, а конечное значение
+					if(AscCommonExcel.g_clipboardExcel.pasteProcessor && AscCommonExcel.g_clipboardExcel.pasteProcessor.bCut) {
+						offset = new AscCommon.CellBase(0, 0);
+					} else if(specialPasteProps.transpose && transposeRange) {
 						//для transpose необходимо брать offset перевернутого range
 						callAdress = new AscCommon.CellAddress(sId);
 						offset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
-					}
-					else
-					{
+					} else {
 						callAdress = new AscCommon.CellAddress(sId);
 						offset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
 					}

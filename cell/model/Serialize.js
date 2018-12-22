@@ -277,7 +277,8 @@
         Name: 0,
         SheetId: 1,
         State: 2,
-        Ref: 3
+        Ref: 3,
+		Cut: 4
     };
     /** @enum */
     var c_oSerWorksheetColTypes =
@@ -2964,6 +2965,12 @@
                 this.memory.WriteByte(c_oSerWorksheetPropTypes.Ref);
                 this.memory.WriteByte(c_oSerPropLenType.Variable);
                 this.memory.WriteString2(activeRange.getName());
+
+				//cut flag
+				var bCut = window['AscCommon'].g_clipboardBase && window['AscCommon'].g_clipboardBase.bCut;
+				this.memory.WriteByte(c_oSerWorksheetPropTypes.Cut);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(bCut);
             }
         };
         this.WriteWorksheetCols = function(ws)
@@ -6573,6 +6580,8 @@
             }
             else if(this.copyPasteObj.isCopyPaste && c_oSerWorksheetPropTypes.Ref == type)
                 this.copyPasteObj.activeRange = this.stream.GetString2LE(length);
+			else if(this.copyPasteObj.isCopyPaste && c_oSerWorksheetPropTypes.Cut == type)
+				this.copyPasteObj.bCut = this.stream.GetBool(length);
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;

@@ -98,6 +98,7 @@
 		this.DivOnCopyText = "";
 
 		this.bSaveFormat = false; //для вставки, допустим, из плагина необходимо чтобы при добавлении текста в шейп сохранялось форматирование
+		this.bCut = false;
 	}
 
 	CClipboardBase.prototype =
@@ -142,6 +143,8 @@
 			if (!this.Api.asc_IsFocus(true))
 				return;
 
+			this.bCut = true;
+
 			this.ClosureParams._e = e;
 			if (this.IsNeedDivOnCopy)
 			{
@@ -154,6 +157,7 @@
 			}
 
 			this.Api.asc_SelectionCut();
+			this.bCut = false;
 
 			if (!this.IsNeedDivOnCopy)
 			{
@@ -703,6 +707,7 @@
 			document.body.style.overflow     = this.ClosureParams.overflowBody;
 
 			this.CopyFlag = false;
+			this.bCut = false;
 			this.EndFocus();
 		},
 
@@ -895,9 +900,11 @@
 			{
 				//　копирования не было
 				this.LastCopyBinary = null;
+				this.bCut = true;
 				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 
 				this.Api.asc_SelectionCut();
+				this.bCut = false;
 			}
 			return _ret;
 		},

@@ -1113,6 +1113,7 @@
 		function PasteProcessorExcel()
 		{
 			this.activeRange = null;
+			this.bCut = null;
 			this.alreadyLoadImagesOnServer = false;
 			
 			this.fontsNew = {};
@@ -1181,6 +1182,7 @@
 				pptx_content_loader.Reader.ClearConnectorsMaps();
 				oBinaryFileReader.Read(base64, tempWorkbook);
 				this.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
+				this.bCut = oBinaryFileReader.copyPasteObj.bCut;
 				var aPastedImages = pptx_content_loader.End_UseFullUrl();
 				pptx_content_loader.Reader.AssignConnectorsId();
 				History.TurnOn();
