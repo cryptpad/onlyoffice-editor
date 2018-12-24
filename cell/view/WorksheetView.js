@@ -1539,6 +1539,7 @@
 			vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
 		}
 
+		//TODO  в данный момент с этот флаг не используется. нужно проверить и убрать.
 		var bPageLayout = arguments[4];
 
 		var bFitToWidth = false;
@@ -3213,7 +3214,7 @@
 			this.calcPagesPrint(printOptions, null, null, printPages);
 		} else {
 			var range = new asc_Range(0, 0, this.visibleRange.c2, this.visibleRange.r2);
-			this._calcPagesPrint(range, printOptions, null, printPages, true);
+			this._calcPagesPrint(range, printOptions, null, printPages);
 		}
 
 		for (var i = 0, l = printPages.length; i < l; ++i) {
