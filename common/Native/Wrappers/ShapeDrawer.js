@@ -812,6 +812,11 @@ CShapeDrawer.prototype =
 		if (this.Graphics.IsSlideBoundsCheckerType)
 			return;
 
+        if (this.Graphics.RENDERER_PDF_FLAG)
+        {
+            this.Graphics.drawpath(1);
+            return;
+        }
         if (this.Ln.Join != null && this.Ln.Join.type != null)
         {
             switch (this.Ln.Join.type)
