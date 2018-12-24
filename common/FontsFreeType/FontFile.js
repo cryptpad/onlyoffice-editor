@@ -1691,14 +1691,22 @@
 
 		this.ClearCache = function()
 		{
+			if (this.FontClearCache_checker)
+				return;
+            this.FontClearCache_checker = true;
 			for (var font in this.FontFiles)
 				this.FontFiles[font].ClearCache();
+            delete this.FontClearCache_checker;
 		};
 
 		this.ClearCacheNoAttack = function()
 		{
+            if (this.FontClearCacheNoAttack_checker)
+                return;
+            this.FontClearCacheNoAttack_checker = true;
             for (var font in this.FontFiles)
                 this.FontFiles[font].ClearCacheNoAttack();
+            delete this.FontClearCacheNoAttack_checker;
 		};
 	}
 
