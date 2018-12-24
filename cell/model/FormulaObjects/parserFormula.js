@@ -7311,11 +7311,8 @@ function rtl_math_erfc( x ) {
 			var bbox = range.bbox;
 
 
-			var countRow = useOnlyFirstRow ? useOnlyFirstRow.r2 - useOnlyFirstRow.r1 : 0;
-			var countCol = useOnlyFirstColumn ? useOnlyFirstColumn.c2 - useOnlyFirstColumn.c1 : 0;
-
-			countRow = Math.max(bbox.r2 - bbox.r1, countRow);
-			countCol = Math.max(bbox.c2 - bbox.c1, countCol);
+			var countRow = useOnlyFirstRow ? 0 : bbox.r2 - bbox.r1;
+			var countCol = useOnlyFirstColumn ? 0 : bbox.c2 - bbox.c1;
 
 			for ( var iRow = bbox.r1; iRow <= countRow + bbox.r1; iRow++, iRow <= countRow + bbox.r1 ? retArr.addRow() : true ) {
 				for ( var iCol = bbox.c1; iCol <= countCol + bbox.c1; iCol++ ) {
