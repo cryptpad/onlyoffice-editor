@@ -8264,6 +8264,50 @@
 			}
 		}
 	};
+	Range.prototype._foreachNoEmptyByCol = function(actionCell, excludeHiddenRows) {
+		var oRes, i, j, colData;
+		var wb = this.worksheet.workbook;
+		var oBBox = this.bbox, minR = Math.min(this.worksheet.getRowsCount(), oBBox.r2);
+		var minC = Math.min(this.worksheet.getColDataLength() - 1, oBBox.c2);
+		if (actionCell) {
+			var bExcludeHiddenRows = (this.worksheet.bExcludeHiddenRows || excludeHiddenRows);
+			var excludedCount = 0;
+			var tempCell = new Cell(this.worksheet);
+			wb.loadCells.push(tempCell);
+			for (j = oBBox.c1; j <= minC; ++j) {
+				colData = this.worksheet.getColDataNoEmpty(j);
+				if (colData) {
+					for (i = oBBox.r1; i <= Math.min(minR, colData.getSize() - 1); i++) {
+						if (bExcludeHiddenRows && this.worksheet.getRowHidden(i)) {
+							excludedCount++;
+							continue;
+						}
+						var targetCell = null;
+						for (var k = 0; k < wb.loadCells.length - 1; ++k) {
+							var elem = wb.loadCells[k];
+							if (elem.nRow == i && elem.nCol == j && this.worksheet === elem.ws) {
+								targetCell = elem;
+								break;
+							}
+						}
+						if (null === targetCell) {
+							if (tempCell.loadContent(i, j, colData)) {
+								oRes = actionCell(tempCell, i, j, oBBox.r1, oBBox.c1, excludedCount);
+								tempCell.saveContent(true);
+							}
+						} else {
+							oRes = actionCell(targetCell, i, j, oBBox.r1, oBBox.c1, excludedCount);
+						}
+						if (null != oRes) {
+							wb.loadCells.pop();
+							return oRes;
+						}
+					}
+				}
+			}
+			wb.loadCells.pop();
+		}
+	};
 	Range.prototype._foreachRow = function(actionRow, actionCell){
 		var oBBox = this.bbox;
 		if (null != actionRow) {
