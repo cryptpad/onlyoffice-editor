@@ -11752,7 +11752,45 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
                         if (AscFormat.isRealNumber(Bullet.bulletType.AutoNumType))
                         {
                             var AutoNumType = AscCommonWord.g_NumberingArr[Bullet.bulletType.AutoNumType] - 99;
-                            if (AutoNumType > 0 && AutoNumType < 9)
+                            switch (Bullet.bulletType.AutoNumType)
+                            {
+                                case 1:
+                                {
+                                    AutoNumType = 5;
+                                    break;
+                                }
+                                case 2:
+                                {
+                                    AutoNumType = 6;
+                                    break;
+                                }
+                                case 5:
+                                {
+                                    AutoNumType = 4;
+                                    break;
+                                }
+                                case 11:
+                                {
+                                    AutoNumType = 2;
+                                    break;
+                                }
+                                case 12:
+                                {
+                                    AutoNumType = 1;
+                                    break;
+                                }
+                                case 31:
+                                {
+                                    AutoNumType = 7;
+                                    break;
+                                }
+                                case 34:
+                                {
+                                    AutoNumType = 3;
+                                    break;
+                                }
+                            }
+                            if (AscFormat.isRealNumber(AutoNumType) && AutoNumType > 0 && AutoNumType < 9)
                             {
                                 ListType.SubType = AutoNumType;
                             }
