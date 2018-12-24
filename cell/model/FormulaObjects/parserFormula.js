@@ -6035,13 +6035,16 @@ parserFormula.prototype.setFormula = function(formula) {
 		var currentElement = null, _count = this.outStack.length, elemArr = new Array(_count), res = undefined,
 			_count_arg, _numberPrevArg, _argDiff;
 
-		for (var i = 0, j = 0; i < _count; i++, j++) {
+		for (var i = 0, j = 0; i < _count; i++) {
 			currentElement = this.outStack[i];
 
-			if (currentElement.type === cElementType.specialFunctionStart ||
-				currentElement.type === cElementType.specialFunctionEnd || "number" === typeof(currentElement)) {
+			if (currentElement.type === cElementType.specialFunctionStart || currentElement.type === cElementType.specialFunctionEnd) {
+				continue;
+			} else if("number" === typeof(currentElement)) {
+				j++;
 				continue;
 			}
+			j++;
 
 			if (currentElement.type === cElementType.operator || currentElement.type === cElementType.func) {
 				_numberPrevArg = "number" === typeof(this.outStack[i - 1]) ? this.outStack[i - 1] : null;
@@ -6049,9 +6052,9 @@ parserFormula.prototype.setFormula = function(formula) {
 				_argDiff = 0;
 				if(null !== _numberPrevArg) {
 					_argDiff++;
-					if(this.outStack[i - 2] && cElementType.specialFunctionEnd === this.outStack[i - 2].type) {
+					/*if(this.outStack[i - 2] && cElementType.specialFunctionEnd === this.outStack[i - 2].type) {
 						_argDiff++;
-					}
+					}*/
 				}
 
 				if(j - _count_arg - _argDiff < 0) {
