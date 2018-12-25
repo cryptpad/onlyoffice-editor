@@ -2349,7 +2349,7 @@ PasteProcessor.prototype =
 				if(oSelectedContent.Elements.length === 1)
 				{
 					var curDocSelection = this.oDocument.GetSelectionState();
-					if(curDocSelection)
+					if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
 					{
 						var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
 						specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
