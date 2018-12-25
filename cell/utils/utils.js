@@ -293,9 +293,6 @@
 		}
 
 		Range.prototype.assign = function (c1, r1, c2, r2, normalize) {
-			if (typeOf(c1) !== kNumberL || typeOf(c2) !== kNumberL || typeOf(r1) !== kNumberL || typeOf(r2) !== kNumberL) {
-				throw "Error: range.assign(" + c1 + "," + r1 + "," + c2 + "," + r2 + ") - numerical args are expected";
-			}
 			this.c1 = c1;
 			this.r1 = r1;
 			this.c2 = c2;
