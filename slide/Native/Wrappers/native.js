@@ -75,7 +75,8 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             case Asc.c_oAscTypeSelectElement.Hyperlink:
             case Asc.c_oAscTypeSelectElement.Slide:
             case Asc.c_oAscTypeSelectElement.Shape:  
-            case Asc.c_oAscTypeSelectElement.Chart:         
+            case Asc.c_oAscTypeSelectElement.Chart:    
+            case Asc.c_oAscTypeSelectElement.Math:     
             {
                 ++_naturalCount;
                 break;
@@ -142,6 +143,12 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
                 //console.log("StackObjects -> Hyperlink");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Hyperlink);
                 asc_menu_WriteHyperPr(this.SelectedObjectsStack[i].Value, _stream);
+                break;
+            }
+            case Asc.c_oAscTypeSelectElement.Math:
+            {
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Math);
+                asc_menu_WriteMath(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
             default:

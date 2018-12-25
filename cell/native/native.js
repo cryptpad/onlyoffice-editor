@@ -4568,6 +4568,12 @@ function OfflineEditor () {
                         asc_menu_WriteHyperPr(SelectedObjects[i].Value, stream);
                         break;
                     }
+                    case Asc.c_oAscTypeSelectElement.Math:
+                    {
+                        stream["WriteLong"](Asc.c_oAscTypeSelectElement.Math);
+                        asc_menu_WriteMath(SelectedObjects[i].Value, stream);
+                        break;
+                    }
                     default:
                     {
                         // none
