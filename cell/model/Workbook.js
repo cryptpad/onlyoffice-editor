@@ -7526,6 +7526,15 @@
 				default:
 					this.setTypeInternal(CellValueType.String);
 					this.setValueTextInternal(res.getValue().toString());
+					//обработка для функции hyperlink. необходимо проставить формат.
+					if(null !== res.getHyperlink()) {
+						var oHyperlinkFont = new AscCommonExcel.Font();
+						oHyperlinkFont.setName(this.ws.workbook.getDefaultFont());
+						oHyperlinkFont.setSize(this.ws.workbook.getDefaultSize());
+						oHyperlinkFont.setUnderline(Asc.EUnderline.underlineSingle);
+						oHyperlinkFont.setColor(AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorHyperlink));
+						this.setFont(oHyperlinkFont);
+					}
 			}
 			this.ws.workbook.dependencyFormulas.addToCleanCellCache(this.ws.getId(), this.nRow, this.nCol);
 			AscCommonExcel.g_oVLOOKUPCache.remove(this);

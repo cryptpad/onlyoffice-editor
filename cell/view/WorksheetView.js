@@ -6657,6 +6657,22 @@
 				commentIndexes: indexes,
 				commentCoords: coords
 			};
+			if(null === oHyperlink) {
+				var formulaParsed;
+				this.model.getCell3(r.row, c.col)._foreachNoEmpty(function (cell) {
+					if (cell.isFormula()) {
+						formulaParsed = cell.getFormulaParsed();
+					}
+				});
+				if (formulaParsed) {
+					var formulaHyperlink = formulaParsed.getFormulaHyperlink();
+					if (formulaHyperlink) {
+						oHyperlink = new window['AscCommonExcel'].Hyperlink();
+						oHyperlink.Hyperlink = formulaHyperlink;
+					}
+				}
+			}
+
 			if (null !== oHyperlink) {
 				return {
 					cursor: kCurHyperlink,

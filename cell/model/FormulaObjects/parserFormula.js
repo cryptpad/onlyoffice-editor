@@ -742,14 +742,19 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	function cBaseType(val) {
 		this.numFormat = cNumFormatNull;
 		this.value = val;
+		this.hyperlink = null;
 	}
 
 	cBaseType.prototype.cloneTo = function (oRes) {
 		oRes.numFormat = this.numFormat;
 		oRes.value = this.value;
+		oRes.hyperlink = this.hyperlink;
 	};
 	cBaseType.prototype.getValue = function () {
 		return this.value;
+	};
+	cBaseType.prototype.getHyperlink = function () {
+		return this.hyperlink;
 	};
 	cBaseType.prototype.toString = function () {
 		return this.value.toString();
@@ -6818,6 +6823,17 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 		return val;
+	};
+
+	parserFormula.prototype.getFormulaHyperlink = function() {
+		for (var i = 0; i < this.outStack.length; i++) {
+			if (this.outStack[i] && this.outStack[i].name === "HYPERLINK") {
+				if(this.value && this.value.hyperlink) {
+					return this.value.hyperlink;
+				}
+			}
+		}
+		return false;
 	};
 
 	function CalcRecursion() {

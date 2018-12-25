@@ -412,6 +412,43 @@ function (window, undefined) {
 	cHYPERLINK.prototype = Object.create(cBaseFunction.prototype);
 	cHYPERLINK.prototype.constructor = cHYPERLINK;
 	cHYPERLINK.prototype.name = 'HYPERLINK';
+	cHYPERLINK.prototype.argumentsMin = 1;
+	cHYPERLINK.prototype.argumentsMax = 2;
+	cHYPERLINK.prototype.Calculate = function (arg) {
+		var arg0 = arg[0], arg1 = arg.length === 1 ? null : arg[1];
+
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
+			arg0 = arg0.cross(arguments[1]);
+		}
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
+			arg1 = arg1.cross(arguments[1]);
+		}
+
+		arg0 = arg0.tocString();
+		arg1 = arg1 ? arg1.tocString() : arg0.tocString();
+
+		if (arg0 instanceof cArray && arg1 instanceof cArray) {
+			arg0 = arg0.getElementRowCol(0, 0);
+			arg1 = arg1.getElementRowCol(0, 0);
+		} else if (arg0 instanceof cArray) {
+			arg0 = arg0.getElementRowCol(0, 0);
+		} else if (arg1 instanceof cArray) {
+			arg1 = arg1.getElementRowCol(0, 0);
+		}
+
+		if (arg0 instanceof cError) {
+			return arg0;
+		}
+		if (arg1 instanceof cError) {
+			return arg1;
+		}
+
+		var res = new cString(arg1.getValue());
+		res.hyperlink = arg0.getValue();
+
+		return res;
+	};
+
 
 	/**
 	 * @constructor
