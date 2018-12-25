@@ -581,6 +581,14 @@
 
             pluginData.setAttribute("isViewMode", this.api.isViewMode);
             pluginData.setAttribute("lang", this.language);
+            pluginData.setAttribute("documentId", this.api.documentId);
+            pluginData.setAttribute("documentTitle", this.api.documentTitle);
+
+            if (this.api.User)
+            {
+                pluginData.setAttribute("userId", this.api.User.id);
+                pluginData.setAttribute("userName", this.api.User.userName);
+            }
 		},
 		loadExtensionPlugins : function(_plugins)
 		{
