@@ -3259,9 +3259,9 @@ Asc['asc_docs_api'].prototype["CheckSlideBounds"] = function(nSlideIndex){
     ]
 }
 
-Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex, bTh)
+Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex, bTh, bIsPlayMode)
 {
-    this.WordControl.m_oDrawingDocument.RenderPage(pageIndex, bTh);
+    this.WordControl.m_oDrawingDocument.RenderPage(pageIndex, bTh, bIsPlayMode);
 };
 
 
@@ -3539,9 +3539,9 @@ if(window.native){
         }
 	};
 	
-	window.native.Call_GetPageMeta = function(nIndex, bTh){
+	window.native.Call_GetPageMeta = function(nIndex, bTh, bIsPlayMode){
         if(window.editor) {
-            return window.editor.GetNativePageMeta(nIndex, bTh);
+            return window.editor.GetNativePageMeta(nIndex, bTh, bIsPlayMode);
         }
 	};
 
