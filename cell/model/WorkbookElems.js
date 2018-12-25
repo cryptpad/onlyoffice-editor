@@ -86,9 +86,9 @@ function shiftGetBBox(bbox, bHor)
 {
 	var bboxGet = null;
 	if(bHor)
-		bboxGet = Asc.Range(bbox.c1, bbox.r1, gc_nMaxCol0, bbox.r2);
+		bboxGet = new Asc.Range(bbox.c1, bbox.r1, gc_nMaxCol0, bbox.r2);
 	else
-		bboxGet = Asc.Range(bbox.c1, bbox.r1, bbox.c2, gc_nMaxRow0);
+		bboxGet = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, gc_nMaxRow0);
 	return bboxGet;
 }
 function shiftSort(a, b, offset)
@@ -4581,7 +4581,7 @@ RangeDataManager.prototype = {
 	    var bHor = 0 != offset.col ? true : false;
 	    //сдвигаем inner
 	    if (elems.inner.length > 0) {
-	        var bboxAsc = Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
+	        var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
 	        for (var i = 0, length = elems.inner.length; i < length; i++) {
 	            var elem = elems.inner[i];
 	            var from = elem.bbox;
@@ -5481,7 +5481,7 @@ RangeDataManager.prototype = {
 				this.buildDependencies();
 			}
 		}
-		this.Ref = Asc.Range(range.c1, range.r1, range.c2, range.r2);
+		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 		//event
 		this.handlers.trigger("changeRefTablePart", this);
 
@@ -5877,7 +5877,7 @@ RangeDataManager.prototype = {
 			return;
 		}
 
-		this.Ref = Asc.Range(range.c1, range.r1, range.c2, range.r2);
+		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 
 		if (this.AutoFilter) {
 			this.AutoFilter.changeRefOnRange(range);
@@ -6422,7 +6422,7 @@ RangeDataManager.prototype = {
 		}
 
 		if (null !== col) {
-			res = Asc.Range(col, startRow, col, endRow);
+			res = new Asc.Range(col, startRow, col, endRow);
 		}
 
 		return res;

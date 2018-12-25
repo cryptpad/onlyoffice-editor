@@ -12240,7 +12240,7 @@
             isFromatTable = !(-1 === isStartRangeIntoFilterOrTable);
             var filterRef = isFromatTable ? t.model.TableParts[isStartRangeIntoFilterOrTable].Ref :
               t.model.AutoFilter.Ref;
-            cellId = t.model.autoFilters._rangeToId(Asc.Range(ar.c1, filterRef.r1, ar.c1, filterRef.r1));
+            cellId = t.model.autoFilters._rangeToId(new Asc.Range(ar.c1, filterRef.r1, ar.c1, filterRef.r1));
             isApplyAutoFilter = true;
 
             if (isFromatTable && !t.model.TableParts[isStartRangeIntoFilterOrTable].AutoFilter)//add autofilter to tablepart
@@ -12273,7 +12273,7 @@
                 //generate cellId
                 if (null === cellId) {
                     cellId = t.model.autoFilters._rangeToId(
-                      Asc.Range(activeCell.col, t.model.AutoFilter.Ref.r1, activeCell.col, t.model.AutoFilter.Ref.r1));
+						new Asc.Range(activeCell.col, t.model.AutoFilter.Ref.r1, activeCell.col, t.model.AutoFilter.Ref.r1));
                 }
             }
 
@@ -13103,7 +13103,7 @@
 		var ignoreCustomFilter = openAndClosedValues.ignoreCustomFilter;
         var filters = autoFilter.getFilterColumn(colId);
 
-        var rangeButton = Asc.Range(autoFilter.Ref.c1 + colId, autoFilter.Ref.r1, autoFilter.Ref.c1 + colId, autoFilter.Ref.r1);
+        var rangeButton = new Asc.Range(autoFilter.Ref.c1 + colId, autoFilter.Ref.r1, autoFilter.Ref.c1 + colId, autoFilter.Ref.r1);
         var cellId = ws.autoFilters._rangeToId(rangeButton);
         var cell = this.model.getRange3(rangeButton.r1, rangeButton.c1, rangeButton.r2, rangeButton.c2);
         var columnName = cell.getValue();
@@ -13189,7 +13189,7 @@
 		autoFilterObject.asc_setColumnName(columnName);
 		autoFilterObject.asc_setSheetColumnName(AscCommon.g_oCellAddressUtils.colnumToColstr(rangeButton.c1 + 1));
 
-        var columnRange = Asc.Range(rangeButton.c1, autoFilter.Ref.r1 + 1, rangeButton.c1, autoFilter.Ref.r2);
+        var columnRange = new Asc.Range(rangeButton.c1, autoFilter.Ref.r1 + 1, rangeButton.c1, autoFilter.Ref.r2);
 
         var filterTypes = this.af_getFilterTypes(columnRange);
         autoFilterObject.asc_setIsTextFilter(filterTypes.text);
