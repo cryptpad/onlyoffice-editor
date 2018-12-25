@@ -4790,6 +4790,14 @@ Paragraph.prototype.Get_EndRangePos = function(SearchPos, ContentPos)
 	var CurLine  = LinePos.Line;
 	var CurRange = LinePos.Range;
 
+	if (this.Lines.length <= 0 || !this.Lines[CurLine] || !this.Lines[CurLine].Ranges[CurRange])
+	{
+		SearchPos.Pos   = this.Get_EndPos();
+		SearchPos.Line  = 0;
+		SearchPos.Range = 0;
+		return;
+	}
+
 	var Range    = this.Lines[CurLine].Ranges[CurRange];
 	var StartPos = Range.StartPos;
 	var EndPos   = Range.EndPos;
@@ -4812,6 +4820,14 @@ Paragraph.prototype.Get_StartRangePos = function(SearchPos, ContentPos)
 
 	var CurLine  = LinePos.Line;
 	var CurRange = LinePos.Range;
+
+	if (this.Lines.length <= 0 || !this.Lines[CurLine] || !this.Lines[CurLine].Ranges[CurRange])
+	{
+		SearchPos.Pos   = this.Get_StartPos();
+		SearchPos.Line  = 0;
+		SearchPos.Range = 0;
+		return;
+	}
 
 	var Range    = this.Lines[CurLine].Ranges[CurRange];
 	var StartPos = Range.StartPos;
