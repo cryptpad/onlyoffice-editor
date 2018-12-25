@@ -6667,8 +6667,15 @@
 				if (formulaParsed) {
 					var formulaHyperlink = formulaParsed.getFormulaHyperlink();
 					if (formulaHyperlink) {
-						oHyperlink = new window['AscCommonExcel'].Hyperlink();
-						oHyperlink.Hyperlink = formulaHyperlink;
+						//запсускаю пересчет в связи с тем, что после открытия значение не рассчитано,
+						// но показывать результат при наведении на ссылку нужно
+						if(null === formulaParsed.value) {
+							formulaParsed.calculate();
+						}
+						if(formulaParsed.value && formulaParsed.value.hyperlink) {
+							oHyperlink = new window['AscCommonExcel'].Hyperlink();
+							oHyperlink.Hyperlink = formulaParsed.value.hyperlink;
+						}
 					}
 				}
 			}

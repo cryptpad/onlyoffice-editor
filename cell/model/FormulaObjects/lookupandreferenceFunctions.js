@@ -69,7 +69,7 @@ function (window, undefined) {
 		cVLOOKUP);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
-	cFormulaFunctionGroup['NotRealised'].push(cAREAS, cGETPIVOTDATA, cHYPERLINK, cRTD);
+	cFormulaFunctionGroup['NotRealised'].push(cAREAS, cGETPIVOTDATA, cRTD);
 
 	function searchRegExp(str, flags) {
 		var vFS = str
@@ -419,21 +419,27 @@ function (window, undefined) {
 
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arg0 = arg0.cross(arguments[1]);
-		}
-		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
-			arg1 = arg1.cross(arguments[1]);
-		}
-
-		arg0 = arg0.tocString();
-		arg1 = arg1 ? arg1.tocString() : arg0.tocString();
-
-		if (arg0 instanceof cArray && arg1 instanceof cArray) {
-			arg0 = arg0.getElementRowCol(0, 0);
-			arg1 = arg1.getElementRowCol(0, 0);
 		} else if (arg0 instanceof cArray) {
 			arg0 = arg0.getElementRowCol(0, 0);
-		} else if (arg1 instanceof cArray) {
-			arg1 = arg1.getElementRowCol(0, 0);
+		}
+		arg0 = arg0.tocString();
+
+
+		if(arg1) {
+			if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
+				arg1 = arg1.cross(arguments[1]);
+			} else if (arg1 instanceof cArray) {
+				arg1 = arg1.getElementRowCol(0, 0);
+			}
+
+			if(arg1 instanceof cRef || arg1 instanceof cRef3D) {
+				arg1 = arg1.getValue();
+			}
+			if(arg1 instanceof cEmpty) {
+				arg1 = new cNumber(0);
+			}
+		} else {
+			arg1 = arg0.tocString();
 		}
 
 		if (arg0 instanceof cError) {
@@ -443,7 +449,7 @@ function (window, undefined) {
 			return arg1;
 		}
 
-		var res = new cString(arg1.getValue());
+		var res = arg1;
 		res.hyperlink = arg0.getValue();
 
 		return res;

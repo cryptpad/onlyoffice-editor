@@ -6828,9 +6828,7 @@ parserFormula.prototype.setFormula = function(formula) {
 	parserFormula.prototype.getFormulaHyperlink = function() {
 		for (var i = 0; i < this.outStack.length; i++) {
 			if (this.outStack[i] && this.outStack[i].name === "HYPERLINK") {
-				if(this.value && this.value.hyperlink) {
-					return this.value.hyperlink;
-				}
+				return true;
 			}
 		}
 		return false;

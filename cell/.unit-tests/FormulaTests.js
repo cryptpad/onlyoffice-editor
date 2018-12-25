@@ -6466,6 +6466,57 @@ $( function () {
 		testArrayFormula2("HYPGEOM.DIST", 5, 5);
 	} );
 
+	test( "Test: \"HYPLINK\"", function () {
+
+		ws.getRange2( "D101" ).setValue( "" );
+		ws.getRange2( "D102" ).setValue( "123" );
+
+		oParser = new parserFormula( 'HYPERLINK("http://example.microsoft.com/report/budget report.xlsx", "Click for report")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Click for report" );
+		strictEqual( oParser.value.hyperlink, "http://example.microsoft.com/report/budget report.xlsx" );
+
+		oParser = new parserFormula( 'HYPERLINK("[http://example.microsoft.com/report/budget report.xlsx]Annual!F10", D1)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue() - 0, 0 );
+		strictEqual( oParser.value.hyperlink, "[http://example.microsoft.com/report/budget report.xlsx]Annual!F10" );
+
+		oParser = new parserFormula( 'HYPERLINK("http://example.microsoft.com/Annual Report.docx]QrtlyProfits", "Quarterly Profit Report")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Quarterly Profit Report" );
+		strictEqual( oParser.value.hyperlink, 'http://example.microsoft.com/Annual Report.docx]QrtlyProfits' );
+
+		oParser = new parserFormula( 'HYPERLINK("\\FINANCE\Statements\1stqtr.xlsx",D101)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue() - 0, 0 );
+		strictEqual( oParser.value.hyperlink, '\\FINANCE\Statements\1stqtr.xlsx' );
+
+		oParser = new parserFormula( 'HYPERLINK("http://test.com")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "http://test.com" );
+		strictEqual( oParser.value.hyperlink, "http://test.com" );
+
+		oParser = new parserFormula( 'HYPERLINK(D101,111)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 111 );
+		strictEqual( oParser.value.hyperlink - 0, 0 );
+
+		oParser = new parserFormula( 'HYPERLINK(D102,111)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 111 );
+		strictEqual( oParser.value.hyperlink, "123" );
+
+		oParser = new parserFormula( 'HYPERLINK(D102)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123" );
+		strictEqual( oParser.value.hyperlink - 0, 123 );
+
+		oParser = new parserFormula( 'HYPERLINK(D101,TRUE)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+		strictEqual( oParser.value.hyperlink - 0, 0 );
+	} );
+
 	test( "Test: \"HOUR\"", function () {
 
 		ws.getRange2( "A202" ).setValue( "0.75" );
