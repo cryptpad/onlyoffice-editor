@@ -140,10 +140,6 @@ $(function () {
 	}
 
 	test("Asc.Range", function test_Range() {
-		raises(function () {Asc.Range();}, 'Asc.Range() must throw error to pass');
-		raises(function () {Asc.Range("abc");}, 'Asc.Range("abc") must throw error to pass');
-		raises(function () {Asc.Range("1", 2, 3, 4);}, 'Asc.Range("1", 2, 3, 4) must throw error to pass');
-
 		var range = new Asc.Range(1, 2, 3, 4),
 		    range2 = Asc.Range(2, 1, 4, 3),
 		    range3 = Asc.Range(5, 4, 3, 2, true),
