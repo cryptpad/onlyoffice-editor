@@ -4305,33 +4305,22 @@
 
     // --- Cache ---
     WorksheetView.prototype._cleanCache = function (range) {
-        var r, c, row;
+		var s = this.cache.sectors;
+		var rows = this.cache.rows;
 
         if (range === undefined) {
             range = this.model.selectionRange.getLast();
         }
 
-        for (r = range.r1; r <= range.r2; ++r) {
-            row = this.cache.rows[r];
-            if (row !== undefined) {
-                // Должны еще крайнюю удалить
-                c = range.c1;
-                if (row.erased[c - 1]) {
-                    delete row.erased[c - 1];
-                }
-                for (; c <= range.c2; ++c) {
-                    if (row.columns[c]) {
-                        delete row.columns[c];
-                    }
-                    if (row.columnsWithText[c]) {
-                        delete row.columnsWithText[c];
-                    }
-                    if (row.erased[c]) {
-                        delete row.erased[c];
-                    }
-                }
-            }
-        }
+        // ToDo now delete all. Change this code
+		for (var i = Asc.floor(range.r1 / kRowsCacheSize), l = Asc.floor(range.r2 / kRowsCacheSize); i <= l; ++i) {
+			if (s[i]) {
+				for (var j = i * kRowsCacheSize, k = (i + 1) * kRowsCacheSize; j < k; ++j) {
+					delete rows[j];
+				}
+				delete s[i];
+			}
+		}
     };
 
 
