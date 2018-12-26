@@ -1328,6 +1328,7 @@
 
 			if (AscCommon.AscBrowser.isAndroid)
 			{
+                this.HtmlArea.readOnly = true;
 				this.virtualKeyboardClickPrevent = true;
 			}
 		},
@@ -1342,6 +1343,7 @@
 					this.virtualKeyboardClickTimeout = -1;
 				}
 
+                this.HtmlArea.readOnly = false;
 				this.virtualKeyboardClickPrevent = false;
 			}
 		}
