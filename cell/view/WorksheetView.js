@@ -6675,6 +6675,12 @@
 						if(formulaParsed.value && formulaParsed.value.hyperlink) {
 							oHyperlink = new window['AscCommonExcel'].Hyperlink();
 							oHyperlink.Hyperlink = formulaParsed.value.hyperlink;
+						} else if(formulaParsed.value && window['AscCommonExcel'].cElementType.array === formulaParsed.value.type) {
+							var firstArrayElem = formulaParsed.value.getElementRowCol(0,0);
+							if(firstArrayElem && firstArrayElem.hyperlink) {
+								oHyperlink = new window['AscCommonExcel'].Hyperlink();
+								oHyperlink.Hyperlink = firstArrayElem.hyperlink;
+							}
 						}
 					}
 				}

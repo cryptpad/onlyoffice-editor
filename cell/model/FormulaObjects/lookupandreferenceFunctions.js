@@ -443,9 +443,11 @@ function (window, undefined) {
 		}
 
 		if (arg0 instanceof cError) {
+			arg0.hyperlink = "";
 			return arg0;
 		}
 		if (arg1 instanceof cError) {
+			arg1.hyperlink = "";
 			return arg1;
 		}
 
