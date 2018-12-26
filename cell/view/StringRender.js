@@ -180,21 +180,6 @@
 		};
 
 		/**
-		 * Setups default font from fromat object
-		 * @param {Object} fmt  Format object from rendered string
-		 * @return {StringRender}  Returns 'this' to allow chaining
-		 */
-		StringRender.prototype.setDefaultFontFromFmt = function(fmt) {
-			var fn = fmt.getName();
-			var fs = fmt.getSize();
-			if (asc_typeof(fn) !== "string" || !(fs > 0)) {
-				throw "Can not make font from {fmt.fn=" + fn + ", fmt.fs=" + fs + "}";
-			}
-			this.defaultFont = this._makeFont(fmt);
-			return this;
-		};
-
-		/**
 		 * Setups one or more strings to process on
 		 * @param {String|Array} fragments  A simple string or array of formatted strings AscCommonExcel.Fragment
 		 * @param {AscCommonExcel.CellFlags} flags  Optional.
