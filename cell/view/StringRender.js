@@ -591,6 +591,29 @@
 
 			return l;
 		};
+		StringRender.prototype._calcLineMetrics2 = function (f, va, fm) {
+			var l = new lineMetrics();
+
+			var a = Math.max(0, asc.ceil(fm.nat_y1 * f / fm.nat_scale));
+			var d = Math.max(0, asc.ceil(-fm.nat_y2 * f / fm.nat_scale));
+
+			/*
+			// ToDo
+			if (va) {
+				var k = (AscCommon.vertalign_SuperScript === va) ? AscCommon.vaKSuper : AscCommon.vaKSub;
+				d += asc.ceil((a + d) * k);
+				f = asc.ceil(f * 2 / 3 / 0.5) * 0.5; // Round 0.5
+				a = Math.max(0, asc.ceil(fm.nat_y1 * f / fm.nat_scale));
+			}
+			*/
+
+			l.th = a + d;
+			l.bl = a;
+			l.a = a;
+			l.d = d;
+
+			return l;
+		};
 
 		StringRender.prototype.calcDelta = function (vnew, vold) {
 			return vnew > vold ? vnew - vold : 0;

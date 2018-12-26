@@ -2332,6 +2332,20 @@
 		asc_CCompleteMenu.prototype.asc_getName = function () {return this.name;};
 		asc_CCompleteMenu.prototype.asc_getType = function () {return this.type;};
 
+		function CCacheMeasureEmpty2() {
+			this.cache = {};
+		}
+		CCacheMeasureEmpty2.prototype.getKey = function (elem) {
+			return elem.getName() + elem.getBold() ? 'B' : 'N' + elem.getItalic() ? 'I' : 'N';
+		};
+		CCacheMeasureEmpty2.prototype.add = function (elem, val) {
+			this.cache[this.getKey(elem)] = val;
+		};
+		CCacheMeasureEmpty2.prototype.get = function (elem) {
+			return this.cache[this.getKey(elem)];
+		};
+		var g_oCacheMeasureEmpty2 = new CCacheMeasureEmpty2();
+
 		function CCacheMeasureEmpty() {
 			this.cache = {};
 		}
@@ -2528,6 +2542,7 @@
 		prot["asc_getType"] = prot.asc_getType;
 
 		window["AscCommonExcel"].g_oCacheMeasureEmpty = g_oCacheMeasureEmpty;
+		window["AscCommonExcel"].g_oCacheMeasureEmpty2 = g_oCacheMeasureEmpty2;
 
 		window["Asc"]["asc_CFormatCellsInfo"] = window["Asc"].asc_CFormatCellsInfo = asc_CFormatCellsInfo;
 		prot = asc_CFormatCellsInfo.prototype;
