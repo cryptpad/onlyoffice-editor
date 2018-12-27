@@ -2095,6 +2095,8 @@ function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel)
 	this.startMsoAnnotation = undefined;
 	this.needAddCommentStart;
 	this.needAddCommentEnd;
+
+	this.rtfImages;
 }
 PasteProcessor.prototype =
 {
@@ -3295,6 +3297,137 @@ PasteProcessor.prototype =
             }
         }
     },
+
+	getRtfImages: function(rtf, html) {
+
+		console.time("asd");
+
+
+		/*var getRtfImg = function (sRtf) {
+			var res = [];
+			var rg_rtf = /\{\\pict[\s\S]+?\\bliptag\-?\d+(\\blipupi\-?\d+)?(\{\\\*\\blipuid\s?[\da-fA-F]+)?[\s\}]*?/;
+			var rg_rtf_all = new RegExp("(?:(" + rg_rtf.source + "))([\\da-fA-F\\s]+)\\}", "g");
+			var pngStr = "\\pngblip";
+			var jpegStr = "\\jpegblip";
+			var pngTypeStr = "image/png";
+			var jpegTypeStr = "image/jpeg";
+
+			sRtf = sRtf.match(rg_rtf_all);
+
+			if (!sRtf) {
+				return res;
+			}
+
+			for (var i = 0; i < sRtf.length; i++) {
+				if (rg_rtf.test(sRtf[i])) {
+					var curImg;
+					if (-1 !== sRtf[i].indexOf(jpegStr)) {
+						curImg = {d: sRtf[i].replace(rg_rtf, "").replace(/[^\da-fA-F]/g, ""), t: jpegTypeStr};
+					} else if (-1 !== sRtf[i].indexOf(pngStr)) {
+						curImg = {d: sRtf[i].replace(rg_rtf, "").replace(/[^\da-fA-F]/g, ""), t: pngTypeStr};
+					}
+
+					if(curImg) {
+						res.push(curImg);
+					}
+				}
+			}
+			return res
+		};*/
+
+
+
+		var getRtfImg = function (sRtf) {
+			var res = [];
+			var rg_rtf = /\{\\pict[\s\S]+?\\bliptag\-?\d+(\\blipupi\-?\d+)?(\{\\\*\\blipuid\s?[\da-fA-F]+)?[\s\}]*?/, d;
+			var rg_rtf_all = new RegExp("(?:(" + rg_rtf.source + "))([\\da-fA-F\\s]+)\\}", "g");
+			var pngStr = "\\pngblip";
+			var jpegStr = "\\jpegblip";
+			var pngTypeStr = "image/png";
+			var jpegTypeStr = "image/jpeg";
+			var type;
+
+			sRtf = sRtf.match(rg_rtf_all);
+
+			if (!sRtf) {
+				return res;
+			}
+
+			for (var i = 0; i < sRtf.length; i++) {
+				if (rg_rtf.test(sRtf[i])) {
+					if (-1 !== sRtf[i].indexOf(jpegStr)) {
+						type = pngTypeStr;
+					} else if (-1 !== sRtf[i].indexOf(pngStr)) {
+						type = jpegTypeStr;
+					} else {
+						continue;
+					}
+
+					res.push({
+						data: sRtf[i].replace(rg_rtf, "").replace(/[^\da-fA-F]/g, ""), type: type
+					})
+				}
+			}
+			return res
+		};
+
+		var getHtmlImg = function (sHtml) {
+			var rg_html = /<img[^>]+src="([^"]+)[^>]+/g;
+			var res = [];
+			var img;
+			while (true) {
+				img = rg_html.exec(sHtml);
+				if (!img) {
+					break;
+				}
+				res.push(img[1]);
+			}
+			return res;
+		};
+
+		function hexToBytes(hex) {
+			var res = [];
+			for (var i = 0; i < hex.length; i += 2) {
+				res.push(parseInt(hex.substr(i, 2), 16));
+			}
+			return res;
+		}
+
+		function bytesToBase64(val) {
+			var res = "";
+			var bytes = new Uint8Array(val);
+			for (var i = 0; i < bytes.byteLength; i++) {
+				res += String.fromCharCode(bytes[i]);
+			}
+			//TODO проверить данный метод на разных браузерах и системах
+			return window.btoa(res);
+		}
+
+		console.time("rtf");
+		var rtfImages = getRtfImg(rtf);
+		console.timeEnd("rtf");
+		console.time("Html");
+		var htmlImages = getHtmlImg(html);
+		console.timeEnd("Html");
+		var map = {};
+		if(rtfImages.length === htmlImages.length) {
+			for(var i = 0; i < rtfImages.length; i++) {
+				var a = rtfImages[i];
+				if(a.type) {
+					console.time("hetToBytes");
+					var bytes = hexToBytes(a.data);
+					console.timeEnd("hetToBytes");
+
+					console.time("bytesToBase64");
+					map[htmlImages[i]] = "data:" + a.type + ";base64," + bytesToBase64(bytes);
+					console.timeEnd("bytesToBase64");
+				}
+			}
+		}
+
+		console.timeEnd("asd");
+		return map;
+	},
 
 	Start : function(node, nodeDisplay, bDuplicate, fromBinary, text)
     {
@@ -4515,6 +4648,7 @@ PasteProcessor.prototype =
 	_pasteFromHtml: function(node, bTurnOffTrackRevisions)
 	{
 		var oThis = this;
+		//this.rtfImages = this.getRtfImages(window['AscCommon'].g_clipboardBase.rtf, node.outerHTML);
 		
 		var fPasteHtmlPresentationCallback = function(fonts, images)
 		{
@@ -5867,6 +6001,7 @@ PasteProcessor.prototype =
 			//TODO пересмотреть все "local" и сделать одинаковые проверки во всех редакторах
 			var aImagesToDownload = [];
 			var _mapLocal = {};
+			var originalSrcArr = [];
 			for(var image in this.oImages)
             {
 				var src = this.oImages[image];
@@ -5894,8 +6029,15 @@ PasteProcessor.prototype =
 						}
 					}
 				}
-				else if(!g_oDocumentUrls.getImageLocal(src))
-					aImagesToDownload.push(src);
+				else if(!g_oDocumentUrls.getImageLocal(src)) {
+					if(oThis.rtfImages && oThis.rtfImages[src]) {
+						aImagesToDownload.push(oThis.rtfImages[src]);
+						originalSrcArr.push(src);
+					} else {
+						aImagesToDownload.push(src);
+						originalSrcArr.push(src);
+					}
+				}
 			}
 			if(aImagesToDownload.length > 0)
 			{
@@ -5903,7 +6045,7 @@ PasteProcessor.prototype =
 				  var image_map = {};
 				  for (var i = 0, length = Math.min(data.length, aImagesToDownload.length); i < length; ++i) {
 					var elem = data[i];
-					var sFrom = aImagesToDownload[i];
+					var sFrom = originalSrcArr[i] ? originalSrcArr[i] : aImagesToDownload[i];
 					if (null != elem.url) {
 					  var name = g_oDocumentUrls.imagePath2Local(elem.path);
 					  oThis.oImages[sFrom] = name;
