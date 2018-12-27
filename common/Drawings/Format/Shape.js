@@ -1325,6 +1325,15 @@ CShape.prototype.getHierarchy = function(bIsSingleBody, info)
                         hierarchy.push(this.parent.Master.getMatchingShape(ph_type, ph_index, true));
                         break;
                     }
+
+                    case AscFormat.TYPE_KIND.NOTES:
+                    {
+                        if(this.parent.Master)
+                        {
+                            hierarchy.push(this.parent.Master.getMatchingShape(ph_type, ph_index, true));
+                        }
+                        break;
+                    }
                 }
             }
             this.recalcInfo.recalculateShapeHierarchy = true;
