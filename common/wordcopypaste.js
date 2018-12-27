@@ -3300,43 +3300,6 @@ PasteProcessor.prototype =
 
 	getRtfImages: function(rtf, html) {
 
-		console.time("asd");
-
-
-		/*var getRtfImg = function (sRtf) {
-			var res = [];
-			var rg_rtf = /\{\\pict[\s\S]+?\\bliptag\-?\d+(\\blipupi\-?\d+)?(\{\\\*\\blipuid\s?[\da-fA-F]+)?[\s\}]*?/;
-			var rg_rtf_all = new RegExp("(?:(" + rg_rtf.source + "))([\\da-fA-F\\s]+)\\}", "g");
-			var pngStr = "\\pngblip";
-			var jpegStr = "\\jpegblip";
-			var pngTypeStr = "image/png";
-			var jpegTypeStr = "image/jpeg";
-
-			sRtf = sRtf.match(rg_rtf_all);
-
-			if (!sRtf) {
-				return res;
-			}
-
-			for (var i = 0; i < sRtf.length; i++) {
-				if (rg_rtf.test(sRtf[i])) {
-					var curImg;
-					if (-1 !== sRtf[i].indexOf(jpegStr)) {
-						curImg = {d: sRtf[i].replace(rg_rtf, "").replace(/[^\da-fA-F]/g, ""), t: jpegTypeStr};
-					} else if (-1 !== sRtf[i].indexOf(pngStr)) {
-						curImg = {d: sRtf[i].replace(rg_rtf, "").replace(/[^\da-fA-F]/g, ""), t: pngTypeStr};
-					}
-
-					if(curImg) {
-						res.push(curImg);
-					}
-				}
-			}
-			return res
-		};*/
-
-
-
 		var getRtfImg = function (sRtf) {
 			var res = [];
 			var rg_rtf = /\{\\pict[\s\S]+?\\bliptag\-?\d+(\\blipupi\-?\d+)?(\{\\\*\\blipuid\s?[\da-fA-F]+)?[\s\}]*?/, d;
@@ -3403,29 +3366,19 @@ PasteProcessor.prototype =
 			return window.btoa(res);
 		}
 
-		console.time("rtf");
 		var rtfImages = getRtfImg(rtf);
-		console.timeEnd("rtf");
-		console.time("Html");
 		var htmlImages = getHtmlImg(html);
-		console.timeEnd("Html");
 		var map = {};
 		if(rtfImages.length === htmlImages.length) {
 			for(var i = 0; i < rtfImages.length; i++) {
 				var a = rtfImages[i];
 				if(a.type) {
-					console.time("hetToBytes");
 					var bytes = hexToBytes(a.data);
-					console.timeEnd("hetToBytes");
-
-					console.time("bytesToBase64");
 					map[htmlImages[i]] = "data:" + a.type + ";base64," + bytesToBase64(bytes);
-					console.timeEnd("bytesToBase64");
 				}
 			}
 		}
 
-		console.timeEnd("asd");
 		return map;
 	},
 
