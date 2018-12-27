@@ -587,6 +587,10 @@ CEditorPage.prototype.GoToPage = function(lPageNum)
         this.m_oDrawingDocument.SlidesCount = this.m_oLogicDocument.Slides.length;
         this.m_oDrawingDocument.SlideCurrent = this.m_oLogicDocument.CurPage;
     }
+    if(this.m_oLogicDocument)
+    {
+        this.m_oLogicDocument.Set_CurPage(lPageNum);
+    }
     this.Native["DD_SetCurrentPage"](lPageNum);
     this.CheckLayouts(false);
 };
