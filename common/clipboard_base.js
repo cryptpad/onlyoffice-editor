@@ -207,6 +207,9 @@
 				if (!_clipboard || !_clipboard.getData)
 					return false;
 
+				//TODO TEST!!!!!!
+				window['AscCommon'].g_clipboardBase.rtf = this.ClosureParams.getData("text/rtf");
+
 				var _text_format = this.ClosureParams.getData("text/plain");
 				var _internal = this.ClosureParams.getData("text/x-custom");
 				if (_internal && _internal != "" && _internal.indexOf("asc_internalData2;") == 0)

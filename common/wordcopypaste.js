@@ -4648,7 +4648,8 @@ PasteProcessor.prototype =
 	_pasteFromHtml: function(node, bTurnOffTrackRevisions)
 	{
 		var oThis = this;
-		//this.rtfImages = this.getRtfImages(window['AscCommon'].g_clipboardBase.rtf, node.outerHTML);
+		//TODO test!!!!!
+		this.rtfImages = this.getRtfImages(window['AscCommon'].g_clipboardBase.rtf, node.outerHTML);
 		
 		var fPasteHtmlPresentationCallback = function(fonts, images)
 		{
