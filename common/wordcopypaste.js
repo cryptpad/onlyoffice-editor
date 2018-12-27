@@ -6375,7 +6375,7 @@ PasteProcessor.prototype =
 				else if(line_height && null != (line_height = this._ValueToMm(line_height)) && line_height >= 0)
 				{
 					Spacing.Line = line_height;
-					Spacing.LineRule = Asc.linerule_Exact;
+					Spacing.LineRule = Asc.linerule_AtLeast;
 				}
 			}
             if(false === this._isEmptyProperty(Spacing))
