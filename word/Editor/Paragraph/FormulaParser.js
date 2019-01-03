@@ -12,10 +12,11 @@
     var sRowName = sDecimalDigit + '+';
     var sColon = ':';
     var sComma = ',';
-    var sFullStop = '\\.';
-    var sWholeNumberPart = sDecimalDigit + '+';
+    var sFullStop = '\.';
+    var sWholeNumberPart = '([0-9]+)((,[0-9]{3})+[0-9]+)*';
     var sFractionalPart = sDecimalDigit + '+';
-    var sConstant = sWholeNumberPart + sFullStop + sFractionalPart + '|' + '(' + sWholeNumberPart + '(' + sFullStop +')*)' + '|' + sFullStop + sFractionalPart;
+
+    var sConstant =  sWholeNumberPart + sFullStop + sFractionalPart + '|' + '(' + sWholeNumberPart + '(' + sFullStop +')*)' + '|(' + sFullStop + sFractionalPart + ')';
     var sCellName = sColumnName + sRowName;
     var sCellCellRange = sCellName + sColon + sCellName;
     var sRowRange = sRowName + sColon + sRowName;
@@ -1519,7 +1520,9 @@
 
 
     CFormulaParser.prototype.parseNumber = function(nStartPos, nEndPos){
-        var number = parseFloat(this.formula.slice(nStartPos, nEndPos));
+        var sNum = this.formula.slice(nStartPos, nEndPos);
+        sNum = sNum.replace(sComma, '');
+        var number = parseFloat(sNum);
         if(AscFormat.isRealNumber(number)){
             var ret = new CNumberNode(this.parseQueue);
             ret.value = number;
