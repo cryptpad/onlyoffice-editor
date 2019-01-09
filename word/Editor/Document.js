@@ -6208,19 +6208,27 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
 	var bFlowTable   = (null === this.DrawingObjects.getTableByXY(X, Y, this.CurPage, this) ? false : true);
 
     // Сначала посмотрим, попалили мы в текстовый селект (но при этом не в границу таблицы и не более чем одинарным кликом)
-    if (-1 !== this.Selection.DragDrop.Flag && MouseEvent.ClickCount <= 1 && false === bTableBorder &&
-        ( nInDrawing < 0 || ( nInDrawing === DRAWING_ARRAY_TYPE_BEHIND && true === bInText ) || ( nInDrawing > -1 && ( docpostype_DrawingObjects === this.CurPos.Type || ( docpostype_HdrFtr === this.CurPos.Type && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.Content.CurPos.Type ) ) && true === this.DrawingObjects.isSelectedText() && null !== this.DrawingObjects.getMajorParaDrawing() && this.DrawingObjects.getGraphicInfoUnderCursor(this.CurPage, X, Y).cursorType === "text" ) ) &&
-        true === this.CheckPosInSelection(X, Y, this.CurPage, undefined))
-    {
-        // Здесь мы сразу не начинаем перемещение текста. Его мы начинаем, курсор хотя бы немного изменит свою позицию,
-        // это проверяется на MouseMove.
-        // TODO: В ворде кроме изменения положения мыши, также запускается таймер для стартования drag-n-drop по времени,
-        //       его можно здесь вставить.
+    if (-1 !== this.Selection.DragDrop.Flag
+		&& MouseEvent.ClickCount <= 1
+		&& false === bTableBorder
+		&& (nInDrawing < 0
+			|| (nInDrawing === DRAWING_ARRAY_TYPE_BEHIND && true === bInText)
+			|| (nInDrawing > -1
+				&& (docpostype_DrawingObjects === this.CurPos.Type || (docpostype_HdrFtr === this.CurPos.Type && this.HdrFtr.CurHdrFtr && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.Content.CurPos.Type))
+				&& true === this.DrawingObjects.isSelectedText()
+				&& null !== this.DrawingObjects.getMajorParaDrawing()
+				&& this.DrawingObjects.getGraphicInfoUnderCursor(this.CurPage, X, Y).cursorType === "text"))
+		&& true === this.CheckPosInSelection(X, Y, this.CurPage, undefined))
+	{
+		// Здесь мы сразу не начинаем перемещение текста. Его мы начинаем, курсор хотя бы немного изменит свою позицию,
+		// это проверяется на MouseMove.
+		// TODO: В ворде кроме изменения положения мыши, также запускается таймер для стартования drag-n-drop по времени,
+		//       его можно здесь вставить.
 
-        this.Selection.DragDrop.Flag = 1;
-        this.Selection.DragDrop.Data = {X : X, Y : Y, PageNum : this.CurPage};
-        return;
-    }
+		this.Selection.DragDrop.Flag = 1;
+		this.Selection.DragDrop.Data = {X : X, Y : Y, PageNum : this.CurPage};
+		return;
+	}
 
     var bCheckHdrFtr = true;
 	var bFootnotes = false;
