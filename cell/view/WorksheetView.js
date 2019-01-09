@@ -12186,6 +12186,9 @@
             }
 
             var applyFilterProps = t.model.autoFilters.applyAutoFilter(autoFilterObject, ar);
+			if(!applyFilterProps) {
+				return false;
+			}
             var minChangeRow = applyFilterProps.minChangeRow;
             var rangeOldFilter = applyFilterProps.rangeOldFilter;
 
@@ -12285,6 +12288,11 @@
         var activeCell = this.model.selectionRange.activeCell.clone();
         var ar = this.model.selectionRange.getLast().clone();
 
+		//нельзя применять если столбец, где находится активная ячейка, не определен
+		if(!this.model.getColDataNoEmpty(activeCell.col)) {
+			return;
+		}
+
         var isStartRangeIntoFilterOrTable = t.model.autoFilters.isStartRangeContainIntoTableOrFilter(activeCell);
         var isApplyAutoFilter = null, isAddAutoFilter = null, cellId = null, isFromatTable = null;
         if (null !== isStartRangeIntoFilterOrTable)//into autofilter or format table
@@ -12358,6 +12366,10 @@
                 }
 
                 var applyFilterProps = t.model.autoFilters.applyAutoFilter(autoFilterObject, ar);
+				if(!applyFilterProps) {
+					History.EndTransaction();
+					return false;
+				}
                 var minChangeRow = applyFilterProps.minChangeRow;
                 var rangeOldFilter = applyFilterProps.rangeOldFilter;
 
