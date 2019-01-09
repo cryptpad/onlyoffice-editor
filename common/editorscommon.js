@@ -457,7 +457,7 @@
 		}
 		dataContainer.index++;
 		oAdditionalData["saveindex"] = dataContainer.index;
-		fSendCommand(function (incomeObject)
+		fSendCommand(function (incomeObject, done, status)
 		{
 			if (null != incomeObject && "ok" == incomeObject["status"])
 			{
@@ -468,12 +468,12 @@
 				}
 				else if (fCallbackRequest)
 				{
-					fCallbackRequest(incomeObject);
+					fCallbackRequest(incomeObject, status);
 				}
 			}
 			else
 			{
-				fCallbackRequest ? fCallbackRequest(incomeObject) : fCallback(incomeObject);
+				fCallbackRequest ? fCallbackRequest(incomeObject, status) : fCallback(incomeObject, status);
 			}
 		}, oAdditionalData, dataContainer);
 	}
@@ -669,11 +669,11 @@
 			url:         sDownloadServiceLocalUrl + '/' + rdata["id"] + '?cmd=' + encodeURIComponent(JSON.stringify(rdata)),
 			data:        dataContainer.part || dataContainer.data,
 			contentType: "application/octet-stream",
-			error:       function ()
+			error:       function (httpRequest, statusText, status)
 						 {
 							 if (fCallback)
 							 {
-								 fCallback(null, true);
+								 fCallback(null, true, status);
 							 }
 						 },
 			success:     function (httpRequest)

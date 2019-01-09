@@ -6884,9 +6884,9 @@ background-repeat: no-repeat;\
             return;
         }
 
-		var fCallback     = function(input)
+		var fCallback     = function(input, status)
 		{
-			var error = c_oAscError.ID.Unknown;
+			var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
 			if (null != input && command == input["type"])
 			{
 				if ('ok' == input["status"])

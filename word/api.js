@@ -7325,9 +7325,9 @@ background-repeat: no-repeat;\
 		var fCallback = null;
 		if (!options.isNoCallback)
 		{
-			fCallback = function(input)
+			fCallback = function(input, status)
 			{
-				var error = c_oAscError.ID.Unknown;
+				var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
 				//input = {'type': command, 'status': 'err', 'data': -80};
 				if (null != input && command == input['type'])
 				{

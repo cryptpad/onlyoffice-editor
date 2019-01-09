@@ -896,8 +896,8 @@ var editor;
       return;
     }
 
-    var fCallback = function(input) {
-      var error = c_oAscError.ID.Unknown;
+    var fCallback = function(input, status) {
+      var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
       if (null != input && command == input["type"]) {
         if ('ok' == input["status"]) {
           var url = input["data"];
