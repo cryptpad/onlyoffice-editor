@@ -4309,6 +4309,11 @@ Paragraph.prototype.Get_ParaContentPosByXY = function(X, Y, PageIndex, bYLine, S
 		SearchPos.CurX += this.Numbering.WidthVisible;
 	}
 
+	// TODO: ParaEnd
+	// Заглушка, чтобы не попадать в последний ран с символом конца параграфа
+	if (true !== StepEnd && EndPos === this.Content.length - 1 && EndPos > StartPos)
+		EndPos--;
+
 	for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
 	{
 		var Item = this.Content[CurPos];
@@ -5566,6 +5571,16 @@ Paragraph.prototype.Internal_GetEndPos = function()
 		return Res.LetterPos;
 
 	return 0;
+};
+/**
+ * Корректируем содержимое параграфа
+ */
+Paragraph.prototype.CorrectContent = function()
+{
+	this.Correct_Content();
+
+	if (this.CurPos.ContentPos >= this.Content.length - 1)
+		this.MoveCursorToEndPos();
 };
 Paragraph.prototype.Correct_Content = function(_StartPos, _EndPos, bDoNotDeleteEmptyRuns)
 {

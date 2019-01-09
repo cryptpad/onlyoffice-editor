@@ -1792,6 +1792,10 @@ CParagraphContentWithParagraphLikeContent.prototype.Correct_Content = function()
     if (this.Content.length < 0)
         this.Add_ToContent(0, new ParaRun(this.Paragraph, false));
 };
+CParagraphContentWithParagraphLikeContent.prototype.CorrectContent = function()
+{
+	this.Correct_Content();
+};
 CParagraphContentWithParagraphLikeContent.prototype.UpdateBookmarks = function(oManager)
 {
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
