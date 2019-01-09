@@ -1262,6 +1262,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cArea.prototype.getMatrix = function (excludeHiddenRows, excludeErrorsVal, excludeNestedStAg) {
 		var arr = [], r = this.getRange();
+
+		var ws = r.worksheet;
+		var oldExcludeHiddenRows = ws.bExcludeHiddenRows;
+		ws.bExcludeHiddenRows = false;
 		r._foreach2(function (cell, i, j, r1, c1) {
 			if (!arr[i - r1]) {
 				arr[i - r1] = [];
@@ -1277,6 +1281,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 			arr[i - r1][j - c1] = resValue;
 		});
+		ws.bExcludeHiddenRows = oldExcludeHiddenRows;
+
 		return arr;
 	};
 	cArea.prototype.getValuesNoEmpty = function (checkExclude, excludeHiddenRows, excludeErrorsVal, excludeNestedStAg) {
@@ -1542,6 +1548,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cArea3D.prototype.getMatrix = function () {
 		var arr = [], r = this.getRanges(), res;
+
+		var ws = r[0] ? r[0].worksheet : null;
+		if(ws) {
+			var oldExcludeHiddenRows = ws.bExcludeHiddenRows;
+			ws.bExcludeHiddenRows = false;
+		}
 		for (var k = 0; k < r.length; k++) {
 			arr[k] = [];
 			r[k]._foreach2(function (cell, i, j, r1, c1) {
@@ -1553,6 +1565,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 				arr[k][i - r1][j - c1] = res;
 			});
 		}
+		if(ws) {
+			ws.bExcludeHiddenRows = oldExcludeHiddenRows;
+		}
+
 		return arr;
 	};
 	cArea3D.prototype.foreach2 = function (action) {
