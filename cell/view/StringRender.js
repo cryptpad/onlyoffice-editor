@@ -131,9 +131,6 @@
 		function StringRender(drawingCtx) {
 			this.drawingCtx = drawingCtx;
 
-			/** @type Asc.FontProperties */
-			this.defaultFont = undefined;
-
 			/** @type Array */
 			this.fragments = undefined;
 
@@ -170,16 +167,6 @@
 		}
 
 		/**
-		 * Setups default font
-		 * @param {FontProperties} font  Font properties. @see Asc.FontProperties
-		 * @return {StringRender}  Returns 'this' to allow chaining
-		 */
-		StringRender.prototype.setDefaultFont = function(font) {
-			this.defaultFont = font;
-			return this;
-		};
-
-		/**
 		 * Setups one or more strings to process on
 		 * @param {String|Array} fragments  A simple string or array of formatted strings AscCommonExcel.Fragment
 		 * @param {AscCommonExcel.CellFlags} flags  Optional.
@@ -199,7 +186,7 @@
 			}
 			this.flags = flags;
 			this._reset();
-			this.drawingCtx.setFont(this.defaultFont, this.angle);
+			this.drawingCtx.setFont(this._makeFont(), this.angle);
 			return this;
 		};
 
@@ -474,13 +461,14 @@
 		 * @return {Asc.FontProperties}
 		 */
 		StringRender.prototype._makeFont = function(format) {
-			var fn = format !== undefined ? format.getName() : undefined;
-			if (format !== undefined && asc_typeof(fn) === "string") {
-				var fs = format.getSize();
-				var fsz = fs > 0 ? fs : this.defaultFont.FontSize;
-				return new asc.FontProperties(fn, fsz, format.getBold(), format.getItalic(), format.getUnderline(), format.getStrikeout());
+			var defaultFont = AscCommonExcel.g_oDefaultFormat.Font;
+			format = format || defaultFont;
+			var fn = format.getName() || defaultFont.getName();
+			var fs = format.getSize();
+			if (0 >= fs) {
+				fs = defaultFont.getSize();
 			}
-			return this.defaultFont;
+			return new asc.FontProperties(fn, fs, format.getBold(), format.getItalic(), format.getUnderline(), format.getStrikeout());
 		};
 
 		/**
@@ -1091,16 +1079,7 @@
 		};
 
 		StringRender.prototype.getInternalState = function () {
-            //for (var fr = [], i = 0; i < this.fragments.length; ++i) {
-            //	fr.push(this.fragments[i]);
-            //}
             return {
-                /** @type FontProperties */
-                defaultFont : this.defaultFont !== undefined ? this.defaultFont.clone() : undefined,
-
-                ///** @type Array */
-                //"fragments"   : fr,
-
                 /** @type Object */
                 flags       : this.flags,
 
@@ -1112,8 +1091,6 @@
         };
 
 		StringRender.prototype.restoreInternalState = function (state) {
-			this.defaultFont = state.defaultFont;
-			//this.fragments   = state.fragments;
 			this.flags       = state.flags;
 			this.chars       = state.chars;
 			this.charWidths  = state.charWidths;

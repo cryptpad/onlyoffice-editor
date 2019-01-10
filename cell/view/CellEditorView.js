@@ -215,7 +215,6 @@
 			canvas: t.canvasOverlay, units: 0/*px*/, fmgrGraphics: this.fmgrGraphics, font: this.m_oFont
 		});
 		t.textRender = new AscCommonExcel.CellTextRender(t.drawingCtx);
-		t.textRender.setDefaultFont(settings.font.clone());
 
 		// bind event handlers
 		if (t.canvasOuter && t.canvasOuter.addEventListener) {

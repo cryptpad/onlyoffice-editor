@@ -306,7 +306,6 @@
     this.buffers.shapeOverlayCtx.m_oFontManager = this.fmgrGraphics[2];
 
     this.stringRender = new AscCommonExcel.StringRender(this.buffers.main);
-    this.stringRender.setDefaultFont(this.defaultFont);
 
     // Мерить нужно только со 100% и один раз для всего документа
     this._calcMaxDigitWidth();
@@ -680,7 +679,7 @@
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  }
 		  }, /*settings*/{
-			  font: this.defaultFont, padding: this.defaults.worksheetView.cells.padding
+			  padding: this.defaults.worksheetView.cells.padding
 		  });
 
 	  this.wsViewHandlers = new AscCommonExcel.asc_CHandlersList(/*handlers*/{
