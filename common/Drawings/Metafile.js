@@ -3225,6 +3225,8 @@
 
 	function SetHintsProps(bIsHinting, bIsSubpixHinting)
 	{
+		// TODO:
+		return;
 		if (undefined === g_fontManager.m_oLibrary.tt_hint_props)
 			return;
 
