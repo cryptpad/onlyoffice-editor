@@ -388,6 +388,9 @@
 		        return;
 
 			var oTarget = document.getElementById(this.TargetId);
+			if (!oTarget)
+				return;
+
 			var xPos    = x ? x : parseInt(oTarget.style.left);
 			var yPos    = (y ? y : parseInt(oTarget.style.top)) + parseInt(oTarget.style.height);
 
