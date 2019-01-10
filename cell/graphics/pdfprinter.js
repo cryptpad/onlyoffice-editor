@@ -270,10 +270,6 @@ CPdfPrinter.prototype =
     {
         return this.font.clone();
     },
-    getFontFamily : function()
-    {
-        return this.font.FontFamily.Name;
-    },
     getFontSize : function()
     {
         return this.font.FontSize;

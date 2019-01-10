@@ -892,10 +892,6 @@
 		return this.font.clone();
 	};
 
-	DrawingContext.prototype.getFontFamily = function () {
-		return this.font.FontFamily.Name;
-	};
-
 	DrawingContext.prototype.getFontSize = function () {
 		return this.font.FontSize;
 	};
