@@ -162,8 +162,8 @@
 	function getFontMetrics(format, stringRender) {
     	var res = AscCommonExcel.g_oCacheMeasureEmpty2.get(format);
     	if (!res) {
-			if (!format.isEqual3(stringRender.drawingCtx.font)) {
-				stringRender.drawingCtx.setFont(stringRender._makeFont(format));
+			if (!format.isEqual2(stringRender.drawingCtx.font)) {
+				stringRender.drawingCtx.setFont(format);
 			}
 			res = stringRender.drawingCtx.getFontMetrics();
 			AscCommonExcel.g_oCacheMeasureEmpty2.add(format, res);
@@ -458,9 +458,8 @@
 			this.defaultColWidthPx = this.model.modelColWidthToColWidth(defaultColWidth);
 		}
 
-		var defaultFontSize = this.model.getDefaultFontSize();
 		// ToDo разобраться со значениями
-		this._setFont(undefined, this.model.getDefaultFontName(), defaultFontSize);
+		this._setDefaultFont(undefined);
 		var tm = this._roundTextMetrics(this.stringRender.measureString("A"));
 		this.headersHeightByFont = tm.height;
 
@@ -2082,10 +2081,10 @@
               style = kHeaderDefault;
           }
 
-          this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
+          this._setDefaultFont(drawingCtx);
 
           // draw column headers
-		  var l = this._getColLeft(start) - offsetX, w
+		  var l = this._getColLeft(start) - offsetX, w;
           for (var i = start; i <= end; ++i) {
           	w = this._getColumnWidth(i);
               this._drawHeader(drawingCtx, l, offsetY, w, this.headersHeight, style, true, i);
@@ -2120,7 +2119,7 @@
             style = kHeaderDefault;
         }
 
-        this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
+        this._setDefaultFont(drawingCtx);
 
         // draw row headers
         var t = this._getRowTop(start) - offsetY, h;
@@ -5222,9 +5221,9 @@
         return this.drawingCtx.getPPIY();
     };
 
-    WorksheetView.prototype._setFont = function (drawingCtx, name, size) {
+    WorksheetView.prototype._setDefaultFont = function (drawingCtx) {
         var ctx = drawingCtx || this.drawingCtx;
-        ctx.setFont(new asc.FontProperties(name, size));
+        ctx.setFont(AscCommonExcel.g_oDefaultFormat.Font);
     };
 
     /**
@@ -11702,9 +11701,8 @@
 			editor.open({
 				fragments: fragments,
 				flags: fl,
-				font: new asc.FontProperties(font.getName(), font.getSize()),
+				font: font,
 				background: bg || this.settings.cells.defaultState.background,
-				textColor: font.getColor(),
 				cursorPos: cursorPos,
 				zoom: this.getZoom(),
 				focus: isFocus,

@@ -96,7 +96,7 @@
 	 * @param {Element} elem
 	 * @param {Element} input
 	 * @param {Array} fmgrGraphics
-	 * @param {FontProperties} oFont
+	 * @param {AscCommonExcel.Font} oFont
 	 * @param {HandlersList} handlers
 	 * @param {Number} padding
 	 */
@@ -270,7 +270,6 @@
 	 *   flags      - text flags (wrapText, textAlign)
 	 *   font
 	 *   background
-	 *   textColor
 	 *   saveValueCallback
 	 */
 	CellEditor.prototype.open = function ( options ) {
@@ -1335,7 +1334,7 @@
 		}
 
 		if (opt.fragments.length > 0) {
-			t.textRender.render(undefined, t._getContentLeft(), dy || 0, t._getContentWidth(), opt.textColor);
+			t.textRender.render(undefined, t._getContentLeft(), dy || 0, t._getContentWidth(), opt.font.getColor());
 		}
 	};
 
@@ -1997,10 +1996,10 @@
 			fr[i].text = s;
 			f = fr[i].format;
 			if (f.getName() === "") {
-				f.setName(t.options.font.FontFamily.Name);
+				f.setName(t.options.font.getName());
 			}
 			if (f.getSize() === 0) {
-				f.setSize(t.options.font.FontSize);
+				f.setSize(t.options.font.getSize());
 			}
 		}
 	};
@@ -2142,7 +2141,7 @@
 		result.strikeout = tmp.getStrikeout();
 		result.subscript = va === AscCommon.vertalign_SubScript;
 		result.superscript = va === AscCommon.vertalign_SuperScript;
-		result.color = (fc ? asc.colorObjToAscColor( fc ) : new Asc.asc_CColor( this.options.textColor ));
+		result.color = (fc ? asc.colorObjToAscColor( fc ) : new Asc.asc_CColor(this.options.font.getColor()));
 
 		this.handlers.trigger( "updateEditorSelectionInfo", result );
 	};

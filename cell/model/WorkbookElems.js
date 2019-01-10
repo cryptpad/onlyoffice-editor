@@ -655,12 +655,7 @@ var g_oFontProperties = {
 		return bRes;
 	};
 	Font.prototype.isEqual2 = function (font) {
-		return font && this.fn === font.fn && this.fs === font.fs && this.b === font.b && this.i === font.i;
-	};
-	Font.prototype.isEqual3 = function (font) {
-		// ToDo delete this!
-		return font && this.fn === font.FontFamily.Name.toLowerCase() && this.fs === font.FontSize &&
-			this.getBold() === font.Bold && this.getItalic() === font.Italic;
+		return font && this.getName() === font.getName() && this.getSize() === font.getSize() && this.getBold() === font.getBold() && this.getItalic() === font.getItalic();
 	};
 	Font.prototype.clone = function () {
 		var font = new Font();

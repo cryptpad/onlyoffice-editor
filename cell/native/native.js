@@ -3412,7 +3412,7 @@ function OfflineEditor () {
             if (asc_typeof(end) !== "number") {end = vr.c2;}
             if (style === undefined) {style = kHeaderDefault;}
 
-            this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
+            this._setDefaultFont(drawingCtx);
 
             var ctx = (drawingCtx) ? drawingCtx : this.drawingCtx;
             var st = this.settings.header.style[style];
@@ -3558,7 +3558,7 @@ function OfflineEditor () {
                 style = kHeaderDefault;
             }
 
-            this._setFont(drawingCtx, this.model.getDefaultFontName(), this.model.getDefaultFontSize());
+            this._setDefaultFont(drawingCtx);
 
             // draw row headers
             for (var i = start; i <= end; ++i) {
@@ -5058,21 +5058,19 @@ function OfflineEditor () {
             drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt - 0.25, this.styleThumbnailWidthPt,  this.styleThumbnailHeightPt - 0.25);   // down
 
             // Draw text
-            var fc = oStyle.getFontColor();
-            var oFontColor = fc !== null ? fc : new AscCommon.CColor(0, 0, 0);
-            var format = oStyle.getFont();
-            var fs = format.getSize();
+            var format = oStyle.getFont().clone();
             // Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
-            var oFont = new window["Asc"].FontProperties(format.getName(), (16 < fs) ? 16 : fs,
-                format.getBold(), format.getItalic(), format.getUnderline(), format.getStrikeout());
+            if (16 < format.getSize()) {
+                format.setSize(16);
+            }
 
             var width_padding = 3; // 4 * 72 / 96
 
             var tm = sr.measureString(sStyleName);
             // Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
             var textY = 0.5 * (this.styleThumbnailHeightPt - tm.height);
-            oGraphics.setFont(oFont);
-            oGraphics.setFillStyle(oFontColor);
+            oGraphics.setFont(format);
+            oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
             oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
         };
 

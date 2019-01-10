@@ -189,7 +189,7 @@
     this.fReplaceCallback = null;	// Callback для замены текста
 
     // Фонт, который выставлен в DrawingContext, он должен быть один на все DrawingContext-ы
-    this.m_oFont = new asc.FontProperties(this.model.getDefaultFont(), this.model.getDefaultSize());
+    this.m_oFont = AscCommonExcel.g_oDefaultFormat.Font.clone();
 
     // Теперь у нас 2 FontManager-а на весь документ + 1 для автофигур (а не на каждом листе свой)
     this.fmgrGraphics = [];						// FontManager for draw (1 для обычного + 1 для поворотного текста)
@@ -225,7 +225,6 @@
     // Максимальная ширина числа из 0,1,2...,9, померенная в нормальном шрифте(дефалтовый для книги) в px(целое)
     // Ecma-376 Office Open XML Part 1, пункт 18.3.1.13
     this.maxDigitWidth = 0;
-    this.defaultFont = new asc.FontProperties(this.model.getDefaultFont(), this.model.getDefaultSize());
     //-----------------------
 
     this.MobileTouchManager = null;
@@ -2665,7 +2664,7 @@
 
   WorkbookView.prototype._calcMaxDigitWidth = function () {
     // set default worksheet header font for calculations
-    this.buffers.main.setFont(this.defaultFont);
+    this.buffers.main.setFont(AscCommonExcel.g_oDefaultFormat.Font);
     // Измеряем в pt
     this.stringRender.measureString("0123456789", new AscCommonExcel.CellFlags());
 
@@ -2848,8 +2847,7 @@
   WorkbookView.prototype.af_getSmallIconTable = function (canvas, style, styleInfo, size) {
 
     var fmgrGraphics = this.fmgrGraphics;
-    var oFont = this.m_oFont;
-  	var ctx = new Asc.DrawingContext({canvas: canvas, units: 1/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
+  	var ctx = new Asc.DrawingContext({canvas: canvas, units: 1/*pt*/, fmgrGraphics: fmgrGraphics, font: this.m_oFont});
 
 	var w = size.w;
 	var h = size.h;
