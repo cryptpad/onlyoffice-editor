@@ -9303,8 +9303,29 @@
             t.handlers.trigger("slowOperation", true);
         }
 
+		var arnToRange = t.model.selectionRange.getLast();
+
+		//если вставка производится внутрь ф/т, расширяем её вниз
+		var activeTable = t.model.autoFilters.getTableContainActiveCell(t.model.selectionRange.activeCell);
+		if (activeTable) {
+			var delta = arnToRange.r2 - activeTable.Ref.r2;
+			if(delta > 0) {
+				if(!t.model.autoFilters._isPartTablePartsUnderRange(activeTable.Ref)) {
+					//сдвигаем и расширяем
+					//t.model.getRange3(activeTable.Ref.r2 + 1, activeTable.Ref.c1, activeTable.Ref.r2 + delta, activeTable.Ref.c2).addCellsShiftBottom();
+					//activeTable.changeRef(null, delta, null, true);
+				} else {
+					//в противном случае используем ячейки внизу таблицы без сдвига, перед этим проверяем на предмет наличия пустых строк под таблицей
+					var tempRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r2 + 1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
+					if(t.model.autoFilters._isEmptyRange(tempRange)) {
+						//расширяем таблицу вниз
+						//activeTable.changeRef(null, delta, null, true);
+					}
+				}
+			}
+		}
+
 		//добавляем форматированные таблицы
-        var arnToRange = t.model.selectionRange.getLast();
 		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
 		var activeCellsPasteFragment = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
         var tablesMap = null, intersectionRangeWithTableParts;
@@ -9363,6 +9384,7 @@
 				t._isLockedDefNames(null, null);
 			}
         }
+
 
         //делаем unmerge ф/т
         intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(arnToRange);

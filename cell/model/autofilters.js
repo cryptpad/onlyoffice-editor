@@ -1282,6 +1282,37 @@
 				return false;
 			},
 
+			getTableContainActiveCell: function(activeCell) {
+				var oRes = null;
+				if(!activeCell) {
+					return oRes;
+				}
+
+				this.forEachTables(function (table) {
+					if(table.Ref.contains(activeCell.col, activeCell.row)) {
+						oRes = table;
+						return true;
+					} else {
+						return null;
+					}
+				});
+
+				return oRes;
+			},
+
+			forEachTables: function(callback) {
+				var worksheet = this.worksheet;
+				var tableParts = worksheet.TableParts;
+				if(tableParts) {
+					for (var i = 0, l = tableParts.length; i < l; ++i) {
+						var oRes = callback(tableParts[i], i);
+						if (null != oRes) {
+							return oRes;
+						}
+					}
+				}
+			},
+
 			_cleanStylesTables: function(redrawTablesArr) {
 				for(var i = 0; i < redrawTablesArr.length; i++) {
 					this._cleanStyleTable(redrawTablesArr[i].oldfilterRef);
