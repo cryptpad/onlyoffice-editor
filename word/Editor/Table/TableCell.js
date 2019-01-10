@@ -1014,19 +1014,18 @@ CTableCell.prototype =
         }
 
         // Shd
-        if ( undefined === OtherPr.Shd )
-            this.Set_Shd( undefined );
-        else
-        {
-            var Shd_new =
-                {
-                    Value : OtherPr.Shd.Value,
-                    Color : { r : OtherPr.Shd.Color.r, g : OtherPr.Shd.Color.g, b : OtherPr.Shd.Color.b },
-                    Unifill : OtherPr.Shd.Unifill ? OtherPr.Shd.Unifill.createDuplicate() : undefined
-                };
-
-            this.Set_Shd( Shd_new );
-        }
+		if (undefined === OtherPr.Shd)
+		{
+			this.Set_Shd(undefined);
+		}
+		else
+		{
+			this.Set_Shd({
+				Value   : OtherPr.Shd.Value,
+				Color   : OtherPr.Shd.Color ? {r : OtherPr.Shd.Color.r, g : OtherPr.Shd.Color.g, b : OtherPr.Shd.Color.b} : undefined,
+				Unifill : OtherPr.Shd.Unifill ? OtherPr.Shd.Unifill.createDuplicate() : undefined
+			});
+		}
 
         if ( true != bCopyOnlyVisualProps )
         {
