@@ -9238,14 +9238,15 @@ CTable.prototype.SplitTableCells = function(Rows, Cols)
 /**
  * Добавление строки.
  * @param bBefore - true - до(сверху) первой выделенной строки, false - после(снизу) последней выделенной строки.
+ * @param {boolean} [isCheckInnerTable=true] Выполнять ли данную функцию для внутренней таблицы
  */
-CTable.prototype.AddTableRow = function(bBefore)
+CTable.prototype.AddTableRow = function(bBefore, isCheckInnerTable)
 {
 	if ("undefined" === typeof(bBefore))
 		bBefore = true;
 
 	var bApplyToInnerTable = false;
-	if (false === this.Selection.Use || ( true === this.Selection.Use && table_Selection_Text === this.Selection.Type ))
+	if (false !== isCheckInnerTable && (false === this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type)))
 		bApplyToInnerTable = this.CurCell.Content.AddTableRow(bBefore);
 
 	if (true === bApplyToInnerTable)
@@ -13055,7 +13056,7 @@ CTable.prototype.InsertTableContent = function(_nCellIndex, _nRowIndex, oTable)
 	{
 		this.RemoveSelection();
 		this.CurCell = this.GetRow(this.GetRowsCount() - 1).GetCell(0);
-		this.AddTableRow(false);
+		this.AddTableRow(false, false);
 		nAddRows--;
 
 		this.private_RecalculateGridCols();
