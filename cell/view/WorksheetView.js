@@ -9140,7 +9140,7 @@
 						var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 						specialPasteHelper.specialPasteProps = specialPasteHelper.specialPasteProps ? specialPasteHelper.specialPasteProps : new Asc.SpecialPasteProps();
 
-                        t._loadDataBeforePaste(isLargeRange, val, val.data, bIsUpdate, canChangeColWidth);
+                        t._loadDataBeforePaste(isLargeRange, val, val.data, bIsUpdate, canChangeColWidth, item);
 						bIsUpdate = false;
                         break;
                     case "hyperlink":
@@ -9284,7 +9284,7 @@
 		}
 	};
 
-    WorksheetView.prototype._pasteData = function (isLargeRange, fromBinary, val, bIsUpdate) {
+    WorksheetView.prototype._pasteData = function (isLargeRange, fromBinary, val, bIsUpdate, pasteToRange) {
         var t = this;
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var specialPasteProps = specialPasteHelper.specialPasteProps;
@@ -9303,29 +9303,30 @@
             t.handlers.trigger("slowOperation", true);
         }
 
-		var arnToRange = t.model.selectionRange.getLast();
-
 		//если вставка производится внутрь ф/т, расширяем её вниз
 		var activeTable = t.model.autoFilters.getTableContainActiveCell(t.model.selectionRange.activeCell);
-		if (activeTable) {
-			var delta = arnToRange.r2 - activeTable.Ref.r2;
+		if (pasteToRange && activeTable) {
+			var delta = pasteToRange.r2 - activeTable.Ref.r2;
 			if(delta > 0) {
 				if(!t.model.autoFilters._isPartTablePartsUnderRange(activeTable.Ref)) {
 					//сдвигаем и расширяем
 					//t.model.getRange3(activeTable.Ref.r2 + 1, activeTable.Ref.c1, activeTable.Ref.r2 + delta, activeTable.Ref.c2).addCellsShiftBottom();
-					//activeTable.changeRef(null, delta, null, true);
+					//activeTable.changeRef(null, delta, null);
+					//t.model.autoFilters._setColorStyleTable(activeTable.Ref, activeTable, null, null);
 				} else {
 					//в противном случае используем ячейки внизу таблицы без сдвига, перед этим проверяем на предмет наличия пустых строк под таблицей
 					var tempRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r2 + 1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
 					if(t.model.autoFilters._isEmptyRange(tempRange)) {
 						//расширяем таблицу вниз
-						//activeTable.changeRef(null, delta, null, true);
+						//activeTable.changeRef(null, delta, null);
+						//t.model.autoFilters._setColorStyleTable(activeTable.Ref, activeTable, null, null);
 					}
 				}
 			}
 		}
 
 		//добавляем форматированные таблицы
+		var arnToRange = t.model.selectionRange.getLast();
 		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
 		var activeCellsPasteFragment = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
         var tablesMap = null, intersectionRangeWithTableParts;
@@ -9478,7 +9479,7 @@
 		return selectData;
     };
 
-    WorksheetView.prototype._loadDataBeforePaste = function ( isLargeRange, val, pasteContent, bIsUpdate ) {
+    WorksheetView.prototype._loadDataBeforePaste = function ( isLargeRange, val, pasteContent, bIsUpdate, canChangeColWidth, pasteToRange ) {
         var t = this;
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var specialPasteProps = specialPasteHelper.specialPasteProps;
@@ -9515,7 +9516,7 @@
 		if(fromBinaryExcel)
 		{
 			AscCommonExcel.executeInR1C1Mode(false, function () {
-				selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+				selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 			});
 		}
 		else
@@ -9550,7 +9551,7 @@
 					}
 
 					AscCommonExcel.executeInR1C1Mode(false, function () {
-						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 					});
 					AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 				} else {
@@ -9559,19 +9560,19 @@
 						//TODO для мобильных приложений  - не рабочий код!
 						AscCommon.ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
 						AscCommonExcel.executeInR1C1Mode(false, function () {
-							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 						});
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					} else {
 						AscCommonExcel.executeInR1C1Mode(false, function () {
-							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 						});
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					}
 				}
 			} else {
 				AscCommonExcel.executeInR1C1Mode(false, function () {
-					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate);
+					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 				});
 			}
 
