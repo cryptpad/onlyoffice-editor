@@ -778,31 +778,22 @@ var g_oFontProperties = {
 		switch (nType) {
 			case this.Properties.fn:
 				return this.fn;
-				break;
 			case this.Properties.scheme:
 				return this.scheme;
-				break;
 			case this.Properties.fs:
 				return this.fs;
-				break;
 			case this.Properties.b:
 				return this.b;
-				break;
 			case this.Properties.i:
 				return this.i;
-				break;
 			case this.Properties.u:
 				return this.u;
-				break;
 			case this.Properties.s:
 				return this.s;
-				break;
 			case this.Properties.c:
 				return this.c;
-				break;
 			case this.Properties.va:
 				return this.va;
-				break;
 		}
 	};
 	Font.prototype.setProperty = function (nType, value) {
