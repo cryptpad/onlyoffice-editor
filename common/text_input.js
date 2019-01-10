@@ -315,6 +315,9 @@
 			var _elem          = document.getElementById("area_id_main");
 			var _elemSrc       = document.getElementById(_editorContainerId);
 
+			if (!_elem || !_elemSrc)
+				return;
+
 			if (AscCommon.AscBrowser.isChrome)
 			{
 				var rectObject = _elemSrc.getBoundingClientRect();
