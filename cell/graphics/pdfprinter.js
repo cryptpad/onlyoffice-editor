@@ -201,9 +201,7 @@ CPdfPrinter.prototype =
 		var _g = val.getG();
 		var _b = val.getB();
 		var _a = val.getA();
-        //this.DocumentRenderer.b_color1(_r, _g, _b, (_a * 255 + 0.5) >> 0);
-        // не менять!!! баг в хромиуме !!! (41ом)
-        this.DocumentRenderer.b_color1(_r, _g, _b, parseInt(_a * 255 + 0.5));
+        this.DocumentRenderer.b_color1(_r, _g, _b, (_a * 255 + 0.5) >> 0);
         return this;
     },
     setFillPattern : function(val)
@@ -220,9 +218,7 @@ CPdfPrinter.prototype =
 		var _g = val.getG();
 		var _b = val.getB();
 		var _a = val.getA();
-        //this.DocumentRenderer.p_color(_r, _g, _b, (_a * 255 + 0.5) >> 0);
-        // не менять!!! баг в хромиуме !!! (41ом)
-        this.DocumentRenderer.p_color(_r, _g, _b, parseInt(_a * 255 + 0.5));
+        this.DocumentRenderer.p_color(_r, _g, _b, (_a * 255 + 0.5) >> 0);
         return this;
     },
     setLineWidth : function(val)
