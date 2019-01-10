@@ -98,9 +98,9 @@
 	 * @param {Array} fmgrGraphics
 	 * @param {FontProperties} oFont
 	 * @param {HandlersList} handlers
-	 * @param {Object} settings
+	 * @param {Number} padding
 	 */
-	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, settings ) {
+	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, padding ) {
 		this.element = elem;
 		this.input = input;
 		this.handlers = new asc_HL( handlers );
@@ -163,7 +163,7 @@
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
 
 		this.defaults = {
-			padding: -1,
+			padding: padding,
 			selectColor: new AscCommon.CColor(190, 190, 255, 0.5),
 			canvasZIndex: 500,
 			blinkInterval: 500,
@@ -181,10 +181,9 @@
 		return this;
 	}
 
-	CellEditor.prototype._init = function (settings) {
+	CellEditor.prototype._init = function () {
 		var t = this;
 		var z = t.defaults.canvasZIndex;
-		this.defaults.padding = settings.padding;
 		this.sAutoComplete = null;
 
 		if (null != this.element) {

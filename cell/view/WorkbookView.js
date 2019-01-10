@@ -678,9 +678,7 @@
 			  }, "onContextMenu": function (event) {
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  }
-		  }, /*settings*/{
-			  padding: this.defaults.worksheetView.cells.padding
-		  });
+		  }, this.defaults.worksheetView.cells.padding);
 
 	  this.wsViewHandlers = new AscCommonExcel.asc_CHandlersList(/*handlers*/{
 		  "canEdit": function () {
