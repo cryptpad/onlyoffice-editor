@@ -176,7 +176,7 @@
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
 
-		this._init( settings );
+		this._init();
 
 		return this;
 	}
