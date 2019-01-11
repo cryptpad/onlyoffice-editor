@@ -9779,7 +9779,7 @@ CDocument.prototype.Create_NewHistoryPoint = function(Description)
 };
 CDocument.prototype.Document_Undo = function(Options)
 {
-	if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && true !== this.IsFillingFormMode())
+	if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && true !== this.IsFillingFormMode() &&  !this.IsViewModeInReview())
 		return;
 
 	// Нужно сбрасывать, т.к. после Undo/Redo данные списки у нас будут в глобальной таблице, но не такие, какие нужны
@@ -16569,8 +16569,6 @@ CDocument.prototype.EndViewModeInReview = function()
 	if (0 === this.ViewModeInReview.mode)
 		return;
 
-	this.ViewModeInReview.mode = 0;
-
 	this.CollaborativeEditing.Set_GlobalLock(false);
 
 	this.Document_Undo();
@@ -16579,6 +16577,8 @@ CDocument.prototype.EndViewModeInReview = function()
 
 	if (this.ViewModeInReview.isFastCollaboration)
 		this.CollaborativeEditing.Set_Fast(true);
+
+	this.ViewModeInReview.mode = 0;
 };
 CDocument.prototype.StartCollaborationEditing = function()
 {
