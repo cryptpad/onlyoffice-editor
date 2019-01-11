@@ -9305,10 +9305,10 @@
 
 		//если вставка производится внутрь ф/т, расширяем её вниз
 		var activeTable = t.model.autoFilters.getTableContainActiveCell(t.model.selectionRange.activeCell);
-		if (pasteToRange && activeTable) {
+		var newRange;
+		if (pasteToRange && activeTable && specialPasteProps.formatTable) {
 			var delta = pasteToRange.r2 - activeTable.Ref.r2;
 			if(delta > 0) {
-				var newRange;
 				//TODO пересмотреть!
 				//пока сделал при вставке в ф/т расширяем только в случае, если внизу есть пустые строки, сдвиг не делаем
 				//потому что в случае совместного редактирования необходимо лочить весь лист(из-за сдвига)
@@ -9333,10 +9333,32 @@
 			}
 		}
 
-		//добавляем форматированные таблицы
-		var arnToRange = t.model.selectionRange.getLast();
 		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
 		var activeCellsPasteFragment = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
+
+		//для бага 26402 - добавляю возможность продолжения ф/т если вставляем фрагмент по ширине такой же как и ф/т
+		//и имеет хоть одну ячейку с данными
+		if(specialPasteProps.formatTable) {
+			var tableIndexAboveRange = t.model.autoFilters.searchRangeInTableParts(new Asc.Range(pasteToRange.c1, pasteToRange.r1 - 1, pasteToRange.c1, pasteToRange.r1 - 1));
+			var tableAboveRange = t.model.TableParts[tableIndexAboveRange];
+
+			if(tableAboveRange && tableAboveRange.Ref && !tableAboveRange.isTotalsRow() && tableAboveRange.Ref.c1 === pasteToRange.c1 && tableAboveRange.Ref.c2 === pasteToRange.c2) {
+				//далее проверяем наличие ф/т в области вставки
+				if(-1 === t.model.autoFilters.searchRangeInTableParts(pasteToRange)) {
+					//проверям на наличие хотя бы одной значимой ячейки в диапазоне, который вставляем
+					if(activeCellsPasteFragment && !val.autoFilters._isEmptyRange(activeCellsPasteFragment, 0)) {
+						newRange = new Asc.Range(tableAboveRange.Ref.c1, tableAboveRange.Ref.r1, pasteToRange.c2, pasteToRange.r2);
+						//продлеваем ф/т
+						t.model.autoFilters.changeTableRange(tableAboveRange.DisplayName, newRange);
+					}
+				}
+			}
+		}
+
+
+
+		//добавляем форматированные таблицы
+		var arnToRange = t.model.selectionRange.getLast();
         var tablesMap = null, intersectionRangeWithTableParts;
         if (fromBinary && val.TableParts && val.TableParts.length && specialPasteProps.formatTable) {
             var range, tablePartRange, tables = val.TableParts, diffRow, diffCol, curTable, bIsAddTable;
