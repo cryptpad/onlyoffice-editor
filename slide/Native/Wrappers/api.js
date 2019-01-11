@@ -3068,6 +3068,8 @@ function NativeOpenFileP(_params, documentInfo){
         // }
 
         _api.asc_GetDefaultTableStyles();
+	    _presentation.Recalculate({Drawings:{All:true, Map:{}}});
+	    _presentation.CurPage = Math.min(0, _presentation.Slides.length - 1);
         _presentation.Document_UpdateInterfaceState();
         _presentation.DrawingDocument.CheckThemes();
         _api.WordControl.CheckLayouts();
