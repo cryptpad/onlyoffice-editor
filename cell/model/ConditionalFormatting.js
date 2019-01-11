@@ -67,16 +67,20 @@
 	};
 
 	//todo need another approach
-	function CConditionalFormattingFormulaWrapper (ws, rule) {
+	function CConditionalFormattingFormulaParent (ws, rule, isDefName) {
 		this.ws = ws;
 		this.rule = rule;
+		this.isDefName = isDefName;
 	}
-	CConditionalFormattingFormulaWrapper.prototype.onFormulaEvent = function(type, eventData) {
-		if (AscCommon.c_oNotifyParentType.IsDefName === type) {
+	CConditionalFormattingFormulaParent.prototype.onFormulaEvent = function(type, eventData) {
+		if (AscCommon.c_oNotifyParentType.IsDefName === type && this.isDefName) {
 			return {bbox: this.rule.getBBox(), ranges: this.rule.ranges};
 		} else if (AscCommon.c_oNotifyParentType.Change === type) {
 			this.ws.setDirtyConditionalFormatting(new AscCommonExcel.MultiplyRange(this.rule.ranges));
 		}
+	};
+	CConditionalFormattingFormulaParent.prototype.clone = function() {
+		return new CConditionalFormattingFormulaParent(this.ws, this.rule, this.isDefName);
 	};
 
 	function CConditionalFormattingRule () {
@@ -391,22 +395,21 @@
 			res.aColors.push(this.aColors[i].clone());
 		return res;
 	};
-	CColorScale.prototype.getMin = function(values) {
+	CColorScale.prototype.getMin = function(values, ws, rule) {
 		var oCFVO = (0 < this.aCFVOs.length) ? this.aCFVOs[0] : null;
-		return this.getValue(values, oCFVO);
+		return this.getValue(values, oCFVO, ws, rule);
 	};
-	CColorScale.prototype.getMid = function(values) {
+	CColorScale.prototype.getMid = function(values, ws, rule) {
 		var oCFVO = (2 < this.aCFVOs.length ? this.aCFVOs[1] : null);
-		return this.getValue(values, oCFVO);
+		return this.getValue(values, oCFVO, ws, rule);
 	};
-	CColorScale.prototype.getMax = function(values) {
+	CColorScale.prototype.getMax = function(values, ws, rule) {
 		var oCFVO = (2 === this.aCFVOs.length) ? this.aCFVOs[1] : (2 < this.aCFVOs.length ? this.aCFVOs[2] : null);
-		return this.getValue(values, oCFVO);
+		return this.getValue(values, oCFVO, ws, rule);
 	};
-	CColorScale.prototype.getValue = function(values, oCFVO) {
+	CColorScale.prototype.getValue = function(values, oCFVO, ws, rule) {
 		var res, min;
 		if (oCFVO) {
-			// ToDo Formula
 			switch (oCFVO.Type) {
 				case AscCommonExcel.ECfvoType.Minimum:
 					res = AscCommonExcel.getArrayMin(values);
@@ -427,6 +430,20 @@
 						res = res.getValue();
 					} else {
 						res = AscCommonExcel.getArrayMin(values);
+					}
+					break;
+				case AscCommonExcel.ECfvoType.Formula:
+					if (null === oCFVO.formula) {
+						oCFVO.formulaParent = new CConditionalFormattingFormulaParent(ws, rule, false);
+						oCFVO.formula = new CFormulaCF();
+						oCFVO.formula.Text = oCFVO.Val;
+					}
+					var calcRes = oCFVO.formula.getValueRaw(ws, oCFVO.formulaParent);
+					if (calcRes && calcRes.tocNumber) {
+						calcRes = calcRes.tocNumber();
+						if (calcRes && calcRes.toNumber) {
+							res = calcRes.toNumber();
+						}
 					}
 					break;
 				default:
@@ -514,6 +531,8 @@
 		this.Gte = true;
 		this.Type = null;
 		this.Val = null;
+		this.formulaParent = null;
+		this.formula = null;
 
 		return this;
 	}
@@ -522,6 +541,8 @@
 		res.Gte = this.Gte;
 		res.Type = this.Type;
 		res.Val = this.Val;
+		res.formulaParent = this.formulaParent ? this.formulaParent.clone() : null;
+		res.formula = this.formula ? this.formula.clone() : null;
 		return res;
 	};
 
@@ -575,7 +596,7 @@
 	 */
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CConditionalFormatting = CConditionalFormatting;
-	window['AscCommonExcel'].CConditionalFormattingFormulaWrapper = CConditionalFormattingFormulaWrapper;
+	window['AscCommonExcel'].CConditionalFormattingFormulaParent = CConditionalFormattingFormulaParent;
 	window['AscCommonExcel'].CConditionalFormattingRule = CConditionalFormattingRule;
 	window['AscCommonExcel'].CColorScale = CColorScale;
 	window['AscCommonExcel'].CDataBar = CDataBar;

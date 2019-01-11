@@ -3557,12 +3557,12 @@
 						l = oRuleElement.aColors.length;
 						if (0 < values.length && 2 <= l) {
 							oGradient1 = new AscCommonExcel.CGradient(oRuleElement.aColors[0], oRuleElement.aColors[1]);
-							min = oRuleElement.getMin(values);
-							max = oRuleElement.getMax(values);
+							min = oRuleElement.getMin(values, t, oRule);
+							max = oRuleElement.getMax(values, t, oRule);
 							oGradient2 = null;
 							if (2 < l) {
 								oGradient2 = new AscCommonExcel.CGradient(oRuleElement.aColors[1], oRuleElement.aColors[2]);
-								mid = oRuleElement.getMid(values);
+								mid = oRuleElement.getMid(values, t, oRule);
 
 								oGradient1.init(min, mid);
 								oGradient2.init(mid, max);
@@ -3807,10 +3807,10 @@
 								break;
 							case AscCommonExcel.ECfType.expression:
 								var offset = new AscCommon.CellBase(0, 0);
-							var bboxCf = oRule.getBBox();
+								var bboxCf = oRule.getBBox();
 								var rowLT = bboxCf ? bboxCf.r1 : 0;
 								var colLT = bboxCf ? bboxCf.c1 : 0;
-							var formulaParent =  new AscCommonExcel.CConditionalFormattingFormulaWrapper(this, oRule);
+								var formulaParent = new AscCommonExcel.CConditionalFormattingFormulaParent(this, oRule, true);
 								compareFunction = getCacheFunction(oRule, (function(rule, formulaCF, rowLT, colLT) {
 									return function(row, col) {
 										offset.row = row - rowLT;

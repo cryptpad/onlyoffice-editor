@@ -808,6 +808,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cNumber.prototype.tocNumber = function () {
 		return this;
 	};
+	cNumber.prototype.toNumber = function () {
+		return this.value;
+	};
 	cNumber.prototype.tocBool = function () {
 		return new cBool(this.value !== 0);
 	};
