@@ -1852,6 +1852,7 @@
 	};
 
     WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData) {
+		this.stringRender.fontNeedUpdate = true;
         if (null === printPagesData) {
             // Напечатаем пустую страницу
             drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);

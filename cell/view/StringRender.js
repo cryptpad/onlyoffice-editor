@@ -186,7 +186,7 @@
 			}
 			this.flags = flags;
 			this._reset();
-			this.drawingCtx.setFont(AscCommonExcel.g_oDefaultFormat.Font, this.angle);
+			this._setFont(this.drawingCtx, AscCommonExcel.g_oDefaultFormat.Font);
 			return this;
 		};
 
@@ -744,10 +744,11 @@
 		StringRender.prototype._measureChars = function (maxWidth) {
 			var self = this;
 			var ctx = this.drawingCtx;
+			var font = ctx.font;
 			var wrap = this.flags && (this.flags.wrapText || this.flags.wrapOnlyCE) && !this.flags.isNumberFormat;
 			var wrapNL = this.flags && this.flags.wrapOnlyNL;
 			var hasRepeats = false;
-			var i, j, fr, fmt, text, p, p_ = {}, pIndex, f_, eq, startCh;
+			var i, j, fr, fmt, text, p, p_ = {}, pIndex, startCh;
 			var tw = 0, nlPos = 0, isEastAsian, hpPos = undefined, isSP_ = true, delta = 0;
 
 			function measureFragment(s) {
@@ -822,7 +823,7 @@
 			this._reset();
 
 			// for each text fragment
-			for (i = 0, f_ = ctx.getFont(); i < this.fragments.length; ++i) {
+			for (i = 0; i < this.fragments.length; ++i) {
 				startCh = this.charWidths.length;
 				fr = this.fragments[i];
 				fmt = fr.format.clone();
@@ -842,11 +843,9 @@
 				}
 
 				// change font on canvas
-				eq = fmt.isEqual2(f_);
-				if (!eq || fmt.getUnderline() !== f_.getUnderline() || fmt.getStrikeout() !== f_.getStrikeout() || fmt.getColor() !== p_.c) {
-					if (!eq) {ctx.setFont(fmt, this.angle);}
+				if (this._setFont(ctx, fmt) || fmt.getUnderline() !== font.getUnderline() ||
+					fmt.getStrikeout() !== font.getStrikeout() || fmt.getColor() !== p_.c) {
 					p.font = fmt;
-					f_ = fmt;
 				}
 
 				// add marker in chars flow
@@ -877,7 +876,7 @@
 				measureFragment(text);
 
 				// для italic текста прибавляем к концу строки разницу между charWidth и BBox
-				for (j = startCh; f_.getItalic() && j < this.charWidths.length; ++j) {
+				for (j = startCh; font.getItalic() && j < this.charWidths.length; ++j) {
 					if (this.charProps[j] && this.charProps[j].delta && j > 0) {
 						if (this.charWidths[j-1] > 0) {
 							this.charWidths[j-1] += this.charProps[j].delta;
@@ -890,7 +889,7 @@
 
 			if (0 !== this.chars.length && this.charProps[this.chars.length] !== undefined) {
 				delete this.charProps[this.chars.length];
-			} else if (f_.getItalic()) {
+			} else if (font.getItalic()) {
 				// для italic текста прибавляем к концу текста разницу между charWidth и BBox
 				this.charWidths[this.charWidths.length - 1] += delta;
 			}
@@ -941,7 +940,7 @@
 			var zoom = ctx.getZoom();
 			var ppiy = ctx.getPPIY();
 			var align  = this.flags ? this.flags.textAlign : null;
-			var i, j, p, p_, f, f_, strBeg;
+			var i, j, p, p_, strBeg;
 			var n = 0, l = this.lines[0], x1 = l ? initX(0) : 0, y1 = y, dx = l ? computeWordDeltaX() : 0;
 
 			function initX(startPos) {
@@ -1014,7 +1013,7 @@
 				return dw;
 			}
 
-			for (i = 0, strBeg = 0, f_ = ctx.getFont(); i < this.chars.length; ++i) {
+			for (i = 0, strBeg = 0; i < this.chars.length; ++i) {
 				p = this.charProps[i];
 
 				if (p && (p.font || p.nl || p.hp || p.skip > 0)) {
@@ -1029,13 +1028,7 @@
 
 					if (p.font) {
 						// change canvas font style
-						f = p.font.clone();
-
-                        if (!f.isEqual(f_) || this.fontNeedUpdate) {
-                            ctx.setFont(f, this.angle);
-                            f_ = f;
-                            this.fontNeedUpdate = false;
-                        }
+                        this._setFont(ctx, p.font);
 						ctx.setFillStyle(p.c || textColor);
 						p_ = p;
 					}
@@ -1081,6 +1074,15 @@
 			this.charProps   = state.charProps;
 			this.lines       = state.lines;
 			return this;
+		};
+
+		StringRender.prototype._setFont = function (ctx, font) {
+			if (!font.isEqual(ctx.font) || this.fontNeedUpdate) {
+				ctx.setFont(font, this.angle);
+				this.fontNeedUpdate = false;
+				return true;
+			}
+			return false;
 		};
 
 
