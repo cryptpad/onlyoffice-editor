@@ -1988,7 +1988,24 @@
 				
 				return new AscCommon.CellBase(r, c);
 			},
-			
+
+			changeTableRef: function(table, props) {
+				//col, row, bIsFirst, bIsNotChangeAutoFilter
+				var col = props.col;
+				var row = props.row;
+				var bIsFirst = props.bIsFirst;
+				var bIsNotChangeAutoFilter = props.bIsNotChangeAutoFilter;
+
+				table.changeRef(col, row, bIsFirst, bIsNotChangeAutoFilter);
+				var changeElement =
+				{
+					oldFilter: oldFilter,
+					newFilterRef: filter.Ref.clone()
+				};
+				t._addHistoryObj(changeElement, AscCH.historyitem_AutoFilter_Change, null, true, oldFilter.Ref, null, activeRange);
+				t.model.autoFilters._setColorStyleTable(table.Ref, table);
+			},
+
 			_setStyleTablePartsAfterOpenRows: function(ref)
 			{
 				var worksheet = this.worksheet;

@@ -9308,19 +9308,27 @@
 		if (pasteToRange && activeTable) {
 			var delta = pasteToRange.r2 - activeTable.Ref.r2;
 			if(delta > 0) {
-				if(!t.model.autoFilters._isPartTablePartsUnderRange(activeTable.Ref)) {
+				var newRange;
+				//TODO пересмотреть!
+				//пока сделал при вставке в ф/т расширяем только в случае, если внизу есть пустые строки, сдвиг не делаем
+				//потому что в случае совместного редактирования необходимо лочить весь лист(из-за сдвига)
+				//и так же необходимо заранее расширить область обновления, чтобы данные внизу ф/т перерисовались
+				//и ещё excel ругается, когда область вставки затрагивает несколько таблиц - причём не во всех случаях - просмотреть!
+				//так же рассмотреть ситуацию, когда вставляется ниже последней строки ф/т заполненные текстом даные(если хоть 1 ячека содержит текст) - баг 26402
+				if(false && !t.model.autoFilters._isPartTablePartsUnderRange(activeTable.Ref)) {
 					//сдвигаем и расширяем
-					//t.model.getRange3(activeTable.Ref.r2 + 1, activeTable.Ref.c1, activeTable.Ref.r2 + delta, activeTable.Ref.c2).addCellsShiftBottom();
-					//activeTable.changeRef(null, delta, null);
-					//t.model.autoFilters._setColorStyleTable(activeTable.Ref, activeTable, null, null);
+					t.model.getRange3(activeTable.Ref.r2 + 1, activeTable.Ref.c1, activeTable.Ref.r2 + delta, activeTable.Ref.c2).addCellsShiftBottom();
+					newRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
 				} else {
 					//в противном случае используем ячейки внизу таблицы без сдвига, перед этим проверяем на предмет наличия пустых строк под таблицей
 					var tempRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r2 + 1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
-					if(t.model.autoFilters._isEmptyRange(tempRange)) {
+					if(t.model.autoFilters._isEmptyRange(tempRange, 0)) {
 						//расширяем таблицу вниз
-						//activeTable.changeRef(null, delta, null);
-						//t.model.autoFilters._setColorStyleTable(activeTable.Ref, activeTable, null, null);
+						newRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
 					}
+				}
+				if(newRange) {
+					t.model.autoFilters.changeTableRange(activeTable.DisplayName, newRange);
 				}
 			}
 		}
