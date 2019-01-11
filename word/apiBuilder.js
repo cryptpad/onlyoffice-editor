@@ -1237,7 +1237,7 @@
 	 */
 	ApiDocumentContent.prototype.RemoveAllElements = function()
 	{
-		this.Document.Internal_Content_Remove(0, this.Document.Content.length);
+		this.Document.Internal_Content_Remove(0, this.Document.Content.length, true);
 	};
 	/**
 	 * Remove element using the position specified.
@@ -1249,7 +1249,7 @@
 		if (nPos < 0 || nPos >= this.GetElementsCount())
 			return;
 
-		this.Document.Internal_Content_Remove(nPos, 1);
+		this.Document.Internal_Content_Remove(nPos, 1, true);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -1868,7 +1868,7 @@
 		}
 	};
 	/**
-	 * Create a copy of the paragraph. Comments, footnote references, complex fields
+	 * Create a copy of the paragraph. Ingonore comments, footnote references, complex fields
 	 * @returns {ApiParagraph}
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 */
@@ -2059,8 +2059,9 @@
 			SkipFootnoteReference : true,
 			SkipComplexFields     : true
 		});
-	};
 
+		return new ApiRun(oRun);
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -2536,6 +2537,16 @@
 
 		private_EndSilentMode();
 		return isEmpty;
+	};
+	/**
+	 * Create a copy of the table.
+	 * @returns {ApiTable}
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 */
+	ApiTable.prototype.Copy = function()
+	{
+		var oTable = this.Table.Copy();
+		return new ApiTable(oTable);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
