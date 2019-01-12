@@ -4397,7 +4397,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
 
 
     var oClipRect;
-    if(!graphics.IsSlideBoundsCheckerType){
+    if(!graphics.IsSlideBoundsCheckerType && this.getClipRect){
         oClipRect = this.getClipRect();
     }
     if(oClipRect){
