@@ -12606,6 +12606,14 @@ CChartSpace.prototype.draw = function(graphics)
             || bounds.y + bounds.h < rect.y)
             return;
     }
+    var oClipRect;
+    if(!graphics.IsSlideBoundsCheckerType){
+        oClipRect = this.getClipRect();
+    }
+    if(oClipRect){
+        graphics.SaveGrState();
+        graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+    }
     graphics.SaveGrState();
     graphics.SetIntegerGrid(false);
     graphics.transform3(this.transform, false);
@@ -12679,6 +12687,9 @@ CChartSpace.prototype.draw = function(graphics)
     }
     graphics.RestoreGrState();
     if(this.drawLocks(this.transform, graphics)){
+        graphics.RestoreGrState();
+    }
+    if(oClipRect){
         graphics.RestoreGrState();
     }
 };

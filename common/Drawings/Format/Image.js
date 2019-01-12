@@ -598,6 +598,15 @@ CImageShape.prototype.draw = function(graphics, transform)
             || bounds.y + bounds.h < rect.y)
             return;
     }
+
+    var oClipRect;
+    if(!graphics.IsSlideBoundsCheckerType){
+        oClipRect = this.getClipRect();
+    }
+    if(oClipRect){
+        graphics.SaveGrState();
+        graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+    }
     var _transform = transform ? transform :this.transform;
     graphics.SetIntegerGrid(false);
     graphics.transform3(_transform, false);
@@ -646,6 +655,9 @@ CImageShape.prototype.draw = function(graphics, transform)
     this.pen = oldPen;
 
     this.drawLocks(_transform, graphics);
+    if(oClipRect){
+        graphics.RestoreGrState();
+    }
     graphics.reset();
     graphics.SetIntegerGrid(true);
 };

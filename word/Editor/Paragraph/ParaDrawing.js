@@ -828,7 +828,7 @@ ParaDrawing.prototype.Set_Props = function(Props)
 
 	if (this.SizeRelV && !this.SizeRelH)
 	{
-		this.SetSizeRelH({RelativeFrom : AscCommon.c_oAscSizeRelFromH.sizerelfromhPage, Percent : 0})
+		this.SetSizeRelH({RelativeFrom : AscCommon.c_oAscSizeRelFromH.sizerelfromhPage, Percent : 0});
 	}
 
 	if (bCheckWrapPolygon)
@@ -1237,6 +1237,52 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 	this.updatePosition3(this.PageNum, this.X, this.Y, OldPageNum);
 	this.useWrap = this.Use_TextWrap();
 };
+
+ParaDrawing.prototype.GetClipRect = function ()
+{
+	// if(this.Is_Inline() || this.Use_TextWrap())
+	// {
+	// 	var oCell, H;
+	// 	if(this.DocumentContent && (oCell = this.DocumentContent.IsTableCellContent(true)))
+	// 	{
+	// 		var Row = oCell.GetRow();
+	// 		if(Row)
+	// 		{
+	// 			var Table = Row.Table;
+	// 			if(Table)
+	// 			{
+	// 				var RowInfo = Table.RowsInfo[Row.GetIndex()];
+	// 				if(RowInfo)
+	// 				{
+	// 					var PageNum = 0;// Table.Get_CurrentPage_Relative(this.PageNum);
+	// 					var Y = RowInfo.Y[PageNum];
+	// 					if(AscFormat.isRealNumber(Y))
+	// 					{
+	// 						var H = RowInfo.H[PageNum];
+	// 						if(AscFormat.isRealNumber(H))
+	// 						{
+	// 							var Y_bottom = Y + H;
+	// 							var oPage = Table.Pages[PageNum];
+	// 							if(oPage)
+	// 							{
+	// 								var CellInfo     = Row.Get_CellInfo( oCell.GetIndex() );
+	// 								if(CellInfo)
+	// 								{
+	// 									var X_cell_start = oPage.X + CellInfo.X_cell_start;
+	// 									var X_cell_end   = oPage.X + CellInfo.X_cell_end;
+	// 									return {x: X_cell_start, y: Y, w: X_cell_end - X_cell_start, h: Y_bottom - Y};
+	// 								}
+	// 							}
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+    //
+	// 	}
+	// }
+	return null;
+};
 ParaDrawing.prototype.Update_PositionYHeaderFooter = function(TopMarginY, BottomMarginY)
 {
 	this.Internal_Position.Update_PositionYHeaderFooter(TopMarginY, BottomMarginY);
@@ -1268,7 +1314,7 @@ ParaDrawing.prototype.GetPosCorrection = function()
 	var bCell;
 
 	var oEffectExtent = this.EffectExtent;
-	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent .IsTableCellContent(false))))
+	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent.IsTableCellContent(false))))
 	{
 		var extX, extY, rot;
 		if (this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm )

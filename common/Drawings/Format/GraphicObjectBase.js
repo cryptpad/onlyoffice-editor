@@ -697,8 +697,6 @@
         return null;
     };
 
-
-
     CGraphicObjectBase.prototype.checkDrawingBaseCoords = function()
     {
         if(this.drawingBase && this.spPr && this.spPr.xfrm && !this.group) {
@@ -1299,6 +1297,13 @@
             return this.brush;
         }
         return AscFormat.CreateNoFillUniFill();
+    };
+
+    CGraphicObjectBase.prototype.getClipRect = function(){
+        if(this.parent && this.parent.GetClipRect){
+            return this.parent.GetClipRect();
+        }
+        return null;
     };
 
 

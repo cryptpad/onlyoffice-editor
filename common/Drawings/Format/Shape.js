@@ -4353,7 +4353,6 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
             return;
     }
 
-
     var _transform = transform ? transform : this.transform;
     var _transform_text = transformText ? transformText : this.transformText;
     var geometry = this.calcGeometry || this.spPr && this.spPr.geometry;
@@ -4397,6 +4396,14 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
     }
 
 
+    var oClipRect;
+    if(!graphics.IsSlideBoundsCheckerType){
+        oClipRect = this.getClipRect();
+    }
+    if(oClipRect){
+        graphics.SaveGrState();
+        graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+    }
     var _oldBrush = this.brush;
     if(this.signatureLine){
         var sSignatureUrl = null;
@@ -4649,6 +4656,9 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         }
     }
     this.drawLocks && this.drawLocks(_transform, graphics);
+    if(oClipRect){
+        graphics.RestoreGrState();
+    }
     graphics.SetIntegerGrid(true);
     graphics.reset();
 };
