@@ -3291,7 +3291,7 @@ DrawingObjectsController.prototype =
             }
         }
         if(isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y)
-        || AscFormat.isRealBool(props.flipH) || AscFormat.isRealBool(props.flipV) || AscFormat.isRealNumber(props.rot))
+        || AscFormat.isRealBool(props.flipH) || AscFormat.isRealBool(props.flipV) || AscFormat.isRealBool(props.flipHInvert) || AscFormat.isRealBool(props.flipVInvert) || AscFormat.isRealNumber(props.rotAdd) || AscFormat.isRealNumber(props.rot))
         {
             var bPosition = isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y);
             for(i = 0; i < objects_by_type.shapes.length; ++i)
@@ -3302,13 +3302,22 @@ DrawingObjectsController.prototype =
                     objects_by_type.shapes[i].spPr.xfrm.setOffY(props.Position.Y);
                 }
                 if(AscFormat.isRealBool(props.flipH)){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(!objects_by_type.shapes[i].spPr.xfrm.flipH);
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(!!objects_by_type.shapes[i].spPr.xfrm.flipH);
                 }
                 if(AscFormat.isRealBool(props.flipV)){
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(!!objects_by_type.shapes[i].spPr.xfrm.flipV);
+                }
+                if(props.flipHInvert){
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(!objects_by_type.shapes[i].spPr.xfrm.flipH);
+                }
+                if(props.flipVInvert){
                     objects_by_type.shapes[i].spPr.xfrm.setFlipV(!objects_by_type.shapes[i].spPr.xfrm.flipV);
                 }
+                if(AscFormat.isRealNumber(props.rotAdd)){
+                    objects_by_type.shapes[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(objects_by_type.shapes[i].rot + props.rotAdd));
+                }
                 if(AscFormat.isRealNumber(props.rot)){
-                    objects_by_type.shapes[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(objects_by_type.shapes[i].rot + props.rot));
+                    objects_by_type.shapes[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(props.rot));
                 }
                 if(objects_by_type.shapes[i].group)
                 {
@@ -3324,13 +3333,16 @@ DrawingObjectsController.prototype =
                     objects_by_type.images[i].spPr.xfrm.setOffY(props.Position.Y);
                 }
                 if(AscFormat.isRealBool(props.flipH)){
-                    objects_by_type.images[i].spPr.xfrm.setFlipH(!objects_by_type.images[i].spPr.xfrm.flipH);
+                    objects_by_type.images[i].spPr.xfrm.setFlipH(objects_by_type.images[i].spPr.xfrm.flipH);
                 }
                 if(AscFormat.isRealBool(props.flipV)){
-                    objects_by_type.images[i].spPr.xfrm.setFlipV(!objects_by_type.images[i].spPr.xfrm.flipV);
+                    objects_by_type.images[i].spPr.xfrm.setFlipV(objects_by_type.images[i].spPr.xfrm.flipV);
                 }
                 if(AscFormat.isRealNumber(props.rot)){
-                    objects_by_type.images[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(objects_by_type.images[i].rot + props.rot));
+                    objects_by_type.images[i].spPr.xfrm.setRot(AscFormat.normalizeRotate( props.rot));
+                }
+                if(AscFormat.isRealNumber(props.rotAdd)){
+                    objects_by_type.images[i].spPr.xfrm.setRot(AscFormat.normalizeRotate( objects_by_type.images[i].rot + props.rotAdd));
                 }
                 if(objects_by_type.images[i].group)
                 {
