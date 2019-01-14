@@ -1377,8 +1377,7 @@
 
 		this.GetCharLoadMode = function()
         {
-        	return 40968;
-            return (this.HintsSupport && this.HintsSubpixelSupport) ? this.m_oFontManager.LOAD_MODE : 40970;
+        	return (this.HintsSupport && this.HintsSubpixelSupport) ? this.m_oFontManager.LOAD_MODE : 40970;
         };
 
         this.GetKerning = function(unPrevGID, unGID)
@@ -1490,8 +1489,7 @@
         this.CheckHintsSupport = function()
         {
             this.HintsSupport = true;
-
-            // TODO:
+            this.HintsSubpixelSupport = true;
         };
 
         this.SetFace = function(face, fontManager)

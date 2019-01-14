@@ -3225,30 +3225,19 @@
 
 	function SetHintsProps(bIsHinting, bIsSubpixHinting)
 	{
-		// TODO:
-		return;
-		if (undefined === g_fontManager.m_oLibrary.tt_hint_props)
-			return;
-
 		if (bIsHinting && bIsSubpixHinting)
 		{
-			g_fontManager.m_oLibrary.tt_hint_props.TT_USE_BYTECODE_INTERPRETER       = true;
-			g_fontManager.m_oLibrary.tt_hint_props.TT_CONFIG_OPTION_SUBPIXEL_HINTING = true;
-
 			g_fontManager.LOAD_MODE = 40968;
+			g_fontManager.REND_MODE_SUBPIX = true;
 		}
 		else if (bIsHinting)
 		{
-			g_fontManager.m_oLibrary.tt_hint_props.TT_USE_BYTECODE_INTERPRETER       = true;
-			g_fontManager.m_oLibrary.tt_hint_props.TT_CONFIG_OPTION_SUBPIXEL_HINTING = false;
-
 			g_fontManager.LOAD_MODE = 40968;
+			g_fontManager.REND_MODE_SUBPIX = false;
 		}
 		else
 		{
-			g_fontManager.m_oLibrary.tt_hint_props.TT_USE_BYTECODE_INTERPRETER       = true;
-			g_fontManager.m_oLibrary.tt_hint_props.TT_CONFIG_OPTION_SUBPIXEL_HINTING = false;
-
+			g_fontManager.REND_MODE_SUBPIX = false;
 			g_fontManager.LOAD_MODE = 40970;
 		}
 	}
