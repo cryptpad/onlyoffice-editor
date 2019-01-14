@@ -325,6 +325,24 @@
         this.h = b - t;
     };
 
+
+    CGraphicBounds.prototype.isIntersect = function(l, t, r, b){
+
+       if(l > this.r){
+           return false;
+       }
+       if(r < this.l){
+           return false;
+       }
+       if(t > this.b){
+           return false;
+       }
+       if(b < this.t){
+           return false;
+       }
+       return true;
+    };
+
     /**
      * Base class for all graphic objects
      * @constructor

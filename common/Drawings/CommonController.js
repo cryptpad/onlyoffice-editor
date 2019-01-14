@@ -3124,41 +3124,48 @@ DrawingObjectsController.prototype =
             }
         }
 
-        for(i = 0; i < objects_by_type.shapes.length; ++i)
+        if(props.title !== null && props.title !== undefined)
         {
-            objects_by_type.shapes[i].setTitle(props.title);
-        }
-        for(i = 0; i < objects_by_type.groups.length; ++i)
-        {
-            objects_by_type.groups[i].setTitle(props.title);
-        }
-        for(i = 0; i < objects_by_type.charts.length; ++i)
-        {
-            objects_by_type.charts[i].setTitle(props.title);
-        }
-
-        for(i = 0; i < objects_by_type.images.length; ++i)
-        {
-            objects_by_type.images[i].setTitle(props.title);
-        }
-
-        for(i = 0; i < objects_by_type.shapes.length; ++i)
-        {
-            objects_by_type.shapes[i].setDescription(props.description);
-        }
-        for(i = 0; i < objects_by_type.groups.length; ++i)
-        {
-            objects_by_type.groups[i].setDescription(props.description);
-        }
-        for(i = 0; i < objects_by_type.charts.length; ++i)
-        {
-            objects_by_type.charts[i].setDescription(props.description);
+            for(i = 0; i < objects_by_type.shapes.length; ++i)
+            {
+                objects_by_type.shapes[i].setTitle(props.title);
+            }
+            for(i = 0; i < objects_by_type.groups.length; ++i)
+            {
+                objects_by_type.groups[i].setTitle(props.title);
+            }
+            for(i = 0; i < objects_by_type.charts.length; ++i)
+            {
+                objects_by_type.charts[i].setTitle(props.title);
+            }
+            for(i = 0; i < objects_by_type.images.length; ++i)
+            {
+                objects_by_type.images[i].setTitle(props.title);
+            }
         }
 
-        for(i = 0; i < objects_by_type.images.length; ++i)
+
+        if(props.description !== null && props.description !== undefined)
         {
-            objects_by_type.images[i].setDescription(props.description);
+            for(i = 0; i < objects_by_type.shapes.length; ++i)
+            {
+                objects_by_type.shapes[i].setDescription(props.description);
+            }
+            for(i = 0; i < objects_by_type.groups.length; ++i)
+            {
+                objects_by_type.groups[i].setDescription(props.description);
+            }
+            for(i = 0; i < objects_by_type.charts.length; ++i)
+            {
+                objects_by_type.charts[i].setDescription(props.description);
+            }
+
+            for(i = 0; i < objects_by_type.images.length; ++i)
+            {
+                objects_by_type.images[i].setDescription(props.description);
+            }
         }
+
 
         if(typeof props.ImageUrl === "string" && props.ImageUrl.length > 0)
         {
@@ -3302,16 +3309,16 @@ DrawingObjectsController.prototype =
                     objects_by_type.shapes[i].spPr.xfrm.setOffY(props.Position.Y);
                 }
                 if(AscFormat.isRealBool(props.flipH)){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(!!objects_by_type.shapes[i].spPr.xfrm.flipH);
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(props.flipH);
                 }
                 if(AscFormat.isRealBool(props.flipV)){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(!!objects_by_type.shapes[i].spPr.xfrm.flipV);
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(props.flipV);
                 }
                 if(props.flipHInvert){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(!objects_by_type.shapes[i].spPr.xfrm.flipH);
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(!objects_by_type.shapes[i].flipH);
                 }
                 if(props.flipVInvert){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(!objects_by_type.shapes[i].spPr.xfrm.flipV);
+                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(!objects_by_type.shapes[i].flipV);
                 }
                 if(AscFormat.isRealNumber(props.rotAdd)){
                     objects_by_type.shapes[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(objects_by_type.shapes[i].rot + props.rotAdd));
@@ -3333,10 +3340,16 @@ DrawingObjectsController.prototype =
                     objects_by_type.images[i].spPr.xfrm.setOffY(props.Position.Y);
                 }
                 if(AscFormat.isRealBool(props.flipH)){
-                    objects_by_type.images[i].spPr.xfrm.setFlipH(objects_by_type.images[i].spPr.xfrm.flipH);
+                    objects_by_type.images[i].spPr.xfrm.setFlipH(props.flipH);
                 }
                 if(AscFormat.isRealBool(props.flipV)){
-                    objects_by_type.images[i].spPr.xfrm.setFlipV(objects_by_type.images[i].spPr.xfrm.flipV);
+                    objects_by_type.images[i].spPr.xfrm.setFlipV(props.flipV);
+                }
+                if(props.flipHInvert){
+                    objects_by_type.images[i].spPr.xfrm.setFlipH(!objects_by_type.images[i].flipH);
+                }
+                if(props.flipVInvert){
+                    objects_by_type.images[i].spPr.xfrm.setFlipV(!objects_by_type.images[i].flipV);
                 }
                 if(AscFormat.isRealNumber(props.rot)){
                     objects_by_type.images[i].spPr.xfrm.setRot(AscFormat.normalizeRotate( props.rot));
