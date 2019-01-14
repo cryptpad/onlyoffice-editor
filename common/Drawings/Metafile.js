@@ -3228,18 +3228,20 @@
 		if (bIsHinting && bIsSubpixHinting)
 		{
 			g_fontManager.LOAD_MODE = 40968;
-			g_fontManager.REND_MODE_SUBPIX = true;
+			g_fontManager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_40;
 		}
 		else if (bIsHinting)
 		{
 			g_fontManager.LOAD_MODE = 40968;
-			g_fontManager.REND_MODE_SUBPIX = false;
+            g_fontManager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
 		}
 		else
 		{
-			g_fontManager.REND_MODE_SUBPIX = false;
 			g_fontManager.LOAD_MODE = 40970;
+            g_fontManager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
 		}
+		if (g_fontManager.m_oLibrary)
+			AscFonts.FT_Set_TrueType_HintProp(g_fontManager.m_oLibrary, g_fontManager.REND_MODE_SUBPIX);
 	}
 
 	SetHintsProps(true, true);

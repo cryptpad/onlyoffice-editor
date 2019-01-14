@@ -44,7 +44,12 @@
         this.LoadFontFile = function(stream_index, name, faceindex, fontManager)
         {
             if (!fontManager.m_oLibrary)
-                this.m_oLibrary = AscFonts.CreateLibrary();
+            {
+                fontManager.m_oLibrary = AscFonts.CreateLibrary();
+
+                if (fontManager == AscCommon.g_fontManager)
+                    AscFonts.FT_Set_TrueType_HintProp(fontManager.m_oLibrary, fontManager.REND_MODE_SUBPIX);
+            }
 
             var _stream_pos = AscFonts.g_fonts_streams[stream_index];
             if (true !== _stream_pos.asc_marker)
@@ -54,7 +59,7 @@
                 AscFonts.g_fonts_streams[stream_index] = _native_stream;
             }
 
-            var face = AscFonts.FT_Open_Face(this.m_oLibrary, AscFonts.g_fonts_streams[stream_index], faceindex);
+            var face = AscFonts.FT_Open_Face(fontManager.m_oLibrary, AscFonts.g_fonts_streams[stream_index], faceindex);
             if (!face)
                 return null;
 
@@ -111,6 +116,7 @@
         this.RasterMemory = null;
 
         this.LOAD_MODE = 40970;
+        this.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
 
         this.IsCellMode = (params && params.mode == "cell") ? true : false;
         this.IsAdvanceNeedBoldFonts = this.IsCellMode;
