@@ -5468,19 +5468,12 @@ CTableMeasurement.prototype =
 
     Write_ToBinary : function(Writer)
     {
-        // Double : W
-        // Long   : Type
-        Writer.WriteDouble( this.W );
-        Writer.WriteLong( this.Type );
+    	this.WriteToBinary(Writer);
     },
 
     Read_FromBinary : function(Reader)
     {
-        // Double : W
-        // Long   : Type
-
-        this.W    = Reader.GetDouble();
-        this.Type = Reader.GetLong();
+    	return this.ReadFromBinary(Reader);
     },
 
     Set_FromObject : function(Obj)
@@ -5512,6 +5505,21 @@ CTableMeasurement.prototype.IsPercent = function()
 CTableMeasurement.prototype.GetValue = function()
 {
 	return this.W;
+};
+CTableMeasurement.prototype.ReadFromBinary = function(oReader)
+{
+	// Double : W
+	// Long   : Type
+
+	this.W    = oReader.GetDouble();
+	this.Type = oReader.GetLong();
+};
+CTableMeasurement.prototype.WriteToBinary = function(oWriter)
+{
+	// Double : W
+	// Long   : Type
+	oWriter.WriteDouble(this.W);
+	oWriter.WriteLong(this.Type);
 };
 
 function CTablePr()

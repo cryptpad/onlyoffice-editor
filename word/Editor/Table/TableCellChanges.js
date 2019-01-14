@@ -177,6 +177,15 @@ CChangesTableCellMargins.prototype.WriteToBinary = function(Writer)
 	// 3-bit : Is Old undefined?
 	// 4-bit : Is Old null?
 
+	// 5-bit  : is New.Left undefined
+	// 6-bit  : is New.Top undefined
+	// 7-bit  : is New.Right undefined
+	// 8-bit  : is New.Bottom undefined
+	// 9-bit  : is Old.Left undefined
+	// 10-bit : is Old.Top undefined
+	// 11-bit : is Old.Right undefined
+	// 12-bit : is Old.Bottom undefined
+
 	// CTableMeasure : New.Left
 	// CTableMeasure : New.Top
 	// CTableMeasure : New.Right
@@ -197,22 +206,66 @@ CChangesTableCellMargins.prototype.WriteToBinary = function(Writer)
 	if (null === this.Old)
 		nFlags |= 8;
 
-	Writer.WriteLong(nFlags);
-
-	if (undefined !== this.New && null !== this.New)
+	if (this.New)
 	{
-		this.New.Left.Write_ToBinary(Writer);
-		this.New.Top.Write_ToBinary(Writer);
-		this.New.Right.Write_ToBinary(Writer);
-		this.New.Bottom.Write_ToBinary(Writer);
+		if (this.New.Left)
+			nFlags |= 16;
+
+		if (this.New.Top)
+			nFlags |= 32;
+
+		if (this.New.Right)
+			nFlags |= 64;
+
+		if (this.New.Bottom)
+			nFlags |= 128;
 	}
 
-	if (undefined !== this.Old && null !== this.Old)
+	if (this.Old)
 	{
-		this.Old.Left.Write_ToBinary(Writer);
-		this.Old.Top.Write_ToBinary(Writer);
-		this.Old.Right.Write_ToBinary(Writer);
-		this.Old.Bottom.Write_ToBinary(Writer);
+		if (this.Old.Left)
+			nFlags |= 256;
+
+		if (this.Old.Top)
+			nFlags |= 512;
+
+		if (this.Old.Right)
+			nFlags |= 1024;
+
+		if (this.Old.Bottom)
+			nFlags |= 2048;
+	}
+
+	Writer.WriteLong(nFlags);
+
+	if (this.New)
+	{
+		if (this.New.Left)
+			this.New.Left.WriteToBinary(Writer);
+
+		if (this.New.Top)
+			this.New.Top.WriteToBinary(Writer);
+
+		if (this.New.Right)
+			this.New.Right.WriteToBinary(Writer);
+
+		if (this.New.Bottom)
+			this.New.Bottom.WriteToBinary(Writer);
+	}
+
+	if (this.Old)
+	{
+		if (this.Old.Left)
+			this.Old.Left.WriteToBinary(Writer);
+
+		if (this.Old.Top)
+			this.Old.Top.WriteToBinary(Writer);
+
+		if (this.Old.Right)
+			this.Old.Right.WriteToBinary(Writer);
+
+		if (this.Old.Bottom)
+			this.Old.Bottom.WriteToBinary(Writer);
 	}
 };
 CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
@@ -222,6 +275,15 @@ CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
 	// 2-bit : Is New null?
 	// 3-bit : Is Old undefined?
 	// 4-bit : Is Old null?
+
+	// 5-bit  : is New.Left undefined
+	// 6-bit  : is New.Top undefined
+	// 7-bit  : is New.Right undefined
+	// 8-bit  : is New.Bottom undefined
+	// 9-bit  : is Old.Left undefined
+	// 10-bit : is Old.Top undefined
+	// 11-bit : is Old.Right undefined
+	// 12-bit : is Old.Bottom undefined
 
 	// CTableMeasure : New.Left
 	// CTableMeasure : New.Top
@@ -245,16 +307,35 @@ CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
 	else
 	{
 		this.New = {
-			Left   : new CTableMeasurement(tblwidth_Auto, 0),
-			Top    : new CTableMeasurement(tblwidth_Auto, 0),
-			Right  : new CTableMeasurement(tblwidth_Auto, 0),
-			Bottom : new CTableMeasurement(tblwidth_Auto, 0)
+			Left   : undefined,
+			Top    : undefined,
+			Right  : undefined,
+			Bottom : undefined
 		};
 
-		this.New.Left.Read_FromBinary(Reader);
-		this.New.Top.Read_FromBinary(Reader);
-		this.New.Right.Read_FromBinary(Reader);
-		this.New.Bottom.Read_FromBinary(Reader);
+		if (nFlags & 16)
+		{
+			this.New.Left = new CTableMeasurement(tblwidth_Auto, 0);
+			this.New.Left.ReadFromBinary(Reader);
+		}
+
+		if (Flags & 32)
+		{
+			this.New.Top = new CTableMeasurement(tblwidth_Auto, 0);
+			this.New.Top.ReadFromBinary(Reader);
+		}
+
+		if (Flags & 64)
+		{
+			this.New.Right = new CTableMeasurement(tblwidth_Auto, 0);
+			this.New.Right.ReadFromBinary(Reader);
+		}
+
+		if (Flags & 128)
+		{
+			this.New.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
+			this.New.Bottom.ReadFromBinary(Reader);
+		}
 	}
 
 	if (nFlags & 4)
@@ -268,16 +349,35 @@ CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
 	else
 	{
 		this.Old = {
-			Left   : new CTableMeasurement(tblwidth_Auto, 0),
-			Top    : new CTableMeasurement(tblwidth_Auto, 0),
-			Right  : new CTableMeasurement(tblwidth_Auto, 0),
-			Bottom : new CTableMeasurement(tblwidth_Auto, 0)
+			Left   : undefined,
+			Top    : undefined,
+			Right  : undefined,
+			Bottom : undefined
 		};
 
-		this.Old.Left.Read_FromBinary(Reader);
-		this.Old.Top.Read_FromBinary(Reader);
-		this.Old.Right.Read_FromBinary(Reader);
-		this.Old.Bottom.Read_FromBinary(Reader);
+		if (nFlags & 256)
+		{
+			this.Old.Left = new CTableMeasurement(tblwidth_Auto, 0);
+			this.Old.Left.ReadFromBinary(Reader);
+		}
+
+		if (Flags & 512)
+		{
+			this.Old.Top = new CTableMeasurement(tblwidth_Auto, 0);
+			this.Old.Top.ReadFromBinary(Reader);
+		}
+
+		if (Flags & 1024)
+		{
+			this.Old.Right = new CTableMeasurement(tblwidth_Auto, 0);
+			this.Old.Right.ReadFromBinary(Reader);
+		}
+
+		if (Flags & 2048)
+		{
+			this.Old.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
+			this.Old.Bottom.ReadFromBinary(Reader);
+		}
 	}
 };
 CChangesTableCellMargins.prototype.private_SetValue = function(Value)
