@@ -2114,6 +2114,57 @@ CTableCell.prototype.SetHMerge = function(nType)
 	this.Pr.HMerge = nType;
 	this.Recalc_CompiledPr();
 };
+/**
+ * По заданной абсолютной странице получаем массив относительных страниц
+ * @param nPageAbs
+ * @returns {Array}
+ */
+CTableCell.prototype.GetCurPageByAbsolutePage = function(nPageAbs)
+{
+	var arrPages = [];
+
+	var nPagesCount = this.Content.Pages.length;
+	for (var nCurPage = 0; nCurPage < nPagesCount; ++nCurPage)
+	{
+		if (nPageAbs === this.Get_AbsolutePage(nCurPage))
+		{
+			arrPages.push(nCurPage);
+		}
+	}
+
+	return arrPages;
+};
+/**
+ * Получаем границы ячейки
+ * @param nCurPage
+ * @returns {CDocumentBounds}
+ */
+CTableCell.prototype.GetPageBounds = function(nCurPage)
+{
+	var oTable = this.GetTable();
+	var oRow   = this.GetRow();
+
+	if (!oRow || !oTable || !oTable.Pages[nCurPage])
+		return new CDocumentBounds(0, 0, 0, 0);
+
+	var nCurRow = oRow.GetIndex();
+	if (!oTable.RowsInfo[nCurRow] || !oTable.RowsInfo[nCurRow].Y[nCurPage] || !oTable.RowsInfo[nCurRow].H[nCurPage])
+		return new CDocumentBounds(0, 0, 0, 0);
+
+
+	var oPage = oTable.Pages[nCurPage];
+
+	var oCellInfo = oRow.GetCellInfo(this.GetIndex());
+
+
+	var nL = oPage.X + oCellInfo.X_cell_start;
+	var nR = oPage.X + oCellInfo.X_cell_end;
+
+	var nT = oTable.RowsInfo[nCurRow].Y[nCurPage];
+	var nB = oTable.RowsInfo[nCurRow].Y[nCurPage] + oTable.RowsInfo[nCurRow].H[nCurPage];
+
+	return new CDocumentBounds(nL, nT, nR, nB);
+};
 
 
 function CTableCellRecalculateObject()
