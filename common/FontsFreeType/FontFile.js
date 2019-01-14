@@ -549,26 +549,31 @@
 
 		},
 
+        _move_to: function(x, y, worker)
+        {
+            if (this.NeedClosed)
+            {
+                worker._z();
+                this.NeedClosed = false;
+            }
+
+            this.CurX = this.X + this.KoefX * (x / 64.0);
+            this.CurY = this.Y - this.KoefY * (y / 64.0);
+
+            worker._m(this.CurX, this.CurY);
+
+            return 0;
+        },
+
 		move_to: function (to, worker)
 		{
-			if (this.NeedClosed)
-			{
-				worker._z();
-				this.NeedClosed = false;
-			}
-
-			this.CurX = this.X + this.KoefX * (to.x / 64.0);
-			this.CurY = this.Y - this.KoefY * (to.y / 64.0);
-
-			worker._m(this.CurX, this.CurY);
-
-			return 0;
+			return this._move_to(to.x, to.y, worker);
 		},
 
-		line_to: function (to, worker)
+		_line_to: function (x, y, worker)
 		{
-			this.CurX = this.X + this.KoefX * (to.x / 64.0);
-			this.CurY = this.Y - this.KoefY * (to.y / 64.0);
+			this.CurX = this.X + this.KoefX * (x / 64.0);
+			this.CurY = this.Y - this.KoefY * (y / 64.0);
 
 			worker._l(this.CurX, this.CurY);
 
@@ -576,15 +581,20 @@
 			return 0;
 		},
 
-		conic_to: function (control, to, worker)
+        line_to: function (to, worker)
+        {
+            return this._line_to(to.x, to.y, worker);
+        },
+
+		_conic_to: function (control_x, control_y, to_x, to_y, worker)
 		{
 			var dX0 = this.CurX;
 			var dY0 = this.CurY;
 
-			var dXc = this.X + this.KoefX * (control.x / 64.0);
-			var dYc = this.Y - this.KoefY * (control.y / 64.0);
-			var dX3 = this.X + this.KoefX * (to.x / 64.0);
-			var dY3 = this.Y - this.KoefY * (to.y / 64.0);
+			var dXc = this.X + this.KoefX * (control_x / 64.0);
+			var dYc = this.Y - this.KoefY * (control_y / 64.0);
+			var dX3 = this.X + this.KoefX * (to_x / 64.0);
+			var dY3 = this.Y - this.KoefY * (to_y / 64.0);
 
 			// Строим кривую Безье второго порядка, с помощью кривой Безье третего порядка. Если p0, pC, p3 -
 			// начальная, контрольная и конечная точки, соответственно, для кривой Безье второго порядка. Тогда
@@ -607,22 +617,32 @@
 			return 0;
 		},
 
-		cubic_to: function (control1, control2, to, worker)
+        conic_to: function (control, to, worker)
+        {
+            return this._conic_to(control.x, control.y, to.x, to.y, worker);
+        },
+
+		_cubic_to: function (control1_x, control1_y, control2_x, control2_y, to_x, to_y, worker)
 		{
-			this.CurX = this.X + this.KoefX * (to.x / 64.0);
-			this.CurY = this.Y - this.KoefY * (to.y / 64.0);
+			this.CurX = this.X + this.KoefX * (to_x / 64.0);
+			this.CurY = this.Y - this.KoefY * (to_y / 64.0);
 
 			worker._c(
-				this.X + this.KoefX * (control1.x / 64.0),
-				this.Y - this.KoefY * (control1.y / 64.0),
-				this.X + this.KoefX * (control2.x / 64.0),
-				this.Y - this.KoefY * (control2.y / 64.0),
+				this.X + this.KoefX * (control1_x / 64.0),
+				this.Y - this.KoefY * (control1_y / 64.0),
+				this.X + this.KoefX * (control2_x / 64.0),
+				this.Y - this.KoefY * (control2_y / 64.0),
 				this.CurX,
 				this.CurY);
 
 			this.NeedClosed = true;
 			return 0;
 		},
+
+        cubic_to: function (control1, control2, to, worker)
+        {
+            return this._cubic_to(control1.x, control1.y, control2.x, control2.y, to.x, to.y, worker);
+        },
 
 		end: function (worker)
 		{
@@ -634,7 +654,7 @@
 		}
 	};
 
-    function CFontFile(fileName, faceIndex)
+	function CFontFile(fileName, faceIndex)
 	{
 		this.m_arrdFontMatrix = ("undefined" == typeof Float64Array) ? new Array(6) : new Float64Array(6);
 		this.m_arrdTextMatrix = ("undefined" == typeof Float64Array) ? new Array(6) : new Float64Array(6);
@@ -933,18 +953,13 @@
 
             //var measure_time_start = performance.now();
 
-            if (0 != this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, this.GetCharLoadMode()))
+            if (this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, this.GetCharLoadMode()))
                 return oSizes;
 
-            var measureInfo = AscFonts.FT_Glyph_Get_Measure(this.m_pFace);
-            if (null == measureInfo)
-                return oSizes;
-
-            //window.measureTime += (performance.now() - measure_time_start);
-
+            var _painter = null;
             if (undefined !== workerVector)
-			{
-                var _painter = new CGlyphVectorPainter();
+            {
+                _painter = new CGlyphVectorPainter();
                 _painter.KoefX = 25.4 / this.m_unHorDpi;
                 _painter.KoefY = 25.4 / this.m_unVerDpi;
 
@@ -952,12 +967,13 @@
                     _painter.X = workerVectorX;
                 if (workerVectorY !== undefined)
                     _painter.Y = workerVectorY;
+            }
 
-                _painter.start(workerVector);
-                AscFonts.FT_Outline_Decompose(pGlyph.outline, _painter, workerVector);
-                _painter.end(workerVector);
+            var measureInfo = AscFonts.FT_Glyph_Get_Measure(this.m_pFace, workerVector, _painter);
+            if ((null == measureInfo) || (undefined !== workerVector))
                 return oSizes;
-			}
+
+            //window.measureTime += (performance.now() - measure_time_start);
 
             oSizes.fAdvanceX = (measureInfo.linearHoriAdvance * this.m_dUnitsKoef / this.m_lUnits_Per_Em);
             if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
@@ -1355,9 +1371,6 @@
 
         this.GetStringPath = function(string, worker)
         {
-        	// TODO:
-			return;
-
             var _len = string.GetLength();
             if (_len <= 0)
                 return true;
