@@ -5001,12 +5001,16 @@ drawLineChart.prototype = {
 			dataSeries = numCache.pts;
 
 			for (var n = 0; n < numCache.ptCount; n++) {
-				idx = dataSeries[n] && dataSeries[n].idx != null ? dataSeries[n].idx : n;
+				idx = dataSeries[n] && dataSeries[n].idx != null ? dataSeries[n].idx : null;
+
+				if(null === idx) {
+					continue;
+				}
 
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
-				x = this.catAx ? this.cChartDrawer.getYPosition(n + 1, this.catAx) : xPoints[n].pos;
+				x = this.catAx ? this.cChartDrawer.getYPosition(idx + 1, this.catAx) : xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
 
 				if (!this.paths.points) {
@@ -5028,11 +5032,11 @@ drawLineChart.prototype = {
 				compiledMarkerSymbol = idxPoint && idxPoint.compiledMarker && AscFormat.isRealNumber(idxPoint.compiledMarker.symbol) ? idxPoint.compiledMarker.symbol : null;
 
 				if (val != null) {
-					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
-					points[i][n] = {x: x, y: y};
+					this.paths.points[i][idx] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
+					points[i][idx] = {x: x, y: y};
 				} else {
 					this.paths.points[i][n] = null;
-					points[i][n] = null;
+					points[i][idx] = null;
 				}
 			}
 		}
