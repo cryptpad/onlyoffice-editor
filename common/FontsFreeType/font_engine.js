@@ -549,30 +549,30 @@
         if (!_bufferPtr)
             return null;
 
-        var _buffer = new Int32Array(Module.HEAP8.buffer, _bufferPtr, 56);
-        var _index = 0;
+        var _buffer = new Int32Array(Module.HEAP8.buffer, _bufferPtr, 56); // 4 * 14
 
         var _info = new CGlyphMetrics();
-        _info.bbox_xMin     = _buffer[_index++];
-        _info.bbox_yMin     = _buffer[_index++];
-        _info.bbox_xMax     = _buffer[_index++];
-        _info.bbox_yMax     = _buffer[_index++];
+        _info.bbox_xMin     = _buffer[0];
+        _info.bbox_yMin     = _buffer[1];
+        _info.bbox_xMax     = _buffer[2];
+        _info.bbox_yMax     = _buffer[3];
 
-        _info.width         = _buffer[_index++];
-        _info.height        = _buffer[_index++];
+        _info.width         = _buffer[4];
+        _info.height        = _buffer[5];
 
-        _info.horiAdvance   = _buffer[_index++];
-        _info.horiBearingX  = _buffer[_index++];
-        _info.horiBearingY  = _buffer[_index++];
+        _info.horiAdvance   = _buffer[6];
+        _info.horiBearingX  = _buffer[7];
+        _info.horiBearingY  = _buffer[8];
 
-        _info.vertAdvance   = _buffer[_index++];
-        _info.vertBearingX  = _buffer[_index++];
-        _info.vertBearingY  = _buffer[_index++];
+        _info.vertAdvance   = _buffer[9];
+        _info.vertBearingX  = _buffer[10];
+        _info.vertBearingY  = _buffer[11];
 
-        _info.linearHoriAdvance     = _buffer[_index++];
-        _info.linearVertAdvance     = _buffer[_index++];
+        _info.linearHoriAdvance     = _buffer[12];
+        _info.linearVertAdvance     = _buffer[13];
 
         Module._ASC_FT_Free(_bufferPtr);
+        _buffer = null;
 
         return _info;
     };
@@ -584,14 +584,13 @@
             return null;
 
         var _buffer = new Int32Array(Module.HEAP8.buffer, _bufferPtr, 20);
-        var _index = 0;
 
         var _info = new CGlyphBitmapImage();
-        _info.left    = _buffer[_index++];
-        _info.top     = _buffer[_index++];
-        _info.width   = _buffer[_index++];
-        _info.rows    = _buffer[_index++];
-        _info.pitch   = _buffer[_index++];
+        _info.left    = _buffer[0];
+        _info.top     = _buffer[1];
+        _info.width   = _buffer[2];
+        _info.rows    = _buffer[3];
+        _info.pitch   = _buffer[4];
 
         Module._ASC_FT_Free(_bufferPtr);
         return _info;
