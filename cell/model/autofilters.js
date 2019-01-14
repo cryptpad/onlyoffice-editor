@@ -755,31 +755,27 @@
 				worksheet.workbook.dependencyFormulas.unlockRecal();
 				return {minChangeRow: minChangeRow, updateRange: filter.Ref, filter: filter};
 			},
-			
-			checkRemoveTableParts: function(delRange, tableRange)
-			{
+
+			checkRemoveTableParts: function (delRange, tableRange) {
 				var result = true, firstRowRange;
-				
-				if(tableRange && delRange.containsRange(tableRange) == false)
-				{
+
+				if (tableRange && delRange.containsRange(tableRange) == false) {
 					firstRowRange = new Asc.Range(tableRange.c1, tableRange.r1, tableRange.c2, tableRange.r1);
 					result = !firstRowRange.isIntersect(delRange);
 				}
-				
+
 				return result;
 			},
-			
-			searchRangeInTableParts: function(range)
-			{
+
+			searchRangeInTableParts: function (range) {
 				var worksheet = this.worksheet;
 				var containRangeId = -1, tableRange;
 				var tableParts = worksheet.TableParts;
-				if(tableParts)
-				{
-					for(var i = 0; i < tableParts.length; ++i)
-					{
-						if (!(tableRange = tableParts[i].Ref))
+				if (tableParts) {
+					for (var i = 0; i < tableParts.length; ++i) {
+						if (!(tableRange = tableParts[i].Ref)) {
 							continue;
+						}
 
 						if (range.isIntersect(tableRange)) {
 							containRangeId = tableRange.containsRange(range) ? i : -2;
@@ -793,87 +789,74 @@
 				//если диапазон не затрагивает форматированную таблицу, то -1
 				return containRangeId;
 			},
-			
-			checkApplyFilterOrSort: function(tablePartId)
-			{
+
+			checkApplyFilterOrSort: function (tablePartId) {
 				var worksheet = this.worksheet;
 				var result = false;
-				
-				if(-1 !== tablePartId)
-				{
+
+				if (-1 !== tablePartId) {
 					var tablePart = worksheet.TableParts[tablePartId];
-					if(tablePart.Ref && ((tablePart.AutoFilter && tablePart.AutoFilter.FilterColumns && tablePart.AutoFilter.FilterColumns.length) || (tablePart && tablePart.AutoFilter && tablePart.isApplySortConditions())))
+					if (tablePart.Ref && ((tablePart.AutoFilter && tablePart.AutoFilter.FilterColumns &&
+						tablePart.AutoFilter.FilterColumns.length) ||
+						(tablePart && tablePart.AutoFilter && tablePart.isApplySortConditions()))) {
 						result = {isFilterColumns: true, isAutoFilter: true};
-					else if(tablePart.Ref && tablePart.AutoFilter && tablePart.AutoFilter !== null)
+					} else if (tablePart.Ref && tablePart.AutoFilter &&
+						tablePart.AutoFilter !== null) {
 						result = {isFilterColumns: false, isAutoFilter: true};
-					else
-						result = {isFilterColumns: false, isAutoFilter: false};
-				}
-				else
-				{
-					if(worksheet.AutoFilter && ((worksheet.AutoFilter.FilterColumns && worksheet.AutoFilter.FilterColumns.length && this._isFilterColumnsContainFilter(worksheet.AutoFilter.FilterColumns)) || worksheet.AutoFilter.isApplySortConditions()))
-					{
-						result = {isFilterColumns: true, isAutoFilter: true};
-					}
-					else if(worksheet.AutoFilter)
-					{
-						result = {isFilterColumns: false, isAutoFilter: true};
-					}
-					else
-					{
+					} else {
 						result = {isFilterColumns: false, isAutoFilter: false};
 					}
+				} else {
+					if (worksheet.AutoFilter &&
+						((worksheet.AutoFilter.FilterColumns && worksheet.AutoFilter.FilterColumns.length &&
+						this._isFilterColumnsContainFilter(worksheet.AutoFilter.FilterColumns)) ||
+						worksheet.AutoFilter.isApplySortConditions())) {
+						result = {isFilterColumns: true, isAutoFilter: true};
+					} else if (worksheet.AutoFilter) {
+						result = {isFilterColumns: false, isAutoFilter: true};
+					} else {
+						result = {isFilterColumns: false, isAutoFilter: false};
+					}
 				}
-				
+
 				return result;
 			},
-			
-			getAddFormatTableOptions: function(activeCells, userRange)
-			{
+
+			getAddFormatTableOptions: function (activeCells, userRange) {
 				var res;
-				
-				if(userRange)
-				{
+
+				if (userRange) {
 					activeCells = AscCommonExcel.g_oRangeCache.getAscRange(userRange);
 				}
-				
+
 				//данная функция возвращает false в двух случаях - при смене стиля ф/т или при поптыке добавить ф/т к части а/ф
-				
+
 				//TODO переделать взаимодействие с меню. если находимся внутри ф/т - вызывать сразу из меню смену стиля ф/т. 
 				//для проверки возможности добавить ф/т - попробовать использовать parserHelper.checkDataRange
 				var bIsInFilter = this._searchRangeInFilters(activeCells);
 				var addRange;
-				
-				if(false === bIsInFilter)
-				{
+
+				if (false === bIsInFilter) {
 					bIsInFilter = null;
 				}
-				
-				if(null === bIsInFilter)
-				{
-					if(activeCells.r1 == activeCells.r2 && activeCells.c1 == activeCells.c2 && !userRange)//если ячейка выделенная одна
+
+				if (null === bIsInFilter) {
+					if (activeCells.r1 == activeCells.r2 && activeCells.c1 == activeCells.c2 && !userRange)//если ячейка выделенная одна
 					{
 						addRange = this.expandRange(activeCells);
-					}
-					else
-					{
+					} else {
 						addRange = activeCells;
 					}
-				}
-				else//range внутри а/ф или ф/т
+				} else//range внутри а/ф или ф/т
 				{
-					if(bIsInFilter.isAutoFilter())
-					{
+					if (bIsInFilter.isAutoFilter()) {
 						addRange = bIsInFilter.Ref;
-					}
-					else
-					{
+					} else {
 						res = false;
 					}
 				}
-				
-				if(false !== res)
-				{
+
+				if (false !== res) {
 					res = new AddFormatTableOptions();
 
 					var bIsTitle = this._isAddNameColumn(addRange);
@@ -1126,32 +1109,29 @@
 						break;
 				}
 			},
-			
-			reDrawFilter: function(range, row)
-			{
-				if(!range && row == undefined)
+
+			reDrawFilter: function (range, row) {
+				if (!range && row == undefined) {
 					return;
-				
+				}
+
 				var worksheet = this.worksheet;
 				var tableParts = worksheet.TableParts;
-				if(tableParts)
-				{
-					if(range === null && row !== undefined)
-					{
+				if (tableParts) {
+					if (range === null && row !== undefined) {
 						//TODO передавать wsview
 						range = new Asc.Range(0, row, worksheet.nColsCount - 1, row);
 					}
-					
-					for(var i = 0; i < tableParts.length; i++)
-					{
+
+					for (var i = 0; i < tableParts.length; i++) {
 						var currentFilter = tableParts[i];
-						if(currentFilter && currentFilter.Ref)
-						{
+						if (currentFilter && currentFilter.Ref) {
 							var tableRange = currentFilter.Ref;
-							
+
 							//проверяем, попадает хотя бы одна ячейка из диапазона в область фильтра
-							if(range.isIntersect(tableRange))
+							if (range.isIntersect(tableRange)) {
 								this._setColorStyleTable(tableRange, currentFilter);
+							}
 						}
 					}
 				}
@@ -1230,25 +1210,21 @@
 
 				History.EndTransaction();
 			},
-			
-			cleanFormat: function(range)
-			{
+
+			cleanFormat: function (range) {
 				var worksheet = this.worksheet;
 				var t = this, selectedTableParts;
 				//if first row AF in Range  - delete AF
-				if(worksheet.AutoFilter && worksheet.AutoFilter.Ref && range.containsFirstLineRange(worksheet.AutoFilter.Ref))
+				if (worksheet.AutoFilter && worksheet.AutoFilter.Ref && range.containsFirstLineRange(worksheet.AutoFilter.Ref)) {
 					this.isEmptyAutoFilters(worksheet.AutoFilter.Ref);
-				else
-				{
+				} else {
 
 					//*****callBack on delete filter
-					var deleteFormatCallBack = function()
-					{
+					var deleteFormatCallBack = function () {
 						History.Create_NewPoint();
 						History.StartTransaction();
 
-						for(var i = 0; i < selectedTableParts.length; i++)
-						{
+						for (var i = 0; i < selectedTableParts.length; i++) {
 							t.changeTableStyleInfo(null, selectedTableParts[i].Ref);
 						}
 
@@ -1256,8 +1232,7 @@
 					};
 
 					selectedTableParts = this._searchFiltersInRange(range, true);
-					if(selectedTableParts && selectedTableParts.length)
-					{
+					if (selectedTableParts && selectedTableParts.length) {
 						deleteFormatCallBack();
 					}
 				}
@@ -1265,17 +1240,17 @@
 			
 			
 			//if active range contains in tablePart but not equal this active range
-			isTablePartContainActiveRange: function(activeRange)
-			{
+			isTablePartContainActiveRange: function (activeRange) {
 				var worksheet = this.worksheet;
-				
+
 				var tableParts = worksheet.TableParts;
 				var tablePart;
-				for(var i = 0; i < tableParts.length; i++)
-				{
+				for (var i = 0; i < tableParts.length; i++) {
 					tablePart = tableParts[i];
-					if(tablePart && tablePart.Ref && tablePart.Ref.containsRange(activeRange) && !tablePart.Ref.isEqual(activeRange))
+					if (tablePart && tablePart.Ref && tablePart.Ref.containsRange(activeRange) &&
+						!tablePart.Ref.isEqual(activeRange)) {
 						return true;
+					}
 				}
 				return false;
 			},
@@ -1467,45 +1442,41 @@
 
 				return redrawTablesArr;
 			},
-			
-			insertLastTableColumn: function(displayNameFormatTable, activeRange)
-			{
+
+			insertLastTableColumn: function (displayNameFormatTable, activeRange) {
 				var worksheet = this.worksheet;
-				var t  = this;
+				var t = this;
 				var bUndoChanges = worksheet.workbook.bUndoChanges;
 				var bRedoChanges = worksheet.workbook.bRedoChanges;
-				
+
 				var redrawTablesArr = [];
-				
-				var changeFilter = function(filter)
-				{
+
+				var changeFilter = function (filter) {
 					var oldFilter = filter.clone(null);
 					filter.addTableLastColumn(null, t);
 					filter.changeRef(1);
-						
+
 					//History
-					if(!bUndoChanges && !bRedoChanges /*&& !notAddToHistory*/ && oldFilter)
-					{
-						var changeElement = 
-						{
-							oldFilter: oldFilter,
-							newFilterRef: filter.Ref.clone()
+					if (!bUndoChanges && !bRedoChanges /*&& !notAddToHistory*/ && oldFilter) {
+						var changeElement = {
+							oldFilter: oldFilter, newFilterRef: filter.Ref.clone()
 						};
-						t._addHistoryObj(changeElement, AscCH.historyitem_AutoFilter_Change, {displayName: displayNameFormatTable, activeCells: activeRange, type: true}, false, oldFilter.Ref, null, activeRange);
+						t._addHistoryObj(changeElement, AscCH.historyitem_AutoFilter_Change,
+							{displayName: displayNameFormatTable, activeCells: activeRange, type: true}, false,
+							oldFilter.Ref, null, activeRange);
 					}
-					
+
 					redrawTablesArr.push({oldfilterRef: oldFilter.Ref, newFilter: filter});
 				};
-				
+
 				var tablePart = t._getFilterByDisplayName(displayNameFormatTable);
-				
-				if(tablePart)
-				{
+
+				if (tablePart) {
 					//change TableParts
 					changeFilter(tablePart);
 				}
-				
-				
+
+
 				return redrawTablesArr;
 			},
 
@@ -1588,39 +1559,35 @@
 
 				return redrawTablesArr;
 			},
-			
-			insertLastTableRow: function(displayNameFormatTable, activeRange)
-			{
+
+			insertLastTableRow: function (displayNameFormatTable, activeRange) {
 				var worksheet = this.worksheet;
-				var t  = this;
+				var t = this;
 				var bUndoChanges = worksheet.workbook.bUndoChanges;
 				var bRedoChanges = worksheet.workbook.bRedoChanges;
-				
+
 				var redrawTablesArr = [];
-				
-				var changeFilter = function(filter)
-				{
+
+				var changeFilter = function (filter) {
 					var oldFilter = filter.clone(null);
 					filter.changeRef(null, 1);
-						
+
 					//History
-					if(!bUndoChanges && !bRedoChanges /*&& !notAddToHistory*/ && oldFilter)
-					{
-						var changeElement = 
-						{
-							oldFilter: oldFilter,
-							newFilterRef: filter.Ref.clone()
+					if (!bUndoChanges && !bRedoChanges /*&& !notAddToHistory*/ && oldFilter) {
+						var changeElement = {
+							oldFilter: oldFilter, newFilterRef: filter.Ref.clone()
 						};
-						t._addHistoryObj(changeElement, AscCH.historyitem_AutoFilter_Change, {displayName: displayNameFormatTable, activeCells: activeRange, type: false}, false, oldFilter.Ref, null, activeRange);
+						t._addHistoryObj(changeElement, AscCH.historyitem_AutoFilter_Change,
+							{displayName: displayNameFormatTable, activeCells: activeRange, type: false}, false,
+							oldFilter.Ref, null, activeRange);
 					}
-					
+
 					redrawTablesArr.push({oldfilterRef: oldFilter.Ref, newFilter: filter});
 				};
-				
+
 				var tablePart = t._getFilterByDisplayName(displayNameFormatTable);
-				
-				if(tablePart)
-				{
+
+				if (tablePart) {
 					//change TableParts
 					changeFilter(tablePart);
 				}
