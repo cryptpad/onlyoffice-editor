@@ -604,11 +604,20 @@ CTableCell.prototype =
         return this.Row.Table.Get_StartPage_Relative();
     },
 
+	/**
+	 * Получаем абсолютный номер страницы по относительному номеру страницы (относительно таблицы, а не ячейки!)
+	 * @param CurPage
+	 * @returns {number}
+	 */
     Get_AbsolutePage : function(CurPage)
     {
         return this.Row.Table.Get_AbsolutePage(CurPage);
     },
-
+	/**
+	 * Получаем абсолютный номер колонки по относительному номеру страницы (относительно таблицы, а не ячейки!)
+	 * @param CurPage
+	 * @returns {number}
+	 */
     Get_AbsoluteColumn : function(CurPage)
     {
         return this.Row.Table.Get_AbsoluteColumn(CurPage);
@@ -2115,7 +2124,7 @@ CTableCell.prototype.SetHMerge = function(nType)
 	this.Recalc_CompiledPr();
 };
 /**
- * По заданной абсолютной странице получаем массив относительных страниц
+ * По заданной абсолютной странице получаем массив относительных страниц (относительно таблицы)
  * @param nPageAbs
  * @returns {Array}
  */
@@ -2123,12 +2132,20 @@ CTableCell.prototype.GetCurPageByAbsolutePage = function(nPageAbs)
 {
 	var arrPages = [];
 
+	var oRow = this.GetRow();
+	var oTable = this.GetTable();
+
+	if (!oRow || !oTable || !oTable.RowsInfo[oRow.GetIndex()])
+		return arrPages;
+
+	var nStartPage = oTable.RowsInfo[oRow.GetIndex()].StartPage;
+
 	var nPagesCount = this.Content.Pages.length;
 	for (var nCurPage = 0; nCurPage < nPagesCount; ++nCurPage)
 	{
-		if (nPageAbs === this.Get_AbsolutePage(nCurPage))
+		if (nPageAbs === this.Get_AbsolutePage(nStartPage + nCurPage))
 		{
-			arrPages.push(nCurPage);
+			arrPages.push(nStartPage + nCurPage);
 		}
 	}
 
@@ -2136,7 +2153,7 @@ CTableCell.prototype.GetCurPageByAbsolutePage = function(nPageAbs)
 };
 /**
  * Получаем границы ячейки
- * @param nCurPage
+ * @param nCurPage Номер страницы относительно таблицы
  * @returns {CDocumentBounds}
  */
 CTableCell.prototype.GetPageBounds = function(nCurPage)
