@@ -256,7 +256,7 @@
             asc_getColorsFont : function() { return this.colorsFont; },
             asc_getSortColor : function() { return this.sortColor; },
 			asc_getColumnName : function() { return this.columnName; },
-			asc_getSheetColumnName : function(val) { return this.sheetColumnName; }
+			asc_getSheetColumnName : function() { return this.sheetColumnName; }
 		};
 		
 		var g_oAdvancedTableInfoSettings = {
@@ -1720,117 +1720,114 @@
 					}
 				}
 			},
-			
-			getPropForSort: function(cellId, activeRange, displayName)
-			{
+
+			getPropForSort: function (cellId, activeRange, displayName) {
 				var worksheet = this.worksheet;
 				var t = this;
 				var curFilter, sortRange, filterRef, startCol, maxFilterRow;
-			
+
 				var isCellIdString = false;
-				if(cellId !== undefined && cellId != "" && typeof cellId == 'string')
-				{
+				if (cellId !== undefined && cellId != "" && typeof cellId == 'string') {
 					activeRange = t._idToRange(cellId);
 					displayName = undefined;
 					isCellIdString = true;
 				}
-				
-				
+
+
 				curFilter = this._getFilterByDisplayName(displayName);
-				if(null !== curFilter)
-				{
+				if (null !== curFilter) {
 					filterRef = curFilter.Ref;
-					
-					if(cellId !== '')
+
+					if (cellId !== '') {
 						startCol = filterRef.c1 + cellId;
-					else
+					} else {
 						startCol = activeRange.startCol;
-				}
-				else
-				{
+					}
+				} else {
 					var filter = t.searchRangeInTableParts(activeRange);
-					if(filter === -2)//если захвачена часть ф/т
-						return false;
-						
-					if(filter === -1)//если нет ф/т в выделенном диапазоне
+					if (filter === -2)//если захвачена часть ф/т
 					{
-						if(worksheet.AutoFilter && worksheet.AutoFilter.Ref)
-						{
+						return false;
+					}
+
+					if (filter === -1)//если нет ф/т в выделенном диапазоне
+					{
+						if (worksheet.AutoFilter && worksheet.AutoFilter.Ref) {
 							curFilter = worksheet.AutoFilter;
 							filterRef = curFilter.Ref;
 						}
-						
+
 						//в данному случае может быть захвачен а/ф, если он присутвует(надо проверить), либо нажата кнопка а/ф
-						if(curFilter && (filterRef.isEqual(activeRange) || cellId !== '' || (activeRange.isOneCell() && filterRef.containsRange(activeRange))))
-						{
-							if(cellId !== '' && !isCellIdString)
+						if (curFilter && (filterRef.isEqual(activeRange) || cellId !== '' ||
+							(activeRange.isOneCell() && filterRef.containsRange(activeRange)))) {
+							if (cellId !== '' && !isCellIdString) {
 								startCol = filterRef.c1 + cellId;
-							else
+							} else {
 								startCol = activeRange.startCol;
-							
-							if(startCol === undefined)
+							}
+
+							if (startCol === undefined) {
 								startCol = activeRange.c1;
-						}
-						else//внутри а/ф либо без а/ф либо часть а/ф(делаем ws.setSelectionInfo("sort", resType);)
+							}
+						} else//внутри а/ф либо без а/ф либо часть а/ф(делаем ws.setSelectionInfo("sort", resType);)
 						{
 							return null;
 						}
-					}
-					else
-					{
+					} else {
 						//получаем данную ф/т
 						curFilter = worksheet.TableParts[filter];
 						filterRef = curFilter.Ref;
-						
+
 						startCol = activeRange.startCol;
-						if(startCol === undefined)
+						if (startCol === undefined) {
 							startCol = activeRange.c1;
+						}
 					}
 				}
-				
+
 				var ascSortRange = curFilter.getRangeWithoutHeaderFooter();
 				maxFilterRow = ascSortRange.r2;
-				if(curFilter.isAutoFilter() && curFilter.isApplyAutoFilter() === false)//нужно подхватить нижние ячейки в случае, если это не применен а/ф
+				if (curFilter.isAutoFilter() && curFilter.isApplyAutoFilter() === false)//нужно подхватить нижние ячейки в случае, если это не применен а/ф
 				{
 					//TODO стоит заменить на expandRange ?
 					var automaticRange = this._getAdjacentCellsAF(curFilter.Ref, true);
 					var automaticRowCount = automaticRange.r2;
-					
-					if(automaticRowCount > maxFilterRow)
+
+					if (automaticRowCount > maxFilterRow) {
 						maxFilterRow = automaticRowCount;
+					}
 				}
-				
+
 				sortRange = worksheet.getRange3(ascSortRange.r1, ascSortRange.c1, maxFilterRow, ascSortRange.c2);
-				
-				return {sortRange: sortRange, curFilter: curFilter, filterRef: filterRef, startCol: startCol, maxFilterRow: maxFilterRow};
+
+				return {
+					sortRange: sortRange,
+					curFilter: curFilter,
+					filterRef: filterRef,
+					startCol: startCol,
+					maxFilterRow: maxFilterRow
+				};
 			},
 			
 			//2 parameter - clean from found filter FilterColumns и SortState
-			isApplyAutoFilterInCell: function(activeCell, clean)
-			{
+			isApplyAutoFilterInCell: function (activeCell, clean) {
 				var worksheet = this.worksheet;
-				if(worksheet.TableParts)
-				{
+				if (worksheet.TableParts) {
 					var tablePart;
-					for(var i = 0; i < worksheet.TableParts.length; i++)
-					{
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						tablePart = worksheet.TableParts[i];
-						
+
 						//если применен фильтр или сортировка
-						if(tablePart.isApplyAutoFilter() || tablePart.isApplySortConditions())
-						{
-							if(tablePart.Ref.containsRange(activeCell))
-							{
-								if(clean)
-								{
+						if (tablePart.isApplyAutoFilter() || tablePart.isApplySortConditions()) {
+							if (tablePart.Ref.containsRange(activeCell)) {
+								if (clean) {
 									return this._cleanFilterColumnsAndSortState(tablePart, activeCell);
 								}
-							}	
-						}
-						else
-						{
-							if(tablePart.Ref.containsRange(activeCell, activeCell))
+							}
+						} else {
+							if (tablePart.Ref.containsRange(activeCell, activeCell)) {
 								return false;
+							}
 						}
 					}
 				}
@@ -1841,101 +1838,85 @@
 						return this._cleanFilterColumnsAndSortState(worksheet.AutoFilter, activeCell);
 					}
 				}
-				
+
 				return false;
 			},
 			
 			//если активный диапазон захватывает части нескольких табли, либо часть одной таблицы и одну целую
-			isRangeIntersectionSeveralTableParts: function(activeRange)
-			{
+			isRangeIntersectionSeveralTableParts: function (activeRange) {
 				//TODO сделать общую функцию с isActiveCellsCrossHalfFTable
 				var worksheet = this.worksheet;
-				var tableParts = worksheet.TableParts; 
-				
+				var tableParts = worksheet.TableParts;
+
 				var numPartOfTablePart = 0, isAllTablePart;
-				for(var i = 0; i < tableParts.length; i++ )
-				{
-					if(activeRange.intersection(tableParts[i].Ref))
-					{
-						if(activeRange.containsRange(tableParts[i].Ref))
+				for (var i = 0; i < tableParts.length; i++) {
+					if (activeRange.intersection(tableParts[i].Ref)) {
+						if (activeRange.containsRange(tableParts[i].Ref)) {
 							isAllTablePart = true;
-						else
+						} else {
 							numPartOfTablePart++;
-							
-						if(numPartOfTablePart >= 2 || (numPartOfTablePart >= 1 && isAllTablePart === true))
-						{
+						}
+
+						if (numPartOfTablePart >= 2 || (numPartOfTablePart >= 1 && isAllTablePart === true)) {
 							return true;
 						}
 					}
 				}
-				
+
 				return false;
 			},
-			
-			isRangeIntersectionTableOrFilter: function(range)
-			{
+
+			isRangeIntersectionTableOrFilter: function (range) {
 				var worksheet = this.worksheet;
 				var tableParts = worksheet.TableParts;
-				
-				for(var i = 0; i < tableParts.length; i++ )
-				{
-					if(range.intersection(tableParts[i].Ref))
-					{
+
+				for (var i = 0; i < tableParts.length; i++) {
+					if (range.intersection(tableParts[i].Ref)) {
 						return true;
 					}
 				}
-				
+
 				//пересекается, но не равен фильтрованному диапазону. если равен - то фильтр превращается в таблицу
-				if(worksheet.AutoFilter && worksheet.AutoFilter.Ref && range.intersection(worksheet.AutoFilter.Ref) && !range.isEqual(worksheet.AutoFilter.Ref))
-					return true;
-				
-				return false;
+				return worksheet.AutoFilter && worksheet.AutoFilter.Ref && range.intersection(worksheet.AutoFilter.Ref) && !range.isEqual(worksheet.AutoFilter.Ref);
 			},
-			
-			isStartRangeContainIntoTableOrFilter: function(activeCell)
-			{
+
+			isStartRangeContainIntoTableOrFilter: function (activeCell) {
 				var res = null;
-				
+
 				var worksheet = this.worksheet;
 				var tableParts = worksheet.TableParts;
-				
+
 				var startRange = new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row);
-				
-				for(var i = 0; i < tableParts.length; i++ )
-				{
-					if(startRange.intersection(tableParts[i].Ref))
-					{
+
+				for (var i = 0; i < tableParts.length; i++) {
+					if (startRange.intersection(tableParts[i].Ref)) {
 						res = i;
 						break;
 					}
 				}
-				
+
 				//пересекается, но не равен фильтрованному диапазону. если равен - то фильтр превращается в таблицу
-				if(worksheet.AutoFilter && worksheet.AutoFilter.Ref && startRange.intersection(worksheet.AutoFilter.Ref))
-				{
+				if (worksheet.AutoFilter && worksheet.AutoFilter.Ref &&
+					startRange.intersection(worksheet.AutoFilter.Ref)) {
 					res = -1;
 				}
-				
+
 				return res;
 			},
-			
-			unmergeTablesAfterMove: function(arnTo)
-			{
+
+			unmergeTablesAfterMove: function (arnTo) {
 				var worksheet = this.worksheet;
-				
+
 				var intersectionRangeWithTableParts = this._intersectionRangeWithTableParts(arnTo);
-				if(intersectionRangeWithTableParts && intersectionRangeWithTableParts.length)
-				{
-					for(var i = 0; i < intersectionRangeWithTableParts.length; i++)
-					{
+				if (intersectionRangeWithTableParts && intersectionRangeWithTableParts.length) {
+					for (var i = 0; i < intersectionRangeWithTableParts.length; i++) {
 						var tablePart = intersectionRangeWithTableParts[i];
 						worksheet.mergeManager.remove(tablePart.Ref.clone());
 					}
 				}
 			},
 			
-			getMaxColRow: function()
-			{
+			getMaxColRow: function() {
 				var r = -1, c = -1;
 				this.worksheet.TableParts.forEach(function (item) {
 					r = Math.max(r, item.Ref.r2);
@@ -1945,36 +1926,32 @@
 				return new AscCommon.CellBase(r, c);
 			},
 
-			_setStyleTablePartsAfterOpenRows: function(ref)
-			{
+			_setStyleTablePartsAfterOpenRows: function (ref) {
 				var worksheet = this.worksheet;
-				var tableParts = worksheet.TableParts; 
-				
-				for(var i = 0; i < tableParts.length; i++ )
-				{
-					if(this._intersectionRowRanges(tableParts[i].Ref, ref) === true)
-					{
+				var tableParts = worksheet.TableParts;
+
+				for (var i = 0; i < tableParts.length; i++) {
+					if (this._intersectionRowRanges(tableParts[i].Ref, ref) === true) {
 						this._setColorStyleTable(tableParts[i].Ref, tableParts[i]);
 					}
 				}
 			},
-			
-			_intersectionRowRanges: function(range1, range2)
-			{	
+
+			_intersectionRowRanges: function (range1, range2) {
 				var res = false;
-				
-				if(!range1 || !range2)
+
+				if (!range1 || !range2) {
 					return false;
-				
-				if((range1.r1 >= range2.r1 && range1.r1 <= range2.r2) || (range1.r2 >= range2.r1 && range1.r2 <= range2.r2))
-				{
+				}
+
+				if ((range1.r1 >= range2.r1 && range1.r1 <= range2.r2) ||
+					(range1.r2 >= range2.r1 && range1.r2 <= range2.r2)) {
+					res = true;
+				} else if ((range2.r1 >= range1.r1 && range2.r1 <= range1.r2) ||
+					(range2.r2 >= range1.r1 && range2.r2 <= range1.r2)) {
 					res = true;
 				}
-				else if((range2.r1 >= range1.r1 && range2.r1 <= range1.r2) || (range2.r2 >= range1.r1 && range2.r2 <= range1.r2))
-				{
-					res = true;
-				}
-				
+
 				return res;
 			},
 			
