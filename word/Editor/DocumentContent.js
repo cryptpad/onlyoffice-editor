@@ -2994,8 +2994,8 @@ CDocumentContent.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelect
 {
 	if (true === this.ApplyToAll)
 	{
-		this.Internal_Content_RemoveAll();
-		this.Internal_Content_Add(0, this.private_CreateNewParagraph());
+		this.SelectAll();
+		this.private_Remove(1, false, true, false, false);
 
 		this.CurPos = {
 			X          : 0,
