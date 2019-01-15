@@ -4206,18 +4206,24 @@ background-repeat: no-repeat;\
 	{
 		var ImagePr        = {};
 		ImagePr.lockAspect = obj.lockAspect;
-		ImagePr.Width      = null === obj.Width ? null : parseFloat(obj.Width);
-		ImagePr.Height     = null === obj.Height ? null : parseFloat(obj.Height);
+		ImagePr.Width      = null === obj.Width || undefined === obj.Width ? null : parseFloat(obj.Width);
+		ImagePr.Height     = null === obj.Height || undefined === obj.Height ? null : parseFloat(obj.Height);
 
 		ImagePr.title       = obj.title;
 		ImagePr.description = obj.description;
+		ImagePr.rot = obj.rot;
+		ImagePr.rotAdd = obj.rotAdd;
+		ImagePr.flipH = obj.flipH;
+		ImagePr.flipV = obj.flipV;
+		ImagePr.flipHInvert = obj.flipHInvert;
+		ImagePr.flipVInvert = obj.flipVInvert;
 
 		if (undefined != obj.Position)
 		{
 			ImagePr.Position =
 			{
-				X : null === obj.Position.X ? null : parseFloat(obj.Position.X),
-				Y : null === obj.Position.Y ? null : parseFloat(obj.Position.Y)
+				X : null === obj.Position.X || undefined === obj.Position.X ? null : parseFloat(obj.Position.X),
+				Y : null === obj.Position.Y || undefined === obj.Position.Y ? null : parseFloat(obj.Position.Y)
 			};
 		}
 		else
