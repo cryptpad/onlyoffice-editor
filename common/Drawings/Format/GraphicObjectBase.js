@@ -149,6 +149,10 @@
                 new_rot -= 2*Math.PI;
             while(new_rot < 0)
                 new_rot += 2*Math.PI;
+            if(AscFormat.fApproxEqual(new_rot, 2*Math.PI, 0.001))
+            {
+                new_rot = 0.0;
+            }
             return new_rot;
         }
         return new_rot;

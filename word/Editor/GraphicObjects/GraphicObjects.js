@@ -621,7 +621,8 @@ CGraphicObjects.prototype =
         {
             this.selectedObjects[i].parent.Set_Props(oProps);
         }
-        if(AscFormat.isRealNumber(oProps.Width) || AscFormat.isRealNumber(oProps.Height))
+        if(AscFormat.isRealNumber(oProps.Width) || AscFormat.isRealNumber(oProps.Height) || AscFormat.isRealNumber(oProps.rot)
+            || AscFormat.isRealBool(oProps.flipH) || AscFormat.isRealBool(oProps.flipV))
         {
             oApplyProps = oProps;
         }
