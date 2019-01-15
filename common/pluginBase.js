@@ -1,6 +1,7 @@
 (function(window, undefined){
 
     var g_isMouseSendEnabled = false;
+    var g_language = "";
 
     // должны быть методы
     // init(data);
@@ -35,6 +36,39 @@
 
             if (type == "init")
                 window.Asc.plugin.info = pluginData;
+
+            if (!window.Asc.plugin.tr)
+            {
+                window.Asc.plugin.tr = function(val) {
+                    if (!window.Asc.plugin.translateManager || !window.Asc.plugin.translateManager[val])
+                        return val;
+                    return window.Asc.plugin.translateManager[val];
+                };
+            }
+
+            if (window.Asc.plugin.info.lang != g_language)
+            {
+                g_language = window.Asc.plugin.info.lang;
+
+                var _client = new XMLHttpRequest();
+                _client.open("GET", "./translations/" + g_language + ".json");
+
+                _client.onreadystatechange = function() {
+                    if (_client.readyState == 4 && (_client.status == 200 || location.href.indexOf("file:") == 0))
+                    {
+                        try
+                        {
+                            window.Asc.plugin.translateManager = JSON.parse(_client.responseText);
+                            if (window.Asc.plugin.onTranslate)
+                                window.Asc.plugin.onTranslate();
+                        }
+                        catch (err)
+                        {
+                        }
+                    }
+                };
+                _client.send();
+            }
 
             switch (type)
             {

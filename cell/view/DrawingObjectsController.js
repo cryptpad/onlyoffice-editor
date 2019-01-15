@@ -365,8 +365,8 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
         window["Asc"]["editor"].asc_pluginRun(oleObject.m_sApplicationId, 0, pluginData);
         oThis.clearTrackObjects();
         oThis.clearPreTrackObjects();
-        oThis.changeCurrentState(new AscFormat.NullState(this));
-        this.onMouseUp(e, x, y);
+        oThis.changeCurrentState(new AscFormat.NullState(oThis));
+        oThis.onMouseUp(e, x, y);
     };
     if(!this.canEdit()){
         fCallback();

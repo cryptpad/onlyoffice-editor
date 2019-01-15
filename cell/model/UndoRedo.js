@@ -2079,7 +2079,7 @@ function (window, undefined) {
 					wb.aCollaborativeChangeElements.push(oLockInfo);
 				}
 			}
-			range = Asc.Range(0, from, gc_nMaxCol0, to);
+			range = new Asc.Range(0, from, gc_nMaxCol0, to);
 			if ((true == bUndo && AscCH.historyitem_Worksheet_AddRows == Type) ||
 				(false == bUndo && AscCH.historyitem_Worksheet_RemoveRows == Type)) {
 				ws.removeRows(from, to);
@@ -2115,7 +2115,7 @@ function (window, undefined) {
 				}
 			}
 
-			range = Asc.Range(from, 0, to, gc_nMaxRow0);
+			range = new Asc.Range(from, 0, to, gc_nMaxRow0);
 			if ((true == bUndo && AscCH.historyitem_Worksheet_AddCols == Type) ||
 				(false == bUndo && AscCH.historyitem_Worksheet_RemoveCols == Type)) {
 				ws.removeCols(from, to);
@@ -2233,8 +2233,8 @@ function (window, undefined) {
 			worksheetView.model.autoFilters.resetTableStyles(bbox);
 		} else if (AscCH.historyitem_Worksheet_MoveRange == Type) {
 			//todo worksheetView.autoFilters._moveAutoFilters(worksheetView ,null, null, g_oUndoRedoAutoFiltersMoveData);
-			from = Asc.Range(Data.from.c1, Data.from.r1, Data.from.c2, Data.from.r2);
-			to = Asc.Range(Data.to.c1, Data.to.r1, Data.to.c2, Data.to.r2);
+			from = new Asc.Range(Data.from.c1, Data.from.r1, Data.from.c2, Data.from.r2);
+			to = new Asc.Range(Data.to.c1, Data.to.r1, Data.to.c2, Data.to.r2);
 			var copyRange = Data.copyRange;
 
 			if (bUndo) {
@@ -2243,7 +2243,7 @@ function (window, undefined) {
 				to = temp;
 			}
 			if (wb.bCollaborativeChanges) {
-				var coBBoxTo = Asc.Range(0, 0, 0, 0), coBBoxFrom = Asc.Range(0, 0, 0, 0);
+				var coBBoxTo = new Asc.Range(0, 0, 0, 0), coBBoxFrom = new Asc.Range(0, 0, 0, 0);
 
 				coBBoxTo.r1 = collaborativeEditing.getLockOtherRow2(nSheetId, to.r1);
 				coBBoxTo.c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, to.c1);

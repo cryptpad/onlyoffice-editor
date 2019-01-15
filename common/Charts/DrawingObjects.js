@@ -1263,7 +1263,6 @@ function DrawingObjects() {
     var asc = window["Asc"];
     var api = asc["editor"];
     var worksheet = null;
-    var asc_Range = asc.Range;
 
     var drawingCtx = null;
     var overlayCtx = null;

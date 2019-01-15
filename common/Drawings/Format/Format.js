@@ -2649,7 +2649,11 @@ CSolidFill.prototype =
             return false;
         }
 
-        return this.color.IsIdentical(fill.color);
+        if(this.color)
+        {
+            return this.color.IsIdentical(fill.color);
+        }
+        return (fill.color === null);
 
     },
 
@@ -2669,9 +2673,13 @@ CSolidFill.prototype =
         {
             return null;
         }
-        var _ret = new CSolidFill();
-        _ret.color = this.color.compare(fill.color);
-        return _ret;
+        if(this.color && fill.color)
+        {
+            var _ret = new CSolidFill();
+            _ret.color = this.color.compare(fill.color);
+            return _ret;
+        }
+        return null;
     }
 };
 

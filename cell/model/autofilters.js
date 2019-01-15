@@ -3250,7 +3250,7 @@
 					if(!newRange.c2)
 						newRange.c2 = cloneActiveRange.c2;
 					
-					newRange = Asc.Range(newRange.c1, newRange.r1, newRange.c2, newRange.r2);
+					newRange = new Asc.Range(newRange.c1, newRange.r1, newRange.c2, newRange.r2);
 					
 					cloneActiveRange = newRange;
 				}
@@ -3499,7 +3499,7 @@
 					if(!newRange.c2)
 						newRange.c2 = cloneActiveRange.c2;
 					
-					newRange = Asc.Range(newRange.c1, newRange.r1, newRange.c2, newRange.r2);
+					newRange = new Asc.Range(newRange.c1, newRange.r1, newRange.c2, newRange.r2);
 					
 					cloneActiveRange = newRange;
 				}
@@ -4359,7 +4359,7 @@
 			_idToRange: function(id)
 			{
 				var cell = new CellAddress(id);
-				return Asc.Range(cell.col - 1, cell.row - 1, cell.col - 1, cell.row - 1);
+				return new Asc.Range(cell.col - 1, cell.row - 1, cell.col - 1, cell.row - 1);
 			},
 
             _resetTablePartStyle: function(exceptionRange)
@@ -4712,7 +4712,7 @@
 						for(var i = 0; i < findFilters.length; i++)
 						{
 							ref = findFilters[i].Ref;
-							var newRange = Asc.Range(ref.c1 + diffCol, ref.r1 + diffRow, ref.c2 + diffCol, ref.r2 + diffRow);
+							var newRange = new Asc.Range(ref.c1 + diffCol, ref.r1 + diffRow, ref.c2 + diffCol, ref.r2 + diffRow);
 							
 							//если затрагиваем форматированной таблицей часть а/ф
 							if(worksheet.AutoFilter && worksheet.AutoFilter.Ref && newRange.intersection(worksheet.AutoFilter.Ref) && worksheet.AutoFilter !== findFilters[i])
@@ -4772,7 +4772,7 @@
 			{
 				var result = [];
 				var worksheet = this.worksheet;
-				range = Asc.Range(range.c1, range.r1, range.c2, range.r2);
+				range = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 				
 				if(worksheet.AutoFilter && !bFindOnlyTableParts)
 				{
@@ -4879,7 +4879,7 @@
 						if(findFilters[i].TableStyleInfo)
 						{
 							ref = findFilters[i].Ref;
-							newRange = Asc.Range(ref.c1 + diffCol, ref.r1 + diffRow, ref.c2 + diffCol, ref.r2 + diffRow);
+							newRange = new Asc.Range(ref.c1 + diffCol, ref.r1 + diffRow, ref.c2 + diffCol, ref.r2 + diffRow);
 							bWithoutFilter = findFilters[i].AutoFilter === null;
 							
 							if(!ref.intersection(newRange) && !this._intersectionRangeWithTableParts(newRange, arnFrom))
@@ -5179,7 +5179,7 @@
 				return result;
 			},
 
-			bIsExcludeHiddenRows: function(range, activeCell)
+			bIsExcludeHiddenRows: function(range, activeCell, checkHiddenRows)
 			{
 				var worksheet = this.worksheet;
 				var result = false;
@@ -5192,6 +5192,16 @@
 				else if(this._getTableIntersectionWithActiveCell(activeCell, true))//если activeCell лежит внутри таблицы c примененным фильтром
 				{
 					result = true;
+				}
+
+				if(result && checkHiddenRows) {
+					var range3 = range && range.bbox ? range : worksheet.getRange3(range.r1, range.c1, range.r2, range.c2);
+					result = false;
+					range3._foreachRow(function (row) {
+						if(row.getHidden()) {
+							result = true;
+						}
+					});
 				}
 
 				return result;

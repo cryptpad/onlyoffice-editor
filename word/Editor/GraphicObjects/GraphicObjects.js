@@ -1048,7 +1048,8 @@ CGraphicObjects.prototype =
                 }
                 else if(arrObjects[i].GetType() === type_Table)
                 {
-                    ret.push(new CFlowTable(arrObjects[i], 0));
+                	if (0 === arrObjects[i].GetStartPageRelative())
+                    	ret.push(new CFlowTable(arrObjects[i], 0));
                 }
             }
             return ret;

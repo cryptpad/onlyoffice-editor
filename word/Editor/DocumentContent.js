@@ -5779,9 +5779,11 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 	this.CurPage = CurPage;
 	var AbsPage  = this.Get_AbsolutePage(this.CurPage);
 
+	var isTopDocumentContent = this === this.GetTopDocumentContent();
+
 	// Сначала проверим, не попали ли мы в один из "плавающих" объектов
-	var bInText      = (null === this.IsInText(X, Y, AbsPage) ? false : true);
-	var bTableBorder = (null === this.IsTableBorder(X, Y, AbsPage) ? false : true);
+	var bInText      = null !== this.IsInText(X, Y, AbsPage);
+	var bTableBorder = null !== this.IsTableBorder(X, Y, AbsPage);
 	var nInDrawing   = this.LogicDocument && this.LogicDocument.DrawingObjects.IsInDrawingObject(X, Y, AbsPage, this);
 
 	if (this.Parent instanceof CHeaderFooter && ( nInDrawing === DRAWING_ARRAY_TYPE_BEFORE || nInDrawing === DRAWING_ARRAY_TYPE_INLINE || ( false === bTableBorder && false === bInText && nInDrawing >= 0 ) ))
@@ -5832,7 +5834,6 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 
 		var SelectionUse_old = this.Selection.Use;
 		var Item             = this.Content[ContentPos];
-		var bTableBorder     = (null != Item.IsTableBorder(X, Y, AbsPage) ? true : false);
 
 		// Убираем селект, кроме случаев либо текущего параграфа, либо при движении границ внутри таблицы
 		if (!(true === SelectionUse_old && true === MouseEvent.ShiftKey && true === bOldSelectionIsCommon))
@@ -5847,7 +5848,10 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 
 		if (true === SelectionUse_old && true === MouseEvent.ShiftKey && true === bOldSelectionIsCommon)
 		{
-			this.Selection_SetEnd(X, Y, this.CurPage, {Type : AscCommon.g_mouse_event_type_up, ClickCount : 1});
+			this.Selection_SetEnd(X, Y, this.CurPage, {
+				Type           : AscCommon.g_mouse_event_type_up,
+				ClickCount     : 1
+			});
 			this.Selection.Use    = true;
 			this.Selection.Start  = true;
 			this.Selection.EndPos = ContentPos;
@@ -5864,7 +5868,13 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 				return;
 			}
 
-			Item.Selection_SetEnd(X, Y, ElementPageIndex, {Type : AscCommon.g_mouse_event_type_move, ClickCount : 1});
+			if (isTopDocumentContent)
+			{
+				Item.Selection_SetEnd(X, Y, ElementPageIndex, {
+					Type           : AscCommon.g_mouse_event_type_move,
+					ClickCount     : 1
+				});
+			}
 
 			if (true !== bTableBorder)
 			{
@@ -5946,21 +5956,19 @@ CDocumentContent.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent
 	// Обрабатываем движение границы у таблиц
 	if (null != this.Selection.Data && true === this.Selection.Data.TableBorder && type_Table == this.Content[this.Selection.Data.Pos].GetType())
 	{
-		var Item             = this.Content[this.Selection.Data.Pos];
-		var ElementPageIndex = this.private_GetElementPageIndexByXY(this.Selection.Data.Pos, X, Y, this.CurPage);
-		Item.Selection_SetEnd(X, Y, ElementPageIndex, MouseEvent);
+		var nPos = this.Selection.Data.Pos;
 
+		// Убираем селект раньше, чтобы при создании точки в истории не сохранялось состояние передвижения границы таблицы
 		if (AscCommon.g_mouse_event_type_up == MouseEvent.Type)
 		{
 			this.Selection.Start = false;
-
-			if (true != this.Selection.Data.Selection)
-			{
-				this.Selection.Use = false;
-			}
-			this.Selection.Data = null;
+			this.Selection.Use   = this.Selection.Data.Selection;
+			this.Selection.Data  = null;
 		}
 
+		var Item             = this.Content[nPos];
+		var ElementPageIndex = this.private_GetElementPageIndexByXY(nPos, X, Y, this.CurPage);
+		Item.Selection_SetEnd(X, Y, ElementPageIndex, MouseEvent);
 		return;
 	}
 

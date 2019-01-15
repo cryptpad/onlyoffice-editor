@@ -209,6 +209,8 @@ window["DesktopOfflineAppDocumentEndSave"] = function(error, hash, password)
 		DesktopOfflineUpdateLocalName(editor);
 	else
 		AscCommon.History.UserSavedIndex = editor.LastUserSavedIndex;
+
+	var _lastUserSavedError = editor.LastUserSavedIndex;
 	
 	editor.UpdateInterfaceState();
 	editor.LastUserSavedIndex = undefined;
@@ -235,6 +237,7 @@ window["DesktopOfflineAppDocumentEndSave"] = function(error, hash, password)
                 this._callbackPluginEndAction = null;
                 window["AscDesktopEditor"]["buildCryptedEnd"](true);
             };
+            window.LastUserSavedIndex = _lastUserSavedError;
 			window.g_asc_plugins.sendToEncryption({"type": "setPasswordByFile", "hash": hash, "password": password});
 		}
 	}
