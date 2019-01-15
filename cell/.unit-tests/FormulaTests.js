@@ -3280,6 +3280,63 @@ $( function () {
 		oParser = new parserFormula( "SUMPRODUCT({1,2,3,3,TRUE})", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 9 );
+
+		oParser = new parserFormula( "SUMPRODUCT({1,2,3,3,TRUE})+SUMPRODUCT({1,2,3,3,TRUE})", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT({1,2,3,3,TRUE})+SUMPRODUCT({1,2,3,3,TRUE})" );
+		strictEqual( oParser.calculate().getValue(), 18 );
+
+		oParser = new parserFormula( "SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE})", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE})" );
+		strictEqual( oParser.calculate().getValue(), 81 );
+
+		oParser = new parserFormula( "SUMPRODUCT(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}))" );
+		strictEqual( oParser.calculate().getValue(), 81 );
+
+		oParser = new parserFormula( "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}))" );
+		strictEqual( oParser.calculate().getValue(), 81 );
+
+		oParser = new parserFormula( "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}),1,2,3)", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}),1,2,3)" );
+		strictEqual( oParser.calculate().getValue(), 87 );
+
+		oParser = new parserFormula( "SUM(SUMPRODUCT(N44:O47))+SUM(SUMPRODUCT(N44:O47))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUM(SUMPRODUCT(N44:O47))+SUM(SUMPRODUCT(N44:O47))" );
+		strictEqual( oParser.calculate().getValue(), 72 );
+
+		oParser = new parserFormula( "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}),SUMPRODUCT({1,2,3,3,TRUE}),2,SUMPRODUCT({1,2,3,3}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}),SUMPRODUCT({1,2,3,3,TRUE}),2,SUMPRODUCT({1,2,3,3}))" );
+		strictEqual( oParser.calculate().getValue(), 101 );
+
+		ws.getRange2( "A101" ).setValue( "5" );
+		ws.getRange2( "A102" ).setValue( "6" );
+		ws.getRange2( "A103" ).setValue( "7" );
+		ws.getRange2( "A104" ).setValue( "8" );
+		ws.getRange2( "A105" ).setValue( "9" );
+
+		ws.getRange2( "B101" ).setValue( "1" );
+		ws.getRange2( "B102" ).setValue( "1" );
+		ws.getRange2( "B103" ).setValue( "0" );
+		ws.getRange2( "B104" ).setValue( "1" );
+		ws.getRange2( "B105" ).setValue( "1" );
+
+		oParser = new parserFormula( "SUMPRODUCT((A101:A105)*((B101:B105)=1))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT((A101:A105)*((B101:B105)=1))" );
+		strictEqual( oParser.calculate().getValue(), 28 );
+
+		oParser = new parserFormula( "SUMPRODUCT((A101:A105)*((B101:B105)=1))+SUMPRODUCT((A101:A104)*((B101:B104)=1))+SUMPRODUCT((A101:A103)*((B101:B103)=1))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT((A101:A105)*((B101:B105)=1))+SUMPRODUCT((A101:A104)*((B101:B104)=1))+SUMPRODUCT((A101:A103)*((B101:B103)=1))" );
+		strictEqual( oParser.calculate().getValue(), 58 );
     } );
 
     test( "Test: \"SINH\"", function () {

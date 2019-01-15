@@ -3593,7 +3593,7 @@
 				{
 					this.bs.WriteItem(c_oSerCellTypes.Style, function(){oThis.memory.WriteLong(nXfsId);});
 				}
-				if (cell.isFormula()) {
+				if (cell.isFormula() && !(this.isCopyPaste && cell.ws && cell.ws.bIgnoreWriteFormulas)) {
 					this.bs.WriteItem(c_oSerCellTypes.Formula, function() {oThis.WriteFormula(cell);});
 				}
 				if(!cell.isNullTextString())
@@ -6475,36 +6475,36 @@
                 res = this.bcr.Read1(length, function (t, l) {
                     return oThis.ReadSparklineGroups(t, l, oWorksheet);
                 });
-            } else if (c_oSerWorksheetsTypes.HeaderFooter === type) {
-                oWorksheet.headerFooter = {
-                    alignWithMargins: null, differentFirst: null, differentOddEven: null, scaleWithDoc: null,
-                    evenFooter: null, evenHeader: null, firstFooter: null, firstHeader: null, oddFooter: null,
-                    oddHeader: null
-                };
-                res = this.bcr.Read1(length, function(t, l) {
-                    return oThis.ReadHeaderFooter(t, l, oWorksheet.headerFooter);
-                });
-            } else if (c_oSerWorksheetsTypes.RowBreaks === type) {
-                oWorksheet.rowBreaks = {count: null, manualBreakCount: null, breaks: []};
-                res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadRowColBreaks(t, l, oWorksheet.rowBreaks);
-                });
-            } else if (c_oSerWorksheetsTypes.ColBreaks === type) {
-                oWorksheet.colBreaks = {count: null, manualBreakCount: null, breaks: []};
-                res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadRowColBreaks(t, l, oWorksheet.colBreaks);
-                });
-            } else if (c_oSerWorksheetsTypes.LegacyDrawingHF === type) {
-                oWorksheet.legacyDrawingHF = {
-                    drawings: [], cfe: null, cff: null, cfo: null, che: null, chf: null, cho: null, lfe: null,
-                    lff: null, lfo: null, lhe: null, lhf: null, lho: null, rfe: null, rff: null, rfo: null, rhe: null,
-                    rhf: null, rho: null
-                };
-                res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadLegacyDrawingHF(t, l, oWorksheet.legacyDrawingHF);
-                });
-            } else if (c_oSerWorksheetsTypes.Picture === type) {
-                oWorksheet.picture = this.stream.GetString2LE(length);
+            // } else if (c_oSerWorksheetsTypes.HeaderFooter === type) {
+            //     oWorksheet.headerFooter = {
+            //         alignWithMargins: null, differentFirst: null, differentOddEven: null, scaleWithDoc: null,
+            //         evenFooter: null, evenHeader: null, firstFooter: null, firstHeader: null, oddFooter: null,
+            //         oddHeader: null
+            //     };
+            //     res = this.bcr.Read1(length, function(t, l) {
+            //         return oThis.ReadHeaderFooter(t, l, oWorksheet.headerFooter);
+            //     });
+            // } else if (c_oSerWorksheetsTypes.RowBreaks === type) {
+            //     oWorksheet.rowBreaks = {count: null, manualBreakCount: null, breaks: []};
+            //     res = this.bcr.Read1(length, function (t, l) {
+            //         return oThis.ReadRowColBreaks(t, l, oWorksheet.rowBreaks);
+            //     });
+            // } else if (c_oSerWorksheetsTypes.ColBreaks === type) {
+            //     oWorksheet.colBreaks = {count: null, manualBreakCount: null, breaks: []};
+            //     res = this.bcr.Read1(length, function (t, l) {
+            //         return oThis.ReadRowColBreaks(t, l, oWorksheet.colBreaks);
+            //     });
+            // } else if (c_oSerWorksheetsTypes.LegacyDrawingHF === type) {
+            //     oWorksheet.legacyDrawingHF = {
+            //         drawings: [], cfe: null, cff: null, cfo: null, che: null, chf: null, cho: null, lfe: null,
+            //         lff: null, lfo: null, lhe: null, lhf: null, lho: null, rfe: null, rff: null, rfo: null, rhe: null,
+            //         rhf: null, rho: null
+            //     };
+            //     res = this.bcr.Read1(length, function (t, l) {
+            //         return oThis.ReadLegacyDrawingHF(t, l, oWorksheet.legacyDrawingHF);
+            //     });
+            // } else if (c_oSerWorksheetsTypes.Picture === type) {
+            //     oWorksheet.picture = this.stream.GetString2LE(length);
             } else
                 res = c_oSerConstants.ReadUnknown;
             return res;

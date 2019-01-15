@@ -3074,6 +3074,7 @@
 		this.aComments = [];
 		var oThis = this;
 		this.bExcludeHiddenRows = false;
+		this.bIgnoreWriteFormulas = false;
 		this.mergeManager = new RangeDataManager(function(data, from, to){
 			if(History.Is_On() && (null != from || null != to))
 			{
@@ -6268,6 +6269,9 @@
 	Worksheet.prototype.excludeHiddenRows = function (bExclude) {
 		this.bExcludeHiddenRows = bExclude;
 	};
+	Worksheet.prototype.ignoreWriteFormulas = function (val) {
+		this.bIgnoreWriteFormulas = val;
+	};
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
@@ -7255,6 +7259,27 @@
 			return xfs.font;
 		return g_oDefaultFormat.Font;
 	};
+	Cell.prototype.getFill = function () {
+		var xfs = this.getCompiledStyle();
+		if(null != xfs && null != xfs.fill)
+			return xfs.fill.bg;
+		return g_oDefaultFormat.Fill.bg;
+	};
+	Cell.prototype.getBorderSrc = function () {
+		var xfs = this.getCompiledStyle();
+		if(null != xfs && null != xfs.border)
+			return xfs.border;
+		return g_oDefaultFormat.Border;
+	};
+	Cell.prototype.getBorder = function () {
+		return this.getBorderSrc();
+	};
+	Cell.prototype.getAlign=function(){
+		var xfs = this.getCompiledStyle();
+		if(null != xfs && null != xfs.align)
+			return xfs.align;
+		return g_oDefaultFormat.Align;
+	};
 	Cell.prototype._adjustCellFormat = function() {
 		var t = this;
 		this.processFormula(function(parsed) {
@@ -8237,6 +8262,50 @@
 			if (actionCell) {
 				wb.loadCells.pop();
 			}
+		}
+	};
+	Range.prototype._foreachNoEmptyByCol = function(actionCell, excludeHiddenRows) {
+		var oRes, i, j, colData;
+		var wb = this.worksheet.workbook;
+		var oBBox = this.bbox, minR = Math.min(this.worksheet.getRowsCount(), oBBox.r2);
+		var minC = Math.min(this.worksheet.getColDataLength() - 1, oBBox.c2);
+		if (actionCell) {
+			var bExcludeHiddenRows = (this.worksheet.bExcludeHiddenRows || excludeHiddenRows);
+			var excludedCount = 0;
+			var tempCell = new Cell(this.worksheet);
+			wb.loadCells.push(tempCell);
+			for (j = oBBox.c1; j <= minC; ++j) {
+				colData = this.worksheet.getColDataNoEmpty(j);
+				if (colData) {
+					for (i = oBBox.r1; i <= Math.min(minR, colData.getSize() - 1); i++) {
+						if (bExcludeHiddenRows && this.worksheet.getRowHidden(i)) {
+							excludedCount++;
+							continue;
+						}
+						var targetCell = null;
+						for (var k = 0; k < wb.loadCells.length - 1; ++k) {
+							var elem = wb.loadCells[k];
+							if (elem.nRow == i && elem.nCol == j && this.worksheet === elem.ws) {
+								targetCell = elem;
+								break;
+							}
+						}
+						if (null === targetCell) {
+							if (tempCell.loadContent(i, j, colData)) {
+								oRes = actionCell(tempCell, i, j, oBBox.r1, oBBox.c1, excludedCount);
+								tempCell.saveContent(true);
+							}
+						} else {
+							oRes = actionCell(targetCell, i, j, oBBox.r1, oBBox.c1, excludedCount);
+						}
+						if (null != oRes) {
+							wb.loadCells.pop();
+							return oRes;
+						}
+					}
+				}
+			}
+			wb.loadCells.pop();
 		}
 	};
 	Range.prototype._foreachRow = function(actionRow, actionCell){
@@ -9407,23 +9476,9 @@
 		var nCol = this.bbox.c1;
 		var align = g_oDefaultFormat.Align;
 		this.worksheet._getCellNoEmpty(nRow, nCol, function(cell) {
-			if(null != cell)
-			{
-				var xfs = cell.getCompiledStyle();
-				if(null != xfs)
-				{
-					if(null != xfs.align)
-						align = xfs.align;
-					else
-						align = g_oDefaultFormat.AlignAbs;
-				}
-			}
-			else
-			{
-				var xfs = t.worksheet.getCompiledStyle(nRow, nCol);
-				if (null != xfs && null != xfs.align) {
-					align = xfs.align;
-				}
+			var xfs = cell ? cell.getCompiledStyle() : t.worksheet.getCompiledStyle(nRow, nCol);
+			if (null != xfs && null != xfs.align) {
+				align = xfs.align;
 			}
 		});
 		return align;
@@ -10747,7 +10802,7 @@
 			return null;
 		var oPromoteAscRange = null;
 		if(0 == nIndex)
-			oPromoteAscRange = Asc.Range(oBBox.c1, oBBox.r1, oBBox.c2, oBBox.r2);
+			oPromoteAscRange = new Asc.Range(oBBox.c1, oBBox.r1, oBBox.c2, oBBox.r2);
 		else
 		{
 			if(bVertical)
@@ -10755,24 +10810,24 @@
 				if(nIndex > 0)
 				{
 					if(nIndex >= nHeight)
-						oPromoteAscRange = Asc.Range(oBBox.c1, oBBox.r2 + 1, oBBox.c2, oBBox.r1 + nIndex);
+						oPromoteAscRange = new Asc.Range(oBBox.c1, oBBox.r2 + 1, oBBox.c2, oBBox.r1 + nIndex);
 					else
-						oPromoteAscRange = Asc.Range(oBBox.c1, oBBox.r1 + nIndex, oBBox.c2, oBBox.r2);
+						oPromoteAscRange = new Asc.Range(oBBox.c1, oBBox.r1 + nIndex, oBBox.c2, oBBox.r2);
 				}
 				else
-					oPromoteAscRange = Asc.Range(oBBox.c1, oBBox.r1 + nIndex, oBBox.c2, oBBox.r1 - 1);
+					oPromoteAscRange = new Asc.Range(oBBox.c1, oBBox.r1 + nIndex, oBBox.c2, oBBox.r1 - 1);
 			}
 			else
 			{
 				if(nIndex > 0)
 				{
 					if(nIndex >= nWidth)
-						oPromoteAscRange = Asc.Range(oBBox.c2 + 1, oBBox.r1, oBBox.c1 + nIndex, oBBox.r2);
+						oPromoteAscRange = new Asc.Range(oBBox.c2 + 1, oBBox.r1, oBBox.c1 + nIndex, oBBox.r2);
 					else
-						oPromoteAscRange = Asc.Range(oBBox.c1 + nIndex, oBBox.r1, oBBox.c2, oBBox.r2);
+						oPromoteAscRange = new Asc.Range(oBBox.c1 + nIndex, oBBox.r1, oBBox.c2, oBBox.r2);
 				}
 				else
-					oPromoteAscRange = Asc.Range(oBBox.c1 + nIndex, oBBox.r1, oBBox.c1 - 1, oBBox.r2);
+					oPromoteAscRange = new Asc.Range(oBBox.c1 + nIndex, oBBox.r1, oBBox.c1 - 1, oBBox.r2);
 			}
 		}
 		//проверяем можно ли осуществить promote
@@ -11145,7 +11200,7 @@
 					for (var j = to.r1; j <= to.r2; j += nDy) {
 						for (var k = 0, length3 = oMergedFrom.all.length; k < length3; k++) {
 							var oMergedBBox = oMergedFrom.all[k].bbox;
-							var oNewMerged = Asc.Range(i + oMergedBBox.c1 - from.c1, j + oMergedBBox.r1 - from.r1, i + oMergedBBox.c2 - from.c1, j + oMergedBBox.r2 - from.r1);
+							var oNewMerged = new Asc.Range(i + oMergedBBox.c1 - from.c1, j + oMergedBBox.r1 - from.r1, i + oMergedBBox.c2 - from.c1, j + oMergedBBox.r2 - from.r1);
 							if(to.contains(oNewMerged.c1, oNewMerged.r1)) {
 								if(to.c2 < oNewMerged.c2)
 									oNewMerged.c2 = to.c2;
@@ -11170,7 +11225,7 @@
 							for(var k = 0, length3 = oHyperlinks.inner.length; k < length3; k++){
 								var oHyperlink = oHyperlinks.inner[k];
 								var oHyperlinkBBox = oHyperlink.bbox;
-								var oNewHyperlink = Asc.Range(i + oHyperlinkBBox.c1 - from.c1, j + oHyperlinkBBox.r1 - from.r1, i + oHyperlinkBBox.c2 - from.c1, j + oHyperlinkBBox.r2 - from.r1);
+								var oNewHyperlink = new Asc.Range(i + oHyperlinkBBox.c1 - from.c1, j + oHyperlinkBBox.r1 - from.r1, i + oHyperlinkBBox.c2 - from.c1, j + oHyperlinkBBox.r2 - from.r1);
 								if (to.containsRange(oNewHyperlink))
 									wsTo.hyperlinkManager.add(oNewHyperlink, oHyperlink.data.clone());
 							}

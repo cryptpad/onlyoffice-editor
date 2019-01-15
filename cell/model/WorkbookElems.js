@@ -86,9 +86,9 @@ function shiftGetBBox(bbox, bHor)
 {
 	var bboxGet = null;
 	if(bHor)
-		bboxGet = Asc.Range(bbox.c1, bbox.r1, gc_nMaxCol0, bbox.r2);
+		bboxGet = new Asc.Range(bbox.c1, bbox.r1, gc_nMaxCol0, bbox.r2);
 	else
-		bboxGet = Asc.Range(bbox.c1, bbox.r1, bbox.c2, gc_nMaxRow0);
+		bboxGet = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, gc_nMaxRow0);
 	return bboxGet;
 }
 function shiftSort(a, b, offset)
@@ -654,6 +654,9 @@ var g_oFontProperties = {
 		}
 		return bRes;
 	};
+	Font.prototype.isEqual2 = function (font) {
+		return font && this.getName() === font.getName() && this.getSize() === font.getSize() && this.getBold() === font.getBold() && this.getItalic() === font.getItalic();
+	};
 	Font.prototype.clone = function () {
 		var font = new Font();
 		font.assign(this);
@@ -770,31 +773,22 @@ var g_oFontProperties = {
 		switch (nType) {
 			case this.Properties.fn:
 				return this.fn;
-				break;
 			case this.Properties.scheme:
 				return this.scheme;
-				break;
 			case this.Properties.fs:
 				return this.fs;
-				break;
 			case this.Properties.b:
 				return this.b;
-				break;
 			case this.Properties.i:
 				return this.i;
-				break;
 			case this.Properties.u:
 				return this.u;
-				break;
 			case this.Properties.s:
 				return this.s;
-				break;
 			case this.Properties.c:
 				return this.c;
-				break;
 			case this.Properties.va:
 				return this.va;
-				break;
 		}
 	};
 	Font.prototype.setProperty = function (nType, value) {
@@ -4581,7 +4575,7 @@ RangeDataManager.prototype = {
 	    var bHor = 0 != offset.col ? true : false;
 	    //сдвигаем inner
 	    if (elems.inner.length > 0) {
-	        var bboxAsc = Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
+	        var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
 	        for (var i = 0, length = elems.inner.length; i < length; i++) {
 	            var elem = elems.inner[i];
 	            var from = elem.bbox;
@@ -5481,7 +5475,7 @@ RangeDataManager.prototype = {
 				this.buildDependencies();
 			}
 		}
-		this.Ref = Asc.Range(range.c1, range.r1, range.c2, range.r2);
+		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 		//event
 		this.handlers.trigger("changeRefTablePart", this);
 
@@ -5877,7 +5871,7 @@ RangeDataManager.prototype = {
 			return;
 		}
 
-		this.Ref = Asc.Range(range.c1, range.r1, range.c2, range.r2);
+		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 
 		if (this.AutoFilter) {
 			this.AutoFilter.changeRefOnRange(range);
@@ -6362,7 +6356,7 @@ RangeDataManager.prototype = {
 		return this.TotalsRowFunction;
 	};
 	TableColumn.prototype.getTotalsRowLabel = function () {
-		return this.TotalsRowLabel ? this.TotalsRowFormula.TotalsRowLabel : null;
+		return this.TotalsRowLabel ? this.TotalsRowLabel : null;
 	};
 	TableColumn.prototype.setTotalsRowFormula = function (val, ws) {
 		this.cleanTotalsData();
@@ -6422,7 +6416,7 @@ RangeDataManager.prototype = {
 		}
 
 		if (null !== col) {
-			res = Asc.Range(col, startRow, col, endRow);
+			res = new Asc.Range(col, startRow, col, endRow);
 		}
 
 		return res;

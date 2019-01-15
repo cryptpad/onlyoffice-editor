@@ -2349,7 +2349,7 @@ PasteProcessor.prototype =
 				if(oSelectedContent.Elements.length === 1)
 				{
 					var curDocSelection = this.oDocument.GetSelectionState();
-					if(curDocSelection)
+					if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
 					{
 						var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
 						specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
@@ -6375,7 +6375,7 @@ PasteProcessor.prototype =
 				else if(line_height && null != (line_height = this._ValueToMm(line_height)) && line_height >= 0)
 				{
 					Spacing.Line = line_height;
-					Spacing.LineRule = Asc.linerule_Exact;
+					Spacing.LineRule = Asc.linerule_AtLeast;
 				}
 			}
             if(false === this._isEmptyProperty(Spacing))
@@ -8307,7 +8307,9 @@ PasteProcessor.prototype =
 
 		var parseChildNodes = function(){
 			if (bPresentation) {
-				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType)) {
+				var sChildNodeName = child.nodeName.toLowerCase();
+				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
+					sChildNodeName === "#comment" || sChildNodeName === "script") {
 					return;
 				}
 				//попускам элеметы состоящие только из \t,\n,\r

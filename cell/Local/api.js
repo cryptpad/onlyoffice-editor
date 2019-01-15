@@ -259,6 +259,8 @@ var c_oAscError = Asc.c_oAscError;
 		else
 			AscCommon.History.UserSavedIndex = asc["editor"].LastUserSavedIndex;
 
+        var _lastUserSavedError = asc["editor"].LastUserSavedIndex;
+
 		asc["editor"].onUpdateDocumentModified(AscCommon.History.Have_Changes());
 		asc["editor"].LastUserSavedIndex = undefined;
 
@@ -284,6 +286,7 @@ var c_oAscError = Asc.c_oAscError;
                     this._callbackPluginEndAction = null;
                     window["AscDesktopEditor"]["buildCryptedEnd"](true);
                 };
+                window.LastUserSavedIndex = _lastUserSavedError;
 				window.g_asc_plugins.sendToEncryption({"type": "setPasswordByFile", "hash": hash, "password": password});
 			}
 		}

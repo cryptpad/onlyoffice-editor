@@ -1169,8 +1169,6 @@
 		this.IsTouching = true;
 		this.MoveAfterDown = false;
 
-		AscCommon.g_inputContext.enableVirtualKeyboard();
-
 		var _e = e.touches ? e.touches[0] : e;
 
 		AscCommon.check_MouseDownEvent(_e, false);
@@ -1183,7 +1181,6 @@
 		this.iScroll._start(e);
 
 		AscCommon.stopEvent(e);
-		AscCommon.g_inputContext.HtmlArea.readOnly = true;
 		return false;
 	};
 	CMobileTouchManagerThumbnails.prototype.onTouchMove  = function(e)
@@ -1273,7 +1270,8 @@
 			this.CheckContextMenuTouchEnd(isCheckContextMenuMode);
 
 		AscCommon.stopEvent(e);
-		AscCommon.g_inputContext.HtmlArea.readOnly = false;
+        AscCommon.g_inputContext.preventVirtualKeyboard(e);
+
 		return false;
 	};
 

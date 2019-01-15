@@ -2299,7 +2299,10 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_getChartObject = function(bNoLock) {		// Return new or existing chart. For image return null
-    this.asc_onOpenChartFrame();
+
+    if(bNoLock !== true){
+     this.asc_onOpenChartFrame();
+   }
     var ws = this.wb.getWorksheet();
     return ws.objectRender.getAscChartObject(bNoLock);
   };
@@ -3736,6 +3739,8 @@ var editor;
   // other
   prot["asc_stopSaving"] = prot.asc_stopSaving;
   prot["asc_continueSaving"] = prot.asc_continueSaving;
+
+  prot['sendEvent'] = prot.sendEvent;
 
   // Version History
   prot["asc_undoAllChanges"] = prot.asc_undoAllChanges;

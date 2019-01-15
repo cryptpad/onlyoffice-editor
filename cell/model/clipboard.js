@@ -312,9 +312,12 @@
 				//ignore hidden rows
 				var selectionRange = activeRange ? activeRange : ws.model.selectionRange.getLast();
 				var activeCell = ws.model.selectionRange.activeCell.clone();
-				if(ws.model.autoFilters.bIsExcludeHiddenRows(selectionRange, activeCell))
+
+				//TODO игнорировать нужно и формулы и скрытые строчки в случае, если селект их задевает + стандартные условия в bIsExcludeHiddenRows
+				if(ws.model.autoFilters.bIsExcludeHiddenRows(selectionRange, activeCell, true))
 				{
 					ws.model.excludeHiddenRows(true);
+					ws.model.ignoreWriteFormulas(true);
 				}
 
 				//TEXT
@@ -363,6 +366,7 @@
 				}
 
 				ws.model.excludeHiddenRows(false);
+				ws.model.ignoreWriteFormulas(false);
 			}
 		};
 
@@ -823,7 +827,12 @@
 								imageUrl = cloneImg.graphicObject.getImageUrl();
 							}
 							if (isImage && imageUrl) {
-								url = AscCommon.getFullImageSrc2(imageUrl);
+								//desktop - пишем все урлы в виде base64
+								if(window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsLocalFile"]()) {
+									url = cloneImg.graphicObject.getBase64Img();
+								} else {
+									url = AscCommon.getFullImageSrc2(imageUrl);
+								}
 							} else {
 								url = cloneImg.graphicObject.getBase64Img();
 							}
@@ -3129,6 +3138,12 @@
 				var res = null;
 				if(html && html.children){
 					for(var i = 0; i < html.children.length; i++){
+						if(html.children[i] && html.children[i].nodeName) {
+							var sChildNodeName = html.children[i].nodeName.toLowerCase();
+							if(sChildNodeName === "style" || sChildNodeName === "#comment" || sChildNodeName === "script") {
+								continue;
+							}
+						}
 
 						if(!res){
 							res = {fragments: [], fonts: {}};

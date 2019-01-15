@@ -2312,6 +2312,8 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
             Cell.Temp.Y = Y_content_start;
 
+            // Сохраняем ссылку на исходную ячейку
+			var oOriginCell = Cell;
             if ( VMergeCount > 1 )
             {
                 CurGridCol += GridSpan;
@@ -2429,11 +2431,11 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
 				nFootnotesHeight     = nCurFootnotesHeight;
 				nResetFootnotesIndex = CurRow;
-				Y                    = arrSavedY[Cell.Row.Index];
-				TableHeight          = arrSavedTableHeight[Cell.Row.Index];
-				oFootnotes.LoadRecalculateObject(nPageAbs, nColumnAbs, arrFootnotesObject[Cell.Row.Index]);
+				Y                    = arrSavedY[oOriginCell.Row.Index];
+				TableHeight          = arrSavedTableHeight[oOriginCell.Row.Index];
+				oFootnotes.LoadRecalculateObject(nPageAbs, nColumnAbs, arrFootnotesObject[oOriginCell.Row.Index]);
 
-				CurRow = Cell.Row.Index - 1;
+				CurRow = oOriginCell.Row.Index - 1;
 
 				bFootnoteBreak = true;
 				break;

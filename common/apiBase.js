@@ -1656,10 +1656,45 @@
 		this.sync_StartAction((type == "Block") ? c_oAscAsyncActionType.BlockInteraction : c_oAscAsyncActionType.Information, description);
 	};
 
-	baseEditorsApi.prototype["pluginMethod_EndAction"] = function(type, description)
+	baseEditorsApi.prototype["pluginMethod_EndAction"] = function(type, description, status)
 	{
 		this.sync_EndAction((type == "Block") ? c_oAscAsyncActionType.BlockInteraction : c_oAscAsyncActionType.Information, description);
 
+		if (window["AscDesktopEditor"] && status != null && status != "")
+		{
+			// error!!!
+            if (!window["AscDesktopEditor"]["IsLocalFile"]())
+			{
+                this.sendEvent("asc_onError", "Encryption error: " + status + ". The file was not compiled.", c_oAscError.Level.Critical);
+                window["AscDesktopEditor"]["CryptoMode"] = 0;
+			}
+			else
+			{
+                this.sendEvent("asc_onError", "Encryption error: " + status + ". End-to-end encryption mode is disabled.", c_oAscError.Level.NoCritical);
+                window["AscDesktopEditor"]["CryptoMode"] = 0;
+
+                if (undefined !== window.LastUserSavedIndex)
+				{
+                    AscCommon.History.UserSavedIndex = window.LastUserSavedIndex;
+
+                    if (this.editorId == AscCommon.c_oEditorId.Spreadsheet)
+                        this.onUpdateDocumentModified(AscCommon.History.Have_Changes());
+                    else
+                        this.UpdateInterfaceState();
+				}
+			}
+
+            window.LastUserSavedIndex = undefined;
+            setTimeout(function() {
+
+                window["AscDesktopEditor"]["buildCryptedEnd"](false);
+
+            }, 500);
+
+			return;
+		}
+
+        window.LastUserSavedIndex = undefined;
         if (this._callbackPluginEndAction)
 		{
 			this._callbackPluginEndAction.call(this);

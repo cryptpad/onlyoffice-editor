@@ -496,13 +496,16 @@ function RotateTrackGroup(originalObject)
     this.arrTransforms2 = [];
     var arr_graphic_objects = originalObject.getArrGraphicObjects();
     var group_invert_transform = originalObject.getInvertTransform();
-    for(var i = 0; i < arr_graphic_objects.length; ++i)
+    if(group_invert_transform)
     {
-        var gr_obj_transform_copy = arr_graphic_objects[i].getTransformMatrix().CreateDublicate();
-        global_MatrixTransformer.MultiplyAppend(gr_obj_transform_copy, group_invert_transform);
-        this.arrTransforms2[i] = gr_obj_transform_copy;
-        this.overlayObjects[i] = new OverlayObject(arr_graphic_objects[i].getGeom(), arr_graphic_objects[i].extX, arr_graphic_objects[i].extY,
-            arr_graphic_objects[i].brush,  arr_graphic_objects[i].pen, new CMatrix());
+        for(var i = 0; i < arr_graphic_objects.length; ++i)
+        {
+            var gr_obj_transform_copy = arr_graphic_objects[i].getTransformMatrix().CreateDublicate();
+            global_MatrixTransformer.MultiplyAppend(gr_obj_transform_copy, group_invert_transform);
+            this.arrTransforms2[i] = gr_obj_transform_copy;
+            this.overlayObjects[i] = new OverlayObject(arr_graphic_objects[i].getGeom(), arr_graphic_objects[i].extX, arr_graphic_objects[i].extY,
+                arr_graphic_objects[i].brush,  arr_graphic_objects[i].pen, new CMatrix());
+        }
     }
 
 

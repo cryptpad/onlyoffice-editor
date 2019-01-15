@@ -4009,8 +4009,10 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 	// Удалим отметки о старом селекте
 	if (OldStartPos < StartPos && OldStartPos < EndPos)
 	{
-		var TempLimit = Math.min(StartPos, EndPos);
-		for (var CurPos = OldStartPos; CurPos < TempLimit; CurPos++)
+		var TempStart = Math.max(0, OldStartPos);
+		var TempEnd   = Math.min(Math.min(StartPos, EndPos), this.Content.length);
+
+		for (var CurPos = TempStart; CurPos < TempEnd; CurPos++)
 		{
 			this.Content[CurPos].RemoveSelection();
 		}
@@ -4018,8 +4020,10 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 
 	if (OldEndPos > StartPos && OldEndPos > EndPos)
 	{
-		var TempLimit = Math.max(StartPos, EndPos);
-		for (var CurPos = TempLimit + 1; CurPos <= OldEndPos; CurPos++)
+		var TempStart = Math.max(Math.max(StartPos, EndPos) + 1, 0);
+		var TempEnd   = Math.min(OldEndPos, this.Content.length - 1);
+
+		for (var CurPos = TempStart; CurPos <= TempEnd; CurPos++)
 		{
 			this.Content[CurPos].RemoveSelection();
 		}
@@ -4786,6 +4790,14 @@ Paragraph.prototype.Get_EndRangePos = function(SearchPos, ContentPos)
 	var CurLine  = LinePos.Line;
 	var CurRange = LinePos.Range;
 
+	if (this.Lines.length <= 0 || !this.Lines[CurLine] || !this.Lines[CurLine].Ranges[CurRange])
+	{
+		SearchPos.Pos   = this.Get_EndPos();
+		SearchPos.Line  = 0;
+		SearchPos.Range = 0;
+		return;
+	}
+
 	var Range    = this.Lines[CurLine].Ranges[CurRange];
 	var StartPos = Range.StartPos;
 	var EndPos   = Range.EndPos;
@@ -4808,6 +4820,14 @@ Paragraph.prototype.Get_StartRangePos = function(SearchPos, ContentPos)
 
 	var CurLine  = LinePos.Line;
 	var CurRange = LinePos.Range;
+
+	if (this.Lines.length <= 0 || !this.Lines[CurLine] || !this.Lines[CurLine].Ranges[CurRange])
+	{
+		SearchPos.Pos   = this.Get_StartPos();
+		SearchPos.Line  = 0;
+		SearchPos.Range = 0;
+		return;
+	}
 
 	var Range    = this.Lines[CurLine].Ranges[CurRange];
 	var StartPos = Range.StartPos;
@@ -8736,17 +8756,16 @@ Paragraph.prototype.Clear_Formatting = function()
 };
 Paragraph.prototype.Clear_TextFormatting = function()
 {
-	var Styles, DefHyper;
-	if (this.bFromDocument)
+	var sDefHyperlink = null;
+	if (this.bFromDocument && this.LogicDocument)
 	{
-		Styles   = this.Parent.Get_Styles();
-		DefHyper = Styles.GetDefaultHyperlink();
+		sDefHyperlink = this.LogicDocument.GetStyles().GetDefaultHyperlink();
 	}
 
 	for (var Index = 0; Index < this.Content.length; Index++)
 	{
 		var Item = this.Content[Index];
-		Item.Clear_TextFormatting(DefHyper);
+		Item.Clear_TextFormatting(sDefHyperlink);
 	}
 
 	this.TextPr.Clear_Style();

@@ -3835,11 +3835,11 @@
 
         this.isNeedCrypt = function()
 		{
-			if (!window.g_asc_plugins)
-				return false;
-
-            if (!window.g_asc_plugins.isRunnedEncryption())
-                return false;
+			if (window.g_asc_plugins)
+			{
+                if (!window.g_asc_plugins.isRunnedEncryption())
+                    return false;
+            }
 
             if (!window["AscDesktopEditor"])
                 return false;
@@ -3865,6 +3865,10 @@
 		{
 			var _this = this;
             window["AscDesktopEditor"]["OpenFilenameDialog"]("images", true, function(files) {
+
+                if (!Array.isArray(files)) // string detect
+                    files = [files];
+
 				var _files = [];
 
 				var _options = { isImageCrypt: true, callback: callback, ext : [] };
@@ -4477,7 +4481,7 @@ window.openFileCryptCallback = function(_binary)
 
 window["asc_IsNeedBuildCryptedFile"] = function()
 {
-    if (!window["AscDesktopEditor"])
+    if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["CryptoMode"])
         return false;
 
     var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
