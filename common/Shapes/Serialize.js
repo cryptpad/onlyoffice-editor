@@ -8755,7 +8755,7 @@ function BinaryPPTYLoader()
                                     }
                                 }
 
-                                var Fld = new CPresentationField(par);
+                                var Fld = new AscCommonWord.CPresentationField(par);
                                 if(f_id)
                                 {
                                     Fld.SetGuid(f_id);
@@ -8767,6 +8767,14 @@ function BinaryPPTYLoader()
                                 if(f_text)
                                 {
                                     Fld.AddText(f_text);
+                                }
+                                if(_rPr)
+                                {
+                                    Fld.SetPr(_rPr);
+                                }
+                                if(_pPr)
+                                {
+                                    Fld.SetPPr(_pPr);
                                 }
 
                                 par.Internal_Content_Add(EndPos++, Fld);

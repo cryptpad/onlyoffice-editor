@@ -92,6 +92,7 @@
     {
         var sStr = null;
         var oDate;
+        var oStylesObject;
         if(typeof this.FieldType === 'string')
         {
             var sFieldType = this.FieldType.toLowerCase();
@@ -99,7 +100,38 @@
             {
                 case "slidenum":
                 {
-
+                    if(this.Paragraph && this.Paragraph.Parent)
+                    {
+                        oStylesObject = this.Paragraph.Parent.Get_Styles();
+                        if(oStylesObject.slide && AscFormat.isRealNumber(oStylesObject.slide.num))
+                        {
+                            sStr = '' + (oStylesObject.slide.num + 1);
+                        }
+                    }
+                    break;
+                }
+                case "value":
+                {
+                    if(this.Paragraph && this.Paragraph.Parent)
+                    {
+                        oStylesObject = this.Paragraph.Parent.Get_Styles();
+                        if(oStylesObject.shape && oStylesObject.shape.getValueString())
+                        {
+                            sStr = oStylesObject.shape.getValueString();
+                        }
+                    }
+                    break;
+                }
+                case "percentage":
+                {
+                    if(this.Paragraph && this.Paragraph.Parent)
+                    {
+                        oStylesObject = this.Paragraph.Parent.Get_Styles();
+                        if(oStylesObject.shape && oStylesObject.shape.getPercentageString())
+                        {
+                            sStr = oStylesObject.shape.getPercentageString();
+                        }
+                    }
                     break;
                 }
                 case "datetime":
@@ -188,7 +220,7 @@
                 }
                 default:
                 {
-                    sStr = sFieldType;
+                    sStr = sFieldType.toUpperCase();
                     break;
                 }
             }
