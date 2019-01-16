@@ -244,6 +244,7 @@ CTable.prototype.private_RecalculateGrid = function()
 
     var PctWidth = this.private_RecalculatePercentWidth();
     var MinWidth = this.Internal_Get_TableMinWidth();
+
     var TableW = 0;
     if (tblwidth_Auto === TablePr.TableW.Type)
     {
@@ -681,7 +682,24 @@ CTable.prototype.private_RecalculateGrid = function()
         }
 
         // 3. Рассчитаем максимально допустимую ширину под всю таблицу
-        var PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
+
+		var PageFields;
+
+		// Случай, когда таблица лежит внутри CBlockLevelSdt
+		if (this.Parent instanceof CDocumentContent && this.LogicDocument && this.Parent.IsBlockLevelSdtContent() && this.Parent.GetTopDocumentContent() === this.LogicDocument && !this.Parent.IsTableCellContent())
+		{
+			var nTopIndex = -1;
+			var arrPos    = this.GetDocumentPositionFromObject();
+			if (arrPos.length > 0)
+				nTopIndex = arrPos[0].Position;
+
+			if (-1 !== nTopIndex)
+				PageFields = this.LogicDocument.Get_ColumnFields(nTopIndex, this.Get_AbsoluteColumn(this.PageNum));
+		}
+
+		if (!PageFields)
+			PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
+
         var MaxTableW = PageFields.XLimit - PageFields.X - TablePr.TableInd;
         if ( null === TopTable )
             MaxTableW += LeftMargin + RightMargin; // Добавляем левый маргин первой ячейки + правый маргин правой ячейки для верхних таблиц
