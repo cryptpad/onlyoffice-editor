@@ -50,7 +50,7 @@
     {
         var Field = new CPresentationField(this.Paragraph);
         Field.Set_Pr( this.Pr.Copy() );
-        Field.SetGuid( AscCommon.GUID() );
+        Field.SetGuid( '{' + AscCommon.GUID() + '}');
         Field.SetFieldType( this.FieldType );
         if(this.PPr)
         {
@@ -66,14 +66,17 @@
 
     CPresentationField.prototype.SetGuid = function(sGuid)
     {
+        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_PresentationField_Guid, this.Guid, sGuid));
         this.Guid = sGuid;
     };
     CPresentationField.prototype.SetFieldType = function(Type)
     {
+        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_PresentationField_FieldType, this.FieldType, Type));
         this.FieldType = Type;
     };
     CPresentationField.prototype.SetPPr = function(Pr)
     {
+        History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_PresentationField_PPr, this.PPr, Pr));
         this.PPr = Pr;
     };
 
@@ -225,17 +228,43 @@
                 }
             }
         }
-    return sStr;
-};
+        return sStr;
+    };
 
-CPresentationField.prototype.Recalculate_MeasureContent = function()
-{
-    if (!this.RecalcInfo.IsMeasureNeed())
-        return;
-    this.private_CalculateContent();
-    ParaRun.prototype.Recalculate_MeasureContent.call(this);
-};
+    CPresentationField.prototype.Recalculate_MeasureContent = function()
+    {
+        if (!this.RecalcInfo.IsMeasureNeed())
+            return;
+        this.private_CalculateContent();
+        ParaRun.prototype.Recalculate_MeasureContent.call(this);
+    };
 
+    CPresentationField.prototype.Recalculate_MeasureContent = function()
+    {
+        if (!this.RecalcInfo.IsMeasureNeed())
+            return;
+        this.private_CalculateContent();
+        ParaRun.prototype.Recalculate_MeasureContent.call(this);
+    };
+
+    CPresentationField.prototype.Write_ToBinary2 = function(Writer)
+    {
+        var StartPos = Writer.GetCurPosition();
+        ParaRun.prototype.Write_ToBinary2.call(this, Writer);
+        var EndPos = Writer.GetCurPosition();
+        Writer.Seek(StartPos);
+        Writer.WriteLong( AscDFH.historyitem_type_PresentationField);
+        Writer.Seek(EndPos);
+    };
+
+    var drawingsChangesMap = window['AscDFH'].drawingsChangesMap;
+    drawingsChangesMap[AscDFH.historyitem_PresentationField_FieldType] = function(oClass, value){oClass.FieldType = value;};
+    drawingsChangesMap[AscDFH.historyitem_PresentationField_Guid] = function(oClass, value){oClass.Guid = value;};
+    drawingsChangesMap[AscDFH.historyitem_PresentationField_PPr] = function(oClass, value){oClass.PPr = value;};
+
+    AscDFH.changesFactory[AscDFH.historyitem_PresentationField_FieldType] = window['AscDFH'].CChangesDrawingsString;
+    AscDFH.changesFactory[AscDFH.historyitem_PresentationField_Guid] = window['AscDFH'].CChangesDrawingsString;
+    AscDFH.changesFactory[AscDFH.historyitem_PresentationField_PPr] = window['AscDFH'].CChangesDrawingsObjectNoId;
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

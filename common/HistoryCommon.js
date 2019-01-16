@@ -1128,69 +1128,70 @@
 	//
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	window['AscDFH'].historyitem_type_Unknown          = 0 << 16;
-	window['AscDFH'].historyitem_type_TableId          = 1 << 16;
-	window['AscDFH'].historyitem_type_Document         = 2 << 16;
-	window['AscDFH'].historyitem_type_Paragraph        = 3 << 16;
-	window['AscDFH'].historyitem_type_TextPr           = 4 << 16;
-	window['AscDFH'].historyitem_type_Drawing          = 5 << 16;
-	window['AscDFH'].historyitem_type_DrawingObjects   = 6 << 16; // obsolete
-	window['AscDFH'].historyitem_type_FlowObjects      = 7 << 16; // obsolete
-	window['AscDFH'].historyitem_type_FlowImage        = 8 << 16; // obsolete
-	window['AscDFH'].historyitem_type_Table            = 9 << 16;
-	window['AscDFH'].historyitem_type_TableRow         = 10 << 16;
-	window['AscDFH'].historyitem_type_TableCell        = 11 << 16;
-	window['AscDFH'].historyitem_type_DocumentContent  = 12 << 16;
-	window['AscDFH'].historyitem_type_FlowTable        = 13 << 16; // obsolete
-	window['AscDFH'].historyitem_type_HdrFtrController = 14 << 16; // obsolete
-	window['AscDFH'].historyitem_type_HdrFtr           = 15 << 16;
-	window['AscDFH'].historyitem_type_AbstractNum      = 16 << 16;
-	window['AscDFH'].historyitem_type_Comment          = 17 << 16;
-	window['AscDFH'].historyitem_type_Comments         = 18 << 16;
-	window['AscDFH'].historyitem_type_Image            = 19 << 16;
-	window['AscDFH'].historyitem_type_GrObjects        = 20 << 16;
-	window['AscDFH'].historyitem_type_Hyperlink        = 21 << 16;
-	window['AscDFH'].historyitem_type_Style            = 23 << 16;
-	window['AscDFH'].historyitem_type_Styles           = 24 << 16;
-	window['AscDFH'].historyitem_type_ChartTitle       = 25 << 16;
-	window['AscDFH'].historyitem_type_Math             = 26 << 16;
-	window['AscDFH'].historyitem_type_CommentMark      = 27 << 16;
-	window['AscDFH'].historyitem_type_ParaRun          = 28 << 16;
-	window['AscDFH'].historyitem_type_MathContent      = 29 << 16;
-	window['AscDFH'].historyitem_type_Section          = 30 << 16;
-	window['AscDFH'].historyitem_type_acc              = 31 << 16;
-	window['AscDFH'].historyitem_type_bar              = 32 << 16;
-	window['AscDFH'].historyitem_type_borderBox        = 33 << 16;
-	window['AscDFH'].historyitem_type_box              = 34 << 16;
-	window['AscDFH'].historyitem_type_delimiter        = 35 << 16;
-	window['AscDFH'].historyitem_type_eqArr            = 36 << 16;
-	window['AscDFH'].historyitem_type_frac             = 37 << 16;
-	window['AscDFH'].historyitem_type_mathFunc         = 38 << 16;
-	window['AscDFH'].historyitem_type_groupChr         = 39 << 16;
-	window['AscDFH'].historyitem_type_lim              = 40 << 16;
-	window['AscDFH'].historyitem_type_matrix           = 41 << 16;
-	window['AscDFH'].historyitem_type_nary             = 42 << 16;
-	window['AscDFH'].historyitem_type_integral         = 43 << 16;
-	window['AscDFH'].historyitem_type_double_integral  = 44 << 16;
-	window['AscDFH'].historyitem_type_triple_integral  = 45 << 16;
-	window['AscDFH'].historyitem_type_contour_integral = 46 << 16;
-	window['AscDFH'].historyitem_type_surface_integral = 47 << 16;
-	window['AscDFH'].historyitem_type_volume_integral  = 48 << 16;
-	window['AscDFH'].historyitem_type_phant            = 49 << 16;
-	window['AscDFH'].historyitem_type_rad              = 50 << 16;
-	window['AscDFH'].historyitem_type_deg_subsup       = 51 << 16;
-	window['AscDFH'].historyitem_type_iterators        = 52 << 16;
-	window['AscDFH'].historyitem_type_deg              = 53 << 16;
-	window['AscDFH'].historyitem_type_ParaComment      = 54 << 16;
-	window['AscDFH'].historyitem_type_Field            = 55 << 16;
-	window['AscDFH'].historyitem_type_Footnotes        = 56 << 16;
-	window['AscDFH'].historyitem_type_FootEndNote      = 57 << 16;
-	window['AscDFH'].historyitem_type_Presentation     = 58 << 16;
-	window['AscDFH'].historyitem_type_BlockLevelSdt    = 59 << 16;
-	window['AscDFH'].historyitem_type_SdtPr            = 60 << 16;
-	window['AscDFH'].historyitem_type_InlineLevelSdt   = 61 << 16;
-	window['AscDFH'].historyitem_type_ParaBookmark     = 62 << 16;
-	window['AscDFH'].historyitem_type_Num              = 63 << 16;
+	window['AscDFH'].historyitem_type_Unknown            = 0 << 16;
+	window['AscDFH'].historyitem_type_TableId            = 1 << 16;
+	window['AscDFH'].historyitem_type_Document           = 2 << 16;
+	window['AscDFH'].historyitem_type_Paragraph          = 3 << 16;
+	window['AscDFH'].historyitem_type_TextPr             = 4 << 16;
+	window['AscDFH'].historyitem_type_Drawing            = 5 << 16;
+	window['AscDFH'].historyitem_type_DrawingObjects     = 6 << 16; // obsolete
+	window['AscDFH'].historyitem_type_FlowObjects        = 7 << 16; // obsolete
+	window['AscDFH'].historyitem_type_FlowImage          = 8 << 16; // obsolete
+	window['AscDFH'].historyitem_type_Table              = 9 << 16;
+	window['AscDFH'].historyitem_type_TableRow           = 10 << 16;
+	window['AscDFH'].historyitem_type_TableCell          = 11 << 16;
+	window['AscDFH'].historyitem_type_DocumentContent    = 12 << 16;
+	window['AscDFH'].historyitem_type_FlowTable          = 13 << 16; // obsolete
+	window['AscDFH'].historyitem_type_HdrFtrController   = 14 << 16; // obsolete
+	window['AscDFH'].historyitem_type_HdrFtr             = 15 << 16;
+	window['AscDFH'].historyitem_type_AbstractNum        = 16 << 16;
+	window['AscDFH'].historyitem_type_Comment            = 17 << 16;
+	window['AscDFH'].historyitem_type_Comments           = 18 << 16;
+	window['AscDFH'].historyitem_type_Image              = 19 << 16;
+	window['AscDFH'].historyitem_type_GrObjects          = 20 << 16;
+	window['AscDFH'].historyitem_type_Hyperlink          = 21 << 16;
+	window['AscDFH'].historyitem_type_Style              = 23 << 16;
+	window['AscDFH'].historyitem_type_Styles             = 24 << 16;
+	window['AscDFH'].historyitem_type_ChartTitle         = 25 << 16;
+	window['AscDFH'].historyitem_type_Math               = 26 << 16;
+	window['AscDFH'].historyitem_type_CommentMark        = 27 << 16;
+	window['AscDFH'].historyitem_type_ParaRun            = 28 << 16;
+	window['AscDFH'].historyitem_type_MathContent        = 29 << 16;
+	window['AscDFH'].historyitem_type_Section            = 30 << 16;
+	window['AscDFH'].historyitem_type_acc                = 31 << 16;
+	window['AscDFH'].historyitem_type_bar                = 32 << 16;
+	window['AscDFH'].historyitem_type_borderBox          = 33 << 16;
+	window['AscDFH'].historyitem_type_box                = 34 << 16;
+	window['AscDFH'].historyitem_type_delimiter          = 35 << 16;
+	window['AscDFH'].historyitem_type_eqArr              = 36 << 16;
+	window['AscDFH'].historyitem_type_frac               = 37 << 16;
+	window['AscDFH'].historyitem_type_mathFunc           = 38 << 16;
+	window['AscDFH'].historyitem_type_groupChr           = 39 << 16;
+	window['AscDFH'].historyitem_type_lim                = 40 << 16;
+	window['AscDFH'].historyitem_type_matrix             = 41 << 16;
+	window['AscDFH'].historyitem_type_nary               = 42 << 16;
+	window['AscDFH'].historyitem_type_integral           = 43 << 16;
+	window['AscDFH'].historyitem_type_double_integral    = 44 << 16;
+	window['AscDFH'].historyitem_type_triple_integral    = 45 << 16;
+	window['AscDFH'].historyitem_type_contour_integral   = 46 << 16;
+	window['AscDFH'].historyitem_type_surface_integral   = 47 << 16;
+	window['AscDFH'].historyitem_type_volume_integral    = 48 << 16;
+	window['AscDFH'].historyitem_type_phant              = 49 << 16;
+	window['AscDFH'].historyitem_type_rad                = 50 << 16;
+	window['AscDFH'].historyitem_type_deg_subsup         = 51 << 16;
+	window['AscDFH'].historyitem_type_iterators          = 52 << 16;
+	window['AscDFH'].historyitem_type_deg                = 53 << 16;
+	window['AscDFH'].historyitem_type_ParaComment        = 54 << 16;
+	window['AscDFH'].historyitem_type_Field              = 55 << 16;
+	window['AscDFH'].historyitem_type_Footnotes          = 56 << 16;
+	window['AscDFH'].historyitem_type_FootEndNote        = 57 << 16;
+	window['AscDFH'].historyitem_type_Presentation       = 58 << 16;
+	window['AscDFH'].historyitem_type_BlockLevelSdt      = 59 << 16;
+	window['AscDFH'].historyitem_type_SdtPr              = 60 << 16;
+	window['AscDFH'].historyitem_type_InlineLevelSdt     = 61 << 16;
+	window['AscDFH'].historyitem_type_ParaBookmark       = 62 << 16;
+	window['AscDFH'].historyitem_type_Num                = 63 << 16;
+	window['AscDFH'].historyitem_type_PresentationField  = 64 << 16;
 
 	window['AscDFH'].historyitem_type_CommonShape            = 1000 << 16; // Этот класс добавлен для элементов, у которых нет конкретного класса
 
@@ -1524,6 +1525,14 @@
 	window['AscDFH'].historyitem_Num_LvlOverrideChange = window['AscDFH'].historyitem_type_Num | 1;
 	window['AscDFH'].historyitem_Num_AbstractNum       = window['AscDFH'].historyitem_type_Num | 2;
 	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений в классе CPresentationField
+	//------------------------------------------------------------------------------------------------------------------
+	window['AscDFH'].historyitem_PresentationField_Guid      = window['AscDFH'].historyitem_type_PresentationField | 1;
+	window['AscDFH'].historyitem_PresentationField_FieldType = window['AscDFH'].historyitem_type_PresentationField | 2;
+	window['AscDFH'].historyitem_PresentationField_PPr       = window['AscDFH'].historyitem_type_PresentationField | 3;
+	//------------------------------------------------------------------------------------------------------------------
+
+
 	// Типы изменений в классе СComment
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_Comment_Change   = window['AscDFH'].historyitem_type_Comment | 1;
