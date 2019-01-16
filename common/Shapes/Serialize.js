@@ -8415,49 +8415,12 @@ function BinaryPPTYLoader()
                     {
                         txbody.content.Internal_Content_RemoveAll();
                     }
-                    var _last_field_type = false;
                     for (var i = 0; i < _c; i++)
                     {
                         s.Skip2(1); // type
                         var _paragraph = this.ReadParagraph(txbody.content);
                         _paragraph.Correct_Content();
                         txbody.content.Internal_Content_Add(txbody.content.Content.length, _paragraph);
-                        if(_paragraph.f_type != undefined || _paragraph.f_text != undefined || _paragraph.f_id != undefined)
-                        {
-                            _last_field_type = true;
-                        }
-                    }
-                    if(shape && (this.TempMainObject && typeof Slide !== "undefined" && this.TempMainObject instanceof  Slide && shape.isPlaceholder && shape.isPlaceholder() && (shape.getPlaceholderType() === AscFormat.phType_sldNum || shape.getPlaceholderType() === AscFormat.phType_dt)) && _last_field_type)
-                    {
-                        var str_field = txbody.getFieldText(_last_field_type, this.TempMainObject, (this.presentation && this.presentation.pres && AscFormat.isRealNumber(this.presentation.pres.attrFirstSlideNum)) ? this.presentation.pres.attrFirstSlideNum : 1);
-                        if(str_field.length > 0)
-                        {
-                            txbody.content.Internal_Content_RemoveAll();
-                            txbody.content.Internal_Content_Add(txbody.content.Content.length,  new Paragraph(txbody.content.DrawingDocument, txbody.content, true));
-                            AscFormat.AddToContentFromString(txbody.content, str_field);
-
-                            if(_paragraph.f_runPr || _paragraph.f_paraPr)
-                            {
-                                txbody.content.Set_ApplyToAll(true);
-                                if(_paragraph.f_runPr)
-                                {
-                                    var _value_text_pr = new CTextPr();
-                                    if(_paragraph.f_runPr.Unifill && !_paragraph.f_runPr.Unifill.fill)
-                                    {
-                                        _paragraph.f_runPr.Unifill = undefined;
-                                    }
-                                    _value_text_pr.Set_FromObject(_paragraph.f_runPr);
-                                    txbody.content.AddToParagraph( new ParaTextPr(_value_text_pr), false );
-                                    delete _paragraph.f_runPr;
-                                }
-                                if(_paragraph.f_paraPr)
-                                {
-                                    txbody.content.Content[0].Set_Pr(_paragraph.f_paraPr);
-                                    delete _paragraph.f_paraPr;
-                                }
-                                txbody.content.Set_ApplyToAll(false);
-                            }
-                        }
 
                     }
                     break;
@@ -8520,28 +8483,16 @@ function BinaryPPTYLoader()
                         txbody.content.Internal_Content_RemoveAll();
                     }
 
-                    var _last_field_type = false;
                     for (var i = 0; i < _c; i++)
                     {
                         s.Skip2(1); // type
                         var _paragraph = this.ReadParagraph(txbody.content);
                         _paragraph.Set_Parent(txbody.content);
                         txbody.content.Internal_Content_Add(txbody.content.Content.length, _paragraph);
-                        if(_paragraph.f_type != undefined || _paragraph.f_text != undefined || _paragraph.f_id != undefined)
-                        {
-                            _last_field_type = true;
-                        }
+
                     }
 
-                    if(_last_field_type)
-                    {
-                       // var str_field = txbody.getFieldText(_last_field_type);
-                       // if(str_field.length > 0)
-                       // {
-                       //     txbody.content.Internal_Content_RemoveAll();
-                       //     AddToContentFromString(txbody.content, str_field);
-                       // }
-                    }
+
                     break;
                 }
                 default:
@@ -8804,12 +8755,29 @@ function BinaryPPTYLoader()
                                     }
                                 }
 
-                                par.f_id = f_id;
-                                par.f_type = f_type;
-                                par.f_text = f_text;
-                                par.f_runPr = _rPr;
-                                par.f_paraPr = _pPr;
+                                var Fld = new AscCommonWord.CPresentationField(par);
+                                if(f_id)
+                                {
+                                    Fld.SetGuid(f_id);
+                                }
+                                if(f_type)
+                                {
+                                    Fld.SetFieldType(f_type);
+                                }
+                                if(f_text)
+                                {
+                                    Fld.AddText(f_text);
+                                }
+                                if(_rPr)
+                                {
+                                    Fld.SetPr(_rPr);
+                                }
+                                if(_pPr)
+                                {
+                                    Fld.SetPPr(_pPr);
+                                }
 
+                                par.Internal_Content_Add(EndPos++, Fld);
                                 s.Seek2(_end);
                                 break;
                             }

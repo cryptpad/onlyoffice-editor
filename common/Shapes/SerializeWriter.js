@@ -2791,15 +2791,6 @@ function CBinaryFileWriter()
 
         var _par_content = paragraph.Content;
 
-        if(paragraph.f_id != undefined || paragraph.f_type != undefined || paragraph.f_text!= undefined)
-        {
-            oThis.StartRecord(0); // subtype
-            oThis.WriteParagraphField(paragraph.f_id, paragraph.f_type, paragraph.f_text);
-            oThis.EndRecord();
-
-            _count++;
-        }
-
         var _content_len = _par_content.length;
         for (var i = 0; i < _content_len; i++)
         {
@@ -2852,7 +2843,14 @@ function CBinaryFileWriter()
                         }
                     }
 
-                    if ("" != _run_text)
+                    if(_elem instanceof AscCommonWord.CPresentationField)
+                    {
+                        oThis.StartRecord(0); // subtype
+                        oThis.WriteParagraphField(_elem.Guid, _elem.FieldType, _run_text, _elem.Pr, _elem.pPr);
+                        oThis.EndRecord();
+                        _count++;
+                    }
+                    else if ("" != _run_text)
                     {
                         oThis.StartRecord(0); // subtype
                         oThis.WriteTextRun(_elem.Pr, _run_text, null);
@@ -3014,7 +3012,7 @@ function CBinaryFileWriter()
         oThis.EndRecord();
     };
 
-    this.WriteParagraphField = function (id, type, text)
+    this.WriteParagraphField = function (id, type, text, rPr, pPr)
     {
         oThis.StartRecord(AscFormat.PARRUN_TYPE_FLD);
 
@@ -3025,6 +3023,24 @@ function CBinaryFileWriter()
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         // rPr & pPr
+        if (rPr !== undefined && rPr != null)
+        {
+            oThis.StartRecord(0);
+            oThis.WriteRunProperties(rPr, null);
+            oThis.EndRecord();
+        }
+        if (pPr !== undefined && pPr != null)
+        {
+            var tPr = new AscFormat.CTextParagraphPr();
+            tPr.bullet = pPr.Bullet;
+            tPr.lvl = pPr.Lvl;
+            tPr.pPr = pPr;
+            tPr.rPr = pPr.DefaultRunPr;
+            if (tPr.rPr == null)
+                tPr.rPr = new CTextPr();
+
+            oThis.WriteRecord1(1, tPr, oThis.WriteTextParagraphPr);
+        }
 
         oThis.EndRecord();
     };

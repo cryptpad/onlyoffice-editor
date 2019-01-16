@@ -1620,8 +1620,8 @@ CDLbl.prototype =
             }
             styles.Add(style);
             if(!(this instanceof CTitle))
-                this.lastStyleObject = {lastId: style.Id, styles: styles};
-            return {lastId: style.Id, styles: styles};
+                this.lastStyleObject = {lastId: style.Id, styles: styles, shape: this, slide: null};
+            return {lastId: style.Id, styles: styles, shape: this, slide: null};
         }, this, []);
     },
 
@@ -1682,6 +1682,36 @@ CDLbl.prototype =
         }
     },
 
+    getPercentageString: function()
+    {
+        if(this.series && this.pt)
+        {
+            return this.series.getValByIndex(this.pt.idx, true)
+        }
+        return "";
+    },
+
+    getValueString: function()
+    {
+        var sFormatCode;
+        if(this.pt && this.series)
+        {
+            if(this.numFmt && typeof this.numFmt.formatCode === "string" && this.numFmt.formatCode.length > 0){
+                sFormatCode = this.numFmt.formatCode;
+            }
+            else if(typeof this.pt.formatCode === "string" && this.pt.formatCode.length > 0){
+                sFormatCode =  this.pt.formatCode;
+            }
+            else{
+                sFormatCode = this.series.getFormatCode();
+            }
+
+            var num_format = AscCommon.oNumFormatCache.get(sFormatCode);
+            return num_format.formatToChart(this.series.getValByIndex(this.pt.idx))
+        }
+        return "";
+    },
+
     getDefaultTextForTxBody: function()
     {
         var compiled_string = "";
@@ -1714,26 +1744,13 @@ CDLbl.prototype =
         {
             if(compiled_string.length > 0)
                 compiled_string += separator;
-            var sFormatCode;
-            if(this.numFmt && typeof this.numFmt.formatCode === "string" && this.numFmt.formatCode.length > 0){
-                sFormatCode = this.numFmt.formatCode;
-            }
-            else if(typeof this.pt.formatCode === "string" && this.pt.formatCode.length > 0){
-                sFormatCode =  this.pt.formatCode;
-            }
-            else{
-
-                sFormatCode = this.series.getFormatCode();
-            }
-
-            var num_format = AscCommon.oNumFormatCache.get(sFormatCode);
-            compiled_string += num_format.formatToChart(this.series.getValByIndex(this.pt.idx));
+            compiled_string += this.getValueString();
         }
         if(this.showPercent)
         {
             if(compiled_string.length > 0)
                 compiled_string += separator;
-            compiled_string += this.series.getValByIndex(this.pt.idx, true);
+            compiled_string += this.getPercentageString();
         }
         return compiled_string;
     },

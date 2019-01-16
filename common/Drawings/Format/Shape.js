@@ -2768,7 +2768,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
             last_style_id = shape_text_style.Id;
         }
 
-        this.compiledStyles[level] = {styles: Styles, lastId: last_style_id};
+        this.compiledStyles[level] = {styles: Styles, lastId: last_style_id, shape: this, slide: parent_objects.slide};
         return this.compiledStyles[level];
     }, this, []);
 };

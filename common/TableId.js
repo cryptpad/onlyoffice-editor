@@ -265,6 +265,7 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_InlineLevelSdt]         = AscCommonWord.CInlineLevelSdt;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ParaBookmark]           = AscCommonWord.CParagraphBookmark;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Num]                    = AscCommonWord.CNum;
+		this.m_oFactoryClass[AscDFH.historyitem_type_PresentationField]      = AscCommonWord.CPresentationField;
 
 
 		if (window['AscCommonSlide'])
