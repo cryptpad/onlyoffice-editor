@@ -16,9 +16,23 @@
     oMonths[10] = "November";
     oMonths[11] = "December";
 
+     var oDays = {};
+    oDays[0] = "Sunday";
+    oDays[1] = "Monday";
+    oDays[2] = "Tuesday";
+    oDays[3] = "Wednesday";
+    oDays[4] = "Thursday";
+    oDays[5] = "Friday";
+    oDays[6] = "Saturday";
+
     function AlignNum(Num, nDigitsCount)
     {
-        
+        var sStr = "" + Num;
+        for(var i = sStr.length; i < nDigitsCount; ++i)
+        {
+            sStr = '0' + sStr;
+        }
+        return sStr;
     }
 
     function CPresentationField(Paragraph)
@@ -77,92 +91,108 @@
     CPresentationField.prototype.private_GetString = function()
     {
         var sStr = null;
-        // if(typeof this.FieldType === 'string') {
-        //     var sFieldType = this.FieldType.toLowerCase();
-        //     sStr = sFieldType;
-        //     switch (sFieldType)
-        //     {
-        //         case "slidenum":
-        //         {
-        //
-        //             break;
-        //         }
-        //         case "datetime":
-        //         {
-        //
-        //             break;
-        //         }
-        //         case "datetime1":
-        //         {
-        //             var oDate = new Date();
-        //             sStr = oDate.getMonth() + '/' + oDate.getDay() + '/' + oDate.getYear();
-        //             break;
-        //         }
-        //         case "datetime2":
-        //         {
-        //             var oDate = new Date();
-        //             sStr = oDate.getMonth() + '/' + oDate.getDay() + '/' + oDate.getYear();
-        //             break;
-        //         }
-        //         case "datetime3":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime4":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime5":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime6":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime7":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime8":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime9":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime10":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime11":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime12":
-        //         {
-        //             break;
-        //         }
-        //         case "datetime13":
-        //         {
-        //             break;
-        //         }
-        //         default:
-        //         {
-        //             break;
-        //         }
-        //     }
-        // }
-        // switch (this.FieldType)
-        // {
-        //     case
-        //     default:
-        //     {
-        //         break;
-        //     }
-        // }
-    //}
+        var oDate;
+        if(typeof this.FieldType === 'string')
+        {
+            var sFieldType = this.FieldType.toLowerCase();
+            switch (sFieldType)
+            {
+                case "slidenum":
+                {
+
+                    break;
+                }
+                case "datetime":
+                {
+                    oDate = new Date();
+                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear();
+                    break;
+                }
+                case "datetime1":
+                {
+                    oDate = new Date();
+                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear();
+                    break;
+                }
+                case "datetime2":
+                {
+                    oDate = new Date();
+                    sStr = AscCommon.translateManager.getValue(oDays[oDate.getDay()]) + ', ' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + AlignNum(oDate.getDate(), 2) + ', ' + oDate.getFullYear();
+                    break;
+                }
+                case "datetime3":
+                {
+                    oDate = new Date();
+                    sStr = AlignNum(oDate.getDate(), 2) + ' ' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + oDate.getFullYear();
+                    break;
+                }
+                case "datetime4":
+                {
+                    oDate = new Date();
+                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + AlignNum(oDate.getDate(), 2) + ', ' + oDate.getFullYear();
+                    break;
+                }
+                case "datetime5":
+                {
+                    oDate = new Date();
+                    sStr = AlignNum(oDate.getDate(), 2) + '-' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]).slice(0, 3) + '-' + (oDate.getFullYear() + '').slice(2, 4);
+                    break;
+                }
+                case "datetime6":
+                {
+                    oDate = new Date();
+                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + (oDate.getFullYear() + '').slice(2, 4);
+                    break;
+                }
+                case "datetime7":
+                {
+                    oDate = new Date();
+                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]).slice(0, 3) + '-' + (oDate.getFullYear() + '').slice(2, 4);
+                    break;
+                }
+                case "datetime8":
+                {
+                    oDate = new Date();
+                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear() + ' ' + oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
+                    break;
+                }
+                case "datetime9":
+                {
+                    oDate = new Date();
+                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear() + ' ' + oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric', second: 'numeric' });
+                    break;
+                }
+                case "datetime10":
+                {
+                    oDate = new Date();
+                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric',  minute: 'numeric', hour12: false });
+                    break;
+                }
+                case "datetime11":
+                {
+                    oDate = new Date();
+                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric',  minute: 'numeric', second: 'numeric', hour12: false });
+                    break;
+                }
+                case "datetime12":
+                {
+                    oDate = new Date();
+                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
+                    break;
+                }
+                case "datetime13":
+                {
+                    oDate = new Date();
+                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric', second: 'numeric' });
+                    break;
+                }
+                default:
+                {
+                    sStr = sFieldType;
+                    break;
+                }
+            }
+        }
     return sStr;
 };
 
