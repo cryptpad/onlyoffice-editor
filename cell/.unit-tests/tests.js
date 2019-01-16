@@ -140,14 +140,10 @@ $(function () {
 	}
 
 	test("Asc.Range", function test_Range() {
-		raises(function () {Asc.Range();}, 'Asc.Range() must throw error to pass');
-		raises(function () {Asc.Range("abc");}, 'Asc.Range("abc") must throw error to pass');
-		raises(function () {Asc.Range("1", 2, 3, 4);}, 'Asc.Range("1", 2, 3, 4) must throw error to pass');
-
 		var range = new Asc.Range(1, 2, 3, 4),
-		    range2 = Asc.Range(2, 1, 4, 3),
-		    range3 = Asc.Range(5, 4, 3, 2, true),
-		    range4 = Asc.Range(8, 3, 2, 5),
+		    range2 = new Asc.Range(2, 1, 4, 3),
+		    range3 = new Asc.Range(5, 4, 3, 2, true),
+		    range4 = new Asc.Range(8, 3, 2, 5),
 		    range5 = range4.clone();
 
 		range4.normalize();
@@ -185,57 +181,57 @@ $(function () {
 	test("Asc.Range.intersection", function test_RangeIntersection() {
 		var range = new Asc.Range(2,4,10,12), r;
 
-		strictEqual(range.intersection(Asc.Range(1,1,2,2)),     null, "Range(2,4,10,12) & Range(1,1,2,2)");
-		strictEqual(range.intersection(Asc.Range(4,1,5,2)),     null, "Range(2,4,10,12) & Range(4,1,5,2)");
-		strictEqual(range.intersection(Asc.Range(13,1,14,2)),   null, "Range(2,4,10,12) & Range(13,1,14,2)");
-		strictEqual(range.intersection(Asc.Range(13,7,14,8)),   null, "Range(2,4,10,12) & Range(13,7,14,8)");
-		strictEqual(range.intersection(Asc.Range(13,15,14,16)), null, "Range(2,4,10,12) & Range(13,15,14,16)");
-		strictEqual(range.intersection(Asc.Range(8,15,9,16)),   null, "Range(2,4,10,12) & Range(8,15,9,16)");
-		strictEqual(range.intersection(Asc.Range(0,13,1,14)),   null, "Range(2,4,10,12) & Range(0,13,1,14)");
-		strictEqual(range.intersection(Asc.Range(0,5,1,6)),     null, "Range(2,4,10,12) & Range(0,5,1,6)");
+		strictEqual(range.intersection(new Asc.Range(1,1,2,2)),     null, "Range(2,4,10,12) & Range(1,1,2,2)");
+		strictEqual(range.intersection(new Asc.Range(4,1,5,2)),     null, "Range(2,4,10,12) & Range(4,1,5,2)");
+		strictEqual(range.intersection(new Asc.Range(13,1,14,2)),   null, "Range(2,4,10,12) & Range(13,1,14,2)");
+		strictEqual(range.intersection(new Asc.Range(13,7,14,8)),   null, "Range(2,4,10,12) & Range(13,7,14,8)");
+		strictEqual(range.intersection(new Asc.Range(13,15,14,16)), null, "Range(2,4,10,12) & Range(13,15,14,16)");
+		strictEqual(range.intersection(new Asc.Range(8,15,9,16)),   null, "Range(2,4,10,12) & Range(8,15,9,16)");
+		strictEqual(range.intersection(new Asc.Range(0,13,1,14)),   null, "Range(2,4,10,12) & Range(0,13,1,14)");
+		strictEqual(range.intersection(new Asc.Range(0,5,1,6)),     null, "Range(2,4,10,12) & Range(0,5,1,6)");
 
-		r = range.intersection( Asc.Range(1,3,3,5) );
+		r = range.intersection( new Asc.Range(1,3,3,5) );
 		check_range(r, 2, 4, 3, 5, "Range(2,4,10,12) & Range(1,3,3,5)");
-		r = range.intersection( Asc.Range(1,6,3,7) );
+		r = range.intersection( new Asc.Range(1,6,3,7) );
 		check_range(r, 2, 6, 3, 7, "Range(2,4,10,12) & Range(1,6,3,7)");
-		r = range.intersection( Asc.Range(1,11,3,13) );
+		r = range.intersection( new Asc.Range(1,11,3,13) );
 		check_range(r, 2, 11, 3, 12, "Range(2,4,10,12) & Range(1,11,3,13)");
 
-		r = range.intersection( Asc.Range(4,3,5,5) );
+		r = range.intersection( new Asc.Range(4,3,5,5) );
 		check_range(r, 4, 4, 5, 5, "Range(2,4,10,12) & Range(4,3,5,5)");
-		r = range.intersection( Asc.Range(4,6,5,7) );
+		r = range.intersection( new Asc.Range(4,6,5,7) );
 		check_range(r, 4, 6, 5, 7, "Range(2,4,10,12) & Range(4,6,5,7)");
-		r = range.intersection( Asc.Range(4,11,5,13) );
+		r = range.intersection( new Asc.Range(4,11,5,13) );
 		check_range(r, 4, 11, 5, 12, "Range(2,4,10,12) & Range(4,11,5,13)");
 
-		r = range.intersection( Asc.Range(9,3,11,5) );
+		r = range.intersection( new Asc.Range(9,3,11,5) );
 		check_range(r, 9, 4, 10, 5, "Range(2,4,10,12) & Range(9,3,11,5)");
-		r = range.intersection( Asc.Range(9,6,11,7) );
+		r = range.intersection( new Asc.Range(9,6,11,7) );
 		check_range(r, 9, 6, 10, 7, "Range(2,4,10,12) & Range(9,6,11,7)");
-		r = range.intersection( Asc.Range(9,11,11,13) );
+		r = range.intersection( new Asc.Range(9,11,11,13) );
 		check_range(r, 9, 11, 10, 12, "Range(2,4,10,12) & Range(9,11,11,13)");
 
-		r = range.intersection( Asc.Range(1,3,3,13) );
+		r = range.intersection( new Asc.Range(1,3,3,13) );
 		check_range(r, 2, 4, 3, 12, "Range(2,4,10,12) & Range(1,3,3,13)");
-		r = range.intersection( Asc.Range(6,3,7,13) );
+		r = range.intersection( new Asc.Range(6,3,7,13) );
 		check_range(r, 6, 4, 7, 12, "Range(2,4,10,12) & Range(6,3,7,13)");
-		r = range.intersection( Asc.Range(8,2,12,14) );
+		r = range.intersection( new Asc.Range(8,2,12,14) );
 		check_range(r, 8, 4, 10, 12, "Range(2,4,10,12) & Range(8,2,12,14)");
 
-		r = range.intersection( Asc.Range(1,3,11,5) );
+		r = range.intersection( new Asc.Range(1,3,11,5) );
 		check_range(r, 2, 4, 10, 5, "Range(2,4,10,12) & Range(1,3,11,5)");
-		r = range.intersection( Asc.Range(1,8,11,9) );
+		r = range.intersection( new Asc.Range(1,8,11,9) );
 		check_range(r, 2, 8, 10, 9, "Range(2,4,10,12) & Range(1,8,11,9)");
-		r = range.intersection( Asc.Range(1,11,11,13) );
+		r = range.intersection( new Asc.Range(1,11,11,13) );
 		check_range(r, 2, 11, 10, 12, "Range(2,4,10,12) & Range(1,11,11,13)");
 	});
 
 	test("Asc.Range.union", function test_RangeUnion() {
 		var range = new Asc.Range(2,4,10,12), r;
 
-		r = range.union( Asc.Range(2,4,3,5) );
+		r = range.union( new Asc.Range(2,4,3,5) );
 		check_range(r, 2, 4, 10, 12, "Range(2,4,10,12) | Range(2,4,3,5)");
-		r = range.union( Asc.Range(9,3,13,5) );
+		r = range.union( new Asc.Range(9,3,13,5) );
 		check_range(r, 2, 3, 13, 12, "Range(2,4,10,12) | Range(9,3,13,5)");
 	});
 

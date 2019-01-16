@@ -1608,23 +1608,23 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
             var OffsetCorrection_Left  = 0;
             var OffsetCorrection_Right = 0;
 
-            if (true !== this.bPresentation)
+            if (true !== this.bPresentation && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() < document_compatibility_mode_Word15)
             {
                 OffsetCorrection_Left  = this.GetTableOffsetCorrection();
                 OffsetCorrection_Right = this.GetRightTableOffsetCorrection();
             }
 
-            this.X = this.X_origin + this.GetTableOffsetCorrection();
-            this.AnchorPosition.Set_X(this.TableSumGrid[this.TableSumGrid.length - 1], this.X_origin, PageFields.X + OffsetCorrection_Left, PageFields.XLimit + OffsetCorrection_Right, LD_PageLimits.XLimit, PageLimits.X - OffsetCorrection_Left, PageLimits.XLimit + OffsetCorrection_Right);
+            this.X = this.X_origin + OffsetCorrection_Left;
+            this.AnchorPosition.Set_X(this.TableSumGrid[this.TableSumGrid.length - 1], this.X_origin, PageFields.X + OffsetCorrection_Left, PageFields.XLimit + OffsetCorrection_Right, LD_PageLimits.XLimit, PageLimits.X + OffsetCorrection_Left, PageLimits.XLimit + OffsetCorrection_Right);
 
             // Непонятно по какой причине, но Word для плавающих таблиц добаляется значение TableInd
 			this.AnchorPosition.Calculate_X(this.PositionH.RelativeFrom, this.PositionH.Align, this.PositionH.Value);
 			this.AnchorPosition.CalcX += TablePr.TableInd;
 
             this.X        = this.AnchorPosition.CalcX;
-            this.X_origin = this.X - this.GetTableOffsetCorrection();
+            this.X_origin = this.X - OffsetCorrection_Left;
 
-            if (undefined != this.PositionH_Old)
+			if (undefined != this.PositionH_Old)
             {
                 // Восстанови старые значения, чтобы в историю изменений все нормально записалось
                 this.PositionH.RelativeFrom = this.PositionH_Old.RelativeFrom;
@@ -1637,7 +1637,7 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
 
                 // На всякий случай пересчитаем заново координату
 				this.X        = this.AnchorPosition.Calculate_X(this.PositionH.RelativeFrom, this.PositionH.Align, this.PositionH.Value);
-                this.X_origin = this.X - this.GetTableOffsetCorrection();
+                this.X_origin = this.X - OffsetCorrection_Left;
 
                 this.PositionH_Old = undefined;
             }
@@ -2312,6 +2312,8 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
             Cell.Temp.Y = Y_content_start;
 
+            // Сохраняем ссылку на исходную ячейку
+			var oOriginCell = Cell;
             if ( VMergeCount > 1 )
             {
                 CurGridCol += GridSpan;
@@ -2429,11 +2431,11 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
 				nFootnotesHeight     = nCurFootnotesHeight;
 				nResetFootnotesIndex = CurRow;
-				Y                    = arrSavedY[Cell.Row.Index];
-				TableHeight          = arrSavedTableHeight[Cell.Row.Index];
-				oFootnotes.LoadRecalculateObject(nPageAbs, nColumnAbs, arrFootnotesObject[Cell.Row.Index]);
+				Y                    = arrSavedY[oOriginCell.Row.Index];
+				TableHeight          = arrSavedTableHeight[oOriginCell.Row.Index];
+				oFootnotes.LoadRecalculateObject(nPageAbs, nColumnAbs, arrFootnotesObject[oOriginCell.Row.Index]);
 
-				CurRow = Cell.Row.Index - 1;
+				CurRow = oOriginCell.Row.Index - 1;
 
 				bFootnoteBreak = true;
 				break;

@@ -2999,7 +2999,7 @@ function CDemonstrationManager(htmlpage)
 
         var _slides = oThis.HtmlPage.m_oLogicDocument.Slides;
         var _timing = null;
-        if (is_transition_use)
+        if (is_transition_use && _slides[oThis.SlideNum])
         {
             _timing = _slides[oThis.SlideNum].timing;
 

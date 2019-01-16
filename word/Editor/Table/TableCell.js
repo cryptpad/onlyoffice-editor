@@ -107,6 +107,11 @@ function CTableCell(Row, ColW)
         Y_VAlign_offset : [] // Сдвиг, который нужно сделать из-за VAlign (массив по страницам)
     };
 
+    this.CachedMinMax = {
+    	RecalcId : -1,
+		MinMax   : null
+	};
+
     this.Index = 0;
 
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
@@ -611,7 +616,7 @@ CTableCell.prototype =
 	 */
     Get_AbsolutePage : function(CurPage)
     {
-        return this.Row.Table.Get_AbsolutePage(CurPage);
+		return this.Row.Table.Get_AbsolutePage(CurPage);
     },
 	/**
 	 * Получаем абсолютный номер колонки по относительному номеру страницы (относительно таблицы, а не ячейки!)
@@ -879,7 +884,21 @@ CTableCell.prototype =
         if (true === this.Is_VerticalText())
             isRotated = true === isRotated ? false : true;
 
-        var Result = this.Content.RecalculateMinMaxContentWidth(isRotated);
+        var Result;
+        if (this.GetTable() && this.GetTable().LogicDocument && this.GetTable().LogicDocument.RecalcId === this.CachedMinMax.RecalcId)
+		{
+			Result = this.CachedMinMax.MinMax;
+		}
+        else
+		{
+			Result = this.Content.RecalculateMinMaxContentWidth(isRotated);
+
+			if (this.GetTable() && this.GetTable().LogicDocument)
+			{
+				this.CachedMinMax.RecalcId = this.GetTable().LogicDocument.RecalcId;
+				this.CachedMinMax.MinMax   = Result;
+			}
+		}
 
         if (true !== isRotated && true === this.Get_NoWrap())
             Result.Min = Math.max(Result.Min, Result.Max);
@@ -1004,19 +1023,18 @@ CTableCell.prototype =
         }
 
         // Shd
-        if ( undefined === OtherPr.Shd )
-            this.Set_Shd( undefined );
-        else
-        {
-            var Shd_new =
-                {
-                    Value : OtherPr.Shd.Value,
-                    Color : { r : OtherPr.Shd.Color.r, g : OtherPr.Shd.Color.g, b : OtherPr.Shd.Color.b },
-                    Unifill : OtherPr.Shd.Unifill ? OtherPr.Shd.Unifill.createDuplicate() : undefined
-                };
-
-            this.Set_Shd( Shd_new );
-        }
+		if (undefined === OtherPr.Shd)
+		{
+			this.Set_Shd(undefined);
+		}
+		else
+		{
+			this.Set_Shd({
+				Value   : OtherPr.Shd.Value,
+				Color   : OtherPr.Shd.Color ? {r : OtherPr.Shd.Color.r, g : OtherPr.Shd.Color.g, b : OtherPr.Shd.Color.b} : undefined,
+				Unifill : OtherPr.Shd.Unifill ? OtherPr.Shd.Unifill.createDuplicate() : undefined
+			});
+		}
 
         if ( true != bCopyOnlyVisualProps )
         {

@@ -1615,12 +1615,12 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 					{
 						case AscCommon.vertalign_SubScript:
 						{
-							TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * vertalign_Koef_Sub;
+							TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * AscCommon.vaKSub;
 							break;
 						}
 						case AscCommon.vertalign_SuperScript:
 						{
-							TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * vertalign_Koef_Super;
+							TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * AscCommon.vaKSuper;
 							break;
 						}
 					}
@@ -1688,12 +1688,12 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 				{
 					case AscCommon.vertalign_SubScript:
 					{
-						TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * vertalign_Koef_Sub;
+						TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * AscCommon.vaKSub;
 						break;
 					}
 					case AscCommon.vertalign_SuperScript:
 					{
-						TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * vertalign_Koef_Super;
+						TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * AscCommon.vaKSuper;
 						break;
 					}
 				}
@@ -5293,12 +5293,12 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         {
             case AscCommon.vertalign_SubScript:
             {
-                Y -= vertalign_Koef_Sub * CurTextPr.FontSize * g_dKoef_pt_to_mm;
+                Y -= AscCommon.vaKSub * CurTextPr.FontSize * g_dKoef_pt_to_mm;
                 break;
             }
             case AscCommon.vertalign_SuperScript:
             {
-                Y -= vertalign_Koef_Super * CurTextPr.FontSize * g_dKoef_pt_to_mm;
+                Y -= AscCommon.vaKSuper * CurTextPr.FontSize * g_dKoef_pt_to_mm;
                 break;
             }
         }
@@ -5499,13 +5499,13 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 		}
         case AscCommon.vertalign_SubScript  :
 		{
-			StrikeoutY += -CurTextPr.FontSize * fontCoeff * vertalign_Koef_Size * g_dKoef_pt_to_mm * 0.27 - vertalign_Koef_Sub * CurTextPr.FontSize  * fontCoeff * g_dKoef_pt_to_mm;
-			UnderlineY -= vertalign_Koef_Sub * CurTextPr.FontSize  * fontCoeff * g_dKoef_pt_to_mm;
+			StrikeoutY += -CurTextPr.FontSize * fontCoeff * AscCommon.vaKSize * g_dKoef_pt_to_mm * 0.27 - AscCommon.vaKSub * CurTextPr.FontSize  * fontCoeff * g_dKoef_pt_to_mm;
+			UnderlineY -= AscCommon.vaKSub * CurTextPr.FontSize  * fontCoeff * g_dKoef_pt_to_mm;
 			break;
 		}
         case AscCommon.vertalign_SuperScript:
 		{
-			StrikeoutY += -CurTextPr.FontSize * fontCoeff * vertalign_Koef_Size * g_dKoef_pt_to_mm * 0.27 - vertalign_Koef_Super * CurTextPr.FontSize * fontCoeff * g_dKoef_pt_to_mm;
+			StrikeoutY += -CurTextPr.FontSize * fontCoeff * AscCommon.vaKSize * g_dKoef_pt_to_mm * 0.27 - AscCommon.vaKSuper * CurTextPr.FontSize * fontCoeff * g_dKoef_pt_to_mm;
 			break;
 		}
     }

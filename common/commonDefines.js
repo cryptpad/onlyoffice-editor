@@ -343,6 +343,10 @@
 	var hdrftr_Header         = 0x01;
 	var hdrftr_Footer         = 0x02;
 
+	var vaKSize  =  0.65;  // Коэффициент изменения размера текста для верхнего и нижнего индексов
+	var vaKSuper =  0.35;  // Позиция верхнего индекса (относительно размера текста)
+	var vaKSub   = -0.141; // Позиция нижнего индекса (относительно размера текста)
+
 	var c_oAscDropCap = {
 		None   : 0x00,
 		Drop   : 0x01,
@@ -2034,6 +2038,9 @@
 	window["AscCommon"].vertalign_SubScript         = vertalign_SubScript;
 	window["AscCommon"].hdrftr_Header               = hdrftr_Header;
 	window["AscCommon"].hdrftr_Footer               = hdrftr_Footer;
+	window["AscCommon"].vaKSize                     = vaKSize;
+	window["AscCommon"].vaKSuper                    = vaKSuper;
+	window["AscCommon"].vaKSub                      = vaKSub;
 	window["AscCommon"].c_oAscSizeRelFromH          = c_oAscSizeRelFromH;
 	window["AscCommon"].c_oAscSizeRelFromV          = c_oAscSizeRelFromV;
 	window["AscCommon"].c_oAscWrapStyle             = c_oAscWrapStyle;

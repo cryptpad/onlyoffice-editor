@@ -315,6 +315,9 @@
 			var _elem          = document.getElementById("area_id_main");
 			var _elemSrc       = document.getElementById(_editorContainerId);
 
+			if (!_elem || !_elemSrc)
+				return;
+
 			if (AscCommon.AscBrowser.isChrome)
 			{
 				var rectObject = _elemSrc.getBoundingClientRect();
@@ -388,6 +391,9 @@
 		        return;
 
 			var oTarget = document.getElementById(this.TargetId);
+			if (!oTarget)
+				return;
+
 			var xPos    = x ? x : parseInt(oTarget.style.left);
 			var yPos    = (y ? y : parseInt(oTarget.style.top)) + parseInt(oTarget.style.height);
 
@@ -1211,10 +1217,7 @@
 		apiCompositeReplace : function(_value)
 		{
 			if (this.Api.isLongAction())
-			{
-				AscCommon.stopEvent(e);
 				return false;
-			}
 
 			if (!this.ApiIsComposition)
 			{
@@ -1331,6 +1334,7 @@
 
 			if (AscCommon.AscBrowser.isAndroid)
 			{
+                this.HtmlArea.readOnly = true;
 				this.virtualKeyboardClickPrevent = true;
 			}
 		},
@@ -1345,6 +1349,7 @@
 					this.virtualKeyboardClickTimeout = -1;
 				}
 
+                this.HtmlArea.readOnly = false;
 				this.virtualKeyboardClickPrevent = false;
 			}
 		}

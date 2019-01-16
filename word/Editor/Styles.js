@@ -51,13 +51,9 @@ var Default_Font         = "Arial";
 
 var highlight_None = -1;
 
-var vertalign_Koef_Size  =  0.65;  // Коэффициент изменения размера текста для верхнего и нижнего индексов
-var vertalign_Koef_Super =  0.35;  // Позиция верхнего индекса (относительно размера текста)
-var vertalign_Koef_Sub   = -0.141; // Позиция нижнего индекса (относительно размера текста)
-
 var smallcaps_Koef = 0.8; // Коэффициент изменения размера шрифта для малых прописных букв
 
-var smallcaps_and_script_koef = vertalign_Koef_Size * smallcaps_Koef; // суммарный коэффициент, когда текст одновременно и в индексе, и написан малыми прописными
+var smallcaps_and_script_koef = AscCommon.vaKSize * smallcaps_Koef; // суммарный коэффициент, когда текст одновременно и в индексе, и написан малыми прописными
 
 var g_dKoef_pt_to_mm = 25.4 / 72;
 var g_dKoef_pc_to_mm = g_dKoef_pt_to_mm / 12;
@@ -8357,7 +8353,7 @@ CTextPr.prototype =
             case AscCommon.vertalign_SubScript:
             case AscCommon.vertalign_SuperScript:
             {
-                dFontKoef = vertalign_Koef_Size;
+                dFontKoef = AscCommon.vaKSize;
                 break;
             }
         }

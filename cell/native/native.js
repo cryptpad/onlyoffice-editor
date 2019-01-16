@@ -4846,7 +4846,7 @@ function OfflineEditor () {
                 ++styleIndex;
             }
         };
-        AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, stringRenderer, oStyle, sStyleName, nIndex) {
+        AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
             
             var oColor = oStyle.getFill();
             if (null !== oColor) {
@@ -4873,21 +4873,19 @@ function OfflineEditor () {
             drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt - 0.25, this.styleThumbnailWidthPt,  this.styleThumbnailHeightPt - 0.25);   // down
             
             // Draw text
-            var fc = oStyle.getFontColor();
-            var oFontColor = fc !== null ? fc : new AscCommon.CColor(0, 0, 0);
-            var format = oStyle.getFont();
-            var fs = format.getSize();
+            var format = oStyle.getFont().clone();
             // Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
-            var oFont = new window["Asc"].FontProperties(format.getName(), (16 < fs) ? 16 : fs,
-                                                         format.getBold(), format.getItalic(), format.getUnderline(), format.getStrikeout());
-            
+            if (16 < format.getSize()) {
+                format.setSize(16);
+            }
+
             var width_padding = 3; // 4 * 72 / 96
             
-            var tm = stringRenderer.measureString(sStyleName);
+            var tm = sr.measureString(sStyleName);
             // Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
             var textY = 0.5 * (this.styleThumbnailHeightPt - tm.height);
-            oGraphics.setFont(oFont);
-            oGraphics.setFillStyle(oFontColor);
+            oGraphics.setFont(format);
+            oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
             oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
         };
         

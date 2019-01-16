@@ -1249,7 +1249,10 @@ ParaDrawing.prototype.GetClipRect = function ()
 			for (var nIndex = 0, nCount = arrPages.length; nIndex < nCount; ++nIndex)
 			{
 				var oPageBounds = oCell.GetPageBounds(arrPages[nIndex]);
-				// TODO: Дальнейшая реализация
+				if(this.GraphicObj.bounds.isIntersect(oPageBounds.Left, oPageBounds.Top, oPageBounds.Right, oPageBounds.Bottom))
+				{
+					return new AscFormat.CGraphicBounds(oPageBounds.Left, oPageBounds.Top, oPageBounds.Right, oPageBounds.Bottom);
+				}
 			}
 		}
 	}

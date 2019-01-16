@@ -1862,8 +1862,13 @@ function _HEXTORGB_( colorHEX ) {
 		var _parentClientW = GetClientWidth( this.canvas.parentNode );
 		var _parentClientH = GetClientHeight( this.canvas.parentNode );
 
-		var _firstChildW = GetClientWidth( this.canvas.parentNode.firstElementChild );
-		var _firstChildH = GetClientHeight( this.canvas.parentNode.firstElementChild );
+		var _firstChildW = 0;
+        var _firstChildH = 0;
+        if (this.canvas.parentNode)
+        {
+            _firstChildW = GetClientWidth(this.canvas.parentNode.firstElementChild);
+            _firstChildH = GetClientHeight(this.canvas.parentNode.firstElementChild);
+        }
 
 		this._setDimension( _parentClientH, _parentClientW );
 		this.maxScrollY = this.maxScrollY2 = _firstChildH - settings.screenH > 0 ? _firstChildH - settings.screenH : 0;
