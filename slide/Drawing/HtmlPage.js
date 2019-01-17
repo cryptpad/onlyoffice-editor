@@ -412,7 +412,8 @@ function CEditorPage(api)
 	{
 		var off = jQuery("#" + this.Name).offset();
 
-        if (undefined !== window["AscDesktopEditor"] && 0 == off.top)
+		// почему-то иногда неправильно определяется "top" (возвращается ноль)
+        if (!this.m_oApi.isEmbedVersion && !this.m_oApi.isMobileVersion && 0 == off.top)
             return;
 
 		if (off)
