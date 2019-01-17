@@ -83,6 +83,23 @@
         this.PPr = Pr;
     };
 
+    CPresentationField.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
+    {
+        if(AscCommon.History.Is_On())
+        {
+            return;
+        }
+        ParaRun.prototype.Add_ToContent.call(this, Pos, Item, UpdatePosition);
+    };
+    CPresentationField.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
+    {
+        if(AscCommon.History.Is_On())
+        {
+            return;
+        }
+        ParaRun.prototype.Remove_FromContent.call(this, Pos, Count, UpdatePosition);
+    };
+
     CPresentationField.prototype.private_CalculateContent = function()
     {
         AscFormat.ExecuteNoHistory(function(){
