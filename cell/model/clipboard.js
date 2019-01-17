@@ -58,9 +58,8 @@
 				return n;
 			return "rgb(" + (n >> 16 & 0xFF) + "," + (n >> 8 & 0xFF) + "," + (n & 0xFF) + ")";
 		}
-		
-		function CSpecialPasteProps()
-		{
+
+		function CSpecialPasteProps() {
 			this.cellStyle = true;
 			this.val = true;
 			this.numFormat = true;
@@ -76,26 +75,25 @@
 			this.fill = true;
 			this.angle = true;
 			this.hyperlink = true;
-			
+
 			this.format = true;
 			this.formatTable = true;
-			
+
 			this.images = true;
-			
+
 			this.width = null;
 			this.transpose = null;
-			
+
 			this.comment = true;
 
 			this.property = null;
 		}
 
 		CSpecialPasteProps.prototype = {
-			
+
 			constructor: CSpecialPasteProps,
-			
-			clean: function()
-			{
+
+			clean: function () {
 				this.cellStyle = true;
 				this.val = true;
 				this.numFormat = true;
@@ -111,20 +109,19 @@
 				this.fill = true;
 				this.angle = true;
 				this.hyperlink = true;
-				
+
 				this.format = true;
 				this.formatTable = true;
-				
+
 				this.images = true;
-				
+
 				this.width = null;
 				this.transpose = null;
-				
+
 				this.comment = true;
 				this.property = null;
 			},
-			revert: function()
-			{
+			revert: function () {
 				this.cellStyle = null;
 				this.val = null;
 				this.numFormat = null;
@@ -140,131 +137,111 @@
 				this.fill = null;
 				this.angle = null;
 				this.hyperlink = null;
-				
+
 				this.format = null;
 				this.formatTable = null;
-				
+
 				this.images = null;
-				
+
 				this.width = null;
 				this.transpose = null;
-				
+
 				this.comment = null;
 			},
-			asc_setProps: function(props)
-			{
+			asc_setProps: function (props) {
 				this.property = props;
-				switch(props)
-				{
-					case c_oSpecialPasteProps.paste:
-					{
+				switch (props) {
+					case c_oSpecialPasteProps.paste: {
 						break;
 					}
-					case c_oSpecialPasteProps.pasteOnlyFormula:
-					{
+					case c_oSpecialPasteProps.pasteOnlyFormula: {
 						//только формулы(или значения)
 						this.revert();
 						this.formula = true;
 						this.val = true;
-						
+
 						break;
 					}
-					case c_oSpecialPasteProps.formulaNumberFormat:
-					{
+					case c_oSpecialPasteProps.formulaNumberFormat: {
 						//только формулы(или значения) и числовой формат
 						this.revert();
 						this.formula = true;
 						this.numFormat = true;
 						this.val = true;
-						
+
 						break;
 					}
-					case c_oSpecialPasteProps.formulaAllFormatting:
-					{
+					case c_oSpecialPasteProps.formulaAllFormatting: {
 						//формулы и формат
 						break;
 					}
-					case c_oSpecialPasteProps.formulaWithoutBorders:
-					{
+					case c_oSpecialPasteProps.formulaWithoutBorders: {
 						//всё кроме бордеров
 						this.borders = null;
 						break;
 					}
-					case c_oSpecialPasteProps.formulaColumnWidth:
-					{
+					case c_oSpecialPasteProps.formulaColumnWidth: {
 						this.width = true;
 						break;
 					}
-					case c_oSpecialPasteProps.mergeConditionalFormating:
-					{
+					case c_oSpecialPasteProps.mergeConditionalFormating: {
 						break;
 					}
-					case c_oSpecialPasteProps.pasteOnlyValues:
-					{
+					case c_oSpecialPasteProps.pasteOnlyValues: {
 						//только значения(вместо формул также вставляются значения)
 						this.revert();
 						this.val = true;
 						break;
 					}
-					case c_oSpecialPasteProps.valueNumberFormat:
-					{
+					case c_oSpecialPasteProps.valueNumberFormat: {
 						this.revert();
 						this.val = true;
 						this.numFormat = true;
 						break;
 					}
-					case c_oSpecialPasteProps.valueAllFormating:
-					{
+					case c_oSpecialPasteProps.valueAllFormating: {
 						//все кроме формул
 						this.formula = null;
 						this.formatTable = null;
 						break;
 					}
-					case c_oSpecialPasteProps.pasteOnlyFormating:
-					{
+					case c_oSpecialPasteProps.pasteOnlyFormating: {
 						this.formula = null;
 						this.val = null;
 						this.formatTable = null;
 						break;
 					}
-					case c_oSpecialPasteProps.transpose:
-					{
+					case c_oSpecialPasteProps.transpose: {
 						this.transpose = true;
 						break;
 					}
-					case c_oSpecialPasteProps.link:
-					{
+					case c_oSpecialPasteProps.link: {
 						this.revert();
 						break;
 					}
-					case c_oSpecialPasteProps.picture:
-					{
+					case c_oSpecialPasteProps.picture: {
 						break;
 					}
-					case c_oSpecialPasteProps.linkedPicture:
-					{
+					case c_oSpecialPasteProps.linkedPicture: {
 						break;
 					}
-					case c_oSpecialPasteProps.sourceformatting:
-					{
+					case c_oSpecialPasteProps.sourceformatting: {
 						break;
 					}
-					case c_oSpecialPasteProps.destinationFormatting:
-					{
+					case c_oSpecialPasteProps.destinationFormatting: {
 						//только значения(вместо формул также вставляются значения)
 						this.revert();
 						this.val = true;
 						//картинки из word сохраняем в данной ситуации
-						if(window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord)
-						{
+						if (window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord) {
 							this.images = true;
 						}
-						
+
 						break;
 					}
 				}
 			}
-			
+
 		};
 
 		/** @constructor */
