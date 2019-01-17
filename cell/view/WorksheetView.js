@@ -9743,7 +9743,7 @@
 
         var rMax2 = rMax;
         var cMax2 = cMax;
-        var rMax = pasteContent.content.length;
+        rMax = pasteContent.content.length;
         if (isCheckSelection) {
             var newArr = arn.clone(true);
             newArr.r2 = rMax2 - 1;
@@ -9792,6 +9792,11 @@
 				if (fs !== '' && fs !== null && fs !== undefined) {
 				   pastedRangeProps.fontSize = fs;
 				}
+			}
+
+			//fontFamily
+			if (currentObj.props && currentObj.props.fontName) {
+				pastedRangeProps.fontName = currentObj.props.fontName;
 			}
 
 			//AlignHorizontal
@@ -10537,6 +10542,12 @@
 		if(formulaProps)
 		{
 			calculateValueAndBinaryFormula(newVal, firstRange, range);
+		}
+
+		//fontName
+		if(rangeStyle.fontName && specialPasteProps.fontName)
+		{
+			range.setFontname(rangeStyle.fontName);
 		}
 
 		//cellStyle

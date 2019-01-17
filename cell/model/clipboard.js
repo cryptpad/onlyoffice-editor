@@ -69,6 +69,7 @@
 			this.alignVertical = true;
 			this.alignHorizontal = true;
 			this.fontSize = true;
+			this.fontName = true;
 			this.merge = true;
 			this.borders = true;
 			this.wrap = true;
@@ -103,6 +104,7 @@
 				this.alignVertical = true;
 				this.alignHorizontal = true;
 				this.fontSize = true;
+				this.fontName = true;
 				this.merge = true;
 				this.borders = true;
 				this.wrap = true;
@@ -131,6 +133,7 @@
 				this.alignVertical = null;
 				this.alignHorizontal = null;
 				this.fontSize = null;
+				this.fontName = null;
 				this.merge = null;
 				this.borders = null;
 				this.wrap = null;
@@ -350,8 +353,7 @@
 			}
 		};
 
-		Clipboard.prototype.pasteData =
-			function (ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton) {
+		Clipboard.prototype.pasteData = function (ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton) {
 				var t = this;
 				t.pasteProcessor.clean();
 
@@ -3238,6 +3240,8 @@
 			this.toolTip = null;
 			this.hyperLink = null;
 			this.location = null;
+
+			this.props = null;
 			
 			return this;
 		}
@@ -3552,6 +3556,9 @@
 
 				//проходимся по контенту paragraph
 				var paraRunObj;
+				//получае общий шрифт для ячейки для случая когда вставляем нумерованный список
+				//общего может не быть в том случае, если шрифты внутри ячейки разные
+				var allParaFont, textPr;
 				for (var n = 0; n < content.length; n++) {
 					this.aResult.getCell(row + this.maxLengthRowCount, innerCol + col);
 
@@ -3563,6 +3570,18 @@
 						case para_Run://*paraRun*
 						{
 							paraRunObj = this._parseParaRun(content[n], oNewItem, paraPr, innerCol, row, col, text);
+
+							if(null !== allParaFont) {
+								textPr = content[n].Get_CompiledPr();
+								if(textPr && textPr.FontFamily && textPr.FontFamily.Name) {
+									if(undefined === allParaFont) {
+										allParaFont = textPr.FontFamily.Name;
+									}
+								} else if(textPr.FontFamily.Name !== allParaFont) {
+									allParaFont = null;
+								}
+							}
+
 							innerCol = paraRunObj.col;
 							row = paraRunObj.row;
 							break;
@@ -3604,6 +3623,7 @@
 									}
 								}
 							}
+							allParaFont = null;
 							break;
 						}
 						case para_Math://*para_Math*
@@ -3630,10 +3650,14 @@
 									this._addImageToMap(content[n]);
 								}
 							}
-
+							allParaFont = null;
 							break;
 						}
 					}
+				}
+
+				if(null !== numberingText && allParaFont) {
+					oNewItem.props = {fontName: allParaFont};
 				}
 
 				oNewItem.textVal = this.paragraphText;
