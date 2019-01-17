@@ -5686,6 +5686,7 @@ $( function () {
 		ws.getRange2( "CC5" ).setValue( "=true" );
 		ws.getRange2( "CC6" ).setValue( "=true()" );
 		ws.getRange2( "CC7" ).setValue( "'true'" );
+		ws.getRange2( "CC8" ).setValue( "" );
 
 		oParser = new parserFormula( "COUNTIF(CC1:CC7, TRUE())", "C2", ws );
 		ok( oParser.parse() );
@@ -5731,6 +5732,26 @@ $( function () {
 		oParser = new parserFormula( "COUNTIF(#REF!, 1)", "C2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\">=1\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\"=1\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\"<1\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\">1\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\"=\"&CC8)", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
 
 		wb.dependencyFormulas.lockRecal();
 
