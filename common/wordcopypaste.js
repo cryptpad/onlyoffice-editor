@@ -8134,8 +8134,8 @@ PasteProcessor.prototype =
 				value = value.replace(/(\r|\t|\n)/g, ' ');
 
 				//TODO проверить в каких случаях пробелы учитываются, в каких игнорируются
-				//пока делаю проверку на div с пробелами
-				if(node && node.parentNode && "div" === node.parentNode.nodeName.toLowerCase()) {
+				//текстовый элемент с одними пробелами игнорируется, за исключением неразрывных пробелов
+				if(value.charCodeAt(0) !== 160) {
 					var checkSpaces = value.replace(/(\s)/g, '');
 					if(checkSpaces === "") {
 						value = "";
