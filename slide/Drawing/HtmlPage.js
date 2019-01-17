@@ -413,7 +413,7 @@ function CEditorPage(api)
 		var off = jQuery("#" + this.Name).offset();
 
 		// почему-то иногда неправильно определяется "top" (возвращается ноль)
-        if (!this.m_oApi.isEmbedVersion && !this.m_oApi.isMobileVersion && 0 == off.top)
+        if (!this.m_oApi.isEmbedVersion && !this.m_oApi.isMobileVersion && off && (0 == off.top))
             return;
 
 		if (off)
