@@ -1262,6 +1262,8 @@
     CGraphicObjectBase.prototype.checkNeedRecalculate = function(){
         return false;
     };
+    CGraphicObjectBase.prototype.handleAllContents = function(fCallback){
+    };
 
     CGraphicObjectBase.prototype.canChangeArrows = function () {
         if (!this.spPr || this.spPr.geometry == null) {

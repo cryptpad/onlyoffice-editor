@@ -963,6 +963,14 @@ CShape.prototype.convertToPPTX = function (drawingDocument, worksheet, bIsAddMat
     return c;
 };
 
+
+    CShape.prototype.handleAllContents = function(fCallback){
+        var content = this.getDocContent();
+        if (content) {
+            fCallback(content);
+        }
+    };
+
 CShape.prototype.documentGetAllFontNames = function (AllFonts) {
     //TODO
     var content = this.getDocContent();

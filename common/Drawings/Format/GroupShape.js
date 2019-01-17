@@ -116,6 +116,13 @@ function CGroupShape()
                 this.spTree[i].documentGetAllFontNames(allFonts);
         }
     };
+    CGroupShape.prototype.handleAllContents = function(fCallback)
+    {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+                this.spTree[i].handleAllContents(fCallback);
+        }
+    };
     CGroupShape.prototype.getAllDocContents = function(aDocContents)
     {
         for(var i = 0; i < this.spTree.length; ++i)

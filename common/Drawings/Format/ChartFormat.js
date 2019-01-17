@@ -1874,9 +1874,10 @@ CDLbl.prototype =
             var max_content_width = max_box_width - 2*SCALE_INSET_COEFF;
 
             var content = this.txBody.content;
-            content.Reset(0, 0, max_content_width, 20000);
-
-            content.Recalculate_Page(0, true);
+            content.RecalculateContent(max_content_width, 20000, 0);
+            // content.Reset(0, 0, max_content_width, 20000);
+            //
+            // content.Recalculate_Page(0, true);
             var pargs = content.Content;
             var max_width = 0;
             for(var i = 0; i < pargs.length; ++i)
@@ -1891,9 +1892,10 @@ CDLbl.prototype =
                 }
             }
             max_width += 1;
-            content.Reset(0, 0, max_width, 20000);
-            content.Recalculate_Page(0, true);
+            // content.Reset(0, 0, max_width, 20000);
+            // content.Recalculate_Page(0, true);
 
+            content.RecalculateContent(max_width, 20000, 0);
             switch (bodyPr.vert)
             {
                 case AscFormat.nVertTTeaVert:

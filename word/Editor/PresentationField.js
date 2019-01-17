@@ -41,6 +41,9 @@
         this.Guid = null;
         this.FieldType = null;
         this.PPr = null;
+
+        this.Slide = null;
+        this.SlideNum = null;
     }
     CPresentationField.prototype = Object.create(ParaRun.prototype);
     CPresentationField.prototype.constructor = CPresentationField;
@@ -106,9 +109,14 @@
                     if(this.Paragraph && this.Paragraph.Parent)
                     {
                         oStylesObject = this.Paragraph.Parent.Get_Styles();
-                        if(oStylesObject.slide && AscFormat.isRealNumber(oStylesObject.slide.num))
+                        if(oStylesObject.slide)
                         {
-                            sStr = '' + (oStylesObject.slide.num + 1);
+                            this.Slide = oStylesObject.slide;
+                            if(AscFormat.isRealNumber(this.Slide.num))
+                            {
+                                this.SlideNum = this.Slide.num;
+                                sStr = '' + (this.Slide.num + 1);
+                            }
                         }
                     }
                     break;
