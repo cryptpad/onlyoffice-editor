@@ -130,6 +130,10 @@
 			for (var i = 0; i < plugins.length; i++)
 			{
 				var guid = plugins[i].guid;
+				var isSystem = false;
+				if (plugins[i].variations && plugins[i].variations[0] && plugins[i].variations[0].isSystem)
+					isSystem = true;
+
 				if (this.runnedPluginsMap[guid])
 				{
 					// не меняем запущенный
@@ -149,8 +153,17 @@
 				}
 				else
 				{
-					this.plugins.push(plugins[i]);
-					this.pluginsMap[guid] = { isSystem : false };
+					if (!isSystem)
+						this.plugins.push(plugins[i]);
+					else
+						this.systemPlugins.push(plugins[i]);
+
+					this.pluginsMap[guid] = { isSystem : isSystem };
+				}
+
+				if (isSystem)
+				{
+					this.run(guid, 0, "");
 				}
 			}
 		},

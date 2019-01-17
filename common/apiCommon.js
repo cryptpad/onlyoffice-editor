@@ -3764,6 +3764,7 @@
 		this.isViewer       = false;
 		this.EditorsSupport = ["word", "cell", "slide"];
 
+		this.isSystem	  = false;
 		this.isVisual     = false;      // визуальный ли
 		this.isModal      = false;      // модальное ли окно (используется только для визуального)
 		this.isInsideMode = false;      // отрисовка не в окне а внутри редактора (в панели) (используется только для визуального немодального)
@@ -3809,6 +3810,14 @@
 		this.icons = value;
 	};
 
+	CPluginVariation.prototype["get_System"]         = function()
+	{
+		return this.isSystem;
+	};
+	CPluginVariation.prototype["set_System"]         = function(value)
+	{
+		this.isSystem = value;
+	};
 	CPluginVariation.prototype["get_Viewer"]         = function()
 	{
 		return this.isViewer;
@@ -3935,6 +3944,7 @@
 		_object["isViewer"]       = this.isViewer;
 		_object["EditorsSupport"] = this.EditorsSupport;
 
+		_object["isSystem"]     = this.isSystem;
 		_object["isVisual"]     = this.isVisual;
 		_object["isModal"]      = this.isModal;
 		_object["isInsideMode"] = this.isInsideMode;
