@@ -520,6 +520,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 				SkipComments          : true
 			});
 			oPara.Style_Add(oStyles.GetDefaultTOC(arrOutline[nIndex].Lvl), false);
+			oPara.SetOutlineLvl(undefined);
 
 
 			var oClearTextPr = new CTextPr();
