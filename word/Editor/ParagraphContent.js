@@ -225,6 +225,14 @@ CRunElementBase.prototype.GetType = function()
 	return this.Type;
 };
 /**
+ * Проверяем является ли данный элемент диакритическим символом
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsDiacriticalSymbol = function()
+{
+	return false;
+};
+/**
  * Проверять ли автозамену на вводе данного элемента
  * @returns {boolean}
  */
@@ -468,6 +476,10 @@ ParaText.prototype.CanStartAutoCorrect = function()
 	return (34 === this.Value
 	|| 39 === this.Value
 	|| 45 === this.Value);
+};
+ParaText.prototype.IsDiacriticalSymbol = function()
+{
+	return !!(0x0300 <= this.Value && this.Value <= 0x036F);
 };
 
 /**
