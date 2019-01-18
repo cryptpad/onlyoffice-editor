@@ -5627,6 +5627,19 @@
 			}
 		}
 	};
+	Worksheet.prototype.isTableTotalRow = function (range) {
+		var res = false;
+		if (this.TableParts && this.TableParts.length) {
+			for (var i = 0; i < this.TableParts.length; i++) {
+				var table = this.TableParts[i];
+				var totalRowRange = table.getTotalsRowRange();
+				if(totalRowRange && totalRowRange.containsRange(range)) {
+					res = true;
+				}
+			}
+		}
+		return res;
+	};
 	Worksheet.prototype.addTablePart = function (tablePart, bAddToDependencies) {
 		this.TableParts.push(tablePart);
 		if (bAddToDependencies) {

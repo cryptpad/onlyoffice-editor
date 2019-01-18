@@ -5373,6 +5373,16 @@ RangeDataManager.prototype = {
 		return this.TotalsRowCount > 0;
 	};
 
+	TablePart.prototype.getTotalsRowRange = function () {
+		var res = null;
+
+		if(this.TotalsRowCount > 0) {
+			res = new Asc.Range(this.Ref.c1, this.Ref.r2, this.Ref.c2, this.Ref.r2);
+		}
+
+		return res;
+	};
+
 	TablePart.prototype.generateSortState = function () {
 		this.SortState = new AscCommonExcel.SortState();
 		this.SortState.SortConditions = [];
