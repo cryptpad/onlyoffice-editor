@@ -4412,11 +4412,9 @@
      */
     WorksheetView.prototype._calcCellsTextMetrics = function (range) {
         var t = this;
-		this.model.bExcludeHiddenRows = true;
 		this.model.getRange3(range.r1, 0, range.r2, range.c2)._foreachNoEmpty(function(cell, row, col) {
 			t._addCellTextToCache(col, row);
-		});
-		this.model.bExcludeHiddenRows = false;
+		}, null, true);
         this.isChanged = false;
     };
 
