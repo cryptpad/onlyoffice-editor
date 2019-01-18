@@ -2660,6 +2660,7 @@
 				History.StartTransaction();
 				
 				var table = this._getFilterByDisplayName(tableName);
+				this.worksheet.setRowHidden(false, table.Ref.r1, table.Ref.r2);
 				this._convertTableStyleToStyle(table);
 				this.isEmptyAutoFilters(table.Ref, null, null, true);
 				
