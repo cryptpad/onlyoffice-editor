@@ -1103,9 +1103,10 @@ Geometry.prototype=
             dOldAlpha = oGraphics.globalAlpha;
             oGraphics.put_GlobalAlpha(false, 1);
         }
-        for(var i = 0; i < this.cnxLst.length; i++)
-        {
-            overlay.DrawEditWrapPointsPolygon([{x: this.cnxLst[i].x, y: this.cnxLst[i].y}], transform);
+        if(overlay.DrawEditWrapPointsPolygon){
+            for(var i = 0; i < this.cnxLst.length; i++){
+                overlay.DrawEditWrapPointsPolygon([{x: this.cnxLst[i].x, y: this.cnxLst[i].y}], transform);
+            }
         }
         if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha){
             oGraphics.put_GlobalAlpha(true, dOldAlpha);
