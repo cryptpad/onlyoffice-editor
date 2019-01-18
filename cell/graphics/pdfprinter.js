@@ -37,7 +37,7 @@
 var vector_koef = 25.4 / 96;
 var pxInPt = 0.75;
 
-function CPdfPrinter(fontManager)
+function CPdfPrinter(fontManager, font)
 {
     this._ppiX = 96;
     this._ppiY = 96;
@@ -61,7 +61,7 @@ function CPdfPrinter(fontManager)
     }
     this.DocumentRenderer.VectorMemoryForPrint = new AscCommon.CMemory();
 
-    this.font = AscCommonExcel.g_oDefaultFormat.Font.clone();
+    this.font = font;
     this.Transform = new AscCommon.CMatrix();
     this.InvertTransform = new AscCommon.CMatrix();
 
@@ -571,6 +571,7 @@ CPdfPrinter.prototype =
 
     SetFont : function(font)
     {
+        this.font.assign(font);
         return this.DocumentRenderer.SetFont(this.makeFontDoc(font));
     },
     FillText : function(x,y,text,cropX,cropW)

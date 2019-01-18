@@ -2485,7 +2485,7 @@
 
   // Печать
   WorkbookView.prototype.printSheets = function(printPagesData, pdfDocRenderer) {
-  	var pdfPrinter = new AscCommonExcel.CPdfPrinter(this.fmgrGraphics[3]);
+  	var pdfPrinter = new AscCommonExcel.CPdfPrinter(this.fmgrGraphics[3], this.m_oFont);
   	if (pdfDocRenderer) {
 		pdfPrinter.DocumentRenderer = pdfDocRenderer;
 	}
