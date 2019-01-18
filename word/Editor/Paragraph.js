@@ -2937,7 +2937,7 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 		if (Direction > 0 && true === Result)
 		{
 			var oElement = this.Get_RunElementByPos(this.Get_ParaContentPos(false));
-			while (oElement && oElement.IsDiacriticalSymbol())
+			while (oElement && oElement.IsDiacriticalSymbol && oElement.IsDiacriticalSymbol())
 			{
 				if (false === this.Content[this.CurPos.ContentPos].Remove(Direction, bOnAddText))
 				{
@@ -4778,7 +4778,7 @@ Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 		if (SearchPos.Found)
 		{
 			var oRunElement = this.Get_RunElementByPos(SearchPos.Pos);
-			if (oRunElement && oRunElement.IsDiacriticalSymbol())
+			if (oRunElement && oRunElement.IsDiacriticalSymbol && oRunElement.IsDiacriticalSymbol())
 			{
 				SearchPos.Found = false;
 				continue;
@@ -4808,7 +4808,7 @@ Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 		if (true === SearchPos.Found)
 		{
 			var oRunElement = this.Get_RunElementByPos(SearchPos.Pos);
-			if (oRunElement && oRunElement.IsDiacriticalSymbol())
+			if (oRunElement && oRunElement.IsDiacriticalSymbol && oRunElement.IsDiacriticalSymbol())
 			{
 				SearchPos.Found = false;
 				continue;
@@ -10872,7 +10872,13 @@ Paragraph.prototype.Continue = function(NewParagraph)
 		this.Set_ParaContentPos(EndPos, true, -1, -1);
 		TextPr = this.Get_TextPr(this.Get_ParaContentPos(false, false)).Copy();
 		this.Set_ParaContentPos(CurPos, false, -1, -1, false);
+
+		// 1. Выделение не продолжаем
+		// 2. Стиль сноски не продолжаем
 		TextPr.HighLight = highlight_None;
+
+		if (this.LogicDocument && TextPr.RStyle === this.LogicDocument.GetStyles().GetDefaultFootnoteReference())
+			TextPr.RStyle = undefined;
 	}
 
 	// Копируем настройки параграфа
