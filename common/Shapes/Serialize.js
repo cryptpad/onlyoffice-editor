@@ -6647,6 +6647,10 @@ function BinaryPPTYLoader()
             }
         }
 
+        if(cols.length === 0)
+        {
+            cols.push(_xfrm.extX);
+        }
         var _table = new CTable(this.presentation.DrawingDocument, _graphic_frame, true, rows, cols.length, cols, true);
         _table.Reset(0, 0, _xfrm.extX, 100000, 0, 0, 1);
         if (null != props)
