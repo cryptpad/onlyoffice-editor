@@ -10923,7 +10923,7 @@ CChartSpace.prototype.getCopyWithSourceFormatting = function(oIdMap)
         );
     }
 
-    if(this.txPr.content.Content[0].Pr.DefaultRunPr && this.txPr.content.Content[0].Pr.DefaultRunPr.Unifill){
+    if(this.txPr && this.txPr.content && this.txPr.content.Content[0] && this.txPr.content.Content[0].Pr.DefaultRunPr && this.txPr.content.Content[0].Pr.DefaultRunPr.Unifill){
         bMerge = true;
         var oUnifill = this.txPr.content.Content[0].Pr.DefaultRunPr.Unifill.createDuplicate();
         oUnifill.check(this.Get_Theme(), this.Get_ColorMap());
