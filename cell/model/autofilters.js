@@ -2665,14 +2665,11 @@
 				return res;
 			},
 
-			checkTableColumnName: function(tableColumns, name)
-			{
+			checkTableColumnName: function (tableColumns, name) {
 				var res = name;
 
-				for(var i = 0; i < tableColumns.length; i++)
-				{
-					if(name.toLowerCase() === tableColumns[i].Name.toLowerCase())
-					{
+				for (var i = 0; i < tableColumns.length; i++) {
+					if (name.toLowerCase() === tableColumns[i].Name.toLowerCase()) {
 						res = this._generateColumnName2(tableColumns);
 						break;
 					}
@@ -2681,262 +2678,231 @@
 				return res;
 			},
 
-			_convertTableStyleToStyle: function(table)
-			{
-				if(!table)
-				{
+			_convertTableStyleToStyle: function (table) {
+				if (!table) {
 					return;
 				}
 				var tempRange = this.worksheet.getRange3(table.Ref.r1, table.Ref.c1, table.Ref.r2, table.Ref.c2);
-				tempRange._foreach(function(cell){
+				tempRange._foreach(function (cell) {
 					cell.setStyle(cell.getCompiledStyle());
 				});
 			},
-			
-			_clearRange: function(range, isClearText)
-			{
+
+			_clearRange: function (range, isClearText) {
 				range.clearTableStyle();
-				if(isClearText)
-				{
+				if (isClearText) {
 					History.TurnOff();
 					range.cleanText();
 					History.TurnOn();
 				}
 			},
-			
+
 			//TODO избавиться от split, передавать cellId и tableName
-			_getPressedFilter: function(activeRange, cellId)
-			{
+			_getPressedFilter: function (activeRange, cellId) {
 				var worksheet = this.worksheet;
-				
-				if(cellId !== undefined)
-				{
+
+				if (cellId !== undefined) {
 					var curCellId = cellId.split('af')[0];
-					activeRange =  AscCommonExcel.g_oRangeCache.getAscRange(curCellId).clone();
+					activeRange = AscCommonExcel.g_oRangeCache.getAscRange(curCellId).clone();
 				}
-				
+
 				var ColId = null;
 				var filter = null;
 				var index = null;
 				var autoFilter;
-				if(worksheet.AutoFilter)
-				{
-					if(worksheet.AutoFilter.Ref.containsRange(activeRange))
-					{
+				if (worksheet.AutoFilter) {
+					if (worksheet.AutoFilter.Ref.containsRange(activeRange)) {
 						filter = worksheet.AutoFilter;
 						autoFilter = filter;
 						ColId = activeRange.c1 - worksheet.AutoFilter.Ref.c1;
 					}
 				}
-				
-				if(worksheet.TableParts && worksheet.TableParts.length)
-				{
-					for(var i = 0; i < worksheet.TableParts.length; i++)
-					{	
-						if(worksheet.TableParts[i].Ref.containsRange(activeRange))
-						{
+
+				if (worksheet.TableParts && worksheet.TableParts.length) {
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
+						if (worksheet.TableParts[i].Ref.containsRange(activeRange)) {
 							filter = worksheet.TableParts[i];
 							autoFilter = filter.AutoFilter;
 							ColId = activeRange.c1 - worksheet.TableParts[i].Ref.c1;
 						}
 					}
 				}
-				
+
 				ColId = this._getTrueColId(filter, ColId);
-				
-				if(autoFilter && autoFilter.FilterColumns)
-				{
-					for(var i = 0; i < autoFilter.FilterColumns.length; i++)
-					{
-						if(autoFilter.FilterColumns[i].ColId === ColId)
-						{
+
+				if (autoFilter && autoFilter.FilterColumns) {
+					for (var i = 0; i < autoFilter.FilterColumns.length; i++) {
+						if (autoFilter.FilterColumns[i].ColId === ColId) {
 							index = i;
 							break;
 						}
 					}
 				}
-				
-				
+
+
 				return {filter: filter, index: index, activeRange: activeRange, ColId: ColId};
 			},
-			
-			_getFilterByDisplayName: function(displayName)
-			{
+
+			_getFilterByDisplayName: function (displayName) {
 				var res = null;
 				var worksheet = this.worksheet;
-				if(displayName === null)
+				if (displayName === null) {
 					res = worksheet.AutoFilter;
-				else if(worksheet.TableParts && worksheet.TableParts.length)
-				{
-					for(var i = 0; i < worksheet.TableParts.length; i++)
-					{	
-						if(worksheet.TableParts[i].DisplayName === displayName)
-						{
+				} else if (worksheet.TableParts &&
+					worksheet.TableParts.length) {
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
+						if (worksheet.TableParts[i].DisplayName === displayName) {
 							res = worksheet.TableParts[i];
 							break;
 						}
 					}
 				}
-				
+
 				return res;
 			},
 
-			_getColIdColumn: function(filter, cellId)
-			{
+			_getColIdColumn: function (filter, cellId) {
 				var res = null;
-				
+
 				var autoFilter = filter && false === filter.isAutoFilter() ? filter.AutoFilter : filter;
-				
-				if(autoFilter && autoFilter.FilterColumns && autoFilter.FilterColumns.length)
-				{
-					
+
+				if (autoFilter && autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
+
 					var rangeCellId = this._idToRange(cellId);
 					var colId = rangeCellId.c1 - autoFilter.Ref.c1;
 					res = this._getTrueColId(filter, colId);
 				}
-				
+
 				return res;
 			},
-			
-			_addHistoryObj: function (oldObj, type, redoObject, deleteFilterAfterDeleteColRow, activeHistoryRange, bWithoutFilter, activeRange) {
+
+			_addHistoryObj: function (oldObj, type, redoObject, deleteFilterAfterDeleteColRow, activeHistoryRange,
+									  bWithoutFilter, activeRange) {
 				var ws = this.worksheet;
 				var oHistoryObject = new AscCommonExcel.UndoRedoData_AutoFilter();
 				oHistoryObject.undo = oldObj;
 
-				if(redoObject)
-				{
-					oHistoryObject.activeCells			= redoObject.activeCells.clone();	// ToDo Слишком много клонирования, это долгая операция
-					oHistoryObject.styleName			= redoObject.styleName;
-					oHistoryObject.type					= redoObject.type;
-					oHistoryObject.cellId				= redoObject.cellId;
-					oHistoryObject.autoFiltersObject	= redoObject.autoFiltersObject;
+				if (redoObject) {
+					oHistoryObject.activeCells = redoObject.activeCells.clone();	// ToDo Слишком много клонирования, это долгая операция
+					oHistoryObject.styleName = redoObject.styleName;
+					oHistoryObject.type = redoObject.type;
+					oHistoryObject.cellId = redoObject.cellId;
+					oHistoryObject.autoFiltersObject = redoObject.autoFiltersObject;
 					oHistoryObject.addFormatTableOptionsObj = redoObject.addFormatTableOptionsObj;
-					oHistoryObject.moveFrom             = redoObject.arnFrom;
-					oHistoryObject.moveTo               = redoObject.arnTo;
-					oHistoryObject.bWithoutFilter       = bWithoutFilter ? bWithoutFilter : false;
-					oHistoryObject.displayName          = redoObject.displayName;
-					oHistoryObject.val                  = redoObject.val;
-					oHistoryObject.color                = redoObject.color;
-					oHistoryObject.tablePart       	    = redoObject.tablePart;
-					oHistoryObject.nCol       	        = redoObject.nCol;
-					oHistoryObject.nRow         	    = redoObject.nRow;
-					oHistoryObject.formula         	    = redoObject.formula;
-					oHistoryObject.totalFunction        = redoObject.totalFunction;
-				}
-				else
-				{
-					oHistoryObject.activeCells			= activeRange ? activeRange.clone() : null;
-					if(type !== AscCH.historyitem_AutoFilter_Change)
+					oHistoryObject.moveFrom = redoObject.arnFrom;
+					oHistoryObject.moveTo = redoObject.arnTo;
+					oHistoryObject.bWithoutFilter = bWithoutFilter ? bWithoutFilter : false;
+					oHistoryObject.displayName = redoObject.displayName;
+					oHistoryObject.val = redoObject.val;
+					oHistoryObject.color = redoObject.color;
+					oHistoryObject.tablePart = redoObject.tablePart;
+					oHistoryObject.nCol = redoObject.nCol;
+					oHistoryObject.nRow = redoObject.nRow;
+					oHistoryObject.formula = redoObject.formula;
+					oHistoryObject.totalFunction = redoObject.totalFunction;
+				} else {
+					oHistoryObject.activeCells = activeRange ? activeRange.clone() : null;
+					if (type !== AscCH.historyitem_AutoFilter_Change) {
 						type = null;
+					}
 				}
-				
-				if(!activeHistoryRange)
+
+				if (!activeHistoryRange) {
 					activeHistoryRange = null;
-				
-				History.Add(AscCommonExcel.g_oUndoRedoAutoFilters, type, ws.getId(), activeHistoryRange, oHistoryObject);
+				}
+
+				History.Add(AscCommonExcel.g_oUndoRedoAutoFilters, type, ws.getId(), activeHistoryRange,
+					oHistoryObject);
 			},
 
-			renameTableColumn: function(range, bUndo, props)
-			{
+			renameTableColumn: function (range, bUndo, props) {
 				var worksheet = this.worksheet;
 				var val;
 				var cell;
 				var generateName;
-				
-				var checkRepeateColumnName = function(val, tableColumns, exeptionCol)
-				{
+
+				var checkRepeateColumnName = function (val, tableColumns, exeptionCol) {
 					var res = false;
-					
-					if(tableColumns && tableColumns.length)
-					{
-						for(var i = 0; i < tableColumns.length; i++)
-						{
-							if(tableColumns[i].Name.toLowerCase() === val.toLowerCase() && i !== exeptionCol)
-							{
+
+					if (tableColumns && tableColumns.length) {
+						for (var i = 0; i < tableColumns.length; i++) {
+							if (tableColumns[i].Name.toLowerCase() === val.toLowerCase() && i !== exeptionCol) {
 								res = true;
 								break;
 							}
 						}
 					}
-					
+
 					return res;
 				};
-				
-				if(props)
-				{
+
+				if (props) {
 					range = new Asc.Range(props.nCol, props.nRow, props.nCol, props.nRow);
 				}
-				
-				if(worksheet.TableParts)
-				{
+
+				if (worksheet.TableParts) {
 					worksheet.workbook.dependencyFormulas.buildDependency();
 					//without lockRecal each setValue call calculation
 					worksheet.workbook.dependencyFormulas.lockRecal();
-					for(var i = 0; i < worksheet.TableParts.length; i++)
-					{
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						var filter = worksheet.TableParts[i];
-						
+
 						var ref = filter.Ref;
 						var tableRange = new Asc.Range(ref.c1, ref.r1, ref.c2, ref.r1);
-						
-						
+
+
 						//в этом случае нашли ячейки(ячейку), которая входит в состав заголовка фильтра
 						var intersection = range.intersection(tableRange);
-						if(null !== intersection && 0 !== filter.HeaderRowCount)
-						{
+						if (null !== intersection && 0 !== filter.HeaderRowCount) {
 							var toHistory = [];
 							//проходимся по всем заголовкам
-							for(var j = tableRange.c1; j <= tableRange.c2; j++)
-							{
-								if(j < range.c1 || j > range.c2)
-									continue;	
-									
+							for (var j = tableRange.c1; j <= tableRange.c2; j++) {
+								if (j < range.c1 || j > range.c2) {
+									continue;
+								}
+
 								cell = worksheet.getCell3(ref.r1, j);
 								val = props ? props.val : cell.getValueWithFormat();
-								
+
 								//проверка на повторение уже существующих заголовков
-								if(checkRepeateColumnName(val, filter.TableColumns, j - tableRange.c1))
-								{
+								if (checkRepeateColumnName(val, filter.TableColumns, j - tableRange.c1)) {
 									val = "";
 								}
-								
+
 								//если не пустая изменяем TableColumns
 								var oldVal = filter.TableColumns[j - tableRange.c1].Name;
 								var newVal = null;
-								if(val != "" && intersection.c1 <= j && intersection.c2 >= j )
-								{
+								if (val != "" && intersection.c1 <= j && intersection.c2 >= j) {
 									filter.TableColumns[j - tableRange.c1].Name = val;
-									if(!bUndo)
-									{
+									if (!bUndo) {
 										//если пытаемся вбить формулу в заголовок - оставляем только результат
 										//ms в данном случае генерирует новое имя, начинающееся с 0
 										//считаю, что результат формулы добавлять более логично
 										var valueData = new AscCommonExcel.UndoRedoData_CellValueData(null, new AscCommonExcel.CCellValue({text: cell.getValueWithFormat()}));
 										cell.setValueData(valueData);
 										/*if(cell.isFormula()) {
-											var valueData = new AscCommonExcel.UndoRedoData_CellValueData(null, new AscCommonExcel.CCellValue({text: cell.getValueWithFormat()}));
-											cell.setValueData(valueData);
-										}*/
+										 var valueData = new AscCommonExcel.UndoRedoData_CellValueData(null, new AscCommonExcel.CCellValue({text: cell.getValueWithFormat()}));
+										 cell.setValueData(valueData);
+										 }*/
 										cell.setType(CellValueType.String);
 									}
 									newVal = val;
-								}	
-								else if(val == "")//если пустая изменяем генерируем имя и добавляем его в TableColumns  
+								} else if (val == "")//если пустая изменяем генерируем имя и добавляем его в TableColumns
 								{
 									filter.TableColumns[j - tableRange.c1].Name = "";
 									generateName = this._generateColumnName(filter.TableColumns);
-									if(!bUndo)
-									{
+									if (!bUndo) {
 										cell.setValue(generateName);
 										cell.setType(CellValueType.String);
-									}									
+									}
 									filter.TableColumns[j - tableRange.c1].Name = generateName;
 									newVal = generateName;
 								}
 
-								if(null !== newVal)
-								{
-									toHistory.push([{nCol: cell.bbox.c1, nRow: cell.bbox.r1, val: oldVal}, AscCH.historyitem_AutoFilter_ChangeColumnName, {activeCells: range, nCol: cell.bbox.c1, nRow: cell.bbox.r1, val: newVal}]);
+								if (null !== newVal) {
+									toHistory.push([{nCol: cell.bbox.c1, nRow: cell.bbox.r1, val: oldVal},
+										AscCH.historyitem_AutoFilter_ChangeColumnName,
+										{activeCells: range, nCol: cell.bbox.c1, nRow: cell.bbox.r1, val: newVal}]);
 								}
 							}
 							//write formulas history before filter history
@@ -2944,9 +2910,7 @@
 							for (var k = 0; k < toHistory.length; ++k) {
 								this._addHistoryObj.apply(this, toHistory[k]);
 							}
-						}
-						else
-						{
+						} else {
 							this._changeTotalsRowData(filter, range, props);
 						}
 					}
@@ -3007,17 +2971,13 @@
 					}
 				}
 			},
-			
-			_isTablePartsContainsRange: function(range)
-			{
+
+			_isTablePartsContainsRange: function (range) {
 				var worksheet = this.worksheet;
 				var result = null;
-				if(worksheet.TableParts && worksheet.TableParts.length)
-				{
-					for(var i = 0; i < worksheet.TableParts.length; i++)
-					{
-						if(worksheet.TableParts[i].Ref.containsRange(range))
-						{
+				if (worksheet.TableParts && worksheet.TableParts.length) {
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
+						if (worksheet.TableParts[i].Ref.containsRange(range)) {
 							result = worksheet.TableParts[i];
 							break;
 						}
