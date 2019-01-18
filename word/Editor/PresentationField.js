@@ -49,8 +49,12 @@
     CPresentationField.prototype.constructor = CPresentationField;
 
 
-    CPresentationField.prototype.Copy = function()
+    CPresentationField.prototype.Copy = function(Selected, oPr)
     {
+        if(oPr && oPr.Paragraph && oPr.Paragraph.bFromDocument)
+        {
+            return ParaRun.prototype.Copy.call(this, Selected, oPr);
+        }
         var Field = new CPresentationField(this.Paragraph);
         Field.Set_Pr( this.Pr.Copy() );
         Field.SetGuid( '{' + AscCommon.GUID() + '}');
