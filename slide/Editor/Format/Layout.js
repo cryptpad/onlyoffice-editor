@@ -770,6 +770,10 @@ function CLayoutThumbnailDrawer()
         {
             if (_layout.showMasterSp == true || _layout.showMasterSp == undefined)
             {
+                if(_master.needRecalc && _master.needRecalc())
+                {
+                    _master.recalculate();
+                }
                 _master.draw(g);
             }
         }

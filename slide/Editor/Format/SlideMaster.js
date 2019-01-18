@@ -408,6 +408,13 @@ MasterSlide.prototype =
             }
         },
 
+        needRecalc: function(){
+            var recalcInfo = this.recalcInfo;
+            return recalcInfo.recalculateBackground ||
+                recalcInfo.recalculateSpTree ||
+                recalcInfo.recalculateBounds;
+        },
+
         setSlideSize: function (w, h) {
             History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_SlideMasterSetSize, new AscFormat.CDrawingBaseCoordsWritable(this.Width, this.Height), new AscFormat.CDrawingBaseCoordsWritable(w, h)));
             this.Width = w;
@@ -659,12 +666,20 @@ function CMasterThumbnailDrawer()
         {
             if (null == _layout)
             {
+                if(_master.needRecalc && _master.needRecalc())
+                {
+                    _master.recalculate();
+                }
                 _master.draw(g);
             }
             else
             {
                 if (_layout.showMasterSp == true || _layout.showMasterSp == undefined)
                 {
+                    if(_master.needRecalc && _master.needRecalc())
+                    {
+                        _master.recalculate();
+                    }
                     _master.draw(g);
                 }
                 _layout.recalculate();
