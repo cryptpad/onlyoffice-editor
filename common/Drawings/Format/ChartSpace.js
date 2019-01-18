@@ -11514,7 +11514,7 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                     }
                     else
                     {
-                        ser.compiledSeriesPen.Fill.merge(base_line_fills[ser.idx]);
+                        ser.compiledSeriesPen.Fill.merge(base_line_fills2[ser.idx]);
                     }
                     if(ser.spPr && ser.spPr.ln)
                         ser.compiledSeriesPen.merge(ser.spPr.ln);
