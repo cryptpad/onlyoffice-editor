@@ -6274,15 +6274,9 @@ CDocumentContent.prototype.SetSelectionToBeginEnd = function(isSelectionStart, i
 		this.Content[0].SetSelectionUse(true);
 		this.Content[0].SetSelectionToBeginEnd(isSelectionStart, true);
 		if (isSelectionStart)
-		{
 			this.Selection.StartPos = 0;
-			this.Selection.EndPos   = this.CurPos.ContentPos;
-		}
 		else
-		{
-			this.Selection.StartPos = this.CurPos.ContentPos;
-			this.Selection.EndPos   = 0;
-		}
+			this.Selection.EndPos = 0;
 	}
 	else
 	{
@@ -6290,15 +6284,9 @@ CDocumentContent.prototype.SetSelectionToBeginEnd = function(isSelectionStart, i
 		this.Content[this.Content.length - 1].SetSelectionToBeginEnd(isSelectionStart, false);
 
 		if (isSelectionStart)
-		{
 			this.Selection.StartPos = this.Content.length - 1;
-			this.Selection.EndPos   = this.CurPos.ContentPos;
-		}
 		else
-		{
-			this.Selection.StartPos = this.CurPos.ContentPos;
-			this.Selection.EndPos   = this.Content.length - 1;
-		}
+			this.Selection.EndPos = this.Content.length - 1;
 	}
 };
 CDocumentContent.prototype.Select_DrawingObject      = function(Id)
