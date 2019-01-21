@@ -9089,6 +9089,8 @@
     window["Asc"].ETableStyleType = ETableStyleType;
     window["Asc"].EFontScheme = EFontScheme;
     window["Asc"].EIconSetType = EIconSetType;
+    window["Asc"].c_oSer_DrawingType = c_oSer_DrawingType;
+    window["Asc"].c_oSer_DrawingPosType = c_oSer_DrawingPosType;
     window["AscCommonExcel"].ECfOperator = ECfOperator;
 	window["AscCommonExcel"].ECfType = ECfType;
     window["AscCommonExcel"].ECfvoType = ECfvoType;

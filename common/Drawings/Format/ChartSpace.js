@@ -1240,6 +1240,8 @@ function CChartSpace()
     this.pathMemory = new CPathMemory();
 
 
+    this.spTree = [];//userShapes
+
     this.bbox = null;
     this.ptsCount = 0;
 
@@ -3065,6 +3067,20 @@ CChartSpace.prototype.setThemeOverride = function(pr)
 {
     History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_SetThemeOverride, this.themeOverride,  pr));
     this.themeOverride = pr;
+};
+CChartSpace.prototype.addUserShape = function(pos, item)
+{
+    if(!AscFormat.isRealNumber(pos))
+        pos = this.spTree.length;
+    History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_ChartSpace_AddUserShape, pos,  [item], true));
+    this.spTree.splice(pos, 0, item);
+    item.setParent(this);
+};
+CChartSpace.prototype.removeUserShape = function(pos)
+{
+    var aSplicedShape = this.spTree.splice(pos, 1);
+    History.Add(new AscDFH.CChangesDrawingsContent(this,AscDFH.historyitem_ChartSpace_RemoveUserShape, pos, aSplicedShape, false));
+    return aSplicedShape[0];
 };
 CChartSpace.prototype.setParent = function (parent)
 {
