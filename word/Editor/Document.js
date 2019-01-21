@@ -774,7 +774,7 @@ function CDocumentPage()
 
     this.Bounds = new CDocumentBounds(0,0,0,0);
     this.Pos    = 0;
-    this.EndPos = -1;
+    this.EndPos = 0;
 
     this.X      = 0;
     this.Y      = 0;
@@ -1804,14 +1804,6 @@ CDocument.prototype.On_EndLoad                     = function()
     {
         this.Set_FastCollaborativeEditing(true);
     }
-
-    // Во вьювере показываем документ без изменений в рецензировании
-    if (this.IsViewMode())
-	{
-		this.Start_SilentMode();
-		this.private_RejectAllRevisionChanges();
-		this.End_SilentMode(false);
-	}
 };
 CDocument.prototype.Add_TestDocument               = function()
 {
@@ -6245,19 +6237,27 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
 	var bFlowTable   = (null === this.DrawingObjects.getTableByXY(X, Y, this.CurPage, this) ? false : true);
 
     // Сначала посмотрим, попалили мы в текстовый селект (но при этом не в границу таблицы и не более чем одинарным кликом)
-    if (-1 !== this.Selection.DragDrop.Flag && MouseEvent.ClickCount <= 1 && false === bTableBorder &&
-        ( nInDrawing < 0 || ( nInDrawing === DRAWING_ARRAY_TYPE_BEHIND && true === bInText ) || ( nInDrawing > -1 && ( docpostype_DrawingObjects === this.CurPos.Type || ( docpostype_HdrFtr === this.CurPos.Type && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.Content.CurPos.Type ) ) && true === this.DrawingObjects.isSelectedText() && null !== this.DrawingObjects.getMajorParaDrawing() && this.DrawingObjects.getGraphicInfoUnderCursor(this.CurPage, X, Y).cursorType === "text" ) ) &&
-        true === this.CheckPosInSelection(X, Y, this.CurPage, undefined))
-    {
-        // Здесь мы сразу не начинаем перемещение текста. Его мы начинаем, курсор хотя бы немного изменит свою позицию,
-        // это проверяется на MouseMove.
-        // TODO: В ворде кроме изменения положения мыши, также запускается таймер для стартования drag-n-drop по времени,
-        //       его можно здесь вставить.
+    if (-1 !== this.Selection.DragDrop.Flag
+		&& MouseEvent.ClickCount <= 1
+		&& false === bTableBorder
+		&& (nInDrawing < 0
+			|| (nInDrawing === DRAWING_ARRAY_TYPE_BEHIND && true === bInText)
+			|| (nInDrawing > -1
+				&& (docpostype_DrawingObjects === this.CurPos.Type || (docpostype_HdrFtr === this.CurPos.Type && this.HdrFtr.CurHdrFtr && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.Content.CurPos.Type))
+				&& true === this.DrawingObjects.isSelectedText()
+				&& null !== this.DrawingObjects.getMajorParaDrawing()
+				&& this.DrawingObjects.getGraphicInfoUnderCursor(this.CurPage, X, Y).cursorType === "text"))
+		&& true === this.CheckPosInSelection(X, Y, this.CurPage, undefined))
+	{
+		// Здесь мы сразу не начинаем перемещение текста. Его мы начинаем, курсор хотя бы немного изменит свою позицию,
+		// это проверяется на MouseMove.
+		// TODO: В ворде кроме изменения положения мыши, также запускается таймер для стартования drag-n-drop по времени,
+		//       его можно здесь вставить.
 
-        this.Selection.DragDrop.Flag = 1;
-        this.Selection.DragDrop.Data = {X : X, Y : Y, PageNum : this.CurPage};
-        return;
-    }
+		this.Selection.DragDrop.Flag = 1;
+		this.Selection.DragDrop.Data = {X : X, Y : Y, PageNum : this.CurPage};
+		return;
+	}
 
     var bCheckHdrFtr = true;
 	var bFootnotes = false;
@@ -6492,22 +6492,19 @@ CDocument.prototype.Selection_SetEnd = function(X, Y, MouseEvent)
     // Обрабатываем движение границы у таблиц
     if (true === this.IsMovingTableBorder())
     {
-        var Item             = this.Content[this.Selection.Data.Pos];
-        var ElementPageIndex = this.private_GetElementPageIndexByXY(this.Selection.Data.Pos, X, Y, this.CurPage);
+		var nPos = this.Selection.Data.Pos;
+
+		// Убираем селект раньше, чтобы при создании точки в истории не сохранялось состояние передвижения границы таблицы
+		if (AscCommon.g_mouse_event_type_up == MouseEvent.Type)
+		{
+			this.Selection.Start = false;
+			this.Selection.Use   = this.Selection.Data.Selection;
+			this.Selection.Data  = null;
+		}
+
+		var Item             = this.Content[nPos];
+        var ElementPageIndex = this.private_GetElementPageIndexByXY(nPos, X, Y, this.CurPage);
         Item.Selection_SetEnd(X, Y, ElementPageIndex, MouseEvent, true);
-
-        if (AscCommon.g_mouse_event_type_up == MouseEvent.Type)
-        {
-            this.Selection.Start = false;
-
-            if (true != this.Selection.Data.Selection)
-            {
-                this.Selection.Use = false;
-            }
-
-            this.Selection.Data = null;
-        }
-
         return;
     }
 
@@ -9787,7 +9784,7 @@ CDocument.prototype.Create_NewHistoryPoint = function(Description)
 };
 CDocument.prototype.Document_Undo = function(Options)
 {
-	if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && true !== this.IsFillingFormMode())
+	if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && true !== this.IsFillingFormMode() &&  !this.IsViewModeInReview())
 		return;
 
 	// Нужно сбрасывать, т.к. после Undo/Redo данные списки у нас будут в глобальной таблице, но не такие, какие нужны
@@ -11938,7 +11935,9 @@ CDocument.prototype.GetContentPosition = function(bSelection, bStart, PosArray)
 	if (undefined === PosArray)
 		PosArray = [];
 
-	var Pos = (true === bSelection ? (true === bStart ? this.Selection.StartPos : this.Selection.EndPos) : this.CurPos.ContentPos);
+	var oSelection = this.private_GetSelectionPos();
+
+	var Pos = (true === bSelection ? (true === bStart ? oSelection.Start : oSelection.End) : this.CurPos.ContentPos);
 	PosArray.push({Class : this, Position : Pos});
 
 	if (undefined !== this.Content[Pos] && this.Content[Pos].GetContentPosition)
@@ -13237,16 +13236,14 @@ CDocument.prototype.TurnOnCheckChartSelection = function()
 //----------------------------------------------------------------------------------------------------------------------
 CDocument.prototype.controller_CanUpdateTarget = function()
 {
+	var nPos = this.private_GetSelectionPos(true).End;
+
 	if (null != this.FullRecalc.Id && this.FullRecalc.StartIndex < this.CurPos.ContentPos)
 	{
 		return false;
 	}
-	else if (null !== this.FullRecalc.Id && this.FullRecalc.StartIndex === this.CurPos.ContentPos)
+	else if (null !== this.FullRecalc.Id && this.FullRecalc.StartIndex === nPos)
 	{
-		if (this.IsNumberingSelection())
-			return this.Selection.Data.CurPara.CanUpdateTarget(0);
-
-		var nPos         = (true === this.Selection.Use ? this.Selection.EndPos : this.CurPos.ContentPos);
 		var oElement     = this.Content[nPos];
 		var nElementPage = this.private_GetElementPageIndex(nPos, this.FullRecalc.PageIndex, this.FullRecalc.ColumnIndex, oElement.Get_ColumnsCount());
 		return oElement.CanUpdateTarget(nElementPage);
@@ -13258,11 +13255,8 @@ CDocument.prototype.controller_RecalculateCurPos = function(bUpdateX, bUpdateY)
 {
 	if (this.controller_CanUpdateTarget())
 	{
-		if (this.IsNumberingSelection())
-			return this.Selection.Data.CurPara.RecalculateCurPos(bUpdateX, bUpdateY);
-
-		var nPos = (true === this.Selection.Use ? this.Selection.EndPos : this.CurPos.ContentPos);
 		this.private_CheckCurPage();
+		var nPos = this.private_GetSelectionPos(true).End;
 		return this.Content[nPos].RecalculateCurPos(bUpdateX, bUpdateY);
 	}
 
@@ -13270,12 +13264,9 @@ CDocument.prototype.controller_RecalculateCurPos = function(bUpdateX, bUpdateY)
 };
 CDocument.prototype.controller_GetCurPage = function()
 {
-	if (this.IsNumberingSelection())
-		return this.Selection.Data.CurPara.Get_CurrentPage_Absolute();
-
-	var Pos = ( true === this.Selection.Use ? this.Selection.EndPos : this.CurPos.ContentPos );
-	if (Pos >= 0 && ( null === this.FullRecalc.Id || this.FullRecalc.StartIndex > Pos ))
-		return this.Content[Pos].Get_CurrentPage_Absolute();
+	var nPos = this.private_GetSelectionPos(true).End;
+	if (nPos >= 0 && (null === this.FullRecalc.Id || this.FullRecalc.StartIndex > nPos))
+		return this.Content[nPos].Get_CurrentPage_Absolute();
 
 	return -1;
 };
@@ -15858,22 +15849,24 @@ CDocument.prototype.controller_UpdateRulersState = function()
 
 	if (true === this.Selection.Use)
 	{
-		if (this.Selection.StartPos == this.Selection.EndPos && type_Paragraph !== this.Content[this.Selection.StartPos].GetType())
+		var oSelection = this.private_GetSelectionPos(false);
+
+		if (oSelection.Start === oSelection.End && type_Paragraph !== this.Content[oSelection.Start].GetType())
 		{
 			var PagePos = this.Get_DocumentPagePositionByContentPosition(this.GetContentPosition(true, true));
 
 			var Page   = PagePos ? PagePos.Page : this.CurPage;
 			var Column = PagePos ? PagePos.Column : 0;
 
-			var ElementPos       = this.Selection.StartPos;
+			var ElementPos       = oSelection.Start;
 			var Element          = this.Content[ElementPos];
 			var ElementPageIndex = this.private_GetElementPageIndex(ElementPos, Page, Column, Element.Get_ColumnsCount());
 			Element.Document_UpdateRulersState(ElementPageIndex);
 		}
 		else
 		{
-			var StartPos = ( this.Selection.EndPos <= this.Selection.StartPos ? this.Selection.EndPos : this.Selection.StartPos );
-			var EndPos   = ( this.Selection.EndPos <= this.Selection.StartPos ? this.Selection.StartPos : this.Selection.EndPos );
+			var StartPos = oSelection.Start;
+			var EndPos   = oSelection.End;
 
 			var FramePr = undefined;
 
@@ -15991,9 +15984,10 @@ CDocument.prototype.controller_GetSelectionState = function()
 	var State;
 	if (true === this.Selection.Use)
 	{
-		// Выделение нумерации
-		if (selectionflag_Numbering == this.Selection.Flag)
+		if (this.controller_IsNumberingSelection() || this.controller_IsMovingTableBorder())
+		{
 			State = [];
+		}
 		else
 		{
 			var StartPos = this.Selection.StartPos;
@@ -16577,8 +16571,6 @@ CDocument.prototype.EndViewModeInReview = function()
 	if (0 === this.ViewModeInReview.mode)
 		return;
 
-	this.ViewModeInReview.mode = 0;
-
 	this.CollaborativeEditing.Set_GlobalLock(false);
 
 	this.Document_Undo();
@@ -16587,6 +16579,8 @@ CDocument.prototype.EndViewModeInReview = function()
 
 	if (this.ViewModeInReview.isFastCollaboration)
 		this.CollaborativeEditing.Set_Fast(true);
+
+	this.ViewModeInReview.mode = 0;
 };
 CDocument.prototype.StartCollaborationEditing = function()
 {
@@ -17537,6 +17531,47 @@ CDocument.prototype.GetUserId = function(isConnectionId)
 		return this.GetApi().CoAuthoringApi.getUserConnectionId();
 
 	return this.GetApi().DocInfo.get_UserId();
+};
+/**
+ * Получаем метки селекта, в зависимости от типа селекта
+ * @param [isSaveDirection=true] {boolean} Сохраняем направление селекта, либо разворачиваем от меньшего к большему
+ * @returns {{Start: number, End: number}}
+ */
+CDocument.prototype.private_GetSelectionPos = function(isSaveDirection)
+{
+	var nStartPos = 0;
+	var nEndPos   = 0;
+
+	if (!this.controller_IsSelectionUse())
+	{
+		nStartPos = this.CurPos.ContentPos;
+		nEndPos   = this.CurPos.ContentPos;
+	}
+	else if (this.controller_IsMovingTableBorder())
+	{
+		nStartPos = this.Selection.Data.Pos;
+		nEndPos   = this.Selection.Data.Pos;
+	}
+	else if (this.controller_IsNumberingSelection())
+	{
+		this.UpdateContentIndexing();
+		nStartPos = this.Selection.Data.CurPara.GetIndex();
+		nEndPos   = nStartPos;
+	}
+	else
+	{
+		nStartPos = this.Selection.StartPos;
+		nEndPos   = this.Selection.EndPos;
+	}
+
+	if (false === isSaveDirection && nStartPos > nEndPos)
+	{
+		var nTemp = nStartPos;
+		nStartPos = nEndPos;
+		nEndPos   = nTemp;
+	}
+
+	return {Start : nStartPos, End : nEndPos};
 };
 /**
  * Получаем объект, внутри которого в данный момент используется PlaceHolder (т.е. мы там стоим курсором или он выделен целиком)
@@ -18942,7 +18977,6 @@ CDocumentNumberingContinueEngine.prototype.GetNumPr = function()
 {
 	return this.SimilarNumPr ? this.SimilarNumPr : this.LastNumPr;
 };
-
 
 //-------------------------------------------------------------export---------------------------------------------------
 window['Asc'] = window['Asc'] || {};

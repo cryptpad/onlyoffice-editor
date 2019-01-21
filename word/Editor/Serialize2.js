@@ -5175,25 +5175,25 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			{
 				this.memory.WriteByte(c_oSerImageType2.DistLEmu);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToUEmu(img.Distance.L);
+				this.bs.writeMmToUEmu(AscFonts.FT_Common.UintToInt(img.Distance.L));
 			}
 			if(null != img.Distance.T)
 			{
 				this.memory.WriteByte(c_oSerImageType2.DistTEmu);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToUEmu(img.Distance.T);
+				this.bs.writeMmToUEmu(AscFonts.FT_Common.UintToInt(img.Distance.T));
 			}
 			if(null != img.Distance.R)
 			{
 				this.memory.WriteByte(c_oSerImageType2.DistREmu);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToUEmu(img.Distance.R);
+				this.bs.writeMmToUEmu(AscFonts.FT_Common.UintToInt(img.Distance.R));
 			}
 			if(null != img.Distance.B)
 			{
 				this.memory.WriteByte(c_oSerImageType2.DistBEmu);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToUEmu(img.Distance.B);
+				this.bs.writeMmToUEmu(AscFonts.FT_Common.UintToInt(img.Distance.B));
 			}
             if(null != img.LayoutInCell)
             {
@@ -10716,6 +10716,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 	{
 		var res = c_oSerConstants.ReadOk;
         var oThis = this;
+		var emu;
         if( c_oSerImageType2.Type === type )
         {
 			var nDrawingType = null;
@@ -10757,7 +10758,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         }
 		else if( c_oSerImageType2.DistLEmu === type )
 		{
-			oParaDrawing.Set_Distance(Math.abs(g_dKoef_emu_to_mm * this.stream.GetULongLE()), null, null, null);
+			emu = AscFonts.FT_Common.IntToUInt(this.stream.GetULongLE());
+			oParaDrawing.Set_Distance(Math.abs(g_dKoef_emu_to_mm * emu), null, null, null);
 		}
 		else if( c_oSerImageType2.DistT === type )
         {
@@ -10765,7 +10767,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         }
 		else if( c_oSerImageType2.DistTEmu === type )
 		{
-			oParaDrawing.Set_Distance(null, Math.abs(g_dKoef_emu_to_mm * this.stream.GetULongLE()), null, null);
+			emu = AscFonts.FT_Common.IntToUInt(this.stream.GetULongLE());
+			oParaDrawing.Set_Distance(null, Math.abs(g_dKoef_emu_to_mm * emu), null, null);
 		}
 		else if( c_oSerImageType2.DistR === type )
         {
@@ -10773,7 +10776,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         }
 		else if( c_oSerImageType2.DistREmu === type )
 		{
-			oParaDrawing.Set_Distance(null, null, Math.abs(g_dKoef_emu_to_mm * this.stream.GetULongLE()), null);
+			emu = AscFonts.FT_Common.IntToUInt(this.stream.GetULongLE());
+			oParaDrawing.Set_Distance(null, null, Math.abs(g_dKoef_emu_to_mm * emu), null);
 		}
 		else if( c_oSerImageType2.DistB === type )
         {
@@ -10781,7 +10785,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         }
 		else if( c_oSerImageType2.DistBEmu === type )
 		{
-			oParaDrawing.Set_Distance(null, null, null, Math.abs(g_dKoef_emu_to_mm * this.stream.GetULongLE()));
+			emu = AscFonts.FT_Common.IntToUInt(this.stream.GetULongLE());
+			oParaDrawing.Set_Distance(null, null, null, Math.abs(g_dKoef_emu_to_mm * emu));
 		}
 		else if( c_oSerImageType2.Hidden === type )
         {

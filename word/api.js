@@ -6614,7 +6614,11 @@ background-repeat: no-repeat;\
 			callback();
 			return;
 		}
-
+		if(window['IS_NATIVE_EDITOR'])
+		{
+			callback();
+			return;
+		}
 		this.pasteCallback = callback;
 		this.pasteImageMap = _images;
 
@@ -7321,9 +7325,9 @@ background-repeat: no-repeat;\
 		var fCallback = null;
 		if (!options.isNoCallback)
 		{
-			fCallback = function(input)
+			fCallback = function(input, status)
 			{
-				var error = c_oAscError.ID.Unknown;
+				var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
 				//input = {'type': command, 'status': 'err', 'data': -80};
 				if (null != input && command == input['type'])
 				{
@@ -9841,6 +9845,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
+    asc_docs_api.prototype['sendEvent']         						= asc_docs_api.prototype.sendEvent;
 
 
 	// mobile

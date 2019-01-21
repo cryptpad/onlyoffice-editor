@@ -457,7 +457,7 @@
 		}
 		dataContainer.index++;
 		oAdditionalData["saveindex"] = dataContainer.index;
-		fSendCommand(function (incomeObject)
+		fSendCommand(function (incomeObject, done, status)
 		{
 			if (null != incomeObject && "ok" == incomeObject["status"])
 			{
@@ -468,12 +468,12 @@
 				}
 				else if (fCallbackRequest)
 				{
-					fCallbackRequest(incomeObject);
+					fCallbackRequest(incomeObject, status);
 				}
 			}
 			else
 			{
-				fCallbackRequest ? fCallbackRequest(incomeObject) : fCallback(incomeObject);
+				fCallbackRequest ? fCallbackRequest(incomeObject, status) : fCallback(incomeObject, status);
 			}
 		}, oAdditionalData, dataContainer);
 	}
@@ -669,11 +669,11 @@
 			url:         sDownloadServiceLocalUrl + '/' + rdata["id"] + '?cmd=' + encodeURIComponent(JSON.stringify(rdata)),
 			data:        dataContainer.part || dataContainer.data,
 			contentType: "application/octet-stream",
-			error:       function ()
+			error:       function (httpRequest, statusText, status)
 						 {
 							 if (fCallback)
 							 {
-								 fCallback(null, true);
+								 fCallback(null, true, status);
 							 }
 						 },
 			success:     function (httpRequest)
@@ -3835,11 +3835,11 @@
 
         this.isNeedCrypt = function()
 		{
-			if (!window.g_asc_plugins)
-				return false;
-
-            if (!window.g_asc_plugins.isRunnedEncryption())
-                return false;
+			if (window.g_asc_plugins)
+			{
+                if (!window.g_asc_plugins.isRunnedEncryption())
+                    return false;
+            }
 
             if (!window["AscDesktopEditor"])
                 return false;
@@ -3865,6 +3865,10 @@
 		{
 			var _this = this;
             window["AscDesktopEditor"]["OpenFilenameDialog"]("images", true, function(files) {
+
+                if (!Array.isArray(files)) // string detect
+                    files = [files];
+
 				var _files = [];
 
 				var _options = { isImageCrypt: true, callback: callback, ext : [] };
@@ -4477,7 +4481,7 @@ window.openFileCryptCallback = function(_binary)
 
 window["asc_IsNeedBuildCryptedFile"] = function()
 {
-    if (!window["AscDesktopEditor"])
+    if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["CryptoMode"])
         return false;
 
     var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;

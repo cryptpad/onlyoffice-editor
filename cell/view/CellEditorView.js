@@ -96,11 +96,11 @@
 	 * @param {Element} elem
 	 * @param {Element} input
 	 * @param {Array} fmgrGraphics
-	 * @param {FontProperties} oFont
+	 * @param {AscCommonExcel.Font} oFont
 	 * @param {HandlersList} handlers
-	 * @param {Object} settings
+	 * @param {Number} padding
 	 */
-	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, settings ) {
+	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, padding ) {
 		this.element = elem;
 		this.input = input;
 		this.handlers = new asc_HL( handlers );
@@ -163,7 +163,7 @@
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
 
 		this.defaults = {
-			padding: -1,
+			padding: padding,
 			selectColor: new AscCommon.CColor(190, 190, 255, 0.5),
 			canvasZIndex: 500,
 			blinkInterval: 500,
@@ -176,15 +176,14 @@
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
 
-		this._init( settings );
+		this._init();
 
 		return this;
 	}
 
-	CellEditor.prototype._init = function (settings) {
+	CellEditor.prototype._init = function () {
 		var t = this;
 		var z = t.defaults.canvasZIndex;
-		this.defaults.padding = settings.padding;
 		this.sAutoComplete = null;
 
 		if (null != this.element) {
@@ -220,7 +219,6 @@
 			canvas: t.canvasOverlay, units: 0/*px*/, fmgrGraphics: this.fmgrGraphics, font: this.m_oFont
 		});
 		t.textRender = new AscCommonExcel.CellTextRender(t.drawingCtx);
-		t.textRender.setDefaultFont(settings.font.clone());
 
 		// bind event handlers
 		if (t.canvasOuter && t.canvasOuter.addEventListener) {
@@ -277,7 +275,6 @@
 	 *   flags      - text flags (wrapText, textAlign)
 	 *   font
 	 *   background
-	 *   textColor
 	 *   saveValueCallback
 	 */
 	CellEditor.prototype.open = function ( options ) {
@@ -1390,7 +1387,7 @@
 		}
 
 		if (opt.fragments.length > 0) {
-			t.textRender.render(undefined, t._getContentLeft(), dy || 0, t._getContentWidth(), opt.textColor);
+			t.textRender.render(undefined, t._getContentLeft(), dy || 0, t._getContentWidth(), opt.font.getColor());
 		}
 	};
 
@@ -2052,10 +2049,10 @@
 			fr[i].text = s;
 			f = fr[i].format;
 			if (f.getName() === "") {
-				f.setName(t.options.font.FontFamily.Name);
+				f.setName(t.options.font.getName());
 			}
 			if (f.getSize() === 0) {
-				f.setSize(t.options.font.FontSize);
+				f.setSize(t.options.font.getSize());
 			}
 		}
 	};
@@ -2205,7 +2202,7 @@
 		result.strikeout = tmp.getStrikeout();
 		result.subscript = va === AscCommon.vertalign_SubScript;
 		result.superscript = va === AscCommon.vertalign_SuperScript;
-		result.color = (fc ? asc.colorObjToAscColor( fc ) : new Asc.asc_CColor( this.options.textColor ));
+		result.color = (fc ? asc.colorObjToAscColor( fc ) : new Asc.asc_CColor(this.options.font.getColor()));
 
 		this.handlers.trigger( "updateEditorSelectionInfo", result );
 	};

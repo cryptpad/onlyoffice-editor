@@ -4244,7 +4244,8 @@ drawBarChart.prototype = {
 							paths: paths.paths[k],
 							x: paths.sortPaths[k].x,
 							y: paths.sortPaths[k].y,
-							zIndex: paths.sortPaths[k].z
+							zIndex: paths.sortPaths[k].z,
+							facePoint: paths.facePoints[k]
 						});
 					}
 
@@ -4329,11 +4330,25 @@ drawBarChart.prototype = {
 				cSortFaces = new window['AscFormat'].CSortFaces(this.cChartDrawer);
 				this.sortParallelepipeds = cSortFaces.sortParallelepipeds(this.temp2);
 			} else {
+				var getMinZ = function (arr) {
+					var zIndex = 0;
+					for (var i = 0; i < arr.length; i++) {
+						if (i === 0) {
+							zIndex = arr[i].z;
+						} else if (arr[i].z < zIndex) {
+							zIndex = arr[i].z;
+						}
+					}
+					return zIndex;
+				};
 				this.sortZIndexPaths.sort(function sortArr(a, b) {
-					if (b.zIndex == a.zIndex) {
+					var minZA = getMinZ(a.facePoint);
+					var minZB = getMinZ(b.facePoint);
+
+					if (minZB == minZA) {
 						return b.y - a.y;
 					} else {
-						return b.zIndex - a.zIndex;
+						return minZB - minZA;
 					}
 				});
 			}
@@ -4910,9 +4925,14 @@ drawBarChart.prototype = {
 		var controlPoint5 = this.cChartDrawer._convertAndTurnPoint(x5 + individualBarWidth / 2, y5, z5 + perspectiveDepth / 2);
 		var controlPoint6 = this.cChartDrawer._convertAndTurnPoint(x2 + individualBarWidth / 2, y2 - height / 2, z2);
 
+		//front: 0, down: 1, left: 2, right: 3, up: 4, unfront: 5
+		var facePoints = [[point1, point5, point8, point4], [point1, point2, point3, point4],
+			[point1, point2, point6, point5], [point4, point3, point7, point8], [point5, point6, point7, point8],
+			[point2, point3, point7, point6]];
+
 		var sortPaths = [controlPoint1, controlPoint2, controlPoint3, controlPoint4, controlPoint5, controlPoint6];
 
-		return {paths: paths, x: point1.x, y: point1.y, zIndex: point1.z, sortPaths: sortPaths};
+		return {paths: paths, x: point1.x, y: point1.y, zIndex: point1.z, sortPaths: sortPaths, facePoints: facePoints};
 	}
 };
 
@@ -4981,12 +5001,16 @@ drawLineChart.prototype = {
 			dataSeries = numCache.pts;
 
 			for (var n = 0; n < numCache.ptCount; n++) {
-				idx = dataSeries[n] && dataSeries[n].idx != null ? dataSeries[n].idx : n;
+				idx = dataSeries[n] && dataSeries[n].idx != null ? dataSeries[n].idx : null;
+
+				if(null === idx) {
+					continue;
+				}
 
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
-				x = this.catAx ? this.cChartDrawer.getYPosition(n + 1, this.catAx) : xPoints[n].pos;
+				x = this.catAx ? this.cChartDrawer.getYPosition(idx + 1, this.catAx) : xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
 
 				if (!this.paths.points) {
@@ -5008,11 +5032,11 @@ drawLineChart.prototype = {
 				compiledMarkerSymbol = idxPoint && idxPoint.compiledMarker && AscFormat.isRealNumber(idxPoint.compiledMarker.symbol) ? idxPoint.compiledMarker.symbol : null;
 
 				if (val != null) {
-					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
-					points[i][n] = {x: x, y: y};
+					this.paths.points[i][idx] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
+					points[i][idx] = {x: x, y: y};
 				} else {
 					this.paths.points[i][n] = null;
-					points[i][n] = null;
+					points[i][idx] = null;
 				}
 			}
 		}
@@ -8845,6 +8869,10 @@ drawPieChart.prototype = {
 
 		var calculateFrontFace = function (startAng, swapAng, startAng2, swapAng2) {
 
+			if(isNaN(startAng) || isNaN(swapAng)) {
+				return null;
+			}
+
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);
 
@@ -8866,6 +8894,10 @@ drawPieChart.prototype = {
 
 		var calculateUpFace = function (startAng, swapAng) {
 
+			if(isNaN(startAng) ||  isNaN(swapAng)) {
+				return null;
+			}
+
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);
 
@@ -8884,6 +8916,10 @@ drawPieChart.prototype = {
 		};
 
 		var calculateDownFace = function (startAng, swapAng) {
+
+			if(isNaN(startAng) ||  isNaN(swapAng)) {
+				return null;
+			}
 
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);

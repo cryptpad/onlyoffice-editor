@@ -2059,8 +2059,11 @@
         this.signatureId = null;
 
 		this.rot = null;
+		this.rotAdd = null;
 		this.flipH = null;
 		this.flipV = null;
+		this.flipHInvert = null;
+		this.flipVInvert = null;
 	}
 
 	asc_CShapeProperty.prototype = {
@@ -2173,6 +2176,14 @@
 			this.rot = v;
 		},
 
+		asc_getRotAdd: function(){
+			return this.rotAdd;
+		},
+
+		asc_putRotAdd: function(v){
+			this.rotAdd = v;
+		},
+
 		asc_getFlipH: function(){
 			return this.flipH;
 		},
@@ -2187,6 +2198,21 @@
 
 		asc_putFlipV: function(v){
 			this.flipV = v;
+		},
+		asc_getFlipHInvert: function(){
+			return this.flipHInvert;
+		},
+
+		asc_putFlipHInvert: function(v){
+			this.flipHInvert = v;
+		},
+
+		asc_getFlipVInvert: function(){
+			return this.flipVInvert;
+		},
+
+		asc_putFlipVInvert: function(v){
+			this.flipVInvert = v;
 		}
 	};
 
@@ -2445,8 +2471,11 @@
 
 
 			this.rot = undefined;
+			this.rotAdd = undefined;
 			this.flipH = undefined;
 			this.flipV = undefined;
+			this.flipHInert = undefined;
+			this.flipVInert = undefined;
 		}
 	}
 
@@ -2705,6 +2734,13 @@
 		asc_putRot: function(v){
 			this.rot = v;
 		},
+		asc_getRotAdd: function(){
+			return this.rotAdd;
+		},
+
+		asc_putRotAdd: function(v){
+			this.rotAdd = v;
+		},
 
 		asc_getFlipH: function(){
 			return this.flipH;
@@ -2713,6 +2749,13 @@
 		asc_putFlipH: function(v){
 			this.flipH = v;
 		},
+		asc_getFlipHInvert: function(){
+			return this.flipHInvert;
+		},
+
+		asc_putFlipHInvert: function(v){
+			this.flipHInvert = v;
+		},
 
 		asc_getFlipV: function(){
 			return this.flipV;
@@ -2720,6 +2763,13 @@
 
 		asc_putFlipV: function(v){
 			this.flipV = v;
+		},
+		asc_getFlipVInvert: function(){
+			return this.flipVInvert;
+		},
+
+		asc_putFlipVInvert: function(v){
+			this.flipVInvert = v;
 		}
 	};
 
@@ -4595,10 +4645,16 @@
 	prot["put_FromImage"] = prot["asc_putFromImage"] = prot.asc_putFromImage;
 	prot["get_Rot"] = prot["asc_getRot"] = prot.asc_getRot;
 	prot["put_Rot"] = prot["asc_putRot"] = prot.asc_putRot;
+	prot["get_RotAdd"] = prot["asc_getRotAdd"] = prot.asc_getRotAdd;
+	prot["put_RotAdd"] = prot["asc_putRotAdd"] = prot.asc_putRotAdd;
 	prot["get_FlipH"] = prot["asc_getFlipH"] = prot.asc_getFlipH;
 	prot["put_FlipH"] = prot["asc_putFlipH"] = prot.asc_putFlipH;
 	prot["get_FlipV"] = prot["asc_getFlipV"] = prot.asc_getFlipV;
 	prot["put_FlipV"] = prot["asc_putFlipV"] = prot.asc_putFlipV;
+	prot["get_FlipHInvert"] = prot["asc_getFlipHInvert"] = prot.asc_getFlipHInvert;
+	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
+	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
+	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;
@@ -4703,10 +4759,16 @@
 	prot["put_PluginData"] = prot["asc_putPluginData"] = prot.asc_putPluginData;
 	prot["get_Rot"] = prot["asc_getRot"] = prot.asc_getRot;
 	prot["put_Rot"] = prot["asc_putRot"] = prot.asc_putRot;
+	prot["get_RotAdd"] = prot["asc_getRotAdd"] = prot.asc_getRotAdd;
+	prot["put_RotAdd"] = prot["asc_putRotAdd"] = prot.asc_putRotAdd;
 	prot["get_FlipH"] = prot["asc_getFlipH"] = prot.asc_getFlipH;
 	prot["put_FlipH"] = prot["asc_putFlipH"] = prot.asc_putFlipH;
 	prot["get_FlipV"] = prot["asc_getFlipV"] = prot.asc_getFlipV;
 	prot["put_FlipV"] = prot["asc_putFlipV"] = prot.asc_putFlipV;
+	prot["get_FlipHInvert"] = prot["asc_getFlipHInvert"] = prot.asc_getFlipHInvert;
+	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
+	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
+	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
 
 	prot["get_Title"] = prot["asc_getTitle"] = prot.asc_getTitle;
 	prot["put_Title"] = prot["asc_putTitle"] = prot.asc_putTitle;

@@ -85,9 +85,9 @@ Asc['asc_docs_api'].prototype.asc_RejectChanges = function(Change)
     else
         this.WordControl.m_oLogicDocument.RejectRevisionChangesBySelection();
 };
-Asc['asc_docs_api'].prototype.asc_HaveRevisionsChanges = function()
+Asc['asc_docs_api'].prototype.asc_HaveRevisionsChanges = function(isCheckOwnChanges)
 {
-    return this.WordControl.m_oLogicDocument.Have_RevisionChanges();
+    return this.WordControl.m_oLogicDocument.HaveRevisionChanges(isCheckOwnChanges);
 };
 Asc['asc_docs_api'].prototype.asc_HaveNewRevisionsChanges = function()
 {
@@ -751,10 +751,14 @@ CDocument.prototype.RejectRevisionChanges = function(Type, bAll)
         this.Document_UpdateSelectionState();
     }
 };
-CDocument.prototype.Have_RevisionChanges = function()
+CDocument.prototype.HaveRevisionChanges = function(isCheckOwnChanges)
 {
     this.TrackRevisionsManager.ContinueTrackRevisions();
-    return this.TrackRevisionsManager.HaveOtherUsersChanges();
+
+    if (true === isCheckOwnChanges)
+    	return this.TrackRevisionsManager.Have_Changes();
+    else
+    	return this.TrackRevisionsManager.HaveOtherUsersChanges();
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CHeaderFooterController

@@ -149,6 +149,10 @@
                 new_rot -= 2*Math.PI;
             while(new_rot < 0)
                 new_rot += 2*Math.PI;
+            if(AscFormat.fApproxEqual(new_rot, 2*Math.PI, 0.001))
+            {
+                new_rot = 0.0;
+            }
             return new_rot;
         }
         return new_rot;
@@ -323,6 +327,24 @@
         this.y = t;
         this.w = r - l;
         this.h = b - t;
+    };
+
+
+    CGraphicBounds.prototype.isIntersect = function(l, t, r, b){
+
+       if(l > this.r){
+           return false;
+       }
+       if(r < this.l){
+           return false;
+       }
+       if(t > this.b){
+           return false;
+       }
+       if(b < this.t){
+           return false;
+       }
+       return true;
     };
 
     /**
@@ -696,8 +718,6 @@
     {
         return null;
     };
-
-
 
     CGraphicObjectBase.prototype.checkDrawingBaseCoords = function()
     {
@@ -1146,6 +1166,9 @@
         cy = this.extY > 0 ? this.extY : 0.01;
 
         var invert_transform = this.getInvertTransform();
+        if(!invert_transform){
+            return { kd1: 1, kd2: 1 };
+        }
         var t_x = invert_transform.TransformPointX(x, y);
         var t_y = invert_transform.TransformPointY(x, y);
 
@@ -1239,6 +1262,8 @@
     CGraphicObjectBase.prototype.checkNeedRecalculate = function(){
         return false;
     };
+    CGraphicObjectBase.prototype.handleAllContents = function(fCallback){
+    };
 
     CGraphicObjectBase.prototype.canChangeArrows = function () {
         if (!this.spPr || this.spPr.geometry == null) {
@@ -1299,6 +1324,13 @@
             return this.brush;
         }
         return AscFormat.CreateNoFillUniFill();
+    };
+
+    CGraphicObjectBase.prototype.getClipRect = function(){
+        if(this.parent && this.parent.GetClipRect){
+            return this.parent.GetClipRect();
+        }
+        return null;
     };
 
 

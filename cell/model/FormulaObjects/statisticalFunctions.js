@@ -5014,26 +5014,31 @@ function (window, undefined) {
 			arg1 = arg1.getValue();
 		}
 
-		/*arg1 = arg1.tocString();
 
-		 if (cElementType.string !== arg1.type) {
-		 return new cError(cErrorType.wrong_value_type);
-		 }*/
+		var checkEmptyValue = function(res, tempVal, tempMatchingInfo) {
+			//TODO нужно протестировать на различных вариантах
+			//когда в ячейке пустое значение - сравниваем его только с пустым значением
+			//при matchingInfo отличным от пустого значения в данном случае возвращаем false
+			if(tempVal === "" && tempMatchingInfo.val && "" !== tempMatchingInfo.val.value) {
+				return false;
+			}
+			return res;
+		};
 
 		var val;
 		matchingInfo = AscCommonExcel.matchingValue(arg1);
 		if (cElementType.cellsRange === arg0.type) {
 			arg0.foreach2(function (_val) {
-				_count += matching(_val, matchingInfo);
+				_count += checkEmptyValue(matching(_val, matchingInfo), _val, matchingInfo);
 			})
 		} else if (cElementType.cellsRange3D === arg0.type) {
 			val = arg0.getValue();
 			for (var i = 0; i < val.length; i++) {
-				_count += matching(val[i], matchingInfo);
+				_count += checkEmptyValue(matching(val[i], matchingInfo), val[i], matchingInfo);
 			}
 		} else {
 			val = arg0.getValue();
-			_count += matching(val, matchingInfo);
+			_count += checkEmptyValue(matching(val, matchingInfo), val, matchingInfo);
 		}
 
 		return new cNumber(_count);

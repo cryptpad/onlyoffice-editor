@@ -38,7 +38,6 @@
 		 * -----------------------------------------------------------------------------
 		 */
 		var asc_applyFunction	= AscCommonExcel.applyFunction;
-		var asc_Range			= Asc.Range;
 
 		var c_oAscLockTypes = AscCommon.c_oAscLockTypes;
 
@@ -527,7 +526,7 @@
 					if (null === c1 || null === c2 || null === r1 || null === r2)
 						continue;
 
-					oRangeOrObjectId = new asc_Range(c1, r1, c2, r2);
+					oRangeOrObjectId = new Asc.Range(c1, r1, c2, r2);
 				}
 
 				result.push(oRangeOrObjectId);

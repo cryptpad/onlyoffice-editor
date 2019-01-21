@@ -1978,6 +1978,12 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
       return AscCommon.EncryptionWorker.addCryproImagesFromUrls(images, callback);
   }
 
+  	if(window["IS_NATIVE_EDITOR"])
+  	{
+		callback([]);
+		return;
+	}
+
   var rData = {"id": api.documentId, "c": "imgurls", "userid":  api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(), "data": images};
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 
@@ -2089,6 +2095,8 @@ function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel)
 	this.startMsoAnnotation = undefined;
 	this.needAddCommentStart;
 	this.needAddCommentEnd;
+
+	this.rtfImages;
 }
 PasteProcessor.prototype =
 {
@@ -2354,7 +2362,7 @@ PasteProcessor.prototype =
 				if(oSelectedContent.Elements.length === 1)
 				{
 					var curDocSelection = this.oDocument.GetSelectionState();
-					if(curDocSelection)
+					if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
 					{
 						var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
 						specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
@@ -3290,6 +3298,90 @@ PasteProcessor.prototype =
         }
     },
 
+	getRtfImages: function(rtf, html) {
+
+		var getRtfImg = function (sRtf) {
+			var res = [];
+			var rg_rtf = /\{\\pict[\s\S]+?\\bliptag\-?\d+(\\blipupi\-?\d+)?(\{\\\*\\blipuid\s?[\da-fA-F]+)?[\s\}]*?/, d;
+			var rg_rtf_all = new RegExp("(?:(" + rg_rtf.source + "))([\\da-fA-F\\s]+)\\}", "g");
+			var pngStr = "\\pngblip";
+			var jpegStr = "\\jpegblip";
+			var pngTypeStr = "image/png";
+			var jpegTypeStr = "image/jpeg";
+			var type;
+
+			sRtf = sRtf.match(rg_rtf_all);
+
+			if (!sRtf) {
+				return res;
+			}
+
+			for (var i = 0; i < sRtf.length; i++) {
+				if (rg_rtf.test(sRtf[i])) {
+					if (-1 !== sRtf[i].indexOf(jpegStr)) {
+						type = pngTypeStr;
+					} else if (-1 !== sRtf[i].indexOf(pngStr)) {
+						type = jpegTypeStr;
+					} else {
+						continue;
+					}
+
+					res.push({
+						data: sRtf[i].replace(rg_rtf, "").replace(/[^\da-fA-F]/g, ""), type: type
+					})
+				}
+			}
+			return res
+		};
+
+		var getHtmlImg = function (sHtml) {
+			var rg_html = /<img[^>]+src="([^"]+)[^>]+/g;
+			var res = [];
+			var img;
+			while (true) {
+				img = rg_html.exec(sHtml);
+				if (!img) {
+					break;
+				}
+				res.push(img[1]);
+			}
+			return res;
+		};
+
+		function hexToBytes(hex) {
+			var res = [];
+			for (var i = 0; i < hex.length; i += 2) {
+				res.push(parseInt(hex.substr(i, 2), 16));
+			}
+			return res;
+		}
+
+		function bytesToBase64(val) {
+			var res = "";
+			var bytes = new Uint8Array(val);
+			for (var i = 0; i < bytes.byteLength; i++) {
+				res += String.fromCharCode(bytes[i]);
+			}
+			//TODO проверить данный метод на разных браузерах и системах
+			return window.btoa(res);
+		}
+
+		var rtfImages = getRtfImg(rtf);
+		var htmlImages = getHtmlImg(html);
+		var map = {};
+		if(rtfImages.length === htmlImages.length) {
+			for(var i = 0; i < rtfImages.length; i++) {
+				var a = rtfImages[i];
+				if(a.type) {
+					var bytes = hexToBytes(a.data);
+					map[htmlImages[i]] = "data:" + a.type + ";base64," + bytesToBase64(bytes);
+				}
+			}
+		}
+
+		return map;
+	},
+
 	Start : function(node, nodeDisplay, bDuplicate, fromBinary, text)
     {
 		//PASTE
@@ -3684,7 +3776,10 @@ PasteProcessor.prototype =
 			Asc.c_oSpecialPasteProps.keepTextOnly === window['AscCommon'].g_specialPasteHelper.specialPasteProps) {
 			oThis.api.pre_Paste([], [], fPrepasteCallback);
 		} else if (oObjectsForDownload.aUrls.length > 0) {
-			if (bIsOnlyFromBinary && window["NativeCorrectImageUrlOnPaste"]) {
+			if(window["IS_NATIVE_EDITOR"]){
+				oThis.api.pre_Paste(aContent.fonts, aContent.images, fPrepasteCallback);
+			}
+			else if (bIsOnlyFromBinary && window["NativeCorrectImageUrlOnPaste"]) {
 				var url;
 				for (var i = 0, length = aContent.aPastedImages.length; i < length; ++i) {
 					url = window["NativeCorrectImageUrlOnPaste"](aContent.aPastedImages[i].Url);
@@ -3972,13 +4067,26 @@ PasteProcessor.prototype =
 					var elem = data[i];
 					if (null != elem.url) {
 						var name = g_oDocumentUrls.imagePath2Local(elem.path);
-						var imageElem = arrImages[i];
+						var imageElem = oObjectsForDownload.aBuilderImagesByUrl[i];
 						if (null != imageElem) {
-							//для вставки graphicFrame в виде картинки(если было при копировании выделено несколько графических объектов)
-							if (imageElem.ImageShape && imageElem.ImageShape.base64) {
-								imageElem.ImageShape.base64 = name;
+							if (Array.isArray(imageElem)) {
+								for (var j = 0; j < imageElem.length; ++j) {
+									var curImageElem = imageElem[j];
+									if (null != curImageElem) {
+										if (curImageElem.ImageShape && curImageElem.ImageShape.base64) {
+											curImageElem.ImageShape.base64 = name;
+										} else {
+											curImageElem.SetUrl(name);
+										}
+									}
+								}
 							} else {
-								imageElem.SetUrl(name);
+								//для вставки graphicFrame в виде картинки(если было при копировании выделено несколько графических объектов)
+								if (imageElem.ImageShape && imageElem.ImageShape.base64) {
+									imageElem.ImageShape.base64 = name;
+								} else {
+									imageElem.SetUrl(name);
+								}
 							}
 						}
 						image_map[i] = name;
@@ -4493,6 +4601,8 @@ PasteProcessor.prototype =
 	_pasteFromHtml: function(node, bTurnOffTrackRevisions)
 	{
 		var oThis = this;
+		//TODO test!!!!!
+		this.rtfImages = this.getRtfImages(window['AscCommon'].g_clipboardBase.rtf, node.outerHTML);
 		
 		var fPasteHtmlPresentationCallback = function(fonts, images)
 		{
@@ -5845,6 +5955,7 @@ PasteProcessor.prototype =
 			//TODO пересмотреть все "local" и сделать одинаковые проверки во всех редакторах
 			var aImagesToDownload = [];
 			var _mapLocal = {};
+			var originalSrcArr = [];
 			for(var image in this.oImages)
             {
 				var src = this.oImages[image];
@@ -5872,8 +5983,15 @@ PasteProcessor.prototype =
 						}
 					}
 				}
-				else if(!g_oDocumentUrls.getImageLocal(src))
-					aImagesToDownload.push(src);
+				else if(!g_oDocumentUrls.getImageLocal(src)) {
+					if(oThis.rtfImages && oThis.rtfImages[src]) {
+						aImagesToDownload.push(oThis.rtfImages[src]);
+						originalSrcArr.push(src);
+					} else {
+						aImagesToDownload.push(src);
+						originalSrcArr.push(src);
+					}
+				}
 			}
 			if(aImagesToDownload.length > 0)
 			{
@@ -5881,7 +5999,7 @@ PasteProcessor.prototype =
 				  var image_map = {};
 				  for (var i = 0, length = Math.min(data.length, aImagesToDownload.length); i < length; ++i) {
 					var elem = data[i];
-					var sFrom = aImagesToDownload[i];
+					var sFrom = originalSrcArr[i] ? originalSrcArr[i] : aImagesToDownload[i];
 					if (null != elem.url) {
 					  var name = g_oDocumentUrls.imagePath2Local(elem.path);
 					  oThis.oImages[sFrom] = name;
@@ -6452,7 +6570,7 @@ PasteProcessor.prototype =
 				else if(line_height && null != (line_height = this._ValueToMm(line_height)) && line_height >= 0)
 				{
 					Spacing.Line = line_height;
-					Spacing.LineRule = Asc.linerule_Exact;
+					Spacing.LineRule = Asc.linerule_AtLeast;
 				}
 			}
             if(false === this._isEmptyProperty(Spacing))
@@ -8016,8 +8134,8 @@ PasteProcessor.prototype =
 				value = value.replace(/(\r|\t|\n)/g, ' ');
 
 				//TODO проверить в каких случаях пробелы учитываются, в каких игнорируются
-				//пока делаю проверку на div с пробелами
-				if(node && node.parentNode && "div" === node.parentNode.nodeName.toLowerCase()) {
+				//текстовый элемент с одними пробелами игнорируется, за исключением неразрывных пробелов
+				if(value.charCodeAt(0) !== 160) {
 					var checkSpaces = value.replace(/(\s)/g, '');
 					if(checkSpaces === "") {
 						value = "";
@@ -8403,7 +8521,9 @@ PasteProcessor.prototype =
 		var parseChildNodes = function(){
 			var sChildNodeName;
 			if (bPresentation) {
-				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType)) {
+				var sChildNodeName = child.nodeName.toLowerCase();
+				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
+					sChildNodeName === "#comment" || sChildNodeName === "script") {
 					return;
 				}
 				//попускам элеметы состоящие только из \t,\n,\r

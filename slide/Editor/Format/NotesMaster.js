@@ -80,12 +80,12 @@
     };
 
     CNotesMaster.prototype.setTheme = function(pr){
-        History.Add(AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_NotesMasterSetNotesTheme, this.Theme, pr));
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_NotesMasterSetNotesTheme, this.Theme, pr));
         this.Theme = pr;
     };
 
     CNotesMaster.prototype.setHF = function(pr){
-        History.Add(AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_NotesMasterSetHF, this.hf, pr));
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_NotesMasterSetHF, this.hf, pr));
         this.hf = pr;
     };
 

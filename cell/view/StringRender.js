@@ -131,9 +131,6 @@
 		function StringRender(drawingCtx) {
 			this.drawingCtx = drawingCtx;
 
-			/** @type Asc.FontProperties */
-			this.defaultFont = undefined;
-
 			/** @type Array */
 			this.fragments = undefined;
 
@@ -170,31 +167,6 @@
 		}
 
 		/**
-		 * Setups default font
-		 * @param {FontProperties} font  Font properties. @see Asc.FontProperties
-		 * @return {StringRender}  Returns 'this' to allow chaining
-		 */
-		StringRender.prototype.setDefaultFont = function(font) {
-			this.defaultFont = font;
-			return this;
-		};
-
-		/**
-		 * Setups default font from fromat object
-		 * @param {Object} fmt  Format object from rendered string
-		 * @return {StringRender}  Returns 'this' to allow chaining
-		 */
-		StringRender.prototype.setDefaultFontFromFmt = function(fmt) {
-			var fn = fmt.getName();
-			var fs = fmt.getSize();
-			if (asc_typeof(fn) !== "string" || !(fs > 0)) {
-				throw "Can not make font from {fmt.fn=" + fn + ", fmt.fs=" + fs + "}";
-			}
-			this.defaultFont = this._makeFont(fmt);
-			return this;
-		};
-
-		/**
 		 * Setups one or more strings to process on
 		 * @param {String|Array} fragments  A simple string or array of formatted strings AscCommonExcel.Fragment
 		 * @param {AscCommonExcel.CellFlags} flags  Optional.
@@ -214,7 +186,7 @@
 			}
 			this.flags = flags;
 			this._reset();
-			this.drawingCtx.setFont(this.defaultFont, this.angle);
+			this._setFont(this.drawingCtx, AscCommonExcel.g_oDefaultFormat.Font);
 			return this;
 		};
 
@@ -485,20 +457,6 @@
 		};
 
 		/**
-		 * @param {Object} format  Cell text format
-		 * @return {Asc.FontProperties}
-		 */
-		StringRender.prototype._makeFont = function(format) {
-			var fn = format !== undefined ? format.getName() : undefined;
-			if (format !== undefined && asc_typeof(fn) === "string") {
-				var fs = format.getSize();
-				var fsz = fs > 0 ? fs : this.defaultFont.FontSize;
-				return new asc.FontProperties(fn, fsz, format.getBold(), format.getItalic(), format.getUnderline(), format.getStrikeout());
-			}
-			return this.defaultFont;
-		};
-
-		/**
 		 * @param {Number} startCh
 		 * @param {Number} endCh
 		 * @return {Number}
@@ -591,6 +549,29 @@
 
 			return l;
 		};
+		StringRender.prototype._calcLineMetrics2 = function (f, va, fm) {
+			var l = new lineMetrics();
+
+			var a = Math.max(0, asc.ceil(fm.nat_y1 * f / fm.nat_scale));
+			var d = Math.max(0, asc.ceil(-fm.nat_y2 * f / fm.nat_scale));
+
+			/*
+			// ToDo
+			if (va) {
+				var k = (AscCommon.vertalign_SuperScript === va) ? AscCommon.vaKSuper : AscCommon.vaKSub;
+				d += asc.ceil((a + d) * k);
+				f = asc.ceil(f * 2 / 3 / 0.5) * 0.5; // Round 0.5
+				a = Math.max(0, asc.ceil(fm.nat_y1 * f / fm.nat_scale));
+			}
+			*/
+
+			l.th = a + d;
+			l.bl = a;
+			l.a = a;
+			l.d = d;
+
+			return l;
+		};
 
 		StringRender.prototype.calcDelta = function (vnew, vold) {
 			return vnew > vold ? vnew - vold : 0;
@@ -618,7 +599,7 @@
 			if (0 >= this.chars.length) {
 				p = this.charProps[0];
 				if (p && p.font) {
-					lm = this._calcLineMetrics(p.fsz !== undefined ? p.fsz : p.font.FontSize, p.va, p.fm);
+					lm = this._calcLineMetrics(p.fsz !== undefined ? p.fsz : p.font.getSize(), p.va, p.fm);
 					l.assign(0, lm.th, lm.bl, lm.a, lm.d);
 					addLine(-1, -1);
 					l.beg = l.end = 0;
@@ -629,7 +610,7 @@
 
 					// if font has been changed than calc and update line height and etc.
 					if (p && p.font) {
-						lm = this._calcLineMetrics(p.fsz !== undefined ? p.fsz : p.font.FontSize, p.va, p.fm);
+						lm = this._calcLineMetrics(p.fsz !== undefined ? p.fsz : p.font.getSize(), p.va, p.fm);
 						if (i === 0) {
 							l.assign(0, lm.th, lm.bl, lm.a, lm.d);
 						} else {
@@ -651,7 +632,7 @@
 					if (p && (p.nl || p.hp)) {
 						addLine(beg, i);
 						beg = i + (p.nl ? 1 : 0);
-						lm = this._calcLineMetrics(p_.fsz !== undefined ? p_.fsz : p_.font.FontSize, p_.va, p_.fm);
+						lm = this._calcLineMetrics(p_.fsz !== undefined ? p_.fsz : p_.font.getSize(), p_.va, p_.fm);
 						l = new LineInfo(0, lm.th, lm.bl, lm.a, lm.d);
 					}
 				}
@@ -763,10 +744,11 @@
 		StringRender.prototype._measureChars = function (maxWidth) {
 			var self = this;
 			var ctx = this.drawingCtx;
+			var font = ctx.font;
 			var wrap = this.flags && (this.flags.wrapText || this.flags.wrapOnlyCE) && !this.flags.isNumberFormat;
 			var wrapNL = this.flags && this.flags.wrapOnlyNL;
 			var hasRepeats = false;
-			var i, j, fr, fmt, text, p, p_ = {}, pIndex, f, f_, eq, startCh;
+			var i, j, fr, fmt, text, p, p_ = {}, pIndex, startCh;
 			var tw = 0, nlPos = 0, isEastAsian, hpPos = undefined, isSP_ = true, delta = 0;
 
 			function measureFragment(s) {
@@ -841,14 +823,13 @@
 			this._reset();
 
 			// for each text fragment
-			for (i = 0, f_ = ctx.getFont(); i < this.fragments.length; ++i) {
+			for (i = 0; i < this.fragments.length; ++i) {
 				startCh = this.charWidths.length;
 				fr = this.fragments[i];
-				fmt = fr.format;
+				fmt = fr.format.clone();
 				var va = fmt.getVerticalAlign();
 				text = this._filterText(fr.text, wrap || wrapNL);
 
-				f = this._makeFont(fmt);
 				pIndex = this.chars.length;
 				p = this.charProps[pIndex];
 				p = p ? p.clone() : new charProperties();
@@ -856,22 +837,20 @@
 				// reduce font size for subscript and superscript chars
 				if (va === AscCommon.vertalign_SuperScript || va === AscCommon.vertalign_SubScript) {
 					p.va = va;
-					p.fsz = f.FontSize;
-					f.FontSize *= 2/3;
-					p.font = f;
+					p.fsz = fmt.getSize();
+					fmt.fs = p.fsz * 2/3;
+					p.font = fmt;
 				}
 
 				// change font on canvas
-				eq = f.isEqual(f_);
-				if (!eq || f.Underline !== f_.Underline || f.Strikeout !== f_.Strikeout || fmt.getColor() !== p_.c) {
-					if (!eq) {ctx.setFont(f, this.angle);}
-					p.font = f;
-					f_ = f;
+				if (this._setFont(ctx, fmt) || fmt.getUnderline() !== font.getUnderline() ||
+					fmt.getStrikeout() !== font.getStrikeout() || fmt.getColor() !== p_.c) {
+					p.font = fmt;
 				}
 
 				// add marker in chars flow
 				if (i === 0) {
-					p.font = f;
+					p.font = fmt;
 				}
 				if (p.font) {
 					p.fm = ctx.getFontMetrics();
@@ -897,7 +876,7 @@
 				measureFragment(text);
 
 				// для italic текста прибавляем к концу строки разницу между charWidth и BBox
-				for (j = startCh; f_.Italic && j < this.charWidths.length; ++j) {
+				for (j = startCh; font.getItalic() && j < this.charWidths.length; ++j) {
 					if (this.charProps[j] && this.charProps[j].delta && j > 0) {
 						if (this.charWidths[j-1] > 0) {
 							this.charWidths[j-1] += this.charProps[j].delta;
@@ -910,7 +889,7 @@
 
 			if (0 !== this.chars.length && this.charProps[this.chars.length] !== undefined) {
 				delete this.charProps[this.chars.length];
-			} else if (f_.Italic) {
+			} else if (font.getItalic()) {
 				// для italic текста прибавляем к концу текста разницу между charWidth и BBox
 				this.charWidths[this.charWidths.length - 1] += delta;
 			}
@@ -961,7 +940,7 @@
 			var zoom = ctx.getZoom();
 			var ppiy = ctx.getPPIY();
 			var align  = this.flags ? this.flags.textAlign : null;
-			var i, j, p, p_, f, f_, strBeg;
+			var i, j, p, p_, strBeg;
 			var n = 0, l = this.lines[0], x1 = l ? initX(0) : 0, y1 = y, dx = l ? computeWordDeltaX() : 0;
 
 			function initX(startPos) {
@@ -987,8 +966,8 @@
 			function renderFragment(begin, end, prop, angle) {
 				var dh = prop && prop.lm && prop.lm.bl2 > 0 ? prop.lm.bl2 - prop.lm.bl : 0;
 				var dw = self._calcCharsWidth(strBeg, end - 1);
-				var so = prop.font.Strikeout;
-				var ul = Asc.EUnderline.underlineNone !== prop.font.Underline;
+				var so = prop.font.getStrikeout();
+				var ul = Asc.EUnderline.underlineNone !== prop.font.getUnderline();
 				var isSO = so === true;
 				var fsz, x2, y, lw, dy, i, b, x_, cp;
 				var bl = asc_round(l.bl * zoom);
@@ -1013,7 +992,7 @@
 
 				if (isSO || ul) {
 					x2 = x1 + dw;
-					fsz = prop.font.FontSize;
+					fsz = prop.font.getSize();
 					lw = asc_round(fsz * ppiy / 72 / 18) || 1;
 					ctx.setStrokeStyle(prop.c || textColor)
 					   .setLineWidth(lw)
@@ -1034,7 +1013,7 @@
 				return dw;
 			}
 
-			for (i = 0, strBeg = 0, f_ = ctx.getFont(); i < this.chars.length; ++i) {
+			for (i = 0, strBeg = 0; i < this.chars.length; ++i) {
 				p = this.charProps[i];
 
 				if (p && (p.font || p.nl || p.hp || p.skip > 0)) {
@@ -1049,13 +1028,7 @@
 
 					if (p.font) {
 						// change canvas font style
-						f = p.font.clone();
-
-                        if (!f.isEqual(f_) || this.fontNeedUpdate) {
-                            ctx.setFont(f, this.angle);
-                            f_ = f;
-                            this.fontNeedUpdate = false;
-                        }
+                        this._setFont(ctx, p.font);
 						ctx.setFillStyle(p.c || textColor);
 						p_ = p;
 					}
@@ -1083,16 +1056,7 @@
 		};
 
 		StringRender.prototype.getInternalState = function () {
-            //for (var fr = [], i = 0; i < this.fragments.length; ++i) {
-            //	fr.push(this.fragments[i]);
-            //}
             return {
-                /** @type FontProperties */
-                defaultFont : this.defaultFont !== undefined ? this.defaultFont.clone() : undefined,
-
-                ///** @type Array */
-                //"fragments"   : fr,
-
                 /** @type Object */
                 flags       : this.flags,
 
@@ -1104,14 +1068,21 @@
         };
 
 		StringRender.prototype.restoreInternalState = function (state) {
-			this.defaultFont = state.defaultFont;
-			//this.fragments   = state.fragments;
 			this.flags       = state.flags;
 			this.chars       = state.chars;
 			this.charWidths  = state.charWidths;
 			this.charProps   = state.charProps;
 			this.lines       = state.lines;
 			return this;
+		};
+
+		StringRender.prototype._setFont = function (ctx, font) {
+			if (!font.isEqual(ctx.font) || this.fontNeedUpdate) {
+				ctx.setFont(font, this.angle);
+				this.fontNeedUpdate = false;
+				return true;
+			}
+			return false;
 		};
 
 

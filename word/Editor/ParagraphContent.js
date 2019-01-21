@@ -225,6 +225,14 @@ CRunElementBase.prototype.GetType = function()
 	return this.Type;
 };
 /**
+ * Проверяем является ли данный элемент диакритическим символом
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsDiacriticalSymbol = function()
+{
+	return false;
+};
+/**
  * Проверять ли автозамену на вводе данного элемента
  * @returns {boolean}
  */
@@ -273,7 +281,7 @@ ParaText.prototype.Draw = function(X, Y, Context)
 	if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SCRIPT && this.Flags & PARATEXT_FLAGS_FONTKOEF_SMALLCAPS)
 		FontKoef = smallcaps_and_script_koef;
 	else if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SCRIPT)
-		FontKoef = vertalign_Koef_Size;
+		FontKoef = AscCommon.vaKSize;
 	else if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SMALLCAPS)
 		FontKoef = smallcaps_Koef;
 
@@ -330,7 +338,7 @@ ParaText.prototype.Measure = function(Context, TextPr)
 	if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SCRIPT && this.Flags & PARATEXT_FLAGS_FONTKOEF_SMALLCAPS)
 		FontKoef = smallcaps_and_script_koef;
 	else if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SCRIPT)
-		FontKoef = vertalign_Koef_Size;
+		FontKoef = AscCommon.vaKSize;
 	else if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SMALLCAPS)
 		FontKoef = smallcaps_Koef;
 
@@ -469,6 +477,10 @@ ParaText.prototype.CanStartAutoCorrect = function()
 	|| 39 === this.Value
 	|| 45 === this.Value);
 };
+ParaText.prototype.IsDiacriticalSymbol = function()
+{
+	return !!(0x0300 <= this.Value && this.Value <= 0x036F);
+};
 
 /**
  * Класс представляющий пробелбный символ
@@ -520,7 +532,7 @@ ParaSpace.prototype.Get_FontKoef = function()
 	if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SCRIPT && this.Flags & PARATEXT_FLAGS_FONTKOEF_SMALLCAPS)
 		return smallcaps_and_script_koef;
 	else if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SCRIPT)
-		return vertalign_Koef_Size;
+		return AscCommon.vaKSize;
 	else if (this.Flags & PARATEXT_FLAGS_FONTKOEF_SMALLCAPS)
 		return smallcaps_Koef;
 	else
@@ -1636,7 +1648,7 @@ ParaFootnoteReference.prototype.Draw = function(X, Y, Context, PDSE)
 
 	var FontKoef = 1;
 	if (TextPr.VertAlign !== AscCommon.vertalign_Baseline)
-		FontKoef = vertalign_Koef_Size;
+		FontKoef = AscCommon.vaKSize;
 
 	Context.SetFontSlot(fontslot_ASCII, FontKoef);
 
@@ -1752,7 +1764,7 @@ ParaFootnoteReference.prototype.private_Measure = function()
 
     var FontKoef = 1;
     if (TextPr.VertAlign !== AscCommon.vertalign_Baseline)
-        FontKoef = vertalign_Koef_Size;
+        FontKoef = AscCommon.vaKSize;
 
 	oMeasurer.SetTextPr(TextPr, Theme);
 	oMeasurer.SetFontSlot(fontslot_ASCII, FontKoef);

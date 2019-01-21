@@ -621,7 +621,8 @@ CGraphicObjects.prototype =
         {
             this.selectedObjects[i].parent.Set_Props(oProps);
         }
-        if(AscFormat.isRealNumber(oProps.Width) || AscFormat.isRealNumber(oProps.Height))
+        if(AscFormat.isRealNumber(oProps.Width) || AscFormat.isRealNumber(oProps.Height) || AscFormat.isRealNumber(oProps.rot)
+            || AscFormat.isRealBool(oProps.flipH) || AscFormat.isRealBool(oProps.flipV))
         {
             oApplyProps = oProps;
         }
@@ -635,7 +636,9 @@ CGraphicObjects.prototype =
         }
         this.applyDrawingProps(oApplyProps);
         if(AscFormat.isRealNumber(oApplyProps.Width) || AscFormat.isRealNumber(oApplyProps.Height) || AscFormat.isRealNumber(oApplyProps.rot)
-            || AscFormat.isRealBool(oApplyProps.flipH)|| AscFormat.isRealBool(oApplyProps.flipV))
+            || AscFormat.isRealNumber(oApplyProps.rotAdd)
+            || AscFormat.isRealBool(oApplyProps.flipH)|| AscFormat.isRealBool(oApplyProps.flipV)
+            || AscFormat.isRealBool(oApplyProps.flipHInvert)|| AscFormat.isRealBool(oApplyProps.flipVInvert))
         {
             /*в случае если в насторойках ParaDrawing стоит UseAlign - пересчитываем drawing, т. к. ширина и высото ParaDrawing рассчитывается по bounds*/
             var aSelectedObjects = this.selectedObjects;
@@ -1045,7 +1048,8 @@ CGraphicObjects.prototype =
                 }
                 else if(arrObjects[i].GetType() === type_Table)
                 {
-                    ret.push(new CFlowTable(arrObjects[i], 0));
+                	if (0 === arrObjects[i].GetStartPageRelative())
+                    	ret.push(new CFlowTable(arrObjects[i], 0));
                 }
             }
             return ret;

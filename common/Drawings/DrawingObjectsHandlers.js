@@ -57,6 +57,14 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
     var drawing = null;
     if(selected_objects.length === 1)
     {
+
+        if(window["IS_NATIVE_EDITOR"] && e.ClickCount > 1)
+        {
+            if(selected_objects[0].getObjectType() === AscDFH.historyitem_type_Shape)
+            {
+                return null;
+            }
+        }
         if(bWord && pageIndex !== selected_objects[0].selectStartPage)
         {
             t = drawingObjectsController.drawingDocument.ConvertCoordsToAnotherPage(x, y, pageIndex, selected_objects[0].selectStartPage);
@@ -106,6 +114,14 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
                 var hit_to_handles = selected_objects[i].hitToHandles(tx, ty);
                 if(hit_to_handles > -1)
                 {
+
+                    if(window["IS_NATIVE_EDITOR"] && e.ClickCount > 1)
+                    {
+                        if(selected_objects[i].getObjectType() === AscDFH.historyitem_type_Shape)
+                        {
+                            return null;
+                        }
+                    }
                     ret = drawingObjectsController.handleHandleHit(hit_to_handles, selected_objects[i], group);
                     drawing = selected_objects[i];
                     break;
@@ -136,8 +152,16 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
             }
             if(!ret)
             {
-                if(selected_objects[i].hitInBoundingRect(tx, ty) /*&& (!selected_objects[i].hitInTextRect || !selected_objects[i].hitInTextRect(tx, ty))*/)
+                
+                if(selected_objects[i].hitInBoundingRect(tx, ty))
                 {
+                    if(window["IS_NATIVE_EDITOR"])
+                    {
+                        if(selected_objects[i] === AscFormat.getTargetTextObject(drawingObjectsController))
+                        {
+                            return null;
+                        }
+                    }
                     if(bWord && selected_objects[i].parent && selected_objects[i].parent.Is_Inline())
                         ret = handleInlineHitNoText(selected_objects[i], drawingObjectsController, e, tx, ty, pageIndex, true);
                     else
@@ -242,6 +266,18 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
             var ret =  drawingObjectsController.checkDrawingHyperlink(drawing, e, hit_in_text_rect, x, y, pageIndex);
             if(ret){
                 return ret;
+            }
+        }
+    }
+    if(window["IS_NATIVE_EDITOR"])
+    {
+        if(e.ClickCount > 1 && !e.ShiftKey && !e.CtrlKey && ((drawingObjectsController.selection.groupSelection && drawingObjectsController.selection.groupSelection.selectedObjects.length === 1) || drawingObjectsController.selectedObjects.length === 1))
+        {
+            if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
+            {
+                hit_in_text_rect = true;
+                hit_in_inner_area = false;
+                hit_in_path = false;
             }
         }
     }

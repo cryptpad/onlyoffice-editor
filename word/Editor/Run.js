@@ -1615,12 +1615,12 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 					{
 						case AscCommon.vertalign_SubScript:
 						{
-							TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * vertalign_Koef_Sub;
+							TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * AscCommon.vaKSub;
 							break;
 						}
 						case AscCommon.vertalign_SuperScript:
 						{
-							TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * vertalign_Koef_Super;
+							TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * AscCommon.vaKSuper;
 							break;
 						}
 					}
@@ -1688,12 +1688,12 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 				{
 					case AscCommon.vertalign_SubScript:
 					{
-						TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * vertalign_Koef_Sub;
+						TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * AscCommon.vaKSub;
 						break;
 					}
 					case AscCommon.vertalign_SuperScript:
 					{
-						TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * vertalign_Koef_Super;
+						TargetY -= CurTextPr.FontSize * g_dKoef_pt_to_mm * AscCommon.vaKSuper;
 						break;
 					}
 				}
@@ -5024,6 +5024,13 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 	}
 
     var HighLight = oCompiledPr.HighLight;
+    if(oCompiledPr.HighlightColor)
+    {
+        var Theme = this.Paragraph.Get_Theme(), ColorMap = this.Paragraph.Get_ColorMap(), RGBA;
+        oCompiledPr.HighlightColor.check(Theme, ColorMap);
+        RGBA = oCompiledPr.HighlightColor.RGBA;
+        HighLight = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+    }
 
     var SearchMarksCount = this.SearchMarks.length;
 
@@ -5286,12 +5293,12 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         {
             case AscCommon.vertalign_SubScript:
             {
-                Y -= vertalign_Koef_Sub * CurTextPr.FontSize * g_dKoef_pt_to_mm;
+                Y -= AscCommon.vaKSub * CurTextPr.FontSize * g_dKoef_pt_to_mm;
                 break;
             }
             case AscCommon.vertalign_SuperScript:
             {
-                Y -= vertalign_Koef_Super * CurTextPr.FontSize * g_dKoef_pt_to_mm;
+                Y -= AscCommon.vaKSuper * CurTextPr.FontSize * g_dKoef_pt_to_mm;
                 break;
             }
         }
@@ -5492,13 +5499,13 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 		}
         case AscCommon.vertalign_SubScript  :
 		{
-			StrikeoutY += -CurTextPr.FontSize * fontCoeff * vertalign_Koef_Size * g_dKoef_pt_to_mm * 0.27 - vertalign_Koef_Sub * CurTextPr.FontSize  * fontCoeff * g_dKoef_pt_to_mm;
-			UnderlineY -= vertalign_Koef_Sub * CurTextPr.FontSize  * fontCoeff * g_dKoef_pt_to_mm;
+			StrikeoutY += -CurTextPr.FontSize * fontCoeff * AscCommon.vaKSize * g_dKoef_pt_to_mm * 0.27 - AscCommon.vaKSub * CurTextPr.FontSize  * fontCoeff * g_dKoef_pt_to_mm;
+			UnderlineY -= AscCommon.vaKSub * CurTextPr.FontSize  * fontCoeff * g_dKoef_pt_to_mm;
 			break;
 		}
         case AscCommon.vertalign_SuperScript:
 		{
-			StrikeoutY += -CurTextPr.FontSize * fontCoeff * vertalign_Koef_Size * g_dKoef_pt_to_mm * 0.27 - vertalign_Koef_Super * CurTextPr.FontSize * fontCoeff * g_dKoef_pt_to_mm;
+			StrikeoutY += -CurTextPr.FontSize * fontCoeff * AscCommon.vaKSize * g_dKoef_pt_to_mm * 0.27 - AscCommon.vaKSuper * CurTextPr.FontSize * fontCoeff * g_dKoef_pt_to_mm;
 			break;
 		}
     }
@@ -6090,7 +6097,7 @@ ParaRun.prototype.Get_LeftPos = function(SearchPos, ContentPos, Depth, UseConten
 			isHiddenCF   = SearchPos.IsHiddenComplexField();
 		}
 
-		if (CurPos >= 0 && (isFieldCode || isHiddenCF))
+		if (CurPos >= 0 && (isFieldCode || isHiddenCF || Item.IsDiacriticalSymbol()))
 			continue;
 
 		if (CurPos < 0 || (!(para_Drawing === Item.Type && false === Item.Is_Inline() && false === SearchPos.IsCheckAnchors()) && !(para_FootnoteReference === Item.Type && true === Item.IsCustomMarkFollows())))
@@ -6147,6 +6154,9 @@ ParaRun.prototype.Get_RightPos = function(SearchPos, ContentPos, Depth, UseConte
 
 		if (CurPos > Count)
 			break;
+
+		if (this.Content[CurPos] && this.Content[CurPos].IsDiacriticalSymbol())
+			continue;
 
 		// Минимальное значение CurPos = 1, т.к. мы начинаем со значния >= 0 и добавляем 1
 		var Item     = this.private_CheckInstrText(this.Content[CurPos - 1]);

@@ -745,14 +745,19 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	function cBaseType(val) {
 		this.numFormat = cNumFormatNull;
 		this.value = val;
+		this.hyperlink = null;
 	}
 
 	cBaseType.prototype.cloneTo = function (oRes) {
 		oRes.numFormat = this.numFormat;
 		oRes.value = this.value;
+		oRes.hyperlink = this.hyperlink;
 	};
 	cBaseType.prototype.getValue = function () {
 		return this.value;
+	};
+	cBaseType.prototype.getHyperlink = function () {
+		return this.hyperlink;
 	};
 	cBaseType.prototype.toString = function () {
 		return this.value.toString();
@@ -805,6 +810,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cNumber.prototype.tocNumber = function () {
 		return this;
+	};
+	cNumber.prototype.toNumber = function () {
+		return this.value;
 	};
 	cNumber.prototype.tocBool = function () {
 		return new cBool(this.value !== 0);
@@ -1290,6 +1298,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cArea.prototype.getMatrix = function (excludeHiddenRows, excludeErrorsVal, excludeNestedStAg) {
 		var arr = [], r = this.getRange();
+
+		var ws = r.worksheet;
+		var oldExcludeHiddenRows = ws.bExcludeHiddenRows;
+		ws.bExcludeHiddenRows = false;
 		r._foreach2(function (cell, i, j, r1, c1) {
 			if (!arr[i - r1]) {
 				arr[i - r1] = [];
@@ -1305,6 +1317,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 			arr[i - r1][j - c1] = resValue;
 		});
+		ws.bExcludeHiddenRows = oldExcludeHiddenRows;
+
 		return arr;
 	};
 	cArea.prototype.getMatrixNoEmpty = function () {
@@ -1582,6 +1596,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cArea3D.prototype.getMatrix = function (excludeHiddenRows, excludeErrorsVal, excludeNestedStAg) {
 		var arr = [], r = this.getRanges(), res;
+
+		var ws = r[0] ? r[0].worksheet : null;
+		if(ws) {
+			var oldExcludeHiddenRows = ws.bExcludeHiddenRows;
+			ws.bExcludeHiddenRows = false;
+		}
 		for (var k = 0; k < r.length; k++) {
 			arr[k] = [];
 			r[k]._foreach2(function (cell, i, j, r1, c1) {
@@ -1630,6 +1650,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 				arr[k][i - r1][j - c1] = res;
 			});
 		}
+		if(ws) {
+			ws.bExcludeHiddenRows = oldExcludeHiddenRows;
+		}
+
 		return arr;
 	};
 	cArea3D.prototype.foreach2 = function (action) {
@@ -6510,13 +6534,16 @@ parserFormula.prototype.setFormula = function(formula) {
 		var currentElement = null, _count = this.outStack.length, elemArr = new Array(_count), res = undefined,
 			_count_arg, _numberPrevArg, _argDiff;
 
-		for (var i = 0, j = 0; i < _count; i++, j++) {
+		for (var i = 0, j = 0; i < _count; i++) {
 			currentElement = this.outStack[i];
 
-			if (currentElement.type === cElementType.specialFunctionStart ||
-				currentElement.type === cElementType.specialFunctionEnd || "number" === typeof(currentElement)) {
+			if (currentElement.type === cElementType.specialFunctionStart || currentElement.type === cElementType.specialFunctionEnd) {
+				continue;
+			} else if("number" === typeof(currentElement)) {
+				j++;
 				continue;
 			}
+			j++;
 
 			if (currentElement.type === cElementType.operator || currentElement.type === cElementType.func) {
 				_numberPrevArg = "number" === typeof(this.outStack[i - 1]) ? this.outStack[i - 1] : null;
@@ -6524,9 +6551,9 @@ parserFormula.prototype.setFormula = function(formula) {
 				_argDiff = 0;
 				if(null !== _numberPrevArg) {
 					_argDiff++;
-					if(this.outStack[i - 2] && cElementType.specialFunctionEnd === this.outStack[i - 2].type) {
+					/*if(this.outStack[i - 2] && cElementType.specialFunctionEnd === this.outStack[i - 2].type) {
 						_argDiff++;
-					}
+					}*/
 				}
 
 				if(j - _count_arg - _argDiff < 0) {
@@ -6821,6 +6848,15 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 		return val;
+	};
+
+	parserFormula.prototype.getFormulaHyperlink = function() {
+		for (var i = 0; i < this.outStack.length; i++) {
+			if (this.outStack[i] && this.outStack[i].name === "HYPERLINK") {
+				return true;
+			}
+		}
+		return false;
 	};
 
 	function CalcRecursion() {
@@ -7314,11 +7350,8 @@ function rtl_math_erfc( x ) {
 			var bbox = range.bbox;
 
 
-			var countRow = useOnlyFirstRow ? useOnlyFirstRow.r2 - useOnlyFirstRow.r1 : 0;
-			var countCol = useOnlyFirstColumn ? useOnlyFirstColumn.c2 - useOnlyFirstColumn.c1 : 0;
-
-			countRow = Math.max(bbox.r2 - bbox.r1, countRow);
-			countCol = Math.max(bbox.c2 - bbox.c1, countCol);
+			var countRow = useOnlyFirstRow ? 0 : bbox.r2 - bbox.r1;
+			var countCol = useOnlyFirstColumn ? 0 : bbox.c2 - bbox.c1;
 
 			for ( var iRow = bbox.r1; iRow <= countRow + bbox.r1; iRow++, iRow <= countRow + bbox.r1 ? retArr.addRow() : true ) {
 				for ( var iCol = bbox.c1; iCol <= countCol + bbox.c1; iCol++ ) {

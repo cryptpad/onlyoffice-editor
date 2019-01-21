@@ -365,8 +365,8 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
         window["Asc"]["editor"].asc_pluginRun(oleObject.m_sApplicationId, 0, pluginData);
         oThis.clearTrackObjects();
         oThis.clearPreTrackObjects();
-        oThis.changeCurrentState(new AscFormat.NullState(this));
-        this.onMouseUp(e, x, y);
+        oThis.changeCurrentState(new AscFormat.NullState(oThis));
+        oThis.onMouseUp(e, x, y);
     };
     if(!this.canEdit()){
         fCallback();
@@ -565,9 +565,12 @@ DrawingObjectsController.prototype.canIncreaseParagraphLevel = function(bIncreas
     if(content)
     {
         var target_text_object = AscFormat.getTargetTextObject(this);
-        if(target_text_object && target_text_object.getObjectType() === AscDFH.historyitem_type_Shape
-            && (!target_text_object.isPlaceholder() || !target_text_object.getPhType() !== AscFormat.phType_title && target_text_object.getPhType() !== AscFormat.phType_ctrTitle))
+        if(target_text_object && target_text_object.getObjectType() === AscDFH.historyitem_type_Shape)
         {
+            if(target_text_object.isPlaceholder() && (target_text_object.getPhType() === AscFormat.phType_title || target_text_object.getPhType() === AscFormat.phType_ctrTitle))
+            {
+                return false;
+            }
             return content.Can_IncreaseParagraphLevel(bIncrease);
         }
     }

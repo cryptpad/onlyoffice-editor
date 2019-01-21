@@ -708,6 +708,9 @@ CHistory.prototype.Create_NewPoint = function()
 
     // Удаляем ненужные точки
     this.Points.length = this.Index + 1;
+
+	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
+	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
 };
 
 // Регистрируем новое изменение:
@@ -764,8 +767,6 @@ CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange
 			AscCommon.CollaborativeEditing.Add_NewDC(Class.Class);
 		}
 	}
-	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
 };
 
 CHistory.prototype._sendCanUndoRedo = function()

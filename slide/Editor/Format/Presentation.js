@@ -6442,10 +6442,42 @@ CPresentation.prototype =
         {
             case AscDFH.historyitem_Presentation_AddSlide:
             {
+                for(var i = Data.Pos; i < this.Slides.length; ++i)
+                {
+                    if(this.Slides[i])
+                    {
+                        this.Slides[i].handleAllContents(function(oContent){
+                            if(oContent){
+                                if(oContent.AllFields && oContent.AllFields.length > 0){
+                                    for(var j = 0; j < oContent.AllFields.length; j++){
+                                        oContent.AllFields[j].RecalcInfo.Measure = true;
+                                        oContent.AllFields[j].Refresh_RecalcData2();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
                 break;
             }
             case AscDFH.historyitem_Presentation_RemoveSlide:
             {
+                for(var i = Data.Pos; i < this.Slides.length; ++i)
+                {
+                    if(this.Slides[i])
+                    {
+                        this.Slides[i].handleAllContents(function(oContent){
+                            if(oContent){
+                                if(oContent.AllFields && oContent.AllFields.length > 0){
+                                    for(var j = 0; j < oContent.AllFields.length; j++){
+                                        oContent.AllFields[j].RecalcInfo.Measure = true;
+                                        oContent.AllFields[j].Refresh_RecalcData2();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
                 break;
             }
             case AscDFH.historyitem_Presentation_SetDefaultTextStyle:{

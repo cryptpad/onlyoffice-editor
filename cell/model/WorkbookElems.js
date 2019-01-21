@@ -86,9 +86,9 @@ function shiftGetBBox(bbox, bHor)
 {
 	var bboxGet = null;
 	if(bHor)
-		bboxGet = Asc.Range(bbox.c1, bbox.r1, gc_nMaxCol0, bbox.r2);
+		bboxGet = new Asc.Range(bbox.c1, bbox.r1, gc_nMaxCol0, bbox.r2);
 	else
-		bboxGet = Asc.Range(bbox.c1, bbox.r1, bbox.c2, gc_nMaxRow0);
+		bboxGet = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, gc_nMaxRow0);
 	return bboxGet;
 }
 function shiftSort(a, b, offset)
@@ -654,6 +654,9 @@ var g_oFontProperties = {
 		}
 		return bRes;
 	};
+	Font.prototype.isEqual2 = function (font) {
+		return font && this.getName() === font.getName() && this.getSize() === font.getSize() && this.getBold() === font.getBold() && this.getItalic() === font.getItalic();
+	};
 	Font.prototype.clone = function () {
 		var font = new Font();
 		font.assign(this);
@@ -770,31 +773,22 @@ var g_oFontProperties = {
 		switch (nType) {
 			case this.Properties.fn:
 				return this.fn;
-				break;
 			case this.Properties.scheme:
 				return this.scheme;
-				break;
 			case this.Properties.fs:
 				return this.fs;
-				break;
 			case this.Properties.b:
 				return this.b;
-				break;
 			case this.Properties.i:
 				return this.i;
-				break;
 			case this.Properties.u:
 				return this.u;
-				break;
 			case this.Properties.s:
 				return this.s;
-				break;
 			case this.Properties.c:
 				return this.c;
-				break;
 			case this.Properties.va:
 				return this.va;
-				break;
 		}
 	};
 	Font.prototype.setProperty = function (nType, value) {
@@ -4021,399 +4015,6 @@ CCellValue.prototype =
 	}
 };
 
-function TreeRBNode(key, storedValue){
-	this.storedValue = storedValue;
-	this.key = key;
-	this.red = null;
-	
-	this.left = null;
-	this.right = null;
-	this.parent = null;
-}
-TreeRBNode.prototype = {
-	constructor: TreeRBNode,
-	isEqual : function(x){
-		return this.key == x.key;
-	}
-};
-/**
- *
- * @param low
- * @param high
- * @param storedValue
- * @constructor
- * @extends {TreeRBNode}
- */
-function IntervalTreeRBNode(low, high, storedValue){
-	TreeRBNode.call(this, low, storedValue);
-	this.high = high;
-	this.maxHigh = this.high;
-	this.minLow = this.key;
-}
-IntervalTreeRBNode.prototype = Object.create(TreeRBNode.prototype);
-IntervalTreeRBNode.prototype.constructor = IntervalTreeRBNode;
-IntervalTreeRBNode.prototype.isEqual = function (x) {
-	return this.key == x.key && this.high == x.high;
-};
-		
-function TreeRB(){
-	this.nil = null;
-	this.root = null;
-	this._init();
-}
-TreeRB.prototype = {
-	constructor: TreeRB,
-	_init : function(){
-		this.nil = new TreeRBNode();
-		this.nil.left = this.nil.right = this.nil.parent = this.nil;
-		this.nil.key = -Number.MAX_VALUE;
-		this.nil.red = 0;
-		this.nil.storedValue = null;
-		
-		this.root = new TreeRBNode();
-		this.root.left = this.nil.right = this.nil.parent = this.nil;
-		this.root.key = Number.MAX_VALUE;
-		this.root.red = 0;
-		this.root.storedValue = null;
-	},
-	_treeInsertHelp : function(z){
-		var oRes = z;
-		z.left = z.right = this.nil;
-		var y = this.root;
-		var x = this.root.left;
-		while(x != this.nil && !x.isEqual(z)){
-			y = x;
-			if(x.key > z.key)
-				x = x.left;
-			else
-				x = x.right;
-		}
-		if(x == this.nil)
-		{
-			z.parent = y;
-			if(y == this.root || y.key > z.key)
-				y.left = z;
-			else
-				y.right = z;
-		}
-		else
-			oRes = x;
-		return oRes;
-	},
-	_fixUpMaxHigh : function(x){
-	},
-	_cleanMaxHigh : function(x){
-	},
-	_leftRotate : function(x){
-		var y = x.right;
-		x.right = y.left;
-		if (y.left != this.nil)
-			y.left.parent = x;
-		y.parent = x.parent;
-		if(x == x.parent.left){
-			x.parent.left = y;
-		}
-		else{
-			x.parent.right = y;
-		}
-		y.left = x;
-		x.parent = y;
-	},
-	_rightRotate : function(y){
-		var x = y.left;
-		y.left = x.right;
-		if(this.nil !=  x.right)
-			x.right.parent = y;
-		x.parent = y.parent;
-		if(y == y.parent.left){
-			y.parent.left = x;
-		}
-		else{
-			y.parent.right = x;
-		}
-		x.right = y;
-		y.parent = x;
-	},
-	insertOrGet : function(x){
-		var y = null;
-		var oRes = x;
-		oRes = this._treeInsertHelp(x);
-		if(x == oRes)
-		{
-			this._fixUpMaxHigh(x.parent);
-			x.red = 1;
-			while(x.parent.red)
-			{
-				if(x.parent == x.parent.parent.left){
-					y = x.parent.parent.right;
-					if(y.red){
-						x.parent.red = 0;
-						y.red = 0;
-						x.parent.parent.red = 1;
-						x = x.parent.parent;
-					}
-					else{
-						if (x == x.parent.right) {
-						  x = x.parent;
-						  this._leftRotate(x);
-						}
-						x.parent.red=0;
-						x.parent.parent.red=1;
-						this._rightRotate(x.parent.parent);
-					}
-				}
-				else{
-					y = x.parent.parent.left;
-					if (y.red){
-						x.parent.red = 0;
-						y.red = 0;
-						x.parent.parent.red = 1;
-						x = x.parent.parent;
-					}
-					else{
-						if (x == x.parent.left) {
-							x = x.parent;
-							this._rightRotate(x);
-						}
-						x.parent.red = 0;
-						x.parent.parent.red = 1;
-						this._leftRotate(x.parent.parent);
-					} 
-				}
-			}
-			this.root.left.red = 0;
-		}
-		return oRes;
-	},
-	_getSuccessorOf : function(x){
-		var y;
-		if(this.nil != (y = x.right)){
-			while(y.left != this.nil){
-				y = y.left;
-			}
-			return(y);
-		}
-		else{
-			y = x.parent;
-			while(x == y.right) {
-			  x = y;
-			  y = y.parent;
-			}
-			if (y == this.root) return(this.nil);
-			return(y);
-		}
-	},
-	_deleteFixUp : function(x){
-		var w;
-		var rootLeft = this.root.left;
-		
-		while((!x.red) && (rootLeft != x)){
-			if(x == x.parent.left){
-				w = x.parent.right;
-				if (w.red){
-					w.red = 0;
-					x.parent.red = 1;
-					this._leftRotate(x.parent);
-					w = x.parent.right;
-				}
-				if((!w.right.red) && (!w.left.red)){
-					w.red = 1;
-					x = x.parent;
-				}
-				else{
-					if(!w.right.red){
-						w.left.red = 0;
-						w.red = 1;
-						this._rightRotate(w);
-						w = x.parent.right;
-					}
-					w.red = x.parent.red;
-					x.parent.red = 0;
-					w.right.red = 0;
-					this._leftRotate(x.parent);
-					x = rootLeft; /* this is to exit while loop */
-				}
-			}
-			else{
-				w = x.parent.left;
-				if (w.red){
-					w.red = 0;
-					x.parent.red = 1;
-					this._rightRotate(x.parent);
-					w = x.parent.left;
-				}
-				if ( (!w.right.red) && (!w.left.red)){
-					w.red = 1;
-					x = x.parent;
-				}
-				else{
-					if (!w.left.red) {
-						w.right.red = 0;
-						w.red = 1;
-						this._leftRotate(w);
-						w = x.parent.left;
-					}
-					w.red = x.parent.red;
-					x.parent.red = 0;
-					w.left.red = 0;
-					this._rightRotate(x.parent);
-					x = rootLeft; /* this is to exit while loop */
-				}
-			}
-		}
-		x.red=0;
-	},
-	deleteNode : function(z){
-		var oRes = z.storedValue;
-		var y = ((z.left == this.nil) || (z.right == this.nil)) ? z : this._getSuccessorOf(z);
-		var x = (y.left == this.nil) ? y.right : y.left;
-		if (this.root == (x.parent = y.parent)){
-			this.root.left = x;
-		}
-		else{
-			if (y == y.parent.left){
-				y.parent.left = x;
-			}
-			else{
-				y.parent.right = x;
-			}
-		}
-		if (y != z){
-			this._cleanMaxHigh(y);
-			y.left = z.left;
-			y.right = z.right;
-			y.parent = z.parent;
-			z.left.parent = z.right.parent = y;
-			if (z == z.parent.left){
-				z.parent.left = y; 
-			}
-			else{
-				z.parent.right = y;
-			}
-			this._fixUpMaxHigh(x.parent); 
-			if(!(y.red)){
-				y.red = z.red;
-				this._deleteFixUp(x);
-			}
-			else
-				y.red = z.red; 
-		}
-		else{
-			this._fixUpMaxHigh(x.parent);
-			if (!(y.red))
-				this._deleteFixUp(x);
-		}
-		return oRes;
-	},
-	_enumerateRecursion : function(low, high, x, enumResultStack){
-		if(x != this.nil){
-			if(low > x.key)
-				this._enumerateRecursion(low, high, x.right, enumResultStack);
-			else if(high < x.key)
-				this._enumerateRecursion(low, high, x.left, enumResultStack);
-			else
-			{
-				this._enumerateRecursion(low, high, x.left, enumResultStack);
-				enumResultStack.push(x);
-				this._enumerateRecursion(low, high, x.right, enumResultStack);
-			}
-		}
-	},
-	enumerate : function(low, high){
-		var enumResultStack = [];
-		if(low <= high)
-			this._enumerateRecursion(low, high, this.root.left, enumResultStack);
-		return enumResultStack;
-	},
-	getElem : function(val){
-		var oRes = null;
-		//todo переделать
-		var aElems = this.enumerate(val, val);
-		if(aElems.length > 0)
-			oRes = aElems[0];
-		return oRes;
-	},
-	getNodeAll : function(){
-		return this.enumerate(-Number.MAX_VALUE, Number.MAX_VALUE);
-	},
-	isEmpty : function(){
-		return this.nil == this.root.left;
-	}
-};
-
-/**
- *
- * @constructor
- * @extends {TreeRB}
- */
-function IntervalTreeRB(){
-	TreeRB.call(this);
-}
-IntervalTreeRB.prototype = Object.create(TreeRB.prototype);
-IntervalTreeRB.prototype.constructor = IntervalTreeRB;
-IntervalTreeRB.prototype._init = function (x) {
-	this.nil = new IntervalTreeRBNode();
-	this.nil.left = this.nil.right = this.nil.parent = this.nil;
-	this.nil.key = this.nil.high = this.nil.maxHigh = -Number.MAX_VALUE;
-	this.nil.minLow = Number.MAX_VALUE;
-	this.nil.red = 0;
-	this.nil.storedValue = null;
-	
-	this.root = new IntervalTreeRBNode();
-	this.root.left = this.nil.right = this.nil.parent = this.nil;
-	this.root.key = this.root.high = this.root.maxHigh = Number.MAX_VALUE;
-	this.root.minLow = -Number.MAX_VALUE;
-	this.root.red = 0;
-	this.root.storedValue = null;
-};
-IntervalTreeRB.prototype._fixUpMaxHigh = function (x) {
-	while(x != this.root){
-		x.maxHigh = Math.max(x.high, Math.max(x.left.maxHigh, x.right.maxHigh));
-		x.minLow = Math.min(x.key, Math.min(x.left.minLow, x.right.minLow));
-		x = x.parent;
-	}
-};
-IntervalTreeRB.prototype._cleanMaxHigh = function (x) {
-	x.maxHigh = -Number.MAX_VALUE;
-	x.minLow = Number.MAX_VALUE;
-};
-IntervalTreeRB.prototype._overlap = function (a1, a2, b1, b2) {
-	if (a1 <= b1){
-		return ((b1 <= a2));
-	}
-	else{
-		return ((a1 <= b2));
-	}
-};
-IntervalTreeRB.prototype._enumerateRecursion = function (low, high, x, enumResultStack) {
-	if(x != this.nil){
-		if(this._overlap(low, high, x.minLow, x.maxHigh))
-		{
-			this._enumerateRecursion(low, high, x.left, enumResultStack);
-			if (this._overlap(low, high, x.key, x.high))
-				enumResultStack.push(x);
-			this._enumerateRecursion(low, high, x.right, enumResultStack);
-		}
-	}
-};
-IntervalTreeRB.prototype._leftRotate = function (x) {
-	var y = x.right;
-	TreeRB.prototype._leftRotate.call(this, x);
-
-	x.maxHigh = Math.max(x.left.maxHigh,Math.max(x.right.maxHigh,x.high));
-	x.minLow = Math.min(x.left.minLow,Math.min(x.right.minLow,x.key));
-	y.maxHigh = Math.max(x.maxHigh,Math.max(y.right.maxHigh,y.high));
-	y.minLow = Math.min(x.minLow,Math.min(y.right.minLow,y.key));
-};
-IntervalTreeRB.prototype._rightRotate = function (y) {
-	var x = y.left;
-	TreeRB.prototype._rightRotate.call(this, y);
-	
-	y.maxHigh = Math.max(y.left.maxHigh,Math.max(y.right.maxHigh,y.high));
-	y.minLow = Math.min(y.left.minLow,Math.min(y.right.minLow,y.key));
-	x.maxHigh = Math.max(x.left.maxHigh,Math.max(y.maxHigh,x.high));
-	x.minLow = Math.min(x.left.minLow,Math.min(y.minLow,y.key));
-};
 function RangeDataManagerElem(bbox, data)
 {
 	this.bbox = bbox;
@@ -4421,42 +4022,31 @@ function RangeDataManagerElem(bbox, data)
 }
 function RangeDataManager(fChange)
 {
-	this.oIntervalTreeRB = new IntervalTreeRB();
+	this.tree = new AscCommon.DataIntervalTree();
 	this.oDependenceManager = null;
 	this.fChange = fChange;
 }
 RangeDataManager.prototype = {
     add: function (bbox, data, oChangeParam)
 	{
-		var oNewNode = new IntervalTreeRBNode(bbox.r1, bbox.r2, null);
-		var oStoredNode = this.oIntervalTreeRB.insertOrGet(oNewNode);
-		if(oStoredNode == oNewNode)
-			oStoredNode.storedValue = [];
 		var oNewElem = new RangeDataManagerElem(new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2), data);
-		oStoredNode.storedValue.push(oNewElem);
+		this.tree.insert(bbox.r1, bbox.r2, oNewElem);
 		if(null != this.fChange)
 		    this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
 	},
 	get : function(bbox)
 	{
 		var oRes = {all: [], inner: [], outer: []};
-		var oNodes = this.oIntervalTreeRB.enumerate(bbox.r1, bbox.r2);
-		for(var i = 0, length = oNodes.length; i < length; i++)
-		{
-			var oNode = oNodes[i];
-			if(oNode.storedValue)
-			{
-				for(var j = 0, length2 = oNode.storedValue.length; j < length2; j++)
-				{
-					var elem = oNode.storedValue[j];
-					if(elem.bbox.isIntersect(bbox))
-					{
-						oRes.all.push(elem);
-						if(bbox.containsRange(elem.bbox))
-							oRes.inner.push(elem);
-						else
-							oRes.outer.push(elem);
-					}
+		var intervals = this.tree.searchNodes(bbox.r1, bbox.r2);
+		for(var i = 0; i < intervals.length; i++) {
+			var interval = intervals[i];
+			var elem = interval.data;
+			if (elem.bbox.isIntersect(bbox)) {
+				oRes.all.push(elem);
+				if (bbox.containsRange(elem.bbox)) {
+					oRes.inner.push(elem);
+				} else {
+					oRes.outer.push(elem);
 				}
 			}
 		}
@@ -4519,23 +4109,14 @@ RangeDataManager.prototype = {
 		if(null != elemToDelete)
 		{
 			var bbox = elemToDelete.bbox;
-			var oNodes = this.oIntervalTreeRB.enumerate(bbox.r1, bbox.r2);
-			for(var i = 0, length = oNodes.length; i < length; i++)
-			{
-				var oNode = oNodes[i];
-				if(oNode.storedValue)
+			var intervals = this.tree.searchNodes(bbox.r1, bbox.r2);
+			for(var i = 0; i < intervals.length; i++) {
+				var interval = intervals[i];
+				var elem = interval.data;
+				if(elem.bbox.isEqual(bbox))
 				{
-					for(var j = 0, length2 = oNode.storedValue.length; j < length2; j++)
-					{
-						var elem = oNode.storedValue[j];
-						if(elem.bbox.isEqual(bbox))
-						{
-							oNode.storedValue.splice(j, 1);
-							break;
-						}
-					}
-					if(0 == oNode.storedValue.length)
-						this.oIntervalTreeRB.deleteNode(oNode);
+					this.tree.remove(bbox.r1, bbox.r2, elem);
+					break;
 				}
 			}
 			if(null != this.fChange)
@@ -4545,8 +4126,7 @@ RangeDataManager.prototype = {
 	removeAll : function(oChangeParam)
 	{
 	    this.remove(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0), null, oChangeParam);
-		//todo
-		this.oIntervalTreeRB = new IntervalTreeRB();
+		this.tree = new AscCommon.DataIntervalTree();
 	},
 	shiftGet : function(bbox, bHor)
 	{
@@ -4581,7 +4161,7 @@ RangeDataManager.prototype = {
 	    var bHor = 0 != offset.col ? true : false;
 	    //сдвигаем inner
 	    if (elems.inner.length > 0) {
-	        var bboxAsc = Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
+	        var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
 	        for (var i = 0, length = elems.inner.length; i < length; i++) {
 	            var elem = elems.inner[i];
 	            var from = elem.bbox;
@@ -4679,21 +4259,13 @@ RangeDataManager.prototype = {
 	},
 	getAll : function()
 	{
-		var aRes = [];
-		var oNodes = this.oIntervalTreeRB.getNodeAll();
-		for(var i = 0, length = oNodes.length; i < length; i++)
-		{
-			var oNode = oNodes[i];
-			if(oNode.storedValue)
-			{
-				for(var j = 0, length2 = oNode.storedValue.length; j < length2; j++)
-				{
-					var elem = oNode.storedValue[j];
-					aRes.push(elem);
-				}
-			}
+		var res = [];
+		var intervals = this.tree.searchNodes(-Number.MAX_VALUE, Number.MAX_VALUE);
+		for(var i = 0; i < intervals.length; i++) {
+			var interval = intervals[i];
+			res.push(interval.data);
 		}
-		return aRes;
+		return res;
 	},
 	setDependenceManager : function(oDependenceManager)
 	{
@@ -5481,7 +5053,7 @@ RangeDataManager.prototype = {
 				this.buildDependencies();
 			}
 		}
-		this.Ref = Asc.Range(range.c1, range.r1, range.c2, range.r2);
+		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 		//event
 		this.handlers.trigger("changeRefTablePart", this);
 
@@ -5801,6 +5373,16 @@ RangeDataManager.prototype = {
 		return this.TotalsRowCount > 0;
 	};
 
+	TablePart.prototype.getTotalsRowRange = function () {
+		var res = null;
+
+		if(this.TotalsRowCount > 0) {
+			res = new Asc.Range(this.Ref.c1, this.Ref.r2, this.Ref.c2, this.Ref.r2);
+		}
+
+		return res;
+	};
+
 	TablePart.prototype.generateSortState = function () {
 		this.SortState = new AscCommonExcel.SortState();
 		this.SortState.SortConditions = [];
@@ -5877,7 +5459,7 @@ RangeDataManager.prototype = {
 			return;
 		}
 
-		this.Ref = Asc.Range(range.c1, range.r1, range.c2, range.r2);
+		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 
 		if (this.AutoFilter) {
 			this.AutoFilter.changeRefOnRange(range);
@@ -6361,7 +5943,7 @@ RangeDataManager.prototype = {
 		return this.TotalsRowFunction;
 	};
 	TableColumn.prototype.getTotalsRowLabel = function () {
-		return this.TotalsRowLabel ? this.TotalsRowFormula.TotalsRowLabel : null;
+		return this.TotalsRowLabel ? this.TotalsRowLabel : null;
 	};
 	TableColumn.prototype.setTotalsRowFormula = function (val, ws) {
 		this.cleanTotalsData();
@@ -6421,7 +6003,7 @@ RangeDataManager.prototype = {
 		}
 
 		if (null !== col) {
-			res = Asc.Range(col, startRow, col, endRow);
+			res = new Asc.Range(col, startRow, col, endRow);
 		}
 
 		return res;
@@ -7321,6 +6903,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 	{
 		var filterColor = this.dxf.fill.bg;
 		cell.getLeftTopCellNoEmpty(function(cell) {
+			var fontColor;
 			if(false === t.CellColor)//font color
 			{
 				var multiText;
@@ -7328,7 +6911,10 @@ ColorFilter.prototype.isHideValue = function(cell) {
 				{
 					for(var j = 0; j < multiText.length; j++)
 					{
-						var fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
+						fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
+						if(null === fontColor) {
+							fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+						}
 						if(isEqualColors(filterColor,fontColor ))
 						{
 							res = false;
@@ -7338,7 +6924,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 				}
 				else
 				{
-					var fontColor = cell && cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+					fontColor = cell && cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
 					if(isEqualColors(filterColor,fontColor))
 					{
 						res = false;
@@ -8482,17 +8068,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setPercent"]					= prot.asc_setPercent;
 	prot["asc_setTop"]						= prot.asc_setTop;
 	prot["asc_setVal"]						= prot.asc_setVal;
-
-	window["Asc"]["TreeRBNode"]			= window["Asc"].TreeRBNode = TreeRBNode;
-	window["Asc"]["TreeRB"]			= window["Asc"].TreeRB = TreeRB;
-	prot									= TreeRB.prototype;
-	prot["insertOrGet"]						= prot.insertOrGet;
-	prot["deleteNode"]			= prot.deleteNode;
-	prot["enumerate"]						= prot.enumerate;
-	prot["getElem"]			= prot.getElem;
-	prot["getNodeAll"]			= prot.getNodeAll;
-	prot["isEmpty"]			= prot.getNodeAll;
-
 
 	window["Asc"]["asc_CPageMargins"] = window["Asc"].asc_CPageMargins = asc_CPageMargins;
 	prot = asc_CPageMargins.prototype;

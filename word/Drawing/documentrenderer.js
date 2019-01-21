@@ -922,7 +922,9 @@ CDocMeta.prototype =
                         _cachedImage = this.GetCachedImage(_src);
                         if (null != _cachedImage)
                         {
-							g.drawImage2(_cachedImage, 0, 0, page.width_mm, page.height_mm);
+                            try {
+                                g.drawImage2(_cachedImage, 0, 0, page.width_mm, page.height_mm);
+                            } catch (err) {}
 							break;
                         }
                         else
@@ -933,7 +935,9 @@ CDocMeta.prototype =
 								obj.MetaDoc.SetCachedImage(_src, img);
 								if (1 != obj.BreakDrawing)
 								{
-									g.drawImage2(img, 0, 0, page.width_mm, page.height_mm);
+								    try {
+									    g.drawImage2(img, 0, 0, page.width_mm, page.height_mm);
+                                    } catch (err) {}
 								}
 
 								obj.MetaDoc.OnImageLoad(obj);
@@ -957,7 +961,9 @@ CDocMeta.prototype =
 						_cachedImage = this.GetCachedImage(_src);
 						if (null != _cachedImage)
 						{
-							g.drawImage2(_cachedImage, 0, 0, page.width_mm, page.height_mm);
+						    try {
+							    g.drawImage2(_cachedImage, 0, 0, page.width_mm, page.height_mm);
+                            } catch (err) {}
 							break;
 						}
 						else
@@ -968,7 +974,9 @@ CDocMeta.prototype =
 								obj.MetaDoc.SetCachedImage(_src, img);
 								if (1 != obj.BreakDrawing)
 								{
-									g.drawImage2(img, 0, 0, page.width_mm, page.height_mm);
+								    try {
+									    g.drawImage2(img, 0, 0, page.width_mm, page.height_mm);
+                                    } catch (err) {}
 								}
 
 								obj.MetaDoc.OnImageLoad(obj);
@@ -1020,7 +1028,9 @@ CDocMeta.prototype =
 								_ctx.setTransform(_tr.sx * _dX, _tr.shy * _dY, _tr.shx * _dX, _tr.sy * _dY, _tr.tx * _dX, _tr.ty * _dY);
 							}
 
-							g.drawImage2(_cachedImage,__x,__y,__w,__h);
+							try {
+							    g.drawImage2(_cachedImage,__x,__y,__w,__h);
+                            } catch (err) {}
 							//editor.WordControl.OnScroll();
 
 							if (_tr)
@@ -1049,7 +1059,9 @@ CDocMeta.prototype =
 									_ctx.setTransform(_tr.sx * _dX, _tr.shy * _dY, _tr.shx * _dX, _tr.sy * _dY, _tr.tx * _dX, _tr.ty * _dY);
 								}
 
-								g.drawImage2(img, __x, __y, __w, __h);
+								try {
+								    g.drawImage2(img, __x, __y, __w, __h);
+                                } catch (err) {}
 								//editor.WordControl.OnScroll();
 
 								if (_tr)

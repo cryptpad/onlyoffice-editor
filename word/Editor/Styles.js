@@ -51,13 +51,9 @@ var Default_Font         = "Arial";
 
 var highlight_None = -1;
 
-var vertalign_Koef_Size  =  0.65;  // Коэффициент изменения размера текста для верхнего и нижнего индексов
-var vertalign_Koef_Super =  0.35;  // Позиция верхнего индекса (относительно размера текста)
-var vertalign_Koef_Sub   = -0.141; // Позиция нижнего индекса (относительно размера текста)
-
 var smallcaps_Koef = 0.8; // Коэффициент изменения размера шрифта для малых прописных букв
 
-var smallcaps_and_script_koef = vertalign_Koef_Size * smallcaps_Koef; // суммарный коэффициент, когда текст одновременно и в индексе, и написан малыми прописными
+var smallcaps_and_script_koef = AscCommon.vaKSize * smallcaps_Koef; // суммарный коэффициент, когда текст одновременно и в индексе, и написан малыми прописными
 
 var g_dKoef_pt_to_mm = 25.4 / 72;
 var g_dKoef_pc_to_mm = g_dKoef_pt_to_mm / 12;
@@ -5468,19 +5464,12 @@ CTableMeasurement.prototype =
 
     Write_ToBinary : function(Writer)
     {
-        // Double : W
-        // Long   : Type
-        Writer.WriteDouble( this.W );
-        Writer.WriteLong( this.Type );
+    	this.WriteToBinary(Writer);
     },
 
     Read_FromBinary : function(Reader)
     {
-        // Double : W
-        // Long   : Type
-
-        this.W    = Reader.GetDouble();
-        this.Type = Reader.GetLong();
+    	return this.ReadFromBinary(Reader);
     },
 
     Set_FromObject : function(Obj)
@@ -5512,6 +5501,21 @@ CTableMeasurement.prototype.IsPercent = function()
 CTableMeasurement.prototype.GetValue = function()
 {
 	return this.W;
+};
+CTableMeasurement.prototype.ReadFromBinary = function(oReader)
+{
+	// Double : W
+	// Long   : Type
+
+	this.W    = oReader.GetDouble();
+	this.Type = oReader.GetLong();
+};
+CTableMeasurement.prototype.WriteToBinary = function(oWriter)
+{
+	// Double : W
+	// Long   : Type
+	oWriter.WriteDouble(this.W);
+	oWriter.WriteLong(this.Type);
 };
 
 function CTablePr()
@@ -7382,6 +7386,7 @@ function CTextPr()
 
     this.TextOutline = undefined;
     this.TextFill    = undefined;
+	this.HighlightColor = undefined;
 }
 
 CTextPr.prototype =
@@ -7417,6 +7422,7 @@ CTextPr.prototype =
         this.Vanish     = undefined;
         this.TextOutline = undefined;
         this.TextFill    = undefined;
+		this.HighlightColor = undefined;
         this.AscFill    = undefined;
         this.AscUnifill = undefined;
         this.AscLine    = undefined;
@@ -7481,6 +7487,10 @@ CTextPr.prototype =
         {
             TextPr.TextFill = this.TextFill.createDuplicate();
         }
+        if(undefined !== this.HighlightColor)
+		{
+			TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+		}
 
         return TextPr;
     },
@@ -7599,6 +7609,10 @@ CTextPr.prototype =
         {
             this.TextFill = TextPr.TextFill.createDuplicate();
         }
+        if(undefined !== TextPr.HighlightColor)
+		{
+			this.HighlightColor = TextPr.HighlightColor.createDuplicate();
+		}
     },
 
     Init_Default : function()
@@ -7636,6 +7650,7 @@ CTextPr.prototype =
 
         this.TextOutline = undefined;
         this.TextFill    = undefined;
+		this.HighlightColor = undefined;
     },
 
     Set_FromObject : function(TextPr, isUndefinedToNull)
@@ -7708,6 +7723,7 @@ CTextPr.prototype =
 		this.Unifill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.Unifill);
 		this.FontRef     = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontRef);
 		this.TextFill    = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextFill);
+		this.HighlightColor = CheckUndefinedToNull(isUndefinedToNull, TextPr.HighlightColor);
 		this.TextOutline = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextOutline);
 		this.AscFill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscFill);
 		this.AscUnifill  = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscUnifill);
@@ -7865,6 +7881,15 @@ CTextPr.prototype =
             this.TextFill = AscFormat.CompareUniFill(this.TextFill, TextPr.TextFill);
             if(null === this.TextFill){
                 this.TextFill = undefined;
+            }
+        }
+
+        if(undefined !== this.HighlightColor &&  !this.HighlightColor.IsIdentical(TextPr.HighlightColor))
+        {
+            this.HighlightColor = this.HighlightColor.compare(TextPr.HighlightColor);
+            if(null === this.HighlightColor)
+            {
+                this.HighlightColor = undefined;
             }
         }
 
@@ -8078,6 +8103,11 @@ CTextPr.prototype =
             this.ReviewInfo.Write_ToBinary(Writer);
             Flags |= 536870912;
         }
+        if (undefined != this.HighlightColor)
+        {
+			this.HighlightColor.Write_ToBinary(Writer);
+            Flags |= 1073741824;
+        }
 
         var EndPos = Writer.GetCurPosition();
         Writer.Seek( StartPos );
@@ -8238,6 +8268,12 @@ CTextPr.prototype =
             this.PrChange.Read_FromBinary(Reader);
             this.ReviewInfo.Read_FromBinary(Reader);
         }
+
+		if (Flags & 1073741824)
+		{
+			this.HighlightColor = new AscFormat.CUniColor();
+			this.HighlightColor.Read_FromBinary(Reader);
+		}
     },
 
     Check_NeedRecalc : function()
@@ -8317,7 +8353,7 @@ CTextPr.prototype =
             case AscCommon.vertalign_SubScript:
             case AscCommon.vertalign_SuperScript:
             {
-                dFontKoef = vertalign_Koef_Size;
+                dFontKoef = AscCommon.vaKSize;
                 break;
             }
         }
@@ -8515,6 +8551,9 @@ CTextPr.prototype =
         if ((undefined === this.TextFill && undefined !== TextPr.TextFill) || (undefined !== this.TextFill && (undefined === TextPr.TextFill || true !== this.TextFill.IsIdentical(TextPr.TextFill))))
             return false;
 
+        if ((undefined === this.HighlightColor && undefined !== TextPr.HighlightColor) || (undefined !== this.HighlightColor && (undefined === TextPr.HighlightColor || true !== this.HighlightColor.IsIdentical(TextPr.HighlightColor))))
+            return false;
+
         if (this.Vanish !== TextPr.Vanish)
             return false;
 
@@ -8651,6 +8690,9 @@ CTextPr.prototype =
         if (undefined !== this.TextFill && (undefined === PrChange.TextFill || true !== this.TextFill.IsIdentical(PrChange.TextFill)))
             TextPr.TextFill = this.TextFill.createDuplicate();
 
+        if (undefined !== this.HighlightColor && (undefined === PrChange.HighlightColor || true !== this.HighlightColor.IsIdentical(PrChange.HighlightColor)))
+            TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+
         if (this.Vanish !== PrChange.Vanish)
             TextPr.Vanish = this.Vanish;
 
@@ -8775,7 +8817,8 @@ CTextPr.prototype.Is_Empty = function()
 		|| undefined !== this.Shd
 		|| undefined !== this.Vanish
 		|| undefined !== this.TextOutline
-		|| undefined !== this.TextFill)
+		|| undefined !== this.TextFill
+		|| undefined !== this.HighlightColor)
 		return false;
 
 	return true;

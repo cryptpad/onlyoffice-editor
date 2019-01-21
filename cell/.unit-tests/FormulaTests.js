@@ -4327,6 +4327,63 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 9 );
 
+		oParser = new parserFormula( "SUMPRODUCT({1,2,3,3,TRUE})+SUMPRODUCT({1,2,3,3,TRUE})", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT({1,2,3,3,TRUE})+SUMPRODUCT({1,2,3,3,TRUE})" );
+		strictEqual( oParser.calculate().getValue(), 18 );
+
+		oParser = new parserFormula( "SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE})", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE})" );
+		strictEqual( oParser.calculate().getValue(), 81 );
+
+		oParser = new parserFormula( "SUMPRODUCT(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}))" );
+		strictEqual( oParser.calculate().getValue(), 81 );
+
+		oParser = new parserFormula( "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}))" );
+		strictEqual( oParser.calculate().getValue(), 81 );
+
+		oParser = new parserFormula( "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}),1,2,3)", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}),1,2,3)" );
+		strictEqual( oParser.calculate().getValue(), 87 );
+
+		oParser = new parserFormula( "SUM(SUMPRODUCT(N44:O47))+SUM(SUMPRODUCT(N44:O47))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUM(SUMPRODUCT(N44:O47))+SUM(SUMPRODUCT(N44:O47))" );
+		strictEqual( oParser.calculate().getValue(), 72 );
+
+		oParser = new parserFormula( "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}),SUMPRODUCT({1,2,3,3,TRUE}),2,SUMPRODUCT({1,2,3,3}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUM(SUMPRODUCT({1,2,3,3,TRUE})*SUMPRODUCT({1,2,3,3,TRUE}),SUMPRODUCT({1,2,3,3,TRUE}),2,SUMPRODUCT({1,2,3,3}))" );
+		strictEqual( oParser.calculate().getValue(), 101 );
+
+		ws.getRange2( "A101" ).setValue( "5" );
+		ws.getRange2( "A102" ).setValue( "6" );
+		ws.getRange2( "A103" ).setValue( "7" );
+		ws.getRange2( "A104" ).setValue( "8" );
+		ws.getRange2( "A105" ).setValue( "9" );
+
+		ws.getRange2( "B101" ).setValue( "1" );
+		ws.getRange2( "B102" ).setValue( "1" );
+		ws.getRange2( "B103" ).setValue( "0" );
+		ws.getRange2( "B104" ).setValue( "1" );
+		ws.getRange2( "B105" ).setValue( "1" );
+
+		oParser = new parserFormula( "SUMPRODUCT((A101:A105)*((B101:B105)=1))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT((A101:A105)*((B101:B105)=1))" );
+		strictEqual( oParser.calculate().getValue(), 28 );
+
+		oParser = new parserFormula( "SUMPRODUCT((A101:A105)*((B101:B105)=1))+SUMPRODUCT((A101:A104)*((B101:B104)=1))+SUMPRODUCT((A101:A103)*((B101:B103)=1))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT((A101:A105)*((B101:B105)=1))+SUMPRODUCT((A101:A104)*((B101:B104)=1))+SUMPRODUCT((A101:A103)*((B101:B103)=1))" );
+		strictEqual( oParser.calculate().getValue(), 58 );
+
 		testArrayFormula2("SUMPRODUCT", 1, 8, null, true);
     } );
 
@@ -5629,6 +5686,7 @@ $( function () {
 		ws.getRange2( "CC5" ).setValue( "=true" );
 		ws.getRange2( "CC6" ).setValue( "=true()" );
 		ws.getRange2( "CC7" ).setValue( "'true'" );
+		ws.getRange2( "CC8" ).setValue( "" );
 
 		oParser = new parserFormula( "COUNTIF(CC1:CC7, TRUE())", "C2", ws );
 		ok( oParser.parse() );
@@ -5674,6 +5732,26 @@ $( function () {
 		oParser = new parserFormula( "COUNTIF(#REF!, 1)", "C2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\">=1\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\"=1\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\"<1\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\">1\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\"=\"&CC8)", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
 
 		wb.dependencyFormulas.lockRecal();
 
@@ -6464,6 +6542,57 @@ $( function () {
 		strictEqual( oParser.calculate().getValue() - 0, 0.5);
 
 		testArrayFormula2("HYPGEOM.DIST", 5, 5);
+	} );
+
+	test( "Test: \"HYPLINK\"", function () {
+
+		ws.getRange2( "D101" ).setValue( "" );
+		ws.getRange2( "D102" ).setValue( "123" );
+
+		oParser = new parserFormula( 'HYPERLINK("http://example.microsoft.com/report/budget report.xlsx", "Click for report")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Click for report" );
+		strictEqual( oParser.value.hyperlink, "http://example.microsoft.com/report/budget report.xlsx" );
+
+		oParser = new parserFormula( 'HYPERLINK("[http://example.microsoft.com/report/budget report.xlsx]Annual!F10", D1)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue() - 0, 0 );
+		strictEqual( oParser.value.hyperlink, "[http://example.microsoft.com/report/budget report.xlsx]Annual!F10" );
+
+		oParser = new parserFormula( 'HYPERLINK("http://example.microsoft.com/Annual Report.docx]QrtlyProfits", "Quarterly Profit Report")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "Quarterly Profit Report" );
+		strictEqual( oParser.value.hyperlink, 'http://example.microsoft.com/Annual Report.docx]QrtlyProfits' );
+
+		oParser = new parserFormula( 'HYPERLINK("\\FINANCE\Statements\1stqtr.xlsx",D101)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue() - 0, 0 );
+		strictEqual( oParser.value.hyperlink, '\\FINANCE\Statements\1stqtr.xlsx' );
+
+		oParser = new parserFormula( 'HYPERLINK("http://test.com")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "http://test.com" );
+		strictEqual( oParser.value.hyperlink, "http://test.com" );
+
+		oParser = new parserFormula( 'HYPERLINK(D101,111)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 111 );
+		strictEqual( oParser.value.hyperlink - 0, 0 );
+
+		oParser = new parserFormula( 'HYPERLINK(D102,111)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 111 );
+		strictEqual( oParser.value.hyperlink, "123" );
+
+		oParser = new parserFormula( 'HYPERLINK(D102)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123" );
+		strictEqual( oParser.value.hyperlink - 0, 123 );
+
+		oParser = new parserFormula( 'HYPERLINK(D101,TRUE)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+		strictEqual( oParser.value.hyperlink - 0, 0 );
 	} );
 
 	test( "Test: \"HOUR\"", function () {
@@ -12044,342 +12173,3 @@ $( function () {
 
 	wb.dependencyFormulas.unlockRecal();
 } );
-
-
-	//temporary code. for generate tests files. delete after.
-	/*
-	 Function ColumnLetter(ColumnNumber As Long) As String
-	 Dim n As Long
-	 Dim c As Byte
-	 Dim s As String
-
-	 n = ColumnNumber
-	 Do
-	 c = ((n - 1) Mod 26)
-	 s = Chr(c + 65) & s
-	 n = (n - c) \ 26
-	 Loop While n > 0
-	 ColumnLetter = s
-	 End Function
-
-	 Private Sub CommandButton1_Click()
-	 Application.DisplayAlerts = False
-
-	 Dim min As Integer
-	 Dim max As Integer
-	 Dim func As String
-
-
-	 func = "ACCRINTM"
-	 min = 4
-	 max = 5
-
-
-	 Set NewBook = Workbooks.Add
-	 Do
-	 FName = "C:\Users\Igor.Zotov\Documents\FORMULAARRAYFILES\" + func + ".xlsx"
-
-
-
-	 ActiveSheet.Range("A1") = 1
-	 ActiveSheet.Range("A2") = 2
-
-	 ActiveSheet.Range("B1") = 3.123
-	 ActiveSheet.Range("B2") = 4
-
-	 ActiveSheet.Range("C1") = -4
-	 ActiveSheet.Range("C2") = 5
-
-
-
-
-
-	 Dim columnNameStart As String
-	 Dim columnNameEnd As String
-
-	 Dim rowNameStart As String
-	 Dim rowNameEnd As String
-
-
-
-	 Dim myarray As Variant
-	 Dim subarray1 As Variant
-	 subarray1 = Array("(A1:C2)", "({1,2,3})", "(2)", "(A1:B1)", "(A1:C2)", "(A1)")
-
-	 Dim subarray2 As Variant
-	 subarray2 = Array("(A1:C2, A1:B1)", "({1,2,-3}, 3)", "({1,2,-3},{1,3})", "(A1:B1,A1:C2)", "(A1:C2, A1:A1)", "(A1:C2, B1:C2)")
-
-	 Dim subarray3 As Variant
-	 subarray3 = Array("(A1:C2,A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:A1)", "(A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2)", "(A1:C2,A1:C2,A1:A2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1)", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3})")
-
-	 Dim subarray4 As Variant
-	 subarray4 = Array("(A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1)", "(A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},1)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3})")
-
-	 Dim subarray5 As Variant
-	 subarray5 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2, A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2, A1:A1)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3})")
-
-	 myarray = Array(subarray1, subarray2, subarray3, subarray4, subarray5)
-
-
-
-	 For I = min To max Step 1
-
-	 columnNameStart = ColumnLetter(5 + (I - min) * (4 + 1))
-	 columnNameEnd = ColumnLetter(5 + (I - min) * (4 + 1) + 3)
-
-	 Dim J As Integer
-	 For J = LBound(myarray(I - 1)) To UBound(myarray(I - 1)) Step 1
-
-	 rowNameStart = CStr(6 + 5 * J)
-	 rowNameEnd = CStr(8 + 5 * J)
-	 ActiveSheet.Range(columnNameStart + rowNameStart + ":" + columnNameEnd + rowNameEnd).Select
-	 Selection.FormulaArray = "=" + func + myarray(I - 1)(J)
-
-	 Next J
-
-	 Next I
-
-
-	 Loop Until FName <> False
-	 NewBook.SaveAs Filename:=FName
-
-	 'ActiveWorkbook.SaveAs Filename:="C:\Test1.xlsx"
-
-
-
-	 'Step 5 Save the newly created workbook
-	 'ActiveWorkbook.SaveAs _
-	 'Filename:="D:" + func + ".xlsx"
-	 'Step 6 Turn application alerts back on
-	 Application.DisplayAlerts = True
-	 End Sub
-	*/
-
-
-	//temporary code. for generate tests files. delete after.
-	// Function ColumnLetter(ColumnNumber As Long) As String
-	// Dim N As Long
-	// Dim c As Byte
-	// Dim s As String
-	//
-	// N = ColumnNumber
-	// Do
-	// c = ((N - 1) Mod 26)
-	// s = Chr(c + 65) & s
-	// N = (N - c) \ 26
-	// Loop While N > 0
-	// ColumnLetter = s
-	// End Function
-	//
-	//
-	// Sub Macro1()
-	//
-	//
-	//
-	// Application.DisplayAlerts = False
-	//
-	// Dim min As Integer
-	// Dim max As Integer
-	// Dim func As String
-	// Dim bOnlyArea As Integer
-	//
-	//
-	// func = "COLUMN"
-	// min = 0
-	// max = 1
-	// bOnlyArea = 1
-	//
-	//
-	//
-	// Set NewBook = Workbooks.Add
-	// Do
-	// FName = "C:\Users\Igor.Zotov\Documents\FORMULAARRAYFILES\" + func + ".xlsx"
-	//
-	//
-	//
-	// ActiveSheet.Range("A1") = 1
-	// ActiveSheet.Range("A2") = 2
-	//
-	// ActiveSheet.Range("B1") = 3.123
-	// ActiveSheet.Range("B2") = 4
-	//
-	// ActiveSheet.Range("C1") = -4
-	// ActiveSheet.Range("C2") = 5
-	//
-	//
-	//
-	//
-	//
-	// Dim columnNameStart As String
-	// Dim columnNameEnd As String
-	// Dim columnNameEnd1 As String
-	//
-	// Dim rowNameStart As String
-	// Dim rowNameEnd As String
-	// Dim rowNameStart1 As String
-	//
-	//
-	// Dim myarray As Variant
-	// Dim subarray1 As Variant
-	// Dim subarray2 As Variant
-	// Dim subarray3 As Variant
-	// Dim subarray4 As Variant
-	// Dim subarray5 As Variant
-	// Dim subarray6 As Variant
-	// Dim subarray7 As Variant
-	// Dim subarray8 As Variant
-	// Dim subarray9 As Variant
-	// If bOnlyArea = 0 Then
-	// subarray1 = Array("(A1:C2)", "({1,2,3})", "(2)", "(A1:B1)", "(A1:C2)", "(A1)")
-	//
-	//
-	// subarray2 = Array("(A1:C2, A1:B1)", "({1,2,-3}, 3)", "({1,2,-3},{1,3})", "(A1:B1,A1:C2)", "(A1:C2, A1:A1)", "(A1:C2, B1:C2)")
-	//
-	//
-	// subarray3 = Array("(A1:C2,A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:A1)", "(A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2)", "(A1:C2,A1:C2,A1:A2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1)", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3})")
-	//
-	//
-	// subarray4 = Array("(A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1)", "(A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},1)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3})")
-	//
-	//
-	// subarray5 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2, A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2, A1:A1)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3})")
-	//
-	//
-	// subarray6 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2, A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:A1)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:A2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})")
-	//
-	//
-	// subarray7 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2, A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:A1,A1:C2)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:A2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})")
-	//
-	//
-	// subarray8 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:A2,A1:C2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})")
-	//
-	//
-	// subarray9 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})")
-	//
-	// myarray = Array(subarray1, subarray2, subarray3, subarray4, subarray5, subarray6, subarray7, subarray8, subarray9)
-	// Else
-	//
-	// subarray1 = Array("(A1:C2)", "(A1:B1)", "(A1)")
-	//
-	//
-	// subarray2 = Array("(A1:C2, A1:B1)", "(A1:B1,A1:C2)", "(A1:C2, A1:A1)", "(A1:C2, B1:C2)")
-	//
-	//
-	// subarray3 = Array("(A1:C2,A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:A1)", "(A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2)", "(A1:C2,A1:C2,A1:A2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1)", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3})")
-	//
-	//
-	// subarray4 = Array("(A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1)", "(A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},1)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3})")
-	//
-	//
-	// subarray5 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2, A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2, A1:A1)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4})", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3},{1,2,3})")
-	//
-	//
-	// subarray6 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2, A1:A1,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:A1)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:A2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})")
-	//
-	//
-	// subarray7 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)", "(A1:A1,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2, A1:A1,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:A1,A1:C2)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:A2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})")
-	//
-	//
-	// subarray8 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:A2,A1:C2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "(1,{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})")
-	//
-	//
-	// subarray9 = Array("(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A1,A1:C2,A1:C2, A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:A1,A1:C2,A1:C2,A1:C2)", "(A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2,A1:C2)", "(A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:A2,A1:C2,A1:C2,A1:C2)", "({1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4}, {1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},1,{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})", "({1,2,3;2,3,4},{1,2,3;2,3,4},1,{1,2,3;2,3,4}, {1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4},{1,2,3;2,3,4})")
-	//
-	// myarray = Array(subarray1, subarray2, subarray3, subarray4, subarray5, subarray6, subarray7, subarray8, subarray9)
-	// End If
-	//
-	//
-	// Dim test As String
-	// Dim startRow As Integer
-	//
-	// For I = min To max Step 1
-	//
-	// columnNameStart = ColumnLetter(5 + (I - min) * (4 + 1))
-	// columnNameEnd = ColumnLetter(5 + (I - min) * (4 + 1) + 3)
-	// columnNameEnd1 = ColumnLetter(5 + (I - min) * (4 + 1) + 3 + 1)
-	//
-	// If I = 0 Then
-	// rowNameStart = CStr(6 + 5 * 0)
-	// rowNameEnd = CStr(8 + 5 * 0)
-	// rowNameStart1 = CStr(6 + 5 * 0 + 1)
-	// ActiveSheet.Range(columnNameStart + rowNameStart + ":" + columnNameEnd + rowNameEnd).Select
-	// Selection.FormulaArray = "=" + func + "()"
-	//
-	// ActiveSheet.Range(columnNameEnd1 + rowNameStart) = "" + func + "()"
-	// ActiveSheet.Range(columnNameEnd1 + rowNameStart1) = "TEST"
-	//
-	// test = ""
-	// For Each rCell In Selection
-	// If test = "" Then
-	// startRow = rCell.Row
-	// test = ""
-	// Else
-	// If startRow = rCell.Row Then
-	// test = test + ","
-	// Else
-	// test = test + ";"
-	// startRow = rCell.Row
-	// End If
-	// End If
-	// test = test + rCell.Text
-	// Next rCell
-	// ActiveSheet.Range(columnNameEnd1 + rowNameStart1) = test
-	//
-	// Else
-	// Dim J As Integer
-	// For J = LBound(myarray(I - 1)) To UBound(myarray(I - 1)) Step 1
-	//
-	// rowNameStart = CStr(6 + 5 * J)
-	// rowNameEnd = CStr(8 + 5 * J)
-	// rowNameStart1 = CStr(6 + 5 * J + 1)
-	// ActiveSheet.Range(columnNameStart + rowNameStart + ":" + columnNameEnd + rowNameEnd).Select
-	// Selection.FormulaArray = "=" + func + myarray(I - 1)(J)
-	//
-	// ActiveSheet.Range(columnNameEnd1 + rowNameStart) = "" + func + myarray(I - 1)(J)
-	//
-	//
-	// test = ""
-	//
-	// For Each rCell In Selection
-	// If test = "" Then
-	// startRow = rCell.Row
-	// test = ""
-	// Else
-	// If startRow = rCell.Row Then
-	// test = test + ","
-	// Else
-	// test = test + ";"
-	// startRow = rCell.Row
-	// End If
-	// End If
-	// test = test + rCell.Text
-	// Next rCell
-	// ActiveSheet.Range(columnNameEnd1 + rowNameStart1) = test
-	//
-	// '                     Dim N As Integer
-	// '                         For N = LBound(Selection.Value) To UBound(Selection.Value) Step 1
-	// '
-	// '                            Dim M As Integer
-	// '                                For M = LBound(Selection(N).Value) To UBound(Selection(N).Value) Step 1
-	// '
-	// '                                    ActiveSheet.Range(columnNameEnd1 + rowNameStart1) = Selection(N)(M)
-	// '
-	// '                                Next M
-	// '
-	// '                         Next N
-	//
-	// Next J
-	// End If
-	//
-	// Next I
-	//
-	//
-	//
-	//
-	//
-	// Loop Until FName <> False
-	// NewBook.SaveAs Filename:=FName
-	// Application.DisplayAlerts = True
-	//
-	//
-	// End Sub

@@ -2648,7 +2648,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 	{
 		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties, null, true))
 		{
-			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveInlineTable);
+			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveFlowTable);
 
 			// Переносим привязку (если получается, что заносим таблицу саму в себя, тогда привязку не меняем)
 			var NewDocContent = NearestPos.Paragraph.Parent;
@@ -2748,6 +2748,31 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 
 			editor.WordControl.m_oLogicDocument.Recalculate();
 			oTargetTable.Start_TrackTable();
+
+			// Если так случилось, что после пересчета позиции не пересчитались, тогда нам нужно оставить привязку к
+			// странице, чтобы таблица правильна расположилась. Такое происходит, если перемещать таблицу больше,
+			// чем на 3 страницы и до пересчета успевает пройти сохранение.
+			if (undefined !== oTargetTable.PositionH_Old)
+			{
+				// Восстанови старые значения, чтобы в историю изменений все нормально записалось
+				oTargetTable.PositionH.RelativeFrom = oTargetTable.PositionH_Old.RelativeFrom;
+				oTargetTable.PositionH.Align        = oTargetTable.PositionH_Old.Align;
+				oTargetTable.PositionH.Value        = oTargetTable.PositionH_Old.Value;
+
+				oTargetTable.Set_PositionH(c_oAscHAnchor.Page, false, X);
+				oTargetTable.PositionH_Old = undefined;
+			}
+
+			if (undefined !== oTargetTable.PositionV_Old)
+			{
+				// Восстанови старые значения, чтобы в историю изменений все нормально записалось
+				oTargetTable.PositionV.RelativeFrom = oTargetTable.PositionV_Old.RelativeFrom;
+				oTargetTable.PositionV.Align        = oTargetTable.PositionV_Old.Align;
+				oTargetTable.PositionV.Value        = oTargetTable.PositionV_Old.Value;
+
+				oTargetTable.Set_PositionV(c_oAscVAnchor.Page, false, Y);
+				oTargetTable.PositionV_Old = undefined;
+			}
 		}
 	}
 	else
@@ -2760,7 +2785,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 				Y       : Y
 			}, true))
 		{
-			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveFlowTable);
+			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveInlineTable);
 
 			var NewDocContent = NearestPos.Paragraph.Parent;
 			var OldDocContent = this.Parent;
@@ -3244,7 +3269,7 @@ CTable.prototype.IsStartFromNewPage = function()
 };
 CTable.prototype.IsContentOnFirstPage = function()
 {
-	if (this.Pages.length >= 1 && true === this.RowsInfo[0].FirstPage)
+	if (this.Pages.length >= 1 && true === this.RowsInfo[0].FirstPage && this.Pages[0].LastRow >= this.Pages[0].FirstRow)
 		return true;
 
 	return false;
@@ -4448,12 +4473,22 @@ CTable.prototype.GetSelectionBounds = function()
 		var Cells_array = this.Internal_Get_SelectionArray();
 
 		var StartPos = Cells_array[0];
+		var EndPos   = Cells_array[Cells_array.length - 1];
 
 		var Row  = this.Content[StartPos.Row];
 		var Cell = Row.Get_Cell(StartPos.Cell);
 
 		var X0 = Cell.Metrics.X_cell_start;
 		var X1 = Cell.Metrics.X_cell_end;
+
+		if (!this.RowsInfo[StartPos.Row] || !this.RowsInfo[EndPos.Row] || !this.Pages[this.RowsInfo[StartPos.Row].StartPage])
+		{
+			return {
+				Start     : {X : 0, Y : 0, W : 0, H : 0, Page : 0},
+				End       : {X : 0, Y : 0, W : 0, H : 0, Page : 0},
+				Direction : 1
+			};
+		}
 
 		var CurPage = this.RowsInfo[StartPos.Row].StartPage;
 
@@ -4464,7 +4499,6 @@ CTable.prototype.GetSelectionBounds = function()
 
 		var BeginRect = {X : TableX + X0, Y : Y, W : X1 - X0, H : H, Page : CurPage + this.Get_StartPage_Absolute()};
 
-		var EndPos = Cells_array[Cells_array.length - 1];
 
 		Row  = this.Content[EndPos.Row];
 		Cell = Row.Get_Cell(EndPos.Cell);
@@ -9242,14 +9276,15 @@ CTable.prototype.SplitTableCells = function(Rows, Cols)
 /**
  * Добавление строки.
  * @param bBefore - true - до(сверху) первой выделенной строки, false - после(снизу) последней выделенной строки.
+ * @param {boolean} [isCheckInnerTable=true] Выполнять ли данную функцию для внутренней таблицы
  */
-CTable.prototype.AddTableRow = function(bBefore)
+CTable.prototype.AddTableRow = function(bBefore, isCheckInnerTable)
 {
 	if ("undefined" === typeof(bBefore))
 		bBefore = true;
 
 	var bApplyToInnerTable = false;
-	if (false === this.Selection.Use || ( true === this.Selection.Use && table_Selection_Text === this.Selection.Type ))
+	if (false !== isCheckInnerTable && (false === this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type)))
 		bApplyToInnerTable = this.CurCell.Content.AddTableRow(bBefore);
 
 	if (true === bApplyToInnerTable)
@@ -9381,6 +9416,16 @@ CTable.prototype.AddTableRow = function(bBefore)
 	this.Selection.Type = table_Selection_Cell;
 
 	var StartRow = ( true === bBefore ? RowId : RowId + 1 );
+
+	this.Selection.StartPos.Pos = {
+		Row  : StartRow,
+		Cell : 0
+	};
+	this.Selection.EndPos.Pos = {
+		Row  : StartRow + Count - 1,
+		Cell : this.Content[StartRow + Count - 1].GetCellsCount() - 1
+	};
+
 	for (var Index = 0; Index < Count; Index++)
 	{
 		var Row        = this.Content[StartRow + Index];
@@ -13053,7 +13098,7 @@ CTable.prototype.InsertTableContent = function(_nCellIndex, _nRowIndex, oTable)
 	{
 		this.RemoveSelection();
 		this.CurCell = this.GetRow(this.GetRowsCount() - 1).GetCell(0);
-		this.AddTableRow(false);
+		this.AddTableRow(false, false);
 		nAddRows--;
 
 		this.private_RecalculateGridCols();

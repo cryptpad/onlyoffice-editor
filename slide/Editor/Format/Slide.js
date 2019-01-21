@@ -317,6 +317,18 @@ Slide.prototype =
     },
 
 
+    handleAllContents: function(fCallback){
+        var sp_tree = this.cSld.spTree;
+        for(var i = 0; i < sp_tree.length; ++i){
+            if (sp_tree[i].handleAllContents){
+                sp_tree[i].handleAllContents(fCallback);
+            }
+        }
+        if(this.notesShape){
+            this.notesShape.handleAllContents(fCallback);
+        }
+    },
+
     Search: function( Str, Props, Engine, Type ){
         var sp_tree = this.cSld.spTree;
         for(var i = 0; i < sp_tree.length; ++i){

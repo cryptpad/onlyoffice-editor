@@ -116,6 +116,13 @@ function CGroupShape()
                 this.spTree[i].documentGetAllFontNames(allFonts);
         }
     };
+    CGroupShape.prototype.handleAllContents = function(fCallback)
+    {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+                this.spTree[i].handleAllContents(fCallback);
+        }
+    };
     CGroupShape.prototype.getAllDocContents = function(aDocContents)
     {
         for(var i = 0; i < this.spTree.length; ++i)
@@ -423,11 +430,22 @@ function CGroupShape()
         if(this.checkNeedRecalculate && this.checkNeedRecalculate()){
             return;
         }
+        var oClipRect;
+        if(!graphics.IsSlideBoundsCheckerType){
+            oClipRect = this.getClipRect();
+        }
+        if(oClipRect){
+            graphics.SaveGrState();
+            graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+        }
         for(var i = 0; i < this.spTree.length; ++i)
             this.spTree[i].draw(graphics);
 
 
         this.drawLocks(this.transform, graphics);
+        if(oClipRect){
+            graphics.RestoreGrState();
+        }
         graphics.reset();
         graphics.SetIntegerGrid(true);
     };

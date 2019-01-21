@@ -2533,6 +2533,10 @@ ParaMath.prototype.SetRecalcCtrPrp = function(Class)
 };
 ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx, _heightPx, raster_koef)
 {
+    if(window['IS_NATIVE_EDITOR'])
+    {
+        return null;
+    }
     var bTurnOnId = false;
     if (false === g_oTableId.m_bTurnOff)
     {
@@ -2547,6 +2551,10 @@ ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx
 
     var oApi = Asc['editor'] || editor;
     if(!oApi || !oApi.textArtPreviewManager){
+
+        History.TurnOn();
+        if (true === bTurnOnId)
+            g_oTableId.m_bTurnOff = false;
         return null;
     }
     var oShape = oApi.textArtPreviewManager.getShape();

@@ -828,7 +828,7 @@ ParaDrawing.prototype.Set_Props = function(Props)
 
 	if (this.SizeRelV && !this.SizeRelH)
 	{
-		this.SetSizeRelH({RelativeFrom : AscCommon.c_oAscSizeRelFromH.sizerelfromhPage, Percent : 0})
+		this.SetSizeRelH({RelativeFrom : AscCommon.c_oAscSizeRelFromH.sizerelfromhPage, Percent : 0});
 	}
 
 	if (bCheckWrapPolygon)
@@ -1237,6 +1237,27 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 	this.updatePosition3(this.PageNum, this.X, this.Y, OldPageNum);
 	this.useWrap = this.Use_TextWrap();
 };
+
+ParaDrawing.prototype.GetClipRect = function ()
+{
+	if (this.Is_Inline() || this.Use_TextWrap())
+	{
+		var oCell;
+		if (this.DocumentContent && (oCell = this.DocumentContent.IsTableCellContent(true)))
+		{
+			var arrPages = oCell.GetCurPageByAbsolutePage(this.PageNum);
+			for (var nIndex = 0, nCount = arrPages.length; nIndex < nCount; ++nIndex)
+			{
+				var oPageBounds = oCell.GetPageBounds(arrPages[nIndex]);
+				if(this.GraphicObj.bounds.isIntersect(oPageBounds.Left, oPageBounds.Top, oPageBounds.Right, oPageBounds.Bottom))
+				{
+					return new AscFormat.CGraphicBounds(oPageBounds.Left, oPageBounds.Top, oPageBounds.Right, oPageBounds.Bottom);
+				}
+			}
+		}
+	}
+	return null;
+};
 ParaDrawing.prototype.Update_PositionYHeaderFooter = function(TopMarginY, BottomMarginY)
 {
 	this.Internal_Position.Update_PositionYHeaderFooter(TopMarginY, BottomMarginY);
@@ -1268,7 +1289,7 @@ ParaDrawing.prototype.GetPosCorrection = function()
 	var bCell;
 
 	var oEffectExtent = this.EffectExtent;
-	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent .IsTableCellContent(false))))
+	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent.IsTableCellContent(false))))
 	{
 		var extX, extY, rot;
 		if (this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm )

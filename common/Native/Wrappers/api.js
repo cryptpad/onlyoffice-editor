@@ -1078,6 +1078,16 @@ function asc_menu_WriteParaFrame(_type, _frame, _stream)
     _stream["WriteByte"](255);
 }
 
+function asc_menu_WriteMath(oMath, s){
+    s["WriteLong"](oMath.Type);
+    s["WriteLong"](oMath.Action);
+    s["WriteBool"](oMath.CanIncreaseArgumentSize);
+    s["WriteBool"](oMath.CanDecreaseArgumentSize);
+    s["WriteBool"](oMath.CanInsertForcedBreak);
+    s["WriteBool"](oMath.CanDeleteForcedBreak);
+    s["WriteBool"](oMath.CanAlignToCharacter);
+}
+
 Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 {
     if (this.WordControl.m_oDrawingDocument.m_bIsMouseLockDocument)
@@ -4959,6 +4969,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             case Asc.c_oAscTypeSelectElement.Table:
             case Asc.c_oAscTypeSelectElement.Image:
             case Asc.c_oAscTypeSelectElement.Hyperlink:
+            case Asc.c_oAscTypeSelectElement.Math:
             {
                 ++_naturalCount;
                 break;
@@ -5003,6 +5014,12 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             {
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Hyperlink);
                 asc_menu_WriteHyperPr(this.SelectedObjectsStack[i].Value, _stream);
+                break;
+            }
+            case Asc.c_oAscTypeSelectElement.Math:
+            {
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Math);
+                asc_menu_WriteMath(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
             case Asc.c_oAscTypeSelectElement.SpellCheck:
@@ -6139,4 +6156,10 @@ window["AscCommon"].getFullImageSrc2 = function (src) {
         }
     }
     return src;
+};
+
+window["AscCommon"].sendImgUrls = function(api, images, callback)
+{
+	var _data = [];
+	callback(_data);
 };
