@@ -13437,7 +13437,7 @@ Paragraph.prototype.GetAllFields = function(isUseSelection, arrFields)
  */
 Paragraph.prototype.IsCondensedSpaces = function()
 {
-	if (this.LogicDocument && this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15 && this.Get_CompiledPr2(false).ParaPr.Jc === align_Justify)
+	if (this.bFromDocument && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15 && this.Get_CompiledPr2(false).ParaPr.Jc === align_Justify)
 		return true;
 
 	return false;
