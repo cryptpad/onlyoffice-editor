@@ -1173,7 +1173,7 @@ NumFormat.prototype =
                 //выравниваем длину
                 if(nNumberLen > nFormatLen)
                 {
-                    if(false == bIsNUll)
+                    if(false === bIsNUll)
                     {
                         var nSplitIndex = nNumberLen - nFormatLen + 1;
                         aRes.push(new FormatObj(numFormat_Text, sNumber.slice(0, nSplitIndex)));
