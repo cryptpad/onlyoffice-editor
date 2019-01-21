@@ -6533,10 +6533,10 @@
                     return oThis.ReadSheetPr(t, l, oWorksheet.sheetPr);
                 });
 			} else if (c_oSerWorksheetsTypes.SparklineGroups === type) {
-                res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadSparklineGroups(t, l, oWorksheet);
-                });
-           else if (c_oSerWorksheetsTypes.HeaderFooter === type) {
+				res = this.bcr.Read1(length, function (t, l) {
+					return oThis.ReadSparklineGroups(t, l, oWorksheet);
+				});
+			} else if (c_oSerWorksheetsTypes.HeaderFooter === type) {
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadHeaderFooter(t, l, oWorksheet.headerFooter);
                 });
