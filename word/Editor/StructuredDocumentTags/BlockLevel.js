@@ -1097,6 +1097,15 @@ CBlockLevelSdt.prototype.SelectContentControl = function()
 	this.SelectAll(1);
 	this.Set_CurrentElement(false, 0, this.Content);
 };
+CBlockLevelSdt.prototype.MoveCursorToContentControl = function(isBegin)
+{
+	if (isBegin)
+		this.MoveCursorToStartPos(false);
+	else
+		this.MoveCursorToEndPos(false);
+
+	this.SetThisElementCurrent();
+};
 CBlockLevelSdt.prototype.SetThisElementCurrent = function()
 {
 	this.Set_CurrentElement(false, 0, this.Content);

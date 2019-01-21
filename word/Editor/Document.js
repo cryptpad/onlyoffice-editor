@@ -16484,6 +16484,35 @@ CDocument.prototype.SelectContentControl = function(sId)
 		this.private_UpdateCursorXY(true, true);
 	}
 };
+/**
+ * Передвигаем курсор в заданный блочный элемент
+ * @param {string} sId
+ * @param {boolean} [isBegin=true]
+ */
+CDocument.prototype.MoveCursorToContentControl = function(sId, isBegin)
+{
+	var oContentControl = this.TableId.Get_ById(sId);
+	if (!oContentControl)
+		return;
+
+	if (oContentControl.GetContentControlType
+		&& (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType()
+		|| c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType()))
+	{
+		this.RemoveSelection();
+
+		if (false !== isBegin)
+			isBegin = true;
+
+		oContentControl.MoveCursorToContentControl(isBegin);
+		this.Document_UpdateSelectionState();
+		this.Document_UpdateRulersState();
+		this.Document_UpdateInterfaceState();
+		this.Document_UpdateTracks();
+
+		this.private_UpdateCursorXY(true, true);
+	}
+};
 CDocument.prototype.GetAllSignatures = function()
 {
     return this.DrawingObjects.getAllSignatures();

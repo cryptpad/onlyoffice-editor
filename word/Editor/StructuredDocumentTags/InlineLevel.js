@@ -319,6 +319,16 @@ CInlineLevelSdt.prototype.SelectContentControl = function()
 {
 	this.SelectThisElement(1);
 };
+CInlineLevelSdt.prototype.MoveCursorToContentControl = function(isBegin)
+{
+	this.RemoveSelection();
+	this.SetThisElementCurrent();
+
+	if (isBegin)
+		this.MoveCursorToStartPos();
+	else
+		this.MoveCursorToEndPos();
+};
 CInlineLevelSdt.prototype.RemoveContentControlWrapper = function()
 {
 	var oParent = this.Get_Parent();
