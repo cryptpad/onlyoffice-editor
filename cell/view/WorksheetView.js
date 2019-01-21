@@ -14259,35 +14259,59 @@
         }
     };
 
-    WorksheetView.prototype.af_checkChangeTableInfo = function (tablePart, optionType) {
-        var res = tablePart.Ref;
-        var ws = this.model, rangeUpTable;
+    WorksheetView.prototype.af_checkChangeTableInfo = function (table, optionType) {
+        var res = table.Ref;
+        var ws = this.model, range;
 
-        if (optionType === c_oAscChangeTableStyleInfo.rowHeader && tablePart.HeaderRowCount !== null) {
-            //add header row
-            rangeUpTable =
-              new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r1 - 1, tablePart.Ref.c2, tablePart.Ref.r1 - 1);
-        } else if (optionType === c_oAscChangeTableStyleInfo.rowTotal && tablePart.TotalsRowCount === null) {
-            //add total row
-            rangeUpTable =
-              new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
+		var sendError = function() {
+			ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterMoveToHiddenRangeError, c_oAscError.Level.NoCritical);
+		};
 
-			//add total table if down another format table
-			if(ws.autoFilters._isPartTablePartsUnderRange(tablePart.Ref)){
-				ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError,
-				  c_oAscError.Level.NoCritical);
-				return false;
+		//todo необходимо проверять ещё на наличие части объединенной ячейки
+
+		switch (optionType) {
+			case c_oAscChangeTableStyleInfo.rowHeader:
+			{
+				//добавляем строку заголовков. нужно чтобы либо сверху была пустая строка, либо был возможен сдвиг диапазона вниз
+				if(!table.isHeaderRow()) {
+					range = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, table.Ref.r1 - 1);
+					if(!this.model.autoFilters._isEmptyRange(range, 0)) {
+						if(this.model.autoFilters._isPartTablePartsUnderRange(table.Ref) === true) {
+							sendError();
+							res = false;
+						} else {
+							//нужно будет сдвинуть вниз, поэтому диапазон лока расширяем
+							res = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, gc_nMaxRow0);
+						}
+					}
+				}
+
+				break;
 			}
-        }
+			case c_oAscChangeTableStyleInfo.rowTotal:
+			{
+				range = new Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, table.Ref.r2 + 1);
+				if(table.isTotalsRow()) {
 
-        if (rangeUpTable && this.model.autoFilters._isEmptyRange(rangeUpTable, 0) &&
-          this.model.autoFilters._isPartTablePartsUnderRange(tablePart.Ref) === true) {
-            ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterMoveToHiddenRangeError,
-              c_oAscError.Level.NoCritical);
-            res = false;
-        }
+					if(!this.model.autoFilters._isPartTablePartsUnderRange(table.Ref)) {
+						//сдвиг диапазона вверх
+						res = Asc.Range(table.Ref.c1, table.Ref.r2 - 1, table.Ref.c2, gc_nMaxRow0);
+					}
+				} else { // добавляем строку
+					if(!this.model.autoFilters._isPartTablePartsUnderRange(table.Ref)) {
+						//сдвиг диапазона вниз
+						res = Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, gc_nMaxRow0);
+					} else if(!this.model.autoFilters._isEmptyRange(range, 0)){
+						sendError();
+						res = false;
+					}
+				}
 
-        return res;
+				break;
+			}
+		}
+
+		return res;
     };
 
     WorksheetView.prototype.af_getRangeForChangeTableInfo = function (tablePart, optionType, val) {

@@ -2397,25 +2397,22 @@
 						if (val === false)//снимаем галку - удаляем строку итогов
 						{
 							//TODO раскомментировать и протестить(для бага 34740)
-							/*var clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
-							 this._clearRange(clearRange, true);
-
-							 if(!this._isPartTablePartsUnderRange(tablePart.Ref))
-							 {
-							 worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).deleteCellsShiftUp();
-							 bAddHistoryPoint = false;
-							 }
-							 else
-							 {
-							 tablePart.changeRef(null, -1, null, true);
-							 tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
-							 }*/
-
 							clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
 							this._clearRange(clearRange, true);
 
+							if (!this._isPartTablePartsUnderRange(tablePart.Ref)) {
+								worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).deleteCellsShiftUp();
+								bAddHistoryPoint = false;
+							} else {
+								tablePart.changeRef(null, -1, null, true);
+								tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
+							}
+
+							/*clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
+							this._clearRange(clearRange, true);
+
 							tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
-							tablePart.changeRef(null, -1, null, true);
+							tablePart.changeRef(null, -1, null, true);*/
 						} else {
 							//TODO раскомментировать и протестить(для бага 34740)
 							/*var partTableUnderRange = this._isPartTablePartsUnderRange(tablePart.Ref);
