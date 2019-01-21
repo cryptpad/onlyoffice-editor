@@ -16280,8 +16280,7 @@
 						}, "onContextMenu": function (event) {
 							self.handlers.trigger("asc_onContextMenu", event);
 						}
-					}, /*settings*/{
-						font: wb.defaultFont, padding: wb.defaults.worksheetView.cells.padding, menuEditor: true });
+					}, null, /*settings*/{ menuEditor: true });
 
 					//временно меняем cellEditor у wb
 					t.wbCellEditor = wb.cellEditor;
@@ -16326,7 +16325,7 @@
 		var options = {
 			fragments: fragments,
 			flags: flags,
-			//font: new asc.FontProperties(font.getName(), font.getSize()),
+			font: window['AscCommonExcel'].g_oDefaultFormat.Font,
 			background: ws.settings.cells.defaultState.background,
 			textColor: new window['AscCommonExcel'].RgbColor(0),
 			cursorPos: cursorPos,

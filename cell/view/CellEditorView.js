@@ -100,7 +100,7 @@
 	 * @param {HandlersList} handlers
 	 * @param {Number} padding
 	 */
-	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, padding ) {
+	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, padding, settings ) {
 		this.element = elem;
 		this.input = input;
 		this.handlers = new asc_HL( handlers );
@@ -176,21 +176,22 @@
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
 
-		this._init();
+		//TODO сейчас setting нужен только для того, чтобы передать в init флаг menuEditor. пересмотреть!
+		this._init(settings);
 
 		return this;
 	}
 
-	CellEditor.prototype._init = function () {
+	CellEditor.prototype._init = function (settings) {
 		var t = this;
 		var z = t.defaults.canvasZIndex;
 		this.sAutoComplete = null;
 
 		if (null != this.element) {
-			var ceCanvasOuterId = settings.menuEditor ? "ce-canvas-outer-menu" : "ce-canvas-outer";
-			var ceCanvasId = settings.menuEditor ? "ce-canvas-menu" : "ce-canvas";
-			var ceCanvasOverlay = settings.menuEditor ? "ce-canvas-overlay-menu" : "ce-canvas-overlay";
-			var ceCursor = settings.menuEditor ? "ce-cursor-menu" : "ce-cursor";
+			var ceCanvasOuterId = settings && settings.menuEditor ? "ce-canvas-outer-menu" : "ce-canvas-outer";
+			var ceCanvasId = settings && settings.menuEditor ? "ce-canvas-menu" : "ce-canvas";
+			var ceCanvasOverlay = settings && settings.menuEditor ? "ce-canvas-overlay-menu" : "ce-canvas-overlay";
+			var ceCursor = settings && settings.menuEditor ? "ce-cursor-menu" : "ce-cursor";
 
 			t.canvasOuter = document.createElement('div');
 			t.canvasOuter.id = ceCanvasOuterId;
