@@ -14252,7 +14252,7 @@
                 History.EndTransaction();
             };
 
-            lockRange = lockRange ? lockRange : t.af_getRangeForChangeTableInfo(tablePart, optionType, val);
+            lockRange = lockRange ? lockRange : t.af_getLockRangeTableInfo(tablePart, optionType, val);
             if (lockRange) {
                 t._isLockedCells(lockRange, null, callback);
             } else {
@@ -14349,7 +14349,7 @@
 		return res ? {updateRange: res, lockRange: lockRange} : res;
     };
 
-    WorksheetView.prototype.af_getRangeForChangeTableInfo = function (tablePart, optionType, val) {
+    WorksheetView.prototype.af_getLockRangeTableInfo = function (tablePart, optionType, val) {
         var res = null;
 
         switch (optionType) {

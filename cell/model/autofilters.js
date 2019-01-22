@@ -2396,51 +2396,18 @@
 					case c_oAscChangeTableStyleInfo.rowTotal: {
 						if (val === false)//снимаем галку - удаляем строку итогов
 						{
-							//TODO раскомментировать и протестить(для бага 34740)
-							clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
-							this._clearRange(clearRange, true);
-
 							if (!this._isPartTablePartsUnderRange(tablePart.Ref)) {
-								worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).deleteCellsShiftUp();
-								bAddHistoryPoint = false;
+								AscFormat.ExecuteNoHistory(function () {
+									worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).deleteCellsShiftUp();
+								}, this, []);
 							} else {
+								clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
+								this._clearRange(clearRange, true);
+
 								tablePart.changeRef(null, -1, null, true);
 								tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
 							}
-
-							/*clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
-							this._clearRange(clearRange, true);
-
-							tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
-							tablePart.changeRef(null, -1, null, true);*/
 						} else {
-							//TODO раскомментировать и протестить(для бага 34740)
-							/*var partTableUnderRange = this._isPartTablePartsUnderRange(tablePart.Ref);
-							 var rangeUnderTable = new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
-							 if(!partTableUnderRange)
-							 {
-							 worksheet.getRange3(tablePart.Ref.r2 + 1, tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2).addCellsShiftBottom();
-
-							 isSetValue = true;
-							 isSetType = true;
-
-							 tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
-							 tablePart.changeRef(null, 1, null, true);
-							 }
-							 else if(partTableUnderRange && this._isEmptyRange(rangeUnderTable, 0))
-							 {
-							 isSetValue = true;
-							 isSetType = true;
-
-							 tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
-							 tablePart.changeRef(null, 1, null, true);
-							 }
-							 else
-							 {
-							 alert("error");
-							 }*/
-
-
 							//если снизу пустая строка, то просто увеличиваем диапазон и меняем флаг
 							var rangeUnderTable = new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 +
 								1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
@@ -2452,8 +2419,9 @@
 								tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
 								tablePart.changeRef(null, 1, null, true);
 							} else {
-								worksheet.getRange3(tablePart.Ref.r2 + 1, tablePart.Ref.c1, tablePart.Ref.r2 + 1,
-									tablePart.Ref.c2).addCellsShiftBottom();
+								AscFormat.ExecuteNoHistory(function () {
+									worksheet.getRange3(tablePart.Ref.r2 + 1, tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2).addCellsShiftBottom();
+								}, this, []);
 
 								isSetValue = true;
 								isSetType = true;
