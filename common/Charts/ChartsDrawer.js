@@ -1588,8 +1588,12 @@ CChartsDrawer.prototype =
 		}*/
 
 		if (axisMax < axisMin) {
-			manualMax = 2 * axisMin;
-			axisMax = manualMax;
+			if(axisMax > 0) {
+				manualMax = 2 * axisMin;
+				axisMax = manualMax;
+			} else {
+				axisMin = 2 * axisMax;
+			}
 		}
 
 		//приводим к первому порядку
