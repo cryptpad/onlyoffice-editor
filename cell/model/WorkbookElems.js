@@ -6634,9 +6634,7 @@ CustomFilter.prototype.isHideValue = function (val) {
 			case c_oAscCustomAutoFilter.beginsWith://beginsWith
 			{
 				if (!isDigitValue) {
-					if (val.startsWith(filterVal)) {
-						result = true;
-					}
+					result = matchingValues(trimFilterVal + "*", trimVal);
 				}
 
 				break;
@@ -6644,9 +6642,7 @@ CustomFilter.prototype.isHideValue = function (val) {
 			case c_oAscCustomAutoFilter.doesNotBeginWith://doesNotBeginWith
 			{
 				if (!isDigitValue) {
-					if (!val.startsWith(filterVal)) {
-						result = true;
-					}
+					result = matchingValues(trimFilterVal + "*", trimVal, "<>");
 				} else {
 					result = true;
 				}
@@ -6656,9 +6652,7 @@ CustomFilter.prototype.isHideValue = function (val) {
 			case c_oAscCustomAutoFilter.endsWith://endsWith
 			{
 				if (!isDigitValue) {
-					if (val.endsWith(filterVal)) {
-						result = true;
-					}
+					result = matchingValues("*" + trimFilterVal, trimVal);
 				}
 
 				break;
@@ -6666,9 +6660,7 @@ CustomFilter.prototype.isHideValue = function (val) {
 			case c_oAscCustomAutoFilter.doesNotEndWith://doesNotEndWith
 			{
 				if (!isDigitValue) {
-					if (!val.endsWith(filterVal)) {
-						result = true;
-					}
+					result = matchingValues("*" + trimFilterVal, trimVal, "<>");
 				} else {
 					result = true;
 				}
@@ -6678,9 +6670,7 @@ CustomFilter.prototype.isHideValue = function (val) {
 			case c_oAscCustomAutoFilter.contains://contains
 			{
 				if (!isDigitValue) {
-					if (val.indexOf(filterVal) !== -1) {
-						result = true;
-					}
+					result = matchingValues("*" + trimFilterVal + "*", trimVal);
 				}
 
 				break;
@@ -6688,9 +6678,7 @@ CustomFilter.prototype.isHideValue = function (val) {
 			case c_oAscCustomAutoFilter.doesNotContain://doesNotContain
 			{
 				if (!isDigitValue) {
-					if (val.indexOf(filterVal) === -1) {
-						result = true;
-					}
+					result = matchingValues("*" + trimFilterVal + "*", trimVal, "<>");
 				} else {
 					result = true;
 				}
