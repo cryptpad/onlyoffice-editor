@@ -3609,6 +3609,12 @@ CShape.prototype.recalculateLocalTransform = function(transform)
     {
         if(this.parent.parent instanceof AscFormat.CChartSpace)
         {
+            if(this.parent.parent.recalcInfo.recalculateTransform)
+            {
+                this.parent.parent.recalculateTransform();
+                this.parent.parent.rectGeometry.Recalculate(this.parent.parent.extX, this.parent.parent.extY);
+                this.parent.parent.recalcInfo.recalculateTransform = false;
+            }
             global_MatrixTransformer.MultiplyAppend(transform, this.parent.parent.localTransform);
         }
     }

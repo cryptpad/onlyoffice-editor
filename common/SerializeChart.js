@@ -1131,10 +1131,10 @@ BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
         });
     }
 
-    if (null != oCurVal) {
-       this.bs.WriteItem(c_oserct_chartspaceUSERSHAPES, function () {
-           oThis.WriteCT_UserShapes(oVal.userShapes);
-       });
+    if(oVal.userShapes.length > 0){
+        this.bs.WriteItem(c_oserct_chartspaceUSERSHAPES, function () {
+            oThis.WriteCT_UserShapes(oVal.userShapes);
+        });
     }
     // var oCurVal = oVal.m_extLst;
     // if (null != oCurVal) {
