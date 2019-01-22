@@ -3605,6 +3605,13 @@ CShape.prototype.recalculateLocalTransform = function(transform)
     if (isRealObject(this.group)) {
         global_MatrixTransformer.MultiplyAppend(transform, this.group.getLocalTransform());
     }
+    if(this.parent instanceof AscFormat.CRelSizeAnchor || this.parent instanceof AscFormat.CAbsSizeAnchor)
+    {
+        if(this.parent.parent instanceof AscFormat.CChartSpace)
+        {
+            global_MatrixTransformer.MultiplyAppend(transform, this.parent.parent.localTransform);
+        }
+    }
     var oParaDrawing = getParaDrawing(this);
     if(oParaDrawing) {
         this.m_oSectPr = null;

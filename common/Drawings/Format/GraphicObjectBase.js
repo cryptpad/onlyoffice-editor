@@ -1335,6 +1335,22 @@
 
 
 
+    CGraphicObjectBase.prototype.updatePosition = function(x, y) {
+        this.posX = x;
+        this.posY = y;
+        if(!this.group){
+            this.x = this.localX + x;
+            this.y = this.localY + y;
+        }
+        else{
+            this.x = this.localX;
+            this.y = this.localY;
+        }
+        if(this.updateTransformMatrix) {
+            this.updateTransformMatrix();
+        }
+    };
+
 
 
     function CRelSizeAnchor(){

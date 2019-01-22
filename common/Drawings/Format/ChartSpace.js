@@ -2753,6 +2753,8 @@ CChartSpace.prototype.handleUpdateInternalChart = function()
     this.addToRecalculate();
 
 };
+
+
 CChartSpace.prototype.handleUpdateGridlines = function()
 {
     this.recalcInfo.recalculateGridLines = true;
@@ -2965,6 +2967,13 @@ CChartSpace.prototype.getAllRasterImages = function(images)
             }
         }
     }
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.getAllRasterImages)
+        {
+            this.userShapes[i].object.getAllRasterImages(images);
+        }
+    }
 };
 CChartSpace.prototype.getAllContents = function()
 {
@@ -3028,6 +3037,14 @@ CChartSpace.prototype.documentGetAllFontNames = function(allFonts)
             }
         }
     }
+
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.documentGetAllFontNames)
+        {
+            this.userShapes[i].object.documentGetAllFontNames(allFonts);
+        }
+    }
 };
 CChartSpace.prototype.documentCreateFontMap = function(allFonts)
 {
@@ -3075,6 +3092,14 @@ CChartSpace.prototype.documentCreateFontMap = function(allFonts)
                     }
                 }
             }
+        }
+    }
+
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.documentCreateFontMap)
+        {
+            this.userShapes[i].object.documentCreateFontMap(allFonts);
         }
     }
 };
