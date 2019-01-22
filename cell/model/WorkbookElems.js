@@ -6530,42 +6530,30 @@ CustomFilter.prototype.init = function(operator, val) {
 	this.Operator = operator;
 	this.Val = val;
 };
-CustomFilter.prototype.isHideValue = function(val) {
+CustomFilter.prototype.isHideValue = function (val) {
 
 	var result = false;
 	var isDigitValue = !isNaN(val);
-	if(!isDigitValue)
-	{
+	if (!isDigitValue) {
 		val = val.toLowerCase();
 	}
 
 	var checkComplexSymbols = null, filterVal;
-	if(checkComplexSymbols != null)
-	{
+	if (checkComplexSymbols != null) {
 		result = checkComplexSymbols;
-	}
-	else
-	{
+	} else {
 		var isNumberFilter = this.Operator == c_oAscCustomAutoFilter.isGreaterThan || this.Operator == c_oAscCustomAutoFilter.isGreaterThanOrEqualTo || this.Operator == c_oAscCustomAutoFilter.isLessThan || this.Operator == c_oAscCustomAutoFilter.isLessThanOrEqualTo;
-		
-		if(c_oAscCustomAutoFilter.equals === this.Operator || c_oAscCustomAutoFilter.doesNotEqual === this.Operator)
-		{
+
+		if (c_oAscCustomAutoFilter.equals === this.Operator || c_oAscCustomAutoFilter.doesNotEqual === this.Operator) {
 			filterVal = isNaN(this.Val) ? this.Val.toLowerCase() : this.Val;
-		}
-		else if(isNumberFilter)
-		{
-			if(isNaN(this.Val) && isNaN(val))
-			{
-				filterVal =  this.Val;
-			}
-			else
-			{
-				filterVal =  parseFloat(this.Val);
+		} else if (isNumberFilter) {
+			if (isNaN(this.Val) && isNaN(val)) {
+				filterVal = this.Val.toLowerCase();
+			} else {
+				filterVal = parseFloat(this.Val);
 				val = parseFloat(val);
 			}
-		}
-		else
-		{
+		} else {
 			filterVal = isNaN(this.Val) ? this.Val.toLowerCase() : this.Val;
 		}
 
@@ -6573,142 +6561,145 @@ CustomFilter.prototype.isHideValue = function(val) {
 		var trimFilterVal = "string" === typeof(filterVal) ? window["Asc"].trim(filterVal) : filterVal;
 
 
-		var matchingValues = function(val1, val2, op) {
+		var matchingValues = function (val1, val2, op) {
 			var matchingInfo = AscCommonExcel.matchingValue(new AscCommonExcel.cString(val1));
-			if(op) {
+			if (op) {
 				matchingInfo.op = op;
 			}
 			return AscCommonExcel.matching(new AscCommonExcel.cString(val2), matchingInfo);
 		};
 
-		switch (this.Operator)
-		{
+		switch (this.Operator) {
 			case c_oAscCustomAutoFilter.equals://equals
 			{
-				if(!isDigitValue) {
+				if (!isDigitValue) {
 					result = matchingValues(trimFilterVal, trimVal);
-				} else if(trimVal === trimFilterVal) {
+				} else if (trimVal === trimFilterVal) {
 					result = true;
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.doesNotEqual://doesNotEqual
 			{
-				if(!isDigitValue) {
+				if (!isDigitValue) {
 					result = matchingValues(trimFilterVal, trimVal, "<>");
-				} else if(trimVal !== trimFilterVal) {
+				} else if (trimVal !== trimFilterVal) {
 					result = true;
 				}
-					
+
 				break;
 			}
-			
+
 			case c_oAscCustomAutoFilter.isGreaterThan://isGreaterThan
 			{
-				if(val > filterVal)
-				{
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal, trimVal, ">");
+				} else if (val > filterVal) {
 					result = true;
-				}	
-				
+				}
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.isGreaterThanOrEqualTo://isGreaterThanOrEqualTo
 			{
-				if(val >= filterVal)
-				{
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal, trimVal, ">=");
+				} else if (val >= filterVal) {
 					result = true;
-				}	
-				
+				}
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.isLessThan://isLessThan
 			{
-				if(val < filterVal)
-				{
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal, trimVal, "<");
+				} else if (val < filterVal) {
 					result = true;
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.isLessThanOrEqualTo://isLessThanOrEqualTo
 			{
-				if(val <= filterVal)
-				{
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal, trimVal, "<=");
+				} else if (val <= filterVal) {
 					result = true;
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.beginsWith://beginsWith
 			{
-				if(!isDigitValue)
-				{
-					if(val.startsWith(filterVal))
+				if (!isDigitValue) {
+					if (val.startsWith(filterVal)) {
 						result = true;
+					}
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.doesNotBeginWith://doesNotBeginWith
 			{
-				if(!isDigitValue)
-				{
-					if(!val.startsWith(filterVal))
+				if (!isDigitValue) {
+					if (!val.startsWith(filterVal)) {
 						result = true;
-				}
-				else
+					}
+				} else {
 					result = true;
-				
+				}
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.endsWith://endsWith
 			{
-				if(!isDigitValue)
-				{
-					if(val.endsWith(filterVal))
+				if (!isDigitValue) {
+					if (val.endsWith(filterVal)) {
 						result = true;
+					}
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.doesNotEndWith://doesNotEndWith
 			{
-				if(!isDigitValue)
-				{
-					if(!val.endsWith(filterVal))
+				if (!isDigitValue) {
+					if (!val.endsWith(filterVal)) {
 						result = true;
-				}
-				else
+					}
+				} else {
 					result = true;
-				
+				}
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.contains://contains
 			{
-				if(!isDigitValue)
-				{
-					if(val.indexOf(filterVal) !== -1)
+				if (!isDigitValue) {
+					if (val.indexOf(filterVal) !== -1) {
 						result = true;
+					}
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.doesNotContain://doesNotContain
 			{
-				if(!isDigitValue)
-				{
-					if(val.indexOf(filterVal) === -1)
+				if (!isDigitValue) {
+					if (val.indexOf(filterVal) === -1) {
 						result = true;
-				}
-				else
+					}
+				} else {
 					result = true;
-				
+				}
+
 				break;
 			}
 		}
-	}	
-	
+	}
+
 	return !result;
 };
 
