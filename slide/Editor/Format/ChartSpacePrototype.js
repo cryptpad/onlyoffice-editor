@@ -474,8 +474,6 @@ CChartSpace.prototype.recalculate = function()
             this.recalcInfo.recalculateAxisVal = false;
             bCheckLabels = true;
         }
-
-
         if(this.recalcInfo.recalculatePenBrush)
         {
             this.recalculatePenBrush();
@@ -491,11 +489,7 @@ CChartSpace.prototype.recalculate = function()
                 this.checkAxisLabelsTransform();
             }
         }
-
-
-
         this.calculateLabelsPositions(b_recalc_labels, b_recalc_legend);
-
         if(this.recalcInfo.recalculateBounds)
         {
             this.recalculateBounds();
@@ -507,6 +501,8 @@ CChartSpace.prototype.recalculate = function()
             this.recalculateTextPr();
             this.recalcInfo.recalculateTextPr = false;
         }
+
+        this.recalculateUserShapes();
         // if(b_transform)
         {
             this.updateChildLabelsTransform(this.transform.tx, this.transform.ty);

@@ -1369,17 +1369,17 @@
     };
 
     CRelSizeAnchor.prototype.setFromTo = function (fromX, fromY, toX, toY) {
-        History.Add(AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorFromX, this.fromX, fromX));
-        History.Add(AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorFromY, this.fromY, fromY));
-        History.Add(AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorToX, this.toX, toX));
-        History.Add(AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorToY, this.toY, toY));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorFromX, this.fromX, fromX));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorFromY, this.fromY, fromY));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorToX, this.toX, toX));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorToY, this.toY, toY));
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = toX;
         this.toY = toY;
     };
     CRelSizeAnchor.prototype.setObject = function (object) {
-        History.Add(AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_RelSizeAnchorObject, this.object, object));
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_RelSizeAnchorObject, this.object, object));
         this.object = object;
         if(object){
             object.setParent(this);
@@ -1387,10 +1387,30 @@
     };
 
     CRelSizeAnchor.prototype.setParent = function (object) {
-        History.Add(AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_RelSizeAnchorParent, this.parent, object));
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_RelSizeAnchorParent, this.parent, object));
         this.parent = object;
     };
 
+    CRelSizeAnchor.prototype.copy = function(drawingDocument){
+        var copy = new CRelSizeAnchor();
+        copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
+        if(this.object){
+            copy.setObject(this.object.copy(drawingDocument));
+        }
+        return copy;
+    };
+    CRelSizeAnchor.prototype.Refresh_RecalcData = function(drawingDocument){
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
+    };
+    CRelSizeAnchor.prototype.Refresh_RecalcData2 = function(drawingDocument){
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
+    };
 
     AscDFH.drawingsChangesMap[AscDFH.historyitem_RelSizeAnchorFromX]  = function(oClass, value){oClass.fromX =  value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_RelSizeAnchorFromY]  = function(oClass, value){oClass.fromY =  value;};
@@ -1437,17 +1457,17 @@
     };
 
     CAbsSizeAnchor.prototype.setFromTo = function (fromX, fromY, extX, extY) {
-        History.Add(AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromX, this.fromX, fromX));
-        History.Add(AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromY, this.fromY, fromY));
-        History.Add(AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorExtX, this.toX, extX));
-        History.Add(AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorExtY, this.toY, extY));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromX, this.fromX, fromX));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromY, this.fromY, fromY));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorExtX, this.toX, extX));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorExtY, this.toY, extY));
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = extX;
         this.toY = extY;
     };
     CAbsSizeAnchor.prototype.setObject = function (object) {
-        History.Add(AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_AbsSizeAnchorObject, this.object, object));
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_AbsSizeAnchorObject, this.object, object));
         this.object = object;
         if(object){
             object.setParent(this);
@@ -1455,8 +1475,30 @@
     };
 
     CAbsSizeAnchor.prototype.setParent = function (object) {
-        History.Add(AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_AbsSizeAnchorParent, this.parent, object));
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_AbsSizeAnchorParent, this.parent, object));
         this.parent = object;
+    };
+
+    CAbsSizeAnchor.prototype.copy = function(drawingDocument){
+        var copy = new CRelSizeAnchor();
+        copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
+        if(this.object){
+            copy.setObject(this.object.copy(drawingDocument));
+        }
+        return copy;
+    };
+
+    CAbsSizeAnchor.prototype.Refresh_RecalcData = function(drawingDocument){
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
+    };
+    CAbsSizeAnchor.prototype.Refresh_RecalcData2 = function(drawingDocument){
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
     };
 
 

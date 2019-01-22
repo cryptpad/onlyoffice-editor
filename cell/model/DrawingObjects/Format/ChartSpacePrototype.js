@@ -416,6 +416,8 @@ CChartSpace.prototype.recalculate = function()
             this.recalculateTextPr();
             this.recalcInfo.recalculateTextPr = false;
         }
+
+        this.recalculateUserShapes();
        // if(b_transform)
         {
             this.updateChildLabelsTransform(this.transform.tx, this.transform.ty);

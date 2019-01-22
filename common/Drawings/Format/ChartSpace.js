@@ -2514,6 +2514,10 @@ CChartSpace.prototype.copy = function(drawingDocument)
     {
         copy.setTxPr(this.txPr.createDuplicate(drawingDocument))
     }
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        copy.addUserShape(undefined, this.userShapes[i].copy(drawingDocument));
+    }
     copy.setThemeOverride(this.themeOverride);
     copy.setBDeleted(this.bDeleted);
     copy.setLocks(this.locks);
@@ -2738,6 +2742,14 @@ CChartSpace.prototype.handleUpdateInternalChart = function()
     this.recalcInfo.recalculateLegend = true;
     this.recalcInfo.recalculateBBox = true;
     this.chartObj = null;
+
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        {
+            this.userShapes[i].object.handleUpdateExtents();
+        }
+    }
     this.addToRecalculate();
 
 };
@@ -2803,6 +2815,13 @@ CChartSpace.prototype.updateChildLabelsTransform = function(posX, posY)
         if(this.chart.legend)
         {
             this.chart.legend.updatePosition(posX, posY);
+        }
+    }
+    for(var i = 0; i < this.userShapes.length; ++ i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.updatePosition)
+        {
+            this.userShapes[i].object.updatePosition(posX, posY);
         }
     }
 };
@@ -3077,6 +3096,15 @@ CChartSpace.prototype.removeUserShape = function(pos)
     var aSplicedShape = this.userShapes.splice(pos, 1);
     History.Add(new AscDFH.CChangesDrawingsContent(this,AscDFH.historyitem_ChartSpace_RemoveUserShape, pos, aSplicedShape, false));
     return aSplicedShape[0];
+};
+
+CChartSpace.prototype.recalculateUserShapes = function()
+{
+    for(var i = 0; i < this.userShapes.length; ++i){
+        if(this.userShapes[i].object){
+            this.userShapes[i].object.recalculate();
+        }
+    }
 };
 CChartSpace.prototype.setParent = function (parent)
 {
@@ -12690,6 +12718,13 @@ CChartSpace.prototype.draw = function(graphics)
         if(this.chart.legend)
         {
             this.chart.legend.draw(graphics);
+        }
+    }
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object)
+        {
+            this.userShapes[i].object.draw(graphics);  
         }
     }
     graphics.RestoreGrState();
