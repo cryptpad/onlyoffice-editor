@@ -1347,9 +1347,13 @@
         this.object = null;
 
         this.parent = null;
+        this.drawingBase = null;
         this.Id = AscCommon.g_oIdCounter.Get_NewId();
         AscCommon.g_oTableId.Add(this, this.Id);
     }
+    CRelSizeAnchor.prototype.setDrawingBase = function(drawingBase){
+        this.drawingBase = drawingBase;
+    };
     CRelSizeAnchor.prototype.getObjectType = function () {
         return AscDFH.historyitem_type_RelSizeAnchor;
     };
@@ -1411,9 +1415,13 @@
         this.object = null;
 
         this.parent = null;
+        this.drawingBase = null;
         this.Id = AscCommon.g_oIdCounter.Get_NewId();
         AscCommon.g_oTableId.Add(this, this.Id);
     }
+    CAbsSizeAnchor.prototype.setDrawingBase = function(drawingBase){
+        this.drawingBase = drawingBase;
+    };
     CAbsSizeAnchor.prototype.getObjectType = function () {
         return AscDFH.historyitem_type_AbsSizeAnchor;
     };

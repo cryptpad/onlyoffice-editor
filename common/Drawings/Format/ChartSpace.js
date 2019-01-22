@@ -500,7 +500,6 @@ function checkPointInMap(map, worksheet, row, col)
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetSpPr                 ] = CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetStyle                  ] = CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetTxPr                 ] = CChangesDrawingsObject;
-    AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetUserShapes           ] = CChangesDrawingsString;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetGroup                ] = CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ExternalData_SetAutoUpdate           ] = CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_ExternalData_SetId                 ] = CChangesDrawingsString;
@@ -685,7 +684,6 @@ function checkPointInMap(map, worksheet, row, col)
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetSpPr                       ] = function(oClass, value){oClass.spPr           = value;};
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetStyle                      ] = function(oClass, value){oClass.style          = value;};
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetTxPr                       ] = function(oClass, value){oClass.txPr           = value;};
-    drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetUserShapes                 ] = function(oClass, value){oClass.userShapes     = value;};
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetGroup                      ] = function(oClass, value){oClass.group          = value;};
     drawingsChangesMap[AscDFH.historyitem_ExternalData_SetAutoUpdate               ] = function(oClass, value){oClass.autoUpdate     = value;};
     drawingsChangesMap[AscDFH.historyitem_ExternalData_SetId                       ] = function(oClass, value){oClass.id             = value;};
@@ -1234,13 +1232,12 @@ function CChartSpace()
     this.spPr = null;
     this.style = 2;
     this.txPr = null;
-    this.userShapes = null;
     this.themeOverride = null;
 
     this.pathMemory = new CPathMemory();
 
 
-    this.spTree = [];//userShapes
+    this.userShapes = [];//userShapes
 
     this.bbox = null;
     this.ptsCount = 0;
@@ -2517,7 +2514,6 @@ CChartSpace.prototype.copy = function(drawingDocument)
     {
         copy.setTxPr(this.txPr.createDuplicate(drawingDocument))
     }
-    copy.setUserShapes(this.userShapes);
     copy.setThemeOverride(this.themeOverride);
     copy.setBDeleted(this.bDeleted);
     copy.setLocks(this.locks);
@@ -3071,14 +3067,14 @@ CChartSpace.prototype.setThemeOverride = function(pr)
 CChartSpace.prototype.addUserShape = function(pos, item)
 {
     if(!AscFormat.isRealNumber(pos))
-        pos = this.spTree.length;
+        pos = this.userShapes.length;
     History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_ChartSpace_AddUserShape, pos,  [item], true));
-    this.spTree.splice(pos, 0, item);
+    this.userShapes.splice(pos, 0, item);
     item.setParent(this);
 };
 CChartSpace.prototype.removeUserShape = function(pos)
 {
-    var aSplicedShape = this.spTree.splice(pos, 1);
+    var aSplicedShape = this.userShapes.splice(pos, 1);
     History.Add(new AscDFH.CChangesDrawingsContent(this,AscDFH.historyitem_ChartSpace_RemoveUserShape, pos, aSplicedShape, false));
     return aSplicedShape[0];
 };
@@ -3155,11 +3151,6 @@ CChartSpace.prototype.setTxPr = function(txPr)
     {
         txPr.setParent(this);
     }
-};
-CChartSpace.prototype.setUserShapes = function(userShapes)
-{
-    History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_ChartSpace_SetUserShapes, this.userShapes, userShapes));
-    this.userShapes = userShapes;
 };
 CChartSpace.prototype.getTransformMatrix = function()
 {

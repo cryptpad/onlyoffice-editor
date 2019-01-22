@@ -1130,10 +1130,10 @@ BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
             oThis.WriteCT_PrintSettings(oVal.printSettings);
         });
     }
-    //var oCurVal = oVal.spTree;
+    
     if (null != oCurVal) {
        this.bs.WriteItem(c_oserct_chartspaceUSERSHAPES, function () {
-           oThis.WriteCT_UserShapes(oVal.spTree);
+           oThis.WriteCT_UserShapes(oVal.userShapes);
        });
     }
     // var oCurVal = oVal.m_extLst;
@@ -1146,27 +1146,52 @@ BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
 	    this.bs.WriteItem(c_oserct_chartspaceTHEMEOVERRIDE, function () { AscCommon.pptx_content_writer.WriteTheme(oThis.memory, oVal.themeOverride); });
 }
 
+
+    BinaryChartWriter.prototype.WriteCT_FromTo = function(oVal){
+        this.memory.WriteByte(Asc.c_oSer_DrawingPosType.X);
+        this.memory.WriteByte(AscCommon.c_oSerPropLenType.Double);
+        this.memory.WriteDouble2(oVal.x);
+        this.memory.WriteByte(Asc.c_oSer_DrawingPosType.Y);
+        this.memory.WriteByte(AscCommon.c_oSerPropLenType.Double);
+        this.memory.WriteDouble2(oVal.y);
+    };
+
     BinaryChartWriter.prototype.WriteCT_UserShape = function (oVal){
-      
+        var oThis = this;
+        var res = c_oSerConstants.ReadOk;
+        if(AscFormat.isRealNumber(oVal.fromX) && AscFormat.isRealNumber(oVal.fromY))
+        {
+            var oNewVal = {x: oVal.fromX, y: oVal.fromY};
+            this.bs.WriteItem(Asc.c_oSer_DrawingType.From, function () { oThis.WriteCT_FromTo(oNewVal); });
+        }
+        if(AscFormat.isRealNumber(oVal.toX) && AscFormat.isRealNumber(oVal.toY))
+        {
+            var oNewVal = {x: oVal.toX, y: oVal.toY};
+            var type = oVal.getObjectType() === AscDFH.historyitem_type_AbsSizeAnchor ? Asc.c_oSer_DrawingType.Ext : Asc.c_oSer_DrawingType.To;
+            this.bs.WriteItem(type, function () { oThis.WriteCT_FromTo(oNewVal); });
+        }
+        this.bs.WriteItem(Asc.c_oSer_DrawingType.pptxDrawing, function(){pptx_content_writer.WriteDrawing(oThis.memory, oVal.object, null, null, null);});
     };
 
 BinaryChartWriter.prototype.WriteCT_UserShapes = function (oVal) {
 
     var oThis = this;
     this.bs.WriteItem(c_oserct_usershapes_COUNT, function () {
-        oThis.memory.WriteLong(oVal.spTree.length);
+        oThis.memory.WriteLong(oVal.length);
     });
-
-
-    for(var i = 0; i < oVal.spTree.length; ++i)
+    for(var i = 0; i < oVal.length; ++i)
     {
-        if(oVal.spTree[i] instanceof AscFormat.CRelSizeAnchor)
+        if(oVal[i] instanceof AscFormat.CRelSizeAnchor)
         {
-
+            this.bs.WriteItem(c_oserct_usershapes_SHAPE_REL, function(t, l){
+               oThis.WriteCT_UserShape(oVal[i]);
+            });
         }
         else
         {
-
+            this.bs.WriteItem(c_oserct_usershapes_SHAPE_ABS, function(t, l){
+                oThis.WriteCT_UserShape(oVal[i]);
+            });
         }
     }
 
@@ -5810,7 +5835,7 @@ BinaryChartReader.prototype.ReadCT_userShape = function(type, length, poResult)
         res = this.bcr.Read2Spreadsheet(length, function (t, l) {
             return oThis.ReadCT_FromTo(t, l, oNewVal);
         });
-        poResult.setFromTo(oNewVal.x, oNewVal.y, poResult.toX, oNewVal.toY);
+        poResult.setFromTo(oNewVal.x, oNewVal.y, poResult.toX, poResult.toY);
     }
     else if(Asc.c_oSer_DrawingType.To == type)
     {
@@ -5818,7 +5843,7 @@ BinaryChartReader.prototype.ReadCT_userShape = function(type, length, poResult)
         res = this.bcr.Read2Spreadsheet(length, function (t, l) {
             return oThis.ReadCT_FromTo(t, l, oNewVal);
         });
-        poResult.setFromTo( poResult.fromX, oNewVal.fromY, oNewVal.x, oNewVal.y);
+        poResult.setFromTo( poResult.fromX, poResult.fromY, oNewVal.x, oNewVal.y);
     }
     else if(Asc.c_oSer_DrawingType.Ext == type)
     {
@@ -5826,7 +5851,7 @@ BinaryChartReader.prototype.ReadCT_userShape = function(type, length, poResult)
         res = this.bcr.Read2Spreadsheet(length, function (t, l) {
             return oThis.ReadCT_FromTo(t, l, oNewVal);
         });
-        poResult.setFromTo( poResult.fromX, oNewVal.fromY, oNewVal.x, oNewVal.y);
+        poResult.setFromTo( poResult.fromX, poResult.fromY, oNewVal.x, oNewVal.y);
     }
     else if(Asc.c_oSer_DrawingType.pptxDrawing == type)
     {
