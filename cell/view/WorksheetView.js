@@ -14227,7 +14227,9 @@
 
         var isChangeTableInfo = this.af_checkChangeTableInfo(tablePart, optionType);
         if (isChangeTableInfo !== false) {
-            var callback = function (isSuccess) {
+            var lockRange = isChangeTableInfo.lockRange ? isChangeTableInfo.lockRange : null;
+            var updateRange = isChangeTableInfo.updateRange;
+        	var callback = function (isSuccess) {
                 if (false === isSuccess) {
                     t.handlers.trigger("selectionChanged");
                     return;
@@ -14246,11 +14248,11 @@
                     History.SetSelectionRedo(newActiveRange);
                 }
 
-                t._onUpdateFormatTable(isChangeTableInfo, false, true);
+                t._onUpdateFormatTable(updateRange, false, true);
                 History.EndTransaction();
             };
 
-            var lockRange = t.af_getRangeForChangeTableInfo(tablePart, optionType, val);
+            lockRange = lockRange ? lockRange : t.af_getRangeForChangeTableInfo(tablePart, optionType, val);
             if (lockRange) {
                 t._isLockedCells(lockRange, null, callback);
             } else {
@@ -14261,13 +14263,42 @@
 
     WorksheetView.prototype.af_checkChangeTableInfo = function (table, optionType) {
         var res = table.Ref;
+        var t = this;
         var ws = this.model, range;
+        var lockRange = null;
 
 		var sendError = function() {
 			ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterMoveToHiddenRangeError, c_oAscError.Level.NoCritical);
 		};
 
-		//todo необходимо проверять ещё на наличие части объединенной ячейки
+		var checkShift = function(range) {
+			var result = false;
+
+			if(!t.model.autoFilters._isPartTablePartsUnderRange(range)) {
+				result = true;
+
+				//проверяем ещё на наличие части объединенной ячейки
+				//для объединенной ячейки - ms выдаёт другую ошибку
+				//TODO мы сейчас выдаём одинаковую ошибку для случаев с форматированной таблицей внизу и объединенной областью. пересмотреть!
+				//пока комментирую проверку на объединенные ячейки
+
+				var downRange = Asc.Range(range.c1, range.r2 + 1, range.c2, gc_nMaxRow0);
+				var mergedRange = ws.getMergedByRange(downRange);
+
+				if(mergedRange && mergedRange.all) {
+					for(var i = 0; i < mergedRange.all.length; i++) {
+						if(mergedRange.all[i] && mergedRange.all[i].bbox) {
+							if(mergedRange.all[i].bbox.intersection(mergedRange) && !mergedRange.all[i].bbox.containsRange(mergedRange)) {
+								result = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			return result;
+		};
 
 		switch (optionType) {
 			case c_oAscChangeTableStyleInfo.rowHeader:
@@ -14276,12 +14307,13 @@
 				if(!table.isHeaderRow()) {
 					range = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, table.Ref.r1 - 1);
 					if(!this.model.autoFilters._isEmptyRange(range, 0)) {
-						if(this.model.autoFilters._isPartTablePartsUnderRange(table.Ref) === true) {
+						if(!checkShift(table.Ref)) {
 							sendError();
 							res = false;
 						} else {
-							//нужно будет сдвинуть вниз, поэтому диапазон лока расширяем
-							res = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, gc_nMaxRow0);
+							//в данном случае возвращаем не диапазон лока, а диапазон обновления данных
+							lockRange = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, gc_nMaxRow0);
+							res = table.Ref;
 						}
 					}
 				}
@@ -14293,14 +14325,17 @@
 				range = new Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, table.Ref.r2 + 1);
 				if(table.isTotalsRow()) {
 
-					if(!this.model.autoFilters._isPartTablePartsUnderRange(table.Ref)) {
+					if(checkShift(table.Ref)) {
 						//сдвиг диапазона вверх
-						res = Asc.Range(table.Ref.c1, table.Ref.r2 - 1, table.Ref.c2, gc_nMaxRow0);
+						//в данном случае возвращаем не диапазон лока, а диапазон обновления данных
+						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 - 1, table.Ref.c2, gc_nMaxRow0);
+						res = table.Ref;
 					}
 				} else { // добавляем строку
-					if(!this.model.autoFilters._isPartTablePartsUnderRange(table.Ref)) {
+					if(checkShift(table.Ref)) {
 						//сдвиг диапазона вниз
-						res = Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, gc_nMaxRow0);
+						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, gc_nMaxRow0);
+						res = table.Ref;
 					} else if(!this.model.autoFilters._isEmptyRange(range, 0)){
 						sendError();
 						res = false;
@@ -14311,7 +14346,7 @@
 			}
 		}
 
-		return res;
+		return res ? {updateRange: res, lockRange: lockRange} : res;
     };
 
     WorksheetView.prototype.af_getRangeForChangeTableInfo = function (tablePart, optionType, val) {
