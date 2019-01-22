@@ -1699,6 +1699,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     this.CheckLanguageOnTextAdd    = false; // Проверять ли язык при добавлении текста в ран
 	this.RemoveCommentsOnPreDelete = true;  // Удалять ли комментарий при удалении объекта
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
+	this.RemoveOnDrag              = false; // Происходит ли удалении на функции drag-n-drop
 
     // Мап для рассылки
     this.MailMergeMap             = null;
@@ -6827,11 +6828,15 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             // Если надо удаляем выделенную часть (пересчет отключаем на время удаления)
             if (true !== bCopy)
             {
+            	this.RemoveOnDrag = true;
+
                 this.TurnOff_Recalculate();
                 this.TurnOff_InterfaceEvents();
-                this.Remove(1, false, false, false);
+                this.Remove(1, false, false, true);
                 this.TurnOn_Recalculate(false);
                 this.TurnOn_InterfaceEvents(false);
+
+				this.RemoveOnDrag = false;
 
                 if (false === Para.Is_UseInDocument())
                 {
