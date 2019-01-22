@@ -9181,6 +9181,14 @@ background-repeat: no-repeat;\
 
 		oLogicDocument.SelectContentControl(id);
 	};
+	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToContentControl"] = function(id, isBegin)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.MoveCursorToContentControl(id, isBegin);
+	};
 	window["asc_docs_api"].prototype["pluginMethod_GetSelectedText"] = function()
 	{
 		var oLogicDocument = this.private_GetLogicDocument();

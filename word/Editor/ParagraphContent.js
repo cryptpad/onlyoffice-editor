@@ -494,6 +494,7 @@ function ParaSpace()
     this.Flags        = 0x00000000 | 0;
     this.Width        = 0x00000000 | 0;
     this.WidthVisible = 0x00000000 | 0;
+    this.WidthOrigin  = 0x00000000 | 0;
 }
 ParaSpace.prototype = Object.create(CRunElementBase.prototype);
 ParaSpace.prototype.constructor = ParaSpace;
@@ -523,8 +524,9 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 
 	var Temp = Context.MeasureCode(0x20);
 
-	var ResultWidth = (Math.max((Temp.Width + TextPr.Spacing), 0) * 16384) | 0;
-	this.Width      = ResultWidth;
+	var ResultWidth  = (Math.max((Temp.Width + TextPr.Spacing), 0) * 16384) | 0;
+	this.Width       = ResultWidth;
+	this.WidthOrigin = ResultWidth;
 	// Не меняем здесь WidthVisible, это значение для пробела высчитывается отдельно, и не должно меняться при пересчете
 };
 ParaSpace.prototype.Get_FontKoef = function()
@@ -579,6 +581,16 @@ ParaSpace.prototype.Read_FromBinary = function(Reader)
 ParaSpace.prototype.CanStartAutoCorrect = function()
 {
 	return true;
+};
+ParaSpace.prototype.CheckCondensedWidth = function(isCondensedSpaces)
+{
+	// TODO: Коэффициент 3/4 получен опытным путем, возможно есть параметр в шрифте соответствующий, но
+	// для шрифтов, которые я просмотрел был именно такой коэффициент
+
+	if (isCondensedSpaces)
+		this.Width = this.WidthOrigin * 0.75;
+	else
+		this.Width = this.WidthOrigin;
 };
 
 

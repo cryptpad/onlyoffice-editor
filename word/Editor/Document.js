@@ -1699,6 +1699,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     this.CheckLanguageOnTextAdd    = false; // Проверять ли язык при добавлении текста в ран
 	this.RemoveCommentsOnPreDelete = true;  // Удалять ли комментарий при удалении объекта
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
+	this.RemoveOnDrag              = false; // Происходит ли удалении на функции drag-n-drop
 
     // Мап для рассылки
     this.MailMergeMap             = null;
@@ -6827,11 +6828,15 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             // Если надо удаляем выделенную часть (пересчет отключаем на время удаления)
             if (true !== bCopy)
             {
+            	this.RemoveOnDrag = true;
+
                 this.TurnOff_Recalculate();
                 this.TurnOff_InterfaceEvents();
-                this.Remove(1, false, false, false);
+                this.Remove(1, false, false, true);
                 this.TurnOn_Recalculate(false);
                 this.TurnOn_InterfaceEvents(false);
+
+				this.RemoveOnDrag = false;
 
                 if (false === Para.Is_UseInDocument())
                 {
@@ -16476,6 +16481,35 @@ CDocument.prototype.SelectContentControl = function(sId)
 		this.RemoveSelection();
 
 		oContentControl.SelectContentControl();
+		this.Document_UpdateSelectionState();
+		this.Document_UpdateRulersState();
+		this.Document_UpdateInterfaceState();
+		this.Document_UpdateTracks();
+
+		this.private_UpdateCursorXY(true, true);
+	}
+};
+/**
+ * Передвигаем курсор в заданный блочный элемент
+ * @param {string} sId
+ * @param {boolean} [isBegin=true]
+ */
+CDocument.prototype.MoveCursorToContentControl = function(sId, isBegin)
+{
+	var oContentControl = this.TableId.Get_ById(sId);
+	if (!oContentControl)
+		return;
+
+	if (oContentControl.GetContentControlType
+		&& (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType()
+		|| c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType()))
+	{
+		this.RemoveSelection();
+
+		if (false !== isBegin)
+			isBegin = true;
+
+		oContentControl.MoveCursorToContentControl(isBegin);
 		this.Document_UpdateSelectionState();
 		this.Document_UpdateRulersState();
 		this.Document_UpdateInterfaceState();

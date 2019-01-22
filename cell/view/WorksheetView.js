@@ -14369,7 +14369,9 @@
 
         var isChangeTableInfo = this.af_checkChangeTableInfo(tablePart, optionType);
         if (isChangeTableInfo !== false) {
-            var callback = function (isSuccess) {
+            var lockRange = isChangeTableInfo.lockRange ? isChangeTableInfo.lockRange : null;
+            var updateRange = isChangeTableInfo.updateRange;
+        	var callback = function (isSuccess) {
                 if (false === isSuccess) {
                     t.handlers.trigger("selectionChanged");
                     return;
@@ -14388,11 +14390,11 @@
                     History.SetSelectionRedo(newActiveRange);
                 }
 
-                t._onUpdateFormatTable(isChangeTableInfo, false, true);
+                t._onUpdateFormatTable(updateRange, false, true);
                 History.EndTransaction();
             };
 
-            var lockRange = t.af_getRangeForChangeTableInfo(tablePart, optionType, val);
+            lockRange = lockRange ? lockRange : t.af_getLockRangeTableInfo(tablePart, optionType, val);
             if (lockRange) {
                 t._isLockedCells(lockRange, null, callback);
             } else {
@@ -14401,38 +14403,95 @@
         }
     };
 
-    WorksheetView.prototype.af_checkChangeTableInfo = function (tablePart, optionType) {
-        var res = tablePart.Ref;
-        var ws = this.model, rangeUpTable;
+    WorksheetView.prototype.af_checkChangeTableInfo = function (table, optionType) {
+        var res = table.Ref;
+        var t = this;
+        var ws = this.model, range;
+        var lockRange = null;
 
-        if (optionType === c_oAscChangeTableStyleInfo.rowHeader && tablePart.HeaderRowCount !== null) {
-            //add header row
-            rangeUpTable =
-              new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r1 - 1, tablePart.Ref.c2, tablePart.Ref.r1 - 1);
-        } else if (optionType === c_oAscChangeTableStyleInfo.rowTotal && tablePart.TotalsRowCount === null) {
-            //add total row
-            rangeUpTable =
-              new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
+		var sendError = function() {
+			ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterMoveToHiddenRangeError, c_oAscError.Level.NoCritical);
+		};
 
-			//add total table if down another format table
-			if(ws.autoFilters._isPartTablePartsUnderRange(tablePart.Ref)){
-				ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError,
-				  c_oAscError.Level.NoCritical);
-				return false;
+		var checkShift = function(range) {
+			var result = false;
+
+			if(!t.model.autoFilters._isPartTablePartsUnderRange(range)) {
+				result = true;
+
+				//проверяем ещё на наличие части объединенной ячейки
+				//для объединенной ячейки - ms выдаёт другую ошибку
+				//TODO мы сейчас выдаём одинаковую ошибку для случаев с форматированной таблицей внизу и объединенной областью. пересмотреть!
+				//пока комментирую проверку на объединенные ячейки
+
+				var downRange = Asc.Range(range.c1, range.r2 + 1, range.c2, gc_nMaxRow0);
+				var mergedRange = ws.getMergedByRange(downRange);
+
+				if(mergedRange && mergedRange.all) {
+					for(var i = 0; i < mergedRange.all.length; i++) {
+						if(mergedRange.all[i] && mergedRange.all[i].bbox) {
+							if(mergedRange.all[i].bbox.intersection(mergedRange) && !mergedRange.all[i].bbox.containsRange(mergedRange)) {
+								result = false;
+								break;
+							}
+						}
+					}
+				}
 			}
-        }
 
-        if (rangeUpTable && this.model.autoFilters._isEmptyRange(rangeUpTable, 0) &&
-          this.model.autoFilters._isPartTablePartsUnderRange(tablePart.Ref) === true) {
-            ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterMoveToHiddenRangeError,
-              c_oAscError.Level.NoCritical);
-            res = false;
-        }
+			return result;
+		};
 
-        return res;
+		switch (optionType) {
+			case c_oAscChangeTableStyleInfo.rowHeader:
+			{
+				//добавляем строку заголовков. нужно чтобы либо сверху была пустая строка, либо был возможен сдвиг диапазона вниз
+				if(!table.isHeaderRow()) {
+					range = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, table.Ref.r1 - 1);
+					if(!this.model.autoFilters._isEmptyRange(range, 0)) {
+						if(!checkShift(table.Ref)) {
+							sendError();
+							res = false;
+						} else {
+							//в данном случае возвращаем не диапазон лока, а диапазон обновления данных
+							lockRange = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, gc_nMaxRow0);
+							res = table.Ref;
+						}
+					}
+				}
+
+				break;
+			}
+			case c_oAscChangeTableStyleInfo.rowTotal:
+			{
+				range = new Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, table.Ref.r2 + 1);
+				if(table.isTotalsRow()) {
+
+					if(checkShift(table.Ref)) {
+						//сдвиг диапазона вверх
+						//в данном случае возвращаем не диапазон лока, а диапазон обновления данных
+						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 - 1, table.Ref.c2, gc_nMaxRow0);
+						res = table.Ref;
+					}
+				} else { // добавляем строку
+					if(checkShift(table.Ref)) {
+						//сдвиг диапазона вниз
+						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, gc_nMaxRow0);
+						res = table.Ref;
+					} else if(!this.model.autoFilters._isEmptyRange(range, 0)){
+						sendError();
+						res = false;
+					}
+				}
+
+				break;
+			}
+		}
+
+		return res ? {updateRange: res, lockRange: lockRange} : res;
     };
 
-    WorksheetView.prototype.af_getRangeForChangeTableInfo = function (tablePart, optionType, val) {
+    WorksheetView.prototype.af_getLockRangeTableInfo = function (tablePart, optionType, val) {
         var res = null;
 
         switch (optionType) {
