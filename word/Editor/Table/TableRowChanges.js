@@ -563,6 +563,7 @@ CChangesTableRowTableHeader.prototype.private_SetValue = function(Value)
 	var oRow = this.Class;
 	oRow.Pr.TableHeader = Value;
 	oRow.Recalc_CompiledPr();
+	oRow.RecalcCopiledPrCells();
 };
 CChangesTableRowTableHeader.prototype.Merge = private_TableRowChangesOnMergePr;
 /**

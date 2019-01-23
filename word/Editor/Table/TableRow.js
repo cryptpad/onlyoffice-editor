@@ -922,6 +922,17 @@ CTableRow.prototype.SetHeader = function(isHeader)
 	History.Add(new CChangesTableRowTableHeader(this, this.Pr.TableHeader, isHeader));
 	this.Pr.TableHeader = isHeader;
 	this.Recalc_CompiledPr();
+	this.RecalcCopiledPrCells();
+};
+/**
+ * Пересчитываем рассчитанные настройки для ячеек
+ */
+CTableRow.prototype.RecalcCopiledPrCells = function()
+{
+	for (var nCurCell = 0, nCellsCount = this.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+	{
+		this.GetCell(nCurCell).Recalc_CompiledPr();
+	}
 };
 
 
