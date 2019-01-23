@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -3117,7 +3117,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		//добавлен специальный тип для функции сT, она использует из области всегда первый аргумент
 		var replaceOnlyArray = cReturnFormulaType.replace_only_array === returnFormulaType;
 
-		if(true === this.bArrayFormula && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes || replaceOnlyArray)) {
+		//bIsSpecialFunction - сделано только для для функции sumproduct
+		//необходимо, чтобы все внутренние функции возвращали массив, те обрабатывались как формулы массива
+
+		if((true === this.bArrayFormula || bIsSpecialFunction) && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes || replaceOnlyArray)) {
 			//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
 			var tempArgs = [], tempArg, firstArray;
 			for (var j = 0; j < argumentsCount; j++) {
@@ -3142,8 +3145,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 				if (cElementType.array === tempArg.type && !(arrayIndexes && arrayIndexes[j])) {
 					//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
-					if (!firstArray || ((1 === firstArray.getRowCount() || 1 === firstArray.getCountElementInRow()) &&
-						1 !== tempArg.getRowCount() && 1 !== tempArg.getCountElementInRow())) {
+					if (!firstArray) {
+						firstArray = tempArg;
+					} else if((1 === firstArray.getRowCount() || 1 === firstArray.getCountElementInRow()) && 1 !== tempArg.getRowCount() && 1 !== tempArg.getCountElementInRow()) {
+						firstArray = tempArg;
+					} else if((1 === firstArray.getRowCount() && 1 === firstArray.getCountElementInRow()) && (1 !== tempArg.getRowCount() || 1 !== tempArg.getCountElementInRow())){
 						firstArray = tempArg;
 					}
 				}
@@ -3192,15 +3198,15 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					if (0 === argumentsCount && parserFormula.ref) {
 						temp_opt_bbox = new Asc.Range(c + parserFormula.ref.c1, r + parserFormula.ref.r1, c + parserFormula.ref.c1, r + parserFormula.ref.r1);
 					}
-					array.addElement(t.Calculate(newArgs, temp_opt_bbox, opt_defName, parserFormula.ws, bIsSpecialFunction));
+					array.addElement(t.Calculate(newArgs, temp_opt_bbox, opt_defName, parserFormula.ws/*, bIsSpecialFunction*/));
 				});
 
 				res = array;
 
 			} else if(replaceOnlyArray && tempArgs && tempArgs.length) {
-				res = this.Calculate(tempArgs, opt_bbox, opt_defName, parserFormula.ws, bIsSpecialFunction);
+				res = this.Calculate(tempArgs, opt_bbox, opt_defName, parserFormula.ws/*, bIsSpecialFunction*/);
 			} else {
-				res = this.Calculate(arg, opt_bbox, opt_defName, parserFormula.ws, bIsSpecialFunction);
+				res = this.Calculate(arg, opt_bbox, opt_defName, parserFormula.ws/*, bIsSpecialFunction*/);
 			}
 		}
 
@@ -6041,7 +6047,7 @@ parserFormula.prototype.setFormula = function(formula) {
 
 					//***array-formula***
 					//если данная функция не может возвращать массив, проходимся по всем элементам аргументов и формируем массив
-					var formulaArray = cBaseFunction.prototype.checkFormulaArray.call(currentElement, arg, opt_bbox, opt_defName, this, bIsSpecialFunction, argumentsCount);/*currentElement.checkFormulaArray ? currentElement.checkFormulaArray(arg, opt_bbox, opt_defName, this, bIsSpecialFunction, argumentsCount) : null*/;
+					var formulaArray = cBaseFunction.prototype.checkFormulaArray.call(currentElement, arg, opt_bbox, opt_defName, this, bIsSpecialFunction, argumentsCount);
 					if(formulaArray) {
 						_tmp = formulaArray;
 					} else {
