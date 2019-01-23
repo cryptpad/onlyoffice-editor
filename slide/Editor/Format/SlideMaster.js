@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -408,6 +408,13 @@ MasterSlide.prototype =
             }
         },
 
+        needRecalc: function(){
+            var recalcInfo = this.recalcInfo;
+            return recalcInfo.recalculateBackground ||
+                recalcInfo.recalculateSpTree ||
+                recalcInfo.recalculateBounds;
+        },
+
         setSlideSize: function (w, h) {
             History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_SlideMasterSetSize, new AscFormat.CDrawingBaseCoordsWritable(this.Width, this.Height), new AscFormat.CDrawingBaseCoordsWritable(w, h)));
             this.Width = w;
@@ -612,16 +619,30 @@ function CMasterThumbnailDrawer()
         }
         var _sx = g.m_oCoordTransform.sx;
         var _sy = g.m_oCoordTransform.sy;
-        if (use_master_shapes !== false) {
-          if (null == _layout) {
-            _master.draw(g);
-          } else {
-            if (_layout.showMasterSp == true || _layout.showMasterSp == undefined) {
-              _master.draw(g);
+
+        if (use_master_shapes !== false)
+        {
+            if (null == _layout)
+            {
+                if(_master.needRecalc && _master.needRecalc())
+                {
+                    _master.recalculate();
+                }
+                _master.draw(g);
             }
-            _layout.recalculate();
-            _layout.draw(g);
-          }
+            else
+            {
+                if (_layout.showMasterSp == true || _layout.showMasterSp == undefined)
+                {
+                    if(_master.needRecalc && _master.needRecalc())
+                    {
+                        _master.recalculate();
+                    }
+                    _master.draw(g);
+                }
+                _layout.recalculate();
+                _layout.draw(g);
+            }
         }
         g.reset();
         g.SetIntegerGrid(true);
