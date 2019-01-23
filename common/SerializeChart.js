@@ -5857,8 +5857,8 @@ BinaryChartReader.prototype.ReadCT_userShape = function(type, length, poResult)
     {
         var oGraphicObject = AscCommon.pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet);
         poResult.setObject(oGraphicObject);
-        oGraphicObject.createTextBody();
-        oGraphicObject.txBody.content.AddText("Test user Shapes");
+        // oGraphicObject.createTextBody();
+        // oGraphicObject.txBody.content.AddText("Test user Shapes");
     }
     else
         res = c_oSerConstants.ReadUnknown;
