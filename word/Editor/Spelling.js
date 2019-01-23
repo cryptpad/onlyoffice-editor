@@ -381,7 +381,7 @@ CParaSpellChecker.prototype =
         {
             if (true === editor.WordControl.m_oLogicDocument.Spelling.Add_WaitingParagraph(this.Paragraph, this.RecalcId, usrWords, usrLang))
             {
-                editor.spellCheck({"type" : "spell", "ParagraphId" : this.ParaId, "RecalcId" : this.RecalcId, "ElementId" : 0, "usrWords" : usrWords, "usrLang" : usrLang });
+                editor.SpellCheckApi.spellCheck({"type" : "spell", "ParagraphId" : this.ParaId, "RecalcId" : this.RecalcId, "ElementId" : 0, "usrWords" : usrWords, "usrLang" : usrLang });
             }
             else
             {
@@ -498,7 +498,7 @@ CParaSpellChecker.prototype =
 
 			if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph))
 			{
-				editor.spellCheck({
+				editor.SpellCheckApi.spellCheck({
 					"type"        : "suggest",
 					"ParagraphId" : this.ParaId,
 					"RecalcId"    : this.RecalcId,

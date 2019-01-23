@@ -1044,7 +1044,7 @@
             };
 
 			this.SpellCheckApi.spellCheck = function (spellData) {
-                window["AscDesktopEditor"]["SpellCheck"](spellData);
+                window["AscDesktopEditor"]["SpellCheck"](JSON.stringify(spellData));
             };
             this.SpellCheckApi.disconnect = function () {
             };
@@ -5581,18 +5581,6 @@ background-repeat: no-repeat;\
             if(_presentation.Slides[_presentation.CurPage] && _presentation.Slides[_presentation.CurPage].notes){
                 _drawing_document.Notes_OnRecalculate(_presentation.CurPage, _presentation.Slides[_presentation.CurPage].NotesWidth, _presentation.Slides[_presentation.CurPage].getNotesHeight());
             }
-        }
-    };
-
-    asc_docs_api.prototype.spellCheck = function(rdata)
-    {
-        // ToDo проверка на подключение
-        switch (rdata.type)
-        {
-            case "spell":
-            case "suggest":
-                this.SpellCheckApi.spellCheck(JSON.stringify(rdata));
-                break;
         }
     };
 
