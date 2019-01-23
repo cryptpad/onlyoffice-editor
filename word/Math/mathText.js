@@ -726,11 +726,15 @@ CMathText.prototype.Measure = function(oMeasure, TextPr, InfoMathText)
             //g_oTextMeasurer.SetTextPr(InfoTextPr.CurrentTextPr, InfoTextPr.Theme);
         }
         else if(InfoMathText.CurrType == MathTextInfo_NormalText)
-        {
-            var FontKoef = InfoMathText.GetFontKoef(this.FontSlot);
+		{
+			letter                    = this.value;
+			this.RecalcInfo.StyleCode = letter;
+			InfoMathText.bApostrophe  = false;
 
-            g_oTextMeasurer.SetFontSlot(this.FontSlot, FontKoef);
-        }
+			var FontKoef = InfoMathText.GetFontKoef(this.FontSlot);
+
+			g_oTextMeasurer.SetFontSlot(this.FontSlot, FontKoef);
+		}
 
         this.RecalcInfo.bApostrophe   = InfoMathText.bApostrophe;
         this.RecalcInfo.bSpaceSpecial = letter == 0x2061;
