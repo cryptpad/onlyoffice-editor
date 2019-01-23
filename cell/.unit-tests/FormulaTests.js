@@ -4384,6 +4384,28 @@ $( function () {
 		ok( oParser.assemble() == "SUMPRODUCT((A101:A105)*((B101:B105)=1))+SUMPRODUCT((A101:A104)*((B101:B104)=1))+SUMPRODUCT((A101:A103)*((B101:B103)=1))" );
 		strictEqual( oParser.calculate().getValue(), 58 );
 
+		oParser = new parserFormula( "SUMPRODUCT(({3})*({TRUE,TRUE,TRUE,TRUE}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT(({3})*({TRUE,TRUE,TRUE,TRUE}))" );
+		strictEqual( oParser.calculate().getValue(), 12 );
+
+		oParser = new parserFormula( "SUMPRODUCT(({3;2;2;2})*({TRUE;TRUE;TRUE;TRUE}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT(({3;2;2;2})*({TRUE;TRUE;TRUE;TRUE}))" );
+		strictEqual( oParser.calculate().getValue(), 9 );
+
+		oParser = new parserFormula( "SUMPRODUCT(--ISNUMBER({5;6;7;1;2;3;4}))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT(--ISNUMBER({5;6;7;1;2;3;4}))" );
+		strictEqual( oParser.calculate().getValue(), 7 );
+
+		oParser = new parserFormula( "SUMPRODUCT(--ISNUMBER(SEARCH({5;6;7;1;2;3;4},123)))", "A2", ws );
+		ok( oParser.parse() );
+		ok( oParser.assemble() == "SUMPRODUCT(--ISNUMBER(SEARCH({5;6;7;1;2;3;4},123)))" );
+		strictEqual( oParser.calculate().getValue(), 3 );
+
+
+
 		testArrayFormula2("SUMPRODUCT", 1, 8, null, true);
     } );
 
