@@ -318,10 +318,58 @@ CShape.prototype.recalculateTxBoxContent = function()
     return oRecalcObj;
 };
 
+
+
+CShape.prototype.recalculatePresentation = function ()
+{
+
+    AscFormat.ExecuteNoHistory(function(){
+
+        if (this.recalcInfo.recalculateBrush) {
+            this.recalculateBrush();
+            this.recalcInfo.recalculateBrush = false;
+        }
+
+        if (this.recalcInfo.recalculatePen) {
+            this.recalculatePen();
+            this.recalcInfo.recalculatePen = false;
+        }
+        if (this.recalcInfo.recalculateTransform) {
+            this.recalculateTransform();
+            this.recalculateSnapArrays();
+            this.recalcInfo.recalculateTransform = false;
+        }
+
+        if (this.recalcInfo.recalculateGeometry) {
+            this.recalculateGeometry();
+            this.recalcInfo.recalculateGeometry = false;
+        }
+
+        if (this.recalcInfo.recalculateContent) {
+            this.recalcInfo.oContentMetrics = this.recalculateContent();
+            this.recalcInfo.recalculateContent = false;
+        }
+        if (this.recalcInfo.recalculateTransformText) {
+            this.recalculateTransformText();
+            this.recalcInfo.recalculateTransformText = false;
+        }
+        if(this.recalcInfo.recalculateBounds)
+        {
+            this.recalculateBounds();
+            this.recalcInfo.recalculateBounds = false;
+        }
+
+    }, this, []);
+};
+
 CShape.prototype.recalculate = function ()
 {
     if(this.bDeleted)
         return;
+    if(!this.bWordShape){
+        this.recalculatePresentation();
+       return;
+    }
     AscFormat.ExecuteNoHistory(function()
     {
         if(this.bWordShape)
@@ -882,7 +930,7 @@ CShape.prototype.OnContentReDraw = function()
 {
     if(!isRealObject(this.group))
     {
-        if(isRealObject(this.parent))
+        if(isRealObject(this.parent) && this.parent.OnContentReDraw)
         {
             this.parent.OnContentReDraw();
         }

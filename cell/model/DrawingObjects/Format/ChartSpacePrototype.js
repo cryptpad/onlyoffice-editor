@@ -147,6 +147,13 @@ CChartSpace.prototype.handleUpdatePosition = function()
     this.recalcBounds();
   //  this.recalcDLbls();
     //this.setRecalculateInfo();
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        {
+            this.userShapes[i].object.handleUpdateExtents();
+        }
+    }
     this.addToRecalculate();
     //delete this.fromSerialize;
 };
@@ -416,6 +423,8 @@ CChartSpace.prototype.recalculate = function()
             this.recalculateTextPr();
             this.recalcInfo.recalculateTextPr = false;
         }
+
+        this.recalculateUserShapes();
        // if(b_transform)
         {
             this.updateChildLabelsTransform(this.transform.tx, this.transform.ty);

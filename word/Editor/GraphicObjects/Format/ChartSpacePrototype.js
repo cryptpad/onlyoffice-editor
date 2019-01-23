@@ -163,6 +163,13 @@ CChartSpace.prototype.handleUpdatePosition = function()
 {
     this.recalcTransform();
     this.recalcBounds();
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        {
+            this.userShapes[i].object.handleUpdateExtents();
+        }
+    }
     this.addToRecalculate();
 };
 CChartSpace.prototype.handleUpdateExtents = function()
@@ -413,6 +420,7 @@ CChartSpace.prototype.recalculate = function()
             this.recalculateWrapPolygon();
             this.recalcInfo.recalculateWrapPolygon = false;
         }
+        this.recalculateUserShapes();
         this.recalcInfo.axisLabels.length = 0;
         this.bNeedUpdatePosition = true;
         if(AscFormat.isRealNumber(this.posX) && AscFormat.isRealNumber(this.posY))

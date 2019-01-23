@@ -266,6 +266,8 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_ParaBookmark]           = AscCommonWord.CParagraphBookmark;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Num]                    = AscCommonWord.CNum;
 		this.m_oFactoryClass[AscDFH.historyitem_type_PresentationField]      = AscCommonWord.CPresentationField;
+		this.m_oFactoryClass[AscDFH.historyitem_type_RelSizeAnchor]      	 = AscFormat.CRelSizeAnchor;
+		this.m_oFactoryClass[AscDFH.historyitem_type_AbsSizeAnchor]      	 = AscFormat.CAbsSizeAnchor;
 
 
 		if (window['AscCommonSlide'])

@@ -247,8 +247,13 @@ CChartSpace.prototype.handleUpdatePosition = function()
 {
     this.recalcTransform();
     this.recalcBounds();
-    //  this.recalcDLbls();
-    //this.setRecalculateInfo();
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        {
+            this.userShapes[i].object.handleUpdateExtents();
+        }
+    }
     this.addToRecalculate();
 };
 CChartSpace.prototype.handleUpdateExtents = function()
@@ -474,8 +479,6 @@ CChartSpace.prototype.recalculate = function()
             this.recalcInfo.recalculateAxisVal = false;
             bCheckLabels = true;
         }
-
-
         if(this.recalcInfo.recalculatePenBrush)
         {
             this.recalculatePenBrush();
@@ -491,11 +494,7 @@ CChartSpace.prototype.recalculate = function()
                 this.checkAxisLabelsTransform();
             }
         }
-
-
-
         this.calculateLabelsPositions(b_recalc_labels, b_recalc_legend);
-
         if(this.recalcInfo.recalculateBounds)
         {
             this.recalculateBounds();
@@ -507,6 +506,8 @@ CChartSpace.prototype.recalculate = function()
             this.recalculateTextPr();
             this.recalcInfo.recalculateTextPr = false;
         }
+
+        this.recalculateUserShapes();
         // if(b_transform)
         {
             this.updateChildLabelsTransform(this.transform.tx, this.transform.ty);

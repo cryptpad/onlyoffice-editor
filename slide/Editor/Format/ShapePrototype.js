@@ -460,6 +460,15 @@ CShape.prototype.getParentObjects = function ()
                     notes: this.parent
                 }
             }
+            case AscDFH.historyitem_type_RelSizeAnchor:
+            case AscDFH.historyitem_type_AbsSizeAnchor:
+            {
+                if(this.parent.parent)
+                {
+                    return this.parent.parent.getParentObjects()
+                }
+                break;
+            }
         }
     }
     return { slide: null, layout: null, master: null, theme: null};

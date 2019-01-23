@@ -2970,7 +2970,39 @@ CShape.prototype.recalculateLocalTransform = function(transform)
     var bNotesShape = false;
     if (!isRealObject(this.group))
     {
-        if(this.drawingBase  && this.fromSerialize)
+        var bUserShape = false;
+        if(this.parent instanceof AscFormat.CRelSizeAnchor || this.parent instanceof AscFormat.CAbsSizeAnchor)
+        {
+            if(this.parent.parent instanceof AscFormat.CChartSpace)
+            {
+                this.x = this.parent.parent.extX * this.parent.fromX;
+                this.y = this.parent.parent.extY * this.parent.fromY;
+                if(this.parent instanceof AscFormat.CRelSizeAnchor)
+                {
+                    this.extX = Math.max(0.0, this.parent.parent.extX * this.parent.toX - this.x);
+                    this.extY = Math.max(0.0, this.parent.parent.extY * this.parent.toY - this.y);
+                }
+                else
+                {
+                    this.extX = Math.max(0.0, this.parent.toX);
+                    this.extY = Math.max(0.0, this.parent.toY);
+                }
+                var rot = 0;
+                if(this.spPr && this.spPr.xfrm){
+                    if(AscFormat.isRealNumber(this.spPr.xfrm.rot)){
+                        rot =  AscFormat.normalizeRotate(this.spPr.xfrm.rot);
+                    }
+                    this.flipH = this.spPr.xfrm.flipH === true;
+                    this.flipV = this.spPr.xfrm.flipV === true;
+                }
+                this.rot = rot;
+                bUserShape = true;
+            }
+        }
+        if(bUserShape)
+        {
+        }
+        else if(this.drawingBase  && this.fromSerialize)
         {
             var metrics = this.drawingBase.getGraphicObjectMetrics();
             this.x = metrics.x;
@@ -3572,6 +3604,19 @@ CShape.prototype.recalculateLocalTransform = function(transform)
     global_MatrixTransformer.TranslateAppend(transform, this.x + hc, this.y + vc);
     if (isRealObject(this.group)) {
         global_MatrixTransformer.MultiplyAppend(transform, this.group.getLocalTransform());
+    }
+    if(this.parent instanceof AscFormat.CRelSizeAnchor || this.parent instanceof AscFormat.CAbsSizeAnchor)
+    {
+        if(this.parent.parent instanceof AscFormat.CChartSpace)
+        {
+            if(this.parent.parent.recalcInfo.recalculateTransform)
+            {
+                this.parent.parent.recalculateTransform();
+                this.parent.parent.rectGeometry.Recalculate(this.parent.parent.extX, this.parent.parent.extY);
+                this.parent.parent.recalcInfo.recalculateTransform = false;
+            }
+            global_MatrixTransformer.MultiplyAppend(transform, this.parent.parent.localTransform);
+        }
     }
     var oParaDrawing = getParaDrawing(this);
     if(oParaDrawing) {
