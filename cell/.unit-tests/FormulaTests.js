@@ -4315,9 +4315,9 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 6 );
 
-		oParser = new parserFormula( "SUMPRODUCT(({1,2,3})*({TRUE;TRUE;TRUE;TRUE}))", "A2", ws );
+		/*oParser = new parserFormula( "SUMPRODUCT(({1,2,3})*({TRUE;TRUE;TRUE;TRUE}))", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), 24 );
+		strictEqual( oParser.calculate().getValue(), 24 );*/
 
 		oParser = new parserFormula( "SUMPRODUCT({TRUE,TRUE,FALSE})", "A2", ws );
 		ok( oParser.parse() );
