@@ -370,7 +370,7 @@ CParaSpellChecker.prototype =
                 editor.WordControl.m_oLogicDocument.Spelling.Add_CurPara( this.ParaId, g_oTableId.Get_ById( this.ParaId ) );
             }
 
-            if ( null === Element.Checked )
+            if ( null === Element.Checked && editor.SpellCheckApi.checkDictionary(this.Elements[Index].Lang) )
             {
                 usrWords.push(this.Elements[Index].Word);
                 usrLang.push(this.Elements[Index].Lang);
@@ -496,7 +496,7 @@ CParaSpellChecker.prototype =
 			Variants = FoundElement.Variants;
 			Checked  = FoundElement.Checked;
 
-			if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph))
+			if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph) && editor.SpellCheckApi.checkDictionary(FoundElement.Lang))
 			{
 				editor.SpellCheckApi.spellCheck({
 					"type"        : "suggest",
