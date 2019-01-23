@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1699,6 +1699,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     this.CheckLanguageOnTextAdd    = false; // Проверять ли язык при добавлении текста в ран
 	this.RemoveCommentsOnPreDelete = true;  // Удалять ли комментарий при удалении объекта
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
+	this.RemoveOnDrag              = false; // Происходит ли удалении на функции drag-n-drop
 
     // Мап для рассылки
     this.MailMergeMap             = null;
@@ -6827,11 +6828,15 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             // Если надо удаляем выделенную часть (пересчет отключаем на время удаления)
             if (true !== bCopy)
             {
+            	this.RemoveOnDrag = true;
+
                 this.TurnOff_Recalculate();
                 this.TurnOff_InterfaceEvents();
-                this.Remove(1, false, false, false);
+                this.Remove(1, false, false, true);
                 this.TurnOn_Recalculate(false);
                 this.TurnOn_InterfaceEvents(false);
+
+				this.RemoveOnDrag = false;
 
                 if (false === Para.Is_UseInDocument())
                 {
