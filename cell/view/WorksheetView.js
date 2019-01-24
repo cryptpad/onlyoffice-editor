@@ -4698,7 +4698,7 @@
 			f = fr[i].format;
 			if (!f.isEqual2(AscCommonExcel.g_oDefaultFormat.Font) || f.va) {
 				fm = getFontMetrics(f, this.stringRender);
-				lm = this.stringRender._calcLineMetrics2(f.fs, f.va, fm);
+				lm = this.stringRender._calcLineMetrics2(f.getSize(), f.va, fm);
 				th = Math.min(this.maxRowHeightPx, Math.max(th, lm.th + 1));
 				if (updateDescender && !f.va) {
 					d = Math.max(d, lm.th - lm.bl);
