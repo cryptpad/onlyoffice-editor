@@ -15449,9 +15449,9 @@
 	var c_nPortionLeftHeader = 0;
 	var c_nPortionCenterHeader = 1;
 	var c_nPortionRightHeader = 2;
-	var c_nPortionLeftFooter = 0;
-	var c_nPortionCenterFooter = 1;
-	var c_nPortionRightFooter = 2;
+	var c_nPortionLeftFooter = 3;
+	var c_nPortionCenterFooter = 4;
+	var c_nPortionRightFooter = 5;
 
 	HeaderFooterParser.prototype.parse = function (date) {
 		var c_nText = 0, c_nToken = 1, c_nFontName = 2, c_nFontStyle = 3, c_nFontHeight = 4;
@@ -16183,9 +16183,9 @@
 			this.sections[pageHeaderType] = [];
 
 			//создаём секции, если они уже не созданы
-			this.sections[pageHeaderType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionLeft, this.canvas[c_nPortionLeft]);
-			this.sections[pageHeaderType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionCenter, this.canvas[c_nPortionCenter]);
-			this.sections[pageHeaderType][c_nPortionRight] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionRight, this.canvas[c_nPortionRight]);
+			this.sections[pageHeaderType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionLeftHeader, this.canvas[c_nPortionLeftHeader]);
+			this.sections[pageHeaderType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionCenterHeader, this.canvas[c_nPortionCenterHeader]);
+			this.sections[pageHeaderType][c_nPortionRight] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionRightHeader, this.canvas[c_nPortionRightHeader]);
 
 			//получаем из модели необходимый нам элемент
 			curPageHF = this.getCurPageHF(pageHeaderType);
@@ -16215,9 +16215,9 @@
 			this.sections[pageFooterType] = [];
 
 			//создаём секции, если они уже не созданы
-			this.sections[pageFooterType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionLeft, this.canvas[c_nPortionLeft]);
-			this.sections[pageFooterType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionCenter, this.canvas[c_nPortionCenter]);
-			this.sections[pageFooterType][c_nPortionRight] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionRight, this.canvas[c_nPortionRight]);
+			this.sections[pageFooterType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionLeftFooter, this.canvas[c_nPortionLeftFooter]);
+			this.sections[pageFooterType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionCenterFooter, this.canvas[c_nPortionCenterFooter]);
+			this.sections[pageFooterType][c_nPortionRight] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionRightFooter, this.canvas[c_nPortionRightFooter]);
 
 			//получаем из модели необходимый нам элемент
 			curPageHF = this.getCurPageHF(pageFooterType);
