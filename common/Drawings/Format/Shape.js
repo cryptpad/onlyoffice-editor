@@ -5275,7 +5275,11 @@ CShape.prototype.hitInInnerArea = function (x, y) {
         var y_t = invert_transform.TransformPointY(x, y);
         if (isRealObject(this.spPr) && isRealObject(this.spPr.geometry) && this.spPr.geometry.pathLst.length > 0 && !(this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_ChartSpace))
             return this.spPr.geometry.hitInInnerArea(this.getCanvasContext(), x_t, y_t);
-        return false;// x_t > 0 && x_t < this.extX && y_t > 0 && y_t < this.extY;
+        if(this.getObjectType() === AscDFH.historyitem_type_Shape)
+        {
+            return false;
+        }
+        return x_t > 0 && x_t < this.extX && y_t > 0 && y_t < this.extY;
     }
     return false;
 };
