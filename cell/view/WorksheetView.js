@@ -2398,7 +2398,7 @@
 			//добавляю флаги для учета переноса строки
 			var cellFlags = new AscCommonExcel.CellFlags();
 			cellFlags.wrapText = true;
-			cellFlags.textAlign = index === c_nPortionCenter ? AscCommon.align_Center : index === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
+			cellFlags.textAlign = CHeaderFooterEditorSection.prototype.getAlign.call(null, index);
 			var fragments = getFragments(portion);
 			t.stringRender.setString(fragments, cellFlags);
 
@@ -2425,6 +2425,9 @@
 			t.stringRender.render(drawingCtx, x, y, textMetrics.width, t.settings.activeCellBorderColor);
 		};
 
+		//добавил аналогично другим отрисовка.
+		//без этого отсутвует drawingCtx.DocumentRenderer.m_arrayPages[0].FontPicker.LastPickFont
+		this._setDefaultFont(drawingCtx);
 		for(var i = 0; i < headerFooterParser.portions.length; i++) {
 			drawPortion(i);
 		}
@@ -16028,7 +16031,7 @@
 		var ws = window["Asc"]["editor"].wb.getWorksheet();
 		var cellFlags = new AscCommonExcel.CellFlags();
 		cellFlags.wrapText = true;
-		cellFlags.textAlign = this.portion === c_nPortionCenter ? AscCommon.align_Center : this.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
+		cellFlags.textAlign = this.getAlign();
 
 
 		var cellEditorWidth = width - 2 * wb.defaults.worksheetView.cells.padding + 1;
@@ -16045,6 +16048,17 @@
 		var curElem = this.getElem();
 		var editorElem = document.getElementById(editorElemId);
 		curElem.appendChild(editorElem);
+	};
+	CHeaderFooterEditorSection.prototype.getAlign = function (portion) {
+		portion = undefined !== portion ? portion : this.portion;
+
+		var res = AscCommon.align_Left;
+		if(portion === c_nPortionCenterHeader || portion === c_nPortionCenterFooter) {
+			res = AscCommon.align_Center;
+		} else if(portion === c_nPortionRightHeader || portion === c_nPortionRightFooter) {
+			res = AscCommon.align_Right;
+		}
+		return res;
 	};
 
 
@@ -16092,7 +16106,7 @@
 		window.Asc.g_header_footer_editor = this;
 
 		this.parentWidth = width;
-		this.pageHFType = undefined === pageHFType ? asc.c_oAscPageHFType.oddHeader : pageHFType;
+		this.pageHFType = undefined === pageHFType ? asc.c_oAscHeaderFooterType.odd : pageHFType;//odd, even, first
 		this.canvas = [];
 		this.sections = [];
 
@@ -16154,10 +16168,9 @@
 		this.createAndDrawSections();
 	};
 
-	CHeaderFooterEditor.prototype.createAndDrawSections = function(pageHeaderType) {
-		if(undefined === pageHeaderType) {
-			pageHeaderType = this.pageHFType;
-		}
+	CHeaderFooterEditor.prototype.createAndDrawSections = function(pageCommonType) {
+		var pageHeaderType = this._getHeaderFooterType(pageCommonType);
+		var pageFooterType = this._getHeaderFooterType(pageCommonType, true);
 
 		var getFragments = function(textPropsArr) {
 			if(!textPropsArr) {
@@ -16209,7 +16222,6 @@
 			}
 		}
 
-		var pageFooterType = this._getFooterType(pageHeaderType);
 		//footer
 		if(!this.sections[pageFooterType]) {
 			this.sections[pageFooterType] = [];
@@ -16251,13 +16263,13 @@
 		this.sections[pageFooterType][c_nPortionRight].drawText();
 	};
 
-	CHeaderFooterEditor.prototype._getFooterType = function(headerType) {
-		var res = asc.c_oAscPageHFType.oddFooter;
+	CHeaderFooterEditor.prototype._getHeaderFooterType = function(type, bFooter) {
+		var res = bFooter ? asc.c_oAscPageHFType.oddFooter : asc.c_oAscPageHFType.oddHeader;
 
-		if(headerType === asc.c_oAscPageHFType.firstHeader) {
-			res = asc.c_oAscPageHFType.firstFooter;
-		} else if (headerType === asc.c_oAscPageHFType.evenHeader) {
-			res = asc.c_oAscPageHFType.evenFooter;
+		if(type === asc.c_oAscHeaderFooterType.first) {
+			res = bFooter ? asc.c_oAscPageHFType.firstFooter : asc.c_oAscPageHFType.firstHeader;
+		} else if (type === asc.c_oAscHeaderFooterType.even) {
+			res = bFooter ? asc.c_oAscPageHFType.evenFooter : asc.c_oAscPageHFType.evenFooter;
 		}
 
 		return res;
@@ -16301,18 +16313,19 @@
 
 	CHeaderFooterEditor.prototype.getSectionById = function (id) {
 		var res = null;
-		if(this.sections && this.sections[this.pageHFType]) {
-			for(var i = 0; i < this.sections[this.pageHFType].length; i++) {
-				if(id === this.sections[this.pageHFType][i].canvasObj.idParent) {
-					return this.sections[this.pageHFType][i];
+		var type = this._getHeaderFooterType(this.pageHFType);
+		if(this.sections && this.sections[type]) {
+			for(var i = 0; i < this.sections[type].length; i++) {
+				if(id === this.sections[type][i].canvasObj.idParent) {
+					return this.sections[type][i];
 				}
 			}
 		}
-		var pageFooterType = this._getFooterType(this.pageHFType);
-		if(this.sections && this.sections[pageFooterType]) {
-			for(var i = 0; i < this.sections[pageFooterType].length; i++) {
-				if(id === this.sections[pageFooterType][i].canvasObj.idParent) {
-					return this.sections[pageFooterType][i];
+		type = this._getHeaderFooterType(this.pageHFType, true);
+		if(this.sections && this.sections[type]) {
+			for(var i = 0; i < this.sections[type].length; i++) {
+				if(id === this.sections[type][i].canvasObj.idParent) {
+					return this.sections[type][i];
 				}
 			}
 		}
@@ -16446,7 +16459,7 @@
 		curSection.changed = true;
 		var flags = new window["AscCommonExcel"].CellFlags();
 		flags.wrapText = true;
-		flags.textAlign = curSection.portion === c_nPortionCenter ? AscCommon.align_Center : curSection.portion === c_nPortionRight ? AscCommon.align_Right : AscCommon.align_Left;
+		flags.textAlign = curSection.getAlign();
 
 
 		var options = {

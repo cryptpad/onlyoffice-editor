@@ -412,6 +412,11 @@ var c_oAscPopUpSelectorType = {
       evenFooter: 5
   };
 
+	var c_oAscHeaderFooterType = {
+		first: 0,
+		odd: 1,
+		even: 2
+	};
 
 
   var c_kMaxPrintPages = 1500;
@@ -642,5 +647,11 @@ var c_oAscPopUpSelectorType = {
   prot['firstFooter'] = prot.firstFooter;
   prot['oddFooter'] = prot.oddFooter;
   prot['evenFooter'] = prot.evenFooter;
+
+  window['Asc']['c_oAscHeaderFooterType'] = window['Asc'].c_oAscHeaderFooterType = c_oAscHeaderFooterType;
+  prot = c_oAscHeaderFooterType;
+  prot['first'] = prot.first;
+  prot['odd'] = prot.odd;
+  prot['even'] = prot.even;
 
 })(window);
