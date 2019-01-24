@@ -15446,6 +15446,13 @@
 	var c_nPortionCenter = 1;
 	var c_nPortionRight = 2;
 
+	var c_nPortionLeftHeader = 0;
+	var c_nPortionCenterHeader = 1;
+	var c_nPortionRightHeader = 2;
+	var c_nPortionLeftFooter = 0;
+	var c_nPortionCenterFooter = 1;
+	var c_nPortionRightFooter = 2;
+
 	HeaderFooterParser.prototype.parse = function (date) {
 		var c_nText = 0, c_nToken = 1, c_nFontName = 2, c_nFontStyle = 3, c_nFontHeight = 4;
 
@@ -16081,7 +16088,7 @@
 	}
 
 	window.Asc.g_header_footer_editor = null;
-	function CHeaderFooterEditor(idLeft, idCenter, idRight, width, pageHFType) {
+	function CHeaderFooterEditor(idArr, width, pageHFType) {
 		window.Asc.g_header_footer_editor = this;
 
 		this.parentWidth = width;
@@ -16098,10 +16105,10 @@
 		this.api = window["Asc"]["editor"];
 		this.wb = this.api.wb;
 
-		this.init(idLeft, idCenter, idRight);
+		this.init(idArr);
 	}
 
-	CHeaderFooterEditor.prototype.init = function (idLeft, idCenter, idRight) {
+	CHeaderFooterEditor.prototype.init = function (idArr) {
 		//создаем 3 канвы(+ добавляем их в дом структуру внутрь элемента от меню) + 3 drawingCtx, необходимые для отрисовки 3 поля
 		//делается это только 1 раз при инициализации класса
 		//потом эти 3 канвы используются для отрисовки всех first/odd/even
@@ -16123,9 +16130,14 @@
 			});
 			return obj;
 		};
-		this.canvas[c_nPortionLeft] = createAndPushCanvasObj(idLeft);
-		this.canvas[c_nPortionCenter] = createAndPushCanvasObj(idCenter);
-		this.canvas[c_nPortionRight] = createAndPushCanvasObj(idRight);
+
+
+		this.canvas[c_nPortionLeftHeader] = createAndPushCanvasObj(idArr[0]);
+		this.canvas[c_nPortionCenterHeader] = createAndPushCanvasObj(idArr[1]);
+		this.canvas[c_nPortionRightHeader] = createAndPushCanvasObj(idArr[2]);
+		this.canvas[c_nPortionLeftFooter] = createAndPushCanvasObj(idArr[3]);
+		this.canvas[c_nPortionCenterFooter] = createAndPushCanvasObj(idArr[4]);
+		this.canvas[c_nPortionRightFooter] = createAndPushCanvasObj(idArr[5]);
 
 
 		//далее создаем классы, где будем хранить fragments всех типов колонтитулов + выполнять отрисовку
@@ -16142,9 +16154,9 @@
 		this.createAndDrawSections();
 	};
 
-	CHeaderFooterEditor.prototype.createAndDrawSections = function(pageHFType) {
-		if(undefined === pageHFType) {
-			pageHFType = this.pageHFType;
+	CHeaderFooterEditor.prototype.createAndDrawSections = function(pageHeaderType) {
+		if(undefined === pageHeaderType) {
+			pageHeaderType = this.pageHFType;
 		}
 
 		var getFragments = function(textPropsArr) {
@@ -16165,40 +16177,90 @@
 			return res;
 		};
 
-		if(!this.sections[pageHFType]) {
-			this.sections[pageHFType] = [];
+		//header
+		var curPageHF, parser, leftFragments, centerFragments, rightFragments;
+		if(!this.sections[pageHeaderType]) {
+			this.sections[pageHeaderType] = [];
 
 			//создаём секции, если они уже не созданы
-			this.sections[pageHFType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageHFType, c_nPortionLeft, this.canvas[c_nPortionLeft]);
-			this.sections[pageHFType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageHFType, c_nPortionCenter, this.canvas[c_nPortionCenter]);
-			this.sections[pageHFType][c_nPortionRight] = new CHeaderFooterEditorSection(pageHFType, c_nPortionRight, this.canvas[c_nPortionRight]);
+			this.sections[pageHeaderType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionLeft, this.canvas[c_nPortionLeft]);
+			this.sections[pageHeaderType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionCenter, this.canvas[c_nPortionCenter]);
+			this.sections[pageHeaderType][c_nPortionRight] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionRight, this.canvas[c_nPortionRight]);
 
 			//получаем из модели необходимый нам элемент
-			var curPageHF = this.getCurPageHF(pageHFType);
+			curPageHF = this.getCurPageHF(pageHeaderType);
 			if(curPageHF && curPageHF.str) {
 				if(!curPageHF.parser) {
 					curPageHF.parse();
 				}
-				var parser = curPageHF.parser.portions;
-				var leftFragments = getFragments(parser[0]);
+				parser = curPageHF.parser.portions;
+				leftFragments = getFragments(parser[0]);
 				if(null !== leftFragments) {
-					this.sections[pageHFType][c_nPortionLeft].fragments = leftFragments;
+					this.sections[pageHeaderType][c_nPortionLeft].fragments = leftFragments;
 				}
-				var centerFragments = getFragments(parser[1]);
+				centerFragments = getFragments(parser[1]);
 				if(null !== centerFragments) {
-					this.sections[pageHFType][c_nPortionCenter].fragments = centerFragments;
+					this.sections[pageHeaderType][c_nPortionCenter].fragments = centerFragments;
 				}
-				var rightFragments = getFragments(parser[2]);
+				rightFragments = getFragments(parser[2]);
 				if(null !== rightFragments) {
-					this.sections[pageHFType][c_nPortionRight].fragments = rightFragments;
+					this.sections[pageHeaderType][c_nPortionRight].fragments = rightFragments;
 				}
 			}
 		}
 
+		var pageFooterType = this._getFooterType(pageHeaderType);
+		//footer
+		if(!this.sections[pageFooterType]) {
+			this.sections[pageFooterType] = [];
+
+			//создаём секции, если они уже не созданы
+			this.sections[pageFooterType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionLeft, this.canvas[c_nPortionLeft]);
+			this.sections[pageFooterType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionCenter, this.canvas[c_nPortionCenter]);
+			this.sections[pageFooterType][c_nPortionRight] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionRight, this.canvas[c_nPortionRight]);
+
+			//получаем из модели необходимый нам элемент
+			curPageHF = this.getCurPageHF(pageFooterType);
+			if(curPageHF && curPageHF.str) {
+				if(!curPageHF.parser) {
+					curPageHF.parse();
+				}
+				parser = curPageHF.parser.portions;
+				leftFragments = getFragments(parser[0]);
+				if(null !== leftFragments) {
+					this.sections[pageFooterType][c_nPortionLeft].fragments = leftFragments;
+				}
+				centerFragments = getFragments(parser[1]);
+				if(null !== centerFragments) {
+					this.sections[pageFooterType][c_nPortionCenter].fragments = centerFragments;
+				}
+				rightFragments = getFragments(parser[2]);
+				if(null !== rightFragments) {
+					this.sections[pageFooterType][c_nPortionRight].fragments = rightFragments;
+				}
+			}
+		}
+
+
 		//DRAW AFTER OPEN MENU
-		this.sections[pageHFType][c_nPortionLeft].drawText();
-		this.sections[pageHFType][c_nPortionCenter].drawText();
-		this.sections[pageHFType][c_nPortionRight].drawText();
+		this.sections[pageHeaderType][c_nPortionLeft].drawText();
+		this.sections[pageHeaderType][c_nPortionCenter].drawText();
+		this.sections[pageHeaderType][c_nPortionRight].drawText();
+		this.sections[pageFooterType][c_nPortionLeft].drawText();
+		this.sections[pageFooterType][c_nPortionCenter].drawText();
+		this.sections[pageFooterType][c_nPortionRight].drawText();
+	};
+
+	CHeaderFooterEditor.prototype._getFooterType = function(headerType) {
+		var res = asc.c_oAscPageHFType.oddFooter;
+
+		if(headerType === asc.c_oAscPageHFType.firstHeader) {
+			res = asc.c_oAscPageHFType.firstFooter;
+		} else if (headerType === asc.c_oAscPageHFType.evenHeader) {
+			res = asc.c_oAscPageHFType.evenFooter;
+		}
+
+		return res;
 	};
 
 	CHeaderFooterEditor.prototype.getCurPageHF = function (type) {
@@ -16243,6 +16305,14 @@
 			for(var i = 0; i < this.sections[this.pageHFType].length; i++) {
 				if(id === this.sections[this.pageHFType][i].canvasObj.idParent) {
 					return this.sections[this.pageHFType][i];
+				}
+			}
+		}
+		var pageFooterType = this._getFooterType(this.pageHFType);
+		if(this.sections && this.sections[pageFooterType]) {
+			for(var i = 0; i < this.sections[pageFooterType].length; i++) {
+				if(id === this.sections[pageFooterType][i].canvasObj.idParent) {
+					return this.sections[pageFooterType][i];
 				}
 			}
 		}
