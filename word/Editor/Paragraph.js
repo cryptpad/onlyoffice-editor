@@ -605,7 +605,7 @@ Paragraph.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, C
 	{
 		// Эти значения нужны для правильного рассчета положения картинок, смотри баг #34392
 		var Ranges = this.Parent.CheckRange(X, Y, XLimit, Y, Y, Y, X, XLimit, this.PageNum, true);
-		if (Ranges.length > 0 && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14)
+		if (Ranges.length > 0 && this.bFromDocument && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14)
 		{
 			if (Math.abs(Ranges[0].X0 - X) < 0.001)
 				this.X_ColumnStart = Ranges[0].X1;
@@ -10877,7 +10877,7 @@ Paragraph.prototype.Continue = function(NewParagraph)
 		// 2. Стиль сноски не продолжаем
 		TextPr.HighLight = highlight_None;
 
-		if (this.LogicDocument && TextPr.RStyle === this.LogicDocument.GetStyles().GetDefaultFootnoteReference())
+		if (this.bFromDocument && this.LogicDocument && TextPr.RStyle === this.LogicDocument.GetStyles().GetDefaultFootnoteReference())
 			TextPr.RStyle = undefined;
 	}
 
