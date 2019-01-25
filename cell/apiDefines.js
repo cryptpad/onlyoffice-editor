@@ -418,15 +418,24 @@ var c_oAscPopUpSelectorType = {
       even: 2
   };
 
-
   var c_oAscHeaderFooterPresets = {
       none: 0,
       page: 1,
-	  pageOfQuestion: 2,
-      sheet: 2,
-	  confidential: 3,
-      book: 4,
-      bookPath: 5
+      pageOfQuestion: 2,
+      sheet: 3,
+      confidential: 4,
+      bookName: 5,
+      //bookPath: 5
+      sheetPage: 6,
+      sheetConfidentialPage: 7,
+      bookNamePage: 8,
+      pageSheet: 9,
+      pageBook: 10,
+      //bookPathPage: 11;
+      pageBookName: 11,
+      userPageDate: 12,
+      //bookPathPagePathFile: 12;
+      preparedUserDatePage: 13
   };
 
 
@@ -664,5 +673,22 @@ var c_oAscPopUpSelectorType = {
   prot['first'] = prot.first;
   prot['odd'] = prot.odd;
   prot['even'] = prot.even;
+
+  window['Asc']['c_oAscHeaderFooterType'] = window['Asc'].c_oAscHeaderFooterType = c_oAscHeaderFooterType;
+  prot = c_oAscHeaderFooterType;
+  prot['none'] = prot.none;
+  prot['page'] = prot.page;
+  prot['pageOfQuestion'] = prot.pageOfQuestion;
+  prot['sheet'] = prot.sheet;
+  prot['confidential'] = prot.confidential;
+  prot['bookName'] = prot.bookName;
+  prot['sheetPage'] = prot.sheetPage;
+  prot['sheetConfidentialPage'] = prot.sheetConfidentialPage;
+  prot['bookNamePage'] = prot.bookNamePage;
+  prot['pageSheet'] = prot.pageSheet;
+  prot['pageBook'] = prot.pageBook;
+  prot['pageBookName'] = prot.pageBookName;
+  prot['userPageDate'] = prot.userPageDate;
+  prot['preparedUserDatePage'] = prot.preparedUserDatePage;
 
 })(window);

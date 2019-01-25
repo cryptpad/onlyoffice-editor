@@ -16841,29 +16841,36 @@
 		var ws = wb.getWorksheet();
 		var arrPresets = [];
 
+		//TODO продумать переводы!
+
+		var userInfo = window["Asc"]["editor"].DocInfo ? window["Asc"]["editor"].DocInfo.get_UserInfo() : null;
+		var userName = userInfo ? userInfo.get_FullName() : "";
+
+		//TODO ? Book1
+
 		arrPresets[0] = [null, null, null];
 		arrPresets[1] = [null, "Page &[Page]", null];
 		arrPresets[2] = [null, "Page &[Page] of &[Pages]", null];
 		arrPresets[3] = [null, "&[Tab]", null];
 		arrPresets[4] = ["Confidential", "&[Date]", "Page &[Page]"];
 		arrPresets[5] = [null, "&[File]", null];
-		arrPresets[6] = [null, "&[Path]&[File]", null];
-		arrPresets[7] = [null, "&[Tab]", "Page &[Page]"];
-		arrPresets[8] = ["&[Tab]", "Confidential","Page &[Page]"];
-		arrPresets[9] = [null,"&[File]","Page &[Page]"];
-		arrPresets[10] = [null,"&[Path]&[File]","Page &[Page]"];
-		arrPresets[11] = [null,"Page &[Page]","&[Tab]"];
-		arrPresets[12] = [null,"Page &[Page]","Book1"];
-		arrPresets[13] = [null,"Page &[Page]","&[File]"];
-		arrPresets[14] = [null,"Page &[Page]","&[Path]&[File]"];
-		arrPresets[15] = ["Igor Zotov","Page &[Page]","&[Date]"];
-		arrPresets[16] = [null,"Prepared by Igor Zotov &[Date]","Page &[Page]"];
+		//arrPresets[6] = [null, "&[Path]&[File]", null];
+		arrPresets[6] = [null, "&[Tab]", "Page &[Page]"];
+		arrPresets[7] = ["&[Tab]", "Confidential","Page &[Page]"];
+		arrPresets[8] = [null,"&[File]","Page &[Page]"];
+		//arrPresets[10] = [null,"&[Path]&[File]","Page &[Page]"];
+		arrPresets[9] = [null,"Page &[Page]","&[Tab]"];
+		arrPresets[10] = [null,"Page &[Page]","Book1"];
+		arrPresets[11] = [null,"Page &[Page]","&[File]"];
+		//arrPresets[12] = [null,"Page &[Page]","&[Path]&[File]"];
+		arrPresets[12] = [userName,"Page &[Page]","&[Date]"];
+		arrPresets[13] = [null,"Prepared by " + userName + " &[Date]","Page &[Page]"];
 
 		var getFragmentText = function(val) {
 			if ( asc_typeof(val) === "string" ){
 				return val;
 			} else {
-				return val.getText(ws, 1, 1);
+				return val.getText(ws, 0, 1);
 			}
 		};
 
@@ -16884,14 +16891,22 @@
 
 		var textPresetsArr = [];
 		for(var i = 0; i < arrPresets.length; i++) {
+			if(!arrPresets[i]) {
+				continue;
+			}
 			textPresetsArr[i] = "";
 			for(var j = 0; j < arrPresets[i].length; j++) {
 				if(arrPresets[i][j]) {
 					var fragments = this.convertFragments([getFragments(arrPresets[i][j])]);
+					if("" !== textPresetsArr[i]) {
+						textPresetsArr[i] += ", ";
+					}
 					textPresetsArr[i] += getFragmentsText(fragments);
 				}
 			}
-
+			if("" === textPresetsArr[i]) {
+				textPresetsArr[i] = "None";
+			}
 		}
 
 		return textPresetsArr;
