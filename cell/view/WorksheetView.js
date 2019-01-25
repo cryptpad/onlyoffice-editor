@@ -14516,7 +14516,7 @@
 
                 var res;
 				var range;
-                if (type === c_oAscInsertOptions.DeleteCellsAndShiftLeft) {
+                if (type === c_oAscDeleteOptions.DeleteCellsAndShiftLeft) {
 					range = t.model.getRange3(arn.r1, arn.c1, arn.r2, arn.c2);
                     res = range.deleteCellsShiftLeft(preDeleteAction);
                 } else {
@@ -14533,8 +14533,8 @@
                 History.EndTransaction();
             };
 
-			var r2 = type === c_oAscInsertOptions.DeleteCellsAndShiftLeft ? tablePart.Ref.r2 : gc_nMaxRow0;
-			var c2 = type !== c_oAscInsertOptions.DeleteCellsAndShiftLeft ? tablePart.Ref.c2 : gc_nMaxCol0;
+			var r2 = type === c_oAscDeleteOptions.DeleteCellsAndShiftLeft ? tablePart.Ref.r2 : gc_nMaxRow0;
+			var c2 = type !== c_oAscDeleteOptions.DeleteCellsAndShiftLeft ? tablePart.Ref.c2 : gc_nMaxCol0;
 			var changedRange = new asc_Range(tablePart.Ref.c1, tablePart.Ref.r1, c2, r2);
             t._isLockedCells(changedRange, null, callback);
         };
