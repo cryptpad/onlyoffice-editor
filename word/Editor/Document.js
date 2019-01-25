@@ -7465,8 +7465,6 @@ CDocument.prototype.OnKeyDown = function(e)
         }
         else
 		{
-
-
 			var oSelectedInfo = this.GetSelectedElementsInfo();
 			var CheckType = ( e.ShiftKey || e.CtrlKey ? changestype_Paragraph_Content : AscCommon.changestype_Document_Content_Add );
 

@@ -6783,7 +6783,7 @@ Paragraph.prototype.CheckPosInSelection = function(X, Y, CurPage, NearPos)
 		if (CurPage < 0 || CurPage >= this.Pages.length || true != this.Selection.Use)
 			return false;
 
-		var SearchPosXY = this.Get_ParaContentPosByXY(X, Y, CurPage, false, false, false);
+		var SearchPosXY = this.Get_ParaContentPosByXY(X, Y, CurPage, false, true, false);
 
 		if (true === SearchPosXY.InTextX)
 		{
@@ -7529,7 +7529,7 @@ Paragraph.prototype.IsInText = function(X, Y, CurPage)
 	if (CurPage < 0 || CurPage >= this.Pages.length)
 		return null;
 
-	var SearchPosXY = this.Get_ParaContentPosByXY(X, Y, CurPage, false, false);
+	var SearchPosXY = this.Get_ParaContentPosByXY(X, Y, CurPage, false, true);
 	if (true === SearchPosXY.InText)
 		return this;
 
