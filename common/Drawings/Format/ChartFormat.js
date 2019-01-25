@@ -3472,11 +3472,17 @@ CAreaSeries.prototype =
             }
             if(this.tx.strRef
                 && this.tx.strRef.strCache
-                && this.tx.strRef.strCache.pts.length > 0
-                && this.tx.strRef.strCache.pts[0]
-                && typeof this.tx.strRef.strCache.pts[0].val === "string")
+                &&  AscFormat.isRealNumber(this.tx.strRef.strCache.ptCount)
+                    && this.tx.strRef.strCache.ptCount > 0)
+
             {
-                return this.tx.strRef.strCache.pts[0].val;
+                if(this.tx.strRef.strCache.pts.length > 0
+                    && this.tx.strRef.strCache.pts[0]
+                    && typeof this.tx.strRef.strCache.pts[0].val === "string")
+                {
+                    return this.tx.strRef.strCache.pts[0].val;
+                }
+                return "";
             }
         }
         return AscCommon.translateManager.getValue('Series') + " " + (this.idx + 1);
