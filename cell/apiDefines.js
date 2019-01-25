@@ -412,11 +412,22 @@ var c_oAscPopUpSelectorType = {
       evenFooter: 5
   };
 
-	var c_oAscHeaderFooterType = {
-		first: 0,
-		odd: 1,
-		even: 2
-	};
+  var c_oAscHeaderFooterType = {
+      first: 0,
+      odd: 1,
+      even: 2
+  };
+
+
+  var c_oAscHeaderFooterPresets = {
+      none: 0,
+      page: 1,
+	  pageOfQuestion: 2,
+      sheet: 2,
+	  confidential: 3,
+      book: 4,
+      bookPath: 5
+  };
 
 
   var c_kMaxPrintPages = 1500;
