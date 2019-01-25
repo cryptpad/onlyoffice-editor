@@ -4942,7 +4942,7 @@ BinaryChartWriter.prototype.WriteCT_PlotArea = function (oVal, oChart) {
             });
         }
         else if (chart instanceof AscFormat.CPieChart) {
-            if(!oChart.view3D) {
+            if(!oChart.view3D && !chart.b3D) {
                 this.bs.WriteItem(c_oserct_plotareaPIECHART, function () {
                     oThis.WriteCT_PieChart(chart);
                 });
@@ -10768,8 +10768,9 @@ BinaryChartReader.prototype.ReadCT_PlotArea = function (type, length, val, oIdTo
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_Pie3DChart(t, l, oNewVal, aChartWithAxis);
         });
+        oNewVal.set3D(true);
         //3d->2d
-        oNewVal.setFirstSliceAng(0);
+       // oNewVal.setFirstSliceAng(0);
         val.addChart(oNewVal);
     }
     else if (c_oserct_plotareaPIECHART === type) {

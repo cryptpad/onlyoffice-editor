@@ -9766,7 +9766,6 @@ CChartSpace.prototype.hitInTextRect = function()
                         }
                         case AscDFH.historyitem_type_LineSeries:
                         case AscDFH.historyitem_type_ScatterSer:
-                        case AscDFH.historyitem_type_SurfaceSeries:
                         {
                             if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this))
                             {

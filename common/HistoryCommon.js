@@ -2102,6 +2102,7 @@
 	window['AscDFH'].historyitem_PieChart_SetFirstSliceAng = window['AscDFH'].historyitem_type_PieChart | 2;
 	window['AscDFH'].historyitem_PieChart_AddSer           = window['AscDFH'].historyitem_type_PieChart | 3;
 	window['AscDFH'].historyitem_PieChart_SetVaryColors    = window['AscDFH'].historyitem_type_PieChart | 4;
+	window['AscDFH'].historyitem_PieChart_3D               = window['AscDFH'].historyitem_type_PieChart | 5;
 
 	window['AscDFH'].historyitem_RadarChart_AddAxId       = window['AscDFH'].historyitem_type_RadarChart | 1;
 	window['AscDFH'].historyitem_RadarChart_SetDLbls      = window['AscDFH'].historyitem_type_RadarChart | 2;

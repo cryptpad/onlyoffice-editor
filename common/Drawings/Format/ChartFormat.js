@@ -322,6 +322,7 @@ function (window, undefined) {
     drawingsChangesMap[AscDFH.historyitem_PieChart_SetDLbls]                  = function(oClass, value){oClass.dLbls          = value;};
     drawingsChangesMap[AscDFH.historyitem_PieChart_SetFirstSliceAng]          = function(oClass, value){oClass.firstSliceAng  = value;};
     drawingsChangesMap[AscDFH.historyitem_PieChart_SetVaryColors]             = function(oClass, value){oClass.varyColors = value;};
+    drawingsChangesMap[AscDFH.historyitem_PieChart_3D]                        = function(oClass, value){oClass.b3D = value;};
     drawingsChangesMap[AscDFH.historyitem_PieSeries_SetCat]                   = function(oClass, value){oClass.cat       = value;};
     drawingsChangesMap[AscDFH.historyitem_PieSeries_SetDLbls]                 = function(oClass, value){oClass.dLbls     = value;};
     drawingsChangesMap[AscDFH.historyitem_PieSeries_SetExplosion]             = function(oClass, value){oClass.explosion = value;};
@@ -481,6 +482,7 @@ function (window, undefined) {
     AscDFH.changesFactory[AscDFH.historyitem_NumFmt_SetSourceLinked          ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_OfPieChart_SetVaryColors        ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_PieChart_SetVaryColors          ] = window['AscDFH'].CChangesDrawingsBool;
+    AscDFH.changesFactory[AscDFH.historyitem_PieChart_3D                     ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_RadarChart_SetVaryColors        ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_ScatterChart_SetVaryColors      ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_ScatterSer_SetSmooth            ] = window['AscDFH'].CChangesDrawingsBool;
@@ -9655,6 +9657,8 @@ function CPieChart()
     this.parent = null;
 
 
+    this.b3D = null;
+
     this.m_oSeriesContentChanges =  new AscCommon.CContentChanges();
 
     this.Id = g_oIdCounter.Get_NewId();
@@ -9668,6 +9672,11 @@ CPieChart.prototype =
         return this.Id;
     },
 
+    set3D: function(pr)
+    {
+        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_PieChart_3D, this.b3D, pr));
+        this.b3D = pr;
+    },
 
     getContentChangesByType: function(type){
         switch(type){
@@ -9752,6 +9761,9 @@ CPieChart.prototype =
             c.addSer(this.series[i].createDuplicate());
         }
         c.setVaryColors(this.varyColors);
+        if(this.b3D){
+            c.set3D(this.b3D);
+        }
         return c;
     },
 
@@ -13182,27 +13194,35 @@ CChart.prototype =
 
     getView3d: function(){
         return AscFormat.ExecuteNoHistory(function(){
-
-            if(this.view3D){
-                var _ret = this.view3D.createDuplicate();
-                var oChart = this.plotArea &&  this.plotArea.charts[0];
-                if(oChart){
-                    if(oChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart){
-                        if(!AscFormat.isRealNumber(_ret.rotX)){
-                            _ret.rotX = 15;
+            var _ret;
+            var oChart = this.plotArea &&  this.plotArea.charts[0];
+            if(oChart){
+                if(this.view3D){
+                    _ret = this.view3D.createDuplicate();
+                        if(oChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart){
+                            if(!AscFormat.isRealNumber(_ret.rotX)){
+                                _ret.rotX = 15;
+                            }
+                            if(!AscFormat.isRealNumber(_ret.rotY)){
+                                _ret.rotY = 20;
+                            }
                         }
-                        if(!AscFormat.isRealNumber(_ret.rotY)){
-                            _ret.rotY = 20;
+                        else{
+                            if(!AscFormat.isRealNumber(_ret.rotX)){
+                                _ret.rotX = 0;
+                            }
+                            if(!AscFormat.isRealNumber(_ret.rotY)){
+                                _ret.rotY = 0;
+                            }
                         }
-                    }
-                    else{
-                        if(!AscFormat.isRealNumber(_ret.rotX)){
-                            _ret.rotX = 0;
-                        }
-                        if(!AscFormat.isRealNumber(_ret.rotY)){
-                            _ret.rotY = 0;
-                        }
-                    }
+                        return _ret;
+                }
+                if(oChart.b3D){
+                    _ret = new CView3d();
+                    _ret.setRotX(30);
+                    _ret.setRotY(0);
+                    _ret.setRAngAx(false);
+                    _ret.setDepthPercent(100);
                     return _ret;
                 }
             }
