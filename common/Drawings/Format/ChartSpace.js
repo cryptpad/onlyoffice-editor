@@ -4854,9 +4854,9 @@ CChartSpace.prototype.getValAxisCrossType = function()
                     }
 
 
-                    var bTickSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip);
-                    var nTickLblSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip) ? oCurAxis.tickLblSkip :  1;
 
+                    var nTickLblSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip) ? oCurAxis.tickLblSkip :  1;
+                    var bTickSkip = nTickLblSkip> 1;
                     var fAxisLength = fPosEnd - fPosStart;
                     var nLabelsCount = oLabelsBox.aLabels.length;
 
