@@ -6817,6 +6817,17 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
         var Para = NearPos.Paragraph;
 
+        var oSelectInfo = this.GetSelectedElementsInfo();
+        if (oSelectInfo.GetInlineLevelSdt() || oSelectInfo.GetBlockLevelSdt())
+		{
+			// Контейнер, который запрещено удалять, нельзя и переносить
+			if ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
+				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted))
+				return;
+
+			this.SetCheckContentControlsLock(false);
+		}
+
         // Если мы копируем, тогда не надо проверять выделенные параграфы, а если переносим, тогда проверяем
         var CheckChangesType = (true !== bCopy ? AscCommon.changestype_Document_Content : changestype_None);
         if (false === this.Document_Is_SelectionLocked(CheckChangesType, {
@@ -6842,6 +6853,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
                 {
                     this.Document_Undo();
                     this.History.Clear_Redo();
+					this.SetCheckContentControlsLock(true);
                     return;
                 }
             }
@@ -6862,6 +6874,8 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 			this.History.Remove_LastPoint();
 			NearPos.Paragraph.Clear_NearestPosArray();
 		}
+
+		this.SetCheckContentControlsLock(true);
     }
 };
 /**
