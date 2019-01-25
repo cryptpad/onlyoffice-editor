@@ -72,7 +72,15 @@ CBlockLevelSdt.prototype.constructor = CBlockLevelSdt;
 CBlockLevelSdt.prototype.Copy = function(Parent)
 {
 	var oNew = new CBlockLevelSdt(this.LogicDocument, Parent ? Parent : this.Parent);
-	oNew.Content.Copy2(this.Content);
+
+	if (!this.IsPlaceHolder())
+	{
+		oNew.private_ReplacePlaceHolderWithContent();
+		oNew.Content.Copy2(this.Content);
+		if (oNew.IsEmpty())
+			oNew.private_ReplaceContentWithPlaceHolder();
+	}
+
 	oNew.SetPr(this.Pr);
 	return oNew;
 };
@@ -489,7 +497,9 @@ CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelecti
 
 	var bResult = this.Content.Remove(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord);
 
-	if (this.IsEmpty() && !bOnAddText)
+	if (this.IsEmpty()
+		&& !bOnAddText
+		&& this.CanBeEdited())
 	{
 		this.private_ReplaceContentWithPlaceHolder();
 		return true;
@@ -1403,7 +1413,15 @@ CBlockLevelSdt.prototype.IsLastTableCellInRow = function(isSelection)
  */
 CBlockLevelSdt.prototype.CanBeDeleted = function()
 {
-	return (c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+};
+/**
+ * Можно ли редактировать данный контейнер
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.CanBeEdited = function()
+{
+	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
 };
 /**
  * Активен PlaceHolder сейчас или нет

@@ -79,9 +79,42 @@ CInlineLevelSdt.prototype.Add = function(Item)
 	this.private_ReplacePlaceHolderWithContent();
 	CParagraphContentWithParagraphLikeContent.prototype.Add.apply(this, arguments);
 };
-CInlineLevelSdt.prototype.Copy = function(Selected, oPr)
+CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 {
-	var oContentControl = CParagraphContentWithParagraphLikeContent.prototype.Copy.apply(this, arguments);
+	var oContentControl = new CInlineLevelSdt();
+
+	oContentControl.ReplacePlaceHolderWithContent();
+
+	var nStartPos = 0;
+	var nEndPos   = this.Content.length - 1;
+
+	if (isUseSelection && this.State.Selection.Use)
+	{
+		nStartPos = this.State.Selection.StartPos;
+		nEndPos   = this.State.Selection.EndPos;
+
+		if (nStartPos > nEndPos)
+		{
+			nStartPos = this.State.Selection.EndPos;
+			nEndPos   = this.State.Selection.StartPos;
+		}
+	}
+
+	if (!this.IsPlaceHolder())
+	{
+		for (var nCurPos = nStartPos; nCurPos <= nEndPos; ++nCurPos)
+		{
+			var oItem = this.Content[nCurPos];
+
+			if (nStartPos === nEndPos || nEndPos === nCurPos)
+				oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(isUseSelection, oPr));
+			else
+				oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(false, oPr));
+		}
+	}
+
+	if (oContentControl.IsEmpty())
+		oContentControl.ReplaceContentWithPlaceHolder();
 
 	oContentControl.SetLabel(this.GetLabel());
 	oContentControl.SetTag(this.GetTag());
@@ -217,6 +250,7 @@ CInlineLevelSdt.prototype.Remove = function(nDirection, bOnAddText)
 	if (this.Is_Empty()
 		&& this.Paragraph
 		&& this.Paragraph.LogicDocument
+		&& this.CanBeEdited()
 		&& ((!bOnAddText
 		&& true === this.Paragraph.LogicDocument.IsFillingFormMode())
 		|| (this === this.Paragraph.LogicDocument.CheckInlineSdtOnDelete)))
@@ -619,7 +653,15 @@ CInlineLevelSdt.prototype.GetContentControlPr = function()
  */
 CInlineLevelSdt.prototype.CanBeDeleted = function()
 {
-	return (c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+};
+/**
+ * Можно ли редактировать данный контейнер
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.CanBeEdited = function()
+{
+	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
 };
 
 //----------------------------------------------------------------------------------------------------------------------
