@@ -9687,15 +9687,17 @@ CChartSpace.prototype.hitInTextRect = function()
          (this.chart.plotArea.charts[0].scatterStyle === AscFormat.SCATTER_STYLE_MARKER || this.chart.plotArea.charts[0].scatterStyle === AscFormat.SCATTER_STYLE_NONE));  */
             this.legendLength = null;
 
-            if( !(this.chart.plotArea.charts.length === 1 && this.chart.plotArea.charts[0].varyColors)
-                || (this.chart.plotArea.charts[0].getObjectType() !== AscDFH.historyitem_type_PieChart && this.chart.plotArea.charts[0].getObjectType() !== AscDFH.historyitem_type_DoughnutChart) && series.length !== 1
-                || this.chart.plotArea.charts[0].getObjectType() === AscDFH.historyitem_type_SurfaceChart)
+            var aCharts = this.chart.plotArea.charts;
+            var oFirstChart = aCharts[0];
+            var bNoPieChart = (oFirstChart.getObjectType() !== AscDFH.historyitem_type_PieChart && oFirstChart.getObjectType() !== AscDFH.historyitem_type_DoughnutChart);
+            var bSurfaceChart = (oFirstChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart);
+
+            var bSeriesLegend = aCharts.length > 1 || (bNoPieChart && (!(oFirstChart.varyColors && series.length === 1) || bSurfaceChart));
+            if(bSeriesLegend)
             {
-                var bSurfaceChart = false;
-                if(this.chart.plotArea.charts[0].getObjectType() === AscDFH.historyitem_type_SurfaceChart){
+                if(bSurfaceChart){
                     this.legendLength = this.chart.plotArea.charts[0].compiledBandFormats.length;
                     ser = series[0];
-                    bSurfaceChart = true;
                 }
                 else {
                     this.legendLength = series.length;
