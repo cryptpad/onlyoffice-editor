@@ -16102,11 +16102,11 @@
 	}
 
 	window.Asc.g_header_footer_editor = null;
-	function CHeaderFooterEditor(idArr, width, pageHFType) {
+	function CHeaderFooterEditor(idArr, width, pageType) {
 		window.Asc.g_header_footer_editor = this;
 
 		this.parentWidth = width;
-		this.pageHFType = undefined === pageHFType ? asc.c_oAscHeaderFooterType.odd : pageHFType;//odd, even, first
+		this.pageType = undefined === pageType ? asc.c_oAscHeaderFooterType.odd : pageType;//odd, even, first
 		this.canvas = [];
 		this.sections = [];
 
@@ -16119,7 +16119,9 @@
 		this.api = window["Asc"]["editor"];
 		this.wb = this.api.wb;
 
-		this.generatePresets();
+		this.presets = null;
+		this.menuPresets = null;
+
 		this.init(idArr);
 	}
 
@@ -16158,12 +16160,13 @@
 		//далее создаем классы, где будем хранить fragments всех типов колонтитулов + выполнять отрисовку
 		//хранить будем в следующем виде: [c_nPageHFType.firstHeader/.../][c_nPortionLeft/.../c_nPortionRight]
 		this.createAndDrawSections();
+		this._generatePresetsArr();
 	};
 
 	CHeaderFooterEditor.prototype.switchHeaderFooterType = function (type) {
 		this.curParentFocusId = null;
 		this.cellEditor = null;
-		this.pageHFType = type;
+		this.pageType = type;
 
 		//ещё возможно нужно будет заново добавлять в parent созданную канву(reinit)
 		this.createAndDrawSections();
@@ -16314,7 +16317,7 @@
 
 	CHeaderFooterEditor.prototype.getSectionById = function (id) {
 		var res = null;
-		var type = this._getHeaderFooterType(this.pageHFType);
+		var type = this._getHeaderFooterType(this.pageType);
 		if(this.sections && this.sections[type]) {
 			for(var i = 0; i < this.sections[type].length; i++) {
 				if(id === this.sections[type][i].canvasObj.idParent) {
@@ -16322,7 +16325,7 @@
 				}
 			}
 		}
-		type = this._getHeaderFooterType(this.pageHFType, true);
+		type = this._getHeaderFooterType(this.pageType, true);
 		if(this.sections && this.sections[type]) {
 			for(var i = 0; i < this.sections[type].length; i++) {
 				if(id === this.sections[type][i].canvasObj.idParent) {
@@ -16836,35 +16839,14 @@
 		}
 	};
 
-	CHeaderFooterEditor.prototype.generatePresets = function() {
+	CHeaderFooterEditor.prototype.getTextPresetsArr = function() {
 		var wb = this.wb;
 		var ws = wb.getWorksheet();
-		var arrPresets = [];
 
-		//TODO продумать переводы!
-
-		var userInfo = window["Asc"]["editor"].DocInfo ? window["Asc"]["editor"].DocInfo.get_UserInfo() : null;
-		var userName = userInfo ? userInfo.get_FullName() : "";
-
-		//TODO ? Book1
-
-		arrPresets[0] = [null, null, null];
-		arrPresets[1] = [null, "Page &[Page]", null];
-		arrPresets[2] = [null, "Page &[Page] of &[Pages]", null];
-		arrPresets[3] = [null, "&[Tab]", null];
-		arrPresets[4] = ["Confidential", "&[Date]", "Page &[Page]"];
-		arrPresets[5] = [null, "&[File]", null];
-		//arrPresets[6] = [null, "&[Path]&[File]", null];
-		arrPresets[6] = [null, "&[Tab]", "Page &[Page]"];
-		arrPresets[7] = ["&[Tab]", "Confidential","Page &[Page]"];
-		arrPresets[8] = [null,"&[File]","Page &[Page]"];
-		//arrPresets[10] = [null,"&[Path]&[File]","Page &[Page]"];
-		arrPresets[9] = [null,"Page &[Page]","&[Tab]"];
-		arrPresets[10] = [null,"Page &[Page]","Book1"];
-		arrPresets[11] = [null,"Page &[Page]","&[File]"];
-		//arrPresets[12] = [null,"Page &[Page]","&[Path]&[File]"];
-		arrPresets[12] = [userName,"Page &[Page]","&[Date]"];
-		arrPresets[13] = [null,"Prepared by " + userName + " &[Date]","Page &[Page]"];
+		var arrPresets = this.menuPresets;
+		if(!arrPresets) {
+			return [];
+		}
 
 		var getFragmentText = function(val) {
 			if ( asc_typeof(val) === "string" ){
@@ -16882,13 +16864,6 @@
 			return res;
 		};
 
-		var getFragments = function(text) {
-			var tempFragment = new AscCommonExcel.Fragment();
-			tempFragment.text = text;
-			tempFragment.format = null;
-			return tempFragment;
-		};
-
 		var textPresetsArr = [];
 		for(var i = 0; i < arrPresets.length; i++) {
 			if(!arrPresets[i]) {
@@ -16897,7 +16872,7 @@
 			textPresetsArr[i] = "";
 			for(var j = 0; j < arrPresets[i].length; j++) {
 				if(arrPresets[i][j]) {
-					var fragments = this.convertFragments([getFragments(arrPresets[i][j])]);
+					var fragments = this.convertFragments([this._getFragments(arrPresets[i][j])]);
 					if("" !== textPresetsArr[i]) {
 						textPresetsArr[i] += ", ";
 					}
@@ -16912,6 +16887,66 @@
 		return textPresetsArr;
 	};
 
+	CHeaderFooterEditor.prototype._getFragments = function(text, format) {
+		var tempFragment = new AscCommonExcel.Fragment();
+		tempFragment.text = text;
+		tempFragment.format = format;
+		return tempFragment;
+	};
+
+	CHeaderFooterEditor.prototype._generatePresetsArr = function() {
+		var docInfo = window["Asc"]["editor"].DocInfo;
+		var userInfo = docInfo ? docInfo.get_UserInfo() : null;
+		var userName = userInfo ? userInfo.get_FullName() : "";
+		var fileName = docInfo ? docInfo : "";
+
+		//TODO translate!
+		var confidential = "Confidential";
+		var preparedBy = "Prepared by ";
+		var page = "Page";
+
+		var arrPresets = [];
+		var arrPresetsMenu = [];
+		arrPresets[0] = arrPresetsMenu[0] = [null, null, null];
+		arrPresets[1] = arrPresetsMenu[1] = arrPresetsMenu[0] = [null, "Page &[Page]", null];
+		arrPresets[2] = [null, page + " &[Page] of &[Pages]", null];
+		arrPresetsMenu[2] = [null, page + " &[Page] of ?", null];
+		arrPresets[3] = arrPresetsMenu[3] = [null, "&[Tab]", null];
+		arrPresets[4] = arrPresetsMenu[4] = [confidential, "&[Date]", page + " &[Page]"];
+		arrPresets[5] = arrPresetsMenu[5] = [null, "&[File]", null];
+		//arrPresets[6] = [null, "&[Path]&[File]", null];
+		arrPresets[6] = arrPresetsMenu[6] = [null, "&[Tab]", page + " &[Page]"];
+		arrPresets[7] = arrPresetsMenu[7] = ["&[Tab]", confidential, page + " &[Page]"];
+		arrPresets[8] = arrPresetsMenu[8] = [null, "&[File]", page + " &[Page]"];
+		//arrPresets[10] = [null,"&[Path]&[File]","Page &[Page]"];
+		arrPresets[9] = arrPresetsMenu[9] = [null, page + " &[Page]", "&[Tab]"];
+		arrPresets[10] = arrPresetsMenu[10] = [null, page + " &[Page]", fileName];
+		arrPresets[11] = arrPresetsMenu[11] = [null, page + " &[Page]", "&[File]"];
+		//arrPresets[12] = [null,"Page &[Page]","&[Path]&[File]"];
+		arrPresets[12] = arrPresetsMenu[12] = [userName, page + " &[Page]", "&[Date]"];
+		arrPresets[13] = arrPresetsMenu[13] = [null, preparedBy + userName + " &[Date]", page + " &[Page]"];
+
+		this.presets = arrPresets;
+		this.menuPresets = arrPresetsMenu;
+	};
+
+	CHeaderFooterEditor.prototype.applyPreset = function(type, bFooter) {
+
+		var curType = this._getHeaderFooterType(this.pageType, bFooter);
+		var section = this.sections[curType];
+
+
+		var fragments;
+		for(var i = 0; i < section.length; i++) {
+			if(!this.presets[type][i]) {
+				continue;
+			}
+
+			fragments = [this._getFragments(this.presets[type][i], new AscCommonExcel.Font())];
+			section[i].setFragments(fragments);
+			section[i].drawText();
+		}
+	};
 
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -16934,5 +16969,7 @@
 	prot["setTextColor"] = prot.setTextColor;
 	prot["addField"] = prot.addField;
 	prot["switchHeaderFooterType"] = prot.switchHeaderFooterType;
+	prot["getTextPresetsArr"] = prot.getTextPresetsArr;
+	prot["applyPreset"] = prot.applyPreset;
 
 })(window);
