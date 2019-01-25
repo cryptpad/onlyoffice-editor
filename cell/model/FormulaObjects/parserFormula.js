@@ -1218,6 +1218,15 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cArea.prototype.tocBool = function () {
 		return new cError(cErrorType.wrong_value_type);
 	};
+	cArea.prototype.tocArea3D = function (opt_ws) {
+		opt_ws = opt_ws || this.ws;
+		var res = new cArea3D(null, opt_ws, opt_ws);
+		this.cloneTo(res);
+		if (this.range) {
+			res.bbox = this.range.getBBox0().clone();
+		}
+		return res;
+	};
 	cArea.prototype.toString = function () {
 		var _c;
 
@@ -1721,6 +1730,20 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cRef.prototype.tocBool = function () {
 		return this.getValue().tocBool();
+	};
+	cRef.prototype.tocRef3D = function (opt_ws) {
+		var ws = opt_ws ? opt_ws : this.ws;
+		var oRes = new cRef3D(null, null);
+		this.cloneTo(oRes);
+		if (opt_ws && this.ws.getName() == opt_ws.getName()) {
+			oRes.ws = opt_ws;
+		} else {
+			oRes.ws = this.ws;
+		}
+		if (this.range) {
+			oRes.range = this.range.clone(ws);
+		}
+		return oRes;
 	};
 	cRef.prototype.toString = function () {
 		if (AscCommonExcel.g_ProcessShared) {
@@ -5057,7 +5080,7 @@ function parserFormula( formula, parent, _ws ) {
 			var needAssemble = true;
 			if (AscCommon.c_oNotifyType.Shift === data.type || AscCommon.c_oNotifyType.Move === data.type ||
 				AscCommon.c_oNotifyType.Delete === data.type) {
-				this.shiftCells(data.type, data.sheetId, data.bbox, data.offset);
+				this.shiftCells(data.type, data.sheetId, data.bbox, data.offset, data.sheetIdTo);
 			} else if (AscCommon.c_oNotifyType.ChangeDefName === data.type) {
 				if (!data.to) {
 					this.removeTableName(data.from, data.bConvertTableFormulaToRef);
@@ -6256,9 +6279,16 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 	};
-	parserFormula.prototype.shiftCells = function(notifyType, sheetId, bbox, offset) {
+	parserFormula.prototype.shiftCells = function(notifyType, sheetId, bbox, offset, opt_sheetIdTo) {
 		var res = false;
 		var elem;
+		var wb = this.ws.workbook;
+		if(!opt_sheetIdTo){
+			opt_sheetIdTo = sheetId;
+		}
+		if (sheetId !== opt_sheetIdTo && !this.wb.bUndoChanges) {
+			this.convertTo3DRefs();
+		}
 		for (var i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
 			var _cellsRange = null;
@@ -6321,6 +6351,9 @@ parserFormula.prototype.setFormula = function(formula) {
 						}
 					}
 					if (isNoDelete) {
+						if (sheetId !== opt_sheetIdTo) {
+							elem.changeSheet(wb.getWorksheetById(sheetId), wb.getWorksheetById(opt_sheetIdTo));
+						}
 						if (elem.type === cElementType.cellsRange3D) {
 							elem.bbox = _cellsBbox;
 						} else {
@@ -6432,6 +6465,33 @@ parserFormula.prototype.setFormula = function(formula) {
 							this.outStack[i] = new cError(cErrorType.bad_reference);
 						}
 					}
+				}
+			}
+		}
+		if (isInDependencies) {
+			this.buildDependencies();
+		}
+		return this;
+	};
+	parserFormula.prototype.moveToSheet = function (wsLast, wsNew, tableNameMap) {
+		var isInDependencies = this.isInDependencies;
+		if (isInDependencies) {
+			//before change outStack necessary to removeDependencies
+			this.removeDependencies();
+		}
+
+		for (var i = 0; i < this.outStack.length; i++) {
+			var elem = this.outStack[i];
+			if (tableNameMap && cElementType.table === elem.type) {
+				var newTableName = tableNameMap[elem.tableName];
+				if (newTableName) {
+					elem.tableName = newTableName;
+				}
+			}
+			if (wsLast && wsNew) {
+				if (cElementType.cell === elem.type || cElementType.cellsRange === elem.type ||
+					cElementType.table === elem.type ||	cElementType.name === elem.type) {
+					elem.changeSheet(wsLast, wsNew);
 				}
 			}
 		}
@@ -6851,6 +6911,17 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 		return val;
+	};
+	parserFormula.prototype.convertTo3DRefs = function() {
+		var elem;
+		for (var i = 0; i < this.outStack.length; i++) {
+			elem = this.outStack[i];
+			if (elem.type === cElementType.cell) {
+				this.outStack[i] = elem.tocRef3D();
+			} else if (elem.type === cElementType.cellsRange) {
+				this.outStack[i] = elem.tocArea3D();
+			}
+		}
 	};
 
 	parserFormula.prototype.getFormulaHyperlink = function() {

@@ -734,14 +734,15 @@ function (window, undefined) {
 		}
 	};
 
-	function UndoRedoData_FromTo(from, to, copyRange) {
+	function UndoRedoData_FromTo(from, to, copyRange, sheetIdTo) {
 		this.from = from;
 		this.to = to;
 		this.copyRange = copyRange;
+		this.sheetIdTo = sheetIdTo;
 	}
 
 	UndoRedoData_FromTo.prototype.Properties = {
-		from: 0, to: 1, copyRange: 2
+		from: 0, to: 1, copyRange: 2, sheetIdTo: 3
 	};
 	UndoRedoData_FromTo.prototype.getType = function () {
 		return UndoRedoDataTypes.FromTo;
@@ -760,6 +761,9 @@ function (window, undefined) {
 			case this.Properties.copyRange:
 				return this.copyRange;
 				break;
+			case this.Properties.sheetIdTo:
+				return this.sheetIdTo;
+				break;
 		}
 		return null;
 	};
@@ -773,6 +777,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.copyRange:
 				this.copyRange = value;
+				break;
+			case this.Properties.sheetIdTo:
+				this.sheetIdTo = value;
 				break;
 		}
 	};
@@ -2237,10 +2244,16 @@ function (window, undefined) {
 			to = new Asc.Range(Data.to.c1, Data.to.r1, Data.to.c2, Data.to.r2);
 			var copyRange = Data.copyRange;
 
+			var wsTo = wb.getWorksheetById(Data.sheetIdTo);
 			if (bUndo) {
 				temp = from;
 				from = to;
 				to = temp;
+				if (wsTo) {
+					temp = wsTo;
+					wsTo = ws;
+					ws = temp;
+				}
 			}
 			if (wb.bCollaborativeChanges) {
 				var coBBoxTo = new Asc.Range(0, 0, 0, 0), coBBoxFrom = new Asc.Range(0, 0, 0, 0);
@@ -2255,9 +2268,9 @@ function (window, undefined) {
 				coBBoxFrom.r2 = collaborativeEditing.getLockOtherRow2(nSheetId, from.r2);
 				coBBoxFrom.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, from.c2);
 
-				ws._moveRange(coBBoxFrom, coBBoxTo, copyRange);
+				ws._moveRange(coBBoxFrom, coBBoxTo, copyRange, wsTo);
 			} else {
-				ws._moveRange(from, to, copyRange);
+				ws._moveRange(from, to, copyRange, wsTo);
 			}
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			if (bUndo)//если на Undo перемещается диапазон из форматированной таблицы - стиль форматированной таблицы не должен цепляться
