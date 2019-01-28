@@ -3581,11 +3581,14 @@ CParagraphContentWithParagraphLikeContent.prototype.AddContentControl = function
 			oNewRun = this.Content[nStartPos].Split_Run(Math.min(this.Content[nStartPos].Selection.StartPos, this.Content[nStartPos].Selection.EndPos));
 			this.Add_ToContent(nStartPos + 1, oNewRun);
 
+			oContentControl.ReplacePlaceHolderWithContent();
 			for (var nIndex = nEndPos + 1; nIndex >= nStartPos + 1; --nIndex)
 			{
 				oContentControl.Add_ToContent(0, this.Content[nIndex]);
 				this.Remove_FromContent(nIndex, 1);
 			}
+			if (oContentControl.IsEmpty())
+				oContentControl.ReplaceContentWithPlaceHolder();
 
 			this.Add_ToContent(nStartPos + 1, oContentControl);
 			this.Selection.StartPos = nStartPos + 1;

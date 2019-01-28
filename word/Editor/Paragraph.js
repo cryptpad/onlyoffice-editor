@@ -2730,9 +2730,11 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 		{
 			this.Content[StartPos].Remove(nCount, bOnAddText);
 
+			var isRemoveOnDrag = this.LogicDocument ? this.LogicDocument.RemoveOnDrag : false;
+
 			// TODO: Как только избавимся от para_End переделать здесь
 			// Последние 2 элемента не удаляем (один для para_End, второй для всего остального)
-			if (StartPos < this.Content.length - 2 && true === this.Content[StartPos].Is_Empty() && true !== this.Content[StartPos].Is_CheckingNearestPos() && !bOnAddText)
+			if (StartPos < this.Content.length - 2 && true === this.Content[StartPos].Is_Empty() && true !== this.Content[StartPos].Is_CheckingNearestPos() && (!bOnAddText || isRemoveOnDrag))
 			{
 				if (this.Selection.StartPos === this.Selection.EndPos)
 					this.Selection.Use = false;
@@ -12995,11 +12997,16 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 				oNewRun = this.Content[nStartPos].Split_Run(Math.min(this.Content[nStartPos].Selection.StartPos, this.Content[nStartPos].Selection.EndPos));
 				this.Add_ToContent(nStartPos + 1, oNewRun);
 
+				oContentControl.ReplacePlaceHolderWithContent();
 				for (var nIndex = nEndPos + 1; nIndex >= nStartPos + 1; --nIndex)
 				{
 					oContentControl.Add_ToContent(0, this.Content[nIndex]);
 					this.Remove_FromContent(nIndex, 1);
 				}
+
+				if (oContentControl.IsEmpty())
+					oContentControl.ReplaceContentWithPlaceHolder();
+
 				this.Add_ToContent(nStartPos + 1, oContentControl);
 				this.Selection.StartPos = nStartPos + 1;
 				this.Selection.EndPos   = nStartPos + 1;
