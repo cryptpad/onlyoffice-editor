@@ -3348,7 +3348,7 @@
 	};
 	Worksheet.prototype.initColumn = function (column) {
 		if (column) {
-			if (null !== column.width) {
+			if (null !== column.width && 0 !== column.width) {
 				column.widthPx = this.modelColWidthToColWidth(column.width);
 				column.charCount = this.colWidthToCharCount(column.widthPx);
 			} else {
