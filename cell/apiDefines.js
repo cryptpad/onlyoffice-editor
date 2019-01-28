@@ -674,7 +674,7 @@ var c_oAscPopUpSelectorType = {
   prot['odd'] = prot.odd;
   prot['even'] = prot.even;
 
-  window['Asc']['c_oAscHeaderFooterType'] = window['Asc'].c_oAscHeaderFooterType = c_oAscHeaderFooterType;
+  window['Asc']['c_oAscHeaderFooterPresets'] = window['Asc'].c_oAscHeaderFooterPresets = c_oAscHeaderFooterPresets;
   prot = c_oAscHeaderFooterType;
   prot['none'] = prot.none;
   prot['page'] = prot.page;
