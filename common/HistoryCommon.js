@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1328,6 +1328,8 @@
 	window['AscDFH'].historyitem_type_PresentationSection    = 1131 << 16;
 	window['AscDFH'].historyitem_type_PivotTableDefinition   = 1132 << 16;
 	window['AscDFH'].historyitem_type_LockedCanvas           = 1133 << 16;
+	window['AscDFH'].historyitem_type_RelSizeAnchor          = 1134 << 16;
+	window['AscDFH'].historyitem_type_AbsSizeAnchor          = 1135 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1948,6 +1950,8 @@
 	window['AscDFH'].historyitem_ChartSpace_SetGroup          = window['AscDFH'].historyitem_type_ChartSpace | 15;
 	window['AscDFH'].historyitem_ChartSpace_SetParent         = window['AscDFH'].historyitem_type_ChartSpace | 16;
 	window['AscDFH'].historyitem_ChartSpace_SetNvGrFrProps    = window['AscDFH'].historyitem_type_ChartSpace | 17;
+	window['AscDFH'].historyitem_ChartSpace_AddUserShape      = window['AscDFH'].historyitem_type_ChartSpace | 18;
+	window['AscDFH'].historyitem_ChartSpace_RemoveUserShape   = window['AscDFH'].historyitem_type_ChartSpace | 19;
 
 	window['AscDFH'].historyitem_Legend_SetLayout      = window['AscDFH'].historyitem_type_Legend | 1;
 	window['AscDFH'].historyitem_Legend_AddLegendEntry = window['AscDFH'].historyitem_type_Legend | 2;
@@ -2098,6 +2102,7 @@
 	window['AscDFH'].historyitem_PieChart_SetFirstSliceAng = window['AscDFH'].historyitem_type_PieChart | 2;
 	window['AscDFH'].historyitem_PieChart_AddSer           = window['AscDFH'].historyitem_type_PieChart | 3;
 	window['AscDFH'].historyitem_PieChart_SetVaryColors    = window['AscDFH'].historyitem_type_PieChart | 4;
+	window['AscDFH'].historyitem_PieChart_3D               = window['AscDFH'].historyitem_type_PieChart | 5;
 
 	window['AscDFH'].historyitem_RadarChart_AddAxId       = window['AscDFH'].historyitem_type_RadarChart | 1;
 	window['AscDFH'].historyitem_RadarChart_SetDLbls      = window['AscDFH'].historyitem_type_RadarChart | 2;
@@ -2705,6 +2710,19 @@
     window['AscDFH'].historyitem_PresentationSectionSetGuid       = window['AscDFH'].historyitem_type_PresentationSection | 2;
     window['AscDFH'].historyitem_PresentationSectionSetStartIndex = window['AscDFH'].historyitem_type_PresentationSection | 3;
 
+	window['AscDFH'].historyitem_RelSizeAnchorFromX  = window['AscDFH'].historyitem_type_RelSizeAnchor | 1;
+	window['AscDFH'].historyitem_RelSizeAnchorFromY  = window['AscDFH'].historyitem_type_RelSizeAnchor | 2;
+	window['AscDFH'].historyitem_RelSizeAnchorToX    = window['AscDFH'].historyitem_type_RelSizeAnchor | 3;
+	window['AscDFH'].historyitem_RelSizeAnchorToY    = window['AscDFH'].historyitem_type_RelSizeAnchor | 4;
+	window['AscDFH'].historyitem_RelSizeAnchorObject = window['AscDFH'].historyitem_type_RelSizeAnchor | 5;
+	window['AscDFH'].historyitem_RelSizeAnchorParent = window['AscDFH'].historyitem_type_RelSizeAnchor | 6;
+
+	window['AscDFH'].historyitem_AbsSizeAnchorFromX   = window['AscDFH'].historyitem_type_AbsSizeAnchor | 1;
+	window['AscDFH'].historyitem_AbsSizeAnchorFromY   = window['AscDFH'].historyitem_type_AbsSizeAnchor | 2;
+	window['AscDFH'].historyitem_AbsSizeAnchorExtX    = window['AscDFH'].historyitem_type_AbsSizeAnchor | 3;
+	window['AscDFH'].historyitem_AbsSizeAnchorExtY    = window['AscDFH'].historyitem_type_AbsSizeAnchor | 4;
+	window['AscDFH'].historyitem_AbsSizeAnchorObject  = window['AscDFH'].historyitem_type_AbsSizeAnchor | 5;
+	window['AscDFH'].historyitem_AbsSizeAnchorParent  = window['AscDFH'].historyitem_type_AbsSizeAnchor | 6;
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений класса CDocumentMacros

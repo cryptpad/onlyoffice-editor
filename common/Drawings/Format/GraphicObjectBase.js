@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1335,10 +1335,210 @@
 
 
 
+    CGraphicObjectBase.prototype.updatePosition = function(x, y) {
+        this.posX = x;
+        this.posY = y;
+        if(!this.group){
+            this.x = this.localX + x;
+            this.y = this.localY + y;
+        }
+        else{
+            this.x = this.localX;
+            this.y = this.localY;
+        }
+        if(this.updateTransformMatrix) {
+            this.updateTransformMatrix();
+        }
+    };
+
+
+
+    function CRelSizeAnchor(){
+        this.fromX = null;
+        this.fromY = null;
+
+        this.toX = null;
+        this.toY = null;
+
+        this.object = null;
+
+        this.parent = null;
+        this.drawingBase = null;
+        this.Id = AscCommon.g_oIdCounter.Get_NewId();
+        AscCommon.g_oTableId.Add(this, this.Id);
+    }
+    CRelSizeAnchor.prototype.setDrawingBase = function(drawingBase){
+        this.drawingBase = drawingBase;
+    };
+    CRelSizeAnchor.prototype.getObjectType = function () {
+        return AscDFH.historyitem_type_RelSizeAnchor;
+    };
+    CRelSizeAnchor.prototype.Get_Id = function () {
+        return this.Id;
+    };
+    CRelSizeAnchor.prototype.Write_ToBinary2 = function (oWriter) {
+        oWriter.WriteLong(this.getObjectType());
+        oWriter.WriteString2(this.Get_Id());
+    };
+    CRelSizeAnchor.prototype.Read_FromBinary2 = function (oReader) {
+        this.Id = oReader.GetString2();
+    };
+
+    CRelSizeAnchor.prototype.setFromTo = function (fromX, fromY, toX, toY) {
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorFromX, this.fromX, fromX));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorFromY, this.fromY, fromY));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorToX, this.toX, toX));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorToY, this.toY, toY));
+        this.fromX = fromX;
+        this.fromY = fromY;
+        this.toX = toX;
+        this.toY = toY;
+    };
+    CRelSizeAnchor.prototype.setObject = function (object) {
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_RelSizeAnchorObject, this.object, object));
+        this.object = object;
+        if(object){
+            object.setParent(this);
+        }
+    };
+
+    CRelSizeAnchor.prototype.setParent = function (object) {
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_RelSizeAnchorParent, this.parent, object));
+        this.parent = object;
+    };
+
+    CRelSizeAnchor.prototype.copy = function(drawingDocument){
+        var copy = new CRelSizeAnchor();
+        copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
+        if(this.object){
+            copy.setObject(this.object.copy(drawingDocument));
+        }
+        return copy;
+    };
+    CRelSizeAnchor.prototype.Refresh_RecalcData = function(drawingDocument){
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
+    };
+    CRelSizeAnchor.prototype.Refresh_RecalcData2 = function(drawingDocument){
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
+    };
+
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_RelSizeAnchorFromX]  = function(oClass, value){oClass.fromX =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_RelSizeAnchorFromY]  = function(oClass, value){oClass.fromY =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_RelSizeAnchorToX]    = function(oClass, value){oClass.toX =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_RelSizeAnchorToY]    = function(oClass, value){oClass.toY =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_RelSizeAnchorObject] = function(oClass, value){oClass.object =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_RelSizeAnchorParent] = function(oClass, value){oClass.parent =  value;};
+
+    AscDFH.changesFactory[AscDFH.historyitem_RelSizeAnchorFromX] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_RelSizeAnchorFromY] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_RelSizeAnchorToX] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_RelSizeAnchorToY] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_RelSizeAnchorObject] = window['AscDFH'].CChangesDrawingsObject;
+    AscDFH.changesFactory[AscDFH.historyitem_RelSizeAnchorParent] = window['AscDFH'].CChangesDrawingsObject;
+
+
+    function CAbsSizeAnchor(){
+        this.fromX = null;
+        this.fromY = null;
+        this.toX = null;
+        this.toY = null;
+        this.object = null;
+
+        this.parent = null;
+        this.drawingBase = null;
+        this.Id = AscCommon.g_oIdCounter.Get_NewId();
+        AscCommon.g_oTableId.Add(this, this.Id);
+    }
+    CAbsSizeAnchor.prototype.setDrawingBase = function(drawingBase){
+        this.drawingBase = drawingBase;
+    };
+    CAbsSizeAnchor.prototype.getObjectType = function () {
+        return AscDFH.historyitem_type_AbsSizeAnchor;
+    };
+    CAbsSizeAnchor.prototype.Get_Id = function () {
+        return this.Id;
+    };
+    CAbsSizeAnchor.prototype.Write_ToBinary2 = function (oWriter) {
+        oWriter.WriteLong(this.getObjectType());
+        oWriter.WriteString2(this.Get_Id());
+    };
+    CAbsSizeAnchor.prototype.Read_FromBinary2 = function (oReader) {
+        this.Id = oReader.GetString2();
+    };
+
+    CAbsSizeAnchor.prototype.setFromTo = function (fromX, fromY, extX, extY) {
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromX, this.fromX, fromX));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromY, this.fromY, fromY));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorExtX, this.toX, extX));
+        History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorExtY, this.toY, extY));
+        this.fromX = fromX;
+        this.fromY = fromY;
+        this.toX = extX;
+        this.toY = extY;
+    };
+    CAbsSizeAnchor.prototype.setObject = function (object) {
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_AbsSizeAnchorObject, this.object, object));
+        this.object = object;
+        if(object){
+            object.setParent(this);
+        }
+    };
+
+    CAbsSizeAnchor.prototype.setParent = function (object) {
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_AbsSizeAnchorParent, this.parent, object));
+        this.parent = object;
+    };
+
+    CAbsSizeAnchor.prototype.copy = function(drawingDocument){
+        var copy = new CRelSizeAnchor();
+        copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
+        if(this.object){
+            copy.setObject(this.object.copy(drawingDocument));
+        }
+        return copy;
+    };
+
+    CAbsSizeAnchor.prototype.Refresh_RecalcData = function(drawingDocument){
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
+    };
+    CAbsSizeAnchor.prototype.Refresh_RecalcData2 = function(drawingDocument){
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
+    };
+
+
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorFromX]  = function(oClass, value){oClass.fromX =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorFromY]  = function(oClass, value){oClass.fromY =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorExtX]    = function(oClass, value){oClass.toX =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorExtY]    = function(oClass, value){oClass.toY =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorObject] = function(oClass, value){oClass.object =  value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorParent] = function(oClass, value){oClass.parent =  value;};
+
+    AscDFH.changesFactory[AscDFH.historyitem_AbsSizeAnchorFromX] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_AbsSizeAnchorFromY] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_AbsSizeAnchorExtX] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_AbsSizeAnchorExtY] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_AbsSizeAnchorObject] = window['AscDFH'].CChangesDrawingsObject;
+    AscDFH.changesFactory[AscDFH.historyitem_AbsSizeAnchorParent] = window['AscDFH'].CChangesDrawingsObject;
+
+
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGraphicObjectBase = CGraphicObjectBase;
     window['AscFormat'].CGraphicBounds     = CGraphicBounds;
     window['AscFormat'].checkNormalRotate  = checkNormalRotate;
     window['AscFormat'].normalizeRotate    = normalizeRotate;
+    window['AscFormat'].CRelSizeAnchor    = CRelSizeAnchor;
+    window['AscFormat'].CAbsSizeAnchor    = CAbsSizeAnchor;
     window['AscFormat'].LOCKS_MASKS        = LOCKS_MASKS;
 })(window);

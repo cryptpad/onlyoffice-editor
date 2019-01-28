@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -6537,7 +6537,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    cNvPr.id = s.GetLong();
+                    cNvPr.setId(s.GetLong());
                     if(this.TempMainObject && cNvPr.id > this.TempMainObject.maxId)
                     {
                         this.TempMainObject.maxId = cNvPr.id;
@@ -6546,22 +6546,22 @@ function BinaryPPTYLoader()
                 }
                 case 1:
                 {
-                    cNvPr.name = s.GetString2();
+                    cNvPr.setName(s.GetString2());
                     break;
                 }
                 case 2:
                 {
-                    cNvPr.isHidden = (1 == s.GetUChar()) ? true : false;
+                    cNvPr.setIsHidden((1 == s.GetUChar()) ? true : false);
                     break;
                 }
                 case 3:
                 {
-                    cNvPr.title = s.GetString2();
+                    cNvPr.setTitle(s.GetString2());
                     break;
                 }
                 case 4:
                 {
-                    cNvPr.descr = s.GetString2();
+                    cNvPr.setDescr(s.GetString2());
                     break;
                 }
                 default:{
@@ -6648,6 +6648,10 @@ function BinaryPPTYLoader()
             }
         }
 
+        if(cols.length === 0)
+        {
+            cols.push(_xfrm.extX);
+        }
         var _table = new CTable(this.presentation.DrawingDocument, _graphic_frame, true, rows, cols.length, cols, true);
         _table.Reset(0, 0, _xfrm.extX, 100000, 0, 0, 1);
         if (null != props)

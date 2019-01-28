@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1699,6 +1699,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     this.CheckLanguageOnTextAdd    = false; // Проверять ли язык при добавлении текста в ран
 	this.RemoveCommentsOnPreDelete = true;  // Удалять ли комментарий при удалении объекта
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
+	this.RemoveOnDrag              = false; // Происходит ли удалении на функции drag-n-drop
 
     // Мап для рассылки
     this.MailMergeMap             = null;
@@ -6816,6 +6817,17 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
         var Para = NearPos.Paragraph;
 
+        var oSelectInfo = this.GetSelectedElementsInfo();
+        if (oSelectInfo.GetInlineLevelSdt() || oSelectInfo.GetBlockLevelSdt())
+		{
+			// Контейнер, который запрещено удалять, нельзя и переносить
+			if ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
+				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted))
+				return;
+
+			this.SetCheckContentControlsLock(false);
+		}
+
         // Если мы копируем, тогда не надо проверять выделенные параграфы, а если переносим, тогда проверяем
         var CheckChangesType = (true !== bCopy ? AscCommon.changestype_Document_Content : changestype_None);
         if (false === this.Document_Is_SelectionLocked(CheckChangesType, {
@@ -6827,16 +6839,21 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             // Если надо удаляем выделенную часть (пересчет отключаем на время удаления)
             if (true !== bCopy)
             {
+            	this.RemoveOnDrag = true;
+
                 this.TurnOff_Recalculate();
                 this.TurnOff_InterfaceEvents();
-                this.Remove(1, false, false, false);
+                this.Remove(1, false, false, true);
                 this.TurnOn_Recalculate(false);
                 this.TurnOn_InterfaceEvents(false);
+
+				this.RemoveOnDrag = false;
 
                 if (false === Para.Is_UseInDocument())
                 {
                     this.Document_Undo();
                     this.History.Clear_Redo();
+					this.SetCheckContentControlsLock(true);
                     return;
                 }
             }
@@ -6857,6 +6874,8 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 			this.History.Remove_LastPoint();
 			NearPos.Paragraph.Clear_NearestPosArray();
 		}
+
+		this.SetCheckContentControlsLock(true);
     }
 };
 /**
@@ -7460,8 +7479,6 @@ CDocument.prototype.OnKeyDown = function(e)
         }
         else
 		{
-
-
 			var oSelectedInfo = this.GetSelectedElementsInfo();
 			var CheckType = ( e.ShiftKey || e.CtrlKey ? changestype_Paragraph_Content : AscCommon.changestype_Document_Content_Add );
 
@@ -16476,6 +16493,35 @@ CDocument.prototype.SelectContentControl = function(sId)
 		this.RemoveSelection();
 
 		oContentControl.SelectContentControl();
+		this.Document_UpdateSelectionState();
+		this.Document_UpdateRulersState();
+		this.Document_UpdateInterfaceState();
+		this.Document_UpdateTracks();
+
+		this.private_UpdateCursorXY(true, true);
+	}
+};
+/**
+ * Передвигаем курсор в заданный блочный элемент
+ * @param {string} sId
+ * @param {boolean} [isBegin=true]
+ */
+CDocument.prototype.MoveCursorToContentControl = function(sId, isBegin)
+{
+	var oContentControl = this.TableId.Get_ById(sId);
+	if (!oContentControl)
+		return;
+
+	if (oContentControl.GetContentControlType
+		&& (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType()
+		|| c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType()))
+	{
+		this.RemoveSelection();
+
+		if (false !== isBegin)
+			isBegin = true;
+
+		oContentControl.MoveCursorToContentControl(isBegin);
 		this.Document_UpdateSelectionState();
 		this.Document_UpdateRulersState();
 		this.Document_UpdateInterfaceState();

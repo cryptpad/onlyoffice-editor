@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -700,13 +700,7 @@ CTable.prototype.private_RecalculateGrid = function()
 		if (!PageFields)
 			PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
 
-        var MaxTableW = PageFields.XLimit - PageFields.X - TablePr.TableInd;
-        if ( null === TopTable )
-            MaxTableW += LeftMargin + RightMargin; // Добавляем левый маргин первой ячейки + правый маргин правой ячейки для верхних таблиц
-
-        var TableSpacing = this.Content[0].Get_CellSpacing();
-        if ( null != TableSpacing )
-            MaxTableW += 2 * TableSpacing;
+		var MaxTableW = PageFields.XLimit - PageFields.X - TablePr.TableInd - this.GetTableOffsetCorrection() + this.GetRightTableOffsetCorrection();
 
         // 4. Рассчитаем желаемую ширину таблицы таблицы
         // Цифра 2 означает добавочная разница
@@ -1623,14 +1617,8 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
     {
         if (0 === CurPage)
         {
-            var OffsetCorrection_Left  = 0;
-            var OffsetCorrection_Right = 0;
-
-            if (true !== this.bPresentation && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() < document_compatibility_mode_Word15)
-            {
-                OffsetCorrection_Left  = this.GetTableOffsetCorrection();
-                OffsetCorrection_Right = this.GetRightTableOffsetCorrection();
-            }
+            var OffsetCorrection_Left  = this.GetTableOffsetCorrection();
+            var OffsetCorrection_Right = this.GetRightTableOffsetCorrection();
 
             this.X = this.X_origin + OffsetCorrection_Left;
             this.AnchorPosition.Set_X(this.TableSumGrid[this.TableSumGrid.length - 1], this.X_origin, PageFields.X + OffsetCorrection_Left, PageFields.XLimit + OffsetCorrection_Right, LD_PageLimits.XLimit, PageLimits.X + OffsetCorrection_Left, PageLimits.XLimit + OffsetCorrection_Right);

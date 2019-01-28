@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -7761,10 +7761,9 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		var sDefaultText = AscCommon.translateManager.getValue('Your text here');
 		if (c_oAscSdtLevelType.Block === nType)
 		{
-			if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ContentControl_Add))
+			if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ContentControl_Add, null))
 			{
 				oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddBlockLevelContentControl);
 
@@ -7779,22 +7778,6 @@ background-repeat: no-repeat;\
 					if (oContentControlPr)
 						oContentControl.SetContentControlPr(oContentControlPr);
 
-					// if (oContentControl.IsEmpty())
-					// {
-					// 	// TODO: Разобраться с тем, чтобы пересчет не вызывался в фунции AddToParagraph
-					// 	oLogicDocument.TurnOff_Recalculate();
-					// 	for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
-					// 	{
-					// 		var nCharCode = oIterator.value();
-					// 		if (0x0020 === nCharCode)
-					// 			oContentControl.AddToParagraph(new AscCommonWord.ParaSpace());
-					// 		else
-					// 			oContentControl.AddToParagraph(new AscCommonWord.ParaText(nCharCode));
-					// 	}
-					// 	oLogicDocument.SelectContentControl(oContentControl.GetId());
-					// 	oLogicDocument.TurnOn_Recalculate();
-					// }
-
 					oLogicDocument.Recalculate();
 					oLogicDocument.Document_UpdateInterfaceState();
 					oLogicDocument.Document_UpdateSelectionState();
@@ -7805,7 +7788,7 @@ background-repeat: no-repeat;\
 		}
 		else if (c_oAscSdtLevelType.Inline === nType)
 		{
-			if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ContentControl_Add))
+			if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ContentControl_Add, null))
 			{
 				oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddInlineLevelContentControl);
 
@@ -7818,20 +7801,6 @@ background-repeat: no-repeat;\
 				}
 				else
 				{
-					// if (oContentControl.IsEmpty())
-					// {
-					// 	for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
-					// 	{
-					// 		var nCharCode = oIterator.value();
-					// 		if (0x0020 === nCharCode)
-					// 			oContentControl.Add(new AscCommonWord.ParaSpace());
-					// 		else
-					// 			oContentControl.Add(new AscCommonWord.ParaText(nCharCode));
-					//
-					// 	}
-					// 	oContentControl.SelectThisElement();
-					// }
-
 					if (oContentControlPr)
 						oContentControl.SetContentControlPr(oContentControlPr);
 
@@ -9180,6 +9149,14 @@ background-repeat: no-repeat;\
 			return;
 
 		oLogicDocument.SelectContentControl(id);
+	};
+	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToContentControl"] = function(id, isBegin)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.MoveCursorToContentControl(id, isBegin);
 	};
 	window["asc_docs_api"].prototype["pluginMethod_GetSelectedText"] = function()
 	{

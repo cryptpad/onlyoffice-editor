@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -79,9 +79,42 @@ CInlineLevelSdt.prototype.Add = function(Item)
 	this.private_ReplacePlaceHolderWithContent();
 	CParagraphContentWithParagraphLikeContent.prototype.Add.apply(this, arguments);
 };
-CInlineLevelSdt.prototype.Copy = function(Selected, oPr)
+CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 {
-	var oContentControl = CParagraphContentWithParagraphLikeContent.prototype.Copy.apply(this, arguments);
+	var oContentControl = new CInlineLevelSdt();
+
+	oContentControl.ReplacePlaceHolderWithContent();
+
+	var nStartPos = 0;
+	var nEndPos   = this.Content.length - 1;
+
+	if (isUseSelection && this.State.Selection.Use)
+	{
+		nStartPos = this.State.Selection.StartPos;
+		nEndPos   = this.State.Selection.EndPos;
+
+		if (nStartPos > nEndPos)
+		{
+			nStartPos = this.State.Selection.EndPos;
+			nEndPos   = this.State.Selection.StartPos;
+		}
+	}
+
+	if (!this.IsPlaceHolder())
+	{
+		for (var nCurPos = nStartPos; nCurPos <= nEndPos; ++nCurPos)
+		{
+			var oItem = this.Content[nCurPos];
+
+			if (nStartPos === nEndPos || nEndPos === nCurPos)
+				oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(isUseSelection, oPr));
+			else
+				oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(false, oPr));
+		}
+	}
+
+	if (oContentControl.IsEmpty())
+		oContentControl.ReplaceContentWithPlaceHolder();
 
 	oContentControl.SetLabel(this.GetLabel());
 	oContentControl.SetTag(this.GetTag());
@@ -217,6 +250,7 @@ CInlineLevelSdt.prototype.Remove = function(nDirection, bOnAddText)
 	if (this.Is_Empty()
 		&& this.Paragraph
 		&& this.Paragraph.LogicDocument
+		&& this.CanBeEdited()
 		&& ((!bOnAddText
 		&& true === this.Paragraph.LogicDocument.IsFillingFormMode())
 		|| (this === this.Paragraph.LogicDocument.CheckInlineSdtOnDelete)))
@@ -318,6 +352,16 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 CInlineLevelSdt.prototype.SelectContentControl = function()
 {
 	this.SelectThisElement(1);
+};
+CInlineLevelSdt.prototype.MoveCursorToContentControl = function(isBegin)
+{
+	this.RemoveSelection();
+	this.SetThisElementCurrent();
+
+	if (isBegin)
+		this.MoveCursorToStartPos();
+	else
+		this.MoveCursorToEndPos();
 };
 CInlineLevelSdt.prototype.RemoveContentControlWrapper = function()
 {
@@ -609,7 +653,15 @@ CInlineLevelSdt.prototype.GetContentControlPr = function()
  */
 CInlineLevelSdt.prototype.CanBeDeleted = function()
 {
-	return (c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+};
+/**
+ * Можно ли редактировать данный контейнер
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.CanBeEdited = function()
+{
+	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
 };
 
 //----------------------------------------------------------------------------------------------------------------------

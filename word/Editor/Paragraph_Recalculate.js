@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -2773,6 +2773,7 @@ function CParagraphRecalculateStateWrap(Para)
     this.ColumnAbs       = 0;
 	this.InTable         = false;
     this.SectPr          = null; // настройки секции, к которой относится данный параграф
+	this.CondensedSpaces = false;
 
 	this.Fast            = false; // Быстрый ли пересчет
 
@@ -2902,6 +2903,8 @@ CParagraphRecalculateStateWrap.prototype =
 		this.ColumnAbs   = Paragraph.Get_AbsoluteColumn(CurPage);
 		this.InTable     = Paragraph.Parent.IsTableCellContent();
         this.SectPr      = null;
+
+		this.CondensedSpaces = Paragraph && Paragraph.IsCondensedSpaces();
 
 		this.Page               = CurPage;
 		this.RunRecalcInfoLast  = (0 === CurPage ? null : Paragraph.Pages[CurPage - 1].EndInfo.RunRecalcInfo);
@@ -3327,6 +3330,10 @@ CParagraphRecalculateStateWrap.prototype.SetMathRecalcInfoLine = function(nLine)
 {
 	this.MathRecalcInfo.Line = nLine;
 };
+CParagraphRecalculateStateWrap.prototype.IsCondensedSpaces = function()
+{
+	return this.CondensedSpaces;
+};
 
 function CParagraphRecalculateStateCounter()
 {
@@ -3345,22 +3352,19 @@ function CParagraphRecalculateStateCounter()
     this.ComplexFields = new CParagraphComplexFieldsInfo();
 }
 
-CParagraphRecalculateStateCounter.prototype =
+CParagraphRecalculateStateCounter.prototype.Reset = function(Paragraph, Range)
 {
-    Reset : function(Paragraph, Range)
-    {
-        this.Paragraph   = Paragraph;
-        this.Range       = Range;
-        this.Word        = false;
-        this.SpaceLen    = 0;
-        this.SpacesCount = 0;
+	this.Paragraph   = Paragraph;
+	this.Range       = Range;
+	this.Word        = false;
+	this.SpaceLen    = 0;
+	this.SpacesCount = 0;
 
-        this.Words       = 0;
-        this.Spaces      = 0;
-        this.Letters     = 0;
-        this.SpacesSkip  = 0;
-        this.LettersSkip = 0;
-    }
+	this.Words       = 0;
+	this.Spaces      = 0;
+	this.Letters     = 0;
+	this.SpacesSkip  = 0;
+	this.LettersSkip = 0;
 };
 
 function CParagraphRecalculateStateAlign()
