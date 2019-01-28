@@ -2290,20 +2290,22 @@
 								clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
 								this._clearRange(clearRange, true);
 
-								tablePart.changeRef(null, -1, null, true);
 								tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
+								tablePart.changeRef(null, -1, null, true);
 							}
 						} else {
 							//если снизу пустая строка, то просто увеличиваем диапазон и меняем флаг
-							var rangeUnderTable = new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 +
-								1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
-							if (this._isEmptyRange(rangeUnderTable, 0) &&
-								this.searchRangeInTableParts(rangeUnderTable) === -1) {
-								isSetValue = true;
-								isSetType = true;
+							var rangeUnderTable = new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
 
-								tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
-								tablePart.changeRef(null, 1, null, true);
+							//внизу часть форматированной таблицы - следовательно сдвигать нельзя, проверяем пустую строчку по ф/т
+							if (this._isPartTablePartsUnderRange(tablePart.Ref)) {
+								if(this._isEmptyRange(rangeUnderTable, 0)) {
+									isSetValue = true;
+									isSetType = true;
+
+									tablePart.TotalsRowCount = tablePart.TotalsRowCount === null ? 1 : null;
+									tablePart.changeRef(null, 1, null, true);
+								}
 							} else {
 								AscFormat.ExecuteNoHistory(function () {
 									worksheet.getRange3(tablePart.Ref.r2 + 1, tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2).addCellsShiftBottom();
