@@ -2143,12 +2143,13 @@ function BinaryPPTYLoader()
 													sReadPath = sReadPathNew;
 												}
                                             }
-                                            if(this.IsUseFullUrl)
-                                            {
+                                            if(this.IsUseFullUrl) {
                                                 if(window["native"] && window["native"]["CopyTmpToMedia"]){
-                                                    var sMedia = window["native"]["CopyTmpToMedia"](sReadPath);
-                                                    if(typeof sMedia === "string" && sMedia.length > 0){
-                                                        sReadPath = sMedia;
+                                                    if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
+                                                        var sMedia = window["native"]["CopyTmpToMedia"](sReadPath);
+                                                        if(typeof sMedia === "string" && sMedia.length > 0){
+                                                            sReadPath = sMedia;
+                                                        }
                                                     }
                                                 }
                                             }

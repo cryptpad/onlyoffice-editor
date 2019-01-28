@@ -2571,7 +2571,10 @@ function CBinaryFileWriter()
 						}
                     }
                     if(window["native"] && window["native"]["GetImageTmpPath"]){
-                        _src = window["native"]["GetImageTmpPath"](_src);
+                        if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
+                            _src = window["native"]["GetImageTmpPath"](_src);
+                        }
+                        
                     }
                 }
 
