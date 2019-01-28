@@ -4557,6 +4557,9 @@ drawBarChart.prototype = {
 				path = this.paths.series[ser][val][2];
 			} else if (AscFormat.isRealNumber(this.paths.series[ser][val][3])) {
 				path = this.paths.series[ser][val][3];
+			} else if (AscFormat.isRealNumber(this.paths.series[ser][val][1])) {
+				//TODO добавлено для случая нулевой точки. возможно в данном случае сдвиги нужно считать иначе
+				path = this.paths.series[ser][val][1];
 			}
 		}
 
