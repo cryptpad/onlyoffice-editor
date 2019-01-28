@@ -16016,6 +16016,7 @@
 		return this.fragments;
 	};
 	CHeaderFooterEditorSection.prototype.drawText = function () {
+		this.canvasObj.drawingCtx.clear();
 		if(!this.fragments) {
 			//возможно стоит очищать канву в данном случае
 			return;
@@ -16165,12 +16166,27 @@
 	};
 
 	CHeaderFooterEditor.prototype.switchHeaderFooterType = function (type) {
+		if(type === this.pageType) {
+			return;
+		}
+
+		if(this.cellEditor) {
+			//save
+			var prevField = this.getSectionById(this.curParentFocusId);
+			var prevFragments = this.cellEditor.options.fragments;
+			prevField.setFragments(prevFragments);
+			prevField.drawText();
+
+			this.cellEditor.close();
+			document.getElementById(this.editorElemId).remove();
+		}
+
 		this.curParentFocusId = null;
 		this.cellEditor = null;
 		this.pageType = type;
 
 		//ещё возможно нужно будет заново добавлять в parent созданную канву(reinit)
-		this.createAndDrawSections();
+		this.createAndDrawSections(type);
 	};
 
 	CHeaderFooterEditor.prototype.createAndDrawSections = function(pageCommonType) {
@@ -16274,7 +16290,7 @@
 		if(type === asc.c_oAscHeaderFooterType.first) {
 			res = bFooter ? asc.c_oAscPageHFType.firstFooter : asc.c_oAscPageHFType.firstHeader;
 		} else if (type === asc.c_oAscHeaderFooterType.even) {
-			res = bFooter ? asc.c_oAscPageHFType.evenFooter : asc.c_oAscPageHFType.evenFooter;
+			res = bFooter ? asc.c_oAscPageHFType.evenFooter : asc.c_oAscPageHFType.evenHeader;
 		}
 
 		return res;
