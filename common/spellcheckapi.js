@@ -159,7 +159,8 @@
 	};
 
 	SpellCheckApi.prototype.checkDictionary = function (lang) {
-		return !!this.languages[lang];
+		// Check init. May arrive earlier than initialization
+		return !this.isInit || !!this.languages[lang];
 	};
 
 	SpellCheckApi.prototype.disconnect = function () {
