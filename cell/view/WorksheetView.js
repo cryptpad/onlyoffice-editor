@@ -16161,6 +16161,7 @@
 		//хранить будем в следующем виде: [c_nPageHFType.firstHeader/.../][c_nPortionLeft/.../c_nPortionRight]
 		this.createAndDrawSections();
 		this._generatePresetsArr();
+		this.getAppliedPreset();
 	};
 
 	CHeaderFooterEditor.prototype.switchHeaderFooterType = function (type) {
@@ -16948,6 +16949,24 @@
 		}
 	};
 
+	CHeaderFooterEditor.prototype.getAppliedPreset = function(type, bFooter) {
+		var res = Asc.c_oAscHeaderFooterPresets.none;
+		type = undefined !== type ? type : this.pageType;
+		var curType = this._getHeaderFooterType(type, bFooter);
+		var section = this.sections[curType];
+
+		for(var i = 0; i < section.length; i++) {
+
+			if(null !== section[i].fragments) {
+				res = Asc.c_oAscHeaderFooterPresets.custom;
+				break;
+			}
+		}
+
+		return res;
+	};
+
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
@@ -16971,5 +16990,6 @@
 	prot["switchHeaderFooterType"] = prot.switchHeaderFooterType;
 	prot["getTextPresetsArr"] = prot.getTextPresetsArr;
 	prot["applyPreset"] = prot.applyPreset;
+	prot["getAppliedPreset"] = prot.getAppliedPreset;
 
 })(window);

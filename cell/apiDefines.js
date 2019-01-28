@@ -435,7 +435,8 @@ var c_oAscPopUpSelectorType = {
       pageBookName: 11,
       userPageDate: 12,
       //bookPathPagePathFile: 12;
-      preparedUserDatePage: 13
+      preparedUserDatePage: 13,
+      custom: 14
   };
 
 
@@ -690,5 +691,6 @@ var c_oAscPopUpSelectorType = {
   prot['pageBookName'] = prot.pageBookName;
   prot['userPageDate'] = prot.userPageDate;
   prot['preparedUserDatePage'] = prot.preparedUserDatePage;
+  prot['custom'] = prot.custom;
 
 })(window);
