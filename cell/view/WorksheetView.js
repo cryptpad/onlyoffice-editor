@@ -16188,6 +16188,8 @@
 			prevField.setFragments(prevFragments);
 			prevField.drawText();
 
+			prevField.canvasObj.canvas.style.display = "block";
+
 			this.cellEditor.close();
 			document.getElementById(this.editorElemId).remove();
 		}
@@ -16391,6 +16393,8 @@
 				var prevFragments = t.cellEditor.options.fragments;
 				prevField.setFragments(prevFragments);
 				prevField.drawText();
+
+				prevField.canvasObj.canvas.style.display = "block";
 			}
 
 			t.curParentFocusId = id;
@@ -16457,12 +16461,22 @@
 					//временно меняем cellEditor у wb
 					t.wbCellEditor = wb.cellEditor;
 					wb.cellEditor = t.cellEditor;
+
+					//удаляем z-index для интерфейса
+					t.cellEditor.canvasOuter.style.zIndex = "";
+					t.cellEditor.canvas.style.zIndex = "";
+					t.cellEditor.canvasOverlay.style.zIndex = "";
+					t.cellEditor.cursor.style.zIndex = "";
 				} else {
 					t.cellEditor.close();
 					cSection.appendEditor(t.editorElemId);
 				}
 
 				t.openCellEditor(t.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, sectionElem);
+				t.cellEditor.canvasOuter.style.zIndex = "";
+				cSection.canvasObj.canvas.style.display = "none";
+
+
 				wb.setCellEditMode(true);
 
 				api.asc_enableKeyEvents(true);
@@ -16561,6 +16575,8 @@
 			var prevField = this.getSectionById(this.curParentFocusId);
 			var prevFragments = this.cellEditor.options.fragments;
 			prevField.setFragments(prevFragments);
+
+			prevField.canvasObj.canvas.style.display = "block";
 		}
 
 		var isAddHistory = false;
@@ -16979,21 +16995,23 @@
 		var curType = this._getHeaderFooterType(this.pageType, bFooter);
 		var section = this.sections[curType];
 
-		this.cellEditor.close();
+		if(this.cellEditor) {
+			this.cellEditor.close();
+		}
+
 		this.curParentFocusId = null;
 
 		var fragments;
 		for(var i = 0; i < section.length; i++) {
 			if(!this.presets[type][i]) {
 				section[i].setFragments(null);
-				section[i].drawText();
-				section[i].changed = true;
 			} else {
 				fragments = [this._getFragments(this.presets[type][i], new AscCommonExcel.Font())];
 				section[i].setFragments(fragments);
-				section[i].drawText();
-				section[i].changed = true;
 			}
+			section[i].drawText();
+			section[i].changed = true;
+			section[i].canvasObj.canvas.style.display = "block";
 		}
 	};
 
