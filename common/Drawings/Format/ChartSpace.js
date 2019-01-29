@@ -3844,7 +3844,11 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                 else
                 {
                     col_hidden = source_worksheet.getColHidden(range.c1);
-                    for(j = range.r1; j <= range.r2; ++j)
+                    var r2 = range.r2;
+                    if(source_worksheet.isTableTotalRow(new Asc.Range(range.c1, r2, range.c1, r2))){
+                        --r2;
+                    }
+                    for(j = range.r1; j <= r2; ++j)
                     {
                         if(!col_hidden && !source_worksheet.getRowHidden(j) || (this.displayHidden === true))
                         {
@@ -4850,9 +4854,9 @@ CChartSpace.prototype.getValAxisCrossType = function()
                     }
 
 
-                    var bTickSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip);
-                    var nTickLblSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip) ? oCurAxis.tickLblSkip :  1;
 
+                    var nTickLblSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip) ? oCurAxis.tickLblSkip :  1;
+                    var bTickSkip = nTickLblSkip> 1;
                     var fAxisLength = fPosEnd - fPosStart;
                     var nLabelsCount = oLabelsBox.aLabels.length;
 
@@ -9683,15 +9687,17 @@ CChartSpace.prototype.hitInTextRect = function()
          (this.chart.plotArea.charts[0].scatterStyle === AscFormat.SCATTER_STYLE_MARKER || this.chart.plotArea.charts[0].scatterStyle === AscFormat.SCATTER_STYLE_NONE));  */
             this.legendLength = null;
 
-            if( !(this.chart.plotArea.charts.length === 1 && this.chart.plotArea.charts[0].varyColors)
-                || (this.chart.plotArea.charts[0].getObjectType() !== AscDFH.historyitem_type_PieChart && this.chart.plotArea.charts[0].getObjectType() !== AscDFH.historyitem_type_DoughnutChart) && series.length !== 1
-                || this.chart.plotArea.charts[0].getObjectType() === AscDFH.historyitem_type_SurfaceChart)
+            var aCharts = this.chart.plotArea.charts;
+            var oFirstChart = aCharts[0];
+            var bNoPieChart = (oFirstChart.getObjectType() !== AscDFH.historyitem_type_PieChart && oFirstChart.getObjectType() !== AscDFH.historyitem_type_DoughnutChart);
+            var bSurfaceChart = (oFirstChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart);
+
+            var bSeriesLegend = aCharts.length > 1 || (bNoPieChart && (!(oFirstChart.varyColors && series.length === 1) || bSurfaceChart));
+            if(bSeriesLegend)
             {
-                var bSurfaceChart = false;
-                if(this.chart.plotArea.charts[0].getObjectType() === AscDFH.historyitem_type_SurfaceChart){
+                if(bSurfaceChart){
                     this.legendLength = this.chart.plotArea.charts[0].compiledBandFormats.length;
                     ser = series[0];
-                    bSurfaceChart = true;
                 }
                 else {
                     this.legendLength = series.length;
@@ -9760,7 +9766,6 @@ CChartSpace.prototype.hitInTextRect = function()
                         }
                         case AscDFH.historyitem_type_LineSeries:
                         case AscDFH.historyitem_type_ScatterSer:
-                        case AscDFH.historyitem_type_SurfaceSeries:
                         {
                             if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this))
                             {

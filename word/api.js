@@ -7761,10 +7761,9 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		var sDefaultText = AscCommon.translateManager.getValue('Your text here');
 		if (c_oAscSdtLevelType.Block === nType)
 		{
-			if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ContentControl_Add))
+			if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ContentControl_Add, null))
 			{
 				oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddBlockLevelContentControl);
 
@@ -7779,22 +7778,6 @@ background-repeat: no-repeat;\
 					if (oContentControlPr)
 						oContentControl.SetContentControlPr(oContentControlPr);
 
-					// if (oContentControl.IsEmpty())
-					// {
-					// 	// TODO: Разобраться с тем, чтобы пересчет не вызывался в фунции AddToParagraph
-					// 	oLogicDocument.TurnOff_Recalculate();
-					// 	for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
-					// 	{
-					// 		var nCharCode = oIterator.value();
-					// 		if (0x0020 === nCharCode)
-					// 			oContentControl.AddToParagraph(new AscCommonWord.ParaSpace());
-					// 		else
-					// 			oContentControl.AddToParagraph(new AscCommonWord.ParaText(nCharCode));
-					// 	}
-					// 	oLogicDocument.SelectContentControl(oContentControl.GetId());
-					// 	oLogicDocument.TurnOn_Recalculate();
-					// }
-
 					oLogicDocument.Recalculate();
 					oLogicDocument.Document_UpdateInterfaceState();
 					oLogicDocument.Document_UpdateSelectionState();
@@ -7805,7 +7788,7 @@ background-repeat: no-repeat;\
 		}
 		else if (c_oAscSdtLevelType.Inline === nType)
 		{
-			if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ContentControl_Add))
+			if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ContentControl_Add, null))
 			{
 				oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddInlineLevelContentControl);
 
@@ -7818,20 +7801,6 @@ background-repeat: no-repeat;\
 				}
 				else
 				{
-					// if (oContentControl.IsEmpty())
-					// {
-					// 	for (var oIterator = sDefaultText.getUnicodeIterator(); oIterator.check(); oIterator.next())
-					// 	{
-					// 		var nCharCode = oIterator.value();
-					// 		if (0x0020 === nCharCode)
-					// 			oContentControl.Add(new AscCommonWord.ParaSpace());
-					// 		else
-					// 			oContentControl.Add(new AscCommonWord.ParaText(nCharCode));
-					//
-					// 	}
-					// 	oContentControl.SelectThisElement();
-					// }
-
 					if (oContentControlPr)
 						oContentControl.SetContentControlPr(oContentControlPr);
 

@@ -3400,6 +3400,9 @@ CParagraphContentWithParagraphLikeContent.prototype.Is_UseInParagraph = function
 };
 CParagraphContentWithParagraphLikeContent.prototype.SelectThisElement = function(nDirection)
 {
+	if (!this.Paragraph)
+		return false;
+
 	var ContentPos = this.Paragraph.Get_PosByElement(this);
 	if (!ContentPos)
 		return false;

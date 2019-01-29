@@ -4473,7 +4473,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
             this.brush = AscFormat.CreateBlipFillUniFillFromUrl(sSignatureUrl);
         }
     }
-    if (geometry || this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill)) {
+    if (geometry && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
         graphics.SetIntegerGrid(false);
         graphics.transform3(_transform, false);
 
@@ -5275,6 +5275,10 @@ CShape.prototype.hitInInnerArea = function (x, y) {
         var y_t = invert_transform.TransformPointY(x, y);
         if (isRealObject(this.spPr) && isRealObject(this.spPr.geometry) && this.spPr.geometry.pathLst.length > 0 && !(this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_ChartSpace))
             return this.spPr.geometry.hitInInnerArea(this.getCanvasContext(), x_t, y_t);
+        if(this.getObjectType() === AscDFH.historyitem_type_Shape)
+        {
+            return false;
+        }
         return x_t > 0 && x_t < this.extX && y_t > 0 && y_t < this.extY;
     }
     return false;

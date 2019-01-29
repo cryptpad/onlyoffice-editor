@@ -713,7 +713,8 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 	{
 		var bSelectedOnlyThis = false;
 		// Если это происходит на добавлении текста, тогда проверяем, что выделен только данный элемент
-		if ((AscCommon.changestype_Paragraph_AddText === CheckType || AscCommon.changestype_ContentControl_Add === CheckType) && this.LogicDocument)
+
+		if (AscCommon.changestype_Remove !== CheckType && AscCommon.changestype_Delete !== CheckType)
 		{
 			var oInfo = this.LogicDocument.GetSelectedElementsInfo();
 			bSelectedOnlyThis = oInfo.GetBlockLevelSdt() === this ? true : false;
@@ -791,8 +792,9 @@ CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 		&& this.IsSelectedAll())
 	{
 		var bSelectedOnlyThis = false;
+
 		// Если это происходит на добавлении текста, тогда проверяем, что выделен только данный элемент
-		if ((AscCommon.changestype_Paragraph_AddText === CheckType ||  AscCommon.changestype_ContentControl_Add === CheckType) && this.Paragraph && this.Paragraph.LogicDocument)
+		if (AscCommon.changestype_Remove !== CheckType && AscCommon.changestype_Delete !== CheckType)
 		{
 			var oInfo = this.Paragraph.LogicDocument.GetSelectedElementsInfo();
 			bSelectedOnlyThis = oInfo.GetInlineLevelSdt() === this ? true : false;

@@ -2143,12 +2143,13 @@ function BinaryPPTYLoader()
 													sReadPath = sReadPathNew;
 												}
                                             }
-                                            if(this.IsUseFullUrl)
-                                            {
+                                            if(this.IsUseFullUrl) {
                                                 if(window["native"] && window["native"]["CopyTmpToMedia"]){
-                                                    var sMedia = window["native"]["CopyTmpToMedia"](sReadPath);
-                                                    if(typeof sMedia === "string" && sMedia.length > 0){
-                                                        sReadPath = sMedia;
+                                                    if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
+                                                        var sMedia = window["native"]["CopyTmpToMedia"](sReadPath);
+                                                        if(typeof sMedia === "string" && sMedia.length > 0){
+                                                            sReadPath = sMedia;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -6536,7 +6537,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    cNvPr.id = s.GetLong();
+                    cNvPr.setId(s.GetLong());
                     if(this.TempMainObject && cNvPr.id > this.TempMainObject.maxId)
                     {
                         this.TempMainObject.maxId = cNvPr.id;
@@ -6545,22 +6546,22 @@ function BinaryPPTYLoader()
                 }
                 case 1:
                 {
-                    cNvPr.name = s.GetString2();
+                    cNvPr.setName(s.GetString2());
                     break;
                 }
                 case 2:
                 {
-                    cNvPr.isHidden = (1 == s.GetUChar()) ? true : false;
+                    cNvPr.setIsHidden((1 == s.GetUChar()) ? true : false);
                     break;
                 }
                 case 3:
                 {
-                    cNvPr.title = s.GetString2();
+                    cNvPr.setTitle(s.GetString2());
                     break;
                 }
                 case 4:
                 {
-                    cNvPr.descr = s.GetString2();
+                    cNvPr.setDescr(s.GetString2());
                     break;
                 }
                 default:{
