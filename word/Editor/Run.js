@@ -10348,7 +10348,17 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 					isOpenQuote = false;
 			}
 
-			var nCharCode = (34 === this.Content[nPos].Value ? (isOpenQuote ? 8220 : 8221) : (isOpenQuote ? 8216 : 8217));
+			var nCharCode;
+
+			// Обработка русских кавычек "елочка"
+			if (34 === this.Content[nPos].Value && this.Get_CompiledPr(false).Lang && 1049 === this.Get_CompiledPr(false).Lang.Val)
+			{
+				nCharCode = isOpenQuote ? 171 : 187;
+			}
+			else
+			{
+				nCharCode = (34 === this.Content[nPos].Value ? (isOpenQuote ? 8220 : 8221) : (isOpenQuote ? 8216 : 8217));
+			}
 
 			// Проверку на лок можно не делать, т.к. мы собираемся менять содержимое данного рана, а такую проверку мы уже делали
 
