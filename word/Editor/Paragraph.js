@@ -11729,13 +11729,6 @@ Paragraph.prototype.GetPageByLine = function(CurLine)
 
     return Math.min(PagesCount - 1, CurPage);
 };
-Paragraph.prototype.GetTopElement = function()
-{
-    if (true === this.Parent.Is_TopDocument(false))
-        return this;
-
-    return this.Parent.GetTopElement();
-};
 Paragraph.prototype.CompareDrawingsLogicPositions = function(CompareObject)
 {
     var Run1 = this.Get_DrawingObjectRun(CompareObject.Drawing1.Get_Id());

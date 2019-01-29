@@ -1016,6 +1016,20 @@ CDocumentContentElementBase.prototype.GetAllFields = function(isUseSelection, ar
 {
 	return arrFields ? arrFields : [];
 };
+/**
+ * Получаем верхний элемент в документе, в котором лежит данный элемент
+ * @returns {?CDocumentContentElementBase}
+ */
+CDocumentContentElementBase.prototype.GetTopElement = function()
+{
+	if (!this.Parent)
+		return null;
+
+	if (this.Parent === this.Parent.Is_TopDocument(true))
+		return this;
+
+	return this.Parent.GetTopElement();
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

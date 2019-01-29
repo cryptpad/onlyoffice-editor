@@ -17601,8 +17601,13 @@ CDocument.prototype.private_GetSelectionPos = function(isSaveDirection)
 	else if (this.controller_IsNumberingSelection())
 	{
 		this.UpdateContentIndexing();
-		nStartPos = this.Selection.Data.CurPara.GetIndex();
-		nEndPos   = nStartPos;
+
+		var oTopElement = this.Selection.Data.CurPara.GetTopElement();
+		if (oTopElement)
+		{
+			nStartPos = oTopElement.GetIndex();
+			nEndPos   = nStartPos;
+		}
 	}
 	else
 	{
