@@ -8870,7 +8870,8 @@
         this.moveRangeDrawingObjectTo = null;
     };
 
-    WorksheetView.prototype.moveRangeHandle = function (arnFrom, arnTo, copyRange) {
+    WorksheetView.prototype.moveRangeHandle = function (arnFrom, arnTo, copyRange, opt_wsTo) {
+		//opt_wsTo - for test reasons only
         var t = this;
         var onApplyMoveRangeHandleCallback = function (isSuccess) {
             if (false === isSuccess) {
@@ -8899,7 +8900,7 @@
 
                 t.model.autoFilters._preMoveAutoFilters(arnFrom, arnTo, copyRange);
 
-                t.model._moveRange(arnFrom, arnTo, copyRange);
+                t.model._moveRange(arnFrom, arnTo, copyRange, opt_wsTo && opt_wsTo.model);
                 t.cellCommentator.moveRangeComments(arnFrom, arnTo, copyRange);
                 t.objectRender.moveRangeDrawingObject(arnFrom, arnTo);
 

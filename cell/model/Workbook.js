@@ -5030,9 +5030,9 @@
 		//удаляем to через историю, для undo
 		var cleanRanges;
 		if (this === wsTo) {
-			cleanRanges = wsTo._prepareMoveRangeGetCleanRanges(oBBoxFrom, oBBoxTo);
+			cleanRanges = this._prepareMoveRangeGetCleanRanges(oBBoxFrom, oBBoxTo);
 		} else {
-			cleanRanges = [this.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2)];
+			cleanRanges = [wsTo.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2)];
 		}
 		for (var i = 0; i < cleanRanges.length; i++) {
 			var range = cleanRanges[i];
@@ -5059,6 +5059,7 @@
 		var nRowsCountNew = 0;
 		var nColsCountNew = 0;
 		var dependencyFormulas = oThis.workbook.dependencyFormulas;
+		var moveToOtherSheet = this !== wsTo;
 		var isClearFromArea = !copyRange || (copyRange && oThis.workbook.bUndoChanges);
 		var moveCells = function(copyRange, from, to, r1From, r1To, count){
 			var fromData = oThis.getColDataNoEmpty(from);
@@ -5067,7 +5068,7 @@
 				toData = wsTo.getColData(to);
 				toData.copyRange(fromData, r1From, r1To, count);
 				if (isClearFromArea) {
-					if(from !== to) {
+					if(from !== to || moveToOtherSheet) {
 						fromData.clear(r1From, r1From + count);
 					} else {
 						if (r1From < r1To) {
@@ -5119,7 +5120,7 @@
 					History.TurnOff();
 					//***array-formula***
 					if(!arrayFormula || (arrayFormula && isFirstCellArray)) {
-						newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, wsTo);
+						newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, oBBoxFrom, wsTo);
 						cellWithFormula = newFormula.getParent();
 						cellWithFormula = new CCellWithFormula(wsTo, cell.nRow, cell.nCol);
 						newFormula = newFormula.clone(null, cellWithFormula, wsTo);
@@ -5143,7 +5144,7 @@
 					//TODO возможно стоит это делать в dependencyFormulas.move
 					if(arrayFormula) {
 						if(isFirstCellArray) {
-							newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, wsTo);
+							newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, oBBoxFrom, wsTo);
 							cellWithFormula = newFormula.getParent();
 							shiftedArrayFormula[formula.getListenerId()] = 1;
 							newArrayRef = arrayFormula.clone();
@@ -5155,7 +5156,7 @@
 							cellWithFormula.nCol = cell.nCol;
 						}
 					} else {
-						newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, wsTo);
+						newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, oBBoxFrom, wsTo);
 						cellWithFormula = newFormula.getParent();
 						cellWithFormula.ws = wsTo;
 						cellWithFormula.nRow = cell.nRow;
@@ -5175,12 +5176,14 @@
 			}
 		});
 	};
-	Worksheet.prototype._moveCellsFormula = function(cell, formula, cellWithFormula, copyRange, wsTo) {
+	Worksheet.prototype._moveCellsFormula = function(cell, formula, cellWithFormula, copyRange, oBBoxFrom, wsTo) {
 		if (this !== wsTo) {
 			if (copyRange || !this.workbook.bUndoChanges) {
 				cellWithFormula = new CCellWithFormula(wsTo, cell.nRow, cell.nCol);
 				formula = formula.clone(null, cellWithFormula, wsTo);
-				formula.convertTo3DRefs();
+				if (!copyRange) {
+					formula.convertTo3DRefs(oBBoxFrom);
+				}
 				formula.moveToSheet(this, wsTo);
 				formula.setFormulaString(formula.assemble(true));
 				cell.setFormulaParsed(formula);
@@ -8208,7 +8211,7 @@
 			if (ranges) {
 				for (i = 0; i < ranges.length; ++i) {
 					this._processShared(shared, ranges[i], data, parsed, forceTransform, function(newFormula) {
-						return newFormula.shiftCells(data.type, data.sheetId, data.bbox, data.offset);
+						return newFormula.shiftCells(data.type, data.sheetId, data.bbox, data.offset, data.sheetIdTo);
 					});
 				}
 			}

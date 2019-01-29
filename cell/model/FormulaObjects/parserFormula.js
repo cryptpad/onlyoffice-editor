@@ -1218,7 +1218,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cArea.prototype.tocBool = function () {
 		return new cError(cErrorType.wrong_value_type);
 	};
-	cArea.prototype.tocArea3D = function (opt_ws) {
+	cArea.prototype.to3D = function (opt_ws) {
 		opt_ws = opt_ws || this.ws;
 		var res = new cArea3D(null, opt_ws, opt_ws);
 		this.cloneTo(res);
@@ -1731,15 +1731,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cRef.prototype.tocBool = function () {
 		return this.getValue().tocBool();
 	};
-	cRef.prototype.tocRef3D = function (opt_ws) {
+	cRef.prototype.to3D = function (opt_ws) {
 		var ws = opt_ws ? opt_ws : this.ws;
 		var oRes = new cRef3D(null, null);
 		this.cloneTo(oRes);
-		if (opt_ws && this.ws.getName() == opt_ws.getName()) {
-			oRes.ws = opt_ws;
-		} else {
-			oRes.ws = this.ws;
-		}
+		oRes.ws = ws;
 		if (this.range) {
 			oRes.range = this.range.clone(ws);
 		}
@@ -6281,14 +6277,13 @@ parserFormula.prototype.setFormula = function(formula) {
 	};
 	parserFormula.prototype.shiftCells = function(notifyType, sheetId, bbox, offset, opt_sheetIdTo) {
 		var res = false;
-		var elem;
+		var elem, bboxCell;
 		var wb = this.ws.workbook;
-		if(!opt_sheetIdTo){
+		if (!opt_sheetIdTo) {
 			opt_sheetIdTo = sheetId;
 		}
-		if (sheetId !== opt_sheetIdTo && !this.wb.bUndoChanges) {
-			this.convertTo3DRefs();
-		}
+		var ws = wb.getWorksheetById(sheetId);
+		var wsTo = wb.getWorksheetById(opt_sheetIdTo);
 		for (var i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
 			var _cellsRange = null;
@@ -6351,13 +6346,24 @@ parserFormula.prototype.setFormula = function(formula) {
 						}
 					}
 					if (isNoDelete) {
-						if (sheetId !== opt_sheetIdTo) {
-							elem.changeSheet(wb.getWorksheetById(sheetId), wb.getWorksheetById(opt_sheetIdTo));
+						if (sheetId !== opt_sheetIdTo && (elem.type === cElementType.cell || elem.type === cElementType.cellsRange)) {
+							bboxCell = null;
+							if (this.parent && this.parent.onFormulaEvent) {
+								bboxCell = this.parent.onFormulaEvent(AscCommon.c_oNotifyParentType.GetRangeCell);
+							}
+							if (!bboxCell || !bbox.containsRange(bboxCell)) {
+								if (this.wb.bUndoChanges) {
+									elem.changeSheet(ws, wsTo);
+								} else {
+									elem = elem.to3D(wsTo);
+									this.outStack[i] = elem;
+								}
+							}
 						}
 						if (elem.type === cElementType.cellsRange3D) {
 							elem.bbox = _cellsBbox;
 						} else {
-							elem.range = _cellsRange.createFromBBox(_cellsRange.getWorksheet(), _cellsBbox);
+							elem.range = _cellsRange.createFromBBox(wsTo, _cellsBbox);
 						}
 						elem.value = _cellsBbox.getName();
 					} else {
@@ -6479,7 +6485,9 @@ parserFormula.prototype.setFormula = function(formula) {
 			//before change outStack necessary to removeDependencies
 			this.removeDependencies();
 		}
-
+		if (this.ws === wsLast) {
+			this.ws = wsNew;
+		}
 		for (var i = 0; i < this.outStack.length; i++) {
 			var elem = this.outStack[i];
 			if (tableNameMap && cElementType.table === elem.type) {
@@ -6912,14 +6920,15 @@ parserFormula.prototype.setFormula = function(formula) {
 		}
 		return val;
 	};
-	parserFormula.prototype.convertTo3DRefs = function() {
-		var elem;
+	parserFormula.prototype.convertTo3DRefs = function(bboxFrom) {
+		var elem, bbox;
 		for (var i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type === cElementType.cell) {
-				this.outStack[i] = elem.tocRef3D();
-			} else if (elem.type === cElementType.cellsRange) {
-				this.outStack[i] = elem.tocArea3D();
+			if (elem.type === cElementType.cell || elem.type === cElementType.cellsRange) {
+				bbox = elem.getBBox0();
+				if (!bboxFrom.containsRange(bbox)) {
+					this.outStack[i] = elem.to3D();
+				}
 			}
 		}
 	};
