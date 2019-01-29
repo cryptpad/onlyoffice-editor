@@ -4974,9 +4974,10 @@
 		}
 		return res;
 	};
-	Worksheet.prototype._moveMergedAndHyperlinks = function(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset) {
+	Worksheet.prototype._moveMergedAndHyperlinksPrepare = function(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset) {
+		var res = {merged: [], hyperlinks: []};
 		if (!(false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))) {
-			return;
+			return res;
 		}
 		var i, elem, bbox, data, wsFrom = this;
 		var intersection = oBBoxFrom.intersectionSimple(oBBoxTo);
@@ -4994,12 +4995,6 @@
 				wsFrom.mergeManager.removeElement(mergedToRemove[i]);
 			}
 		}
-		for (i = 0; i < merged.length; i++) {
-			elem = merged[i];
-			bbox = copyRange ? elem.bbox.clone() : elem.bbox;
-			bbox.setOffset(offset);
-			wsTo.mergeManager.add(bbox, elem.data);
-		}
 
 		//hyperlinks
 		var hyperlinks = wsFrom.hyperlinkManager.get(oBBoxFrom).inner;
@@ -5008,10 +5003,25 @@
 				wsFrom.hyperlinkManager.removeElement(hyperlinks[i]);
 			}
 		}
+		History.LocalChange = false;
+		res.merged = merged;
+		res.hyperlinks = hyperlinks;
+		return res;
+	};
+	Worksheet.prototype._moveMergedAndHyperlinks = function(prepared, oBBoxFrom, oBBoxTo, copyRange, wsTo, offset) {
+		var i, elem, bbox, data;
+		var intersection = oBBoxFrom.intersectionSimple(oBBoxTo);
+		History.LocalChange = true;
+		for (i = 0; i < prepared.merged.length; i++) {
+			elem = prepared.merged[i];
+			bbox = copyRange ? elem.bbox.clone() : elem.bbox;
+			bbox.setOffset(offset);
+			wsTo.mergeManager.add(bbox, elem.data);
+		}
 		//todo сделать для пересечения
 		if (!copyRange || null === intersection) {
-			for (i = 0; i < hyperlinks.length; i++) {
-				elem = hyperlinks[i];
+			for (i = 0; i < prepared.hyperlinks.length; i++) {
+				elem = prepared.hyperlinks[i];
 				if (copyRange) {
 					bbox = elem.bbox.clone();
 					data = elem.data.clone();
@@ -5207,10 +5217,11 @@
 		this.workbook.dependencyFormulas.lockRecal();
 
 		var offset = new AscCommon.CellBase(oBBoxTo.r1 - oBBoxFrom.r1, oBBoxTo.c1 - oBBoxFrom.c1);
-		this._moveMergedAndHyperlinks(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
+		var prepared = this._moveMergedAndHyperlinksPrepare(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveCleanRanges(oBBoxFrom, oBBoxTo, copyRange, wsTo);
 		this._moveFormulas(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveCells(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
+		this._moveMergedAndHyperlinks(prepared, oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 
 		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges) {
 			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
