@@ -97,6 +97,7 @@
 		"../slide/Drawing/mobileTouchManager.js",
 
         "../common/wordcopypaste.js",
+		"../common/intervalTree.js",
 
 		"../slide/themes/Themes.js",
 		
