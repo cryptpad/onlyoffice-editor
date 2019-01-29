@@ -7805,6 +7805,62 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
+	CHeaderFooter.prototype.setAlignWithMargins = function (newVal) {
+		var oldVal = this.alignWithMargins;
+		var defaultVal = null === oldVal && (newVal === 1 || newVal === true);
+
+		if(oldVal !== newVal && !defaultVal) {
+			this.alignWithMargins = newVal;
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Align_With_Margins, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.setScaleWithDoc = function (newVal) {
+		var oldVal = this.scaleWithDoc;
+		var defaultVal = null === oldVal && (newVal === 1 || newVal === true);
+
+		if(oldVal !== newVal && !defaultVal) {
+			this.scaleWithDoc = newVal;
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Scale_With_Doc, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.setDifferentFirst = function (newVal) {
+		var oldVal = this.differentFirst;
+		var defaultVal = null === oldVal && (newVal === 0 || newVal === false);
+
+		if(oldVal !== newVal && !defaultVal) {
+			this.differentFirst = newVal;
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Different_First, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.setDifferentOddEven = function (newVal) {
+		var oldVal = this.differentOddEven;
+		var defaultVal = null === oldVal && (newVal === 0 || newVal === false);
+
+		if(oldVal !== newVal && !defaultVal) {
+			this.differentOddEven = newVal;
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Different_Odd_Even, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
 	CHeaderFooter.prototype.setHeaderFooterData = function(str, type) {
 		switch (type){
 			case Asc.c_oAscPageHFType.firstHeader: {

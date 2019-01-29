@@ -16123,6 +16123,11 @@
 		this.presets = null;
 		this.menuPresets = null;
 
+		this.alignWithMargins = null;
+		this.differentFirst = null;
+		this.differentOddEven = null;
+		this.scaleWithDoc = null;
+
 		this.init(idArr);
 	}
 
@@ -16158,11 +16163,17 @@
 		this.canvas[c_nPortionRightFooter] = createAndPushCanvasObj(idArr[5]);
 
 
+		//add common options
+		var ws = this.wb.getWorksheet();
+		this.alignWithMargins = ws.model.headerFooter.alignWithMargins;
+		this.differentFirst = ws.model.headerFooter.differentFirst;
+		this.differentOddEven = ws.model.headerFooter.differentOddEven;
+		this.scaleWithDoc = ws.model.headerFooter.scaleWithDoc;
+
 		//далее создаем классы, где будем хранить fragments всех типов колонтитулов + выполнять отрисовку
 		//хранить будем в следующем виде: [c_nPageHFType.firstHeader/.../][c_nPortionLeft/.../c_nPortionRight]
 		this.createAndDrawSections();
 		this._generatePresetsArr();
-		this.getAppliedPreset();
 	};
 
 	CHeaderFooterEditor.prototype.switchHeaderFooterType = function (type) {
@@ -16552,6 +16563,7 @@
 			prevField.setFragments(prevFragments);
 		}
 
+		var isAddHistory = false;
 		for(var i = 0; i < this.sections.length; i++) {
 			if(!this.sections[i]) {
 				continue;
@@ -16583,16 +16595,27 @@
 			}
 			//нужно добавлять в историю
 			if(isChanged) {
-				History.Create_NewPoint();
-				History.StartTransaction();
+				if(!isAddHistory) {
+					History.Create_NewPoint();
+					History.StartTransaction();
+					isAddHistory = true;
+				}
 
 				curHeaderFooter.parser.assembleText();
 				//curHeaderFooter.setStr(curHeaderFooter.parser.date);
-
 				ws.model.headerFooter.setHeaderFooterData(curHeaderFooter.parser.date, i);
-
-				History.EndTransaction();
 			}
+		}
+
+		//common options
+		ws.model.headerFooter.setAlignWithMargins(this.alignWithMargins);
+		ws.model.headerFooter.setDifferentFirst(this.differentFirst);
+		ws.model.headerFooter.setDifferentOddEven(this.differentOddEven);
+		ws.model.headerFooter.setScaleWithDoc(this.setScaleWithDoc);
+
+
+		if(isAddHistory) {
+			History.EndTransaction();
 		}
 	};
 
@@ -16982,6 +17005,38 @@
 		return res;
 	};
 
+	CHeaderFooterEditor.prototype.setAlignWithMargins = function(val) {
+		this.alignWithMargins = val;
+	};
+
+	CHeaderFooterEditor.prototype.setDifferentFirst = function(val) {
+		this.differentFirst = val;
+	};
+
+	CHeaderFooterEditor.prototype.setDifferentOddEven = function(val) {
+		this.differentOddEven = val;
+	};
+
+	CHeaderFooterEditor.prototype.setScaleWithDoc = function(val) {
+		this.scaleWithDoc = val;
+	};
+
+	CHeaderFooterEditor.prototype.getAlignWithMargins = function() {
+		return 0 === this.alignWithMargins || null === this.alignWithMargins;
+	};
+
+	CHeaderFooterEditor.prototype.getDifferentFirst = function() {
+		return 0 === this.differentFirst || null === this.differentFirst;
+	};
+
+	CHeaderFooterEditor.prototype.getDifferentOddEven = function() {
+		return 1 === this.differentOddEven;
+	};
+
+	CHeaderFooterEditor.prototype.getScaleWithDoc = function() {
+		return 1 === this.scaleWithDoc;
+	};
+
 
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -17007,5 +17062,14 @@
 	prot["getTextPresetsArr"] = prot.getTextPresetsArr;
 	prot["applyPreset"] = prot.applyPreset;
 	prot["getAppliedPreset"] = prot.getAppliedPreset;
+
+	prot["setAlignWithMargins"] = prot.setAlignWithMargins;
+	prot["setDifferentFirst"] = prot.setDifferentFirst;
+	prot["setScaleWithDoc"] = prot.setDifferentOddEven;
+	prot["setScaleWithDoc"] = prot.setScaleWithDoc;
+	prot["getAlignWithMargins"] = prot.getAlignWithMargins;
+	prot["getDifferentFirst"] = prot.getDifferentFirst;
+	prot["getDifferentOddEven"] = prot.getDifferentOddEven;
+	prot["getScaleWithDoc"] = prot.getScaleWithDoc;
 
 })(window);

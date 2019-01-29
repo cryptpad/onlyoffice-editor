@@ -171,6 +171,10 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Footer_First = 4;
 	window['AscCH'].historyitem_Footer_Even = 5;
 	window['AscCH'].historyitem_Footer_Odd = 6;
+	window['AscCH'].historyitem_Align_With_Margins = 7;
+	window['AscCH'].historyitem_Scale_With_Doc = 8;
+	window['AscCH'].historyitem_Different_First = 9;
+	window['AscCH'].historyitem_Different_Odd_Even = 10;
 
 function CHistory()
 {

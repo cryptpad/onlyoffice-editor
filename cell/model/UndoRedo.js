@@ -2850,6 +2850,18 @@ function (window, undefined) {
 			case AscCH.historyitem_Footer_Odd:
 				headerFooter.setOddFooter(value);
 				break;
+			case AscCH.historyitem_Align_With_Margins:
+				headerFooter.setAlignWithMargins(value);
+				break;
+			case AscCH.historyitem_Scale_With_Doc:
+				headerFooter.setScaleWithDoc(value);
+				break;
+			case AscCH.historyitem_Different_First:
+				headerFooter.setDifferentFirst(value);
+				break;
+			case AscCH.historyitem_Different_Odd_Even:
+				headerFooter.setDifferentOddEven(value);
+				break;
 		}
 	};
 
