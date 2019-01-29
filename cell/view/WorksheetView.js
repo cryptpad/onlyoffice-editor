@@ -16980,16 +16980,19 @@
 		var section = this.sections[curType];
 
 		this.cellEditor.close();
+		this.curParentFocusId = null;
 
 		var fragments;
 		for(var i = 0; i < section.length; i++) {
 			if(!this.presets[type][i]) {
 				section[i].setFragments(null);
 				section[i].drawText();
+				section[i].changed = true;
 			} else {
 				fragments = [this._getFragments(this.presets[type][i], new AscCommonExcel.Font())];
 				section[i].setFragments(fragments);
 				section[i].drawText();
+				section[i].changed = true;
 			}
 		}
 	};
