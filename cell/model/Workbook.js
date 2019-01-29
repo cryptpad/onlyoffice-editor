@@ -4913,10 +4913,10 @@
 		}
 		return oCurCol;
 	};
-	Worksheet.prototype._prepareMoveRangeGetCleanRanges=function(oBBoxFrom, oBBoxTo){
+	Worksheet.prototype._prepareMoveRangeGetCleanRanges=function(oBBoxFrom, oBBoxTo, wsTo){
 		var intersection = oBBoxFrom.intersectionSimple(oBBoxTo);
 		var aRangesToCheck = [];
-		if(null != intersection)
+		if(null != intersection && this === wsTo)
 		{
 			var oThis = this;
 			var fAddToRangesToCheck = function(aRangesToCheck, r1, c1, r2, c2)
@@ -4946,18 +4946,21 @@
 			}
 		}
 		else
-			aRangesToCheck.push(this.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2));
+			aRangesToCheck.push(wsTo.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2));
 		return aRangesToCheck;
 	};
-	Worksheet.prototype._prepareMoveRange=function(oBBoxFrom, oBBoxTo){
+	Worksheet.prototype._prepareMoveRange=function(oBBoxFrom, oBBoxTo, wsTo){
 		var res = 0;
-		if(oBBoxFrom.isEqual(oBBoxTo))
+		if (!wsTo) {
+			wsTo = this;
+		}
+		if (oBBoxFrom.isEqual(oBBoxTo) && this === wsTo)
 			return res;
-		var range = this.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2);
-		var aMerged = this.mergeManager.get(range.getBBox0());
+		var range = wsTo.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2);
+		var aMerged = wsTo.mergeManager.get(range.getBBox0());
 		if(aMerged.outer.length > 0)
 			return -2;
-		var aRangesToCheck = this._prepareMoveRangeGetCleanRanges(oBBoxFrom, oBBoxTo);
+		var aRangesToCheck = this._prepareMoveRangeGetCleanRanges(oBBoxFrom, oBBoxTo, wsTo);
 		for(var i = 0, length = aRangesToCheck.length; i < length; i++)
 		{
 			range = aRangesToCheck[i];
@@ -5038,12 +5041,7 @@
 	};
 	Worksheet.prototype._moveCleanRanges = function(oBBoxFrom, oBBoxTo, copyRange, wsTo) {
 		//удаляем to через историю, для undo
-		var cleanRanges;
-		if (this === wsTo) {
-			cleanRanges = this._prepareMoveRangeGetCleanRanges(oBBoxFrom, oBBoxTo);
-		} else {
-			cleanRanges = [wsTo.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2)];
-		}
+		var cleanRanges = this._prepareMoveRangeGetCleanRanges(oBBoxFrom, oBBoxTo, wsTo);
 		for (var i = 0; i < cleanRanges.length; i++) {
 			var range = cleanRanges[i];
 			range.cleanAll();
@@ -5207,7 +5205,6 @@
 	Worksheet.prototype._moveRange=function(oBBoxFrom, oBBoxTo, copyRange, wsTo){
 		if (!wsTo) {
 			wsTo = this;
-			//wsTo = this.workbook.getWorksheet(this.workbook.getActive() + 1);
 		}
 		if (oBBoxFrom.isEqual(oBBoxTo) && this === wsTo)
 			return;
