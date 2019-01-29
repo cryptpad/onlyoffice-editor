@@ -1218,6 +1218,15 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cArea.prototype.tocBool = function () {
 		return new cError(cErrorType.wrong_value_type);
 	};
+	cArea.prototype.to3D = function (opt_ws) {
+		opt_ws = opt_ws || this.ws;
+		var res = new cArea3D(null, opt_ws, opt_ws);
+		this.cloneTo(res);
+		if (this.range) {
+			res.bbox = this.range.getBBox0().clone();
+		}
+		return res;
+	};
 	cArea.prototype.toString = function () {
 		var _c;
 
@@ -1721,6 +1730,16 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cRef.prototype.tocBool = function () {
 		return this.getValue().tocBool();
+	};
+	cRef.prototype.to3D = function (opt_ws) {
+		var ws = opt_ws ? opt_ws : this.ws;
+		var oRes = new cRef3D(null, null);
+		this.cloneTo(oRes);
+		oRes.ws = ws;
+		if (this.range) {
+			oRes.range = this.range.clone(ws);
+		}
+		return oRes;
 	};
 	cRef.prototype.toString = function () {
 		if (AscCommonExcel.g_ProcessShared) {
@@ -5057,7 +5076,7 @@ function parserFormula( formula, parent, _ws ) {
 			var needAssemble = true;
 			if (AscCommon.c_oNotifyType.Shift === data.type || AscCommon.c_oNotifyType.Move === data.type ||
 				AscCommon.c_oNotifyType.Delete === data.type) {
-				this.shiftCells(data.type, data.sheetId, data.bbox, data.offset);
+				this.shiftCells(data.type, data.sheetId, data.bbox, data.offset, data.sheetIdTo);
 			} else if (AscCommon.c_oNotifyType.ChangeDefName === data.type) {
 				if (!data.to) {
 					this.removeTableName(data.from, data.bConvertTableFormulaToRef);
@@ -6256,9 +6275,15 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 	};
-	parserFormula.prototype.shiftCells = function(notifyType, sheetId, bbox, offset) {
+	parserFormula.prototype.shiftCells = function(notifyType, sheetId, bbox, offset, opt_sheetIdTo) {
 		var res = false;
-		var elem;
+		var elem, bboxCell;
+		var wb = this.ws.workbook;
+		if (!opt_sheetIdTo) {
+			opt_sheetIdTo = sheetId;
+		}
+		var ws = wb.getWorksheetById(sheetId);
+		var wsTo = wb.getWorksheetById(opt_sheetIdTo);
 		for (var i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
 			var _cellsRange = null;
@@ -6321,10 +6346,24 @@ parserFormula.prototype.setFormula = function(formula) {
 						}
 					}
 					if (isNoDelete) {
+						if (sheetId !== opt_sheetIdTo && (elem.type === cElementType.cell || elem.type === cElementType.cellsRange)) {
+							bboxCell = null;
+							if (this.parent && this.parent.onFormulaEvent) {
+								bboxCell = this.parent.onFormulaEvent(AscCommon.c_oNotifyParentType.GetRangeCell);
+							}
+							if (!bboxCell || !bbox.containsRange(bboxCell)) {
+								if (this.wb.bUndoChanges) {
+									elem.changeSheet(ws, wsTo);
+								} else {
+									elem = elem.to3D(wsTo);
+									this.outStack[i] = elem;
+								}
+							}
+						}
 						if (elem.type === cElementType.cellsRange3D) {
 							elem.bbox = _cellsBbox;
 						} else {
-							elem.range = _cellsRange.createFromBBox(_cellsRange.getWorksheet(), _cellsBbox);
+							elem.range = _cellsRange.createFromBBox(wsTo, _cellsBbox);
 						}
 						elem.value = _cellsBbox.getName();
 					} else {
@@ -6432,6 +6471,35 @@ parserFormula.prototype.setFormula = function(formula) {
 							this.outStack[i] = new cError(cErrorType.bad_reference);
 						}
 					}
+				}
+			}
+		}
+		if (isInDependencies) {
+			this.buildDependencies();
+		}
+		return this;
+	};
+	parserFormula.prototype.moveToSheet = function (wsLast, wsNew, tableNameMap) {
+		var isInDependencies = this.isInDependencies;
+		if (isInDependencies) {
+			//before change outStack necessary to removeDependencies
+			this.removeDependencies();
+		}
+		if (this.ws === wsLast) {
+			this.ws = wsNew;
+		}
+		for (var i = 0; i < this.outStack.length; i++) {
+			var elem = this.outStack[i];
+			if (tableNameMap && cElementType.table === elem.type) {
+				var newTableName = tableNameMap[elem.tableName];
+				if (newTableName) {
+					elem.tableName = newTableName;
+				}
+			}
+			if (wsLast && wsNew) {
+				if (cElementType.cell === elem.type || cElementType.cellsRange === elem.type ||
+					cElementType.table === elem.type ||	cElementType.name === elem.type) {
+					elem.changeSheet(wsLast, wsNew);
 				}
 			}
 		}
@@ -6851,6 +6919,18 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 		return val;
+	};
+	parserFormula.prototype.convertTo3DRefs = function(bboxFrom) {
+		var elem, bbox;
+		for (var i = 0; i < this.outStack.length; i++) {
+			elem = this.outStack[i];
+			if (elem.type === cElementType.cell || elem.type === cElementType.cellsRange) {
+				bbox = elem.getBBox0();
+				if (!bboxFrom.containsRange(bbox)) {
+					this.outStack[i] = elem.to3D();
+				}
+			}
+		}
 	};
 
 	parserFormula.prototype.getFormulaHyperlink = function() {

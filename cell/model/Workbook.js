@@ -522,9 +522,9 @@
 			this.buildDependency();
 			return this._shiftMoveDelete(c_oNotifyType.Shift, sheetId, bbox, offset);
 		},
-		move: function(sheetId, bboxFrom, offset) {
+		move: function(sheetId, bboxFrom, offset, sheetIdTo) {
 			this.buildDependency();
-			this._shiftMoveDelete(c_oNotifyType.Move, sheetId, bboxFrom, offset);
+			this._shiftMoveDelete(c_oNotifyType.Move, sheetId, bboxFrom, offset, sheetIdTo);
 			this.addToChangedRange(sheetId, bboxFrom);
 		},
 		prepareChangeSheet: function(sheetId, data, tableNamesMap) {
@@ -1431,7 +1431,7 @@
 				}
 			}
 		},
-		_shiftMoveDelete: function(notifyType, sheetId, bbox, offset) {
+		_shiftMoveDelete: function(notifyType, sheetId, bbox, offset, sheetIdTo) {
 			var listeners = {};
 			var res = {changed: listeners, shiftedShared: {}};
 			var sheetContainer = this.sheetListeners[sheetId];
@@ -1470,12 +1470,12 @@
 					}
 				}
 				var notifyData = {
-					type: notifyType, sheetId: sheetId, bbox: bbox, offset: offset, shiftedShared: res.shiftedShared
+					type: notifyType, sheetId: sheetId, sheetIdTo: sheetIdTo, bbox: bbox, offset: offset, shiftedShared: res.shiftedShared
 				};
 				for (var listenerId in listeners) {
 					listeners[listenerId].notify(notifyData);
 				}
-				}
+			}
 			return res;
 		},
 		_broadcastCellsByCells: function(sheetContainer, cellsChanged, notifyData) {
@@ -4974,73 +4974,78 @@
 		}
 		return res;
 	};
-	Worksheet.prototype._moveRange=function(oBBoxFrom, oBBoxTo, copyRange){
-		if(oBBoxFrom.isEqual(oBBoxTo))
+	Worksheet.prototype._moveMergedAndHyperlinks = function(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset) {
+		if (!(false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))) {
 			return;
-		var oThis = this;
-		History.Create_NewPoint();
-		History.StartTransaction();
-
-		this.workbook.dependencyFormulas.lockRecal();
-		var offset = new AscCommon.CellBase(oBBoxTo.r1 - oBBoxFrom.r1, oBBoxTo.c1 - oBBoxFrom.c1);
-		var intersection = oBBoxFrom.intersectionSimple(oBBoxTo);
-		var oRangeIntersection = null;
-		if(null != intersection)
-			oRangeIntersection = this.getRange3(intersection.r1, intersection.c1, intersection.r2, intersection.c2 );
-		//запоминаем то что нужно переместить
-		var aTempObj = {cells: {}, merged: null, hyperlinks: null};
-		if(false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))
-		{
-			History.LocalChange = true;
-			var aMerged = this.mergeManager.get(oBBoxFrom);
-			if(aMerged.inner.length > 0)
-				aTempObj.merged = aMerged.inner;
-			var aHyperlinks = this.hyperlinkManager.get(oBBoxFrom);
-			if(aHyperlinks.inner.length > 0)
-				aTempObj.hyperlinks = aHyperlinks.inner;
-			var aMergedToRemove = null;
-			if(!copyRange){
-				aMergedToRemove = aTempObj.merged;
-			}
-			else if(null != intersection){
-				var aMergedIntersection = this.mergeManager.get(intersection);
-				if(aMergedIntersection.all.length > 0)
-					aMergedToRemove = aMergedIntersection.all;
-			}
-			if(null != aMergedToRemove){
-				for(var i = 0, length = aMergedToRemove.length; i < length; i++)
-				{
-					var elem = aMergedToRemove[i];
-					this.mergeManager.removeElement(elem);
-				}
-			}
-			if(!copyRange){
-				if(null != aTempObj.hyperlinks)
-				{
-					for(var i = 0, length = aTempObj.hyperlinks.length; i < length; i++)
-					{
-						var elem = aTempObj.hyperlinks[i];
-						this.hyperlinkManager.removeElement(elem);
-					}
-				}
-			}
-			History.LocalChange = false;
 		}
+		var i, elem, bbox, data, wsFrom = this;
+		var intersection = oBBoxFrom.intersectionSimple(oBBoxTo);
+		History.LocalChange = true;
+		//merged
+		var merged = wsFrom.mergeManager.get(oBBoxFrom).inner;
+		var mergedToRemove;
+		if (!copyRange) {
+			mergedToRemove = merged;
+		} else if (null !== intersection) {
+			mergedToRemove = wsFrom.mergeManager.get(intersection).all;
+		}
+		if(mergedToRemove){
+			for (i = 0; i < mergedToRemove.length; i++) {
+				wsFrom.mergeManager.removeElement(mergedToRemove[i]);
+			}
+		}
+		for (i = 0; i < merged.length; i++) {
+			elem = merged[i];
+			bbox = copyRange ? elem.bbox.clone() : elem.bbox;
+			bbox.setOffset(offset);
+			wsTo.mergeManager.add(bbox, elem.data);
+		}
+
+		//hyperlinks
+		var hyperlinks = wsFrom.hyperlinkManager.get(oBBoxFrom).inner;
+		if (!copyRange) {
+			for (i = 0; i < hyperlinks.length; i++) {
+				wsFrom.hyperlinkManager.removeElement(hyperlinks[i]);
+			}
+		}
+		//todo сделать для пересечения
+		if (!copyRange || null === intersection) {
+			for (i = 0; i < hyperlinks.length; i++) {
+				elem = hyperlinks[i];
+				if (copyRange) {
+					bbox = elem.bbox.clone();
+					data = elem.data.clone();
+				}
+				else {
+					bbox = elem.bbox;
+					data = elem.data;
+				}
+				bbox.setOffset(offset);
+				wsTo.hyperlinkManager.add(bbox, data);
+			}
+		}
+		History.LocalChange = false;
+	};
+	Worksheet.prototype._moveCleanRanges = function(oBBoxFrom, oBBoxTo, copyRange, wsTo) {
 		//удаляем to через историю, для undo
-		var aRangesToCheck = this._prepareMoveRangeGetCleanRanges(oBBoxFrom, oBBoxTo);
-		for (var i = 0, length = aRangesToCheck.length; i < length; i++) {
-			var range = aRangesToCheck[i];
+		var cleanRanges;
+		if (this === wsTo) {
+			cleanRanges = this._prepareMoveRangeGetCleanRanges(oBBoxFrom, oBBoxTo);
+		} else {
+			cleanRanges = [wsTo.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2)];
+		}
+		for (var i = 0; i < cleanRanges.length; i++) {
+			var range = cleanRanges[i];
 			range.cleanAll();
 			//выставляем для slave refError
 			if (!copyRange)
-				this.workbook.dependencyFormulas.deleteNodes(this.getId(), range.getBBox0());
+				this.workbook.dependencyFormulas.deleteNodes(wsTo.getId(), range.getBBox0());
 		}
-
+	};
+	Worksheet.prototype._moveFormulas = function(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset) {
 		if(!copyRange){
-			this.workbook.dependencyFormulas.move(this.Id, oBBoxFrom, offset);
+			this.workbook.dependencyFormulas.move(this.Id, oBBoxFrom, offset, wsTo.getId());
 		}
-		var nRowsCountNew = 0;
-		var nColsCountNew = 0;
 		//todo avoid double getRange3
 		this.getRange3(oBBoxFrom.r1, oBBoxFrom.c1, oBBoxFrom.r2, oBBoxFrom.c2)._foreachNoEmpty(function(cell) {
 			if (cell.transformSharedFormula()) {
@@ -5048,15 +5053,22 @@
 				parsed.buildDependencies();
 			}
 		});
+	};
+	Worksheet.prototype._moveCells = function(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset) {
+		var oThis = this;
+		var nRowsCountNew = 0;
+		var nColsCountNew = 0;
+		var dependencyFormulas = oThis.workbook.dependencyFormulas;
+		var moveToOtherSheet = this !== wsTo;
 		var isClearFromArea = !copyRange || (copyRange && oThis.workbook.bUndoChanges);
 		var moveCells = function(copyRange, from, to, r1From, r1To, count){
 			var fromData = oThis.getColDataNoEmpty(from);
 			var toData;
 			if(fromData){
-				toData = oThis.getColData(to);
+				toData = wsTo.getColData(to);
 				toData.copyRange(fromData, r1From, r1To, count);
 				if (isClearFromArea) {
-					if(from !== to) {
+					if(from !== to || moveToOtherSheet) {
 						fromData.clear(r1From, r1From + count);
 					} else {
 						if (r1From < r1To) {
@@ -5067,7 +5079,7 @@
 					}
 				}
 			} else {
-				toData = oThis.getColDataNoEmpty(to);
+				toData = wsTo.getColDataNoEmpty(to);
 				if(toData) {
 					toData.clear(r1To, r1To + count);
 				}
@@ -5086,12 +5098,17 @@
 				moveCells(copyRange, oBBoxFrom.c1 + i, oBBoxTo.c1 + i, oBBoxFrom.r1, oBBoxTo.r1, oBBoxFrom.r2 - oBBoxFrom.r1 + 1);
 			}
 		}
+		// ToDo возможно нужно уменьшить диапазон обновления
+		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_MoveRange,
+			this.getId(), new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0),
+			new UndoRedoData_FromTo(new UndoRedoData_BBox(oBBoxFrom), new UndoRedoData_BBox(oBBoxTo), copyRange, wsTo.getId()));
+
 		var shiftedArrayFormula = {};
 		var oldNewArrayFormulaMap = {};
 		//modify nRowsCount/nColsCount for correct foreach functions
-		this.nRowsCount = Math.max(this.nRowsCount, nRowsCountNew);
-		this.nColsCount = Math.max(this.nColsCount, nColsCountNew);
-		this.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2)._foreachNoEmpty(function(cell){
+		wsTo.nRowsCount = Math.max(wsTo.nRowsCount, nRowsCountNew);
+		wsTo.nColsCount = Math.max(wsTo.nColsCount, nColsCountNew);
+		wsTo.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2)._foreachNoEmpty(function(cell){
 			var formula = cell.getFormulaParsed();
 			if (formula) {
 				var cellWithFormula = formula.getParent();
@@ -5103,8 +5120,10 @@
 					History.TurnOff();
 					//***array-formula***
 					if(!arrayFormula || (arrayFormula && isFirstCellArray)) {
-						cellWithFormula = new CCellWithFormula(cellWithFormula.ws, cell.nRow, cell.nCol);
-						newFormula = formula.clone(null, cellWithFormula, oThis);
+						newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, oBBoxFrom, wsTo);
+						cellWithFormula = newFormula.getParent();
+						cellWithFormula = new CCellWithFormula(wsTo, cell.nRow, cell.nCol);
+						newFormula = newFormula.clone(null, cellWithFormula, wsTo);
 						newFormula.changeOffset(offset, false, true);
 						newFormula.setFormulaString(newFormula.assemble(true));
 						cell.setFormulaInternal(newFormula, !isClearFromArea);
@@ -5125,89 +5144,82 @@
 					//TODO возможно стоит это делать в dependencyFormulas.move
 					if(arrayFormula) {
 						if(isFirstCellArray) {
-
+							newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, oBBoxFrom, wsTo);
+							cellWithFormula = newFormula.getParent();
 							shiftedArrayFormula[formula.getListenerId()] = 1;
 							newArrayRef = arrayFormula.clone();
 							newArrayRef.setOffset(offset);
-							formula.setArrayFormulaRef(newArrayRef);
+							newFormula.setArrayFormulaRef(newArrayRef);
 
+							cellWithFormula.ws = wsTo;
 							cellWithFormula.nRow = cell.nRow;
 							cellWithFormula.nCol = cell.nCol;
 						}
 					} else {
+						newFormula = oThis._moveCellsFormula(cell, formula, cellWithFormula, copyRange, oBBoxFrom, wsTo);
+						cellWithFormula = newFormula.getParent();
+						cellWithFormula.ws = wsTo;
 						cellWithFormula.nRow = cell.nRow;
 						cellWithFormula.nCol = cell.nCol;
 					}
 				}
 				if(arrayFormula) {
 					if(isFirstCellArray) {
-						oThis.workbook.dependencyFormulas.addToBuildDependencyArray(formula);
+						dependencyFormulas.addToBuildDependencyArray(formula);
 						if(newFormula) {
-							oThis.workbook.dependencyFormulas.addToBuildDependencyArray(newFormula);
+							dependencyFormulas.addToBuildDependencyArray(newFormula);
 						}
 					}
 				} else {
-					oThis.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
+					dependencyFormulas.addToBuildDependencyCell(cell);
 				}
 			}
 		});
-
-
-		if(false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))
-		{
-			History.LocalChange = true;
-			if(null != aTempObj.merged)
-			{
-				for(var i = 0, length = aTempObj.merged.length; i < length; i++)
-				{
-					var elem = aTempObj.merged[i];
-					var oNewBBox;
-					var oNewData = elem.data;
-					if(copyRange)
-						oNewBBox = elem.bbox.clone();
-					else
-						oNewBBox = elem.bbox;
-					oNewBBox.setOffset(offset);
-					this.mergeManager.add(oNewBBox, oNewData);
+	};
+	Worksheet.prototype._moveCellsFormula = function(cell, formula, cellWithFormula, copyRange, oBBoxFrom, wsTo) {
+		if (this !== wsTo) {
+			if (copyRange || !this.workbook.bUndoChanges) {
+				cellWithFormula = new CCellWithFormula(wsTo, cell.nRow, cell.nCol);
+				formula = formula.clone(null, cellWithFormula, wsTo);
+				if (!copyRange) {
+					formula.convertTo3DRefs(oBBoxFrom);
 				}
+				formula.moveToSheet(this, wsTo);
+				formula.setFormulaString(formula.assemble(true));
+				cell.setFormulaParsed(formula);
+			} else {
+				formula.moveToSheet(this, wsTo);
+				formula.setFormulaString(formula.assemble(true));
 			}
-			//todo сделать для пересечения
-			if(null != aTempObj.hyperlinks && (!copyRange || null == intersection))
-			{
-				for(var i = 0, length = aTempObj.hyperlinks.length; i < length; i++)
-				{
-					var elem = aTempObj.hyperlinks[i];
-					var oNewBBox;
-					var oNewData;
-					if(copyRange){
-						oNewBBox = elem.bbox.clone();
-						oNewData = elem.data.clone();
-					}
-					else{
-						oNewBBox = elem.bbox;
-						oNewData = elem.data;
-					}
-					oNewBBox.setOffset(offset);
-					this.hyperlinkManager.add(oNewBBox, oNewData);
-				}
-			}
-			History.LocalChange = false;
 		}
-
-		this.workbook.dependencyFormulas.unlockRecal();
-
-		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges)
-		{
-			this.autoFilters.unmergeTablesAfterMove( oBBoxTo );
+		return formula;
+	};
+	Worksheet.prototype._moveRange=function(oBBoxFrom, oBBoxTo, copyRange, wsTo){
+		if (!wsTo) {
+			wsTo = this;
+			//wsTo = this.workbook.getWorksheet(this.workbook.getActive() + 1);
 		}
+		if (oBBoxFrom.isEqual(oBBoxTo) && this === wsTo)
+			return;
 
-		// ToDo возможно нужно уменьшить диапазон обновления
-		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_MoveRange,
-					this.getId(), new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0),
-					new UndoRedoData_FromTo(new UndoRedoData_BBox(oBBoxFrom), new UndoRedoData_BBox(oBBoxTo), copyRange));
+		History.Create_NewPoint();
+		History.StartTransaction();
+		this.workbook.dependencyFormulas.lockRecal();
+
+		var offset = new AscCommon.CellBase(oBBoxTo.r1 - oBBoxFrom.r1, oBBoxTo.c1 - oBBoxFrom.c1);
+		this._moveMergedAndHyperlinks(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
+		this._moveCleanRanges(oBBoxFrom, oBBoxTo, copyRange, wsTo);
+		this._moveFormulas(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
+		this._moveCells(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
+
+		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges) {
+			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
+		}
 
 		if(false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges)
 			this.autoFilters._moveAutoFilters( oBBoxTo, oBBoxFrom, null, copyRange, true, oBBoxFrom );
+
+		this.workbook.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
 		return true;
 	};
@@ -8199,7 +8211,7 @@
 			if (ranges) {
 				for (i = 0; i < ranges.length; ++i) {
 					this._processShared(shared, ranges[i], data, parsed, forceTransform, function(newFormula) {
-						return newFormula.shiftCells(data.type, data.sheetId, data.bbox, data.offset);
+						return newFormula.shiftCells(data.type, data.sheetId, data.bbox, data.offset, data.sheetIdTo);
 					});
 				}
 			}
