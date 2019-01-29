@@ -5226,8 +5226,10 @@ PasteProcessor.prototype =
 				t.oFonts = [];
 			}
 
-			t.oFonts[fontFamily] = {Name: fontFamily, Index: -1};
-			fonts.push(new CFont(fontFamily, 0, "", 0));
+			if(!t.oFonts[fontFamily]) {
+				t.oFonts[fontFamily] = {Name: fontFamily, Index: -1};
+				fonts.push(new CFont(fontFamily, 0, "", 0));
+			}
 		};
 
 		//grid
@@ -5433,8 +5435,10 @@ PasteProcessor.prototype =
 				t.oFonts = [];
 			}
 
-			t.oFonts[fontFamily] = {Name: fontFamily, Index: -1};
-			fonts.push(new CFont(fontFamily, 0, "", 0));
+			if(!t.oFonts[fontFamily]) {
+				t.oFonts[fontFamily] = {Name: fontFamily, Index: -1};
+				fonts.push(new CFont(fontFamily, 0, "", 0));
+			}
 		};
 
 		var paragraph = new Paragraph(this.oDocument.DrawingDocument, this.oDocument, true);
