@@ -16620,6 +16620,10 @@
 	};
 
 	CHeaderFooterEditor.prototype.convertFragments = function(fragments) {
+		if(!fragments) {
+			return null;
+		}
+
 		//TODO возможно стоит созадавать portions внутри парсера с элементами Fragments
 		var res = [];
 
@@ -16948,7 +16952,7 @@
 		var arrPresets = [];
 		var arrPresetsMenu = [];
 		arrPresets[0] = arrPresetsMenu[0] = [null, null, null];
-		arrPresets[1] = arrPresetsMenu[1] = arrPresetsMenu[0] = [null, "Page &[Page]", null];
+		arrPresets[1] = arrPresetsMenu[1] = [null, "Page &[Page]", null];
 		arrPresets[2] = [null, page + " &[Page] of &[Pages]", null];
 		arrPresetsMenu[2] = [null, page + " &[Page] of ?", null];
 		arrPresets[3] = arrPresetsMenu[3] = [null, "&[Tab]", null];
@@ -16975,16 +16979,18 @@
 		var curType = this._getHeaderFooterType(this.pageType, bFooter);
 		var section = this.sections[curType];
 
+		this.cellEditor.close();
 
 		var fragments;
 		for(var i = 0; i < section.length; i++) {
 			if(!this.presets[type][i]) {
-				continue;
+				section[i].setFragments(null);
+				section[i].drawText();
+			} else {
+				fragments = [this._getFragments(this.presets[type][i], new AscCommonExcel.Font())];
+				section[i].setFragments(fragments);
+				section[i].drawText();
 			}
-
-			fragments = [this._getFragments(this.presets[type][i], new AscCommonExcel.Font())];
-			section[i].setFragments(fragments);
-			section[i].drawText();
 		}
 	};
 
