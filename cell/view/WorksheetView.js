@@ -16170,6 +16170,9 @@
 		this.differentOddEven = ws.model.headerFooter.differentOddEven;
 		this.scaleWithDoc = ws.model.headerFooter.scaleWithDoc;
 
+		//сохраняем редактор ячейки
+		this.wbCellEditor = this.wb.cellEditor;
+
 		//далее создаем классы, где будем хранить fragments всех типов колонтитулов + выполнять отрисовку
 		//хранить будем в следующем виде: [c_nPageHFType.firstHeader/.../][c_nPortionLeft/.../c_nPortionRight]
 		this.createAndDrawSections();
@@ -16459,7 +16462,6 @@
 					}, null, /*settings*/{ menuEditor: true });
 
 					//временно меняем cellEditor у wb
-					t.wbCellEditor = wb.cellEditor;
 					wb.cellEditor = t.cellEditor;
 
 					//удаляем z-index для интерфейса
@@ -16557,10 +16559,9 @@
 		//возвращаем cellEditor у wb
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
-		if(this.wbCellEditor) {
-			wb.cellEditor = this.wbCellEditor;
-			wb.cellEditor.close();
-		}
+
+		wb.cellEditor.close();
+		wb.cellEditor = this.wbCellEditor;
 
 		if(bSave /*&& bChanged*/) {
 			this.saveToModel();
