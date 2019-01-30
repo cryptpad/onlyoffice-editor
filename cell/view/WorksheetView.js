@@ -427,6 +427,7 @@
 		this.arrRecalcRangesCanChangeColWidth = [];
         this.skipUpdateRowHeight = false;
         this.canChangeColWidth = c_oAscCanChangeColWidth.none;
+        this.scrollType = 0;
 
         this.viewPrintLines = false;
 
@@ -5799,7 +5800,8 @@
 
         if (start === vr.r1) {
             if (reinitScrollY) {
-                this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
+            	this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
+            	this._reinitializeScroll();
             }
             return this;
         }
@@ -5846,7 +5848,6 @@
 			return this;
 		}
 
-		var type = 0;
         var oldW, dx;
         var topOldStart = this._getRowTop(oldStart);
         var dy = this._getRowTop(start) - topOldStart;
@@ -5862,7 +5863,7 @@
         }
 
         if (x !== this.cellsLeft) {
-			type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
+			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
             this._drawCorner();
             this._cleanColumnHeadersRect();
             this._drawColumnHeaders(null);
@@ -5974,11 +5975,11 @@
         this._drawSelection();
 
         if (reinitScrollY || (0 > delta && initRowsCount && this._initRowsCount())) {
-        	type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
+			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
         }
-		this.handlers.trigger("reinitializeScroll", type);
-
+		this._reinitializeScroll();
         this.handlers.trigger("onDocumentPlaceChanged");
+
         //ToDo this.drawDepCells();
         this.cellCommentator.updateActiveComment();
         this.cellCommentator.drawCommentCells();
@@ -6004,7 +6005,8 @@
 
         if (start === vr.c1) {
             if (reinitScrollX) {
-                this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+				this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
+				this._reinitializeScroll();
             }
             return this;
         }
@@ -12511,6 +12513,11 @@
 		}
 	};
 
+    WorksheetView.prototype._reinitializeScroll = function () {
+		this.handlers.trigger("reinitializeScroll", this.scrollType);
+		this.scrollType = 0;
+	};
+
     WorksheetView.prototype._recalculate = function () {
 		var ranges = this.arrRecalcRangesWithHeight.concat(this.arrRecalcRanges,
 			this.model.hiddenManager.getRecalcHidden());
@@ -12529,17 +12536,16 @@
 			this.objectRender.rebuildChartGraphicObjects(ranges);
 			this.cellCommentator.updateActiveComment();
 
-			var type = 0;
 			if (this._initRowsCount()) {
-				type |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
+				this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
 			}
 			if (this._initColsCount()) {
-				type |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
+				this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 			}
-			this.handlers.trigger("reinitializeScroll", type);
 
 			this.handlers.trigger("onDocumentPlaceChanged");
 		}
+		this._reinitializeScroll();
 	};
 
     WorksheetView.prototype.setChartRange = function (range) {
