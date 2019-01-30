@@ -3758,7 +3758,11 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                 if(range.r1 === range.r2 || bVertical === true)
                 {
                     row_hidden = source_worksheet.getRowHidden(range.r1);
-                    for(j = range.c1;  j <= range.c2; ++j)
+                    j = range.c1;
+                    while(i === 0 && source_worksheet.getColHidden(j) && (this.displayHidden !== true) && j <= range.c2){
+                        ++j;
+                    }
+                    for(;  j <= range.c2; ++j)
                     {
                         if(!row_hidden && !source_worksheet.getColHidden(j) || (this.displayHidden === true))
                         {
@@ -3848,7 +3852,11 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                     if(source_worksheet.isTableTotalRow(new Asc.Range(range.c1, r2, range.c1, r2))){
                         --r2;
                     }
-                    for(j = range.r1; j <= r2; ++j)
+                    j = range.r1;
+                    while(i === 0 && source_worksheet.getRowHidden(j) && (this.displayHidden !== true) && j <= r2){
+                        ++j;
+                    }
+                    for(; j <= r2; ++j)
                     {
                         if(!col_hidden && !source_worksheet.getRowHidden(j) || (this.displayHidden === true))
                         {
@@ -3996,7 +4004,11 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
                 if(range.r1 === range.r2 || bVertical === true)
                 {
                     row_hidden = source_worksheet.getRowHidden(range.r1);
-                    for(j = range.c1;  j <= range.c2; ++j)
+                    j = range.c1;
+                    while(i === 0 && source_worksheet.getColHidden(j) && j <= range.c2){
+                        ++j;
+                    }
+                    for(;  j <= range.c2; ++j)
                     {
                         if(!row_hidden && !source_worksheet.getColHidden(j))
                         {
@@ -4005,7 +4017,7 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
                             if(typeof value_width_format === "string" && value_width_format.length > 0)
                             {
                                 pt = new AscFormat.CStringPoint();
-                                pt.setIdx(pt_index);
+                                pt.setIdx(nPtCount);
                                 pt.setVal(value_width_format);
 
                                 if(str_cache.pts.length === 0){
@@ -4022,7 +4034,11 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
                 else
                 {
                     col_hidden = source_worksheet.getColHidden(range.c1);
-                    for(j = range.r1;  j <= range.r2; ++j)
+                    j = range.r1;
+                    while(i === 0 && source_worksheet.getRowHidden(j) && j <= range.r2){
+                        ++j;
+                    }
+                    for(;  j <= range.r2; ++j)
                     {
                         if(!col_hidden && !source_worksheet.getRowHidden(j))
                         {
@@ -4031,7 +4047,7 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
                             if(typeof value_width_format === "string" && value_width_format.length > 0)
                             {
                                 pt = new AscFormat.CStringPoint();
-                                pt.setIdx(pt_index);
+                                pt.setIdx(nPtCount);
                                 pt.setVal(cell.getValueWithFormat());
 
                                 if(str_cache.pts.length === 0){
