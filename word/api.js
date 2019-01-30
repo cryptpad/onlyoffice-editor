@@ -529,7 +529,7 @@
 
 							_blockStd = null;
 
-							window.g_asc_plugins.api.asc_Recalculate();
+							window.g_asc_plugins.api.asc_Recalculate(true);
 
 							setTimeout(function() {
 								window.g_asc_plugins.api.__content_control_worker.run();
@@ -605,7 +605,7 @@
 								var _api = window.g_asc_plugins.api;
 
 								delete window.g_asc_plugins.images_rename;
-								_api.asc_Recalculate();
+								_api.asc_Recalculate(true);
 								_api.WordControl.m_oLogicDocument.UnlockPanelStyles(true);
 
 								setTimeout(function() {
@@ -710,7 +710,7 @@
 				}
 			}
 			LogicDocument.SetCheckContentControlsLock(true);
-			this.api.asc_Recalculate();
+			this.api.asc_Recalculate(true);
 			delete this.api.__content_control_worker;
 		};
 	}
