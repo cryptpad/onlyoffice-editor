@@ -10745,22 +10745,17 @@
 
 	WorksheetView.prototype.updateSpecialPasteButton = function()
 	{
-		var specialPasteShowOptions, range;
+		var specialPasteShowOptions, cellCoord;
 		var isIntoShape = this.objectRender.controller.getTargetDocContent();
 		if(window['AscCommon'].g_specialPasteHelper.showSpecialPasteButton && isIntoShape)
 		{
 			if(window['AscCommon'].g_specialPasteHelper.buttonInfo.shapeId === isIntoShape.Id)
 			{
-				specialPasteShowOptions = window['AscCommon'].g_specialPasteHelper.buttonInfo;
-				range = specialPasteShowOptions.range;
-
-				specialPasteShowOptions.asc_setOptions(null);
-
 				var curShape = isIntoShape.Parent.parent;
 
 				var mmToPx = asc_getcvt(3/*mm*/, 0/*px*/, this._getPPIX());
 
-				var cursorPos = range;
+				var cursorPos = window['AscCommon'].g_specialPasteHelper.buttonInfo.range;
 				var offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
 				var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 				var posX = curShape.transformText.TransformPointX(cursorPos.X, cursorPos.Y) * mmToPx - offsetX + this.cellsLeft;
@@ -10772,20 +10767,18 @@
 
 
 				cellCoord = [new AscCommon.asc_CRect( posX, posY, 0, 0 )];
-
-				specialPasteShowOptions.asc_setCellCoord(cellCoord);
-				this.handlers.trigger("showSpecialPasteOptions", specialPasteShowOptions);
 			}
 		}
 		else if(window['AscCommon'].g_specialPasteHelper.showSpecialPasteButton)
 		{
+			var range = window['AscCommon'].g_specialPasteHelper.buttonInfo.range;
+			var isVisible = null !== this.getCellVisibleRange(range.c2, range.r2);
+			cellCoord = this.getSpecialPasteCoords(range, isVisible);
+		}
+
+		if (cellCoord) {
 			specialPasteShowOptions = window['AscCommon'].g_specialPasteHelper.buttonInfo;
 			specialPasteShowOptions.asc_setOptions(null);
-
-			range = specialPasteShowOptions.range;
-			var isVisible = null !== this.getCellVisibleRange(range.c2, range.r2);
-			var cellCoord = this.getSpecialPasteCoords(range, isVisible);
-
 			specialPasteShowOptions.asc_setCellCoord(cellCoord);
 			this.handlers.trigger("showSpecialPasteOptions", specialPasteShowOptions);
 		}
