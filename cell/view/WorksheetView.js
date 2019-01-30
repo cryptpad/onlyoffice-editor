@@ -6139,10 +6139,12 @@
         this._drawSelection();
 
 		if (reinitScrollX || (0 > delta && initColsCount && this._initColsCount())) {
-            this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
         }
 
+		this._reinitializeScroll();
         this.handlers.trigger("onDocumentPlaceChanged");
+
         //ToDo this.drawDepCells();
         this.cellCommentator.updateActiveComment();
         this.cellCommentator.drawCommentCells();
