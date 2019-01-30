@@ -1226,6 +1226,13 @@
 				canExpH = this._expandHeight();
 				doAjust = true;
 			}
+
+			//reduce editor height for interface
+			if(this.options && this.options.menuEditor) {
+				if(tm.height < this._getContentHeight() && this._reduceHeight(tm.height)) {
+					doAjust = true;
+				}
+			}
 		}
 		if (doAjust) {
 			this._adjustCanvas();
@@ -1332,6 +1339,19 @@
 			t.bottom = val;
 		}
 		return false;
+	};
+
+	CellEditor.prototype._reduceHeight = function (height) {
+		var res = false;
+		var bottomSide = this.sides.b;
+		for(var i = 0; i < bottomSide.length; i++) {
+			if(height < bottomSide[i]) {
+				this.bottom = bottomSide[i];
+				res = true;
+				break;
+			}
+		}
+		return res;
 	};
 
 	CellEditor.prototype._cleanText = function () {
