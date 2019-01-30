@@ -1849,6 +1849,7 @@ function (window, undefined) {
 	cVLOOKUP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cVLOOKUP.prototype.Calculate = function (arg) {
 
+		//TODO VLOOKUP(1,{1,2,3;2,3,4},1) - считается неверно!
 		//TODO  с excel есть несоостветствие - в тестовом файле - E11:H13
 		if(this.bArrayFormula) {
 		 	//в случае когда первый аргумент - массив
