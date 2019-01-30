@@ -2735,6 +2735,15 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cBaseFunction.prototype.excludeErrorsVal = false;
 	cBaseFunction.prototype.excludeNestedStAg = false;
 	cBaseFunction.prototype.bArrayFormula = null;
+	//необходимо для формул массива
+	//arrayIndexes - мап, где ключ - аргумент, который в функцию передаётся в виде array,area,area3d (те неизменном виде)
+	//а значение - либо булево, либо объект
+	//объект пока содержит только информацию в том, что если внутри лежит индекс аргумента массива, то данный аргумент не воспринимается как массив
+	//те подобный вид {1: 1, 2:{0: 1}} - означает, что 1 аргумент передаётся всегда как массив, а второй агумент зависит от того, является ли 0 аргумент массивом
+	//returnValueType - ипользуется константа cReturnFormulaType
+	cBaseFunction.prototype.arrayIndexes = null;
+	cBaseFunction.prototype.returnValueType = null;
+
 	cBaseFunction.prototype.name = null;
 	cBaseFunction.prototype.Calculate = function () {
 		return new cError(cErrorType.wrong_name);
@@ -3133,6 +3142,25 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		//добавлен специальный тип для функции сT, она использует из области всегда первый аргумент
 		var replaceOnlyArray = cReturnFormulaType.replace_only_array === returnFormulaType;
 
+		var checkArrayIndex = function(index) {
+			var res = false;
+			if(arrayIndexes) {
+				if(1 === arrayIndexes[index]) {
+					res = true;
+				} else if(typeof arrayIndexes[index] === "object") {
+					//для данной проверки запрашиваем у объекта 0 индекс, там хранится значение индекса аргумента
+					//от которого зависит стоит ли вопринимать данный аргумент как массив или нет
+					var tempsArgIndex = arrayIndexes[index][0];
+					if(undefined !== tempsArgIndex && arg[tempsArgIndex]) {
+						if(cElementType.cellsRange === arg[tempsArgIndex].type || cElementType.cellsRange3D === arg[tempsArgIndex].type || cElementType.array === arg[tempsArgIndex].type) {
+							res = true;
+						}
+					}
+				}
+			}
+			return res;
+		};
+
 		//bIsSpecialFunction - сделано только для для функции sumproduct
 		//необходимо, чтобы все внутренние функции возвращали массив, те обрабатывались как формулы массива
 
@@ -3141,7 +3169,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			var tempArgs = [], tempArg, firstArray;
 			for (var j = 0; j < argumentsCount; j++) {
 				tempArg = arg[j];
-				if (!(arrayIndexes && arrayIndexes[j])) {
+				if (!checkArrayIndex(j)) {
 					if (cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
 						if (replaceAreaByValue) {
 							tempArg = tempArg.cross(opt_bbox);
@@ -3159,7 +3187,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					}
 				}
 
-				if (cElementType.array === tempArg.type && !(arrayIndexes && arrayIndexes[j])) {
+				if (cElementType.array === tempArg.type && !checkArrayIndex(j)) {
 					//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
 					if (!firstArray) {
 						firstArray = tempArg;
@@ -3190,7 +3218,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					var newArgs = [], newArg;
 					for (var j = 0; j < argumentsCount; j++) {
 						newArg = tempArgs[j];
-						if (cElementType.array === newArg.type && !(arrayIndexes && arrayIndexes[j])) {
+						if (cElementType.array === newArg.type && !checkArrayIndex(j)) {
 							if (1 === newArg.getRowCount() && 1 === newArg.getCountElementInRow()) {
 								newArg = newArg.array[0] ? newArg.array[0][0] : null;
 							} else if (1 === newArg.getRowCount()) {

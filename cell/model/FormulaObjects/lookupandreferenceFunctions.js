@@ -1845,11 +1845,13 @@ function (window, undefined) {
 	cVLOOKUP.prototype.name = 'VLOOKUP';
 	cVLOOKUP.prototype.argumentsMin = 3;
 	cVLOOKUP.prototype.argumentsMax = 4;
-	cVLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
+	cVLOOKUP.prototype.arrayIndexes = {1: 1, 2: {0: 0}};
 	cVLOOKUP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cVLOOKUP.prototype.Calculate = function (arg) {
+
 		//TODO  с excel есть несоостветствие - в тестовом файле - E11:H13
 		if(this.bArrayFormula) {
+		 	//в случае когда первый аргумент - массив
 			//исключение, когда в формуле массива берется из одного аргумента только 1 элемент
 			if(cElementType.cellsRange3D === arg[2].type || cElementType.cellsRange === arg[2].type) {
 				arg[2] = arg[2].getValue2(0,0);
