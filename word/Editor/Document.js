@@ -18822,6 +18822,11 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 			{
 				this.NumInfo[nLvl] = this.Start[nLvl];
 			}
+
+			for (var nLvl = this.PrevLvl + 1; nLvl < oParaNumPr.Lvl; ++nLvl)
+			{
+				this.NumInfo[nLvl]++;
+			}
 		}
 		else if (oParaNumPr.Lvl < this.PrevLvl)
 		{
