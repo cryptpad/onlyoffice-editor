@@ -2533,8 +2533,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_selectComment = function(id) {
-    var ws = this.wb.getWorksheet();
-    ws.cellCommentator.selectComment(id, /*bMove*/true);
+    this.wb.getWorksheet().cellCommentator.selectComment(id);
   };
 
   spreadsheet_api.prototype.asc_showComment = function(id, bNew) {
