@@ -7124,6 +7124,7 @@
 			this.nRowsCount = nRowsCount;
 		}
 		if (scroll) {
+			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical;
 			this.scrollVertical(scroll, null, true);
 		}
 
@@ -7140,6 +7141,7 @@
 			this.nColsCount = nColsCount;
 		}
 		if (scroll) {
+			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 			this.scrollHorizontal(scroll, null, true);
 		}
 
