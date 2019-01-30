@@ -1158,7 +1158,7 @@
 
 			// Check active cell in merge cell (bug 36708)
 			var mc = this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col);
-			if (this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col)) {
+			if (mc) {
 				res = -1 === this.offsetCell(1, 0, false, function () {return false;});
 				if (res) {
 					this.activeCell.row = mc.r1;
