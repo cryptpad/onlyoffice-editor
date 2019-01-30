@@ -1202,7 +1202,7 @@
 	CellEditor.prototype._update = function () {
 		this._updateFormulaEditMod(/*bIsOpen*/false);
 
-		var tm, canExpW, canExpH, oldLC, doAjust = false, fragments = this._getRenderFragments();
+		var tm, canExpW, canExpH, oldLC, doAjust = false, fragments = this._getRenderFragments(), bChangedH;
 
 		if (0 < fragments.length) {
 			oldLC = this.textRender.getLinesCount();
@@ -1225,11 +1225,12 @@
 			while (tm.height > this._getContentHeight() && canExpH) {
 				canExpH = this._expandHeight();
 				doAjust = true;
+				bChangedH = true;
 			}
 
 			//reduce editor height for interface
 			if(this.options && this.options.menuEditor) {
-				if(tm.height < this._getContentHeight() && this._reduceHeight(tm.height)) {
+				if(!bChangedH && tm.height < this._getContentHeight() && this._reduceHeight(tm.height)) {
 					doAjust = true;
 				}
 			}
@@ -1342,16 +1343,15 @@
 	};
 
 	CellEditor.prototype._reduceHeight = function (height) {
-		var res = false;
-		var bottomSide = this.sides.b;
-		for(var i = 0; i < bottomSide.length; i++) {
-			if(height < bottomSide[i]) {
-				this.bottom = bottomSide[i];
-				res = true;
-				break;
-			}
+
+		var t = this, bottomSide = this.sides.b, i = asc_search( bottomSide, function ( v ) {
+			return v > height;
+		} );
+		if ( i >= 0 ) {
+			t.bottom = bottomSide[i];
+			return true;
 		}
-		return res;
+		return false;
 	};
 
 	CellEditor.prototype._cleanText = function () {

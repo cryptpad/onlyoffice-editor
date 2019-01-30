@@ -16107,6 +16107,7 @@
 		window.Asc.g_header_footer_editor = this;
 
 		this.parentWidth = width;
+		this.parentHeight = 90;
 		this.pageType = undefined === pageType ? asc.c_oAscHeaderFooterType.odd : pageType;//odd, even, first
 		this.canvas = [];
 		this.sections = [];
@@ -16154,6 +16155,7 @@
 			return obj;
 		};
 
+		this.parentHeight = document.getElementById(idArr[0]).clientHeight;
 
 		this.canvas[c_nPortionLeftHeader] = createAndPushCanvasObj(idArr[0]);
 		this.canvas[c_nPortionCenterHeader] = createAndPushCanvasObj(idArr[1]);
@@ -16530,7 +16532,7 @@
 			getSides: function () {
 				var bottomArr = [];
 				for(var i = 0; i < 30; i++) {
-					bottomArr.push(100 + i * 19);
+					bottomArr.push(t.parentHeight + i * 19);
 				}
 				return {l: [0], r: [t.parentWidth], b: bottomArr, cellX: 0, cellY: 0, ri: 0, bi: 0};
 			},
