@@ -10716,7 +10716,6 @@
 
 	WorksheetView.prototype.showSpecialPasteOptions = function(options/*, range, positionShapeContent*/)
 	{
-		var _clipboard = AscCommonExcel.g_clipboardExcel;
 		var specialPasteShowOptions = window['AscCommon'].g_specialPasteHelper.buttonInfo;
 
 		var positionShapeContent = options.position;
