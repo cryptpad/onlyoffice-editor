@@ -134,6 +134,7 @@ CDocumentContentBase.prototype.GetAllDrawingObjects = function(arrDrawings)
 	if (this instanceof CDocument)
 	{
 		this.SectionsInfo.GetAllDrawingObjects(arrDrawings);
+		this.Footnotes.GetAllDrawingObjects(arrDrawings);
 	}
 
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
