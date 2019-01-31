@@ -730,10 +730,24 @@ CInlineLevelSdt.prototype.ClearContentControl = function()
 };
 CInlineLevelSdt.prototype.CanAddComment = function()
 {
-	if (!this.CanBeDeleted() || (!this.CanBeEdited() && !this.IsSelectedAll()))
+	if (!this.CanBeDeleted() || (!this.CanBeEdited() && (!this.IsSelectedAll() || this.IsSelectedOnlyThis())))
 		return false;
 
 	return CParagraphContentWithParagraphLikeContent.prototype.CanAddComment.apply(this, arguments);
+};
+/**
+ * Проверяем выделен ли только данный элемент
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.IsSelectedOnlyThis = function()
+{
+	if (this.Paragraph && this.Paragraph.LogicDocument)
+	{
+		var oInfo = this.Paragraph.LogicDocument.GetSelectedElementsInfo();
+		return (oInfo.GetInlineLevelSdt() === this);
+	}
+
+	return false;
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
