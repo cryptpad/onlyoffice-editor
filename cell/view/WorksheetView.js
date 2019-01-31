@@ -16039,7 +16039,8 @@
 		ws.stringRender.setString(this.fragments, cellFlags);
 
 		var textMetrics = ws.stringRender._measureChars(cellEditorWidth);
-		canvas.height = textMetrics.height > 150 ? textMetrics.height : 150;
+		var parentHeight = document.getElementById(this.canvasObj.idParent).clientHeight;
+		canvas.height = textMetrics.height > parentHeight ? textMetrics.height : parentHeight;
 		ws.stringRender.render(drawingCtx, wb.defaults.worksheetView.cells.padding, 0, cellEditorWidth, ws.settings.activeCellBorderColor);
 	};
 	CHeaderFooterEditorSection.prototype.getElem = function () {
@@ -16145,6 +16146,7 @@
 			obj.canvas = document.createElement('canvas');
 			obj.canvas.id = obj.id;
 			obj.canvas.width = t.parentWidth;
+			obj.canvas.height = t.parentHeight;
 
 			var curElem = document.getElementById(id);
 			curElem.appendChild(obj.canvas);
@@ -16630,7 +16632,7 @@
 		ws.model.headerFooter.setAlignWithMargins(this.alignWithMargins);
 		ws.model.headerFooter.setDifferentFirst(this.differentFirst);
 		ws.model.headerFooter.setDifferentOddEven(this.differentOddEven);
-		ws.model.headerFooter.setScaleWithDoc(this.setScaleWithDoc);
+		ws.model.headerFooter.setScaleWithDoc(this.scaleWithDoc);
 
 
 		if(isAddHistory) {
@@ -17036,19 +17038,19 @@
 	};
 
 	CHeaderFooterEditor.prototype.setAlignWithMargins = function(val) {
-		this.alignWithMargins = val;
+		this.alignWithMargins = val ? 1 : 0;
 	};
 
 	CHeaderFooterEditor.prototype.setDifferentFirst = function(val) {
-		this.differentFirst = val;
+		this.differentFirst = val ? 1 : 0;
 	};
 
 	CHeaderFooterEditor.prototype.setDifferentOddEven = function(val) {
-		this.differentOddEven = val;
+		this.differentOddEven = val ? 1 : 0;
 	};
 
 	CHeaderFooterEditor.prototype.setScaleWithDoc = function(val) {
-		this.scaleWithDoc = val;
+		this.scaleWithDoc = val ? 1 : 0;
 	};
 
 	CHeaderFooterEditor.prototype.getAlignWithMargins = function() {
@@ -17056,7 +17058,7 @@
 	};
 
 	CHeaderFooterEditor.prototype.getDifferentFirst = function() {
-		return 0 === this.differentFirst || null === this.differentFirst;
+		return 1 === this.differentFirst;
 	};
 
 	CHeaderFooterEditor.prototype.getDifferentOddEven = function() {
@@ -17064,7 +17066,7 @@
 	};
 
 	CHeaderFooterEditor.prototype.getScaleWithDoc = function() {
-		return 1 === this.scaleWithDoc;
+		return 0 === this.scaleWithDoc || null === this.scaleWithDoc;
 	};
 
 
