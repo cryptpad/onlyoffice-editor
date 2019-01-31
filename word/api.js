@@ -8109,7 +8109,7 @@ background-repeat: no-repeat;\
 		var oColor = oLogicDocument.GetSdtGlobalColor();
 		return new Asc.asc_CColor(oColor.r, oColor.g, oColor.b);
 	};
-	asc_docs_api.prototype.asc_SetGlobalContentControlShowHighlight = function(isShow)
+	asc_docs_api.prototype.asc_SetGlobalContentControlShowHighlight = function(isShow, r, g, b)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
@@ -8118,6 +8118,9 @@ background-repeat: no-repeat;\
 		// Лок можно не проверять, таким изменения нормально мержаться
 		oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetGlobalSdtShowHighlight);
 		oLogicDocument.SetSdtGlobalShowHighlight(isShow);
+
+		if (undefined !== r && undefined !== g && undefined !== b)
+			oLogicDocument.SetSdtGlobalColor(r, g, b);
 
 		oLogicDocument.GetDrawingDocument().ClearCachePages();
 		oLogicDocument.GetDrawingDocument().FirePaint();
