@@ -635,10 +635,6 @@
 			return;
 		}
 
-		var wrap = fragments.some(function (val) {
-			return -1 !== val.text.indexOf(kNewLine);
-		});
-
 		this._cleanFragments(fragments);
 
 		if (this.selectionBegin !== this.selectionEnd) {
@@ -650,11 +646,6 @@
 		this.redoList = [];
 
 		this._addFragments(fragments, this.cursorPos);
-
-		if (wrap) {
-			this._wrapText();
-			this._update();
-		}
 
 		// Сделано только для вставки формулы в ячейку (когда не открыт редактор)
 		if (undefined !== cursorPos) {
