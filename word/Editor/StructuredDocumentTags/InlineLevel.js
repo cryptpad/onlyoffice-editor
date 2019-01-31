@@ -728,6 +728,13 @@ CInlineLevelSdt.prototype.ClearContentControl = function()
 	this.Add_ToContent(0, new ParaRun(this.GetParagraph(), false));
 	this.Remove_FromContent(1, this.Content.length - 1);
 };
+CInlineLevelSdt.prototype.CanAddComment = function()
+{
+	if (!this.CanBeDeleted() || (!this.CanBeEdited() && !this.IsSelectedAll()))
+		return false;
+
+	return CParagraphContentWithParagraphLikeContent.prototype.CanAddComment.apply(this, arguments);
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CInlineLevelSdt = CInlineLevelSdt;

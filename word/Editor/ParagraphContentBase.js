@@ -606,6 +606,14 @@ CParagraphContentBase.prototype.GetAllFields = function(isUseSelection, arrField
 {
 	return arrFields ? arrFields : [];
 };
+/**
+ * Проверяем можно ли добавлять комментарий по заданому селекту
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.CanAddComment = function()
+{
+	return true;
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -3686,6 +3694,22 @@ CParagraphContentWithParagraphLikeContent.prototype.GetAllFields = function(isUs
 	}
 
 	return arrFields;
+};
+CParagraphContentWithParagraphLikeContent.prototype.CanAddComment = function()
+{
+	if (!this.Selection.Use)
+		return true;
+
+	var nStartPos = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+	var nEndPos   = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+
+	for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		if (this.Content[nPos].CanAddComment && !this.Content[nPos].CanAddComment())
+			return false;
+	}
+
+	return true;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции, которые должны быть реализованы в классах наследниках
