@@ -234,6 +234,7 @@
     this._init(fontRenderingMode);
 
     this.autoCorrectStore = null;//объект для хранения параметров иконки авторазвертывания таблиц
+	this.cutIdSheet = null;
 
     return this;
   }
@@ -2187,13 +2188,19 @@
 		//}
 	};
 
-  WorkbookView.prototype.selectionCut = function() {
-    if (this.getCellEditMode()) {
-      this.cellEditor.cutSelection();
-    } else {
-      this.getWorksheet().emptySelection(c_oAscCleanOptions.All, true);
-    }
-  };
+	WorkbookView.prototype.selectionCut = function () {
+		if (this.getCellEditMode()) {
+			this.cellEditor.cutSelection();
+		} else {
+			if (this.getWorksheet().isNeedSelectionCut()) {
+				this.getWorksheet().emptySelection(c_oAscCleanOptions.All, true);
+			} else {
+				//в данном случае не вырезаем, а записываем
+				this.cutIdSheet = this.getWorksheet().model.Id;
+				this.getWorksheet().cutRange = this.getWorksheet().model.selectionRange.getLast();
+			}
+		}
+	};
 
   WorkbookView.prototype.undo = function() {
     var oFormulaLocaleInfo = AscCommonExcel.oFormulaLocaleInfo;

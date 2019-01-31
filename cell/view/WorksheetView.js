@@ -431,6 +431,8 @@
 
         this.viewPrintLines = false;
 
+        this.cutRange = null;
+
         this._init();
 
         return this;
@@ -3261,6 +3263,11 @@
 		}
 	};
 
+	WorksheetView.prototype._drawCutRange = function () {
+		if(this.cutRange) {
+			this._drawElements(this._drawSelectionElement, this.cutRange, AscCommonExcel.selectionLineType.Dash, new CColor(196, 18, 77));
+		}
+	};
 
 	WorksheetView.prototype._drawPageBreakPreviewText = function (drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, printPages) {
 
@@ -4209,6 +4216,8 @@
 			this._drawPrintArea();
 		}
 
+		this._drawCutRange();
+
 		if(pageBreakPreviewModeOverlay) {
 			this._drawPageBreakPreviewLinesOverlay();
 		}
@@ -4505,7 +4514,7 @@
 
 		//TODO пересмотреть! возможно стоит очищать частями в зависимости от print_area
 		//print lines view
-		if(this.viewPrintLines) {
+		if(this.viewPrintLines || this.cutRange) {
 			this.overlayCtx.clear();
 		}
 		if(pageBreakPreviewModeOverlay) {
@@ -8970,6 +8979,14 @@
             this.setSelectionInfo( "empty", options );
         }
     };
+
+	WorksheetView.prototype.isNeedSelectionCut = function () {
+		var res = true;
+		if (AscCommon.g_clipboardBase.bCut && !this.objectRender.selectedGraphicObjectsExists()) {
+			res = false;
+		}
+		return res;
+	};
 
     WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive) {
         // Проверка глобального лока

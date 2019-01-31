@@ -1122,10 +1122,28 @@
 				oBinaryFileReader.Read(base64, tempWorkbook);
 				this.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
 				this.bCut = oBinaryFileReader.copyPasteObj.bCut;
+				this.docId = oBinaryFileReader.copyPasteObj.docId;
 				var aPastedImages = pptx_content_loader.End_UseFullUrl();
 				pptx_content_loader.Reader.AssignConnectorsId();
 				History.TurnOn();
-				
+
+				//***MOVE***
+				//проверяем, может это вырезанный фрагмент пытаемся вставить в пределах одного документа
+				if(this.docId === window["Asc"]["editor"].DocInfo.Id && null !== window["Asc"]["editor"].wb.cutIdSheet) {
+					var wsFrom = window["Asc"]["editor"].wb.getWorksheetById(window["Asc"]["editor"].wb.cutIdSheet);
+					var fromRange = wsFrom.cutRange;
+					if(fromRange) {
+						var aRange = worksheet.model.selectionRange.getLast();
+						var toRange = new Asc.Range(aRange.c1, aRange.r1, aRange.c1 + (fromRange.c2 - fromRange.c1), aRange.r1 + (fromRange.r2 - fromRange.r1));
+						var wsTo = worksheet.model.Id !== wsFrom.model.Id ? worksheet : null;
+						wsFrom.moveRangeHandle(fromRange, toRange, false, wsTo);
+						window["Asc"]["editor"].wb.cutIdSheet = null;
+						wsFrom.cutRange = null;
+						return;
+					}
+				}
+
+
 				var pasteData = null;
 				if (tempWorkbook)
 					pasteData = tempWorkbook.aWorksheets[0];
