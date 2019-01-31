@@ -1720,6 +1720,9 @@
 			}
 
 			this.cursorPos = pos + str.length;
+			if (-1 !== str.indexOf(kNewLine)) {
+				this._wrapText();
+			}
 		}
 
 		this.noUpdateMode = noUpdateMode;
