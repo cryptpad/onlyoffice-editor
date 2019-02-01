@@ -1123,13 +1123,19 @@
 				this.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
 				this.bCut = oBinaryFileReader.copyPasteObj.bCut;
 				this.docId = oBinaryFileReader.copyPasteObj.docId;
+				this.userId = oBinaryFileReader.copyPasteObj.userId;
 				var aPastedImages = pptx_content_loader.End_UseFullUrl();
 				pptx_content_loader.Reader.AssignConnectorsId();
 				History.TurnOn();
 
 				//***MOVE***
 				//проверяем, может это вырезанный фрагмент пытаемся вставить в пределах одного документа
-				if(this.docId === window["Asc"]["editor"].DocInfo.Id && null !== window["Asc"]["editor"].wb.cutIdSheet) {
+				var api = window["Asc"]["editor"];
+				var curDocId = api.DocInfo.Id;
+				var curUserId = api.CoAuthoringApi.getUserConnectionId();
+				//чтобы не передавать изменения на сервер, даже в случае одного пользователя в разных вкладках
+				//вырезать и вставить будут работать независимо, поэтому при вставке сравнивем ещё и id юзера
+				if(this.docId === curDocId && this.userId === curUserId && null !== window["Asc"]["editor"].wb.cutIdSheet) {
 					var wsFrom = window["Asc"]["editor"].wb.getWorksheetById(window["Asc"]["editor"].wb.cutIdSheet);
 					var fromRange = wsFrom.cutRange;
 					if(fromRange) {

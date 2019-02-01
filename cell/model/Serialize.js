@@ -375,7 +375,8 @@
         MediaId: 2,
         MediaSrc: 3,
         Theme: 5,
-        Id: 6
+        DocId: 6,
+        UserId: 7
     };
     /** @enum */
     var c_oSer_CalcChainType =
@@ -4382,8 +4383,13 @@
             var docId = this.wb.oApi && this.wb.oApi.DocInfo ? this.wb.oApi.DocInfo.Id : null;
             if (null !== docId)
             {
-                this.bs.WriteItem(c_oSer_OtherType.Id, function(){oThis.memory.WriteString3(docId);});
+                this.bs.WriteItem(c_oSer_OtherType.DocId, function(){oThis.memory.WriteString3(docId);});
             }
+			var userId = this.wb.oApi && this.wb.oApi.CoAuthoringApi ? this.wb.oApi.CoAuthoringApi.getUserConnectionId() : null;
+			if (null !== userId)
+			{
+				this.bs.WriteItem(c_oSer_OtherType.UserId, function(){oThis.memory.WriteString3(userId);});
+			}
         };
     }
     /** @constructor */
@@ -8049,7 +8055,7 @@
                 this.wb.theme = pptx_content_loader.ReadTheme(this, this.stream);
                 res = c_oSerConstants.ReadUnknown;
             }
-            else if ( c_oSer_OtherType.Id === type )
+            else if ( c_oSer_OtherType.DocId === type )
             {
                 var docId = this.stream.GetString2LE(length);
                 if(this.copyPasteObj)
@@ -8057,6 +8063,14 @@
                     this.copyPasteObj.docId = docId;
                 }
             }
+			else if ( c_oSer_OtherType.UserId === type )
+			{
+				var userId = this.stream.GetString2LE(length);
+				if(this.copyPasteObj)
+				{
+					this.copyPasteObj.userId = userId;
+				}
+			}
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
