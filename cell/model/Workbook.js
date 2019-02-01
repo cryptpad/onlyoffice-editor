@@ -3506,7 +3506,7 @@
 		var aRules = this.aConditionalFormattingRules.sort(function(v1, v2) {
 			return v2.priority - v1.priority;
 		});
-		var oGradient1, oGradient2, oRule, multiplyRange, oRuleElement = null;
+		var oGradient1, oGradient2, oRule, multiplyRange, oRuleElement = null, bboxCf, formulaParent, parsed1, parsed2;
 		var o, l, cell, ranges, values, value, tmp, min, mid, max, dxf, compareFunction, nc, sum;
 		this.sheetMergedStyles.clearConditionalStyle(range);
 		var getCacheFunction = function(rule, setFunc) {
@@ -3677,52 +3677,54 @@
 								})(oRule, o, oRule.type === AscCommonExcel.ECfType.duplicateValues);
 								break;
 							case AscCommonExcel.ECfType.containsText:
-								compareFunction = (function(rule, v1) {
-									var operator = AscCommonExcel.ECfOperator.Operator_containsText;
-									return function(row, col) {
-										var res;
-										t._getCellNoEmpty(row, col, function(cell) {
-											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
-										});
-										return res;
-									};
-								})(oRule, oRule.getValueCellIs(this));
-								break;
 							case AscCommonExcel.ECfType.notContainsText:
-								compareFunction = (function(rule, v1) {
-									var operator = AscCommonExcel.ECfOperator.Operator_notContains;
-									return function(row, col) {
-										var res;
-										t._getCellNoEmpty(row, col, function(cell) {
-											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
-										});
-										return res;
-									};
-								})(oRule, oRule.getValueCellIs(this));
-								break;
 							case AscCommonExcel.ECfType.beginsWith:
-								compareFunction = (function(rule, v1) {
-									var operator = AscCommonExcel.ECfOperator.Operator_beginsWith;
-									return function(row, col) {
-										var res;
-										t._getCellNoEmpty(row, col, function(cell) {
-											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
-										});
-										return res;
-									};
-								})(oRule, oRule.getValueCellIs(this));
-								break;
 							case AscCommonExcel.ECfType.endsWith:
-								compareFunction = (function(rule, v1) {
-									var operator = AscCommonExcel.ECfOperator.Operator_endsWith;
-									return function(row, col) {
-										var res;
-										t._getCellNoEmpty(row, col, function(cell) {
-											res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
-										});
-										return res;
-									};
-								})(oRule, oRule.getValueCellIs(this));
+								var operator;
+								switch (oRule.type) {
+									case AscCommonExcel.ECfType.containsText:
+										operator = AscCommonExcel.ECfOperator.Operator_containsText;
+										break;
+									case AscCommonExcel.ECfType.notContainsText:
+										operator = AscCommonExcel.ECfOperator.Operator_notContains;
+										break;
+									case AscCommonExcel.ECfType.beginsWith:
+										operator = AscCommonExcel.ECfOperator.Operator_beginsWith;
+										break;
+									case AscCommonExcel.ECfType.endsWith:
+										operator = AscCommonExcel.ECfOperator.Operator_endsWith;
+										break;
+								}
+								formulaParent = new AscCommonExcel.CConditionalFormattingFormulaParent(this, oRule, true);
+								oRuleElement = oRule.getFormulaCellIs();
+								parsed1 = oRuleElement && oRuleElement.getFormula && oRuleElement.getFormula(this, formulaParent);
+								if (parsed1 && parsed1.hasRelativeRefs()) {
+									bboxCf = oRule.getBBox();
+									compareFunction = getCacheFunction(oRule, (function(rule, operator, formulaParent, rowLT, colLT) {
+										return function(row, col) {
+											var offset = new AscCommon.CellBase(row - rowLT, col - colLT);
+											var bboxCell = new Asc.Range(col, row, col, row);
+											var v1 = rule.getValueCellIs(t, formulaParent, bboxCell, offset, false);
+											var res;
+											t._getCellNoEmpty(row, col, function(cell) {
+												res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
+											});
+											return res;
+										};
+									})(oRule, operator,
+										new AscCommonExcel.CConditionalFormattingFormulaParent(this, oRule, true),
+										bboxCf ? bboxCf.r1 : 0, bboxCf ? bboxCf.c1 : 0));
+								} else {
+									compareFunction = (function(rule, operator, v1) {
+										return function(row, col) {
+											var res;
+											t._getCellNoEmpty(row, col, function(cell) {
+												res = rule.cellIs(operator, cell, v1) ? rule.dxf : null;
+											});
+											return res;
+										};
+									})(oRule, operator, oRule.getValueCellIs(this));
+								}
 								break;
 							case AscCommonExcel.ECfType.containsErrors:
 								compareFunction = (function(rule) {
@@ -3795,29 +3797,48 @@
 								}
 								break;
 							case AscCommonExcel.ECfType.cellIs:
-								compareFunction = (function(rule, v1, v2) {
-									return function(row, col) {
-										var res;
-										t._getCellNoEmpty(row, col, function(cell) {
-											res = rule.cellIs(rule.operator, cell, v1, v2) ? rule.dxf : null;
-										});
-										return res;
-									};
-								})(oRule, oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this),
-									oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this));
+								formulaParent = new AscCommonExcel.CConditionalFormattingFormulaParent(this, oRule, true);
+								oRuleElement = oRule.aRuleElements[0];
+								parsed1 = oRuleElement && oRuleElement.getFormula && oRuleElement.getFormula(this, formulaParent);
+								oRuleElement = oRule.aRuleElements[1];
+								parsed2 = oRuleElement && oRuleElement.getFormula && oRuleElement.getFormula(this, formulaParent);
+								if ((parsed1 && parsed1.hasRelativeRefs()) || (parsed2 && parsed2.hasRelativeRefs())) {
+									bboxCf = oRule.getBBox();
+									compareFunction = getCacheFunction(oRule, (function(rule, ruleElem1, ruleElem2, formulaParent, rowLT, colLT) {
+										return function(row, col) {
+											var offset = new AscCommon.CellBase(row - rowLT, col - colLT);
+											var bboxCell = new Asc.Range(col, row, col, row);
+											var v1 = ruleElem1 && ruleElem1.getValue(t, formulaParent, bboxCell, offset, false);
+											var v2 = ruleElem2 && ruleElem2.getValue(t, formulaParent, bboxCell, offset, false);
+											var res;
+											t._getCellNoEmpty(row, col, function(cell) {
+												res = rule.cellIs(rule.operator, cell, v1, v2) ? rule.dxf : null;
+											});
+											return res;
+										};
+									})(oRule, oRule.aRuleElements[0], oRule.aRuleElements[1],
+										new AscCommonExcel.CConditionalFormattingFormulaParent(this, oRule, true),
+										bboxCf ? bboxCf.r1 : 0, bboxCf ? bboxCf.c1 : 0));
+								} else {
+									compareFunction = (function(rule, v1, v2) {
+										return function(row, col) {
+											var res;
+											t._getCellNoEmpty(row, col, function(cell) {
+												res = rule.cellIs(rule.operator, cell, v1, v2) ? rule.dxf : null;
+											});
+											return res;
+										};
+									})(oRule, oRule.aRuleElements[0] && oRule.aRuleElements[0].getValue(this),
+										oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this));
+								}
 								break;
 							case AscCommonExcel.ECfType.expression:
-								var offset = new AscCommon.CellBase(0, 0);
-								var bboxCf = oRule.getBBox();
-								var rowLT = bboxCf ? bboxCf.r1 : 0;
-								var colLT = bboxCf ? bboxCf.c1 : 0;
-								var formulaParent = new AscCommonExcel.CConditionalFormattingFormulaParent(this, oRule, true);
-								compareFunction = getCacheFunction(oRule, (function(rule, formulaCF, rowLT, colLT) {
+								bboxCf = oRule.getBBox();
+								compareFunction = getCacheFunction(oRule, (function(rule, formulaCF, formulaParent, rowLT, colLT) {
 									return function(row, col) {
-										offset.row = row - rowLT;
-										offset.col = col - colLT;
+										var offset = new AscCommon.CellBase(row - rowLT, col - colLT);
 										var bboxCell = new Asc.Range(col, row, col, row);
-										var res = formulaCF && formulaCF.getValueRaw(t, formulaParent, bboxCell, offset);
+										var res = formulaCF && formulaCF.getValue(t, formulaParent, bboxCell, offset, true);
 										if (res && res.tocBool) {
 											res = res.tocBool();
 											if (res && res.toBool) {
@@ -3826,7 +3847,9 @@
 										}
 										return false;
 									};
-								})(oRule, oRule.aRuleElements[0], rowLT, colLT));
+								})(oRule, oRule.aRuleElements[0],
+									new AscCommonExcel.CConditionalFormattingFormulaParent(this, oRule, true),
+									bboxCf ? bboxCf.r1 : 0, bboxCf ? bboxCf.c1 : 0));
 								break;
 							default:
 								continue;
