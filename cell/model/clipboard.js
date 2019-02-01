@@ -1108,120 +1108,106 @@
 				
 				return result;
 			},
-			
-			_pasteFromBinaryExcel: function(worksheet, base64, isIntoShape, isCellEditMode)
-			{
-				var oBinaryFileReader = new AscCommonExcel.BinaryFileReader(true);
-				var tempWorkbook = new AscCommonExcel.Workbook();
+
+			_pasteFromBinaryExcel: function (worksheet, base64, isIntoShape, isCellEditMode) {
 				var t = this;
 				var newFonts;
+				var tempWorkbook = new AscCommonExcel.Workbook();
+				var aPastedImages = this._readExcelBinary(base64, tempWorkbook);
 
-				History.TurnOff();
-				pptx_content_loader.Start_UseFullUrl();
-				pptx_content_loader.Reader.ClearConnectorsMaps();
-				oBinaryFileReader.Read(base64, tempWorkbook);
-				this.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
-				this.bCut = oBinaryFileReader.copyPasteObj.bCut;
-				this.docId = oBinaryFileReader.copyPasteObj.docId;
-				this.userId = oBinaryFileReader.copyPasteObj.userId;
-				var aPastedImages = pptx_content_loader.End_UseFullUrl();
-				pptx_content_loader.Reader.AssignConnectorsId();
-				History.TurnOn();
-
-
-				if(this._checkCutBefore(worksheet)) {
+				if (this._checkCutBefore(worksheet)) {
 					return;
 				}
 
 				var pasteData = null;
-				if (tempWorkbook)
+				if (tempWorkbook) {
 					pasteData = tempWorkbook.aWorksheets[0];
-				
-				var res = false;
-				if(isCellEditMode)
-				{
-					res = this._getTextFromWorksheet(pasteData);
 				}
-				else if (pasteData) 
-				{
-					if(pasteData.Drawings && pasteData.Drawings.length)
-					{
-						if(window["IS_NATIVE_EDITOR"])
-						{
-                            t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
-						}
-                        else if (window["NativeCorrectImageUrlOnPaste"]) 
-						{
-                            var url;
-                            for(var i = 0, length = aPastedImages.length; i < length; ++i)
-                            {
-                                url = window["NativeCorrectImageUrlOnPaste"](aPastedImages[i].Url);
-                                aPastedImages[i].Url = url;
 
-                                var imageElem = aPastedImages[i];
-                                if(null != imageElem)
-                                {
-                                    imageElem.SetUrl(url);
-                                }
-                            }
+				var res = false;
+				if (isCellEditMode) {
+					res = this._getTextFromWorksheet(pasteData);
+				} else if (pasteData) {
+					if (pasteData.Drawings && pasteData.Drawings.length) {
+						if (window["IS_NATIVE_EDITOR"]) {
+							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
+						} else if (window["NativeCorrectImageUrlOnPaste"]) {
+							var url;
+							for (var i = 0, length = aPastedImages.length; i < length; ++i) {
+								url = window["NativeCorrectImageUrlOnPaste"](aPastedImages[i].Url);
+								aPastedImages[i].Url = url;
 
-                            t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
-                        }
-                        else if(!(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor))
-                        {
-                            
+								var imageElem = aPastedImages[i];
+								if (null != imageElem) {
+									imageElem.SetUrl(url);
+								}
+							}
+
+							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
+						} else if (!(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {
+
 							newFonts = {};
-							for(var i = 0; i < pasteData.Drawings.length; i++)
-							{
+							for (var i = 0; i < pasteData.Drawings.length; i++) {
 								pasteData.Drawings[i].graphicObject.getAllFonts(newFonts);
 							}
-							
-							worksheet._loadFonts(newFonts, function() {
-								if(aPastedImages && aPastedImages.length)
-								{
-									t._loadImagesOnServer(aPastedImages, function() {
+
+							worksheet._loadFonts(newFonts, function () {
+								if (aPastedImages && aPastedImages.length) {
+									t._loadImagesOnServer(aPastedImages, function () {
 										t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
 									});
-								}
-								else
-								{
+								} else {
 									t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
 								}
-							});	
-                        }
-					}
-					else 
-					{	
-						if(isIntoShape)
-						{
+							});
+						}
+					} else {
+						if (isIntoShape) {
 							History.TurnOff();
 							var docContent = this._convertTableFromExcelToDocument(worksheet, pasteData, isIntoShape);
 							History.TurnOn();
-							
-							var callback = function(isSuccess)
-							{
-								if(isSuccess)
-								{
+
+							var callback = function (isSuccess) {
+								if (isSuccess) {
 									t._insertBinaryIntoShapeContent(worksheet, [docContent]);
 								}
 								window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 							};
-							
+
 							worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
-						}
-						else if(this._checkPasteFromBinaryExcel(worksheet, true, pasteData))
-						{
+
+						} else if (this._checkPasteFromBinaryExcel(worksheet, true, pasteData)) {
 							newFonts = {};
 							newFonts = tempWorkbook.generateFontMap2();
 							newFonts = t._convertFonts(newFonts);
 							worksheet.setSelectionInfo('paste', {data: pasteData, fromBinary: true, fontsNew: newFonts});
 						}
 					}
-					
+
 					res = true;
 				}
-				
+
 				return res;
+			},
+
+			_readExcelBinary: function(base64, tempWorkbook) {
+				var oBinaryFileReader = new AscCommonExcel.BinaryFileReader(true);
+				var t = this;
+				var aPastedImages;
+
+				AscFormat.ExecuteNoHistory(function(){
+					pptx_content_loader.Start_UseFullUrl();
+					pptx_content_loader.Reader.ClearConnectorsMaps();
+					oBinaryFileReader.Read(base64, tempWorkbook);
+					t.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
+					t.bCut = oBinaryFileReader.copyPasteObj.bCut;
+					t.docId = oBinaryFileReader.copyPasteObj.docId;
+					t.userId = oBinaryFileReader.copyPasteObj.userId;
+					aPastedImages = pptx_content_loader.End_UseFullUrl();
+					pptx_content_loader.Reader.AssignConnectorsId();
+				}, this, []);
+
+				return aPastedImages;
 			},
 
 			_checkCutBefore: function(ws) {
