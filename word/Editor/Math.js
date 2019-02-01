@@ -3060,7 +3060,7 @@ ParaMath.prototype.IsSelectedAll = function(Props)
 	return this.Root.IsSelectedAll(Props);
 };
 
-ParaMath.prototype.Selection_CorrectLeftPos = function(Direction)
+ParaMath.prototype.SkipAnchorsAtSelectionStart = function(nDirection)
 {
     return false;
 };

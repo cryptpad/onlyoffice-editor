@@ -788,7 +788,7 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		}
 	};
 
-CCellCommentator.prototype.selectComment = function(id, bMove) {
+CCellCommentator.prototype.selectComment = function(id) {
 	var comment = this.findComment(id);
 	var metrics;
 
@@ -802,26 +802,11 @@ CCellCommentator.prototype.selectComment = function(id, bMove) {
 
 		var col = comment.asc_getCol();
 		var row = comment.asc_getRow();
-		var fvc = this.worksheet.getFirstVisibleCol(true);
-		var fvr = this.worksheet.getFirstVisibleRow(true);
-		var lvc = this.worksheet.getLastVisibleCol();
-		var lvr = this.worksheet.getLastVisibleRow();
 
-		var offset;
-		if ( bMove ) {
-			if ( (row < fvr) || (row > lvr) ) {
-				offset = row - fvr - Math.round(( lvr - fvr ) / 2);
-				this.worksheet.scrollVertical(offset);
-				this.worksheet.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
-			}
-			if ( (col < fvc) || (col > lvc) ) {
-				offset = col - fvc - Math.round(( lvc - fvc ) / 2);
-				this.worksheet.scrollHorizontal(offset);
-				this.worksheet.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
-			}
-		}
+		this.worksheet._scrollToRange(new Asc.Range(col, row, col, row));
 
-		if (metrics = this.worksheet.getCellMetrics(col, row)) {
+		metrics = this.worksheet.getCellMetrics(col, row);
+		if (metrics) {
 			var extraOffset = 1;
 			this.overlayCtx.ctx.globalAlpha = 0.2;
 			this.overlayCtx.beginPath();

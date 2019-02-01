@@ -3258,6 +3258,24 @@ CFootnotesController.prototype.GetAllFields = function(isUseSelection, arrFields
 
 	return this.CurFootnote.GetAllFields(isUseSelection, arrFields);
 };
+/**
+ * Получаем список всех автофигур, находящихся в сносках
+ * @param arrDrawings {array}
+ * @returns {array}
+ */
+CFootnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
+{
+	if (undefined === arrDrawings || null === arrDrawings)
+		arrDrawings = [];
+
+	for (var sId in  this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		oFootnote.GetAllDrawingObjects(arrDrawings);
+	}
+
+	return arrDrawings;
+};
 
 
 function CFootEndnotePageColumn()

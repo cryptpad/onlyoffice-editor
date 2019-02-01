@@ -11976,16 +11976,6 @@ CTable.prototype.GetRowsCountInHeader = function()
 
 	return nRowsInHeader;
 };
-CTable.prototype.GetTopElement = function()
-{
-    if (!this.Parent)
-        return null;
-
-    if (true === this.Parent.Is_TopDocument(false))
-        return this;
-
-    return this.Parent.GetTopElement();
-};
 CTable.prototype.Get_RowsCount = function()
 {
     return this.Content.length;

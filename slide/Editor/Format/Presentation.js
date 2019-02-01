@@ -4801,6 +4801,13 @@ CPresentation.prototype =
                         }
                     }
                 }
+                if(window['IS_NATIVE_EDITOR'])
+                {
+                    if(!drawing_props.tableProps)
+                    {
+                        this.CheckTableStylesDefault(this.Slides[this.CurPage]);
+                    }
+                }
                 if(target_content)
                 {
                     target_content.Document_UpdateInterfaceState();

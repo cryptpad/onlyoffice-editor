@@ -1091,13 +1091,6 @@ CBlockLevelSdt.prototype.Get_SectPr = function()
 
 	return null;
 };
-CBlockLevelSdt.prototype.GetTopElement = function()
-{
-	if (true === this.Parent.Is_TopDocument(false))
-		return this;
-
-	return this.Parent.GetTopElement();
-};
 CBlockLevelSdt.prototype.GetMargins = function()
 {
 	return this.Parent.GetMargins();

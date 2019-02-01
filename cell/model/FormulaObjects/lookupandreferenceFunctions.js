@@ -1512,6 +1512,11 @@ function (window, undefined) {
 		var arg3 = arg[3] ? arg[3].tocBool().value : true;
 		var t = this, number = arg2.getValue() - 1, valueForSearching, r, c, res = -1, min, regexp, count;
 
+		if(cElementType.array === arg2.type) {
+			var arg2Val = arg2.getElementRowCol(0,0);
+			number = arg2Val ? arg2Val.getValue() - 1 : number;
+		}
+
 		if (isNaN(number)) {
 			return new cError(cErrorType.bad_reference);
 		}
@@ -1526,8 +1531,15 @@ function (window, undefined) {
 		if (cElementType.error === arg0.type) {
 			return arg0;
 		}
-		valueForSearching = ('' + arg0.getValue()).toLowerCase();
 
+		if(cElementType.array === arg0.type) {
+			var arg0Val = arg0.getElementRowCol(0,0);
+			valueForSearching = ('' + arg0Val.getValue()).toLowerCase();
+		} else {
+			valueForSearching = ('' + arg0.getValue()).toLowerCase();
+		}
+
+		//TODO hlookup не правильно работает если первый агумент массив - раскомментировать тесты для hlookup
 		var found = false;
 		if (cElementType.array === arg1.type) {
 			// ToDo
@@ -1561,7 +1573,7 @@ function (window, undefined) {
 				min = Math.min(min, v);
 			});
 
-			if (min > valueForSearching || -1 === res) {
+			if (/*min > valueForSearching ||*/ -1 === res) {
 				return new cError(cErrorType.not_available);
 			}
 
@@ -1845,11 +1857,12 @@ function (window, undefined) {
 	cVLOOKUP.prototype.name = 'VLOOKUP';
 	cVLOOKUP.prototype.argumentsMin = 3;
 	cVLOOKUP.prototype.argumentsMax = 4;
-	cVLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
+	cVLOOKUP.prototype.arrayIndexes = {1: 1, 2: {0: 0}};
 	cVLOOKUP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cVLOOKUP.prototype.Calculate = function (arg) {
-		//TODO  с excel есть несоостветствие - в тестовом файле - E11:H13
+
 		if(this.bArrayFormula) {
+		 	//в случае когда первый аргумент - массив
 			//исключение, когда в формуле массива берется из одного аргумента только 1 элемент
 			if(cElementType.cellsRange3D === arg[2].type || cElementType.cellsRange === arg[2].type) {
 				arg[2] = arg[2].getValue2(0,0);

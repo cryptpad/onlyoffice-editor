@@ -17601,8 +17601,13 @@ CDocument.prototype.private_GetSelectionPos = function(isSaveDirection)
 	else if (this.controller_IsNumberingSelection())
 	{
 		this.UpdateContentIndexing();
-		nStartPos = this.Selection.Data.CurPara.GetIndex();
-		nEndPos   = nStartPos;
+
+		var oTopElement = this.Selection.Data.CurPara.GetTopElement();
+		if (oTopElement)
+		{
+			nStartPos = oTopElement.GetIndex();
+			nEndPos   = nStartPos;
+		}
 	}
 	else
 	{
@@ -18816,6 +18821,11 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 			for (var nLvl = 0; nLvl < 9; ++nLvl)
 			{
 				this.NumInfo[nLvl] = this.Start[nLvl];
+			}
+
+			for (var nLvl = this.PrevLvl + 1; nLvl < oParaNumPr.Lvl; ++nLvl)
+			{
+				this.NumInfo[nLvl]++;
 			}
 		}
 		else if (oParaNumPr.Lvl < this.PrevLvl)

@@ -97,6 +97,7 @@
 		"../word/Drawing/mobileTouchManager.js",
 
         "../common/wordcopypaste.js",
+		"../common/intervalTree.js",
 		
 		"../cell/utils/utils.js",
 		"../cell/model/WorkbookElems.js",

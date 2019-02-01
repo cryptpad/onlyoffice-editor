@@ -271,13 +271,16 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
     }
     if(window["IS_NATIVE_EDITOR"])
     {
-        if(e.ClickCount > 1 && !e.ShiftKey && !e.CtrlKey && ((drawingObjectsController.selection.groupSelection && drawingObjectsController.selection.groupSelection.selectedObjects.length === 1) || drawingObjectsController.selectedObjects.length === 1))
+        if(drawing.getObjectType() === AscDFH.historyitem_type_Shape && drawing.getDocContent && drawing.getDocContent())
         {
-            if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
+            if(e.ClickCount > 1 && !e.ShiftKey && !e.CtrlKey && ((drawingObjectsController.selection.groupSelection && drawingObjectsController.selection.groupSelection.selectedObjects.length === 1) || drawingObjectsController.selectedObjects.length === 1))
             {
-                hit_in_text_rect = true;
-                hit_in_inner_area = false;
-                hit_in_path = false;
+                if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
+                {
+                    hit_in_text_rect = true;
+                    hit_in_inner_area = false;
+                    hit_in_path = false;
+                }
             }
         }
     }

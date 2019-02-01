@@ -6865,6 +6865,15 @@ function BinaryFileReader(doc, openParams)
 				}
 			}
 		}
+		//split runs after styles because rPr can have a RStyle
+		for (var i = 0; i < this.oReadResult.runsToSplit.length; ++i) {
+			var run = this.oReadResult.runsToSplit[i];
+			var runParent = run.Get_Parent();
+			var runPos = run.private_GetPosInParent(runParent);
+			while (run.GetElementsCount() > Asc.c_dMaxParaRunContentLength) {
+				run.Split2(run.GetElementsCount() - Asc.c_dMaxParaRunContentLength, runParent, runPos);
+			}
+		}
 
 		var setting = this.oReadResult.setting;        
 		var fInitCommentData = function(comment)
@@ -7192,7 +7201,15 @@ function BinaryFileReader(doc, openParams)
 			
 			this.Document.On_EndLoad();
 		}
-		
+		//split runs after styles because rPr can have a RStyle
+		for (var i = 0; i < this.oReadResult.runsToSplit.length; ++i) {
+			var run = this.oReadResult.runsToSplit[i];
+			var runParent = run.Get_Parent();
+			var runPos = run.private_GetPosInParent(runParent);
+			while (run.GetElementsCount() > Asc.c_dMaxParaRunContentLength) {
+				run.Split2(run.GetElementsCount() - Asc.c_dMaxParaRunContentLength, runParent, runPos);
+			}
+		}
 		//add comments
 		var setting = this.oReadResult.setting;        
 		var fInitCommentData = function(comment)
@@ -9871,7 +9888,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadRun(t, l, oParStruct);
             });
-			oParStruct.addElemToContentFinish();
+			var run = oParStruct.addElemToContentFinish();
+			if (run.GetElementsCount() > Asc.c_dMaxParaRunContentLength) {
+				this.oReadResult.runsToSplit.push(run);
+			}
         }
 		else if (c_oSerParType.CommentStart === type)
         {
@@ -15158,16 +15178,12 @@ OpenParStruct.prototype = {
 		this.curRun = new ParaRun(this.paragraph);
 	},
 	addElemToContent: function (elem) {
-		if (this.curRun.GetElementsCount() > Asc.c_dMaxParaRunContentLength) {
-			this.addToContent(this.curRun);
-			var textPr = this.curRun.Get_TextPr();
-			this.curRun = new ParaRun(this.paragraph);
-			this.curRun.Set_Pr(textPr);
-		}
 		this.curRun.Add_ToContent(this.curRun.GetElementsCount(), elem, false);
 	},
 	addElemToContentFinish: function () {
+		var res = this.curRun;
 		this.addToContent(this.curRun);
+		return res;
 	},
     addToContent: function (oItem) {
 		if(null != this.cur.elem)
@@ -15270,6 +15286,7 @@ function DocReadResult(doc) {
 	this.AppVersion;
 	this.compatibilityMode = null;
 	this.bdtr = null;
+	this.runsToSplit = [];
 };
 //---------------------------------------------------------export---------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

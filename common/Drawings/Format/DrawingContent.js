@@ -59,6 +59,12 @@
             }
         }
     };
+
+    CDrawingDocContent.prototype.GetAllDrawingObjects = function(arrDrawings){
+        if (undefined === arrDrawings || null === arrDrawings)
+            arrDrawings = [];
+        return arrDrawings;
+    };
     CDrawingDocContent.prototype.GetSummaryHeight = function(){
         var fSummHeight = 0;
         var nColumnsCount = this.Get_ColumnsCount();

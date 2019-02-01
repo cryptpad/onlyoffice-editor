@@ -2730,9 +2730,11 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 		{
 			this.Content[StartPos].Remove(nCount, bOnAddText);
 
+			var isRemoveOnDrag = this.LogicDocument ? this.LogicDocument.RemoveOnDrag : false;
+
 			// TODO: Как только избавимся от para_End переделать здесь
 			// Последние 2 элемента не удаляем (один для para_End, второй для всего остального)
-			if (StartPos < this.Content.length - 2 && true === this.Content[StartPos].Is_Empty() && true !== this.Content[StartPos].Is_CheckingNearestPos() && !bOnAddText)
+			if (StartPos < this.Content.length - 2 && true === this.Content[StartPos].Is_Empty() && true !== this.Content[StartPos].Is_CheckingNearestPos() && (!bOnAddText || isRemoveOnDrag))
 			{
 				if (this.Selection.StartPos === this.Selection.EndPos)
 					this.Selection.Use = false;
@@ -4152,9 +4154,10 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 				}
 			}
 		}
-		else if (true !== this.IsSelectionEmpty(true) && ( ( 1 === Direction && true === this.Selection.StartManually ) || ( 1 !== Direction && true === this.Selection.EndManually ) ))
+		else if (true !== this.IsSelectionEmpty(true)
+			&& ((1 === Direction && true === this.Selection.StartManually) || (1 !== Direction && true === this.Selection.EndManually)))
 		{
-			// Эта ветка нужна для снятие выделения с плавающих объектов, стоящих в начале параграфа, когда параграф
+			// Эта ветка нужна для снятия выделения с плавающих объектов, стоящих в начале параграфа, когда параграф
 			// выделен не весь. Заметим, что это ветка имеет смысл, только при direction = 1, поэтому выделен весь
 			// параграф или нет, проверяется попаданием para_End в селект. Кроме того, ничего не делаем с селектом,
 			// если он пустой.
@@ -4162,9 +4165,9 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 			var bNeedCorrectLeftPos = true;
 			var _StartPos           = Math.min(StartPos, EndPos);
 			var _EndPos             = Math.max(StartPos, EndPos);
-			for (var Pos = 0; Pos < StartPos; Pos++)
+			for (var Pos = 0; Pos < _StartPos; Pos++)
 			{
-				if (true !== this.Content[Pos].Is_Empty({SkipAnchor : true}))
+				if (true !== this.Content[Pos].IsEmpty({SkipAnchor : true}))
 				{
 					bNeedCorrectLeftPos = false;
 					break;
@@ -4173,32 +4176,33 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 
 			if (true === bNeedCorrectLeftPos)
 			{
-				for (var Pos = _StartPos; Pos <= EndPos; Pos++)
+				for (var nPos = _StartPos; nPos <= _EndPos; ++nPos)
 				{
-					if (true === this.Content[Pos].Selection_CorrectLeftPos(Direction))
+					if (true === this.Content[nPos].SkipAnchorsAtSelectionStart(Direction))
 					{
 						if (1 === Direction)
 						{
-							if (Pos + 1 > this.Selection.EndPos)
+							if (nPos + 1 > this.Selection.EndPos)
 								break;
 
-							this.Selection.StartPos = Pos + 1;
+							this.Selection.StartPos = nPos + 1;
 						}
 						else
 						{
-							if (Pos + 1 > this.Selection.StartPos)
+							if (nPos + 1 > this.Selection.StartPos)
 								break;
 
-							this.Selection.EndPos = Pos + 1;
+							this.Selection.EndPos = nPos + 1;
 						}
 
-						this.Content[Pos].RemoveSelection();
+						this.Content[nPos].RemoveSelection();
 					}
 					else
+					{
 						break;
+					}
 				}
 			}
-
 		}
 	}
 };
@@ -6476,8 +6480,8 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 	this.Selection.EndManually = true;
 
 	// Найдем позицию в контенте, в которую мы попали (для селекта ищем и за знаком параграфа, для курсора только перед)
-	var SearchPosXY = this.Get_ParaContentPosByXY(X, Y, CurPage, false, true);
-	var SearchPosXY2 = this.Get_ParaContentPosByXY(X, Y, CurPage, false, false);
+	var SearchPosXY  = this.Get_ParaContentPosByXY(X, Y, CurPage, false, true, true);
+	var SearchPosXY2 = this.Get_ParaContentPosByXY(X, Y, CurPage, false, false, true);
 
 	// Выставим в полученном месте текущую позицию курсора
 	this.Set_ParaContentPos(SearchPosXY2.Pos, true, SearchPosXY2.Line, SearchPosXY2.Range);
@@ -11415,7 +11419,18 @@ Paragraph.prototype.AddCommentToObject = function(Comment, ObjectId)
 Paragraph.prototype.CanAddComment = function()
 {
 	if (true === this.Selection.Use && true != this.IsSelectionEmpty())
+	{
+		var nStartPos = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+		var nEndPos   = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+
+		for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+		{
+			if (this.Content[nPos].CanAddComment && !this.Content[nPos].CanAddComment())
+				return false;
+		}
+
 		return true;
+	}
 
 	return false;
 };
@@ -11724,13 +11739,6 @@ Paragraph.prototype.GetPageByLine = function(CurLine)
     }
 
     return Math.min(PagesCount - 1, CurPage);
-};
-Paragraph.prototype.GetTopElement = function()
-{
-    if (true === this.Parent.Is_TopDocument(false))
-        return this;
-
-    return this.Parent.GetTopElement();
 };
 Paragraph.prototype.CompareDrawingsLogicPositions = function(CompareObject)
 {
@@ -12995,11 +13003,16 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 				oNewRun = this.Content[nStartPos].Split_Run(Math.min(this.Content[nStartPos].Selection.StartPos, this.Content[nStartPos].Selection.EndPos));
 				this.Add_ToContent(nStartPos + 1, oNewRun);
 
+				oContentControl.ReplacePlaceHolderWithContent();
 				for (var nIndex = nEndPos + 1; nIndex >= nStartPos + 1; --nIndex)
 				{
 					oContentControl.Add_ToContent(0, this.Content[nIndex]);
 					this.Remove_FromContent(nIndex, 1);
 				}
+
+				if (oContentControl.IsEmpty())
+					oContentControl.ReplaceContentWithPlaceHolder();
+
 				this.Add_ToContent(nStartPos + 1, oContentControl);
 				this.Selection.StartPos = nStartPos + 1;
 				this.Selection.EndPos   = nStartPos + 1;
