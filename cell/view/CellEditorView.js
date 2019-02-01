@@ -619,45 +619,11 @@
 		text = text.replace(/\r/g, "");
 		text = text.replace(/^\n+|\n+$/g, "");
 
-		var length = text.length;
-		if (!(length > 0)) {
-			return;
-		}
-		if (!this._checkMaxCellLength(length)) {
+		if (0 === text.length) {
 			return;
 		}
 
-		var wrap = -1 !== text.indexOf(kNewLine);
-		if (this.selectionBegin !== this.selectionEnd) {
-			this._removeChars();
-		}
-
-		// save info to undo/redo
-		this.undoList.push({fn: this._removeChars, args: [this.cursorPos, length]});
-		this.redoList = [];
-
-		var opt = this.options;
-		var nInsertPos = this.cursorPos;
-		var fr;
-		fr = this._findFragmentToInsertInto(nInsertPos - (nInsertPos > 0 ? 1 : 0));
-		if (fr) {
-			var oCurFragment = opt.fragments[fr.index];
-			if (fr.end <= nInsertPos) {
-				oCurFragment.text += text;
-			} else {
-				var sNewText = oCurFragment.text.substring(0, nInsertPos);
-				sNewText += text;
-				sNewText += oCurFragment.text.substring(nInsertPos);
-				oCurFragment.text = sNewText;
-			}
-			this.cursorPos = nInsertPos + length;
-			this._update();
-		}
-
-		if (wrap) {
-			this._wrapText();
-			this._update();
-		}
+		this._addChars(text);
 	};
 
 	CellEditor.prototype.paste = function (fragments, cursorPos) {
@@ -668,10 +634,6 @@
 		if (!this._checkMaxCellLength(length)) {
 			return;
 		}
-
-		var wrap = fragments.some(function (val) {
-			return -1 !== val.text.indexOf(kNewLine);
-		});
 
 		this._cleanFragments(fragments);
 
@@ -684,11 +646,6 @@
 		this.redoList = [];
 
 		this._addFragments(fragments, this.cursorPos);
-
-		if (wrap) {
-			this._wrapText();
-			this._update();
-		}
 
 		// Сделано только для вставки формулы в ячейку (когда не открыт редактор)
 		if (undefined !== cursorPos) {
@@ -1754,6 +1711,9 @@
 			}
 
 			this.cursorPos = pos + str.length;
+			if (-1 !== str.indexOf(kNewLine)) {
+				this._wrapText();
+			}
 		}
 
 		this.noUpdateMode = noUpdateMode;

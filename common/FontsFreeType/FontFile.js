@@ -1044,7 +1044,7 @@
 
             oSizes.fAdvanceX = (pFaceGlyph.linearHoriAdvance * this.m_dUnitsKoef / this.m_lUnits_Per_Em);
             if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
-                oSizes.fAdvanceX += 1;
+				oSizes.fAdvanceX += 1;
 
             oSizes.oBBox.fMinX = (oBBox.xMin >> 6);
             oSizes.oBBox.fMaxX = (oBBox.xMax >> 6);
@@ -1215,12 +1215,6 @@
 				pString.SetBBox(nIndex, charSymbolObj.oBBox.fMinX, charSymbolObj.oBBox.fMaxY, charSymbolObj.oBBox.fMaxX, charSymbolObj.oBBox.fMinY);
 				fPenX += charSymbolObj.fAdvanceX + this.m_fCharSpacing;
 
-				if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
-				{
-					// Когда текст делаем жирным сами, то мы увеличиваем расстояние на 1 пиксель в ширину (независимо от DPI и размера текста всегда 1 пиксель)
-					fPenX += 1;
-				}
-
 				unPrevGID = unGID;
 			}
 
@@ -1311,12 +1305,6 @@
 				pString.SetBBox(nIndex, charSymbolObj.oBBox.fMinX, charSymbolObj.oBBox.fMaxY, charSymbolObj.oBBox.fMaxX, charSymbolObj.oBBox.fMinY);
 				fPenX += charSymbolObj.fAdvanceX + this.m_fCharSpacing;
 
-				if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
-				{
-					// Когда текст делаем жирным сами, то мы увеличиваем расстояние на 1 пиксель в ширину (независимо от DPI и размера текста всегда 1 пиксель)
-					fPenX += 1;
-				}
-
 				pCurGlyph.bBitmap = charSymbolObj.bBitmap;
 				pCurGlyph.oBitmap = charSymbolObj.oBitmap;
 
@@ -1386,12 +1374,6 @@
 
             pString.m_fEndX = charSymbolObj.fAdvanceX + this.m_fCharSpacing + pString.m_fX;
             pString.m_fEndY = pString.m_fY;
-
-            if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
-            {
-                // Когда текст делаем жирным сами, то мы увеличиваем расстояние на 1 пиксель в ширину (независимо от DPI и размера текста всегда 1 пиксель)
-                pString.m_fEndX += this.m_unHorDpi / 72;
-            }
 		};
 
 		this.GetChar = function(lUnicode, is_raster_distances)

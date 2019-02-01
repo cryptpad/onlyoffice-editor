@@ -11419,7 +11419,18 @@ Paragraph.prototype.AddCommentToObject = function(Comment, ObjectId)
 Paragraph.prototype.CanAddComment = function()
 {
 	if (true === this.Selection.Use && true != this.IsSelectionEmpty())
+	{
+		var nStartPos = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+		var nEndPos   = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+
+		for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+		{
+			if (this.Content[nPos].CanAddComment && !this.Content[nPos].CanAddComment())
+				return false;
+		}
+
 		return true;
+	}
 
 	return false;
 };

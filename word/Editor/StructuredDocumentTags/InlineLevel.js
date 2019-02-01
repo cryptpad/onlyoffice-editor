@@ -728,6 +728,27 @@ CInlineLevelSdt.prototype.ClearContentControl = function()
 	this.Add_ToContent(0, new ParaRun(this.GetParagraph(), false));
 	this.Remove_FromContent(1, this.Content.length - 1);
 };
+CInlineLevelSdt.prototype.CanAddComment = function()
+{
+	if (!this.CanBeDeleted() || (!this.CanBeEdited() && (!this.IsSelectedAll() || this.IsSelectedOnlyThis())))
+		return false;
+
+	return CParagraphContentWithParagraphLikeContent.prototype.CanAddComment.apply(this, arguments);
+};
+/**
+ * Проверяем выделен ли только данный элемент
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.IsSelectedOnlyThis = function()
+{
+	if (this.Paragraph && this.Paragraph.LogicDocument)
+	{
+		var oInfo = this.Paragraph.LogicDocument.GetSelectedElementsInfo();
+		return (oInfo.GetInlineLevelSdt() === this);
+	}
+
+	return false;
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CInlineLevelSdt = CInlineLevelSdt;
