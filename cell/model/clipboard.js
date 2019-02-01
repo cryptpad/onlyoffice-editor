@@ -1128,27 +1128,10 @@
 				pptx_content_loader.Reader.AssignConnectorsId();
 				History.TurnOn();
 
-				//***MOVE***
-				//проверяем, может это вырезанный фрагмент пытаемся вставить в пределах одного документа
-				var api = window["Asc"]["editor"];
-				var curDocId = api.DocInfo.Id;
-				var curUserId = api.CoAuthoringApi.getUserConnectionId();
-				//чтобы не передавать изменения на сервер, даже в случае одного пользователя в разных вкладках
-				//вырезать и вставить будут работать независимо, поэтому при вставке сравнивем ещё и id юзера
-				if(this.docId === curDocId && this.userId === curUserId && null !== window["Asc"]["editor"].wb.cutIdSheet) {
-					var wsFrom = window["Asc"]["editor"].wb.getWorksheetById(window["Asc"]["editor"].wb.cutIdSheet);
-					var fromRange = wsFrom.cutRange;
-					if(fromRange) {
-						var aRange = worksheet.model.selectionRange.getLast();
-						var toRange = new Asc.Range(aRange.c1, aRange.r1, aRange.c1 + (fromRange.c2 - fromRange.c1), aRange.r1 + (fromRange.r2 - fromRange.r1));
-						var wsTo = worksheet.model.Id !== wsFrom.model.Id ? worksheet : null;
-						wsFrom.moveRangeHandle(fromRange, toRange, false, wsTo);
-						window["Asc"]["editor"].wb.cutIdSheet = null;
-						wsFrom.cutRange = null;
-						return;
-					}
-				}
 
+				if(this._checkCutBefore(worksheet)) {
+					return;
+				}
 
 				var pasteData = null;
 				if (tempWorkbook)
@@ -1240,7 +1223,36 @@
 				
 				return res;
 			},
-			
+
+			_checkCutBefore: function(ws) {
+				var res = false;
+
+				//***MOVE***
+				//проверяем, может это вырезанный фрагмент пытаемся вставить в пределах одного документа
+				var api = window["Asc"]["editor"];
+				var curDocId = api.DocInfo.Id;
+				var curUserId = api.CoAuthoringApi.getUserConnectionId();
+
+				//чтобы не передавать изменения на сервер, даже в случае одного пользователя в разных вкладках
+				//вырезать и вставить будут работать независимо, поэтому при вставке сравнивем ещё и id юзера
+
+				if(this.docId === curDocId && this.userId === curUserId && null !== window["Asc"]["editor"].wb.cutIdSheet) {
+					var wsFrom = window["Asc"]["editor"].wb.getWorksheetById(window["Asc"]["editor"].wb.cutIdSheet);
+					var fromRange = wsFrom.cutRange;
+					if(fromRange) {
+						var aRange = ws.model.selectionRange.getLast();
+						var toRange = new Asc.Range(aRange.c1, aRange.r1, aRange.c1 + (fromRange.c2 - fromRange.c1), aRange.r1 + (fromRange.r2 - fromRange.r1));
+						var wsTo = ws.model.Id !== wsFrom.model.Id ? ws : null;
+						wsFrom.moveRangeHandle(fromRange, toRange, false, wsTo);
+						window["Asc"]["editor"].wb.cutIdSheet = null;
+						wsFrom.cutRange = null;
+						res = true;
+					}
+				}
+
+				return res;
+			},
+
 			_pasteFromBinaryWord: function(worksheet, base64, isIntoShape, isCellEditMode)
 			{
 				var res = true;
