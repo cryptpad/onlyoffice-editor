@@ -16302,7 +16302,7 @@
 						}, "onContextMenu": function (event) {
 							self.handlers.trigger("asc_onContextMenu", event);
 						}
-					}, null, /*settings*/{ menuEditor: true });
+					}, 2, /*settings*/{ menuEditor: true });
 
 					//временно меняем cellEditor у wb
 					wb.cellEditor = t.cellEditor;
