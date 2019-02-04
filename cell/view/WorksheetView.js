@@ -16386,7 +16386,17 @@
 		editor._renderText();
 
 		//при клике на одну из секций определяем стартовую позицию
-		cursorPos = editor._findCursorPosition({x: x, y: y});
+		//если позиция undefined, ищем конец текста в данном фрагменте
+		if(undefined === x || undefined === y) {
+			cursorPos = 0;
+			if(editor.options && editor.options.fragments) {
+				for(var i = 0; i < editor.options.fragments.length; i++) {
+					cursorPos += editor.options.fragments[i].text.length;
+				}
+			}
+		} else {
+			cursorPos = editor._findCursorPosition({x: x, y: y});
+		}
 
 		wb.setCellEditMode(true);
 		ws.setCellEditMode(true);
