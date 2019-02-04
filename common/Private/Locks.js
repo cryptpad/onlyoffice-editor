@@ -199,13 +199,17 @@ if(typeof CDocument !== "undefined")
 	};
 }
 
-if(typeof CHeaderFooterController !== "undefined")
+if (typeof CHeaderFooterController !== "undefined")
 {
-    CHeaderFooterController.prototype.Document_Is_SelectionLocked = function(CheckType)
-    {
-        // Любое действие внутри колонтитула лочит его
-        this.Lock.Check(this.Get_Id());
-    };
+	CHeaderFooterController.prototype.Document_Is_SelectionLocked = function(nCheckType)
+	{
+		// Любое действие внутри колонтитула лочит его
+		this.Lock.Check(this.Get_Id());
+
+		// Нужно запускать проверку дальше, чтобы проверить залоченность Sdt
+		if (this.CurHdrFtr)
+			this.CurHdrFtr.GetContent().Document_Is_SelectionLocked(nCheckType);
+	};
 }
 
 CNum.prototype.Document_Is_SelectionLocked = function(nCheckType)
