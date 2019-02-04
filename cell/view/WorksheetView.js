@@ -8967,6 +8967,92 @@
         }
     };
 
+	WorksheetView.prototype.moveRangeHandle2 = function (arnFrom, arnTo, copyRange, opt_wsTo) {
+		//opt_wsTo - for test reasons only
+		var t = this;
+		var wsTo = opt_wsTo ? opt_wsTo : this;
+
+		var onApplyMoveRangeHandleCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				wsTo.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+				wsTo._cleanSelectionMoveRange();
+				return;
+			}
+
+			var onApplyMoveAutoFiltersCallback = function (isSuccess) {
+				if (false === isSuccess) {
+					wsTo.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+					wsTo._cleanSelectionMoveRange();
+					return;
+				}
+
+				var hasMerged = t.model.getRange3(arnFrom.r1, arnFrom.c1, arnFrom.r2, arnFrom.c2).hasMerged();
+
+				// Очищаем выделение
+				wsTo.cleanSelection();
+
+				//ToDo t.cleanDepCells();
+				History.Create_NewPoint();
+				History.SetSelection(arnFrom.clone());
+				History.SetSelectionRedo(arnTo.clone());//TODO при undo не обновляется область вставки
+				History.StartTransaction();
+
+				t.model.autoFilters._preMoveAutoFilters(arnFrom, arnTo, copyRange, opt_wsTo);
+
+				t.model._moveRange(arnFrom, arnTo, copyRange, opt_wsTo && opt_wsTo.model);
+				t.cellCommentator.moveRangeComments(arnFrom, arnTo, copyRange, opt_wsTo);
+				//t.objectRender.moveRangeDrawingObject(arnFrom, arnTo);
+
+				// Вызываем функцию пересчета для заголовков форматированной таблицы
+				t.model.autoFilters.renameTableColumn(arnFrom);
+				wsTo.model.autoFilters.renameTableColumn(arnTo);
+				t.model.autoFilters.reDrawFilter(arnFrom);
+
+				t.model.autoFilters.afterMoveAutoFilters(arnFrom, arnTo, opt_wsTo);
+
+				History.EndTransaction();
+
+				wsTo._updateRange(arnTo);
+				t._updateRange(arnFrom);
+
+				wsTo.model.selectionRange.assign2(arnTo);
+				// Сбрасываем параметры
+				wsTo.activeMoveRange = null;
+				wsTo.startCellMoveRange = null;
+
+				// Тут будет отрисовка select-а
+				wsTo.draw();
+				// Вызовем на всякий случай, т.к. мы можем уже обновиться из-за формул ToDo возможно стоит убрать это в дальнейшем (но нужна переработка формул) - http://bugzilla.onlyoffice.com/show_bug.cgi?id=24505
+				wsTo._updateSelectionNameAndInfo();
+
+				if (hasMerged && false !== wsTo.model.autoFilters._intersectionRangeWithTableParts(arnTo)) {
+					//не делаем действий в asc_onConfirmAction, потому что во время диалога может выполниться autosave и новые измения добавятся в точку, которую уже отправили
+					//тем более результат диалога ни на что не влияет
+					wsTo.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmPutMergeRange, function () {});
+				}
+			};
+
+			if (t.model.autoFilters._searchFiltersInRange(arnFrom, true)) {
+				t._isLockedAll(onApplyMoveAutoFiltersCallback);
+				if(copyRange){
+					t._isLockedDefNames(null, null);
+				}
+			} else {
+				onApplyMoveAutoFiltersCallback();
+			}
+		};
+
+		if (this.af_isCheckMoveRange(arnFrom, arnTo, opt_wsTo)) {
+			if(opt_wsTo) {
+				this._isLockedCells([arnFrom], null, opt_wsTo._isLockedCells([arnTo], null, onApplyMoveRangeHandleCallback));
+			} else {
+				this._isLockedCells([arnFrom, arnTo], null, onApplyMoveRangeHandleCallback);
+			}
+		} else {
+			this._cleanSelectionMoveRange();
+		}
+	};
+
     WorksheetView.prototype.emptySelection = function ( options, bIsCut ) {
         // Удаляем выделенные графичекие объекты
         if ( this.objectRender.selectedGraphicObjectsExists() ) {
@@ -14123,7 +14209,7 @@
         }
     };
 
-    WorksheetView.prototype.af_isCheckMoveRange = function (arnFrom, arnTo) {
+    WorksheetView.prototype.af_isCheckMoveRange = function (arnFrom, arnTo, opt_wsTo) {
         var ws = this.model;
         var tableParts = ws.TableParts;
         var tablePart;
@@ -14160,7 +14246,7 @@
 
 
         //2)если затрагиваем перемещаемым диапазоном часть а/ф со скрытыми строчками
-        if (!checkMoveRangeIntoApplyAutoFilter(arnTo)) {
+        if (!opt_wsTo && !checkMoveRangeIntoApplyAutoFilter(arnTo)) {
             ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterMoveToHiddenRangeError,
               c_oAscError.Level.NoCritical);
             return false;

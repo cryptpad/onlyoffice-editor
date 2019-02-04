@@ -2012,13 +2012,16 @@
 				return isUpdate ? range : null;
 			},
 
-			afterMoveAutoFilters: function (arnFrom, arnTo) {
+			afterMoveAutoFilters: function (arnFrom, arnTo, opt_wsTo) {
 				//если переносим часть ф/т, применяем стиль к ячейкам arnTo
 				//todo пересмотреть перенос ячеек из ф/т. скорее всего нужно будет внести правки со стилями внутри moveRange
 				var worksheet = this.worksheet;
 
+				var wsTo = opt_wsTo && opt_wsTo.model ? opt_wsTo.model : worksheet;
+				var afTo = opt_wsTo && opt_wsTo.model ? opt_wsTo.model.autoFilters : this;
+
 				var intersectionFrom = this._intersectionRangeWithTableParts(arnFrom);
-				var intersectionTo = this._intersectionRangeWithTableParts(arnTo);
+				var intersectionTo = afTo._intersectionRangeWithTableParts(arnTo);
 				if (intersectionFrom && intersectionFrom.length === 1 && intersectionTo === false) {
 					var refTable = intersectionFrom[0] ? intersectionFrom[0].Ref : null;
 
@@ -2027,11 +2030,11 @@
 						//проходимся по всем ячейкам
 						var diffRow = arnTo.r1 - arnFrom.r1;
 						var diffCol = arnTo.c1 - arnFrom.c1;
-						var tempRange = worksheet.getRange3(intersection.r1, intersection.c1, intersection.r2,
-							intersection.c2);
+						var tempRange = worksheet.getRange3(intersection.r1, intersection.c1, intersection.r2, intersection.c2);
+
 						tempRange._foreach(function (cellFrom) {
 							var xfsFrom = cellFrom.getCompiledStyle();
-							worksheet._getCell(cellFrom.nRow + diffRow, cellFrom.nCol + diffCol, function (cellTo) {
+							wsTo._getCell(cellFrom.nRow + diffRow, cellFrom.nCol + diffCol, function (cellTo) {
 								cellTo.setStyle(xfsFrom);
 							});
 						});
@@ -4319,7 +4322,7 @@
 				}		
 			},
 			
-			_preMoveAutoFilters: function(arnFrom, arnTo, copyRange)
+			_preMoveAutoFilters: function(arnFrom, arnTo, copyRange, opt_wsTo)
 			{
 				var worksheet = this.worksheet;
 				
@@ -4356,7 +4359,8 @@
 					}
 					
 					//TODO пока будем всегда чистить фильтры, которые будут в месте вставки. Позже сделать аналогично MS либо пересмотреть все возможные ситуации.
-					var findFiltersTo = this._searchFiltersInRange(arnTo);
+					var afTo = opt_wsTo && opt_wsTo.model ? opt_wsTo.model.autoFilters : this;
+					var findFiltersTo = afTo._searchFiltersInRange(arnTo);
 					if(arnTo && findFiltersTo)
 					{
 						for(var i = 0; i < findFiltersTo.length; i++)
@@ -4365,7 +4369,7 @@
 							
 							//если переносим просто данные, причём шапки совпадают, то фильтр не очищаем
 							if(!(arnTo.r1 === ref.r1 && arnTo.c1 === ref.c1) && !arnFrom.containsRange(ref))
-								this.isEmptyAutoFilters(ref, null, findFilters);
+								afTo.isEmptyAutoFilters(ref, null, findFilters);
 						}
 					}
 				}
