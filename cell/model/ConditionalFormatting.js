@@ -200,14 +200,17 @@
 		}
 		return {start: start, end: end};
 	};
-	CConditionalFormattingRule.prototype.getValueCellIs = function(ws) {
+	CConditionalFormattingRule.prototype.getValueCellIs = function(ws, opt_parent, opt_bbox, opt_offset, opt_returnRaw) {
 		var res;
 		if (null !== this.text) {
 			res = new AscCommonExcel.cString(this.text);
 		} else if (this.aRuleElements[1]) {
-			res = this.aRuleElements[1].getValue(ws);
+			res = this.aRuleElements[1].getValue(ws, opt_parent, opt_bbox, opt_offset, opt_returnRaw);
 		}
 		return res;
+	};
+	CConditionalFormattingRule.prototype.getFormulaCellIs = function() {
+		return null === this.text && this.aRuleElements[1];
 	};
 	CConditionalFormattingRule.prototype.cellIs = function(operator, cell, v1, v2) {
 		if (operator === AscCommonExcel.ECfOperator.Operator_beginsWith ||
@@ -438,7 +441,7 @@
 						oCFVO.formula = new CFormulaCF();
 						oCFVO.formula.Text = oCFVO.Val;
 					}
-					var calcRes = oCFVO.formula.getValueRaw(ws, oCFVO.formulaParent);
+					var calcRes = oCFVO.formula.getValue(ws, oCFVO.formulaParent, null, null, true);
 					if (calcRes && calcRes.tocNumber) {
 						calcRes = calcRes.tocNumber();
 						if (calcRes && calcRes.toNumber) {
@@ -497,13 +500,17 @@
 			}
 		}
 	};
-	CFormulaCF.prototype.getValue = function(ws) {
-		this.init(ws);
-		return this._f.simplifyRefType(this._f.calculate(null, null));
-	};
-	CFormulaCF.prototype.getValueRaw = function(ws, opt_parent, opt_bbox, opt_offset) {
+	CFormulaCF.prototype.getFormula = function(ws, opt_parent) {
 		this.init(ws, opt_parent);
-		return this._f.calculate(null, opt_bbox, opt_offset);
+		return this._f;
+	};
+	CFormulaCF.prototype.getValue = function(ws, opt_parent, opt_bbox, opt_offset, opt_returnRaw) {
+		this.init(ws, opt_parent);
+		var res = this._f.calculate(null, opt_bbox, opt_offset);
+		if (!opt_returnRaw) {
+			res = this._f.simplifyRefType(res);
+		}
+		return res;
 	};
 
 	function CIconSet () {

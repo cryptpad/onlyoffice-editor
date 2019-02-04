@@ -128,8 +128,8 @@
             _begin.transform(oTransform);
             _end.transform(oTransform);
 
-            var extX = Math.max(penW/36000.0, Math.abs(_end.x - _begin.x));
-            var extY = Math.max(penW/36000.0, Math.abs(_end.y - _begin.y));
+            var extX = Math.max(0, Math.abs(_end.x - _begin.x));
+            var extY = Math.max(0, Math.abs(_end.y - _begin.y));
             var flipV = false;
             var flipH = false;
             var rot = 0;

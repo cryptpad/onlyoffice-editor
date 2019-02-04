@@ -199,13 +199,17 @@ if(typeof CDocument !== "undefined")
 	};
 }
 
-if(typeof CHeaderFooterController !== "undefined")
+if (typeof CHeaderFooterController !== "undefined")
 {
-    CHeaderFooterController.prototype.Document_Is_SelectionLocked = function(CheckType)
-    {
-        // Любое действие внутри колонтитула лочит его
-        this.Lock.Check(this.Get_Id());
-    };
+	CHeaderFooterController.prototype.Document_Is_SelectionLocked = function(nCheckType)
+	{
+		// Любое действие внутри колонтитула лочит его
+		this.Lock.Check(this.Get_Id());
+
+		// Нужно запускать проверку дальше, чтобы проверить залоченность Sdt
+		if (this.CurHdrFtr)
+			this.CurHdrFtr.GetContent().Document_Is_SelectionLocked(nCheckType);
+	};
 }
 
 CNum.prototype.Document_Is_SelectionLocked = function(nCheckType)
@@ -219,6 +223,7 @@ CNum.prototype.IsSelectionLocked = function(nCheckType)
 		case AscCommon.changestype_Paragraph_Content:
 		case AscCommon.changestype_Paragraph_Properties:
 		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
 		case AscCommon.changestype_ContentControl_Add:
 		{
 			this.Lock.Check(this.Get_Id());
@@ -248,6 +253,7 @@ CAbstractNum.prototype.IsSelectionLocked = function(nCheckType)
 		case AscCommon.changestype_Paragraph_Content:
 		case AscCommon.changestype_Paragraph_Properties:
 		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
 		case AscCommon.changestype_ContentControl_Add:
 		{
 			this.Lock.Check(this.Get_Id());
@@ -283,6 +289,7 @@ if(typeof CGraphicObjects !== "undefined")
             || AscCommon.changestype_Delete === CheckType
             || AscCommon.changestype_Remove === CheckType
             || AscCommon.changestype_Paragraph_Content === CheckType
+			|| AscCommon.changestype_Paragraph_TextProperties === CheckType
 			|| AscCommon.changestype_Paragraph_AddText === CheckType
 			|| AscCommon.changestype_ContentControl_Add === CheckType
             || AscCommon.changestype_Paragraph_Properties === CheckType
@@ -315,6 +322,7 @@ CStyle.prototype.Document_Is_SelectionLocked = function(CheckType)
         case AscCommon.changestype_Paragraph_Content:
         case AscCommon.changestype_Paragraph_Properties:
 		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
 		case AscCommon.changestype_ContentControl_Add:
         case AscCommon.changestype_Document_Content:
         case AscCommon.changestype_Document_Content_Add:
@@ -338,6 +346,7 @@ CStyles.prototype.Document_Is_SelectionLocked = function(CheckType)
         case AscCommon.changestype_Paragraph_Content:
         case AscCommon.changestype_Paragraph_Properties:
 		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
 		case AscCommon.changestype_ContentControl_Add:
         case AscCommon.changestype_Document_Content:
         case AscCommon.changestype_Document_Content_Add:
@@ -465,6 +474,7 @@ Paragraph.prototype.Document_Is_SelectionLocked = function(CheckType)
         case AscCommon.changestype_Paragraph_Content:
 		case AscCommon.changestype_Paragraph_Properties:
 		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
 		case AscCommon.changestype_ContentControl_Add:
         case AscCommon.changestype_Document_Content:
         case AscCommon.changestype_Document_Content_Add:
@@ -575,6 +585,7 @@ CTable.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
         case AscCommon.changestype_Paragraph_Content:
         case AscCommon.changestype_Paragraph_Properties:
 		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
 		case AscCommon.changestype_ContentControl_Add:
         case AscCommon.changestype_Document_Content:
         case AscCommon.changestype_Document_Content_Add:
@@ -691,6 +702,14 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 
 	var isCheckContentControlLock = this.LogicDocument ? this.LogicDocument.IsCheckContentControlsLock() : true;
 
+	if (CheckType === AscCommon.changestype_Paragraph_TextProperties)
+	{
+		if (!this.CanBeEdited())
+			this.Lock.Check(this.GetId());
+
+		isCheckContentControlLock = false;
+	}
+
 	var nContentControlLock = this.GetContentControlLock();
 
 	if (AscCommon.changestype_ContentControl_Properties === CheckType)
@@ -775,7 +794,16 @@ CBlockLevelSdt.prototype.CheckContentControlDeletingLock = function()
 };
 CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 {
+	if (CheckType === AscCommon.changestype_Paragraph_TextProperties)
+	{
+		if (!this.CanBeEdited())
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+
+		return;
+	}
+
 	var isCheckContentControlLock = this.Paragraph && this.Paragraph.LogicDocument ? this.Paragraph.LogicDocument.IsCheckContentControlsLock() : true;
+
 	if (!isCheckContentControlLock)
 		return;
 
@@ -875,7 +903,7 @@ if(typeof CPresentation !== "undefined")
             return false;
         }
 
-        if(CheckType === AscCommon.changestype_Paragraph_Content)
+        if(CheckType === AscCommon.changestype_Paragraph_Content || CheckType === AscCommon.changestype_Paragraph_TextProperties)
         {
             var oTargetTextObject = oController.getTargetDocContent(false, true);
             if(oTargetTextObject)
