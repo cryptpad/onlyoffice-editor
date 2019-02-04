@@ -1423,6 +1423,20 @@ DrawingObjectsController.prototype =
         }
     },
 
+    checkTargetSelection: function(oObject, x, y, invertTransform)
+    {
+        if(this.drawingObjects && this.drawingObjects.cSld)
+        {
+            var t_x = invertTransform.TransformPointX(x, y);
+            var t_y = invertTransform.TransformPointY(x, y);
+            if(oObject.getDocContent().CheckPosInSelection(t_x, t_y, 0, undefined))
+            {
+                return this.startTrackText(x, y, oObject);
+            }
+        }
+        return false;
+    },
+
     handleTextHit: function(object, e, x, y, group, pageIndex, bWord)
     {
         var content, invert_transform_text, tx, ty, hit_paragraph, par, check_hyperlink;
@@ -1465,6 +1479,13 @@ DrawingObjectsController.prototype =
                     this.selectObject(object,pageIndex);
                     this.selection.textSelection = object;
                 }
+                else
+                {
+                    if(this.checkTargetSelection(object, x, y, object.invertTransformText))
+                    {
+                        return true;
+                    }
+                }
             }
             else
             {
@@ -1475,6 +1496,13 @@ DrawingObjectsController.prototype =
                     this.selectObject(group, pageIndex);
                     this.selection.groupSelection = group;
                     group.selection.textSelection = object;
+                }
+                else
+                {
+                    if(this.checkTargetSelection(object, x, y, object.invertTransformText))
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -1931,6 +1959,30 @@ DrawingObjectsController.prototype =
         return null;
     },
 
+    getNearestPos3: function(x, y){
+        var oOldState = this.curState;
+        this.changeCurrentState(new AscFormat.NullState(this));
+        var oResult, bRet = false;
+        this.handleEventMode = HANDLE_EVENT_MODE_CURSOR;
+        oResult = this.curState.onMouseDown(AscCommon.global_mouseEvent, x, y, 0);
+        this.handleEventMode = HANDLE_EVENT_MODE_HANDLE;
+        this.changeCurrentState(oOldState);
+        if(oResult){
+            if(oResult.cursorType === 'text'){
+                var oObject = AscCommon.g_oTableId.Get_ById(oResult.objectId);
+                if(oObject && oObject.getObjectType() === AscDFH.historyitem_type_Shape){
+                    var oContent = oObject.getDocContent();
+                    if(oContent){
+                        var tx = oObject.invertTransformText.TransformPointX(x, y);
+                        var ty = oObject.invertTransformText.TransformPointY(x, y);
+                        return oContent.Get_NearestPos(0, tx, ty, false);
+                    }
+                }
+            }
+        }
+        return null;
+    },
+
     getTargetDocContent: function(bCheckChartTitle, bOrTable)
     {
         var text_object = getTargetTextObject(this);
@@ -1951,6 +2003,7 @@ DrawingObjectsController.prototype =
         }
         return null;
     },
+
 
     addNewParagraph: function(bRecalculate)
     {
@@ -2354,6 +2407,16 @@ DrawingObjectsController.prototype =
     paragraphAdd: function(paraItem, bRecalculate)
     {
         this.applyTextFunction(CDocumentContent.prototype.AddToParagraph, CTable.prototype.AddToParagraph, [paraItem, bRecalculate]);
+    },
+
+    startTrackText: function(X, Y, oObject)
+    {
+        if(this.drawingObjects.cSld)
+        {
+            this.changeCurrentState(new AscFormat.TrackTextState(this, oObject, X, Y));
+           return true;
+        }
+        return false;
     },
 
 

@@ -3405,6 +3405,22 @@ function CDrawingDocument()
 
 		this.m_oWordControl.m_oNotesApi.OnRecalculateNote(slideNum, width, height);
 	};
+
+	// track text (inline)
+	this.StartTrackText = function ()
+	{
+	}
+	this.EndTrackText = function (isOnlyMoveTarget)
+	{
+	}
+
+	this.IsTrackText = function ()
+	{
+	}
+
+	this.CancelTrackText = function ()
+	{
+	}
 }
 
 function CThPage()

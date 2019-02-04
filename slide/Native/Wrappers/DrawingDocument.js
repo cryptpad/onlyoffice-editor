@@ -263,6 +263,21 @@ CDrawingDocument.prototype.SetTargetColor = function(r, g, b)
 
 CDrawingDocument.prototype.StartTrackTable = function()
 {};
+// track text (inline)
+CDrawingDocument.prototype.StartTrackText = function ()
+{
+};
+CDrawingDocument.prototype.EndTrackText = function (isOnlyMoveTarget)
+{
+};
+
+CDrawingDocument.prototype.IsTrackText = function ()
+{
+};
+
+CDrawingDocument.prototype.CancelTrackText = function ()
+{
+};
 
 CDrawingDocument.prototype.OnRecalculatePage = function(index, pageObject)
 {
