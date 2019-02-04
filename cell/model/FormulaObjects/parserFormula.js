@@ -6963,6 +6963,18 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 		}
 	};
+	parserFormula.prototype.hasRelativeRefs = function() {
+		var elem;
+		for (var i = 0; i < this.outStack.length; i++) {
+			elem = this.outStack[i];
+			if ((elem.type === cElementType.cell || elem.type === cElementType.cellsRange ||
+				elem.type === cElementType.cell3D || elem.type === cElementType.cellsRange3D) &&
+				!elem.getBBox0().isAbsAll()) {
+				return true;
+			}
+		}
+		return false;
+	};
 
 	parserFormula.prototype.getFormulaHyperlink = function() {
 		for (var i = 0; i < this.outStack.length; i++) {

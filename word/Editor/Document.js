@@ -5700,7 +5700,7 @@ CDocument.prototype.Paragraph_SetHighlight = function(IsColor, r, g, b)
 {
 	if (true === this.IsTextSelectionUse())
 	{
-		if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
 		{
 			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextHighlight);
 
@@ -7853,7 +7853,7 @@ CDocument.prototype.OnKeyDown = function(e)
         var TextPr = this.GetCalculatedTextPr();
         if (null != TextPr)
         {
-            if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+            if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextStrikeoutHotKey);
                 this.AddToParagraph(new ParaTextPr({Strikeout : TextPr.Strikeout === true ? false : true}));
@@ -7880,7 +7880,7 @@ CDocument.prototype.OnKeyDown = function(e)
         var TextPr = this.GetCalculatedTextPr();
         if (null != TextPr)
         {
-            if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+            if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextBoldHotKey);
                 this.AddToParagraph(new ParaTextPr({Bold : TextPr.Bold === true ? false : true}));
@@ -7930,7 +7930,7 @@ CDocument.prototype.OnKeyDown = function(e)
         var TextPr = this.GetCalculatedTextPr();
         if (null != TextPr)
         {
-            if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+            if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextItalicHotKey);
                 this.AddToParagraph(new ParaTextPr({Italic : TextPr.Italic === true ? false : true}));
@@ -8010,7 +8010,7 @@ CDocument.prototype.OnKeyDown = function(e)
         var TextPr = this.GetCalculatedTextPr();
         if (null != TextPr)
         {
-            if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+            if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextUnderlineHotKey);
                 this.AddToParagraph(new ParaTextPr({Underline : TextPr.Underline === true ? false : true}));
@@ -8153,7 +8153,7 @@ CDocument.prototype.OnKeyDown = function(e)
         var TextPr = this.GetCalculatedTextPr();
         if (null != TextPr)
         {
-            if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+            if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextVertAlignHotKey2);
                 this.AddToParagraph(new ParaTextPr({VertAlign : TextPr.VertAlign === AscCommon.vertalign_SuperScript ? AscCommon.vertalign_Baseline : AscCommon.vertalign_SuperScript}));
@@ -8183,7 +8183,7 @@ CDocument.prototype.OnKeyDown = function(e)
         var TextPr = this.GetCalculatedTextPr();
         if (null != TextPr)
         {
-            if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+            if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
                 this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextVertAlignHotKey3);
                 this.AddToParagraph(new ParaTextPr({VertAlign : TextPr.VertAlign === AscCommon.vertalign_SubScript ? AscCommon.vertalign_Baseline : AscCommon.vertalign_SubScript}));
@@ -8528,7 +8528,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 		}
 		else if (true === editor.isMarkerFormat && true === this.IsTextSelectionUse())
 		{
-			if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+			if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
 			{
 				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextHighlight2);
 				var ParaItem = null;
