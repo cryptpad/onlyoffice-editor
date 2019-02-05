@@ -2344,7 +2344,7 @@
 			this.cache = {};
 		}
 		CCacheMeasureEmpty2.prototype.getKey = function (elem) {
-			return elem.getName() + elem.getBold() ? 'B' : 'N' + elem.getItalic() ? 'I' : 'N';
+			return elem.getName() + (elem.getBold() ? 'B' : 'N') + (elem.getItalic() ? 'I' : 'N');
 		};
 		CCacheMeasureEmpty2.prototype.add = function (elem, val) {
 			this.cache[this.getKey(elem)] = val;

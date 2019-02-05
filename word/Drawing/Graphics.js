@@ -484,6 +484,15 @@ CGraphics.prototype =
     // images
     drawImage2 : function(img,x,y,w,h,alpha,srcRect)
     {
+        if (srcRect)
+        {
+            // test on need draw:
+            if (srcRect.l >= 100 || srcRect.t >= 100)
+                return;
+			if (srcRect.r <= 0 || srcRect.b <= 0)
+				return;
+        }
+
         var isA = (undefined !== alpha && null != alpha && 255 != alpha);
         var _oldGA = 0;
         if (isA)

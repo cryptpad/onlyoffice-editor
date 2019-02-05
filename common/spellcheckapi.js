@@ -42,7 +42,6 @@
 
 		this.onDisconnect = null;
 		this.onSpellCheck = null;
-		this.onSpellCheck = null;
 	};
 
 	CSpellCheckApi.prototype.init = function (docid) {
@@ -89,6 +88,13 @@
 		}
 	};
 
+	CSpellCheckApi.prototype.checkDictionary = function (lang) {
+		if (this._SpellCheckApi && this._onlineWork) {
+			return this._SpellCheckApi.checkDictionary(lang);
+		}
+		return true;
+	};
+
 	CSpellCheckApi.prototype.callback_OnSpellCheck = function (e) {
 		if (this.onSpellCheck) {
 			return this.onSpellCheck(e);
@@ -128,6 +134,8 @@
 		this.isCloseCoAuthoring = false;
 		this.isInit = false;
 
+		this.languages = null;
+
 		// Массив данных, который стоит отправить как только подключимся
 		this.dataNeedSend = [];
 
@@ -148,6 +156,11 @@
 
 	SpellCheckApi.prototype.spellCheck = function (spellCheckData) {
 		this._send({"type": "spellCheck", "spellCheckData": spellCheckData});
+	};
+
+	SpellCheckApi.prototype.checkDictionary = function (lang) {
+		// Check init. May arrive earlier than initialization
+		return !this.isInit || !!this.languages[lang];
 	};
 
 	SpellCheckApi.prototype.disconnect = function () {
@@ -178,8 +191,14 @@
 		}
 	};
 	SpellCheckApi.prototype._onInit = function (data) {
-		if (!this.isInit && data["languages"] && this.onInit) {
-			this.onInit(data["languages"]);
+		if (!this.isInit && data["languages"]) {
+			if (this.onInit) {
+				this.onInit(data["languages"]);
+			}
+			this.languages = data["languages"].reduce(function(map, value) {
+				map[value] = 1;
+				return map;
+			}, {});
 			this.isInit = true;
 		}
 	};

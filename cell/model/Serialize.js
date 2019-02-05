@@ -4427,6 +4427,7 @@
         };
         this.WriteMainTable = function()
         {
+            var t = this;
             var nTableCount = 128;//Специально ставим большое число, чтобы не увеличивать его при добавлении очередной таблицы.
             this.nRealTableCount = 0;//Специально ставим большое число, чтобы не увеличивать его при добавлении очередной таблицы.
             var nStart = this.Memory.GetCurPosition();
@@ -4435,6 +4436,26 @@
             this.nLastFilePos = nStart + nTableCount * nmtItemSize;
             //Write mtLen 
             this.Memory.WriteByte(0);
+            if (this.wb.App) {
+                this.WriteTable(c_oSerTableTypes.App, {Write: function(){
+                    var old = new AscCommon.CMemory(true);
+                    pptx_content_writer.BinaryFileWriter.ExportToMemory(old);
+                    pptx_content_writer.BinaryFileWriter.ImportFromMemory(t.Memory);
+                    t.wb.App.toStream(pptx_content_writer.BinaryFileWriter);
+                    pptx_content_writer.BinaryFileWriter.ExportToMemory(t.Memory);
+                    pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
+                }});
+            }
+            if (this.wb.Core) {
+                this.WriteTable(c_oSerTableTypes.Core, {Write: function(){
+                    var old = new AscCommon.CMemory(true);
+                    pptx_content_writer.BinaryFileWriter.ExportToMemory(old);
+                    pptx_content_writer.BinaryFileWriter.ImportFromMemory(t.Memory);
+                    t.wb.Core.toStream(pptx_content_writer.BinaryFileWriter, t.wb.oApi);
+                    pptx_content_writer.BinaryFileWriter.ExportToMemory(t.Memory);
+                    pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
+                }});
+            }
             var oSharedStrings = {index: 0, strings: {}};
             //Write SharedStrings
             var nSharedStringsPos = this.ReserveTable(c_oSerTableTypes.SharedStrings);

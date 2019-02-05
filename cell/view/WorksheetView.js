@@ -5053,7 +5053,7 @@
 			f = fr[i].format;
 			if (!f.isEqual2(AscCommonExcel.g_oDefaultFormat.Font) || f.va) {
 				fm = getFontMetrics(f, this.stringRender);
-				lm = this.stringRender._calcLineMetrics2(f.fs, f.va, fm);
+				lm = this.stringRender._calcLineMetrics2(f.getSize(), f.va, fm);
 				th = Math.min(this.maxRowHeightPx, Math.max(th, lm.th + 1));
 				if (updateDescender && !f.va) {
 					d = Math.max(d, lm.th - lm.bl);
@@ -7131,7 +7131,7 @@
 			if (scroll > arn.r1) {
 				scroll = arn.r1;
 			}
-			scroll -= vr.r1;
+			scroll -= vr.r1 - (this.topLeftFrozenCell ? this.topLeftFrozenCell.getRow0() : 0);
 			this.nRowsCount = nRowsCount;
 		}
 		if (scroll) {
@@ -7148,7 +7148,7 @@
 			if (scroll > arn.c1) {
 				scroll = arn.c1;
 			}
-			scroll -= vr.c1;
+			scroll -= vr.c1 - (this.topLeftFrozenCell ? this.topLeftFrozenCell.getCol0() : 0);
 			this.nColsCount = nColsCount;
 		}
 		if (scroll) {

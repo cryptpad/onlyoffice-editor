@@ -2422,7 +2422,7 @@ CAutoshapeTrack.prototype =
         ctx.globalAlpha = globalAlpha;
     },
 
-    DrawInlineMoveCursor : function(x, y, h, matrix)
+    DrawInlineMoveCursor : function(x, y, h, matrix, overlayNotes)
     {
         var overlay = this.m_oOverlay;
         this.CurrentPageInfo = overlay.m_oHtmlPage.GetDrawingPageInfo(this.PageIndex);
@@ -2436,6 +2436,18 @@ CAutoshapeTrack.prototype =
 
         var dKoefX = wDst / this.CurrentPageInfo.width_mm;
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
+
+        if (overlayNotes)
+        {
+            dKoefX = g_dKoef_mm_to_pix;
+			dKoefY = g_dKoef_mm_to_pix;
+
+			overlay = overlayNotes;
+
+			var offsets = overlayNotes.getNotesOffsets();
+			xDst = offsets.X;
+			yDst = offsets.Y;
+        }
 
         var bIsIdentMatr = true;
         if (matrix !== undefined && matrix != null)

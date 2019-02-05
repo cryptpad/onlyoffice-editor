@@ -1900,6 +1900,8 @@ function CopyPasteCorrectString(str)
 
     return _ret;
     */
+    if (!str)
+    	return "";
 
     var res = str;
     res = res.replace(/&/g,'&amp;');
