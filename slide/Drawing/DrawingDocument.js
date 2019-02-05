@@ -1712,11 +1712,11 @@ function CDrawingDocument()
 		return false;
 	}
 
-	this.ConvertCoordsToCursorWR = function(x, y, pageIndex, transform)
+	this.ConvertCoordsToCursorWR = function(x, y, pageIndex, transform, isMainAttack)
 	{
 		var _word_control = this.m_oWordControl;
 
-		if (!_word_control.m_oLogicDocument.IsFocusOnNotes())
+		if (isMainAttack || !_word_control.m_oLogicDocument.IsFocusOnNotes())
 		{
 			var dKoef = (this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
 
@@ -3428,6 +3428,12 @@ function CDrawingDocument()
 
 		if (this.InlineTextTrackEnabled)
 		{
+			if (-1 != oWordControl.m_oTimerScrollSelect)
+			{
+				clearInterval(oWordControl.m_oTimerScrollSelect);
+				oWordControl.m_oTimerScrollSelect = -1;
+			}
+
 			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
 			this.InlineTextTrackPage = pos.Page;
 			this.InlineTextInNotes = pos.isNotes ? true : false;
@@ -6063,6 +6069,12 @@ function CNotesDrawer(page)
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 
+		if (oThis.HtmlPage.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			if (_y < 0)
+				return;
+		}
+
 		oThis.HtmlPage.StartUpdateOverlay();
 		if ((-1 != oThis.m_oTimerScrollSelect) || (is_overlay_attack === true))
 			oThis.HtmlPage.OnUpdateOverlay();
@@ -6095,6 +6107,12 @@ function CNotesDrawer(page)
 		_y += oThis.Scroll;
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
+
+		if (oThis.HtmlPage.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			if (_y < 0)
+				return;
+		}
 
 		oThis.HtmlPage.StartUpdateOverlay();
 

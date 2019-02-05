@@ -2241,6 +2241,13 @@ function CEditorPage(api)
 		if (oWordControl.m_oDrawingDocument.m_sLockedCursorType != "")
 			oWordControl.m_oDrawingDocument.SetCursorType("default");
 
+		if (oWordControl.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			var pos2 = oWordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(pos.X, pos.Y, pos.Page, undefined, true);
+			if (pos2.Y > oWordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix)
+				return;
+		}
+
 		oWordControl.StartUpdateOverlay();
 
 		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos);
@@ -2325,6 +2332,13 @@ function CEditorPage(api)
 		}
 
 		oWordControl.m_bIsMouseUpSend = true;
+
+		if (oWordControl.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			var pos2 = oWordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(pos.X, pos.Y, pos.Page, undefined, true);
+			if (pos2.Y > oWordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix)
+				return;
+		}
 
 		oWordControl.StartUpdateOverlay();
 
