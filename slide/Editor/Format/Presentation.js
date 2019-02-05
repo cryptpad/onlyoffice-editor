@@ -4277,11 +4277,13 @@ CPresentation.prototype =
                             var bIsLocked = this.Document_Is_SelectionLocked(changestype_Drawing_Props, aCheckObjects);
                             if(!bIsLocked)
                             {
+
+                                NearPos.Paragraph.Check_NearestPos(NearPos);
                                 if(!bCopy)
                                 {
                                     oController.removeCallback(-1);
                                 }
-                                NearPos.Paragraph.Check_NearestPos(NearPos);
+                                oController.resetSelection(false, false);
                                 oParagraph.Parent.Insert_Content(oSelectedContent.DocContent, NearPos);
                                 oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
                                 NearPos.Paragraph.Document_SetThisElementCurrent(false);
