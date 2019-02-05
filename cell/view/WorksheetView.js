@@ -2369,7 +2369,7 @@
 			for(var i = 0; i < portion.length; i++){
 				var str = new AscCommonExcel.Fragment();
 				str.text = getFragmentText(portion[i].text);
-				str.format = portion[i].format;
+				str.format = portion[i].format.clone();
 				res.push(str);
 			}
 			return res;
@@ -2423,6 +2423,10 @@
 				}
 			}
 
+			if(fragments[0] && null === fragments[0].format.fn) {
+				fragments[0].format.fn = t.model.getDefaultFontName();
+				t.stringRender._setFont(drawingCtx, fragments[0].format);
+			}
 			t.stringRender.render(drawingCtx, x, y, textMetrics.width, t.settings.activeCellBorderColor);
 		};
 
