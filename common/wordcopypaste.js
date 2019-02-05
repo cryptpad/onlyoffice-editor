@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1900,6 +1900,8 @@ function CopyPasteCorrectString(str)
 
     return _ret;
     */
+    if (!str)
+    	return "";
 
     var res = str;
     res = res.replace(/&/g,'&amp;');
@@ -5076,8 +5078,10 @@ PasteProcessor.prototype =
 				t.oFonts = [];
 			}
 
-			t.oFonts[fontFamily] = {Name: fontFamily, Index: -1};
-			fonts.push(new CFont(fontFamily, 0, "", 0));
+			if(!t.oFonts[fontFamily]) {
+				t.oFonts[fontFamily] = {Name: fontFamily, Index: -1};
+				fonts.push(new CFont(fontFamily, 0, "", 0));
+			}
 		};
 
 		//grid
@@ -5283,8 +5287,10 @@ PasteProcessor.prototype =
 				t.oFonts = [];
 			}
 
-			t.oFonts[fontFamily] = {Name: fontFamily, Index: -1};
-			fonts.push(new CFont(fontFamily, 0, "", 0));
+			if(!t.oFonts[fontFamily]) {
+				t.oFonts[fontFamily] = {Name: fontFamily, Index: -1};
+				fonts.push(new CFont(fontFamily, 0, "", 0));
+			}
 		};
 
 		var paragraph = new Paragraph(this.oDocument.DrawingDocument, this.oDocument, true);

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -4412,11 +4412,9 @@
      */
     WorksheetView.prototype._calcCellsTextMetrics = function (range) {
         var t = this;
-		this.model.bExcludeHiddenRows = true;
 		this.model.getRange3(range.r1, 0, range.r2, range.c2)._foreachNoEmpty(function(cell, row, col) {
 			t._addCellTextToCache(col, row);
-		});
-		this.model.bExcludeHiddenRows = false;
+		}, null, true);
         this.isChanged = false;
     };
 
@@ -4700,7 +4698,7 @@
 			f = fr[i].format;
 			if (!f.isEqual2(AscCommonExcel.g_oDefaultFormat.Font) || f.va) {
 				fm = getFontMetrics(f, this.stringRender);
-				lm = this.stringRender._calcLineMetrics2(f.fs, f.va, fm);
+				lm = this.stringRender._calcLineMetrics2(f.getSize(), f.va, fm);
 				th = Math.min(this.maxRowHeightPx, Math.max(th, lm.th + 1));
 				if (updateDescender && !f.va) {
 					d = Math.max(d, lm.th - lm.bl);
@@ -6746,7 +6744,7 @@
 			if (scroll > arn.r1) {
 				scroll = arn.r1;
 			}
-			scroll -= vr.r1;
+			scroll -= vr.r1 - (this.topLeftFrozenCell ? this.topLeftFrozenCell.getRow0() : 0);
 			this.nRowsCount = nRowsCount;
 		}
 		if (scroll) {
@@ -6762,7 +6760,7 @@
 			if (scroll > arn.c1) {
 				scroll = arn.c1;
 			}
-			scroll -= vr.c1;
+			scroll -= vr.c1 - (this.topLeftFrozenCell ? this.topLeftFrozenCell.getCol0() : 0);
 			this.nColsCount = nColsCount;
 		}
 		if (scroll) {

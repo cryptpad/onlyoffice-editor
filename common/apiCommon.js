@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -3714,43 +3714,6 @@
 			}, this, [obj]);
 		};
 	}
-	window.TEST_WATERMARK_STRING = "\
-	{\
-		\"transparent\" : 0.3,\
-		\"type\" : \"rect\",\
-		\"width\" : 100,\
-		\"height\" : 100,\
-		\"rotate\" : -45,\
-		\"margins\" : [ 10, 10, 10, 10 ],\
-		\"fill\" : [255, 0, 0],\
-		\"stroke-width\" : 1,\
-		\"stroke\" : [0, 0, 255],\
-		\"align\" : 1,\
-		\
-		\"paragraphs\" : [\
-		{\
-			\"align\" : 2,\
-			\"fill\" : [255, 0, 0],\
-			\"linespacing\" : 1,\
-			\
-			\"runs\" : [\
-				{\
-					\"text\" : \"Do not steal, %user_name%!\",\
-					\"fill\" : [0, 0, 0],\
-					\"font-family\" : \"Arial\",\
-					\"font-size\" : 40,\
-					\"bold\" : true,\
-					\"italic\" : false,\
-					\"strikeout\" : false,\
-					\"underline\" : false\
-				},\
-				{\
-					\"text\" : \"<%br%>\"\
-				}\
-			]\
-		}\
-	]\
-	}";
 
 	// ----------------------------- plugins ------------------------------- //
 	function CPluginVariation()
@@ -3764,6 +3727,7 @@
 		this.isViewer       = false;
 		this.EditorsSupport = ["word", "cell", "slide"];
 
+		this.isSystem	  = false;
 		this.isVisual     = false;      // визуальный ли
 		this.isModal      = false;      // модальное ли окно (используется только для визуального)
 		this.isInsideMode = false;      // отрисовка не в окне а внутри редактора (в панели) (используется только для визуального немодального)
@@ -3809,6 +3773,14 @@
 		this.icons = value;
 	};
 
+	CPluginVariation.prototype["get_System"]         = function()
+	{
+		return this.isSystem;
+	};
+	CPluginVariation.prototype["set_System"]         = function(value)
+	{
+		this.isSystem = value;
+	};
 	CPluginVariation.prototype["get_Viewer"]         = function()
 	{
 		return this.isViewer;
@@ -3935,6 +3907,7 @@
 		_object["isViewer"]       = this.isViewer;
 		_object["EditorsSupport"] = this.EditorsSupport;
 
+		_object["isSystem"]     = this.isSystem;
 		_object["isVisual"]     = this.isVisual;
 		_object["isModal"]      = this.isModal;
 		_object["isInsideMode"] = this.isInsideMode;

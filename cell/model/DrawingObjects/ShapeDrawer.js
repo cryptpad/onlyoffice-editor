@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1083,7 +1083,13 @@ CShapeDrawer.prototype =
             }
         }
 
+		var arr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.ArrayPoints : this.Graphics.ArrayPoints;
+		var isArrowsPresent = (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true) ? true : false;
+
         var rgba = this.StrokeUniColor;
+		if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null && !isArrowsPresent)
+			rgba.A = this.Ln.Fill.transparent;
+
         this.Graphics.p_color(rgba.R, rgba.G, rgba.B, rgba.A);
 
         if (this.IsRectShape && this.Graphics.AddSmartRect !== undefined)
@@ -1103,8 +1109,7 @@ CShapeDrawer.prototype =
             this.Graphics.m_oContext.lineJoin = this.OldLineJoin;
         }
 
-        var arr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.ArrayPoints : this.Graphics.ArrayPoints;
-        if (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true)
+        if (isArrowsPresent)
         {
             this.IsArrowsDrawing = true;
             this.Graphics.p_dash(null);
@@ -1218,6 +1223,9 @@ CShapeDrawer.prototype =
             if (this.bIsNoStrokeAttack)
                 bIsStroke = false;
 
+			var arr = this.Graphics.ArrayPoints;
+			var isArrowsPresent = (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true) ? true : false;
+
             if (bIsStroke)
             {
                 if (null != this.OldLineJoin && !this.IsArrowsDrawing)
@@ -1226,6 +1234,9 @@ CShapeDrawer.prototype =
                 }
 
                 var rgba = this.StrokeUniColor;
+				if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null && !isArrowsPresent)
+					rgba.A = this.Ln.Fill.transparent;
+
                 this.Graphics.p_color(rgba.R, rgba.G, rgba.B, rgba.A);
             }
 
@@ -1400,8 +1411,7 @@ CShapeDrawer.prototype =
                 this.Graphics.drawpath(256);
             }
 
-            var arr = this.Graphics.ArrayPoints;
-            if (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true)
+            if (isArrowsPresent)
             {
                 this.IsArrowsDrawing = true;
                 this.Graphics.p_dash(null);

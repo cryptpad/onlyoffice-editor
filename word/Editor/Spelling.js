@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -370,7 +370,7 @@ CParaSpellChecker.prototype =
                 editor.WordControl.m_oLogicDocument.Spelling.Add_CurPara( this.ParaId, g_oTableId.Get_ById( this.ParaId ) );
             }
 
-            if ( null === Element.Checked )
+            if ( null === Element.Checked && editor.SpellCheckApi.checkDictionary(this.Elements[Index].Lang) )
             {
                 usrWords.push(this.Elements[Index].Word);
                 usrLang.push(this.Elements[Index].Lang);
@@ -381,7 +381,7 @@ CParaSpellChecker.prototype =
         {
             if (true === editor.WordControl.m_oLogicDocument.Spelling.Add_WaitingParagraph(this.Paragraph, this.RecalcId, usrWords, usrLang))
             {
-                editor.spellCheck({"type" : "spell", "ParagraphId" : this.ParaId, "RecalcId" : this.RecalcId, "ElementId" : 0, "usrWords" : usrWords, "usrLang" : usrLang });
+                editor.SpellCheckApi.spellCheck({"type" : "spell", "ParagraphId" : this.ParaId, "RecalcId" : this.RecalcId, "ElementId" : 0, "usrWords" : usrWords, "usrLang" : usrLang });
             }
             else
             {
@@ -496,9 +496,9 @@ CParaSpellChecker.prototype =
 			Variants = FoundElement.Variants;
 			Checked  = FoundElement.Checked;
 
-			if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph))
+			if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph) && editor.SpellCheckApi.checkDictionary(FoundElement.Lang))
 			{
-				editor.spellCheck({
+				editor.SpellCheckApi.spellCheck({
 					"type"        : "suggest",
 					"ParagraphId" : this.ParaId,
 					"RecalcId"    : this.RecalcId,

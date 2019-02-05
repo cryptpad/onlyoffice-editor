@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -41,7 +41,6 @@
 		this._onlineWork = false;
 
 		this.onDisconnect = null;
-		this.onSpellCheck = null;
 		this.onSpellCheck = null;
 	};
 
@@ -89,6 +88,13 @@
 		}
 	};
 
+	CSpellCheckApi.prototype.checkDictionary = function (lang) {
+		if (this._SpellCheckApi && this._onlineWork) {
+			return this._SpellCheckApi.checkDictionary(lang);
+		}
+		return true;
+	};
+
 	CSpellCheckApi.prototype.callback_OnSpellCheck = function (e) {
 		if (this.onSpellCheck) {
 			return this.onSpellCheck(e);
@@ -128,6 +134,8 @@
 		this.isCloseCoAuthoring = false;
 		this.isInit = false;
 
+		this.languages = null;
+
 		// Массив данных, который стоит отправить как только подключимся
 		this.dataNeedSend = [];
 
@@ -148,6 +156,11 @@
 
 	SpellCheckApi.prototype.spellCheck = function (spellCheckData) {
 		this._send({"type": "spellCheck", "spellCheckData": spellCheckData});
+	};
+
+	SpellCheckApi.prototype.checkDictionary = function (lang) {
+		// Check init. May arrive earlier than initialization
+		return !this.isInit || !!this.languages[lang];
 	};
 
 	SpellCheckApi.prototype.disconnect = function () {
@@ -178,8 +191,14 @@
 		}
 	};
 	SpellCheckApi.prototype._onInit = function (data) {
-		if (!this.isInit && data["languages"] && this.onInit) {
-			this.onInit(data["languages"]);
+		if (!this.isInit && data["languages"]) {
+			if (this.onInit) {
+				this.onInit(data["languages"]);
+			}
+			this.languages = data["languages"].reduce(function(map, value) {
+				map[value] = 1;
+				return map;
+			}, {});
 			this.isInit = true;
 		}
 	};

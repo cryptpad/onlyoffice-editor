@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -187,9 +187,7 @@
 
         this.copyOutEnabled = (config['copyoutenabled'] !== false);
 
-		//config['watermark_on_draw'] = window.TEST_WATERMARK_STRING;
-		this.watermarkDraw =
-			config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
+		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
 
 		return this;
 	}
@@ -568,6 +566,9 @@
 		}
 		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 		this.sendEvent('asc_onDocumentContentReady');
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
 
         if (this.editorId == c_oEditorId.Spreadsheet)
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
@@ -1716,6 +1717,7 @@
 
                 var _ret = _editor.asc_nativeGetFile3();
                 AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
+				_editor.currentDocumentInfoNext = obj["docinfo"];
                 window["AscDesktopEditor"]["buildCryptedStart"](_ret.data, _ret.header, obj["password"], obj["docinfo"] ? obj["docinfo"] : "");
                 break;
             }
@@ -1753,6 +1755,69 @@
             }
         }
     };
+
+	baseEditorsApi.prototype["pluginMethod_SetProperties"] = function(obj)
+	{
+		for (var prop in obj)
+		{
+			switch (prop)
+			{
+				case "copyoutenabled":
+				{
+					this.copyOutEnabled = obj[prop];
+					break;
+				}
+				case "watermark_on_draw":
+				{
+					this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop]) : null;
+					if (this.watermarkDraw)
+						this.watermarkDraw.CheckParams(this);
+
+					// refresh!!!
+					switch (this.editorId)
+					{
+						case c_oEditorId.Word:
+						{
+							if (this.WordControl)
+							{
+								if (this.watermarkDraw)
+								{
+									this.watermarkDraw.zoom = this.WordControl.m_nZoomValue / 100;
+									this.watermarkDraw.Generate();
+								}
+
+								this.WordControl.OnRePaintAttack();
+							}
+
+							break;
+						}
+						case c_oEditorId.Presentation:
+						{
+							if (this.WordControl)
+							{
+								if (this.watermarkDraw)
+								{
+									this.watermarkDraw.zoom = this.WordControl.m_nZoomValue / 100;
+									this.watermarkDraw.Generate();
+								}
+
+								this.WordControl.OnRePaintAttack();
+							}
+							break;
+						}
+						case c_oEditorId.Spreadsheet:
+						{
+							break;
+						}
+					}
+
+					break;
+				}
+				default:
+					break;
+			}
+		}
+	};
 
 	// Builder
 	baseEditorsApi.prototype.asc_nativeInitBuilder = function()

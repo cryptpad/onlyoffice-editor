@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -4098,9 +4098,10 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 				}
 			}
 		}
-		else if (true !== this.IsSelectionEmpty(true) && ( ( 1 === Direction && true === this.Selection.StartManually ) || ( 1 !== Direction && true === this.Selection.EndManually ) ))
+		else if (true !== this.IsSelectionEmpty(true)
+			&& ((1 === Direction && true === this.Selection.StartManually) || (1 !== Direction && true === this.Selection.EndManually)))
 		{
-			// Эта ветка нужна для снятие выделения с плавающих объектов, стоящих в начале параграфа, когда параграф
+			// Эта ветка нужна для снятия выделения с плавающих объектов, стоящих в начале параграфа, когда параграф
 			// выделен не весь. Заметим, что это ветка имеет смысл, только при direction = 1, поэтому выделен весь
 			// параграф или нет, проверяется попаданием para_End в селект. Кроме того, ничего не делаем с селектом,
 			// если он пустой.
@@ -4108,9 +4109,9 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 			var bNeedCorrectLeftPos = true;
 			var _StartPos           = Math.min(StartPos, EndPos);
 			var _EndPos             = Math.max(StartPos, EndPos);
-			for (var Pos = 0; Pos < StartPos; Pos++)
+			for (var Pos = 0; Pos < _StartPos; Pos++)
 			{
-				if (true !== this.Content[Pos].Is_Empty({SkipAnchor : true}))
+				if (true !== this.Content[Pos].IsEmpty({SkipAnchor : true}))
 				{
 					bNeedCorrectLeftPos = false;
 					break;
@@ -4119,32 +4120,33 @@ Paragraph.prototype.Set_SelectionContentPos = function(StartContentPos, EndConte
 
 			if (true === bNeedCorrectLeftPos)
 			{
-				for (var Pos = _StartPos; Pos <= EndPos; Pos++)
+				for (var nPos = _StartPos; nPos <= _EndPos; ++nPos)
 				{
-					if (true === this.Content[Pos].Selection_CorrectLeftPos(Direction))
+					if (true === this.Content[nPos].SkipAnchorsAtSelectionStart(Direction))
 					{
 						if (1 === Direction)
 						{
-							if (Pos + 1 > this.Selection.EndPos)
+							if (nPos + 1 > this.Selection.EndPos)
 								break;
 
-							this.Selection.StartPos = Pos + 1;
+							this.Selection.StartPos = nPos + 1;
 						}
 						else
 						{
-							if (Pos + 1 > this.Selection.StartPos)
+							if (nPos + 1 > this.Selection.StartPos)
 								break;
 
-							this.Selection.EndPos = Pos + 1;
+							this.Selection.EndPos = nPos + 1;
 						}
 
-						this.Content[Pos].RemoveSelection();
+						this.Content[nPos].RemoveSelection();
 					}
 					else
+					{
 						break;
+					}
 				}
 			}
-
 		}
 	}
 };

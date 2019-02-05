@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -520,7 +520,12 @@ CParagraphContentBase.prototype.IsSelectedAll = function(Props)
 {
 	return true;
 };
-CParagraphContentBase.prototype.Selection_CorrectLeftPos = function(Direction)
+/**
+ * Функция коррекции селекта, чтобы убрать из селекта плавающие объекты, идущие в начале
+ * @param nDirection {number} - направление селекта
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.SkipAnchorsAtSelectionStart = function(nDirection)
 {
 	return true;
 };
@@ -910,11 +915,11 @@ CParagraphContentWithParagraphLikeContent.prototype.SetParagraph = function(Para
 		this.Content[CurPos].SetParagraph(Paragraph);
 	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Is_Empty = function()
+CParagraphContentWithParagraphLikeContent.prototype.Is_Empty = function(oPr)
 {
     for (var Index = 0, ContentLen = this.Content.length; Index < ContentLen; Index++)
     {
-        if (false === this.Content[Index].Is_Empty())
+        if (false === this.Content[Index].Is_Empty(oPr))
             return false;
     }
 
@@ -2919,37 +2924,42 @@ CParagraphContentWithParagraphLikeContent.prototype.IsSelectedAll = function(Pro
 
     return true;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Selection_CorrectLeftPos = function(Direction)
+CParagraphContentWithParagraphLikeContent.prototype.SkipAnchorsAtSelectionStart = function(nDirection)
 {
-    if ( false === this.Selection.Use || true === this.Is_Empty( { SkipAnchor : true } ) )
-        return true;
+	if (false === this.Selection.Use || true === this.IsEmpty({SkipAnchor : true}))
+		return true;
 
-    var Selection = this.State.Selection;
-    var StartPos = Math.min( Selection.StartPos, Selection.EndPos );
-    var EndPos   = Math.max( Selection.StartPos, Selection.EndPos );
+	var oSelection = this.State.Selection;
+	var nStartPos  = Math.min(oSelection.StartPos, oSelection.EndPos);
+	var nEndPos    = Math.max(oSelection.StartPos, oSelection.EndPos);
 
-    for ( var Pos = 0; Pos < StartPos; Pos++ )
-    {
-        if ( true !== this.Content[Pos].Is_Empty( { SkipAnchor : true } ) )
-            return false;
-    }
+	for (var nPos = 0; nPos < nStartPos; ++nPos)
+	{
+		if (true !== this.Content[nPos].IsEmpty({SkipAnchor : true}))
+			return false;
+	}
 
-    for ( var Pos = StartPos; Pos <= EndPos; Pos++ )
-    {
-        if ( true === this.Content[Pos].Selection_CorrectLeftPos(Direction) )
-        {
-            if ( 1 === Direction )
-                this.Selection.StartPos = Pos + 1;
-            else
-                this.Selection.EndPos   = Pos + 1;
+	for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		if (true === this.Content[nPos].SkipAnchorsAtSelectionStart(nDirection))
+		{
+			if (1 === nDirection)
+				this.Selection.StartPos = nPos + 1;
+			else
+				this.Selection.EndPos = nPos + 1;
 
-            this.Content[Pos].RemoveSelection();
-        }
-        else
-            return false;
-    }
+			this.Content[nPos].RemoveSelection();
+		}
+		else
+		{
+			return false;
+		}
+	}
 
-    return true;
+	if (nEndPos < this.Content.length - 1)
+		return false;
+
+	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.IsSelectionUse = function()
 {
@@ -3522,9 +3532,9 @@ CParagraphContentWithParagraphLikeContent.prototype.FindNextFillingForm = functi
 
 	return null;
 };
-CParagraphContentWithParagraphLikeContent.prototype.IsEmpty = function()
+CParagraphContentWithParagraphLikeContent.prototype.IsEmpty = function(oPr)
 {
-	return this.Is_Empty();
+	return this.Is_Empty(oPr);
 };
 CParagraphContentWithParagraphLikeContent.prototype.AddContentControl = function()
 {
