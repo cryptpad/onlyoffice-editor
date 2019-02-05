@@ -2376,10 +2376,15 @@
 		};
 
 		var margins = this.model.PagePrintOptions.asc_getPageMargins();
-		var left =  margins.left / AscCommonExcel.vector_koef;
-		var right = margins.right / AscCommonExcel.vector_koef;
 		var width = printPagesData.pageWidth / AscCommonExcel.vector_koef;
 		var height = printPagesData.pageHeight / AscCommonExcel.vector_koef;
+
+		//это стандартный маргин для случая, если alignWithMargins = true
+		//TODO необходимо перепроверить размер маргина
+		var defaultMargin = 17.8;
+		var alignWithMargins = this.model.headerFooter.getAlignWithMargins();
+		var left =  alignWithMargins ? margins.left / AscCommonExcel.vector_koef : defaultMargin / AscCommonExcel.vector_koef;
+		var right = alignWithMargins ? margins.right / AscCommonExcel.vector_koef : defaultMargin / AscCommonExcel.vector_koef;
 		var top = margins.header / AscCommonExcel.vector_koef;
 		var bottom = margins.footer / AscCommonExcel.vector_koef;
 
