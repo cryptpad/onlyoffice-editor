@@ -4225,6 +4225,7 @@ CPresentation.prototype =
         {
             return;
         }
+
         var oContent = oController.getTargetDocContent();
         if(oContent && oContent.CheckPosInSelection(0, 0, 0, NearPos))
         {
@@ -4254,14 +4255,14 @@ CPresentation.prototype =
                     if(oParagraph.Parent && oParagraph.Parent.Parent && oParagraph.Parent.Parent.parent)
                     {
                         var oObjectTo = oParagraph.Parent.Parent.parent;
-                        while(!oObjectTo.group)
+                        while(oObjectTo.group)
                         {
                            oObjectTo = oObjectTo.group;
                         }
                         var oObjectFrom = AscFormat.getTargetTextObject(oController);
                         if(oObjectFrom && oObjectFrom.getObjectType() === AscDFH.historyitem_type_Shape)
                         {
-                            while(!oObjectFrom.group)
+                            while(oObjectFrom.group)
                             {
                                 oObjectFrom = oObjectTo.group;
                             }
@@ -4276,9 +4277,18 @@ CPresentation.prototype =
                             var bIsLocked = this.Document_Is_SelectionLocked(changestype_Drawing_Props, aCheckObjects);
                             if(!bIsLocked)
                             {
+                                if(!bCopy)
+                                {
+                                    oController.remove(-1);
+                                }
                                 NearPos.Paragraph.Check_NearestPos(NearPos);
                                 oParagraph.Parent.Insert_Content(oSelectedContent.DocContent, NearPos);
+                                oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+                                NearPos.Paragraph.Document_SetThisElementCurrent(false);
                                 this.Recalculate();
+                                this.Document_UpdateSelectionState();
+                                this.Document_UpdateUndoRedoState();
+                                this.Document_UpdateInterfaceState();
                                 bUndo = false;
                             }
                         }
@@ -4290,6 +4300,10 @@ CPresentation.prototype =
             {
                 if(oSelectedContent.SlideObjects.length === 0 && oSelectedContent.DocContent)
                 {
+                    if(!bCopy)
+                    {
+                        oController.remove(-1);
+                    }
                     this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
                     this.Insert_Content(oSelectedContent);
                     var oShape = this.Slides[this.CurPage].graphicObjects.selectedObjects[0];
@@ -4300,6 +4314,10 @@ CPresentation.prototype =
                     }
                     this.Recalculate();
                     bUndo = false;
+                    oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+                    this.Document_UpdateSelectionState();
+                    this.Document_UpdateUndoRedoState();
+                    this.Document_UpdateInterfaceState();
                 }
             }
             if(bUndo)
@@ -4309,6 +4327,7 @@ CPresentation.prototype =
                 {
                     oParagraph.Clear_NearestPosArray();
                 }
+                oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
             }
         }
     },
