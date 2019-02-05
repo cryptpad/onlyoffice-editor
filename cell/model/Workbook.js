@@ -698,6 +698,18 @@
 			}
 			return names.sort(sort);
 		},
+		getDefinedNamesWS: function(sheetId) {
+			var names = [];
+
+			function getNames(defName) {
+				if (defName.ref) {
+					names.push(defName);
+				}
+			}
+
+			this._foreachDefNameSheet(sheetId, getNames);
+			return names;
+		},
 		addDefNameOpen: function(name, ref, sheetIndex, hidden, isTable) {
 			var sheetId = this.wb.getSheetIdByIndex(sheetIndex);
 			var isXLNM = null;
@@ -2404,6 +2416,12 @@
 	};
 	Workbook.prototype.getDefinedNamesWB = function (defNameListId, bLocale) {
 		return this.dependencyFormulas.getDefinedNamesWB(defNameListId, bLocale);
+	};
+	Workbook.prototype.getDefinedNamesWS = function (sheetId) {
+		return this.dependencyFormulas.getDefinedNamesWS(sheetId);
+	};
+	Workbook.prototype.addDefName = function (name, ref, sheetId, hidden, isTable) {
+		return this.dependencyFormulas.addDefName(name, ref, sheetId, hidden, isTable);
 	};
 	Workbook.prototype.getDefinesNames = function ( name, sheetId ) {
 		return this.dependencyFormulas.getDefNameByName( name, sheetId );
