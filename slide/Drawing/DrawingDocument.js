@@ -3427,7 +3427,7 @@ function CDrawingDocument()
 
 		if (this.InlineTextTrackEnabled)
 		{
-			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y);
+			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
 			this.InlineTextTrackPage = pos.Page;
 
 			oWordControl.ShowOverlay();
@@ -3445,7 +3445,7 @@ function CDrawingDocument()
 
 		if (this.InlineTextTrackEnabled)
 		{
-			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y);
+			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
 			this.InlineTextTrackPage = pos.Page;
 			this.EndTrackText();
 
@@ -6024,6 +6024,14 @@ function CNotesDrawer(page)
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var ret = oThis.HtmlPage.m_oDrawingDocument.checkMouseDown_Drawing(pos);
+		if (ret === true)
+		{
+			AscCommon.stopEvent(e);
+			return;
+		}
+
 		oThis.HtmlPage.StartUpdateOverlay();
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseDown(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
@@ -6047,6 +6055,12 @@ function CNotesDrawer(page)
 		oThis.HtmlPage.StartUpdateOverlay();
 		if ((-1 != oThis.m_oTimerScrollSelect) || (is_overlay_attack === true))
 			oThis.HtmlPage.OnUpdateOverlay();
+
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var is_drawing = oThis.HtmlPage.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseMove(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
 	};
@@ -6072,6 +6086,12 @@ function CNotesDrawer(page)
 		_y *= g_dKoef_pix_to_mm;
 
 		oThis.HtmlPage.StartUpdateOverlay();
+
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var is_drawing = oThis.HtmlPage.m_oDrawingDocument.checkMouseUp_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseUp(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
 

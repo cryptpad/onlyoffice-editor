@@ -2241,11 +2241,12 @@ function CEditorPage(api)
 		if (oWordControl.m_oDrawingDocument.m_sLockedCursorType != "")
 			oWordControl.m_oDrawingDocument.SetCursorType("default");
 
+		oWordControl.StartUpdateOverlay();
+
 		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos);
 		if (is_drawing === true)
 			return;
 
-		oWordControl.StartUpdateOverlay();
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
 		oWordControl.EndUpdateOverlay();
 	};
