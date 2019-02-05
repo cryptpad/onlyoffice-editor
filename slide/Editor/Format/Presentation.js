@@ -4285,6 +4285,7 @@ CPresentation.prototype =
                                     oController.removeCallback(-1,  undefined, undefined, true);
                                 }
                                 oController.resetSelection(false, false);
+                                oSelectedContent = oSelectedContent.copy();
                                 oParagraph.Parent.Insert_Content(oSelectedContent.DocContent, NearPos);
                                 oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
                                 NearPos.Paragraph.Document_SetThisElementCurrent(false);
@@ -4309,6 +4310,7 @@ CPresentation.prototype =
                         oController.removeCallback(-1,  undefined, undefined, true);
                     }
                     this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
+                    oSelectedContent = oSelectedContent.copy();
                     this.Insert_Content(oSelectedContent);
                     var oShape = this.Slides[this.CurPage].graphicObjects.selectedObjects[0];
                     if(oShape)
