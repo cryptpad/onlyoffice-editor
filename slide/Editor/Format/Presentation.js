@@ -4233,6 +4233,7 @@ CPresentation.prototype =
             Paragraph.Cursor_MoveToNearPos(NearPos);
             Paragraph.Document_SetThisElementCurrent(false);
 
+            oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
             this.Document_UpdateSelectionState();
             this.Document_UpdateInterfaceState();
             this.Document_UpdateRulersState();
