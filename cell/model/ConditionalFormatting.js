@@ -390,6 +390,7 @@
 
 		return this;
 	}
+	CColorScale.prototype.type = AscCommonExcel.ECfType.colorScale;
 	CColorScale.prototype.clone = function() {
 		var i, res = new CColorScale();
 		for (i = 0; i < this.aCFVOs.length; ++i)
@@ -467,6 +468,7 @@
 
 		return this;
 	}
+	CDataBar.prototype.type = AscCommonExcel.ECfType.dataBar;
 	CDataBar.prototype.clone = function() {
 		var i, res = new CDataBar();
 		res.MaxLength = this.MaxLength;
