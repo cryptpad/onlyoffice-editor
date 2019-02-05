@@ -370,7 +370,7 @@ CParaSpellChecker.prototype =
                 editor.WordControl.m_oLogicDocument.Spelling.Add_CurPara( this.ParaId, g_oTableId.Get_ById( this.ParaId ) );
             }
 
-            if ( null === Element.Checked )
+            if ( null === Element.Checked && editor.SpellCheckApi.checkDictionary(this.Elements[Index].Lang) )
             {
                 usrWords.push(this.Elements[Index].Word);
                 usrLang.push(this.Elements[Index].Lang);
@@ -381,7 +381,7 @@ CParaSpellChecker.prototype =
         {
             if (true === editor.WordControl.m_oLogicDocument.Spelling.Add_WaitingParagraph(this.Paragraph, this.RecalcId, usrWords, usrLang))
             {
-                editor.spellCheck({"type" : "spell", "ParagraphId" : this.ParaId, "RecalcId" : this.RecalcId, "ElementId" : 0, "usrWords" : usrWords, "usrLang" : usrLang });
+                editor.SpellCheckApi.spellCheck({"type" : "spell", "ParagraphId" : this.ParaId, "RecalcId" : this.RecalcId, "ElementId" : 0, "usrWords" : usrWords, "usrLang" : usrLang });
             }
             else
             {
@@ -496,9 +496,9 @@ CParaSpellChecker.prototype =
 			Variants = FoundElement.Variants;
 			Checked  = FoundElement.Checked;
 
-			if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph))
+			if (null === Variants && false === editor.WordControl.m_oLogicDocument.Spelling.Check_WaitingParagraph(this.Paragraph) && editor.SpellCheckApi.checkDictionary(FoundElement.Lang))
 			{
-				editor.spellCheck({
+				editor.SpellCheckApi.spellCheck({
 					"type"        : "suggest",
 					"ParagraphId" : this.ParaId,
 					"RecalcId"    : this.RecalcId,
