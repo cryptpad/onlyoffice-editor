@@ -10207,7 +10207,7 @@ drawScatterChart.prototype = {
 		var yPoints = this.valAx.yPoints;
 		var betweenAxisCross = this.valAx.crossBetween === AscFormat.CROSS_BETWEEN_BETWEEN;
 
-		var seria, yVal, xVal, points, yNumCache, compiledMarkerSize, compiledMarkerSymbol, yPoint, idx, xPoint;
+		var seria, yVal, xVal, points, yNumCache, compiledMarkerSize, compiledMarkerSymbol, yPoint, idx, xPoint, prevYVal, prevXVal;
 		for (var i = 0; i < this.chart.series.length; i++) {
 			seria = this.chart.series[i];
 			yNumCache = this.cChartDrawer.getNumCache(seria.yVal);
@@ -10226,6 +10226,7 @@ drawScatterChart.prototype = {
 				//вычисляем yVal
 				//пытаемся вычислить xVal  в зависимости от idx точки по OY
 				yVal = this._getYVal(n, i);
+
 				xPoint = this.cChartDrawer.getIdxPoint(seria, idx, true);
 				if (xPoint) {
 					xVal = xPoint.val;
@@ -10239,6 +10240,16 @@ drawScatterChart.prototype = {
 					//xVal = this.catAx instanceof AscFormat.CCatAx ? n : n + 1;
 					xVal = n + 1;
 				}
+
+				/*var correctValues = this._correctValOutLimit(xVal, yVal, prevXVal, prevYVal, yPoints);
+				prevYVal = yVal;
+				prevXVal = xVal;
+				if(null === correctValues) {
+					continue;
+				} else {
+					xVal = correctValues.x;
+					yVal = correctValues.y;
+				}*/
 
 
 				yPoint = this.cChartDrawer.getIdxPoint(seria, idx);
@@ -10273,6 +10284,29 @@ drawScatterChart.prototype = {
 		this._calculateAllLines(points);
 	},
 
+	_correctValOutLimit: function(xVal, yVal, prevXVal, prevYVal, yPoints) {
+		var res = {x: xVal, y: yVal};
+
+		if(yPoints && yPoints.length) {
+			var minVal = yPoints[0].val < yPoints[yPoints.length - 1].val ? yPoints[0].val : yPoints[yPoints.length - 1].val;
+			var maxVal = yPoints[0].val < yPoints[yPoints.length - 1].val ? yPoints[yPoints.length - 1].val : yPoints[0].val;
+
+			//предыдущая точка ниже верхней границы, текущая выше - ищем пересечение с границей
+			if(prevYVal && yVal > maxVal && prevYVal < maxVal) {
+				var k = (yVal - prevYVal) / (xVal - prevXVal);
+				var b = prevYVal - k * prevXVal;
+				res.x = (maxVal - b) / k;
+				res.y = maxVal;
+			} else if(prevYVal && prevYVal > maxVal && yVal < maxVal) { //текущая точка выше верхней границы, следующая ниже - ищем пересечение с границей
+
+			} else if(yVal > maxVal && prevYVal && prevYVal > maxVal) { //если обе точки выще границы
+				res = null;
+			}
+		}
+
+
+		return res;
+	},
 
 	_recalculateScatter2: function () {
 		var xPoints = this.catAx.xPoints;
