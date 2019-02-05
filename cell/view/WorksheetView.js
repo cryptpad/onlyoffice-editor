@@ -16699,7 +16699,7 @@
 	};
 
 	CHeaderFooterEditor.prototype.getAlignWithMargins = function() {
-		return 0 === this.alignWithMargins || null === this.alignWithMargins;
+		return 1 === this.alignWithMargins || null === this.alignWithMargins;
 	};
 
 	CHeaderFooterEditor.prototype.getDifferentFirst = function() {
@@ -16711,7 +16711,7 @@
 	};
 
 	CHeaderFooterEditor.prototype.getScaleWithDoc = function() {
-		return 0 === this.scaleWithDoc || null === this.scaleWithDoc;
+		return 1 === this.scaleWithDoc || null === this.scaleWithDoc;
 	};
 
 	CHeaderFooterEditor.prototype._createAndDrawSections = function(pageCommonType) {
