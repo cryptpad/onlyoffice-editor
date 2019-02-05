@@ -3484,7 +3484,7 @@ function CEditorPage(api)
 			var _oldCurPageInfo = drDoc.AutoShapesTrack.CurrentPageInfo;
 
 			drDoc.AutoShapesTrack.PageIndex = drDoc.InlineTextTrackPage;
-			drDoc.AutoShapesTrack.DrawInlineMoveCursor(drDoc.InlineTextTrack.X, drDoc.InlineTextTrack.Y, drDoc.InlineTextTrack.Height, drDoc.InlineTextTrack.transform);
+			drDoc.AutoShapesTrack.DrawInlineMoveCursor(drDoc.InlineTextTrack.X, drDoc.InlineTextTrack.Y, drDoc.InlineTextTrack.Height, drDoc.InlineTextTrack.transform, drDoc.InlineTextInNotes ? overlayNotes : null);
 
 			drDoc.AutoShapesTrack.PageIndex       = _oldPage;
 			drDoc.AutoShapesTrack.CurrentPageInfo = _oldCurPageInfo;

@@ -968,6 +968,7 @@ function CDrawingDocument()
 	this.InlineTextTrackEnabled = false;
 	this.InlineTextTrack = null;
 	this.InlineTextTrackPage = -1;
+	this.InlineTextInNotes = false;
 
 	this.GuiControlColorsMap  = null;
 	this.IsSendStandartColors = false;
@@ -3429,6 +3430,7 @@ function CDrawingDocument()
 		{
 			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
 			this.InlineTextTrackPage = pos.Page;
+			this.InlineTextInNotes = pos.isNotes ? true : false;
 
 			oWordControl.ShowOverlay();
 			oWordControl.OnUpdateOverlay();
@@ -3447,6 +3449,7 @@ function CDrawingDocument()
 		{
 			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
 			this.InlineTextTrackPage = pos.Page;
+			this.InlineTextInNotes = pos.isNotes ? true : false;
 			this.EndTrackText();
 
 			oWordControl.ShowOverlay();
@@ -3464,6 +3467,7 @@ function CDrawingDocument()
 		this.InlineTextTrackEnabled = true;
 		this.InlineTextTrack = null;
 		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
 	};
 	this.EndTrackText = function (isOnlyMoveTarget)
 	{
@@ -3484,6 +3488,7 @@ function CDrawingDocument()
 
 		this.InlineTextTrack = null;
 		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
 	};
 
 	this.IsTrackText = function ()
@@ -3496,6 +3501,7 @@ function CDrawingDocument()
 		this.InlineTextTrackEnabled = false;
 		this.InlineTextTrack = null;
 		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
 	};
 }
 
@@ -5831,6 +5837,11 @@ function CNotesDrawer(page)
 	this.m_oOverlayApi.m_oControl = this.HtmlPage.m_oNotesOverlay;
 	this.m_oOverlayApi.m_oHtmlPage = this.HtmlPage;
 	this.m_oOverlayApi.Clear();
+
+	this.m_oOverlayApi.getNotesOffsets = function()
+	{
+		return { X : this.m_oHtmlPage.m_oNotesApi.OffsetX, Y : AscCommon.AscBrowser.convertToRetinaValue(-this.m_oHtmlPage.m_oNotesApi.Scroll, true) };
+	};
 
 	this.OffsetX = 10;
 	this.OffsetY = 10;
