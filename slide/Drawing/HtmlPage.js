@@ -2181,6 +2181,16 @@ function CEditorPage(api)
 			if (pos.Page == -1)
 				return;
 
+			var ret = oWordControl.m_oDrawingDocument.checkMouseDown_Drawing(pos);
+			if (ret === true)
+			{
+				if (-1 == oWordControl.m_oTimerScrollSelect)
+					oWordControl.m_oTimerScrollSelect = setInterval(oWordControl.SelectWheel, 20);
+
+				AscCommon.stopEvent(e);
+				return;
+			}
+
 			oWordControl.StartUpdateOverlay();
 			oWordControl.m_oDrawingDocument.m_lCurrentPage = pos.Page;
 			oWordControl.m_oLogicDocument.OnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
@@ -2231,6 +2241,10 @@ function CEditorPage(api)
 		if (oWordControl.m_oDrawingDocument.m_sLockedCursorType != "")
 			oWordControl.m_oDrawingDocument.SetCursorType("default");
 
+		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oWordControl.StartUpdateOverlay();
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
 		oWordControl.EndUpdateOverlay();
@@ -2249,6 +2263,11 @@ function CEditorPage(api)
 			return;
 
 		oWordControl.StartUpdateOverlay();
+
+		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
 		oWordControl.EndUpdateOverlay();
 	};
@@ -2307,6 +2326,18 @@ function CEditorPage(api)
 		oWordControl.m_bIsMouseUpSend = true;
 
 		oWordControl.StartUpdateOverlay();
+
+		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseUp_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
+		var is_drawing_on_up = oWordControl.m_oDrawingDocument.checkMouseDown_DrawingOnUp(pos);
+		if (is_drawing_on_up)
+		{
+			// не посылаем в документ.
+			return;
+		}
+
 		oWordControl.m_oLogicDocument.OnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
 
 		oWordControl.m_bIsMouseUpSend = false;
@@ -3444,6 +3475,18 @@ function CEditorPage(api)
 
 				overlay.SetBaseTransform();
 			}
+		}
+
+		if (drDoc.InlineTextTrackEnabled && null != drDoc.InlineTextTrack)
+		{
+			var _oldPage        = drDoc.AutoShapesTrack.PageIndex;
+			var _oldCurPageInfo = drDoc.AutoShapesTrack.CurrentPageInfo;
+
+			drDoc.AutoShapesTrack.PageIndex = drDoc.InlineTextTrackPage;
+			drDoc.AutoShapesTrack.DrawInlineMoveCursor(drDoc.InlineTextTrack.X, drDoc.InlineTextTrack.Y, drDoc.InlineTextTrack.Height, drDoc.InlineTextTrack.transform);
+
+			drDoc.AutoShapesTrack.PageIndex       = _oldPage;
+			drDoc.AutoShapesTrack.CurrentPageInfo = _oldCurPageInfo;
 		}
 
 		drDoc.DrawHorVerAnchor();

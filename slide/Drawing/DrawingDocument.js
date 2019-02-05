@@ -965,6 +965,10 @@ function CDrawingDocument()
 
 	this.TableStylesLastLook = null;
 
+	this.InlineTextTrackEnabled = false;
+	this.InlineTextTrack = null;
+	this.InlineTextTrackPage = -1;
+
 	this.GuiControlColorsMap  = null;
 	this.IsSendStandartColors = false;
 
@@ -3406,21 +3410,93 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oNotesApi.OnRecalculateNote(slideNum, width, height);
 	};
 
+	// mouse events
+	this.checkMouseDown_Drawing = function (pos)
+	{
+		return false;
+	};
+
+	this.checkMouseDown_DrawingOnUp = function (pos)
+	{
+		return false;
+	};
+
+	this.checkMouseMove_Drawing = function (pos)
+	{
+		var oWordControl = this.m_oWordControl;
+
+		if (this.InlineTextTrackEnabled)
+		{
+			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y);
+			this.InlineTextTrackPage = pos.Page;
+
+			oWordControl.ShowOverlay();
+			oWordControl.OnUpdateOverlay();
+			oWordControl.EndUpdateOverlay();
+			return true;
+		}
+
+		return false;
+	};
+
+	this.checkMouseUp_Drawing = function (pos)
+	{
+		var oWordControl = this.m_oWordControl;
+
+		if (this.InlineTextTrackEnabled)
+		{
+			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y);
+			this.InlineTextTrackPage = pos.Page;
+			this.EndTrackText();
+
+			oWordControl.ShowOverlay();
+			oWordControl.OnUpdateOverlay();
+			oWordControl.EndUpdateOverlay();
+			return true;
+		}
+
+		return false;
+	};
+
 	// track text (inline)
 	this.StartTrackText = function ()
 	{
-	}
+		this.InlineTextTrackEnabled = true;
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+	};
 	this.EndTrackText = function (isOnlyMoveTarget)
 	{
-	}
+		this.InlineTextTrackEnabled = false;
+
+		if (true !== isOnlyMoveTarget)
+			this.m_oWordControl.m_oLogicDocument.OnEndTextDrag(this.InlineTextTrack, AscCommon.global_keyboardEvent.CtrlKey);
+		else if (this.InlineTextTrack)
+		{
+			var Paragraph = this.InlineTextTrack.Paragraph;
+			Paragraph.Cursor_MoveToNearPos(this.InlineTextTrack);
+			Paragraph.Document_SetThisElementCurrent(false);
+
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateSelectionState();
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateRulersState();
+		}
+
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+	};
 
 	this.IsTrackText = function ()
 	{
-	}
+		return this.InlineTextTrackEnabled;
+	};
 
 	this.CancelTrackText = function ()
 	{
-	}
+		this.InlineTextTrackEnabled = false;
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+	};
 }
 
 function CThPage()
