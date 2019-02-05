@@ -4279,7 +4279,7 @@ CPresentation.prototype =
                             {
                                 if(!bCopy)
                                 {
-                                    oController.remove(-1);
+                                    oController.removeCallback(-1);
                                 }
                                 NearPos.Paragraph.Check_NearestPos(NearPos);
                                 oParagraph.Parent.Insert_Content(oSelectedContent.DocContent, NearPos);
@@ -4289,6 +4289,7 @@ CPresentation.prototype =
                                 this.Document_UpdateSelectionState();
                                 this.Document_UpdateUndoRedoState();
                                 this.Document_UpdateInterfaceState();
+                                this.Document_UpdateRulersState();
                                 bUndo = false;
                             }
                         }
@@ -4302,7 +4303,7 @@ CPresentation.prototype =
                 {
                     if(!bCopy)
                     {
-                        oController.remove(-1);
+                        oController.removeCallback(-1);
                     }
                     this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
                     this.Insert_Content(oSelectedContent);
@@ -4318,6 +4319,7 @@ CPresentation.prototype =
                     this.Document_UpdateSelectionState();
                     this.Document_UpdateUndoRedoState();
                     this.Document_UpdateInterfaceState();
+                    this.Document_UpdateRulersState();
                 }
             }
             if(bUndo)
