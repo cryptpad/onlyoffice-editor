@@ -4282,7 +4282,7 @@ CPresentation.prototype =
                                 NearPos.Paragraph.Check_NearestPos(NearPos);
                                 if(!bCopy)
                                 {
-                                    oController.removeCallback(-1);
+                                    oController.removeCallback(-1,  undefined, undefined, true);
                                 }
                                 oController.resetSelection(false, false);
                                 oParagraph.Parent.Insert_Content(oSelectedContent.DocContent, NearPos);
@@ -4306,7 +4306,7 @@ CPresentation.prototype =
                 {
                     if(!bCopy)
                     {
-                        oController.removeCallback(-1);
+                        oController.removeCallback(-1,  undefined, undefined, true);
                     }
                     this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
                     this.Insert_Content(oSelectedContent);
