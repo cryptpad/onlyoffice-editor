@@ -3578,12 +3578,12 @@
 							l = oRuleElement.aColors.length;
 							if (0 < values.length && 2 <= l) {
 								oGradient1 = new AscCommonExcel.CGradient(oRuleElement.aColors[0], oRuleElement.aColors[1]);
-								min = oRuleElement.getMin(values, t, oRule);
-								max = oRuleElement.getMax(values, t, oRule);
+								min = oRule.getMin(values, t);
+								max = oRule.getMax(values, t);
 								oGradient2 = null;
 								if (2 < l) {
 									oGradient2 = new AscCommonExcel.CGradient(oRuleElement.aColors[1], oRuleElement.aColors[2]);
-									mid = oRuleElement.getMid(values, t, oRule);
+									mid = oRule.getMid(values, t);
 
 									oGradient1.init(min, mid);
 									oGradient2.init(mid, max);
