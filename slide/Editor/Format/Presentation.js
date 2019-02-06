@@ -4246,13 +4246,12 @@ CPresentation.prototype =
             History.Create_NewPoint(AscDFH.historydescription_Document_DragText);
 
             var oSelectedContent = this.GetSelectedContent();
+            var aCheckObjects = [];
+            var aSelectedObjects, oObjectFrom, bIsLocked;
             if(oParagraph && oSelectedContent && oSelectedContent.DocContent)
             {
                 if(oSelectedContent.DocContent)
                 {
-                    var aSelectedObjects = oController.selectedObjects;
-                    oController.selectedObjects = [];
-                    var aCheckObjects = [];
                     if(oParagraph.Parent && oParagraph.Parent.Parent && oParagraph.Parent.Parent.parent)
                     {
                         var oObjectTo = oParagraph.Parent.Parent.parent;
@@ -4260,12 +4259,12 @@ CPresentation.prototype =
                         {
                            oObjectTo = oObjectTo.group;
                         }
-                        var oObjectFrom = AscFormat.getTargetTextObject(oController);
+                        oObjectFrom = AscFormat.getTargetTextObject(oController);
                         if(oObjectFrom && oObjectFrom.getObjectType() === AscDFH.historyitem_type_Shape)
                         {
                             while(oObjectFrom.group)
                             {
-                                oObjectFrom = oObjectTo.group;
+                                oObjectFrom = oObjectFrom.group;
                             }
                             aCheckObjects.push(oObjectTo);
                             if(!bCopy)
@@ -4275,7 +4274,11 @@ CPresentation.prototype =
                                     aCheckObjects.push(oObjectFrom);
                                 }
                             }
-                            var bIsLocked = this.Document_Is_SelectionLocked(changestype_Drawing_Props, aCheckObjects);
+                            aSelectedObjects = oController.selectedObjects;
+                            oController.selectedObjects = [];
+                            bIsLocked = this.Document_Is_SelectionLocked(changestype_Drawing_Props, aCheckObjects);
+
+                            oController.selectedObjects = aSelectedObjects;
                             if(!bIsLocked)
                             {
 
@@ -4298,33 +4301,50 @@ CPresentation.prototype =
                             }
                         }
                     }
-                    oController.selectedObjects = aSelectedObjects;
                 }
             }
             else
             {
                 if(oSelectedContent.SlideObjects.length === 0 && oSelectedContent.DocContent)
                 {
-                    if(!bCopy)
+                    oObjectFrom = AscFormat.getTargetTextObject(oController);
+                    if(oObjectFrom && oObjectFrom.getObjectType() === AscDFH.historyitem_type_Shape)
                     {
-                        oController.removeCallback(-1,  undefined, undefined, true);
+                        while (oObjectFrom.group)
+                        {
+                            oObjectFrom = oObjectFrom.group;
+                        }
+                        aCheckObjects.push(oObjectFrom);
+                        aSelectedObjects = oController.selectedObjects;
+                        oController.selectedObjects = [];
+                        bIsLocked = this.Document_Is_SelectionLocked(changestype_Drawing_Props, aCheckObjects);
+
+                        oController.selectedObjects = aSelectedObjects;
+
+                        if(!bIsLocked)
+                        {
+                            if(!bCopy)
+                            {
+                                oController.removeCallback(-1,  undefined, undefined, true);
+                            }
+                            this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
+                            oSelectedContent = oSelectedContent.copy();
+                            this.Insert_Content(oSelectedContent);
+                            var oShape = this.Slides[this.CurPage].graphicObjects.selectedObjects[0];
+                            if(oShape)
+                            {
+                                oShape.spPr.xfrm.setOffX(NearPos.X);
+                                oShape.spPr.xfrm.setOffY(NearPos.Y);
+                            }
+                            this.Recalculate();
+                            bUndo = false;
+                            oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+                            this.Document_UpdateSelectionState();
+                            this.Document_UpdateUndoRedoState();
+                            this.Document_UpdateInterfaceState();
+                            this.Document_UpdateRulersState();
+                        }
                     }
-                    this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
-                    oSelectedContent = oSelectedContent.copy();
-                    this.Insert_Content(oSelectedContent);
-                    var oShape = this.Slides[this.CurPage].graphicObjects.selectedObjects[0];
-                    if(oShape)
-                    {
-                        oShape.spPr.xfrm.setOffX(NearPos.X);
-                        oShape.spPr.xfrm.setOffY(NearPos.Y);
-                    }
-                    this.Recalculate();
-                    bUndo = false;
-                    oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
-                    this.Document_UpdateSelectionState();
-                    this.Document_UpdateUndoRedoState();
-                    this.Document_UpdateInterfaceState();
-                    this.Document_UpdateRulersState();
                 }
             }
             if(bUndo)
