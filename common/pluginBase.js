@@ -37,8 +37,9 @@
             if (type == "init")
                 window.Asc.plugin.info = pluginData;
 
-            if (!window.Asc.plugin.tr)
+            if (!window.Asc.plugin.tr || !window.Asc.plugin.tr_init)
             {
+				window.Asc.plugin.tr_init = true;
                 window.Asc.plugin.tr = function(val) {
                     if (!window.Asc.plugin.translateManager || !window.Asc.plugin.translateManager[val])
                         return val;
