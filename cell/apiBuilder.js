@@ -165,6 +165,14 @@
 	}
 
 	/**
+	 * Class representing a comments
+	 * @constructor
+	 */
+	function ApiComment(comment) {
+		this.Comment = comment;
+	}
+
+	/**
 	 * Returns a class formatted according to instructions contained in a format expression
 	 * @memberof Api
 	 * @param {string} expression Any valid expression.
@@ -832,6 +840,24 @@
 	Object.defineProperty(ApiWorksheet.prototype, "DefNames", {
 		get: function () {
 			return this.GetDefNames();
+		}
+	});
+
+	/**
+	 * Returns a ApiComment.
+	 * @memberof ApiWorksheet
+	 * @returns {ApiComment}
+	 */
+	ApiWorksheet.prototype.GetComments = function () {
+		var comments = [];
+		for (var i = 0; i < this.worksheet.aComments.length; i++) {
+			comments.push(new ApiComment(this.worksheet.aComments[i]));
+		}
+		return comments;
+	};
+	Object.defineProperty(ApiWorksheet.prototype, "Comments", {
+		get: function () {
+			return this.GetComments();
 		}
 	});
 
@@ -1872,6 +1898,23 @@
 		}
 	});
 
+	/**
+	 * Returns a ApiComment.
+	 * @memberof ApiRange
+	 * @returns {ApiComment}
+	 */
+	ApiRange.prototype.GetComment = function () {
+		if (!this.range.isOneCell()) {
+			return null;
+		}
+		return new ApiComment(this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex()).cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1));
+	};
+	Object.defineProperty(ApiRange.prototype, "Comments", {
+		get: function () {
+			return this.GetComment();
+		}
+	});
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDrawing
@@ -2355,6 +2398,26 @@
 		}
 	});
 
+	//------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiComment
+	//
+	//------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Returns the text of comment.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiComment
+	 */
+	ApiComment.prototype.GetText = function () {
+		return this.Comment.asc_getText();
+	};
+	Object.defineProperty(ApiComment.prototype, "Text", {
+		get: function () {
+			return this.GetText();
+		}
+	});
+
 	Api.prototype["Format"] = Api.prototype.Format;
 	Api.prototype["AddSheet"] = Api.prototype.AddSheet;
 	Api.prototype["GetSheets"] = Api.prototype.GetSheets;
@@ -2404,6 +2467,7 @@
 	ApiWorksheet.prototype["GetDefNames"] = ApiWorksheet.prototype.GetDefNames;
 	ApiWorksheet.prototype["GetDefName"] = ApiWorksheet.prototype.GetDefName;
 	ApiWorksheet.prototype["AddDefName"] = ApiWorksheet.prototype.AddDefName;
+	ApiWorksheet.prototype["GetComments"] = ApiWorksheet.prototype.GetComments;
 	ApiWorksheet.prototype["SetHyperlink"] = ApiWorksheet.prototype.SetHyperlink;
 	ApiWorksheet.prototype["AddChart"] = ApiWorksheet.prototype.AddChart;
 	ApiWorksheet.prototype["AddShape"] = ApiWorksheet.prototype.AddShape;
@@ -2446,6 +2510,7 @@
 	ApiRange.prototype["AddComment"] = ApiRange.prototype.AddComment;
 	ApiRange.prototype["GetWorksheet"] = ApiRange.prototype.GetWorksheet;
 	ApiRange.prototype["GetDefName"] = ApiRange.prototype.GetDefName;
+	ApiRange.prototype["GetComment"] = ApiRange.prototype.GetComment;	
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;
@@ -2495,6 +2560,10 @@
 	ApiName.prototype["Delete"]                  =  ApiName.prototype.Delete;
 	ApiName.prototype["GetRefersTo"]             =  ApiName.prototype.GetRefersTo;
 	ApiName.prototype["SetRefersTo"]             =  ApiName.prototype.SetRefersTo;
+
+
+	ApiComment.prototype["GetText"]              =  ApiComment.prototype.GetText;
+
 
 	function private_SetCoords(oDrawing, oWorksheet, nExtX, nExtY, nFromCol, nColOffset,  nFromRow, nRowOffset, pos){
 		oDrawing.x = 0;
