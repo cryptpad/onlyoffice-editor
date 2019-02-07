@@ -11735,7 +11735,19 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
         }
         return res;
     };
-	
+	this.ReadMathAccInit = function(props, oParent, oContent, oParStruct) {
+		if (!oContent.content) {
+			var oMathAcc = new CAccent(props);
+			initMathRevisions(oMathAcc, props);
+			if (oParent) {
+				oParent.addElementToContent(oMathAcc);
+			}
+			if (oParStruct) {
+				oMathAcc.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oMathAcc.getBase();
+		}
+	};
 	this.ReadMathAcc = function(type, length, props, oParent, oContent, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -11745,16 +11757,11 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathAccPr(t,l,props);
             });
-			var oMathAcc = new CAccent(props);
-            initMathRevisions(oMathAcc, props);
-			if (oParent)
-				oParent.addElementToContent(oMathAcc);
-			if(oParStruct)
-			    oMathAcc.Paragraph = oParStruct.paragraph;
-			oContent.content = oMathAcc.getBase();
+			this.ReadMathAccInit(props, oParent, oContent, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathAccInit(props, oParent, oContent, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -11859,10 +11866,26 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
         }
 		else if (c_oSer_OMathContentType.Delimiter === type)
         {
-			var arrContent = [];
+			var offsets = [];
             res = this.bcr.Read1(length, function(t, l){				
-                return oThis.ReadMathDelimiter(t,l,props,oElem,arrContent, oParStruct);
-            });			
+                return oThis.ReadMathDelimiter(t,l,props,offsets);
+            });
+			if (!props.column) {
+				props.column = offsets.length / 2;
+			}
+			var oDelimiter = new CDelimiter(props);
+			initMathRevisions(oDelimiter, props);
+			oElem.addElementToContent(oDelimiter);
+			if(oParStruct)
+				oDelimiter.Paragraph = oParStruct.paragraph;
+			var oOldPos = this.stream.GetCurPos();
+			for (var i = 0; i < offsets.length / 2; i++) {
+				this.stream.Seek2(offsets[2 * i]);
+				res = this.bcr.Read1(offsets[2 * i + 1], function(t, l){
+					return oThis.ReadMathArg(t,l,oDelimiter.getBase(i), oParStruct);
+				});
+			}
+			this.stream.Seek2(oOldPos);
         }	
 		else if (c_oSer_OMathContentType.Del === type)
 		{
@@ -11885,10 +11908,30 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
 		}
 		else if (c_oSer_OMathContentType.EqArr === type)
         {				
-			var arrContent = [];
+			var offsets = [];
             res = this.bcr.Read1(length, function(t, l){				
-                return oThis.ReadMathEqArr(t,l,props,oElem,arrContent, oParStruct);
+                return oThis.ReadMathEqArr(t,l,props,offsets);
             });
+			if (!props.row) {
+				props.row = offsets.length / 2;
+			}
+			if (!props.ctrPrp)
+				props.ctrPrp = new CTextPr();
+			var oEqArr = new CEqArray(props);
+			initMathRevisions(oEqArr, props);
+			oElem.addElementToContent(oEqArr);
+			if(oParStruct)
+				oEqArr.Paragraph = oParStruct.paragraph;
+
+			var nOldPos = this.stream.GetCurPos();
+			for (var i = 0; i < offsets.length / 2; i++) {
+				this.stream.Seek2(offsets[2 * i]);
+				res = this.bcr.Read1(offsets[2 * i + 1], function(t, l) {
+					return oThis.ReadMathArg(t, l, oEqArr.getElement(i), oParStruct);
+				});
+			}
+			this.stream.Seek2(nOldPos);
+
 			if (props.mcJc)
 			{
 				var oEqArr = oElem.Content[oElem.Content.length-1];
@@ -12114,6 +12157,20 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathBarInit = function(props, oParent, oContent, oParStruct) {
+		if (!oContent.content) {
+			var oBar = new CBar(props);
+			initMathRevisions(oBar, props);
+			if (oParent) {
+				oParent.addElementToContent(oBar);
+			}
+
+			if (oParStruct) {
+				oBar.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oBar.getBase();
+		}
+	};
 	this.ReadMathBar = function(type, length,props, oParent, oContent, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -12121,19 +12178,13 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
 		if (c_oSer_OMathContentType.BarPr === type)
         {
             res = this.bcr.Read1(length, function(t, l){
-                return oThis.ReadMathBarPr(t,l,props,oBar);
+                return oThis.ReadMathBarPr(t,l,props);
             });		
-			var oBar = new CBar(props);
-            initMathRevisions(oBar, props);
-			if (oParent)
-				oParent.addElementToContent(oBar);
-
-            if(oParStruct)
-                oBar.Paragraph = oParStruct.paragraph;
-			oContent.content = oBar.getBase();
+			this.ReadMathBarInit(props, oParent, oContent, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathBarInit(props, oParent, oContent, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -12181,6 +12232,19 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathBorderBoxInit = function(props, oParent, oContent, oParStruct) {
+		if (!oContent.content) {
+			var oBorderBox = new CBorderBox(props);
+			initMathRevisions(oBorderBox, props);
+			if (oParent) {
+				oParent.addElementToContent(oBorderBox);
+			}
+			if (oParStruct) {
+				oBorderBox.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oBorderBox.getBase();
+		}
+	};
 	this.ReadMathBorderBox = function(type, length, props, oParent, oContent, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -12190,16 +12254,11 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathBorderBoxPr(t,l,props);
             });	
-			var oBorderBox = new CBorderBox(props);
-            initMathRevisions(oBorderBox, props);
-			if (oParent)
-				oParent.addElementToContent(oBorderBox);
-            if(oParStruct)
-                oBorderBox.Paragraph = oParStruct.paragraph;
-			oContent.content = oBorderBox.getBase();
+			this.ReadMathBorderBoxInit(props, oParent, oContent, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathBorderBoxInit(props, oParent, oContent, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -12269,7 +12328,20 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
-    };	
+    };
+	this.ReadMathBoxInit = function(props, oParent, oContent, oParStruct) {
+		if (!oContent.content) {
+			var oBox = new CBox(props);
+			initMathRevisions(oBox, props);
+			if (oParent) {
+				oParent.addElementToContent(oBox);
+			}
+			if (oParStruct) {
+				oBox.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oBox.getBase();
+		}
+	};
 	this.ReadMathBox = function(type, length, props, oParent, oContent, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -12279,16 +12351,11 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathBoxPr(t,l,props);
             });
-			var oBox = new CBox(props);
-            initMathRevisions(oBox, props);
-			if (oParent)
-				oParent.addElementToContent(oBox);
-            if(oParStruct)
-                oBox.Paragraph = oParStruct.paragraph;
-			oContent.content = oBox.getBase();
+			this.ReadMathBoxInit(props, oParent, oContent, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathBoxInit(props, oParent, oContent, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -12460,33 +12527,21 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
-    };		
-	this.ReadMathDelimiter = function(type, length, props, oElem, arrContent, oParStruct)
+    };
+	this.ReadMathDelimiter = function(type, length, props, offsets)
     {		
         var res = c_oSerConstants.ReadOk;
-        var oThis = this;		
-		
+        var oThis = this;
 		if (c_oSer_OMathContentType.DelimiterPr === type)
         {
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathDelimiterPr(t,l,props);
-            });				
-			props.counter = 0;
-			var oDelimiter = new CDelimiter(props);
-            initMathRevisions(oDelimiter, props);
-			oElem.addElementToContent(oDelimiter);
-            if(oParStruct)
-                oDelimiter.Paragraph = oParStruct.paragraph;
-			for (var i=0; i<props.column; i++)
-				arrContent[i] = oDelimiter.getBase(i);
+            });
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
-			var lColumn = props.counter;
-            res = this.bcr.Read1(length, function(t, l){
-                return oThis.ReadMathArg(t,l,arrContent[lColumn], oParStruct);
-            });		
-			props.counter++;			
+			offsets.push(this.stream.GetCurPos(), length);
+			res = c_oSerConstants.ReadUnknown;
         }
         else
             res = c_oSerConstants.ReadUnknown;
@@ -12566,35 +12621,20 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };	
-	this.ReadMathEqArr = function(type, length, props, oElem, arrContent, oParStruct)
+	this.ReadMathEqArr = function(type, length, props, offsets)
     {		
         var res = c_oSerConstants.ReadOk;
-        var oThis = this;		
-		
+        var oThis = this;
 		if (c_oSer_OMathContentType.EqArrPr === type)
         {			
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathEqArrPr(t,l,props);
             });
-			
-			if (!props.ctrPrp)
-				props.ctrPrp = new CTextPr();
-			props.counter = 0;
-			var oEqArr = new CEqArray(props);
-            initMathRevisions(oEqArr, props);
-			oElem.addElementToContent(oEqArr);
-            if(oParStruct)
-                oEqArr.Paragraph = oParStruct.paragraph;
-			for (var i=0; i<props.row; i++)
-				arrContent[i] = oEqArr.getElement(i);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
-			var lRow = props.counter;
-            res = this.bcr.Read1(length, function(t, l){
-                return oThis.ReadMathArg(t,l,arrContent[lRow], oParStruct);
-            });		
-			props.counter++;
+			offsets.push(this.stream.GetCurPos(), length);
+			res = c_oSerConstants.ReadUnknown;
         }
         else
             res = c_oSerConstants.ReadUnknown;
@@ -12656,6 +12696,21 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathFractionInit = function(props, oParent, oElemDen, oElemNum, oParStruct) {
+		if (!oElemDen.content && !oElemNum.content) {
+			var oFraction = new CFraction(props);
+			initMathRevisions(oFraction, props);
+			if (oParent) {
+				oParent.addElementToContent(oFraction);
+			}
+
+			if (oParStruct) {
+				oFraction.Paragraph = oParStruct.paragraph;
+			}
+			oElemDen.content = oFraction.getDenominator();
+			oElemNum.content = oFraction.getNumerator();
+		}
+	};
 	this.ReadMathFraction = function(type, length, props, oParent, oElemDen, oElemNum, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -12664,47 +12719,19 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
         {
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathFPr(t,l,props);
-            });	
-			var oFraction = new CFraction(props);
-            initMathRevisions(oFraction, props);
-			if (oParent)
-				oParent.addElementToContent(oFraction);
-            if(oParStruct)
-                oFraction.Paragraph = oParStruct.paragraph;
-			oElemDen.content = oFraction.getDenominator();
-			oElemNum.content = oFraction.getNumerator();
+            });
+			this.ReadMathFractionInit(props, oParent, oElemDen, oElemNum, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Den === type)
         {
-			if (undefined == oElemDen.content)
-			{
-				var oFraction = new CFraction(props);
-				initMathRevisions(oFraction, props);
-				if (oParent)
-					oParent.addElementToContent(oFraction);
-
-                if(oParStruct)
-                    oFraction.Paragraph = oParStruct.paragraph;
-				oElemDen.content = oFraction.getDenominator();
-				oElemNum.content = oFraction.getNumerator();
-			}
+			this.ReadMathFractionInit(props, oParent, oElemDen, oElemNum, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oElemDen.content, oParStruct);
             });
         }
 		else if (c_oSer_OMathContentType.Num === type)
         {
-			if (undefined == oElemNum.content)
-			{
-				var oFraction = new CFraction(props);
-				initMathRevisions(oFraction, props);
-				if (oParent)
-					oParent.addElementToContent(oFraction);
-                if(oParStruct)
-                    oFraction.Paragraph = oParStruct.paragraph;
-				oElemDen.content = oFraction.getDenominator();
-				oElemNum.content = oFraction.getNumerator();
-			}
+			this.ReadMathFractionInit(props, oParent, oElemDen, oElemNum, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oElemNum.content, oParStruct);
             });			
@@ -12733,6 +12760,20 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathFuncInit = function(props, oParent, oContent, oName, oParStruct) {
+		if (!oContent.content && !oName.content) {
+			var oFunc = new CMathFunc(props);
+			initMathRevisions(oFunc, props);
+			if (oParent) {
+				oParent.addElementToContent(oFunc);
+			}
+			if (oParStruct) {
+				oFunc.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oFunc.getArgument();
+			oName.content = oFunc.getFName();
+		}
+	};
 	this.ReadMathFunc = function(type, length, props, oParent, oContent, oName, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -12742,23 +12783,18 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathFuncPr(t,l,props);
             });
-			var oFunc = new CMathFunc(props);
-            initMathRevisions(oFunc, props);
-			if (oParent)
-				oParent.addElementToContent(oFunc);
-            if(oParStruct)
-                oFunc.Paragraph = oParStruct.paragraph;
-			oContent.content = oFunc.getArgument();
-			oName.content = oFunc.getFName();
+			this.ReadMathFuncInit(props, oParent, oContent, oName, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathFuncInit(props, oParent, oContent, oName, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.FName === type)
         {
+			this.ReadMathFuncInit(props, oParent, oContent, oName, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oName.content, oParStruct);
             });			
@@ -12793,6 +12829,19 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathGroupChrInit = function(props, oParent, oContent, oParStruct) {
+		if (!oContent.content) {
+			var oGroupChr = new CGroupCharacter(props);
+			initMathRevisions(oGroupChr, props);
+			if (oParent) {
+				oParent.addElementToContent(oGroupChr);
+			}
+			if (oParStruct) {
+				oGroupChr.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oGroupChr.getBase();
+		}
+	};
 	this.ReadMathGroupChr = function(type, length, props, oParent, oContent, oParStruct)
     {		
         var res = c_oSerConstants.ReadOk;
@@ -12802,16 +12851,11 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathGroupChrPr(t,l,props);
             });
-			var oGroupChr = new CGroupCharacter(props);
-            initMathRevisions(oGroupChr, props);
-			if (oParent)
-				oParent.addElementToContent(oGroupChr);
-            if(oParStruct)
-                oGroupChr.Paragraph = oParStruct.paragraph;
-			oContent.content = oGroupChr.getBase();
+			this.ReadMathGroupChrInit(props, oParent, oContent, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathGroupChrInit(props, oParent, oContent, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });		
@@ -12918,6 +12962,22 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathLimLowInit = function(props, oParent, oContent, oLim, oParStruct) {
+		if (!oContent.content && !oLim.content) {
+			props.type = LIMIT_LOW;
+			var oLimLow = new CLimit(props);
+			initMathRevisions(oLimLow, props);
+			if (oParent) {
+				oParent.addElementToContent(oLimLow);
+			}
+
+			if (oParStruct) {
+				oLimLow.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oLimLow.getFName();
+			oLim.content = oLimLow.getIterator();
+		}
+	};
 	this.ReadMathLimLow = function(type, length, props, oParent, oContent, oLim, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -12927,25 +12987,18 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathLimLowPr(t,l,props);
             });
-			props.type = LIMIT_LOW;
-			var oLimLow = new CLimit(props);
-            initMathRevisions(oLimLow, props);
-			if (oParent)
-				oParent.addElementToContent(oLimLow);
-
-            if(oParStruct)
-                oLimLow.Paragraph = oParStruct.paragraph;
-			oContent.content = oLimLow.getFName();
-			oLim.content = oLimLow.getIterator();
+			this.ReadMathLimLowInit(props, oParent, oContent, oLim, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathLimLowInit(props, oParent, oContent, oLim, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Lim === type)
         {
+			this.ReadMathLimLowInit(props, oParent, oContent, oLim, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oLim.content, oParStruct);
             });			
@@ -12968,6 +13021,21 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathLimUppInit = function(props, oParent, oContent, oLim, oParStruct) {
+		if (!oContent.content && !oLim.content) {
+			props.type = LIMIT_UP;
+			var oLimUpp = new CLimit(props);
+			initMathRevisions(oLimUpp, props);
+			if (oParent) {
+				oParent.addElementToContent(oLimUpp);
+			}
+			if (oParStruct) {
+				oLimUpp.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oLimUpp.getFName();
+			oLim.content = oLimUpp.getIterator();
+		}
+	};
 	this.ReadMathLimUpp = function(type, length, props, oParent, oContent, oLim, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -12977,24 +13045,18 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathLimUppPr(t,l,props);
             });
-			props.type = LIMIT_UP;
-			var oLimUpp = new CLimit(props);
-            initMathRevisions(oLimUpp, props);
-			if (oParent)			
-				oParent.addElementToContent(oLimUpp);
-            if(oParStruct)
-                oLimUpp.Paragraph = oParStruct.paragraph;
-			oContent.content = oLimUpp.getFName();
-			oLim.content = oLimUpp.getIterator();
+			this.ReadMathLimUppInit(props, oParent, oContent, oLim, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathLimUppInit(props, oParent, oContent, oLim, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Lim === type)
         {
+			this.ReadMathLimUppInit(props, oParent, oContent, oLim, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oLim.content, oParStruct);
             });			
@@ -13379,7 +13441,25 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
-    };	
+    };
+	this.ReadMathNaryInit = function(props, oParent, oContent, oSub, oSup, oParStruct) {
+		if (!oSub.content && !oSup.content && !oContent.content) {
+			if (!props.ctrPrp) {
+				props.ctrPrp = new CTextPr();
+			}
+			var oNary = new CNary(props);
+			initMathRevisions(oNary, props);
+			if (oParent) {
+				oParent.addElementToContent(oNary);
+			}
+			if (oParStruct) {
+				oNary.Paragraph = oParStruct.paragraph;
+			}
+			oSub.content = oNary.getLowerIterator();
+			oSup.content = oNary.getUpperIterator();
+			oContent.content = oNary.getBase();
+		}
+	};
 	this.ReadMathNary = function(type, length, props, oParent, oContent, oSub, oSup, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -13389,32 +13469,25 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathNaryPr(t,l,props);
             });
-			if (!props.ctrPrp)
-				props.ctrPrp = new CTextPr();
-			var oNary = new CNary(props);
-            initMathRevisions(oNary, props);
-			if (oParent)
-				oParent.addElementToContent(oNary);
-            if(oParStruct)
-                oNary.Paragraph = oParStruct.paragraph;
-			oSub.content = oNary.getLowerIterator();
-			oSup.content = oNary.getUpperIterator();
-			oContent.content = oNary.getBase();
+			this.ReadMathNaryInit(props, oParent, oContent, oSub, oSup, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Sub === type)
         {
+			this.ReadMathNaryInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oSub.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Sup === type)
         {
+			this.ReadMathNaryInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oSup.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathNaryInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -13572,6 +13645,19 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathPhantInit = function(props, oParent, oContent, oParStruct) {
+		if (!oContent.content) {
+			var oPhant = new CPhantom(props);
+			initMathRevisions(oPhant, props);
+			if (oParent) {
+				oParent.addElementToContent(oPhant);
+			}
+			if (oParStruct) {
+				oPhant.Paragraph = oParStruct.paragraph;
+			}
+			oContent.content = oPhant.getBase();
+		}
+	};
 	this.ReadMathPhant = function(type, length, props, oParent, oContent, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -13581,16 +13667,11 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathPhantPr(t,l,props);
             });
-			var oPhant = new CPhantom(props);
-            initMathRevisions(oPhant, props);
-			if (oParent)
-				oParent.addElementToContent(oPhant);
-            if(oParStruct)
-                oPhant.Paragraph = oParStruct.paragraph;
-			oContent.content = oPhant.getBase();
+			this.ReadMathPhantInit(props, oParent, oContent, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathPhantInit(props, oParent, oContent, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -13673,6 +13754,20 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathRadInit = function(props, oParent, oRad, oContent, oDeg, oParStruct) {
+		if (!oDeg.content && !oContent.content) {
+			oRad.content = new CRadical(props);
+			initMathRevisions(oRad.content, props);
+			if (oParent) {
+				oParent.addElementToContent(oRad.content);
+			}
+			if (oParStruct) {
+				oRad.Paragraph = oParStruct.paragraph;
+			}
+			oDeg.content = oRad.content.getDegree();
+			oContent.content = oRad.content.getBase();
+		}
+	};
 	this.ReadMathRad = function(type, length, props, oParent, oRad, oContent, oDeg, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -13682,23 +13777,18 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathRadPr(t,l,props);
             });
-			oRad.content = new CRadical(props);
-            initMathRevisions(oRad.content, props);
-			if (oParent)
-				oParent.addElementToContent(oRad.content);
-            if(oParStruct)
-                oRad.Paragraph = oParStruct.paragraph;
-			oDeg.content = oRad.content.getDegree();
-			oContent.content = oRad.content.getBase();
+			this.ReadMathRadInit(props, oParent, oRad, oContent, oDeg, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Deg === type)
         {
+			this.ReadMathRadInit(props, oParent, oRad, oContent, oDeg, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oDeg.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathRadInit(props, oParent, oRad, oContent, oDeg, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -13806,7 +13896,24 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
 		else
             res = c_oSerConstants.ReadUnknown;
         return res;
-    };	
+    };
+	this.ReadMathSPreInit = function(props, oParent, oContent, oSub, oSup, oParStruct) {
+		if (!oSub.content && !oSup.content && !oContent.content) {
+			props.type = DEGREE_PreSubSup;
+			var oSPre = new CDegreeSubSup(props);
+			initMathRevisions(oSPre, props);
+			if (oParent) {
+				oParent.addElementToContent(oSPre);
+			}
+
+			if (oParStruct) {
+				oSPre.Paragraph = oParStruct.paragraph;
+			}
+			oSub.content = oSPre.getLowerIterator();
+			oSup.content = oSPre.getUpperIterator();
+			oContent.content = oSPre.getBase();
+		}
+	};
 	this.ReadMathSPre = function(type, length, props, oParent, oContent, oSub, oSup, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -13816,32 +13923,25 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathSPrePr(t,l,props);
             });
-			props.type = DEGREE_PreSubSup;
-			var oSPre = new CDegreeSubSup(props);
-            initMathRevisions(oSPre, props);
-			if (oParent)
-				oParent.addElementToContent(oSPre);
-
-            if(oParStruct)
-                oSPre.Paragraph = oParStruct.paragraph;
-			oSub.content = oSPre.getLowerIterator();
-			oSup.content = oSPre.getUpperIterator();
-			oContent.content = oSPre.getBase();
+			this.ReadMathSPreInit(props, oParent, oContent, oSub, oSup, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Sub === type)
         {
+			this.ReadMathSPreInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oSub.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Sup === type)
         {
+			this.ReadMathSPreInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oSup.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathSPreInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -13863,7 +13963,22 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
-    };	
+    };
+	this.ReadMathSSubInit = function(props, oParent, oContent, oSub, oParStruct) {
+		if (!oSub.content && !oContent.content) {
+			props.type = DEGREE_SUBSCRIPT;
+			var oSSub = new CDegree(props);
+			initMathRevisions(oSSub, props);
+			if (oParent) {
+				oParent.addElementToContent(oSSub);
+			}
+			if (oParStruct) {
+				oSSub.Paragraph = oParStruct.paragraph;
+			}
+			oSub.content = oSSub.getLowerIterator();
+			oContent.content = oSSub.getBase();
+		}
+	};
 	this.ReadMathSSub = function(type, length, props, oParent, oContent, oSub, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -13873,24 +13988,18 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathSSubPr(t,l,props);
             });
-			props.type = DEGREE_SUBSCRIPT;
-			var oSSub = new CDegree(props);
-            initMathRevisions(oSSub, props);
-			if (oParent)
-				oParent.addElementToContent(oSSub);
-            if(oParStruct)
-                oSSub.Paragraph = oParStruct.paragraph;
-			oSub.content = oSSub.getLowerIterator();
-			oContent.content = oSSub.getBase();
+			this.ReadMathSSubInit(props, oParent, oContent, oSub, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Sub === type)
         {
+			this.ReadMathSSubInit(props, oParent, oContent, oSub, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oSub.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
+			this.ReadMathSSubInit(props, oParent, oContent, oSub, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -13913,6 +14022,22 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathSSubSupInit = function(props, oParent, oContent, oSub, oSup, oParStruct) {
+		if (!oSub.content && !oSup.content && !oContent.content) {
+			props.type = DEGREE_SubSup;
+			var oSSubSup = new CDegreeSubSup(props);
+			initMathRevisions(oSSubSup, props);
+			if (oParent) {
+				oParent.addElementToContent(oSSubSup);
+			}
+			if (oParStruct) {
+				oSSubSup.Paragraph = oParStruct.paragraph;
+			}
+			oSub.content = oSSubSup.getLowerIterator();
+			oSup.content = oSSubSup.getUpperIterator();
+			oContent.content = oSSubSup.getBase();
+		}
+	};
 	this.ReadMathSSubSup = function(type, length, props, oParent, oContent, oSub, oSup, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -13922,64 +14047,25 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathSSubSupPr(t,l,props);
             });
-			props.type = DEGREE_SubSup;
-			var oSSubSup = new CDegreeSubSup(props);
-            initMathRevisions(oSSubSup, props);
-			if (oParent)
-				oParent.addElementToContent(oSSubSup);
-            if(oParStruct)
-                oSSubSup.Paragraph = oParStruct.paragraph;
-			oSub.content = oSSubSup.getLowerIterator();
-			oSup.content = oSSubSup.getUpperIterator();
-			oContent.content = oSSubSup.getBase();
+			this.ReadMathSSubSupInit(props, oParent, oContent, oSub, oSup, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Sub === type)
         {
-			if (undefined == oContent.content)
-			{
-				props.type = DEGREE_SubSup;
-				var oSSubSup = new CDegreeSubSup(props);
-				if (oParent)
-					oParent.addElementToContent(oSSubSup);
-				oSub.content = oSSubSup.getLowerIterator();
-				oSup.content = oSSubSup.getUpperIterator();
-				oContent.content = oSSubSup.getBase();
-			}
-			
+			this.ReadMathSSubSupInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oSub.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Sup === type)
         {
-			if (undefined == oContent.content)
-			{
-				props.type = DEGREE_SubSup;
-				var oSSubSup = new CDegreeSubSup(props);
-				if (oParent)
-					oParent.addElementToContent(oSSubSup);
-				oSub.content = oSSubSup.getLowerIterator();
-				oSup.content = oSSubSup.getUpperIterator();
-				oContent.content = oSSubSup.getBase();
-			}
-			
+			this.ReadMathSSubSupInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oSup.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
-			if (undefined == oContent.content)
-			{
-				props.type = DEGREE_SubSup;
-				var oSSubSup = new CDegreeSubSup(props);
-				if (oParent)
-					oParent.addElementToContent(oSSubSup);
-				oSub.content = oSSubSup.getLowerIterator();
-				oSup.content = oSSubSup.getUpperIterator();
-				oContent.content = oSSubSup.getBase();
-			}
-			
+			this.ReadMathSSubSupInit(props, oParent, oContent, oSub, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
@@ -14008,6 +14094,21 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
+	this.ReadMathSSupInit = function(props, oParent, oContent, oSup, oParStruct) {
+		if (!oSup.content && !oContent.content) {
+			props.type = DEGREE_SUPERSCRIPT;
+			var oSSup = new CDegree(props);
+			initMathRevisions(oSSup, props);
+			if (oParent) {
+				oParent.addElementToContent(oSSup);
+			}
+			if (oParStruct) {
+				oSSup.Paragraph = oParStruct.paragraph;
+			}
+			oSup.content = oSSup.getUpperIterator();
+			oContent.content = oSSup.getBase();
+		}
+	};
 	this.ReadMathSSup = function(type, length, props, oParent, oContent, oSup, oParStruct)
     {
         var res = c_oSerConstants.ReadOk;
@@ -14017,46 +14118,18 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathSSupPr(t,l,props);
             });
-			props.type = DEGREE_SUPERSCRIPT;
-			var oSSup = new CDegree(props);
-            initMathRevisions(oSSup, props);
-			if (oParent)
-				oParent.addElementToContent(oSSup);
-            if(oParStruct)
-                oSSup.Paragraph = oParStruct.paragraph;
-			oSup.content = oSSup.getUpperIterator();
-			oContent.content = oSSup.getBase();
+			this.ReadMathSSupInit(props, oParent, oContent, oSup, oParStruct);
         }
 		else if (c_oSer_OMathContentType.Sup === type)
         {
-			if (undefined == oSup.content)
-			{
-				props.type = DEGREE_SUPERSCRIPT;
-				var oSSup = new CDegree(props);
-				initMathRevisions(oSSup, props);
-				if (oParent)
-					oParent.addElementToContent(oSSup);
-				oSup.content = oSSup.getUpperIterator();
-				oContent.content = oSSup.getBase();
-			}
-
+			this.ReadMathSSupInit(props, oParent, oContent, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oSup.content, oParStruct);
             });			
         }
 		else if (c_oSer_OMathContentType.Element === type)
         {
-			if (undefined == oContent.content)
-			{
-				props.type = DEGREE_SUPERSCRIPT;
-				var oSSup = new CDegree(props);
-				initMathRevisions(oSSup, props);
-				if (oParent)
-					oParent.addElementToContent(oSSup);
-				oSup.content = oSSup.getUpperIterator();
-				oContent.content = oSSup.getBase();
-			}
-
+			this.ReadMathSSupInit(props, oParent, oContent, oSup, oParStruct);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oContent.content, oParStruct);
             });			
