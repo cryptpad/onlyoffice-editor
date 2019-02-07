@@ -50,25 +50,34 @@
             if (window.Asc.plugin.info.lang != g_language)
             {
                 g_language = window.Asc.plugin.info.lang;
+                if (g_language == "en-EN")
+				{
+					window.Asc.plugin.translateManager = null;
+					if (window.Asc.plugin.onTranslate)
+						window.Asc.plugin.onTranslate();
+				}
+				else
+				{
+					var _client = new XMLHttpRequest();
+					_client.open("GET", "./translations/" + g_language + ".json");
 
-                var _client = new XMLHttpRequest();
-                _client.open("GET", "./translations/" + g_language + ".json");
-
-                _client.onreadystatechange = function() {
-                    if (_client.readyState == 4 && (_client.status == 200 || location.href.indexOf("file:") == 0))
-                    {
-                        try
-                        {
-                            window.Asc.plugin.translateManager = JSON.parse(_client.responseText);
-                            if (window.Asc.plugin.onTranslate)
-                                window.Asc.plugin.onTranslate();
-                        }
-                        catch (err)
-                        {
-                        }
-                    }
-                };
-                _client.send();
+					_client.onreadystatechange = function ()
+					{
+						if (_client.readyState == 4 && (_client.status == 200 || location.href.indexOf("file:") == 0))
+						{
+							try
+							{
+								window.Asc.plugin.translateManager = JSON.parse(_client.responseText);
+								if (window.Asc.plugin.onTranslate)
+									window.Asc.plugin.onTranslate();
+							}
+							catch (err)
+							{
+							}
+						}
+					};
+					_client.send();
+				}
             }
 
             switch (type)
