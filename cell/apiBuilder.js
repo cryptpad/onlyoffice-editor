@@ -1915,6 +1915,18 @@
 		}
 	});
 
+	/**
+	 * Selects the object.
+	 * @memberof ApiRange
+	 */
+	ApiRange.prototype.Select = function () {
+		if (this.range.worksheet.getId() === this.range.worksheet.workbook.getActiveWs().getId()) {
+			var newSelection = new AscCommonExcel.SelectionRange(this.range.worksheet);
+			newSelection.assign2(this.range.bbox);
+			newSelection.Select();
+		}
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDrawing
@@ -2510,7 +2522,8 @@
 	ApiRange.prototype["AddComment"] = ApiRange.prototype.AddComment;
 	ApiRange.prototype["GetWorksheet"] = ApiRange.prototype.GetWorksheet;
 	ApiRange.prototype["GetDefName"] = ApiRange.prototype.GetDefName;
-	ApiRange.prototype["GetComment"] = ApiRange.prototype.GetComment;	
+	ApiRange.prototype["GetComment"] = ApiRange.prototype.GetComment;
+	ApiRange.prototype["Select"] = ApiRange.prototype.Select;
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;
