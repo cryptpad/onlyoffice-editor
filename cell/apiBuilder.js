@@ -379,6 +379,15 @@
 	};
 
 	/**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CSE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
+	};
+
+	/**
 	 * Returns Visible of sheet
 	 * @memberof ApiWorksheet
 	 * @returns {bool}
@@ -2463,6 +2472,7 @@
 	Api.prototype["GetSelection"] = Api.prototype.GetSelection;
 	Api.prototype["AddDefName"] = Api.prototype.AddDefName;
 	Api.prototype["GetDefName"] = Api.prototype.GetDefName;
+	Api.prototype["Save"] = Api.prototype.Save;
 
 	ApiWorksheet.prototype["GetVisible"] = ApiWorksheet.prototype.GetVisible;
 	ApiWorksheet.prototype["SetVisible"] = ApiWorksheet.prototype.SetVisible;

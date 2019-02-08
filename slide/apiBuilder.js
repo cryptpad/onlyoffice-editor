@@ -395,6 +395,15 @@
         return this.private_CreateApiParagraph(new Paragraph(oDrawingDocument, null, true));
     };
 
+    /**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CSE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
+	};
+
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -1539,6 +1548,7 @@
     Api.prototype["CreateGroup"]                     = Api.prototype.CreateGroup;
     Api.prototype["CreateTable"]                     = Api.prototype.CreateTable;
     Api.prototype["CreateParagraph"]                 = Api.prototype.CreateParagraph;
+    Api.prototype["Save"]                            = Api.prototype.Save;
 
     ApiPresentation.prototype["GetClassType"]          = ApiPresentation.prototype.GetClassType;
     ApiPresentation.prototype["GetCurSlideIndex"]      = ApiPresentation.prototype.GetCurSlideIndex;
