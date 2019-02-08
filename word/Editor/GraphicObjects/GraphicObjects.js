@@ -3133,6 +3133,12 @@ CGraphicObjects.prototype =
     },
 
 
+
+    checkTargetSelection: function()
+    {
+        return false;
+    },
+
     Save_DocumentStateBeforeLoadChanges: function(oState)
     {
         var oTargetDocContent = this.getTargetDocContent(undefined, true);
