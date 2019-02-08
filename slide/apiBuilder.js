@@ -397,7 +397,7 @@
 
     /**
 	 * Saves changes to the specified document.
-	 * @typeofeditors ["CSE"]
+	 * @typeofeditors ["CPE"]
 	 * @memberof Api
 	 */
 	Api.prototype.Save = function () {
