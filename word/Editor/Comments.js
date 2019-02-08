@@ -491,9 +491,9 @@ CComment.prototype.IsSolved = function()
 
 	return false;
 };
-CComment.prototype.IsQuoted = function()
+CComment.prototype.IsGlobalComment = function()
 {
-	return (this.Data && null !== this.Data.GetQuoteText());
+	return (!this.Data || null === this.Data.GetQuoteText());
 };
 
 var comments_NoComment        = 0;
