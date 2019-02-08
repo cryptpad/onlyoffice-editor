@@ -9121,8 +9121,8 @@ CCore.prototype.fromStream = function(s)
             case 1: { this.creator = s.GetString2(); break; }
             case 2: { this.lastModifiedBy = s.GetString2(); break; }
             case 3: { this.revision = s.GetString2(); break; }
-            case 4: { this.created = new Date(s.GetString2()); break; }
-            case 5: { this.modified = new Date(s.GetString2()); break; }
+            case 4: { this.created = this.readDate(s.GetString2()); break; }
+            case 5: { this.modified = this.readDate(s.GetString2()); break; }
             default:
                 return;
         }
@@ -9153,7 +9153,7 @@ CCore.prototype.fromStream = function(s)
                         case 9: { this.identifier = s.GetString2(); break; }
                         case 10: { this.keywords = s.GetString2(); break; }
                         case 11: { this.language = s.GetString2(); break; }
-                        case 12: { this.lastPrinted = new Date(s.GetString2()); break; }
+                        case 12: { this.lastPrinted = this.readDate(s.GetString2()); break; }
                         case 13: { this.subject = s.GetString2(); break; }
                         case 14: { this.version = s.GetString2(); break; }
                         default:
@@ -9171,6 +9171,11 @@ CCore.prototype.fromStream = function(s)
         }
     }
     s.Seek2(_end_pos);
+};
+CCore.prototype.readDate = function(val)
+{
+    val = new Date(val);
+    return val instanceof Date && !isNaN(val) ? val : null;
 };
 CCore.prototype.toStream = function(s, api) {
     s.StartRecord(AscCommon.c_oMainTables.Core);

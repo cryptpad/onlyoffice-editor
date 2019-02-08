@@ -87,6 +87,8 @@ Asc['asc_docs_api'].prototype.asc_RejectChanges = function(Change)
 };
 Asc['asc_docs_api'].prototype.asc_HaveRevisionsChanges = function(isCheckOwnChanges)
 {
+	if (!this.WordControl.m_oLogicDocument)
+		return false;
     return this.WordControl.m_oLogicDocument.HaveRevisionChanges(isCheckOwnChanges);
 };
 Asc['asc_docs_api'].prototype.asc_HaveNewRevisionsChanges = function()

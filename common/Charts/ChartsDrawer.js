@@ -2300,7 +2300,7 @@ CChartsDrawer.prototype =
 		return result;
 	},
 
-	getYPosition: function (val, axis) {
+	getYPosition: function (val, axis, ignoreAxisLimits) {
 		var yPoints = axis.yPoints ? axis.yPoints : axis.xPoints;
 		var isOx = axis.axPos === window['AscFormat'].AX_POS_T || axis.axPos === window['AscFormat'].AX_POS_B;
 		var logBase = axis.scaling.logBase;
@@ -2324,7 +2324,7 @@ CChartsDrawer.prototype =
 				result = yPoints[0].pos + Math.abs((diffVal / resVal) * resPos);
 			}
 
-			if (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos) {
+			if (!ignoreAxisLimits && (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos)) {
 				result = yPoints[0].pos;
 			}
 		} else if (val > yPoints[yPoints.length - 1].val) {
@@ -2347,7 +2347,7 @@ CChartsDrawer.prototype =
 				}
 			}
 
-			if (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos) {
+			if (!ignoreAxisLimits && (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos)) {
 				result = yPoints[yPoints.length - 1].pos;
 			}
 		} else {
@@ -10207,7 +10207,7 @@ drawScatterChart.prototype = {
 		var yPoints = this.valAx.yPoints;
 		var betweenAxisCross = this.valAx.crossBetween === AscFormat.CROSS_BETWEEN_BETWEEN;
 
-		var seria, yVal, xVal, points, yNumCache, compiledMarkerSize, compiledMarkerSymbol, yPoint, idx, xPoint, prevYVal, prevXVal;
+		var seria, yVal, xVal, points, yNumCache, compiledMarkerSize, compiledMarkerSymbol, yPoint, idx, xPoint;
 		for (var i = 0; i < this.chart.series.length; i++) {
 			seria = this.chart.series[i];
 			yNumCache = this.cChartDrawer.getNumCache(seria.yVal);
@@ -10241,17 +10241,6 @@ drawScatterChart.prototype = {
 					xVal = n + 1;
 				}
 
-				/*var correctValues = this._correctValOutLimit(xVal, yVal, prevXVal, prevYVal, yPoints);
-				prevYVal = yVal;
-				prevXVal = xVal;
-				if(null === correctValues) {
-					continue;
-				} else {
-					xVal = correctValues.x;
-					yVal = correctValues.y;
-				}*/
-
-
 				yPoint = this.cChartDrawer.getIdxPoint(seria, idx);
 				compiledMarkerSize = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.size : null;
 				compiledMarkerSymbol = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.symbol : null;
@@ -10272,7 +10261,7 @@ drawScatterChart.prototype = {
 				}
 
 				if (yVal != null) {
-					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(this.cChartDrawer.getYPosition(xVal, this.catAx, true), this.cChartDrawer.getYPosition(yVal, this.valAx), compiledMarkerSize, compiledMarkerSymbol);
+					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(this.cChartDrawer.getYPosition(xVal, this.catAx), this.cChartDrawer.getYPosition(yVal, this.valAx, true), compiledMarkerSize, compiledMarkerSymbol);
 					points[i][n] = {x: xVal, y: yVal};
 				} else {
 					this.paths.points[i][n] = null;
@@ -10282,30 +10271,6 @@ drawScatterChart.prototype = {
 		}
 
 		this._calculateAllLines(points);
-	},
-
-	_correctValOutLimit: function(xVal, yVal, prevXVal, prevYVal, yPoints) {
-		var res = {x: xVal, y: yVal};
-
-		if(yPoints && yPoints.length) {
-			var minVal = yPoints[0].val < yPoints[yPoints.length - 1].val ? yPoints[0].val : yPoints[yPoints.length - 1].val;
-			var maxVal = yPoints[0].val < yPoints[yPoints.length - 1].val ? yPoints[yPoints.length - 1].val : yPoints[0].val;
-
-			//предыдущая точка ниже верхней границы, текущая выше - ищем пересечение с границей
-			if(prevYVal && yVal > maxVal && prevYVal < maxVal) {
-				var k = (yVal - prevYVal) / (xVal - prevXVal);
-				var b = prevYVal - k * prevXVal;
-				res.x = (maxVal - b) / k;
-				res.y = maxVal;
-			} else if(prevYVal && prevYVal > maxVal && yVal < maxVal) { //текущая точка выше верхней границы, следующая ниже - ищем пересечение с границей
-
-			} else if(yVal > maxVal && prevYVal && prevYVal > maxVal) { //если обе точки выще границы
-				res = null;
-			}
-		}
-
-
-		return res;
 	},
 
 	_recalculateScatter2: function () {
@@ -10423,10 +10388,10 @@ drawScatterChart.prototype = {
 						this.paths.series[i][n] = this.cChartDrawer.calculateSplineLine(x, y, x1, y1, x2, y2, x3, y3, this.catAx, this.valAx);
 					} else {
 						x = this.cChartDrawer.getYPosition(points[i][n].x, this.catAx);
-						y = this.cChartDrawer.getYPosition(points[i][n].y, this.valAx);
+						y = this.cChartDrawer.getYPosition(points[i][n].y, this.valAx, true);
 
 						x1 = this.cChartDrawer.getYPosition(points[i][n + 1].x, this.catAx);
-						y1 = this.cChartDrawer.getYPosition(points[i][n + 1].y, this.valAx);
+						y1 = this.cChartDrawer.getYPosition(points[i][n + 1].y, this.valAx, true);
 
 						//this.paths.series[i][n] = {path: this._calculateLine(x, y, x1, y1), idx: points[i][n].idx};
 						this.paths.series[i][n] = this._calculateLine(x, y, x1, y1);
