@@ -2158,7 +2158,10 @@ ParaDrawing.prototype.GetAllParagraphs = function(Props, ParaArray)
 ParaDrawing.prototype.GetAllDocContents = function(aDocContents)
 {
 	var _ret = Array.isArray(aDocContents) ? aDocContents : [];
-	this.GraphicObj.getAllDocContents(_ret);
+	if(this.GraphicObj)
+	{
+		this.GraphicObj.getAllDocContents(_ret);
+	}
 	return _ret;
 };
 ParaDrawing.prototype.getTableProps = function()
