@@ -348,7 +348,21 @@ DrawingObjectsController.prototype.handleChartDoubleClick = function()
         oThis.changeCurrentState(new AscFormat.NullState(this));
         drawingObjects.showChartSettings();
     }, []);
-}
+};
+
+DrawingObjectsController.prototype.handleMediaObject = function(sName, e, x, y, pageIndex)
+{
+
+    this.clearTrackObjects();
+    this.clearPreTrackObjects();
+    this.changeCurrentState(new AscFormat.NullState(this));
+    var oApi = this.getEditorApi();
+    if(oApi)
+    {
+        oApi.asc_PlayMediaFile(sName)
+    }
+};
+
 DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing, oleObject, e, x, y, pageIndex)
 {
     var drawingObjects = this.drawingObjects;

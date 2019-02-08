@@ -1551,6 +1551,11 @@
 		this.pluginsManager.onEnableMouseEvents(isEnable);
 	};
 
+	baseEditorsApi.prototype.asc_PlayMediaFile = function(sName)
+	{
+
+	};
+
     baseEditorsApi.prototype.isEnabledDropTarget = function()
     {
     	return true;

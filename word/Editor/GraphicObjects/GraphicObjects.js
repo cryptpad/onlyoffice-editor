@@ -1295,6 +1295,18 @@ CGraphicObjects.prototype =
     getEditorApi: DrawingObjectsController.prototype.getEditorApi,
     resetConnectors: DrawingObjectsController.prototype.resetConnectors,
     checkDlblsPosition: DrawingObjectsController.prototype.checkDlblsPosition,
+    handleMediaObject: function(sName, e, x, y, pageIndex)
+    {
+        this.clearTrackObjects();
+        this.clearPreTrackObjects();
+        this.changeCurrentState(new AscFormat.NullState(this));
+        this.document.OnMouseUp(e, x, y, pageIndex);
+        var oApi = this.getEditorApi();
+        if(oApi)
+        {
+            oApi.asc_PlayMediaFile(sName);
+        }
+    },
 
     handleChartDoubleClick: function(drawing, chart, e, x, y, pageIndex)
     {
