@@ -1801,7 +1801,7 @@
 		if (!oNum)
 			return null;
 
-		return new ApiNumberingLevel(oNumbering, oNumPr.Lvl);
+		return new ApiNumberingLevel(oNum, oNumPr.Lvl);
 	};
 	/**
 	 * Specifies that the current paragraph references a numbering definition instance in the current document.
