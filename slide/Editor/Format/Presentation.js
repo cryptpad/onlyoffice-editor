@@ -5750,7 +5750,7 @@ CPresentation.prototype =
                                                 }
                                             }
                                             if(oCheckParagraph.IsEmpty()){
-                                                oDocContentForDraw.Content.splice(i, 1);
+                                                oDocContentForDraw.Internal_Content_Remove(i, 1, false);
                                             }
                                             else{
 
@@ -5786,7 +5786,7 @@ CPresentation.prototype =
                                                 }
                                             }
                                             if(oCheckParagraph.IsEmpty()){
-                                                oDocContentForDraw.Content.splice(i, 1);
+                                                oDocContentForDraw.Internal_Content_Remove(i, 1, false);
                                                 i--;
                                             }
                                             else{
