@@ -189,6 +189,8 @@
 
 		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
 
+		this.SaveAfterMacros = false;
+
 		return this;
 	}
 

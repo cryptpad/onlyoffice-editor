@@ -1141,6 +1141,15 @@
 	{
 		return new ApiBlockLvlSdt(new CBlockLvlSdt());
 	};
+
+	/**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CDE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiUnsupported
@@ -5134,6 +5143,7 @@
 	Api.prototype["CreateNumbering"]                 = Api.prototype.CreateNumbering;
 	Api.prototype["CreateInlineLvlSdt"]              = Api.prototype.CreateInlineLvlSdt;
 	Api.prototype["CreateBlockLvlSdt"]               = Api.prototype.CreateBlockLvlSdt;
+	Api.prototype["Save"]               			 = Api.prototype.Save;
 
 	ApiUnsupported.prototype["GetClassType"]         = ApiUnsupported.prototype.GetClassType;
 

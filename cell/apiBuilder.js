@@ -379,6 +379,15 @@
 	};
 
 	/**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CSE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
+	};
+
+	/**
 	 * Returns Visible of sheet
 	 * @memberof ApiWorksheet
 	 * @returns {bool}
@@ -860,6 +869,14 @@
 			return this.GetComments();
 		}
 	});
+
+	/**
+	 * Deletes the object.
+	 * @memberof ApiWorksheet
+	 */
+	ApiWorksheet.prototype.Delete = function () {
+		this.worksheet.workbook.removeWorksheet(this.worksheet.getIndex());
+	};
 
 	/**
 	 * Add Hyperlink
@@ -2430,6 +2447,15 @@
 		}
 	});
 
+	/**
+	 * Deletes the object.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiComment
+	 */
+	ApiComment.prototype.Delete = function () {
+		this.Comment.worksheet.cellCommentator.removeComment(this.Comment.asc_getId());
+	};
+
 	Api.prototype["Format"] = Api.prototype.Format;
 	Api.prototype["AddSheet"] = Api.prototype.AddSheet;
 	Api.prototype["GetSheets"] = Api.prototype.GetSheets;
@@ -2446,6 +2472,7 @@
 	Api.prototype["GetSelection"] = Api.prototype.GetSelection;
 	Api.prototype["AddDefName"] = Api.prototype.AddDefName;
 	Api.prototype["GetDefName"] = Api.prototype.GetDefName;
+	Api.prototype["Save"] = Api.prototype.Save;
 
 	ApiWorksheet.prototype["GetVisible"] = ApiWorksheet.prototype.GetVisible;
 	ApiWorksheet.prototype["SetVisible"] = ApiWorksheet.prototype.SetVisible;
@@ -2480,6 +2507,7 @@
 	ApiWorksheet.prototype["GetDefName"] = ApiWorksheet.prototype.GetDefName;
 	ApiWorksheet.prototype["AddDefName"] = ApiWorksheet.prototype.AddDefName;
 	ApiWorksheet.prototype["GetComments"] = ApiWorksheet.prototype.GetComments;
+	ApiWorksheet.prototype["Delete"] = ApiWorksheet.prototype.Delete;
 	ApiWorksheet.prototype["SetHyperlink"] = ApiWorksheet.prototype.SetHyperlink;
 	ApiWorksheet.prototype["AddChart"] = ApiWorksheet.prototype.AddChart;
 	ApiWorksheet.prototype["AddShape"] = ApiWorksheet.prototype.AddShape;
@@ -2576,6 +2604,7 @@
 
 
 	ApiComment.prototype["GetText"]              =  ApiComment.prototype.GetText;
+	ApiComment.prototype["Delete"]               =  ApiComment.prototype.Delete;
 
 
 	function private_SetCoords(oDrawing, oWorksheet, nExtX, nExtY, nFromCol, nColOffset,  nFromRow, nRowOffset, pos){
