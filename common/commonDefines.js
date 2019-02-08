@@ -1426,6 +1426,13 @@
 		Hidden : 2
 	};
 
+
+	var c_oAscObjectsAlignType = {
+		Selected: 0,
+		Slide: 1,
+		Page: 2,
+		Margin: 3
+	};
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2186,4 +2193,11 @@
 	prot = window['Asc']['c_oAscSdtAppearance'] = window['Asc'].c_oAscSdtAppearance = c_oAscSdtAppearance;
 	prot['Frame']  = c_oAscSdtAppearance.Frame;
 	prot['Hidden'] = c_oAscSdtAppearance.Hidden;
+
+
+	prot = window['Asc']['c_oAscObjectsAlignType'] = window['Asc'].c_oAscObjectsAlignType = c_oAscObjectsAlignType;
+	prot['Selected'] = c_oAscObjectsAlignType.Selected;
+	prot['Slide'] = c_oAscObjectsAlignType.Slide;
+	prot['Page'] = c_oAscObjectsAlignType.Page;
+	prot['Margin'] = c_oAscObjectsAlignType.Margin;
 })(window);

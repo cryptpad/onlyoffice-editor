@@ -2261,6 +2261,12 @@
 		return this.macros.GetData();
 	};
 
+	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
+	{
+		return 0;
+	};
+
+
 	function parseCSV(text, options) {
 		var delimiterChar;
 		if (options.asc_getDelimiterChar()) {
