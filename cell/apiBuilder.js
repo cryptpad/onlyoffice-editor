@@ -862,6 +862,14 @@
 	});
 
 	/**
+	 * Deletes the object.
+	 * @memberof ApiWorksheet
+	 */
+	ApiWorksheet.prototype.Delete = function () {
+		this.worksheet.workbook.removeWorksheet(this.worksheet.getIndex());
+	};
+
+	/**
 	 * Add Hyperlink
 	 * @memberof ApiWorksheet
 	 * @param {Anchor} Anchor
@@ -2430,6 +2438,15 @@
 		}
 	});
 
+	/**
+	 * Deletes the object.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiComment
+	 */
+	ApiComment.prototype.Delete = function () {
+		this.Comment.worksheet.cellCommentator.removeComment(this.Comment.asc_getId());
+	};
+
 	Api.prototype["Format"] = Api.prototype.Format;
 	Api.prototype["AddSheet"] = Api.prototype.AddSheet;
 	Api.prototype["GetSheets"] = Api.prototype.GetSheets;
@@ -2480,6 +2497,7 @@
 	ApiWorksheet.prototype["GetDefName"] = ApiWorksheet.prototype.GetDefName;
 	ApiWorksheet.prototype["AddDefName"] = ApiWorksheet.prototype.AddDefName;
 	ApiWorksheet.prototype["GetComments"] = ApiWorksheet.prototype.GetComments;
+	ApiWorksheet.prototype["Delete"] = ApiWorksheet.prototype.Delete;
 	ApiWorksheet.prototype["SetHyperlink"] = ApiWorksheet.prototype.SetHyperlink;
 	ApiWorksheet.prototype["AddChart"] = ApiWorksheet.prototype.AddChart;
 	ApiWorksheet.prototype["AddShape"] = ApiWorksheet.prototype.AddShape;
@@ -2576,6 +2594,7 @@
 
 
 	ApiComment.prototype["GetText"]              =  ApiComment.prototype.GetText;
+	ApiComment.prototype["Delete"]               =  ApiComment.prototype.Delete;
 
 
 	function private_SetCoords(oDrawing, oWorksheet, nExtX, nExtY, nFromCol, nColOffset,  nFromRow, nRowOffset, pos){
