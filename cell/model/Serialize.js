@@ -8053,11 +8053,13 @@
             var oRes = this.bcr.ReadTable(function(t, l){
                 return oThis.ReadOtherContent(t,l);
             });
-            this.wb.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
-            if(null == this.wb.theme)
-                this.wb.theme = AscFormat.GenerateDefaultTheme(this.wb, 'Calibri');
+            if(!this.copyPasteObj || !this.copyPasteObj.isCopyPaste) {
+                this.wb.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
+                if(null == this.wb.theme)
+                    this.wb.theme = AscFormat.GenerateDefaultTheme(this.wb, 'Calibri');
 
-            Asc.getBinaryOtherTableGVar(this.wb);
+                Asc.getBinaryOtherTableGVar(this.wb);
+            }
 
             return oRes;
         };
