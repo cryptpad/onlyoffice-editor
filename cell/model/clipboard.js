@@ -256,7 +256,7 @@
 			var _data = null;
 			var activeRange = ws.getSelectedRange();
 			var wb = window["Asc"]["editor"].wb;
-
+			
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 
 			if (ws.getCellEditMode() === true)//text in cell
@@ -1224,6 +1224,17 @@
 						window["Asc"]["editor"].wb.cutIdSheet = null;
 						wsFrom.cutRange = null;
 						res = true;
+
+						//если вставка произошла успешно, тогда чистим буфер обмена
+						//для этого необходимо при вызове функции api.asc_Copy()
+						//в методе checkCopyToClipboard добавить пустой текст в _clipboard и ничего более
+						//ниже пример
+						//clean clipboard
+						/*if(window['AscCommon'].g_clipboardBase.bCleanClipboard){
+							_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Text, "");
+							window['AscCommon'].g_clipboardBase.bCleanClipboard = false;
+						}*/
+						//TODO необходимо реализовать очистку буфера обмена!!!
 					}
 				}
 
