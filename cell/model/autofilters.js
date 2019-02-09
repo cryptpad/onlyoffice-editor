@@ -1913,6 +1913,7 @@
 				var isUpdate = null;
 
 				var moveOneSheet = !wsTo || wsTo.Id === worksheet.Id;
+				wsTo = !wsTo ? worksheet : wsTo;
 
 				var bUndoChanges = worksheet.workbook.bUndoChanges;
 				var bRedoChanges = worksheet.workbook.bRedoChanges;
@@ -1926,7 +1927,7 @@
 					}
 				}
 
-				worksheet.workbook.dependencyFormulas.lockRecal();
+				wsTo.workbook.dependencyFormulas.lockRecal();
 
 				var cloneFilterColumns = function (filterColumns) {
 					var cloneFilterColumns = [];
@@ -1946,15 +1947,19 @@
 				var oCurFilter;
 
 				var moveFilterOneSheet = function(moveFilter) {
-					oCurFilter = moveFilter.clone(null);
+					if(!oCurFilter){
+						oCurFilter = [];
+					}
+
+					oCurFilter[i] = moveFilter.clone(null);
 					ref = moveFilter.Ref;
 					range = ref;
 
 					//move ref
-					findFilters[i].moveRef(diffCol, diffRow);
+					moveFilter.moveRef(diffCol, diffRow);
 
 					isUpdate = false;
-					if ((moveFilter.AutoFilter && findFilters[i].AutoFilter.FilterColumns && moveFilter.AutoFilter.FilterColumns.length) || (moveFilter.FilterColumns && moveFilter.FilterColumns.length)) {
+					if ((moveFilter.AutoFilter && moveFilter.AutoFilter.FilterColumns && moveFilter.AutoFilter.FilterColumns.length) || (moveFilter.FilterColumns && moveFilter.FilterColumns.length)) {
 						worksheet.setRowHidden(false, ref.r1, ref.r2);
 						isUpdate = true;
 					}
@@ -1970,9 +1975,9 @@
 					}
 
 
-					if (oCurFilter.TableStyleInfo && oCurFilter && findFilters[i]) {
-						t._cleanStyleTable(oCurFilter.Ref);
-						t._setColorStyleTable(findFilters[i].Ref, findFilters[i]);
+					if (oCurFilter[i].TableStyleInfo && oCurFilter[i] && moveFilter) {
+						t._cleanStyleTable(oCurFilter[i].Ref);
+						t._setColorStyleTable(moveFilter.Ref, moveFilter);
 					}
 
 					if (!bUndoChanges && !bRedoChanges) {
@@ -1986,14 +1991,16 @@
 					}
 				};
 
-				var moveFilterSheetToSheet = function(moveFilter) {
+				var moveTableSheetToSheet = function(moveFilter) {
 					var range;
 					var fromFilter;
-
 
 					fromFilter = moveFilter.clone(null);
 
 					t.isEmptyAutoFilters(fromFilter.Ref, null, null, true);
+					if(moveFilter.isAutoFilter()) {//а/ф не переносятся с листа на лист, переносятся только данные
+						return;
+					}
 
 					var tablePartRange = fromFilter.Ref;
 					var refInsertBinary = arnFrom;
@@ -2032,25 +2039,24 @@
 							} else {
 								//перемещение с листа на лист
 								//сначала удаляем, затем создаём новый
-								moveFilterSheetToSheet(findFilters[i]);
+								moveTableSheetToSheet(findFilters[i]);
 							}
 						}
 					}
 				}
 
 				var arnToRange = new Asc.Range(arnTo.c1, arnTo.r1, arnTo.c2, arnTo.r2);
-				var intersectionRangeWithTableParts = this._intersectionRangeWithTableParts(arnToRange);
+				var intersectionRangeWithTableParts = wsTo.autoFilters._intersectionRangeWithTableParts(arnToRange);
 				if (intersectionRangeWithTableParts && intersectionRangeWithTableParts.length) {
 					var tablePart;
 					for (var i = 0; i < intersectionRangeWithTableParts.length; i++) {
 						tablePart = intersectionRangeWithTableParts[i];
-						this._setColorStyleTable(tablePart.Ref, tablePart);
-						worksheet.getRange3(tablePart.Ref.r1, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2)
-							.unmerge();
+						wsTo.autoFilters._setColorStyleTable(tablePart.Ref, tablePart);
+						wsTo.getRange3(tablePart.Ref.r1, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).unmerge();
 					}
 				}
 
-				worksheet.workbook.dependencyFormulas.unlockRecal();
+				wsTo.workbook.dependencyFormulas.unlockRecal();
 				return isUpdate ? range : null;
 			},
 
@@ -4363,55 +4369,56 @@
 					this._setColorStyleTable(ref, tableParts);
 				}		
 			},
-			
-			_preMoveAutoFilters: function(arnFrom, arnTo, copyRange, opt_wsTo)
-			{
+
+			_preMoveAutoFilters: function (arnFrom, arnTo, copyRange, opt_wsTo) {
 				var worksheet = this.worksheet;
-				
+
 				var diffCol = arnTo.c1 - arnFrom.c1;
 				var diffRow = arnTo.r1 - arnFrom.r1;
 
-				var ref;
-				if(!copyRange)
-				{
+				var ref, moveRangeTo;
+				if (!copyRange) {
+					//находим а/ф и ф/т там откуда переносим
 					var findFilters = this._searchFiltersInRange(arnFrom);
-					if(findFilters)
-					{
-						for(var i = 0; i < findFilters.length; i++)
-						{
+					if (findFilters) {
+						var ws = opt_wsTo ? opt_wsTo.model : worksheet;
+						for (var i = 0; i < findFilters.length; i++) {
 							ref = findFilters[i].Ref;
-							var newRange = new Asc.Range(ref.c1 + diffCol, ref.r1 + diffRow, ref.c2 + diffCol, ref.r2 + diffRow);
-							
+							//range а/ф или ф/т со сдвигом(потенциальное место вставки)
+							moveRangeTo = new Asc.Range(ref.c1 + diffCol, ref.r1 + diffRow, ref.c2 + diffCol, ref.r2 + diffRow);
+
 							//если затрагиваем форматированной таблицей часть а/ф
-							if(worksheet.AutoFilter && worksheet.AutoFilter.Ref && newRange.intersection(worksheet.AutoFilter.Ref) && worksheet.AutoFilter !== findFilters[i])
-							{
-								this.deleteAutoFilter(worksheet.AutoFilter.Ref);
+							//в данном случае, если вставлять в MS ф/т в а/ф с одного листа ну другой
+							//excel не убирает а/ф и в результате делает файл битым
+							//мы сделаем аналогично тому, как происходит в пределах одного листа
+							if (ws.AutoFilter && ws.AutoFilter.Ref && moveRangeTo.intersection(ws.AutoFilter.Ref) &&
+								ws.AutoFilter !== findFilters[i]) {
+								ws.autoFilters.deleteAutoFilter(ws.AutoFilter.Ref);
 							}
-							
+
 							//если область вставки содержит форматированную таблицу, которая пересекается с вставляемой форматированной таблицей
-							var findFiltersFromTo = this._intersectionRangeWithTableParts(newRange , arnFrom);
-							if(findFiltersFromTo && findFiltersFromTo.length)//удаляем данный фильтр
+							var findFiltersFromTo = ws.autoFilters._intersectionRangeWithTableParts(moveRangeTo, opt_wsTo ? null : arnFrom);
+							if (findFiltersFromTo && findFiltersFromTo.length)//удаляем данный фильтр
 							{
 								this.isEmptyAutoFilters(ref);
 								continue;
 							}
-							
+
 							this._openHiddenRows(findFilters[i]);
 						}
 					}
-					
+
 					//TODO пока будем всегда чистить фильтры, которые будут в месте вставки. Позже сделать аналогично MS либо пересмотреть все возможные ситуации.
 					var afTo = opt_wsTo && opt_wsTo.model ? opt_wsTo.model.autoFilters : this;
 					var findFiltersTo = afTo._searchFiltersInRange(arnTo);
-					if(arnTo && findFiltersTo)
-					{
-						for(var i = 0; i < findFiltersTo.length; i++)
-						{
+					if (arnTo && findFiltersTo) {
+						for (var i = 0; i < findFiltersTo.length; i++) {
 							ref = findFiltersTo[i].Ref;
-							
+
 							//если переносим просто данные, причём шапки совпадают, то фильтр не очищаем
-							if(!(arnTo.r1 === ref.r1 && arnTo.c1 === ref.c1) && !arnFrom.containsRange(ref))
+							if (!(arnTo.r1 === ref.r1 && arnTo.c1 === ref.c1) && !arnFrom.containsRange(ref)) {
 								afTo.isEmptyAutoFilters(ref, null, findFilters);
+							}
 						}
 					}
 				}
