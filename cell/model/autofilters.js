@@ -1907,10 +1907,12 @@
 				return res;
 			},
 
-			_moveAutoFilters: function (arnTo, arnFrom, data, copyRange, offLock, activeRange) {
+			_moveAutoFilters: function (arnTo, arnFrom, data, copyRange, offLock, activeRange, wsTo) {
 				//проверяем покрывает ли диапазон хотя бы один автофильтр
 				var worksheet = this.worksheet;
 				var isUpdate = null;
+
+				var moveOneSheet = !wsTo || wsTo.Id === worksheet.Id;
 
 				var bUndoChanges = worksheet.workbook.bUndoChanges;
 				var bRedoChanges = worksheet.workbook.bRedoChanges;
@@ -1936,61 +1938,101 @@
 					return cloneFilterColumns;
 				};
 
+				var t = this;
+				var diffCol = arnTo.c1 - arnFrom.c1;
+				var diffRow = arnTo.r1 - arnFrom.r1;
+				var ref;
+				var range;
+				var oCurFilter;
+
+				var moveFilterOneSheet = function(moveFilter) {
+					oCurFilter = moveFilter.clone(null);
+					ref = moveFilter.Ref;
+					range = ref;
+
+					//move ref
+					findFilters[i].moveRef(diffCol, diffRow);
+
+					isUpdate = false;
+					if ((moveFilter.AutoFilter && findFilters[i].AutoFilter.FilterColumns && moveFilter.AutoFilter.FilterColumns.length) || (moveFilter.FilterColumns && moveFilter.FilterColumns.length)) {
+						worksheet.setRowHidden(false, ref.r1, ref.r2);
+						isUpdate = true;
+					}
+
+					if (!data && moveFilter.AutoFilter && moveFilter.AutoFilter.FilterColumns) {
+						moveFilter.AutoFilter.cleanFilters();
+					} else if (!data && moveFilter && moveFilter.FilterColumns) {
+						moveFilter.cleanFilters();
+					} else if (data && data[i] && data[i].AutoFilter && data[i].AutoFilter.FilterColumns) {
+						moveFilter.AutoFilter.FilterColumns = cloneFilterColumns(data[i].AutoFilter.FilterColumns);
+					} else if (data && data[i] && data[i].FilterColumns) {
+						moveFilter.FilterColumns = cloneFilterColumns(data[i].FilterColumns);
+					}
+
+
+					if (oCurFilter.TableStyleInfo && oCurFilter && findFilters[i]) {
+						t._cleanStyleTable(oCurFilter.Ref);
+						t._setColorStyleTable(findFilters[i].Ref, findFilters[i]);
+					}
+
+					if (!bUndoChanges && !bRedoChanges) {
+						if (!addRedo && !data) {
+							t._addHistoryObj(oCurFilter, AscCH.historyitem_AutoFilter_Move, {arnTo: arnTo, arnFrom: arnFrom, activeCells: activeRange});
+
+							addRedo = true;
+						} else if (!data && addRedo) {
+							t._addHistoryObj(oCurFilter, AscCH.historyitem_AutoFilter_Move, null, null, null, null, activeRange);
+						}
+					}
+				};
+
+				var moveFilterSheetToSheet = function(moveFilter) {
+					var range;
+					var fromFilter;
+
+
+					fromFilter = moveFilter.clone(null);
+
+					t.isEmptyAutoFilters(fromFilter.Ref, null, null, true);
+
+					var tablePartRange = fromFilter.Ref;
+					var refInsertBinary = arnFrom;
+					diffRow = tablePartRange.r1 - refInsertBinary.r1 + arnTo.r1;
+					diffCol = tablePartRange.c1 - refInsertBinary.c1 + arnTo.c1;
+					range = wsTo.getRange3(diffRow, diffCol, diffRow + (tablePartRange.r2 - tablePartRange.r1), diffCol + (tablePartRange.c2 - tablePartRange.c1));
+
+					//TODO использовать bWithoutFilter из tablePart
+					var bWithoutFilter = false;
+					if (!fromFilter.AutoFilter) {
+						bWithoutFilter = true;
+					}
+
+					var offset = new AscCommon.CellBase(range.bbox.r1 - tablePartRange.r1, range.bbox.c1 - tablePartRange.c1);
+					var newDisplayName = fromFilter.DisplayName;
+					var props = {
+						bWithoutFilter: bWithoutFilter,
+						tablePart: fromFilter,
+						offset: offset,
+						displayName: newDisplayName
+					};
+					wsTo.autoFilters.addAutoFilter(fromFilter.TableStyleInfo.Name, range.bbox, true, true, props);
+				};
+
 				var addRedo = false;
 
 				if (copyRange) {
 					this._cloneCtrlAutoFilters(arnTo, arnFrom, offLock);
 				} else {
 					var findFilters = this._searchFiltersInRange(arnFrom);
-					if (findFilters) {
-						var diffCol = arnTo.c1 - arnFrom.c1;
-						var diffRow = arnTo.r1 - arnFrom.r1;
-						var ref;
-						var range;
-						var oCurFilter;
+					if(findFilters) {
 						//у найденных фильтров меняем Ref + скрытые строчки открываем
 						for (var i = 0; i < findFilters.length; i++) {
-							if (!oCurFilter) {
-								oCurFilter = [];
-							}
-							oCurFilter[i] = findFilters[i].clone(null);
-							ref = findFilters[i].Ref;
-							range = ref;
-
-							//move ref
-							findFilters[i].moveRef(diffCol, diffRow);
-
-							isUpdate = false;
-							if ((findFilters[i].AutoFilter && findFilters[i].AutoFilter.FilterColumns && findFilters[i].AutoFilter.FilterColumns.length) || (findFilters[i].FilterColumns && findFilters[i].FilterColumns.length)) {
-								worksheet.setRowHidden(false, ref.r1, ref.r2);
-								isUpdate = true;
-							}
-
-							if (!data && findFilters[i].AutoFilter && findFilters[i].AutoFilter.FilterColumns) {
-								findFilters[i].AutoFilter.cleanFilters();
-							} else if (!data && findFilters[i] && findFilters[i].FilterColumns) {
-								findFilters[i].cleanFilters();
-							} else if (data && data[i] && data[i].AutoFilter && data[i].AutoFilter.FilterColumns) {
-								findFilters[i].AutoFilter.FilterColumns = cloneFilterColumns(data[i].AutoFilter.FilterColumns);
-							} else if (data && data[i] && data[i].FilterColumns) {
-								findFilters[i].FilterColumns = cloneFilterColumns(data[i].FilterColumns);
-							}
-
-
-							if (oCurFilter[i].TableStyleInfo && oCurFilter[i] && findFilters[i]) {
-								this._cleanStyleTable(oCurFilter[i].Ref);
-								this._setColorStyleTable(findFilters[i].Ref, findFilters[i]);
-							}
-
-							if (!bUndoChanges && !bRedoChanges) {
-								if (!addRedo && !data) {
-									this._addHistoryObj(oCurFilter, AscCH.historyitem_AutoFilter_Move,
-										{arnTo: arnTo, arnFrom: arnFrom, activeCells: activeRange});
-									addRedo = true;
-								} else if (!data && addRedo) {
-									this._addHistoryObj(oCurFilter, AscCH.historyitem_AutoFilter_Move, null, null, null,
-										null, activeRange);
-								}
+							if(moveOneSheet) {
+								moveFilterOneSheet(findFilters[i]);
+							} else {
+								//перемещение с листа на лист
+								//сначала удаляем, затем создаём новый
+								moveFilterSheetToSheet(findFilters[i]);
 							}
 						}
 					}

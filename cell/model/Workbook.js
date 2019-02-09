@@ -5270,8 +5270,9 @@
 			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
 		}
 
-		if(false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges)
-			this.autoFilters._moveAutoFilters( oBBoxTo, oBBoxFrom, null, copyRange, true, oBBoxFrom );
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.autoFilters._moveAutoFilters(oBBoxTo, oBBoxFrom, null, copyRange, true, oBBoxFrom, wsTo);
+		}
 
 		this.workbook.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
