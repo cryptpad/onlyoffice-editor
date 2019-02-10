@@ -1266,17 +1266,16 @@
 
 				return res;
 			},
-			
-			_pasteFromBinaryPresentation: function(worksheet, base64, isIntoShape, isCellEditMode)
-			{
+
+			_pasteFromBinaryPresentation: function (worksheet, base64, isIntoShape, isCellEditMode) {
 				pptx_content_loader.Clear();
 
 				var _stream = AscFormat.CreateBinaryReader(base64, 0, base64.length);
 				var stream = new AscCommon.FileStream(_stream.data, _stream.size);
 				var p_url = stream.GetString2();
 				var p_theme = stream.GetString2();
-				var p_width = stream.GetULong()/100000;
-				var p_height = stream.GetULong()/100000;
+				var p_width = stream.GetULong() / 100000;
+				var p_height = stream.GetULong() / 100000;
 				var t = this;
 
 				var bIsMultipleContent = stream.GetBool();
@@ -1284,32 +1283,29 @@
 				var selectedContent2 = [];
 				if (true === bIsMultipleContent) {
 					var multipleParamsCount = stream.GetULong();
-					for(var i = 0; i < multipleParamsCount; i++){
+					for (var i = 0; i < multipleParamsCount; i++) {
 						selectedContent2.push(this._readPresentationSelectedContent(stream, worksheet));
 					}
 				}
 
 				var specialOptionsArr = [];
 				var specialProps = Asc.c_oSpecialPasteProps;
-				if(2 === multipleParamsCount) {
+				if (2 === multipleParamsCount) {
 					specialOptionsArr = [specialProps.sourceformatting];
-				} else if(3 === multipleParamsCount) {
+				} else if (3 === multipleParamsCount) {
 					specialOptionsArr = [specialProps.sourceformatting, specialProps.picture];
 				}
 
 				var defaultSelectedContent = selectedContent2[1] ? selectedContent2[1] : selectedContent2[0];
-				var bSlideObjects = defaultSelectedContent && defaultSelectedContent.content.SlideObjects && defaultSelectedContent.content.SlideObjects.length > 0;
+				var bSlideObjects = defaultSelectedContent && defaultSelectedContent.content.SlideObjects &&
+					defaultSelectedContent.content.SlideObjects.length > 0;
 				var pasteObj = bSlideObjects ? selectedContent2[2] : defaultSelectedContent;
 
-				if (window['AscCommon'].g_specialPasteHelper.specialPasteStart)
-				{
+				if (window['AscCommon'].g_specialPasteHelper.specialPasteStart) {
 					var props = window['AscCommon'].g_specialPasteHelper.specialPasteProps.property;
-					switch (props)
-					{
-						case Asc.c_oSpecialPasteProps.picture:
-						{
-							if(selectedContent2[2])
-							{
+					switch (props) {
+						case Asc.c_oSpecialPasteProps.picture: {
+							if (selectedContent2[2]) {
 								pasteObj = selectedContent2[2];
 							}
 							break;
@@ -1318,13 +1314,13 @@
 				}
 
 				var arr_Images, fonts, content = null;
-				if(pasteObj) {
+				if (pasteObj) {
 					arr_Images = pasteObj.images;
 					fonts = pasteObj.fonts;
 					content = pasteObj.content;
 				}
 
-				if(null === content) {
+				if (null === content) {
 					window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 					return;
@@ -1333,18 +1329,13 @@
 				if (content.DocContent) {
 					var docContent = content.DocContent.Elements;
 
-					if(isCellEditMode)
-					{
+					if (isCellEditMode) {
 						var text = this._getTextFromWord(docContent);
 						window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 						return text;
-					}
-					else if(isIntoShape)
-					{
-						var callback = function(isSuccess)
-						{
-							if(isSuccess)
-							{
+					} else if (isIntoShape) {
+						var callback = function (isSuccess) {
+							if (isSuccess) {
 								t._insertBinaryIntoShapeContent(worksheet, docContent);
 							}
 							window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
@@ -1352,9 +1343,7 @@
 
 						worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
 						return true;
-					}
-					else
-					{
+					} else {
 						History.TurnOff();
 						var oPasteFromBinaryWord = new pasteFromBinaryWord(this, worksheet, true);
 
@@ -1364,15 +1353,13 @@
 						newCDocument.theme = window["Asc"]["editor"].wbModel.theme;
 
 						var newContent = [];
-						for(var i = 0; i < docContent.length; i++)
-						{
-							if(type_Paragraph === docContent[i].GetType())//paragraph
+						for (var i = 0; i < docContent.length; i++) {
+							if (type_Paragraph === docContent[i].GetType())//paragraph
 							{
 								docContent[i] = AscFormat.ConvertParagraphToWord(docContent[i], newCDocument);
 								docContent[i].bFromDocument = true;
 								newContent.push(docContent[i]);
-							}
-							else if(type_Table === docContent[i].GetType())//table
+							} else if (type_Table === docContent[i].GetType())//table
 							{
 								//TODO вырезать из таблицы параграфы
 							}
@@ -1385,55 +1372,45 @@
 					}
 				} else if (content.Drawings) {
 
-					if(isCellEditMode)
-					{
+					if (isCellEditMode) {
 						return "";
 					}
 
-					if(!bSlideObjects)
-					{
+					if (!bSlideObjects) {
 						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
-						var specialProps = window['AscCommon'].g_specialPasteHelper.buttonInfo;
-						if(specialOptionsArr.length > 1)
-						{
+						specialProps = window['AscCommon'].g_specialPasteHelper.buttonInfo;
+						if (specialOptionsArr.length > 1) {
 							specialProps.asc_setOptions(specialOptionsArr);
 						}
 					}
 
 					var arr_shapes = content.Drawings;
-					if(arr_shapes && arr_shapes.length && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor))
-					{
-						if(!bSlideObjects && content.Drawings.length === selectedContent2[1].content.Drawings.length)
-						{
+					if (arr_shapes && arr_shapes.length && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {
+						if (!bSlideObjects && content.Drawings.length === selectedContent2[1].content.Drawings.length) {
 							var oEndContent = {
-                                Drawings: []
-                            };
+								Drawings: []
+							};
 							var oSourceContent = {
-                                Drawings: []
-                            };
-							for(var i = 0; i < content.Drawings.length; ++i)
-							{
+								Drawings: []
+							};
+							for (var i = 0; i < content.Drawings.length; ++i) {
 								oEndContent.Drawings.push({Drawing: content.Drawings[i].graphicObject});
-                                oSourceContent.Drawings.push({Drawing: selectedContent2[1].content.Drawings[i].graphicObject});
+								oSourceContent.Drawings.push({Drawing: selectedContent2[1].content.Drawings[i].graphicObject});
 							}
-                            AscFormat.checkDrawingsTransformBeforePaste(oEndContent, oSourceContent, null);
+							AscFormat.checkDrawingsTransformBeforePaste(oEndContent, oSourceContent, null);
 						}
 						var newFonts = {};
-						for(var i = 0; i < arr_shapes.length; i++)
-						{
+						for (var i = 0; i < arr_shapes.length; i++) {
 							arr_shapes[i].graphicObject.getAllFonts(newFonts);
 						}
 
 						var aPastedImages = arr_Images;
-						worksheet._loadFonts(newFonts, function() {
-							if(aPastedImages && aPastedImages.length)
-							{
-								t._loadImagesOnServer(aPastedImages, function() {
+						worksheet._loadFonts(newFonts, function () {
+							if (aPastedImages && aPastedImages.length) {
+								t._loadImagesOnServer(aPastedImages, function () {
 									t._insertImagesFromBinary(worksheet, {Drawings: arr_shapes}, isIntoShape, true);
 								});
-							}
-							else
-							{
+							} else {
 								t._insertImagesFromBinary(worksheet, {Drawings: arr_shapes}, isIntoShape, true);
 							}
 						});
