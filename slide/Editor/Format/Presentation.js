@@ -6876,7 +6876,7 @@ CPresentation.prototype =
         this.Document_UpdateInterfaceState();
     },
 
-    alignCenter : function(alignTyp)
+    alignCenter : function(alignType)
     {
         this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignCenter(alignType === Asc.c_oAscObjectsAlignType.Selected);
         this.Document_UpdateInterfaceState();
