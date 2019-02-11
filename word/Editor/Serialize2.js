@@ -78,7 +78,8 @@ var c_oSerTableTypes = {
 	Background: 12,
 	VbaProject: 13,
 	App: 15,
-	Core: 16
+	Core: 16,
+	DocumentComments: 17
 };
 var c_oSerSigTypes = {
     Version:0
@@ -1399,7 +1400,8 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml)
 		
 		//Write Comments
 		var oMapCommentId = {};
-		this.WriteTable(c_oSerTableTypes.Comments, new BinaryCommentsTableWriter(this.memory, this.Document, oMapCommentId));
+		this.WriteTable(c_oSerTableTypes.Comments, new BinaryCommentsTableWriter(this.memory, this.Document, oMapCommentId, false));
+		this.WriteTable(c_oSerTableTypes.DocumentComments, new BinaryCommentsTableWriter(this.memory, this.Document, oMapCommentId, true));
         //Write Numbering
 		var oNumIdMap = {};
         this.WriteTable(c_oSerTableTypes.Numbering, new BinaryNumberingTableWriter(this.memory, this.Document, oNumIdMap, null, this.saveParams));
@@ -1448,7 +1450,8 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml)
 		this.WriteMainTableStart();
 		
 		var oMapCommentId = {};
-		this.WriteTable(c_oSerTableTypes.Comments, new BinaryCommentsTableWriter(this.memory, this.Document, oMapCommentId));
+		this.WriteTable(c_oSerTableTypes.Comments, new BinaryCommentsTableWriter(this.memory, this.Document, oMapCommentId, false));
+		this.WriteTable(c_oSerTableTypes.DocumentComments, new BinaryCommentsTableWriter(this.memory, this.Document, oMapCommentId, true));
 		this.copyParams.bdtw.oMapCommentId = oMapCommentId;
 		
 		this.copyParams.nDocumentWriterTablePos = this.WriteTableStart(c_oSerTableTypes.Document);
@@ -5856,11 +5859,12 @@ function BinaryOtherTableWriter(memory, doc)
 		this.bs.WriteItem(c_oSerOtherTableTypes.DocxTheme, function(){pptx_content_writer.WriteTheme(oThis.memory, oThis.Document.theme);});
     };
 };
-function BinaryCommentsTableWriter(memory, doc, oMapCommentId)
+function BinaryCommentsTableWriter(memory, doc, oMapCommentId, isDocument)
 {
     this.memory = memory;
     this.Document = doc;
     this.oMapCommentId = oMapCommentId;
+	this.isDocument = isDocument;
     this.bs = new BinaryCommonWriter(this.memory);
     this.Write = function()
     {
@@ -5874,7 +5878,10 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId)
         for(var i in this.Document.Comments.m_aComments)
 		{
 			var oComment = this.Document.Comments.m_aComments[i];
-			this.bs.WriteItem(c_oSer_CommentsType.Comment, function () { oThis.WriteComment(oComment.Data, oComment.Id, nIndex++); });
+			if (this.isDocument === oComment.IsGlobalComment()) {
+				this.bs.WriteItem(c_oSer_CommentsType.Comment, function () { oThis.WriteComment(oComment.Data, oComment.Id, nIndex++); });
+			}
+
 		}
     };
     this.WriteComment = function(comment, sCommentId, nFileId)
@@ -6399,6 +6406,7 @@ function BinaryFileReader(doc, openParams)
         var nOtherTableSeek = -1;
         var nNumberingTableSeek = -1;
 		var nCommentTableSeek = -1;
+		var nDocumentCommentTableSeek = -1;
 		var nSettingTableSeek = -1;
 		var nDocumentTableSeek = -1;
 		var nFootnoteTableSeek = -1;
@@ -6417,6 +6425,8 @@ function BinaryFileReader(doc, openParams)
                 nNumberingTableSeek = mtiOffBits;
 			else if(c_oSerTableTypes.Comments == mtiType)
                 nCommentTableSeek = mtiOffBits;
+			else if(c_oSerTableTypes.DocumentComments == mtiType)
+				nDocumentCommentTableSeek = mtiOffBits;
 			else if(c_oSerTableTypes.Settings == mtiType)
                 nSettingTableSeek = mtiOffBits;
 			else if(c_oSerTableTypes.Document == mtiType)
@@ -6448,6 +6458,15 @@ function BinaryFileReader(doc, openParams)
             if(c_oSerConstants.ReadOk != res)
                 return res;
         }
+		if(-1 != nDocumentCommentTableSeek)
+		{
+			res = this.stream.Seek(nDocumentCommentTableSeek);
+			if(c_oSerConstants.ReadOk != res)
+				return res;
+			res = (new Binary_CommentsTableReader(this.Document, this.oReadResult, this.stream, this.oReadResult.oComments)).Read();
+			if(c_oSerConstants.ReadOk != res)
+				return res;
+		}
 		if(-1 != nFootnoteTableSeek)
 		{
 			res = this.stream.Seek(nFootnoteTableSeek);
