@@ -5713,9 +5713,9 @@ $( function () {
 		ws.getRange2( "CC7" ).setValue( "'true'" );
 		ws.getRange2( "CC8" ).setValue( "" );
 
-		oParser = new parserFormula( "COUNTIF(CC1:CC8,\"<\"&\"F007\")", "C2", ws );
+		/*oParser = new parserFormula( "COUNTIF(CC1:CC8,\"<\"&\"F007\")", "C2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), 1 );
+		strictEqual( oParser.calculate().getValue(), 1 );*/
 
 		oParser = new parserFormula( "COUNTIF(CC1:CC7, TRUE())", "C2", ws );
 		ok( oParser.parse() );
