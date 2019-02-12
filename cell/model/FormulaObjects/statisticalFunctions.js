@@ -5019,6 +5019,7 @@ function (window, undefined) {
 			//TODO нужно протестировать на различных вариантах
 			//когда в ячейке пустое значение - сравниваем его только с пустым значением
 			//при matchingInfo отличным от пустого значения в данном случае возвращаем false
+			tempVal = undefined !== tempVal.value ? tempVal.value : tempVal;
 			if(tempVal === "" && tempMatchingInfo.val && "" !== tempMatchingInfo.val.value) {
 				return false;
 			}
