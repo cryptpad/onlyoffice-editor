@@ -698,6 +698,18 @@
 			}
 			return names.sort(sort);
 		},
+		getDefinedNamesWS: function(sheetId) {
+			var names = [];
+
+			function getNames(defName) {
+				if (defName.ref) {
+					names.push(defName);
+				}
+			}
+
+			this._foreachDefNameSheet(sheetId, getNames);
+			return names;
+		},
 		addDefNameOpen: function(name, ref, sheetIndex, hidden, isTable) {
 			var sheetId = this.wb.getSheetIdByIndex(sheetIndex);
 			var isXLNM = null;
@@ -2405,6 +2417,12 @@
 	Workbook.prototype.getDefinedNamesWB = function (defNameListId, bLocale) {
 		return this.dependencyFormulas.getDefinedNamesWB(defNameListId, bLocale);
 	};
+	Workbook.prototype.getDefinedNamesWS = function (sheetId) {
+		return this.dependencyFormulas.getDefinedNamesWS(sheetId);
+	};
+	Workbook.prototype.addDefName = function (name, ref, sheetId, hidden, isTable) {
+		return this.dependencyFormulas.addDefName(name, ref, sheetId, hidden, isTable);
+	};
 	Workbook.prototype.getDefinesNames = function ( name, sheetId ) {
 		return this.dependencyFormulas.getDefNameByName( name, sheetId );
 	};
@@ -3447,7 +3465,7 @@
 	};
 	Worksheet.prototype.initColumn = function (column) {
 		if (column) {
-			if (null !== column.width) {
+			if (null !== column.width && 0 !== column.width) {
 				column.widthPx = this.modelColWidthToColWidth(column.width);
 				column.charCount = this.colWidthToCharCount(column.widthPx);
 			} else {
@@ -3550,49 +3568,54 @@
 			ranges = oRule.ranges;
 			if (this._isConditionalFormattingIntersect(range, ranges)) {
 				multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
-					// ToDo dataBar, expression, iconSet (page 2679)
-					if (AscCommonExcel.ECfType.colorScale === oRule.type) {
+					// ToDo expression, iconSet (page 2679)
+					if (AscCommonExcel.ECfType.colorScale === oRule.type || AscCommonExcel.ECfType.dataBar === oRule.type) {
 						if (1 !== oRule.aRuleElements.length) {
-							break;
+							continue;
 						}
 						oRuleElement = oRule.aRuleElements[0];
-						if (!(oRuleElement instanceof AscCommonExcel.CColorScale)) {
-							break;
+						if (!oRuleElement || oRule.type !== oRuleElement.type) {
+							continue;
 						}
 						values = this._getValuesForConditionalFormatting(ranges, true);
-						// ToDo CFVO Type formula (page 2681)
-						l = oRuleElement.aColors.length;
-						if (0 < values.length && 2 <= l) {
-							oGradient1 = new AscCommonExcel.CGradient(oRuleElement.aColors[0], oRuleElement.aColors[1]);
-							min = oRuleElement.getMin(values, t, oRule);
-							max = oRuleElement.getMax(values, t, oRule);
-							oGradient2 = null;
-							if (2 < l) {
-								oGradient2 = new AscCommonExcel.CGradient(oRuleElement.aColors[1], oRuleElement.aColors[2]);
-								mid = oRuleElement.getMid(values, t, oRule);
+						
+						if (AscCommonExcel.ECfType.colorScale === oRuleElement.type) {
+							// ToDo CFVO Type formula (page 2681)
+							l = oRuleElement.aColors.length;
+							if (0 < values.length && 2 <= l) {
+								oGradient1 = new AscCommonExcel.CGradient(oRuleElement.aColors[0], oRuleElement.aColors[1]);
+								min = oRule.getMin(values, t);
+								max = oRule.getMax(values, t);
+								oGradient2 = null;
+								if (2 < l) {
+									oGradient2 = new AscCommonExcel.CGradient(oRuleElement.aColors[1], oRuleElement.aColors[2]);
+									mid = oRule.getMid(values, t);
 
-								oGradient1.init(min, mid);
-								oGradient2.init(mid, max);
-							} else {
-								oGradient1.init(min, max);
+									oGradient1.init(min, mid);
+									oGradient2.init(mid, max);
+								} else {
+									oGradient1.init(min, max);
+								}
+
+								compareFunction = (function (oGradient1, oGradient2) {
+									return function (row, col) {
+										var val;
+										t._getCellNoEmpty(row, col, function (cell) {
+											val = cell && cell.getNumberValue();
+										});
+										dxf = null;
+										if (null !== val) {
+											dxf = new AscCommonExcel.CellXfs();
+											tmp = (oGradient2 && val > oGradient1.max) ? oGradient2 : oGradient1;
+											dxf.fill = new AscCommonExcel.Fill({bg: tmp.calculateColor(val)});
+											dxf = g_StyleCache.addXf(dxf, true);
+										}
+										return dxf;
+									};
+								})(oGradient1, oGradient2);
 							}
-
-							compareFunction = (function(oGradient1, oGradient2) {
-								return function(row, col) {
-									var val;
-									t._getCellNoEmpty(row, col, function(cell) {
-										val = cell && cell.getNumberValue();
-									});
-									dxf = null;
-									if (null !== val) {
-										dxf = new AscCommonExcel.CellXfs();
-										tmp = (oGradient2 && val > oGradient1.max) ? oGradient2 : oGradient1;
-										dxf.fill = new AscCommonExcel.Fill({bg: tmp.calculateColor(val)});
-										dxf = g_StyleCache.addXf(dxf, true);
-									}
-									return dxf;
-								};
-							})(oGradient1, oGradient2);
+						} else {
+							continue;
 						}
 					} else if (AscCommonExcel.ECfType.top10 === oRule.type) {
 						if (oRule.rank > 0 && oRule.dxf) {

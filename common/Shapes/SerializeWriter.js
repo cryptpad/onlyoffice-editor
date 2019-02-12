@@ -136,6 +136,20 @@ function CBinaryFileWriter()
         this.arr_map_shapes_id = {};
     };
 
+    this.ImportFromMemory = function(memory) {
+        this.ImData = memory.ImData;
+        this.data = memory.data;
+        this.len = memory.len;
+        this.pos = memory.pos;
+    };
+
+    this.ExportToMemory = function(memory) {
+        memory.ImData = this.ImData;
+        memory.data = this.data;
+        memory.len = this.len;
+        memory.pos = this.pos;
+    };
+
     this.Start_UseFullUrl = function()
     {
         this.IsUseFullUrl = true;
@@ -481,7 +495,7 @@ function CBinaryFileWriter()
 
         // Core
 		if (presentation.Core)
-			this.WriteCore(presentation.Core);
+			this.WriteCore(presentation.Core, presentation.Api);
 
         // ViewProps
 		if (presentation.ViewProps)
@@ -916,50 +930,12 @@ function CBinaryFileWriter()
     this.WriteApp = function(app)
     {
         this.StartMainRecord(c_oMainTables.App);
-        this.StartRecord(c_oMainTables.App);
-
-        this.WriteUChar(g_nodeAttributeStart);
-
-        this._WriteString2(0, app.Template);
-        this._WriteString2(1, app.Application);
-        this._WriteString2(2, app.PresentationFormat);
-        this._WriteString2(3, app.Company);
-        this._WriteString2(4, app.AppVersion);
-
-        this._WriteInt2(5, app.TotalTime);
-        this._WriteInt2(6, app.Words);
-        this._WriteInt2(7, app.Paragraphs);
-        this._WriteInt2(8, app.Slides);
-        this._WriteInt2(9, app.Notes);
-        this._WriteInt2(10, app.HiddenSlides);
-        this._WriteInt2(11, app.MMClips);
-
-        this._WriteBool2(12, app.ScaleCrop);
-        this._WriteBool2(13, app.LinksUpToDate);
-        this._WriteBool2(14, app.SharedDoc);
-        this._WriteBool2(15, app.HyperlinksChanged);
-
-        this.WriteUChar(g_nodeAttributeEnd);
-
-        this.EndRecord();
+        app.toStream(this);
     }
-    this.WriteCore = function(core)
+    this.WriteCore = function(core, api)
     {
         this.StartMainRecord(c_oMainTables.Core);
-        this.StartRecord(c_oMainTables.Core);
-
-        this.WriteUChar(g_nodeAttributeStart);
-
-        this._WriteString2(0, core.title);
-        this._WriteString2(1, core.creator);
-        this._WriteString2(2, core.lastModifiedBy);
-        this._WriteString2(3, core.revision);
-        this._WriteString2(4, core.created);
-        this._WriteString2(5, core.modified);
-
-        this.WriteUChar(g_nodeAttributeEnd);
-
-        this.EndRecord();
+        core.toStream(this, api);
     }
     this.WriteViewProps = function(viewprops)
     {
@@ -5461,6 +5437,7 @@ function CBinaryFileWriter()
     //--------------------------------------------------------export----------------------------------------------------
     window['AscCommon'] = window['AscCommon'] || {};
     window['AscCommon'].GUID = GUID;
+    window['AscCommon'].c_oMainTables = c_oMainTables;
     window['AscCommon'].CBinaryFileWriter = CBinaryFileWriter;
     window['AscCommon'].pptx_content_writer = new CPPTXContentWriter();
 })(window);

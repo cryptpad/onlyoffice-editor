@@ -1083,7 +1083,13 @@ CShapeDrawer.prototype =
             }
         }
 
+		var arr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.ArrayPoints : this.Graphics.ArrayPoints;
+		var isArrowsPresent = (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true) ? true : false;
+
         var rgba = this.StrokeUniColor;
+		if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null && !isArrowsPresent)
+			rgba.A = this.Ln.Fill.transparent;
+
         this.Graphics.p_color(rgba.R, rgba.G, rgba.B, rgba.A);
 
         if (this.IsRectShape && this.Graphics.AddSmartRect !== undefined)
@@ -1103,8 +1109,7 @@ CShapeDrawer.prototype =
             this.Graphics.m_oContext.lineJoin = this.OldLineJoin;
         }
 
-        var arr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.ArrayPoints : this.Graphics.ArrayPoints;
-        if (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true)
+        if (isArrowsPresent)
         {
             this.IsArrowsDrawing = true;
             this.Graphics.p_dash(null);
@@ -1218,6 +1223,9 @@ CShapeDrawer.prototype =
             if (this.bIsNoStrokeAttack)
                 bIsStroke = false;
 
+			var arr = this.Graphics.ArrayPoints;
+			var isArrowsPresent = (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true) ? true : false;
+
             if (bIsStroke)
             {
                 if (null != this.OldLineJoin && !this.IsArrowsDrawing)
@@ -1226,6 +1234,9 @@ CShapeDrawer.prototype =
                 }
 
                 var rgba = this.StrokeUniColor;
+				if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null && !isArrowsPresent)
+					rgba.A = this.Ln.Fill.transparent;
+
                 this.Graphics.p_color(rgba.R, rgba.G, rgba.B, rgba.A);
             }
 
@@ -1400,8 +1411,7 @@ CShapeDrawer.prototype =
                 this.Graphics.drawpath(256);
             }
 
-            var arr = this.Graphics.ArrayPoints;
-            if (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true)
+            if (isArrowsPresent)
             {
                 this.IsArrowsDrawing = true;
                 this.Graphics.p_dash(null);

@@ -1141,6 +1141,15 @@
 	{
 		return new ApiBlockLvlSdt(new CBlockLvlSdt());
 	};
+
+	/**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CDE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiUnsupported
@@ -1801,7 +1810,7 @@
 		if (!oNum)
 			return null;
 
-		return new ApiNumberingLevel(oNumbering, oNumPr.Lvl);
+		return new ApiNumberingLevel(oNum, oNumPr.Lvl);
 	};
 	/**
 	 * Specifies that the current paragraph references a numbering definition instance in the current document.
@@ -5134,6 +5143,7 @@
 	Api.prototype["CreateNumbering"]                 = Api.prototype.CreateNumbering;
 	Api.prototype["CreateInlineLvlSdt"]              = Api.prototype.CreateInlineLvlSdt;
 	Api.prototype["CreateBlockLvlSdt"]               = Api.prototype.CreateBlockLvlSdt;
+	Api.prototype["Save"]               			 = Api.prototype.Save;
 
 	ApiUnsupported.prototype["GetClassType"]         = ApiUnsupported.prototype.GetClassType;
 

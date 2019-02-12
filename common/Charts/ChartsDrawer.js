@@ -2300,7 +2300,7 @@ CChartsDrawer.prototype =
 		return result;
 	},
 
-	getYPosition: function (val, axis) {
+	getYPosition: function (val, axis, ignoreAxisLimits) {
 		var yPoints = axis.yPoints ? axis.yPoints : axis.xPoints;
 		var isOx = axis.axPos === window['AscFormat'].AX_POS_T || axis.axPos === window['AscFormat'].AX_POS_B;
 		var logBase = axis.scaling.logBase;
@@ -2324,7 +2324,7 @@ CChartsDrawer.prototype =
 				result = yPoints[0].pos + Math.abs((diffVal / resVal) * resPos);
 			}
 
-			if (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos) {
+			if (!ignoreAxisLimits && (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos)) {
 				result = yPoints[0].pos;
 			}
 		} else if (val > yPoints[yPoints.length - 1].val) {
@@ -2347,7 +2347,7 @@ CChartsDrawer.prototype =
 				}
 			}
 
-			if (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos) {
+			if (!ignoreAxisLimits && (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos)) {
 				result = yPoints[yPoints.length - 1].pos;
 			}
 		} else {
@@ -10226,6 +10226,7 @@ drawScatterChart.prototype = {
 				//вычисляем yVal
 				//пытаемся вычислить xVal  в зависимости от idx точки по OY
 				yVal = this._getYVal(n, i);
+
 				xPoint = this.cChartDrawer.getIdxPoint(seria, idx, true);
 				if (xPoint) {
 					xVal = xPoint.val;
@@ -10239,7 +10240,6 @@ drawScatterChart.prototype = {
 					//xVal = this.catAx instanceof AscFormat.CCatAx ? n : n + 1;
 					xVal = n + 1;
 				}
-
 
 				yPoint = this.cChartDrawer.getIdxPoint(seria, idx);
 				compiledMarkerSize = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.size : null;
@@ -10261,7 +10261,7 @@ drawScatterChart.prototype = {
 				}
 
 				if (yVal != null) {
-					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(this.cChartDrawer.getYPosition(xVal, this.catAx, true), this.cChartDrawer.getYPosition(yVal, this.valAx), compiledMarkerSize, compiledMarkerSymbol);
+					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(this.cChartDrawer.getYPosition(xVal, this.catAx), this.cChartDrawer.getYPosition(yVal, this.valAx, true), compiledMarkerSize, compiledMarkerSymbol);
 					points[i][n] = {x: xVal, y: yVal};
 				} else {
 					this.paths.points[i][n] = null;
@@ -10272,7 +10272,6 @@ drawScatterChart.prototype = {
 
 		this._calculateAllLines(points);
 	},
-
 
 	_recalculateScatter2: function () {
 		var xPoints = this.catAx.xPoints;
@@ -10389,10 +10388,10 @@ drawScatterChart.prototype = {
 						this.paths.series[i][n] = this.cChartDrawer.calculateSplineLine(x, y, x1, y1, x2, y2, x3, y3, this.catAx, this.valAx);
 					} else {
 						x = this.cChartDrawer.getYPosition(points[i][n].x, this.catAx);
-						y = this.cChartDrawer.getYPosition(points[i][n].y, this.valAx);
+						y = this.cChartDrawer.getYPosition(points[i][n].y, this.valAx, true);
 
 						x1 = this.cChartDrawer.getYPosition(points[i][n + 1].x, this.catAx);
-						y1 = this.cChartDrawer.getYPosition(points[i][n + 1].y, this.valAx);
+						y1 = this.cChartDrawer.getYPosition(points[i][n + 1].y, this.valAx, true);
 
 						//this.paths.series[i][n] = {path: this._calculateLine(x, y, x1, y1), idx: points[i][n].idx};
 						this.paths.series[i][n] = this._calculateLine(x, y, x1, y1);

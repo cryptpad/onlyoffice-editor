@@ -7661,7 +7661,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			this.asc_setGridLines(gridLines);
 		}
 		var heading = obj.asc_getHeadings();
-		if(gridLines !== this.asc_getHeadings()) {
+		if(heading !== this.asc_getHeadings()) {
 			this.asc_setHeadings(heading);
 		}
 

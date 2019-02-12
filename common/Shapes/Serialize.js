@@ -8914,18 +8914,29 @@ function CApp()
     this.SharedDoc = null;
     this.HyperlinksChanged = null;
     this.AppVersion = null;
+
+    this.Characters = null;
+    this.CharactersWithSpaces = null;
+    this.DocSecurity = null;
+    this.HyperlinkBase = null;
+    this.Lines = null;
+    this.Manager = null;
+    this.Pages = null;
 }
 CApp.prototype.fromStream = function(s)
 {
     var _type = s.GetUChar();
     var _len = s.GetULong();
+    var _start_pos = s.cur;
+    var _end_pos = _len + _start_pos;
+    var _at;
 
     // attributes
     var _sa = s.GetUChar();
 
     while (true)
     {
-        var _at = s.GetUChar();
+        _at = s.GetUChar();
 
         if (_at == g_nodeAttributeEnd)
             break;
@@ -8954,6 +8965,95 @@ CApp.prototype.fromStream = function(s)
                 return;
         }
     }
+    while (true)
+    {
+        if (s.cur >= _end_pos)
+            break;
+
+        _type = s.GetUChar();
+        switch (_type)
+        {
+            case 0:
+            {
+                var _end_rec2 = s.cur + s.GetLong() + 4;
+                s.Skip2(1); // start attributes
+                while (true)
+                {
+                    _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 16: { this.Characters = s.GetLong(); break; }
+                        case 17: { this.CharactersWithSpaces = s.GetLong(); break; }
+                        case 18: { this.DocSecurity = s.GetLong(); break; }
+                        case 19: { this.HyperlinkBase = s.GetString2(); break; }
+                        case 20: { this.Lines = s.GetLong(); break; }
+                        case 21: { this.Manager = s.GetString2(); break; }
+                        case 22: { this.Pages = s.GetLong(); break; }
+                        default:
+                            return;
+                    }
+                }
+                s.Seek2(_end_rec2);
+                break;
+            }
+            default:
+            {
+                s.SkipRecord();
+                break;
+            }
+        }
+    }
+    s.Seek2(_end_pos);
+};
+CApp.prototype.toStream = function(s) {
+    s.StartRecord(AscCommon.c_oMainTables.App);
+
+    s.WriteUChar(AscCommon.g_nodeAttributeStart);
+
+    s._WriteString2(0, this.Template);
+    // just in case
+    // s._WriteString2(1, this.Application);
+    s._WriteString2(2, this.PresentationFormat);
+    s._WriteString2(3, this.Company);
+    // just in case
+    // s._WriteString2(4, this.AppVersion);
+
+    //we don't count these stats
+    // s._WriteInt2(5, this.TotalTime);
+    // s._WriteInt2(6, this.Words);
+    // s._WriteInt2(7, this.Paragraphs);
+    // s._WriteInt2(8, this.Slides);
+    // s._WriteInt2(9, this.Notes);
+    // s._WriteInt2(10, this.HiddenSlides);
+    // s._WriteInt2(11, this.MMClips);
+
+    s._WriteBool2(12, this.ScaleCrop);
+    s._WriteBool2(13, this.LinksUpToDate);
+    s._WriteBool2(14, this.SharedDoc);
+    s._WriteBool2(15, this.HyperlinksChanged);
+
+    s.WriteUChar(g_nodeAttributeEnd);
+
+    s.StartRecord(0);
+
+    s.WriteUChar(AscCommon.g_nodeAttributeStart);
+
+    // s._WriteInt2(16, this.Characters);
+    // s._WriteInt2(17, this.CharactersWithSpaces);
+    s._WriteInt2(18, this.DocSecurity);
+    s._WriteString2(19, this.HyperlinkBase);
+    // s._WriteInt2(20, this.Lines);
+    s._WriteString2(21, this.Manager);
+    // s._WriteInt2(22, this.Pages);
+
+    s.WriteUChar(g_nodeAttributeEnd);
+
+    s.EndRecord();
+
+    s.EndRecord();
 };
 CApp.prototype.asc_getTemplate = function(){return this.Template;};
 CApp.prototype.asc_getTotalTime = function(){return this.TotalTime;};
@@ -8971,27 +9071,46 @@ CApp.prototype.asc_getLinksUpToDate = function(){return this.LinksUpToDate;};
 CApp.prototype.asc_getSharedDoc = function(){return this.SharedDoc;};
 CApp.prototype.asc_getHyperlinksChanged = function(){return this.HyperlinksChanged;};
 CApp.prototype.asc_getAppVersion = function(){return this.AppVersion;};
+CApp.prototype.asc_getCharacters = function(){return this.Characters;};
+CApp.prototype.asc_getCharactersWithSpaces = function(){return this.CharactersWithSpaces;};
+CApp.prototype.asc_getDocSecurity = function(){return this.DocSecurity;};
+CApp.prototype.asc_getHyperlinkBase = function(){return this.HyperlinkBase;};
+CApp.prototype.asc_getLines = function(){return this.Lines;};
+CApp.prototype.asc_getManager = function(){return this.Manager;};
+CApp.prototype.asc_getPages = function(){return this.Pages;};
 
 
 function CCore() {
-    this.title = null;
-    this.creator = null;
-    this.lastModifiedBy = null;
-    this.revision = null;
+    this.category = null;
+    this.contentStatus = null;
     this.created = null;
+    this.creator = null;
+    this.description = null;
+    this.identifier = null;
+    this.keywords = null;
+    this.language = null;
+    this.lastModifiedBy = null;
+    this.lastPrinted = null;
     this.modified = null;
+    this.revision = null;
+    this.subject = null;
+    this.title = null;
+    this.version = null;
 }
 CCore.prototype.fromStream = function(s)
 {
     var _type = s.GetUChar();
     var _len = s.GetULong();
+    var _start_pos = s.cur;
+    var _end_pos = _len + _start_pos;
+    var _at;
 
     // attributes
     var _sa = s.GetUChar();
 
     while (true)
     {
-        var _at = s.GetUChar();
+        _at = s.GetUChar();
 
         if (_at == g_nodeAttributeEnd)
             break;
@@ -9002,12 +9121,110 @@ CCore.prototype.fromStream = function(s)
             case 1: { this.creator = s.GetString2(); break; }
             case 2: { this.lastModifiedBy = s.GetString2(); break; }
             case 3: { this.revision = s.GetString2(); break; }
-            case 4: { this.created = s.GetString2(); break; }
-            case 5: { this.modified = s.GetString2(); break; }
+            case 4: { this.created = this.readDate(s.GetString2()); break; }
+            case 5: { this.modified = this.readDate(s.GetString2()); break; }
             default:
                 return;
         }
     }
+    while (true)
+    {
+        if (s.cur >= _end_pos)
+            break;
+
+        _type = s.GetUChar();
+        switch (_type)
+        {
+            case 0:
+            {
+                var _end_rec2 = s.cur + s.GetLong() + 4;
+                s.Skip2(1); // start attributes
+                while (true)
+                {
+                    _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 6: { this.category = s.GetString2(); break; }
+                        case 7: { this.contentStatus = s.GetString2(); break; }
+                        case 8: { this.description = s.GetString2(); break; }
+                        case 9: { this.identifier = s.GetString2(); break; }
+                        case 10: { this.keywords = s.GetString2(); break; }
+                        case 11: { this.language = s.GetString2(); break; }
+                        case 12: { this.lastPrinted = this.readDate(s.GetString2()); break; }
+                        case 13: { this.subject = s.GetString2(); break; }
+                        case 14: { this.version = s.GetString2(); break; }
+                        default:
+                            return;
+                    }
+                }
+                s.Seek2(_end_rec2);
+                break;
+            }
+            default:
+            {
+                s.SkipRecord();
+                break;
+            }
+        }
+    }
+    s.Seek2(_end_pos);
+};
+CCore.prototype.readDate = function(val)
+{
+    val = new Date(val);
+    return val instanceof Date && !isNaN(val) ? val : null;
+};
+CCore.prototype.toStream = function(s, api) {
+    s.StartRecord(AscCommon.c_oMainTables.Core);
+
+    s.WriteUChar(AscCommon.g_nodeAttributeStart);
+
+    s._WriteString2(0, this.title);
+    s._WriteString2(1, this.creator);
+    if(api && api.DocInfo){
+        s._WriteString2(2, api.DocInfo.get_UserName());
+    }
+    var revision = 0;
+    if (this.revision) {
+        var rev = parseInt(this.revision);
+        if (!isNaN(rev)) {
+            revision = rev;
+        }
+    }
+    s._WriteString2(3, (revision + 1).toString());
+
+    if (this.created) {
+        s._WriteString2(4, this.created.toISOString().slice(0, 19) + 'Z');
+    }
+    s._WriteString2(5, new Date().toISOString().slice(0, 19) + 'Z');
+
+    s.WriteUChar(g_nodeAttributeEnd);
+
+    s.StartRecord(0);
+
+    s.WriteUChar(AscCommon.g_nodeAttributeStart);
+
+    s._WriteString2(6, this.category);
+    s._WriteString2(7, this.contentStatus);
+    s._WriteString2(8, this.description);
+    s._WriteString2(9, this.identifier);
+    s._WriteString2(10, this.keywords);
+    s._WriteString2(11, this.language);
+    // we don't track it
+    // if (this.lastPrinted) {
+    //     s._WriteString1(12, this.lastPrinted.toISOString().slice(0, 19) + 'Z');
+    // }
+    s._WriteString2(13, this.subject);
+    s._WriteString2(14, this.version);
+
+    s.WriteUChar(g_nodeAttributeEnd);
+
+    s.EndRecord();
+
+    s.EndRecord();
 };
 CCore.prototype.asc_getTitle = function(){return this.title;};
 CCore.prototype.asc_getCreator = function(){return this.creator;};
@@ -9015,6 +9232,15 @@ CCore.prototype.asc_getLastModifiedBy = function(){return this.lastModifiedBy;};
 CCore.prototype.asc_getRevision = function(){return this.revision;};
 CCore.prototype.asc_getCreated = function(){return this.created;};
 CCore.prototype.asc_getModified = function(){return this.modified;};
+CCore.prototype.asc_getCategory = function(){return this.category;};
+CCore.prototype.asc_getContentStatus = function(){return this.contentStatus;};
+CCore.prototype.asc_getSescription = function(){return this.description;};
+CCore.prototype.asc_getIdentifier = function(){return this.identifier;};
+CCore.prototype.asc_getKeywords = function(){return this.keywords;};
+CCore.prototype.asc_getLanguage = function(){return this.language;};
+CCore.prototype.asc_getLastPrinted = function(){return this.lastPrinted;};
+CCore.prototype.asc_getSubject = function(){return this.subject;};
+CCore.prototype.asc_getVersion = function(){return this.version;};
 
 function CPres()
 {
@@ -10344,6 +10570,13 @@ function CPres()
     prot["asc_getSharedDoc"] = prot.asc_getSharedDoc;
     prot["asc_getHyperlinksChanged"] = prot.asc_getHyperlinksChanged;
     prot["asc_getAppVersion"] = prot.asc_getAppVersion;
+    prot["asc_getCharacters"] = prot.asc_getCharacters;
+    prot["asc_getCharactersWithSpaces"] = prot.asc_getCharactersWithSpaces;
+    prot["asc_getDocSecurity"] = prot.asc_getDocSecurity;
+    prot["asc_getHyperlinkBase"] = prot.asc_getHyperlinkBase;
+    prot["asc_getLines"] = prot.asc_getLines;
+    prot["asc_getManager"] = prot.asc_getManager;
+    prot["asc_getPages"] = prot.asc_getPages;
     window['AscCommon'].CCore = CCore;
     prot = CCore.prototype;
     prot["asc_getTitle"] = prot.asc_getTitle;

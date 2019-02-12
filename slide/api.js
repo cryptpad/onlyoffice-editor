@@ -602,7 +602,6 @@
 		this.isPageBreakBefore    = false;
 		this.isKeepLinesTogether  = false;
 		this.isPresentationEditor = true;
-		this.bAlignBySelected     = false;
 		this.bSelectedSlidesTheme = false;
 
 		this.isPaintFormat              = AscCommon.c_oAscFormatPainterState.kOff;
@@ -1044,7 +1043,7 @@
             };
 
 			this.SpellCheckApi.spellCheck = function (spellData) {
-                window["AscDesktopEditor"]["SpellCheck"](spellData);
+                window["AscDesktopEditor"]["SpellCheck"](JSON.stringify(spellData));
             };
             this.SpellCheckApi.disconnect = function () {
             };
@@ -2573,16 +2572,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.FontSizeOut                = function()
 	{
 		this.WordControl.m_oLogicDocument.IncreaseDecreaseFontSize(false);
-	};
-
-	asc_docs_api.prototype.put_AlignBySelect = function(val)
-	{
-		this.bAlignBySelected = val;
-	};
-
-	asc_docs_api.prototype.get_AlignBySelect = function()
-	{
-		return this.bAlignBySelected;
 	};
 
 	/*callbacks*/
@@ -5665,18 +5654,6 @@ background-repeat: no-repeat;\
         }
     };
 
-    asc_docs_api.prototype.spellCheck = function(rdata)
-    {
-        // ToDo проверка на подключение
-        switch (rdata.type)
-        {
-            case "spell":
-            case "suggest":
-                this.SpellCheckApi.spellCheck(JSON.stringify(rdata));
-                break;
-        }
-    };
-
 	asc_docs_api.prototype.sync_shapePropCallback = function(pr)
 	{
 		var obj = AscFormat.CreateAscShapePropFromProp(pr);
@@ -6039,82 +6016,94 @@ background-repeat: no-repeat;\
 		this.WordControl.m_oLogicDocument.changeLayout(_array, this.WordControl.MasterLayouts, layout_index);
 	};
 
-	asc_docs_api.prototype.put_ShapesAlign        = function(type)
+	asc_docs_api.prototype.put_ShapesAlign = function(type, alignType)
 	{
+		if(!AscFormat.isRealNumber(alignType))
+		{
+			alignType = Asc.c_oAscObjectsAlignType.Slide;
+		}
 		switch (type)
 		{
 			case c_oAscAlignShapeType.ALIGN_LEFT:
 			{
-				this.shapes_alignLeft();
+				this.shapes_alignLeft(alignType);
 				break;
 			}
 			case c_oAscAlignShapeType.ALIGN_RIGHT:
 			{
-				this.shapes_alignRight();
+				this.shapes_alignRight(alignType);
 				break;
 			}
 			case c_oAscAlignShapeType.ALIGN_TOP:
 			{
-				this.shapes_alignTop();
+				this.shapes_alignTop(alignType);
 				break;
 			}
 			case c_oAscAlignShapeType.ALIGN_BOTTOM:
 			{
-				this.shapes_alignBottom();
+				this.shapes_alignBottom(alignType);
 				break;
 			}
 			case c_oAscAlignShapeType.ALIGN_CENTER:
 			{
-				this.shapes_alignCenter();
+				this.shapes_alignCenter(alignType);
 				break;
 			}
 			case c_oAscAlignShapeType.ALIGN_MIDDLE:
 			{
-				this.shapes_alignMiddle();
+				this.shapes_alignMiddle(alignType);
 				break;
 			}
 			default:
 				break;
 		}
 	};
-	asc_docs_api.prototype.DistributeHorizontally = function()
+	asc_docs_api.prototype.DistributeHorizontally = function(alignType)
 	{
-		this.WordControl.m_oLogicDocument.distributeHor();
+		if(!AscFormat.isRealNumber(alignType))
+		{
+			alignType = Asc.c_oAscObjectsAlignType.Slide;
+		}
+		this.WordControl.m_oLogicDocument.distributeHor(alignType);
 	};
-	asc_docs_api.prototype.DistributeVertically   = function()
+	asc_docs_api.prototype.DistributeVertically   = function(alignType)
 	{
-		this.WordControl.m_oLogicDocument.distributeVer();
+		if(!AscFormat.isRealNumber(alignType))
+		{
+			alignType = Asc.c_oAscObjectsAlignType.Slide;
+		}
+		this.WordControl.m_oLogicDocument.distributeVer(alignType);
 	};
-	asc_docs_api.prototype.shapes_alignLeft       = function()
+	asc_docs_api.prototype.shapes_alignLeft       = function(alignType)
 	{
-		this.WordControl.m_oLogicDocument.alignLeft();
-	};
-
-	asc_docs_api.prototype.shapes_alignRight = function()
-	{
-		this.WordControl.m_oLogicDocument.alignRight();
-	};
-
-	asc_docs_api.prototype.shapes_alignTop = function()
-	{
-		this.WordControl.m_oLogicDocument.alignTop();
-
+		this.WordControl.m_oLogicDocument.alignLeft(alignType);
 	};
 
-	asc_docs_api.prototype.shapes_alignBottom = function()
+	asc_docs_api.prototype.shapes_alignRight = function(alignType)
 	{
-		this.WordControl.m_oLogicDocument.alignBottom();
+		this.WordControl.m_oLogicDocument.alignRight(alignType);
+	};
+
+	asc_docs_api.prototype.shapes_alignTop = function(alignType)
+	{
+		this.WordControl.m_oLogicDocument.alignTop(alignType);
 
 	};
 
-	asc_docs_api.prototype.shapes_alignCenter = function()
+	asc_docs_api.prototype.shapes_alignBottom = function(alignType)
 	{
-		this.WordControl.m_oLogicDocument.alignCenter();
+		this.WordControl.m_oLogicDocument.alignBottom(alignType);
+
 	};
 
-	asc_docs_api.prototype.shapes_alignMiddle = function()
+	asc_docs_api.prototype.shapes_alignCenter = function(alignType)
 	{
-		this.WordControl.m_oLogicDocument.alignMiddle();
+		this.WordControl.m_oLogicDocument.alignCenter(alignType);
+	};
+
+	asc_docs_api.prototype.shapes_alignMiddle = function(alignType)
+	{
+		this.WordControl.m_oLogicDocument.alignMiddle(alignType);
 	};
 
 	asc_docs_api.prototype.shapes_bringToFront = function()
@@ -6692,6 +6681,19 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_setDrawCollaborationMarks = function()
 	{
+	};
+
+	asc_docs_api.prototype.asc_getSelectedDrawingObjectsCount = function()
+	{
+		if(!this.WordControl)
+		{
+			return 0;
+		}
+		if(!this.WordControl.m_oLogicDocument)
+		{
+			return 0;
+		}
+		return this.WordControl.m_oLogicDocument.getSelectedDrawingObjectsCount();
 	};
 
 	//-----------------------------------------------------------------
@@ -7424,8 +7426,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['put_LineSpacingBeforeAfter']          = asc_docs_api.prototype.put_LineSpacingBeforeAfter;
 	asc_docs_api.prototype['FontSizeIn']                          = asc_docs_api.prototype.FontSizeIn;
 	asc_docs_api.prototype['FontSizeOut']                         = asc_docs_api.prototype.FontSizeOut;
-	asc_docs_api.prototype['put_AlignBySelect']                   = asc_docs_api.prototype.put_AlignBySelect;
-	asc_docs_api.prototype['get_AlignBySelect']                   = asc_docs_api.prototype.get_AlignBySelect;
 	asc_docs_api.prototype['sync_BoldCallBack']                   = asc_docs_api.prototype.sync_BoldCallBack;
 	asc_docs_api.prototype['sync_ItalicCallBack']                 = asc_docs_api.prototype.sync_ItalicCallBack;
 	asc_docs_api.prototype['sync_UnderlineCallBack']              = asc_docs_api.prototype.sync_UnderlineCallBack;
@@ -7693,6 +7693,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getChartPreviews']                = asc_docs_api.prototype.asc_getChartPreviews;
 	asc_docs_api.prototype['asc_getTextArtPreviews']              = asc_docs_api.prototype.asc_getTextArtPreviews;
 	asc_docs_api.prototype['sync_closeChartEditor']               = asc_docs_api.prototype.sync_closeChartEditor;
+	asc_docs_api.prototype['asc_getSelectedDrawingObjectsCount']  = asc_docs_api.prototype.asc_getSelectedDrawingObjectsCount;
 	asc_docs_api.prototype['asc_stopSaving']                      = asc_docs_api.prototype.asc_stopSaving;
 	asc_docs_api.prototype['asc_continueSaving']                  = asc_docs_api.prototype.asc_continueSaving;
 	asc_docs_api.prototype['asc_undoAllChanges']                  = asc_docs_api.prototype.asc_undoAllChanges;

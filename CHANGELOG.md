@@ -23,6 +23,14 @@ GetSelection
 Selection
 * Fix change active cell in selection across merge. Previously, passing through the first cell of the merge range, we fell into the merge range, even if it was not selected (through the selection of a row / column)
 * Fix selection when selecting row/col/all
+* Add new classes in apiBuilder: ApiName, ApiComment.
+* Add new functions in ApiName: GetName, SetName, Delete, GetRefersTo, SetRefersTo and properties: Name, RefersTo.
+* Add new functions in ApiRange: GetDefName, GetRows, Clear, GetWorksheet, GetComment, Select and propoerties: DefName, Rows, Worksheet, Comment.
+* Add new functions in ApiWorksheet: GetDefNames, GetDefName, AddDefName SetActive, GetComments, Delete and propoerties: DefNames, Active, Comments.
+* Add new functions in Api: Intersect, GetSelection, GetDefName, AddDefName and propoerty: Selection.
+* Add new functions in WorkBook: addDefName, getDefinedNamesWS.
+* Add new function in DependencyGraph: getDefinedNamesWS.
+Add new functions in ApiComment: GetText, Delete and property: Text.
 
 ### Presentation Editor
 * 
