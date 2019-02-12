@@ -15168,7 +15168,9 @@
 					if(i === 0 && str !== "") {
 						str += ",";
 					}
-					str += parserHelp.get3DRef(t.model.getName(), (mc || ranges[i]).getAbsName());
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						str += parserHelp.get3DRef(t.model.getName(), (mc || ranges[i]).getAbsName());
+					});
 					if(i !== ranges.length - 1) {
 						str += ",";
 					}
@@ -15232,7 +15234,11 @@
             var areaRefsArr = ref.split(",");
             if(areaRefsArr.length) {
                 for(var i = 0; i < areaRefsArr.length; i++) {
-                    var range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) || AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					var range;
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) || AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					});
+
                     for(var j = 0; j < selection.length; j++) {
                         if(selection[j].intersection(range)) {
                             return false;
