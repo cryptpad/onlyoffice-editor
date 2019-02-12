@@ -452,7 +452,7 @@ $( function () {
 			if(!dNotSupportAreaArg) {
 				strictEqual( false, true);
 			}
-			console.log("func: " + func + " don't return area array");
+			consoleLog("func: " + func + " don't return area array");
 		}
 
 		oParser = new parserFormula( func + "({1,2,-3})", "A1", ws );
@@ -536,7 +536,7 @@ $( function () {
 				if(!(dNotSupportAreaArg || returnOnlyValue)) {
 					strictEqual( false, true);
 				}
-				console.log("func: " + func + " don't return area array");
+				consoleLog("func: " + func + " don't return area array");
 			}
 
 			oParser = new parserFormula( func + randomArgStrArr, "A1", ws );
@@ -551,7 +551,7 @@ $( function () {
 				if(!returnOnlyValue) {
 					strictEqual( false, true);
 				}
-				console.log("func: " + func + " don't return array");
+				consoleLog("func: " + func + " don't return array");
 			}
 		}
 	}
@@ -598,6 +598,9 @@ $( function () {
 		}
 	}
 
+	function consoleLog(val) {
+		//console.log(val);
+	}
 
     var c_msPerDay = AscCommonExcel.c_msPerDay;
     var parserFormula = AscCommonExcel.parserFormula;
@@ -5709,6 +5712,10 @@ $( function () {
 		ws.getRange2( "CC6" ).setValue( "=true()" );
 		ws.getRange2( "CC7" ).setValue( "'true'" );
 		ws.getRange2( "CC8" ).setValue( "" );
+
+		oParser = new parserFormula( "COUNTIF(CC1:CC8,\"<\"&\"F007\")", "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
 
 		oParser = new parserFormula( "COUNTIF(CC1:CC7, TRUE())", "C2", ws );
 		ok( oParser.parse() );

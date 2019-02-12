@@ -5019,6 +5019,14 @@ function (window, undefined) {
 			//TODO нужно протестировать на различных вариантах
 			//когда в ячейке пустое значение - сравниваем его только с пустым значением
 			//при matchingInfo отличным от пустого значения в данном случае возвращаем false
+
+			//ms excel при несовпадении типов возвращает всегда отрицательное значение
+			//в нашем случае сравниваемая величина(в tempMatchingInfo) не всегда приводится к нужному типу(например, error, empty)
+			//TODO рассмотреть добавление подобной правки, проверить все варианты + расскоментировать тесты
+			/*if ((tempVal.type === cElementType.string || tempVal.type === cElementType.number) && tempMatchingInfo.val && tempMatchingInfo.val.type !== tempVal.type) {
+				return false;
+			}*/
+
 			tempVal = undefined !== tempVal.value ? tempVal.value : tempVal;
 			if(tempVal === "" && tempMatchingInfo.val && "" !== tempMatchingInfo.val.value) {
 				return false;
