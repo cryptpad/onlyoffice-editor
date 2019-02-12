@@ -16310,6 +16310,8 @@
 							self.handlers.trigger("asc_onEditorSelectionChanged", info);
 						}, "onContextMenu": function (event) {
 							self.handlers.trigger("asc_onContextMenu", event);
+						}, "updateMenuEditorCursorPosition": function(val) {
+							self.handlers.trigger("asc_updateEditorCursorPosition", val);
 						}
 					}, 2, /*settings*/{ menuEditor: true });
 

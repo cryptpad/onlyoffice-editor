@@ -1529,6 +1529,11 @@
 		if (this.isTopLineActive && !this.skipTLUpdate) {
 			this._updateTopLineCurPos();
 		}
+
+		if(this.options && this.options.menuEditor) {
+			this.handlers.trigger( "updateMenuEditorCursorPosition", curTop );
+		}
+
 		this._updateSelectionInfo();
 	};
 
