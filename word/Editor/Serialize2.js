@@ -647,7 +647,9 @@ var c_oSer_SettingsType = {
 	SdtGlobalColor: 6,
 	SdtGlobalShowHighlight: 7,
 	Compat: 8,
-	DefaultTabStopTwips: 9
+	DefaultTabStopTwips: 9,
+	DecimalSymbol: 10,
+	ListSeparator: 11
 };
 var c_oSer_MathPrType = {
 	BrkBin: 0,
@@ -5957,6 +5959,12 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		this.bs.WriteItem(c_oSer_SettingsType.MathPr, function(){oThis.WriteMathPr();});
 		this.bs.WriteItem(c_oSer_SettingsType.TrackRevisions, function(){oThis.memory.WriteBool(oThis.Document.Is_TrackRevisions());});
 		this.bs.WriteItem(c_oSer_SettingsType.FootnotePr, function(){oThis.WriteFootnotePr();});
+		if (editor.WordControl.m_oLogicDocument.Settings.decimalSymbol) {
+			this.bs.WriteItem(c_oSer_SettingsType.DecimalSymbol, function() {oThis.memory.WriteString3(editor.WordControl.m_oLogicDocument.Settings.decimalSymbol);});
+		}
+		if (editor.WordControl.m_oLogicDocument.Settings.listSeparator) {
+			this.bs.WriteItem(c_oSer_SettingsType.ListSeparator, function() {oThis.memory.WriteString3(editor.WordControl.m_oLogicDocument.Settings.listSeparator);});
+		}
 		if (!oThis.Document.IsSdtGlobalSettingsDefault()) {
 			var rPr = new CTextPr();
 			rPr.Color = oThis.Document.GetSdtGlobalColor();
@@ -14574,6 +14582,14 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadCompat(t,l);
 			});
+		}
+		else if ( c_oSer_SettingsType.DecimalSymbol === type )
+		{
+			editor.WordControl.m_oLogicDocument.Settings.decimalSymbol = this.stream.GetString2LE(length);
+		}
+		else if ( c_oSer_SettingsType.ListSeparator === type )
+		{
+			editor.WordControl.m_oLogicDocument.Settings.listSeparator = this.stream.GetString2LE(length);
 		}
         else
             res = c_oSerConstants.ReadUnknown;
