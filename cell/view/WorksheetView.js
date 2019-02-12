@@ -1871,8 +1871,11 @@
 			var areaRefsArr = areaRefs.split(",");
 			if(areaRefsArr.length) {
 				for(var i = 0; i < areaRefsArr.length; i++) {
-					range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) ||
-						AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) ||
+							AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					});
+
 					range = new asc_Range(range.c1, range.r1, range.c2, range.r2);
 					if(arrRanges) {
 						arrRanges.push(range);

@@ -491,6 +491,10 @@ CComment.prototype.IsSolved = function()
 
 	return false;
 };
+CComment.prototype.IsGlobalComment = function()
+{
+	return (!this.Data || null === this.Data.GetQuoteText());
+};
 
 var comments_NoComment        = 0;
 var comments_NonActiveComment = 1;

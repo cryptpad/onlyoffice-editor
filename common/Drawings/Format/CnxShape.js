@@ -130,6 +130,12 @@
 
             var extX = Math.max(0, Math.abs(_end.x - _begin.x));
             var extY = Math.max(0, Math.abs(_end.y - _begin.y));
+            if(Math.abs(extX) < 0.5){
+                extX = 0.0;
+            }
+            if(Math.abs(extY) < 0.5){
+                extY = 0.0;
+            }
             var flipV = false;
             var flipH = false;
             var rot = 0;

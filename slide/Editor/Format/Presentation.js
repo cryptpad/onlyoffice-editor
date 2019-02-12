@@ -5750,7 +5750,7 @@ CPresentation.prototype =
                                                 }
                                             }
                                             if(oCheckParagraph.IsEmpty()){
-                                                oDocContentForDraw.Content.splice(i, 1);
+                                                oDocContentForDraw.Internal_Content_Remove(i, 1, false);
                                             }
                                             else{
 
@@ -5786,7 +5786,7 @@ CPresentation.prototype =
                                                 }
                                             }
                                             if(oCheckParagraph.IsEmpty()){
-                                                oDocContentForDraw.Content.splice(i, 1);
+                                                oDocContentForDraw.Internal_Content_Remove(i, 1, false);
                                                 i--;
                                             }
                                             else{
@@ -6841,50 +6841,63 @@ CPresentation.prototype =
         return false;
     },
 
-    alignLeft : function()
+    getSelectedDrawingObjectsCount: function()
     {
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignLeft(editor.bAlignBySelected);
+        var oController = this.GetCurrentController();
+        if(!oController)
+        {
+            return 0;
+        }
+        var aSelectedObjects = oController.selection.groupSelection ? oController.selection.groupSelection.selectedObjects : oController.selectedObjects;
+        return aSelectedObjects.length;
+    },
+
+    alignLeft : function(alignType)
+    {
+        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignLeft(alignType === Asc.c_oAscObjectsAlignType.Selected);
         this.Document_UpdateInterfaceState();
     },
 
-    alignRight : function()
+    alignRight : function(alignType)
     {
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignRight(editor.bAlignBySelected);
+        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignRight(alignType === Asc.c_oAscObjectsAlignType.Selected);
         this.Document_UpdateInterfaceState();
     },
 
-    alignTop : function()
+    alignTop : function(alignType)
     {
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignTop(editor.bAlignBySelected);
+        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignTop(alignType === Asc.c_oAscObjectsAlignType.Selected);
         this.Document_UpdateInterfaceState();
     },
 
-    alignBottom : function()
+    alignBottom : function(alignType)
     {
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignBottom(editor.bAlignBySelected);
+        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignBottom(alignType === Asc.c_oAscObjectsAlignType.Selected);
         this.Document_UpdateInterfaceState();
     },
 
-    alignCenter : function()
+    alignCenter : function(alignType)
     {
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignCenter(editor.bAlignBySelected);
+        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignCenter(alignType === Asc.c_oAscObjectsAlignType.Selected);
         this.Document_UpdateInterfaceState();
     },
 
-    alignMiddle : function()
+    alignMiddle : function(alignType)
     {
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignMiddle(editor.bAlignBySelected);
+        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.alignMiddle(alignType === Asc.c_oAscObjectsAlignType.Selected);
         this.Document_UpdateInterfaceState();
     },
 
-    distributeHor : function()
+    distributeHor : function(alignType)
     {
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(this.Slides[this.CurPage].graphicObjects.distributeHor, [editor.bAlignBySelected], false, AscDFH.historydescription_Presentation_DistHor);
+        var bSelected = (alignType === Asc.c_oAscObjectsAlignType.Selected);
+        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(this.Slides[this.CurPage].graphicObjects.distributeHor, [bSelected], false, AscDFH.historydescription_Presentation_DistHor);
         this.Document_UpdateInterfaceState();
     },
-    distributeVer : function()
+    distributeVer : function(alignType)
     {
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(this.Slides[this.CurPage].graphicObjects.distributeVer, [editor.bAlignBySelected], false, AscDFH.historydescription_Presentation_DistVer);
+        var bSelected = (alignType === Asc.c_oAscObjectsAlignType.Selected);
+        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(this.Slides[this.CurPage].graphicObjects.distributeVer, [bSelected], false, AscDFH.historydescription_Presentation_DistVer);
         this.Document_UpdateInterfaceState();
     },
 

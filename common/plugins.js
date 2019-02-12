@@ -950,6 +950,12 @@
 
 										window.g_asc_plugins.api.asc_Recalculate(true);
 
+										if (window.g_asc_plugins.api.SaveAfterMacros)
+										{
+											window.g_asc_plugins.api.asc_Save();
+											window.g_asc_plugins.api.SaveAfterMacros = false;
+										}
+
 										var pluginData = new CPluginData();
 										pluginData.setAttribute("guid", guid);
 										pluginData.setAttribute("type", "onCommandCallback");
@@ -979,6 +985,13 @@
 										if (wsView && wsView.objectRender && wsView.objectRender.controller) {
 											wsView.objectRender.controller.recalculate2(undefined);
 										}
+
+										if (window.g_asc_plugins.api.SaveAfterMacros)
+										{
+											window.g_asc_plugins.api.asc_Save();
+											window.g_asc_plugins.api.SaveAfterMacros = false;
+										}
+
 										var pluginData = new CPluginData();
 										pluginData.setAttribute("guid", guid);
 										pluginData.setAttribute("type", "onCommandCallback");

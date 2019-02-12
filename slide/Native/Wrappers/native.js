@@ -233,10 +233,22 @@ window["AscCommon"].getFullImageSrc2 = function (src) {
 
     if (0 !== start.indexOf('http:') && 0 !== start.indexOf('data:') && 0 !== start.indexOf('https:') &&
         0 !== start.indexOf('file:') && 0 !== start.indexOf('ftp:')){
-        var srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
+            var srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
+            var srcFull2 = srcFull;
+            if(src.indexOf(".svg") === src.length - 4){
+                var sName = src.slice(0, src.length - 3);
+
+                src = sName + 'wmf';
+                srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
+                if(!srcFull){
+                    src = sName + 'emf';
+                    srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
+                }
+            }
+        
         if(srcFull){
             window["native"]["loadUrlImage"](srcFull, src);
-            return srcFull;
+            return srcFull2;
         }
     }
     return src;

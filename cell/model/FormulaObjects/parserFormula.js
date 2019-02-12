@@ -6631,10 +6631,15 @@ parserFormula.prototype.setFormula = function(formula) {
 	parserFormula.prototype._assembleExec = function (locale, digitDelim, bLocale) {
 		//_numberPrevArg - количество аргументов функции в стеке
 		var currentElement = null, _count = this.outStack.length, elemArr = new Array(_count), res = undefined,
-			_count_arg, _numberPrevArg, _argDiff;
+			_count_arg, _numberPrevArg, _argDiff, onlyRangesElements = true, rangesStr;
 
 		for (var i = 0, j = 0; i < _count; i++) {
 			currentElement = this.outStack[i];
+
+			if(currentElement.type !== cElementType.cellsRange3D && currentElement.type !== cElementType.cell3D) {
+				onlyRangesElements = false;
+				rangesStr = null;
+			}
 
 			if (currentElement.type === cElementType.specialFunctionStart || currentElement.type === cElementType.specialFunctionEnd) {
 				continue;
@@ -6677,11 +6682,24 @@ parserFormula.prototype.setFormula = function(formula) {
 				}
 				res = currentElement;
 				elemArr[j] = res;
+				if(onlyRangesElements) {
+					rangesStr = !rangesStr ? "" : rangesStr + ",";
+					rangesStr += bLocale ? res.toLocaleString(digitDelim) : res.toString();
+				}
 			}
 		}
 
 		if (res != undefined && res != null) {
-			return bLocale ? res.toLocaleString(digitDelim) : res.toString();
+			if(rangesStr) {
+				//сделана заглушка для того, чтобы диапазоны разделенные "," собирались грамотно
+				//необходимо для того, чтобы мультиселект в именованных диапазонах правильно сохранялся
+				//используется в областях печати
+				//формулы вида "Sheet1!$B$3:$C$4,Sheet1!$D$3:$E$5,Sheet1!$G$3:$G$6,Sheet1!$J$2"
+				//TODO рассмотреть вписание в общую схему
+				return rangesStr;
+			} else {
+				return bLocale ? res.toLocaleString(digitDelim) : res.toString();
+			}
 		} else {
 			return this.Formula;
 		}
