@@ -5721,6 +5721,23 @@ CDocument.prototype.Paragraph_SetHighlight = function(IsColor, r, g, b)
 			this.HighlightColor = new CDocumentColor(r, g, b);
 	}
 };
+
+CDocument.prototype.GetSelectedDrawingObjectsCount = function()
+{
+    return this.DrawingObjects.getSelectedDrawingObjectsCount();
+};
+CDocument.prototype.PutShapesAlign = function(type, align)
+{
+    return this.DrawingObjects.putShapesAlign(type, align);
+};
+CDocument.prototype.DistributeDrawingsHorizontally = function(align)
+{
+    return this.DrawingObjects.distributeHor(align);
+};
+CDocument.prototype.DistributeDrawingsVertically = function(align)
+{
+    return this.DrawingObjects.distributeVer(align);
+};
 CDocument.prototype.SetImageProps = function(Props)
 {
 	this.Controller.SetImageProps(Props);
