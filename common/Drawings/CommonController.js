@@ -12184,4 +12184,5 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].fGetFontByNumInfo = fGetFontByNumInfo;
 	window['AscFormat'].CreateBlipFillRasterImageId = CreateBlipFillRasterImageId;
 	window['AscFormat'].fResetConnectorsIds = fResetConnectorsIds;
+	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
 })(window);

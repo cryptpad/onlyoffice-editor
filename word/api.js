@@ -4983,6 +4983,55 @@ background-repeat: no-repeat;\
 	 ImageUrl : ""
 	 }
 	 */
+
+	asc_docs_api.prototype.asc_getSelectedDrawingObjectsCount = function()
+	{
+		if(!this.WordControl)
+		{
+			return 0;
+		}
+		if(!this.WordControl.m_oLogicDocument)
+		{
+			return 0;
+		}
+		return this.WordControl.m_oLogicDocument.GetSelectedDrawingObjectsCount();
+	};
+
+
+	asc_docs_api.prototype.put_ShapesAlign = function(type, alignType)
+	{
+		if(!this.WordControl)
+		{
+			return;
+		}
+		if(!this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		if(!AscFormat.isRealNumber(alignType))
+		{
+			alignType = Asc.c_oAscObjectsAlignType.Slide;
+		}
+		this.WordControl.m_oLogicDocument.PutShapesAlign(type, alignType);
+
+	};
+	asc_docs_api.prototype.DistributeHorizontally = function(alignType)
+	{
+		if(!AscFormat.isRealNumber(alignType))
+		{
+			alignType = Asc.c_oAscObjectsAlignType.Margin;
+		}
+		this.WordControl.m_oLogicDocument.DistributeDrawingsHorizontally(alignType);
+	};
+	asc_docs_api.prototype.DistributeVertically   = function(alignType)
+	{
+		if(!AscFormat.isRealNumber(alignType))
+		{
+			alignType = Asc.c_oAscObjectsAlignType.Margin;
+		}
+		this.WordControl.m_oLogicDocument.DistributeDrawingsVertically(alignType);
+	};
+
 	asc_docs_api.prototype.ImgApply                = function(obj)
 	{
 
@@ -9566,6 +9615,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['AddImageUrl']                               = asc_docs_api.prototype.AddImageUrl;
 	asc_docs_api.prototype['AddImageUrlAction']                         = asc_docs_api.prototype.AddImageUrlAction;
 	asc_docs_api.prototype['AddImageToPage']                            = asc_docs_api.prototype.AddImageToPage;
+	asc_docs_api.prototype['asc_getSelectedDrawingObjectsCount']        = asc_docs_api.prototype.asc_getSelectedDrawingObjectsCount;
+	asc_docs_api.prototype['put_ShapesAlign']                           = asc_docs_api.prototype.put_ShapesAlign;
+	asc_docs_api.prototype['DistributeHorizontally']                    = asc_docs_api.prototype.DistributeHorizontally;
+	asc_docs_api.prototype['DistributeVertically']                      = asc_docs_api.prototype.DistributeVertically;
 	asc_docs_api.prototype['ImgApply']                                  = asc_docs_api.prototype.ImgApply;
 	asc_docs_api.prototype['set_Size']                                  = asc_docs_api.prototype.set_Size;
 	asc_docs_api.prototype['set_ConstProportions']                      = asc_docs_api.prototype.set_ConstProportions;

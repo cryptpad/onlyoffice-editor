@@ -2317,7 +2317,19 @@
 			}
 		};
 
-		reader.readAsText(new Blob([buffer]), AscCommon.c_oAscEncodings[options.asc_getCodePage()][2]);
+		var encoding = "UTF-8";
+		var codePage = options.asc_getCodePage();
+		var encodingsLen = AscCommon.c_oAscEncodings.length;
+		for (var i = 0; i < encodingsLen; ++i)
+		{
+			if (AscCommon.c_oAscEncodings[i][0] == codePage)
+			{
+				encoding = AscCommon.c_oAscEncodings[i][2];
+				break;
+			}
+		}
+
+		reader.readAsText(new Blob([buffer]), encoding);
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------

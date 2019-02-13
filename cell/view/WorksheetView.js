@@ -2543,6 +2543,10 @@
             return mergedCells;
         }
 
+		var aRules = this.model.aConditionalFormattingRules.sort(function(v1, v2) {
+			return v2.priority - v1.priority;
+		});
+
 		var top = this._getRowTop(row);
         var ctx = drawingCtx || this.drawingCtx;
         for ( var col = colStart; col <= colEnd; ++col ) {
@@ -2596,6 +2600,7 @@
                                     .fillRect( this._getColLeft(col) - offsetX - 1, this._getRowTop(row + 1) - offsetY - 1, width + 1, 1 );
                             }
                         }
+					this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
                     continue;
                 }
             }
@@ -2610,6 +2615,8 @@
             if (fillColor && findFillColor) {
 				ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
             }
+
+			this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
         }
         return mergedCells;
     };
@@ -2651,6 +2658,46 @@
         }
         return mergedCells;
     };
+
+    WorksheetView.prototype._drawCellCF = function (ctx, aRules, c, row, col, top, width, height, offsetX, offsetY) {
+		var ct = this._getCellTextCache(col, row);
+		if (!ct || !ct.flags.isNumberFormat) {
+			return null;
+		}
+
+		var cellValue = c.getNumberValue();
+		width -= 2; // indent
+
+    	var oRule, oRuleElement, ranges, multiplyRange, values, min, max;
+		for (var i = 0; i < aRules.length; ++i) {
+			oRule = aRules[i];
+			ranges = oRule.ranges;
+			multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
+			if (multiplyRange.contains(col, row)) {
+				if (AscCommonExcel.ECfType.dataBar === oRule.type) {
+					if (1 !== oRule.aRuleElements.length) {
+						continue;
+					}
+					oRuleElement = oRule.aRuleElements[0];
+					if (!oRuleElement || oRule.type !== oRuleElement.type) {
+						continue;
+					}
+					values = this.model._getValuesForConditionalFormatting(ranges, true);
+					min = oRule.getMin(values, this);
+					max = oRule.getMax(values, this);
+
+					var minLength = Math.floor(width * oRuleElement.MinLength / 100);
+					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
+					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
+
+					var x = this._getColLeft(col);
+					if (oRuleElement.Color) {
+						ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+					}
+				}
+			}
+		}
+	};
 
 	/** Рисует текст ячейки */
 	WorksheetView.prototype._drawCellText =
@@ -15271,7 +15318,9 @@
 					if(i === 0 && str !== "") {
 						str += ",";
 					}
-					str += parserHelp.get3DRef(t.model.getName(), (mc || ranges[i]).getAbsName());
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						str += parserHelp.get3DRef(t.model.getName(), (mc || ranges[i]).getAbsName());
+					});
 					if(i !== ranges.length - 1) {
 						str += ",";
 					}
@@ -15335,7 +15384,11 @@
             var areaRefsArr = ref.split(",");
             if(areaRefsArr.length) {
                 for(var i = 0; i < areaRefsArr.length; i++) {
-                    var range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) || AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					var range;
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) || AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					});
+
                     for(var j = 0; j < selection.length; j++) {
                         if(selection[j].intersection(range)) {
                             return false;
