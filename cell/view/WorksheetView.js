@@ -16265,16 +16265,16 @@
 				var self = wb;
 				if(!t.cellEditor) {
 					t.cellEditor = new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
-						"closed": function () {
+						/*"closed": function () {
 							self._onCloseCellEditor.apply(self, arguments);
-						}, "updated": function () {
+						},*/ "updated": function () {
 							self.Api.checkLastWork();
 							self._onUpdateCellEditor.apply(self, arguments);
-						}, "gotFocus": function (hasFocus) {
+						}, /*"gotFocus": function (hasFocus) {
 							self.controller.setFocus(!hasFocus);
-						}, "updateEditorState": function (state) {
+						},*/ "updateEditorState": function (state) {
 							self.handlers.trigger("asc_onEditCell", state);
-						}, "isGlobalLockEditCell": function () {
+						},/* "isGlobalLockEditCell": function () {
 							return self.collaborativeEditing.getGlobalLockEditCell();
 						}, "updateFormulaEditModEnd": function () {
 							if (!self.lockDraw) {
@@ -16294,14 +16294,14 @@
 								self.getWorksheet(editRangeSheet).removeFormulaRange(range);
 								self.getWorksheet().addFormulaRange(range);
 							}
-						}, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
+						},*/ "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
 							self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
 							self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
-						}, "applyCloseEvent": function () {
+						}, /*"applyCloseEvent": function () {
 							self.controller._onWindowKeyDown.apply(self.controller, arguments);
 						}, "canEdit": function () {
 							return self.Api.canEdit();
-						}, "getFormulaRanges": function () {
+						},*/ /*"getFormulaRanges": function () {
 							return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
 						}, "getCellFormulaEnterWSOpen": function () {
 							return self.cellFormulaEnterWSOpen;
@@ -16309,7 +16309,7 @@
 							return self.getWorksheet().model;
 						}, "setStrictClose": function (val) {
 							self.controller.setStrictClose(val);
-						}, "updateEditorSelectionInfo": function (info) {
+						},*/ "updateEditorSelectionInfo": function (info) {
 							self.handlers.trigger("asc_onEditorSelectionChanged", info);
 						}, "onContextMenu": function (event) {
 							self.handlers.trigger("asc_onContextMenu", event);
