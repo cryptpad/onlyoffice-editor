@@ -10479,6 +10479,8 @@ function getAbsoluteRectBoundsObject(drawing)
 function getAbsoluteRectBoundsArr(aDrawings)
 {
     var arrBounds = [], minX, minY, maxX, maxY, i, bounds;
+    var summWidth = 0.0;
+    var summHeight = 0.0;
     for(i = 0; i < aDrawings.length; ++i)
     {
         bounds = getAbsoluteRectBoundsObject(aDrawings[i]);
@@ -10509,8 +10511,10 @@ function getAbsoluteRectBoundsArr(aDrawings)
                 maxY = bounds.maxY;
             }
         }
+        summWidth += (bounds.maxX - bounds.minX);
+        summHeight += (bounds.maxY - bounds.minY);
     }
-    return {arrBounds: arrBounds, minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+    return {arrBounds: arrBounds, minX: minX, maxX: maxX, minY: minY, maxY: maxY, summWidth: summWidth, summHeight: summHeight};
 }
 
 function CalcLiterByLength(aAlphaBet, nLength)
