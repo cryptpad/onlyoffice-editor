@@ -3599,7 +3599,7 @@ CGraphicObjects.prototype =
             lastPos = pos1;
             for(i = 0; i < sortObjects.length; ++i)
             {
-                sortObjects[i].trackObject.track(lastPos -  this.arrTrackObjects[i].originalObject.x, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+                sortObjects[i].trackObject.track(lastPos -  sortObjects[i].trackObject.originalObject.x, 0, sortObjects[i].trackObject.originalObject.selectStartPage);
                 lastPos += (gap + (sortObjects[i].boundsObject.maxX - sortObjects[i].boundsObject.minX));
             }
             move_state.onMouseUp({}, 0, 0, 0);
@@ -3665,7 +3665,7 @@ CGraphicObjects.prototype =
             lastPos = pos1;
             for(i = 0; i < sortObjects.length; ++i)
             {
-                sortObjects[i].trackObject.track(0, lastPos -  this.arrTrackObjects[i].originalObject.y, this.arrTrackObjects[i].originalObject.selectStartPage);
+                sortObjects[i].trackObject.track(0, lastPos -  sortObjects[i].trackObject.originalObject.y, sortObjects[i].trackObject.originalObject.selectStartPage);
                 lastPos += (gap + (sortObjects[i].boundsObject.maxY - sortObjects[i].boundsObject.minY));
             }
             move_state.onMouseUp({}, 0, 0, 0);
