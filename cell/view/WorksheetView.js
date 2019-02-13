@@ -16265,9 +16265,9 @@
 				var self = wb;
 				if(!t.cellEditor) {
 					t.cellEditor = new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
-						/*"closed": function () {
+						"closed": function () {
 							self._onCloseCellEditor.apply(self, arguments);
-						},*/ "updated": function () {
+						}, "updated": function () {
 							self.Api.checkLastWork();
 							self._onUpdateCellEditor.apply(self, arguments);
 						}, /*"gotFocus": function (hasFocus) {
