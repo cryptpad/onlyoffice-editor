@@ -2482,6 +2482,22 @@ var editor;
     var ws = this.wb.getWorksheet();
     return ws.objectRender.setGraphicObjectAlign(alignType);
   };
+  spreadsheet_api.prototype.asc_DistributeSelectedDrawingObjectHor = function() {
+      var ws = this.wb.getWorksheet();
+      return ws.objectRender.distributeGraphicObjectHor();
+  };
+
+  spreadsheet_api.prototype.asc_DistributeSelectedDrawingObjectVer = function() {
+      var ws = this.wb.getWorksheet();
+      return ws.objectRender.distributeGraphicObjectVer();
+  };
+
+  spreadsheet_api.prototype.asc_getSelectedDrawingObjectsCount = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.getSelectedDrawingObjectsCount();
+  };
+
 
   spreadsheet_api.prototype.asc_addTextArt = function(nStyle) {
     var ws = this.wb.getWorksheet();
@@ -3712,7 +3728,10 @@ var editor;
   prot["asc_addImageDrawingObject"] = prot.asc_addImageDrawingObject;
   prot["asc_setSelectedDrawingObjectLayer"] = prot.asc_setSelectedDrawingObjectLayer;
   prot["asc_setSelectedDrawingObjectAlign"] = prot.asc_setSelectedDrawingObjectAlign;
-  prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
+  prot["asc_DistributeSelectedDrawingObjectHor"] = prot.asc_DistributeSelectedDrawingObjectHor;
+  prot["asc_DistributeSelectedDrawingObjectVer"] = prot.asc_DistributeSelectedDrawingObjectVer;
+  prot["asc_getSelectedDrawingObjectsCount"] = prot.asc_getSelectedDrawingObjectsCount;
+    prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
   prot["asc_getTextArtPreviews"] = prot.asc_getTextArtPreviews;
   prot['asc_getPropertyEditorShapes'] = prot.asc_getPropertyEditorShapes;
   prot['asc_getPropertyEditorTextArts'] = prot.asc_getPropertyEditorTextArts;
