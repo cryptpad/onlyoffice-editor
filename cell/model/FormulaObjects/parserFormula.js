@@ -6390,6 +6390,14 @@ parserFormula.prototype.setFormula = function(formula) {
 						}
 						if (elem.type === cElementType.cellsRange3D) {
 							elem.bbox = _cellsBbox;
+							var isDefName;
+							if (this.parent && this.parent.onFormulaEvent) {
+								isDefName = this.parent.onFormulaEvent(AscCommon.c_oNotifyParentType.IsDefName);
+							}
+							//только если это defName
+							if(null === isDefName) {
+								elem.changeSheet(ws, wsTo);
+							}
 						} else {
 							elem.range = _cellsRange.createFromBBox(wsTo, _cellsBbox);
 						}
