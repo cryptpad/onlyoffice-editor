@@ -7688,7 +7688,7 @@ CMathAutoCorrectEngine.prototype.Stop_CollectText = function()
 CMathAutoCorrectEngine.prototype.Find_All_Brackets = function (Content) {
     this.Calc_Brackets_Count(Content);
     // var shift = this.Brackets.countL - this.Brackets.countR;
-    var shift = this.Brackets.SkipFirst;;
+    var shift = this.Brackets.SkipFirst;
     if (shift < 0) {
         return false;
     }
