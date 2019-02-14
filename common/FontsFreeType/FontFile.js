@@ -56,6 +56,71 @@
 		FT_LOAD_TARGET_LCD_V	: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_LCD_V)
 	};
 
+	AscFonts.isUseMonochromeRendering = function(symbol)
+	{
+		if (!AscFonts.mRanges)
+		{
+			AscFonts.mRanges = [];
+
+			/*
+			// korean
+			AscFonts.mRanges.push(0x1100);
+			AscFonts.mRanges.push(0x11FF);
+			AscFonts.mRanges.push(0x3130);
+			AscFonts.mRanges.push(0x318F);
+			AscFonts.mRanges.push(0xAC00);
+			AscFonts.mRanges.push(0xD7AF);
+			AscFonts.mRanges.push(0xFF00);
+			AscFonts.mRanges.push(0xFFEF);
+
+			// japan
+			AscFonts.mRanges.push(0x4E00);
+			AscFonts.mRanges.push(0x9FBF);
+
+			// chinese
+			AscFonts.mRanges.push(0x4E00);
+			AscFonts.mRanges.push(0x9FFF);
+			AscFonts.mRanges.push(0x3400);
+			AscFonts.mRanges.push(0x4DFF);
+			AscFonts.mRanges.push(0x20000);
+			AscFonts.mRanges.push(0x2A6DF);
+			AscFonts.mRanges.push(0xF900);
+			AscFonts.mRanges.push(0xFAFF);
+			AscFonts.mRanges.push(0x2F800);
+			AscFonts.mRanges.push(0x2FA1F);
+			AscFonts.mRanges.push(0xFF00);
+			AscFonts.mRanges.push(0xFFEF);
+			*/
+			// union:
+			AscFonts.mRanges.push(0x1100); AscFonts.mRanges.push(0x11FF);
+			AscFonts.mRanges.push(0x3130); AscFonts.mRanges.push(0x318F);
+
+			AscFonts.mRanges.push(0x3400); AscFonts.mRanges.push(0x9FFF);
+
+			AscFonts.mRanges.push(0xAC00); AscFonts.mRanges.push(0xD7AF);
+
+			AscFonts.mRanges.push(0xF900); AscFonts.mRanges.push(0xFAFF);
+			AscFonts.mRanges.push(0xFF00); AscFonts.mRanges.push(0xFFEF);
+
+			AscFonts.mRanges.push(0x20000); AscFonts.mRanges.push(0x2A6DF);
+			AscFonts.mRanges.push(0x2F800);	AscFonts.mRanges.push(0x2FA1F);
+		}
+
+		if (symbol < AscFonts.mRanges[0])
+			return false;
+
+		var _m = AscFonts.mRanges;
+		var _l = AscFonts.mRanges.length;
+
+		for (var i = 0; i < _l; i += 2)
+		{
+			if (symbol >= _m[i] && symbol <= _m[i + 1])
+				return true;
+		}
+
+		return false;
+	};
+
     var raster_memory = AscFonts.raster_memory;
 
 	var FONT_ITALIC_ANGLE 	= 0.3090169943749;
@@ -1033,8 +1098,14 @@
 
             //measure_time_start = performance.now();
 
+			var _rend_mode = REND_MODE;
+            if (!this.m_bStringGID && AscFonts.isUseMonochromeRendering(glyph_index_or_unicode) && ((this.m_fSize * this.m_unHorDpi) <= (12 * 96)))
+			{
+				_rend_mode = AscFonts.FT_Render_Mode.FT_RENDER_MODE_MONO;
+			}
+
             oSizes.bBitmap = true;
-            var rasterInfo = AscFonts.FT_Glyph_Get_Raster(this.m_pFace, REND_MODE);
+            var rasterInfo = AscFonts.FT_Glyph_Get_Raster(this.m_pFace, _rend_mode);
             if (!rasterInfo || rasterInfo.pitch == 0)
             	return oSizes;
 
@@ -1046,7 +1117,7 @@
 			oSizes.oBitmap.nWidth = rasterInfo.width;
 			oSizes.oBitmap.nHeight = rasterInfo.rows;
 
-            var rasterBitmap = AscFonts.FT_Get_Glyph_Render_Buffer(this.m_pFace, rasterInfo, true, REND_MODE);
+            var rasterBitmap = AscFonts.FT_Get_Glyph_Render_Buffer(this.m_pFace, rasterInfo, true, _rend_mode);
 
 			var isDisableNeedBold = ((this.m_pFaceInfo.os2_version != 0xFFFF) && (this.m_pFaceInfo.os2_usWeightClass >= 800)) ? true : false;
 
