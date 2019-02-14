@@ -3131,6 +3131,16 @@
 		}
 	};
 
+	WorkbookView.prototype.cleanCutData = function () {
+		if(this.cutIdSheet) {
+			var ws = this.getWorksheetById(this.cutIdSheet);
+			if(ws) {
+				ws.cutRange = null;
+			}
+			this.cutIdSheet = null;
+		}
+	};
+
   //------------------------------------------------------------export---------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window["AscCommonExcel"].WorkbookView = WorkbookView;
