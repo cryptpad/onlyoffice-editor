@@ -2619,11 +2619,13 @@
 			this.ShapeProperties = v;
 		},
 
-		asc_getOriginSize: function (api) {
-			if (window['AscFormat'].isRealNumber(this.oleWidth) && window['AscFormat'].isRealNumber(this.oleHeight)) {
+		asc_getOriginSize: function (api)
+		{
+			if (window['AscFormat'].isRealNumber(this.oleWidth) && window['AscFormat'].isRealNumber(this.oleHeight))
+			{
 				return new asc_CImageSize(this.oleWidth, this.oleHeight, true);
 			}
-			if(this.ImageUrl === null)
+			if (this.ImageUrl === null)
 			{
 				return new asc_CImageSize(50, 50, false);
 			}
@@ -2635,36 +2637,59 @@
 			var _page_x_right_margin = AscCommon.X_Right_Margin;
 			var _page_y_bottom_margin = AscCommon.Y_Bottom_Margin;
 
-			if (_section_select) {
-          if (_section_select.W) {
-              _page_width = _section_select.W;
-          }
+			if (_section_select)
+			{
+				if (_section_select.W)
+				{
+					_page_width = _section_select.W;
+				}
 
-          if (_section_select.H) {
-              _page_height = _section_select.H;
-          }
+				if (_section_select.H)
+				{
+					_page_height = _section_select.H;
+				}
 			}
 
+			var origW = 0;
+			var origH = 0;
 			var _image = api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(this.ImageUrl)];
-			if (_image != undefined && _image.Image != null && _image.Status == window['AscFonts'].ImageLoadStatus.Complete) {
+			if (_image != undefined && _image.Image != null && _image.Status == window['AscFonts'].ImageLoadStatus.Complete)
+			{
+				origW = _image.Image.width;
+				origH = _image.Image.height;
+			}
+			else if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["GetImageOriginalSize"])
+			{
+				var _size = window["AscDesktopEditor"]["GetImageOriginalSize"](this.ImageUrl);
+				if (_size.W != 0 && _size.H != 0)
+				{
+					origW = _size.W;
+					origH = _size.H;
+				}
+			}
+
+			if (origW != 0 && origH != 0)
+			{
 				var _w = Math.max(1, _page_width - (_page_x_left_margin + _page_x_right_margin));
 				var _h = Math.max(1, _page_height - (_page_y_top_margin + _page_y_bottom_margin));
 
 				var bIsCorrect = false;
-				if (_image.Image != null) {
-					var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
-					var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
 
-					var dKoef = Math.max(__w / _w, __h / _h);
-					if (dKoef > 1) {
-						_w = Math.max(5, __w / dKoef);
-						_h = Math.max(5, __h / dKoef);
+				var __w = Math.max((origW * AscCommon.g_dKoef_pix_to_mm), 1);
+				var __h = Math.max((origH * AscCommon.g_dKoef_pix_to_mm), 1);
 
-						bIsCorrect = true;
-					} else {
-						_w = __w;
-						_h = __h;
-					}
+				var dKoef = Math.max(__w / _w, __h / _h);
+				if (dKoef > 1)
+				{
+					_w = Math.max(5, __w / dKoef);
+					_h = Math.max(5, __h / dKoef);
+
+					bIsCorrect = true;
+				}
+				else
+				{
+					_w = __w;
+					_h = __h;
 				}
 
 				return new asc_CImageSize(_w, _h, bIsCorrect);
