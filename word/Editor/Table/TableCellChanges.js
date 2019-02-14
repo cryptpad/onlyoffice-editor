@@ -319,19 +319,19 @@ CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
 			this.New.Left.ReadFromBinary(Reader);
 		}
 
-		if (Flags & 32)
+		if (nFlags & 32)
 		{
 			this.New.Top = new CTableMeasurement(tblwidth_Auto, 0);
 			this.New.Top.ReadFromBinary(Reader);
 		}
 
-		if (Flags & 64)
+		if (nFlags & 64)
 		{
 			this.New.Right = new CTableMeasurement(tblwidth_Auto, 0);
 			this.New.Right.ReadFromBinary(Reader);
 		}
 
-		if (Flags & 128)
+		if (nFlags & 128)
 		{
 			this.New.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
 			this.New.Bottom.ReadFromBinary(Reader);
@@ -361,19 +361,19 @@ CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
 			this.Old.Left.ReadFromBinary(Reader);
 		}
 
-		if (Flags & 512)
+		if (nFlags & 512)
 		{
 			this.Old.Top = new CTableMeasurement(tblwidth_Auto, 0);
 			this.Old.Top.ReadFromBinary(Reader);
 		}
 
-		if (Flags & 1024)
+		if (nFlags & 1024)
 		{
 			this.Old.Right = new CTableMeasurement(tblwidth_Auto, 0);
 			this.Old.Right.ReadFromBinary(Reader);
 		}
 
-		if (Flags & 2048)
+		if (nFlags & 2048)
 		{
 			this.Old.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
 			this.Old.Bottom.ReadFromBinary(Reader);
