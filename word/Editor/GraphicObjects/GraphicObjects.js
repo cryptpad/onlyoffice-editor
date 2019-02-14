@@ -621,17 +621,42 @@ CGraphicObjects.prototype =
         {
             this.selectedObjects[i].parent.Set_Props(oProps);
         }
-        if(AscFormat.isRealNumber(oProps.Width) || AscFormat.isRealNumber(oProps.Height) || AscFormat.isRealNumber(oProps.rot)
-            || AscFormat.isRealBool(oProps.flipH) || AscFormat.isRealBool(oProps.flipV))
+
+        oApplyProps = oProps;
+        if(oProps.ShapeProperties)
         {
-            oApplyProps = oProps;
-        }
-        else
-        {
-            oApplyProps = oProps.ShapeProperties ? oProps.ShapeProperties : oProps;
+            oApplyProps = oProps.ShapeProperties;
             if(AscFormat.isRealBool(oProps.lockAspect))
             {
                 oApplyProps.lockAspect = oProps.lockAspect;
+            }
+            if(AscFormat.isRealNumber(oProps.Width))
+            {
+                oApplyProps.Width = oProps.Width;
+            }
+            if(AscFormat.isRealNumber(oProps.Height))
+            {
+                oApplyProps.Height = oProps.Height;
+            }
+            if(AscFormat.isRealNumber(oProps.rot))
+            {
+                oApplyProps.rot = oProps.rot;
+            }
+            if(AscFormat.isRealBool(oProps.flipH))
+            {
+                oApplyProps.flipH = oProps.flipH;
+            }
+            if(AscFormat.isRealBool(oProps.flipV))
+            {
+                oApplyProps.flipV = oProps.flipV;
+            }
+            if(AscFormat.isRealBool(oProps.flipHInvert))
+            {
+                oApplyProps.flipHInvert = oProps.flipHInvert;
+            }
+            if(AscFormat.isRealBool(oProps.flipVInvert))
+            {
+                oApplyProps.flipVInvert = oProps.flipVInvert;
             }
         }
         this.applyDrawingProps(oApplyProps);
