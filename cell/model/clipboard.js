@@ -258,7 +258,7 @@
 			var wb = window["Asc"]["editor"].wb;
 			
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-			window["Asc"]["editor"].wb.cleanCutData();
+			window["Asc"]["editor"].wb.cleanCutData(true);
 
 			if (ws.getCellEditMode() === true)//text in cell
 			{
@@ -1224,7 +1224,7 @@
 						var toRange = new Asc.Range(aRange.c1, aRange.r1, aRange.c1 + (fromRange.c2 - fromRange.c1), aRange.r1 + (fromRange.r2 - fromRange.r1));
 						var wsTo = ws.model.Id !== wsFrom.model.Id ? ws : null;
 						wsFrom.moveRangeHandle2(fromRange, toRange, false, wsTo);
-						window["Asc"]["editor"].wb.cleanCutData();
+						window["Asc"]["editor"].wb.cleanCutData(true);
 						res = true;
 
 						//если вставка произошла успешно, тогда чистим буфер обмена

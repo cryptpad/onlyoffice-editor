@@ -3131,13 +3131,23 @@
 		}
 	};
 
-	WorkbookView.prototype.cleanCutData = function () {
+	WorkbookView.prototype.cleanCutData = function (bDrawSelection) {
 		if(this.cutIdSheet) {
+			var activeWs = this.wsViews[this.wsActive];
 			var ws = this.getWorksheetById(this.cutIdSheet);
+
+			if(bDrawSelection && activeWs && ws && activeWs.model.Id === ws.model.Id) {
+				activeWs.cleanSelection();
+			}
+
 			if(ws) {
 				ws.cutRange = null;
 			}
 			this.cutIdSheet = null;
+
+			if(bDrawSelection && activeWs && ws && activeWs.model.Id === ws.model.Id) {
+				activeWs.updateSelection();
+			}
 		}
 	};
 
