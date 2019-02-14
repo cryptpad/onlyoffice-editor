@@ -37,6 +37,25 @@
     //window.measureTime = 0;
     //window.rasterTime = 0;
 
+	AscFonts.FT_Render_Mode = {
+		FT_RENDER_MODE_NORMAL 	: 0,
+		FT_RENDER_MODE_LIGHT	: 1,
+		FT_RENDER_MODE_MONO		: 2,
+		FT_RENDER_MODE_LCD		: 3,
+		FT_RENDER_MODE_LCD_V	: 4,
+		FT_RENDER_MODE_MAX		: 5
+	};
+
+	function _ft_load_target(val) { return (val & 15) << 16; }
+
+	AscFonts.FT_Load_Mode = {
+		FT_LOAD_TARGET_NORMAL 	: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_NORMAL),
+		FT_LOAD_TARGET_LIGHT	: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_LIGHT),
+		FT_LOAD_TARGET_MONO		: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_MONO),
+		FT_LOAD_TARGET_LCD		: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_LCD),
+		FT_LOAD_TARGET_LCD_V	: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_LCD_V)
+	};
+
     var raster_memory = AscFonts.raster_memory;
 
 	var FONT_ITALIC_ANGLE 	= 0.3090169943749;
@@ -44,7 +63,7 @@
 	var FT_ENCODING_NONE 	= 0;
 	var FT_ENCODING_MS_SYMBOL 	= 1937337698;
 	var FT_ENCODING_APPLE_ROMAN = 1634889070;
-	var REND_MODE 			= 0;
+	var REND_MODE 			= AscFonts.FT_Render_Mode.FT_RENDER_MODE_NORMAL;
 
 	var EGlyphState =
 	{
@@ -1027,7 +1046,7 @@
 			oSizes.oBitmap.nWidth = rasterInfo.width;
 			oSizes.oBitmap.nHeight = rasterInfo.rows;
 
-            var rasterBitmap = AscFonts.FT_Get_Glyph_Render_Buffer(this.m_pFace, rasterInfo, true);
+            var rasterBitmap = AscFonts.FT_Get_Glyph_Render_Buffer(this.m_pFace, rasterInfo, true, REND_MODE);
 
 			var isDisableNeedBold = ((this.m_pFaceInfo.os2_version != 0xFFFF) && (this.m_pFaceInfo.os2_usWeightClass >= 800)) ? true : false;
 

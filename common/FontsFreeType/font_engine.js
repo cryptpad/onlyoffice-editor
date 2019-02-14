@@ -644,7 +644,7 @@
     AscFonts.FT_SetCMapForCharCode = Module._ASC_FT_SetCMapForCharCode;
     AscFonts.FT_GetKerningX = Module._ASC_FT_GetKerningX;
     AscFonts.FT_GetFaceMaxAdvanceX = Module._ASC_FT_GetFaceMaxAdvanceX;
-    AscFonts.FT_Get_Glyph_Render_Buffer = function(face, rasterInfo, isCopyToRasterMemory)
+    AscFonts.FT_Get_Glyph_Render_Buffer = function(face, rasterInfo, isCopyToRasterMemory, rend_mode)
     {
         var _bufferPtr = Module._ASC_FT_Get_Glyph_Render_Buffer(face);
         var tmp = new Uint8Array(Module.HEAP8.buffer, _bufferPtr, rasterInfo.pitch * rasterInfo.rows);
@@ -657,13 +657,37 @@
         var offsetSrc = 0;
         var offsetDst = 3;
         var dstData = AscFonts.raster_memory.m_oBuffer.data;
-        for (var j = 0; j < rasterInfo.rows; ++j, offsetSrc += rasterInfo.pitch)
+
+        if (rend_mode < AscFonts.FT_Render_Mode.FT_RENDER_MODE_LIGHT)
+		{
+			for (var j = 0; j < rasterInfo.rows; ++j, offsetSrc += rasterInfo.pitch)
+			{
+				offsetDst = 3 + j * AscFonts.raster_memory.pitch;
+				for (var i = 0; i < rasterInfo.width; i++, offsetDst += 4)
+				{
+					dstData[offsetDst] = tmp[offsetSrc + i];
+				}
+			}
+		}
+		else if (rend_mode == AscFonts.FT_Render_Mode.FT_RENDER_MODE_MONO)
         {
-            offsetDst = 3 + j * AscFonts.raster_memory.pitch;
-            for (var i = 0; i < rasterInfo.width; i++, offsetDst += 4)
-            {
-                dstData[offsetDst] = tmp[offsetSrc + i];
-            }
+            var bitNumber = 0;
+            var byteNumber = 0;
+			for (var j = 0; j < rasterInfo.rows; ++j, offsetSrc += rasterInfo.pitch)
+			{
+				offsetDst = 3 + j * AscFonts.raster_memory.pitch;
+				bitNumber = 0;
+				byteNumber = 0;
+				for (var i = 0; i < rasterInfo.width; i++, offsetDst += 4, bitNumber++)
+				{
+				    if (8 == bitNumber)
+                    {
+                        bitNumber = 0;
+                        byteNumber++;
+                    }
+					dstData[offsetDst] = (tmp[offsetSrc + byteNumber] & (1 << (7 - bitNumber))) ? 255 : 0;
+				}
+			}
         }
 
         tmp = null;
