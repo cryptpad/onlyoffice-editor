@@ -8125,6 +8125,14 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
+		// Если цвет не задан
+		if (undefined === r || null == r)
+		{
+			r = 220;
+			g = 220;
+			b = 220;
+		}
+
 		// Лок можно не проверять, таким изменения нормально мержаться
 		oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetGlobalSdtHighlightColor);
 		oLogicDocument.SetSdtGlobalColor(r, g, b);
@@ -8136,8 +8144,11 @@ background-repeat: no-repeat;\
 	{
 		this.sendEvent("asc_onChangeSdtGlobalSettings");
 	};
-	asc_docs_api.prototype.asc_GetGlobalContentControlHighlightColor = function()
+	asc_docs_api.prototype.asc_GetGlobalContentControlHighlightColor = function(isDefault)
 	{
+		if (true === isDefault)
+			return new Asc.asc_CColor(220, 220, 220);
+
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return new Asc.asc_CColor(0, 0, 0);
