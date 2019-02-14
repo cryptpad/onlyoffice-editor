@@ -1894,104 +1894,78 @@
 				}
 				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 			},
-			
-			_insertImagesFromBinaryWord: function(ws, data, aImagesSync)
-			{
+
+			_insertImagesFromBinaryWord: function (ws, data, aImagesSync) {
 				var activeRange = ws.model.selectionRange.getLast().clone();
 				var curCol, drawingObject, curRow, startCol = 0, startRow = 0, xfrm, drawingBase, graphicObject, offX, offY, rot;
 
 				History.Create_NewPoint();
 				History.StartTransaction();
-				
+
 				var api = window["Asc"]["editor"];
 				var addImagesFromWord = data.props.addImagesFromWord;
 				//определяем стартовую позицию, если изображений несколько вставляется
-				for(var i = 0; i < addImagesFromWord.length; i++)
-				{
-					if(para_Math === addImagesFromWord[i].image.Type)
-					{
+				for (var i = 0; i < addImagesFromWord.length; i++) {
+					if (para_Math === addImagesFromWord[i].image.Type) {
 						graphicObject = ws.objectRender.createShapeAndInsertContent(addImagesFromWord[i].image);
-					}
-					else
-					{
+					} else {
 						graphicObject = addImagesFromWord[i].image.GraphicObj;
-					
+
 						//convert from word
-						if(graphicObject.setBDeleted2)
-						{
+						if (graphicObject.setBDeleted2) {
 							graphicObject.setBDeleted2(true);
-						}
-						else
-						{
+						} else {
 							graphicObject.bDeleted = true;
 						}
 						graphicObject = graphicObject.convertToPPTX(ws.model.DrawingDocument, ws.model, true);
 					}
-					
-					
+
+
 					//create new drawingBase
 					drawingObject = ws.objectRender.createDrawingObject();
 					drawingObject.graphicObject = graphicObject;
 
-					if(drawingObject.graphicObject.spPr && drawingObject.graphicObject.spPr.xfrm)
-					{
+					if (drawingObject.graphicObject.spPr && drawingObject.graphicObject.spPr.xfrm) {
 						xfrm = drawingObject.graphicObject.spPr.xfrm;
 						offX = 0;
 						offY = 0;
 						rot = AscFormat.isRealNumber(xfrm.rot) ? xfrm.rot : 0;
 						rot = AscFormat.normalizeRotate(rot);
-						if (AscFormat.checkNormalRotate(rot))
-						{
-							if(AscFormat.isRealNumber(xfrm.offX) && AscFormat.isRealNumber(xfrm.offY))
-							{
+						if (AscFormat.checkNormalRotate(rot)) {
+							if (AscFormat.isRealNumber(xfrm.offX) && AscFormat.isRealNumber(xfrm.offY)) {
 								offX = xfrm.offX;
 								offY = xfrm.offY;
 							}
-						}
-						else
-						{
-							if(AscFormat.isRealNumber(xfrm.offX) && AscFormat.isRealNumber(xfrm.offY)
-								&& AscFormat.isRealNumber(xfrm.extX) && AscFormat.isRealNumber(xfrm.extY))
-							{
-								offX = xfrm.offX + xfrm.extX/2 - xfrm.extY/2;
-								offY = xfrm.offY + xfrm.extY/2 - xfrm.extX/2;
+						} else {
+							if (AscFormat.isRealNumber(xfrm.offX) && AscFormat.isRealNumber(xfrm.offY) &&
+								AscFormat.isRealNumber(xfrm.extX) && AscFormat.isRealNumber(xfrm.extY)) {
+								offX = xfrm.offX + xfrm.extX / 2 - xfrm.extY / 2;
+								offY = xfrm.offY + xfrm.extY / 2 - xfrm.extX / 2;
 							}
 						}
 
-						if(i === 0)
-						{
+						if (i === 0) {
 							startCol = offX;
 							startRow = offY;
-						}
-						else 
-						{
-							if(startCol > offX)
-							{
+						} else {
+							if (startCol > offX) {
 								startCol = offX;
-							}	
-							if(startRow > offY)
-							{
+							}
+							if (startRow > offY) {
 								startRow = offY;
-							}	
+							}
 						}
-					}
-					else
-					{
-						if(i === 0)
-						{
+					} else {
+						if (i === 0) {
 							startCol = drawingObject.from.col;
 							startRow = drawingObject.from.row;
-						}
-						else 
-						{
-							if(startCol > drawingObject.from.col)
-							{
+						} else {
+							if (startCol > drawingObject.from.col) {
 								startCol = drawingObject.from.col;
-							}	
-							if(startRow > drawingObject.from.row)
-							{
+							}
+							if (startRow > drawingObject.from.row) {
 								startRow = drawingObject.from.row;
-							}	
+							}
 						}
 					}
 
@@ -2007,64 +1981,60 @@
 
 					drawingObject = ws.objectRender.cloneDrawingObject(drawingObject);
 					drawingObject.graphicObject.setDrawingBase(drawingObject);
-					
+
 					drawingObject.graphicObject.setDrawingObjects(ws.objectRender);
 					drawingObject.graphicObject.setWorksheet(ws.model);
 
-                    drawingObject.graphicObject.checkRemoveCache &&  drawingObject.graphicObject.checkRemoveCache();
-					drawingObject.graphicObject.checkExtentsByDocContent && drawingObject.graphicObject.checkExtentsByDocContent();
-                    //drawingObject.graphicObject.setDrawingDocument(ws.objectRender.drawingDocument);
+					drawingObject.graphicObject.checkRemoveCache && drawingObject.graphicObject.checkRemoveCache();
+					drawingObject.graphicObject.checkExtentsByDocContent &&
+					drawingObject.graphicObject.checkExtentsByDocContent();
+					//drawingObject.graphicObject.setDrawingDocument(ws.objectRender.drawingDocument);
 					drawingObject.graphicObject.addToDrawingObjects();
 
-					
-                    if(drawingObject.graphicObject.checkDrawingBaseCoords)
-                    {
-                        drawingObject.graphicObject.checkDrawingBaseCoords();
-                    }
+
+					if (drawingObject.graphicObject.checkDrawingBaseCoords) {
+						drawingObject.graphicObject.checkDrawingBaseCoords();
+					}
 					drawingObject.graphicObject.recalculate();
-					if(0 === data.content.length)
-					{
+					if (0 === data.content.length) {
 						drawingObject.graphicObject.select(ws.objectRender.controller, 0);
 					}
 				}
 
-                var old_val = api.ImageLoader.bIsAsyncLoadDocumentImages;
-                api.ImageLoader.bIsAsyncLoadDocumentImages = true;
-                api.ImageLoader.LoadDocumentImages(aImagesSync, null, ws.objectRender.asyncImagesDocumentEndLoaded);
-                api.ImageLoader.bIsAsyncLoadDocumentImages = old_val;
+				var old_val = api.ImageLoader.bIsAsyncLoadDocumentImages;
+				api.ImageLoader.bIsAsyncLoadDocumentImages = true;
+				api.ImageLoader.LoadDocumentImages(aImagesSync, null, ws.objectRender.asyncImagesDocumentEndLoaded);
+				api.ImageLoader.bIsAsyncLoadDocumentImages = old_val;
 
 				ws.objectRender.showDrawingObjects(true);
-                ws.setSelectionShape(true);
+				ws.setSelectionShape(true);
 				ws.objectRender.controller.updateOverlay();
 				History.EndTransaction();
 			},
-			
-			
-			
-			_loadImagesOnServer: function(aPastedImages, callback)
-			{
+
+
+			_loadImagesOnServer: function (aPastedImages, callback) {
 				var api = Asc["editor"];
-				
+
 				var oObjectsForDownload = AscCommon.GetObjectsForImageDownload(aPastedImages);
 
 				AscCommon.sendImgUrls(api, oObjectsForDownload.aUrls, function (data) {
 					var oImageMap = {};
-					
+
 					History.TurnOff();
 					AscCommon.ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
 					History.TurnOn();
-					
+
 					callback();
 				}, true);
 			},
-			
-			_insertTableFromPresentation: function(ws, graphicFrame)
-			{
+
+			_insertTableFromPresentation: function (ws, graphicFrame) {
 				History.TurnOff();
 				//из-за данной строки падение при вставке таблицы pe->se
 				//graphicFrame.graphicObject = graphicFrame.graphicObject.copy();
 				var drawingObject = graphicFrame;
-				
+
 				//вставляем табличку из презентаций
 				var oPasteFromBinaryWord = new pasteFromBinaryWord(this, ws, true);
 				var oTempDrawingDocument = ws.model.DrawingDocument;
@@ -2072,7 +2042,7 @@
 				var newCDocument = new CDocument(oTempDrawingDocument, false);
 				newCDocument.bFromDocument = true;
 				newCDocument.theme = window["Asc"]["editor"].wbModel.theme;
-				
+
 				drawingObject.graphicObject.setBDeleted(true);
 				drawingObject.graphicObject.setWordFlag(false, newCDocument);
 
@@ -2080,9 +2050,9 @@
 				oTempDrawingDocument.m_oLogicDocument = newCDocument;
 				drawingObject.graphicObject.graphicObject.Set_Parent(newCDocument);
 				oTempDrawingDocument.m_oLogicDocument = oldLogicDocument;
-				
+
 				History.TurnOn();
-				
+
 				oPasteFromBinaryWord._paste(ws, {content: [drawingObject.graphicObject.graphicObject]});
 			},
 			
