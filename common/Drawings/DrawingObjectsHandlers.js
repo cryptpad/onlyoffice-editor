@@ -112,6 +112,20 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
                 ret = drawingObjectsController.handleMoveHit(oCropSelection.cropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
             }
         }
+        if(!ret)
+        {
+            if(oCropSelection.hit(tx, ty))
+            {
+                ret = drawingObjectsController.handleMoveHit(oCropSelection.cropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+            }
+        }
+        if(!ret)
+        {
+            if(oCropSelection.cropObject.hit(tx, ty))
+            {
+                ret = drawingObjectsController.handleMoveHit(oCropSelection.cropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+            }
+        }
         if(group)
         {
             group.selectedObjects = oldSelectedObjects;

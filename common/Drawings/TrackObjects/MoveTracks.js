@@ -68,6 +68,10 @@ function MoveShapeImageTrack(originalObject)
         this.brush = pen_brush.brush;
         this.pen = pen_brush.pen;
     }
+    if(this.originalObject.cropObject && this.brush)
+    {
+        this.brush = this.brush.createDuplicate();
+    }
     this.overlayObject = new AscFormat.OverlayObject(originalObject.getGeom(), this.originalObject.extX, this.originalObject.extY, this.brush, this.pen, this.transform);
 
     this.groupInvertMatrix = null;
@@ -115,6 +119,18 @@ function MoveShapeImageTrack(originalObject)
         }
         if(AscFormat.isRealNumber(pageIndex))
             this.pageIndex = pageIndex;
+
+
+
+        if(this.originalObject.cropObject)
+        {
+            var oldTransform = this.originalObject.transform;
+
+            this.originalObject.transform = this.transform;
+            var srcRect = this.originalObject.calculateSrcRect2();
+            this.brush.fill.srcRect = srcRect;
+            this.originalObject.transform = oldTransform;
+        }
     };
 
     this.draw = function(overlay)
@@ -209,6 +225,14 @@ function MoveShapeImageTrack(originalObject)
             }
         }
         this.originalObject.checkDrawingBaseCoords();
+        if(this.originalObject.isCrop)
+        {
+            this.originalObject.parentCrop.calculateSrcRect();
+        }
+        if(this.originalObject.cropObject)
+        {
+            this.originalObject.calculateSrcRect();
+        }
     };
 }
 

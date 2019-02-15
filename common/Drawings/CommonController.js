@@ -1122,6 +1122,7 @@ DrawingObjectsController.prototype =
     {
         if(this.selection.cropSelection)
         {
+            this.selection.cropSelection.clearCropObject();
             this.selection.cropSelection = null;
             this.updateOverlay();
         }
@@ -1252,6 +1253,7 @@ DrawingObjectsController.prototype =
         }
         if(this.selection.cropSelection)
         {
+            this.selection.cropSelection.clearCropObject();
             this.selection.cropSelection = null;
         }
     },
@@ -1299,14 +1301,21 @@ DrawingObjectsController.prototype =
                     }
                     if(!isRealObject(group))
                     {
-                        this.resetInternalSelection();
+                        if(!selectedObject.isCrop && !selectedObject.cropObject)
+                        {
+                            this.resetInternalSelection();
+                        }
                         this.updateOverlay();
 
                         this.changeCurrentState(new AscFormat.PreResizeState(this, selectedObject, card_direction));
                     }
                     else
                     {
-                        group.resetInternalSelection();
+
+                        if(!selectedObject.isCrop && !selectedObject.cropObject)
+                        {
+                            group.resetInternalSelection();
+                        }
                         this.updateOverlay();
 
                         this.changeCurrentState(new AscFormat.PreResizeInGroupState(this, group, selectedObject, card_direction));
@@ -1362,7 +1371,12 @@ DrawingObjectsController.prototype =
                 var is_selected =  object.selected;
                 var b_check_internal = checkInternalSelection(selector.selection);
                 if(!(e.CtrlKey || e.ShiftKey) && !is_selected || b_is_inline || b_is_selected_inline)
-                    selector.resetSelection();
+                {
+                    if(!object.isCrop && !object.cropObject)
+                    {
+                        selector.resetSelection();
+                    }
+                }
                 if(!e.CtrlKey || !object.selected){
                     selector.selectObject(object, pageIndex);
                 }
@@ -1371,7 +1385,11 @@ DrawingObjectsController.prototype =
                 this.checkSelectedObjectsForMove(group, pageIndex);
                 if(!isRealObject(group))
                 {
-                    this.resetInternalSelection();
+
+                    if(!object.isCrop && !object.cropObject)
+                    {
+                        this.resetInternalSelection();
+                    }
                     this.updateOverlay();
                     if(!b_is_inline)
                         this.changeCurrentState(new AscFormat.PreMoveState(this, x, y, e.ShiftKey, e.CtrlKey,  object, is_selected, /*true*/!bInSelect));
@@ -1881,9 +1899,11 @@ DrawingObjectsController.prototype =
                     var oCropSelection =  this.selection.cropSelection;
                     var cropObject = oCropSelection.cropObject;
                     drawingDocument.AutoShapesTrack.SaveGrState();
+                    drawingDocument.AutoShapesTrack.save();
                     cropObject.draw(drawingDocument.AutoShapesTrack);
                     oCropSelection.draw(drawingDocument.AutoShapesTrack);
                     drawingDocument.AutoShapesTrack.RestoreGrState();
+                    drawingDocument.AutoShapesTrack.restore();
                     drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
                     drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
                 }
@@ -7855,6 +7875,7 @@ DrawingObjectsController.prototype =
                 {
                     this.selectObject(oDrawingSelectionState.cropObject, bDocument ? (oDrawingSelectionState.cropObject.parent ? oDrawingSelectionState.cropObject.parent.PageNum : nPageIndex) : nPageIndex);
                     this.selection.cropSelection = oDrawingSelectionState.cropObject;
+                    this.selection.cropSelection.createCropObject();
                     if(!oSelectionState.DrawingSelection){
                         bNeedRecalculateCurPos = true;
                     }
