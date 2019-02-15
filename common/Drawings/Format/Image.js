@@ -745,6 +745,28 @@ CImageShape.prototype.getPhIndex = function()
     return this.isPlaceholder() ? this.nvPicPr.nvPr.ph.idx : null;
 };
 
+CImageShape.prototype.getMediaFileName = function()
+{
+    if(this.nvPicPr && this.nvPicPr.nvPr && this.nvPicPr.nvPr.unimedia)
+    {
+        var oUniMedia = this.nvPicPr.nvPr.unimedia;
+        if(oUniMedia.type === 7 || oUniMedia.type === 8)
+        {
+            if(typeof oUniMedia.media === "string" && oUniMedia.media.length > 0)
+            {
+                var sExt = AscCommon.GetFileExtension(oUniMedia.media);
+                if(this.blipFill && typeof this.blipFill.RasterImageId === 'string')
+                {
+                    var sName = AscCommon.GetFileName(this.blipFill.RasterImageId);
+                    var sMediaFile = sName + '.' + sExt;
+                    return sMediaFile;
+                }
+            }
+        }
+    }
+    return null;
+};
+
 CImageShape.prototype.setNvSpPr = function(pr)
 {
     History.Add(new AscDFH.CChangesDrawingsObject(this,  AscDFH.historyitem_ImageShapeSetNvPicPr, this.nvPicPr, pr));

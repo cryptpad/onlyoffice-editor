@@ -1566,6 +1566,12 @@
 		this.pluginsManager.onEnableMouseEvents(isEnable);
 	};
 
+	baseEditorsApi.prototype.asc_PlayMediaFile = function(sName)
+	{
+		if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["OpenMedia"])
+			window["AscDesktopEditor"]["OpenMedia"](sName);
+	};
+
     baseEditorsApi.prototype.isEnabledDropTarget = function()
     {
     	return true;
