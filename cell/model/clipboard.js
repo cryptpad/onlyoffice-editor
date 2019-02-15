@@ -1227,16 +1227,8 @@
 						window["Asc"]["editor"].wb.cleanCutData(true);
 						res = true;
 
-						//если вставка произошла успешно, тогда чистим буфер обмена
-						//для этого необходимо при вызове функции api.asc_Copy()
-						//в методе checkCopyToClipboard добавить пустой текст в _clipboard и ничего более
-						//ниже пример
-						//clean clipboard
-						/*if(window['AscCommon'].g_clipboardBase.bCleanClipboard){
-							_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Text, "");
-							window['AscCommon'].g_clipboardBase.bCleanClipboard = false;
-						}*/
-						//TODO необходимо реализовать очистку буфера обмена!!!
+						//чистим буфер
+						AscCommon.g_clipboardBase.ClearBuffer();
 					}
 				}
 
@@ -2057,123 +2049,108 @@
 
 				oPasteFromBinaryWord._paste(ws, {content: [drawingObject.graphicObject.graphicObject]});
 			},
-			
-			editorPasteExec: function (worksheet, node, isText)
-            {
-				if(node == undefined)
+
+			editorPasteExec: function (worksheet, node, isText) {
+				if (node == undefined) {
 					return;
-					
+				}
+
 				var binaryResult, t = this;
 				t.alreadyLoadImagesOnServer = false;
-				
+
 				//если находимся внутри шейпа
 				var isIntoShape = worksheet.objectRender.controller.getTargetDocContent();
-				if(isIntoShape)
-				{
-					var callback = function(isSuccess)
-					{
-						if(isSuccess)
-						{
+				if (isIntoShape) {
+					var callback = function (isSuccess) {
+						if (isSuccess) {
 							t._pasteInShape(worksheet, node, isIntoShape);
-						}
-						else
-						{
+						} else {
 							window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 						}
 					};
-					
+
 					worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
 					return;
 				}
-				
+
 				//****binary****
-				if(copyPasteUseBinary)
-				{
+				if (copyPasteUseBinary) {
 					this.activeRange = worksheet.model.selectionRange.getLast().clone();
 					binaryResult = this._pasteFromBinaryClassHtml(worksheet, node, isIntoShape);
-					
-					if(binaryResult === true)
+
+					if (binaryResult === true) {
 						return;
-					else if(binaryResult !== false && binaryResult != undefined)
-					{
+					} else if (binaryResult !== false && binaryResult != undefined) {
 						node = binaryResult;
 					}
 				}
 
 				this.activeRange = worksheet.model.selectionRange.getLast().clone();
-				
-				
-				var callBackAfterLoadImages = function()
-				{
+
+
+				var callBackAfterLoadImages = function () {
 					History.TurnOff();
 
 					var oTempDrawingDocument = worksheet.model.DrawingDocument;
 					var newCDocument = new CDocument(oTempDrawingDocument, false);
 					newCDocument.bFromDocument = true;
+
 					//TODo!!!!!!
 					newCDocument.Content[0].bFromDocument = true;
 					newCDocument.theme = window["Asc"]["editor"].wbModel.theme;
-					
+
 					oTempDrawingDocument.m_oLogicDocument = newCDocument;
 					var oOldEditor = undefined;
-					if ("undefined" !== typeof editor)
+					if ("undefined" !== typeof editor) {
 						oOldEditor = editor;
+					}
 					editor = {WordControl: oTempDrawingDocument, isDocumentEditor: true};
-					var oPasteProcessor = new AscCommon.PasteProcessor({WordControl:{m_oLogicDocument: newCDocument}, FontLoader: {}}, false, false);
+					var oPasteProcessor = new AscCommon.PasteProcessor({WordControl: {m_oLogicDocument: newCDocument}, FontLoader: {}}, false, false);
 					oPasteProcessor._Prepeare_recursive(node, true, true);
-					
+
 					//при специальной вставке в firefox _getComputedStyle возвращает null
 					//TODO пересмотреть функцию _getComputedStyle
-					if(window['AscCommon'].g_specialPasteHelper.specialPasteStart && window['AscCommon'].g_specialPasteHelper.specialPasteData.aContent)
-					{
+					if (window['AscCommon'].g_specialPasteHelper.specialPasteStart && window['AscCommon'].g_specialPasteHelper.specialPasteData.aContent) {
 						oPasteProcessor.aContent = window['AscCommon'].g_specialPasteHelper.specialPasteData.aContent;
-					}
-					else
-					{
+					} else {
 						oPasteProcessor._Execute(node, {}, true, true, false);
 						window['AscCommon'].g_specialPasteHelper.specialPasteData.aContent = oPasteProcessor.aContent;
 					}
-					
+
 					editor = oOldEditor;
-					
+
 					History.TurnOn();
-					
+
 					var oPasteFromBinaryWord = new pasteFromBinaryWord(t, worksheet);
 					oPasteFromBinaryWord._paste(worksheet, {content: oPasteProcessor.aContent});
 				};
-				
+
 				var aImagesToDownload = this._getImageFromHtml(node, true);
 				var specialPasteProps = window['AscCommon'].g_specialPasteHelper.specialPasteProps;
-				if(aImagesToDownload !== null && (!specialPasteProps || (specialPasteProps && specialPasteProps.images)))//load to server
+				if (aImagesToDownload !== null &&
+					(!specialPasteProps || (specialPasteProps && specialPasteProps.images)))//load to server
 				{
-                    var api = Asc["editor"];
+					var api = Asc["editor"];
 					AscCommon.sendImgUrls(api, aImagesToDownload, function (data) {
-                       for (var i = 0, length = Math.min(data.length, aImagesToDownload.length); i < length; ++i) 
-					   {
+						for (var i = 0, length = Math.min(data.length, aImagesToDownload.length); i < length; ++i) {
 							var elem = data[i];
 							var sFrom = aImagesToDownload[i];
-							if (null != elem.url) 
-							{
-								var name = AscCommon.g_oDocumentUrls.imagePath2Local(elem.path);
-								t.oImages[sFrom] = name;
-							} 
-							else 
-							{
+							if (null != elem.url) {
+								t.oImages[sFrom] = AscCommon.g_oDocumentUrls.imagePath2Local(elem.path);
+							} else {
 								t.oImages[sFrom] = sFrom;
 							}
 						}
-						
+
 						t.alreadyLoadImagesOnServer = true;
-                        callBackAfterLoadImages();
-						
-                    }, true);
-					
-				}
-				else
-				{
+						callBackAfterLoadImages();
+
+					}, true);
+
+				} else {
 					callBackAfterLoadImages();
 				}
-            },
+			},
 			
 			//TODO rename
 			_pasteFromBinaryClassHtml: function(worksheet, node, isIntoShape)
