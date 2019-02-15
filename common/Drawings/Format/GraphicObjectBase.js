@@ -1383,6 +1383,8 @@
                 var Y = YC_ - extY/2.0;
 
                 var oImage = DrawingObjectsController.prototype.createImage(sRasterImageId, X, Y, extX, extY);
+                oImage.isCrop = true;
+                oImage.parentCrop = this;
                 oImage.spPr.xfrm.setRot(this.rot);
                 oImage.spPr.xfrm.setFlipH(this.flipH);
                 oImage.spPr.xfrm.setFlipV(this.flipV);

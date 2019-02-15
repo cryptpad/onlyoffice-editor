@@ -84,6 +84,8 @@ function CImageShape()
     this.style    = null;
 
     this.cropBrush = false;
+    this.isCrop = false;
+    this.parentCrop = null;
 
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add( this, this.Id );

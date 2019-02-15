@@ -838,6 +838,11 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
             }
 
+
+            if(this.originalObject.isCrop){
+                this.resizedflipH = this.originalFlipH;
+                this.resizedflipV = this.originalFlipV;
+            }
             this.geometry.Recalculate(this.resizedExtX, this.resizedExtY);
             this.overlayObject.updateExtents(this.resizedExtX, this.resizedExtY);
 
@@ -939,6 +944,11 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
 
             }
 
+
+            if(this.originalObject.isCrop){
+                this.resizedflipH = this.originalFlipH;
+                this.resizedflipV = this.originalFlipV;
+            }
             this.resizedPosX = this.centerPointX - this.resizedExtX*0.5;
             this.resizedPosY = this.centerPointY - this.resizedExtY*0.5;
 
@@ -1134,6 +1144,23 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     }
                 }
 
+                if(this.originalObject.isCrop)
+                {
+                    this.originalObject.recalculateTransform();
+                    var parentCrop = this.originalObject.parentCrop;
+                    var parentCropTransform = parentCrop.transform;
+                    var lt_x_abs = parentCropTransform.TransformPointX(0, 0);
+                    var lt_y_abs = parentCropTransform.TransformPointY(0, 0);
+                    var rb_x_abs = parentCropTransform.TransformPointX(parentCrop.extX, parentCrop.extY);
+                    var rb_y_abs = parentCropTransform.TransformPointY(parentCrop.extX, parentCrop.extY);
+
+                    var oInvertTransform = this.originalObject.invertTransform;
+                    var lt_x_rel = oInvertTransform.TransformPointX(lt_x_abs, lt_y_abs);
+                    var lt_y_rel = oInvertTransform.TransformPointY(lt_x_abs, lt_y_abs);
+                    var rb_x_rel = oInvertTransform.TransformPointX(rb_x_abs, rb_y_abs);
+                    var rb_y_rel = oInvertTransform.TransformPointY(rb_x_abs, rb_y_abs);
+
+                }
             }
             else{
                 var _xfrm = this.originalObject.spPr.xfrm;
