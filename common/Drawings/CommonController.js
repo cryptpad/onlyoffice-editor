@@ -1175,6 +1175,11 @@ DrawingObjectsController.prototype =
 
     resetInternalSelection: function(noResetContentSelect)
     {
+        var oApi = this.getEditorApi();
+        if(oApi && oApi.hideVideoControl)
+        {
+            oApi.hideVideoControl();
+        }
         if(this.selection.groupSelection)
         {
             this.selection.groupSelection.resetSelection(this);

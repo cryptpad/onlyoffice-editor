@@ -905,10 +905,33 @@ function handleMouseUpPreMoveState(drawingObjects, e, x, y, pageIndex, bWord)
             {
                 break;
             }
+            case AscDFH.historyitem_type_ImageShape:
+            {
+
+                break;
+            }
         }
     }
     if(!bHandle)
     {
+        if(!state.shift && !state.ctrl && state.bInside && state.majorObject.getObjectType() === AscDFH.historyitem_type_ImageShape)
+        {
+            var sMediaName = state.majorObject.getMediaFileName();
+            if(sMediaName)
+            {
+                var oApi = state.drawingObjects.getEditorApi();
+                if(oApi && oApi.showVideoControl)
+                {
+                    oApi.showVideoControl(sMediaName, state.majorObject.extX, state.majorObject.extY, state.majorObject.transform);
+                    bHandle = true;
+                }
+            }
+        }
+    }
+    if(!bHandle)
+    {
+
+
         if(e.CtrlKey && state.majorObjectIsSelected)
         {
             drawingObjects.deselectObject(state.majorObject);

@@ -1531,6 +1531,11 @@
 		return result;
 	};
 
+
+	baseEditorsApi.prototype.showVideoControl = function(sMediaName, extX, extY, transform)
+	{};
+	baseEditorsApi.prototype.hideVideoControl = function()
+	{};
 	// plugins
 	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
 	{
