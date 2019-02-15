@@ -564,7 +564,6 @@ Paragraph.prototype.Document_Is_SelectionLocked = function(CheckType)
         case AscCommon.changestype_Document_SectPr:
         case AscCommon.changestype_Table_Properties:
         case AscCommon.changestype_Table_RemoveCells:
-        case AscCommon.changestype_HdrFtr:
         {
             AscCommon.CollaborativeEditing.Add_CheckLock(true);
             break;

@@ -99,6 +99,8 @@
 
 		this.bSaveFormat = false; //для вставки, допустим, из плагина необходимо чтобы при добавлении текста в шейп сохранялось форматирование
 		this.bCut = false;
+
+		this.clearBufferTimerId = -1;
 	}
 
 	CClipboardBase.prototype =
@@ -106,6 +108,31 @@
 		_console_log : function(_obj)
 		{
 			//console.log(_obj);
+		},
+
+		checkCopy : function(formats)
+		{
+            if (-1 != this.clearBufferTimerId)
+			{
+                if (formats & AscCommon.c_oAscClipboardDataFormat.Text)
+				{
+					this.pushData(AscCommon.c_oAscClipboardDataFormat.Text, "");
+				}
+                if (formats & AscCommon.c_oAscClipboardDataFormat.Html)
+                {
+                    this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, "");
+                }
+                if (formats & AscCommon.c_oAscClipboardDataFormat.Internal)
+                {
+                    this.pushData(AscCommon.c_oAscClipboardDataFormat.Internal, "");
+                }
+
+                clearTimeout(this.clearBufferTimerId);
+                this.clearBufferTimerId = -1;
+                return;
+			}
+
+			return this.Api.asc_CheckCopy(this, formats);
 		},
 
 		_private_oncopy : function(e)
@@ -123,7 +150,7 @@
 			else
 			{
 				this.LastCopyBinary = null;
-				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+				this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 
 				setTimeout(function(){
 					//вызываю CommonDiv_End, поскольку на _private_onbeforecopy всегда делается CommonDiv_Start
@@ -153,7 +180,7 @@
 			else
 			{
 				this.LastCopyBinary = null;
-				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+				this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 			}
 
 			this.Api.asc_SelectionCut();
@@ -725,7 +752,7 @@
 			this.DivOnCopyHtmlPresent = false;
 			this.DivOnCopyText = "";
 			this.LastCopyBinary = null;
-			this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+			this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 			this.ClosureParams.isDivCopy = false;
 
 			if (!this.DivOnCopyHtmlPresent && this.DivOnCopyText != "")
@@ -878,7 +905,7 @@
 			{
 				//　копирования не было
 				this.LastCopyBinary = null;
-				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+				this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 			}
 			return  _ret;
 		},
@@ -904,7 +931,7 @@
 				//　копирования не было
 				this.LastCopyBinary = null;
 				this.bCut = true;
-				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+				this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 
 				this.Api.asc_SelectionCut();
 				this.bCut = false;
@@ -945,6 +972,21 @@
 					this.Api.asc_PasteData(this.LastCopyBinary[0].type, this.LastCopyBinary[0].data);
 			}
 			return _ret;
+		},
+
+		ClearBuffer : function()
+		{
+            if (-1 != this.clearBufferTimerId)
+            {
+                // clear old timer (restart interval)
+                clearTimeout(this.clearBufferTimerId);
+            }
+            this.clearBufferTimerId = setTimeout(function(){
+                if (AscCommon.g_clipboardBase)
+                    AscCommon.g_clipboardBase.clearBufferTimerId = -1;
+            }, 500);
+
+			this.Button_Copy();
 		},
 
 		isCopyOutEnabled : function()

@@ -15168,6 +15168,8 @@
 
 			History.EndTransaction();
 
+			t.changeViewPrintLines(true);
+
 			if(t.viewPrintLines) {
 				t.updateSelection();
 			}
@@ -15191,6 +15193,8 @@
 			pageOptions.pageSetup.asc_setOrientation(orientation);
 
 			History.EndTransaction();
+
+			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
 				t.updateSelection();
@@ -15220,6 +15224,8 @@
 
 			History.EndTransaction();
 
+			t.changeViewPrintLines(true);
+
 			if(t.viewPrintLines) {
 				t.updateSelection();
 			}
@@ -15239,6 +15245,7 @@
 			History.StartTransaction();
 
 			callback(val);
+			t.changeViewPrintLines(true);
 
 			History.EndTransaction();
 
@@ -15252,7 +15259,6 @@
 
 	WorksheetView.prototype.setPageOptions = function (obj) {
 		var t = this;
-		var pageOptions = t.model.PagePrintOptions;
 		var viewMode = !window["Asc"]["editor"].canEdit();
 
 		if(!obj) {
@@ -15265,6 +15271,7 @@
 			}
 
 			t.savePageOptions(obj, viewMode);
+			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
 				t.updateSelection();
@@ -15283,6 +15290,7 @@
 			History.StartTransaction();
 
 			pageOptions.asc_setOptions(obj);
+			t.changeViewPrintLines(true);
 			//window["Asc"]["editor"]._onUpdateLayoutMenu(this.model.nSheetId);
 
 			History.EndTransaction();
@@ -15341,7 +15349,7 @@
 					oldScope = oldDefName ? oldDefName.asc_getScope() : t.model.index;
 					newRef = getRangesStr(t.model.selectionRange.ranges);
 					newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
-					t.viewPrintLines = true;
+					t.changeViewPrintLines(true);
 					wb.editDefinedNames(oldDefName, newDefName);
 
 					break;
@@ -15360,7 +15368,7 @@
 						oldRef = oldDefName.asc_getRef();
 						newRef = getRangesStr(t.model.selectionRange.ranges, oldRef);
 						newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
-						t.viewPrintLines = true;
+						t.changeViewPrintLines(true);
 						wb.editDefinedNames(oldDefName, newDefName);
 					}
 
@@ -15400,6 +15408,10 @@
 
         return res;
     };
+
+	WorksheetView.prototype.changeViewPrintLines = function (val) {
+		this.viewPrintLines = val;
+	};
 
     //------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};

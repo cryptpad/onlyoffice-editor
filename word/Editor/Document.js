@@ -4883,6 +4883,11 @@ CDocument.prototype.private_SetParagraphNumbering = function(oNumInfo)
 		}
 	}
 
+	for (var nIndex = 0, nCount = arrSelectedParagraphs.length; nIndex < nCount; ++nIndex)
+	{
+		arrSelectedParagraphs[nIndex].UpdateDocumentOutline();
+	}
+
 	return true;
 };
 CDocument.prototype.private_RemoveParagraphNumbering = function(arrParagraphs, oNumPr)

@@ -4150,6 +4150,18 @@ function DrawingObjects() {
     _this.setGraphicObjectAlign = function(alignType) {
         _this.controller.setGraphicObjectAlign(alignType);
     };
+    _this.distributeGraphicObjectHor = function() {
+        _this.controller.distributeGraphicObjectHor();
+    };
+
+    _this.distributeGraphicObjectVer = function() {
+        _this.controller.distributeGraphicObjectVer();
+    };
+
+    _this.getSelectedDrawingObjectsCount = function() {
+        var selectedObjects = _this.controller.selection.groupSelection ? this.controller.selection.groupSelection.selectedObjects : this.controller.selectedObjects;
+        return selectedObjects.length;
+    };
 
     _this.saveSizeDrawingObjects = function() {
 

@@ -2462,6 +2462,9 @@ function CEditorPage(api)
 				return;
 		}
 
+		if (global_mouseEvent.IsLocked)
+			return;
+
 		if (oThis.DemonstrationManager.Mode)
 		{
 			if (e.preventDefault)

@@ -9269,6 +9269,15 @@ DrawingObjectsController.prototype =
     {
         this.checkSelectedObjectsAndCallback(this.setGraphicObjectAlignCallBack, [alignType], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
     },
+    distributeGraphicObjectHor: function()
+    {
+        this.checkSelectedObjectsAndCallback(this.distributeHor, [true], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
+    },
+
+    distributeGraphicObjectVer: function()
+    {
+        this.checkSelectedObjectsAndCallback(this.distributeVer, [true], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
+    },
 
     setGraphicObjectLayerCallBack: function(layerType)
     {
@@ -9528,22 +9537,25 @@ DrawingObjectsController.prototype =
             sortObjects.sort(function(obj1, obj2){return (obj1.boundsObject.maxX + obj1.boundsObject.minX)/2 - (obj2.boundsObject.maxX + obj2.boundsObject.minX)/2});
             if(bSelected && selected_objects.length > 2)
             {
-                pos1 =  boundsObject.minX;
-                pos2 = boundsObject.maxX;
-                sortObjects.splice(0, 1)[0].trackObject.track(0, 0, 0);
-                sortObjects.splice(sortObjects.length-1, 1)[0].trackObject.track(0, 0, 0);
+                pos1 = sortObjects[0].boundsObject.minX;
+                pos2 = sortObjects[sortObjects.length - 1].boundsObject.maxX;
+                gap = (pos2 - pos1 - boundsObject.summWidth)/(sortObjects.length - 1);
             }
             else
             {
-                pos1 = 0;
-                pos2 = this.drawingObjects.Width;
+                if(boundsObject.summWidth < this.drawingObjects.Width)
+                {
+                    gap = (this.drawingObjects.Width - boundsObject.summWidth)/(sortObjects.length + 1);
+                    pos1 = gap;
+                    pos2 = this.drawingObjects.Width - gap;
+                }
+                else
+                {
+                    pos1 = 0;
+                    pos2 = this.drawingObjects.Width;
+                    gap = (this.drawingObjects.Width - boundsObject.summWidth)/(sortObjects.length - 1);
+                }
             }
-            var summ_width = 0;
-            for(i = 0; i < sortObjects.length; ++i)
-            {
-                summ_width += (sortObjects[i].boundsObject.maxX - sortObjects[i].boundsObject.minX);
-            }
-            gap = (pos2 - pos1 - summ_width)/(sortObjects.length+1);
             var move_state;
             if(!this.selection.groupSelection)
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
@@ -9553,8 +9565,8 @@ DrawingObjectsController.prototype =
             lastPos = pos1;
             for(i = 0; i < sortObjects.length; ++i)
             {
-                sortObjects[i].trackObject.track(lastPos + gap - sortObjects[i].boundsObject.minX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
-                lastPos += (gap + sortObjects[i].boundsObject.maxX - sortObjects[i].boundsObject.minX);
+                sortObjects[i].trackObject.track(lastPos -  sortObjects[i].trackObject.originalObject.x, 0, sortObjects[i].trackObject.originalObject.selectStartPage);
+                lastPos += (gap + (sortObjects[i].boundsObject.maxX - sortObjects[i].boundsObject.minX));
             }
             move_state.onMouseUp({}, 0, 0, 0);
         }
@@ -9576,22 +9588,25 @@ DrawingObjectsController.prototype =
             sortObjects.sort(function(obj1, obj2){return (obj1.boundsObject.maxY + obj1.boundsObject.minY)/2 - (obj2.boundsObject.maxY + obj2.boundsObject.minY)/2});
             if(bSelected && selected_objects.length > 2)
             {
-                pos1 =  boundsObject.minY;
-                pos2 = boundsObject.maxY;
-                sortObjects.splice(0, 1)[0].trackObject.track(0, 0, 0);
-                sortObjects.splice(sortObjects.length-1, 1)[0].trackObject.track(0, 0, 0);
+                pos1 = sortObjects[0].boundsObject.minY;
+                pos2 = sortObjects[sortObjects.length - 1].boundsObject.maxY;
+                gap = (pos2 - pos1 - boundsObject.summHeight)/(sortObjects.length - 1);
             }
             else
             {
-                pos1 = 0;
-                pos2 = this.drawingObjects.Height;
+                if(boundsObject.summHeight < this.drawingObjects.Height)
+                {
+                    gap = (this.drawingObjects.Height - boundsObject.summHeight)/(sortObjects.length + 1);
+                    pos1 = gap;
+                    pos2 = this.drawingObjects.Height - gap;
+                }
+                else
+                {
+                    pos1 = 0;
+                    pos2 = this.drawingObjects.Height;
+                    gap = (this.drawingObjects.Height - boundsObject.summHeight)/(sortObjects.length - 1);
+                }
             }
-            var summ_heigth = 0;
-            for(i = 0; i < sortObjects.length; ++i)
-            {
-                summ_heigth += (sortObjects[i].boundsObject.maxY - sortObjects[i].boundsObject.minY);
-            }
-            gap = (pos2 - pos1 - summ_heigth)/(sortObjects.length+1);
             var move_state;
             if(!this.selection.groupSelection)
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
@@ -9601,8 +9616,8 @@ DrawingObjectsController.prototype =
             lastPos = pos1;
             for(i = 0; i < sortObjects.length; ++i)
             {
-                sortObjects[i].trackObject.track(0, lastPos + gap - sortObjects[i].boundsObject.minY, this.arrTrackObjects[i].originalObject.selectStartPage);
-                lastPos += (gap + sortObjects[i].boundsObject.maxY - sortObjects[i].boundsObject.minY);
+                sortObjects[i].trackObject.track(0, lastPos -  sortObjects[i].trackObject.originalObject.y, sortObjects[i].trackObject.originalObject.selectStartPage);
+                lastPos += (gap + (sortObjects[i].boundsObject.maxY - sortObjects[i].boundsObject.minY));
             }
             move_state.onMouseUp({}, 0, 0, 0);
         }
@@ -10479,6 +10494,8 @@ function getAbsoluteRectBoundsObject(drawing)
 function getAbsoluteRectBoundsArr(aDrawings)
 {
     var arrBounds = [], minX, minY, maxX, maxY, i, bounds;
+    var summWidth = 0.0;
+    var summHeight = 0.0;
     for(i = 0; i < aDrawings.length; ++i)
     {
         bounds = getAbsoluteRectBoundsObject(aDrawings[i]);
@@ -10509,8 +10526,10 @@ function getAbsoluteRectBoundsArr(aDrawings)
                 maxY = bounds.maxY;
             }
         }
+        summWidth += (bounds.maxX - bounds.minX);
+        summHeight += (bounds.maxY - bounds.minY);
     }
-    return {arrBounds: arrBounds, minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+    return {arrBounds: arrBounds, minX: minX, maxX: maxX, minY: minY, maxY: maxY, summWidth: summWidth, summHeight: summHeight};
 }
 
 function CalcLiterByLength(aAlphaBet, nLength)
