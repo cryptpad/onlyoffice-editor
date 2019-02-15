@@ -337,6 +337,10 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
         this.isLine = originalObject.spPr && originalObject.spPr.geometry && originalObject.spPr.geometry.preset === "line";
         this.bChangeCoef = this.translatetNumberHandle % 2 === 0 && this.originalFlipH !== this.originalFlipV;
 
+        if(this.originalObject.cropObject && this.brush)
+        {
+            this.brush = this.brush.createDuplicate();
+        }
         this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.resizedExtX, this.resizedExtY, this.brush, this.pen, this.transform);
 
 
@@ -994,6 +998,22 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
 
             }
+            if(this.originalObject.cropObject)
+            {
+                var oldTransform = this.originalObject.transform;
+                var oldExtX = this.originalObject.extX;
+                var oldExtY = this.originalObject.extY;
+
+
+                this.originalObject.transform = _transform;
+                this.originalObject.extX = this.resizedExtX;
+                this.originalObject.extY = this.resizedExtY;
+                var srcRect = this.originalObject.calculateSrcRect2();
+                this.brush.fill.srcRect = srcRect;
+                this.originalObject.transform = oldTransform;
+                this.originalObject.extX = oldExtX;
+                this.originalObject.extY = oldExtY;
+            }
         };
 
         this.draw = function(overlay, transform)
@@ -1143,23 +1163,13 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                         this.originalObject.nvSpPr.setUniSpPr(nvUniSpPr);
                     }
                 }
-
                 if(this.originalObject.isCrop)
                 {
-                    this.originalObject.recalculateTransform();
-                    var parentCrop = this.originalObject.parentCrop;
-                    var parentCropTransform = parentCrop.transform;
-                    var lt_x_abs = parentCropTransform.TransformPointX(0, 0);
-                    var lt_y_abs = parentCropTransform.TransformPointY(0, 0);
-                    var rb_x_abs = parentCropTransform.TransformPointX(parentCrop.extX, parentCrop.extY);
-                    var rb_y_abs = parentCropTransform.TransformPointY(parentCrop.extX, parentCrop.extY);
-
-                    var oInvertTransform = this.originalObject.invertTransform;
-                    var lt_x_rel = oInvertTransform.TransformPointX(lt_x_abs, lt_y_abs);
-                    var lt_y_rel = oInvertTransform.TransformPointY(lt_x_abs, lt_y_abs);
-                    var rb_x_rel = oInvertTransform.TransformPointX(rb_x_abs, rb_y_abs);
-                    var rb_y_rel = oInvertTransform.TransformPointY(rb_x_abs, rb_y_abs);
-
+                    this.originalObject.parentCrop.calculateSrcRect();
+                }
+                if(this.originalObject.cropObject)
+                {
+                    this.originalObject.calculateSrcRect();
                 }
             }
             else{

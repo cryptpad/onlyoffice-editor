@@ -1410,6 +1410,44 @@
 
     };
 
+    CGraphicObjectBase.prototype.calculateSrcRect = function(){
+
+        this.cropObject.recalculateTransform();
+        this.recalculateTransform();
+        if(this.getObjectType() === AscDFH.historyitem_type_ImageShape)
+        {
+            var blipFill = this.blipFill.createDuplicate();
+            blipFill.srcRect = this.calculateSrcRect2();
+            this.setBlipFill(blipFill);
+        }
+        else
+        {
+            var brush = this.brush.createDuplicate();
+            brush.fill.srcRect =  this.calculateSrcRect2();
+            this.spPr.setFill(brush);
+        }
+    };
+    CGraphicObjectBase.prototype.calculateSrcRect2 = function(){
+
+        var parentCropTransform = this.transform;
+        var lt_x_abs = parentCropTransform.TransformPointX(0, 0);
+        var lt_y_abs = parentCropTransform.TransformPointY(0, 0);
+        var rb_x_abs = parentCropTransform.TransformPointX(this.extX, this.extY);
+        var rb_y_abs = parentCropTransform.TransformPointY(this.extX, this.extY);
+
+        var oInvertTransform = this.cropObject.invertTransform;
+        var lt_x_rel = oInvertTransform.TransformPointX(lt_x_abs, lt_y_abs);
+        var lt_y_rel = oInvertTransform.TransformPointY(lt_x_abs, lt_y_abs);
+        var rb_x_rel = oInvertTransform.TransformPointX(rb_x_abs, rb_y_abs);
+        var rb_y_rel = oInvertTransform.TransformPointY(rb_x_abs, rb_y_abs);
+        var srcRect = new AscFormat.CSrcRect();
+        srcRect.l = (100*lt_x_rel / this.cropObject.extX + 0.5) >> 0;
+        srcRect.t = (100*lt_y_rel / this.cropObject.extY + 0.5) >> 0;
+        srcRect.r = (100*rb_x_rel / this.cropObject.extX + 0.5) >> 0;
+        srcRect.b = (100*rb_y_rel / this.cropObject.extY + 0.5) >> 0;
+        return srcRect;
+    };
+
 
 
     CGraphicObjectBase.prototype.updatePosition = function(x, y) {
