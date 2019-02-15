@@ -1293,6 +1293,15 @@
 	baseEditorsApi.prototype.asc_startEditCurrentOleObject = function(){
 
 	};
+	baseEditorsApi.prototype.asc_canStartImageCrop = function(){
+
+	};
+	baseEditorsApi.prototype.asc_startImageCrop = function(){
+
+	};
+	baseEditorsApi.prototype.asc_endImageCrop = function(){
+
+	};
 	// Version History
 	baseEditorsApi.prototype.asc_showRevision   = function(newObj)
 	{

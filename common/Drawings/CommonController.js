@@ -1085,6 +1085,48 @@ DrawingObjectsController.prototype =
         }
     },
 
+    getObjectForCrop: function()
+    {
+        var selectedObjects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects;
+        if(selectedObjects.length === 1)
+        {
+            var oBlipFill = selectedObjects[0].getBlipFill();
+            if(oBlipFill)
+            {
+                return selectedObjects[0];
+            }
+        }
+        return null;
+    },
+
+    canStartImageCrop: function()
+    {
+        return (this.getObjectForCrop() !== null);
+    },
+
+    startImageCrop: function()
+    {
+        var cropObject = this.getObjectForCrop();
+        if(!cropObject)
+        {
+            return;
+        }
+        if(cropObject.createCropObject())
+        {
+            this.selection.cropSelection = cropObject;
+            this.updateOverlay();
+        }
+    },
+
+    endImageCrop: function()
+    {
+        if(this.selection.cropSelection)
+        {
+            this.selection.cropSelection = null;
+            this.updateOverlay();
+        }
+    },
+
     canReceiveKeyPress: function()
     {
         return this.curState instanceof AscFormat.NullState;
@@ -1207,6 +1249,10 @@ DrawingObjectsController.prototype =
         if(this.selection.wrapPolygonSelection)
         {
             this.selection.wrapPolygonSelection = null;
+        }
+        if(this.selection.cropSelection)
+        {
+            this.selection.cropSelection = null;
         }
     },
 
@@ -1824,6 +1870,24 @@ DrawingObjectsController.prototype =
         {
             if(this.selection.wrapPolygonSelection.selectStartPage === pageIndex)
                 drawingDocument.AutoShapesTrack.DrawEditWrapPointsPolygon(this.selection.wrapPolygonSelection.parent.wrappingPolygon.calculatedPoints, new AscCommon.CMatrix());
+        }
+        else if(this.selection.cropSelection)
+        {
+            if(this.arrTrackObjects.length === 0)
+            {
+                if(this.selection.cropSelection.selectStartPage === pageIndex)
+                {
+
+                    var oCropSelection =  this.selection.cropSelection;
+                    var cropObject = oCropSelection.cropObject;
+                    drawingDocument.AutoShapesTrack.SaveGrState();
+                    cropObject.draw(drawingDocument.AutoShapesTrack);
+                    oCropSelection.draw(drawingDocument.AutoShapesTrack);
+                    drawingDocument.AutoShapesTrack.RestoreGrState();
+                    drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
+                    drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
+                }
+            }
         }
         else
         {
@@ -7209,7 +7273,8 @@ DrawingObjectsController.prototype =
             selectedObjects: [],
             groupSelection: null,
             chartSelection: null,
-            textSelection: null
+            textSelection: null,
+            cropSelection: null
         };
     },
 
@@ -7593,6 +7658,11 @@ DrawingObjectsController.prototype =
             this.selectObject(selection_state.wrapObject, selection_state.selectStartPage);
             this.selection.wrapPolygonSelection = selection_state.wrapObject;
         }
+        else if(selection_state.cropObject && !selection_state.cropObject.bDeleted)
+        {
+            this.selectObject(selection_state.cropObject, selection_state.selectStartPage);
+            this.selection.cropSelection = selection_state.cropObject;
+        }
         else
         {
             if(Array.isArray(selection_state.selection)){
@@ -7644,6 +7714,12 @@ DrawingObjectsController.prototype =
             selection_state.focus = true;
             selection_state.wrapObject = this.selection.wrapPolygonSelection;
             selection_state.selectStartPage = this.selection.wrapPolygonSelection.selectStartPage;
+        }
+        else if(this.selection.cropSelection)
+        {
+            selection_state.focus = true;
+            selection_state.cropObject = this.selection.cropSelection;
+            selection_state.selectStartPage = this.selection.cropSelection.selectStartPage;
         }
         else
         {
@@ -7770,6 +7846,17 @@ DrawingObjectsController.prototype =
                     if(oDrawingSelectionState.wrapObject.canChangeWrapPolygon && oDrawingSelectionState.wrapObject.canChangeWrapPolygon() && !oDrawingSelectionState.wrapObject.parent.Is_Inline())
                     {
                         this.selection.wrapPolygonSelection = oDrawingSelectionState.wrapObject;
+                    }
+                }
+            }
+            else if(oDrawingSelectionState.cropObject)
+            {
+                if(oDrawingSelectionState.cropObject.Is_UseInDocument())
+                {
+                    this.selectObject(oDrawingSelectionState.cropObject, bDocument ? (oDrawingSelectionState.cropObject.parent ? oDrawingSelectionState.cropObject.parent.PageNum : nPageIndex) : nPageIndex);
+                    this.selection.cropSelection = oDrawingSelectionState.cropObject;
+                    if(!oSelectionState.DrawingSelection){
+                        bNeedRecalculateCurPos = true;
                     }
                 }
             }

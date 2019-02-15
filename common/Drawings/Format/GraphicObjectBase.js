@@ -381,6 +381,7 @@
 
         this.selected = false;
 
+        this.cropObject = null;
         this.Lock = new AscCommon.CLock();
         this.setRecalculateInfo();
     }
@@ -1331,6 +1332,80 @@
             return this.parent.GetClipRect();
         }
         return null;
+    };
+
+    CGraphicObjectBase.prototype.getBlipFill = function(){
+        if(this.getObjectType() === AscDFH.historyitem_type_ImageShape || this.getObjectType() === AscDFH.historyitem_type_Shape){
+            if(this.blipFill){
+                return this.blipFill;
+            }
+            if(this.brush && this.brush.fill && this.brush.fill.type === AscFormat.FILL_TYPE_BLIP){
+                return this.brush.fill;
+            }
+        }
+        return null;
+    };
+    CGraphicObjectBase.prototype.createCropObject = function(){
+        return AscFormat.ExecuteNoHistory(function () {
+            var oBlipFill = this.getBlipFill();
+            if(!oBlipFill){
+                return;
+            }
+            var srcRect = oBlipFill.srcRect;
+            if(srcRect)
+            {
+                var sRasterImageId = oBlipFill.RasterImageId;
+                var _l = srcRect.l ? srcRect.l : 0;
+                var _t = srcRect.t ? srcRect.t : 0;
+                var _r = srcRect.r ? srcRect.r : 0;
+                var _b = srcRect.b ? srcRect.b : 0;
+                var boundsW = this.bounds.w;
+                var boundsH = this.bounds.h;
+                var wpct = (_r - _l)/100.0;
+                var hpct = (_b - _t)/100.0;
+                var extX = boundsW/wpct;
+                var extY = boundsH/hpct;
+                var DX = -extX*_l/100.0;
+                var DY = -extY*_t/100.0;
+                var XC = DX + extX/2.0;
+                var YC = DY + extY/2.0;
+
+                var oTransform = this.transform.CreateDublicate();
+                if(this.group)
+                {
+                    AscCommon.global_MatrixTransformer.MultiplyAppend(oTransform, this.group.invertTransform);
+                }
+
+                var XC_ = oTransform.TransformPointX(XC, YC);
+                var YC_ = oTransform.TransformPointY(XC, YC);
+
+                var X = XC_ - extX/2.0;
+                var Y = YC_ - extY/2.0;
+
+                var oImage = DrawingObjectsController.prototype.createImage(sRasterImageId, X, Y, extX, extY);
+                oImage.spPr.xfrm.setRot(this.rot);
+                oImage.spPr.xfrm.setFlipH(this.flipH);
+                oImage.spPr.xfrm.setFlipV(this.flipV);
+                oImage.setGroup(this.group);
+                oImage.setParent(this.parent);
+                oImage.recalculate();
+                oImage.cropBrush = AscFormat.CreateUnfilFromRGB(128, 128, 128);
+                oImage.cropBrush.transparent = 100;
+                var oParentObjects = this.getParentObjects();
+                oImage.cropBrush.calculate(oParentObjects.theme, oParentObjects.slide, oParentObjects.layout, oParentObjects.master, {R:0, G:0, B:0, A:255, needRecalc: true}, AscFormat.G_O_DEFAULT_COLOR_MAP);
+                this.cropObject = oImage;
+                return true;
+            }
+            return false;
+        }, this, []);
+    };
+
+    CGraphicObjectBase.prototype.clearCropObject = function(){
+        this.cropObject = null;
+    };
+
+    CGraphicObjectBase.prototype.drawCropTrack = function(){
+
     };
 
 

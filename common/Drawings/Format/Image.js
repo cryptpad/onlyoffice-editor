@@ -83,6 +83,8 @@ function CImageShape()
     this.blipFill = null;
     this.style    = null;
 
+    this.cropBrush = false;
+
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add( this, this.Id );
 }
@@ -651,6 +653,14 @@ CImageShape.prototype.draw = function(graphics, transform)
 
     shape_drawer.fromShape2(this, graphics, this.calcGeometry);
     shape_drawer.draw(this.calcGeometry);
+    if(this.cropBrush){
+        this.brush = this.cropBrush;
+        this.pen = null;
+        shape_drawer.Clear();
+        shape_drawer.fromShape2(this, graphics, this.calcGeometry);
+        shape_drawer.draw(this.calcGeometry);
+    }
+
     this.brush = oldBrush;
     this.pen = oldPen;
 
@@ -660,6 +670,50 @@ CImageShape.prototype.draw = function(graphics, transform)
     }
     graphics.reset();
     graphics.SetIntegerGrid(true);
+    if(AscCommon.g_oTableId.Get_ById(this.Get_Id()) === this){
+
+        return;
+        var srcRect = this.blipFill.srcRect;
+        if(srcRect)
+        {
+            var sRasterImageId = this.blipFill.RasterImageId;
+            var _l = srcRect.l ? srcRect.l : 0;
+            var _t = srcRect.t ? srcRect.t : 0;
+            var _r = srcRect.r ? srcRect.r : 0;
+            var _b = srcRect.b ? srcRect.b : 0;
+            var boundsW = this.extX;
+            var boundsH = this.extY;
+            var wpct = (_r - _l)/100.0;
+            var hpct = (_b - _t)/100.0;
+            var extX = boundsW/wpct;
+            var extY = boundsH/hpct;
+            var DX = -extX*_l/100.0;
+            var DY = -extY*_t/100.0;
+            var XC = DX + extX/2.0;
+            var YC = DY + extY/2.0;
+
+            var oTransform = this.transform.CreateDublicate();
+            if(this.group)
+            {
+                AscCommon.global_MatrixTransformer.MultiplyAppend(oTransform, this.group.invertTransform);
+            }
+
+            var XC_ = oTransform.TransformPointX(XC, YC);
+            var YC_ = oTransform.TransformPointY(XC, YC);
+
+            var X = XC_ - extX/2.0;
+            var Y = YC_ - extY/2.0;
+
+            var oImage = DrawingObjectsController.prototype.createImage(sRasterImageId, X, Y, extX, extY);
+            oImage.spPr.xfrm.setRot(this.rot);
+            oImage.spPr.xfrm.setFlipH(this.flipH);
+            oImage.spPr.xfrm.setFlipV(this.flipV);
+            oImage.setGroup(this.group);
+            oImage.setParent(this.parent);
+            oImage.recalculate();
+            oImage.draw(graphics);
+        }
+    }
 };
 
 CImageShape.prototype.select = CShape.prototype.select;
