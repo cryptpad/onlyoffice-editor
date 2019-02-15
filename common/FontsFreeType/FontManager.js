@@ -115,7 +115,7 @@
 
         this.RasterMemory = null;
 
-        this.LOAD_MODE = 40970;
+        this.LOAD_MODE = AscFonts.LOAD_MODE_DEFAULT;
         this.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
 
         this.IsCellMode = (params && params.mode == "cell") ? true : false;

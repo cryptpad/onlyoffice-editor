@@ -2649,17 +2649,17 @@
         hintProps.TT_USE_BYTECODE_INTERPRETER = true;
         hintProps.TT_CONFIG_OPTION_SUBPIXEL_HINTING = true;
 
-        manager.LOAD_MODE = 40968;
+        manager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
       } else if (bIsHinting) {
         hintProps.TT_USE_BYTECODE_INTERPRETER = true;
         hintProps.TT_CONFIG_OPTION_SUBPIXEL_HINTING = false;
 
-        manager.LOAD_MODE = 40968;
+        manager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
       } else {
         hintProps.TT_USE_BYTECODE_INTERPRETER = true;
         hintProps.TT_CONFIG_OPTION_SUBPIXEL_HINTING = false;
 
-        manager.LOAD_MODE = 40970;
+        manager.LOAD_MODE = AscFonts.LOAD_MODE_DEFAULT;
       }
 
       manager.ClearFontsRasterCache();

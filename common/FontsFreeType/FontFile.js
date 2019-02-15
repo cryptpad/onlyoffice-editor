@@ -37,6 +37,28 @@
     //window.measureTime = 0;
     //window.rasterTime = 0;
 
+	AscFonts.FT_Load_Mode = {
+		FT_LOAD_DEFAULT                     : 0,
+		FT_LOAD_NO_SCALE                    : 1 << 0,
+		FT_LOAD_NO_HINTING                  : 1 << 1,
+		FT_LOAD_RENDER                      : 1 << 2,
+		FT_LOAD_NO_BITMAP                   : 1 << 3,
+		FT_LOAD_VERTICAL_LAYOUT             : 1 << 4,
+		FT_LOAD_FORCE_AUTOHINT              : 1 << 5,
+		FT_LOAD_CROP_BITMAP                 : 1 << 6,
+		FT_LOAD_PEDANTIC                    : 1 << 7,
+		FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH : 1 << 9,
+		FT_LOAD_NO_RECURSE                  : 1 << 10,
+		FT_LOAD_IGNORE_TRANSFORM            : 1 << 11,
+		FT_LOAD_MONOCHROME                  : 1 << 12,
+		FT_LOAD_LINEAR_DESIGN               : 1 << 13,
+		FT_LOAD_NO_AUTOHINT                 : 1 << 15,
+
+		FT_LOAD_COLOR                       : 1 << 20,
+		FT_LOAD_COMPUTE_METRICS             : 1 << 21,
+		FT_LOAD_BITMAP_METRICS_ONLY  		: 1 << 22
+	};
+
 	AscFonts.FT_Render_Mode = {
 		FT_RENDER_MODE_NORMAL 	: 0,
 		FT_RENDER_MODE_LIGHT	: 1,
@@ -48,7 +70,7 @@
 
 	function _ft_load_target(val) { return (val & 15) << 16; }
 
-	AscFonts.FT_Load_Mode = {
+	AscFonts.FT_Load_Target_Mode = {
 		FT_LOAD_TARGET_NORMAL 	: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_NORMAL),
 		FT_LOAD_TARGET_LIGHT	: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_LIGHT),
 		FT_LOAD_TARGET_MONO		: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_MONO),
@@ -56,7 +78,21 @@
 		FT_LOAD_TARGET_LCD_V	: _ft_load_target(AscFonts.FT_Render_Mode.FT_RENDER_MODE_LCD_V)
 	};
 
-	AscFonts.isUseMonochromeRendering = function(symbol)
+	AscFonts.LOAD_MODE_DEFAULT =
+		AscFonts.FT_Load_Mode.FT_LOAD_DEFAULT 		|
+        AscFonts.FT_Load_Mode.FT_LOAD_NO_HINTING 	|
+        AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP 	|
+        AscFonts.FT_Load_Mode.FT_LOAD_LINEAR_DESIGN |
+        AscFonts.FT_Load_Mode.FT_LOAD_MONOCHROME |
+        AscFonts.FT_Load_Mode.FT_LOAD_NO_AUTOHINT;
+
+    AscFonts.LOAD_MODE_HINTING =
+        AscFonts.FT_Load_Mode.FT_LOAD_DEFAULT 		|
+        AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP 	|
+        AscFonts.FT_Load_Mode.FT_LOAD_LINEAR_DESIGN |
+        AscFonts.FT_Load_Mode.FT_LOAD_NO_AUTOHINT;
+
+	AscFonts.isUseMonochromeRenderingSymbol = function(symbol)
 	{
 		if (!AscFonts.mRanges)
 		{
@@ -119,6 +155,15 @@
 		}
 
 		return false;
+	};
+
+	AscFonts.isUseMonochromeRendering = function(font)
+	{
+		if (!font.fixed_sizes)
+			return false;
+
+		var size = (0.95 + font.m_fSize * font.m_unVerDpi / 72) >> 0;
+        return (font.fixed_sizes[size] === true) ? true : false;
 	};
 
     var raster_memory = AscFonts.raster_memory;
@@ -784,6 +829,8 @@
 
         this.m_bIsTransform = true; // !IsIdentity matrix transform
 
+        this.fixed_sizes = undefined;
+
 		this.Picker = new CFontLoaderBySymbol();
 
 		this.FT_Load_Glyph_Wrapper = function(pFace, unGID, _LOAD_MODE)
@@ -791,7 +838,7 @@
 			var err = AscFonts.FT_Load_Glyph(pFace, unGID, _LOAD_MODE);
 			if (0 != err && this.HintsSupport)
 			{
-				var err2 = AscFonts.FT_Load_Glyph(pFace, unGID, 40970);
+				var err2 = AscFonts.FT_Load_Glyph(pFace, unGID, AscFonts.LOAD_MODE_DEFAULT);
 				if (err2 != 0)
 					return err;
 				this.HintsSupport = false;
@@ -1099,7 +1146,7 @@
             //measure_time_start = performance.now();
 
 			var _rend_mode = REND_MODE;
-            if (!this.m_bStringGID && AscFonts.isUseMonochromeRendering(glyph_index_or_unicode) && ((this.m_fSize * this.m_unHorDpi) <= (12 * 96)))
+            if (!this.m_bStringGID && AscFonts.isUseMonochromeRendering(this))
 			{
 				_rend_mode = AscFonts.FT_Render_Mode.FT_RENDER_MODE_MONO;
 			}
@@ -1480,7 +1527,7 @@
 
 		this.GetCharLoadMode = function()
         {
-        	return (this.HintsSupport && this.HintsSubpixelSupport) ? this.m_oFontManager.LOAD_MODE : 40970;
+        	return (this.HintsSupport && this.HintsSubpixelSupport) ? this.m_oFontManager.LOAD_MODE : AscFonts.LOAD_MODE_DEFAULT;
         };
 
         this.GetKerning = function(unPrevGID, unGID)
@@ -1671,6 +1718,15 @@
             {
                 this.m_bUseKerning = ((this.m_pFaceInfo.face_flags & 64) != 0 ? true : false);
             }
+
+            if (0 != this.m_pFaceInfo.monochromeSizes.length)
+			{
+				this.fixed_sizes = [];
+				for (var i = this.m_pFaceInfo.monochromeSizes.length - 1; i >= 0; i--)
+				{
+                    this.fixed_sizes[this.m_pFaceInfo.monochromeSizes[i] >> 6] = true;
+				}
+			}
         }
 	}
 
