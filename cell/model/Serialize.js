@@ -4058,7 +4058,7 @@
 			}
 			for (i = 0; i < dataBar.aCFVOs.length; ++i) {
 				elem = dataBar.aCFVOs[i];
-				this.bs.WriteItem(c_oSer_ConditionalFormattingRuleColorScale.CFVO, function() {oThis.WriteCFVO(elem);});
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.CFVO, function() {oThis.WriteCFVO(elem);});
 			}
 		};
 		this.WriteIconSet = function(iconSet) {
@@ -4078,7 +4078,7 @@
 			}
 			for (i = 0; i < iconSet.aCFVOs.length; ++i) {
 				elem = iconSet.aCFVOs[i];
-				this.bs.WriteItem(c_oSer_ConditionalFormattingRuleColorScale.CFVO, function() {oThis.WriteCFVO(elem);});
+				this.bs.WriteItem(c_oSer_ConditionalFormattingIconSet.CFVO, function() {oThis.WriteCFVO(elem);});
 			}
 		};
 		this.WriteCFVO = function(cfvo) {
