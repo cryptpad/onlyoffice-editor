@@ -1359,8 +1359,11 @@
                 var _t = srcRect.t ? srcRect.t : 0;
                 var _r = srcRect.r ? srcRect.r : 0;
                 var _b = srcRect.b ? srcRect.b : 0;
-                var boundsW = this.bounds.w;
-                var boundsH = this.bounds.h;
+                var oShapeDrawer = new AscCommon.CShapeDrawer();
+                oShapeDrawer.bIsCheckBounds = true;
+                this.check_bounds(oShapeDrawer);
+                var boundsW = oShapeDrawer.max_x - oShapeDrawer.min_x;
+                var boundsH = oShapeDrawer.max_y - oShapeDrawer.min_y;
                 var wpct = (_r - _l)/100.0;
                 var hpct = (_b - _t)/100.0;
                 var extX = boundsW/wpct;
