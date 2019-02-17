@@ -8418,18 +8418,30 @@ $( function () {
 
 		//данная функция возвращает area а далее уже в функции simplifyRefType находится резальтат
 		// - пересечение а ячейкой, где располагается формула
-		//TODO необходимо в тестах либо ис-вать функцию simplifyRefType, либо искать пересечение
-        /*oParser = new parserFormula( "INDEX(A651:C655,,2)", "A2", ws );
+        oParser = new parserFormula( "INDEX(A651:C655,,2)", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue().getValue(), "#VALUE!" );
+        var parent =  AscCommonExcel.g_oRangeCache.getAscRange(oParser.parent);
+        parent = {nCol: parent.c1, nRow: parent.r1, ws: ws};
+        strictEqual( oParser.simplifyRefType(oParser.calculate(), parent).getValue(), "#VALUE!" );
 
 		oParser = new parserFormula( "INDEX(A651:C655,,2)", "D651", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().getValue(), 6 );
+		parent =  AscCommonExcel.g_oRangeCache.getAscRange(oParser.parent);
+		parent = {nCol: parent.c1, nRow: parent.r1, ws: ws};
+		strictEqual( oParser.simplifyRefType(oParser.calculate(), parent).getValue(), 6 );
 
 		oParser = new parserFormula( "INDEX(A651:C655,,2)", "D652", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().getValue(), 7 );*/
+		parent =  AscCommonExcel.g_oRangeCache.getAscRange(oParser.parent);
+		parent = {nCol: parent.c1, nRow: parent.r1, ws: ws};
+		strictEqual( oParser.simplifyRefType(oParser.calculate(), parent).getValue(), 7 );
+
+		oParser = new parserFormula( "INDEX(A651:C655,,3)", "E652", ws );
+		ok( oParser.parse() );
+		parent =  AscCommonExcel.g_oRangeCache.getAscRange(oParser.parent);
+		parent = {nCol: parent.c1, nRow: parent.r1, ws: ws};
+		strictEqual( oParser.simplifyRefType(oParser.calculate(), parent).getValue(), 12 );
+
 
         oParser = new parserFormula( "INDEX(A651:C655,3,2)", "A2", ws );
         ok( oParser.parse() );
