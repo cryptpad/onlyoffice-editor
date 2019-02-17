@@ -8416,9 +8416,20 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "Lemons" );
 
-        oParser = new parserFormula( "INDEX(A651:C655,,2)", "A2", ws );
+		//данная функция возвращает area а далее уже в функции simplifyRefType находится резальтат
+		// - пересечение а ячейкой, где располагается формула
+		//TODO необходимо в тестах либо ис-вать функцию simplifyRefType, либо искать пересечение
+        /*oParser = new parserFormula( "INDEX(A651:C655,,2)", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue().getValue(), 6 );
+        strictEqual( oParser.calculate().getValue().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "INDEX(A651:C655,,2)", "D651", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 6 );
+
+		oParser = new parserFormula( "INDEX(A651:C655,,2)", "D652", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 7 );*/
 
         oParser = new parserFormula( "INDEX(A651:C655,3,2)", "A2", ws );
         ok( oParser.parse() );
@@ -8456,6 +8467,17 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
 
+		oParser = new parserFormula( "INDEX(A651:C652,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
+		oParser = new parserFormula( "INDEX(A651:C652,2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
+		oParser = new parserFormula( "INDEX(A651:C652,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
     } );
 
     test( "Test: \"OFFSET\"", function () {

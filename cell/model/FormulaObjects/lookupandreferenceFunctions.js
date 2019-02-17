@@ -511,6 +511,10 @@ function (window, undefined) {
 		} else if (cElementType.cellsRange === arg0.type) {
 			var ws = arg0.getWS(), bbox = arg0.getBBox0();
 
+			if(cElementType.empty === arg[1].type) {
+				arg1 = 0;
+			}
+
 			if(undefined === arg[2] && bbox.r1 === bbox.r2) {//если последний аргумент опущен, и выделенa 1 строка
 				if (arg1 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 					res = new cError(cErrorType.bad_reference);
@@ -525,6 +529,9 @@ function (window, undefined) {
 					res = new Asc.Range(bbox.c1, bbox.r1 + arg1 - 1, bbox.c1, bbox.r1 + arg1 - 1);
 					res = new cRef(res.getName(), ws);
 				}
+			} else if(undefined === arg[2] && Math.abs(bbox.r1 - bbox.r2) + 1 > 1 && Math.abs(bbox.c1 - bbox.c2) + 1 > 1) {//если последний аргумент опущен, и выделен более 1 строки и более 1 столбца
+				//так себя ведёт excel в случае с cellsArea
+				res = new cError(cErrorType.bad_reference);
 			} else if (bbox.r1 === bbox.r2) {/*одна строка*/
 				res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r1);
 				res = new cRef(res.getName(), ws);
