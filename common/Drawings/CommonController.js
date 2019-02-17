@@ -1111,11 +1111,16 @@ DrawingObjectsController.prototype =
         {
             return;
         }
-        if(cropObject.createCropObject())
-        {
-            this.selection.cropSelection = cropObject;
-            this.updateOverlay();
-        }
+
+
+        this.checkSelectedObjectsAndCallback(function () {
+            cropObject.checkSrcRect();
+            if(cropObject.createCropObject())
+            {
+                this.selection.cropSelection = cropObject;
+                this.updateOverlay();
+            }
+        },[], false);
     },
 
     endImageCrop: function()
@@ -1897,15 +1902,18 @@ DrawingObjectsController.prototype =
                 {
 
                     var oCropSelection =  this.selection.cropSelection;
-                    var cropObject = oCropSelection.cropObject;
-                    drawingDocument.AutoShapesTrack.SaveGrState();
-                    drawingDocument.AutoShapesTrack.save();
-                    cropObject.draw(drawingDocument.AutoShapesTrack);
-                    oCropSelection.draw(drawingDocument.AutoShapesTrack);
-                    drawingDocument.AutoShapesTrack.RestoreGrState();
-                    drawingDocument.AutoShapesTrack.restore();
-                    drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
-                    drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
+                    var cropObject = oCropSelection.getCropObject();
+                    if(cropObject)
+                    {
+                        drawingDocument.AutoShapesTrack.SaveGrState();
+                        drawingDocument.AutoShapesTrack.save();
+                        cropObject.draw(drawingDocument.AutoShapesTrack);
+                        oCropSelection.draw(drawingDocument.AutoShapesTrack);
+                        drawingDocument.AutoShapesTrack.RestoreGrState();
+                        drawingDocument.AutoShapesTrack.restore();
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
+                    }
                 }
             }
         }
@@ -7875,7 +7883,6 @@ DrawingObjectsController.prototype =
                 {
                     this.selectObject(oDrawingSelectionState.cropObject, bDocument ? (oDrawingSelectionState.cropObject.parent ? oDrawingSelectionState.cropObject.parent.PageNum : nPageIndex) : nPageIndex);
                     this.selection.cropSelection = oDrawingSelectionState.cropObject;
-                    this.selection.cropSelection.createCropObject();
                     if(!oSelectionState.DrawingSelection){
                         bNeedRecalculateCurPos = true;
                     }

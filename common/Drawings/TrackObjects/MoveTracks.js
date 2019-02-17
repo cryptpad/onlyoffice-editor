@@ -68,7 +68,7 @@ function MoveShapeImageTrack(originalObject)
         this.brush = pen_brush.brush;
         this.pen = pen_brush.pen;
     }
-    if(this.originalObject.cropObject && this.brush)
+    if(this.originalObject.getCropObject() && this.brush)
     {
         this.brush = this.brush.createDuplicate();
     }
@@ -122,7 +122,7 @@ function MoveShapeImageTrack(originalObject)
 
 
 
-        if(this.originalObject.cropObject)
+        if(this.originalObject.getCropObject())
         {
             var oldTransform = this.originalObject.transform;
 
@@ -229,7 +229,7 @@ function MoveShapeImageTrack(originalObject)
         {
             this.originalObject.parentCrop.calculateSrcRect();
         }
-        if(this.originalObject.cropObject)
+        if(this.originalObject.getCropObject())
         {
             this.originalObject.calculateSrcRect();
         }

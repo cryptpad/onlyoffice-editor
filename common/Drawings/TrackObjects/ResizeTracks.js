@@ -337,7 +337,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
         this.isLine = originalObject.spPr && originalObject.spPr.geometry && originalObject.spPr.geometry.preset === "line";
         this.bChangeCoef = this.translatetNumberHandle % 2 === 0 && this.originalFlipH !== this.originalFlipV;
 
-        if(this.originalObject.cropObject && this.brush)
+        if(this.originalObject.getCropObject() && this.brush)
         {
             this.brush = this.brush.createDuplicate();
         }
@@ -998,7 +998,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
 
             }
-            if(this.originalObject.cropObject)
+            if(this.originalObject.getCropObject())
             {
                 var oldTransform = this.originalObject.transform;
                 var oldExtX = this.originalObject.extX;
@@ -1167,7 +1167,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 {
                     this.originalObject.parentCrop.calculateSrcRect();
                 }
-                if(this.originalObject.cropObject)
+                if(this.originalObject.getCropObject())
                 {
                     this.originalObject.calculateSrcRect();
                 }

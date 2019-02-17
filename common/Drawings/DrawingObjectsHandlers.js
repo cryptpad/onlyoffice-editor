@@ -58,81 +58,85 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
     var drawing = null;
     if(oCropSelection && !window["IS_NATIVE_EDITOR"])
     {
-        if(bWord && pageIndex !== oCropSelection.selectStartPage)
+        var oCropObject = oCropSelection.getCropObject();
+        if(oCropObject)
         {
-            t = drawingObjectsController.drawingDocument.ConvertCoordsToAnotherPage(x, y, pageIndex, oCropSelection.selectStartPage);
-            tx = t.X;
-            ty = t.Y;
-        }
-        else
-        {
-            tx = x;
-            ty = y;
-        }
-        hit_to_handles = oCropSelection.hitToHandles(tx, ty);
-        if(hit_to_handles > -1)
-        {
-            ret = drawingObjectsController.handleHandleHit(hit_to_handles, oCropSelection, group);
-            drawing = oCropSelection;
-        }
-
-        if(!ret)
-        {
-            if(oCropSelection.hitInBoundingRect(tx, ty))
+            if(bWord && pageIndex !== oCropSelection.selectStartPage)
             {
-                ret = drawingObjectsController.handleMoveHit(oCropSelection, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                t = drawingObjectsController.drawingDocument.ConvertCoordsToAnotherPage(x, y, pageIndex, oCropSelection.selectStartPage);
+                tx = t.X;
+                ty = t.Y;
             }
-        }
-
-
-        var oldSelectedObjects;
-        if(group)
-        {
-            oldSelectedObjects = group.selectedObjects;
-            group.selectedObjects = [oCropSelection.cropObject];
-        }
-        else
-        {
-            oldSelectedObjects = drawingObjectsController.selectedObjects;
-            drawingObjectsController.selectedObjects = [oCropSelection.cropObject];
-        }
-        if(!ret)
-        {
-            hit_to_handles = oCropSelection.cropObject.hitToHandles(tx, ty);
+            else
+            {
+                tx = x;
+                ty = y;
+            }
+            hit_to_handles = oCropSelection.hitToHandles(tx, ty);
             if(hit_to_handles > -1)
             {
-                ret = drawingObjectsController.handleHandleHit(hit_to_handles, oCropSelection.cropObject, group);
-                drawing = oCropSelection.cropObject;
+                ret = drawingObjectsController.handleHandleHit(hit_to_handles, oCropSelection, group);
+                drawing = oCropSelection;
             }
-        }
-        if(!ret)
-        {
-            if(oCropSelection.cropObject.hitInBoundingRect(tx, ty))
+
+            if(!ret)
             {
-                ret = drawingObjectsController.handleMoveHit(oCropSelection.cropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                if(oCropSelection.hitInBoundingRect(tx, ty))
+                {
+                    ret = drawingObjectsController.handleMoveHit(oCropSelection, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                }
             }
-        }
-        if(!ret)
-        {
-            if(oCropSelection.hit(tx, ty))
+
+
+            var oldSelectedObjects;
+            if(group)
             {
-                ret = drawingObjectsController.handleMoveHit(oCropSelection.cropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                oldSelectedObjects = group.selectedObjects;
+                group.selectedObjects = [oCropObject];
             }
-        }
-        if(!ret)
-        {
-            if(oCropSelection.cropObject.hit(tx, ty))
+            else
             {
-                ret = drawingObjectsController.handleMoveHit(oCropSelection.cropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                oldSelectedObjects = drawingObjectsController.selectedObjects;
+                drawingObjectsController.selectedObjects = [oCropObject];
             }
-        }
-        if(group)
-        {
-            group.selectedObjects = oldSelectedObjects;
-        }
-        else
-        {
-            drawingObjectsController.selectedObjects = oldSelectedObjects;
+            if(!ret)
+            {
+                hit_to_handles = oCropObject.hitToHandles(tx, ty);
+                if(hit_to_handles > -1)
+                {
+                    ret = drawingObjectsController.handleHandleHit(hit_to_handles, oCropObject, group);
+                    drawing = oCropObject;
+                }
+            }
+            if(!ret)
+            {
+                if(oCropObject.hitInBoundingRect(tx, ty))
+                {
+                    ret = drawingObjectsController.handleMoveHit(oCropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                }
+            }
+            if(!ret)
+            {
+                if(oCropSelection.hit(tx, ty))
+                {
+                    ret = drawingObjectsController.handleMoveHit(oCropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                }
+            }
+            if(!ret)
+            {
+                if(oCropObject.hit(tx, ty))
+                {
+                    ret = drawingObjectsController.handleMoveHit(oCropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                }
+            }
+            if(group)
+            {
+                group.selectedObjects = oldSelectedObjects;
+            }
+            else
+            {
+                drawingObjectsController.selectedObjects = oldSelectedObjects;
+            }
         }
     }
     if(!ret)

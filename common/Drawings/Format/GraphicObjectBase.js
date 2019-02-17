@@ -1345,6 +1345,56 @@
         }
         return null;
     };
+
+    CGraphicObjectBase.prototype.checkSrcRect = function(){
+
+        if(this.getObjectType() === AscDFH.historyitem_type_ImageShape){
+            if(this.blipFill.tile || !this.blipFill.srcRect || this.blipFill.stretch){
+
+                var blipFill = this.blipFill.createDuplicate();
+                if(blipFill.tile){
+                    blipFill.tile = null;
+                }
+                if(!blipFill.srcRect){
+                    blipFill.srcRect = new AscFormat.CSrcRect();
+                    blipFill.srcRect.l = 0;
+                    blipFill.srcRect.t = 0;
+                    blipFill.srcRect.r = 100;
+                    blipFill.srcRect.b = 100;
+                }
+                if(blipFill.stretch){
+                    blipFill.stretch = null;
+                }
+                this.setBlipFill(blipFill);
+            }
+        }
+        else{
+            if(this.brush.fill.tile || !this.brush.fill.srcRect || this.brush.fill.stretch){
+                var brush = this.brush.createDuplicate();
+                brush.fill.srcRect =  this.calculateSrcRect2();
+                if(brush.fill.tile){
+                    brush.fill.tile = null;
+                }
+                if(!brush.fill.srcRect){
+                    brush.fill.srcRect = new AscFormat.CSrcRect();
+                    brush.fill.srcRect.l = 0;
+                    brush.fill.srcRect.t = 0;
+                    brush.fill.srcRect.r = 100;
+                    brush.fill.srcRect.b = 100;
+                }
+                if(brush.fill.stretch){
+                    brush.fill.stretch = null;
+                }
+                this.spPr.setFill(brush);
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.getCropObject = function(){
+        if(!this.cropObject){
+            this.createCropObject();
+        }
+        return this.cropObject;
+    }
     CGraphicObjectBase.prototype.createCropObject = function(){
         return AscFormat.ExecuteNoHistory(function () {
             var oBlipFill = this.getBlipFill();
@@ -1357,8 +1407,8 @@
                 var sRasterImageId = oBlipFill.RasterImageId;
                 var _l = srcRect.l ? srcRect.l : 0;
                 var _t = srcRect.t ? srcRect.t : 0;
-                var _r = srcRect.r ? srcRect.r : 0;
-                var _b = srcRect.b ? srcRect.b : 0;
+                var _r = srcRect.r ? srcRect.r : 100;
+                var _b = srcRect.b ? srcRect.b : 100;
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
                 this.check_bounds(oShapeDrawer);
