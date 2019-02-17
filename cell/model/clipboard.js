@@ -391,7 +391,7 @@
 					}
 				}
 
-				window["Asc"]["editor"].wb.cleanCutData();
+				window["Asc"]["editor"].wb.cleanCutData(true);
 
 				if (!bIsSpecialPaste) {
 					window['AscCommon'].g_specialPasteHelper.specialPasteData._format = _format;
