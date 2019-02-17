@@ -8442,6 +8442,14 @@ $( function () {
 		parent = {nCol: parent.c1, nRow: parent.r1, ws: ws};
 		strictEqual( oParser.simplifyRefType(oParser.calculate(), parent).getValue(), 12 );
 
+		oParser = new parserFormula( "INDEX(A651:C655,,4)", "E652", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
+		oParser = new parserFormula( "INDEX(A651:C655,,14)", "E652", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
 
         oParser = new parserFormula( "INDEX(A651:C655,3,2)", "A2", ws );
         ok( oParser.parse() );

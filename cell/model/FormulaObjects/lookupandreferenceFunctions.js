@@ -537,8 +537,12 @@ function (window, undefined) {
 				res = new cRef(res.getName(), ws);
 			} else {
 				if (0 === arg1 && arg2 > 0) {
-					res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r2);
-					res = new cArea(res.getName(), ws);
+					if (arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
+						res = new cError(cErrorType.bad_reference);
+					} else {
+						res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r2);
+						res = new cArea(res.getName(), ws);
+					}
 				} else {
 					if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1 || arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 						res = new cError(cErrorType.bad_reference);
