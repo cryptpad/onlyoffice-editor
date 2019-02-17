@@ -1479,6 +1479,7 @@
             brush.fill.srcRect =  this.calculateSrcRect2();
             this.spPr.setFill(brush);
         }
+        this.clearCropObject();
     };
     CGraphicObjectBase.prototype.calculateSrcRect2 = function(){
 

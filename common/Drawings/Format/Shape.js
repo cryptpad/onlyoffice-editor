@@ -5306,6 +5306,9 @@ CShape.prototype.hitInBoundingRect = function (x, y) {
 };
 
 CShape.prototype.canRotate = function () {
+    if(this.cropObject){
+        return false;
+    }
     return true;
 };
 

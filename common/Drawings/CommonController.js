@@ -1900,7 +1900,6 @@ DrawingObjectsController.prototype =
             {
                 if(this.selection.cropSelection.selectStartPage === pageIndex)
                 {
-
                     var oCropSelection =  this.selection.cropSelection;
                     var cropObject = oCropSelection.getCropObject();
                     if(cropObject)

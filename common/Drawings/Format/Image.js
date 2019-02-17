@@ -260,6 +260,12 @@ CImageShape.prototype.getRectBounds = function()
 
 CImageShape.prototype.canRotate = function()
 {
+    if(this.isCrop){
+        return false;
+    }
+    if(this.cropObject){
+        return false;
+    }
     return true;
 };
 
