@@ -1339,7 +1339,7 @@
             if(this.blipFill){
                 return this.blipFill;
             }
-            if(this.brush && this.brush.fill && this.brush.fill.type === AscFormat.FILL_TYPE_BLIP){
+            if(this.brush && this.brush.fill && this.brush.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_BLIP){
                 return this.brush.fill;
             }
         }
@@ -1371,7 +1371,6 @@
         else{
             if(this.brush.fill.tile || !this.brush.fill.srcRect || this.brush.fill.stretch){
                 var brush = this.brush.createDuplicate();
-                brush.fill.srcRect =  this.calculateSrcRect2();
                 if(brush.fill.tile){
                     brush.fill.tile = null;
                 }
@@ -1385,6 +1384,7 @@
                 if(brush.fill.stretch){
                     brush.fill.stretch = null;
                 }
+                this.brush = brush;
                 this.spPr.setFill(brush);
             }
         }
