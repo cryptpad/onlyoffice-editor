@@ -6995,6 +6995,12 @@ parserFormula.prototype.setFormula = function(formula) {
 			} else {
 				val = val.getElement(0);
 			}
+
+			//сделано для формул массива
+			//внутри массива может лежать ссылка на диапазон(например, функция index возвращает area/ref)
+			if(cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type || cElementType.array === val.type || cElementType.cell === val.type || cElementType.cell3D === val.type) {
+				val = this.simplifyRefType(val, opt_cell);
+			}
 		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
 			if (opt_cell) {
 				var range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);
