@@ -6603,7 +6603,7 @@
 				return oResDefault;
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
-			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize);
+			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.isCellEditMode;
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurRowResize : kCurRowSelect,
@@ -6619,7 +6619,7 @@
 				return oResDefault;
 			}
 			isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize);
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.isCellEditMode;
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurColResize : kCurColSelect,

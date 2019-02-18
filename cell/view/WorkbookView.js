@@ -1106,9 +1106,7 @@
     var arrMouseMoveObjects = [];					// Теперь это массив из объектов, над которыми курсор
 
     //ToDo: включить определение target, если находимся в режиме редактирования ячейки.
-    if (this.getCellEditMode() && !this.controller.isFormulaEditMode) {
-      this.element.style.cursor = "";
-    } else if (x === undefined && y === undefined) {
+    if (x === undefined && y === undefined) {
       ws.cleanHighlightedHeaders();
     } else {
       ct = ws.getCursorTypeFromXY(x, y);
