@@ -470,10 +470,10 @@
 		this.MinLength = 10;
 		this.ShowValue = true;
 		this.AxisPosition = AscCommonExcel.EDataBarAxisPosition.automatic;
-		this.Border = false;
 		this.Gradient = true;
 		this.Direction = AscCommonExcel.EDataBarDirection.context;
 		this.NegativeBarColorSameAsPositive = false;
+		this.NegativeBarBorderColorSameAsPositive = true;
 
 		this.aCFVOs = [];
 		this.Color = null;
@@ -490,10 +490,10 @@
 		res.MinLength = this.MinLength;
 		res.ShowValue = this.ShowValue;
 		res.AxisPosition = this.AxisPosition;
-		res.Border = this.Border;
 		res.Gradient = this.Gradient;
 		res.Direction = this.Direction;
 		res.NegativeBarColorSameAsPositive = this.NegativeBarColorSameAsPositive;
+		res.NegativeBarBorderColorSameAsPositive = this.NegativeBarBorderColorSameAsPositive;
 		for (i = 0; i < this.aCFVOs.length; ++i)
 			res.aCFVOs.push(this.aCFVOs[i].clone());
 		if (this.Color)

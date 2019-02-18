@@ -628,7 +628,8 @@
 		AxisPosition	: 9,
 		Direction		: 10,
 		GradientEnabled	: 11,
-		NegativeBarColorSameAsPositive: 12
+		NegativeBarColorSameAsPositive: 12,
+		NegativeBarBorderColorSameAsPositive: 13
     };
     var c_oSer_ConditionalFormattingIconSet = {
         CFVO			: 0,
@@ -4082,6 +4083,9 @@
 			}
 			if (null != dataBar.NegativeBarColorSameAsPositive) {
 				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeBarColorSameAsPositive, function() {oThis.memory.WriteBool(dataBar.NegativeBarColorSameAsPositive);});
+			}
+			if (null != dataBar.NegativeBarBorderColorSameAsPositive) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeBarBorderColorSameAsPositive, function() {oThis.memory.WriteBool(dataBar.NegativeBarBorderColorSameAsPositive);});
 			}
 			if (null != dataBar.Color) {
 				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.Color, function() {oThis.bs.WriteColorSpreadsheet(dataBar.Color);});
@@ -7580,6 +7584,8 @@
 				oDataBar.Gradient = this.stream.GetBool();
 			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBarColorSameAsPositive === type) {
 				oDataBar.NegativeBarColorSameAsPositive = this.stream.GetBool();
+			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBarBorderColorSameAsPositive === type) {
+				oDataBar.NegativeBarBorderColorSameAsPositive = this.stream.GetBool();
             } else if (c_oSer_ConditionalFormattingDataBar.CFVO === type) {
                 oObject = new AscCommonExcel.CConditionalFormatValueObject();
                 res = this.bcr.Read1(length, function (t, l) {
