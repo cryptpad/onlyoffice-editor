@@ -9012,7 +9012,7 @@
 
                 // Вызываем функцию пересчета для заголовков форматированной таблицы
                 t.model.autoFilters.renameTableColumn(arnFrom);
-                t.model.autoFilters.renameTableColumn(arnTo);
+                wsTo.model.autoFilters.renameTableColumn(arnTo);
                 t.model.autoFilters.reDrawFilter(arnFrom);
 
                 t.model.autoFilters.afterMoveAutoFilters(arnFrom, arnTo, opt_wsTo);
