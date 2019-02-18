@@ -1459,7 +1459,7 @@
         this.cropObject = null;
     };
 
-    CGraphicObjectBase.prototype.drawCropTrack = function(){
+    CGraphicObjectBase.prototype.drawCropTrack = function(graphics, srcRect, transform, cropObjectTransform){
 
     };
 
