@@ -2535,6 +2535,9 @@
 
     /** Рисует фон ячеек в строке */
     WorksheetView.prototype._drawRowBG = function ( drawingCtx, row, colStart, colEnd, offsetX, offsetY, oMergedCell ) {
+		var shapeDrawer = new AscCommon.CShapeDrawer();
+		shapeDrawer.Graphics = this.handlers.trigger('getMainGraphics');
+
         var mergedCells = [];
         var height = this._getRowHeight(row);
         if ( 0 === height && null === oMergedCell ) {
@@ -2608,7 +2611,39 @@
             var w = width + (bg !== null ? +1 : -1) + mwidth;
             var h = height + (bg !== null ? +1 : -1) + mheight;
             var color = bg !== null ? bg : this.settings.cells.defaultState.background;
-            ctx.setFillStyle( color ).fillRect( x - offsetX, y - offsetY, w, h );
+
+			if (true) {
+				History.TurnOff();
+				var geometry = new AscFormat.Geometry();
+				var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
+				var path = new AscFormat.Path();
+				path.moveTo(rect.x, rect.y);
+				path.lnTo(rect.x + rect.w, rect.y);
+				path.lnTo(rect.x + rect.w, rect.y + rect.h);
+				path.lnTo(rect.x, rect.y + rect.h);
+				path.lnTo(rect.x, rect.y);
+				path.close();
+				geometry.AddPath(path);
+				geometry.Recalculate(1000, 1000, true);
+
+				var oUniFill = new AscFormat.CUniFill();
+				oUniFill.fill = new AscFormat.CPattFill();
+				oUniFill.fill.ftype = AscCommon.global_hatch_offsets['darkDown'];
+				oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(color.getR(), color.getG(),  color.getB());
+				oUniFill.fill.fgClr.RGBA.R = color.getR();
+				oUniFill.fill.fgClr.RGBA.G = color.getG();
+				oUniFill.fill.fgClr.RGBA.B = color.getB();
+				oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB(255, 255, 255);
+				oUniFill.fill.bgClr.RGBA.R = 0xFF;
+				oUniFill.fill.bgClr.RGBA.G = 0xFF;
+				oUniFill.fill.bgClr.RGBA.B = 0xFF;
+
+				shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), shapeDrawer.Graphics, geometry);
+				shapeDrawer.draw(geometry);
+				History.TurnOn();
+			} else {
+				ctx.setFillStyle( color ).fillRect( x - offsetX, y - offsetY, w, h );
+			}
 
             if (fillColor && findFillColor) {
 				ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);

@@ -208,6 +208,7 @@
     this.overlayCtx = undefined;
     this.drawingGraphicCtx = undefined;
     this.overlayGraphicCtx = undefined;
+    this.mainGraphics = undefined;
     this.stringRender = undefined;
 
     this.stateFormatPainter = c_oAscFormatPainterState.kOff;
@@ -303,6 +304,10 @@
     this.buffers.shapeOverlayCtx = new AscCommon.CGraphics();
     this.buffers.shapeOverlayCtx.init(this.overlayGraphicCtx.ctx, overlayWidth, overlayHeight, overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX, overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY);
     this.buffers.shapeOverlayCtx.m_oFontManager = this.fmgrGraphics[2];
+
+    this.mainGraphics = new AscCommon.CGraphics();
+    this.mainGraphics.init(this.drawingCtx.ctx, canvasWidth, canvasHeight, canvasWidth * 25.4 / this.drawingCtx.ppiX, canvasHeight * 25.4 / this.drawingCtx.ppiY);
+    this.mainGraphics.m_oFontManager = this.fmgrGraphics[0];
 
     this.stringRender = new AscCommonExcel.StringRender(this.buffers.main);
 
@@ -591,19 +596,23 @@
         return res;
       };
       this.Api.beginInlineDropTarget = function (event) {
+      	console.log('start beginInlineDropTarget');
       	if (!self.controller.isMoveRangeMode) {
       		self.controller.isMoveRangeMode = true;
 			self.getWorksheet().dragAndDropRange = new Asc.Range(0, 0, 0, 0);
 		}
       	self.controller._onMouseMove(event);
+      	console.log('end beginInlineDropTarget');
 	  };
       this.Api.endInlineDropTarget = function (event) {
+      	console.log('start endInlineDropTarget');
       	self.controller.isMoveRangeMode = false;
       	var ws = self.getWorksheet();
       	var newSelection = ws.activeMoveRange.clone();
       	ws._cleanSelectionMoveRange();
       	ws.dragAndDropRange = null;
       	self._onSetSelection(newSelection);
+      	console.log('end endInlineDropTarget');
 	  };
       this.Api.isEnabledDropTarget = function () {
       	return !self.isCellEditMode;
@@ -741,6 +750,8 @@
 		      self.toggleAutoCorrectOptions(bIsShow, val);
 		  }, "selectSearchingResults": function () {
 			  return self.Api.selectSearchingResults;
+		  }, "getMainGraphics": function () {
+			  return self.mainGraphics;
 		  }
 	  });
 
