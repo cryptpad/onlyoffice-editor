@@ -620,7 +620,15 @@
         Color			: 1,
         MaxLength		: 2,
         MinLength		: 3,
-        ShowValue		: 4
+		ShowValue		: 4,
+		NegativeColor	: 5,
+		BorderColor		: 6,
+		AxisColor		: 7,
+		NegativeBorderColor: 8,
+		AxisPosition	: 9,
+		Direction		: 10,
+		GradientEnabled	: 11,
+		NegativeBarColorSameAsPositive: 12
     };
     var c_oSer_ConditionalFormattingIconSet = {
         CFVO			: 0,
@@ -1121,6 +1129,16 @@
         tomorrow  : 'tomorrow',
         yesterday : 'yesterday'
     };
+	var EDataBarAxisPosition = {
+		automatic: 0,
+		middle: 1,
+		none: 2
+	};
+	var EDataBarDirection = {
+		context: 0,
+		leftToRight: 1,
+		rightToLeft: 2
+	};
     
     var g_nNumsMaxId = 160;
 
@@ -4053,8 +4071,32 @@
 			if (null != dataBar.ShowValue) {
 				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.ShowValue, function() {oThis.memory.WriteBool(dataBar.ShowValue);});
 			}
+			if (null != dataBar.AxisPosition) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.AxisPosition, function() {oThis.memory.WriteLong(dataBar.AxisPosition);});
+			}
+			if (null != dataBar.Gradient) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.GradientEnabled, function() {oThis.memory.WriteBool(dataBar.Gradient);});
+			}
+			if (null != dataBar.Direction) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.Direction, function() {oThis.memory.WriteLong(dataBar.Direction);});
+			}
+			if (null != dataBar.NegativeBarColorSameAsPositive) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeBarColorSameAsPositive, function() {oThis.memory.WriteBool(dataBar.NegativeBarColorSameAsPositive);});
+			}
 			if (null != dataBar.Color) {
 				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.Color, function() {oThis.bs.WriteColorSpreadsheet(dataBar.Color);});
+			}
+			if (null != dataBar.NegativeColor) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeColor, function() {oThis.bs.WriteColorSpreadsheet(dataBar.NegativeColor);});
+			}
+			if (null != dataBar.BorderColor) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.BorderColor, function() {oThis.bs.WriteColorSpreadsheet(dataBar.BorderColor);});
+			}
+			if (null != dataBar.NegativeBorderColor) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeBorderColor, function() {oThis.bs.WriteColorSpreadsheet(dataBar.NegativeBorderColor);});
+			}
+			if (null != dataBar.AxisColor) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.AxisColor, function() {oThis.bs.WriteColorSpreadsheet(dataBar.AxisColor);});
 			}
 			for (i = 0; i < dataBar.aCFVOs.length; ++i) {
 				elem = dataBar.aCFVOs[i];
@@ -7510,6 +7552,34 @@
 				if (color) {
 					oDataBar.Color = color;
 				}
+			} else if (c_oSer_ConditionalFormattingDataBar.NegativeColor === type) {
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.NegativeColor = color;
+				}
+			} else if (c_oSer_ConditionalFormattingDataBar.BorderColor === type) {
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.BorderColor = color;
+				}
+			} else if (c_oSer_ConditionalFormattingDataBar.AxisColor === type) {
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.AxisColor = color;
+				}
+			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBorderColor === type) {
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.NegativeBorderColor = color;
+				}
+			} else if (c_oSer_ConditionalFormattingDataBar.AxisPosition === type) {
+				oDataBar.AxisPosition = this.stream.GetULongLE();
+			} else if (c_oSer_ConditionalFormattingDataBar.Direction === type) {
+				oDataBar.Direction = this.stream.GetULongLE();
+			} else if (c_oSer_ConditionalFormattingDataBar.GradientEnabled === type) {
+				oDataBar.Gradient = this.stream.GetBool();
+			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBarColorSameAsPositive === type) {
+				oDataBar.NegativeBarColorSameAsPositive = this.stream.GetBool();
             } else if (c_oSer_ConditionalFormattingDataBar.CFVO === type) {
                 oObject = new AscCommonExcel.CConditionalFormatValueObject();
                 res = this.bcr.Read1(length, function (t, l) {
@@ -9116,6 +9186,8 @@
 	window["AscCommonExcel"].ECfType = ECfType;
     window["AscCommonExcel"].ECfvoType = ECfvoType;
     window["AscCommonExcel"].ST_TimePeriod = ST_TimePeriod;
+	window["AscCommonExcel"].EDataBarAxisPosition = EDataBarAxisPosition;
+	window["AscCommonExcel"].EDataBarDirection = EDataBarDirection;
 
     window["Asc"].CTableStyles = CTableStyles;
     window["Asc"].CTableStyle = CTableStyle;
