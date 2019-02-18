@@ -3200,9 +3200,42 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 				tempArgs.push(tempArg);
 			}
 
+			var changeArgByIndexArr = null, _cRow = 1, _cCol = 2, _cEmpty = 3;
+			if("index" === this.name.toLowerCase()) {
+				var arg1Arr = arg[1] && (cElementType.array === arg[1].type || cElementType.cellsRange === arg[1].type || cElementType.cellsRange3D === arg[1].type);
+				var arg2Arr = arg[2] && (cElementType.array === arg[2].type || cElementType.cellsRange === arg[2].type || cElementType.cellsRange3D === arg[2].type);
+
+				if(!arg1Arr && !arg2Arr) {
+					var arg1Zero = arg[1] && 0 === arg[1].getValue();
+					var arg2Zero = arg[2] && 0 === arg[2].getValue();
+
+					var arg1Empty = !arg[1] || cElementType.empty  === arg[1].type;
+					var arg2Empty = !arg[2] || cElementType.empty  === arg[2].type;
+
+					if(arg1Zero && arg2Empty) {
+						changeArgByIndexArr = [];
+						changeArgByIndexArr[1] = _cCol;
+					} else if(arg2Zero && arg1Empty){
+						changeArgByIndexArr = [];
+						changeArgByIndexArr[1] = _cCol;
+						changeArgByIndexArr[2] = _cEmpty;
+					} else if(arg1Zero && arg2Zero) {
+						changeArgByIndexArr = [];
+						changeArgByIndexArr[1] = _cRow;
+						changeArgByIndexArr[2] = _cCol;
+					} else if(arg1Zero) {
+						changeArgByIndexArr = [];
+						changeArgByIndexArr[1] = _cRow;
+					} else if(arg2Zero) {
+						changeArgByIndexArr = [];
+						changeArgByIndexArr[2] = _cCol;
+					}
+				}
+			}
+
 			//для функций row/column с нулевым количеством аргументов необходимо рассчитывать
 			//значение для каждой ячейки массива, изменяя при этом opt_bbox
-			if (replaceAreaByRefs && 0 === argumentsCount) {
+			if ((replaceAreaByRefs && 0 === argumentsCount) || null !== changeArgByIndexArr) {
 				firstArray = new cArray();
 				firstArray.fillEmptyFromRange(parserFormula.ref);
 			}
@@ -3230,6 +3263,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 							}
 							if (!newArg) {
 								newArg = new cError(cErrorType.not_available);
+							}
+						} else if(changeArgByIndexArr && changeArgByIndexArr[j]) {
+							if(_cCol === changeArgByIndexArr[j]) {
+								newArg = new cNumber(c + 1);
+							} else if(_cRow === changeArgByIndexArr[j]) {
+								newArg = new cNumber(r + 1);
+							} else if(_cEmpty === changeArgByIndexArr[j]) {
+								newArg = undefined;
 							}
 						}
 
@@ -6961,6 +7002,12 @@ parserFormula.prototype.setFormula = function(formula) {
 				}
 			} else {
 				val = val.getElement(0);
+			}
+
+			//сделано для формул массива
+			//внутри массива может лежать ссылка на диапазон(например, функция index возвращает area/ref)
+			if(cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type || cElementType.array === val.type || cElementType.cell === val.type || cElementType.cell3D === val.type) {
+				val = this.simplifyRefType(val, opt_cell);
 			}
 		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
 			if (opt_cell) {

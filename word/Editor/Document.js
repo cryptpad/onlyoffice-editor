@@ -4548,7 +4548,7 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 				// Передвинем курсор в начало следующего параграфа, и рассчитаем текстовые настройки и расстояния между строк
 				Next.MoveCursorToStartPos();
 				var Spacing = Next.Get_CompiledPr2(false).ParaPr.Spacing.Copy();
-				var TextPr  = Next.Get_FirstRunPr();
+				var TextPr  = Next.GetFirstRunPr();
 
 				var Count = FrameParas.length;
 				for (var Index = 0; Index < Count; Index++)

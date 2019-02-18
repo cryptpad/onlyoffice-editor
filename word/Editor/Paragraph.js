@@ -351,7 +351,11 @@ Paragraph.prototype.Copy2 = function(Parent)
 
 	return Para;
 };
-Paragraph.prototype.Get_FirstRunPr = function()
+/**
+ * Получаем настройки прямые настройки текста для начала параграфа
+ * @returns {CTextPr}
+ */
+Paragraph.prototype.GetFirstRunPr = function()
 {
 	if (this.Content.length <= 0 || para_Run !== this.Content[0].Type)
 		return this.TextPr.Value.Copy();
@@ -10525,7 +10529,7 @@ Paragraph.prototype.Supplement_FramePr = function(FramePr)
 				break;
 		}
 
-		var TextPr = FirstFramePara.Get_FirstRunPr();
+		var TextPr = FirstFramePara.GetFirstRunPr();
 
 		if (undefined === TextPr.RFonts || undefined === TextPr.RFonts.Ascii)
 		{

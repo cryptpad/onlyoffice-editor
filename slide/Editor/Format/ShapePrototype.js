@@ -719,7 +719,7 @@ CShape.prototype.recalculateContent2 = function()
                 if(!content.Content[0].Pr.DefaultRunPr){
                     content.Content[0].Pr.DefaultRunPr = new AscCommonWord.CTextPr();
                 }
-                content.Content[0].Pr.DefaultRunPr.Merge(content_.Content[0].Get_FirstRunPr());
+                content.Content[0].Pr.DefaultRunPr.Merge(content_.Content[0].GetFirstRunPr());
             }
             content.Set_StartPage(0);
             content.Reset(0, 0, w, 20000);
