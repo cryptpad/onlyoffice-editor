@@ -8925,6 +8925,43 @@
         }
     };
 
+	WorksheetView.prototype.applyCutRange = function (arnFrom, arnTo, opt_wsTo) {
+		var moveToOtherSheet = opt_wsTo && opt_wsTo.model && this.model !== opt_wsTo.model;
+
+		if (!moveToOtherSheet && arnFrom.isEqual(arnTo)) {
+			return;
+		}
+		if ((!moveToOtherSheet && this.model.inPivotTable([arnFrom, arnTo])) || (moveToOtherSheet && (this.model.inPivotTable([arnFrom]) || opt_wsTo.model.inPivotTable([arnTo])))) {
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+			return;
+		}
+
+		//***array-formula***
+		//теперь не передаю 3 параметром в функцию checkMoveFormulaArray ctrlKey, поскольку undo/redo для
+		//клонирования части формулы работает некорректно
+		//при undo созданную формулу обходимо не переносить, а удалять
+		//TODO пересомтреть!
+		if (!this.checkMoveFormulaArray(arnFrom, arnTo, null, opt_wsTo)) {
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+			return;
+		}
+
+		var resmove = this.model._prepareMoveRange(arnFrom, arnTo, opt_wsTo && opt_wsTo.model);
+		if (resmove === -2) {
+			this.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotMoveRange, c_oAscError.Level.NoCritical);
+		} else if (resmove === -1) {
+			var t = this;
+			this.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmReplaceRange,
+				function (can) {
+					if (can) {
+						t.moveRangeHandle(arnFrom, arnTo, null, opt_wsTo);
+					}
+				});
+		} else {
+			this.moveRangeHandle(arnFrom, arnTo, null, opt_wsTo);
+		}
+	};
+
     WorksheetView.prototype.applyMoveResizeRangeHandle = function ( target ) {
         if ( -1 == target.targetArr && !this.startCellMoveResizeRange.isEqual( this.moveRangeDrawingObjectTo ) ) {
             this.objectRender.moveRangeDrawingObject( this.startCellMoveResizeRange, this.moveRangeDrawingObjectTo );
@@ -14991,7 +15028,7 @@
         return res;
     };
 
-	WorksheetView.prototype.checkMoveFormulaArray = function(from, to, ctrlKey) {
+	WorksheetView.prototype.checkMoveFormulaArray = function(from, to, ctrlKey, opt_wsTo) {
 		//***array-formula***
 		var res = true;
 
@@ -15002,8 +15039,9 @@
 		}
 
 		//проверяем to, затрагиваем ли мы часть формулы массива
-		if(res) {
-			res = this.intersectionFormulaArray(to);
+		var ws = opt_wsTo ? opt_wsTo : this;
+		if(res && to) {
+			res = ws.intersectionFormulaArray(to);
 		}
 
 		return res;
