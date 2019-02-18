@@ -3191,6 +3191,10 @@
 	{
 		return false;
 	};
+	CChangesBase.prototype.IsNeedRecalculate = function()
+	{
+		return true;
+	};
 	window['AscDFH'].CChangesBase = CChangesBase;
 	/**
 	 * Базовый класс для изменений, которые меняют содержимое родительского класса.*
@@ -3208,6 +3212,22 @@
 		this.Add      = isAdd;
 
 		this.Reverted = false;
+
+		if (Class && Pos && Items)
+		{
+			if (isAdd)
+			{
+				for (var nIndex = 0, nCount = Items.length; nIndex < nCount; ++nIndex)
+				{
+					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(Class, Pos + nIndex);
+				}
+			}
+			else
+			{
+				if (Items.length > 0)
+					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(Class, Pos, Items.length);
+			}
+		}
 	}
 
 	CChangesBaseContentChange.prototype = Object.create(CChangesBase.prototype);
