@@ -9367,6 +9367,10 @@
 				c_oAscError.Level.NoCritical);
 			return;
         }
+		if("empty" === prop && !this.intersectionFormulaArray(arn)) {
+			t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+			return;
+		}
 		this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
     };
 
