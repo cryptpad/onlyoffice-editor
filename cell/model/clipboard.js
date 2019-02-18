@@ -2982,7 +2982,14 @@
 				{
 					for(var j = 0; j < paragraph.Content.length; j++)
 					{
-						res += paragraph.Content[j].GetSelectedText(true)
+						if(para_Math === paragraph.Content[j].GetType() && paragraph.Content[j].Root) {
+							var mathTextContent = paragraph.Content[j].Root.GetTextContent();
+							if(mathTextContent) {
+								res += mathTextContent.str;
+							}
+						} else {
+							res += paragraph.Content[j].GetSelectedText(true);
+						}
 					}
 				};
 				
