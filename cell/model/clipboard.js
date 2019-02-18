@@ -1223,7 +1223,7 @@
 						var aRange = ws.model.selectionRange.getLast();
 						var toRange = new Asc.Range(aRange.c1, aRange.r1, aRange.c1 + (fromRange.c2 - fromRange.c1), aRange.r1 + (fromRange.r2 - fromRange.r1));
 						var wsTo = ws.model.Id !== wsFrom.model.Id ? ws : null;
-						wsFrom.moveRangeHandle2(fromRange, toRange, false, wsTo);
+						wsFrom.moveRangeHandle(fromRange, toRange, false, wsTo);
 						window["Asc"]["editor"].wb.cleanCutData(true);
 						res = true;
 

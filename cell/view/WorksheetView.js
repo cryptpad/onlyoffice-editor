@@ -8938,35 +8938,39 @@
     WorksheetView.prototype.moveRangeHandle = function (arnFrom, arnTo, copyRange, opt_wsTo) {
 		//opt_wsTo - for test reasons only
         var t = this;
+		var wsTo = opt_wsTo ? opt_wsTo : this;
+
         var onApplyMoveRangeHandleCallback = function (isSuccess) {
             if (false === isSuccess) {
-				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
-                t._cleanSelectionMoveRange();
+				wsTo.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+                wsTo._cleanSelectionMoveRange();
                 return;
             }
 
             var onApplyMoveAutoFiltersCallback = function (isSuccess) {
                 if (false === isSuccess) {
-					t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
-                    t._cleanSelectionMoveRange();
+					wsTo.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+                    wsTo._cleanSelectionMoveRange();
                     return;
                 }
 
 				var hasMerged = t.model.getRange3(arnFrom.r1, arnFrom.c1, arnFrom.r2, arnFrom.c2).hasMerged();
 
                 // Очищаем выделение
-                t.cleanSelection();
+                wsTo.cleanSelection();
 
                 //ToDo t.cleanDepCells();
                 History.Create_NewPoint();
-                History.SetSelection(arnFrom.clone());
+                if(opt_wsTo === undefined) {
+                    History.SetSelection(arnFrom.clone());
+                }
                 History.SetSelectionRedo(arnTo.clone());
                 History.StartTransaction();
 
-                t.model.autoFilters._preMoveAutoFilters(arnFrom, arnTo, copyRange);
+                t.model.autoFilters._preMoveAutoFilters(arnFrom, arnTo, copyRange, opt_wsTo);
 
                 t.model._moveRange(arnFrom, arnTo, copyRange, opt_wsTo && opt_wsTo.model);
-                t.cellCommentator.moveRangeComments(arnFrom, arnTo, copyRange);
+                t.cellCommentator.moveRangeComments(arnFrom, arnTo, copyRange, opt_wsTo);
                 t.objectRender.moveRangeDrawingObject(arnFrom, arnTo);
 
                 // Вызываем функцию пересчета для заголовков форматированной таблицы
@@ -8974,27 +8978,30 @@
                 t.model.autoFilters.renameTableColumn(arnTo);
                 t.model.autoFilters.reDrawFilter(arnFrom);
 
-                t.model.autoFilters.afterMoveAutoFilters(arnFrom, arnTo);
+                t.model.autoFilters.afterMoveAutoFilters(arnFrom, arnTo, opt_wsTo);
 
+				if(opt_wsTo) {
+					History.SetSheetUndo(wsTo.model.getId());
+				}
 				History.EndTransaction();
 
-				t._updateRange(arnTo);
+				wsTo._updateRange(arnTo);
 				t._updateRange(arnFrom);
 
-				t.model.selectionRange.assign2(arnTo);
+				wsTo.model.selectionRange.assign2(arnTo);
 				// Сбрасываем параметры
-				t.activeMoveRange = null;
-				t.startCellMoveRange = null;
+				wsTo.activeMoveRange = null;
+				wsTo.startCellMoveRange = null;
 
 				// Тут будет отрисовка select-а
-				t.draw();
+				wsTo.draw();
 				// Вызовем на всякий случай, т.к. мы можем уже обновиться из-за формул ToDo возможно стоит убрать это в дальнейшем (но нужна переработка формул) - http://bugzilla.onlyoffice.com/show_bug.cgi?id=24505
-				t._updateSelectionNameAndInfo();
+				wsTo._updateSelectionNameAndInfo();
 
 				if (hasMerged && false !== t.model.autoFilters._intersectionRangeWithTableParts(arnTo)) {
 					//не делаем действий в asc_onConfirmAction, потому что во время диалога может выполниться autosave и новые измения добавятся в точку, которую уже отправили
 					//тем более результат диалога ни на что не влияет
-					t.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmPutMergeRange,
+					wsTo.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmPutMergeRange,
 						function () {
 						});
 				}
@@ -9010,8 +9017,12 @@
             }
         };
 
-        if (this.af_isCheckMoveRange(arnFrom, arnTo)) {
-            this._isLockedCells([arnFrom, arnTo], null, onApplyMoveRangeHandleCallback);
+        if (this.af_isCheckMoveRange(arnFrom, arnTo, opt_wsTo)) {
+            if(opt_wsTo) {
+                this._isLockedCells([arnFrom], null, opt_wsTo._isLockedCells([arnTo], null, onApplyMoveRangeHandleCallback));
+            } else {
+                this._isLockedCells([arnFrom, arnTo], null, onApplyMoveRangeHandleCallback);
+            }
         } else {
             this._cleanSelectionMoveRange();
         }
