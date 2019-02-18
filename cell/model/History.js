@@ -959,6 +959,23 @@ CHistory.prototype.GetSerializeArray = function()
 		}
 	};
 
+	CHistory.prototype.AddToUpdatesRegions = function(range, sheetId) {
+		if (0 !== this.TurnOffHistory || this.Index < 0) {
+			return;
+		}
+
+		var curPoint = this.Points[this.Index];
+		if (null != range && null != sheetId) {
+			var updateRange = curPoint.UpdateRigions[sheetId];
+			if (null != updateRange) {
+				updateRange.union2(range);
+			} else {
+				updateRange = range.clone();
+			}
+			curPoint.UpdateRigions[sheetId] = updateRange;
+		}
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].CHistory = CHistory;
