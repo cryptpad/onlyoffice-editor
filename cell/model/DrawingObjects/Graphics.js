@@ -50,13 +50,8 @@ function CGraphics()
     this.m_lWidthPix    = 0;
     this.m_lHeightPix   = 0;
     this.m_dDpiX        = 96.0;
-    this.m_dDpiY        = 96.0; 
+    this.m_dDpiY        = 96.0;
     this.m_bIsBreak 	= false;
-
-    this.textBB_l       = 10000;
-    this.textBB_t       = 10000;
-    this.textBB_r       = -10000;
-    this.textBB_b       = -10000;
 
     this.m_oPen     = new AscCommon.CPen();
     this.m_oBrush   = new AscCommon.CBrush();
