@@ -2535,8 +2535,6 @@
 
     /** Рисует фон ячеек в строке */
     WorksheetView.prototype._drawRowBG = function ( drawingCtx, row, colStart, colEnd, offsetX, offsetY, oMergedCell ) {
-		var shapeDrawer = new AscCommon.CShapeDrawer();
-		shapeDrawer.Graphics = this.handlers.trigger('getMainGraphics');
 
         var mergedCells = [];
         var height = this._getRowHeight(row);
@@ -2613,34 +2611,72 @@
             var color = bg !== null ? bg : this.settings.cells.defaultState.background;
 
 			if (true) {
-				History.TurnOff();
-				var geometry = new AscFormat.Geometry();
-				var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
-				var path = new AscFormat.Path();
-				path.moveTo(rect.x, rect.y);
-				path.lnTo(rect.x + rect.w, rect.y);
-				path.lnTo(rect.x + rect.w, rect.y + rect.h);
-				path.lnTo(rect.x, rect.y + rect.h);
-				path.lnTo(rect.x, rect.y);
-				path.close();
-				geometry.AddPath(path);
-				geometry.Recalculate(1000, 1000, true);
+                AscFormat.ExecuteNoHistory(
+                    function () {
 
-				var oUniFill = new AscFormat.CUniFill();
-				oUniFill.fill = new AscFormat.CPattFill();
-				oUniFill.fill.ftype = AscCommon.global_hatch_offsets['darkDown'];
-				oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(color.getR(), color.getG(),  color.getB());
-				oUniFill.fill.fgClr.RGBA.R = color.getR();
-				oUniFill.fill.fgClr.RGBA.G = color.getG();
-				oUniFill.fill.fgClr.RGBA.B = color.getB();
-				oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB(255, 255, 255);
-				oUniFill.fill.bgClr.RGBA.R = 0xFF;
-				oUniFill.fill.bgClr.RGBA.G = 0xFF;
-				oUniFill.fill.bgClr.RGBA.B = 0xFF;
 
-				shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), shapeDrawer.Graphics, geometry);
-				shapeDrawer.draw(geometry);
-				History.TurnOn();
+
+                        var geometry = new AscFormat.Geometry();
+                        var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
+                        var dScale = asc_getcvt(0, 3, this._getPPIX());
+                        rect.x *= dScale;
+                        rect.y *= dScale;
+                        rect.w *= dScale;
+                        rect.h *= dScale;
+                        var path = new AscFormat.Path();
+                        path.moveTo(rect.x, rect.y);
+                        path.lnTo(rect.x + rect.w, rect.y);
+                        path.lnTo(rect.x + rect.w, rect.y + rect.h);
+                        path.lnTo(rect.x, rect.y + rect.h);
+                        path.close();
+                        geometry.AddPath(path);
+                        geometry.Recalculate(1000, 1000, true);
+
+                        var oUniFill = new AscFormat.CUniFill();
+                        oUniFill.fill = new AscFormat.CPattFill();
+                        oUniFill.fill.ftype = 7;
+                        oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(color.getR(), color.getG(),  color.getB());
+                        oUniFill.fill.fgClr.RGBA.R = color.getR();
+                        oUniFill.fill.fgClr.RGBA.G = color.getG();
+                        oUniFill.fill.fgClr.RGBA.B = color.getB();
+                        oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB(255, 255, 255);
+                        oUniFill.fill.bgClr.RGBA.R = 0xFF;
+                        oUniFill.fill.bgClr.RGBA.G = 0xFF;
+                        oUniFill.fill.bgClr.RGBA.B = 0xFF;
+
+
+
+                        var graphics;
+                        if(ctx instanceof AscCommonExcel.CPdfPrinter)
+                        {
+                            graphics = ctx.DocumentRenderer;
+                        }
+                        else
+                        {
+                            graphics = new AscCommon.CGraphics();
+                            graphics.init(ctx.ctx, ctx.getWidth(0), ctx.getHeight(0),
+                                ctx.getWidth(3), ctx.getHeight(3));
+                            graphics.m_oFontManager = AscCommon.g_fontManager;
+                        }
+
+                        graphics.transform3(new AscCommon.CMatrix());
+                        var shapeDrawer = new AscCommon.CShapeDrawer();
+                        shapeDrawer.Graphics = graphics;
+
+                        shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+                        shapeDrawer.draw(geometry);
+                        if(ctx instanceof AscCommonExcel.CPdfPrinter)
+                        {
+                        }
+                        else
+                        {
+                            ctx.restore();
+                        }
+
+
+
+                    }, this, []
+                );
 			} else {
 				ctx.setFillStyle( color ).fillRect( x - offsetX, y - offsetY, w, h );
 			}
