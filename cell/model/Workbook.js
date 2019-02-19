@@ -6497,6 +6497,51 @@
 	Worksheet.prototype.ignoreWriteFormulas = function (val) {
 		this.bIgnoreWriteFormulas = val;
 	};
+	Worksheet.prototype.checkShiftArrayFormulas = function (range, offset) {
+		//проверка на частичный сдвиг формулы массива
+		//проверка на внутренний сдвиг
+		var res = true;
+
+		var checkRange = function(formulaRange) {
+			var isHor = offset && offset.col;
+			var isDelete = offset && (offset.col < 0 || offset.row < 0);
+
+			//частичное выделение при удалении столбца/строки
+			if(formulaRange.intersection(range) && !range.containsRange(formulaRange)) {
+				return false;
+			}
+
+			/*if (isHor) {
+				//частичный сдвиг влево/вправо
+				if(range.r1 > formulaRange.r1 && range.r1 <= formulaRange.r2) {
+					return false;
+				}
+			} else {
+				//частичный сдвиг вверх/вниз
+				if(range.c1 > formulaRange.c1 && range.c1 <= formulaRange.c2) {
+					return false;
+				}
+			}*/
+
+			return true;
+		};
+
+		var alreadyCheckFormulas = [];
+		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
+			if(res && cell.isFormula()) {
+				var formulaParsed = cell.getFormulaParsed();
+				var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
+				if(arrayFormulaRef && !alreadyCheckFormulas[formulaParsed._index]) {
+					if(!checkRange(arrayFormulaRef)) {
+						res = false;
+					}
+					alreadyCheckFormulas[formulaParsed._index] = 1;
+				}
+			}
+		});
+
+		return res;
+	};
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;

@@ -11258,6 +11258,11 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						count = checkRange.c2 - checkRange.c1 + 1;
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscInsertOptions.InsertCellsAndShiftDown:
@@ -11285,6 +11290,11 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						count = checkRange.c2 - checkRange.c1 + 1;
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscInsertOptions.InsertColumns:
@@ -11301,10 +11311,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
-						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
-						}*/
+						}
 
 						functionModelAction = function () {
 							History.Create_NewPoint();
@@ -11329,10 +11339,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
-						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
-						}*/
+						}
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11385,6 +11395,11 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						count = checkRange.c2 - checkRange.c1 + 1;
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
@@ -11418,6 +11433,12 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						count = checkRange.c2 - checkRange.c1 + 1;
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}
+
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscDeleteOptions.DeleteColumns:
@@ -11433,10 +11454,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
-						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
-						}*/
+						}
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11468,10 +11489,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
-						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
-						}*/
+						}
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
