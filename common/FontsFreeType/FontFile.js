@@ -81,18 +81,15 @@
 	AscFonts.LOAD_MODE_DEFAULT =
 		AscFonts.FT_Load_Mode.FT_LOAD_DEFAULT 		|
         AscFonts.FT_Load_Mode.FT_LOAD_NO_HINTING 	|
-        AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP 	|
         AscFonts.FT_Load_Mode.FT_LOAD_LINEAR_DESIGN |
-        AscFonts.FT_Load_Mode.FT_LOAD_MONOCHROME |
         AscFonts.FT_Load_Mode.FT_LOAD_NO_AUTOHINT;
 
     AscFonts.LOAD_MODE_HINTING =
         AscFonts.FT_Load_Mode.FT_LOAD_DEFAULT 		|
-        AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP 	|
         AscFonts.FT_Load_Mode.FT_LOAD_LINEAR_DESIGN |
         AscFonts.FT_Load_Mode.FT_LOAD_NO_AUTOHINT;
 
-	AscFonts.isUseMonochromeRenderingSymbol = function(symbol)
+	AscFonts.isUseBitmapStrikes = function(symbol)
 	{
 		if (!AscFonts.mRanges)
 		{
@@ -155,15 +152,6 @@
 		}
 
 		return false;
-	};
-
-	AscFonts.isUseMonochromeRendering = function(font)
-	{
-		if (!font.fixed_sizes)
-			return false;
-
-		var size = (0.95 + font.m_fSize * font.m_unVerDpi / 72) >> 0;
-        return (font.fixed_sizes[size] === true) ? true : false;
 	};
 
     var raster_memory = AscFonts.raster_memory;
@@ -1084,7 +1072,7 @@
 
             //var measure_time_start = performance.now();
 
-            if (this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, this.GetCharLoadMode()))
+            if (this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, isRaster ? this.GetCharLoadMode() : (this.GetCharLoadMode() | AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP)))
                 return oSizes;
 
             var _painter = null;
@@ -1145,14 +1133,8 @@
 
             //measure_time_start = performance.now();
 
-			var _rend_mode = REND_MODE;
-            if (!this.m_bStringGID && AscFonts.isUseMonochromeRendering(this))
-			{
-				_rend_mode = AscFonts.FT_Render_Mode.FT_RENDER_MODE_MONO;
-			}
-
             oSizes.bBitmap = true;
-            var rasterInfo = AscFonts.FT_Glyph_Get_Raster(this.m_pFace, _rend_mode);
+            var rasterInfo = AscFonts.FT_Glyph_Get_Raster(this.m_pFace, REND_MODE);
             if (!rasterInfo || rasterInfo.pitch == 0)
             	return oSizes;
 
@@ -1164,7 +1146,7 @@
 			oSizes.oBitmap.nWidth = rasterInfo.width;
 			oSizes.oBitmap.nHeight = rasterInfo.rows;
 
-            var rasterBitmap = AscFonts.FT_Get_Glyph_Render_Buffer(this.m_pFace, rasterInfo, true, _rend_mode);
+            var rasterBitmap = AscFonts.FT_Get_Glyph_Render_Buffer(this.m_pFace, rasterInfo, true);
 
 			var isDisableNeedBold = ((this.m_pFaceInfo.os2_version != 0xFFFF) && (this.m_pFaceInfo.os2_usWeightClass >= 800)) ? true : false;
 

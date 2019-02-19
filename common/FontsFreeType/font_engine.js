@@ -652,7 +652,7 @@
     AscFonts.FT_SetCMapForCharCode = Module._ASC_FT_SetCMapForCharCode;
     AscFonts.FT_GetKerningX = Module._ASC_FT_GetKerningX;
     AscFonts.FT_GetFaceMaxAdvanceX = Module._ASC_FT_GetFaceMaxAdvanceX;
-    AscFonts.FT_Get_Glyph_Render_Buffer = function(face, rasterInfo, isCopyToRasterMemory, rend_mode)
+    AscFonts.FT_Get_Glyph_Render_Buffer = function(face, rasterInfo, isCopyToRasterMemory)
     {
         var _bufferPtr = Module._ASC_FT_Get_Glyph_Render_Buffer(face);
         var tmp = new Uint8Array(Module.HEAP8.buffer, _bufferPtr, rasterInfo.pitch * rasterInfo.rows);
