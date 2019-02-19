@@ -2535,7 +2535,6 @@
 
     /** Рисует фон ячеек в строке */
     WorksheetView.prototype._drawRowBG = function ( drawingCtx, row, colStart, colEnd, offsetX, offsetY, oMergedCell ) {
-
         var mergedCells = [];
         var height = this._getRowHeight(row);
         if ( 0 === height && null === oMergedCell ) {
@@ -2548,6 +2547,7 @@
 
 		var top = this._getRowTop(row);
         var ctx = drawingCtx || this.drawingCtx;
+        var graphics = drawingCtx ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
         for ( var col = colStart; col <= colEnd; ++col ) {
         	var width = this._getColumnWidth(col);
             if ( 0 === width && null === oMergedCell ) {
@@ -2641,35 +2641,14 @@
                         oUniFill.fill.bgClr.RGBA.G = 0xFF;
                         oUniFill.fill.bgClr.RGBA.B = 0xFF;
 
-                        var graphics;
-                        if(ctx instanceof AscCommonExcel.CPdfPrinter)
-                        {
-                            graphics = ctx.DocumentRenderer;
-                        }
-                        else
-                        {
-                            graphics = new AscCommon.CGraphics();
-                            graphics.init(ctx.ctx, ctx.getWidth(0), ctx.getHeight(0),
-                                ctx.getWidth(3), ctx.getHeight(3));
-                            graphics.m_oFontManager = AscCommon.g_fontManager;
-                        }
-
+						graphics.save();
                         graphics.transform3(new AscCommon.CMatrix());
                         var shapeDrawer = new AscCommon.CShapeDrawer();
                         shapeDrawer.Graphics = graphics;
 
                         shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
-                        shapeDrawer.draw(geometry);
-                        if(ctx instanceof AscCommonExcel.CPdfPrinter)
-                        {
-                        }
-                        else
-                        {
-                            ctx.restore();
-                        }
-
-
-
+						shapeDrawer.draw(geometry);
+						graphics.restore();
                     }, this, []
                 );
 			} else {
