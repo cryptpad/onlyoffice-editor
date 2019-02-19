@@ -95,38 +95,8 @@
 		{
 			AscFonts.mRanges = [];
 
-			/*
-			// korean
-			AscFonts.mRanges.push(0x1100);
-			AscFonts.mRanges.push(0x11FF);
-			AscFonts.mRanges.push(0x3130);
-			AscFonts.mRanges.push(0x318F);
-			AscFonts.mRanges.push(0xAC00);
-			AscFonts.mRanges.push(0xD7AF);
-			AscFonts.mRanges.push(0xFF00);
-			AscFonts.mRanges.push(0xFFEF);
-
-			// japan
-			AscFonts.mRanges.push(0x4E00);
-			AscFonts.mRanges.push(0x9FBF);
-
-			// chinese
-			AscFonts.mRanges.push(0x4E00);
-			AscFonts.mRanges.push(0x9FFF);
-			AscFonts.mRanges.push(0x3400);
-			AscFonts.mRanges.push(0x4DFF);
-			AscFonts.mRanges.push(0x20000);
-			AscFonts.mRanges.push(0x2A6DF);
-			AscFonts.mRanges.push(0xF900);
-			AscFonts.mRanges.push(0xFAFF);
-			AscFonts.mRanges.push(0x2F800);
-			AscFonts.mRanges.push(0x2FA1F);
-			AscFonts.mRanges.push(0xFF00);
-			AscFonts.mRanges.push(0xFFEF);
-			*/
-			// union:
 			AscFonts.mRanges.push(0x1100); AscFonts.mRanges.push(0x11FF);
-			AscFonts.mRanges.push(0x3130); AscFonts.mRanges.push(0x318F);
+			AscFonts.mRanges.push(0x2E80); AscFonts.mRanges.push(0x31FF);
 
 			AscFonts.mRanges.push(0x3400); AscFonts.mRanges.push(0x9FFF);
 
@@ -1072,7 +1042,11 @@
 
             //var measure_time_start = performance.now();
 
-            if (this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, isRaster ? this.GetCharLoadMode() : (this.GetCharLoadMode() | AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP)))
+			var load_mode = this.GetCharLoadMode();
+			if (this.m_bStringGID || !isRaster || !AscFonts.isUseBitmapStrikes(glyph_index_or_unicode))
+				load_mode |= AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP;
+
+            if (this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, load_mode))
                 return oSizes;
 
             var _painter = null;
