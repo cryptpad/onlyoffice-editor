@@ -1477,6 +1477,10 @@ CBlockLevelSdt.prototype.GetAllFields = function(isUseSelection, arrFields)
 
 	return this.Content.GetAllFields(isUseSelection, arrFields);
 };
+CBlockLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
+{
+	return this.private_ReplacePlaceHolderWithContent();
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

@@ -4050,7 +4050,24 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
         if (-1 === DstIndex)
             return;
 
-        var bNeedSelect = true;
+		if (this.IsBlockLevelSdtContent() && this.Parent.IsPlaceHolder())
+		{
+			var oBlockLevelSdt = this.Parent;
+			oBlockLevelSdt.ReplacePlaceHolderWithContent();
+
+			Para = this.Content[0];
+			if (!Para || type_Paragraph !== Para.GetType())
+				return;
+
+			NearPos = Para.Get_NearestPos(0, 0, 0, false, false);
+			Para.Check_NearestPos(NearPos);
+			ParaNearPos = Para.Get_ParaNearestPos(NearPos);
+			LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
+
+			DstIndex = 0;
+		}
+
+		var bNeedSelect = true;
 
         var Elements      = SelectedContent.Elements;
         var ElementsCount = Elements.length;
@@ -4060,6 +4077,19 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
             // Нам нужно в заданный параграф вставить выделенный текст
             var NewPara          = FirstElement.Element;
             var NewElementsCount = NewPara.Content.length - 1; // Последний ран с para_End не добавляем
+
+			if (LastClass instanceof ParaRun && LastClass.GetParent() instanceof CInlineLevelSdt && LastClass.GetParent().IsPlaceHolder())
+			{
+				var oInlineLeveLSdt = LastClass.GetParent();
+				oInlineLeveLSdt.ReplacePlaceHolderWithContent();
+
+				LastClass = oInlineLeveLSdt.GetElement(0);
+
+				ParaNearPos.Classes[ParaNearPos.Classes.length - 1] = LastClass;
+
+				ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 1);
+				ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 2);
+			}
 
             var NewElement = LastClass.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
             var PrevClass  = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
