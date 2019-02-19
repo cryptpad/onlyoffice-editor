@@ -1932,20 +1932,8 @@ function DrawingObjects() {
     _this.resizeCanvas = function() {
 		_this.drawingArea.init();
 
-        var canvasWidth = drawingCtx.canvas.width;
-        var canvasHeight = drawingCtx.canvas.height;
-
-        shapeCtx.init( drawingCtx.ctx, canvasWidth, canvasHeight, (canvasWidth*25.4/drawingCtx.ppiX), (canvasHeight*25.4/drawingCtx.ppiY));
-        shapeCtx.CalculateFullTransform();
-
-
-
-
         var overlayWidth = overlayCtx.canvas.width;
         var overlayHeight = overlayCtx.canvas.height;
-
-        shapeOverlayCtx.init( overlayCtx.ctx, overlayWidth, overlayHeight, (overlayWidth*25.4/overlayCtx.ppiX), (overlayHeight*25.4/overlayCtx.ppiY));
-        shapeOverlayCtx.CalculateFullTransform();
 
         trackOverlay.init( shapeOverlayCtx.m_oContext, "ws-canvas-graphic-overlay", 0, 0, overlayWidth, overlayHeight, (overlayWidth*25.4/overlayCtx.ppiX), (overlayHeight*25.4/overlayCtx.ppiY));
         autoShapeTrack.init( trackOverlay, 0, 0,  overlayWidth, overlayHeight, (overlayWidth*25.4/overlayCtx.ppiX), (overlayHeight*25.4/overlayCtx.ppiY) );
