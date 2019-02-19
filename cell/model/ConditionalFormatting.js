@@ -550,6 +550,7 @@
 		this.ShowValue = true;
 
 		this.aCFVOs = [];
+		this.aIconSets = [];
 
 		return this;
 	}
@@ -561,6 +562,8 @@
 		res.ShowValue = this.ShowValue;
 		for (i = 0; i < this.aCFVOs.length; ++i)
 			res.aCFVOs.push(this.aCFVOs[i].clone());
+		for (i = 0; i < this.aIconSets.length; ++i)
+			res.aIconSets.push(this.aIconSets[i].clone());
 		return res;
 	};
 
@@ -580,6 +583,19 @@
 		res.Val = this.Val;
 		res.formulaParent = this.formulaParent ? this.formulaParent.clone() : null;
 		res.formula = this.formula ? this.formula.clone() : null;
+		return res;
+	};
+
+	function CConditionalFormatIconSet () {
+		this.IconSet = true;
+		this.IconId = null;
+
+		return this;
+	}
+	CConditionalFormatIconSet.prototype.clone = function() {
+		var res = new CConditionalFormatIconSet();
+		res.IconSet = this.IconSet;
+		res.IconId = this.IconId;
 		return res;
 	};
 
@@ -640,5 +656,6 @@
 	window['AscCommonExcel'].CFormulaCF = CFormulaCF;
 	window['AscCommonExcel'].CIconSet = CIconSet;
 	window['AscCommonExcel'].CConditionalFormatValueObject = CConditionalFormatValueObject;
+	window['AscCommonExcel'].CConditionalFormatIconSet = CConditionalFormatIconSet;
 	window['AscCommonExcel'].CGradient = CGradient;
 })(window);

@@ -2681,8 +2681,8 @@
 						continue;
 					}
 					values = this.model._getValuesForConditionalFormatting(ranges, true);
-					min = oRule.getMin(values, this);
-					max = oRule.getMax(values, this);
+					min = oRule.getMin(values, this.model);
+					max = oRule.getMax(values, this.model);
 
 					var minLength = Math.floor(width * oRuleElement.MinLength / 100);
 					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
