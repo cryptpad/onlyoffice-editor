@@ -186,6 +186,7 @@
             DataEncrypted : -600,
 
 			CannotChangeFormulaArray: -450,
+			MultiCellsInTablesFormulaArray: -451,
 		}
 	};
 

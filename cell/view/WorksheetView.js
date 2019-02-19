@@ -8585,7 +8585,7 @@
 			}
 
 
-			if (!this.intersectionFormulaArray(changedRange)) {
+			if (this.intersectionFormulaArray(changedRange)) {
 				// Сбрасываем параметры автозаполнения
 				this.activeFillHandle = null;
 				this.fillHandleDirection = -1;
@@ -9342,7 +9342,7 @@
 				var newRange = val.fromBinary ? this._pasteFromBinary(val.data, true) : this._pasteFromHTML(val.data, true);
 				checkRange = [newRange];
 
-				if(!this.intersectionFormulaArray(newRange)) {
+				if(this.intersectionFormulaArray(newRange)) {
 					t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 					return false;
 				}
@@ -9367,7 +9367,7 @@
 				c_oAscError.Level.NoCritical);
 			return;
         }
-		if("empty" === prop && !this.intersectionFormulaArray(arn)) {
+		if("empty" === prop && this.intersectionFormulaArray(arn)) {
 			t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 			return;
 		}
@@ -12432,17 +12432,22 @@
 						var activeRange = t.getSelectedRange();
 						var doNotApply = false;
 						if(!activeRange.bbox.isOneCell()) {
-							activeRange._foreachNoEmpty(function(cell, row, col) {
-								ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+							if(t.model.autoFilters.isIntersectionTable(activeRange.bbox)) {
+								t.handlers.trigger("onErrorEvent", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
+								return false;
+							} else {
+								activeRange._foreachNoEmpty(function(cell, row, col) {
+									ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
 
-								if(ref && !activeRange.bbox.containsRange(ref)) {
-									doNotApply = true;
-									return false;
-								}
-							});
+									if(ref && !activeRange.bbox.containsRange(ref)) {
+										doNotApply = true;
+										return false;
+									}
+								});
+							}
 						}
 						if(doNotApply) {
-							t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return false;
 						} else {
 							t._isLockedCells(activeRange.bbox, /*subType*/null, saveCellValueCallback);
@@ -13803,8 +13808,7 @@
 		return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
 	};
 
-	WorksheetView.prototype._checkAddAutoFilter =
-		function (activeRange, styleName, addFormatTableOptionsObj, filterByCellContextMenu) {
+	WorksheetView.prototype._checkAddAutoFilter = function (activeRange, styleName, addFormatTableOptionsObj, filterByCellContextMenu) {
 			//write error, if not add autoFilter and return false
 			var result = true;
 			var worksheet = this.model;
@@ -13842,7 +13846,10 @@
 				result = false;
 			} else if (this.model.inPivotTable(activeRange)) {
 				result = false;
-            }
+            } else if(styleName && this.intersectionFormulaArray(activeRange, true, true)) {
+				worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
+				result = false;
+			}
 
 			return result;
 		};
@@ -14974,25 +14981,32 @@
 		//TODO вместо getRange3 нужна функция, которая может заканчивать цикл по ячейкам
 		if(!ctrlKey) {
 			//проверяем from, затрагиваем ли мы часть формулы массива
-			res = this.intersectionFormulaArray(from);
+			res = !this.intersectionFormulaArray(from);
 		}
 
 		//проверяем to, затрагиваем ли мы часть формулы массива
 		if(res) {
-			res = this.intersectionFormulaArray(to);
+			res = !this.intersectionFormulaArray(to);
 		}
 
 		return res;
 	};
 
-	WorksheetView.prototype.intersectionFormulaArray = function(range) {
-		var res = true;
+	WorksheetView.prototype.intersectionFormulaArray = function(range, notCheckContains, checkOneCellArray) {
+		//checkOneCellArray - ф/т можно добавить поверх формулы массива, которая содержит 1 ячейку, если более - то ошибка
+		//notCheckContains - ф/т нельзя добавить, если мы пересекаемся или содержим ф/т
+
+		var res = false;
 		this.model.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
 			if(cell.isFormula()) {
 				var formulaParsed = cell.getFormulaParsed();
 				var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
-				if(arrayFormulaRef && !range.containsRange(arrayFormulaRef)) {
-					res = false;
+				if(arrayFormulaRef && (!checkOneCellArray || (checkOneCellArray && !arrayFormulaRef.isOneCell()))) {
+					if(notCheckContains) {
+						res = true;
+					} else if(!notCheckContains && !range.containsRange(arrayFormulaRef)){
+						res = true;
+					}
 				}
 			}
 		});
