@@ -163,6 +163,7 @@
     this.keepType = false;
 
     //----- declaration -----
+    this.isInit = false;
     this.canvas = undefined;
     this.canvasOverlay = undefined;
     this.canvasGraphic = undefined;
@@ -208,8 +209,12 @@
     this.overlayCtx = undefined;
     this.drawingGraphicCtx = undefined;
     this.overlayGraphicCtx = undefined;
+    this.shapeCtx = null;
+    this.shapeOverlayCtx = null;
     this.mainGraphics = undefined;
     this.stringRender = undefined;
+    this.trackOverlay = null;
+    this.autoShapeTrack = null;
 
     this.stateFormatPainter = c_oAscFormatPainterState.kOff;
     this.rangeFormatPainter = null;
@@ -289,12 +294,16 @@
     this.drawingGraphicCtx = this.buffers.mainGraphic;
     this.overlayGraphicCtx = this.buffers.overlayGraphic;
 
-    this.buffers.shapeCtx = new AscCommon.CGraphics();
-    this.buffers.shapeOverlayCtx = new AscCommon.CGraphics();
+    this.shapeCtx = new AscCommon.CGraphics();
+    this.shapeOverlayCtx = new AscCommon.CGraphics();
     this.mainGraphics = new AscCommon.CGraphics();
+    this.trackOverlay = new AscCommon.COverlay();
+    this.trackOverlay.IsCellEditor = true;
+    this.autoShapeTrack = new AscCommon.CAutoshapeTrack();
+    this.shapeCtx.m_oAutoShapesTrack = this.autoShapeTrack;
 
-    this.buffers.shapeCtx.m_oFontManager = this.fmgrGraphics[2];
-    this.buffers.shapeOverlayCtx.m_oFontManager = this.fmgrGraphics[2];
+    this.shapeCtx.m_oFontManager = this.fmgrGraphics[2];
+    this.shapeOverlayCtx.m_oFontManager = this.fmgrGraphics[2];
     this.mainGraphics.m_oFontManager = this.fmgrGraphics[0];
 
     // Обновляем размеры (чуть ниже, потому что должны быть проинициализированы ctx)
@@ -725,10 +734,7 @@
 			  return self.isCellEditMode;
 		  }, "drawMobileSelection": function (color) {
 			  if (self.MobileTouchManager) {
-				  var _canvas = self.getWorksheet().objectRender.getDrawingCanvas();
-				  if (_canvas) {
-					  self.MobileTouchManager.CheckSelect(_canvas.trackOverlay, color);
-				  }
+				  self.MobileTouchManager.CheckSelect(self.trackOverlay, color);
 			  }
 		  }, "showSpecialPasteOptions": function (val) {
 			  self.handlers.trigger("asc_onShowSpecialPasteOptions", val);
@@ -1861,9 +1867,11 @@
       height = AscCommon.AscBrowser.convertToRetinaValue(height, true);
     }
 
-    if (oldWidth === width && oldHeight === height) {
+    if (oldWidth === width && oldHeight === height && this.isInit) {
       return false;
     }
+
+    this.isInit = true;
 
     this.canvas.width = this.canvasOverlay.width = this.canvasGraphic.width = this.canvasGraphicOverlay.width = width;
     this.canvas.height = this.canvasOverlay.height = this.canvasGraphic.height = this.canvasGraphicOverlay.height = height;
@@ -1883,15 +1891,19 @@
   WorkbookView.prototype._reInitGraphics = function () {
   	var canvasWidth = this.canvasGraphic.width;
   	var canvasHeight = this.canvasGraphic.height;
-  	this.buffers.shapeCtx.init(this.drawingGraphicCtx.ctx, canvasWidth, canvasHeight, canvasWidth * 25.4 / this.drawingGraphicCtx.ppiX, canvasHeight * 25.4 / this.drawingGraphicCtx.ppiY);
-  	this.buffers.shapeCtx.CalculateFullTransform();
+  	this.shapeCtx.init(this.drawingGraphicCtx.ctx, canvasWidth, canvasHeight, canvasWidth * 25.4 / this.drawingGraphicCtx.ppiX, canvasHeight * 25.4 / this.drawingGraphicCtx.ppiY);
+  	this.shapeCtx.CalculateFullTransform();
 
   	var overlayWidth = this.canvasGraphicOverlay.width;
   	var overlayHeight = this.canvasGraphicOverlay.height;
-  	this.buffers.shapeOverlayCtx.init(this.overlayGraphicCtx.ctx, overlayWidth, overlayHeight, overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX, overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY);
-  	this.buffers.shapeOverlayCtx.CalculateFullTransform();
+  	this.shapeOverlayCtx.init(this.overlayGraphicCtx.ctx, overlayWidth, overlayHeight, overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX, overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY);
+  	this.shapeOverlayCtx.CalculateFullTransform();
 
   	this.mainGraphics.init(this.drawingCtx.ctx, canvasWidth, canvasHeight, canvasWidth * 25.4 / this.drawingCtx.ppiX, canvasHeight * 25.4 / this.drawingCtx.ppiY);
+
+  	this.trackOverlay.init(this.shapeOverlayCtx.m_oContext, "ws-canvas-graphic-overlay", 0, 0, overlayWidth, overlayHeight, (overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX), (overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY));
+  	this.autoShapeTrack.init(this.trackOverlay, 0, 0, overlayWidth, overlayHeight, overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX, overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY);
+  	this.autoShapeTrack.Graphics.CalculateFullTransform();
   };
 
   /** @param event {jQuery.Event} */

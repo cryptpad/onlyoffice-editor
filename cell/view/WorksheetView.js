@@ -342,9 +342,6 @@
         this.drawingGraphicCtx = this.buffers.mainGraphic;
         this.overlayGraphicCtx = this.buffers.overlayGraphic;
 
-        this.shapeCtx = this.buffers.shapeCtx;
-        this.shapeOverlayCtx = this.buffers.shapeOverlayCtx;
-
         this.stringRender = stringRender;
 
         // Флаг, сигнализирует о том, что мы сделали resize, но это не активный лист (поэтому как только будем показывать, нужно перерисовать и пересчитать кеш)
