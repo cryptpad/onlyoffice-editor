@@ -597,8 +597,6 @@ function CDrawingStream(_writer)
     this.TextClipRect = null;
     this.IsClipContext = false;
 
-    this.ClearMode = false;
-
     this.IsUseFonts2        = false;
     this.m_oFontManager2    = null;
     this.m_oLastFont2       = null;
