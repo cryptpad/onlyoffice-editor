@@ -2613,9 +2613,6 @@
 			if (true) {
                 AscFormat.ExecuteNoHistory(
                     function () {
-
-
-
                         var geometry = new AscFormat.Geometry();
                         var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
                         var dScale = asc_getcvt(0, 3, this._getPPIX());
@@ -2630,11 +2627,11 @@
                         path.lnTo(rect.x, rect.y + rect.h);
                         path.close();
                         geometry.AddPath(path);
-                        geometry.Recalculate(1000, 1000, true);
+                        geometry.Recalculate(100, 100, true);
 
                         var oUniFill = new AscFormat.CUniFill();
                         oUniFill.fill = new AscFormat.CPattFill();
-                        oUniFill.fill.ftype = 7;
+                        oUniFill.fill.ftype = 12;
                         oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(color.getR(), color.getG(),  color.getB());
                         oUniFill.fill.fgClr.RGBA.R = color.getR();
                         oUniFill.fill.fgClr.RGBA.G = color.getG();
@@ -2643,8 +2640,6 @@
                         oUniFill.fill.bgClr.RGBA.R = 0xFF;
                         oUniFill.fill.bgClr.RGBA.G = 0xFF;
                         oUniFill.fill.bgClr.RGBA.B = 0xFF;
-
-
 
                         var graphics;
                         if(ctx instanceof AscCommonExcel.CPdfPrinter)
