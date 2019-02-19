@@ -822,7 +822,6 @@ CCollaborativeEditingBase.prototype.private_SaveDocumentState = function()
 	else
 	{
 		DocState = LogicDocument.Save_DocumentStateBeforeLoadChanges();
-		this.WatchDocumentPositionsByState(DocState);
 	}
 	return DocState;
 };
@@ -835,7 +834,6 @@ CCollaborativeEditingBase.prototype.private_RestoreDocumentState = function(DocS
 	}
 	else
 	{
-		this.UpdateDocumentPositionsByState(DocState);
 		LogicDocument.Load_DocumentStateAfterLoadChanges(DocState);
 		this.Refresh_ForeignCursors();
 	}

@@ -11821,10 +11821,15 @@ CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function()
 
 	this.Controller.SaveDocumentStateBeforeLoadChanges(State);
 	this.RemoveSelection();
+
+	this.CollaborativeEditing.WatchDocumentPositionsByState(State);
+
 	return State;
 };
 CDocument.prototype.Load_DocumentStateAfterLoadChanges = function(State)
 {
+	this.CollaborativeEditing.UpdateDocumentPositionsByState(State);
+
 	this.RemoveSelection();
 
 	this.CurPos.X     = State.CurPos.X;

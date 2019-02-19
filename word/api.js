@@ -8406,6 +8406,8 @@ background-repeat: no-repeat;\
 		if (!oTOC)
 			return;
 
+		var oState = oLogicDocument.SaveDocumentState();
+
 		oTOC.SelectField();
 		if (isUpdatePageNumbers)
 		{
@@ -8424,6 +8426,7 @@ background-repeat: no-repeat;\
 					}
 				}
 
+				oLogicDocument.LoadDocumentState(oState);
 				oLogicDocument.Recalculate();
 				oLogicDocument.Document_UpdateInterfaceState();
 				oLogicDocument.Document_UpdateSelectionState();
@@ -8437,11 +8440,13 @@ background-repeat: no-repeat;\
 
 				oTOC.Update();
 
+				oLogicDocument.LoadDocumentState(oState);
 				oLogicDocument.Recalculate();
 				oLogicDocument.Document_UpdateInterfaceState();
 				oLogicDocument.Document_UpdateSelectionState();
 			}
 		}
+
 	};
 
 	asc_docs_api.prototype.asc_GetCurrentComplexField = function()
