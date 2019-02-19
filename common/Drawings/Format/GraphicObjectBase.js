@@ -1418,8 +1418,8 @@
                 var hpct = (_b - _t)/100.0;
                 var extX = boundsW/wpct;
                 var extY = boundsH/hpct;
-                var DX = -extX*_l/100.0;
-                var DY = -extY*_t/100.0;
+                var DX = -extX*_l/100.0 + oShapeDrawer.min_x;
+                var DY = -extY*_t/100.0 + oShapeDrawer.min_y;
                 var XC = DX + extX/2.0;
                 var YC = DY + extY/2.0;
 
@@ -1482,7 +1482,11 @@
         this.clearCropObject();
     };
     CGraphicObjectBase.prototype.calculateSrcRect2 = function(){
-        return  CalculateSrcRect(this.transform, this.extX, this.extY, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
+
+        var oShapeDrawer = new AscCommon.CShapeDrawer();
+        oShapeDrawer.bIsCheckBounds = true;
+        this.check_bounds(oShapeDrawer);
+        return  CalculateSrcRect(this.transform, oShapeDrawer, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
     };
 
 
@@ -1670,21 +1674,21 @@
     };
 
 
-    function CalculateSrcRect(parentCropTransform, extX, extY, oInvertTransformCrop, cropExtX, cropExtY){
-        var lt_x_abs = parentCropTransform.TransformPointX(0, 0);
-        var lt_y_abs = parentCropTransform.TransformPointY(0, 0);
-        var rb_x_abs = parentCropTransform.TransformPointX(extX, extY);
-        var rb_y_abs = parentCropTransform.TransformPointY(extX, extY);
+    function CalculateSrcRect(parentCropTransform, bounds, oInvertTransformCrop, cropExtX, cropExtY){
+        var lt_x_abs = parentCropTransform.TransformPointX(bounds.min_x, bounds.min_y);
+        var lt_y_abs = parentCropTransform.TransformPointY(bounds.min_x, bounds.min_y);
+        var rb_x_abs = parentCropTransform.TransformPointX(bounds.max_x, bounds.max_y);
+        var rb_y_abs = parentCropTransform.TransformPointY(bounds.max_x, bounds.max_y);
 
         var lt_x_rel = oInvertTransformCrop.TransformPointX(lt_x_abs, lt_y_abs);
         var lt_y_rel = oInvertTransformCrop.TransformPointY(lt_x_abs, lt_y_abs);
         var rb_x_rel = oInvertTransformCrop.TransformPointX(rb_x_abs, rb_y_abs);
         var rb_y_rel = oInvertTransformCrop.TransformPointY(rb_x_abs, rb_y_abs);
         var srcRect = new AscFormat.CSrcRect();
-        srcRect.l = (100*lt_x_rel / cropExtX + 0.5) >> 0;
-        srcRect.t = (100*lt_y_rel / cropExtY + 0.5) >> 0;
-        srcRect.r = (100*rb_x_rel / cropExtX + 0.5) >> 0;
-        srcRect.b = (100*rb_y_rel / cropExtY + 0.5) >> 0;
+        srcRect.l = (100*lt_x_rel / cropExtX);
+        srcRect.t = (100*lt_y_rel / cropExtY);
+        srcRect.r = (100*rb_x_rel / cropExtX);
+        srcRect.b = (100*rb_y_rel / cropExtY);
         return srcRect;
     }
 

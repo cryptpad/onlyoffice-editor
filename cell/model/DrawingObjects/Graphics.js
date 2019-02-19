@@ -546,7 +546,7 @@ CGraphics.prototype =
 
                     var _sx = 0;
                     if (srcRect.l > 0 && srcRect.l < 100)
-                        _sx = Math.min((_w * srcRect.l / 100) >> 0, _w - 1);
+                        _sx = Math.min((_w * srcRect.l / 100 + 0.5) >> 0, _w - 1);
                     else if (srcRect.l < 0)
                     {
                         var _off = ((-srcRect.l / _delW) * __w);
@@ -555,7 +555,7 @@ CGraphics.prototype =
                     }
                     var _sy = 0;
                     if (srcRect.t > 0 && srcRect.t < 100)
-                        _sy = Math.min((_h * srcRect.t / 100) >> 0, _h - 1);
+                        _sy = Math.min((_h * srcRect.t / 100 + 0.5) >> 0, _h - 1);
                     else if (srcRect.t < 0)
                     {
                         var _off = ((-srcRect.t / _delH) * __h);
@@ -564,7 +564,7 @@ CGraphics.prototype =
                     }
                     var _sr = _w;
                     if (srcRect.r > 0 && srcRect.r < 100)
-                        _sr = Math.max(Math.min((_w * srcRect.r / 100) >> 0, _w - 1), _sx);
+                        _sr = Math.max(Math.min((_w * srcRect.r / 100 + 0.5) >> 0, _w - 1), _sx);
                     else if (srcRect.r > 100)
                     {
                         var _off = ((srcRect.r - 100) / _delW) * __w;
@@ -572,7 +572,7 @@ CGraphics.prototype =
                     }
                     var _sb = _h;
                     if (srcRect.b > 0 && srcRect.b < 100)
-                        _sb = Math.max(Math.min((_h * srcRect.b / 100) >> 0, _h - 1), _sy);
+                        _sb = Math.max(Math.min((_h * srcRect.b / 100 + 0.5) >> 0, _h - 1), _sy);
                     else if (srcRect.b > 100)
                     {
                         var _off = ((srcRect.b - 100) / _delH) * __h;
