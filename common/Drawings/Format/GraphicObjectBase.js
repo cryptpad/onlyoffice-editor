@@ -1467,6 +1467,7 @@
 
         this.cropObject.recalculateTransform();
         this.recalculateTransform();
+        this.recalculateGeometry();
         if(this.getObjectType() === AscDFH.historyitem_type_ImageShape)
         {
             var blipFill = this.blipFill.createDuplicate();

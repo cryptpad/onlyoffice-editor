@@ -128,9 +128,7 @@ function MoveShapeImageTrack(originalObject)
             var oShapeDrawer = new AscCommon.CShapeDrawer();
             oShapeDrawer.bIsCheckBounds = true;
             this.originalObject.check_bounds(oShapeDrawer);
-            var boundsW = oShapeDrawer.max_x - oShapeDrawer.min_x;
-            var boundsH = oShapeDrawer.max_y - oShapeDrawer.min_y;
-            this.brush.fill.srcRect = AscFormat.CalculateSrcRect(this.transform, boundsW, boundsH, global_MatrixTransformer.Invert(this.originalObject.cropObject.transform), this.originalObject.cropObject.extX, this.originalObject.cropObject.extY);
+            this.brush.fill.srcRect = AscFormat.CalculateSrcRect(this.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.originalObject.cropObject.transform), this.originalObject.cropObject.extX, this.originalObject.cropObject.extY);
         }
     };
 
@@ -195,11 +193,6 @@ function MoveShapeImageTrack(originalObject)
                 oGraphics.put_GlobalAlpha(false, 1);
             }
             this.originalObject.cropObject.draw(overlay);
-            var oldFill = this.brush.fill;
-            this.brush.fill = this.originalObject.cropObject.fill;
-            this.overlayObject.shapeDrawer.Clear();
-            this.overlayObject.draw(overlay);
-            this.brush.fill = oldFill;
             var oldCropObj = this.originalObject.cropObject;
             this.originalObject.cropObject = null;
             var oldSrcRect, oldTransform;

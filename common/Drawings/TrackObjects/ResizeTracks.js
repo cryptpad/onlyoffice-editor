@@ -1000,19 +1000,10 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
             if(this.originalObject.cropObject)
             {
-                var oldTransform = this.originalObject.transform;
-                var oldExtX = this.originalObject.extX;
-                var oldExtY = this.originalObject.extY;
-
-
-                this.originalObject.transform = _transform;
-                this.originalObject.extX = this.resizedExtX;
-                this.originalObject.extY = this.resizedExtY;
-                var srcRect = this.originalObject.calculateSrcRect2();
-                this.brush.fill.srcRect = srcRect;
-                this.originalObject.transform = oldTransform;
-                this.originalObject.extX = oldExtX;
-                this.originalObject.extY = oldExtY;
+                var oShapeDrawer = new AscCommon.CShapeDrawer();
+                oShapeDrawer.bIsCheckBounds = true;
+                this.overlayObject.check_bounds(oShapeDrawer);
+                this.brush.fill.srcRect = AscFormat.CalculateSrcRect(_transform, oShapeDrawer, this.originalObject.cropObject.invertTransform, this.originalObject.cropObject.extX, this.originalObject.cropObject.extY);
             }
         };
 
@@ -1022,6 +1013,72 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             {
                 overlay.SetCurrentPage(this.originalObject.selectStartPage);
             }
+
+
+
+            if(this.originalObject.isCrop)
+            {
+                var dOldAlpha = null;
+                var oGraphics = overlay.Graphics ? overlay.Graphics : overlay;
+                if(AscFormat.isRealNumber(oGraphics.globalAlpha) && oGraphics.put_GlobalAlpha)
+                {
+                    dOldAlpha = oGraphics.globalAlpha;
+                    oGraphics.put_GlobalAlpha(false, 1);
+                }
+                this.overlayObject.draw(overlay);
+                var oldFill = this.brush.fill;
+                this.brush.fill = this.originalObject.cropBrush.fill;
+                this.overlayObject.shapeDrawer.Clear();
+                this.overlayObject.draw(overlay);
+                this.brush.fill = oldFill;
+                this.originalObject.parentCrop.cropObject = null;
+                var oldSrcRect;
+                var parentCrop = this.originalObject.parentCrop;
+
+
+                var oShapeDrawer = new AscCommon.CShapeDrawer();
+                oShapeDrawer.bIsCheckBounds = true;
+                parentCrop.check_bounds(oShapeDrawer);
+                var srcRect = AscFormat.CalculateSrcRect(parentCrop.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.transform), this.resizedExtX, this.resizedExtY);
+                if(this.originalObject.parentCrop.blipFill)
+                {
+                    oldSrcRect = this.originalObject.parentCrop.blipFill.srcRect;
+                    this.originalObject.parentCrop.blipFill.srcRect = srcRect;
+                    this.originalObject.parentCrop.draw(overlay);
+                    this.originalObject.parentCrop.blipFill.srcRect = oldSrcRect;
+                }
+                else
+                {
+                    oldSrcRect = this.originalObject.parentCrop.brush.fill.srcRect;
+                    this.originalObject.parentCrop.brush.fill.srcRect = srcRect;
+                    this.originalObject.parentCrop.draw(overlay);
+                    this.originalObject.parentCrop.brush.fill.srcRect = oldSrcRect;
+                }
+                this.originalObject.parentCrop.cropObject = this.originalObject;
+                if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
+                {
+                    oGraphics.put_GlobalAlpha(true, dOldAlpha);
+                }
+                return;
+            }
+            if(this.originalObject.cropObject)
+            {
+                var dOldAlpha = null;
+                var oGraphics = overlay.Graphics ? overlay.Graphics : overlay;
+                if(AscFormat.isRealNumber(oGraphics.globalAlpha) && oGraphics.put_GlobalAlpha)
+                {
+                    dOldAlpha = oGraphics.globalAlpha;
+                    oGraphics.put_GlobalAlpha(false, 1);
+                }
+                this.originalObject.cropObject.draw(overlay);
+                this.overlayObject.draw(overlay, transform);
+                if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
+                {
+                    oGraphics.put_GlobalAlpha(true, dOldAlpha);
+                }
+                return;
+            }
+
 
             if(this.oNewShape){
                 this.oNewShape.drawConnectors(overlay);
