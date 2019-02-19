@@ -96,9 +96,8 @@
 			AscFonts.mRanges = [];
 
 			AscFonts.mRanges.push(0x1100); AscFonts.mRanges.push(0x11FF);
-			AscFonts.mRanges.push(0x2E80); AscFonts.mRanges.push(0x31FF);
 
-			AscFonts.mRanges.push(0x3400); AscFonts.mRanges.push(0x9FFF);
+			AscFonts.mRanges.push(0x2E80); AscFonts.mRanges.push(0x9FFF);
 
 			AscFonts.mRanges.push(0xAC00); AscFonts.mRanges.push(0xD7AF);
 
