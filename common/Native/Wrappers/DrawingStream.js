@@ -555,7 +555,6 @@ function CDrawingStream(_writer)
     this.m_oAutoShapesTrack = null;
 
     this.m_oFontManager = null;
-    this.m_bIsFillTextCanvasColor = 0;
 
     this.m_oCoordTransform  = new AscCommon.CMatrixL();
     this.m_oBaseTransform   = new AscCommon.CMatrixL();

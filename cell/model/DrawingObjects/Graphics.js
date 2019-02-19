@@ -58,7 +58,6 @@ function CGraphics()
 	this.m_oAutoShapesTrack = null;
 
     this.m_oFontManager = null;
-	this.m_bIsFillTextCanvasColor = 0;
 
     this.m_oCoordTransform  = new CMatrixL();
     this.m_oBaseTransform   = new CMatrixL();
@@ -229,8 +228,6 @@ CGraphics.prototype =
         _c.A = a;
 
         this.m_oContext.fillStyle = "rgba(" + _c.R + "," + _c.G + "," + _c.B + "," + (_c.A / 255) + ")";
-			
-		this.m_bIsFillTextCanvasColor = 0;
     },
     b_color2 : function(r,g,b,a)
     {
