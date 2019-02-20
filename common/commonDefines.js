@@ -66,6 +66,9 @@
 		EPUB : 0x0048,
 		FB2  : 0x0049,
 		MOBI : 0x004a,
+		DOCM : 0x004b,
+		DOTX : 0x004c,
+		DOTM : 0x004d,
 		DOCY : 0x1001,
 		CANVAS_WORD : 0x2001,
 		JSON : 0x0808,	// Для mail-merge
@@ -75,12 +78,20 @@
 		XLS  : 0x0102,
 		ODS  : 0x0103,
 		CSV  : 0x0104,
+		XLSM : 0x0105,
+		XLTX : 0x0106,
+		XLTM : 0x0107,
 		XLSY : 0x1002,
 
 		// PowerPoint
 		PPTX : 0x0081,
 		PPT  : 0x0082,
-		ODP  : 0x0083
+		ODP  : 0x0083,
+		PPSX : 0x0084,
+		PPTM : 0x0085,
+		PPSM : 0x0086,
+		POTX : 0x0087,
+		POTM : 0x0088
 	};
 
 	var c_oAscError = {
@@ -1460,16 +1471,27 @@
 	prot['EPUB']                 = prot.EPUB;
 	prot['FB2']                  = prot.FB2;
 	prot['MOBI']                 = prot.MOBI;
+	prot['DOCM']                 = prot.DOCM;
+	prot['DOTX']                 = prot.DOTX;
+	prot['DOTM']                 = prot.DOTM;
 	prot['DOCY']                 = prot.DOCY;
 	prot['JSON']                 = prot.JSON;
 	prot['XLSX']                 = prot.XLSX;
 	prot['XLS']                  = prot.XLS;
 	prot['ODS']                  = prot.ODS;
 	prot['CSV']                  = prot.CSV;
+	prot['XLSM']                 = prot.XLSM;
+	prot['XLTX']                 = prot.XLTX;
+	prot['XLTM']                 = prot.XLTM;
 	prot['XLSY']                 = prot.XLSY;
 	prot['PPTX']                 = prot.PPTX;
 	prot['PPT']                  = prot.PPT;
 	prot['ODP']                  = prot.ODP;
+	prot['PPSX']                 = prot.PPSX;
+	prot['PPTM']                 = prot.PPTM;
+	prot['PPSM']                 = prot.PPSM;
+	prot['POTX']                 = prot.POTX;
+	prot['POTM']                 = prot.POTM;
 	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
 	prot                                     = c_oAscError;
 	prot['Level']                            = prot.Level;
