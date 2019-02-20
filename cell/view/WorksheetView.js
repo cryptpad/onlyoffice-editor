@@ -2607,7 +2607,7 @@
             var h = height + (bg !== null ? +1 : -1) + mheight;
             var color = bg !== null ? bg : this.settings.cells.defaultState.background;
 
-			if (true) {
+			if (false) {
                 AscFormat.ExecuteNoHistory(
                     function () {
                         var geometry = new AscFormat.Geometry();
