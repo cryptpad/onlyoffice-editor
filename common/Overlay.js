@@ -769,9 +769,9 @@ CAutoshapeTrack.prototype =
         this.m_oOverlay.max_y += this.MaxEpsLine;
     },
 
-    SetCurrentPage : function(nPageIndex)
+    SetCurrentPage : function(nPageIndex, isAttack)
     {
-        if (nPageIndex == this.PageIndex && null != this.Graphics)
+        if (nPageIndex == this.PageIndex && !isAttack)
             return;
 
         var oPage = this.m_oOverlay.m_oHtmlPage.GetDrawingPageInfo(nPageIndex);

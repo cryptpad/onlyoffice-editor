@@ -1917,16 +1917,14 @@ DrawingObjectsController.prototype =
                     var cropObject = oCropSelection.getCropObject();
                     if(cropObject)
                     {
-                        if(AscFormat.isRealNumber(cropObject.selectStartPage) && drawingDocument.AutoShapesTrack.SetCurrentPage)
-                        {
-                            drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage);
-                        }
-                        drawingDocument.AutoShapesTrack.SaveGrState();
-                        drawingDocument.AutoShapesTrack.save();
+                        drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage, true);
                         cropObject.draw(drawingDocument.AutoShapesTrack);
+                        drawingDocument.AutoShapesTrack.CorrectOverlayBounds();
+
+                        drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage, true);
                         oCropSelection.draw(drawingDocument.AutoShapesTrack);
-                        drawingDocument.AutoShapesTrack.RestoreGrState();
-                        drawingDocument.AutoShapesTrack.restore();
+                        drawingDocument.AutoShapesTrack.CorrectOverlayBounds();
+
                         drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
                         drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
                     }
