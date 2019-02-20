@@ -221,7 +221,9 @@ function CCollaborativeEditingBase()
 
     this.m_bGlobalLock          = 0; // Запрещаем производить любые "редактирующие" действия (т.е. то, что в историю запишется)
     this.m_bGlobalLockSelection = 0; // Запрещаем изменять селект и курсор
-    this.m_aCheckLocks  = [];    // Массив для проверки залоченности объектов, которые мы собираемся изменять
+
+	this.m_aCheckLocks         = []; // Массив для проверки залоченности объектов, которые мы собираемся изменять
+	this.m_aCheckLocksInstance = []; // Массив для проверки залоченности объектов в случае сложного действия
 
     this.m_aNewObjects  = []; // Массив со списком чужих новых объектов
     this.m_aNewImages   = []; // Массив со списком картинок, которые нужно будет загрузить на сервере
@@ -268,6 +270,7 @@ CCollaborativeEditingBase.prototype.Clear = function()
     this.m_aLinkData = [];
     this.m_aEndActions = [];
     this.m_aCheckLocks = [];
+    this.m_aCheckLocksInstance = [];
     this.m_aNewObjects = [];
     this.m_aNewImages = [];
 };
@@ -569,16 +572,43 @@ CCollaborativeEditingBase.prototype.Get_GlobalLockSelection = function()
 CCollaborativeEditingBase.prototype.OnStart_CheckLock = function()
 {
     this.m_aCheckLocks.length = 0;
+	this.m_aCheckLocksInstance.length = 0;
 };
 CCollaborativeEditingBase.prototype.Add_CheckLock = function(oItem)
 {
     this.m_aCheckLocks.push(oItem);
+	this.m_aCheckLocksInstance.push(oItem);
 };
 CCollaborativeEditingBase.prototype.OnEnd_CheckLock = function()
 {
 };
 CCollaborativeEditingBase.prototype.OnCallback_AskLock = function(result)
 {
+};
+CCollaborativeEditingBase.prototype.OnStartCheckLockInstance = function()
+{
+	this.m_aCheckLocksInstance.length = 0;
+};
+CCollaborativeEditingBase.prototype.OnEndCheckLockInstance = function()
+{
+	var isLocked = false;
+	for (var nIndex = 0, nCount = this.m_aCheckLocksInstance.length; nIndex < nCount; ++nIndex)
+	{
+		if (true === this.m_aCheckLocksInstance[nIndex])
+		{
+			isLocked = true;
+			break;
+		}
+	}
+
+	if (isLocked)
+	{
+		var nCount = this.m_aCheckLocksInstance.length;
+		this.m_aCheckLocks.splice(this.m_aCheckLocks.length - nCount, nCount);
+	}
+
+	this.m_aCheckLocksInstance.length = 0;
+	return isLocked;
 };
 //-----------------------------------------------------------------------------------
 // Функции для работы с залоченными объектами, которые еще не были добавлены
