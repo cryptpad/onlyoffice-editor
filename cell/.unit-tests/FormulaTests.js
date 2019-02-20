@@ -3790,6 +3790,39 @@ $( function () {
 		oParser = new parserFormula("WORKDAY(DATE(2018,4,29),0,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
 		ok(oParser.parse());
 		strictEqual(oParser.calculate().getValue(), 43219);
+
+		oParser = new parserFormula("WORKDAY({1,2,3},{1,2})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);
+
+		oParser = new parserFormula("WORKDAY({1,2,3},1)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);
+
+		oParser = new parserFormula("WORKDAY(1,{1,2})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);
+
+		//todo ms выдаёт ошибки
+		/*ws.getRange2( "A101" ).setValue( "1" );
+		ws.getRange2( "B101" ).setValue( "3.123" );
+		ws.getRange2( "C101" ).setValue( "-4" );
+
+		oParser = new parserFormula("WORKDAY(A101:B101,A101:B101)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula("WORKDAY(A101,A101:B101)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula("WORKDAY(A101:B101,A101)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula("WORKDAY(A101,A101)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);*/
 	});
 
 	test( "Test: \"WORKDAY.INTL\"", function () {
