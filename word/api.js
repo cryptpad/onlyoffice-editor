@@ -7947,11 +7947,16 @@ background-repeat: no-repeat;\
 				var oParagraph = oContentControl.GetParagraph();
 				if (oParagraph)
 				{
+					var oState = oLogicDocument.SaveDocumentState();
+					oContentControl.SelectContentControl();
+
 					isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 						Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 						Elements  : [oParagraph],
-						CheckType : AscCommon.changestype_Paragraph_Content
+						CheckType : AscCommon.changestype_Remove
 					});
+
+					oLogicDocument.LoadDocumentState(oState);
 				}
 			}
 
