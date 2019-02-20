@@ -338,66 +338,6 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 	if (nReplacedCount)
 		bResult = true;
 
-	// this.RemoveSelection();
-	//
-	// var CheckParagraphs = [];
-
-	// if ( true === bAll )
-    // {
-    //     var CheckParagraphsObj = {};
-    //     for (var Id in this.SearchEngine.Elements)
-    //     {
-    //         CheckParagraphsObj[this.SearchEngine.Elements[Id].Get_Id()] = this.SearchEngine.Elements[Id];
-    //     }
-	//
-    //     for (var ParaId in CheckParagraphsObj)
-    //     {
-    //         CheckParagraphs.push(CheckParagraphsObj[ParaId]);
-    //     }
-    // }
-    // else
-    // {
-    //     if ( undefined !== this.SearchEngine.Elements[Id] )
-    //         CheckParagraphs.push( this.SearchEngine.Elements[Id] );
-    // }
-	//
-    // var AllCount = this.SearchEngine.Count;
-	//
-    // if ( false === this.Document_Is_SelectionLocked( AscCommon.changestype_None, { Type : AscCommon.changestype_2_ElementsArray_and_Type, Elements : CheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content } ) )
-    // {
-    //     AscCommon.History.Create_NewPoint(bAll ? AscDFH.historydescription_Document_ReplaceAll : AscDFH.historydescription_Document_ReplaceSingle);
-	//
-    //     if (true === bAll)
-    //     {
-    //         this.SearchEngine.Replace_All(NewStr, true);
-    //     }
-    //     else
-    //     {
-    //         this.SearchEngine.Replace(NewStr, Id, false);
-	//
-    //         // TODO: В будушем надо будет переделать, чтобы искалось заново только в том параграфе, в котором произошла замена
-    //         //       Тут появляется проблема с вложенным поиском, если то что мы заменяем содержится в том, на что мы заменяем.
-    //         if (true === this.Is_TrackRevisions())
-    //             this.SearchEngine.Reset();
-    //     }
-	//
-    //     this.SearchEngine.ClearOnRecalc = false;
-    //     this.Recalculate();
-    //     this.SearchEngine.ClearOnRecalc = true;
-	//
-    //     this.RecalculateCurPos();
-	//
-    //     bResult = true;
-	//
-		// if (true === bAll && false !== bInterfaceEvent)
-		// 	editor.sync_ReplaceAllCallback(AllCount, AllCount);
-    // }
-    // else
-    // {
-		// if (true === bAll && false !== bInterfaceEvent)
-		// 	editor.sync_ReplaceAllCallback(0, AllCount);
-    // }
-
 	this.LoadDocumentState(oState);
 
     this.Document_UpdateInterfaceState();
