@@ -153,7 +153,7 @@ function MoveShapeImageTrack(originalObject)
             this.overlayObject.shapeDrawer.Clear();
             this.overlayObject.draw(overlay);
             this.brush.fill = oldFill;
-            var oldSrcRect;
+            var oldSrcRect, oldPen;
             var parentCrop = this.originalObject.parentCrop;
 
 
@@ -161,6 +161,8 @@ function MoveShapeImageTrack(originalObject)
             oShapeDrawer.bIsCheckBounds = true;
             parentCrop.check_bounds(oShapeDrawer);
             var srcRect = AscFormat.CalculateSrcRect(parentCrop.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.transform), this.originalObject.extX, this.originalObject.extY);
+            oldPen = this.originalObject.parentCrop.pen;
+            this.originalObject.parentCrop.pen = AscFormat.CreatePenBrushForChartTrack().pen;
             if(this.originalObject.parentCrop.blipFill)
             {
                 oldSrcRect = this.originalObject.parentCrop.blipFill.srcRect;
@@ -175,6 +177,7 @@ function MoveShapeImageTrack(originalObject)
                 this.originalObject.parentCrop.draw(overlay);
                 this.originalObject.parentCrop.brush.fill.srcRect = oldSrcRect;
             }
+            this.originalObject.parentCrop.pen = oldPen;
             if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
             {
                 oGraphics.put_GlobalAlpha(true, dOldAlpha);
@@ -192,7 +195,7 @@ function MoveShapeImageTrack(originalObject)
             }
             this.originalObject.cropObject.draw(overlay);
             var oldCropObj = this.originalObject.cropObject;
-            var oldSrcRect, oldTransform;
+            var oldSrcRect, oldTransform, oldPen;
             var parentCrop = this.originalObject;
             oldTransform = parentCrop.transform;
             parentCrop.transform = this.transform;
@@ -200,6 +203,9 @@ function MoveShapeImageTrack(originalObject)
             oShapeDrawer.bIsCheckBounds = true;
             parentCrop.check_bounds(oShapeDrawer);
             var srcRect = AscFormat.CalculateSrcRect(this.transform, oShapeDrawer, global_MatrixTransformer.Invert(oldCropObj.transform), oldCropObj.extX, oldCropObj.extY);
+
+            oldPen = this.originalObject.pen;
+            this.originalObject.pen = AscFormat.CreatePenBrushForChartTrack().pen;
             if(this.originalObject.blipFill)
             {
                 oldSrcRect = this.originalObject.blipFill.srcRect;
@@ -214,6 +220,7 @@ function MoveShapeImageTrack(originalObject)
                 this.originalObject.draw(overlay);
                 this.originalObject.brush.fill.srcRect = oldSrcRect;
             }
+            this.originalObject.pen = oldPen;
             parentCrop.transform = oldTransform;
             if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
             {

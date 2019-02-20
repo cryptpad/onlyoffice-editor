@@ -332,6 +332,10 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             this.brush = pen_brush.brush;
             this.pen = pen_brush.pen;
         }
+        if(this.originalObject.cropObject)
+        {
+            this.pen = AscFormat.CreatePenBrushForChartTrack().pen;
+        }
 
 
         this.isLine = originalObject.spPr && originalObject.spPr.geometry && originalObject.spPr.geometry.preset === "line";
@@ -1028,7 +1032,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 this.overlayObject.shapeDrawer.Clear();
                 this.overlayObject.draw(overlay);
                 this.brush.fill = oldFill;
-                var oldSrcRect;
+                var oldSrcRect, oldPen;
                 var parentCrop = this.originalObject.parentCrop;
 
 
@@ -1036,6 +1040,8 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 oShapeDrawer.bIsCheckBounds = true;
                 parentCrop.check_bounds(oShapeDrawer);
                 var srcRect = AscFormat.CalculateSrcRect(parentCrop.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.transform), this.resizedExtX, this.resizedExtY);
+                oldPen = this.originalObject.parentCrop.pen;
+                this.originalObject.parentCrop.pen = AscFormat.CreatePenBrushForChartTrack().pen;
                 if(this.originalObject.parentCrop.blipFill)
                 {
                     oldSrcRect = this.originalObject.parentCrop.blipFill.srcRect;
@@ -1050,6 +1056,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     this.originalObject.parentCrop.draw(overlay);
                     this.originalObject.parentCrop.brush.fill.srcRect = oldSrcRect;
                 }
+                this.originalObject.parentCrop.pen = oldPen;
                 if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
                 {
                     oGraphics.put_GlobalAlpha(true, dOldAlpha);

@@ -1449,6 +1449,7 @@
                 oImage.selectStartPage = this.selectStartPage;
                 oImage.cropBrush = AscFormat.CreateUnfilFromRGB(128, 128, 128);
                 oImage.cropBrush.transparent = 100;
+                oImage.pen = AscFormat.CreatePenBrushForChartTrack().pen;
                 var oParentObjects = this.getParentObjects();
                 oImage.cropBrush.calculate(oParentObjects.theme, oParentObjects.slide, oParentObjects.layout, oParentObjects.master, {R:0, G:0, B:0, A:255, needRecalc: true}, AscFormat.G_O_DEFAULT_COLOR_MAP);
                 this.cropObject = oImage;
