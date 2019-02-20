@@ -670,6 +670,9 @@ DrawingArea.prototype.reinitRanges = function() {
 };
 
 DrawingArea.prototype.drawSelection = function(drawingDocument) {
+	if (window["IS_NATIVE_EDITOR"]) {
+		AscCommon.g_oTextMeasurer.Flush();
+	}
 
     var canvas = this.worksheet.objectRender.getDrawingCanvas();
     var shapeCtx = canvas.shapeCtx;
@@ -683,7 +686,7 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
 
     this.worksheet.overlayCtx.clear();
     this.worksheet.overlayGraphicCtx.clear();
-    this.worksheet._drawCollaborativeElements();
+    this.worksheet._drawCollaborativeElements(autoShapeTrack);
 
     if ( !this.worksheet.objectRender.controller.selectedObjects.length && !this.api.isStartAddShape )
         this.worksheet._drawSelection();
@@ -704,11 +707,14 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
         this.frozenPlaces[i].clip(shapeOverlayCtx);
 
 		if (drawingDocument.m_bIsSelection) {
-			drawingDocument.SelectionMatrix = null;
-			trackOverlay.m_oControl.HtmlElement.style.display = "block";
+			if (!window["IS_NATIVE_EDITOR"]) {
+				drawingDocument.SelectionMatrix = null;
+				trackOverlay.m_oControl.HtmlElement.style.display = "block";
 
-			if (null == trackOverlay.m_oContext)
-				trackOverlay.m_oContext = trackOverlay.m_oControl.HtmlElement.getContext('2d');
+				if (null == trackOverlay.m_oContext) {
+					trackOverlay.m_oContext = trackOverlay.m_oControl.HtmlElement.getContext('2d');
+				}
+			}
 
 			drawingDocument.private_StartDrawSelection(trackOverlay);
 			this.worksheet.objectRender.controller.drawTextSelection();
