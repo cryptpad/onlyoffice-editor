@@ -695,9 +695,6 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
     {
         chart = selected_objects[0];
         this.worksheet.objectRender.selectDrawingObjectRange(chart);
-        //shapeOverlayCtx.ClearMode = true;
-        ////selected_objects[0].draw(shapeOverlayCtx);
-        //shapeOverlayCtx.ClearMode = false;
     }
     for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
 
