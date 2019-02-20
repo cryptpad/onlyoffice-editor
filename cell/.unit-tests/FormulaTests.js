@@ -4759,6 +4759,59 @@ $( function () {
 		ok( oParser.parse(), 'XOR(3>12,4<6)' );
 		strictEqual( oParser.calculate().getValue(), "TRUE", 'XOR(3>12,4<6)' );
 
+		//area - specific for xor function
+		//all empty - false result
+		ws.getRange2( "A101" ).setValue( "5" );
+		ws.getRange2( "A102" ).setValue( "6" );
+		ws.getRange2( "A103" ).setValue( "test1" );
+		ws.getRange2( "A104" ).setValue( "" );
+		ws.getRange2( "A105" ).setValue( "false" );
+
+		ws.getRange2( "B101" ).setValue( "1" );
+		ws.getRange2( "B102" ).setValue( "1" );
+		ws.getRange2( "B103" ).setValue( "test2" );
+		ws.getRange2( "B104" ).setValue( "" );
+		ws.getRange2( "B105" ).setValue( "false" );
+
+		ws.getRange2( "B106" ).setValue( "#VALUE!" );
+
+		oParser = new parserFormula( 'XOR(A101:B102)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:B102)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A101:B103)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:B103)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A101:A103)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:A103)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		oParser = new parserFormula( 'XOR(A101:A104)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:A104)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A104:B104)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A104:B104)' );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( 'XOR(A101:B104)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:B104)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A101:B105)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:B105)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A101:A105)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:A105)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		oParser = new parserFormula( 'XOR(B101:A106)', "A2", ws );
+		ok( oParser.parse(), 'XOR(B101:A106)' );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+
 		testArrayFormula2("XOR", 1, 8, null, true);
 	} );
 
