@@ -2369,30 +2369,42 @@ CDocumentContent.prototype.AddNewParagraph = function()
                 }
             }
         }
-        else if (type_Table === Item.GetType() || type_BlockLevelSdt === Item.GetType())
-        {
-            // Если мы находимся в начале первого параграфа первой ячейки, и
-            // данная таблица - первый элемент, тогда добавляем параграф до таблицы.
+		else if (type_Table === Item.GetType() || type_BlockLevelSdt === Item.GetType())
+		{
+			// Если мы находимся в начале первого параграфа первой ячейки, и
+			// данная таблица - первый элемент, тогда добавляем параграф до таблицы.
 
-            if (0 === this.CurPos.ContentPos && Item.IsCursorAtBegin(true))
-            {
-                // Создаем новый параграф
-                var NewParagraph = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
-                this.Internal_Content_Add(0, NewParagraph);
-                this.CurPos.ContentPos = 0;
+			if (0 === this.CurPos.ContentPos && Item.IsCursorAtBegin(true))
+			{
+				// Создаем новый параграф
+				var NewParagraph = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
+				this.Internal_Content_Add(0, NewParagraph);
+				this.CurPos.ContentPos = 0;
 
 				if (true === this.Is_TrackRevisions())
 				{
 					NewParagraph.Remove_PrChange();
 					NewParagraph.Set_ReviewType(reviewtype_Add);
 				}
-            }
-            else
+			}
+			else if (this.Content.length - 1 === this.CurPos.ContentPos && Item.IsCursorAtEnd())
+			{
+				var oNewParagraph = new Paragraph(this.DrawingDocument, this);
+				this.Internal_Content_Add(this.Content.length, oNewParagraph);
+				this.CurPos.ContentPos = this.Content.length - 1;
+
+				if (this.Is_TrackRevisions())
+				{
+					oNewParagraph.Remove_PrChange();
+					oNewParagraph.Set_ReviewType(reviewtype_Add);
+				}
+			}
+			else
 			{
 				Item.AddNewParagraph();
 			}
-        }
-    }
+		}
+	}
 };
 // Расширяем документ до точки (X,Y) с помощью новых параграфов
 // Y0 - низ последнего параграфа, YLimit - предел страницы
@@ -3829,7 +3841,7 @@ CDocumentContent.prototype.IsCursorAtEnd = function()
 {
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 		return false;
-	else if (false != this.Selection.Use || 0 != this.CurPos.ContentPos)
+	else if (false != this.Selection.Use || this.Content.length - 1 != this.CurPos.ContentPos)
 		return false;
 
 	var Item = this.Content[this.Content.length - 1];

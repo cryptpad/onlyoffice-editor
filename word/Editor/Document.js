@@ -13450,6 +13450,18 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 				NewParagraph.Set_ReviewType(reviewtype_Add);
 			}
 		}
+		else if (this.Content.length - 1 === this.CurPos.ContentPos && Item.IsCursorAtEnd())
+		{
+			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
+			this.Internal_Content_Add(this.Content.length, oNewParagraph);
+			this.CurPos.ContentPos = this.Content.length - 1;
+
+			if (this.Is_TrackRevisions())
+			{
+				oNewParagraph.Remove_PrChange();
+				oNewParagraph.Set_ReviewType(reviewtype_Add);
+			}
+		}
 		else
 		{
 			Item.AddNewParagraph();
