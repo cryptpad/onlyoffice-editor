@@ -771,7 +771,7 @@ CAutoshapeTrack.prototype =
 
     SetCurrentPage : function(nPageIndex)
     {
-        if (nPageIndex == this.PageIndex)
+        if (nPageIndex == this.PageIndex && null != this.Graphics)
             return;
 
         var oPage = this.m_oOverlay.m_oHtmlPage.GetDrawingPageInfo(nPageIndex);
