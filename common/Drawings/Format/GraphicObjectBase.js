@@ -1398,7 +1398,7 @@
             this.createCropObject();
         }
         return this.cropObject;
-    }
+    };
     CGraphicObjectBase.prototype.createCropObject = function(){
         return AscFormat.ExecuteNoHistory(function () {
             var oBlipFill = this.getBlipFill();
@@ -1449,7 +1449,10 @@
                 oImage.spPr.xfrm.setFlipV(this.flipV);
                 oImage.setGroup(this.group);
 
+
+                oImage.setParent(this.parent);
                 oImage.recalculate();
+                oImage.setParent(null);
                 oImage.recalculateTransform();
                 oImage.setParent(this.parent);
                 oImage.selectStartPage = this.selectStartPage;
