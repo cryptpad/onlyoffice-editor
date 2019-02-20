@@ -2382,7 +2382,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.sync_ReplaceAllCallback = function(ReplaceCount, OverallCount)
 	{
-		this.sendEvent("asc_onReplaceAll", ReplaceCount, OverallCount);
+		this.sendEvent("asc_onReplaceAll", OverallCount, ReplaceCount);
 	};
 
 	asc_docs_api.prototype.sync_SearchEndCallback = function()
