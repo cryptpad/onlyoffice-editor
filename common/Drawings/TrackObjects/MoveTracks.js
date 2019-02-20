@@ -243,7 +243,19 @@ function MoveShapeImageTrack(originalObject)
                 this.originalObject.selectStartPage = this.pageIndex;
         }
         var scale_coefficients, ch_off_x, ch_off_y;
-        AscFormat.CheckSpPrXfrm(this.originalObject);
+        if(this.originalObject.isCrop)
+        {
+            AscFormat.ExecuteNoHistory(
+                function () {
+                    AscFormat.CheckSpPrXfrm(this.originalObject);
+                },
+                this, []
+            );
+        }
+        else
+        {
+            AscFormat.CheckSpPrXfrm(this.originalObject);
+        }
         if(this.originalObject.group)
         {
             scale_coefficients = this.originalObject.group.getResultScaleCoefficients();
@@ -269,8 +281,21 @@ function MoveShapeImageTrack(originalObject)
         var _xfrm = this.originalObject.spPr.xfrm;
         var _x = _xfrm.offX;
         var _y = _xfrm.offY;
-        this.originalObject.spPr.xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
-        this.originalObject.spPr.xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+        if(this.originalObject.isCrop)
+        {
+            AscFormat.ExecuteNoHistory(
+                function () {
+                    this.originalObject.spPr.xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
+                    this.originalObject.spPr.xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+                },
+                this, []
+            );
+        }
+        else
+        {
+            this.originalObject.spPr.xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
+            this.originalObject.spPr.xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+        }
 
         if(this.originalObject.getObjectType() === AscDFH.historyitem_type_Cnx){
             if(!AscFormat.fApproxEqual(_x, _xfrm.offX) || !AscFormat.fApproxEqual(_y, _xfrm.offY)){
@@ -314,7 +339,22 @@ function MoveShapeImageTrack(originalObject)
                 }
             }
         }
-        this.originalObject.checkDrawingBaseCoords();
+
+        if(this.originalObject.isCrop)
+        {
+            AscFormat.ExecuteNoHistory(
+                function () {
+                    this.originalObject.checkDrawingBaseCoords();
+                },
+                this, []
+            );
+            this.originalObject.transform = this.transform;
+            this.originalObject.invertTransform = AscCommon.global_MatrixTransformer.Invert(this.transform);
+        }
+        else
+        {
+            this.originalObject.checkDrawingBaseCoords();
+        }
         if(this.originalObject.isCrop)
         {
             this.originalObject.parentCrop.calculateSrcRect();

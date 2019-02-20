@@ -1068,9 +1068,13 @@
     };
     CGraphicObjectBase.prototype.getConnectionParams = function(cnxIdx, _group)
     {
-        if(this.recalculateTransform){
-            this.recalculateTransform();
-        }
+        AscFormat.ExecuteNoHistory(
+            function(){
+                if(this.recalculateTransform){
+                    this.recalculateTransform();
+                }
+            }, this, []
+        );
         if(cnxIdx !== null){
             var oConnectionObject = this.getGeom().cnxLst[cnxIdx];
             if(oConnectionObject){
@@ -1444,12 +1448,15 @@
                 oImage.spPr.xfrm.setFlipH(this.flipH);
                 oImage.spPr.xfrm.setFlipV(this.flipV);
                 oImage.setGroup(this.group);
-                oImage.setParent(this.parent);
+
                 oImage.recalculate();
+                oImage.recalculateTransform();
+                oImage.setParent(this.parent);
                 oImage.selectStartPage = this.selectStartPage;
                 oImage.cropBrush = AscFormat.CreateUnfilFromRGB(128, 128, 128);
                 oImage.cropBrush.transparent = 100;
                 oImage.pen = AscFormat.CreatePenBrushForChartTrack().pen;
+                oImage.parent = this.parent;
                 var oParentObjects = this.getParentObjects();
                 oImage.cropBrush.calculate(oParentObjects.theme, oParentObjects.slide, oParentObjects.layout, oParentObjects.master, {R:0, G:0, B:0, A:255, needRecalc: true}, AscFormat.G_O_DEFAULT_COLOR_MAP);
                 this.cropObject = oImage;
@@ -1469,9 +1476,12 @@
 
     CGraphicObjectBase.prototype.calculateSrcRect = function(){
 
-        this.cropObject.recalculateTransform();
-        this.recalculateTransform();
-        this.recalculateGeometry();
+        AscFormat.ExecuteNoHistory(function(){
+            this.cropObject.recalculateTransform();
+            this.recalculateTransform();
+            this.recalculateGeometry();
+        }, this, []);
+
         if(this.getObjectType() === AscDFH.historyitem_type_ImageShape)
         {
             var blipFill = this.blipFill.createDuplicate();

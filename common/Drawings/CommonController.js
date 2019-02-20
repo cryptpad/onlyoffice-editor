@@ -1917,6 +1917,10 @@ DrawingObjectsController.prototype =
                     var cropObject = oCropSelection.getCropObject();
                     if(cropObject)
                     {
+                        if(AscFormat.isRealNumber(cropObject.selectStartPage) && drawingDocument.AutoShapesTrack.SetCurrentPage)
+                        {
+                            drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage);
+                        }
                         drawingDocument.AutoShapesTrack.SaveGrState();
                         drawingDocument.AutoShapesTrack.save();
                         cropObject.draw(drawingDocument.AutoShapesTrack);

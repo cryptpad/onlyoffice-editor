@@ -701,7 +701,7 @@ RotateState.prototype =
                 if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : aCheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content}, bNoNeedCheck))
                 {
                     History.Create_NewPoint(AscDFH.historydescription_Document_RotateFlowDrawingNoCtrl);
-                    if(bMoveState){
+                    if(bMoveState && !this.drawingObjects.selection.cropSelection){
                         this.drawingObjects.resetSelection();
                     }
                     for(i = 0; i < aDrawings.length; ++i)
