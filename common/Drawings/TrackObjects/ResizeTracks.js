@@ -332,18 +332,19 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             this.brush = pen_brush.brush;
             this.pen = pen_brush.pen;
         }
-        if(this.originalObject.cropObject)
-        {
-            this.pen = AscFormat.CreatePenBrushForChartTrack().pen;
-        }
+
 
 
         this.isLine = originalObject.spPr && originalObject.spPr.geometry && originalObject.spPr.geometry.preset === "line";
         this.bChangeCoef = this.translatetNumberHandle % 2 === 0 && this.originalFlipH !== this.originalFlipV;
 
-        if(this.originalObject.cropObject && this.brush)
+        if(this.originalObject.cropObject)
         {
-            this.brush = this.brush.createDuplicate();
+            if(this.brush)
+            {
+                this.brush = this.brush.createDuplicate();
+            }
+            this.pen = AscFormat.CreatePenBrushForChartTrack().pen;
         }
         this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.resizedExtX, this.resizedExtY, this.brush, this.pen, this.transform);
 
@@ -1073,6 +1074,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     oGraphics.put_GlobalAlpha(false, 1);
                 }
                 this.originalObject.cropObject.draw(overlay);
+                this.overlayObject.pen = AscFormat.CreatePenBrushForChartTrack().pen;
                 this.overlayObject.draw(overlay, transform);
                 if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
                 {

@@ -442,6 +442,7 @@ CShape.prototype.recalculate = function ()
                 this.recalcInfo.recalculateBounds = false;
             }
         }
+        this.clearCropObject();
         this.bNeedUpdatePosition = true;
     }, this, []);
 
