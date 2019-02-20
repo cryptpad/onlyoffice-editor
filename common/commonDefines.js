@@ -69,6 +69,8 @@
 		DOCM : 0x004b,
 		DOTX : 0x004c,
 		DOTM : 0x004d,
+		FODT : 0x004e,
+		OTT  : 0x004f,
 		DOCY : 0x1001,
 		CANVAS_WORD : 0x2001,
 		JSON : 0x0808,	// Для mail-merge
@@ -81,6 +83,8 @@
 		XLSM : 0x0105,
 		XLTX : 0x0106,
 		XLTM : 0x0107,
+		FODS : 0x0108,
+		OTS  : 0x0109,
 		XLSY : 0x1002,
 
 		// PowerPoint
@@ -91,7 +95,9 @@
 		PPTM : 0x0085,
 		PPSM : 0x0086,
 		POTX : 0x0087,
-		POTM : 0x0088
+		POTM : 0x0088,
+		FODP : 0x0089,
+		OTP  : 0x008a
 	};
 
 	var c_oAscError = {
@@ -1474,6 +1480,8 @@
 	prot['DOCM']                 = prot.DOCM;
 	prot['DOTX']                 = prot.DOTX;
 	prot['DOTM']                 = prot.DOTM;
+	prot['FODT']                 = prot.FODT;
+	prot['OTT']                  = prot.OTT;
 	prot['DOCY']                 = prot.DOCY;
 	prot['JSON']                 = prot.JSON;
 	prot['XLSX']                 = prot.XLSX;
@@ -1483,6 +1491,8 @@
 	prot['XLSM']                 = prot.XLSM;
 	prot['XLTX']                 = prot.XLTX;
 	prot['XLTM']                 = prot.XLTM;
+	prot['FODS']                 = prot.FODS;
+	prot['OTS']                  = prot.OTS;
 	prot['XLSY']                 = prot.XLSY;
 	prot['PPTX']                 = prot.PPTX;
 	prot['PPT']                  = prot.PPT;
@@ -1492,6 +1502,8 @@
 	prot['PPSM']                 = prot.PPSM;
 	prot['POTX']                 = prot.POTX;
 	prot['POTM']                 = prot.POTM;
+	prot['FODP']                 = prot.FODP;
+	prot['OTP']                  = prot.OTP;
 	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
 	prot                                     = c_oAscError;
 	prot['Level']                            = prot.Level;

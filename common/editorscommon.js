@@ -1305,6 +1305,12 @@
 			case c_oAscFileType.DOTM:
 				return 'dotm';
 				break;
+			case c_oAscFileType.FODT:
+				return 'fodt';
+				break;
+			case c_oAscFileType.OTT:
+				return 'ott';
+				break;
 			case c_oAscFileType.DOCY:
 				return 'doct';
 				break;
@@ -1336,6 +1342,12 @@
 			case c_oAscFileType.XLTM:
 				return 'xltm';
 				break;
+			case c_oAscFileType.FODS:
+				return 'fods';
+				break;
+			case c_oAscFileType.OTS:
+				return 'ots';
+				break;
 			case c_oAscFileType.XLSY:
 				return 'xlst';
 				break;
@@ -1363,6 +1375,12 @@
 				break;
 			case c_oAscFileType.POTM:
 				return 'potm';
+				break;
+			case c_oAscFileType.FODP:
+				return 'fodp';
+				break;
+			case c_oAscFileType.OTP:
+				return 'otp';
 				break;
 		}
 		return '';
