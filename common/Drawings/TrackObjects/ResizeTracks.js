@@ -1013,9 +1013,6 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             {
                 overlay.SetCurrentPage(this.originalObject.selectStartPage);
             }
-
-
-
             if(this.originalObject.isCrop)
             {
                 var dOldAlpha = null;
@@ -1031,7 +1028,6 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 this.overlayObject.shapeDrawer.Clear();
                 this.overlayObject.draw(overlay);
                 this.brush.fill = oldFill;
-                this.originalObject.parentCrop.cropObject = null;
                 var oldSrcRect;
                 var parentCrop = this.originalObject.parentCrop;
 
@@ -1054,7 +1050,6 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     this.originalObject.parentCrop.draw(overlay);
                     this.originalObject.parentCrop.brush.fill.srcRect = oldSrcRect;
                 }
-                this.originalObject.parentCrop.cropObject = this.originalObject;
                 if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
                 {
                     oGraphics.put_GlobalAlpha(true, dOldAlpha);

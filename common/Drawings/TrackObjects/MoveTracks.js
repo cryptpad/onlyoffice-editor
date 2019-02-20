@@ -153,7 +153,6 @@ function MoveShapeImageTrack(originalObject)
             this.overlayObject.shapeDrawer.Clear();
             this.overlayObject.draw(overlay);
             this.brush.fill = oldFill;
-            this.originalObject.parentCrop.cropObject = null;
             var oldSrcRect;
             var parentCrop = this.originalObject.parentCrop;
 
@@ -176,7 +175,6 @@ function MoveShapeImageTrack(originalObject)
                 this.originalObject.parentCrop.draw(overlay);
                 this.originalObject.parentCrop.brush.fill.srcRect = oldSrcRect;
             }
-            this.originalObject.parentCrop.cropObject = this.originalObject;
             if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
             {
                 oGraphics.put_GlobalAlpha(true, dOldAlpha);
@@ -194,7 +192,6 @@ function MoveShapeImageTrack(originalObject)
             }
             this.originalObject.cropObject.draw(overlay);
             var oldCropObj = this.originalObject.cropObject;
-            this.originalObject.cropObject = null;
             var oldSrcRect, oldTransform;
             var parentCrop = this.originalObject;
             oldTransform = parentCrop.transform;
@@ -217,7 +214,6 @@ function MoveShapeImageTrack(originalObject)
                 this.originalObject.draw(overlay);
                 this.originalObject.brush.fill.srcRect = oldSrcRect;
             }
-            this.originalObject.cropObject = oldCropObj;
             parentCrop.transform = oldTransform;
             if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
             {

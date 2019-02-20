@@ -1130,6 +1130,10 @@ DrawingObjectsController.prototype =
             this.selection.cropSelection.clearCropObject();
             this.selection.cropSelection = null;
             this.updateOverlay();
+            if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
+            {
+                this.drawingObjects.showDrawingObjects();
+            }
         }
     },
 
@@ -1258,8 +1262,7 @@ DrawingObjectsController.prototype =
         }
         if(this.selection.cropSelection)
         {
-            this.selection.cropSelection.clearCropObject();
-            this.selection.cropSelection = null;
+            this.endImageCrop();
         }
     },
 
