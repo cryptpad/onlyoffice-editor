@@ -1435,15 +1435,18 @@
                 var X = XC_ - extX/2.0;
                 var Y = YC_ - extY/2.0;
 
-                var oImage = DrawingObjectsController.prototype.createImage(sRasterImageId, X, Y, extX, extY);
+                var oImage = AscFormat.DrawingObjectsController.prototype.createImage(sRasterImageId, X, Y, extX, extY);
                 oImage.isCrop = true;
                 oImage.parentCrop = this;
+                oImage.worksheet = this.worksheet;
+                oImage.drawingBase = this.drawingBase;
                 oImage.spPr.xfrm.setRot(this.rot);
                 oImage.spPr.xfrm.setFlipH(this.flipH);
                 oImage.spPr.xfrm.setFlipV(this.flipV);
                 oImage.setGroup(this.group);
                 oImage.setParent(this.parent);
                 oImage.recalculate();
+                oImage.selectStartPage = this.selectStartPage;
                 oImage.cropBrush = AscFormat.CreateUnfilFromRGB(128, 128, 128);
                 oImage.cropBrush.transparent = 100;
                 var oParentObjects = this.getParentObjects();

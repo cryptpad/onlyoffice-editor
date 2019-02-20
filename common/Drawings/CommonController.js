@@ -1331,8 +1331,13 @@ DrawingObjectsController.prototype =
         }
         else
         {
+            var sId = selectedObject.Get_Id();
+            if(selectedObject.isCrop && selectedObject.parentCrop)
+            {
+                sId = selectedObject.parentCrop.Get_Id();
+            }
             var card_direction = selectedObject.getCardDirectionByNum(hit);
-            return {objectId: selectedObject.Get_Id(), cursorType: hit === 8 ? "crosshair" : CURSOR_TYPES_BY_CARD_DIRECTION[card_direction], bMarker: true};
+            return {objectId: sId, cursorType: hit === 8 ? "crosshair" : CURSOR_TYPES_BY_CARD_DIRECTION[card_direction], bMarker: true};
         }
     },
 
@@ -1438,7 +1443,12 @@ DrawingObjectsController.prototype =
         }
         else
         {
-            return {objectId: object.Get_Id(), cursorType: "move", bMarker: bInSelect};
+            var sId = object.Get_Id();
+            if(object.isCrop && object.parentCrop)
+            {
+                sId = object.parentCrop.Get_Id();
+            }
+            return {objectId: sId, cursorType: "move", bMarker: bInSelect};
         }
     },
 

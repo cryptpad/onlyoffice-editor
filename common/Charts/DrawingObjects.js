@@ -3652,7 +3652,7 @@ function DrawingObjects() {
                 oDrawing = oDrawing.group;
             }
         }
-        if(oDrawing.drawingBase){
+        if(oDrawing && oDrawing.drawingBase){
             for (var i = 0; i < aObjects.length; i++) {
                 if ( aObjects[i] === oDrawing.drawingBase )
                     return aObjects[i];
