@@ -3406,17 +3406,32 @@
 		this.selectionRange = wsFrom.selectionRange.clone(this);
 
 		//change cell formulas
+		var oldNewArrayFormulaMap = [];
 		this._forEachCell(function(cell) {
 			if (cell.isFormula()) {
-				var parsed;
+				var parsed, notMainArrayCell;
 				if (cell.transformSharedFormula()) {
 					parsed = cell.getFormulaParsed();
 				} else {
 					parsed = cell.getFormulaParsed();
-					parsed = parsed.clone(null, new CCellWithFormula(t, cell.nRow, cell.nCol), t);
+					if(parsed.getArrayFormulaRef()) {//***array-formula***
+						var listenerId = parsed.getListenerId();
+						//formula-array: parsed object one of all array cells
+						if(oldNewArrayFormulaMap[listenerId]) {
+							parsed = oldNewArrayFormulaMap[listenerId];
+							notMainArrayCell = true;
+						} else {
+							parsed = parsed.clone(null, new CCellWithFormula(t, cell.nRow, cell.nCol), t);
+							oldNewArrayFormulaMap[listenerId] = parsed;
+						}
+					} else {
+						parsed = parsed.clone(null, new CCellWithFormula(t, cell.nRow, cell.nCol), t);
+					}
 				}
-				parsed.renameSheetCopy(renameParams);
-				parsed.setFormulaString(parsed.assemble(true));
+				if(!notMainArrayCell) {
+					parsed.renameSheetCopy(renameParams);
+					parsed.setFormulaString(parsed.assemble(true));
+				}
 				cell.setFormulaInternal(parsed, true);
 				t.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
 			}
