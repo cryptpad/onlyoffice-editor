@@ -2953,7 +2953,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.sync_ReplaceAllCallback = function(ReplaceCount, OverallCount)
 	{
-		this.sendEvent("asc_onReplaceAll", ReplaceCount, OverallCount);
+		this.sendEvent("asc_onReplaceAll", OverallCount, ReplaceCount);
 	};
 
 	asc_docs_api.prototype.sync_SearchEndCallback = function()
@@ -7947,11 +7947,16 @@ background-repeat: no-repeat;\
 				var oParagraph = oContentControl.GetParagraph();
 				if (oParagraph)
 				{
+					var oState = oLogicDocument.SaveDocumentState();
+					oContentControl.SelectContentControl();
+
 					isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 						Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 						Elements  : [oParagraph],
-						CheckType : AscCommon.changestype_Paragraph_Content
+						CheckType : AscCommon.changestype_Remove
 					});
+
+					oLogicDocument.LoadDocumentState(oState);
 				}
 			}
 
@@ -8406,6 +8411,8 @@ background-repeat: no-repeat;\
 		if (!oTOC)
 			return;
 
+		var oState = oLogicDocument.SaveDocumentState();
+
 		oTOC.SelectField();
 		if (isUpdatePageNumbers)
 		{
@@ -8424,6 +8431,7 @@ background-repeat: no-repeat;\
 					}
 				}
 
+				oLogicDocument.LoadDocumentState(oState);
 				oLogicDocument.Recalculate();
 				oLogicDocument.Document_UpdateInterfaceState();
 				oLogicDocument.Document_UpdateSelectionState();
@@ -8437,11 +8445,13 @@ background-repeat: no-repeat;\
 
 				oTOC.Update();
 
+				oLogicDocument.LoadDocumentState(oState);
 				oLogicDocument.Recalculate();
 				oLogicDocument.Document_UpdateInterfaceState();
 				oLogicDocument.Document_UpdateSelectionState();
 			}
 		}
+
 	};
 
 	asc_docs_api.prototype.asc_GetCurrentComplexField = function()

@@ -480,9 +480,9 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType) {
 					arr.push(this.createChartPreview(chartType, i));
 			}
 
-			if (Asc['editor'] && AscCommon.c_oEditorId.Spreadsheet === Asc['editor'].getEditorId()) {
-				var api_sheet = Asc['editor'];
-				var _graphics = api_sheet.wb.getWorksheet().shapeCtx;
+			var api = Asc['editor'];
+			if (api && AscCommon.c_oEditorId.Spreadsheet === api.getEditorId()) {
+				var _graphics = api.wb.shapeCtx;
 				if (_graphics.ClearLastFont)
 					_graphics.ClearLastFont();
 			}

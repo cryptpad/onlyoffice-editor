@@ -890,7 +890,17 @@ function handleInlineHitNoText(drawing, drawingObjects, e, x, y, pageIndex, bInS
                     drawingObjects.handleSignatureDblClick(drawing.signatureLine.id, drawing.extX, drawing.extY);
                 }
                 else if (2 == e.ClickCount && drawing.parent instanceof ParaDrawing && drawing.parent.Is_MathEquation())
+                {
                     drawingObjects.handleMathDrawingDoubleClick(drawing.parent, e, x, y, pageIndex);
+                }
+                else if(drawing.getObjectType() === AscDFH.historyitem_type_ImageShape)
+                {
+                    var sMediaFile = object.getMediaFileName();
+                    if(typeof sMediaFile === "string" && drawingObjects.handleMediaObject)
+                    {
+                        drawingObjects.handleMediaObject(sMediaFile, e, x, y, pageIndex);
+                    }
+                }
 
             }
             drawingObjects.updateOverlay();
@@ -981,10 +991,33 @@ function handleMouseUpPreMoveState(drawingObjects, e, x, y, pageIndex, bWord)
             {
                 break;
             }
+            case AscDFH.historyitem_type_ImageShape:
+            {
+
+                break;
+            }
         }
     }
     if(!bHandle)
     {
+        if(!state.shift && !state.ctrl && state.bInside && state.majorObject.getObjectType() === AscDFH.historyitem_type_ImageShape)
+        {
+            var sMediaName = state.majorObject.getMediaFileName();
+            if(sMediaName)
+            {
+                var oApi = state.drawingObjects.getEditorApi();
+                if(oApi && oApi.showVideoControl)
+                {
+                    oApi.showVideoControl(sMediaName, state.majorObject.extX, state.majorObject.extY, state.majorObject.transform);
+                    bHandle = true;
+                }
+            }
+        }
+    }
+    if(!bHandle)
+    {
+
+
         if(e.CtrlKey && state.majorObjectIsSelected)
         {
             drawingObjects.deselectObject(state.majorObject);

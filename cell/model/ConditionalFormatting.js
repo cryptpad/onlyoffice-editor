@@ -469,10 +469,18 @@
 		this.MaxLength = 90;
 		this.MinLength = 10;
 		this.ShowValue = true;
+		this.AxisPosition = AscCommonExcel.EDataBarAxisPosition.automatic;
+		this.Gradient = true;
+		this.Direction = AscCommonExcel.EDataBarDirection.context;
+		this.NegativeBarColorSameAsPositive = false;
+		this.NegativeBarBorderColorSameAsPositive = true;
 
 		this.aCFVOs = [];
 		this.Color = null;
-
+		this.NegativeColor = null;
+		this.BorderColor = null;
+		this.NegativeBorderColor = null;
+		this.AxisColor = null;
 		return this;
 	}
 	CDataBar.prototype.type = AscCommonExcel.ECfType.dataBar;
@@ -481,10 +489,23 @@
 		res.MaxLength = this.MaxLength;
 		res.MinLength = this.MinLength;
 		res.ShowValue = this.ShowValue;
+		res.AxisPosition = this.AxisPosition;
+		res.Gradient = this.Gradient;
+		res.Direction = this.Direction;
+		res.NegativeBarColorSameAsPositive = this.NegativeBarColorSameAsPositive;
+		res.NegativeBarBorderColorSameAsPositive = this.NegativeBarBorderColorSameAsPositive;
 		for (i = 0; i < this.aCFVOs.length; ++i)
 			res.aCFVOs.push(this.aCFVOs[i].clone());
 		if (this.Color)
 			res.Color = this.Color.clone();
+		if (this.NegativeColor)
+			res.NegativeColor = this.NegativeColor.clone();
+		if (this.BorderColor)
+			res.BorderColor = this.BorderColor.clone();
+		if (this.NegativeBorderColor)
+			res.NegativeBorderColor = this.NegativeBorderColor.clone();
+		if (this.AxisColor)
+			res.AxisColor = this.AxisColor.clone();
 		return res;
 	};
 
@@ -529,6 +550,7 @@
 		this.ShowValue = true;
 
 		this.aCFVOs = [];
+		this.aIconSets = [];
 
 		return this;
 	}
@@ -540,6 +562,8 @@
 		res.ShowValue = this.ShowValue;
 		for (i = 0; i < this.aCFVOs.length; ++i)
 			res.aCFVOs.push(this.aCFVOs[i].clone());
+		for (i = 0; i < this.aIconSets.length; ++i)
+			res.aIconSets.push(this.aIconSets[i].clone());
 		return res;
 	};
 
@@ -559,6 +583,19 @@
 		res.Val = this.Val;
 		res.formulaParent = this.formulaParent ? this.formulaParent.clone() : null;
 		res.formula = this.formula ? this.formula.clone() : null;
+		return res;
+	};
+
+	function CConditionalFormatIconSet () {
+		this.IconSet = true;
+		this.IconId = null;
+
+		return this;
+	}
+	CConditionalFormatIconSet.prototype.clone = function() {
+		var res = new CConditionalFormatIconSet();
+		res.IconSet = this.IconSet;
+		res.IconId = this.IconId;
 		return res;
 	};
 
@@ -619,5 +656,6 @@
 	window['AscCommonExcel'].CFormulaCF = CFormulaCF;
 	window['AscCommonExcel'].CIconSet = CIconSet;
 	window['AscCommonExcel'].CConditionalFormatValueObject = CConditionalFormatValueObject;
+	window['AscCommonExcel'].CConditionalFormatIconSet = CConditionalFormatIconSet;
 	window['AscCommonExcel'].CGradient = CGradient;
 })(window);

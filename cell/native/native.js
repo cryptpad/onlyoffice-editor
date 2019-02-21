@@ -3142,22 +3142,6 @@ function OfflineEditor () {
     
     this.beforeOpen = function() {
         
-        var offlineEditor = this;
-        
-        function __selectDrawingObjectRange(drawing, worksheet) {
-            worksheet.cleanSelection();
-            worksheet.endEditChart();
-            
-            if(!drawing.bbox || drawing.bbox.worksheet !== worksheet.model)
-                return;
-            
-            var BB = drawing.bbox.seriesBBox;
-            var range = window["Asc"].Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
-            
-            worksheet.setChartRange(range);
-            worksheet._drawSelection();
-        }
-        
         window['AscFormat'].DrawingArea.prototype.drawSelection = function(drawingDocument) {
             
             AscCommon.g_oTextMeasurer.Flush();
@@ -3185,7 +3169,7 @@ function OfflineEditor () {
             if(selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace)
             {
                 chart = selected_objects[0];
-                __selectDrawingObjectRange(chart, this.worksheet);
+                this.worksheet.objectRender.selectDrawingObjectRange(chart);
             }
             for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
                 

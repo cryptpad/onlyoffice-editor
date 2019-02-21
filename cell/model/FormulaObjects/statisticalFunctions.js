@@ -11294,7 +11294,7 @@ function (window, undefined) {
 				arr0.push(arg[j].tocNumber());
 			} else if (arg[j] instanceof cString) {
 				arr0.push(new cNumber(0));
-			} else if (elem instanceof cError) {
+			} else if (arg[j] instanceof cError) {
 				return new cError(cErrorType.wrong_value_type);
 			}
 

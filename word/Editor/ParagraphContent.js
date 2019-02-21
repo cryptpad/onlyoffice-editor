@@ -1692,7 +1692,13 @@ ParaFootnoteReference.prototype.Copy = function()
 {
 	var oFootnote = this.Footnote.Parent.CreateFootnote();
 	oFootnote.Copy2(this.Footnote);
-	return new ParaFootnoteReference(oFootnote);
+
+	var oRef = new ParaFootnoteReference(oFootnote);
+
+	oRef.Number    = this.Number;
+	oRef.NumFormat = this.NumFormat;
+
+	return oRef;
 };
 ParaFootnoteReference.prototype.Write_ToBinary = function(Writer)
 {

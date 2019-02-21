@@ -461,8 +461,17 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 	if (!this.IsPlaceHolder())
 		return;
 
+	this.RemoveSelection();
+	this.MoveCursorToStartPos();
+	var oTextPr = this.GetDirectTextPr();
+
 	this.RemoveFromContent(0, this.GetElementsCount());
-	this.AddToContent(0, new ParaRun());
+
+	var oRun = new ParaRun();
+	if (oTextPr)
+		oRun.SetPr(oTextPr.Copy());
+
+	this.AddToContent(0, oRun);
 	this.RemoveSelection();
 	this.MoveCursorToStartPos();
 };

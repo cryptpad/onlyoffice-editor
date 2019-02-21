@@ -609,7 +609,8 @@
         ColorScale		: 14,
         DataBar			: 15,
         FormulaCF		: 16,
-        IconSet			: 17
+		IconSet			: 17,
+		Dxf				: 18
     };
     var c_oSer_ConditionalFormattingRuleColorScale = {
         CFVO			: 0,
@@ -620,20 +621,35 @@
         Color			: 1,
         MaxLength		: 2,
         MinLength		: 3,
-        ShowValue		: 4
+		ShowValue		: 4,
+		NegativeColor	: 5,
+		BorderColor		: 6,
+		AxisColor		: 7,
+		NegativeBorderColor: 8,
+		AxisPosition	: 9,
+		Direction		: 10,
+		GradientEnabled	: 11,
+		NegativeBarColorSameAsPositive: 12,
+		NegativeBarBorderColorSameAsPositive: 13
     };
     var c_oSer_ConditionalFormattingIconSet = {
         CFVO			: 0,
         IconSet			: 1,
         Percent			: 2,
         Reverse			: 3,
-        ShowValue		: 4
+		ShowValue		: 4,
+		CFIcon			: 5
     };
     var c_oSer_ConditionalFormattingValueObject = {
         Gte				: 0,
         Type			: 1,
-        Val				: 2
+		Val				: 2,
+		Formula			: 3
     };
+	var c_oSer_ConditionalFormattingIcon = {
+		iconSet : 0,
+		iconId : 1
+	};
     var c_oSer_SheetView = {
         ColorId						: 0,
         DefaultGridColor			: 1,
@@ -1098,7 +1114,11 @@
         Arrows5: 13,
         Arrows5Gray: 14,
         Quarters5: 15,
-        Rating5: 16
+		Rating5: 16,
+		Triangles3 : 17,
+		Stars3 : 18,
+		Boxes5 : 19,
+		NoIcons : 20
     };
     var ECfvoType =
     {
@@ -1121,6 +1141,16 @@
         tomorrow  : 'tomorrow',
         yesterday : 'yesterday'
     };
+	var EDataBarAxisPosition = {
+		automatic: 0,
+		middle: 1,
+		none: 2
+	};
+	var EDataBarDirection = {
+		context: 0,
+		leftToRight: 1,
+		rightToLeft: 2
+	};
     
     var g_nNumsMaxId = 160;
 
@@ -1683,12 +1713,12 @@
         }
     }
     /** @constructor */
-    function BinarySharedStringsTableWriter(memory, wb, oSharedStrings)
+	function BinarySharedStringsTableWriter(memory, wb, oSharedStrings, bsw)
     {
         this.memory = memory;
 		this.wb = wb;
         this.bs = new BinaryCommonWriter(this.memory);
-        this.bsw = new BinaryStylesTableWriter(this.memory);
+		this.bsw = bsw;
         this.oSharedStrings = oSharedStrings;
         this.Write = function()
         {
@@ -1824,18 +1854,13 @@
 		return elem;
 	};
     /** @constructor */
-    function BinaryStylesTableWriter(memory, wb, oBinaryWorksheetsTableWriter)
+	function BinaryStylesTableWriter(memory, wb, aDxfs)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
         this.wb = wb;
-        this.aDxfs = null;
-		this.stylesForWrite = null;
-        if(null != oBinaryWorksheetsTableWriter)
-        {
-            this.aDxfs = oBinaryWorksheetsTableWriter.aDxfs;
-			this.stylesForWrite = oBinaryWorksheetsTableWriter.stylesForWrite;
-        }
+		this.aDxfs = aDxfs;
+		this.stylesForWrite = new StylesForWrite();
         this.Write = function()
         {
             var oThis = this;
@@ -1862,16 +1887,8 @@
             if(null != wb.TableStyles)
                 this.bs.WriteItem(c_oSerStylesTypes.TableStyles, function(){oThis.WriteTableStyles(wb.TableStyles);});
             //Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
-            if(null != this.aDxfs && this.aDxfs.length > 0)
-            {
-                var oDxfsNumFormatToId = {};
-                for(var i = 0, length = this.aDxfs.length; i < length; i++)
-                {
-                    var dxf = this.aDxfs[i];
-                    if(dxf && dxf.num)
-                        oDxfsNumFormatToId[dxf.num.getFormat()] = this.stylesForWrite.getNumIdByFormat(dxf.num);
-                }
-                this.bs.WriteItem(c_oSerStylesTypes.Dxfs, function(){oThis.WriteDxfs(oThis.aDxfs, oDxfsNumFormatToId);});
+			if(null != this.aDxfs && this.aDxfs.length > 0) {
+				this.bs.WriteItem(c_oSerStylesTypes.Dxfs, function(){oThis.WriteDxfs(oThis.aDxfs);});
             }
             //numfmts пишется в конце потому что они могут пополниться при записи Dxfs
             this.bs.WriteItem(c_oSerStylesTypes.NumFmts, function(){oThis.WriteNumFmts();});
@@ -2224,13 +2241,13 @@
                 this.memory.WriteBool(align.wrap);
             }
         };
-        this.WriteDxfs = function(Dxfs, oDxfsNumFormatToId)
+		this.WriteDxfs = function(Dxfs)
         {
             var oThis = this;
             for(var i = 0, length = Dxfs.length; i < length; ++i)
-                this.bs.WriteItem(c_oSerStylesTypes.Dxf, function(){oThis.WriteDxf(Dxfs[i], oDxfsNumFormatToId);});
+				this.bs.WriteItem(c_oSerStylesTypes.Dxf, function(){oThis.WriteDxf(Dxfs[i]);});
         };
-        this.WriteDxf = function(Dxf, oDxfsNumFormatToId)
+		this.WriteDxf = function(Dxf)
         {
             var oThis = this;
             if(null != Dxf.align)
@@ -2241,9 +2258,9 @@
                 this.bs.WriteItem(c_oSer_Dxf.Fill, function(){oThis.WriteFill(Dxf.fill);});
             if(null != Dxf.font)
                 this.bs.WriteItem(c_oSer_Dxf.Font, function(){oThis.WriteFont(Dxf.font);});
-            if(null != Dxf.num && null != oDxfsNumFormatToId)
+			if(null != Dxf.num)
             {
-                var numId = oDxfsNumFormatToId[Dxf.num.getFormat()];
+				var numId = this.stylesForWrite.getNumIdByFormat(Dxf.num);
                 if(null != numId)
                     this.bs.WriteItem(c_oSer_Dxf.NumFmt, function(){oThis.WriteNum(numId, Dxf.num.getFormat());});
             }
@@ -2776,14 +2793,15 @@
             }
         };
     }
-	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, isCopyPaste)
+	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, isCopyPaste, bsw)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
+		this.bsw = bsw;
         this.wb = wb;
         this.oSharedStrings = oSharedStrings;
         this.aDxfs = aDxfs;
-		this.stylesForWrite = new StylesForWrite();
+		this.stylesForWrite = bsw.stylesForWrite;
         this.isCopyPaste = isCopyPaste;
         this.sharedFormulas = {};
 		this.sharedFormulasIndex = 0;
@@ -3982,9 +4000,7 @@
 				this.bs.WriteItem(c_oSer_ConditionalFormattingRule.Bottom, function() {oThis.memory.WriteBool(rule.bottom);});
 			}
 			if (null != rule.dxf) {
-				var DxfId = this.aDxfs.length;
-				this.aDxfs.push(rule.dxf);
-				this.bs.WriteItem(c_oSer_ConditionalFormattingRule.DxfId, function() {oThis.memory.WriteLong(DxfId);});
+				this.bs.WriteItem(c_oSer_ConditionalFormattingRule.Dxf, function(){oThis.bsw.WriteDxf(rule.dxf);});
 			}
 			if (null != rule.equalAverage) {
 				this.bs.WriteItem(c_oSer_ConditionalFormattingRule.EqualAverage, function() {oThis.memory.WriteBool(rule.equalAverage);});
@@ -4053,12 +4069,39 @@
 			if (null != dataBar.ShowValue) {
 				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.ShowValue, function() {oThis.memory.WriteBool(dataBar.ShowValue);});
 			}
+			if (null != dataBar.AxisPosition) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.AxisPosition, function() {oThis.memory.WriteLong(dataBar.AxisPosition);});
+			}
+			if (null != dataBar.Gradient) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.GradientEnabled, function() {oThis.memory.WriteBool(dataBar.Gradient);});
+			}
+			if (null != dataBar.Direction) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.Direction, function() {oThis.memory.WriteLong(dataBar.Direction);});
+			}
+			if (null != dataBar.NegativeBarColorSameAsPositive) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeBarColorSameAsPositive, function() {oThis.memory.WriteBool(dataBar.NegativeBarColorSameAsPositive);});
+			}
+			if (null != dataBar.NegativeBarBorderColorSameAsPositive) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeBarBorderColorSameAsPositive, function() {oThis.memory.WriteBool(dataBar.NegativeBarBorderColorSameAsPositive);});
+			}
 			if (null != dataBar.Color) {
 				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.Color, function() {oThis.bs.WriteColorSpreadsheet(dataBar.Color);});
 			}
+			if (null != dataBar.NegativeColor) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeColor, function() {oThis.bs.WriteColorSpreadsheet(dataBar.NegativeColor);});
+			}
+			if (null != dataBar.BorderColor) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.BorderColor, function() {oThis.bs.WriteColorSpreadsheet(dataBar.BorderColor);});
+			}
+			if (null != dataBar.NegativeBorderColor) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.NegativeBorderColor, function() {oThis.bs.WriteColorSpreadsheet(dataBar.NegativeBorderColor);});
+			}
+			if (null != dataBar.AxisColor) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.AxisColor, function() {oThis.bs.WriteColorSpreadsheet(dataBar.AxisColor);});
+			}
 			for (i = 0; i < dataBar.aCFVOs.length; ++i) {
 				elem = dataBar.aCFVOs[i];
-				this.bs.WriteItem(c_oSer_ConditionalFormattingRuleColorScale.CFVO, function() {oThis.WriteCFVO(elem);});
+				this.bs.WriteItem(c_oSer_ConditionalFormattingDataBar.CFVO, function() {oThis.WriteCFVO(elem);});
 			}
 		};
 		this.WriteIconSet = function(iconSet) {
@@ -4078,7 +4121,11 @@
 			}
 			for (i = 0; i < iconSet.aCFVOs.length; ++i) {
 				elem = iconSet.aCFVOs[i];
-				this.bs.WriteItem(c_oSer_ConditionalFormattingRuleColorScale.CFVO, function() {oThis.WriteCFVO(elem);});
+				this.bs.WriteItem(c_oSer_ConditionalFormattingIconSet.CFVO, function() {oThis.WriteCFVO(elem);});
+			}
+			for (i = 0; i < iconSet.aIconSets.length; ++i) {
+				elem = iconSet.aIconSets[i];
+				this.bs.WriteItem(c_oSer_ConditionalFormattingIconSet.CFIcon, function() {oThis.WriteCFIS(elem);});
 			}
 		};
 		this.WriteCFVO = function(cfvo) {
@@ -4090,7 +4137,16 @@
 				this.bs.WriteItem(c_oSer_ConditionalFormattingValueObject.Type, function() {oThis.memory.WriteByte(cfvo.Type);});
 			}
 			if (null != cfvo.Val) {
-				this.bs.WriteItem(c_oSer_ConditionalFormattingValueObject.Val, function() {oThis.memory.WriteString3(cfvo.Val);});
+				this.bs.WriteItem(c_oSer_ConditionalFormattingValueObject.Formula, function() {oThis.memory.WriteString3(cfvo.Val);});
+			}
+		};
+		this.WriteCFIS = function(cfis) {
+			var oThis = this;
+			if (null != cfis.IconSet) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingIcon.iconSet, function() {oThis.memory.WriteLong(cfis.IconSet);});
+			}
+			if (null != cfis.IconId) {
+				this.bs.WriteItem(c_oSer_ConditionalFormattingIcon.iconId, function() {oThis.memory.WriteLong(cfis.IconId);});
 			}
 		};
 		this.WriteSparklineGroups = function(aSparklineGroups)
@@ -4447,7 +4503,8 @@
             var nStylesTablePos = this.ReserveTable(c_oSerTableTypes.Styles);
             //Workbook
             var aDxfs = [];
-            var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, this.isCopyPaste);
+			var oBinaryStylesTableWriter = new BinaryStylesTableWriter(this.Memory, this.wb, aDxfs);
+			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, this.isCopyPaste, oBinaryStylesTableWriter);
             this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste));
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
@@ -4455,9 +4512,9 @@
             if(!this.isCopyPaste)
                 this.WriteTable(c_oSerTableTypes.Other, new BinaryOtherTableWriter(this.Memory, this.wb));
             //Write SharedStrings
-            this.WriteReserved(new BinarySharedStringsTableWriter(this.Memory, this.wb, oSharedStrings), nSharedStringsPos);
+			this.WriteReserved(new BinarySharedStringsTableWriter(this.Memory, this.wb, oSharedStrings, oBinaryStylesTableWriter), nSharedStringsPos);
             //Write Styles
-            this.WriteReserved(new BinaryStylesTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter), nStylesTablePos);
+			this.WriteReserved(oBinaryStylesTableWriter, nStylesTablePos);
             //Пишем количество таблиц
             this.Memory.Seek(nStart);
             this.Memory.WriteByte(this.nRealTableCount);
@@ -7430,6 +7487,14 @@
                 var DxfId = this.stream.GetULongLE();
                 oConditionalFormattingRule.dxf = this.Dxfs[DxfId];
             }
+			else if (c_oSer_ConditionalFormattingRule.Dxf === type)
+			{
+				var oDxf = new AscCommonExcel.CellXfs();
+				res = this.bcr.Read1(length, function(t,l){
+					return oThis.oReadResult.stylesTableReader.ReadDxf(t,l,oDxf);
+				});
+				oConditionalFormattingRule.dxf = oDxf;
+			}
             else if (c_oSer_ConditionalFormattingRule.EqualAverage === type)
                 oConditionalFormattingRule.equalAverage = this.stream.GetBool();
             else if (c_oSer_ConditionalFormattingRule.Operator === type)
@@ -7510,6 +7575,36 @@
 				if (color) {
 					oDataBar.Color = color;
 				}
+			} else if (c_oSer_ConditionalFormattingDataBar.NegativeColor === type) {
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.NegativeColor = color;
+				}
+			} else if (c_oSer_ConditionalFormattingDataBar.BorderColor === type) {
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.BorderColor = color;
+				}
+			} else if (c_oSer_ConditionalFormattingDataBar.AxisColor === type) {
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.AxisColor = color;
+				}
+			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBorderColor === type) {
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.NegativeBorderColor = color;
+				}
+			} else if (c_oSer_ConditionalFormattingDataBar.AxisPosition === type) {
+				oDataBar.AxisPosition = this.stream.GetULongLE();
+			} else if (c_oSer_ConditionalFormattingDataBar.Direction === type) {
+				oDataBar.Direction = this.stream.GetULongLE();
+			} else if (c_oSer_ConditionalFormattingDataBar.GradientEnabled === type) {
+				oDataBar.Gradient = this.stream.GetBool();
+			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBarColorSameAsPositive === type) {
+				oDataBar.NegativeBarColorSameAsPositive = this.stream.GetBool();
+			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBarBorderColorSameAsPositive === type) {
+				oDataBar.NegativeBarBorderColorSameAsPositive = this.stream.GetBool();
             } else if (c_oSer_ConditionalFormattingDataBar.CFVO === type) {
                 oObject = new AscCommonExcel.CConditionalFormatValueObject();
                 res = this.bcr.Read1(length, function (t, l) {
@@ -7538,6 +7633,12 @@
                     return oThis.ReadCFVO(t, l, oObject);
                 });
                 oIconSet.aCFVOs.push(oObject);
+			} else if (c_oSer_ConditionalFormattingIconSet.CFIcon === type) {
+				oObject = new AscCommonExcel.CConditionalFormatIconSet();
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadCFIS(t, l, oObject);
+				});
+				oIconSet.aIconSets.push(oObject);
             } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -7548,12 +7649,22 @@
                 oCFVO.Gte = this.stream.GetBool();
             else if (c_oSer_ConditionalFormattingValueObject.Type === type)
                 oCFVO.Type = this.stream.GetUChar();
-            else if (c_oSer_ConditionalFormattingValueObject.Val === type)
+			else if (c_oSer_ConditionalFormattingValueObject.Val === type || c_oSer_ConditionalFormattingValueObject.Formula === type)
                 oCFVO.Val = this.stream.GetString2LE(length);
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
+		this.ReadCFIS = function (type, length, oCFVO) {
+			var res = c_oSerConstants.ReadOk;
+			if (c_oSer_ConditionalFormattingIcon.iconSet === type)
+				oCFVO.IconSet = this.stream.GetLong();
+			else if (c_oSer_ConditionalFormattingIcon.iconId === type)
+				oCFVO.IconId = this.stream.GetLong();
+			else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
         this.ReadSheetViews = function (type, length, aSheetViews) {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
@@ -8153,7 +8264,8 @@
         };
         this.oReadResult = {
             tableCustomFunc: [],
-            sheetData: []
+			sheetData: [],
+			stylesTableReader: null
         };
         this.getbase64DecodedData = function(szSrc)
         {
@@ -8424,11 +8536,12 @@
                 if(c_oSerConstants.ReadOk == res)
                     res = (new Binary_SharedStringTableReader(this.stream, wb, aSharedStrings)).Read();
             }
+			this.oReadResult.stylesTableReader = new Binary_StylesTableReader(this.stream, wb, aCellXfs, aDxfs, this.copyPasteObj.isCopyPaste)
             if(null != nStyleTableOffset)
             {
                 res = this.stream.Seek(nStyleTableOffset);
                 if(c_oSerConstants.ReadOk == res)
-                    res = (new Binary_StylesTableReader(this.stream, wb, aCellXfs, aDxfs, this.copyPasteObj.isCopyPaste)).Read();
+					res = this.oReadResult.stylesTableReader.Read();
             }
 			var bwtr = new Binary_WorksheetTableReader(this.stream, this.oReadResult, wb, aSharedStrings, aCellXfs, aDxfs, oMediaArray, this.copyPasteObj);
             if(c_oSerConstants.ReadOk == res)
@@ -9116,6 +9229,8 @@
 	window["AscCommonExcel"].ECfType = ECfType;
     window["AscCommonExcel"].ECfvoType = ECfvoType;
     window["AscCommonExcel"].ST_TimePeriod = ST_TimePeriod;
+	window["AscCommonExcel"].EDataBarAxisPosition = EDataBarAxisPosition;
+	window["AscCommonExcel"].EDataBarDirection = EDataBarDirection;
 
     window["Asc"].CTableStyles = CTableStyles;
     window["Asc"].CTableStyle = CTableStyle;

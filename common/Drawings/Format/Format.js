@@ -10568,8 +10568,8 @@ function CorrectUniColor(asc_color, unicolor, flag)
         var oUniFill = new AscFormat.CUniFill();
         oUniFill.fill = new AscFormat.CPattFill();
         oUniFill.fill.ftype = AscCommon.global_hatch_offsets[sPatternType];
-        oUniFill.fill.fgClr = FgColor.Unicolor;
-        oUniFill.fill.bgClr = BgColor.Unicolor;
+        oUniFill.fill.fgClr = FgColor && FgColor.Unicolor;
+        oUniFill.fill.bgClr = BgColor && BgColor.Unicolor;
         return oUniFill;
     }
 

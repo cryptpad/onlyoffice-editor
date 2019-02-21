@@ -843,7 +843,6 @@ CopyProcessor.prototype =
 			elems = {gridStart: 0, gridEnd: table.TableGrid.length - 1, indexStart: null, indexEnd: null, after: null, before: null, cells: row.Content};
         var tr = new CopyElement("tr");
         //Pr
-		table.Recalculate_Grid();
 		var gridSum = table.TableSumGrid;
         var trStyle = "";
         var nGridBefore = 0;
@@ -1028,6 +1027,7 @@ CopyProcessor.prototype =
             DomTable.oAttributes["style"] = tblStyle;
 
         //rows
+		table.Recalculate_Grid();
 		if(null == aRowElems)
 		{
 			for(var i = 0, length = table.Content.length; i < length; i++)

@@ -1540,6 +1540,11 @@
 		return result;
 	};
 
+
+	baseEditorsApi.prototype.showVideoControl = function(sMediaName, extX, extY, transform)
+	{};
+	baseEditorsApi.prototype.hideVideoControl = function()
+	{};
 	// plugins
 	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
 	{
@@ -1573,6 +1578,12 @@
 			return;
 
 		this.pluginsManager.onEnableMouseEvents(isEnable);
+	};
+
+	baseEditorsApi.prototype.asc_PlayMediaFile = function(sName)
+	{
+		if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["OpenMedia"])
+			window["AscDesktopEditor"]["OpenMedia"](sName);
 	};
 
     baseEditorsApi.prototype.isEnabledDropTarget = function()

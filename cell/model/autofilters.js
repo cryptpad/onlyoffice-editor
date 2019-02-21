@@ -1268,6 +1268,22 @@
 				return oRes;
 			},
 
+			isIntersectionTable: function(range) {
+				var oRes = null;
+				if(!range) {
+					return oRes;
+				}
+
+				this.forEachTables(function (table) {
+					if(table.Ref.intersection(range)) {
+						oRes = true;
+						return true;
+					}
+				});
+
+				return oRes;
+			},
+
 			forEachTables: function(callback) {
 				var worksheet = this.worksheet;
 				var tableParts = worksheet.TableParts;
@@ -4456,7 +4472,7 @@
 				return result;
 			},
 			
-			_intersectionRangeWithTableParts: function(range, exceptionRange)//находим фильтры, находящиеся в данном range
+			_intersectionRangeWithTableParts: function(range, exceptionRange)//находим таблицы, находящиеся в данном range
 			{
 				var result = [];
 				var rangeFilter;

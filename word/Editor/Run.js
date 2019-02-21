@@ -2731,8 +2731,15 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					{
 						if (para_FootnoteReference === ItemType)
 						{
-							Item.UpdateNumber(PRS);
-							PRS.AddFootnoteReference(Item, PRS.GetCurrentContentPos(Pos));
+							if (this.GetLogicDocument() && !this.GetLogicDocument().RecalcTableHeader)
+							{
+								Item.UpdateNumber(PRS);
+								PRS.AddFootnoteReference(Item, PRS.GetCurrentContentPos(Pos));
+							}
+							else
+							{
+								Item.private_Measure();
+							}
 						}
 						else if (para_FootnoteRef === ItemType)
 						{

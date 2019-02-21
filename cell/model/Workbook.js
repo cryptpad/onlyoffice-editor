@@ -3406,17 +3406,32 @@
 		this.selectionRange = wsFrom.selectionRange.clone(this);
 
 		//change cell formulas
+		var oldNewArrayFormulaMap = [];
 		this._forEachCell(function(cell) {
 			if (cell.isFormula()) {
-				var parsed;
+				var parsed, notMainArrayCell;
 				if (cell.transformSharedFormula()) {
 					parsed = cell.getFormulaParsed();
 				} else {
 					parsed = cell.getFormulaParsed();
-					parsed = parsed.clone(null, new CCellWithFormula(t, cell.nRow, cell.nCol), t);
+					if(parsed.getArrayFormulaRef()) {//***array-formula***
+						var listenerId = parsed.getListenerId();
+						//formula-array: parsed object one of all array cells
+						if(oldNewArrayFormulaMap[listenerId]) {
+							parsed = oldNewArrayFormulaMap[listenerId];
+							notMainArrayCell = true;
+						} else {
+							parsed = parsed.clone(null, new CCellWithFormula(t, cell.nRow, cell.nCol), t);
+							oldNewArrayFormulaMap[listenerId] = parsed;
+						}
+					} else {
+						parsed = parsed.clone(null, new CCellWithFormula(t, cell.nRow, cell.nCol), t);
+					}
 				}
-				parsed.renameSheetCopy(renameParams);
-				parsed.setFormulaString(parsed.assemble(true));
+				if(!notMainArrayCell) {
+					parsed.renameSheetCopy(renameParams);
+					parsed.setFormulaString(parsed.assemble(true));
+				}
 				cell.setFormulaInternal(parsed, true);
 				t.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
 			}
@@ -6497,6 +6512,51 @@
 	Worksheet.prototype.ignoreWriteFormulas = function (val) {
 		this.bIgnoreWriteFormulas = val;
 	};
+	Worksheet.prototype.checkShiftArrayFormulas = function (range, offset) {
+		//проверка на частичный сдвиг формулы массива
+		//проверка на внутренний сдвиг
+		var res = true;
+
+		var checkRange = function(formulaRange) {
+			var isHor = offset && offset.col;
+			var isDelete = offset && (offset.col < 0 || offset.row < 0);
+
+			//частичное выделение при удалении столбца/строки
+			if(formulaRange.intersection(range) && !range.containsRange(formulaRange)) {
+				return false;
+			}
+
+			/*if (isHor) {
+				//частичный сдвиг влево/вправо
+				if(range.r1 > formulaRange.r1 && range.r1 <= formulaRange.r2) {
+					return false;
+				}
+			} else {
+				//частичный сдвиг вверх/вниз
+				if(range.c1 > formulaRange.c1 && range.c1 <= formulaRange.c2) {
+					return false;
+				}
+			}*/
+
+			return true;
+		};
+
+		var alreadyCheckFormulas = [];
+		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
+			if(res && cell.isFormula()) {
+				var formulaParsed = cell.getFormulaParsed();
+				var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
+				if(arrayFormulaRef && !alreadyCheckFormulas[formulaParsed._index]) {
+					if(!checkRange(arrayFormulaRef)) {
+						res = false;
+					}
+					alreadyCheckFormulas[formulaParsed._index] = 1;
+				}
+			}
+		});
+
+		return res;
+	};
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
@@ -7480,14 +7540,22 @@
 			if (g_cCalcRecursion.incLevel()) {
 				var isCalc = this.getIsCalc();
 				this.setIsCalc(true);
+				var calculatedArrayFormulas = [];
 				this.processFormula(function(parsed) {
 					if (!isCalc) {
 						//***array-formula***
 						//добавлен последний параметр для обработки формулы массива
 						if(parsed.getArrayFormulaRef()) {
-							if(parsed.checkFirstCellArray(t)) {
+							var listenerId = parsed.getListenerId();
+							if(parsed.checkFirstCellArray(t) && !calculatedArrayFormulas[listenerId]) {
 								parsed.calculate();
+								calculatedArrayFormulas[listenerId] = 1;
 							} else {
+								if(null === parsed.value && !calculatedArrayFormulas[listenerId]) {
+									parsed.calculate();
+									calculatedArrayFormulas[listenerId] = 1;
+								}
+
 								var oldParent = parsed.parent;
 								parsed.parent = new AscCommonExcel.CCellWithFormula(t.ws, t.nRow, t.nCol);
 								parsed._endCalculate();
@@ -7603,6 +7671,11 @@
 				case cElementType.name:
 					this.setTypeInternal(CellValueType.Error);
 					this.setValueTextInternal(res.getValue().toString());
+					break;
+				case cElementType.empty:
+					//=A1:A3
+					this.setTypeInternal(CellValueType.Number);
+					this.setValueNumberInternal(res.getValue());
 					break;
 				default:
 					this.setTypeInternal(CellValueType.String);

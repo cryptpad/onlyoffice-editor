@@ -1373,6 +1373,11 @@ DrawingObjectsController.prototype =
 
     resetInternalSelection: function(noResetContentSelect)
     {
+        var oApi = this.getEditorApi();
+        if(oApi && oApi.hideVideoControl)
+        {
+            oApi.hideVideoControl();
+        }
         if(this.selection.groupSelection)
         {
             this.selection.groupSelection.resetSelection(this);
@@ -1585,7 +1590,17 @@ DrawingObjectsController.prototype =
                         this.handleOleObjectDoubleClick(drawing, object, e, x, y, pageIndex);
                     }
                     else if (2 == e.ClickCount && drawing instanceof ParaDrawing && drawing.Is_MathEquation())
+                    {
                         this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
+                    }
+                    else if(object.getObjectType() === AscDFH.historyitem_type_ImageShape)
+                    {
+                        var sMediaFile = object.getMediaFileName();
+                        if(typeof sMediaFile === "string" && this.handleMediaObject)
+                        {
+                            this.handleMediaObject(sMediaFile, e, x, y, pageIndex)
+                        }
+                    }
                 }
             }
             return true;
@@ -1600,6 +1615,7 @@ DrawingObjectsController.prototype =
             return {objectId: sId, cursorType: "move", bMarker: bInSelect};
         }
     },
+
 
     recalculateCurPos: function(bUpdateX, bUpdateY)
 	{

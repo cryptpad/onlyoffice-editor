@@ -50,20 +50,14 @@ function CGraphics()
     this.m_lWidthPix    = 0;
     this.m_lHeightPix   = 0;
     this.m_dDpiX        = 96.0;
-    this.m_dDpiY        = 96.0; 
+    this.m_dDpiY        = 96.0;
     this.m_bIsBreak 	= false;
-
-    this.textBB_l       = 10000;
-    this.textBB_t       = 10000;
-    this.textBB_r       = -10000;
-    this.textBB_b       = -10000;
 
     this.m_oPen     = new AscCommon.CPen();
     this.m_oBrush   = new AscCommon.CBrush();
 	this.m_oAutoShapesTrack = null;
 
     this.m_oFontManager = null;
-	this.m_bIsFillTextCanvasColor = 0;
 
     this.m_oCoordTransform  = new CMatrixL();
     this.m_oBaseTransform   = new CMatrixL();
@@ -104,8 +98,6 @@ function CGraphics()
 
     this.TextClipRect = null;
     this.IsClipContext = false;
-
-    this.ClearMode = false;
 
  	this.IsUseFonts2        = false;
     this.m_oFontManager2    = null;
@@ -236,8 +228,6 @@ CGraphics.prototype =
         _c.A = a;
 
         this.m_oContext.fillStyle = "rgba(" + _c.R + "," + _c.G + "," + _c.B + "," + (_c.A / 255) + ")";
-			
-		this.m_bIsFillTextCanvasColor = 0;
     },
     b_color2 : function(r,g,b,a)
     {
