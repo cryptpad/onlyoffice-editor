@@ -7540,14 +7540,22 @@
 			if (g_cCalcRecursion.incLevel()) {
 				var isCalc = this.getIsCalc();
 				this.setIsCalc(true);
+				var calculatedArrayFormulas = [];
 				this.processFormula(function(parsed) {
 					if (!isCalc) {
 						//***array-formula***
 						//добавлен последний параметр для обработки формулы массива
 						if(parsed.getArrayFormulaRef()) {
-							if(parsed.checkFirstCellArray(t)) {
+							var listenerId = parsed.getListenerId();
+							if(parsed.checkFirstCellArray(t) && !calculatedArrayFormulas[listenerId]) {
 								parsed.calculate();
+								calculatedArrayFormulas[listenerId] = 1;
 							} else {
+								if(null === parsed.value && !calculatedArrayFormulas[listenerId]) {
+									parsed.calculate();
+									calculatedArrayFormulas[listenerId] = 1;
+								}
+
 								var oldParent = parsed.parent;
 								parsed.parent = new AscCommonExcel.CCellWithFormula(t.ws, t.nRow, t.nCol);
 								parsed._endCalculate();
