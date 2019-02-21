@@ -707,9 +707,10 @@ RotateState.prototype =
                     for(i = 0; i < aDrawings.length; ++i)
                     {
                         bounds = aBounds[i];
-                        this.drawingObjects.arrTrackObjects[i].trackEnd(true);
+                        var oTrack = this.drawingObjects.arrTrackObjects[i];
+                        oTrack.trackEnd(true);
                         var original = aDrawings[i];
-                        if(!bMoveState && !this.drawingObjects.arrTrackObjects[i].view3D)
+                        if(!bMoveState && !oTrack.view3D && !(oTrack.originalObject && oTrack.originalObject.isCrop))
                         {
                             original.CheckWH();
                         }
@@ -741,7 +742,7 @@ RotateState.prototype =
                         }
                         else
                         {
-                            if(true !== this.drawingObjects.arrTrackObjects[i].bTextWarp)
+                            if(true !== oTrack.bTextWarp && !(oTrack.originalObject && oTrack.originalObject.isCrop))
                             {
                                 original.Set_XY(bounds.posX, bounds.posY, aParentParagraphs[i], original.GraphicObj.selectStartPage, bMoveState)
                             }

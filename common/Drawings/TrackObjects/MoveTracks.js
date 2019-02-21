@@ -264,15 +264,23 @@ function MoveShapeImageTrack(originalObject)
         }
         else
         {
-            if(bWord)
+            if(bWord && !this.originalObject.isCrop)
             {
                 if(this.originalObject.spPr.xfrm.offX === 0 && this.originalObject.spPr.xfrm.offY === 0)
+                {
+                    if(this.originalObject.cropObject)
+                    {
+                        this.originalObject.transform = this.transform;
+                        this.originalObject.invertTransform = AscCommon.global_MatrixTransformer.Invert(this.transform);
+                        this.originalObject.calculateSrcRect();
+                    }
                     return;
+                }
             }
             scale_coefficients = {cx: 1, cy: 1};
             ch_off_x = 0;
             ch_off_y = 0;
-            if(bWord)
+            if(bWord && !this.originalObject.isCrop)
             {
                 this.x = 0;
                 this.y = 0;
@@ -361,6 +369,8 @@ function MoveShapeImageTrack(originalObject)
         }
         if(this.originalObject.cropObject)
         {
+            this.originalObject.transform = this.transform;
+            this.originalObject.invertTransform = AscCommon.global_MatrixTransformer.Invert(this.transform);
             this.originalObject.calculateSrcRect();
         }
     };

@@ -1454,6 +1454,8 @@
                 oImage.recalculate();
                 oImage.setParent(null);
                 oImage.recalculateTransform();
+                oImage.invertTransform = AscCommon.global_MatrixTransformer.Invert(oImage.transform);
+                oImage.recalculateBounds();
                 oImage.setParent(this.parent);
                 oImage.selectStartPage = this.selectStartPage;
                 oImage.cropBrush = AscFormat.CreateUnfilFromRGB(128, 128, 128);
@@ -1480,8 +1482,8 @@
     CGraphicObjectBase.prototype.calculateSrcRect = function(){
 
         AscFormat.ExecuteNoHistory(function(){
-            this.cropObject.recalculateTransform();
-            this.recalculateTransform();
+            // this.cropObject.recalculateTransform();
+            // this.recalculateTransform();
             this.recalculateGeometry();
         }, this, []);
 
