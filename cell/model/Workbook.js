@@ -7664,6 +7664,11 @@
 					this.setTypeInternal(CellValueType.Error);
 					this.setValueTextInternal(res.getValue().toString());
 					break;
+				case cElementType.empty:
+					//=A1:A3
+					this.setTypeInternal(CellValueType.Number);
+					this.setValueNumberInternal(res.getValue());
+					break;
 				default:
 					this.setTypeInternal(CellValueType.String);
 					this.setValueTextInternal(res.getValue().toString());
