@@ -1700,6 +1700,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.RemoveCommentsOnPreDelete = true;  // Удалять ли комментарий при удалении объекта
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
 	this.RemoveOnDrag              = false; // Происходит ли удалении на функции drag-n-drop
+	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
 
     // Мап для рассылки
     this.MailMergeMap             = null;
