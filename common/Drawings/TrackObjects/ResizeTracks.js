@@ -1226,14 +1226,24 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
                 if(this.originalObject.isCrop)
                 {
+                    AscFormat.ExecuteNoHistory(function(){
+                        this.originalObject.recalculateGeometry();
+                    }, this, [])
+
                     this.originalObject.transform = this.transform;
                     this.originalObject.invertTransform = AscCommon.global_MatrixTransformer.Invert(this.transform);
+
+                    this.originalObject.extX = this.resizedExtX;
+                    this.originalObject.extY = this.resizedExtY;
+
                     this.originalObject.parentCrop.calculateSrcRect();
                 }
                 if(this.originalObject.cropObject)
                 {
                     this.originalObject.transform = this.transform;
                     this.originalObject.invertTransform = AscCommon.global_MatrixTransformer.Invert(this.transform);
+                    this.originalObject.extX = this.resizedExtX;
+                    this.originalObject.extY = this.resizedExtY;
                     this.originalObject.calculateSrcRect();
                 }
             }

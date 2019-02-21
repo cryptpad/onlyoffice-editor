@@ -1454,6 +1454,7 @@
                 oImage.recalculate();
                 oImage.setParent(null);
                 oImage.recalculateTransform();
+                oImage.recalculateGeometry();
                 oImage.invertTransform = AscCommon.global_MatrixTransformer.Invert(oImage.transform);
                 oImage.recalculateBounds();
                 oImage.setParent(this.parent);
@@ -1481,12 +1482,20 @@
 
     CGraphicObjectBase.prototype.calculateSrcRect = function(){
 
+        var oldTransform = this.transform.CreateDublicate();
+        var oldExtX = this.extX;
+        var oldExtY = this.extY;
         AscFormat.ExecuteNoHistory(function(){
             // this.cropObject.recalculateTransform();
             // this.recalculateTransform();
+            var oldVal = this.recalcInfo.recalculateTransform;
+            this.recalcInfo.recalculateTransform = false;
             this.recalculateGeometry();
+            this.recalcInfo.recalculateTransform = oldVal;
         }, this, []);
-
+        this.transform = oldTransform;
+        this.extX = oldExtX;
+        this.extY = oldExtY;
         if(this.getObjectType() === AscDFH.historyitem_type_ImageShape)
         {
             var blipFill = this.blipFill.createDuplicate();
