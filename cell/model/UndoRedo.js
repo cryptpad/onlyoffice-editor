@@ -1899,7 +1899,7 @@ function (window, undefined) {
 					cell.setBorder(null);
 				}
 			} else if (AscCH.historyitem_Cell_ShrinkToFit == Type) {
-				cell.setFill(Val);
+				cell.setShrinkToFit(Val);
 			} else if (AscCH.historyitem_Cell_Wrap == Type) {
 				cell.setWrap(Val);
 			} else if (AscCH.historyitem_Cell_Num == Type) {
