@@ -6844,8 +6844,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
         if (oSelectInfo.GetInlineLevelSdt() || oSelectInfo.GetBlockLevelSdt())
 		{
 			// Контейнер, который запрещено удалять, нельзя и переносить
-			if ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
-				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted))
+			if (!bCopy
+				&& ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
+				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted())))
 				return;
 
 			this.SetCheckContentControlsLock(false);
