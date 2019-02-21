@@ -1137,6 +1137,152 @@ DrawingObjectsController.prototype =
         }
     },
 
+    cropFit: function(){
+        var cropObject = this.getObjectForCrop();
+        if(!cropObject)
+        {
+            return;
+        }
+        this.checkSelectedObjectsAndCallback(function () {
+            cropObject.checkSrcRect();
+            if(cropObject.createCropObject())
+            {
+                var oImgP = new Asc.asc_CImgProperty();
+                oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+                var oSize = oImgP.get_OriginSize(this.getEditorApi());
+
+                var dScale = cropObject.bounds.w/oSize.Width;
+                var dTestHeight = oSize.Height*dScale;
+                var srcRect = new AscFormat.CSrcRect();
+                if(dTestHeight <= cropObject.bounds.h)
+                {
+                    srcRect.l = 0;
+                    srcRect.r = 100;
+                    srcRect.t = -100*(cropObject.bounds.h - dTestHeight)/2.0/dTestHeight;
+                    srcRect.b = 100 - srcRect.t;
+                }
+                else
+                {
+                    srcRect.t = 0;
+                    srcRect.b = 100;
+                    dScale = cropObject.bounds.h/oSize.Height;
+                    var dTestWidth = oSize.Width*dScale;
+                    srcRect.l = -100*(cropObject.bounds.w - dTestWidth)/2.0/dTestWidth;
+                    srcRect.r = 100 - srcRect.l;
+                }
+                cropObject.setSrcRect(srcRect);
+                this.selection.cropSelection = cropObject;
+                if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
+                {
+                    this.drawingObjects.showDrawingObjects();
+                }
+                this.updateOverlay();
+            }
+        },[], false);
+    },
+
+    cropFill: function(){
+        var cropObject = this.getObjectForCrop();
+        if(!cropObject)
+        {
+            return;
+        }
+        this.checkSelectedObjectsAndCallback(function () {
+            cropObject.checkSrcRect();
+            if(cropObject.createCropObject())
+            {
+                var oImgP = new Asc.asc_CImgProperty();
+                oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+                var oSize = oImgP.get_OriginSize(this.getEditorApi());
+
+                var dScale = cropObject.bounds.w/oSize.Width;
+                var dTestHeight = oSize.Height*dScale;
+                var srcRect = new AscFormat.CSrcRect();
+                if(dTestHeight >= cropObject.bounds.h)
+                {
+                    srcRect.l = 0;
+                    srcRect.r = 100;
+                    srcRect.t = -100*(cropObject.bounds.h - dTestHeight)/2.0/dTestHeight;
+                    srcRect.b = 100 - srcRect.t;
+                }
+                else
+                {
+                    srcRect.t = 0;
+                    srcRect.b = 100;
+                    dScale = cropObject.bounds.h/oSize.Height;
+                    var dTestWidth = oSize.Width*dScale;
+                    srcRect.l = -100*(cropObject.bounds.w - dTestWidth)/2.0/dTestWidth;
+                    srcRect.r = 100 - srcRect.l;
+                }
+                cropObject.setSrcRect(srcRect);
+                this.selection.cropSelection = cropObject;
+                if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
+                {
+                    this.drawingObjects.showDrawingObjects();
+                }
+                this.updateOverlay();
+            }
+        },[], false);
+    },
+
+    setCropAspect: function(dAspect){
+        //dAscpect = widh/height
+        var cropObject = this.getObjectForCrop();
+        if(!cropObject)
+        {
+            return;
+        }
+        this.checkSelectedObjectsAndCallback(function () {
+            cropObject.checkSrcRect();
+            if(cropObject.createCropObject())
+            {
+                this.selection.cropSelection = cropObject;
+                var newW, newH;
+                if(dAspect*cropObject.extX <= cropObject.extY)
+                {
+                    newW = cropObject.extX;
+                    newH = cropObject.extY*dAspect;
+                }
+                else
+                {
+
+                    newW = cropObject.extX/dAspect;
+                    newH = cropObject.extY;
+                }
+                var oTrack = cropObject.createResizeTrack(cropObject.getCardDirectionByNum(0), this);
+                var oImgP = new Asc.asc_CImgProperty();
+                oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+                var oSize = oImgP.get_OriginSize(this.getEditorApi());
+
+                var dScale = cropObject.bounds.w/oSize.Width;
+                var dTestHeight = oSize.Height*dScale;
+                var srcRect = new AscFormat.CSrcRect();
+                if(dTestHeight >= cropObject.bounds.h)
+                {
+                    srcRect.l = 0;
+                    srcRect.r = 100;
+                    srcRect.t = -100*(cropObject.bounds.h - dTestHeight)/2.0/dTestHeight;
+                    srcRect.b = 100 - srcRect.t;
+                }
+                else
+                {
+                    srcRect.t = 0;
+                    srcRect.b = 100;
+                    dScale = cropObject.bounds.h/oSize.Height;
+                    var dTestWidth = oSize.Width*dScale;
+                    srcRect.l = -100*(cropObject.bounds.w - dTestWidth)/2.0/dTestWidth;
+                    srcRect.r = 100 - srcRect.l;
+                }
+                cropObject.setSrcRect(srcRect);
+                if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
+                {
+                    this.drawingObjects.showDrawingObjects();
+                }
+                this.updateOverlay();
+            }
+        },[], false);
+    },
+
     canReceiveKeyPress: function()
     {
         return this.curState instanceof AscFormat.NullState;

@@ -1496,20 +1496,27 @@
         this.transform = oldTransform;
         this.extX = oldExtX;
         this.extY = oldExtY;
+        this.setSrcRect(this.calculateSrcRect2());
+        this.clearCropObject();
+    };
+
+
+    CGraphicObjectBase.prototype.setSrcRect = function(srcRect){
+
         if(this.getObjectType() === AscDFH.historyitem_type_ImageShape)
         {
             var blipFill = this.blipFill.createDuplicate();
-            blipFill.srcRect = this.calculateSrcRect2();
+            blipFill.srcRect = srcRect;
             this.setBlipFill(blipFill);
         }
         else
         {
             var brush = this.brush.createDuplicate();
-            brush.fill.srcRect =  this.calculateSrcRect2();
+            brush.fill.srcRect = srcRect;
             this.spPr.setFill(brush);
         }
-        this.clearCropObject();
     };
+
     CGraphicObjectBase.prototype.calculateSrcRect2 = function(){
 
         var oShapeDrawer = new AscCommon.CShapeDrawer();
