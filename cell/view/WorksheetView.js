@@ -10550,9 +10550,24 @@
 						//array-formula
 						var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
 						if(arrayFormulaRef) {
+							arrayFormulaRef = arrayFormulaRef.clone();
+
 							if(!formulaProps.fromRange.containsRange(arrayFormulaRef)) {
 								arrayFormulaRef = arrayFormulaRef.intersection(formulaProps.fromRange);
 							}
+
+							if (specialPasteProps.transpose) {
+								var diffCol1 = arrayFormulaRef.c1 - activeCellsPasteFragment.c1;
+								var diffRow1 = arrayFormulaRef.r1 - activeCellsPasteFragment.r1;
+								var diffCol2 = arrayFormulaRef.c2 - activeCellsPasteFragment.c1;
+								var diffRow2 = arrayFormulaRef.r2 - activeCellsPasteFragment.r1;
+
+								arrayFormulaRef.c1 = activeCellsPasteFragment.c1 + diffRow1;
+								arrayFormulaRef.r1 = activeCellsPasteFragment.r1 + diffCol1;
+								arrayFormulaRef.c2 = activeCellsPasteFragment.c1 + diffRow2;
+								arrayFormulaRef.r2 = activeCellsPasteFragment.r1 + diffCol2;
+							}
+
 							arrayFormulaRef.setOffset(offset);
 						}
 						if(specialPasteProps.transpose)
