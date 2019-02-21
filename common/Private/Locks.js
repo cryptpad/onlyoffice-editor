@@ -356,6 +356,10 @@ if(typeof CGraphicObjects !== "undefined")
                 oDrawing.Lock.Check(oDrawing.Get_Id());
             }
         }
+
+		var oDocContent = this.getTargetDocContent();
+		if (oDocContent)
+			oDocContent.Document_Is_SelectionLocked(CheckType);
     };
 }
 
