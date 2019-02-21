@@ -1159,15 +1159,34 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                         this.resizedPosY = 0;
                     }
                 }
-                AscFormat.CheckSpPrXfrm(this.originalObject);
+                if(!this.originalObject.isCrop){
+                    AscFormat.CheckSpPrXfrm(this.originalObject);
+                }
+                else{
+                    AscFormat.ExecuteNoHistory(function () {
+                        AscFormat.CheckSpPrXfrm(this.originalObject);
+                    }, this, []);
+                }
                 var xfrm = this.originalObject.spPr.xfrm;
 
                 if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame)
                 {
-                    xfrm.setOffX(this.resizedPosX/scale_coefficients.cx + ch_off_x);
-                    xfrm.setOffY(this.resizedPosY/scale_coefficients.cy + ch_off_y);
-                    xfrm.setExtX(this.resizedExtX/scale_coefficients.cx);
-                    xfrm.setExtY(this.resizedExtY/scale_coefficients.cy);
+                    if(!this.originalObject.isCrop)
+                    {
+                        xfrm.setOffX(this.resizedPosX/scale_coefficients.cx + ch_off_x);
+                        xfrm.setOffY(this.resizedPosY/scale_coefficients.cy + ch_off_y);
+                        xfrm.setExtX(this.resizedExtX/scale_coefficients.cx);
+                        xfrm.setExtY(this.resizedExtY/scale_coefficients.cy);
+                    }
+                    else
+                    {
+                        AscFormat.ExecuteNoHistory(function () {
+                            xfrm.setOffX(this.resizedPosX/scale_coefficients.cx + ch_off_x);
+                            xfrm.setOffY(this.resizedPosY/scale_coefficients.cy + ch_off_y);
+                            xfrm.setExtX(this.resizedExtX/scale_coefficients.cx);
+                            xfrm.setExtY(this.resizedExtY/scale_coefficients.cy);
+                        }, this, []);
+                    }
                 }
                 else
                 {
@@ -1193,8 +1212,19 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
                 if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_ChartSpace && this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame)
                 {
-                    xfrm.setFlipH(this.resizedflipH);
-                    xfrm.setFlipV(this.resizedflipV);
+
+                    if(!this.originalObject.isCrop)
+                    {
+                        xfrm.setFlipH(this.resizedflipH);
+                        xfrm.setFlipV(this.resizedflipV);
+                    }
+                    else
+                    {
+                        AscFormat.ExecuteNoHistory(function () {
+                            xfrm.setFlipH(this.resizedflipH);
+                            xfrm.setFlipV(this.resizedflipV);
+                        }, this, []);
+                    }
                 }
                 if(this.originalObject.getObjectType && this.originalObject.getObjectType() === AscDFH.historyitem_type_OleObject)
                 {
@@ -1272,8 +1302,18 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     this.originalObject.nvSpPr.setUniSpPr(nvUniSpPr);
                 }
             }
-            AscFormat.CheckShapeBodyAutoFitReset(this.originalObject);
-            this.originalObject.checkDrawingBaseCoords();
+            if(!this.originalObject.isCrop)
+            {
+                AscFormat.CheckShapeBodyAutoFitReset(this.originalObject);
+                this.originalObject.checkDrawingBaseCoords();
+            }
+            else
+            {
+                AscFormat.ExecuteNoHistory(function () {
+                    AscFormat.CheckShapeBodyAutoFitReset(this.originalObject);
+                    this.originalObject.checkDrawingBaseCoords();
+                }, this, []);
+            }
         };
     }, this, []);
 }

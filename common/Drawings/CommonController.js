@@ -7704,6 +7704,9 @@ DrawingObjectsController.prototype =
         {
             this.selectObject(selection_state.cropObject, selection_state.selectStartPage);
             this.selection.cropSelection = selection_state.cropObject;
+            if(this.selection.cropSelection){
+                this.selection.cropSelection.cropObject = selection_state.cropImage;
+            }
         }
         else
         {
@@ -7761,6 +7764,7 @@ DrawingObjectsController.prototype =
         {
             selection_state.focus = true;
             selection_state.cropObject = this.selection.cropSelection;
+            selection_state.cropImage = this.selection.cropSelection.cropObject;
             selection_state.selectStartPage = this.selection.cropSelection.selectStartPage;
         }
         else
@@ -7897,6 +7901,9 @@ DrawingObjectsController.prototype =
                 {
                     this.selectObject(oDrawingSelectionState.cropObject, bDocument ? (oDrawingSelectionState.cropObject.parent ? oDrawingSelectionState.cropObject.parent.PageNum : nPageIndex) : nPageIndex);
                     this.selection.cropSelection = oDrawingSelectionState.cropObject;
+                    if(this.selection.cropSelection){
+                        this.selection.cropSelection.cropObject = oDrawingSelectionState.cropImage;
+                    }
                     if(!oSelectionState.DrawingSelection){
                         bNeedRecalculateCurPos = true;
                     }
