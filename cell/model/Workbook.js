@@ -6917,6 +6917,9 @@
 				//***array-formula***
 				if(byRef && !isFirstArrayFormulaCell) {
 					newFP = this.ws.formulaArrayLink;
+					if(newFP === null) {
+						return;
+					}
 					if(this.nCol === byRef.c2 && this.nRow === byRef.r2) {
 						this.ws.formulaArrayLink = null;
 					}
@@ -6932,7 +6935,7 @@
 							case c_oAscError.ID.FrmlWrongFunctionName:
 								break;
 							case c_oAscError.ID.FrmlParenthesesCorrectCount:
-								this.setValue("=" + newFP.getFormula(), callback, isCopyPaste);
+								this.setValue("=" + newFP.getFormula(), callback, isCopyPaste, byRef);
 								return;
 							default :
 							{
