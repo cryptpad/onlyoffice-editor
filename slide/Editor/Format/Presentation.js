@@ -7789,7 +7789,48 @@ CPresentation.prototype =
     },
 
 
-	AddTextArt: function(nStyle)
+    canStartImageCrop: function(){
+        var oCurrentController = this.GetCurrentController();
+        if(!oCurrentController){
+            return false;
+        }
+        return oCurrentController.canStartImageCrop();
+    },
+
+    startImageCrop: function(){
+        var oCurrentController = this.GetCurrentController();
+        if(!oCurrentController){
+            return false;
+        }
+        return oCurrentController.startImageCrop();
+    },
+
+    endImageCrop: function(){
+        var oCurrentController = this.GetCurrentController();
+        if(!oCurrentController){
+            return false;
+        }
+        return oCurrentController.endImageCrop();
+    },
+
+
+    cropFit: function(){
+        var oCurrentController = this.GetCurrentController();
+        if(!oCurrentController){
+            return false;
+        }
+        return oCurrentController.cropFit();
+    },
+
+    cropFill: function(){
+        var oCurrentController = this.GetCurrentController();
+        if(!oCurrentController){
+            return false;
+        }
+        return oCurrentController.cropFill();
+    },
+
+    AddTextArt: function(nStyle)
     {
         if(this.Slides[this.CurPage])
         {
