@@ -6994,13 +6994,30 @@ background-repeat: no-repeat;\
 			_min);
 	};
 
-	asc_docs_api.prototype.AddTextArt = function(nStyle)
+
+	asc_docs_api.prototype.asc_canEditCrop = function()
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
-		{
-			History.Create_NewPoint(AscDFH.historydescription_Document_AddTextArt);
-			this.WordControl.m_oLogicDocument.AddTextArt(nStyle);
-		}
+		return this.WordControl.m_oLogicDocument.DrawingObjects.canStartImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_startEditCrop = function()
+	{
+		return this.WordControl.m_oLogicDocument.DrawingObjects.startImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_endEditCrop = function()
+	{
+		return this.WordControl.m_oLogicDocument.DrawingObjects.endImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_cropFit = function()
+	{
+		return this.WordControl.m_oLogicDocument.DrawingObjects.cropFit();
+	};
+
+	asc_docs_api.prototype.asc_cropFill = function()
+	{
+		return this.WordControl.m_oLogicDocument.DrawingObjects.cropFill();
 	};
 
 	asc_docs_api.prototype.AddTextArt = function(nStyle)
@@ -9750,6 +9767,12 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['StartAddShape']                             = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['AddShapeOnCurrentPage']                     = asc_docs_api.prototype.AddShapeOnCurrentPage;
 	asc_docs_api.prototype['AddTextArt']                                = asc_docs_api.prototype.AddTextArt;
+	asc_docs_api.prototype['asc_canEditCrop']                           = asc_docs_api.prototype.asc_canEditCrop;
+	asc_docs_api.prototype['asc_startEditCrop']                         = asc_docs_api.prototype.asc_startEditCrop;
+	asc_docs_api.prototype['asc_endEditCrop']                           = asc_docs_api.prototype.asc_endEditCrop;
+	asc_docs_api.prototype['asc_cropFit']                               = asc_docs_api.prototype.asc_cropFit;
+	asc_docs_api.prototype['asc_cropFill']                              = asc_docs_api.prototype.asc_cropFill;
+
 	asc_docs_api.prototype['sync_StartAddShapeCallback']                = asc_docs_api.prototype.sync_StartAddShapeCallback;
 	asc_docs_api.prototype['CanGroup']                                  = asc_docs_api.prototype.CanGroup;
 	asc_docs_api.prototype['CanUnGroup']                                = asc_docs_api.prototype.CanUnGroup;

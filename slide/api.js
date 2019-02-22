@@ -4026,6 +4026,35 @@ background-repeat: no-repeat;\
     };
     //-------------------------------------------------------
 
+
+
+	asc_docs_api.prototype.asc_canEditCrop = function()
+	{
+
+		return this.WordControl.m_oLogicDocument.canStartImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_startEditCrop = function()
+	{
+		return this.WordControl.m_oLogicDocument.startImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_endEditCrop = function()
+	{
+		return this.WordControl.m_oLogicDocument.endImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_cropFit = function()
+	{
+		return this.WordControl.m_oLogicDocument.cropFit();
+	};
+
+	asc_docs_api.prototype.asc_cropFill = function()
+	{
+		return this.WordControl.m_oLogicDocument.cropFill();
+	};
+
+
 	asc_docs_api.prototype.AddTextArt = function(nStyle)
 	{
 		if (editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Drawing_Props) === false)
@@ -7538,6 +7567,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_addImage']                        = asc_docs_api.prototype.asc_addImage;
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['AddTextArt']                          = asc_docs_api.prototype.AddTextArt;
+	asc_docs_api.prototype['asc_canEditCrop']                     = asc_docs_api.prototype.asc_canEditCrop;
+	asc_docs_api.prototype['asc_startEditCrop']                   = asc_docs_api.prototype.asc_startEditCrop;
+	asc_docs_api.prototype['asc_endEditCrop']                     = asc_docs_api.prototype.asc_endEditCrop;
+	asc_docs_api.prototype['asc_cropFit']                         = asc_docs_api.prototype.asc_cropFit;
+	asc_docs_api.prototype['asc_cropFill']                        = asc_docs_api.prototype.asc_cropFill;
 	asc_docs_api.prototype['canGroup']                            = asc_docs_api.prototype.canGroup;
 	asc_docs_api.prototype['canUnGroup']                          = asc_docs_api.prototype.canUnGroup;
 	asc_docs_api.prototype['AddImageUrl']                         = asc_docs_api.prototype.AddImageUrl;

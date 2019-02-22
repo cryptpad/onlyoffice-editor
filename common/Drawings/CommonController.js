@@ -1259,31 +1259,7 @@ DrawingObjectsController.prototype =
                     newW = cropObject.extX/dAspect;
                     newH = cropObject.extY;
                 }
-                var oTrack = cropObject.createResizeTrack(cropObject.getCardDirectionByNum(0), this);
-                var oImgP = new Asc.asc_CImgProperty();
-                oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
-                var oSize = oImgP.get_OriginSize(this.getEditorApi());
 
-                var dScale = cropObject.bounds.w/oSize.Width;
-                var dTestHeight = oSize.Height*dScale;
-                var srcRect = new AscFormat.CSrcRect();
-                if(dTestHeight >= cropObject.bounds.h)
-                {
-                    srcRect.l = 0;
-                    srcRect.r = 100;
-                    srcRect.t = -100*(cropObject.bounds.h - dTestHeight)/2.0/dTestHeight;
-                    srcRect.b = 100 - srcRect.t;
-                }
-                else
-                {
-                    srcRect.t = 0;
-                    srcRect.b = 100;
-                    dScale = cropObject.bounds.h/oSize.Height;
-                    var dTestWidth = oSize.Width*dScale;
-                    srcRect.l = -100*(cropObject.bounds.w - dTestWidth)/2.0/dTestWidth;
-                    srcRect.r = 100 - srcRect.l;
-                }
-                cropObject.setSrcRect(srcRect);
                 if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
                 {
                     this.drawingObjects.showDrawingObjects();
@@ -2089,6 +2065,12 @@ DrawingObjectsController.prototype =
                     var cropObject = oCropSelection.getCropObject();
                     if(cropObject)
                     {
+                        var oldGlobalAlpha;
+                        if(drawingDocument.AutoShapesTrack.Graphics)
+                        {
+                            oldGlobalAlpha = drawingDocument.AutoShapesTrack.Graphics.globalAlpha;
+                            drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(false, 1.0);
+                        }
                         drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage, true);
                         cropObject.draw(drawingDocument.AutoShapesTrack);
                         drawingDocument.AutoShapesTrack.CorrectOverlayBounds();
@@ -2097,6 +2079,10 @@ DrawingObjectsController.prototype =
                         oCropSelection.draw(drawingDocument.AutoShapesTrack);
                         drawingDocument.AutoShapesTrack.CorrectOverlayBounds();
 
+                        if(drawingDocument.AutoShapesTrack.Graphics)
+                        {
+                            drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(true, oldGlobalAlpha);
+                        }
                         drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
                         drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
                     }

@@ -3943,6 +3943,8 @@ CGraphicObjects.prototype =
     canStartImageCrop: DrawingObjectsController.prototype.canStartImageCrop,
     startImageCrop: DrawingObjectsController.prototype.startImageCrop,
     endImageCrop: DrawingObjectsController.prototype.endImageCrop,
+    cropFit: DrawingObjectsController.prototype.cropFit,
+    cropFill: DrawingObjectsController.prototype.cropFill,
 
     getFromTargetTextObjectContextMenuPosition: function(oTargetTextObject, pageIndex)
     {
