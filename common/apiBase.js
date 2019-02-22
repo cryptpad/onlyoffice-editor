@@ -1542,9 +1542,40 @@
 
 
 	baseEditorsApi.prototype.showVideoControl = function(sMediaName, extX, extY, transform)
-	{};
+	{
+		if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["MediaStart"])
+			return;
+
+		switch (this.editorId)
+		{
+			case c_oEditorId.Word:
+			{
+				break;
+			}
+			case c_oEditorId.Presentation:
+			{
+                var pos = this.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(0, 0, this.WordControl.m_oLogicDocument.CurPage, null, true);
+                pos.X += this.WordControl.X;
+                pos.Y += this.WordControl.Y;
+
+                if (!transform)
+                	window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, this.WordControl.m_nZoomValue / 100);
+                else
+                    window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, this.WordControl.m_nZoomValue / 100, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+				break;
+			}
+            case c_oEditorId.Spreadsheet:
+            {
+                break;
+            }
+		}
+	};
 	baseEditorsApi.prototype.hideVideoControl = function()
-	{};
+	{
+        if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["MediaEnd"])
+            return;
+        window["AscDesktopEditor"]["MediaEnd"]();
+	};
 	// plugins
 	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
 	{
