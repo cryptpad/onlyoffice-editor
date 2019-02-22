@@ -8136,6 +8136,26 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), _var( [10.5, 12.4, 19.4] ) );
 
+		oParser = new parserFormula( "VAR(1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
+		oParser = new parserFormula( "VAR({1})", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
+		ws.getRange2( "A202" ).setValue( "1345" );
+		ws.getRange2( "A203" ).setValue( "" );
+		ws.getRange2( "A204" ).setValue( "" );
+
+		oParser = new parserFormula( "VAR(A202)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
+		oParser = new parserFormula( "VAR(A202:A204)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
     } );
 
 	test( "Test: \"VAR.P\"", function () {

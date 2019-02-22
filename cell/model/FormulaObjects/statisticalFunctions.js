@@ -10870,7 +10870,7 @@ function (window, undefined) {
 	cVAR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cVAR.prototype.Calculate = function (arg) {
 		function _var(x) {
-			if (x.length < 1) {
+			if (x.length <= 1) {
 				return new cError(cErrorType.division_by_zero);
 			}
 
