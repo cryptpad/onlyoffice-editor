@@ -1151,23 +1151,29 @@ DrawingObjectsController.prototype =
                 oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
                 var oSize = oImgP.get_OriginSize(this.getEditorApi());
 
-                var dScale = cropObject.bounds.w/oSize.Width;
+
+                var oShapeDrawer = new AscCommon.CShapeDrawer();
+                oShapeDrawer.bIsCheckBounds = true;
+                cropObject.check_bounds(oShapeDrawer);
+                var bounds_w = oShapeDrawer.max_x - oShapeDrawer.min_x;
+                var bounds_h = oShapeDrawer.max_y - oShapeDrawer.min_y;
+                var dScale = bounds_w/oSize.Width;
                 var dTestHeight = oSize.Height*dScale;
                 var srcRect = new AscFormat.CSrcRect();
-                if(dTestHeight <= cropObject.bounds.h)
+                if(dTestHeight <= bounds_h)
                 {
                     srcRect.l = 0;
                     srcRect.r = 100;
-                    srcRect.t = -100*(cropObject.bounds.h - dTestHeight)/2.0/dTestHeight;
+                    srcRect.t = -100*(bounds_h - dTestHeight)/2.0/dTestHeight;
                     srcRect.b = 100 - srcRect.t;
                 }
                 else
                 {
                     srcRect.t = 0;
                     srcRect.b = 100;
-                    dScale = cropObject.bounds.h/oSize.Height;
+                    dScale = bounds_h/oSize.Height;
                     var dTestWidth = oSize.Width*dScale;
-                    srcRect.l = -100*(cropObject.bounds.w - dTestWidth)/2.0/dTestWidth;
+                    srcRect.l = -100*(bounds_w - dTestWidth)/2.0/dTestWidth;
                     srcRect.r = 100 - srcRect.l;
                 }
                 cropObject.setSrcRect(srcRect);
@@ -1194,24 +1200,28 @@ DrawingObjectsController.prototype =
                 var oImgP = new Asc.asc_CImgProperty();
                 oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
                 var oSize = oImgP.get_OriginSize(this.getEditorApi());
-
-                var dScale = cropObject.bounds.w/oSize.Width;
+                var oShapeDrawer = new AscCommon.CShapeDrawer();
+                oShapeDrawer.bIsCheckBounds = true;
+                cropObject.check_bounds(oShapeDrawer);
+                var bounds_w = oShapeDrawer.max_x - oShapeDrawer.min_x;
+                var bounds_h = oShapeDrawer.max_y - oShapeDrawer.min_y;
+                var dScale = bounds_w/oSize.Width;
                 var dTestHeight = oSize.Height*dScale;
                 var srcRect = new AscFormat.CSrcRect();
-                if(dTestHeight >= cropObject.bounds.h)
+                if(dTestHeight >= bounds_h)
                 {
                     srcRect.l = 0;
                     srcRect.r = 100;
-                    srcRect.t = -100*(cropObject.bounds.h - dTestHeight)/2.0/dTestHeight;
+                    srcRect.t = -100*(bounds_h - dTestHeight)/2.0/dTestHeight;
                     srcRect.b = 100 - srcRect.t;
                 }
                 else
                 {
                     srcRect.t = 0;
                     srcRect.b = 100;
-                    dScale = cropObject.bounds.h/oSize.Height;
+                    dScale = bounds_h/oSize.Height;
                     var dTestWidth = oSize.Width*dScale;
-                    srcRect.l = -100*(cropObject.bounds.w - dTestWidth)/2.0/dTestWidth;
+                    srcRect.l = -100*(bounds_w - dTestWidth)/2.0/dTestWidth;
                     srcRect.r = 100 - srcRect.l;
                 }
                 cropObject.setSrcRect(srcRect);
