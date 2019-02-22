@@ -3615,7 +3615,8 @@
 									if (null !== val) {
 										dxf = new AscCommonExcel.CellXfs();
 										tmp = (oGradient2 && val > oGradient1.max) ? oGradient2 : oGradient1;
-										dxf.fill = new AscCommonExcel.Fill({bg: tmp.calculateColor(val)});
+										dxf.fill = new AscCommonExcel.Fill();
+										dxf.fill.fromColor(tmp.calculateColor(val));
 										dxf = g_StyleCache.addXf(dxf, true);
 									}
 									return dxf;
@@ -7259,6 +7260,11 @@
 		if(History.Is_On() && oRes.oldVal != oRes.newVal)
 			History.Add(AscCommonExcel.g_oUndoRedoCell, AscCH.historyitem_Cell_Fill, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, oRes.oldVal, oRes.newVal));
 	};
+	Cell.prototype.setFillColor=function(val){
+		var fill = new AscCommonExcel.Fill();
+		fill.fromColor(val);
+		return this.setFill(fill);
+	};
 	Cell.prototype.setBorder=function(val){
 		var oRes = this.ws.workbook.oStyleManager.setBorder(this, val);
 		if(History.Is_On() && oRes.oldVal != oRes.newVal){
@@ -7603,11 +7609,14 @@
 			return xfs.font;
 		return g_oDefaultFormat.Font;
 	};
+	Cell.prototype.getFillColor = function () {
+		return this.getFill().bg;
+	};
 	Cell.prototype.getFill = function () {
 		var xfs = this.getCompiledStyle();
 		if(null != xfs && null != xfs.fill)
-			return xfs.fill.bg;
-		return g_oDefaultFormat.Fill.bg;
+			return xfs.fill;
+		return g_oDefaultFormat.Fill;
 	};
 	Cell.prototype.getBorderSrc = function () {
 		var xfs = this.getCompiledStyle();
@@ -9180,6 +9189,11 @@
 							  cell.setFill(val);
 						  });
 	};
+	Range.prototype.setFillColor=function(val){
+		var fill = new AscCommonExcel.Fill();
+		fill.fromColor(val);
+		return this.setFill(fill);
+	};
 	Range.prototype.setBorderSrc=function(border){
 		History.Create_NewPoint();
 		History.StartTransaction();
@@ -9740,15 +9754,18 @@
 		}
 		return align;
 	};
+	Range.prototype.getFillColor = function () {
+		return this.getFill().bg;
+	};
 	Range.prototype.getFill = function () {
 		var t = this;
 		var nRow = this.bbox.r1;
 		var nCol = this.bbox.c1;
-		var fill = g_oDefaultFormat.Fill.bg;
+		var fill = g_oDefaultFormat.Fill;
 		this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
 			var xfs = cell ? cell.getCompiledStyle() : t.worksheet.getCompiledStyle(nRow, nCol);
 			if (xfs && xfs.fill) {
-				fill = xfs.fill.bg;
+				fill = xfs.fill;
 			}
 		});
 		return fill;
@@ -10339,13 +10356,13 @@
 
 			var bError = rangeEdge._setPropertyNoEmpty(null, function(col){
 				if(null != col){
-					if(null != col && null != col.xfs && null != col.xfs.fill && null != col.xfs.fill.getRgbOrNull())
+					if(null != col && null != col.xfs && null != col.xfs.fill && col.xfs.fill.notEmpty())
 						return true;
 					aColsToDelete.push(col);
 				}
 			}, function(cell){
 				if(null != cell){
-					if(null != cell.xfs && null != cell.xfs.fill && null != cell.xfs.fill.getRgbOrNull())
+					if(null != cell.xfs && null != cell.xfs.fill && cell.xfs.fill.notEmpty())
 						return true;
 					if(!cell.isNullText())
 						return true;
@@ -10450,13 +10467,13 @@
 
 			var bError = rangeEdge._setPropertyNoEmpty(function(row){
 				if(null != row){
-					if(null != row.xfs && null != row.xfs.fill && null != row.xfs.fill.getRgbOrNull())
+					if(null != row.xfs && null != row.xfs.fill && row.xfs.fill.notEmpty())
 						return true;
 					aRowsToDelete.push(row.index);
 				}
 			}, null,  function(cell){
 				if(null != cell){
-					if(null != cell.xfs && null != cell.xfs.fill && null != cell.xfs.fill.getRgbOrNull())
+					if(null != cell.xfs && null != cell.xfs.fill && cell.xfs.fill.notEmpty())
 						return true;
 					if(!cell.isNullText())
 						return true;

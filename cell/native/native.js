@@ -4832,7 +4832,7 @@ function OfflineEditor () {
         };
         AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
             
-            var oColor = oStyle.getFill();
+            var oColor = oStyle.getFillColor();
             if (null !== oColor) {
                 oGraphics.setFillStyle(oColor);
                 oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);

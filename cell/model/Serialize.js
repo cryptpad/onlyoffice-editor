@@ -148,8 +148,21 @@
     /** @enum */
     var c_oSerFillTypes =
     {
-        PatternFill: 0,
-        PatternFillBgColor: 1
+        Pattern: 0,
+        PatternBgColor_deprecated: 1,
+        PatternType : 2,
+        PatternFgColor : 3,
+        PatternBgColor : 4,
+        Gradient : 5,
+        GradientType : 6,
+        GradientLeft : 7,
+        GradientTop : 8,
+        GradientRight : 9,
+        GradientBottom : 10,
+        GradientDegree : 11,
+        GradientStop : 12,
+        GradientStopPosition : 13,
+        GradientStopColor : 14
     };
     /** @enum */
     var c_oSerFontTypes =
@@ -1981,13 +1994,60 @@
         this.WriteFill = function(fill)
         {
             var oThis = this;
-            this.bs.WriteItem(c_oSerFillTypes.PatternFill, function(){oThis.WritePatternFill(fill);});
+            if (fill.patternFill) {
+                this.bs.WriteItem(c_oSerFillTypes.Pattern, function(){oThis.WritePatternFill(fill.patternFill);});
+            }
+            if (fill.gradientFill) {
+                this.bs.WriteItem(c_oSerFillTypes.Gradient, function(){oThis.WriteGradientFill(fill.gradientFill);});
+            }
         };
-        this.WritePatternFill = function(fill)
+        this.WritePatternFill = function(patternFill)
         {
             var oThis = this;
-            if(null != fill.bg)
-                this.bs.WriteItem(c_oSerFillTypes.PatternFillBgColor, function(){oThis.bs.WriteColorSpreadsheet(fill.bg);});
+            if (null != patternFill.patternType) {
+                this.bs.WriteItem(c_oSerFillTypes.PatternType, function(){oThis.memory.WriteByte(patternFill.patternType);});
+            }
+            if (null != patternFill.fgColor) {
+                this.bs.WriteItem(c_oSerFillTypes.PatternFgColor, function(){oThis.bs.WriteColorSpreadsheet(patternFill.fgColor);});
+            }
+            if (null != patternFill.bgColor) {
+                this.bs.WriteItem(c_oSerFillTypes.PatternBgColor, function(){oThis.bs.WriteColorSpreadsheet(patternFill.bgColor);});
+            }
+        };
+        this.WriteGradientFill = function(gradientFill)
+        {
+            var oThis = this;
+            if (null != gradientFill.type) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientType, function(){oThis.memory.WriteByte(gradientFill.type);});
+            }
+            if (null != gradientFill.left) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientLeft, function(){oThis.memory.WriteDouble2(gradientFill.left);});
+            }
+            if (null != gradientFill.top) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientTop, function(){oThis.memory.WriteDouble2(gradientFill.top);});
+            }
+            if (null != gradientFill.right) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientRight, function(){oThis.memory.WriteDouble2(gradientFill.right);});
+            }
+            if (null != gradientFill.bottom) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientBottom, function(){oThis.memory.WriteDouble2(gradientFill.bottom);});
+            }
+            if (null != gradientFill.degree) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientDegree, function(){oThis.memory.WriteDouble2(gradientFill.degree);});
+            }
+            for (var i = 0; i < gradientFill.stop.length; ++i) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientStop, function(){oThis.WriteGradientFillStop(gradientFill.stop[i]);});
+            }
+        };
+        this.WriteGradientFillStop = function(gradientStop)
+        {
+            var oThis = this;
+            if (null != gradientStop.position) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientStopPosition, function(){oThis.memory.WriteDouble2(gradientStop.position);});
+            }
+            if (null != gradientStop.color) {
+                this.bs.WriteItem(c_oSerFillTypes.GradientStopColor, function(){oThis.bs.WriteColorSpreadsheet(gradientStop.color);});
+            }
         };
         this.WriteFonts = function()
         {
@@ -5752,27 +5812,71 @@
         {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
-            if ( c_oSerFillTypes.PatternFill == type )
-            {
-                res = this.bcr.Read1(length, function(t,l){
-                    return oThis.ReadPatternFill(t,l,oFill);
+            if ( c_oSerFillTypes.Pattern == type ) {
+                var patternFill = new AscCommonExcel.PatternFill();
+                res = this.bcr.Read1(length, function(t, l) {
+                    return oThis.ReadPatternFill(t, l, patternFill);
                 });
-            }
-            else
+                oFill.patternFill = patternFill;
+            } else if ( c_oSerFillTypes.Gradient == type ) {
+                var gradientFill = new AscCommonExcel.GradientFill();
+                res = this.bcr.Read1(length, function(t, l) {
+                    return oThis.ReadGradientFill(t, l, gradientFill);
+                });
+                oFill.gradientFill = gradientFill;
+            } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
-        this.ReadPatternFill = function(type, length, oFill)
+        this.ReadPatternFill = function(type, length, patternFill)
+        {
+            var res = c_oSerConstants.ReadOk;
+            if ( c_oSerFillTypes.PatternBgColor_deprecated == type ) {
+                patternFill.fromColor(ReadColorSpreadsheet2(this.bcr, length));
+            } else if ( c_oSerFillTypes.PatternType == type ) {
+                patternFill.patternType = this.stream.GetUChar();
+            } else if ( c_oSerFillTypes.PatternFgColor == type ) {
+                patternFill.fgColor = ReadColorSpreadsheet2(this.bcr, length);
+            } else if ( c_oSerFillTypes.PatternBgColor == type ) {
+                patternFill.bgColor = ReadColorSpreadsheet2(this.bcr, length);
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+        this.ReadGradientFill = function(type, length, gradientFill)
         {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
-            if ( c_oSerFillTypes.PatternFillBgColor == type ) {
-				var color = ReadColorSpreadsheet2(this.bcr, length);
-				if (null != color) {
-					oFill.bg = color;
-				}
-            }
-            else
+            if ( c_oSerFillTypes.GradientType == type ) {
+                gradientFill.type = this.stream.GetUChar();
+            } else if ( c_oSerFillTypes.GradientLeft == type ) {
+                gradientFill.left = this.stream.GetDoubleLE();
+            } else if ( c_oSerFillTypes.GradientTop == type ) {
+                gradientFill.top = this.stream.GetDoubleLE();
+            } else if ( c_oSerFillTypes.GradientRight == type ) {
+                gradientFill.right = this.stream.GetDoubleLE();
+            } else if ( c_oSerFillTypes.GradientBottom == type ) {
+                gradientFill.bottom = this.stream.GetDoubleLE();
+            } else if ( c_oSerFillTypes.GradientDegree == type ) {
+                gradientFill.degree = this.stream.GetDoubleLE();
+            } else if ( c_oSerFillTypes.GradientStop == type ) {
+                var gradientStop = new AscCommonExcel.GradientStop();
+                res = this.bcr.Read1(length, function(t, l) {
+                    return oThis.ReadGradientFillStop(t, l, gradientStop);
+                });
+                gradientFill.stop.push(gradientStop);
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+        this.ReadGradientFillStop = function(type, length, gradientStop)
+        {
+            var res = c_oSerConstants.ReadOk;
+            if ( c_oSerFillTypes.GradientStopPosition == type ) {
+                gradientStop.position = this.stream.GetDoubleLE();
+            } else if ( c_oSerFillTypes.GradientStopColor == type ) {
+                gradientStop.color = ReadColorSpreadsheet2(this.bcr, length);
+            } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
@@ -5899,6 +6003,7 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadFill(t,l,oNewFill);
                 });
+                oNewFill.fixForDxf();
                 oDxf.fill = oNewFill;
             }
             else if ( c_oSer_Dxf.Font == type )
@@ -8228,7 +8333,7 @@
 			fs: 11,
 			c: AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorTextDefault)
 		});
-        g_oDefaultFormat.Fill = g_oDefaultFormat.FillAbs = new AscCommonExcel.Fill({bg : null});
+        g_oDefaultFormat.Fill = g_oDefaultFormat.FillAbs = new AscCommonExcel.Fill();
         g_oDefaultFormat.Border = g_oDefaultFormat.BorderAbs = new AscCommonExcel.Border({
             l : new AscCommonExcel.BorderProp(),
             t : new AscCommonExcel.BorderProp(),

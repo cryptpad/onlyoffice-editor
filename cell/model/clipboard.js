@@ -874,7 +874,7 @@
 							td.style.borderTop = makeBorder(b.t);
 
 
-							b = cell.getFill();
+							b = cell.getFillColor();
 							// если b==0 мы не зайдем в if, хотя b==0 это ни что иное, как черный цвет заливки.
 							if (b != null) {
 								td.style.backgroundColor = number2color(b.getRgb());

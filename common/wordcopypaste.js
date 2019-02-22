@@ -5299,7 +5299,7 @@ PasteProcessor.prototype =
 				oCurCell.Set_Margins({W : 0, Type : tblwidth_Mm}, 2);
 
 				//background color
-				var background_color = range.getFill();
+				var background_color = range.getFillColor();
 				if (null != background_color) {
 					var Shd = new CDocumentShd();
 					Shd.Value = c_oAscShdClear;

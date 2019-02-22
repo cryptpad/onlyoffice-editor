@@ -1659,7 +1659,7 @@
 
 					if (type === Asc.c_oAscSortOptions.ByColorFill) {
 						newDxf.fill = new AscCommonExcel.Fill();
-						newDxf.fill.bg = color;
+						newDxf.fill.fromColor(color);
 						curFilter.SortState.SortConditions[0].ConditionSortBy = Asc.ESortBy.sortbyCellColor;
 					} else {
 						newDxf.font = new AscCommonExcel.Font();

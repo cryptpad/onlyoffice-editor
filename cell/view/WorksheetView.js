@@ -2555,7 +2555,7 @@
             var c = this._getVisibleCell( col, row );
 			var findFillColor = this.handlers.trigger('selectSearchingResults') && this.model.inFindResults(row, col) ?
 				this.settings.findFillColor : null;
-			var fillColor = c.getFill();
+			var fillColor = c.getFillColor();
             var bg = fillColor || findFillColor;
             var mc = null;
             var mwidth = 0, mheight = 0;
@@ -2584,13 +2584,13 @@
                 if ( bg === null ) {
                     if ( col === colEnd && col < this.nColsCount - 1 && row < this.nRowsCount - 1 ) {
                         var c2 = this._getVisibleCell( col + 1, row );
-                            var bg2 = c2.getFill();
+                            var bg2 = c2.getFillColor();
                             if ( bg2 !== null ) {
                                 ctx.setFillStyle( bg2 )
                                     .fillRect( this._getColLeft(col + 1) - offsetX - 1, top - offsetY - 1, 1, height + 1 );
                             }
                         var c3 = this._getVisibleCell( col, row + 1 );
-                            var bg3 = c3.getFill();
+                            var bg3 = c3.getFillColor();
                             if ( bg3 !== null ) {
                                 ctx.setFillStyle( bg3 )
                                     .fillRect( this._getColLeft(col) - offsetX - 1, this._getRowTop(row + 1) - offsetY - 1, width + 1, 1 );
@@ -3512,13 +3512,13 @@
         ctx.setFillStyle( this.settings.cells.defaultState.background );
         for ( var col = colBeg; col < colEnd; ++col ) {
             var c = -1 !== nextCell ? nextCell : this._getCell( col, row );
-            var bg = null !== c ? c.getFill() : null;
+            var bg = null !== c ? c.getFillColor() : null;
             if ( bg !== null ) {
                 continue;
             }
 
             nextCell = this._getCell( col + 1, row );
-            bg = null !== nextCell ? nextCell.getFill() : null;
+            bg = null !== nextCell ? nextCell.getFillColor() : null;
             if ( bg !== null ) {
                 continue;
             }
@@ -7493,7 +7493,7 @@
         var c = this._getVisibleCell(c1, r1);
 		var font = c.getFont(true);
 		var fa = font.getVerticalAlign();
-        var bg = c.getFill();
+        var bg = c.getFillColor();
         var align = c.getAlign();
         var cellType = c.getType();
         var isNumberFormat = (!cellType || CellValueType.Number === cellType);
@@ -9149,7 +9149,7 @@
                         range.setFontcolor(val);
                         break;
                     case "bc":
-                        range.setFill(val || null);
+                        range.setFillColor(val || null);
                         break; // ToDo можно делать просто отрисовку
                     case "wrap":
                         range.setWrap(val);
@@ -10308,7 +10308,7 @@
 
 				pastedRangeProps.bordersFull = fullBorders;
 				//fill
-				pastedRangeProps.fill = newVal.getFill();
+				pastedRangeProps.fill = newVal.getFillColor();
 				//wrap
 				//range.setWrap(newVal.getWrap());
 				pastedRangeProps.wrap = align.getWrap();
@@ -10791,7 +10791,7 @@
 		//fill
 		if(specialPasteProps.fill && undefined !== rangeStyle.fill)
 		{
-			range.setFill(rangeStyle.fill);
+			range.setFillColor(rangeStyle.fill);
 		}
 		//angle
 		if(undefined !== rangeStyle.angle && specialPasteProps.angle)
@@ -12455,7 +12455,7 @@
 			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
 			this.isCellEditMode = true;
 
-			bg = c.getFill();
+			bg = c.getFillColor();
 			this.isFormulaEditMode = false;
 
 			var font = c.getFont();
@@ -13185,13 +13185,13 @@
                                 var fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
                                 //TODO добавлять дефолтовый цвет шрифта в случае, если цвет шрифта не указан
                                 if (null !== fontColor) {
-                                    filter.filter.dxf.fill.bg = fontColor;
+                                    filter.filter.dxf.fill.fromColor(fontColor);
                                 }
                             } else {
                                 //TODO просмотерть ситуации без заливки
                                 var color = cell.getStyle();
                                 var cellColor = null !== color && color.fill && color.fill.bg ? color.fill.bg : null;
-                                filter.filter.dxf.fill.bg = null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.rgb) : new AscCommonExcel.RgbColor(null);
+                                filter.filter.dxf.fill.fromColor(null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.rgb) : null);
                             }
                         }
                     });

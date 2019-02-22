@@ -2077,7 +2077,7 @@
 		asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
 			oGraphics.clear();
 			// Fill cell
-			var oColor = oStyle.getFill();
+			var oColor = oStyle.getFillColor();
 			if (null !== oColor) {
 				oGraphics.setFillStyle(oColor);
 				oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);

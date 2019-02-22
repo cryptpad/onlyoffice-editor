@@ -411,6 +411,10 @@ function (window, undefined) {
 
 		this.ArrayFormula = 95;
 
+		this.StylePatternFill = 100;
+		this.StyleGradientFill = 101;
+		this.StyleGradientFillStop = 102;
+
 		this.Create = function (nType) {
 			switch (nType) {
 				case this.ValueMultiTextElem:
@@ -460,6 +464,15 @@ function (window, undefined) {
 					break;
 				case this.StyleFill:
 					return new AscCommonExcel.Fill();
+					break;
+				case this.StylePatternFill:
+					return new AscCommonExcel.PatternFill();
+					break;
+				case this.StyleGradientFill:
+					return new AscCommonExcel.GradientFill();
+					break;
+				case this.StyleGradientFillStop:
+					return new AscCommonExcel.GradientStop();
 					break;
 				case this.StyleNum:
 					return new AscCommonExcel.Num();
