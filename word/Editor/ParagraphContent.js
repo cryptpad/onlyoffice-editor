@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -223,6 +223,14 @@ CRunElementBase.prototype.Read_FromBinary  = function(Reader)
 CRunElementBase.prototype.GetType = function()
 {
 	return this.Type;
+};
+/**
+ * Проверяем является ли данный элемент диакритическим символом
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsDiacriticalSymbol = function()
+{
+	return false;
 };
 /**
  * Проверять ли автозамену на вводе данного элемента
@@ -469,6 +477,10 @@ ParaText.prototype.CanStartAutoCorrect = function()
 	|| 39 === this.Value
 	|| 45 === this.Value);
 };
+ParaText.prototype.IsDiacriticalSymbol = function()
+{
+	return !!(0x0300 <= this.Value && this.Value <= 0x036F);
+};
 
 /**
  * Класс представляющий пробелбный символ
@@ -482,6 +494,7 @@ function ParaSpace()
     this.Flags        = 0x00000000 | 0;
     this.Width        = 0x00000000 | 0;
     this.WidthVisible = 0x00000000 | 0;
+    this.WidthOrigin  = 0x00000000 | 0;
 }
 ParaSpace.prototype = Object.create(CRunElementBase.prototype);
 ParaSpace.prototype.constructor = ParaSpace;
@@ -511,8 +524,9 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 
 	var Temp = Context.MeasureCode(0x20);
 
-	var ResultWidth = (Math.max((Temp.Width + TextPr.Spacing), 0) * 16384) | 0;
-	this.Width      = ResultWidth;
+	var ResultWidth  = (Math.max((Temp.Width + TextPr.Spacing), 0) * 16384) | 0;
+	this.Width       = ResultWidth;
+	this.WidthOrigin = ResultWidth;
 	// Не меняем здесь WidthVisible, это значение для пробела высчитывается отдельно, и не должно меняться при пересчете
 };
 ParaSpace.prototype.Get_FontKoef = function()
@@ -567,6 +581,16 @@ ParaSpace.prototype.Read_FromBinary = function(Reader)
 ParaSpace.prototype.CanStartAutoCorrect = function()
 {
 	return true;
+};
+ParaSpace.prototype.CheckCondensedWidth = function(isCondensedSpaces)
+{
+	// TODO: Коэффициент 3/4 получен опытным путем, возможно есть параметр в шрифте соответствующий, но
+	// для шрифтов, которые я просмотрел был именно такой коэффициент
+
+	if (isCondensedSpaces)
+		this.Width = this.WidthOrigin * 0.75;
+	else
+		this.Width = this.WidthOrigin;
 };
 
 
@@ -1668,7 +1692,13 @@ ParaFootnoteReference.prototype.Copy = function()
 {
 	var oFootnote = this.Footnote.Parent.CreateFootnote();
 	oFootnote.Copy2(this.Footnote);
-	return new ParaFootnoteReference(oFootnote);
+
+	var oRef = new ParaFootnoteReference(oFootnote);
+
+	oRef.Number    = this.Number;
+	oRef.NumFormat = this.NumFormat;
+
+	return oRef;
 };
 ParaFootnoteReference.prototype.Write_ToBinary = function(Writer)
 {
@@ -1699,7 +1729,7 @@ ParaFootnoteReference.prototype.Read_FromBinary = function(Reader)
 	if (false === Reader.GetBool())
 		this.CustomMark = Reader.GetString2();
 };
-ParaFootnoteReference.prototype.Get_Footnote = function()
+ParaFootnoteReference.prototype.GetFootnote = function()
 {
 	return this.Footnote;
 };
@@ -1832,7 +1862,7 @@ ParaFootnoteRef.prototype.Get_Type = function()
 };
 ParaFootnoteRef.prototype.Copy = function()
 {
-	return new ParaFootnoteRef(this.Get_Footnote());
+	return new ParaFootnoteRef(this.GetFootnote());
 };
 ParaFootnoteRef.prototype.UpdateNumber = function(oFootnote)
 {

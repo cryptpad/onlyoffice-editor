@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -361,9 +361,10 @@ CDocumentControllerBase.prototype.AddToParagraph = function(oItem, bRecalculate)
  * @param {boolean} bOnlyText - удаляем только текст
  * @param {boolean} bRemoveOnlySelection - удаляем только по селекту
  * @param {boolean} bOnAddText - удаление происходит во время добавления текста (особый тип удаления)
+ * @param {boolean} isWord - производить удаление по словам
  * @returns {boolean} Выполнилось ли удаление.
  */
-CDocumentControllerBase.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText){return true;};
+CDocumentControllerBase.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord){return true;};
 /**
  * Получаем физическую позицию курсора на странице.
  */
@@ -620,7 +621,7 @@ CDocumentControllerBase.prototype.GetSelectedText = function(bClearText, oPr){re
  * Получаем текущий параграф.
  * @returns {?Paragraph}
  */
-CDocumentControllerBase.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs){return null};
+CDocumentControllerBase.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr){return null};
 /**
  * Собираем информацию о выделенной части документа.
  * @param oInfo
@@ -781,3 +782,15 @@ CDocumentControllerBase.prototype.GetStyleFromFormatting = function(){return nul
  * @param oContinueEngine {CDocumentNumberingContinueEngine}
  */
 CDocumentControllerBase.prototype.GetSimilarNumbering = function(oContinueEngine){};
+/**
+ * Проверяем выделен ли сейчас какой-либо плейсхолдер, если да, то возвращаем управляющий объект
+ * @returns {?Object}
+ */
+CDocumentControllerBase.prototype.GetPlaceHolderObject = function(){return null;};
+/**
+ * Получаем массив все полей в документе (простых и сложных)
+ * @param isUseSelection {boolean} ищем по селекут или вообще все
+ * @param arrFields - массив, который мы заполняем, если не задан, то создается новый и возвращается
+ * @returns {Array}
+ */
+CDocumentControllerBase.prototype.GetAllFields = function(isUseSelection, arrFields){return arrFields ? arrFields : [];};

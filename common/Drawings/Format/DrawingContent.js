@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -41,11 +41,30 @@
     function CDrawingDocContent(Parent, DrawingDocument, X, Y, XLimit, YLimit) {
 		CDocumentContent.call(this, Parent, DrawingDocument, X, Y, XLimit, YLimit, false, false, true);
         this.FullRecalc = new CDocumentRecalculateState();
+        this.AllFields = [];
     }
 
 	CDrawingDocContent.prototype = Object.create(CDocumentContent.prototype);
 	CDrawingDocContent.prototype.constructor = CDrawingDocContent;
 
+    CDrawingDocContent.prototype.CalculateAllFields = function () {
+        var aParagraphs = this.Content;
+        this.AllFields.length = 0;
+        for(var i = 0; i < aParagraphs.length; ++i){
+            var aContent = aParagraphs[i].Content;
+            for(var j = 0; j < aContent.length; ++j){
+                if(aContent[j] instanceof AscCommonWord.CPresentationField){
+                    this.AllFields.push(aContent[j]);
+                }
+            }
+        }
+    };
+
+    CDrawingDocContent.prototype.GetAllDrawingObjects = function(arrDrawings){
+        if (undefined === arrDrawings || null === arrDrawings)
+            arrDrawings = [];
+        return arrDrawings;
+    };
     CDrawingDocContent.prototype.GetSummaryHeight = function(){
         var fSummHeight = 0;
         var nColumnsCount = this.Get_ColumnsCount();
@@ -142,6 +161,7 @@
 
 
     CDrawingDocContent.prototype.RecalculateContent = function(fWidth, fHeight, nStartPage){
+        this.CalculateAllFields();
         if(this.Get_ColumnsCount() === 1){
             CDocumentContent.prototype.RecalculateContent.call(this, fWidth, fHeight, nStartPage);
         }

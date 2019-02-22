@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -460,6 +460,15 @@ CShape.prototype.getParentObjects = function ()
                     notes: this.parent
                 }
             }
+            case AscDFH.historyitem_type_RelSizeAnchor:
+            case AscDFH.historyitem_type_AbsSizeAnchor:
+            {
+                if(this.parent.parent)
+                {
+                    return this.parent.parent.getParentObjects()
+                }
+                break;
+            }
         }
     }
     return { slide: null, layout: null, master: null, theme: null};
@@ -522,6 +531,7 @@ CShape.prototype.recalculate = function ()
             this.recalcInfo.recalculateBounds = false;
         }
 
+        this.clearCropObject();
     }, this, []);
 };
 CShape.prototype.recalculateBounds = function()
@@ -710,7 +720,7 @@ CShape.prototype.recalculateContent2 = function()
                 if(!content.Content[0].Pr.DefaultRunPr){
                     content.Content[0].Pr.DefaultRunPr = new AscCommonWord.CTextPr();
                 }
-                content.Content[0].Pr.DefaultRunPr.Merge(content_.Content[0].Get_FirstRunPr());
+                content.Content[0].Pr.DefaultRunPr.Merge(content_.Content[0].GetFirstRunPr());
             }
             content.Set_StartPage(0);
             content.Reset(0, 0, w, 20000);

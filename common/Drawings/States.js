@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -2346,6 +2346,37 @@ AddPolyLine2State3.prototype =
     }
 };
 
+function TrackTextState(drawingObjects, majorObject, x, y) {
+    this.drawingObjects = drawingObjects;
+    this.majorObject = majorObject;
+    this.startX = x;
+    this.startY = y;
+    this.bMove = false;
+}
+    TrackTextState.prototype.onMouseDown = function(e, x, y){
+        if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR)
+            return {objectId: this.majorObject.Id, bMarker: true, cursorType: "default"};
+        return null;
+    };
+    TrackTextState.prototype.onMouseMove = function(e, x, y){
+        if(Math.abs(x - this.startX) > MOVE_DELTA || Math.abs(y - this.startY) > MOVE_DELTA)
+        {
+            this.bMove = true;
+            this.drawingObjects.getDrawingDocument().StartTrackText();
+        }
+    };
+    TrackTextState.prototype.onMouseUp   = function(e, x, y, pageIndex){
+        if(!this.bMove)
+        {
+            this.majorObject.selectionSetStart(e, x, y, 0);
+            this.majorObject.selectionSetEnd(e, x, y, 0);
+            this.drawingObjects.updateSelectionState();
+            this.drawingObjects.drawingObjects.sendGraphicObjectProps();
+        }
+        this.drawingObjects.changeCurrentState(new AscFormat.NullState(this.drawingObjects));
+
+    };
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].MOVE_DELTA = MOVE_DELTA;
@@ -2366,5 +2397,6 @@ AddPolyLine2State3.prototype =
     window['AscFormat'].SplineBezierState = SplineBezierState;
     window['AscFormat'].PolyLineAddState = PolyLineAddState;
     window['AscFormat'].AddPolyLine2State = AddPolyLine2State;
+    window['AscFormat'].TrackTextState = TrackTextState;
     window['AscFormat'].checkEmptyPlaceholderContent = checkEmptyPlaceholderContent;
 })(window);

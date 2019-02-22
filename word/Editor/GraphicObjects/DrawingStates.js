@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -311,7 +311,7 @@ NullState.prototype =
         }
 
         var drawing_page;
-        if(this.drawingObjects.document.Get_DocPosType() !== docpostype_HdrFtr)
+        if(this.drawingObjects.document.GetDocPosType() !== docpostype_HdrFtr)
         {
             drawing_page = this.drawingObjects.graphicPages[pageIndex];
         }
@@ -701,15 +701,16 @@ RotateState.prototype =
                 if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : aCheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content}, bNoNeedCheck))
                 {
                     History.Create_NewPoint(AscDFH.historydescription_Document_RotateFlowDrawingNoCtrl);
-                    if(bMoveState){
+                    if(bMoveState && !this.drawingObjects.selection.cropSelection){
                         this.drawingObjects.resetSelection();
                     }
                     for(i = 0; i < aDrawings.length; ++i)
                     {
                         bounds = aBounds[i];
-                        this.drawingObjects.arrTrackObjects[i].trackEnd(true);
+                        var oTrack = this.drawingObjects.arrTrackObjects[i];
+                        oTrack.trackEnd(true);
                         var original = aDrawings[i];
-                        if(!bMoveState && !this.drawingObjects.arrTrackObjects[i].view3D)
+                        if(!bMoveState && !oTrack.view3D && !(oTrack.originalObject && oTrack.originalObject.isCrop))
                         {
                             original.CheckWH();
                         }
@@ -741,7 +742,7 @@ RotateState.prototype =
                         }
                         else
                         {
-                            if(true !== this.drawingObjects.arrTrackObjects[i].bTextWarp)
+                            if(true !== oTrack.bTextWarp && !(oTrack.originalObject && oTrack.originalObject.isCrop))
                             {
                                 original.Set_XY(bounds.posX, bounds.posY, aParentParagraphs[i], original.GraphicObj.selectStartPage, bMoveState)
                             }

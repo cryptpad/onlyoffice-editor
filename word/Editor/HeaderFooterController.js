@@ -85,9 +85,9 @@ CHdrFtrController.prototype.AddToParagraph = function(oItem, bRecalculate)
 	this.LogicDocument.Document_UpdateSelectionState();
 	this.LogicDocument.Document_UpdateUndoRedoState();
 };
-CHdrFtrController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CHdrFtrController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
-	var nResult = this.HdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	var nResult = this.HdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 	// TODO: Проверить зачем была добавлена эта заглушка. При удалении могут быть выставлены новые позиции курсора
 	//       и селекта, поэтому странно убирать селект здесь.
@@ -294,9 +294,9 @@ CHdrFtrController.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.HdrFtr.GetSelectedText(bClearText, oPr);
 };
-CHdrFtrController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CHdrFtrController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
-	return this.HdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	return this.HdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
 CHdrFtrController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -412,13 +412,13 @@ CHdrFtrController.prototype.SaveDocumentStateBeforeLoadChanges = function(State)
 		State.HdrFtrDocPosType = HdrFtrContent.CurPos.Type;
 		State.HdrFtrSelection  = HdrFtrContent.Selection.Use;
 
-		if (docpostype_Content === HdrFtrContent.Get_DocPosType())
+		if (docpostype_Content === HdrFtrContent.GetDocPosType())
 		{
 			State.Pos      = HdrFtrContent.GetContentPosition(false, false, undefined);
 			State.StartPos = HdrFtrContent.GetContentPosition(true, true, undefined);
 			State.EndPos   = HdrFtrContent.GetContentPosition(true, false, undefined);
 		}
-		else if (docpostype_DrawingObjects === HdrFtrContent.Get_DocPosType())
+		else if (docpostype_DrawingObjects === HdrFtrContent.GetDocPosType())
 		{
 			this.LogicDocument.DrawingObjects.Save_DocumentStateBeforeLoadChanges(State);
 		}
@@ -433,7 +433,7 @@ CHdrFtrController.prototype.RestoreDocumentStateAfterLoadChanges = function(Stat
 		var HdrFtrContent = HdrFtr.Get_DocumentContent();
 		if (docpostype_Content === State.HdrFtrDocPosType)
 		{
-			HdrFtrContent.Set_DocPosType(docpostype_Content);
+			HdrFtrContent.SetDocPosType(docpostype_Content);
 			HdrFtrContent.Selection.Use = State.HdrFtrSelection;
 			if (true === HdrFtrContent.Selection.Use)
 			{
@@ -448,11 +448,11 @@ CHdrFtrController.prototype.RestoreDocumentStateAfterLoadChanges = function(Stat
 		}
 		else if (docpostype_DrawingObjects === State.HdrFtrDocPosType)
 		{
-			HdrFtrContent.Set_DocPosType(docpostype_DrawingObjects);
+			HdrFtrContent.SetDocPosType(docpostype_DrawingObjects);
 
 			if (true !== this.LogicDocument.DrawingObjects.Load_DocumentStateAfterLoadChanges(State))
 			{
-				HdrFtrContent.Set_DocPosType(docpostype_Content);
+				HdrFtrContent.SetDocPosType(docpostype_Content);
 				HdrFtrContent.MoveCursorToStartPos();
 			}
 		}
@@ -508,4 +508,12 @@ CHdrFtrController.prototype.GetStyleFromFormatting = function()
 CHdrFtrController.prototype.GetSimilarNumbering = function(oEngine)
 {
 	this.HdrFtr.GetSimilarNumbering(oEngine)
+};
+CHdrFtrController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	// Поиск по всем колонтитулам должен происходить не здесь
+	if (!isUseSelection)
+		return arrFields ? arrFields : [];
+
+	return this.HdrFtr.GetAllFields(isUseSelection, arrFields);
 };

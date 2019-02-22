@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1078,6 +1078,16 @@ function asc_menu_WriteParaFrame(_type, _frame, _stream)
     _stream["WriteByte"](255);
 }
 
+function asc_menu_WriteMath(oMath, s){
+    s["WriteLong"](oMath.Type);
+    s["WriteLong"](oMath.Action);
+    s["WriteBool"](oMath.CanIncreaseArgumentSize);
+    s["WriteBool"](oMath.CanDecreaseArgumentSize);
+    s["WriteBool"](oMath.CanInsertForcedBreak);
+    s["WriteBool"](oMath.CanDeleteForcedBreak);
+    s["WriteBool"](oMath.CanAlignToCharacter);
+}
+
 Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 {
     if (this.WordControl.m_oDrawingDocument.m_bIsMouseLockDocument)
@@ -1390,6 +1400,15 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(_textPr));
 
             this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+            break;
+        }
+        case 22003: //ASC_MENU_EVENT_TYPE_ON_EDIT_TEXT
+        {
+            var oController = this.WordControl.m_oLogicDocument.DrawingObjects;
+            if(oController)
+            {
+                oController.startEditTextCurrentShape();
+            }
             break;
         }
         case 3: // ASC_MENU_EVENT_TYPE_UNDO
@@ -1932,7 +1951,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 8: // ASC_MENU_EVENT_TYPE_HYPERLINK
         {
             var _props = asc_menu_ReadHyperPr(_params, _current);
-            if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
+            var oHyperProps = null;
+            for(var i = 0; i < this.SelectedObjectsStack.length; ++i)
+            {
+                if(this.SelectedObjectsStack[i].Type === Asc.c_oAscTypeSelectElement.Hyperlink)
+                {
+                    oHyperProps = this.SelectedObjectsStack[i].Value;
+                    _props.Class = oHyperProps.Class;
+                    break;
+                }
+            }
+            if ( oHyperProps && false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
             {
                 this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
                 this.WordControl.m_oLogicDocument.ModifyHyperlink( _props );
@@ -1941,10 +1970,20 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 59: // ASC_MENU_EVENT_TYPE_REMOVE_HYPERLINK
         {
-            if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
+
+            var oHyperProps = null;
+            for(var i = 0; i < this.SelectedObjectsStack.length; ++i)
+            {
+                if(this.SelectedObjectsStack[i].Type === Asc.c_oAscTypeSelectElement.Hyperlink)
+                {
+                    oHyperProps = this.SelectedObjectsStack[i].Value;
+                    break;
+                }
+            }
+            if (oHyperProps && false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
             {
                 this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
-                this.WordControl.m_oLogicDocument.RemoveHyperlink();
+                this.WordControl.m_oLogicDocument.RemoveHyperlink(oHyperProps);
             }
             break;
         }
@@ -4702,7 +4741,7 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
         }
     }
 
-        /* change z-index */
+    /* change z-index */
     if (AscFormat.isRealNumber(ImagePr.ChangeLevel))
     {
         switch (ImagePr.ChangeLevel)
@@ -4930,6 +4969,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             case Asc.c_oAscTypeSelectElement.Table:
             case Asc.c_oAscTypeSelectElement.Image:
             case Asc.c_oAscTypeSelectElement.Hyperlink:
+            case Asc.c_oAscTypeSelectElement.Math:
             {
                 ++_naturalCount;
                 break;
@@ -4974,6 +5014,12 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             {
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Hyperlink);
                 asc_menu_WriteHyperPr(this.SelectedObjectsStack[i].Value, _stream);
+                break;
+            }
+            case Asc.c_oAscTypeSelectElement.Math:
+            {
+                _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Math);
+                asc_menu_WriteMath(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
             case Asc.c_oAscTypeSelectElement.SpellCheck:
@@ -6110,4 +6156,10 @@ window["AscCommon"].getFullImageSrc2 = function (src) {
         }
     }
     return src;
+};
+
+window["AscCommon"].sendImgUrls = function(api, images, callback)
+{
+	var _data = [];
+	callback(_data);
 };

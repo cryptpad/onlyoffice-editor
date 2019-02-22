@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -370,6 +370,7 @@ function postLoadScript(scriptName)
 
 function CFontFileLoader(id)
 {
+    this.LoadingCounter = 0;
     this.Id         = id;
     this.Status     = -1;  // -1 - notloaded, 0 - loaded, 1 - error, 2 - loading
     this.stream_index = -1;
@@ -383,12 +384,25 @@ function CFontFileLoader(id)
     this.CheckLoaded = function()
     {
         return (0 == this.Status || 1 == this.Status);
-    }
+    };
 
     this._callback_font_load = function()
     {
         if (!window[oThis.Id])
-            oThis.Status = 1;
+        {
+            oThis.LoadingCounter++;
+            if (oThis.LoadingCounter < oThis.GetMaxLoadingCount())
+            {
+                //console.log("font loaded: one more attemption");
+                oThis.Status = -1;
+                return;
+            }
+
+            oThis.Status = 2; // aka loading...
+            var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+            _editor.sendEvent("asc_onError", Asc.c_oAscError.ID.CoAuthoringDisconnect, Asc.c_oAscError.Level.Critical);
+            return;
+        }
 
         var __font_data_idx = g_fonts_streams.length;
         g_fonts_streams[__font_data_idx] = AscFonts.CreateFontData4(window[oThis.Id]);
@@ -401,7 +415,7 @@ function CFontFileLoader(id)
 
         if (null != oThis.callback)
             oThis.callback();
-    }
+    };
 
     this.LoadFontAsync2 = function(basePath, _callback)
     {
@@ -432,7 +446,17 @@ function CFontFileLoader(id)
         {
             if (this.status != 200)
             {
-                oThis.Status = 1;
+                oThis.LoadingCounter++;
+                if (oThis.LoadingCounter < oThis.GetMaxLoadingCount())
+                {
+                    //console.log("font loaded: one more attemption");
+                    oThis.Status = -1;
+                    return;
+                }
+
+                oThis.Status = 2; // aka loading...
+                var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+                _editor.sendEvent("asc_onError", Asc.c_oAscError.ID.CoAuthoringDisconnect, Asc.c_oAscError.Level.Critical);
                 return;
             }
 
@@ -485,7 +509,7 @@ function CFontFileLoader(id)
         };
 
         xhr.send(null);
-    }
+    };
     
     this.LoadFontNative = function()
     {
@@ -501,8 +525,13 @@ function CFontFileLoader(id)
         g_fonts_streams[__font_data_idx] = new FT_Stream(_data, _data.length);
         this.SetStreamIndex(__font_data_idx);
         this.Status = 0;
-    }
+    };
 }
+
+CFontFileLoader.prototype.GetMaxLoadingCount = function()
+{
+    return 3;
+};
 
 CFontFileLoader.prototype.SetStreamIndex = function(index)
 {

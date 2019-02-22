@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -37,7 +37,7 @@
 var vector_koef = 25.4 / 96;
 var pxInPt = 0.75;
 
-function CPdfPrinter(fontManager)
+function CPdfPrinter(fontManager, font)
 {
     this._ppiX = 96;
     this._ppiY = 96;
@@ -61,7 +61,7 @@ function CPdfPrinter(fontManager)
     }
     this.DocumentRenderer.VectorMemoryForPrint = new AscCommon.CMemory();
 
-    this.font = new window["Asc"].FontProperties("Arial", -1);
+    this.font = font;
     this.Transform = new AscCommon.CMatrix();
     this.InvertTransform = new AscCommon.CMatrix();
 
@@ -201,9 +201,7 @@ CPdfPrinter.prototype =
 		var _g = val.getG();
 		var _b = val.getB();
 		var _a = val.getA();
-        //this.DocumentRenderer.b_color1(_r, _g, _b, (_a * 255 + 0.5) >> 0);
-        // не менять!!! баг в хромиуме !!! (41ом)
-        this.DocumentRenderer.b_color1(_r, _g, _b, parseInt(_a * 255 + 0.5));
+        this.DocumentRenderer.b_color1(_r, _g, _b, (_a * 255 + 0.5) >> 0);
         return this;
     },
     setFillPattern : function(val)
@@ -220,9 +218,7 @@ CPdfPrinter.prototype =
 		var _g = val.getG();
 		var _b = val.getB();
 		var _a = val.getA();
-        //this.DocumentRenderer.p_color(_r, _g, _b, (_a * 255 + 0.5) >> 0);
-        // не менять!!! баг в хромиуме !!! (41ом)
-        this.DocumentRenderer.p_color(_r, _g, _b, parseInt(_a * 255 + 0.5));
+        this.DocumentRenderer.p_color(_r, _g, _b, (_a * 255 + 0.5) >> 0);
         return this;
     },
     setLineWidth : function(val)
@@ -280,9 +276,23 @@ CPdfPrinter.prototype =
         console.log("error");
         return new FontMetrics();
     },
+    makeFontDoc : function(font)
+    {
+        return {
+            FontFamily :
+                {
+                    Index : -1,
+                    Name  : font.getName()
+                },
+
+            FontSize : font.getSize(),
+            Bold     : font.getBold(),
+            Italic   : font.getItalic()
+        }
+    },
     setFont : function(font)
     {
-        this.DocumentRenderer.SetFont(font);
+        this.SetFont(font);
         return this;
     },
 
@@ -557,7 +567,8 @@ CPdfPrinter.prototype =
 
     SetFont : function(font)
     {
-        return this.DocumentRenderer.SetFont(font);
+        this.font.assign(font);
+        return this.DocumentRenderer.SetFont(this.makeFontDoc(font));
     },
     FillText : function(x,y,text,cropX,cropW)
     {

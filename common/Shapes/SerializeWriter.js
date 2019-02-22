@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -134,6 +134,20 @@ function CBinaryFileWriter()
     this.ClearIdMap = function(){
         this.max_shape_id = 3;
         this.arr_map_shapes_id = {};
+    };
+
+    this.ImportFromMemory = function(memory) {
+        this.ImData = memory.ImData;
+        this.data = memory.data;
+        this.len = memory.len;
+        this.pos = memory.pos;
+    };
+
+    this.ExportToMemory = function(memory) {
+        memory.ImData = this.ImData;
+        memory.data = this.data;
+        memory.len = this.len;
+        memory.pos = this.pos;
     };
 
     this.Start_UseFullUrl = function()
@@ -481,7 +495,7 @@ function CBinaryFileWriter()
 
         // Core
 		if (presentation.Core)
-			this.WriteCore(presentation.Core);
+			this.WriteCore(presentation.Core, presentation.Api);
 
         // ViewProps
 		if (presentation.ViewProps)
@@ -916,50 +930,12 @@ function CBinaryFileWriter()
     this.WriteApp = function(app)
     {
         this.StartMainRecord(c_oMainTables.App);
-        this.StartRecord(c_oMainTables.App);
-
-        this.WriteUChar(g_nodeAttributeStart);
-
-        this._WriteString2(0, app.Template);
-        this._WriteString2(1, app.Application);
-        this._WriteString2(2, app.PresentationFormat);
-        this._WriteString2(3, app.Company);
-        this._WriteString2(4, app.AppVersion);
-
-        this._WriteInt2(5, app.TotalTime);
-        this._WriteInt2(6, app.Words);
-        this._WriteInt2(7, app.Paragraphs);
-        this._WriteInt2(8, app.Slides);
-        this._WriteInt2(9, app.Notes);
-        this._WriteInt2(10, app.HiddenSlides);
-        this._WriteInt2(11, app.MMClips);
-
-        this._WriteBool2(12, app.ScaleCrop);
-        this._WriteBool2(13, app.LinksUpToDate);
-        this._WriteBool2(14, app.SharedDoc);
-        this._WriteBool2(15, app.HyperlinksChanged);
-
-        this.WriteUChar(g_nodeAttributeEnd);
-
-        this.EndRecord();
+        app.toStream(this);
     }
-    this.WriteCore = function(core)
+    this.WriteCore = function(core, api)
     {
         this.StartMainRecord(c_oMainTables.Core);
-        this.StartRecord(c_oMainTables.Core);
-
-        this.WriteUChar(g_nodeAttributeStart);
-
-        this._WriteString2(0, core.title);
-        this._WriteString2(1, core.creator);
-        this._WriteString2(2, core.lastModifiedBy);
-        this._WriteString2(3, core.revision);
-        this._WriteString2(4, core.created);
-        this._WriteString2(5, core.modified);
-
-        this.WriteUChar(g_nodeAttributeEnd);
-
-        this.EndRecord();
+        core.toStream(this, api);
     }
     this.WriteViewProps = function(viewprops)
     {
@@ -2147,10 +2123,23 @@ function CBinaryFileWriter()
                 oThis.WriteRecord2(5, rPr.RFonts.CS, oThis.WriteTextFontTypeface);
         }
 
+
         if (hlinkObj != null && hlinkObj !== undefined)
         {
             oThis.WriteRecord1(7, hlinkObj, oThis.WriteHyperlink);
         }
+
+        if (rPr.HighlightColor)
+        {
+            oThis.WriteRecord1(12, rPr.HighlightColor, oThis.WriteHighlightColor);
+        }
+    }
+
+    this.WriteHighlightColor = function (HighlightColor) {
+
+        oThis.WriteUChar(g_nodeAttributeStart);
+        oThis.WriteUChar(g_nodeAttributeEnd);
+        oThis.WriteRecord1(0, HighlightColor, oThis.WriteUniColor);
     }
 
     this.WriteHyperlink = function(hlink)
@@ -2556,7 +2545,13 @@ function CBinaryFileWriter()
 						if(imageUrl){
 							_src = imageUrl;
 						}
-					}
+                    }
+                    if(window["native"] && window["native"]["GetImageTmpPath"]){
+                        if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
+                            _src = window["native"]["GetImageTmpPath"](_src);
+                        }
+                        
+                    }
                 }
 
                 oThis.StartRecord(0);
@@ -2775,15 +2770,6 @@ function CBinaryFileWriter()
 
         var _par_content = paragraph.Content;
 
-        if(paragraph.f_id != undefined || paragraph.f_type != undefined || paragraph.f_text!= undefined)
-        {
-            oThis.StartRecord(0); // subtype
-            oThis.WriteParagraphField(paragraph.f_id, paragraph.f_type, paragraph.f_text);
-            oThis.EndRecord();
-
-            _count++;
-        }
-
         var _content_len = _par_content.length;
         for (var i = 0; i < _content_len; i++)
         {
@@ -2836,7 +2822,14 @@ function CBinaryFileWriter()
                         }
                     }
 
-                    if ("" != _run_text)
+                    if(_elem instanceof AscCommonWord.CPresentationField)
+                    {
+                        oThis.StartRecord(0); // subtype
+                        oThis.WriteParagraphField(_elem.Guid, _elem.FieldType, _run_text, _elem.Pr, _elem.pPr);
+                        oThis.EndRecord();
+                        _count++;
+                    }
+                    else if ("" != _run_text)
                     {
                         oThis.StartRecord(0); // subtype
                         oThis.WriteTextRun(_elem.Pr, _run_text, null);
@@ -2998,7 +2991,7 @@ function CBinaryFileWriter()
         oThis.EndRecord();
     };
 
-    this.WriteParagraphField = function (id, type, text)
+    this.WriteParagraphField = function (id, type, text, rPr, pPr)
     {
         oThis.StartRecord(AscFormat.PARRUN_TYPE_FLD);
 
@@ -3009,6 +3002,24 @@ function CBinaryFileWriter()
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         // rPr & pPr
+        if (rPr !== undefined && rPr != null)
+        {
+            oThis.StartRecord(0);
+            oThis.WriteRunProperties(rPr, null);
+            oThis.EndRecord();
+        }
+        if (pPr !== undefined && pPr != null)
+        {
+            var tPr = new AscFormat.CTextParagraphPr();
+            tPr.bullet = pPr.Bullet;
+            tPr.lvl = pPr.Lvl;
+            tPr.pPr = pPr;
+            tPr.rPr = pPr.DefaultRunPr;
+            if (tPr.rPr == null)
+                tPr.rPr = new CTextPr();
+
+            oThis.WriteRecord1(1, tPr, oThis.WriteTextParagraphPr);
+        }
 
         oThis.EndRecord();
     };
@@ -3690,9 +3701,16 @@ function CBinaryFileWriter()
         }
     }
 
-    this.WriteGroupShape = function(group)
+    this.WriteGroupShape = function(group, type)
     {
-        oThis.StartRecord(4);
+        if(AscFormat.isRealNumber(type))
+        {
+            oThis.StartRecord(type);
+        }
+        else
+        {
+            oThis.StartRecord(4);
+        }
 
         group.spPr.WriteXfrm = group.spPr.xfrm;
         if(group.nvGrpSpPr)
@@ -5063,9 +5081,18 @@ function CBinaryFileWriter()
 		}
         this.WriteDrawing = function(memory, grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {
-            this.TreeDrawingIndex++;
-
-            this.arrayStackStarts.push(this.BinaryFileWriter.pos);
+            if (this.BinaryFileWriter.UseContinueWriter)
+            {
+                this.BinaryFileWriter.ImData = memory.ImData;
+                this.BinaryFileWriter.data = memory.data;
+                this.BinaryFileWriter.len = memory.len;
+                this.BinaryFileWriter.pos = memory.pos;
+            }
+            else
+            {
+                this.TreeDrawingIndex++;
+                this.arrayStackStarts.push(this.BinaryFileWriter.pos);
+            }
 
             this.BinaryFileWriter.StartRecord(0);
             this.BinaryFileWriter.StartRecord(1);
@@ -5102,6 +5129,11 @@ function CBinaryFileWriter()
                     this.WriteGroup(grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
                     break;
                 }
+                case AscDFH.historyitem_type_LockedCanvas:
+                {
+                    this.BinaryFileWriter.WriteGroupShape(grObject, 9);
+                    break;
+                }
 				case AscDFH.historyitem_type_ChartSpace:
 				{
 					this.BinaryFileWriter.WriteChart(grObject);
@@ -5111,13 +5143,23 @@ function CBinaryFileWriter()
             this.BinaryFileWriter.EndRecord();
             this.BinaryFileWriter.EndRecord();
 
-            this.TreeDrawingIndex--;
+            if (this.BinaryFileWriter.UseContinueWriter)
+            {
+                memory.ImData = this.BinaryFileWriter.ImData;
+                memory.data = this.BinaryFileWriter.data;
+                memory.len = this.BinaryFileWriter.len;
+                memory.pos = this.BinaryFileWriter.pos;
+            }
+            else
+            {
+                this.TreeDrawingIndex--;
 
-            var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
-            memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
-            this.BinaryFileWriter.pos = oldPos;
+                var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
+                memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
+                this.BinaryFileWriter.pos = oldPos;
 
-            this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
+                this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
+            }
         }
 
         this.WriteShape2 = function(shape, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
@@ -5395,6 +5437,7 @@ function CBinaryFileWriter()
     //--------------------------------------------------------export----------------------------------------------------
     window['AscCommon'] = window['AscCommon'] || {};
     window['AscCommon'].GUID = GUID;
+    window['AscCommon'].c_oMainTables = c_oMainTables;
     window['AscCommon'].CBinaryFileWriter = CBinaryFileWriter;
     window['AscCommon'].pptx_content_writer = new CPPTXContentWriter();
 })(window);

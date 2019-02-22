@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -711,10 +711,24 @@ ParaDrawing.prototype.getXfrmExtY = function()
 };
 ParaDrawing.prototype.Get_Bounds = function()
 {
-    var W, H;
-    W = this.GraphicObj.bounds.w;
-    H = this.GraphicObj.bounds.h;
-    return {Left : this.X, Top : this.Y, Bottom : this.Y + H, Right : this.X + W};
+	var oCorrection = this.GetPosCorrection();
+	var InsL, InsT, InsR, InsB;
+	InsL = 0.0;
+	InsT = 0.0;
+	InsR = 0.0;
+	InsB = 0.0;
+	if(!this.Is_Inline())
+	{
+		var oDistance = this.Get_Distance();
+		if(oDistance)
+		{
+			InsL = oDistance.L;
+			InsT = oDistance.T;
+			InsR = oDistance.R;
+			InsB = oDistance.B;
+		}
+	}
+    return {Left : this.X + oCorrection.DiffX - InsL, Top : this.Y - oCorrection.DiffY - InsT, Bottom : this.Y + this.GraphicObj.bounds.h + this.EffectExtent.B +  InsB, Right : this.X  + this.GraphicObj.bounds.w + this.EffectExtent.R  + InsR};
 };
 ParaDrawing.prototype.Search = function(Str, Props, SearchEngine, Type)
 {
@@ -814,7 +828,7 @@ ParaDrawing.prototype.Set_Props = function(Props)
 
 	if (this.SizeRelV && !this.SizeRelH)
 	{
-		this.SetSizeRelH({RelativeFrom : AscCommon.c_oAscSizeRelFromH.sizerelfromhPage, Percent : 0})
+		this.SetSizeRelH({RelativeFrom : AscCommon.c_oAscSizeRelFromH.sizerelfromhPage, Percent : 0});
 	}
 
 	if (bCheckWrapPolygon)
@@ -1220,8 +1234,62 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 		this.Y = this.Internal_Position.Calculate_Y(bInline, this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
 	}
 
+	this.updatePosition3(this.PageNum, this.X, this.Y, OldPageNum);
+	this.useWrap = this.Use_TextWrap();
+};
+
+ParaDrawing.prototype.GetClipRect = function ()
+{
+	if (this.Is_Inline() || this.Use_TextWrap())
+	{
+		var oCell;
+		if (this.DocumentContent && (oCell = this.DocumentContent.IsTableCellContent(true)))
+		{
+			var arrPages = oCell.GetCurPageByAbsolutePage(this.PageNum);
+			for (var nIndex = 0, nCount = arrPages.length; nIndex < nCount; ++nIndex)
+			{
+				var oPageBounds = oCell.GetPageBounds(arrPages[nIndex]);
+				if(this.GraphicObj.bounds.isIntersect(oPageBounds.Left, oPageBounds.Top, oPageBounds.Right, oPageBounds.Bottom))
+				{
+					return new AscFormat.CGraphicBounds(oPageBounds.Left, oPageBounds.Top, oPageBounds.Right, oPageBounds.Bottom);
+				}
+			}
+		}
+	}
+	return null;
+};
+ParaDrawing.prototype.Update_PositionYHeaderFooter = function(TopMarginY, BottomMarginY)
+{
+	this.Internal_Position.Update_PositionYHeaderFooter(TopMarginY, BottomMarginY);
+	this.Internal_Position.Calculate_Y(this.Is_Inline(), this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
+	this.Y = this.Internal_Position.CalcY;
+	this.updatePosition3(this.PageNum, this.X, this.Y, this.PageNum);
+};
+ParaDrawing.prototype.Reset_SavedPosition = function()
+{
+	this.PositionV_Old = undefined;
+	this.PositionH_Old = undefined;
+};
+ParaDrawing.prototype.setParagraphBorders = function(val)
+{
+	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphBorders === "function")
+		this.GraphicObj.setParagraphBorders(val);
+};
+ParaDrawing.prototype.deselect = function()
+{
+	this.selected = false;
+	if (this.GraphicObj && this.GraphicObj.deselect)
+		this.GraphicObj.deselect();
+};
+
+ParaDrawing.prototype.GetPosCorrection = function()
+{
+
 	var DiffX = 0.0, DiffY = 0.0;
-	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align)
+	var bCell;
+
+	var oEffectExtent = this.EffectExtent;
+	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent.IsTableCellContent(false))))
 	{
 		var extX, extY, rot;
 		if (this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm )
@@ -1259,44 +1327,25 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 			extX = extY;
 			extY = t;
 		}
-		var oEffectExtent = this.EffectExtent;
-		if(this.Is_Inline() || this.PositionH.Align)
+		if(bCell || this.Is_Inline() || this.PositionH.Align)
 		{
 			DiffX = AscFormat.getValOrDefault(oEffectExtent.L, 0.0) - (xc - extX / 2) + oBounds.l;
 		}
-		if(this.Is_Inline() || this.PositionV.Align)
+		if(/*bCell ||*/ this.Is_Inline() || this.PositionV.Align)
 		{
 			DiffY = AscFormat.getValOrDefault(oEffectExtent.T, 0.0) - (yc - extY / 2) + oBounds.t;
 		}
 	}
-	this.updatePosition3(this.PageNum, this.X + DiffX, this.Y - DiffY, OldPageNum);
-	this.useWrap = this.Use_TextWrap();
+	return {DiffX: DiffX, DiffY: DiffY, ExtX: extX, ExtY: extY, Rot: rot};
 };
-ParaDrawing.prototype.Update_PositionYHeaderFooter = function(TopMarginY, BottomMarginY)
-{
-	this.Internal_Position.Update_PositionYHeaderFooter(TopMarginY, BottomMarginY);
-	this.Internal_Position.Calculate_Y(this.Is_Inline(), this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
-	this.Y = this.Internal_Position.CalcY;
-	this.updatePosition3(this.PageNum, this.X, this.Y, this.PageNum);
-};
-ParaDrawing.prototype.Reset_SavedPosition = function()
-{
-	this.PositionV_Old = undefined;
-	this.PositionH_Old = undefined;
-};
-ParaDrawing.prototype.setParagraphBorders = function(val)
-{
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphBorders === "function")
-		this.GraphicObj.setParagraphBorders(val);
-};
-ParaDrawing.prototype.deselect = function()
-{
-	this.selected = false;
-	if (this.GraphicObj && this.GraphicObj.deselect)
-		this.GraphicObj.deselect();
-};
+
 ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
 {
+	var _x = x, _y = y;
+	var oPosCorrection = this.GetPosCorrection();
+	_x += oPosCorrection.DiffX;
+	_y -= oPosCorrection.DiffY;
+
 	this.graphicObjects.removeById(pageIndex, this.Get_Id());
 	if (AscFormat.isRealNumber(oldPageNum))
 	{
@@ -1309,8 +1358,8 @@ ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
 		this.GraphicObj.setStartPage(pageIndex, bIsHfdFtr, bIsHfdFtr);
 	}
 	var bInline = this.Is_Inline();
-	var _x      = (this.PositionH.Align || bInline) ? x - this.GraphicObj.bounds.x : x;
-	var _y      = (this.PositionV.Align || bInline) ? y - this.GraphicObj.bounds.y : y;
+	_x      = (this.PositionH.Align || bInline) ? _x - this.GraphicObj.bounds.x : _x;
+	_y      = (this.PositionV.Align || bInline) ? _y - this.GraphicObj.bounds.y : _y;
 
 	if (!(this.DocumentContent && this.DocumentContent.IsHdrFtr() && this.DocumentContent.Get_StartPage_Absolute() !== pageIndex))
 	{
@@ -2109,7 +2158,10 @@ ParaDrawing.prototype.GetAllParagraphs = function(Props, ParaArray)
 ParaDrawing.prototype.GetAllDocContents = function(aDocContents)
 {
 	var _ret = Array.isArray(aDocContents) ? aDocContents : [];
-	this.GraphicObj.getAllDocContents(_ret);
+	if(this.GraphicObj)
+	{
+		this.GraphicObj.getAllDocContents(_ret);
+	}
 	return _ret;
 };
 ParaDrawing.prototype.getTableProps = function()
@@ -2614,8 +2666,22 @@ ParaDrawing.prototype.GetAllContentControls = function(arrContentControls)
 		this.GraphicObj.GetAllContentControls(arrContentControls);
 	}
 };
-
-
+ParaDrawing.prototype.UpdateBookmarks = function(oManager)
+{
+	var arrDocContents = this.GetAllDocContents();
+	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
+	{
+		arrDocContents[nIndex].UpdateBookmarks(oManager);
+	}
+};
+ParaDrawing.prototype.PreDelete = function()
+{
+	var arrDocContents = this.GetAllDocContents();
+	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
+	{
+		arrDocContents[nIndex].PreDelete();
+	}
+};
 ParaDrawing.prototype.CheckContentControlEditingLock = function(){
 	if(this.DocumentContent && this.DocumentContent.CheckContentControlEditingLock){
         this.DocumentContent.CheckContentControlEditingLock();
@@ -2627,6 +2693,14 @@ ParaDrawing.prototype.CheckContentControlDeletingLock = function(){
 	if(this.DocumentContent && this.DocumentContent.CheckContentControlDeletingLock){
         this.DocumentContent.CheckContentControlDeletingLock();
 	}
+};
+ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if(this.GraphicObj)
+	{
+		return this.GraphicObj.GetAllFields(isUseSelection, arrFields);
+	}
+	return arrFields ? arrFields : [];
 };
 
 /**

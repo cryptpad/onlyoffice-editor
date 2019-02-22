@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -365,7 +365,7 @@ CComplexField.prototype.SetSeparateChar = function(oChar)
 	this.SeparateChar = oChar;
 	this.EndChar      = null;
 };
-CComplexField.prototype.Update = function(isCreateHistoryPoint)
+CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculate)
 {
 	this.private_UpdateInstruction();
 
@@ -398,10 +398,49 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint)
 		case fieldtype_PAGECOUNT:
 			this.private_UpdateNUMPAGES();
 			break;
+		case fieldtype_FORMULA:
+			this.private_UpdateFORMULA();
+			break;
 
 	}
 
-	this.LogicDocument.Recalculate();
+	if (false !== isNeedRecalculate)
+		this.LogicDocument.Recalculate();
+};
+CComplexField.prototype.private_UpdateFORMULA = function()
+{
+	this.Instruction.Calculate();
+	if(this.Instruction.ErrStr !== null)
+	{
+		var oSelectedContent = new CSelectedContent();
+		var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+		var oRun  = new ParaRun(oPara, false);
+		oRun.Set_Bold(true);
+		oRun.AddText(this.Instruction.ErrStr);
+		oPara.AddToContent(0, oRun);
+		oSelectedContent.Add(new CSelectedElement(oPara, false));
+		this.LogicDocument.TurnOff_Recalculate();
+		this.LogicDocument.TurnOff_InterfaceEvents();
+		this.LogicDocument.Remove(1, false, false, false);
+		this.LogicDocument.TurnOn_Recalculate(false);
+		this.LogicDocument.TurnOn_InterfaceEvents(false);
+		oRun       = this.BeginChar.GetRun();
+		var oParagraph = oRun.GetParagraph();
+		var oNearPos   = {
+			Paragraph  : oParagraph,
+			ContentPos : oParagraph.Get_ParaContentPos(false, false)
+		};
+		oParagraph.Check_NearestPos(oNearPos);
+		oSelectedContent.DoNotAddEmptyPara = true;
+		oParagraph.Parent.Insert_Content(oSelectedContent, oNearPos);
+	}
+	else
+	{
+		if(this.Instruction.ResultStr !== null)
+		{
+			this.LogicDocument.AddText(this.Instruction.ResultStr);
+		}
+	}
 };
 CComplexField.prototype.private_UpdatePAGE = function()
 {
@@ -481,6 +520,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 				SkipComments          : true
 			});
 			oPara.Style_Add(oStyles.GetDefaultTOC(arrOutline[nIndex].Lvl), false);
+			oPara.SetOutlineLvl(undefined);
 
 
 			var oClearTextPr = new CTextPr();
@@ -750,7 +790,7 @@ CComplexField.prototype.SelectField = function()
 CComplexField.prototype.GetTopDocumentContent = function()
 {
 	if (!this.BeginChar || !this.SeparateChar || !this.EndChar)
-		return;
+		return null;
 
 	var oTopDocument = this.BeginChar.GetTopDocumentContent();
 

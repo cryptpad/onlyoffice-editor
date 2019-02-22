@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -147,7 +147,7 @@ CParagraphContentBase.prototype.GetSelectedText = function(bAll, bClearText, oPr
 {
 	return "";
 };
-CParagraphContentBase.prototype.Get_SelectionDirection = function()
+CParagraphContentBase.prototype.GetSelectDirection = function()
 {
 	return 1;
 };
@@ -287,7 +287,13 @@ CParagraphContentBase.prototype.LoadRecalculateObject = function(RecalcObj, Pare
 CParagraphContentBase.prototype.PrepareRecalculateObject = function()
 {
 };
-CParagraphContentBase.prototype.Is_EmptyRange = function(_CurLine, _CurRange)
+/**
+ * Пустой ли заданный отрезок
+ * @param nCurLine {number}
+ * @param nCurRange {number}
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.IsEmptyRange = function(nCurLine, nCurRange)
 {
 	return true;
 };
@@ -520,7 +526,12 @@ CParagraphContentBase.prototype.IsSelectedAll = function(Props)
 {
 	return true;
 };
-CParagraphContentBase.prototype.Selection_CorrectLeftPos = function(Direction)
+/**
+ * Функция коррекции селекта, чтобы убрать из селекта плавающие объекты, идущие в начале
+ * @param nDirection {number} - направление селекта
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.SkipAnchorsAtSelectionStart = function(nDirection)
 {
 	return true;
 };
@@ -590,6 +601,18 @@ CParagraphContentBase.prototype.Restart_CheckSpelling = function()
 CParagraphContentBase.prototype.GetDirectTextPr = function()
 {
 	return null;
+};
+CParagraphContentBase.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	return arrFields ? arrFields : [];
+};
+/**
+ * Проверяем можно ли добавлять комментарий по заданому селекту
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.CanAddComment = function()
+{
+	return true;
 };
 
 /**
@@ -910,11 +933,11 @@ CParagraphContentWithParagraphLikeContent.prototype.SetParagraph = function(Para
 		this.Content[CurPos].SetParagraph(Paragraph);
 	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Is_Empty = function()
+CParagraphContentWithParagraphLikeContent.prototype.Is_Empty = function(oPr)
 {
     for (var Index = 0, ContentLen = this.Content.length; Index < ContentLen; Index++)
     {
-        if (false === this.Content[Index].Is_Empty())
+        if (false === this.Content[Index].Is_Empty(oPr))
             return false;
     }
 
@@ -967,7 +990,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GetSelectedText = function(b
 
     return Str;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Get_SelectionDirection = function()
+CParagraphContentWithParagraphLikeContent.prototype.GetSelectDirection = function()
 {
     if (true !== this.Selection.Use)
         return 0;
@@ -977,7 +1000,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_SelectionDirection = fun
     else if (this.Selection.StartPos > this.Selection.EndPos)
         return -1;
 
-    return this.Content[this.Selection.StartPos].Get_SelectionDirection();
+    return this.Content[this.Selection.StartPos].GetSelectDirection();
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_TextPr = function(_ContentPos, Depth)
 {
@@ -1782,6 +1805,10 @@ CParagraphContentWithParagraphLikeContent.prototype.Correct_Content = function()
     if (this.Content.length < 0)
         this.Add_ToContent(0, new ParaRun(this.Paragraph, false));
 };
+CParagraphContentWithParagraphLikeContent.prototype.CorrectContent = function()
+{
+	this.Correct_Content();
+};
 CParagraphContentWithParagraphLikeContent.prototype.UpdateBookmarks = function(oManager)
 {
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
@@ -1962,21 +1989,21 @@ CParagraphContentWithParagraphLikeContent.prototype.PrepareRecalculateObject = f
 		this.Content[Index].PrepareRecalculateObject();
 	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Is_EmptyRange = function(_CurLine, _CurRange)
+CParagraphContentWithParagraphLikeContent.prototype.IsEmptyRange = function(_CurLine, _CurRange)
 {
-    var CurLine = _CurLine - this.StartLine;
-    var CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
+	var CurLine  = _CurLine - this.StartLine;
+	var CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
 
-    var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
-    var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
+	var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
+	var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
 
-    for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-    {
-        if ( false === this.Content[CurPos].Is_EmptyRange(_CurLine, _CurRange) )
-            return false;
-    }
+	for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+	{
+		if (false === this.Content[CurPos].IsEmptyRange(_CurLine, _CurRange))
+			return false;
+	}
 
-    return true;
+	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Check_Range_OnlyMath = function(Checker, _CurRange, _CurLine)
 {
@@ -2919,37 +2946,42 @@ CParagraphContentWithParagraphLikeContent.prototype.IsSelectedAll = function(Pro
 
     return true;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Selection_CorrectLeftPos = function(Direction)
+CParagraphContentWithParagraphLikeContent.prototype.SkipAnchorsAtSelectionStart = function(nDirection)
 {
-    if ( false === this.Selection.Use || true === this.Is_Empty( { SkipAnchor : true } ) )
-        return true;
+	if (false === this.Selection.Use || true === this.IsEmpty({SkipAnchor : true}))
+		return true;
 
-    var Selection = this.State.Selection;
-    var StartPos = Math.min( Selection.StartPos, Selection.EndPos );
-    var EndPos   = Math.max( Selection.StartPos, Selection.EndPos );
+	var oSelection = this.State.Selection;
+	var nStartPos  = Math.min(oSelection.StartPos, oSelection.EndPos);
+	var nEndPos    = Math.max(oSelection.StartPos, oSelection.EndPos);
 
-    for ( var Pos = 0; Pos < StartPos; Pos++ )
-    {
-        if ( true !== this.Content[Pos].Is_Empty( { SkipAnchor : true } ) )
-            return false;
-    }
+	for (var nPos = 0; nPos < nStartPos; ++nPos)
+	{
+		if (true !== this.Content[nPos].IsEmpty({SkipAnchor : true}))
+			return false;
+	}
 
-    for ( var Pos = StartPos; Pos <= EndPos; Pos++ )
-    {
-        if ( true === this.Content[Pos].Selection_CorrectLeftPos(Direction) )
-        {
-            if ( 1 === Direction )
-                this.Selection.StartPos = Pos + 1;
-            else
-                this.Selection.EndPos   = Pos + 1;
+	for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		if (true === this.Content[nPos].SkipAnchorsAtSelectionStart(nDirection))
+		{
+			if (1 === nDirection)
+				this.Selection.StartPos = nPos + 1;
+			else
+				this.Selection.EndPos = nPos + 1;
 
-            this.Content[Pos].RemoveSelection();
-        }
-        else
-            return false;
-    }
+			this.Content[nPos].RemoveSelection();
+		}
+		else
+		{
+			return false;
+		}
+	}
 
-    return true;
+	if (nEndPos < this.Content.length - 1)
+		return false;
+
+	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.IsSelectionUse = function()
 {
@@ -3285,12 +3317,12 @@ CParagraphContentWithParagraphLikeContent.prototype.private_CheckUpdateBookmarks
 		}
 	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Get_FootnotesList = function(oEngine)
+CParagraphContentWithParagraphLikeContent.prototype.GetFootnotesList = function(oEngine)
 {
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.Content[nIndex].Get_FootnotesList)
-			this.Content[nIndex].Get_FootnotesList(oEngine);
+		if (this.Content[nIndex].GetFootnotesList)
+			this.Content[nIndex].GetFootnotesList(oEngine);
 
 		if (oEngine.IsRangeFull())
 			return;
@@ -3386,6 +3418,9 @@ CParagraphContentWithParagraphLikeContent.prototype.Is_UseInParagraph = function
 };
 CParagraphContentWithParagraphLikeContent.prototype.SelectThisElement = function(nDirection)
 {
+	if (!this.Paragraph)
+		return false;
+
 	var ContentPos = this.Paragraph.Get_PosByElement(this);
 	if (!ContentPos)
 		return false;
@@ -3522,9 +3557,9 @@ CParagraphContentWithParagraphLikeContent.prototype.FindNextFillingForm = functi
 
 	return null;
 };
-CParagraphContentWithParagraphLikeContent.prototype.IsEmpty = function()
+CParagraphContentWithParagraphLikeContent.prototype.IsEmpty = function(oPr)
 {
-	return this.Is_Empty();
+	return this.Is_Empty(oPr);
 };
 CParagraphContentWithParagraphLikeContent.prototype.AddContentControl = function()
 {
@@ -3564,11 +3599,14 @@ CParagraphContentWithParagraphLikeContent.prototype.AddContentControl = function
 			oNewRun = this.Content[nStartPos].Split_Run(Math.min(this.Content[nStartPos].Selection.StartPos, this.Content[nStartPos].Selection.EndPos));
 			this.Add_ToContent(nStartPos + 1, oNewRun);
 
+			oContentControl.ReplacePlaceHolderWithContent();
 			for (var nIndex = nEndPos + 1; nIndex >= nStartPos + 1; --nIndex)
 			{
 				oContentControl.Add_ToContent(0, this.Content[nIndex]);
 				this.Remove_FromContent(nIndex, 1);
 			}
+			if (oContentControl.IsEmpty())
+				oContentControl.ReplaceContentWithPlaceHolder();
 
 			this.Add_ToContent(nStartPos + 1, oContentControl);
 			this.Selection.StartPos = nStartPos + 1;
@@ -3636,6 +3674,42 @@ CParagraphContentWithParagraphLikeContent.prototype.GetDirectTextPr = function()
 	{
 		return this.Content[this.State.ContentPos].GetDirectTextPr();
 	}
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if (!arrFields)
+		arrFields = [];
+
+	var nStartPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos)
+		: 0;
+
+	var nEndPos = isUseSelection ?
+		(this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos)
+		: this.Content.length - 1;
+
+	for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+	{
+		this.Content[nIndex].GetAllFields(isUseSelection, arrFields);
+	}
+
+	return arrFields;
+};
+CParagraphContentWithParagraphLikeContent.prototype.CanAddComment = function()
+{
+	if (!this.Selection.Use)
+		return true;
+
+	var nStartPos = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+	var nEndPos   = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+
+	for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		if (this.Content[nPos].CanAddComment && !this.Content[nPos].CanAddComment())
+			return false;
+	}
+
+	return true;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции, которые должны быть реализованы в классах наследниках

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -187,9 +187,9 @@
 
         this.copyOutEnabled = (config['copyoutenabled'] !== false);
 
-		//config['watermark_on_draw'] = window.TEST_WATERMARK_STRING;
-		this.watermarkDraw =
-			config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
+		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
+
+		this.SaveAfterMacros = false;
 
 		return this;
 	}
@@ -227,13 +227,18 @@
 
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
+			//send only first error to reduce number of requests. also following error may be consequences of first
+			window.onerror = oldOnError;
 			var msg = 'Error: ' + errorMsg + ' Script: ' + url + ' Line: ' + lineNumber + ':' + column +
 				' userAgent: ' + (navigator.userAgent || navigator.vendor || window.opera) + ' platform: ' +
 				navigator.platform + ' isLoadFullApi: ' + t.isLoadFullApi + ' isDocumentLoadComplete: ' +
 				t.isDocumentLoadComplete + ' StackTrace: ' + (errorObj ? errorObj.stack : "");
 			t.CoAuthoringApi.sendChangesError(msg);
-			//send only first error to reduce number of requests. also following error may be consequences of first
-			window.onerror = oldOnError;
+			if (t.isLoadFullApi && t.isDocumentLoadComplete) {
+				//todo disconnect and downloadAs ability
+				t.sendEvent("asc_onError", Asc.c_oAscError.ID.EditingError, c_oAscError.Level.NoCritical);
+				t.asc_setViewMode(true);
+			}
 			if (oldOnError) {
 				return oldOnError.apply(this, arguments);
 			} else {
@@ -269,6 +274,14 @@
 	baseEditorsApi.prototype.asc_getDocumentName             = function()
 	{
 		return this.documentTitle;
+	};
+	baseEditorsApi.prototype.asc_getAppProps                 = function()
+	{
+		return null;
+	};
+	baseEditorsApi.prototype.asc_getCoreProps                = function()
+	{
+		return null;
 	};
 	baseEditorsApi.prototype.asc_setDocInfo                  = function(oDocInfo)
 	{
@@ -568,6 +581,9 @@
 		}
 		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 		this.sendEvent('asc_onDocumentContentReady');
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
 
         if (this.editorId == c_oEditorId.Spreadsheet)
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
@@ -1277,6 +1293,15 @@
 	baseEditorsApi.prototype.asc_startEditCurrentOleObject = function(){
 
 	};
+	baseEditorsApi.prototype.asc_canStartImageCrop = function(){
+
+	};
+	baseEditorsApi.prototype.asc_startImageCrop = function(){
+
+	};
+	baseEditorsApi.prototype.asc_endImageCrop = function(){
+
+	};
 	// Version History
 	baseEditorsApi.prototype.asc_showRevision   = function(newObj)
 	{
@@ -1515,6 +1540,42 @@
 		return result;
 	};
 
+
+	baseEditorsApi.prototype.showVideoControl = function(sMediaName, extX, extY, transform)
+	{
+		if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["MediaStart"])
+			return;
+
+		switch (this.editorId)
+		{
+			case c_oEditorId.Word:
+			{
+				break;
+			}
+			case c_oEditorId.Presentation:
+			{
+                var pos = this.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(0, 0, this.WordControl.m_oLogicDocument.CurPage, null, true);
+                pos.X += this.WordControl.X;
+                pos.Y += this.WordControl.Y;
+
+                if (!transform)
+                	window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, this.WordControl.m_nZoomValue / 100);
+                else
+                    window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, this.WordControl.m_nZoomValue / 100, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+				break;
+			}
+            case c_oEditorId.Spreadsheet:
+            {
+                break;
+            }
+		}
+	};
+	baseEditorsApi.prototype.hideVideoControl = function()
+	{
+        if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["MediaEnd"])
+            return;
+        window["AscDesktopEditor"]["MediaEnd"]();
+	};
 	// plugins
 	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
 	{
@@ -1548,6 +1609,12 @@
 			return;
 
 		this.pluginsManager.onEnableMouseEvents(isEnable);
+	};
+
+	baseEditorsApi.prototype.asc_PlayMediaFile = function(sName)
+	{
+		if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["OpenMedia"])
+			window["AscDesktopEditor"]["OpenMedia"](sName);
 	};
 
     baseEditorsApi.prototype.isEnabledDropTarget = function()
@@ -1716,6 +1783,7 @@
 
                 var _ret = _editor.asc_nativeGetFile3();
                 AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
+				_editor.currentDocumentInfoNext = obj["docinfo"];
                 window["AscDesktopEditor"]["buildCryptedStart"](_ret.data, _ret.header, obj["password"], obj["docinfo"] ? obj["docinfo"] : "");
                 break;
             }
@@ -1753,6 +1821,69 @@
             }
         }
     };
+
+	baseEditorsApi.prototype["pluginMethod_SetProperties"] = function(obj)
+	{
+		for (var prop in obj)
+		{
+			switch (prop)
+			{
+				case "copyoutenabled":
+				{
+					this.copyOutEnabled = obj[prop];
+					break;
+				}
+				case "watermark_on_draw":
+				{
+					this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop]) : null;
+					if (this.watermarkDraw)
+						this.watermarkDraw.CheckParams(this);
+
+					// refresh!!!
+					switch (this.editorId)
+					{
+						case c_oEditorId.Word:
+						{
+							if (this.WordControl)
+							{
+								if (this.watermarkDraw)
+								{
+									this.watermarkDraw.zoom = this.WordControl.m_nZoomValue / 100;
+									this.watermarkDraw.Generate();
+								}
+
+								this.WordControl.OnRePaintAttack();
+							}
+
+							break;
+						}
+						case c_oEditorId.Presentation:
+						{
+							if (this.WordControl)
+							{
+								if (this.watermarkDraw)
+								{
+									this.watermarkDraw.zoom = this.WordControl.m_nZoomValue / 100;
+									this.watermarkDraw.Generate();
+								}
+
+								this.WordControl.OnRePaintAttack();
+							}
+							break;
+						}
+						case c_oEditorId.Spreadsheet:
+						{
+							break;
+						}
+					}
+
+					break;
+				}
+				default:
+					break;
+			}
+		}
+	};
 
 	// Builder
 	baseEditorsApi.prototype.asc_nativeInitBuilder = function()
@@ -2183,6 +2314,12 @@
 		return this.macros.GetData();
 	};
 
+	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
+	{
+		return 0;
+	};
+
+
 	function parseCSV(text, options) {
 		var delimiterChar;
 		if (options.asc_getDelimiterChar()) {
@@ -2231,7 +2368,19 @@
 			}
 		};
 
-		reader.readAsText(new Blob([buffer]), AscCommon.c_oAscEncodings[options.asc_getCodePage()][2]);
+		var encoding = "UTF-8";
+		var codePage = options.asc_getCodePage();
+		var encodingsLen = AscCommon.c_oAscEncodings.length;
+		for (var i = 0; i < encodingsLen; ++i)
+		{
+			if (AscCommon.c_oAscEncodings[i][0] == codePage)
+			{
+				encoding = AscCommon.c_oAscEncodings[i][2];
+				break;
+			}
+		}
+
+		reader.readAsText(new Blob([buffer]), encoding);
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------

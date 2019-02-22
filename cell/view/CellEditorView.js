@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -96,11 +96,11 @@
 	 * @param {Element} elem
 	 * @param {Element} input
 	 * @param {Array} fmgrGraphics
-	 * @param {FontProperties} oFont
+	 * @param {AscCommonExcel.Font} oFont
 	 * @param {HandlersList} handlers
-	 * @param {Object} settings
+	 * @param {Number} padding
 	 */
-	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, settings ) {
+	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, padding ) {
 		this.element = elem;
 		this.input = input;
 		this.handlers = new asc_HL( handlers );
@@ -163,7 +163,7 @@
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
 
 		this.defaults = {
-			padding: -1,
+			padding: padding,
 			selectColor: new AscCommon.CColor(190, 190, 255, 0.5),
 			canvasZIndex: 500,
 			blinkInterval: 500,
@@ -176,15 +176,14 @@
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
 
-		this._init( settings );
+		this._init();
 
 		return this;
 	}
 
-	CellEditor.prototype._init = function (settings) {
+	CellEditor.prototype._init = function () {
 		var t = this;
 		var z = t.defaults.canvasZIndex;
-		this.defaults.padding = settings.padding;
 		this.sAutoComplete = null;
 
 		if (null != this.element) {
@@ -215,7 +214,6 @@
 			canvas: t.canvasOverlay, units: 0/*px*/, fmgrGraphics: this.fmgrGraphics, font: this.m_oFont
 		});
 		t.textRender = new AscCommonExcel.CellTextRender(t.drawingCtx);
-		t.textRender.setDefaultFont(settings.font.clone());
 
 		// bind event handlers
 		if (t.canvasOuter && t.canvasOuter.addEventListener) {
@@ -272,7 +270,6 @@
 	 *   flags      - text flags (wrapText, textAlign)
 	 *   font
 	 *   background
-	 *   textColor
 	 *   saveValueCallback
 	 */
 	CellEditor.prototype.open = function ( options ) {
@@ -317,8 +314,51 @@
 		this._updateUndoRedoChanged();
 	};
 
-	CellEditor.prototype.close = function (saveValue) {
+	CellEditor.prototype.close = function (saveValue, bApplyByArray, callback) {
 		var opt = this.options;
+		var t = this;
+
+		var localSaveValueCallback = function(isSuccess) {
+			t.textFlags.bApplyByArray = null;
+			if(!isSuccess) {
+				t.handlers.trigger('setStrictClose', true);
+				if(callback) {
+					callback(false);
+				}
+				return false;
+			}
+
+			t.isOpened = false;
+
+			t._formula = null;
+			t._parseResult = null;
+
+			if (!window['IS_NATIVE_EDITOR']) {
+				if (window.removeEventListener) {
+					window.removeEventListener("mouseup", t.fKeyMouseUp, false);
+					window.removeEventListener("mousemove", t.fKeyMouseMove, false);
+				}
+				t.input.blur();
+				t.isTopLineActive = false;
+				t.input.isFocused = false;
+				t._hideCursor();
+				// hide
+				t._hideCanvas();
+			}
+
+			// delete autoComplete
+			t.objAutoComplete = {};
+
+			// Сброс состояния редактора
+			t.m_nEditorState = c_oAscCellEditorState.editEnd;
+			t.handlers.trigger("closed");
+
+			if(callback) {
+				callback(true);
+			} else {
+				return true;
+			}
+		};
 
 		if (saveValue) {
 			// Пересчет делаем всегда для не пустой ячейки или если были изменения. http://bugzilla.onlyoffice.com/show_bug.cgi?id=34864
@@ -333,11 +373,8 @@
 					this.noUpdateMode = false;
 				}
 
-				if (!opt.saveValueCallback(opt.fragments, this.textFlags)) {
-					// При ошибке нужно выставить флаг, чтобы по стрелкам не закрывался редактор
-					this.handlers.trigger('setStrictClose', true);
-					return false;
-				}
+				this.textFlags.bApplyByArray = bApplyByArray;
+				return opt.saveValueCallback(opt.fragments, this.textFlags, localSaveValueCallback);
 			}
 		}
 
@@ -369,6 +406,9 @@
 	};
 
 	CellEditor.prototype.setTextStyle = function (prop, val) {
+		if (this.isFormula()) {
+			return;
+		}
 		var t = this, opt = t.options, begin, end, i, first, last;
 
 		if (t.selectionBegin !== t.selectionEnd) {
@@ -582,45 +622,11 @@
 		text = text.replace(/\r/g, "");
 		text = text.replace(/^\n+|\n+$/g, "");
 
-		var length = text.length;
-		if (!(length > 0)) {
-			return;
-		}
-		if (!this._checkMaxCellLength(length)) {
+		if (0 === text.length) {
 			return;
 		}
 
-		var wrap = -1 !== text.indexOf(kNewLine);
-		if (this.selectionBegin !== this.selectionEnd) {
-			this._removeChars();
-		}
-
-		// save info to undo/redo
-		this.undoList.push({fn: this._removeChars, args: [this.cursorPos, length]});
-		this.redoList = [];
-
-		var opt = this.options;
-		var nInsertPos = this.cursorPos;
-		var fr;
-		fr = this._findFragmentToInsertInto(nInsertPos - (nInsertPos > 0 ? 1 : 0));
-		if (fr) {
-			var oCurFragment = opt.fragments[fr.index];
-			if (fr.end <= nInsertPos) {
-				oCurFragment.text += text;
-			} else {
-				var sNewText = oCurFragment.text.substring(0, nInsertPos);
-				sNewText += text;
-				sNewText += oCurFragment.text.substring(nInsertPos);
-				oCurFragment.text = sNewText;
-			}
-			this.cursorPos = nInsertPos + length;
-			this._update();
-		}
-
-		if (wrap) {
-			this._wrapText();
-			this._update();
-		}
+		this._addChars(text);
 	};
 
 	CellEditor.prototype.paste = function (fragments, cursorPos) {
@@ -631,10 +637,6 @@
 		if (!this._checkMaxCellLength(length)) {
 			return;
 		}
-
-		var wrap = fragments.some(function (val) {
-			return -1 !== val.text.indexOf(kNewLine);
-		});
 
 		this._cleanFragments(fragments);
 
@@ -647,11 +649,6 @@
 		this.redoList = [];
 
 		this._addFragments(fragments, this.cursorPos);
-
-		if (wrap) {
-			this._wrapText();
-			this._update();
-		}
 
 		// Сделано только для вставки формулы в ячейку (когда не открыт редактор)
 		if (undefined !== cursorPos) {
@@ -1337,7 +1334,7 @@
 		}
 
 		if (opt.fragments.length > 0) {
-			t.textRender.render(undefined, t._getContentLeft(), dy || 0, t._getContentWidth(), opt.textColor);
+			t.textRender.render(undefined, t._getContentLeft(), dy || 0, t._getContentWidth(), opt.font.getColor());
 		}
 	};
 
@@ -1717,6 +1714,9 @@
 			}
 
 			this.cursorPos = pos + str.length;
+			if (-1 !== str.indexOf(kNewLine)) {
+				this._wrapText();
+			}
 		}
 
 		this.noUpdateMode = noUpdateMode;
@@ -1999,10 +1999,10 @@
 			fr[i].text = s;
 			f = fr[i].format;
 			if (f.getName() === "") {
-				f.setName(t.options.font.FontFamily.Name);
+				f.setName(t.options.font.getName());
 			}
 			if (f.getSize() === 0) {
-				f.setSize(t.options.font.FontSize);
+				f.setSize(t.options.font.getSize());
 			}
 		}
 	};
@@ -2101,10 +2101,18 @@
 		t.undoMode = false;
 	};
 
-	CellEditor.prototype._tryCloseEditor = function (event) {
-		if (this.close(true)) {
-			this.handlers.trigger("applyCloseEvent", event);
+	CellEditor.prototype._tryCloseEditor = function (event, bApplyByArray) {
+		var t = this;
+		var callback = function(success) {
+			//для случая, когда пользователь нажимает ctrl+shift+enter переход на новую строку не осуществляется
+			if(!bApplyByArray && success) {
+				t.handlers.trigger("applyCloseEvent", event);
+			}
+		};
+		if(!window['AscCommonExcel'].bIsSupportArrayFormula) {
+			bApplyByArray = false;
 		}
+		this.close(true, bApplyByArray, callback);
 	};
 
 	CellEditor.prototype._getAutoComplete = function (str) {
@@ -2144,7 +2152,7 @@
 		result.strikeout = tmp.getStrikeout();
 		result.subscript = va === AscCommon.vertalign_SubScript;
 		result.superscript = va === AscCommon.vertalign_SuperScript;
-		result.color = (fc ? asc.colorObjToAscColor( fc ) : new Asc.asc_CColor( this.options.textColor ));
+		result.color = (fc ? asc.colorObjToAscColor( fc ) : new Asc.asc_CColor(this.options.font.getColor()));
 
 		this.handlers.trigger( "updateEditorSelectionInfo", result );
 	};
@@ -2218,7 +2226,7 @@
 							t._addNewLine();
 						} else {
 							if (false === t.handlers.trigger("isGlobalLockEditCell")) {
-								t._tryCloseEditor(event);
+								t._tryCloseEditor(event, event.shiftKey&&event.ctrlKey);
 							}
 						}
 					}

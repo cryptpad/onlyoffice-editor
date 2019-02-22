@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -41,7 +41,6 @@ function (window, undefined) {
 
 // Import
 var cToDeg = AscFormat.cToDeg;
-var Path = AscFormat.Path2;
 var ORIENTATION_MIN_MAX = AscFormat.ORIENTATION_MIN_MAX;
 var Point3D = AscFormat.Point3D;
 
@@ -1588,8 +1587,12 @@ CChartsDrawer.prototype =
 		}*/
 
 		if (axisMax < axisMin) {
-			manualMax = 2 * axisMin;
-			axisMax = manualMax;
+			if(axisMax > 0) {
+				manualMax = 2 * axisMin;
+				axisMax = manualMax;
+			} else {
+				axisMin = 2 * axisMax;
+			}
 		}
 
 		//приводим к первому порядку
@@ -2296,7 +2299,7 @@ CChartsDrawer.prototype =
 		return result;
 	},
 
-	getYPosition: function (val, axis) {
+	getYPosition: function (val, axis, ignoreAxisLimits) {
 		var yPoints = axis.yPoints ? axis.yPoints : axis.xPoints;
 		var isOx = axis.axPos === window['AscFormat'].AX_POS_T || axis.axPos === window['AscFormat'].AX_POS_B;
 		var logBase = axis.scaling.logBase;
@@ -2320,7 +2323,7 @@ CChartsDrawer.prototype =
 				result = yPoints[0].pos + Math.abs((diffVal / resVal) * resPos);
 			}
 
-			if (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos) {
+			if (!ignoreAxisLimits && (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos)) {
 				result = yPoints[0].pos;
 			}
 		} else if (val > yPoints[yPoints.length - 1].val) {
@@ -2343,7 +2346,7 @@ CChartsDrawer.prototype =
 				}
 			}
 
-			if (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos) {
+			if (!ignoreAxisLimits && (result > yPoints[yPoints.length - 1].pos || result < yPoints[0].pos)) {
 				result = yPoints[yPoints.length - 1].pos;
 			}
 		} else {
@@ -4244,7 +4247,8 @@ drawBarChart.prototype = {
 							paths: paths.paths[k],
 							x: paths.sortPaths[k].x,
 							y: paths.sortPaths[k].y,
-							zIndex: paths.sortPaths[k].z
+							zIndex: paths.sortPaths[k].z,
+							facePoint: paths.facePoints[k]
 						});
 					}
 
@@ -4329,11 +4333,25 @@ drawBarChart.prototype = {
 				cSortFaces = new window['AscFormat'].CSortFaces(this.cChartDrawer);
 				this.sortParallelepipeds = cSortFaces.sortParallelepipeds(this.temp2);
 			} else {
+				var getMinZ = function (arr) {
+					var zIndex = 0;
+					for (var i = 0; i < arr.length; i++) {
+						if (i === 0) {
+							zIndex = arr[i].z;
+						} else if (arr[i].z < zIndex) {
+							zIndex = arr[i].z;
+						}
+					}
+					return zIndex;
+				};
 				this.sortZIndexPaths.sort(function sortArr(a, b) {
-					if (b.zIndex == a.zIndex) {
+					var minZA = getMinZ(a.facePoint);
+					var minZB = getMinZ(b.facePoint);
+
+					if (minZB == minZA) {
 						return b.y - a.y;
 					} else {
-						return b.zIndex - a.zIndex;
+						return minZB - minZA;
 					}
 				});
 			}
@@ -4538,6 +4556,9 @@ drawBarChart.prototype = {
 				path = this.paths.series[ser][val][2];
 			} else if (AscFormat.isRealNumber(this.paths.series[ser][val][3])) {
 				path = this.paths.series[ser][val][3];
+			} else if (AscFormat.isRealNumber(this.paths.series[ser][val][1])) {
+				//TODO добавлено для случая нулевой точки. возможно в данном случае сдвиги нужно считать иначе
+				path = this.paths.series[ser][val][1];
 			}
 		}
 
@@ -4910,9 +4931,14 @@ drawBarChart.prototype = {
 		var controlPoint5 = this.cChartDrawer._convertAndTurnPoint(x5 + individualBarWidth / 2, y5, z5 + perspectiveDepth / 2);
 		var controlPoint6 = this.cChartDrawer._convertAndTurnPoint(x2 + individualBarWidth / 2, y2 - height / 2, z2);
 
+		//front: 0, down: 1, left: 2, right: 3, up: 4, unfront: 5
+		var facePoints = [[point1, point5, point8, point4], [point1, point2, point3, point4],
+			[point1, point2, point6, point5], [point4, point3, point7, point8], [point5, point6, point7, point8],
+			[point2, point3, point7, point6]];
+
 		var sortPaths = [controlPoint1, controlPoint2, controlPoint3, controlPoint4, controlPoint5, controlPoint6];
 
-		return {paths: paths, x: point1.x, y: point1.y, zIndex: point1.z, sortPaths: sortPaths};
+		return {paths: paths, x: point1.x, y: point1.y, zIndex: point1.z, sortPaths: sortPaths, facePoints: facePoints};
 	}
 };
 
@@ -4981,12 +5007,16 @@ drawLineChart.prototype = {
 			dataSeries = numCache.pts;
 
 			for (var n = 0; n < numCache.ptCount; n++) {
-				idx = dataSeries[n] && dataSeries[n].idx != null ? dataSeries[n].idx : n;
+				idx = dataSeries[n] && dataSeries[n].idx != null ? dataSeries[n].idx : null;
+
+				if(null === idx) {
+					continue;
+				}
 
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
-				x = this.catAx ? this.cChartDrawer.getYPosition(n + 1, this.catAx) : xPoints[n].pos;
+				x = this.catAx ? this.cChartDrawer.getYPosition(idx + 1, this.catAx) : xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
 
 				if (!this.paths.points) {
@@ -5008,11 +5038,11 @@ drawLineChart.prototype = {
 				compiledMarkerSymbol = idxPoint && idxPoint.compiledMarker && AscFormat.isRealNumber(idxPoint.compiledMarker.symbol) ? idxPoint.compiledMarker.symbol : null;
 
 				if (val != null) {
-					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
-					points[i][n] = {x: x, y: y};
+					this.paths.points[i][idx] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
+					points[i][idx] = {x: x, y: y};
 				} else {
 					this.paths.points[i][n] = null;
-					points[i][n] = null;
+					points[i][idx] = null;
 				}
 			}
 		}
@@ -8845,6 +8875,10 @@ drawPieChart.prototype = {
 
 		var calculateFrontFace = function (startAng, swapAng, startAng2, swapAng2) {
 
+			if(isNaN(startAng) || isNaN(swapAng)) {
+				return null;
+			}
+
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);
 
@@ -8866,6 +8900,10 @@ drawPieChart.prototype = {
 
 		var calculateUpFace = function (startAng, swapAng) {
 
+			if(isNaN(startAng) ||  isNaN(swapAng)) {
+				return null;
+			}
+
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);
 
@@ -8884,6 +8922,10 @@ drawPieChart.prototype = {
 		};
 
 		var calculateDownFace = function (startAng, swapAng) {
+
+			if(isNaN(startAng) ||  isNaN(swapAng)) {
+				return null;
+			}
 
 			var pathId = oThis.cChartSpace.AllocPath();
 			var path = oThis.cChartSpace.GetPath(pathId);
@@ -10183,6 +10225,7 @@ drawScatterChart.prototype = {
 				//вычисляем yVal
 				//пытаемся вычислить xVal  в зависимости от idx точки по OY
 				yVal = this._getYVal(n, i);
+
 				xPoint = this.cChartDrawer.getIdxPoint(seria, idx, true);
 				if (xPoint) {
 					xVal = xPoint.val;
@@ -10196,7 +10239,6 @@ drawScatterChart.prototype = {
 					//xVal = this.catAx instanceof AscFormat.CCatAx ? n : n + 1;
 					xVal = n + 1;
 				}
-
 
 				yPoint = this.cChartDrawer.getIdxPoint(seria, idx);
 				compiledMarkerSize = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.size : null;
@@ -10218,7 +10260,7 @@ drawScatterChart.prototype = {
 				}
 
 				if (yVal != null) {
-					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(this.cChartDrawer.getYPosition(xVal, this.catAx, true), this.cChartDrawer.getYPosition(yVal, this.valAx), compiledMarkerSize, compiledMarkerSymbol);
+					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(this.cChartDrawer.getYPosition(xVal, this.catAx), this.cChartDrawer.getYPosition(yVal, this.valAx, true), compiledMarkerSize, compiledMarkerSymbol);
 					points[i][n] = {x: xVal, y: yVal};
 				} else {
 					this.paths.points[i][n] = null;
@@ -10229,7 +10271,6 @@ drawScatterChart.prototype = {
 
 		this._calculateAllLines(points);
 	},
-
 
 	_recalculateScatter2: function () {
 		var xPoints = this.catAx.xPoints;
@@ -10346,10 +10387,10 @@ drawScatterChart.prototype = {
 						this.paths.series[i][n] = this.cChartDrawer.calculateSplineLine(x, y, x1, y1, x2, y2, x3, y3, this.catAx, this.valAx);
 					} else {
 						x = this.cChartDrawer.getYPosition(points[i][n].x, this.catAx);
-						y = this.cChartDrawer.getYPosition(points[i][n].y, this.valAx);
+						y = this.cChartDrawer.getYPosition(points[i][n].y, this.valAx, true);
 
 						x1 = this.cChartDrawer.getYPosition(points[i][n + 1].x, this.catAx);
-						y1 = this.cChartDrawer.getYPosition(points[i][n + 1].y, this.valAx);
+						y1 = this.cChartDrawer.getYPosition(points[i][n + 1].y, this.valAx, true);
 
 						//this.paths.series[i][n] = {path: this._calculateLine(x, y, x1, y1), idx: points[i][n].idx};
 						this.paths.series[i][n] = this._calculateLine(x, y, x1, y1);
@@ -12945,5 +12986,6 @@ CColorObj.prototype =
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscFormat'] = window['AscFormat'] || {};
 	window['AscFormat'].CChartsDrawer = CChartsDrawer;
+	window['AscFormat'].CColorObj = CColorObj;
 	window["AscFormat"].c_oChartTypes = c_oChartTypes;
 })(window);

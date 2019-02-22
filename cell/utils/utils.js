@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -292,6 +292,16 @@
 			return normalize ? this.normalize() : this;
 		}
 
+		Range.prototype.compareCell = function (c1, r1, c2, r2) {
+			var dif = r1 - r2;
+			return 0 !== dif ? dif : c1 - c2;
+		};
+		Range.prototype.compareByLeftTop = function (a, b) {
+			return Range.prototype.compareCell(a.c1, a.r1, b.c1, b.r1);
+		};
+		Range.prototype.compareByRightBottom = function (a, b) {
+			return Range.prototype.compareCell(a.c2, a.r2, b.c2, b.r2);
+		};
 		Range.prototype.assign = function (c1, r1, c2, r2, normalize) {
 			this.c1 = c1;
 			this.r1 = r1;
@@ -1148,7 +1158,7 @@
 
 			// Check active cell in merge cell (bug 36708)
 			var mc = this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col);
-			if (this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col)) {
+			if (mc) {
 				res = -1 === this.offsetCell(1, 0, false, function () {return false;});
 				if (res) {
 					this.activeCell.row = mc.r1;
@@ -2067,7 +2077,7 @@
 		asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
 			oGraphics.clear();
 			// Fill cell
-			var oColor = oStyle.getFill();
+			var oColor = oStyle.getFillColor();
 			if (null !== oColor) {
 				oGraphics.setFillStyle(oColor);
 				oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
@@ -2092,21 +2102,19 @@
 				this.styleThumbnailHeightPt);
 
 			// Draw text
-			var fc = oStyle.getFontColor();
-			var oFontColor = fc !== null ? fc : new AscCommon.CColor(0, 0, 0);
-			var format = oStyle.getFont();
-			var fs = format.getSize();
+			var format = oStyle.getFont().clone();
 			// Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
-			var oFont = new Asc.FontProperties(format.getName(), (16 < fs) ? 16 : fs, format.getBold(),
-				format.getItalic(), format.getUnderline(), format.getStrikeout());
+			if (16 < format.getSize()) {
+				format.setSize(16);
+			}
 
 			var width_padding = 3; // 4 * 72 / 96
 
 			var tm = sr.measureString(sStyleName);
 			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
 			var textY = 0.5 * (this.styleThumbnailHeightPt - tm.height);
-			oGraphics.setFont(oFont);
-			oGraphics.setFillStyle(oFontColor);
+			oGraphics.setFont(format);
+			oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
 			oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
 		};
 
@@ -2336,7 +2344,7 @@
 			this.cache = {};
 		}
 		CCacheMeasureEmpty2.prototype.getKey = function (elem) {
-			return elem.getName() + elem.getBold() ? 'B' : 'N' + elem.getItalic() ? 'I' : 'N';
+			return elem.getName() + (elem.getBold() ? 'B' : 'N') + (elem.getItalic() ? 'I' : 'N');
 		};
 		CCacheMeasureEmpty2.prototype.add = function (elem, val) {
 			this.cache[this.getKey(elem)] = val;

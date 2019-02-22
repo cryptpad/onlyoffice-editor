@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -4155,6 +4155,30 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     {
         _result_shape_prop.w = null;
     }
+    if(shapeProp1.rot === shapeProp2.rot)
+    {
+        _result_shape_prop.rot = shapeProp1.rot;
+    }
+    else
+    {
+        _result_shape_prop.rot = null;
+    }
+    if(shapeProp1.flipH === shapeProp2.flipH)
+    {
+        _result_shape_prop.flipH = shapeProp1.flipH;
+    }
+    else
+    {
+        _result_shape_prop.flipH = null;
+    }
+    if(shapeProp1.flipV === shapeProp2.flipV)
+    {
+        _result_shape_prop.flipV = shapeProp1.flipV;
+    }
+    else
+    {
+        _result_shape_prop.flipV = null;
+    }
 
     if(shapeProp1.stroke == null || shapeProp2.stroke == null)
     {
@@ -4865,11 +4889,6 @@ DefaultShapeDefinition.prototype=
     }
 };
 
-
-
-function CHyperlink(){
-
-}
 
 function CNvPr()
 {
@@ -10089,6 +10108,9 @@ function CreateAscShapePropFromProp(shapeProp)
     obj.bFromImage = shapeProp.bFromImage;
     obj.w = shapeProp.w;
     obj.h = shapeProp.h;
+    obj.rot = shapeProp.rot;
+    obj.flipH = shapeProp.flipH;
+    obj.flipV = shapeProp.flipV;
     obj.vert = shapeProp.vert;
     obj.verticalTextAlign = shapeProp.verticalTextAlign;
     if(shapeProp.textArtProperties)
@@ -10546,8 +10568,8 @@ function CorrectUniColor(asc_color, unicolor, flag)
         var oUniFill = new AscFormat.CUniFill();
         oUniFill.fill = new AscFormat.CPattFill();
         oUniFill.fill.ftype = AscCommon.global_hatch_offsets[sPatternType];
-        oUniFill.fill.fgClr = FgColor.Unicolor;
-        oUniFill.fill.bgClr = BgColor.Unicolor;
+        oUniFill.fill.fgClr = FgColor && FgColor.Unicolor;
+        oUniFill.fill.bgClr = BgColor && BgColor.Unicolor;
         return oUniFill;
     }
 

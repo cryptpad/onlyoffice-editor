@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -70,7 +70,7 @@ CDocumentContentBase.prototype.GetLogicDocument = function()
  * Получаем тип активной части документа.
  * @returns {(docpostype_Content | docpostype_HdrFtr | docpostype_DrawingObjects | docpostype_Footnotes)}
  */
-CDocumentContentBase.prototype.Get_DocPosType = function()
+CDocumentContentBase.prototype.GetDocPosType = function()
 {
 	return this.CurPos.Type;
 };
@@ -78,7 +78,7 @@ CDocumentContentBase.prototype.Get_DocPosType = function()
  * Выставляем тип активной части документа.
  * @param {(docpostype_Content | docpostype_HdrFtr | docpostype_DrawingObjects | docpostype_Footnotes)} nType
  */
-CDocumentContentBase.prototype.Set_DocPosType = function(nType)
+CDocumentContentBase.prototype.SetDocPosType = function(nType)
 {
 	this.CurPos.Type = nType;
 
@@ -134,6 +134,7 @@ CDocumentContentBase.prototype.GetAllDrawingObjects = function(arrDrawings)
 	if (this instanceof CDocument)
 	{
 		this.SectionsInfo.GetAllDrawingObjects(arrDrawings);
+		this.Footnotes.GetAllDrawingObjects(arrDrawings);
 	}
 
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
@@ -180,7 +181,7 @@ CDocumentContentBase.prototype.Reassign_ImageUrls = function(mapUrls)
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа
  * @param {?CFootEndnote} oLastFootnote - если null, то ищем до конца документа
  */
-CDocumentContentBase.prototype.Get_FootnotesList = function(oFirstFootnote, oLastFootnote)
+CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 {
 	var oEngine = new CDocumentFootnotesRangeEngine();
 	oEngine.Init(oFirstFootnote, oLastFootnote);
@@ -192,7 +193,7 @@ CDocumentContentBase.prototype.Get_FootnotesList = function(oFirstFootnote, oLas
 	{
 		var oParagraph = arrParagraphs[nIndex];
 
-		if (true === oParagraph.Get_FootnotesList(oEngine))
+		if (true === oParagraph.GetFootnotesList(oEngine))
 			return arrFootnotes;
 	}
 
@@ -341,12 +342,14 @@ CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPa
 
 	return oNumberingEngine.GetNumInfo();
 };
-CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (this.CurPos.ContentPos < 0)
 		return false;
 
 	this.RemoveNumberingSelection();
+
+	var isRemoveOnDrag = this.GetLogicDocument() ? this.GetLogicDocument().RemoveOnDrag : false;
 
 	var bRetValue = true;
 	if (true === this.Selection.Use)
@@ -435,29 +438,32 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 					this.Internal_Content_Remove(StartPos + 1, EndPos - StartPos - 1);
 					this.CurPos.ContentPos = StartPos;
 
-					if (type_Paragraph === StartType && type_Paragraph === EndType && true === bOnTextAdd)
+					if (!isRemoveOnDrag)
 					{
-						// Встаем в конец параграфа и удаляем 1 элемент (чтобы соединить параграфы)
-						this.Content[StartPos].MoveCursorToEndPos(false, false);
-						this.Remove(1, true);
-					}
-					else
-					{
-						if (true === bOnTextAdd && type_Paragraph !== this.Content[StartPos + 1].GetType() && type_Paragraph !== this.Content[StartPos].GetType())
+						if (type_Paragraph === StartType && type_Paragraph === EndType && true === bOnTextAdd)
 						{
-							this.Internal_Content_Add(StartPos + 1, this.private_CreateNewParagraph());
-							this.CurPos.ContentPos = StartPos + 1;
-							this.Content[StartPos + 1].MoveCursorToStartPos(false);
-						}
-						else if (true === bOnTextAdd && type_Paragraph !== this.Content[StartPos + 1].GetType())
-						{
-							this.CurPos.ContentPos = StartPos;
+							// Встаем в конец параграфа и удаляем 1 элемент (чтобы соединить параграфы)
 							this.Content[StartPos].MoveCursorToEndPos(false, false);
+							this.Remove(1, true);
 						}
 						else
 						{
-							this.CurPos.ContentPos = StartPos + 1;
-							this.Content[StartPos + 1].MoveCursorToStartPos(false);
+							if (true === bOnTextAdd && type_Paragraph !== this.Content[StartPos + 1].GetType() && type_Paragraph !== this.Content[StartPos].GetType())
+							{
+								this.Internal_Content_Add(StartPos + 1, this.private_CreateNewParagraph());
+								this.CurPos.ContentPos = StartPos + 1;
+								this.Content[StartPos + 1].MoveCursorToStartPos(false);
+							}
+							else if (true === bOnTextAdd && type_Paragraph !== this.Content[StartPos + 1].GetType())
+							{
+								this.CurPos.ContentPos = StartPos;
+								this.Content[StartPos].MoveCursorToEndPos(false, false);
+							}
+							else
+							{
+								this.CurPos.ContentPos = StartPos + 1;
+								this.Content[StartPos + 1].MoveCursorToStartPos(false);
+							}
 						}
 					}
 				}
@@ -506,7 +512,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 				}
 				else
 				{
-					if (true === bOnTextAdd)
+					if (true === bOnTextAdd && !isRemoveOnDrag)
 					{
 						// Удаляем весь промежуточный контент, начальный элемент и конечный элемент, если это
 						// таблица, поскольку таблица не может быть последним элементом в документе удаляем без проверок.
@@ -560,14 +566,16 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 				else if (false === this.Content[StartPos].Remove(Count, true, bRemoveOnlySelection, bOnTextAdd))
 				{
 					// При добавлении текста, параграф не объединяется
-					if (true !== bOnTextAdd)
+					if (true !== bOnTextAdd || (isRemoveOnDrag && this.Content[StartPos].IsEmpty()))
 					{
 						// В ворде параграфы объединяются только когда у них все настройки совпадают.
 						// (почему то при изменении и обратном изменении настроек параграфы перестают объединятся)
 						// Пока у нас параграфы будут объединяться всегда и настройки будут браться из первого
 						// параграфа, кроме случая, когда первый параграф полностью удаляется.
 
-						if (true === this.Content[StartPos].IsEmpty() && this.Content.length > 1)
+						if (this.Content.length > 1
+							&& (true === this.Content[StartPos].IsEmpty()
+							|| (type_BlockLevelSdt === this.Content[StartPos].GetType() && this.Content[StartPos].IsPlaceHolder() && (!this.GetLogicDocument() || !this.GetLogicDocument().IsFillingFormMode()))))
 						{
 							this.Internal_Content_Remove(StartPos, 1);
 
@@ -612,7 +620,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 
 		if (type_Paragraph == this.Content[this.CurPos.ContentPos].GetType())
 		{
-			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText))
+			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord))
 			{
 				if (Count < 0)
 				{
@@ -727,7 +735,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else if (type_BlockLevelSdt === this.Content[this.CurPos.ContentPos].GetType())
 		{
-			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText))
+			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord))
 			{
 				var oLogicDocument = this.GetLogicDocument();
 				if (oLogicDocument && true === oLogicDocument.IsFillingFormMode())
@@ -741,29 +749,57 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 				{
 					if (this.Content[this.CurPos.ContentPos].IsEmpty())
 					{
-						this.RemoveFromContent(this.CurPos.ContentPos, 1);
-
-						if ((Count < 0 && this.CurPos.ContentPos > 0) || this.CurPos.ContentPos >= this.Content.length)
+						if (this.Content[this.CurPos.ContentPos].CanBeDeleted())
 						{
-							this.CurPos.ContentPos--;
-							this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+							this.RemoveFromContent(this.CurPos.ContentPos, 1);
+
+							if ((Count < 0 && this.CurPos.ContentPos > 0) || this.CurPos.ContentPos >= this.Content.length)
+							{
+								this.CurPos.ContentPos--;
+								this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+							}
+							else
+							{
+								this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+							}
 						}
 						else
 						{
-							this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+							if (Count < 0)
+							{
+								if (this.CurPos.ContentPos > 0)
+								{
+									this.CurPos.ContentPos--;
+									this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+								}
+							}
+							else
+							{
+								if (this.CurPos.ContentPos < this.Content.length - 1)
+								{
+									this.CurPos.ContentPos++;
+									this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+								}
+							}
 						}
 					}
 					else
 					{
-						if (Count < 0 && this.CurPos.ContentPos > 0)
+						if (Count < 0)
 						{
-							this.CurPos.ContentPos--;
-							this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+							if (this.CurPos.ContentPos > 0)
+							{
+								this.CurPos.ContentPos--;
+								this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+							}
 						}
-						else if (this.CurPos.ContentPos < this.Content.length - 1)
+						else
 						{
-							this.CurPos.ContentPos++;
-							this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+							if (this.CurPos.ContentPos < this.Content.length - 1)
+							{
+								this.CurPos.ContentPos++;
+								this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+							}
 						}
 					}
 				}
@@ -771,7 +807,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else
 		{
-			this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText);
+			this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord);
 		}
 	}
 
@@ -960,7 +996,7 @@ CDocumentContentBase.prototype.FindNextFillingForm = function(isNext, isCurrent,
  */
 CDocumentContentBase.prototype.IsSelectedSingleElement = function()
 {
-	return (true === this.Selection.Use && docpostype_Content === this.Get_DocPosType() && this.Selection.Flag === selectionflag_Common && this.Selection.StartPos === this.Selection.EndPos)
+	return (true === this.Selection.Use && docpostype_Content === this.GetDocPosType() && this.Selection.Flag === selectionflag_Common && this.Selection.StartPos === this.Selection.EndPos)
 };
 CDocumentContentBase.prototype.GetOutlineParagraphs = function(arrOutline, oPr)
 {
@@ -1030,22 +1066,24 @@ CDocumentContentBase.prototype.GetElement = function(nIndex)
  * Добавляем новый элемент (с записью в историю)
  * @param nPos
  * @param oItem
+ * @param {booleam} [isCorrectContent=true]
  */
-CDocumentContentBase.prototype.AddToContent = function(nPos, oItem)
+CDocumentContentBase.prototype.AddToContent = function(nPos, oItem, isCorrectContent)
 {
-	this.Add_ToContent(nPos, oItem);
+	this.Add_ToContent(nPos, oItem, isCorrectContent);
 };
 /**
  * Удаляем заданное количество элементов (с записью в историю)
  * @param {number} nPos
  * @param {number} [nCount=1]
+ * @param {boolean} [isCorrectContent=true]
  */
-CDocumentContentBase.prototype.RemoveFromContent = function(nPos, nCount)
+CDocumentContentBase.prototype.RemoveFromContent = function(nPos, nCount, isCorrectContent)
 {
 	if (undefined === nCount || null === nCount)
 		nCount = 1;
 
-	this.Remove_FromContent(nPos, nCount);
+	this.Remove_FromContent(nPos, nCount, isCorrectContent);
 };
 /**
  * Получаем текущий TableOfContents, это может быть просто поле или поле вместе с оберткой Sdt
@@ -1314,4 +1352,3 @@ CDocumentContentBase.prototype.GetSimilarNumbering = function(oContinueEngine)
 			break;
 	}
 };
-

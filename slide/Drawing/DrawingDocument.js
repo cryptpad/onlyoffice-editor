@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -965,6 +965,11 @@ function CDrawingDocument()
 
 	this.TableStylesLastLook = null;
 
+	this.InlineTextTrackEnabled = false;
+	this.InlineTextTrack = null;
+	this.InlineTextTrackPage = -1;
+	this.InlineTextInNotes = false;
+
 	this.GuiControlColorsMap  = null;
 	this.IsSendStandartColors = false;
 
@@ -1707,11 +1712,11 @@ function CDrawingDocument()
 		return false;
 	}
 
-	this.ConvertCoordsToCursorWR = function(x, y, pageIndex, transform)
+	this.ConvertCoordsToCursorWR = function(x, y, pageIndex, transform, isMainAttack)
 	{
 		var _word_control = this.m_oWordControl;
 
-		if (!_word_control.m_oLogicDocument.IsFocusOnNotes())
+		if (isMainAttack || !_word_control.m_oLogicDocument.IsFocusOnNotes())
 		{
 			var dKoef = (this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
 
@@ -3404,6 +3409,105 @@ function CDrawingDocument()
 			return;
 
 		this.m_oWordControl.m_oNotesApi.OnRecalculateNote(slideNum, width, height);
+	};
+
+	// mouse events
+	this.checkMouseDown_Drawing = function (pos)
+	{
+		return false;
+	};
+
+	this.checkMouseDown_DrawingOnUp = function (pos)
+	{
+		return false;
+	};
+
+	this.checkMouseMove_Drawing = function (pos)
+	{
+		var oWordControl = this.m_oWordControl;
+
+		if (this.InlineTextTrackEnabled)
+		{
+			if (-1 != oWordControl.m_oTimerScrollSelect)
+			{
+				clearInterval(oWordControl.m_oTimerScrollSelect);
+				oWordControl.m_oTimerScrollSelect = -1;
+			}
+
+			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
+			this.InlineTextTrackPage = pos.Page;
+			this.InlineTextInNotes = pos.isNotes ? true : false;
+
+			oWordControl.ShowOverlay();
+			oWordControl.OnUpdateOverlay();
+			oWordControl.EndUpdateOverlay();
+			return true;
+		}
+
+		return false;
+	};
+
+	this.checkMouseUp_Drawing = function (pos)
+	{
+		var oWordControl = this.m_oWordControl;
+
+		if (this.InlineTextTrackEnabled)
+		{
+			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
+			this.InlineTextTrackPage = pos.Page;
+			this.InlineTextInNotes = pos.isNotes ? true : false;
+			this.EndTrackText();
+
+			oWordControl.ShowOverlay();
+			oWordControl.OnUpdateOverlay();
+			oWordControl.EndUpdateOverlay();
+			return true;
+		}
+
+		return false;
+	};
+
+	// track text (inline)
+	this.StartTrackText = function ()
+	{
+		this.InlineTextTrackEnabled = true;
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
+	};
+	this.EndTrackText = function (isOnlyMoveTarget)
+	{
+		this.InlineTextTrackEnabled = false;
+
+		if (true !== isOnlyMoveTarget)
+			this.m_oWordControl.m_oLogicDocument.OnEndTextDrag(this.InlineTextTrack, AscCommon.global_keyboardEvent.CtrlKey);
+		else if (this.InlineTextTrack)
+		{
+			var Paragraph = this.InlineTextTrack.Paragraph;
+			Paragraph.Cursor_MoveToNearPos(this.InlineTextTrack);
+			Paragraph.Document_SetThisElementCurrent(false);
+
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateSelectionState();
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateRulersState();
+		}
+
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
+	};
+
+	this.IsTrackText = function ()
+	{
+		return this.InlineTextTrackEnabled;
+	};
+
+	this.CancelTrackText = function ()
+	{
+		this.InlineTextTrackEnabled = false;
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
 	};
 }
 
@@ -5740,6 +5844,11 @@ function CNotesDrawer(page)
 	this.m_oOverlayApi.m_oHtmlPage = this.HtmlPage;
 	this.m_oOverlayApi.Clear();
 
+	this.m_oOverlayApi.getNotesOffsets = function()
+	{
+		return { X : this.m_oHtmlPage.m_oNotesApi.OffsetX, Y : AscCommon.AscBrowser.convertToRetinaValue(-this.m_oHtmlPage.m_oNotesApi.Scroll, true) };
+	};
+
 	this.OffsetX = 10;
 	this.OffsetY = 10;
 
@@ -5932,6 +6041,14 @@ function CNotesDrawer(page)
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var ret = oThis.HtmlPage.m_oDrawingDocument.checkMouseDown_Drawing(pos);
+		if (ret === true)
+		{
+			AscCommon.stopEvent(e);
+			return;
+		}
+
 		oThis.HtmlPage.StartUpdateOverlay();
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseDown(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
@@ -5952,9 +6069,21 @@ function CNotesDrawer(page)
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 
+		if (oThis.HtmlPage.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			if (_y < 0)
+				return;
+		}
+
 		oThis.HtmlPage.StartUpdateOverlay();
 		if ((-1 != oThis.m_oTimerScrollSelect) || (is_overlay_attack === true))
 			oThis.HtmlPage.OnUpdateOverlay();
+
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var is_drawing = oThis.HtmlPage.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseMove(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
 	};
@@ -5979,7 +6108,19 @@ function CNotesDrawer(page)
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 
+		if (oThis.HtmlPage.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			if (_y < 0)
+				return;
+		}
+
 		oThis.HtmlPage.StartUpdateOverlay();
+
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var is_drawing = oThis.HtmlPage.m_oDrawingDocument.checkMouseUp_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseUp(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
 

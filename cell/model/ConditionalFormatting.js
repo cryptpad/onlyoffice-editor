@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -38,7 +38,7 @@
 	 * -----------------------------------------------------------------------------
 	 */
 	var FT_Common = AscFonts.FT_Common;
-
+	var CellValueType = AscCommon.CellValueType;
 	/**
 	 * Отвечает за условное форматирование
 	 * -----------------------------------------------------------------------------
@@ -67,16 +67,20 @@
 	};
 
 	//todo need another approach
-	function CConditionalFormattingFormulaWrapper (ws, rule) {
+	function CConditionalFormattingFormulaParent (ws, rule, isDefName) {
 		this.ws = ws;
 		this.rule = rule;
+		this.isDefName = isDefName;
 	}
-	CConditionalFormattingFormulaWrapper.prototype.onFormulaEvent = function(type, eventData) {
-		if (AscCommon.c_oNotifyParentType.IsDefName === type) {
+	CConditionalFormattingFormulaParent.prototype.onFormulaEvent = function(type, eventData) {
+		if (AscCommon.c_oNotifyParentType.IsDefName === type && this.isDefName) {
 			return {bbox: this.rule.getBBox(), ranges: this.rule.ranges};
 		} else if (AscCommon.c_oNotifyParentType.Change === type) {
 			this.ws.setDirtyConditionalFormatting(new AscCommonExcel.MultiplyRange(this.rule.ranges));
 		}
+	};
+	CConditionalFormattingFormulaParent.prototype.clone = function() {
+		return new CConditionalFormattingFormulaParent(this.ws, this.rule, this.isDefName);
 	};
 
 	function CConditionalFormattingRule () {
@@ -196,44 +200,149 @@
 		}
 		return {start: start, end: end};
 	};
-	CConditionalFormattingRule.prototype.cellIs = function(val, v1, v2) {
+	CConditionalFormattingRule.prototype.getValueCellIs = function(ws, opt_parent, opt_bbox, opt_offset, opt_returnRaw) {
+		var res;
+		if (null !== this.text) {
+			res = new AscCommonExcel.cString(this.text);
+		} else if (this.aRuleElements[1]) {
+			res = this.aRuleElements[1].getValue(ws, opt_parent, opt_bbox, opt_offset, opt_returnRaw);
+		}
+		return res;
+	};
+	CConditionalFormattingRule.prototype.getFormulaCellIs = function() {
+		return null === this.text && this.aRuleElements[1];
+	};
+	CConditionalFormattingRule.prototype.cellIs = function(operator, cell, v1, v2) {
+		if (operator === AscCommonExcel.ECfOperator.Operator_beginsWith ||
+			operator === AscCommonExcel.ECfOperator.Operator_endsWith ||
+			operator === AscCommonExcel.ECfOperator.Operator_containsText ||
+			operator === AscCommonExcel.ECfOperator.Operator_notContains) {
+			return this._cellIsText(operator, cell, v1);
+		} else {
+			return this._cellIsNumber(operator, cell, v1, v2);
+		}
+	};
+	CConditionalFormattingRule.prototype._cellIsText = function(operator, cell, v1) {
+		if (!v1 || AscCommonExcel.cElementType.empty === v1.type) {
+			v1 = new AscCommonExcel.cString("");
+		}
+		if (AscCommonExcel.ECfOperator.Operator_notContains === operator) {
+			return !this._cellIsText(AscCommonExcel.ECfOperator.Operator_containsText, cell, v1);
+		}
+		var cellType = cell ? cell.type : null;
+		if (cellType === CellValueType.Error || AscCommonExcel.cElementType.error === v1.type) {
+			return false;
+		}
 		var res = false;
-		switch(this.operator) {
+		var cellVal = cell ? cell.getValueWithoutFormat().toLowerCase() : "";
+		var v1Val = v1.toLocaleString().toLowerCase();
+		switch (operator) {
 			case AscCommonExcel.ECfOperator.Operator_beginsWith:
-				res = val.endsWith(v1);
-				break;
-			case AscCommonExcel.ECfOperator.Operator_between:
-				res = v1 <= val && val <= v2;
+			case AscCommonExcel.ECfOperator.Operator_endsWith:
+				if (AscCommonExcel.cElementType.string === v1.type && (cellType === CellValueType.String || "" === v1Val)) {
+					if (AscCommonExcel.ECfOperator.Operator_beginsWith === operator) {
+						res = cellVal.startsWith(v1Val);
+					} else {
+						res = cellVal.endsWith(v1Val);
+					}
+				} else {
+					res = false;
+				}
 				break;
 			case AscCommonExcel.ECfOperator.Operator_containsText:
-				res = -1 !== val.indexOf(v1);
+				if ("" === cellVal) {
+					res = false;
+				} else {
+					res = -1 !== cellVal.indexOf(v1Val);
+				}
 				break;
-			case AscCommonExcel.ECfOperator.Operator_endsWith:
-				res = val.startsWith(v1);
-				break;
+		}
+		return res;
+	};
+	CConditionalFormattingRule.prototype._cellIsNumber = function(operator, cell, v1, v2) {
+		if (!v1 || AscCommonExcel.cElementType.empty === v1.type) {
+			v1 = new AscCommonExcel.cNumber(0);
+		}
+		if ((cell && cell.type === CellValueType.Error) || AscCommonExcel.cElementType.error === v1.type) {
+			return false;
+		}
+		var cellVal;
+		var res = false;
+		switch (operator) {
 			case AscCommonExcel.ECfOperator.Operator_equal:
-				res = val == v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_greaterThan:
-				res = val > v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual:
-				res = val >= v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_lessThan:
-				res = val < v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_lessThanOrEqual:
-				res = val <= v1;
-				break;
-			case AscCommonExcel.ECfOperator.Operator_notBetween:
-				res = !(v1 <= val && val <= v2);
-				break;
-			case AscCommonExcel.ECfOperator.Operator_notContains:
-				res = -1 === val.indexOf(v1);
+				if (AscCommonExcel.cElementType.number === v1.type) {
+					if (!cell || cell.isNullTextString()) {
+						res = 0 === v1.getValue();
+					} else if (cell.type === CellValueType.Number) {
+						res = cell.getNumberValue() === v1.getValue();
+					} else {
+						res = false;
+					}
+				} else if (AscCommonExcel.cElementType.string === v1.type) {
+					if (!cell || cell.isNullTextString()) {
+						res = "" === v1.getValue().toLowerCase();
+					} else if (cell.type === CellValueType.String) {
+						cellVal = cell.getValueWithoutFormat().toLowerCase();
+						res = cellVal === v1.getValue().toLowerCase();
+					} else {
+						res = false;
+					}
+				} else if (AscCommonExcel.cElementType.bool === v1.type) {
+					if (cell && cell.type === CellValueType.Bool) {
+						res = cell.getBoolValue() === v1.toBool();
+					} else {
+						res = false;
+					}
+				}
 				break;
 			case AscCommonExcel.ECfOperator.Operator_notEqual:
-				res = val != v1;
+				res = !this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_equal, cell, v1);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_greaterThan:
+				if (AscCommonExcel.cElementType.number === v1.type) {
+					if (!cell || cell.isNullTextString()) {
+						res = 0 > v1.getValue();
+					} else if (cell.type === CellValueType.Number) {
+						res = cell.getNumberValue() > v1.getValue();
+					} else {
+						res = true;
+					}
+				} else if (AscCommonExcel.cElementType.string === v1.type) {
+					if (!cell || cell.isNullTextString()) {
+						res = "" > v1.getValue().toLowerCase();
+					} else if (cell.type === CellValueType.Number) {
+						res = false;
+					} else if (cell.type === CellValueType.String) {
+						cellVal = cell.getValueWithoutFormat().toLowerCase();
+						//todo Excel uses different string compare function
+						res = cellVal > v1.getValue().toLowerCase();
+					} else if (cell.type === CellValueType.Bool) {
+						res = true;
+					}
+				} else if (AscCommonExcel.cElementType.bool === v1.type) {
+					if (cell && cell.type === CellValueType.Bool) {
+						res = cell.getBoolValue() > v1.toBool();
+					} else {
+						res = false;
+					}
+				}
+				break;
+			case AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual:
+				res = this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_greaterThan, cell, v1) ||
+					this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_equal, cell, v1);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_lessThan:
+				res = !this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual, cell, v1);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_lessThanOrEqual:
+				res = !this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_greaterThan, cell, v1);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_between:
+				res = this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual, cell, v1) &&
+					this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_lessThanOrEqual, cell, v2);
+				break;
+			case AscCommonExcel.ECfOperator.Operator_notBetween:
+				res = !this._cellIsNumber(AscCommonExcel.ECfOperator.Operator_between, cell, v1, v2);
 				break;
 		}
 		return res;
@@ -274,37 +383,28 @@
 		}
 		return bbox;
 	};
-
-	function CColorScale () {
-		this.aCFVOs = [];
-		this.aColors = [];
-
-		return this;
-	}
-	CColorScale.prototype.clone = function() {
-		var i, res = new CColorScale();
-		for (i = 0; i < this.aCFVOs.length; ++i)
-			res.aCFVOs.push(this.aCFVOs[i].clone());
-		for (i = 0; i < this.aColors.length; ++i)
-			res.aColors.push(this.aColors[i].clone());
-		return res;
+	CConditionalFormattingRule.prototype.getMin = function(values, ws) {
+		var aCFVOs = this._getCFVOs();
+		var oCFVO = (aCFVOs && 0 < aCFVOs.length) ? aCFVOs[0] : null;
+		return this._getValue(values, oCFVO, ws);
 	};
-	CColorScale.prototype.getMin = function(values) {
-		var oCFVO = (0 < this.aCFVOs.length) ? this.aCFVOs[0] : null;
-		return this.getValue(values, oCFVO);
+	CConditionalFormattingRule.prototype.getMid = function(values, ws) {
+		var aCFVOs = this._getCFVOs();
+		var oCFVO = (aCFVOs && 2 < aCFVOs.length) ? aCFVOs[1] : null;
+		return this._getValue(values, oCFVO, ws);
 	};
-	CColorScale.prototype.getMid = function(values) {
-		var oCFVO = (2 < this.aCFVOs.length ? this.aCFVOs[1] : null);
-		return this.getValue(values, oCFVO);
+	CConditionalFormattingRule.prototype.getMax = function(values, ws) {
+		var aCFVOs = this._getCFVOs();
+		var oCFVO = (aCFVOs && 2 === aCFVOs.length) ? aCFVOs[1] : ((aCFVOs && 2 < aCFVOs.length) ? aCFVOs[2] : null);
+		return this._getValue(values, oCFVO, ws);
 	};
-	CColorScale.prototype.getMax = function(values) {
-		var oCFVO = (2 === this.aCFVOs.length) ? this.aCFVOs[1] : (2 < this.aCFVOs.length ? this.aCFVOs[2] : null);
-		return this.getValue(values, oCFVO);
+	CConditionalFormattingRule.prototype._getCFVOs = function () {
+		var oRuleElement = this.aRuleElements[0];
+		return oRuleElement && oRuleElement.aCFVOs;
 	};
-	CColorScale.prototype.getValue = function(values, oCFVO) {
+	CConditionalFormattingRule.prototype._getValue = function (values, oCFVO, ws) {
 		var res, min;
 		if (oCFVO) {
-			// ToDo Formula
 			switch (oCFVO.Type) {
 				case AscCommonExcel.ECfvoType.Minimum:
 					res = AscCommonExcel.getArrayMin(values);
@@ -327,6 +427,20 @@
 						res = AscCommonExcel.getArrayMin(values);
 					}
 					break;
+				case AscCommonExcel.ECfvoType.Formula:
+					if (null === oCFVO.formula) {
+						oCFVO.formulaParent = new CConditionalFormattingFormulaParent(ws, this, false);
+						oCFVO.formula = new CFormulaCF();
+						oCFVO.formula.Text = oCFVO.Val;
+					}
+					var calcRes = oCFVO.formula.getValue(ws, oCFVO.formulaParent, null, null, true);
+					if (calcRes && calcRes.tocNumber) {
+						calcRes = calcRes.tocNumber();
+						if (calcRes && calcRes.toNumber) {
+							res = calcRes.toNumber();
+						}
+					}
+					break;
 				default:
 					res = -Number.MAX_VALUE;
 					break;
@@ -335,25 +449,63 @@
 		return res;
 	};
 
+	function CColorScale () {
+		this.aCFVOs = [];
+		this.aColors = [];
+
+		return this;
+	}
+	CColorScale.prototype.type = AscCommonExcel.ECfType.colorScale;
+	CColorScale.prototype.clone = function() {
+		var i, res = new CColorScale();
+		for (i = 0; i < this.aCFVOs.length; ++i)
+			res.aCFVOs.push(this.aCFVOs[i].clone());
+		for (i = 0; i < this.aColors.length; ++i)
+			res.aColors.push(this.aColors[i].clone());
+		return res;
+	};
+
 	function CDataBar () {
 		this.MaxLength = 90;
 		this.MinLength = 10;
 		this.ShowValue = true;
+		this.AxisPosition = AscCommonExcel.EDataBarAxisPosition.automatic;
+		this.Gradient = true;
+		this.Direction = AscCommonExcel.EDataBarDirection.context;
+		this.NegativeBarColorSameAsPositive = false;
+		this.NegativeBarBorderColorSameAsPositive = true;
 
 		this.aCFVOs = [];
 		this.Color = null;
-
+		this.NegativeColor = null;
+		this.BorderColor = null;
+		this.NegativeBorderColor = null;
+		this.AxisColor = null;
 		return this;
 	}
+	CDataBar.prototype.type = AscCommonExcel.ECfType.dataBar;
 	CDataBar.prototype.clone = function() {
 		var i, res = new CDataBar();
 		res.MaxLength = this.MaxLength;
 		res.MinLength = this.MinLength;
 		res.ShowValue = this.ShowValue;
+		res.AxisPosition = this.AxisPosition;
+		res.Gradient = this.Gradient;
+		res.Direction = this.Direction;
+		res.NegativeBarColorSameAsPositive = this.NegativeBarColorSameAsPositive;
+		res.NegativeBarBorderColorSameAsPositive = this.NegativeBarBorderColorSameAsPositive;
 		for (i = 0; i < this.aCFVOs.length; ++i)
 			res.aCFVOs.push(this.aCFVOs[i].clone());
 		if (this.Color)
 			res.Color = this.Color.clone();
+		if (this.NegativeColor)
+			res.NegativeColor = this.NegativeColor.clone();
+		if (this.BorderColor)
+			res.BorderColor = this.BorderColor.clone();
+		if (this.NegativeBorderColor)
+			res.NegativeBorderColor = this.NegativeBorderColor.clone();
+		if (this.AxisColor)
+			res.AxisColor = this.AxisColor.clone();
 		return res;
 	};
 
@@ -378,13 +530,17 @@
 			}
 		}
 	};
-	CFormulaCF.prototype.getValue = function(ws) {
-		this.init(ws);
-		return this._f.calculate(null, null).getValue();
-	};
-	CFormulaCF.prototype.getValueRaw = function(ws, opt_parent, opt_bbox, opt_offset) {
+	CFormulaCF.prototype.getFormula = function(ws, opt_parent) {
 		this.init(ws, opt_parent);
-		return this._f.calculate(null, opt_bbox, opt_offset);
+		return this._f;
+	};
+	CFormulaCF.prototype.getValue = function(ws, opt_parent, opt_bbox, opt_offset, opt_returnRaw) {
+		this.init(ws, opt_parent);
+		var res = this._f.calculate(null, opt_bbox, opt_offset);
+		if (!opt_returnRaw) {
+			res = this._f.simplifyRefType(res);
+		}
+		return res;
 	};
 
 	function CIconSet () {
@@ -394,6 +550,7 @@
 		this.ShowValue = true;
 
 		this.aCFVOs = [];
+		this.aIconSets = [];
 
 		return this;
 	}
@@ -405,6 +562,8 @@
 		res.ShowValue = this.ShowValue;
 		for (i = 0; i < this.aCFVOs.length; ++i)
 			res.aCFVOs.push(this.aCFVOs[i].clone());
+		for (i = 0; i < this.aIconSets.length; ++i)
+			res.aIconSets.push(this.aIconSets[i].clone());
 		return res;
 	};
 
@@ -412,6 +571,8 @@
 		this.Gte = true;
 		this.Type = null;
 		this.Val = null;
+		this.formulaParent = null;
+		this.formula = null;
 
 		return this;
 	}
@@ -420,6 +581,21 @@
 		res.Gte = this.Gte;
 		res.Type = this.Type;
 		res.Val = this.Val;
+		res.formulaParent = this.formulaParent ? this.formulaParent.clone() : null;
+		res.formula = this.formula ? this.formula.clone() : null;
+		return res;
+	};
+
+	function CConditionalFormatIconSet () {
+		this.IconSet = true;
+		this.IconId = null;
+
+		return this;
+	}
+	CConditionalFormatIconSet.prototype.clone = function() {
+		var res = new CConditionalFormatIconSet();
+		res.IconSet = this.IconSet;
+		res.IconId = this.IconId;
 		return res;
 	};
 
@@ -444,7 +620,7 @@
 
 		this.min = min;
 		this.max = max;
-		this.koef = this.MaxColorIndex / (2.0 * distance);
+		this.koef = distance ? this.MaxColorIndex / (2.0 * distance) : 0;
 		this.r1 = this.c1.getR();
 		this.g1 = this.c1.getG();
 		this.b1 = this.c1.getB();
@@ -458,7 +634,7 @@
 		} else if (indexColor > this.max) {
 			indexColor = this.max;
 		}
-		indexColor = ((indexColor - this.min) * this.koef) >> 0;
+		indexColor = (this.koef ? (indexColor - this.min) * this.koef : this.MaxColorIndex / 2) >> 0;
 
 		var r = (this.r1 + ((FT_Common.IntToUInt(this.r2 - this.r1) * indexColor) >> this.base_shift)) & 0xFF;
 		var g = (this.g1 + ((FT_Common.IntToUInt(this.g2 - this.g1) * indexColor) >> this.base_shift)) & 0xFF;
@@ -473,12 +649,13 @@
 	 */
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CConditionalFormatting = CConditionalFormatting;
-	window['AscCommonExcel'].CConditionalFormattingFormulaWrapper = CConditionalFormattingFormulaWrapper;
+	window['AscCommonExcel'].CConditionalFormattingFormulaParent = CConditionalFormattingFormulaParent;
 	window['AscCommonExcel'].CConditionalFormattingRule = CConditionalFormattingRule;
 	window['AscCommonExcel'].CColorScale = CColorScale;
 	window['AscCommonExcel'].CDataBar = CDataBar;
 	window['AscCommonExcel'].CFormulaCF = CFormulaCF;
 	window['AscCommonExcel'].CIconSet = CIconSet;
 	window['AscCommonExcel'].CConditionalFormatValueObject = CConditionalFormatValueObject;
+	window['AscCommonExcel'].CConditionalFormatIconSet = CConditionalFormatIconSet;
 	window['AscCommonExcel'].CGradient = CGradient;
 })(window);

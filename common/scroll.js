@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1862,8 +1862,13 @@ function _HEXTORGB_( colorHEX ) {
 		var _parentClientW = GetClientWidth( this.canvas.parentNode );
 		var _parentClientH = GetClientHeight( this.canvas.parentNode );
 
-		var _firstChildW = GetClientWidth( this.canvas.parentNode.firstElementChild );
-		var _firstChildH = GetClientHeight( this.canvas.parentNode.firstElementChild );
+		var _firstChildW = 0;
+        var _firstChildH = 0;
+        if (this.canvas.parentNode)
+        {
+            _firstChildW = GetClientWidth(this.canvas.parentNode.firstElementChild);
+            _firstChildH = GetClientHeight(this.canvas.parentNode.firstElementChild);
+        }
 
 		this._setDimension( _parentClientH, _parentClientW );
 		this.maxScrollY = this.maxScrollY2 = _firstChildH - settings.screenH > 0 ? _firstChildH - settings.screenH : 0;

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -114,9 +114,13 @@ function CEditorPage(api)
     this.m_oDrawingDocument = new AscCommon.CDrawingDocument();
     this.m_oLogicDocument   = null;
 
+
+    this.SlideDrawer = new CSlideDrawer();
+
     this.m_oDrawingDocument.m_oWordControl = this;
     this.m_oDrawingDocument.m_oLogicDocument = this.m_oLogicDocument;
     this.m_oApi = api;
+
     this.Native = window["native"];
 }
 
@@ -224,11 +228,44 @@ CEditorPage.prototype.onButtonTabsDraw = function()
 
 CEditorPage.prototype.onPrevPage = function()
 {
+    var DD = this.m_oDrawingDocument;
+    if(DD)
+    {
+        if (0 < DD.SlideCurrent)
+        {
+            this.GoToPage(DD.SlideCurrent - 1);
+        }
+        else
+        {
+            this.GoToPage(0);
+        }
+    }
 };
-
 CEditorPage.prototype.onNextPage = function()
 {
+    var oWordControl = this;
+    if ((oWordControl.m_oDrawingDocument.SlidesCount - 1) > oWordControl.m_oDrawingDocument.SlideCurrent)
+    {
+        oWordControl.GoToPage(oWordControl.m_oDrawingDocument.SlideCurrent + 1);
+    }
+    else if (oWordControl.m_oDrawingDocument.SlidesCount > 0)
+    {
+        oWordControl.GoToPage(oWordControl.m_oDrawingDocument.SlidesCount - 1);
+    }
+    var DD = this.m_oDrawingDocument;
+    if(DD)
+    {
+        if (DD.SlidesCount - 1 > DD.SlideCurrent)
+        {
+            this.GoToPage(DD.SlideCurrent + 1);
+        }
+        else
+        {
+            this.GoToPage(oWordControl.m_oDrawingDocument.SlidesCount - 1);
+        }
+    }
 };
+
 
 CEditorPage.prototype.horRulerMouseDown = function(e)
 {
@@ -402,29 +439,35 @@ CEditorPage.prototype.OnUpdateOverlay = function()
     this.Native["DD_Overlay_UpdateStart"]();
     drDoc.AutoShapesTrack.SetCurrentPage(-100);
     this.Native["DD_Overlay_Clear"]();
-    if (drDoc.m_bIsSelection)
+    var oSlide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
+    if(oSlide)
     {
-        this.Native["DD_Overlay_StartDrawSelection"]();
-        drDoc.AutoShapesTrack.SetCurrentPage(-101);
-        if (this.m_oLogicDocument.CurPage > -1)
+        if (drDoc.m_bIsSelection)
         {
-            this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage].drawSelect(1);
+            this.Native["DD_Overlay_StartDrawSelection"]();
+            drDoc.AutoShapesTrack.SetCurrentPage(-101);
+            if (oSlide)
+            {
+                oSlide.drawSelect(1);
+                drDoc.CheckSelectMobile();
+            }
+            drDoc.AutoShapesTrack.SetCurrentPage(-100);
+            this.Native["DD_Overlay_EndDrawSelection"]();
         }
-        drDoc.AutoShapesTrack.SetCurrentPage(-100);
-        this.Native["DD_Overlay_EndDrawSelection"]();
-    }
-    if (this.m_oLogicDocument && this.m_oLogicDocument.CurPage > -1)
-    {
-        drDoc.AutoShapesTrack.SetCurrentPage(-101);
-        this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage].drawSelect(2);
-        drDoc.AutoShapesTrack.SetCurrentPage(-100);
-        var elements = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage].graphicObjects;
-        if (!elements.canReceiveKeyPress())
+        if (this.m_oLogicDocument && this.m_oLogicDocument.CurPage > -1)
         {
-            elements.DrawOnOverlay(drDoc.AutoShapesTrack);
-            drDoc.AutoShapesTrack.CorrectOverlayBounds();
+            drDoc.AutoShapesTrack.SetCurrentPage(-101);
+            oSlide.drawSelect(2);
+            drDoc.AutoShapesTrack.SetCurrentPage(-100);
+            var elements = oSlide.graphicObjects;
+            if (!elements.canReceiveKeyPress())
+            {
+                elements.DrawOnOverlay(drDoc.AutoShapesTrack);
+                drDoc.AutoShapesTrack.CorrectOverlayBounds();
+            }
         }
     }
+    drDoc.Collaborative_TargetsUpdate();
     this.Native["DD_Overlay_UpdateEnd"]();
     return true;
 };
@@ -518,14 +561,38 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
     if(!this.m_oLogicDocument || !this.m_oLogicDocument.Api){
         return;
     }
+    
+    var master;
     var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
-    var master = slide.Layout.Master;
-    this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
+    if (slide) {
+        master = slide.Layout.Master;
+    }
+    else{
+        master = this.m_oLogicDocument.slideMasters[0];
+    }
+    if(!master){
+        return;
+    }
+    if(bIsAttack || this.MasterLayouts !== master){
+        this.MasterLayouts = master;
+        this.m_oDrawingDocument.CheckLayouts(master);
+        this.m_oLogicDocument.Api.sendEvent("asc_onUpdateThemeIndex", master.ThemeIndex);
+        this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
+    }
 };
 
 CEditorPage.prototype.GoToPage = function(lPageNum)
 {
+    if(this.m_oDrawingDocument){
+        this.m_oDrawingDocument.SlidesCount = this.m_oLogicDocument.Slides.length;
+        this.m_oDrawingDocument.SlideCurrent = this.m_oLogicDocument.CurPage;
+    }
+    if(this.m_oLogicDocument)
+    {
+        this.m_oLogicDocument.Set_CurPage(lPageNum);
+    }
     this.Native["DD_SetCurrentPage"](lPageNum);
+    this.CheckLayouts(false);
 };
 
 CEditorPage.prototype.GetVerticalScrollTo = function(y)

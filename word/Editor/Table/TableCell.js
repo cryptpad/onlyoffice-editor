@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -581,7 +581,7 @@ CTableCell.prototype =
         if ( false === Table.Selection.Use && this === Table.CurCell )
         {
             var Parent = Table.Parent;
-            if ((Parent instanceof AscFormat.CGraphicFrame) || docpostype_Content === Parent.Get_DocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos )
+            if ((Parent instanceof AscFormat.CGraphicFrame) || docpostype_Content === Parent.GetDocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos )
                 return Table.Parent.Is_ThisElementCurrent();
         }
 
@@ -609,11 +609,20 @@ CTableCell.prototype =
         return this.Row.Table.Get_StartPage_Relative();
     },
 
+	/**
+	 * Получаем абсолютный номер страницы по относительному номеру страницы (относительно таблицы, а не ячейки!)
+	 * @param CurPage
+	 * @returns {number}
+	 */
     Get_AbsolutePage : function(CurPage)
     {
 		return this.Row.Table.Get_AbsolutePage(CurPage);
     },
-
+	/**
+	 * Получаем абсолютный номер колонки по относительному номеру страницы (относительно таблицы, а не ячейки!)
+	 * @param CurPage
+	 * @returns {number}
+	 */
     Get_AbsoluteColumn : function(CurPage)
     {
         return this.Row.Table.Get_AbsoluteColumn(CurPage);
@@ -942,7 +951,7 @@ CTableCell.prototype =
 
     Recalculate : function()
     {
-        this.Content.Recalculate(false);
+        this.Content.Recalculate();
     },
 
     Content_Merge : function(OtherContent)
@@ -1014,19 +1023,18 @@ CTableCell.prototype =
         }
 
         // Shd
-        if ( undefined === OtherPr.Shd )
-            this.Set_Shd( undefined );
-        else
-        {
-            var Shd_new =
-                {
-                    Value : OtherPr.Shd.Value,
-                    Color : { r : OtherPr.Shd.Color.r, g : OtherPr.Shd.Color.g, b : OtherPr.Shd.Color.b },
-                    Unifill : OtherPr.Shd.Unifill ? OtherPr.Shd.Unifill.createDuplicate() : undefined
-                };
-
-            this.Set_Shd( Shd_new );
-        }
+		if (undefined === OtherPr.Shd)
+		{
+			this.Set_Shd(undefined);
+		}
+		else
+		{
+			this.Set_Shd({
+				Value   : OtherPr.Shd.Value,
+				Color   : OtherPr.Shd.Color ? {r : OtherPr.Shd.Color.r, g : OtherPr.Shd.Color.g, b : OtherPr.Shd.Color.b} : undefined,
+				Unifill : OtherPr.Shd.Unifill ? OtherPr.Shd.Unifill.createDuplicate() : undefined
+			});
+		}
 
         if ( true != bCopyOnlyVisualProps )
         {
@@ -2132,6 +2140,65 @@ CTableCell.prototype.SetHMerge = function(nType)
 	History.Add(new CChangesTableCellHMerge(this, this.Pr.HMerge, nType));
 	this.Pr.HMerge = nType;
 	this.Recalc_CompiledPr();
+};
+/**
+ * По заданной абсолютной странице получаем массив относительных страниц (относительно таблицы)
+ * @param nPageAbs
+ * @returns {Array}
+ */
+CTableCell.prototype.GetCurPageByAbsolutePage = function(nPageAbs)
+{
+	var arrPages = [];
+
+	var oRow = this.GetRow();
+	var oTable = this.GetTable();
+
+	if (!oRow || !oTable || !oTable.RowsInfo[oRow.GetIndex()])
+		return arrPages;
+
+	var nStartPage = oTable.RowsInfo[oRow.GetIndex()].StartPage;
+
+	var nPagesCount = this.Content.Pages.length;
+	for (var nCurPage = 0; nCurPage < nPagesCount; ++nCurPage)
+	{
+		if (nPageAbs === this.Get_AbsolutePage(nStartPage + nCurPage))
+		{
+			arrPages.push(nStartPage + nCurPage);
+		}
+	}
+
+	return arrPages;
+};
+/**
+ * Получаем границы ячейки
+ * @param nCurPage Номер страницы относительно таблицы
+ * @returns {CDocumentBounds}
+ */
+CTableCell.prototype.GetPageBounds = function(nCurPage)
+{
+	var oTable = this.GetTable();
+	var oRow   = this.GetRow();
+
+	if (!oRow || !oTable || !oTable.Pages[nCurPage])
+		return new CDocumentBounds(0, 0, 0, 0);
+
+	var nCurRow = oRow.GetIndex();
+	if (!oTable.RowsInfo[nCurRow] || !oTable.RowsInfo[nCurRow].Y[nCurPage] || !oTable.RowsInfo[nCurRow].H[nCurPage])
+		return new CDocumentBounds(0, 0, 0, 0);
+
+
+	var oPage = oTable.Pages[nCurPage];
+
+	var oCellInfo = oRow.GetCellInfo(this.GetIndex());
+
+
+	var nL = oPage.X + oCellInfo.X_cell_start;
+	var nR = oPage.X + oCellInfo.X_cell_end;
+
+	var nT = oTable.RowsInfo[nCurRow].Y[nCurPage];
+	var nB = oTable.RowsInfo[nCurRow].Y[nCurPage] + oTable.RowsInfo[nCurRow].H[nCurPage];
+
+	return new CDocumentBounds(nL, nT, nR, nB);
 };
 
 

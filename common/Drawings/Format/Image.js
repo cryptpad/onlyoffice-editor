@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -82,6 +82,10 @@ function CImageShape()
     this.nvPicPr  = null;
     this.blipFill = null;
     this.style    = null;
+
+    this.cropBrush = false;
+    this.isCrop = false;
+    this.parentCrop = null;
 
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add( this, this.Id );
@@ -256,6 +260,12 @@ CImageShape.prototype.getRectBounds = function()
 
 CImageShape.prototype.canRotate = function()
 {
+    if(this.isCrop){
+        return false;
+    }
+    if(this.cropObject){
+        return false;
+    }
     return true;
 };
 
@@ -598,6 +608,15 @@ CImageShape.prototype.draw = function(graphics, transform)
             || bounds.y + bounds.h < rect.y)
             return;
     }
+
+    var oClipRect;
+    if(!graphics.IsSlideBoundsCheckerType){
+        oClipRect = this.getClipRect();
+    }
+    if(oClipRect){
+        graphics.SaveGrState();
+        graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+    }
     var _transform = transform ? transform :this.transform;
     graphics.SetIntegerGrid(false);
     graphics.transform3(_transform, false);
@@ -642,10 +661,21 @@ CImageShape.prototype.draw = function(graphics, transform)
 
     shape_drawer.fromShape2(this, graphics, this.calcGeometry);
     shape_drawer.draw(this.calcGeometry);
+    if(this.cropBrush){
+        this.brush = this.cropBrush;
+        this.pen = null;
+        shape_drawer.Clear();
+        shape_drawer.fromShape2(this, graphics, this.calcGeometry);
+        shape_drawer.draw(this.calcGeometry);
+    }
+
     this.brush = oldBrush;
     this.pen = oldPen;
 
     this.drawLocks(_transform, graphics);
+    if(oClipRect){
+        graphics.RestoreGrState();
+    }
     graphics.reset();
     graphics.SetIntegerGrid(true);
 };
@@ -731,6 +761,28 @@ CImageShape.prototype.getPhType = function()
 CImageShape.prototype.getPhIndex = function()
 {
     return this.isPlaceholder() ? this.nvPicPr.nvPr.ph.idx : null;
+};
+
+CImageShape.prototype.getMediaFileName = function()
+{
+    if(this.nvPicPr && this.nvPicPr.nvPr && this.nvPicPr.nvPr.unimedia)
+    {
+        var oUniMedia = this.nvPicPr.nvPr.unimedia;
+        if(oUniMedia.type === 7 || oUniMedia.type === 8)
+        {
+            if(typeof oUniMedia.media === "string" && oUniMedia.media.length > 0)
+            {
+                var sExt = AscCommon.GetFileExtension(oUniMedia.media);
+                if(this.blipFill && typeof this.blipFill.RasterImageId === 'string')
+                {
+                    var sName = AscCommon.GetFileName(this.blipFill.RasterImageId);
+                    var sMediaFile = sName + '.' + sExt;
+                    return sMediaFile;
+                }
+            }
+        }
+    }
+    return null;
 };
 
 CImageShape.prototype.setNvSpPr = function(pr)

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -85,9 +85,11 @@ Asc['asc_docs_api'].prototype.asc_RejectChanges = function(Change)
     else
         this.WordControl.m_oLogicDocument.RejectRevisionChangesBySelection();
 };
-Asc['asc_docs_api'].prototype.asc_HaveRevisionsChanges = function()
+Asc['asc_docs_api'].prototype.asc_HaveRevisionsChanges = function(isCheckOwnChanges)
 {
-    return this.WordControl.m_oLogicDocument.Have_RevisionChanges();
+	if (!this.WordControl.m_oLogicDocument)
+		return false;
+    return this.WordControl.m_oLogicDocument.HaveRevisionChanges(isCheckOwnChanges);
 };
 Asc['asc_docs_api'].prototype.asc_HaveNewRevisionsChanges = function()
 {
@@ -273,7 +275,7 @@ CDocument.prototype.private_GetRevisionsChangeParagraph = function(Direction, Cu
 	}
     else
     {
-        var Pos = (true === this.Selection.Use && docpostype_DrawingObjects !== this.Get_DocPosType() ? (this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos) : this.CurPos.ContentPos);
+        var Pos = (true === this.Selection.Use && docpostype_DrawingObjects !== this.GetDocPosType() ? (this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos) : this.CurPos.ContentPos);
         this.private_GetRevisionsChangeParagraphInDocument(SearchEngine, Pos);
 
         if (Direction > 0)
@@ -314,7 +316,7 @@ CDocument.prototype.private_GetRevisionsChangeParagraphInDocument = function(Sea
 };
 CDocument.prototype.private_GetRevisionsChangeParagraphInHdrFtr = function(SearchEngine, HdrFtr)
 {
-    var AllHdrFtrs = this.SectionsInfo.Get_AllHdrFtrs();
+    var AllHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
     var Count = AllHdrFtrs.length;
 
     if (Count <= 0)
@@ -354,7 +356,7 @@ CDocument.prototype.private_GetRevisionsChangeParagraphInHdrFtr = function(Searc
 };
 CDocument.prototype.private_GetRevisionsChangeParagraphInFooters = function(SearchEngine, oFootnote)
 {
-	var arrFootnotes = this.Get_FootnotesList(null, null);
+	var arrFootnotes = this.GetFootnotesList(null, null);
 	var nCount = arrFootnotes.length;
 	if (nCount <= 0)
 		return;
@@ -751,10 +753,14 @@ CDocument.prototype.RejectRevisionChanges = function(Type, bAll)
         this.Document_UpdateSelectionState();
     }
 };
-CDocument.prototype.Have_RevisionChanges = function()
+CDocument.prototype.HaveRevisionChanges = function(isCheckOwnChanges)
 {
     this.TrackRevisionsManager.ContinueTrackRevisions();
-    return this.TrackRevisionsManager.HaveOtherUsersChanges();
+
+    if (true === isCheckOwnChanges)
+    	return this.TrackRevisionsManager.Have_Changes();
+    else
+    	return this.TrackRevisionsManager.HaveOtherUsersChanges();
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CHeaderFooterController

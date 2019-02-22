@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -432,6 +432,37 @@ CBookmarksManager.prototype.GetNameForHeadingBookmark = function(oParagraph)
 
 	return "_" + sName;
 };
+/**
+ * Выделяем содержимое закладки
+ * @param sName
+ * @returns {boolean}
+ * @constructor
+ */
+CBookmarksManager.prototype.SelectBookmark = function(sName)
+{
+	this.Update();
+
+	var oBookmark = this.GetBookmarkByName(sName);
+	if (oBookmark)
+	{
+		var oDocument = this.LogicDocument;
+		oDocument.RemoveSelection();
+
+		oBookmark[0].GoToBookmark();
+		var oStartPos = oDocument.GetContentPosition(false);
+
+		oBookmark[1].GoToBookmark();
+		var oEndPos = oDocument.GetContentPosition(false);
+
+		oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
+		oDocument.Document_UpdateSelectionState();
+		oDocument.Document_UpdateInterfaceState();
+		return true;
+	}
+
+	return false;
+};
+
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -446,6 +477,6 @@ CBookmarksManager.prototype['asc_HaveBookmark']          = CBookmarksManager.pro
 CBookmarksManager.prototype['asc_IsHiddenBookmark']      = CBookmarksManager.prototype.IsHiddenBookmark;
 CBookmarksManager.prototype['asc_IsInternalUseBookmark'] = CBookmarksManager.prototype.IsInternalUseBookmark;
 CBookmarksManager.prototype['asc_CheckNewBookmarkName']  = CBookmarksManager.prototype.CheckNewBookmarkName;
-
+CBookmarksManager.prototype['asc_SelectBookmark']        = CBookmarksManager.prototype.SelectBookmark;
 
 

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -1069,7 +1069,7 @@
 
             oSizes.fAdvanceX = (measureInfo.linearHoriAdvance * this.m_dUnitsKoef / this.m_lUnits_Per_Em);
             if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
-                oSizes.fAdvanceX += 1;
+				oSizes.fAdvanceX += 1;
 
             oSizes.oBBox.fMinX = (measureInfo.bbox_xMin >> 6);
             oSizes.oBBox.fMaxX = (measureInfo.bbox_xMax >> 6);
@@ -1245,12 +1245,6 @@
 				pString.SetBBox(nIndex, charSymbolObj.oBBox.fMinX, charSymbolObj.oBBox.fMaxY, charSymbolObj.oBBox.fMaxX, charSymbolObj.oBBox.fMinY);
 				fPenX += charSymbolObj.fAdvanceX + this.m_fCharSpacing;
 
-				if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
-				{
-					// Когда текст делаем жирным сами, то мы увеличиваем расстояние на 1 пиксель в ширину (независимо от DPI и размера текста всегда 1 пиксель)
-					fPenX += 1;
-				}
-
 				unPrevGID = unGID;
 			}
 
@@ -1341,12 +1335,6 @@
 				pString.SetBBox(nIndex, charSymbolObj.oBBox.fMinX, charSymbolObj.oBBox.fMaxY, charSymbolObj.oBBox.fMaxX, charSymbolObj.oBBox.fMinY);
 				fPenX += charSymbolObj.fAdvanceX + this.m_fCharSpacing;
 
-				if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
-				{
-					// Когда текст делаем жирным сами, то мы увеличиваем расстояние на 1 пиксель в ширину (независимо от DPI и размера текста всегда 1 пиксель)
-					fPenX += 1;
-				}
-
 				pCurGlyph.bBitmap = charSymbolObj.bBitmap;
 				pCurGlyph.oBitmap = charSymbolObj.oBitmap;
 
@@ -1416,12 +1404,6 @@
 
             pString.m_fEndX = charSymbolObj.fAdvanceX + this.m_fCharSpacing + pString.m_fX;
             pString.m_fEndY = pString.m_fY;
-
-            if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
-            {
-                // Когда текст делаем жирным сами, то мы увеличиваем расстояние на 1 пиксель в ширину (независимо от DPI и размера текста всегда 1 пиксель)
-                pString.m_fEndX += this.m_unHorDpi / 72;
-            }
 		};
 
 		this.GetChar = function(lUnicode, is_raster_distances)

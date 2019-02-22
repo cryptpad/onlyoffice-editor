@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -493,7 +493,12 @@ CShapeDrawer.prototype =
             if ((this.Ln.headEnd != null && this.Ln.headEnd.type != null) || (this.Ln.tailEnd != null && this.Ln.tailEnd.type != null))
             {
                 if (true === graphics.IsTrack)
-                    graphics.Graphics.ArrayPoints = [];
+                {
+                    if(graphics.Graphics)
+                    {
+                        graphics.Graphics.ArrayPoints = [];
+                    }
+                }
                 else
                     graphics.ArrayPoints = [];
         }
@@ -807,6 +812,11 @@ CShapeDrawer.prototype =
 		if (this.Graphics.IsSlideBoundsCheckerType)
 			return;
 
+        if (this.Graphics.RENDERER_PDF_FLAG)
+        {
+            this.Graphics.drawpath(1);
+            return;
+        }
         if (this.Ln.Join != null && this.Ln.Join.type != null)
         {
             switch (this.Ln.Join.type)

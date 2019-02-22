@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -412,7 +412,8 @@ function CEditorPage(api)
 	{
 		var off = jQuery("#" + this.Name).offset();
 
-        if (undefined !== window["AscDesktopEditor"] && 0 == off.top)
+		// почему-то иногда неправильно определяется "top" (возвращается ноль)
+        if (!this.m_oApi.isEmbedVersion && !this.m_oApi.isMobileVersion && off && (0 == off.top))
             return;
 
 		if (off)
@@ -2180,6 +2181,16 @@ function CEditorPage(api)
 			if (pos.Page == -1)
 				return;
 
+			var ret = oWordControl.m_oDrawingDocument.checkMouseDown_Drawing(pos);
+			if (ret === true)
+			{
+				if (-1 == oWordControl.m_oTimerScrollSelect)
+					oWordControl.m_oTimerScrollSelect = setInterval(oWordControl.SelectWheel, 20);
+
+				AscCommon.stopEvent(e);
+				return;
+			}
+
 			oWordControl.StartUpdateOverlay();
 			oWordControl.m_oDrawingDocument.m_lCurrentPage = pos.Page;
 			oWordControl.m_oLogicDocument.OnMouseDown(global_mouseEvent, pos.X, pos.Y, pos.Page);
@@ -2230,7 +2241,19 @@ function CEditorPage(api)
 		if (oWordControl.m_oDrawingDocument.m_sLockedCursorType != "")
 			oWordControl.m_oDrawingDocument.SetCursorType("default");
 
+		if (oWordControl.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			var pos2 = oWordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(pos.X, pos.Y, pos.Page, undefined, true);
+			if (pos2.Y > oWordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix)
+				return;
+		}
+
 		oWordControl.StartUpdateOverlay();
+
+		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
 		oWordControl.EndUpdateOverlay();
 	};
@@ -2248,6 +2271,11 @@ function CEditorPage(api)
 			return;
 
 		oWordControl.StartUpdateOverlay();
+
+		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
 		oWordControl.EndUpdateOverlay();
 	};
@@ -2305,7 +2333,26 @@ function CEditorPage(api)
 
 		oWordControl.m_bIsMouseUpSend = true;
 
+		if (oWordControl.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			var pos2 = oWordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(pos.X, pos.Y, pos.Page, undefined, true);
+			if (pos2.Y > oWordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix)
+				return;
+		}
+
 		oWordControl.StartUpdateOverlay();
+
+		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseUp_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
+		var is_drawing_on_up = oWordControl.m_oDrawingDocument.checkMouseDown_DrawingOnUp(pos);
+		if (is_drawing_on_up)
+		{
+			// не посылаем в документ.
+			return;
+		}
+
 		oWordControl.m_oLogicDocument.OnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
 
 		oWordControl.m_bIsMouseUpSend = false;
@@ -2414,6 +2461,9 @@ function CEditorPage(api)
 			if (false === window["AscDesktopEditor"]["CheckNeedWheel"]())
 				return;
 		}
+
+		if (global_mouseEvent.IsLocked)
+			return;
 
 		if (oThis.DemonstrationManager.Mode)
 		{
@@ -3443,6 +3493,18 @@ function CEditorPage(api)
 
 				overlay.SetBaseTransform();
 			}
+		}
+
+		if (drDoc.InlineTextTrackEnabled && null != drDoc.InlineTextTrack)
+		{
+			var _oldPage        = drDoc.AutoShapesTrack.PageIndex;
+			var _oldCurPageInfo = drDoc.AutoShapesTrack.CurrentPageInfo;
+
+			drDoc.AutoShapesTrack.PageIndex = drDoc.InlineTextTrackPage;
+			drDoc.AutoShapesTrack.DrawInlineMoveCursor(drDoc.InlineTextTrack.X, drDoc.InlineTextTrack.Y, drDoc.InlineTextTrack.Height, drDoc.InlineTextTrack.transform, drDoc.InlineTextInNotes ? overlayNotes : null);
+
+			drDoc.AutoShapesTrack.PageIndex       = _oldPage;
+			drDoc.AutoShapesTrack.CurrentPageInfo = _oldCurPageInfo;
 		}
 
 		drDoc.DrawHorVerAnchor();

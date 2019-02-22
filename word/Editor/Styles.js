@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -59,8 +59,10 @@ var g_dKoef_pt_to_mm = 25.4 / 72;
 var g_dKoef_pc_to_mm = g_dKoef_pt_to_mm / 12;
 var g_dKoef_in_to_mm = 25.4;
 var g_dKoef_twips_to_mm = g_dKoef_pt_to_mm / 20;
+var g_dKoef_emu_to_mm = 1 / 36000;
 var g_dKoef_mm_to_pt = 1 / g_dKoef_pt_to_mm;
 var g_dKoef_mm_to_twips = 1 / g_dKoef_twips_to_mm;
+var g_dKoef_mm_to_emu = 36000;
 
 var tblwidth_Auto = 0x00;
 var tblwidth_Mm   = 0x01;
@@ -343,11 +345,29 @@ CStyle.prototype =
 		History.Add(new CChangesStyleTextPr(this, Old, New));
 	},
 
-	Set_ParaPr : function(Value)
+	Set_ParaPr : function(Value, isHandleNumbering)
 	{
 		var Old = this.ParaPr;
 		var New = new CParaPr();
 		New.Set_FromObject(Value);
+
+		if (isHandleNumbering && Value.NumPr instanceof CNumPr && Value.NumPr.IsValid())
+		{
+			var oLogicDocument = editor.WordControl.m_oLogicDocument;
+			if (oLogicDocument)
+			{
+				var oNumbering = oLogicDocument.GetNumbering();
+				var oNum = oNumbering.GetNum(Value.NumPr.NumId);
+				if (oNum)
+				{
+					var oNumLvl = oNum.GetLvl(Value.NumPr.Lvl).Copy();
+					oNumLvl.SetPStyle(this.GetId());
+					oNum.SetLvl(oNumLvl, Value.NumPr.Lvl);
+
+					New.NumPr = new CNumPr(Value.NumPr.NumId);
+				}
+			}
+		}
 
 		this.ParaPr = New;
 
@@ -5189,12 +5209,12 @@ CDocumentShd.prototype =
 
 function CDocumentBorder()
 {
-    this.Color = new CDocumentColor( 0, 0, 0 );
-    this.Unifill = undefined;
-    this.LineRef = undefined;
-    this.Space = 0;
-    this.Size  = 0.5 * g_dKoef_pt_to_mm;
-    this.Value = border_None;
+	this.Color   = new CDocumentColor(0, 0, 0);
+	this.Unifill = undefined;
+	this.LineRef = undefined;
+	this.Space   = 0;                      // Это значение учитывается всегда, даже когда Value = none (поэтому важно, что по умолчанию 0)
+	this.Size    = 0.5 * g_dKoef_pt_to_mm; // Размер учитываем в зависимости от Value
+	this.Value   = border_None;
 }
 
 CDocumentBorder.prototype =
@@ -5444,19 +5464,12 @@ CTableMeasurement.prototype =
 
     Write_ToBinary : function(Writer)
     {
-        // Double : W
-        // Long   : Type
-        Writer.WriteDouble( this.W );
-        Writer.WriteLong( this.Type );
+    	this.WriteToBinary(Writer);
     },
 
     Read_FromBinary : function(Reader)
     {
-        // Double : W
-        // Long   : Type
-
-        this.W    = Reader.GetDouble();
-        this.Type = Reader.GetLong();
+    	return this.ReadFromBinary(Reader);
     },
 
     Set_FromObject : function(Obj)
@@ -5488,6 +5501,21 @@ CTableMeasurement.prototype.IsPercent = function()
 CTableMeasurement.prototype.GetValue = function()
 {
 	return this.W;
+};
+CTableMeasurement.prototype.ReadFromBinary = function(oReader)
+{
+	// Double : W
+	// Long   : Type
+
+	this.W    = oReader.GetDouble();
+	this.Type = oReader.GetLong();
+};
+CTableMeasurement.prototype.WriteToBinary = function(oWriter)
+{
+	// Double : W
+	// Long   : Type
+	oWriter.WriteDouble(this.W);
+	oWriter.WriteLong(this.Type);
 };
 
 function CTablePr()
@@ -7358,6 +7386,7 @@ function CTextPr()
 
     this.TextOutline = undefined;
     this.TextFill    = undefined;
+	this.HighlightColor = undefined;
 }
 
 CTextPr.prototype =
@@ -7393,6 +7422,7 @@ CTextPr.prototype =
         this.Vanish     = undefined;
         this.TextOutline = undefined;
         this.TextFill    = undefined;
+		this.HighlightColor = undefined;
         this.AscFill    = undefined;
         this.AscUnifill = undefined;
         this.AscLine    = undefined;
@@ -7457,6 +7487,10 @@ CTextPr.prototype =
         {
             TextPr.TextFill = this.TextFill.createDuplicate();
         }
+        if(undefined !== this.HighlightColor)
+		{
+			TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+		}
 
         return TextPr;
     },
@@ -7575,6 +7609,10 @@ CTextPr.prototype =
         {
             this.TextFill = TextPr.TextFill.createDuplicate();
         }
+        if(undefined !== TextPr.HighlightColor)
+		{
+			this.HighlightColor = TextPr.HighlightColor.createDuplicate();
+		}
     },
 
     Init_Default : function()
@@ -7612,6 +7650,7 @@ CTextPr.prototype =
 
         this.TextOutline = undefined;
         this.TextFill    = undefined;
+		this.HighlightColor = undefined;
     },
 
     Set_FromObject : function(TextPr, isUndefinedToNull)
@@ -7684,6 +7723,7 @@ CTextPr.prototype =
 		this.Unifill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.Unifill);
 		this.FontRef     = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontRef);
 		this.TextFill    = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextFill);
+		this.HighlightColor = CheckUndefinedToNull(isUndefinedToNull, TextPr.HighlightColor);
 		this.TextOutline = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextOutline);
 		this.AscFill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscFill);
 		this.AscUnifill  = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscUnifill);
@@ -7841,6 +7881,15 @@ CTextPr.prototype =
             this.TextFill = AscFormat.CompareUniFill(this.TextFill, TextPr.TextFill);
             if(null === this.TextFill){
                 this.TextFill = undefined;
+            }
+        }
+
+        if(undefined !== this.HighlightColor &&  !this.HighlightColor.IsIdentical(TextPr.HighlightColor))
+        {
+            this.HighlightColor = this.HighlightColor.compare(TextPr.HighlightColor);
+            if(null === this.HighlightColor)
+            {
+                this.HighlightColor = undefined;
             }
         }
 
@@ -8054,6 +8103,11 @@ CTextPr.prototype =
             this.ReviewInfo.Write_ToBinary(Writer);
             Flags |= 536870912;
         }
+        if (undefined != this.HighlightColor)
+        {
+			this.HighlightColor.Write_ToBinary(Writer);
+            Flags |= 1073741824;
+        }
 
         var EndPos = Writer.GetCurPosition();
         Writer.Seek( StartPos );
@@ -8214,6 +8268,12 @@ CTextPr.prototype =
             this.PrChange.Read_FromBinary(Reader);
             this.ReviewInfo.Read_FromBinary(Reader);
         }
+
+		if (Flags & 1073741824)
+		{
+			this.HighlightColor = new AscFormat.CUniColor();
+			this.HighlightColor.Read_FromBinary(Reader);
+		}
     },
 
     Check_NeedRecalc : function()
@@ -8491,6 +8551,9 @@ CTextPr.prototype =
         if ((undefined === this.TextFill && undefined !== TextPr.TextFill) || (undefined !== this.TextFill && (undefined === TextPr.TextFill || true !== this.TextFill.IsIdentical(TextPr.TextFill))))
             return false;
 
+        if ((undefined === this.HighlightColor && undefined !== TextPr.HighlightColor) || (undefined !== this.HighlightColor && (undefined === TextPr.HighlightColor || true !== this.HighlightColor.IsIdentical(TextPr.HighlightColor))))
+            return false;
+
         if (this.Vanish !== TextPr.Vanish)
             return false;
 
@@ -8627,6 +8690,9 @@ CTextPr.prototype =
         if (undefined !== this.TextFill && (undefined === PrChange.TextFill || true !== this.TextFill.IsIdentical(PrChange.TextFill)))
             TextPr.TextFill = this.TextFill.createDuplicate();
 
+        if (undefined !== this.HighlightColor && (undefined === PrChange.HighlightColor || true !== this.HighlightColor.IsIdentical(PrChange.HighlightColor)))
+            TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+
         if (this.Vanish !== PrChange.Vanish)
             TextPr.Vanish = this.Vanish;
 
@@ -8751,7 +8817,8 @@ CTextPr.prototype.Is_Empty = function()
 		|| undefined !== this.Shd
 		|| undefined !== this.Vanish
 		|| undefined !== this.TextOutline
-		|| undefined !== this.TextFill)
+		|| undefined !== this.TextFill
+		|| undefined !== this.HighlightColor)
 		return false;
 
 	return true;
@@ -11062,6 +11129,32 @@ CParaPr.prototype.ReadFromBinary = function(oReader)
 {
 	return this.Read_FromBinary(oReader);
 };
+CParaPr.prototype.private_CorrectBorderSpace = function(nValue)
+{
+	var dKoef = (32 * 25.4 / 72);
+	return (nValue - Math.floor(nValue / dKoef) * dKoef);
+};
+CParaPr.prototype.CheckBorderSpaces = function()
+{
+	// MSWordHack: Специальная заглушка под MS Word
+	// В Word значение Space ограничивается 0..31пт. Судя по всему у них это значение реализуется ровно 5 битами, т.к.
+	// значение 32пт, уже воспринимается как 0, 33=1,34=2 и т.д.
+
+	if (this.Brd.Top)
+		this.Brd.Top.Space = this.private_CorrectBorderSpace(this.Brd.Top.Space);
+
+	if (this.Brd.Bottom)
+		this.Brd.Bottom.Space = this.private_CorrectBorderSpace(this.Brd.Bottom.Space);
+
+	if (this.Brd.Left)
+		this.Brd.Left.Space = this.private_CorrectBorderSpace(this.Brd.Left.Space);
+
+	if (this.Brd.Right)
+		this.Brd.Right.Space = this.private_CorrectBorderSpace(this.Brd.Right.Space);
+
+	if (this.Brd.Between)
+		this.Brd.Between.Space = this.private_CorrectBorderSpace(this.Brd.Between.Space);
+};
 //----------------------------------------------------------------------------------------------------------------------
 // CParaPr Export
 //----------------------------------------------------------------------------------------------------------------------
@@ -11199,6 +11292,9 @@ window["AscCommonWord"].CTextPr = CTextPr;
 window["AscCommonWord"].CParaPr = CParaPr;
 window["AscCommonWord"].CParaTabs = CParaTabs;
 window["AscCommonWord"].g_dKoef_pt_to_mm = g_dKoef_pt_to_mm;
+window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
+window["AscCommonWord"].g_dKoef_mm_to_pt = g_dKoef_mm_to_pt;
+window["AscCommonWord"].g_dKoef_mm_to_emu = g_dKoef_mm_to_emu;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;

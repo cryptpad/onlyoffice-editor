@@ -97,6 +97,7 @@
 		"../word/Drawing/mobileTouchManager.js",
 
         "../common/wordcopypaste.js",
+		"../common/intervalTree.js",
 		
 		"../cell/utils/utils.js",
 		"../cell/model/WorkbookElems.js",
@@ -133,6 +134,7 @@
         "../word/Editor/Field.js",
         "../word/Editor/FieldChanges.js",
         "../word/Editor/Run.js",
+		"../word/Editor/PresentationField.js",
         "../word/Editor/RunChanges.js",
         "../word/Editor/Math.js",
         "../word/Editor/MathChanges.js",

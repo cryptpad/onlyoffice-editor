@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -2275,6 +2275,28 @@ CTable.prototype.GetAllFloatElements = function(FloatObjs)
 
 	return FloatObjs;
 };
+CTable.prototype.GetAllFields = function(isSelection, arrFields)
+{
+	if (!arrFields)
+		arrFields = [];
+	if(isSelection)
+	{
+		var Cells_array = this.Internal_Get_SelectionArray();
+		for (var Index = 0; Index < Cells_array.length; Index++)
+		{
+			var CurPos      = Cells_array[Index];
+			var CurCell     = this.Content[CurPos.Row].Get_Cell(CurPos.Cell);
+			var CellContent = CurCell.Content;
+
+			CellContent.GetAllFields(isSelection, arrFields);
+		}
+	}
+	else
+	{
+		this.CurCell.Content.GetAllFields(isSelection, arrFields);
+	}
+	return arrFields;
+};
 /**
  * Данная функция запрашивает новую позицию для содержимого у ячейки, разбивающейся на несколько страниц
  */
@@ -2409,7 +2431,10 @@ CTable.prototype.GetTableOffsetCorrection = function()
 {
 	var X = 0;
 
-	if (true === this.Parent.IsTableCellContent())
+	if (true === this.Parent.IsTableCellContent()
+		|| this.bPresentation
+		|| !this.LogicDocument
+		|| this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15)
 		return 0;
 
 	var Row     = this.Content[0];
@@ -2449,7 +2474,10 @@ CTable.prototype.GetRightTableOffsetCorrection = function()
 {
 	var X = 0;
 
-	if (true === this.Parent.IsTableCellContent())
+	if (true === this.Parent.IsTableCellContent()
+		|| this.bPresentation
+		|| !this.LogicDocument
+		|| this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15)
 		return 0;
 
 	var Row         = this.Content[0];
@@ -2832,13 +2860,6 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 };
 CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount)
 {
-	if (this.Parent.RecalcInfo.FlowObject === this && c_oAscVAnchor.Text === this.PositionV.RelativeFrom)
-	{
-		this.Y -= this.PositionV.Value;
-		this.YLimit -= this.PositionV.Value;
-		return;
-	}
-
 	this.X_origin = X;
 	this.X        = X;
 	this.Y        = Y + 0.001; // Погрешность для Flow-таблиц
@@ -5812,7 +5833,7 @@ CTable.prototype.PasteFormatting = function(TextPr, ParaPr, ApplyPara)
 		this.CurCell.Content.PasteFormatting(TextPr, ParaPr, false);
 	}
 };
-CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
@@ -5824,7 +5845,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 			var Pos  = Cells_array[0];
 			var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
 			Cell.Content.SelectAll();
-			Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, true);
+			Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, true, false);
 
 			this.CurCell = Cell;
 
@@ -5849,7 +5870,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 
 				var Cell_Content = Cell.Content;
 				Cell_Content.Set_ApplyToAll(true);
-				Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, false);
+				Cell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, false, false);
 				Cell_Content.Set_ApplyToAll(false);
 			}
 
@@ -5874,7 +5895,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 	}
 	else
 	{
-		this.CurCell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+		this.CurCell.Content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 		if (false === this.CurCell.Content.IsSelectionUse())
 		{
@@ -6430,6 +6451,13 @@ CTable.prototype.MoveCursorUp = function(AddToSelect)
 					{
 						Cell         = PrevRow.Get_Cell(CurCell);
 						var CellInfo = PrevRow.Get_CellInfo(CurCell);
+
+						if (!CellInfo)
+						{
+							Cell = null;
+							break;
+						}
+
 						if (X <= CellInfo.X_grid_end)
 							break;
 					}
@@ -6437,7 +6465,10 @@ CTable.prototype.MoveCursorUp = function(AddToSelect)
 					if (null === Cell)
 						return true;
 
-					Cell = this.Internal_Get_StartMergedCell2(Cell.Index, Cell.Row.Index);
+					Cell = this.GetStartMergedCell(Cell.Index, Cell.Row.Index);
+					if (!Cell)
+						return true;
+
 					Cell.Content_MoveCursorUpToLastRow(X, Y, false);
 					this.CurCell              = Cell;
 					this.Selection.EndPos.Pos = {Cell : Cell.Index, Row : Cell.Row.Index};
@@ -6736,13 +6767,25 @@ CTable.prototype.MoveCursorUpToLastRow = function(X, Y, AddToSelect)
 		{
 			Cell         = Row.Get_Cell(CurCell);
 			var CellInfo = Row.Get_CellInfo(CurCell);
+
+			if (!CellInfo)
+			{
+				Cell = null;
+				break;
+			}
+
 			if (X <= CellInfo.X_grid_end)
 				break;
 		}
 
-		if (null === Cell)
+		if (!Cell)
 			return;
-		Cell = this.Internal_Get_StartMergedCell2(Cell.Index, Cell.Row.Index);
+
+		Cell = this.GetStartMergedCell(Cell.Index, Cell.Row.Index);
+
+		if (!Cell)
+			return;
+
 		Cell.Content_MoveCursorUpToLastRow(X, Y, false);
 		this.Selection.CurRow = Cell.Row.Index;
 
@@ -7042,8 +7085,9 @@ CTable.prototype.GetSelectedContent = function(SelectedContent)
 					// началось и проверяем была ли она выделена (эту ячейку мы уже проверяли, т.к. она находится
 					// выше).
 
-					var StartMergedCell = this.Internal_Get_StartMergedCell2(CurCell, CurRow);
-					bSelected           = RowsInfoArray[StartMergedCell.Row.Index].CellsInfoArray[StartMergedCell.Index + 1].Selected;
+					var StartMergedCell = this.GetStartMergedCell(CurCell, CurRow);
+					if (StartMergedCell)
+						bSelected = RowsInfoArray[StartMergedCell.Row.Index].CellsInfoArray[StartMergedCell.Index + 1].Selected;
 				}
 
 				if (false === bSelected)
@@ -7810,7 +7854,7 @@ CTable.prototype.GetDirectParaPr = function()
 
 	return this.CurCell.Content.GetDirectParaPr();
 };
-CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	if (arrSelectedParagraphs)
 	{
@@ -7825,12 +7869,12 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 			{
 				oCellContent.Set_ApplyToAll(true);
-				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs);
+				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 				oCellContent.Set_ApplyToAll(false);
 			}
 			else
 			{
-				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs);
+				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
 			}
 		}
 
@@ -7839,7 +7883,7 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 	else if (true === bIgnoreSelection)
 	{
 		if (this.CurCell)
-			return this.CurCell.Content.GetCurrentParagraph(bIgnoreSelection, null);
+			return this.CurCell.Content.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 		else
 			null;
 	}
@@ -7856,13 +7900,13 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 			{
 				oCellContent.Set_ApplyToAll(true);
-				var oRes = oCellContent.GetCurrentParagraph(bIgnoreSelection, null);
+				var oRes = oCellContent.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 				oCellContent.Set_ApplyToAll(false);
 				return oRes;
 			}
 			else
 			{
-				return oCellContent.GetCurrentParagraph(bIgnoreSelection, null);
+				return oCellContent.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 			}
 		}
 	}
@@ -8542,7 +8586,7 @@ CTable.prototype.Get_TableCaption = function()
 //----------------------------------------------------------------------------------------------------------------------
 // Работаем с сеткой таблицы
 //----------------------------------------------------------------------------------------------------------------------
-CTable.prototype.Split_Table = function()
+CTable.prototype.Split = function()
 {
 	// Пока данная функция используется только при добавлении секции. В этом случае мы делим таблицу на 2 части по
 	// текущей строке. Если текущая строка первая, тогда не делим таблицу.
@@ -9238,14 +9282,15 @@ CTable.prototype.SplitTableCells = function(Rows, Cols)
 /**
  * Добавление строки.
  * @param bBefore - true - до(сверху) первой выделенной строки, false - после(снизу) последней выделенной строки.
+ * @param {boolean} [isCheckInnerTable=true] Выполнять ли данную функцию для внутренней таблицы
  */
-CTable.prototype.AddTableRow = function(bBefore)
+CTable.prototype.AddTableRow = function(bBefore, isCheckInnerTable)
 {
 	if ("undefined" === typeof(bBefore))
 		bBefore = true;
 
 	var bApplyToInnerTable = false;
-	if (false === this.Selection.Use || ( true === this.Selection.Use && table_Selection_Text === this.Selection.Type ))
+	if (false !== isCheckInnerTable && (false === this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type)))
 		bApplyToInnerTable = this.CurCell.Content.AddTableRow(bBefore);
 
 	if (true === bApplyToInnerTable)
@@ -9344,7 +9389,7 @@ CTable.prototype.AddTableRow = function(bBefore)
 				{
 					var oTempPara = arrAllParagraphs[nParaIndex];
 					oTempPara.SetDirectParaPr(oFirstPara.GetDirectParaPr(true));
-					oTempPara.SetDirectTextPr(oFirstPara.Get_FirstRunPr(), false);
+					oTempPara.SetDirectTextPr(oFirstPara.GetFirstRunPr(), false);
 				}
 			}
 
@@ -9871,7 +9916,7 @@ CTable.prototype.AddTableColumn = function(bBefore)
 
 				// Скопируем текстовые настройки
 				var FirstPara = NextCell.Content.Get_FirstParagraph();
-				var TextPr    = FirstPara.Get_FirstRunPr();
+				var TextPr    = FirstPara.GetFirstRunPr();
 				NewCell.Content.Set_ApplyToAll(true);
 
 				// Добавляем стиль во все параграфы
@@ -9953,7 +9998,7 @@ CTable.prototype.AddTableColumn = function(bBefore)
 
 				// Скопируем текстовые настройки
 				var FirstPara = NextCell.Content.Get_FirstParagraph();
-				var TextPr    = FirstPara.Get_FirstRunPr();
+				var TextPr    = FirstPara.GetFirstRunPr();
 				NewCell.Content.Set_ApplyToAll(true);
 
 				// Добавляем стиль во все параграфы
@@ -11154,19 +11199,23 @@ CTable.prototype.private_GetCellsPosArrayByCellsArray = function(CellsArray)
 };
 /**
  * Получаем левую верхнюю ячейку в текущем объединении
- * @returns {CTableCell}
+ * @param {number} nCellIndex
+ * @param {number} nRowIndex
+ * @returns {?CTableCell}
  */
 CTable.prototype.GetStartMergedCell = function(nCellIndex, nRowIndex)
 {
-	return this.Internal_Get_StartMergedCell2(nCellIndex, nRowIndex);
-};
-CTable.prototype.Internal_Get_StartMergedCell2 = function(CellIndex, RowIndex)
-{
-	var Row      = this.Content[RowIndex];
-	var Cell     = Row.Get_Cell(CellIndex);
-	var CellInfo = Row.Get_CellInfo(CellIndex);
+	var oRow = this.GetRow(nRowIndex);
+	if (!oRow)
+		return null;
 
-	return this.Internal_Get_StartMergedCell(RowIndex, CellInfo.StartGridCol, Cell.Get_GridSpan());
+	var oCell     = oRow.GetCell(nCellIndex);
+	var oCellInfo = oRow.GetCellInfo(nCellIndex);
+
+	if (!oCell || !oCellInfo)
+		return null;
+
+	return this.Internal_Get_StartMergedCell(nRowIndex, oCellInfo.StartGridCol, oCell.GetGridSpan());
 };
 /**
  * Получаем количество ячеек (=количество строк) попавших в вертикальное объединения, начиная с заданной ячейки внизю
@@ -11926,16 +11975,6 @@ CTable.prototype.GetRowsCountInHeader = function()
 	}
 
 	return nRowsInHeader;
-};
-CTable.prototype.GetTopElement = function()
-{
-    if (!this.Parent)
-        return null;
-
-    if (true === this.Parent.Is_TopDocument(false))
-        return this;
-
-    return this.Parent.GetTopElement();
 };
 CTable.prototype.Get_RowsCount = function()
 {
@@ -13055,7 +13094,7 @@ CTable.prototype.InsertTableContent = function(_nCellIndex, _nRowIndex, oTable)
 	{
 		this.RemoveSelection();
 		this.CurCell = this.GetRow(this.GetRowsCount() - 1).GetCell(0);
-		this.AddTableRow(false);
+		this.AddTableRow(false, false);
 		nAddRows--;
 
 		this.private_RecalculateGridCols();
@@ -14071,6 +14110,13 @@ CTable.prototype.GetLastParagraph = function()
 		return null;
 
 	return oRow.GetCell(nCellsCount - 1).GetContent().GetLastParagraph();
+};
+CTable.prototype.GetPlaceHolderObject = function()
+{
+	if (this.IsCellSelection())
+		return null;
+
+	return this.CurCell.GetContent().GetPlaceHolderObject();
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook

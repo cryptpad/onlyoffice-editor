@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -128,23 +128,34 @@ function CThemeLoader()
 
     this.LoadThemeJSAsync = function(theme_src)
     {
-        var scriptElem = document.createElement('script');
-
-        if (scriptElem.readyState && false)
+        if(!window["NATIVE_EDITOR_ENJINE"])
         {
-            scriptElem.onreadystatechange = function () {
-                if (this.readyState == 'complete' || this.readyState == 'loaded')
-                {
-                    scriptElem.onreadystatechange = null;
-                    setTimeout(oThis._callback_theme_load, 0);
+            var scriptElem = document.createElement('script');
+    
+            if (scriptElem.readyState && false)
+            {
+                scriptElem.onreadystatechange = function () {
+                    if (this.readyState == 'complete' || this.readyState == 'loaded')
+                    {
+                        scriptElem.onreadystatechange = null;
+                        setTimeout(oThis._callback_theme_load, 0);
+                    }
                 }
             }
+            scriptElem.onload = scriptElem.onerror = oThis._callback_theme_load;
+    
+            scriptElem.setAttribute('src',theme_src);
+            scriptElem.setAttribute('type','text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(scriptElem);
         }
-        scriptElem.onload = scriptElem.onerror = oThis._callback_theme_load;
-
-        scriptElem.setAttribute('src',theme_src);
-        scriptElem.setAttribute('type','text/javascript');
-        document.getElementsByTagName('head')[0].appendChild(scriptElem);
+        else
+        {
+            window['native']['WC_LoadTheme'](theme_src);
+            if(window["g_theme" + (oThis.CurrentLoadThemeIndex + 1)])
+            {
+                this._callback_theme_load();
+            }
+        }
     };
 
     this._callback_theme_load = function()
@@ -168,7 +179,7 @@ function CThemeLoader()
             }
             AscCommon.History.MinorChanges = false;
 
-            if (oThis.IsReloadBinaryThemeEditorNow)
+            if (oThis.IsReloadBinaryThemeEditorNow || window["NATIVE_EDITOR_ENJINE"])
             {
                 oThis.asyncImagesEndLoaded();
                 oThis.IsReloadBinaryThemeEditorNow = false;

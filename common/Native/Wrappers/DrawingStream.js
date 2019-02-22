@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -555,7 +555,6 @@ function CDrawingStream(_writer)
     this.m_oAutoShapesTrack = null;
 
     this.m_oFontManager = null;
-    this.m_bIsFillTextCanvasColor = 0;
 
     this.m_oCoordTransform  = new AscCommon.CMatrixL();
     this.m_oBaseTransform   = new AscCommon.CMatrixL();
@@ -597,8 +596,6 @@ function CDrawingStream(_writer)
     this.TextClipRect = null;
     this.IsClipContext = false;
 
-    this.ClearMode = false;
-
     this.IsUseFonts2        = false;
     this.m_oFontManager2    = null;
     this.m_oLastFont2       = null;
@@ -609,6 +606,37 @@ function CDrawingStream(_writer)
 
 CDrawingStream.prototype =
 {
+
+    init : function(context,width_px,height_px,width_mm,height_mm)
+    {
+        this.m_oContext     = context;
+        this.m_lHeightPix   = height_px >> 0;
+        this.m_lWidthPix    = width_px >> 0;
+        this.m_dWidthMM     = width_mm;
+        this.m_dHeightMM    = height_mm;
+        this.m_dDpiX        = 25.4 * this.m_lWidthPix / this.m_dWidthMM;
+        this.m_dDpiY        = 25.4 * this.m_lHeightPix / this.m_dHeightMM;
+
+        this.m_oCoordTransform.sx   = this.m_dDpiX / 25.4;
+        this.m_oCoordTransform.sy   = this.m_dDpiY / 25.4;
+
+
+        /*
+         if (this.IsThumbnail)
+         {
+         this.TextureFillTransformScaleX *= (width_px / (width_mm * g_dKoef_mm_to_pix));
+         this.TextureFillTransformScaleY *= (height_px / (height_mm * g_dKoef_mm_to_pix))
+         }
+         */
+
+        /*
+         if (true == this.m_oContext.mozImageSmoothingEnabled)
+         this.m_oContext.mozImageSmoothingEnabled = false;
+         */
+
+        this.m_oLastFont.Clear();
+        //this.m_oContext.save();
+    },
     ClearParams : function()
     {
         this.m_oTextPr      = null;
@@ -857,25 +885,8 @@ CDrawingStream.prototype =
 
     transform3 : function(m, isNeedInvert)
     {
-        var _t = this.m_oTransform;
-        _t.sx = m.sx;
-        _t.shx = m.shx;
-        _t.shy = m.shy;
-        _t.sy = m.sy;
-        _t.tx = m.tx;
-        _t.ty = m.ty;
-        this.CalculateFullTransform(isNeedInvert);
-
-        if (!this.m_bIntegerGrid)
-        {
-            var _ft = this.m_oFullTransform;
-            this.Native["PD_transform"](_ft.sx,_ft.shy,_ft.shx,_ft.sy,_ft.tx,_ft.ty);
-        }
-        else
-        {
-            this.SetIntegerGrid(false);
-        }
-
+        
+        this.Native["PD_transform3"](m.sx,m.shy,m.shx,m.sy,m.tx,m.ty, isNeedInvert);
         // теперь трансформ выставляется ТОЛЬКО при загрузке шрифта. Здесь другого быть и не может
         /*
          if (null != this.m_oFontManager && false !== isNeedInvert)

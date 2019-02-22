@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -769,9 +769,9 @@ CAutoshapeTrack.prototype =
         this.m_oOverlay.max_y += this.MaxEpsLine;
     },
 
-    SetCurrentPage : function(nPageIndex)
+    SetCurrentPage : function(nPageIndex, isAttack)
     {
-        if (nPageIndex == this.PageIndex)
+        if (nPageIndex == this.PageIndex && !isAttack)
             return;
 
         var oPage = this.m_oOverlay.m_oHtmlPage.GetDrawingPageInfo(nPageIndex);
@@ -2422,7 +2422,7 @@ CAutoshapeTrack.prototype =
         ctx.globalAlpha = globalAlpha;
     },
 
-    DrawInlineMoveCursor : function(x, y, h, matrix)
+    DrawInlineMoveCursor : function(x, y, h, matrix, overlayNotes)
     {
         var overlay = this.m_oOverlay;
         this.CurrentPageInfo = overlay.m_oHtmlPage.GetDrawingPageInfo(this.PageIndex);
@@ -2436,6 +2436,18 @@ CAutoshapeTrack.prototype =
 
         var dKoefX = wDst / this.CurrentPageInfo.width_mm;
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
+
+        if (overlayNotes)
+        {
+            dKoefX = g_dKoef_mm_to_pix;
+			dKoefY = g_dKoef_mm_to_pix;
+
+			overlay = overlayNotes;
+
+			var offsets = overlayNotes.getNotesOffsets();
+			xDst = offsets.X;
+			yDst = offsets.Y;
+        }
 
         var bIsIdentMatr = true;
         if (matrix !== undefined && matrix != null)

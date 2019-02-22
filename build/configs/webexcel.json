@@ -98,6 +98,8 @@
 		
 		"../common/easysax.js",
 		"../common/openxml.js",
+		
+		"../common/intervalTree.js",
 
         "../cell/document/empty-workbook.js",
         "../cell/model/UndoRedo.js",
@@ -105,7 +107,6 @@
         "../cell/model/autofilters.js",
         "../cell/graphics/DrawingContext.js",
         "../cell/graphics/pdfprinter.js",
-        "../cell/model/ConditionalFormatting.js",
         "../cell/model/FormulaObjects/parserFormula.js",
         "../cell/model/FormulaObjects/_xlfnFunctions.js",
         "../cell/model/FormulaObjects/dateandtimeFunctions.js",
@@ -123,6 +124,7 @@
         "../cell/model/WorkbookElems.js",
 		"../cell/model/Workbook.js",
 		"../cell/model/Serialize.js",
+		"../cell/model/ConditionalFormatting.js",
 		"../cell/model/CellInfo.js",
         "../cell/view/mobileTouch.js",
         "../cell/view/StringRender.js",
@@ -163,6 +165,7 @@
         "../word/Editor/Field.js",
         "../word/Editor/FieldChanges.js",
         "../word/Editor/Run.js",
+		"../word/Editor/PresentationField.js",
         "../word/Editor/RunChanges.js",
         "../word/Editor/Math.js",
         "../word/Editor/MathChanges.js",

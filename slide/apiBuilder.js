@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2018
+ * (c) Copyright Ascensio System SIA 2010-2019
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,8 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at Lubanas st. 125a-25, Riga, Latvia,
- * EU, LV-1021.
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
@@ -395,6 +395,15 @@
         return this.private_CreateApiParagraph(new Paragraph(oDrawingDocument, null, true));
     };
 
+    /**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CPE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
+	};
+
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -469,8 +478,8 @@
      * Set the size for the current presentation.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
-     /* {EMU} nWidth - The presentation width in English measure units.
-     /* {EMU} nHeight - The presentation height in English measure units.
+     * @param {EMU} nWidth - The presentation width in English measure units.
+     * @param {EMU} nHeight - The presentation height in English measure units.
      */
     ApiPresentation.prototype.SetSizes = function(nWidth, nHeight) {
         if(this.Presentation){
@@ -1539,6 +1548,7 @@
     Api.prototype["CreateGroup"]                     = Api.prototype.CreateGroup;
     Api.prototype["CreateTable"]                     = Api.prototype.CreateTable;
     Api.prototype["CreateParagraph"]                 = Api.prototype.CreateParagraph;
+    Api.prototype["Save"]                            = Api.prototype.Save;
 
     ApiPresentation.prototype["GetClassType"]          = ApiPresentation.prototype.GetClassType;
     ApiPresentation.prototype["GetCurSlideIndex"]      = ApiPresentation.prototype.GetCurSlideIndex;
