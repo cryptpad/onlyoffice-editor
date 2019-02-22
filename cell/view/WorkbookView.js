@@ -2663,35 +2663,26 @@
   };
 
   WorkbookView.prototype._setHintsProps = function(bIsHinting, bIsSubpixHinting) {
-    var manager, hintProps;
+    var manager;
     for (var i = 0, length = this.fmgrGraphics.length; i < length; ++i) {
       manager = this.fmgrGraphics[i];
-      hintProps = manager.m_oLibrary.tt_hint_props;
-      if (!hintProps) {
-        continue;
-      }
-
       // Последний без хинтования (только для измерения)
       if (i === length - 1) {
         bIsHinting = bIsSubpixHinting = false;
       }
 
       if (bIsHinting && bIsSubpixHinting) {
-        hintProps.TT_USE_BYTECODE_INTERPRETER = true;
-        hintProps.TT_CONFIG_OPTION_SUBPIXEL_HINTING = true;
-
-        manager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
+          manager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
+          manager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_40;
       } else if (bIsHinting) {
-        hintProps.TT_USE_BYTECODE_INTERPRETER = true;
-        hintProps.TT_CONFIG_OPTION_SUBPIXEL_HINTING = false;
-
-        manager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
+          manager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
+          manager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
       } else {
-        hintProps.TT_USE_BYTECODE_INTERPRETER = true;
-        hintProps.TT_CONFIG_OPTION_SUBPIXEL_HINTING = false;
-
-        manager.LOAD_MODE = AscFonts.LOAD_MODE_DEFAULT;
+          manager.LOAD_MODE = AscFonts.LOAD_MODE_DEFAULT;
+          manager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
       }
+      if (manager.m_oLibrary)
+        AscFonts.FT_Set_TrueType_HintProp(manager.m_oLibrary, manager.REND_MODE_SUBPIX);
 
       manager.ClearFontsRasterCache();
     }

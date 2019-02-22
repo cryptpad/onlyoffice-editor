@@ -1615,7 +1615,7 @@
 
                     // TODO:
                     // https://www.microsoft.com/typography/otspec/recom.htm - hhea, not typo!!!
-                    if (font.m_lLineHeight < (_winAscent - _winDescent))
+                    if (this.m_pFaceInfo.height < (_winAscent - _winDescent))
                     {
                         this.m_lAscender = _winAscent;
                         this.m_lDescender = _winDescent;
