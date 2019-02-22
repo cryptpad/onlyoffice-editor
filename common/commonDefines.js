@@ -2176,6 +2176,13 @@
 	window['AscCommon']['align_Left'] = window['AscCommon'].align_Left = align_Left;
 	window['AscCommon']['align_Center'] = window['AscCommon'].align_Center = align_Center;
 	window['AscCommon']['align_Justify'] = window['AscCommon'].align_Justify = align_Justify;
+
+
+	window["AscCommon"]["c_oAscFormatPainterState"]    = c_oAscFormatPainterState;
+	c_oAscFormatPainterState["kOff"] = c_oAscFormatPainterState.kOff;
+	c_oAscFormatPainterState["kOn"] = c_oAscFormatPainterState.kOn;
+	c_oAscFormatPainterState["kMultiple"] = c_oAscFormatPainterState.kMultiple;
+
 	
 	window['Asc']['c_oSpecialPasteProps'] = window['Asc'].c_oSpecialPasteProps = c_oSpecialPasteProps;
 	prot = c_oSpecialPasteProps;
