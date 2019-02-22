@@ -2719,8 +2719,11 @@
 			else if (Asc.c_oAscSelectionDialogType.FormatTable === dialogType)
 			{
 				// ToDo убрать эту проверку, заменить на более грамотную после правки функции _searchFilters
-				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(range))
+				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(range)) {
 					return Asc.c_oAscError.ID.AutoFilterDataRangeError;
+				} else if (wb.getWorksheet().intersectionFormulaArray(range, true, true)) {
+					return Asc.c_oAscError.ID.MultiCellsInTablesFormulaArray;
+				}
 			}
 			else if (Asc.c_oAscSelectionDialogType.FormatTableChangeRange === dialogType)
 			{
