@@ -1359,7 +1359,7 @@ DrawingObjectsController.prototype =
 
     resetInternalSelection: function(noResetContentSelect)
     {
-        var oApi = this.getEditorApi();
+        var oApi = this.getEditorApi && this.getEditorApi();
         if(oApi && oApi.hideVideoControl)
         {
             oApi.hideVideoControl();
@@ -1399,7 +1399,7 @@ DrawingObjectsController.prototype =
         }
         if(this.selection.cropSelection)
         {
-            this.endImageCrop();
+            this.endImageCrop && this.endImageCrop();
         }
     },
 
