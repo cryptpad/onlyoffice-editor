@@ -2473,6 +2473,7 @@
 	window['AscDFH'].historyitem_ImageShapeSetApplicationId = window['AscDFH'].historyitem_type_ImageShape | 8;
 	window['AscDFH'].historyitem_ImageShapeSetPixSizes      = window['AscDFH'].historyitem_type_ImageShape | 9;
 	window['AscDFH'].historyitem_ImageShapeSetObjectFile	= window['AscDFH'].historyitem_type_ImageShape | 10;
+	window['AscDFH'].historyitem_ImageShapeSetOleType   	= window['AscDFH'].historyitem_type_ImageShape | 11;
 
 	window['AscDFH'].historyitem_GeometrySetParent      = window['AscDFH'].historyitem_type_Geometry | 1;
 	window['AscDFH'].historyitem_GeometryAddAdj         = window['AscDFH'].historyitem_type_Geometry | 2;

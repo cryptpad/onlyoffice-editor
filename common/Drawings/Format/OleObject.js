@@ -57,6 +57,7 @@ function (window, undefined) {
         AscDFH.changesFactory[AscDFH.historyitem_ImageShapeSetApplicationId] = AscDFH.CChangesDrawingsString;
         AscDFH.changesFactory[AscDFH.historyitem_ImageShapeSetPixSizes] = AscDFH.CChangesDrawingsObjectNoId;
 		AscDFH.changesFactory[AscDFH.historyitem_ImageShapeSetObjectFile] = AscDFH.CChangesDrawingsString;
+		AscDFH.changesFactory[AscDFH.historyitem_ImageShapeSetOleType] = AscDFH.CChangesDrawingsLong;
 
 
         AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetData] = function(oClass, value){oClass.m_sData = value;};
@@ -69,6 +70,7 @@ function (window, undefined) {
         };
         AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ImageShapeSetPixSizes] = COleSize;
 		AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetObjectFile] = function(oClass, value){oClass.m_sObjectFile = value;};
+		AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetOleType] = function(oClass, value){oClass.m_nOleType = value;};
 
     function COleObject()
     {
@@ -80,6 +82,8 @@ function (window, undefined) {
         this.m_fDefaultSizeX = null;
         this.m_fDefaultSizeY = null;
         this.m_sObjectFile = null;//ole object name in OOX
+        this.m_nOleType = null;
+        this.m_aBinaryData = null;
     }
 
 		COleObject.prototype = Object.create(AscFormat.CImageShape.prototype);
@@ -109,6 +113,11 @@ function (window, undefined) {
     {
         AscCommon.History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ImageShapeSetObjectFile, this.m_sObjectFile, sObjectFile));
         this.m_sObjectFile = sObjectFile;
+    };
+    COleObject.prototype.setOleType = function(nOleType)
+    {
+        AscCommon.History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ImageShapeSetOleType, this.m_nOleType, nOleType));
+        this.m_nOleType = nOleType;
     };
 
     COleObject.prototype.canRotate = function () {
