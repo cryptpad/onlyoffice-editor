@@ -895,7 +895,7 @@ function handleInlineHitNoText(drawing, drawingObjects, e, x, y, pageIndex, bInS
                 }
                 else if(drawing.getObjectType() === AscDFH.historyitem_type_ImageShape)
                 {
-                    var sMediaFile = object.getMediaFileName();
+                    var sMediaFile = drawing.getMediaFileName();
                     if(typeof sMediaFile === "string" && drawingObjects.handleMediaObject)
                     {
                         drawingObjects.handleMediaObject(sMediaFile, e, x, y, pageIndex);
