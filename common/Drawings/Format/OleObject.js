@@ -60,6 +60,36 @@ function (window, undefined) {
 		AscDFH.changesFactory[AscDFH.historyitem_ImageShapeSetOleType] = AscDFH.CChangesDrawingsLong;
 
 
+		function CChangesOleObjectBinary(Class, Old, New, Color){
+            AscDFH.CChangesBaseProperty.call(this, Class, Old, New, Color);
+        }
+
+        CChangesOleObjectBinary.prototype = Object.create(AscDFH.CChangesBaseProperty.prototype);
+        CChangesOleObjectBinary.prototype.Type = AscDFH.historyitem_ImageShapeSetBinaryData;
+        CChangesOleObjectBinary.prototype.private_SetValue = function(Value)
+        {
+            this.Class.m_aBinaryData = Value;
+        };
+
+        CChangesOleObjectBinary.prototype.WriteToBinary = function(Writer)
+        {
+            Writer.WriteBool(this.New !== null);
+            if(this.New !== null)
+            {
+                Writer.WriteLong(this.New.length);
+                Writer.WriteBuffer(this.New, 0, this.New.length);
+            }
+        };
+        CChangesOleObjectBinary.prototype.ReadFromBinary = function(Reader)
+        {
+            if(Reader.GetBool())
+            {
+                var length = Reader.GetLong();
+                this.New = Reader.GetBuffer(length);
+            }
+        };
+        AscDFH.changesFactory[AscDFH.historyitem_ImageShapeSetBinaryData] = CChangesOleObjectBinary;
+
         AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetData] = function(oClass, value){oClass.m_sData = value;};
         AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetApplicationId] = function(oClass, value){oClass.m_sApplicationId = value;};
         AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetPixSizes] = function(oClass, value){
@@ -116,8 +146,13 @@ function (window, undefined) {
     };
     COleObject.prototype.setOleType = function(nOleType)
     {
-        AscCommon.History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ImageShapeSetOleType, this.m_nOleType, nOleType));
+        AscCommon.History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_ImageShapeSetOleType, this.m_nOleType, nOleType));
         this.m_nOleType = nOleType;
+    };
+    COleObject.prototype.setBinaryData = function(aBinaryData)
+    {
+        AscCommon.History.Add(new CChangesOleObjectBinary(this, this.m_aBinaryData, aBinaryData, false));
+        this.m_aBinaryData = aBinaryData;
     };
 
     COleObject.prototype.canRotate = function () {
@@ -153,6 +188,11 @@ function (window, undefined) {
         copy.setApplicationId(this.m_sApplicationId);
         copy.setPixSizes(this.m_nPixWidth, this.m_nPixHeight);
         copy.setObjectFile(this.m_sObjectFile);
+        copy.setOleType(this.m_nOleType);
+        if(this.m_aBinaryData !== null)
+        {
+            copy.setBinaryData(this.m_aBinaryData.slice(0, this.m_aBinaryData.length));
+        }
         copy.cachedImage = this.getBase64Img();
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;

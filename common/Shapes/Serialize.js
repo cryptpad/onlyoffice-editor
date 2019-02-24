@@ -4745,7 +4745,7 @@ function BinaryPPTYLoader()
                         {
                             ole.setObjectFile("maskFile.docx");
                             binary_length = s.GetULong();
-                            ole.m_aBinaryData = (s.data.slice(s.cur, s.cur + binary_length));
+                            ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
                             s.Seek2(s.cur + binary_length);
                             break;
                         }
@@ -4753,7 +4753,7 @@ function BinaryPPTYLoader()
                         {
                             ole.setObjectFile("maskFile.xlsx");
                             binary_length = s.GetULong();
-                            ole.m_aBinaryData = (s.data.slice(s.cur, s.cur + binary_length));
+                            ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
                             s.Seek2(s.cur + binary_length);
                             break;
                         }
@@ -10196,7 +10196,7 @@ function CPres()
                             {
                                 ole.setObjectFile("maskFile.docx");
                                 binary_length = s.GetULong();
-                                ole.m_aBinaryData = (s.data.slice(s.cur, s.cur + binary_length));
+                                ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
                                 s.Seek2(s.cur + binary_length);
                                 break;
                             }
@@ -10204,7 +10204,7 @@ function CPres()
                             {
                                 ole.setObjectFile("maskFile.xlsx");
                                 binary_length = s.GetULong();
-                                ole.m_aBinaryData = (s.data.slice(s.cur, s.cur + binary_length));
+                                ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
                                 s.Seek2(s.cur + binary_length);
                                 break;
                             }
