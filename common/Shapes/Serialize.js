@@ -4738,12 +4738,13 @@ function BinaryPPTYLoader()
                 case 2:
                 {
 
+                    var binary_length;
                     switch(oleType)
                     {
                         case 1:
                         {
                             ole.setObjectFile("maskFile.docx");
-                            var binary_length = s.GetULong();
+                            binary_length = s.GetULong();
                             ole.m_aBinaryData = (s.data.slice(s.cur, s.cur + binary_length));
                             s.Seek2(s.cur + binary_length);
                             break;
@@ -4751,7 +4752,7 @@ function BinaryPPTYLoader()
                         case 2:
                         {
                             ole.setObjectFile("maskFile.xlsx");
-                            var binary_length = s.GetULong();
+                            binary_length = s.GetULong();
                             ole.m_aBinaryData = (s.data.slice(s.cur, s.cur + binary_length));
                             s.Seek2(s.cur + binary_length);
                             break;
