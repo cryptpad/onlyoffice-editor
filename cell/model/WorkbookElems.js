@@ -1264,7 +1264,7 @@ var g_oFontProperties = {
 		return c_oAscPatternType.None !== this.patternType;
 	};
 	PatternFill.prototype.fixForDxf = function () {
-		if (c_oAscPatternType.None === this.patternType && null !== this.bgColor) {
+		if ((c_oAscPatternType.None === this.patternType || c_oAscPatternType.Solid === this.patternType) && null !== this.bgColor) {
 			this.patternType = c_oAscPatternType.Solid;
 			var tmp = this.fgColor;
 			this.fgColor = this.bgColor;

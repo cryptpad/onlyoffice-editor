@@ -1991,27 +1991,30 @@
 				this.bs.WriteItem(c_oSerStylesTypes.Fill, function() {oThis.WriteFill(elems[i]);});
             }
         };
-        this.WriteFill = function(fill)
+        this.WriteFill = function(fill, fixDxf)
         {
             var oThis = this;
             if (fill.patternFill) {
-                this.bs.WriteItem(c_oSerFillTypes.Pattern, function(){oThis.WritePatternFill(fill.patternFill);});
+                this.bs.WriteItem(c_oSerFillTypes.Pattern, function(){oThis.WritePatternFill(fill.patternFill, fixDxf);});
             }
             if (fill.gradientFill) {
                 this.bs.WriteItem(c_oSerFillTypes.Gradient, function(){oThis.WriteGradientFill(fill.gradientFill);});
             }
         };
-        this.WritePatternFill = function(patternFill)
+        this.WritePatternFill = function(patternFill, fixDxf)
         {
             var oThis = this;
+            fixDxf = fixDxf && (AscCommonExcel.c_oAscPatternType.None === patternFill.patternType || AscCommonExcel.c_oAscPatternType.Solid === patternFill.patternType);
+            var fgColor = fixDxf ? patternFill.bgColor : patternFill.fgColor;
+            var bgColor = fixDxf ? patternFill.fgColor : patternFill.bgColor;
             if (null != patternFill.patternType) {
                 this.bs.WriteItem(c_oSerFillTypes.PatternType, function(){oThis.memory.WriteByte(patternFill.patternType);});
             }
-            if (null != patternFill.fgColor) {
-                this.bs.WriteItem(c_oSerFillTypes.PatternFgColor, function(){oThis.bs.WriteColorSpreadsheet(patternFill.fgColor);});
+            if (null != fgColor) {
+                this.bs.WriteItem(c_oSerFillTypes.PatternFgColor, function(){oThis.bs.WriteColorSpreadsheet(fgColor);});
             }
-            if (null != patternFill.bgColor) {
-                this.bs.WriteItem(c_oSerFillTypes.PatternBgColor, function(){oThis.bs.WriteColorSpreadsheet(patternFill.bgColor);});
+            if (null != bgColor) {
+                this.bs.WriteItem(c_oSerFillTypes.PatternBgColor, function(){oThis.bs.WriteColorSpreadsheet(bgColor);});
             }
         };
         this.WriteGradientFill = function(gradientFill)
@@ -2315,7 +2318,7 @@
             if(null != Dxf.border)
                 this.bs.WriteItem(c_oSer_Dxf.Border, function(){oThis.WriteBorder(Dxf.border);});
             if(null != Dxf.fill)
-                this.bs.WriteItem(c_oSer_Dxf.Fill, function(){oThis.WriteFill(Dxf.fill);});
+                this.bs.WriteItem(c_oSer_Dxf.Fill, function(){oThis.WriteFill(Dxf.fill, true);});
             if(null != Dxf.font)
                 this.bs.WriteItem(c_oSer_Dxf.Font, function(){oThis.WriteFont(Dxf.font);});
 			if(null != Dxf.num)
