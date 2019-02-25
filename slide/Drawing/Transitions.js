@@ -3504,9 +3504,37 @@ function CDemonstrationManager(htmlpage)
         return false;
     }
 
+    this.documentMouseInfo = function(e)
+    {
+        var transition = oThis.Transition;
+        if ((oThis.SlideNum >= 0 && oThis.SlideNum < oThis.SlidesCount) && (!transition || !transition.IsPlaying()))
+        {
+            AscCommon.check_MouseDownEvent(e, false);
+
+            var _w = transition.Rect.w;
+            var _h = transition.Rect.h;
+            var _w_mm = oThis.HtmlPage.m_oLogicDocument.Width;
+            var _h_mm = oThis.HtmlPage.m_oLogicDocument.Height;
+
+            var _x = global_mouseEvent.X - transition.Rect.x;
+            var _y = global_mouseEvent.Y - transition.Rect.y;
+
+            _x = _x * _w_mm / _w;
+            _y = _y * _h_mm / _h;
+
+            return { x : _x, y : _y, page : oThis.SlideNum };
+        }
+        return null;
+    }
+
     this.onMouseDown = function(e)
     {
-		oThis.isMouseDown = true;
+        oThis.isMouseDown = true;
+
+        var documentMI = oThis.documentMouseInfo(e);
+        if (documentMI)
+            oThis.HtmlPage.m_oLogicDocument.OnMouseDown(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
+
         e.preventDefault();
         return false;
     }
@@ -3527,7 +3555,12 @@ function CDemonstrationManager(htmlpage)
     this.onMouseMove = function(e)
     {
         if (!oThis.HtmlPage.m_oApi.isReporterMode)
+        {
+            var documentMI = oThis.documentMouseInfo(e);
+            if (documentMI)
+                oThis.HtmlPage.m_oLogicDocument.OnMouseMove(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
             return;
+        }
 		if (!oThis.HtmlPage.reporterPointer)
 			return;
 
@@ -3592,6 +3625,14 @@ function CDemonstrationManager(htmlpage)
 			AscCommon.stopEvent(e);
 			return false;
 		}
+
+        var documentMI = oThis.documentMouseInfo(e);
+        if (documentMI)
+        {
+            var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
+            if (ret == keydownresult_PreventDefault)
+                return;
+        }
 
         // next slide
         oThis.CorrectSlideNum();
