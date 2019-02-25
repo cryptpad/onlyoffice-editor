@@ -2733,9 +2733,6 @@ StyleManager.prototype =
 		if (!oDefaultXfs.font) {
 			oDefaultXfs.font = new AscCommonExcel.Font();
 		}
-		if (!oDefaultXfs.font.scheme) {
-			oDefaultXfs.font.scheme = Asc.EFontScheme.fontschemeMinor;
-		}
 		if (!oDefaultXfs.font.fn) {
 			var sThemeFont = null;
 			if (null != wb.theme.themeElements && null != wb.theme.themeElements.fontScheme) {
