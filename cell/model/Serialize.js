@@ -7208,8 +7208,14 @@
                 oFormula.si = this.stream.GetULongLE();
             else if ( c_oSerFormulaTypes.T === type )
                 oFormula.t = this.stream.GetUChar();
-            else if ( c_oSerFormulaTypes.Text === type )
+            else if ( c_oSerFormulaTypes.Text === type ) {
                 oFormula.v = this.stream.GetString2LE(length);
+                if (0 === oFormula.v.indexOf("_xludf.")) {
+                    //при открытии подобных формул ms удаляет префикс
+                    //TODO так же он проставляет флаг ca - рассмотреть стоит ли его нам доблавлять
+                    oFormula.v = oFormula.v.replace("_xludf.", "");
+                }
+            }
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
