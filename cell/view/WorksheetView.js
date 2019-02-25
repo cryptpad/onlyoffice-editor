@@ -12289,7 +12289,7 @@
 
 		//***array-formula***
 		var changeRangesIfArrayFormula = function() {
-			if(flags.bApplyByArray) {
+			if(flags && flags.bApplyByArray) {
 				c = t.getSelectedRange();
 				if(c.bbox.isOneCell()) {
 					//проверяем, есть ли формула массива в этой ячейке
