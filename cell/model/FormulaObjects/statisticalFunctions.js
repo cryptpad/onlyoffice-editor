@@ -63,7 +63,7 @@ function (window, undefined) {
 
 	cFormulaFunctionGroup['Statistical'] = cFormulaFunctionGroup['Statistical'] || [];
 	cFormulaFunctionGroup['Statistical'].push(cAVEDEV, cAVERAGE, cAVERAGEA, cAVERAGEIF, cAVERAGEIFS, cBETADIST,
-		cBETA_DIST, cBETA_INV, cBINOMDIST, cBINOM_DIST, cBINOM_DIST_RANGE, cBINOM_INV, cCHIDIST, cCHIINV, cCHISQ_DIST,
+		cBETA_DIST, cBETA_INV, cBETAINV, cBINOMDIST, cBINOM_DIST, cBINOM_DIST_RANGE, cBINOM_INV, cCHIDIST, cCHIINV, cCHISQ_DIST,
 		cCHISQ_DIST_RT, cCHISQ_INV, cCHISQ_INV_RT, cCHITEST, cCHISQ_TEST, cCONFIDENCE, cCONFIDENCE_NORM, cCONFIDENCE_T,
 		cCORREL, cCOUNT, cCOUNTA, cCOUNTBLANK, cCOUNTIF, cCOUNTIFS, cCOVAR, cCOVARIANCE_P, cCOVARIANCE_S, cCRITBINOM,
 		cDEVSQ, cEXPON_DIST, cEXPONDIST, cF_DIST, cFDIST, cF_DIST_RT, cF_INV, cFINV, cF_INV_RT, cFISHER, cFISHERINV,
@@ -4227,6 +4227,17 @@ function (window, undefined) {
 
 		return this._findArrayInNumberArguments(oArguments, calcGamma);
 	};
+
+	/**
+	 * @constructor
+	 * @extends {cBETA_INV}
+	 */
+	function cBETAINV() {
+	}
+
+	cBETAINV.prototype = Object.create(cBETA_INV.prototype);
+	cBETAINV.prototype.constructor = cBETAINV;
+	cBETAINV.prototype.name = 'BETAINV';
 
 	/**
 	 * @constructor
