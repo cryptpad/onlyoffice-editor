@@ -11490,6 +11490,17 @@
 					nColDx = 1;
 				}
 			}
+			var addedFormulasArray = [];
+			var isAddFormulaArray = function(arrayRef) {
+				var res = false;
+				for(var n = 0; n < addedFormulasArray.length; n++) {
+					if(addedFormulasArray[n].isEqual(arrayRef)) {
+						res = true;
+						break;
+					}
+				}
+				return res;
+			};
 			for(var i = nStartRow; i <= nEndRow; i ++)
 			{
 				oPromoteHelper.setIndex(i - nStartRow);
@@ -11545,19 +11556,19 @@
 											var intersectionFrom = from.intersection(formulaArrayRef);
 											if(intersectionFrom) {
 												if((intersectionFrom.c1 === oFromCell.nCol && intersectionFrom.r1 === oFromCell.nRow) || (intersectionFrom.c2 === oFromCell.nCol && intersectionFrom.r2 === oFromCell.nRow)) {
-													_p_ = oFromCell.getFormulaParsed().clone(null, oFromCell, this);
-
-													offset = oCopyCell.getOffset3(formulaArrayRef.c1 + 1, formulaArrayRef.r1 + 1);
-													_p_.changeOffset(offset);
 
 													offsetArray = oCopyCell.getOffset2(oFromCell.getName());
 													intersectionFrom.setOffset(offsetArray);
 
 													var intersectionTo = intersectionFrom.intersection(to);
+													if(intersectionTo && !isAddFormulaArray(intersectionTo)) {
+														addedFormulasArray.push(intersectionTo);
+														//offset = oCopyCell.getOffset3(formulaArrayRef.c1 + 1, formulaArrayRef.r1 + 1);
+														offset = new AscCommon.CellBase(intersectionTo.r1 - formulaArrayRef.r1, intersectionTo.c1 - formulaArrayRef.c1);
+														_p_ = oFromCell.getFormulaParsed().clone(null, oFromCell, this);
+														_p_.changeOffset(offset);
 
-													if(intersectionTo) {
 														var rangeFormulaArray = oCopyCell.ws.getRange3(intersectionTo.r1, intersectionTo.c1, intersectionTo.r2, intersectionTo.c2);
-
 														rangeFormulaArray.setValue("=" + _p_.assemble(true), function (r) {}, null, intersectionTo);
 
 														History.Add(AscCommonExcel.g_oUndoRedoArrayFormula,
