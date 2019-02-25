@@ -1510,6 +1510,13 @@ DrawingObjectsController.prototype =
         {
             b_is_inline = object.parent && object.parent.Is_Inline && object.parent.Is_Inline();
         }
+        if(this.selection.cropSelection)
+        {
+            if(this.selection.cropSelection === object || this.selection.cropSelection.cropObject === object)
+            {
+                b_is_inline = false;
+            }
+        }
         var b_is_selected_inline = this.selectedObjects.length === 1 && (this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline && this.selectedObjects[0].parent.Is_Inline());
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
