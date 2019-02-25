@@ -504,6 +504,16 @@
 					} else if (argArr[j] instanceof cString || emptyArg || argArr[j] instanceof cBool) {
 						argResult = new cBool(true);
 						nTrueValues++;
+					} else if(argArr.length === 1 && argArr[j] instanceof cNumber) {
+						if (argResult == null) {
+							argResult = argArr[j].tocBool();
+						} else {
+							argResult = new cBool(argArr[j].tocBool().value);
+						}
+
+						if (argResult.value === true) {
+							nTrueValues++;
+						}
 					}
 					if(!emptyArg) {
 						allCellsEmpty = false;
