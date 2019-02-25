@@ -4323,6 +4323,7 @@ function OfflineEditor () {
         _null_object.height = height * ratio;
         
         var worksheet = _api.wb.getWorksheet();
+        worksheet._recalculate();
         var region = this._updateRegion(worksheet, x, y, width * ratio, height * ratio);
         var colRowHeaders = _api.asc_getSheetViewSettings();
         
