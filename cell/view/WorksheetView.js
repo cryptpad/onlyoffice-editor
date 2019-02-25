@@ -13191,7 +13191,7 @@
                                 //TODO просмотерть ситуации без заливки
                                 var color = cell.getStyle();
                                 var cellColor = null !== color && color.fill && color.fill.bg ? color.fill.bg : null;
-                                filter.filter.dxf.fill.fromColor(null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.rgb) : null);
+                                filter.filter.dxf.fill.fromColor(null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.getRgb()) : null);
                             }
                         }
                     });
@@ -14120,7 +14120,10 @@
         };
 
         var addFontColorsToArray = function (fontColor) {
-            var rgb = null === fontColor || fontColor && 0 === fontColor.rgb ? null : fontColor.rgb;
+            var rgb = fontColor && null !== fontColor  ? fontColor.getRgb() : null;
+            if(rgb === 0) {
+                rgb = null;
+            }
             var isDefaultFontColor = !!(null === rgb);
 
             if (true !== alreadyAddFontColors[rgb]) {
@@ -14136,7 +14139,7 @@
         };
 
         var addCellColorsToArray = function (color) {
-            var rgb = null !== color && color.fill && color.fill.bg ? color.fill.bg.rgb : null;
+            var rgb = null !== color && color.fill && color.fill.bg ? color.fill.bg.getRgb() : null;
             var isDefaultCellColor = !!(null === rgb);
 
             if (true !== alreadyAddColors[rgb]) {
