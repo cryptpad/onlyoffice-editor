@@ -2410,7 +2410,14 @@ CDocumentContent.prototype.AddNewParagraph = function()
 // Y0 - низ последнего параграфа, YLimit - предел страницы
 CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
 {
-    var LastPara  = this.Content[this.Content.length - 1];
+	if (this.IsBlockLevelSdtContent())
+	{
+		var oParent = this.Parent.GetParent();
+		if (oParent)
+			return oParent.Extend_ToPos(X, Y);
+	}
+
+    var LastPara  = this.GetLastParagraph();
     var LastPara2 = LastPara;
 
     History.Create_NewPoint(AscDFH.historydescription_Document_DocumentContentExtendToPos);

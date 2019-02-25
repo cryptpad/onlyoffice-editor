@@ -4211,7 +4211,7 @@ CDocument.prototype.AddNewParagraph = function(bRecalculate, bForceAdd)
  */
 CDocument.prototype.Extend_ToPos = function(X, Y)
 {
-    var LastPara  = this.Content[this.Content.length - 1];
+    var LastPara  = this.GetLastParagraph();
     var LastPara2 = LastPara;
 
     this.Create_NewHistoryPoint(AscDFH.historydescription_Document_DocumentExtendToPos);
