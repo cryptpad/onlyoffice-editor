@@ -5894,69 +5894,85 @@ ParaRun.prototype.Get_ParaContentPosByXY = function(SearchPos, Depth, _CurLine, 
     var CurPos = StartPos;
     var InMathText = this.Type == para_Math_Run ? SearchPos.InText == true : false;
 
+    if (CurPos >= EndPos)
+	{
+		// Заглушка, чтобы мы тыкая вправо попадали в самый правый пустой ран
 
-    for (; CurPos < EndPos; CurPos++ )
-    {
-        var Item = this.private_CheckInstrText(this.Content[CurPos]);
-        var ItemType = Item.Type;
+		// Проверяем, попали ли мы в данный элемент
+		var Diff = SearchPos.X - SearchPos.CurX;
 
-        var TempDx = 0;
-
-        if (para_Drawing != ItemType || true === Item.Is_Inline())
-        {
-            TempDx = Item.Get_WidthVisible();
-        }
-
-        if(this.Type == para_Math_Run)
-        {
-            var PosLine = this.ParaMath.GetLinePosition(_CurLine, _CurRange);
-            var loc = this.Content[CurPos].GetLocationOfLetter();
-            SearchPos.CurX = PosLine.x + loc.x; // позиция формулы в строке + смещение буквы в контенте
-        }
-
-        // Проверяем, попали ли мы в данный элемент
-        var Diff = SearchPos.X - SearchPos.CurX;
-
-
-        if (((Diff <= 0 && Math.abs(Diff) < SearchPos.DiffX - 0.001) || (Diff > 0 && Diff < SearchPos.DiffX + 0.001)) && (SearchPos.CenterMode || SearchPos.X > SearchPos.CurX) && InMathText == false)
-        {
+		if (((Diff <= 0 && Math.abs(Diff) < SearchPos.DiffX - 0.001) || (Diff > 0 && Diff < SearchPos.DiffX + 0.001)) && (SearchPos.CenterMode || SearchPos.X > SearchPos.CurX) && InMathText == false)
+		{
 			SearchPos.DiffX = Math.abs(Diff);
 			SearchPos.Pos.Update(CurPos, Depth);
 			Result = true;
+		}
+	}
+	else
+	{
+		for (; CurPos < EndPos; CurPos++)
+		{
+			var Item     = this.private_CheckInstrText(this.Content[CurPos]);
+			var ItemType = Item.Type;
 
-            if ( Diff >= - 0.001 && Diff <= TempDx + 0.001 )
-            {
-                SearchPos.InTextPos.Update( CurPos, Depth );
-                SearchPos.InText = true;
-            }
-        }
+			var TempDx = 0;
 
-        SearchPos.CurX += TempDx;
+			if (para_Drawing != ItemType || true === Item.Is_Inline())
+			{
+				TempDx = Item.Get_WidthVisible();
+			}
 
-        // Заглушка для знака параграфа и конца строки
-        Diff = SearchPos.X - SearchPos.CurX;
-        if ((Math.abs( Diff ) < SearchPos.DiffX + 0.001 && (SearchPos.CenterMode || SearchPos.X > SearchPos.CurX)) && InMathText == false)
-        {
-            if ( para_End === ItemType )
-            {
-                SearchPos.End = true;
+			if (this.Type == para_Math_Run)
+			{
+				var PosLine    = this.ParaMath.GetLinePosition(_CurLine, _CurRange);
+				var loc        = this.Content[CurPos].GetLocationOfLetter();
+				SearchPos.CurX = PosLine.x + loc.x; // позиция формулы в строке + смещение буквы в контенте
+			}
 
-                // Если мы ищем позицию для селекта, тогда нужно искать и за знаком параграфа
-                if ( true === StepEnd )
-                {
-					SearchPos.DiffX = Math.abs(Diff);
-                    SearchPos.Pos.Update( this.Content.length, Depth );
-                    Result = true;
-                }
-            }
-            else if ( CurPos === EndPos - 1 && para_NewLine != ItemType )
-            {
+			// Проверяем, попали ли мы в данный элемент
+			var Diff = SearchPos.X - SearchPos.CurX;
+
+
+			if (((Diff <= 0 && Math.abs(Diff) < SearchPos.DiffX - 0.001) || (Diff > 0 && Diff < SearchPos.DiffX + 0.001)) && (SearchPos.CenterMode || SearchPos.X > SearchPos.CurX) && InMathText == false)
+			{
 				SearchPos.DiffX = Math.abs(Diff);
-                SearchPos.Pos.Update( EndPos, Depth );
-                Result = true;
-            }
-        }
-    }
+				SearchPos.Pos.Update(CurPos, Depth);
+				Result = true;
+
+				if (Diff >= -0.001 && Diff <= TempDx + 0.001)
+				{
+					SearchPos.InTextPos.Update(CurPos, Depth);
+					SearchPos.InText = true;
+				}
+			}
+
+			SearchPos.CurX += TempDx;
+
+			// Заглушка для знака параграфа и конца строки
+			Diff = SearchPos.X - SearchPos.CurX;
+			if ((Math.abs(Diff) < SearchPos.DiffX + 0.001 && (SearchPos.CenterMode || SearchPos.X > SearchPos.CurX)) && InMathText == false)
+			{
+				if (para_End === ItemType)
+				{
+					SearchPos.End = true;
+
+					// Если мы ищем позицию для селекта, тогда нужно искать и за знаком параграфа
+					if (true === StepEnd)
+					{
+						SearchPos.DiffX = Math.abs(Diff);
+						SearchPos.Pos.Update(this.Content.length, Depth);
+						Result = true;
+					}
+				}
+				else if (CurPos === EndPos - 1 && para_NewLine != ItemType)
+				{
+					SearchPos.DiffX = Math.abs(Diff);
+					SearchPos.Pos.Update(EndPos, Depth);
+					Result = true;
+				}
+			}
+		}
+	}
 
     // Такое возможно, если все раны до этого (в том числе и этот) были пустыми, тогда, чтобы не возвращать
     // неправильную позицию вернем позицию начала данного путого рана.
