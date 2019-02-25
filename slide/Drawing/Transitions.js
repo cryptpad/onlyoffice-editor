@@ -2966,6 +2966,11 @@ function CDemonstrationManager(htmlpage)
 
     this.StartSlide = function(is_transition_use, is_first_play)
     {
+        if (oThis.Canvas)
+        {
+            oThis.Canvas.style.cursor = "default";
+        }
+
         oThis.StopTransition();
 
         if (oThis.SlideNum == oThis.SlidesCount)
