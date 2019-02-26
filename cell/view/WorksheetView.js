@@ -13069,7 +13069,7 @@
                     case Asc.ESortBy.sortbyCellColor:
                     {
                         type = Asc.c_oAscSortOptions.ByColorFill;
-                        rgbColor = sortState.SortConditions[0].dxf.fill.bg;
+                        rgbColor = sortState.SortConditions[0].dxf.fill.bg();
                         break;
                     }
                     case Asc.ESortBy.sortbyFontColor:
@@ -13190,7 +13190,7 @@
                             } else {
                                 //TODO просмотерть ситуации без заливки
                                 var color = cell.getStyle();
-                                var cellColor = null !== color && color.fill && color.fill.bg ? color.fill.bg : null;
+                                var cellColor = null !== color && color.fill && color.fill.bg() ? color.fill.bg() : null;
                                 filter.filter.dxf.fill.fromColor(null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.getRgb()) : null);
                             }
                         }
@@ -14042,7 +14042,7 @@
                     case Asc.ESortBy.sortbyCellColor:
                     {
                         sortVal = Asc.c_oAscSortOptions.ByColorFill;
-                        sortColor = SortConditions.dxf && SortConditions.dxf.fill ? SortConditions.dxf.fill.bg : null;
+                        sortColor = SortConditions.dxf && SortConditions.dxf.fill ? SortConditions.dxf.fill.bg() : null;
                         break;
                     }
                     case Asc.ESortBy.sortbyFontColor:
@@ -14139,7 +14139,7 @@
         };
 
         var addCellColorsToArray = function (color) {
-            var rgb = null !== color && color.fill && color.fill.bg ? color.fill.bg.getRgb() : null;
+            var rgb = null !== color && color.fill && color.fill.bg() ? color.fill.bg().getRgb() : null;
             var isDefaultCellColor = !!(null === rgb);
 
             if (true !== alreadyAddColors[rgb]) {
@@ -14147,7 +14147,7 @@
                     res.colors.push(null);
                     alreadyAddColors[null] = true;
                 } else {
-                    var ascColor = getAscColor(color.fill.bg);
+                    var ascColor = getAscColor(color.fill.bg());
                     res.colors.push(ascColor);
                     alreadyAddColors[rgb] = true;
                 }

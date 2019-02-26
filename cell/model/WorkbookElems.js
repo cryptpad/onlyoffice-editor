@@ -1311,17 +1311,15 @@ var g_oFontProperties = {
 		patternFill: 0,
 		gradientFill: 1
 	};
-	Object.defineProperty(Fill.prototype, "bg", {
-		get: function () {
-			var res = null;
-			if (this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) {
-				res = this.patternFill.fgColor || AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0);
-			} else if (this.gradientFill) {
-				res = this.gradientFill.stop.length > 0 ? this.gradientFill.stop[0].color : AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0)
-			}
-			return res;
+	Fill.prototype.bg = function () {
+		var res = null;
+		if (this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) {
+			res = this.patternFill.fgColor || AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0);
+		} else if (this.gradientFill) {
+			res = this.gradientFill.stop.length > 0 ? this.gradientFill.stop[0].color : AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0)
 		}
-	});
+		return res;
+	};
 	Fill.prototype.fixForDxf = function () {
 		if (this.patternFill) {
 			this.patternFill.fixForDxf();
@@ -2698,7 +2696,7 @@ CCellStyle.prototype.getFill = function () {
 	return g_oDefaultFormat.Fill;
 };
 CCellStyle.prototype.getFillColor = function () {
-	return this.getFill().bg;
+	return this.getFill().bg();
 };
 CCellStyle.prototype.getFontColor = function () {
 	if (null != this.xfs && null != this.xfs.font)
@@ -7061,7 +7059,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 	
 	if(this.dxf && this.dxf.fill && cell)
 	{
-		var filterColor = this.dxf.fill.bg;
+		var filterColor = this.dxf.fill.bg();
 		cell.getLeftTopCellNoEmpty(function(cell) {
 			var fontColor;
 			if(false === t.CellColor)//font color
@@ -7094,7 +7092,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 			else
 			{
 				var color = cell ? cell.getStyle() : null;
-				var cellColor =  color !== null && color.fill && color.fill.bg ? color.fill.bg : null;
+				var cellColor =  color !== null && color.fill && color.fill.bg ? color.fill.bg() : null;
 
 				if(isEqualColors(filterColor, cellColor))
 				{
@@ -7116,9 +7114,9 @@ ColorFilter.prototype.asc_getCColor = function ()
 { 
 	var res = null;
 	
-	if(this.dxf && this.dxf.fill && null !== this.dxf.fill.bg && null !== this.dxf.fill.bg.rgb)
+	if(this.dxf && this.dxf.fill && null !== this.dxf.fill.bg() && null !== this.dxf.fill.bg().rgb)
 	{
-		var color = this.dxf.fill.bg;
+		var color = this.dxf.fill.bg();
 		
 		var res = new Asc.asc_CColor();
 		res.asc_putR(color.getR());
@@ -7372,7 +7370,7 @@ SortCondition.prototype.getSortColor = function() {
 
 	if(this.dxf) {
 		if(this.dxf.fill && this.dxf.fill.notEmpty()) {
-			res = this.dxf.fill.bg;
+			res = this.dxf.fill.bg();
 		} else if(this.dxf.font && this.dxf.font.c) {
 			res = this.dxf.font.c;
 		}

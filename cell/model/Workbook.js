@@ -7610,7 +7610,7 @@
 		return g_oDefaultFormat.Font;
 	};
 	Cell.prototype.getFillColor = function () {
-		return this.getFill().bg;
+		return this.getFill().bg();
 	};
 	Cell.prototype.getFill = function () {
 		var xfs = this.getCompiledStyle();
@@ -9755,7 +9755,7 @@
 		return align;
 	};
 	Range.prototype.getFillColor = function () {
-		return this.getFill().bg;
+		return this.getFill().bg();
 	};
 	Range.prototype.getFill = function () {
 		var t = this;
@@ -10717,7 +10717,7 @@
 				if(colorFill)
 				{
 					var styleCell = oCell.getStyle();
-					colorFillCell = styleCell !== null && styleCell.fill ? styleCell.fill.bg : null;
+					colorFillCell = styleCell !== null && styleCell.fill ? styleCell.fill.bg() : null;
 				}
 				else if(colorText)
 				{

@@ -2972,7 +2972,7 @@
 			compiledStylesArr[i][j] = curStyle;
 			
 			//fill
-			color = curStyle && curStyle.fill && curStyle.fill.bg;
+			color = curStyle && curStyle.fill && curStyle.fill.bg();
 			if(color)
 			{
 				calculateRect(color, j * stepX, i * stepY, (j + 1) * stepX - j * stepX, (i + 1) * stepY - i * stepY);

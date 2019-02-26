@@ -4986,7 +4986,7 @@ function OfflineEditor () {
                     compiledStylesArr[i][j] = curStyle;
                     
                     //fill
-                    color = curStyle && curStyle.fill && curStyle.fill.bg;
+                    color = curStyle && curStyle.fill && curStyle.fill.bg();
                     if(color)
                     {
                         calculateRect(color, j * stepX, i * stepY, stepX, stepY);
