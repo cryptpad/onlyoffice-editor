@@ -10528,7 +10528,7 @@
 				//formula
 				if (sFormula && !isOneMerge) {
 
-					var offset, callAdress, arrayOffset;
+					var offset, cellAddress, arrayOffset;
 					//в случае, если вставляем после того как вырезали
 					//правка вношу для конкретного бага - 38239
 					//если ориентироваться на ms, то нужно отличать вставку на разные страницы одного и того документа
@@ -10540,20 +10540,20 @@
 						offset = new AscCommon.CellBase(0, 0);
 					} else if(specialPasteProps.transpose && transposeRange) {
 						//для transpose необходимо брать offset перевернутого range
-						callAdress = new AscCommon.CellAddress(sId);
+						cellAddress = new AscCommon.CellAddress(sId);
 						if(arrayFormulaRef) {
-							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - arrayFormulaRef.r1, transposeRange.bbox.c1 - arrayFormulaRef.c1);
-							arrayOffset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
+							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
+							arrayOffset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
 						} else {
-							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
+							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
 						}
 					} else {
-						callAdress = new AscCommon.CellAddress(sId);
+						cellAddress = new AscCommon.CellAddress(sId);
 						if(arrayFormulaRef) {
 							offset = new AscCommon.CellBase(range.bbox.r1 - arrayFormulaRef.r1, range.bbox.c1 - arrayFormulaRef.c1);
-							arrayOffset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
+							arrayOffset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
 						} else {
-							offset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
+							offset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
 						}
 					}
 					var assemb, _p_ = new AscCommonExcel.parserFormula(sFormula, null, t.model);
