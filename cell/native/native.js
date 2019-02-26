@@ -3141,6 +3141,80 @@ function OfflineEditor () {
     // main
     
     this.beforeOpen = function() {
+
+        window['AscFormat'].DrawingArea.prototype.drawSelection = function(drawingDocument) {
+            
+            AscCommon.g_oTextMeasurer.Flush();
+            
+            var canvas = this.worksheet.objectRender.getDrawingCanvas();
+            var shapeCtx = canvas.shapeCtx;
+            var shapeOverlayCtx = canvas.shapeOverlayCtx;
+            var autoShapeTrack = canvas.autoShapeTrack;
+            var trackOverlay = canvas.trackOverlay;
+            
+            var ctx = trackOverlay.m_oContext;
+            trackOverlay.Clear();
+            drawingDocument.Overlay = trackOverlay;
+            
+            this.worksheet.overlayCtx.clear();
+            this.worksheet.overlayGraphicCtx.clear();
+            this.worksheet._drawCollaborativeElements(autoShapeTrack);
+            
+            if (!this.worksheet.objectRender.controller.selectedObjects.length && !this.api.isStartAddShape)
+                this.worksheet._drawSelection();
+            
+            var chart;
+            var controller = this.worksheet.objectRender.controller;
+            var selected_objects = controller.selection.groupSelection ? controller.selection.groupSelection.selectedObjects : controller.selectedObjects;
+            if(selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace)
+            {
+                chart = selected_objects[0];
+                this.worksheet.objectRender.selectDrawingObjectRange(chart);
+            }
+            for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
+                
+                this.frozenPlaces[i].setTransform(shapeCtx, shapeOverlayCtx, autoShapeTrack);
+                
+                // Clip
+                this.frozenPlaces[i].clip(shapeOverlayCtx);
+                
+                if (null == drawingDocument.m_oDocumentRenderer) {
+                    if (drawingDocument.m_bIsSelection) {
+                        drawingDocument.private_StartDrawSelection(trackOverlay);
+                        this.worksheet.objectRender.controller.drawTextSelection();
+                        drawingDocument.private_EndDrawSelection();
+                    }
+                    
+                    ctx.globalAlpha = 1.0;
+                    
+                    this.worksheet.objectRender.controller.drawSelection(drawingDocument);
+                    
+                    if ( this.worksheet.objectRender.controller.needUpdateOverlay() ) {
+                        trackOverlay.Show();
+                        shapeOverlayCtx.put_GlobalAlpha(true, 0.5);
+                        this.worksheet.objectRender.controller.drawTracks(shapeOverlayCtx);
+                        shapeOverlayCtx.put_GlobalAlpha(true, 1);
+                    }
+                } else {
+                    
+                    ctx.fillStyle = "rgba(51,102,204,255)";
+                    ctx.beginPath();
+                    
+                    for (var j = drawingDocument.m_lDrawingFirst; j <= drawingDocument.m_lDrawingEnd; j++) {
+                        var drawPage = drawingDocument.m_arrPages[j].drawingPage;
+                        drawingDocument.m_oDocumentRenderer.DrawSelection(j, trackOverlay, drawPage.left, drawPage.top, drawPage.right - drawPage.left, drawPage.bottom - drawPage.top);
+                    }
+                    
+                    ctx.globalAlpha = 0.2;
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.globalAlpha = 1.0;
+                }
+                
+                // Restore
+                this.frozenPlaces[i].restore(shapeOverlayCtx);
+            }
+        };
         
         window['AscFormat'].Path.prototype.drawSmart = function(shape_drawer) {
             
