@@ -360,14 +360,7 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
         }
     }
 
-    if(drawingObjectsController.isSlideShow())
-    {
-        var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
-        if(!sMediaFile)
-        {
-            return false;
-        }
-    }
+
     if(window["IS_NATIVE_EDITOR"])
     {
         if(drawing.getObjectType() === AscDFH.historyitem_type_Shape && drawing.getDocContent && drawing.getDocContent())
@@ -385,6 +378,14 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
     }
     if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
     {
+        if(drawingObjectsController.isSlideShow())
+        {
+            var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
+            if(!sMediaFile)
+            {
+                return false;
+            }
+        }
         return drawingObjectsController.handleMoveHit(drawing, e, x, y, group, false, pageIndex, bWord);
     }
     else if(hit_in_text_rect)
@@ -400,6 +401,13 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
             var ret = handleInlineObjects(drawingObjectsController, drawings2, e, x, y, pageIndex, bWord);
             if(ret)
                 return ret;
+        }
+        if(drawingObjectsController.isSlideShow())
+        {
+            if(!AscFormat.fCheckObjectHyperlink(drawing,x, y))
+            {
+                return false
+            }
         }
         return drawingObjectsController.handleTextHit(drawing, e, x, y, group, pageIndex, bWord);
     }
@@ -422,16 +430,16 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
             }
         }
     }
-    if(drawingObjectsController.isSlideShow())
-    {
-        var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
-        if(!sMediaFile)
-        {
-            return false;
-        }
-    }
     if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
     {
+        if(drawingObjectsController.isSlideShow())
+        {
+            var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
+            if(!sMediaFile)
+            {
+                return false;
+            }
+        }
         return drawingObjectsController.handleMoveHit(drawing, e, x, y, null, false, pageIndex, true);
     }
     else if(hit_in_text_rect)
@@ -446,6 +454,13 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
             ret = handleInlineObjects(drawingObjectsController, drawings2, e, x, y, pageIndex, true);
             if (ret)
                 return ret;
+        }
+        if(drawingObjectsController.isSlideShow())
+        {
+            if(!AscFormat.fCheckObjectHyperlink(drawing,x, y))
+            {
+                return false
+            }
         }
         return drawingObjectsController.handleTextHit(shape, e, x, y, drawing, pageIndex, bWord);
     }

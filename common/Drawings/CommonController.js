@@ -1701,36 +1701,18 @@ DrawingObjectsController.prototype =
         return false;
     },
 
+
+
     handleTextHit: function(object, e, x, y, group, pageIndex, bWord)
     {
         var content, invert_transform_text, tx, ty, hit_paragraph, par, check_hyperlink;
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
             var bNotes = (this.drawingObjects && this.drawingObjects.getObjectType && this.drawingObjects.getObjectType() === AscDFH.historyitem_type_Notes);
-            if(e.CtrlKey && !this.document && !bNotes)
+            if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
-                content = object.getDocContent();
-                invert_transform_text = object.invertTransformText;
-                if(content && invert_transform_text)
-                {
-                    tx = invert_transform_text.TransformPointX(x, y);
-                    ty = invert_transform_text.TransformPointY(x, y);
-                    hit_paragraph = content.Internal_GetContentPosByXY(tx, ty, 0);
-                    par = content.Content[hit_paragraph];
-                    if(isRealObject(par))
-                    {
-                        check_hyperlink = par.CheckHyperlink(tx, ty, 0);
-                        if(!isRealObject(check_hyperlink))
-                        {
-                            return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
-                        }
-                    }
-                    else
-                    {
-                        return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
-                    }
-                }
-                else
+                check_hyperlink = fCheckObjectHyperlink(object, x, y);
+                if(!isRealObject(check_hyperlink))
                 {
                     return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
                 }
@@ -1770,8 +1752,25 @@ DrawingObjectsController.prototype =
                 }
             }
 
+            if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
+            {
+                check_hyperlink = fCheckObjectHyperlink(object, x, y);
+                if(!isRealObject(check_hyperlink))
+                {
+                    return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
+                }
+            }
 
+            var oldCtrlKey = e.CtrlKey;
+            if(this.isSlideShow() && !e.CtrlKey)
+            {
+                e.CtrlKey = true;
+            }
             object.selectionSetStart(e, x, y, pageIndex);
+            if(this.isSlideShow())
+            {
+                e.CtrlKey = oldCtrlKey;
+            }
 
             this.changeCurrentState(new AscFormat.TextAddState(this, object, x, y));
             return true;
@@ -1785,7 +1784,7 @@ DrawingObjectsController.prototype =
             {
                 tx = invert_transform_text.TransformPointX(x, y);
                 ty = invert_transform_text.TransformPointY(x, y);
-                if( this.document || (this.drawingObjects.cSld && !(this.noNeedUpdateCursorType === true)) )
+                if(!this.isSlideShow() && (this.document || (this.drawingObjects.cSld && !(this.noNeedUpdateCursorType === true))))
                 {
                     var nPageIndex = pageIndex;
                     if(this.drawingObjects.cSld && !( this.noNeedUpdateCursorType === true ) && AscFormat.isRealNumber(this.drawingObjects.num))
@@ -1797,11 +1796,22 @@ DrawingObjectsController.prototype =
                 }
                 else if(this.drawingObjects)
                 {
-                    hit_paragraph = content.Internal_GetContentPosByXY(tx, ty, 0);
-                    par = content.Content[hit_paragraph];
-                    if(isRealObject(par))
+                    check_hyperlink = fCheckObjectHyperlink(object, x, y);
+                    if(this.isSlideShow())
                     {
-                        check_hyperlink = par.CheckHyperlink(tx, ty, 0);
+                        if(isRealObject(check_hyperlink))
+                        {
+                            ret.hyperlink = check_hyperlink;
+                            ret.cursorType = "pointer";
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+
                         if(isRealObject(check_hyperlink))
                         {
                             ret.hyperlink = check_hyperlink;
@@ -12462,6 +12472,27 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
     }
 
 
+    function fCheckObjectHyperlink(object, x, y){
+        var content = object.getDocContent();
+        var invert_transform_text = object.invertTransformText, tx, ty, hit_paragraph, check_hyperlink, par;
+        if(content && invert_transform_text)
+        {
+            tx = invert_transform_text.TransformPointX(x, y);
+            ty = invert_transform_text.TransformPointY(x, y);
+            hit_paragraph = content.Internal_GetContentPosByXY(tx, ty, 0);
+            par = content.Content[hit_paragraph];
+            if(isRealObject(par))
+            {
+                check_hyperlink = par.CheckHyperlink(tx, ty, 0);
+                if(isRealObject(check_hyperlink))
+                {
+                    return check_hyperlink;
+                }
+            }
+        }
+        return null;
+    }
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -12540,4 +12571,5 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].CreateBlipFillRasterImageId = CreateBlipFillRasterImageId;
 	window['AscFormat'].fResetConnectorsIds = fResetConnectorsIds;
 	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
+	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
 })(window);
