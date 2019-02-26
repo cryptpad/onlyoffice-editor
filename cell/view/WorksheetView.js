@@ -10528,27 +10528,38 @@
 				//formula
 				if (sFormula && !isOneMerge) {
 
-					var offset, callAdress;
+					var offset, callAdress, arrayOffset;
 					//в случае, если вставляем после того как вырезали
 					//правка вношу для конкретного бага - 38239
 					//если ориентироваться на ms, то нужно отличать вставку на разные страницы одного и того документа
 					//если вставляем на другую страницу после того как вырезали, то необходимо ссылаться на тот лист
 					//с которого вырезали. а в случае с разными документами - вставляют не формулу, а конечное значение
+
+					var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
 					if(AscCommonExcel.g_clipboardExcel.pasteProcessor && AscCommonExcel.g_clipboardExcel.pasteProcessor.bCut) {
 						offset = new AscCommon.CellBase(0, 0);
 					} else if(specialPasteProps.transpose && transposeRange) {
 						//для transpose необходимо брать offset перевернутого range
 						callAdress = new AscCommon.CellAddress(sId);
-						offset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
+						if(arrayFormulaRef) {
+							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - arrayFormulaRef.r1, transposeRange.bbox.c1 - arrayFormulaRef.c1);
+							arrayOffset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
+						} else {
+							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
+						}
 					} else {
 						callAdress = new AscCommon.CellAddress(sId);
-						offset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
+						if(arrayFormulaRef) {
+							offset = new AscCommon.CellBase(range.bbox.r1 - arrayFormulaRef.r1, range.bbox.c1 - arrayFormulaRef.c1);
+							arrayOffset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
+						} else {
+							offset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
+						}
 					}
 					var assemb, _p_ = new AscCommonExcel.parserFormula(sFormula, null, t.model);
 					if (_p_.parse()) {
 
 						//array-formula
-						var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
 						if(arrayFormulaRef) {
 							arrayFormulaRef = arrayFormulaRef.clone();
 
@@ -10569,7 +10580,7 @@
 									arrayFormulaRef.r2 = activeCellsPasteFragment.r1 + diffCol2;
 								}
 
-								arrayFormulaRef.setOffset(offset);
+								arrayFormulaRef.setOffset(arrayOffset ? arrayOffset : offset);
 							}
 						}
 						if(specialPasteProps.transpose)

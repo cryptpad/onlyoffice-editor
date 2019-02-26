@@ -3795,7 +3795,7 @@
 					//если выделена часть формулы, и первая ячейка формулы массива не входит в выделение
 					var intersection = arrayFormula.intersection(this.isCopyPaste);
 					if(intersection && intersection.r1 === cell.nRow && intersection.c1 === cell.nCol) {
-						ref = new Asc.Range(intersection.c1, intersection.r1, intersection.c2, intersection.r2);
+						ref = arrayFormula;
 						type = ECellFormulaType.cellformulatypeArray;
 						formula = parsed.getFormula();
 					}
