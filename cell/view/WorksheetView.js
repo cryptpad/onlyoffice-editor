@@ -2554,8 +2554,7 @@
 			// ToDo подумать, может стоит не брать ячейку из модели (а брать из кеш-а)
 			var c = this._getVisibleCell(col, row);
 			var findFillColor = this.handlers.trigger('selectSearchingResults') && this.model.inFindResults(row, col) ? this.settings.findFillColor : null;
-			var fillColor = c.getFillColor();
-			var bg = findFillColor || fillColor;
+			var fill = c.getFill();
 			var mc = null;
 			var mwidth = 0, mheight = 0;
 
@@ -2577,64 +2576,64 @@
 
 				mwidth = this._getColLeft(mc.c2 + 1) - this._getColLeft(mc.c1 + 1);
 				mheight = this._getRowTop(mc.r2 + 1) - this._getRowTop(mc.r1 + 1);
-				bg = bg || this.settings.cells.defaultState.background;
 			}
 
-			if (!bg) {
+			if (findFillColor || fill.hasFill() || mc) {
 				// ToDo не отрисовываем заливку границ от ячеек c заливкой, которые находятся правее и ниже
 				//  отрисовываемого диапазона. Но по факту проблем быть не должно.
-				this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
-				continue;
-			}
+				var fillGrid = findFillColor || fill.hasFill();
 
-            var x = this._getColLeft(col) - (mc ? 0 : 1);
-            var y = top - (mc ? 0 : 1);
-            var w = width + (mc ? -1 : +1) + mwidth;
-            var h = height + (mc ? -1 : +1) + mheight;
+				var x = this._getColLeft(col) - (fillGrid ? 1 : 0);
+				var y = top - (fillGrid ? 1 : 0);
+				var w = width + (fillGrid ? +1 : -1) + mwidth;
+				var h = height + (fillGrid ? +1 : -1) + mheight;
 
-			if (false) {
-                AscFormat.ExecuteNoHistory(
-                    function () {
-                        var geometry = new AscFormat.Geometry();
-                        var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
-                        var dScale = asc_getcvt(0, 3, this._getPPIX());
-                        rect.x *= dScale;
-                        rect.y *= dScale;
-                        rect.w *= dScale;
-                        rect.h *= dScale;
-                        var path = new AscFormat.Path();
-                        path.moveTo(rect.x, rect.y);
-                        path.lnTo(rect.x + rect.w, rect.y);
-                        path.lnTo(rect.x + rect.w, rect.y + rect.h);
-                        path.lnTo(rect.x, rect.y + rect.h);
-                        path.close();
-                        geometry.AddPath(path);
-                        geometry.Recalculate(100, 100, true);
+				findFillColor = findFillColor || fill.getSolidFill() || (mc && this.settings.cells.defaultState.background);
+				if (findFillColor) {
+					ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
+				} else {
+					continue;
+					AscFormat.ExecuteNoHistory(
+						function () {
+							var geometry = new AscFormat.Geometry();
+							var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
+							var dScale = asc_getcvt(0, 3, this._getPPIX());
+							rect.x *= dScale;
+							rect.y *= dScale;
+							rect.w *= dScale;
+							rect.h *= dScale;
+							var path = new AscFormat.Path();
+							path.moveTo(rect.x, rect.y);
+							path.lnTo(rect.x + rect.w, rect.y);
+							path.lnTo(rect.x + rect.w, rect.y + rect.h);
+							path.lnTo(rect.x, rect.y + rect.h);
+							path.close();
+							geometry.AddPath(path);
+							geometry.Recalculate(100, 100, true);
 
-                        var oUniFill = new AscFormat.CUniFill();
-                        oUniFill.fill = new AscFormat.CPattFill();
-                        oUniFill.fill.ftype = 12;
-                        oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(bg.getR(), bg.getG(),  bg.getB());
-                        oUniFill.fill.fgClr.RGBA.R = bg.getR();
-                        oUniFill.fill.fgClr.RGBA.G = bg.getG();
-                        oUniFill.fill.fgClr.RGBA.B = bg.getB();
-                        oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB(255, 255, 255);
-                        oUniFill.fill.bgClr.RGBA.R = 0xFF;
-                        oUniFill.fill.bgClr.RGBA.G = 0xFF;
-                        oUniFill.fill.bgClr.RGBA.B = 0xFF;
+							var oUniFill = new AscFormat.CUniFill();
+							oUniFill.fill = new AscFormat.CPattFill();
+							oUniFill.fill.ftype = 12;
+							oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(bg.getR(), bg.getG(),  bg.getB());
+							oUniFill.fill.fgClr.RGBA.R = bg.getR();
+							oUniFill.fill.fgClr.RGBA.G = bg.getG();
+							oUniFill.fill.fgClr.RGBA.B = bg.getB();
+							oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB(255, 255, 255);
+							oUniFill.fill.bgClr.RGBA.R = 0xFF;
+							oUniFill.fill.bgClr.RGBA.G = 0xFF;
+							oUniFill.fill.bgClr.RGBA.B = 0xFF;
 
-						graphics.save();
-                        graphics.transform3(new AscCommon.CMatrix());
-                        var shapeDrawer = new AscCommon.CShapeDrawer();
-                        shapeDrawer.Graphics = graphics;
+							graphics.save();
+							graphics.transform3(new AscCommon.CMatrix());
+							var shapeDrawer = new AscCommon.CShapeDrawer();
+							shapeDrawer.Graphics = graphics;
 
-                        shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
-						shapeDrawer.draw(geometry);
-						graphics.restore();
-                    }, this, []
-                );
-			} else {
-				ctx.setFillStyle(bg).fillRect(x - offsetX, y - offsetY, w, h);
+							shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+							shapeDrawer.draw(geometry);
+							graphics.restore();
+						}, this, []
+					);
+				}
 			}
 
 			this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
