@@ -820,6 +820,29 @@ DrawingObjectsController.prototype =
                         return ret;
                     }
                 }
+                if(this.isSlideShow())
+                {
+                    var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
+                    if(typeof sMediaFile === "string" && this.handleMediaObject)
+                    {
+
+                        var oApi = this.getEditorApi();
+                        if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
+                            oApi.asc_PlayMediaFile(sMediaFile);
+                            return true;
+                        }
+                        else{
+
+                            var ret = {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
+                            ret.cursorType = "pointer";
+                            ret.updated = true;
+
+                            var oDD = editor &&  editor.WordControl && editor.WordControl.m_oDrawingDocument;
+                            oDD && oDD.SetCursorType("pointer", MMData);
+                            this.showVideoControl(sMediaFile, drawing.extX, drawing.extY, drawing.transform);
+                        }
+                    }
+                }
             }
         }
         else if(this.drawingObjects && this.drawingObjects.getWorksheetModel){
@@ -885,6 +908,14 @@ DrawingObjectsController.prototype =
             return null;
         }
     },
+
+    showVideoControl: function(sMediaFile, extX, extY, transform)
+    {
+        this.bShowVideoControl = true;
+        var oApi = this.getEditorApi();
+        oApi.showVideoControl(sMediaFile, extX, extY, transform);
+    },
+
 
     getAllSignatures: function(){
         var _ret = [];

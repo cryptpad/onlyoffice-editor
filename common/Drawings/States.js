@@ -355,10 +355,22 @@ NullState.prototype =
             }
             if(this.drawingObjects.drawingObjects && this.drawingObjects.drawingObjects.cSld)
             {
-                this.drawingObjects.stX = x;
-                this.drawingObjects.stY = y;
-                this.drawingObjects.selectionRect = {x : x, y : y, w: 0, h: 0};
-                this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
+                if(!this.drawingObjects.isSlideShow())
+                {
+                    this.drawingObjects.stX = x;
+                    this.drawingObjects.stY = y;
+                    this.drawingObjects.selectionRect = {x : x, y : y, w: 0, h: 0};
+                    this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
+                }
+
+            }
+        }
+        else
+        {
+            if(this.drawingObjects.bShowVideoControl)
+            {
+                this.drawingObjects.bShowVideoControl = false;
+                this.drawingObjects.getEditorApi().hideVideoControl();
             }
         }
         return null;
