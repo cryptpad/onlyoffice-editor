@@ -1702,6 +1702,13 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.RemoveOnDrag              = false; // Происходит ли удалении на функции drag-n-drop
 	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
 
+	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
+	this.NeedUpdateTracksOnRecalc = false;
+	this.NeedUpdateTracksParams   = {
+		Selection      : false,
+		EmptySelection : false
+	};
+
     // Мап для рассылки
     this.MailMergeMap             = null;
     this.MailMergePreview         = false;
@@ -3121,6 +3128,11 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 			specialPasteHelper.endRecalcDocument = true;
 		}
     }
+
+	if (this.NeedUpdateTracksOnRecalc)
+	{
+		this.private_UpdateTracks(this.NeedUpdateTracksParams.Selection, this.NeedUpdateTracksParams.EmptySelection);
+	}
 
     if (true === bContinue)
     {
@@ -9561,7 +9573,16 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 {
 	var Pos = (true === this.Selection.Use && selectionflag_Numbering !== this.Selection.Flag ? this.Selection.EndPos : this.CurPos.ContentPos);
 	if (docpostype_Content === this.GetDocPosType() && !(Pos >= 0 && (null === this.FullRecalc.Id || this.FullRecalc.StartIndex > Pos)))
+	{
+		this.NeedUpdateTracksOnRecalc = true;
+
+		this.NeedUpdateTracksParams.Selection      = bSelection;
+		this.NeedUpdateTracksParams.EmptySelection = bEmptySelection;
+
 		return;
+	}
+
+	this.NeedUpdateTracksOnRecalc = false;
 
 	var oSelectedInfo = this.GetSelectedElementsInfo();
 
