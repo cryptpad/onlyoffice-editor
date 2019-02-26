@@ -799,48 +799,26 @@ DrawingObjectsController.prototype =
                                 MMData.Y_abs       = Coords.Y;
                                 MMData.Type      = AscCommon.c_oAscMouseMoveDataTypes.Hyperlink;
                                 MMData.Hyperlink = new Asc.CHyperlinkProperty({Text: null, Value: oNvPr.hlinkClick.id, ToolTip: oNvPr.hlinkClick.tooltip, Class: null});
-                                if(!this.isSlideShow())
-                                {
-                                    editor.sync_MouseMoveCallback(MMData);
-                                }
-                                if(hit_in_text_rect && !this.isSlideShow())
-                                {
-                                    ret.cursorType = "text";
-                                    oDD.SetCursorType("text", MMData);
-                                }
                                 if(this.isSlideShow())
                                 {
                                     ret.cursorType = "pointer";
                                     MMData.Hyperlink = null;
                                     oDD.SetCursorType("pointer", MMData);
                                 }
+                                else
+                                {
+                                    editor.sync_MouseMoveCallback(MMData);
+                                    if(hit_in_text_rect)
+                                    {
+                                        ret.cursorType = "text";
+                                        oDD.SetCursorType("text", MMData);
+                                    }
+                                }
+
                                 ret.updated = true;
                             }
                         }
                         return ret;
-                    }
-                }
-                if(this.isSlideShow())
-                {
-                    var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
-                    if(typeof sMediaFile === "string" && this.handleMediaObject)
-                    {
-
-                        var oApi = this.getEditorApi();
-                        if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
-                            oApi.asc_PlayMediaFile(sMediaFile);
-                            return true;
-                        }
-                        else{
-
-                            var ret = {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
-                            ret.cursorType = "pointer";
-                            ret.updated = true;
-
-                            var oDD = editor &&  editor.WordControl && editor.WordControl.m_oDrawingDocument;
-                            oDD && oDD.SetCursorType("pointer", MMData);
-                            this.showVideoControl(sMediaFile, drawing.extX, drawing.extY, drawing.transform);
-                        }
                     }
                 }
             }
@@ -1623,14 +1601,6 @@ DrawingObjectsController.prototype =
                     {
                         this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
                     }
-                    else if(object.getObjectType() === AscDFH.historyitem_type_ImageShape)
-                    {
-                        var sMediaFile = object.getMediaFileName();
-                        if(typeof sMediaFile === "string" && this.handleMediaObject)
-                        {
-                            this.handleMediaObject(sMediaFile, e, x, y, pageIndex)
-                        }
-                    }
                 }
             }
             return true;
@@ -1642,7 +1612,16 @@ DrawingObjectsController.prototype =
             {
                 sId = object.parentCrop.Get_Id();
             }
-            return {objectId: sId, cursorType: "move", bMarker: bInSelect};
+            var sCursorType = "move";
+            if(this.isSlideShow())
+            {
+                var sMediaName = object.getMediaFileName();
+                if(sMediaName)
+                {
+                    sCursorType = "pointer";
+                }
+            }
+            return {objectId: sId, cursorType: sCursorType, bMarker: bInSelect};
         }
     },
 

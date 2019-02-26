@@ -365,14 +365,6 @@ NullState.prototype =
 
             }
         }
-        else
-        {
-            if(this.drawingObjects.bShowVideoControl)
-            {
-                this.drawingObjects.bShowVideoControl = false;
-                this.drawingObjects.getEditorApi().hideVideoControl();
-            }
-        }
         return null;
     },
 
@@ -993,6 +985,10 @@ PreMoveState.prototype =
 
     onMouseMove: function(e, x, y, pageIndex)
     {
+        if(this.drawingObjects.isSlideShow())
+        {
+            return;
+        }
         if(!e.IsLocked)
         {
             this.onMouseUp(e, x, y, pageIndex);
@@ -1296,6 +1292,10 @@ PreMoveInGroupState.prototype =
 
     onMouseMove: function(e, x, y, pageIndex)
     {
+        if(this.drawingObjects.isSlideShow())
+        {
+            return;
+        }
         if(!e.IsLocked)
         {
             this.onMouseUp(e, x, y, pageIndex);

@@ -4180,6 +4180,7 @@ CPresentation.prototype =
         if(ret){
             return keydownresult_PreventAll;
         }
+        return keydownresult_PreventNothing;
     },
 
     OnMouseUp : function(e, X, Y, PageIndex)
@@ -4187,7 +4188,12 @@ CPresentation.prototype =
         e.ctrlKey = e.CtrlKey;
         e.shiftKey = e.ShiftKey;
         var nStartPage = this.CurPage;
-        this.Slides[this.CurPage].graphicObjects && this.Slides[this.CurPage].graphicObjects.onMouseUp(e, X, Y);
+
+        var oController = this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects;
+        if(oController)
+        {
+            oController.onMouseUp(e, X, Y);
+        }
         if(nStartPage !== this.CurPage)
         {
             this.DrawingDocument.CheckTargetShow();
@@ -4205,6 +4211,17 @@ CPresentation.prototype =
         this.noShowContextMenu = false;
         this.Document_UpdateInterfaceState();
         this.Api.sendEvent("asc_onSelectionEnd");
+        if(oController.isSlideShow())
+        {
+            oController.handleEventMode = AscFormat.HANDLE_EVENT_MODE_CURSOR;
+            var oResult = oController.curState.onMouseDown(e, X, Y, 0);
+            oController.handleEventMode = AscFormat.HANDLE_EVENT_MODE_HANDLE;
+            if(oResult)
+            {
+                return keydownresult_PreventAll;
+            }
+        }
+        return keydownresult_PreventNothing;
     },
 
     OnMouseMove : function(e, X, Y, PageIndex)
@@ -4213,12 +4230,27 @@ CPresentation.prototype =
         e.shiftKey = e.ShiftKey;
         editor.sync_MouseMoveStartCallback();
         this.CurPage = PageIndex;
-        this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects.onMouseMove(e, X, Y);
+        var oController = this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects;
+        if(oController)
+        {
+            oController.onMouseMove(e, X, Y);
+        }
         var bOldFocus = this.FocusOnNotes;
         this.FocusOnNotes = false;
         this.UpdateCursorType(X, Y,  e );
         this.FocusOnNotes = bOldFocus;
         editor.sync_MouseMoveEndCallback();
+        if(oController.isSlideShow())
+        {
+            oController.handleEventMode = AscFormat.HANDLE_EVENT_MODE_CURSOR;
+            var oResult = oController.curState.onMouseDown(e, X, Y, 0);
+            oController.handleEventMode = AscFormat.HANDLE_EVENT_MODE_HANDLE;
+            if(oResult)
+            {
+                return keydownresult_PreventAll;
+            }
+        }
+        return keydownresult_PreventNothing;
     },
 
     OnEndTextDrag : function(NearPos, bCopy)
