@@ -2592,9 +2592,8 @@
 				if (findFillColor) {
 					ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
 				} else {
-					continue;
 					AscFormat.ExecuteNoHistory(
-						function () {
+						function (fill) {
 							var geometry = new AscFormat.Geometry();
 							var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
 							var dScale = asc_getcvt(0, 3, this._getPPIX());
@@ -2612,16 +2611,18 @@
 							geometry.Recalculate(100, 100, true);
 
 							var oUniFill = new AscFormat.CUniFill();
-							oUniFill.fill = new AscFormat.CPattFill();
-							oUniFill.fill.ftype = 12;
-							oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(bg.getR(), bg.getG(),  bg.getB());
-							oUniFill.fill.fgClr.RGBA.R = bg.getR();
-							oUniFill.fill.fgClr.RGBA.G = bg.getG();
-							oUniFill.fill.fgClr.RGBA.B = bg.getB();
-							oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB(255, 255, 255);
-							oUniFill.fill.bgClr.RGBA.R = 0xFF;
-							oUniFill.fill.bgClr.RGBA.G = 0xFF;
-							oUniFill.fill.bgClr.RGBA.B = 0xFF;
+							if (fill.patternFill) {
+								oUniFill.fill = new AscFormat.CPattFill();
+								oUniFill.fill.ftype = 12;
+								oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor);
+								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor);
+							} else if (fill.gradientFill) {
+								return;
+								oUniFill.fill = new AscFormat.CGradFill();
+								oUniFill.fill.addColor()
+							} else {
+								return;
+							}
 
 							graphics.save();
 							graphics.transform3(new AscCommon.CMatrix());
@@ -2631,7 +2632,7 @@
 							shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
 							shapeDrawer.draw(geometry);
 							graphics.restore();
-						}, this, []
+						}, this, [fill]
 					);
 				}
 			}
