@@ -5143,40 +5143,40 @@ background-repeat: no-repeat;\
 	};
 
 
-	asc_docs_api.prototype.asc_AddVideo = function(sImageUrl, sVideoUrl)
+	asc_docs_api.prototype.asc_AddVideo = function(sImageUrlLocal, sVideoUrl)
 	{
 		var oApi = this;
+		var sImageUrl = AscCommon.g_oDocumentUrls.getImageUrl(sImageUrlLocal);
 		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
-			var aImages = [];
-				var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
-				if(_image){
-					aImages.push(_image);
-				}
-				var oImageObject = {};
-				oImageObject.src = sImageUrl;
-				oImageObject.Image = {};
-				oImageObject.Image.width = _image.Image.width;
-				oImageObject.Image.height = _image.Image.height;
-				oImageObject.videoUrl = sVideoUrl;
-				oApi.WordControl.m_oLogicDocument.addImages(aImages);
-		});
-	};
-	asc_docs_api.prototype.asc_AddAudio = function(sImageUrl, sAudioUrl)
-	{
-		var oApi = this;
-		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
-			var aImages = [];
 			var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
-			if(_image){
-				aImages.push(_image);
-			}
+			if (!_image || !_image.Image)
+				return;
+
 			var oImageObject = {};
 			oImageObject.src = sImageUrl;
 			oImageObject.Image = {};
 			oImageObject.Image.width = _image.Image.width;
 			oImageObject.Image.height = _image.Image.height;
+			oImageObject.videoUrl = sVideoUrl;
+			oApi.WordControl.m_oLogicDocument.addImages([oImageObject]);
+		});
+	};
+	asc_docs_api.prototype.asc_AddAudio = function(sImageUrlLocal, sAudioUrl)
+	{
+		var oApi = this;
+        var sImageUrl = AscCommon.g_oDocumentUrls.getImageUrl(sImageUrlLocal);
+		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
+			var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
+            if (!_image || !_image.Image)
+                return;
+
+			var oImageObject = {};
+			oImageObject.src = sImageUrl;
+			oImageObject.Image = {};
+			oImageObject.Image.width = 50;
+			oImageObject.Image.height = 50;
 			oImageObject.audioUrl = sAudioUrl;
-			oApi.WordControl.m_oLogicDocument.addImages(aImages);
+			oApi.WordControl.m_oLogicDocument.addImages([oImageObject]);
 		});
 	};
 
