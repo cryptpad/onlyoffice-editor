@@ -10466,6 +10466,10 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), vdb(2400,300,10*12,6,18) );
 
+		oParser = new parserFormula( "VDB(0,0,0,0,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
         testArrayFormula2("VDB", 5, 7);
     } );
 
