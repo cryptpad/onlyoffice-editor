@@ -342,9 +342,6 @@
         this.drawingGraphicCtx = this.buffers.mainGraphic;
         this.overlayGraphicCtx = this.buffers.overlayGraphic;
 
-        this.shapeCtx = this.buffers.shapeCtx;
-        this.shapeOverlayCtx = this.buffers.shapeOverlayCtx;
-
         this.stringRender = stringRender;
 
         // Флаг, сигнализирует о том, что мы сделали resize, но это не активный лист (поэтому как только будем показывать, нужно перерисовать и пересчитать кеш)
@@ -2689,8 +2686,13 @@
             return mergedCells;
         }
 
+		var aRules = this.model.aConditionalFormattingRules.sort(function(v1, v2) {
+			return v2.priority - v1.priority;
+		});
+
 		var top = this._getRowTop(row);
         var ctx = drawingCtx || this.drawingCtx;
+        var graphics = drawingCtx ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
         for ( var col = colStart; col <= colEnd; ++col ) {
         	var width = this._getColumnWidth(col);
             if ( 0 === width && null === oMergedCell ) {
@@ -2701,8 +2703,8 @@
             var c = this._getVisibleCell( col, row );
 			var findFillColor = this.handlers.trigger('selectSearchingResults') && this.model.inFindResults(row, col) ?
 				this.settings.findFillColor : null;
-			var fillColor = c.getFill();
-            var bg = fillColor || findFillColor;
+			var fillColor = c.getFillColor();
+            var bg = findFillColor || fillColor;
             var mc = null;
             var mwidth = 0, mheight = 0;
 
@@ -2730,18 +2732,19 @@
                 if ( bg === null ) {
                     if ( col === colEnd && col < this.nColsCount - 1 && row < this.nRowsCount - 1 ) {
                         var c2 = this._getVisibleCell( col + 1, row );
-                            var bg2 = c2.getFill();
+                            var bg2 = c2.getFillColor();
                             if ( bg2 !== null ) {
                                 ctx.setFillStyle( bg2 )
                                     .fillRect( this._getColLeft(col + 1) - offsetX - 1, top - offsetY - 1, 1, height + 1 );
                             }
                         var c3 = this._getVisibleCell( col, row + 1 );
-                            var bg3 = c3.getFill();
+                            var bg3 = c3.getFillColor();
                             if ( bg3 !== null ) {
                                 ctx.setFillStyle( bg3 )
                                     .fillRect( this._getColLeft(col) - offsetX - 1, this._getRowTop(row + 1) - offsetY - 1, width + 1, 1 );
                             }
                         }
+					this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
                     continue;
                 }
             }
@@ -2751,11 +2754,53 @@
             var w = width + (bg !== null ? +1 : -1) + mwidth;
             var h = height + (bg !== null ? +1 : -1) + mheight;
             var color = bg !== null ? bg : this.settings.cells.defaultState.background;
-            ctx.setFillStyle( color ).fillRect( x - offsetX, y - offsetY, w, h );
 
-            if (fillColor && findFillColor) {
-				ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
-            }
+			if (false) {
+                AscFormat.ExecuteNoHistory(
+                    function () {
+                        var geometry = new AscFormat.Geometry();
+                        var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
+                        var dScale = asc_getcvt(0, 3, this._getPPIX());
+                        rect.x *= dScale;
+                        rect.y *= dScale;
+                        rect.w *= dScale;
+                        rect.h *= dScale;
+                        var path = new AscFormat.Path();
+                        path.moveTo(rect.x, rect.y);
+                        path.lnTo(rect.x + rect.w, rect.y);
+                        path.lnTo(rect.x + rect.w, rect.y + rect.h);
+                        path.lnTo(rect.x, rect.y + rect.h);
+                        path.close();
+                        geometry.AddPath(path);
+                        geometry.Recalculate(100, 100, true);
+
+                        var oUniFill = new AscFormat.CUniFill();
+                        oUniFill.fill = new AscFormat.CPattFill();
+                        oUniFill.fill.ftype = 12;
+                        oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(color.getR(), color.getG(),  color.getB());
+                        oUniFill.fill.fgClr.RGBA.R = color.getR();
+                        oUniFill.fill.fgClr.RGBA.G = color.getG();
+                        oUniFill.fill.fgClr.RGBA.B = color.getB();
+                        oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB(255, 255, 255);
+                        oUniFill.fill.bgClr.RGBA.R = 0xFF;
+                        oUniFill.fill.bgClr.RGBA.G = 0xFF;
+                        oUniFill.fill.bgClr.RGBA.B = 0xFF;
+
+						graphics.save();
+                        graphics.transform3(new AscCommon.CMatrix());
+                        var shapeDrawer = new AscCommon.CShapeDrawer();
+                        shapeDrawer.Graphics = graphics;
+
+                        shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+						shapeDrawer.draw(geometry);
+						graphics.restore();
+                    }, this, []
+                );
+			} else {
+				ctx.setFillStyle( color ).fillRect( x - offsetX, y - offsetY, w, h );
+			}
+
+			this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
         }
         return mergedCells;
     };
@@ -2797,6 +2842,46 @@
         }
         return mergedCells;
     };
+
+    WorksheetView.prototype._drawCellCF = function (ctx, aRules, c, row, col, top, width, height, offsetX, offsetY) {
+		var ct = this._getCellTextCache(col, row);
+		if (!ct || !ct.flags.isNumberFormat) {
+			return null;
+		}
+
+		var cellValue = c.getNumberValue();
+		width -= 2; // indent
+
+    	var oRule, oRuleElement, ranges, multiplyRange, values, min, max;
+		for (var i = 0; i < aRules.length; ++i) {
+			oRule = aRules[i];
+			ranges = oRule.ranges;
+			multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
+			if (multiplyRange.contains(col, row)) {
+				if (AscCommonExcel.ECfType.dataBar === oRule.type) {
+					if (1 !== oRule.aRuleElements.length) {
+						continue;
+					}
+					oRuleElement = oRule.aRuleElements[0];
+					if (!oRuleElement || oRule.type !== oRuleElement.type) {
+						continue;
+					}
+					values = this.model._getValuesForConditionalFormatting(ranges, true);
+					min = oRule.getMin(values, this.model);
+					max = oRule.getMax(values, this.model);
+
+					var minLength = Math.floor(width * oRuleElement.MinLength / 100);
+					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
+					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
+
+					var x = this._getColLeft(col);
+					if (oRuleElement.Color) {
+						ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+					}
+				}
+			}
+		}
+	};
 
 	/** Рисует текст ячейки */
 	WorksheetView.prototype._drawCellText =
@@ -3571,13 +3656,13 @@
         ctx.setFillStyle( this.settings.cells.defaultState.background );
         for ( var col = colBeg; col < colEnd; ++col ) {
             var c = -1 !== nextCell ? nextCell : this._getCell( col, row );
-            var bg = null !== c ? c.getFill() : null;
+            var bg = null !== c ? c.getFillColor() : null;
             if ( bg !== null ) {
                 continue;
             }
 
             nextCell = this._getCell( col + 1, row );
-            bg = null !== nextCell ? nextCell.getFill() : null;
+            bg = null !== nextCell ? nextCell.getFillColor() : null;
             if ( bg !== null ) {
                 continue;
             }
@@ -6704,7 +6789,7 @@
 				return oResDefault;
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
-			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize);
+			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.isCellEditMode;
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurRowResize : kCurRowSelect,
@@ -6720,7 +6805,7 @@
 				return oResDefault;
 			}
 			isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize);
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.isCellEditMode;
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurColResize : kCurColSelect,
@@ -7552,7 +7637,7 @@
         var c = this._getVisibleCell(c1, r1);
 		var font = c.getFont(true);
 		var fa = font.getVerticalAlign();
-        var bg = c.getFill();
+        var bg = c.getFillColor();
         var align = c.getAlign();
         var cellType = c.getType();
         var isNumberFormat = (!cellType || CellValueType.Number === cellType);
@@ -8686,7 +8771,7 @@
 			}
 
 
-			if (!this.intersectionFormulaArray(changedRange)) {
+			if (this.intersectionFormulaArray(changedRange)) {
 				// Сбрасываем параметры автозаполнения
 				this.activeFillHandle = null;
 				this.fillHandleDirection = -1;
@@ -9208,7 +9293,7 @@
                         range.setFontcolor(val);
                         break;
                     case "bc":
-                        range.setFill(val || null);
+                        range.setFillColor(val || null);
                         break; // ToDo можно делать просто отрисовку
                     case "wrap":
                         range.setWrap(val);
@@ -9443,7 +9528,7 @@
 				var newRange = val.fromBinary ? this._pasteFromBinary(val.data, true) : this._pasteFromHTML(val.data, true);
 				checkRange = [newRange];
 
-				if(!this.intersectionFormulaArray(newRange)) {
+				if(this.intersectionFormulaArray(newRange)) {
 					t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 					return false;
 				}
@@ -9468,6 +9553,10 @@
 				c_oAscError.Level.NoCritical);
 			return;
         }
+		if("empty" === prop && this.intersectionFormulaArray(arn)) {
+			t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+			return;
+		}
 		this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
     };
 
@@ -10363,7 +10452,7 @@
 
 				pastedRangeProps.bordersFull = fullBorders;
 				//fill
-				pastedRangeProps.fill = newVal.getFill();
+				pastedRangeProps.fill = newVal.getFillColor();
 				//wrap
 				//range.setWrap(newVal.getWrap());
 				pastedRangeProps.wrap = align.getWrap();
@@ -10583,32 +10672,62 @@
 				//formula
 				if (sFormula && !isOneMerge) {
 
-					var offset, callAdress;
+					var offset, arrayOffset;
 					//в случае, если вставляем после того как вырезали
 					//правка вношу для конкретного бага - 38239
 					//если ориентироваться на ms, то нужно отличать вставку на разные страницы одного и того документа
 					//если вставляем на другую страницу после того как вырезали, то необходимо ссылаться на тот лист
 					//с которого вырезали. а в случае с разными документами - вставляют не формулу, а конечное значение
+
+					var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
+					var cellAddress = new AscCommon.CellAddress(sId);
 					if(AscCommonExcel.g_clipboardExcel.pasteProcessor && AscCommonExcel.g_clipboardExcel.pasteProcessor.bCut) {
 						offset = new AscCommon.CellBase(0, 0);
+						if(arrayFormulaRef) {
+							arrayOffset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
+						}
 					} else if(specialPasteProps.transpose && transposeRange) {
 						//для transpose необходимо брать offset перевернутого range
-						callAdress = new AscCommon.CellAddress(sId);
-						offset = new AscCommon.CellBase(transposeRange.bbox.r1 - callAdress.row + 1, transposeRange.bbox.c1 - callAdress.col + 1);
+						if(arrayFormulaRef) {
+							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
+							arrayOffset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
+						} else {
+							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
+						}
 					} else {
-						callAdress = new AscCommon.CellAddress(sId);
-						offset = new AscCommon.CellBase(range.bbox.r1 - callAdress.row + 1, range.bbox.c1 - callAdress.col + 1);
+						if(arrayFormulaRef) {
+							offset = new AscCommon.CellBase(range.bbox.r1 - arrayFormulaRef.r1, range.bbox.c1 - arrayFormulaRef.c1);
+							arrayOffset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
+						} else {
+							offset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
+						}
 					}
 					var assemb, _p_ = new AscCommonExcel.parserFormula(sFormula, null, t.model);
 					if (_p_.parse()) {
 
 						//array-formula
-						var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
 						if(arrayFormulaRef) {
+							arrayFormulaRef = arrayFormulaRef.clone();
+
 							if(!formulaProps.fromRange.containsRange(arrayFormulaRef)) {
 								arrayFormulaRef = arrayFormulaRef.intersection(formulaProps.fromRange);
 							}
-							arrayFormulaRef.setOffset(offset);
+
+							if(arrayFormulaRef) {
+								if (specialPasteProps.transpose) {
+									var diffCol1 = arrayFormulaRef.c1 - activeCellsPasteFragment.c1;
+									var diffRow1 = arrayFormulaRef.r1 - activeCellsPasteFragment.r1;
+									var diffCol2 = arrayFormulaRef.c2 - activeCellsPasteFragment.c1;
+									var diffRow2 = arrayFormulaRef.r2 - activeCellsPasteFragment.r1;
+
+									arrayFormulaRef.c1 = activeCellsPasteFragment.c1 + diffRow1;
+									arrayFormulaRef.r1 = activeCellsPasteFragment.r1 + diffCol1;
+									arrayFormulaRef.c2 = activeCellsPasteFragment.c1 + diffRow2;
+									arrayFormulaRef.r2 = activeCellsPasteFragment.r1 + diffCol2;
+								}
+
+								arrayFormulaRef.setOffset(arrayOffset ? arrayOffset : offset);
+							}
 						}
 						if(specialPasteProps.transpose)
 						{
@@ -10829,7 +10948,7 @@
 		//fill
 		if(specialPasteProps.fill && undefined !== rangeStyle.fill)
 		{
-			range.setFill(rangeStyle.fill);
+			range.setFillColor(rangeStyle.fill);
 		}
 		//angle
 		if(undefined !== rangeStyle.angle && specialPasteProps.angle)
@@ -11361,6 +11480,11 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						count = checkRange.c2 - checkRange.c1 + 1;
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscInsertOptions.InsertCellsAndShiftDown:
@@ -11388,6 +11512,11 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						count = checkRange.c2 - checkRange.c1 + 1;
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscInsertOptions.InsertColumns:
@@ -11404,10 +11533,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
-						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
-						}*/
+						}
 
 						functionModelAction = function () {
 							History.Create_NewPoint();
@@ -11432,10 +11561,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
-						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
-						}*/
+						}
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11488,6 +11617,11 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						count = checkRange.c2 - checkRange.c1 + 1;
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
@@ -11521,6 +11655,12 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
+						count = checkRange.c2 - checkRange.c1 + 1;
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+							return;
+						}
+
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscDeleteOptions.DeleteColumns:
@@ -11536,10 +11676,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
-						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
-						}*/
+						}
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -11571,10 +11711,10 @@
 								c_oAscError.Level.NoCritical);
 							return;
 						}
-						/*if (this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
+						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
-						}*/
+						}
 
 						functionModelAction = function () {
 							oRecalcType = AscCommonExcel.recalcType.full;
@@ -12312,7 +12452,7 @@
 
 		//***array-formula***
 		var changeRangesIfArrayFormula = function() {
-			if(flags.bApplyByArray) {
+			if(flags && flags.bApplyByArray) {
 				c = t.getSelectedRange();
 				if(c.bbox.isOneCell()) {
 					//проверяем, есть ли формула массива в этой ячейке
@@ -12478,7 +12618,7 @@
 			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
 			this.isCellEditMode = true;
 
-			bg = c.getFill();
+			bg = c.getFillColor();
 			this.isFormulaEditMode = false;
 
 			var font = c.getFont();
@@ -12535,17 +12675,22 @@
 						var activeRange = t.getSelectedRange();
 						var doNotApply = false;
 						if(!activeRange.bbox.isOneCell()) {
-							activeRange._foreachNoEmpty(function(cell, row, col) {
-								ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+							if(t.model.autoFilters.isIntersectionTable(activeRange.bbox)) {
+								t.handlers.trigger("onErrorEvent", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
+								return false;
+							} else {
+								activeRange._foreachNoEmpty(function(cell, row, col) {
+									ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
 
-								if(ref && !activeRange.bbox.containsRange(ref)) {
-									doNotApply = true;
-									return false;
-								}
-							});
+									if(ref && !activeRange.bbox.containsRange(ref)) {
+										doNotApply = true;
+										return false;
+									}
+								});
+							}
 						}
 						if(doNotApply) {
-							t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockCreateDefName, c_oAscError.Level.NoCritical);
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return false;
 						} else {
 							t._isLockedCells(activeRange.bbox, /*subType*/null, saveCellValueCallback);
@@ -13087,7 +13232,7 @@
                     case Asc.ESortBy.sortbyCellColor:
                     {
                         type = Asc.c_oAscSortOptions.ByColorFill;
-                        rgbColor = sortState.SortConditions[0].dxf.fill.bg;
+                        rgbColor = sortState.SortConditions[0].dxf.fill.bg();
                         break;
                     }
                     case Asc.ESortBy.sortbyFontColor:
@@ -13203,13 +13348,13 @@
                                 var fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
                                 //TODO добавлять дефолтовый цвет шрифта в случае, если цвет шрифта не указан
                                 if (null !== fontColor) {
-                                    filter.filter.dxf.fill.bg = fontColor;
+                                    filter.filter.dxf.fill.fromColor(fontColor);
                                 }
                             } else {
                                 //TODO просмотерть ситуации без заливки
                                 var color = cell.getStyle();
-                                var cellColor = null !== color && color.fill && color.fill.bg ? color.fill.bg : null;
-                                filter.filter.dxf.fill.bg = null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.rgb) : new AscCommonExcel.RgbColor(null);
+                                var cellColor = null !== color && color.fill && color.fill.bg() ? color.fill.bg() : null;
+                                filter.filter.dxf.fill.fromColor(null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.getRgb()) : null);
                             }
                         }
                     });
@@ -13906,8 +14051,7 @@
 		return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
 	};
 
-	WorksheetView.prototype._checkAddAutoFilter =
-		function (activeRange, styleName, addFormatTableOptionsObj, filterByCellContextMenu) {
+	WorksheetView.prototype._checkAddAutoFilter = function (activeRange, styleName, addFormatTableOptionsObj, filterByCellContextMenu) {
 			//write error, if not add autoFilter and return false
 			var result = true;
 			var worksheet = this.model;
@@ -13945,7 +14089,10 @@
 				result = false;
 			} else if (this.model.inPivotTable(activeRange)) {
 				result = false;
-            }
+            } else if(styleName && this.intersectionFormulaArray(activeRange, true, true)) {
+				worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
+				result = false;
+			}
 
 			return result;
 		};
@@ -14058,7 +14205,7 @@
                     case Asc.ESortBy.sortbyCellColor:
                     {
                         sortVal = Asc.c_oAscSortOptions.ByColorFill;
-                        sortColor = SortConditions.dxf && SortConditions.dxf.fill ? SortConditions.dxf.fill.bg : null;
+                        sortColor = SortConditions.dxf && SortConditions.dxf.fill ? SortConditions.dxf.fill.bg() : null;
                         break;
                     }
                     case Asc.ESortBy.sortbyFontColor:
@@ -14136,7 +14283,10 @@
         };
 
         var addFontColorsToArray = function (fontColor) {
-            var rgb = null === fontColor || fontColor && 0 === fontColor.rgb ? null : fontColor.rgb;
+            var rgb = fontColor && null !== fontColor  ? fontColor.getRgb() : null;
+            if(rgb === 0) {
+                rgb = null;
+            }
             var isDefaultFontColor = !!(null === rgb);
 
             if (true !== alreadyAddFontColors[rgb]) {
@@ -14152,7 +14302,7 @@
         };
 
         var addCellColorsToArray = function (color) {
-            var rgb = null !== color && color.fill && color.fill.bg ? color.fill.bg.rgb : null;
+            var rgb = null !== color && color.fill && color.fill.bg() ? color.fill.bg().getRgb() : null;
             var isDefaultCellColor = !!(null === rgb);
 
             if (true !== alreadyAddColors[rgb]) {
@@ -14160,7 +14310,7 @@
                     res.colors.push(null);
                     alreadyAddColors[null] = true;
                 } else {
-                    var ascColor = getAscColor(color.fill.bg);
+                    var ascColor = getAscColor(color.fill.bg());
                     res.colors.push(ascColor);
                     alreadyAddColors[rgb] = true;
                 }
@@ -15077,25 +15227,32 @@
 		//TODO вместо getRange3 нужна функция, которая может заканчивать цикл по ячейкам
 		if(!ctrlKey) {
 			//проверяем from, затрагиваем ли мы часть формулы массива
-			res = this.intersectionFormulaArray(from);
+			res = !this.intersectionFormulaArray(from);
 		}
 
 		//проверяем to, затрагиваем ли мы часть формулы массива
 		if(res) {
-			res = this.intersectionFormulaArray(to);
+			res = !this.intersectionFormulaArray(to);
 		}
 
 		return res;
 	};
 
-	WorksheetView.prototype.intersectionFormulaArray = function(range) {
-		var res = true;
+	WorksheetView.prototype.intersectionFormulaArray = function(range, notCheckContains, checkOneCellArray) {
+		//checkOneCellArray - ф/т можно добавить поверх формулы массива, которая содержит 1 ячейку, если более - то ошибка
+		//notCheckContains - ф/т нельзя добавить, если мы пересекаемся или содержим ф/т
+
+		var res = false;
 		this.model.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
 			if(cell.isFormula()) {
 				var formulaParsed = cell.getFormulaParsed();
 				var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
-				if(arrayFormulaRef && !range.containsRange(arrayFormulaRef)) {
-					res = false;
+				if(arrayFormulaRef && (!checkOneCellArray || (checkOneCellArray && !arrayFormulaRef.isOneCell()))) {
+					if(notCheckContains) {
+						res = true;
+					} else if(!notCheckContains && !range.containsRange(arrayFormulaRef)){
+						res = true;
+					}
 				}
 			}
 		});
@@ -15172,6 +15329,8 @@
 
 			History.EndTransaction();
 
+			t.changeViewPrintLines(true);
+
 			if(t.viewPrintLines) {
 				t.updateSelection();
 			}
@@ -15195,6 +15354,8 @@
 			pageOptions.pageSetup.asc_setOrientation(orientation);
 
 			History.EndTransaction();
+
+			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
 				t.updateSelection();
@@ -15224,6 +15385,8 @@
 
 			History.EndTransaction();
 
+			t.changeViewPrintLines(true);
+
 			if(t.viewPrintLines) {
 				t.updateSelection();
 			}
@@ -15243,6 +15406,7 @@
 			History.StartTransaction();
 
 			callback(val);
+			t.changeViewPrintLines(true);
 
 			History.EndTransaction();
 
@@ -15256,7 +15420,6 @@
 
 	WorksheetView.prototype.setPageOptions = function (obj) {
 		var t = this;
-		var pageOptions = t.model.PagePrintOptions;
 		var viewMode = !window["Asc"]["editor"].canEdit();
 
 		if(!obj) {
@@ -15269,6 +15432,7 @@
 			}
 
 			t.savePageOptions(obj, viewMode);
+			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
 				t.updateSelection();
@@ -15287,6 +15451,7 @@
 			History.StartTransaction();
 
 			pageOptions.asc_setOptions(obj);
+			t.changeViewPrintLines(true);
 			//window["Asc"]["editor"]._onUpdateLayoutMenu(this.model.nSheetId);
 
 			History.EndTransaction();
@@ -15322,7 +15487,9 @@
 					if(i === 0 && str !== "") {
 						str += ",";
 					}
-					str += parserHelp.get3DRef(t.model.getName(), (mc || ranges[i]).getAbsName());
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						str += parserHelp.get3DRef(t.model.getName(), (mc || ranges[i]).getAbsName());
+					});
 					if(i !== ranges.length - 1) {
 						str += ",";
 					}
@@ -15343,7 +15510,7 @@
 					oldScope = oldDefName ? oldDefName.asc_getScope() : t.model.index;
 					newRef = getRangesStr(t.model.selectionRange.ranges);
 					newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
-					t.viewPrintLines = true;
+					t.changeViewPrintLines(true);
 					wb.editDefinedNames(oldDefName, newDefName);
 
 					break;
@@ -15362,7 +15529,7 @@
 						oldRef = oldDefName.asc_getRef();
 						newRef = getRangesStr(t.model.selectionRange.ranges, oldRef);
 						newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
-						t.viewPrintLines = true;
+						t.changeViewPrintLines(true);
 						wb.editDefinedNames(oldDefName, newDefName);
 					}
 
@@ -15382,23 +15549,32 @@
 			res = true;
 			var selection = this.model.selectionRange.ranges;
 
-			var ref = printArea.ref;
-			var areaRefsArr = ref.split(",");
-			if(areaRefsArr.length) {
-				for(var i = 0; i < areaRefsArr.length; i++) {
-					var range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) || AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
-					for(var j = 0; j < selection.length; j++) {
-						if(selection[j].intersection(range)) {
-							return false;
-						}
-					}
-				}
-			}
-		}
+            var ref = printArea.ref;
+            var areaRefsArr = ref.split(",");
+            if(areaRefsArr.length) {
+                for(var i = 0; i < areaRefsArr.length; i++) {
+					var range;
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) || AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					});
+
+                    for(var j = 0; j < selection.length; j++) {
+                        if(selection[j].intersection(range)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
 
 		return res;
 	};
 
+	WorksheetView.prototype.changeViewPrintLines = function (val) {
+		this.viewPrintLines = val;
+	};
+
+    //------------------------------------------------------------export---------------------------------------------------
 	function HeaderFooterField(val) {
 		this.field = val;
 	}

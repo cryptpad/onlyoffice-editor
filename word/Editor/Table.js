@@ -9389,7 +9389,7 @@ CTable.prototype.AddTableRow = function(bBefore, isCheckInnerTable)
 				{
 					var oTempPara = arrAllParagraphs[nParaIndex];
 					oTempPara.SetDirectParaPr(oFirstPara.GetDirectParaPr(true));
-					oTempPara.SetDirectTextPr(oFirstPara.Get_FirstRunPr(), false);
+					oTempPara.SetDirectTextPr(oFirstPara.GetFirstRunPr(), false);
 				}
 			}
 
@@ -9916,7 +9916,7 @@ CTable.prototype.AddTableColumn = function(bBefore)
 
 				// Скопируем текстовые настройки
 				var FirstPara = NextCell.Content.Get_FirstParagraph();
-				var TextPr    = FirstPara.Get_FirstRunPr();
+				var TextPr    = FirstPara.GetFirstRunPr();
 				NewCell.Content.Set_ApplyToAll(true);
 
 				// Добавляем стиль во все параграфы
@@ -9998,7 +9998,7 @@ CTable.prototype.AddTableColumn = function(bBefore)
 
 				// Скопируем текстовые настройки
 				var FirstPara = NextCell.Content.Get_FirstParagraph();
-				var TextPr    = FirstPara.Get_FirstRunPr();
+				var TextPr    = FirstPara.GetFirstRunPr();
 				NewCell.Content.Set_ApplyToAll(true);
 
 				// Добавляем стиль во все параграфы

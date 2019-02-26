@@ -285,65 +285,60 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 {
     var bResult = false;
 
-    this.RemoveSelection();
+    var oState = this.SaveDocumentState();
 
-    var CheckParagraphs = [];
-    if ( true === bAll )
-    {
-        var CheckParagraphsObj = {};
-        for (var Id in this.SearchEngine.Elements)
-        {
-            CheckParagraphsObj[this.SearchEngine.Elements[Id].Get_Id()] = this.SearchEngine.Elements[Id];
-        }
+    var arrReplaceId = [];
+    if (bAll)
+	{
+		if (this.StartSelectionLockCheck())
+		{
+			for (var sElementId in this.SearchEngine.Elements)
+			{
+				this.Search_Select(sElementId);
+				if (!this.ProcessSelectionLockCheck(AscCommon.changestype_Paragraph_Content, true))
+					arrReplaceId.push(sElementId);
+			}
 
-        for (var ParaId in CheckParagraphsObj)
-        {
-            CheckParagraphs.push(CheckParagraphsObj[ParaId]);
-        }
-    }
-    else
-    {
-        if ( undefined !== this.SearchEngine.Elements[Id] )
-            CheckParagraphs.push( this.SearchEngine.Elements[Id] );
-    }
+			if (this.EndSelectionLockCheck())
+				arrReplaceId.length = 0;
+		}
+	}
+	else
+	{
+		this.Search_Select(Id);
 
-    var AllCount = this.SearchEngine.Count;
+		if (this.StartSelectionLockCheck())
+		{
+			this.ProcessSelectionLockCheck(AscCommon.changestype_Paragraph_Content);
+			if (!this.EndSelectionLockCheck())
+				arrReplaceId.push(Id);
+		}
+	}
 
-    if ( false === this.Document_Is_SelectionLocked( AscCommon.changestype_None, { Type : AscCommon.changestype_2_ElementsArray_and_Type, Elements : CheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content } ) )
-    {
-        AscCommon.History.Create_NewPoint(bAll ? AscDFH.historydescription_Document_ReplaceAll : AscDFH.historydescription_Document_ReplaceSingle);
+	var nOverallCount  = this.SearchEngine.Count;
+	var nReplacedCount = arrReplaceId.length;
 
-        if (true === bAll)
-        {
-            this.SearchEngine.Replace_All(NewStr, true);
-        }
-        else
-        {
-            this.SearchEngine.Replace(NewStr, Id, false);
+	if (nReplacedCount > 0)
+	{
+		this.History.Create_NewPoint(bAll ? AscDFH.historydescription_Document_ReplaceAll : AscDFH.historydescription_Document_ReplaceSingle);
 
-            // TODO: В будушем надо будет переделать, чтобы искалось заново только в том параграфе, в котором произошла замена
-            //       Тут появляется проблема с вложенным поиском, если то что мы заменяем содержится в том, на что мы заменяем.
-            if (true === this.Is_TrackRevisions())
-                this.SearchEngine.Reset();
-        }
+		for (var nIndex = 0; nIndex < nReplacedCount; ++nIndex)
+		{
+			this.SearchEngine.Replace(NewStr, arrReplaceId[nIndex], false);
+		}
 
-        this.SearchEngine.ClearOnRecalc = false;
-        var bOldClear = this.bC
-        this.Recalculate();
-        this.SearchEngine.ClearOnRecalc = true;
+		this.SearchEngine.ClearOnRecalc = false;
+		this.Recalculate();
+		this.SearchEngine.ClearOnRecalc = true;
+	}
 
-        this.RecalculateCurPos();
+	if (bAll && !bInterfaceEvent)
+		this.Api.sync_ReplaceAllCallback(nReplacedCount, nOverallCount);
 
-        bResult = true;
+	if (nReplacedCount)
+		bResult = true;
 
-		if (true === bAll && false !== bInterfaceEvent)
-			editor.sync_ReplaceAllCallback(AllCount, AllCount);
-    }
-    else
-    {
-		if (true === bAll && false !== bInterfaceEvent)
-			editor.sync_ReplaceAllCallback(0, AllCount);
-    }
+	this.LoadDocumentState(oState);
 
     this.Document_UpdateInterfaceState();
     this.Document_UpdateSelectionState();

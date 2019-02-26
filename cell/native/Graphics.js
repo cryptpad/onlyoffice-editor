@@ -53,7 +53,6 @@ function CGraphics()
     this.m_oAutoShapesTrack = null;
 
     this.m_oFontManager = null;
-    this.m_bIsFillTextCanvasColor = 0;
 
     this.m_oCoordTransform  = new AscCommon.CMatrixL();
     this.m_oBaseTransform   = new AscCommon.CMatrixL();
@@ -94,8 +93,6 @@ function CGraphics()
 
     this.TextClipRect = null;
     this.IsClipContext = false;
-
-    this.ClearMode = false;
 
     this.IsUseFonts2        = false;
     this.m_oFontManager2    = null;
@@ -240,8 +237,6 @@ CGraphics.prototype =
         _c.A = a;
 
         this.Native["PD_b_color1"](r,g,b,a);
-
-        this.m_bIsFillTextCanvasColor = 0;
     },
     b_color2 : function(r,g,b,a)
     {

@@ -1296,6 +1296,21 @@
 			case c_oAscFileType.MOBI:
 				return 'mobi';
 				break;
+			case c_oAscFileType.DOCM:
+				return 'docm';
+				break;
+			case c_oAscFileType.DOTX:
+				return 'dotx';
+				break;
+			case c_oAscFileType.DOTM:
+				return 'dotm';
+				break;
+			case c_oAscFileType.FODT:
+				return 'fodt';
+				break;
+			case c_oAscFileType.OTT:
+				return 'ott';
+				break;
 			case c_oAscFileType.DOCY:
 				return 'doct';
 				break;
@@ -1318,6 +1333,21 @@
 			case c_oAscFileType.CSV:
 				return 'csv';
 				break;
+			case c_oAscFileType.XLSM:
+				return 'xlsm';
+				break;
+			case c_oAscFileType.XLTX:
+				return 'xltx';
+				break;
+			case c_oAscFileType.XLTM:
+				return 'xltm';
+				break;
+			case c_oAscFileType.FODS:
+				return 'fods';
+				break;
+			case c_oAscFileType.OTS:
+				return 'ots';
+				break;
 			case c_oAscFileType.XLSY:
 				return 'xlst';
 				break;
@@ -1330,6 +1360,27 @@
 				break;
 			case c_oAscFileType.ODP:
 				return 'odp';
+				break;
+			case c_oAscFileType.PPSX:
+				return 'ppsx';
+				break;
+			case c_oAscFileType.PPTM:
+				return 'pptm';
+				break;
+			case c_oAscFileType.PPSM:
+				return 'ppsm';
+				break;
+			case c_oAscFileType.POTX:
+				return 'potx';
+				break;
+			case c_oAscFileType.POTM:
+				return 'potm';
+				break;
+			case c_oAscFileType.FODP:
+				return 'fodp';
+				break;
+			case c_oAscFileType.OTP:
+				return 'otp';
 				break;
 		}
 		return '';
@@ -2668,8 +2719,11 @@
 			else if (Asc.c_oAscSelectionDialogType.FormatTable === dialogType)
 			{
 				// ToDo убрать эту проверку, заменить на более грамотную после правки функции _searchFilters
-				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(range))
+				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(range)) {
 					return Asc.c_oAscError.ID.AutoFilterDataRangeError;
+				} else if (wb.getWorksheet().intersectionFormulaArray(range, true, true)) {
+					return Asc.c_oAscError.ID.MultiCellsInTablesFormulaArray;
+				}
 			}
 			else if (Asc.c_oAscSelectionDialogType.FormatTableChangeRange === dialogType)
 			{

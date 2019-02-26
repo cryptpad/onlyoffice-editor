@@ -1183,7 +1183,7 @@ Slide.prototype =
         if(this.showMasterSp === true || (!(this.showMasterSp === false) && (this.Layout.showMasterSp == undefined || this.Layout.showMasterSp)))
         {
             if (graphics.IsSlideBoundsCheckerType === undefined)
-                this.Layout.Master.draw(graphics);
+                this.Layout.Master.draw(graphics, this);
             else if(graphics.IsSlideBoundsCheckerType){
                 _bounds =  this.Layout.Master.bounds;
                 graphics.rect(_bounds.l, _bounds.t, _bounds.w, _bounds.h);
@@ -1193,7 +1193,7 @@ Slide.prototype =
         if(this.showMasterSp !== false)
         {
             if (graphics && graphics.IsSlideBoundsCheckerType === undefined)
-                this.Layout.draw(graphics);
+                this.Layout.draw(graphics, this);
             else{
                 _bounds =  this.Layout.bounds;
                 graphics.rect(_bounds.l, _bounds.t, _bounds.w, _bounds.h);

@@ -348,7 +348,9 @@ DrawingObjectsController.prototype.handleChartDoubleClick = function()
         oThis.changeCurrentState(new AscFormat.NullState(this));
         drawingObjects.showChartSettings();
     }, []);
-}
+};
+
+
 DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing, oleObject, e, x, y, pageIndex)
 {
     var drawingObjects = this.drawingObjects;

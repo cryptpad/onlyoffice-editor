@@ -513,7 +513,9 @@ CBlockLevelSdt.prototype.Is_Empty = function()
 };
 CBlockLevelSdt.prototype.Add = function(oParaItem)
 {
-	this.private_ReplacePlaceHolderWithContent();
+	if (oParaItem && oParaItem.Type !== para_TextPr)
+		this.private_ReplacePlaceHolderWithContent();
+
 	return this.Content.AddToParagraph(oParaItem);
 };
 CBlockLevelSdt.prototype.PreDelete = function()
@@ -1429,10 +1431,24 @@ CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 	if (!this.IsPlaceHolder())
 		return;
 
+	var oTextPr = null;
+	if (this.Content.GetElementsCount() && this.Content.GetElement(0).IsParagraph())
+	{
+		this.Content.GetElement(0).MoveCursorToStartPos();
+		oTextPr = this.Content.GetElement(0).GetFirstRunPr();
+	}
+
 	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
 
 	var oParagraph = new Paragraph(this.LogicDocument ? this.LogicDocument.GetDrawingDocument() : null, this.Content, false);
 	oParagraph.Correct_Content();
+
+	if (oTextPr)
+	{
+		oParagraph.SelectAll();
+		oParagraph.ApplyTextPr(oTextPr);
+		oParagraph.RemoveSelection();
+	}
 
 	this.Content.AddToContent(0, oParagraph);
 	this.Content.RemoveSelection();
@@ -1460,6 +1476,10 @@ CBlockLevelSdt.prototype.GetAllFields = function(isUseSelection, arrFields)
 		return arrFields ? arrFields : [];
 
 	return this.Content.GetAllFields(isUseSelection, arrFields);
+};
+CBlockLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
+{
+	return this.private_ReplacePlaceHolderWithContent();
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

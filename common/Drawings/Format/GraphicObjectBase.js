@@ -381,6 +381,7 @@
 
         this.selected = false;
 
+        this.cropObject = null;
         this.Lock = new AscCommon.CLock();
         this.setRecalculateInfo();
     }
@@ -1067,9 +1068,13 @@
     };
     CGraphicObjectBase.prototype.getConnectionParams = function(cnxIdx, _group)
     {
-        if(this.recalculateTransform){
-            this.recalculateTransform();
-        }
+        AscFormat.ExecuteNoHistory(
+            function(){
+                if(this.recalculateTransform){
+                    this.recalculateTransform();
+                }
+            }, this, []
+        );
         if(cnxIdx !== null){
             var oConnectionObject = this.getGeom().cnxLst[cnxIdx];
             if(oConnectionObject){
@@ -1333,6 +1338,193 @@
         return null;
     };
 
+    CGraphicObjectBase.prototype.getBlipFill = function(){
+        if(this.getObjectType() === AscDFH.historyitem_type_ImageShape || this.getObjectType() === AscDFH.historyitem_type_Shape){
+            if(this.blipFill){
+                return this.blipFill;
+            }
+            if(this.brush && this.brush.fill && this.brush.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_BLIP){
+                return this.brush.fill;
+            }
+        }
+        return null;
+    };
+
+    CGraphicObjectBase.prototype.checkSrcRect = function(){
+
+        if(this.getObjectType() === AscDFH.historyitem_type_ImageShape){
+            if(this.blipFill.tile || !this.blipFill.srcRect || this.blipFill.stretch){
+
+                var blipFill = this.blipFill.createDuplicate();
+                if(blipFill.tile){
+                    blipFill.tile = null;
+                }
+                if(!blipFill.srcRect){
+                    blipFill.srcRect = new AscFormat.CSrcRect();
+                    blipFill.srcRect.l = 0;
+                    blipFill.srcRect.t = 0;
+                    blipFill.srcRect.r = 100;
+                    blipFill.srcRect.b = 100;
+                }
+                if(blipFill.stretch){
+                    blipFill.stretch = null;
+                }
+                this.setBlipFill(blipFill);
+            }
+        }
+        else{
+            if(this.brush.fill.tile || !this.brush.fill.srcRect || this.brush.fill.stretch){
+                var brush = this.brush.createDuplicate();
+                if(brush.fill.tile){
+                    brush.fill.tile = null;
+                }
+                if(!brush.fill.srcRect){
+                    brush.fill.srcRect = new AscFormat.CSrcRect();
+                    brush.fill.srcRect.l = 0;
+                    brush.fill.srcRect.t = 0;
+                    brush.fill.srcRect.r = 100;
+                    brush.fill.srcRect.b = 100;
+                }
+                if(brush.fill.stretch){
+                    brush.fill.stretch = null;
+                }
+                this.brush = brush;
+                this.spPr.setFill(brush);
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.getCropObject = function(){
+        if(!this.cropObject){
+            this.createCropObject();
+        }
+        return this.cropObject;
+    };
+    CGraphicObjectBase.prototype.createCropObject = function(){
+        return AscFormat.ExecuteNoHistory(function () {
+            var oBlipFill = this.getBlipFill();
+            if(!oBlipFill){
+                return;
+            }
+            var srcRect = oBlipFill.srcRect;
+            if(srcRect)
+            {
+                var sRasterImageId = oBlipFill.RasterImageId;
+                var _l = srcRect.l ? srcRect.l : 0;
+                var _t = srcRect.t ? srcRect.t : 0;
+                var _r = srcRect.r ? srcRect.r : 100;
+                var _b = srcRect.b ? srcRect.b : 100;
+                var oShapeDrawer = new AscCommon.CShapeDrawer();
+                oShapeDrawer.bIsCheckBounds = true;
+                this.check_bounds(oShapeDrawer);
+                var boundsW = oShapeDrawer.max_x - oShapeDrawer.min_x;
+                var boundsH = oShapeDrawer.max_y - oShapeDrawer.min_y;
+                var wpct = (_r - _l)/100.0;
+                var hpct = (_b - _t)/100.0;
+                var extX = boundsW/wpct;
+                var extY = boundsH/hpct;
+                var DX = -extX*_l/100.0 + oShapeDrawer.min_x;
+                var DY = -extY*_t/100.0 + oShapeDrawer.min_y;
+                var XC = DX + extX/2.0;
+                var YC = DY + extY/2.0;
+
+                var oTransform = this.transform.CreateDublicate();
+                if(this.group)
+                {
+                    AscCommon.global_MatrixTransformer.MultiplyAppend(oTransform, this.group.invertTransform);
+                }
+
+                var XC_ = oTransform.TransformPointX(XC, YC);
+                var YC_ = oTransform.TransformPointY(XC, YC);
+
+                var X = XC_ - extX/2.0;
+                var Y = YC_ - extY/2.0;
+
+                var oImage = AscFormat.DrawingObjectsController.prototype.createImage(sRasterImageId, X, Y, extX, extY);
+                oImage.isCrop = true;
+                oImage.parentCrop = this;
+                oImage.worksheet = this.worksheet;
+                oImage.drawingBase = this.drawingBase;
+                oImage.spPr.xfrm.setRot(this.rot);
+                oImage.spPr.xfrm.setFlipH(this.flipH);
+                oImage.spPr.xfrm.setFlipV(this.flipV);
+                oImage.setGroup(this.group);
+
+
+                oImage.setParent(this.parent);
+                oImage.recalculate();
+                oImage.setParent(null);
+                oImage.recalculateTransform();
+                oImage.recalculateGeometry();
+                oImage.invertTransform = AscCommon.global_MatrixTransformer.Invert(oImage.transform);
+                oImage.recalculateBounds();
+                oImage.setParent(this.parent);
+                oImage.selectStartPage = this.selectStartPage;
+                oImage.cropBrush = AscFormat.CreateUnfilFromRGB(128, 128, 128);
+                oImage.cropBrush.transparent = 100;
+                oImage.pen = AscFormat.CreatePenBrushForChartTrack().pen;
+                oImage.parent = this.parent;
+                var oParentObjects = this.getParentObjects();
+                oImage.cropBrush.calculate(oParentObjects.theme, oParentObjects.slide, oParentObjects.layout, oParentObjects.master, {R:0, G:0, B:0, A:255, needRecalc: true}, AscFormat.G_O_DEFAULT_COLOR_MAP);
+                this.cropObject = oImage;
+                return true;
+            }
+            return false;
+        }, this, []);
+    };
+
+    CGraphicObjectBase.prototype.clearCropObject = function(){
+        this.cropObject = null;
+    };
+
+    CGraphicObjectBase.prototype.drawCropTrack = function(graphics, srcRect, transform, cropObjectTransform){
+
+    };
+
+    CGraphicObjectBase.prototype.calculateSrcRect = function(){
+
+        var oldTransform = this.transform.CreateDublicate();
+        var oldExtX = this.extX;
+        var oldExtY = this.extY;
+        AscFormat.ExecuteNoHistory(function(){
+            // this.cropObject.recalculateTransform();
+            // this.recalculateTransform();
+            var oldVal = this.recalcInfo.recalculateTransform;
+            this.recalcInfo.recalculateTransform = false;
+            this.recalculateGeometry();
+            this.recalcInfo.recalculateTransform = oldVal;
+        }, this, []);
+        this.transform = oldTransform;
+        this.extX = oldExtX;
+        this.extY = oldExtY;
+        this.setSrcRect(this.calculateSrcRect2());
+        this.clearCropObject();
+    };
+
+
+    CGraphicObjectBase.prototype.setSrcRect = function(srcRect){
+
+        if(this.getObjectType() === AscDFH.historyitem_type_ImageShape)
+        {
+            var blipFill = this.blipFill.createDuplicate();
+            blipFill.srcRect = srcRect;
+            this.setBlipFill(blipFill);
+        }
+        else
+        {
+            var brush = this.brush.createDuplicate();
+            brush.fill.srcRect = srcRect;
+            this.spPr.setFill(brush);
+        }
+    };
+
+    CGraphicObjectBase.prototype.calculateSrcRect2 = function(){
+
+        var oShapeDrawer = new AscCommon.CShapeDrawer();
+        oShapeDrawer.bIsCheckBounds = true;
+        this.check_bounds(oShapeDrawer);
+        return  CalculateSrcRect(this.transform, oShapeDrawer, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
+    };
+
 
 
     CGraphicObjectBase.prototype.updatePosition = function(x, y) {
@@ -1518,6 +1710,25 @@
     };
 
 
+    function CalculateSrcRect(parentCropTransform, bounds, oInvertTransformCrop, cropExtX, cropExtY){
+        var lt_x_abs = parentCropTransform.TransformPointX(bounds.min_x, bounds.min_y);
+        var lt_y_abs = parentCropTransform.TransformPointY(bounds.min_x, bounds.min_y);
+        var rb_x_abs = parentCropTransform.TransformPointX(bounds.max_x, bounds.max_y);
+        var rb_y_abs = parentCropTransform.TransformPointY(bounds.max_x, bounds.max_y);
+
+        var lt_x_rel = oInvertTransformCrop.TransformPointX(lt_x_abs, lt_y_abs);
+        var lt_y_rel = oInvertTransformCrop.TransformPointY(lt_x_abs, lt_y_abs);
+        var rb_x_rel = oInvertTransformCrop.TransformPointX(rb_x_abs, rb_y_abs);
+        var rb_y_rel = oInvertTransformCrop.TransformPointY(rb_x_abs, rb_y_abs);
+        var srcRect = new AscFormat.CSrcRect();
+        srcRect.l = (100*lt_x_rel / cropExtX);
+        srcRect.t = (100*lt_y_rel / cropExtY);
+        srcRect.r = (100*rb_x_rel / cropExtX);
+        srcRect.b = (100*rb_y_rel / cropExtY);
+        return srcRect;
+    }
+
+
     AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorFromX]  = function(oClass, value){oClass.fromX =  value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorFromY]  = function(oClass, value){oClass.fromY =  value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorExtX]    = function(oClass, value){oClass.toX =  value;};
@@ -1540,5 +1751,6 @@
     window['AscFormat'].normalizeRotate    = normalizeRotate;
     window['AscFormat'].CRelSizeAnchor    = CRelSizeAnchor;
     window['AscFormat'].CAbsSizeAnchor    = CAbsSizeAnchor;
+    window['AscFormat'].CalculateSrcRect    = CalculateSrcRect;
     window['AscFormat'].LOCKS_MASKS        = LOCKS_MASKS;
 })(window);

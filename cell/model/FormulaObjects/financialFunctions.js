@@ -5247,6 +5247,10 @@
 		factor = factor.getValue();
 		flag = flag.getValue();
 
+		if (life === 0 && startPeriod === 0 && endPeriod === 0) {
+			return new cError(cErrorType.division_by_zero);
+		}
+
 		if (cost < salvage || life < 0 || startPeriod < 0 || life < startPeriod || startPeriod > endPeriod ||
 			life < endPeriod || factor < 0) {
 			return new cError(cErrorType.not_numeric);

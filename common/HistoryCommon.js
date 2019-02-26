@@ -2473,6 +2473,8 @@
 	window['AscDFH'].historyitem_ImageShapeSetApplicationId = window['AscDFH'].historyitem_type_ImageShape | 8;
 	window['AscDFH'].historyitem_ImageShapeSetPixSizes      = window['AscDFH'].historyitem_type_ImageShape | 9;
 	window['AscDFH'].historyitem_ImageShapeSetObjectFile	= window['AscDFH'].historyitem_type_ImageShape | 10;
+	window['AscDFH'].historyitem_ImageShapeSetOleType   	= window['AscDFH'].historyitem_type_ImageShape | 11;
+	window['AscDFH'].historyitem_ImageShapeSetBinaryData   	= window['AscDFH'].historyitem_type_ImageShape | 12;
 
 	window['AscDFH'].historyitem_GeometrySetParent      = window['AscDFH'].historyitem_type_Geometry | 1;
 	window['AscDFH'].historyitem_GeometryAddAdj         = window['AscDFH'].historyitem_type_Geometry | 2;
@@ -3191,6 +3193,10 @@
 	{
 		return false;
 	};
+	CChangesBase.prototype.IsNeedRecalculate = function()
+	{
+		return true;
+	};
 	window['AscDFH'].CChangesBase = CChangesBase;
 	/**
 	 * Базовый класс для изменений, которые меняют содержимое родительского класса.*
@@ -3208,6 +3214,22 @@
 		this.Add      = isAdd;
 
 		this.Reverted = false;
+
+		if (Class && Pos && Items)
+		{
+			if (isAdd)
+			{
+				for (var nIndex = 0, nCount = Items.length; nIndex < nCount; ++nIndex)
+				{
+					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(Class, Pos + nIndex);
+				}
+			}
+			else
+			{
+				if (Items.length > 0)
+					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(Class, Pos, Items.length);
+			}
+		}
 	}
 
 	CChangesBaseContentChange.prototype = Object.create(CChangesBase.prototype);

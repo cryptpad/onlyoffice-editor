@@ -685,7 +685,7 @@ var editor;
       var codePageCsv = AscCommon.c_oAscEncodingsMap[this.documentOpenOptions["codePage"]] || AscCommon.c_oAscCodePageUtf8, delimiterCsv = this.documentOpenOptions["delimiter"],
 		  delimiterCharCsv = this.documentOpenOptions["delimiterChar"];
       if (null != codePageCsv && (null != delimiterCsv || null != delimiterCharCsv)) {
-        this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.CSV, new asc.asc_CCSVAdvancedOptions(codePageCsv, delimiterCsv));
+        this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.CSV, new asc.asc_CCSVAdvancedOptions(codePageCsv, delimiterCsv, delimiterCharCsv));
         return;
       }
     }
@@ -2539,6 +2539,53 @@ var editor;
     var ws = this.wb.getWorksheet();
     return ws.objectRender.setGraphicObjectAlign(alignType);
   };
+  spreadsheet_api.prototype.asc_DistributeSelectedDrawingObjectHor = function() {
+      var ws = this.wb.getWorksheet();
+      return ws.objectRender.distributeGraphicObjectHor();
+  };
+
+  spreadsheet_api.prototype.asc_DistributeSelectedDrawingObjectVer = function() {
+      var ws = this.wb.getWorksheet();
+      return ws.objectRender.distributeGraphicObjectVer();
+  };
+
+  spreadsheet_api.prototype.asc_getSelectedDrawingObjectsCount = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.getSelectedDrawingObjectsCount();
+  };
+
+
+  spreadsheet_api.prototype.asc_canEditCrop = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.canStartImageCrop();
+  };
+
+  spreadsheet_api.prototype.asc_startEditCrop = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.startImageCrop();
+  };
+
+  spreadsheet_api.prototype.asc_endEditCrop = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.endImageCrop();
+  };
+
+  spreadsheet_api.prototype.asc_cropFit = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.cropFit();
+  };
+
+  spreadsheet_api.prototype.asc_cropFill = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.cropFill();
+  };
+
 
   spreadsheet_api.prototype.asc_addTextArt = function(nStyle) {
     var ws = this.wb.getWorksheet();
@@ -3770,7 +3817,10 @@ var editor;
   prot["asc_addImageDrawingObject"] = prot.asc_addImageDrawingObject;
   prot["asc_setSelectedDrawingObjectLayer"] = prot.asc_setSelectedDrawingObjectLayer;
   prot["asc_setSelectedDrawingObjectAlign"] = prot.asc_setSelectedDrawingObjectAlign;
-  prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
+  prot["asc_DistributeSelectedDrawingObjectHor"] = prot.asc_DistributeSelectedDrawingObjectHor;
+  prot["asc_DistributeSelectedDrawingObjectVer"] = prot.asc_DistributeSelectedDrawingObjectVer;
+  prot["asc_getSelectedDrawingObjectsCount"] = prot.asc_getSelectedDrawingObjectsCount;
+    prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
   prot["asc_getTextArtPreviews"] = prot.asc_getTextArtPreviews;
   prot['asc_getPropertyEditorShapes'] = prot.asc_getPropertyEditorShapes;
   prot['asc_getPropertyEditorTextArts'] = prot.asc_getPropertyEditorTextArts;
@@ -3816,6 +3866,11 @@ var editor;
   prot["asc_changeImageFromFile"] = prot.asc_changeImageFromFile;
   prot["asc_putPrLineSpacing"] = prot.asc_putPrLineSpacing;
   prot["asc_addTextArt"] = prot.asc_addTextArt;
+  prot["asc_canEditCrop"] = prot.asc_canEditCrop;
+  prot["asc_startEditCrop"] = prot.asc_startEditCrop;
+  prot["asc_endEditCrop"] = prot.asc_endEditCrop;
+  prot["asc_cropFit"] = prot.asc_cropFit;
+  prot["asc_cropFill"] = prot.asc_cropFill;
   prot["asc_putLineSpacingBeforeAfter"] = prot.asc_putLineSpacingBeforeAfter;
   prot["asc_setDrawImagePlaceParagraph"] = prot.asc_setDrawImagePlaceParagraph;
   prot["asc_changeShapeImageFromFile"] = prot.asc_changeShapeImageFromFile;

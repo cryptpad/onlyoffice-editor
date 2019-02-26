@@ -66,6 +66,11 @@
 		EPUB : 0x0048,
 		FB2  : 0x0049,
 		MOBI : 0x004a,
+		DOCM : 0x004b,
+		DOTX : 0x004c,
+		DOTM : 0x004d,
+		FODT : 0x004e,
+		OTT  : 0x004f,
 		DOCY : 0x1001,
 		CANVAS_WORD : 0x2001,
 		JSON : 0x0808,	// Для mail-merge
@@ -75,12 +80,24 @@
 		XLS  : 0x0102,
 		ODS  : 0x0103,
 		CSV  : 0x0104,
+		XLSM : 0x0105,
+		XLTX : 0x0106,
+		XLTM : 0x0107,
+		FODS : 0x0108,
+		OTS  : 0x0109,
 		XLSY : 0x1002,
 
 		// PowerPoint
 		PPTX : 0x0081,
 		PPT  : 0x0082,
-		ODP  : 0x0083
+		ODP  : 0x0083,
+		PPSX : 0x0084,
+		PPTM : 0x0085,
+		PPSM : 0x0086,
+		POTX : 0x0087,
+		POTM : 0x0088,
+		FODP : 0x0089,
+		OTP  : 0x008a
 	};
 
 	var c_oAscError = {
@@ -186,6 +203,7 @@
             DataEncrypted : -600,
 
 			CannotChangeFormulaArray: -450,
+			MultiCellsInTablesFormulaArray: -451,
 		}
 	};
 
@@ -1431,7 +1449,9 @@
 
 	var c_oAscObjectsAlignType = {
 		Selected: 0,
-		Slide: 1
+		Slide: 1,
+		Page: 2,
+		Margin: 3
 	};
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
@@ -1459,16 +1479,33 @@
 	prot['EPUB']                 = prot.EPUB;
 	prot['FB2']                  = prot.FB2;
 	prot['MOBI']                 = prot.MOBI;
+	prot['DOCM']                 = prot.DOCM;
+	prot['DOTX']                 = prot.DOTX;
+	prot['DOTM']                 = prot.DOTM;
+	prot['FODT']                 = prot.FODT;
+	prot['OTT']                  = prot.OTT;
 	prot['DOCY']                 = prot.DOCY;
 	prot['JSON']                 = prot.JSON;
 	prot['XLSX']                 = prot.XLSX;
 	prot['XLS']                  = prot.XLS;
 	prot['ODS']                  = prot.ODS;
 	prot['CSV']                  = prot.CSV;
+	prot['XLSM']                 = prot.XLSM;
+	prot['XLTX']                 = prot.XLTX;
+	prot['XLTM']                 = prot.XLTM;
+	prot['FODS']                 = prot.FODS;
+	prot['OTS']                  = prot.OTS;
 	prot['XLSY']                 = prot.XLSY;
 	prot['PPTX']                 = prot.PPTX;
 	prot['PPT']                  = prot.PPT;
 	prot['ODP']                  = prot.ODP;
+	prot['PPSX']                 = prot.PPSX;
+	prot['PPTM']                 = prot.PPTM;
+	prot['PPSM']                 = prot.PPSM;
+	prot['POTX']                 = prot.POTX;
+	prot['POTM']                 = prot.POTM;
+	prot['FODP']                 = prot.FODP;
+	prot['OTP']                  = prot.OTP;
 	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
 	prot                                     = c_oAscError;
 	prot['Level']                            = prot.Level;
@@ -2141,6 +2178,13 @@
 	window['AscCommon']['align_Left'] = window['AscCommon'].align_Left = align_Left;
 	window['AscCommon']['align_Center'] = window['AscCommon'].align_Center = align_Center;
 	window['AscCommon']['align_Justify'] = window['AscCommon'].align_Justify = align_Justify;
+
+
+	window["AscCommon"]["c_oAscFormatPainterState"]    = c_oAscFormatPainterState;
+	c_oAscFormatPainterState["kOff"] = c_oAscFormatPainterState.kOff;
+	c_oAscFormatPainterState["kOn"] = c_oAscFormatPainterState.kOn;
+	c_oAscFormatPainterState["kMultiple"] = c_oAscFormatPainterState.kMultiple;
+
 	
 	window['Asc']['c_oSpecialPasteProps'] = window['Asc'].c_oSpecialPasteProps = c_oSpecialPasteProps;
 	prot = c_oSpecialPasteProps;

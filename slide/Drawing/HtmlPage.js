@@ -2462,6 +2462,9 @@ function CEditorPage(api)
 				return;
 		}
 
+		if (global_mouseEvent.IsLocked)
+			return;
+
 		if (oThis.DemonstrationManager.Mode)
 		{
 			if (e.preventDefault)
@@ -3585,6 +3588,9 @@ function CEditorPage(api)
 
 		if (this.m_bDocumentPlaceChangedEnabled)
 			this.m_oApi.sendEvent("asc_onDocumentPlaceChanged");
+
+		// remove media
+		this.m_oApi.hideVideoControl();
 	};
 
 	this.OnPaint = function()

@@ -911,7 +911,7 @@
 							td.style.borderTop = makeBorder(b.t);
 
 
-							b = cell.getFill();
+							b = cell.getFillColor();
 							// если b==0 мы не зайдем в if, хотя b==0 это ни что иное, как черный цвет заливки.
 							if (b != null) {
 								td.style.backgroundColor = number2color(b.getRgb());
@@ -3019,7 +3019,14 @@
 				{
 					for(var j = 0; j < paragraph.Content.length; j++)
 					{
-						res += paragraph.Content[j].GetSelectedText(true)
+						if(para_Math === paragraph.Content[j].GetType() && paragraph.Content[j].Root) {
+							var mathTextContent = paragraph.Content[j].Root.GetTextContent();
+							if(mathTextContent) {
+								res += mathTextContent.str;
+							}
+						} else {
+							res += paragraph.Content[j].GetSelectedText(true);
+						}
 					}
 				};
 				

@@ -3142,96 +3142,6 @@ function OfflineEditor () {
     
     this.beforeOpen = function() {
         
-        var offlineEditor = this;
-        
-        function __selectDrawingObjectRange(drawing, worksheet) {
-            worksheet.cleanSelection();
-            worksheet.endEditChart();
-            
-            if(!drawing.bbox || drawing.bbox.worksheet !== worksheet.model)
-                return;
-            
-            var BB = drawing.bbox.seriesBBox;
-            var range = window["Asc"].Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
-            
-            worksheet.setChartRange(range);
-            worksheet._drawSelection();
-        }
-        
-        window['AscFormat'].DrawingArea.prototype.drawSelection = function(drawingDocument) {
-            
-            AscCommon.g_oTextMeasurer.Flush();
-            
-            var canvas = this.worksheet.objectRender.getDrawingCanvas();
-            var shapeCtx = canvas.shapeCtx;
-            var shapeOverlayCtx = canvas.shapeOverlayCtx;
-            var autoShapeTrack = canvas.autoShapeTrack;
-            var trackOverlay = canvas.trackOverlay;
-            
-            var ctx = trackOverlay.m_oContext;
-            trackOverlay.Clear();
-            drawingDocument.Overlay = trackOverlay;
-            
-            this.worksheet.overlayCtx.clear();
-            this.worksheet.overlayGraphicCtx.clear();
-            this.worksheet._drawCollaborativeElements(autoShapeTrack);
-            
-            if (!this.worksheet.objectRender.controller.selectedObjects.length && !this.api.isStartAddShape)
-                this.worksheet._drawSelection();
-            
-            var chart;
-            var controller = this.worksheet.objectRender.controller;
-            var selected_objects = controller.selection.groupSelection ? controller.selection.groupSelection.selectedObjects : controller.selectedObjects;
-            if(selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace)
-            {
-                chart = selected_objects[0];
-                __selectDrawingObjectRange(chart, this.worksheet);
-            }
-            for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
-                
-                this.frozenPlaces[i].setTransform(shapeCtx, shapeOverlayCtx, autoShapeTrack);
-                
-                // Clip
-                this.frozenPlaces[i].clip(shapeOverlayCtx);
-                
-                if (null == drawingDocument.m_oDocumentRenderer) {
-                    if (drawingDocument.m_bIsSelection) {
-                        drawingDocument.private_StartDrawSelection(trackOverlay);
-                        this.worksheet.objectRender.controller.drawTextSelection();
-                        drawingDocument.private_EndDrawSelection();
-                    }
-                    
-                    ctx.globalAlpha = 1.0;
-                    
-                    this.worksheet.objectRender.controller.drawSelection(drawingDocument);
-                    
-                    if ( this.worksheet.objectRender.controller.needUpdateOverlay() ) {
-                        trackOverlay.Show();
-                        shapeOverlayCtx.put_GlobalAlpha(true, 0.5);
-                        this.worksheet.objectRender.controller.drawTracks(shapeOverlayCtx);
-                        shapeOverlayCtx.put_GlobalAlpha(true, 1);
-                    }
-                } else {
-                    
-                    ctx.fillStyle = "rgba(51,102,204,255)";
-                    ctx.beginPath();
-                    
-                    for (var j = drawingDocument.m_lDrawingFirst; j <= drawingDocument.m_lDrawingEnd; j++) {
-                        var drawPage = drawingDocument.m_arrPages[j].drawingPage;
-                        drawingDocument.m_oDocumentRenderer.DrawSelection(j, trackOverlay, drawPage.left, drawPage.top, drawPage.right - drawPage.left, drawPage.bottom - drawPage.top);
-                    }
-                    
-                    ctx.globalAlpha = 0.2;
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.globalAlpha = 1.0;
-                }
-                
-                // Restore
-                this.frozenPlaces[i].restore(shapeOverlayCtx);
-            }
-        };
-        
         window['AscFormat'].Path.prototype.drawSmart = function(shape_drawer) {
             
             var _graphics   = shape_drawer.Graphics;
@@ -4339,6 +4249,7 @@ function OfflineEditor () {
         _null_object.height = height * ratio;
         
         var worksheet = _api.wb.getWorksheet();
+        worksheet._recalculate();
         var region = this._updateRegion(worksheet, x, y, width * ratio, height * ratio);
         var colRowHeaders = _api.asc_getSheetViewSettings();
         
@@ -4848,7 +4759,7 @@ function OfflineEditor () {
         };
         AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
             
-            var oColor = oStyle.getFill();
+            var oColor = oStyle.getFillColor();
             if (null !== oColor) {
                 oGraphics.setFillStyle(oColor);
                 oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
@@ -5075,7 +4986,7 @@ function OfflineEditor () {
                     compiledStylesArr[i][j] = curStyle;
                     
                     //fill
-                    color = curStyle && curStyle.fill && curStyle.fill.bg;
+                    color = curStyle && curStyle.fill && curStyle.fill.bg();
                     if(color)
                     {
                         calculateRect(color, j * stepX, i * stepY, stepX, stepY);

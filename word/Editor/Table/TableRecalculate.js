@@ -1762,6 +1762,8 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
         AscCommon.g_oTableId.m_bTurnOff = false;
         AscCommon.History.TurnOn();
 
+        this.LogicDocument.RecalcTableHeader = true;
+
         var bHeaderNextPage = false;
         for ( var CurRow = 0; CurRow < this.HeaderInfo.Count; CurRow++  )
         {
@@ -2137,6 +2139,8 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
                 }
             }
         }
+
+		this.LogicDocument.RecalcTableHeader = false;
     }
     else
     {

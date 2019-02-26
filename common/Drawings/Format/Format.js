@@ -4357,8 +4357,9 @@ EndArrow.prototype =
         return arrow && arrow.type == this.type &&  arrow.len == this.len && arrow.w  == this.w;
     },
 
-    GetWidth: function(size, _max)
+    GetWidth: function(_size, _max)
     {
+        var size = Math.max(_size, _max ? _max : 2.5);
         var _ret = 3 * size;
         if (null != this.w)
         {
@@ -4374,10 +4375,11 @@ EndArrow.prototype =
                     break;
             }
         }
-        return Math.max(_ret, _max ? _max : 7);
+        return _ret;
     },
-    GetLen: function(size, _max)
+    GetLen: function(_size, _max)
     {
+        var size = Math.max(_size, _max ? _max : 2);
         var _ret = 3 * size;
         if (null != this.len)
         {
@@ -4393,7 +4395,7 @@ EndArrow.prototype =
                     break;
             }
         }
-        return Math.max(_ret, _max ? _max : 7);
+        return _ret;
     },
 
     getObjectType: function()
@@ -10568,8 +10570,8 @@ function CorrectUniColor(asc_color, unicolor, flag)
         var oUniFill = new AscFormat.CUniFill();
         oUniFill.fill = new AscFormat.CPattFill();
         oUniFill.fill.ftype = AscCommon.global_hatch_offsets[sPatternType];
-        oUniFill.fill.fgClr = FgColor.Unicolor;
-        oUniFill.fill.bgClr = BgColor.Unicolor;
+        oUniFill.fill.fgClr = FgColor && FgColor.Unicolor;
+        oUniFill.fill.bgClr = BgColor && BgColor.Unicolor;
         return oUniFill;
     }
 

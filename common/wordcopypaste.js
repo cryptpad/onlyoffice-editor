@@ -843,7 +843,6 @@ CopyProcessor.prototype =
 			elems = {gridStart: 0, gridEnd: table.TableGrid.length - 1, indexStart: null, indexEnd: null, after: null, before: null, cells: row.Content};
         var tr = new CopyElement("tr");
         //Pr
-		table.Recalculate_Grid();
 		var gridSum = table.TableSumGrid;
         var trStyle = "";
         var nGridBefore = 0;
@@ -1028,6 +1027,7 @@ CopyProcessor.prototype =
             DomTable.oAttributes["style"] = tblStyle;
 
         //rows
+		table.Recalculate_Grid();
 		if(null == aRowElems)
 		{
 			for(var i = 0, length = table.Content.length; i < length; i++)
@@ -5299,7 +5299,7 @@ PasteProcessor.prototype =
 				oCurCell.Set_Margins({W : 0, Type : tblwidth_Mm}, 2);
 
 				//background color
-				var background_color = range.getFill();
+				var background_color = range.getFillColor();
 				if (null != background_color) {
 					var Shd = new CDocumentShd();
 					Shd.Value = c_oAscShdClear;
@@ -8330,30 +8330,58 @@ PasteProcessor.prototype =
 		};
 
 		var parseImage = function () {
-			if (bPresentation) {
-				//bAddParagraph = oThis._Decide_AddParagraph(node, pPr, bAddParagraph);
 
-				var nWidth = parseInt(node.getAttribute("width"));
-				var nHeight = parseInt(node.getAttribute("height"));
-				if (!nWidth || !nHeight) {
-					var computedStyle = oThis._getComputedStyle(node);
-					nWidth = parseInt(oThis._getStyle(node, computedStyle, "width"));
-					nHeight = parseInt(oThis._getStyle(node, computedStyle, "height"));
+			//get width/height
+			var nWidth = parseInt(node.getAttribute("width"));
+			var nHeight = parseInt(node.getAttribute("height"));
+			if (!nWidth || !nHeight) {
+				var computedStyle = oThis._getComputedStyle(node);
+				nWidth = parseInt(oThis._getStyle(node, computedStyle, "width"));
+				nHeight = parseInt(oThis._getStyle(node, computedStyle, "height"));
+			}
+
+			//TODO пересмотреть! node.getAttribute("width") в FF возврашает "auto" -> изображения в FF не всталяются
+			if ((!nWidth || !nHeight)) {
+				if (AscBrowser.isMozilla || AscBrowser.isIE) {
+					nWidth = parseInt(node.width);
+					nHeight = parseInt(node.height);
+				} else if (AscBrowser.isChrome) {
+					if (nWidth && !nHeight) {
+						nHeight = nWidth;
+					} else if (!nWidth && nHeight) {
+						nWidth = nHeight;
+					} else {
+						nWidth = parseInt(node.width);
+						nHeight = parseInt(node.height);
+					}
 				}
-				var sSrc = node.getAttribute("src");
-				if (sSrc && (isNaN(nWidth) || isNaN(nHeight) || !(typeof nWidth === "number") ||
-					!(typeof nHeight === "number") || nWidth === 0 || nHeight === 0)) {
-					var img_prop = new Asc.asc_CImgProperty();
-					img_prop.asc_putImageUrl(sSrc);
-					var or_sz = img_prop.asc_getOriginSize(editor);
-					nWidth = or_sz.Width / g_dKoef_pix_to_mm;
-					nHeight = or_sz.Height / g_dKoef_pix_to_mm;
-				} else {
-					nWidth *= g_dKoef_pix_to_mm;
-					nHeight *= g_dKoef_pix_to_mm;
-				}
+			}
+
+			var sSrc = node.getAttribute("src");
+			if ((!window["Asc"] || (window["Asc"] && window["Asc"]["editor"] === undefined)) &&
+				(isNaN(nWidth) || isNaN(nHeight) || !(typeof nWidth === "number") ||
+				!(typeof nHeight === "number")//первое условие - мы не в редакторе таблиц, тогда выполняем
+				|| nWidth === 0 || nHeight === 0) && sSrc) {
+				var img_prop = new Asc.asc_CImgProperty();
+				img_prop.asc_putImageUrl(sSrc);
+				var or_sz = img_prop.asc_getOriginSize(editor);
+				nWidth = or_sz.Width / g_dKoef_pix_to_mm;
+				nHeight = or_sz.Height / g_dKoef_pix_to_mm;
+			} else if(bPresentation) {
+				nWidth *= g_dKoef_pix_to_mm;
+				nHeight *= g_dKoef_pix_to_mm;
+			}
+
+			if (!nWidth) {
+				nWidth = bPresentation ? oThis.defaultImgWidth : oThis.defaultImgWidth / g_dKoef_pix_to_mm;
+			}
+			if (!nHeight) {
+				nHeight = bPresentation ? oThis.defaultImgHeight : oThis.defaultImgHeight / g_dKoef_pix_to_mm;
+			}
+
+			if (bPresentation) {
 				if (nWidth && nHeight && sSrc) {
-					var sSrc = oThis.oImages[sSrc];
+					sSrc = oThis.oImages[sSrc];
 					if (sSrc) {
 						var image = AscFormat.DrawingObjectsController.prototype.createImage(sSrc, 0, 0, nWidth,
 							nHeight);
@@ -8365,52 +8393,8 @@ PasteProcessor.prototype =
 				if (PasteElementsId.g_bIsDocumentCopyPaste) {
 					bAddParagraph = oThis._Decide_AddParagraph(node, pPr, bAddParagraph);
 
-					var nWidth = parseInt(node.getAttribute("width"));
-					var nHeight = parseInt(node.getAttribute("height"));
-					if (!nWidth || !nHeight) {
-						var computedStyle = oThis._getComputedStyle(node);
-						nWidth = parseInt(oThis._getStyle(node, computedStyle, "width"));
-						nHeight = parseInt(oThis._getStyle(node, computedStyle, "height"));
-					}
-
-					//TODO пересмотреть! node.getAttribute("width") в FF возврашает "auto" -> изображения в FF не всталяются
-					if ((!nWidth || !nHeight)) {
-						if (AscBrowser.isMozilla || AscBrowser.isIE) {
-							nWidth = parseInt(node.width);
-							nHeight = parseInt(node.height);
-						} else if (AscBrowser.isChrome) {
-							if (nWidth && !nHeight) {
-								nHeight = nWidth;
-							} else if (!nWidth && nHeight) {
-								nWidth = nHeight;
-							} else {
-								nWidth = parseInt(node.width);
-								nHeight = parseInt(node.height);
-							}
-						}
-					}
-
-					var sSrc = node.getAttribute("src");
-					if ((!window["Asc"] || (window["Asc"] && window["Asc"]["editor"] === undefined)) &&
-						(isNaN(nWidth) || isNaN(nHeight) || !(typeof nWidth === "number") ||
-						!(typeof nHeight === "number")//первое условие - мы не в редакторе таблиц, тогда выполняем
-						|| nWidth === 0 || nHeight === 0) && sSrc) {
-						var img_prop = new Asc.asc_CImgProperty();
-						img_prop.asc_putImageUrl(sSrc);
-						var or_sz = img_prop.asc_getOriginSize(editor);
-						nWidth = or_sz.Width / g_dKoef_pix_to_mm;
-						nHeight = or_sz.Height / g_dKoef_pix_to_mm;
-					}
-
-					if (!nWidth) {
-						nWidth = oThis.defaultImgWidth / g_dKoef_pix_to_mm;
-					}
-					if (!nHeight) {
-						nHeight = oThis.defaultImgHeight / g_dKoef_pix_to_mm;
-					}
-
 					if (nWidth && nHeight && sSrc) {
-						var sSrc = oThis.oImages[sSrc];
+						sSrc = oThis.oImages[sSrc];
 						if (sSrc) {
 							nWidth = nWidth * g_dKoef_pix_to_mm;
 							nHeight = nHeight * g_dKoef_pix_to_mm;

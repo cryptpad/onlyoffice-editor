@@ -1293,6 +1293,15 @@
 	baseEditorsApi.prototype.asc_startEditCurrentOleObject = function(){
 
 	};
+	baseEditorsApi.prototype.asc_canStartImageCrop = function(){
+
+	};
+	baseEditorsApi.prototype.asc_startImageCrop = function(){
+
+	};
+	baseEditorsApi.prototype.asc_endImageCrop = function(){
+
+	};
 	// Version History
 	baseEditorsApi.prototype.asc_showRevision   = function(newObj)
 	{
@@ -1531,6 +1540,65 @@
 		return result;
 	};
 
+
+	baseEditorsApi.prototype.showVideoControl = function(sMediaName, extX, extY, transform)
+	{
+		if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["MediaStart"])
+			return;
+
+		switch (this.editorId)
+		{
+			case c_oEditorId.Word:
+			{
+				break;
+			}
+			case c_oEditorId.Presentation:
+			{
+                var manager = this.WordControl.DemonstrationManager;
+                if (!manager.Mode)
+                {
+                    var pos = this.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(0, 0, this.WordControl.m_oLogicDocument.CurPage, null, true);
+                    pos.X += this.WordControl.X;
+                    pos.Y += this.WordControl.Y;
+
+                    if (!transform)
+                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, this.WordControl.m_nZoomValue / 100);
+                    else
+                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, this.WordControl.m_nZoomValue / 100, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                }
+                else
+				{
+					var transition = this.WordControl.DemonstrationManager.Transition;
+                    if ((manager.SlideNum >= 0 && manager.SlideNum < manager.SlidesCount) && (!transition || !transition.IsPlaying()))
+                    {
+                        var _w = transition.Rect.w;
+                        var _h = transition.Rect.h;
+                        var _w_mm = manager.HtmlPage.m_oLogicDocument.Width;
+                        var _h_mm = manager.HtmlPage.m_oLogicDocument.Height;
+
+                        var _zoom = _w / (_w_mm * AscCommon.g_dKoef_mm_to_pix);
+
+                        if (!transform)
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, transition.Rect.x, transition.Rect.y, extX, extY, _zoom);
+                        else
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, transition.Rect.x, transition.Rect.y, extX, extY, _zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                    }
+
+				}
+				break;
+			}
+            case c_oEditorId.Spreadsheet:
+            {
+                break;
+            }
+		}
+	};
+	baseEditorsApi.prototype.hideVideoControl = function()
+	{
+        if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["MediaEnd"])
+            return;
+        window["AscDesktopEditor"]["MediaEnd"]();
+	};
 	// plugins
 	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
 	{
@@ -2317,7 +2385,19 @@
 			}
 		};
 
-		reader.readAsText(new Blob([buffer]), AscCommon.c_oAscEncodings[options.asc_getCodePage()][2]);
+		var encoding = "UTF-8";
+		var codePage = options.asc_getCodePage();
+		var encodingsLen = AscCommon.c_oAscEncodings.length;
+		for (var i = 0; i < encodingsLen; ++i)
+		{
+			if (AscCommon.c_oAscEncodings[i][0] == codePage)
+			{
+				encoding = AscCommon.c_oAscEncodings[i][2];
+				break;
+			}
+		}
+
+		reader.readAsText(new Blob([buffer]), encoding);
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------

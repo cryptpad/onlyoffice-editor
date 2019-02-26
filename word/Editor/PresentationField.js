@@ -139,6 +139,16 @@
                                 sStr = '' + (this.Slide.num + 1);
                             }
                         }
+                        else if(oStylesObject.layout)
+                        {
+                            this.SlideNum = oStylesObject.layout.lastRecalcSlideIndex;
+                            sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + 1);
+                        }
+                        else if(oStylesObject.master)
+                        {
+                            this.SlideNum = oStylesObject.master.lastRecalcSlideIndex;
+                            sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + 1);
+                        }
                     }
                     break;
                 }

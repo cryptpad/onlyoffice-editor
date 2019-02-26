@@ -351,7 +351,11 @@ Paragraph.prototype.Copy2 = function(Parent)
 
 	return Para;
 };
-Paragraph.prototype.Get_FirstRunPr = function()
+/**
+ * Получаем настройки прямые настройки текста для начала параграфа
+ * @returns {CTextPr}
+ */
+Paragraph.prototype.GetFirstRunPr = function()
 {
 	if (this.Content.length <= 0 || para_Run !== this.Content[0].Type)
 		return this.TextPr.Value.Copy();
@@ -1367,6 +1371,59 @@ Paragraph.prototype.GetNumberingTextPr = function()
 	oNumTextPr.FontFamily.Name = oNumTextPr.RFonts.Ascii.Name;
 
 	return oNumTextPr;
+};
+/**
+ * Получаем рассчитанное значение нумерации для данного параграфа
+ * @returns {string}
+ */
+Paragraph.prototype.GetNumberingText = function()
+{
+	var oParent = this.GetParent();
+	var oNumPr  = this.GetNumPr();
+	if (!oNumPr || !oParent)
+		return "";
+
+	var oNumbering = oParent.GetNumbering();
+	var oNumInfo   = oParent.CalculateNumberingValues(this, oNumPr);
+	return oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo);
+};
+/**
+ * Есть ли у параграфа нумерованная нумерация
+ * @returns {boolean}
+ */
+Paragraph.prototype.IsNumberedNumbering = function()
+{
+	var oNumPr = this.GetNumPr();
+	if (!oNumPr)
+		return false;
+
+	var oNumbering = this.Parent.GetNumbering();
+	var oNum       = oNumbering.GetNum(oNumPr.NumId);
+	if (!oNum)
+		return false;
+
+	var oLvl = oNum.GetLvl(oNumPr.Lvl);
+
+	return oLvl.IsNumbered();
+};
+/**
+ * Есть ли у параграфа маркированная нумерация
+ * @returns {boolean}
+ */
+Paragraph.prototype.IsBulletedNumbering = function()
+{
+	var oNumPr = this.GetNumPr();
+	if (!oNumPr)
+		return false;
+
+	var oNumbering = this.Parent.GetNumbering();
+	var oNum       = oNumbering.GetNum(oNumPr.NumId);
+	if (!oNum)
+		return false;
+
+	var oLvl = oNum.GetLvl(oNumPr.Lvl);
+
+	return oLvl.IsBulleted();
 };
 /**
  * Пустой ли заданный отрезок
@@ -7806,6 +7863,7 @@ Paragraph.prototype.ApplyNumPr = function(sNumId, nLvl)
 	// Надо пересчитать конечный стиль
 	this.CompiledPr.NeedRecalc = true;
 	this.private_UpdateTrackRevisionOnChangeParaPr(true);
+	this.UpdateDocumentOutline();
 };
 /**
  * Добавляем нумерацию к данному параграфу, не делая никаких дополнительных действий
@@ -7827,6 +7885,7 @@ Paragraph.prototype.SetNumPr = function(sNumId, nLvl)
 
 			this.CompiledPr.NeedRecalc = true;
 			this.private_UpdateTrackRevisionOnChangeParaPr(true);
+			this.UpdateDocumentOutline();
 		}
 	}
 	else
@@ -7845,6 +7904,7 @@ Paragraph.prototype.SetNumPr = function(sNumId, nLvl)
 		// Надо пересчитать конечный стиль
 		this.CompiledPr.NeedRecalc = true;
 		this.private_UpdateTrackRevisionOnChangeParaPr(true);
+		this.UpdateDocumentOutline();
 	}
 };
 /**
@@ -7968,6 +8028,7 @@ Paragraph.prototype.RemoveNumPr = function()
 	// Надо пересчитать конечный стиль
 	this.CompiledPr.NeedRecalc = true;
 	this.private_UpdateTrackRevisionOnChangeParaPr(true);
+	this.UpdateDocumentOutline();
 };
 /**
  * Проверяем есть ли у данного параграфа нумерация
@@ -10468,7 +10529,7 @@ Paragraph.prototype.Supplement_FramePr = function(FramePr)
 				break;
 		}
 
-		var TextPr = FirstFramePara.Get_FirstRunPr();
+		var TextPr = FirstFramePara.GetFirstRunPr();
 
 		if (undefined === TextPr.RFonts || undefined === TextPr.RFonts.Ascii)
 		{
@@ -12628,6 +12689,7 @@ Paragraph.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 Paragraph.prototype.GetText = function(oPr)
 {
 	var oText = new CParagraphGetText();
+
 	oText.SetBreakOnNonText(false);
 	oText.SetParaEndToSpace(true);
 
@@ -13025,9 +13087,7 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 	}
 	else
 	{
-
 		var oContentControl = new CInlineLevelSdt();
-		//oContentControl.Add_ToContent(0, new ParaRun());
 		this.Add(oContentControl);
 
 		var oContentControlPos = this.Get_PosByElement(oContentControl);
@@ -13036,6 +13096,8 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 			oContentControl.Get_StartPos(oContentControlPos, oContentControlPos.Get_Depth() + 1);
 			this.Set_ParaContentPos(oContentControlPos, false, -1, -1);
 		}
+
+		oContentControl.SelectContentControl();
 
 		return oContentControl;
 	}
@@ -14672,6 +14734,11 @@ function CParagraphGetText()
     this.BreakOnNonText = true;
     this.ParaEndToSpace = false;
 }
+CParagraphGetText.prototype.AddText = function(sText)
+{
+	if (null !== this.Text)
+		this.Text += sText;
+};
 CParagraphGetText.prototype.SetBreakOnNonText = function(bValue)
 {
 	this.BreakOnNonText = bValue;

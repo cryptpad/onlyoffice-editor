@@ -706,6 +706,7 @@ CShape.prototype.recalculate = function ()
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
         }
+        this.clearCropObject();
 
     }, this, []);
 };
