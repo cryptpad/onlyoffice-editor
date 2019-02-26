@@ -13087,9 +13087,7 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 	}
 	else
 	{
-
 		var oContentControl = new CInlineLevelSdt();
-		//oContentControl.Add_ToContent(0, new ParaRun());
 		this.Add(oContentControl);
 
 		var oContentControlPos = this.Get_PosByElement(oContentControl);
@@ -13098,6 +13096,8 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 			oContentControl.Get_StartPos(oContentControlPos, oContentControlPos.Get_Depth() + 1);
 			this.Set_ParaContentPos(oContentControlPos, false, -1, -1);
 		}
+
+		oContentControl.SelectContentControl();
 
 		return oContentControl;
 	}
