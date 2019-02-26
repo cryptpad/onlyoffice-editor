@@ -2499,6 +2499,37 @@ var editor;
   };
 
 
+  spreadsheet_api.prototype.asc_canEditCrop = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.canStartImageCrop();
+  };
+
+  spreadsheet_api.prototype.asc_startEditCrop = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.startImageCrop();
+  };
+
+  spreadsheet_api.prototype.asc_endEditCrop = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.endImageCrop();
+  };
+
+  spreadsheet_api.prototype.asc_cropFit = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.cropFit();
+  };
+
+  spreadsheet_api.prototype.asc_cropFill = function()
+  {
+    var ws = this.wb.getWorksheet();
+    return ws.objectRender.controller.cropFill();
+  };
+
+
   spreadsheet_api.prototype.asc_addTextArt = function(nStyle) {
     var ws = this.wb.getWorksheet();
     return ws.objectRender.addTextArt(nStyle);
@@ -3777,6 +3808,11 @@ var editor;
   prot["asc_changeImageFromFile"] = prot.asc_changeImageFromFile;
   prot["asc_putPrLineSpacing"] = prot.asc_putPrLineSpacing;
   prot["asc_addTextArt"] = prot.asc_addTextArt;
+  prot["asc_canEditCrop"] = prot.asc_canEditCrop;
+  prot["asc_startEditCrop"] = prot.asc_startEditCrop;
+  prot["asc_endEditCrop"] = prot.asc_endEditCrop;
+  prot["asc_cropFit"] = prot.asc_cropFit;
+  prot["asc_cropFill"] = prot.asc_cropFill;
   prot["asc_putLineSpacingBeforeAfter"] = prot.asc_putLineSpacingBeforeAfter;
   prot["asc_setDrawImagePlaceParagraph"] = prot.asc_setDrawImagePlaceParagraph;
   prot["asc_changeShapeImageFromFile"] = prot.asc_changeShapeImageFromFile;

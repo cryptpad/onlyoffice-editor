@@ -1266,11 +1266,7 @@ function DrawingObjects() {
 
     var drawingCtx = null;
     var overlayCtx = null;
-    var shapeCtx = null;
-    var shapeOverlayCtx = null;
 
-    var trackOverlay = null;
-    var autoShapeTrack = null;
     var scrollOffset = new ScrollOffset();
 
     var aObjects = [];
@@ -1759,24 +1755,13 @@ function DrawingObjects() {
 
         drawingCtx = currentSheet.drawingGraphicCtx;
         overlayCtx = currentSheet.overlayGraphicCtx;
-        shapeCtx = currentSheet.shapeCtx;
-        shapeOverlayCtx = currentSheet.shapeOverlayCtx;
-
-        trackOverlay = new AscCommon.COverlay();
-        trackOverlay.IsCellEditor = true;
-        trackOverlay.init( shapeOverlayCtx.m_oContext, "ws-canvas-graphic-overlay", 0, 0, shapeOverlayCtx.m_lWidthPix, shapeOverlayCtx.m_lHeightPix, shapeOverlayCtx.m_dWidthMM, shapeOverlayCtx.m_dHeightMM );
-
-        autoShapeTrack = new AscCommon.CAutoshapeTrack();
-        autoShapeTrack.init( trackOverlay, 0, 0, shapeOverlayCtx.m_lWidthPix, shapeOverlayCtx.m_lHeightPix, shapeOverlayCtx.m_dWidthMM, shapeOverlayCtx.m_dHeightMM );
-        shapeCtx.m_oAutoShapesTrack = autoShapeTrack;
-
 
         _this.objectLocker = new ObjectLocker(worksheet);
         _this.drawingArea = currentSheet.drawingArea;
         _this.drawingArea.init();
         _this.drawingDocument = currentSheet.model.DrawingDocument ? currentSheet.model.DrawingDocument : new AscCommon.CDrawingDocument(this);
         _this.drawingDocument.drawingObjects = this;
-        _this.drawingDocument.AutoShapesTrack = autoShapeTrack;
+        _this.drawingDocument.AutoShapesTrack = api.wb.autoShapeTrack;
         _this.drawingDocument.TargetHtmlElement = document.getElementById('id_target_cursor');
         _this.drawingDocument.InitGuiCanvasShape(api.shapeElementId);
         _this.controller = new AscFormat.DrawingObjectsController(_this);
@@ -1914,7 +1899,7 @@ function DrawingObjects() {
     };
 
     _this.getOverlay = function() {
-        return trackOverlay;
+        return api.wb.trackOverlay;
     };
 
     _this.OnUpdateOverlay = function() {
@@ -1931,25 +1916,6 @@ function DrawingObjects() {
 
     _this.resizeCanvas = function() {
 		_this.drawingArea.init();
-
-        var canvasWidth = drawingCtx.canvas.width;
-        var canvasHeight = drawingCtx.canvas.height;
-
-        shapeCtx.init( drawingCtx.ctx, canvasWidth, canvasHeight, (canvasWidth*25.4/drawingCtx.ppiX), (canvasHeight*25.4/drawingCtx.ppiY));
-        shapeCtx.CalculateFullTransform();
-
-
-
-
-        var overlayWidth = overlayCtx.canvas.width;
-        var overlayHeight = overlayCtx.canvas.height;
-
-        shapeOverlayCtx.init( overlayCtx.ctx, overlayWidth, overlayHeight, (overlayWidth*25.4/overlayCtx.ppiX), (overlayHeight*25.4/overlayCtx.ppiY));
-        shapeOverlayCtx.CalculateFullTransform();
-
-        trackOverlay.init( shapeOverlayCtx.m_oContext, "ws-canvas-graphic-overlay", 0, 0, overlayWidth, overlayHeight, (overlayWidth*25.4/overlayCtx.ppiX), (overlayHeight*25.4/overlayCtx.ppiY));
-        autoShapeTrack.init( trackOverlay, 0, 0,  overlayWidth, overlayHeight, (overlayWidth*25.4/overlayCtx.ppiX), (overlayHeight*25.4/overlayCtx.ppiY) );
-        autoShapeTrack.Graphics.CalculateFullTransform();
     };
 
     _this.getCanvasContext = function() {
@@ -2042,6 +2008,7 @@ function DrawingObjects() {
             }
 
             if ( aObjects.length ) {
+                var shapeCtx = api.wb.shapeCtx;
                 if (graphicOption) {
                     // Выставляем нужный диапазон для отрисовки
                     var updatedRect = { x: 0, y: 0, w: 0, h: 0 };
@@ -2273,8 +2240,8 @@ function DrawingObjects() {
             else {
                 x = worksheet._getColLeft(0);
                 y = worksheet._getRowTop(0);
-                w = shapeCtx.m_lWidthPix - x;
-                h = shapeCtx.m_lHeightPix - y;
+                w = api.wb.shapeCtx.m_lWidthPix - x;
+                h = api.wb.shapeCtx.m_lHeightPix - y;
             }
 
             canvas.m_oContext.save();
@@ -3652,7 +3619,7 @@ function DrawingObjects() {
                 oDrawing = oDrawing.group;
             }
         }
-        if(oDrawing.drawingBase){
+        if(oDrawing && oDrawing.drawingBase){
             for (var i = 0; i < aObjects.length; i++) {
                 if ( aObjects[i] === oDrawing.drawingBase )
                     return aObjects[i];
@@ -3730,7 +3697,7 @@ function DrawingObjects() {
     };
 
     _this.getDrawingCanvas = function() {
-        return { shapeCtx: shapeCtx, shapeOverlayCtx: shapeOverlayCtx, autoShapeTrack: autoShapeTrack, trackOverlay: trackOverlay };
+        return { shapeCtx: api.wb.shapeCtx, shapeOverlayCtx: api.wb.shapeOverlayCtx, autoShapeTrack: api.wb.autoShapeTrack, trackOverlay: api.wb.trackOverlay };
     };
 
     _this.convertMetric = function(val, from, to) {
@@ -4061,27 +4028,29 @@ function DrawingObjects() {
     //-----------------------------------------------------------------------------------
 
     _this.selectDrawingObjectRange = function(drawing) {
-
 		worksheet.cleanSelection();
         worksheet.endEditChart();
 
         if(!drawing.bbox || drawing.bbox.worksheet !== worksheet.model)
             return;
 
-        if(drawing.bbox.serBBox)
-        {
-            worksheet._drawElements(worksheet._drawSelectionElement,
-              asc.Range(drawing.bbox.serBBox.c1, drawing.bbox.serBBox.r1, drawing.bbox.serBBox.c2,
-                drawing.bbox.serBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
-              AscCommonExcel.c_oAscFormulaRangeBorderColor[1]);
+        if (!window["IS_NATIVE_EDITOR"]) {
+            if(drawing.bbox.serBBox)
+            {
+                worksheet._drawElements(worksheet._drawSelectionElement,
+                    asc.Range(drawing.bbox.serBBox.c1, drawing.bbox.serBBox.r1, drawing.bbox.serBBox.c2,
+                        drawing.bbox.serBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
+                    AscCommonExcel.c_oAscFormulaRangeBorderColor[1]);
+            }
+            if(drawing.bbox.catBBox)
+            {
+                worksheet._drawElements(worksheet._drawSelectionElement,
+                    asc.Range(drawing.bbox.catBBox.c1, drawing.bbox.catBBox.r1, drawing.bbox.catBBox.c2,
+                        drawing.bbox.catBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
+                    AscCommonExcel.c_oAscFormulaRangeBorderColor[2]);
+            }
         }
-        if(drawing.bbox.catBBox)
-        {
-            worksheet._drawElements(worksheet._drawSelectionElement,
-              asc.Range(drawing.bbox.catBBox.c1, drawing.bbox.catBBox.r1, drawing.bbox.catBBox.c2,
-                drawing.bbox.catBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
-              AscCommonExcel.c_oAscFormulaRangeBorderColor[2]);
-        }
+
         var BB = drawing.bbox.seriesBBox;
         var range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
         worksheet.setChartRange(range);

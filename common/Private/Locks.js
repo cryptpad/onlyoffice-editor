@@ -108,6 +108,57 @@ if(typeof CDocument !== "undefined")
 
 		return bResult;
 	};
+	/**
+	 * Начинаем составную проверку на залоченность объектов
+	 * @param [isIgnoreCanEditFlag=false] игнорируем ли запрет на редактирование
+	 * @returns {boolean} началась ли проверка залоченности
+	 */
+	CDocument.prototype.StartSelectionLockCheck = function(isIgnoreCanEditFlag)
+	{
+		if (!this.CanEdit() && true !== isIgnoreCanEditFlag)
+			return false;
+
+		if (true === this.CollaborativeEditing.Get_GlobalLock())
+			return false;
+
+		this.CollaborativeEditing.OnStart_CheckLock();
+
+		return true;
+	};
+	/**
+	 * Производим шаг проверки залоченности с заданными типом
+	 * @param nCheckType {number} тип проверки
+	 * @param isClearOnLock {boolean} очищать ли общий массив локов от последней проверки, в случае залоченности
+	 * @returns {boolean} залочен ли редактор на выполнение данного шага
+	 */
+	CDocument.prototype.ProcessSelectionLockCheck = function(nCheckType, isClearOnLock)
+	{
+		if (isClearOnLock)
+			this.CollaborativeEditing.OnStartCheckLockInstance();
+
+		this.private_DocumentIsSelectionLocked(nCheckType);
+
+		if (isClearOnLock)
+			return this.CollaborativeEditing.OnEndCheckLockInstance();
+
+		return false;
+	};
+	/**
+	 * Заканчиваем процесс составной проверки залоченности объектов
+	 * @param [isDontLockInFastMode=false] {boolean} нужно ли лочить в быстром режиме совместного редактирования
+	 * @returns {boolean} залочен ли редактор на выполнение данного составного действия
+	 */
+	CDocument.prototype.EndSelectionLockCheck = function(isDontLockInFastMode)
+	{
+		var isLocked = this.CollaborativeEditing.OnEnd_CheckLock(isDontLockInFastMode);
+		if (isLocked)
+		{
+			this.Document_UpdateSelectionState();
+			this.Document_UpdateInterfaceState();
+		}
+
+		return isLocked;
+	};
 	CDocument.prototype.private_DocumentIsSelectionLocked = function(CheckType)
 	{
 		if (AscCommon.changestype_None != CheckType)
@@ -305,6 +356,10 @@ if(typeof CGraphicObjects !== "undefined")
                 oDrawing.Lock.Check(oDrawing.Get_Id());
             }
         }
+
+		var oDocContent = this.getTargetDocContent();
+		if (oDocContent)
+			oDocContent.Document_Is_SelectionLocked(CheckType);
     };
 }
 

@@ -50,20 +50,14 @@ function CGraphics()
     this.m_lWidthPix    = 0;
     this.m_lHeightPix   = 0;
     this.m_dDpiX        = 96.0;
-    this.m_dDpiY        = 96.0; 
+    this.m_dDpiY        = 96.0;
     this.m_bIsBreak 	= false;
-
-    this.textBB_l       = 10000;
-    this.textBB_t       = 10000;
-    this.textBB_r       = -10000;
-    this.textBB_b       = -10000;
 
     this.m_oPen     = new AscCommon.CPen();
     this.m_oBrush   = new AscCommon.CBrush();
 	this.m_oAutoShapesTrack = null;
 
     this.m_oFontManager = null;
-	this.m_bIsFillTextCanvasColor = 0;
 
     this.m_oCoordTransform  = new CMatrixL();
     this.m_oBaseTransform   = new CMatrixL();
@@ -104,8 +98,6 @@ function CGraphics()
 
     this.TextClipRect = null;
     this.IsClipContext = false;
-
-    this.ClearMode = false;
 
  	this.IsUseFonts2        = false;
     this.m_oFontManager2    = null;
@@ -236,8 +228,6 @@ CGraphics.prototype =
         _c.A = a;
 
         this.m_oContext.fillStyle = "rgba(" + _c.R + "," + _c.G + "," + _c.B + "," + (_c.A / 255) + ")";
-			
-		this.m_bIsFillTextCanvasColor = 0;
     },
     b_color2 : function(r,g,b,a)
     {
@@ -539,48 +529,60 @@ CGraphics.prototype =
                 var _h = img.height;
                 if (_w > 0 && _h > 0)
                 {
-                    var __w = w;
-                    var __h = h;
-                    var _delW = Math.max(0, -srcRect.l) + Math.max(0, srcRect.r - 100) + 100;
-                    var _delH = Math.max(0, -srcRect.t) + Math.max(0, srcRect.b - 100) + 100;
-
                     var _sx = 0;
-                    if (srcRect.l > 0 && srcRect.l < 100)
-                        _sx = Math.min((_w * srcRect.l / 100) >> 0, _w - 1);
-                    else if (srcRect.l < 0)
-                    {
-                        var _off = ((-srcRect.l / _delW) * __w);
-                        x += _off;
-                        w -= _off;
-                    }
                     var _sy = 0;
-                    if (srcRect.t > 0 && srcRect.t < 100)
-                        _sy = Math.min((_h * srcRect.t / 100) >> 0, _h - 1);
-                    else if (srcRect.t < 0)
-                    {
-                        var _off = ((-srcRect.t / _delH) * __h);
-                        y += _off;
-                        h -= _off;
-                    }
                     var _sr = _w;
-                    if (srcRect.r > 0 && srcRect.r < 100)
-                        _sr = Math.max(Math.min((_w * srcRect.r / 100) >> 0, _w - 1), _sx);
-                    else if (srcRect.r > 100)
-                    {
-                        var _off = ((srcRect.r - 100) / _delW) * __w;
-                        w -= _off;
-                    }
                     var _sb = _h;
-                    if (srcRect.b > 0 && srcRect.b < 100)
-                        _sb = Math.max(Math.min((_h * srcRect.b / 100) >> 0, _h - 1), _sy);
-                    else if (srcRect.b > 100)
+
+                    var _l = srcRect.l;
+                    var _t = srcRect.t;
+                    var _r = 100 - srcRect.r;
+                    var _b = 100 - srcRect.b;
+
+                    _sx += _l * _w / 100;
+                    _sr -= _r * _w / 100;
+                    _sy += _t * _h / 100;
+                    _sb -= _b * _h / 100;
+
+                    var naturalW = _w;
+                    naturalW -= _sx;
+                    naturalW += (_sr - _w);
+
+                    var naturalH = _h;
+                    naturalH -= _sy;
+                    naturalH += (_sb - _h);
+
+                    var tmpW = w;
+                    var tmpH = h;
+                    if (_sx < 0)
                     {
-                        var _off = ((srcRect.b - 100) / _delH) * __h;
-                        h -= _off;
+                        x += (-_sx * tmpW / naturalW);
+                        w -= (-_sx * tmpW / naturalW);
+                        _sx = 0;
+                    }
+                    if (_sy < 0)
+                    {
+                        y += (-_sy * tmpH / naturalH);
+                        h -= (-_sy * tmpH / naturalH);
+                        _sy = 0;
+                    }
+                    if (_sr > _w)
+                    {
+                        w -= ((_sr - _w) * tmpW / naturalW);
+                        _sr = _w;
+                    }
+                    if (_sb > _h)
+                    {
+                        h -= ((_sb - _h) * tmpH / naturalH);
+                        _sb = _h;
                     }
 
-                    if ((_sr-_sx) > 0 && (_sb-_sy) > 0 && w > 0 && h > 0)
-                        this.m_oContext.drawImage(img,_sx,_sy,_sr-_sx,_sb-_sy,x,y,w,h);
+                    if (_sx >= _sr || _sx >= _w || _sr <= 0 || w <= 0)
+                        return;
+                    if (_sy >= _sb || _sy >= _h || _sb <= 0 || h <= 0)
+                        return;
+
+                    this.m_oContext.drawImage(img,_sx,_sy,_sr-_sx,_sb-_sy,x,y,w,h);
                 }
                 else
                 {

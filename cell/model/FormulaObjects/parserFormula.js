@@ -3262,7 +3262,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 								newArg = newArg.array[r] ? newArg.array[r][c] : null;
 							}
 							if (!newArg) {
-								newArg = new cError(cErrorType.not_available);
+								//TODO проверить что ставить, если данный эламент массива недоступен
+								//пока делаю так - если не последний аргумент, то пустой элемент, если последний - undefined
+								newArg = /*j === argumentsCount - 1 ? undefined : */new cEmpty();
 							}
 						} else if(changeArgByIndexArr && changeArgByIndexArr[j]) {
 							if(_cCol === changeArgByIndexArr[j]) {

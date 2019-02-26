@@ -63,7 +63,7 @@ function (window, undefined) {
 
 	cFormulaFunctionGroup['Statistical'] = cFormulaFunctionGroup['Statistical'] || [];
 	cFormulaFunctionGroup['Statistical'].push(cAVEDEV, cAVERAGE, cAVERAGEA, cAVERAGEIF, cAVERAGEIFS, cBETADIST,
-		cBETA_DIST, cBETA_INV, cBINOMDIST, cBINOM_DIST, cBINOM_DIST_RANGE, cBINOM_INV, cCHIDIST, cCHIINV, cCHISQ_DIST,
+		cBETA_DIST, cBETA_INV, cBETAINV, cBINOMDIST, cBINOM_DIST, cBINOM_DIST_RANGE, cBINOM_INV, cCHIDIST, cCHIINV, cCHISQ_DIST,
 		cCHISQ_DIST_RT, cCHISQ_INV, cCHISQ_INV_RT, cCHITEST, cCHISQ_TEST, cCONFIDENCE, cCONFIDENCE_NORM, cCONFIDENCE_T,
 		cCORREL, cCOUNT, cCOUNTA, cCOUNTBLANK, cCOUNTIF, cCOUNTIFS, cCOVAR, cCOVARIANCE_P, cCOVARIANCE_S, cCRITBINOM,
 		cDEVSQ, cEXPON_DIST, cEXPONDIST, cF_DIST, cFDIST, cF_DIST_RT, cF_INV, cFINV, cF_INV_RT, cFISHER, cFISHERINV,
@@ -4227,6 +4227,17 @@ function (window, undefined) {
 
 		return this._findArrayInNumberArguments(oArguments, calcGamma);
 	};
+
+	/**
+	 * @constructor
+	 * @extends {cBETA_INV}
+	 */
+	function cBETAINV() {
+	}
+
+	cBETAINV.prototype = Object.create(cBETA_INV.prototype);
+	cBETAINV.prototype.constructor = cBETAINV;
+	cBETAINV.prototype.name = 'BETAINV';
 
 	/**
 	 * @constructor
@@ -10870,7 +10881,7 @@ function (window, undefined) {
 	cVAR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cVAR.prototype.Calculate = function (arg) {
 		function _var(x) {
-			if (x.length < 1) {
+			if (x.length <= 1) {
 				return new cError(cErrorType.division_by_zero);
 			}
 
@@ -11294,8 +11305,8 @@ function (window, undefined) {
 				arr0.push(arg[j].tocNumber());
 			} else if (arg[j] instanceof cString) {
 				arr0.push(new cNumber(0));
-			} else if (elem instanceof cError) {
-				return new cError(cErrorType.wrong_value_type);
+			} else if (arg[j] instanceof cError) {
+				return arg[j];
 			}
 
 		}

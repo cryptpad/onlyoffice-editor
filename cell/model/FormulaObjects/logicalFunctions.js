@@ -495,20 +495,36 @@
 		var nTrueValues = 0;
 		for (var i = 0; i < arg.length; i++) {
 			if (arg[i] instanceof cArea || arg[i] instanceof cArea3D) {
+				var allCellsEmpty = true;
 				var argArr = arg[i].getValue();
 				for (var j = 0; j < argArr.length; j++) {
+					var emptyArg = argArr[j] instanceof cEmpty;
 					if (argArr[j] instanceof cError) {
 						return argArr[j];
-					} else if (argArr[j] instanceof cString || argArr[j] instanceof cEmpty) {
-						if (argResult === null) {
+					} else if (argArr[j] instanceof cString || emptyArg || argArr[j] instanceof cBool) {
+						argResult = new cBool(true);
+						nTrueValues++;
+					} else if(argArr.length === 1 && argArr[j] instanceof cNumber) {
+						if (argResult == null) {
 							argResult = argArr[j].tocBool();
 						} else {
-							argResult = new cBool(argResult.value || argArr[j].tocBool().value);
+							argResult = new cBool(argArr[j].tocBool().value);
+						}
+
+						if (argResult.value === true) {
+							nTrueValues++;
 						}
 					}
-					if (argResult && argResult.value === true) {
-						nTrueValues++;
+					if(!emptyArg) {
+						allCellsEmpty = false;
 					}
+				}
+				//если диапазон пустой - выдаём ошибку
+				//если диапазон содержит хоть одну непустую ячейку(без ошибки) - результат false
+				if (argResult == null && !allCellsEmpty) {
+					argResult = new cBool(false);
+				} else if(allCellsEmpty) {
+					argResult = null;
 				}
 			} else {
 				if (arg[i] instanceof cString) {

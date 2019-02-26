@@ -2953,7 +2953,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.sync_ReplaceAllCallback = function(ReplaceCount, OverallCount)
 	{
-		this.sendEvent("asc_onReplaceAll", ReplaceCount, OverallCount);
+		this.sendEvent("asc_onReplaceAll", OverallCount, ReplaceCount);
 	};
 
 	asc_docs_api.prototype.sync_SearchEndCallback = function()
@@ -6994,13 +6994,30 @@ background-repeat: no-repeat;\
 			_min);
 	};
 
-	asc_docs_api.prototype.AddTextArt = function(nStyle)
+
+	asc_docs_api.prototype.asc_canEditCrop = function()
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
-		{
-			History.Create_NewPoint(AscDFH.historydescription_Document_AddTextArt);
-			this.WordControl.m_oLogicDocument.AddTextArt(nStyle);
-		}
+		return this.WordControl.m_oLogicDocument.DrawingObjects.canStartImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_startEditCrop = function()
+	{
+		return this.WordControl.m_oLogicDocument.DrawingObjects.startImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_endEditCrop = function()
+	{
+		return this.WordControl.m_oLogicDocument.DrawingObjects.endImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_cropFit = function()
+	{
+		return this.WordControl.m_oLogicDocument.DrawingObjects.cropFit();
+	};
+
+	asc_docs_api.prototype.asc_cropFill = function()
+	{
+		return this.WordControl.m_oLogicDocument.DrawingObjects.cropFill();
 	};
 
 	asc_docs_api.prototype.AddTextArt = function(nStyle)
@@ -7947,11 +7964,16 @@ background-repeat: no-repeat;\
 				var oParagraph = oContentControl.GetParagraph();
 				if (oParagraph)
 				{
+					var oState = oLogicDocument.SaveDocumentState();
+					oContentControl.SelectContentControl();
+
 					isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 						Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 						Elements  : [oParagraph],
-						CheckType : AscCommon.changestype_Paragraph_Content
+						CheckType : AscCommon.changestype_Remove
 					});
+
+					oLogicDocument.LoadDocumentState(oState);
 				}
 			}
 
@@ -8406,6 +8428,8 @@ background-repeat: no-repeat;\
 		if (!oTOC)
 			return;
 
+		var oState = oLogicDocument.SaveDocumentState();
+
 		oTOC.SelectField();
 		if (isUpdatePageNumbers)
 		{
@@ -8424,6 +8448,7 @@ background-repeat: no-repeat;\
 					}
 				}
 
+				oLogicDocument.LoadDocumentState(oState);
 				oLogicDocument.Recalculate();
 				oLogicDocument.Document_UpdateInterfaceState();
 				oLogicDocument.Document_UpdateSelectionState();
@@ -8437,11 +8462,13 @@ background-repeat: no-repeat;\
 
 				oTOC.Update();
 
+				oLogicDocument.LoadDocumentState(oState);
 				oLogicDocument.Recalculate();
 				oLogicDocument.Document_UpdateInterfaceState();
 				oLogicDocument.Document_UpdateSelectionState();
 			}
 		}
+
 	};
 
 	asc_docs_api.prototype.asc_GetCurrentComplexField = function()
@@ -9740,6 +9767,12 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['StartAddShape']                             = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['AddShapeOnCurrentPage']                     = asc_docs_api.prototype.AddShapeOnCurrentPage;
 	asc_docs_api.prototype['AddTextArt']                                = asc_docs_api.prototype.AddTextArt;
+	asc_docs_api.prototype['asc_canEditCrop']                           = asc_docs_api.prototype.asc_canEditCrop;
+	asc_docs_api.prototype['asc_startEditCrop']                         = asc_docs_api.prototype.asc_startEditCrop;
+	asc_docs_api.prototype['asc_endEditCrop']                           = asc_docs_api.prototype.asc_endEditCrop;
+	asc_docs_api.prototype['asc_cropFit']                               = asc_docs_api.prototype.asc_cropFit;
+	asc_docs_api.prototype['asc_cropFill']                              = asc_docs_api.prototype.asc_cropFill;
+
 	asc_docs_api.prototype['sync_StartAddShapeCallback']                = asc_docs_api.prototype.sync_StartAddShapeCallback;
 	asc_docs_api.prototype['CanGroup']                                  = asc_docs_api.prototype.CanGroup;
 	asc_docs_api.prototype['CanUnGroup']                                = asc_docs_api.prototype.CanUnGroup;

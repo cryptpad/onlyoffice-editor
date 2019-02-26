@@ -2382,7 +2382,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.sync_ReplaceAllCallback = function(ReplaceCount, OverallCount)
 	{
-		this.sendEvent("asc_onReplaceAll", ReplaceCount, OverallCount);
+		this.sendEvent("asc_onReplaceAll", OverallCount, ReplaceCount);
 	};
 
 	asc_docs_api.prototype.sync_SearchEndCallback = function()
@@ -4026,6 +4026,35 @@ background-repeat: no-repeat;\
     };
     //-------------------------------------------------------
 
+
+
+	asc_docs_api.prototype.asc_canEditCrop = function()
+	{
+
+		return this.WordControl.m_oLogicDocument.canStartImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_startEditCrop = function()
+	{
+		return this.WordControl.m_oLogicDocument.startImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_endEditCrop = function()
+	{
+		return this.WordControl.m_oLogicDocument.endImageCrop();
+	};
+
+	asc_docs_api.prototype.asc_cropFit = function()
+	{
+		return this.WordControl.m_oLogicDocument.cropFit();
+	};
+
+	asc_docs_api.prototype.asc_cropFill = function()
+	{
+		return this.WordControl.m_oLogicDocument.cropFill();
+	};
+
+
 	asc_docs_api.prototype.AddTextArt = function(nStyle)
 	{
 		if (editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Drawing_Props) === false)
@@ -5111,6 +5140,44 @@ background-repeat: no-repeat;\
 			var MathElement = new AscCommonWord.MathMenu(Type);
 			this.WordControl.m_oLogicDocument.AddToParagraph(MathElement, false);
 		}
+	};
+
+
+	asc_docs_api.prototype.asc_AddVideo = function(sImageUrl, sVideoUrl)
+	{
+		var oApi = this;
+		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
+			var aImages = [];
+				var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
+				if(_image){
+					aImages.push(_image);
+				}
+				var oImageObject = {};
+				oImageObject.src = sImageUrl;
+				oImageObject.Image = {};
+				oImageObject.Image.width = _image.Image.width;
+				oImageObject.Image.height = _image.Image.height;
+				oImageObject.videoUrl = sVideoUrl;
+				oApi.WordControl.m_oLogicDocument.addImages(aImages);
+		});
+	};
+	asc_docs_api.prototype.asc_AddAudio = function(sImageUrl, sAudioUrl)
+	{
+		var oApi = this;
+		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
+			var aImages = [];
+			var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
+			if(_image){
+				aImages.push(_image);
+			}
+			var oImageObject = {};
+			oImageObject.src = sImageUrl;
+			oImageObject.Image = {};
+			oImageObject.Image.width = _image.Image.width;
+			oImageObject.Image.height = _image.Image.height;
+			oImageObject.audioUrl = sAudioUrl;
+			oApi.WordControl.m_oLogicDocument.addImages(aImages);
+		});
 	};
 
 	//----------------------------------------------------------------------------------------------------------------------
@@ -6695,6 +6762,15 @@ background-repeat: no-repeat;\
 		}
 		return this.WordControl.m_oLogicDocument.getSelectedDrawingObjectsCount();
 	};
+	asc_docs_api.prototype.asc_canStartImageCrop = function(){
+
+	};
+	asc_docs_api.prototype.asc_startImageCrop = function(){
+
+	};
+	asc_docs_api.prototype.asc_endImageCrop = function(){
+
+	};
 
 	//-----------------------------------------------------------------
 	// События контекстного меню
@@ -7529,6 +7605,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_addImage']                        = asc_docs_api.prototype.asc_addImage;
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['AddTextArt']                          = asc_docs_api.prototype.AddTextArt;
+	asc_docs_api.prototype['asc_canEditCrop']                     = asc_docs_api.prototype.asc_canEditCrop;
+	asc_docs_api.prototype['asc_startEditCrop']                   = asc_docs_api.prototype.asc_startEditCrop;
+	asc_docs_api.prototype['asc_endEditCrop']                     = asc_docs_api.prototype.asc_endEditCrop;
+	asc_docs_api.prototype['asc_cropFit']                         = asc_docs_api.prototype.asc_cropFit;
+	asc_docs_api.prototype['asc_cropFill']                        = asc_docs_api.prototype.asc_cropFill;
 	asc_docs_api.prototype['canGroup']                            = asc_docs_api.prototype.canGroup;
 	asc_docs_api.prototype['canUnGroup']                          = asc_docs_api.prototype.canUnGroup;
 	asc_docs_api.prototype['AddImageUrl']                         = asc_docs_api.prototype.AddImageUrl;
@@ -7694,6 +7775,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getTextArtPreviews']              = asc_docs_api.prototype.asc_getTextArtPreviews;
 	asc_docs_api.prototype['sync_closeChartEditor']               = asc_docs_api.prototype.sync_closeChartEditor;
 	asc_docs_api.prototype['asc_getSelectedDrawingObjectsCount']  = asc_docs_api.prototype.asc_getSelectedDrawingObjectsCount;
+	asc_docs_api.prototype['asc_canStartImageCrop']               = asc_docs_api.prototype.asc_canStartImageCrop;
+	asc_docs_api.prototype['asc_startImageCrop']                  = asc_docs_api.prototype.asc_startImageCrop;
+	asc_docs_api.prototype['asc_endImageCrop']                    = asc_docs_api.prototype.asc_endImageCrop;
 	asc_docs_api.prototype['asc_stopSaving']                      = asc_docs_api.prototype.asc_stopSaving;
 	asc_docs_api.prototype['asc_continueSaving']                  = asc_docs_api.prototype.asc_continueSaving;
 	asc_docs_api.prototype['asc_undoAllChanges']                  = asc_docs_api.prototype.asc_undoAllChanges;
@@ -7720,6 +7804,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_getCurrentFocusObject"]           = asc_docs_api.prototype.asc_getCurrentFocusObject;
 	asc_docs_api.prototype["asc_AddMath"]           			  = asc_docs_api.prototype.asc_AddMath;
 	asc_docs_api.prototype["asc_SetMathProps"]           		  = asc_docs_api.prototype.asc_SetMathProps;
+
+	asc_docs_api.prototype["asc_AddVideo"]           		  = asc_docs_api.prototype.asc_AddVideo;
+	asc_docs_api.prototype["asc_AddAudio"]           		  = asc_docs_api.prototype.asc_AddAudio;
 
     asc_docs_api.prototype['sendEvent']								= asc_docs_api.prototype.sendEvent;
 

@@ -240,14 +240,6 @@ CWordCollaborativeEditing.prototype.Check_MergeData = function()
     var LogicDocument = editor.WordControl.m_oLogicDocument;
     LogicDocument.Comments.Check_MergeData();
 };
-CWordCollaborativeEditing.prototype.OnStart_CheckLock = function()
-{
-    this.m_aCheckLocks.length = 0;
-};
-CWordCollaborativeEditing.prototype.Add_CheckLock = function(oItem)
-{
-    this.m_aCheckLocks.push(oItem);
-};
 CWordCollaborativeEditing.prototype.OnEnd_CheckLock = function(DontLockInFastMode)
 {
     var aIds = [];

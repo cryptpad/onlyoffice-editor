@@ -2629,7 +2629,11 @@
 			{
 				return new asc_CImageSize(50, 50, false);
 			}
-			var _section_select = api.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
+			var _section_select;
+			if(api.WordControl && api.WordControl.m_oLogicDocument)
+			{
+				_section_select = api.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
+			}
 			var _page_width = AscCommon.Page_Width;
 			var _page_height = AscCommon.Page_Height;
 			var _page_x_left_margin = AscCommon.X_Left_Margin;

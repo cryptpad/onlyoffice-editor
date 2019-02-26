@@ -41,7 +41,6 @@ function (window, undefined) {
 
 // Import
 var cToDeg = AscFormat.cToDeg;
-var Path = AscFormat.Path2;
 var ORIENTATION_MIN_MAX = AscFormat.ORIENTATION_MIN_MAX;
 var Point3D = AscFormat.Point3D;
 
@@ -12987,5 +12986,6 @@ CColorObj.prototype =
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscFormat'] = window['AscFormat'] || {};
 	window['AscFormat'].CChartsDrawer = CChartsDrawer;
+	window['AscFormat'].CColorObj = CColorObj;
 	window["AscFormat"].c_oChartTypes = c_oChartTypes;
 })(window);

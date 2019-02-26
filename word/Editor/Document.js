@@ -1700,6 +1700,14 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.RemoveCommentsOnPreDelete = true;  // Удалять ли комментарий при удалении объекта
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
 	this.RemoveOnDrag              = false; // Происходит ли удалении на функции drag-n-drop
+	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
+
+	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
+	this.NeedUpdateTracksOnRecalc = false;
+	this.NeedUpdateTracksParams   = {
+		Selection      : false,
+		EmptySelection : false
+	};
 
     // Мап для рассылки
     this.MailMergeMap             = null;
@@ -3121,6 +3129,11 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 		}
     }
 
+	if (this.NeedUpdateTracksOnRecalc)
+	{
+		this.private_UpdateTracks(this.NeedUpdateTracksParams.Selection, this.NeedUpdateTracksParams.EmptySelection);
+	}
+
     if (true === bContinue)
     {
         this.FullRecalc.PageIndex         = _PageIndex;
@@ -4210,7 +4223,7 @@ CDocument.prototype.AddNewParagraph = function(bRecalculate, bForceAdd)
  */
 CDocument.prototype.Extend_ToPos = function(X, Y)
 {
-    var LastPara  = this.Content[this.Content.length - 1];
+    var LastPara  = this.GetLastParagraph();
     var LastPara2 = LastPara;
 
     this.Create_NewHistoryPoint(AscDFH.historydescription_Document_DocumentExtendToPos);
@@ -6843,8 +6856,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
         if (oSelectInfo.GetInlineLevelSdt() || oSelectInfo.GetBlockLevelSdt())
 		{
 			// Контейнер, который запрещено удалять, нельзя и переносить
-			if ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
-				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted))
+			if (!bCopy
+				&& ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
+				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted())))
 				return;
 
 			this.SetCheckContentControlsLock(false);
@@ -7052,6 +7066,19 @@ CDocument.prototype.Insert_Content = function(SelectedContent, NearPos)
 			// Нам нужно в заданный параграф вставить выделенный текст
 			var NewPara          = FirstElement.Element;
 			var NewElementsCount = NewPara.Content.length - 1; // Последний ран с para_End не добавляем
+
+			if (LastClass instanceof ParaRun && LastClass.GetParent() instanceof CInlineLevelSdt && LastClass.GetParent().IsPlaceHolder())
+			{
+				var oInlineLeveLSdt = LastClass.GetParent();
+				oInlineLeveLSdt.ReplacePlaceHolderWithContent();
+
+				LastClass = oInlineLeveLSdt.GetElement(0);
+
+				ParaNearPos.Classes[ParaNearPos.Classes.length - 1] = LastClass;
+
+				ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 1);
+				ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 2);
+			}
 
 			var LastClass  = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
 			var NewElement = LastClass.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
@@ -9546,7 +9573,16 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 {
 	var Pos = (true === this.Selection.Use && selectionflag_Numbering !== this.Selection.Flag ? this.Selection.EndPos : this.CurPos.ContentPos);
 	if (docpostype_Content === this.GetDocPosType() && !(Pos >= 0 && (null === this.FullRecalc.Id || this.FullRecalc.StartIndex > Pos)))
+	{
+		this.NeedUpdateTracksOnRecalc = true;
+
+		this.NeedUpdateTracksParams.Selection      = bSelection;
+		this.NeedUpdateTracksParams.EmptySelection = bEmptySelection;
+
 		return;
+	}
+
+	this.NeedUpdateTracksOnRecalc = false;
 
 	var oSelectedInfo = this.GetSelectedElementsInfo();
 
@@ -11821,10 +11857,15 @@ CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function()
 
 	this.Controller.SaveDocumentStateBeforeLoadChanges(State);
 	this.RemoveSelection();
+
+	this.CollaborativeEditing.WatchDocumentPositionsByState(State);
+
 	return State;
 };
 CDocument.prototype.Load_DocumentStateAfterLoadChanges = function(State)
 {
+	this.CollaborativeEditing.UpdateDocumentPositionsByState(State);
+
 	this.RemoveSelection();
 
 	this.CurPos.X     = State.CurPos.X;
@@ -13430,6 +13471,18 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 			{
 				NewParagraph.Remove_PrChange();
 				NewParagraph.Set_ReviewType(reviewtype_Add);
+			}
+		}
+		else if (this.Content.length - 1 === this.CurPos.ContentPos && Item.IsCursorAtEnd())
+		{
+			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
+			this.Internal_Content_Add(this.Content.length, oNewParagraph);
+			this.CurPos.ContentPos = this.Content.length - 1;
+
+			if (this.Is_TrackRevisions())
+			{
+				oNewParagraph.Remove_PrChange();
+				oNewParagraph.Set_ReviewType(reviewtype_Add);
 			}
 		}
 		else

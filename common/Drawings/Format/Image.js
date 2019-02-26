@@ -83,6 +83,10 @@ function CImageShape()
     this.blipFill = null;
     this.style    = null;
 
+    this.cropBrush = false;
+    this.isCrop = false;
+    this.parentCrop = null;
+
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add( this, this.Id );
 }
@@ -256,6 +260,12 @@ CImageShape.prototype.getRectBounds = function()
 
 CImageShape.prototype.canRotate = function()
 {
+    if(this.isCrop){
+        return false;
+    }
+    if(this.cropObject){
+        return false;
+    }
     return true;
 };
 
@@ -651,6 +661,14 @@ CImageShape.prototype.draw = function(graphics, transform)
 
     shape_drawer.fromShape2(this, graphics, this.calcGeometry);
     shape_drawer.draw(this.calcGeometry);
+    if(this.cropBrush){
+        this.brush = this.cropBrush;
+        this.pen = null;
+        shape_drawer.Clear();
+        shape_drawer.fromShape2(this, graphics, this.calcGeometry);
+        shape_drawer.draw(this.calcGeometry);
+    }
+
     this.brush = oldBrush;
     this.pen = oldPen;
 

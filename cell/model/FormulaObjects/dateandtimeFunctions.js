@@ -1882,7 +1882,7 @@
 	cWORKDAY.prototype.arrayIndexes = {2: 1};
 	cWORKDAY.prototype.Calculate = function (arg) {
 		var t = this;
-		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
+		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1], true);
 		var argClone = oArguments.args;
 
 		argClone[0] = argClone[0].tocNumber();
@@ -1921,6 +1921,10 @@
 
 			return currentDate;
 		};
+
+		if(undefined === arg1.getValue()) {
+			return new cError(cErrorType.not_numeric);
+		}
 
 		var date = calcDate(val0, arg1.getValue(), holidays);
 		var val = date.getExcelDate();

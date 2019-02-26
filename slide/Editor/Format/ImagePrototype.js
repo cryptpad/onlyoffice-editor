@@ -187,6 +187,7 @@ CImageShape.prototype.recalculate = function ()
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
         }
+        this.clearCropObject();
     }, this, []);
 };
 CImageShape.prototype.recalculateBounds = CShape.prototype.recalculateBounds;

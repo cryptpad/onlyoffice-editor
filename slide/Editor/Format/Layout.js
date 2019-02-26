@@ -119,6 +119,7 @@ function SlideLayout()
     };
 
 
+    this.lastRecalcSlideIndex = -1;
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add(this, this.Id);
 }
@@ -257,21 +258,36 @@ SlideLayout.prototype =
 
     changeSize: Slide.prototype.changeSize,
     checkDrawingUniNvPr: Slide.prototype.checkDrawingUniNvPr,
+    handleAllContents: Slide.prototype.handleAllContents,
 
     Get_Id: function()
     {
         return this.Id;
     },
 
-    draw: function(graphics)
-    {
-        for(var i=0; i < this.cSld.spTree.length; ++i)
-        {
-            if(!this.cSld.spTree[i].isPlaceholder())
+    draw: function (graphics, slide) {
+        if(slide){
+            if(slide.num !== this.lastRecalcSlideIndex){
+                this.lastRecalcSlideIndex = slide.num;
+                this.handleAllContents(function (oContent) {
+                    if(oContent){
+                        if(oContent.AllFields && oContent.AllFields.length > 0){
+                            for(var j = 0; j < oContent.AllFields.length; j++){
+                                oContent.AllFields[j].RecalcInfo.Measure = true;
+                                oContent.AllFields[j].Refresh_RecalcData2();
+                            }
+                        }
+                    }
+                });
+                this.recalculate();
+
+            }
+        }
+        for (var i = 0; i < this.cSld.spTree.length; ++i) {
+            if (this.cSld.spTree[i].isPlaceholder && !this.cSld.spTree[i].isPlaceholder())
                 this.cSld.spTree[i].draw(graphics);
         }
     },
-
     //-----------------------------------------------
 
     calculateType: function()

@@ -336,6 +336,9 @@ CGraphicObjects.prototype =
     getChartObject: DrawingObjectsController.prototype.getChartObject,
     getChartSpace2: DrawingObjectsController.prototype.getChartSpace2,
     CreateDocContent: DrawingObjectsController.prototype.CreateDocContent,
+    isSlideShow: function(){
+        return false;
+    },
 
 
 
@@ -1338,18 +1341,7 @@ CGraphicObjects.prototype =
     getEditorApi: DrawingObjectsController.prototype.getEditorApi,
     resetConnectors: DrawingObjectsController.prototype.resetConnectors,
     checkDlblsPosition: DrawingObjectsController.prototype.checkDlblsPosition,
-    handleMediaObject: function(sName, e, x, y, pageIndex)
-    {
-        this.clearTrackObjects();
-        this.clearPreTrackObjects();
-        this.changeCurrentState(new AscFormat.NullState(this));
-        this.document.OnMouseUp(e, x, y, pageIndex);
-        var oApi = this.getEditorApi();
-        if(oApi)
-        {
-            oApi.asc_PlayMediaFile(sName);
-        }
-    },
+
 
     handleChartDoubleClick: function(drawing, chart, e, x, y, pageIndex)
     {
@@ -3939,6 +3931,12 @@ CGraphicObjects.prototype =
     getSelectedObjectsBounds: DrawingObjectsController.prototype.getSelectedObjectsBounds,
     getContextMenuPosition: DrawingObjectsController.prototype.getContextMenuPosition,
     getLeftTopSelectedFromArray: DrawingObjectsController.prototype.getLeftTopSelectedFromArray,
+    getObjectForCrop: DrawingObjectsController.prototype.getObjectForCrop,
+    canStartImageCrop: DrawingObjectsController.prototype.canStartImageCrop,
+    startImageCrop: DrawingObjectsController.prototype.startImageCrop,
+    endImageCrop: DrawingObjectsController.prototype.endImageCrop,
+    cropFit: DrawingObjectsController.prototype.cropFit,
+    cropFill: DrawingObjectsController.prototype.cropFill,
 
     getFromTargetTextObjectContextMenuPosition: function(oTargetTextObject, pageIndex)
     {

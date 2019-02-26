@@ -355,10 +355,14 @@ NullState.prototype =
             }
             if(this.drawingObjects.drawingObjects && this.drawingObjects.drawingObjects.cSld)
             {
-                this.drawingObjects.stX = x;
-                this.drawingObjects.stY = y;
-                this.drawingObjects.selectionRect = {x : x, y : y, w: 0, h: 0};
-                this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
+                if(!this.drawingObjects.isSlideShow())
+                {
+                    this.drawingObjects.stX = x;
+                    this.drawingObjects.stY = y;
+                    this.drawingObjects.selectionRect = {x : x, y : y, w: 0, h: 0};
+                    this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
+                }
+
             }
         }
         return null;
@@ -981,6 +985,10 @@ PreMoveState.prototype =
 
     onMouseMove: function(e, x, y, pageIndex)
     {
+        if(this.drawingObjects.isSlideShow())
+        {
+            return;
+        }
         if(!e.IsLocked)
         {
             this.onMouseUp(e, x, y, pageIndex);
@@ -1284,6 +1292,10 @@ PreMoveInGroupState.prototype =
 
     onMouseMove: function(e, x, y, pageIndex)
     {
+        if(this.drawingObjects.isSlideShow())
+        {
+            return;
+        }
         if(!e.IsLocked)
         {
             this.onMouseUp(e, x, y, pageIndex);

@@ -2141,7 +2141,7 @@ $( function () {
 		//testArrayFormula2("CHOOSE", 2, 9);
 	} );
 
-	test( "Test: \"CHOOSE\"", function () {
+	test( "Test: \"BETA.INV\"", function () {
 		ws.getRange2( "A2" ).setValue( "0.685470581" );
 		ws.getRange2( "A3" ).setValue( "8" );
 		ws.getRange2( "A4" ).setValue( "10" );
@@ -2153,6 +2153,20 @@ $( function () {
 		strictEqual( oParser.calculate().getValue().toFixed(1) - 0, 2, "BETA.INV(A2,A3,A4,A5,A6)" );
 
 		testArrayFormula2("BETA.INV", 3, 5);
+	} );
+
+	test( "Test: \"BETAINV\"", function () {
+		ws.getRange2( "A2" ).setValue( "0.685470581" );
+		ws.getRange2( "A3" ).setValue( "8" );
+		ws.getRange2( "A4" ).setValue( "10" );
+		ws.getRange2( "A5" ).setValue( "1" );
+		ws.getRange2( "A6" ).setValue( "3" );
+
+		oParser = new parserFormula( "BETAINV(A2,A3,A4,A5,A6)", "A1", ws );
+		ok( oParser.parse(), "BETAINV(A2,A3,A4,A5,A6)" );
+		strictEqual( oParser.calculate().getValue().toFixed(1) - 0, 2, "BETAINV(A2,A3,A4,A5,A6)" );
+
+		testArrayFormula2("BETAINV", 3, 5);
 	} );
 
 	test( "Test: \"BETA.DIST\"", function () {
@@ -3790,6 +3804,39 @@ $( function () {
 		oParser = new parserFormula("WORKDAY(DATE(2018,4,29),0,{\"5-1-2018\", \"5-2-2018\",\"5-3-2018\"})", "A2", ws);
 		ok(oParser.parse());
 		strictEqual(oParser.calculate().getValue(), 43219);
+
+		oParser = new parserFormula("WORKDAY({1,2,3},{1,2})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);
+
+		oParser = new parserFormula("WORKDAY({1,2,3},1)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);
+
+		oParser = new parserFormula("WORKDAY(1,{1,2})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);
+
+		//todo ms выдаёт ошибки
+		/*ws.getRange2( "A101" ).setValue( "1" );
+		ws.getRange2( "B101" ).setValue( "3.123" );
+		ws.getRange2( "C101" ).setValue( "-4" );
+
+		oParser = new parserFormula("WORKDAY(A101:B101,A101:B101)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula("WORKDAY(A101,A101:B101)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula("WORKDAY(A101:B101,A101)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula("WORKDAY(A101,A101)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), 2);*/
 	});
 
 	test( "Test: \"WORKDAY.INTL\"", function () {
@@ -4725,6 +4772,59 @@ $( function () {
 		oParser = new parserFormula( 'XOR(3>12,4<6)', "A2", ws );
 		ok( oParser.parse(), 'XOR(3>12,4<6)' );
 		strictEqual( oParser.calculate().getValue(), "TRUE", 'XOR(3>12,4<6)' );
+
+		//area - specific for xor function
+		//all empty - false result
+		ws.getRange2( "A101" ).setValue( "5" );
+		ws.getRange2( "A102" ).setValue( "6" );
+		ws.getRange2( "A103" ).setValue( "test1" );
+		ws.getRange2( "A104" ).setValue( "" );
+		ws.getRange2( "A105" ).setValue( "false" );
+
+		ws.getRange2( "B101" ).setValue( "1" );
+		ws.getRange2( "B102" ).setValue( "1" );
+		ws.getRange2( "B103" ).setValue( "test2" );
+		ws.getRange2( "B104" ).setValue( "" );
+		ws.getRange2( "B105" ).setValue( "false" );
+
+		ws.getRange2( "B106" ).setValue( "#VALUE!" );
+
+		oParser = new parserFormula( 'XOR(A101:B102)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:B102)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A101:B103)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:B103)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A101:A103)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:A103)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		oParser = new parserFormula( 'XOR(A101:A104)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:A104)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A104:B104)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A104:B104)' );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( 'XOR(A101:B104)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:B104)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A101:B105)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:B105)' );
+		strictEqual( oParser.calculate().getValue(), "FALSE" );
+
+		oParser = new parserFormula( 'XOR(A101:A105)', "A2", ws );
+		ok( oParser.parse(), 'XOR(A101:A105)' );
+		strictEqual( oParser.calculate().getValue(), "TRUE" );
+
+		oParser = new parserFormula( 'XOR(B101:A106)', "A2", ws );
+		ok( oParser.parse(), 'XOR(B101:A106)' );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
 
 		testArrayFormula2("XOR", 1, 8, null, true);
 	} );
@@ -8050,6 +8150,26 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), _var( [10.5, 12.4, 19.4] ) );
 
+		oParser = new parserFormula( "VAR(1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
+		oParser = new parserFormula( "VAR({1})", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
+		ws.getRange2( "A202" ).setValue( "1345" );
+		ws.getRange2( "A203" ).setValue( "" );
+		ws.getRange2( "A204" ).setValue( "" );
+
+		oParser = new parserFormula( "VAR(A202)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
+		oParser = new parserFormula( "VAR(A202:A204)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
     } );
 
 	test( "Test: \"VAR.P\"", function () {
@@ -10345,6 +10465,10 @@ $( function () {
         oParser = new parserFormula( "VDB(2400,300,10*12,6,18)", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), vdb(2400,300,10*12,6,18) );
+
+		oParser = new parserFormula( "VDB(0,0,0,0,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
 
         testArrayFormula2("VDB", 5, 7);
     } );

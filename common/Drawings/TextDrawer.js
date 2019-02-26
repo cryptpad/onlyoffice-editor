@@ -1516,7 +1516,10 @@ CTextDrawer.prototype =
     df : function()
     {
         var oPathToDraw = this.Get_PathToDraw();
-        oPathToDraw.setFill("norm");
+        if(oPathToDraw)
+        {
+            oPathToDraw.setFill("norm");
+        }
     },
 
     drawpath : function(type)

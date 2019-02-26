@@ -2369,36 +2369,55 @@ CDocumentContent.prototype.AddNewParagraph = function()
                 }
             }
         }
-        else if (type_Table === Item.GetType() || type_BlockLevelSdt === Item.GetType())
-        {
-            // Если мы находимся в начале первого параграфа первой ячейки, и
-            // данная таблица - первый элемент, тогда добавляем параграф до таблицы.
+		else if (type_Table === Item.GetType() || type_BlockLevelSdt === Item.GetType())
+		{
+			// Если мы находимся в начале первого параграфа первой ячейки, и
+			// данная таблица - первый элемент, тогда добавляем параграф до таблицы.
 
-            if (0 === this.CurPos.ContentPos && Item.IsCursorAtBegin(true))
-            {
-                // Создаем новый параграф
-                var NewParagraph = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
-                this.Internal_Content_Add(0, NewParagraph);
-                this.CurPos.ContentPos = 0;
+			if (0 === this.CurPos.ContentPos && Item.IsCursorAtBegin(true))
+			{
+				// Создаем новый параграф
+				var NewParagraph = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
+				this.Internal_Content_Add(0, NewParagraph);
+				this.CurPos.ContentPos = 0;
 
 				if (true === this.Is_TrackRevisions())
 				{
 					NewParagraph.Remove_PrChange();
 					NewParagraph.Set_ReviewType(reviewtype_Add);
 				}
-            }
-            else
+			}
+			else if (this.Content.length - 1 === this.CurPos.ContentPos && Item.IsCursorAtEnd())
+			{
+				var oNewParagraph = new Paragraph(this.DrawingDocument, this);
+				this.Internal_Content_Add(this.Content.length, oNewParagraph);
+				this.CurPos.ContentPos = this.Content.length - 1;
+
+				if (this.Is_TrackRevisions())
+				{
+					oNewParagraph.Remove_PrChange();
+					oNewParagraph.Set_ReviewType(reviewtype_Add);
+				}
+			}
+			else
 			{
 				Item.AddNewParagraph();
 			}
-        }
-    }
+		}
+	}
 };
 // Расширяем документ до точки (X,Y) с помощью новых параграфов
 // Y0 - низ последнего параграфа, YLimit - предел страницы
 CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
 {
-    var LastPara  = this.Content[this.Content.length - 1];
+	if (this.IsBlockLevelSdtContent())
+	{
+		var oParent = this.Parent.GetParent();
+		if (oParent)
+			return oParent.Extend_ToPos(X, Y);
+	}
+
+    var LastPara  = this.GetLastParagraph();
     var LastPara2 = LastPara;
 
     History.Create_NewPoint(AscDFH.historydescription_Document_DocumentContentExtendToPos);
@@ -3829,7 +3848,7 @@ CDocumentContent.prototype.IsCursorAtEnd = function()
 {
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 		return false;
-	else if (false != this.Selection.Use || 0 != this.CurPos.ContentPos)
+	else if (false != this.Selection.Use || this.Content.length - 1 != this.CurPos.ContentPos)
 		return false;
 
 	var Item = this.Content[this.Content.length - 1];
@@ -4050,7 +4069,24 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
         if (-1 === DstIndex)
             return;
 
-        var bNeedSelect = true;
+		if (this.IsBlockLevelSdtContent() && this.Parent.IsPlaceHolder())
+		{
+			var oBlockLevelSdt = this.Parent;
+			oBlockLevelSdt.ReplacePlaceHolderWithContent();
+
+			Para = this.Content[0];
+			if (!Para || type_Paragraph !== Para.GetType())
+				return;
+
+			NearPos = Para.Get_NearestPos(0, 0, 0, false, false);
+			Para.Check_NearestPos(NearPos);
+			ParaNearPos = Para.Get_ParaNearestPos(NearPos);
+			LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
+
+			DstIndex = 0;
+		}
+
+		var bNeedSelect = true;
 
         var Elements      = SelectedContent.Elements;
         var ElementsCount = Elements.length;
@@ -4060,6 +4096,19 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
             // Нам нужно в заданный параграф вставить выделенный текст
             var NewPara          = FirstElement.Element;
             var NewElementsCount = NewPara.Content.length - 1; // Последний ран с para_End не добавляем
+
+			if (LastClass instanceof ParaRun && LastClass.GetParent() instanceof CInlineLevelSdt && LastClass.GetParent().IsPlaceHolder())
+			{
+				var oInlineLeveLSdt = LastClass.GetParent();
+				oInlineLeveLSdt.ReplacePlaceHolderWithContent();
+
+				LastClass = oInlineLeveLSdt.GetElement(0);
+
+				ParaNearPos.Classes[ParaNearPos.Classes.length - 1] = LastClass;
+
+				ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 1);
+				ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 2);
+			}
 
             var NewElement = LastClass.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
             var PrevClass  = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
