@@ -2437,7 +2437,7 @@ CGraphics.prototype =
 
     drawSearchResult : function(x, y, w, h)
     {
-        this.b_color1( 255, 220, 0, 200 );
+        this.b_color1( 255, 238, 128, 255 );
         this.rect( x, y, w, h );
         this.df();
     },

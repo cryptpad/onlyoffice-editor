@@ -102,7 +102,7 @@
     };
     this.activeCellBorderColor = new CColor(72, 121, 92);
     this.activeCellBorderColor2 = new CColor(255, 255, 255, 1);
-    this.findFillColor = new CColor(255, 220, 0, 200 / 255);
+    this.findFillColor = new CColor(255, 238, 128, 1);
 
     // Цвет закрепленных областей
     this.frozenColor = new CColor(105, 119, 62, 1);
