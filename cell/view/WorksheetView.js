@@ -2531,81 +2531,66 @@
     };
 
     /** Рисует фон ячеек в строке */
-    WorksheetView.prototype._drawRowBG = function ( drawingCtx, row, colStart, colEnd, offsetX, offsetY, oMergedCell ) {
-        var mergedCells = [];
-        var height = this._getRowHeight(row);
-        if ( 0 === height && null === oMergedCell ) {
-            return mergedCells;
-        }
+    WorksheetView.prototype._drawRowBG = function (drawingCtx, row, colStart, colEnd, offsetX, offsetY, oMergedCell) {
+		var mergedCells = [];
+		var height = this._getRowHeight(row);
+		if (0 === height && null === oMergedCell) {
+			return mergedCells;
+		}
 
-		var aRules = this.model.aConditionalFormattingRules.sort(function(v1, v2) {
+		var aRules = this.model.aConditionalFormattingRules.sort(function (v1, v2) {
 			return v2.priority - v1.priority;
 		});
 
 		var top = this._getRowTop(row);
-        var ctx = drawingCtx || this.drawingCtx;
-        var graphics = drawingCtx ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
-        for ( var col = colStart; col <= colEnd; ++col ) {
-        	var width = this._getColumnWidth(col);
-            if ( 0 === width && null === oMergedCell ) {
-                continue;
-            }
+		var ctx = drawingCtx || this.drawingCtx;
+		var graphics = drawingCtx ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
+		for (var col = colStart; col <= colEnd; ++col) {
+			var width = this._getColumnWidth(col);
+			if (0 === width && null === oMergedCell) {
+				continue;
+			}
 
-            // ToDo подумать, может стоит не брать ячейку из модели (а брать из кеш-а)
-            var c = this._getVisibleCell( col, row );
-			var findFillColor = this.handlers.trigger('selectSearchingResults') && this.model.inFindResults(row, col) ?
-				this.settings.findFillColor : null;
+			// ToDo подумать, может стоит не брать ячейку из модели (а брать из кеш-а)
+			var c = this._getVisibleCell(col, row);
+			var findFillColor = this.handlers.trigger('selectSearchingResults') && this.model.inFindResults(row, col) ? this.settings.findFillColor : null;
 			var fillColor = c.getFillColor();
-            var bg = findFillColor || fillColor;
-            var mc = null;
-            var mwidth = 0, mheight = 0;
+			var bg = findFillColor || fillColor;
+			var mc = null;
+			var mwidth = 0, mheight = 0;
 
-            if ( null === oMergedCell ) {
-                mc = this.model.getMergedByCell( row, col );
-                if ( null !== mc ) {
-                    mergedCells.push(mc);
-                    col = mc.c2;
-                    continue;
-                }
-            }
-            else {
-                mc = oMergedCell;
-            }
+			if (null === oMergedCell) {
+				mc = this.model.getMergedByCell(row, col);
+				if (null !== mc) {
+					mergedCells.push(mc);
+					col = mc.c2;
+					continue;
+				}
+			} else {
+				mc = oMergedCell;
+			}
 
-            if ( null !== mc ) {
-                if ( col !== mc.c1 || row !== mc.r1 ) {
-                    continue;
-                }
+			if (mc) {
+				if (col !== mc.c1 || row !== mc.r1) {
+					continue;
+				}
 
 				mwidth = this._getColLeft(mc.c2 + 1) - this._getColLeft(mc.c1 + 1);
 				mheight = this._getRowTop(mc.r2 + 1) - this._getRowTop(mc.r1 + 1);
-            }
-            else {
-                if ( bg === null ) {
-                    if ( col === colEnd && col < this.nColsCount - 1 && row < this.nRowsCount - 1 ) {
-                        var c2 = this._getVisibleCell( col + 1, row );
-                            var bg2 = c2.getFillColor();
-                            if ( bg2 !== null ) {
-                                ctx.setFillStyle( bg2 )
-                                    .fillRect( this._getColLeft(col + 1) - offsetX - 1, top - offsetY - 1, 1, height + 1 );
-                            }
-                        var c3 = this._getVisibleCell( col, row + 1 );
-                            var bg3 = c3.getFillColor();
-                            if ( bg3 !== null ) {
-                                ctx.setFillStyle( bg3 )
-                                    .fillRect( this._getColLeft(col) - offsetX - 1, this._getRowTop(row + 1) - offsetY - 1, width + 1, 1 );
-                            }
-                        }
-					this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
-                    continue;
-                }
-            }
+				bg = bg || this.settings.cells.defaultState.background;
+			}
 
-            var x = this._getColLeft(col) - (bg !== null ? 1 : 0);
-            var y = top - (bg !== null ? 1 : 0);
-            var w = width + (bg !== null ? +1 : -1) + mwidth;
-            var h = height + (bg !== null ? +1 : -1) + mheight;
-            var color = bg !== null ? bg : this.settings.cells.defaultState.background;
+			if (!bg) {
+				// ToDo не отрисовываем заливку границ от ячеек c заливкой, которые находятся правее и ниже
+				//  отрисовываемого диапазона. Но по факту проблем быть не должно.
+				this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
+				continue;
+			}
+
+            var x = this._getColLeft(col) - (mc ? 0 : 1);
+            var y = top - (mc ? 0 : 1);
+            var w = width + (mc ? -1 : +1) + mwidth;
+            var h = height + (mc ? -1 : +1) + mheight;
 
 			if (false) {
                 AscFormat.ExecuteNoHistory(
@@ -2629,10 +2614,10 @@
                         var oUniFill = new AscFormat.CUniFill();
                         oUniFill.fill = new AscFormat.CPattFill();
                         oUniFill.fill.ftype = 12;
-                        oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(color.getR(), color.getG(),  color.getB());
-                        oUniFill.fill.fgClr.RGBA.R = color.getR();
-                        oUniFill.fill.fgClr.RGBA.G = color.getG();
-                        oUniFill.fill.fgClr.RGBA.B = color.getB();
+                        oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB(bg.getR(), bg.getG(),  bg.getB());
+                        oUniFill.fill.fgClr.RGBA.R = bg.getR();
+                        oUniFill.fill.fgClr.RGBA.G = bg.getG();
+                        oUniFill.fill.fgClr.RGBA.B = bg.getB();
                         oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB(255, 255, 255);
                         oUniFill.fill.bgClr.RGBA.R = 0xFF;
                         oUniFill.fill.bgClr.RGBA.G = 0xFF;
@@ -2649,7 +2634,7 @@
                     }, this, []
                 );
 			} else {
-				ctx.setFillStyle( color ).fillRect( x - offsetX, y - offsetY, w, h );
+				ctx.setFillStyle(bg).fillRect(x - offsetX, y - offsetY, w, h);
 			}
 
 			this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
