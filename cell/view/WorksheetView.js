@@ -2617,9 +2617,13 @@
 								oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor);
 								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor);
 							} else if (fill.gradientFill) {
-								return;
-								oUniFill.fill = new AscFormat.CGradFill();
-								oUniFill.fill.addColor()
+                                oUniFill.fill = new AscFormat.CGradFill();
+								for(var i = 0; i < fill.gradientFill.stop.length; ++i) {
+                                    var oGradStop = new AscFormat.CGs();
+                                    oGradStop.pos = fill.gradientFill.stop[i].position*100000;
+                                    oGradStop.color = AscFormat.CreateUniColorRGB2(fill.gradientFill.stop[i].color);
+                                    oUniFill.fill.addColor(oGradStop);
+                                }
 							} else {
 								return;
 							}
