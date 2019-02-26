@@ -2556,7 +2556,7 @@
 			var findFillColor = this.handlers.trigger('selectSearchingResults') && this.model.inFindResults(row, col) ?
 				this.settings.findFillColor : null;
 			var fillColor = c.getFillColor();
-            var bg = fillColor || findFillColor;
+            var bg = findFillColor || fillColor;
             var mc = null;
             var mwidth = 0, mheight = 0;
 
@@ -2651,10 +2651,6 @@
 			} else {
 				ctx.setFillStyle( color ).fillRect( x - offsetX, y - offsetY, w, h );
 			}
-
-            if (fillColor && findFillColor) {
-				ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
-            }
 
 			this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
         }
