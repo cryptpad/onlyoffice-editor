@@ -5142,6 +5142,44 @@ background-repeat: no-repeat;\
 		}
 	};
 
+
+	asc_docs_api.prototype.asc_AddVideo = function(sImageUrl, sVideoUrl)
+	{
+		var oApi = this;
+		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
+			var aImages = [];
+				var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
+				if(_image){
+					aImages.push(_image);
+				}
+				var oImageObject = {};
+				oImageObject.src = sImageUrl;
+				oImageObject.Image = {};
+				oImageObject.Image.width = _image.Image.width;
+				oImageObject.Image.height = _image.Image.height;
+				oImageObject.videoUrl = sVideoUrl;
+				oApi.WordControl.m_oLogicDocument.addImages(aImages);
+		});
+	};
+	asc_docs_api.prototype.asc_AddAudio = function(sImageUrl, sAudioUrl)
+	{
+		var oApi = this;
+		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
+			var aImages = [];
+			var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
+			if(_image){
+				aImages.push(_image);
+			}
+			var oImageObject = {};
+			oImageObject.src = sImageUrl;
+			oImageObject.Image = {};
+			oImageObject.Image.width = _image.Image.width;
+			oImageObject.Image.height = _image.Image.height;
+			oImageObject.audioUrl = sAudioUrl;
+			oApi.WordControl.m_oLogicDocument.addImages(aImages);
+		});
+	};
+
 	//----------------------------------------------------------------------------------------------------------------------
 	// Работаем с формулами
 	//----------------------------------------------------------------------------------------------------------------------
@@ -7766,6 +7804,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_getCurrentFocusObject"]           = asc_docs_api.prototype.asc_getCurrentFocusObject;
 	asc_docs_api.prototype["asc_AddMath"]           			  = asc_docs_api.prototype.asc_AddMath;
 	asc_docs_api.prototype["asc_SetMathProps"]           		  = asc_docs_api.prototype.asc_SetMathProps;
+
+	asc_docs_api.prototype["asc_AddVideo"]           		  = asc_docs_api.prototype.asc_AddVideo;
+	asc_docs_api.prototype["asc_AddAudio"]           		  = asc_docs_api.prototype.asc_AddAudio;
 
     asc_docs_api.prototype['sendEvent']								= asc_docs_api.prototype.sendEvent;
 

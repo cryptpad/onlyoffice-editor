@@ -103,7 +103,7 @@ var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_W]  = "w-resize";
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_NW] = "nw-resize";
 
-    function fillImage(image, rasterImageId, x, y, extX, extY)
+    function fillImage(image, rasterImageId, x, y, extX, extY, sVideoUrl, sAudioUrl)
     {
         image.setSpPr(new AscFormat.CSpPr());
         image.spPr.setParent(image);
@@ -120,6 +120,17 @@ var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
         blip_fill.setStretch(true);
         image.setBlipFill(blip_fill);
         image.setNvPicPr(new AscFormat.UniNvPr());
+
+
+        var sMediaName = sVideoUrl || sAudioUrl;
+        if(sMediaName)
+        {
+            var sExt = AscCommon.GetFileExtension(sMediaName);
+            var oUniMedia = new AscFormat.UniMedia();
+            oUniMedia.type = sVideoUrl ? 7 : 8;
+            oUniMedia.media = "maskFile." + sExt;
+            image.nvPicPr.nvPr.setUniMedia(oUniMedia);
+        }
         image.setNoChangeAspect(true);
         image.setBDeleted(false);
     }
@@ -9037,10 +9048,10 @@ DrawingObjectsController.prototype =
     },
 
 
-    createImage: function(rasterImageId, x, y, extX, extY)
+    createImage: function(rasterImageId, x, y, extX, extY, sVideoUrl, sAudioUrl)
     {
         var image = new AscFormat.CImageShape();
-        AscFormat.fillImage(image, rasterImageId, x, y, extX, extY);
+        AscFormat.fillImage(image, rasterImageId, x, y, extX, extY, sVideoUrl, sAudioUrl);
         return image;
     },
 

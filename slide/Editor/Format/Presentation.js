@@ -2222,7 +2222,7 @@ CPresentation.prototype =
                 var fKoeff = Math.min(1.0, 1.0/Math.max(__w/_w, __h/_h));
                 _w      = Math.max(5, __w*fKoeff);
                 _h      = Math.max(5, __h*fKoeff);
-                var Image = oController.createImage(_image.src, (this.Slides[this.CurPage].Width - _w)/2, (this.Slides[this.CurPage].Height - _h)/2, _w, _h);
+                var Image = oController.createImage(_image.src, (this.Slides[this.CurPage].Width - _w)/2, (this.Slides[this.CurPage].Height - _h)/2, _w, _h, _image.videoUrl, _image.audioUrl);
                 Image.setParent(this.Slides[this.CurPage]);
                 Image.addToDrawingObjects();
                 oController.selectObject(Image, 0);
