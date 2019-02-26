@@ -10524,7 +10524,7 @@
 				//formula
 				if (sFormula && !isOneMerge) {
 
-					var offset, cellAddress, arrayOffset;
+					var offset, arrayOffset;
 					//в случае, если вставляем после того как вырезали
 					//правка вношу для конкретного бага - 38239
 					//если ориентироваться на ms, то нужно отличать вставку на разные страницы одного и того документа
@@ -10532,11 +10532,14 @@
 					//с которого вырезали. а в случае с разными документами - вставляют не формулу, а конечное значение
 
 					var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
+					var cellAddress = new AscCommon.CellAddress(sId);
 					if(AscCommonExcel.g_clipboardExcel.pasteProcessor && AscCommonExcel.g_clipboardExcel.pasteProcessor.bCut) {
 						offset = new AscCommon.CellBase(0, 0);
+						if(arrayFormulaRef) {
+							arrayOffset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
+						}
 					} else if(specialPasteProps.transpose && transposeRange) {
 						//для transpose необходимо брать offset перевернутого range
-						cellAddress = new AscCommon.CellAddress(sId);
 						if(arrayFormulaRef) {
 							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
 							arrayOffset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
@@ -10544,7 +10547,6 @@
 							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
 						}
 					} else {
-						cellAddress = new AscCommon.CellAddress(sId);
 						if(arrayFormulaRef) {
 							offset = new AscCommon.CellBase(range.bbox.r1 - arrayFormulaRef.r1, range.bbox.c1 - arrayFormulaRef.c1);
 							arrayOffset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
