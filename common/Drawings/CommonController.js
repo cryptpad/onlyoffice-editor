@@ -782,7 +782,7 @@ DrawingObjectsController.prototype =
                 oNvPr = drawing.getNvProps();
                 if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
-                        if(e.CtrlKey){
+                        if(e.CtrlKey || this.isSlideShow()){
                             editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
                             return true;
                         }
@@ -791,9 +791,6 @@ DrawingObjectsController.prototype =
                         var ret = {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
                         if( !(this.noNeedUpdateCursorType === true))
                         {
-
-
-
                             var oDD = editor &&  editor.WordControl && editor.WordControl.m_oDrawingDocument;
                             if(oDD){
                                 var MMData         = new AscCommon.CMouseMoveData();
@@ -802,11 +799,20 @@ DrawingObjectsController.prototype =
                                 MMData.Y_abs       = Coords.Y;
                                 MMData.Type      = AscCommon.c_oAscMouseMoveDataTypes.Hyperlink;
                                 MMData.Hyperlink = new Asc.CHyperlinkProperty({Text: null, Value: oNvPr.hlinkClick.id, ToolTip: oNvPr.hlinkClick.tooltip, Class: null});
-                                editor.sync_MouseMoveCallback(MMData);
-                                if(hit_in_text_rect)
+                                if(!this.isSlideShow())
+                                {
+                                    editor.sync_MouseMoveCallback(MMData);
+                                }
+                                if(hit_in_text_rect && !this.isSlideShow())
                                 {
                                     ret.cursorType = "text";
                                     oDD.SetCursorType("text", MMData);
+                                }
+                                if(this.isSlideShow())
+                                {
+                                    ret.cursorType = "pointer";
+                                    MMData.Hyperlink = null;
+                                    oDD.SetCursorType("pointer", MMData);
                                 }
                                 ret.updated = true;
                             }
@@ -822,7 +828,7 @@ DrawingObjectsController.prototype =
                 if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
 
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {
-                        if(e.CtrlKey){
+                        if(e.CtrlKey || this.isSlideShow()){
                             // var wsModel = this.drawingObjects.getWorksheetModel();
                             //
                             // var _link = oNvPr.hlinkClick.id;
@@ -1786,6 +1792,14 @@ DrawingObjectsController.prototype =
         }
     },
 
+
+    isSlideShow: function()
+    {
+        if(this.drawingObjects && this.drawingObjects.cSld){
+            return editor.WordControl.DemonstrationManager.Mode;
+        }
+        return false;
+    },
 
     handleRotateTrack: function(e, x, y)
     {

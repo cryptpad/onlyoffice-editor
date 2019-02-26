@@ -4177,6 +4177,9 @@ CPresentation.prototype =
         if(_old_focus){
             this.CheckEmptyPlaceholderNotes();
         }
+        if(ret){
+            return keydownresult_PreventAll;
+        }
     },
 
     OnMouseUp : function(e, X, Y, PageIndex)
@@ -4472,6 +4475,7 @@ CPresentation.prototype =
             }
         }
     },
+
 
     Get_TableStyleForPara : function()
     {

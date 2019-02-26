@@ -336,6 +336,9 @@ CGraphicObjects.prototype =
     getChartObject: DrawingObjectsController.prototype.getChartObject,
     getChartSpace2: DrawingObjectsController.prototype.getChartSpace2,
     CreateDocContent: DrawingObjectsController.prototype.CreateDocContent,
+    isSlideShow: function(){
+        return false;
+    },
 
 
 

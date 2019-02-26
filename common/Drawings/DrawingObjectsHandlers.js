@@ -355,6 +355,10 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
             }
         }
     }
+    if(drawingObjectsController.isSlideShow())
+    {
+        return false;
+    }
     if(window["IS_NATIVE_EDITOR"])
     {
         if(drawing.getObjectType() === AscDFH.historyitem_type_Shape && drawing.getDocContent && drawing.getDocContent())
@@ -408,6 +412,10 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
                 return ret;
             }
         }
+    }
+    if(drawingObjectsController.isSlideShow())
+    {
+        return false;
     }
     if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
     {
