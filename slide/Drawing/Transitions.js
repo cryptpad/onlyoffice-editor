@@ -3635,7 +3635,7 @@ function CDemonstrationManager(htmlpage)
         if (documentMI)
         {
             var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
-            if (ret == keydownresult_PreventDefault)
+            if (ret == keydownresult_PreventAll)
                 return;
         }
 
