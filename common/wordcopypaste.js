@@ -8006,13 +8006,13 @@ PasteProcessor.prototype =
 		var border = this._ExecuteBorder(computedStyle, node, "left", "Left", bAddIfNull);
 		if(null != border)
 			cell.Set_Border(border, 3);
-		var border = this._ExecuteBorder(computedStyle, node, "top", "Top", bAddIfNull);
+		border = this._ExecuteBorder(computedStyle, node, "top", "Top", bAddIfNull);
 		if(null != border)
 			cell.Set_Border(border, 0);
-		var border = this._ExecuteBorder(computedStyle, node, "right", "Right", bAddIfNull);
+		border = this._ExecuteBorder(computedStyle, node, "right", "Right", bAddIfNull);
 		if(null != border)
 			cell.Set_Border(border, 1);
-		var border = this._ExecuteBorder(computedStyle, node, "bottom", "Bottom", bAddIfNull);
+		border = this._ExecuteBorder(computedStyle, node, "bottom", "Bottom", bAddIfNull);
 		if(null != border)
 			cell.Set_Border(border, 2);
 
@@ -8028,6 +8028,11 @@ PasteProcessor.prototype =
 		var left = this._getStyle(node, computedStyle, "padding-left");
 		if(null != left && null != (left = this._ValueToMm(left)))
 			cell.Set_Margins({ W : left, Type : tblwidth_Mm }, 3);
+
+		var whiteSpace = this._getStyle(node, computedStyle, "white-space");
+		if("nowrap" === whiteSpace) {
+			cell.Set_NoWrap(true);
+		}
 
         //content
         var oPasteProcessor = new PasteProcessor(this.api, false, false, true);
