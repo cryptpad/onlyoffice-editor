@@ -4554,7 +4554,7 @@ PasteProcessor.prototype =
                 if(Array.isArray(aSlides)) {
                     for(var i = 0; i < aSlides.length; ++i) {
                         var oCurSlide = aSlides[i];
-                        var oSlideFontMap = oCurSlide.fontMap;
+                        var oSlideFontMap = oCurSlide ? oCurSlide.fontMap : null;
                         if(oSlideFontMap) {
                             var oTheme = null;
                             if(Array.isArray(presentationSelectedContent.LayoutsIndexes)) {
