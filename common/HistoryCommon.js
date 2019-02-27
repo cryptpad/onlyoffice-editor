@@ -1097,6 +1097,9 @@
 			case AscDFH.historydescription_Document_AddBlankPage:
 				sString = "Document_AddBlankPage";
 				break;
+			case AscDFH.historydescription_Document_AddTableFormula:
+				sString = "Document_AddTableFormula";
+				break;
 		}
 		return sString;
 	}
@@ -3091,6 +3094,7 @@
 	window['AscDFH'].historydescription_Document_SetGlobalSdtShowHighlight          = 0x015b;
 	window['AscDFH'].historydescription_Document_UpdateFields                       = 0x015c;
 	window['AscDFH'].historydescription_Document_AddBlankPage                       = 0x015d;
+	window['AscDFH'].historydescription_Document_AddTableFormula                    = 0x015e;
 
 
 

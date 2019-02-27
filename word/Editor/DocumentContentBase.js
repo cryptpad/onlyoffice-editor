@@ -1066,7 +1066,7 @@ CDocumentContentBase.prototype.GetElement = function(nIndex)
  * Добавляем новый элемент (с записью в историю)
  * @param nPos
  * @param oItem
- * @param {booleam} [isCorrectContent=true]
+ * @param {boolean} [isCorrectContent=true]
  */
 CDocumentContentBase.prototype.AddToContent = function(nPos, oItem, isCorrectContent)
 {

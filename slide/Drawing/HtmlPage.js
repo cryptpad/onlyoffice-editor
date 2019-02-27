@@ -4169,6 +4169,11 @@ function CEditorPage(api)
 			//return;
 		}
 
+		if (this.DemonstrationManager.Mode && !isReporterUpdateSlide)
+		{
+            return this.m_oApi.DemonstrationGoToSlide(lPageNum);
+		}
+
 		var drDoc = this.m_oDrawingDocument;
 
 		if (!this.m_oScrollVerApi)

@@ -3384,9 +3384,10 @@
 				//вертикальное выравнивание
 				oNewItem.va = Asc.c_oAscVAlign.Center;
 
-				//так же wrap выставляем у параграфа, чьим родителем является ячейка таблицы	
-				if (this._getParentByTag(paragraph, c_oAscBoundsElementType.Cell) != null) {
-					oNewItem.wrap = false;
+				//так же wrap выставляем у параграфа, чьим родителем является ячейка таблицы
+				var cellParent = this._getParentByTag(paragraph, c_oAscBoundsElementType.Cell);
+				if (cellParent) {
+					oNewItem.wrap = !(cellParent.elem && cellParent.elem.Pr && true === cellParent.elem.Pr.NoWrap);
 				}
 
 				//Numbering
