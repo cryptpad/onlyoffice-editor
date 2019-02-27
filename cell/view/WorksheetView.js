@@ -2613,7 +2613,7 @@
 							var oUniFill = new AscFormat.CUniFill();
 							if (fill.patternFill) {
 								oUniFill.fill = new AscFormat.CPattFill();
-								oUniFill.fill.ftype = 12;
+								oUniFill.fill.ftype = fill.patternFill.getHatchOffset();
 								oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor);
 								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor);
 							} else if (fill.gradientFill) {
