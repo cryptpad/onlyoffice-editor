@@ -8030,7 +8030,7 @@ PasteProcessor.prototype =
 			cell.Set_Margins({ W : left, Type : tblwidth_Mm }, 3);
 
 		var whiteSpace = this._getStyle(node, computedStyle, "white-space");
-		if("nowrap" === whiteSpace) {
+		if("nowrap" === whiteSpace || true === node.noWrap) {
 			cell.Set_NoWrap(true);
 		}
 
