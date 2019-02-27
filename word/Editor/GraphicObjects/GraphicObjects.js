@@ -3197,9 +3197,9 @@ CGraphicObjects.prototype =
                 var oPosition;
                 if(alignType === Asc.c_oAscObjectsAlignType.Page)
                 {
-                    if(type === Asc.c_oAscAlignShapeType.ALIGN_LEFT
-                        || type === Asc.c_oAscAlignShapeType.ALIGN_RIGHT
-                        || type === Asc.c_oAscAlignShapeType.ALIGN_CENTER)
+                    if(type === c_oAscAlignShapeType.ALIGN_LEFT
+                        || type === c_oAscAlignShapeType.ALIGN_RIGHT
+                        || type === c_oAscAlignShapeType.ALIGN_CENTER)
                     {
                         oPosition = new Asc.CImagePositionH();
                         oImageProperties.put_PositionH(oPosition);
@@ -3216,9 +3216,9 @@ CGraphicObjects.prototype =
                 }
                 else
                 {
-                    if(type === Asc.c_oAscAlignShapeType.ALIGN_LEFT
-                        || type === Asc.c_oAscAlignShapeType.ALIGN_RIGHT
-                        || type === Asc.c_oAscAlignShapeType.ALIGN_CENTER)
+                    if(type === c_oAscAlignShapeType.ALIGN_LEFT
+                        || type === c_oAscAlignShapeType.ALIGN_RIGHT
+                        || type === c_oAscAlignShapeType.ALIGN_CENTER)
                     {
                         oPosition = new Asc.CImagePositionH();
                         oImageProperties.put_PositionH(oPosition);
