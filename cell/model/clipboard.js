@@ -3764,132 +3764,116 @@
 
 				return formatBorders;
 			},
-			
-			_getAlignHorisontal: function(paraPr)
-			{
+
+			_getAlignHorisontal: function (paraPr) {
 				var result;
 				var settings = paraPr.ParaPr;
-				
-				if(!settings)
+
+				if (!settings) {
 					return;
-				
-				switch(settings.Jc)
-				{
-					case 0:
-					{
+				}
+
+				switch (settings.Jc) {
+					case 0: {
 						result = AscCommon.align_Right;
 						break;
 					}
-					case 1:
-					{
+					case 1: {
 						result = AscCommon.align_Left;
 						break;
 					}
-					case 2:
-					{
+					case 2: {
 						result = AscCommon.align_Center;
 						break;
 					}
-					case 3:
-					{
+					case 3: {
 						result = null;
 						break;
 					}
 				}
-				
+
 				return result;
 			},
-			
-			getBackgroundColorTCell: function(elem)
-			{
+
+			getBackgroundColorTCell: function (elem) {
 				var compiledPrCell, color;
 				var backgroundColor = null;
-				
+
 				//TODO внутреннии таблицы без стиля - цвет фона белый
 				var tableCell = this._getParentByTag(elem, c_oAscBoundsElementType.Cell);
-				
-				if(tableCell)
-				{
+
+				if (tableCell) {
 					compiledPrCell = tableCell.elem.Get_CompiledPr();
-					
-					if(compiledPrCell && compiledPrCell.Shd.Value !== 1/*shd_Nil*/)
-					{	
+
+					if (compiledPrCell && compiledPrCell.Shd.Value !== 1/*shd_Nil*/) {
 						var shd = compiledPrCell.Shd;
-						if(shd.Unifill && shd.Unifill.fill && shd.Unifill.fill.color && shd.Unifill.fill.color.color && shd.Unifill.fill.color.color.RGBA)
-						{
+						if (shd.Unifill && shd.Unifill.fill && shd.Unifill.fill.color && shd.Unifill.fill.color.color && shd.Unifill.fill.color.color.RGBA) {
 							color = shd.Unifill.fill.color.color.RGBA;
 							backgroundColor = new AscCommonExcel.RgbColor(this.clipboard._getBinaryColor("rgb(" + color.R + "," + color.G + "," + color.B + ")"));
-						}
-						else
-						{
+						} else {
 							color = shd.Color;
 							backgroundColor = new AscCommonExcel.RgbColor(this.clipboard._getBinaryColor("rgb(" + color.r + "," + color.g + "," + color.b + ")"));
 						}
 					}
 				}
-				
+
 				return backgroundColor;
 			},
-			
-			_getParentByTag: function(elem, tag)
-			{
+
+			_getParentByTag: function (elem, tag) {
 				var result;
-				if(!elem)
+				if (!elem) {
 					return null;
-				
-				if(elem.type === tag)
-					result =  elem;
-				else if(elem.parent)
-					result =  this._getParentByTag(elem.parent, tag);
-				else if(!elem.parent)
-					result =  null;
-					
+				}
+
+				if (elem.type === tag) {
+					result = elem;
+				} else if (elem.parent) {
+					result = this._getParentByTag(elem.parent, tag);
+				} else if (!elem.parent) {
+					result = null;
+				}
+
 				return result;
 			},
-			
-			_getAllNumberingText: function(Lvl, numberingText)
-			{
-				var preSpace, beetweenSpace, result;
-				if(Lvl === 0)
+
+			_getAllNumberingText: function (Lvl, numberingText) {
+				var preSpace, result;
+				if (Lvl === 0) {
 					preSpace = "     ";
-				else if(Lvl === 1)
+				} else if (Lvl === 1) {
 					preSpace = "          ";
-				else if(Lvl >= 2)
+				} else if (Lvl >= 2) {
 					preSpace = "               ";
-				
-				var beetweenSpace =  "  ";	
-				
-				result = preSpace + numberingText + beetweenSpace;
-				
+				}
+
+				var betweenSpace = "  ";
+				result = preSpace + numberingText + betweenSpace;
+
 				return result;
 			},
-			
-			_parseNumbering: function(paragraph)
-			{
+
+			_parseNumbering: function (paragraph) {
 				var Pr = paragraph.Get_CompiledPr();
-				
-				if ( paragraph.Numbering )
-				{
+
+				if (paragraph.Numbering) {
 					var NumberingItem = paragraph.Numbering;
-					if ( para_Numbering === NumberingItem.Type )
-					{
+					if (para_Numbering === NumberingItem.Type) {
 						var NumPr = Pr.ParaPr.NumPr;
-						if ( undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId )
-						{
+						if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId ||
+							"0" === NumPr.NumId) {
 							// Ничего не делаем
-						}
-						else
-						{
+						} else {
 							var Numbering = paragraph.Parent.GetNumbering();
-							var NumLvl    = Numbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
-							var NumSuff   = NumLvl.GetSuff();
-							var NumJc     = NumLvl.GetJc();
+							var NumLvl = Numbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+							//var NumSuff   = NumLvl.GetSuff();
+							//var NumJc     = NumLvl.GetJc();
 							var NumTextPr = paragraph.Get_CompiledPr2(false).TextPr.Copy();
 
 							// Word не рисует подчеркивание у символа списка, если оно пришло из настроек для
 							// символа параграфа.
 
-							var TextPr_temp       = paragraph.TextPr.Value.Copy();
+							var TextPr_temp = paragraph.TextPr.Value.Copy();
 							TextPr_temp.Underline = undefined;
 
 							NumTextPr.Merge(TextPr_temp);
@@ -3897,13 +3881,11 @@
 
 							var oNumPr = paragraph.GetNumPr();
 							var LvlPr, Lvl;
-							if (oNumPr != null)
-							{
+							if (oNumPr != null) {
 								var oNum = paragraph.Parent.GetNumbering().GetNum(oNumPr.NumId);
-								if (null != oNum)
-								{
+								if (null != oNum) {
 									LvlPr = oNum.GetLvl(oNumPr.Lvl);
-									Lvl   = oNumPr.Lvl;
+									Lvl = oNumPr.Lvl;
 								}
 							}
 
@@ -3915,31 +3897,27 @@
 					}
 				}
 			},
-			
-			
-			 _getNumberingText : function(Lvl, NumInfo, NumTextPr, Theme, LvlPr)
-			{
+
+
+			_getNumberingText: function (Lvl, NumInfo, NumTextPr, Theme, LvlPr) {
 				var Text = LvlPr.LvlText;
-				
-				var Char = "";
+
+				var Char = "", T, Num, Index2;
 				//Context.SetTextPr( NumTextPr, Theme );
 				//Context.SetFontSlot( fontslot_ASCII );
 				//g_oTextMeasurer.SetTextPr( NumTextPr, Theme );
 				//g_oTextMeasurer.SetFontSlot( fontslot_ASCII );
 
-				for ( var Index = 0; Index < Text.length; Index++ )
-				{
-					switch( Text[Index].Type )
-					{
-						case numbering_lvltext_Text:
-						{
+				for (var Index = 0; Index < Text.length; Index++) {
+					switch (Text[Index].Type) {
+						case numbering_lvltext_Text: {
 							var Hint = NumTextPr.RFonts.Hint;
-							var bCS  = NumTextPr.CS;
+							var bCS = NumTextPr.CS;
 							var bRTL = NumTextPr.RTL;
 							var lcid = NumTextPr.Lang.EastAsia;
 
-							var FontSlot = g_font_detector.Get_FontClass( Text[Index].Value.charCodeAt(0), Hint, lcid, bCS, bRTL );
-							
+							var FontSlot = g_font_detector.Get_FontClass(Text[Index].Value.charCodeAt(0), Hint, lcid, bCS, bRTL);
+
 							Char += Text[Index].Value;
 							//Context.SetFontSlot( FontSlot );
 							//g_oTextMeasurer.SetFontSlot( FontSlot );
@@ -3949,26 +3927,20 @@
 
 							break;
 						}
-						case numbering_lvltext_Num:
-						{
+						case numbering_lvltext_Num: {
 							//Context.SetFontSlot( fontslot_ASCII );
 							//g_oTextMeasurer.SetFontSlot( fontslot_ASCII );
 
 							var CurLvl = Text[Index].Value;
-							switch( LvlPr.Format )
-							{
-								case Asc.c_oAscNumberingFormat.Bullet:
-								{
+							switch (LvlPr.Format) {
+								case Asc.c_oAscNumberingFormat.Bullet: {
 									break;
 								}
 
-								case Asc.c_oAscNumberingFormat.Decimal:
-								{
-									if ( CurLvl < NumInfo.length )
-									{
-										var T = "" + NumInfo[CurLvl];
-										for ( var Index2 = 0; Index2 < T.length; Index2++ )
-										{
+								case Asc.c_oAscNumberingFormat.Decimal: {
+									if (CurLvl < NumInfo.length) {
+										T = "" + NumInfo[CurLvl];
+										for (Index2 = 0; Index2 < T.length; Index2++) {
 											Char += T.charAt(Index2);
 											//Context.FillText( X, Y, Char );
 											//X += g_oTextMeasurer.Measure( Char ).Width;
@@ -3977,25 +3949,19 @@
 									break;
 								}
 
-								case Asc.c_oAscNumberingFormat.DecimalZero:
-								{
-									if ( CurLvl < NumInfo.length )
-									{
-										var T = "" + NumInfo[CurLvl];
+								case Asc.c_oAscNumberingFormat.DecimalZero: {
+									if (CurLvl < NumInfo.length) {
+										T = "" + NumInfo[CurLvl];
 
-										if ( 1 === T.length )
-										{
+										if (1 === T.length) {
 											//Context.FillText( X, Y, '0' );
 											//X += g_oTextMeasurer.Measure( '0' ).Width;
 
-											var Char = T.charAt(0);
+											Char = T.charAt(0);
 											//Context.FillText( X, Y, Char );
 											//X += g_oTextMeasurer.Measure( Char ).Width;
-										}
-										else
-										{
-											for ( var Index2 = 0; Index2 < T.length; Index2++ )
-											{
+										} else {
+											for (Index2 = 0; Index2 < T.length; Index2++) {
 												Char += T.charAt(Index2);
 												//Context.FillText( X, Y, Char );
 												//X += g_oTextMeasurer.Measure( Char ).Width;
@@ -4006,29 +3972,28 @@
 								}
 
 								case Asc.c_oAscNumberingFormat.LowerLetter:
-								case Asc.c_oAscNumberingFormat.UpperLetter:
-								{
-									if ( CurLvl < NumInfo.length )
-									{
+								case Asc.c_oAscNumberingFormat.UpperLetter: {
+									if (CurLvl < NumInfo.length) {
 										// Формат: a,..,z,aa,..,zz,aaa,...,zzz,...
-										var Num = NumInfo[CurLvl];
+										Num = NumInfo[CurLvl];
 
 										var Count = (Num - Num % 26) / 26;
-										var Ost   = Num % 26;
+										var Ost = Num % 26;
 
-										var T = "";
+										T = "";
 
 										var Letter;
-										if ( Asc.c_oAscNumberingFormat.LowerLetter === LvlPr.Format )
-											Letter = String.fromCharCode( Ost + 97 );
-										else
-											Letter = String.fromCharCode( Ost + 65 );
+										if (Asc.c_oAscNumberingFormat.LowerLetter === LvlPr.Format) {
+											Letter = String.fromCharCode(Ost + 97);
+										} else {
+											Letter = String.fromCharCode(Ost + 65);
+										}
 
-										for ( var Index2 = 0; Index2 < Count + 1; Index2++ )
+										for (Index2 = 0; Index2 < Count + 1; Index2++) {
 											T += Letter;
+										}
 
-										for ( var Index2 = 0; Index2 < T.length; Index2++ )
-										{
+										for (Index2 = 0; Index2 < T.length; Index2++) {
 											Char += T.charAt(Index2);
 											//Context.FillText( X, Y, Char );
 											//X += g_oTextMeasurer.Measure( Char ).Width;
@@ -4038,40 +4003,39 @@
 								}
 
 								case Asc.c_oAscNumberingFormat.LowerRoman:
-								case Asc.c_oAscNumberingFormat.UpperRoman:
-								{
-									if ( CurLvl < NumInfo.length )
-									{
-										var Num = NumInfo[CurLvl];
+								case Asc.c_oAscNumberingFormat.UpperRoman: {
+									if (CurLvl < NumInfo.length) {
+										Num = NumInfo[CurLvl];
 
 										// Переводим число Num в римскую систему исчисления
 										var Rims;
 
-										if ( Asc.c_oAscNumberingFormat.LowerRoman === LvlPr.Format )
-											Rims = [  'm', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i', ' '];
-										else
-											Rims = [  'M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I', ' '];
+										if (Asc.c_oAscNumberingFormat.LowerRoman === LvlPr.Format) {
+											Rims =
+												['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i', ' '];
+										} else {
+											Rims =
+												['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I', ' '];
+										}
 
-										var Vals = [ 1000,  900, 500,  400, 100,   90,  50,   40,  10,    9,   5,    4,   1,   0];
+										var Vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1, 0];
 
-										var T = "";
-										var Index2 = 0;
-										while ( Num > 0 )
-										{
-											while ( Vals[Index2] <= Num )
-											{
-												T   += Rims[Index2];
+										T = "";
+										Index2 = 0;
+										while (Num > 0) {
+											while (Vals[Index2] <= Num) {
+												T += Rims[Index2];
 												Num -= Vals[Index2];
 											}
 
 											Index2++;
 
-											if ( Index2 >= Rims.length )
+											if (Index2 >= Rims.length) {
 												break;
+											}
 										}
 
-										for ( var Index2 = 0; Index2 < T.length; Index2++ )
-										{
+										for (Index2 = 0; Index2 < T.length; Index2++) {
 											Char += T.charAt(Index2);
 											//Context.FillText( X, Y, Char );
 											//X += g_oTextMeasurer.Measure( T.charAt(Index2) ).Width;
@@ -4087,39 +4051,42 @@
 				}
 				return Char;
 			},
-			
-			
-			_getPrParaRun: function(paraPr, cTextPr)
-			{
+
+
+			_getPrParaRun: function (paraPr, cTextPr) {
 				var formatText, fontFamily, colorText;
-				
+
 				var paragraphFontSize = paraPr.TextPr.FontSize;
 				var paragraphFontFamily = paraPr.TextPr && paraPr.TextPr.FontFamily ? paraPr.TextPr.FontFamily.Name : "Arial";
 				var paragraphBold = paraPr.TextPr.Bold;
 				var paragraphItalic = paraPr.TextPr.Italic;
 				var paragraphStrikeout = paraPr.TextPr.Strikeout;
-				var paragraphUnderline = paraPr.TextPr.Underline ? Asc.EUnderline.underlineSingle : Asc.EUnderline.underlineNone;
+				var paragraphUnderline = paraPr.TextPr.Underline ? Asc.EUnderline.underlineSingle :
+					Asc.EUnderline.underlineNone;
 				var paragraphVertAlign = null;
-				if(paraPr.TextPr.VertAlign === 1)
+				if (paraPr.TextPr.VertAlign === 1) {
 					paragraphVertAlign = AscCommon.vertalign_SuperScript;
-				else if(paraPr.TextPr.VertAlign === 2)
+				} else if (paraPr.TextPr.VertAlign === 2) {
 					paragraphVertAlign = AscCommon.vertalign_SubScript;
+				}
 
 				var colorParagraph = new AscCommonExcel.RgbColor(this.clipboard._getBinaryColor("rgb(" + paraPr.TextPr.Color.r + "," + paraPr.TextPr.Color.g + "," + paraPr.TextPr.Color.b + ")"));
-				
-				if(cTextPr.Color)
+
+				if (cTextPr.Color) {
 					colorText = new AscCommonExcel.RgbColor(this.clipboard._getBinaryColor("rgb(" + cTextPr.Color.r + "," + cTextPr.Color.g + "," + cTextPr.Color.b + ")"));
-				else
+				} else {
 					colorText = null;
-				
+				}
+
 				fontFamily = cTextPr.fontFamily ? cTextPr.fontFamily.Name : cTextPr.RFonts.CS ? cTextPr.RFonts.CS.Name : paragraphFontFamily;
 				this.fontsNew[fontFamily] = 1;
-				
+
 				var verticalAlign;
-				if(cTextPr.VertAlign === 2)
+				if (cTextPr.VertAlign === 2) {
 					verticalAlign = AscCommon.vertalign_SubScript;
-				else if(cTextPr.VertAlign === 1)
+				} else if (cTextPr.VertAlign === 1) {
 					verticalAlign = AscCommon.vertalign_SuperScript;
+				}
 
 				var font = new AscCommonExcel.Font();
 				font.assignFromObject({
@@ -4129,13 +4096,14 @@
 					b: cTextPr.Bold ? cTextPr.Bold : paragraphBold,
 					i: cTextPr.Italic ? cTextPr.Italic : paragraphItalic,
 					u: cTextPr.Underline ? Asc.EUnderline.underlineSingle : paragraphUnderline,
-					s: cTextPr.Strikeout ? cTextPr.Strikeout : cTextPr.DStrikeout ? cTextPr.DStrikeout : paragraphStrikeout,
+					s: cTextPr.Strikeout ? cTextPr.Strikeout :
+						cTextPr.DStrikeout ? cTextPr.DStrikeout : paragraphStrikeout,
 					va: verticalAlign ? verticalAlign : paragraphVertAlign
 				});
 				formatText = {
 					format: font
 				};
-				
+
 				return formatText;
 			}
 		};
