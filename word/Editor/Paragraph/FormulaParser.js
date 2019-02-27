@@ -12,7 +12,7 @@
     var sRowName = sDecimalDigit + '+';
     var sColon = ':';
     var sComma = ',';
-    var sFullStop = '\.';
+    var sFullStop = '\\.';
     var sWholeNumberPart = '([0-9]+)((,[0-9]{3})+[0-9]+)*';
     var sFractionalPart = sDecimalDigit + '+';
 

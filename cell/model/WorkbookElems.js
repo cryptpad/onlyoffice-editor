@@ -1311,6 +1311,12 @@ var g_oFontProperties = {
 		patternFill: 0,
 		gradientFill: 1
 	};
+	Fill.prototype.hasFill = function () {
+		return ((this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) || this.gradientFill);
+	};
+	Fill.prototype.getSolidFill = function () {
+		return (this.patternFill && c_oAscPatternType.Solid === this.patternFill.patternType) ? this.patternFill.fgColor : null;
+	};
 	Fill.prototype.bg = function () {
 		var res = null;
 		if (this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) {

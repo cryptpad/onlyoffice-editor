@@ -1560,7 +1560,17 @@ TextAddState.prototype =
     },
     onMouseUp: function(e, x, y, pageIndex)
     {
+        var oldCtrl;
+        if(this.drawingObjects.isSlideShow())
+        {
+            oldCtrl = e.CtrlKey;
+            e.CtrlKey = true;
+        }
         this.majorObject.selectionSetEnd(e, x, y, pageIndex);
+        if(this.drawingObjects.isSlideShow())
+        {
+            e.CtrlKey = oldCtrl;
+        }
         this.drawingObjects.updateSelectionState();
         this.drawingObjects.drawingObjects.sendGraphicObjectProps();
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -1570,6 +1580,10 @@ TextAddState.prototype =
         if(cursor_type && cursor_type.hyperlink)
         {
             this.drawingObjects.drawingObjects.showDrawingObjects(true);
+            if(this.drawingObjects.isSlideShow())
+            {
+                this.drawingObjects.getEditorApi().sync_HyperlinkClickCallback(cursor_type.hyperlink.Value);
+            }
         }
         this.drawingObjects.noNeedUpdateCursorType = false;
         this.drawingObjects.handleEventMode = HANDLE_EVENT_MODE_HANDLE;
