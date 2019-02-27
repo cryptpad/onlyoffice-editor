@@ -8604,6 +8604,26 @@ background-repeat: no-repeat;\
 			oLogicDocument.Document_UpdateSelectionState();
 		}
 	};
+	asc_docs_api.prototype.asc_AddTableFormula = function(sFormula)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+
+		if (!oLogicDocument || !sFormula || "=" !== sFormula.charAt(0))
+			return;
+
+		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTableFormula);
+			oLogicDocument.AddFieldWithInstruction(sFormula);
+			oLogicDocument.Recalculate();
+			oLogicDocument.Document_UpdateInterfaceState();
+			oLogicDocument.Document_UpdateSelectionState();
+		}
+	};
+	asc_docs_api.prototype.asc_GetTableFormula = function()
+	{
+		return "=";
+	};
 
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
 	{
@@ -9896,6 +9916,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_UpdateComplexField']                    = asc_docs_api.prototype.asc_UpdateComplexField;
 	asc_docs_api.prototype['asc_RemoveComplexField']                    = asc_docs_api.prototype.asc_RemoveComplexField;
 	asc_docs_api.prototype['asc_SetComplexFieldPr']                     = asc_docs_api.prototype.asc_SetComplexFieldPr;
+	asc_docs_api.prototype['asc_AddTableFormula']                       = asc_docs_api.prototype.asc_AddTableFormula;
+	asc_docs_api.prototype['asc_GetTableFormula']                       = asc_docs_api.prototype.asc_GetTableFormula;
 
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
 
