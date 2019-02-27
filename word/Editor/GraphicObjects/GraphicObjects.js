@@ -3202,14 +3202,14 @@ CGraphicObjects.prototype =
                         || type === c_oAscAlignShapeType.ALIGN_CENTER)
                     {
                         oPosition = new Asc.CImagePositionH();
-                        oImageProperties.put_PositionH(oPosition);
+                        oImageProperties.asc_putPositionH(oPosition);
                         oPosition.put_UseAlign(true);
                         oPosition.put_RelativeFrom(Asc.c_oAscRelativeFromH.Page);
                     }
                     else
                     {
                         oPosition = new Asc.CImagePositionV();
-                        oImageProperties.put_PositionV(oPosition);
+                        oImageProperties.asc_putPositionV(oPosition);
                         oPosition.put_UseAlign(true);
                         oPosition.put_RelativeFrom(Asc.c_oAscRelativeFromV.Page);
                     }
@@ -3221,14 +3221,14 @@ CGraphicObjects.prototype =
                         || type === c_oAscAlignShapeType.ALIGN_CENTER)
                     {
                         oPosition = new Asc.CImagePositionH();
-                        oImageProperties.put_PositionH(oPosition);
+                        oImageProperties.asc_putPositionH(oPosition);
                         oPosition.put_UseAlign(true);
                         oPosition.put_RelativeFrom(Asc.c_oAscRelativeFromH.Margin);
                     }
                     else
                     {
                         oPosition = new Asc.CImagePositionV();
-                        oImageProperties.put_PositionV(oPosition);
+                        oImageProperties.asc_putPositionV(oPosition);
                         oPosition.put_UseAlign(true);
                         oPosition.put_RelativeFrom(Asc.c_oAscRelativeFromV.Margin);
                     }
