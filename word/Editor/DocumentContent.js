@@ -2456,11 +2456,6 @@ CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
             NewParagraph.Apply_TextPr(TextPr);
         }
 
-        LastPara.Set_DocumentNext(NewParagraph);
-
-        NewParagraph.Set_DocumentPrev(LastPara);
-        NewParagraph.Set_DocumentIndex(LastPara.Index + 1);
-
         var CurPage = LastPara.Pages.length - 1;
         var X0      = LastPara.Pages[CurPage].X;
         var Y0      = LastPara.Pages[CurPage].Bounds.Bottom;
@@ -2468,12 +2463,14 @@ CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
         var YLimit  = LastPara.Pages[CurPage].YLimit;
         var PageNum = LastPara.PageNum;
 
+		this.AddToContent(this.Content.length, NewParagraph, false);
+
         NewParagraph.Reset(X0, Y0, XLimit, YLimit, PageNum);
         var RecalcResult = NewParagraph.Recalculate_Page(0);
 
         if (!(RecalcResult & recalcresult_NextElement))
         {
-            LastPara.Next = null;
+			this.RemoveFromContent(this.Content.length - 1, 1, false);
             break;
         }
 
