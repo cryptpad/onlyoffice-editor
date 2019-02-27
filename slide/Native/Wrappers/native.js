@@ -1367,7 +1367,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 8125: //ASC_PRESENTATIONS_EVENT_TYPE_PASTE_CONTENT_TYPE
         {
             if(_params[0]){
-                var oPasteProcessor = new oPasteProcessor(this, false, false, false);
+                var oPasteProcessor = new AscCommon.PasteProcessor(this, false, false, false);
                 var aContent = AscFormat.ExecuteNoHistory(function(){
                     return oPasteProcessor._readPresentationSelectedContent2(_params[0]);
                 }, this, []);
