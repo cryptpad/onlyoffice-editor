@@ -3544,7 +3544,11 @@ function CDemonstrationManager(htmlpage)
         {
             var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseDown(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
             if (ret == keydownresult_PreventAll)
+            {
+                // mouse up will not sended!!!
+                oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
                 return;
+            }
         }
 
         oThis.isMouseDown = true;
