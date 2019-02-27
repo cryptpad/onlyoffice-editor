@@ -1605,7 +1605,7 @@
 				}
 				//process cells before curY
 				while (indexCell < cells.length && g_FCI.row < curY) {
-					if (tree.searchNodes(g_FCI.col, g_FCI.col).length > 0) {
+					if (tree.searchAny(g_FCI.col, g_FCI.col)) {
 						this._broadcastNotifyListeners(cells[indexCell].listeners, notifyData);
 					}
 					indexCell++;
@@ -1619,7 +1619,7 @@
 					indexTop++;
 				}
 				while (indexCell < cells.length && g_FCI.row <= curY) {
-					if (tree.searchNodes(g_FCI.col, g_FCI.col).length > 0) {
+					if (tree.searchAny(g_FCI.col, g_FCI.col)) {
 						this._broadcastNotifyListeners(cells[indexCell].listeners, notifyData);
 					}
 					indexCell++;
@@ -1669,7 +1669,7 @@
 					elem = rangesTop[indexTop];
 					if (elem.isActive) {
 						tree.insert(elem.bbox.c1, elem.bbox.c2, elem);
-						if (treeChanged.searchNodes(elem.bbox.c1, elem.bbox.c2).length > 0) {
+						if (treeChanged.searchAny(elem.bbox.c1, elem.bbox.c2)) {
 							this._broadcastNotifyListeners(elem.listeners, notifyData);
 						}
 					}
