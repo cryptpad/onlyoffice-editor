@@ -279,9 +279,40 @@ function CompareTiming(timing1, timing2){
     return ret;
 
 }
+function CAscHFProps(){
+    this.DateTime = null;
+    this.CustomDateTime = null;
+    this.Footer = null;
+    this.Lang = null;
+
+    this.ShowDateTime = null;
+    this.ShowSlideNum = null;
+    this.ShowFooter = null;
+}
+
+CAscHFProps.prototype['get_DateTime'] = CAscHFProps.prototype.get_DateTime = function(){return this.DateTime;};
+CAscHFProps.prototype['get_CustomDateTime']  = CAscHFProps.prototype.get_CustomDateTime = function(){return this.CustomDateTime;};
+CAscHFProps.prototype['get_Footer'] = CAscHFProps.prototype.get_Footer = function(){return this.Footer;};
+CAscHFProps.prototype['get_Lang'] = CAscHFProps.prototype.get_Lang = function(){return this.Lang;};
+CAscHFProps.prototype['get_ShowDateTime'] = CAscHFProps.prototype.get_ShowDateTime = function(){return this.ShowDateTime;};
+CAscHFProps.prototype['get_ShowSlideNum'] = CAscHFProps.prototype.get_ShowSlideNum = function(){return this.ShowSlideNum;};
+CAscHFProps.prototype['get_ShowFooter'] = CAscHFProps.prototype.get_ShowFooter = function(){return this.ShowFooter;};
+CAscHFProps.prototype['put_DateTime'] = CAscHFProps.prototype.put_DateTime = function(v){this.DateTime = v;};
+CAscHFProps.prototype['put_CustomDateTime']  = CAscHFProps.prototype.put_CustomDateTime = function(v){this.CustomDateTime = v;};
+CAscHFProps.prototype['put_Footer'] = CAscHFProps.prototype.put_Footer = function(v){this.Footer = v;};
+CAscHFProps.prototype['put_Lang'] = CAscHFProps.prototype.put_Lang = function(v){this.Lang = v;};
+CAscHFProps.prototype['put_ShowDateTime'] = CAscHFProps.prototype.put_ShowDateTime = function(v){this.ShowDateTime = v;};
+CAscHFProps.prototype['put_ShowSlideNum'] = CAscHFProps.prototype.put_ShowSlideNum = function(v){this.ShowSlideNum = v;};
+CAscHFProps.prototype['put_ShowFooter'] = CAscHFProps.prototype.put_ShowFooter = function(v){this.ShowFooter = v;};
+
 //------------------------------------------------------------export----------------------------------------------------
 window['Asc'] = window['Asc'] || {};
 window['AscCommonSlide'] = window['AscCommonSlide'] || {};
+
+
+
+window['AscCommonSlide']['CAscHFProps'] = window['AscCommonSlide'].CAscHFProps = CAscHFProps;
+
 window['Asc']['CAscSlideTiming'] = CAscSlideTiming;
 window['AscCommonSlide'].CompareTiming = CompareTiming;
 CAscSlideTiming.prototype['put_TransitionType'] = CAscSlideTiming.prototype.put_TransitionType;
