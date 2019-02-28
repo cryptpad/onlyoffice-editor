@@ -805,7 +805,7 @@
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
 		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
-		this._formula.parse(true, true, this._parseResult);
+		this._formula.parse(true, true, this._parseResult, true);
 
 		var r, offset, _e, _s, wsName = null, refStr, isName = false, _sColorPos, localStrObj;
 
@@ -1195,7 +1195,7 @@
 	CellEditor.prototype._fireUpdated = function () {
 		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
 		var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
-		var funcPos, funcName, match;
+		var funcPos, funcName, match, editableFunction;
 
 		if (!this.isTopLineActive || !this.skipTLUpdate || this.undoMode) {
 			this.input.value = s;
@@ -1212,9 +1212,46 @@
 				funcPos = undefined;
 				funcName = undefined;
 			}
+			editableFunction = this._getEditableFunction(this._parseResult);
 		}
 
-		this.handlers.trigger("updated", s, this.cursorPos, funcPos, funcName);
+		this.handlers.trigger("updated", s, this.cursorPos, funcPos, funcName, editableFunction);
+	};
+
+	CellEditor.prototype._getEditableFunction = function (parseResult) {
+		var findOpenFunc = [], editableFunction, level = -1;
+		var elements = parseResult ? parseResult.elems : null;
+
+		if(elements) {
+			for(var i = 0; i < elements.length; i++) {
+				if(cElementType.func === elements[i].type && elements[i + 1] && "(" === elements[i + 1].name) {
+					level++;
+					findOpenFunc[level] = {elem: elements[i], counter: 1};
+					i++;
+				} else if(-1 !== level) {
+					if("(" === elements[i].name) {
+						findOpenFunc[level].counter++;
+					} else if(")" === elements[i].name) {
+						findOpenFunc[level].counter--;
+					}
+				}
+				if(level > -1 && findOpenFunc[level].counter === 0) {
+					findOpenFunc.splice(level,1);
+					level--;
+				}
+			}
+		}
+
+		if(findOpenFunc) {
+			for(var j = findOpenFunc.length - 1; j >= 0; j--) {
+				if(findOpenFunc[j].counter > 0 && !(findOpenFunc[j].elem instanceof window['AscCommonExcel'].cUnknownFunction)) {
+					editableFunction = findOpenFunc[j].elem.name;
+					break;
+				}
+			}
+		}
+
+		return editableFunction;
 	};
 
 	CellEditor.prototype._expandWidth = function () {

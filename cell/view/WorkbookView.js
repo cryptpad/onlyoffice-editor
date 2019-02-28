@@ -2031,7 +2031,7 @@
     }
   };
 
-  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, formulaPos, formulaName) {
+  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, formulaPos, formulaName, funcName) {
     if (this.skipHelpSelector) {
       return;
     }
