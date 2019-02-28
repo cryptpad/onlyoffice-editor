@@ -5699,6 +5699,14 @@ background-repeat: no-repeat;\
         return editor.WordControl.m_oLogicDocument.Get_DefaultLanguage();
     };
 
+    asc_docs_api.prototype.asc_getHFProperties = function(){
+		if(this.WordControl && this.WordControl.m_oLogicDocument)
+		{
+			return this.WordControl.m_oLogicDocument.getHFProperties();
+		}
+		return null;
+	};
+
     asc_docs_api.prototype.asc_getKeyboardLanguage = function()
     {
         if (undefined !== window["asc_current_keyboard_layout"])

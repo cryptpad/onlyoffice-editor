@@ -793,6 +793,9 @@ CPresentation.prototype =
         return oTextPr && oTextPr.Lang.Val ? oTextPr.Lang.Val : 1033;
     },
 
+    getHFProperties: function()
+    {},
+
     Restart_CheckSpelling: function()
     {
         this.Spelling.Reset();
