@@ -960,6 +960,30 @@ CComplexField.prototype.SetPr = function(oPr)
 	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
 	oRun.AddInstrText(sNewInstruction, nInRunPos);
 };
+/**
+ * Изменяем строку инструкции у поля
+ * @param {string} sNewInstruction
+ */
+CComplexField.prototype.ChangeInstruction = function(sNewInstruction)
+{
+	if (!this.IsValid())
+		return;
+
+	var oDocument = this.GetTopDocumentContent();
+	if (!oDocument)
+		return;
+
+	this.SelectFieldCode();
+	oDocument.Remove();
+
+	var oRun      = this.BeginChar.GetRun();
+	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
+	oRun.AddInstrText(sNewInstruction, nInRunPos);
+
+	this.Instruction     = null;
+	this.InstructionLine = sNewInstruction;
+	this.private_UpdateInstruction();
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

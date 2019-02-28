@@ -8608,21 +8608,18 @@ background-repeat: no-repeat;\
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 
-		if (!oLogicDocument || !sFormula || "=" !== sFormula.charAt(0))
+		if (!oLogicDocument)
 			return;
 
-		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
-		{
-			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTableFormula);
-			oLogicDocument.AddFieldWithInstruction(sFormula);
-			oLogicDocument.Recalculate();
-			oLogicDocument.Document_UpdateInterfaceState();
-			oLogicDocument.Document_UpdateSelectionState();
-		}
+		oLogicDocument.AddTableCellFormula(sFormula);
 	};
 	asc_docs_api.prototype.asc_GetTableFormula = function()
 	{
-		return "=";
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return "=";
+
+		return oLogicDocument.GetTableCellFormula();
 	};
 
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
