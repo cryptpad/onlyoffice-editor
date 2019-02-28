@@ -2538,8 +2538,8 @@ background-repeat: no-repeat;\
 		this.WordControl.m_oDrawingDocument.ClearCachePages();
 		AscCommon.g_fontManager.ClearFontsRasterCache();
 
-		if (window.g_fontManager2 !== undefined && window.g_fontManager2 !== null)
-			window.g_fontManager2.ClearFontsRasterCache();
+		if (AscCommon.g_fontManager2 !== undefined && AscCommon.g_fontManager2 !== null)
+            AscCommon.g_fontManager2.ClearFontsRasterCache();
 
 		if (this.bInit_word_control)
 			this.WordControl.OnScroll();

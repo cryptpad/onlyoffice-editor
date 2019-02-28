@@ -1640,7 +1640,7 @@ function CDrawingDocument()
 
 	this.ClearCachePages = function()
 	{
-		if (this.m_oWordControl.bInit_word_control && 0 <= this.SlideCurrent)
+		if (this.m_oWordControl.m_oApi.bInit_word_control && 0 <= this.SlideCurrent)
 			this.m_oWordControl.SlideDrawer.CheckSlide(this.SlideCurrent);
 	}
 

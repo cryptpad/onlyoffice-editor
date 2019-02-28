@@ -52,7 +52,7 @@
                 g_language = window.Asc.plugin.info.lang;
                 if (g_language == "en-EN")
 				{
-					window.Asc.plugin.translateManager = null;
+					window.Asc.plugin.translateManager = {};
 					if (window.Asc.plugin.onTranslate)
 						window.Asc.plugin.onTranslate();
 				}
