@@ -1214,7 +1214,7 @@
 			}
 		}
 
-		this.handlers.trigger("updated", s, this.cursorPos, isFormula, funcPos, funcName);
+		this.handlers.trigger("updated", s, this.cursorPos, funcPos, funcName);
 	};
 
 	CellEditor.prototype._expandWidth = function () {

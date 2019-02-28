@@ -2031,13 +2031,13 @@
     }
   };
 
-  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, isFormula, formulaPos, formulaName) {
+  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, formulaPos, formulaName) {
     if (this.skipHelpSelector) {
       return;
     }
     // ToDo для ускорения можно завести объект, куда класть результаты поиска по формулам и второй раз не искать.
     var i, arrResult = [], defNamesList, defName;
-    if (isFormula && formulaName) {
+    if (formulaName) {
       formulaName = formulaName.toUpperCase();
       for (i = 0; i < this.formulasList.length; ++i) {
         if (0 === this.formulasList[i].indexOf(formulaName)) {
