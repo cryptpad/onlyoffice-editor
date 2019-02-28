@@ -1827,7 +1827,7 @@ DrawingObjectsController.prototype =
     isSlideShow: function()
     {
         if(this.drawingObjects && this.drawingObjects.cSld){
-            return editor.WordControl.DemonstrationManager.Mode;
+            return editor && editor.WordControl && editor.WordControl.DemonstrationManager && editor.WordControl.DemonstrationManager.Mode;
         }
         return false;
     },
