@@ -1139,7 +1139,10 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 112: // ASC_MENU_EVENT_TYPE_CONTEXTMENU_PASTE
         {
-            this.Call_Menu_Context_Paste(_params[0], _params[1]);
+            if(undefined !== _params)
+            {
+                this.Call_Menu_Context_Paste(_params[0], _params[1]);
+            }
             break;
         }
         case 113: // ASC_MENU_EVENT_TYPE_CONTEXTMENU_DELETE
