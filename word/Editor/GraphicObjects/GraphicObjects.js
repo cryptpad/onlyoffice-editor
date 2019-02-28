@@ -3237,32 +3237,32 @@ CGraphicObjects.prototype =
                 {
                     case c_oAscAlignShapeType.ALIGN_LEFT:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignH.Left);
+                        oPosition.put_Align(c_oAscAlignH.Left);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_RIGHT:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignH.Right);
+                        oPosition.put_Align(c_oAscAlignH.Right);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_TOP:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignV.Top);
+                        oPosition.put_Align(c_oAscAlignV.Top);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_BOTTOM:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignV.Bottom);
+                        oPosition.put_Align(c_oAscAlignV.Bottom);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_CENTER:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignH.Center);
+                        oPosition.put_Align(c_oAscAlignH.Center);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_MIDDLE:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignV.Center);
+                        oPosition.put_Align(c_oAscAlignV.Center);
                         break;
                     }
                     default:
