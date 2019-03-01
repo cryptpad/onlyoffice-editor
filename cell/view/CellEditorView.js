@@ -1216,12 +1216,37 @@
 		}
 
 		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName, fCurrent);
+		this.handlers.trigger("updatedEditableFunction", fCurrent);
 	};
 
 	CellEditor.prototype._getEditableFunction = function (parseResult) {
 		var findOpenFunc = [], editableFunction, level = -1;
-		var elements = parseResult ? parseResult.elems : null;
+		if(!parseResult) {
+			//в этом случае запускаю парсинг формулы до текущей позиции
+			var s = AscCommonExcel.getFragmentsText(this.options.fragments);
+			var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
+			if(isFormula) {
+				var pos = this.cursorPos;
+				var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen");
+				var ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+				var bbox = this.options.bbox;
 
+				var endPos = pos;
+				for(var n = pos; n < s.length; n++) {
+					if("(" === s[n]) {
+						endPos = n;
+					}
+				}
+
+				var formulaStr = s.substring(1, endPos);
+				parseResult = new AscCommonExcel.ParseResult([], []);
+				var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
+				var tempFormula = new AscCommonExcel.parserFormula(formulaStr, cellWithFormula, ws);
+				tempFormula.parse(true, true, parseResult, true);
+			}
+		}
+
+		var elements = parseResult ? parseResult.elems : null;
 		if(elements) {
 			for(var i = 0; i < elements.length; i++) {
 				if(cElementType.func === elements[i].type && elements[i + 1] && "(" === elements[i + 1].name) {
