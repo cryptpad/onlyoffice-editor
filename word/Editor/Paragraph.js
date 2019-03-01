@@ -13488,7 +13488,12 @@ Paragraph.prototype.GetAllFields = function(isUseSelection, arrFields)
 
 	if (isUseSelection && true !== this.Selection.Use)
 	{
-		return this.GetCurrentComplexFields();
+		var arrParaFields = this.GetCurrentComplexFields();
+		for (var nIndex = 0, nCount = arrParaFields.length; nIndex < nCount; ++nIndex)
+		{
+			arrFields.push(arrParaFields[nIndex]);
+		}
+		return arrFields;
 	}
 
 	var nStartPos = isUseSelection ?
