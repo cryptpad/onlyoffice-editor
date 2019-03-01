@@ -7192,8 +7192,8 @@ CDispUnits.prototype =
             if(AscFormat.isRealNumber(UNIT_MULTIPLIERS[this.builtInUnit]))
                 return UNIT_MULTIPLIERS[this.builtInUnit];
         }
-        else if(AscFormat.isRealNumber(this.custUnit))
-            return this.custUnit;
+        else if(AscFormat.isRealNumber(this.custUnit) && this.custUnit > 0.0)
+            return 1.0/this.custUnit;
         return 1;
     },
 

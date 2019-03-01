@@ -3201,7 +3201,7 @@ function CBinaryFileWriter()
         }
 
         var unifill = new AscFormat.CUniFill();
-        unifill.fill = image.blipFill
+        unifill.fill = image.blipFill;
         oThis.WriteRecord1(1, unifill, oThis.WriteUniFill);
         oThis.WriteRecord1(2, image.spPr, oThis.WriteSpPr);
         if(bSetGeometry){
