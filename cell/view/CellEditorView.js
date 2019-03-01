@@ -1250,7 +1250,7 @@
 				}
 			}
 		}
-		console.log(editableFunction);
+		//console.log(editableFunction);
 
 		return editableFunction;
 	};
