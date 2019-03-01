@@ -4251,7 +4251,7 @@ function RangeDataManagerElem(bbox, data)
 }
 function RangeDataManager(fChange)
 {
-	this.tree = new AscCommon.DataIntervalTree();
+	this.tree = new AscCommon.DataIntervalTree2D();
 	this.oDependenceManager = null;
 	this.fChange = fChange;
 }
@@ -4259,15 +4259,15 @@ RangeDataManager.prototype = {
     add: function (bbox, data, oChangeParam)
 	{
 		var oNewElem = new RangeDataManagerElem(new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2), data);
-		this.tree.insert(bbox.r1, bbox.r2, oNewElem);
+		this.tree.insert(bbox, oNewElem);
 		if(null != this.fChange)
 		    this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
 	},
 	get : function(bbox)
 	{
 		var oRes = {all: [], inner: [], outer: []};
-		var intervals = this.tree.searchNodes(bbox.r1, bbox.r2);
-		for(var i = 0; i < intervals.length; i++) {
+		var intervals = this.tree.searchNodes(bbox);
+		for (var i = 0; i < intervals.length; i++) {
 			var interval = intervals[i];
 			var elem = interval.data;
 			if (elem.bbox.isIntersect(bbox)) {
@@ -4281,20 +4281,9 @@ RangeDataManager.prototype = {
 		}
 		return oRes;
 	},
-	getExact : function(bbox)
+	getAny : function(bbox)
 	{
-		var oRes = null;
-		var oGet = this.get(bbox);
-		for(var i = 0, length = oGet.inner.length; i < length; i++)
-		{
-			var elem = oGet.inner[i];
-			if(elem.bbox.isEqual(bbox))
-			{
-				oRes = elem;
-				break;
-			}
-		}
-		return oRes;
+		return this.tree.searchAny(bbox);
 	},
 	_getByCell : function(nRow, nCol)
 	{
@@ -4337,17 +4326,7 @@ RangeDataManager.prototype = {
 	{
 		if(null != elemToDelete)
 		{
-			var bbox = elemToDelete.bbox;
-			var intervals = this.tree.searchNodes(bbox.r1, bbox.r2);
-			for(var i = 0; i < intervals.length; i++) {
-				var interval = intervals[i];
-				var elem = interval.data;
-				if(elem.bbox.isEqual(bbox))
-				{
-					this.tree.remove(bbox.r1, bbox.r2, elem);
-					break;
-				}
-			}
+			this.tree.remove(elemToDelete.bbox, elem);
 			if(null != this.fChange)
 			    this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
 		}
@@ -4355,7 +4334,7 @@ RangeDataManager.prototype = {
 	removeAll : function(oChangeParam)
 	{
 	    this.remove(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0), null, oChangeParam);
-		this.tree = new AscCommon.DataIntervalTree();
+		this.tree = new AscCommon.DataIntervalTree2D();
 	},
 	shiftGet : function(bbox, bHor)
 	{
@@ -4489,7 +4468,7 @@ RangeDataManager.prototype = {
 	getAll : function()
 	{
 		var res = [];
-		var intervals = this.tree.searchNodes(-Number.MAX_VALUE, Number.MAX_VALUE);
+		var intervals = this.tree.searchNodes(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0));
 		for(var i = 0; i < intervals.length; i++) {
 			var interval = intervals[i];
 			res.push(interval.data);
