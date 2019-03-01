@@ -1195,27 +1195,27 @@
 	CellEditor.prototype._fireUpdated = function () {
 		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
 		var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
-		var funcPos, funcName, match, editableFunction;
+		var fPos, fName, match, fCurrent;
 
 		if (!this.isTopLineActive || !this.skipTLUpdate || this.undoMode) {
 			this.input.value = s;
 		}
 
 		if (isFormula) {
-			funcPos = asc_lastidx(s, this.reNotFormula, this.cursorPos) + 1;
-			if (funcPos > 0) {
-				match = s.slice(funcPos, this.cursorPos).match(this.reFormula);
+			fPos = asc_lastidx(s, this.reNotFormula, this.cursorPos) + 1;
+			if (fPos > 0) {
+				match = s.slice(fPos, this.cursorPos).match(this.reFormula);
 			}
 			if (match) {
-				funcName = match[1];
+				fName = match[1];
 			} else {
-				funcPos = undefined;
-				funcName = undefined;
+				fPos = undefined;
+				fName = undefined;
 			}
-			editableFunction = this._getEditableFunction(this._parseResult);
+			fCurrent = this._getEditableFunction(this._parseResult);
 		}
 
-		this.handlers.trigger("updated", s, this.cursorPos, funcPos, funcName, editableFunction);
+		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName, fCurrent);
 	};
 
 	CellEditor.prototype._getEditableFunction = function (parseResult) {
