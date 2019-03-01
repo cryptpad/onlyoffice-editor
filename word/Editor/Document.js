@@ -5765,7 +5765,7 @@ CDocument.prototype.Select_Drawings = function(DrawingArray, TargetContent)
 {
 	this.private_UpdateTargetForCollaboration();
 
-	if (DrawingArray.length === 1 && DrawingArray[0].Is_Inline())
+	if (DrawingArray.length > 1 && DrawingArray[0].Is_Inline())
 		return;
 	this.DrawingObjects.resetSelection();
 	var hdr_ftr = TargetContent.IsHdrFtr(true);
