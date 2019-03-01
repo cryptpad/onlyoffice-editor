@@ -5972,7 +5972,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				parseResult.addElem(found_operand);
 				parseResult.operand_expected = false;
 				found_operand = null;
-			} else if(!ignoreErrors) {
+			} else {
 				t.outStack.push(new cError(cErrorType.wrong_name));
 				parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
 				return t.isParsed = false;

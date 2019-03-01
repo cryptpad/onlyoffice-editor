@@ -1250,6 +1250,7 @@
 				}
 			}
 		}
+		console.log(editableFunction);
 
 		return editableFunction;
 	};
