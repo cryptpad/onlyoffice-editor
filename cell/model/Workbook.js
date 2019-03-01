@@ -1114,13 +1114,13 @@
 			if (this.lockCounter > 0) {
 				return;
 			}
-			var notifyData = {type: c_oNotifyType.Dirty, areaData: undefined};
 			this.buildDependency();
 			this.addToChangedHiddenRows();
-			//broadscast Volatile only if something changed
-			if (this.changedCell || this.changedRange || this.changedDefName) {
-				this._broadscastVolatile(notifyData);
+			if (!(this.changedCell || this.changedRange || this.changedDefName)) {
+				return;
 			}
+			var notifyData = {type: c_oNotifyType.Dirty, areaData: undefined};
+			this._broadscastVolatile(notifyData);
 			this._broadcastCellsStart();
 			while (this.changedCellRepeated || this.changedRangeRepeated || this.changedDefNameRepeated) {
 				this._broadcastDefNames(notifyData);
@@ -1128,6 +1128,7 @@
 				this._broadcastRanges(notifyData);
 			}
 			this._broadcastCellsEnd();
+
 			this._calculateDirty();
 			this.updateSharedFormulas();
 			//copy cleanCellCache to prevent recursion in trigger("cleanCellCache")
