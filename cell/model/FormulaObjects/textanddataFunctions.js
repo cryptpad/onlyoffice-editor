@@ -88,7 +88,7 @@ function (window, undefined) {
 			for (var i = 0; i < str.length; i++) {
 				var nCh = str[i].charCodeAt(0);
 				if (nCh >= fullWidthFrom && nCh <= fullWidthTo) {
-					nCh = nCh - 0xfee0;
+					nCh = 0xFF & (nCh + 0x20);
 				}
 				res += String.fromCharCode(nCh);
 			}

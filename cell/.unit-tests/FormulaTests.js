@@ -679,7 +679,21 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 6 );
     } );
-	
+
+	test( "Test: \"Asc\"", function () {
+		oParser = new parserFormula( 'ASC("ｔｅＳｔ")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "teSt" );
+
+		oParser = new parserFormula( 'ASC("デジタル")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "デジタル" );
+
+		oParser = new parserFormula( 'ASC("￯")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "" );
+	} );
+
 	test( "Test: \"Cross\"", function () {
 
 		ws.getRange2( "A7" ).setValue( "1" );
