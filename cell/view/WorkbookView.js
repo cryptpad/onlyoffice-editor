@@ -685,8 +685,8 @@
 				  self.handlers.trigger("asc_onEditorSelectionChanged", info);
 			  }, "onContextMenu": function (event) {
 				  self.handlers.trigger("asc_onContextMenu", event);
-			  }, "updatedEditableFunction": function (event) {
-
+			  }, "updatedEditableFunction": function (fName) {
+				  self.handlers.trigger("asc_onFormulaInfo", fName);
 			  }
 		  }, this.defaults.worksheetView.cells.padding);
 
