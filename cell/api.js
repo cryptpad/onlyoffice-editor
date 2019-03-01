@@ -3170,6 +3170,10 @@ var editor;
   spreadsheet_api.prototype.asc_getFormulaLocaleName = function(name) {
     return AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[name] : name;
   };
+  spreadsheet_api.prototype.asc_getFormulaNameByLocale = function (name) {
+    var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[name];
+    return f ? f.prototype.name : name;
+  };
 
   spreadsheet_api.prototype.asc_recalc = function(isRecalcWB) {
     this.wbModel.recalcWB(isRecalcWB);
@@ -3863,6 +3867,7 @@ var editor;
   prot["asc_insertFormula"] = prot.asc_insertFormula;
   prot["asc_getFormulasInfo"] = prot.asc_getFormulasInfo;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;
+  prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;
   prot["asc_ChangeColorScheme"] = prot.asc_ChangeColorScheme;
