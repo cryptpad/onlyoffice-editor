@@ -903,6 +903,54 @@ function (window, undefined) {
 	cJIS.prototype = Object.create(cBaseFunction.prototype);
 	cJIS.prototype.constructor = cJIS;
 	cJIS.prototype.name = 'JIS';
+	cJIS.prototype.argumentsMin = 1;
+	cJIS.prototype.argumentsMax = 1;
+	cJIS.prototype.Calculate = function (arg) {
+		var arg0 = arg[0];
+
+		var calc = function(str) {
+			var res = '';
+			var fullWidthFrom = 0xFF00;
+			var fullWidthTo = 0xFFEF;
+
+			for (var i = 0; i < str.length; i++) {
+				var nCh = str[i].charCodeAt(0);
+				if (!(nCh >= fullWidthFrom && nCh <= fullWidthTo)) {
+					nCh = nCh - 0x20 + 0xff00;
+				}
+				res += String.fromCharCode(nCh);
+			}
+
+			return new cString(res);
+		};
+
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
+			arg0 = arg0.cross(arguments[1]).tocString();
+		} else if (arg0 instanceof cArray) {
+			var ret = new cArray();
+			arg0.foreach(function (elem, r, c) {
+				var _elem = elem.tocString();
+				if (!ret.array[r]) {
+					ret.addRow();
+				}
+
+				if (_elem instanceof cError) {
+					ret.addElement(_elem.toString());
+				} else {
+					ret.addElement(calc(_elem));
+				}
+			});
+			return ret;
+		}
+
+		arg0 = arg0.tocString();
+
+		if (arg0 instanceof cError) {
+			return arg0;
+		}
+
+		return calc(arg0.toString());
+	};
 
 	/**
 	 * @constructor
