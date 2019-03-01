@@ -3021,6 +3021,7 @@ function CDemonstrationManager(htmlpage)
 
     this.StartSlideBackward = function()
     {
+        oThis.HtmlPage.m_oApi.hideVideoControl();
         var _is_transition = oThis.Transition.IsPlaying();
         oThis.StopTransition();
 
