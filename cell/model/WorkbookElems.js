@@ -4254,10 +4254,22 @@ function RangeDataManager(fChange)
 	this.tree = new AscCommon.DataIntervalTree2D();
 	this.oDependenceManager = null;
 	this.fChange = fChange;
+
+	this.fInit = null;
+	this.fGetUninitialized = null;
 }
 RangeDataManager.prototype = {
+	_delayedInit: function(){
+		if (this.fInit) {
+			var _fInit = this.fInit;
+			this.fInit = null;
+			this.fGetUninitialized = null;
+			_fInit();
+		}
+	},
     add: function (bbox, data, oChangeParam)
 	{
+		this._delayedInit();
 		var oNewElem = new RangeDataManagerElem(new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2), data);
 		this.tree.insert(bbox, oNewElem);
 		if(null != this.fChange)
@@ -4265,6 +4277,7 @@ RangeDataManager.prototype = {
 	},
 	get : function(bbox)
 	{
+		this._delayedInit();
 		var oRes = {all: [], inner: [], outer: []};
 		var intervals = this.tree.searchNodes(bbox);
 		for (var i = 0; i < intervals.length; i++) {
@@ -4283,6 +4296,7 @@ RangeDataManager.prototype = {
 	},
 	getAny : function(bbox)
 	{
+		this._delayedInit();
 		return this.tree.searchAny(bbox);
 	},
 	_getByCell : function(nRow, nCol)
@@ -4295,6 +4309,7 @@ RangeDataManager.prototype = {
 	},
 	getByCell : function(nRow, nCol)
 	{
+		this._delayedInit();
 		var oRes = this._getByCell(nRow, nCol);
 		if(null == oRes && null != this.oDependenceManager)
 		{
@@ -4310,6 +4325,7 @@ RangeDataManager.prototype = {
 	},
 	remove: function (bbox, bInnerOnly, oChangeParam)
 	{
+		this._delayedInit();
 	    var aElems = this.get(bbox);
 	    var aTargetArray;
 	    if (bInnerOnly)
@@ -4324,25 +4340,23 @@ RangeDataManager.prototype = {
 	},
 	removeElement: function (elemToDelete, oChangeParam)
 	{
+		this._delayedInit();
 		if(null != elemToDelete)
 		{
-			this.tree.remove(elemToDelete.bbox, elem);
+			this.tree.remove(elemToDelete.bbox, elemToDelete);
 			if(null != this.fChange)
 			    this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
 		}
 	},
-	removeAll : function(oChangeParam)
-	{
-	    this.remove(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0), null, oChangeParam);
-		this.tree = new AscCommon.DataIntervalTree2D();
-	},
 	shiftGet : function(bbox, bHor)
 	{
+		this._delayedInit();
 		var bboxGet = shiftGetBBox(bbox, bHor);
 		return {bbox: bboxGet, elems: this.get(bboxGet)};
 	},
 	shift: function (bbox, bAdd, bHor, oGetRes, oChangeParam)
 	{
+		this._delayedInit();
 	    var _this = this;
 	    if (null == oGetRes)
 	        oGetRes = this.shiftGet(bbox, bHor);
@@ -4359,6 +4373,7 @@ RangeDataManager.prototype = {
 	},
 	move: function (from, to, oChangeParam)
 	{
+		this._delayedInit();
 	    var offset = new AscCommon.CellBase(to.r1 - from.r1, to.c1 - from.c1);
 	    var oGetRes = this.get(from);
 	    this._shiftmove(false, from, offset, oGetRes, oChangeParam);
@@ -4467,6 +4482,7 @@ RangeDataManager.prototype = {
 	},
 	getAll : function()
 	{
+		this._delayedInit();
 		var res = [];
 		var intervals = this.tree.searchNodes(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0));
 		for(var i = 0; i < intervals.length; i++) {
@@ -4474,6 +4490,11 @@ RangeDataManager.prototype = {
 			res.push(interval.data);
 		}
 		return res;
+	},
+	setDelayedInit : function(fInit, fGetUninitialized)
+	{
+		this.fInit = fInit;
+		this.fGetUninitialized = fGetUninitialized;
 	},
 	setDependenceManager : function(oDependenceManager)
 	{
