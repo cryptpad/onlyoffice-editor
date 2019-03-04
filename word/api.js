@@ -8621,6 +8621,10 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.GetTableCellFormula();
 	};
+	asc_docs_api.prototype.asc_GetTableFormulaFormats = function()
+	{
+		return ["#,##0", "#,##0.00", "$#,##0.00;($#,##0.00)", "0", "0%", "0.00", "0.00%"];
+	};
 
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
 	{
@@ -9915,6 +9919,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetComplexFieldPr']                     = asc_docs_api.prototype.asc_SetComplexFieldPr;
 	asc_docs_api.prototype['asc_AddTableFormula']                       = asc_docs_api.prototype.asc_AddTableFormula;
 	asc_docs_api.prototype['asc_GetTableFormula']                       = asc_docs_api.prototype.asc_GetTableFormula;
+	asc_docs_api.prototype['asc_GetTableFormulaFormats']                = asc_docs_api.prototype.asc_GetTableFormulaFormats;
 
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
 
