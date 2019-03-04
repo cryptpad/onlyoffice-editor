@@ -2706,7 +2706,7 @@
 			ranges = oRule.ranges;
 			multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
 			if (multiplyRange.contains(col, row)) {
-				if (AscCommonExcel.ECfType.dataBar === oRule.type) {
+				if (AscCommonExcel.ECfType.dataBar === oRule.type || AscCommonExcel.ECfType.iconSet === oRule.type) {
 					if (1 !== oRule.aRuleElements.length) {
 						continue;
 					}
@@ -2715,16 +2715,21 @@
 						continue;
 					}
 					values = this.model._getValuesForConditionalFormatting(ranges, true);
-					min = oRule.getMin(values, this.model);
-					max = oRule.getMax(values, this.model);
 
-					var minLength = Math.floor(width * oRuleElement.MinLength / 100);
-					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
-					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
+					if (AscCommonExcel.ECfType.dataBar === oRule.type) {
+						min = oRule.getMin(values, this.model);
+						max = oRule.getMax(values, this.model);
 
-					var x = this._getColLeft(col);
-					if (oRuleElement.Color) {
-						ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+						var minLength = Math.floor(width * oRuleElement.MinLength / 100);
+						var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
+						var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
+
+						var x = this._getColLeft(col);
+						if (oRuleElement.Color) {
+							ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+						}
+					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
+						var indexImage = oRule.getIndexRule(values, this.model, cellValue);
 					}
 				}
 			}
