@@ -8596,8 +8596,12 @@ PasteProcessor.prototype =
 				}
 			} else {
 				sChildNodeName = child.nodeName.toLowerCase();
+
+				//исключаю чтение тега "o:p", потому что ms в пустые ячейки таблицы добавляется внутрь данного тега неразрывные пробелы
+				//не нашёл такой ситуации, когда пропадают пробелы между словами
+				//todo протестровать "o:p"!
 				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
-					sChildNodeName === "#comment" || sChildNodeName === "script") {
+					sChildNodeName === "#comment" || sChildNodeName === "script" || sChildNodeName === "o:p") {
 					if(sChildNodeName === "#comment") {
 						if(child.nodeValue === "[if !supportAnnotations]") {
 							oThis.startMsoAnnotation = true;
