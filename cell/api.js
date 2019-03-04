@@ -213,6 +213,9 @@ var editor;
     this.asc_SendThemeColors(_ret_array, standart_colors);
   };
 
+  spreadsheet_api.prototype.asc_getNumberSeparator = function () {
+    return AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator;
+  };
   spreadsheet_api.prototype.asc_getCurrencySymbols = function () {
 		var result = {};
 		for (var key in AscCommon.g_aCultureInfos) {
@@ -3607,6 +3610,7 @@ var editor;
 
   prot["asc_GetFontThumbnailsPath"] = prot.asc_GetFontThumbnailsPath;
   prot["asc_setDocInfo"] = prot.asc_setDocInfo;
+  prot['asc_getNumberSeparator'] = prot.asc_getNumberSeparator;
 	prot['asc_getCurrencySymbols'] = prot.asc_getCurrencySymbols;
 	prot['asc_getLocaleExample'] = prot.asc_getLocaleExample;
 	prot['asc_getFormatCells'] = prot.asc_getFormatCells;
