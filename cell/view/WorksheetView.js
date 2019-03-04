@@ -13317,15 +13317,18 @@
     WorksheetView.prototype.clearFilter = function () {
         var t = this;
         var ar = this.model.selectionRange.getLast().clone();
+
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
             }
 
-            var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
-            if (false !== updateRange) {
-                t._onUpdateFormatTable(updateRange, false, true);
-            }
+			AscCommonExcel.checkFilteringMode(function () {
+				var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
+				if (false !== updateRange) {
+					t._onUpdateFormatTable(updateRange, false, true);
+				}
+			});
         };
         this._isLockedAll(onChangeAutoFilterCallback);
     };
@@ -13338,11 +13341,12 @@
                 return;
             }
 
-            var updateRange = t.model.autoFilters.clearFilterColumn(cellId, displayName);
-
-            if (false !== updateRange) {
-                t._onUpdateFormatTable(updateRange, false, true);
-            }
+			AscCommonExcel.checkFilteringMode(function () {
+				var updateRange = t.model.autoFilters.clearFilterColumn(cellId, displayName);
+				if (false !== updateRange) {
+					t._onUpdateFormatTable(updateRange, false, true);
+				}
+			});
         };
         this._isLockedAll(onChangeAutoFilterCallback);
     };

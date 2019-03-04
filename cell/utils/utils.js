@@ -1718,6 +1718,17 @@
 			AscCommonExcel.g_R1C1Mode = oldMode;
 		}
 
+		function checkFilteringMode(f, oThis, args) {
+			if (!window['AscCommonExcel'].filteringMode) {
+				History.LocalChange = true;
+			}
+			var ret = f.apply(oThis, args);
+			if (!window['AscCommonExcel'].filteringMode) {
+				History.LocalChange = false;
+			}
+			return ret;
+		}
+
 		function getEndValueRange (dx, start, v1, v2) {
 			var x1, x2;
 			if (0 !== dx) {
@@ -2442,6 +2453,7 @@
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
 		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 		window["Asc"].getEndValueRange = getEndValueRange;
+		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 
 		window["AscCommonExcel"].referenceType = referenceType;
 		window["Asc"].Range = Range;
