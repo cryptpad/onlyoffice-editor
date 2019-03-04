@@ -11170,12 +11170,6 @@
 			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
 		};
 
-		var checkLocalChange = function(val){
-			if (!window['AscCommonExcel'].filteringMode) {
-				History.LocalChange = val;
-			}
-		};
-
 		var checkDeleteCellsFilteringMode = function () {
 			if (!window['AscCommonExcel'].filteringMode) {
 				if (val === c_oAscDeleteOptions.DeleteCellsAndShiftLeft || val === c_oAscDeleteOptions.DeleteColumns) {
@@ -11232,23 +11226,23 @@
 				break;
 			case "showCols":
 				functionModelAction = function () {
-					checkLocalChange(true);
-					t.model.setColHidden(false, arn.c1, arn.c2);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
-					checkLocalChange(false);
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setColHidden(false, arn.c1, arn.c2);
+						oRecalcType = AscCommonExcel.recalcType.full;
+						reinitRanges = true;
+						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
+					});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideCols":
 				functionModelAction = function () {
-					checkLocalChange(true);
-					t.model.setColHidden(true, arn.c1, arn.c2);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
-					checkLocalChange(false);
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setColHidden(true, arn.c1, arn.c2);
+						oRecalcType = AscCommonExcel.recalcType.full;
+						reinitRanges = true;
+						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
+					});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
@@ -11266,25 +11260,25 @@
 				return this._isLockedAll(onChangeWorksheetCallback);
 			case "showRows":
 				functionModelAction = function () {
-					checkLocalChange(true);
-					t.model.setRowHidden(false, arn.r1, arn.r2);
-					t.model.autoFilters.reDrawFilter(arn);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
-					checkLocalChange(false);
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setRowHidden(false, arn.r1, arn.r2);
+						t.model.autoFilters.reDrawFilter(arn);
+						oRecalcType = AscCommonExcel.recalcType.full;
+						reinitRanges = true;
+						updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+					});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideRows":
 				functionModelAction = function () {
-					checkLocalChange(true);
-					t.model.setRowHidden(true, arn.r1, arn.r2);
-					t.model.autoFilters.reDrawFilter(arn);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
-					checkLocalChange(false);
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setRowHidden(true, arn.r1, arn.r2);
+						t.model.autoFilters.reDrawFilter(arn);
+						oRecalcType = AscCommonExcel.recalcType.full;
+						reinitRanges = true;
+						updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+					});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
