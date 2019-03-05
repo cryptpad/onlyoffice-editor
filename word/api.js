@@ -8626,6 +8626,26 @@ background-repeat: no-repeat;\
 		return ["#,##0", "#,##0.00", "$#,##0.00;($#,##0.00)", "0", "0%", "0.00", "0.00%"];
 	};
 
+	asc_docs_api.prototype.asc_ParseTableFormulaInstrLine = function(sInstrLine)
+	{
+		var oParser = new CFieldInstructionParser();
+		var oResult = oParser.GetInstructionClass(sInstrLine);
+		if(oResult && oResult instanceof CFieldInstructionFORMULA)
+		{
+			return [oResult.Formula ? "=" + oResult.Formula : "=", oResult.Format && oResult.Format.sFormat ? oResult.Format.sFormat : ""];
+		}
+		return ["", ""];
+	};
+
+	asc_docs_api.prototype.asc_CreateInstructionLine = function(sFormula, sFormat)
+	{
+		var sRet = sFormula;
+		if(typeof sFormat === "string" && sFormat.length > 0){
+			sRet += " \\# \"" + sFormat + "\"";
+		}
+		return sRet;
+	};
+
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
 	{
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
@@ -9920,6 +9940,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_AddTableFormula']                       = asc_docs_api.prototype.asc_AddTableFormula;
 	asc_docs_api.prototype['asc_GetTableFormula']                       = asc_docs_api.prototype.asc_GetTableFormula;
 	asc_docs_api.prototype['asc_GetTableFormulaFormats']                = asc_docs_api.prototype.asc_GetTableFormulaFormats;
+	asc_docs_api.prototype['asc_ParseTableFormulaInstrLine']            = asc_docs_api.prototype.asc_ParseTableFormulaInstrLine;
+	asc_docs_api.prototype['asc_CreateInstructionLine']                 = asc_docs_api.prototype.asc_CreateInstructionLine;
+
 
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
 
