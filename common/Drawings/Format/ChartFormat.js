@@ -14008,15 +14008,18 @@ function CreateMarkerGeometryByType(type, src)
         }
         case SYMBOL_PLUS:
         {
-            ret.AddPathCommand(0,undefined,  "none", false, w, h);
+            /* extrusionOk, fill, stroke, w, h*/
+            ret.AddPathCommand(0,undefined,  undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined,  "none", false, w, h);
             AddPlus(ret, w, h);
             break;
         }
         case SYMBOL_STAR:
         {
-            ret.AddPathCommand(0,undefined,  "none", false, w, h);
+            ret.AddPathCommand(0,undefined,  undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined,  "none", false, w, h);
             AddPlus(ret, w, h);
             AddX(ret, w, h);
             break;
@@ -14032,8 +14035,9 @@ function CreateMarkerGeometryByType(type, src)
         }
         case SYMBOL_X:
         {
-            ret.AddPathCommand(0,undefined, "none", false, w, h);
+            ret.AddPathCommand(0,undefined, undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined, "none", false, w, h);
             AddX(ret, w, h);
             break;
         }
