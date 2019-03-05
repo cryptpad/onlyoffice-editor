@@ -428,7 +428,7 @@
 					break;
 				case AscCommonExcel.ECfvoType.Percent:
 					min = AscCommonExcel.getArrayMin(values);
-					res = min + Math.floor((AscCommonExcel.getArrayMax(values) - min) * parseFloat(oCFVO.Val) / 100);
+					res = min + (AscCommonExcel.getArrayMax(values) - min) * parseFloat(oCFVO.Val) / 100;
 					break;
 				case AscCommonExcel.ECfvoType.Percentile:
 					res = AscCommonExcel.getPercentile(values, parseFloat(oCFVO.Val) / 100.0);
