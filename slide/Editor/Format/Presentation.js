@@ -5465,10 +5465,13 @@ CPresentation.prototype =
             oController.Save_DocumentStateBeforeLoadChanges(oDocState);
         }
 
+        this.CollaborativeEditing.WatchDocumentPositionsByState(oDocState);
         return oDocState;
     },
 
     Load_DocumentStateAfterLoadChanges: function(oState){
+
+        this.CollaborativeEditing.UpdateDocumentPositionsByState(oState);
         if(oState.Slide){
             var oSlide = oState.Slide;
             if(oSlide !== this.Slides[this.CurPage]){
