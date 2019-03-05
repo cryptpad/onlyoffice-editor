@@ -302,7 +302,8 @@
 				var sheet = this.wb.getWorksheetById(this.sheetId);
 				index = sheet.getIndex();
 			}
-			return new Asc.asc_CDefName(this.name, this.getRef(bLocale), index, this.isTable, this.hidden, this.isLock, this.isXLNM);
+			var name = bLocale ? this._getTranslateName(this.name, this.sheetId) : this.name;
+			return new Asc.asc_CDefName(name, this.getRef(bLocale), index, this.isTable, this.hidden, this.isLock, this.isXLNM);
 		},
 		getUndoDefName: function() {
 			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable, this.isXLNM);
@@ -317,24 +318,30 @@
 			}
 			this.isXLNM = newUndoName.isXLNM;
 		},
-		onFormulaEvent: function(type, eventData) {
+		onFormulaEvent: function (type, eventData) {
 			if (AscCommon.c_oNotifyParentType.IsDefName === type) {
 				return null;
 			} else if (AscCommon.c_oNotifyParentType.Change === type) {
 				this.wb.dependencyFormulas.addToChangedDefName(this);
 			} else if (AscCommon.c_oNotifyParentType.ChangeFormula === type) {
 				var notifyType = eventData.notifyData.type;
-				if (!(this.isTable &&
-					(c_oNotifyType.Shift === notifyType || c_oNotifyType.Move === notifyType ||
-					c_oNotifyType.Delete === notifyType))) {
-				var oldUndoName = this.getUndoDefName();
+				if (!(this.isTable && (c_oNotifyType.Shift === notifyType || c_oNotifyType.Move === notifyType || c_oNotifyType.Delete === notifyType))) {
+					var oldUndoName = this.getUndoDefName();
 					this.parsedRef.setFormulaString(this.ref = eventData.assemble);
-				this.wb.dependencyFormulas.addToChangedDefName(this);
-				var newUndoName = this.getUndoDefName();
+					this.wb.dependencyFormulas.addToChangedDefName(this);
+					var newUndoName = this.getUndoDefName();
 					History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_DefinedNamesChangeUndo,
 						null, null, new UndoRedoData_FromTo(oldUndoName, newUndoName), true);
+				}
 			}
-		}
+		},
+		_getTranslateName: function(name, sheetIndex) {
+			//пока сделано только для print_area
+			var res = name;
+			if(sheetIndex) {
+				res = AscCommon.translateManager.getValue(name);
+			}
+			return res;
 		}
 	};
 
@@ -721,8 +728,8 @@
 			this._addDefName(defName);
 			return defName;
 		},
-		addDefName: function(name, ref, sheetId, hidden, isTable) {
-			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable);
+		addDefName: function(name, ref, sheetId, hidden, isTable, isXLNM) {
+			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable, isXLNM);
 			defName.setRef(defName.ref, true);
 			this._addDefName(defName);
 			return defName;
@@ -736,10 +743,25 @@
 				newUndoName.ref.length == 0) {
 				return res;
 			}
+
+			var changeName, isXLNM;
 			if (oldUndoName) {
+				//check print_area
+				changeName = this.checkPrintArea(oldUndoName.name, oldUndoName.sheetId);
+				if(null !== changeName) {
+					oldUndoName.name = changeName;
+				}
+
 				res = this.getDefNameByName(oldUndoName.name, oldUndoName.sheetId);
 			} else {
-				res = this.addDefName(newUndoName.name, newUndoName.ref, newUndoName.sheetId, false, false);
+				//check print_area
+				changeName = this.checkPrintArea(newUndoName.name, newUndoName.sheetId);
+				if(null !== changeName) {
+					isXLNM = true;
+					newUndoName.name = changeName;
+				}
+
+				res = this.addDefName(newUndoName.name, newUndoName.ref, newUndoName.sheetId, false, false, isXLNM);
 			}
 			History.Create_NewPoint();
 			if (res && oldUndoName) {
@@ -760,6 +782,17 @@
 			}
 			History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_DefinedNamesChange, null, null,
 						new UndoRedoData_FromTo(oldUndoName, newUndoName));
+			return res;
+		},
+		checkPrintArea: function(name, sheetIndex) {
+			var res = null;
+
+			var printAreaStr = "Print_Area";
+			var printAreaStrLocale = AscCommon.translateManager.getValue(printAreaStr);
+			if(sheetIndex && printAreaStrLocale.toLowerCase() === name.toLowerCase()) {
+				res = printAreaStr;
+			}
+
 			return res;
 		},
 		checkDefName: function (name, sheetIndex) {
