@@ -1469,6 +1469,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.asc_setDocumentPassword(_params[0]);
             break;
         }
+      
+        case 22004: // ASC_SPELLCHECK_EVENT_TYPE_MESSAGE
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                if (this.SpellCheckApi) {
+                    this.SpellCheckApi.onSpellCheck(json);
+                }
+            }
+            break;
+        }
 
         default:
             break;
