@@ -3303,9 +3303,11 @@ CPresentation.prototype =
                                 }
                             }
                         }
-                        if(!bChangeSelect){
-                            History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                            this.addNextSlide();
+                        if(this.CanEdit()){
+                            if(!bChangeSelect){
+                                History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
+                                this.addNextSlide();
+                            }
                         }
                     }
                 }
