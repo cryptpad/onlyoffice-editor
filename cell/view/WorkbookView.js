@@ -3160,7 +3160,7 @@
 		}
 	};
 
-	WorkbookView.prototype.cleanCutData = function (bDrawSelection) {
+	WorkbookView.prototype.cleanCutData = function (bDrawSelection, bCleanBuffer) {
 		if(this.cutIdSheet) {
 			var activeWs = this.wsViews[this.wsActive];
 			var ws = this.getWorksheetById(this.cutIdSheet);
@@ -3176,6 +3176,12 @@
 
 			if(bDrawSelection && activeWs && ws && activeWs.model.Id === ws.model.Id) {
 				activeWs.updateSelection();
+			}
+			//ms чистит буфер, если происходят какие-то изменения в документе с посвеченной областью вырезать
+			//мы в данном случае не можем так делать, поскольку не можем прочесть информацию из буфера и убедиться, что
+			//там именно тот вырезанный фрагмент. тем самым можем затереть какую-то важную информацию
+			if(bCleanBuffer) {
+				AscCommon.g_clipboardBase.ClearBuffer();
 			}
 		}
 	};
