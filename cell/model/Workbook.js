@@ -842,7 +842,8 @@
 			}
 			do {
 				this.tableNameIndex++;
-				sNewName = this.tableNamePattern + this.tableNameIndex + collaborativeIndexUser;
+				var tableName = AscCommon.translateManager ? AscCommon.translateManager.getValue(this.tableNamePattern) : this.tableNamePattern;
+				sNewName = tableName + this.tableNameIndex + collaborativeIndexUser;
 			} while (this.getDefNameByName(sNewName, null) || this.isListeningDefName(sNewName));
 			return sNewName;
 		},
