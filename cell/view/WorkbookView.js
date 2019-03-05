@@ -161,6 +161,7 @@
     this.oSelectionInfo = null;
     this.canUpdateAfterShiftUp = false;	// Нужно ли обновлять информацию после отпускания Shift
     this.keepType = false;
+    this.timerId = null;
 
     //----- declaration -----
     this.isInit = false;
@@ -1114,12 +1115,25 @@
   WorkbookView.prototype._onUpdateWorksheet = function(x, y, ctrlKey, callback) {
     var ws = this.getWorksheet(), ct = undefined;
     var arrMouseMoveObjects = [];					// Теперь это массив из объектов, над которыми курсор
-
+	var t = this;
     //ToDo: включить определение target, если находимся в режиме редактирования ячейки.
     if (x === undefined && y === undefined) {
-      ws.cleanHighlightedHeaders();
+    	ws.cleanHighlightedHeaders();
+		if (this.timerId === null) {
+    	this.timerId = setTimeout(function () {
+    			var arrClose = [];
+				arrClose.push(new asc_CMM({type: c_oAscMouseMoveType.None}));
+				t.handlers.trigger("asc_onMouseMove", arrClose);
+				t.timerId = null;
+			}, 1000);
+		}
     } else {
       ct = ws.getCursorTypeFromXY(x, y);
+
+      if (this.timerId !== null) {
+      	clearTimeout(this.timerId);
+      	this.timerId = null;
+      }
 
       // Отправление эвента об удалении всего листа (именно удалении, т.к. если просто залочен, то не рисуем рамку вокруг)
       if (undefined !== ct.userIdAllSheet) {
