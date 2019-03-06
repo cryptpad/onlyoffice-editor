@@ -649,13 +649,16 @@
 			getFromDefNameId(nodeId);
 			return this.getDefNameByName(g_FDNI.name, g_FDNI.sheetId, true);
 		},
-		getDefNameByRef: function(ref, sheetId) {
+		getDefNameByRef: function(ref, sheetId, bLocale) {
 			var getByRef = function(defName) {
 				if (!defName.hidden && defName.ref == ref) {
 					return defName.name;
 				}
 			};
 			var res = this._foreachDefNameSheet(sheetId, getByRef);
+			if(res && bLocale) {
+				res = AscCommon.translateManager.getValue(res);
+			}
 			if (!res) {
 				res = this._foreachDefNameBook(getByRef);
 			}
@@ -737,7 +740,7 @@
 			if (oldUndoName) {
 				res = this.getDefNameByName(oldUndoName.name, oldUndoName.sheetId);
 			} else {
-				res = this.addDefName(newUndoName.name, newUndoName.ref, newUndoName.sheetId, false, false);
+				res = this.addDefName(newUndoName.name, newUndoName.ref, newUndoName.sheetId, false, false, newUndoName.isXLNM);
 			}
 			History.Create_NewPoint();
 			if (res && oldUndoName) {
@@ -2445,8 +2448,8 @@
 		this.dependencyFormulas.calcTree();
 		return res;
 	};
-	Workbook.prototype.findDefinesNames = function ( ref, sheetId ) {
-		return this.dependencyFormulas.getDefNameByRef( ref, sheetId );
+	Workbook.prototype.findDefinesNames = function ( ref, sheetId, bLocale ) {
+		return this.dependencyFormulas.getDefNameByRef( ref, sheetId, bLocale );
 	};
 	Workbook.prototype.unlockDefName = function(){
 		this.dependencyFormulas.unlockDefName();
@@ -12217,7 +12220,7 @@
 	function tryTranslateToPrintArea(val) {
 		var printAreaStr = "Print_Area";
 		var printAreaStrLocale = AscCommon.translateManager.getValue(printAreaStr);
-		if(null !== this.LocalSheetId && printAreaStrLocale.toLowerCase() === val.toLowerCase()) {
+		if(printAreaStrLocale.toLowerCase() === val.toLowerCase()) {
 			return printAreaStr;
 		}
 		return null;
