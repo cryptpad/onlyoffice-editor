@@ -12026,11 +12026,11 @@ CTable.prototype.GetStyleFromFormatting = function()
     }
     return null;
 };
-CTable.prototype.Set_ReviewType = function(ReviewType)
+CTable.prototype.SetReviewType = function(ReviewType)
 {
 
 };
-CTable.prototype.Get_ReviewType = function()
+CTable.prototype.GetReviewType = function()
 {
     return reviewtype_Common;
 };

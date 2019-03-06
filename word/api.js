@@ -6200,7 +6200,7 @@ background-repeat: no-repeat;\
 		var LogicDocument = this.WordControl.m_oLogicDocument;
 		if (LogicDocument)
 		{
-			var isTrackRevision = LogicDocument.Is_TrackRevisions();
+			var isTrackRevision = LogicDocument.IsTrackRevisions();
 			var isShowParaMarks = LogicDocument.Is_ShowParagraphMarks();
 
 			if (true === isTrackRevision)

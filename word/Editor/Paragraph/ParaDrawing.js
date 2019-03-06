@@ -1618,7 +1618,7 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 		DrawingRun.Set_Pr(RunPr.Copy());
 
 	if (Run)
-		DrawingRun.Set_ReviewTypeWithInfo(Run.Get_ReviewType(), Run.Get_ReviewInfo());
+		DrawingRun.SetReviewTypeWithInfo(Run.GetReviewType(), Run.GetReviewInfo());
 
 	Para.Add_ToContent(0, DrawingRun);
 

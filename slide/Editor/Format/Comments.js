@@ -498,8 +498,8 @@ ParaComment.prototype.Get_TextPr = function(ContentPos, Depth)
 //----------------------------------------------------------------------------------------------------------------------
 // Разное
 //----------------------------------------------------------------------------------------------------------------------
-ParaComment.prototype.Set_ReviewType = function(ReviewType, RemovePrChange){};
-ParaComment.prototype.Set_ReviewTypeWithInfo = function(ReviewType, ReviewInfo){};
+ParaComment.prototype.SetReviewType = function(ReviewType, RemovePrChange){};
+ParaComment.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo){};
 ParaComment.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth){};
 ParaComment.prototype.AcceptRevisionChanges = function(Type, bAll){};
 ParaComment.prototype.RejectRevisionChanges = function(Type, bAll){};

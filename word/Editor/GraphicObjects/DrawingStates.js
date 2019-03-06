@@ -721,7 +721,7 @@ RotateState.prototype =
 
                             // Автофигуры мы переносим так, как будто это происходит не в режиме рецензирования, но
                             // при этом мы должны сохранить их начальные настройки рецензирования.
-                            var bTrackRevisions = this.drawingObjects.document.Is_TrackRevisions();
+                            var bTrackRevisions = this.drawingObjects.document.IsTrackRevisions();
                             if (bTrackRevisions)
                                 this.drawingObjects.document.Set_TrackRevisions(false);
 
