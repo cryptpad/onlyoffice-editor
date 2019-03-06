@@ -302,8 +302,7 @@
 				var sheet = this.wb.getWorksheetById(this.sheetId);
 				index = sheet.getIndex();
 			}
-			var name = bLocale ? this._getTranslateName(this.name, this.sheetId) : this.name;
-			return new Asc.asc_CDefName(name, this.getRef(bLocale), index, this.isTable, this.hidden, this.isLock, this.isXLNM);
+			return new Asc.asc_CDefName(this.name, this.getRef(bLocale), index, this.isTable, this.hidden, this.isLock, this.isXLNM);
 		},
 		getUndoDefName: function() {
 			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable, this.isXLNM);
@@ -334,14 +333,6 @@
 						null, null, new UndoRedoData_FromTo(oldUndoName, newUndoName), true);
 				}
 			}
-		},
-		_getTranslateName: function(name, sheetIndex) {
-			//пока сделано только для print_area
-			var res = name;
-			if(sheetIndex) {
-				res = AscCommon.translateManager.getValue(name);
-			}
-			return res;
 		}
 	};
 
@@ -743,25 +734,10 @@
 				newUndoName.ref.length == 0) {
 				return res;
 			}
-
-			var changeName, isXLNM;
 			if (oldUndoName) {
-				//check print_area
-				changeName = this.checkPrintArea(oldUndoName.name, oldUndoName.sheetId);
-				if(null !== changeName) {
-					oldUndoName.name = changeName;
-				}
-
 				res = this.getDefNameByName(oldUndoName.name, oldUndoName.sheetId);
 			} else {
-				//check print_area
-				changeName = this.checkPrintArea(newUndoName.name, newUndoName.sheetId);
-				if(null !== changeName) {
-					isXLNM = true;
-					newUndoName.name = changeName;
-				}
-
-				res = this.addDefName(newUndoName.name, newUndoName.ref, newUndoName.sheetId, false, false, isXLNM);
+				res = this.addDefName(newUndoName.name, newUndoName.ref, newUndoName.sheetId, false, false);
 			}
 			History.Create_NewPoint();
 			if (res && oldUndoName) {
@@ -781,18 +757,7 @@
 				}
 			}
 			History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_DefinedNamesChange, null, null,
-						new UndoRedoData_FromTo(oldUndoName, newUndoName));
-			return res;
-		},
-		checkPrintArea: function(name, sheetIndex) {
-			var res = null;
-
-			var printAreaStr = "Print_Area";
-			var printAreaStrLocale = AscCommon.translateManager.getValue(printAreaStr);
-			if(sheetIndex && printAreaStrLocale.toLowerCase() === name.toLowerCase()) {
-				res = printAreaStr;
-			}
-
+				new UndoRedoData_FromTo(oldUndoName, newUndoName));
 			return res;
 		},
 		checkDefName: function (name, sheetIndex) {
