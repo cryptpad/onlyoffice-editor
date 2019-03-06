@@ -2592,15 +2592,15 @@
 				if (findFillColor) {
 					ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
 				} else {
+					var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
+					var dScale = asc_getcvt(0, 3, this._getPPIX());
+					rect.x *= dScale;
+					rect.y *= dScale;
+					rect.w *= dScale;
+					rect.h *= dScale;
 					AscFormat.ExecuteNoHistory(
-						function (fill) {
+						function (fill, rect) {
 							var geometry = new AscFormat.Geometry();
-							var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
-							var dScale = asc_getcvt(0, 3, this._getPPIX());
-							rect.x *= dScale;
-							rect.y *= dScale;
-							rect.w *= dScale;
-							rect.h *= dScale;
 							var path = new AscFormat.Path();
 							path.moveTo(rect.x, rect.y);
 							path.lnTo(rect.x + rect.w, rect.y);
@@ -2643,7 +2643,7 @@
 							shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
 							shapeDrawer.draw(geometry);
 							graphics.restore();
-						}, this, [fill]
+						}, this, [fill, rect]
 					);
 				}
 			}
