@@ -1947,6 +1947,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			return this.value;
 		}
 	};
+	cName.prototype.toLocaleString = function () {
+		var defName = this.getDefName();
+		if (defName) {
+			return defName.sheetId && defName.isXLNM ? AscCommon.translateManager.getValue(this.Name) : defName.name;
+		} else {
+			return this.value;
+		}
+	};
 	cName.prototype.getValue = function () {
 		return this.Calculate();
 	};
