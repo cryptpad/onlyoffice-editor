@@ -1306,9 +1306,9 @@ function ReadTrackRevision(type, length, stream, reviewInfo, options) {
 };
 function initMathRevisions(elem ,props) {
     if(props.del) {
-        elem.SetReviewTypeWithInfo(reviewtype_Remove, props.del);
+        elem.SetReviewTypeWithInfo(reviewtype_Remove, props.del, false);
     } else if(props.ins) {
-        elem.SetReviewTypeWithInfo(reviewtype_Add, props.ins);
+        elem.SetReviewTypeWithInfo(reviewtype_Add, props.ins, false);
     }
 };
 
@@ -4579,7 +4579,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
         {
             if(null == pPr)
                 pPr = {};
-            var EndRun = par.Get_ParaEndRun();
+            var EndRun = par.GetParaEndRun();
             this.memory.WriteByte(c_oSerParType.pPr);
             this.bs.WriteItemWithLength(function(){oThis.bpPrs.Write_pPr(pPr, par.TextPr.Value, EndRun, par.Get_SectionPr(), oThis.Document);});
         }
@@ -7768,15 +7768,15 @@ function Binary_pPrReader(doc, oReadResult, stream)
             case c_oSerProp_pPrType.pPr_rPr:
                 if(null != this.paragraph)
 				{
-                    var EndRun = this.paragraph.Get_ParaEndRun();
+                    var EndRun = this.paragraph.GetParaEndRun();
                     var rPr = this.paragraph.TextPr.Value;
                     res = this.brPrr.Read(length, rPr, EndRun);
                     var trackRevision = this.brPrr.trackRevision;
                     if (trackRevision) {
                         if(trackRevision.del) {
-                            EndRun.SetReviewTypeWithInfo(reviewtype_Remove, trackRevision.del);
+                            EndRun.SetReviewTypeWithInfo(reviewtype_Remove, trackRevision.del, false);
                         } else if(trackRevision.ins) {
-                            EndRun.SetReviewTypeWithInfo(reviewtype_Add, trackRevision.ins);
+                            EndRun.SetReviewTypeWithInfo(reviewtype_Add, trackRevision.ins, false);
                         } 
                     }
                     this.paragraph.TextPr.Apply_TextPr(rPr);
@@ -10053,7 +10053,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
             for(var i = startPos; i < endPos; ++i) {
                 var elem = oParStruct.GetFromContent(i);
                 if(elem && elem.SetReviewTypeWithInfo) {
-                    elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo);
+                    elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
                 }
             }
         } else if (c_oSerParType.Ins == type) {
@@ -10066,7 +10066,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
             for(var i = startPos; i < endPos; ++i) {
                 var elem = oParStruct.GetFromContent(i);
                 if(elem && elem.SetReviewTypeWithInfo) {
-                    elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo);
+                    elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
                 }
             }
 		} else if (c_oSerParType.MoveFrom == type) {
@@ -10079,7 +10079,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			for(var i = startPos; i < endPos; ++i) {
 				var elem = oParStruct.GetFromContent(i);
 				if(elem && elem.SetReviewTypeWithInfo) {
-					elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo);
+					elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
 				}
 			}
 		} else if (c_oSerParType.MoveTo == type) {
@@ -10092,7 +10092,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			for(var i = startPos; i < endPos; ++i) {
 				var elem = oParStruct.GetFromContent(i);
 				if(elem && elem.SetReviewTypeWithInfo) {
-					elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo);
+					elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
 				}
 			}
 		} else if ( c_oSerParType.Sdt === type) {
@@ -11927,7 +11927,7 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
 				for (var i = 0; i < oSdtStruct.GetContentLength(); ++i) {
 					var elem = oSdtStruct.GetFromContent(i);
 					if (elem && elem.SetReviewTypeWithInfo) {
-						elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo);
+						elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
 					}
 					oElem.addElementToContent(elem);
 				}
@@ -12007,7 +12007,7 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
 				for (var i = 0; i < oSdtStruct.GetContentLength(); ++i) {
 					var elem = oSdtStruct.GetFromContent(i);
 					if (elem && elem.SetReviewTypeWithInfo) {
-						elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo);
+						elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
 					}
 					oElem.addElementToContent(elem);
 				}
@@ -13405,13 +13405,13 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
 			res = this.bcr.Read1(length, function(t, l){
                 return ReadTrackRevision(t, l, oThis.stream, reviewInfo, {run: oMRun, props: props, oParent: oParent, parStruct: oParStruct, bmr: oThis});
 			});
-            oMRun.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo);
+            oMRun.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
         } else if (c_oSer_OMathContentType.Ins === type) {
             var reviewInfo = new CReviewInfo();
 			res = this.bcr.Read1(length, function(t, l){
                 return ReadTrackRevision(t, l, oThis.stream, reviewInfo, {run: oMRun, props: props, oParent: oParent, parStruct: oParStruct, bmr: oThis});
 			});
-            oMRun.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo);
+            oMRun.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
         }
         else
             res = c_oSerConstants.ReadUnknown;

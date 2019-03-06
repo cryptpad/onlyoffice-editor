@@ -9533,6 +9533,21 @@ ParaRun.prototype.GetReviewColor = function()
  */
 ParaRun.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
 {
+	var oParagraph = this.GetParagraph();
+	if (this.IsParaEndRun() && oParagraph)
+	{
+		var oParent = oParagraph.GetParent();
+		if (reviewtype_Common !== nType
+			&& !oParagraph.Get_DocumentNext()
+			&& oParent
+			&& (oParent instanceof CDocument
+			|| (oParent instanceof CDocumentContent &&
+			oParent.GetParent() instanceof CTableCell)))
+		{
+			return;
+		}
+	}
+
     if (nType !== this.ReviewType)
 	{
 		var OldReviewType = this.ReviewType;
@@ -9556,20 +9571,39 @@ ParaRun.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
 		this.private_UpdateTrackRevisions();
 	}
 };
-ParaRun.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo)
+/**
+ * Меняем тип рецензирования вместе с информацией о рецензента
+ * @param {number} nType
+ * @param {CReviewInfo} oInfo
+ * @param {boolean} [isCheckLastParagraph=true] Нужно ли проверять последний параграф в документе или в ячейке таблицы
+ */
+ParaRun.prototype.SetReviewTypeWithInfo = function(nType, oInfo, isCheckLastParagraph)
 {
-	History.Add(new CChangesRunReviewType(this,
+	var oParagraph = this.GetParagraph();
+	if (false !== isCheckLastParagraph && this.IsParaEndRun() && oParagraph)
+	{
+		var oParent = oParagraph.GetParent();
+		if (reviewtype_Common !== nType
+			&& !oParagraph.Get_DocumentNext()
+			&& oParent
+			&& (oParent instanceof CDocument
+			|| (oParent instanceof CDocumentContent &&
+			oParent.GetParent() instanceof CTableCell)))
 		{
-			ReviewType : this.ReviewType,
-			ReviewInfo : this.ReviewInfo ? this.ReviewInfo.Copy() : undefined
-		},
-		{
-			ReviewType : ReviewType,
-			ReviewInfo : ReviewInfo ? ReviewInfo.Copy() : undefined
-		}));
+			return;
+		}
+	}
 
-	this.ReviewType = ReviewType;
-	this.ReviewInfo = ReviewInfo;
+	History.Add(new CChangesRunReviewType(this, {
+		ReviewType : this.ReviewType,
+		ReviewInfo : this.ReviewInfo ? this.ReviewInfo.Copy() : undefined
+	}, {
+		ReviewType : nType,
+		ReviewInfo : oInfo ? oInfo.Copy() : undefined
+	}));
+
+	this.ReviewType = nType;
+	this.ReviewInfo = oInfo;
 
 	this.private_UpdateTrackRevisions();
 };
@@ -10041,6 +10075,14 @@ ParaRun.prototype.GetParaEnd = function()
 	}
 
 	return null;
+};
+/**
+ * Проверяем, является ли это ран со знаком конца параграфа
+ * @returns {boolean}
+ */
+ParaRun.prototype.IsParaEndRun = function()
+{
+	return this.GetParaEnd() ? true : false;
 };
 ParaRun.prototype.RemoveElement = function(oElement)
 {
