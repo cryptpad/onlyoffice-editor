@@ -1950,7 +1950,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cName.prototype.toLocaleString = function () {
 		var defName = this.getDefName();
 		if (defName) {
-			return defName.sheetId && defName.isXLNM ? AscCommon.translateManager.getValue(this.Name) : defName.name;
+			return defName.sheetId && defName.isXLNM ? AscCommon.translateManager.getValue(defName.name) : defName.name;
 		} else {
 			return this.value;
 		}

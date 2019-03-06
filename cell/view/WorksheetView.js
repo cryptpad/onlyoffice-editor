@@ -12071,7 +12071,7 @@
 		if(translatePrintArea) {
 			ranges = AscCommonExcel.getRangeByRef(translatePrintArea, this.model, true, true);
 		}
-		if(0 === ranges.length) {
+		if(!ranges || 0 === ranges.length) {
 			ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
 		}
 		var oldR1C1mode = AscCommonExcel.g_R1C1Mode, t = this;
