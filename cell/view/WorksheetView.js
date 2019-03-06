@@ -2697,6 +2697,8 @@
 			return null;
 		}
 
+		var graphics = this.handlers.trigger('getMainGraphics');
+
 		var cellValue = c.getNumberValue();
 		width -= 2; // indent
 
@@ -2716,6 +2718,8 @@
 					}
 					values = this.model._getValuesForConditionalFormatting(ranges, true);
 
+					var x = this._getColLeft(col);
+
 					if (AscCommonExcel.ECfType.dataBar === oRule.type) {
 						min = oRule.getMin(values, this.model);
 						max = oRule.getMax(values, this.model);
@@ -2724,29 +2728,22 @@
 						var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
 						var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
 
-						var x = this._getColLeft(col);
 						if (oRuleElement.Color) {
 							ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
 						}
 					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
 						var indexImage = oRule.getIndexRule(values, this.model, cellValue);
 
-                        var graphics = this.handlers.trigger('getMainGraphics');
+						var rect = ctx._calcRect(x - offsetX, top + 1 - offsetY, width, height);
+						var dScale = asc_getcvt(0, 3, this._getPPIX());
+						rect.x *= dScale;
+						rect.y *= dScale;
+						rect.w *= dScale;
+						rect.h *= dScale;
 
-                        var x = this._getColLeft(col);
-                        var y = top + 1;
-
-                        var w = width;
-                        var h =  height;
                         AscFormat.ExecuteNoHistory(
-                            function (fill) {
+                            function (rect) {
                                 var geometry = new AscFormat.Geometry();
-                                var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
-                                var dScale = asc_getcvt(0, 3, this._getPPIX());
-                                rect.x *= dScale;
-                                rect.y *= dScale;
-                                rect.w *= dScale;
-                                rect.h *= dScale;
                                 var path = new AscFormat.Path();
                                 path.moveTo(rect.x, rect.y);
                                 path.lnTo(rect.x + rect.w, rect.y);
@@ -2758,7 +2755,6 @@
 
                                 var oUniFill = new AscFormat.builder_CreateBlipFill(AscFormat.sDownIncline, "tile");
 
-
                                 graphics.save();
                                 graphics.transform3(new AscCommon.CMatrix());
                                 var shapeDrawer = new AscCommon.CShapeDrawer();
@@ -2767,7 +2763,7 @@
                                 shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
                                 shapeDrawer.draw(geometry);
                                 graphics.restore();
-                            }, this, []
+                            }, this, [rect]
                         );
 					}
 				}
