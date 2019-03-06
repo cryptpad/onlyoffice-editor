@@ -2828,14 +2828,14 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 				this.Content[EndPos].MoveCursorToStartPos();
 			}
 
-			if (this.LogicDocument && true === this.LogicDocument.Is_TrackRevisions())
+			if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions())
 			{
 				for (var Pos = EndPos - 1; Pos >= StartPos + 1; Pos--)
 				{
-					if (para_Run == this.Content[Pos].Type && reviewtype_Add === this.Content[Pos].Get_ReviewType())
+					if (para_Run == this.Content[Pos].Type && reviewtype_Add === this.Content[Pos].GetReviewType())
 						this.Internal_Content_Remove2(Pos, 1);
 					else
-						this.Content[Pos].Set_ReviewType(reviewtype_Remove, false);
+						this.Content[Pos].SetReviewType(reviewtype_Remove, false);
 				}
 			}
 			else
@@ -2858,7 +2858,7 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 				this.Content[StartPos].Set_RStyle(undefined);
 			}
 
-			if (this.LogicDocument && true === this.LogicDocument.Is_TrackRevisions())
+			if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions())
 			{
 				var _StartPos = Math.max(0, StartPos);
 				var _EndPos   = Math.min(this.Content.length - 1, EndPos);
@@ -2985,7 +2985,7 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 			else
 			{
 				// TODO: В режиме рецензии элементы не удаляются, а позиция меняется прямо в ранах
-				if (!this.LogicDocument || true !== this.LogicDocument.Is_TrackRevisions())
+				if (!this.LogicDocument || true !== this.LogicDocument.IsTrackRevisions())
 					this.CurPos.ContentPos = ContentPos;
 			}
 		}
@@ -6122,8 +6122,8 @@ Paragraph.prototype.AddHyperlink = function(HyperProps)
 
 		// Если мы находимся в режиме рецензирования, то пробегаемся по всему содержимому гиперссылки и
 		// проставляем, что все раны новые.
-		if (this.LogicDocument && true === this.LogicDocument.Is_TrackRevisions())
-			Hyperlink.Set_ReviewType(reviewtype_Add, true);
+		if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions())
+			Hyperlink.SetReviewType(reviewtype_Add, true);
 	}
 	else if (null !== HyperProps.Text && "" !== HyperProps.Text)
 	{
@@ -12018,32 +12018,37 @@ Paragraph.prototype.Remove_PrChange = function()
 };
 Paragraph.prototype.private_AddPrChange = function()
 {
-    if (this.LogicDocument && true === this.LogicDocument.Is_TrackRevisions() && true !== this.Have_PrChange())
+    if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions() && true !== this.Have_PrChange())
         this.Add_PrChange();
 };
-Paragraph.prototype.Set_ReviewType = function(ReviewType)
+Paragraph.prototype.SetReviewType = function(ReviewType)
 {
     var EndRun = this.Get_ParaEndRun();
-    EndRun.Set_ReviewType(ReviewType);
+    EndRun.SetReviewType(ReviewType);
 };
-Paragraph.prototype.Get_ReviewType = function()
+Paragraph.prototype.GetReviewType = function()
 {
     var EndRun = this.Get_ParaEndRun();
-    return EndRun.Get_ReviewType();
+    return EndRun.GetReviewType();
 };
-Paragraph.prototype.Get_ReviewInfo = function()
+Paragraph.prototype.GetReviewInfo = function()
 {
-    var EndRun = this.Get_ParaEndRun();
-    return EndRun.ReviewInfo;
+	var oEndRun = this.Get_ParaEndRun();
+	return oEndRun.GetReviewInfo();
+};
+Paragraph.prototype.SetReviewTypeWithInfo = function(nType, oInfo)
+{
+	var oEndRun = this.Get_ParaEndRun();
+	oEndRun.SetReviewTypeWithInfo(nType, oInfo);
 };
 Paragraph.prototype.Get_ParaEndRun = function()
 {
     return this.Content[this.Content.length - 1];
 };
-Paragraph.prototype.Is_TrackRevisions = function()
+Paragraph.prototype.IsTrackRevisions = function()
 {
     if (this.LogicDocument)
-        return this.LogicDocument.Is_TrackRevisions();
+        return this.LogicDocument.IsTrackRevisions();
 
     return false;
 };
@@ -12097,8 +12102,8 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
     Checker.Flush_AddRemoveChange();
     Checker.Flush_TextPrChange();
 
-    var ReviewType = this.Get_ReviewType();
-    var ReviewInfo = this.Get_ReviewInfo();
+    var ReviewType = this.GetReviewType();
+    var ReviewInfo = this.GetReviewInfo();
     if (reviewtype_Add == ReviewType)
     {
         StartPos = this.Get_EndPos(false);
@@ -12136,7 +12141,7 @@ Paragraph.prototype.private_UpdateTrackRevisionOnChangeParaPr = function(bUpdate
     {
         this.private_UpdateTrackRevisions();
 
-        if (true === bUpdateInfo && this.LogicDocument && true === this.LogicDocument.Is_TrackRevisions())
+        if (true === bUpdateInfo && this.LogicDocument && true === this.LogicDocument.IsTrackRevisions())
         {
             var OldReviewInfo = this.Pr.ReviewInfo.Copy();
             this.Pr.ReviewInfo.Update();

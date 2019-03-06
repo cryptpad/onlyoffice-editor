@@ -6918,7 +6918,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 {
 	// При копировании нам не нужно, чтобы новые классы помечались как созданные в рецензировании, а при перетаскивании
 	// нужно.
-	var isTrack = this.Is_TrackRevisions() && !bUseHistory;
+	var isTrack = this.IsTrackRevisions() && !bUseHistory;
 	if (isTrack)
 		this.Set_TrackRevisions(false);
 
@@ -11603,7 +11603,7 @@ CDocument.prototype.Set_EditingType = function(EditingType)
 {
 	this.EditingType = EditingType;
 };
-CDocument.prototype.Is_TrackRevisions = function()
+CDocument.prototype.IsTrackRevisions = function()
 {
 	return this.TrackRevisions;
 };
@@ -13378,7 +13378,7 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 		}
 		else
 		{
-			var ItemReviewType = Item.Get_ReviewType();
+			var ItemReviewType = Item.GetReviewType();
 			// Создаем новый параграф
 			var NewParagraph   = new Paragraph(this.DrawingDocument, this);
 
@@ -13437,16 +13437,16 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 			this.Internal_Content_Add(this.CurPos.ContentPos + 1, NewParagraph);
 			this.CurPos.ContentPos++;
 
-			if (true === this.Is_TrackRevisions())
+			if (true === this.IsTrackRevisions())
 			{
 				NewParagraph.Remove_PrChange();
-				NewParagraph.Set_ReviewType(ItemReviewType);
-				Item.Set_ReviewType(reviewtype_Add);
+				NewParagraph.SetReviewType(ItemReviewType);
+				Item.SetReviewType(reviewtype_Add);
 			}
 			else if (reviewtype_Common !== ItemReviewType)
 			{
-				NewParagraph.Set_ReviewType(ItemReviewType);
-				Item.Set_ReviewType(reviewtype_Common);
+				NewParagraph.SetReviewType(ItemReviewType);
+				Item.SetReviewType(reviewtype_Common);
 			}
 		}
 	}
@@ -13462,10 +13462,10 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 			this.Internal_Content_Add(0, NewParagraph);
 			this.CurPos.ContentPos = 0;
 
-			if (true === this.Is_TrackRevisions())
+			if (true === this.IsTrackRevisions())
 			{
 				NewParagraph.Remove_PrChange();
-				NewParagraph.Set_ReviewType(reviewtype_Add);
+				NewParagraph.SetReviewType(reviewtype_Add);
 			}
 		}
 		else if (this.Content.length - 1 === this.CurPos.ContentPos && Item.IsCursorAtEnd())
@@ -13474,10 +13474,10 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 			this.Internal_Content_Add(this.Content.length, oNewParagraph);
 			this.CurPos.ContentPos = this.Content.length - 1;
 
-			if (this.Is_TrackRevisions())
+			if (this.IsTrackRevisions())
 			{
 				oNewParagraph.Remove_PrChange();
-				oNewParagraph.Set_ReviewType(reviewtype_Add);
+				oNewParagraph.SetReviewType(reviewtype_Add);
 			}
 		}
 		else

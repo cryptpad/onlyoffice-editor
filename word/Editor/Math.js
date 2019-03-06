@@ -1153,7 +1153,7 @@ ParaMath.prototype.Get_CompiledTextPr = function(Copy)
 ParaMath.prototype.Add = function(Item)
 {
     var LogicDocument  = (this.Paragraph ? this.Paragraph.LogicDocument : undefined);
-    var TrackRevisions = (LogicDocument && true === LogicDocument.Is_TrackRevisions() ? true : false);
+    var TrackRevisions = (LogicDocument && true === LogicDocument.IsTrackRevisions() ? true : false);
 
     var Type = Item.Type;
     var oSelectedContent = this.GetSelectContent();
@@ -1343,7 +1343,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
 {
     var TrackRevisions = null;
     if (this.Paragraph && this.Paragraph.LogicDocument)
-        TrackRevisions = this.Paragraph.LogicDocument.Is_TrackRevisions();
+        TrackRevisions = this.Paragraph.LogicDocument.IsTrackRevisions();
 
     var oSelectedContent = this.GetSelectContent();
 
@@ -1354,7 +1354,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
     if (nStartPos === nEndPos)
     {
         var oElement = oContent.getElem(nStartPos);
-        var ElementReviewType = oElement.Get_ReviewType();
+        var ElementReviewType = oElement.GetReviewType();
 
         // Если данный элемент - ран, удаляем внутри рана, если нет, тогда удаляем целиком элемент
         if (para_Math_Run === oElement.Type)
@@ -1449,7 +1449,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                     if (para_Math_Run === oElement.Type !== oElement.Type)
                         oElement.RejectRevisionChanges(c_oAscRevisionsChangeType.TextAdd, true);
 
-                    oElement.Set_ReviewType(reviewtype_Remove);
+                    oElement.SetReviewType(reviewtype_Remove);
                 }
                 else if (reviewtype_Add === ElementReviewType)
                 {
@@ -1487,7 +1487,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
             for (var CurPos = nEndPos; CurPos >= nStartPos; --CurPos)
             {
                 var Element = oContent.getElem(CurPos);
-                var ElementReviewType = Element.Get_ReviewType();
+                var ElementReviewType = Element.GetReviewType();
 
                 if (para_Math_Run === Element.Type && (CurPos === nEndPos || CurPos === nStartPos))
                 {
@@ -1501,7 +1501,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                         if (para_Math_Run === Element.Type !== Element.Type)
                             Element.RejectRevisionChanges(c_oAscRevisionsChangeType.TextAdd, true);
 
-                        Element.Set_ReviewType(reviewtype_Remove);
+                        Element.SetReviewType(reviewtype_Remove);
                     }
                     else if (reviewtype_Add === ElementReviewType)
                     {
@@ -3365,9 +3365,9 @@ ParaMath.prototype.RejectRevisionChanges = function(Type, bAll)
 {
     return this.Root.RejectRevisionChanges(Type, bAll);
 };
-ParaMath.prototype.Set_ReviewType = function(ReviewType, RemovePrChange)
+ParaMath.prototype.SetReviewType = function(ReviewType, RemovePrChange)
 {
-    return this.Root.Set_ReviewType(ReviewType, RemovePrChange);
+    return this.Root.SetReviewType(ReviewType, RemovePrChange);
 };
 ParaMath.prototype.HandleTab = function(isForward)
 {
