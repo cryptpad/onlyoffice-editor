@@ -12065,7 +12065,15 @@
 		};
 
 	WorksheetView.prototype.findCell = function (reference) {
-		var mc, ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
+		var mc;
+		var translatePrintArea = AscCommonExcel.tryTranslateToPrintArea(reference);
+		var ranges;
+		if(translatePrintArea) {
+			ranges = AscCommonExcel.getRangeByRef(translatePrintArea, this.model, true, true);
+		}
+		if(0 === ranges.length) {
+			ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
+		}
 		var oldR1C1mode = AscCommonExcel.g_R1C1Mode, t = this;
 
 		if (0 === ranges.length && this.handlers.trigger('canEdit')) {

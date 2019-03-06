@@ -12214,6 +12214,15 @@
 		}
 	};
 
+	function tryTranslateToPrintArea(val) {
+		var printAreaStr = "Print_Area";
+		var printAreaStrLocale = AscCommon.translateManager.getValue(printAreaStr);
+		if(null !== this.LocalSheetId && printAreaStrLocale.toLowerCase() === val.toLowerCase()) {
+			return printAreaStr;
+		}
+		return null;
+	};
+
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].g_nVerticalTextAngle = g_nVerticalTextAngle;
 	window['AscCommonExcel'].oDefaultMetrics = oDefaultMetrics;
@@ -12240,4 +12249,5 @@
 	window['AscCommonExcel'].getCompiledStyle = getCompiledStyle;
 	window['AscCommonExcel'].getCompiledStyleFromArray = getCompiledStyleFromArray;
 	window['AscCommonExcel'].ignoreFirstRowSort = ignoreFirstRowSort;
+	window['AscCommonExcel'].tryTranslateToPrintArea = tryTranslateToPrintArea;
 })(window);

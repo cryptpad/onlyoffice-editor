@@ -385,7 +385,7 @@
 
 	asc_CDefName.prototype = {
 		asc_getName: function (bLocale) {
-			return bLocale && this.LocalSheetId ? AscCommon.translateManager.getValue(this.Name) : this.Name;
+			return bLocale && null !== this.LocalSheetId ? AscCommon.translateManager.getValue(this.Name) : this.Name;
 		}, asc_getScope: function () {
 			return this.LocalSheetId;
 		}, asc_getRef: function () {
@@ -399,11 +399,12 @@
 		}, asc_getIsXlnm: function () {
 			return this.isXLNM;
 		}, _translate: function() {
-			var printAreaStr = "Print_Area";
-			var printAreaStrLocale = AscCommon.translateManager.getValue(printAreaStr);
-			if(this.LocalSheetId && printAreaStrLocale.toLowerCase() === this.Name.toLowerCase()) {
-				this.Name = printAreaStr;
-				this.isXLNM = true;
+			if(null !== this.LocalSheetId) {
+				var translatePrintArea = AscCommonExcel.tryTranslateToPrintArea(this.Name);
+				if(translatePrintArea) {
+					this.Name = translatePrintArea;
+					this.isXLNM = true;
+				}
 			}
 		}
 	};
