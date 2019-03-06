@@ -620,8 +620,8 @@ function (window, undefined) {
     AscDFH.changesFactory[AscDFH.historyitem_Layout_SetY                       ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_OfPieChart_SetSplitPos            ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_PictureOptions_SetPictureStackUnit] = window['AscDFH'].CChangesDrawingsDouble;
-    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetLogBase                ] = window['AscDFH'].CChangesDrawingsDouble;
-    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMax                    ] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetLogBase                ] = window['AscDFH'].CChangesDrawingsDouble2;
+    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMax                    ] = window['AscDFH'].CChangesDrawingsDouble2;
     AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMin                    ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Trendline_SetBackward             ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Trendline_SetForward              ] = window['AscDFH'].CChangesDrawingsDouble;
@@ -10672,7 +10672,7 @@ CScaling.prototype =
 
     setMax: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Scaling_SetMax, this.max, pr));
+        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetMax, this.max, pr));
         this.max = pr;
         if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart)
         {
@@ -10682,7 +10682,7 @@ CScaling.prototype =
 
     setMin: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Scaling_SetMin, this.min, pr));
+        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetMin, this.min, pr));
         this.min = pr;
         if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart)
         {
