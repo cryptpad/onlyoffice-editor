@@ -2730,6 +2730,45 @@
 						}
 					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
 						var indexImage = oRule.getIndexRule(values, this.model, cellValue);
+
+                        var graphics = this.handlers.trigger('getMainGraphics');
+
+                        var x = this._getColLeft(col);
+                        var y = top + 1;
+
+                        var w = width;
+                        var h =  height;
+                        AscFormat.ExecuteNoHistory(
+                            function (fill) {
+                                var geometry = new AscFormat.Geometry();
+                                var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
+                                var dScale = asc_getcvt(0, 3, this._getPPIX());
+                                rect.x *= dScale;
+                                rect.y *= dScale;
+                                rect.w *= dScale;
+                                rect.h *= dScale;
+                                var path = new AscFormat.Path();
+                                path.moveTo(rect.x, rect.y);
+                                path.lnTo(rect.x + rect.w, rect.y);
+                                path.lnTo(rect.x + rect.w, rect.y + rect.h);
+                                path.lnTo(rect.x, rect.y + rect.h);
+                                path.close();
+                                geometry.AddPath(path);
+                                geometry.Recalculate(100, 100, true);
+
+                                var oUniFill = new AscFormat.builder_CreateBlipFill(AscFormat.sDownIncline, "tile");
+
+
+                                graphics.save();
+                                graphics.transform3(new AscCommon.CMatrix());
+                                var shapeDrawer = new AscCommon.CShapeDrawer();
+                                shapeDrawer.Graphics = graphics;
+
+                                shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+                                shapeDrawer.draw(geometry);
+                                graphics.restore();
+                            }, this, []
+                        );
 					}
 				}
 			}
