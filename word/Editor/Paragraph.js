@@ -12021,27 +12021,27 @@ Paragraph.prototype.private_AddPrChange = function()
     if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions() && true !== this.Have_PrChange())
         this.Add_PrChange();
 };
-Paragraph.prototype.SetReviewType = function(ReviewType)
+Paragraph.prototype.SetReviewType = function(nType)
 {
-    var EndRun = this.Get_ParaEndRun();
-    EndRun.SetReviewType(ReviewType);
+	this.GetParaEndRun().SetReviewType(nType);
 };
 Paragraph.prototype.GetReviewType = function()
 {
-    var EndRun = this.Get_ParaEndRun();
-    return EndRun.GetReviewType();
+	return this.GetParaEndRun().GetReviewType();
 };
 Paragraph.prototype.GetReviewInfo = function()
 {
-	var oEndRun = this.Get_ParaEndRun();
-	return oEndRun.GetReviewInfo();
+	return this.GetParaEndRun().GetReviewInfo();
 };
 Paragraph.prototype.SetReviewTypeWithInfo = function(nType, oInfo)
 {
-	var oEndRun = this.Get_ParaEndRun();
-	oEndRun.SetReviewTypeWithInfo(nType, oInfo);
+	this.GetParaEndRun().SetReviewTypeWithInfo(nType, oInfo);
 };
-Paragraph.prototype.Get_ParaEndRun = function()
+/**
+ * Возвращаем ран, в котором лежит знак конца параграфа
+ * @returns {ParaRun}
+ */
+Paragraph.prototype.GetParaEndRun = function()
 {
     return this.Content[this.Content.length - 1];
 };
