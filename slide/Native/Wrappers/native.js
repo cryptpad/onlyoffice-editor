@@ -1481,6 +1481,14 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 22005: // ASC_EVENT_TYPE_SPELLCHECK_TURN_ON
+        {
+            var status = parseInt(_params[0]);
+            if (status !== undefined) {
+                this.asc_setSpellCheck(status == 0 ? false : true);
+            } 
+        }
+
         default:
             break;
     }
