@@ -561,6 +561,25 @@ var g_oFontProperties = {
 	Font.prototype.setIndexNumber = function(val) {
 		return this._index = val;
 	};
+	Font.prototype.initDefault = function(wb) {
+		if (!this.fn) {
+			var sThemeFont = null;
+			if (null != wb.theme.themeElements && null != wb.theme.themeElements.fontScheme) {
+				if (Asc.EFontScheme.fontschemeMinor == this.scheme && wb.theme.themeElements.fontScheme.minorFont) {
+					sThemeFont = wb.theme.themeElements.fontScheme.minorFont.latin;
+				} else if (Asc.EFontScheme.fontschemeMajor == this.scheme && wb.theme.themeElements.fontScheme.majorFont) {
+					sThemeFont = wb.theme.themeElements.fontScheme.majorFont.latin;
+				}
+			}
+			this.fn = sThemeFont ? sThemeFont : "Calibri";
+		}
+		if (!this.fs) {
+			this.fs = 11;
+		}
+		if (!this.c) {
+			this.c = AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorTextDefault);
+		}
+	};
 	Font.prototype.assign = function(font) {
 		this.fn = font.fn;
 		this.scheme = font.scheme;
@@ -2782,29 +2801,9 @@ function StyleManager(){
 }
 StyleManager.prototype =
 {
-	init: function(wb, firstXf, firstFill) {
-		//font
-		if (!firstXf.font) {
-			firstXf.font = new AscCommonExcel.Font();
-		}
-		if (!firstXf.font.fn) {
-			var sThemeFont = null;
-			if (null != wb.theme.themeElements && null != wb.theme.themeElements.fontScheme) {
-				if (Asc.EFontScheme.fontschemeMinor == firstXf.font.scheme && wb.theme.themeElements.fontScheme.minorFont) {
-					sThemeFont = wb.theme.themeElements.fontScheme.minorFont.latin;
-				} else if (Asc.EFontScheme.fontschemeMajor == firstXf.font.scheme && wb.theme.themeElements.fontScheme.majorFont) {
-					sThemeFont = wb.theme.themeElements.fontScheme.majorFont.latin;
-				}
-			}
-			firstXf.font.fn = sThemeFont ? sThemeFont : "Calibri";
-		}
-		if (!firstXf.font.fs) {
-			firstXf.font.fs = 11;
-		}
-		if (!firstXf.font.c) {
-			firstXf.font.c = AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorTextDefault);
-		}
-		g_oDefaultFormat.Font = firstXf.font;
+	init: function(wb, firstXf, firstFont, firstFill) {
+		if(null != firstXf.font)
+			g_oDefaultFormat.Font = firstXf.font;
 		if(null != firstXf.fill)
 			g_oDefaultFormat.Fill = firstXf.fill.clone();
 		if(null != firstXf.border)
@@ -2818,6 +2817,7 @@ StyleManager.prototype =
 			g_oDefaultFormat.XfId = firstXf.XfId;
 		}
 		g_StyleCache.firstXf = firstXf;
+		g_StyleCache.firstFont = firstFont;
 		g_StyleCache.firstFill = firstFill;
 	},
 	setCellStyle : function(oItemWithXfs, val)
@@ -3023,6 +3023,7 @@ StyleManager.prototype =
 		this.aligns = {count: 0, vals: {}};
 		this.xfs = {list: [], vals: {}};
 		this.firstXf =  new CellXfs();
+		this.firstFont = null;
 		this.firstFill = null;
 	}
 
