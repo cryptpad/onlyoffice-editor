@@ -2352,7 +2352,7 @@ CChartsDrawer.prototype =
 			}
 		}
 		
-		if(symbol === "Plus" || symbol === "Star" || symbol === "X")
+		if(symbol === AscFormat.SYMBOL_PLUS || symbol === AscFormat.SYMBOL_STAR || symbol === AscFormat.SYMBOL_X)
 		{
 			framePathsId = this.cChartSpace.AllocPath();
             framePaths = this.cChartSpace.GetPath(framePathsId);
