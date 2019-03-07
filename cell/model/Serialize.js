@@ -1822,20 +1822,16 @@
 		});
 		this.oFontMap = new StyleWriteMap(g_StyleCache.addFont);
 		this.oFillMap = new StyleWriteMap(g_StyleCache.addFill);
-		this.nDefaultFillIndex = 0;
 		this.oBorderMap = new StyleWriteMap(g_StyleCache.addBorder);
 		this.oNumMap = new StyleWriteMap(g_StyleCache.addNum);
 		this.oXfsStylesMap = [];
 	}
 
-	StylesForWrite.prototype.init = function(defaultXfs) {
-		var fill = new AscCommonExcel.Fill();
-		this.oFillMap.add(fill);
+	StylesForWrite.prototype.init = function() {
+		this.oFillMap.add(g_StyleCache.firstFill);
 		//second fill is equal to first (in Excel it is different, but it does not matter - they are ignored)
-		this.oFillMap.addNoCheck(fill);
-		this.oXfsMap.add(defaultXfs);
-		//first 2 fills are predefined, so default fill can be not 0
-		this.nDefaultFillIndex = this.oXfsMap.elems[this.oXfsMap.elems.length - 1].fillid;
+		this.oFillMap.addNoCheck(g_StyleCache.firstFill);
+		this.oXfsMap.add(g_StyleCache.firstXf);
 	};
 	StylesForWrite.prototype.add = function(xf) {
 		return this.oXfsMap.add(xf);
@@ -1865,7 +1861,7 @@
 	StylesForWrite.prototype._getElem = function(xf, style) {
 		var elem = new XfForWrite(xf);
 		elem.fontid = this.oFontMap.add(xf.font);
-		elem.fillid = xf.fill ? this.oFillMap.add(xf.fill) : this.nDefaultFillIndex;
+		elem.fillid = this.oFillMap.add(xf.fill);
 		elem.borderid = this.oBorderMap.add(xf.border);
 		elem.numid = xf.num ? this.getNumIdByFormat(xf.num) : 0;
 		if(null != xf.align) {
@@ -2911,7 +2907,7 @@
         };
         this._prepeareStyles = function()
         {
-			this.stylesForWrite.init(this.wb.oStyleManager.oDefaultXfs);
+			this.stylesForWrite.init();
 			var styles = this.wb.CellStyles.CustomStyles;
 			var style = null;
 			for(var i = 0; i < styles.length; ++i) {
@@ -5288,12 +5284,14 @@
         };
         this.InitStyleManager = function (oStyleObject)
         {
+			var firstFill, firstXf;
 			for (var i = 0; i < oStyleObject.aFonts.length; ++i) {
 				oStyleObject.aFonts[i] = g_StyleCache.addFont(oStyleObject.aFonts[i]);
 			}
-			for (var i = 0; i < oStyleObject.aFills.length; ++i) {
+			for (var i = 1; i < oStyleObject.aFills.length; ++i) {
 				oStyleObject.aFills[i] = g_StyleCache.addFill(oStyleObject.aFills[i]);
 			}
+			firstFill = oStyleObject.aFills[0] = g_StyleCache.addFill(oStyleObject.aFills[0], true);
 			for (var i = 0; i < oStyleObject.aBorders.length; ++i) {
 				oStyleObject.aBorders[i] = g_StyleCache.addBorder(oStyleObject.aBorders[i]);
 			}
@@ -5310,7 +5308,7 @@
 				}
 			}
 			for (var i = 0; i < this.Dxfs.length; ++i) {
-				this.Dxfs[i] = g_StyleCache.addXf(this.Dxfs[i], true);
+				this.Dxfs[i] = g_StyleCache.addXf(this.Dxfs[i]);
 			}
 
             // ToDo убрать - это заглушка
@@ -5455,10 +5453,17 @@
 					newXf.XfId = XfIdTmp;
                 }
 
-                if(0 == this.aCellXfs.length && !this.isCopyPaste)
-                    this.oStyleManager.init(newXf, this.wb);
-                this.aCellXfs.push(g_StyleCache.addXf(newXf));
+				if (0 == this.aCellXfs.length) {
+					firstXf = newXf;
+				} else {
+					newXf = g_StyleCache.addXf(newXf);
+				}
+				this.aCellXfs.push(newXf);
             }
+			if (firstXf && !this.isCopyPaste) {
+				firstXf = g_StyleCache.addXf(firstXf, true);
+				this.oStyleManager.init(this.wb, firstXf, firstFill);
+			}
             for(var i in oStyleObject.oCustomTableStyles)
             {
                 var item = oStyleObject.oCustomTableStyles[i];
@@ -9293,7 +9298,7 @@
 	};
 	CT_Stylesheet.prototype.onEndNode = function(prevContext, elem) {
 		if ("dxf" === elem) {
-			this.dxfs.push(g_StyleCache.addXf(prevContext.xf, true));
+			this.dxfs.push(g_StyleCache.addXf(prevContext.xf));
 		}
 	};
 
