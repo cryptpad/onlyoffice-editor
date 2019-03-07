@@ -471,6 +471,7 @@ var c_Date1900Const = 25568; //разница в днях между 01.01.1970 
 var c_sPerDay = 86400;
 var c_msPerDay = c_sPerDay * 1000;
   var rx_sFuncPref = /_xlfn\./i;
+  var rx_sDefNamePref = /_xlnm\./i;
 	var cNumFormatFirstCell = -1;
 	var cNumFormatNone = -2;
 	var cNumFormatNull = -3;
@@ -1942,6 +1943,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cName.prototype.toString = function () {
 		var defName = this.getDefName();
 		if (defName) {
+			if (defName.isXLNM) {
+				return new cString("_xlnm." + defName.name);
+			}
 			return defName.name;
 		} else {
 			return this.value;
@@ -1993,7 +1997,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return defName.parsedRef.calculate(this, bbox, offset, arguments[2]);
 	};
-	cName.prototype.getDefName = function (bLocal) {
+	cName.prototype.getDefName = function () {
 		return this.ws ? this.ws.workbook.getDefinesNames(this.value, this.ws.getId()) : null;
 	};
 	cName.prototype.changeDefName = function (from, to) {
@@ -5928,18 +5932,19 @@ parserFormula.prototype.setFormula = function(formula) {
 
 				//проверяем вдруг это область печати
 				var defName;
-				var tryTranslate = AscCommonExcel.tryTranslateToPrintArea(ph.operand_str);
+				var sDefNameOperand = ph.operand_str.replace(rx_sDefNamePref, "");
+				var tryTranslate = AscCommonExcel.tryTranslateToPrintArea(sDefNameOperand);
 				if(tryTranslate) {
 					found_operand = new cName(tryTranslate, t.ws);
 					defName = found_operand.getDefName();
 				}
 				//TODO возможно здесь нужно else ставить
 				if(!defName) {
-					found_operand = new cName(ph.operand_str, t.ws);
+					found_operand = new cName(sDefNameOperand, t.ws);
 					defName = found_operand.getDefName();
 				}
 
-				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(ph.operand_str + "[]", 0))) {
+				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(sDefNameOperand + "[]", 0))) {
 					found_operand = cStrucTable.prototype.createFromVal(_tableTMP, t.wb, t.ws);
 					//need assemble becase source formula wrong
 					needAssemble = true;
