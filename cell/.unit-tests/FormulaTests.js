@@ -5898,6 +5898,37 @@ $( function () {
 
 		wb.dependencyFormulas.lockRecal();
 
+		ws.getRange2( "A22" ).setValue( "apples" );
+		ws.getRange2( "A23" ).setValue( "" );
+		ws.getRange2( "A24" ).setValue( "oranges" );
+		ws.getRange2( "A25" ).setValue( "peaches" );
+		ws.getRange2( "A26" ).setValue( "" );
+		ws.getRange2( "A27" ).setValue( "apples" );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"*es")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"?????es")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"*")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"***")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"*")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"?")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 6 );
+
 		testArrayFormula2("COUNTIF", 2, 2)
 	} );
 

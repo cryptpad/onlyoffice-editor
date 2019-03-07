@@ -5039,7 +5039,7 @@ function (window, undefined) {
 			}*/
 
 			tempVal = undefined !== tempVal.value ? tempVal.value : tempVal;
-			if(tempVal === "" && tempMatchingInfo.val && "" !== tempMatchingInfo.val.value) {
+			if(tempVal === "" && tempMatchingInfo.val && "" !== tempMatchingInfo.val.value.replace(/\*|\?/g, '')) {
 				return false;
 			}
 			return res;
