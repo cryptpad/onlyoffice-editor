@@ -292,9 +292,11 @@ CChartsDrawer.prototype =
 				return;
 			}
 
-			//TODO в дальнейшем нужно вместо массива формировать map с id модели
-			for(var i in t.charts) {
-				var chartModel = t._getChartModelById(chartSpace.chart.plotArea, i);
+			//для начала нужно отсортировать
+			var sortCharts = t._sortChartsForDrawing(chartSpace);
+			for(var i = 0; i < sortCharts.length; i++) {
+				var id = sortCharts[i];
+				var chartModel = t._getChartModelById(chartSpace.chart.plotArea, id);
 				if(!chartModel) {
 					continue;
 				}
@@ -304,7 +306,7 @@ CChartsDrawer.prototype =
 				//рисуем линейные диаграммы после отрисовки сетки
 				if(t.nDimensionCount !== 3 && ((isLinesChart && bBeforeAxes) || (!isLinesChart && !bBeforeAxes))) {
 					continue;
-				} 
+				}
 
 				var bIsNoSmartAttack = false;
 				if(t.nDimensionCount === 3 || isLinesChart) {
@@ -315,12 +317,11 @@ CChartsDrawer.prototype =
 					t.cShapeDrawer.bIsNoSmartAttack = true;
 				}
 				t.calcProp.series = chartModel.series;
-				t.charts[i].draw();
+				t.charts[id].draw();
 				if(bIsNoSmartAttack) {
 					t.cShapeDrawer.bIsNoSmartAttack = false;
 				}
 			}
-
 		};
 
 		if (!chartSpace.bEmptySeries) {
@@ -359,6 +360,75 @@ CChartsDrawer.prototype =
 			//DRAW CHARTS
 			drawCharts();
 		}
+	},
+
+	_sortChartsForDrawing: function(chartSpace) {
+		var arr = [];
+
+		var pushIndex = function(index) {
+			if(!arr[index]) {
+				arr[index] = [];
+			}
+			arr[index].push(i);
+		};
+
+		for(var i in this.charts) {
+			var chartModel = this._getChartModelById(chartSpace.chart.plotArea, i);
+			if(!chartModel) {
+				continue;
+			}
+
+			var type = chartModel.getObjectType();
+			switch(type) {
+				case AscDFH.historyitem_type_DoughnutChart: {
+					pushIndex(0);
+					break;
+				}
+				case AscDFH.historyitem_type_PieChart: {
+					pushIndex(1);
+					break;
+				}
+				case AscDFH.historyitem_type_AreaChart: {
+					pushIndex(2);
+					break;
+				}
+				case AscDFH.historyitem_type_BarChart: {
+					pushIndex(3);
+					break;
+				}
+				case AscDFH.historyitem_type_StockChart: {
+					pushIndex(4);
+					break;
+				}
+				case AscDFH.historyitem_type_LineChart: {
+					pushIndex(5);
+					break;
+				}
+				case AscDFH.historyitem_type_ScatterChart: {
+					pushIndex(6);
+					break;
+				}
+				case AscDFH.historyitem_type_RadarChart: {
+					pushIndex(7);
+					break;
+				}
+				default: {
+					//bubble, stock
+					pushIndex(8);
+					break;
+				}
+			}
+		}
+		var sortArr = [];
+		for(var j = 0; j < arr.length; j++) {
+			if(arr[j]) {
+				for(var k = 0; k < arr[j].length; k++) {
+					sortArr.push(arr[j][k]);
+				}
+			}
+		}
+
+		return sortArr;
 	},
 
 	recalculateOnly3dProps: function (chartSpace) {
