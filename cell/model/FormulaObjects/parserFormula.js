@@ -471,6 +471,7 @@ var c_Date1900Const = 25568; //разница в днях между 01.01.1970 
 var c_sPerDay = 86400;
 var c_msPerDay = c_sPerDay * 1000;
   var rx_sFuncPref = /_xlfn\./i;
+  var rx_sDefNamePref = /_xlnm\./i;
 	var cNumFormatFirstCell = -1;
 	var cNumFormatNone = -2;
 	var cNumFormatNull = -3;
@@ -1942,9 +1943,26 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cName.prototype.toString = function () {
 		var defName = this.getDefName();
 		if (defName) {
+			if (defName.isXLNM) {
+				return new cString("_xlnm." + defName.name);
+			}
 			return defName.name;
 		} else {
 			return this.value;
+		}
+	};
+	cName.prototype.toLocaleString = function () {
+		var defName = this.getDefName();
+		if (defName) {
+			return defName.sheetId ? AscCommon.translateManager.getValue(defName.name) : defName.name;
+		} else {
+			//сделано для: создаем формулу со ссылкой на Область_печати, далее удаляем область печати с листа
+			//поскольку в стеке лежит cName c именем "Print_Area", формула собиралась уже без учёта локали(мы попадали в текущую ветку и возвращали this.value)
+			// - вместо области печати мы видим Print_Area
+			//но с данной правкой есть проблема. если мы ссылаемся, допустим, в русской локали в формуле на именованный
+			//диапазон Print_Area, то при сборке формулы он автоматически преобразуется в Область_Печати
+			//аналогично тому, что если мы создаём в менеджере имен новое имя "Print_Area" - преоразуется с учетом локали
+			return AscCommon.translateManager.getValue(this.value);
 		}
 	};
 	cName.prototype.getValue = function () {
@@ -5910,11 +5928,23 @@ parserFormula.prototype.setFormula = function(formula) {
 				}
 			}
 
-			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos,
-					t.wb, t.ws)[0]) {
-				found_operand = new cName(ph.operand_str, t.ws);
-				var defName = found_operand.getDefName();
-				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(ph.operand_str + "[]", 0))) {
+			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos, t.wb, t.ws)[0]) {
+
+				//проверяем вдруг это область печати
+				var defName;
+				var sDefNameOperand = ph.operand_str.replace(rx_sDefNamePref, "");
+				var tryTranslate = AscCommonExcel.tryTranslateToPrintArea(sDefNameOperand);
+				if(tryTranslate) {
+					found_operand = new cName(tryTranslate, t.ws);
+					defName = found_operand.getDefName();
+				}
+				//TODO возможно здесь нужно else ставить
+				if(!defName) {
+					found_operand = new cName(sDefNameOperand, t.ws);
+					defName = found_operand.getDefName();
+				}
+
+				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(sDefNameOperand + "[]", 0))) {
 					found_operand = cStrucTable.prototype.createFromVal(_tableTMP, t.wb, t.ws);
 					//need assemble becase source formula wrong
 					needAssemble = true;

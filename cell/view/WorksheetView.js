@@ -7453,7 +7453,7 @@
 
         var dN = new Asc.Range(ar_norm.c1, ar_norm.r1, c2, r2, true);
         var defName = parserHelp.get3DRef(this.model.getName(), dN.getAbsName());
-        defName = this.model.workbook.findDefinesNames(defName, this.model.getId());
+        defName = this.model.workbook.findDefinesNames(defName, this.model.getId(), true);
         if (defName) {
             return defName;
         }
@@ -12065,7 +12065,15 @@
 		};
 
 	WorksheetView.prototype.findCell = function (reference) {
-		var mc, ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
+		var mc;
+		var translatePrintArea = AscCommonExcel.tryTranslateToPrintArea(reference);
+		var ranges;
+		if(translatePrintArea) {
+			ranges = AscCommonExcel.getRangeByRef(translatePrintArea, this.model, true, true);
+		}
+		if(!ranges || 0 === ranges.length) {
+			ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
+		}
 		var oldR1C1mode = AscCommonExcel.g_R1C1Mode, t = this;
 
 		if (0 === ranges.length && this.handlers.trigger('canEdit')) {
