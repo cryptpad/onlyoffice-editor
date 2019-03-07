@@ -470,12 +470,13 @@ function (window, undefined) {
 	cINDEX.prototype.constructor = cINDEX;
 	cINDEX.prototype.name = 'INDEX';
 	cINDEX.prototype.argumentsMin = 2;
-	cINDEX.prototype.argumentsMax = 3;
+	cINDEX.prototype.argumentsMax = 4;
 	cINDEX.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cINDEX.prototype.arrayIndexes = {0: 1};
 	cINDEX.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] && (cElementType.empty !== arg[1].type) ? arg[1] : new cNumber(1),
-			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1), res;
+			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1),
+			arg3 = arg[3] && (cElementType.empty !== arg[3].type) ? arg[3] : new cNumber(1), res;
 
 		if (cElementType.cellsRange3D === arg0.type) {
 			arg0 = arg0.tocArea();
@@ -488,8 +489,9 @@ function (window, undefined) {
 
 		arg1 = arg1.tocNumber();
 		arg2 = arg2.tocNumber();
+		arg3 = arg3.tocNumber();
 
-		if (cElementType.error === arg1.type || cElementType.error === arg2.type) {
+		if (cElementType.error === arg1.type || cElementType.error === arg2.type || cElementType.error === arg3.type) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
