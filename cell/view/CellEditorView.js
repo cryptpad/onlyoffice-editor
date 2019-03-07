@@ -1215,12 +1215,12 @@
 			fCurrent = this._getEditableFunction(this._parseResult);
 		}
 
-		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName, fCurrent);
+		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName);
 		this.handlers.trigger("updatedEditableFunction", fCurrent);
 	};
 
 	CellEditor.prototype._getEditableFunction = function (parseResult) {
-		var findOpenFunc = [], editableFunction, level = -1;
+		var findOpenFunc = [], editableFunction = null, level = -1;
 		if(!parseResult) {
 			//в этом случае запускаю парсинг формулы до текущей позиции
 			var s = AscCommonExcel.getFragmentsText(this.options.fragments);

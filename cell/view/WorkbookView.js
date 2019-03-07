@@ -1515,7 +1515,7 @@
       this.lastFPos = -1;
       this.lastFNameLength = 0;
     }
-
+    this.handlers.trigger('asc_onFormulaInfo', null);
   };
 
   WorkbookView.prototype._onEmpty = function() {
@@ -2033,7 +2033,7 @@
     }
   };
 
-  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, fPos, fName, fCurrent) {
+  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, fPos, fName) {
     if (this.skipHelpSelector) {
       return;
     }
@@ -2066,12 +2066,12 @@
       }
     }
     if (0 < arrResult.length) {
-      this.handlers.trigger('asc_onFormulaCompleteMenu', arrResult, fCurrent);
+      this.handlers.trigger('asc_onFormulaCompleteMenu', arrResult);
 
       this.lastFPos = fPos;
       this.lastFNameLength = fName.length;
     } else {
-      this.handlers.trigger('asc_onFormulaCompleteMenu', null, fCurrent);
+      this.handlers.trigger('asc_onFormulaCompleteMenu', null);
 
       this.lastFPos = -1;
       this.lastFNameLength = 0;
