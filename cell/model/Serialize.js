@@ -1808,6 +1808,11 @@
 		this.borderid = 0;
 		this.numid = 0;
 		this.XfId = null;
+		this.ApplyAlignment = null;
+		this.ApplyBorder = null;
+		this.ApplyFill = null;
+		this.ApplyFont = null;
+		this.ApplyNumberFormat = null
 	}
 
 	function StylesForWrite() {
@@ -1836,7 +1841,7 @@
 		return this.oXfsMap.add(xf);
 	};
 	StylesForWrite.prototype.addCellStyle = function(style) {
-		this.oXfsStylesMap.push(this._getElem(style.xfs, style.XfId));
+		this.oXfsStylesMap.push(this._getElem(style.xfs, style));
 	};
 	StylesForWrite.prototype.finalizeCellStyles = function() {
 		//XfId это порядковый номер, поэтому сортируем
@@ -1857,13 +1862,29 @@
 		}
 		return numid;
 	};
-	StylesForWrite.prototype._getElem = function(xf, XfId) {
+	StylesForWrite.prototype._getElem = function(xf, style) {
 		var elem = new XfForWrite(xf);
 		elem.fontid = this.oFontMap.add(xf.font);
 		elem.fillid = xf.fill ? this.oFillMap.add(xf.fill) : this.nDefaultFillIndex;
 		elem.borderid = this.oBorderMap.add(xf.border);
 		elem.numid = xf.num ? this.getNumIdByFormat(xf.num) : 0;
-		elem.XfId = XfId;
+		if(null != xf.align) {
+			elem.alignMinimized = xf.align.getDif(g_oDefaultFormat.AlignAbs);
+		}
+		if (!style) {
+			elem.ApplyAlignment = null != elem.alignMinimized || null;
+			elem.ApplyBorder = 0 != elem.borderid || null;
+			elem.ApplyFill = 0 != elem.fillid || null;
+			elem.ApplyFont = 0 != elem.fontid || null;
+			elem.ApplyNumberFormat = 0 != elem.numid || null;
+		} else {
+			elem.ApplyAlignment = style.ApplyAlignment;
+			elem.ApplyBorder = style.ApplyBorder;
+			elem.ApplyFill = style.ApplyFill;
+			elem.ApplyFont = style.ApplyFont;
+			elem.ApplyNumberFormat = style.ApplyNumberFormat;
+			elem.XfId = style.XfId;
+		}
 		return elem;
 	};
     /** @constructor */
@@ -2169,69 +2190,68 @@
         {
             var oThis = this;
             var xf = xfForWrite.xf;
+			if(null != xfForWrite.ApplyBorder)
+			{
+				this.memory.WriteByte(c_oSerXfsTypes.ApplyBorder);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(xfForWrite.ApplyBorder);
+			}
             if(null != xfForWrite.borderid)
             {
-                if(0 != xfForWrite.borderid)
-                {
-                    this.memory.WriteByte(c_oSerXfsTypes.ApplyBorder);
-                    this.memory.WriteByte(c_oSerPropLenType.Byte);
-                    this.memory.WriteBool(true);
-                }
                 this.memory.WriteByte(c_oSerXfsTypes.BorderId);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
                 this.memory.WriteLong(xfForWrite.borderid);
             }
+			if(null != xfForWrite.ApplyFill)
+			{
+				this.memory.WriteByte(c_oSerXfsTypes.ApplyFill);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(xfForWrite.ApplyFill);
+			}
             if(null != xfForWrite.fillid)
             {
-                if(0 != xfForWrite.fillid)
-                {
-                    this.memory.WriteByte(c_oSerXfsTypes.ApplyFill);
-                    this.memory.WriteByte(c_oSerPropLenType.Byte);
-                    this.memory.WriteBool(true);
-                }
                 this.memory.WriteByte(c_oSerXfsTypes.FillId);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
                 this.memory.WriteLong(xfForWrite.fillid);
             }
+			if(null != xfForWrite.ApplyFont)
+			{
+				this.memory.WriteByte(c_oSerXfsTypes.ApplyFont);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(xfForWrite.ApplyFont);
+			}
             if(null != xfForWrite.fontid)
             {
-                if(0 != xfForWrite.fontid)
-                {
-                    this.memory.WriteByte(c_oSerXfsTypes.ApplyFont);
-                    this.memory.WriteByte(c_oSerPropLenType.Byte);
-                    this.memory.WriteBool(true);
-                }
                 this.memory.WriteByte(c_oSerXfsTypes.FontId);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
                 this.memory.WriteLong(xfForWrite.fontid);
             }
+			if(null != xfForWrite.ApplyNumberFormat)
+			{
+				this.memory.WriteByte(c_oSerXfsTypes.ApplyNumberFormat);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(xfForWrite.ApplyNumberFormat);
+			}
             if(null != xfForWrite.numid)
             {
-                if(0 != xfForWrite.numid)
-                {
-                    this.memory.WriteByte(c_oSerXfsTypes.ApplyNumberFormat);
-                    this.memory.WriteByte(c_oSerPropLenType.Byte);
-                    this.memory.WriteBool(true);
-                }
                 this.memory.WriteByte(c_oSerXfsTypes.NumFmtId);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
                 this.memory.WriteLong(xfForWrite.numid);
             }
-			if (xf) {
-				if(null != xf.align)
-				{
-					var alignMinimized = xf.align.getDif(g_oDefaultFormat.AlignAbs);
-					if(null != alignMinimized)
-					{
-						this.memory.WriteByte(c_oSerXfsTypes.ApplyAlignment);
-						this.memory.WriteByte(c_oSerPropLenType.Byte);
-						this.memory.WriteBool(true);
+			if(null != xfForWrite.ApplyAlignment)
+			{
+				this.memory.WriteByte(c_oSerXfsTypes.ApplyAlignment);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(xfForWrite.ApplyAlignment);
+			}
+			if(null != xfForWrite.alignMinimized)
+			{
+				this.memory.WriteByte(c_oSerXfsTypes.Aligment);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.bs.WriteItemWithLength(function(){oThis.WriteAlign(xfForWrite.alignMinimized);});
+			}
 
-						this.memory.WriteByte(c_oSerXfsTypes.Aligment);
-						this.memory.WriteByte(c_oSerPropLenType.Variable);
-						this.bs.WriteItemWithLength(function(){oThis.WriteAlign(alignMinimized);});
-					}
-				}
+			if (xf) {
 				if(null != xf.QuotePrefix)
 				{
 					this.memory.WriteByte(c_oSerXfsTypes.QuotePrefix);
@@ -5690,7 +5710,7 @@
             var oThis = this;
             if (c_oSerStylesTypes.Xfs === type) {
                 var oNewXfs = {ApplyAlignment: null, ApplyBorder: null, ApplyFill: null, ApplyFont: null, ApplyNumberFormat: null,
-                    BorderId: null, FillId: null, FontId: null, NumFmtId: null, QuotePrefix: null, Aligment: null, PivotButton: null};
+                    borderid: null, fillid: null, fontid: null, numid: null, QuotePrefix: null, align: null, PivotButton: null};
                 res = this.bcr.Read2Spreadsheet(length, function (t, l) {
                     return oThis.ReadXfs(t, l, oNewXfs);
                 });
@@ -5706,7 +5726,7 @@
             if ( c_oSerStylesTypes.Xfs == type )
             {
                 var oNewXfs = {ApplyAlignment: null, ApplyBorder: null, ApplyFill: null, ApplyFont: null, ApplyNumberFormat: null,
-                    BorderId: null, FillId: null, FontId: null, NumFmtId: null, QuotePrefix: null, Aligment: null, XfId: null, PivotButton: null};
+                    borderid: null, fillid: null, fontid: null, numid: null, QuotePrefix: null, align: null, XfId: null, PivotButton: null};
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
                     return oThis.ReadXfs(t,l,oNewXfs);
                 });
@@ -5746,7 +5766,7 @@
                 oXfs.XfId = this.stream.GetULongLE();
             else if ( c_oSerXfsTypes.Aligment == type )
             {
-                if(null == oXfs.Aligment)
+                if(null == oXfs.align)
                     oXfs.align = new AscCommonExcel.Align();
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
                     return oThis.ReadAligment(t,l,oXfs.align);
@@ -9058,7 +9078,7 @@
                 });
             } else if (Types.Xfs === type) {
                 oStyleObject.xfs = {ApplyAlignment: null, ApplyBorder: null, ApplyFill: null, ApplyFont: null, ApplyNumberFormat: null,
-                    BorderId: null, FillId: null, FontId: null, NumFmtId: null, QuotePrefix: null, Aligment: null, XfId: null, PivotButton: null};
+                    borderid: null, fillid: null, fontid: null, numid: null, QuotePrefix: null, align: null, XfId: null, PivotButton: null};
                 res = bcr.Read2Spreadsheet(length, function (t, l) {
                     return oBinary_StylesTableReader.ReadXfs(t, l, oStyleObject.xfs);
                 });
