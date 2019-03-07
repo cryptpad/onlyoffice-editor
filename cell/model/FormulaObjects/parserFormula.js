@@ -1624,7 +1624,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					}
 				}
 
-				arr[i - r1][j - c1] = resValue;
+				arr[k][i - r1][j - c1] = resValue;
 			});
 		}
 		return arr;
