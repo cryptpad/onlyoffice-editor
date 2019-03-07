@@ -63,6 +63,7 @@
 	var c_oAscFill              = Asc.c_oAscFill;
 	var asc_CShapeFill          = Asc.asc_CShapeFill;
 	var asc_CFillBlip           = Asc.asc_CFillBlip;
+    var c_oAscFontRenderingModeType = Asc.c_oAscFontRenderingModeType;
 
 	function CAscSlideProps()
 	{
@@ -615,6 +616,7 @@
 		this.isShapeImageChangeUrl = false;
 		this.isSlideImageChangeUrl = false;
 		this.textureType = null;
+        this.tmpFontRenderingMode = null;
 
 		this.isPasteFonts_Images = false;
 
@@ -4095,7 +4097,7 @@ background-repeat: no-repeat;\
 			}
 		}
 	};
-	asc_docs_api.prototype.AddImageUrl  = function(url)
+	asc_docs_api.prototype.AddImageUrl  = function(url, imgProp, withAuthorization)
 	{
 		if (g_oDocumentUrls.getLocal(url))
 		{
@@ -4109,7 +4111,7 @@ background-repeat: no-repeat;\
                 if (data && data[0])
                     t.AddImageUrlAction(data[0].url);
 
-            }, false);
+            }, false, undefined, withAuthorization);
 		}
 	};
 
@@ -6868,6 +6870,10 @@ background-repeat: no-repeat;\
 		this.CreateComponents();
 		this.WordControl.Init();
 
+        if (this.tmpFontRenderingMode)
+        {
+            this.SetFontRenderingMode(this.tmpFontRenderingMode);
+        }
 		if (this.tmpThemesPath)
 		{
 			this.SetThemesPath(this.tmpThemesPath);
@@ -7004,6 +7010,31 @@ background-repeat: no-repeat;\
 		}, fCallback, null, oAdditionalData, dataContainer);
 	};
 
+    asc_docs_api.prototype.SetFontRenderingMode         = function(mode)
+    {
+        if (!this.isLoadFullApi)
+        {
+            this.tmpFontRenderingMode = mode;
+            return;
+        }
+
+        if (c_oAscFontRenderingModeType.noHinting === mode)
+            AscCommon.SetHintsProps(false, false);
+        else if (c_oAscFontRenderingModeType.hinting === mode)
+            AscCommon.SetHintsProps(true, false);
+        else if (c_oAscFontRenderingModeType.hintingAndSubpixeling === mode)
+            AscCommon.SetHintsProps(true, true);
+
+        AscCommon.g_fontManager.ClearFontsRasterCache();
+
+        if (AscCommon.g_fontManager2 !== undefined && AscCommon.g_fontManager2 !== null)
+            AscCommon.g_fontManager2.ClearFontsRasterCache();
+
+        this.WordControl.m_oDrawingDocument.ClearCachePages();
+
+        if (this.bInit_word_control)
+            this.WordControl.OnScroll();
+    };
 
 
 	asc_docs_api.prototype.asc_Recalculate = function(bIsUpdateInterface)
@@ -7451,6 +7482,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['Help']                                = asc_docs_api.prototype.Help;
 	asc_docs_api.prototype['startGetDocInfo']                     = asc_docs_api.prototype.startGetDocInfo;
 	asc_docs_api.prototype['asc_setAdvancedOptions']              = asc_docs_api.prototype.asc_setAdvancedOptions;
+    asc_docs_api.prototype['SetFontRenderingMode']                = asc_docs_api.prototype.SetFontRenderingMode;
 	asc_docs_api.prototype['stopGetDocInfo']                      = asc_docs_api.prototype.stopGetDocInfo;
 	asc_docs_api.prototype['sync_DocInfoCallback']                = asc_docs_api.prototype.sync_DocInfoCallback;
 	asc_docs_api.prototype['sync_GetDocInfoStartCallback']        = asc_docs_api.prototype.sync_GetDocInfoStartCallback;

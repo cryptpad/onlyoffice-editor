@@ -3303,9 +3303,11 @@ CPresentation.prototype =
                                 }
                             }
                         }
-                        if(!bChangeSelect){
-                            History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                            this.addNextSlide();
+                        if(this.CanEdit()){
+                            if(!bChangeSelect){
+                                History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
+                                this.addNextSlide();
+                            }
                         }
                     }
                 }
@@ -3502,6 +3504,11 @@ CPresentation.prototype =
             if (true === this.DrawingDocument.IsTrackText())
             {
                 this.DrawingDocument.CancelTrackText();
+            }
+            if (AscCommon.c_oAscFormatPainterState.kOn === this.Api.isPaintFormat)
+            {
+                this.Api.sync_PaintFormatCallback(AscCommon.c_oAscFormatPainterState.kOff);
+                this.OnMouseMove(global_mouseEvent, 0, 0, this.CurPage);
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -5460,10 +5467,13 @@ CPresentation.prototype =
             oController.Save_DocumentStateBeforeLoadChanges(oDocState);
         }
 
+        this.CollaborativeEditing.WatchDocumentPositionsByState(oDocState);
         return oDocState;
     },
 
     Load_DocumentStateAfterLoadChanges: function(oState){
+
+        this.CollaborativeEditing.UpdateDocumentPositionsByState(oState);
         if(oState.Slide){
             var oSlide = oState.Slide;
             if(oSlide !== this.Slides[this.CurPage]){

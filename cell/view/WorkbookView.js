@@ -181,8 +181,8 @@
 	  this.isShowSolved = true;
 
     this.formulasList = [];		// Список всех формул
-    this.lastFormulaPos = -1; 		// Последняя позиция формулы
-    this.lastFormulaNameLength = '';		// Последний кусок формулы
+    this.lastFPos = -1; 		// Последняя позиция формулы
+    this.lastFNameLength = '';		// Последний кусок формулы
     this.skipHelpSelector = false;	// Пока true - не показываем окно подсказки
     // Константы для подстановке формулы (что не нужно добавлять скобки)
     this.arrExcludeFormulas = [];
@@ -686,6 +686,8 @@
 				  self.handlers.trigger("asc_onEditorSelectionChanged", info);
 			  }, "onContextMenu": function (event) {
 				  self.handlers.trigger("asc_onContextMenu", event);
+			  }, "updatedEditableFunction": function (fName) {
+				  self.handlers.trigger("asc_onFormulaInfo", fName);
 			  }
 		  }, this.defaults.worksheetView.cells.padding);
 
@@ -1509,12 +1511,12 @@
     this._onWSSelectionChanged();
 
     // Закрываем подбор формулы
-    if (-1 !== this.lastFormulaPos) {
+    if (-1 !== this.lastFPos) {
       this.handlers.trigger('asc_onFormulaCompleteMenu', null);
-      this.lastFormulaPos = -1;
-      this.lastFormulaNameLength = 0;
+      this.lastFPos = -1;
+      this.lastFNameLength = 0;
     }
-
+    this.handlers.trigger('asc_onFormulaInfo', null);
   };
 
   WorkbookView.prototype._onEmpty = function() {
@@ -2032,38 +2034,48 @@
     }
   };
 
-  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, isFormula, formulaPos, formulaName) {
+  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, fPos, fName) {
     if (this.skipHelpSelector) {
       return;
     }
     // ToDo для ускорения можно завести объект, куда класть результаты поиска по формулам и второй раз не искать.
-    var i, arrResult = [], defNamesList, defName;
-    if (isFormula && formulaName) {
-      formulaName = formulaName.toUpperCase();
+    var i, arrResult = [], defNamesList, defName, defNameStr;
+    if (fName) {
+		fName = fName.toUpperCase();
       for (i = 0; i < this.formulasList.length; ++i) {
-        if (0 === this.formulasList[i].indexOf(formulaName)) {
+        if (0 === this.formulasList[i].indexOf(fName)) {
           arrResult.push(new AscCommonExcel.asc_CCompleteMenu(this.formulasList[i], c_oAscPopUpSelectorType.Func));
         }
       }
       defNamesList = this.getDefinedNames(Asc.c_oAscGetDefinedNamesList.WorksheetWorkbook);
-      formulaName = formulaName.toLowerCase();
+		fName = fName.toLowerCase();
       for (i = 0; i < defNamesList.length; ++i) {
-        defName = defNamesList[i];
-        if (0 === defName.Name.toLowerCase().indexOf(formulaName)) {
-          arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defName.Name, !defName.isTable ? c_oAscPopUpSelectorType.Range : c_oAscPopUpSelectorType.Table));
+
+	  /*defName = defNamesList[i];
+	  if (0 === defName.Name.toLowerCase().indexOf(fName)) {
+		  arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defName.Name, !defName.isTable ? c_oAscPopUpSelectorType.Range : c_oAscPopUpSelectorType.Table));*/
+
+      	defName = defNamesList[i];
+        defNameStr = defName.Name.toLowerCase();
+        if(null !== defName.LocalSheetId && defNameStr === "print_area") {
+			defNameStr = AscCommon.translateManager.getValue("Print_Area");
+		}
+
+        if (0 === defNameStr.toLowerCase().indexOf(fName)) {
+          arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, !defName.isTable ? c_oAscPopUpSelectorType.Range : c_oAscPopUpSelectorType.Table));
         }
       }
     }
     if (0 < arrResult.length) {
       this.handlers.trigger('asc_onFormulaCompleteMenu', arrResult);
 
-      this.lastFormulaPos = formulaPos;
-      this.lastFormulaNameLength = formulaName.length;
+      this.lastFPos = fPos;
+      this.lastFNameLength = fName.length;
     } else {
       this.handlers.trigger('asc_onFormulaCompleteMenu', null);
 
-      this.lastFormulaPos = -1;
-      this.lastFormulaNameLength = 0;
+      this.lastFPos = -1;
+      this.lastFNameLength = 0;
     }
   };
 
@@ -2089,7 +2101,7 @@
 			if (isNotFunction) {
 				this.skipHelpSelector = true;
 			}
-			if (-1 !== this.lastFormulaPos) {
+			if (-1 !== this.lastFPos) {
 				if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
 					//если следующий символ скобка - не добавляем ещё одну
 					if('(' !== this.cellEditor.textRender.getChars(this.cellEditor.cursorPos, 1)) {
@@ -2100,7 +2112,7 @@
 				}
 				tmp = this.cellEditor.skipTLUpdate;
 				this.cellEditor.skipTLUpdate = false;
-				this.cellEditor.replaceText(this.lastFormulaPos, this.lastFormulaNameLength, name);
+				this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, name);
 				this.cellEditor.skipTLUpdate = tmp;
 			} else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
 				// Не смогли вставить формулу, закроем редактор, с сохранением текста

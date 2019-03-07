@@ -3552,7 +3552,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					Item.SetPage(Para.Get_AbsolutePage(CurPage));
 
 					Item.SetRun(this);
-					PRS.ComplexFields.ProcessFieldCharAndCollectComplexField(Item);
+					PRS.ComplexFields.ProcessFieldChar(Item);
 
 					if (Item.IsSeparate())
 					{
@@ -3620,15 +3620,6 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 							Item.SetNumValue(null);
 						}
 					}
-
-					break;
-				}
-				case para_InstrText:
-				{
-					if (PRS.IsFastRecalculate())
-						break;
-
-					PRS.ComplexFields.ProcessInstruction(Item);
 
 					break;
 				}
@@ -4006,7 +3997,10 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
             }
 			case para_FieldChar:
 			{
-				PRSC.ComplexFields.ProcessFieldChar(Item);
+				if (this.Paragraph && this.Paragraph.m_oPRSW.IsFastRecalculate())
+					PRSC.ComplexFields.ProcessFieldChar(Item);
+				else
+					PRSC.ComplexFields.ProcessFieldCharAndCollectComplexField(Item);
 
 				if (Item.IsNumValue())
 				{
@@ -4024,6 +4018,15 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
 
 					PRSC.Range.W += Item.Get_Width();
 				}
+
+				break;
+			}
+			case para_InstrText:
+			{
+				if (this.Paragraph && this.Paragraph.m_oPRSW.IsFastRecalculate())
+					break;
+
+				PRSC.ComplexFields.ProcessInstruction(Item);
 
 				break;
 			}

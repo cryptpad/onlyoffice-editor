@@ -679,7 +679,21 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 6 );
     } );
-	
+
+	test( "Test: \"Asc\"", function () {
+		oParser = new parserFormula( 'ASC("ｔｅＳｔ")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "teSt" );
+
+		oParser = new parserFormula( 'ASC("デジタル")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "デジタル" );
+
+		oParser = new parserFormula( 'ASC("￯")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "" );
+	} );
+
 	test( "Test: \"Cross\"", function () {
 
 		ws.getRange2( "A7" ).setValue( "1" );
@@ -5884,6 +5898,37 @@ $( function () {
 
 		wb.dependencyFormulas.lockRecal();
 
+		ws.getRange2( "A22" ).setValue( "apples" );
+		ws.getRange2( "A23" ).setValue( "" );
+		ws.getRange2( "A24" ).setValue( "oranges" );
+		ws.getRange2( "A25" ).setValue( "peaches" );
+		ws.getRange2( "A26" ).setValue( "" );
+		ws.getRange2( "A27" ).setValue( "apples" );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"*es")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"?????es")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"*")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"***")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"*")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"?")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 6 );
+
 		testArrayFormula2("COUNTIF", 2, 2)
 	} );
 
@@ -8618,6 +8663,10 @@ $( function () {
 		oParser = new parserFormula( "INDEX(A651:C652,0)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
+		oParser = new parserFormula( "INDEX(A651:C651,1,1,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1 );
     } );
 
     test( "Test: \"OFFSET\"", function () {

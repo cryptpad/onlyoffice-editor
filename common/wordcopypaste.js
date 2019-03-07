@@ -1963,7 +1963,7 @@ function Editor_Paste_Exec(api, _format, data1, data2, text_data, specialPastePr
 function trimString( str ){
     return str.replace(/^\s+|\s+$/g, '') ;
 }
-function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
+function sendImgUrls(api, images, callback, bExcel, bNotShowError, withAuthorization) {
 
   if (window["AscDesktopEditor"])
   {
@@ -1986,7 +1986,10 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
 		return;
 	}
 
-  var rData = {"id": api.documentId, "c": "imgurls", "userid":  api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(), "data": images};
+  var rData = {
+    "id": api.documentId, "c": "imgurls", "userid": api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(),
+    "withAuthorization": withAuthorization, "data": images
+  };
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 
   api.fCurCallback = function (input) {
@@ -8593,8 +8596,12 @@ PasteProcessor.prototype =
 				}
 			} else {
 				sChildNodeName = child.nodeName.toLowerCase();
+
+				//исключаю чтение тега "o:p", потому что ms в пустые ячейки таблицы добавляется внутрь данного тега неразрывные пробелы
+				//не нашёл такой ситуации, когда пропадают пробелы между словами
+				//todo протестровать "o:p"!
 				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
-					sChildNodeName === "#comment" || sChildNodeName === "script") {
+					sChildNodeName === "#comment" || sChildNodeName === "script" || sChildNodeName === "o:p") {
 					if(sChildNodeName === "#comment") {
 						if(child.nodeValue === "[if !supportAnnotations]") {
 							oThis.startMsoAnnotation = true;

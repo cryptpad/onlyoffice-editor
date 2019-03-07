@@ -383,6 +383,17 @@
 		}
 		return bbox;
 	};
+	CConditionalFormattingRule.prototype.getIndexRule = function(values, ws, value) {
+		var valueCFVO;
+		var aCFVOs = this._getCFVOs();
+		for (var i = aCFVOs.length - 1; i >= 0; --i) {
+			valueCFVO = this._getValue(values, aCFVOs[i], ws);
+			if (value > valueCFVO || (aCFVOs[i].Gte && value === valueCFVO)) {
+				return i;
+			}
+		}
+		return 0;
+	};
 	CConditionalFormattingRule.prototype.getMin = function(values, ws) {
 		var aCFVOs = this._getCFVOs();
 		var oCFVO = (aCFVOs && 0 < aCFVOs.length) ? aCFVOs[0] : null;
@@ -417,7 +428,7 @@
 					break;
 				case AscCommonExcel.ECfvoType.Percent:
 					min = AscCommonExcel.getArrayMin(values);
-					res = min + Math.floor((AscCommonExcel.getArrayMax(values) - min) * parseFloat(oCFVO.Val) / 100);
+					res = min + (AscCommonExcel.getArrayMax(values) - min) * parseFloat(oCFVO.Val) / 100;
 					break;
 				case AscCommonExcel.ECfvoType.Percentile:
 					res = AscCommonExcel.getPercentile(values, parseFloat(oCFVO.Val) / 100.0);
@@ -554,6 +565,7 @@
 
 		return this;
 	}
+	CIconSet.prototype.type = AscCommonExcel.ECfType.iconSet;
 	CIconSet.prototype.clone = function() {
 		var i, res = new CIconSet();
 		res.IconSet = this.IconSet;

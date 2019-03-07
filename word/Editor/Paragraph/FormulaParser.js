@@ -4,28 +4,28 @@
 //var window = {};
 (function (undefined) {
 
-    var sIdentifier = '(\u0009|\u0000A|\u0000D|[\u0020-\uD7FF]|[\uE000-\uFFFD]|[\u10000-\u10FFFF])+';
-    var sComparison = '<=|<>|>=|=|<|>';
-    var sOperator =  "<>|<=|>=|>|<|-|\\^|\\*|/|\\%|\\+|=";
+    var sIdentifier = '(\u0009\|\u0000A\|\u0000D\|[\u0020-\uD7FF]\|[\uE000-\uFFFD]\|[\u10000-\u10FFFF])+';
+    var sComparison = '<=\|<>\|>=\|=\|<\|>';
+    var sOperator =  "<>\|<=\|>=\|>\|<\|-\|\\^\|\\*\|/\|\\\%|\\+\|=";
     var sColumnName = '([A-Z]){1,2}';
     var sDecimalDigit = '[0-9]';
     var sRowName = sDecimalDigit + '+';
     var sColon = ':';
     var sComma = ',';
-    var sFullStop = '\.';
+    var sFullStop = '\\.';
     var sWholeNumberPart = '([0-9]+)((,[0-9]{3})+[0-9]+)*';
     var sFractionalPart = sDecimalDigit + '+';
 
-    var sConstant =  sWholeNumberPart + sFullStop + sFractionalPart + '|' + '(' + sWholeNumberPart + '(' + sFullStop +')*)' + '|(' + sFullStop + sFractionalPart + ')';
+    var sConstant =  sWholeNumberPart + sFullStop + sFractionalPart + '\|' + '(' + sWholeNumberPart + '(' + sFullStop +')*)' + '\|(' + sFullStop + sFractionalPart + ')';
     var sCellName = sColumnName + sRowName;
     var sCellCellRange = sCellName + sColon + sCellName;
     var sRowRange = sRowName + sColon + sRowName;
     var sColumnRange = sColumnName + sColon + sColumnName;
-    var sCellRange = '(' + sCellCellRange + ')|(' + sRowRange + ')|(' + sColumnRange + ')';
-    var sCellReference = '(' + sCellRange + ')|(' + sCellName + ')';
+    var sCellRange = '(' + sCellCellRange + ')\|(' + sRowRange + ')\|(' + sColumnRange + ')';
+    var sCellReference = '(' + sCellRange + ')\|(' + sCellName + ')';
     var sBookmark = "[_A-Z]([A-Z0-9]{0,39})";//TODO: not only latin
     var sBookmarkCellRef = sBookmark + '( +(' + sCellReference + '))*';
-    var sFunctions = "(ABS|AND|AVERAGE|COUNT|DEFINED|FALSE|INT|MAX|MIN|MOD|NOT|OR|PRODUCT|ROUND|SIGN|SUM|TRUE)" ;
+    var sFunctions = "(ABS\|AND\|AVERAGE\|COUNT\|DEFINED\|FALSE\|INT\|MAX\|MIN\|MOD\|NOT\|OR\|PRODUCT\|ROUND\|SIGN\|SUM\|TRUE)" ;
 
     const oComparisonOpRegExp = new RegExp(sComparison, 'g');
     const oColumnNameRegExp = new RegExp(sColumnName, 'g');
@@ -1460,7 +1460,8 @@
     oFuncMap['ROUND'] = CROUNDFunctionNode;
     oFuncMap['SIGN'] = CSIGNFunctionNode;
     oFuncMap['SUM'] = CSUMFunctionNode;
-
+    oFuncMap['TRUE'] = CTRUEFunctionNode;
+    
     var PARSER_MASK_LEFT_PAREN      = 1;
     var PARSER_MASK_RIGHT_PAREN     = 2;
     var PARSER_MASK_LIST_SEPARATOR  = 4;

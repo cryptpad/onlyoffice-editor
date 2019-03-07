@@ -5815,7 +5815,7 @@ function BinaryPPTYLoader()
 
         if(type === 7 || type === 8){//video or audio
             if(typeof sMaskFileName === "string" && sMaskFileName.length > 0 &&
-                pic.nvPicPr && pic.nvPicPr.nvPr && pic.nvPicPr.nvPr.unimedia){
+                pic.nvPicPr && pic.nvPicPr.nvPr /*&& pic.nvPicPr.nvPr.unimedia*/){
                 var oUniMedia = new AscFormat.UniMedia();
                 oUniMedia.type = type;
                 oUniMedia.media = sMaskFileName;
@@ -10096,7 +10096,7 @@ function CPres()
 
             if(type === 7 || type === 8){//video or audio
                 if(typeof sMaskFileName === "string" && sMaskFileName.length > 0 &&
-                    pic.nvPicPr && pic.nvPicPr.nvPr && pic.nvPicPr.nvPr.unimedia){
+                    pic.nvPicPr && pic.nvPicPr.nvPr /*&& pic.nvPicPr.nvPr.unimedia*/){
                     var oUniMedia = new AscFormat.UniMedia();
                     oUniMedia.type = type;
                     oUniMedia.media = sMaskFileName;

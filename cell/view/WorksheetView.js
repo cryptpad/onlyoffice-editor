@@ -2615,11 +2615,18 @@
 							var oUniFill = new AscFormat.CUniFill();
 							if (fill.patternFill) {
 								oUniFill.fill = new AscFormat.CPattFill();
-								oUniFill.fill.ftype = 12;
+								oUniFill.fill.ftype = fill.patternFill.getHatchOffset();
 								oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor);
 								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor);
 							} else if (fill.gradientFill) {
                                 oUniFill.fill = new AscFormat.CGradFill();
+                                if(fill.gradientFill.type === AscCommonExcel.c_oAscGradientType.Linear) {
+                                    oUniFill.fill.lin = new AscFormat.GradLin();
+                                    oUniFill.fill.lin.angle = fill.gradientFill.degree*60000;
+                                }
+                                else {
+                                    oUniFill.fill.path = new AscFormat.GradPath();
+                                }
 								for(var i = 0; i < fill.gradientFill.stop.length; ++i) {
                                     var oGradStop = new AscFormat.CGs();
                                     oGradStop.pos = fill.gradientFill.stop[i].position*100000;
@@ -2701,7 +2708,7 @@
 			ranges = oRule.ranges;
 			multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
 			if (multiplyRange.contains(col, row)) {
-				if (AscCommonExcel.ECfType.dataBar === oRule.type) {
+				if (AscCommonExcel.ECfType.dataBar === oRule.type || AscCommonExcel.ECfType.iconSet === oRule.type) {
 					if (1 !== oRule.aRuleElements.length) {
 						continue;
 					}
@@ -2710,16 +2717,21 @@
 						continue;
 					}
 					values = this.model._getValuesForConditionalFormatting(ranges, true);
-					min = oRule.getMin(values, this.model);
-					max = oRule.getMax(values, this.model);
 
-					var minLength = Math.floor(width * oRuleElement.MinLength / 100);
-					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
-					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
+					if (AscCommonExcel.ECfType.dataBar === oRule.type) {
+						min = oRule.getMin(values, this.model);
+						max = oRule.getMax(values, this.model);
 
-					var x = this._getColLeft(col);
-					if (oRuleElement.Color) {
-						ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+						var minLength = Math.floor(width * oRuleElement.MinLength / 100);
+						var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
+						var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
+
+						var x = this._getColLeft(col);
+						if (oRuleElement.Color) {
+							ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+						}
+					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
+						var indexImage = oRule.getIndexRule(values, this.model, cellValue);
 					}
 				}
 			}
@@ -7450,7 +7462,7 @@
 
         var dN = new Asc.Range(ar_norm.c1, ar_norm.r1, c2, r2, true);
         var defName = parserHelp.get3DRef(this.model.getName(), dN.getAbsName());
-        defName = this.model.workbook.findDefinesNames(defName, this.model.getId());
+        defName = this.model.workbook.findDefinesNames(defName, this.model.getId(), true);
         if (defName) {
             return defName;
         }
@@ -11228,12 +11240,6 @@
 			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
 		};
 
-		var checkLocalChange = function(val){
-			if (!window['AscCommonExcel'].filteringMode) {
-				History.LocalChange = val;
-			}
-		};
-
 		var checkDeleteCellsFilteringMode = function () {
 			if (!window['AscCommonExcel'].filteringMode) {
 				if (val === c_oAscDeleteOptions.DeleteCellsAndShiftLeft || val === c_oAscDeleteOptions.DeleteColumns) {
@@ -11290,23 +11296,23 @@
 				break;
 			case "showCols":
 				functionModelAction = function () {
-					checkLocalChange(true);
-					t.model.setColHidden(false, arn.c1, arn.c2);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
-					checkLocalChange(false);
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setColHidden(false, arn.c1, arn.c2);
+						oRecalcType = AscCommonExcel.recalcType.full;
+						reinitRanges = true;
+						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
+					});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideCols":
 				functionModelAction = function () {
-					checkLocalChange(true);
-					t.model.setColHidden(true, arn.c1, arn.c2);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
-					checkLocalChange(false);
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setColHidden(true, arn.c1, arn.c2);
+						oRecalcType = AscCommonExcel.recalcType.full;
+						reinitRanges = true;
+						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
+					});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
@@ -11324,25 +11330,25 @@
 				return this._isLockedAll(onChangeWorksheetCallback);
 			case "showRows":
 				functionModelAction = function () {
-					checkLocalChange(true);
-					t.model.setRowHidden(false, arn.r1, arn.r2);
-					t.model.autoFilters.reDrawFilter(arn);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
-					checkLocalChange(false);
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setRowHidden(false, arn.r1, arn.r2);
+						t.model.autoFilters.reDrawFilter(arn);
+						oRecalcType = AscCommonExcel.recalcType.full;
+						reinitRanges = true;
+						updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+					});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideRows":
 				functionModelAction = function () {
-					checkLocalChange(true);
-					t.model.setRowHidden(true, arn.r1, arn.r2);
-					t.model.autoFilters.reDrawFilter(arn);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
-					checkLocalChange(false);
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setRowHidden(true, arn.r1, arn.r2);
+						t.model.autoFilters.reDrawFilter(arn);
+						oRecalcType = AscCommonExcel.recalcType.full;
+						reinitRanges = true;
+						updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+					});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
@@ -12124,7 +12130,15 @@
 		};
 
 	WorksheetView.prototype.findCell = function (reference) {
-		var mc, ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
+		var mc;
+		var translatePrintArea = AscCommonExcel.tryTranslateToPrintArea(reference);
+		var ranges;
+		if(translatePrintArea) {
+			ranges = AscCommonExcel.getRangeByRef(translatePrintArea, this.model, true, true);
+		}
+		if(!ranges || 0 === ranges.length) {
+			ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
+		}
 		var oldR1C1mode = AscCommonExcel.g_R1C1Mode, t = this;
 
 		if (0 === ranges.length && this.handlers.trigger('canEdit')) {
@@ -13375,15 +13389,18 @@
     WorksheetView.prototype.clearFilter = function () {
         var t = this;
         var ar = this.model.selectionRange.getLast().clone();
+
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
             }
 
-            var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
-            if (false !== updateRange) {
-                t._onUpdateFormatTable(updateRange, false, true);
-            }
+			AscCommonExcel.checkFilteringMode(function () {
+				var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
+				if (false !== updateRange) {
+					t._onUpdateFormatTable(updateRange, false, true);
+				}
+			});
         };
         this._isLockedAll(onChangeAutoFilterCallback);
     };
@@ -13396,11 +13413,12 @@
                 return;
             }
 
-            var updateRange = t.model.autoFilters.clearFilterColumn(cellId, displayName);
-
-            if (false !== updateRange) {
-                t._onUpdateFormatTable(updateRange, false, true);
-            }
+			AscCommonExcel.checkFilteringMode(function () {
+				var updateRange = t.model.autoFilters.clearFilterColumn(cellId, displayName);
+				if (false !== updateRange) {
+					t._onUpdateFormatTable(updateRange, false, true);
+				}
+			});
         };
         this._isLockedAll(onChangeAutoFilterCallback);
     };
