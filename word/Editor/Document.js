@@ -1535,6 +1535,8 @@ function CDocumentSettings()
     this.MathSettings      = undefined !== CMathSettings ? new CMathSettings() : {};
     this.CompatibilityMode = document_compatibility_mode_Current;
     this.SdtSettings       = new CSdtGlobalSettings();
+    this.ListSeparator = undefined;
+    this.DecimalSymbol = undefined;
 }
 
 /**
