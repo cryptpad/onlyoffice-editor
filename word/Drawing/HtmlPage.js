@@ -1877,7 +1877,7 @@ function CEditorPage(api)
 		if (AscCommon.check_MouseClickOnUp())
 		{
             if (window.g_asc_plugins)
-                window.g_asc_plugins.onPluginEvent("onClick");
+                window.g_asc_plugins.onPluginEvent("onClick", oWordControl.m_oLogicDocument.IsSelectionUse());
 		}
 	};
 

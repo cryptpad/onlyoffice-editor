@@ -1656,6 +1656,18 @@
     	return AscFonts.g_fontApplication.g_fontSelections.SerializeList();
     };
 
+    baseEditorsApi.prototype["pluginMethod_InputText"] = function(text, replaceCount)
+    {
+        if (this.isViewMode || !AscCommon.g_inputContext)
+        	return;
+
+        var codes = [];
+        for (var i = text.getUnicodeIterator(); i.check(); i.next())
+			codes.push(i.value());
+
+        AscCommon.g_inputContext.apiInputText(codes);
+    };
+
 	baseEditorsApi.prototype["pluginMethod_PasteHtml"] = function(htmlText)
 	{
 		if (!AscCommon.g_clipboardBase)
