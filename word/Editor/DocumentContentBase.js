@@ -328,7 +328,7 @@ CDocumentContentBase.prototype.StopSelection = function()
 	if (this.Content[this.Selection.StartPos])
 		this.Content[this.Selection.StartPos].StopSelection();
 };
-CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPara, oNumPr)
+CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPara, oNumPr, isUseReview)
 {
 	if (undefined === oNumberingEngine || null === oNumberingEngine)
 		oNumberingEngine = new CDocumentNumberingInfoEngine(oPara, oNumPr, this.GetNumbering());
@@ -339,6 +339,9 @@ CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPa
 		if (oNumberingEngine.IsStop())
 			break;
 	}
+
+	if (true === isUseReview)
+		return [oNumberingEngine.GetNumInfo(), oNumberingEngine.GetNumInfo(false)];
 
 	return oNumberingEngine.GetNumInfo();
 };
@@ -1381,15 +1384,16 @@ CDocumentContentBase.prototype.RemoveNumberingSelection = function()
  * Рассчитываем значение нумерованного списка для заданной нумерации
  * @param oPara {Paragraph}
  * @param oNumPr {CNumPr}
+ * @param [isUserReview=false] {boolean}
  * @returns {number[]}
  */
-CDocumentContentBase.prototype.CalculateNumberingValues = function(oPara, oNumPr)
+CDocumentContentBase.prototype.CalculateNumberingValues = function(oPara, oNumPr, isUseReview)
 {
 	var oTopDocument = this.GetTopDocumentContent();
 	if (oTopDocument instanceof CFootEndnote)
-		return oTopDocument.Parent.GetNumberingInfo(oPara, oNumPr, oTopDocument);
+		return oTopDocument.Parent.GetNumberingInfo(oPara, oNumPr, oTopDocument, true === isUseReview);
 
-	return oTopDocument.GetNumberingInfo(null, oPara, oNumPr);
+	return oTopDocument.GetNumberingInfo(null, oPara, oNumPr, true === isUseReview);
 };
 /**
  * Вплоть до заданного параграфа ищем последнюю похожую нумерацию

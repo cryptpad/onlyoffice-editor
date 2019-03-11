@@ -3062,14 +3062,22 @@ CParagraphRecalculateStateWrap.prototype =
 				var oNumLvl     = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
 				var nNumSuff    = oNumLvl.GetSuff();
 				var nNumJc      = oNumLvl.GetJc();
-				var oNumInfo    = Para.Parent.CalculateNumberingValues(Para, NumPr);
+				var arrNumInfo  = Para.Parent.CalculateNumberingValues(Para, NumPr, true);
 				var oNumTextPr  = Para.Get_CompiledPr2(false).TextPr.Copy();
 				oNumTextPr.Merge(Para.TextPr.Value);
 				oNumTextPr.Merge(oNumLvl.GetTextPr());
 
-
 				// Здесь измеряется только ширина символов нумерации, без суффикса
-				NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumInfo, oNumTextPr, NumPr, Para.Get_Theme());
+
+				var nLvl = NumPr.Lvl;
+				if (arrNumInfo[0][nLvl] !== arrNumInfo[1][nLvl])
+				{
+					NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, arrNumInfo[1], NumPr);
+				}
+				else
+				{
+					NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr);
+				}
 
 				// При рассчете высоты строки, если у нас параграф со списком, то размер символа
 				// в списке влияет только на высоту строки над Baseline, но не влияет на высоту строки
