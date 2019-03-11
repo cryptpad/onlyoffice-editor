@@ -2002,12 +2002,14 @@
 
         if (isKeyboardTake)
         {
+            _frame.removeAttribute("oo_editor_keyboard");
             _frame.setAttribute("oo_editor_input", "true");
             _frame.focus();
         }
         else
         {
             _frame.removeAttribute("oo_editor_input");
+            _frame.setAttribute("oo_editor_keyboard", "true");
             _frame.focus();
         }
     };
