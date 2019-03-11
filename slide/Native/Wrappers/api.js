@@ -37,6 +37,8 @@ window.IS_NATIVE_EDITOR = true;
 
 
 var sdkCheck = true;
+var spellCheck = true;
+
 // endsectionPr -----------------------------------------------------------------------------------------
 
 window['SockJS'] = createSockJS();
@@ -3007,7 +3009,7 @@ function initSpellCheckApi() {
 
     _api.SpellCheckApi.init(_api.documentId);
 
-    _api.asc_setSpellCheck(true);
+    _api.asc_setSpellCheck(spellCheck);
 
     _api.WordControl.StartMainTimer();
 }
@@ -3022,6 +3024,7 @@ function NativeOpenFileP(_params, documentInfo){
     }
 
     sdkCheck = documentInfo["sdkCheck"];
+    spellCheck = documentInfo["spellCheck"];
 
     var translations = documentInfo["translations"];
     if (undefined != translations && null != translations && translations.length > 0) {

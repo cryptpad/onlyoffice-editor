@@ -33,6 +33,7 @@
 window.IS_NATIVE_EDITOR = true;
 
 var sdkCheck = true;
+var spellCheck = true;
 
 window['SockJS'] = createSockJS();
 
@@ -2346,6 +2347,25 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             
             break;
         } 
+
+        case 22004: // ASC_EVENT_TYPE_SPELLCHECK_MESSAGE
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["spellCheckData"]) {
+                if (_api.SpellCheckApi) {
+                    _api.SpellCheckApi.onSpellCheck(json["spellCheckData"]);
+                }
+            }
+            break;
+        }
+
+        case 22005: // ASC_EVENT_TYPE_SPELLCHECK_TURN_ON
+        {
+            var status = parseInt(_params[0]);
+            if (status !== undefined) {
+                this.asc_setSpellCheck(status == 0 ? false : true);
+            } 
+        }
 
         default:
             break;
@@ -5848,6 +5868,80 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
     }
 };
 
+function initSpellCheckApi() {
+    
+    _api.SpellCheckApi = new AscCommon.CSpellCheckApi();
+    _api.isSpellCheckEnable = true;
+
+    _api.SpellCheckApi.spellCheck = function (spellData) {
+        window["native"]["SpellCheck"](JSON.stringify(spellData));
+    };
+    
+    _api.SpellCheckApi.disconnect = function () {};
+
+    _api.sendEvent('asc_onSpellCheckInit', [
+        "1026",
+        "1027",
+        "1029",
+        "1030",
+        "1031",
+        "1032",
+        "1033",
+        "1036",
+        "1038",
+        "1040",
+        "1042",
+        "1043",
+        "1044",
+        "1045",
+        "1046",
+        "1048",
+        "1049",
+        "1050",
+        "1051",
+        "1053",
+        "1055",
+        "1057",
+        "1058",
+        "1060",
+        "1062",
+        "1063",
+        "1066",
+        "1068",
+        "1069",
+        "1087",
+        "1104",
+        "1110",
+        "1134",
+        "2051",
+        "2055",
+        "2057",
+        "2068",
+        "2070",
+        "3079",
+        "3081",
+        "3082",
+        "4105",
+        "7177",
+        "9242",
+        "10266"
+    ]);
+
+    _api.SpellCheckApi.onInit = function (e) {
+        _api.sendEvent('asc_onSpellCheckInit', e);
+    };
+
+    _api.SpellCheckApi.onSpellCheck = function (e) {
+        _api.SpellCheck_CallBack(e);
+    };
+
+    _api.SpellCheckApi.init(_api.documentId);
+
+    _api.asc_setSpellCheck(spellCheck);
+
+    _api.WordControl.StartMainTimer();
+}
+
 function NativeOpenFile3(_params, documentInfo)
 {
     window["CreateMainTextMeasurerWrapper"]();
@@ -5858,6 +5952,7 @@ function NativeOpenFile3(_params, documentInfo)
     if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
     {
         sdkCheck = documentInfo["sdkCheck"];
+        spellCheck = documentInfo["spellCheck"];
 
         _api = new window["Asc"]["asc_docs_api"]("");
         
@@ -5964,6 +6059,8 @@ function NativeOpenFile3(_params, documentInfo)
             {
                 _api.NativeAfterLoad();
             }
+
+            initSpellCheckApi();
         }
     }
     Api = _api;
@@ -6134,6 +6231,8 @@ Asc['asc_docs_api'].prototype.openDocument = function(sData)
     window["native"]["onEndLoadingFile"]();
 
     this.WordControl.m_oDrawingDocument.Collaborative_TargetsUpdate(true);
+
+    initSpellCheckApi();
 
     var t = this;
     setInterval(function() {
