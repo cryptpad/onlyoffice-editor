@@ -8628,13 +8628,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_ParseTableFormulaInstrLine = function(sInstrLine)
 	{
-		var oParser = new CFieldInstructionParser();
-		var oResult = oParser.GetInstructionClass(sInstrLine);
-		if(oResult && oResult instanceof CFieldInstructionFORMULA)
-		{
-			return [oResult.Formula ? "=" + oResult.Formula : "=", oResult.Format && oResult.Format.sFormat ? oResult.Format.sFormat : ""];
-		}
-		return ["", ""];
+		return this.WordControl.m_oLogicDocument.ParseTableFormulaInstrLine(sInstrLine);
 	};
 
 	asc_docs_api.prototype.asc_CreateInstructionLine = function(sFormula, sFormat)

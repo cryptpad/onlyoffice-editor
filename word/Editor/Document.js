@@ -17921,6 +17921,22 @@ CDocument.prototype.AddTableCellFormula = function(sFormula)
 
 };
 
+/**
+ * Разбираем sInstrLine на формулу и формат числа
+ * @param {string} sInstrLine
+ * @returns {Array}
+ */
+CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
+{
+    var oParser = new CFieldInstructionParser();
+    var oResult = oParser.GetInstructionClass(sInstrLine);
+    if(oResult && oResult instanceof CFieldInstructionFORMULA)
+    {
+        return [oResult.Formula ? "=" + oResult.Formula : "=", oResult.Format && oResult.Format.sFormat ? oResult.Format.sFormat : ""];
+    }
+    return ["", ""];
+};
+
 function CDocumentSelectionState()
 {
     this.Id        = null;
