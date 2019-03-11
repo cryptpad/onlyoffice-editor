@@ -1873,6 +1873,12 @@ function CEditorPage(api)
 		oWordControl.m_oLogicDocument.Document_UpdateRulersState();
 
 		oWordControl.EndUpdateOverlay();
+
+		if (AscCommon.check_MouseClickOnUp())
+		{
+            if (window.g_asc_plugins)
+                window.g_asc_plugins.onPluginEvent("onClick");
+		}
 	};
 
 	this.onMouseUpMainSimple = function()

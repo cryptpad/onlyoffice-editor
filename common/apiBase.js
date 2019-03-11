@@ -1908,7 +1908,115 @@
 		}
 	};
 
-	// Builder
+	// input helper
+    baseEditorsApi.prototype.getTargetOnBodyCoords = function()
+    {
+        var ret = { X : 0, Y : 0, W : 0, H : 0, TargetH : 0 };
+        ret.W = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        ret.H = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+        switch (this.editorId)
+        {
+            case c_oEditorId.Word:
+            case c_oEditorId.Presentation:
+            {
+                if (this.WordControl && this.WordControl.m_oDrawingDocument)
+                {
+                    ret.X += this.WordControl.X;
+                    ret.Y += this.WordControl.Y;
+                    ret.X += (this.WordControl.m_oMainView.AbsolutePosition.L * g_dKoef_mm_to_pix);
+                    ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * g_dKoef_mm_to_pix);
+                    ret.X += (this.WordControl.m_oDrawingDocument.TargetHtmlElementLeft);
+                    ret.Y += (this.WordControl.m_oDrawingDocument.TargetHtmlElementTop);
+
+                    ret.X >>= 0;
+                    ret.Y >>= 0;
+
+                    ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
+                }
+                break;
+            }
+            case c_oEditorId.Spreadsheet:
+            {
+                break;
+            }
+        }
+        return ret;
+    };
+
+    baseEditorsApi.prototype["pluginMethod_ShowInputHelper"] = function(guid, w, h, isKeyboardTake)
+    {
+        var _frame = document.getElementById("iframe_" + guid);
+        if (!_frame)
+            return;
+
+        var _offset = this.getTargetOnBodyCoords();
+        if (w > _offset.W)
+            w = _offset.W;
+        if (h > _offset.H)
+            h = _offset.H;
+
+        var _offsetToFrame = 10;
+        var _r = _offset.X + _offsetToFrame + w;
+        var _t = _offset.Y - _offsetToFrame - h;
+        var _b = _offset.Y + _offset.TargetH + _offsetToFrame + h;
+
+        var _x = _offset.X + _offsetToFrame;
+        if (_r > _offset.W)
+            _x += (_offset.W - _r);
+
+        var _y = 0;
+
+        if (_b < _offset.H)
+        {
+            _y = _offset.Y + _offset.TargetH + _offsetToFrame;
+        }
+        else if (_t > 0)
+        {
+            _y = _t;
+        }
+        else
+        {
+            _y = _offset.Y + _offset.TargetH + _offsetToFrame;
+            h += (_offset.H - _b);
+        }
+
+        _frame.style.left = _x + "px";
+        _frame.style.top = _y + "px";
+        _frame.style.width = w + "px";
+        _frame.style.height = h + "px";
+
+        _frame.style.zIndex = 1000;
+
+        if (isKeyboardTake)
+        {
+            _frame.setAttribute("oo_editor_input", "true");
+            _frame.focus();
+        }
+        else
+        {
+            _frame.removeAttribute("oo_editor_input");
+            _frame.focus();
+        }
+    };
+
+    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid)
+    {
+        var _frame = document.getElementById("iframe_" + guid);
+        if (!_frame)
+            return;
+
+        _frame.style.width = "10px";
+        _frame.style.height = "10px";
+        _frame.removeAttribute("oo_editor_input");
+
+        _frame.style.zIndex = -1000;
+
+        if (AscCommon.g_inputContext && AscCommon.g_inputContext.HtmlArea)
+            AscCommon.g_inputContext.HtmlArea.focus();
+    };
+
+    // Builder
 	baseEditorsApi.prototype.asc_nativeInitBuilder = function()
 	{
 		this.asc_setDocInfo(new Asc.asc_CDocInfo());

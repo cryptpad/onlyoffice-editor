@@ -1051,6 +1051,12 @@
 					break;
 			}
 
+			if (e.keyCode == 32 && AscCommon.global_keyboardEvent.CtrlKey && !AscCommon.global_keyboardEvent.ShiftKey)
+            {
+                if (window.g_asc_plugins)
+                    window.g_asc_plugins.onPluginEvent("onClick");
+            }
+
 			return ret;
 		},
 
