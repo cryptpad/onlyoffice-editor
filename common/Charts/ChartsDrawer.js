@@ -2248,91 +2248,79 @@ CChartsDrawer.prototype =
 	},
 	
 	//****functions for chart classes****
-	calculatePoint: function(x, y, size, symbol)
-	{
+	calculatePoint: function (x, y, size, symbol) {
 		size = size / 2.69;
 		var halfSize = size / 2;
 		var dashDotHeight = size / 5;
 		var pathId = this.cChartSpace.AllocPath();
-		var path  = this.cChartSpace.GetPath(pathId);
+		var path = this.cChartSpace.GetPath(pathId);
 		var pathH = this.calcProp.pathH;
 		var pathW = this.calcProp.pathW;
 
 		var framePaths = null, framePathsId = null;
-		
-		var result;
 
 		/*
-		var AscFormat.SYMBOL_PICTURE = 5;*/
-		
+		 var AscFormat.SYMBOL_PICTURE = 5;*/
+
 		path.moveTo(x * pathW, y * pathW);
-		
-		switch ( symbol )
-		{
-			case AscFormat.SYMBOL_DASH:
-			{
-				path.moveTo((x - halfSize) * pathW, (y - dashDotHeight/2) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y - dashDotHeight/2) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y + dashDotHeight/2) * pathW);
-				path.lnTo((x - halfSize) * pathW, (y + dashDotHeight/2) * pathW);
+
+		switch (symbol) {
+			case AscFormat.SYMBOL_DASH: {
+				path.moveTo((x - halfSize) * pathW, (y - dashDotHeight / 2) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y - dashDotHeight / 2) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y + dashDotHeight / 2) * pathW);
+				path.lnTo((x - halfSize) * pathW, (y + dashDotHeight / 2) * pathW);
 				break;
 			}
-			case AscFormat.SYMBOL_DOT:
-			{
-				path.moveTo((x) * pathW, (y - dashDotHeight/2) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y - dashDotHeight/2) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y + dashDotHeight/2) * pathW);
-				path.lnTo((x) * pathW, (y + dashDotHeight/2) * pathW);
+			case AscFormat.SYMBOL_DOT: {
+				path.moveTo((x) * pathW, (y - dashDotHeight / 2) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y - dashDotHeight / 2) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y + dashDotHeight / 2) * pathW);
+				path.lnTo((x) * pathW, (y + dashDotHeight / 2) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_PLUS:
-			{
-				path.moveTo(x * pathW, (y  + halfSize) * pathW);
-				path.lnTo(x * pathW, (y  - halfSize) * pathW);
+
+			case AscFormat.SYMBOL_PLUS: {
+				path.moveTo(x * pathW, (y + halfSize) * pathW);
+				path.lnTo(x * pathW, (y - halfSize) * pathW);
 				path.moveTo((x - halfSize) * pathW, y * pathW);
-				path.lnTo((x  + halfSize) * pathW, y * pathW);
+				path.lnTo((x + halfSize) * pathW, y * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_CIRCLE:
-			{
+
+			case AscFormat.SYMBOL_CIRCLE: {
 				path.moveTo((x + halfSize) * pathW, y * pathW);
 				path.arcTo(halfSize * pathW, halfSize * pathW, 0, Math.PI * 2 * cToDeg);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_STAR:
-			{
-				path.moveTo((x - halfSize) * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y  - halfSize) * pathW);
-				path.moveTo((x + halfSize) * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x  - halfSize) * pathW, (y  - halfSize) * pathW);
-				path.moveTo(x * pathW, (y  + halfSize) * pathW);
-				path.lnTo(x * pathW, (y  - halfSize) * pathW);
+
+			case AscFormat.SYMBOL_STAR: {
+				path.moveTo((x - halfSize) * pathW, (y + halfSize) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y - halfSize) * pathW);
+				path.moveTo((x + halfSize) * pathW, (y + halfSize) * pathW);
+				path.lnTo((x - halfSize) * pathW, (y - halfSize) * pathW);
+				path.moveTo(x * pathW, (y + halfSize) * pathW);
+				path.lnTo(x * pathW, (y - halfSize) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_X:
-			{
-				path.moveTo((x - halfSize) * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y  - halfSize) * pathW);
-				path.moveTo((x + halfSize) * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x  - halfSize) * pathW, (y  - halfSize) * pathW);
+
+			case AscFormat.SYMBOL_X: {
+				path.moveTo((x - halfSize) * pathW, (y + halfSize) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y - halfSize) * pathW);
+				path.moveTo((x + halfSize) * pathW, (y + halfSize) * pathW);
+				path.lnTo((x - halfSize) * pathW, (y - halfSize) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_TRIANGLE:
-			{
-				path.moveTo((x - size/Math.sqrt(3)) * pathW, (y  + size/3) * pathW);
-				path.lnTo(x * pathW, (y  - (2/3)*size) * pathW);
-				path.lnTo((x + size/Math.sqrt(3)) * pathW, (y  + size/3) * pathW);
-				path.lnTo((x - size/Math.sqrt(3)) * pathW, (y  + size/3) * pathW);
+
+			case AscFormat.SYMBOL_TRIANGLE: {
+				path.moveTo((x - size / Math.sqrt(3)) * pathW, (y + size / 3) * pathW);
+				path.lnTo(x * pathW, (y - (2 / 3) * size) * pathW);
+				path.lnTo((x + size / Math.sqrt(3)) * pathW, (y + size / 3) * pathW);
+				path.lnTo((x - size / Math.sqrt(3)) * pathW, (y + size / 3) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_SQUARE:
-			{
+
+			case AscFormat.SYMBOL_SQUARE: {
 				path.moveTo((x - halfSize) * pathW, (y + halfSize) * pathW);
 				path.lnTo((x - halfSize) * pathW, (y - halfSize) * pathW);
 				path.lnTo((x + halfSize) * pathW, (y - halfSize) * pathW);
@@ -2340,33 +2328,28 @@ CChartsDrawer.prototype =
 				path.lnTo((x - halfSize) * pathW, (y + halfSize) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_DIAMOND:
-			{
+
+			case AscFormat.SYMBOL_DIAMOND: {
 				path.moveTo((x - halfSize) * pathW, y * pathW);
-				path.lnTo(x * pathW, (y  - halfSize) * pathW);
+				path.lnTo(x * pathW, (y - halfSize) * pathW);
 				path.lnTo((x + halfSize) * pathW, y * pathW);
-				path.lnTo(x * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x - halfSize) * pathW, y  * pathW);
+				path.lnTo(x * pathW, (y + halfSize) * pathW);
+				path.lnTo((x - halfSize) * pathW, y * pathW);
 				break;
 			}
 		}
-		
-		if(symbol === AscFormat.SYMBOL_PLUS || symbol === AscFormat.SYMBOL_STAR || symbol === AscFormat.SYMBOL_X)
-		{
+
+		if (symbol === AscFormat.SYMBOL_PLUS || symbol === AscFormat.SYMBOL_STAR || symbol === AscFormat.SYMBOL_X) {
 			framePathsId = this.cChartSpace.AllocPath();
-            framePaths = this.cChartSpace.GetPath(framePathsId);
+			framePaths = this.cChartSpace.GetPath(framePathsId);
 			framePaths.moveTo((x - halfSize) * pathW, (y + halfSize) * pathW);
 			framePaths.lnTo((x - halfSize) * pathW, (y - halfSize) * pathW);
 			framePaths.lnTo((x + halfSize) * pathW, (y - halfSize) * pathW);
 			framePaths.lnTo((x + halfSize) * pathW, (y + halfSize) * pathW);
 			framePaths.lnTo((x - halfSize) * pathW, (y + halfSize) * pathW);
 		}
-		
 
-		result = {framePaths: framePaths, path: pathId};
-		
-		return result;
+		return {framePaths: framePathsId, path: pathId};
 	},
 
 	getYPosition: function (val, axis, ignoreAxisLimits) {
