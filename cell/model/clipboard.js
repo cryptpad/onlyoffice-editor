@@ -2179,7 +2179,8 @@
 					//TODo!!!!!!
 					newCDocument.Content[0].bFromDocument = true;
 					newCDocument.theme = window["Asc"]["editor"].wbModel.theme;
-					
+
+					var oOldLogicDocument = oTempDrawingDocument.m_oLogicDocument;
 					oTempDrawingDocument.m_oLogicDocument = newCDocument;
 					var oOldEditor = undefined;
 					if ("undefined" !== typeof editor)
@@ -2201,7 +2202,7 @@
 					}
 					
 					editor = oOldEditor;
-					
+					oTempDrawingDocument.m_oLogicDocument = oOldLogicDocument;
 					History.TurnOn();
 					
 					var oPasteFromBinaryWord = new pasteFromBinaryWord(t, worksheet);
