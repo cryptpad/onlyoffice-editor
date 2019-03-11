@@ -1936,14 +1936,17 @@ CChartsDrawer.prototype =
 
 		var axisMax, axisMin, diffMaxMin;
 		var cDiff = 1/6;
+		//добавил правку в первую ветку: если минмальное значение оказывается равно 0, то максимальное высчитываем
+		//с учётом минимального, равного 0.
+		// TODO пересмотреть все остальные ситуации!
 		if (yMin >= 0 && yMax >= 0) {
-			axisMax = isStackedType ? yMax : yMax + 0.05 * ( yMax - yMin );
-
 			diffMaxMin = (yMax - yMin) / yMax;
 			if (cDiff > diffMaxMin) {
 				axisMin = yMin - ((yMax - yMin) / 2);
+				axisMax = isStackedType ? yMax : yMax + 0.05 * ( yMax - yMin );
 			} else {
 				axisMin = 0;
+				axisMax = isStackedType ? yMax : yMax + 0.05 * ( yMax - 0 );
 			}
 		} else if (yMin <= 0 && yMax <= 0) {
 			diffMaxMin = (yMin - yMax) / yMin;
