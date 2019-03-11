@@ -210,7 +210,7 @@ CHistory.prototype.Clear = function()
 
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
-	window["Asc"]["editor"].wb.cleanCutData();
+	this.workbook.handlers.trigger("cleanCutData");
 	this._sendCanUndoRedo();
 };
 /** @returns {boolean} */
@@ -505,7 +505,7 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 	this.workbook.handlers.trigger("toggleAutoCorrectOptions", null, true);
-	window["Asc"]["editor"].wb.cleanCutData();
+	this.workbook.handlers.trigger("cleanCutData");
 };
 CHistory.prototype.Redo = function()
 {
@@ -707,7 +707,7 @@ CHistory.prototype.Create_NewPoint = function()
 
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
-	window["Asc"]["editor"].wb.cleanCutData();
+	this.workbook.handlers.trigger("cleanCutData");
 };
 
 // Регистрируем новое изменение:

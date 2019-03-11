@@ -752,6 +752,8 @@
 			  return self.Api.selectSearchingResults;
 		  }, "getMainGraphics": function () {
 			  return self.mainGraphics;
+		  }, "cleanCutData": function (bDrawSelection, bCleanBuffer) {
+			  self.cleanCutData(bDrawSelection, bCleanBuffer);
 		  }
 	  });
 

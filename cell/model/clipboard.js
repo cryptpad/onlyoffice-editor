@@ -258,7 +258,7 @@
 			var wb = window["Asc"]["editor"].wb;
 			
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-			window["Asc"]["editor"].wb.cleanCutData(true);
+			ws.handlers.trigger("cleanCutData", true);
 
 			if (ws.getCellEditMode() === true)//text in cell
 			{
@@ -391,7 +391,7 @@
 					}
 				}
 
-				window["Asc"]["editor"].wb.cleanCutData(true);
+				ws.handlers.trigger("cleanCutData", true);
 
 				if (!bIsSpecialPaste) {
 					window['AscCommon'].g_specialPasteHelper.specialPasteData._format = _format;
@@ -1224,7 +1224,7 @@
 						var toRange = new Asc.Range(aRange.c1, aRange.r1, aRange.c1 + (fromRange.c2 - fromRange.c1), aRange.r1 + (fromRange.r2 - fromRange.r1));
 						var wsTo = ws.model.Id !== wsFrom.model.Id ? ws : null;
 						wsFrom.applyCutRange(fromRange, toRange, wsTo);
-						window["Asc"]["editor"].wb.cleanCutData(true);
+						ws.handlers.trigger("cleanCutData", true);
 						res = true;
 
 						//чистим буфер
