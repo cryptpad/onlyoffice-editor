@@ -5173,6 +5173,9 @@
 		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_MoveRange,
 			this.getId(), new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0),
 			new UndoRedoData_FromTo(new UndoRedoData_BBox(oBBoxFrom), new UndoRedoData_BBox(oBBoxTo), copyRange, wsTo.getId()));
+		if(moveToOtherSheet) {
+			History.AddToUpdatesRegions(oBBoxTo, wsTo.getId());
+		}
 
 		var shiftedArrayFormula = {};
 		var oldNewArrayFormulaMap = {};
@@ -5287,8 +5290,9 @@
 			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
 		}
 
-		if(false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges)
-			this.autoFilters._moveAutoFilters( oBBoxTo, oBBoxFrom, null, copyRange, true, oBBoxFrom );
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.autoFilters._moveAutoFilters(oBBoxTo, oBBoxFrom, null, copyRange, true, oBBoxFrom, wsTo);
+		}
 
 		this.workbook.dependencyFormulas.unlockRecal();
 		History.EndTransaction();

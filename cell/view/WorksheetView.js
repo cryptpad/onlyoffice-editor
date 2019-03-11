@@ -428,6 +428,8 @@
 
         this.viewPrintLines = false;
 
+        this.cutRange = null;
+
         this._init();
 
         return this;
@@ -3350,6 +3352,11 @@
 		}
 	};
 
+	WorksheetView.prototype._drawCutRange = function () {
+		if(this.cutRange) {
+			this._drawElements(this._drawSelectionElement, this.cutRange, AscCommonExcel.selectionLineType.Dash, AscCommonExcel.c_oAscCoAuthoringOtherBorderColor);
+		}
+	};
 
 	WorksheetView.prototype._drawPageBreakPreviewText = function (drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, printPages) {
 
@@ -4298,6 +4305,8 @@
 			this._drawPrintArea();
 		}
 
+		this._drawCutRange();
+
 		if(pageBreakPreviewModeOverlay) {
 			this._drawPageBreakPreviewLinesOverlay();
 		}
@@ -4594,7 +4603,7 @@
 
 		//TODO пересмотреть! возможно стоит очищать частями в зависимости от print_area
 		//print lines view
-		if(this.viewPrintLines) {
+		if(this.viewPrintLines || this.cutRange) {
 			this.overlayCtx.clear();
 		}
 		if(pageBreakPreviewModeOverlay) {
@@ -8955,6 +8964,43 @@
         }
     };
 
+	WorksheetView.prototype.applyCutRange = function (arnFrom, arnTo, opt_wsTo) {
+		var moveToOtherSheet = opt_wsTo && opt_wsTo.model && this.model !== opt_wsTo.model;
+
+		if (!moveToOtherSheet && arnFrom.isEqual(arnTo)) {
+			return;
+		}
+		if ((!moveToOtherSheet && this.model.inPivotTable([arnFrom, arnTo])) || (moveToOtherSheet && (this.model.inPivotTable([arnFrom]) || opt_wsTo.model.inPivotTable([arnTo])))) {
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+			return;
+		}
+
+		//***array-formula***
+		//теперь не передаю 3 параметром в функцию checkMoveFormulaArray ctrlKey, поскольку undo/redo для
+		//клонирования части формулы работает некорректно
+		//при undo созданную формулу обходимо не переносить, а удалять
+		//TODO пересомтреть!
+		if (!this.checkMoveFormulaArray(arnFrom, arnTo, null, opt_wsTo)) {
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+			return;
+		}
+
+		var resmove = this.model._prepareMoveRange(arnFrom, arnTo, opt_wsTo && opt_wsTo.model);
+		if (resmove === -2) {
+			this.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotMoveRange, c_oAscError.Level.NoCritical);
+		} else if (resmove === -1) {
+			var t = this;
+			this.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmReplaceRange,
+				function (can) {
+					if (can) {
+						t.moveRangeHandle(arnFrom, arnTo, null, opt_wsTo);
+					}
+				});
+		} else {
+			this.moveRangeHandle(arnFrom, arnTo, null, opt_wsTo);
+		}
+	};
+
     WorksheetView.prototype.applyMoveResizeRangeHandle = function ( target ) {
         if ( -1 == target.targetArr && !this.startCellMoveResizeRange.isEqual( this.moveRangeDrawingObjectTo ) ) {
             this.objectRender.moveRangeDrawingObject( this.startCellMoveResizeRange, this.moveRangeDrawingObjectTo );
@@ -8968,63 +9014,70 @@
     WorksheetView.prototype.moveRangeHandle = function (arnFrom, arnTo, copyRange, opt_wsTo) {
 		//opt_wsTo - for test reasons only
         var t = this;
+		var wsTo = opt_wsTo ? opt_wsTo : this;
+
         var onApplyMoveRangeHandleCallback = function (isSuccess) {
             if (false === isSuccess) {
-				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
-                t._cleanSelectionMoveRange();
+				wsTo.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+                wsTo._cleanSelectionMoveRange();
                 return;
             }
 
             var onApplyMoveAutoFiltersCallback = function (isSuccess) {
                 if (false === isSuccess) {
-					t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
-                    t._cleanSelectionMoveRange();
+					wsTo.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+                    wsTo._cleanSelectionMoveRange();
                     return;
                 }
 
 				var hasMerged = t.model.getRange3(arnFrom.r1, arnFrom.c1, arnFrom.r2, arnFrom.c2).hasMerged();
 
                 // Очищаем выделение
-                t.cleanSelection();
+                wsTo.cleanSelection();
 
                 //ToDo t.cleanDepCells();
                 History.Create_NewPoint();
-                History.SetSelection(arnFrom.clone());
+                if(opt_wsTo === undefined) {
+                    History.SetSelection(arnFrom.clone());
+                }
                 History.SetSelectionRedo(arnTo.clone());
                 History.StartTransaction();
 
-                t.model.autoFilters._preMoveAutoFilters(arnFrom, arnTo, copyRange);
+                t.model.autoFilters._preMoveAutoFilters(arnFrom, arnTo, copyRange, opt_wsTo);
 
                 t.model._moveRange(arnFrom, arnTo, copyRange, opt_wsTo && opt_wsTo.model);
-                t.cellCommentator.moveRangeComments(arnFrom, arnTo, copyRange);
+                t.cellCommentator.moveRangeComments(arnFrom, arnTo, copyRange, opt_wsTo);
                 t.objectRender.moveRangeDrawingObject(arnFrom, arnTo);
 
                 // Вызываем функцию пересчета для заголовков форматированной таблицы
                 t.model.autoFilters.renameTableColumn(arnFrom);
-                t.model.autoFilters.renameTableColumn(arnTo);
+                wsTo.model.autoFilters.renameTableColumn(arnTo);
                 t.model.autoFilters.reDrawFilter(arnFrom);
 
-                t.model.autoFilters.afterMoveAutoFilters(arnFrom, arnTo);
+                t.model.autoFilters.afterMoveAutoFilters(arnFrom, arnTo, opt_wsTo);
 
+				if(opt_wsTo) {
+					History.SetSheetUndo(wsTo.model.getId());
+				}
 				History.EndTransaction();
 
-				t._updateRange(arnTo);
+				wsTo._updateRange(arnTo);
 				t._updateRange(arnFrom);
 
-				t.model.selectionRange.assign2(arnTo);
+				wsTo.model.selectionRange.assign2(arnTo);
 				// Сбрасываем параметры
-				t.activeMoveRange = null;
-				t.startCellMoveRange = null;
+				wsTo.activeMoveRange = null;
+				wsTo.startCellMoveRange = null;
 
 				// Тут будет отрисовка select-а
-				t.draw();
+				wsTo.draw();
 				// Вызовем на всякий случай, т.к. мы можем уже обновиться из-за формул ToDo возможно стоит убрать это в дальнейшем (но нужна переработка формул) - http://bugzilla.onlyoffice.com/show_bug.cgi?id=24505
-				t._updateSelectionNameAndInfo();
+				wsTo._updateSelectionNameAndInfo();
 
 				if (hasMerged && false !== t.model.autoFilters._intersectionRangeWithTableParts(arnTo)) {
 					//не делаем действий в asc_onConfirmAction, потому что во время диалога может выполниться autosave и новые измения добавятся в точку, которую уже отправили
 					//тем более результат диалога ни на что не влияет
-					t.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmPutMergeRange,
+					wsTo.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmPutMergeRange,
 						function () {
 						});
 				}
@@ -9040,8 +9093,12 @@
             }
         };
 
-        if (this.af_isCheckMoveRange(arnFrom, arnTo)) {
-            this._isLockedCells([arnFrom, arnTo], null, onApplyMoveRangeHandleCallback);
+        if (this.af_isCheckMoveRange(arnFrom, arnTo, opt_wsTo)) {
+            if(opt_wsTo) {
+                this._isLockedCells([arnFrom], null, opt_wsTo._isLockedCells([arnTo], null, onApplyMoveRangeHandleCallback));
+            } else {
+                this._isLockedCells([arnFrom, arnTo], null, onApplyMoveRangeHandleCallback);
+            }
         } else {
             this._cleanSelectionMoveRange();
         }
@@ -9059,6 +9116,14 @@
             this.setSelectionInfo( "empty", options );
         }
     };
+
+	WorksheetView.prototype.isNeedSelectionCut = function () {
+		var res = true;
+		if (AscCommon.g_clipboardBase.bCut && !this.objectRender.selectedGraphicObjectsExists()) {
+			res = false;
+		}
+		return res;
+	};
 
     WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive) {
         // Проверка глобального лока
@@ -14266,7 +14331,7 @@
         }
     };
 
-    WorksheetView.prototype.af_isCheckMoveRange = function (arnFrom, arnTo) {
+    WorksheetView.prototype.af_isCheckMoveRange = function (arnFrom, arnTo, opt_wsTo) {
         var ws = this.model;
         var tableParts = ws.TableParts;
         var tablePart;
@@ -14303,7 +14368,7 @@
 
 
         //2)если затрагиваем перемещаемым диапазоном часть а/ф со скрытыми строчками
-        if (!checkMoveRangeIntoApplyAutoFilter(arnTo)) {
+        if (!opt_wsTo && !checkMoveRangeIntoApplyAutoFilter(arnTo)) {
             ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterMoveToHiddenRangeError,
               c_oAscError.Level.NoCritical);
             return false;
@@ -15073,7 +15138,7 @@
         return res;
     };
 
-	WorksheetView.prototype.checkMoveFormulaArray = function(from, to, ctrlKey) {
+	WorksheetView.prototype.checkMoveFormulaArray = function(from, to, ctrlKey, opt_wsTo) {
 		//***array-formula***
 		var res = true;
 
@@ -15084,8 +15149,9 @@
 		}
 
 		//проверяем to, затрагиваем ли мы часть формулы массива
-		if(res) {
-			res = !this.intersectionFormulaArray(to);
+		var ws = opt_wsTo ? opt_wsTo : this;
+		if(res && to) {
+			res = !ws.intersectionFormulaArray(to);
 		}
 
 		return res;

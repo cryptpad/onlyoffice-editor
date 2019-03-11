@@ -387,7 +387,9 @@
         MediaItem: 1,
         MediaId: 2,
         MediaSrc: 3,
-        Theme: 5
+        Theme: 5,
+        DocId: 6,
+        UserId: 7
     };
     /** @enum */
     var c_oSer_CalcChainType =
@@ -4479,10 +4481,11 @@
         }
     }
     /** @constructor */
-    function BinaryOtherTableWriter(memory, wb)
+    function BinaryOtherTableWriter(memory, wb, isCopyPaste)
     {
         this.memory = memory;
         this.wb = wb;
+        this.isCopyPaste = isCopyPaste;
         this.bs = new BinaryCommonWriter(this.memory);
         this.Write = function()
         {
@@ -4492,7 +4495,20 @@
         this.WriteOtherContent = function()
         {
             var oThis = this;
-            this.bs.WriteItem(c_oSer_OtherType.Theme, function(){pptx_content_writer.WriteTheme(oThis.memory, oThis.wb.theme);});
+            if(!this.isCopyPaste)
+            {
+                this.bs.WriteItem(c_oSer_OtherType.Theme, function(){pptx_content_writer.WriteTheme(oThis.memory, oThis.wb.theme);});
+            }
+            var docId = this.wb.oApi && this.wb.oApi.DocInfo ? this.wb.oApi.DocInfo.Id : null;
+            if (null !== docId)
+            {
+                this.bs.WriteItem(c_oSer_OtherType.DocId, function(){oThis.memory.WriteString3(docId);});
+            }
+			var userId = this.wb.oApi && this.wb.oApi.CoAuthoringApi ? this.wb.oApi.CoAuthoringApi.getUserConnectionId() : null;
+			if (null !== userId)
+			{
+				this.bs.WriteItem(c_oSer_OtherType.UserId, function(){oThis.memory.WriteString3(userId);});
+			}
         };
     }
     /** @constructor */
@@ -4572,8 +4588,7 @@
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
             //OtherTable
-            if(!this.isCopyPaste)
-                this.WriteTable(c_oSerTableTypes.Other, new BinaryOtherTableWriter(this.Memory, this.wb));
+            this.WriteTable(c_oSerTableTypes.Other, new BinaryOtherTableWriter(this.Memory, this.wb, this.isCopyPaste));
             //Write SharedStrings
 			this.WriteReserved(new BinarySharedStringsTableWriter(this.Memory, this.wb, oSharedStrings, oBinaryStylesTableWriter), nSharedStringsPos);
             //Write Styles
@@ -8250,11 +8265,12 @@
         };
     }
     /** @constructor */
-    function Binary_OtherTableReader(stream, oMedia, wb)
+    function Binary_OtherTableReader(stream, oMedia, wb, copyPasteObj)
     {
         this.stream = stream;
         this.oMedia = oMedia;
         this.wb = wb;
+        this.copyPasteObj = copyPasteObj;
         this.bcr = new Binary_CommonReader(this.stream);
         this.Read = function()
         {
@@ -8262,11 +8278,13 @@
             var oRes = this.bcr.ReadTable(function(t, l){
                 return oThis.ReadOtherContent(t,l);
             });
-            this.wb.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
-            if(null == this.wb.theme)
-                this.wb.theme = AscFormat.GenerateDefaultTheme(this.wb, 'Calibri');
+            if(!this.copyPasteObj || !this.copyPasteObj.isCopyPaste) {
+                this.wb.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
+                if(null == this.wb.theme)
+                    this.wb.theme = AscFormat.GenerateDefaultTheme(this.wb, 'Calibri');
 
-            Asc.getBinaryOtherTableGVar(this.wb);
+                Asc.getBinaryOtherTableGVar(this.wb);
+            }
 
             return oRes;
         };
@@ -8285,6 +8303,22 @@
                 this.wb.theme = pptx_content_loader.ReadTheme(this, this.stream);
                 res = c_oSerConstants.ReadUnknown;
             }
+            else if ( c_oSer_OtherType.DocId === type )
+            {
+                var docId = this.stream.GetString2LE(length);
+                if(this.copyPasteObj)
+                {
+                    this.copyPasteObj.docId = docId;
+                }
+            }
+			else if ( c_oSer_OtherType.UserId === type )
+			{
+				var userId = this.stream.GetString2LE(length);
+				if(this.copyPasteObj)
+				{
+					this.copyPasteObj.userId = userId;
+				}
+			}
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -8642,7 +8676,7 @@
             {
                 res = this.stream.Seek(nOtherTableOffset);
                 if(c_oSerConstants.ReadOk == res)
-                    res = (new Binary_OtherTableReader(this.stream, oMediaArray, wb)).Read();
+                    res = (new Binary_OtherTableReader(this.stream, oMediaArray, wb, this.copyPasteObj)).Read();
             }
             if(null != nSharedStringTableOffset)
             {

@@ -240,6 +240,7 @@
     this._init(fontRenderingMode);
 
     this.autoCorrectStore = null;//объект для хранения параметров иконки авторазвертывания таблиц
+	this.cutIdSheet = null;
 
     return this;
   }
@@ -751,6 +752,8 @@
 			  return self.Api.selectSearchingResults;
 		  }, "getMainGraphics": function () {
 			  return self.mainGraphics;
+		  }, "cleanCutData": function (bDrawSelection, bCleanBuffer) {
+			  self.cleanCutData(bDrawSelection, bCleanBuffer);
 		  }
 	  });
 
@@ -2228,13 +2231,19 @@
 		//}
 	};
 
-  WorkbookView.prototype.selectionCut = function() {
-    if (this.getCellEditMode()) {
-      this.cellEditor.cutSelection();
-    } else {
-      this.getWorksheet().emptySelection(c_oAscCleanOptions.All, true);
-    }
-  };
+	WorkbookView.prototype.selectionCut = function () {
+		if (this.getCellEditMode()) {
+			this.cellEditor.cutSelection();
+		} else {
+			if (this.getWorksheet().isNeedSelectionCut()) {
+				this.getWorksheet().emptySelection(c_oAscCleanOptions.All, true);
+			} else {
+				//в данном случае не вырезаем, а записываем
+				this.cutIdSheet = this.getWorksheet().model.Id;
+				this.getWorksheet().cutRange = this.getWorksheet().model.selectionRange.getLast();
+			}
+		}
+	};
 
   WorkbookView.prototype.undo = function() {
     var oFormulaLocaleInfo = AscCommonExcel.oFormulaLocaleInfo;
@@ -3162,6 +3171,32 @@
 			callback();
 		} else {
 			this.collaborativeEditing.lock(lockInfoArr, callback);
+		}
+	};
+
+	WorkbookView.prototype.cleanCutData = function (bDrawSelection, bCleanBuffer) {
+		if(this.cutIdSheet) {
+			var activeWs = this.wsViews[this.wsActive];
+			var ws = this.getWorksheetById(this.cutIdSheet);
+
+			if(bDrawSelection && activeWs && ws && activeWs.model.Id === ws.model.Id) {
+				activeWs.cleanSelection();
+			}
+
+			if(ws) {
+				ws.cutRange = null;
+			}
+			this.cutIdSheet = null;
+
+			if(bDrawSelection && activeWs && ws && activeWs.model.Id === ws.model.Id) {
+				activeWs.updateSelection();
+			}
+			//ms чистит буфер, если происходят какие-то изменения в документе с посвеченной областью вырезать
+			//мы в данном случае не можем так делать, поскольку не можем прочесть информацию из буфера и убедиться, что
+			//там именно тот вырезанный фрагмент. тем самым можем затереть какую-то важную информацию
+			if(bCleanBuffer) {
+				AscCommon.g_clipboardBase.ClearBuffer();
+			}
 		}
 	};
 
