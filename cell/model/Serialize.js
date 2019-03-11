@@ -5323,7 +5323,11 @@
 				oStyleObject.aFills[i] = g_StyleCache.addFill(oStyleObject.aFills[i]);
 			}
 			//addXf with force flag should be last operation
-			firstFill = g_StyleCache.addFill(new AscCommonExcel.Fill(), true);
+			if (!this.isCopyPaste) {
+				firstFill = g_StyleCache.addFill(new AscCommonExcel.Fill(), true);
+			} else {
+				firstFill = g_StyleCache.addFill(new AscCommonExcel.Fill());
+			}
 			oStyleObject.aFills[0] = firstFill;
 			oStyleObject.aFills[1] = firstFill;
 
@@ -5489,7 +5493,7 @@
 					newXf.XfId = XfIdTmp;
                 }
 
-				if (0 == this.aCellXfs.length) {
+				if (0 == this.aCellXfs.length && !this.isCopyPaste) {
 					firstXf = newXf;
 				} else {
 					newXf = g_StyleCache.addXf(newXf);

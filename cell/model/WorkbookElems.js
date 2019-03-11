@@ -628,22 +628,29 @@ var g_oFontProperties = {
 			this.setRepeat(font.repeat);
 		}
 	};
-	Font.prototype.merge = function (font, isTable) {
+	Font.prototype.merge = function (font, isTable, isTableColor) {
 		var oRes = new Font();
 		oRes.fn = this.fn || font.fn;
 		oRes.scheme = this.scheme || font.scheme;
 		oRes.fs = this.fs || font.fs;
-		oRes.b = this.b || font.b;
-		oRes.i = this.i || font.i;
-		oRes.s = this.s || font.s;
-		oRes.u = this.u || font.u;
-		//заглушка excel при merge стилей игнорирует default цвет
-		if (isTable && this.c && this.c.isEqual(g_oDefaultFormat.Font.c)) {
+
+		oRes.b = null !== this.b ? this.b : font.b;
+		if (isTable) {
+			oRes.i = null !== font.i ? font.i : this.i;
+			oRes.s = null !== font.s ? font.s : this.s;
+			oRes.u = font.u || this.u;
+			oRes.va = font.va || this.va;
+		} else {
+			oRes.i = null !== this.i ? this.i : font.i;
+			oRes.s = null !== this.s ? this.s : font.s;
+			oRes.u = this.u || font.u;
+			oRes.va = this.va || font.va;
+		}
+		if (isTableColor) {
 			oRes.c = font.c || this.c;
 		} else {
 			oRes.c = this.c || font.c;
 		}
-		oRes.va = this.va || font.va;
 		oRes.skip = this.skip || font.skip;
 		oRes.repeat = this.repeat || font.repeat;
 		return oRes;
@@ -2175,7 +2182,7 @@ CellXfs.prototype =
 	setIndexNumber: function(val) {
 		this._index = val;
 	},
-	_mergeProperty : function(addFunc, first, second, isTable)
+	_mergeProperty : function(addFunc, first, second, isTable, isTableColor)
 	{
 		var res = null;
 		if(null != first || null != second)
@@ -2187,7 +2194,7 @@ CellXfs.prototype =
 			else
 			{
 				if (null != first.merge) {
-					res = addFunc.call(g_StyleCache, first.merge(second, isTable));
+					res = addFunc.call(g_StyleCache, first.merge(second, isTable, isTableColor));
 				} else {
 					res = first;
 				}
@@ -2215,7 +2222,17 @@ CellXfs.prototype =
 			} else {
 				cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
 			}
-			cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable);
+			var isTableColor = true;
+			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFont === xfs.font)) {
+				if (g_StyleCache.firstFont === xfs.font) {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
+				} else {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+				}
+			} else {
+				isTableColor = xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.firstFont.c);
+				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+			}
 			cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
 			cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
 			cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
@@ -3079,10 +3096,10 @@ StyleManager.prototype =
 				} else {
 					newVal.setIndexNumber(container.count++);
 				}
+				if (!res) {
+					container.vals[hash] = newVal;
+				}
 				res = newVal;
-			}
-			if (!res) {
-				container.vals[hash] = newVal;
 			}
 			return res;
 		} else {
