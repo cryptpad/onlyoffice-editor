@@ -3050,6 +3050,9 @@ CParagraphRecalculateStateWrap.prototype =
 
         if ( para_Numbering === NumberingType )
 		{
+			var oReviewInfo = this.Paragraph.GetReviewInfo();
+			var nReviewType = this.Paragraph.GetReviewType();
+
 			var NumPr = ParaPr.NumPr;
 			if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId || ( undefined !== Para.Get_SectionPr() && true === Para.IsEmpty() ))
 			{
@@ -3072,7 +3075,25 @@ CParagraphRecalculateStateWrap.prototype =
 				var nLvl = NumPr.Lvl;
 				if (arrNumInfo[0][nLvl] !== arrNumInfo[1][nLvl])
 				{
-					NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, arrNumInfo[1], NumPr);
+					if (reviewtype_Common === nReviewType)
+					{
+						NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, arrNumInfo[1], NumPr);
+					}
+					else
+					{
+						if (reviewtype_Remove === nReviewType && oReviewInfo.GetPrevAdded())
+						{
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), undefined, undefined, undefined, undefined);
+						}
+						else if (reviewtype_Remove === nReviewType)
+						{
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), undefined, undefined, arrNumInfo[1], NumPr);
+						}
+						else
+						{
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, undefined, undefined);
+						}
+					}
 				}
 				else
 				{

@@ -1214,7 +1214,21 @@ function ParaNumbering()
 		SourceCalcValue : -1,
 		SourceNumId     : null,
 		SourceNumLvl    : -1,
-		SourceWidth     : 0
+		SourceWidth     : 0,
+
+		Reset : function()
+		{
+			this.FinalNumInfo    = undefined;
+			this.FinalCalcValue  = -1;
+			this.FinalNumId      = null;
+			this.FinalNumLvl     = -1;
+
+			this.SourceNumInfo   = undefined;
+			this.SourceCalcValue = -1;
+			this.SourceNumId     = null;
+			this.SourceNumLvl    = -1;
+			this.SourceWidth     = 0;
+		}
 	};
 }
 ParaNumbering.prototype = Object.create(CRunElementBase.prototype);
@@ -1224,23 +1238,15 @@ ParaNumbering.prototype.Type = para_Numbering;
 ParaNumbering.prototype.Draw = function(X, Y, oContext, oNumbering, oTextPr, oTheme)
 {
 	var _X = X;
-	var oTempTextPr = oTextPr.Copy();
 	if (this.Internal.SourceNumInfo)
 	{
-		oTempTextPr.Strikeout = true;
-		oTempTextPr.Color = new CDocumentColor(255, 0, 0);
-
-		oNumbering.Draw(this.Internal.SourceNumId,this.Internal.SourceNumLvl, _X, Y, oContext, this.Internal.SourceNumInfo, oTempTextPr, oTheme);
-
+		oNumbering.Draw(this.Internal.SourceNumId,this.Internal.SourceNumLvl, _X, Y, oContext, this.Internal.SourceNumInfo, oTextPr, oTheme);
 		_X += this.Internal.SourceWidth;
 	}
 
 	if (this.Internal.FinalNumInfo)
 	{
-		if (this.Internal.SourceNumInfo)
-			oTempTextPr.Color = new CDocumentColor(255, 0, 0);
-
-		oNumbering.Draw(this.Internal.FinalNumId,this.Internal.FinalNumLvl, _X, Y, oContext, this.Internal.FinalNumInfo, oTempTextPr, oTheme);
+		oNumbering.Draw(this.Internal.FinalNumId,this.Internal.FinalNumLvl, _X, Y, oContext, this.Internal.FinalNumInfo, oTextPr, oTheme);
 	}
 };
 ParaNumbering.prototype.Measure = function (oContext, oNumbering, oTextPr, oTheme, oFinalNumInfo, oFinalNumPr, oSourceNumInfo, oSourceNumPr)
@@ -1250,6 +1256,8 @@ ParaNumbering.prototype.Measure = function (oContext, oNumbering, oTextPr, oThem
 	this.WidthVisible = 0;
 	this.WidthNum     = 0;
 	this.WidthSuff    = 0;
+
+	this.Internal.Reset();
 
 	if (!oNumbering)
 	{
@@ -1325,6 +1333,30 @@ ParaNumbering.prototype.Read_FromBinary = function(Reader)
 ParaNumbering.prototype.GetCalculatedValue = function()
 {
 	return this.Internal.FinalCalcValue;
+};
+/**
+ * Нужно ли отрисовывать исходную нумерацию
+ * @returns {boolean}
+ */
+ParaNumbering.prototype.HaveSourceNumbering = function()
+{
+	return !!this.Internal.SourceNumInfo;
+};
+/**
+ * Нужно ли отрисовывать финальную нумерацию
+ * @returns {boolean}
+ */
+ParaNumbering.prototype.HaveFinalNumbering = function()
+{
+	return !!this.Internal.FinalNumInfo;
+};
+/**
+ * Получаем ширину исходной нумерации
+ * @returns {number}
+ */
+ParaNumbering.prototype.GetSourceWidth = function()
+{
+	return this.Internal.SourceWidth;
 };
 
 // TODO: Реализовать табы по точке и с чертой.

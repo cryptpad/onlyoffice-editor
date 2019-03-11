@@ -1757,8 +1757,10 @@ ParaRun.prototype.Is_SimpleChanges = function(Changes)
 
 /**
  * Проверяем произошло ли простое изменение параграфа, сейчас главное, чтобы это было не добавлениe/удаление картинки
- * или ссылки на сноску или разметки сложного поля. На вход приходит либо массив изменений, либо одно изменение
+ * или ссылки на сноску или разметки сложного поля, или изменение типа реценизрования для рана со знаком конца
+ * параграфа. На вход приходит либо массив изменений, либо одно изменение
  * (можно не в массиве).
+ * @returns {boolean}
  */
 ParaRun.prototype.IsParagraphSimpleChanges = function(_Changes)
 {
@@ -1781,6 +1783,10 @@ ParaRun.prototype.IsParagraphSimpleChanges = function(_Changes)
                     return false;
             }
         }
+        else if (AscDFH.historyitem_ParaRun_ReviewType === ChangeType && this.GetParaEnd())
+		{
+			return false;
+		}
     }
 
     return true;
@@ -4530,7 +4536,6 @@ ParaRun.prototype.Refresh_RecalcData = function(oData)
 				oPara.Refresh_RecalcData2(nCurPage);
 				return;
 			}
-
 		}
 
 		oPara.Refresh_RecalcData2(0);
