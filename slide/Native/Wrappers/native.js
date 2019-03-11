@@ -1470,7 +1470,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
       
-        case 22004: // ASC_SPELLCHECK_EVENT_TYPE_MESSAGE
+        case 22004: // ASC_EVENT_TYPE_SPELLCHECK_MESSAGE
         {
             var json = JSON.parse(_params[0]);
             if (json && json["spellCheckData"]) {

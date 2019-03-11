@@ -416,6 +416,7 @@
 				ifr.style.height   = '100px';
 				ifr.style.overflow = 'hidden';
 				ifr.style.zIndex   = -1000;
+				ifr.setAttribute("frameBorder", "0");
 				document.body.appendChild(ifr);
 
 				if (runObject.startData.getAttribute("resize") !== true)
