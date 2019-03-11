@@ -3354,7 +3354,7 @@
 
 	WorksheetView.prototype._drawCutRange = function () {
 		if(this.cutRange) {
-			this._drawElements(this._drawSelectionElement, this.cutRange, AscCommonExcel.selectionLineType.Dash, new CColor(196, 18, 77));
+			this._drawElements(this._drawSelectionElement, this.cutRange, AscCommonExcel.selectionLineType.Dash, AscCommonExcel.c_oAscCoAuthoringOtherBorderColor);
 		}
 	};
 
