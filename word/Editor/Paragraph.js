@@ -54,6 +54,7 @@ var type_Paragraph = 0x0001;
 var UnknownValue  = null;
 
 var REVIEW_COLOR = new AscCommon.CColor(255, 0, 0, 255);
+var REVIEW_NUMBERING_COLOR = new AscCommon.CColor(27, 156, 171, 255);
 
 /**
  * Класс Paragraph
@@ -2129,6 +2130,9 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 			// Отрисовка нумерации
 			if (true === this.Numbering.Check_Range(CurRange, CurLine))
 			{
+				var nReviewType  = this.GetReviewType();
+				var oReviewColor = this.GetReviewColor();
+
 				var NumberingItem = this.Numbering;
 				if (para_Numbering === NumberingItem.Type)
 				{
@@ -2176,6 +2180,14 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 								pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
 							else
 								pGraphics.b_color1(oNumTextPr.Color.r, oNumTextPr.Color.g, oNumTextPr.Color.b, 255);
+						}
+
+						if (NumberingItem.HaveSourceNumbering() || reviewtype_Common !== nReviewType)
+						{
+							if (reviewtype_Common === nReviewType)
+								pGraphics.b_color1(REVIEW_NUMBERING_COLOR.r, REVIEW_NUMBERING_COLOR.g, REVIEW_NUMBERING_COLOR.b, 255);
+							else
+								pGraphics.b_color1(oReviewColor.r, oReviewColor.g, oReviewColor.b, 255);
 						}
 
 						// Рисуется только сам символ нумерации
@@ -2246,11 +2258,35 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 							}
 						}
 
-						if (true === oNumTextPr.Strikeout)
-							pGraphics.drawHorLine(0, (Y - oNumTextPr.FontSize * g_dKoef_pt_to_mm * 0.27), X_start, X_start + NumberingItem.WidthNum, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+						if (NumberingItem.HaveSourceNumbering() || reviewtype_Common !== nReviewType)
+						{
+							var nSourceWidth = NumberingItem.GetSourceWidth();
 
-						if (true === oNumTextPr.Underline)
-							pGraphics.drawHorLine(0, (Y + this.Lines[CurLine].Metrics.TextDescent * 0.4), X_start, X_start + NumberingItem.WidthNum, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+							if (reviewtype_Common === nReviewType)
+								pGraphics.p_color(REVIEW_NUMBERING_COLOR.r, REVIEW_NUMBERING_COLOR.g, REVIEW_NUMBERING_COLOR.b, 255);
+							else
+								pGraphics.p_color(oReviewColor.r, oReviewColor.g, oReviewColor.b, 255);
+
+							// Либо у нас есть удаленная часть, либо у нас одновременно добавлен и удален параграф, тогда мы зачеркиваем суффикс
+							if (NumberingItem.HaveSourceNumbering() || (!NumberingItem.HaveSourceNumbering() && !NumberingItem.HaveFinalNumbering()))
+							{
+								if (NumberingItem.HaveFinalNumbering())
+									pGraphics.drawHorLine(0, (Y - oNumTextPr.FontSize * g_dKoef_pt_to_mm * 0.27), X_start, X_start + nSourceWidth, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+								else
+									pGraphics.drawHorLine(0, (Y - oNumTextPr.FontSize * g_dKoef_pt_to_mm * 0.27), X_start, X_start + nSourceWidth + NumberingItem.WidthSuff, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+							}
+
+							if (NumberingItem.HaveFinalNumbering())
+								pGraphics.drawHorLine(0, (Y + this.Lines[CurLine].Metrics.TextDescent * 0.4), X_start + nSourceWidth, X_start + NumberingItem.WidthNum + NumberingItem.WidthSuff, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+						}
+						else
+						{
+							if (true === oNumTextPr.Strikeout)
+								pGraphics.drawHorLine(0, (Y - oNumTextPr.FontSize * g_dKoef_pt_to_mm * 0.27), X_start, X_start + NumberingItem.WidthNum, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+
+							if (true === oNumTextPr.Underline)
+								pGraphics.drawHorLine(0, (Y + this.Lines[CurLine].Metrics.TextDescent * 0.4), X_start, X_start + NumberingItem.WidthNum, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+						}
 					}
 				}
 				else if (para_PresentationNumbering === this.Numbering.Type)
@@ -12039,6 +12075,10 @@ Paragraph.prototype.GetReviewType = function()
 Paragraph.prototype.GetReviewInfo = function()
 {
 	return this.GetParaEndRun().GetReviewInfo();
+};
+Paragraph.prototype.GetReviewColor = function()
+{
+	return this.GetParaEndRun().GetReviewColor();
 };
 Paragraph.prototype.SetReviewTypeWithInfo = function(nType, oInfo)
 {
