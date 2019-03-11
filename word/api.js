@@ -9260,6 +9260,10 @@ background-repeat: no-repeat;\
 	{
 		return this.asc_GetCurrentContentControl();
 	};
+    window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControlPr"] = function()
+    {
+        return this.asc_GetContentControlProperties();
+    };
 	window["asc_docs_api"].prototype["pluginMethod_SelectContentControl"] = function(id)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
