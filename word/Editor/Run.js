@@ -5762,9 +5762,9 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
         }
 	}
 
-	if (true === this.Pr.Have_PrChange() && para_Math_Run !== this.Type)
+	if (true === this.Pr.HavePrChange() && para_Math_Run !== this.Type)
     {
-        var ReviewColor = this.Get_PrReviewColor();
+        var ReviewColor = this.GetPrReviewColor();
         PDSL.RunReview.Add(0, 0, PDSL.X, X, 0, ReviewColor.r, ReviewColor.g, ReviewColor.b, {RunPr: this.Pr});
     }
 
@@ -7155,11 +7155,11 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
         bReview = true;
 
     var ReviewType = this.GetReviewType();
-    var IsPrChange = this.Have_PrChange();
+    var IsPrChange = this.HavePrChange();
     if ( true === ApplyToAll )
     {
-        if (true === bReview && true !== this.Have_PrChange())
-            this.Add_PrChange();
+        if (true === bReview && true !== this.HavePrChange())
+            this.AddPrChange();
 
         if ( undefined === IncFontSize )
         {
@@ -7258,7 +7258,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 					RRun = LRun.Split_Run(EndPos);
 					RRun.SetReviewType(ReviewType);
 					if (IsPrChange)
-						RRun.Add_PrChange();
+						RRun.AddPrChange();
 				}
 
 				// Если выделено не с начала, тогда делим по начальной точке
@@ -7267,7 +7267,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 					CRun = LRun.Split_Run(StartPos);
 					CRun.SetReviewType(ReviewType);
 					if (IsPrChange)
-						CRun.Add_PrChange();
+						CRun.AddPrChange();
 				}
 				else
 				{
@@ -7284,8 +7284,8 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 
 				CRun.SelectAll(Direction);
 
-				if (true === bReview && true !== CRun.Have_PrChange())
-					CRun.Add_PrChange();
+				if (true === bReview && true !== CRun.HavePrChange())
+					CRun.AddPrChange();
 
 				if (undefined === IncFontSize)
 					CRun.Apply_Pr(TextPr);
@@ -7356,7 +7356,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
                 RRun = LRun.Split_Run(CurPos);
                 RRun.SetReviewType(ReviewType);
                 if (IsPrChange)
-                    RRun.Add_PrChange();
+                    RRun.AddPrChange();
             }
 
             if ( CurPos > 0 )
@@ -7364,7 +7364,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
                 CRun = LRun.Split_Run(CurPos);
                 CRun.SetReviewType(ReviewType);
                 if (IsPrChange)
-                    CRun.Add_PrChange();
+                    CRun.AddPrChange();
             }
             else
             {
@@ -7378,8 +7378,8 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
             CRun.RemoveSelection();
             CRun.MoveCursorToStartPos();
 
-            if (true === bReview && true !== CRun.Have_PrChange())
-                CRun.Add_PrChange();
+            if (true === bReview && true !== CRun.HavePrChange())
+                CRun.AddPrChange();
 
             if ( undefined === IncFontSize )
             {
@@ -7695,12 +7695,12 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 	}
 };
 
-ParaRun.prototype.Have_PrChange = function()
+ParaRun.prototype.HavePrChange = function()
 {
-    return this.Pr.Have_PrChange();
+    return this.Pr.HavePrChange();
 };
 
-ParaRun.prototype.Get_PrReviewColor = function()
+ParaRun.prototype.GetPrReviewColor = function()
 {
     if (this.Pr.ReviewInfo)
         return this.Pr.ReviewInfo.Get_Color();
@@ -7708,11 +7708,11 @@ ParaRun.prototype.Get_PrReviewColor = function()
     return REVIEW_COLOR;
 };
 
-ParaRun.prototype.Add_PrChange = function()
+ParaRun.prototype.AddPrChange = function()
 {
-    if (false === this.Have_PrChange())
+    if (false === this.HavePrChange())
     {
-        this.Pr.Add_PrChange();
+        this.Pr.AddPrChange();
 		History.Add(new CChangesRunPrChange(this,
 			{
 				PrChange   : undefined,
@@ -7726,7 +7726,7 @@ ParaRun.prototype.Add_PrChange = function()
     }
 };
 
-ParaRun.prototype.Set_PrChange = function(PrChange, ReviewInfo)
+ParaRun.prototype.SetPrChange = function(PrChange, ReviewInfo)
 {
 	History.Add(new CChangesRunPrChange(this,
 		{
@@ -7737,13 +7737,13 @@ ParaRun.prototype.Set_PrChange = function(PrChange, ReviewInfo)
 			PrChange   : PrChange,
 			ReviewInfo : ReviewInfo ? ReviewInfo.Copy() : undefined
 		}));
-	this.Pr.Set_PrChange(PrChange, ReviewInfo);
+	this.Pr.SetPrChange(PrChange, ReviewInfo);
     this.private_UpdateTrackRevisions();
 };
 
-ParaRun.prototype.Remove_PrChange = function()
+ParaRun.prototype.RemovePrChange = function()
 {
-	if (true === this.Have_PrChange())
+	if (true === this.HavePrChange())
 	{
 		History.Add(new CChangesRunPrChange(this,
 			{
@@ -7754,32 +7754,32 @@ ParaRun.prototype.Remove_PrChange = function()
 				PrChange   : undefined,
 				ReviewInfo : undefined
 			}));
-		this.Pr.Remove_PrChange();
+		this.Pr.RemovePrChange();
 		this.private_UpdateTrackRevisions();
 	}
 };
 
-ParaRun.prototype.Reject_PrChange = function()
+ParaRun.prototype.RejectPrChange = function()
 {
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
 		if (this.GetParaEnd())
 			this.Paragraph.TextPr.SetPr(this.Pr.PrChange);
 
         this.Set_Pr(this.Pr.PrChange);
 
-        this.Remove_PrChange();
+        this.RemovePrChange();
     }
 };
 
-ParaRun.prototype.Accept_PrChange = function()
+ParaRun.prototype.AcceptPrChange = function()
 {
-    this.Remove_PrChange();
+    this.RemovePrChange();
 };
 
-ParaRun.prototype.Get_DiffPrChange = function()
+ParaRun.prototype.GetDiffPrChange = function()
 {
-    return this.Pr.Get_DiffPrChange();
+    return this.Pr.GetDiffPrChange();
 };
 
 ParaRun.prototype.Set_Bold = function(Value)
@@ -9702,9 +9702,9 @@ ParaRun.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
         }
     }
 
-    var HavePrChange = this.Have_PrChange();
-    var DiffPr = this.Get_DiffPrChange();
-    if (HavePrChange !== Checker.Have_PrChange() || true !== Checker.Compare_PrChange(DiffPr) || this.Pr.ReviewInfo.Get_UserId() !== Checker.Get_PrChangeUserId())
+    var HavePrChange = this.HavePrChange();
+    var DiffPr = this.GetDiffPrChange();
+    if (HavePrChange !== Checker.HavePrChange() || true !== Checker.ComparePrChange(DiffPr) || this.Pr.ReviewInfo.Get_UserId() !== Checker.Get_PrChangeUserId())
     {
         Checker.Flush_TextPrChange();
         ContentPos.Update(0, Depth);
@@ -9717,7 +9717,7 @@ ParaRun.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
     if (true === HavePrChange)
     {
         ContentPos.Update(this.Content.length, Depth);
-        Checker.Set_PrChangeEndPos(ContentPos);
+        Checker.SetPrChangeEndPos(ContentPos);
         Checker.Update_PrChangeReviewInfo(this.Pr.ReviewInfo);
     }
 };
@@ -9737,7 +9737,7 @@ ParaRun.prototype.private_UpdateTrackRevisionOnChangeContent = function(bUpdateI
 };
 ParaRun.prototype.private_UpdateTrackRevisionOnChangeTextPr = function(bUpdateInfo)
 {
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
         this.private_UpdateTrackRevisions();
 
@@ -9762,8 +9762,8 @@ ParaRun.prototype.AcceptRevisionChanges = function(Type, bAll)
     var Parent = this.Get_Parent();
     var RunPos = this.private_GetPosInParent();
 
-    var ReviewType = this.GetReviewType();
-    var HavePrChange = this.Have_PrChange();
+    var ReviewType   = this.GetReviewType();
+    var HavePrChange = this.HavePrChange();
 
     // Нет изменений в данном ране
     if (reviewtype_Common === ReviewType && true !== HavePrChange)
@@ -9809,7 +9809,7 @@ ParaRun.prototype.AcceptRevisionChanges = function(Type, bAll)
 
         if (true === HavePrChange && (undefined === Type || c_oAscRevisionsChangeType.TextPr === Type))
         {
-            CenterRun.Remove_PrChange();
+            CenterRun.RemovePrChange();
         }
 
         if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.TextAdd === Type))
@@ -9834,8 +9834,8 @@ ParaRun.prototype.RejectRevisionChanges = function(Type, bAll)
     var Parent = this.Get_Parent();
     var RunPos = this.private_GetPosInParent();
 
-    var ReviewType = this.GetReviewType();
-    var HavePrChange = this.Have_PrChange();
+    var ReviewType   = this.GetReviewType();
+    var HavePrChange = this.HavePrChange();
 
     // Нет изменений в данном ране
     if (reviewtype_Common === ReviewType && true !== HavePrChange)

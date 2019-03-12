@@ -3155,7 +3155,7 @@ CParagraphContentWithParagraphLikeContent.prototype.SetReviewType = function(Rev
             Element.SetReviewType(ReviewType);
 
             if (true === RemovePrChange)
-                Element.Remove_PrChange();
+                Element.RemovePrChange();
         }
         else if (Element.SetReviewType)
             Element.SetReviewType(ReviewType);

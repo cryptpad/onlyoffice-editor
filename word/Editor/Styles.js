@@ -8572,7 +8572,7 @@ CTextPr.prototype =
         return true;
     },
 
-    Have_PrChange : function()
+	HavePrChange : function()
     {
         if (undefined === this.PrChange || null === this.PrChange)
             return false;
@@ -8580,30 +8580,30 @@ CTextPr.prototype =
         return true;
     },
 
-    Add_PrChange : function()
+	AddPrChange : function()
     {
         this.PrChange   = this.Copy();
         this.ReviewInfo = new CReviewInfo();
         this.ReviewInfo.Update();
     },
 
-    Set_PrChange : function(PrChange, ReviewInfo)
+	SetPrChange : function(PrChange, ReviewInfo)
     {
         this.PrChange   = PrChange;
         this.ReviewInfo = ReviewInfo;
     },
 
-    Remove_PrChange : function()
+	RemovePrChange : function()
     {
         delete this.PrChange;
         delete this.ReviewInfo;
     },
 
-    Get_DiffPrChange : function()
+	GetDiffPrChange : function()
     {
         var TextPr = new CTextPr();
 
-        if (false === this.Have_PrChange())
+        if (false === this.HavePrChange())
             return TextPr;
 
         var PrChange = this.PrChange;
@@ -10878,7 +10878,7 @@ CParaPr.prototype =
         return Bullet;
     },
 
-    Have_PrChange : function()
+	HavePrChange : function()
     {
         if (undefined === this.PrChange || null === this.PrChange)
             return false;
@@ -10886,20 +10886,20 @@ CParaPr.prototype =
         return true;
     },
 
-    Add_PrChange : function()
+	AddPrChange : function()
     {
         this.PrChange = this.Copy();
         this.ReviewInfo = new CReviewInfo();
         this.ReviewInfo.Update();
     },
 
-    Set_PrChange : function(PrChange, ReviewInfo)
+	SetPrChange : function(PrChange, ReviewInfo)
     {
         this.PrChange   = PrChange;
         this.ReviewInfo = ReviewInfo;
     },
 
-    Remove_PrChange : function()
+	RemovePrChange : function()
     {
         delete this.PrChange;
         delete this.ReviewInfo;
@@ -10930,11 +10930,11 @@ CParaPr.prototype.Is_Empty         = function()
 
 	return true;
 };
-CParaPr.prototype.Get_DiffPrChange = function()
+CParaPr.prototype.GetDiffPrChange = function()
 {
     var ParaPr = new CParaPr();
 
-    if (false === this.Have_PrChange())
+    if (false === this.HavePrChange())
         return ParaPr;
 
     var PrChange = this.PrChange;

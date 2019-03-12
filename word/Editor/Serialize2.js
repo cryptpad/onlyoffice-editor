@@ -7814,7 +7814,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
                     res = this.bcr.Read1(length, function(t, l){
                         return ReadTrackRevision(t, l, oThis.stream, reviewInfo, {bpPrr: bpPrr, pPr: pPrChange});
                     });
-                    this.paragraph.Set_PrChange(pPrChange, reviewInfo);
+                    this.paragraph.SetPrChange(pPrChange, reviewInfo);
                 } else {
                     res = c_oSerConstants.ReadUnknown;
                 }
@@ -8735,7 +8735,7 @@ function Binary_rPrReader(doc, oReadResult, stream)
                     return ReadTrackRevision(t, l, oThis.stream, reviewInfo, {brPrr: brPrr, rPr: rPrChange});
                 });
                 if (run) {
-                    run.Set_PrChange(rPrChange, reviewInfo);
+                    run.SetPrChange(rPrChange, reviewInfo);
                 }
 				break;
             default:
