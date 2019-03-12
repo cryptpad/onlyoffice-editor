@@ -2741,8 +2741,18 @@
 						rect.w *= dScale;
 						rect.h *= dScale;
 
+
                         AscFormat.ExecuteNoHistory(
                             function (rect) {
+
+
+                                var oImgP = new Asc.asc_CImgProperty();
+                                oImgP.ImageUrl = AscFormat.sDownIncline;
+                                var oSize = oImgP.get_OriginSize(Asc.editor);
+
+                                rect.y = rect.y + rect.h - oSize.Height;
+                                rect.w = oSize.Width;
+                                rect.h = oSize.Height;
                                 var geometry = new AscFormat.Geometry();
                                 var path = new AscFormat.Path();
                                 path.moveTo(rect.x, rect.y);
@@ -2753,7 +2763,7 @@
                                 geometry.AddPath(path);
                                 geometry.Recalculate(100, 100, true);
 
-                                var oUniFill = new AscFormat.builder_CreateBlipFill(AscFormat.sDownIncline, "tile");
+                                var oUniFill = new AscFormat.builder_CreateBlipFill(AscFormat.sDownIncline, "stretch");
 
                                 graphics.save();
                                 graphics.transform3(new AscCommon.CMatrix());
