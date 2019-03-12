@@ -588,10 +588,21 @@ function (window, undefined) {
 				Formula: "", pCurrPos: 0
 			}, ref, found_operand, ret;
 
+		var _getWorksheetByName = function(name){
+			if(!name) {
+				return null;
+			}
+			for(var i = 0; i < wb.aWorksheets.length; i++)
+				if(wb.aWorksheets[i].getName().toLowerCase() == name.toLowerCase()){
+					return wb.aWorksheets[i];
+				}
+			return null;
+		};
+
 		function parseReference() {
 			if ((ref = parserHelp.is3DRef.call(o, o.Formula, o.pCurrPos))[0]) {
-				var wsFrom = wb.getWorksheetByName(ref[1]);
-				var wsTo = (null !== ref[2]) ? wb.getWorksheetByName(ref[2]) : wsFrom;
+				var wsFrom = _getWorksheetByName(ref[1]);
+				var wsTo = (null !== ref[2]) ? _getWorksheetByName(ref[2]) : wsFrom;
 				if (!(wsFrom && wsTo)) {
 					return new cError(cErrorType.bad_reference);
 				}
