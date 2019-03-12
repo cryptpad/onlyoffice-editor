@@ -583,7 +583,11 @@
 		this.sendEvent('asc_onDocumentContentReady');
 
 		if (window.g_asc_plugins)
-			window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
+        {
+         	if (this.isMobileVersion)
+         		Asc.loadPluginsAsInterface(this);
+            window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
+        }
 
         if (this.editorId == c_oEditorId.Spreadsheet)
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
@@ -1998,7 +2002,10 @@
         _frame.style.width = w + "px";
         _frame.style.height = h + "px";
 
-        _frame.style.zIndex = 1000;
+        if (!this.isMobileVersion)
+        	_frame.style.zIndex = 1000;
+        else
+            _frame.style.zIndex = 5001;
 
         if (isKeyboardTake)
         {
