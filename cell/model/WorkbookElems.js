@@ -646,7 +646,7 @@ var g_oFontProperties = {
 			oRes.u = this.u || font.u;
 			oRes.va = this.va || font.va;
 		}
-		if (isTableColor) {
+		if (isTable && isTableColor) {
 			oRes.c = font.c || this.c;
 		} else {
 			oRes.c = this.c || font.c;
@@ -2230,7 +2230,7 @@ CellXfs.prototype =
 					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
 				}
 			} else {
-				isTableColor = xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.firstFont.c);
+				isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.firstFont.c);
 				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
 			}
 			cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
@@ -2819,6 +2819,9 @@ function StyleManager(){
 StyleManager.prototype =
 {
 	init: function(wb, firstXf, firstFont, firstFill) {
+		g_StyleCache.firstXf = firstXf;
+		g_StyleCache.firstFont = firstFont;
+		g_StyleCache.firstFill = firstFill;
 		if(null != firstXf.font)
 			g_oDefaultFormat.Font = firstXf.font;
 		if(null != firstXf.fill)
@@ -2830,12 +2833,8 @@ StyleManager.prototype =
 		if(null != firstXf.align)
 			g_oDefaultFormat.Align = firstXf.align.clone();
 		if (null !== firstXf.XfId) {
-			g_StyleCache.firstXf.XfId = firstXf.XfId;
 			g_oDefaultFormat.XfId = firstXf.XfId;
 		}
-		g_StyleCache.firstXf = firstXf;
-		g_StyleCache.firstFont = firstFont;
-		g_StyleCache.firstFill = firstFill;
 	},
 	setCellStyle : function(oItemWithXfs, val)
 	{
