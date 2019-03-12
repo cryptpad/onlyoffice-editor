@@ -13455,7 +13455,7 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 
 			if (true === this.IsTrackRevisions())
 			{
-				NewParagraph.Remove_PrChange();
+				NewParagraph.RemovePrChange();
 				NewParagraph.SetReviewType(ItemReviewType);
 				Item.SetReviewType(reviewtype_Add);
 			}
@@ -13480,7 +13480,7 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 
 			if (true === this.IsTrackRevisions())
 			{
-				NewParagraph.Remove_PrChange();
+				NewParagraph.RemovePrChange();
 				NewParagraph.SetReviewType(reviewtype_Add);
 			}
 		}
@@ -13492,7 +13492,7 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 
 			if (this.IsTrackRevisions())
 			{
-				oNewParagraph.Remove_PrChange();
+				oNewParagraph.RemovePrChange();
 				oNewParagraph.SetReviewType(reviewtype_Add);
 			}
 		}

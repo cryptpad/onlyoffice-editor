@@ -1629,7 +1629,7 @@ Paragraph.prototype.Internal_Draw_1 = function(CurPage, pGraphics, Pr)
 		}
 
 		// Если данный параграф был изменен в режиме рецензирования, тогда рисуем специальный знак
-		if (true === this.Pr.Have_PrChange())
+		if (true === this.Pr.HavePrChange())
 		{
 			if (( CurPage > 0 || false === this.IsStartFromNewPage() || null === this.Get_DocumentPrev() ))
 			{
@@ -1637,7 +1637,7 @@ Paragraph.prototype.Internal_Draw_1 = function(CurPage, pGraphics, Pr)
 				var Y_top    = this.Pages[CurPage].Bounds.Top;
 				var Y_bottom = this.Pages[CurPage].Bounds.Bottom;
 
-				var ReviewColor = this.Get_PrReviewColor();
+				var ReviewColor = this.GetPrReviewColor();
 				pGraphics.p_color(ReviewColor.r, ReviewColor.g, ReviewColor.b, 255);
 				pGraphics.drawVerLine(0, X_min, Y_top, Y_bottom, 0);
 			}
@@ -11989,33 +11989,33 @@ Paragraph.prototype.Clear_CollaborativeMarks = function()
 {
     this.CollPrChange = false;
 };
-Paragraph.prototype.Have_PrChange = function()
+Paragraph.prototype.HavePrChange = function()
 {
-    return this.Pr.Have_PrChange();
+    return this.Pr.HavePrChange();
 };
-Paragraph.prototype.Get_PrReviewColor = function()
+Paragraph.prototype.GetPrReviewColor = function()
 {
     if (this.Pr.ReviewInfo)
         return this.Pr.ReviewInfo.Get_Color();
 
     return REVIEW_COLOR;
 };
-Paragraph.prototype.Accept_PrChange = function()
+Paragraph.prototype.AcceptPrChange = function()
 {
-    this.Remove_PrChange();
+    this.RemovePrChange();
 };
-Paragraph.prototype.Reject_PrChange = function()
+Paragraph.prototype.RejectPrChange = function()
 {
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
         this.Set_Pr(this.Pr.PrChange);
     }
 };
-Paragraph.prototype.Add_PrChange = function()
+Paragraph.prototype.AddPrChange = function()
 {
-    if (false === this.Have_PrChange())
+    if (false === this.HavePrChange())
     {
-        this.Pr.Add_PrChange();
+        this.Pr.AddPrChange();
 		History.Add(new CChangesParagraphPrChange(this,
 			{
 				PrChange   : undefined,
@@ -12028,7 +12028,7 @@ Paragraph.prototype.Add_PrChange = function()
         this.private_UpdateTrackRevisions();
     }
 };
-Paragraph.prototype.Set_PrChange = function(PrChange, ReviewInfo)
+Paragraph.prototype.SetPrChange = function(PrChange, ReviewInfo)
 {
 	History.Add(new CChangesParagraphPrChange(this,
 		{
@@ -12039,12 +12039,12 @@ Paragraph.prototype.Set_PrChange = function(PrChange, ReviewInfo)
 			PrChange   : PrChange,
 			ReviewInfo : ReviewInfo ? ReviewInfo.Copy() : undefined
 		}));
-    this.Pr.Set_PrChange(PrChange, ReviewInfo);
+    this.Pr.SetPrChange(PrChange, ReviewInfo);
     this.private_UpdateTrackRevisions();
 };
-Paragraph.prototype.Remove_PrChange = function()
+Paragraph.prototype.RemovePrChange = function()
 {
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
 		History.Add(new CChangesParagraphPrChange(this,
 			{
@@ -12055,14 +12055,14 @@ Paragraph.prototype.Remove_PrChange = function()
 				PrChange   : undefined,
 				ReviewInfo : undefined
 			}));
-        this.Pr.Remove_PrChange();
+        this.Pr.RemovePrChange();
         this.private_UpdateTrackRevisions();
     }
 };
 Paragraph.prototype.private_AddPrChange = function()
 {
-    if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions() && true !== this.Have_PrChange())
-        this.Add_PrChange();
+    if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions() && true !== this.HavePrChange())
+        this.AddPrChange();
 };
 Paragraph.prototype.SetReviewType = function(nType)
 {
@@ -12118,7 +12118,7 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
     var ParaId = this.Get_Id();
 
     var Change, StartPos, EndPos;
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
         StartPos = this.Get_StartPos();
         EndPos   = this.Get_EndPos(true);
@@ -12128,7 +12128,7 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
         Change.put_StartPos(StartPos);
         Change.put_EndPos(EndPos);
         Change.put_Type(c_oAscRevisionsChangeType.ParaPr);
-        Change.put_Value(this.Pr.Get_DiffPrChange());
+        Change.put_Value(this.Pr.GetDiffPrChange());
         Change.put_UserId(this.Pr.ReviewInfo.Get_UserId());
         Change.put_UserName(this.Pr.ReviewInfo.Get_UserName());
         Change.put_DateTime(this.Pr.ReviewInfo.Get_DateTime());
@@ -12184,7 +12184,7 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
 };
 Paragraph.prototype.private_UpdateTrackRevisionOnChangeParaPr = function(bUpdateInfo)
 {
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
         this.private_UpdateTrackRevisions();
 
@@ -12258,7 +12258,7 @@ Paragraph.prototype.AcceptRevisionChanges = function(Type, bAll)
         {
             EndPos = this.Content.length - 2;
             if (true === bAll || undefined === Type || c_oAscRevisionsChangeType.TextPr === Type)
-                this.Content[this.Content.length - 1].Accept_PrChange();
+                this.Content[this.Content.length - 1].AcceptPrChange();
         }
 
         // Начинаем с конца, потому что при выполнении данной фунцкции, количество элементов может изменяться
@@ -12296,7 +12296,7 @@ Paragraph.prototype.RejectRevisionChanges = function(Type, bAll)
         {
             EndPos = this.Content.length - 2;
             if (true === bAll || undefined === Type || c_oAscRevisionsChangeType.TextPr === Type)
-                this.Content[this.Content.length - 1].Reject_PrChange();
+                this.Content[this.Content.length - 1].RejectPrChange();
         }
 
         // Начинаем с конца, потому что при выполнении данной фунцкции, количество элементов может изменяться
@@ -15445,11 +15445,11 @@ CParagraphRevisionsChangesChecker.prototype.Add_Drawing = function(Drawing)
         }
     }
 };
-CParagraphRevisionsChangesChecker.prototype.Have_PrChange = function()
+CParagraphRevisionsChangesChecker.prototype.HavePrChange = function()
 {
     return (null === this.TextPr.Pr ? false : true);
 };
-CParagraphRevisionsChangesChecker.prototype.Compare_PrChange = function(PrChange)
+CParagraphRevisionsChangesChecker.prototype.ComparePrChange = function(PrChange)
 {
     if (null === this.TextPr.Pr)
         return false;
@@ -15462,7 +15462,7 @@ CParagraphRevisionsChangesChecker.prototype.Start_PrChange = function(Pr, Conten
     this.TextPr.StartPos = ContentPos.Copy();
     this.TextPr.EndPos   = ContentPos.Copy();
 };
-CParagraphRevisionsChangesChecker.prototype.Set_PrChangeEndPos = function(ContentPos)
+CParagraphRevisionsChangesChecker.prototype.SetPrChangeEndPos = function(ContentPos)
 {
     this.TextPr.EndPos = ContentPos.Copy();
 };

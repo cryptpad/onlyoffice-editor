@@ -605,9 +605,9 @@ CDocument.prototype.AcceptRevisionChanges = function(Type, bAll)
                 for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
                 {
                     var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true == bAll) && true === Element.Have_PrChange())
+                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true == bAll) && true === Element.HavePrChange())
                     {
-                        Element.Accept_PrChange();
+                        Element.AcceptPrChange();
                     }
                 }
             }
@@ -697,9 +697,9 @@ CDocument.prototype.RejectRevisionChanges = function(Type, bAll)
                 for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
                 {
                     var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.Have_PrChange())
+                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
                     {
-                        Element.Reject_PrChange();
+                        Element.RejectPrChange();
                     }
                 }
             }
@@ -820,9 +820,9 @@ CDocumentContent.prototype.AcceptRevisionChanges = function(Type, bAll)
                 for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
                 {
                     var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.Have_PrChange())
+                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
                     {
-                        Element.Accept_PrChange();
+                        Element.AcceptPrChange();
                     }
                 }
             }
@@ -893,9 +893,9 @@ CDocumentContent.prototype.RejectRevisionChanges = function(Type, bAll)
                 for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
                 {
                     var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.Have_PrChange())
+                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
                     {
-                        Element.Reject_PrChange();
+                        Element.RejectPrChange();
                     }
                 }
             }
