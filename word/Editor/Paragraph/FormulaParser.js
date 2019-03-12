@@ -136,7 +136,7 @@
                 _result = -1.0;
             }
             if(this.parseQueue.format){
-                return this.parseQueue.format.formatToChart(_result, 14);
+                return this.parseQueue.format.formatToWord(_result, 14);
             }
             sResult = "";
             if(_result < 0){
