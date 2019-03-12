@@ -863,7 +863,7 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 	var oFormat;
 	if(null !== sFormat)
 	{
-        oFormat = AscCommon.oNumFormatCache.get(sFormat);
+        oFormat = AscCommon.oNumFormatCache.get(sFormat, true);
         this.Result.SetFormat(oFormat);
 	}
 	this.Result.SetFormula(sFormula);
