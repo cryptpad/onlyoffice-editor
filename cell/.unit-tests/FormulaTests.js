@@ -8669,7 +8669,40 @@ $( function () {
 		strictEqual( oParser.calculate().getValue().getValue(), 1 );
     } );
 
-    test( "Test: \"OFFSET\"", function () {
+	test( "Test: \"INDIRECT\"", function () {
+
+		ws.getRange2( "A22" ).setValue( "B22" );
+		ws.getRange2( "B22" ).setValue( "1.333" );
+
+		ws.getRange2( "A23" ).setValue( "B23" );
+		ws.getRange2( "B23" ).setValue( "45" );
+
+		ws.getRange2( "A24" ).setValue( "George" );
+		ws.getRange2( "B24" ).setValue( "10" );
+
+		ws.getRange2( "A25" ).setValue( "25" );
+		ws.getRange2( "B25" ).setValue( "62" );
+
+
+		oParser = new parserFormula( "INDIRECT(A22)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1.333 );
+
+		oParser = new parserFormula( "INDIRECT(A23)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 45 );
+
+		/*oParser = new parserFormula( "INDIRECT(A24)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 10 );*/
+
+		oParser = new parserFormula( 'INDIRECT("B"&A25)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 62 );
+	} );
+
+
+	test( "Test: \"OFFSET\"", function () {
 
         ws.getRange2( "C150" ).setValue( "1" );
         ws.getRange2( "D150" ).setValue( "2" );
