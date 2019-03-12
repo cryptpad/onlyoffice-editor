@@ -3693,6 +3693,38 @@
 					}
 				};
 
+				var checkEmptyRowsCols = function() {
+					var iter = 0;
+					while(true) {
+						iter++;
+						if(iter > 10000000) {
+							break;
+						}
+						//TODO merge cells
+						//проверяем сверху range
+						if(range.r1 < range.r2 && checkEmptyRange(range.r1, range.c1, range.r1, range.c2)) {
+							range.r1++;
+							continue;
+						}
+						//проверяем снизу range
+						if(range.r1 < range.r2 && checkEmptyRange(range.r2, range.c1, range.r2, range.c2)) {
+							range.r2--;
+							continue;
+						}
+						//проверяем слева range
+						if(range.c1 < range.c2 && checkEmptyRange(range.r1, range.c1, range.r2, range.c1)) {
+							range.c1++;
+							continue;
+						}
+						//проверяем справа range
+						if(range.c1 < range.c2 && checkEmptyRange(range.r1, range.c2, range.r2, range.c2)) {
+							range.c2--;
+							continue;
+						}
+						break;
+					}
+				};
+
 				//проходимся первый раз
 				doExpand();
 				//далее необходимо найти пересечения со всеми ф/т и а/ф
@@ -3758,6 +3790,9 @@
 					range = activeRange.clone();
 					doExpand();
 				}
+
+				//проверяем на наличие пустых колонок/строк
+				checkEmptyRowsCols();
 
 				return range;
 			},
