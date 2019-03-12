@@ -2088,10 +2088,12 @@
 		asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
 			oGraphics.clear();
 			// Fill cell
-			var oColor = oStyle.getFillColor();
-			if (null !== oColor) {
-				oGraphics.setFillStyle(oColor);
-				oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+			if (oStyle.ApplyFill) {
+				var oColor = oStyle.getFillColor();
+				if (null !== oColor) {
+					oGraphics.setFillStyle(oColor);
+					oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+				}
 			}
 
 			var drawBorder = function (b, x1, y1, x2, y2) {
@@ -2103,14 +2105,16 @@
 				}
 			};
 
-			// borders
-			var oBorders = oStyle.getBorder();
-			drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt);
-			drawBorder(oBorders.r, this.styleThumbnailWidthPt, 0, this.styleThumbnailWidthPt,
-				this.styleThumbnailHeightPt);
-			drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0);
-			drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt, this.styleThumbnailWidthPt,
-				this.styleThumbnailHeightPt);
+			if (oStyle.ApplyBorder) {
+				// borders
+				var oBorders = oStyle.getBorder();
+				drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt);
+				drawBorder(oBorders.r, this.styleThumbnailWidthPt, 0, this.styleThumbnailWidthPt,
+					this.styleThumbnailHeightPt);
+				drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0);
+				drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt, this.styleThumbnailWidthPt,
+					this.styleThumbnailHeightPt);
+			}
 
 			// Draw text
 			var format = oStyle.getFont().clone();

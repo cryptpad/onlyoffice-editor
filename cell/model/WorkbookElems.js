@@ -561,6 +561,25 @@ var g_oFontProperties = {
 	Font.prototype.setIndexNumber = function(val) {
 		return this._index = val;
 	};
+	Font.prototype.initDefault = function(wb) {
+		if (!this.fn) {
+			var sThemeFont = null;
+			if (null != wb.theme.themeElements && null != wb.theme.themeElements.fontScheme) {
+				if (Asc.EFontScheme.fontschemeMinor == this.scheme && wb.theme.themeElements.fontScheme.minorFont) {
+					sThemeFont = wb.theme.themeElements.fontScheme.minorFont.latin;
+				} else if (Asc.EFontScheme.fontschemeMajor == this.scheme && wb.theme.themeElements.fontScheme.majorFont) {
+					sThemeFont = wb.theme.themeElements.fontScheme.majorFont.latin;
+				}
+			}
+			this.fn = sThemeFont ? sThemeFont : "Calibri";
+		}
+		if (!this.fs) {
+			this.fs = 11;
+		}
+		if (!this.c) {
+			this.c = AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorTextDefault);
+		}
+	};
 	Font.prototype.assign = function(font) {
 		this.fn = font.fn;
 		this.scheme = font.scheme;
@@ -609,22 +628,29 @@ var g_oFontProperties = {
 			this.setRepeat(font.repeat);
 		}
 	};
-	Font.prototype.merge = function (font, isTable) {
+	Font.prototype.merge = function (font, isTable, isTableColor) {
 		var oRes = new Font();
 		oRes.fn = this.fn || font.fn;
 		oRes.scheme = this.scheme || font.scheme;
 		oRes.fs = this.fs || font.fs;
-		oRes.b = this.b || font.b;
-		oRes.i = this.i || font.i;
-		oRes.s = this.s || font.s;
-		oRes.u = this.u || font.u;
-		//заглушка excel при merge стилей игнорирует default цвет
-		if (isTable && this.c && this.c.isEqual(g_oDefaultFormat.Font.c)) {
+
+		oRes.b = null !== this.b ? this.b : font.b;
+		if (isTable) {
+			oRes.i = null !== font.i ? font.i : this.i;
+			oRes.s = null !== font.s ? font.s : this.s;
+			oRes.u = font.u || this.u;
+			oRes.va = font.va || this.va;
+		} else {
+			oRes.i = null !== this.i ? this.i : font.i;
+			oRes.s = null !== this.s ? this.s : font.s;
+			oRes.u = this.u || font.u;
+			oRes.va = this.va || font.va;
+		}
+		if (isTable && isTableColor) {
 			oRes.c = font.c || this.c;
 		} else {
 			oRes.c = this.c || font.c;
 		}
-		oRes.va = this.va || font.va;
 		oRes.skip = this.skip || font.skip;
 		oRes.repeat = this.repeat || font.repeat;
 		return oRes;
@@ -2156,7 +2182,7 @@ CellXfs.prototype =
 	setIndexNumber: function(val) {
 		this._index = val;
 	},
-	_mergeProperty : function(addFunc, first, second, isTable)
+	_mergeProperty : function(addFunc, first, second, isTable, isTableColor)
 	{
 		var res = null;
 		if(null != first || null != second)
@@ -2168,7 +2194,7 @@ CellXfs.prototype =
 			else
 			{
 				if (null != first.merge) {
-					res = addFunc.call(g_StyleCache, first.merge(second, isTable));
+					res = addFunc.call(g_StyleCache, first.merge(second, isTable, isTableColor));
 				} else {
 					res = first;
 				}
@@ -2180,15 +2206,33 @@ CellXfs.prototype =
 	{
 		var xfIndexNumber = xfs.getIndexNumber();
 		if (undefined === xfIndexNumber) {
-			xfs = g_StyleCache.addXf(xfs, true);
+			xfs = g_StyleCache.addXf(xfs);
 			xfIndexNumber = xfs.getIndexNumber();
 		}
 		var cache = this.getOperationCache("merge", xfIndexNumber);
 		if (!cache) {
 			cache = new CellXfs();
 			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border);
-			cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
-			cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable);
+			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFill === xfs.fill)) {
+				if (g_StyleCache.firstFill === xfs.fill) {
+					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
+				} else {
+					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, xfs.fill);
+				}
+			} else {
+				cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
+			}
+			var isTableColor = true;
+			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFont === xfs.font)) {
+				if (g_StyleCache.firstFont === xfs.font) {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
+				} else {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+				}
+			} else {
+				isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.firstFont.c);
+				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+			}
 			cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
 			cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
 			cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
@@ -2406,17 +2450,17 @@ Align.prototype =
 		else
 			return second;
 	},
-	merge : function(border)
+	merge : function(align)
 	{
 		var defaultAlign = g_oDefaultFormat.Align;
 		var oRes = new Align();
-		oRes.hor = this._mergeProperty(this.hor, border.hor, defaultAlign.hor);
-		oRes.indent = this._mergeProperty(this.indent, border.indent, defaultAlign.indent);
-		oRes.RelativeIndent = this._mergeProperty(this.RelativeIndent, border.RelativeIndent, defaultAlign.RelativeIndent);
-		oRes.shrink = this._mergeProperty(this.shrink, border.shrink, defaultAlign.shrink);
-		oRes.angle = this._mergeProperty(this.angle, border.angle, defaultAlign.angle);
-		oRes.ver = this._mergeProperty(this.ver, border.ver, defaultAlign.ver);
-		oRes.wrap = this._mergeProperty(this.wrap, border.wrap, defaultAlign.wrap);
+		oRes.hor = this._mergeProperty(this.hor, align.hor, defaultAlign.hor);
+		oRes.indent = this._mergeProperty(this.indent, align.indent, defaultAlign.indent);
+		oRes.RelativeIndent = this._mergeProperty(this.RelativeIndent, align.RelativeIndent, defaultAlign.RelativeIndent);
+		oRes.shrink = this._mergeProperty(this.shrink, align.shrink, defaultAlign.shrink);
+		oRes.angle = this._mergeProperty(this.angle, align.angle, defaultAlign.angle);
+		oRes.ver = this._mergeProperty(this.ver, align.ver, defaultAlign.ver);
+		oRes.wrap = this._mergeProperty(this.wrap, align.wrap, defaultAlign.wrap);
 		return oRes;
 	},
 	getDif : function(val)
@@ -2771,47 +2815,26 @@ CCellStyle.prototype.getNumFormatStr = function () {
 };
 /** @constructor */
 function StyleManager(){
-	//стиль ячейки по умолчанию, может содержать не все свойства
-	this.oDefaultXfs = new CellXfs();
 }
 StyleManager.prototype =
 {
-	init: function(oDefaultXfs, wb) {
-		//font
-		if (!oDefaultXfs.font) {
-			oDefaultXfs.font = new AscCommonExcel.Font();
+	init: function(wb, firstXf, firstFont, firstFill) {
+		g_StyleCache.firstXf = firstXf;
+		g_StyleCache.firstFont = firstFont;
+		g_StyleCache.firstFill = firstFill;
+		if(null != firstXf.font)
+			g_oDefaultFormat.Font = firstXf.font;
+		if(null != firstXf.fill)
+			g_oDefaultFormat.Fill = firstXf.fill.clone();
+		if(null != firstXf.border)
+			g_oDefaultFormat.Border = firstXf.border.clone();
+		if(null != firstXf.num)
+			g_oDefaultFormat.Num = firstXf.num.clone();
+		if(null != firstXf.align)
+			g_oDefaultFormat.Align = firstXf.align.clone();
+		if (null !== firstXf.XfId) {
+			g_oDefaultFormat.XfId = firstXf.XfId;
 		}
-		if (!oDefaultXfs.font.fn) {
-			var sThemeFont = null;
-			if (null != wb.theme.themeElements && null != wb.theme.themeElements.fontScheme) {
-				if (Asc.EFontScheme.fontschemeMinor == oDefaultXfs.font.scheme && wb.theme.themeElements.fontScheme.minorFont) {
-					sThemeFont = wb.theme.themeElements.fontScheme.minorFont.latin;
-				} else if (Asc.EFontScheme.fontschemeMajor == oDefaultXfs.font.scheme && wb.theme.themeElements.fontScheme.majorFont) {
-					sThemeFont = wb.theme.themeElements.fontScheme.majorFont.latin;
-				}
-			}
-			oDefaultXfs.font.fn = sThemeFont ? sThemeFont : "Calibri";
-		}
-		if (!oDefaultXfs.font.fs) {
-			oDefaultXfs.font.fs = 11;
-		}
-		if (!oDefaultXfs.font.c) {
-			oDefaultXfs.font.c = AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorTextDefault);
-		}
-		g_oDefaultFormat.Font = oDefaultXfs.font;
-		if(null != oDefaultXfs.fill)
-			g_oDefaultFormat.Fill = oDefaultXfs.fill.clone();
-		if(null != oDefaultXfs.border)
-			g_oDefaultFormat.Border = oDefaultXfs.border.clone();
-		if(null != oDefaultXfs.num)
-			g_oDefaultFormat.Num = oDefaultXfs.num.clone();
-		if(null != oDefaultXfs.align)
-			g_oDefaultFormat.Align = oDefaultXfs.align.clone();
-		if (null !== oDefaultXfs.XfId) {
-			this.oDefaultXfs.XfId = oDefaultXfs.XfId;
-			g_oDefaultFormat.XfId = oDefaultXfs.XfId;
-		}
-		this.oDefaultXfs = oDefaultXfs;
 	},
 	setCellStyle : function(oItemWithXfs, val)
 	{
@@ -2912,7 +2935,7 @@ StyleManager.prototype =
 				xfs = oItemWithXfs.getDefaultXfs();
 			}
 			if (!xfs) {
-				xfs = this.oDefaultXfs;
+				xfs = g_StyleCache.firstXf;
 			}
 		}
 		return xfs;
@@ -3015,16 +3038,19 @@ StyleManager.prototype =
 		this.nums = {count: 0, vals: {}};
 		this.aligns = {count: 0, vals: {}};
 		this.xfs = {list: [], vals: {}};
+		this.firstXf =  new CellXfs();
+		this.firstFont = null;
+		this.firstFill = null;
 	}
 
 	StyleCache.prototype.addFont = function(newFont) {
 		return this._add(this.fonts, newFont);
 	};
-	StyleCache.prototype.addFill = function(newFill) {
-		return this._add(this.fills, newFill);
+	StyleCache.prototype.addFill = function(newFill, forceAdd) {
+		return this._add(this.fills, newFill, forceAdd);
 	};
-	StyleCache.prototype.addBorder = function(newBorder) {
-		return this._add(this.borders, newBorder);
+	StyleCache.prototype.addBorder = function(newBorder, forceAdd) {
+		return this._add(this.borders, newBorder, forceAdd);
 	};
 	StyleCache.prototype.addNum = function(newNum) {
 		return this._add(this.nums, newNum);
@@ -3032,7 +3058,7 @@ StyleManager.prototype =
 	StyleCache.prototype.addAlign = function(newAlign) {
 		return this._add(this.aligns, newAlign);
 	};
-	StyleCache.prototype.addXf = function(newXf, recursively) {
+	StyleCache.prototype.addXf = function(newXf, forceAdd) {
 		if (newXf) {
 			if(newXf.font){
 				newXf.font = this.addFont(newXf.font);
@@ -3050,7 +3076,7 @@ StyleManager.prototype =
 				newXf.align = this.addAlign(newXf.align);
 			}
 		}
-		return this._add(this.xfs, newXf);
+		return this._add(this.xfs, newXf, forceAdd);
 	};
 	StyleCache.prototype.getXf = function(index) {
 		return 1 <= index && index <= this.xfs.list.length ? this.xfs.list[index - 1] : null;
@@ -3058,18 +3084,20 @@ StyleManager.prototype =
 	StyleCache.prototype.getXfCount = function() {
 		return this.xfs.list.length;
 	};
-	StyleCache.prototype._add = function(container, newVal) {
+	StyleCache.prototype._add = function(container, newVal, forceAdd) {
 		if (newVal && undefined === newVal.getIndexNumber()) {
 			var hash = newVal.getHash();
 			var res = container.vals[hash];
-			if (!res) {
+			if (!res || forceAdd) {
 				if (container.list) {
 					//index starts with 1
 					newVal.setIndexNumber(container.list.push(newVal));
 				} else {
 					newVal.setIndexNumber(container.count++);
 				}
-				container.vals[hash] = newVal;
+				if (!res) {
+					container.vals[hash] = newVal;
+				}
 				res = newVal;
 			}
 			return res;
@@ -7445,7 +7473,7 @@ SortCondition.prototype.applySort = function(type, ref, color) {
 			this.ConditionSortBy = Asc.ESortBy.sortbyFontColor;
 		}
 
-		this.dxf = AscCommonExcel.g_StyleCache.addXf(newDxf, true);
+		this.dxf = AscCommonExcel.g_StyleCache.addXf(newDxf);
 	} else if(type === Asc.c_oAscSortOptions.Ascending || type === Asc.c_oAscSortOptions.Descending) {
 		this.ConditionDescending = type !== Asc.c_oAscSortOptions.Ascending;
 	}

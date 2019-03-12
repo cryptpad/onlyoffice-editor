@@ -1666,7 +1666,7 @@
 						newDxf.font.setColor(color);
 						curFilter.SortState.SortConditions[0].ConditionSortBy = Asc.ESortBy.sortbyFontColor;
 					}
-					curFilter.SortState.SortConditions[0].dxf = AscCommonExcel.g_StyleCache.addXf(newDxf, true);
+					curFilter.SortState.SortConditions[0].dxf = AscCommonExcel.g_StyleCache.addXf(newDxf);
 					if (curFilter.TableStyleInfo) {
 						t._setColorStyleTable(curFilter.Ref, curFilter);
 					}
