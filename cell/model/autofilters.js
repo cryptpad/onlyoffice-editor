@@ -615,7 +615,7 @@
 				addFilterCallBack();
 			},
 
-			applyAutoFilter: function (autoFiltersObject, ar) {
+			applyAutoFilter: function (autoFiltersObject, ar, tryConvertFilter) {
 				var worksheet = this.worksheet;
 				var bUndoChanges = worksheet.workbook.bUndoChanges;
 				var bRedoChanges = worksheet.workbook.bRedoChanges;
@@ -670,10 +670,11 @@
 
 					newFilterColumn.ColId = filterObj.ColId;
 				}
+
+				var filterRange = worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.ColId + autoFilter.Ref.c1, autoFilter.Ref.r2, filterObj.ColId + autoFilter.Ref.c1);
+				autoFiltersObject = tryConvertFilter ? this._tryConvertCustomFilter(autoFiltersObject, filterRange) : autoFiltersObject;
 				var allFilterOpenElements = newFilterColumn.createFilter(autoFiltersObject);
-				newFilterColumn.init(
-					worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.ColId + autoFilter.Ref.c1, autoFilter.Ref.r2,
-						filterObj.ColId + autoFilter.Ref.c1));
+				newFilterColumn.init(filterRange);
 
 				//for add to history
 				if (newFilterColumn.Top10 && newFilterColumn.Top10.FilterVal && autoFiltersObject.filter &&
@@ -722,6 +723,59 @@
 				worksheet.workbook.dependencyFormulas.unlockRecal();
 
 				return {minChangeRow: minChangeRow, rangeOldFilter: rangeOldFilter, nOpenRowsCount: nOpenRowsCount, nAllRowsCount: nAllRowsCount};
+			},
+
+			_tryConvertCustomFilter: function(autoFiltersObject, filterRange) {
+				var res = autoFiltersObject;
+
+				if(autoFiltersObject.filter && Asc.c_oAscAutoFilterTypes.CustomFilters === autoFiltersObject.filter.type && autoFiltersObject.filter.filter) {
+					//посколько ms применяет в данном случае не кастомный фильтр
+					//кастомный применяется в случае, если открытые значения отсутсвуют
+					var allHideVal = true;
+					var individualMap = [];
+					var values = [];
+					filterRange._foreach(function (cell) {
+						var text = window["Asc"].trim(cell.getValue());
+						var val = window["Asc"].trim(cell.getValueWithoutFormat());
+						var textLowerCase = text.toLowerCase();
+
+						var isDateTimeFormat = cell.getNumFormat().isDateTimeFormat() && cell.getType() === window["AscCommon"].CellValueType.Number;
+						var dataValue = isDateTimeFormat ? AscCommon.NumFormat.prototype.parseDate(val) : null;
+
+						//check duplicate value
+						if (individualMap.hasOwnProperty(textLowerCase)) {
+							return;
+						}
+
+						var checkValue = isDateTimeFormat ? val : text;
+						var visible = !autoFiltersObject.filter.filter.isHideValue(checkValue, isDateTimeFormat);
+						individualMap[textLowerCase] = 1;
+
+						if(visible) {
+							allHideVal = false;
+						}
+
+						var res = new AutoFiltersOptionsElements();
+						res.asc_setVisible(visible);
+						res.asc_setVal(val);
+						res.asc_setText(text);
+						res.asc_setIsDateFormat(isDateTimeFormat);
+						if (isDateTimeFormat) {
+							res.asc_setYear(dataValue.year);
+							res.asc_setMonth(dataValue.month);
+							res.asc_setDay(dataValue.d);
+						}
+						values.push(res);
+					});
+
+					if(values.length && !allHideVal) {
+						autoFiltersObject.asc_setValues(values);
+						autoFiltersObject.filter.asc_setType(Asc.c_oAscAutoFilterTypes.Filters);
+						autoFiltersObject.filter.filter = null;
+					}
+				}
+
+				return res;
 			},
 
 			reapplyAutoFilter: function (displayName, ar) {

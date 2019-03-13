@@ -13274,7 +13274,7 @@
                     });
                 }
 
-                var applyFilterProps = t.model.autoFilters.applyAutoFilter(autoFilterObject, ar);
+                var applyFilterProps = t.model.autoFilters.applyAutoFilter(autoFilterObject, ar, true);
 				if(!applyFilterProps) {
 					History.EndTransaction();
 					return false;
