@@ -2142,8 +2142,8 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 					var NumPr = Pr.ParaPr.NumPr;
 
 					var isHaveNumbering = false;
-					if (undefined === this.Get_SectionPr()
-						&& true !== this.IsEmpty()
+					if ((undefined === this.Get_SectionPr()
+						|| true !== this.IsEmpty())
 						&& ((NumPr
 						&& undefined !== NumPr.NumId
 						&& 0 !== NumPr.NumId
