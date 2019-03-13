@@ -2136,15 +2136,41 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 				var NumberingItem = this.Numbering;
 				if (para_Numbering === NumberingItem.Type)
 				{
+					var isHavePrChange = this.HavePrChange();
+					var oPrevNumPr     = this.GetPrChangeNumPr();
+
 					var NumPr = Pr.ParaPr.NumPr;
-					if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId || ( undefined !== this.Get_SectionPr() && true === this.IsEmpty() ))
+
+					var isHaveNumbering = false;
+					if (undefined === this.Get_SectionPr()
+						&& true !== this.IsEmpty()
+						&& ((NumPr
+						&& undefined !== NumPr.NumId
+						&& 0 !== NumPr.NumId
+						&& "0" !== NumPr.NumId)
+						|| (oPrevNumPr
+						&& undefined !== oPrevNumPr.NumId
+						&& undefined !== oPrevNumPr.Lvl
+						&& 0 !== oPrevNumPr.NumId
+						&& "0" !== oPrevNumPr.NumId)))
+					{
+						isHaveNumbering = true;
+					}
+
+					if (!isHaveNumbering || (!NumPr && !oPrevNumPr))
 					{
 						// Ничего не делаем
 					}
 					else
 					{
 						var oNumbering = this.Parent.GetNumbering();
-						var oNumLvl    = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+
+						var oNumLvl = null;
+						if (NumPr)
+							oNumLvl = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+						else if (oPrevNumPr)
+							oNumLvl = oNumbering.GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
+
 						var nNumSuff   = oNumLvl.GetSuff();
 						var nNumJc     = oNumLvl.GetJc();
 						var oNumTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
@@ -11985,6 +12011,10 @@ Paragraph.prototype.Clear_CollaborativeMarks = function()
 Paragraph.prototype.HavePrChange = function()
 {
     return this.Pr.HavePrChange();
+};
+Paragraph.prototype.GetPrChangeNumPr = function()
+{
+	return this.Pr.GetPrChangeNumPr();
 };
 Paragraph.prototype.GetPrReviewColor = function()
 {

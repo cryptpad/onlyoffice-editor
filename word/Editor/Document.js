@@ -19019,38 +19019,107 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 	if (!this.Numbering)
 		return;
 
-	var oParaNumPr = oPara.GetNumPr();
-	if (!oParaNumPr)
+	if (this.Paragraph === oPara)
+		this.Found = true;
+
+	var oParaNumPr     = oPara.GetNumPr();
+	var oParaNumPrPrev = oPara.GetPrChangeNumPr();
+	var isPrChange     = oPara.HavePrChange();
+
+	if (undefined !== oPara.Get_SectionPr() || true === oPara.IsEmpty())
 		return;
 
-	var oNum         = this.Numbering.GetNum(oParaNumPr.NumId);
-	var oAbstractNum = oNum.GetAbstractNum();
-
-	if (oAbstractNum === this.AbstractNum && (undefined === oPara.Get_SectionPr() || true !== oPara.IsEmpty()))
+	var isEqualNumPr = false;
+	if (!isPrChange
+		|| (isPrChange
+			&& oParaNumPr
+			&& oParaNumPrPrev
+			&& oParaNumPr.NumId === oParaNumPrPrev.NumId
+			&& oParaNumPr.Lvl === oParaNumPrPrev.Lvl
+		)
+	)
 	{
-		var oReviewType = oPara.GetReviewType();
-		var oReviewInfo = oPara.GetReviewInfo();
+		isEqualNumPr = true;
+	}
 
-		if (reviewtype_Common === oReviewType)
-		{
-			var oPrevPara = oPara.Get_DocumentPrev();
+	if (isEqualNumPr)
+	{
+		if (!oParaNumPr)
+			return;
 
-			this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
-			this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr);
-		}
-		else if (reviewtype_Add === oReviewType)
+		var oNum         = this.Numbering.GetNum(oParaNumPr.NumId);
+		var oAbstractNum = oNum.GetAbstractNum();
+
+		if (oAbstractNum === this.AbstractNum)
 		{
-			this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
-		}
-		else if (reviewtype_Remove === oReviewType)
-		{
-			if (!oReviewInfo.GetPrevAdded())
+			var oReviewType = oPara.GetReviewType();
+			var oReviewInfo = oPara.GetReviewInfo();
+
+			if (reviewtype_Common === oReviewType)
+			{
+				this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
 				this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr);
+			}
+			else if (reviewtype_Add === oReviewType)
+			{
+				this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+			}
+			else if (reviewtype_Remove === oReviewType)
+			{
+				if (!oReviewInfo.GetPrevAdded())
+					this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr);
+			}
 		}
-    }
+	}
+	else
+	{
+		if (oParaNumPr)
+		{
+			var oNum         = this.Numbering.GetNum(oParaNumPr.NumId);
+			var oAbstractNum = oNum.GetAbstractNum();
 
-    if (this.Paragraph === oPara)
-        this.Found = true;
+			if (oAbstractNum === this.AbstractNum)
+			{
+				var oReviewType = oPara.GetReviewType();
+				var oReviewInfo = oPara.GetReviewInfo();
+
+				if (reviewtype_Common === oReviewType)
+				{
+					this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+				}
+				else if (reviewtype_Add === oReviewType)
+				{
+					this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+				}
+			}
+		}
+
+		if (oParaNumPrPrev)
+		{
+			var oNum         = this.Numbering.GetNum(oParaNumPrPrev.NumId);
+			var oAbstractNum = oNum.GetAbstractNum();
+
+			if (oAbstractNum === this.AbstractNum)
+			{
+				var oReviewType = oPara.GetReviewType();
+				var oReviewInfo = oPara.GetReviewInfo();
+
+				if (reviewtype_Common === oReviewType)
+				{
+					this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
+				}
+				else if (reviewtype_Add === oReviewType)
+				{
+				}
+				else if (reviewtype_Remove === oReviewType)
+				{
+					if (!oReviewInfo.GetPrevAdded())
+						this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
+				}
+			}
+
+		}
+	}
 };
 CDocumentNumberingInfoEngine.prototype.GetNumInfo = function(isFinal)
 {

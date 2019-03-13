@@ -10886,6 +10886,14 @@ CParaPr.prototype =
         return true;
     },
 
+	GetPrChangeNumPr : function()
+	{
+		if (!this.HavePrChange() || !this.PrChange.NumPr)
+			return null;
+
+		return this.PrChange.NumPr;
+	},
+
 	AddPrChange : function()
     {
         this.PrChange = this.Copy();
