@@ -1876,6 +1876,7 @@
 			// Вид печати
 			this.printType = Asc.c_oAscPrintType.ActiveSheets;
 			this.pageOptionsMap = null;
+			this.ignorePrintArea = null;
 
 			// ToDo сюда же start и end page index
 
@@ -1885,6 +1886,8 @@
 		asc_CAdjustPrint.prototype.asc_setPrintType = function (val) { this.printType = val; };
 		asc_CAdjustPrint.prototype.asc_getPageOptionsMap = function () { return this.pageOptionsMap; };
 		asc_CAdjustPrint.prototype.asc_setPageOptionsMap = function (val) { this.pageOptionsMap = val; };
+		asc_CAdjustPrint.prototype.asc_getIgnorePrintArea = function () { return this.ignorePrintArea; };
+		asc_CAdjustPrint.prototype.asc_setIgnorePrintArea = function (val) { this.ignorePrintArea = val; };
 
 		/** @constructor */
 		function asc_CLockInfo () {
@@ -2513,6 +2516,8 @@
 		prot["asc_setPrintType"] = prot.asc_setPrintType;
 		prot["asc_getPageOptionsMap"] = prot.asc_getPageOptionsMap;
 		prot["asc_setPageOptionsMap"] = prot.asc_setPageOptionsMap;
+		prot["asc_getIgnorePrintArea"] = prot.asc_getIgnorePrintArea;
+		prot["asc_setIgnorePrintArea"] = prot.asc_setIgnorePrintArea;
 
 		window["AscCommonExcel"].asc_CLockInfo = asc_CLockInfo;
 
