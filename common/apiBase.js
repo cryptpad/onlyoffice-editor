@@ -2009,15 +2009,23 @@
 
         if (isKeyboardTake)
         {
-            _frame.removeAttribute("oo_editor_keyboard");
             _frame.setAttribute("oo_editor_input", "true");
             _frame.focus();
         }
         else
         {
             _frame.removeAttribute("oo_editor_input");
-            _frame.setAttribute("oo_editor_keyboard", "true");
-            _frame.focus();
+            if (AscCommon.g_inputContext)
+            {
+                AscCommon.g_inputContext.isNoClearOnFocus = true;
+                AscCommon.g_inputContext.HtmlArea.focus();
+            }
+        }
+
+        if (AscCommon.g_inputContext)
+        {
+            AscCommon.g_inputContext.isInputHelpersPresent = true;
+            AscCommon.g_inputContext.isInputHelpers["iframe_" + guid] = true;
         }
     };
 
@@ -2034,7 +2042,21 @@
         _frame.style.zIndex = -1000;
 
         if (AscCommon.g_inputContext && AscCommon.g_inputContext.HtmlArea)
-            AscCommon.g_inputContext.HtmlArea.focus();
+		{
+			AscCommon.g_inputContext.HtmlArea.focus();
+
+			if (AscCommon.g_inputContext.isInputHelpers["iframe_" + guid])
+				delete AscCommon.g_inputContext.isInputHelpers["iframe_" + guid];
+
+			var count = 0;
+			for (var test in AscCommon.g_inputContext.isInputHelpers)
+			{
+				if (AscCommon.g_inputContext.isInputHelpers[test])
+					count++;
+            }
+
+            AscCommon.g_inputContext.isInputHelpersPresent = (0 != count);
+        }
     };
 
     // Builder

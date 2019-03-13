@@ -140,6 +140,12 @@
 
 		this.LastReplaceText = [];
 		this.IsLastReplaceFlag = false;
+
+		this.isNoClearOnFocus = false;
+
+		this.keyPressInput = "";
+        this.isInputHelpersPresent = false;
+        this.isInputHelpers = {};
 	}
 
 	CTextInput.prototype =
@@ -458,6 +464,10 @@
 			this.CompositionStart = 0;
 			this.CompositionEnd = 0;
 			this.IsComposition = false;
+
+            this.keyPressInput = "";
+			if (window.g_asc_plugins)
+				window.g_asc_plugins.onPluginEvent("onInputHelperClear");
 		},
 
 		getAreaValue : function()
@@ -776,7 +786,7 @@
 			}
 		},
 
-		emulateNativeKeyDown : function(e)
+		emulateNativeKeyDown : function(e, target)
 		{
 			var oEvent = document.createEvent('KeyboardEvent');
 
@@ -868,7 +878,7 @@
 			oEvent.metaKeyVal = e.metaKey;
 			oEvent.ctrlKeyVal = e.ctrlKey;
 
-			var _elem = _getElementKeyboardDown(this.nativeFocusElement, 3);
+			var _elem = target ? target : _getElementKeyboardDown(this.nativeFocusElement, 3);
 			_elem.dispatchEvent(oEvent);
 
 			return oEvent.defaultPrevented;
@@ -945,6 +955,34 @@
 			{
 				AscCommon.stopEvent(e);
 				return false;
+			}
+
+			if (this.isInputHelpersPresent)
+			{
+                switch (e.keyCode)
+                {
+                    case 9:		// tab
+                    case 13:	// enter
+                    case 38:	// top
+                    case 40:	// bottom
+                    case 33: 	// pageup
+                    case 34: 	// pagedown
+                    case 35: 	// end
+                    case 36: 	// home
+                    {
+                    	for (var helperId in this.isInputHelpers)
+                        {
+                            var helper = document.getElementById(helperId);
+                            if (helper)
+                                this.emulateNativeKeyDown(e, helper);
+                        }
+
+                        AscCommon.stopEvent(e);
+                        return false;
+                    }
+                    default:
+                        break;
+                }
 			}
 
 			if (this.isSystem && this.isShow)
@@ -1118,6 +1156,11 @@
 				default:
 					break;
 			}
+
+			this.keyPressInput += String.fromCharCode(e.which);
+			if (window.g_asc_plugins)
+                window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.keyPressInput });
+
 
 			AscCommon.stopEvent(e);
 			return ret;
@@ -1432,8 +1475,10 @@
 				t.externalEndCompositeInput();
 			}
 
-			if (!t.isSystem)
+			if (!t.isSystem && !t.isNoClearOnFocus)
 				t.clear(true);
+
+            t.isNoClearOnFocus = false;
 
 			var _nativeFocusElementNoRemoveOnElementFocus = t.nativeFocusElementNoRemoveOnElementFocus;
 			t.nativeFocusElementNoRemoveOnElementFocus = false;
