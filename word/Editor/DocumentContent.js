@@ -2358,7 +2358,7 @@ CDocumentContent.prototype.AddNewParagraph = function()
 
                 if (true === this.IsTrackRevisions())
                 {
-                    NewParagraph.RemovePrChange();
+                    Item.RemovePrChange();
                     NewParagraph.SetReviewType(ItemReviewType);
                     Item.SetReviewType(reviewtype_Add);
                 }

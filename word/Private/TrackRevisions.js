@@ -721,8 +721,16 @@ CDocument.prototype.RejectRevisionChanges = function(Type, bAll)
                         var ReviewType = Element.GetReviewType();
                         if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
                         {
+                        	var oNextPara   = this.Content[CurPos + 1];
+                        	var oNextParaPr = null;
+                        	if (oNextPara && oNextPara.IsParagraph())
+								oNextParaPr = oNextPara.GetDirectParaPr(false);
+
                             Element.SetReviewType(reviewtype_Common);
                             this.Concat_Paragraphs(CurPos);
+
+                            if (oNextParaPr)
+                            	Element.SetDirectParaPr(oNextParaPr.Copy(true));
                         }
                         else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
                         {
@@ -917,8 +925,16 @@ CDocumentContent.prototype.RejectRevisionChanges = function(Type, bAll)
                         var ReviewType = Element.GetReviewType();
                         if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
                         {
-                            Element.SetReviewType(reviewtype_Common);
-                            this.Concat_Paragraphs(CurPos);
+							var oNextPara   = this.Content[CurPos + 1];
+							var oNextParaPr = null;
+							if (oNextPara && oNextPara.IsParagraph())
+								oNextParaPr = oNextPara.GetDirectParaPr(false);
+
+							Element.SetReviewType(reviewtype_Common);
+							this.Concat_Paragraphs(CurPos);
+
+							if (oNextParaPr)
+								Element.SetDirectParaPr(oNextParaPr.Copy(true));
                         }
                         else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
                         {

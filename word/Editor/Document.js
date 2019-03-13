@@ -13455,7 +13455,7 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 
 			if (true === this.IsTrackRevisions())
 			{
-				NewParagraph.RemovePrChange();
+				Item.RemovePrChange();
 				NewParagraph.SetReviewType(ItemReviewType);
 				Item.SetReviewType(reviewtype_Add);
 			}

@@ -662,7 +662,7 @@ Paragraph.prototype.CopyPr_Open = function(OtherParagraph)
 	// Копируем прямые настройки параграфа в конце, потому что, например, нумерация может
 	// их изменить.
 	var oOldPr        = OtherParagraph.Pr;
-	OtherParagraph.Pr = this.Pr.Copy();
+	OtherParagraph.Pr = this.Pr.Copy(true);
 	History.Add(new CChangesParagraphPr(OtherParagraph, oOldPr, OtherParagraph.Pr));
 	OtherParagraph.private_UpdateTrackRevisionOnChangeParaPr(true);
 
