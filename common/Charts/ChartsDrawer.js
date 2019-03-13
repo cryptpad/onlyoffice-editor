@@ -4584,10 +4584,9 @@ drawBarChart.prototype = {
 			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], j);
 			curVal = idxPoint ? idxPoint.val : 0;
 
-			if (idxPoint && val > 0 && curVal > 0) {
+			if (idxPoint && val >= 0 && curVal > 0) {
 				result += parseFloat(curVal);
-			} else if (idxPoint && val < 0 &&
-				curVal < 0) {
+			} else if (idxPoint && val <= 0 && curVal < 0) {
 				result += parseFloat(curVal);
 			}
 		}
