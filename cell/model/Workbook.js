@@ -9857,10 +9857,8 @@
 		return align;
 	};
 	Range.prototype.hasMerged=function(){
-		var aMerged = this.worksheet.mergeManager.get(this.bbox);
-		if(aMerged.all.length > 0)
-			return aMerged.all[0].bbox;
-		return null;
+		var res = this.worksheet.mergeManager.getAny(this.bbox);
+		return res ? res.bbox : null;
 	};
 	Range.prototype.mergeOpen=function(){
 		this.worksheet.mergeManager.add(this.bbox, 1);

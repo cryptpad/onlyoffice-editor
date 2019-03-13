@@ -4279,23 +4279,36 @@ function RangeDataManagerElem(bbox, data)
 }
 function RangeDataManager(fChange)
 {
-	this.tree = new AscCommon.DataIntervalTree();
+	this.tree = new AscCommon.DataIntervalTree2D();
 	this.oDependenceManager = null;
 	this.fChange = fChange;
+
+	this.fInit = null;
+	this.fGetUninitialized = null;
 }
 RangeDataManager.prototype = {
+	_delayedInit: function(){
+		if (this.fInit) {
+			var _fInit = this.fInit;
+			this.fInit = null;
+			this.fGetUninitialized = null;
+			_fInit();
+		}
+	},
     add: function (bbox, data, oChangeParam)
 	{
+		this._delayedInit();
 		var oNewElem = new RangeDataManagerElem(new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2), data);
-		this.tree.insert(bbox.r1, bbox.r2, oNewElem);
+		this.tree.insert(bbox, oNewElem);
 		if(null != this.fChange)
 		    this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
 	},
 	get : function(bbox)
 	{
+		this._delayedInit();
 		var oRes = {all: [], inner: [], outer: []};
-		var intervals = this.tree.searchNodes(bbox.r1, bbox.r2);
-		for(var i = 0; i < intervals.length; i++) {
+		var intervals = this.tree.searchNodes(bbox);
+		for (var i = 0; i < intervals.length; i++) {
 			var interval = intervals[i];
 			var elem = interval.data;
 			if (elem.bbox.isIntersect(bbox)) {
@@ -4309,46 +4322,27 @@ RangeDataManager.prototype = {
 		}
 		return oRes;
 	},
-	getExact : function(bbox)
+	getAny : function(bbox)
 	{
-		var oRes = null;
-		var oGet = this.get(bbox);
-		for(var i = 0, length = oGet.inner.length; i < length; i++)
-		{
-			var elem = oGet.inner[i];
-			if(elem.bbox.isEqual(bbox))
-			{
-				oRes = elem;
-				break;
-			}
-		}
-		return oRes;
-	},
-	_getByCell : function(nRow, nCol)
-	{
-		var oRes = null;
-		var aAll = this.get(new Asc.Range(nCol, nRow, nCol, nRow));
-		if(aAll.all.length > 0)
-			oRes = aAll.all[0];
-		return oRes;
+		this._delayedInit();
+		return this.tree.searchAny(bbox);
 	},
 	getByCell : function(nRow, nCol)
 	{
-		var oRes = this._getByCell(nRow, nCol);
-		if(null == oRes && null != this.oDependenceManager)
-		{
-			var oDependence = this.oDependenceManager._getByCell(nRow, nCol);
-			if(null != oDependence)
-			{
-				var oTempRes = this.get(oDependence.bbox);
-				if(oTempRes.all.length > 0)
-					oRes = oTempRes.all[0];
+		this._delayedInit();
+		var bbox = new Asc.Range(nCol, nRow, nCol, nRow)
+		var res = this.getAny(bbox);
+		if (!res && null != this.oDependenceManager) {
+			var oDependence = this.oDependenceManager.getAny(bbox);
+			if (oDependence) {
+				res = this.getAny(oDependence.bbox);
 			}
 		}
-		return oRes;
+		return res;
 	},
 	remove: function (bbox, bInnerOnly, oChangeParam)
 	{
+		this._delayedInit();
 	    var aElems = this.get(bbox);
 	    var aTargetArray;
 	    if (bInnerOnly)
@@ -4363,35 +4357,23 @@ RangeDataManager.prototype = {
 	},
 	removeElement: function (elemToDelete, oChangeParam)
 	{
+		this._delayedInit();
 		if(null != elemToDelete)
 		{
-			var bbox = elemToDelete.bbox;
-			var intervals = this.tree.searchNodes(bbox.r1, bbox.r2);
-			for(var i = 0; i < intervals.length; i++) {
-				var interval = intervals[i];
-				var elem = interval.data;
-				if(elem.bbox.isEqual(bbox))
-				{
-					this.tree.remove(bbox.r1, bbox.r2, elem);
-					break;
-				}
-			}
+			this.tree.remove(elemToDelete.bbox, elemToDelete);
 			if(null != this.fChange)
 			    this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
 		}
 	},
-	removeAll : function(oChangeParam)
-	{
-	    this.remove(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0), null, oChangeParam);
-		this.tree = new AscCommon.DataIntervalTree();
-	},
 	shiftGet : function(bbox, bHor)
 	{
+		this._delayedInit();
 		var bboxGet = shiftGetBBox(bbox, bHor);
 		return {bbox: bboxGet, elems: this.get(bboxGet)};
 	},
 	shift: function (bbox, bAdd, bHor, oGetRes, oChangeParam)
 	{
+		this._delayedInit();
 	    var _this = this;
 	    if (null == oGetRes)
 	        oGetRes = this.shiftGet(bbox, bHor);
@@ -4408,6 +4390,7 @@ RangeDataManager.prototype = {
 	},
 	move: function (from, to, oChangeParam)
 	{
+		this._delayedInit();
 	    var offset = new AscCommon.CellBase(to.r1 - from.r1, to.c1 - from.c1);
 	    var oGetRes = this.get(from);
 	    this._shiftmove(false, from, offset, oGetRes, oChangeParam);
@@ -4516,13 +4499,19 @@ RangeDataManager.prototype = {
 	},
 	getAll : function()
 	{
+		this._delayedInit();
 		var res = [];
-		var intervals = this.tree.searchNodes(-Number.MAX_VALUE, Number.MAX_VALUE);
+		var intervals = this.tree.searchNodes(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0));
 		for(var i = 0; i < intervals.length; i++) {
 			var interval = intervals[i];
 			res.push(interval.data);
 		}
 		return res;
+	},
+	setDelayedInit : function(fInit, fGetUninitialized)
+	{
+		this.fInit = fInit;
+		this.fGetUninitialized = fGetUninitialized;
 	},
 	setDependenceManager : function(oDependenceManager)
 	{

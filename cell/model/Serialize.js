@@ -3444,23 +3444,27 @@
         };
         this.WriteMergeCells = function(ws)
         {
-            var oMerged = ws.mergeManager.getAll();
-			var aMergedUsed = {};//защита чтобы не писать один и тотже диапазон несколько раз
-            for(var i in oMerged)
-            {
-                var elem = oMerged[i];
-                var bbox = elem.bbox;
-                if(bbox.r1 != bbox.r2 || bbox.c1 != bbox.c2)
-                {
+            var i, aMerged;
+            if (!this.isCopyPaste && ws.mergeManager.fGetUninitialized) {
+                aMerged = ws.mergeManager.fGetUninitialized();
+                for (i = 0; i < aMerged.length; ++i) {
+                    this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
+                    this.memory.WriteString2(aMerged[i]);
+                }
+            } else {
+                //todo check overlapping ranges
+                var aMergedUsed = {};//to prevent writing same range
+                aMerged = ws.mergeManager.getAll();
+                for (i = 0; i < aMerged.length; ++i) {
+                    var bbox = aMerged[i].bbox;
                     //write only active merge, if copy/paste
-                    if(!this.isCopyPaste || (this.isCopyPaste && this.isCopyPaste.containsRange(bbox)))
-                    {
-						var sCurMerged = bbox.getName();
-						if(null == aMergedUsed[sCurMerged]){
-							aMergedUsed[sCurMerged] = 1;
-							this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
-							this.memory.WriteString2(sCurMerged);
-						}
+                    if (!bbox.isOneCell() && (!this.isCopyPaste || this.isCopyPaste.containsRange(bbox))) {
+                        var sCurMerged = bbox.getName();
+                        if (null == aMergedUsed[sCurMerged]) {
+                            aMergedUsed[sCurMerged] = 1;
+                            this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
+                            this.memory.WriteString2(sCurMerged);
+                        }
                     }
                 }
             }
@@ -6614,12 +6618,21 @@
                 this.curWorksheet = null;
                 //merged
                 var i;
-                for(i = 0, length = this.aMerged.length; i < length; ++i)
-                {
-                    var range = oNewWorksheet.getRange2(this.aMerged[i]);
-                    if(null != range)
-                        range.mergeOpen();
-                }
+                oNewWorksheet.mergeManager.setDelayedInit((function(merged) {
+                    return function() {
+                        for (i = 0, length = merged.length; i < length; ++i) {
+                            var range = oNewWorksheet.getRange2(merged[i]);
+                            if (null != range) {
+                                range.mergeOpen();
+                            }
+                        }
+                    }
+                })(this.aMerged), (function(merged) {
+                    return function() {
+                        return merged;
+                    }
+                })(this.aMerged));
+
                 //hyperlinks
                 for(i = 0, length = this.aHyperlinks.length; i < length; ++i)
                 {

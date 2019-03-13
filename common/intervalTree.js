@@ -564,16 +564,14 @@
                 }
             }
         };
-        IntervalTree.prototype.search = function (low, high) {
-            if (this.root === undefined) {
-                // Tree is empty; return empty array
-                return [];
+        IntervalTree.prototype.search = function (low, high, opt_output) {
+            if (!opt_output) {
+                opt_output = [];
             }
-            else {
-                var res = [];
-                this.root.search(low, high, res);
-                return res;
+            if (this.root !== undefined) {
+                this.root.search(low, high, opt_output);
             }
+            return opt_output;
         };
         IntervalTree.prototype.searchExisting = function (low, high) {
             if (this.root) {
@@ -736,6 +734,45 @@
         });
         return DataIntervalTree;
     }());
+    var DataIntervalTree2D = /** @class */ (function () {
+        function DataIntervalTree2D() {
+            this.tree = new IntervalTree();
+        }
+        DataIntervalTree2D.prototype.insert = function(bbox, data) {
+            var record = this.tree.searchExisting(bbox.r1, bbox.r2);
+            if (!record) {
+                record = {low: bbox.r1, high: bbox.r2, data: new IntervalTree()};
+                this.tree.insert(record);
+            }
+            record.data.insert({low: bbox.c1, high: bbox.c2, data: data});
+        };
+        DataIntervalTree2D.prototype.remove = function(bbox, data) {
+            var record = this.tree.searchExisting(bbox.r1, bbox.r2);
+            if (record) {
+                record.data.remove({low: bbox.c1, high: bbox.c2, data: data});
+            }
+        };
+        DataIntervalTree2D.prototype.searchNodes = function(bbox) {
+            var res = [];
+            var records = this.tree.search(bbox.r1, bbox.r2);
+            for (var i = 0; i < records.length; i++) {
+                records[i].data.search(bbox.c1, bbox.c2, res);
+            }
+            return res;
+        };
+        DataIntervalTree2D.prototype.searchAny = function(bbox) {
+            var any;
+            var records = this.tree.search(bbox.r1, bbox.r2);
+            for (var i = 0; i < records.length; i++) {
+                any = records[i].data.searchAny(bbox.c1, bbox.c2);
+                if (any) {
+                    return any.data;
+                }
+            }
+            return null;
+        };
+        return DataIntervalTree2D;
+    }());
 
     var InOrder = /** @class */ (function () {
         function InOrder(startNode) {
@@ -833,5 +870,6 @@
     //----------------------------------------------------------export----------------------------------------------------
     window['AscCommon'] = window['AscCommon'] || {};
     window['AscCommon'].DataIntervalTree = DataIntervalTree;
+    window['AscCommon'].DataIntervalTree2D = DataIntervalTree2D;
 
 }(window));
