@@ -1199,33 +1199,33 @@
         var arrPlugins = [];
         arrPluginsConfigs.forEach(function(item) {
             var plugin = new Asc.CPlugin();
-            plugin.set_Name(item["name"]);
-            plugin.set_Guid(item["guid"]);
-            plugin.set_BaseUrl(item["baseUrl"]);
+            plugin["set_Name"](item["name"]);
+            plugin["set_Guid"](item["guid"]);
+            plugin["set_BaseUrl"](item["baseUrl"]);
             var variations = item["variations"];
         	var variationsArr = [];
             variations.forEach(function(itemVar){
                 var variation = new Asc.CPluginVariation();
-                variation.set_Description(itemVar["description"]);
-                variation.set_Url(itemVar["url"]);
-                variation.set_Icons(itemVar["icons"]);
-                variation.set_Visual(itemVar["isVisual"]);
-                variation.set_CustomWindow(itemVar["'isCustomWindow"]);
-                variation.set_System(itemVar["isSystem"]);
-                variation.set_Viewer(itemVar["isViewer"]);
-                variation.set_EditorsSupport(itemVar["EditorsSupport"]);
-                variation.set_Modal(itemVar["isModal"]);
-                variation.set_InsideMode(itemVar["isInsideMode"]);
-                variation.set_InitDataType(itemVar["initDataType"]);
-                variation.set_InitData(itemVar["initData"]);
-                variation.set_UpdateOleOnResize(itemVar["isUpdateOleOnResize"]);
-                variation.set_Buttons(itemVar["buttons"]);
-                variation.set_Size(itemVar["size"]);
-                variation.set_InitOnSelectionChanged(itemVar["initOnSelectionChanged"]);
-                variation.set_Events(itemVar["events"]);
+                variation["set_Description"](itemVar["description"]);
+                variation["set_Url"](itemVar["url"]);
+                variation["set_Icons"](itemVar["icons"]);
+                variation["set_Visual"](itemVar["isVisual"]);
+                variation["set_CustomWindow"](itemVar["'isCustomWindow"]);
+                variation["set_System"](itemVar["isSystem"]);
+                variation["set_Viewer"](itemVar["isViewer"]);
+                variation["set_EditorsSupport"](itemVar["EditorsSupport"]);
+                variation["set_Modal"](itemVar["isModal"]);
+                variation["set_InsideMode"](itemVar["isInsideMode"]);
+                variation["set_InitDataType"](itemVar["initDataType"]);
+                variation["set_InitData"](itemVar["initData"]);
+                variation["set_UpdateOleOnResize"](itemVar["isUpdateOleOnResize"]);
+                variation["set_Buttons"](itemVar["buttons"]);
+                variation["set_Size"](itemVar["size"]);
+                variation["set_InitOnSelectionChanged"](itemVar["initOnSelectionChanged"]);
+                variation["set_Events"](itemVar["events"]);
                 variationsArr.push(variation);
             });
-            plugin.set_Variations(variationsArr);
+            plugin["set_Variations"](variationsArr);
             arrPlugins.push(plugin);
         });
 
@@ -1259,7 +1259,7 @@
             var lang = _t.language;
             var lang2 = _t.language.substr(0, 2);
 
-            var _name = plugin.get_Name();
+            var _name = plugin.name;
             if (srcPlugin && srcPlugin["nameLocale"])
 			{
 				if (srcPlugin["nameLocale"][lang])
@@ -1282,7 +1282,7 @@
 
             _elemBody += "<div style=\"position:absolute;box-sizing:border-box;height:52px;padding: 15px 15px 15px 15px;left:0;right:0;top:calc(100% - 52px);bottom:0;border-top: solid 1px #cbcbcb;background: #ededed;text-align: center;vertical-align: bottom;\">";
 
-            var buttons = variation.get_Buttons();
+            var buttons = variation["get_Buttons"]();
 
             for (var i = 0; i < buttons.length; i++)
 			{
