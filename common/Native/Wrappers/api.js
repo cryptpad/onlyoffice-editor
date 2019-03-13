@@ -5938,8 +5938,6 @@ function initSpellCheckApi() {
     _api.SpellCheckApi.init(_api.documentId);
 
     _api.asc_setSpellCheck(spellCheck);
-
-    _api.WordControl.StartMainTimer();
 }
 
 function NativeOpenFile3(_params, documentInfo)
@@ -6238,6 +6236,28 @@ Asc['asc_docs_api'].prototype.openDocument = function(sData)
     setInterval(function() {
                 t._autoSave();
                 }, 40);
+};
+
+Asc['asc_docs_api'].prototype.asc_setSpellCheck = function(isOn)
+{
+    if (this.WordControl && this.WordControl.m_oLogicDocument)
+    {
+        var oLogicDoc = this.WordControl.m_oLogicDocument;
+        if(isOn)
+        {
+            this.spellCheckTimerId = setInterval(function(){oLogicDoc.ContinueCheckSpelling();}, 500);
+        }
+        else
+        {
+            if(this.spellCheckTimerId)
+            {
+               clearInterval(this.spellCheckTimerId);
+            }
+        }
+        editor.WordControl.m_oLogicDocument.Spelling.Use = isOn;
+        editor.WordControl.m_oDrawingDocument.ClearCachePages();
+        editor.WordControl.m_oDrawingDocument.FirePaint();
+    }
 };
 
 window["AscCommon"].getFullImageSrc2 = function(src) {

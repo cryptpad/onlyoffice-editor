@@ -3011,7 +3011,6 @@ function initSpellCheckApi() {
 
     _api.asc_setSpellCheck(spellCheck);
 
-    _api.WordControl.StartMainTimer();
 }
 
 function NativeOpenFileP(_params, documentInfo){
@@ -3605,6 +3604,36 @@ Asc['asc_docs_api'].prototype.asc_setDocumentPassword = function(password)
     };
 
     AscCommon.sendCommand(this, null, v);
+};
+
+
+Asc['asc_docs_api'].prototype.asc_setSpellCheck = function(isOn)
+{
+    if (editor.WordControl.m_oLogicDocument)
+    {
+        var _presentation = editor.WordControl.m_oLogicDocument;
+        _presentation.Spelling.Use = isOn;
+        var _drawing_document = editor.WordControl.m_oDrawingDocument;
+        if(isOn)
+        {
+            this.spellCheckTimerId = setInterval(function(){_presentation.ContinueCheckSpelling();}, 500);
+        }
+        else
+        {
+            if(this.spellCheckTimerId)
+            {
+               clearInterval(this.spellCheckTimerId);
+            }
+        }
+        var oCurSlide = _presentation.Slides[_presentation.CurPage];
+
+        if(oCurSlide)
+        {
+            _drawing_document.OnStartRecalculate(_presentation.Slides.length);
+            _drawing_document.OnRecalculatePage(_presentation.CurPage, oCurSlide);
+            _drawing_document.OnEndRecalculate();
+        }
+    }
 };
 
 if(!window.native){
