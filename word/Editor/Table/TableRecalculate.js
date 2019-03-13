@@ -1737,7 +1737,9 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
         AscCommon.g_oTableId.m_bTurnOff = true;
         AscCommon.History.TurnOff();
 
-        var aContentDrawings = [];
+		this.LogicDocument.RecalcTableHeader = true;
+
+		var aContentDrawings = [];
         for ( var Index = 0; Index < this.HeaderInfo.Count; Index++ )
         {
             HeaderPage.Rows[Index] = this.Content[Index].Copy(this);
@@ -1761,8 +1763,6 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
         AscCommon.g_oTableId.m_bTurnOff = false;
         AscCommon.History.TurnOn();
-
-        this.LogicDocument.RecalcTableHeader = true;
 
         var bHeaderNextPage = false;
         for ( var CurRow = 0; CurRow < this.HeaderInfo.Count; CurRow++  )
