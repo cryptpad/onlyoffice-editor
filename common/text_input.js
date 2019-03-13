@@ -972,10 +972,9 @@
                     {
                     	for (var helperId in this.isInputHelpers)
                         {
-                            var helper = document.getElementById(helperId);
-                            if (helper)
-                                this.emulateNativeKeyDown(e, helper);
+                        	// todo:
                         }
+                        window.g_asc_plugins.onPluginEvent("onKeyDown", { "keyCode" : e.keyCode });
 
                         AscCommon.stopEvent(e);
                         return false;

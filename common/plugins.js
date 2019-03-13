@@ -669,7 +669,7 @@
                 var plugin = this.getPluginByGuid(guid);
                 var runObject = this.runnedPluginsMap[guid];
 
-                if (plugin && plugin.variations[runObject.currentVariation].eventsMap[name])
+                if (plugin && (plugin.variations[runObject.currentVariation].eventsMap[name] || name == "onKeyDown"))
                 {
                 	if (!runObject.isInitReceive)
 					{
