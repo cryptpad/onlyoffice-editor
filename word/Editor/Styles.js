@@ -10620,6 +10620,13 @@ CParaPr.prototype =
 			Flags |= 4194304;
 		}
 
+		if (undefined !== this.PrChange)
+		{
+			this.PrChange.Write_ToBinary(Writer);
+			this.ReviewInfo.Write_ToBinary(Writer);
+			Flags |= 8388608;
+		}
+
         var EndPos = Writer.GetCurPosition();
         Writer.Seek( StartPos );
         Writer.WriteLong( Flags );
@@ -10741,6 +10748,14 @@ CParaPr.prototype =
 
         if (Flags & 4194304)
 			this.OutlineLvl = Reader.GetByte();
+
+        if (Flags & 8388608)
+		{
+			this.PrChange = new CParaPr();
+			this.PrChange.Read_FromBinary(Reader);
+			this.ReviewInfo = new CReviewInfo();
+			this.ReviewInfo.Read_FromBinary(Reader);
+		}
     },
 
     isEqual: function(ParaPrUOld,ParaPrNew)
