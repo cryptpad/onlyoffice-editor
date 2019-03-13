@@ -2611,6 +2611,19 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 364 );
 
+		oParser = new parserFormula( "DAYS(A2,A3)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 364 );
+
+		oParser = new parserFormula( 'DAYS("2008-03-03","2008-03-01")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'DAYS("2008-03-01","2008-03-03")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), -2 );
+
+
 		testArrayFormula2("DAYS", 2, 2);
 	} );
 
