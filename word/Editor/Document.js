@@ -19062,7 +19062,7 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 	var oParaNumPrPrev = oPara.GetPrChangeNumPr();
 	var isPrChange     = oPara.HavePrChange();
 
-	if (undefined !== oPara.Get_SectionPr() || true === oPara.IsEmpty())
+	if (undefined !== oPara.Get_SectionPr() && true === oPara.IsEmpty())
 		return;
 
 	var isEqualNumPr = false;

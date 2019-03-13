@@ -3059,8 +3059,8 @@ CParagraphRecalculateStateWrap.prototype =
 			var NumPr = ParaPr.NumPr;
 
 			var isHaveNumbering = false;
-			if (undefined === Para.Get_SectionPr()
-				&& true !== Para.IsEmpty()
+			if ((undefined === Para.Get_SectionPr()
+				|| true !== Para.IsEmpty())
 				&& ((NumPr
 				&& undefined !== NumPr.NumId
 				&& 0 !== NumPr.NumId
