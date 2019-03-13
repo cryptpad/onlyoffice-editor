@@ -4299,29 +4299,18 @@ RangeDataManager.prototype = {
 		this._delayedInit();
 		return this.tree.searchAny(bbox);
 	},
-	_getByCell : function(nRow, nCol)
-	{
-		var oRes = null;
-		var aAll = this.get(new Asc.Range(nCol, nRow, nCol, nRow));
-		if(aAll.all.length > 0)
-			oRes = aAll.all[0];
-		return oRes;
-	},
 	getByCell : function(nRow, nCol)
 	{
 		this._delayedInit();
-		var oRes = this._getByCell(nRow, nCol);
-		if(null == oRes && null != this.oDependenceManager)
-		{
-			var oDependence = this.oDependenceManager._getByCell(nRow, nCol);
-			if(null != oDependence)
-			{
-				var oTempRes = this.get(oDependence.bbox);
-				if(oTempRes.all.length > 0)
-					oRes = oTempRes.all[0];
+		var bbox = new Asc.Range(nCol, nRow, nCol, nRow)
+		var res = this.getAny(bbox);
+		if (!res && null != this.oDependenceManager) {
+			var oDependence = this.oDependenceManager.getAny(bbox);
+			if (oDependence) {
+				res = this.getAny(oDependence.bbox);
 			}
 		}
-		return oRes;
+		return res;
 	},
 	remove: function (bbox, bInnerOnly, oChangeParam)
 	{
