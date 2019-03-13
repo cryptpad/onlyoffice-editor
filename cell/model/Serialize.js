@@ -3419,13 +3419,19 @@
                     this.memory.WriteString2(aMerged[i]);
                 }
             } else {
+                //todo check overlapping ranges
+                var aMergedUsed = {};//to prevent writing same range
                 aMerged = ws.mergeManager.getAll();
                 for (i = 0; i < aMerged.length; ++i) {
                     var bbox = aMerged[i].bbox;
                     //write only active merge, if copy/paste
                     if (!bbox.isOneCell() && (!this.isCopyPaste || this.isCopyPaste.containsRange(bbox))) {
-                        this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
-                        this.memory.WriteString2(bbox.getName());
+                        var sCurMerged = bbox.getName();
+                        if (null == aMergedUsed[sCurMerged]) {
+                            aMergedUsed[sCurMerged] = 1;
+                            this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
+                            this.memory.WriteString2(sCurMerged);
+                        }
                     }
                 }
             }
