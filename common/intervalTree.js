@@ -761,11 +761,15 @@
             return res;
         };
         DataIntervalTree2D.prototype.searchAny = function(bbox) {
-            var record = this.tree.searchAny(bbox.r1, bbox.r2);
-            if (record) {
-                var res = record.data.searchAny(bbox.c1, bbox.c2);
-                return res && res.data;
+            var any;
+            var records = this.tree.search(bbox.r1, bbox.r2);
+            for (var i = 0; i < records.length; i++) {
+                any = records[i].data.searchAny(bbox.c1, bbox.c2);
+                if (any) {
+                    return any.data;
+                }
             }
+            return null;
         };
         return DataIntervalTree2D;
     }());
