@@ -54,6 +54,7 @@ var type_Paragraph = 0x0001;
 var UnknownValue  = null;
 
 var REVIEW_COLOR = new AscCommon.CColor(255, 0, 0, 255);
+var REVIEW_NUMBERING_COLOR = new AscCommon.CColor(27, 156, 171, 255);
 
 /**
  * Класс Paragraph
@@ -1628,7 +1629,7 @@ Paragraph.prototype.Internal_Draw_1 = function(CurPage, pGraphics, Pr)
 		}
 
 		// Если данный параграф был изменен в режиме рецензирования, тогда рисуем специальный знак
-		if (true === this.Pr.Have_PrChange())
+		if (true === this.Pr.HavePrChange())
 		{
 			if (( CurPage > 0 || false === this.IsStartFromNewPage() || null === this.Get_DocumentPrev() ))
 			{
@@ -1636,7 +1637,7 @@ Paragraph.prototype.Internal_Draw_1 = function(CurPage, pGraphics, Pr)
 				var Y_top    = this.Pages[CurPage].Bounds.Top;
 				var Y_bottom = this.Pages[CurPage].Bounds.Bottom;
 
-				var ReviewColor = this.Get_PrReviewColor();
+				var ReviewColor = this.GetPrReviewColor();
 				pGraphics.p_color(ReviewColor.r, ReviewColor.g, ReviewColor.b, 255);
 				pGraphics.drawVerLine(0, X_min, Y_top, Y_bottom, 0);
 			}
@@ -2129,18 +2130,47 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 			// Отрисовка нумерации
 			if (true === this.Numbering.Check_Range(CurRange, CurLine))
 			{
+				var nReviewType  = this.GetReviewType();
+				var oReviewColor = this.GetReviewColor();
+
 				var NumberingItem = this.Numbering;
 				if (para_Numbering === NumberingItem.Type)
 				{
+					var isHavePrChange = this.HavePrChange();
+					var oPrevNumPr     = this.GetPrChangeNumPr();
+
 					var NumPr = Pr.ParaPr.NumPr;
-					if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId || ( undefined !== this.Get_SectionPr() && true === this.IsEmpty() ))
+
+					var isHaveNumbering = false;
+					if (undefined === this.Get_SectionPr()
+						&& true !== this.IsEmpty()
+						&& ((NumPr
+						&& undefined !== NumPr.NumId
+						&& 0 !== NumPr.NumId
+						&& "0" !== NumPr.NumId)
+						|| (oPrevNumPr
+						&& undefined !== oPrevNumPr.NumId
+						&& undefined !== oPrevNumPr.Lvl
+						&& 0 !== oPrevNumPr.NumId
+						&& "0" !== oPrevNumPr.NumId)))
+					{
+						isHaveNumbering = true;
+					}
+
+					if (!isHaveNumbering || (!NumPr && !oPrevNumPr))
 					{
 						// Ничего не делаем
 					}
 					else
 					{
 						var oNumbering = this.Parent.GetNumbering();
-						var oNumLvl    = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+
+						var oNumLvl = null;
+						if (NumPr)
+							oNumLvl = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+						else if (oPrevNumPr)
+							oNumLvl = oNumbering.GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
+
 						var nNumSuff   = oNumLvl.GetSuff();
 						var nNumJc     = oNumLvl.GetJc();
 						var oNumTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
@@ -2178,20 +2208,28 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 								pGraphics.b_color1(oNumTextPr.Color.r, oNumTextPr.Color.g, oNumTextPr.Color.b, 255);
 						}
 
+						if (NumberingItem.HaveSourceNumbering() || reviewtype_Common !== nReviewType)
+						{
+							if (reviewtype_Common === nReviewType)
+								pGraphics.b_color1(REVIEW_NUMBERING_COLOR.r, REVIEW_NUMBERING_COLOR.g, REVIEW_NUMBERING_COLOR.b, 255);
+							else
+								pGraphics.b_color1(oReviewColor.r, oReviewColor.g, oReviewColor.b, 255);
+						}
+
 						// Рисуется только сам символ нумерации
 						switch (nNumJc)
 						{
 							case align_Right:
-								NumberingItem.Draw(X - NumberingItem.WidthNum, Y, pGraphics, oNumbering, oNumTextPr, NumPr, PDSE.Theme);
+								NumberingItem.Draw(X - NumberingItem.WidthNum, Y, pGraphics, oNumbering, oNumTextPr, PDSE.Theme);
 								break;
 
 							case align_Center:
-								NumberingItem.Draw(X - NumberingItem.WidthNum / 2, Y, pGraphics, oNumbering, oNumTextPr, NumPr, PDSE.Theme);
+								NumberingItem.Draw(X - NumberingItem.WidthNum / 2, Y, pGraphics, oNumbering, oNumTextPr, PDSE.Theme);
 								break;
 
 							case align_Left:
 							default:
-								NumberingItem.Draw(X, Y, pGraphics, oNumbering, oNumTextPr, NumPr, PDSE.Theme);
+								NumberingItem.Draw(X, Y, pGraphics, oNumbering, oNumTextPr, PDSE.Theme);
 								break;
 						}
 
@@ -2246,11 +2284,35 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 							}
 						}
 
-						if (true === oNumTextPr.Strikeout)
-							pGraphics.drawHorLine(0, (Y - oNumTextPr.FontSize * g_dKoef_pt_to_mm * 0.27), X_start, X_start + NumberingItem.WidthNum, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+						if (NumberingItem.HaveSourceNumbering() || reviewtype_Common !== nReviewType)
+						{
+							var nSourceWidth = NumberingItem.GetSourceWidth();
 
-						if (true === oNumTextPr.Underline)
-							pGraphics.drawHorLine(0, (Y + this.Lines[CurLine].Metrics.TextDescent * 0.4), X_start, X_start + NumberingItem.WidthNum, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+							if (reviewtype_Common === nReviewType)
+								pGraphics.p_color(REVIEW_NUMBERING_COLOR.r, REVIEW_NUMBERING_COLOR.g, REVIEW_NUMBERING_COLOR.b, 255);
+							else
+								pGraphics.p_color(oReviewColor.r, oReviewColor.g, oReviewColor.b, 255);
+
+							// Либо у нас есть удаленная часть, либо у нас одновременно добавлен и удален параграф, тогда мы зачеркиваем суффикс
+							if (NumberingItem.HaveSourceNumbering() || (!NumberingItem.HaveSourceNumbering() && !NumberingItem.HaveFinalNumbering()))
+							{
+								if (NumberingItem.HaveFinalNumbering())
+									pGraphics.drawHorLine(0, (Y - oNumTextPr.FontSize * g_dKoef_pt_to_mm * 0.27), X_start, X_start + nSourceWidth, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+								else
+									pGraphics.drawHorLine(0, (Y - oNumTextPr.FontSize * g_dKoef_pt_to_mm * 0.27), X_start, X_start + nSourceWidth + NumberingItem.WidthSuff, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+							}
+
+							if (NumberingItem.HaveFinalNumbering())
+								pGraphics.drawHorLine(0, (Y + this.Lines[CurLine].Metrics.TextDescent * 0.4), X_start + nSourceWidth, X_start + NumberingItem.WidthNum + NumberingItem.WidthSuff, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+						}
+						else
+						{
+							if (true === oNumTextPr.Strikeout)
+								pGraphics.drawHorLine(0, (Y - oNumTextPr.FontSize * g_dKoef_pt_to_mm * 0.27), X_start, X_start + NumberingItem.WidthNum, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+
+							if (true === oNumTextPr.Underline)
+								pGraphics.drawHorLine(0, (Y + this.Lines[CurLine].Metrics.TextDescent * 0.4), X_start, X_start + NumberingItem.WidthNum, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+						}
 					}
 				}
 				else if (para_PresentationNumbering === this.Numbering.Type)
@@ -11946,33 +12008,37 @@ Paragraph.prototype.Clear_CollaborativeMarks = function()
 {
     this.CollPrChange = false;
 };
-Paragraph.prototype.Have_PrChange = function()
+Paragraph.prototype.HavePrChange = function()
 {
-    return this.Pr.Have_PrChange();
+    return this.Pr.HavePrChange();
 };
-Paragraph.prototype.Get_PrReviewColor = function()
+Paragraph.prototype.GetPrChangeNumPr = function()
+{
+	return this.Pr.GetPrChangeNumPr();
+};
+Paragraph.prototype.GetPrReviewColor = function()
 {
     if (this.Pr.ReviewInfo)
         return this.Pr.ReviewInfo.Get_Color();
 
     return REVIEW_COLOR;
 };
-Paragraph.prototype.Accept_PrChange = function()
+Paragraph.prototype.AcceptPrChange = function()
 {
-    this.Remove_PrChange();
+    this.RemovePrChange();
 };
-Paragraph.prototype.Reject_PrChange = function()
+Paragraph.prototype.RejectPrChange = function()
 {
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
         this.Set_Pr(this.Pr.PrChange);
     }
 };
-Paragraph.prototype.Add_PrChange = function()
+Paragraph.prototype.AddPrChange = function()
 {
-    if (false === this.Have_PrChange())
+    if (false === this.HavePrChange())
     {
-        this.Pr.Add_PrChange();
+        this.Pr.AddPrChange();
 		History.Add(new CChangesParagraphPrChange(this,
 			{
 				PrChange   : undefined,
@@ -11985,7 +12051,7 @@ Paragraph.prototype.Add_PrChange = function()
         this.private_UpdateTrackRevisions();
     }
 };
-Paragraph.prototype.Set_PrChange = function(PrChange, ReviewInfo)
+Paragraph.prototype.SetPrChange = function(PrChange, ReviewInfo)
 {
 	History.Add(new CChangesParagraphPrChange(this,
 		{
@@ -11996,12 +12062,12 @@ Paragraph.prototype.Set_PrChange = function(PrChange, ReviewInfo)
 			PrChange   : PrChange,
 			ReviewInfo : ReviewInfo ? ReviewInfo.Copy() : undefined
 		}));
-    this.Pr.Set_PrChange(PrChange, ReviewInfo);
+    this.Pr.SetPrChange(PrChange, ReviewInfo);
     this.private_UpdateTrackRevisions();
 };
-Paragraph.prototype.Remove_PrChange = function()
+Paragraph.prototype.RemovePrChange = function()
 {
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
 		History.Add(new CChangesParagraphPrChange(this,
 			{
@@ -12012,14 +12078,14 @@ Paragraph.prototype.Remove_PrChange = function()
 				PrChange   : undefined,
 				ReviewInfo : undefined
 			}));
-        this.Pr.Remove_PrChange();
+        this.Pr.RemovePrChange();
         this.private_UpdateTrackRevisions();
     }
 };
 Paragraph.prototype.private_AddPrChange = function()
 {
-    if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions() && true !== this.Have_PrChange())
-        this.Add_PrChange();
+    if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions() && true !== this.HavePrChange())
+        this.AddPrChange();
 };
 Paragraph.prototype.SetReviewType = function(nType)
 {
@@ -12032,6 +12098,10 @@ Paragraph.prototype.GetReviewType = function()
 Paragraph.prototype.GetReviewInfo = function()
 {
 	return this.GetParaEndRun().GetReviewInfo();
+};
+Paragraph.prototype.GetReviewColor = function()
+{
+	return this.GetParaEndRun().GetReviewColor();
 };
 Paragraph.prototype.SetReviewTypeWithInfo = function(nType, oInfo)
 {
@@ -12071,7 +12141,7 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
     var ParaId = this.Get_Id();
 
     var Change, StartPos, EndPos;
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
         StartPos = this.Get_StartPos();
         EndPos   = this.Get_EndPos(true);
@@ -12081,7 +12151,7 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
         Change.put_StartPos(StartPos);
         Change.put_EndPos(EndPos);
         Change.put_Type(c_oAscRevisionsChangeType.ParaPr);
-        Change.put_Value(this.Pr.Get_DiffPrChange());
+        Change.put_Value(this.Pr.GetDiffPrChange());
         Change.put_UserId(this.Pr.ReviewInfo.Get_UserId());
         Change.put_UserName(this.Pr.ReviewInfo.Get_UserName());
         Change.put_DateTime(this.Pr.ReviewInfo.Get_DateTime());
@@ -12137,7 +12207,7 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
 };
 Paragraph.prototype.private_UpdateTrackRevisionOnChangeParaPr = function(bUpdateInfo)
 {
-    if (true === this.Have_PrChange())
+    if (true === this.HavePrChange())
     {
         this.private_UpdateTrackRevisions();
 
@@ -12211,7 +12281,7 @@ Paragraph.prototype.AcceptRevisionChanges = function(Type, bAll)
         {
             EndPos = this.Content.length - 2;
             if (true === bAll || undefined === Type || c_oAscRevisionsChangeType.TextPr === Type)
-                this.Content[this.Content.length - 1].Accept_PrChange();
+                this.Content[this.Content.length - 1].AcceptPrChange();
         }
 
         // Начинаем с конца, потому что при выполнении данной фунцкции, количество элементов может изменяться
@@ -12249,7 +12319,7 @@ Paragraph.prototype.RejectRevisionChanges = function(Type, bAll)
         {
             EndPos = this.Content.length - 2;
             if (true === bAll || undefined === Type || c_oAscRevisionsChangeType.TextPr === Type)
-                this.Content[this.Content.length - 1].Reject_PrChange();
+                this.Content[this.Content.length - 1].RejectPrChange();
         }
 
         // Начинаем с конца, потому что при выполнении данной фунцкции, количество элементов может изменяться
@@ -15318,11 +15388,11 @@ CParagraphRevisionsChangesChecker.prototype.Add_Drawing = function(Drawing)
         }
     }
 };
-CParagraphRevisionsChangesChecker.prototype.Have_PrChange = function()
+CParagraphRevisionsChangesChecker.prototype.HavePrChange = function()
 {
     return (null === this.TextPr.Pr ? false : true);
 };
-CParagraphRevisionsChangesChecker.prototype.Compare_PrChange = function(PrChange)
+CParagraphRevisionsChangesChecker.prototype.ComparePrChange = function(PrChange)
 {
     if (null === this.TextPr.Pr)
         return false;
@@ -15335,7 +15405,7 @@ CParagraphRevisionsChangesChecker.prototype.Start_PrChange = function(Pr, Conten
     this.TextPr.StartPos = ContentPos.Copy();
     this.TextPr.EndPos   = ContentPos.Copy();
 };
-CParagraphRevisionsChangesChecker.prototype.Set_PrChangeEndPos = function(ContentPos)
+CParagraphRevisionsChangesChecker.prototype.SetPrChangeEndPos = function(ContentPos)
 {
     this.TextPr.EndPos = ContentPos.Copy();
 };
