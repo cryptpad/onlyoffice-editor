@@ -1848,6 +1848,28 @@
 		var range, maxCell;
 		var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
 
+		var getPrintAreaRanges = function() {
+			var areaRefs = printArea.ref;
+			var areaRefsArr = areaRefs.split(",");
+			var res = [];
+			if(areaRefsArr.length) {
+				for(var i = 0; i < areaRefsArr.length; i++) {
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) ||
+							AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
+					});
+
+					if(!range) {
+						continue;
+					}
+
+					res.push(new asc_Range(range.c1, range.r1, range.c2, range.r2));
+				}
+			}
+			return res.length ? res : null;
+		};
+
+		var printAreaRanges = !printOnlySelection && printArea ? getPrintAreaRanges() : null;
 		if (printOnlySelection) {
 			for (var i = 0; i < this.model.selectionRange.ranges.length; ++i) {
 				range = this.model.selectionRange.ranges[i];
@@ -1859,28 +1881,19 @@
 				}
 				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 			}
-		} else if(printArea) {
+		} else if(printArea && printAreaRanges) {
+
 			//когда printArea мультиселект - при отрисовке областей печати в специальном режиме
 			// необходимо возвращать массив из фрагментов
 			//для этого добавил arrRanges
-
-			var areaRefs = printArea.ref;
-			var areaRefsArr = areaRefs.split(",");
-			if(areaRefsArr.length) {
-				for(var i = 0; i < areaRefsArr.length; i++) {
-					AscCommonExcel.executeInR1C1Mode(false, function () {
-						range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) ||
-							AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
-					});
-
-					range = new asc_Range(range.c1, range.r1, range.c2, range.r2);
-					if(arrRanges) {
-						arrRanges.push(range);
-					}
-
-					this._prepareCellTextMetricsCache(range);
-					this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
+			for(var j = 0; j < printAreaRanges.length; j++) {
+				range = printAreaRanges[j];
+				if(arrRanges) {
+					arrRanges.push(range);
 				}
+
+				this._prepareCellTextMetricsCache(range);
+				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 			}
 		} else {
 			range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
