@@ -5829,7 +5829,43 @@ parserFormula.prototype.setFormula = function(formula) {
 				} else if (parserHelp.isOperator.call(ph, t.Formula, ph.pCurrPos)) {
 					operator.isOperator = true;
 					operator.operatorName = ph.operand_str;
-				} else if(!ignoreErrors){
+				} /*else if(ignoreErrors && parserHelp.isFunc.call(ph, t.Formula, ph.pCurrPos)) {
+					//TODO при нахождении функции внутри массива ms выдаёт подсказки к аргументам данной функции(lookup(,{,3,sum()
+					//если расскоментировать данный код, то проверка на функцию должна осуществляться, необходимо проверить!
+
+					if (wasRigthParentheses && parseResult.operand_expected) {
+						elemArr.push(new cMultOperator());
+					}
+
+					var found_operator = null, operandStr = ph.operand_str.replace(rx_sFuncPref, "").toUpperCase();
+					if (operandStr in cFormulaList) {
+						found_operator = cFormulaList[operandStr].prototype;
+					} else if (operandStr in cAllFormulaFunction) {
+						found_operator = cAllFormulaFunction[operandStr].prototype;
+					} else {
+						found_operator = new cUnknownFunction(operandStr);
+						found_operator.isXLFN = ( ph.operand_str.indexOf("_xlfn.") === 0 );
+					}
+
+					if (found_operator !== null) {
+						if (found_operator.ca) {
+							t.ca = found_operator.ca;
+						}
+						elemArr.push(found_operator);
+						parseResult.addElem(found_operator);
+						if("SUMPRODUCT" === found_operator.name){
+							startSumproduct = true;
+						}
+					} else if(!ignoreErrors) {
+						parseResult.setError(c_oAscError.ID.FrmlWrongFunctionName);
+						t.outStack = [];
+						return false;
+					}
+					parseResult.operand_expected = false;
+					wasRigthParentheses = false;
+					return true;
+				}*/ else {
+					//убираю проверку на ignoreErrors из-за зацикливания в формулах типа lookup(,{,3,sum(
 					t.outStack = [];
 					/*в массиве используется недопустимый параметр*/
 					parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
