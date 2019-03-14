@@ -2592,20 +2592,20 @@
 				if (findFillColor) {
 					ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
 				} else {
-					var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
+					var rect = new AscCommon.asc_CRect(x - offsetX, y - offsetY, w, h);
 					var dScale = asc_getcvt(0, 3, this._getPPIX());
-					rect.x *= dScale;
-					rect.y *= dScale;
-					rect.w *= dScale;
-					rect.h *= dScale;
+					rect._x *= dScale;
+					rect._y *= dScale;
+					rect._width *= dScale;
+					rect._height *= dScale;
 					AscFormat.ExecuteNoHistory(
 						function (fill, rect) {
 							var geometry = new AscFormat.Geometry();
 							var path = new AscFormat.Path();
-							path.moveTo(rect.x, rect.y);
-							path.lnTo(rect.x + rect.w, rect.y);
-							path.lnTo(rect.x + rect.w, rect.y + rect.h);
-							path.lnTo(rect.x, rect.y + rect.h);
+							path.moveTo(rect._x, rect._y);
+							path.lnTo(rect._x + rect._width, rect._y);
+							path.lnTo(rect._x + rect._width, rect._y + rect._height);
+							path.lnTo(rect._x, rect._y + rect._height);
 							path.close();
 							geometry.AddPath(path);
 							geometry.Recalculate(100, 100, true);
@@ -2734,31 +2734,27 @@
 					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
 						var indexImage = oRule.getIndexRule(values, this.model, cellValue);
 
-						var rect = ctx._calcRect(x - offsetX, top + 1 - offsetY, width, height);
+						var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
 						var dScale = asc_getcvt(0, 3, this._getPPIX());
-						rect.x *= dScale;
-						rect.y *= dScale;
-						rect.w *= dScale;
-						rect.h *= dScale;
-
-
+						rect._x *= dScale;
+						rect._y *= dScale;
+						rect._width *= dScale;
+						rect._height *= dScale;
                         AscFormat.ExecuteNoHistory(
                             function (rect) {
-
-
                                 var oImgP = new Asc.asc_CImgProperty();
                                 oImgP.ImageUrl = AscFormat.sDownIncline;
                                 var oSize = oImgP.get_OriginSize(Asc.editor);
 
-                                rect.y = rect.y + rect.h - oSize.Height;
-                                rect.w = oSize.Width;
-                                rect.h = oSize.Height;
+                                rect._y = rect._y + rect._height - oSize.Height;
+                                rect._width = oSize.Width;
+                                rect._height = oSize.Height;
                                 var geometry = new AscFormat.Geometry();
                                 var path = new AscFormat.Path();
-                                path.moveTo(rect.x, rect.y);
-                                path.lnTo(rect.x + rect.w, rect.y);
-                                path.lnTo(rect.x + rect.w, rect.y + rect.h);
-                                path.lnTo(rect.x, rect.y + rect.h);
+                                path.moveTo(rect._x, rect._y);
+                                path.lnTo(rect._x + rect._width, rect._y);
+                                path.lnTo(rect._x + rect._width, rect._y + rect._height);
+                                path.lnTo(rect._x, rect._y + rect._height);
                                 path.close();
                                 geometry.AddPath(path);
                                 geometry.Recalculate(100, 100, true);
