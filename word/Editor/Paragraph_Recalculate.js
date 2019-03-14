@@ -3135,8 +3135,15 @@ CParagraphRecalculateStateWrap.prototype =
 				}
 				else if (isHavePrChange && !oPrevNumPr && NumPr)
 				{
-					var arrNumInfo = Para.Parent.CalculateNumberingValues(Para, NumPr, true);
-					NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, undefined, undefined);
+					if (reviewtype_Remove === nReviewType)
+					{
+						NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), undefined, undefined, undefined, undefined);
+					}
+					else
+					{
+						var arrNumInfo = Para.Parent.CalculateNumberingValues(Para, NumPr, true);
+						NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, undefined, undefined);
+					}
 				}
 				else if (oPrevNumPr && NumPr)
 				{

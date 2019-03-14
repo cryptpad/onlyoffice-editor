@@ -5556,6 +5556,10 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     var bRemReview  = reviewtype_Remove === ReviewType ? true : false;
     var ReviewColor = this.GetReviewColor();
 
+    var oRemAddInfo  = this.GetReviewInfo().GetPrevAdded();
+    var isRemAdd     = !!oRemAddInfo;
+    var oRemAddColor = oRemAddInfo ? oRemAddInfo.GetColor() : REVIEW_COLOR;
+
     // Выставляем цвет обводки
 
     var bPresentation = this.Paragraph && !this.Paragraph.bFromDocument;
@@ -5616,7 +5620,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     }
 
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
-    {
+	{
 		var Item             = this.private_CheckInstrText(this.Content[Pos]);
 		var ItemType         = Item.Type;
 		var ItemWidthVisible = Item.Get_WidthVisible();
@@ -5627,133 +5631,71 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 		if (SpellData[Pos])
 			nSpellingErrorsCounter += SpellData[Pos];
 
-        switch( ItemType )
-        {
-            case para_End:
-            {
-                if (this.Paragraph)
-                {
-                    if (bAddReview)
-                        aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
-                    else if (bRemReview)
-                        aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
-                }
+		switch (ItemType)
+		{
+			case para_End:
+			{
+				if (this.Paragraph)
+				{
+					if (bAddReview)
+					{
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					}
+					else if (bRemReview)
+					{
+						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 
-                X += ItemWidthVisible;
+						if (isRemAdd)
+							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
+					}
+				}
 
-                break;
-            }
-            case para_NewLine:
-            {
-                X += ItemWidthVisible;
-                break;
-            }
+				X += ItemWidthVisible;
 
-            case para_PageNum:
-            case para_PageCount:
-            case para_Drawing:
-            case para_Tab:
-            case para_Text:
-            case para_Sym:
-            case para_FootnoteReference:
-            case para_FootnoteRef:
-            case para_Separator:
-            case para_ContinuationSeparator:
-            {
-                if (para_Text === ItemType && null !== this.CompositeInput && Pos >= this.CompositeInput.Pos && Pos < this.CompositeInput.Pos + this.CompositeInput.Length)
-                {
-                    aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
-                }
+				break;
+			}
+			case para_NewLine:
+			{
+				X += ItemWidthVisible;
+				break;
+			}
 
-                if ( para_Drawing != ItemType || Item.Is_Inline() )
-                {
-                	if (para_Drawing !== ItemType)
+			case para_PageNum:
+			case para_PageCount:
+			case para_Drawing:
+			case para_Tab:
+			case para_Text:
+			case para_Sym:
+			case para_FootnoteReference:
+			case para_FootnoteRef:
+			case para_Separator:
+			case para_ContinuationSeparator:
+			{
+				if (para_Text === ItemType && null !== this.CompositeInput && Pos >= this.CompositeInput.Pos && Pos < this.CompositeInput.Pos + this.CompositeInput.Length)
+				{
+					aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+				}
+
+				if (para_Drawing != ItemType || Item.Is_Inline())
+				{
+					if (para_Drawing !== ItemType)
 					{
 						if (true === bRemReview)
+						{
 							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+
+							if (isRemAdd)
+								aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
+						}
 						else if (true === CurTextPr.DStrikeout)
+						{
 							aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+						}
 						else if (true === CurTextPr.Strikeout)
+						{
 							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+						}
 					}
-
-                    if (true === bAddReview)
-                        aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
-                    else if (true === CurTextPr.Underline)
-                        aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr );
-
-					if (nSpellingErrorsCounter > 0)
-                        aSpelling.Add( UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, 0, 0, 0 );
-
-                    X += ItemWidthVisible;
-                }
-
-                break;
-            }
-            case para_Space:
-            {
-                // Пробелы, идущие в конце строки, не подчеркиваем и не зачеркиваем
-                if ( PDSL.Spaces > 0 )
-                {
-                    if (true === bRemReview)
-                        aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
-                    else if (true === CurTextPr.DStrikeout)
-                        aDStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr  );
-                    else if ( true === CurTextPr.Strikeout )
-                        aStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr  );
-
-                    if (true === bAddReview)
-                        aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
-                    else if (true === CurTextPr.Underline)
-                        aUnderline.Add( UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr );
-
-                    PDSL.Spaces--;
-                }
-
-                X += ItemWidthVisible;
-
-                break;
-            }
-            case para_Math_Text:
-            case para_Math_BreakOperator:
-            case para_Math_Ampersand:
-            {
-                if (true === bRemReview)
-                    aStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr );
-                else if (true === CurTextPr.DStrikeout)
-                    aDStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr );
-                else if ( true === CurTextPr.Strikeout )
-                    aStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr );
-
-
-                X += ItemWidthVisible;
-                break;
-            }
-            case para_Math_Placeholder:
-            {
-                var ctrPrp = this.Parent.GetCtrPrp();
-                if (true === bRemReview)
-                    aStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr );
-                if(true === ctrPrp.DStrikeout)
-                    aDStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr );
-                else if(true === ctrPrp.Strikeout)
-                    aStrikeout.Add( StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr );
-
-                X += ItemWidthVisible;
-                break;
-            }
-			case para_FieldChar:
-			{
-				PDSL.ComplexFields.ProcessFieldChar(Item);
-
-				if (Item.IsNumValue())
-				{
-					if (true === bRemReview)
-						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
-					else if (true === CurTextPr.DStrikeout)
-						aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
-					else if (true === CurTextPr.Strikeout)
-						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
 
 					if (true === bAddReview)
 						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
@@ -5768,7 +5710,121 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 
 				break;
 			}
-        }
+			case para_Space:
+			{
+				// Пробелы, идущие в конце строки, не подчеркиваем и не зачеркиваем
+				if (PDSL.Spaces > 0)
+				{
+					if (true === bRemReview)
+					{
+						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+
+						if (isRemAdd)
+							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
+					}
+					else if (true === CurTextPr.DStrikeout)
+					{
+						aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+					}
+					else if (true === CurTextPr.Strikeout)
+					{
+						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+					}
+
+					if (true === bAddReview)
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					else if (true === CurTextPr.Underline)
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+
+					PDSL.Spaces--;
+				}
+
+				X += ItemWidthVisible;
+
+				break;
+			}
+			case para_Math_Text:
+			case para_Math_BreakOperator:
+			case para_Math_Ampersand:
+			{
+				if (true === bRemReview)
+				{
+					aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr);
+
+					if (isRemAdd)
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
+				}
+				else if (true === CurTextPr.DStrikeout)
+				{
+					aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+				}
+				else if (true === CurTextPr.Strikeout)
+				{
+					aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+				}
+
+
+				X += ItemWidthVisible;
+				break;
+			}
+			case para_Math_Placeholder:
+			{
+				var ctrPrp = this.Parent.GetCtrPrp();
+				if (true === bRemReview)
+				{
+					aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr);
+
+					if (isRemAdd)
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
+				}
+				else if (true === ctrPrp.DStrikeout)
+				{
+					aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+				}
+				else if (true === ctrPrp.Strikeout)
+				{
+					aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+				}
+
+				X += ItemWidthVisible;
+				break;
+			}
+			case para_FieldChar:
+			{
+				PDSL.ComplexFields.ProcessFieldChar(Item);
+
+				if (Item.IsNumValue())
+				{
+					if (true === bRemReview)
+					{
+						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+
+						if (isRemAdd)
+							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
+					}
+					else if (true === CurTextPr.DStrikeout)
+					{
+						aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+					}
+					else if (true === CurTextPr.Strikeout)
+					{
+						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+					}
+
+					if (true === bAddReview)
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					else if (true === CurTextPr.Underline)
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+
+					if (nSpellingErrorsCounter > 0)
+						aSpelling.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, 0, 0, 0);
+
+					X += ItemWidthVisible;
+				}
+
+				break;
+			}
+		}
 	}
 
 	if (true === this.Pr.HavePrChange() && para_Math_Run !== this.Type)
@@ -10949,6 +11005,10 @@ CReviewInfo.prototype.IsPrevAddedByCurrentUser = function()
 		return false;
 
 	return oPrevInfo.IsCurrentUser();
+};
+CReviewInfo.prototype.GetColor = function()
+{
+	return this.Get_Color();
 };
 
 
