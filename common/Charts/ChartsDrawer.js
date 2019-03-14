@@ -48,6 +48,9 @@ var c_oAscTickMark = Asc.c_oAscTickMark;
 var c_oAscChartDataLabelsPos = Asc.c_oAscChartDataLabelsPos;
 var c_oAscChartLegendShowSettings = Asc.c_oAscChartLegendShowSettings;
 
+var test_compare_paths = false;
+var test_compare_paths_arr;
+
 var c_oChartTypes =
 {
 	Bar: 0,
@@ -201,6 +204,9 @@ CChartsDrawer.prototype =
 				this.charts[i].recalculate();
 			}
 		}
+
+		//for test
+		this._testChartsPaths();
 	},
 
 	init: function(chartSpace) {
@@ -359,6 +365,42 @@ CChartsDrawer.prototype =
 
 			//DRAW CHARTS
 			drawCharts();
+		}
+	},
+
+	_testChartsPaths: function() {
+		var buildAllPaths = false;
+		if(test_compare_paths) {
+			if(undefined === window.test_compare_paths_count) {
+				window.test_compare_paths_count = 0;
+			}
+			/*if(!test_compare_paths_arr) {
+			 var col = 41;
+			 var row = 0;
+			 var str = "";
+			 while(true) {
+			 var val = this.cChartSpace.worksheet.getCell3(row, col).getValue();
+			 if("" !== val) {
+			 str += val;
+			 row++;
+			 } else {
+			 break;
+			 }
+			 }
+			 test_compare_paths_arr = str;
+			 }*/
+
+			if(!test_compare_paths_arr) {
+				test_compare_paths_arr = [];
+			}
+			if(test_compare_paths_arr[window.test_compare_paths_count] !== JSON.stringify(this.cChartSpace.GetPath().ArrPathCommand)) {
+				console.log("error drawing charts" + window.test_compare_paths_count);
+			}
+			if(buildAllPaths) {
+				test_compare_paths_arr[window.test_compare_paths_count] = JSON.stringify(this.cChartSpace.GetPath().ArrPathCommand);
+				console.log(JSON.stringify(test_compare_paths_arr));
+			}
+			window.test_compare_paths_count++;
 		}
 	},
 
