@@ -2600,20 +2600,20 @@
 				if (findFillColor) {
 					ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
 				} else {
+					var rect = new AscCommon.asc_CRect(x - offsetX, y - offsetY, w, h);
+					var dScale = asc_getcvt(0, 3, this._getPPIX());
+					rect._x *= dScale;
+					rect._y *= dScale;
+					rect._width *= dScale;
+					rect._height *= dScale;
 					AscFormat.ExecuteNoHistory(
-						function (fill) {
+						function (fill, rect) {
 							var geometry = new AscFormat.Geometry();
-							var rect = ctx._calcRect(x - offsetX, y - offsetY, w, h);
-							var dScale = asc_getcvt(0, 3, this._getPPIX());
-							rect.x *= dScale;
-							rect.y *= dScale;
-							rect.w *= dScale;
-							rect.h *= dScale;
 							var path = new AscFormat.Path();
-							path.moveTo(rect.x, rect.y);
-							path.lnTo(rect.x + rect.w, rect.y);
-							path.lnTo(rect.x + rect.w, rect.y + rect.h);
-							path.lnTo(rect.x, rect.y + rect.h);
+							path.moveTo(rect._x, rect._y);
+							path.lnTo(rect._x + rect._width, rect._y);
+							path.lnTo(rect._x + rect._width, rect._y + rect._height);
+							path.lnTo(rect._x, rect._y + rect._height);
 							path.close();
 							geometry.AddPath(path);
 							geometry.Recalculate(100, 100, true);
@@ -2651,7 +2651,7 @@
 							shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
 							shapeDrawer.draw(geometry);
 							graphics.restore();
-						}, this, [fill]
+						}, this, [fill, rect]
 					);
 				}
 			}
@@ -2705,6 +2705,8 @@
 			return null;
 		}
 
+		var graphics = this.handlers.trigger('getMainGraphics');
+
 		var cellValue = c.getNumberValue();
 		width -= 2; // indent
 
@@ -2724,6 +2726,8 @@
 					}
 					values = this.model._getValuesForConditionalFormatting(ranges, true);
 
+					var x = this._getColLeft(col);
+
 					if (AscCommonExcel.ECfType.dataBar === oRule.type) {
 						min = oRule.getMin(values, this.model);
 						max = oRule.getMax(values, this.model);
@@ -2732,12 +2736,49 @@
 						var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
 						var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
 
-						var x = this._getColLeft(col);
 						if (oRuleElement.Color) {
 							ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
 						}
 					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
 						var indexImage = oRule.getIndexRule(values, this.model, cellValue);
+
+						var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
+						var dScale = asc_getcvt(0, 3, this._getPPIX());
+						rect._x *= dScale;
+						rect._y *= dScale;
+						rect._width *= dScale;
+						rect._height *= dScale;
+                        AscFormat.ExecuteNoHistory(
+                            function (rect) {
+                                var oImgP = new Asc.asc_CImgProperty();
+                                oImgP.ImageUrl = AscFormat.sDownIncline;
+                                var oSize = oImgP.get_OriginSize(Asc.editor);
+
+                                rect._y = rect._y + rect._height - oSize.Height;
+                                rect._width = oSize.Width;
+                                rect._height = oSize.Height;
+                                var geometry = new AscFormat.Geometry();
+                                var path = new AscFormat.Path();
+                                path.moveTo(rect._x, rect._y);
+                                path.lnTo(rect._x + rect._width, rect._y);
+                                path.lnTo(rect._x + rect._width, rect._y + rect._height);
+                                path.lnTo(rect._x, rect._y + rect._height);
+                                path.close();
+                                geometry.AddPath(path);
+                                geometry.Recalculate(100, 100, true);
+
+                                var oUniFill = new AscFormat.builder_CreateBlipFill(AscFormat.sDownIncline, "stretch");
+
+                                graphics.save();
+                                graphics.transform3(new AscCommon.CMatrix());
+                                var shapeDrawer = new AscCommon.CShapeDrawer();
+                                shapeDrawer.Graphics = graphics;
+
+                                shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+                                shapeDrawer.draw(geometry);
+                                graphics.restore();
+                            }, this, [rect]
+                        );
 					}
 				}
 			}
