@@ -1269,7 +1269,7 @@ ParaNumbering.prototype.Measure = function (oContext, oNumbering, oTextPr, oThem
 	}
 
 	var nWidth = 0, nAscent = 0;
-	if (oFinalNumInfo && oFinalNumPr)
+	if (oFinalNumInfo && oFinalNumPr && undefined !== oFinalNumInfo[oFinalNumPr.Lvl])
 	{
 		var oTemp = oNumbering.Measure(oFinalNumPr.NumId, oFinalNumPr.Lvl, oContext, oFinalNumInfo, oTextPr, oTheme);
 
@@ -1282,7 +1282,7 @@ ParaNumbering.prototype.Measure = function (oContext, oNumbering, oTextPr, oThem
 		nAscent   = oTemp.Ascent;
 	}
 
-	if (oSourceNumInfo && oSourceNumPr)
+	if (oSourceNumInfo && oSourceNumPr && undefined !== oSourceNumInfo[oSourceNumPr.Lvl])
 	{
 		var oTemp = oNumbering.Measure(oSourceNumPr.NumId, oSourceNumPr.Lvl, oContext, oSourceNumInfo, oTextPr, oTheme);
 

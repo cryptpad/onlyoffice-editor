@@ -379,6 +379,29 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 			else
 				_nEndPos = EndPos - 1;
 
+			var oDirectParaPr = null
+			if (this.Content[StartPos].IsParagraph())
+				oDirectParaPr = this.Content[StartPos].GetDirectParaPr();
+
+			// TODO: Сделать для таблиц
+			if (oDirectParaPr)
+			{
+				for (var nIndex = StartPos; nIndex <= EndPos; ++nIndex)
+				{
+					var oElement = this.Content[nIndex + 1];
+
+					if (oElement && oElement.IsParagraph() && (nIndex < EndPos || this.Content[nIndex].IsSelectionToEnd()))
+					{
+						var oPrChange   = oElement.GetDirectParaPr();
+						var oReviewInfo = new CReviewInfo();
+						oReviewInfo.Update();
+
+						oElement.SetDirectParaPr(oDirectParaPr);
+						oElement.SetPrChange(oPrChange, oReviewInfo);
+					}
+				}
+			}
+
 			// Сначала проводим обычное удаление по выделению
 			for (var nIndex = StartPos; nIndex <= EndPos; ++nIndex)
 			{
@@ -677,6 +700,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 
 								this.CurPos.ContentPos--;
 								this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false, false);
+
+								if (this.Content[this.CurPos.ContentPos].IsParagraph())
+								{
+									var oParaPr   = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
+									var oPrChange = this.Content[this.CurPos.ContentPos + 1].GetDirectParaPr();
+									var oReviewInfo = new CReviewInfo();
+									oReviewInfo.Update();
+
+									this.Content[this.CurPos.ContentPos + 1].SetDirectParaPr(oParaPr);
+									this.Content[this.CurPos.ContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
+
+								}
 							}
 							else
 							{
@@ -743,6 +778,17 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 								this.Content[this.CurPos.ContentPos].SetReviewType(reviewtype_Remove);
 								this.CurPos.ContentPos++;
 								this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+
+								if (this.Content[this.CurPos.ContentPos - 1].IsParagraph())
+								{
+									var oParaPr   = this.Content[this.CurPos.ContentPos - 1].GetDirectParaPr();
+									var oPrChange = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
+									var oReviewInfo = new CReviewInfo();
+									oReviewInfo.Update();
+
+									this.Content[this.CurPos.ContentPos].SetDirectParaPr(oParaPr);
+									this.Content[this.CurPos.ContentPos].SetPrChange(oPrChange, oReviewInfo);
+								}
 							}
 							else
 							{

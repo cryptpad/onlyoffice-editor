@@ -2215,6 +2215,11 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 							else
 								pGraphics.b_color1(oReviewColor.r, oReviewColor.g, oReviewColor.b, 255);
 						}
+						else if (isHavePrChange && NumPr && !oPrevNumPr)
+						{
+							var oPrReviewColor = this.GetPrReviewColor();
+							pGraphics.b_color1(oPrReviewColor.r, oPrReviewColor.g, oPrReviewColor.b, 255);
+						}
 
 						// Рисуется только сам символ нумерации
 						switch (nNumJc)
@@ -2304,6 +2309,12 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 
 							if (NumberingItem.HaveFinalNumbering())
 								pGraphics.drawHorLine(0, (Y + this.Lines[CurLine].Metrics.TextDescent * 0.4), X_start + nSourceWidth, X_start + NumberingItem.WidthNum + NumberingItem.WidthSuff, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
+						}
+						else if (isHavePrChange && NumPr && !oPrevNumPr)
+						{
+							var oPrReviewColor = this.GetPrReviewColor();
+							pGraphics.p_color(oPrReviewColor.r, oPrReviewColor.g, oPrReviewColor.b, 255);
+							pGraphics.drawHorLine(0, (Y + this.Lines[CurLine].Metrics.TextDescent * 0.4), X_start, X_start + NumberingItem.WidthNum + NumberingItem.WidthSuff, (oNumTextPr.FontSize / 18) * g_dKoef_pt_to_mm);
 						}
 						else
 						{
