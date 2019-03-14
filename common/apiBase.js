@@ -2025,7 +2025,7 @@
         if (AscCommon.g_inputContext)
         {
             AscCommon.g_inputContext.isInputHelpersPresent = true;
-            AscCommon.g_inputContext.isInputHelpers["iframe_" + guid] = true;
+            AscCommon.g_inputContext.isInputHelpers[guid] = true;
         }
     };
 
@@ -2045,8 +2045,8 @@
 		{
 			AscCommon.g_inputContext.HtmlArea.focus();
 
-			if (AscCommon.g_inputContext.isInputHelpers["iframe_" + guid])
-				delete AscCommon.g_inputContext.isInputHelpers["iframe_" + guid];
+			if (AscCommon.g_inputContext.isInputHelpers[guid])
+				delete AscCommon.g_inputContext.isInputHelpers[guid];
 
 			var count = 0;
 			for (var test in AscCommon.g_inputContext.isInputHelpers)

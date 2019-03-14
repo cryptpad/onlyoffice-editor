@@ -970,11 +970,7 @@
                     case 35: 	// end
                     case 36: 	// home
                     {
-                    	for (var helperId in this.isInputHelpers)
-                        {
-                        	// todo:
-                        }
-                        window.g_asc_plugins.onPluginEvent("onKeyDown", { "keyCode" : e.keyCode });
+                    	window.g_asc_plugins.onPluginEvent2("onKeyDown", { "keyCode" : e.keyCode }, this.isInputHelpers);
 
                         AscCommon.stopEvent(e);
                         return false;
