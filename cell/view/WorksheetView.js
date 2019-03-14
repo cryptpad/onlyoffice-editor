@@ -1845,28 +1845,15 @@
 	};
 
     WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages, arrRanges, ignorePrintArea) {
-		var range, maxCell;
+		var range, maxCell, t = this;
 		var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
 
 		var getPrintAreaRanges = function() {
-			var areaRefs = printArea.ref;
-			var areaRefsArr = areaRefs.split(",");
-			var res = [];
-			if(areaRefsArr.length) {
-				for(var i = 0; i < areaRefsArr.length; i++) {
-					AscCommonExcel.executeInR1C1Mode(false, function () {
-						range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) ||
-							AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
-					});
-
-					if(!range) {
-						continue;
-					}
-
-					res.push(new asc_Range(range.c1, range.r1, range.c2, range.r2));
-				}
-			}
-			return res.length ? res : null;
+			var res = false;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				res = AscCommonExcel.getRangeByRef(printArea.ref, t.model, true, true)
+			});
+			return res && res.length ? res : null;
 		};
 
 		var printAreaRanges = !printOnlySelection && printArea ? getPrintAreaRanges() : null;
@@ -1888,6 +1875,12 @@
 			//для этого добавил arrRanges
 			for(var j = 0; j < printAreaRanges.length; j++) {
 				range = printAreaRanges[j];
+				if(range && range.bbox) {
+					range = range.bbox;
+				} else {
+					continue;
+				}
+
 				if(arrRanges) {
 					arrRanges.push(range);
 				}
@@ -15475,20 +15468,26 @@
 	};
 
     WorksheetView.prototype.canAddPrintArea = function () {
-        var res = false;
+        var res = false, t = this;
         var printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
         if(printArea && printArea.sheetId === this.model.getId()) {
-            res = true;
             var selection = this.model.selectionRange.ranges;
 
-            var ref = printArea.ref;
-            var areaRefsArr = ref.split(",");
-            if(areaRefsArr.length) {
-                for(var i = 0; i < areaRefsArr.length; i++) {
-					var range;
-					AscCommonExcel.executeInR1C1Mode(false, function () {
-						range = AscCommonExcel.g_oRangeCache.getRange3D(areaRefsArr[i]) || AscCommonExcel.g_oRangeCache.getAscRange(areaRefsArr[i]);
-					});
+            var areaRefsArr;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				areaRefsArr = AscCommonExcel.getRangeByRef(printArea.ref, t.model, true, true)
+			});
+            if(areaRefsArr && areaRefsArr.length) {
+				res = true;
+            	for(var i = 0; i < areaRefsArr.length; i++) {
+					var range = areaRefsArr[i];
+
+					//todo проверирить если есть валидные области, нужно ли в данном случае сразу возвращать false
+					if(range && range.bbox) {
+						range = range.bbox;
+					} else {
+						return false;
+					}
 
                     for(var j = 0; j < selection.length; j++) {
                         if(selection[j].intersection(range)) {
