@@ -10282,6 +10282,10 @@ drawScatterChart.prototype = {
 				yVal = this._getYVal(n, i);
 
 				xPoint = this.cChartDrawer.getIdxPoint(seria, idx, true);
+				if(undefined === xPoint) {
+					continue;
+				}
+
 				if (xPoint) {
 					xVal = xPoint.val;
 					if (!isNaN(parseFloat(xVal))) {
