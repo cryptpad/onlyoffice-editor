@@ -975,10 +975,21 @@
                         AscCommon.stopEvent(e);
                         return false;
                     }
+                    case 32:
+                    {
+                        // send, but not prevent
+
+                        //window.g_asc_plugins.onPluginEvent2("onKeyDown", { "keyCode" : e.keyCode }, this.isInputHelpers);
+                        this.keyPressInput += " ";
+                        if (window.g_asc_plugins)
+                            window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.keyPressInput });
+                    }
                     default:
                         break;
                 }
 			}
+			else if (32 == e.keyCode)
+                this.keyPressInput += " ";
 
 			if (this.isSystem && this.isShow)
 			{
