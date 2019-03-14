@@ -395,7 +395,7 @@
 			var listenerId = listener.getListenerId();
 			var sheetContainer = this.sheetListeners[sheetId];
 			if (!sheetContainer) {
-				sheetContainer = {cellMap: {}, areaMap: {}, defName3d: {}};
+				sheetContainer = {cellMap: {}, areaMap: {}, defName3d: {}, rangesTop: null, rangesBottom: null, cells: null};
 				this.sheetListeners[sheetId] = sheetContainer;
 			}
 			if (bbox.isOneCell()) {
@@ -404,6 +404,7 @@
 				if (!cellMapElem) {
 					cellMapElem = {cellIndex: cellIndex, count: 0, listeners: {}};
 					sheetContainer.cellMap[cellIndex] = cellMapElem;
+					sheetContainer.cells = null;
 				}
 				if (!cellMapElem.listeners[listenerId]) {
 					cellMapElem.listeners[listenerId] = listener;
@@ -420,6 +421,8 @@
 						areaSheetElem.sharedBroadcast = {changedBBox: null, prevChangedBBox: null, recursion: 0};
 					}
 					sheetContainer.areaMap[vertexIndex] = areaSheetElem;
+					sheetContainer.rangesTop = null;
+					sheetContainer.rangesBottom = null;
 				}
 				if (!areaSheetElem.listeners[listenerId]) {
 					areaSheetElem.listeners[listenerId] = listener;
@@ -440,6 +443,7 @@
 							cellMapElem.count--;
 							if (cellMapElem.count <= 0) {
 								delete sheetContainer.cellMap[cellIndex];
+								sheetContainer.cells = null;
 							}
 						}
 					} else {
@@ -450,6 +454,8 @@
 							areaSheetElem.count--;
 							if (areaSheetElem.count <= 0) {
 								delete sheetContainer.areaMap[vertexIndex];
+								sheetContainer.rangesTop = null;
+								sheetContainer.rangesBottom = null;
 							}
 						}
 					}
@@ -481,7 +487,7 @@
 			if(opt_sheetId){
 				var sheetContainer = this.sheetListeners[opt_sheetId];
 				if (!sheetContainer) {
-					sheetContainer = {cellMap: {}, areaMap: {}, defName3d: {}};
+					sheetContainer = {cellMap: {}, areaMap: {}, defName3d: {}, rangesTop: null, rangesBottom: null, cells: null};
 					this.sheetListeners[opt_sheetId] = sheetContainer;
 				}
 				sheetContainer.defName3d[listenerId] = listener;
@@ -1363,26 +1369,31 @@
 			this.changedDefNameRepeated = this.changedDefName;
 			for (var sheetId in this.sheetListeners) {
 				var sheetContainer = this.sheetListeners[sheetId];
-				sheetContainer.cells = [];
-				sheetContainer.rangesTop = [];
-				sheetContainer.rangesBottom = [];
-				for (var cellIndex in sheetContainer.cellMap) {
-					sheetContainer.cells.push(sheetContainer.cellMap[cellIndex]);
+				if (!sheetContainer.cells) {
+					sheetContainer.cells = [];
+					for (var cellIndex in sheetContainer.cellMap) {
+						sheetContainer.cells.push(sheetContainer.cellMap[cellIndex]);
+					}
+					sheetContainer.cells.sort(function(a, b) {
+						return a.cellIndex - b.cellIndex
+					});
 				}
-				for (var name in sheetContainer.areaMap) {
-					var elem = sheetContainer.areaMap[name];
-					sheetContainer.rangesTop.push(elem);
-					sheetContainer.rangesBottom.push(elem);
+				if (!sheetContainer.rangesTop || !sheetContainer.rangesBottom) {
+					sheetContainer.rangesTop = [];
+					sheetContainer.rangesBottom = [];
+					for (var name in sheetContainer.areaMap) {
+						var elem = sheetContainer.areaMap[name];
+						sheetContainer.rangesTop.push(elem);
+						sheetContainer.rangesBottom.push(elem);
+					}
+
+					sheetContainer.rangesTop.sort(function(a, b) {
+						return Asc.Range.prototype.compareByLeftTop(a.bbox, b.bbox)
+					});
+					sheetContainer.rangesBottom.sort(function(a, b) {
+						return Asc.Range.prototype.compareByRightBottom(a.bbox, b.bbox)
+					});
 				}
-				sheetContainer.cells.sort(function(a, b) {
-					return a.cellIndex - b.cellIndex
-				});
-				sheetContainer.rangesTop.sort(function(a, b) {
-					return Asc.Range.prototype.compareByLeftTop(a.bbox, b.bbox)
-				});
-				sheetContainer.rangesBottom.sort(function(a, b) {
-					return Asc.Range.prototype.compareByRightBottom(a.bbox, b.bbox)
-				});
 			}
 		},
 		_broadcastCellsEnd: function() {
