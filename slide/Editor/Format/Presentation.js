@@ -7979,7 +7979,7 @@ CPresentation.prototype =
             var _data = _comments[i].Data;
             var _commId = 0;
 
-            var _autID = _data.m_sUserId + _uniIdSplitter + _data.m_sUserName;
+            var _autID = _data.m_sUserName;
             var _author = this.CommentAuthors[_autID];
             if (!_author)
             {
@@ -8014,7 +8014,7 @@ CPresentation.prototype =
             {
                 var _data2 = _comments2[j];
 
-                var _autID2 = _data2.m_sUserId + _uniIdSplitter + _data2.m_sUserName;
+                var _autID2 = _data2.m_sUserName;
                 var _author2 = this.CommentAuthors[_autID2];
                 if (!_author2)
                 {
