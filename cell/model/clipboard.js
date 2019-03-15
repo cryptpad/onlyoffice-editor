@@ -2592,118 +2592,97 @@
 				}
 				return newFonts;
 			},
-			
-			_convertTableFromExcelToDocument: function(worksheet, aContentExcel, documentContent)
-			{
+
+			_convertTableFromExcelToDocument: function (worksheet, aContentExcel, documentContent) {
 				var oCurPar = new Paragraph(worksheet.model.DrawingDocument, documentContent);
-				
-				var getElem = function(text, format, isAddSpace, isHyperLink)
-				{
+
+				var getElem = function (text, format, isAddSpace, isHyperLink) {
 					var result = null;
 					var value = text;
-					if(isAddSpace)
-					{
+					if (isAddSpace) {
 						value += " ";
 					}
-					if("" === value)
-					{
+					if ("" === value) {
 						return result;
 					}
-					
-					
-					if(isHyperLink)
-					{
+
+
+					if (isHyperLink) {
 						var oCurHyperlink = new ParaHyperlink();
 						oCurHyperlink.SetParagraph(oCurPar);
-						oCurHyperlink.Set_Value( isHyperLink.Hyperlink );
-						if(isHyperLink.Tooltip)
-						{
+						oCurHyperlink.Set_Value(isHyperLink.Hyperlink);
+						if (isHyperLink.Tooltip) {
 							oCurHyperlink.SetToolTip(isHyperLink.Tooltip);
 						}
 					}
-					
+
 					var oCurRun = new ParaRun(oCurPar);
 					//***text property***
-					if(format)
-					{
+					if (format) {
 						oCurRun.Pr.Bold = format.getBold();
 						oCurRun.Pr.Italic = format.getItalic();
 						oCurRun.Pr.Strikeout = format.getStrikeout();
 						oCurRun.Pr.Underline = format.getUnderline() !== 2;
 					}
-				
-					for(var k = 0, length = value.length; k < length; k++)
-					{
+
+					for (var k = 0, length = value.length; k < length; k++) {
 						var nUnicode = null;
 						var nCharCode = value.charCodeAt(k);
-						if (AscCommon.isLeadingSurrogateChar(nCharCode)) 
-						{
-							if (k + 1 < length) 
-							{
+						if (AscCommon.isLeadingSurrogateChar(nCharCode)) {
+							if (k + 1 < length) {
 								k++;
 								var nTrailingChar = value.charCodeAt(k);
 								nUnicode = AscCommon.decodeSurrogateChar(nCharCode, nTrailingChar);
 							}
-						}
-						else
-						{
+						} else {
 							nUnicode = nCharCode;
 						}
-							
-						if (null != nUnicode) 
-						{
+
+						if (null != nUnicode) {
 							var Item;
-							if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode)
+							if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
 								Item = new ParaText(nUnicode);
-							else
+							} else {
 								Item = new ParaSpace();
+							}
 
 							//add text
 							oCurRun.Add_ToContent(k, Item, false);
 						}
 					}
-					
+
 					//add run
-					if(oCurHyperlink)
-					{
+					if (oCurHyperlink) {
 						oCurHyperlink.Add_ToContent(0, oCurRun, false);
 						result = oCurHyperlink;
-					}	
-					else
-					{
+					} else {
 						result = oCurRun;
 					}
-					
+
 					return result;
 				};
-				
+
 				var n = 0;
-				aContentExcel._forEachCell(function(cell){
+				aContentExcel._forEachCell(function (cell) {
 					var isHyperlink = aContentExcel.getCell3(cell.nRow, cell.nCol).getHyperlink();
 
-					var multiText = cell.getValueMultiText();
-					if(multiText)
-					{
-						for(var m = 0; m < multiText.length; m++)
-						{
+					var multiText = cell.getValueMultiText(), format, elem;
+					if (multiText) {
+						for (var m = 0; m < multiText.length; m++) {
 							var curMultiText = multiText[m];
-							var format = curMultiText.format;
+							format = curMultiText.format;
 
-							var elem = getElem(curMultiText.text, format);
-							if(null !== elem)
-							{
+							elem = getElem(curMultiText.text, format);
+							if (null !== elem) {
 								oCurPar.Internal_Content_Add(n, elem, false);
 								n++;
 							}
 						}
-					}
-					else
-					{
-						var format = cell.xfs && cell.xfs.font ? cell.xfs.font : null;
+					} else {
+						format = cell.xfs && cell.xfs.font ? cell.xfs.font : null;
 
-						var elem = getElem(cell.getValue(), format, null, isHyperlink);
-						if(null !== elem)
-						{
+						elem = getElem(cell.getValue(), format, null, isHyperlink);
+						if (null !== elem) {
 							oCurPar.Internal_Content_Add(n, elem, false);
 							n++;
 						}
@@ -2713,7 +2692,7 @@
 					oCurPar.Internal_Content_Add(n, elem, false);
 					n++;
 				});
-				
+
 				return oCurPar;
 			},
 			
@@ -3246,67 +3225,56 @@
 					worksheet.setSelectionInfo('paste', {data: t.aResult});
 				}
 			},
-			
-			_parseChildren: function(children)
-			{
+
+			_parseChildren: function (children) {
 				var childrens = children.children;
 				var colSpan, rowSpan;
-				for(var i = 0; i < childrens.length; i++)
-				{
-					if(childrens[i].type === c_oAscBoundsElementType.Cell)
-					{
-						for(var row = childrens[i].top; row < childrens[i].top + childrens[i].height; row++)
-						{
-							for(var col = childrens[i].left; col < childrens[i].left + childrens[i].width; col++)
-							{
+				for (var i = 0; i < childrens.length; i++) {
+					if (childrens[i].type === c_oAscBoundsElementType.Cell) {
+						for (var row = childrens[i].top; row < childrens[i].top + childrens[i].height; row++) {
+							for (var col = childrens[i].left; col < childrens[i].left + childrens[i].width; col++) {
 								var isCtable = false;
 								var tempChildren = childrens[i].children[0].children;
 								colSpan = null;
 								rowSpan = null;
-								for(var temp = 0; temp < tempChildren.length; temp++)
-								{
-									if(tempChildren[temp].type === c_oAscBoundsElementType.Table)
+								for (var temp = 0; temp < tempChildren.length; temp++) {
+									if (tempChildren[temp].type === c_oAscBoundsElementType.Table) {
 										isCtable = true;
+									}
 								}
-								if(childrens[i].width > 1 && isCtable && col === childrens[i].left)
-								{
+								if (childrens[i].width > 1 && isCtable && col === childrens[i].left) {
 									colSpan = childrens[i].width;
 									rowSpan = 1;
-								}	
-								else if(!isCtable && tempChildren.length === 1)
-								{
+								} else if (!isCtable && tempChildren.length === 1) {
 									rowSpan = childrens[i].height;
 									colSpan = childrens[i].width;
-								}	
-								
-								
+								}
+
+
 								var newCell = this.aResult.getCell(row, col);
 								newCell.rowSpan = rowSpan;
 								newCell.colSpan = colSpan;
-								
+
 								//backgroundColor
 								var backgroundColor = this.getBackgroundColorTCell(childrens[i]);
-								if(backgroundColor)
-								{
+								if (backgroundColor) {
 									newCell.bc = backgroundColor;
 								}
-								
-								var borders = this._getBorders(childrens[i], row, col, newCell.borders);
-								newCell.borders = borders;
+
+								newCell.borders = this._getBorders(childrens[i], row, col, newCell.borders);
 							}
 						}
 					}
-					
-					if(childrens[i].children.length === 0)
-					{
+
+					if (childrens[i].children.length === 0) {
 						//if parent - cell of table
 						colSpan = null;
 						rowSpan = null;
-						
+
 						this._parseParagraph(childrens[i], childrens[i].top + this.rowDiff, childrens[i].left);
-					}
-					else
+					} else {
 						this._parseChildren(childrens[i]);
+					}
 				}
 			},
 
