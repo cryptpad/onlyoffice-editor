@@ -1574,7 +1574,10 @@ var editor;
   spreadsheet_api.prototype._onUpdatePrintAreaLock = function(lockElem) {
       var t = this;
 
-      var isLocked = t.asc_isPrintAreaLocked();
+	  var wsModel = t.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
+	  var wsIndex = wsModel? wsModel.getIndex() : undefined;
+
+      var isLocked = t.asc_isPrintAreaLocked(wsIndex);
       if(isLocked) {
           t.handlers.trigger("asc_onLockPrintArea");
       } else {
