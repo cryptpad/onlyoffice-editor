@@ -835,6 +835,12 @@
 				defName.isLock = null;
 			});
 		},
+		unlockCurrentDefName: function(name, sheetId) {
+			var defName = this.getDefNameByName(name, sheetId);
+			if(defName) {
+				defName.isLock = null;
+			}
+		},
 		checkDefNameLock: function() {
 			return this._foreachDefName(function(defName) {
 				return defName.isLock;
@@ -2464,6 +2470,9 @@
 	};
 	Workbook.prototype.unlockDefName = function(){
 		this.dependencyFormulas.unlockDefName();
+	};
+	Workbook.prototype.unlockCurrentDefName = function(name, sheetId){
+		this.dependencyFormulas.unlockCurrentDefName(name, sheetId);
 	};
 	Workbook.prototype.checkDefNameLock = function(){
 		return this.dependencyFormulas.checkDefNameLock();
