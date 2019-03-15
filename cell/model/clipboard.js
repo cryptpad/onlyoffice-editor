@@ -2910,83 +2910,64 @@
 				return res;
 			},
 
-			_getTableFromText: function (worksheet, sText)
-			{
-				var t = this;
-				
-				var addTextIntoCell = function(row, col, text)
-				{
+			_getTableFromText: function (worksheet, sText) {
+
+				var addTextIntoCell = function (row, col, text) {
 					var cell = aResult.getCell(rowCounter, colCounter);
 					cell.content[0] = {text: text, format: new AscCommonExcel.Font()};
-					
+
 					return cell;
 				};
-				
+
 				var aResult = new excelPasteContent();
 				var width = 0;
 				var colCounter = 0;
 				var rowCounter = 0;
 				var sCurChar = "";
-				for ( var i = 0, length = sText.length; i < length; i++ )
-				{
+				for (var i = 0, length = sText.length; i < length; i++) {
 					var Char = sText.charAt(i);
 					var Code = sText.charCodeAt(i);
-					var Item = null;
-					
-					if(colCounter > width)
-					{
+
+					if (colCounter > width) {
 						width = colCounter;
 					}
-					
-					if ( '\n' === Char )
-					{
-						if("" == sCurChar)
-						{
-							addTextIntoCell(rowCounter, colCounter, sCurChar);
-							colCounter = 0;
-							rowCounter++;
-						}
-						else
-						{
-							addTextIntoCell(rowCounter, colCounter, sCurChar);
-							colCounter = 0;
-							
-							rowCounter++;
-							sCurChar = "";
-						}
-					}
-					else if ( 13 === Code )
-					{
+
+					if (13 === Code) {
 						continue;
 					}
-					else
-					{
-						if(32 === Code || 160 === Code) //160 - nbsp
-						{
-							sCurChar += " ";
-						}
-						else if ( 9 === Code )//tab
-						{
+
+					if ('\n' === Char || sCurChar.length >= Asc.c_oAscMaxCellOrCommentLength) {
+						if ("" == sCurChar) {
 							addTextIntoCell(rowCounter, colCounter, sCurChar);
-							
-							colCounter++;
+							colCounter = 0;
+							rowCounter++;
+						} else {
+							addTextIntoCell(rowCounter, colCounter, sCurChar);
+							colCounter = 0;
+
+							rowCounter++;
 							sCurChar = "";
 						}
-						else
-						{
+					} else {
+						if (32 === Code || 160 === Code) {//160 - nbsp
+							sCurChar += " ";
+						} else if (9 === Code) {//tab
+							addTextIntoCell(rowCounter, colCounter, sCurChar);
+							colCounter++;
+							sCurChar = "";
+						} else {
 							sCurChar += Char;
 						}
-						
-						if(i === length - 1)
-						{
+
+						if (i === length - 1) {
 							addTextIntoCell(rowCounter, colCounter, sCurChar);
-						}	
+						}
 					}
 				}
-				
+
 				aResult.props.cellCount = width + 1;
 				aResult.props.rowSpanSpCount = 0;
-				
+
 				return aResult;
 			},
 
