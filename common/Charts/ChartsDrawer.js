@@ -369,26 +369,30 @@ CChartsDrawer.prototype =
 	},
 
 	_testChartsPaths: function() {
+		//чтобы сгенерировать все paths нужно выставить buildAllPaths в true
+		//добавляем данные из консоли(console.log(JSON.stringify(test_compare_paths_arr));) в буфер обмена
+		//далее открыаем файл, запускаем макрос - получаем готовый файл с текстом наших paths в колонке с индексом col
+
 		var buildAllPaths = false;
+		var col = 41;
 		if(test_compare_paths) {
 			if(undefined === window.test_compare_paths_count) {
 				window.test_compare_paths_count = 0;
 			}
-			/*if(!test_compare_paths_arr) {
-			 var col = 41;
-			 var row = 0;
-			 var str = "";
-			 while(true) {
-			 var val = this.cChartSpace.worksheet.getCell3(row, col).getValue();
-			 if("" !== val) {
-			 str += val;
-			 row++;
-			 } else {
-			 break;
-			 }
-			 }
-			 test_compare_paths_arr = str;
-			 }*/
+			if (!test_compare_paths_arr) {
+				var row = 0;
+				var str = "";
+				while (true) {
+					var val = this.cChartSpace.worksheet.getCell3(row, col).getValue();
+					if ("" !== val) {
+						str += val;
+						row++;
+					} else {
+						break;
+					}
+				}
+				test_compare_paths_arr = JSON.parse(str);
+			}
 
 			if(!test_compare_paths_arr) {
 				test_compare_paths_arr = [];
@@ -402,6 +406,30 @@ CChartsDrawer.prototype =
 			}
 			window.test_compare_paths_count++;
 		}
+
+		//с помощью данного макроса добавляю paths в файл
+		/*Private Sub CommandButton1_Click()
+
+		Dim DataObj As MSForms.DataObject
+		Set DataObj = New MSForms.DataObject
+		DataObj.GetFromClipboard
+
+		SText = DataObj.GetText(1)
+
+		Dim columnNameStart As String
+		Dim rowNameStart As String
+
+		Dim test As String, row As Integer
+		For i = 1 To Len(SText) Step 1000
+		test = Mid(SText, i, 1000)
+		ActiveSheet.Cells(row + 1, 42).Value = test
+		ActiveSheet.Cells(row + 1, 42).WrapText = False
+
+		row = row + 1
+		Next
+
+		End Sub*/
+
 	},
 
 	_sortChartsForDrawing: function(chartSpace) {
