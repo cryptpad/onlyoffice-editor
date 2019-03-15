@@ -4,8 +4,11 @@ GRUNT_FLAGS = --no-color -v
 OUTPUT_DIR = deploy
 OUTPUT = $(OUTPUT_DIR)
 
-COMPANY_NAME ?= onlyoffice
-PRODUCT_NAME ?= documentserver
+COMPANY_NAME ?= ONLYOFFICE
+PRODUCT_NAME ?= DocumentServer
+
+COMPANY_NAME_LOW = $(shell echo $(COMPANY_NAME) | tr A-Z a-z)
+PRODUCT_NAME_LOW = $(shell echo $(PRODUCT_NAME) | tr A-Z a-z)
 
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
@@ -23,7 +26,7 @@ GRUNT_ENV += PUBLISHER_URL="$(PUBLISHER_URL)"
 
 WEBAPPS_DIR ?= web-apps
 
-ifeq ($(PRODUCT_NAME),$(filter $(PRODUCT_NAME),documentserver-de documentserver-ie))
+ifeq ($(PRODUCT_NAME_LOW),$(filter $(PRODUCT_NAME_LOW),documentserver-de documentserver-ie))
 WEBAPPS_DIR := web-apps-pro
 endif
 
