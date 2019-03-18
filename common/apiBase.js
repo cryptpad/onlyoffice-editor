@@ -1669,7 +1669,6 @@
         for (var i = text.getUnicodeIterator(); i.check(); i.next())
 			codes.push(i.value());
 
-        // TODO: normal remove
         for (var i = 0; i < textReplace.length; i++)
         	AscCommon.g_inputContext.emulateKeyDownApi(8);
 
