@@ -2818,10 +2818,11 @@ function StyleManager(){
 }
 StyleManager.prototype =
 {
-	init: function(wb, firstXf, firstFont, firstFill) {
+	init: function(wb, firstXf, firstFont, firstFill, firstBorder) {
 		g_StyleCache.firstXf = firstXf;
 		g_StyleCache.firstFont = firstFont;
 		g_StyleCache.firstFill = firstFill;
+		g_StyleCache.firstBorder = firstBorder;
 		if(null != firstXf.font)
 			g_oDefaultFormat.Font = firstXf.font;
 		if(null != firstXf.fill)
@@ -3041,6 +3042,7 @@ StyleManager.prototype =
 		this.firstXf =  new CellXfs();
 		this.firstFont = null;
 		this.firstFill = null;
+		this.firstBorder = null;
 	}
 
 	StyleCache.prototype.addFont = function(newFont) {

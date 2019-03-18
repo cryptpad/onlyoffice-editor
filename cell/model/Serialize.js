@@ -1848,6 +1848,7 @@
 		this.oFillMap.add(g_StyleCache.firstFill);
 		//second fill is equal to first (in Excel it is different, but it does not matter - they are ignored)
 		this.oFillMap.addNoCheck(g_StyleCache.firstFill);
+        this.oBorderMap.addNoCheck(g_StyleCache.firstBorder);
 		this.oXfsMap.add(g_StyleCache.firstXf);
 	};
 	StylesForWrite.prototype.add = function(xf) {
@@ -5318,7 +5319,7 @@
         };
         this.InitStyleManager = function (oStyleObject)
         {
-			var i, firstFont, firstFill, firstXf;
+			var i, firstFont, firstFill, firstBorder, firstXf;
 			if (0 === oStyleObject.aFonts.length) {
 				oStyleObject.aFonts[0] = new AscCommonExcel.Font();
 				oStyleObject.aFonts[0].initDefault(this.wb);
@@ -5354,6 +5355,7 @@
 			for (i = 0; i < oStyleObject.aBorders.length; ++i) {
 				oStyleObject.aBorders[i] = g_StyleCache.addBorder(oStyleObject.aBorders[i]);
 			}
+            firstBorder = oStyleObject.aBorders[0];
 			for (var XfIdTmp in oStyleObject.aCellStyleXfs) {
 				var xf = oStyleObject.aCellStyleXfs[XfIdTmp];
 				if (xf.align) {
@@ -5522,7 +5524,7 @@
 			if (firstXf && !this.isCopyPaste) {
 				//addXf with force flag should be last operation
 				firstXf = g_StyleCache.addXf(firstXf, true);
-				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill);
+				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill, firstBorder);
 			}
             for(var i in oStyleObject.oCustomTableStyles)
             {
