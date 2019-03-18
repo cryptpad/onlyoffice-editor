@@ -1940,15 +1940,15 @@
 			{
                 ret.X += this.WordControl.X;
                 ret.Y += this.WordControl.Y;
-                ret.X += (this.WordControl.m_oMainView.AbsolutePosition.L * g_dKoef_mm_to_pix);
-                ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * g_dKoef_mm_to_pix);
+                ret.X += (this.WordControl.m_oMainView.AbsolutePosition.L * AscCommon.g_dKoef_mm_to_pix);
+                ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
                 ret.X += (this.WordControl.m_oDrawingDocument.TargetHtmlElementLeft);
                 ret.Y += (this.WordControl.m_oDrawingDocument.TargetHtmlElementTop);
 
                 ret.X >>= 0;
                 ret.Y >>= 0;
 
-                ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
+                ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100) >> 0;
 				break;
 			}
             case c_oEditorId.Presentation:
@@ -1956,15 +1956,15 @@
 				ret.X += this.WordControl.X;
 				ret.Y += this.WordControl.Y;
 
-				ret.X += (this.WordControl.m_oMainParent.AbsolutePosition.L * g_dKoef_mm_to_pix);
+				ret.X += (this.WordControl.m_oMainParent.AbsolutePosition.L * AscCommon.g_dKoef_mm_to_pix);
 
 				if (!this.WordControl.m_oLogicDocument.IsFocusOnNotes())
 				{
-					ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * g_dKoef_mm_to_pix);
+					ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
 				}
 				else
 				{
-					ret.Y += (this.WordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix);
+					ret.Y += (this.WordControl.m_oNotesContainer.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
 				}
 
 				ret.X += (this.WordControl.m_oDrawingDocument.TargetHtmlElementLeft);
@@ -1973,11 +1973,29 @@
 				ret.X >>= 0;
 				ret.Y >>= 0;
 
-				ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
+				ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100) >> 0;
                 break;
             }
             case c_oEditorId.Spreadsheet:
             {
+                var drDoc = this.wb.getWorksheet().objectRender.controller.drawingDocument;
+
+                if (true) /*shape target*/
+                {
+                    ret.X += (drDoc.TargetHtmlElementLeft);
+                    ret.Y += (drDoc.TargetHtmlElementTop);
+
+                    var off = jQuery(this.HtmlElement).offset();
+                    if (off)
+                    {
+                        ret.X += off.left;
+                        ret.Y += off.top;
+                    }
+
+                    ret.X >>= 0;
+                    ret.Y >>= 0;
+                    ret.TargetH = (drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix) >> 0;
+                }
                 break;
             }
         }
