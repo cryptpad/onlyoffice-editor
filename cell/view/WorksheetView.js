@@ -12973,7 +12973,7 @@
 					History.Create_NewPoint();
 					History.StartTransaction();
 
-					if (null !== styleName) {
+					if (null != styleName) {
 						t.handlers.trigger("slowOperation", true);
 					}
 
@@ -12986,14 +12986,14 @@
 					}
 					t._onUpdateFormatTable(filterRange, !!(styleName), true);
 
-					if (null !== styleName) {
+					if (null != styleName) {
 						t.handlers.trigger("slowOperation", false);
 					}
 
 					History.EndTransaction();
 				};
 
-				if (styleName === null) {
+				if (styleName == null) {
 					addFilterCallBack(true);
 				} else {
 					t._isLockedCells(filterRange, null, addFilterCallBack)
@@ -13015,8 +13015,9 @@
 
 			bIsChangeFilterToTable = true;
 		} else {
-			if (styleName === null) {
-				filterRange = ar;
+			if (styleName == null) {
+				filterRange = t.model.autoFilters.cutRangeByDefinedCells(ar);
+				ar = filterRange;
 			} else {
 				filterInfo = t.model.autoFilters._getFilterInfoByAddTableProps(ar, addFormatTableOptionsObj, true);
 				filterRange = filterInfo.filterRange;

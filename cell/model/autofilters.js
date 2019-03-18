@@ -3884,13 +3884,48 @@
 			},
 
 			cutRangeByDefinedCells: function(range) {
+				var worksheet = this.worksheet;
 				if(!range) {
 					return range;
 				}
 
 				range = range.clone();
 
-				
+				var minRow, maxRow, minCol, maxCol;
+				this.worksheet.getRange3(0, 0, AscCommon.gc_nMaxRow0, AscCommon.gc_nMaxCol0)._foreachNoEmptyByCol(function (cell, row, col) {
+					if(minRow === undefined) {
+						minRow = row;
+						maxRow = row;
+						minCol = col;
+						maxCol = col;
+					}
+					if(row < minRow) {
+						minRow = row;
+					}
+					if(row > maxRow) {
+						maxRow = row;
+					}
+					if(col < minCol) {
+						minCol = col;
+					}
+					if(col > maxCol) {
+						maxCol = col;
+					}
+
+				});
+
+				if(range.r1 < minRow) {
+					range.r1 = minRow;
+				}
+				if(range.r2 > maxRow) {
+					range.r2 = maxRow;
+				}
+				if(range.c1 < minCol) {
+					range.c1 = minCol;
+				}
+				if(range.c2 > maxCol) {
+					range.c2 = maxCol;
+				}
 
 				return range;
 			},
