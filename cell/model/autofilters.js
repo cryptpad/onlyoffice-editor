@@ -3747,38 +3747,6 @@
 					}
 				};
 
-				var checkEmptyRowsCols = function() {
-					var iter = 0;
-					while(true) {
-						iter++;
-						if(iter > 10000000) {
-							break;
-						}
-						//TODO merge cells
-						//проверяем сверху range
-						if(range.r1 < range.r2 && checkEmptyRange(range.r1, range.c1, range.r1, range.c2)) {
-							range.r1++;
-							continue;
-						}
-						//проверяем снизу range
-						if(range.r1 < range.r2 && checkEmptyRange(range.r2, range.c1, range.r2, range.c2)) {
-							range.r2--;
-							continue;
-						}
-						//проверяем слева range
-						if(range.c1 < range.c2 && checkEmptyRange(range.r1, range.c1, range.r2, range.c1)) {
-							range.c1++;
-							continue;
-						}
-						//проверяем справа range
-						if(range.c1 < range.c2 && checkEmptyRange(range.r1, range.c2, range.r2, range.c2)) {
-							range.c2--;
-							continue;
-						}
-						break;
-					}
-				};
-
 				//проходимся первый раз
 				doExpand();
 				//далее необходимо найти пересечения со всеми ф/т и а/ф
@@ -3846,7 +3814,83 @@
 				}
 
 				//проверяем на наличие пустых колонок/строк
-				checkEmptyRowsCols();
+				return this.checkEmptyAreas(range, rangeAfterTableCrop);
+			},
+
+			checkEmptyAreas: function(range, rangeAfterTableCrop) {
+				if(!range) {
+					return range;
+				}
+
+				range = range.clone();
+				var iter = 0;
+				var ws = this.worksheet;
+
+				var checkEmptyRange = function(r1, c1, r2, c2){
+					var res = true;
+					var range3 = ws.getRange3(r1, c1, r2, c2);
+
+					if(rangeAfterTableCrop && !rangeAfterTableCrop.containsRange(range3.bbox)) {
+						return true;
+					}
+
+					//TODO в данной области могут быть несколько мерженных диапазонов
+					var mergeOffset = range3.hasMerged();
+					if(mergeOffset) {
+						var union = mergeOffset.union(range3.bbox);
+						range3 = ws.getRange3(union.r1, union.c1, union.r2, union.c2);
+					}
+
+					range3._foreachNoEmpty(function (cell) {
+						if (!cell.isEmptyTextString()) {
+							res = false;
+							return null;
+						}
+					});
+
+					return res;
+				};
+
+				while(true) {
+					iter++;
+					if(iter > 10000000) {
+						break;
+					}
+					//TODO merge cells
+					//проверяем сверху range
+					if(range.r1 < range.r2 && checkEmptyRange(range.r1, range.c1, range.r1, range.c2)) {
+						range.r1++;
+						continue;
+					}
+					//проверяем снизу range
+					if(range.r1 < range.r2 && checkEmptyRange(range.r2, range.c1, range.r2, range.c2)) {
+						range.r2--;
+						continue;
+					}
+					//проверяем слева range
+					if(range.c1 < range.c2 && checkEmptyRange(range.r1, range.c1, range.r2, range.c1)) {
+						range.c1++;
+						continue;
+					}
+					//проверяем справа range
+					if(range.c1 < range.c2 && checkEmptyRange(range.r1, range.c2, range.r2, range.c2)) {
+						range.c2--;
+						continue;
+					}
+					break;
+				}
+
+				return range;
+			},
+
+			cutRangeByDefinedCells: function(range) {
+				if(!range) {
+					return range;
+				}
+
+				range = range.clone();
+
+				
 
 				return range;
 			},
