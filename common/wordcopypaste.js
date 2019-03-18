@@ -4635,7 +4635,7 @@ PasteProcessor.prototype =
 					if(2 === presentationSelectedContent.getContentType()) {
 						pasteOnlyImg = true;
 						for(var i = 0; i < presentationSelectedContent.Drawings.length; i++) {
-							if(!presentationSelectedContent.Drawings[i].Drawing.isImage()) {
+							if(presentationSelectedContent.Drawings[i].Drawing.getObjectType() !== AscDFH.historyitem_type_ImageShape) {
 								pasteOnlyImg = false;
 								break;
 							}
