@@ -671,13 +671,41 @@
 
                 if (plugin && plugin.variations[runObject.currentVariation].eventsMap[name])
                 {
-                	if (!runObject.isInitReceive)
-					{
-						if (!runObject.waitEvents)
-							runObject.waitEvents = [];
-						runObject.waitEvents.push({ n : name, d : data });
-						continue;
-					}
+                    if (!runObject.isInitReceive)
+                    {
+                        if (!runObject.waitEvents)
+                            runObject.waitEvents = [];
+                        runObject.waitEvents.push({ n : name, d : data });
+                        continue;
+                    }
+                    var pluginData = new CPluginData();
+                    pluginData.setAttribute("guid", plugin.guid);
+                    pluginData.setAttribute("type", "onEvent");
+                    pluginData.setAttribute("eventName", name);
+                    pluginData.setAttribute("eventData", data);
+                    var _iframe = document.getElementById(runObject.frameId);
+                    if (_iframe)
+                        _iframe.contentWindow.postMessage(pluginData.serialize(), "*");
+                }
+            }
+        },
+
+        onPluginEvent2 : function(name, data, guids)
+        {
+            for (var guid in this.runnedPluginsMap)
+            {
+                var plugin = this.getPluginByGuid(guid);
+                var runObject = this.runnedPluginsMap[guid];
+
+                if (plugin && guids[guid])
+                {
+                    if (!runObject.isInitReceive)
+                    {
+                        if (!runObject.waitEvents)
+                            runObject.waitEvents = [];
+                        runObject.waitEvents.push({ n : name, d : data });
+                        continue;
+                    }
                     var pluginData = new CPluginData();
                     pluginData.setAttribute("guid", plugin.guid);
                     pluginData.setAttribute("type", "onEvent");

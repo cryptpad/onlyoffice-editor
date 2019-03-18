@@ -1660,7 +1660,7 @@
     	return AscFonts.g_fontApplication.g_fontSelections.SerializeList();
     };
 
-    baseEditorsApi.prototype["pluginMethod_InputText"] = function(text, replaceCount)
+    baseEditorsApi.prototype["pluginMethod_InputText"] = function(text, textReplace)
     {
         if (this.isViewMode || !AscCommon.g_inputContext)
         	return;
@@ -1668,6 +1668,9 @@
         var codes = [];
         for (var i = text.getUnicodeIterator(); i.check(); i.next())
 			codes.push(i.value());
+
+        for (var i = 0; i < textReplace.length; i++)
+        	AscCommon.g_inputContext.emulateKeyDownApi(8);
 
         AscCommon.g_inputContext.apiInputText(codes);
     };
@@ -2009,15 +2012,23 @@
 
         if (isKeyboardTake)
         {
-            _frame.removeAttribute("oo_editor_keyboard");
             _frame.setAttribute("oo_editor_input", "true");
             _frame.focus();
         }
         else
         {
             _frame.removeAttribute("oo_editor_input");
-            _frame.setAttribute("oo_editor_keyboard", "true");
-            _frame.focus();
+            if (AscCommon.g_inputContext)
+            {
+                AscCommon.g_inputContext.isNoClearOnFocus = true;
+                AscCommon.g_inputContext.HtmlArea.focus();
+            }
+        }
+
+        if (AscCommon.g_inputContext)
+        {
+            AscCommon.g_inputContext.isInputHelpersPresent = true;
+            AscCommon.g_inputContext.isInputHelpers[guid] = true;
         }
     };
 
@@ -2034,7 +2045,21 @@
         _frame.style.zIndex = -1000;
 
         if (AscCommon.g_inputContext && AscCommon.g_inputContext.HtmlArea)
-            AscCommon.g_inputContext.HtmlArea.focus();
+		{
+			AscCommon.g_inputContext.HtmlArea.focus();
+
+			if (AscCommon.g_inputContext.isInputHelpers[guid])
+				delete AscCommon.g_inputContext.isInputHelpers[guid];
+
+			var count = 0;
+			for (var test in AscCommon.g_inputContext.isInputHelpers)
+			{
+				if (AscCommon.g_inputContext.isInputHelpers[test])
+					count++;
+            }
+
+            AscCommon.g_inputContext.isInputHelpersPresent = (0 != count);
+        }
     };
 
     // Builder
