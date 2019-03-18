@@ -1829,6 +1829,20 @@ CChangesParagraphPrChange.prototype.Merge = function(oChange)
 
 	return true;
 };
+CChangesParagraphPrChange.prototype.IsChangedNumbering = function()
+{
+	var oNewNumPr = this.New.PrChange ? this.New.PrChange.NumPr : null;
+	var oOldNumPr = this.Old.PrChange ? this.Old.PrChange.NumPr : null;
+
+	if ((!oNewNumPr && oOldNumPr)
+		|| (oNewNumPr && !oOldNumPr)
+		|| (oNewNumPr && oOldNumPr && (oNewNumPr.NumId !== oOldNumPr.NumId || oNewNumPr.Lvl !== oOldNumPr.Lvl)))
+	{
+		return true;
+	}
+
+	return false;
+};
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}

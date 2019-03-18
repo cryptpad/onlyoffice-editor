@@ -11209,6 +11209,13 @@ Paragraph.prototype.Refresh_RecalcData = function(Data)
 
 			break;
 		}
+		case AscDFH.historyitem_Paragraph_PrChange:
+		{
+			if (Data instanceof CChangesParagraphPrChange && Data.IsChangedNumbering())
+				bNeedRecalc = true;
+
+			break;
+		}
 	}
 
 	if (true === bNeedRecalc)
