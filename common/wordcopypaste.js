@@ -4630,7 +4630,29 @@ PasteProcessor.prototype =
 					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
 
-					oThis._setSpecialPasteShowOptionsPresentation([Asc.c_oSpecialPasteProps.sourceformatting, Asc.c_oSpecialPasteProps.keepTextOnly]);
+					//check only images
+					var pasteOnlyImg = false;
+					if(2 === presentationSelectedContent.getContentType()) {
+						pasteOnlyImg = true;
+						for(var i = 0; i < presentationSelectedContent.Drawings.length; i++) {
+							if(!presentationSelectedContent.Drawings[i].Drawing.isImage()) {
+								pasteOnlyImg = false;
+								break;
+							}
+						}
+					}
+
+					if(pasteOnlyImg) {
+						window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
+						if(window['AscCommon'].g_specialPasteHelper.buttonInfo)
+						{
+							window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph = null;
+							window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+						}
+					} else {
+						oThis._setSpecialPasteShowOptionsPresentation([Asc.c_oSpecialPasteProps.sourceformatting, Asc.c_oSpecialPasteProps.keepTextOnly]);
+					}
+
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				}
 			};
