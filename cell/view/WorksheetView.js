@@ -10638,20 +10638,9 @@
 				if (sFormula && !isOneMerge) {
 
 					var offset, arrayOffset;
-					//в случае, если вставляем после того как вырезали
-					//правка вношу для конкретного бага - 38239
-					//если ориентироваться на ms, то нужно отличать вставку на разные страницы одного и того документа
-					//если вставляем на другую страницу после того как вырезали, то необходимо ссылаться на тот лист
-					//с которого вырезали. а в случае с разными документами - вставляют не формулу, а конечное значение
-
 					var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
 					var cellAddress = new AscCommon.CellAddress(sId);
-					if(AscCommonExcel.g_clipboardExcel.pasteProcessor && AscCommonExcel.g_clipboardExcel.pasteProcessor.bCut) {
-						offset = new AscCommon.CellBase(0, 0);
-						if(arrayFormulaRef) {
-							arrayOffset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
-						}
-					} else if(specialPasteProps.transpose && transposeRange) {
+					if(specialPasteProps.transpose && transposeRange) {
 						//для transpose необходимо брать offset перевернутого range
 						if(arrayFormulaRef) {
 							offset = new AscCommon.CellBase(transposeRange.bbox.r1 - cellAddress.row + 1, transposeRange.bbox.c1 - cellAddress.col + 1);
