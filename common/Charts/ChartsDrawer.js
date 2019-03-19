@@ -1599,40 +1599,18 @@ CChartsDrawer.prototype =
 		};
 
 		var generateArrValuesScatter = function () {
-			var yVal;
-			var xVal;
 			newArr = [];
 			for (var l = 0; l < series.length; ++l) {
 				newArr[l] = [];
+
 				yNumCache = t.getNumCache(series[l].yVal);
 
-				if (!yNumCache) {
-					continue;
-				}
-
 				for (var j = 0; j < yNumCache.ptCount; ++j) {
-					xNumCache = series[l].xVal ? t.getNumCache(series[l].xVal) : null;
-
-					var yPoint, xPoint;
-					if(yNumCache && xNumCache) {
-						yPoint = yNumCache.getPtByIndex(j);
-						xPoint = xNumCache.getPtByIndex(j);
-						if(yPoint && xPoint) {
-							yVal = parseFloat(yPoint.val);
-							xVal = parseFloat(xPoint.val);
-							addValues(xVal, yVal);
-							newArr[l][j] = [xVal, yVal];
-						}
-					} else if(yNumCache) {
-						yPoint = yNumCache.getPtByIndex(j);
-						if(yPoint) {
-							yVal = parseFloat(yPoint.val);
-							xVal = j + 1;
-							addValues(xVal, yVal);
-							newArr[l][j] = [xVal, yVal];
-						}
+					var val = t._getScatterPointVal(series[l], j);
+					if(val) {
+						addValues(val.x, val.y);
+						newArr[l][j] = [val.x, val.y];
 					}
-
 
 					/*if (yNumCache.pts[j]) {
 						yVal = parseFloat(yNumCache.pts[j].val);
@@ -1721,6 +1699,34 @@ CChartsDrawer.prototype =
 		}
 
 		return {min: min, max: max, ymin: minY, ymax: maxY};
+	},
+
+	_getScatterPointVal: function(seria, idx) {
+		var yNumCache = this.getNumCache(seria.yVal);
+
+		if (!yNumCache) {
+			return null;
+		}
+		var xNumCache = seria.xVal ? this.getNumCache(seria.xVal) : null;
+		var yPoint, xPoint, xVal, yVal;
+		var res = null;
+		if(yNumCache && xNumCache) {
+			yPoint = yNumCache.getPtByIndex(idx);
+			xPoint = xNumCache.getPtByIndex(idx);
+			if(yPoint && xPoint) {
+				yVal = parseFloat(yPoint.val);
+				xVal = parseFloat(xPoint.val);
+				res = {x: xVal, y: yVal};
+			}
+		} else if(yNumCache) {
+			yPoint = yNumCache.getPtByIndex(idx);
+			if(yPoint) {
+				yVal = parseFloat(yPoint.val);
+				xVal = idx + 1;
+				res = {x: xVal, y: yVal, xPoint: xPoint, yPoint: yPoint};
+			}
+		}
+		return res;
 	},
 
 	_getAxisValues2: function (axis, chartSpace, isStackedType) {
@@ -2284,7 +2290,7 @@ CChartsDrawer.prototype =
 				}
 
 				//frame of point
-				if (paths.points[i][0] && paths.points[i][0].framePaths) {
+				if (paths.points[i][k] && paths.points[i][k].framePaths) {
 					this.drawPath(paths.points[i][k].framePaths, markerPen, markerBrush, false);
 				}
 				//point
@@ -10374,10 +10380,6 @@ drawScatterChart.prototype = {
 	},
 
 	_recalculateScatter: function () {
-		var xPoints = this.catAx.xPoints;
-		var yPoints = this.valAx.yPoints;
-		var betweenAxisCross = this.valAx.crossBetween === AscFormat.CROSS_BETWEEN_BETWEEN;
-
 		var seria, yVal, xVal, points, yNumCache, compiledMarkerSize, compiledMarkerSymbol, yPoint, idx, xPoint;
 		for (var i = 0; i < this.chart.series.length; i++) {
 			seria = this.chart.series[i];
@@ -10388,8 +10390,43 @@ drawScatterChart.prototype = {
 			}
 
 			for (var n = 0; n < yNumCache.ptCount; n++) {
+				var values = this.cChartDrawer._getScatterPointVal(seria, n);
+				if(values) {
+					yVal = values.y;
+					xVal = values.x;
+					xPoint = values.xPoint;
+					yPoint = values.yPoint;
+
+					compiledMarkerSize = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.size : null;
+					compiledMarkerSymbol = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.symbol : null;
+
+
+					if (!this.paths.points) {
+						this.paths.points = [];
+					}
+					if (!this.paths.points[i]) {
+						this.paths.points[i] = [];
+					}
+
+					if (!points) {
+						points = [];
+					}
+					if (!points[i]) {
+						points[i] = [];
+					}
+
+					if (yVal != null) {
+						this.paths.points[i][n] = this.cChartDrawer.calculatePoint(this.cChartDrawer.getYPosition(xVal, this.catAx), this.cChartDrawer.getYPosition(yVal, this.valAx, true), compiledMarkerSize, compiledMarkerSymbol);
+						points[i][n] = {x: xVal, y: yVal};
+					} else {
+						this.paths.points[i][n] = null;
+						points[i][n] = null;
+					}
+				}
+
+
 				//idx - индекс точки по оси OY
-				idx = yNumCache.pts && undefined !== yNumCache.pts[n] ? yNumCache.pts[n].idx : null;
+				/*idx = yNumCache.pts && undefined !== yNumCache.pts[n] ? yNumCache.pts[n].idx : null;
 				if(null === idx) {
 					continue;
 				}
@@ -10441,7 +10478,7 @@ drawScatterChart.prototype = {
 				} else {
 					this.paths.points[i][n] = null;
 					points[i][n] = null;
-				}
+				}*/
 			}
 		}
 
