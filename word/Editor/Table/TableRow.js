@@ -89,6 +89,20 @@ function CTableRow(Table, Cols, TableGrid)
 
     this.Index = 0;
 
+	this.ReviewType = reviewtype_Common;
+	this.ReviewInfo = new CReviewInfo();
+
+	if (editor
+		&& !editor.isPresentationEditor
+		&& editor.WordControl
+		&& editor.WordControl.m_oLogicDocument
+		&& true === editor.WordControl.m_oLogicDocument.IsTrackRevisions()
+		&& !editor.WordControl.m_oLogicDocument.RecalcTableHeader)
+	{
+		this.ReviewType = reviewtype_Add;
+		this.ReviewInfo.Update();
+	}
+
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     AscCommon.g_oTableId.Add( this, this.Id );
 }
@@ -685,47 +699,61 @@ CTableRow.prototype =
     // Функции для работы с совместным редактирования
     //-----------------------------------------------------------------------------------
     Write_ToBinary2 : function(Writer)
-    {
-        Writer.WriteLong( AscDFH.historyitem_type_TableRow );
+	{
+		Writer.WriteLong(AscDFH.historyitem_type_TableRow);
 
-        // String          : Id строки
-        // Variable        : свойства строки
-        // Long            : количество ячеек
-        // Array strings   : Id ячеек
+		// String        : Id строки
+		// Variable      : свойства строки
+		// Long          : количество ячеек
+		// Array strings : Id ячеек
+		// Long          : ReviewType
+		// CReviewInfo   : ReviewType
 
-        Writer.WriteString2(this.Id);
-        this.Pr.Write_ToBinary( Writer );
+		Writer.WriteString2(this.Id);
+		this.Pr.Write_ToBinary(Writer);
 
-        var Count = this.Content.length;
-        Writer.WriteLong( Count );
-        for ( var Index = 0; Index < Count; Index++ )
-            Writer.WriteString2( this.Content[Index].Get_Id() );
-    },
+		var Count = this.Content.length;
+		Writer.WriteLong(Count);
+		for (var Index = 0; Index < Count; Index++)
+			Writer.WriteString2(this.Content[Index].Get_Id());
+
+		if (!(this.ReviewInfo instanceof CReviewInfo))
+			this.ReviewInfo = new CReviewInfo();
+
+		Writer.WriteLong(this.ReviewType);
+		this.ReviewInfo.WriteToBinary(Writer);
+	},
 
     Read_FromBinary2 : function(Reader)
-    {
-        // String          : Id строки
-        // Variable        : свойства строки
-        // Long            : количество ячеек
-        // Array variables : сами ячейки
+	{
+		// String          : Id строки
+		// Variable        : свойства строки
+		// Long            : количество ячеек
+		// Array variables : сами ячейки
+		// Long            : ReviewType
+		// CReviewInfo     : ReviewType
 
-        this.Id = Reader.GetString2();
-        this.Pr = new CTableRowPr()
-        this.Pr.Read_FromBinary( Reader );
-        this.Recalc_CompiledPr();
+		this.Id = Reader.GetString2();
+		this.Pr = new CTableRowPr();
+		this.Pr.Read_FromBinary(Reader);
+		this.Recalc_CompiledPr();
 
-        var Count = Reader.GetLong();
-        this.Content = [];
-        for ( var Index = 0; Index < Count; Index++ )
-        {
-            var Cell = AscCommon.g_oTableId.Get_ById( Reader.GetString2() );
-            this.Content.push(Cell);
-        }
+		var Count    = Reader.GetLong();
+		this.Content = [];
+		for (var Index = 0; Index < Count; Index++)
+		{
+			var Cell = AscCommon.g_oTableId.Get_ById(Reader.GetString2());
+			this.Content.push(Cell);
+		}
 
-        this.Internal_ReIndexing();
+		this.ReviewType = Reader.GetLong();
+		this.ReviewInfo = new CReviewInfo();
+		this.ReviewInfo.ReadFromBinary(Reader);
 
-        AscCommon.CollaborativeEditing.Add_NewObject(this);
-    },
+		this.Internal_ReIndexing();
+
+		AscCommon.CollaborativeEditing.Add_NewObject(this);
+	},
 
     Load_LinkData : function(LinkData)
     {
@@ -933,6 +961,58 @@ CTableRow.prototype.RecalcCopiledPrCells = function()
 	{
 		this.GetCell(nCurCell).Recalc_CompiledPr();
 	}
+};
+/**
+ * Возвращаем тип рецензирования
+ * @returns {reviewtype_Common | reviewtype_Add | reviewtype_Remove}
+ */
+CTableRow.prototype.GetReviewType = function()
+{
+	return this.ReviewType;
+};
+/**
+ * Возвращаем информацию о рецензенте
+ * @returns {CReviewInfo}
+ */
+CTableRow.prototype.GetReviewInfo = function()
+{
+	return this.ReviewInfo;
+};
+/**
+ * Меняем тип рецензирования для данного рана
+ * @param {number} nType
+ * @param {boolean} [isCheckDeleteAdded=false] - нужно ли проверять, что происходит удаление добавленного ранее
+ * @constructor
+ */
+CTableRow.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
+{
+	if (nType !== this.ReviewType)
+	{
+		var OldReviewType = this.ReviewType;
+		var OldReviewInfo = this.ReviewInfo.Copy();
+
+		if (reviewtype_Add === this.ReviewType && reviewtype_Remove === nType && true === isCheckDeleteAdded)
+		{
+			this.ReviewInfo.SavePrev(this.ReviewType);
+		}
+
+		this.ReviewType = nType;
+		this.ReviewInfo.Update();
+
+		History.Add(new CChangesRunReviewType(this, {
+			ReviewType : OldReviewType,
+			ReviewInfo : OldReviewInfo
+		}, {
+			ReviewType : this.ReviewType,
+			ReviewInfo : this.ReviewInfo.Copy()
+		}));
+
+		this.private_UpdateTrackRevisions();
+	}
+};
+CTableRow.prototype.private_UpdateTrackRevisions = function()
+{
+
 };
 
 

@@ -8417,7 +8417,7 @@ ParaRun.prototype.Write_ToBinary2 = function(Writer)
     if (this.ReviewInfo)
     {
         Writer.WriteBool(false);
-        this.ReviewInfo.Write_ToBinary(Writer);
+        this.ReviewInfo.WriteToBinary(Writer);
     }
     else
     {
@@ -8453,7 +8453,7 @@ ParaRun.prototype.Read_FromBinary2 = function(Reader)
     this.ReviewType = Reader.GetLong();
     this.ReviewInfo = new CReviewInfo();
     if (false === Reader.GetBool())
-        this.ReviewInfo.Read_FromBinary(Reader);
+        this.ReviewInfo.ReadFromBinary(Reader);
 
     if (para_Math_Run == this.Type)
 	{
@@ -10955,6 +10955,14 @@ CReviewInfo.prototype.IsCurrentUser = function()
 CReviewInfo.prototype.Get_UserId = function()
 {
     return this.UserId;
+};
+CReviewInfo.prototype.WriteToBinary = function(oWriter)
+{
+	this.Write_ToBinary(oWriter);
+};
+CReviewInfo.prototype.ReadFromBinary = function(oReader)
+{
+	this.Read_FromBinary(oReader);
 };
 /**
  * Сохраняем предыдущее действие (обычно это добавление, а новое - удаление)
