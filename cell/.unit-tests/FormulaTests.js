@@ -8680,6 +8680,10 @@ $( function () {
 		oParser = new parserFormula( "INDEX(A651:C651,1,1,1)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().getValue(), 1 );
+
+		oParser = new parserFormula( "INDEX(A651:C651,1,1,2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
     } );
 
 	test( "Test: \"INDIRECT\"", function () {
