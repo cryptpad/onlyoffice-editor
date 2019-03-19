@@ -391,7 +391,9 @@ CChartsDrawer.prototype =
 						break;
 					}
 				}
-				test_compare_paths_arr = JSON.parse(str);
+				if("" !== str) {
+					test_compare_paths_arr = JSON.parse(str);
+				}
 			}
 
 			if(!test_compare_paths_arr) {
