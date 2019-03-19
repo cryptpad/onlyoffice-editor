@@ -1985,6 +1985,14 @@
 					var cellEditor = this.wb.cellEditor;
 					ret.X = cellEditor.curLeft;
 					ret.Y = cellEditor.curTop;
+
+					off = jQuery(cellEditor.cursor).offset();
+					if (off)
+					{
+						ret.X += off.left;
+						ret.Y += off.top;
+					}
+
 					ret.TargetH = cellEditor.curHeight;
 				}
 				else if (Asc.c_oAscSelectionType.RangeShapeText === selectionType ||
