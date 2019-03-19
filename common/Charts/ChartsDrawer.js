@@ -1493,6 +1493,30 @@ CChartsDrawer.prototype =
 		var series = chart.series;
 		var chartType = this._getChartType(chart);
 		var t = this;
+		var bFirst = true;
+
+		var addValues = function(tempValX, tempValY) {
+			if(bFirst) {
+				min = tempValX;
+				max = tempValX;
+				minY = tempValY;
+				maxY = tempValY;
+				bFirst = false;
+			}
+
+			if (tempValX < min) {
+				min = tempValX;
+			}
+			if (tempValX > max) {
+				max = tempValX;
+			}
+			if (tempValY < minY) {
+				minY = tempValY;
+			}
+			if (tempValY > maxY) {
+				maxY = tempValY;
+			}
+		};
 
 		var generateArrValues = function () {
 
@@ -1587,7 +1611,30 @@ CChartsDrawer.prototype =
 				}
 
 				for (var j = 0; j < yNumCache.ptCount; ++j) {
-					if (yNumCache.pts[j]) {
+					xNumCache = series[l].xVal ? t.getNumCache(series[l].xVal) : null;
+
+					var yPoint, xPoint;
+					if(yNumCache && xNumCache) {
+						yPoint = yNumCache.getPtByIndex(j);
+						xPoint = xNumCache.getPtByIndex(j);
+						if(yPoint && xPoint) {
+							yVal = parseFloat(yPoint.val);
+							xVal = parseFloat(xPoint.val);
+							addValues(xVal, yVal);
+							newArr[l][j] = [xVal, yVal];
+						}
+					} else if(yNumCache) {
+						yPoint = yNumCache.getPtByIndex(j);
+						if(yPoint) {
+							yVal = parseFloat(yPoint.val);
+							xVal = j + 1;
+							addValues(xVal, yVal);
+							newArr[l][j] = [xVal, yVal];
+						}
+					}
+
+
+					/*if (yNumCache.pts[j]) {
 						yVal = parseFloat(yNumCache.pts[j].val);
 
 						xNumCache = t.getNumCache(series[l].xVal);
@@ -1646,7 +1693,7 @@ CChartsDrawer.prototype =
 						if (xVal > max) {
 							max = xVal;
 						}
-					}
+					}*/
 				}
 			}
 		};
