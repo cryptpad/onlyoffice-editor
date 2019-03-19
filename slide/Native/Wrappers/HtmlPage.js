@@ -514,10 +514,16 @@ CEditorPage.prototype.InitControl = function()
 
 CEditorPage.prototype.StartMainTimer = function()
 {
+    this.onTimerScroll();
 };
-
-CEditorPage.prototype.onTimerScroll = function(isThUpdateSync)
+CEditorPage.prototype.onTimerScroll = function()
 {
+    var oWordControl = editor.WordControl;
+    if(oWordControl.m_oLogicDocument)
+    {
+        oWordControl.m_oLogicDocument.ContinueCheckSpelling();
+    }
+    oWordControl.m_nPaintTimerId = setTimeout(oWordControl.onTimerScroll, 500);
 };
 
 CEditorPage.prototype.onTimerScroll_sync = function(isThUpdateSync)

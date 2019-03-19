@@ -1097,6 +1097,12 @@
 			case AscDFH.historydescription_Document_AddBlankPage:
 				sString = "Document_AddBlankPage";
 				break;
+			case AscDFH.historydescription_Document_AddTableFormula:
+				sString = "Document_AddTableFormula";
+				break;
+			case AscDFH.historydescription_Document_ChangeTableFormula:
+				sString = "Document_ChangeTableFormula";
+				break;
 		}
 		return sString;
 	}
@@ -2473,6 +2479,8 @@
 	window['AscDFH'].historyitem_ImageShapeSetApplicationId = window['AscDFH'].historyitem_type_ImageShape | 8;
 	window['AscDFH'].historyitem_ImageShapeSetPixSizes      = window['AscDFH'].historyitem_type_ImageShape | 9;
 	window['AscDFH'].historyitem_ImageShapeSetObjectFile	= window['AscDFH'].historyitem_type_ImageShape | 10;
+	window['AscDFH'].historyitem_ImageShapeSetOleType   	= window['AscDFH'].historyitem_type_ImageShape | 11;
+	window['AscDFH'].historyitem_ImageShapeSetBinaryData   	= window['AscDFH'].historyitem_type_ImageShape | 12;
 
 	window['AscDFH'].historyitem_GeometrySetParent      = window['AscDFH'].historyitem_type_Geometry | 1;
 	window['AscDFH'].historyitem_GeometryAddAdj         = window['AscDFH'].historyitem_type_Geometry | 2;
@@ -3089,6 +3097,8 @@
 	window['AscDFH'].historydescription_Document_SetGlobalSdtShowHighlight          = 0x015b;
 	window['AscDFH'].historydescription_Document_UpdateFields                       = 0x015c;
 	window['AscDFH'].historydescription_Document_AddBlankPage                       = 0x015d;
+	window['AscDFH'].historydescription_Document_AddTableFormula                    = 0x015e;
+	window['AscDFH'].historydescription_Document_ChangeTableFormula                 = 0x015e;
 
 
 
@@ -3212,22 +3222,6 @@
 		this.Add      = isAdd;
 
 		this.Reverted = false;
-
-		if (Class && Pos && Items)
-		{
-			if (isAdd)
-			{
-				for (var nIndex = 0, nCount = Items.length; nIndex < nCount; ++nIndex)
-				{
-					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(Class, Pos + nIndex);
-				}
-			}
-			else
-			{
-				if (Items.length > 0)
-					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(Class, Pos, Items.length);
-			}
-		}
 	}
 
 	CChangesBaseContentChange.prototype = Object.create(CChangesBase.prototype);

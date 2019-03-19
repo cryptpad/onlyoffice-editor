@@ -3588,6 +3588,9 @@ function CEditorPage(api)
 
 		if (this.m_bDocumentPlaceChangedEnabled)
 			this.m_oApi.sendEvent("asc_onDocumentPlaceChanged");
+
+		// remove media
+		this.m_oApi.hideVideoControl();
 	};
 
 	this.OnPaint = function()
@@ -4164,6 +4167,11 @@ function CEditorPage(api)
 				this.m_oApi.DemonstrationGoToSlide(lPageNum);
 			}
 			//return;
+		}
+
+		if (this.DemonstrationManager.Mode && !isReporterUpdateSlide)
+		{
+            return this.m_oApi.DemonstrationGoToSlide(lPageNum);
 		}
 
 		var drDoc = this.m_oDrawingDocument;

@@ -213,6 +213,9 @@ var editor;
     this.asc_SendThemeColors(_ret_array, standart_colors);
   };
 
+  spreadsheet_api.prototype.asc_getFunctionArgumentSeparator = function () {
+    return AscCommon.FormulaSeparators.functionArgumentSeparator;
+  };
   spreadsheet_api.prototype.asc_getCurrencySymbols = function () {
 		var result = {};
 		for (var key in AscCommon.g_aCultureInfos) {
@@ -1571,7 +1574,10 @@ var editor;
   spreadsheet_api.prototype._onUpdatePrintAreaLock = function(lockElem) {
       var t = this;
 
-      var isLocked = t.asc_isPrintAreaLocked();
+	  var wsModel = t.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
+	  var wsIndex = wsModel? wsModel.getIndex() : undefined;
+
+      var isLocked = t.asc_isPrintAreaLocked(wsIndex);
       if(isLocked) {
           t.handlers.trigger("asc_onLockPrintArea");
       } else {
@@ -2394,7 +2400,7 @@ var editor;
     return ret;
   };
 
-  spreadsheet_api.prototype.asc_addImageDrawingObject = function (imageUrl) {
+  spreadsheet_api.prototype.asc_addImageDrawingObject = function (imageUrl, imgProp, withAuthorization) {
 
     var t = this;
     AscCommon.sendImgUrls(this, [imageUrl], function(data) {
@@ -2405,7 +2411,7 @@ var editor;
         ws.objectRender.addImageDrawingObject([data[0].url], null);
       }
 
-    }, true);
+    }, true, false, withAuthorization);
 
   };
 
@@ -3170,6 +3176,10 @@ var editor;
   spreadsheet_api.prototype.asc_getFormulaLocaleName = function(name) {
     return AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[name] : name;
   };
+  spreadsheet_api.prototype.asc_getFormulaNameByLocale = function (name) {
+    var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[name];
+    return f ? f.prototype.name : name;
+  };
 
   spreadsheet_api.prototype.asc_recalc = function(isRecalcWB) {
     this.wbModel.recalcWB(isRecalcWB);
@@ -3603,6 +3613,7 @@ var editor;
 
   prot["asc_GetFontThumbnailsPath"] = prot.asc_GetFontThumbnailsPath;
   prot["asc_setDocInfo"] = prot.asc_setDocInfo;
+  prot['asc_getFunctionArgumentSeparator'] = prot.asc_getFunctionArgumentSeparator;
 	prot['asc_getCurrencySymbols'] = prot.asc_getCurrencySymbols;
 	prot['asc_getLocaleExample'] = prot.asc_getLocaleExample;
 	prot['asc_getFormatCells'] = prot.asc_getFormatCells;
@@ -3863,6 +3874,7 @@ var editor;
   prot["asc_insertFormula"] = prot.asc_insertFormula;
   prot["asc_getFormulasInfo"] = prot.asc_getFormulasInfo;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;
+  prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;
   prot["asc_ChangeColorScheme"] = prot.asc_ChangeColorScheme;

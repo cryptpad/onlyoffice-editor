@@ -103,7 +103,7 @@ var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_W]  = "w-resize";
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_NW] = "nw-resize";
 
-    function fillImage(image, rasterImageId, x, y, extX, extY)
+    function fillImage(image, rasterImageId, x, y, extX, extY, sVideoUrl, sAudioUrl)
     {
         image.setSpPr(new AscFormat.CSpPr());
         image.spPr.setParent(image);
@@ -120,6 +120,17 @@ var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
         blip_fill.setStretch(true);
         image.setBlipFill(blip_fill);
         image.setNvPicPr(new AscFormat.UniNvPr());
+
+
+        var sMediaName = sVideoUrl || sAudioUrl;
+        if(sMediaName)
+        {
+            var sExt = AscCommon.GetFileExtension(sMediaName);
+            var oUniMedia = new AscFormat.UniMedia();
+            oUniMedia.type = sVideoUrl ? 7 : 8;
+            oUniMedia.media = "maskFile." + sExt;
+            image.nvPicPr.nvPr.setUniMedia(oUniMedia);
+        }
         image.setNoChangeAspect(true);
         image.setBDeleted(false);
     }
@@ -782,7 +793,7 @@ DrawingObjectsController.prototype =
                 oNvPr = drawing.getNvProps();
                 if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
-                        if(e.CtrlKey){
+                        if(e.CtrlKey || this.isSlideShow()){
                             editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
                             return true;
                         }
@@ -791,9 +802,6 @@ DrawingObjectsController.prototype =
                         var ret = {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
                         if( !(this.noNeedUpdateCursorType === true))
                         {
-
-
-
                             var oDD = editor &&  editor.WordControl && editor.WordControl.m_oDrawingDocument;
                             if(oDD){
                                 var MMData         = new AscCommon.CMouseMoveData();
@@ -802,12 +810,22 @@ DrawingObjectsController.prototype =
                                 MMData.Y_abs       = Coords.Y;
                                 MMData.Type      = AscCommon.c_oAscMouseMoveDataTypes.Hyperlink;
                                 MMData.Hyperlink = new Asc.CHyperlinkProperty({Text: null, Value: oNvPr.hlinkClick.id, ToolTip: oNvPr.hlinkClick.tooltip, Class: null});
-                                editor.sync_MouseMoveCallback(MMData);
-                                if(hit_in_text_rect)
+                                if(this.isSlideShow())
                                 {
-                                    ret.cursorType = "text";
-                                    oDD.SetCursorType("text", MMData);
+                                    ret.cursorType = "pointer";
+                                    MMData.Hyperlink = null;
+                                    oDD.SetCursorType("pointer", MMData);
                                 }
+                                else
+                                {
+                                    editor.sync_MouseMoveCallback(MMData);
+                                    if(hit_in_text_rect)
+                                    {
+                                        ret.cursorType = "text";
+                                        oDD.SetCursorType("text", MMData);
+                                    }
+                                }
+
                                 ret.updated = true;
                             }
                         }
@@ -822,7 +840,7 @@ DrawingObjectsController.prototype =
                 if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
 
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {
-                        if(e.CtrlKey){
+                        if(e.CtrlKey || this.isSlideShow()){
                             // var wsModel = this.drawingObjects.getWorksheetModel();
                             //
                             // var _link = oNvPr.hlinkClick.id;
@@ -879,6 +897,14 @@ DrawingObjectsController.prototype =
             return null;
         }
     },
+
+    showVideoControl: function(sMediaFile, extX, extY, transform)
+    {
+        this.bShowVideoControl = true;
+        var oApi = this.getEditorApi();
+        oApi.showVideoControl(sMediaFile, extX, extY, transform);
+    },
+
 
     getAllSignatures: function(){
         var _ret = [];
@@ -1359,7 +1385,7 @@ DrawingObjectsController.prototype =
 
     resetInternalSelection: function(noResetContentSelect)
     {
-        var oApi = this.getEditorApi();
+        var oApi = this.getEditorApi && this.getEditorApi();
         if(oApi && oApi.hideVideoControl)
         {
             oApi.hideVideoControl();
@@ -1399,7 +1425,7 @@ DrawingObjectsController.prototype =
         }
         if(this.selection.cropSelection)
         {
-            this.endImageCrop();
+            this.endImageCrop && this.endImageCrop();
         }
     },
 
@@ -1510,6 +1536,13 @@ DrawingObjectsController.prototype =
         {
             b_is_inline = object.parent && object.parent.Is_Inline && object.parent.Is_Inline();
         }
+        if(this.selection.cropSelection)
+        {
+            if(this.selection.cropSelection === object || this.selection.cropSelection.cropObject === object)
+            {
+                b_is_inline = false;
+            }
+        }
         var b_is_selected_inline = this.selectedObjects.length === 1 && (this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline && this.selectedObjects[0].parent.Is_Inline());
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
@@ -1579,14 +1612,6 @@ DrawingObjectsController.prototype =
                     {
                         this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
                     }
-                    else if(object.getObjectType() === AscDFH.historyitem_type_ImageShape)
-                    {
-                        var sMediaFile = object.getMediaFileName();
-                        if(typeof sMediaFile === "string" && this.handleMediaObject)
-                        {
-                            this.handleMediaObject(sMediaFile, e, x, y, pageIndex)
-                        }
-                    }
                 }
             }
             return true;
@@ -1598,7 +1623,16 @@ DrawingObjectsController.prototype =
             {
                 sId = object.parentCrop.Get_Id();
             }
-            return {objectId: sId, cursorType: "move", bMarker: bInSelect};
+            var sCursorType = "move";
+            if(this.isSlideShow())
+            {
+                var sMediaName = object.getMediaFileName();
+                if(sMediaName)
+                {
+                    sCursorType = "pointer";
+                }
+            }
+            return {objectId: sId, cursorType: sCursorType, bMarker: bInSelect};
         }
     },
 
@@ -1667,36 +1701,18 @@ DrawingObjectsController.prototype =
         return false;
     },
 
+
+
     handleTextHit: function(object, e, x, y, group, pageIndex, bWord)
     {
         var content, invert_transform_text, tx, ty, hit_paragraph, par, check_hyperlink;
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
             var bNotes = (this.drawingObjects && this.drawingObjects.getObjectType && this.drawingObjects.getObjectType() === AscDFH.historyitem_type_Notes);
-            if(e.CtrlKey && !this.document && !bNotes)
+            if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
-                content = object.getDocContent();
-                invert_transform_text = object.invertTransformText;
-                if(content && invert_transform_text)
-                {
-                    tx = invert_transform_text.TransformPointX(x, y);
-                    ty = invert_transform_text.TransformPointY(x, y);
-                    hit_paragraph = content.Internal_GetContentPosByXY(tx, ty, 0);
-                    par = content.Content[hit_paragraph];
-                    if(isRealObject(par))
-                    {
-                        check_hyperlink = par.CheckHyperlink(tx, ty, 0);
-                        if(!isRealObject(check_hyperlink))
-                        {
-                            return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
-                        }
-                    }
-                    else
-                    {
-                        return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
-                    }
-                }
-                else
+                check_hyperlink = fCheckObjectHyperlink(object, x, y);
+                if(!isRealObject(check_hyperlink))
                 {
                     return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
                 }
@@ -1736,8 +1752,25 @@ DrawingObjectsController.prototype =
                 }
             }
 
+            if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
+            {
+                check_hyperlink = fCheckObjectHyperlink(object, x, y);
+                if(!isRealObject(check_hyperlink))
+                {
+                    return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
+                }
+            }
 
+            var oldCtrlKey = e.CtrlKey;
+            if(this.isSlideShow() && !e.CtrlKey)
+            {
+                e.CtrlKey = true;
+            }
             object.selectionSetStart(e, x, y, pageIndex);
+            if(this.isSlideShow())
+            {
+                e.CtrlKey = oldCtrlKey;
+            }
 
             this.changeCurrentState(new AscFormat.TextAddState(this, object, x, y));
             return true;
@@ -1751,7 +1784,7 @@ DrawingObjectsController.prototype =
             {
                 tx = invert_transform_text.TransformPointX(x, y);
                 ty = invert_transform_text.TransformPointY(x, y);
-                if( this.document || (this.drawingObjects.cSld && !(this.noNeedUpdateCursorType === true)) )
+                if(!this.isSlideShow() && (this.document || (this.drawingObjects.cSld && !(this.noNeedUpdateCursorType === true))))
                 {
                     var nPageIndex = pageIndex;
                     if(this.drawingObjects.cSld && !( this.noNeedUpdateCursorType === true ) && AscFormat.isRealNumber(this.drawingObjects.num))
@@ -1763,11 +1796,22 @@ DrawingObjectsController.prototype =
                 }
                 else if(this.drawingObjects)
                 {
-                    hit_paragraph = content.Internal_GetContentPosByXY(tx, ty, 0);
-                    par = content.Content[hit_paragraph];
-                    if(isRealObject(par))
+                    check_hyperlink = fCheckObjectHyperlink(object, x, y);
+                    if(this.isSlideShow())
                     {
-                        check_hyperlink = par.CheckHyperlink(tx, ty, 0);
+                        if(isRealObject(check_hyperlink))
+                        {
+                            ret.hyperlink = check_hyperlink;
+                            ret.cursorType = "pointer";
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+
                         if(isRealObject(check_hyperlink))
                         {
                             ret.hyperlink = check_hyperlink;
@@ -1779,6 +1823,14 @@ DrawingObjectsController.prototype =
         }
     },
 
+
+    isSlideShow: function()
+    {
+        if(this.drawingObjects && this.drawingObjects.cSld){
+            return editor && editor.WordControl && editor.WordControl.DemonstrationManager && editor.WordControl.DemonstrationManager.Mode;
+        }
+        return false;
+    },
 
     handleRotateTrack: function(e, x, y)
     {
@@ -9006,10 +9058,10 @@ DrawingObjectsController.prototype =
     },
 
 
-    createImage: function(rasterImageId, x, y, extX, extY)
+    createImage: function(rasterImageId, x, y, extX, extY, sVideoUrl, sAudioUrl)
     {
         var image = new AscFormat.CImageShape();
-        AscFormat.fillImage(image, rasterImageId, x, y, extX, extY);
+        AscFormat.fillImage(image, rasterImageId, x, y, extX, extY, sVideoUrl, sAudioUrl);
         return image;
     },
 
@@ -12420,6 +12472,27 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
     }
 
 
+    function fCheckObjectHyperlink(object, x, y){
+        var content = object.getDocContent();
+        var invert_transform_text = object.invertTransformText, tx, ty, hit_paragraph, check_hyperlink, par;
+        if(content && invert_transform_text)
+        {
+            tx = invert_transform_text.TransformPointX(x, y);
+            ty = invert_transform_text.TransformPointY(x, y);
+            hit_paragraph = content.Internal_GetContentPosByXY(tx, ty, 0);
+            par = content.Content[hit_paragraph];
+            if(isRealObject(par))
+            {
+                check_hyperlink = par.CheckHyperlink(tx, ty, 0);
+                if(isRealObject(check_hyperlink))
+                {
+                    return check_hyperlink;
+                }
+            }
+        }
+        return null;
+    }
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -12498,4 +12571,5 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].CreateBlipFillRasterImageId = CreateBlipFillRasterImageId;
 	window['AscFormat'].fResetConnectorsIds = fResetConnectorsIds;
 	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
+	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
 })(window);

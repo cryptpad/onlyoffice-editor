@@ -33,6 +33,7 @@
 window.IS_NATIVE_EDITOR = true;
 
 var sdkCheck = true;
+var spellCheck = true;
 
 window['SockJS'] = createSockJS();
 
@@ -2346,6 +2347,25 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             
             break;
         } 
+
+        case 22004: // ASC_EVENT_TYPE_SPELLCHECK_MESSAGE
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["spellCheckData"]) {
+                if (_api.SpellCheckApi) {
+                    _api.SpellCheckApi.onSpellCheck(json["spellCheckData"]);
+                }
+            }
+            break;
+        }
+
+        case 22005: // ASC_EVENT_TYPE_SPELLCHECK_TURN_ON
+        {
+            var status = parseInt(_params[0]);
+            if (status !== undefined) {
+                this.asc_setSpellCheck(status == 0 ? false : true);
+            } 
+        }
 
         default:
             break;
@@ -5848,6 +5868,78 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
     }
 };
 
+function initSpellCheckApi() {
+    
+    _api.SpellCheckApi = new AscCommon.CSpellCheckApi();
+    _api.isSpellCheckEnable = true;
+
+    _api.SpellCheckApi.spellCheck = function (spellData) {
+        window["native"]["SpellCheck"](JSON.stringify(spellData));
+    };
+    
+    _api.SpellCheckApi.disconnect = function () {};
+
+    _api.sendEvent('asc_onSpellCheckInit', [
+        "1026",
+        "1027",
+        "1029",
+        "1030",
+        "1031",
+        "1032",
+        "1033",
+        "1036",
+        "1038",
+        "1040",
+        "1042",
+        "1043",
+        "1044",
+        "1045",
+        "1046",
+        "1048",
+        "1049",
+        "1050",
+        "1051",
+        "1053",
+        "1055",
+        "1057",
+        "1058",
+        "1060",
+        "1062",
+        "1063",
+        "1066",
+        "1068",
+        "1069",
+        "1087",
+        "1104",
+        "1110",
+        "1134",
+        "2051",
+        "2055",
+        "2057",
+        "2068",
+        "2070",
+        "3079",
+        "3081",
+        "3082",
+        "4105",
+        "7177",
+        "9242",
+        "10266"
+    ]);
+
+    _api.SpellCheckApi.onInit = function (e) {
+        _api.sendEvent('asc_onSpellCheckInit', e);
+    };
+
+    _api.SpellCheckApi.onSpellCheck = function (e) {
+        _api.SpellCheck_CallBack(e);
+    };
+
+    _api.SpellCheckApi.init(_api.documentId);
+
+    _api.asc_setSpellCheck(spellCheck);
+}
+
 function NativeOpenFile3(_params, documentInfo)
 {
     window["CreateMainTextMeasurerWrapper"]();
@@ -5858,6 +5950,7 @@ function NativeOpenFile3(_params, documentInfo)
     if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
     {
         sdkCheck = documentInfo["sdkCheck"];
+        spellCheck = documentInfo["spellCheck"];
 
         _api = new window["Asc"]["asc_docs_api"]("");
         
@@ -5964,6 +6057,8 @@ function NativeOpenFile3(_params, documentInfo)
             {
                 _api.NativeAfterLoad();
             }
+
+            initSpellCheckApi();
         }
     }
     Api = _api;
@@ -6135,28 +6230,60 @@ Asc['asc_docs_api'].prototype.openDocument = function(sData)
 
     this.WordControl.m_oDrawingDocument.Collaborative_TargetsUpdate(true);
 
+    initSpellCheckApi();
+
     var t = this;
     setInterval(function() {
                 t._autoSave();
                 }, 40);
 };
 
-window["AscCommon"].getFullImageSrc2 = function (src) {
-    var start = src.slice(0, 6);
-    if (0 === start.indexOf('theme') && editor.ThemeLoader){
-        return  editor.ThemeLoader.ThemesUrlAbs + src;
-    }
-
-    if (0 !== start.indexOf('http:') && 0 !== start.indexOf('data:') && 0 !== start.indexOf('https:') &&
-        0 !== start.indexOf('file:') && 0 !== start.indexOf('ftp:')){
-        var srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
-        if(srcFull){
-            window["native"]["loadUrlImage"](srcFull, src);
-            return srcFull;
+Asc['asc_docs_api'].prototype.asc_setSpellCheck = function(isOn)
+{
+    if (this.WordControl && this.WordControl.m_oLogicDocument)
+    {
+        var oLogicDoc = this.WordControl.m_oLogicDocument;
+        if(isOn)
+        {
+            this.spellCheckTimerId = setInterval(function(){oLogicDoc.ContinueCheckSpelling();}, 500);
         }
+        else
+        {
+            if(this.spellCheckTimerId)
+            {
+               clearInterval(this.spellCheckTimerId);
+            }
+        }
+        editor.WordControl.m_oLogicDocument.Spelling.Use = isOn;
+        editor.WordControl.m_oDrawingDocument.ClearCachePages();
+        editor.WordControl.m_oDrawingDocument.FirePaint();
+    }
+};
+
+window["AscCommon"].getFullImageSrc2 = function(src) {
+    var start = src.slice(0, 6);
+    if (0 === start.indexOf("theme") && editor.ThemeLoader) {
+      return editor.ThemeLoader.ThemesUrlAbs + src;
+    }
+    if (0 !== start.indexOf("http:") && 0 !== start.indexOf("data:") && 0 !== start.indexOf("https:") && 0 !== start.indexOf("file:") && 0 !== start.indexOf("ftp:")) {
+      var srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
+      var srcFull2 = srcFull;
+      if (src.indexOf(".svg") === src.length - 4) {
+        var sName = src.slice(0, src.length - 3);
+        src = sName + "wmf";
+        srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
+        if (!srcFull) {
+          src = sName + "emf";
+          srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
+        }
+      }
+      if (srcFull) {
+        window["native"]["loadUrlImage"](srcFull, src);
+        return srcFull2;
+      }
     }
     return src;
-};
+  };
 
 window["AscCommon"].sendImgUrls = function(api, images, callback)
 {

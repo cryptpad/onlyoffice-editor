@@ -47,12 +47,15 @@
                 };
             }
 
-            if (window.Asc.plugin.info.lang != g_language)
+            var newLang = "";
+            if (window.Asc.plugin.info)
+                newLang = window.Asc.plugin.info.lang;
+            if (newLang == "" || newLang != g_language)
             {
-                g_language = window.Asc.plugin.info.lang;
-                if (g_language == "en-EN")
+                g_language = newLang;
+                if (g_language == "en-EN" || g_language == "")
 				{
-					window.Asc.plugin.translateManager = null;
+					window.Asc.plugin.translateManager = {};
 					if (window.Asc.plugin.onTranslate)
 						window.Asc.plugin.onTranslate();
 				}

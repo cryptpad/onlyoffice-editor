@@ -2160,6 +2160,15 @@ function CreateUniColorRGB(r, g, b)
     return ret;
 }
 
+function CreateUniColorRGB2(color)
+{
+    color = color || AscCommonExcel.createRgbColor(255, 255, 255);
+    var ret = new CUniColor();
+    ret.setColor(new CRGBColor());
+    ret.color.setColor(ret.RGBA.R = color.getR(), ret.RGBA.G = color.getG(), ret.RGBA.B = color.getB());
+    return ret;
+}
+
 function CreteSolidFillRGB(r, g, b)
 {
     var ret = new CUniFill();
@@ -4357,8 +4366,9 @@ EndArrow.prototype =
         return arrow && arrow.type == this.type &&  arrow.len == this.len && arrow.w  == this.w;
     },
 
-    GetWidth: function(size, _max)
+    GetWidth: function(_size, _max)
     {
+        var size = Math.max(_size, _max ? _max : 2.5);
         var _ret = 3 * size;
         if (null != this.w)
         {
@@ -4374,10 +4384,11 @@ EndArrow.prototype =
                     break;
             }
         }
-        return Math.max(_ret, _max ? _max : 7);
+        return _ret;
     },
-    GetLen: function(size, _max)
+    GetLen: function(_size, _max)
     {
+        var size = Math.max(_size, _max ? _max : 2);
         var _ret = 3 * size;
         if (null != this.len)
         {
@@ -4393,7 +4404,7 @@ EndArrow.prototype =
                     break;
             }
         }
-        return Math.max(_ret, _max ? _max : 7);
+        return _ret;
     },
 
     getObjectType: function()
@@ -5106,6 +5117,10 @@ NvPr.prototype =
         if(this.ph != null)
         {
             duplicate.setPh(this.ph.createDuplicate());
+        }
+        if(this.unimedia != null)
+        {
+            duplicate.setUniMedia(this.unimedia.createDuplicate());
         }
         return duplicate;
     },
@@ -11056,6 +11071,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].CSchemeColor = CSchemeColor;
     window['AscFormat'].CUniColor = CUniColor;
     window['AscFormat'].CreateUniColorRGB = CreateUniColorRGB;
+    window['AscFormat'].CreateUniColorRGB2 = CreateUniColorRGB2;
     window['AscFormat'].CreteSolidFillRGB = CreteSolidFillRGB;
     window['AscFormat'].CreateSolidFillRGBA = CreateSolidFillRGBA;
     window['AscFormat'].CSrcRect = CSrcRect;

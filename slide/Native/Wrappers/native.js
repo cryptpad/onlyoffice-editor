@@ -1139,7 +1139,10 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 112: // ASC_MENU_EVENT_TYPE_CONTEXTMENU_PASTE
         {
-            this.Call_Menu_Context_Paste(_params[0], _params[1]);
+            if(undefined !== _params)
+            {
+                this.Call_Menu_Context_Paste(_params[0], _params[1]);
+            }
             break;
         }
         case 113: // ASC_MENU_EVENT_TYPE_CONTEXTMENU_DELETE
@@ -1337,18 +1340,18 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             var level = parseInt(_params);
 
-            if (Asc.c_oAscAlignShapeType.ALIGN_LEFT == level) {
-                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_LEFT);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_CENTER == level) {
-                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_CENTER);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_RIGHT == level) {
-                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_RIGHT);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_TOP == level) {
-                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_TOP);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_MIDDLE == level) {
-                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_MIDDLE);
-            } else if (Asc.c_oAscAlignShapeType.ALIGN_BOTTOM == level) {
-                this.put_ShapesAlign(Asc.c_oAscAlignShapeType.ALIGN_BOTTOM);
+            if (c_oAscAlignShapeType.ALIGN_LEFT == level) {
+                this.put_ShapesAlign(c_oAscAlignShapeType.ALIGN_LEFT);
+            } else if (c_oAscAlignShapeType.ALIGN_CENTER == level) {
+                this.put_ShapesAlign(c_oAscAlignShapeType.ALIGN_CENTER);
+            } else if (c_oAscAlignShapeType.ALIGN_RIGHT == level) {
+                this.put_ShapesAlign(c_oAscAlignShapeType.ALIGN_RIGHT);
+            } else if (c_oAscAlignShapeType.ALIGN_TOP == level) {
+                this.put_ShapesAlign(c_oAscAlignShapeType.ALIGN_TOP);
+            } else if (c_oAscAlignShapeType.ALIGN_MIDDLE == level) {
+                this.put_ShapesAlign(c_oAscAlignShapeType.ALIGN_MIDDLE);
+            } else if (c_oAscAlignShapeType.ALIGN_BOTTOM == level) {
+                this.put_ShapesAlign(c_oAscAlignShapeType.ALIGN_BOTTOM);
             } else if (6 == level) {
                 this.DistributeHorizontally();
             } else if (7 == level) {
@@ -1367,7 +1370,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 8125: //ASC_PRESENTATIONS_EVENT_TYPE_PASTE_CONTENT_TYPE
         {
             if(_params[0]){
-                var oPasteProcessor = new oPasteProcessor(this, false, false, false);
+                var oPasteProcessor = new AscCommon.PasteProcessor(this, false, false, false);
                 var aContent = AscFormat.ExecuteNoHistory(function(){
                     return oPasteProcessor._readPresentationSelectedContent2(_params[0]);
                 }, this, []);
@@ -1465,6 +1468,25 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             this.asc_setDocumentPassword(_params[0]);
             break;
+        }
+      
+        case 22004: // ASC_EVENT_TYPE_SPELLCHECK_MESSAGE
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["spellCheckData"]) {
+                if (this.SpellCheckApi) {
+                    this.SpellCheckApi.onSpellCheck(json["spellCheckData"]);
+                }
+            }
+            break;
+        }
+
+        case 22005: // ASC_EVENT_TYPE_SPELLCHECK_TURN_ON
+        {
+            var status = parseInt(_params[0]);
+            if (status !== undefined) {
+                this.asc_setSpellCheck(status == 0 ? false : true);
+            } 
         }
 
         default:

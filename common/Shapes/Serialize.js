@@ -4732,23 +4732,29 @@ function BinaryPPTYLoader()
                 {
                     s.GetLong();//length
                     oleType = s.GetUChar();
+                    ole.setOleType(oleType);
                     break;
                 }
                 case 2:
                 {
 
+                    var binary_length;
                     switch(oleType)
                     {
                         case 1:
                         {
                             ole.setObjectFile("maskFile.docx");
-                            s.SkipRecord();
+                            binary_length = s.GetULong();
+                            ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
+                            s.Seek2(s.cur + binary_length);
                             break;
                         }
                         case 2:
                         {
                             ole.setObjectFile("maskFile.xlsx");
-                            s.SkipRecord();
+                            binary_length = s.GetULong();
+                            ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
+                            s.Seek2(s.cur + binary_length);
                             break;
                         }
                         case 4:
@@ -5751,14 +5757,14 @@ function BinaryPPTYLoader()
                 {
                     if(isOle) {
                         this.ReadOleInfo(pic);
-                        if(pic.m_sObjectFile === "maskFile.docx"
-                            ||  pic.m_sObjectFile === "maskFile.xlsx"){
-                            var oParent = pic.parent;
-                            pic = AscFormat.CImageShape.prototype.copy.call(pic);
-                            if(oParent){
-                                pic.setParent(oParent);
-                            }
-                        }
+                        // if(pic.m_sObjectFile === "maskFile.docx"
+                        //     ||  pic.m_sObjectFile === "maskFile.xlsx"){
+                        //     var oParent = pic.parent;
+                        //     pic = AscFormat.CImageShape.prototype.copy.call(pic);
+                        //     if(oParent){
+                        //         pic.setParent(oParent);
+                        //     }
+                        // }
                     } else {
                         s.SkipRecord();
                     }
@@ -5809,7 +5815,7 @@ function BinaryPPTYLoader()
 
         if(type === 7 || type === 8){//video or audio
             if(typeof sMaskFileName === "string" && sMaskFileName.length > 0 &&
-                pic.nvPicPr && pic.nvPicPr.nvPr && pic.nvPicPr.nvPr.unimedia){
+                pic.nvPicPr && pic.nvPicPr.nvPr /*&& pic.nvPicPr.nvPr.unimedia*/){
                 var oUniMedia = new AscFormat.UniMedia();
                 oUniMedia.type = type;
                 oUniMedia.media = sMaskFileName;
@@ -10044,14 +10050,14 @@ function CPres()
                     {
                         if(isOle) {
                             this.ReadOleInfo(pic);
-                            if(pic.m_sObjectFile === "maskFile.docx"
-                                ||  pic.m_sObjectFile === "maskFile.xlsx"){
-                                var oParent = pic.parent;
-                                pic = AscFormat.CImageShape.prototype.copy.call(pic);
-                                if(oParent){
-                                    pic.setParent(oParent);
-                                }
-                            }
+                            // if(pic.m_sObjectFile === "maskFile.docx"
+                            //     ||  pic.m_sObjectFile === "maskFile.xlsx"){
+                            //     var oParent = pic.parent;
+                            //     pic = AscFormat.CImageShape.prototype.copy.call(pic);
+                            //     if(oParent){
+                            //         pic.setParent(oParent);
+                            //     }
+                            // }
                         } else {
                             s.SkipRecord();
                         }
@@ -10090,7 +10096,7 @@ function CPres()
 
             if(type === 7 || type === 8){//video or audio
                 if(typeof sMaskFileName === "string" && sMaskFileName.length > 0 &&
-                    pic.nvPicPr && pic.nvPicPr.nvPr && pic.nvPicPr.nvPr.unimedia){
+                    pic.nvPicPr && pic.nvPicPr.nvPr /*&& pic.nvPicPr.nvPr.unimedia*/){
                     var oUniMedia = new AscFormat.UniMedia();
                     oUniMedia.type = type;
                     oUniMedia.media = sMaskFileName;
@@ -10177,23 +10183,29 @@ function CPres()
                     {
                         s.GetLong();//length
                         oleType = s.GetUChar();
+                        ole.setOleType(oleType);
                         break;
                     }
                     case 2:
                     {
 
+                        var binary_length;
                         switch(oleType)
                         {
                             case 1:
                             {
                                 ole.setObjectFile("maskFile.docx");
-                                s.SkipRecord();
+                                binary_length = s.GetULong();
+                                ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
+                                s.Seek2(s.cur + binary_length);
                                 break;
                             }
                             case 2:
                             {
                                 ole.setObjectFile("maskFile.xlsx");
-                                s.SkipRecord();
+                                binary_length = s.GetULong();
+                                ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
+                                s.Seek2(s.cur + binary_length);
                                 break;
                             }
                             case 4:

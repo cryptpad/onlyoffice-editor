@@ -2200,6 +2200,18 @@ CTableCell.prototype.GetPageBounds = function(nCurPage)
 
 	return new CDocumentBounds(nL, nT, nR, nB);
 };
+/**
+ * Получаем колонку в виде массива ячеек
+ * @returns {[CTableCell]}
+ */
+CTableCell.prototype.GetColumn = function()
+{
+	var oTable = this.GetTable();
+	if (!oTable)
+		return [this];
+
+	return oTable.GetColumn(this.GetIndex(), this.GetRow().GetIndex());
+};
 
 
 function CTableCellRecalculateObject()

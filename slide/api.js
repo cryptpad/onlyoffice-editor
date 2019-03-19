@@ -63,6 +63,7 @@
 	var c_oAscFill              = Asc.c_oAscFill;
 	var asc_CShapeFill          = Asc.asc_CShapeFill;
 	var asc_CFillBlip           = Asc.asc_CFillBlip;
+    var c_oAscFontRenderingModeType = Asc.c_oAscFontRenderingModeType;
 
 	function CAscSlideProps()
 	{
@@ -615,6 +616,7 @@
 		this.isShapeImageChangeUrl = false;
 		this.isSlideImageChangeUrl = false;
 		this.textureType = null;
+        this.tmpFontRenderingMode = null;
 
 		this.isPasteFonts_Images = false;
 
@@ -4095,7 +4097,7 @@ background-repeat: no-repeat;\
 			}
 		}
 	};
-	asc_docs_api.prototype.AddImageUrl  = function(url)
+	asc_docs_api.prototype.AddImageUrl  = function(url, imgProp, withAuthorization)
 	{
 		if (g_oDocumentUrls.getLocal(url))
 		{
@@ -4109,7 +4111,7 @@ background-repeat: no-repeat;\
                 if (data && data[0])
                     t.AddImageUrlAction(data[0].url);
 
-            }, false);
+            }, false, undefined, withAuthorization);
 		}
 	};
 
@@ -5140,6 +5142,44 @@ background-repeat: no-repeat;\
 			var MathElement = new AscCommonWord.MathMenu(Type);
 			this.WordControl.m_oLogicDocument.AddToParagraph(MathElement, false);
 		}
+	};
+
+
+	asc_docs_api.prototype.asc_AddVideo = function(sImageUrlLocal, sVideoUrl)
+	{
+		var oApi = this;
+		var sImageUrl = AscCommon.g_oDocumentUrls.getImageUrl(sImageUrlLocal);
+		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
+			var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
+			if (!_image || !_image.Image)
+				return;
+
+			var oImageObject = {};
+			oImageObject.src = sImageUrl;
+			oImageObject.Image = {};
+			oImageObject.Image.width = _image.Image.width;
+			oImageObject.Image.height = _image.Image.height;
+			oImageObject.videoUrl = sVideoUrl;
+			oApi.WordControl.m_oLogicDocument.addImages([oImageObject]);
+		});
+	};
+	asc_docs_api.prototype.asc_AddAudio = function(sImageUrlLocal, sAudioUrl)
+	{
+		var oApi = this;
+        var sImageUrl = AscCommon.g_oDocumentUrls.getImageUrl(sImageUrlLocal);
+		this.ImageLoader.LoadImagesWithCallback([sImageUrl], function(){
+			var _image = oApi.ImageLoader.LoadImage(sImageUrl, 1);
+            if (!_image || !_image.Image)
+                return;
+
+			var oImageObject = {};
+			oImageObject.src = sImageUrl;
+			oImageObject.Image = {};
+			oImageObject.Image.width = 50;
+			oImageObject.Image.height = 50;
+			oImageObject.audioUrl = sAudioUrl;
+			oApi.WordControl.m_oLogicDocument.addImages([oImageObject]);
+		});
 	};
 
 	//----------------------------------------------------------------------------------------------------------------------
@@ -6830,6 +6870,10 @@ background-repeat: no-repeat;\
 		this.CreateComponents();
 		this.WordControl.Init();
 
+        if (this.tmpFontRenderingMode)
+        {
+            this.SetFontRenderingMode(this.tmpFontRenderingMode);
+        }
 		if (this.tmpThemesPath)
 		{
 			this.SetThemesPath(this.tmpThemesPath);
@@ -6966,6 +7010,31 @@ background-repeat: no-repeat;\
 		}, fCallback, null, oAdditionalData, dataContainer);
 	};
 
+    asc_docs_api.prototype.SetFontRenderingMode         = function(mode)
+    {
+        if (!this.isLoadFullApi)
+        {
+            this.tmpFontRenderingMode = mode;
+            return;
+        }
+
+        if (c_oAscFontRenderingModeType.noHinting === mode)
+            AscCommon.SetHintsProps(false, false);
+        else if (c_oAscFontRenderingModeType.hinting === mode)
+            AscCommon.SetHintsProps(true, false);
+        else if (c_oAscFontRenderingModeType.hintingAndSubpixeling === mode)
+            AscCommon.SetHintsProps(true, true);
+
+        AscCommon.g_fontManager.ClearFontsRasterCache();
+
+        if (AscCommon.g_fontManager2 !== undefined && AscCommon.g_fontManager2 !== null)
+            AscCommon.g_fontManager2.ClearFontsRasterCache();
+
+        this.WordControl.m_oDrawingDocument.ClearCachePages();
+
+        if (this.bInit_word_control)
+            this.WordControl.OnScroll();
+    };
 
 
 	asc_docs_api.prototype.asc_Recalculate = function(bIsUpdateInterface)
@@ -7413,6 +7482,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['Help']                                = asc_docs_api.prototype.Help;
 	asc_docs_api.prototype['startGetDocInfo']                     = asc_docs_api.prototype.startGetDocInfo;
 	asc_docs_api.prototype['asc_setAdvancedOptions']              = asc_docs_api.prototype.asc_setAdvancedOptions;
+    asc_docs_api.prototype['SetFontRenderingMode']                = asc_docs_api.prototype.SetFontRenderingMode;
 	asc_docs_api.prototype['stopGetDocInfo']                      = asc_docs_api.prototype.stopGetDocInfo;
 	asc_docs_api.prototype['sync_DocInfoCallback']                = asc_docs_api.prototype.sync_DocInfoCallback;
 	asc_docs_api.prototype['sync_GetDocInfoStartCallback']        = asc_docs_api.prototype.sync_GetDocInfoStartCallback;
@@ -7766,6 +7836,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_getCurrentFocusObject"]           = asc_docs_api.prototype.asc_getCurrentFocusObject;
 	asc_docs_api.prototype["asc_AddMath"]           			  = asc_docs_api.prototype.asc_AddMath;
 	asc_docs_api.prototype["asc_SetMathProps"]           		  = asc_docs_api.prototype.asc_SetMathProps;
+
+	asc_docs_api.prototype["asc_AddVideo"]           		  = asc_docs_api.prototype.asc_AddVideo;
+	asc_docs_api.prototype["asc_AddAudio"]           		  = asc_docs_api.prototype.asc_AddAudio;
 
     asc_docs_api.prototype['sendEvent']								= asc_docs_api.prototype.sendEvent;
 

@@ -3141,7 +3141,7 @@ function OfflineEditor () {
     // main
     
     this.beforeOpen = function() {
-        
+
         window['AscFormat'].DrawingArea.prototype.drawSelection = function(drawingDocument) {
             
             AscCommon.g_oTextMeasurer.Flush();
@@ -4323,6 +4323,7 @@ function OfflineEditor () {
         _null_object.height = height * ratio;
         
         var worksheet = _api.wb.getWorksheet();
+        worksheet._recalculate();
         var region = this._updateRegion(worksheet, x, y, width * ratio, height * ratio);
         var colRowHeaders = _api.asc_getSheetViewSettings();
         
@@ -4831,11 +4832,13 @@ function OfflineEditor () {
             }
         };
         AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
-            
-            var oColor = oStyle.getFillColor();
-            if (null !== oColor) {
-                oGraphics.setFillStyle(oColor);
-                oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+
+            if (oStyle.ApplyFill) {
+                var oColor = oStyle.getFillColor();
+                if (null !== oColor) {
+                    oGraphics.setFillStyle(oColor);
+                    oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+                }
             }
             
             var drawBorder = function (b, x1, y1, x2, y2) {
@@ -4849,12 +4852,14 @@ function OfflineEditor () {
                     oGraphics.stroke();
                 }
             };
-            
-            var oBorders = oStyle.getBorder();
-            drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt); // left
-            drawBorder(oBorders.r, this.styleThumbnailWidthPt - 0.25, 0, this.styleThumbnailWidthPt - 0.25, this.styleThumbnailHeightPt);     // right
-            drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0); // up
-            drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt - 0.25, this.styleThumbnailWidthPt,  this.styleThumbnailHeightPt - 0.25);   // down
+
+            if (oStyle.ApplyBorder) {
+                var oBorders = oStyle.getBorder();
+                drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt); // left
+                drawBorder(oBorders.r, this.styleThumbnailWidthPt - 0.25, 0, this.styleThumbnailWidthPt - 0.25, this.styleThumbnailHeightPt);     // right
+                drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0); // up
+                drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt - 0.25, this.styleThumbnailWidthPt,  this.styleThumbnailHeightPt - 0.25);   // down
+            }
             
             // Draw text
             var format = oStyle.getFont().clone();
@@ -5059,7 +5064,7 @@ function OfflineEditor () {
                     compiledStylesArr[i][j] = curStyle;
                     
                     //fill
-                    color = curStyle && curStyle.fill && curStyle.fill.bg;
+                    color = curStyle && curStyle.fill && curStyle.fill.bg();
                     if(color)
                     {
                         calculateRect(color, j * stepX, i * stepY, stepX, stepY);

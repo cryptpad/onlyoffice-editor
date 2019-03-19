@@ -13087,9 +13087,7 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 	}
 	else
 	{
-
 		var oContentControl = new CInlineLevelSdt();
-		//oContentControl.Add_ToContent(0, new ParaRun());
 		this.Add(oContentControl);
 
 		var oContentControlPos = this.Get_PosByElement(oContentControl);
@@ -13098,6 +13096,8 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 			oContentControl.Get_StartPos(oContentControlPos, oContentControlPos.Get_Depth() + 1);
 			this.Set_ParaContentPos(oContentControlPos, false, -1, -1);
 		}
+
+		oContentControl.SelectContentControl();
 
 		return oContentControl;
 	}
@@ -13488,7 +13488,12 @@ Paragraph.prototype.GetAllFields = function(isUseSelection, arrFields)
 
 	if (isUseSelection && true !== this.Selection.Use)
 	{
-		return this.GetCurrentComplexFields();
+		var arrParaFields = this.GetCurrentComplexFields();
+		for (var nIndex = 0, nCount = arrParaFields.length; nIndex < nCount; ++nIndex)
+		{
+			arrFields.push(arrParaFields[nIndex]);
+		}
+		return arrFields;
 	}
 
 	var nStartPos = isUseSelection ?

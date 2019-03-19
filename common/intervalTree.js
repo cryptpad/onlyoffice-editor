@@ -396,6 +396,32 @@
                 this.right.search(low, high, output);
             }
         };
+        // Searches for any overlapping node
+        Node.prototype.searchAny = function(low, high) {
+            // Don't search nodes that don't exist
+            if (this === undefined) {
+                return;
+            }
+            // If interval is to the right of the rightmost point of any interval in this node and all its
+            // children, there won't be any matches
+            if (low > this.max) {
+                return;
+            }
+            if (this.key <= high) {
+                // Nodes are overlapping, check if individual records in the node are overlapping
+                for (var i = 0; i < this.records.length; i++) {
+                    if (this.records[i].high >= low) {
+                        return this.records[i];
+                    }
+                }
+            }
+            // Search left children
+            if (this.left !== undefined && this.left.max >= low) {
+                return this.left.searchAny(low, high);
+            } else if (this.right !== undefined && this.key <= high) {
+                return this.right.searchAny(low, high);
+            }
+        };
         // Searches for a node by a `key` value
         Node.prototype.searchExisting = function (low) {
             if (this === undefined) {
@@ -538,15 +564,30 @@
                 }
             }
         };
-        IntervalTree.prototype.search = function (low, high) {
-            if (this.root === undefined) {
-                // Tree is empty; return empty array
-                return [];
+        IntervalTree.prototype.search = function (low, high, opt_output) {
+            if (!opt_output) {
+                opt_output = [];
             }
-            else {
-                var res = [];
-                this.root.search(low, high, res);
-                return res;
+            if (this.root !== undefined) {
+                this.root.search(low, high, opt_output);
+            }
+            return opt_output;
+        };
+        IntervalTree.prototype.searchExisting = function (low, high) {
+            if (this.root) {
+                var node = this.root.searchExisting(low);
+                if (node) {
+                    for (var i = 0; i < node.records.length; i++) {
+                        if (node.records[i].high === high) {
+                            return node.records[i];
+                        }
+                    }
+                }
+            }
+        };
+        IntervalTree.prototype.searchAny = function (low, high) {
+            if (this.root) {
+                return  this.root.searchAny(low, high);
             }
         };
         IntervalTree.prototype.remove = function (record) {
@@ -670,6 +711,14 @@
         DataIntervalTree.prototype.search = function (low, high) {
             return this.searchNodes(low, high).map(function (v) { return v.data; });
         };
+        DataIntervalTree.prototype.searchExisting = function (low, high) {
+            var record = this.tree.searchExisting(low, high);
+            return record ? record.data : undefined;
+        };
+        DataIntervalTree.prototype.searchAny = function (low, high) {
+            var record = this.tree.searchAny(low, high);
+            return record ? record.data : undefined;
+        };
         DataIntervalTree.prototype.inOrder = function () {
             return this.tree.inOrder();
         };
@@ -684,6 +733,45 @@
             configurable: true
         });
         return DataIntervalTree;
+    }());
+    var DataIntervalTree2D = /** @class */ (function () {
+        function DataIntervalTree2D() {
+            this.tree = new IntervalTree();
+        }
+        DataIntervalTree2D.prototype.insert = function(bbox, data) {
+            var record = this.tree.searchExisting(bbox.r1, bbox.r2);
+            if (!record) {
+                record = {low: bbox.r1, high: bbox.r2, data: new IntervalTree()};
+                this.tree.insert(record);
+            }
+            record.data.insert({low: bbox.c1, high: bbox.c2, data: data});
+        };
+        DataIntervalTree2D.prototype.remove = function(bbox, data) {
+            var record = this.tree.searchExisting(bbox.r1, bbox.r2);
+            if (record) {
+                record.data.remove({low: bbox.c1, high: bbox.c2, data: data});
+            }
+        };
+        DataIntervalTree2D.prototype.searchNodes = function(bbox) {
+            var res = [];
+            var records = this.tree.search(bbox.r1, bbox.r2);
+            for (var i = 0; i < records.length; i++) {
+                records[i].data.search(bbox.c1, bbox.c2, res);
+            }
+            return res;
+        };
+        DataIntervalTree2D.prototype.searchAny = function(bbox) {
+            var any;
+            var records = this.tree.search(bbox.r1, bbox.r2);
+            for (var i = 0; i < records.length; i++) {
+                any = records[i].data.searchAny(bbox.c1, bbox.c2);
+                if (any) {
+                    return any.data;
+                }
+            }
+            return null;
+        };
+        return DataIntervalTree2D;
     }());
 
     var InOrder = /** @class */ (function () {
@@ -782,5 +870,6 @@
     //----------------------------------------------------------export----------------------------------------------------
     window['AscCommon'] = window['AscCommon'] || {};
     window['AscCommon'].DataIntervalTree = DataIntervalTree;
+    window['AscCommon'].DataIntervalTree2D = DataIntervalTree2D;
 
 }(window));

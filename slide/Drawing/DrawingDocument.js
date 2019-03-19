@@ -1025,15 +1025,19 @@ function CDrawingDocument()
 
 	this.SetCursorType     = function(sType, Data)
 	{
+		var elem = this.m_oWordControl.m_oMainContent.HtmlElement;
+		if (this.m_oWordControl.DemonstrationManager.Mode)
+			elem = this.m_oWordControl.DemonstrationManager.Canvas;
+
 		if ("" == this.m_sLockedCursorType)
 		{
 			if (this.m_oWordControl.m_oApi.isPaintFormat && (("default" == sType) || ("text" == sType)))
 				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(AscCommon.kCurFormatPainterWord);
 			else
-				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
+                elem.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
 		}
 		else
-			this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(this.m_sLockedCursorType);
+            elem.style.cursor = AscCommon.g_oHtmlCursor.value(this.m_sLockedCursorType);
 
 		if ("undefined" === typeof(Data) || null === Data)
 			Data = new AscCommon.CMouseMoveData();
@@ -1636,7 +1640,7 @@ function CDrawingDocument()
 
 	this.ClearCachePages = function()
 	{
-		if (this.m_oWordControl.bInit_word_control && 0 <= this.SlideCurrent)
+		if (this.m_oWordControl.m_oApi.bInit_word_control && 0 <= this.SlideCurrent)
 			this.m_oWordControl.SlideDrawer.CheckSlide(this.SlideCurrent);
 	}
 

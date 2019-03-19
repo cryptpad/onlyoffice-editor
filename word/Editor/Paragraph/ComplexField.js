@@ -409,7 +409,7 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 };
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
-	this.Instruction.Calculate();
+	this.Instruction.Calculate(this.LogicDocument);
 	if(this.Instruction.ErrStr !== null)
 	{
 		var oSelectedContent = new CSelectedContent();
@@ -959,6 +959,30 @@ CComplexField.prototype.SetPr = function(oPr)
 	var oRun      = this.BeginChar.GetRun();
 	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
 	oRun.AddInstrText(sNewInstruction, nInRunPos);
+};
+/**
+ * Изменяем строку инструкции у поля
+ * @param {string} sNewInstruction
+ */
+CComplexField.prototype.ChangeInstruction = function(sNewInstruction)
+{
+	if (!this.IsValid())
+		return;
+
+	var oDocument = this.GetTopDocumentContent();
+	if (!oDocument)
+		return;
+
+	this.SelectFieldCode();
+	oDocument.Remove();
+
+	var oRun      = this.BeginChar.GetRun();
+	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
+	oRun.AddInstrText(sNewInstruction, nInRunPos);
+
+	this.Instruction     = null;
+	this.InstructionLine = sNewInstruction;
+	this.private_UpdateInstruction();
 };
 
 //--------------------------------------------------------export----------------------------------------------------

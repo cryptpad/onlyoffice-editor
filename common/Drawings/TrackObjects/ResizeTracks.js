@@ -852,6 +852,10 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 this.resizedflipH = this.originalFlipH;
                 this.resizedflipV = this.originalFlipV;
             }
+            if(this.originalObject.getObjectType() && this.originalObject.getObjectType() === AscDFH.historyitem_type_OleObject){
+                this.resizedflipH = false;
+                this.resizedflipV = false;
+            }
             this.geometry.Recalculate(this.resizedExtX, this.resizedExtY);
             this.overlayObject.updateExtents(this.resizedExtX, this.resizedExtY);
 

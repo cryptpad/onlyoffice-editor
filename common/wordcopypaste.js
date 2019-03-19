@@ -1963,7 +1963,7 @@ function Editor_Paste_Exec(api, _format, data1, data2, text_data, specialPastePr
 function trimString( str ){
     return str.replace(/^\s+|\s+$/g, '') ;
 }
-function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
+function sendImgUrls(api, images, callback, bExcel, bNotShowError, withAuthorization) {
 
   if (window["AscDesktopEditor"])
   {
@@ -1986,7 +1986,10 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
 		return;
 	}
 
-  var rData = {"id": api.documentId, "c": "imgurls", "userid":  api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(), "data": images};
+  var rData = {
+    "id": api.documentId, "c": "imgurls", "userid": api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(),
+    "withAuthorization": withAuthorization, "data": images
+  };
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 
   api.fCurCallback = function (input) {
@@ -4554,7 +4557,7 @@ PasteProcessor.prototype =
                 if(Array.isArray(aSlides)) {
                     for(var i = 0; i < aSlides.length; ++i) {
                         var oCurSlide = aSlides[i];
-                        var oSlideFontMap = oCurSlide.fontMap;
+                        var oSlideFontMap = oCurSlide ? oCurSlide.fontMap : null;
                         if(oSlideFontMap) {
                             var oTheme = null;
                             if(Array.isArray(presentationSelectedContent.LayoutsIndexes)) {
@@ -4627,7 +4630,29 @@ PasteProcessor.prototype =
 					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
 
-					oThis._setSpecialPasteShowOptionsPresentation([Asc.c_oSpecialPasteProps.sourceformatting, Asc.c_oSpecialPasteProps.keepTextOnly]);
+					//check only images
+					var pasteOnlyImg = false;
+					if(2 === presentationSelectedContent.getContentType()) {
+						pasteOnlyImg = true;
+						for(var i = 0; i < presentationSelectedContent.Drawings.length; i++) {
+							if(presentationSelectedContent.Drawings[i].Drawing.getObjectType() !== AscDFH.historyitem_type_ImageShape) {
+								pasteOnlyImg = false;
+								break;
+							}
+						}
+					}
+
+					if(pasteOnlyImg) {
+						window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
+						if(window['AscCommon'].g_specialPasteHelper.buttonInfo)
+						{
+							window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph = null;
+							window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+						}
+					} else {
+						oThis._setSpecialPasteShowOptionsPresentation([Asc.c_oSpecialPasteProps.sourceformatting, Asc.c_oSpecialPasteProps.keepTextOnly]);
+					}
+
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				}
 			};
@@ -8006,13 +8031,13 @@ PasteProcessor.prototype =
 		var border = this._ExecuteBorder(computedStyle, node, "left", "Left", bAddIfNull);
 		if(null != border)
 			cell.Set_Border(border, 3);
-		var border = this._ExecuteBorder(computedStyle, node, "top", "Top", bAddIfNull);
+		border = this._ExecuteBorder(computedStyle, node, "top", "Top", bAddIfNull);
 		if(null != border)
 			cell.Set_Border(border, 0);
-		var border = this._ExecuteBorder(computedStyle, node, "right", "Right", bAddIfNull);
+		border = this._ExecuteBorder(computedStyle, node, "right", "Right", bAddIfNull);
 		if(null != border)
 			cell.Set_Border(border, 1);
-		var border = this._ExecuteBorder(computedStyle, node, "bottom", "Bottom", bAddIfNull);
+		border = this._ExecuteBorder(computedStyle, node, "bottom", "Bottom", bAddIfNull);
 		if(null != border)
 			cell.Set_Border(border, 2);
 
@@ -8028,6 +8053,11 @@ PasteProcessor.prototype =
 		var left = this._getStyle(node, computedStyle, "padding-left");
 		if(null != left && null != (left = this._ValueToMm(left)))
 			cell.Set_Margins({ W : left, Type : tblwidth_Mm }, 3);
+
+		var whiteSpace = this._getStyle(node, computedStyle, "white-space");
+		if("nowrap" === whiteSpace || true === node.noWrap) {
+			cell.Set_NoWrap(true);
+		}
 
         //content
         var oPasteProcessor = new PasteProcessor(this.api, false, false, true);
@@ -8588,8 +8618,12 @@ PasteProcessor.prototype =
 				}
 			} else {
 				sChildNodeName = child.nodeName.toLowerCase();
+
+				//исключаю чтение тега "o:p", потому что ms в пустые ячейки таблицы добавляется внутрь данного тега неразрывные пробелы
+				//не нашёл такой ситуации, когда пропадают пробелы между словами
+				//todo протестровать "o:p"!
 				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
-					sChildNodeName === "#comment" || sChildNodeName === "script") {
+					sChildNodeName === "#comment" || sChildNodeName === "script" || sChildNodeName === "o:p") {
 					if(sChildNodeName === "#comment") {
 						if(child.nodeValue === "[if !supportAnnotations]") {
 							oThis.startMsoAnnotation = true;

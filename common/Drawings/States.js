@@ -355,10 +355,14 @@ NullState.prototype =
             }
             if(this.drawingObjects.drawingObjects && this.drawingObjects.drawingObjects.cSld)
             {
-                this.drawingObjects.stX = x;
-                this.drawingObjects.stY = y;
-                this.drawingObjects.selectionRect = {x : x, y : y, w: 0, h: 0};
-                this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
+                if(!this.drawingObjects.isSlideShow())
+                {
+                    this.drawingObjects.stX = x;
+                    this.drawingObjects.stY = y;
+                    this.drawingObjects.selectionRect = {x : x, y : y, w: 0, h: 0};
+                    this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
+                }
+
             }
         }
         return null;
@@ -981,6 +985,10 @@ PreMoveState.prototype =
 
     onMouseMove: function(e, x, y, pageIndex)
     {
+        if(this.drawingObjects.isSlideShow())
+        {
+            return;
+        }
         if(!e.IsLocked)
         {
             this.onMouseUp(e, x, y, pageIndex);
@@ -1284,6 +1292,10 @@ PreMoveInGroupState.prototype =
 
     onMouseMove: function(e, x, y, pageIndex)
     {
+        if(this.drawingObjects.isSlideShow())
+        {
+            return;
+        }
         if(!e.IsLocked)
         {
             this.onMouseUp(e, x, y, pageIndex);
@@ -1548,7 +1560,17 @@ TextAddState.prototype =
     },
     onMouseUp: function(e, x, y, pageIndex)
     {
+        var oldCtrl;
+        if(this.drawingObjects.isSlideShow())
+        {
+            oldCtrl = e.CtrlKey;
+            e.CtrlKey = true;
+        }
         this.majorObject.selectionSetEnd(e, x, y, pageIndex);
+        if(this.drawingObjects.isSlideShow())
+        {
+            e.CtrlKey = oldCtrl;
+        }
         this.drawingObjects.updateSelectionState();
         this.drawingObjects.drawingObjects.sendGraphicObjectProps();
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -1558,6 +1580,10 @@ TextAddState.prototype =
         if(cursor_type && cursor_type.hyperlink)
         {
             this.drawingObjects.drawingObjects.showDrawingObjects(true);
+            if(this.drawingObjects.isSlideShow())
+            {
+                this.drawingObjects.getEditorApi().sync_HyperlinkClickCallback(cursor_type.hyperlink.Value);
+            }
         }
         this.drawingObjects.noNeedUpdateCursorType = false;
         this.drawingObjects.handleEventMode = HANDLE_EVENT_MODE_HANDLE;
