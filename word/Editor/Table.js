@@ -9499,10 +9499,43 @@ CTable.prototype.RemoveTableRow = function(Ind)
 
 	this.RemoveSelection();
 
-	// Удаляем строки.
-	for (var Index = Rows_to_delete.length - 1; Index >= 0; Index--)
+	var oLogicDocument   = this.LogicDocument;
+	var isTrackRevisions = oLogicDocument ? oLogicDocument.IsTrackRevisions() : false;
+
+	if (isTrackRevisions)
 	{
-		this.Internal_Remove_Row(Rows_to_delete[Index]);
+		// Удаляем строки
+		for (var nIndex = Rows_to_delete.length - 1; nIndex >= 0; --nIndex)
+		{
+			var oRow = this.GetRow(Rows_to_delete[nIndex]);
+
+			var nRowReviewType = oRow.GetReviewType();
+			var oRowReviewInfo = oRow.GetReviewInfo();
+			if (reviewtype_Add === nRowReviewType && oRowReviewInfo.IsCurrentUser())
+			{
+				this.Internal_Remove_Row(Rows_to_delete[nIndex]);
+			}
+			else
+			{
+				for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+				{
+					var oCellContent = oRow.GetCell(nCurCell).GetContent();
+					oCellContent.SelectAll();
+					oCellContent.Remove();
+					oCellContent.RemoveSelection();
+				}
+
+				oRow.SetReviewType(reviewtype_Remove);
+			}
+		}
+	}
+	else
+	{
+		// Удаляем строки
+		for (var Index = Rows_to_delete.length - 1; Index >= 0; Index--)
+		{
+			this.Internal_Remove_Row(Rows_to_delete[Index]);
+		}
 	}
 
 	// Возвращаем курсор
@@ -9533,8 +9566,6 @@ CTable.prototype.RemoveTableRow = function(Ind)
 	this.Markup.Internal.PageNum   = PageNum;
 
 	this.Recalc_CompiledPr2();
-
-	this.Internal_Recalculate_1();
 
 	return true;
 };
