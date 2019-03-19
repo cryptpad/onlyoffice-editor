@@ -2003,14 +2003,14 @@
 					ret.X = drDoc.TargetHtmlElementLeft;
 					ret.Y = drDoc.TargetHtmlElementTop;
 					ret.TargetH = drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix;
-                }
 
-				off = jQuery(this.HtmlElement).offset();
-				if (off)
-				{
-					ret.X += off.left;
-					ret.Y += off.top;
-				}
+                    off = jQuery(this.HtmlElement).offset();
+                    if (off)
+                    {
+                        ret.X += off.left;
+                        ret.Y += off.top;
+                    }
+                }
 
 				ret.X >>= 0;
 				ret.Y >>= 0;
