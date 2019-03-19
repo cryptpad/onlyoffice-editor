@@ -3098,12 +3098,16 @@ PasteProcessor.prototype =
 			presentationSelectedContent.DocContent.Elements[i] = oSelectedElement;
 		}
 
-		presentation.Insert_Content(presentationSelectedContent);
-		presentation.Recalculate();
-        presentation.Check_CursorMoveRight();
-		presentation.Document_UpdateInterfaceState();
+		if(presentation.Insert_Content(presentationSelectedContent)) {
+			presentation.Recalculate();
+			presentation.Check_CursorMoveRight();
+			presentation.Document_UpdateInterfaceState();
 
-		this._setSpecialPasteShowOptionsPresentation();
+			this._setSpecialPasteShowOptionsPresentation();
+		} else {
+			//window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+		}
+
 		window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 	},
 
@@ -3390,9 +3394,16 @@ PasteProcessor.prototype =
 	Start : function(node, nodeDisplay, bDuplicate, fromBinary, text)
     {
 		//PASTE
+		var tempPresentation = !PasteElementsId.g_bIsDocumentCopyPaste && editor && editor.WordControl ? editor.WordControl.m_oLogicDocument : null;
+		var insertToPresentationWithoutSlides = tempPresentation && tempPresentation.Slides && !tempPresentation.Slides.length;
 		if(text){
+			if(insertToPresentationWithoutSlides) {
+				window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+				return;
+			}
 
-            this.oDocument = this._GetTargetDocument(this.oDocument);
+			this.oDocument = this._GetTargetDocument(this.oDocument);
             this.oLogicDocument.RemoveBeforePaste();
 			this._pasteText(text);
 			return;
@@ -3430,7 +3441,14 @@ PasteProcessor.prototype =
 					}
 				}
 			}
-			
+
+			//paste form word/excel/html into empty presentation without slides
+			if(insertToPresentationWithoutSlides && !base64FromPresentation) {
+				window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+				return;
+			}
+
 			//insert from binary
 			if(base64FromExcel)//вставка из редактора таблиц
 			{
@@ -3540,8 +3558,7 @@ PasteProcessor.prototype =
 		var aPastedImages = excelContent.arrImages;
 
 		//если есть шейпы, то вставляем их из excel
-		if (aContentExcel && aContentExcel.aWorksheets && aContentExcel.aWorksheets[0] &&
-			aContentExcel.aWorksheets[0].Drawings && aContentExcel.aWorksheets[0].Drawings.length) {
+		if (aContentExcel && aContentExcel.aWorksheets && aContentExcel.aWorksheets[0] && aContentExcel.aWorksheets[0].Drawings && aContentExcel.aWorksheets[0].Drawings.length) {
 			var paste_callback = function () {
 				if (false === oThis.bNested) {
 					var oIdMap = {};
@@ -3618,11 +3635,15 @@ PasteProcessor.prototype =
 					var presentationSelectedContent = new PresentationSelectedContent();
 					presentationSelectedContent.Drawings = arr_shapes;
 
-					presentation.Insert_Content(presentationSelectedContent);
-					presentation.Recalculate();
 
-					presentation.Check_CursorMoveRight();
-					presentation.Document_UpdateInterfaceState();
+					if(presentation.Insert_Content(presentationSelectedContent)) {
+						presentation.Recalculate();
+
+						presentation.Check_CursorMoveRight();
+						presentation.Document_UpdateInterfaceState();
+					} else {
+						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+					}
 
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				}
@@ -3715,13 +3736,18 @@ PasteProcessor.prototype =
 			//вставка
 			var paste_callback = function () {
 				if (false == oThis.bNested) {
-					presentation.Insert_Content(presentationSelectedContent);
-					presentation.Recalculate();
-					presentation.Check_CursorMoveRight();
-					presentation.Document_UpdateInterfaceState();
 
-					var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
-					oThis._setSpecialPasteShowOptionsPresentation(props);
+					if(presentation.Insert_Content(presentationSelectedContent)) {
+						presentation.Recalculate();
+
+						presentation.Check_CursorMoveRight();
+						presentation.Document_UpdateInterfaceState();
+
+						var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
+						oThis._setSpecialPasteShowOptionsPresentation(props);
+					} else {
+						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+					}
 
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				}
@@ -3911,13 +3937,16 @@ PasteProcessor.prototype =
 		{
 			if(false === oThis.bNested)
 			{
-				presentation.Insert_Content(presentationSelectedContent);
-				presentation.Recalculate();
-				presentation.Check_CursorMoveRight();
-				presentation.Document_UpdateInterfaceState();
+				if(presentation.Insert_Content(presentationSelectedContent)) {
+					presentation.Recalculate();
+					presentation.Check_CursorMoveRight();
+					presentation.Document_UpdateInterfaceState();
 
-				var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
-				oThis._setSpecialPasteShowOptionsPresentation(props);
+					var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
+					oThis._setSpecialPasteShowOptionsPresentation(props);
+				} else {
+					window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				}
 
 				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 			}
@@ -4625,7 +4654,7 @@ PasteProcessor.prototype =
 					var presentationSelectedContent = new PresentationSelectedContent();
 					presentationSelectedContent.Drawings = arrShapes;
 
-					presentation.Insert_Content(presentationSelectedContent);
+					var bPaste = presentation.Insert_Content(presentationSelectedContent);
 					presentation.Recalculate();
 					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
@@ -4642,7 +4671,7 @@ PasteProcessor.prototype =
 						}
 					}
 
-					if(pasteOnlyImg) {
+					if(pasteOnlyImg || !bPaste) {
 						window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 						if(window['AscCommon'].g_specialPasteHelper.buttonInfo)
 						{
