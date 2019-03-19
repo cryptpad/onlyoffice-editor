@@ -3523,9 +3523,10 @@ PasteProcessor.prototype =
 			return null;
 		}
 
+		var aContent;
 		if (window['AscCommon'].g_specialPasteHelper.specialPasteStart &&
 			Asc.c_oSpecialPasteProps.keepTextOnly === window['AscCommon'].g_specialPasteHelper.specialPasteProps) {
-			var aContent = oThis._convertExcelBinary(aContentExcel);
+			aContent = oThis._convertExcelBinary(aContentExcel);
 			oThis.aContent = aContent.content;
 			fPrepasteCallback();
 		} else if (aContentExcel.arrImages && aContentExcel.arrImages.length) {
@@ -3538,7 +3539,7 @@ PasteProcessor.prototype =
 				oThis.api.pre_Paste(aContent.fonts, oImageMap, fPrepasteCallback);
 			}, null, true);
 		} else {
-			var aContent = oThis._convertExcelBinary(aContentExcel);
+			aContent = oThis._convertExcelBinary(aContentExcel);
 			oThis.aContent = aContent.content;
 			oThis.api.pre_Paste(aContent.fonts, aContent.images, fPrepasteCallback);
 		}
@@ -3558,6 +3559,7 @@ PasteProcessor.prototype =
 		var aPastedImages = excelContent.arrImages;
 
 		//если есть шейпы, то вставляем их из excel
+		var aContent;
 		if (aContentExcel && aContentExcel.aWorksheets && aContentExcel.aWorksheets[0] && aContentExcel.aWorksheets[0].Drawings && aContentExcel.aWorksheets[0].Drawings.length) {
 			var paste_callback = function () {
 				if (false === oThis.bNested) {
@@ -3657,7 +3659,7 @@ PasteProcessor.prototype =
 				aImagesToDownload.push(aPastedImages[i].Url);
 			}
 
-			var aContent = {aPastedImages: aPastedImages, images: aImagesToDownload};
+			aContent = {aPastedImages: aPastedImages, images: aImagesToDownload};
 
 			//fonts
 			var font_map = {};
@@ -3698,10 +3700,10 @@ PasteProcessor.prototype =
 			var presentationSelectedContent = new PresentationSelectedContent();
 			presentationSelectedContent.DocContent = new CSelectedContent();
 
-			var aContent = AscFormat.ExecuteNoHistory(this._convertExcelBinary, this, [excelContent]);
+			aContent = AscFormat.ExecuteNoHistory(this._convertExcelBinary, this, [excelContent]);
 
-			var elements = [], selectedElement, element, drawings = [], pDrawings = [], drawingCopyObject;
-			var defaultTableStyleId = presentation.DefaultTableStyleId;
+			var selectedElement, element, pDrawings = [], drawingCopyObject;
+			//var defaultTableStyleId = presentation.DefaultTableStyleId;
 			for (var i = 0; i < aContent.content.length; ++i) {
 				selectedElement = new CSelectedElement();
 				element = aContent.content[i];
@@ -3734,7 +3736,7 @@ PasteProcessor.prototype =
 			presentationSelectedContent.Drawings = pDrawings;
 
 			//вставка
-			var paste_callback = function () {
+			var paste_callback_presentation = function () {
 				if (false == oThis.bNested) {
 
 					if(presentation.Insert_Content(presentationSelectedContent)) {
@@ -3753,7 +3755,7 @@ PasteProcessor.prototype =
 				}
 			};
 
-			oThis.api.pre_Paste(aContent.fonts, null, paste_callback);
+			oThis.api.pre_Paste(aContent.fonts, null, paste_callback_presentation);
 		}
 	},
 
