@@ -1985,15 +1985,8 @@
 					var cellEditor = this.wb.cellEditor;
 					ret.X = cellEditor.curLeft;
 					ret.Y = cellEditor.curTop;
-
-					off = jQuery(cellEditor.cursor).offset();
-					if (off)
-					{
-						ret.X += off.left;
-						ret.Y += off.top;
-					}
-
 					ret.TargetH = cellEditor.curHeight;
+					off = cellEditor.cursor;
 				}
 				else if (Asc.c_oAscSelectionType.RangeShapeText === selectionType ||
 					Asc.c_oAscSelectionType.RangeChartText === selectionType)
@@ -2003,14 +1996,17 @@
 					ret.X = drDoc.TargetHtmlElementLeft;
 					ret.Y = drDoc.TargetHtmlElementTop;
 					ret.TargetH = drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix;
-
-                    off = jQuery(this.HtmlElement).offset();
-                    if (off)
-                    {
-                        ret.X += off.left;
-                        ret.Y += off.top;
-                    }
+					off = this.HtmlElement;
                 }
+
+				if (off) {
+					off = jQuery(off).offset();
+					if (off)
+					{
+						ret.X += off.left;
+						ret.Y += off.top;
+					}
+				}
 
 				ret.X >>= 0;
 				ret.Y >>= 0;
