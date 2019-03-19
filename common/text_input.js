@@ -432,7 +432,7 @@
 				shiftKey : false,
 				target : null,
 				charCode : 0,
-				which : 0,
+				which : code,
 				keyCode : code,
 				code : "",
 
