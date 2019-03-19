@@ -1978,24 +1978,35 @@
             }
             case c_oEditorId.Spreadsheet:
             {
-                var drDoc = this.wb.getWorksheet().objectRender.controller.drawingDocument;
-
-                if (true) /*shape target*/
+                var off, selectionType = this.asc_getCellInfo().asc_getFlags().asc_getSelectionType();
+                if (this.asc_getCellEditMode())
+				{
+					// cell edit
+					var cellEditor = this.wb.cellEditor;
+					ret.X = cellEditor.curLeft;
+					ret.Y = cellEditor.curTop;
+					ret.TargetH = cellEditor.curHeight;
+				}
+				else if (Asc.c_oAscSelectionType.RangeShapeText === selectionType ||
+					Asc.c_oAscSelectionType.RangeChartText === selectionType)
                 {
-                    ret.X += (drDoc.TargetHtmlElementLeft);
-                    ret.Y += (drDoc.TargetHtmlElementTop);
-
-                    var off = jQuery(this.HtmlElement).offset();
-                    if (off)
-                    {
-                        ret.X += off.left;
-                        ret.Y += off.top;
-                    }
-
-                    ret.X >>= 0;
-                    ret.Y >>= 0;
-                    ret.TargetH = (drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix) >> 0;
+					// shape target
+					var drDoc = this.wb.getWorksheet().objectRender.controller.drawingDocument;
+					ret.X = drDoc.TargetHtmlElementLeft;
+					ret.Y = drDoc.TargetHtmlElementTop;
+					ret.TargetH = drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix;
                 }
+
+				off = jQuery(this.HtmlElement).offset();
+				if (off)
+				{
+					ret.X += off.left;
+					ret.Y += off.top;
+				}
+
+				ret.X >>= 0;
+				ret.Y >>= 0;
+				ret.TargetH >>= 0;
                 break;
             }
         }

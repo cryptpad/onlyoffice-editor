@@ -1538,12 +1538,11 @@
 			curHeight = AscCommon.AscBrowser.convertToRetinaValue(curHeight);
 		}
 
+		this.curLeft = curLeft;
+		this.curTop = curTop;
+		this.curHeight = curHeight;
 
-		if (window['IS_NATIVE_EDITOR']) {
-			this.curLeft = curLeft;
-			this.curTop = curTop;
-			this.curHeight = curHeight;
-		} else {
+		if (!window['IS_NATIVE_EDITOR']) {
 			this.cursorStyle.left = curLeft + "px";
 			this.cursorStyle.top = curTop + "px";
 			this.cursorStyle.height = curHeight + "px";
