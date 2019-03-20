@@ -855,7 +855,7 @@
 			}
 			do {
 				this.tableNameIndex++;
-				var tableName = AscCommon.translateManager ? AscCommon.translateManager.getValue(this.tableNamePattern) : this.tableNamePattern;
+				var tableName = AscCommon.translateManager.getValue(this.tableNamePattern)
 				sNewName = tableName + this.tableNameIndex + collaborativeIndexUser;
 			} while (this.getDefNameByName(sNewName, null) || this.isListeningDefName(sNewName));
 			return sNewName;
