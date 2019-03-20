@@ -471,12 +471,8 @@
 			  },
 
 			  'changeFormatTableInfo': function () {
-				  if ((self.oSelectionInfo.formatTableInfo !== null)  ) {
-					  var tableName = self.oSelectionInfo.formatTableInfo.tableName;
-					  var val = !self.oSelectionInfo.formatTableInfo.lastRow;
-					  var optionType = Asc.c_oAscChangeTableStyleInfo.rowTotal;
-					  return self.changeFormatTableInfo(tableName, optionType, val);
-				  }
+				  var table = self.oSelectionInfo.formatTableInfo;
+				  return table && self.changeFormatTableInfo(table.tableName, Asc.c_oAscChangeTableStyleInfo.rowTotal, !table.lastRow);
 			  },
 			  
 			  //special paste
