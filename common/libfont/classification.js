@@ -832,7 +832,7 @@ var g_aLcidNameIdArray = [
 var g_oLcidNameToIdMap = {};
 var g_oLcidIdToNameMap = {};
 
-(function(document){
+(function(){
 	for(var i = 0, length = g_aLcidNameIdArray.length; i + 1< length; i+=2)
 	{
 		var name = g_aLcidNameIdArray[i];
@@ -1335,7 +1335,7 @@ var g_oLcidIdToNameMap = {};
 
     window.CDetectFontUse = CDetectFontUse;
 	window.CDetectFontUse;
-})(window.document);
+})();
 
 var g_font_detector = new window.CDetectFontUse();
 g_font_detector.Init();

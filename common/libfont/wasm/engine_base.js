@@ -734,5 +734,6 @@
     };
 
     AscFonts.FT_Common = FT_Common;
+    AscFonts.onLoadModule();
 
 })(window, undefined);

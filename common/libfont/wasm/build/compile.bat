@@ -60,6 +60,8 @@ call emcc -o engine.js^
  -DFT2_BUILD_LIBRARY
  
 echo "finalize..."
- 
-call powershell -Command "(Get-Content ./../engine_base.js) -replace '//module', (Get-Content ./engine.js) | Set-Content ./../engine.js"
+
+call powershell -Command "(Get-Content ./engine.js) -replace 'removeRunDependency\(\"wasm-instantiate\"\)', 'removeRunDependency(\"wasm-instantiate\");window[\"AscFonts\"].onLoadModule();' | Set-Content ./engine_tmp.js"
+call powershell -Command "(Get-Content ./../engine_base.js) -replace '//module', (Get-Content ./engine_tmp.js) | Set-Content ./../engine.js"
 call echo f | xcopy /b/v/y/f "engine.wasm" "../engine.wasm"
+call del "./engine_tmp.js"

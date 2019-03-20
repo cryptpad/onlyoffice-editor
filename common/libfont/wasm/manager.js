@@ -503,4 +503,5 @@
 
     window['AscFonts'].CFontManager = CFontManager;
     window['AscFonts'].CFontFilesCache = CFontFilesCache;
+    window['AscFonts'].onLoadModule();
 })(window);

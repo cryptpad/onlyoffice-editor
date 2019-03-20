@@ -1741,4 +1741,5 @@
 	window['AscFonts'] = window['AscFonts'] || {};
 	window['AscFonts'].EGlyphState = EGlyphState;
 	window['AscFonts'].CFontFile = CFontFile;
+    window['AscFonts'].onLoadModule();
 })(window);
