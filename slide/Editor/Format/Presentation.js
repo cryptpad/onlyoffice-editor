@@ -2085,7 +2085,7 @@ CPresentation.prototype =
 
             // TODO: В будушем надо будет переделать, чтобы искалось заново только в том параграфе, в котором произошла замена
             //       Тут появляется проблема с вложенным поиском, если то что мы заменяем содержится в том, на что мы заменяем.
-            if (true === this.Is_TrackRevisions())
+            if (true === this.IsTrackRevisions())
                 this.SearchEngine.Reset();
         }
 
@@ -3502,6 +3502,11 @@ CPresentation.prototype =
             if (true === this.DrawingDocument.IsTrackText())
             {
                 this.DrawingDocument.CancelTrackText();
+            }
+            if (AscCommon.c_oAscFormatPainterState.kOn === this.Api.isPaintFormat)
+            {
+                this.Api.sync_PaintFormatCallback(AscCommon.c_oAscFormatPainterState.kOff);
+                this.OnMouseMove(global_mouseEvent, 0, 0, this.CurPage);
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8046,7 +8051,7 @@ CPresentation.prototype =
         }
     },
 
-    Is_TrackRevisions: function()
+    IsTrackRevisions: function()
     {
         return false;
     }

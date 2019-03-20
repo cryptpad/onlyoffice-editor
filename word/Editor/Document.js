@@ -5765,7 +5765,7 @@ CDocument.prototype.Select_Drawings = function(DrawingArray, TargetContent)
 {
 	this.private_UpdateTargetForCollaboration();
 
-	if (DrawingArray.length === 1 && DrawingArray[0].Is_Inline())
+	if (DrawingArray.length > 1 && DrawingArray[0].Is_Inline())
 		return;
 	this.DrawingObjects.resetSelection();
 	var hdr_ftr = TargetContent.IsHdrFtr(true);
@@ -6918,7 +6918,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 {
 	// При копировании нам не нужно, чтобы новые классы помечались как созданные в рецензировании, а при перетаскивании
 	// нужно.
-	var isTrack = this.Is_TrackRevisions() && !bUseHistory;
+	var isTrack = this.IsTrackRevisions() && !bUseHistory;
 	if (isTrack)
 		this.Set_TrackRevisions(false);
 
@@ -9287,7 +9287,7 @@ CDocument.prototype.GetSelectedText = function(bClearText, oPr)
  * @param bIgnoreSelection Если true, тогда используется текущая позиция, даже если есть селект
  * @param bReturnSelectedArray (Используется, только если bIgnoreSelection==false) Если true, тогда возвращаем массив из
  * из параграфов, которые попали в выделение.
- * @param {object}
+ * @param {object} oPr
  * @returns {Paragraph | [Paragraph]}
  */
 CDocument.prototype.GetCurrentParagraph = function(bIgnoreSelection, bReturnSelectedArray, oPr)
@@ -11603,7 +11603,7 @@ CDocument.prototype.Set_EditingType = function(EditingType)
 {
 	this.EditingType = EditingType;
 };
-CDocument.prototype.Is_TrackRevisions = function()
+CDocument.prototype.IsTrackRevisions = function()
 {
 	return this.TrackRevisions;
 };
@@ -13378,7 +13378,7 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 		}
 		else
 		{
-			var ItemReviewType = Item.Get_ReviewType();
+			var ItemReviewType = Item.GetReviewType();
 			// Создаем новый параграф
 			var NewParagraph   = new Paragraph(this.DrawingDocument, this);
 
@@ -13437,16 +13437,16 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 			this.Internal_Content_Add(this.CurPos.ContentPos + 1, NewParagraph);
 			this.CurPos.ContentPos++;
 
-			if (true === this.Is_TrackRevisions())
+			if (true === this.IsTrackRevisions())
 			{
-				NewParagraph.Remove_PrChange();
-				NewParagraph.Set_ReviewType(ItemReviewType);
-				Item.Set_ReviewType(reviewtype_Add);
+				Item.RemovePrChange();
+				NewParagraph.SetReviewType(ItemReviewType);
+				Item.SetReviewType(reviewtype_Add);
 			}
 			else if (reviewtype_Common !== ItemReviewType)
 			{
-				NewParagraph.Set_ReviewType(ItemReviewType);
-				Item.Set_ReviewType(reviewtype_Common);
+				NewParagraph.SetReviewType(ItemReviewType);
+				Item.SetReviewType(reviewtype_Common);
 			}
 		}
 	}
@@ -13462,10 +13462,10 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 			this.Internal_Content_Add(0, NewParagraph);
 			this.CurPos.ContentPos = 0;
 
-			if (true === this.Is_TrackRevisions())
+			if (true === this.IsTrackRevisions())
 			{
-				NewParagraph.Remove_PrChange();
-				NewParagraph.Set_ReviewType(reviewtype_Add);
+				NewParagraph.RemovePrChange();
+				NewParagraph.SetReviewType(reviewtype_Add);
 			}
 		}
 		else if (this.Content.length - 1 === this.CurPos.ContentPos && Item.IsCursorAtEnd())
@@ -13474,10 +13474,10 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 			this.Internal_Content_Add(this.Content.length, oNewParagraph);
 			this.CurPos.ContentPos = this.Content.length - 1;
 
-			if (this.Is_TrackRevisions())
+			if (this.IsTrackRevisions())
 			{
-				oNewParagraph.Remove_PrChange();
-				oNewParagraph.Set_ReviewType(reviewtype_Add);
+				oNewParagraph.RemovePrChange();
+				oNewParagraph.SetReviewType(reviewtype_Add);
 			}
 		}
 		else
@@ -17790,6 +17790,136 @@ CDocument.prototype.AddBlankPage = function()
 		}
 	}
 };
+/**
+ * Получаем формулу в текущей ячейке таблицы
+ * {boolen} [isReturnField=false] - возвращаем само поле
+ * @returns {string | oComplexField}
+ */
+CDocument.prototype.GetTableCellFormula = function(isReturnField)
+{
+	var sDefault = isReturnField ? null : "=";
+
+	var oParagraph = this.GetCurrentParagraph();
+	if (!oParagraph)
+		return sDefault;
+
+	var oParaParent = oParagraph.GetParent();
+	if (!oParaParent)
+		return sDefault;
+
+	var oCell = oParaParent.IsTableCellContent(true);
+	if (!oCell)
+		return sDefault;
+
+	var oCellContent = oCell.GetContent();
+	var arrAllFields = oCellContent.GetAllFields(false);
+
+	for (var nIndex = 0, nCount = arrAllFields.length; nIndex < nCount; ++nIndex)
+	{
+		var oField = arrAllFields[nIndex];
+		if (oField instanceof CComplexField && oField.GetInstruction() && fieldtype_FORMULA === oField.GetInstruction().Type)
+		{
+			if (isReturnField)
+				return oField;
+
+			return oField.InstructionLine;
+		}
+	}
+
+	if (isReturnField)
+		return null;
+
+	var oRow   = oCell.GetRow();
+	var oTable = oCell.GetTable();
+
+	if (!oRow || !oTable)
+		return sDefault;
+
+	var nCurCell = oCell.GetIndex();
+	var nCurRow  = oRow.GetIndex();
+
+	var isLeft = false;
+	for (var nCellIndex = 0; nCellIndex < nCurCell; ++nCellIndex)
+	{
+		var oTempCell        = oRow.GetCell(nCellIndex);
+		var oTempCellContent = oTempCell.GetContent();
+
+		oTempCellContent.Set_ApplyToAll(true);
+		var sCellText = oTempCellContent.GetSelectedText();
+		oTempCellContent.Set_ApplyToAll(false);
+
+		if (!isNaN(parseInt(sCellText)))
+		{
+			isLeft = true;
+			break;
+		}
+	}
+
+	var arrColumnCells = oCell.GetColumn();
+	var isAbove = false;
+	for (var nCellIndex = 0, nCellsCount = arrColumnCells.length; nCellIndex < nCellsCount; ++nCellIndex)
+	{
+		var oTempCell = arrColumnCells[nCellIndex];
+		if (oTempCell === oCell)
+			break;
+
+		var oTempCellContent = oTempCell.GetContent();
+
+		oTempCellContent.Set_ApplyToAll(true);
+		var sCellText = oTempCellContent.GetSelectedText();
+		oTempCellContent.Set_ApplyToAll(false);
+
+		if (!isNaN(parseInt(sCellText)))
+		{
+			isAbove = true;
+			break;
+		}
+	}
+
+	if (isAbove)
+		return "=SUM(ABOVE)";
+
+	if (isLeft)
+		return "=SUM(LEFT)";
+
+	return sDefault;
+};
+/**
+ * Добавляем формулу к текущей ячейке таблицы
+ * @param {string} sFormula
+ */
+CDocument.prototype.AddTableCellFormula = function(sFormula)
+{
+	if (!sFormula || "=" !== sFormula.charAt(0))
+		return;
+
+	var oField = this.GetTableCellFormula(true);
+	if (!oField)
+	{
+		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTableFormula);
+			this.AddFieldWithInstruction(sFormula);
+			this.Recalculate();
+			this.Document_UpdateInterfaceState();
+			this.Document_UpdateSelectionState();
+		}
+	}
+	else
+	{
+		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_ChangeTableFormula);
+			oField.ChangeInstruction(sFormula);
+			oField.Update();
+			oField.MoveCursorOutsideElement(false);
+			this.Recalculate();
+			this.Document_UpdateInterfaceState();
+			this.Document_UpdateSelectionState();
+		}
+	}
+
+};
 
 function CDocumentSelectionState()
 {
@@ -18815,6 +18945,15 @@ function CDocumentPagePosition()
     this.Column = 0;
 }
 
+function CDocumentNumberingInfoCounter()
+{
+	this.NumInfo = new Array(9);
+	this.PrevLvl = -1;
+
+	for (var nIndex = 0; nIndex < 9; ++nIndex)
+		this.NumInfo[nIndex] = undefined;
+}
+
 /**
  * Класс для рассчета значение номера для нумерации заданного параграфа
  * @param oPara {Paragraph}
@@ -18835,6 +18974,9 @@ function CDocumentNumberingInfoEngine(oPara, oNumPr, oNumbering)
 	this.AbstractNum = null;
 	this.Nums        = {}; // Список Num, которые использовались. Нужно для обработки startOverride
 	this.Start       = [];
+
+	this.FinalCounter  = new CDocumentNumberingInfoCounter();
+	this.SourceCounter = new CDocumentNumberingInfoCounter();
 
 	for (var nIndex = 0; nIndex < 9; ++nIndex)
 		this.NumInfo[nIndex] = undefined;
@@ -18877,67 +19019,114 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 	if (!this.Numbering)
 		return;
 
-	var oParaNumPr = oPara.GetNumPr();
-	if (!oParaNumPr)
+	if (this.Paragraph === oPara)
+		this.Found = true;
+
+	var oParaNumPr     = oPara.GetNumPr();
+	var oParaNumPrPrev = oPara.GetPrChangeNumPr();
+	var isPrChange     = oPara.HavePrChange();
+
+	if (undefined !== oPara.Get_SectionPr() && true === oPara.IsEmpty())
 		return;
 
-	var oNum         = this.Numbering.GetNum(oParaNumPr.NumId);
-	var oAbstractNum = oNum.GetAbstractNum();
-
-	if (oAbstractNum === this.AbstractNum && (undefined === oPara.Get_SectionPr() || true !== oPara.IsEmpty()))
+	var isEqualNumPr = false;
+	if (!isPrChange
+		|| (isPrChange
+			&& oParaNumPr
+			&& oParaNumPrPrev
+			&& oParaNumPr.NumId === oParaNumPrPrev.NumId
+			&& oParaNumPr.Lvl === oParaNumPrPrev.Lvl
+		)
+	)
 	{
-		if (-1 === this.PrevLvl)
-		{
-			for (var nLvl = 0; nLvl < 9; ++nLvl)
-			{
-				this.NumInfo[nLvl] = this.Start[nLvl];
-			}
+		isEqualNumPr = true;
+	}
 
-			for (var nLvl = this.PrevLvl + 1; nLvl < oParaNumPr.Lvl; ++nLvl)
+	if (isEqualNumPr)
+	{
+		if (!oParaNumPr)
+			return;
+
+		var oNum         = this.Numbering.GetNum(oParaNumPr.NumId);
+		var oAbstractNum = oNum.GetAbstractNum();
+
+		if (oAbstractNum === this.AbstractNum)
+		{
+			var oReviewType = oPara.GetReviewType();
+			var oReviewInfo = oPara.GetReviewInfo();
+
+			if (reviewtype_Common === oReviewType)
 			{
-				this.NumInfo[nLvl]++;
+				this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+				this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr);
+			}
+			else if (reviewtype_Add === oReviewType)
+			{
+				this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+			}
+			else if (reviewtype_Remove === oReviewType)
+			{
+				if (!oReviewInfo.GetPrevAdded())
+					this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr);
 			}
 		}
-		else if (oParaNumPr.Lvl < this.PrevLvl)
+	}
+	else
+	{
+		if (oParaNumPr)
 		{
-			for (var nLvl = 0; nLvl < 9; ++nLvl)
+			var oNum         = this.Numbering.GetNum(oParaNumPr.NumId);
+			var oAbstractNum = oNum.GetAbstractNum();
+
+			if (oAbstractNum === this.AbstractNum)
 			{
-				if (nLvl > oParaNumPr.Lvl && 0 !== this.Restart[nLvl] && (-1 === this.Restart[nLvl] || oParaNumPr.Lvl <= this.Restart[nLvl] - 1))
-					this.NumInfo[nLvl] = this.Start[nLvl];
+				var oReviewType = oPara.GetReviewType();
+				var oReviewInfo = oPara.GetReviewInfo();
+
+				if (reviewtype_Common === oReviewType)
+				{
+					this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+				}
+				else if (reviewtype_Add === oReviewType)
+				{
+					this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+				}
 			}
 		}
-		else if (oParaNumPr.Lvl > this.PrevLvl)
+
+		if (oParaNumPrPrev)
 		{
-			for (var nLvl = this.PrevLvl + 1; nLvl < oParaNumPr.Lvl; ++nLvl)
+			var oNum         = this.Numbering.GetNum(oParaNumPrPrev.NumId);
+			var oAbstractNum = oNum.GetAbstractNum();
+
+			if (oAbstractNum === this.AbstractNum)
 			{
-				this.NumInfo[nLvl]++;
+				var oReviewType = oPara.GetReviewType();
+				var oReviewInfo = oPara.GetReviewInfo();
+
+				if (reviewtype_Common === oReviewType)
+				{
+					this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
+				}
+				else if (reviewtype_Add === oReviewType)
+				{
+				}
+				else if (reviewtype_Remove === oReviewType)
+				{
+					if (!oReviewInfo.GetPrevAdded())
+						this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
+				}
 			}
+
 		}
-
-		this.NumInfo[oParaNumPr.Lvl]++;
-
-		if (this.private_CheckNum(oNum))
-		{
-			var nForceStart = oNum.GetStartOverride(oParaNumPr.Lvl);
-			if (-1 !== nForceStart)
-        		this.NumInfo[oParaNumPr.Lvl] = nForceStart;
-		}
-
-        for (var nIndex = oParaNumPr.Lvl - 1; nIndex >= 0; --nIndex)
-        {
-            if (undefined === this.NumInfo[nIndex] || 0 === this.NumInfo[nIndex])
-                this.NumInfo[nIndex] = 1;
-        }
-
-        this.PrevLvl = oParaNumPr.Lvl;
-    }
-
-    if (this.Paragraph === oPara)
-        this.Found = true;
+	}
 };
-CDocumentNumberingInfoEngine.prototype.GetNumInfo = function()
+CDocumentNumberingInfoEngine.prototype.GetNumInfo = function(isFinal)
 {
-    return this.NumInfo;
+	if (false === isFinal)
+		return this.SourceCounter.NumInfo;
+
+	return this.FinalCounter.NumInfo;
 };
 CDocumentNumberingInfoEngine.prototype.private_CheckNum = function(oNum)
 {
@@ -18947,6 +19136,53 @@ CDocumentNumberingInfoEngine.prototype.private_CheckNum = function(oNum)
 	this.Nums[oNum.GetId()] = oNum;
 
 	return true;
+};
+CDocumentNumberingInfoEngine.prototype.private_UpdateCounter = function(oCounter, oNum, oParaNumPr)
+{
+	if (-1 === oCounter.PrevLvl)
+	{
+		for (var nLvl = 0; nLvl < 9; ++nLvl)
+		{
+			oCounter.NumInfo[nLvl] = this.Start[nLvl];
+		}
+
+		for (var nLvl = oCounter.PrevLvl + 1; nLvl < oParaNumPr.Lvl; ++nLvl)
+		{
+			oCounter.NumInfo[nLvl]++;
+		}
+	}
+	else if (oParaNumPr.Lvl < oCounter.PrevLvl)
+	{
+		for (var nLvl = 0; nLvl < 9; ++nLvl)
+		{
+			if (nLvl > oParaNumPr.Lvl && 0 !== this.Restart[nLvl] && (-1 === this.Restart[nLvl] || oParaNumPr.Lvl <= this.Restart[nLvl] - 1))
+				oCounter.NumInfo[nLvl] = this.Start[nLvl];
+		}
+	}
+	else if (oParaNumPr.Lvl > oCounter.PrevLvl)
+	{
+		for (var nLvl = oCounter.PrevLvl + 1; nLvl < oParaNumPr.Lvl; ++nLvl)
+		{
+			oCounter.NumInfo[nLvl]++;
+		}
+	}
+
+	oCounter.NumInfo[oParaNumPr.Lvl]++;
+
+	if (this.private_CheckNum(oNum))
+	{
+		var nForceStart = oNum.GetStartOverride(oParaNumPr.Lvl);
+		if (-1 !== nForceStart)
+			oCounter.NumInfo[oParaNumPr.Lvl] = nForceStart;
+	}
+
+	for (var nIndex = oParaNumPr.Lvl - 1; nIndex >= 0; --nIndex)
+	{
+		if (undefined === oCounter.NumInfo[nIndex] || 0 === oCounter.NumInfo[nIndex])
+			oCounter.NumInfo[nIndex] = 1;
+	}
+
+	oCounter.PrevLvl = oParaNumPr.Lvl;
 };
 
 function CDocumentFootnotesRangeEngine(bExtendedInfo)

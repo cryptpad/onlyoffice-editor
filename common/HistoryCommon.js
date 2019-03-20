@@ -1100,6 +1100,9 @@
 			case AscDFH.historydescription_Document_AddTableFormula:
 				sString = "Document_AddTableFormula";
 				break;
+			case AscDFH.historydescription_Document_ChangeTableFormula:
+				sString = "Document_ChangeTableFormula";
+				break;
 		}
 		return sString;
 	}
@@ -3095,6 +3098,7 @@
 	window['AscDFH'].historydescription_Document_UpdateFields                       = 0x015c;
 	window['AscDFH'].historydescription_Document_AddBlankPage                       = 0x015d;
 	window['AscDFH'].historydescription_Document_AddTableFormula                    = 0x015e;
+	window['AscDFH'].historydescription_Document_ChangeTableFormula                 = 0x015e;
 
 
 
@@ -3218,22 +3222,6 @@
 		this.Add      = isAdd;
 
 		this.Reverted = false;
-
-		if (Class && Pos && Items)
-		{
-			if (isAdd)
-			{
-				for (var nIndex = 0, nCount = Items.length; nIndex < nCount; ++nIndex)
-				{
-					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(Class, Pos + nIndex);
-				}
-			}
-			else
-			{
-				if (Items.length > 0)
-					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(Class, Pos, Items.length);
-			}
-		}
 	}
 
 	CChangesBaseContentChange.prototype = Object.create(CChangesBase.prototype);

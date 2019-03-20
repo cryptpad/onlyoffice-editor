@@ -8572,7 +8572,7 @@ CTextPr.prototype =
         return true;
     },
 
-    Have_PrChange : function()
+	HavePrChange : function()
     {
         if (undefined === this.PrChange || null === this.PrChange)
             return false;
@@ -8580,30 +8580,30 @@ CTextPr.prototype =
         return true;
     },
 
-    Add_PrChange : function()
+	AddPrChange : function()
     {
         this.PrChange   = this.Copy();
         this.ReviewInfo = new CReviewInfo();
         this.ReviewInfo.Update();
     },
 
-    Set_PrChange : function(PrChange, ReviewInfo)
+	SetPrChange : function(PrChange, ReviewInfo)
     {
         this.PrChange   = PrChange;
         this.ReviewInfo = ReviewInfo;
     },
 
-    Remove_PrChange : function()
+	RemovePrChange : function()
     {
         delete this.PrChange;
         delete this.ReviewInfo;
     },
 
-    Get_DiffPrChange : function()
+	GetDiffPrChange : function()
     {
         var TextPr = new CTextPr();
 
-        if (false === this.Have_PrChange())
+        if (false === this.HavePrChange())
             return TextPr;
 
         var PrChange = this.PrChange;
@@ -10620,6 +10620,13 @@ CParaPr.prototype =
 			Flags |= 4194304;
 		}
 
+		if (undefined !== this.PrChange)
+		{
+			this.PrChange.Write_ToBinary(Writer);
+			this.ReviewInfo.Write_ToBinary(Writer);
+			Flags |= 8388608;
+		}
+
         var EndPos = Writer.GetCurPosition();
         Writer.Seek( StartPos );
         Writer.WriteLong( Flags );
@@ -10741,6 +10748,14 @@ CParaPr.prototype =
 
         if (Flags & 4194304)
 			this.OutlineLvl = Reader.GetByte();
+
+        if (Flags & 8388608)
+		{
+			this.PrChange = new CParaPr();
+			this.PrChange.Read_FromBinary(Reader);
+			this.ReviewInfo = new CReviewInfo();
+			this.ReviewInfo.Read_FromBinary(Reader);
+		}
     },
 
     isEqual: function(ParaPrUOld,ParaPrNew)
@@ -10878,7 +10893,7 @@ CParaPr.prototype =
         return Bullet;
     },
 
-    Have_PrChange : function()
+	HavePrChange : function()
     {
         if (undefined === this.PrChange || null === this.PrChange)
             return false;
@@ -10886,20 +10901,28 @@ CParaPr.prototype =
         return true;
     },
 
-    Add_PrChange : function()
+	GetPrChangeNumPr : function()
+	{
+		if (!this.HavePrChange() || !this.PrChange.NumPr)
+			return null;
+
+		return this.PrChange.NumPr;
+	},
+
+	AddPrChange : function()
     {
         this.PrChange = this.Copy();
         this.ReviewInfo = new CReviewInfo();
         this.ReviewInfo.Update();
     },
 
-    Set_PrChange : function(PrChange, ReviewInfo)
+	SetPrChange : function(PrChange, ReviewInfo)
     {
         this.PrChange   = PrChange;
         this.ReviewInfo = ReviewInfo;
     },
 
-    Remove_PrChange : function()
+	RemovePrChange : function()
     {
         delete this.PrChange;
         delete this.ReviewInfo;
@@ -10930,11 +10953,11 @@ CParaPr.prototype.Is_Empty         = function()
 
 	return true;
 };
-CParaPr.prototype.Get_DiffPrChange = function()
+CParaPr.prototype.GetDiffPrChange = function()
 {
     var ParaPr = new CParaPr();
 
-    if (false === this.Have_PrChange())
+    if (false === this.HavePrChange())
         return ParaPr;
 
     var PrChange = this.PrChange;

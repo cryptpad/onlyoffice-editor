@@ -3197,38 +3197,38 @@ CGraphicObjects.prototype =
                 var oPosition;
                 if(alignType === Asc.c_oAscObjectsAlignType.Page)
                 {
-                    if(type === Asc.c_oAscAlignShapeType.ALIGN_LEFT
-                        || type === Asc.c_oAscAlignShapeType.ALIGN_RIGHT
-                        || type === Asc.c_oAscAlignShapeType.ALIGN_CENTER)
+                    if(type === c_oAscAlignShapeType.ALIGN_LEFT
+                        || type === c_oAscAlignShapeType.ALIGN_RIGHT
+                        || type === c_oAscAlignShapeType.ALIGN_CENTER)
                     {
                         oPosition = new Asc.CImagePositionH();
-                        oImageProperties.put_PositionH(oPosition);
+                        oImageProperties.asc_putPositionH(oPosition);
                         oPosition.put_UseAlign(true);
                         oPosition.put_RelativeFrom(Asc.c_oAscRelativeFromH.Page);
                     }
                     else
                     {
                         oPosition = new Asc.CImagePositionV();
-                        oImageProperties.put_PositionV(oPosition);
+                        oImageProperties.asc_putPositionV(oPosition);
                         oPosition.put_UseAlign(true);
                         oPosition.put_RelativeFrom(Asc.c_oAscRelativeFromV.Page);
                     }
                 }
                 else
                 {
-                    if(type === Asc.c_oAscAlignShapeType.ALIGN_LEFT
-                        || type === Asc.c_oAscAlignShapeType.ALIGN_RIGHT
-                        || type === Asc.c_oAscAlignShapeType.ALIGN_CENTER)
+                    if(type === c_oAscAlignShapeType.ALIGN_LEFT
+                        || type === c_oAscAlignShapeType.ALIGN_RIGHT
+                        || type === c_oAscAlignShapeType.ALIGN_CENTER)
                     {
                         oPosition = new Asc.CImagePositionH();
-                        oImageProperties.put_PositionH(oPosition);
+                        oImageProperties.asc_putPositionH(oPosition);
                         oPosition.put_UseAlign(true);
                         oPosition.put_RelativeFrom(Asc.c_oAscRelativeFromH.Margin);
                     }
                     else
                     {
                         oPosition = new Asc.CImagePositionV();
-                        oImageProperties.put_PositionV(oPosition);
+                        oImageProperties.asc_putPositionV(oPosition);
                         oPosition.put_UseAlign(true);
                         oPosition.put_RelativeFrom(Asc.c_oAscRelativeFromV.Margin);
                     }
@@ -3237,32 +3237,32 @@ CGraphicObjects.prototype =
                 {
                     case c_oAscAlignShapeType.ALIGN_LEFT:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignH.Left);
+                        oPosition.put_Align(c_oAscAlignH.Left);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_RIGHT:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignH.Right);
+                        oPosition.put_Align(c_oAscAlignH.Right);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_TOP:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignV.Top);
+                        oPosition.put_Align(c_oAscAlignV.Top);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_BOTTOM:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignV.Bottom);
+                        oPosition.put_Align(c_oAscAlignV.Bottom);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_CENTER:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignH.Center);
+                        oPosition.put_Align(c_oAscAlignH.Center);
                         break;
                     }
                     case c_oAscAlignShapeType.ALIGN_MIDDLE:
                     {
-                        oPosition.put_Align(Asc.c_oAscAlignV.Center);
+                        oPosition.put_Align(c_oAscAlignV.Center);
                         break;
                     }
                     default:

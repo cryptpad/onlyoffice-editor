@@ -5118,6 +5118,10 @@ NvPr.prototype =
         {
             duplicate.setPh(this.ph.createDuplicate());
         }
+        if(this.unimedia != null)
+        {
+            duplicate.setUniMedia(this.unimedia.createDuplicate());
+        }
         return duplicate;
     },
 

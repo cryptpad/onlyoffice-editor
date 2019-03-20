@@ -2761,11 +2761,18 @@
 							var oUniFill = new AscFormat.CUniFill();
 							if (fill.patternFill) {
 								oUniFill.fill = new AscFormat.CPattFill();
-								oUniFill.fill.ftype = 12;
+								oUniFill.fill.ftype = fill.patternFill.getHatchOffset();
 								oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor);
 								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor);
 							} else if (fill.gradientFill) {
                                 oUniFill.fill = new AscFormat.CGradFill();
+                                if(fill.gradientFill.type === AscCommonExcel.c_oAscGradientType.Linear) {
+                                    oUniFill.fill.lin = new AscFormat.GradLin();
+                                    oUniFill.fill.lin.angle = fill.gradientFill.degree*60000;
+                                }
+                                else {
+                                    oUniFill.fill.path = new AscFormat.GradPath();
+                                }
 								for(var i = 0; i < fill.gradientFill.stop.length; ++i) {
                                     var oGradStop = new AscFormat.CGs();
                                     oGradStop.pos = fill.gradientFill.stop[i].position*100000;

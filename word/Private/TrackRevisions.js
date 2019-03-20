@@ -53,7 +53,7 @@ Asc['asc_docs_api'].prototype.asc_IsTrackRevisions = function()
 	if (!oLogicDocument)
 		return false;
 
-    return oLogicDocument.Is_TrackRevisions();
+    return oLogicDocument.IsTrackRevisions();
 };
 Asc['asc_docs_api'].prototype.sync_BeginCatchRevisionsChanges = function()
 {
@@ -605,9 +605,9 @@ CDocument.prototype.AcceptRevisionChanges = function(Type, bAll)
                 for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
                 {
                     var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true == bAll) && true === Element.Have_PrChange())
+                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true == bAll) && true === Element.HavePrChange())
                     {
-                        Element.Accept_PrChange();
+                        Element.AcceptPrChange();
                     }
                 }
             }
@@ -626,14 +626,14 @@ CDocument.prototype.AcceptRevisionChanges = function(Type, bAll)
                     var Element = this.Content[CurPos];
                     if (type_Paragraph === Element.Get_Type())
                     {
-                        var ReviewType = Element.Get_ReviewType();
+                        var ReviewType = Element.GetReviewType();
                         if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
                         {
-                            Element.Set_ReviewType(reviewtype_Common);
+                            Element.SetReviewType(reviewtype_Common);
                         }
                         else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
                         {
-                            Element.Set_ReviewType(reviewtype_Common);
+                            Element.SetReviewType(reviewtype_Common);
                             this.Concat_Paragraphs(CurPos);
                         }
                     }
@@ -697,9 +697,9 @@ CDocument.prototype.RejectRevisionChanges = function(Type, bAll)
                 for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
                 {
                     var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.Have_PrChange())
+                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
                     {
-                        Element.Reject_PrChange();
+                        Element.RejectPrChange();
                     }
                 }
             }
@@ -718,15 +718,32 @@ CDocument.prototype.RejectRevisionChanges = function(Type, bAll)
                     var Element = this.Content[CurPos];
                     if (type_Paragraph === Element.Get_Type())
                     {
-                        var ReviewType = Element.Get_ReviewType();
+                        var ReviewType = Element.GetReviewType();
                         if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
                         {
-                            Element.Set_ReviewType(reviewtype_Common);
+                        	var oNextPara   = this.Content[CurPos + 1];
+                        	var oNextParaPr = null;
+                        	if (oNextPara && oNextPara.IsParagraph())
+								oNextParaPr = oNextPara.GetDirectParaPr(false);
+
+                            Element.SetReviewType(reviewtype_Common);
                             this.Concat_Paragraphs(CurPos);
+
+                            if (oNextParaPr)
+                            	Element.SetDirectParaPr(oNextParaPr.Copy(true));
                         }
                         else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
                         {
-                            Element.Set_ReviewType(reviewtype_Common);
+							var oReviewInfo = Element.GetReviewInfo();
+							var oPrevInfo   = oReviewInfo.GetPrevAdded();
+							if (oPrevInfo)
+							{
+								Element.SetReviewTypeWithInfo(reviewtype_Add, oPrevInfo.Copy());
+							}
+							else
+							{
+								Element.SetReviewType(reviewtype_Common);
+							}
                         }
                     }
                 }
@@ -806,9 +823,9 @@ CDocumentContent.prototype.AcceptRevisionChanges = function(Type, bAll)
                 for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
                 {
                     var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.Have_PrChange())
+                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
                     {
-                        Element.Accept_PrChange();
+                        Element.AcceptPrChange();
                     }
                 }
             }
@@ -827,14 +844,14 @@ CDocumentContent.prototype.AcceptRevisionChanges = function(Type, bAll)
                     var Element = this.Content[CurPos];
                     if (type_Paragraph === Element.Get_Type())
                     {
-                        var ReviewType = Element.Get_ReviewType();
+                        var ReviewType = Element.GetReviewType();
                         if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
                         {
-                            Element.Set_ReviewType(reviewtype_Common);
+                            Element.SetReviewType(reviewtype_Common);
                         }
                         else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
                         {
-                            Element.Set_ReviewType(reviewtype_Common);
+                            Element.SetReviewType(reviewtype_Common);
                             this.Concat_Paragraphs(CurPos);
                         }
                     }
@@ -875,9 +892,9 @@ CDocumentContent.prototype.RejectRevisionChanges = function(Type, bAll)
                 for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
                 {
                     var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.Have_PrChange())
+                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
                     {
-                        Element.Reject_PrChange();
+                        Element.RejectPrChange();
                     }
                 }
             }
@@ -896,15 +913,23 @@ CDocumentContent.prototype.RejectRevisionChanges = function(Type, bAll)
                     var Element = this.Content[CurPos];
                     if (type_Paragraph === Element.Get_Type())
                     {
-                        var ReviewType = Element.Get_ReviewType();
+                        var ReviewType = Element.GetReviewType();
                         if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
                         {
-                            Element.Set_ReviewType(reviewtype_Common);
-                            this.Concat_Paragraphs(CurPos);
+							var oNextPara   = this.Content[CurPos + 1];
+							var oNextParaPr = null;
+							if (oNextPara && oNextPara.IsParagraph())
+								oNextParaPr = oNextPara.GetDirectParaPr(false);
+
+							Element.SetReviewType(reviewtype_Common);
+							this.Concat_Paragraphs(CurPos);
+
+							if (oNextParaPr)
+								Element.SetDirectParaPr(oNextParaPr.Copy(true));
                         }
                         else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
                         {
-                            Element.Set_ReviewType(reviewtype_Common);
+                            Element.SetReviewType(reviewtype_Common);
                         }
                     }
                 }

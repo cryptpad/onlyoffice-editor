@@ -396,6 +396,32 @@
                 this.right.search(low, high, output);
             }
         };
+        // Searches for any overlapping node
+        Node.prototype.searchAny = function(low, high) {
+            // Don't search nodes that don't exist
+            if (this === undefined) {
+                return;
+            }
+            // If interval is to the right of the rightmost point of any interval in this node and all its
+            // children, there won't be any matches
+            if (low > this.max) {
+                return;
+            }
+            if (this.key <= high) {
+                // Nodes are overlapping, check if individual records in the node are overlapping
+                for (var i = 0; i < this.records.length; i++) {
+                    if (this.records[i].high >= low) {
+                        return this.records[i];
+                    }
+                }
+            }
+            // Search left children
+            if (this.left !== undefined && this.left.max >= low) {
+                return this.left.searchAny(low, high);
+            } else if (this.right !== undefined && this.key <= high) {
+                return this.right.searchAny(low, high);
+            }
+        };
         // Searches for a node by a `key` value
         Node.prototype.searchExisting = function (low) {
             if (this === undefined) {
@@ -549,6 +575,23 @@
                 return res;
             }
         };
+        IntervalTree.prototype.searchExisting = function (low, high) {
+            if (this.root) {
+                var node = this.root.searchExisting(low);
+                if (node) {
+                    for (var i = 0; i < node.records.length; i++) {
+                        if (node.records[i].high === high) {
+                            return node.records[i];
+                        }
+                    }
+                }
+            }
+        };
+        IntervalTree.prototype.searchAny = function (low, high) {
+            if (this.root) {
+                return  this.root.searchAny(low, high);
+            }
+        };
         IntervalTree.prototype.remove = function (record) {
             if (this.root === undefined) {
                 // Tree is empty; nothing to remove
@@ -669,6 +712,14 @@
         };
         DataIntervalTree.prototype.search = function (low, high) {
             return this.searchNodes(low, high).map(function (v) { return v.data; });
+        };
+        DataIntervalTree.prototype.searchExisting = function (low, high) {
+            var record = this.tree.searchExisting(low, high);
+            return record ? record.data : undefined;
+        };
+        DataIntervalTree.prototype.searchAny = function (low, high) {
+            var record = this.tree.searchAny(low, high);
+            return record ? record.data : undefined;
         };
         DataIntervalTree.prototype.inOrder = function () {
             return this.tree.inOrder();

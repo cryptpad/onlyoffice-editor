@@ -204,6 +204,8 @@
 
 			CannotChangeFormulaArray: -450,
 			MultiCellsInTablesFormulaArray: -451,
+
+			MailToClientMissing	: -452
 		}
 	};
 
@@ -1585,6 +1587,8 @@
 	prot['ForceSaveButton']                  = prot.ForceSaveButton;
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
 	prot['CannotChangeFormulaArray']         = prot.CannotChangeFormulaArray;
+	prot['MultiCellsInTablesFormulaArray']   = prot.MultiCellsInTablesFormulaArray;
+	prot['MailToClientMissing']				 = prot.MailToClientMissing;
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;

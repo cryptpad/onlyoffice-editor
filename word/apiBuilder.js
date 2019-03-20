@@ -5699,7 +5699,7 @@
 		oTextFill2.transparent = 127;
 
 		var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
-		var TrackRevisions = (MainLogicDocument ? MainLogicDocument.Is_TrackRevisions() : false);
+		var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
 
 		if (MainLogicDocument && true === TrackRevisions)
 			MainLogicDocument.Set_TrackRevisions(false);

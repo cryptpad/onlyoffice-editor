@@ -3773,27 +3773,7 @@ CTable.prototype.SelectTable = function(Type)
 				Grid_end   = Grid_start + this.CurCell.Get_GridSpan() - 1;
 			}
 
-
-			for (var CurRow = 0; CurRow < this.Content.length; CurRow++)
-			{
-				var Row         = this.Content[CurRow];
-				var Cells_Count = Row.Get_CellsCount();
-
-				for (var CurCell = 0; CurCell < Cells_Count; CurCell++)
-				{
-					var Cell   = Row.Get_Cell(CurCell);
-					var Vmerge = Cell.GetVMerge();
-					if (vmerge_Continue === Vmerge)
-						continue;
-
-					var StartGridCol = Row.Get_CellInfo(CurCell).StartGridCol;
-					var EndGridCol   = StartGridCol + Cell.Get_GridSpan() - 1;
-
-					if (EndGridCol >= Grid_start && StartGridCol <= Grid_end)
-						NewSelectionData.push({Cell : CurCell, Row : CurRow});
-				}
-			}
-
+			this.private_GetColumnByGridRange(Grid_start, Grid_end, NewSelectionData);
 			break;
 		}
 
@@ -12046,11 +12026,11 @@ CTable.prototype.GetStyleFromFormatting = function()
     }
     return null;
 };
-CTable.prototype.Set_ReviewType = function(ReviewType)
+CTable.prototype.SetReviewType = function(ReviewType)
 {
 
 };
-CTable.prototype.Get_ReviewType = function()
+CTable.prototype.GetReviewType = function()
 {
     return reviewtype_Common;
 };
@@ -14118,6 +14098,68 @@ CTable.prototype.GetPlaceHolderObject = function()
 
 	return this.CurCell.GetContent().GetPlaceHolderObject();
 };
+/**
+ * Получаем колонку в виде массива ячеек
+ * @returns {[CTableCell]}
+ */
+CTable.prototype.GetColumn = function(nCurCell, nCurRow)
+{
+	if (null === nCurRow || undefined === nCurRow)
+		nCurRow = 0;
+
+	var oRow = this.GetRow(nCurRow);
+	if (!oRow)
+		return [];
+
+	if (nCurCell < 0)
+		nCurCell = 0;
+
+	if (nCurCell >= oRow.GetCellsCount())
+		nCurCell = oRow.GetCellsCount() - 1;
+
+	var oCell = oRow.GetCell(nCurCell);
+	if (!oCell)
+		return [];
+
+	var nGridStart = oRow.GetCellInfo(nCurCell).StartGridCol;
+	var nGridEnd   = nGridStart + oCell.GetGridSpan() - 1;
+
+	var arrCells = [];
+	var arrPoses = this.private_GetColumnByGridRange(nGridStart, nGridEnd);
+	for (var nIndex = 0, nCount = arrPoses.length; nIndex < nCount; ++nIndex)
+	{
+		var oPos = arrPoses[nIndex];
+
+		arrCells.push(this.GetRow(oPos.Row).GetCell(oPos.Cell));
+	}
+
+	return arrCells;
+};
+CTable.prototype.private_GetColumnByGridRange = function(nGridStart, nGridEnd, arrPos)
+{
+	if (!arrPos)
+		arrPos = [];
+
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			var oCell = oRow.GetCell(nCurCell);
+			if (vmerge_Continue === oCell.GetVMerge())
+				continue;
+
+			var nStartGridCol = oRow.GetCellInfo(nCurCell).StartGridCol;
+			var nEndGridCol   = nStartGridCol + oCell.GetGridSpan() - 1;
+
+			if (nEndGridCol >= nGridStart && nStartGridCol <= nGridEnd)
+				arrPos.push({Cell : nCurCell, Row : nCurRow});
+		}
+	}
+
+	return arrPos;
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook
 //----------------------------------------------------------------------------------------------------------------------

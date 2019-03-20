@@ -1576,12 +1576,18 @@
                         var _w_mm = manager.HtmlPage.m_oLogicDocument.Width;
                         var _h_mm = manager.HtmlPage.m_oLogicDocument.Height;
 
+                        var _x = transition.Rect.x;
+                        if (this.isReporterMode)
+						{
+                            _x += ((this.WordControl.m_oMainParent.AbsolutePosition.L * AscCommon.g_dKoef_mm_to_pix) >> 0);
+						}
+
                         var _zoom = _w / (_w_mm * AscCommon.g_dKoef_mm_to_pix);
 
                         if (!transform)
-                            window["AscDesktopEditor"]["MediaStart"](sMediaName, transition.Rect.x, transition.Rect.y, extX, extY, _zoom);
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x, transition.Rect.y, extX, extY, _zoom);
                         else
-                            window["AscDesktopEditor"]["MediaStart"](sMediaName, transition.Rect.x, transition.Rect.y, extX, extY, _zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x, transition.Rect.y, extX, extY, _zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
                     }
 
 				}

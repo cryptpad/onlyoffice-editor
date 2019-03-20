@@ -2966,6 +2966,7 @@ function CDemonstrationManager(htmlpage)
 
     this.StartSlide = function(is_transition_use, is_first_play)
     {
+        oThis.HtmlPage.m_oApi.hideVideoControl();
         if (oThis.Canvas)
         {
             oThis.Canvas.style.cursor = "default";
@@ -3020,6 +3021,7 @@ function CDemonstrationManager(htmlpage)
 
     this.StartSlideBackward = function()
     {
+        oThis.HtmlPage.m_oApi.hideVideoControl();
         var _is_transition = oThis.Transition.IsPlaying();
         oThis.StopTransition();
 
@@ -3544,7 +3546,11 @@ function CDemonstrationManager(htmlpage)
         {
             var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseDown(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
             if (ret == keydownresult_PreventAll)
+            {
+                // mouse up will not sended!!!
+                oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
                 return;
+            }
         }
 
         oThis.isMouseDown = true;

@@ -894,6 +894,47 @@ var g_oFontProperties = {
 		Solid : 18
 	};
 
+	function hatchFromExcelToWord(val) {
+		switch (val) {
+			case c_oAscPatternType.DarkDown:
+				return 'dkDnDiag';
+			case c_oAscPatternType.DarkGray:
+				return 'pct70';
+			case c_oAscPatternType.DarkGrid:
+				return 'smCheck';
+			case c_oAscPatternType.DarkHorizontal:
+				return 'dkHorz';
+			case c_oAscPatternType.DarkTrellis:
+				return 'trellis';
+			case c_oAscPatternType.DarkUp:
+				return 'dkUpDiag';
+			case c_oAscPatternType.DarkVertical:
+				return 'dkVert';
+			case c_oAscPatternType.Gray0625:
+				return 'pct10';
+			case c_oAscPatternType.Gray125:
+				return 'pct20';
+			case c_oAscPatternType.LightDown:
+				return 'ltDnDiag';
+			case c_oAscPatternType.LightGray:
+				return 'pct25';
+			case c_oAscPatternType.LightGrid:
+				return 'smGrid';
+			case c_oAscPatternType.LightHorizontal:
+				return 'ltHorz';
+			case c_oAscPatternType.LightTrellis:
+				return 'pct30';
+			case c_oAscPatternType.LightUp:
+				return 'ltUpDiag';
+			case c_oAscPatternType.LightVertical:
+				return 'ltVert';
+			case c_oAscPatternType.MediumGray:
+				return 'pct50';
+			default:
+				return 'cross';
+		}
+	}
+
 	function FromXml_ST_GradientType(val) {
 		var res = -1;
 		if ("linear" === val) {
@@ -1229,6 +1270,9 @@ var g_oFontProperties = {
 				this.bgColor = value;
 				break;
 		}
+	};
+	PatternFill.prototype.getHatchOffset = function () {
+		return AscCommon.global_hatch_offsets[hatchFromExcelToWord(this.patternType)];
 	};
 	PatternFill.prototype.fromColor = function(color) {
 		this.patternType = c_oAscPatternType.Solid;
