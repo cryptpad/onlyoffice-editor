@@ -1050,34 +1050,7 @@ function copy_pointer(p, size)
     return _p;
 }
 
-function FT_Memory()
-{
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = 1;
-    this.canvas.height = 1;
-    this.ctx    = this.canvas.getContext('2d');
-
-    this.Alloc = function(size)
-    {
-        var p = new CPointer();
-        p.obj = this.ctx.createImageData(1,parseInt((size + 3) / 4));
-        p.data = p.obj.data;
-        p.pos = 0;
-        return p;
-    }
-    this.AllocHeap = function()
-    {
-        // TODO: нужно посмотреть, как эта память будет использоваться.
-        // нужно ли здесь делать стек, либо все время от нуля делать??
-    }
-    this.CreateStream = function(size)
-    {
-        var _size = parseInt((size + 3) / 4);
-        var obj = this.ctx.createImageData(1,_size);
-        return new FT_Stream(obj.data,_size);
-    }
-}
-var g_memory = new FT_Memory();
+var g_memory = AscFonts.g_memory;
 
 function FT_PEEK_CHAR(p)
 {
@@ -18231,28 +18204,7 @@ function create_sfnt_module(library)
     return sfnt_mod;
 }
 
-
-function CRasterMemory()
-{
-    this.width = 0;
-    this.height = 0;
-    this.pitch = 0;
-
-    this.m_oBuffer = null;
-    this.CheckSize = function(w, h)
-    {
-        if (this.width < (w + 1) || this.height < (h + 1))
-        {
-            this.width = Math.max(this.width, w + 1);
-            this.pitch = 4 * this.width;
-            this.height = Math.max(this.height, h + 1);
-
-            this.m_oBuffer = null;
-            this.m_oBuffer = g_memory.ctx.createImageData(this.width, this.height);
-        }
-    }
-}
-var raster_memory = new CRasterMemory();
+var raster_memory = AscFonts.raster_memory;
 
 // outline ---
 function _FT_Outline_Funcs_Gray()
@@ -40616,7 +40568,7 @@ function FT_Library()
 
     this.Init = function()
     {
-        this.Memory = new FT_Memory();
+        this.Memory = new AscFonts.FT_Memory();
         //this.raster_pool = this.Memory.Alloc(this.raster_pool_size);
         // теперь пул для каждого рендерера свой
         // и он хранится непосредственно в рендерере.
@@ -41891,9 +41843,6 @@ function FT_CMap_New(clazz, init_data, charmap)
 
   //--------------------------------------------------------export----------------------------------------------------
   window['AscFonts'] = window['AscFonts'] || {};
-  window['AscFonts'].FT_Common = FT_Common;
-  window['AscFonts'].FT_Stream = FT_Stream;
-  window['AscFonts'].g_memory = g_memory;
   window['AscFonts'].FT_Get_Sfnt_Table = FT_Get_Sfnt_Table;
   window['AscFonts'].FT_BBox = FT_BBox;
   window['AscFonts'].FT_Matrix = FT_Matrix;
@@ -41910,8 +41859,10 @@ function FT_CMap_New(clazz, init_data, charmap)
   window['AscFonts'].FT_Load_Glyph = FT_Load_Glyph;
   window['AscFonts'].FT_Set_Transform = FT_Set_Transform;
   window['AscFonts'].FT_Render_Glyph = FT_Render_Glyph;
-  window['AscFonts'].raster_memory = raster_memory;
   window['AscFonts'].FT_Get_Charmap_Index = FT_Get_Charmap_Index;
   window['AscFonts'].FT_Vector = FT_Vector;
   window['AscFonts'].FT_Get_Kerning = FT_Get_Kerning;
+  window['AscFonts'].FT_Stream = FT_Stream;
+
+  window['AscFonts'].onLoadModule();
 })(window);

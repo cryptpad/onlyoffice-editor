@@ -192,6 +192,29 @@
         };
     }
 
+    function CRasterMemory()
+    {
+        this.width = 0;
+        this.height = 0;
+        this.pitch = 0;
+
+        this.m_oBuffer = null;
+        this.CheckSize = function(w, h)
+        {
+            if (this.width < (w + 1) || this.height < (h + 1))
+            {
+                this.width = Math.max(this.width, w + 1);
+                this.pitch = 4 * this.width;
+                this.height = Math.max(this.height, h + 1);
+
+                this.m_oBuffer = null;
+                this.m_oBuffer = g_memory.ctx.createImageData(this.width, this.height);
+            }
+        };
+    }
+    window['AscFonts'].raster_memory = new CRasterMemory();
+
+    window['AscFonts'].FT_Memory = FT_Memory;
     window['AscFonts'].g_memory = new FT_Memory();
 
 })(window, undefined);

@@ -126,7 +126,6 @@
     var raster_memory = AscFonts.raster_memory;
     AscFonts.initVariables = function()
 	{
-        raster_memory = AscFonts.raster_memory;
 	};
 
 	var FONT_ITALIC_ANGLE 	= 0.3090169943749;

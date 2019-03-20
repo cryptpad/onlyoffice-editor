@@ -39,6 +39,12 @@
     var __FT_CharmapRec = AscFonts.__FT_CharmapRec;
 
     var raster_memory = AscFonts.raster_memory;
+    AscFonts.initVariables = function()
+    {
+        FT_Set_Charmap = AscFonts.FT_Set_Charmap;
+        FT_Get_Char_Index = AscFonts.FT_Get_Char_Index;
+        __FT_CharmapRec = AscFonts.__FT_CharmapRec;
+    };
 
 	var FONT_ITALIC_ANGLE 	= 0.3090169943749;
 	var FT_ENCODING_UNICODE = 1970170211;
@@ -1695,4 +1701,5 @@
 	window['AscFonts'] = window['AscFonts'] || {};
 	window['AscFonts'].EGlyphState = EGlyphState;
 	window['AscFonts'].CFontFile = CFontFile;
+    window['AscFonts'].onLoadModule();
 })(window);
