@@ -212,9 +212,10 @@
             }
         };
     }
-    window['AscFonts'].raster_memory = new CRasterMemory();
 
     window['AscFonts'].FT_Memory = FT_Memory;
+
+    window['AscFonts'].raster_memory = new CRasterMemory();
     window['AscFonts'].g_memory = new FT_Memory();
 
 })(window, undefined);
