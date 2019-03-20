@@ -2611,26 +2611,58 @@ CChartsDrawer.prototype =
 				return pts[p];
 		}
 	},
-	
-	getPointByIndex: function(seria, index, bXVal)
-	{
-		var seriaVal;
-		if(bXVal) {
-			seriaVal = seria.val ? seria.val :  seria.xVal;
+
+	getPointByIndex: function (seria, index, bXVal) {
+		var ser;
+		if (bXVal) {
+			ser = seria.val ? seria.val : seria.xVal;
 		} else {
-			seriaVal = seria.val ? seria.val :  seria.yVal;
+			ser = seria.val ? seria.val : seria.yVal;
 		}
 
-		if(!seriaVal)
+		if (!ser) {
 			return null;
+		}
 
 		//todo use getNumCache
-		var pts = seriaVal.numRef &&  seriaVal.numRef.numCache ? seriaVal.numRef.numCache.pts : seriaVal.numLit ? seriaVal.numLit.pts : null;
+		var pts = ser.numRef && ser.numRef.numCache ? ser.numRef.numCache.pts : ser.numLit ? ser.numLit.pts : null;
 
-		if(pts == null)
+		if (pts == null) {
 			return null;
+		}
 
 		return pts[index];
+	},
+
+	getPointByIdx: function(seria, index, bXVal) {
+		var res = null;
+
+		var ser;
+		if (bXVal) {
+			ser = seria.val ? seria.val : seria.xVal;
+		} else {
+			ser = seria.val ? seria.val : seria.yVal;
+		}
+
+		if (!ser) {
+			return null;
+		}
+
+		var numCache = this.getNumCache(ser);
+		var pts = numCache ? numCache.pts : null;
+
+		if (pts == null) {
+			return null;
+		}
+
+		for(var i = 0; i < pts.length; i++) {
+			if(pts[i].idx === index) {
+				res = pts[i];
+				break;
+			}
+		}
+
+		return res;
 	},
 
 	getPtCount: function(series)
@@ -5528,6 +5560,10 @@ drawAreaChart.prototype = {
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
+				if(null === val) {
+					continue;
+				}
+
 				x = this.xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
 
@@ -5639,7 +5675,7 @@ drawAreaChart.prototype = {
 		}
 	},
 
-	_calculateLine: function (points, prevPoints) {
+	_calculateLine2: function (points, prevPoints) {
 		var pathId = this.cChartSpace.AllocPath();
 		var path = this.cChartSpace.GetPath(pathId);
 
@@ -5675,6 +5711,82 @@ drawAreaChart.prototype = {
 			path.lnTo(points[points.length - 1].x * pathW, nullPositionOX / pxToMm * pathH);
 			path.lnTo(points[0].x * pathW, nullPositionOX / pxToMm * pathH);
 			path.lnTo(points[0].x * pathW, points[0].y * pathH);
+		}
+
+		return pathId;
+	},
+
+
+	_calculateLine: function (points, prevPoints) {
+		var pathId = this.cChartSpace.AllocPath();
+		var path = this.cChartSpace.GetPath(pathId);
+
+		var pathH = this.chartProp.pathH;
+		var pathW = this.chartProp.pathW;
+
+
+		var point;
+		var pxToMm = this.chartProp.pxToMM;
+
+		var nullPositionOX = this.catAx.posY * this.chartProp.pxToMM;
+
+		//точки данной серии
+		if(this.subType === "stacked" || this.subType === "stackedPer") {
+			for (var i = 0; i < points.length; i++) {
+				point = points[i];
+				if(!point) {
+
+				} else if (i === 0) {
+					path.moveTo(point.x * pathW, point.y * pathH);
+				} else {
+					path.lnTo(point.x * pathW, point.y * pathH);
+				}
+			}
+
+			//точки предыдущей серии
+			if (prevPoints != null) {
+				for (var i = prevPoints.length - 1; i >= 0; i--) {
+					point = prevPoints[i];
+					path.lnTo(point.x * pathW, point.y * pathH);
+
+					if (i === 0) {
+						path.lnTo(points[0].x * pathW, points[0].y * pathH);
+					}
+				}
+			} else {
+				path.lnTo(points[points.length - 1].x * pathW, nullPositionOX / pxToMm * pathH);
+				path.lnTo(points[0].x * pathW, nullPositionOX / pxToMm * pathH);
+				path.lnTo(points[0].x * pathW, points[0].y * pathH);
+			}
+		} else {
+			var startSegmentPoint;
+			for (var i = 0; i < points.length; i++) {
+				point = points[i];
+				if(!point) {
+					if(startSegmentPoint) {
+						//возвращаемся к оси, далее к начальной точки сегмента
+						path.lnTo(points[i - 1].x * pathW, nullPositionOX / pxToMm * pathH);
+						path.lnTo(startSegmentPoint.x * pathW, nullPositionOX / pxToMm * pathH);
+						path.lnTo(startSegmentPoint.x * pathW, startSegmentPoint.y * pathH);
+					}
+					startSegmentPoint = null;
+				} else {
+					if(!startSegmentPoint) {
+						startSegmentPoint = point;
+						path.moveTo(point.x * pathW, nullPositionOX / pxToMm * pathH);
+					}
+					path.lnTo(point.x * pathW, point.y * pathH);
+				}
+
+				if(i === points.length - 1 && point) {
+					if(startSegmentPoint) {
+						//возвращаемся к оси, далее к начальной точки сегмента
+						path.lnTo(point.x * pathW, nullPositionOX / pxToMm * pathH);
+						path.lnTo(startSegmentPoint.x * pathW, nullPositionOX / pxToMm * pathH);
+						path.lnTo(startSegmentPoint.x * pathW, startSegmentPoint.y * pathH);
+					}
+				}
+			}
 		}
 
 		return pathId;
@@ -6666,7 +6778,7 @@ drawAreaChart.prototype = {
 
 		if (this.subType === "stacked") {
 			for (var k = 0; k <= i; k++) {
-				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIdx(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					val += tempVal;
@@ -6675,7 +6787,7 @@ drawAreaChart.prototype = {
 		} else if (this.subType === "stackedPer") {
 			var summVal = 0;
 			for (var k = 0; k < this.chart.series.length; k++) {
-				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getPointByIdx(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
@@ -6686,7 +6798,7 @@ drawAreaChart.prototype = {
 			}
 			val = val / summVal;
 		} else {
-			idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
+			idxPoint = this.cChartDrawer.getPointByIdx(this.chart.series[i], n);
 			val = idxPoint ? parseFloat(idxPoint.val) : null;
 		}
 		return val;
