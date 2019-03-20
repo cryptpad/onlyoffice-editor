@@ -7019,13 +7019,11 @@ background-repeat: no-repeat;\
         }
 
         if (c_oAscFontRenderingModeType.noHinting === mode)
-            AscCommon.SetHintsProps(false, false);
+            AscCommon.g_fontManager.SetHintsProps(false, false);
         else if (c_oAscFontRenderingModeType.hinting === mode)
-            AscCommon.SetHintsProps(true, false);
+            AscCommon.g_fontManager.SetHintsProps(true, false);
         else if (c_oAscFontRenderingModeType.hintingAndSubpixeling === mode)
-            AscCommon.SetHintsProps(true, true);
-
-        AscCommon.g_fontManager.ClearFontsRasterCache();
+            AscCommon.g_fontManager.SetHintsProps(true, true);
 
         if (AscCommon.g_fontManager2 !== undefined && AscCommon.g_fontManager2 !== null)
             AscCommon.g_fontManager2.ClearFontsRasterCache();

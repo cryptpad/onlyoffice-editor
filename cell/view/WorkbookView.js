@@ -2701,20 +2701,7 @@
         bIsHinting = bIsSubpixHinting = false;
       }
 
-      if (bIsHinting && bIsSubpixHinting) {
-          manager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
-          manager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_40;
-      } else if (bIsHinting) {
-          manager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
-          manager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
-      } else {
-          manager.LOAD_MODE = AscFonts.LOAD_MODE_DEFAULT;
-          manager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
-      }
-      if (manager.m_oLibrary)
-        AscFonts.FT_Set_TrueType_HintProp(manager.m_oLibrary, manager.REND_MODE_SUBPIX);
-
-      manager.ClearFontsRasterCache();
+      manager.SetHintsProps(bIsHinting, bIsSubpixHinting);
     }
   };
 

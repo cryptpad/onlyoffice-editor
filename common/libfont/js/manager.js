@@ -600,6 +600,7 @@
 
                 this.LOAD_MODE = 40970;
             }
+            this.ClearFontsRasterCache();
         };
 
         this.SetAdvanceNeedBoldFonts = function(value)

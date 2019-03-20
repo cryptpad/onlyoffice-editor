@@ -36,11 +36,27 @@
 {
     window['AscFonts'] = window['AscFonts'] || {};
 
+    window['AscFonts'].isEngineReady = false;
     window['AscFonts'].api = null;
     window['AscFonts'].onSuccess = null;
     window['AscFonts'].onError = null;
     window['AscFonts'].maxLoadingIndex = 4; // engine, file, manager, wasm
     window['AscFonts'].curLoadingIndex = 0;
+
+    window['AscFonts'].allocate = function(size)
+    {
+        if (typeof(Uint8Array) != 'undefined' && !window.opera)
+            return new Uint8Array(size);
+
+        var arr = new Array(size);
+        for (var i=0;i<size;i++)
+            arr[i] = 0;
+        return arr;
+    };
+    window['AscFonts'].allocateData = function(size)
+    {
+        return { data : window['AscFonts'].allocate(size) };
+    };
 
     window['AscFonts'].onLoadModule = function()
 	{
@@ -50,6 +66,7 @@
 		{
 			if (window['AscFonts'].api)
 			{
+                window['AscFonts'].isEngineReady = true;
                 window['AscFonts'].onSuccess.call(window['AscFonts'].api);
 			}
 
@@ -65,6 +82,7 @@
     {
         if (window["NATIVE_EDITOR_ENJINE"] === true || window["Native"] !== undefined)
         {
+            window['AscFonts'].isEngineReady = false;
             onSuccess.call(api);
             return;
         }
@@ -97,13 +115,13 @@
 
         if (window['AscNotLoadAllScript'])
         {
-            AscCommon.loadScript(url + "/engine.js", onSuccess, onError);
-            AscCommon.loadScript(url + "/file.js", onSuccess, onError);
-            AscCommon.loadScript(url + "/manager.js", onSuccess, onError);
+            AscCommon.loadScript(url + "/engine.js", _onSuccess, _onError);
+            AscCommon.loadScript(url + "/file.js", _onSuccess, _onError);
+            AscCommon.loadScript(url + "/manager.js", _onSuccess, _onError);
         }
         else
         {
-            AscCommon.loadScript(url + "/engine.js", onSuccess, onError);
+            AscCommon.loadScript(url + "/engine.js", _onSuccess, _onError);
         }
     };
 

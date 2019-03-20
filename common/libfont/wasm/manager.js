@@ -462,7 +462,25 @@
 
         this.SetHintsProps = function(bIsHinting, bIsSubpixHinting)
         {
-            // TODO:
+            if (bIsHinting && bIsSubpixHinting)
+            {
+                this.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
+                this.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_40;
+            }
+            else if (bIsHinting)
+            {
+                this.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
+                this.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
+            }
+            else
+            {
+                this.LOAD_MODE = AscFonts.LOAD_MODE_DEFAULT;
+                this.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
+            }
+            if (this.m_oLibrary)
+                AscFonts.FT_Set_TrueType_HintProp(this.m_oLibrary, this.REND_MODE_SUBPIX);
+
+            this.ClearFontsRasterCache();
         };
 
         this.SetAdvanceNeedBoldFonts = function(value)

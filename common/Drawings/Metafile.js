@@ -3226,29 +3226,7 @@
 
 	var g_fontManager = new AscFonts.CFontManager();
 	g_fontManager.Initialize(true);
-
-	function SetHintsProps(bIsHinting, bIsSubpixHinting)
-	{
-		if (bIsHinting && bIsSubpixHinting)
-		{
-			g_fontManager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
-			g_fontManager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_40;
-		}
-		else if (bIsHinting)
-		{
-			g_fontManager.LOAD_MODE = AscFonts.LOAD_MODE_HINTING;
-            g_fontManager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
-		}
-		else
-		{
-			g_fontManager.LOAD_MODE = AscFonts.LOAD_MODE_DEFAULT;
-            g_fontManager.REND_MODE_SUBPIX = AscFonts.TT_INTERPRETER_VERSION_35;
-		}
-		if (g_fontManager.m_oLibrary)
-			AscFonts.FT_Set_TrueType_HintProp(g_fontManager.m_oLibrary, g_fontManager.REND_MODE_SUBPIX);
-	}
-
-	SetHintsProps(true, true);
+	g_fontManager.SetHintsProps(true, true);
 
 	var g_dDpiX = 96.0;
 	var g_dDpiY = 96.0;
@@ -3284,7 +3262,6 @@
 	window['AscCommon'].CBrush                   = CBrush;
 	window['AscCommon'].CTableMarkup             = CTableMarkup;
 	window['AscCommon'].CTableOutline            = CTableOutline;
-	window['AscCommon'].SetHintsProps            = SetHintsProps;
 	window['AscCommon']._rect                    = _rect;
 
 	window['AscCommon'].global_MatrixTransformer = new CGlobalMatrixTransformer();
