@@ -125,4 +125,73 @@
         }
     };
 
+    function FontStream(data, size)
+    {
+        this.data = data;
+        this.size = size;
+    }
+
+    window['AscFonts'].FontStream = FontStream;
+
+    window['AscFonts'].FT_Common = {
+        UintToInt : function(v)
+        {
+            return (v>2147483647)?v-4294967296:v;
+        },
+        UShort_To_Short : function(v)
+        {
+            return (v>32767)?v-65536:v;
+        },
+        IntToUInt : function(v)
+        {
+            return (v<0)?v+4294967296:v;
+        },
+        Short_To_UShort : function(v)
+        {
+            return (v<0)?v+65536:v;
+        },
+        memset : function(d,v,s)
+        {
+            for (var i=0;i<s;i++)
+                d[i]=v;
+        }
+    };
+
+    function CPointer()
+    {
+        this.obj    = null;
+        this.data   = null;
+        this.pos    = 0;
+    }
+
+    function FT_Memory()
+    {
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = 1;
+        this.canvas.height = 1;
+        this.ctx    = this.canvas.getContext('2d');
+
+        this.Alloc = function(size)
+        {
+            var p = new CPointer();
+            p.obj = this.ctx.createImageData(1,parseInt((size + 3) / 4));
+            p.data = p.obj.data;
+            p.pos = 0;
+            return p;
+        };
+        this.AllocHeap = function()
+        {
+            // TODO: нужно посмотреть, как эта память будет использоваться.
+            // нужно ли здесь делать стек, либо все время от нуля делать??
+        };
+        this.CreateStream = function(size)
+        {
+            var _size = parseInt((size + 3) / 4);
+            var obj = this.ctx.createImageData(1,_size);
+            return new FT_Stream(obj.data,_size);
+        };
+    }
+
+    window['AscFonts'].g_memory = new FT_Memory();
+
 })(window, undefined);

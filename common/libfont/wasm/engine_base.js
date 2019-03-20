@@ -63,309 +63,11 @@
     }
     var FT_Common = new _FT_Common();
 
-    function FT_Stream(data, size)
-    {
-        this.obj = null;
-        this.data = data;
-        this.size = size;
-        this.pos = 0;
-        this.cur = 0;
-    }
-    FT_Stream.prototype =
-    {
-        Seek: function (_pos)
-        {
-            if (_pos > this.size)
-                return 85;
-            this.pos = _pos;
-            return 0;
-        },
-        Skip: function (_skip)
-        {
-            if (_skip < 0)
-                return 85;
-            return this.Seek(this.pos + _skip);
-        },
-        Read: function (pointer, count)
-        {
-            return this.ReadAt(this.pos, pointer, count);
-        },
-        ReadArray: function (count)
-        {
-            var read_bytes = this.size - this.pos;
-            if (read_bytes > count)
-                read_bytes = count;
-            if (0 == read_bytes)
-                return null;
-            var a = new Array(read_bytes);
-            for (var i = 0; i < count; i++)
-                a[i] = this.data[this.pos + i];
-            return a;
-        },
-        ReadAt: function (_pos, pointer, count)
-        {
-            if (_pos > this.size)
-                return 85;
-            var read_bytes = this.size - _pos;
-            if (read_bytes > count)
-                read_bytes = count;
-
-            FT_Common.memcpy_p2(pointer, this.data, _pos, count);
-
-            this.pos = _pos + read_bytes;
-
-            if (read_bytes < count)
-                return 85;
-
-            return 0;
-        },
-        TryRead: function (pointer, count)
-        {
-            var read_bytes = 0;
-            if (this.pos < this.size)
-                return read_bytes;
-            read_bytes = this.size - this.pos;
-            if (read_bytes > count)
-                read_bytes = count;
-
-            FT_Common.memcpy_p2(pointer, this.data, this.pos, count);
-
-            this.pos += read_bytes;
-            return read_bytes;
-        },
-
-        // 1 bytes
-        GetUChar: function ()
-        {
-            if (this.cur >= this.size)
-                return 0;
-            return this.data[this.cur++];
-        },
-        GetChar: function ()
-        {
-            if (this.cur >= this.size)
-                return 0;
-            var m = this.data[this.cur++];
-            if (m > 127)
-                m -= 256;
-            return m;
-        },
-        GetString1: function (len)
-        {
-            if (this.cur + len > this.size)
-                return "";
-            var t = "";
-            for (var i = 0; i < len; i++)
-                t += String.fromCharCode(this.data[this.cur + i]);
-            this.cur += len;
-            return t;
-        },
-        ReadString1: function (len)
-        {
-            if (this.pos + len > this.size)
-                return "";
-            var t = "";
-            for (var i = 0; i < len; i++)
-                t += String.fromCharCode(this.data[this.pos + i]);
-            this.pos += len;
-            return t;
-        },
-
-        ReadUChar: function ()
-        {
-            if (this.pos >= this.size) {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            return this.data[this.pos++];
-        },
-        ReadChar: function ()
-        {
-            if (this.pos >= this.size) {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            var m = this.data[this.pos++];
-            if (m > 127)
-                m -= 256;
-            return m;
-        },
-
-        // 2 byte
-        GetUShort: function ()
-        {
-            if (this.cur + 1 >= this.size)
-                return 0;
-            return (this.data[this.cur++] << 8 | this.data[this.cur++]);
-        },
-        GetShort: function ()
-        {
-            return FT_Common.UShort_To_Short(this.GetUShort());
-        },
-        ReadUShort: function ()
-        {
-            if (this.pos + 1 >= this.size)
-            {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            return (this.data[this.pos++] << 8 | this.data[this.pos++]);
-        },
-        ReadShort: function ()
-        {
-            return FT_Common.UShort_To_Short(this.ReadUShort());
-        },
-        GetUShortLE: function ()
-        {
-            if (this.cur + 1 >= this.size)
-                return 0;
-            return (this.data[this.cur++] | this.data[this.cur++] << 8);
-        },
-        GetShortLE: function ()
-        {
-            return FT_Common.UShort_To_Short(this.GetUShortLE());
-        },
-        ReadUShortLE: function ()
-        {
-            if (this.pos + 1 >= this.size) {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            return (this.data[this.pos++] | this.data[this.pos++] << 8);
-        },
-        ReadShortLE: function ()
-        {
-            return FT_Common.UShort_To_Short(this.ReadUShortLE());
-        },
-
-        // 4 byte
-        GetULong: function ()
-        {
-            if (this.cur + 3 >= this.size)
-                return 0;
-            //return (this.data[this.cur++] << 24 | this.data[this.cur++] << 16 | this.data[this.cur++] << 8 | this.data[this.cur++]);
-            var s = (this.data[this.cur++] << 24 | this.data[this.cur++] << 16 | this.data[this.cur++] << 8 | this.data[this.cur++]);
-            if (s < 0)
-                s += 4294967296;
-            return s;
-        },
-        GetLong: function ()
-        {
-            // 32-битные числа - по умолчанию знаковые!!!
-            //return FT_Common.UintToInt(this.GetULong());
-            return (this.data[this.cur++] << 24 | this.data[this.cur++] << 16 | this.data[this.cur++] << 8 | this.data[this.cur++]);
-        },
-        ReadULong: function ()
-        {
-            if (this.pos + 3 >= this.size) {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            var s = (this.data[this.pos++] << 24 | this.data[this.pos++] << 16 | this.data[this.pos++] << 8 | this.data[this.pos++]);
-            if (s < 0)
-                s += 4294967296;
-            return s;
-        },
-        ReadLong: function ()
-        {
-            // 32-битные числа - по умолчанию знаковые!!!
-            //return FT_Common.Uint_To_int(this.ReadULong());
-            if (this.pos + 3 >= this.size)
-            {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            return (this.data[this.pos++] << 24 | this.data[this.pos++] << 16 | this.data[this.pos++] << 8 | this.data[this.pos++]);
-        },
-
-        GetULongLE: function ()
-        {
-            if (this.cur + 3 >= this.size)
-                return 0;
-            return (this.data[this.cur++] | this.data[this.cur++] << 8 | this.data[this.cur++] << 16 | this.data[this.cur++] << 24);
-        },
-        GetLongLE: function ()
-        {
-            return FT_Common.Uint_To_int(this.GetULongLE());
-        },
-        ReadULongLE: function ()
-        {
-            if (this.pos + 3 >= this.size)
-            {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            return (this.data[this.pos++] | this.data[this.pos++] << 8 | this.data[this.pos++] << 16 | this.data[this.pos++] << 24);
-        },
-        ReadLongLE: function ()
-        {
-            return FT_Common.Uint_To_int(this.ReadULongLE());
-        },
-
-        // 3 byte
-        GetUOffset: function ()
-        {
-            if (this.cur + 2 >= this.size)
-                return 0;
-            return (this.data[this.cur++] << 16 | this.data[this.cur++] << 8 | this.data[this.cur++]);
-        },
-        GetUOffsetLE: function ()
-        {
-            if (this.cur + 2 >= this.size)
-                return 0;
-            return (this.data[this.cur++] | this.data[this.cur++] << 8 | this.data[this.cur++] << 16);
-        },
-        ReadUOffset: function ()
-        {
-            if (this.pos + 2 >= this.size)
-            {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            return (this.data[this.pos++] << 16 | this.data[this.pos++] << 8 | this.data[this.pos++]);
-        },
-        ReadUOffsetLE: function ()
-        {
-            if (this.pos + 2 >= this.size)
-            {
-                FT_Error = 85;
-                return 0;
-            }
-            FT_Error = 0;
-            return (this.data[this.pos++] | this.data[this.pos++] << 8 | this.data[this.pos++] << 16);
-        }
-    };
-
     function CPointer()
     {
         this.obj    = null;
         this.data   = null;
         this.pos    = 0;
-    }
-    function dublicate_pointer(p)
-    {
-        if (null == p)
-            return null;
-
-        var d = new CPointer();
-        d.data = p.data;
-        d.pos = p.pos;
-        return d;
-    }
-    function copy_pointer(p, size)
-    {
-        var _p = g_memory.Alloc(size);
-        for (var i = 0; i < size; i++)
-            _p.data[i] = p.data[p.pos + i];
-        return _p;
     }
 
     function FT_Memory()
@@ -395,9 +97,7 @@
             return new FT_Stream(obj.data,_size);
         };
     }
-    var g_memory = new FT_Memory();
-    AscFonts.FT_Stream = FT_Stream;
-    AscFonts.g_memory = g_memory;
+    AscFonts.g_memory = new FT_Memory();
 
     function CRasterMemory()
     {
@@ -440,6 +140,17 @@
         var _fontStreamPointer = Module._ASC_FT_Malloc(_typed_array.size);
         Module.HEAP8.set(_typed_array.data, _fontStreamPointer);
         return { asc_marker: true, data: _fontStreamPointer, len: _typed_array.size};
+    };
+
+    AscFonts.CreateNativeStreamByIndex = function(stream_index)
+    {
+        var _stream_pos = AscFonts.g_fonts_streams[stream_index];
+        if (true !== _stream_pos.asc_marker)
+        {
+            var _native_stream = AscFonts.CreateNativeStream(AscFonts.g_fonts_streams[stream_index]);
+            AscFonts.g_fonts_streams[stream_index] = null;
+            AscFonts.g_fonts_streams[stream_index] = _native_stream;
+        }
     };
 
     function CFaceInfo()

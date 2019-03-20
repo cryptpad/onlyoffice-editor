@@ -124,6 +124,10 @@
 	};
 
     var raster_memory = AscFonts.raster_memory;
+    AscFonts.initVariables = function()
+	{
+        raster_memory = AscFonts.raster_memory;
+	};
 
 	var FONT_ITALIC_ANGLE 	= 0.3090169943749;
 	var FT_ENCODING_UNICODE = 1970170211;
