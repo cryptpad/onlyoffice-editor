@@ -1197,6 +1197,9 @@
 		}
 		if (doAjust) {
 			this._adjustCanvas();
+			if(bChangedH && this.options && this.options.menuEditor) {
+				this.handlers.trigger("resizeEditorHeight");
+			}
 		}
 
 		this._renderText();  // вызов нужен для пересчета поля line.startX, которое используется в _updateCursorPosition

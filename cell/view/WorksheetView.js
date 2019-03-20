@@ -16487,6 +16487,8 @@
 							self.handlers.trigger("asc_onContextMenu", event);
 						}, "updateMenuEditorCursorPosition": function(val) {
 							self.handlers.trigger("asc_updateEditorCursorPosition", val);
+						}, "resizeEditorHeight": function () {
+							self.handlers.trigger("asc_resizeEditorHeight");
 						}
 					}, 2, /*settings*/{ menuEditor: true });
 
