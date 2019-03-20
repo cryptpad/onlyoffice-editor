@@ -1192,6 +1192,7 @@
 			if(this.options && this.options.menuEditor) {
 				if(!bChangedH && tm.height < this._getContentHeight() && this._reduceHeight(tm.height)) {
 					doAjust = true;
+					bChangedH = true;
 				}
 			}
 		}
