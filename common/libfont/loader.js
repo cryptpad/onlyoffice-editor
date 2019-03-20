@@ -63,6 +63,12 @@
 
     window['AscFonts'].load = function(api, onSuccess, onError)
     {
+        if (window["NATIVE_EDITOR_ENJINE"] === true || window["Native"] !== undefined)
+        {
+            onSuccess.call(api);
+            return;
+        }
+
         window['AscFonts'].api = api;
         window['AscFonts'].onSuccess = onSuccess;
         window['AscFonts'].onError = onError;
