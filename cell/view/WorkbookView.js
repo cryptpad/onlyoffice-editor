@@ -469,6 +469,15 @@
 					  self.model.recalcWB(false);
 				  }
 			  },
+
+			  'changeFormatTableInfo': function () {
+				  if ((self.oSelectionInfo.formatTableInfo !== null)  ) {
+					  var tableName = self.oSelectionInfo.formatTableInfo.tableName;
+					  var val = !self.oSelectionInfo.formatTableInfo.lastRow;
+					  var optionType = Asc.c_oAscChangeTableStyleInfo.rowTotal;
+					  return self.changeFormatTableInfo(tableName, optionType, val);
+				  }
+			  },
 			  
 			  //special paste
 			  "hideSpecialPasteOptions": function () {
@@ -3082,7 +3091,11 @@
 	  return this.getWorksheet().ConvertXYToLogic(x, y);
 	};
 	WorkbookView.prototype.ConvertLogicToXY = function (xL, yL) {
-		return this.getWorksheet().ConvertLogicToXY(xL, yL);
+		return this.getWorksheet().ConvertLogicToXY(xL, yL)
+	};
+	WorkbookView.prototype.changeFormatTableInfo = function (tableName, optionType, val) {
+		var ws = this.getWorksheet();
+		return ws.af_changeFormatTableInfo(tableName, optionType, val);
 	};
 
 	WorkbookView.prototype.applyAutoCorrectOptions = function (val) {
