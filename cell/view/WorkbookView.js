@@ -471,7 +471,7 @@
 			  },
 
 			  'changeFormatTableInfo': function () {
-				  var table = self.oSelectionInfo.formatTableInfo;
+				  var table = self.getSelectionInfo().formatTableInfo;
 				  return table && self.changeFormatTableInfo(table.tableName, Asc.c_oAscChangeTableStyleInfo.rowTotal, !table.lastRow);
 			  },
 			  
