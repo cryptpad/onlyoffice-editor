@@ -1601,7 +1601,7 @@
 		}
 
 		if(this.options && this.options.menuEditor) {
-			this.handlers.trigger( "updateMenuEditorCursorPosition", curTop );
+			this.handlers.trigger( "updateMenuEditorCursorPosition", curTop, curHeight );
 		}
 
 		this._updateSelectionInfo();
