@@ -37,7 +37,8 @@
     window['AscFonts'] = window['AscFonts'] || {};
 
     window['AscFonts'].api = null;
-    window['AscFonts'].onApiCallback = null;
+    window['AscFonts'].onSuccess = null;
+    window['AscFonts'].onError = null;
     window['AscFonts'].maxLoadingIndex = 4; // engine, file, manager, wasm
     window['AscFonts'].curLoadingIndex = 0;
 
@@ -49,20 +50,22 @@
 		{
 			if (window['AscFonts'].api)
 			{
-                window['AscFonts'].onApiCallback.call(window['AscFonts'].api);
+                window['AscFonts'].onSuccess.call(window['AscFonts'].api);
 			}
 
 			delete window['AscFonts'].curLoadingIndex;
             delete window['AscFonts'].maxLoadingIndex;
             delete window['AscFonts'].api;
-            delete window['AscFonts'].onApiCallback;
+            delete window['AscFonts'].onSuccess;
+            delete window['AscFonts'].onError;
 		}
 	};
 
-    window['AscFonts'].load = function(api, callback)
+    window['AscFonts'].load = function(api, onSuccess, onError)
     {
         window['AscFonts'].api = api;
-        window['AscFonts'].onApiCallback = callback;
+        window['AscFonts'].onSuccess = onSuccess;
+        window['AscFonts'].onError = onError;
 
         var url = "../../../../sdkjs/common/libfont";
         var useWasm = false;
@@ -80,10 +83,10 @@
 		if (!useWasm)
             window['AscFonts'].onLoadModule();
 
-		var onSuccess = function(){
+		var _onSuccess = function(){
 		};
-		var onError = function(){
-            window['AscFonts'].sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
+		var _onError = function(){
+            window['AscFonts'].onError();
 		};
 
         if (window['AscNotLoadAllScript'])
