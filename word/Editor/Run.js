@@ -6271,7 +6271,7 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 
                 SearchPos.Pos.Update( CurPos, Depth );
                 SearchPos.Stage       = 1;
-                SearchPos.Punctuation = this.Content[CurPos].Is_Punctuation();
+                SearchPos.Punctuation = this.Content[CurPos].IsPunctuation();
                 NeedUpdate            = true;
 
                 break;
@@ -6303,7 +6303,7 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 		if (isFieldCode || isHiddenCF)
 			continue;
 
-        if ( (para_Text !== TempType && para_Math_Text !== TempType) || true === Item.Is_NBSP() || ( true === SearchPos.Punctuation && true !== Item.Is_Punctuation() ) || ( false === SearchPos.Punctuation && false !== Item.Is_Punctuation() ) )
+        if ( (para_Text !== TempType && para_Math_Text !== TempType) || true === Item.Is_NBSP() || ( true === SearchPos.Punctuation && true !== Item.IsPunctuation() ) || ( false === SearchPos.Punctuation && false !== Item.IsPunctuation() ) )
         {
             SearchPos.Found = true;
             break;
@@ -6349,7 +6349,7 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
 				isHiddenCF   = SearchPos.IsHiddenComplexField();
 			}
 
-            if ( (para_Text === Type || para_Math_Text === Type) && true != Item.Is_NBSP() && ( true === SearchPos.First || ( SearchPos.Punctuation === Item.Is_Punctuation() ) ) )
+            if ( (para_Text === Type || para_Math_Text === Type) && true != Item.Is_NBSP() && ( true === SearchPos.First || ( SearchPos.Punctuation === Item.IsPunctuation() ) ) )
                 bText = true;
 
             if (true === bText || isFieldCode || isHiddenCF)
@@ -6359,7 +6359,7 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
 					if (true === SearchPos.First)
 					{
 						SearchPos.First       = false;
-						SearchPos.Punctuation = Item.Is_Punctuation();
+						SearchPos.Punctuation = Item.IsPunctuation();
 					}
 
 					// Отмечаем, что сдвиг уже произошел
@@ -6397,6 +6397,14 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
                     // Отмечаем, что сдвиг уже произошел
                     SearchPos.Shift = true;
                 }
+
+                if (SearchPos.IsTrimSpaces())
+				{
+					SearchPos.Pos.Update(CurPos, Depth);
+					SearchPos.Found     = true;
+					SearchPos.UpdatePos = true;
+					return;
+				}
 
                 break;
             }

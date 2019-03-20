@@ -10373,8 +10373,20 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 	else
 	{
 		var QuotedText = this.GetSelectedText(false);
-		if (null === QuotedText)
-			QuotedText = "";
+		if (null === QuotedText || "" === QuotedText)
+		{
+			var oParagraph = this.GetCurrentParagraph();
+			if (oParagraph && oParagraph.SelectCurrentWord())
+			{
+				QuotedText = this.GetSelectedText(false);
+				if (null === QuotedText)
+					QuotedText = "";
+			}
+			else
+			{
+				QuotedText = "";
+			}
+		}
 		CommentData.Set_QuoteText(QuotedText);
 
 		var Comment = new CComment(this.Comments, CommentData);
