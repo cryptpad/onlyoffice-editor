@@ -10372,6 +10372,8 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 	}
 	else
 	{
+		// TODO: Как будет реализовано добавление комментариев к объекту, добавить проверку на выделение объекта
+
 		var QuotedText = this.GetSelectedText(false);
 		if (null === QuotedText || "" === QuotedText)
 		{
