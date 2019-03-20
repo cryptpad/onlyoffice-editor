@@ -2587,54 +2587,8 @@ CChartsDrawer.prototype =
 		return {val: val, numPow: numPow};
 	},
 	
-	getIdxPoint: function(seria, val, bXVal)
+	getIdxPoint: function(seria, index, bXVal)
 	{
-		var seriaVal;
-		if(bXVal) {
-			seriaVal = seria.val ? seria.val :  seria.xVal;
-		} else {
-			seriaVal = seria.val ? seria.val :  seria.yVal;
-		}
-		
-		if(!seriaVal)
-			return null;
-
-		//todo use getNumCache
-		var pts = seriaVal.numRef &&  seriaVal.numRef.numCache ? seriaVal.numRef.numCache.pts : seriaVal.numLit ? seriaVal.numLit.pts : null;
-		
-		if(pts == null)
-			return null;
-		
-		for(var p = 0; p < pts.length; p++)
-		{
-			if(pts[p].idx === val)
-				return pts[p];
-		}
-	},
-
-	getPointByIndex: function (seria, index, bXVal) {
-		var ser;
-		if (bXVal) {
-			ser = seria.val ? seria.val : seria.xVal;
-		} else {
-			ser = seria.val ? seria.val : seria.yVal;
-		}
-
-		if (!ser) {
-			return null;
-		}
-
-		//todo use getNumCache
-		var pts = ser.numRef && ser.numRef.numCache ? ser.numRef.numCache.pts : ser.numLit ? ser.numLit.pts : null;
-
-		if (pts == null) {
-			return null;
-		}
-
-		return pts[index];
-	},
-
-	getPointByIdx: function(seria, index, bXVal) {
 		var res = null;
 
 		var ser;
@@ -2663,6 +2617,28 @@ CChartsDrawer.prototype =
 		}
 
 		return res;
+	},
+
+	getPointByIndex: function (seria, index, bXVal) {
+		var ser;
+		if (bXVal) {
+			ser = seria.val ? seria.val : seria.xVal;
+		} else {
+			ser = seria.val ? seria.val : seria.yVal;
+		}
+
+		if (!ser) {
+			return null;
+		}
+
+		//todo use getNumCache
+		var pts = ser.numRef && ser.numRef.numCache ? ser.numRef.numCache.pts : ser.numLit ? ser.numLit.pts : null;
+
+		if (pts == null) {
+			return null;
+		}
+
+		return pts[index];
 	},
 
 	getPtCount: function(series)
@@ -5675,48 +5651,6 @@ drawAreaChart.prototype = {
 		}
 	},
 
-	_calculateLine2: function (points, prevPoints) {
-		var pathId = this.cChartSpace.AllocPath();
-		var path = this.cChartSpace.GetPath(pathId);
-
-		var pathH = this.chartProp.pathH;
-		var pathW = this.chartProp.pathW;
-
-
-		var point;
-		var pxToMm = this.chartProp.pxToMM;
-
-		//точки данной серии
-		for (var i = 0; i < points.length; i++) {
-			point = points[i];
-			if (i === 0) {
-				path.moveTo(point.x * pathW, point.y * pathH);
-			} else {
-				path.lnTo(point.x * pathW, point.y * pathH);
-			}
-		}
-
-		//точки предыдущей серии
-		var nullPositionOX = this.catAx.posY * this.chartProp.pxToMM;
-		if (prevPoints != null) {
-			for (var i = prevPoints.length - 1; i >= 0; i--) {
-				point = prevPoints[i];
-				path.lnTo(point.x * pathW, point.y * pathH);
-
-				if (i === 0) {
-					path.lnTo(points[0].x * pathW, points[0].y * pathH);
-				}
-			}
-		} else {
-			path.lnTo(points[points.length - 1].x * pathW, nullPositionOX / pxToMm * pathH);
-			path.lnTo(points[0].x * pathW, nullPositionOX / pxToMm * pathH);
-			path.lnTo(points[0].x * pathW, points[0].y * pathH);
-		}
-
-		return pathId;
-	},
-
-
 	_calculateLine: function (points, prevPoints) {
 		var pathId = this.cChartSpace.AllocPath();
 		var path = this.cChartSpace.GetPath(pathId);
@@ -6778,7 +6712,7 @@ drawAreaChart.prototype = {
 
 		if (this.subType === "stacked") {
 			for (var k = 0; k <= i; k++) {
-				idxPoint = this.cChartDrawer.getPointByIdx(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					val += tempVal;
@@ -6787,7 +6721,7 @@ drawAreaChart.prototype = {
 		} else if (this.subType === "stackedPer") {
 			var summVal = 0;
 			for (var k = 0; k < this.chart.series.length; k++) {
-				idxPoint = this.cChartDrawer.getPointByIdx(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
@@ -6798,7 +6732,7 @@ drawAreaChart.prototype = {
 			}
 			val = val / summVal;
 		} else {
-			idxPoint = this.cChartDrawer.getPointByIdx(this.chart.series[i], n);
+			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
 			val = idxPoint ? parseFloat(idxPoint.val) : null;
 		}
 		return val;
