@@ -5536,7 +5536,7 @@ drawAreaChart.prototype = {
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
-				if(null === val) {
+				if(null === val && this.cChartDrawer.nDimensionCount !== 3) {
 					continue;
 				}
 
@@ -6253,6 +6253,11 @@ drawAreaChart.prototype = {
 
 		for (var seria = 0; seria < allPoints.length; seria++) {
 			var points = allPoints[seria];
+
+			if(!points) {
+				continue;
+			}
+
 			for (var i = 0; i < points.length - 1; i++) {
 				var x = points[i].x * pxToMm;
 				var y = points[i].y * pxToMm;
@@ -6859,11 +6864,15 @@ drawAreaChart.prototype = {
 					pen = seria.pen;
 
 					numCache = this.cChartDrawer.getNumCache(seria.val);
-					if (numCache.pts[0].pen) {
+					if (numCache.pts[0] && numCache.pts[0].pen) {
 						pen = numCache.pts[0].pen;
 					}
-					if (numCache.pts[0].brush) {
+					if (numCache.pts[0] && numCache.pts[0].brush) {
 						brush = numCache.pts[0].brush;
+					}
+
+					if(!this.paths.series[j]) {
+						continue;
 					}
 
 					this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
