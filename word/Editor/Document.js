@@ -1535,6 +1535,8 @@ function CDocumentSettings()
     this.MathSettings      = undefined !== CMathSettings ? new CMathSettings() : {};
     this.CompatibilityMode = document_compatibility_mode_Current;
     this.SdtSettings       = new CSdtGlobalSettings();
+    this.ListSeparator = undefined;
+    this.DecimalSymbol = undefined;
 }
 
 /**
@@ -10370,9 +10372,23 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 	}
 	else
 	{
+		// TODO: Как будет реализовано добавление комментариев к объекту, добавить проверку на выделение объекта
+
 		var QuotedText = this.GetSelectedText(false);
-		if (null === QuotedText)
-			QuotedText = "";
+		if (null === QuotedText || "" === QuotedText)
+		{
+			var oParagraph = this.GetCurrentParagraph();
+			if (oParagraph && oParagraph.SelectCurrentWord())
+			{
+				QuotedText = this.GetSelectedText(false);
+				if (null === QuotedText)
+					QuotedText = "";
+			}
+			else
+			{
+				QuotedText = "";
+			}
+		}
 		CommentData.Set_QuoteText(QuotedText);
 
 		var Comment = new CComment(this.Comments, CommentData);
@@ -17919,6 +17935,22 @@ CDocument.prototype.AddTableCellFormula = function(sFormula)
 		}
 	}
 
+};
+
+/**
+ * Разбираем sInstrLine на формулу и формат числа
+ * @param {string} sInstrLine
+ * @returns {Array}
+ */
+CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
+{
+    var oParser = new CFieldInstructionParser();
+    var oResult = oParser.GetInstructionClass(sInstrLine);
+    if(oResult && oResult instanceof CFieldInstructionFORMULA)
+    {
+        return [oResult.Formula ? "=" + oResult.Formula : "=", oResult.Format && oResult.Format.sFormat ? oResult.Format.sFormat : ""];
+    }
+    return ["", ""];
 };
 
 function CDocumentSelectionState()

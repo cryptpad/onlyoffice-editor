@@ -3436,7 +3436,7 @@ Paragraph.prototype.Add = function(Item)
 						if (undefined === this.GetNumPr())
 							this.TextPr.Apply_TextPr(TextPr);
 					}
-					else if (null !== RItem && null !== LItem && para_Text === RItem.Type && para_Text === LItem.Type && false === RItem.Is_Punctuation() && false === LItem.Is_Punctuation())
+					else if (null !== RItem && null !== LItem && para_Text === RItem.Type && para_Text === LItem.Type && false === RItem.IsPunctuation() && false === LItem.IsPunctuation())
 					{
 						var SearchSPos = new CParagraphSearchPos();
 						var SearchEPos = new CParagraphSearchPos();
@@ -3798,7 +3798,7 @@ Paragraph.prototype.IncDec_FontSize = function(bIncrease)
 				// Изменение настройки для символа параграфа делается внутри
 				this.Apply_TextPr(undefined, bIncrease, false);
 			}
-			else if (null !== RItem && null !== LItem && para_Text === RItem.Type && para_Text === LItem.Type && false === RItem.Is_Punctuation() && false === LItem.Is_Punctuation())
+			else if (null !== RItem && null !== LItem && para_Text === RItem.Type && para_Text === LItem.Type && false === RItem.IsPunctuation() && false === LItem.IsPunctuation())
 			{
 				var SearchSPos = new CParagraphSearchPos();
 				var SearchEPos = new CParagraphSearchPos();
@@ -11573,6 +11573,13 @@ Paragraph.prototype.CanAddComment = function()
 		return true;
 	}
 
+	var oNext = this.GetNextRunElement();
+	var oPrev = this.GetPrevRunElement();
+
+	if ((oNext && para_Text === oNext.Type)
+		|| (oPrev && para_Text === oPrev.Type))
+		return true;
+
 	return false;
 };
 Paragraph.prototype.RemoveCommentMarks = function(Id)
@@ -13615,6 +13622,76 @@ Paragraph.prototype.IsCondensedSpaces = function()
 
 	return false;
 };
+/**
+ * Выделяем слово, около которого стоит курсор
+ * @returns {boolean}
+ */
+Paragraph.prototype.SelectCurrentWord = function()
+{
+	if (this.Selection.Use)
+		return false;
+
+	var oLItem = this.GetPrevRunElement();
+	var oRItem = this.GetNextRunElement();
+
+	if (!oLItem && !oRItem)
+		return false;
+
+	var oStartPos = null;
+	var oEndPos   = null;
+
+	var oCurPos = this.Get_ParaContentPos(false, false);
+
+	var oSearchSPos = new CParagraphSearchPos();
+	var oSearchEPos = new CParagraphSearchPos();
+
+	if (oRItem && oLItem && para_Text === oRItem.Type && para_Text === oLItem.Type)
+	{
+		if (oRItem.IsPunctuation() && !oLItem.IsPunctuation())
+			oRItem = null;
+		else if (!oRItem.IsPunctuation() && oLItem.IsPunctuation())
+			oLItem = null;
+	}
+
+	if (!oRItem || para_Text !== oRItem.Type)
+	{
+		oEndPos = oCurPos;
+	}
+	else
+	{
+		oSearchEPos.SetTrimSpaces(true);
+		this.Get_WordEndPos(oSearchEPos, oCurPos);
+
+		if (true !== oSearchEPos.Found)
+			return false;
+
+		oEndPos = oSearchEPos.Pos;
+	}
+
+	if (!oLItem || para_Text !== oLItem.Type)
+	{
+		oStartPos = oCurPos;
+	}
+	else
+	{
+		this.Get_WordStartPos(oSearchSPos, oCurPos);
+
+		if (true !== oSearchSPos.Found)
+			return false;
+
+		oStartPos = oSearchSPos.Pos;
+	}
+
+	if (!oStartPos || !oEndPos || 0 === oStartPos.Compare(oEndPos))
+		return false;
+
+	// Выставим временно селект от начала и до конца слова
+	this.Selection.Use = true;
+	this.Set_SelectionContentPos(oStartPos, oEndPos);
+	this.Document_SetThisElementCurrent();
+
+	return true;
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
@@ -14662,6 +14739,8 @@ function CParagraphSearchPos()
 
     this.CheckAnchors = false;
 
+    this.TrimSpaces = false; // При поиске позиции конца слова, если false - ищем вместе с проблема, true - ищем четкое окончание слова
+
     this.ComplexFields = [];
 }
 CParagraphSearchPos.prototype.SetCheckAnchors = function(bCheck)
@@ -14776,6 +14855,14 @@ CParagraphSearchPos.prototype.IsHiddenComplexField = function()
 	}
 
 	return false;
+};
+CParagraphSearchPos.prototype.SetTrimSpaces = function(isTrim)
+{
+	this.TrimSpaces = isTrim;
+};
+CParagraphSearchPos.prototype.IsTrimSpaces = function(isTrim)
+{
+	return this.TrimSpaces;
 };
 
 function CParagraphSearchPosXY()

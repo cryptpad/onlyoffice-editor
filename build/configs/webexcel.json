@@ -142,6 +142,7 @@
         "../cell/model/DrawingObjects/Format/ImagePrototype.js",
         "../cell/model/DrawingObjects/Format/GroupPrototype.js",
         "../cell/model/DrawingObjects/Format/ChartSpacePrototype.js",
+		"../common/Drawings/Format/LockedCanvas.js",
 		"../cell/model/PivotTables.js",
 		
 		"../word/Editor/DocumentContentElementBase.js",

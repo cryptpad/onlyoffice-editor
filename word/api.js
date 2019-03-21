@@ -8621,6 +8621,24 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.GetTableCellFormula();
 	};
+	asc_docs_api.prototype.asc_GetTableFormulaFormats = function()
+	{
+		return ["#,##0", "#,##0.00", "$#,##0.00;($#,##0.00)", "0", "0%", "0.00", "0.00%"];
+	};
+
+	asc_docs_api.prototype.asc_ParseTableFormulaInstrLine = function(sInstrLine)
+	{
+		return this.WordControl.m_oLogicDocument.ParseTableFormulaInstrLine(sInstrLine);
+	};
+
+	asc_docs_api.prototype.asc_CreateInstructionLine = function(sFormula, sFormat)
+	{
+		var sRet = sFormula;
+		if(typeof sFormat === "string" && sFormat.length > 0){
+			sRet += " \\# \"" + sFormat + "\"";
+		}
+		return sRet;
+	};
 
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
 	{
@@ -9236,6 +9254,10 @@ background-repeat: no-repeat;\
 	{
 		return this.asc_GetCurrentContentControl();
 	};
+    window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControlPr"] = function()
+    {
+        return this.asc_GetContentControlProperties();
+    };
 	window["asc_docs_api"].prototype["pluginMethod_SelectContentControl"] = function(id)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
@@ -9915,6 +9937,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetComplexFieldPr']                     = asc_docs_api.prototype.asc_SetComplexFieldPr;
 	asc_docs_api.prototype['asc_AddTableFormula']                       = asc_docs_api.prototype.asc_AddTableFormula;
 	asc_docs_api.prototype['asc_GetTableFormula']                       = asc_docs_api.prototype.asc_GetTableFormula;
+	asc_docs_api.prototype['asc_GetTableFormulaFormats']                = asc_docs_api.prototype.asc_GetTableFormulaFormats;
+	asc_docs_api.prototype['asc_ParseTableFormulaInstrLine']            = asc_docs_api.prototype.asc_ParseTableFormulaInstrLine;
+	asc_docs_api.prototype['asc_CreateInstructionLine']                 = asc_docs_api.prototype.asc_CreateInstructionLine;
+
 
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
 

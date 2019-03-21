@@ -5959,11 +5959,11 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		this.bs.WriteItem(c_oSer_SettingsType.MathPr, function(){oThis.WriteMathPr();});
 		this.bs.WriteItem(c_oSer_SettingsType.TrackRevisions, function(){oThis.memory.WriteBool(oThis.Document.IsTrackRevisions());});
 		this.bs.WriteItem(c_oSer_SettingsType.FootnotePr, function(){oThis.WriteFootnotePr();});
-		if (editor.WordControl.m_oLogicDocument.Settings.decimalSymbol) {
-			this.bs.WriteItem(c_oSer_SettingsType.DecimalSymbol, function() {oThis.memory.WriteString3(editor.WordControl.m_oLogicDocument.Settings.decimalSymbol);});
+		if (oThis.Document.Settings && oThis.Document.Settings.DecimalSymbol) {
+			this.bs.WriteItem(c_oSer_SettingsType.DecimalSymbol, function() {oThis.memory.WriteString3(oThis.Document.Settings.DecimalSymbol);});
 		}
-		if (editor.WordControl.m_oLogicDocument.Settings.listSeparator) {
-			this.bs.WriteItem(c_oSer_SettingsType.ListSeparator, function() {oThis.memory.WriteString3(editor.WordControl.m_oLogicDocument.Settings.listSeparator);});
+		if (oThis.Document.Settings && oThis.Document.Settings.ListSeparator) {
+			this.bs.WriteItem(c_oSer_SettingsType.ListSeparator, function() {oThis.memory.WriteString3(oThis.Document.Settings.ListSeparator);});
 		}
 		if (!oThis.Document.IsSdtGlobalSettingsDefault()) {
 			var rPr = new CTextPr();
@@ -14585,11 +14585,11 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		}
 		else if ( c_oSer_SettingsType.DecimalSymbol === type )
 		{
-			editor.WordControl.m_oLogicDocument.Settings.decimalSymbol = this.stream.GetString2LE(length);
+			editor.WordControl.m_oLogicDocument.Settings.DecimalSymbol = this.stream.GetString2LE(length);
 		}
 		else if ( c_oSer_SettingsType.ListSeparator === type )
 		{
-			editor.WordControl.m_oLogicDocument.Settings.listSeparator = this.stream.GetString2LE(length);
+			editor.WordControl.m_oLogicDocument.Settings.ListSeparator = this.stream.GetString2LE(length);
 		}
         else
             res = c_oSerConstants.ReadUnknown;

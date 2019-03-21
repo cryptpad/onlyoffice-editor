@@ -471,6 +471,7 @@ var c_Date1900Const = 25568; //разница в днях между 01.01.1970 
 var c_sPerDay = 86400;
 var c_msPerDay = c_sPerDay * 1000;
   var rx_sFuncPref = /_xlfn\./i;
+  var rx_sDefNamePref = /_xlnm\./i;
 	var cNumFormatFirstCell = -1;
 	var cNumFormatNone = -2;
 	var cNumFormatNull = -3;
@@ -1626,7 +1627,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					}
 				}
 
-				arr[i - r1][j - c1] = resValue;
+				arr[k][i - r1][j - c1] = resValue;
 			});
 		}
 		return arr;
@@ -1945,9 +1946,26 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cName.prototype.toString = function () {
 		var defName = this.getDefName();
 		if (defName) {
+			if (defName.isXLNM) {
+				return new cString("_xlnm." + defName.name);
+			}
 			return defName.name;
 		} else {
 			return this.value;
+		}
+	};
+	cName.prototype.toLocaleString = function () {
+		var defName = this.getDefName();
+		if (defName) {
+			return defName.sheetId ? AscCommon.translateManager.getValue(defName.name) : defName.name;
+		} else {
+			//сделано для: создаем формулу со ссылкой на Область_печати, далее удаляем область печати с листа
+			//поскольку в стеке лежит cName c именем "Print_Area", формула собиралась уже без учёта локали(мы попадали в текущую ветку и возвращали this.value)
+			// - вместо области печати мы видим Print_Area
+			//но с данной правкой есть проблема. если мы ссылаемся, допустим, в русской локали в формуле на именованный
+			//диапазон Print_Area, то при сборке формулы он автоматически преобразуется в Область_Печати
+			//аналогично тому, что если мы создаём в менеджере имен новое имя "Print_Area" - преоразуется с учетом локали
+			return AscCommon.translateManager.getValue(this.value);
 		}
 	};
 	cName.prototype.getValue = function () {
@@ -5814,7 +5832,43 @@ parserFormula.prototype.setFormula = function(formula) {
 				} else if (parserHelp.isOperator.call(ph, t.Formula, ph.pCurrPos)) {
 					operator.isOperator = true;
 					operator.operatorName = ph.operand_str;
-				} else if(!ignoreErrors){
+				} /*else if(ignoreErrors && parserHelp.isFunc.call(ph, t.Formula, ph.pCurrPos)) {
+					//TODO при нахождении функции внутри массива ms выдаёт подсказки к аргументам данной функции(lookup(,{,3,sum()
+					//если расскоментировать данный код, то проверка на функцию должна осуществляться, необходимо проверить!
+
+					if (wasRigthParentheses && parseResult.operand_expected) {
+						elemArr.push(new cMultOperator());
+					}
+
+					var found_operator = null, operandStr = ph.operand_str.replace(rx_sFuncPref, "").toUpperCase();
+					if (operandStr in cFormulaList) {
+						found_operator = cFormulaList[operandStr].prototype;
+					} else if (operandStr in cAllFormulaFunction) {
+						found_operator = cAllFormulaFunction[operandStr].prototype;
+					} else {
+						found_operator = new cUnknownFunction(operandStr);
+						found_operator.isXLFN = ( ph.operand_str.indexOf("_xlfn.") === 0 );
+					}
+
+					if (found_operator !== null) {
+						if (found_operator.ca) {
+							t.ca = found_operator.ca;
+						}
+						elemArr.push(found_operator);
+						parseResult.addElem(found_operator);
+						if("SUMPRODUCT" === found_operator.name){
+							startSumproduct = true;
+						}
+					} else if(!ignoreErrors) {
+						parseResult.setError(c_oAscError.ID.FrmlWrongFunctionName);
+						t.outStack = [];
+						return false;
+					}
+					parseResult.operand_expected = false;
+					wasRigthParentheses = false;
+					return true;
+				}*/ else {
+					//убираю проверку на ignoreErrors из-за зацикливания в формулах типа lookup(,{,3,sum(
 					t.outStack = [];
 					/*в массиве используется недопустимый параметр*/
 					parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
@@ -5913,11 +5967,23 @@ parserFormula.prototype.setFormula = function(formula) {
 				}
 			}
 
-			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos,
-					t.wb, t.ws)[0]) {
-				found_operand = new cName(ph.operand_str, t.ws);
-				var defName = found_operand.getDefName();
-				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(ph.operand_str + "[]", 0))) {
+			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos, t.wb, t.ws)[0]) {
+
+				//проверяем вдруг это область печати
+				var defName;
+				var sDefNameOperand = ph.operand_str.replace(rx_sDefNamePref, "");
+				var tryTranslate = AscCommonExcel.tryTranslateToPrintArea(sDefNameOperand);
+				if(tryTranslate) {
+					found_operand = new cName(tryTranslate, t.ws);
+					defName = found_operand.getDefName();
+				}
+				//TODO возможно здесь нужно else ставить
+				if(!defName) {
+					found_operand = new cName(sDefNameOperand, t.ws);
+					defName = found_operand.getDefName();
+				}
+
+				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(sDefNameOperand + "[]", 0))) {
 					found_operand = cStrucTable.prototype.createFromVal(_tableTMP, t.wb, t.ws);
 					//need assemble becase source formula wrong
 					needAssemble = true;
@@ -6434,6 +6500,14 @@ parserFormula.prototype.setFormula = function(formula) {
 						}
 						if (elem.type === cElementType.cellsRange3D) {
 							elem.bbox = _cellsBbox;
+							var isDefName;
+							if (this.parent && this.parent.onFormulaEvent) {
+								isDefName = this.parent.onFormulaEvent(AscCommon.c_oNotifyParentType.IsDefName);
+							}
+							//только если это defName
+							if(null === isDefName) {
+								elem.changeSheet(ws, wsTo);
+							}
 						} else {
 							elem.range = _cellsRange.createFromBBox(wsTo, _cellsBbox);
 						}
@@ -6680,7 +6754,7 @@ parserFormula.prototype.setFormula = function(formula) {
 		for (var i = 0, j = 0; i < _count; i++) {
 			currentElement = this.outStack[i];
 
-			if(currentElement.type !== cElementType.cellsRange3D && currentElement.type !== cElementType.cell3D) {
+			if(currentElement.type !== cElementType.cellsRange3D && currentElement.type !== cElementType.cell3D && currentElement.type !== cElementType.name && currentElement.type !== cElementType.name3D) {
 				onlyRangesElements = false;
 				rangesStr = null;
 			}

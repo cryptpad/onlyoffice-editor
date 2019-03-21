@@ -1718,6 +1718,17 @@
 			AscCommonExcel.g_R1C1Mode = oldMode;
 		}
 
+		function checkFilteringMode(f, oThis, args) {
+			if (!window['AscCommonExcel'].filteringMode) {
+				History.LocalChange = true;
+			}
+			var ret = f.apply(oThis, args);
+			if (!window['AscCommonExcel'].filteringMode) {
+				History.LocalChange = false;
+			}
+			return ret;
+		}
+
 		function getEndValueRange (dx, start, v1, v2) {
 			var x1, x2;
 			if (0 !== dx) {
@@ -1865,6 +1876,7 @@
 			// Вид печати
 			this.printType = Asc.c_oAscPrintType.ActiveSheets;
 			this.pageOptionsMap = null;
+			this.ignorePrintArea = null;
 
 			// ToDo сюда же start и end page index
 
@@ -1874,6 +1886,8 @@
 		asc_CAdjustPrint.prototype.asc_setPrintType = function (val) { this.printType = val; };
 		asc_CAdjustPrint.prototype.asc_getPageOptionsMap = function () { return this.pageOptionsMap; };
 		asc_CAdjustPrint.prototype.asc_setPageOptionsMap = function (val) { this.pageOptionsMap = val; };
+		asc_CAdjustPrint.prototype.asc_getIgnorePrintArea = function () { return this.ignorePrintArea; };
+		asc_CAdjustPrint.prototype.asc_setIgnorePrintArea = function (val) { this.ignorePrintArea = val; };
 
 		/** @constructor */
 		function asc_CLockInfo () {
@@ -2077,10 +2091,12 @@
 		asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
 			oGraphics.clear();
 			// Fill cell
-			var oColor = oStyle.getFillColor();
-			if (null !== oColor) {
-				oGraphics.setFillStyle(oColor);
-				oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+			if (oStyle.ApplyFill) {
+				var oColor = oStyle.getFillColor();
+				if (null !== oColor) {
+					oGraphics.setFillStyle(oColor);
+					oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+				}
 			}
 
 			var drawBorder = function (b, x1, y1, x2, y2) {
@@ -2092,14 +2108,16 @@
 				}
 			};
 
-			// borders
-			var oBorders = oStyle.getBorder();
-			drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt);
-			drawBorder(oBorders.r, this.styleThumbnailWidthPt, 0, this.styleThumbnailWidthPt,
-				this.styleThumbnailHeightPt);
-			drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0);
-			drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt, this.styleThumbnailWidthPt,
-				this.styleThumbnailHeightPt);
+			if (oStyle.ApplyBorder) {
+				// borders
+				var oBorders = oStyle.getBorder();
+				drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt);
+				drawBorder(oBorders.r, this.styleThumbnailWidthPt, 0, this.styleThumbnailWidthPt,
+					this.styleThumbnailHeightPt);
+				drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0);
+				drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt, this.styleThumbnailWidthPt,
+					this.styleThumbnailHeightPt);
+			}
 
 			// Draw text
 			var format = oStyle.getFont().clone();
@@ -2442,6 +2460,7 @@
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
 		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 		window["Asc"].getEndValueRange = getEndValueRange;
+		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 
 		window["AscCommonExcel"].referenceType = referenceType;
 		window["Asc"].Range = Range;
@@ -2497,6 +2516,8 @@
 		prot["asc_setPrintType"] = prot.asc_setPrintType;
 		prot["asc_getPageOptionsMap"] = prot.asc_getPageOptionsMap;
 		prot["asc_setPageOptionsMap"] = prot.asc_setPageOptionsMap;
+		prot["asc_getIgnorePrintArea"] = prot.asc_getIgnorePrintArea;
+		prot["asc_setIgnorePrintArea"] = prot.asc_setIgnorePrintArea;
 
 		window["AscCommonExcel"].asc_CLockInfo = asc_CLockInfo;
 

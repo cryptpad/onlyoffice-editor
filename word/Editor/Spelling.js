@@ -899,7 +899,7 @@ Paragraph.prototype.Internal_CheckPunctuationBreak = function(_Pos)
     {
         var Item = this.Content[Pos];
 
-        if ( para_Text === Item.Type &&  false === Item.Is_Punctuation() && false === Item.Is_NBSP() && false === Item.Is_Number() && false === Item.Is_SpecialSymbol() )
+        if ( para_Text === Item.Type &&  false === Item.IsPunctuation() && false === Item.Is_NBSP() && false === Item.Is_Number() && false === Item.Is_SpecialSymbol() )
         {
             return true;
         }
@@ -1118,8 +1118,8 @@ ParaRun.prototype.CheckSpelling = function(oSpellCheckerEngine, nDepth)
 
 		var oItem = this.Content[nPos];
 
-		//if ( para_Text === oItem.Type && ( false === oItem.Is_Punctuation() || ( true === bWord && true === this.Internal_CheckPunctuationBreak( nPos ) ) ) && false === oItem.Is_NBSP() && false === oItem.Is_Number() && false === oItem.Is_SpecialSymbol() )
-		if (para_Text === oItem.Get_Type() && false === oItem.Is_Punctuation() && false === oItem.Is_NBSP() && false === oItem.Is_Number() && false === oItem.Is_SpecialSymbol())
+		//if ( para_Text === oItem.Type && ( false === oItem.IsPunctuation() || ( true === bWord && true === this.Internal_CheckPunctuationBreak( nPos ) ) ) && false === oItem.Is_NBSP() && false === oItem.Is_Number() && false === oItem.Is_SpecialSymbol() )
+		if (para_Text === oItem.Get_Type() && false === oItem.IsPunctuation() && false === oItem.Is_NBSP() && false === oItem.Is_Number() && false === oItem.Is_SpecialSymbol())
 		{
 			if (false === bWord)
 			{

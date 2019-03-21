@@ -390,18 +390,21 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 		return res;
 	};
 
-	CCellCommentator.prototype.moveRangeComments = function (from, to, copy) {
+	CCellCommentator.prototype.moveRangeComments = function (from, to, copy, opt_wsTo) {
 		if (from && to) {
 			var colOffset = to.c1 - from.c1;
 			var rowOffset = to.r1 - from.r1;
 
-			this.model.workbook.handlers.trigger("asc_onHideComment");
+			var modelTo = opt_wsTo ? opt_wsTo.model : this.model;
+			var cellCommentatorTo = opt_wsTo ? opt_wsTo.cellCommentator : this;
+
+			modelTo.workbook.handlers.trigger("asc_onHideComment");
 
 			var comments = this.getCommentsRange(from);
 			if (!copy) {
 				this._deleteCommentsRange(comments);
 			}
-			this.deleteCommentsRange(to);
+			cellCommentatorTo.deleteCommentsRange(to);
 
 			for (var i = 0; i < comments.length; ++i) {
 				var newComment = comments[i];
@@ -410,7 +413,7 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 				if (copy) {
 					newComment.setId();
 				}
-				this.addComment(newComment, true);
+				cellCommentatorTo.addComment(newComment, true);
 			}
 		}
 	};
