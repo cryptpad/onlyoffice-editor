@@ -1329,11 +1329,11 @@ ParaDrawing.prototype.GetPosCorrection = function()
 		}
 		if(bCell || this.Is_Inline() || this.PositionH.Align)
 		{
-			DiffX = AscFormat.getValOrDefault(oEffectExtent.L, 0.0) - (xc - extX / 2) + oBounds.l;
+			DiffX = AscFormat.getValOrDefault(oEffectExtent.L, 0.0) - (xc - extX / 2) + (this.PositionH.Align ? 0 : oBounds.l);
 		}
 		if(/*bCell ||*/ this.Is_Inline() || this.PositionV.Align)
 		{
-			DiffY = AscFormat.getValOrDefault(oEffectExtent.T, 0.0) - (yc - extY / 2) + oBounds.t;
+			DiffY = AscFormat.getValOrDefault(oEffectExtent.T, 0.0) - (yc - extY / 2) + (this.PositionV.Align ? 0 : oBounds.t);
 		}
 	}
 	return {DiffX: DiffX, DiffY: DiffY, ExtX: extX, ExtY: extY, Rot: rot};

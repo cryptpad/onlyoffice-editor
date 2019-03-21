@@ -2154,6 +2154,6 @@ IScroll.utils = utils;
 IScroll.prototype["handleEvent"] = IScroll.prototype.handleEvent;
 Indicator.prototype["handleEvent"] = Indicator.prototype.handleEvent;
 
-window.IScroll = IScroll;
+window.IScrollMobile = IScroll;
 
 })(window, document, Math);

@@ -1168,8 +1168,10 @@ CShapeDrawer.prototype =
         else
         {
             // такого быть не должно по идее
-            this.Graphics.b_color1(0, 0, 0, 0);
-            this.Graphics.drawpath(256);
+            // может - см выше: 1) this.Graphics.drawImage(...); 2) bIsFill = false;
+
+            //this.Graphics.b_color1(0, 0, 0, 0);
+            //this.Graphics.drawpath(256);
         }
 
         var arr = this.Graphics.ArrayPoints;

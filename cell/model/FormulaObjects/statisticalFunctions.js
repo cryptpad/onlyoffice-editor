@@ -5039,7 +5039,8 @@ function (window, undefined) {
 			}*/
 
 			tempVal = undefined !== tempVal.value ? tempVal.value : tempVal;
-			if(tempVal === "" && tempMatchingInfo.val && "" !== tempMatchingInfo.val.value) {
+			var matchingValue = tempMatchingInfo.val && tempMatchingInfo.val.value.toString ? tempMatchingInfo.val.value.toString() : null;
+			if(tempVal === "" && matchingValue && "" !== matchingValue.replace(/\*|\?/g, '')) {
 				return false;
 			}
 			return res;

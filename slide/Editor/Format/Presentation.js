@@ -3303,9 +3303,11 @@ CPresentation.prototype =
                                 }
                             }
                         }
-                        if(!bChangeSelect){
-                            History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                            this.addNextSlide();
+                        if(this.CanEdit()){
+                            if(!bChangeSelect){
+                                History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
+                                this.addNextSlide();
+                            }
                         }
                     }
                 }
@@ -5465,10 +5467,13 @@ CPresentation.prototype =
             oController.Save_DocumentStateBeforeLoadChanges(oDocState);
         }
 
+        this.CollaborativeEditing.WatchDocumentPositionsByState(oDocState);
         return oDocState;
     },
 
     Load_DocumentStateAfterLoadChanges: function(oState){
+
+        this.CollaborativeEditing.UpdateDocumentPositionsByState(oState);
         if(oState.Slide){
             var oSlide = oState.Slide;
             if(oSlide !== this.Slides[this.CurPage]){
@@ -7974,7 +7979,7 @@ CPresentation.prototype =
             var _data = _comments[i].Data;
             var _commId = 0;
 
-            var _autID = _data.m_sUserId + _uniIdSplitter + _data.m_sUserName;
+            var _autID = _data.m_sUserName;
             var _author = this.CommentAuthors[_autID];
             if (!_author)
             {
@@ -8009,7 +8014,7 @@ CPresentation.prototype =
             {
                 var _data2 = _comments2[j];
 
-                var _autID2 = _data2.m_sUserId + _uniIdSplitter + _data2.m_sUserName;
+                var _autID2 = _data2.m_sUserName;
                 var _author2 = this.CommentAuthors[_autID2];
                 if (!_author2)
                 {

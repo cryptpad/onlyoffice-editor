@@ -409,7 +409,7 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 };
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
-	this.Instruction.Calculate();
+	this.Instruction.Calculate(this.LogicDocument);
 	if(this.Instruction.ErrStr !== null)
 	{
 		var oSelectedContent = new CSelectedContent();

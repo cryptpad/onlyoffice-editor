@@ -210,6 +210,7 @@
         "../slide/Editor/Format/ImagePrototype.js",
         "../slide/Editor/Format/GroupPrototype.js",
         "../slide/Editor/Format/ChartSpacePrototype.js",
+		"../common/Drawings/Format/LockedCanvas.js",
         "../slide/apiCommon.js",
 		
 		"../word/apiBuilder.js",

@@ -2611,6 +2611,19 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 364 );
 
+		oParser = new parserFormula( "DAYS(A2,A3)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 364 );
+
+		oParser = new parserFormula( 'DAYS("2008-03-03","2008-03-01")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'DAYS("2008-03-01","2008-03-03")', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), -2 );
+
+
 		testArrayFormula2("DAYS", 2, 2);
 	} );
 
@@ -5898,6 +5911,37 @@ $( function () {
 
 		wb.dependencyFormulas.lockRecal();
 
+		ws.getRange2( "A22" ).setValue( "apples" );
+		ws.getRange2( "A23" ).setValue( "" );
+		ws.getRange2( "A24" ).setValue( "oranges" );
+		ws.getRange2( "A25" ).setValue( "peaches" );
+		ws.getRange2( "A26" ).setValue( "" );
+		ws.getRange2( "A27" ).setValue( "apples" );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"*es")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"?????es")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"*")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"***")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"*")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( 'COUNTIF(A22:A27,"<>"&"?")', "C2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 6 );
+
 		testArrayFormula2("COUNTIF", 2, 2)
 	} );
 
@@ -8632,9 +8676,50 @@ $( function () {
 		oParser = new parserFormula( "INDEX(A651:C652,0)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
+		oParser = new parserFormula( "INDEX(A651:C651,1,1,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1 );
+
+		oParser = new parserFormula( "INDEX(A651:C651,1,1,2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
     } );
 
-    test( "Test: \"OFFSET\"", function () {
+	test( "Test: \"INDIRECT\"", function () {
+
+		ws.getRange2( "A22" ).setValue( "B22" );
+		ws.getRange2( "B22" ).setValue( "1.333" );
+
+		ws.getRange2( "A23" ).setValue( "B23" );
+		ws.getRange2( "B23" ).setValue( "45" );
+
+		ws.getRange2( "A24" ).setValue( "George" );
+		ws.getRange2( "B24" ).setValue( "10" );
+
+		ws.getRange2( "A25" ).setValue( "25" );
+		ws.getRange2( "B25" ).setValue( "62" );
+
+
+		oParser = new parserFormula( "INDIRECT(A22)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1.333 );
+
+		oParser = new parserFormula( "INDIRECT(A23)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 45 );
+
+		/*oParser = new parserFormula( "INDIRECT(A24)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 10 );*/
+
+		oParser = new parserFormula( 'INDIRECT("B"&A25)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 62 );
+	} );
+
+
+	test( "Test: \"OFFSET\"", function () {
 
         ws.getRange2( "C150" ).setValue( "1" );
         ws.getRange2( "D150" ).setValue( "2" );

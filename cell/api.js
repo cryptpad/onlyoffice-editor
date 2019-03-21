@@ -213,6 +213,9 @@ var editor;
     this.asc_SendThemeColors(_ret_array, standart_colors);
   };
 
+  spreadsheet_api.prototype.asc_getFunctionArgumentSeparator = function () {
+    return AscCommon.FormulaSeparators.functionArgumentSeparator;
+  };
   spreadsheet_api.prototype.asc_getCurrencySymbols = function () {
 		var result = {};
 		for (var key in AscCommon.g_aCultureInfos) {
@@ -530,8 +533,7 @@ var editor;
   };
   
   spreadsheet_api.prototype.asc_changeFormatTableInfo = function(tableName, optionType, val) {
-    var ws = this.wb.getWorksheet();
-    return ws.af_changeFormatTableInfo(tableName, optionType, val);
+    return this.wb.changeFormatTableInfo(tableName, optionType, val);
   };
 
   spreadsheet_api.prototype.asc_applyAutoCorrectOptions = function(val) {
@@ -1571,7 +1573,10 @@ var editor;
   spreadsheet_api.prototype._onUpdatePrintAreaLock = function(lockElem) {
       var t = this;
 
-      var isLocked = t.asc_isPrintAreaLocked();
+	  var wsModel = t.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
+	  var wsIndex = wsModel? wsModel.getIndex() : undefined;
+
+      var isLocked = t.asc_isPrintAreaLocked(wsIndex);
       if(isLocked) {
           t.handlers.trigger("asc_onLockPrintArea");
       } else {
@@ -3607,6 +3612,7 @@ var editor;
 
   prot["asc_GetFontThumbnailsPath"] = prot.asc_GetFontThumbnailsPath;
   prot["asc_setDocInfo"] = prot.asc_setDocInfo;
+  prot['asc_getFunctionArgumentSeparator'] = prot.asc_getFunctionArgumentSeparator;
 	prot['asc_getCurrencySymbols'] = prot.asc_getCurrencySymbols;
 	prot['asc_getLocaleExample'] = prot.asc_getLocaleExample;
 	prot['asc_getFormatCells'] = prot.asc_getFormatCells;
