@@ -6522,7 +6522,8 @@ background-repeat: no-repeat;\
 							this.WordControl.UpdateReaderContent();
 					}
 
-					var action = this.DocInfo.asc_getOptions()["action"];
+					var options = this.DocInfo.asc_getOptions();
+					var action = options ? options["action"] : null;
 					if (action)
 					{
 						switch (action["type"])
