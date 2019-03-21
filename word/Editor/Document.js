@@ -17128,6 +17128,10 @@ CDocument.prototype.RemoveBookmark = function(sName)
 		this.Recalculate();
 	}
 };
+CDocument.prototype.GoToBookmark = function(sName)
+{
+	this.BookmarksManager.GoToBookmark(sName);
+};
 CDocument.prototype.private_RemoveBookmark = function(sName)
 {
 	var arrBookmarkChars = this.BookmarksManager.GetBookmarkByName(sName);
