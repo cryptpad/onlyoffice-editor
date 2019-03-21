@@ -5536,9 +5536,9 @@ drawAreaChart.prototype = {
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
-				if(null === val && this.cChartDrawer.nDimensionCount !== 3) {
+				/*if(null === val && this.cChartDrawer.nDimensionCount !== 3) {
 					continue;
-				}
+				}*/
 
 				x = this.xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
