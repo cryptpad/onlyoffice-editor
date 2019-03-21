@@ -2405,6 +2405,23 @@ function (window, undefined) {
 			worksheetView._updateFreezePane(updateData.c1, updateData.r1, /*lockDraw*/true);
 		} else if (AscCH.historyitem_Worksheet_SetTabColor === Type) {
 			ws.setTabColor(bUndo ? Data.from : Data.to);
+		} else if (AscCH.historyitem_Worksheet_RowGroup == Type) {
+			index = Data.index;
+			if (wb.bCollaborativeChanges) {
+				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
+				oLockInfo = new AscCommonExcel.asc_CLockInfo();
+				oLockInfo["sheetId"] = nSheetId;
+				oLockInfo["type"] = c_oAscLockTypeElem.Range;
+				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
+				wb.aCollaborativeChangeElements.push(oLockInfo);
+			}
+			ws._getRow(index, function (row) {
+				if (bUndo) {
+					row.setOutlineLevel(Data.oOldVal);
+				} else {
+					row.setOutlineLevel(Data.oNewVal);
+				}
+			});
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {

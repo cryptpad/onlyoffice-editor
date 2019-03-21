@@ -11680,6 +11680,19 @@
 				}
 				this.handlers.trigger("selectionNameChanged", t.getSelectionName(/*bRangeText*/false));
 				break;
+			case "groupRows":
+				functionModelAction = function () {
+					History.Create_NewPoint();
+					History.StartTransaction();
+					t.model.setRowGroup(val, arn.r1, arn.r2);
+					History.EndTransaction();
+					/*oRecalcType = AscCommonExcel.recalcType.full;
+					reinitRanges = true;
+					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};*/
+				};
+				this._isLockedAll(onChangeWorksheetCallback);
+				break;
+
 			case "sheetViewSettings":
 				functionModelAction = function () {
 					if (AscCH.historyitem_Worksheet_SetDisplayGridlines === val.type) {
@@ -15535,6 +15548,13 @@
 	WorksheetView.prototype.changeViewPrintLines = function (val) {
 		this.viewPrintLines = val;
 	};
+
+	WorksheetView.prototype.groupData = function (byCols) {
+		if(!byCols) {
+
+		}
+	};
+
 
     //------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};

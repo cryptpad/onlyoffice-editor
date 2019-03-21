@@ -4065,6 +4065,19 @@ Hyperlink.prototype = {
 		}
 		this._hasChanged = true;
 	};
+	Row.prototype.setOutlineLevel = function (val, bDel) {
+		if(null !== val) {
+			this.outLineLevel = val;
+		} else {
+			if(!this.outLineLevel) {
+				this.outLineLevel = 0;
+			}
+			this.outLineLevel = bDel ? this.outLineLevel - 1 : this.outLineLevel + 1;
+		}
+	};
+	Row.prototype.getOutlineLevel = function () {
+		return this.outLineLevel;
+	};
 	Row.prototype.getHidden = function () {
 		return 0 !== (g_nRowFlag_hd & this.flags);
 	};

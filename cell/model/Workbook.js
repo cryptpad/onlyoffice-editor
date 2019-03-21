@@ -4738,6 +4738,22 @@
 		}
 		this.workbook.dependencyFormulas.calcTree();
 	};
+	Worksheet.prototype.setRowGroup = function (bDel, start, stop) {
+		var oThis = this;
+		var fProcessRow = function(row){
+			var oOldProps = row.getOutlineLevel();
+			row.setOutlineLevel(null, bDel);
+			var oNewProps = row.getOutlineLevel();
+
+			if(oOldProps !== oNewProps) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_RowGroup, oThis.getId(), row._getUpdateRange(), new UndoRedoData_IndexSimpleProp(row.index, true, oOldProps, oNewProps));
+			}
+		};
+
+		for (var i = start; i <= stop; ++i) {
+			this._getRow(i, fProcessRow);
+		}
+	};
 	Worksheet.prototype.getRowCustomHeight = function (index) {
 		var isCustomHeight = false;
 		this._getRowNoEmptyWithAll(index, function (row) {

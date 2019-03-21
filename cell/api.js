@@ -2311,6 +2311,22 @@ var editor;
     this.wb.getWorksheet().changeWorksheet("hideRows");
   };
 
+  spreadsheet_api.prototype.asc_group = function(val) {
+    if(val) {
+		this.wb.getWorksheet().changeWorksheet("groupRows");
+    } else {
+		this.wb.getWorksheet().changeWorksheet("groupCols");
+    }
+  };
+
+  spreadsheet_api.prototype.asc_ungroup = function(val) {
+    if(val) {
+        this.wb.getWorksheet().changeWorksheet("groupRows", true);
+    } else {
+        this.wb.getWorksheet().changeWorksheet("groupCols", true);
+    }
+  };
+
   spreadsheet_api.prototype.asc_insertCells = function(options) {
     this.wb.getWorksheet().changeWorksheet("insCell", options);
   };
