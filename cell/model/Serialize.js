@@ -5176,6 +5176,8 @@
 						this.aSharedStrings.push(tempValue.text);
 					} else if (null != tempValue.multiText) {
 						this.aSharedStrings.push(tempValue.multiText);
+					} else {
+						this.aSharedStrings.push("");
 					}
 				}
             }
