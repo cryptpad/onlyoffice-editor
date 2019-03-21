@@ -1067,6 +1067,18 @@
 			switch (e.keyCode)
 			{
 				case 8:		// backspace
+                {
+                    var oldKeyPressInput = this.keyPressInput;
+                    this.clear();
+                    
+                    if (oldKeyPressInput.length > 1)
+                    {
+                        this.keyPressInput = oldKeyPressInput.substr(0, oldKeyPressInput.length - 1);
+                        if (window.g_asc_plugins)
+                            window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.keyPressInput });
+                    }
+                    return false;
+                }
 				case 9:		// tab
 				case 13:	// enter
 				case 37:	// left

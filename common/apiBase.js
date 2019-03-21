@@ -1673,6 +1673,7 @@
         	AscCommon.g_inputContext.emulateKeyDownApi(8);
 
         AscCommon.g_inputContext.apiInputText(codes);
+        AscCommon.g_inputContext.keyPressInput = "";
     };
 
 	baseEditorsApi.prototype["pluginMethod_PasteHtml"] = function(htmlText)
@@ -2063,6 +2064,14 @@
         	_frame.style.zIndex = 1000;
         else
             _frame.style.zIndex = 5001;
+
+        if (!_frame.style.boxShadow)
+        {
+        	_frame.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
+            _frame.style.webkitBoxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
+            //_frame.style.borderRadius = "3px";
+        }
+
 
         if (isKeyboardTake)
         {
