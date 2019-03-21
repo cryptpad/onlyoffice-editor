@@ -12701,8 +12701,44 @@ CTable.prototype.private_UpdateCellsGrid = function()
 };
 CTable.prototype.SetTableGrid = function(arrGrid)
 {
+	var isChanged = false;
+	if (arrGrid.length != this.TableGrid.length)
+	{
+		isChanged = true;
+	}
+	else
+	{
+		for (var nIndex = 0, nCount = arrGrid.length; nIndex < nCount; ++nIndex)
+		{
+			if (Math.abs(arrGrid[nIndex] - this.TableGrid[nIndex]) > 0.001)
+			{
+				isChanged = true;
+				break;
+			}
+		}
+	}
+
+	if (!isChanged)
+		return;
+
+	var oLogicDocument = this.LogicDocument;
+	if (oLogicDocument && oLogicDocument.IsTrackRevisions() && !this.TableGridChange)
+	{
+		this.SetTableGridChange(this.private_CopyTableGrid());
+		// TODO: Сделать запоминание PrChange
+	}
+
 	History.Add(new CChangesTableTableGrid(this, this.TableGrid, arrGrid));
 	this.TableGrid = arrGrid;
+};
+/**
+ * Выставляем поле для рецензирования, запоминающее исходное состояние сетки таблицы
+ * @param {Array | undefined} arrTableGridChange
+ */
+CTable.prototype.SetTableGridChange = function(arrTableGridChange)
+{
+	History.Add(new CChangesTableTableGridChange(this, this.TableGridChange, arrTableGridChange));
+	this.TableGridChange = arrTableGridChange;
 };
 /**
  * Получаем ширину заданного промежутка в сетке таблицы
