@@ -2693,6 +2693,8 @@ function CDrawingDocument()
 	this._search_HdrFtr_Odd = []; // Поиск в колонтитуле, который находится только на четных страницах, включая первую
 	this._search_HdrFtr_Odd_no_First = []; // Поиск в колонтитуле, который находится только на нечетных страницах, кроме первой
 
+	this.isFirstRecalculate = false;
+
 	this.showTarget = function (isShow)
 	{
 		if (this.TargetHtmlElementBlock)
@@ -2929,6 +2931,12 @@ function CDrawingDocument()
 
 			if (this.m_arPrintingWaitEndRecalculate)
 				this.m_oWordControl.m_oApi._downloadAs.apply(this.m_oWordControl.m_oApi, this.m_arPrintingWaitEndRecalculate);
+
+			if (!this.isFirstRecalculate)
+			{
+                this.isFirstRecalculate = true;
+                // actions after first recalculates...
+			}
 		}
 
 		//console.log("end " + this.m_lCountCalculatePages + "," + isFull + "," + isBreak);

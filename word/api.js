@@ -6521,6 +6521,21 @@ background-repeat: no-repeat;\
 						else
 							this.WordControl.UpdateReaderContent();
 					}
+
+					var action = this.DocInfo.asc_getOptions()["action"];
+					if (action)
+					{
+						switch (action["type"])
+						{
+							case "bookmark":
+							{
+                                Document.GoToBookmark(action["data"]);
+								break;
+							}
+							default:
+								break;
+						}
+					}
 				}
 			}
 
