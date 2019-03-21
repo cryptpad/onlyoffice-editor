@@ -2694,6 +2694,7 @@ function CDrawingDocument()
 	this._search_HdrFtr_Odd_no_First = []; // Поиск в колонтитуле, который находится только на нечетных страницах, кроме первой
 
 	this.isFirstRecalculate = false;
+    this.isScrollToTargetAttack = false;
 
 	this.showTarget = function (isShow)
 	{
@@ -2747,6 +2748,15 @@ function CDrawingDocument()
 	{
 		this.m_sLockedCursorType = "";
 	}
+
+	this.scrollToTargetOnRecalculate = function(pageCountOld, pageCountNew)
+    {
+        if (this.m_lTargetPage > pageCountOld && this.m_lTargetPage < pageCountNew)
+        {
+            this.isScrollToTargetAttack = true;
+            this.UpdateTarget(this.m_dTargetX, this.m_dTargetY, this.m_lTargetPage);
+        }
+    }
 
 	this.OnStartRecalculate = function (pageCount)
 	{
@@ -2855,6 +2865,7 @@ function CDrawingDocument()
 		}
 
 		this.m_bIsBreakRecalculate = (isFull === true) ? false : true;
+		var oldPagesCount = this.m_lPagesCount;
 		if (isFull)
 		{
 			if (this.m_lPagesCount > this.m_lCountCalculatePages)
@@ -2924,6 +2935,11 @@ function CDrawingDocument()
 				this.m_oWordControl.SetCurrentPage(false);
 			}
 		}
+
+		if (!this.isFirstRecalculate)
+        {
+            this.scrollToTargetOnRecalculate(oldPagesCount, this.m_lPagesCount);
+        }
 
 		if (isFull)
 		{
@@ -3877,8 +3893,10 @@ function CDrawingDocument()
 		}
 
 		var bNeedScrollToTarget = true;
-		if (this.m_dTargetX == x && this.m_dTargetY == y && this.m_lTargetPage == pageIndex)
+		if (!this.isScrollToTargetAttack && this.m_dTargetX == x && this.m_dTargetY == y && this.m_lTargetPage == pageIndex)
 			bNeedScrollToTarget = false;
+
+		this.isScrollToTargetAttack = false;
 
 		if (-1 != this.m_lTimerUpdateTargetID)
 		{
