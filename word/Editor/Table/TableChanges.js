@@ -64,6 +64,7 @@ AscDFH.changesFactory[AscDFH.historyitem_Table_Pr]                    = CChanges
 AscDFH.changesFactory[AscDFH.historyitem_Table_TableLayout]           = CChangesTableTableLayout;
 AscDFH.changesFactory[AscDFH.historyitem_Table_TableDescription]      = CChangesTableTableDescription;
 AscDFH.changesFactory[AscDFH.historyitem_Table_TableCaption]          = CChangesTableTableCaption;
+AscDFH.changesFactory[AscDFH.historyitem_Table_TableGridChange]       = CChangesTableTableGridChange;
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
@@ -181,6 +182,9 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Table_TableDescription] = [
 AscDFH.changesRelationMap[AscDFH.historyitem_Table_TableCaption]     = [
 	AscDFH.historyitem_Table_TableCaption,
 	AscDFH.historyitem_Table_Pr
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_Table_TableGridChange] = [
+	AscDFH.historyitem_Table_TableGridChange
 ];
 
 /**
@@ -1344,3 +1348,75 @@ CChangesTableTableCaption.prototype.private_SetValue = function(Value)
 	oTable.Recalc_CompiledPr2();
 };
 CChangesTableTableCaption.prototype.Merge = private_TableChangesOnMergePr;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseProperty}
+ */
+function CChangesTableTableGridChange(Class, Old, New)
+{
+	AscDFH.CChangesBaseProperty.call(this, Class, Old, New);
+}
+CChangesTableTableGridChange.prototype = Object.create(AscDFH.CChangesBaseProperty.prototype);
+CChangesTableTableGridChange.prototype.constructor = CChangesTableTableGridChange;
+CChangesTableTableGridChange.prototype.Type = AscDFH.historyitem_Table_TableGridChange;
+CChangesTableTableGridChange.prototype.WriteToBinary = function(oWriter)
+{
+	// Long            : Count of the columns in the new grid. Zero means undefined
+	// Array of double : widths of columns in the new grid
+	// Long            : Count of the columns in the old grid. Zero means undefined
+	// Array of double : widths of columns in the old grid
+
+	var nNewCount = this.New ? this.New.length : 0;
+	oWriter.WriteLong(nNewCount);
+	for (var nIndex = 0; nIndex < nNewCount; ++nIndex)
+	{
+		oWriter.WriteDouble(this.New[nIndex]);
+	}
+
+	var nOldCount = this.Old ? this.Old.length : 0;
+	oWriter.WriteLong(nOldCount);
+	for (var nIndex = 0; nIndex < nOldCount; ++nIndex)
+	{
+		oWriter.WriteDouble(this.Old[nIndex]);
+	}
+};
+CChangesTableTableGridChange.prototype.ReadFromBinary = function(oReader)
+{
+	// Long            : Count of the columns in the new grid. Zero means undefined
+	// Array of double : widths of columns in the new grid
+	// Long            : Count of the columns in the old grid. Zero means undefined
+	// Array of double : widths of columns in the old grid
+
+	var nCount = oReader.GetLong();
+	if (nCount > 0)
+	{
+		this.New = [];
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			this.New[nIndex] = oReader.GetDouble();
+		}
+	}
+	else
+	{
+		this.New = undefined;
+	}
+
+	nCount = oReader.GetLong();
+	if (nCount > 0)
+	{
+		this.Old = [];
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			this.Old[nIndex] = oReader.GetDouble();
+		}
+	}
+	else
+	{
+		this.Old = undefined;
+	}
+};
+CChangesTableTableGridChange.prototype.private_SetValue = function(Value)
+{
+	var oTable = this.Class;
+	oTable.TableGrid = Value;
+};
