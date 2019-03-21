@@ -969,6 +969,7 @@
                     case 34: 	// pagedown
                     case 35: 	// end
                     case 36: 	// home
+					case 27:	// escape
                     {
                     	window.g_asc_plugins.onPluginEvent2("onKeyDown", { "keyCode" : e.keyCode }, this.isInputHelpers);
 

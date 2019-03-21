@@ -2098,7 +2098,7 @@
         }
     };
 
-    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid)
+    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid, isclear)
     {
         var _frame = document.getElementById("iframe_" + guid);
         if (!_frame)
@@ -2126,6 +2126,11 @@
 
             AscCommon.g_inputContext.isInputHelpersPresent = (0 != count);
         }
+
+        if (AscCommon.g_inputContext && isclear)
+		{
+            AscCommon.g_inputContext.keyPressInput = "";
+		}
     };
 
     // Builder
