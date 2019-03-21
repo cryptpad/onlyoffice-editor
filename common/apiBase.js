@@ -1669,8 +1669,11 @@
         for (var i = text.getUnicodeIterator(); i.check(); i.next())
 			codes.push(i.value());
 
-        for (var i = 0; i < textReplace.length; i++)
-        	AscCommon.g_inputContext.emulateKeyDownApi(8);
+        if (textReplace)
+        {
+            for (var i = 0; i < textReplace.length; i++)
+                AscCommon.g_inputContext.emulateKeyDownApi(8);
+        }
 
         AscCommon.g_inputContext.apiInputText(codes);
         AscCommon.g_inputContext.keyPressInput = "";
