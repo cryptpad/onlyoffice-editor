@@ -1045,7 +1045,7 @@
 		}
 	};
 	CellEditor.prototype._updateFormulaEditMod = function ( bIsOpen ) {
-		if(this.options.menuEditor) {
+		if(this.getMenuEditorMode()) {
 			return;
 		}
 		var isFormula = this.isFormula();
@@ -1152,7 +1152,7 @@
 		this._adjustCanvas();
 		this._showCanvas();
 		this._renderText();
-		if(!this.options.menuEditor) {
+		if(!this.getMenuEditorMode()) {
 			this.input.value = AscCommonExcel.getFragmentsText(fragments);
 		}
 		this._updateCursorPosition();
@@ -1189,7 +1189,7 @@
 			}
 
 			//reduce editor height for interface
-			if(this.options && this.options.menuEditor) {
+			if(this.getMenuEditorMode()) {
 				if(!bChangedH && tm.height < this._getContentHeight() && this._reduceHeight(tm.height)) {
 					doAjust = true;
 					bChangedH = true;
@@ -1198,14 +1198,14 @@
 		}
 		if (doAjust) {
 			this._adjustCanvas();
-			if(bChangedH && this.options && this.options.menuEditor) {
+			if(bChangedH && this.getMenuEditorMode()) {
 				this.handlers.trigger("resizeEditorHeight");
 			}
 		}
 
 		this._renderText();  // вызов нужен для пересчета поля line.startX, которое используется в _updateCursorPosition
 		// вызов нужен для обновление текста верхней строки, перед обновлением позиции курсора
-		if(!(this.options && this.options.menuEditor)) {
+		if(!this.getMenuEditorMode()) {
 			this._fireUpdated();
 		}
 		this._updateCursorPosition(true);
@@ -1416,7 +1416,7 @@
 		this.canvasOuterStyle.top = top + 'px';
 		this.canvasOuterStyle.width = widthStyle + 'px';
 		this.canvasOuterStyle.height = heightStyle + 'px';
-		if(!(this.options && this.options.menuEditor)) {
+		if(!this.getMenuEditorMode()) {
 			this.canvasOuterStyle.zIndex = this.top < 0 ? -1 : z;
 		}
 
@@ -1599,7 +1599,7 @@
 			this._updateTopLineCurPos();
 		}
 
-		if(this.options && this.options.menuEditor) {
+		if(this.getMenuEditorMode()) {
 			this.handlers.trigger( "updateMenuEditorCursorPosition", curTop, curHeight );
 		}
 
@@ -2313,7 +2313,7 @@
 		switch (event.which) {
 
 			case 27:  // "esc"
-				if (t.handlers.trigger("isGlobalLockEditCell")) {
+				if (t.handlers.trigger("isGlobalLockEditCell") || this.getMenuEditorMode()) {
 					return false;
 				}
 				t.close();
@@ -2331,7 +2331,7 @@
 					if (!(event.altKey && event.shiftKey)) {
 						if (event.altKey) {
 							t._addNewLine();
-						} else if(t.options.menuEditor) {
+						} else if(this.getMenuEditorMode()) {
 							t._addNewLine();
 						} else {
 							if (false === t.handlers.trigger("isGlobalLockEditCell")) {
@@ -2902,6 +2902,9 @@
 	};
 	CellEditor.prototype.Get_MaxCursorPosInCompositeText = function () {
 		return this.compositeLength;
+	};
+	CellEditor.prototype.getMenuEditorMode = function () {
+		return this.options && this.options.menuEditor;
 	};
 
 
