@@ -7621,18 +7621,6 @@ function ft_get_adobe_glyph_index(_name,limit)
     return 0;
 }
 
-function PS_UniMap()
-{
-    this.unicode = 0;
-    this.glyph_index = 0;
-}
-function PS_UnicodesRec()
-{
-    this.cmap = null;
-    this.num_maps = 0;
-    this.maps = null;
-}
-
 function ps_unicode_value(glyph_name)
 {
     var len = glyph_name.length;
@@ -9806,7 +9794,7 @@ function t1_cmap_custom_char_next(cmap, _char_code)
 var t1_cmap_custom_class_rec = create_cmap_class_rec(0,t1_cmap_custom_init,t1_cmap_custom_done,t1_cmap_custom_char_index,t1_cmap_custom_char_next,null,null,null,null,null);
 
 // unicode
-function t1_get_glyph_name(face, idx)
+function psaux_get_glyph_name(face, idx)
 {
     return face.type1.glyph_names[idx];
 }
@@ -9817,7 +9805,7 @@ function t1_cmap_unicode_init(unicodes)
     var memory  = face.memory;
     var psnames = face.psnames;
 
-    return psnames.unicodes_init(memory, unicodes, face.type1.num_glyphs, t1_get_glyph_name, null, face);
+    return psnames.unicodes_init(memory, unicodes, face.type1.num_glyphs, psaux_get_glyph_name, null, face);
 }
 
 function t1_cmap_unicode_done(unicodes)
@@ -27136,22 +27124,6 @@ TT_Size_Metrics.prototype =
     }
 };
 
-function TT_DefRecord()
-{
-    this.range  = 0;        /* in which code range is it located?     */
-    this.start  = 0;        /* where does it start?                   */
-    this.end    = 0;          /* where does it end?                     */
-    this.opc    = 0;          /* function #, or instruction code        */
-    this.active = false;       /* is it active?                          */
-    this.inline_delta = false; /* is function that defines inline delta? */
-}
-
-function TT_CodeRange()
-{
-    this.base = null;
-    this.size = 0;
-}
-
 function TT_SizeRec()
 {
     this.face = null;
@@ -41721,18 +41693,6 @@ function FT_New_GlyphSlot(face)
     slot.next  = face.glyph;
     face.glyph = slot;
     return slot;
-}
-
-function FT_GlyphLoader_New(memory)
-{
-    var loader = new FT_GlyphLoader();
-    loader.memory = memory;
-    return loader;
-}
-
-function ft_glyphslot_done(slot)
-{
-    return 0;
 }
 
 function FT_New_Size(face)
