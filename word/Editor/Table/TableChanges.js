@@ -65,6 +65,7 @@ AscDFH.changesFactory[AscDFH.historyitem_Table_TableLayout]           = CChanges
 AscDFH.changesFactory[AscDFH.historyitem_Table_TableDescription]      = CChangesTableTableDescription;
 AscDFH.changesFactory[AscDFH.historyitem_Table_TableCaption]          = CChangesTableTableCaption;
 AscDFH.changesFactory[AscDFH.historyitem_Table_TableGridChange]       = CChangesTableTableGridChange;
+AscDFH.changesFactory[AscDFH.historyitem_Table_PrChange]              = CChangesTablePrChange;
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
@@ -169,7 +170,8 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Table_Pr]                    = [
 	AscDFH.historyitem_Table_Pr,
 	AscDFH.historyitem_Table_TableLayout,
 	AscDFH.historyitem_Table_TableDescription,
-	AscDFH.historyitem_Table_TableCaption
+	AscDFH.historyitem_Table_TableCaption,
+	AscDFH.historyitem_Table_PrChange
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_Table_TableLayout]           = [
 	AscDFH.historyitem_Table_TableLayout,
@@ -185,6 +187,10 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Table_TableCaption]     = [
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_Table_TableGridChange] = [
 	AscDFH.historyitem_Table_TableGridChange
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_Table_PrChange] = [
+	AscDFH.historyitem_Table_Pr,
+	AscDFH.historyitem_Table_PrChange
 ];
 
 /**
@@ -1419,4 +1425,149 @@ CChangesTableTableGridChange.prototype.private_SetValue = function(Value)
 {
 	var oTable = this.Class;
 	oTable.TableGrid = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBase}
+ */
+function CChangesTablePrChange(Class, Old, New)
+{
+	AscDFH.CChangesBase.call(this, Class);
+
+	this.Old = Old;
+	this.New = New;
+}
+CChangesTablePrChange.prototype = Object.create(AscDFH.CChangesBase.prototype);
+CChangesTablePrChange.prototype.constructor = CChangesTablePrChange;
+CChangesTablePrChange.prototype.Type = AscDFH.historyitem_Table_PrChange;
+CChangesTablePrChange.prototype.Undo = function()
+{
+	var oTable = this.Class;
+	oTable.Pr.PrChange   = this.Old.PrChange;
+	oTable.Pr.ReviewInfo = this.Old.ReviewInfo;
+	oTable.UpdateTrackRevisions();
+};
+CChangesTablePrChange.prototype.Redo = function()
+{
+	var oTable = this.Class;
+	oTable.Pr.PrChange   = this.New.PrChange;
+	oTable.Pr.ReviewInfo = this.New.ReviewInfo;
+	oTable.UpdateTrackRevisions();
+};
+CChangesTablePrChange.prototype.WriteToBinary = function(oWriter)
+{
+	// Long : Flags
+	// 1-bit : is New.PrChange undefined ?
+	// 2-bit : is New.ReviewInfo undefined ?
+	// 3-bit : is Old.PrChange undefined ?
+	// 4-bit : is Old.ReviewInfo undefined ?
+	// Variable(CTablePr)    : New.PrChange   (1bit = 0)
+	// Variable(CReviewInfo) : New.ReviewInfo (2bit = 0)
+	// Variable(CTablePr)    : Old.PrChange   (3bit = 0)
+	// Variable(CReviewInfo) : Old.ReviewInfo (4bit = 0)
+
+	var nFlags = 0;
+	if (undefined === this.New.PrChange)
+		nFlags |= 1;
+
+	if (undefined === this.New.ReviewInfo)
+		nFlags |= 2;
+
+	if (undefined === this.Old.PrChange)
+		nFlags |= 4;
+
+	if (undefined === this.Old.ReviewInfo)
+		nFlags |= 8;
+
+	oWriter.WriteLong(nFlags);
+
+	if (undefined !== this.New.PrChange)
+		this.New.PrChange.WriteToBinary(oWriter);
+
+	if (undefined !== this.New.ReviewInfo)
+		this.New.ReviewInfo.WriteToBinary(oWriter);
+
+	if (undefined !== this.Old.PrChange)
+		this.Old.PrChange.WriteToBinary(oWriter);
+
+	if (undefined !== this.Old.ReviewInfo)
+		this.Old.ReviewInfo.WriteToBinary(oWriter);
+};
+CChangesTablePrChange.prototype.ReadFromBinary = function(oReader)
+{
+	// Long : Flags
+	// 1-bit : is New.PrChange undefined ?
+	// 2-bit : is New.ReviewInfo undefined ?
+	// 3-bit : is Old.PrChange undefined ?
+	// 4-bit : is Old.ReviewInfo undefined ?
+	// Variable(CTablePr)    : New.PrChange   (1bit = 0)
+	// Variable(CReviewInfo) : New.ReviewInfo (2bit = 0)
+	// Variable(CTablePr)    : Old.PrChange   (3bit = 0)
+	// Variable(CReviewInfo) : Old.ReviewInfo (4bit = 0)
+
+	var nFlags = oReader.GetLong();
+
+	this.New = {
+		PrChange   : undefined,
+		ReviewInfo : undefined
+	};
+
+	this.Old = {
+		PrChange   : undefined,
+		ReviewInfo : undefined
+	};
+
+	if (nFlags & 1)
+	{
+		this.New.PrChange = undefined;
+	}
+	else
+	{
+		this.New.PrChange = new CTablePr();
+		this.New.PrChange.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 2)
+	{
+		this.New.ReviewInfo = undefined;
+	}
+	else
+	{
+		this.New.ReviewInfo = new CReviewInfo();
+		this.New.ReviewInfo.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 4)
+	{
+		this.Old.PrChange = undefined;
+	}
+	else
+	{
+		this.Old.PrChange = new CTablePr();
+		this.Old.PrChange.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 8)
+	{
+		this.Old.ReviewInfo = undefined;
+	}
+	else
+	{
+		this.Old.ReviewInfo = new CReviewInfo();
+		this.Old.ReviewInfo.ReadFromBinary(oReader);
+	}
+};
+CChangesTablePrChange.prototype.CreateReverseChange = function()
+{
+	return new CChangesTablePrChange(this.Class, this.New, this.Old);
+};
+CChangesTablePrChange.prototype.Merge = function(oChange)
+{
+	if (this.Class !== oChange.Class)
+		return true;
+
+	if (oChange.Type === this.Type || AscDFH.historyitem_Table_Pr === oChange.Type)
+		return false;
+
+	return true;
 };

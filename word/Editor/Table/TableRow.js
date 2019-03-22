@@ -326,6 +326,7 @@ CTableRow.prototype =
 
 	Set_Pr : function(RowPr)
 	{
+		this.private_AddPrChange();
 		History.Add(new CChangesTableRowPr(this, this.Pr, RowPr));
 		this.Pr = RowPr;
 		this.Recalc_CompiledPr();
@@ -368,6 +369,7 @@ CTableRow.prototype =
 				NewBefore.WBefore.Set_FromObject(WBefore);
 			}
 
+			this.private_AddPrChange();
 			History.Add(new CChangesTableRowBefore(this, OldBefore, NewBefore));
 
 			this.Pr.GridBefore = GridBefore;
@@ -413,6 +415,7 @@ CTableRow.prototype =
 				NewAfter.WAfter.Set_FromObject(WAfter);
 			}
 
+			this.private_AddPrChange();
 			History.Add(new CChangesTableRowAfter(this, OldAfter, NewAfter));
 
 			this.Pr.GridAfter = GridAfter;
@@ -431,6 +434,7 @@ CTableRow.prototype =
 		if (this.Pr.TableCellSpacing === Value)
 			return;
 
+		this.private_AddPrChange();
 		History.Add(new CChangesTableRowCellSpacing(this, this.Pr.TableCellSpacing, Value));
 		this.Pr.TableCellSpacing = Value;
 
@@ -451,6 +455,7 @@ CTableRow.prototype =
 		var OldHeight = this.Pr.Height;
 		var NewHeight = undefined != Value ? new CTableRowHeight(Value, HRule) : undefined;
 
+		this.private_AddPrChange();
 		History.Add(new CChangesTableRowHeight(this, OldHeight, NewHeight));
 		this.Pr.Height = NewHeight;
 		this.Recalc_CompiledPr();
@@ -947,6 +952,7 @@ CTableRow.prototype.SetHeader = function(isHeader)
 	if (isHeader === this.Pr.TableHeader)
 		return;
 
+	this.private_AddPrChange();
 	History.Add(new CChangesTableRowTableHeader(this, this.Pr.TableHeader, isHeader));
 	this.Pr.TableHeader = isHeader;
 	this.Recalc_CompiledPr();
@@ -999,7 +1005,7 @@ CTableRow.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
 		this.ReviewType = nType;
 		this.ReviewInfo.Update();
 
-		History.Add(new CChangesRunReviewType(this, {
+		History.Add(new CChangesTableRowReviewType(this, {
 			ReviewType : OldReviewType,
 			ReviewInfo : OldReviewInfo
 		}, {
@@ -1012,7 +1018,55 @@ CTableRow.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
 };
 CTableRow.prototype.private_UpdateTrackRevisions = function()
 {
-
+	var oTable = this.GetTable();
+	if (oTable)
+		oTable.UpdateTrackRevisions();
+};
+CTableRow.prototype.HavePrChange = function()
+{
+	return this.Pr.HavePrChange();
+};
+CTableRow.prototype.AddPrChange = function()
+{
+	if (false === this.HavePrChange())
+	{
+		this.Pr.AddPrChange();
+		History.Add(new CChangesTableRowPrChange(this, {
+			PrChange   : undefined,
+			ReviewInfo : undefined
+		}, {
+			PrChange   : this.Pr.PrChange,
+			ReviewInfo : this.Pr.ReviewInfo
+		}));
+		this.private_UpdateTrackRevisions();
+	}
+};
+CTableRow.prototype.RemovePrChange = function()
+{
+	if (true === this.HavePrChange())
+	{
+		History.Add(new CChangesTableRowPrChange(this, {
+			PrChange   : this.Pr.PrChange,
+			ReviewInfo : this.Pr.ReviewInfo
+		}, {
+			PrChange   : undefined,
+			ReviewInfo : undefined
+		}));
+		this.Pr.RemovePrChange();
+		this.private_UpdateTrackRevisions();
+	}
+};
+CTableRow.prototype.private_AddPrChange = function()
+{
+	var oTable = this.GetTable();
+	if (oTable
+		&& oTable.LogicDocument
+		&& true === oTable.LogicDocument.IsTrackRevisions()
+		&& true !== this.HavePrChange())
+	{
+		this.AddPrChange();
+		oTable.AddPrChange();
+	}
 };
 
 
