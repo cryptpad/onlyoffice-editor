@@ -2192,6 +2192,9 @@
             this._drawHeader(drawingCtx, offsetX, t, this.headersWidth, h, style, false, i);
 			t += h;
         }
+
+
+        var res = this.getGroupDataArray(start, end);
     };
 
     /**
@@ -15586,21 +15589,21 @@
 		};
 
 		for (var i = start; i <= end; ++i) {
-			this._getRow(i, fProcessRow);
+			this.model._getRow(i, fProcessRow);
 		}
 		while(up) {
 			start--;
 			if(start < 0) {
 				break;
 			}
-			this._getRow(start, fProcessRow);
+			this.model._getRow(start, fProcessRow);
 		}
 		while(down) {
 			end++;
 			if(end > gc_nMaxRow0) {
 				break;
 			}
-			this._getRow(end, fProcessRow);
+			this.model._getRow(end, fProcessRow);
 		}
 
 		return res;

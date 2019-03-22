@@ -4067,16 +4067,16 @@ Hyperlink.prototype = {
 	};
 	Row.prototype.setOutlineLevel = function (val, bDel) {
 		if(null !== val) {
-			this.outLineLevel = val;
+			this.outlineLevel = val;
 		} else {
-			if(!this.outLineLevel) {
-				this.outLineLevel = 0;
+			if(!this.outlineLevel) {
+				this.outlineLevel = 0;
 			}
-			this.outLineLevel = bDel ? this.outLineLevel - 1 : this.outLineLevel + 1;
+			this.outlineLevel = bDel ? this.outlineLevel - 1 : this.outlineLevel + 1;
 		}
 	};
 	Row.prototype.getOutlineLevel = function () {
-		return this.outLineLevel;
+		return this.outlineLevel;
 	};
 	Row.prototype.getHidden = function () {
 		return 0 !== (g_nRowFlag_hd & this.flags);
