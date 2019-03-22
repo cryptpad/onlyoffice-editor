@@ -969,6 +969,7 @@
                     case 34: 	// pagedown
                     case 35: 	// end
                     case 36: 	// home
+					case 27:	// escape
                     {
                     	window.g_asc_plugins.onPluginEvent2("onKeyDown", { "keyCode" : e.keyCode }, this.isInputHelpers);
 
@@ -1067,6 +1068,18 @@
 			switch (e.keyCode)
 			{
 				case 8:		// backspace
+                {
+                    var oldKeyPressInput = this.keyPressInput;
+                    this.clear();
+                    
+                    if (oldKeyPressInput.length > 1)
+                    {
+                        this.keyPressInput = oldKeyPressInput.substr(0, oldKeyPressInput.length - 1);
+                        if (window.g_asc_plugins)
+                            window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.keyPressInput });
+                    }
+                    return false;
+                }
 				case 9:		// tab
 				case 13:	// enter
 				case 37:	// left

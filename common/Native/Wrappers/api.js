@@ -5387,7 +5387,7 @@ GenerateStyles: function(_api, ds)
 
         _api.WordControl.m_oDrawingDocument.Native["DD_EndNativeDraw"](_stream);
     },
-GenerateDefaultStyles: function(_api, ds, _graphics)
+    GenerateDefaultStyles: function(_api, ds, _graphics)
     {
         var styles = ds;
 
@@ -5396,13 +5396,13 @@ GenerateDefaultStyles: function(_api, ds, _graphics)
             var style = styles[i];
             if (true == style.qFormat)
             {
-                this.defaultStyles.push({ Name: style.Name, Style: style });
+                this.defaultStyles.push({ Name: AscCommon.translateManager.getValue(style.Name), Style: style });
                 //this.drawStyle(_graphics, style, _api);
             }
         }
     },
 
-GenerateDocumentStyles: function(_api, _graphics)
+    GenerateDocumentStyles: function(_api, _graphics)
     {
         if (_api.WordControl.m_oLogicDocument == null)
             return;
@@ -5425,7 +5425,7 @@ GenerateDocumentStyles: function(_api, _graphics)
                 var index = (res) ? res[1] - 1 : -1;
 
                 var _dr_style = __Styles.Get_Pr(i, styletype_Paragraph);
-                _dr_style.Name = style.Name;
+                _dr_style.Name = AscCommon.translateManager.getValue(style.Name);
                 _dr_style.Id = i;
 
                 //this.drawStyle(_graphics, _dr_style, _api);
@@ -5459,7 +5459,7 @@ GenerateDocumentStyles: function(_api, _graphics)
         }
     },
 
-drawStyle: function(graphics, style, _api)
+    drawStyle: function(graphics, style, _api)
     {
         var _w_px = this.STYLE_THUMBNAIL_WIDTH;
         var _h_px = this.STYLE_THUMBNAIL_HEIGHT;
@@ -5579,7 +5579,7 @@ drawStyle: function(graphics, style, _api)
         _stream["ClearNoAttack"]();
 
         _stream["WriteByte"](0);
-        _stream["WriteString2"](style.Name);
+        _stream["WriteString2"](AscCommon.translateManager.getValue(style.Name));
 
         _api.WordControl.m_oDrawingDocument.Native["DD_EndNativeDraw"](_stream);
         graphics.ClearParams();
@@ -5952,7 +5952,14 @@ function NativeOpenFile3(_params, documentInfo)
         sdkCheck = documentInfo["sdkCheck"];
         spellCheck = documentInfo["spellCheck"];
 
-        _api = new window["Asc"]["asc_docs_api"]("");
+        var translations = documentInfo["translations"];
+        if (undefined != translations && null != translations && translations.length > 0) {
+            translations = JSON.parse(translations)
+        } else {
+            translations = "";
+        }
+
+        _api = new window["Asc"]["asc_docs_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
 

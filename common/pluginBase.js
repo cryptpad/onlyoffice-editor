@@ -87,7 +87,7 @@
             {
                 case "init":
                 {
-                    window.Asc.plugin.executeCommand = function(type, data)
+                    window.Asc.plugin.executeCommand = function(type, data, callback)
                     {
                         window.Asc.plugin.info.type = type;
                         window.Asc.plugin.info.data = data;
@@ -101,6 +101,8 @@
                         {
                             _message = JSON.stringify({ type : data });
                         }
+
+                        window.Asc.plugin.onCallCommandCallback = callback;
                         window.plugin_sendMessage(_message);
                     };
 
@@ -163,11 +165,12 @@
                         window.plugin_sendMessage(_message);
                     };
 
-                    window.Asc.plugin.callCommand = function(func, isClose, isCalc)
+                    window.Asc.plugin.callCommand = function(func, isClose, isCalc, callback)
 					{
 						var _txtFunc = "var Asc = {}; Asc.scope = " + JSON.stringify(window.Asc.scope) + "; var scope = Asc.scope; (" + func.toString() + ")();";
 						var _type = (isClose === true) ? "close" : "command";
 						window.Asc.plugin.info.recalculate = (false === isCalc) ? false : true;
+						window.Asc.plugin.onCallCommandCallback = callback;
 						window.Asc.plugin.executeCommand(_type, _txtFunc);
 					};
 
@@ -256,7 +259,12 @@
                 }
 				case "onCommandCallback":
 				{
-					if (window.Asc.plugin.onCommandCallback)
+                    if (window.Asc.plugin.onCallCommandCallback)
+                    {
+                        window.Asc.plugin.onCallCommandCallback();
+                        window.Asc.plugin.onCallCommandCallback = null;
+                    }
+                    else if (window.Asc.plugin.onCommandCallback)
 						window.Asc.plugin.onCommandCallback();
 					break;
 				}
