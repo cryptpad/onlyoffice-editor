@@ -1062,7 +1062,8 @@ CTableRow.prototype.private_AddPrChange = function()
 	if (oTable
 		&& oTable.LogicDocument
 		&& true === oTable.LogicDocument.IsTrackRevisions()
-		&& true !== this.HavePrChange())
+		&& true !== this.HavePrChange()
+		&& reviewtype_Common === this.GetReviewType())
 	{
 		this.AddPrChange();
 		oTable.AddPrChange();

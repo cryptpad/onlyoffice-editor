@@ -14295,6 +14295,13 @@ CTable.prototype.UpdateTrackRevisions = function()
 		//oRevisionsManager.Check_Paragraph(this);
 	}
 };
+CTable.prototype.GetPrReviewColor = function()
+{
+	if (this.Pr.ReviewInfo)
+		return this.Pr.ReviewInfo.Get_Color();
+
+	return REVIEW_COLOR;
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook
