@@ -36,14 +36,6 @@
     var printErr = undefined;
     var FS = undefined;
     var print = undefined;
-    var quit = undefined;
-    var scriptArgs = undefined;
-    var readbuffer = undefined;
-    var read = undefined;
-    var module = undefined;
-    var process = undefined;
-    var __dirname = undefined;
-    var require = undefined;
 
     //module
 
