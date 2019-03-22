@@ -774,9 +774,9 @@ CParagraphContentWithContentBase.prototype.protected_GetPrevRangeEndPos = functi
 };
 CParagraphContentWithContentBase.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.Get_TrackRevisionsManager)
+    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.Paragraph.LogicDocument.Get_TrackRevisionsManager();
+        var RevisionsManager = this.Paragraph.LogicDocument.GetTrackRevisionsManager();
         RevisionsManager.Check_Paragraph(this.Paragraph);
     }
 };
@@ -3296,9 +3296,9 @@ CParagraphContentWithParagraphLikeContent.prototype.RejectRevisionChanges = func
 };
 CParagraphContentWithParagraphLikeContent.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.Get_TrackRevisionsManager)
+    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.Paragraph.LogicDocument.Get_TrackRevisionsManager();
+        var RevisionsManager = this.Paragraph.LogicDocument.GetTrackRevisionsManager();
         RevisionsManager.Check_Paragraph(this.Paragraph);
     }
 };

@@ -11607,7 +11607,7 @@ CDocument.prototype.IsTrackRevisions = function()
 {
 	return this.TrackRevisions;
 };
-CDocument.prototype.Get_TrackRevisionsManager = function()
+CDocument.prototype.GetTrackRevisionsManager = function()
 {
 	return this.TrackRevisionsManager;
 };

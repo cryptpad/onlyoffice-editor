@@ -10097,7 +10097,7 @@ Paragraph.prototype.Document_UpdateInterfaceState = function()
 
 	if (editor && this.bFromDocument)
 	{
-		var TrackManager = this.LogicDocument.Get_TrackRevisionsManager();
+		var TrackManager = this.LogicDocument.GetTrackRevisionsManager();
 
 		if (this.Pages.length <= 0 && this.Lines.length <= 0)
 			return;
@@ -12239,9 +12239,9 @@ Paragraph.prototype.private_UpdateTrackRevisionOnChangeParaPr = function(bUpdate
 };
 Paragraph.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.LogicDocument && this.LogicDocument.Get_TrackRevisionsManager)
+    if (this.LogicDocument && this.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.LogicDocument.Get_TrackRevisionsManager();
+        var RevisionsManager = this.LogicDocument.GetTrackRevisionsManager();
         RevisionsManager.Check_Paragraph(this);
     }
 };

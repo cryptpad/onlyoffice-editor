@@ -6134,7 +6134,7 @@ CTablePr.prototype.Read_FromBinary = function(Reader)
 };
 CTablePr.prototype.WriteToBinary = function(oWriter)
 {
-	this.Write_ToBinary(Writer);
+	this.Write_ToBinary(oWriter);
 };
 CTablePr.prototype.ReadFromBinary = function(oReader)
 {
