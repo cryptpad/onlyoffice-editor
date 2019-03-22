@@ -1194,7 +1194,7 @@ function CCacheManager()
 	}
 }
 
-function CPolygonPoint(X, Y)
+function CPolygonPoint2(X, Y)
 {
 	this.X = X;
 	this.Y = Y;
@@ -1214,7 +1214,7 @@ function CPolygonPath(precision)
 }
 CPolygonPath.prototype.PushPoint = function (x, y)
 {
-	this.Points.push(new CPolygonPoint(x / this.precision, y / this.precision));
+	this.Points.push(new CPolygonPoint2(x / this.precision, y / this.precision));
 };
 CPolygonPath.prototype.CorrectExtremePoints = function ()
 {
