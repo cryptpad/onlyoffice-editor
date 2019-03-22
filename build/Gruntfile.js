@@ -36,7 +36,10 @@ module.exports = function(grunt) {
 	var level = grunt.option('level') || 'ADVANCED';
 	var formatting = grunt.option('formatting') || '';
 
-	require('google-closure-compiler').grunt(grunt, ['ADVANCED' === level ? '-Xms2048m' : '-Xms1024m']);
+	require('google-closure-compiler').grunt(grunt, {
+		platform: 'java',
+		extraArguments: ['ADVANCED' === level ? '-Xms2048m' : '-Xms1024m']
+	});
 
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
