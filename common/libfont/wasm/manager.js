@@ -34,6 +34,8 @@
 
 (function(window, undefined) {
 
+    var AscFonts = window['AscFonts'];
+
     function CFontManagerEngine()
     {
         this.library = AscFonts.CreateLibrary();
@@ -45,7 +47,7 @@
             if (!face)
                 return null;
 
-            var font = new AscFonts.CFontFile(name, faceindex);
+            var font = new AscFonts.CFontFile();
             font.SetFace(face, this.manager);
 
             if (!font.IsSuccess())

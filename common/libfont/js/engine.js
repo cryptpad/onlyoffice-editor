@@ -34,6 +34,9 @@
 
 (function(window, undefined){
 
+    var AscFonts = window['AscFonts'];
+    var AscCommon = window['AscCommon'];
+
 	// https://bugreport.apple.com/web/?problemID=39173151
 	var isSafariAppleDevices = (AscCommon.AscBrowser.isSafariMacOs && AscCommon.AscBrowser.isAppleDevices);
 
@@ -41802,7 +41805,6 @@ function FT_CMap_New(clazz, init_data, charmap)
 }
 
   //--------------------------------------------------------export----------------------------------------------------
-  window['AscFonts'] = window['AscFonts'] || {};
   window['AscFonts'].FT_Get_Sfnt_Table = FT_Get_Sfnt_Table;
   window['AscFonts'].FT_BBox = FT_BBox;
   window['AscFonts'].FT_Matrix = FT_Matrix;

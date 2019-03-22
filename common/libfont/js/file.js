@@ -34,6 +34,9 @@
 
 (function (window, undefined)
 {
+    var AscFonts = window['AscFonts'];
+    var AscCommon = window['AscCommon'];
+
     var FT_Set_Charmap = AscFonts.FT_Set_Charmap;
     var FT_Get_Char_Index = AscFonts.FT_Get_Char_Index;
     var __FT_CharmapRec = AscFonts.__FT_CharmapRec;
@@ -641,11 +644,8 @@
 		}
 	};
 
-    function CFontFile(fileName, faceIndex)
+    function CFontFile()
 	{
-        this.m_sFileName = fileName;
-        this.m_lFaceIndex = faceIndex;
-
 		this.m_arrdFontMatrix = ("undefined" == typeof Float64Array) ? new Array(6) : new Float64Array(6);
 		this.m_arrdTextMatrix = ("undefined" == typeof Float64Array) ? new Array(6) : new Float64Array(6);
 
@@ -1698,7 +1698,6 @@
 		};
 	}
 
-	window['AscFonts'] = window['AscFonts'] || {};
 	window['AscFonts'].EGlyphState = EGlyphState;
 	window['AscFonts'].CFontFile = CFontFile;
     window['AscFonts'].onLoadModule();

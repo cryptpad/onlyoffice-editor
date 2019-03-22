@@ -9,6 +9,7 @@ call emcc -o engine.js^
  -fno-rtti^
  -s WASM=1^
  -s ALLOW_MEMORY_GROWTH=1^
+ -s FILESYSTEM=0^
  -s EXPORTED_FUNCTIONS="['_malloc', '_free', '_ASC_FT_Malloc', '_ASC_FT_Free', '_ASC_FT_Init', '_ASC_FT_Open_Face', '_ASC_FT_SetCMapForCharCode', '_FT_Done_FreeType', '_FT_Done_Face', '_FT_Load_Glyph', '_FT_Get_Glyph', '_FT_Set_Transform', '_FT_Set_Char_Size', '_ASC_FT_GetFaceInfo', '_ASC_FT_GetFaceMaxAdvanceX', '_ASC_FT_GetKerningX', '_ASC_FT_Glyph_Get_CBox', '_ASC_FT_Get_Glyph_Measure_Params', '_ASC_FT_Get_Glyph_Render_Params', '_ASC_FT_Get_Glyph_Render_Buffer', '_ASC_FT_Set_Transform', '_ASC_FT_Set_TrueType_HintProp']"^
  "freetype-2.9.1\builds\windows\ftdebug.c"^
  "freetype-2.9.1\src\autofit\autofit.c"^

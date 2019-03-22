@@ -36,6 +36,8 @@
 {
     //window.measureTime = 0;
     //window.rasterTime = 0;
+	var AscFonts = window['AscFonts'];
+    var AscCommon = window['AscCommon'];
 
 	AscFonts.FT_Load_Mode = {
 		FT_LOAD_DEFAULT                     : 0,
@@ -743,7 +745,7 @@
 		}
 	};
 
-	function CFontFile(fileName, faceIndex)
+	function CFontFile()
 	{
 		this.m_arrdFontMatrix = ("undefined" == typeof Float64Array) ? new Array(6) : new Float64Array(6);
 		this.m_arrdTextMatrix = ("undefined" == typeof Float64Array) ? new Array(6) : new Float64Array(6);
@@ -1741,7 +1743,6 @@
 		};
 	}
 
-	window['AscFonts'] = window['AscFonts'] || {};
 	window['AscFonts'].EGlyphState = EGlyphState;
 	window['AscFonts'].CFontFile = CFontFile;
     window['AscFonts'].onLoadModule();

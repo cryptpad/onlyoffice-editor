@@ -30,9 +30,22 @@
  *
  */
 
- (function(window, undefined) {
-	
-    //module;
+(function(window, undefined) {
+
+    var AscFonts = window['AscFonts'];
+    var printErr = undefined;
+    var FS = undefined;
+    var print = undefined;
+    var quit = undefined;
+    var scriptArgs = undefined;
+    var readbuffer = undefined;
+    var read = undefined;
+    var module = undefined;
+    var process = undefined;
+    var __dirname = undefined;
+    var require = undefined;
+
+    //module
 
     window['AscFonts'] = window['AscFonts'] || {};
     var AscFonts = window['AscFonts'];
@@ -152,12 +165,12 @@
         this.os2_sTypoDescender = _buffer[_index++];
         this.os2_sTypoLineGap 	= _buffer[_index++];
 
-        this.os2_ulUnicodeRange1 	= FT_Common.IntToUInt(_buffer[_index++]);
-        this.os2_ulUnicodeRange2 	= FT_Common.IntToUInt(_buffer[_index++]);
-        this.os2_ulUnicodeRange3 	= FT_Common.IntToUInt(_buffer[_index++]);
-        this.os2_ulUnicodeRange4 	= FT_Common.IntToUInt(_buffer[_index++]);
-        this.os2_ulCodePageRange1 	= FT_Common.IntToUInt(_buffer[_index++]);
-        this.os2_ulCodePageRange2 	= FT_Common.IntToUInt(_buffer[_index++]);
+        this.os2_ulUnicodeRange1 	= AscFonts.FT_Common.IntToUInt(_buffer[_index++]);
+        this.os2_ulUnicodeRange2 	= AscFonts.FT_Common.IntToUInt(_buffer[_index++]);
+        this.os2_ulUnicodeRange3 	= AscFonts.FT_Common.IntToUInt(_buffer[_index++]);
+        this.os2_ulUnicodeRange4 	= AscFonts.FT_Common.IntToUInt(_buffer[_index++]);
+        this.os2_ulCodePageRange1 	= AscFonts.FT_Common.IntToUInt(_buffer[_index++]);
+        this.os2_ulCodePageRange2 	= AscFonts.FT_Common.IntToUInt(_buffer[_index++]);
 
         this.os2_nSymbolic 			= _buffer[_index++];
 
@@ -360,7 +373,6 @@
         tmp = null;
     };
 
-    AscFonts.FT_Common = FT_Common;
     AscFonts.onLoadModule();
 
 })(window, undefined);

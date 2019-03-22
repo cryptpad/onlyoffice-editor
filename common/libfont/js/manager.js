@@ -34,6 +34,8 @@
 
 (function(window, undefined) {
 
+    var AscFonts = window['AscFonts'];
+
     function CFontManagerEngine()
     {
         this.library = new AscFonts.FT_Library();
@@ -50,7 +52,7 @@
             if (null == face)
                 return null;
 
-            var font = new AscFonts.CFontFile(name, faceindex);
+            var font = new AscFonts.CFontFile();
 
             font.m_lUnits_Per_Em = face.units_per_EM;
             font.m_lAscender = face.ascender;
