@@ -1424,7 +1424,7 @@ CChangesTableTableGridChange.prototype.ReadFromBinary = function(oReader)
 CChangesTableTableGridChange.prototype.private_SetValue = function(Value)
 {
 	var oTable = this.Class;
-	oTable.TableGrid = Value;
+	oTable.TableGridChange = Value;
 };
 /**
  * @constructor

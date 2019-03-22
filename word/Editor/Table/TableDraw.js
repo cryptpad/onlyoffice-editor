@@ -123,6 +123,21 @@ CTable.prototype.private_DrawTableBackgroundAndOuterBorder = function(pGraphics,
         pGraphics.DrawLockObjectRect(this.Lock.Get_Type(), this.Pages[PNum].Bounds.Left, this.Pages[PNum].Bounds.Top, this.Pages[PNum].Bounds.Right - this.Pages[PNum].Bounds.Left, this.Pages[PNum].Bounds.Bottom - this.Pages[PNum].Bounds.Top );
     }
 
+	// Если данный параграф был изменен в режиме рецензирования, тогда рисуем специальный знак
+	if (true === this.HavePrChange())
+	{
+		if (CurPage > 0 || false === this.IsStartFromNewPage() || null === this.Get_DocumentPrev())
+		{
+			var _X_min    = -3 + this.Pages[CurPage].Bounds.Left;
+			var _Y_top    = this.Pages[CurPage].Bounds.Top;
+			var _Y_bottom = this.Pages[CurPage].Bounds.Bottom;
+
+			var ReviewColor = this.GetPrReviewColor();
+			pGraphics.p_color(ReviewColor.r, ReviewColor.g, ReviewColor.b, 255);
+			pGraphics.drawVerLine(0, _X_min, _Y_top, _Y_bottom, 0);
+		}
+	}
+
     var TableBorders = this.Get_Borders();
 
     // Заголовок

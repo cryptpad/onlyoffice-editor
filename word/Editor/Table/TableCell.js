@@ -2270,10 +2270,13 @@ CTableCell.prototype.RemovePrChange = function()
 CTableCell.prototype.private_AddPrChange = function()
 {
 	var oTable = this.GetTable();
+	var oRow   = this.GetRow();
 	if (oTable
+		&& oRow
 		&& oTable.LogicDocument
 		&& true === oTable.LogicDocument.IsTrackRevisions()
-		&& true !== this.HavePrChange())
+		&& true !== this.HavePrChange()
+		&& reviewtype_Common === oRow.GetReviewType())
 	{
 		this.AddPrChange();
 		oTable.AddPrChange();
