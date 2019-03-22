@@ -15549,10 +15549,61 @@
 		this.viewPrintLines = val;
 	};
 
-	WorksheetView.prototype.groupData = function (byCols) {
-		if(!byCols) {
+	WorksheetView.prototype.getGroupDataArray = function (start, end) {
+		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
+		//возможно стоит добавить кэш для отрисовки
 
+		var res = {};
+		var up = true, down = true;
+		var fProcessRow = function(row){
+			var outLineLevel = row.getOutlineLevel();
+			if(null === outLineLevel || undefined === outLineLevel) {
+				if(start === row.index) {
+					up = false;
+				} else if(end === row.index) {
+					down = false;
+				}
+			} else {
+				if(!res[outLineLevel]) {
+					res[outLineLevel] = [];
+				}
+				var needPush = true;
+				for(var j = 0; j < res[outLineLevel].length; j++) {
+					if(row.index === res[outLineLevel][j].start - 1) {
+						res[outLineLevel][j].start--;
+						needPush = false;
+						break;
+					} else if(row.index === res[outLineLevel][j].end + 1) {
+						res[outLineLevel][j].end++;
+						needPush = false;
+						break;
+					}
+				}
+				if(needPush) {
+					res[outLineLevel].push({start: row.index, end: row.index});
+				}
+			}
+		};
+
+		for (var i = start; i <= end; ++i) {
+			this._getRow(i, fProcessRow);
 		}
+		while(up) {
+			start--;
+			if(start < 0) {
+				break;
+			}
+			this._getRow(start, fProcessRow);
+		}
+		while(down) {
+			end++;
+			if(end > gc_nMaxRow0) {
+				break;
+			}
+			this._getRow(end, fProcessRow);
+		}
+
+		return res;
 	};
 
 
