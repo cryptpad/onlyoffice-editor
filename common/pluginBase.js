@@ -170,8 +170,7 @@
 						var _txtFunc = "var Asc = {}; Asc.scope = " + JSON.stringify(window.Asc.scope) + "; var scope = Asc.scope; (" + func.toString() + ")();";
 						var _type = (isClose === true) ? "close" : "command";
 						window.Asc.plugin.info.recalculate = (false === isCalc) ? false : true;
-						window.Asc.plugin.onCallCommandCallback = callback;
-						window.Asc.plugin.executeCommand(_type, _txtFunc);
+						window.Asc.plugin.executeCommand(_type, _txtFunc, callback);
 					};
 
                     window.Asc.plugin.callModule = function(url, callback, isClose)
