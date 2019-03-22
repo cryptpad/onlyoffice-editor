@@ -4750,9 +4750,7 @@
 			}
 		};
 
-		for (var i = start; i <= stop; ++i) {
-			this._getRow(i, fProcessRow);
-		}
+		this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
 	};
 	Worksheet.prototype.getRowCustomHeight = function (index) {
 		var isCustomHeight = false;
