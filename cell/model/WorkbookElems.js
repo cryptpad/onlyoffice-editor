@@ -3736,9 +3736,15 @@ Hyperlink.prototype = {
 		return this.index;
 	};
 
-	var g_nRowOffsetFlag = 0;
+	//TODO удалить!
+	/*var g_nRowOffsetFlag = 0;
 	var g_nRowOffsetXf = g_nRowOffsetFlag + 1;
 	var g_nRowOffsetHeight = g_nRowOffsetXf + 4;
+	var g_nRowStructSize = g_nRowOffsetHeight + 8;*/
+	var g_nRowOffsetFlag = 0;
+	var g_nRowOffsetXf = g_nRowOffsetFlag + 1;
+	var g_nRowOutlineLevel = g_nRowOffsetXf + 4;
+	var g_nRowOffsetHeight = g_nRowOutlineLevel + 4;
 	var g_nRowStructSize = g_nRowOffsetHeight + 8;
 
 	var g_nRowFlag_empty = 0;
@@ -3758,6 +3764,7 @@ Hyperlink.prototype = {
 		this.h = null;
 		this.flags = g_nRowFlag_init;
 		this._hasChanged = false;
+		this.outlineLevel = null;
 	}
 	Row.prototype.clear = function () {
 		this.index = null;
@@ -3765,6 +3772,7 @@ Hyperlink.prototype = {
 		this.h = null;
 		this.flags = g_nRowFlag_init;
 		this._hasChanged = false;
+		this.outlineLevel = null;
 	};
 	Row.prototype.saveContent = function (opt_inCaseOfChange) {
 		if (this.index >= 0 && (!opt_inCaseOfChange || this._hasChanged)) {
@@ -3778,8 +3786,12 @@ Hyperlink.prototype = {
 				flagToSave |= g_nRowFlag_NullHeight;
 				heightToSave = 0;
 			}
+			//outLineLevel - запись/чтение временный вариант
+			//TODO добавить флаг toSave для outLineLevel и пересмотреть запись/чтение
+			var outLineLevel = this.outlineLevel;
 			sheetMemory.setUint8(this.index, g_nRowOffsetFlag, flagToSave);
 			sheetMemory.setUint32(this.index, g_nRowOffsetXf, xfSave);
+			sheetMemory.setUint32(this.index, g_nRowOutlineLevel, outLineLevel);
 			sheetMemory.setFloat64(this.index, g_nRowOffsetHeight, heightToSave);
 		}
 	};
@@ -3792,6 +3804,7 @@ Hyperlink.prototype = {
 			this.flags = sheetMemory.getUint8(this.index, g_nRowOffsetFlag);
 			if (0 != (g_nRowFlag_init & this.flags)) {
 				this.xfs = g_StyleCache.getXf(sheetMemory.getUint32(this.index, g_nRowOffsetXf));
+				this.outlineLevel = sheetMemory.getUint32(this.index, g_nRowOutlineLevel);
 				if (0 !== (g_nRowFlag_NullHeight & this.flags)) {
 					this.flags &= ~g_nRowFlag_NullHeight;
 					this.h = null;
@@ -4074,6 +4087,7 @@ Hyperlink.prototype = {
 			}
 			this.outlineLevel = bDel ? this.outlineLevel - 1 : this.outlineLevel + 1;
 		}
+		this._hasChanged = true;
 	};
 	Row.prototype.getOutlineLevel = function () {
 		return this.outlineLevel;
