@@ -1139,7 +1139,7 @@
 	 */
 	Api.prototype.CreateBlockLvlSdt = function()
 	{
-		return new ApiBlockLvlSdt(new CBlockLvlSdt());
+		return new ApiBlockLvlSdt(new CBlockLevelSdt());
 	};
 
 	/**

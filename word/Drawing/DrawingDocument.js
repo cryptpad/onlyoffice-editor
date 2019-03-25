@@ -4471,7 +4471,7 @@ function CDrawingDocument()
 
 					for (var k = 0; k < _points1.length; k++)
 					{
-						if (Math.abs(_points1[k].X - _points[k].X) > 0.00001 || Math.abs(_points1[k].Y - _points[k].Y) > 0.00001)
+						if (Math.abs(_points1[k].X - _points2[k].X) > 0.00001 || Math.abs(_points1[k].Y - _points2[k].Y) > 0.00001)
 							return true;
 					}
 				}

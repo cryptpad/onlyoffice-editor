@@ -2788,7 +2788,7 @@ PasteProcessor.prototype =
 				{
 					for(var i = 0; i < paragraphContent.length; i++)
 					{
-						var elem = paragraphContent[j];
+						var elem = paragraphContent[i];
 						if(pasteIntoParaRunPr && elem.Pr)
 						{
 							elem.Pr.Merge(pasteIntoParaRunPr);

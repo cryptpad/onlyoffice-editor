@@ -75,3 +75,5 @@ WebAssembly.instantiate;
 WebAssembly.instantiateStreaming;
 WebAssembly.Table;
 WebAssembly.Memory;
+
+var VBArray;

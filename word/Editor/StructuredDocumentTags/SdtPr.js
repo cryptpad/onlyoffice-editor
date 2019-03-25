@@ -175,7 +175,7 @@ CSdtPr.prototype.Read_FromBinary = function(Reader)
 	if (Flags & 512)
 	{
 		this.Color = new CDocumentColor();
-		this.Color.ReadFromBinary(oReader);
+		this.Color.ReadFromBinary(Reader);
 	}
 };
 CSdtPr.prototype.IsBuiltInDocPart = function()

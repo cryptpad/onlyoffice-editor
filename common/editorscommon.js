@@ -3859,11 +3859,11 @@
 		{
 			if (_api.ImageLoader.map_image_index[_guid])
 				return;
-			var _obj = { Image : (this.Valid ? this.ImageValid : this.ImageInvalid), Status : ImageLoadStatus.Complete, src : _guid };
+			var _obj = { Image : (this.Valid ? this.ImageValid : this.ImageInvalid), Status : AscFonts.ImageLoadStatus.Complete, src : _guid };
 			_api.ImageLoader.map_image_index[_guid] = _obj;
 		};
 
-		this.Unregister = function(api, _guid)
+		this.Unregister = function(_api, _guid)
 		{
 			if (_api.ImageLoader.map_image_index[_guid])
 				delete _api.ImageLoader.map_image_index[_guid];

@@ -165,9 +165,7 @@ function CreateFontData2(szSrc, dstLen)
 function CreateFontData3(szSrc)
 {
     var srcLen = szSrc.length;
-    var nWritten = 0;
-
-    var stream = new AscFonts.FontStream(AscFonts.allocate(dstLen), dstLen);
+    var stream = new AscFonts.FontStream(AscFonts.allocate(srcLen), srcLen);
 
     var dstPx = stream.data;
     var index = 0;
