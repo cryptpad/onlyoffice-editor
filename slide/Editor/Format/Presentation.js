@@ -2975,7 +2975,7 @@ CPresentation.prototype =
                     aConnectors[i].calculateTransform(false);
                     var oGroup = aConnectors[i].getMainGroup();
                     if(oGroup){
-                        checkObjectInArray([], oGroup);
+                        AscFormat.checkObjectInArray([], oGroup);
                     }
                 }
                 if(aConnectors.length > 0)
@@ -4620,7 +4620,7 @@ CPresentation.prototype =
                         aConnectors[i].calculateTransform(false);
                         var oGroup = aConnectors[i].getMainGroup();
                         if(oGroup){
-                            checkObjectInArray([], oGroup);
+                            AscFormat.checkObjectInArray([], oGroup);
                         }
                     }
                     if(aConnectors.length > 0)
@@ -4669,7 +4669,7 @@ CPresentation.prototype =
                             aConnectors[i].calculateTransform(false);
                             var oGroup = aConnectors[i].getMainGroup();
                             if(oGroup){
-                                checkObjectInArray([], oGroup);
+                                AscFormat.checkObjectInArray([], oGroup);
                             }
                         }
                         if(aConnectors.length > 0)

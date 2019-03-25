@@ -2439,8 +2439,8 @@ CAutoshapeTrack.prototype =
 
         if (overlayNotes)
         {
-            dKoefX = g_dKoef_mm_to_pix;
-			dKoefY = g_dKoef_mm_to_pix;
+            dKoefX = AscCommon.g_dKoef_mm_to_pix;
+			dKoefY = AscCommon.g_dKoef_mm_to_pix;
 
 			overlay = overlayNotes;
 

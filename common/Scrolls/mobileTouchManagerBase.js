@@ -240,8 +240,8 @@
 
 		if (true === this.HtmlPage.m_bIsRuler)
 		{
-			_xOffset += (5 * g_dKoef_mm_to_pix);
-			_yOffset += (7 * g_dKoef_mm_to_pix);
+			_xOffset += (5 * AscCommon.g_dKoef_mm_to_pix);
+			_yOffset += (7 * AscCommon.g_dKoef_mm_to_pix);
 		}
 
 		return { X : _xOffset, Y : _yOffset };
@@ -1667,7 +1667,7 @@
 
 			ctx.beginPath();
 
-			var dKoef = (HtmlPage.m_nZoomValue * g_dKoef_mm_to_pix / 100);
+			var dKoef = (HtmlPage.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100);
 			var xDst  = _drawingPage.left;
 			var yDst  = _drawingPage.top;
 
@@ -1732,7 +1732,7 @@
 		}
 		else
 		{
-			var dKoef = (HtmlPage.m_nZoomValue * g_dKoef_mm_to_pix / 100);
+			var dKoef = (HtmlPage.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100);
 
 			var xDst  = _drawingPage.left;
 			var yDst  = _drawingPage.top;

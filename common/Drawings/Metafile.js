@@ -3272,4 +3272,5 @@
 	window['AscCommon'].GradientGetAngleNoRotate = GradientGetAngleNoRotate;
 
 	window['AscCommon'].DashPatternPresets 		 = DashPatternPresets;
+    window['AscCommon'].CommandType 		 	 = CommandType;
 })(window);

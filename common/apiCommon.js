@@ -3664,8 +3664,8 @@
 		};
 		this.DrawOnRenderer = function(renderer, w, h)
 		{
-			var wMM = this.width * g_dKoef_pix_to_mm / this.zoom;
-			var hMM = this.height * g_dKoef_pix_to_mm / this.zoom;
+			var wMM = this.width * AscCommon.g_dKoef_pix_to_mm / this.zoom;
+			var hMM = this.height * AscCommon.g_dKoef_pix_to_mm / this.zoom;
 			var x = (w - wMM) / 2;
 			var y = (h - hMM) / 2;
 
@@ -3815,8 +3815,8 @@
 
 				var w_mm = 210;
 				var h_mm = 297;
-				var w_px = AscCommon.AscBrowser.convertToRetinaValue(w_mm * g_dKoef_mm_to_pix * this.zoom, true);
-				var h_px = AscCommon.AscBrowser.convertToRetinaValue(h_mm * g_dKoef_mm_to_pix * this.zoom, true);
+				var w_px = AscCommon.AscBrowser.convertToRetinaValue(w_mm * AscCommon.g_dKoef_mm_to_pix * this.zoom, true);
+				var h_px = AscCommon.AscBrowser.convertToRetinaValue(h_mm * AscCommon.g_dKoef_mm_to_pix * this.zoom, true);
 
 				_bounds_cheker.init(w_px, h_px, w_mm, h_mm);
 				_bounds_cheker.transform(1,0,0,1,0,0);
