@@ -15564,6 +15564,25 @@
 		var up = true, down = true;
 		var fProcessRow = function(row){
 			var outLineLevel = row.getOutlineLevel();
+
+			var continueRange = function(level, index) {
+				var tempNeedPush = true;
+
+				if(!res[level] || undefined === res[level][index]) {
+					return true;
+				}
+
+				if(row.index === res[level][index].start - 1) {
+					res[level][index].start--;
+					tempNeedPush = false;
+				} else if(row.index === res[level][index].end + 1) {
+					res[level][index].end++;
+					tempNeedPush = false;
+				}
+
+				return tempNeedPush;
+			};
+
 			if(!outLineLevel) {
 				if(start === row.index) {
 					up = false;
@@ -15572,23 +15591,28 @@
 				}
 			} else {
 				if(!res) {
-					res = {};
+					res = [];
 				}
 				if(!res[outLineLevel]) {
 					res[outLineLevel] = [];
 				}
 				var needPush = true;
 				for(var j = 0; j < res[outLineLevel].length; j++) {
-					if(row.index === res[outLineLevel][j].start - 1) {
-						res[outLineLevel][j].start--;
-						needPush = false;
-						break;
-					} else if(row.index === res[outLineLevel][j].end + 1) {
-						res[outLineLevel][j].end++;
+					if(!continueRange(outLineLevel, j)) {
 						needPush = false;
 						break;
 					}
 				}
+
+				for(var n = 1; n < outLineLevel; n++) {
+					if(!res[n]) {
+						continue;
+					}
+					for(var m = 0; m < res[n].length; m++) {
+						continueRange(n, m);
+					}
+				}
+
 				if(needPush) {
 					res[outLineLevel].push({start: row.index, end: row.index});
 				}
@@ -15647,14 +15671,23 @@
 		ctx.setFillStyle(this.settings.cells.defaultState.border).fillRect(x1, y1, x2 - x1, y2 - y1);
 
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(2).beginPath();
-		for(var i in arrayLines) {
+
+		var bFirstLine = true;
+		for(var i = 0; i < arrayLines.length; i++) {
 			if(arrayLines[i]) {
-				var posX = 2 + i * 16 / 2;
+				var index = bFirstLine ? 1 : i;
+				var posX = 2 + 7 + (index - 1) * 16;
 				for(var j = 0; j < arrayLines[i].length; j++) {
 					var startY = Math.max(arrayLines[i][j].start, range.r1);
 					var endY = Math.min(arrayLines[i][j].end + 1, range.r2);
 					ctx.lineVerPrevPx(posX, this._getRowTop(startY), this._getRowTop(endY));
+
+					for(var n = startY; n < endY; n++) {
+						posX = 2 + 7 + (i) * 16;
+						ctx.lineHorPrevPx(posX - 1, this._getRowTop(n) + this._getRowHeight(n) / 2, posX + 1);
+					}
 				}
+				bFirstLine = false;
 			}
 		}
 		ctx.stroke();
