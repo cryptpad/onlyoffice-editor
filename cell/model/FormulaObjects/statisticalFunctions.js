@@ -3624,6 +3624,7 @@ function (window, undefined) {
 		var z = gaussinv(( 1.0 + fPILevel ) / 2.0);
 		var o = 1 - fPILevel;
 		//std::vector< double > c( nSize );
+		var c = [];
 		for (var i = 0; i < nSize; i++) {
 			c[i] = Math.sqrt(1 + ( fPILevel / Math.pow(1 + o, 3.0) ) *
 				( ( 1 + 4 * o + 5 * o * o ) + 2 * ( i ) * fPILevel * ( 1 + 3 * o ) + 2 * ( i * i ) * fPILevel *
