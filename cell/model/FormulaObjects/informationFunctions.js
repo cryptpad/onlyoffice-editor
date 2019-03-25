@@ -107,7 +107,7 @@
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
-				ret.addElement(found_operand);
+				ret.addElement(typeError(elem));
 			});
 			return ret;
 		}

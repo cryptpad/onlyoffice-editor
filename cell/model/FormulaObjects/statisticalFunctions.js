@@ -1023,7 +1023,7 @@ function (window, undefined) {
 				//return HUGE_VAL;
 				return;
 			}
-			return fA * pow(fX, fA - 1);
+			return fA * Math.pow(fX, fA - 1);
 		}
 		if (fX <= 0) {
 			if (fA < 1 && fX === 0) {
@@ -2767,7 +2767,7 @@ function (window, undefined) {
 							}
 							break;
 						case 7 : // SUM
-							while (i < mnCount && maRange[i].X === maRange[i - 1].X) {
+							while (i < this.mnCount && maRange[i].X === maRange[i - 1].X) {
 								fTmp += maRange[i].Y;
 								maRange.splice(i, 1);
 								--this.mnCount;
