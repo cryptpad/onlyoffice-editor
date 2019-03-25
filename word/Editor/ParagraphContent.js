@@ -240,6 +240,14 @@ CRunElementBase.prototype.CanStartAutoCorrect = function()
 {
 	return false;
 };
+/**
+ * Является ли данный элемент символом пунктуации
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsPunctuation = function()
+{
+	return false;
+};
 
 /**
  * Класс представляющий текстовый символ
@@ -370,14 +378,11 @@ ParaText.prototype.Copy = function()
 };
 ParaText.prototype.Is_NBSP = function()
 {
-	return ( this.Value === nbsp_charcode ? true : false);
+	return (this.Value === nbsp_charcode);
 };
-ParaText.prototype.Is_Punctuation = function()
+ParaText.prototype.IsPunctuation = function()
 {
-	if (undefined !== AscCommon.g_aPunctuation[this.Value])
-		return true;
-
-	return false;
+	return !!(undefined !== AscCommon.g_aPunctuation[this.Value]);
 };
 ParaText.prototype.Is_Number = function()
 {

@@ -391,7 +391,9 @@ CChartsDrawer.prototype =
 						break;
 					}
 				}
-				test_compare_paths_arr = JSON.parse(str);
+				if("" !== str) {
+					test_compare_paths_arr = JSON.parse(str);
+				}
 			}
 
 			if(!test_compare_paths_arr) {
@@ -7222,18 +7224,18 @@ drawHBarChart.prototype = {
 
 				//стартовая позиция колонки Y
 				if (this.catAx.scaling.orientation === ORIENTATION_MIN_MAX) {
-					if (yPoints[1] && yPoints[1].pos && yPoints[j]) {
-						startYPosition = yPoints[j].pos + Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
-					} else if(yPoints[j]){
-						startYPosition = yPoints[j].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
+					if (yPoints[1] && yPoints[1].pos && yPoints[idx]) {
+						startYPosition = yPoints[idx].pos + Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
+					} else if(yPoints[idx]){
+						startYPosition = yPoints[idx].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
 					} else {
 						startYPosition = yPoints[0].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
 					}
 				} else {
-					if (yPoints[1] && yPoints[1].pos && yPoints[j]) {
-						startYPosition = yPoints[j].pos - Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
-					} else if(yPoints[j]){
-						startYPosition = yPoints[j].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
+					if (yPoints[1] && yPoints[1].pos && yPoints[idx]) {
+						startYPosition = yPoints[idx].pos - Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
+					} else if(yPoints[idx]){
+						startYPosition = yPoints[idx].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
 					} else {
 						startYPosition = yPoints[0].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
 					}

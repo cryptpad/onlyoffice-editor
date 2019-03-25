@@ -533,8 +533,7 @@ var editor;
   };
   
   spreadsheet_api.prototype.asc_changeFormatTableInfo = function(tableName, optionType, val) {
-    var ws = this.wb.getWorksheet();
-    return ws.af_changeFormatTableInfo(tableName, optionType, val);
+    return this.wb.changeFormatTableInfo(tableName, optionType, val);
   };
 
   spreadsheet_api.prototype.asc_applyAutoCorrectOptions = function(val) {

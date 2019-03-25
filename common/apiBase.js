@@ -1678,10 +1678,14 @@
         for (var i = text.getUnicodeIterator(); i.check(); i.next())
 			codes.push(i.value());
 
-        for (var i = 0; i < textReplace.length; i++)
-        	AscCommon.g_inputContext.emulateKeyDownApi(8);
+        if (textReplace)
+        {
+            for (var i = 0; i < textReplace.length; i++)
+                AscCommon.g_inputContext.emulateKeyDownApi(8);
+        }
 
         AscCommon.g_inputContext.apiInputText(codes);
+        AscCommon.g_inputContext.keyPressInput = "";
     };
 
 	baseEditorsApi.prototype["pluginMethod_PasteHtml"] = function(htmlText)
@@ -1987,24 +1991,39 @@
             }
             case c_oEditorId.Spreadsheet:
             {
-                var drDoc = this.wb.getWorksheet().objectRender.controller.drawingDocument;
-
-                if (true) /*shape target*/
+                var off, selectionType = this.asc_getCellInfo().asc_getFlags().asc_getSelectionType();
+                if (this.asc_getCellEditMode())
+				{
+					// cell edit
+					var cellEditor = this.wb.cellEditor;
+					ret.X = cellEditor.curLeft;
+					ret.Y = cellEditor.curTop;
+					ret.TargetH = cellEditor.curHeight;
+					off = cellEditor.cursor;
+				}
+				else if (Asc.c_oAscSelectionType.RangeShapeText === selectionType ||
+					Asc.c_oAscSelectionType.RangeChartText === selectionType)
                 {
-                    ret.X += (drDoc.TargetHtmlElementLeft);
-                    ret.Y += (drDoc.TargetHtmlElementTop);
-
-                    var off = jQuery(this.HtmlElement).offset();
-                    if (off)
-                    {
-                        ret.X += off.left;
-                        ret.Y += off.top;
-                    }
-
-                    ret.X >>= 0;
-                    ret.Y >>= 0;
-                    ret.TargetH = (drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix) >> 0;
+					// shape target
+					var drDoc = this.wb.getWorksheet().objectRender.controller.drawingDocument;
+					ret.X = drDoc.TargetHtmlElementLeft;
+					ret.Y = drDoc.TargetHtmlElementTop;
+					ret.TargetH = drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix;
+					off = this.HtmlElement;
                 }
+
+				if (off) {
+					off = jQuery(off).offset();
+					if (off)
+					{
+						ret.X += off.left;
+						ret.Y += off.top;
+					}
+				}
+
+				ret.X >>= 0;
+				ret.Y >>= 0;
+				ret.TargetH >>= 0;
                 break;
             }
         }
@@ -2058,6 +2077,14 @@
         else
             _frame.style.zIndex = 5001;
 
+        if (!_frame.style.boxShadow)
+        {
+        	_frame.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
+            _frame.style.webkitBoxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
+            //_frame.style.borderRadius = "3px";
+        }
+
+
         if (isKeyboardTake)
         {
             _frame.setAttribute("oo_editor_input", "true");
@@ -2080,7 +2107,7 @@
         }
     };
 
-    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid)
+    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid, isclear)
     {
         var _frame = document.getElementById("iframe_" + guid);
         if (!_frame)
@@ -2108,6 +2135,11 @@
 
             AscCommon.g_inputContext.isInputHelpersPresent = (0 != count);
         }
+
+        if (AscCommon.g_inputContext && isclear)
+		{
+            AscCommon.g_inputContext.keyPressInput = "";
+		}
     };
 
     // Builder

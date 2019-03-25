@@ -10372,9 +10372,23 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 	}
 	else
 	{
+		// TODO: Как будет реализовано добавление комментариев к объекту, добавить проверку на выделение объекта
+
 		var QuotedText = this.GetSelectedText(false);
-		if (null === QuotedText)
-			QuotedText = "";
+		if (null === QuotedText || "" === QuotedText)
+		{
+			var oParagraph = this.GetCurrentParagraph();
+			if (oParagraph && oParagraph.SelectCurrentWord())
+			{
+				QuotedText = this.GetSelectedText(false);
+				if (null === QuotedText)
+					QuotedText = "";
+			}
+			else
+			{
+				QuotedText = "";
+			}
+		}
 		CommentData.Set_QuoteText(QuotedText);
 
 		var Comment = new CComment(this.Comments, CommentData);
@@ -17113,6 +17127,10 @@ CDocument.prototype.RemoveBookmark = function(sName)
 		// TODO: Здесь добавляются просто метки закладок, нужно сделать упрощенный пересчет
 		this.Recalculate();
 	}
+};
+CDocument.prototype.GoToBookmark = function(sName)
+{
+	this.BookmarksManager.GoToBookmark(sName);
 };
 CDocument.prototype.private_RemoveBookmark = function(sName)
 {

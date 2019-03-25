@@ -495,6 +495,10 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
+		if(arg[3] && cElementType.empty !== arg[3].type && arg3 > 1) {
+			return new cError(cErrorType.bad_reference);
+		}
+
 		arg1 = arg1.getValue();
 		arg2 = arg2.getValue();
 

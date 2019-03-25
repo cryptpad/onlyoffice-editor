@@ -1055,7 +1055,6 @@
 		function PasteProcessorExcel()
 		{
 			this.activeRange = null;
-			this.bCut = null;
 			this.alreadyLoadImagesOnServer = false;
 			
 			this.fontsNew = {};
@@ -1194,7 +1193,6 @@
 					pptx_content_loader.Reader.ClearConnectorsMaps();
 					oBinaryFileReader.Read(base64, tempWorkbook);
 					t.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
-					t.bCut = oBinaryFileReader.copyPasteObj.bCut;
 					t.docId = oBinaryFileReader.copyPasteObj.docId;
 					t.userId = oBinaryFileReader.copyPasteObj.userId;
 					aPastedImages = pptx_content_loader.End_UseFullUrl();

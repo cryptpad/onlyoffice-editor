@@ -469,6 +469,11 @@
 					  self.model.recalcWB(false);
 				  }
 			  },
+
+			  'changeFormatTableInfo': function () {
+				  var table = self.getSelectionInfo().formatTableInfo;
+				  return table && self.changeFormatTableInfo(table.tableName, Asc.c_oAscChangeTableStyleInfo.rowTotal, !table.lastRow);
+			  },
 			  
 			  //special paste
 			  "hideSpecialPasteOptions": function () {
@@ -3060,7 +3065,11 @@
 	  return this.getWorksheet().ConvertXYToLogic(x, y);
 	};
 	WorkbookView.prototype.ConvertLogicToXY = function (xL, yL) {
-		return this.getWorksheet().ConvertLogicToXY(xL, yL);
+		return this.getWorksheet().ConvertLogicToXY(xL, yL)
+	};
+	WorkbookView.prototype.changeFormatTableInfo = function (tableName, optionType, val) {
+		var ws = this.getWorksheet();
+		return ws.af_changeFormatTableInfo(tableName, optionType, val);
 	};
 
 	WorkbookView.prototype.applyAutoCorrectOptions = function (val) {

@@ -416,6 +416,21 @@
 	CConditionalFormattingRule.prototype._getValue = function (values, oCFVO, ws) {
 		var res, min;
 		if (oCFVO) {
+			if (oCFVO.Val) {
+				res = 0;
+				if (null === oCFVO.formula) {
+					oCFVO.formulaParent = new CConditionalFormattingFormulaParent(ws, this, false);
+					oCFVO.formula = new CFormulaCF();
+					oCFVO.formula.Text = oCFVO.Val;
+				}
+				var calcRes = oCFVO.formula.getValue(ws, oCFVO.formulaParent, null, null, true);
+				if (calcRes && calcRes.tocNumber) {
+					calcRes = calcRes.tocNumber();
+					if (calcRes && calcRes.toNumber) {
+						res = calcRes.toNumber();
+					}
+				}
+			}
 			switch (oCFVO.Type) {
 				case AscCommonExcel.ECfvoType.Minimum:
 					res = AscCommonExcel.getArrayMin(values);
@@ -424,14 +439,13 @@
 					res = AscCommonExcel.getArrayMax(values);
 					break;
 				case AscCommonExcel.ECfvoType.Number:
-					res = parseFloat(oCFVO.Val);
 					break;
 				case AscCommonExcel.ECfvoType.Percent:
 					min = AscCommonExcel.getArrayMin(values);
-					res = min + (AscCommonExcel.getArrayMax(values) - min) * parseFloat(oCFVO.Val) / 100;
+					res = min + (AscCommonExcel.getArrayMax(values) - min) * res / 100;
 					break;
 				case AscCommonExcel.ECfvoType.Percentile:
-					res = AscCommonExcel.getPercentile(values, parseFloat(oCFVO.Val) / 100.0);
+					res = AscCommonExcel.getPercentile(values, res / 100.0);
 					if (AscCommonExcel.cElementType.number === res.type) {
 						res = res.getValue();
 					} else {
@@ -439,18 +453,6 @@
 					}
 					break;
 				case AscCommonExcel.ECfvoType.Formula:
-					if (null === oCFVO.formula) {
-						oCFVO.formulaParent = new CConditionalFormattingFormulaParent(ws, this, false);
-						oCFVO.formula = new CFormulaCF();
-						oCFVO.formula.Text = oCFVO.Val;
-					}
-					var calcRes = oCFVO.formula.getValue(ws, oCFVO.formulaParent, null, null, true);
-					if (calcRes && calcRes.tocNumber) {
-						calcRes = calcRes.tocNumber();
-						if (calcRes && calcRes.toNumber) {
-							res = calcRes.toNumber();
-						}
-					}
 					break;
 				default:
 					res = -Number.MAX_VALUE;
