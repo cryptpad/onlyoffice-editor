@@ -18,23 +18,6 @@ var c_oAscFieldSortType = {
 	Ascending: 1,
 	Descending: 2
 };
-var c_oAscItemType = {
-	Default: 0,
-	Avg: 1,
-	Count: 2,
-	CountA: 3,
-	Max: 4,
-	Min: 5,
-	Product: 6,
-	StdDev: 7,
-	StdDevP: 8,
-	Sum: 9,
-	Var: 10,
-	VarP: 11,
-	Data: 12,
-	Grand: 13,
-	Blank: 14
-};
 var c_oAscDataConsolidateFunction = {
 	Average: 1,
 	Count: 2,
@@ -361,69 +344,69 @@ function ToXml_ST_FieldSortType(val) {
 function FromXml_ST_ItemType(val) {
 	var res = -1;
 	if ("data" === val) {
-		res = c_oAscItemType.Data;
+		res = Asc.c_oAscItemType.Data;
 	} else if ("default" === val) {
-		res = c_oAscItemType.Default;
+		res = Asc.c_oAscItemType.Default;
 	} else if ("sum" === val) {
-		res = c_oAscItemType.Sum;
+		res = Asc.c_oAscItemType.Sum;
 	} else if ("countA" === val) {
-		res = c_oAscItemType.CountA;
+		res = Asc.c_oAscItemType.CountA;
 	} else if ("avg" === val) {
-		res = c_oAscItemType.Avg;
+		res = Asc.c_oAscItemType.Avg;
 	} else if ("max" === val) {
-		res = c_oAscItemType.Max;
+		res = Asc.c_oAscItemType.Max;
 	} else if ("min" === val) {
-		res = c_oAscItemType.Min;
+		res = Asc.c_oAscItemType.Min;
 	} else if ("product" === val) {
-		res = c_oAscItemType.Product;
+		res = Asc.c_oAscItemType.Product;
 	} else if ("count" === val) {
-		res = c_oAscItemType.Count;
+		res = Asc.c_oAscItemType.Count;
 	} else if ("stdDev" === val) {
-		res = c_oAscItemType.StdDev;
+		res = Asc.c_oAscItemType.StdDev;
 	} else if ("stdDevP" === val) {
-		res = c_oAscItemType.StdDevP;
+		res = Asc.c_oAscItemType.StdDevP;
 	} else if ("var" === val) {
-		res = c_oAscItemType.Var;
+		res = Asc.c_oAscItemType.Var;
 	} else if ("varP" === val) {
-		res = c_oAscItemType.VarP;
+		res = Asc.c_oAscItemType.VarP;
 	} else if ("grand" === val) {
-		res = c_oAscItemType.Grand;
+		res = Asc.c_oAscItemType.Grand;
 	} else if ("blank" === val) {
-		res = c_oAscItemType.Blank;
+		res = Asc.c_oAscItemType.Blank;
 	}
 	return res;
 }
 function ToXml_ST_ItemType(val) {
 	var res = "";
-	if (c_oAscItemType.Data === val) {
+	if (Asc.c_oAscItemType.Data === val) {
 		res = "data";
-	} else if (c_oAscItemType.Default === val) {
+	} else if (Asc.c_oAscItemType.Default === val) {
 		res = "default";
-	} else if (c_oAscItemType.Sum === val) {
+	} else if (Asc.c_oAscItemType.Sum === val) {
 		res = "sum";
-	} else if (c_oAscItemType.CountA === val) {
+	} else if (Asc.c_oAscItemType.CountA === val) {
 		res = "countA";
-	} else if (c_oAscItemType.Avg === val) {
+	} else if (Asc.c_oAscItemType.Avg === val) {
 		res = "avg";
-	} else if (c_oAscItemType.Max === val) {
+	} else if (Asc.c_oAscItemType.Max === val) {
 		res = "max";
-	} else if (c_oAscItemType.Min === val) {
+	} else if (Asc.c_oAscItemType.Min === val) {
 		res = "min";
-	} else if (c_oAscItemType.Product === val) {
+	} else if (Asc.c_oAscItemType.Product === val) {
 		res = "product";
-	} else if (c_oAscItemType.Count === val) {
+	} else if (Asc.c_oAscItemType.Count === val) {
 		res = "count";
-	} else if (c_oAscItemType.StdDev === val) {
+	} else if (Asc.c_oAscItemType.StdDev === val) {
 		res = "stdDev";
-	} else if (c_oAscItemType.StdDevP === val) {
+	} else if (Asc.c_oAscItemType.StdDevP === val) {
 		res = "stdDevP";
-	} else if (c_oAscItemType.Var === val) {
+	} else if (Asc.c_oAscItemType.Var === val) {
 		res = "var";
-	} else if (c_oAscItemType.VarP === val) {
+	} else if (Asc.c_oAscItemType.VarP === val) {
 		res = "varP";
-	} else if (c_oAscItemType.Grand === val) {
+	} else if (Asc.c_oAscItemType.Grand === val) {
 		res = "grand";
-	} else if (c_oAscItemType.Blank === val) {
+	} else if (Asc.c_oAscItemType.Blank === val) {
 		res = "blank";
 	}
 	return res;
@@ -431,35 +414,35 @@ function ToXml_ST_ItemType(val) {
 
 function ToName_ST_ItemType(val) {
 	var res = ' ';
-	if (c_oAscItemType.Default === val) {
+	if (Asc.c_oAscItemType.Default === val) {
 		res += 'Total';
-	} else if (c_oAscItemType.Avg === val) {
+	} else if (Asc.c_oAscItemType.Avg === val) {
 		res += 'Average';
-	} else if (c_oAscItemType.Count === val) {
+	} else if (Asc.c_oAscItemType.Count === val) {
 		res += 'Count';
-	} else if (c_oAscItemType.CountA === val) {
+	} else if (Asc.c_oAscItemType.CountA === val) {
 		res += 'Count';
-	} else if (c_oAscItemType.Max === val) {
+	} else if (Asc.c_oAscItemType.Max === val) {
 		res += 'Max';
-	} else if (c_oAscItemType.Min === val) {
+	} else if (Asc.c_oAscItemType.Min === val) {
 		res += 'Min';
-	} else if (c_oAscItemType.Product === val) {
+	} else if (Asc.c_oAscItemType.Product === val) {
 		res += 'Product';
-	} else if (c_oAscItemType.StdDev === val) {
+	} else if (Asc.c_oAscItemType.StdDev === val) {
 		res += 'StdDev';
-	} else if (c_oAscItemType.StdDevP === val) {
+	} else if (Asc.c_oAscItemType.StdDevP === val) {
 		res += 'StdDevp';
-	} else if (c_oAscItemType.Sum === val) {
+	} else if (Asc.c_oAscItemType.Sum === val) {
 		res += 'Sum';
-	} else if (c_oAscItemType.Var === val) {
+	} else if (Asc.c_oAscItemType.Var === val) {
 		res += 'Var';
-	} else if (c_oAscItemType.VarP === val) {
+	} else if (Asc.c_oAscItemType.VarP === val) {
 		res += 'Varp';
-	} else if (c_oAscItemType.Data === val) {
+	} else if (Asc.c_oAscItemType.Data === val) {
 		res += 'Data';
-	} else if (c_oAscItemType.Grand === val) {
+	} else if (Asc.c_oAscItemType.Grand === val) {
 		res += 'Total';
-	} else if (c_oAscItemType.Blank === val) {
+	} else if (Asc.c_oAscItemType.Blank === val) {
 		res += 'Blank';
 	}
 	return res;
@@ -2836,8 +2819,8 @@ CT_pivotTableDefinition.prototype._getValues = function (records, rowIndex, colI
 };
 CT_pivotTableDefinition.prototype.getValue = function (records, rowIndexes, index, subtotal) {
 	var cacheFields = this.asc_getCacheFields();
-	if (c_oAscItemType.Default === subtotal || c_oAscItemType.Data === subtotal || c_oAscItemType.Blank === subtotal) {
-		subtotal = c_oAscItemType.Sum;
+	if (Asc.c_oAscItemType.Default === subtotal || Asc.c_oAscItemType.Data === subtotal || Asc.c_oAscItemType.Blank === subtotal) {
+		subtotal = Asc.c_oAscItemType.Sum;
 	}
 	var arg = [new AscCommonExcel.cNumber(subtotal)];
 	var i;
@@ -3008,16 +2991,16 @@ CT_pivotTableDefinition.prototype.changeGrandTotals = function (items, newVal) {
 		last = i[l - 1];
 		if (null === newVal) {
 			// Add
-			if (AscCommonExcel.c_oAscItemType.Grand !== last.t) {
+			if (AscCommonExcel.Asc.c_oAscItemType.Grand !== last.t) {
 				last = new CT_I();
-				last.t = AscCommonExcel.c_oAscItemType.Grand;
+				last.t = AscCommonExcel.Asc.c_oAscItemType.Grand;
 				last.x.push(new CT_X());
 				i.push(last);
 				res = 1;
 			}
 		} else {
 			// Remove
-			if (AscCommonExcel.c_oAscItemType.Grand === last.t) {
+			if (AscCommonExcel.Asc.c_oAscItemType.Grand === last.t) {
 				i.pop();
 				res = -1;
 			}
@@ -6949,37 +6932,37 @@ CT_PivotField.prototype.asc_getSubtotals = function () {
 	if (null === this.defaultSubtotal || this.defaultSubtotal) {
 		res = [];
 		if (this.sumSubtotal) {
-			res.push(c_oAscItemType.Sum);
+			res.push(Asc.c_oAscItemType.Sum);
 		}
 		if (this.countASubtotal) {
-			res.push(c_oAscItemType.CountA);
+			res.push(Asc.c_oAscItemType.CountA);
 		}
 		if (this.avgSubtotal) {
-			res.push(c_oAscItemType.Avg);
+			res.push(Asc.c_oAscItemType.Avg);
 		}
 		if (this.maxSubtotal) {
-			res.push(c_oAscItemType.Max);
+			res.push(Asc.c_oAscItemType.Max);
 		}
 		if (this.minSubtotal) {
-			res.push(c_oAscItemType.Min);
+			res.push(Asc.c_oAscItemType.Min);
 		}
 		if (this.productSubtotal) {
-			res.push(c_oAscItemType.Product);
+			res.push(Asc.c_oAscItemType.Product);
 		}
 		if (this.countSubtotal) {
-			res.push(c_oAscItemType.Count);
+			res.push(Asc.c_oAscItemType.Count);
 		}
 		if (this.stdDevSubtotal) {
-			res.push(c_oAscItemType.StdDev);
+			res.push(Asc.c_oAscItemType.StdDev);
 		}
 		if (this.stdDevPSubtotal) {
-			res.push(c_oAscItemType.StdDevP);
+			res.push(Asc.c_oAscItemType.StdDevP);
 		}
 		if (this.varSubtotal) {
-			res.push(c_oAscItemType.Var);
+			res.push(Asc.c_oAscItemType.Var);
 		}
 		if (this.varPSubtotal) {
-			res.push(c_oAscItemType.VarP);
+			res.push(Asc.c_oAscItemType.VarP);
 		}
 	}
 	return res;
@@ -10844,24 +10827,6 @@ prot = c_oAscFieldSortType;
 prot['Manual'] = prot.Manual;
 prot['Ascending'] = prot.Ascending;
 prot['Descending'] = prot.Descending;
-
-window['Asc']['c_oAscItemType'] = window['AscCommonExcel'].c_oAscItemType = c_oAscItemType;
-prot = c_oAscItemType;
-prot['Data'] = prot.Data;
-prot['Default'] = prot.Default;
-prot['Sum'] = prot.Sum;
-prot['CountA'] = prot.CountA;
-prot['Avg'] = prot.Avg;
-prot['Max'] = prot.Max;
-prot['Min'] = prot.Min;
-prot['Product'] = prot.Product;
-prot['Count'] = prot.Count;
-prot['StdDev'] = prot.StdDev;
-prot['StdDevP'] = prot.StdDevP;
-prot['Var'] = prot.Var;
-prot['VarP'] = prot.VarP;
-prot['Grand'] = prot.Grand;
-prot['Blank'] = prot.Blank;
 
 window['Asc']['c_oAscDataConsolidateFunction'] = window['AscCommonExcel'].c_oAscDataConsolidateFunction = c_oAscDataConsolidateFunction;
 prot = c_oAscDataConsolidateFunction;
