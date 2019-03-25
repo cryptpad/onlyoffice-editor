@@ -780,7 +780,7 @@ TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
 	oBodypr.prstTxWarp = AscFormat.ExecuteNoHistory(
 		function()
 		{
-			return  CreatePrstTxWarpGeometry(prst)
+			return AscFormat.CreatePrstTxWarpGeometry(prst)
 		}, []);
 	if(!oShape.bWordShape)
 	{
@@ -963,9 +963,9 @@ function GenerateWordArtPrewiewCode()
 	var oWordArtPreview = new TextArtPreviewManager();
 	var i, j;
 	var oRetString =  "g_PresetTxWarpTypes = \n [";
-	for(i = 0; i < g_PresetTxWarpTypes.length; ++i)
+	for(i = 0; i < AscCommon.g_PresetTxWarpTypes.length; ++i)
 	{
-		var aByTypes = g_PresetTxWarpTypes[i];
+		var aByTypes = AscCommon.g_PresetTxWarpTypes[i];
 		oRetString += "\n\t[";
 		for(j = 0; j < aByTypes.length; ++j)
 		{

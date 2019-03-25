@@ -10073,7 +10073,7 @@ function CreateAscShapeProp(shape)
     if(shape.textBoxContent)
     {
         var body_pr = shape.bodyPr;
-        paddings = new asc_CPaddings();
+        paddings = new Asc.asc_CPaddings();
         if(typeof body_pr.lIns === "number")
             paddings.Left = body_pr.lIns;
         else
@@ -10699,7 +10699,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
             if(verAxis)
             {
                 if(!verAxis.scaling)
-                    verAxis.setScaling(new CScaling());
+                    verAxis.setScaling(new AscFormat.CScaling());
                 var scaling = verAxis.scaling;
                 if(bIsMinMax){
                     scaling.setOrientation(AscFormat.ORIENTATION_MIN_MAX);
@@ -10716,7 +10716,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
             var horAxis = oChartSpace.chart.plotArea.getHorizontalAxis();
             if(horAxis){
                 if(!horAxis.scaling)
-                    horAxis.setScaling(new CScaling());
+                    horAxis.setScaling(new AscFormat.CScaling());
                 var scaling = horAxis.scaling;
                 if(bIsMinMax){
                     scaling.setOrientation(AscFormat.ORIENTATION_MIN_MAX);
