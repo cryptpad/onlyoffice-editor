@@ -313,7 +313,7 @@
 
 	openXml.OpenXmlPackage.prototype.getPartById = function(rId) {
 		var rel = this.getRelationship(rId);
-		return rel ? t.getPartByUri(rel.targetFullName) : null;
+		return rel ? this.getPartByUri(rel.targetFullName) : null;
 	}
 
 	openXml.OpenXmlPackage.prototype.getPartByUri = function(uri) {

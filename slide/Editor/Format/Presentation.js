@@ -761,8 +761,8 @@ CPresentation.prototype =
     },
 
     removeSection: function(pos){
-        History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSection, pos, [pr], true));
-        this.Sections.splice(pos, 0, pr);
+        History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSection, pos, [], true));
+        this.Sections.splice(pos, 0);
     },
 
     Set_DefaultLanguage: function(NewLangId)
