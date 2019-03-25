@@ -188,7 +188,7 @@
         {
             var _size = parseInt((size + 3) / 4);
             var obj = this.ctx.createImageData(1,_size);
-            return new FT_Stream(obj.data,_size);
+            return new FontStream(obj.data,_size);
         };
     }
 
