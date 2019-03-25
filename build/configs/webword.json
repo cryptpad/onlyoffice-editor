@@ -7,8 +7,6 @@
 		"../common/docscoapicommon.js",
         "../common/docscoapi.js",
 		"../common/spellcheckapi.js",
-        "../common/spellCheckLanguage.js",
-        "../common/spellCheckLanguagesAll.js",
 		"../common/apiCommon.js",
 		"../common/SerializeCommonWordExcel.js",
         "../common/editorscommon.js",
