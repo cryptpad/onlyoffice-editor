@@ -367,6 +367,7 @@
         this.headersWidth = 0;
         this.headersHeight = 0;
         this.headersHeightByFont = 0;	// Размер по шрифту (размер без скрытия заголовков)
+		this.groupWidth = 0;
         this.cellsLeft = 0;
         this.cellsTop = 0;
         this.cols = [];
@@ -1392,7 +1393,9 @@
             var nCharCount = this.model.charCountToModelColWidth(numDigit);
             this.headersWidth = Asc.round(this.model.modelColWidthToColWidth(nCharCount) * this.getZoom());
         }
-
+        //todo приравниваю headersLeft и groupWidth. Необходимо пересмотреть!
+        this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
+        this.headersLeft = this.groupWidth;
         this.cellsLeft = this.headersLeft + this.headersWidth;
         return old !== this.cellsLeft;
     };
@@ -1949,6 +1952,9 @@
             // Отрисовываем ячейки и бордеры
             this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
 
+			//Отрисовываем панель группировки по строкам
+			this._drawGroupData(drawingCtx, range, offsetX, offsetY);
+
             var drawingPrintOptions = {
                 ctx: drawingCtx, printPagesData: printPagesData
             };
@@ -1974,6 +1980,7 @@
         this._drawRowHeaders(null);
         this._drawGrid(null);
         this._drawCellsAndBorders(null);
+		this._drawGroupData(null);
         this._drawFrozenPane();
         this._drawFrozenPaneLines();
         this._fixSelectionOfMergedCells();
@@ -2192,9 +2199,6 @@
             this._drawHeader(drawingCtx, offsetX, t, this.headersWidth, h, style, false, i);
 			t += h;
         }
-
-
-        var res = this.getGroupDataArray(start, end);
     };
 
     /**
@@ -15556,17 +15560,20 @@
 		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
 
-		var res = {};
+		var res = null;
 		var up = true, down = true;
 		var fProcessRow = function(row){
 			var outLineLevel = row.getOutlineLevel();
-			if(null === outLineLevel || undefined === outLineLevel) {
+			if(!outLineLevel) {
 				if(start === row.index) {
 					up = false;
 				} else if(end === row.index) {
 					down = false;
 				}
 			} else {
+				if(!res) {
+					res = {};
+				}
 				if(!res[outLineLevel]) {
 					res[outLineLevel] = [];
 				}
@@ -15606,6 +15613,72 @@
 			this.model._getRow(end, fProcessRow);
 		}
 
+		return res;
+	};
+
+	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, width, height ) {
+		if ( range === undefined ) {
+			range = this.visibleRange;
+		}
+
+		var arrayLines = this.getGroupDataArray(range.r1, range.r2);
+		if(!arrayLines) {
+			return;
+		}
+
+		var ctx = drawingCtx || this.drawingCtx;
+		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+		if (!drawingCtx && this.topLeftFrozenCell) {
+			if (undefined === leftFieldInPx) {
+				var cFrozen = this.topLeftFrozenCell.getCol0();
+				offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
+			}
+			if (undefined === topFieldInPx) {
+				var rFrozen = this.topLeftFrozenCell.getRow0();
+				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
+			}
+		}
+
+		var x1 = 0;
+		var y1 = this._getRowTop(range.r1) - offsetY;
+		var x2 = this.groupWidth;
+		var y2 = this._getRowTop(range.r2 + 1) - offsetY;
+		ctx.setFillStyle(this.settings.cells.defaultState.border).fillRect(x1, y1, x2 - x1, y2 - y1);
+
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(2).beginPath();
+		for(var i in arrayLines) {
+			if(arrayLines[i]) {
+				var posX = 2 + i * 16 / 2;
+				for(var j = 0; j < arrayLines[i].length; j++) {
+					var startY = Math.max(arrayLines[i][j].start, range.r1);
+					var endY = Math.min(arrayLines[i][j].end + 1, range.r2);
+					ctx.lineVerPrevPx(posX, this._getRowTop(startY), this._getRowTop(endY));
+				}
+			}
+		}
+		ctx.stroke();
+	};
+
+	WorksheetView.prototype.getGroupCommonLevel = function () {
+		var res = 0;
+		this.model.getRange3(0, 0, gc_nMaxRow0, 0)._foreachRowNoEmpty(function(row) {
+			var outLineLevel = row.getOutlineLevel();
+			if(outLineLevel && outLineLevel > res) {
+				res = outLineLevel;
+			}
+		});
+		return res;
+	};
+
+	WorksheetView.prototype.getGroupCommonWidth = function (level) {
+		//width group menu - padding left - 2px, padding right - 2px, 1 section - 16px
+		var res = 0;
+		if(level > 0) {
+			var padding = 2;
+			var section = 16;
+			res = padding * 2 + section + section * level;
+		}
 		return res;
 	};
 
