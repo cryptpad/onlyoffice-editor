@@ -495,28 +495,6 @@ g_oColorManager = new ColorManager();
 		}
 	};
 
-	function readValAttr(attr){
-		if(attr()){
-			var val = attr()["val"];
-			return val ? val : null;
-		}
-		return null;
-	}
-	function getNumFromXml(val) {
-		return val ? val - 0 : null;
-	}
-	function getColorFromXml(attr) {
-		if(attr()){
-			var vals = attr();
-			if(null != vals["theme"]) {
-				return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(vals["theme"]), getNumFromXml(vals["tint"]));
-			} else if(null != vals["rgb"]){
-				return new AscCommonExcel.RgbColor(0x00ffffff & getNumFromXml(vals["rgb"]));
-			}
-		}
-		return null;
-	}
-
 var g_oFontProperties = {
 		fn: 0,
 		scheme: 1,
@@ -844,21 +822,21 @@ var g_oFontProperties = {
 	Font.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if("b" === elem){
-			this.b = getBoolFromXml(readValAttr(attr));
+			this.b = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("color" === elem){
-			this.c = getColorFromXml(attr);
+			this.c = AscCommon.getColorFromXml(attr);
 		} else if("i" === elem){
-			this.i = getBoolFromXml(readValAttr(attr));
+			this.i = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("name" === elem){
-			this.fn = readValAttr(attr);
+			this.fn = AscCommon.readValAttr(attr);
 		} else if("scheme" === elem){
-			this.scheme = readValAttr(attr);
+			this.scheme = AscCommon.readValAttr(attr);
 		} else if("strike" === elem){
-			this.s = getBoolFromXml(readValAttr(attr));
+			this.s = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("sz" === elem){
-			this.fs = getNumFromXml(readValAttr(attr));
+			this.fs = AscCommon.getNumFromXml(AscCommon.readValAttr(attr));
 		} else if("u" === elem){
-			switch (readValAttr(attr)) {
+			switch (AscCommon.readValAttr(attr)) {
 				case "single":
 					this.u = Asc.EUnderline.underlineSingle;
 					break;
@@ -876,7 +854,7 @@ var g_oFontProperties = {
 					break;
 			}
 		} else if("vertAlign" === elem){
-			switch (readValAttr(attr)) {
+			switch (AscCommon.readValAttr(attr)) {
 				case "baseline":
 					this.va = AscCommon.vertalign_Baseline;
 					break;
@@ -1244,7 +1222,7 @@ var g_oFontProperties = {
 	GradientStop.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if ("color" === elem) {
-			this.color = getColorFromXml(attr);
+			this.color = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
@@ -1357,10 +1335,10 @@ var g_oFontProperties = {
 	PatternFill.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if ("fgColor" === elem) {
-			this.fgColor = getColorFromXml(attr);
+			this.fgColor = AscCommon.getColorFromXml(attr);
 		}
 		else if ("bgColor" === elem) {
-			this.bgColor = getColorFromXml(attr);
+			this.bgColor = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
@@ -1671,7 +1649,7 @@ var g_oFontProperties = {
 	BorderProp.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if("color" === elem){
-			this.c = getColorFromXml(attr);
+			this.c = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
@@ -1960,11 +1938,11 @@ var g_oBorderProperties = {
 			var val;
 			val = vals["diagonalUp"];
 			if(undefined !== val){
-				this.du = getBoolFromXml(val);
+				this.du = AscCommon.getBoolFromXml(val);
 			}
 			val = vals["diagonalDown"];
 			if(undefined !== val){
-				this.dd = getBoolFromXml(val);
+				this.dd = AscCommon.getBoolFromXml(val);
 			}
 		}
 	};
@@ -2601,7 +2579,7 @@ Align.prototype =
 		}
 		val = vals["wrapText"];
 		if(undefined !== val){
-			this.wrap = getBoolFromXml(val);
+			this.wrap = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["indent"];
 		if(undefined !== val){
@@ -2613,7 +2591,7 @@ Align.prototype =
 		}
 		val = vals["shrinkToFit"];
 		if(undefined !== val){
-			this.shrink = getBoolFromXml(val);
+			this.shrink = AscCommon.getBoolFromXml(val);
 		}
 	}
 }

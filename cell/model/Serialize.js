@@ -9013,11 +9013,11 @@
 			}
 			val = vals["pivot"];
 			if (undefined !== val) {
-				this.pivot = getBoolFromXml(val);
+				this.pivot = AscCommon.getBoolFromXml(val);
 			}
 			val = vals["table"];
 			if (undefined !== val) {
-				this.table = getBoolFromXml(val);
+				this.table = AscCommon.getBoolFromXml(val);
 			}
 		}
 	};
