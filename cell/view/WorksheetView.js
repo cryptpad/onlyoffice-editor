@@ -15671,21 +15671,48 @@
 		ctx.setFillStyle(this.settings.cells.defaultState.border).fillRect(x1, y1, x2 - x1, y2 - y1);
 
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(2).beginPath();
-
+		
 		var bFirstLine = true;
+		var buttonSize = 16;
+		var padding = 1;
 		for(var i = 0; i < arrayLines.length; i++) {
 			if(arrayLines[i]) {
 				var index = bFirstLine ? 1 : i;
-				var posX = 2 + 7 + (index - 1) * 16;
+				var posX = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
+
 				for(var j = 0; j < arrayLines[i].length; j++) {
 					var startY = Math.max(arrayLines[i][j].start, range.r1);
 					var endY = Math.min(arrayLines[i][j].end + 1, range.r2);
-					ctx.lineVerPrevPx(posX, this._getRowTop(startY), this._getRowTop(endY));
+					var startPos = this._getRowTop(startY);
+					var endPos = this._getRowTop(endY);
+					var heightNextRow = this._getRowHeight(endY + 1);
+					var paddingTop = (heightNextRow - buttonSize) / 2;
+					if(paddingTop < 0) {
+						paddingTop = 0;
+					}
+					ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
 
+					// _
+					//|
+					if(startY === arrayLines[i][j].start) {
+						ctx.lineHorPrevPx(posX - 2, startPos, posX + 4);
+					}
+
+					//button
+					if(true || endY === arrayLines[i][j].end) {
+						ctx.beginPath();
+						ctx.rect(posX,endPos + paddingTop,16,16);
+						ctx.stroke();
+
+						//ctx.lineVerPrevPx(posX, endPos + paddingTop, endPos + paddingTop + buttonSize);
+					}
+
+					//points
 					for(var n = startY; n < endY; n++) {
 						posX = 2 + 7 + (i) * 16;
-						ctx.lineHorPrevPx(posX - 1, this._getRowTop(n) + this._getRowHeight(n) / 2, posX + 1);
+						ctx.lineHorPrevPx(posX - 2, this._getRowTop(n) + this._getRowHeight(n) / 2, posX);
 					}
+
 				}
 				bFirstLine = false;
 			}
