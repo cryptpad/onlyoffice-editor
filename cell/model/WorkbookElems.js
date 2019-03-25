@@ -964,9 +964,9 @@ var g_oFontProperties = {
 	function FromXml_ST_GradientType(val) {
 		var res = -1;
 		if ("linear" === val) {
-			res = st_gradienttypeLINEAR;
+			res = c_oAscGradientType.Linear;
 		} else if ("path" === val) {
-			res = st_gradienttypePATH;
+			res = c_oAscGradientType.Path;
 		}
 		return res;
 	}
