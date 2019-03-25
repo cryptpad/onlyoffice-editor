@@ -2800,7 +2800,7 @@ function (window, undefined) {
 
 							var aTmp = [];
 							aTmp.push(maRange[i - 1].Y);
-							while (i < mnCount && maRange[i].X === maRange[i - 1].X) {
+							while (i < this.mnCount && maRange[i].X === maRange[i - 1].X) {
 								aTmp.push(maRange[i].Y);
 								nCounter++;
 								maRange.splice(i, 1);
