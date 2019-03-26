@@ -96,9 +96,9 @@ module.exports = function(grunt) {
 	grunt.registerTask('build-sdk', 'Build SDK', function () {
 		var configFonts = loadConfig('fonts');
 		var configExterns = loadConfig('externs');
-		var configWord = loadConfig('webword');
-		var configCell = loadConfig('webexcel');
-		var configSlide = loadConfig('webpowerpoint');
+		var configWord = loadConfig('word');
+		var configCell = loadConfig('cell');
+		var configSlide = loadConfig('slide');
 		if (!configFonts || !configExterns || !configWord || !configCell || !configSlide) {
 			return;
 		}
