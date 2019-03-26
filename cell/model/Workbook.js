@@ -4738,7 +4738,7 @@
 		}
 		this.workbook.dependencyFormulas.calcTree();
 	};
-	Worksheet.prototype.setRowGroup = function (bDel, start, stop) {
+	Worksheet.prototype.setGroupRow = function (bDel, start, stop) {
 		var oThis = this;
 		var fProcessRow = function(row){
 			var oOldProps = row.getOutlineLevel();
@@ -4746,7 +4746,7 @@
 			var oNewProps = row.getOutlineLevel();
 
 			if(oOldProps !== oNewProps) {
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_RowGroup, oThis.getId(), row._getUpdateRange(), new UndoRedoData_IndexSimpleProp(row.index, true, oOldProps, oNewProps));
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupRow, oThis.getId(), row._getUpdateRange(), new UndoRedoData_IndexSimpleProp(row.index, true, oOldProps, oNewProps));
 			}
 		};
 

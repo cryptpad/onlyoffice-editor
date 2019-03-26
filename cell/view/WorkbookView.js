@@ -415,6 +415,8 @@
 				  self._onUpdateSelectionName.apply(self, arguments);
 			  }, "stopFormatPainter": function () {
 				  self._onStopFormatPainter.apply(self, arguments);
+			  }, "groupRowClick": function () {
+				  self._onGroupRowClick.apply(self, arguments);
 			  },
 
 			  // Shapes
@@ -1343,6 +1345,10 @@
 
   WorkbookView.prototype._onAutoFiltersClick = function(idFilter) {
     this.getWorksheet().af_setDialogProp(idFilter);
+  };
+
+  WorkbookView.prototype._onGroupRowClick = function(x, y, target) {
+  	this.getWorksheet().groupRowClick(x, y, target);
   };
 
   WorkbookView.prototype._onCommentCellClick = function(x, y) {

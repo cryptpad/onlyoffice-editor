@@ -71,7 +71,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_RowHide = 28;
 	window['AscCH'].historyitem_Worksheet_SetDisplayGridlines = 31;
 	window['AscCH'].historyitem_Worksheet_SetDisplayHeadings = 32;
-	window['AscCH'].historyitem_Worksheet_RowGroup = 33;
+	window['AscCH'].historyitem_Worksheet_GroupRow = 33;
 // Frozen cell
 	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
 

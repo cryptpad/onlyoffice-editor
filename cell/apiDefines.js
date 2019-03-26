@@ -294,7 +294,8 @@ var c_oTargetType = {
   Cells: 11,
   Shape: 12,
   FrozenAnchorH: 14,
-  FrozenAnchorV: 15
+  FrozenAnchorV: 15,
+  GroupRow: 16
 };
 
 var c_oAscAutoFilterTypes = {

@@ -6706,6 +6706,17 @@
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
 			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.isCellEditMode;
+
+			if(this.groupWidth && x < this.groupWidth) {
+				return {
+					cursor: kCurDefault,
+					target: c_oTargetType.GroupRow,
+					col: -1,
+					row: r.row + (isNotFirst && f && y < r.top + 3 ? -1 : 0),
+					mouseY: f ? (((y < r.top + 3) ? r.top : r.bottom) - y - 1) : null
+				};
+			}
+
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurRowResize : kCurRowSelect,
@@ -11691,7 +11702,7 @@
 				functionModelAction = function () {
 					History.Create_NewPoint();
 					History.StartTransaction();
-					t.model.setRowGroup(val, arn.r1, arn.r2);
+					t.model.setGroupRow(val, arn.r1, arn.r2);
 					History.EndTransaction();
 					/*oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
@@ -15556,6 +15567,7 @@
 		this.viewPrintLines = val;
 	};
 
+	//GROUP DATA FUNCTIONS
 	WorksheetView.prototype.getGroupDataArray = function (start, end) {
 		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
@@ -15670,11 +15682,13 @@
 		var y2 = this._getRowTop(range.r2 + 1) - offsetY;
 		ctx.setFillStyle(this.settings.cells.defaultState.border).fillRect(x1, y1, x2 - x1, y2 - y1);
 
-		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(2).beginPath();
+		var lineWidth = 2;
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 		
 		var bFirstLine = true;
 		var buttonSize = 16;
 		var padding = 1;
+		var buttons = [];
 		for(var i = 0; i < arrayLines.length; i++) {
 			if(arrayLines[i]) {
 				var index = bFirstLine ? 1 : i;
@@ -15699,12 +15713,8 @@
 					}
 
 					//button
-					if(true || endY === arrayLines[i][j].end) {
-						ctx.beginPath();
-						ctx.rect(posX,endPos + paddingTop,16,16);
-						ctx.stroke();
-
-						//ctx.lineVerPrevPx(posX, endPos + paddingTop, endPos + paddingTop + buttonSize);
+					if(endY === arrayLines[i][j].end + 1) {
+						buttons.push({x: posX - 6, y: endPos + paddingTop, w: buttonSize - lineWidth, h: buttonSize - lineWidth});
 					}
 
 					//points
@@ -15718,6 +15728,20 @@
 			}
 		}
 		ctx.stroke();
+		ctx.closePath();
+
+		//buttons
+		if(buttons.length) {
+			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(1).beginPath();
+			for(var m = 0; m < buttons.length; m++) {
+				ctx.lineHorPrevPx(buttons[m].x, buttons[m].y, buttons[m].x + buttons[m].w);
+				ctx.lineVerPrevPx(buttons[m].x + buttons[m].w, buttons[m].y, buttons[m].y + buttons[m].h);
+				ctx.lineHorPrevPx(buttons[m].x + buttons[m].w, buttons[m].y + buttons[m].h, buttons[m].x);
+				ctx.lineVerPrevPx(buttons[m].x, buttons[m].y + buttons[m].h, buttons[m].y - 1);
+			}
+			ctx.stroke();
+			ctx.closePath();
+		}
 	};
 
 	WorksheetView.prototype.getGroupCommonLevel = function () {
@@ -15742,6 +15766,25 @@
 		return res;
 	};
 
+	WorksheetView.prototype.groupRowClick = function (x, y, target) {
+		if(target.row < 1) {
+			return;
+		}
+
+		var bFirstRow = true;
+		var outLineLevel;
+		this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(function(row) {
+			if(bFirstRow) {
+				outLineLevel = row.getOutlineLevel();
+				bFirstRow = false;
+				return;
+			}
+			//проверяем предыдущую строку - если там есть outLineLevel, а в следующей outLineLevel c другим индексом, тогда в следующей может быть кнопка управления группой
+			if(outLineLevel && outLineLevel !== row.getOutlineLevel()) {
+
+			}
+		});
+	};
 
     //------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};

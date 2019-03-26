@@ -627,6 +627,13 @@
 			this.handlers.trigger("autoFiltersClick", idFilter);
 		};
 
+		asc_CEventsController.prototype._groupRowClick = function (event, target) {
+			var t = this;
+			// Обновляемся в режиме перемещения диапазона
+			var coord = this._getCoordinates(event);
+			this.handlers.trigger("groupRowClick", coord.x, coord.y, target);
+		};
+
 		asc_CEventsController.prototype._commentCellClick = function (event) {
 			var t = this;
 			var coord = t._getCoordinates(event);
@@ -1391,6 +1398,9 @@
 						// Режим установки закреплённых областей
 						this.frozenAnchorMode = t.targetInfo.target;
 						t._moveFrozenAnchorHandle(event, this.frozenAnchorMode);
+						return;
+					} else if (t.targetInfo.target === c_oTargetType.GroupRow && 0 === event.button) {
+						t._groupRowClick(event, t.targetInfo);
 						return;
 					}
 				}

@@ -2405,7 +2405,7 @@ function (window, undefined) {
 			worksheetView._updateFreezePane(updateData.c1, updateData.r1, /*lockDraw*/true);
 		} else if (AscCH.historyitem_Worksheet_SetTabColor === Type) {
 			ws.setTabColor(bUndo ? Data.from : Data.to);
-		} else if (AscCH.historyitem_Worksheet_RowGroup == Type) {
+		} else if (AscCH.historyitem_Worksheet_GroupRow == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
 				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
