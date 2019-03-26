@@ -40,7 +40,7 @@
     window['AscFonts'].api = null;
     window['AscFonts'].onSuccess = null;
     window['AscFonts'].onError = null;
-    window['AscFonts'].maxLoadingIndex = 4; // engine, file, manager, wasm
+    window['AscFonts'].maxLoadingIndex = 5; // engine, file, manager, wasm, sdk-manager
     window['AscFonts'].curLoadingIndex = 0;
 
     window['AscFonts'].allocate = function(size)
@@ -62,7 +62,7 @@
 	{
 		++window['AscFonts'].curLoadingIndex;
 
-		if (window['AscFonts'].curLoadingIndex == window['AscFonts'].curLoadingMax)
+		if (window['AscFonts'].curLoadingIndex == window['AscFonts'].maxLoadingIndex)
 		{
 			if (window['AscFonts'].api)
 			{
@@ -121,7 +121,7 @@
         }
         else
         {
-            AscCommon.loadScript(url + "/engine.js", _onSuccess, _onError);
+            AscCommon.loadScript(url + "/fonts.js", _onSuccess, _onError);
         }
     };
 

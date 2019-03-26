@@ -44,7 +44,7 @@
 
     AscFonts.CreateLibrary = function()
     {
-        return Module._ASC_FT_Init();
+        return Module["_ASC_FT_Init"]();
     };
 
     AscFonts.TT_INTERPRETER_VERSION_35 = 35;
@@ -53,12 +53,12 @@
 
     AscFonts.FT_Set_TrueType_HintProp = function(library, tt_interpreter)
     {
-        return Module._ASC_FT_Set_TrueType_HintProp(library, tt_interpreter);
+        return Module["_ASC_FT_Set_TrueType_HintProp"](library, tt_interpreter);
     };
 
     AscFonts.CreateNativeStream = function(_typed_array)
     {
-        var _fontStreamPointer = Module._ASC_FT_Malloc(_typed_array.size);
+        var _fontStreamPointer = Module["_ASC_FT_Malloc"](_typed_array.size);
         Module.HEAP8.set(_typed_array.data, _fontStreamPointer);
         return { asc_marker: true, data: _fontStreamPointer, len: _typed_array.size};
     };
@@ -115,7 +115,7 @@
 
     CFaceInfo.prototype.load = function(face)
     {
-        var _bufferPtr = Module._ASC_FT_GetFaceInfo(face);
+        var _bufferPtr = Module["_ASC_FT_GetFaceInfo"](face);
         if (!_bufferPtr)
             return;
 
@@ -170,7 +170,7 @@
         for (var i = 0; i < fixedSizesCount; i++)
             this.monochromeSizes.push(_buffer[_index++]);
 
-        Module._ASC_FT_Free(_bufferPtr);
+        Module["_ASC_FT_Free"](_bufferPtr);
     };
 
     function CGlyphMetrics()
@@ -211,12 +211,12 @@
 
     AscFonts.FT_Open_Face = function(library, stream, face_index)
     {
-        return Module._ASC_FT_Open_Face(library, stream.data, stream.len, face_index);
+        return Module["_ASC_FT_Open_Face"](library, stream.data, stream.len, face_index);
     };
 
     AscFonts.FT_Glyph_Get_Measure = function(face, vector_worker, painter)
     {
-        var _bufferPtr = Module._ASC_FT_Get_Glyph_Measure_Params(face, vector_worker ? 1 : 0);
+        var _bufferPtr = Module["_ASC_FT_Get_Glyph_Measure_Params"](face, vector_worker ? 1 : 0);
         if (!_bufferPtr)
             return null;
 
@@ -283,7 +283,7 @@
             painter.end(vector_worker);
         }
 
-        Module._ASC_FT_Free(_bufferPtr);
+        Module["_ASC_FT_Free"](_bufferPtr);
         _buffer = null;
 
         return _info;
@@ -291,7 +291,7 @@
 
     AscFonts.FT_Glyph_Get_Raster = function(face, render_mode)
     {
-        var _bufferPtr = Module._ASC_FT_Get_Glyph_Render_Params(face, render_mode);
+        var _bufferPtr = Module["_ASC_FT_Get_Glyph_Render_Params"](face, render_mode);
         if (!_bufferPtr)
             return null;
 
@@ -305,20 +305,20 @@
         _info.pitch   = _buffer[4];
         _info.mode    = _buffer[5];
 
-        Module._ASC_FT_Free(_bufferPtr);
+        Module["_ASC_FT_Free"](_bufferPtr);
         return _info;
     };
 
-    AscFonts.FT_Load_Glyph = Module._FT_Load_Glyph;
-    AscFonts.FT_Set_Transform = Module._ASC_FT_Set_Transform;
-    AscFonts.FT_Set_Char_Size = Module._FT_Set_Char_Size;
+    AscFonts.FT_Load_Glyph = Module["_FT_Load_Glyph"];
+    AscFonts.FT_Set_Transform = Module["_ASC_FT_Set_Transform"];
+    AscFonts.FT_Set_Char_Size = Module["_FT_Set_Char_Size"];
 
-    AscFonts.FT_SetCMapForCharCode = Module._ASC_FT_SetCMapForCharCode;
-    AscFonts.FT_GetKerningX = Module._ASC_FT_GetKerningX;
-    AscFonts.FT_GetFaceMaxAdvanceX = Module._ASC_FT_GetFaceMaxAdvanceX;
+    AscFonts.FT_SetCMapForCharCode = Module["_ASC_FT_SetCMapForCharCode"];
+    AscFonts.FT_GetKerningX = Module["_ASC_FT_GetKerningX"];
+    AscFonts.FT_GetFaceMaxAdvanceX = Module["_ASC_FT_GetFaceMaxAdvanceX"];
     AscFonts.FT_Get_Glyph_Render_Buffer = function(face, rasterInfo, isCopyToRasterMemory)
     {
-        var _bufferPtr = Module._ASC_FT_Get_Glyph_Render_Buffer(face);
+        var _bufferPtr = Module["_ASC_FT_Get_Glyph_Render_Buffer"](face);
         var tmp = new Uint8Array(Module.HEAP8.buffer, _bufferPtr, rasterInfo.pitch * rasterInfo.rows);
 
         if (!isCopyToRasterMemory)
