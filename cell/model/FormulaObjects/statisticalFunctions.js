@@ -776,7 +776,7 @@ function (window, undefined) {
 
 		if (null !== calcTest) {
 			if (false === calcTest) {
-				return new cError(cErrorType.wrong_value_type);
+				return new cError(cErrorType.division_by_zero);
 			} else {
 				fT = calcTest.fT;
 				fF = calcTest.fF;
