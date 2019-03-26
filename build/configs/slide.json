@@ -254,9 +254,13 @@
 			"../common/Overlay.js",
 			"../slide/Drawing/HtmlPage.js",
 			"../slide/Drawing/DrawingDocument.js",
-			"../common/FontsFreeType/FontFile.js",
-			"../common/FontsFreeType/FontManager.js",
-			"../common/FontsFreeType/TextMeasurer.js"
+			"../common/libfont/map.js",
+			"../common/libfont/rasterheap.js",
+			"../common/libfont/glyphstring.js",
+			"../common/libfont/character.js",
+			"../common/libfont/manager.js",
+			"../common/libfont/classification.js",
+			"../common/libfont/textmeasurer.js"
 		],
 		"dst": "../slide",
 		"map": "sdk-all.js.map",
