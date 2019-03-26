@@ -192,6 +192,9 @@
         };
     }
 
+    window['AscFonts'].FT_Memory = FT_Memory;
+    window['AscFonts'].g_memory = new FT_Memory();
+
     function CRasterMemory()
     {
         this.width = 0;
@@ -208,14 +211,11 @@
                 this.height = Math.max(this.height, h + 1);
 
                 this.m_oBuffer = null;
-                this.m_oBuffer = g_memory.ctx.createImageData(this.width, this.height);
+                this.m_oBuffer = window['AscFonts'].g_memory.ctx.createImageData(this.width, this.height);
             }
         };
     }
 
-    window['AscFonts'].FT_Memory = FT_Memory;
-
     window['AscFonts'].raster_memory = new CRasterMemory();
-    window['AscFonts'].g_memory = new FT_Memory();
 
 })(window, undefined);

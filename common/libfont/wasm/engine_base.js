@@ -39,6 +39,15 @@
 
     //module
 
+    Module.HEAP8 = Module["HEAP8"];
+    Module.HEAP16 = Module["HEAP16"];
+    Module.HEAP32 = Module["HEAP32"];
+    Module.HEAPU8 = Module["HEAPU8"];
+    Module.HEAPU16 = Module["HEAPU16"];
+    Module.HEAPU32 = Module["HEAPU32"];
+    Module.HEAPF32 = Module["HEAPF32"];
+    Module.HEAPF64 = Module["HEAPF64"];
+
     window['AscFonts'] = window['AscFonts'] || {};
     var AscFonts = window['AscFonts'];
 
