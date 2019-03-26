@@ -2431,7 +2431,7 @@ var editor;
 
     spreadsheet_api.prototype.asc_CallSignatureDblClickEvent = function(sGuid){
         var allSpr = this.asc_getAllSignatures();
-        for(i = 0; i < allSpr.length; ++i){
+        for(var i = 0; i < allSpr.length; ++i){
           if(allSpr[i].signatureLine && allSpr[i].signatureLine.id === sGuid){
               this.sendEvent("asc_onSignatureDblClick", sGuid, allSpr[i].extX, allSpr[i].extY);
           }
