@@ -255,8 +255,10 @@ CContentControlPr.prototype.get_Color = function()
 };
 CContentControlPr.prototype.put_Color = function(r, g, b)
 {
-	if (undefined === r || null === r)
+	if (undefined === r)
 		this.Color = undefined;
+	else if (null === r)
+		this.Color = null;
 	else
 		this.Color = new CDocumentColor(r, g, b);
 };
