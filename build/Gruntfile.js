@@ -181,7 +181,7 @@ module.exports = function(grunt) {
 			'closure-compiler': {
 				js: {
 					options: {
-						args: getExterns(configExterns).concat('--jscomp_off=checkVars', '--warning_level=QUIET', '--compilation_level=' + level,
+						args: getExterns(configExterns).concat('--rewrite_polyfills=false', '--jscomp_off=checkVars', '--warning_level=QUIET', '--compilation_level=' + level,
 							'--module=fontswasm:1:', '--js=' + fontsWasmTmp,
 							'--module=fontsjs:1:fontswasm', '--js=' + fontsJsTmp,
 							'--module=word:1:fontswasm', '--js=' + sdkWordTmp,
