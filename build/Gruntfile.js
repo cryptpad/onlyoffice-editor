@@ -125,6 +125,11 @@ module.exports = function(grunt) {
 		var sdkCellTmp = 'sdk-cell-tmp.js';
 		var sdkSlideTmp = 'sdk-slide-tmp.js';
 
+		var compilerArgs = getExterns(configExterns);
+		if (formatting) {
+			compilerArgs.push('--formatting=' + formatting);
+		}
+
 		grunt.initConfig({
 			concat: {
 				wasm: {
@@ -181,7 +186,9 @@ module.exports = function(grunt) {
 			'closure-compiler': {
 				js: {
 					options: {
-						args: getExterns(configExterns).concat('--rewrite_polyfills=false', '--jscomp_off=checkVars', '--warning_level=QUIET', '--compilation_level=' + level,
+						args: compilerArgs.concat(
+							'--rewrite_polyfills=false', '--jscomp_off=checkVars',
+							'--warning_level=QUIET', '--compilation_level=' + level,
 							'--module=fontswasm:1:', '--js=' + fontsWasmTmp,
 							'--module=fontsjs:1:fontswasm', '--js=' + fontsJsTmp,
 							'--module=word:1:fontswasm', '--js=' + sdkWordTmp,
