@@ -39,15 +39,6 @@
 
     //module
 
-    Module.HEAP8 = Module["HEAP8"];
-    Module.HEAP16 = Module["HEAP16"];
-    Module.HEAP32 = Module["HEAP32"];
-    Module.HEAPU8 = Module["HEAPU8"];
-    Module.HEAPU16 = Module["HEAPU16"];
-    Module.HEAPU32 = Module["HEAPU32"];
-    Module.HEAPF32 = Module["HEAPF32"];
-    Module.HEAPF64 = Module["HEAPF64"];
-
     window['AscFonts'] = window['AscFonts'] || {};
     var AscFonts = window['AscFonts'];
 
@@ -68,7 +59,7 @@
     AscFonts.CreateNativeStream = function(_typed_array)
     {
         var _fontStreamPointer = Module["_ASC_FT_Malloc"](_typed_array.size);
-        Module.HEAP8.set(_typed_array.data, _fontStreamPointer);
+        Module["HEAP8"].set(_typed_array.data, _fontStreamPointer);
         return { asc_marker: true, data: _fontStreamPointer, len: _typed_array.size};
     };
 
@@ -128,7 +119,7 @@
         if (!_bufferPtr)
             return;
 
-        var _buffer = new Int32Array(Module.HEAP8.buffer, _bufferPtr, 250); //max 230 symbols on name & style
+        var _buffer = new Int32Array(Module["HEAP8"].buffer, _bufferPtr, 250); //max 230 symbols on name & style
         var _index = 0;
 
         this.units_per_EM 	= Math.abs(_buffer[_index++]);
@@ -231,9 +222,9 @@
 
         var _len = 15;
         if (vector_worker)
-            _len = Module.HEAP32[_bufferPtr >> 2];
+            _len = Module["HEAP32"][_bufferPtr >> 2];
 
-        var _buffer = new Int32Array(Module.HEAP8.buffer, _bufferPtr, 4 * _len);
+        var _buffer = new Int32Array(Module["HEAP8"].buffer, _bufferPtr, 4 * _len);
 
         var _info = new CGlyphMetrics();
         _info.bbox_xMin     = _buffer[1];
@@ -304,7 +295,7 @@
         if (!_bufferPtr)
             return null;
 
-        var _buffer = new Int32Array(Module.HEAP8.buffer, _bufferPtr, 24);
+        var _buffer = new Int32Array(Module["HEAP8"].buffer, _bufferPtr, 24);
 
         var _info = new CGlyphBitmapImage();
         _info.left    = _buffer[0];
@@ -328,7 +319,7 @@
     AscFonts.FT_Get_Glyph_Render_Buffer = function(face, rasterInfo, isCopyToRasterMemory)
     {
         var _bufferPtr = Module["_ASC_FT_Get_Glyph_Render_Buffer"](face);
-        var tmp = new Uint8Array(Module.HEAP8.buffer, _bufferPtr, rasterInfo.pitch * rasterInfo.rows);
+        var tmp = new Uint8Array(Module["HEAP8"].buffer, _bufferPtr, rasterInfo.pitch * rasterInfo.rows);
 
         if (!isCopyToRasterMemory)
             return tmp;

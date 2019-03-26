@@ -75,5 +75,6 @@ WebAssembly.instantiate;
 WebAssembly.instantiateStreaming;
 WebAssembly.Table;
 WebAssembly.Memory;
+function grow(){}
 
 var VBArray;
