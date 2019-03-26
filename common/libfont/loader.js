@@ -60,6 +60,9 @@
 
     window['AscFonts'].onLoadModule = function()
 	{
+	    if (window['AscFonts'].isEngineReady)
+	        return;
+
 		++window['AscFonts'].curLoadingIndex;
 
 		if (window['AscFonts'].curLoadingIndex == window['AscFonts'].maxLoadingIndex)
@@ -80,16 +83,22 @@
 
     window['AscFonts'].load = function(api, onSuccess, onError)
     {
-        if (window["NATIVE_EDITOR_ENJINE"] === true || window["Native"] !== undefined)
-        {
-            window['AscFonts'].isEngineReady = false;
-            onSuccess.call(api);
-            return;
-        }
-
         window['AscFonts'].api = api;
         window['AscFonts'].onSuccess = onSuccess;
         window['AscFonts'].onError = onError;
+
+        if (window["NATIVE_EDITOR_ENJINE"] === true || window["IS_NATIVE_EDITOR"] === true || window["Native"] !== undefined)
+        {
+            window['AscFonts'].isEngineReady = true;
+            window['AscFonts'].onSuccess.call(window['AscFonts'].api);
+
+            delete window['AscFonts'].curLoadingIndex;
+            delete window['AscFonts'].maxLoadingIndex;
+            delete window['AscFonts'].api;
+            delete window['AscFonts'].onSuccess;
+            delete window['AscFonts'].onError;
+            return;
+        }
 
         var url = "../../../../sdkjs/common/libfont";
         var useWasm = false;
