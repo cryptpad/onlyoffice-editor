@@ -43,7 +43,7 @@ module.exports = function(grunt) {
 	function getExterns(config) {
 		var externs = config['externs'];
 		var result = [];
-		for (var i = 0; i < externs; ++i) {
+		for (var i = 0; i < externs.length; ++i) {
 			result.push('--externs=' + externs[i]);
 		}
 		return result;
@@ -98,7 +98,7 @@ module.exports = function(grunt) {
 		var configWord = loadConfig('webword');
 		var configCell = loadConfig('webexcel');
 		var configSlide = loadConfig('webpowerpoint');
-		if (!configFonts || !configWord || !configCell || !configSlide) {
+		if (!configFonts || !configExterns || !configWord || !configCell || !configSlide) {
 			return;
 		}
 		configWord = configWord['sdk'];
