@@ -12161,7 +12161,7 @@ Paragraph.prototype.Get_SectPr = function()
 
     return null;
 };
-Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
+Paragraph.prototype.CheckRevisionsChanges = function(RevisionsManager)
 {
     var ParaId = this.Get_Id();
 
@@ -12191,7 +12191,7 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
             Checker.Set_ParaEndRun();
 
         ContentPos.Update(CurPos, 0);
-        this.Content[CurPos].Check_RevisionsChanges(Checker, ContentPos, 1);
+        this.Content[CurPos].CheckRevisionsChanges(Checker, ContentPos, 1);
     }
 
     Checker.Flush_AddRemoveChange();
@@ -12249,7 +12249,7 @@ Paragraph.prototype.private_UpdateTrackRevisions = function()
     if (this.LogicDocument && this.LogicDocument.GetTrackRevisionsManager)
     {
         var RevisionsManager = this.LogicDocument.GetTrackRevisionsManager();
-        RevisionsManager.Check_Paragraph(this);
+        RevisionsManager.CheckElement(this);
     }
 };
 Paragraph.prototype.UpdateDocumentOutline = function()

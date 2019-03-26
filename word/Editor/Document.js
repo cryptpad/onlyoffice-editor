@@ -18394,7 +18394,7 @@ function CDocumentCompareDrawingsLogicPositions(Drawing1, Drawing2)
 function CTrackRevisionsManager(LogicDocument)
 {
     this.LogicDocument = LogicDocument;
-    this.CheckPara     = {}; // Параграфы, которые нужно проверить
+    this.CheckElements = {}; // Элементы, которые нужно проверить
     this.Changes       = {}; // Объект с ключом - Id параграфа, в котором лежит массив изменений
 
     this.CurChange     = null; // Текущеее изменение
@@ -18404,13 +18404,17 @@ function CTrackRevisionsManager(LogicDocument)
     this.OldVisibleChanges = [];
 }
 
-CTrackRevisionsManager.prototype.Check_Paragraph = function(Para)
+CTrackRevisionsManager.prototype.CheckElement = function(oElement)
 {
-    var ParaId = Para.Get_Id();
-    if (undefined == this.CheckPara[ParaId])
-        this.CheckPara[ParaId] = 1;
+	if (!(oElement instanceof Paragraph) && !(oElement instanceof CTable))
+		return;
+
+	var sElementId = oElement.GetId();
+
+    if (!this.CheckElements[sElementId])
+        this.CheckElements[sElementId] = 1;
     else
-        this.CheckPara[ParaId]++;
+        this.CheckElements[sElementId]++;
 };
 CTrackRevisionsManager.prototype.Add_Change = function(ParaId, Change)
 {
@@ -18433,9 +18437,9 @@ CTrackRevisionsManager.prototype.ContinueTrackRevisions = function()
 		nCounter    = 0;
 
 	var bNeedUpdate = false;
-	for (var sParaId in this.CheckPara)
+	for (var sId in this.CheckElements)
 	{
-		if (this.private_TrackChangesForParagraph(sParaId))
+		if (this.private_TrackChangesForSingleElement(sId))
 			bNeedUpdate = true;
 
 		++nCounter;
@@ -18867,10 +18871,10 @@ CTrackRevisionsManager.prototype.Get_AllChangesRelatedParagraphsBySelectedParagr
 };
 CTrackRevisionsManager.prototype.private_HaveParasToCheck = function()
 {
-    for (var ParaId in this.CheckPara)
+    for (var sId in this.CheckElements)
     {
-        var Para = g_oTableId.Get_ById(ParaId);
-        if (Para && Para instanceof Paragraph && Para.Is_UseInDocument())
+        var oElement = g_oTableId.Get_ById(sId);
+        if (oElement && (oElement instanceof Paragraph || oElement instanceof CTable) && oElement.Is_UseInDocument())
             return true;
     }
 
@@ -18883,7 +18887,7 @@ CTrackRevisionsManager.prototype.Get_AllChanges = function()
 };
 CTrackRevisionsManager.prototype.private_IsAllParagraphsChecked = function()
 {
-	for (var ParaId in this.CheckPara)
+	for (var sId in this.CheckElements)
 	{
 		return false;
 	}
@@ -18909,22 +18913,22 @@ CTrackRevisionsManager.prototype.CompleteTrackChangesForElements = function(arrE
 	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
 	{
 		var sElementId = arrElements[nIndex].GetId();
-		if (this.private_TrackChangesForParagraph(sElementId))
+		if (this.private_TrackChangesForSingleElement(sElementId))
 			isChecked = true;
 	}
 
 	return isChecked;
 };
-CTrackRevisionsManager.prototype.private_TrackChangesForParagraph = function(sParaId)
+CTrackRevisionsManager.prototype.private_TrackChangesForSingleElement = function(sId)
 {
-	if (this.CheckPara[sParaId])
+	if (this.CheckElements[sId])
 	{
-		delete this.CheckPara[sParaId];
-		var oParagraph = g_oTableId.Get_ById(sParaId);
-		if (oParagraph && oParagraph instanceof Paragraph && oParagraph.Is_UseInDocument())
+		delete this.CheckElements[sId];
+		var oElement = g_oTableId.Get_ById(sId);
+		if (oElement && (oElement instanceof Paragraph || oElement instanceof CTable) && oElement.Is_UseInDocument())
 		{
-			delete this.Changes[sParaId];
-			oParagraph.Check_RevisionsChanges(this);
+			delete this.Changes[sId];
+			oElement.CheckRevisionsChanges(this);
 			return true;
 		}
 	}

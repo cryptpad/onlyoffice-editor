@@ -3353,9 +3353,9 @@ ParaMath.prototype.Correct_AfterConvertFromEquation = function()
     this.ParaMathRPI.bCorrect_ConvertFontSize = true;
 };
 
-ParaMath.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+ParaMath.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
-    return this.Root.Check_RevisionsChanges(Checker, ContentPos, Depth);
+    return this.Root.CheckRevisionsChanges(Checker, ContentPos, Depth);
 };
 ParaMath.prototype.AcceptRevisionChanges = function(Type, bAll)
 {
