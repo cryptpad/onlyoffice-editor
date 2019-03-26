@@ -14290,9 +14290,8 @@ CTable.prototype.UpdateTrackRevisions = function()
 {
 	if (this.LogicDocument && this.LogicDocument.GetTrackRevisionsManager)
 	{
-		// TODO: Реализовать для таблицы
 		var oRevisionsManager = this.LogicDocument.GetTrackRevisionsManager();
-		//oRevisionsManager.Check_Paragraph(this);
+		oRevisionsManager.CheckElement(this);
 	}
 };
 CTable.prototype.GetPrReviewColor = function()

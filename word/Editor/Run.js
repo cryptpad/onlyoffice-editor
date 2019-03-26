@@ -9708,7 +9708,7 @@ ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
             this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
     }
 };
-ParaRun.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
     if (this.Is_Empty())
         return;
@@ -9819,7 +9819,7 @@ ParaRun.prototype.private_UpdateTrackRevisions = function()
     if (this.Paragraph && this.Paragraph.bFromDocument && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.GetTrackRevisionsManager)
     {
         var RevisionsManager = this.Paragraph.LogicDocument.GetTrackRevisionsManager();
-        RevisionsManager.Check_Paragraph(this.Paragraph);
+        RevisionsManager.CheckElement(this.Paragraph);
     }
 };
 ParaRun.prototype.AcceptRevisionChanges = function(Type, bAll)
