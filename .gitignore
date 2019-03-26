@@ -15,3 +15,9 @@ common/Images/fonts_thumbnail@2x.png
 *~
 .DS_Store
 /deploy
+cell/sdk-all.props.js.map
+cell/sdk-all.vars.js.map
+slide/sdk-all.props.js.map
+slide/sdk-all.vars.js.map
+word/sdk-all.props.js.map
+word/sdk-all.vars.js.map

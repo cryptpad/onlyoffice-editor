@@ -169,6 +169,12 @@ module.exports = function(grunt) {
 			warning_level: 'QUIET',
 			externs: packageFile['compile']['sdk']['externs']
 		};
+
+		if (grunt.option('map')) {
+			sdkOpt.property_renaming_report = sdkDstFolder + '/sdk-all.props.js.map';
+			sdkOpt.variable_renaming_report = sdkDstFolder + '/sdk-all.vars.js.map';
+		}
+
 		if (formatting) {
 			sdkOpt['formatting'] = formatting;
 		}
