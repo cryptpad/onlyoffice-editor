@@ -41,7 +41,7 @@
     if (window["AscDesktopEditor"] && document.currentScript && 0 == document.currentScript.src.indexOf("file:///"))
     {
         // fetch not support file:/// scheme
-        var fetch = undefined;
+        window.fetch = undefined;
 
         getBinaryPromise = function() {
 
