@@ -15623,17 +15623,21 @@
 					}
 				}
 
+				if(needPush) {
+					res[outLineLevel].push({start: row.index, end: row.index});
+				}
+
 				for(var n = 1; n < outLineLevel; n++) {
 					if(!res[n]) {
-						continue;
+						if(res[outLineLevel]) {
+							res[n] = [{start: res[outLineLevel][res[outLineLevel].length - 1].start, end: res[outLineLevel][res[outLineLevel].length - 1].end}];
+						} else {
+							res[n] = [];
+						}
 					}
 					for(var m = 0; m < res[n].length; m++) {
 						continueRange(n, m);
 					}
-				}
-
-				if(needPush) {
-					res[outLineLevel].push({start: row.index, end: row.index});
 				}
 			}
 		};
@@ -15658,9 +15662,55 @@
 
 		console.timeEnd("old");
 
-		return res;
+		return this._unionPreviousGroup2(res);
+
+		return this._unionPreviousGroup(res);
 	};
 
+	WorksheetView.prototype._unionPreviousGroup = function (groupArr) {
+		if(!groupArr || groupArr.length < 2) {
+			return groupArr;
+		}
+
+		for(var i = groupArr.length - 1; i > 1; i--) {
+			if(!groupArr[i - 1]) {
+				groupArr[i - 1] = groupArr[i];
+				continue;
+			}
+			for(var j = 0; j < groupArr[i].length; j++) {
+				for(var n = 0; n < groupArr[i - 1].length; n++) {
+					if(groupArr[i-1][n].end - 1 === groupArr[i][j].end || groupArr[i-1][n].start + 1 === groupArr[i][j].start) {
+						if(groupArr[i][j].start < groupArr[i-1][n].start) {
+							groupArr[i-1][n].start = groupArr[i][j].start;
+						}
+						if(groupArr[i][j].end > groupArr[i-1][n].end) {
+							groupArr[i-1][n].end = groupArr[i][j].end;
+						}
+					}
+				}
+			}
+		}
+
+		return groupArr;
+	};
+
+	WorksheetView.prototype._unionPreviousGroup2 = function (groupArr) {
+		if(!groupArr || groupArr.length < 2) {
+			return groupArr;
+		}
+
+		for(var i = groupArr.length - 1; i > 1; i--) {
+			for(var j = 0; j < groupArr[i].length; j++) {
+				for(var n = 0; n < groupArr[i - 1].length; n++) {
+					if(groupArr[i-1][n].end === groupArr[i][j].end) {
+						var test = 1;
+					}
+				}
+			}
+		}
+
+		return groupArr;
+	};
 
 	WorksheetView.prototype.getGroupDataArray2 = function (start, end) {
 		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
@@ -15795,7 +15845,7 @@
 		console.time("old1");
 
 		var getLevel = function(curLevel) {
-			
+
 		};
 
 		var res = null;
