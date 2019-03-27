@@ -166,7 +166,10 @@ var c_oAscRevisionsChangeType = {
 	ParaAdd : 0x03,
 	ParaRem : 0x04,
 	TextPr  : 0x05,
-	ParaPr  : 0x06
+	ParaPr  : 0x06,
+	TablePr : 0x07,
+	RowsAdd : 0x08,
+	RowsRem : 0x09
 };
 
 /** @enum {number} */

@@ -14301,6 +14301,103 @@ CTable.prototype.GetPrReviewColor = function()
 
 	return REVIEW_COLOR;
 };
+CTable.prototype.CheckRevisionsChanges = function(oRevisionsManager)
+{
+	var nRowsCount = this.GetRowsCount();
+	if (nRowsCount <= 0)
+		return;
+
+	var sTableId = this.GetId();
+	if (true === this.HavePrChange())
+	{
+		var oChange = new CRevisionsChange();
+		oChange.put_Paragraph(this);
+		oChange.put_StartPos({
+			Row  : 0,
+			Cell : 0
+		});
+		oChange.put_EndPos({
+			Row  : nRowsCount - 1,
+			Cell : this.GetRow(nRowsCount - 1).GetCellsCount() - 1
+		});
+		oChange.put_Type(c_oAscRevisionsChangeType.TablePr);
+		oChange.put_UserId(this.Pr.ReviewInfo.GetUserId());
+		oChange.put_UserName(this.Pr.ReviewInfo.GetUserName());
+		oChange.put_DateTime(this.Pr.ReviewInfo.GetDateTime());
+		oRevisionsManager.AddChange(sTableId, oChange);
+	}
+
+	var oTable = this;
+	function private_FlushTableChange(nType, nStartRow, nEndRow)
+	{
+		if (reviewtype_Common === nType)
+			return;
+
+		var oRow           = oTable.GetRow(nStartRow);
+		var oRowReviewInfo = oRow.GetReviewInfo();
+
+		var oChange = new CRevisionsChange();
+		oChange.put_Paragraph(this);
+		oChange.put_StartPos({
+			Row  : nStartRow,
+			Cell : 0
+		});
+		oChange.put_EndPos({
+			Row  : nEndRow,
+			Cell : oTable.GetRow(nEndRow).GetCellsCount() - 1
+		});
+		oChange.put_Type(nType === reviewtype_Add ? c_oAscRevisionsChangeType.RowsAdd : c_oAscRevisionsChangeType.RowsRem);
+		oChange.put_UserId(oRowReviewInfo.GetUserId());
+		oChange.put_UserName(oRowReviewInfo.GetUserName());
+		oChange.put_DateTime(oRowReviewInfo.GetDateTime());
+		oRevisionsManager.AddChange(sTableId, oChange);
+	}
+
+	var nType     = reviewtype_Common;
+	var nStartRow = 0;
+	var nEndRow   = 0;
+	var sUserId   = "";
+
+	for (var nCurRow = 0; nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow           = this.GetRow(nCurRow);
+		var nRowReviewType = oRow.GetReviewType();
+		var oRowReviewInfo = oRow.GetReviewInfo();
+
+		if (reviewtype_Common === nType)
+		{
+			if (reviewtype_Common !== nRowReviewType)
+			{
+				nType     = nRowReviewType;
+				nStartRow = nCurRow;
+				nEndRow   = nCurRow;
+				sUserId   = oRowReviewInfo.GetUserId();
+			}
+		}
+		else
+		{
+			if (nType === nRowReviewType && oRowReviewInfo.GetUserId() == sUserId)
+			{
+				nEndRow = nCurRow;
+			}
+			else if (reviewtype_Common === nRowReviewType)
+			{
+				private_FlushTableChange(nType, nStartRow, nEndRow);
+				nType = reviewtype_Common;
+			}
+			else
+			{
+				private_FlushTableChange(nType, nStartRow, nEndRow);
+				nType     = nRowReviewType;
+				nStartRow = nCurRow;
+				nEndRow   = nCurRow;
+				sUserId   = oRowReviewInfo.GetUserId();
+			}
+		}
+	}
+
+	private_FlushTableChange(nType, nStartRow, nEndRow);
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook

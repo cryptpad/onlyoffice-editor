@@ -12177,10 +12177,10 @@ Paragraph.prototype.CheckRevisionsChanges = function(RevisionsManager)
         Change.put_EndPos(EndPos);
         Change.put_Type(c_oAscRevisionsChangeType.ParaPr);
         Change.put_Value(this.Pr.GetDiffPrChange());
-        Change.put_UserId(this.Pr.ReviewInfo.Get_UserId());
-        Change.put_UserName(this.Pr.ReviewInfo.Get_UserName());
-        Change.put_DateTime(this.Pr.ReviewInfo.Get_DateTime());
-        RevisionsManager.Add_Change(ParaId, Change);
+        Change.put_UserId(this.Pr.ReviewInfo.GetUserId());
+        Change.put_UserName(this.Pr.ReviewInfo.GetUserName());
+        Change.put_DateTime(this.Pr.ReviewInfo.GetDateTime());
+        RevisionsManager.AddChange(ParaId, Change);
     }
 
     var Checker    = new CParagraphRevisionsChangesChecker(this, RevisionsManager);
@@ -12209,10 +12209,10 @@ Paragraph.prototype.CheckRevisionsChanges = function(RevisionsManager)
         Change.put_StartPos(StartPos);
         Change.put_EndPos(EndPos);
         Change.put_Type(c_oAscRevisionsChangeType.ParaAdd);
-        Change.put_UserId(ReviewInfo.Get_UserId());
-        Change.put_UserName(ReviewInfo.Get_UserName());
-        Change.put_DateTime(ReviewInfo.Get_DateTime());
-        RevisionsManager.Add_Change(ParaId, Change);
+        Change.put_UserId(ReviewInfo.GetUserId());
+        Change.put_UserName(ReviewInfo.GetUserName());
+        Change.put_DateTime(ReviewInfo.GetDateTime());
+        RevisionsManager.AddChange(ParaId, Change);
     }
     else if (reviewtype_Remove == ReviewType)
     {
@@ -12224,10 +12224,10 @@ Paragraph.prototype.CheckRevisionsChanges = function(RevisionsManager)
         Change.put_StartPos(StartPos);
         Change.put_EndPos(EndPos);
         Change.put_Type(c_oAscRevisionsChangeType.ParaRem);
-        Change.put_UserId(ReviewInfo.Get_UserId());
-        Change.put_UserName(ReviewInfo.Get_UserName());
-        Change.put_DateTime(ReviewInfo.Get_DateTime());
-        RevisionsManager.Add_Change(ParaId, Change);
+        Change.put_UserId(ReviewInfo.GetUserId());
+        Change.put_UserName(ReviewInfo.GetUserName());
+        Change.put_DateTime(ReviewInfo.GetDateTime());
+        RevisionsManager.AddChange(ParaId, Change);
     }
 };
 Paragraph.prototype.private_UpdateTrackRevisionOnChangeParaPr = function(bUpdateInfo)
@@ -15380,7 +15380,7 @@ CParagraphRevisionsChangesChecker.prototype.Flush_AddRemoveChange = function()
         Change.put_UserId(AddRemove.UserId);
         Change.put_UserName(AddRemove.UserName);
         Change.put_DateTime(AddRemove.DateTime);
-        this.RevisionsManager.Add_Change(this.ParaId, Change);
+        this.RevisionsManager.AddChange(this.ParaId, Change);
     }
 
     AddRemove.ChangeType = null;
@@ -15405,7 +15405,7 @@ CParagraphRevisionsChangesChecker.prototype.Flush_TextPrChange = function()
         Change.put_UserId(TextPr.UserId);
         Change.put_UserName(TextPr.UserName);
         Change.put_DateTime(TextPr.DateTime);
-        this.RevisionsManager.Add_Change(this.ParaId, Change);
+        this.RevisionsManager.AddChange(this.ParaId, Change);
     }
 
     TextPr.Pr       = null;
@@ -15437,11 +15437,11 @@ CParagraphRevisionsChangesChecker.prototype.Set_AddRemoveEndPos = function(Conte
 };
 CParagraphRevisionsChangesChecker.prototype.Update_AddRemoveReviewInfo = function(ReviewInfo)
 {
-    if (ReviewInfo && this.AddRemove.DateTime <= ReviewInfo.Get_DateTime())
+    if (ReviewInfo && this.AddRemove.DateTime <= ReviewInfo.GetDateTime())
     {
-        this.AddRemove.UserId   = ReviewInfo.Get_UserId();
-        this.AddRemove.UserName = ReviewInfo.Get_UserName();
-        this.AddRemove.DateTime = ReviewInfo.Get_DateTime();
+        this.AddRemove.UserId   = ReviewInfo.GetUserId();
+        this.AddRemove.UserName = ReviewInfo.GetUserName();
+        this.AddRemove.DateTime = ReviewInfo.GetDateTime();
     }
 };
 CParagraphRevisionsChangesChecker.prototype.Add_Text = function(Text)
@@ -15516,11 +15516,11 @@ CParagraphRevisionsChangesChecker.prototype.SetPrChangeEndPos = function(Content
 };
 CParagraphRevisionsChangesChecker.prototype.Update_PrChangeReviewInfo = function(ReviewInfo)
 {
-    if (ReviewInfo && this.TextPr.DateTime <= ReviewInfo.Get_DateTime())
+    if (ReviewInfo && this.TextPr.DateTime <= ReviewInfo.GetDateTime())
     {
-        this.TextPr.UserId   = ReviewInfo.Get_UserId();
-        this.TextPr.UserName = ReviewInfo.Get_UserName();
-        this.TextPr.DateTime = ReviewInfo.Get_DateTime();
+        this.TextPr.UserId   = ReviewInfo.GetUserId();
+        this.TextPr.UserName = ReviewInfo.GetUserName();
+        this.TextPr.DateTime = ReviewInfo.GetDateTime();
     }
 };
 CParagraphRevisionsChangesChecker.prototype.Is_ParaEndRun = function()
