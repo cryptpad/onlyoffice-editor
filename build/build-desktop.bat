@@ -15,7 +15,7 @@ copy ..\common\Native\native.js ..\..\core\build\jsdesktop\sdkjs\common\Native\n
 
 copy ..\common\libfont\js\fonts.js ..\..\core\build\jsdesktop\sdkjs\common\libfont\js\fonts.js
 copy ..\common\libfont\wasm\fonts.js ..\..\core\build\jsdesktop\sdkjs\common\libfont\wasm\fonts.js
-copy ..\common\libfont\wasm\engine.wasm ..\..\core\build\jsdesktop\sdkjs\common\libfont\wasm\fonts.wasm
+copy ..\common\libfont\wasm\fonts.wasm ..\..\core\build\jsdesktop\sdkjs\common\libfont\wasm\fonts.wasm
 
 
 copy ..\word\sdk-all.js ..\..\core-ext\desktop-sdk-wrapper\test\build\win_64\Debug\editors\sdkjs\word\sdk-all.js
@@ -30,6 +30,6 @@ copy ..\common\Native\native.js ..\..\core-ext\desktop-sdk-wrapper\test\build\wi
 
 copy ..\common\libfont\js\fonts.js ..\..\core-ext\desktop-sdk-wrapper\test\build\win_64\Debug\editors\sdkjs\common\libfont\js\fonts.js
 copy ..\common\libfont\wasm\fonts.js ..\..\core-ext\desktop-sdk-wrapper\test\build\win_64\Debug\editors\sdkjs\common\libfont\wasm\fonts.js
-copy ..\common\libfont\wasm\engine.wasm ..\..\core-ext\desktop-sdk-wrapper\test\build\win_64\Debug\editors\sdkjs\common\libfont\wasm\fonts.wasm
+copy ..\common\libfont\wasm\fonts.wasm ..\..\core-ext\desktop-sdk-wrapper\test\build\win_64\Debug\editors\sdkjs\common\libfont\wasm\fonts.wasm
 
 pause
