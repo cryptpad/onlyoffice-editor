@@ -34,6 +34,9 @@
 
 (function(window, undefined){
 
+    var AscFonts = window['AscFonts'];
+    var AscCommon = window['AscCommon'];
+
 	// https://bugreport.apple.com/web/?problemID=39173151
 	var isSafariAppleDevices = (AscCommon.AscBrowser.isSafariMacOs && AscCommon.AscBrowser.isAppleDevices);
 
@@ -1050,34 +1053,7 @@ function copy_pointer(p, size)
     return _p;
 }
 
-function FT_Memory()
-{
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = 1;
-    this.canvas.height = 1;
-    this.ctx    = this.canvas.getContext('2d');
-
-    this.Alloc = function(size)
-    {
-        var p = new CPointer();
-        p.obj = this.ctx.createImageData(1,parseInt((size + 3) / 4));
-        p.data = p.obj.data;
-        p.pos = 0;
-        return p;
-    }
-    this.AllocHeap = function()
-    {
-        // TODO: нужно посмотреть, как эта память будет использоваться.
-        // нужно ли здесь делать стек, либо все время от нуля делать??
-    }
-    this.CreateStream = function(size)
-    {
-        var _size = parseInt((size + 3) / 4);
-        var obj = this.ctx.createImageData(1,_size);
-        return new FT_Stream(obj.data,_size);
-    }
-}
-var g_memory = new FT_Memory();
+var g_memory = AscFonts.g_memory;
 
 function FT_PEEK_CHAR(p)
 {
@@ -7648,18 +7624,6 @@ function ft_get_adobe_glyph_index(_name,limit)
     return 0;
 }
 
-function PS_UniMap()
-{
-    this.unicode = 0;
-    this.glyph_index = 0;
-}
-function PS_UnicodesRec()
-{
-    this.cmap = null;
-    this.num_maps = 0;
-    this.maps = null;
-}
-
 function ps_unicode_value(glyph_name)
 {
     var len = glyph_name.length;
@@ -9833,7 +9797,7 @@ function t1_cmap_custom_char_next(cmap, _char_code)
 var t1_cmap_custom_class_rec = create_cmap_class_rec(0,t1_cmap_custom_init,t1_cmap_custom_done,t1_cmap_custom_char_index,t1_cmap_custom_char_next,null,null,null,null,null);
 
 // unicode
-function t1_get_glyph_name(face, idx)
+function psaux_get_glyph_name(face, idx)
 {
     return face.type1.glyph_names[idx];
 }
@@ -9844,7 +9808,7 @@ function t1_cmap_unicode_init(unicodes)
     var memory  = face.memory;
     var psnames = face.psnames;
 
-    return psnames.unicodes_init(memory, unicodes, face.type1.num_glyphs, t1_get_glyph_name, null, face);
+    return psnames.unicodes_init(memory, unicodes, face.type1.num_glyphs, psaux_get_glyph_name, null, face);
 }
 
 function t1_cmap_unicode_done(unicodes)
@@ -18231,28 +18195,7 @@ function create_sfnt_module(library)
     return sfnt_mod;
 }
 
-
-function CRasterMemory()
-{
-    this.width = 0;
-    this.height = 0;
-    this.pitch = 0;
-
-    this.m_oBuffer = null;
-    this.CheckSize = function(w, h)
-    {
-        if (this.width < (w + 1) || this.height < (h + 1))
-        {
-            this.width = Math.max(this.width, w + 1);
-            this.pitch = 4 * this.width;
-            this.height = Math.max(this.height, h + 1);
-
-            this.m_oBuffer = null;
-            this.m_oBuffer = g_memory.ctx.createImageData(this.width, this.height);
-        }
-    }
-}
-var raster_memory = new CRasterMemory();
+var raster_memory = AscFonts.raster_memory;
 
 // outline ---
 function _FT_Outline_Funcs_Gray()
@@ -27183,22 +27126,6 @@ TT_Size_Metrics.prototype =
         this.stretched = src.stretched;
     }
 };
-
-function TT_DefRecord()
-{
-    this.range  = 0;        /* in which code range is it located?     */
-    this.start  = 0;        /* where does it start?                   */
-    this.end    = 0;          /* where does it end?                     */
-    this.opc    = 0;          /* function #, or instruction code        */
-    this.active = false;       /* is it active?                          */
-    this.inline_delta = false; /* is function that defines inline delta? */
-}
-
-function TT_CodeRange()
-{
-    this.base = null;
-    this.size = 0;
-}
 
 function TT_SizeRec()
 {
@@ -40616,7 +40543,7 @@ function FT_Library()
 
     this.Init = function()
     {
-        this.Memory = new FT_Memory();
+        this.Memory = new AscFonts.FT_Memory();
         //this.raster_pool = this.Memory.Alloc(this.raster_pool_size);
         // теперь пул для каждого рендерера свой
         // и он хранится непосредственно в рендерере.
@@ -41771,18 +41698,6 @@ function FT_New_GlyphSlot(face)
     return slot;
 }
 
-function FT_GlyphLoader_New(memory)
-{
-    var loader = new FT_GlyphLoader();
-    loader.memory = memory;
-    return loader;
-}
-
-function ft_glyphslot_done(slot)
-{
-    return 0;
-}
-
 function FT_New_Size(face)
 {
     if (!face)
@@ -41890,10 +41805,6 @@ function FT_CMap_New(clazz, init_data, charmap)
 }
 
   //--------------------------------------------------------export----------------------------------------------------
-  window['AscFonts'] = window['AscFonts'] || {};
-  window['AscFonts'].FT_Common = FT_Common;
-  window['AscFonts'].FT_Stream = FT_Stream;
-  window['AscFonts'].g_memory = g_memory;
   window['AscFonts'].FT_Get_Sfnt_Table = FT_Get_Sfnt_Table;
   window['AscFonts'].FT_BBox = FT_BBox;
   window['AscFonts'].FT_Matrix = FT_Matrix;
@@ -41910,8 +41821,10 @@ function FT_CMap_New(clazz, init_data, charmap)
   window['AscFonts'].FT_Load_Glyph = FT_Load_Glyph;
   window['AscFonts'].FT_Set_Transform = FT_Set_Transform;
   window['AscFonts'].FT_Render_Glyph = FT_Render_Glyph;
-  window['AscFonts'].raster_memory = raster_memory;
   window['AscFonts'].FT_Get_Charmap_Index = FT_Get_Charmap_Index;
   window['AscFonts'].FT_Vector = FT_Vector;
   window['AscFonts'].FT_Get_Kerning = FT_Get_Kerning;
+  window['AscFonts'].FT_Stream = FT_Stream;
+
+  window['AscFonts'].onLoadModule();
 })(window);

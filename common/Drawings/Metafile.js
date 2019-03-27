@@ -3226,36 +3226,7 @@
 
 	var g_fontManager = new AscFonts.CFontManager();
 	g_fontManager.Initialize(true);
-
-	function SetHintsProps(bIsHinting, bIsSubpixHinting)
-	{
-		if (undefined === g_fontManager.m_oLibrary.tt_hint_props)
-			return;
-
-		if (bIsHinting && bIsSubpixHinting)
-		{
-			g_fontManager.m_oLibrary.tt_hint_props.TT_USE_BYTECODE_INTERPRETER       = true;
-			g_fontManager.m_oLibrary.tt_hint_props.TT_CONFIG_OPTION_SUBPIXEL_HINTING = true;
-
-			g_fontManager.LOAD_MODE = 40968;
-		}
-		else if (bIsHinting)
-		{
-			g_fontManager.m_oLibrary.tt_hint_props.TT_USE_BYTECODE_INTERPRETER       = true;
-			g_fontManager.m_oLibrary.tt_hint_props.TT_CONFIG_OPTION_SUBPIXEL_HINTING = false;
-
-			g_fontManager.LOAD_MODE = 40968;
-		}
-		else
-		{
-			g_fontManager.m_oLibrary.tt_hint_props.TT_USE_BYTECODE_INTERPRETER       = true;
-			g_fontManager.m_oLibrary.tt_hint_props.TT_CONFIG_OPTION_SUBPIXEL_HINTING = false;
-
-			g_fontManager.LOAD_MODE = 40970;
-		}
-	}
-
-	SetHintsProps(true, true);
+	g_fontManager.SetHintsProps(true, true);
 
 	var g_dDpiX = 96.0;
 	var g_dDpiY = 96.0;
@@ -3291,7 +3262,6 @@
 	window['AscCommon'].CBrush                   = CBrush;
 	window['AscCommon'].CTableMarkup             = CTableMarkup;
 	window['AscCommon'].CTableOutline            = CTableOutline;
-	window['AscCommon'].SetHintsProps            = SetHintsProps;
 	window['AscCommon']._rect                    = _rect;
 
 	window['AscCommon'].global_MatrixTransformer = new CGlobalMatrixTransformer();
@@ -3302,4 +3272,5 @@
 	window['AscCommon'].GradientGetAngleNoRotate = GradientGetAngleNoRotate;
 
 	window['AscCommon'].DashPatternPresets 		 = DashPatternPresets;
+    window['AscCommon'].CommandType 		 	 = CommandType;
 })(window);

@@ -3398,6 +3398,30 @@
 		//https://bugs.chromium.org/p/v8/issues/detail?id=2869
 		return (' ' + s).substr(1);
 	}
+	function readValAttr(attr){
+		if(attr()){
+			var val = attr()["val"];
+			return val ? val : null;
+		}
+		return null;
+	}
+	function getNumFromXml(val) {
+		return val ? val - 0 : null;
+	}
+	function getColorFromXml(attr) {
+		if(attr()){
+			var vals = attr();
+			if(null != vals["theme"]) {
+				return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(vals["theme"]), getNumFromXml(vals["tint"]));
+			} else if(null != vals["rgb"]){
+				return new AscCommonExcel.RgbColor(0x00ffffff & getNumFromXml(vals["rgb"]));
+			}
+		}
+		return null;
+	}
+	function getBoolFromXml(val) {
+		return "0" !== val && "false" !== val && "off" !== val;
+	}
 
 	function CUserCacheColor(nColor)
 	{
@@ -3835,11 +3859,11 @@
 		{
 			if (_api.ImageLoader.map_image_index[_guid])
 				return;
-			var _obj = { Image : (this.Valid ? this.ImageValid : this.ImageInvalid), Status : ImageLoadStatus.Complete, src : _guid };
+			var _obj = { Image : (this.Valid ? this.ImageValid : this.ImageInvalid), Status : AscFonts.ImageLoadStatus.Complete, src : _guid };
 			_api.ImageLoader.map_image_index[_guid] = _obj;
 		};
 
-		this.Unregister = function(api, _guid)
+		this.Unregister = function(_api, _guid)
 		{
 			if (_api.ImageLoader.map_image_index[_guid])
 				delete _api.ImageLoader.map_image_index[_guid];
@@ -4412,6 +4436,10 @@
 	window["AscCommon"].getUserColorById = getUserColorById;
 	window["AscCommon"].isNullOrEmptyString = isNullOrEmptyString;
 	window["AscCommon"].unleakString = unleakString;
+	window["AscCommon"].readValAttr = readValAttr;
+	window["AscCommon"].getNumFromXml = getNumFromXml;
+	window["AscCommon"].getColorFromXml = getColorFromXml;
+	window["AscCommon"].getBoolFromXml = getBoolFromXml;
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
 
 	window["AscCommon"].DocumentUrls = DocumentUrls;
@@ -4426,6 +4454,7 @@
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 
 	window["AscCommon"].loadSdk = loadSdk;
+    window["AscCommon"].loadScript = loadScript;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorThemeByIndex = getColorThemeByIndex;
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;

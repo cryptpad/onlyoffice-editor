@@ -2406,7 +2406,7 @@ function CEditorPage(api)
 		var oWordControl = oThis;
 
 		if (oWordControl.DemonstrationManager.Mode)
-			return oWordControl.DemonstrationManager.onMouseUp(e);
+			return oWordControl.DemonstrationManager.onMouseUp({ pageX:0, pageY:0 });
 
 		//---
 		global_mouseEvent.X = x;

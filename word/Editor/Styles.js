@@ -8853,7 +8853,7 @@ CTextPr.prototype.GetUnderline = function()
 };
 CTextPr.prototype.SetUnderline = function(isUnderling)
 {
-	this.Underline = isUnderline;
+	this.Underline = isUnderling;
 };
 CTextPr.prototype.GetColor = function()
 {

@@ -10161,7 +10161,7 @@ drawRadarChart.prototype = {
 	},
 
 	_calculateDLbl: function (chartSpace, ser, val) {
-		var numCache = this.cChartDrawer.getNumCache(chart.series[ser].val);
+		var numCache = this.cChartDrawer.getNumCache(this.chart.series[ser].val);
 		if(!numCache) {
 			return;
 		}

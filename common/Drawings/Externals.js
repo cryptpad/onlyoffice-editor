@@ -38,7 +38,6 @@
 var FontStyle = AscFonts.FontStyle;
 var DecodeBase64Char = AscFonts.DecodeBase64Char;
 var b64_decode = AscFonts.b64_decode;
-var FT_Stream = AscFonts.FT_Stream;
 
 var g_map_font_index = {};
 var g_fonts_streams = [];
@@ -466,7 +465,7 @@ function CFontFileLoader(id)
             {
                 var __font_data_idx = g_fonts_streams.length;
                 var _uintData = new Uint8Array(this.response);
-                g_fonts_streams[__font_data_idx] = new FT_Stream(_uintData, _uintData.length);
+                g_fonts_streams[__font_data_idx] = new AscFonts.FontStream(_uintData, _uintData.length);
                 oThis.SetStreamIndex(__font_data_idx);
             }
             else if (AscCommon.AscBrowser.isIE)
@@ -474,9 +473,7 @@ function CFontFileLoader(id)
                 var _response = new VBArray(this["responseBody"]).toArray();
 
                 var srcLen = _response.length;
-                var pointer = g_memory.Alloc(srcLen);
-                var stream = new FT_Stream(pointer.data, srcLen);
-                stream.obj = pointer.obj;
+                var stream = new AscFonts.FontStream(AscFonts.allocate(srcLen), srcLen);
 
                 var dstPx = stream.data;
                 var index = 0;
@@ -522,7 +519,7 @@ function CFontFileLoader(id)
 		
         var __font_data_idx = g_fonts_streams.length;
         var _data = window["native"]["GetFontBinary"](this.Id);
-        g_fonts_streams[__font_data_idx] = new FT_Stream(_data, _data.length);
+        g_fonts_streams[__font_data_idx] = new AscFonts.FontStream(_data, _data.length);
         this.SetStreamIndex(__font_data_idx);
         this.Status = 0;
     };

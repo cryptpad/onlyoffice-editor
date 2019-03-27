@@ -2729,7 +2729,7 @@ CGraphics.prototype =
 
         if (this.m_bIntegerGrid)
         {
-            if (window.g_comment_image && window.g_comment_image.asc_complete === true)
+            if (AscCommon.g_comment_image && AscCommon.g_comment_image.asc_complete === true)
             {
                 var _x = (this.m_oFullTransform.TransformPointX(x,y) >> 0);
                 var _y = (this.m_oFullTransform.TransformPointY(x,y) >> 0);
@@ -2743,8 +2743,8 @@ CGraphics.prototype =
                 if (this.IsRetina)
                     _index += 4;
 
-                var _offset = g_comment_image_offsets[_index];
-                this.m_oContext.drawImage(window.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], _x, _y, _offset[2], _offset[3]);
+                var _offset = AscCommon.g_comment_image_offsets[_index];
+                this.m_oContext.drawImage(AscCommon.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], _x, _y, _offset[2], _offset[3]);
             }
         }
         else

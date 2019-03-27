@@ -1,8 +1,6 @@
 "use strict";
 //Generated code
-function getBoolFromXml(val) {
-	return "0" !== val && "false" !== val && "off" !== val;
-}
+
 var c_oAscSourceType = {
 	Worksheet: 0,
 	External: 1,
@@ -19,23 +17,6 @@ var c_oAscFieldSortType = {
 	Manual: 0,
 	Ascending: 1,
 	Descending: 2
-};
-var c_oAscItemType = {
-	Default: 0,
-	Avg: 1,
-	Count: 2,
-	CountA: 3,
-	Max: 4,
-	Min: 5,
-	Product: 6,
-	StdDev: 7,
-	StdDevP: 8,
-	Sum: 9,
-	Var: 10,
-	VarP: 11,
-	Data: 12,
-	Grand: 13,
-	Blank: 14
 };
 var c_oAscDataConsolidateFunction = {
 	Average: 1,
@@ -363,69 +344,69 @@ function ToXml_ST_FieldSortType(val) {
 function FromXml_ST_ItemType(val) {
 	var res = -1;
 	if ("data" === val) {
-		res = c_oAscItemType.Data;
+		res = Asc.c_oAscItemType.Data;
 	} else if ("default" === val) {
-		res = c_oAscItemType.Default;
+		res = Asc.c_oAscItemType.Default;
 	} else if ("sum" === val) {
-		res = c_oAscItemType.Sum;
+		res = Asc.c_oAscItemType.Sum;
 	} else if ("countA" === val) {
-		res = c_oAscItemType.CountA;
+		res = Asc.c_oAscItemType.CountA;
 	} else if ("avg" === val) {
-		res = c_oAscItemType.Avg;
+		res = Asc.c_oAscItemType.Avg;
 	} else if ("max" === val) {
-		res = c_oAscItemType.Max;
+		res = Asc.c_oAscItemType.Max;
 	} else if ("min" === val) {
-		res = c_oAscItemType.Min;
+		res = Asc.c_oAscItemType.Min;
 	} else if ("product" === val) {
-		res = c_oAscItemType.Product;
+		res = Asc.c_oAscItemType.Product;
 	} else if ("count" === val) {
-		res = c_oAscItemType.Count;
+		res = Asc.c_oAscItemType.Count;
 	} else if ("stdDev" === val) {
-		res = c_oAscItemType.StdDev;
+		res = Asc.c_oAscItemType.StdDev;
 	} else if ("stdDevP" === val) {
-		res = c_oAscItemType.StdDevP;
+		res = Asc.c_oAscItemType.StdDevP;
 	} else if ("var" === val) {
-		res = c_oAscItemType.Var;
+		res = Asc.c_oAscItemType.Var;
 	} else if ("varP" === val) {
-		res = c_oAscItemType.VarP;
+		res = Asc.c_oAscItemType.VarP;
 	} else if ("grand" === val) {
-		res = c_oAscItemType.Grand;
+		res = Asc.c_oAscItemType.Grand;
 	} else if ("blank" === val) {
-		res = c_oAscItemType.Blank;
+		res = Asc.c_oAscItemType.Blank;
 	}
 	return res;
 }
 function ToXml_ST_ItemType(val) {
 	var res = "";
-	if (c_oAscItemType.Data === val) {
+	if (Asc.c_oAscItemType.Data === val) {
 		res = "data";
-	} else if (c_oAscItemType.Default === val) {
+	} else if (Asc.c_oAscItemType.Default === val) {
 		res = "default";
-	} else if (c_oAscItemType.Sum === val) {
+	} else if (Asc.c_oAscItemType.Sum === val) {
 		res = "sum";
-	} else if (c_oAscItemType.CountA === val) {
+	} else if (Asc.c_oAscItemType.CountA === val) {
 		res = "countA";
-	} else if (c_oAscItemType.Avg === val) {
+	} else if (Asc.c_oAscItemType.Avg === val) {
 		res = "avg";
-	} else if (c_oAscItemType.Max === val) {
+	} else if (Asc.c_oAscItemType.Max === val) {
 		res = "max";
-	} else if (c_oAscItemType.Min === val) {
+	} else if (Asc.c_oAscItemType.Min === val) {
 		res = "min";
-	} else if (c_oAscItemType.Product === val) {
+	} else if (Asc.c_oAscItemType.Product === val) {
 		res = "product";
-	} else if (c_oAscItemType.Count === val) {
+	} else if (Asc.c_oAscItemType.Count === val) {
 		res = "count";
-	} else if (c_oAscItemType.StdDev === val) {
+	} else if (Asc.c_oAscItemType.StdDev === val) {
 		res = "stdDev";
-	} else if (c_oAscItemType.StdDevP === val) {
+	} else if (Asc.c_oAscItemType.StdDevP === val) {
 		res = "stdDevP";
-	} else if (c_oAscItemType.Var === val) {
+	} else if (Asc.c_oAscItemType.Var === val) {
 		res = "var";
-	} else if (c_oAscItemType.VarP === val) {
+	} else if (Asc.c_oAscItemType.VarP === val) {
 		res = "varP";
-	} else if (c_oAscItemType.Grand === val) {
+	} else if (Asc.c_oAscItemType.Grand === val) {
 		res = "grand";
-	} else if (c_oAscItemType.Blank === val) {
+	} else if (Asc.c_oAscItemType.Blank === val) {
 		res = "blank";
 	}
 	return res;
@@ -433,35 +414,35 @@ function ToXml_ST_ItemType(val) {
 
 function ToName_ST_ItemType(val) {
 	var res = ' ';
-	if (c_oAscItemType.Default === val) {
+	if (Asc.c_oAscItemType.Default === val) {
 		res += 'Total';
-	} else if (c_oAscItemType.Avg === val) {
+	} else if (Asc.c_oAscItemType.Avg === val) {
 		res += 'Average';
-	} else if (c_oAscItemType.Count === val) {
+	} else if (Asc.c_oAscItemType.Count === val) {
 		res += 'Count';
-	} else if (c_oAscItemType.CountA === val) {
+	} else if (Asc.c_oAscItemType.CountA === val) {
 		res += 'Count';
-	} else if (c_oAscItemType.Max === val) {
+	} else if (Asc.c_oAscItemType.Max === val) {
 		res += 'Max';
-	} else if (c_oAscItemType.Min === val) {
+	} else if (Asc.c_oAscItemType.Min === val) {
 		res += 'Min';
-	} else if (c_oAscItemType.Product === val) {
+	} else if (Asc.c_oAscItemType.Product === val) {
 		res += 'Product';
-	} else if (c_oAscItemType.StdDev === val) {
+	} else if (Asc.c_oAscItemType.StdDev === val) {
 		res += 'StdDev';
-	} else if (c_oAscItemType.StdDevP === val) {
+	} else if (Asc.c_oAscItemType.StdDevP === val) {
 		res += 'StdDevp';
-	} else if (c_oAscItemType.Sum === val) {
+	} else if (Asc.c_oAscItemType.Sum === val) {
 		res += 'Sum';
-	} else if (c_oAscItemType.Var === val) {
+	} else if (Asc.c_oAscItemType.Var === val) {
 		res += 'Var';
-	} else if (c_oAscItemType.VarP === val) {
+	} else if (Asc.c_oAscItemType.VarP === val) {
 		res += 'Varp';
-	} else if (c_oAscItemType.Data === val) {
+	} else if (Asc.c_oAscItemType.Data === val) {
 		res += 'Data';
-	} else if (c_oAscItemType.Grand === val) {
+	} else if (Asc.c_oAscItemType.Grand === val) {
 		res += 'Total';
-	} else if (c_oAscItemType.Blank === val) {
+	} else if (Asc.c_oAscItemType.Blank === val) {
 		res += 'Blank';
 	}
 	return res;
@@ -1531,23 +1512,23 @@ CT_PivotCacheDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["invalid"];
 		if (undefined !== val) {
-			this.invalid = getBoolFromXml(val);
+			this.invalid = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["saveData"];
 		if (undefined !== val) {
-			this.saveData = getBoolFromXml(val);
+			this.saveData = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["refreshOnLoad"];
 		if (undefined !== val) {
-			this.refreshOnLoad = getBoolFromXml(val);
+			this.refreshOnLoad = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["optimizeMemory"];
 		if (undefined !== val) {
-			this.optimizeMemory = getBoolFromXml(val);
+			this.optimizeMemory = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["enableRefresh"];
 		if (undefined !== val) {
-			this.enableRefresh = getBoolFromXml(val);
+			this.enableRefresh = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["refreshedBy"];
 		if (undefined !== val) {
@@ -1559,7 +1540,7 @@ CT_PivotCacheDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["backgroundQuery"];
 		if (undefined !== val) {
-			this.backgroundQuery = getBoolFromXml(val);
+			this.backgroundQuery = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["missingItemsLimit"];
 		if (undefined !== val) {
@@ -1583,19 +1564,19 @@ CT_PivotCacheDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["upgradeOnRefresh"];
 		if (undefined !== val) {
-			this.upgradeOnRefresh = getBoolFromXml(val);
+			this.upgradeOnRefresh = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["tupleCache"];
 		if (undefined !== val) {
-			this.tupleCache = getBoolFromXml(val);
+			this.tupleCache = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["supportSubquery"];
 		if (undefined !== val) {
-			this.supportSubquery = getBoolFromXml(val);
+			this.supportSubquery = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["supportAdvancedDrill"];
 		if (undefined !== val) {
-			this.supportAdvancedDrill = getBoolFromXml(val);
+			this.supportAdvancedDrill = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -2007,7 +1988,7 @@ CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["dataOnRows"];
 		if (undefined !== val) {
-			this.dataOnRows = getBoolFromXml(val);
+			this.dataOnRows = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dataPosition"];
 		if (undefined !== val) {
@@ -2019,27 +2000,27 @@ CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["applyNumberFormats"];
 		if (undefined !== val) {
-			this.applyNumberFormats = getBoolFromXml(val);
+			this.applyNumberFormats = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["applyBorderFormats"];
 		if (undefined !== val) {
-			this.applyBorderFormats = getBoolFromXml(val);
+			this.applyBorderFormats = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["applyFontFormats"];
 		if (undefined !== val) {
-			this.applyFontFormats = getBoolFromXml(val);
+			this.applyFontFormats = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["applyPatternFormats"];
 		if (undefined !== val) {
-			this.applyPatternFormats = getBoolFromXml(val);
+			this.applyPatternFormats = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["applyAlignmentFormats"];
 		if (undefined !== val) {
-			this.applyAlignmentFormats = getBoolFromXml(val);
+			this.applyAlignmentFormats = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["applyWidthHeightFormats"];
 		if (undefined !== val) {
-			this.applyWidthHeightFormats = getBoolFromXml(val);
+			this.applyWidthHeightFormats = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dataCaption"];
 		if (undefined !== val) {
@@ -2055,7 +2036,7 @@ CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["showError"];
 		if (undefined !== val) {
-			this.showError = getBoolFromXml(val);
+			this.showError = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["missingCaption"];
 		if (undefined !== val) {
@@ -2063,7 +2044,7 @@ CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["showMissing"];
 		if (undefined !== val) {
-			this.showMissing = getBoolFromXml(val);
+			this.showMissing = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["pageStyle"];
 		if (undefined !== val) {
@@ -2091,71 +2072,71 @@ CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["asteriskTotals"];
 		if (undefined !== val) {
-			this.asteriskTotals = getBoolFromXml(val);
+			this.asteriskTotals = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showItems"];
 		if (undefined !== val) {
-			this.showItems = getBoolFromXml(val);
+			this.showItems = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["editData"];
 		if (undefined !== val) {
-			this.editData = getBoolFromXml(val);
+			this.editData = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["disableFieldList"];
 		if (undefined !== val) {
-			this.disableFieldList = getBoolFromXml(val);
+			this.disableFieldList = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showCalcMbrs"];
 		if (undefined !== val) {
-			this.showCalcMbrs = getBoolFromXml(val);
+			this.showCalcMbrs = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["visualTotals"];
 		if (undefined !== val) {
-			this.visualTotals = getBoolFromXml(val);
+			this.visualTotals = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showMultipleLabel"];
 		if (undefined !== val) {
-			this.showMultipleLabel = getBoolFromXml(val);
+			this.showMultipleLabel = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showDataDropDown"];
 		if (undefined !== val) {
-			this.showDataDropDown = getBoolFromXml(val);
+			this.showDataDropDown = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showDrill"];
 		if (undefined !== val) {
-			this.showDrill = getBoolFromXml(val);
+			this.showDrill = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["printDrill"];
 		if (undefined !== val) {
-			this.printDrill = getBoolFromXml(val);
+			this.printDrill = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showMemberPropertyTips"];
 		if (undefined !== val) {
-			this.showMemberPropertyTips = getBoolFromXml(val);
+			this.showMemberPropertyTips = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showDataTips"];
 		if (undefined !== val) {
-			this.showDataTips = getBoolFromXml(val);
+			this.showDataTips = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["enableWizard"];
 		if (undefined !== val) {
-			this.enableWizard = getBoolFromXml(val);
+			this.enableWizard = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["enableDrill"];
 		if (undefined !== val) {
-			this.enableDrill = getBoolFromXml(val);
+			this.enableDrill = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["enableFieldProperties"];
 		if (undefined !== val) {
-			this.enableFieldProperties = getBoolFromXml(val);
+			this.enableFieldProperties = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["preserveFormatting"];
 		if (undefined !== val) {
-			this.preserveFormatting = getBoolFromXml(val);
+			this.preserveFormatting = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["useAutoFormatting"];
 		if (undefined !== val) {
-			this.useAutoFormatting = getBoolFromXml(val);
+			this.useAutoFormatting = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["pageWrap"];
 		if (undefined !== val) {
@@ -2163,35 +2144,35 @@ CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["pageOverThenDown"];
 		if (undefined !== val) {
-			this.pageOverThenDown = getBoolFromXml(val);
+			this.pageOverThenDown = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["subtotalHiddenItems"];
 		if (undefined !== val) {
-			this.subtotalHiddenItems = getBoolFromXml(val);
+			this.subtotalHiddenItems = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["rowGrandTotals"];
 		if (undefined !== val) {
-			this.rowGrandTotals = getBoolFromXml(val);
+			this.rowGrandTotals = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["colGrandTotals"];
 		if (undefined !== val) {
-			this.colGrandTotals = getBoolFromXml(val);
+			this.colGrandTotals = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["fieldPrintTitles"];
 		if (undefined !== val) {
-			this.fieldPrintTitles = getBoolFromXml(val);
+			this.fieldPrintTitles = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["itemPrintTitles"];
 		if (undefined !== val) {
-			this.itemPrintTitles = getBoolFromXml(val);
+			this.itemPrintTitles = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["mergeItem"];
 		if (undefined !== val) {
-			this.mergeItem = getBoolFromXml(val);
+			this.mergeItem = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showDropZones"];
 		if (undefined !== val) {
-			this.showDropZones = getBoolFromXml(val);
+			this.showDropZones = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["createdVersion"];
 		if (undefined !== val) {
@@ -2203,47 +2184,47 @@ CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["showEmptyRow"];
 		if (undefined !== val) {
-			this.showEmptyRow = getBoolFromXml(val);
+			this.showEmptyRow = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showEmptyCol"];
 		if (undefined !== val) {
-			this.showEmptyCol = getBoolFromXml(val);
+			this.showEmptyCol = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showHeaders"];
 		if (undefined !== val) {
-			this.showHeaders = getBoolFromXml(val);
+			this.showHeaders = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["compact"];
 		if (undefined !== val) {
-			this.compact = getBoolFromXml(val);
+			this.compact = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["outline"];
 		if (undefined !== val) {
-			this.outline = getBoolFromXml(val);
+			this.outline = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["outlineData"];
 		if (undefined !== val) {
-			this.outlineData = getBoolFromXml(val);
+			this.outlineData = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["compactData"];
 		if (undefined !== val) {
-			this.compactData = getBoolFromXml(val);
+			this.compactData = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["published"];
 		if (undefined !== val) {
-			this.published = getBoolFromXml(val);
+			this.published = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["gridDropZones"];
 		if (undefined !== val) {
-			this.gridDropZones = getBoolFromXml(val);
+			this.gridDropZones = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["immersive"];
 		if (undefined !== val) {
-			this.immersive = getBoolFromXml(val);
+			this.immersive = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["multipleFieldFilters"];
 		if (undefined !== val) {
-			this.multipleFieldFilters = getBoolFromXml(val);
+			this.multipleFieldFilters = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["chartFormat"];
 		if (undefined !== val) {
@@ -2259,15 +2240,15 @@ CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["fieldListSortAscending"];
 		if (undefined !== val) {
-			this.fieldListSortAscending = getBoolFromXml(val);
+			this.fieldListSortAscending = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["mdxSubqueries"];
 		if (undefined !== val) {
-			this.mdxSubqueries = getBoolFromXml(val);
+			this.mdxSubqueries = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["customListSort"];
 		if (undefined !== val) {
-			this.customListSort = getBoolFromXml(val);
+			this.customListSort = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -2838,8 +2819,8 @@ CT_pivotTableDefinition.prototype._getValues = function (records, rowIndex, colI
 };
 CT_pivotTableDefinition.prototype.getValue = function (records, rowIndexes, index, subtotal) {
 	var cacheFields = this.asc_getCacheFields();
-	if (c_oAscItemType.Default === subtotal || c_oAscItemType.Data === subtotal || c_oAscItemType.Blank === subtotal) {
-		subtotal = c_oAscItemType.Sum;
+	if (Asc.c_oAscItemType.Default === subtotal || Asc.c_oAscItemType.Data === subtotal || Asc.c_oAscItemType.Blank === subtotal) {
+		subtotal = Asc.c_oAscItemType.Sum;
 	}
 	var arg = [new AscCommonExcel.cNumber(subtotal)];
 	var i;
@@ -3010,16 +2991,16 @@ CT_pivotTableDefinition.prototype.changeGrandTotals = function (items, newVal) {
 		last = i[l - 1];
 		if (null === newVal) {
 			// Add
-			if (AscCommonExcel.c_oAscItemType.Grand !== last.t) {
+			if (AscCommonExcel.Asc.c_oAscItemType.Grand !== last.t) {
 				last = new CT_I();
-				last.t = AscCommonExcel.c_oAscItemType.Grand;
+				last.t = AscCommonExcel.Asc.c_oAscItemType.Grand;
 				last.x.push(new CT_X());
 				i.push(last);
 				res = 1;
 			}
 		} else {
 			// Remove
-			if (AscCommonExcel.c_oAscItemType.Grand === last.t) {
+			if (AscCommonExcel.Asc.c_oAscItemType.Grand === last.t) {
 				i.pop();
 				res = -1;
 			}
@@ -3053,15 +3034,15 @@ CT_pivotTableDefinitionX14.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["fillDownLabelsDefault"];
 		if (undefined !== val) {
-			this.fillDownLabelsDefault = getBoolFromXml(val);
+			this.fillDownLabelsDefault = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["visualTotalsForSets"];
 		if (undefined !== val) {
-			this.visualTotalsForSets = getBoolFromXml(val);
+			this.visualTotalsForSets = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["calculatedMembersInFilters"];
 		if (undefined !== val) {
-			this.calculatedMembersInFilters = getBoolFromXml(val);
+			this.calculatedMembersInFilters = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["altText"];
 		if (undefined !== val) {
@@ -3073,11 +3054,11 @@ CT_pivotTableDefinitionX14.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["enableEdit"];
 		if (undefined !== val) {
-			this.enableEdit = getBoolFromXml(val);
+			this.enableEdit = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["autoApply"];
 		if (undefined !== val) {
-			this.autoApply = getBoolFromXml(val);
+			this.autoApply = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["allocationMethod"];
 		if (undefined !== val) {
@@ -3092,7 +3073,7 @@ CT_pivotTableDefinitionX14.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["hideValuesRow"];
 		if (undefined !== val) {
-			this.hideValuesRow = getBoolFromXml(val);
+			this.hideValuesRow = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -3648,15 +3629,15 @@ CT_Boolean.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["v"];
 		if (undefined !== val) {
-			this.v = getBoolFromXml(val);
+			this.v = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["u"];
 		if (undefined !== val) {
-			this.u = getBoolFromXml(val);
+			this.u = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["f"];
 		if (undefined !== val) {
-			this.f = getBoolFromXml(val);
+			this.f = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["c"];
 		if (undefined !== val) {
@@ -3745,11 +3726,11 @@ CT_DateTime.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["u"];
 		if (undefined !== val) {
-			this.u = getBoolFromXml(val);
+			this.u = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["f"];
 		if (undefined !== val) {
-			this.f = getBoolFromXml(val);
+			this.f = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["c"];
 		if (undefined !== val) {
@@ -3845,11 +3826,11 @@ CT_Error.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["u"];
 		if (undefined !== val) {
-			this.u = getBoolFromXml(val);
+			this.u = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["f"];
 		if (undefined !== val) {
-			this.f = getBoolFromXml(val);
+			this.f = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["c"];
 		if (undefined !== val) {
@@ -3873,19 +3854,19 @@ CT_Error.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["i"];
 		if (undefined !== val) {
-			this.i = getBoolFromXml(val);
+			this.i = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["un"];
 		if (undefined !== val) {
-			this.un = getBoolFromXml(val);
+			this.un = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["st"];
 		if (undefined !== val) {
-			this.st = getBoolFromXml(val);
+			this.st = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["b"];
 		if (undefined !== val) {
-			this.b = getBoolFromXml(val);
+			this.b = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -4008,11 +3989,11 @@ CT_Missing.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["u"];
 		if (undefined !== val) {
-			this.u = getBoolFromXml(val);
+			this.u = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["f"];
 		if (undefined !== val) {
-			this.f = getBoolFromXml(val);
+			this.f = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["c"];
 		if (undefined !== val) {
@@ -4036,19 +4017,19 @@ CT_Missing.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["i"];
 		if (undefined !== val) {
-			this.i = getBoolFromXml(val);
+			this.i = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["un"];
 		if (undefined !== val) {
-			this.un = getBoolFromXml(val);
+			this.un = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["st"];
 		if (undefined !== val) {
-			this.st = getBoolFromXml(val);
+			this.st = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["b"];
 		if (undefined !== val) {
-			this.b = getBoolFromXml(val);
+			this.b = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -4175,11 +4156,11 @@ CT_Number.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["u"];
 		if (undefined !== val) {
-			this.u = getBoolFromXml(val);
+			this.u = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["f"];
 		if (undefined !== val) {
-			this.f = getBoolFromXml(val);
+			this.f = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["c"];
 		if (undefined !== val) {
@@ -4203,19 +4184,19 @@ CT_Number.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["i"];
 		if (undefined !== val) {
-			this.i = getBoolFromXml(val);
+			this.i = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["un"];
 		if (undefined !== val) {
-			this.un = getBoolFromXml(val);
+			this.un = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["st"];
 		if (undefined !== val) {
-			this.st = getBoolFromXml(val);
+			this.st = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["b"];
 		if (undefined !== val) {
-			this.b = getBoolFromXml(val);
+			this.b = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -4343,11 +4324,11 @@ CT_String.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["u"];
 		if (undefined !== val) {
-			this.u = getBoolFromXml(val);
+			this.u = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["f"];
 		if (undefined !== val) {
-			this.f = getBoolFromXml(val);
+			this.f = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["c"];
 		if (undefined !== val) {
@@ -4371,19 +4352,19 @@ CT_String.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["i"];
 		if (undefined !== val) {
-			this.i = getBoolFromXml(val);
+			this.i = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["un"];
 		if (undefined !== val) {
-			this.un = getBoolFromXml(val);
+			this.un = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["st"];
 		if (undefined !== val) {
-			this.st = getBoolFromXml(val);
+			this.st = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["b"];
 		if (undefined !== val) {
-			this.b = getBoolFromXml(val);
+			this.b = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -5083,23 +5064,23 @@ CT_PivotTableStyle.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["showRowHeaders"];
 		if (undefined !== val) {
-			this.showRowHeaders = getBoolFromXml(val);
+			this.showRowHeaders = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showColHeaders"];
 		if (undefined !== val) {
-			this.showColHeaders = getBoolFromXml(val);
+			this.showColHeaders = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showRowStripes"];
 		if (undefined !== val) {
-			this.showRowStripes = getBoolFromXml(val);
+			this.showRowStripes = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showColStripes"];
 		if (undefined !== val) {
-			this.showColStripes = getBoolFromXml(val);
+			this.showColStripes = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showLastColumn"];
 		if (undefined !== val) {
-			this.showLastColumn = getBoolFromXml(val);
+			this.showLastColumn = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -5349,7 +5330,7 @@ CT_Consolidation.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["autoPage"];
 		if (undefined !== val) {
-			this.autoPage = getBoolFromXml(val);
+			this.autoPage = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -5490,11 +5471,11 @@ CT_CacheField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["serverField"];
 		if (undefined !== val) {
-			this.serverField = getBoolFromXml(val);
+			this.serverField = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["uniqueList"];
 		if (undefined !== val) {
-			this.uniqueList = getBoolFromXml(val);
+			this.uniqueList = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["numFmtId"];
 		if (undefined !== val) {
@@ -5518,7 +5499,7 @@ CT_CacheField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["databaseField"];
 		if (undefined !== val) {
-			this.databaseField = getBoolFromXml(val);
+			this.databaseField = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["mappingCount"];
 		if (undefined !== val) {
@@ -5526,7 +5507,7 @@ CT_CacheField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["memberPropertyField"];
 		if (undefined !== val) {
-			this.memberPropertyField = getBoolFromXml(val);
+			this.memberPropertyField = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -5667,11 +5648,11 @@ CT_CacheHierarchy.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["measure"];
 		if (undefined !== val) {
-			this.measure = getBoolFromXml(val);
+			this.measure = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["set"];
 		if (undefined !== val) {
-			this.set = getBoolFromXml(val);
+			this.set = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["parentSet"];
 		if (undefined !== val) {
@@ -5683,15 +5664,15 @@ CT_CacheHierarchy.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["attribute"];
 		if (undefined !== val) {
-			this.attribute = getBoolFromXml(val);
+			this.attribute = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["time"];
 		if (undefined !== val) {
-			this.time = getBoolFromXml(val);
+			this.time = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["keyAttribute"];
 		if (undefined !== val) {
-			this.keyAttribute = getBoolFromXml(val);
+			this.keyAttribute = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["defaultMemberUniqueName"];
 		if (undefined !== val) {
@@ -5719,7 +5700,7 @@ CT_CacheHierarchy.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["measures"];
 		if (undefined !== val) {
-			this.measures = getBoolFromXml(val);
+			this.measures = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["count"];
 		if (undefined !== val) {
@@ -5727,7 +5708,7 @@ CT_CacheHierarchy.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["oneField"];
 		if (undefined !== val) {
-			this.oneField = getBoolFromXml(val);
+			this.oneField = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["memberValueDatatype"];
 		if (undefined !== val) {
@@ -5735,15 +5716,15 @@ CT_CacheHierarchy.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["unbalanced"];
 		if (undefined !== val) {
-			this.unbalanced = getBoolFromXml(val);
+			this.unbalanced = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["unbalancedGroup"];
 		if (undefined !== val) {
-			this.unbalancedGroup = getBoolFromXml(val);
+			this.unbalancedGroup = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["hidden"];
 		if (undefined !== val) {
-			this.hidden = getBoolFromXml(val);
+			this.hidden = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -6243,7 +6224,7 @@ CT_CalculatedMember.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["set"];
 		if (undefined !== val) {
-			this.set = getBoolFromXml(val);
+			this.set = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -6302,7 +6283,7 @@ CT_PivotDimension.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["measure"];
 		if (undefined !== val) {
-			this.measure = getBoolFromXml(val);
+			this.measure = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["name"];
 		if (undefined !== val) {
@@ -6570,7 +6551,7 @@ CT_PivotField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["dataField"];
 		if (undefined !== val) {
-			this.dataField = getBoolFromXml(val);
+			this.dataField = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["subtotalCaption"];
 		if (undefined !== val) {
@@ -6578,11 +6559,11 @@ CT_PivotField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["showDropDowns"];
 		if (undefined !== val) {
-			this.showDropDowns = getBoolFromXml(val);
+			this.showDropDowns = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["hiddenLevel"];
 		if (undefined !== val) {
-			this.hiddenLevel = getBoolFromXml(val);
+			this.hiddenLevel = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["uniqueMemberProperty"];
 		if (undefined !== val) {
@@ -6590,11 +6571,11 @@ CT_PivotField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["compact"];
 		if (undefined !== val) {
-			this.compact = getBoolFromXml(val);
+			this.compact = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["allDrilled"];
 		if (undefined !== val) {
-			this.allDrilled = getBoolFromXml(val);
+			this.allDrilled = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["numFmtId"];
 		if (undefined !== val) {
@@ -6602,71 +6583,71 @@ CT_PivotField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["outline"];
 		if (undefined !== val) {
-			this.outline = getBoolFromXml(val);
+			this.outline = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["subtotalTop"];
 		if (undefined !== val) {
-			this.subtotalTop = getBoolFromXml(val);
+			this.subtotalTop = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragToRow"];
 		if (undefined !== val) {
-			this.dragToRow = getBoolFromXml(val);
+			this.dragToRow = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragToCol"];
 		if (undefined !== val) {
-			this.dragToCol = getBoolFromXml(val);
+			this.dragToCol = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["multipleItemSelectionAllowed"];
 		if (undefined !== val) {
-			this.multipleItemSelectionAllowed = getBoolFromXml(val);
+			this.multipleItemSelectionAllowed = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragToPage"];
 		if (undefined !== val) {
-			this.dragToPage = getBoolFromXml(val);
+			this.dragToPage = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragToData"];
 		if (undefined !== val) {
-			this.dragToData = getBoolFromXml(val);
+			this.dragToData = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragOff"];
 		if (undefined !== val) {
-			this.dragOff = getBoolFromXml(val);
+			this.dragOff = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showAll"];
 		if (undefined !== val) {
-			this.showAll = getBoolFromXml(val);
+			this.showAll = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["insertBlankRow"];
 		if (undefined !== val) {
-			this.insertBlankRow = getBoolFromXml(val);
+			this.insertBlankRow = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["serverField"];
 		if (undefined !== val) {
-			this.serverField = getBoolFromXml(val);
+			this.serverField = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["insertPageBreak"];
 		if (undefined !== val) {
-			this.insertPageBreak = getBoolFromXml(val);
+			this.insertPageBreak = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["autoShow"];
 		if (undefined !== val) {
-			this.autoShow = getBoolFromXml(val);
+			this.autoShow = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["topAutoShow"];
 		if (undefined !== val) {
-			this.topAutoShow = getBoolFromXml(val);
+			this.topAutoShow = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["hideNewItems"];
 		if (undefined !== val) {
-			this.hideNewItems = getBoolFromXml(val);
+			this.hideNewItems = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["measureFilter"];
 		if (undefined !== val) {
-			this.measureFilter = getBoolFromXml(val);
+			this.measureFilter = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["includeNewItemsInFilter"];
 		if (undefined !== val) {
-			this.includeNewItemsInFilter = getBoolFromXml(val);
+			this.includeNewItemsInFilter = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["itemPageCount"];
 		if (undefined !== val) {
@@ -6681,11 +6662,11 @@ CT_PivotField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["dataSourceSort"];
 		if (undefined !== val) {
-			this.dataSourceSort = getBoolFromXml(val);
+			this.dataSourceSort = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["nonAutoSortDefault"];
 		if (undefined !== val) {
-			this.nonAutoSortDefault = getBoolFromXml(val);
+			this.nonAutoSortDefault = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["rankBy"];
 		if (undefined !== val) {
@@ -6693,67 +6674,67 @@ CT_PivotField.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["defaultSubtotal"];
 		if (undefined !== val) {
-			this.defaultSubtotal = getBoolFromXml(val);
+			this.defaultSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["sumSubtotal"];
 		if (undefined !== val) {
-			this.sumSubtotal = getBoolFromXml(val);
+			this.sumSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["countASubtotal"];
 		if (undefined !== val) {
-			this.countASubtotal = getBoolFromXml(val);
+			this.countASubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["avgSubtotal"];
 		if (undefined !== val) {
-			this.avgSubtotal = getBoolFromXml(val);
+			this.avgSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["maxSubtotal"];
 		if (undefined !== val) {
-			this.maxSubtotal = getBoolFromXml(val);
+			this.maxSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["minSubtotal"];
 		if (undefined !== val) {
-			this.minSubtotal = getBoolFromXml(val);
+			this.minSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["productSubtotal"];
 		if (undefined !== val) {
-			this.productSubtotal = getBoolFromXml(val);
+			this.productSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["countSubtotal"];
 		if (undefined !== val) {
-			this.countSubtotal = getBoolFromXml(val);
+			this.countSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["stdDevSubtotal"];
 		if (undefined !== val) {
-			this.stdDevSubtotal = getBoolFromXml(val);
+			this.stdDevSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["stdDevPSubtotal"];
 		if (undefined !== val) {
-			this.stdDevPSubtotal = getBoolFromXml(val);
+			this.stdDevPSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["varSubtotal"];
 		if (undefined !== val) {
-			this.varSubtotal = getBoolFromXml(val);
+			this.varSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["varPSubtotal"];
 		if (undefined !== val) {
-			this.varPSubtotal = getBoolFromXml(val);
+			this.varPSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showPropCell"];
 		if (undefined !== val) {
-			this.showPropCell = getBoolFromXml(val);
+			this.showPropCell = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showPropTip"];
 		if (undefined !== val) {
-			this.showPropTip = getBoolFromXml(val);
+			this.showPropTip = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showPropAsCaption"];
 		if (undefined !== val) {
-			this.showPropAsCaption = getBoolFromXml(val);
+			this.showPropAsCaption = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["defaultAttributeDrillState"];
 		if (undefined !== val) {
-			this.defaultAttributeDrillState = getBoolFromXml(val);
+			this.defaultAttributeDrillState = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -6951,37 +6932,37 @@ CT_PivotField.prototype.asc_getSubtotals = function () {
 	if (null === this.defaultSubtotal || this.defaultSubtotal) {
 		res = [];
 		if (this.sumSubtotal) {
-			res.push(c_oAscItemType.Sum);
+			res.push(Asc.c_oAscItemType.Sum);
 		}
 		if (this.countASubtotal) {
-			res.push(c_oAscItemType.CountA);
+			res.push(Asc.c_oAscItemType.CountA);
 		}
 		if (this.avgSubtotal) {
-			res.push(c_oAscItemType.Avg);
+			res.push(Asc.c_oAscItemType.Avg);
 		}
 		if (this.maxSubtotal) {
-			res.push(c_oAscItemType.Max);
+			res.push(Asc.c_oAscItemType.Max);
 		}
 		if (this.minSubtotal) {
-			res.push(c_oAscItemType.Min);
+			res.push(Asc.c_oAscItemType.Min);
 		}
 		if (this.productSubtotal) {
-			res.push(c_oAscItemType.Product);
+			res.push(Asc.c_oAscItemType.Product);
 		}
 		if (this.countSubtotal) {
-			res.push(c_oAscItemType.Count);
+			res.push(Asc.c_oAscItemType.Count);
 		}
 		if (this.stdDevSubtotal) {
-			res.push(c_oAscItemType.StdDev);
+			res.push(Asc.c_oAscItemType.StdDev);
 		}
 		if (this.stdDevPSubtotal) {
-			res.push(c_oAscItemType.StdDevP);
+			res.push(Asc.c_oAscItemType.StdDevP);
 		}
 		if (this.varSubtotal) {
-			res.push(c_oAscItemType.Var);
+			res.push(Asc.c_oAscItemType.Var);
 		}
 		if (this.varPSubtotal) {
-			res.push(c_oAscItemType.VarP);
+			res.push(Asc.c_oAscItemType.VarP);
 		}
 	}
 	return res;
@@ -7436,7 +7417,7 @@ CT_ChartFormat.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["series"];
 		if (undefined !== val) {
-			this.series = getBoolFromXml(val);
+			this.series = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -7494,43 +7475,43 @@ CT_PivotHierarchy.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["outline"];
 		if (undefined !== val) {
-			this.outline = getBoolFromXml(val);
+			this.outline = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["multipleItemSelectionAllowed"];
 		if (undefined !== val) {
-			this.multipleItemSelectionAllowed = getBoolFromXml(val);
+			this.multipleItemSelectionAllowed = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["subtotalTop"];
 		if (undefined !== val) {
-			this.subtotalTop = getBoolFromXml(val);
+			this.subtotalTop = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showInFieldList"];
 		if (undefined !== val) {
-			this.showInFieldList = getBoolFromXml(val);
+			this.showInFieldList = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragToRow"];
 		if (undefined !== val) {
-			this.dragToRow = getBoolFromXml(val);
+			this.dragToRow = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragToCol"];
 		if (undefined !== val) {
-			this.dragToCol = getBoolFromXml(val);
+			this.dragToCol = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragToPage"];
 		if (undefined !== val) {
-			this.dragToPage = getBoolFromXml(val);
+			this.dragToPage = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragToData"];
 		if (undefined !== val) {
-			this.dragToData = getBoolFromXml(val);
+			this.dragToData = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["dragOff"];
 		if (undefined !== val) {
-			this.dragOff = getBoolFromXml(val);
+			this.dragOff = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["includeNewItemsInFilter"];
 		if (undefined !== val) {
-			this.includeNewItemsInFilter = getBoolFromXml(val);
+			this.includeNewItemsInFilter = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["caption"];
 		if (undefined !== val) {
@@ -7872,35 +7853,35 @@ CT_SharedItems.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["containsSemiMixedTypes"];
 		if (undefined !== val) {
-			this.containsSemiMixedTypes = getBoolFromXml(val);
+			this.containsSemiMixedTypes = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["containsNonDate"];
 		if (undefined !== val) {
-			this.containsNonDate = getBoolFromXml(val);
+			this.containsNonDate = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["containsDate"];
 		if (undefined !== val) {
-			this.containsDate = getBoolFromXml(val);
+			this.containsDate = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["containsString"];
 		if (undefined !== val) {
-			this.containsString = getBoolFromXml(val);
+			this.containsString = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["containsBlank"];
 		if (undefined !== val) {
-			this.containsBlank = getBoolFromXml(val);
+			this.containsBlank = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["containsMixedTypes"];
 		if (undefined !== val) {
-			this.containsMixedTypes = getBoolFromXml(val);
+			this.containsMixedTypes = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["containsNumber"];
 		if (undefined !== val) {
-			this.containsNumber = getBoolFromXml(val);
+			this.containsNumber = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["containsInteger"];
 		if (undefined !== val) {
-			this.containsInteger = getBoolFromXml(val);
+			this.containsInteger = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["minValue"];
 		if (undefined !== val) {
@@ -7925,7 +7906,7 @@ CT_SharedItems.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["longText"];
 		if (undefined !== val) {
-			this.longText = getBoolFromXml(val);
+			this.longText = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -8176,7 +8157,7 @@ CT_Set.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["queryFailed"];
 		if (undefined !== val) {
-			this.queryFailed = getBoolFromXml(val);
+			this.queryFailed = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -8330,27 +8311,27 @@ CT_PivotArea.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["dataOnly"];
 		if (undefined !== val) {
-			this.dataOnly = getBoolFromXml(val);
+			this.dataOnly = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["labelOnly"];
 		if (undefined !== val) {
-			this.labelOnly = getBoolFromXml(val);
+			this.labelOnly = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["grandRow"];
 		if (undefined !== val) {
-			this.grandRow = getBoolFromXml(val);
+			this.grandRow = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["grandCol"];
 		if (undefined !== val) {
-			this.grandCol = getBoolFromXml(val);
+			this.grandCol = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["cacheIndex"];
 		if (undefined !== val) {
-			this.cacheIndex = getBoolFromXml(val);
+			this.cacheIndex = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["outline"];
 		if (undefined !== val) {
-			this.outline = getBoolFromXml(val);
+			this.outline = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["offset"];
 		if (undefined !== val) {
@@ -8358,7 +8339,7 @@ CT_PivotArea.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["collapsedLevelsAreSubtotals"];
 		if (undefined !== val) {
-			this.collapsedLevelsAreSubtotals = getBoolFromXml(val);
+			this.collapsedLevelsAreSubtotals = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["axis"];
 		if (undefined !== val) {
@@ -8870,11 +8851,11 @@ CT_RangePr.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["autoStart"];
 		if (undefined !== val) {
-			this.autoStart = getBoolFromXml(val);
+			this.autoStart = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["autoEnd"];
 		if (undefined !== val) {
-			this.autoEnd = getBoolFromXml(val);
+			this.autoEnd = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["groupBy"];
 		if (undefined !== val) {
@@ -9058,11 +9039,11 @@ CT_GroupLevel.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["user"];
 		if (undefined !== val) {
-			this.user = getBoolFromXml(val);
+			this.user = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["customRollUp"];
 		if (undefined !== val) {
-			this.customRollUp = getBoolFromXml(val);
+			this.customRollUp = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -9180,27 +9161,27 @@ CT_Item.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["h"];
 		if (undefined !== val) {
-			this.h = getBoolFromXml(val);
+			this.h = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["s"];
 		if (undefined !== val) {
-			this.s = getBoolFromXml(val);
+			this.s = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["sd"];
 		if (undefined !== val) {
-			this.sd = getBoolFromXml(val);
+			this.sd = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["f"];
 		if (undefined !== val) {
-			this.f = getBoolFromXml(val);
+			this.f = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["m"];
 		if (undefined !== val) {
-			this.m = getBoolFromXml(val);
+			this.m = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["c"];
 		if (undefined !== val) {
-			this.c = getBoolFromXml(val);
+			this.c = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["x"];
 		if (undefined !== val) {
@@ -9208,11 +9189,11 @@ CT_Item.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["d"];
 		if (undefined !== val) {
-			this.d = getBoolFromXml(val);
+			this.d = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["e"];
 		if (undefined !== val) {
-			this.e = getBoolFromXml(val);
+			this.e = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -9275,15 +9256,15 @@ CT_MemberProperty.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["showCell"];
 		if (undefined !== val) {
-			this.showCell = getBoolFromXml(val);
+			this.showCell = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showTip"];
 		if (undefined !== val) {
-			this.showTip = getBoolFromXml(val);
+			this.showTip = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showAsCaption"];
 		if (undefined !== val) {
-			this.showAsCaption = getBoolFromXml(val);
+			this.showAsCaption = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["nameLen"];
 		if (undefined !== val) {
@@ -9383,11 +9364,11 @@ CT_FilterColumn.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["hiddenButton"];
 		if (undefined !== val) {
-			this.hiddenButton = getBoolFromXml(val);
+			this.hiddenButton = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["showButton"];
 		if (undefined !== val) {
-			this.showButton = getBoolFromXml(val);
+			this.showButton = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -9491,11 +9472,11 @@ CT_SortState.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["columnSort"];
 		if (undefined !== val) {
-			this.columnSort = getBoolFromXml(val);
+			this.columnSort = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["caseSensitive"];
 		if (undefined !== val) {
-			this.caseSensitive = getBoolFromXml(val);
+			this.caseSensitive = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["sortMethod"];
 		if (undefined !== val) {
@@ -9652,63 +9633,63 @@ CT_PivotAreaReference.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["selected"];
 		if (undefined !== val) {
-			this.selected = getBoolFromXml(val);
+			this.selected = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["byPosition"];
 		if (undefined !== val) {
-			this.byPosition = getBoolFromXml(val);
+			this.byPosition = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["relative"];
 		if (undefined !== val) {
-			this.relative = getBoolFromXml(val);
+			this.relative = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["defaultSubtotal"];
 		if (undefined !== val) {
-			this.defaultSubtotal = getBoolFromXml(val);
+			this.defaultSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["sumSubtotal"];
 		if (undefined !== val) {
-			this.sumSubtotal = getBoolFromXml(val);
+			this.sumSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["countASubtotal"];
 		if (undefined !== val) {
-			this.countASubtotal = getBoolFromXml(val);
+			this.countASubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["avgSubtotal"];
 		if (undefined !== val) {
-			this.avgSubtotal = getBoolFromXml(val);
+			this.avgSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["maxSubtotal"];
 		if (undefined !== val) {
-			this.maxSubtotal = getBoolFromXml(val);
+			this.maxSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["minSubtotal"];
 		if (undefined !== val) {
-			this.minSubtotal = getBoolFromXml(val);
+			this.minSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["productSubtotal"];
 		if (undefined !== val) {
-			this.productSubtotal = getBoolFromXml(val);
+			this.productSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["countSubtotal"];
 		if (undefined !== val) {
-			this.countSubtotal = getBoolFromXml(val);
+			this.countSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["stdDevSubtotal"];
 		if (undefined !== val) {
-			this.stdDevSubtotal = getBoolFromXml(val);
+			this.stdDevSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["stdDevPSubtotal"];
 		if (undefined !== val) {
-			this.stdDevPSubtotal = getBoolFromXml(val);
+			this.stdDevPSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["varSubtotal"];
 		if (undefined !== val) {
-			this.varSubtotal = getBoolFromXml(val);
+			this.varSubtotal = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["varPSubtotal"];
 		if (undefined !== val) {
-			this.varPSubtotal = getBoolFromXml(val);
+			this.varPSubtotal = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -9809,7 +9790,7 @@ CT_ColorFilter.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["cellColor"];
 		if (undefined !== val) {
-			this.cellColor = getBoolFromXml(val);
+			this.cellColor = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -9836,7 +9817,7 @@ CT_CustomFilters.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["and"];
 		if (undefined !== val) {
-			this.and = getBoolFromXml(val);
+			this.and = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -9927,7 +9908,7 @@ CT_Filters.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["blank"];
 		if (undefined !== val) {
-			this.blank = getBoolFromXml(val);
+			this.blank = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["calendarType"];
 		if (undefined !== val) {
@@ -10021,11 +10002,11 @@ CT_Top10.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["top"];
 		if (undefined !== val) {
-			this.top = getBoolFromXml(val);
+			this.top = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["percent"];
 		if (undefined !== val) {
-			this.percent = getBoolFromXml(val);
+			this.percent = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["val"];
 		if (undefined !== val) {
@@ -10069,7 +10050,7 @@ CT_SortCondition.prototype.readAttributes = function(attr, uq) {
 		var val;
 		val = vals["descending"];
 		if (undefined !== val) {
-			this.descending = getBoolFromXml(val);
+			this.descending = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["sortBy"];
 		if (undefined !== val) {
@@ -10382,7 +10363,7 @@ CT_GroupMember.prototype.readAttributes = function(attr, uq) {
 		}
 		val = vals["group"];
 		if (undefined !== val) {
-			this.group = getBoolFromXml(val);
+			this.group = AscCommon.getBoolFromXml(val);
 		}
 	}
 };
@@ -10846,24 +10827,6 @@ prot = c_oAscFieldSortType;
 prot['Manual'] = prot.Manual;
 prot['Ascending'] = prot.Ascending;
 prot['Descending'] = prot.Descending;
-
-window['Asc']['c_oAscItemType'] = window['AscCommonExcel'].c_oAscItemType = c_oAscItemType;
-prot = c_oAscItemType;
-prot['Data'] = prot.Data;
-prot['Default'] = prot.Default;
-prot['Sum'] = prot.Sum;
-prot['CountA'] = prot.CountA;
-prot['Avg'] = prot.Avg;
-prot['Max'] = prot.Max;
-prot['Min'] = prot.Min;
-prot['Product'] = prot.Product;
-prot['Count'] = prot.Count;
-prot['StdDev'] = prot.StdDev;
-prot['StdDevP'] = prot.StdDevP;
-prot['Var'] = prot.Var;
-prot['VarP'] = prot.VarP;
-prot['Grand'] = prot.Grand;
-prot['Blank'] = prot.Blank;
 
 window['Asc']['c_oAscDataConsolidateFunction'] = window['AscCommonExcel'].c_oAscDataConsolidateFunction = c_oAscDataConsolidateFunction;
 prot = c_oAscDataConsolidateFunction;
