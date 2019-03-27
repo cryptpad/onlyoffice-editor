@@ -1953,7 +1953,7 @@
             this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
 
 			//Отрисовываем панель группировки по строкам
-			this._drawGroupData(drawingCtx, range, offsetX, offsetY);
+			this._drawGroupData(drawingCtx, null, offsetX, offsetY);
 
             var drawingPrintOptions = {
                 ctx: drawingCtx, printPagesData: printPagesData
@@ -1979,6 +1979,7 @@
         this._drawColumnHeaders(null);
         this._drawRowHeaders(null);
         this._drawGrid(null);
+        this._drawGroupData(null);
         this._drawCellsAndBorders(null);
 		this._drawGroupData(null);
         this._drawFrozenPane();
@@ -6101,6 +6102,7 @@
             offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft - diffWidth;
             offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop - diffHeight;
             this._drawGrid(null, range);
+			this._drawGroupData(null);
 
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
@@ -6113,6 +6115,7 @@
                 range.c2 = cFrozen - 1;
                 offsetX = this._getColLeft(0) - this.cellsLeft;
                 this._drawGrid(null, range, offsetX);
+				this._drawGroupData(null, null, offsetX);
                 this._drawCellsAndBorders(null, range, offsetX);
                 this.af_drawButtons(range, offsetX, offsetY);
                 this.objectRender.showDrawingObjectsEx(false,
@@ -15572,6 +15575,10 @@
 		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
 
+		this.getGroupDataArray2(start, end);
+		this.getGroupDataArray3(start, end);
+
+		console.time("old");
 		var res = null;
 		var up = true, down = true;
 		var fProcessRow = function(row){
@@ -15649,17 +15656,211 @@
 			this.model._getRow(end, fProcessRow);
 		}
 
+		console.timeEnd("old");
+
 		return res;
 	};
+
+
+	WorksheetView.prototype.getGroupDataArray2 = function (start, end) {
+		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
+		//возможно стоит добавить кэш для отрисовки
+
+		function sizeOf(obj) {
+			var bytes = 0;
+			if(obj !== null && obj !== undefined) {
+				switch(typeof obj) {
+					case 'number':
+						bytes += 8;
+						break;
+					case 'string':
+						bytes += obj.length * 2;
+						break;
+					case 'boolean':
+						bytes += 4;
+						break;
+					case 'object':
+						for(var key in obj) {
+							bytes += sizeOf(obj[key]);
+						}
+						break;
+				}
+			}
+			return bytes;
+		}
+
+		var res;
+
+		console.time("asd");
+		var groupLimits = this._getGroupLimits(start, end);
+		if(groupLimits) {
+			var test = sizeOf(groupLimits.arr);
+			console.log(test);
+			for(var i = groupLimits.start; i <= groupLimits.end; i++) {
+
+			}
+		}
+		console.timeEnd("asd");
+
+		return res;
+	};
+
+
+
+	WorksheetView.prototype._getGroupLimits = function (start, end) {
+		var res = null;
+		var rowLevelArr = [];
+		var outLineLevel;
+		var fProcessRow = function(row){
+			outLineLevel = row.getOutlineLevel();
+			/*if(outLineLevel) {
+				rowLevelArr[row.index] = outLineLevel;
+			}*/
+		};
+
+		//определяем кусок с группировкой
+		this.model._getRow(start, fProcessRow);
+		if(outLineLevel) {
+			while(true) {
+				start--;
+				if(start < 0) {
+					start = 0;
+					break;
+				}
+				if(start >= end) {
+					break;
+				}
+				this.model._getRow(start, fProcessRow);
+				if(!outLineLevel) {
+					start++;
+					break;
+				}
+			}
+		} else {
+			while(true) {
+				start++;
+				if(start >= end) {
+					break;
+				}
+
+				this.model._getRow(start, fProcessRow);
+				if(outLineLevel) {
+					break;
+				}
+			}
+		}
+
+		this.model._getRow(end, fProcessRow);
+		if(outLineLevel) {
+			while(true) {
+				end++;
+				if(end === gc_nMaxRow0) {
+					end = gc_nMaxRow0;
+					break;
+				}
+				this.model._getRow(end, fProcessRow);
+				if(!outLineLevel) {
+					end--;
+					break;
+				}
+			}
+		} else {
+			while(true) {
+				end--;
+				if(start >= end) {
+					break;
+				}
+				this.model._getRow(end, fProcessRow);
+				if(outLineLevel) {
+					break;
+				}
+			}
+		}
+
+		if(start >= end) {
+			this.model._getRow(start, fProcessRow);
+			if(!outLineLevel) {
+				return null;
+			}
+		}
+
+		return {start: start, end: end/*, arr: rowLevelArr*/};
+	};
+
+	WorksheetView.prototype.getGroupDataArray3 = function (start, end) {
+		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
+		//возможно стоит добавить кэш для отрисовки
+
+
+		console.time("old1");
+
+		var getLevel = function(curLevel) {
+			
+		};
+
+		var res = null;
+		var up = true, down = true;
+		var fProcessRow = function(row){
+			var outLineLevel = row.getOutlineLevel();
+
+			var continueRange = function(level, index) {
+				var tempNeedPush = true;
+
+				if(!res[level] || undefined === res[level][index]) {
+					return true;
+				}
+
+				if(row.index === res[level][index].start - 1) {
+					res[level][index].start--;
+					tempNeedPush = false;
+				} else if(row.index === res[level][index].end + 1) {
+					res[level][index].end++;
+					tempNeedPush = false;
+				}
+
+				return tempNeedPush;
+			};
+
+			if(!outLineLevel) {
+				if(start === row.index) {
+					up = false;
+				} else if(end === row.index) {
+					down = false;
+				}
+			} else {
+
+			}
+		};
+
+		for (var i = start; i <= end; ++i) {
+			this.model._getRow(i, fProcessRow);
+		}
+
+		while(up) {
+			start--;
+			if(start < 0) {
+				break;
+			}
+			this.model._getRow(start, fProcessRow);
+		}
+		while(down) {
+			end++;
+			if(end > gc_nMaxRow0) {
+				break;
+			}
+			this.model._getRow(end, fProcessRow);
+		}
+
+		console.timeEnd("old1");
+
+		return res;
+	};
+
+
 
 	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, width, height ) {
 		if ( range === undefined ) {
 			range = this.visibleRange;
-		}
-
-		var arrayLines = this.getGroupDataArray(range.r1, range.r2);
-		if(!arrayLines) {
-			return;
 		}
 
 		var ctx = drawingCtx || this.drawingCtx;
@@ -15682,9 +15883,28 @@
 		var y2 = this._getRowTop(range.r2 + 1) - offsetY;
 		ctx.setFillStyle(this.settings.cells.defaultState.border).fillRect(x1, y1, x2 - x1, y2 - y1);
 
+		var arrayLines = this.getGroupDataArray(range.r1, range.r2);
+		if(!arrayLines) {
+			return;
+		}
+
 		var lineWidth = 2;
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
-		
+
+		var checkFirstLine = function(tempLevel) {
+			var res = true;
+			for(var l = 0; l < tempLevel; l++) {
+				if(arrayLines[l]) {
+					for(var s = 0; s < tempLevel; s++) {
+						if(arrayLines[l][s] && arrayLines[l][s].start) {
+							return false;
+						}
+					}
+				}
+			}
+			return res;
+		};
+
 		var bFirstLine = true;
 		var buttonSize = 16;
 		var padding = 1;
@@ -15697,8 +15917,8 @@
 				for(var j = 0; j < arrayLines[i].length; j++) {
 					var startY = Math.max(arrayLines[i][j].start, range.r1);
 					var endY = Math.min(arrayLines[i][j].end + 1, range.r2);
-					var startPos = this._getRowTop(startY);
-					var endPos = this._getRowTop(endY);
+					var startPos = this._getRowTop(startY) - offsetY ;
+					var endPos = this._getRowTop(endY) - offsetY;
 					var heightNextRow = this._getRowHeight(endY + 1);
 					var paddingTop = (heightNextRow - buttonSize) / 2;
 					if(paddingTop < 0) {
@@ -15719,8 +15939,7 @@
 
 					//points
 					for(var n = startY; n < endY; n++) {
-						posX = 2 + 7 + (i) * 16;
-						ctx.lineHorPrevPx(posX - 2, this._getRowTop(n) + this._getRowHeight(n) / 2, posX);
+						ctx.lineHorPrevPx(7 + (i) * 16, this._getRowTop(n) - offsetY + this._getRowHeight(n) / 2, 7 + (i) * 16 + 2);
 					}
 
 				}
