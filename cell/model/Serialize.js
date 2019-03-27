@@ -6617,12 +6617,14 @@
                 var i;
                 oNewWorksheet.mergeManager.setDelayedInit((function(merged) {
                     return function() {
+                        History.TurnOff();
                         for (i = 0, length = merged.length; i < length; ++i) {
                             var range = oNewWorksheet.getRange2(merged[i]);
                             if (null != range) {
                                 range.mergeOpen();
                             }
                         }
+                        History.TurnOn();
                     }
                 })(this.aMerged), (function(merged) {
                     return function() {
