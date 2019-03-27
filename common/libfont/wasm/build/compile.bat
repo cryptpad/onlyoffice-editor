@@ -3,7 +3,7 @@ CD /D %~dp0
 
 call emsdk/emsdk_env.bat
 
-call emcc -o engine.js^
+call emcc -o fonts.js^
  -O3^
  -fno-exceptions^
  -fno-rtti^
@@ -63,10 +63,8 @@ call emcc -o engine.js^
  
 echo "finalize..."
 
-call powershell -Command "(Get-Content ./engine.js) -replace 'removeRunDependency\(\"wasm-instantiate\"\)', 'removeRunDependency(\"wasm-instantiate\");window[\"AscFonts\"].onLoadModule();' | Set-Content ./engine_tmp.js"
+call powershell -Command "(Get-Content ./fonts.js) -replace 'removeRunDependency\(\"wasm-instantiate\"\)', 'removeRunDependency(\"wasm-instantiate\");window[\"AscFonts\"].onLoadModule();' | Set-Content ./fonts.js"
+call powershell -Command "(Get-Content ./fonts.js) -replace 'function getBinaryPromise\(\){', 'function getBinaryPromise2(){' | Set-Content ./fonts.js"
 
-call powershell -Command "(Get-Content ./engine_tmp.js) -replace 'function getBinaryPromise\(\){', 'function getBinaryPromise2(){' | Set-Content ./engine_tmp.js"
-
-call powershell -Command "(Get-Content ./../engine_base.js) -replace '//module', (Get-Content ./engine_tmp.js) | Set-Content ./../engine.js"
-call echo f | xcopy /b/v/y/f "engine.wasm" "../engine.wasm"
-call del "./engine_tmp.js"
+call powershell -Command "(Get-Content ./../engine_base.js) -replace '//module', (Get-Content ./fonts.js) | Set-Content ./../engine.js"
+call echo f | xcopy /b/v/y/f "fonts.wasm" "../fonts.wasm"
