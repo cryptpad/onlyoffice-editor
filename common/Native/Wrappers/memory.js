@@ -704,9 +704,12 @@ window['AscFonts'].FT_Stream = FT_Stream;
 window['AscFonts'].g_memory = g_memory;
 
 window['AscFonts'].CFontManager = function CFontManager() {
-    this.m_oLibrary = {};
-    this.m_oLibrary.tt_hint_props = {};
+    this.m_pFont = null;
+    this.m_oFontsCache = { Fonts : {} };
     this.Initialize = function(){};
+    this.SetHintsProps = function(){};
+    this.LoadFont = function(){};
+    this.ClearRasterMemory = function(){};
     this.ClearFontsRasterCache = function(){};
 };
 
