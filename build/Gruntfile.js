@@ -126,6 +126,10 @@ module.exports = function(grunt) {
 		var sdkSlideTmp = 'sdk-slide-tmp.js';
 
 		var compilerArgs = getExterns(configExterns);
+		if (grunt.option('map')) {
+			compilerArgs.push('--property_renaming_report=sdk-all.props.js.map');
+			compilerArgs.push('--variable_renaming_report=sdk-all.vars.js.map');
+		}
 		if (formatting) {
 			compilerArgs.push('--formatting=' + formatting);
 		}
