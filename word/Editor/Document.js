@@ -18368,6 +18368,10 @@ function CTrackRevisionsManager(LogicDocument)
     this.OldVisibleChanges = [];
 }
 
+/**
+ * Отправляем элемент на проверку на наличие рецензирования
+ * @param oElement {Paragraph | CTable}
+ */
 CTrackRevisionsManager.prototype.CheckElement = function(oElement)
 {
 	if (!(oElement instanceof Paragraph) && !(oElement instanceof CTable))
@@ -18380,12 +18384,17 @@ CTrackRevisionsManager.prototype.CheckElement = function(oElement)
     else
         this.CheckElements[sElementId]++;
 };
-CTrackRevisionsManager.prototype.Add_Change = function(ParaId, Change)
+/**
+ * Добавляем изменение в рецензировании по Id элемента
+ * @param sId {string}
+ * @param oChange {CRevisionsChange}
+ */
+CTrackRevisionsManager.prototype.AddChange = function(sId, oChange)
 {
-    if (undefined === this.Changes[ParaId])
-        this.Changes[ParaId] = [];
+    if (undefined === this.Changes[sId])
+        this.Changes[sId] = [];
 
-    this.Changes[ParaId].push(Change);
+    this.Changes[sId].push(oChange);
 };
 CTrackRevisionsManager.prototype.Get_ParagraphChanges = function(ParaId)
 {

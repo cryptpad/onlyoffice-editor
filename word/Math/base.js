@@ -2577,7 +2577,7 @@ CMathBase.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 
     if (true !== Checker.Is_CheckOnlyTextPr())
     {
-        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.Get_UserId() !== Checker.Get_AddRemoveUserId()))
+        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId()))
         {
             Checker.Flush_AddRemoveChange();
             ContentPos.Update(0, Depth);

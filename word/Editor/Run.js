@@ -9716,7 +9716,7 @@ ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
     if (true !== Checker.Is_ParaEndRun() && true !== Checker.Is_CheckOnlyTextPr())
     {
         var ReviewType = this.GetReviewType();
-        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.Get_UserId() !== Checker.Get_AddRemoveUserId()))
+        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId()))
         {
             Checker.Flush_AddRemoveChange();
             ContentPos.Update(0, Depth);
@@ -9769,7 +9769,7 @@ ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 
     var HavePrChange = this.HavePrChange();
     var DiffPr = this.GetDiffPrChange();
-    if (HavePrChange !== Checker.HavePrChange() || true !== Checker.ComparePrChange(DiffPr) || this.Pr.ReviewInfo.Get_UserId() !== Checker.Get_PrChangeUserId())
+    if (HavePrChange !== Checker.HavePrChange() || true !== Checker.ComparePrChange(DiffPr) || this.Pr.ReviewInfo.GetUserId() !== Checker.Get_PrChangeUserId())
     {
         Checker.Flush_TextPrChange();
         ContentPos.Update(0, Depth);
@@ -10887,17 +10887,21 @@ CReviewInfo.prototype.Copy = function()
     Info.PrevInfo = this.PrevInfo ? this.PrevInfo.Copy() : null;
     return Info;
 };
-CReviewInfo.prototype.Get_UserId = function()
+/**
+ * Получаем имя пользователя
+ * @returns {string}
+ */
+CReviewInfo.prototype.GetUserName = function()
 {
-    return this.UserId;
+	return this.UserName;
 };
-CReviewInfo.prototype.Get_UserName = function()
+/**
+ * Получаем дату-время изменения
+ * @returns {number}
+ */
+CReviewInfo.prototype.GetDateTime = function()
 {
-    return this.UserName;
-};
-CReviewInfo.prototype.Get_DateTime = function()
-{
-    return this.DateTime;
+	return this.DateTime;
 };
 CReviewInfo.prototype.Write_ToBinary = function(oWriter)
 {
@@ -10952,9 +10956,13 @@ CReviewInfo.prototype.IsCurrentUser = function()
 
     return true;
 };
-CReviewInfo.prototype.Get_UserId = function()
+/**
+ * Получаем идентификатор пользователя
+ * @returns {string}
+ */
+CReviewInfo.prototype.GetUserId = function()
 {
-    return this.UserId;
+	return this.UserId;
 };
 CReviewInfo.prototype.WriteToBinary = function(oWriter)
 {
