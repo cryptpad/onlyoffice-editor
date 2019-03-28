@@ -1625,6 +1625,24 @@
                 this.HintsSubpixelSupport = false;
             }
         };
+
+        this.cellGetMetrics = function()
+		{
+			var face = this.m_pFace;
+			var ret = [];
+			ret.push(face.header.Units_Per_EM);
+            if (face.os2.version != 0xFFFF)
+            {
+                ret.push(face.os2.usWinAscent);
+                ret.push(-face.os2.usWinDescent);
+            }
+            else
+			{
+                ret.push(face.header.yMax);
+                ret.push(face.header.yMin);
+            }
+			return ret;
+		};
 	}
 
 	function CFontLoaderBySymbol()

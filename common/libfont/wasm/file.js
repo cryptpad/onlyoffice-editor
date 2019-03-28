@@ -1584,6 +1584,24 @@
             this.HintsSubpixelSupport = true;
         };
 
+        this.cellGetMetrics = function()
+        {
+            var face = this.m_pFaceInfo;
+            var ret = [];
+            ret.push(face.units_per_EM);
+            if (face.os2_version != 0xFFFF)
+            {
+                ret.push(face.os2_usWinAscent);
+                ret.push(-face.os2_usWinDescent);
+            }
+            else
+            {
+                ret.push(face.header_yMax);
+                ret.push(face.header_yMin);
+            }
+            return ret;
+        };
+
         this.SetFace = function(face, fontManager)
 		{
 			this.m_pFace = face;

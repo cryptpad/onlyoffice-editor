@@ -148,6 +148,9 @@
 
         this.os2_nSymbolic = 0;
 
+        this.header_yMin = 0;
+        this.header_yMax = 0;
+
         this.monochromeSizes = [];
     };
 
@@ -203,6 +206,8 @@
         this.os2_ulCodePageRange2 	= AscFonts.FT_Common.IntToUInt(_buffer[_index++]);
 
         this.os2_nSymbolic 			= _buffer[_index++];
+        this.header_yMin 			= _buffer[_index++];
+        this.header_yMax 			= _buffer[_index++];
 
         var fixedSizesCount = _buffer[_index++];
         for (var i = 0; i < fixedSizesCount; i++)

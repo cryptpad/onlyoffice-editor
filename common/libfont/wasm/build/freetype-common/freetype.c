@@ -9,6 +9,7 @@
 #include FT_ADVANCES_H
 #include FT_LCD_FILTER_H
 #include FT_DRIVER_H
+#include FT_INTERNAL_TRUETYPE_TYPES_H
 #include "ftmodapi.h"
 
 void* ASC_FT_Malloc(unsigned int size)
@@ -167,12 +168,21 @@ int* ASC_FT_GetFaceInfo(FT_Face face)
         }
     }
 
+    int nHeader_yMin = face->descender;
+    int nHeader_yMax = face->ascender;
+    if (face && FT_IS_SFNT(face))
+    {
+        TT_Face ttface = (TT_Face)face;
+        nHeader_yMin = ttface->header.yMin;
+        nHeader_yMax = ttface->header.yMax;
+    }
+
     //isSymbolic
 
     unsigned int nLen1 = (unsigned int)strlen(face->family_name);
     unsigned int nLen2 = (unsigned int)strlen(face->style_name);
 
-    unsigned int nLen = 26 + nLen1 + 1 + nLen2 + 1 + 1 + face->num_fixed_sizes;
+    unsigned int nLen = 28 + nLen1 + 1 + nLen2 + 1 + 1 + (int)face->num_fixed_sizes;
 
     int* res = (int*)ASC_FT_Malloc(nLen * sizeof(int));
     int* resTmp = res;
@@ -236,6 +246,8 @@ int* ASC_FT_GetFaceInfo(FT_Face face)
     }
 
     *resTmp++ = (int)isSymbolic;
+    *resTmp++ = (int)nHeader_yMin;
+    *resTmp++ = (int)nHeader_yMax;
 
     *resTmp++ = (int)face->num_fixed_sizes;
 

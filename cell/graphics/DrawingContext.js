@@ -874,16 +874,10 @@
 			res.nat_y1 = face[1];
 			res.nat_y2 = face[2];
 		} else {
-			face = fm.m_pFont.m_pFaceInfo;
-			res.nat_scale = face.units_per_EM;
-			if (face.os2_version != 0xFFFF) {
-				res.nat_y1 = face.os2_usWinAscent;
-				res.nat_y2 = -face.os2_usWinDescent;
-			} else {
-				// TODO:
-				res.nat_y1 = face.header_yMax;
-				res.nat_y2 = face.header_yMin;
-			}
+			var faceMetrics = fm.m_pFont.cellGetMetrics();
+            res.nat_scale = faceMetrics[0];
+            res.nat_y1 = faceMetrics[1];
+            res.nat_y2 = faceMetrics[2];
 		}
 
 		res.nat_y1 *= r2;
