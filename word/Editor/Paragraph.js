@@ -10121,12 +10121,12 @@ Paragraph.prototype.Document_UpdateInterfaceState = function()
 			if (null !== Change)
 			{
 				Change.put_InternalPos(_X, _Y, Page_abs);
-				TrackManager.Add_VisibleChange(Change);
+				TrackManager.AddVisibleChange(Change);
 			}
 		}
 		else if (false === this.Selection.Use)
 		{
-			var Changes = TrackManager.Get_ParagraphChanges(this.Get_Id());
+			var Changes = TrackManager.GetElementChanges(this.GetId());
 			if (Changes.length > 0)
 			{
 				for (var ChangeIndex = 0, ChangesCount = Changes.length; ChangeIndex < ChangesCount; ChangeIndex++)
@@ -10140,7 +10140,7 @@ Paragraph.prototype.Document_UpdateInterfaceState = function()
 						&& StartPos.Compare(Change.get_EndPos()) <= 0))
 					{
 						Change.put_InternalPos(_X, _Y, Page_abs);
-						TrackManager.Add_VisibleChange(Change);
+						TrackManager.AddVisibleChange(Change);
 					}
 				}
 			}
@@ -12352,40 +12352,40 @@ Paragraph.prototype.RejectRevisionChanges = function(Type, bAll)
         this.private_UpdateTrackRevisions();
     }
 };
-Paragraph.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+Paragraph.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-    if (true === SearchEngine.Is_Found())
+    if (true === SearchEngine.IsFound())
         return;
 
-    var Direction = SearchEngine.Get_Direction();
+    var Direction = SearchEngine.GetDirection();
     if (Direction > 0)
     {
         var DrawingObjects = this.GetAllDrawingObjects();
         for (var DrawingIndex = 0, Count = DrawingObjects.length; DrawingIndex < Count; DrawingIndex++)
         {
-            DrawingObjects[DrawingIndex].GetRevisionsChangeParagraph(SearchEngine);
-            if (true === SearchEngine.Is_Found())
+            DrawingObjects[DrawingIndex].GetRevisionsChangeElement(SearchEngine);
+            if (true === SearchEngine.IsFound())
                 return;
         }
     }
 
-    if (true !== SearchEngine.Is_CurrentFound())
+    if (true !== SearchEngine.IsCurrentFound())
     {
-        if (this === SearchEngine.GetCurrentParagraph())
-            SearchEngine.Set_CurrentFound(this);
+        if (this === SearchEngine.GetCurrentElement())
+            SearchEngine.SetCurrentFound();
     }
     else
     {
-        SearchEngine.Set_FoundedParagraph(this);
+        SearchEngine.SetFoundedElement(this);
     }
 
-    if (Direction < 0 && true !== SearchEngine.Is_Found())
+    if (Direction < 0 && true !== SearchEngine.IsFound())
     {
         var DrawingObjects = this.GetAllDrawingObjects();
         for (var DrawingIndex = DrawingObjects.length - 1; DrawingIndex >= 0; DrawingIndex--)
         {
-            DrawingObjects[DrawingIndex].GetRevisionsChangeParagraph(SearchEngine);
-            if (true === SearchEngine.Is_Found())
+            DrawingObjects[DrawingIndex].GetRevisionsChangeElement(SearchEngine);
+            if (true === SearchEngine.IsFound())
                 return;
         }
     }
@@ -12396,13 +12396,6 @@ Paragraph.prototype.IsSelectedAll = function()
     var bEnd   = this.Selection_CheckParaEnd();
 
     return ((true === bStart && true === bEnd) || true === this.ApplyToAll ? true : false);
-};
-Paragraph.prototype.Get_HdrFtr = function()
-{
-    if (this.Parent)
-        return this.Parent.IsHdrFtr(true);
-
-    return null;
 };
 Paragraph.prototype.GetContentPosition = function(bSelection, bStart, PosArray)
 {
@@ -12578,10 +12571,6 @@ Paragraph.prototype.Get_XYByContentPos = function(ContentPos)
 	var Result = this.Internal_Recalculate_CurPos(-1, false, false, true);
 	this.Set_ParaContentPos(ParaContentPos, true, this.CurPos.Line, this.CurPos.Range, false);
 	return Result;
-};
-Paragraph.prototype.Get_Lock = function()
-{
-    return this.Lock;
 };
 Paragraph.prototype.Get_ContentLength = function()
 {

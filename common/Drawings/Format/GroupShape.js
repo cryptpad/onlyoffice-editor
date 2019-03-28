@@ -1141,10 +1141,10 @@ function CGroupShape()
         return bRet;
     };
 
-    CGroupShape.prototype.GetRevisionsChangeParagraph = function(SearchEngine){
+    CGroupShape.prototype.GetRevisionsChangeElement = function(SearchEngine){
         var i;
         if(this.selectedObjects.length === 0){
-            if(SearchEngine.Get_Direction() > 0){
+            if(SearchEngine.GetDirection() > 0){
                 i = 0;
             }
             else{
@@ -1152,7 +1152,7 @@ function CGroupShape()
             }
         }
         else{
-            if(SearchEngine.Get_Direction() > 0){
+            if(SearchEngine.GetDirection() > 0){
                 for(i = 0; i < this.arrGraphicObjects.length; ++i){
                     if(this.arrGraphicObjects[i].selected){
                         break;
@@ -1173,11 +1173,11 @@ function CGroupShape()
                 }
             }
         }
-        while(!SearchEngine.Is_Found()){
-            if(this.arrGraphicObjects[i].GetRevisionsChangeParagraph){
-                this.arrGraphicObjects[i].GetRevisionsChangeParagraph(SearchEngine);
+        while(!SearchEngine.IsFound()){
+            if(this.arrGraphicObjects[i].GetRevisionsChangeElement){
+                this.arrGraphicObjects[i].GetRevisionsChangeElement(SearchEngine);
             }
-            if(SearchEngine.Get_Direction() > 0){
+            if(SearchEngine.GetDirection() > 0){
                 if(i === this.arrGraphicObjects.length - 1){
                     break;
                 }

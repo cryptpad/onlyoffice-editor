@@ -2222,7 +2222,7 @@
 		if (null === oHeader && true === isCreate)
 		{
 			var oLogicDocument = private_GetLogicDocument();
-			oHeader            = new CHeaderFooter(oLogicDocument.Get_HdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Header);
+			oHeader            = new CHeaderFooter(oLogicDocument.GetHdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Header);
 			if ("title" === sType)
 				this.Section.Set_Header_First(oHeader);
 			else if ("even" === sType)
@@ -2274,7 +2274,7 @@
 		if (null === oFooter && true === isCreate)
 		{
 			var oLogicDocument = private_GetLogicDocument();
-			oFooter            = new CHeaderFooter(oLogicDocument.Get_HdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Footer);
+			oFooter            = new CHeaderFooter(oLogicDocument.GetHdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Footer);
 			if ("title" === sType)
 				this.Section.Set_Footer_First(oFooter);
 			else if ("even" === sType)
