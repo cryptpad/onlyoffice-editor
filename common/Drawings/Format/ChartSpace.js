@@ -12834,7 +12834,7 @@ CChartSpace.prototype.recalculateChart = function()
 
 
 
-CChartSpace.prototype.GetRevisionsChangeParagraph = function(SearchEngine){
+CChartSpace.prototype.GetRevisionsChangeElement = function(SearchEngine){
     var titles = this.getAllTitles(), i;
     if(titles.length === 0){
         return;
@@ -12851,16 +12851,16 @@ CChartSpace.prototype.GetRevisionsChangeParagraph = function(SearchEngine){
         }
     }
     else{
-        if(SearchEngine.Get_Direction() > 0){
+        if(SearchEngine.GetDirection() > 0){
             i = 0;
         }
         else{
             i = titles.length - 1;
         }
     }
-    while(!SearchEngine.Is_Found()){
-        titles[i].GetRevisionsChangeParagraph(SearchEngine);
-        if(SearchEngine.Get_Direction() > 0){
+    while(!SearchEngine.IsFound()){
+        titles[i].GetRevisionsChangeElement(SearchEngine);
+        if(SearchEngine.GetDirection() > 0){
             if(i === titles.length - 1){
                 break;
             }

@@ -3562,6 +3562,39 @@ CTable.prototype.Document_UpdateInterfaceState = function()
 	if (true != this.Selection.Use || table_Selection_Cell != this.Selection.Type)
 	{
 		this.CurCell.Content.Document_UpdateInterfaceState();
+
+		if (this.LogicDocument && !this.bPresentation)
+		{
+			var oTrackManager = this.LogicDocument.GetTrackRevisionsManager();
+
+			var arrChanges = oTrackManager.GetElementChanges(this.GetId());
+			if (arrChanges.length > 0)
+			{
+				var nCurRow = this.CurCell.GetRow().GetIndex();
+				if (this.RowsInfo[nCurRow] && undefined !== this.RowsInfo[nCurRow].Y[this.RowsInfo[nCurRow].StartPage])
+				{
+					var nCurPage = this.RowsInfo[nCurRow].StartPage;
+					var nPageAbs = this.GetAbsolutePage(nCurPage);
+					var dY       = this.RowsInfo[nCurRow].Y[nCurPage];
+					var dX       = this.LogicDocument.Get_PageLimits(nPageAbs).XLimit;
+
+					for (var nChangeIndex = 0, nChangesCount = arrChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+					{
+						var oChange = arrChanges[nChangeIndex];
+						var nType   = oChange.get_Type();
+
+						if ((c_oAscRevisionsChangeType.RowsAdd !== nType
+							&& c_oAscRevisionsChangeType.RowsRem !== nType)
+							|| (nCurRow >= oChange.get_StartPos()
+							&& nCurRow <= oChange.get_EndPos()))
+						{
+							oChange.put_InternalPos(dX, dY, nPageAbs);
+							oTrackManager.AddVisibleChange(oChange);
+						}
+					}
+				}
+			}
+		}
 	}
 	else
 	{
@@ -7836,6 +7869,9 @@ CTable.prototype.GetDirectParaPr = function()
 };
 CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
+	if (!bIgnoreSelection && oPr && oPr.ReturnSelectedTable && this.IsCellSelection())
+		return this;
+
 	if (arrSelectedParagraphs)
 	{
 		var arrSelectionArray = this.GetSelectionArray();
@@ -12155,13 +12191,13 @@ CTable.prototype.RejectRevisionChanges = function(Type, bAll)
     else
         return this.CurCell.Content.RejectRevisionChanges(Type, bAll);
 };
-CTable.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+CTable.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-    if (true === SearchEngine.Is_Found())
+    if (true === SearchEngine.IsFound())
         return;
 
     var CurCell = 0, CurRow = 0;
-    if (true !== SearchEngine.Is_CurrentFound())
+    if (true !== SearchEngine.IsCurrentFound())
     {
         var Cells_array = this.Internal_Get_SelectionArray();
         if (Cells_array.length <= 0)
@@ -12172,7 +12208,7 @@ CTable.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
     }
     else
     {
-        if (SearchEngine.Get_Direction() > 0)
+        if (SearchEngine.GetDirection() > 0)
         {
             CurRow  = 0;
             CurCell = 0;
@@ -12189,10 +12225,10 @@ CTable.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
     while (null != Cell && vmerge_Restart != Cell.GetVMerge())
         Cell = this.private_GetPrevCell(CurRow, CurCell);
 
-    Cell.Content.GetRevisionsChangeParagraph(SearchEngine);
-    while (true !== SearchEngine.Is_Found())
+    Cell.Content.GetRevisionsChangeElement(SearchEngine);
+    while (true !== SearchEngine.IsFound())
     {
-        if (SearchEngine.Get_Direction() > 0)
+        if (SearchEngine.GetDirection() > 0)
         {
             Cell = this.private_GetNextCell(Cell.Row.Index, Cell.Index);
             while (null != Cell && vmerge_Restart != Cell.GetVMerge())
@@ -12208,7 +12244,7 @@ CTable.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
         if (null === Cell)
             break;
 
-        Cell.Content.GetRevisionsChangeParagraph(SearchEngine);
+        Cell.Content.GetRevisionsChangeElement(SearchEngine);
     }
 };
 CTable.prototype.private_GetNextCell = function(RowIndex, CellIndex)
@@ -14312,14 +14348,8 @@ CTable.prototype.CheckRevisionsChanges = function(oRevisionsManager)
 	{
 		var oChange = new CRevisionsChange();
 		oChange.put_Paragraph(this);
-		oChange.put_StartPos({
-			Row  : 0,
-			Cell : 0
-		});
-		oChange.put_EndPos({
-			Row  : nRowsCount - 1,
-			Cell : this.GetRow(nRowsCount - 1).GetCellsCount() - 1
-		});
+		oChange.put_StartPos(0);
+		oChange.put_EndPos(nRowsCount - 1);
 		oChange.put_Type(c_oAscRevisionsChangeType.TablePr);
 		oChange.put_UserId(this.Pr.ReviewInfo.GetUserId());
 		oChange.put_UserName(this.Pr.ReviewInfo.GetUserName());
@@ -14338,14 +14368,8 @@ CTable.prototype.CheckRevisionsChanges = function(oRevisionsManager)
 
 		var oChange = new CRevisionsChange();
 		oChange.put_Paragraph(this);
-		oChange.put_StartPos({
-			Row  : nStartRow,
-			Cell : 0
-		});
-		oChange.put_EndPos({
-			Row  : nEndRow,
-			Cell : oTable.GetRow(nEndRow).GetCellsCount() - 1
-		});
+		oChange.put_StartPos(nStartRow);
+		oChange.put_EndPos(nEndRow);
 		oChange.put_Type(nType === reviewtype_Add ? c_oAscRevisionsChangeType.RowsAdd : c_oAscRevisionsChangeType.RowsRem);
 		oChange.put_UserId(oRowReviewInfo.GetUserId());
 		oChange.put_UserName(oRowReviewInfo.GetUserName());
