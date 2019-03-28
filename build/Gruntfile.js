@@ -106,6 +106,10 @@ module.exports = function(grunt) {
 		configCell = configCell['sdk'];
 		configSlide = configSlide['sdk'];
 
+		// crete empty.js for polyfills
+		var emptyJs = 'empty.js';
+		grunt.file.write(emptyJs, '');
+
 		var optionsSdkMin ={
 			banner: '',
 			footer: 'window["split"]="split";'
@@ -191,9 +195,10 @@ module.exports = function(grunt) {
 				js: {
 					options: {
 						args: compilerArgs.concat(
-							'--rewrite_polyfills=false', '--jscomp_off=checkVars',
+							'--rewrite_polyfills=true', '--jscomp_off=checkVars',
 							'--warning_level=QUIET', '--compilation_level=' + level,
-							'--module=fontswasm:1:', '--js=' + fontsWasmTmp,
+							'--module=polyfill:1:', '--js=' + emptyJs,
+							'--module=fontswasm:1:polyfill', '--js=' + fontsWasmTmp,
 							'--module=fontsjs:1:fontswasm', '--js=' + fontsJsTmp,
 							'--module=word:1:fontswasm', '--js=' + sdkWordTmp,
 							'--module=cell:1:fontswasm', '--js=' + sdkCellTmp,
@@ -207,6 +212,7 @@ module.exports = function(grunt) {
 						force: true
 					},
 					src: [
+						emptyJs,
 						fontsWasmTmp,
 						fontsJsTmp,
 						sdkMinTmp,
@@ -227,6 +233,7 @@ module.exports = function(grunt) {
 		var word = '../word/';
 		var cell = '../cell/';
 		var slide = '../slide/';
+		var polyfill = 'polyfill.js';
 		var fontsWasm = 'fontswasm.js';
 		var fontsJs = 'fontsjs.js';
 		var fontFile = 'fonts.js';
@@ -251,11 +258,11 @@ module.exports = function(grunt) {
 		var concatSdkFiles = concatSdk['files'];
 		concatSdkFiles[fontsWasm] = [license, fontsWasm];
 		concatSdkFiles[fontsJs] = [license, fontsJs];
-		concatSdkFiles[path.join(word + sdkAllMin)] = [license, path.join(word + sdkAllMin)];
+		concatSdkFiles[path.join(word + sdkAllMin)] = [license, polyfill, path.join(word + sdkAllMin)];
 		concatSdkFiles[path.join(word + sdkAll)] = [license, path.join(word + sdkAll)];
-		concatSdkFiles[path.join(cell + sdkAllMin)] = [license, path.join(cell + sdkAllMin)];
+		concatSdkFiles[path.join(cell + sdkAllMin)] = [license, polyfill, path.join(cell + sdkAllMin)];
 		concatSdkFiles[path.join(cell + sdkAll)] = [license, path.join(cell + sdkAll)];
-		concatSdkFiles[path.join(slide + sdkAllMin)] = [license, path.join(slide + sdkAllMin)];
+		concatSdkFiles[path.join(slide + sdkAllMin)] = [license, polyfill, path.join(slide + sdkAllMin)];
 		concatSdkFiles[path.join(slide + sdkAll)] = [license, path.join(slide + sdkAll)];
 
 		grunt.initConfig({
@@ -308,6 +315,7 @@ module.exports = function(grunt) {
 						force: true
 					},
 					src: [
+						polyfill,
 						fontsWasm,
 						fontsJs,
 						wordJs,
