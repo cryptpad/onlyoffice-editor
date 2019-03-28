@@ -430,6 +430,7 @@
         this.viewPrintLines = false;
 
         this.cutRange = null;
+        this.arrRowGroups = null;
 
         this._init();
 
@@ -440,6 +441,7 @@
 		this._initWorksheetDefaultWidth();
 		this.model.initColumns();
 		this._initPane();
+		this._updateRowGroups();
 		this._initCellsArea(AscCommonExcel.recalcType.full);
 		this.model.setTableStyleAfterOpen();
 		this.model.setDirtyConditionalFormatting(null);
@@ -1394,7 +1396,6 @@
             this.headersWidth = Asc.round(this.model.modelColWidthToColWidth(nCharCount) * this.getZoom());
         }
         //todo приравниваю headersLeft и groupWidth. Необходимо пересмотреть!
-        this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
         this.headersLeft = this.groupWidth;
         this.cellsLeft = this.headersLeft + this.headersWidth;
         return old !== this.cellsLeft;
@@ -15571,9 +15572,19 @@
 	};
 
 	//GROUP DATA FUNCTIONS
+	WorksheetView.prototype._updateRowGroups = function(start, end) {
+		this.arrRowGroups = this.getGroupDataArray(start, end);
+		this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
+	};
+
 	WorksheetView.prototype.getGroupDataArray = function (start, end) {
 		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
+
+		if(start === undefined) {
+			start = 0;
+			end = gc_nMaxRow;
+		}
 
 		console.time("old");
 		var rowLevelMap = {};
@@ -15642,9 +15653,8 @@
 			}
 		};
 
-		for (var i = start; i <= end; ++i) {
-			this.model._getRow(i, fProcessRow);
-		}
+		this.model.getRange3(start, 0, end, 0)._foreachRowNoEmpty(fProcessRow);
+
 		while(up) {
 			start--;
 			if(start < 0) {
@@ -15652,9 +15662,11 @@
 			}
 			this.model._getRow(start, fProcessRow);
 		}
+
+		var maxRowsCount = this.model.getRowsCount();
 		while(down) {
 			end++;
-			if(end > gc_nMaxRow0) {
+			if(end > maxRowsCount || end > gc_nMaxRow0) {
 				break;
 			}
 			this.model._getRow(end, fProcessRow);
@@ -15662,177 +15674,7 @@
 
 		console.timeEnd("old");
 
-		return {groupArr: this._unionPreviousGroup2(res), rowLevelMap: rowLevelMap};
-	};
-
-	WorksheetView.prototype._unionPreviousGroup = function (groupArr) {
-		if(!groupArr || groupArr.length < 2) {
-			return groupArr;
-		}
-
-		for(var i = groupArr.length - 1; i > 1; i--) {
-			if(!groupArr[i - 1]) {
-				groupArr[i - 1] = groupArr[i];
-				continue;
-			}
-			for(var j = 0; j < groupArr[i].length; j++) {
-				for(var n = 0; n < groupArr[i - 1].length; n++) {
-					if(groupArr[i-1][n].end - 1 === groupArr[i][j].end || groupArr[i-1][n].start + 1 === groupArr[i][j].start) {
-						if(groupArr[i][j].start < groupArr[i-1][n].start) {
-							groupArr[i-1][n].start = groupArr[i][j].start;
-						}
-						if(groupArr[i][j].end > groupArr[i-1][n].end) {
-							groupArr[i-1][n].end = groupArr[i][j].end;
-						}
-					}
-				}
-			}
-		}
-
-		return groupArr;
-	};
-
-	WorksheetView.prototype._unionPreviousGroup2 = function (groupArr) {
-		if(!groupArr || groupArr.length < 2) {
-			return groupArr;
-		}
-
-		for(var i = groupArr.length - 1; i > 1; i--) {
-			for(var j = 0; j < groupArr[i].length; j++) {
-				for(var n = 0; n < groupArr[i - 1].length; n++) {
-					if(groupArr[i-1][n].end === groupArr[i][j].end) {
-						var test = 1;
-					}
-				}
-			}
-		}
-
-		return groupArr;
-	};
-
-	WorksheetView.prototype.getGroupDataArray2 = function (start, end) {
-		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
-		//возможно стоит добавить кэш для отрисовки
-
-		function sizeOf(obj) {
-			var bytes = 0;
-			if(obj !== null && obj !== undefined) {
-				switch(typeof obj) {
-					case 'number':
-						bytes += 8;
-						break;
-					case 'string':
-						bytes += obj.length * 2;
-						break;
-					case 'boolean':
-						bytes += 4;
-						break;
-					case 'object':
-						for(var key in obj) {
-							bytes += sizeOf(obj[key]);
-						}
-						break;
-				}
-			}
-			return bytes;
-		}
-
-		var res;
-
-		console.time("asd");
-		var groupLimits = this._getGroupLimits(start, end);
-		if(groupLimits) {
-			var test = sizeOf(groupLimits.arr);
-			console.log(test);
-			for(var i = groupLimits.start; i <= groupLimits.end; i++) {
-
-			}
-		}
-		console.timeEnd("asd");
-
-		return res;
-	};
-
-
-
-	WorksheetView.prototype._getGroupLimits = function (start, end) {
-		var res = null;
-		var rowLevelArr = [];
-		var outLineLevel;
-		var fProcessRow = function(row){
-			outLineLevel = row.getOutlineLevel();
-			/*if(outLineLevel) {
-				rowLevelArr[row.index] = outLineLevel;
-			}*/
-		};
-
-		//определяем кусок с группировкой
-		this.model._getRow(start, fProcessRow);
-		if(outLineLevel) {
-			while(true) {
-				start--;
-				if(start < 0) {
-					start = 0;
-					break;
-				}
-				if(start >= end) {
-					break;
-				}
-				this.model._getRow(start, fProcessRow);
-				if(!outLineLevel) {
-					start++;
-					break;
-				}
-			}
-		} else {
-			while(true) {
-				start++;
-				if(start >= end) {
-					break;
-				}
-
-				this.model._getRow(start, fProcessRow);
-				if(outLineLevel) {
-					break;
-				}
-			}
-		}
-
-		this.model._getRow(end, fProcessRow);
-		if(outLineLevel) {
-			while(true) {
-				end++;
-				if(end === gc_nMaxRow0) {
-					end = gc_nMaxRow0;
-					break;
-				}
-				this.model._getRow(end, fProcessRow);
-				if(!outLineLevel) {
-					end--;
-					break;
-				}
-			}
-		} else {
-			while(true) {
-				end--;
-				if(start >= end) {
-					break;
-				}
-				this.model._getRow(end, fProcessRow);
-				if(outLineLevel) {
-					break;
-				}
-			}
-		}
-
-		if(start >= end) {
-			this.model._getRow(start, fProcessRow);
-			if(!outLineLevel) {
-				return null;
-			}
-		}
-
-		return {start: start, end: end/*, arr: rowLevelArr*/};
+		return {groupArr: res, rowLevelMap: rowLevelMap};
 	};
 
 	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, width, height ) {
@@ -15860,10 +15702,11 @@
 		var y2 = this._getRowTop(range.r2 + 1) - offsetY;
 		ctx.setFillStyle(this.settings.cells.defaultState.border).fillRect(x1, y1, x2 - x1, y2 - y1);
 
-		var groupData = this.getGroupDataArray(range.r1, range.r2);
+		var groupData = this.arrRowGroups ? this.arrRowGroups : this.getGroupDataArray(range.r1, range.r2);
 		if(!groupData || !groupData.groupArr) {
 			return;
 		}
+		console.time("draw");
 		var arrayLines = groupData.groupArr;
 		var rowLevelMap = groupData.rowLevelMap;
 
@@ -15898,22 +15741,29 @@
 
 					var startPos = this._getRowTop(startY) + 3 - offsetY ;
 					var endPos = this._getRowTop(endY) - offsetY;
-					var heightNextRow = this._getRowHeight(endY + 1);
+					var heightNextRow = this._getRowHeight(endY);
 					var paddingTop = (heightNextRow - buttonSize) / 2;
 					if(paddingTop < 0) {
 						paddingTop = 0;
 					}
-					ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
+
+					var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+					if(!collasedEndRow) {
+						ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
+					}
 
 					// _
 					//|
-					if(startY === arrayLines[i][j].start) {
+					if(!collasedEndRow && startY === arrayLines[i][j].start) {
 						ctx.lineHorPrevPx(posX - 2, startPos, posX + 4);
 					}
 
 					//button
 					if(endY === arrayLines[i][j].end + 1) {
-						buttons.push({x: posX - 6, y: endPos + paddingTop, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY});
+						//TODO ms обрезает кнопки сверху/снизу
+						if(heightNextRow) {
+							buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
+						}
 					}
 				}
 				bFirstLine = false;
@@ -15922,6 +15772,10 @@
 
 		//TODO не рисовать точки на местах линий и кнопок
 		for(var l = minRow; l < maxRow; l++) {
+			if(!rowLevelMap[l]) {
+				continue;
+			}
+
 			var pointLevel = rowLevelMap[l].level;
 			var rowHeight = this._getRowHeight(l);
 			if(rowHeight === 0) {
@@ -15955,21 +15809,22 @@
 			var sizeLine = 8;
 			var paddingLine = 3;
 			for(m = 0; m < buttons.length; m++) {
-				if(rowLevelMap[buttons[m].row]) {
-					if(rowLevelMap[buttons[m].row].collapsed) {
-						ctx.lineHorPrevPx(buttons[m].x + paddingLine, buttons[m].y + buttons[m].h / 2 + 1, buttons[m].x + sizeLine + paddingLine);
-						ctx.lineVerPrevPx(buttons[m].x + paddingLine + sizeLine / 2 + 1, buttons[m].y + buttons[m].h / 2 + 1 - sizeLine / 2 - 1,  buttons[m].y + buttons[m].h / 2 + 1 + sizeLine / 2 - 1);
-					} else {
-						ctx.lineHorPrevPx(buttons[m].x + 3, buttons[m].y + buttons[m].h / 2 + 1, buttons[m].x + 8 + 3);
-					}
+				if(rowLevelMap[buttons[m].row] && rowLevelMap[buttons[m].row].collapsed) {
+					ctx.lineHorPrevPx(buttons[m].x + paddingLine, buttons[m].y + buttons[m].h / 2 + 1, buttons[m].x + sizeLine + paddingLine);
+					ctx.lineVerPrevPx(buttons[m].x + paddingLine + sizeLine / 2 + 1, buttons[m].y + buttons[m].h / 2 + 1 - sizeLine / 2 - 1,  buttons[m].y + buttons[m].h / 2 + 1 + sizeLine / 2 - 1);
+				} else {
+					ctx.lineHorPrevPx(buttons[m].x + 3, buttons[m].y + buttons[m].h / 2 + 1, buttons[m].x + 8 + 3);
 				}
 			}
 			ctx.stroke();
 			ctx.closePath();
 		}
+
+		console.timeEnd("draw");
 	};
 
 	WorksheetView.prototype.getGroupCommonLevel = function () {
+		console.time("getGroupCommonLevel");
 		var res = 0;
 		this.model.getRange3(0, 0, gc_nMaxRow0, 0)._foreachRowNoEmpty(function(row) {
 			var outLineLevel = row.getOutlineLevel();
@@ -15977,6 +15832,7 @@
 				res = outLineLevel;
 			}
 		});
+		console.timeEnd("getGroupCommonLevel");
 		return res;
 	};
 
