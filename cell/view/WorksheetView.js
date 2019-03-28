@@ -15575,14 +15575,13 @@
 		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
 
-		this.getGroupDataArray2(start, end);
-		this.getGroupDataArray3(start, end);
-
 		console.time("old");
+		var rowLevelMap = {};
 		var res = null;
 		var up = true, down = true;
 		var fProcessRow = function(row){
 			var outLineLevel = row.getOutlineLevel();
+			var collapsed = row.getCollapsed();
 
 			var continueRange = function(level, index) {
 				var tempNeedPush = true;
@@ -15602,6 +15601,7 @@
 				return tempNeedPush;
 			};
 
+			rowLevelMap[row.index] = {level: outLineLevel, collapsed: collapsed};
 			if(!outLineLevel) {
 				if(start === row.index) {
 					up = false;
@@ -15662,9 +15662,7 @@
 
 		console.timeEnd("old");
 
-		return this._unionPreviousGroup2(res);
-
-		return this._unionPreviousGroup(res);
+		return {groupArr: this._unionPreviousGroup2(res), rowLevelMap: rowLevelMap};
 	};
 
 	WorksheetView.prototype._unionPreviousGroup = function (groupArr) {
@@ -15837,77 +15835,6 @@
 		return {start: start, end: end/*, arr: rowLevelArr*/};
 	};
 
-	WorksheetView.prototype.getGroupDataArray3 = function (start, end) {
-		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
-		//возможно стоит добавить кэш для отрисовки
-
-
-		console.time("old1");
-
-		var getLevel = function(curLevel) {
-
-		};
-
-		var res = null;
-		var up = true, down = true;
-		var fProcessRow = function(row){
-			var outLineLevel = row.getOutlineLevel();
-
-			var continueRange = function(level, index) {
-				var tempNeedPush = true;
-
-				if(!res[level] || undefined === res[level][index]) {
-					return true;
-				}
-
-				if(row.index === res[level][index].start - 1) {
-					res[level][index].start--;
-					tempNeedPush = false;
-				} else if(row.index === res[level][index].end + 1) {
-					res[level][index].end++;
-					tempNeedPush = false;
-				}
-
-				return tempNeedPush;
-			};
-
-			if(!outLineLevel) {
-				if(start === row.index) {
-					up = false;
-				} else if(end === row.index) {
-					down = false;
-				}
-			} else {
-
-			}
-		};
-
-		for (var i = start; i <= end; ++i) {
-			this.model._getRow(i, fProcessRow);
-		}
-
-		while(up) {
-			start--;
-			if(start < 0) {
-				break;
-			}
-			this.model._getRow(start, fProcessRow);
-		}
-		while(down) {
-			end++;
-			if(end > gc_nMaxRow0) {
-				break;
-			}
-			this.model._getRow(end, fProcessRow);
-		}
-
-		console.timeEnd("old1");
-
-		return res;
-	};
-
-
-
 	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, width, height ) {
 		if ( range === undefined ) {
 			range = this.visibleRange;
@@ -15933,41 +15860,43 @@
 		var y2 = this._getRowTop(range.r2 + 1) - offsetY;
 		ctx.setFillStyle(this.settings.cells.defaultState.border).fillRect(x1, y1, x2 - x1, y2 - y1);
 
-		var arrayLines = this.getGroupDataArray(range.r1, range.r2);
-		if(!arrayLines) {
+		var groupData = this.getGroupDataArray(range.r1, range.r2);
+		if(!groupData || !groupData.groupArr) {
 			return;
 		}
+		var arrayLines = groupData.groupArr;
+		var rowLevelMap = groupData.rowLevelMap;
 
 		var lineWidth = 2;
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
-		var checkFirstLine = function(tempLevel) {
-			var res = true;
-			for(var l = 0; l < tempLevel; l++) {
-				if(arrayLines[l]) {
-					for(var s = 0; s < tempLevel; s++) {
-						if(arrayLines[l][s] && arrayLines[l][s].start) {
-							return false;
-						}
-					}
-				}
-			}
-			return res;
-		};
 
+		var minRow;
+		var maxRow;
 		var bFirstLine = true;
 		var buttonSize = 16;
 		var padding = 1;
 		var buttons = [];
+		var endPosArr = {};
 		for(var i = 0; i < arrayLines.length; i++) {
 			if(arrayLines[i]) {
 				var index = bFirstLine ? 1 : i;
 				var posX = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
 
 				for(var j = 0; j < arrayLines[i].length; j++) {
+
+					if(endPosArr[arrayLines[i][j].end]) {
+						continue;
+					}
+					endPosArr[arrayLines[i][j].end] = 1;
+
 					var startY = Math.max(arrayLines[i][j].start, range.r1);
 					var endY = Math.min(arrayLines[i][j].end + 1, range.r2);
-					var startPos = this._getRowTop(startY) - offsetY ;
+					minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
+					maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
+
+
+					var startPos = this._getRowTop(startY) + 3 - offsetY ;
 					var endPos = this._getRowTop(endY) - offsetY;
 					var heightNextRow = this._getRowHeight(endY + 1);
 					var paddingTop = (heightNextRow - buttonSize) / 2;
@@ -15984,29 +15913,56 @@
 
 					//button
 					if(endY === arrayLines[i][j].end + 1) {
-						buttons.push({x: posX - 6, y: endPos + paddingTop, w: buttonSize - lineWidth, h: buttonSize - lineWidth});
+						buttons.push({x: posX - 6, y: endPos + paddingTop, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY});
 					}
-
-					//points
-					for(var n = startY; n < endY; n++) {
-						ctx.lineHorPrevPx(7 + (i) * 16, this._getRowTop(n) - offsetY + this._getRowHeight(n) / 2, 7 + (i) * 16 + 2);
-					}
-
 				}
 				bFirstLine = false;
 			}
 		}
+
+		//TODO не рисовать точки на местах линий и кнопок
+		for(var l = minRow; l < maxRow; l++) {
+			var pointLevel = rowLevelMap[l].level;
+			var rowHeight = this._getRowHeight(l);
+			if(rowHeight === 0) {
+				continue;
+			}
+			ctx.lineHorPrevPx(7 + pointLevel * 16, this._getRowTop(l) - offsetY + rowHeight / 2, 7 + (pointLevel) * 16 + 2);
+		}
+
 		ctx.stroke();
 		ctx.closePath();
 
+
+
 		//buttons
+		//проходимся 2 раза, поскольку разная толщина у рамки и у -/+
+		var m;
 		if(buttons.length) {
 			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(1).beginPath();
-			for(var m = 0; m < buttons.length; m++) {
+			for(m = 0; m < buttons.length; m++) {
 				ctx.lineHorPrevPx(buttons[m].x, buttons[m].y, buttons[m].x + buttons[m].w);
 				ctx.lineVerPrevPx(buttons[m].x + buttons[m].w, buttons[m].y, buttons[m].y + buttons[m].h);
 				ctx.lineHorPrevPx(buttons[m].x + buttons[m].w, buttons[m].y + buttons[m].h, buttons[m].x);
 				ctx.lineVerPrevPx(buttons[m].x, buttons[m].y + buttons[m].h, buttons[m].y - 1);
+			}
+			ctx.stroke();
+			ctx.closePath();
+		}
+
+		if(buttons.length) {
+			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(2).beginPath();
+			var sizeLine = 8;
+			var paddingLine = 3;
+			for(m = 0; m < buttons.length; m++) {
+				if(rowLevelMap[buttons[m].row]) {
+					if(rowLevelMap[buttons[m].row].collapsed) {
+						ctx.lineHorPrevPx(buttons[m].x + paddingLine, buttons[m].y + buttons[m].h / 2 + 1, buttons[m].x + sizeLine + paddingLine);
+						ctx.lineVerPrevPx(buttons[m].x + paddingLine + sizeLine / 2 + 1, buttons[m].y + buttons[m].h / 2 + 1 - sizeLine / 2 - 1,  buttons[m].y + buttons[m].h / 2 + 1 + sizeLine / 2 - 1);
+					} else {
+						ctx.lineHorPrevPx(buttons[m].x + 3, buttons[m].y + buttons[m].h / 2 + 1, buttons[m].x + 8 + 3);
+					}
+				}
 			}
 			ctx.stroke();
 			ctx.closePath();
