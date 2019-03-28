@@ -85,7 +85,7 @@ module.exports = function(grunt) {
 
 	require('google-closure-compiler').grunt(grunt, {
 		platform: 'java',
-		extraArguments: ['ADVANCED' === level ? '-Xms2048m' : '-Xms1024m']
+		extraArguments: ['-Xms2048m']
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-clean');
