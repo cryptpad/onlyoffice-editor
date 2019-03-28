@@ -1019,7 +1019,6 @@ var editor;
   };
 
   spreadsheet_api.prototype.openDocument = function(sData) {
-    var t = this;
 	this._openDocument(sData);
 	this._onOpenCommandXlsx();
   };
