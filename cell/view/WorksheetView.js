@@ -16023,6 +16023,9 @@
 					t.model.onUpdateRanges(arrChangedRanges);
 					t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 				}
+				//тут требуется обновить только rowLevelMap
+				t._updateRowGroups();
+				
 				t.draw(lockDraw);
 
 				t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);

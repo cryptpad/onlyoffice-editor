@@ -4698,9 +4698,10 @@
 			stop = start;
 		History.Create_NewPoint();
 		var oThis = this, i;
-		var startIndex = null, endIndex = null, updateRange;
+		var startIndex = null, endIndex = null, updateRange, outlineLevel;
 
 		var fProcessRow = function(row){
+			outlineLevel = row ? row.getOutlineLevel() : null;
 			if(row && bHidden != row.getHidden())
 			{
 				row.setHidden(bHidden);
@@ -4728,6 +4729,14 @@
 		{
 			for (i = start; i <= stop; ++i) {
 				false == bHidden ? this._getRowNoEmpty(i, fProcessRow) : this._getRow(i, fProcessRow);
+			}
+
+			if(bHidden && outlineLevel) {
+				this._getRow(stop + 1, function(row) {
+					if(row && outlineLevel !== row.getOutlineLevel()) {
+						row.setCollapsed(true);
+					}
+				});
 			}
 
 			if(startIndex !== null)//заносим последние строки
