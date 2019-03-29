@@ -6205,7 +6205,7 @@ background-repeat: no-repeat;\
 			var isShowParaMarks = LogicDocument.Is_ShowParagraphMarks();
 
 			if (true === isTrackRevision)
-				LogicDocument.Set_TrackRevisions(false);
+				LogicDocument.SetTrackRevisions(false);
 
 			if (true === isShowParaMarks)
 				LogicDocument.Set_ShowParagraphMarks(false, false);
@@ -6213,7 +6213,7 @@ background-repeat: no-repeat;\
 			StylesPainter.GenerateStyles(this, (null == this.LoadedObject) ? this.WordControl.m_oLogicDocument.Get_Styles().Style : this.LoadedObjectDS);
 
 			if (true === isTrackRevision)
-				LogicDocument.Set_TrackRevisions(true);
+				LogicDocument.SetTrackRevisions(true);
 
 			if (true === isShowParaMarks)
 				LogicDocument.Set_ShowParagraphMarks(true, false);

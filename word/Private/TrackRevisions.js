@@ -45,7 +45,7 @@ Asc['asc_docs_api'].prototype.asc_SetTrackRevisions = function(bTrack)
 	if (!oLogicDocument)
 		return;
 
-	return oLogicDocument.Set_TrackRevisions(bTrack);
+	return oLogicDocument.SetTrackRevisions(bTrack);
 };
 Asc['asc_docs_api'].prototype.asc_IsTrackRevisions = function()
 {
@@ -97,11 +97,11 @@ Asc['asc_docs_api'].prototype.asc_HaveNewRevisionsChanges = function()
 };
 Asc['asc_docs_api'].prototype.asc_GetNextRevisionsChange = function()
 {
-    return this.WordControl.m_oLogicDocument.Get_NextRevisionChange();
+    return this.WordControl.m_oLogicDocument.GetNextRevisionChange();
 };
 Asc['asc_docs_api'].prototype.asc_GetPrevRevisionsChange = function()
 {
-    return this.WordControl.m_oLogicDocument.Get_PrevRevisionChange();
+    return this.WordControl.m_oLogicDocument.GetPrevRevisionChange();
 };
 Asc['asc_docs_api'].prototype.sync_UpdateRevisionsChangesPosition = function(X, Y)
 {
@@ -168,7 +168,7 @@ Asc['asc_docs_api'].prototype['asc_GetTrackRevisionsReportByAuthors'] = Asc['asc
 //----------------------------------------------------------------------------------------------------------------------
 // CDocument
 //----------------------------------------------------------------------------------------------------------------------
-CDocument.prototype.Set_TrackRevisions = function(bTrack)
+CDocument.prototype.SetTrackRevisions = function(bTrack)
 {
     this.TrackRevisions = bTrack;
 };
@@ -176,7 +176,7 @@ CDocument.prototype.ContinueTrackRevisions = function()
 {
     this.TrackRevisionsManager.ContinueTrackRevisions();
 };
-CDocument.prototype.Get_NextRevisionChange = function()
+CDocument.prototype.GetNextRevisionChange = function()
 {
 	this.TrackRevisionsManager.ContinueTrackRevisions();
 	var oChange = this.TrackRevisionsManager.GetNextChange();
@@ -188,10 +188,10 @@ CDocument.prototype.Get_NextRevisionChange = function()
 		this.Document_UpdateInterfaceState(true);
 	}
 };
-CDocument.prototype.Get_PrevRevisionChange = function()
+CDocument.prototype.GetPrevRevisionChange = function()
 {
 	this.TrackRevisionsManager.ContinueTrackRevisions();
-	var oChange = this.TrackRevisionsManager.Get_PrevChange();
+	var oChange = this.TrackRevisionsManager.GetPrevChange();
 	if (oChange)
 	{
 		this.RemoveSelection();
@@ -398,15 +398,23 @@ CDocument.prototype.private_SelectRevisionChange = function(oChange)
 	if (oChange && oChange.get_Paragraph())
 	{
 		this.RemoveSelection();
-		var oParagraph = oChange.get_Paragraph();
+		var oElement = oChange.get_Paragraph();
 
-		if (this.TrackRevisionsManager.CompleteTrackChangesForElements([oParagraph]))
+		if (this.TrackRevisionsManager.CompleteTrackChangesForElements([oElement]))
 			return;
 
-		oParagraph.Selection.Use = true;
-		oParagraph.Set_SelectionContentPos(oChange.get_StartPos(), oChange.get_EndPos());
-		oParagraph.Set_ParaContentPos(oChange.get_StartPos(), false, -1, -1);
-		oParagraph.Document_SetThisElementCurrent(false);
+		if (oElement instanceof Paragraph)
+		{
+			oElement.Selection.Use = true;
+			oElement.Set_SelectionContentPos(oChange.get_StartPos(), oChange.get_EndPos());
+			oElement.Set_ParaContentPos(oChange.get_StartPos(), false, -1, -1);
+			oElement.Document_SetThisElementCurrent(false);
+		}
+		else if (oElement instanceof CTable)
+		{
+			oElement.SelectRows(oChange.get_StartPos(), oChange.get_EndPos());
+			oElement.Document_SetThisElementCurrent(false);
+		}
 	}
 };
 CDocument.prototype.Accept_RevisionChange = function(oChange)
@@ -481,7 +489,7 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
     }
 
     this.TrackRevisionsManager.Clear_CurrentChange();
-    this.Get_NextRevisionChange();
+    this.GetNextRevisionChange();
 };
 CDocument.prototype.RejectRevisionChangesBySelection = function()
 {
@@ -505,7 +513,7 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
     }
 
 	this.TrackRevisionsManager.Clear_CurrentChange();
-    this.Get_NextRevisionChange();
+    this.GetNextRevisionChange();
 };
 CDocument.prototype.Accept_AllRevisionChanges = function(isSkipCheckLock)
 {

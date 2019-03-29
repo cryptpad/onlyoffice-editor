@@ -5702,7 +5702,7 @@
 		var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
 
 		if (MainLogicDocument && true === TrackRevisions)
-			MainLogicDocument.Set_TrackRevisions(false);
+			MainLogicDocument.SetTrackRevisions(false);
 
 		var oShape = new AscFormat.CShape();
 		oShape.setWordShape(true);
