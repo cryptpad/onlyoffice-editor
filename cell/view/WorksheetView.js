@@ -11402,6 +11402,8 @@
 				functionModelAction = function () {
 					AscCommonExcel.checkFilteringMode(function () {
 						t.model.setRowHidden(true, arn.r1, arn.r2);
+						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
+						t._updateRowGroups();
 						t.model.autoFilters.reDrawFilter(arn);
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
@@ -11707,6 +11709,8 @@
 					History.Create_NewPoint();
 					History.StartTransaction();
 					t.model.setGroupRow(val, arn.r1, arn.r2);
+					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
+					t._updateRowGroups();
 					History.EndTransaction();
 					/*oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
@@ -15920,7 +15924,7 @@
 									var y1 = endPos + heightNextRow/2 - buttonSize / 2;
 									var y2 = y1 + buttonSize - lineWidth;
 									if(x >= x1 && x <= x2 && y >= y1 && y <= y2) {
-										t._tryChangeGroup(arrayLines[i][j], collapsed);
+										t._tryChangeGroup(arrayLines[i][j], collapsed, i);
 									}
 								}
 
@@ -15943,7 +15947,7 @@
 		console.timeEnd("groupRowClick");
 	};
 
-	WorksheetView.prototype._tryChangeGroup = function (pos, collapsed) {
+	WorksheetView.prototype._tryChangeGroup = function (pos, collapsed, level) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock()) {
 			return;
@@ -15952,7 +15956,6 @@
 		//при закрытии группы всем внутренним строкам проставляется hidden
 		//при открытии группы проходимся по всем строкам и открываем только те, которые не закрыты внутренними группами
 		//а для тех что закрыты внутренними группами - ещё раз скрыаем их
-		var t = this;
 		var start = pos.start;
 		var end = pos.end;
 
@@ -15965,9 +15968,7 @@
 
 		var t = this;
 		var arn = this.model.selectionRange.getLast().clone();
-		var checkRange = arn.clone();
 
-		var range, count;
 		var oRecalcType = AscCommonExcel.recalcType.recalc;
 		var reinitRanges = false;
 		var updateDrawingObjectsInfo = null;
@@ -15976,94 +15977,99 @@
 		var isCheckChangeAutoFilter;
 		var functionModelAction = null;
 		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
-		var lockRange, arrChangedRanges = [];
-
-		if(!collapsed) {//скрываем
+		var arrChangedRanges = [];
 
 
-			/*var functionModelAction = function () {
-					AscCommonExcel.checkFilteringMode(function () {
-						t.model.setRowHidden(true, start, end);
-					});
-				};
-				this._isLockedAll(functionModelAction);*/
+		var onChangeWorksheetCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
 
+			asc_applyFunction(functionModelAction);
 
+			t._initCellsArea(oRecalcType);
+			if (oRecalcType) {
+				t.cache.reset();
+			}
+			t._cleanCellsTextMetricsCache();
+			t._prepareCellTextMetricsCache();
 
+			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
 
-			var onChangeWorksheetCallback = function (isSuccess) {
-				if (false === isSuccess) {
-					return;
+			t.cellCommentator.updateAreaComments();
+
+			if (t.objectRender) {
+				if (reinitRanges && t.objectRender.drawingArea) {
+					t.objectRender.drawingArea.reinitRanges();
 				}
-
-				asc_applyFunction(functionModelAction);
-
-				t._initCellsArea(oRecalcType);
-				if (oRecalcType) {
-					t.cache.reset();
+				if (null !== updateDrawingObjectsInfo) {
+					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
 				}
-				t._cleanCellsTextMetricsCache();
-				t._prepareCellTextMetricsCache();
-
-				arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
-
-				t.cellCommentator.updateAreaComments();
-
-				if (t.objectRender) {
-					if (reinitRanges && t.objectRender.drawingArea) {
-						t.objectRender.drawingArea.reinitRanges();
-					}
-					if (null !== updateDrawingObjectsInfo) {
-						t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
-					}
-					if (null !== updateDrawingObjectsInfo2) {
-						t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
-							updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
-					}
-					t.model.onUpdateRanges(arrChangedRanges);
-					t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+				if (null !== updateDrawingObjectsInfo2) {
+					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
+						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
 				}
-				//тут требуется обновить только rowLevelMap
-				t._updateRowGroups();
-				
-				t.draw(lockDraw);
+				t.model.onUpdateRanges(arrChangedRanges);
+				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+			}
+			//тут требуется обновить только rowLevelMap
+			t._updateRowGroups();
 
-				t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+			t.draw(lockDraw);
 
-				if (isUpdateCols) {
-					t._updateVisibleColsCount();
-				}
-				if (isUpdateRows) {
-					t._updateVisibleRowsCount();
-				}
+			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 
-				t.handlers.trigger("selectionChanged");
-				t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
-			};
+			if (isUpdateCols) {
+				t._updateVisibleColsCount();
+			}
+			if (isUpdateRows) {
+				t._updateVisibleRowsCount();
+			}
+
+			t.handlers.trigger("selectionChanged");
+			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+		};
 
 
-			functionModelAction = function () {
-				AscCommonExcel.checkFilteringMode(function () {
-					History.Create_NewPoint();
-					History.StartTransaction();
+		functionModelAction = function () {
+			AscCommonExcel.checkFilteringMode(function () {
+				History.Create_NewPoint();
+				History.StartTransaction();
 
+				if(!collapsed) {//скрываем
 					t.model.setRowHidden(true, start, end);
 					//t.model.autoFilters.reDrawFilter(arn);
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+				} else {
+					//открываем все строки, кроме внутренних групп
+					//внутренние группы скрываем, если среди них есть раскрытые
+					t.model.setRowHidden(false, start, end);
 
-					History.EndTransaction();
-				});
-			};
-			this._isLockedAll(onChangeWorksheetCallback);
+					var groupArr = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
+					var rowLevelMap = t.arrRowGroups ? t.arrRowGroups.rowLevelMap : null;
+					if(groupArr) {
+						for(var i = level + 1; i <= groupArr.length; i++) {
+							if(!groupArr[i]) {
+								continue;
+							}
+							for(var j = 0; j <= groupArr[i].length; j++) {
+								if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
+									if(rowLevelMap[groupArr[i][j].end + 1] && rowLevelMap[groupArr[i][j].end + 1].collapsed) {
+										t.model.setRowHidden(true, groupArr[i][j].start, groupArr[i][j].end);
+									}
+								}
+							}
+						}
+					}
+				}
 
+				oRecalcType = AscCommonExcel.recalcType.full;
+				reinitRanges = true;
+				updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
-
-
-		} else {
-
-		}
+				History.EndTransaction();
+			});
+		};
+		this._isLockedAll(onChangeWorksheetCallback);
 
 	};
 
