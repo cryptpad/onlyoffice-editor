@@ -229,7 +229,7 @@
         AscFonts.load(t, function()
         {
             t.isLoadFonts = true;
-            t.onEndLoadDocInfo();
+            t.onEndLoadFile(null);
         }, function() {
             t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
         });
@@ -1377,7 +1377,7 @@
 	};
 	baseEditorsApi.prototype.onEndLoadDocInfo = function()
 	{
-		if (this.isLoadFullApi && this.DocInfo && this.isLoadFonts)
+		if (this.isLoadFullApi && this.DocInfo)
 		{
 			if (this.DocInfo.get_OfflineApp())
 			{
@@ -1399,7 +1399,7 @@
 		{
 			this.openResult = result;
 		}
-		if (this.isLoadFullApi && this.DocInfo && this.openResult)
+		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
 		{
 			this.openDocument(this.openResult);
 			this.openResult = null;
