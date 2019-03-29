@@ -49,6 +49,9 @@
             if (AscFonts.CreateNativeStreamByIndex)
                 AscFonts.CreateNativeStreamByIndex(stream_index);
 
+            if (!AscFonts.g_fonts_streams[stream_index])
+                return null;
+
             return fontManager._engine.openFont(AscFonts.g_fonts_streams[stream_index], faceindex);
         };
 

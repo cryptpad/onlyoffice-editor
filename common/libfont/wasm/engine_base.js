@@ -104,7 +104,7 @@
     AscFonts.CreateNativeStreamByIndex = function(stream_index)
     {
         var _stream_pos = AscFonts.g_fonts_streams[stream_index];
-        if (true !== _stream_pos.asc_marker)
+        if (_stream_pos && true !== _stream_pos.asc_marker)
         {
             var _native_stream = AscFonts.CreateNativeStream(AscFonts.g_fonts_streams[stream_index]);
             AscFonts.g_fonts_streams[stream_index] = null;
