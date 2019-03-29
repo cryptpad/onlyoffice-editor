@@ -15852,6 +15852,24 @@
 			return;
 		}
 
+		console.time("groupRowClick");
+
+		var t = this;
+		var offsetX = /*(undefined !== leftFieldInPx) ? leftFieldInPx : */ this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+		var offsetY = /*(undefined !== topFieldInPx) ? topFieldInPx : */ this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+		/*if (!drawingCtx && this.topLeftFrozenCell) {
+			if (undefined === leftFieldInPx) {
+				var cFrozen = this.topLeftFrozenCell.getCol0();
+				offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
+			}
+			if (undefined === topFieldInPx) {
+				var rFrozen = this.topLeftFrozenCell.getRow0();
+				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
+			}
+		}*/
+
+		//TODO сделать общую функцию с _drawGroupData для получения данных кнопки
+
 		var bFirstRow = true;
 		var outLineLevel;
 		this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(function(row) {
@@ -15861,10 +15879,189 @@
 				return;
 			}
 			//проверяем предыдущую строку - если там есть outLineLevel, а в следующей outLineLevel c другим индексом, тогда в следующей может быть кнопка управления группой
-			if(outLineLevel && outLineLevel !== row.getOutlineLevel()) {
+			if(outLineLevel !== row.getOutlineLevel()) {
+
+
+				var arrayLines = t.arrRowGroups.groupArr;
+				var rowLevelMap = t.arrRowGroups.rowLevelMap;
+
+				var lineWidth = 2;
+				var bFirstLine = true;
+				var buttonSize = 16;
+				var padding = 1;
+				var buttons = [];
+				var endPosArr = {};
+				for(var i = 0; i < arrayLines.length; i++) {
+					if(arrayLines[i]) {
+						var index = bFirstLine ? 1 : i;
+						var posX = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
+
+						for(var j = 0; j < arrayLines[i].length; j++) {
+
+							if(endPosArr[arrayLines[i][j].end]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].end] = 1;
+
+							if(arrayLines[i][j].end + 1 === target.row) {
+								var endY = arrayLines[i][j].end + 1;
+								var endPos = t._getRowTop(endY) - offsetY;
+								var heightNextRow = t._getRowHeight(endY);
+
+								var paddingTop = (heightNextRow - buttonSize) / 2;
+								if(paddingTop < 0) {
+									paddingTop = 0;
+								}
+
+								var collapsed = rowLevelMap[endY] && rowLevelMap[endY].collapsed;
+								if(heightNextRow) {
+									var x1 = posX - 6;
+									var x2 = x1 + buttonSize - lineWidth;
+									var y1 = endPos + heightNextRow/2 - buttonSize / 2;
+									var y2 = y1 + buttonSize - lineWidth;
+									if(x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+										t._tryChangeGroup(arrayLines[i][j], collapsed);
+									}
+								}
+
+								/*if(endY === arrayLines[i][j].end + 1) {
+									//TODO ms обрезает кнопки сверху/снизу
+									if(heightNextRow) {
+										buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
+									}
+								}*/
+							}
+						}
+						bFirstLine = false;
+					}
+				}
+
 
 			}
 		});
+
+		console.timeEnd("groupRowClick");
+	};
+
+	WorksheetView.prototype._tryChangeGroup = function (pos, collapsed) {
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock()) {
+			return;
+		}
+
+		//при закрытии группы всем внутренним строкам проставляется hidden
+		//при открытии группы проходимся по всем строкам и открываем только те, которые не закрыты внутренними группами
+		//а для тех что закрыты внутренними группами - ещё раз скрыаем их
+		var t = this;
+		var start = pos.start;
+		var end = pos.end;
+
+
+
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock()) {
+			return;
+		}
+
+		var t = this;
+		var arn = this.model.selectionRange.getLast().clone();
+		var checkRange = arn.clone();
+
+		var range, count;
+		var oRecalcType = AscCommonExcel.recalcType.recalc;
+		var reinitRanges = false;
+		var updateDrawingObjectsInfo = null;
+		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
+		var isUpdateCols = false, isUpdateRows = false;
+		var isCheckChangeAutoFilter;
+		var functionModelAction = null;
+		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
+		var lockRange, arrChangedRanges = [];
+
+		if(!collapsed) {//скрываем
+
+
+			/*var functionModelAction = function () {
+					AscCommonExcel.checkFilteringMode(function () {
+						t.model.setRowHidden(true, start, end);
+					});
+				};
+				this._isLockedAll(functionModelAction);*/
+
+
+
+
+			var onChangeWorksheetCallback = function (isSuccess) {
+				if (false === isSuccess) {
+					return;
+				}
+
+				asc_applyFunction(functionModelAction);
+
+				t._initCellsArea(oRecalcType);
+				if (oRecalcType) {
+					t.cache.reset();
+				}
+				t._cleanCellsTextMetricsCache();
+				t._prepareCellTextMetricsCache();
+
+				arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
+
+				t.cellCommentator.updateAreaComments();
+
+				if (t.objectRender) {
+					if (reinitRanges && t.objectRender.drawingArea) {
+						t.objectRender.drawingArea.reinitRanges();
+					}
+					if (null !== updateDrawingObjectsInfo) {
+						t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
+					}
+					if (null !== updateDrawingObjectsInfo2) {
+						t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
+							updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
+					}
+					t.model.onUpdateRanges(arrChangedRanges);
+					t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+				}
+				t.draw(lockDraw);
+
+				t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+
+				if (isUpdateCols) {
+					t._updateVisibleColsCount();
+				}
+				if (isUpdateRows) {
+					t._updateVisibleRowsCount();
+				}
+
+				t.handlers.trigger("selectionChanged");
+				t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+			};
+
+
+			functionModelAction = function () {
+				AscCommonExcel.checkFilteringMode(function () {
+					History.Create_NewPoint();
+					History.StartTransaction();
+
+					t.model.setRowHidden(true, start, end);
+					//t.model.autoFilters.reDrawFilter(arn);
+					oRecalcType = AscCommonExcel.recalcType.full;
+					reinitRanges = true;
+					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+
+					History.EndTransaction();
+				});
+			};
+			this._isLockedAll(onChangeWorksheetCallback);
+
+
+
+
+		} else {
+
+		}
+
 	};
 
     //------------------------------------------------------------export---------------------------------------------------
