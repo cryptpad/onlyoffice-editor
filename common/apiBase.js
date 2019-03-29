@@ -52,6 +52,7 @@
 
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
+        this.isLoadFonts = false;
 		this.openResult    = null;
 
 		this.HtmlElementName = config['id-view'] || '';
@@ -224,6 +225,14 @@
 		}, function(err) {
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
 		});
+
+        AscFonts.load(t, function()
+        {
+            t.isLoadFonts = true;
+            t.onEndLoadFile(null);
+        }, function() {
+            t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
+        });
 
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
@@ -1390,7 +1399,7 @@
 		{
 			this.openResult = result;
 		}
-		if (this.isLoadFullApi && this.DocInfo && this.openResult)
+		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
 		{
 			this.openDocument(this.openResult);
 			this.openResult = null;

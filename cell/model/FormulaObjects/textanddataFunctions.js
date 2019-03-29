@@ -328,7 +328,7 @@ function (window, undefined) {
 				for (var j = 0; j < _arrVal.length; j++) {
 					var _arrElem = _arrVal[j].tocString();
 					if (cElementType.error === _arrElem.type) {
-						return arrVal[j];
+						return _arrVal[j];
 					} else {
 						arg0 = new cString(arg0.toString().concat(_arrElem));
 					}

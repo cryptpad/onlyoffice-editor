@@ -1451,10 +1451,7 @@ Slide.prototype =
         }
         catch (err)
         {
-            if (shape.brush != null && shape.brush.fill && shape.brush.fill.RasterImageId)
-                _ret.ImageUrl = getFullImageSrc2(shape.brush.fill.RasterImageId);
-            else
-                _ret.ImageUrl = "";
+            _ret.ImageUrl = "";
         }
         return _ret.ImageUrl;
     },

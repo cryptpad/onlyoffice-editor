@@ -478,7 +478,7 @@ CArrowDrawer.prototype.drawArrow = function ( type, mode, ctx, w, h ) {
             }
             else{
                 ctx.fillStyle = this.ColorBackNone;
-				ctx.fillRect( x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH );
+				ctx.fillRect( x + xDeltaBORDER >> 0, y + yDeltaBORDER >> 0, strokeW, strokeH );
                 ctx.beginPath();
                 ctx.drawImage( img, x + xDeltaIMG, y + yDeltaIMG, this.SizeW, this.SizeH );
                 if ( this.IsDrawBorders ) {
@@ -505,7 +505,7 @@ CArrowDrawer.prototype.drawArrow = function ( type, mode, ctx, w, h ) {
             }
             else{
                 ctx.fillStyle = this.ColorBackStable;
-				ctx.fillRect( x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH );
+				ctx.fillRect( x + xDeltaBORDER >> 0, y + yDeltaBORDER >> 0, strokeW, strokeH );
                 ctx.beginPath();
                 ctx.drawImage( img, x + xDeltaIMG, y + yDeltaIMG, this.SizeW, this.SizeH );
                 ctx.strokeStyle = this.ColorBackStable;
@@ -536,7 +536,7 @@ CArrowDrawer.prototype.drawArrow = function ( type, mode, ctx, w, h ) {
                 ctx.beginPath();
                 ctx.fillStyle = this.ColorBackOver;
 
-				ctx.fillRect( x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH );
+				ctx.fillRect( x + xDeltaBORDER >> 0, y + yDeltaBORDER >> 0, strokeW, strokeH );
                 ctx.drawImage( img, x + xDeltaIMG, y + yDeltaIMG, this.SizeW, this.SizeH );
                 if ( this.IsDrawBorders ) {
                     ctx.strokeStyle = this.ColorBorderOver;
@@ -551,7 +551,7 @@ CArrowDrawer.prototype.drawArrow = function ( type, mode, ctx, w, h ) {
         {
             ctx.beginPath();
             ctx.fillStyle = this.ColorBackActive;
-			ctx.fillRect( x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH );
+			ctx.fillRect( x + xDeltaBORDER >> 0, y + yDeltaBORDER >> 0, strokeW, strokeH );
 
             if ( !this.IsNeedInvertOnActive ) {
                 ctx.drawImage( img, x + xDeltaIMG, y + yDeltaIMG, this.SizeW, this.SizeH );

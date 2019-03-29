@@ -69,3 +69,12 @@ function MSPointerMove(){}
 function MSPointerUp(){}
 
 var editor;
+
+var WebAssembly;
+WebAssembly.instantiate;
+WebAssembly.instantiateStreaming;
+WebAssembly.Table;
+WebAssembly.Memory;
+function grow(){}
+
+var VBArray;

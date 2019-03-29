@@ -107,7 +107,7 @@
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
-				ret.addElement(found_operand);
+				ret.addElement(typeError(elem));
 			});
 			return ret;
 		}
@@ -648,7 +648,14 @@
 	cTYPE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]);
+			//todo пересмотреть!
+			//заглушка для формулы массива
+			//ms воспринимает данный аргумент как массив
+			if(this.bArrayFormula) {
+				arg0 = arg[0].getValue()
+			} else {
+				arg0 = arg0.cross(arguments[1]);
+			}
 		} else if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
 			arg0 = arg0.getValue();
 		}

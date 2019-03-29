@@ -5897,7 +5897,7 @@
 				rowIndexes = undefined;
 				if (countC) {
 					for (j = 0; j < item.x.length; ++j) {
-						if (AscCommonExcel.c_oAscItemType.Grand === item.t) {
+						if (Asc.c_oAscItemType.Grand === item.t) {
 							field = null;
 							oCellValue = new AscCommonExcel.CCellValue();
 							oCellValue.text = 'Grand Total';
@@ -5976,7 +5976,7 @@
 					item = items[i];
 					r = item.getR();
 					for (j = 0; j < item.x.length; ++j) {
-						if (AscCommonExcel.c_oAscItemType.Grand === item.t) {
+						if (Asc.c_oAscItemType.Grand === item.t) {
 							field = null;
 							oCellValue = new AscCommonExcel.CCellValue();
 							oCellValue.text = 'Grand Total';
@@ -6022,7 +6022,7 @@
 								cells = this.getRange4(r1 + i, rowFieldsPos[r] + 1 + j);
 								oCellValue = new AscCommonExcel.CCellValue();
 								oCellValue.number = pivotTable.getValue(cacheRecords, rowIndexes, dataFields[0].asc_getIndex(),
-																		(null !== item.t && c_oAscItemType.Grand !== item.t) ? item.t :
+																		(null !== item.t && Asc.c_oAscItemType.Grand !== item.t) ? item.t :
 																			dataFields[0].asc_getSubtotal());
 								oCellValue.type = AscCommon.CellValueType.Number;
 								cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
@@ -6173,7 +6173,7 @@
 					dxf = null;
 					item = items[j];
 					r = item.getR();
-					if (AscCommonExcel.c_oAscItemType.Grand === item.t || 0 === countCWValues) {
+					if (Asc.c_oAscItemType.Grand === item.t || 0 === countCWValues) {
 						// Grand Total Column
 						dxf = style.lastColumn;
 						grandColumn = 1;
@@ -6209,11 +6209,11 @@
 					dxf = null;
 					item = items[j];
 					if (null !== item.t) {
-						if (AscCommonExcel.c_oAscItemType.Grand === item.t) {
+						if (Asc.c_oAscItemType.Grand === item.t) {
 							// Grand Total Row
 							dxf = style.totalRow;
 							pos = 0;
-						} else if (AscCommonExcel.c_oAscItemType.Blank === item.t) {
+						} else if (Asc.c_oAscItemType.Blank === item.t) {
 							// Blank Row
 							dxf = style.blankRow;
 							pos = 0;
@@ -6292,7 +6292,7 @@
 				pos = pivotRange.r1 + 1 + firstHeaderRow0 - (countR ? 1 : 0);
 				for (j = 0; j < items.length; ++j) {
 					item = items[j];
-					if (null !== item.t && AscCommonExcel.c_oAscItemType.Grand !== item.t) {
+					if (null !== item.t && Asc.c_oAscItemType.Grand !== item.t) {
 						r = item.getR();
 						if (0 === r) {
 							dxf = style.firstColumnSubheading;

@@ -761,8 +761,8 @@ CPresentation.prototype =
     },
 
     removeSection: function(pos){
-        History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSection, pos, [pr], true));
-        this.Sections.splice(pos, 0, pr);
+        History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSection, pos, [], true));
+        this.Sections.splice(pos, 0);
     },
 
     Set_DefaultLanguage: function(NewLangId)
@@ -2975,7 +2975,7 @@ CPresentation.prototype =
                     aConnectors[i].calculateTransform(false);
                     var oGroup = aConnectors[i].getMainGroup();
                     if(oGroup){
-                        checkObjectInArray([], oGroup);
+                        AscFormat.checkObjectInArray([], oGroup);
                     }
                 }
                 if(aConnectors.length > 0)
@@ -4620,7 +4620,7 @@ CPresentation.prototype =
                         aConnectors[i].calculateTransform(false);
                         var oGroup = aConnectors[i].getMainGroup();
                         if(oGroup){
-                            checkObjectInArray([], oGroup);
+                            AscFormat.checkObjectInArray([], oGroup);
                         }
                     }
                     if(aConnectors.length > 0)
@@ -4669,7 +4669,7 @@ CPresentation.prototype =
                             aConnectors[i].calculateTransform(false);
                             var oGroup = aConnectors[i].getMainGroup();
                             if(oGroup){
-                                checkObjectInArray([], oGroup);
+                                AscFormat.checkObjectInArray([], oGroup);
                             }
                         }
                         if(aConnectors.length > 0)

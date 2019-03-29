@@ -1139,7 +1139,7 @@
 	 */
 	Api.prototype.CreateBlockLvlSdt = function()
 	{
-		return new ApiBlockLvlSdt(new CBlockLvlSdt());
+		return new ApiBlockLvlSdt(new CBlockLevelSdt());
 	};
 
 	/**
@@ -4869,13 +4869,13 @@
 	 */
 	ApiInlineLvlSdt.prototype.SetLock = function(sLockType)
 	{
-		var nLock = sdtlock_Unlocked;
+		var nLock = c_oAscSdtLockType.Unlocked;
 		if ("contentLocked" === sLockType)
-			nLock = sdtlock_ContentLocked;
+			nLock = c_oAscSdtLockType.ContentLocked;
 		else if ("sdtContentLocked" === sLockType)
-			nLock = sdtlock_SdtContentLocked;
+			nLock = c_oAscSdtLockType.SdtContentLocked;
 		else if ("sdtLocked" === sLockType)
-			nLock = sdtlock_SdtLocked;
+			nLock = c_oAscSdtLockType.SdtLocked;
 
 		this.Sdt.SetContentControlLock(nLock);
 	};
@@ -4889,11 +4889,11 @@
 
 		var sResult = "unlocked";
 
-		if (sdtlock_ContentLocked === nLock)
+		if (c_oAscSdtLockType.ContentLocked === nLock)
 			sResult = "contentLocked";
-		else if (sdtlock_SdtContentLocked === nLock)
+		else if (c_oAscSdtLockType.SdtContentLocked === nLock)
 			sResult = "sdtContentLocked";
-		else if (sdtlock_SdtLocked === nLock)
+		else if (c_oAscSdtLockType.SdtLocked === nLock)
 			sResult = "sdtLocked";
 
 		return sResult;
@@ -5033,13 +5033,13 @@
 	 */
 	ApiBlockLvlSdt.prototype.SetLock = function(sLockType)
 	{
-		var nLock = sdtlock_Unlocked;
+		var nLock = c_oAscSdtLockType.Unlocked;
 		if ("contentLocked" === sLockType)
-			nLock = sdtlock_ContentLocked;
+			nLock = c_oAscSdtLockType.ContentLocked;
 		else if ("sdtContentLocked" === sLockType)
-			nLock = sdtlock_SdtContentLocked;
+			nLock = c_oAscSdtLockType.SdtContentLocked;
 		else if ("sdtLocked" === sLockType)
-			nLock = sdtlock_SdtLocked;
+			nLock = c_oAscSdtLockType.SdtLocked;
 
 		this.Sdt.SetContentControlLock(nLock);
 	};
@@ -5053,11 +5053,11 @@
 
 		var sResult = "unlocked";
 
-		if (sdtlock_ContentLocked === nLock)
+		if (c_oAscSdtLockType.ContentLocked === nLock)
 			sResult = "contentLocked";
-		else if (sdtlock_SdtContentLocked === nLock)
+		else if (c_oAscSdtLockType.SdtContentLocked === nLock)
 			sResult = "sdtContentLocked";
-		else if (sdtlock_SdtLocked === nLock)
+		else if (c_oAscSdtLockType.SdtLocked === nLock)
 			sResult = "sdtLocked";
 
 		return sResult;
