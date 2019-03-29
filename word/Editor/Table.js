@@ -12244,7 +12244,11 @@ CTable.prototype.GetRevisionsChangeElement = function(oSearchEngine)
 	if (!oSearchEngine.IsCurrentFound())
 	{
 		if (this === oSearchEngine.GetCurrentElement())
+		{
 			oSearchEngine.SetCurrentFound();
+			if (oSearchEngine.GetDirection() < 0)
+				return;
+		}
 	}
 	else if (oSearchEngine.GetDirection() > 0)
 	{
@@ -14435,7 +14439,7 @@ CTable.prototype.CheckRevisionsChanges = function(oRevisionsManager)
 		var oRowReviewInfo = oRow.GetReviewInfo();
 
 		var oChange = new CRevisionsChange();
-		oChange.put_Paragraph(this);
+		oChange.put_Paragraph(oTable);
 		oChange.put_StartPos(nStartRow);
 		oChange.put_EndPos(nEndRow);
 		oChange.put_Type(nType === reviewtype_Add ? c_oAscRevisionsChangeType.RowsAdd : c_oAscRevisionsChangeType.RowsRem);

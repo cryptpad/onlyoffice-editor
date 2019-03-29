@@ -18521,9 +18521,23 @@ CTrackRevisionsManager.prototype.GetNextChange = function()
 						}
 					}
 				}
-				else if (oNextElement instanceof CTable)
+				else if (oNextElement instanceof CTable && oNextElement.IsCellSelection())
 				{
-					// TODO: Сделать для таблиц
+					var arrSelectedCells = oNextElement.GetSelectionArray();
+					if (arrSelectedCells.length > 0)
+					{
+						var nTableRow = arrSelectedCells[0].Row;
+						for (var nChangeIndex = 0, nCount = arrNextChangesArray.length; nChangeIndex < nCount; ++nChangeIndex)
+						{
+							var nStartRow = arrNextChangesArray[nChangeIndex].get_StartPos();
+							if (nTableRow <= nStartRow)
+							{
+								this.CurChange  = arrNextChangesArray[nChangeIndex];
+								this.CurElement = oNextElement;
+								return this.CurChange;
+							}
+						}
+					}
 				}
 
 				oNextElement = this.LogicDocument.GetRevisionsChangeElement(1, oNextElement);
@@ -18555,78 +18569,99 @@ CTrackRevisionsManager.prototype.GetNextChange = function()
 };
 CTrackRevisionsManager.prototype.GetPrevChange = function()
 {
-    var OldCurChange = this.CurChange;
-    var OldCurPara   = this.CurElement;
+	var oInitialCurChange  = this.CurChange;
+	var oInitialCurElement = this.CurElement;
 
-    var PrevPara = null;
-    if (null !== this.CurChange && null !== this.CurElement)
-    {
-        var ChangesArray = this.Changes[this.CurElement.GetId()];
-        var ChangeIndex = -1;
-        for (var Index = 0, Count = ChangesArray.length; Index < Count; Index++)
-        {
-            if (this.CurChange === ChangesArray[Index])
-            {
-                ChangeIndex = Index;
-                break;
-            }
-        }
+	var oPrevElement = null;
+	if (null !== this.CurChange && null !== this.CurElement)
+	{
+		var arrChangesArray = this.Changes[this.CurElement.GetId()];
+		var nChangeIndex    = -1;
+		for (var nIndex = 0, nCount = arrChangesArray.length; nIndex < nCount; ++nIndex)
+		{
+			if (this.CurChange === arrChangesArray[nIndex])
+			{
+				nChangeIndex = nIndex;
+				break;
+			}
+		}
 
-        if (-1 !== ChangeIndex && ChangeIndex > 0)
-        {
-            this.CurChange = ChangesArray[ChangeIndex - 1];
-            return this.CurChange;
-        }
+		if (-1 !== nChangeIndex && nChangeIndex > 0)
+		{
+			this.CurChange = arrChangesArray[nChangeIndex - 1];
+			return this.CurChange;
+		}
 
-        PrevPara = this.LogicDocument.GetRevisionsChangeElement(-1, this.CurElement);
-    }
-    else
-    {
-        var SearchEngine = this.LogicDocument.private_GetRevisionsChangeElement(-1, null);
-        PrevPara = SearchEngine.GetFoundedElement();
-        if (null !== PrevPara && PrevPara === SearchEngine.GetCurrentElement())
-        {
-            var PrevChangesArray = this.Changes[PrevPara.Get_Id()];
-            if (undefined !== PrevChangesArray && PrevChangesArray.length > 0)
-            {
-                var ParaContentPos = PrevPara.Get_ParaContentPos(PrevPara.IsSelectionUse(), true);
-                for (var ChangeIndex = PrevChangesArray.length - 1; ChangeIndex >= 0; ChangeIndex--)
-                {
-                    var ChangeStartPos = PrevChangesArray[ChangeIndex].get_StartPos();
-                    if (ParaContentPos.Compare(ChangeStartPos) >= 0)
-                    {
-                        this.CurChange  = PrevChangesArray[ChangeIndex];
-                        this.CurElement = PrevPara;
-                        return this.CurChange;
-                    }
-                }
+		oPrevElement = this.LogicDocument.GetRevisionsChangeElement(-1, this.CurElement);
+	}
+	else
+	{
+		var SearchEngine = this.LogicDocument.private_GetRevisionsChangeElement(-1, null);
+		oPrevElement     = SearchEngine.GetFoundedElement();
+		if (null !== oPrevElement && oPrevElement === SearchEngine.GetCurrentElement())
+		{
+			var arrPrevChangesArray = this.Changes[oPrevElement.GetId()];
+			if (undefined !== arrPrevChangesArray && arrPrevChangesArray.length > 0)
+			{
+				if (oPrevElement instanceof Paragraph)
+				{
+					var ParaContentPos = oPrevElement.Get_ParaContentPos(oPrevElement.IsSelectionUse(), true);
+					for (var ChangeIndex = arrPrevChangesArray.length - 1; ChangeIndex >= 0; ChangeIndex--)
+					{
+						var ChangeStartPos = arrPrevChangesArray[ChangeIndex].get_StartPos();
+						if (ParaContentPos.Compare(ChangeStartPos) >= 0)
+						{
+							this.CurChange  = arrPrevChangesArray[ChangeIndex];
+							this.CurElement = oPrevElement;
+							return this.CurChange;
+						}
+					}
+				}
+				else if (oPrevElement instanceof CTable && oPrevElement.IsCellSelection())
+				{
+					var arrSelectedCells = oPrevElement.GetSelectionArray();
+					if (arrSelectedCells.length > 0)
+					{
+						var nTableRow = arrSelectedCells[0].Row;
+						for (var nChangeIndex = arrPrevChangesArray.length - 1; nChangeIndex >= 0; --nChangeIndex)
+						{
+							var nStartRow = arrPrevChangesArray[nChangeIndex].get_StartPos();
+							if (nTableRow >= nStartRow)
+							{
+								this.CurChange  = arrPrevChangesArray[nChangeIndex];
+								this.CurElement = oPrevElement;
+								return this.CurChange;
+							}
+						}
+					}
+				}
 
-                PrevPara = this.LogicDocument.GetRevisionsChangeElement(-1, PrevPara);
-            }
-        }
-    }
+				oPrevElement = this.LogicDocument.GetRevisionsChangeElement(-1, oPrevElement);
+			}
+		}
+	}
 
-    if (null !== PrevPara)
-    {
-        var PrevChangesArray = this.Changes[PrevPara.Get_Id()];
-        if (undefined !== PrevChangesArray && PrevChangesArray.length > 0)
-        {
-            this.CurChange  = PrevChangesArray[PrevChangesArray.length - 1];
-            this.CurElement = PrevPara;
-            return this.CurChange;
-        }
-    }
+	if (null !== oPrevElement)
+	{
+		var arrPrevChangesArray = this.Changes[oPrevElement.GetId()];
+		if (undefined !== arrPrevChangesArray && arrPrevChangesArray.length > 0)
+		{
+			this.CurChange  = arrPrevChangesArray[arrPrevChangesArray.length - 1];
+			this.CurElement = oPrevElement;
+			return this.CurChange;
+		}
+	}
 
-    if (null !== OldCurChange && null !== OldCurPara)
-    {
-        this.CurChange  = OldCurChange;
-        this.CurElement = OldCurPara;
-        return OldCurChange;
-    }
+	if (null !== oInitialCurChange && null !== oInitialCurElement)
+	{
+		this.CurChange  = oInitialCurChange;
+		this.CurElement = oInitialCurElement;
+		return oInitialCurChange;
+	}
 
-    this.CurChange  = null;
-    this.CurElement = null;
-    return null;
+	this.CurChange  = null;
+	this.CurElement = null;
+	return null;
 };
 CTrackRevisionsManager.prototype.Have_Changes = function()
 {
