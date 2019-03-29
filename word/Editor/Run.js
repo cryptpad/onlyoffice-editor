@@ -1193,7 +1193,10 @@ ParaRun.prototype.GetLogicDocument = function()
 	if (this.Paragraph && this.Paragraph.LogicDocument)
 		return this.Paragraph.LogicDocument;
 
-	return editor.WordControl.m_oLogicDocument;
+	if (editor && editor.WordControl)
+		return editor.WordControl.m_oLogicDocument;
+
+	return null;
 };
 
 // Добавляем элемент в позицию с сохранием в историю
