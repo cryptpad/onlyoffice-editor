@@ -6922,7 +6922,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 	// нужно.
 	var isTrack = this.IsTrackRevisions() && !bUseHistory;
 	if (isTrack)
-		this.Set_TrackRevisions(false);
+		this.SetTrackRevisions(false);
 
 	var bNeedTurnOffTableId = g_oTableId.m_bTurnOff === false && true !== bUseHistory;
 	if (!bUseHistory)
@@ -6946,7 +6946,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 	}
 
 	if (isTrack)
-		this.Set_TrackRevisions(true);
+		this.SetTrackRevisions(true);
 
 	return SelectedContent;
 };
@@ -12886,7 +12886,7 @@ CDocument.prototype.Statistics_Stop = function()
 //----------------------------------------------------------------------------------------------------------------------
 CDocument.prototype.EndPreview_MailMergeResult = function(){};
 CDocument.prototype.ContinueTrackRevisions = function(){};
-CDocument.prototype.Set_TrackRevisions = function(bTrack){};
+CDocument.prototype.SetTrackRevisions = function(bTrack){};
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с составным вводом
 //----------------------------------------------------------------------------------------------------------------------
@@ -18553,7 +18553,7 @@ CTrackRevisionsManager.prototype.GetNextChange = function()
 	this.CurElement = null;
 	return null;
 };
-CTrackRevisionsManager.prototype.Get_PrevChange = function()
+CTrackRevisionsManager.prototype.GetPrevChange = function()
 {
     var OldCurChange = this.CurChange;
     var OldCurPara   = this.CurElement;

@@ -3856,6 +3856,51 @@ CTable.prototype.CanMergeTableCells = function()
 
 	return this.Internal_CheckMerge().bCanMerge;
 };
+/**
+ * Выставляем селект по заданным строкам таблицы
+ * @param nStartRow {number}
+ * @param nEndRow {number}
+ */
+CTable.prototype.SelectRows = function(nStartRow, nEndRow)
+{
+	var nRowsCount = this.GetRowsCount();
+	if (nRowsCount <= 0)
+		return;
+
+	nStartRow = Math.max(0, Math.min(nStartRow, nRowsCount - 1));
+	nEndRow   = Math.max(0, Math.min(nEndRow, nRowsCount - 1), nStartRow);
+
+	var arrSelectionData = [];
+
+	for (var nCurRow = nStartRow; nCurRow <= nEndRow; ++nCurRow)
+	{
+		for (var nCurCell = 0, nCellsCount = this.GetRow(nCurRow).GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			arrSelectionData.push({
+				Cell : nCurCell,
+				Row  : nCurRow
+			});
+		}
+	}
+
+
+	this.Selection.Use   = true;
+	this.Selection.Start = false;
+	this.Selection.Type  = table_Selection_Cell;
+	this.Selection.Data  = arrSelectionData;
+	this.Selection.Type2 = table_Selection_Common;
+	this.Selection.Data2 = null;
+
+	this.Selection.StartPos.Pos = {
+		Row  : arrSelectionData[0].Row,
+		Cell : arrSelectionData[0].Cell
+	};
+
+	this.Selection.EndPos.Pos = {
+		Row  : arrSelectionData[arrSelectionData.length - 1].Row,
+		Cell : arrSelectionData[arrSelectionData.length - 1].Cell
+	};
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Undo/Redo функции
 //----------------------------------------------------------------------------------------------------------------------
@@ -12191,61 +12236,84 @@ CTable.prototype.RejectRevisionChanges = function(Type, bAll)
     else
         return this.CurCell.Content.RejectRevisionChanges(Type, bAll);
 };
-CTable.prototype.GetRevisionsChangeElement = function(SearchEngine)
+CTable.prototype.GetRevisionsChangeElement = function(oSearchEngine)
 {
-    if (true === SearchEngine.IsFound())
-        return;
+	if (true === oSearchEngine.IsFound())
+		return;
 
-    var CurCell = 0, CurRow = 0;
-    if (true !== SearchEngine.IsCurrentFound())
-    {
-        var Cells_array = this.Internal_Get_SelectionArray();
-        if (Cells_array.length <= 0)
-            return;
+	if (!oSearchEngine.IsCurrentFound())
+	{
+		if (this === oSearchEngine.GetCurrentElement())
+			oSearchEngine.SetCurrentFound();
+	}
+	else if (oSearchEngine.GetDirection() > 0)
+	{
+		oSearchEngine.SetFoundedElement(this);
+		if (true === oSearchEngine.IsFound())
+			return;
+	}
 
-        CurRow  = Cells_array[0].Row;
-        CurCell = Cells_array[0].Cell;
-    }
-    else
-    {
-        if (SearchEngine.GetDirection() > 0)
-        {
-            CurRow  = 0;
-            CurCell = 0;
-        }
-        else
-        {
-            CurRow  = this.Get_RowsCount() - 1;
-            CurCell = this.Get_Row(CurRow).Get_CellsCount() - 1;
-        }
-    }
+	var nCurCell = 0, nCurRow = 0;
+	if (!oSearchEngine.IsCurrentFound())
+	{
+		var arrSelectedCells = this.GetSelectionArray();
+		if (arrSelectedCells.length <= 0)
+			return;
 
-    var Cell = this.Get_Row(CurRow).Get_Cell(CurCell);
+		nCurRow  = arrSelectedCells[0].Row;
+		nCurCell = arrSelectedCells[0].Cell;
+	}
+	else
+	{
+		if (oSearchEngine.GetDirection() > 0)
+		{
+			nCurRow  = 0;
+			nCurCell = 0;
+		}
+		else
+		{
+			nCurRow  = this.GetRowsCount() - 1;
+			nCurCell = this.GetRow(nCurRow).GetCellsCount() - 1;
+		}
+	}
 
-    while (null != Cell && vmerge_Restart != Cell.GetVMerge())
-        Cell = this.private_GetPrevCell(CurRow, CurCell);
+	var oCell = this.GetRow(nCurRow).GetCell(nCurCell);
 
-    Cell.Content.GetRevisionsChangeElement(SearchEngine);
-    while (true !== SearchEngine.IsFound())
-    {
-        if (SearchEngine.GetDirection() > 0)
-        {
-            Cell = this.private_GetNextCell(Cell.Row.Index, Cell.Index);
-            while (null != Cell && vmerge_Restart != Cell.GetVMerge())
-                Cell = this.private_GetNextCell(Cell.Row.Index, Cell.Index);
-        }
-        else
-        {
-            Cell = this.private_GetPrevCell(Cell.Row.Index, Cell.Index);
-            while (null != Cell && vmerge_Restart != Cell.GetVMerge())
-                Cell = this.private_GetPrevCell(Cell.Row.Index, Cell.Index);
-        }
+	while (oCell && vmerge_Restart !== oCell.GetVMerge())
+	{
+		oCell = this.private_GetPrevCell(nCurRow, nCurCell);
+	}
 
-        if (null === Cell)
-            break;
+	oCell.GetContent().GetRevisionsChangeElement(oSearchEngine);
+	while (!oSearchEngine.IsFound())
+	{
+		if (oSearchEngine.GetDirection() > 0)
+		{
+			oCell = this.private_GetNextCell(oCell.GetRow().GetIndex(), oCell.GetIndex());
+			while (oCell && vmerge_Restart !== oCell.GetVMerge())
+			{
+				oCell = this.private_GetNextCell(oCell.GetRow().GetIndex(), oCell.GetIndex());
+			}
+		}
+		else
+		{
+			oCell = this.private_GetPrevCell(oCell.GetRow().GetIndex(), oCell.GetIndex());
+			while (oCell && vmerge_Restart !== oCell.GetVMerge())
+			{
+				oCell = this.private_GetPrevCell(oCell.GetRow().GetIndex(), oCell.GetIndex());
+			}
+		}
 
-        Cell.Content.GetRevisionsChangeElement(SearchEngine);
-    }
+		if (!oCell)
+			break;
+
+		oCell.GetContent().GetRevisionsChangeElement(oSearchEngine);
+	}
+
+	if (!oSearchEngine.IsFound() && oSearchEngine.GetDirection() < 0)
+	{
+		oSearchEngine.SetFoundedElement(this);
+	}
 };
 CTable.prototype.private_GetNextCell = function(RowIndex, CellIndex)
 {

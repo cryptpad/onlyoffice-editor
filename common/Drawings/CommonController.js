@@ -9097,7 +9097,7 @@ DrawingObjectsController.prototype =
         var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
 
         if (MainLogicDocument && true === TrackRevisions)
-            MainLogicDocument.Set_TrackRevisions(false);
+            MainLogicDocument.SetTrackRevisions(false);
 
         var oShape = new AscFormat.CShape();
         oShape.setWordShape(bWord === true);
@@ -9282,7 +9282,7 @@ DrawingObjectsController.prototype =
         }
 
         if (MainLogicDocument && true === TrackRevisions)
-            MainLogicDocument.Set_TrackRevisions(true);
+            MainLogicDocument.SetTrackRevisions(true);
 
         return oShape;
     },
