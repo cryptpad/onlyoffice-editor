@@ -94,7 +94,7 @@
 
 			"../common/wordcopypaste.js",
 
-			"../common/easysax.js",
+			"../vendor/easysax.js",
 			"../common/openxml.js",
 
 			"../common/intervalTree.js",
