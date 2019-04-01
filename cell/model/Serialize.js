@@ -386,9 +386,7 @@
         MediaItem: 1,
         MediaId: 2,
         MediaSrc: 3,
-        Theme: 5,
-        DocId: 6,
-        UserId: 7
+        Theme: 5
     };
     /** @enum */
     var c_oSer_CalcChainType =
@@ -4547,37 +4545,23 @@
             }
         }
     }
-    /** @constructor */
-    function BinaryOtherTableWriter(memory, wb, isCopyPaste)
-    {
-        this.memory = memory;
-        this.wb = wb;
-        this.isCopyPaste = isCopyPaste;
-        this.bs = new BinaryCommonWriter(this.memory);
-        this.Write = function()
-        {
-            var oThis = this;
-            this.bs.WriteItemWithLength(function(){oThis.WriteOtherContent();});
-        };
-        this.WriteOtherContent = function()
-        {
-            var oThis = this;
-            if(!this.isCopyPaste)
-            {
-                this.bs.WriteItem(c_oSer_OtherType.Theme, function(){pptx_content_writer.WriteTheme(oThis.memory, oThis.wb.theme);});
-            }
-            var docId = this.wb.oApi && this.wb.oApi.DocInfo ? this.wb.oApi.DocInfo.Id : null;
-            if (null !== docId)
-            {
-                this.bs.WriteItem(c_oSer_OtherType.DocId, function(){oThis.memory.WriteString3(docId);});
-            }
-			var userId = this.wb.oApi && this.wb.oApi.CoAuthoringApi ? this.wb.oApi.CoAuthoringApi.getUserConnectionId() : null;
-			if (null !== userId)
-			{
-				this.bs.WriteItem(c_oSer_OtherType.UserId, function(){oThis.memory.WriteString3(userId);});
-			}
-        };
-    }
+	/** @constructor */
+	function BinaryOtherTableWriter(memory, wb)
+	{
+		this.memory = memory;
+		this.wb = wb;
+		this.bs = new BinaryCommonWriter(this.memory);
+		this.Write = function()
+		{
+			var oThis = this;
+			this.bs.WriteItemWithLength(function(){oThis.WriteOtherContent();});
+		};
+		this.WriteOtherContent = function()
+		{
+			var oThis = this;
+			this.bs.WriteItem(c_oSer_OtherType.Theme, function(){pptx_content_writer.WriteTheme(oThis.memory, oThis.wb.theme);});
+		};
+	}
     /** @constructor */
     function BinaryFileWriter(wb, isCopyPaste)
     {
@@ -4654,8 +4638,8 @@
             this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste));
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
-            //OtherTable
-            this.WriteTable(c_oSerTableTypes.Other, new BinaryOtherTableWriter(this.Memory, this.wb, this.isCopyPaste));
+			if(!this.isCopyPaste)
+				this.WriteTable(c_oSerTableTypes.Other, new BinaryOtherTableWriter(this.Memory, this.wb));
             //Write SharedStrings
 			this.WriteReserved(new BinarySharedStringsTableWriter(this.Memory, this.wb, oSharedStrings, oBinaryStylesTableWriter), nSharedStringsPos);
             //Write Styles
@@ -8374,12 +8358,11 @@
         };
     }
     /** @constructor */
-    function Binary_OtherTableReader(stream, oMedia, wb, copyPasteObj)
+    function Binary_OtherTableReader(stream, oMedia, wb)
     {
         this.stream = stream;
         this.oMedia = oMedia;
         this.wb = wb;
-        this.copyPasteObj = copyPasteObj;
         this.bcr = new Binary_CommonReader(this.stream);
         this.Read = function()
         {
@@ -8412,22 +8395,6 @@
                 this.wb.theme = pptx_content_loader.ReadTheme(this, this.stream);
                 res = c_oSerConstants.ReadUnknown;
             }
-            else if ( c_oSer_OtherType.DocId === type )
-            {
-                var docId = this.stream.GetString2LE(length);
-                if(this.copyPasteObj)
-                {
-                    this.copyPasteObj.docId = docId;
-                }
-            }
-			else if ( c_oSer_OtherType.UserId === type )
-			{
-				var userId = this.stream.GetString2LE(length);
-				if(this.copyPasteObj)
-				{
-					this.copyPasteObj.userId = userId;
-				}
-			}
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -8785,7 +8752,7 @@
             {
                 res = this.stream.Seek(nOtherTableOffset);
                 if(c_oSerConstants.ReadOk == res)
-                    res = (new Binary_OtherTableReader(this.stream, oMediaArray, wb, this.copyPasteObj)).Read();
+                    res = (new Binary_OtherTableReader(this.stream, oMediaArray, wb)).Read();
             }
             if(null != nSharedStringTableOffset)
             {

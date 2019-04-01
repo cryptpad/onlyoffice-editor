@@ -492,10 +492,20 @@
 							new Asc.Range(selectionRange.c1, selectionRange.r1, maxRowCol.col, maxRowCol.row);
 					}
 
-					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(worksheet.model.workbook, selectionRange);
+					var wb = worksheet.model.workbook;
+					var oldCreater = wb.Core.creator;
+					var oldIdentifier = wb.Core.identifier;
+					wb.Core.creator = wb.oApi && wb.oApi.CoAuthoringApi ? wb.oApi.CoAuthoringApi.getUserConnectionId() : null;
+					wb.Core.identifier = wb.oApi && wb.oApi.DocInfo ? wb.oApi.DocInfo.Id : null;
+
+					//WRITE
+					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(wb, selectionRange);
 					sBase64 = "xslData;" + oBinaryFileWriter.Write();
 					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 					pptx_content_writer.End_UseFullUrl();
+
+					wb.Core.creator = oldCreater;
+					wb.Core.identifier = oldIdentifier;
 				}
 
 				return sBase64;
@@ -1108,7 +1118,7 @@
 				var tempWorkbook = new AscCommonExcel.Workbook();
 				var aPastedImages = this._readExcelBinary(base64, tempWorkbook);
 
-				if (this._checkCutBefore(worksheet)) {
+				if (this._checkCutBefore(worksheet, tempWorkbook)) {
 					return;
 				}
 
@@ -1193,8 +1203,6 @@
 					pptx_content_loader.Reader.ClearConnectorsMaps();
 					oBinaryFileReader.Read(base64, tempWorkbook);
 					t.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
-					t.docId = oBinaryFileReader.copyPasteObj.docId;
-					t.userId = oBinaryFileReader.copyPasteObj.userId;
 					aPastedImages = pptx_content_loader.End_UseFullUrl();
 					pptx_content_loader.Reader.AssignConnectorsId();
 				}, this, []);
@@ -1202,7 +1210,7 @@
 				return aPastedImages;
 			},
 
-			_checkCutBefore: function(ws) {
+			_checkCutBefore: function(ws, pastedWb) {
 				var res = false;
 
 				//***MOVE***
@@ -1214,7 +1222,7 @@
 				//чтобы не передавать изменения на сервер, даже в случае одного пользователя в разных вкладках
 				//вырезать и вставить будут работать независимо, поэтому при вставке сравнивем ещё и id юзера
 
-				if(this.docId === curDocId && this.userId === curUserId && null !== window["Asc"]["editor"].wb.cutIdSheet) {
+				if(pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId && null !== window["Asc"]["editor"].wb.cutIdSheet) {
 					var wsFrom = window["Asc"]["editor"].wb.getWorksheetById(window["Asc"]["editor"].wb.cutIdSheet);
 					var fromRange = wsFrom ? wsFrom.cutRange : null;
 					if(fromRange) {
