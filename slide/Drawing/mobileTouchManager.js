@@ -959,6 +959,9 @@
 		if (this.Api.isViewMode || isPreventDefault)
 			AscCommon.g_inputContext.preventVirtualKeyboard(e);
 
+        if (AscCommon.AscBrowser.isSailfish && AscCommon.AscBrowser.isEmulateDevicePixelRatio && isPreventDefault)
+            AscCommon.stopEvent(e);
+
 		if (true !== this.iScroll.isAnimating)
 			this.CheckContextMenuTouchEnd(isCheckContextMenuMode, isCheckContextMenuSelect, isCheckContextMenuCursor, isCheckContextMenuTableRuler);
 
