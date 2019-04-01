@@ -146,6 +146,10 @@
 		this.keyPressInput = "";
         this.isInputHelpersPresent = false;
         this.isInputHelpers = {};
+
+        this.isKeyPressOnUp = AscCommon.AscBrowser.isAppleDevices; // keyPress может приходить ДО oncompositionstart, а это проблема.
+		this.keyPressOnUpCodes = [];
+		this.isKeyPressOnUpStackedMode = false;
 	}
 
 	CTextInput.prototype =
@@ -645,6 +649,24 @@
 
 				this.debugCalculatePlace(undefined, undefined);
 				return;
+			}
+
+			if (this.isKeyPressOnUp && this.keyPressOnUpCodes.length > 0)
+			{
+				// clear light
+                if (!this.TextArea_Not_ContentEditableDiv)
+                {
+                    this.HtmlArea.innerHTML = "";
+                }
+                else
+                {
+                    this.HtmlArea.value = "";
+                }
+                this.TextBeforeComposition = "";
+                this.Text = "";
+
+                AscCommon.stopEvent(e);
+                return false;
 			}
 
 			this.log("ti: onInput");
@@ -1162,11 +1184,46 @@
 				return false;
 			}
 
+			if (this.isKeyPressOnUp)
+			{
+				var isSaveCode = true;
+                switch (e.which)
+                {
+                    case 46: // delete
+                    {
+                        isSaveCode = false;
+                        break;
+                    }
+                    default:
+                        break;
+                }
+
+                if (isSaveCode)
+                {
+                	if (this.isKeyPressOnUpStackedMode)
+                	{
+                        this.keyPressOnUpCodes.push({
+                            which: e.which,
+                            charCode: e.charCode,
+                            keyCode: e.keyCode,
+                            shiftKey: e.shiftKey,
+                            ctrlKey: e.ctrlKey,
+                            metaKey: e.metaKey,
+                            altKey: e.altKey,
+
+                            preventDefault: function () {
+                            }
+                        });
+                    }
+                    return;
+                }
+			}
+
 			var ret = this.Api.onKeyPress(e);
 
 			switch (e.which)
 			{
-				case 46:
+				case 46: // delete
 				{
 					AscCommon.stopEvent(e);
 					this.clear();
@@ -1196,9 +1253,19 @@
 			if (this.isSystem && this.isShow)
 				return;
 
-			this.KeyDownFlag = false;
-			this.KeyPressFlag = false;
+			if (this.isKeyPressOnUp && this.keyPressOnUpCodes.length > 0)
+			{
+                this.isKeyPressOnUp = false;
+				for (var i = 0; i < this.keyPressOnUpCodes.length; i++)
+				{
+                    this.onKeyPress(this.keyPressOnUpCodes[i]);
+                }
+                this.isKeyPressOnUp = true;
+                this.keyPressOnUpCodes = [];
+			}
 
+            this.KeyDownFlag = false;
+            this.KeyPressFlag = false;
 			AscCommon.global_keyboardEvent.Up();
 		},
 
@@ -1337,6 +1404,7 @@
 				return;
 
 			this.IsComposition = true;
+            this.keyPressOnUpCodes = [];
 		},
 
 		onCompositionUpdate : function(e)
@@ -1345,6 +1413,7 @@
 				return;
 
 			this.IsComposition = true;
+            this.keyPressOnUpCodes = [];
 			this.onInput(e, true);
 		},
 

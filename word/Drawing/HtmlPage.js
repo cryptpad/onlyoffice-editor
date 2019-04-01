@@ -3643,7 +3643,7 @@ function CEditorPage(api)
 	this.AnimationFrame = function()
 	{
 		var now = Date.now();
-		if (-1 == oThis.RequestAnimationOldTime || (now >= (oThis.RequestAnimationOldTime + 40)))
+		if (-1 == oThis.RequestAnimationOldTime || (now >= (oThis.RequestAnimationOldTime + 40)) || (now < oThis.RequestAnimationOldTime))
 		{
 			oThis.RequestAnimationOldTime = now;
 			oThis.onTimerScroll2(true);
