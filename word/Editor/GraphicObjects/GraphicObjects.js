@@ -684,6 +684,7 @@ CGraphicObjects.prototype =
     },
 
     applyDrawingProps: DrawingObjectsController.prototype.applyDrawingProps,
+    sendCropState: DrawingObjectsController.prototype.sendCropState,
 
     CheckAutoFit : function()
     {

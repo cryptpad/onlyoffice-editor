@@ -1125,6 +1125,15 @@ DrawingObjectsController.prototype =
         return null;
     },
 
+    sendCropState: function(){
+        var oApi = this.getEditorApi();
+        if(!oApi){
+            return;
+        }
+        var isCrop = AscCommon.isRealObject(this.selection.cropSelection);
+        oApi.sendEvent("asc_ChangeCropState", isCrop);
+    },
+
     canStartImageCrop: function()
     {
         return (this.getObjectForCrop() !== null);
@@ -1144,6 +1153,7 @@ DrawingObjectsController.prototype =
             if(cropObject.createCropObject())
             {
                 this.selection.cropSelection = cropObject;
+                this.sendCropState();
                 this.updateOverlay();
             }
         },[], false);
@@ -1155,6 +1165,7 @@ DrawingObjectsController.prototype =
         {
             this.selection.cropSelection.clearCropObject();
             this.selection.cropSelection = null;
+            this.sendCropState();
             this.updateOverlay();
             if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
             {
@@ -1204,6 +1215,7 @@ DrawingObjectsController.prototype =
                 }
                 cropObject.setSrcRect(srcRect);
                 this.selection.cropSelection = cropObject;
+                this.sendCropState();
                 if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
                 {
                     this.drawingObjects.showDrawingObjects();
@@ -1252,6 +1264,7 @@ DrawingObjectsController.prototype =
                 }
                 cropObject.setSrcRect(srcRect);
                 this.selection.cropSelection = cropObject;
+                this.sendCropState();
                 if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
                 {
                     this.drawingObjects.showDrawingObjects();
@@ -1273,6 +1286,7 @@ DrawingObjectsController.prototype =
             if(cropObject.createCropObject())
             {
                 this.selection.cropSelection = cropObject;
+                this.sendCropState();
                 var newW, newH;
                 if(dAspect*cropObject.extX <= cropObject.extY)
                 {
@@ -7914,6 +7928,7 @@ DrawingObjectsController.prototype =
         {
             this.selectObject(selection_state.cropObject, selection_state.selectStartPage);
             this.selection.cropSelection = selection_state.cropObject;
+            this.sendCropState();
             if(this.selection.cropSelection){
                 this.selection.cropSelection.cropObject = selection_state.cropImage;
             }
@@ -8111,6 +8126,7 @@ DrawingObjectsController.prototype =
                 {
                     this.selectObject(oDrawingSelectionState.cropObject, bDocument ? (oDrawingSelectionState.cropObject.parent ? oDrawingSelectionState.cropObject.parent.PageNum : nPageIndex) : nPageIndex);
                     this.selection.cropSelection = oDrawingSelectionState.cropObject;
+                    this.sendCropState();
                     if(this.selection.cropSelection){
                         this.selection.cropSelection.cropObject = oDrawingSelectionState.cropImage;
                     }
