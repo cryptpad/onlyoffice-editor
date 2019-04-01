@@ -1693,7 +1693,12 @@
 		if (!AscCommon.g_clipboardBase)
 			return null;
 
-		var _elem = document.createElement("div");
+		var _elem = document.getElementById("pmpastehtml");
+		if (_elem)
+			return;
+
+		_elem = document.createElement("div");
+		_elem.id = "pmpastehtml";
 
 		if (this.editorId == c_oEditorId.Word || this.editorId == c_oEditorId.Presentation)
 		{
