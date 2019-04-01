@@ -3175,13 +3175,29 @@
 				if(pasteData.images && pasteData.images.length)
 					this.isUsuallyPutImages = true;
 				
-				if(!documentContent || (documentContent && !documentContent.length))
+				if(!documentContent || (documentContent && !documentContent.length)) {
+					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 					return;
+				}
 				
 				var documentContentBounds = new DocumentContentBounds();
 				var coverDocument = documentContentBounds.getBounds(0,0, documentContent);
 				this._parseChildren(coverDocument);
-				
+
+				//не вставляем графику в редактор диаграмм
+				//если кроме графики есть ещё данные, то убираем только графику
+				if(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) {
+					if(this.aResult.props && this.aResult.props.addImagesFromWord && this.aResult.props.addImagesFromWord.length === 1 && this.aResult.content) {
+						if(1 === this.aResult.content.length && 1 === this.aResult.content[0].length && this.aResult.content[0][0].content && this.aResult.content[0][0].content.length === 0) {
+							window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+							return;
+						} else {
+							this.aResult.props.addImagesFromWord = [];
+							this.clipboard.alreadyLoadImagesOnServer = true;
+						}
+					}
+				}
+
 				var newFonts = this.fontsNew;
 				if(pasteData.fonts && pasteData.fonts.length)
 				{
