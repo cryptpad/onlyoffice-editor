@@ -941,6 +941,7 @@
             t.model.autoFilters.reDrawFilter(null, row);
             t._cleanCache(new asc_Range(0, row, t.cols.length - 1, row));
             t.changeWorksheet("update", {reinitRanges: true});
+            t._updateRowGroups();
             t._updateVisibleRowsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
@@ -15751,6 +15752,18 @@
 						paddingTop = 0;
 					}
 
+					//button
+					if(endY === arrayLines[i][j].end + 1) {
+						//TODO ms обрезает кнопки сверху/снизу
+						if(heightNextRow) {
+							buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
+						}
+					}
+
+					if(startPos >= endPos) {
+						continue;
+					}
+
 					var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
 					if(!collasedEndRow) {
 						ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
@@ -15760,14 +15773,6 @@
 					//|
 					if(!collasedEndRow && startY === arrayLines[i][j].start) {
 						ctx.lineHorPrevPx(posX - 2, startPos, posX + 4);
-					}
-
-					//button
-					if(endY === arrayLines[i][j].end + 1) {
-						//TODO ms обрезает кнопки сверху/снизу
-						if(heightNextRow) {
-							buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
-						}
 					}
 				}
 				bFirstLine = false;

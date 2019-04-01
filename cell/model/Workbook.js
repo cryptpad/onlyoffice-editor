@@ -4657,9 +4657,15 @@
 			History.SetSelection(oSelection);
 			History.SetSelectionRedo(oSelection);
 		}
+		var prevRow;
 		var fProcessRow = function(row){
 			if(row)
 			{
+				if(row.getCollapsed()) {
+					oThis.setCollapsed(false, null, row);
+				}
+				prevRow = row;
+
 				var oOldProps = row.getHeightProp();
 				row.setHeight(height);
 				if (isCustom) {
@@ -4680,6 +4686,14 @@
 		else
 		{
 			this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
+
+			if(prevRow) {
+				this._getRow(stop + 1, function(row) {
+					if(row.getCollapsed()) {
+						oThis.setCollapsed(false, null, row);
+					}
+				});
+			}
 		}
 		this.workbook.dependencyFormulas.calcTree();
 	};
@@ -4701,7 +4715,11 @@
 		var startIndex = null, endIndex = null, updateRange, outlineLevel;
 
 		var fProcessRow = function(row){
+			if(outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
+				oThis.setCollapsed(bHidden, null, row);
+			}
 			outlineLevel = row ? row.getOutlineLevel() : null;
+
 			if(row && bHidden != row.getHidden())
 			{
 				row.setHidden(bHidden);
