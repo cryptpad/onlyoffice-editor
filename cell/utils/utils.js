@@ -2433,6 +2433,7 @@
 		window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 		window['AscCommonExcel'].g_ActiveCell = null; // Active Cell for calculate (in R1C1 mode for relative cell)
 		window['AscCommonExcel'].g_R1C1Mode = false; // No calculate in R1C1 mode
+		window['AscCommonExcel'].kCurCells = "se-cells";
 		window["AscCommonExcel"].c_oAscShiftType = c_oAscShiftType;
 		window["AscCommonExcel"].recalcType = recalcType;
 		window["AscCommonExcel"].sizePxinPt = sizePxinPt;
