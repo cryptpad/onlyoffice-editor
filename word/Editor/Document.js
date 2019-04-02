@@ -16678,9 +16678,9 @@ CDocument.prototype.BeginViewModeInReview = function(isResult)
 
 	this.History.SaveRedoPoints();
 	if (isResult)
-		this.Accept_AllRevisionChanges(true);
+		this.AcceptAllRevisionChanges(true);
 	else
-		this.Reject_AllRevisionChanges(true);
+		this.RejectAllRevisionChanges(true);
 
 	this.CollaborativeEditing.Set_GlobalLock(true);
 };

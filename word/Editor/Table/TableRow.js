@@ -1069,6 +1069,18 @@ CTableRow.prototype.private_AddPrChange = function()
 		oTable.AddPrChange();
 	}
 };
+CTableRow.prototype.AcceptPrChange = function()
+{
+	this.RemovePrChange();
+};
+CTableRow.prototype.RejectPrChange = function()
+{
+	if (this.HavePrChange())
+	{
+		this.Set_Pr(this.Pr.PrChange);
+		this.RemovePrChange();
+	}
+};
 
 
 
