@@ -15687,6 +15687,8 @@
 			range = this.visibleRange;
 		}
 
+		this._drawGroupDataMenu(drawingCtx);
+
 		var ctx = drawingCtx || this.drawingCtx;
 		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
 		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
@@ -15701,11 +15703,15 @@
 			}
 		}
 
+		var st = this.settings.header.style[kHeaderDefault];
 		var x1 = 0;
 		var y1 = this._getRowTop(range.r1) - offsetY;
 		var x2 = this.groupWidth;
 		var y2 = this._getRowTop(range.r2 + 1) - offsetY;
-		ctx.setFillStyle(this.settings.cells.defaultState.border).fillRect(x1, y1, x2 - x1, y2 - y1);
+		ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
+		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+		ctx.lineVerPrevPx(x2, y1, y2);
+		ctx.stroke();
 
 		var groupData = this.arrRowGroups ? this.arrRowGroups : this.getGroupDataArray(range.r1, range.r2);
 		if(!groupData || !groupData.groupArr) {
@@ -15756,7 +15762,7 @@
 					if(endY === arrayLines[i][j].end + 1) {
 						//TODO ms обрезает кнопки сверху/снизу
 						if(heightNextRow) {
-							buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
+							buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - 1, h: buttonSize - 1, row: endY, rowTop: endPos, rowHeight: heightNextRow});
 						}
 					}
 
@@ -15830,6 +15836,60 @@
 		}
 
 		console.timeEnd("draw");
+	};
+
+	WorksheetView.prototype._drawGroupDataMenu = function ( drawingCtx ) {
+		var ctx = drawingCtx || this.drawingCtx;
+
+		var groupData = this.arrRowGroups ? this.arrRowGroups : null;
+		if(!groupData || !groupData.groupArr) {
+			return;
+		}
+
+		var st = this.settings.header.style[kHeaderDefault];
+
+		var x1 = 0;
+		var y1 = 0;
+		var x2 = this.groupWidth;
+		var y2 = this.headersHeight;
+		ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
+
+		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+		ctx.lineHorPrevPx(x1, y2, x2);
+		ctx.lineVerPrevPx(x2, y1, y2);
+		ctx.stroke();
+
+		//buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
+
+		var padding = 1;
+		var buttonSize = 16 - padding;
+
+		if(groupData.groupArr.length) {
+			for(var i = 0; i < groupData.groupArr.length; i++) {
+				var x = padding * 2 + i * (buttonSize + 1);
+				var y = padding * 2;
+				var w = buttonSize;
+				var h = buttonSize;
+
+				ctx.lineHorPrevPx(x, y, x + w);
+				ctx.lineVerPrevPx(x + w, y, y + h);
+				ctx.lineHorPrevPx(x + w, y + h, x);
+				ctx.lineVerPrevPx(x, y + h, y - 1);
+
+				var text = i + 1 + "";
+				var sr = this.stringRender;
+				var tm = this._roundTextMetrics(sr.measureString(text));
+				/*var bl = y2WithoutBorder - Asc.round((isColHeader ? this.defaultRowDescender : this._getRowDescender(index)) * this.getZoom());
+				var textX = this._calcTextHorizPos(x, x2WithoutBorder, tm, tm.width < w ? AscCommon.align_Center : AscCommon.align_Left);
+				var textY = this._calcTextVertPos(y, h, bl, tm, Asc.c_oAscVAlign.Bottom);*/
+
+				//ctx.AddClipRect(x, y, w, h);
+				ctx.setFillStyle(st.color).fillText(text, x, y + Asc.round(tm.baseline), undefined, sr.charWidths);
+				//ctx.RemoveClipRect();
+			}
+			ctx.stroke();
+			ctx.closePath();
+		}
 	};
 
 	WorksheetView.prototype.getGroupCommonLevel = function () {
@@ -16056,7 +16116,7 @@
 							if(!groupArr[i]) {
 								continue;
 							}
-							for(var j = 0; j <= groupArr[i].length; j++) {
+							for(var j = 0; j < groupArr[i].length; j++) {
 								if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
 									if(rowLevelMap[groupArr[i][j].end + 1] && rowLevelMap[groupArr[i][j].end + 1].collapsed) {
 										t.model.setRowHidden(true, groupArr[i][j].start, groupArr[i][j].end);
@@ -16076,6 +16136,33 @@
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
 
+	};
+
+	WorksheetView.prototype.hideGroupLevel = function (level) {
+		console.time("hideGroupLevel");
+
+		var t = this;
+		var groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+		//var rowLevelMap = t.arrRowGroups ? t.arrRowGroups.rowLevelMap : null;
+
+		if(!groupArr) {
+			return;
+		}
+
+		var callback = function() {
+			for(var i = 0; i <= groupArr.length; i++) {
+				if(!groupArr[i]) {
+					continue;
+				}
+				for(var j = 0; j < groupArr[i].length; j++) {
+					t.model.setRowHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
+				}
+			}
+		};
+
+		this._isLockedAll(callback);
+
+		console.timeEnd("hideGroupLevel");
 	};
 
     //------------------------------------------------------------export---------------------------------------------------
