@@ -5317,7 +5317,7 @@ PasteProcessor.prototype =
 		var diffRow = activeRange.r2 - activeRange.r1;
 		var diffCol = activeRange.c2 - activeRange.c1;
 		for (var i = 0; i <= diffRow; i++) {
-			var row = table.Internal_Add_Row(table.Content.length, 0);
+			var row = table.private_AddRow(table.Content.length, 0);
 			var heightRowPt = worksheet.getRowHeight(i + activeRange.r1);
 			row.SetHeight(heightRowPt * g_dKoef_pt_to_mm, linerule_AtLeast);
 
@@ -7940,7 +7940,7 @@ PasteProcessor.prototype =
 			//TODO временная правка в условии для того, чтобы избежать ошибки при копировании из excel мерженной ячейки
             if("tr" === tr.nodeName.toLowerCase() && tr.childNodes && tr.childNodes.length)
             {
-				var row = table.Internal_Add_Row(table.Content.length, 0);
+				var row = table.private_AddRow(table.Content.length, 0);
                 this._ExecuteTableRow(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef);
             }
         }
@@ -9229,7 +9229,7 @@ PasteProcessor.prototype =
             var tr = node.childNodes[i];
             if("tr" === tr.nodeName.toLowerCase() && tr.children.length !== 0)//в случае, если внутри строки нет ни одной ячейки, не добавляем данную строку
             {
-                var row = table.Internal_Add_Row(table.Content.length, 0);
+                var row = table.private_AddRow(table.Content.length, 0);
                 this._ExecuteTableRowPresentation(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
             }
         }
