@@ -655,8 +655,7 @@
 		this.checkPointerMultiTouchRemove(e);
 
 		if (this.Api.isViewMode || isPreventDefault)
-			AscCommon.g_inputContext.preventVirtualKeyboard(e);
-
+			AscCommon.stopEvent(e);//AscCommon.g_inputContext.preventVirtualKeyboard(e);
 
 		if (AscCommon.AscBrowser.isSailfish && AscCommon.AscBrowser.isEmulateDevicePixelRatio && isPreventDefault)
 			AscCommon.stopEvent(e);
