@@ -503,7 +503,7 @@
 		asc_CEventsController.prototype._changeSelectionDone = function (event) {
 			var coord = this._getCoordinates(event);
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
-			if (false === ctrlKey) {
+			if (false !== ctrlKey) {
 				coord.x = -1;
 				coord.y = -1;
 			}

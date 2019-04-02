@@ -161,6 +161,7 @@
     this.oSelectionInfo = null;
     this.canUpdateAfterShiftUp = false;	// Нужно ли обновлять информацию после отпускания Shift
     this.keepType = false;
+    this.timerEnd = false;
 
     //----- declaration -----
     this.isInit = false;
@@ -1044,6 +1045,7 @@
 
   WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
     var ws = this.getWorksheet();
+    var t = this;
     var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
       ws.changeSelectionEndPoint(dc, dr, isCoord, isCoord && this.keepType);
     if (!isCoord && !isStartPoint) {
@@ -1051,11 +1053,25 @@
       this.canUpdateAfterShiftUp = true;
     }
     this.keepType = isCoord;
+    if (isCoord && !this.timerEnd && this.timerId === null) {
+    	this.timerId = setTimeout(function () {
+    		var arrClose = [];
+    		arrClose.push(new asc_CMM({type: c_oAscMouseMoveType.None}));
+    		t.handlers.trigger("asc_onMouseMove", arrClose);
+    		t._onUpdateCursor(AscCommonExcel.kCurCells);
+    		t.timerId = null;
+    		t.timerEnd = true;
+    		},1000);
+    }
     asc_applyFunction(callback, d);
   };
 
   // Окончание выделения
   WorkbookView.prototype._onChangeSelectionDone = function(x, y) {
+  	if (this.timerId !== null) {
+		clearTimeout(this.timerId);
+		this.timerId = null;
+	}
   	this.keepType = false;
     if (c_oAscSelectionDialogType.None !== this.selectionDialogType) {
       return;
@@ -1087,7 +1103,7 @@
           isHyperlinkClick = true;
         }
       }
-      if (isHyperlinkClick) {
+      if (isHyperlinkClick && !this.timerEnd) {
         if (false === ct.hyperlink.hyperlinkModel.getVisited() && !isSelectOnShape) {
           ct.hyperlink.hyperlinkModel.setVisited(true);
           if (ct.hyperlink.hyperlinkModel.Ref) {
@@ -1107,6 +1123,7 @@
         }
       }
     }
+    this.timerEnd = false;
   };
 
   // Обработка нажатия правой кнопки мыши
@@ -1176,17 +1193,13 @@
       }
       // Проверяем гиперссылку
       if (ct.target === c_oTargetType.Hyperlink) {
-        if (true === ctrlKey) {
-          // Мы без нажатия на гиперлинк
-        } else {
-          ct.cursor = ct.cellCursor.cursor;
-        }
-		  arrMouseMoveObjects.push(new asc_CMM({
-			  type: c_oAscMouseMoveType.Hyperlink,
-			  x: AscCommon.AscBrowser.convertToRetinaValue(x),
-			  y: AscCommon.AscBrowser.convertToRetinaValue(y),
-			  hyperlink: ct.hyperlink
-		  }));
+      	ct.cursor = "pointer";
+      	arrMouseMoveObjects.push(new asc_CMM({
+			type: c_oAscMouseMoveType.Hyperlink,
+			x: AscCommon.AscBrowser.convertToRetinaValue(x),
+			y: AscCommon.AscBrowser.convertToRetinaValue(y),
+			hyperlink: ct.hyperlink
+      	}));
       }
 
 		// проверяем фильтр
