@@ -360,9 +360,9 @@
 			    _elem1.parentNode.style.pointerEvents = "";
 
 
-                _elem1.style.left = "-100px";
-			    _elem1.style.top = "-100px";
-			    _elem1.style.right = "-100px";
+                _elem1.style.left = "0px";
+			    _elem1.style.top = "-1000px";
+			    _elem1.style.right = "0px";
 			    _elem1.style.bottom = "-100px";
 			    _elem1.style.width = "auto";
                 _elem1.style.height = "auto";
@@ -373,6 +373,7 @@
                 _elem2.style.bottom = "0px";
                 _elem2.style.width = "100%";
                 _elem2.style.height = "100%";
+                _elem2.style.fontSize = "8px";
 
                 if (AscCommon.AscBrowser.isIE)
 				{
@@ -1473,6 +1474,12 @@
 			{
                 this.HtmlArea.readOnly = true;
 				this.virtualKeyboardClickPrevent = true;
+
+                this.virtualKeyboardClickTimeout = setTimeout(function ()
+                {
+                    window['AscCommon'].g_inputContext.HtmlArea.readOnly = false;
+                    window['AscCommon'].g_inputContext.virtualKeyboardClickTimeout = -1;
+                }, 1);
 			}
 		},
 

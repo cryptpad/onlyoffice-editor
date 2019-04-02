@@ -736,6 +736,31 @@
         }
     };
 
+
+    CCellRangeNode.prototype._parseCellVal = function (oCurCell, oRes) {
+        if(oCurCell){
+            var res = this.getContentValue(oCurCell.GetContent());
+            if(res){
+                if(!(res.flags & PARSER_MASK_CLEAN)){
+                    if(oRes.bClean === true && this.result.length > 0){
+                        oRes.bBreak = true;
+                    }
+                    else{
+                        oRes.bClean = false;
+                        if(res.result !== null){
+                            this.result.push(res.result);
+                        }
+                    }
+                }
+                else{
+                    if(res.result !== null){
+                        this.result.push(res.result);
+                    }
+                }
+            }
+        }
+    };
+
     CCellRangeNode.prototype._calculate = function(){
         var oTable, oCell, oContent, oRow, i, oCurCell, oCurRow, nCellCount;
         if(this.isCell()){
@@ -762,32 +787,18 @@
                 this.setError(ERROR_TYPE_FORMULA_NOT_IN_TABLE, null);
                 return
             }
-            var bClean = true;
+            var oResult = {bClean: true, bBreak: false};
             if(this.dir === LEFT){
                 if(oCell.Index === 0){
                     this.setError(ERROR_TYPE_INDEX_ZERO, null);
                     return;
                 }
                 this.result = [];
-
                 for(i = oCell.Index - 1; i > -1; --i){
                     oCurCell = oRow.Get_Cell(i);
-                    if(oCurCell){
-                        var res = this.getContentValue(oCurCell.GetContent());
-                        if(res && res.result !== null){
-                            if(!(res.flags & PARSER_MASK_CLEAN)){
-                                if(bClean === true && this.result.length > 0){
-                                    break;
-                                }
-                                else{
-                                    bClean = false;
-                                    this.result.push(res.result);
-                                }
-                            }
-                            else{
-                                this.result.push(res.result);
-                            }
-                        }
+                    this._parseCellVal(oCurCell, oResult);
+                    if(oResult.bBreak){
+                        break;
                     }
                 }
             }
@@ -800,22 +811,9 @@
                 for(i = oRow.Index - 1; i > -1; --i){
                     oCurRow = oTable.Get_Row(i);
                     oCurCell = oCurRow.Get_Cell(oCell.Index);
-                    if(oCurCell){
-                        var res = this.getContentValue(oCurCell.GetContent());
-                        if(res && res.result !== null){
-                            if(!(res.flags & PARSER_MASK_CLEAN)){
-                                if(bClean === true && this.result.length > 0){
-                                    break;
-                                }
-                                else{
-                                    bClean = false;
-                                    this.result.push(res.result);
-                                }
-                            }
-                            else{
-                                this.result.push(res.result);
-                            }
-                        }
+                    this._parseCellVal(oCurCell, oResult);
+                    if(oResult.bBreak){
+                        break;
                     }
                 }
             }
@@ -824,22 +822,9 @@
                 nCellCount = oRow.Get_CellsCount();
                 for(i = oCell.Index + 1; i < nCellCount; ++i){
                     oCurCell = oRow.Get_Cell(i);
-                    if(oCurCell){
-                        var res = this.getContentValue(oCurCell.GetContent());
-                        if(res && res.result !== null){
-                            if(!(res.flags & PARSER_MASK_CLEAN)){
-                                if(bClean === true && this.result.length > 0){
-                                    break;
-                                }
-                                else{
-                                    bClean = false;
-                                    this.result.push(res.result);
-                                }
-                            }
-                            else{
-                                this.result.push(res.result);
-                            }
-                        }
+                    this._parseCellVal(oCurCell, oResult);
+                    if(oResult.bBreak){
+                        break;
                     }
                 }
             }
@@ -849,22 +834,9 @@
                 for(i = oRow.Index + 1; i < nCellCount; ++i){
                     oCurRow = oTable.Get_Row(i);
                     oCurCell = oCurRow.Get_Cell(oCell.Index);
-                    if(oCurCell){
-                        var res = this.getContentValue(oCurCell.GetContent());
-                        if(res && res.result !== null){
-                            if(!(res.flags & PARSER_MASK_CLEAN)){
-                                if(bClean === true && this.result.length > 0){
-                                    break;
-                                }
-                                else{
-                                    bClean = false;
-                                    this.result.push(res.result);
-                                }
-                            }
-                            else{
-                                this.result.push(res.result);
-                            }
-                        }
+                    this._parseCellVal(oCurCell, oResult);
+                    if(oResult.bBreak){
+                        break;
                     }
                 }
             }
@@ -1860,10 +1832,18 @@
         this.setFlag(PARSER_MASK_BOOKMARK, true);
         this.setFlag(PARSER_MASK_BOOKMARK_CELL_REF, false);
         var nStartPos = this.pos;
+        if(sFormula === ''){
+            this.setFlag(PARSER_MASK_CLEAN, false);
+        }
         while (oCurToken = this.parseCurrent()){
             if(oCurToken instanceof CNumberNode || oCurToken instanceof CFALSEFunctionNode || oCurToken instanceof CTRUEFunctionNode){
                 if(this.checkSingularToken(oLastToken)){
-                    this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
+                    if(oCurToken instanceof CNumberNode && oLastToken instanceof CNumberNode){
+                        this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
+                    }
+                    else{
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                    }
                     return;
                 }
                 if(this.flags & PARSER_MASK_NUMBER){
@@ -2162,6 +2142,10 @@
                 oLastToken = oCurToken;
             }
             nStartPos = this.pos;
+        }
+        if(this.pos < this.formula.length){
+            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.formula[this.pos]);
+            return;
         }
         while (aStack.length > 0){
             oCurToken = aStack.pop();

@@ -134,9 +134,9 @@
     var kCurNEResize = "ne-resize";
     var kCurAutoFilter = "pointer";
 
-    var kCurCells = "se-cells";
+
     var kCurFormatPainterExcel = "se-formatpainter";
-    AscCommon.g_oHtmlCursor.register(kCurCells, "plus", ["plus", 6, 6], "cell");
+    AscCommon.g_oHtmlCursor.register(AscCommonExcel.kCurCells, "plus", ["plus", 6, 6], "cell");
 	AscCommon.g_oHtmlCursor.register(kCurFormatPainterExcel, "plus_copy", ["plus_copy", 6, 12], "pointer");
 
     var kNewLine = "\n";
@@ -6867,7 +6867,7 @@
 			// Проверим, может мы в гиперлинке
 			oHyperlink = this.model.getHyperlinkByCell(r.row, c.col);
 			cellCursor = {
-				cursor: kCurCells,
+				cursor: AscCommonExcel.kCurCells,
 				target: c_oTargetType.Cells,
 				col: (c ? c.col : -1),
 				row: (r ? r.row : -1),

@@ -6433,6 +6433,7 @@ background-repeat: no-repeat;\
 			return;
 
 		this.WordControl.reporterTranslates = this.reporterTranslates;
+        this.WordControl.DemonstrationManager.EndShowMessage = this.reporterTranslates[3];
 
 		var _button1 = document.getElementById("dem_id_reset");
 		var _button2 = document.getElementById("dem_id_end");
