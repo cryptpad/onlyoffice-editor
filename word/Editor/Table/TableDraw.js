@@ -123,6 +123,21 @@ CTable.prototype.private_DrawTableBackgroundAndOuterBorder = function(pGraphics,
         pGraphics.DrawLockObjectRect(this.Lock.Get_Type(), this.Pages[PNum].Bounds.Left, this.Pages[PNum].Bounds.Top, this.Pages[PNum].Bounds.Right - this.Pages[PNum].Bounds.Left, this.Pages[PNum].Bounds.Bottom - this.Pages[PNum].Bounds.Top );
     }
 
+	// Если данный параграф был изменен в режиме рецензирования, тогда рисуем специальный знак
+	if (true === this.HavePrChange())
+	{
+		if (CurPage > 0 || false === this.IsStartFromNewPage() || null === this.Get_DocumentPrev())
+		{
+			var _X_min    = -3 + this.Pages[CurPage].Bounds.Left;
+			var _Y_top    = this.Pages[CurPage].Bounds.Top;
+			var _Y_bottom = this.Pages[CurPage].Bounds.Bottom;
+
+			var ReviewColor = this.GetPrReviewColor();
+			pGraphics.p_color(ReviewColor.r, ReviewColor.g, ReviewColor.b, 255);
+			pGraphics.drawVerLine(0, _X_min, _Y_top, _Y_bottom, 0);
+		}
+	}
+
     var TableBorders = this.Get_Borders();
 
     // Заголовок
@@ -480,6 +495,8 @@ CTable.prototype.private_DrawCellsBackground = function(pGraphics, PNum, Row_sta
         var CellsCount = Row.Get_CellsCount();
         var Y = this.RowsInfo[CurRow].Y[PNum];
 
+        var nReviewType = Row.GetReviewType();
+
         // Рисуем ячейки начиная с последней, потому что левая ячейка
         // должна рисоваться поверх правой при конфликте границ.
         for ( var CurCell = CellsCount - 1; CurCell >= 0; CurCell-- )
@@ -515,22 +532,36 @@ CTable.prototype.private_DrawCellsBackground = function(pGraphics, PNum, Row_sta
 
             // Заливаем ячейку
             var CellShd = Cell.Get_Shd();
-            if ( Asc.c_oAscShdNil != CellShd.Value )
-            {
-                if(!this.bPresentation)
-                {
-                    var RGBA = CellShd.Get_Color2(Theme, ColorMap);
-                    if (true !== RGBA.Auto)
-                    {
-                        pGraphics.b_color1(RGBA.r, RGBA.g, RGBA.b, 255);
-                        if(pGraphics.SetShd)
-                        {
-                            pGraphics.SetShd(CellShd);
+			if (Asc.c_oAscShdNil != CellShd.Value || (!this.bPresentation && reviewtype_Common !== nReviewType))
+			{
+				if (!this.bPresentation)
+				{
+					if (reviewtype_Common !== nReviewType)
+					{
+						if (reviewtype_Add === nReviewType)
+							pGraphics.b_color1(225, 242, 250, 255);
+						else if (reviewtype_Remove === nReviewType)
+							pGraphics.b_color1(252, 230, 244, 255);
 
-                        }
-                        pGraphics.TableRect(Math.min(X_cell_start, X_cell_end), Math.min(Y, Y + RealHeight), Math.abs(X_cell_end - X_cell_start), Math.abs(RealHeight));
-                    }
-                }
+						pGraphics.TableRect(Math.min(X_cell_start, X_cell_end), Math.min(Y, Y + RealHeight), Math.abs(X_cell_end - X_cell_start), Math.abs(RealHeight));
+					}
+					else
+					{
+
+						var RGBA = CellShd.Get_Color2(Theme, ColorMap);
+						if (true !== RGBA.Auto)
+						{
+							pGraphics.b_color1(252, 230, 244, 255);
+
+							if (pGraphics.SetShd)
+							{
+								pGraphics.SetShd(CellShd);
+
+							}
+							pGraphics.TableRect(Math.min(X_cell_start, X_cell_end), Math.min(Y, Y + RealHeight), Math.abs(X_cell_end - X_cell_start), Math.abs(RealHeight));
+						}
+					}
+				}
                 else
                 {
                     if(CellShd.Unifill && CellShd.Unifill.fill)

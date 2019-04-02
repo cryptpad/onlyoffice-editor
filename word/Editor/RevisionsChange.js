@@ -94,7 +94,7 @@ CRevisionsChange.prototype.get_LockUserId = function()
 {
 	if (this.Paragraph)
 	{
-		var Lock = this.Paragraph.Get_Lock();
+		var Lock = this.Paragraph.GetLock();
 		var LockType = Lock.Get_Type();
 
 		if (AscCommon.locktype_Mine !== LockType && AscCommon.locktype_None !== LockType)
