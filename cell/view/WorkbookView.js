@@ -1192,15 +1192,16 @@
         }));
       }
       // Проверяем гиперссылку
-      if (ct.target === c_oTargetType.Hyperlink) {
-      	ct.cursor = "pointer";
+      if (ct.target === c_oTargetType.Hyperlink && !ctrlKey) {
       	arrMouseMoveObjects.push(new asc_CMM({
 			type: c_oAscMouseMoveType.Hyperlink,
 			x: AscCommon.AscBrowser.convertToRetinaValue(x),
 			y: AscCommon.AscBrowser.convertToRetinaValue(y),
 			hyperlink: ct.hyperlink
       	}));
-      }
+      } else {
+		  ct.cursor = AscCommonExcel.kCurCells;
+	  }
 
 		// проверяем фильтр
 		if (ct.target === c_oTargetType.FilterObject) {
