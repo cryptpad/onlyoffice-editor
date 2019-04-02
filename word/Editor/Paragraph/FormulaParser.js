@@ -1838,7 +1838,12 @@
         while (oCurToken = this.parseCurrent()){
             if(oCurToken instanceof CNumberNode || oCurToken instanceof CFALSEFunctionNode || oCurToken instanceof CTRUEFunctionNode){
                 if(this.checkSingularToken(oLastToken)){
-                    this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
+                    if(oCurToken instanceof CNumberNode && oLastToken instanceof CNumberNode){
+                        this.setError(ERROR_TYPE_MISSING_OPERATOR, null);
+                    }
+                    else{
+                        this.setError(ERROR_TYPE_SYNTAX_ERROR, this.getErrorString(nStartPos, this.pos));
+                    }
                     return;
                 }
                 if(this.flags & PARSER_MASK_NUMBER){
