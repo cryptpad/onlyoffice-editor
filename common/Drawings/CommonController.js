@@ -12489,7 +12489,7 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 
 
     function fCheckObjectHyperlink(object, x, y){
-        var content = object.getDocContent();
+        var content =  object.getDocContent && object.getDocContent();
         var invert_transform_text = object.invertTransformText, tx, ty, hit_paragraph, check_hyperlink, par;
         if(content && invert_transform_text)
         {
