@@ -5669,9 +5669,13 @@ PasteProcessor.prototype =
 			for(var row = 0; row < allRows.length; row++)
 			{
 				var cells = allRows[row].Content;
-				if(cells.length < this.maxTableCell)
+				var cellsLength = 0;
+				for(var m = 0; m < cells.length; m++) {
+					cellsLength += cells[m].GetGridSpan();
+				}
+				if(cellsLength < this.maxTableCell)
 				{
-					for(var cell = cells.length; cell < this.maxTableCell; cell++)
+					for(var cell = cellsLength; cell < this.maxTableCell; cell++)
 					{
 						allRows[row].Add_Cell(allRows[row].Get_CellsCount(), allRows[row], null, false);
 					}
