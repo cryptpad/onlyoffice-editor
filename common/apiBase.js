@@ -1438,6 +1438,11 @@
 		this.pluginsManager     = Asc.createPluginsManager(this);
 
 		this.macros = new AscCommon.CDocumentMacros();
+
+		this._loadSdkImages();
+	};
+	baseEditorsApi.prototype._loadSdkImages = function ()
+	{
 	};
 
 	baseEditorsApi.prototype.sendStandartTextures = function()
