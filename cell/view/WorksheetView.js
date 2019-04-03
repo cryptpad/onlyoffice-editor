@@ -3949,20 +3949,20 @@
 			if (0 < row) {
 				fHorLine.apply(ctx, [0, this._getRowTop(row), ctx.getWidth()]);
 			} else {
-				fHorLine.apply(ctx, [0, this.headersHeight, this.headersWidth]);
+				fHorLine.apply(ctx, [this.headersLeft, this.headersHeight, this.headersLeft + this.headersWidth]);
 			}
 
 			if (0 < col) {
 				fVerLine.apply(ctx, [this._getColLeft(col), 0, ctx.getHeight()]);
 			} else {
-				fVerLine.apply(ctx, [this.headersWidth, 0, this.headersHeight]);
+				fVerLine.apply(ctx, [this.headersLeft + this.headersWidth, 0, this.headersHeight]);
 
 			}
 			ctx.stroke();
 
 		} else if (this.model.getSheetView().asc_getShowRowColHeaders()) {
-			fHorLine.apply(ctx, [0, this.headersHeight, this.headersWidth]);
-			fVerLine.apply(ctx, [this.headersWidth, 0, this.headersHeight]);
+			fHorLine.apply(ctx, [this.headersLeft, this.headersHeight, this.headersLeft + this.headersWidth]);
+			fVerLine.apply(ctx, [this.headersWidth + this.headersLeft, 0, this.headersHeight]);
 			ctx.stroke();
 		}
 	};
@@ -15729,7 +15729,7 @@
 		var lineWidth = 2;
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
-
+		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
 		var minRow;
 		var maxRow;
 		var bFirstLine = true;
@@ -15750,12 +15750,12 @@
 					endPosArr[arrayLines[i][j].end] = 1;
 
 					var startY = Math.max(arrayLines[i][j].start, range.r1);
-					var endY = Math.min(arrayLines[i][j].end + 1, range.r2);
+					var endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
 					minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
 					maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
 
-
-					var startPos = this._getRowTop(startY) + 3 - offsetY ;
+					var diff = startY === arrayLines[i][j].start ? 3 : 0;
+					var startPos = this._getRowTop(startY) + diff - offsetY ;
 					var endPos = this._getRowTop(endY) - offsetY;
 					var heightNextRow = this._getRowHeight(endY);
 					var paddingTop = (heightNextRow - buttonSize) / 2;
@@ -15766,7 +15766,11 @@
 					//button
 					if(endY === arrayLines[i][j].end + 1) {
 						//TODO ms обрезает кнопки сверху/снизу
-						if(heightNextRow) {
+						if(heightNextRow && endY >= startY) {
+							if(!tempButtonMap[i]) {
+								tempButtonMap[i] = [];
+							}
+							tempButtonMap[i][endY] = 1;
 							buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - 1, h: buttonSize - 1, row: endY, rowTop: endPos, rowHeight: heightNextRow});
 						}
 					}
@@ -15798,10 +15802,10 @@
 
 			var pointLevel = rowLevelMap[l].level;
 			var rowHeight = this._getRowHeight(l);
-			if(rowHeight === 0) {
+			if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || rowHeight === 0) {
 				continue;
 			}
-			ctx.lineHorPrevPx(7 + pointLevel * 16, this._getRowTop(l) - offsetY + rowHeight / 2, 7 + (pointLevel) * 16 + 2);
+			ctx.lineHorPrevPx(7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + rowHeight / 2, 7 + (pointLevel) * buttonSize + 2);
 		}
 
 		ctx.stroke();
@@ -15971,75 +15975,76 @@
 
 		//TODO сделать общую функцию с _drawGroupData для получения данных кнопки
 
-		var bFirstRow = true;
+		var doClick = function() {
+			var arrayLines = t.arrRowGroups.groupArr;
+			var rowLevelMap = t.arrRowGroups.rowLevelMap;
+
+			var lineWidth = 2;
+			var bFirstLine = true;
+			var buttonSize = 16;
+			var padding = 1;
+			var buttons = [];
+			var endPosArr = {};
+			for(var i = 0; i < arrayLines.length; i++) {
+				if(arrayLines[i]) {
+					var index = bFirstLine ? 1 : i;
+					var posX = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
+
+					for(var j = 0; j < arrayLines[i].length; j++) {
+
+						if(endPosArr[arrayLines[i][j].end]) {
+							continue;
+						}
+						endPosArr[arrayLines[i][j].end] = 1;
+
+						if(arrayLines[i][j].end + 1 === target.row) {
+							var endY = arrayLines[i][j].end + 1;
+							var endPos = t._getRowTop(endY) - offsetY;
+							var heightNextRow = t._getRowHeight(endY);
+
+							var paddingTop = (heightNextRow - buttonSize) / 2;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
+
+							var collapsed = rowLevelMap[endY] && rowLevelMap[endY].collapsed;
+							if(heightNextRow) {
+								var x1 = posX - 6;
+								var x2 = x1 + buttonSize - lineWidth;
+								var y1 = endPos + heightNextRow/2 - buttonSize / 2;
+								var y2 = y1 + buttonSize - lineWidth;
+								if(x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+									t._tryChangeGroup(arrayLines[i][j], collapsed, i);
+								}
+							}
+
+							/*if(endY === arrayLines[i][j].end + 1) {
+							 //TODO ms обрезает кнопки сверху/снизу
+							 if(heightNextRow) {
+							 buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
+							 }
+							 }*/
+						}
+					}
+					bFirstLine = false;
+				}
+			}
+		};
+
+		var prevOutlineLevel = null;
 		var outLineLevel;
 		this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(function(row) {
-			if(bFirstRow) {
+			if(prevOutlineLevel === null) {
+				prevOutlineLevel = row.getOutlineLevel();
+			} else {
 				outLineLevel = row.getOutlineLevel();
-				bFirstRow = false;
-				return;
-			}
-			//проверяем предыдущую строку - если там есть outLineLevel, а в следующей outLineLevel c другим индексом, тогда в следующей может быть кнопка управления группой
-			if(outLineLevel !== row.getOutlineLevel()) {
-
-
-				var arrayLines = t.arrRowGroups.groupArr;
-				var rowLevelMap = t.arrRowGroups.rowLevelMap;
-
-				var lineWidth = 2;
-				var bFirstLine = true;
-				var buttonSize = 16;
-				var padding = 1;
-				var buttons = [];
-				var endPosArr = {};
-				for(var i = 0; i < arrayLines.length; i++) {
-					if(arrayLines[i]) {
-						var index = bFirstLine ? 1 : i;
-						var posX = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
-
-						for(var j = 0; j < arrayLines[i].length; j++) {
-
-							if(endPosArr[arrayLines[i][j].end]) {
-								continue;
-							}
-							endPosArr[arrayLines[i][j].end] = 1;
-
-							if(arrayLines[i][j].end + 1 === target.row) {
-								var endY = arrayLines[i][j].end + 1;
-								var endPos = t._getRowTop(endY) - offsetY;
-								var heightNextRow = t._getRowHeight(endY);
-
-								var paddingTop = (heightNextRow - buttonSize) / 2;
-								if(paddingTop < 0) {
-									paddingTop = 0;
-								}
-
-								var collapsed = rowLevelMap[endY] && rowLevelMap[endY].collapsed;
-								if(heightNextRow) {
-									var x1 = posX - 6;
-									var x2 = x1 + buttonSize - lineWidth;
-									var y1 = endPos + heightNextRow/2 - buttonSize / 2;
-									var y2 = y1 + buttonSize - lineWidth;
-									if(x >= x1 && x <= x2 && y >= y1 && y <= y2) {
-										t._tryChangeGroup(arrayLines[i][j], collapsed, i);
-									}
-								}
-
-								/*if(endY === arrayLines[i][j].end + 1) {
-									//TODO ms обрезает кнопки сверху/снизу
-									if(heightNextRow) {
-										buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
-									}
-								}*/
-							}
-						}
-						bFirstLine = false;
-					}
-				}
-
-
 			}
 		});
+
+		//проверяем предыдущую строку - если там есть outLineLevel, а в следующей outLineLevel c другим индексом, тогда в следующей может быть кнопка управления группой
+		if(outLineLevel !== prevOutlineLevel) {
+			doClick();
+		}
 
 		console.timeEnd("groupRowClick");
 	};
