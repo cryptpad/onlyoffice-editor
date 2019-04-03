@@ -144,6 +144,14 @@ var editor;
     AscCommon.AscBrowser.checkZoom();
   };
 
+  spreadsheet_api.prototype._loadSdkImages = function () {
+    var aImages = AscCommonExcel.getIconsForLoad();
+    aImages.push(AscCommonExcel.sFrozenImageUrl, AscCommonExcel.sFrozenImageRotUrl);
+    this.ImageLoader.bIsAsyncLoadDocumentImages = false;
+    this.ImageLoader.LoadDocumentImages(aImages);
+    this.ImageLoader.bIsAsyncLoadDocumentImages = true;
+  };
+
   spreadsheet_api.prototype.asc_CheckGuiControlColors = function() {
     // потом реализовать проверку на то, что нужно ли посылать
 
