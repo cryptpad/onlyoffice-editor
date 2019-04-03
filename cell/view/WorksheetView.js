@@ -2608,15 +2608,8 @@
 					rect._height *= dScale;
 					AscFormat.ExecuteNoHistory(
 						function (fill, rect) {
-							var geometry = new AscFormat.Geometry();
-							var path = new AscFormat.Path();
-							path.moveTo(rect._x, rect._y);
-							path.lnTo(rect._x + rect._width, rect._y);
-							path.lnTo(rect._x + rect._width, rect._y + rect._height);
-							path.lnTo(rect._x, rect._y + rect._height);
-							path.close();
-							geometry.AddPath(path);
-							geometry.Recalculate(100, 100, true);
+							var geometry = new AscFormat.CreateGeometry("rect");
+                            geometry.Recalculate(rect._width, rect._height, true);
 
 							var oUniFill = new AscFormat.CUniFill();
 							if (fill.patternFill) {
@@ -2644,7 +2637,10 @@
 							}
 
 							graphics.save();
-							graphics.transform3(new AscCommon.CMatrix());
+                            var oMatrix = new AscCommon.CMatrix();
+                            oMatrix.tx = rect._x;
+                            oMatrix.ty = rect._y;
+							graphics.transform3(oMatrix);
 							var shapeDrawer = new AscCommon.CShapeDrawer();
 							shapeDrawer.Graphics = graphics;
 
