@@ -2736,8 +2736,7 @@
 							ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
 						}
 					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
-						var indexImage = oRule.getIndexRule(values, this.model, cellValue);
-
+						var img = AscCommonExcel.getIconByType(oRuleElement.IconSet, oRule.getIndexRule(values, this.model, cellValue));
 						var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
 						var dScale = asc_getcvt(0, 3, this._getPPIX());
 						rect._x *= dScale;
@@ -2745,9 +2744,9 @@
 						rect._width *= dScale;
 						rect._height *= dScale;
                         AscFormat.ExecuteNoHistory(
-                            function (rect) {
+                            function (img, rect) {
                                 var oImgP = new Asc.asc_CImgProperty();
-                                oImgP.ImageUrl = AscFormat.sDownIncline;
+                                oImgP.ImageUrl = img;
                                 var oSize = oImgP.asc_getOriginSize(Asc.editor);
 
                                 rect._y = rect._y + rect._height - oSize.Height;
@@ -2768,7 +2767,7 @@
                                 // geometry.AddPath(path);
                                 geometry.Recalculate(_w, _h, true);
 
-                                var oUniFill = new AscFormat.builder_CreateBlipFill(AscFormat.sDownIncline, "stretch");
+                                var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
 
                                 graphics.save();
                                 var oMatrix = new AscCommon.CMatrix();
@@ -2781,7 +2780,7 @@
                                 shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
                                 shapeDrawer.draw(geometry);
                                 graphics.restore();
-                            }, this, [rect]
+                            }, this, [img, rect]
                         );
 					}
 				}
