@@ -4899,7 +4899,7 @@ background-repeat: no-repeat;\
 				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadImage);
 			}
 
-			this.ImageLoader.LoadDocumentImages(this.pasteImageMap, false);
+			this.ImageLoader.LoadDocumentImages(this.pasteImageMap);
 			return;
 		}
 		else if (this.isSaveFonts_Images)
@@ -4914,7 +4914,7 @@ background-repeat: no-repeat;\
 				this.sync_StartAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadImage);
 			}
 
-			this.ImageLoader.LoadDocumentImages(this.saveImageMap, false);
+			this.ImageLoader.LoadDocumentImages(this.saveImageMap);
 			return;
 		}
 
@@ -4941,7 +4941,7 @@ background-repeat: no-repeat;\
 		}
 
 		this.ImageLoader.bIsLoadDocumentFirst = true;
-		this.ImageLoader.LoadDocumentImages(_loader_object.ImageMap, true);
+		this.ImageLoader.LoadDocumentImages(_loader_object.ImageMap);
 	};
 	asc_docs_api.prototype.asyncImagesDocumentEndLoaded  = function()
 	{

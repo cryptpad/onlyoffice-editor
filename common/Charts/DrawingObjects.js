@@ -1815,7 +1815,7 @@ function DrawingObjects() {
         {
             var old_val = api.ImageLoader.bIsAsyncLoadDocumentImages;
             api.ImageLoader.bIsAsyncLoadDocumentImages = true;
-            api.ImageLoader.LoadDocumentImages(aImagesSync, null);
+            api.ImageLoader.LoadDocumentImages(aImagesSync);
             api.ImageLoader.bIsAsyncLoadDocumentImages = old_val;
         }
 
@@ -2849,7 +2849,7 @@ function DrawingObjects() {
                     History.TurnOn();
                     if(aImagesSync.length > 0)
                     {
-                        window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync, null);
+                        window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
                     }
                 });
 

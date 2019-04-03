@@ -495,7 +495,7 @@
             }
         };
         
-        this.LoadDocumentImages = function(_images, isUrl)
+        this.LoadDocumentImages = function(_images)
         {
             // сначала заполним массив
             if (this.ThemeLoader == null)

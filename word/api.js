@@ -6250,7 +6250,7 @@ background-repeat: no-repeat;\
 
 			var _oldAsyncLoadImages                     = this.ImageLoader.bIsAsyncLoadDocumentImages;
 			this.ImageLoader.bIsAsyncLoadDocumentImages = false;
-			this.ImageLoader.LoadDocumentImages(this.pasteImageMap, false);
+			this.ImageLoader.LoadDocumentImages(this.pasteImageMap);
 			this.ImageLoader.bIsAsyncLoadDocumentImages = true;
 			return;
 		}
@@ -6266,7 +6266,7 @@ background-repeat: no-repeat;\
 				this.sync_StartAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadImage);
 			}
 
-			this.ImageLoader.LoadDocumentImages(this.saveImageMap, false);
+			this.ImageLoader.LoadDocumentImages(this.saveImageMap);
 			return;
 		}
 
@@ -6309,7 +6309,7 @@ background-repeat: no-repeat;\
 		}
 
 		this.ImageLoader.bIsLoadDocumentFirst = true;
-		this.ImageLoader.LoadDocumentImages(_loader_object.ImageMap, true);
+		this.ImageLoader.LoadDocumentImages(_loader_object.ImageMap);
 	};
 
 	asc_docs_api.prototype.CreateFontsCharMap = function()
@@ -6741,7 +6741,7 @@ background-repeat: no-repeat;\
 			this.sync_StartAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadImage);
 		}
 
-		this.ImageLoader.LoadDocumentImages(this.loadCustomImageMap, false);
+		this.ImageLoader.LoadDocumentImages(this.loadCustomImageMap);
 	};
 	asc_docs_api.prototype.SyncLoadImages_callback = function()
 	{

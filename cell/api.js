@@ -3479,7 +3479,7 @@ var editor;
         }
       }
       if(aImages.length > 0)      {
-         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages, null);
+         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages);
       }
       callback();
     });

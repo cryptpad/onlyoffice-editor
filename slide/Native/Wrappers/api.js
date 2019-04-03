@@ -3412,7 +3412,7 @@ Asc['asc_docs_api'].prototype.openDocument = function(sData)
     //console.log("ImageMap : " + JSON.stringify(this.WordControl.m_oLogicDocument));
 
     this.ImageLoader.bIsLoadDocumentFirst = true;
-    this.ImageLoader.LoadDocumentImages(this.WordControl.m_oLogicDocument.ImageMap, true);
+    this.ImageLoader.LoadDocumentImages(this.WordControl.m_oLogicDocument.ImageMap);
 
     this.WordControl.m_oLogicDocument.Continue_FastCollaborativeEditing();
 
