@@ -1282,7 +1282,6 @@ function DrawingObjects() {
     _this.drawingArea = null;
     _this.drawingDocument = null;
     _this.asyncImageEndLoaded = null;
-    _this.asyncImagesDocumentEndLoaded = null;
     _this.CompositeInput = null;
 
     _this.lastX = 0;
@@ -1795,12 +1794,6 @@ function DrawingObjects() {
 			}
             aImagesSync[i] = AscCommon.getFullImageSrc2(localUrl);
         }
-
-        // Загружаем все картинки листа
-        _this.asyncImagesDocumentEndLoaded = function()
-        {
-            _this.showDrawingObjects(true);
-        };
 
         if(!Asc['editor'].ImageLoader.map_image_index[sFrozenImageUrl]){
             aImagesSync.push(sFrozenImageUrl);
