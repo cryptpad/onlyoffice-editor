@@ -2752,7 +2752,7 @@
                             function (rect) {
                                 var oImgP = new Asc.asc_CImgProperty();
                                 oImgP.ImageUrl = AscFormat.sDownIncline;
-                                var oSize = oImgP.get_OriginSize(Asc.editor);
+                                var oSize = oImgP.asc_getOriginSize(Asc.editor);
 
                                 rect._y = rect._y + rect._height - oSize.Height;
                                 rect._width = oSize.Width;

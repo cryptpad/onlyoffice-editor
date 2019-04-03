@@ -1186,7 +1186,7 @@ DrawingObjectsController.prototype =
             {
                 var oImgP = new Asc.asc_CImgProperty();
                 oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
-                var oSize = oImgP.get_OriginSize(this.getEditorApi());
+                var oSize = oImgP.asc_getOriginSize(this.getEditorApi());
 
 
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
@@ -1237,7 +1237,7 @@ DrawingObjectsController.prototype =
             {
                 var oImgP = new Asc.asc_CImgProperty();
                 oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
-                var oSize = oImgP.get_OriginSize(this.getEditorApi());
+                var oSize = oImgP.asc_getOriginSize(this.getEditorApi());
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
                 cropObject.check_bounds(oShapeDrawer);
