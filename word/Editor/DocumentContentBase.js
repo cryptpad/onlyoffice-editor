@@ -352,7 +352,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 
 	this.RemoveNumberingSelection();
 
-	var isRemoveOnDrag = this.GetLogicDocument() ? this.GetLogicDocument().RemoveOnDrag : false;
+	var isRemoveOnDrag = this.GetLogicDocument() ? this.GetLogicDocument().DragAndDropAction : false;
 
 	var bRetValue = true;
 	if (true === this.Selection.Use)

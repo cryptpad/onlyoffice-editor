@@ -1701,7 +1701,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     this.CheckLanguageOnTextAdd    = false; // Проверять ли язык при добавлении текста в ран
 	this.RemoveCommentsOnPreDelete = true;  // Удалять ли комментарий при удалении объекта
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
-	this.RemoveOnDrag              = false; // Происходит ли удалении на функции drag-n-drop
+	this.DragAndDropAction         = false; // Происходит ли сейчас действие drag-n-drop
 	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
 
 	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
@@ -6835,7 +6835,10 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
         NearPos.Paragraph.Check_NearestPos(NearPos);
 
-        // Получим копию выделенной части документа, которую надо перенести в новое место, одновременно с этим
+		if (!bCopy)
+			this.DragAndDropAction = true;
+
+		// Получим копию выделенной части документа, которую надо перенести в новое место, одновременно с этим
         // удаляем эту выделенную часть (если надо).
 
         var DocContent = this.GetSelectedContent(true);
@@ -6872,18 +6875,16 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             // Если надо удаляем выделенную часть (пересчет отключаем на время удаления)
             if (true !== bCopy)
             {
-            	this.RemoveOnDrag = true;
-
                 this.TurnOff_Recalculate();
                 this.TurnOff_InterfaceEvents();
                 this.Remove(1, false, false, true);
                 this.TurnOn_Recalculate(false);
                 this.TurnOn_InterfaceEvents(false);
 
-				this.RemoveOnDrag = false;
-
                 if (false === Para.Is_UseInDocument())
                 {
+					this.DragAndDropAction = false;
+
                     this.Document_Undo();
                     this.History.Clear_Redo();
 					this.SetCheckContentControlsLock(true);
@@ -6896,7 +6897,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             // Выделение выставляется внутри функции Insert_Content
             Para.Parent.Insert_Content(DocContent, NearPos);
 
-            this.Recalculate();
+			this.Recalculate();
 
             this.Document_UpdateSelectionState();
             this.Document_UpdateInterfaceState();
@@ -6909,7 +6910,8 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 		}
 
 		this.SetCheckContentControlsLock(true);
-    }
+		this.DragAndDropAction = false;
+	}
 };
 /**
  * В данной функции мы получаем выделенную часть документа в формате класса CSelectedContent.

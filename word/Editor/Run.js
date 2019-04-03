@@ -74,73 +74,77 @@ var g_oSpellCheckerMarks = new CSpellCheckerMarks();
 function ParaRun(Paragraph, bMathRun)
 {
 	CParagraphContentWithContentBase.call(this);
-    
-    this.Id         = AscCommon.g_oIdCounter.Get_NewId();  // Id данного элемента
-    this.Type       = para_Run;                  // тип данного элемента
-    this.Paragraph  = Paragraph;                 // Ссылка на параграф
-    this.Pr         = new CTextPr();             // Текстовые настройки данного run
-    this.Content    = [];                        // Содержимое данного run
-        
-    this.State      = new CParaRunState();       // Положение курсора и селекта в данного run
-    this.Selection  = this.State.Selection;
-    this.CompiledPr = new CTextPr();             // Скомпилированные настройки
-    this.RecalcInfo = new CParaRunRecalcInfo();  // Флаги для пересчета (там же флаг пересчета стиля)
 
-    this.TextAscent  = 0; // текстовый ascent + linegap
-    this.TextAscent  = 0; // текстовый ascent + linegap
-    this.TextDescent = 0; // текстовый descent
-    this.TextHeight  = 0; // высота текста
-    this.TextAscent2 = 0; // текстовый ascent
-    this.Ascent      = 0; // общий ascent
-    this.Descent     = 0; // общий descent
-    this.YOffset     = 0; // смещение по Y
+	this.Id        = AscCommon.g_oIdCounter.Get_NewId();  // Id данного элемента
+	this.Type      = para_Run;                  // тип данного элемента
+	this.Paragraph = Paragraph;                 // Ссылка на параграф
+	this.Pr        = new CTextPr();             // Текстовые настройки данного run
+	this.Content   = [];                        // Содержимое данного run
 
-    this.CollPrChangeMine   = false;
-    this.CollPrChangeOther  = false;
-    this.CollaborativeMarks = new CRunCollaborativeMarks();
-    this.m_oContentChanges  = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
+	this.State      = new CParaRunState();       // Положение курсора и селекта в данного run
+	this.Selection  = this.State.Selection;
+	this.CompiledPr = new CTextPr();             // Скомпилированные настройки
+	this.RecalcInfo = new CParaRunRecalcInfo();  // Флаги для пересчета (там же флаг пересчета стиля)
 
-    this.NearPosArray  = [];
-    this.SearchMarks   = [];
-    this.SpellingMarks = [];
+	this.TextAscent  = 0; // текстовый ascent + linegap
+	this.TextAscent  = 0; // текстовый ascent + linegap
+	this.TextDescent = 0; // текстовый descent
+	this.TextHeight  = 0; // высота текста
+	this.TextAscent2 = 0; // текстовый ascent
+	this.Ascent      = 0; // общий ascent
+	this.Descent     = 0; // общий descent
+	this.YOffset     = 0; // смещение по Y
 
-    this.ReviewType    = reviewtype_Common;
-    this.ReviewInfo    = new CReviewInfo();
+	this.CollPrChangeMine   = false;
+	this.CollPrChangeOther  = false;
+	this.CollaborativeMarks = new CRunCollaborativeMarks();
+	this.m_oContentChanges  = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
 
-    if (editor
+	this.NearPosArray  = [];
+	this.SearchMarks   = [];
+	this.SpellingMarks = [];
+
+	this.ReviewType = reviewtype_Common;
+	this.ReviewInfo = new CReviewInfo();
+
+	if (editor
 		&& !editor.isPresentationEditor
 		&& editor.WordControl
 		&& editor.WordControl.m_oLogicDocument
 		&& true === editor.WordControl.m_oLogicDocument.IsTrackRevisions()
 		&& !editor.WordControl.m_oLogicDocument.RecalcTableHeader)
-    {
-        this.ReviewType = reviewtype_Add;
-        this.ReviewInfo.Update();
-    }
+	{
+		this.ReviewType = reviewtype_Add;
+		this.ReviewInfo.Update();
 
-    if(bMathRun)
-    {
-        this.Type = para_Math_Run;
+		if (editor.WordControl.m_oLogicDocument.DragAndDropAction)
+			this.ReviewInfo.SetMove(Asc.c_oAscRevisionsMove.MoveTo);
+	}
 
-        // запомним позицию для Recalculate_CurPos, когда  Run пустой
-        this.pos          = new CMathPosition();
-        this.ParaMath     = null;
-        this.Parent       = null;
-        this.ArgSize      = 0;
-        this.size         = new CMathSize();
-        this.MathPrp      = new CMPrp();
-        this.bEqArray     = false;
-    }
-    this.StartState = null;
+	if (bMathRun)
+	{
+		this.Type = para_Math_Run;
 
-    this.CompositeInput = null;
+		// запомним позицию для Recalculate_CurPos, когда  Run пустой
+		this.pos      = new CMathPosition();
+		this.ParaMath = null;
+		this.Parent   = null;
+		this.ArgSize  = 0;
+		this.size     = new CMathSize();
+		this.MathPrp  = new CMPrp();
+		this.bEqArray = false;
+	}
 
-    // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
-    g_oTableId.Add( this, this.Id );
-    if(this.Paragraph && !this.Paragraph.bFromDocument)
-    {
-        this.Save_StartState();
-    }
+	this.StartState = null;
+
+	this.CompositeInput = null;
+
+	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
+	g_oTableId.Add(this, this.Id);
+	if (this.Paragraph && !this.Paragraph.bFromDocument)
+	{
+		this.Save_StartState();
+	}
 }
 
 ParaRun.prototype = Object.create(CParagraphContentWithContentBase.prototype);
@@ -5506,6 +5510,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     var aDStrikeout = PDSL.DStrikeout;
     var aUnderline  = PDSL.Underline;
     var aSpelling   = PDSL.Spelling;
+    var aDUnderline = PDSL.DUnderline;
 
     var CurTextPr = this.Get_CompiledPr( false );
     var StrikeoutY = Y - this.YOffset;
@@ -5558,8 +5563,9 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     var bAddReview  = reviewtype_Add === ReviewType ? true : false;
     var bRemReview  = reviewtype_Remove === ReviewType ? true : false;
     var ReviewColor = this.GetReviewColor();
+    var oReviewInfo = this.GetReviewInfo();
 
-    var oRemAddInfo  = this.GetReviewInfo().GetPrevAdded();
+    var oRemAddInfo  = oReviewInfo.GetPrevAdded();
     var isRemAdd     = !!oRemAddInfo;
     var oRemAddColor = oRemAddInfo ? oRemAddInfo.GetColor() : REVIEW_COLOR;
 
@@ -5642,11 +5648,17 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 				{
 					if (bAddReview)
 					{
-						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						if (oReviewInfo.IsMovedTo())
+							aDUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						else
+							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 					}
 					else if (bRemReview)
 					{
-						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						if (oReviewInfo.IsMovedFrom())
+							aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						else
+							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 
 						if (isRemAdd)
 							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
@@ -5685,7 +5697,10 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 					{
 						if (true === bRemReview)
 						{
-							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+							if (oReviewInfo.IsMovedFrom())
+								aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+							else
+								aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 
 							if (isRemAdd)
 								aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
@@ -5701,9 +5716,16 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 					}
 
 					if (true === bAddReview)
-						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					{
+						if (oReviewInfo.IsMovedTo())
+							aDUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						else
+							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					}
 					else if (true === CurTextPr.Underline)
+					{
 						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+					}
 
 					if (nSpellingErrorsCounter > 0)
 						aSpelling.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, 0, 0, 0);
@@ -5720,7 +5742,10 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 				{
 					if (true === bRemReview)
 					{
-						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						if (oReviewInfo.IsMovedFrom())
+							aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						else
+							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 
 						if (isRemAdd)
 							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
@@ -5735,9 +5760,16 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 					}
 
 					if (true === bAddReview)
-						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					{
+						if (oReviewInfo.IsMovedTo())
+							aDUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						else
+							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					}
 					else if (true === CurTextPr.Underline)
+					{
 						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+					}
 
 					PDSL.Spaces--;
 				}
@@ -5752,7 +5784,10 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			{
 				if (true === bRemReview)
 				{
-					aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr);
+					if (oReviewInfo.IsMovedFrom())
+						aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr);
+					else
+						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr);
 
 					if (isRemAdd)
 						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
@@ -5766,6 +5801,14 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 					aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
 				}
 
+				if (true === bAddReview)
+				{
+					if (oReviewInfo.IsMovedTo())
+						aDUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					else
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+				}
+
 
 				X += ItemWidthVisible;
 				break;
@@ -5775,7 +5818,10 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 				var ctrPrp = this.Parent.GetCtrPrp();
 				if (true === bRemReview)
 				{
-					aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr);
+					if (oReviewInfo.IsMovedFrom())
+						aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr);
+					else
+						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b, undefined, CurTextPr);
 
 					if (isRemAdd)
 						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
@@ -5789,6 +5835,14 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 					aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
 				}
 
+				if (true === bAddReview)
+				{
+					if (oReviewInfo.IsMovedTo())
+						aDUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					else
+						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+				}
+
 				X += ItemWidthVisible;
 				break;
 			}
@@ -5800,7 +5854,10 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 				{
 					if (true === bRemReview)
 					{
-						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						if (oReviewInfo.IsMovedFrom())
+							aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						else
+							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 
 						if (isRemAdd)
 							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
@@ -5815,9 +5872,16 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 					}
 
 					if (true === bAddReview)
-						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					{
+						if (oReviewInfo.IsMovedTo())
+							aDUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+						else
+							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+					}
 					else if (true === CurTextPr.Underline)
+					{
 						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+					}
 
 					if (nSpellingErrorsCounter > 0)
 						aSpelling.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, 0, 0, 0);
@@ -9634,6 +9698,9 @@ ParaRun.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
 		this.ReviewType = nType;
 		this.ReviewInfo.Update();
 
+		if (this.GetLogicDocument() && this.GetLogicDocument().DragAndDropAction)
+			this.ReviewInfo.SetMove(c_oAscRevisionsMove.MoveFrom);
+
 		History.Add(new CChangesRunReviewType(this, {
 			ReviewType : OldReviewType,
 			ReviewInfo : OldReviewInfo
@@ -10876,6 +10943,8 @@ function CReviewInfo()
     this.UserName = "";
     this.DateTime = "";
 
+    this.MoveType = Asc.c_oAscRevisionsMove.NoMove;
+
     this.PrevType = -1;
     this.PrevInfo = null;
 }
@@ -10919,6 +10988,7 @@ CReviewInfo.prototype.Write_ToBinary = function(oWriter)
 	oWriter.WriteString2(this.UserId);
 	oWriter.WriteString2(this.UserName);
 	oWriter.WriteString2(this.DateTime);
+	oWriter.WriteLong(this.MoveType);
 
     if (-1 !== this.PrevType && null !== this.PrevInfo)
 	{
@@ -10937,6 +11007,7 @@ CReviewInfo.prototype.Read_FromBinary = function(oReader)
     this.UserId   = oReader.GetString2();
     this.UserName = oReader.GetString2();
     this.DateTime = parseInt(oReader.GetString2());
+    this.MoveType = oReader.GetLong();
 
 	if (oReader.GetBool())
 	{
@@ -11028,6 +11099,30 @@ CReviewInfo.prototype.IsPrevAddedByCurrentUser = function()
 CReviewInfo.prototype.GetColor = function()
 {
 	return this.Get_Color();
+};
+/**
+ * Выставляем тип переноса
+ * @param {Asc.c_oAscRevisionsMove} nType
+ */
+CReviewInfo.prototype.SetMove = function(nType)
+{
+	this.MoveType = nType;
+};
+/**
+ * Добавленный текст во время переноса?
+ * @returns {boolean}
+ */
+CReviewInfo.prototype.IsMovedTo = function()
+{
+	return this.MoveType === Asc.c_oAscRevisionsMove.MoveTo;
+};
+/**
+ * Удаленный текст во время переноса?
+ * @returns {boolean}
+ */
+CReviewInfo.prototype.IsMovedFrom = function()
+{
+	return this.MoveType === Asc.c_oAscRevisionsMove.MoveFrom;
 };
 
 

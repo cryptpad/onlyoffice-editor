@@ -2421,6 +2421,7 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		var aSpelling   = PDSL.Spelling;
 		var aRunReview  = PDSL.RunReview;
 		var aCollChange = PDSL.CollChange;
+		var aDUnderline = PDSL.DUnderline;
 
 		// Рисуем зачеркивание
 		var Element = aStrikeout.Get_Next();
@@ -2461,6 +2462,19 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 			}
 			pGraphics.drawHorLine(0, Element.y0, Element.x0, Element.x1, Element.w);
 			Element = aUnderline.Get_Next();
+		}
+
+		Element = aDUnderline.Get_Next();
+		while (null != Element)
+		{
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
+			if (pGraphics.SetAdditionalProps)
+			{
+				pGraphics.SetAdditionalProps(Element.Additional2);
+			}
+			pGraphics.drawHorLine2(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
+
+			Element = aDUnderline.Get_Next();
 		}
 
 		if (pGraphics.RENDERER_PDF_FLAG !== true)
@@ -2860,7 +2874,7 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 		{
 			this.Content[StartPos].Remove(nCount, bOnAddText);
 
-			var isRemoveOnDrag = this.LogicDocument ? this.LogicDocument.RemoveOnDrag : false;
+			var isRemoveOnDrag = this.LogicDocument ? this.LogicDocument.DragAndDropAction : false;
 
 			// TODO: Как только избавимся от para_End переделать здесь
 			// Последние 2 элемента не удаляем (один для para_End, второй для всего остального)
@@ -14630,6 +14644,7 @@ function CParagraphDrawStateLines()
     this.Spelling   = new CParaDrawingRangeLines();
     this.RunReview  = new CParaDrawingRangeLines();
     this.CollChange = new CParaDrawingRangeLines();
+    this.DUnderline = new CParaDrawingRangeLines();
 
     this.Page  = 0;
     this.Line  = 0;

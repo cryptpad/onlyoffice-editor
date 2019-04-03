@@ -232,6 +232,12 @@ var c_oAscHyperlinkAnchor = {
 	Bookmark      : 2
 };
 
+var c_oAscRevisionsMove = {
+	NoMove   : 0,
+	MoveTo   : 1,
+	MoveFrom : 2
+};
+
 window["flat_desine"] = false;
 
 //------------------------------------------------------------export---------------------------------------------------
@@ -350,7 +356,10 @@ prot = window['Asc']['c_oAscHyperlinkAnchor'] = window['Asc'].c_oAscHyperlinkAnc
 prot['Heading']       = c_oAscHyperlinkAnchor.Heading;
 prot['Bookmark']      = c_oAscHyperlinkAnchor.Bookmark;
 
-
+prot = window['Asc']['c_oAscRevisionsMove'] = window['Asc'].c_oAscRevisionsMove = c_oAscRevisionsMove;
+prot['NoMove']   = c_oAscRevisionsMove.NoMove;
+prot['MoveTo']   = c_oAscRevisionsMove.MoveTo;
+prot['MoveFrom'] = c_oAscRevisionsMove.MoveFrom;
 
 window['AscCommon']                = window['AscCommon'] || {};
 window['AscCommon'].c_oSerFormat   = c_oSerFormat;
