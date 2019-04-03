@@ -1870,10 +1870,7 @@
 				}
 				AscFormat.fResetConnectorsIds(aCopies, oIdMap);
 				if (aImagesSync.length > 0) {
-					window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync, null, function () {
-						ws.objectRender.showDrawingObjects(true);
-						ws.objectRender.controller.getGraphicObjectProps();
-					});
+					window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync, null);
 				}
 				ws.objectRender.controller.updateSelectionState();
 				ws.objectRender.showDrawingObjects(true);
@@ -2013,7 +2010,7 @@
 
 				var old_val = api.ImageLoader.bIsAsyncLoadDocumentImages;
 				api.ImageLoader.bIsAsyncLoadDocumentImages = true;
-				api.ImageLoader.LoadDocumentImages(aImagesSync, null, ws.objectRender.asyncImagesDocumentEndLoaded);
+				api.ImageLoader.LoadDocumentImages(aImagesSync, null);
 				api.ImageLoader.bIsAsyncLoadDocumentImages = old_val;
 
 				ws.objectRender.showDrawingObjects(true);

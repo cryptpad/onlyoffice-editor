@@ -2849,7 +2849,7 @@ function DrawingObjects() {
                     History.TurnOn();
                     if(aImagesSync.length > 0)
                     {
-                        window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync, null, function(){_this.showDrawingObjects(true)});
+                        window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync, null);
                     }
                 });
 
