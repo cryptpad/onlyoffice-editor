@@ -740,22 +740,20 @@
     CCellRangeNode.prototype._parseCellVal = function (oCurCell, oRes) {
         if(oCurCell){
             var res = this.getContentValue(oCurCell.GetContent());
-            if(res){
-                if(!(res.flags & PARSER_MASK_CLEAN)){
-                    if(oRes.bClean === true && this.result.length > 0){
-                        oRes.bBreak = true;
-                    }
-                    else{
-                        oRes.bClean = false;
-                        if(res.result !== null){
-                            this.result.push(res.result);
-                        }
-                    }
+            if(!res || !(res.flags & PARSER_MASK_CLEAN)){
+                if(oRes.bClean === true && this.result.length > 0){
+                    oRes.bBreak = true;
                 }
                 else{
-                    if(res.result !== null){
+                    oRes.bClean = false;
+                    if(res && res.result !== null){
                         this.result.push(res.result);
                     }
+                }
+            }
+            else{
+                if(res.result !== null){
+                    this.result.push(res.result);
                 }
             }
         }
@@ -2144,6 +2142,7 @@
             nStartPos = this.pos;
         }
         if(this.pos < this.formula.length){
+            this.setFlag(PARSER_MASK_CLEAN, false);
             this.setError(ERROR_TYPE_SYNTAX_ERROR, this.formula[this.pos]);
             return;
         }
