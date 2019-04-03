@@ -6686,7 +6686,7 @@
 		}
 
 		var oResDefault = {cursor: kCurDefault, target: c_oTargetType.None, col: -1, row: -1};
-		if (x < this.cellsLeft && y < this.cellsTop) {
+		if (x >= this.headersLeft && x < this.cellsLeft && y < this.cellsTop) {
 			return {cursor: kCurCorner, target: c_oTargetType.Corner, col: -1, row: -1};
 		}
 
@@ -6703,6 +6703,21 @@
 			offsetY = (y < this.cellsTop + heightDiff) ? 0 : offsetY - heightDiff;
 		}
 
+		if(x <= this.cellsLeft && this.groupWidth && x < this.groupWidth) {
+			r = this._findRowUnderCursor(y, true);
+			row = -1;
+			if(r) {
+				row = r.row + (isNotFirst && f && y < r.top + 3 ? -1 : 0);
+			}
+			return {
+				cursor: kCurDefault,
+				target: c_oTargetType.GroupRow,
+				col: -1,
+				row: row,
+				mouseY: f ? (((y < r.top + 3) ? r.top : r.bottom) - y - 1) : null
+			};
+		}
+
 		var epsChangeSize = 3 * AscCommon.global_mouseEvent.KoefPixToMM;
 		if (x <= this.cellsLeft && y >= this.cellsTop) {
 			r = this._findRowUnderCursor(y, true);
@@ -6711,16 +6726,6 @@
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
 			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.isCellEditMode;
-
-			if(this.groupWidth && x < this.groupWidth) {
-				return {
-					cursor: kCurDefault,
-					target: c_oTargetType.GroupRow,
-					col: -1,
-					row: r.row + (isNotFirst && f && y < r.top + 3 ? -1 : 0),
-					mouseY: f ? (((y < r.top + 3) ? r.top : r.bottom) - y - 1) : null
-				};
-			}
 
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
@@ -15859,17 +15864,13 @@
 		ctx.lineVerPrevPx(x2, y1, y2);
 		ctx.stroke();
 
-		//buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
-
-		var padding = 1;
-		var buttonSize = 16 - padding;
-
 		if(groupData.groupArr.length) {
 			for(var i = 0; i < groupData.groupArr.length; i++) {
-				var x = padding * 2 + i * (buttonSize + 1);
-				var y = padding * 2;
-				var w = buttonSize;
-				var h = buttonSize;
+				var props = this.getGroupDataMenuButPos(i);
+				var x = props.x;
+				var y = props.y;
+				var w = props.w;
+				var h = props.h;
 
 				ctx.lineHorPrevPx(x, y, x + w);
 				ctx.lineVerPrevPx(x + w, y, y + h);
@@ -15884,12 +15885,25 @@
 				var textY = this._calcTextVertPos(y, h, bl, tm, Asc.c_oAscVAlign.Bottom);*/
 
 				//ctx.AddClipRect(x, y, w, h);
-				ctx.setFillStyle(st.color).fillText(text, x, y + Asc.round(tm.baseline), undefined, sr.charWidths);
+				ctx.setFillStyle(st.color).fillText(text, x + w / 2 - tm.width / 2, y + Asc.round(tm.baseline) + h / 2 -  tm.height / 2, undefined, sr.charWidths);
 				//ctx.RemoveClipRect();
 			}
 			ctx.stroke();
 			ctx.closePath();
 		}
+	};
+
+	WorksheetView.prototype.getGroupDataMenuButPos = function (level) {
+		var padding = 1;
+		var buttonSize = 16 - padding;
+
+		//TODO учитывать будущий отступ для группировки колонок!
+		var x = padding * 2 + level * (buttonSize + 1);
+		var y = padding * 2;
+		var w = buttonSize;
+		var h = buttonSize;
+
+		return {x: x, y: y, w: w, h: h};
 	};
 
 	WorksheetView.prototype.getGroupCommonLevel = function () {
@@ -15918,6 +15932,24 @@
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target) {
 		if(target.row < 1) {
+			//проверяем, возможно мы попали в одну из кнопок управления уровнями
+			//TODO для группировки колонок - y должен быть больше поля колонок
+			if(x <= this.cellsLeft && this.groupWidth && x < this.groupWidth && y < this.cellsTop) {
+				var groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+				if(!groupArr) {
+					return;
+				}
+
+				var props;
+				for(var i = 0; i <= groupArr.length; i++) {
+					props = this.getGroupDataMenuButPos(i);
+					if(x >= props.x && y >= props.y && x <= props.x + props.w && y <= props.y + props.h) {
+						this.hideGroupLevel(i + 1);
+						break;
+					}
+				}
+			}
+
 			return;
 		}
 
@@ -16149,7 +16181,77 @@
 			return;
 		}
 
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock()) {
+			return;
+		}
+
+		//TODO duplicate code into _tryChangeGroup func
+		var oRecalcType = AscCommonExcel.recalcType.recalc;
+		var reinitRanges = false;
+		var updateDrawingObjectsInfo = null;
+		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
+		var isUpdateCols = false, isUpdateRows = false;
+		var isCheckChangeAutoFilter;
+		var functionModelAction = null;
+		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
+		var arrChangedRanges = [];
+
+		var onChangeWorksheetCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			asc_applyFunction(callback);
+
+			t._initCellsArea(oRecalcType);
+			if (oRecalcType) {
+				t.cache.reset();
+			}
+			t._cleanCellsTextMetricsCache();
+			t._prepareCellTextMetricsCache();
+
+			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
+
+			t.cellCommentator.updateAreaComments();
+
+			if (t.objectRender) {
+				if (reinitRanges && t.objectRender.drawingArea) {
+					t.objectRender.drawingArea.reinitRanges();
+				}
+				if (null !== updateDrawingObjectsInfo) {
+					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
+				}
+				if (null !== updateDrawingObjectsInfo2) {
+					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
+						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
+				}
+				t.model.onUpdateRanges(arrChangedRanges);
+				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+			}
+			//тут требуется обновить только rowLevelMap
+			t._updateRowGroups();
+
+			t.draw(lockDraw);
+
+			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+
+			if (isUpdateCols) {
+				t._updateVisibleColsCount();
+			}
+			if (isUpdateRows) {
+				t._updateVisibleRowsCount();
+			}
+
+			t.handlers.trigger("selectionChanged");
+			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+		};
+
 		var callback = function() {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			//TODO check filtering mode
 			for(var i = 0; i <= groupArr.length; i++) {
 				if(!groupArr[i]) {
 					continue;
@@ -16158,9 +16260,11 @@
 					t.model.setRowHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
 				}
 			}
+
+			History.EndTransaction();
 		};
 
-		this._isLockedAll(callback);
+		this._isLockedAll(onChangeWorksheetCallback);
 
 		console.timeEnd("hideGroupLevel");
 	};
