@@ -1471,6 +1471,13 @@
 		Grand: 13,
 		Blank: 14
 	};
+
+	var c_oAscRevisionsMove = {
+		NoMove   : 0,
+		MoveTo   : 1,
+		MoveFrom : 2
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2281,4 +2288,9 @@
 	prot['VarP'] = prot.VarP;
 	prot['Grand'] = prot.Grand;
 	prot['Blank'] = prot.Blank;
+
+	prot = window['Asc']['c_oAscRevisionsMove'] = window['Asc'].c_oAscRevisionsMove = c_oAscRevisionsMove;
+	prot['NoMove']   = c_oAscRevisionsMove.NoMove;
+	prot['MoveTo']   = c_oAscRevisionsMove.MoveTo;
+	prot['MoveFrom'] = c_oAscRevisionsMove.MoveFrom;
 })(window);
