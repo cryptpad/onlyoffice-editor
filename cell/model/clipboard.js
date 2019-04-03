@@ -493,7 +493,13 @@
 					}
 
 					var wb = worksheet.model.workbook;
-					var oldCreater = wb.Core.creator;
+					var isNullCore = false;
+					if(!wb.Core) {
+						isNullCore = true;
+						wb.Core = new window['AscCommon'].CCore();
+					}
+
+					var oldCreator = wb.Core.creator;
 					var oldIdentifier = wb.Core.identifier;
 					wb.Core.creator = wb.oApi && wb.oApi.CoAuthoringApi ? wb.oApi.CoAuthoringApi.getUserConnectionId() : null;
 					wb.Core.identifier = wb.oApi && wb.oApi.DocInfo ? wb.oApi.DocInfo.Id : null;
@@ -504,8 +510,12 @@
 					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 					pptx_content_writer.End_UseFullUrl();
 
-					wb.Core.creator = oldCreater;
-					wb.Core.identifier = oldIdentifier;
+					if(isNullCore) {
+						wb.Core = null;
+					} else {
+						wb.Core.creator = oldCreator;
+						wb.Core.identifier = oldIdentifier;
+					}
 				}
 
 				return sBase64;
@@ -1222,7 +1232,7 @@
 				//чтобы не передавать изменения на сервер, даже в случае одного пользователя в разных вкладках
 				//вырезать и вставить будут работать независимо, поэтому при вставке сравнивем ещё и id юзера
 
-				if(pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId && null !== window["Asc"]["editor"].wb.cutIdSheet) {
+				if(pastedWb.Core && pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId && null !== window["Asc"]["editor"].wb.cutIdSheet) {
 					var wsFrom = window["Asc"]["editor"].wb.getWorksheetById(window["Asc"]["editor"].wb.cutIdSheet);
 					var fromRange = wsFrom ? wsFrom.cutRange : null;
 					if(fromRange) {
