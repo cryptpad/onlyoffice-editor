@@ -3849,7 +3849,7 @@ PasteProcessor.prototype =
 
 		var tempCDocument = function()
 		{
-			return new CDocument( this.oDocument.DrawingDocument, false);
+			return new CDocument( oThis.oDocument.DrawingDocument, false);
 		};
 		//создаём темповый CDocument
 		this.oDocument = AscFormat.ExecuteNoHistory(tempCDocument , this, []);
