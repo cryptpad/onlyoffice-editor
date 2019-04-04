@@ -68,7 +68,6 @@
 			"../slide/Editor/Format/TextBodyPrototype.js",
 			"../common/Drawings/Format/GraphicFrame.js",
 			"../common/Charts/charts.js",
-			"../common/Charts/DrawingArea.js",
 			"../common/Charts/DrawingObjects.js",
 			"../common/Charts/3DTransformation.js",
 			"../common/Charts/ChartsDrawer.js",
