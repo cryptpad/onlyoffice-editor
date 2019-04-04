@@ -3883,21 +3883,23 @@ PasteProcessor.prototype =
 				}
 				else if(type_Table === element.GetType())//table
 				{
+					element = oThis._convertTableToPPTX(element, true);
+
 					//TODO переделать количество строк и ширину
-					var W = 100;
-					var Rows = 3;
+					var W = oThis.oDocument.Width / 1.45;
+					var Rows = element.GetRowsCount();
+					var H = Rows * 7.478268771701388;
 					var graphic_frame = new CGraphicFrame();
 					graphic_frame.setSpPr(new AscFormat.CSpPr());
 					graphic_frame.spPr.setParent(graphic_frame);
 					graphic_frame.spPr.setXfrm(new AscFormat.CXfrm());
 					graphic_frame.spPr.xfrm.setParent(graphic_frame.spPr);
-					graphic_frame.spPr.xfrm.setOffX((oThis.oDocument.Width - W)/2);
-					graphic_frame.spPr.xfrm.setOffY(oThis.oDocument.Height/5);
+					graphic_frame.spPr.xfrm.setOffX(oThis.oDocument.Width/2 - W/2);
+					graphic_frame.spPr.xfrm.setOffY(oThis.oDocument.Height/2 - H/2);
 					graphic_frame.spPr.xfrm.setExtX(W);
-					graphic_frame.spPr.xfrm.setExtY(7.478268771701388 * Rows);
+					graphic_frame.spPr.xfrm.setExtY(H);
 					graphic_frame.setNvSpPr(new AscFormat.UniNvPr());
 
-					element = oThis._convertTableToPPTX(element, true);
 					graphic_frame.setGraphicObject(element.Copy(graphic_frame));
 					graphic_frame.graphicObject.Set_TableStyle(defaultTableStyleId);
 
@@ -3943,6 +3945,25 @@ PasteProcessor.prototype =
 		{
 			if(false === oThis.bNested)
 			{
+				//для таблиц необходимо рассчитать их размер, чтобы разместить в центре
+				var slide = presentation.Slides[0];
+				for(var i = 0; i < presentationSelectedContent.Drawings.length; i++) {
+					if(presentationSelectedContent.Drawings[i].Drawing instanceof CGraphicFrame) {
+						var drawing = presentationSelectedContent.Drawings[i].Drawing;
+						var oldParent = drawing.parent;
+						var bDeleted = drawing.bDeleted;
+						drawing.parent = slide;
+						drawing.bDeleted = false;
+						drawing.recalculate();
+						drawing.parent = oldParent;
+						drawing.bDeleted = bDeleted;
+
+						drawing.spPr.xfrm.setOffX(oThis.oDocument.Width/2 - drawing.extX/2);
+						drawing.spPr.xfrm.setOffY(oThis.oDocument.Height/2 - drawing.extY/2);
+
+					}
+				}
+
 				if(presentation.Insert_Content(presentationSelectedContent)) {
 					presentation.Recalculate();
 					presentation.Check_CursorMoveRight();
