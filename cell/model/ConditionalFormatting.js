@@ -667,6 +667,7 @@
 	var c_arrIcons = [20];
 	c_arrIcons[EIconSetType.Traffic3Lights1] = [sDownIncline];
 	c_arrIcons[EIconSetType.Arrows3] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Arrows4] = [sDown, sDownIncline, sUpIncline, sUp];
 	c_arrIcons[EIconSetType.Arrows5] = [sDown, sDownIncline, sSide, sUpIncline, sUp];
 
 	function getIconsForLoad() {
