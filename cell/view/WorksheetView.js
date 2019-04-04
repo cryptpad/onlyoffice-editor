@@ -2743,21 +2743,19 @@
 						rect._y *= dScale;
 						rect._width *= dScale;
 						rect._height *= dScale;
+                        var oSize = {Width: 16*AscCommon.g_dKoef_pix_to_mm, Height: 16*AscCommon.g_dKoef_pix_to_mm};//oImgP.asc_getOriginSize(Asc.editor);Fix IE 11 bug
                         AscFormat.ExecuteNoHistory(
                             function (img, rect) {
                                 var oImgP = new Asc.asc_CImgProperty();
                                 oImgP.ImageUrl = img;
-                                var oSize = oImgP.asc_getOriginSize(Asc.editor);
 
                                 rect._y = rect._y + rect._height - oSize.Height;
-                                rect._width = oSize.Width;
-                                rect._height = oSize.Height;
                                 var geometry = new AscFormat.CreateGeometry("rect");
                                 //var path = new AscFormat.Path();
                                 var _x = rect._x;
                                 var _y = rect._y;
-                                var _w = rect._width;
-                                var _h = rect._height;
+                                var _w = oSize.Width;
+                                var _h = oSize.Height;
                                // console.log("DRAW CF X: " + _x + "  Y: " + _y + " W: " + _w + " H: " + _h);
                                 // path.moveTo("l", "t");
                                 // path.lnTo(rect._x + rect._width, rect._y);
