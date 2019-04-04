@@ -2187,7 +2187,7 @@ PasteProcessor.prototype =
             dCellWidth -= nMarginLeft + nMarginRight;
         return dCellWidth;
     },
-    InsertInDocument : function()
+    InsertInDocument : function(dNotShowOptions)
     {
         var oDocument = this.oDocument;
 
@@ -2228,7 +2228,11 @@ PasteProcessor.prototype =
         }
 		
 		//for special paste
-		this._specialPasteSetShowOptions();
+		if(dNotShowOptions) {
+			window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+		} else {
+			this._specialPasteSetShowOptions();
+		}
 		
 		window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
     },
@@ -4968,7 +4972,7 @@ PasteProcessor.prototype =
 		var fPasteTextWordCallback = function () {
 			var executePasteWord = function () {
 				if (false === oThis.bNested) {
-					oThis.InsertInDocument();
+					oThis.InsertInDocument(true);
 				}
 			};
 
