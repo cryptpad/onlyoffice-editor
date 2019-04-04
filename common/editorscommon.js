@@ -3054,7 +3054,7 @@
 			var bNeedUpdate = false;
 			for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 			{
-				if (arrParagraphs[nIndex].Get_Lock() === this)
+				if (arrParagraphs[nIndex].GetLock() === this)
 				{
 					bNeedUpdate = true;
 					break;
