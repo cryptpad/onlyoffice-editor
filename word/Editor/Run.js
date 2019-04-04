@@ -9699,7 +9699,7 @@ ParaRun.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
 		this.ReviewInfo.Update();
 
 		if (this.GetLogicDocument() && this.GetLogicDocument().DragAndDropAction)
-			this.ReviewInfo.SetMove(c_oAscRevisionsMove.MoveFrom);
+			this.ReviewInfo.SetMove(Asc.c_oAscRevisionsMove.MoveFrom);
 
 		History.Add(new CChangesRunReviewType(this, {
 			ReviewType : OldReviewType,
