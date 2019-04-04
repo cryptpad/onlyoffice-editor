@@ -438,8 +438,19 @@ function BinaryPPTYLoader()
             pres.fromStream(s, this);
 
             this.presentation.defaultTextStyle = pres.defaultTextStyle;
-            this.presentation.Width = pres.SldSz.cx / c_dScalePPTXSizes;
-            this.presentation.Height = pres.SldSz.cy / c_dScalePPTXSizes;
+            if(pres.SldSz)
+            {
+                this.presentation.Width = pres.SldSz.cx / c_dScalePPTXSizes;
+                this.presentation.Height = pres.SldSz.cy / c_dScalePPTXSizes;
+            }
+            else
+            {
+                this.presentation.Width = 254;
+                this.presentation.Height = 190.5;
+                pres.SldSz = {};
+                pres.SldSz.cx = this.presentation.Width * c_dScalePPTXSizes;
+                pres.SldSz.cy = this.presentation.Height * c_dScalePPTXSizes;
+            }
         }
 
         if (!this.IsThemeLoader)
