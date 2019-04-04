@@ -17,6 +17,6 @@ copy ..\cell\sdk-all-min.js ..\..\core\build\jsbuilder\sdkjs\cell\sdk-all-min.js
 copy ..\common\Native\native.js ..\..\core\build\jsbuilder\sdkjs\common\Native\native.js
 copy ..\common\libfont\js\fonts.js ..\..\core\build\jsbuilder\sdkjs\common\libfont\js\fonts.js
 copy ..\common\libfont\wasm\fonts.js ..\..\core\build\jsbuilder\sdkjs\common\libfont\wasm\fonts.js
-copy ..\common\libfont\wasm\engine.wasm ..\..\core\build\jsbuilder\sdkjs\common\libfont\wasm\fonts.wasm
+copy ..\common\libfont\wasm\fonts.wasm ..\..\core\build\jsbuilder\sdkjs\common\libfont\wasm\fonts.wasm
 
 pause

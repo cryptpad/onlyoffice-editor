@@ -45,7 +45,14 @@
 
 
     function dBoundColor(c) {
-        return Math.min(255, Math.max(0, (c + 0.5) >> 0));
+        var t = (c + 0.5) >> 0;
+        return (t < 0) ? 0 : (t > 255 ? 255 : t);
+        //return Math.min(255, Math.max(0, (c + 0.5) >> 0));
+    }
+    function dBoundColor2(c, min, max) {
+        var t = (c + 0.5) >> 0;
+        return (t < min) ? min : (t > max ? max : t);
+        //return Math.min(max, Math.max(min, (c + 0.5) >> 0));
     }
 
     CShapeColor.prototype.getColorData = function (dBrightness)
@@ -99,4 +106,6 @@
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CShapeColor = CShapeColor;
+    window['AscFormat'].ClampColor = dBoundColor;
+    window['AscFormat'].ClampColor2 = dBoundColor2;
 })(window);
