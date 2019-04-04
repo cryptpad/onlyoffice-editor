@@ -792,6 +792,7 @@ DrawingArea.prototype.getOffsets = function(x, y, bEvents) {
 
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscFormat'] = window['AscFormat'] || {};
+	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscFormat'].DrawingArea = DrawingArea;
 
 	window["AscCommonExcel"].sFrozenImageUrl = sFrozenImageUrl;
