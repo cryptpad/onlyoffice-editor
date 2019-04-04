@@ -3505,7 +3505,7 @@ CPresentation.prototype =
             {
                 this.DrawingDocument.CancelTrackText();
             }
-            if (AscCommon.c_oAscFormatPainterState.kOn === this.Api.isPaintFormat)
+            if (AscCommon.c_oAscFormatPainterState.kOff !== this.Api.isPaintFormat)
             {
                 this.Api.sync_PaintFormatCallback(AscCommon.c_oAscFormatPainterState.kOff);
                 this.OnMouseMove(global_mouseEvent, 0, 0, this.CurPage);
