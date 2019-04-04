@@ -10188,6 +10188,8 @@ Paragraph.prototype.PreDelete = function()
 		}
 	}
 
+	this.RemoveSelection();
+
 	this.UpdateDocumentOutline();
 
 	if (undefined !== this.Get_SectionPr() && this.LogicDocument)

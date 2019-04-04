@@ -3689,6 +3689,8 @@ CTable.prototype.PreDelete = function()
 		var Row = this.Content[CurRow];
 		Row.PreDelete();
 	}
+
+	this.RemoveSelection();
 };
 CTable.prototype.RemoveInnerTable = function()
 {

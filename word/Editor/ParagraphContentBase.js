@@ -3642,6 +3642,8 @@ CParagraphContentWithParagraphLikeContent.prototype.PreDelete = function()
 		if (this.Content[nIndex] && this.Content[nIndex].PreDelete)
 			this.Content[nIndex].PreDelete();
 	}
+
+	this.RemoveSelection();
 };
 CParagraphContentWithParagraphLikeContent.prototype.GetCurrentComplexFields = function(arrComplexFields, isCurrent, isFieldPos)
 {

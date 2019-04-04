@@ -10367,6 +10367,8 @@ ParaRun.prototype.PreDelete = function()
 		if (para_Drawing === this.Content[nIndex].Type)
 			this.Content[nIndex].PreDelete();
 	}
+
+	this.RemoveSelection();
 };
 ParaRun.prototype.GetCurrentComplexFields = function(arrComplexFields, isCurrent, isFieldPos)
 {

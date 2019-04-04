@@ -7984,6 +7984,8 @@ CDocumentContent.prototype.PreDelete = function()
 	{
 		this.Content[nIndex].PreDelete();
 	}
+
+	this.RemoveSelection();
 };
 CDocumentContent.prototype.IsBlockLevelSdtContent = function()
 {
