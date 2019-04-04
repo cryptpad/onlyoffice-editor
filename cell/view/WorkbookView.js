@@ -1347,8 +1347,8 @@
     this.getWorksheet().af_setDialogProp(idFilter);
   };
 
-  WorkbookView.prototype._onGroupRowClick = function(x, y, target) {
-  	this.getWorksheet().groupRowClick(x, y, target);
+  WorkbookView.prototype._onGroupRowClick = function(x, y, target, type) {
+  	this.getWorksheet().groupRowClick(x, y, target, type);
   };
 
   WorkbookView.prototype._onCommentCellClick = function(x, y) {

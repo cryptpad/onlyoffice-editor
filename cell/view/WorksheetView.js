@@ -1981,7 +1981,7 @@
         this._drawColumnHeaders(null);
         this._drawRowHeaders(null);
         this._drawGrid(null);
-        this._drawGroupData(null);
+        //this._drawGroupData(null);
         this._drawCellsAndBorders(null);
 		this._drawGroupData(null);
         this._drawFrozenPane();
@@ -15771,7 +15771,7 @@
 								tempButtonMap[i] = [];
 							}
 							tempButtonMap[i][endY] = 1;
-							buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - 1, h: buttonSize - 1, row: endY, rowTop: endPos, rowHeight: heightNextRow});
+							buttons.push({r: endY, level: i});
 						}
 					}
 
@@ -15812,39 +15812,108 @@
 		ctx.closePath();
 
 
+		this._drawGroupDataButtons(drawingCtx, buttons, leftFieldInPx, topFieldInPx);
+
+		console.timeEnd("draw");
+	};
+
+	WorksheetView.prototype._drawGroupDataButtons = function(drawingCtx, buttons, leftFieldInPx, topFieldInPx) {
+		if(!buttons) {
+			return;
+		}
+
+		var groupData = this.arrRowGroups;
+		if(!groupData || !groupData.groupArr) {
+			return;
+		}
+
+		var rowLevelMap = groupData.rowLevelMap;
+
+		var ctx = drawingCtx || this.drawingCtx;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+		if (!drawingCtx && this.topLeftFrozenCell) {
+			if (undefined === topFieldInPx) {
+				var rFrozen = this.topLeftFrozenCell.getRow0();
+				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
+			}
+		}
 
 		//buttons
 		//проходимся 2 раза, поскольку разная толщина у рамки и у -/+
-		var m;
-		if(buttons.length) {
-			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(1).beginPath();
-			for(m = 0; m < buttons.length; m++) {
-				ctx.lineHorPrevPx(buttons[m].x, buttons[m].y, buttons[m].x + buttons[m].w);
-				ctx.lineVerPrevPx(buttons[m].x + buttons[m].w, buttons[m].y, buttons[m].y + buttons[m].h);
-				ctx.lineHorPrevPx(buttons[m].x + buttons[m].w, buttons[m].y + buttons[m].h, buttons[m].x);
-				ctx.lineVerPrevPx(buttons[m].x, buttons[m].y + buttons[m].h, buttons[m].y - 1);
+
+
+		var st = this.settings.header.style[kHeaderDefault];
+
+		var i, row, level, diff, pos, x, y, w, h, active;
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(1).beginPath();
+		for(i = 0; i < buttons.length; i++) {
+			row = buttons[i].r;
+			level = buttons[i].level;
+
+			pos = this._getGroupDataButtonPos(row, level);
+
+			x = pos.x;
+			y = pos.y - offsetY;
+			w = pos.w;
+			h = pos.h;
+
+			if(buttons[i].clean) {
+				this.drawingCtx.clearRect(x, y, w, h);
 			}
-			ctx.stroke();
-			ctx.closePath();
+
+			ctx.lineHorPrevPx(x, y, x + w);
+			ctx.lineVerPrevPx(x + w, y, y + h);
+			ctx.lineHorPrevPx(x + w, y + h, x);
+			ctx.lineVerPrevPx(x, y + h, y - 1);
+
+		}
+		ctx.stroke();
+		ctx.closePath();
+
+
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(2).beginPath();
+
+		var sizeLine = 8;
+		var paddingLine = 3;
+		for(i = 0; i < buttons.length; i++) {
+			row = buttons[i].r;
+			level = buttons[i].level;
+			active = buttons[i].active;
+
+			diff = active ? 1 : 0;
+			pos = this._getGroupDataButtonPos(row, level);
+
+			x = pos.x + diff;
+			y = pos.y - offsetY + diff;
+			w = pos.w;
+			h = pos.h;
+
+			if(rowLevelMap[row] && rowLevelMap[row].collapsed) {
+				ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + 1, x + sizeLine + paddingLine);
+				ctx.lineVerPrevPx(x + paddingLine + sizeLine / 2 + 1, y + h / 2 + 1 - sizeLine / 2 - 1,  y + h / 2 + 1 + sizeLine / 2 - 1);
+			} else {
+				ctx.lineHorPrevPx(x + 3, y + h / 2 + 1, x + 8 + 3);
+			}
 		}
 
-		if(buttons.length) {
-			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(2).beginPath();
-			var sizeLine = 8;
-			var paddingLine = 3;
-			for(m = 0; m < buttons.length; m++) {
-				if(rowLevelMap[buttons[m].row] && rowLevelMap[buttons[m].row].collapsed) {
-					ctx.lineHorPrevPx(buttons[m].x + paddingLine, buttons[m].y + buttons[m].h / 2 + 1, buttons[m].x + sizeLine + paddingLine);
-					ctx.lineVerPrevPx(buttons[m].x + paddingLine + sizeLine / 2 + 1, buttons[m].y + buttons[m].h / 2 + 1 - sizeLine / 2 - 1,  buttons[m].y + buttons[m].h / 2 + 1 + sizeLine / 2 - 1);
-				} else {
-					ctx.lineHorPrevPx(buttons[m].x + 3, buttons[m].y + buttons[m].h / 2 + 1, buttons[m].x + 8 + 3);
-				}
-			}
-			ctx.stroke();
-			ctx.closePath();
-		}
+		ctx.stroke();
+		ctx.closePath();
+	};
 
-		console.timeEnd("draw");
+	WorksheetView.prototype._getGroupDataButtonPos = function(row, level) {
+		//возвращает позицию без учета сдвига offsetY
+		var buttonSize = 16;
+		var padding = 1;
+
+		var endPos = this._getRowTop(row);
+		var rowH = this._getRowHeight(row);
+		var posX = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
+		var x = posX - 6;
+		var y = endPos + rowH/2 - buttonSize / 2;
+		var w = buttonSize - 1;
+		var h = buttonSize - 1;
+
+		return {x: x, y: y, w: w, h: h};
 	};
 
 	WorksheetView.prototype._drawGroupDataMenu = function ( drawingCtx ) {
@@ -15901,7 +15970,7 @@
 		var padding = 1;
 		var buttonSize = 16 - padding;
 
-		//TODO учитывать будущий отступ для группировки колонок!
+		//TODO учитывать будущий отступ для группировке колонок!
 		var x = padding * 2 + level * (buttonSize + 1);
 		var y = padding * 2;
 		var w = buttonSize;
@@ -15934,99 +16003,52 @@
 		return res;
 	};
 
-	WorksheetView.prototype.groupRowClick = function (x, y, target) {
+	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
 		if(target.row < 1) {
 			//проверяем, возможно мы попали в одну из кнопок управления уровнями
-			//TODO для группировки колонок - y должен быть больше поля колонок
-			if(x <= this.cellsLeft && this.groupWidth && x < this.groupWidth && y < this.cellsTop) {
-				var groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
-				if(!groupArr) {
-					return;
-				}
-
-				var props;
-				for(var i = 0; i <= groupArr.length; i++) {
-					props = this.getGroupDataMenuButPos(i);
-					if(x >= props.x && y >= props.y && x <= props.x + props.w && y <= props.y + props.h) {
-						this.hideGroupLevel(i + 1);
-						break;
-					}
-				}
-			}
-
+			this._groupRowMenuClick(x, y, target, type);
 			return;
 		}
 
 		console.time("groupRowClick");
 
 		var t = this;
-		var offsetX = /*(undefined !== leftFieldInPx) ? leftFieldInPx : */ this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
 		var offsetY = /*(undefined !== topFieldInPx) ? topFieldInPx : */ this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 		/*if (!drawingCtx && this.topLeftFrozenCell) {
-			if (undefined === leftFieldInPx) {
-				var cFrozen = this.topLeftFrozenCell.getCol0();
-				offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
-			}
 			if (undefined === topFieldInPx) {
 				var rFrozen = this.topLeftFrozenCell.getRow0();
 				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
 			}
 		}*/
 
-		//TODO сделать общую функцию с _drawGroupData для получения данных кнопки
-
 		var doClick = function() {
 			var arrayLines = t.arrRowGroups.groupArr;
 			var rowLevelMap = t.arrRowGroups.rowLevelMap;
 
-			var lineWidth = 2;
-			var bFirstLine = true;
-			var buttonSize = 16;
-			var padding = 1;
-			var buttons = [];
 			var endPosArr = {};
 			for(var i = 0; i < arrayLines.length; i++) {
 				if(arrayLines[i]) {
-					var index = bFirstLine ? 1 : i;
-					var posX = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
-
 					for(var j = 0; j < arrayLines[i].length; j++) {
-
 						if(endPosArr[arrayLines[i][j].end]) {
 							continue;
 						}
 						endPosArr[arrayLines[i][j].end] = 1;
 
 						if(arrayLines[i][j].end + 1 === target.row) {
-							var endY = arrayLines[i][j].end + 1;
-							var endPos = t._getRowTop(endY) - offsetY;
-							var heightNextRow = t._getRowHeight(endY);
-
-							var paddingTop = (heightNextRow - buttonSize) / 2;
-							if(paddingTop < 0) {
-								paddingTop = 0;
-							}
-
-							var collapsed = rowLevelMap[endY] && rowLevelMap[endY].collapsed;
-							if(heightNextRow) {
-								var x1 = posX - 6;
-								var x2 = x1 + buttonSize - lineWidth;
-								var y1 = endPos + heightNextRow/2 - buttonSize / 2;
-								var y2 = y1 + buttonSize - lineWidth;
-								if(x >= x1 && x <= x2 && y >= y1 && y <= y2) {
-									t._tryChangeGroup(arrayLines[i][j], collapsed, i);
+							var props = t._getGroupDataButtonPos(arrayLines[i][j].end + 1, i);
+							var collapsed = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+							if(props) {
+								if(x >= props.x && x <= props.x + props.w && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
+									if("mouseup" === type) {
+										t._tryChangeGroup(arrayLines[i][j], collapsed, i);
+									} else if("mousedown" === type) {
+										//перерисовываем кнопку в нажатом состоянии
+										t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}]);
+									}
 								}
 							}
-
-							/*if(endY === arrayLines[i][j].end + 1) {
-							 //TODO ms обрезает кнопки сверху/снизу
-							 if(heightNextRow) {
-							 buttons.push({x: posX - 6, y: endPos + heightNextRow/2 - buttonSize / 2, w: buttonSize - lineWidth, h: buttonSize - lineWidth, row: endY, rowTop: endPos, rowHeight: heightNextRow});
-							 }
-							 }*/
 						}
 					}
-					bFirstLine = false;
 				}
 			}
 		};
@@ -16047,6 +16069,31 @@
 		}
 
 		console.timeEnd("groupRowClick");
+	};
+
+	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type) {
+
+		//TODO для группировки колонок - y должен быть больше поля колонок
+		if(x <= this.cellsLeft && this.groupWidth && x < this.groupWidth && y < this.cellsTop) {
+			var groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+			if(!groupArr) {
+				return;
+			}
+
+			var props;
+			for(var i = 0; i <= groupArr.length; i++) {
+				props = this.getGroupDataMenuButPos(i);
+				if(x >= props.x && y >= props.y && x <= props.x + props.w && y <= props.y + props.h) {
+					if("mouseup" === type) {
+						this.hideGroupLevel(i + 1);
+					} else if("mousedown" === type){
+
+					}
+
+					break;
+				}
+			}
+		}
 	};
 
 	WorksheetView.prototype._tryChangeGroup = function (pos, collapsed, level) {

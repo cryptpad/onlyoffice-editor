@@ -631,7 +631,7 @@
 			var t = this;
 			// Обновляемся в режиме перемещения диапазона
 			var coord = this._getCoordinates(event);
-			this.handlers.trigger("groupRowClick", coord.x, coord.y, target);
+			this.handlers.trigger("groupRowClick", coord.x, coord.y, target, event.type);
 		};
 
 		asc_CEventsController.prototype._commentCellClick = function (event) {
@@ -1526,6 +1526,11 @@
 			if (this.frozenAnchorMode) {
 				this._moveFrozenAnchorHandleDone(event, this.frozenAnchorMode);
 				this.frozenAnchorMode = false;
+			}
+
+			if (this.targetInfo && this.targetInfo.target === c_oTargetType.GroupRow && 0 === event.button) {
+				this._groupRowClick(event, this.targetInfo);
+				return;
 			}
 
 			// Мы можем dblClick и не отработать, если вышли из области и отпустили кнопку мыши, нужно отработать
