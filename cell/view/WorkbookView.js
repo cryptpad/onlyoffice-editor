@@ -416,7 +416,7 @@
 			  }, "stopFormatPainter": function () {
 				  self._onStopFormatPainter.apply(self, arguments);
 			  }, "groupRowClick": function () {
-				  self._onGroupRowClick.apply(self, arguments);
+				  return self._onGroupRowClick.apply(self, arguments);
 			  },
 
 			  // Shapes
@@ -1348,7 +1348,7 @@
   };
 
   WorkbookView.prototype._onGroupRowClick = function(x, y, target, type) {
-  	this.getWorksheet().groupRowClick(x, y, target, type);
+  	return this.getWorksheet().groupRowClick(x, y, target, type);
   };
 
   WorkbookView.prototype._onCommentCellClick = function(x, y) {

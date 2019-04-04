@@ -430,7 +430,9 @@
         this.viewPrintLines = false;
 
         this.cutRange = null;
+
         this.arrRowGroups = null;
+        this.clickedRowGroupButton = null;
 
         this._init();
 
@@ -16017,16 +16019,43 @@
 	};
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
+		var t = this;
+		var offsetY = /*(undefined !== topFieldInPx) ? topFieldInPx : */ this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+
+		if("mousemove" === type) {
+			if(t.clickedRowGroupButton) {
+				var props;
+				if(undefined !== t.clickedRowGroupButton.r) {
+					props = t._getGroupDataButtonPos(t.clickedRowGroupButton.r, t.clickedRowGroupButton.level);
+					if(props) {
+						if (x >= props.x && x <= props.x + props.w && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
+							return true;
+						} else {
+							t._drawGroupDataButtons(null, [{r: t.clickedRowGroupButton.r, level: t.clickedRowGroupButton.level, active: false, clean: true}]);
+							t.clickedRowGroupButton = null;
+							return false;
+						}
+					}
+				} else {
+					props = this.getGroupDataMenuButPos(t.clickedRowGroupButton.level);
+					if(x >= props.x && y >= props.y && x <= props.x + props.w && y <= props.y + props.h) {
+						return true;
+					} else {
+						this._drawGroupDataMenuButton(null, t.clickedRowGroupButton.level, false, true);
+						t.clickedRowGroupButton = null;
+						return false;
+					}
+				}
+			}
+		}
+
 		if(target.row < 1) {
 			//проверяем, возможно мы попали в одну из кнопок управления уровнями
-			this._groupRowMenuClick(x, y, target, type);
-			return;
+			return this._groupRowMenuClick(x, y, target, type);
 		}
 
 		console.time("groupRowClick");
 
-		var t = this;
-		var offsetY = /*(undefined !== topFieldInPx) ? topFieldInPx : */ this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 		/*if (!drawingCtx && this.topLeftFrozenCell) {
 			if (undefined === topFieldInPx) {
 				var rFrozen = this.topLeftFrozenCell.getRow0();
@@ -16034,6 +16063,7 @@
 			}
 		}*/
 
+		var mouseDownClick;
 		var doClick = function() {
 			var arrayLines = t.arrRowGroups.groupArr;
 			var rowLevelMap = t.arrRowGroups.rowLevelMap;
@@ -16054,10 +16084,14 @@
 								if(x >= props.x && x <= props.x + props.w && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
 									if("mouseup" === type) {
 										t._tryChangeGroup(arrayLines[i][j], collapsed, i);
+										t.clickedRowGroupButton = null;
 									} else if("mousedown" === type) {
 										//перерисовываем кнопку в нажатом состоянии
 										t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}]);
+										t.clickedRowGroupButton = {level: i, r: arrayLines[i][j].end + 1};
+										mouseDownClick = true;
 									}
+									return;
 								}
 							}
 						}
@@ -16080,6 +16114,10 @@
 		if(outLineLevel !== prevOutlineLevel) {
 			doClick();
 		}
+		if(mouseDownClick) {
+			console.timeEnd("groupRowClick");
+			return true;
+		}
 
 		console.timeEnd("groupRowClick");
 	};
@@ -16099,8 +16137,11 @@
 				if(x >= props.x && y >= props.y && x <= props.x + props.w && y <= props.y + props.h) {
 					if("mouseup" === type) {
 						this.hideGroupLevel(i + 1);
+						this.clickedRowGroupButton = null;
 					} else if("mousedown" === type){
 						this._drawGroupDataMenuButton(null, i, true, true);
+						this.clickedRowGroupButton = {level: i};
+						return true;
 					}
 
 					break;

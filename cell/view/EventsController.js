@@ -117,6 +117,9 @@
             this.vsbApiLockMouse = false;
             this.hsbApiLockMouse = false;
 
+            //когда нажали на кнопку свертывания/развертывания группы строк
+            this.isRowGroup = false;
+
             return this;
 		}
 
@@ -631,7 +634,7 @@
 			var t = this;
 			// Обновляемся в режиме перемещения диапазона
 			var coord = this._getCoordinates(event);
-			this.handlers.trigger("groupRowClick", coord.x, coord.y, target, event.type);
+			return this.handlers.trigger("groupRowClick", coord.x, coord.y, target, event.type);
 		};
 
 		asc_CEventsController.prototype._commentCellClick = function (event) {
@@ -1169,6 +1172,12 @@
 				this.handlers.trigger("graphicObjectMouseMove", event, coord.x, coord.y);
 			}
 
+			if (this.isRowGroup) {
+				if(!this._groupRowClick(event, this.targetInfo)) {
+					this.isRowGroup = false;
+				}
+			}
+
 			return true;
 		};
 
@@ -1400,7 +1409,9 @@
 						t._moveFrozenAnchorHandle(event, this.frozenAnchorMode);
 						return;
 					} else if (t.targetInfo.target === c_oTargetType.GroupRow && 0 === event.button) {
-						t._groupRowClick(event, t.targetInfo);
+						if(t._groupRowClick(event, t.targetInfo)) {
+							t.isRowGroup = true;
+						}
 						return;
 					}
 				}
@@ -1528,8 +1539,9 @@
 				this.frozenAnchorMode = false;
 			}
 
-			if (this.targetInfo && this.targetInfo.target === c_oTargetType.GroupRow && 0 === event.button) {
+			if (this.isRowGroup/* && this.targetInfo && this.targetInfo.target === c_oTargetType.GroupRow && 0 === event.button*/) {
 				this._groupRowClick(event, this.targetInfo);
+				this.isRowGroup = false;
 				return;
 			}
 
