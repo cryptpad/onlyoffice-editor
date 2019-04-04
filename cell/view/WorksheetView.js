@@ -15858,7 +15858,7 @@
 			h = pos.h;
 
 			if(buttons[i].clean) {
-				this.drawingCtx.clearRect(x, y, w, h);
+				ctx.clearRect(x, y, w, h);
 			}
 
 			ctx.lineHorPrevPx(x, y, x + w);
@@ -15936,34 +15936,47 @@
 		ctx.lineHorPrevPx(x1, y2, x2);
 		ctx.lineVerPrevPx(x2, y1, y2);
 		ctx.stroke();
+		ctx.closePath();
 
 		if(groupData.groupArr.length) {
 			for(var i = 0; i < groupData.groupArr.length; i++) {
-				var props = this.getGroupDataMenuButPos(i);
-				var x = props.x;
-				var y = props.y;
-				var w = props.w;
-				var h = props.h;
-
-				ctx.lineHorPrevPx(x, y, x + w);
-				ctx.lineVerPrevPx(x + w, y, y + h);
-				ctx.lineHorPrevPx(x + w, y + h, x);
-				ctx.lineVerPrevPx(x, y + h, y - 1);
-
-				var text = i + 1 + "";
-				var sr = this.stringRender;
-				var tm = this._roundTextMetrics(sr.measureString(text));
-				/*var bl = y2WithoutBorder - Asc.round((isColHeader ? this.defaultRowDescender : this._getRowDescender(index)) * this.getZoom());
-				var textX = this._calcTextHorizPos(x, x2WithoutBorder, tm, tm.width < w ? AscCommon.align_Center : AscCommon.align_Left);
-				var textY = this._calcTextVertPos(y, h, bl, tm, Asc.c_oAscVAlign.Bottom);*/
-
-				//ctx.AddClipRect(x, y, w, h);
-				ctx.setFillStyle(st.color).fillText(text, x + w / 2 - tm.width / 2, y + Asc.round(tm.baseline) + h / 2 -  tm.height / 2, undefined, sr.charWidths);
-				//ctx.RemoveClipRect();
+				this._drawGroupDataMenuButton(ctx, i);
 			}
 			ctx.stroke();
 			ctx.closePath();
 		}
+	};
+
+	WorksheetView.prototype._drawGroupDataMenuButton = function ( drawingCtx, level, bActive, bClean ) {
+		var ctx = drawingCtx || this.drawingCtx;
+		var st = this.settings.header.style[kHeaderDefault];
+
+		var props = this.getGroupDataMenuButPos(level);
+		var x = props.x;
+		var y = props.y;
+		var w = props.w;
+		var h = props.h;
+
+		if(bClean) {
+			this.drawingCtx.clearRect(x, y, w, h);
+		}
+
+		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+
+		ctx.lineHorPrevPx(x, y, x + w);
+		ctx.lineVerPrevPx(x + w, y, y + h);
+		ctx.lineHorPrevPx(x + w, y + h, x);
+		ctx.lineVerPrevPx(x, y + h, y - 1);
+
+		var text = level + 1 + "";
+		var sr = this.stringRender;
+		var tm = this._roundTextMetrics(sr.measureString(text));
+
+		var diff = bActive ? 1 : 0;
+		ctx.setFillStyle(st.color).fillText(text, x + w / 2 - tm.width / 2 + diff, y + Asc.round(tm.baseline) + h / 2 -  tm.height / 2 + diff, undefined, sr.charWidths);
+
+		ctx.stroke();
+		ctx.closePath();
 	};
 
 	WorksheetView.prototype.getGroupDataMenuButPos = function (level) {
@@ -16087,7 +16100,7 @@
 					if("mouseup" === type) {
 						this.hideGroupLevel(i + 1);
 					} else if("mousedown" === type){
-
+						this._drawGroupDataMenuButton(null, i, true, true);
 					}
 
 					break;
