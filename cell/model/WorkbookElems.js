@@ -3761,6 +3761,33 @@ Hyperlink.prototype = {
 	Col.prototype.getIndex = function () {
 		return this.index;
 	};
+	Col.prototype.setOutlineLevel = function (val, bDel) {
+		if(null !== val) {
+			this.outlineLevel = val;
+		} else {
+			if(!this.outlineLevel) {
+				this.outlineLevel = 0;
+			}
+			this.outlineLevel = bDel ? this.outlineLevel - 1 : this.outlineLevel + 1;
+		}
+		if(this.outlineLevel < 0){
+			this.outlineLevel = 0;
+		} else if(this.outlineLevel > c_maxOutlineLevel - 1) {
+			this.outlineLevel = c_maxOutlineLevel - 1;
+		} else {
+			//TODO ?
+			//this._hasChanged = true;
+		}
+	};
+	Col.prototype.getOutlineLevel = function () {
+		return this.outlineLevel;
+	};
+	Col.prototype.setCollapsed = function (val) {
+		this.collapsed = val;
+	};
+	Col.prototype.getCollapsed = function () {
+		return this.collapsed;
+	};
 
 	//TODO удалить!
 	/*var g_nRowOffsetFlag = 0;

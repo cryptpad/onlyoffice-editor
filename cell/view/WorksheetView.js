@@ -368,6 +368,7 @@
         this.headersHeight = 0;
         this.headersHeightByFont = 0;	// Размер по шрифту (размер без скрытия заголовков)
 		this.groupWidth = 0;
+		this.groupHeight = 0;
         this.cellsLeft = 0;
         this.cellsTop = 0;
         this.cols = [];
@@ -432,6 +433,7 @@
         this.cutRange = null;
 
         this.arrRowGroups = null;
+        this.arrColGroups = null;
         this.clickedRowGroupButton = null;
 
         this._init();
@@ -443,7 +445,8 @@
 		this._initWorksheetDefaultWidth();
 		this.model.initColumns();
 		this._initPane();
-		this._updateRowGroups();
+		this._updateGroups();
+		this._updateGroups(true);
 		this._initCellsArea(AscCommonExcel.recalcType.full);
 		this.model.setTableStyleAfterOpen();
 		this.model.setDirtyConditionalFormatting(null);
@@ -943,7 +946,7 @@
             t.model.autoFilters.reDrawFilter(null, row);
             t._cleanCache(new asc_Range(0, row, t.cols.length - 1, row));
             t.changeWorksheet("update", {reinitRanges: true});
-            t._updateRowGroups();
+            t._updateGroups();
             t._updateVisibleRowsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
@@ -1408,6 +1411,9 @@
     WorksheetView.prototype._calcHeaderRowHeight = function () {
 		this.headersHeight = (false === this.model.getSheetView().asc_getShowRowColHeaders()) ? 0 :
 			Asc.round(this.headersHeightByFont * this.getZoom());
+
+		//todo приравниваю headersTop и groupHeight. Необходимо пересмотреть!
+		this.headersTop = this.groupHeight;
         this.cellsTop = this.headersTop + this.headersHeight;
     };
 
@@ -3954,20 +3960,20 @@
 			if (0 < row) {
 				fHorLine.apply(ctx, [0, this._getRowTop(row), ctx.getWidth()]);
 			} else {
-				fHorLine.apply(ctx, [this.headersLeft, this.headersHeight, this.headersLeft + this.headersWidth]);
+				fHorLine.apply(ctx, [this.headersLeft, this.headersTop + this.headersHeight, this.headersLeft + this.headersWidth]);
 			}
 
 			if (0 < col) {
 				fVerLine.apply(ctx, [this._getColLeft(col), 0, ctx.getHeight()]);
 			} else {
-				fVerLine.apply(ctx, [this.headersLeft + this.headersWidth, 0, this.headersHeight]);
+				fVerLine.apply(ctx, [this.headersLeft + this.headersWidth, this.headersTop, this.headersTop + this.headersHeight]);
 
 			}
 			ctx.stroke();
 
 		} else if (this.model.getSheetView().asc_getShowRowColHeaders()) {
-			fHorLine.apply(ctx, [this.headersLeft, this.headersHeight, this.headersLeft + this.headersWidth]);
-			fVerLine.apply(ctx, [this.headersWidth + this.headersLeft, 0, this.headersHeight]);
+			fHorLine.apply(ctx, [this.headersLeft, this.headersTop + this.headersHeight, this.headersLeft + this.headersWidth]);
+			fVerLine.apply(ctx, [this.headersWidth + this.headersLeft, this.headersTop, this.headersTop + this.headersHeight]);
 			ctx.stroke();
 		}
 	};
@@ -11418,7 +11424,7 @@
 					AscCommonExcel.checkFilteringMode(function () {
 						t.model.setRowHidden(true, arn.r1, arn.r2);
 						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
-						t._updateRowGroups();
+						t._updateGroups();
 						t.model.autoFilters.reDrawFilter(arn);
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
@@ -11725,7 +11731,7 @@
 					History.StartTransaction();
 					t.model.setGroupRow(val, arn.r1, arn.r2);
 					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
-					t._updateRowGroups();
+					t._updateGroups();
 					History.EndTransaction();
 					/*oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
@@ -15590,28 +15596,48 @@
 		this.viewPrintLines = val;
 	};
 
+	var consoleWrite = false;
+	function console_time(str) {
+		if(consoleWrite) {
+			console_time(str);
+		}
+	}
+	function console_time_end() {
+		if(consoleWrite) {
+			console_time_end(str);
+		}
+	}
+
 	//GROUP DATA FUNCTIONS
-	WorksheetView.prototype._updateRowGroups = function(start, end) {
-		this.arrRowGroups = this.getGroupDataArray(start, end);
-		this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
+	WorksheetView.prototype._updateGroups = function(bCol, start, end) {
+		console_time('_updateRowGroups');
+		if(bCol) {
+			this.arrColGroups = this.getGroupDataArray(true, start, end);
+			this.groupHeight = this.getGroupCommonWidth(this.getGroupCommonLevel(true));
+		} else {
+			this.arrRowGroups = this.getGroupDataArray(null, start, end);
+			this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
+		}
+		console_time_end('_updateRowGroups');
 	};
 
-	WorksheetView.prototype.getGroupDataArray = function (start, end) {
-		//проходимся по диапазону, и проверяем верхние/нижние сточки на наличия в них аттрибута outLineLevel
+
+	WorksheetView.prototype.getGroupDataArray = function (bCol, start, end) {
+		//проходимся по диапазону, и проверяем верхние/нижние строчки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
 
 		if(start === undefined) {
 			start = 0;
-			end = gc_nMaxRow;
+			end = bCol ? gc_nMaxCol : gc_nMaxRow;
 		}
 
-		console.time("old");
-		var rowLevelMap = {};
+		console_time("old");
+		var levelMap = {};
 		var res = null;
 		var up = true, down = true;
-		var fProcessRow = function(row){
-			var outLineLevel = row.getOutlineLevel();
-			var collapsed = row.getCollapsed();
+		var fProcess = function(val){
+			var outLineLevel = val.getOutlineLevel();
+			var collapsed = val.getCollapsed();
 
 			var continueRange = function(level, index) {
 				var tempNeedPush = true;
@@ -15620,10 +15646,10 @@
 					return true;
 				}
 
-				if(row.index === res[level][index].start - 1) {
+				if(val.index === res[level][index].start - 1) {
 					res[level][index].start--;
 					tempNeedPush = false;
-				} else if(row.index === res[level][index].end + 1) {
+				} else if(val.index === res[level][index].end + 1) {
 					res[level][index].end++;
 					tempNeedPush = false;
 				}
@@ -15631,11 +15657,11 @@
 				return tempNeedPush;
 			};
 
-			rowLevelMap[row.index] = {level: outLineLevel, collapsed: collapsed};
+			levelMap[val.index] = {level: outLineLevel, collapsed: collapsed};
 			if(!outLineLevel) {
-				if(start === row.index) {
+				if(start === val.index) {
 					up = false;
-				} else if(end === row.index) {
+				} else if(end === val.index) {
 					down = false;
 				}
 			} else {
@@ -15654,7 +15680,7 @@
 				}
 
 				if(needPush) {
-					res[outLineLevel].push({start: row.index, end: row.index});
+					res[outLineLevel].push({start: val.index, end: val.index});
 				}
 
 				for(var n = 1; n < outLineLevel; n++) {
@@ -15672,35 +15698,41 @@
 			}
 		};
 
-		this.model.getRange3(start, 0, end, 0)._foreachRowNoEmpty(fProcessRow);
+		if(bCol) {
+			this.model.getRange3(0, start, 0, end)._foreachColNoEmpty(fProcess);
+		} else {
+			this.model.getRange3(start, 0, end, 0)._foreachRowNoEmpty(fProcess);
+		}
+
 
 		while(up) {
 			start--;
 			if(start < 0) {
 				break;
 			}
-			this.model._getRow(start, fProcessRow);
+			bCol ? this.model._getCol(start, fProcess) : this.model._getRow(start, fProcess);
 		}
 
-		var maxRowsCount = this.model.getRowsCount();
+		var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
+		var cMaxCount = bCol ? gc_nMaxCol0 : gc_nMaxRow0;
 		while(down) {
 			end++;
-			if(end > maxRowsCount || end > gc_nMaxRow0) {
+			if(end > maxCount || end > cMaxCount) {
 				break;
 			}
-			this.model._getRow(end, fProcessRow);
+			bCol ? this.model._getCol(start, fProcess) : this.model._getRow(start, fProcess);
 		}
 
-		console.timeEnd("old");
+		console_time_end("old");
 
-		return {groupArr: res, rowLevelMap: rowLevelMap};
+		return {groupArr: res, levelMap: levelMap};
 	};
 
 	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, width, height ) {
 		if ( range === undefined ) {
 			range = this.visibleRange;
 		}
-
+		this._drawGroupDataCol(drawingCtx);
 		this._drawGroupDataMenu(drawingCtx);
 
 		var ctx = drawingCtx || this.drawingCtx;
@@ -15727,13 +15759,13 @@
 		ctx.lineVerPrevPx(x2, y1, y2);
 		ctx.stroke();
 
-		var groupData = this.arrRowGroups ? this.arrRowGroups : this.getGroupDataArray(range.r1, range.r2);
+		var groupData = this.arrRowGroups ? this.arrRowGroups : this.getGroupDataArray(null, range.r1, range.r2);
 		if(!groupData || !groupData.groupArr) {
 			return;
 		}
-		console.time("draw");
+		console_time("draw");
 		var arrayLines = groupData.groupArr;
-		var rowLevelMap = groupData.rowLevelMap;
+		var rowLevelMap = groupData.levelMap;
 
 		var lineWidth = 2;
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
@@ -15823,10 +15855,141 @@
 
 		this._drawGroupDataButtons(drawingCtx, buttons, leftFieldInPx, topFieldInPx);
 
-		console.timeEnd("draw");
+		console_time_end("draw");
 	};
 
-	WorksheetView.prototype._drawGroupDataButtons = function(drawingCtx, buttons, leftFieldInPx, topFieldInPx) {
+	WorksheetView.prototype._drawGroupDataCol = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, width, height ) {
+		if ( range === undefined ) {
+			range = this.visibleRange;
+		}
+
+		this._drawGroupDataMenu(drawingCtx, true);
+
+		var ctx = drawingCtx || this.drawingCtx;
+		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+		if (!drawingCtx && this.topLeftFrozenCell) {
+			if (undefined === leftFieldInPx) {
+				var cFrozen = this.topLeftFrozenCell.getCol0();
+				offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
+			}
+			if (undefined === topFieldInPx) {
+				var rFrozen = this.topLeftFrozenCell.getRow0();
+				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
+			}
+		}
+
+		var st = this.settings.header.style[kHeaderDefault];
+		var y1 = 0;
+		var x1 = this._getColLeft(range.c1) - offsetX;
+		var x2 = this._getColLeft(range.c2 + 1) - offsetX;
+		var y2 = this.groupHeight;
+		ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
+		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+		ctx.lineHorPrevPx(x1, y2, x2);
+		ctx.stroke();
+
+		var groupData = this.arrColGroups ? this.arrColGroups : this.getGroupDataArray(true, range.r1, range.r2);
+		if(!groupData || !groupData.groupArr) {
+			return;
+		}
+		console_time("draw");
+		var arrayLines = groupData.groupArr;
+		var rowLevelMap = groupData.levelMap;
+
+		var lineWidth = 2;
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
+
+		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
+		var minCol;
+		var maxCol;
+		var bFirstLine = true;
+		var buttonSize = 16;
+		var padding = 1;
+		var buttons = [];
+		var endPosArr = {};
+		for(var i = 0; i < arrayLines.length; i++) {
+			if(arrayLines[i]) {
+				var index = bFirstLine ? 1 : i;
+				var posY = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
+
+				for(var j = 0; j < arrayLines[i].length; j++) {
+
+					if(endPosArr[arrayLines[i][j].end]) {
+						continue;
+					}
+					endPosArr[arrayLines[i][j].end] = 1;
+
+					var startX = Math.max(arrayLines[i][j].start, range.c1);
+					var endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
+					minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
+					maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
+
+					var diff = startX === arrayLines[i][j].start ? 3 : 0;
+					var startPos = this._getColLeft(startX) + diff - offsetX ;
+					var endPos = this._getColLeft(endX) - offsetX;
+					var widthNextRow = /*this.getColWidth(endX)*/this._getColLeft(endX + 1) - this._getColLeft(endX);
+					var paddingTop = (widthNextRow - buttonSize) / 2;
+					if(paddingTop < 0) {
+						paddingTop = 0;
+					}
+
+					//button
+					if(endX === arrayLines[i][j].end + 1) {
+						//TODO ms обрезает кнопки сверху/снизу
+						if(widthNextRow && endX >= startX) {
+							if(!tempButtonMap[i]) {
+								tempButtonMap[i] = [];
+							}
+							tempButtonMap[i][endX] = 1;
+							buttons.push({r: endX, level: i});
+						}
+					}
+
+					if(startPos >= endPos) {
+						continue;
+					}
+
+					var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+					if(!collasedEndRow) {
+						ctx.lineHorPrevPx(startPos, posY, endPos + paddingTop);
+					}
+
+					// _
+					//|
+					if(!collasedEndRow && startX === arrayLines[i][j].start) {
+						ctx.lineVerPrevPx(startPos, posY - 2, posY + 4);
+					}
+				}
+				bFirstLine = false;
+			}
+		}
+
+		//TODO не рисовать точки на местах линий и кнопок
+		for(var l = minCol; l < maxCol; l++) {
+			if(!rowLevelMap[l]) {
+				continue;
+			}
+
+			var pointLevel = rowLevelMap[l].level;
+			var colWidth = /*this.getColWidth(endX)*/this._getColLeft(l + 1) - this._getColLeft(l);
+			if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || colWidth === 0) {
+				continue;
+			}
+			ctx.lineVerPrevPx(this._getColLeft(l) - offsetX + colWidth / 2, 7 + pointLevel * buttonSize, 7 + (pointLevel) * buttonSize + 2);
+			//ctx.lineHorPrevPx(7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + colWidth / 2, 7 + (pointLevel) * buttonSize + 2);
+		}
+
+		ctx.stroke();
+		ctx.closePath();
+
+
+		this._drawGroupDataButtons(drawingCtx, buttons, leftFieldInPx, topFieldInPx, true);
+
+		console_time_end("draw");
+	};
+
+	WorksheetView.prototype._drawGroupDataButtons = function(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol) {
 		if(!buttons) {
 			return;
 		}
@@ -15836,32 +15999,40 @@
 			return;
 		}
 
-		var rowLevelMap = groupData.rowLevelMap;
+		var rowLevelMap = groupData.levelMap;
 
 		var ctx = drawingCtx || this.drawingCtx;
-		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
-		if (!drawingCtx && this.topLeftFrozenCell) {
-			if (undefined === topFieldInPx) {
-				var rFrozen = this.topLeftFrozenCell.getRow0();
-				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
+
+		var offsetX = 0, offsetY = 0;
+		if(bCol) {
+			offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+			if (!drawingCtx && this.topLeftFrozenCell) {
+				if (undefined === leftFieldInPx) {
+					var cFrozen = this.topLeftFrozenCell.getCol0();
+					offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
+				}
+			}
+		} else {
+			offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+			if (!drawingCtx && this.topLeftFrozenCell) {
+				if (undefined === topFieldInPx) {
+					var rFrozen = this.topLeftFrozenCell.getRow0();
+					offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
+				}
 			}
 		}
 
 		//buttons
 		//проходимся 2 раза, поскольку разная толщина у рамки и у -/+
-
-
-		var st = this.settings.header.style[kHeaderDefault];
-
-		var i, row, level, diff, pos, x, y, w, h, active;
+		var i, val, level, diff, pos, x, y, w, h, active;
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(1).beginPath();
 		for(i = 0; i < buttons.length; i++) {
-			row = buttons[i].r;
+			val = buttons[i].r;
 			level = buttons[i].level;
 
-			pos = this._getGroupDataButtonPos(row, level);
+			pos = this._getGroupDataButtonPos(val, level, bCol);
 
-			x = pos.x;
+			x = pos.x - offsetX;
 			y = pos.y - offsetY;
 			w = pos.w;
 			h = pos.h;
@@ -15885,19 +16056,19 @@
 		var sizeLine = 8;
 		var paddingLine = 3;
 		for(i = 0; i < buttons.length; i++) {
-			row = buttons[i].r;
+			val = buttons[i].r;
 			level = buttons[i].level;
 			active = buttons[i].active;
 
 			diff = active ? 1 : 0;
-			pos = this._getGroupDataButtonPos(row, level);
+			pos = this._getGroupDataButtonPos(val, level, bCol);
 
-			x = pos.x + diff;
+			x = pos.x + diff - offsetX;
 			y = pos.y - offsetY + diff;
 			w = pos.w;
 			h = pos.h;
 
-			if(rowLevelMap[row] && rowLevelMap[row].collapsed) {
+			if(rowLevelMap[val] && rowLevelMap[val].collapsed) {
 				ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + 1, x + sizeLine + paddingLine);
 				ctx.lineVerPrevPx(x + paddingLine + sizeLine / 2 + 1, y + h / 2 + 1 - sizeLine / 2 - 1,  y + h / 2 + 1 + sizeLine / 2 - 1);
 			} else {
@@ -15909,58 +16080,88 @@
 		ctx.closePath();
 	};
 
-	WorksheetView.prototype._getGroupDataButtonPos = function(row, level) {
+	WorksheetView.prototype._getGroupDataButtonPos = function(val, level, bCol) {
 		//возвращает позицию без учета сдвига offsetY
 		var buttonSize = 16;
 		var padding = 1;
 
-		var endPos = this._getRowTop(row);
-		var rowH = this._getRowHeight(row);
-		var posX = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
-		var x = posX - 6;
-		var y = endPos + rowH/2 - buttonSize / 2;
+		if(bCol) {
+			var endPosX = this._getColLeft(val);
+			var colW = this._getColLeft(val + 1) - this._getColLeft(val);
+
+			var posY = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
+			x = endPosX + colW/2 - buttonSize / 2;
+			y = posY - 6;
+		} else {
+			var endPosY = this._getRowTop(val);
+			var rowH = this._getRowHeight(val);
+			var posX = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
+			var x = posX - 6;
+			var y = endPosY + rowH/2 - buttonSize / 2;
+		}
 		var w = buttonSize - 1;
 		var h = buttonSize - 1;
 
 		return {x: x, y: y, w: w, h: h};
 	};
 
-	WorksheetView.prototype._drawGroupDataMenu = function ( drawingCtx ) {
+	//GROUP MENU BUTTONS
+	WorksheetView.prototype._drawGroupDataMenu = function ( drawingCtx, bCol ) {
 		var ctx = drawingCtx || this.drawingCtx;
 
-		var groupData = this.arrRowGroups ? this.arrRowGroups : null;
+		var groupData;
+		if(bCol) {
+			groupData = this.arrColGroups ? this.arrColGroups : null;
+		} else {
+			groupData = this.arrRowGroups ? this.arrRowGroups : null;
+		}
+
 		if(!groupData || !groupData.groupArr) {
 			return;
 		}
 
 		var st = this.settings.header.style[kHeaderDefault];
 
-		var x1 = 0;
-		var y1 = 0;
-		var x2 = this.groupWidth;
-		var y2 = this.headersHeight;
+		var x1, y1, x2, y2;
+		if(bCol) {
+			x1 = this.headersLeft;
+			y1 = 0;
+			x2 = this.headersLeft + this.headersWidth;
+			y2 = this.groupHeight;
+		} else {
+			x1 = 0;
+			y1 = this.headersTop;
+			x2 = this.groupWidth;
+			y2 = this.headersTop + this.headersHeight;
+		}
+
 		ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
+		//угол до кнопок
+		ctx.setFillStyle(st.background).fillRect(0, 0, this.headersLeft, this.headersTop);
 
 		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
 		ctx.lineHorPrevPx(x1, y2, x2);
 		ctx.lineVerPrevPx(x2, y1, y2);
+		//угол до кнопок
+		ctx.lineHorPrevPx(0, this.headersTop, this.headersLeft);
+		ctx.lineVerPrevPx(this.headersLeft, 0, this.headersTop);
 		ctx.stroke();
 		ctx.closePath();
 
 		if(groupData.groupArr.length) {
 			for(var i = 0; i < groupData.groupArr.length; i++) {
-				this._drawGroupDataMenuButton(ctx, i);
+				this._drawGroupDataMenuButton(ctx, i, null, null, bCol);
 			}
 			ctx.stroke();
 			ctx.closePath();
 		}
 	};
 
-	WorksheetView.prototype._drawGroupDataMenuButton = function ( drawingCtx, level, bActive, bClean ) {
+	WorksheetView.prototype._drawGroupDataMenuButton = function ( drawingCtx, level, bActive, bClean, bCol ) {
 		var ctx = drawingCtx || this.drawingCtx;
 		var st = this.settings.header.style[kHeaderDefault];
 
-		var props = this.getGroupDataMenuButPos(level);
+		var props = this.getGroupDataMenuButPos(level, bCol);
 		var x = props.x;
 		var y = props.y;
 		var w = props.w;
@@ -15988,29 +16189,39 @@
 		ctx.closePath();
 	};
 
-	WorksheetView.prototype.getGroupDataMenuButPos = function (level) {
+	WorksheetView.prototype.getGroupDataMenuButPos = function (level, bCol) {
 		var padding = 1;
 		var buttonSize = 16 - padding;
 
 		//TODO учитывать будущий отступ для группировке колонок!
-		var x = padding * 2 + level * (buttonSize + 1);
-		var y = padding * 2;
-		var w = buttonSize;
-		var h = buttonSize;
+		var x, y;
+		if(bCol) {
+			x = this.headersLeft + this.headersWidth/2 - buttonSize/2;
+			y = padding * 2 + level * (buttonSize + 1)
+		} else {
+			x = padding * 2 + level * (buttonSize + 1);
+			y = this.headersTop + this.headersHeight/2 - buttonSize/2;
+		}
 
-		return {x: x, y: y, w: w, h: h};
+		return {x: x, y: y, w: buttonSize, h: buttonSize};
 	};
 
-	WorksheetView.prototype.getGroupCommonLevel = function () {
-		console.time("getGroupCommonLevel");
+	WorksheetView.prototype.getGroupCommonLevel = function (bCol) {
+		console_time("getGroupCommonLevel");
 		var res = 0;
-		this.model.getRange3(0, 0, gc_nMaxRow0, 0)._foreachRowNoEmpty(function(row) {
-			var outLineLevel = row.getOutlineLevel();
+		var func = function(elem) {
+			var outLineLevel = elem.getOutlineLevel();
 			if(outLineLevel && outLineLevel > res) {
 				res = outLineLevel;
 			}
-		});
-		console.timeEnd("getGroupCommonLevel");
+		};
+		if(bCol) {
+			this.model.getRange3(0, 0, 0, gc_nMaxCol0)._foreachColNoEmpty(func);
+		} else {
+			this.model.getRange3(0, 0, gc_nMaxRow0, 0)._foreachRowNoEmpty(func);
+		}
+
+		console_time_end("getGroupCommonLevel");
 		return res;
 	};
 
@@ -16068,12 +16279,12 @@
 			return this._groupRowMenuClick(x, y, target, type);
 		}
 
-		console.time("groupRowClick");
+		console_time("groupRowClick");
 
 		var mouseDownClick;
 		var doClick = function() {
 			var arrayLines = t.arrRowGroups.groupArr;
-			var rowLevelMap = t.arrRowGroups.rowLevelMap;
+			var rowLevelMap = t.arrRowGroups.levelMap;
 
 			var endPosArr = {};
 			for(var i = 0; i < arrayLines.length; i++) {
@@ -16122,11 +16333,11 @@
 			doClick();
 		}
 		if(mouseDownClick) {
-			console.timeEnd("groupRowClick");
+			console_time_end("groupRowClick");
 			return true;
 		}
 
-		console.timeEnd("groupRowClick");
+		console_time_end("groupRowClick");
 	};
 
 	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type) {
@@ -16184,7 +16395,6 @@
 		var updateDrawingObjectsInfo = null;
 		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
 		var isUpdateCols = false, isUpdateRows = false;
-		var isCheckChangeAutoFilter;
 		var functionModelAction = null;
 		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
 		var arrChangedRanges = [];
@@ -16223,7 +16433,7 @@
 				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 			}
 			//тут требуется обновить только rowLevelMap
-			t._updateRowGroups();
+			t._updateGroups();
 
 			t.draw(lockDraw);
 
@@ -16243,6 +16453,8 @@
 
 		functionModelAction = function () {
 			AscCommonExcel.checkFilteringMode(function () {
+				console_time("_tryChangeGroup");
+
 				History.Create_NewPoint();
 				History.StartTransaction();
 
@@ -16255,7 +16467,7 @@
 					t.model.setRowHidden(false, start, end);
 
 					var groupArr = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
-					var rowLevelMap = t.arrRowGroups ? t.arrRowGroups.rowLevelMap : null;
+					var rowLevelMap = t.arrRowGroups ? t.arrRowGroups.levelMap : null;
 					if(groupArr) {
 						for(var i = level + 1; i <= groupArr.length; i++) {
 							if(!groupArr[i]) {
@@ -16277,6 +16489,8 @@
 				updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
 				History.EndTransaction();
+
+				console_time_end("_tryChangeGroup");
 			});
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
@@ -16284,7 +16498,7 @@
 	};
 
 	WorksheetView.prototype.hideGroupLevel = function (level) {
-		console.time("hideGroupLevel");
+		console_time("hideGroupLevel");
 
 		var t = this;
 		var groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
@@ -16343,7 +16557,7 @@
 				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 			}
 			//тут требуется обновить только rowLevelMap
-			t._updateRowGroups();
+			t._updateGroups();
 
 			t.draw(lockDraw);
 
@@ -16379,7 +16593,7 @@
 
 		this._isLockedAll(onChangeWorksheetCallback);
 
-		console.timeEnd("hideGroupLevel");
+		console_time_end("hideGroupLevel");
 	};
 
     //------------------------------------------------------------export---------------------------------------------------
