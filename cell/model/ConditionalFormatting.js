@@ -691,9 +691,14 @@
 		return [sDown, sDownIncline, sSide, sUpIncline, sUp];
 	}
 
-	function getIconByType(type, index) {
-		var icons = c_arrIcons[type] || c_arrIcons[EIconSetType.Traffic3Lights1];
-		return icons[index] || icons[icons.length - 1];
+	function getCFIcon(oRuleElement, index) {
+		var oIconSet = oRuleElement.aIconSets[index];
+		var iconSetType = (oIconSet && null !== oIconSet.IconSet) ? oIconSet.IconSet : oRuleElement.IconSet;
+		if (EIconSetType.NoIcons === iconSetType) {
+			return null;
+		}
+		var icons = c_arrIcons[iconSetType] || c_arrIcons[EIconSetType.Traffic3Lights1];
+		return icons[(oIconSet && null !== oIconSet.IconId) ? oIconSet.IconId : index] || icons[icons.length - 1];
 	}
 
 	/*
@@ -713,5 +718,5 @@
 	window['AscCommonExcel'].CGradient = CGradient;
 
 	window['AscCommonExcel'].getIconsForLoad = getIconsForLoad;
-	window['AscCommonExcel'].getIconByType = getIconByType;
+	window['AscCommonExcel'].getCFIcon = getCFIcon;
 })(window);

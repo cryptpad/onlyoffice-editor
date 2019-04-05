@@ -2736,7 +2736,10 @@
 							ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
 						}
 					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
-						var img = AscCommonExcel.getIconByType(oRuleElement.IconSet, oRule.getIndexRule(values, this.model, cellValue));
+						var img = AscCommonExcel.getCFIcon(oRuleElement, oRule.getIndexRule(values, this.model, cellValue));
+						if (!img) {
+							continue;
+						}
 						var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
 						var dScale = asc_getcvt(0, 3, this._getPPIX());
 						rect._x *= dScale;
