@@ -3970,7 +3970,7 @@ function DrawingObjects() {
             settings.putTitle(Asc.c_oAscChartTitleShowSettings.noOverlay);
             settings.putShowHorAxis(true);
             settings.putShowVerAxis(true);
-            var series = AscFormat.getChartSeries(worksheet.model, settings);
+            //var series = AscFormat.getChartSeries(worksheet.model, settings);
             // if(series && series.series.length > 1)
             // {
             //     settings.putLegendPos(Asc.c_oAscChartLegendShowSettings.right);
