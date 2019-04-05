@@ -1666,7 +1666,8 @@
 		}, true);
 
 		// send focus
-		window['AscCommon'].g_inputContext.HtmlArea.focus();
+		if (!api.isMobileVersion)
+			window['AscCommon'].g_inputContext.HtmlArea.focus();
 	};
 
 	window["SetInputDebugMode"] = function()

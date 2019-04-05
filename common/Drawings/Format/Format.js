@@ -1314,7 +1314,7 @@ CColorModifiers.prototype =
                 var HSL = {H: 0, S: 0, L: 0};
                 this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
-                HSL.L = AscFormat.ClampColor2(HSL.L * val, 0, max_hls);
+                HSL.L = AscFormat.ClampColor2(HSL.L * val_, 0, max_hls);
                 this.HSL2RGB(HSL, RGBA);
             }
             else if (colorMod.name == "wordTint")
