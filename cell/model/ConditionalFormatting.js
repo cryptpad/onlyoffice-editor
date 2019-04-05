@@ -667,8 +667,25 @@
 	var c_arrIcons = [20];
 	c_arrIcons[EIconSetType.Traffic3Lights1] = [sDownIncline];
 	c_arrIcons[EIconSetType.Arrows3] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Arrows3Gray] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Flags3] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Signs3] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Symbols3] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Symbols3_2] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Traffic3Lights1] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Traffic3Lights2] = [sDown, sSide, sUp];
 	c_arrIcons[EIconSetType.Arrows4] = [sDown, sDownIncline, sUpIncline, sUp];
+	c_arrIcons[EIconSetType.Arrows4Gray] = [sDown, sDownIncline, sUpIncline, sUp];
+	c_arrIcons[EIconSetType.Rating4] = [sDown, sDownIncline, sUpIncline, sUp];
+	c_arrIcons[EIconSetType.RedToBlack4] = [sDown, sDownIncline, sUpIncline, sUp];
+	c_arrIcons[EIconSetType.Traffic4Lights] = [sDown, sDownIncline, sUpIncline, sUp];
 	c_arrIcons[EIconSetType.Arrows5] = [sDown, sDownIncline, sSide, sUpIncline, sUp];
+	c_arrIcons[EIconSetType.Arrows5Gray] = [sDown, sDownIncline, sSide, sUpIncline, sUp];
+	c_arrIcons[EIconSetType.Quarters5] = [sDown, sDownIncline, sSide, sUpIncline, sUp];
+	c_arrIcons[EIconSetType.Rating5] = [sDown, sDownIncline, sSide, sUpIncline, sUp];
+	c_arrIcons[EIconSetType.Triangles3] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Stars3] = [sDown, sSide, sUp];
+	c_arrIcons[EIconSetType.Boxes5] = [sDown, sDownIncline, sSide, sUpIncline, sUp];
 
 	function getIconsForLoad() {
 		return [sDown, sDownIncline, sSide, sUpIncline, sUp];
