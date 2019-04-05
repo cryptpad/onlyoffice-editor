@@ -6764,15 +6764,6 @@ background-repeat: no-repeat;\
 		}
 		return this.WordControl.m_oLogicDocument.getSelectedDrawingObjectsCount();
 	};
-	asc_docs_api.prototype.asc_canStartImageCrop = function(){
-
-	};
-	asc_docs_api.prototype.asc_startImageCrop = function(){
-
-	};
-	asc_docs_api.prototype.asc_endImageCrop = function(){
-
-	};
 
 	//-----------------------------------------------------------------
 	// События контекстного меню
@@ -7804,9 +7795,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getTextArtPreviews']              = asc_docs_api.prototype.asc_getTextArtPreviews;
 	asc_docs_api.prototype['sync_closeChartEditor']               = asc_docs_api.prototype.sync_closeChartEditor;
 	asc_docs_api.prototype['asc_getSelectedDrawingObjectsCount']  = asc_docs_api.prototype.asc_getSelectedDrawingObjectsCount;
-	asc_docs_api.prototype['asc_canStartImageCrop']               = asc_docs_api.prototype.asc_canStartImageCrop;
-	asc_docs_api.prototype['asc_startImageCrop']                  = asc_docs_api.prototype.asc_startImageCrop;
-	asc_docs_api.prototype['asc_endImageCrop']                    = asc_docs_api.prototype.asc_endImageCrop;
 	asc_docs_api.prototype['asc_stopSaving']                      = asc_docs_api.prototype.asc_stopSaving;
 	asc_docs_api.prototype['asc_continueSaving']                  = asc_docs_api.prototype.asc_continueSaving;
 	asc_docs_api.prototype['asc_undoAllChanges']                  = asc_docs_api.prototype.asc_undoAllChanges;

@@ -1306,14 +1306,24 @@
 	baseEditorsApi.prototype.asc_startEditCurrentOleObject = function(){
 
 	};
-	baseEditorsApi.prototype.asc_canStartImageCrop = function(){
-
+	baseEditorsApi.prototype.asc_canEditCrop = function()
+	{
 	};
-	baseEditorsApi.prototype.asc_startImageCrop = function(){
 
+	baseEditorsApi.prototype.asc_startEditCrop = function()
+	{
 	};
-	baseEditorsApi.prototype.asc_endImageCrop = function(){
 
+	baseEditorsApi.prototype.asc_endEditCrop = function()
+	{
+	};
+
+	baseEditorsApi.prototype.asc_cropFit = function()
+	{
+	};
+
+	baseEditorsApi.prototype.asc_cropFill = function()
+	{
 	};
 	// Version History
 	baseEditorsApi.prototype.asc_showRevision   = function(newObj)
