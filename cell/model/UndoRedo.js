@@ -2442,6 +2442,25 @@ function (window, undefined) {
 			});
 			
 			//TODO need redraw group lines
+		} else if(AscCH.historyitem_Worksheet_CollapsedCol) {
+			index = Data.index;
+			if (wb.bCollaborativeChanges) {
+				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
+				oLockInfo = new AscCommonExcel.asc_CLockInfo();
+				oLockInfo["sheetId"] = nSheetId;
+				oLockInfo["type"] = c_oAscLockTypeElem.Range;
+				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
+				wb.aCollaborativeChangeElements.push(oLockInfo);
+			}
+			ws._getCol(index, function (col) {
+				if (bUndo) {
+					col.setCollapsed(Data.oOldVal);
+				} else {
+					col.setCollapsed(Data.oNewVal);
+				}
+			});
+
+			//TODO need redraw group lines
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {

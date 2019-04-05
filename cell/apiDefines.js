@@ -295,7 +295,8 @@ var c_oTargetType = {
   Shape: 12,
   FrozenAnchorH: 14,
   FrozenAnchorV: 15,
-  GroupRow: 16
+  GroupRow: 16,
+  GroupCol: 17
 };
 
 var c_oAscAutoFilterTypes = {

@@ -434,7 +434,7 @@
 
         this.arrRowGroups = null;
         this.arrColGroups = null;
-        this.clickedRowGroupButton = null;
+        this.clickedGroupButton = null;
 
         this._init();
 
@@ -6701,7 +6701,7 @@
 		}
 
 		var oResDefault = {cursor: kCurDefault, target: c_oTargetType.None, col: -1, row: -1};
-		if (x >= this.headersLeft && x < this.cellsLeft && y < this.cellsTop) {
+		if (x >= this.headersLeft && x < this.cellsLeft && y < this.cellsTop && y >= this.headersTop) {
 			return {cursor: kCurCorner, target: c_oTargetType.Corner, col: -1, row: -1};
 		}
 
@@ -6718,6 +6718,8 @@
 			offsetY = (y < this.cellsTop + heightDiff) ? 0 : offsetY - heightDiff;
 		}
 
+		//TODO проверить!
+		//group row
 		if(x <= this.cellsLeft && this.groupWidth && x < this.groupWidth) {
 			r = this._findRowUnderCursor(y, true);
 			row = -1;
@@ -6729,28 +6731,32 @@
 				target: c_oTargetType.GroupRow,
 				col: -1,
 				row: row,
-				mouseY: f ? (((y < r.top + 3) ? r.top : r.bottom) - y - 1) : null
+				mouseY: r ? (((y < r.top + 3) ? r.top : r.bottom) - y - 1) : null
 			};
 		}
 
 		var epsChangeSize = 3 * AscCommon.global_mouseEvent.KoefPixToMM;
-		if (x <= this.cellsLeft && y >= this.cellsTop) {
-			r = this._findRowUnderCursor(y, true);
-			if (r === null) {
-				return oResDefault;
-			}
-			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
-			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.isCellEditMode;
 
+		//TODO проверить!
+		//group col
+		if (y <= this.cellsTop && this.groupHeight && y < this.groupHeight) {
+			c = this._findColUnderCursor(x, true);
+			col = -1;
+			if (c) {
+				col = c.col + (isNotFirst && f && x < c.left + 3 ? -1 : 0);
+			}
+			/*isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.isCellEditMode;*/
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
-				cursor: f ? kCurRowResize : kCurRowSelect,
-				target: f ? c_oTargetType.RowResize : c_oTargetType.RowHeader,
-				col: -1,
-				row: r.row + (isNotFirst && f && y < r.top + 3 ? -1 : 0),
-				mouseY: f ? (((y < r.top + 3) ? r.top : r.bottom) - y - 1) : null
+				cursor: kCurDefault,
+				target: c_oTargetType.GroupCol,
+				col: col,
+				row: -1,
+				mouseX: c ? (((x < c.left + 3) ? c.left : c.right) - x - 1) : null
 			};
 		}
+
 		if (y <= this.cellsTop && x >= this.cellsLeft) {
 			c = this._findColUnderCursor(x, true);
 			if (c === null) {
@@ -15994,7 +16000,7 @@
 			return;
 		}
 
-		var groupData = this.arrRowGroups;
+		var groupData = bCol ? this.arrColGroups : this.arrRowGroups;
 		if(!groupData || !groupData.groupArr) {
 			return;
 		}
@@ -16238,53 +16244,74 @@
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
 		var t = this;
-		var offsetY = /*(undefined !== topFieldInPx) ? topFieldInPx : */ this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+		var bCol = c_oTargetType.GroupCol === target.target;
 
+		var offsetX = /*(undefined !== leftFieldInPx) ? leftFieldInPx : */this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+		if (/*!drawingCtx &&*/ this.topLeftFrozenCell) {
+			//if (undefined === leftFieldInPx) {
+				var cFrozen = this.topLeftFrozenCell.getCol0();
+				offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
+			//}
+		}
+		var offsetY = /*(undefined !== topFieldInPx) ? topFieldInPx : */this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 		if (/*!drawingCtx &&*/ this.topLeftFrozenCell) {
 			//if (undefined === topFieldInPx) {
-			var rFrozen = this.topLeftFrozenCell.getRow0();
-			offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
+				var rFrozen = this.topLeftFrozenCell.getRow0();
+				offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
 			//}
 		}
 
 		if("mousemove" === type) {
-			if(t.clickedRowGroupButton) {
+			if(t.clickedGroupButton) {
 				var props;
-				if(undefined !== t.clickedRowGroupButton.r) {
-					props = t._getGroupDataButtonPos(t.clickedRowGroupButton.r, t.clickedRowGroupButton.level);
+				bCol = t.clickedGroupButton.bCol;
+				if(bCol) {
+					offsetY = 0;
+				} else {
+					offsetX = 0;
+				}
+
+				if(undefined !== t.clickedGroupButton.r) {
+					props = t._getGroupDataButtonPos(t.clickedGroupButton.r, t.clickedGroupButton.level, bCol);
 					if(props) {
-						if (x >= props.x && x <= props.x + props.w && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
+						if (x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
 							return true;
 						} else {
-							t._drawGroupDataButtons(null, [{r: t.clickedRowGroupButton.r, level: t.clickedRowGroupButton.level, active: false, clean: true}]);
-							t.clickedRowGroupButton = null;
+							t._drawGroupDataButtons(null, [{r: t.clickedGroupButton.r, level: t.clickedGroupButton.level, active: false, clean: true}], null, null, bCol);
+							t.clickedGroupButton = null;
 							return false;
 						}
 					}
 				} else {
-					props = this.getGroupDataMenuButPos(t.clickedRowGroupButton.level);
+					props = this.getGroupDataMenuButPos(t.clickedGroupButton.level, bCol);
 					if(x >= props.x && y >= props.y && x <= props.x + props.w && y <= props.y + props.h) {
 						return true;
 					} else {
-						this._drawGroupDataMenuButton(null, t.clickedRowGroupButton.level, false, true);
-						t.clickedRowGroupButton = null;
+						this._drawGroupDataMenuButton(null, t.clickedGroupButton.level, false, true, bCol);
+						t.clickedGroupButton = null;
 						return false;
 					}
 				}
 			}
 		}
 
-		if(target.row < 1) {
+		if((target.row < 1 && !bCol) || (target.col < 1 && bCol)) {
 			//проверяем, возможно мы попали в одну из кнопок управления уровнями
-			return this._groupRowMenuClick(x, y, target, type);
+			return this._groupRowMenuClick(x, y, target, type, bCol);
 		}
 
 		console_time("groupRowClick");
 
+		if(bCol) {
+			offsetY = 0;
+		} else {
+			offsetX = 0;
+		}
+
 		var mouseDownClick;
 		var doClick = function() {
-			var arrayLines = t.arrRowGroups.groupArr;
-			var rowLevelMap = t.arrRowGroups.levelMap;
+			var arrayLines = bCol ? t.arrColGroups.groupArr : t.arrRowGroups.groupArr;
+			var levelMap = bCol ? t.arrColGroups.levelMap : t.arrRowGroups.levelMap;
 
 			var endPosArr = {};
 			for(var i = 0; i < arrayLines.length; i++) {
@@ -16295,18 +16322,18 @@
 						}
 						endPosArr[arrayLines[i][j].end] = 1;
 
-						if(arrayLines[i][j].end + 1 === target.row) {
-							var props = t._getGroupDataButtonPos(arrayLines[i][j].end + 1, i);
-							var collapsed = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+						if((arrayLines[i][j].end + 1 === target.row && !bCol) || (arrayLines[i][j].end + 1 === target.col && bCol)) {
+							var props = t._getGroupDataButtonPos(arrayLines[i][j].end + 1, i, bCol);
+							var collapsed = levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed;
 							if(props) {
-								if(x >= props.x && x <= props.x + props.w && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
+								if(x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
 									if("mouseup" === type) {
-										t._tryChangeGroup(arrayLines[i][j], collapsed, i);
-										t.clickedRowGroupButton = null;
+										t._tryChangeGroup(arrayLines[i][j], collapsed, i, bCol);
+										t.clickedGroupButton = null;
 									} else if("mousedown" === type) {
 										//перерисовываем кнопку в нажатом состоянии
-										t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}]);
-										t.clickedRowGroupButton = {level: i, r: arrayLines[i][j].end + 1};
+										t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}], null, null, bCol);
+										t.clickedGroupButton = {level: i, r: arrayLines[i][j].end + 1, bCol: bCol};
 										mouseDownClick = true;
 									}
 									return;
@@ -16320,13 +16347,18 @@
 
 		var prevOutlineLevel = null;
 		var outLineLevel;
-		this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(function(row) {
+		var func = function(val) {
 			if(prevOutlineLevel === null) {
-				prevOutlineLevel = row.getOutlineLevel();
+				prevOutlineLevel = val.getOutlineLevel();
 			} else {
-				outLineLevel = row.getOutlineLevel();
+				outLineLevel = val.getOutlineLevel();
 			}
-		});
+		};
+		if(bCol) {
+			this.model.getRange3(0, target.col - 1,0, target.col)._foreachColNoEmpty(func);
+		} else {
+			this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(func);
+		}
 
 		//проверяем предыдущую строку - если там есть outLineLevel, а в следующей outLineLevel c другим индексом, тогда в следующей может быть кнопка управления группой
 		if(outLineLevel !== prevOutlineLevel) {
@@ -16340,25 +16372,35 @@
 		console_time_end("groupRowClick");
 	};
 
-	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type) {
+	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type, bCol) {
 
 		//TODO для группировки колонок - y должен быть больше поля колонок
-		if(x <= this.cellsLeft && this.groupWidth && x < this.groupWidth && y < this.cellsTop) {
-			var groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+		var bButtonClick = !bCol && x <= this.cellsLeft && this.groupWidth && x < this.groupWidth && y < this.cellsTop;
+		if(!bButtonClick) {
+			bButtonClick = bCol && y <= this.cellsTop && this.groupHeight && y < this.groupHeight && x < this.cellsLeft;
+		}
+		if(bButtonClick) {
+			var groupArr;
+			if(bCol) {
+				groupArr = this.arrColGroups ? this.arrColGroups.groupArr : null;
+			} else {
+				groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+			}
+
 			if(!groupArr) {
 				return;
 			}
 
 			var props;
 			for(var i = 0; i <= groupArr.length; i++) {
-				props = this.getGroupDataMenuButPos(i);
+				props = this.getGroupDataMenuButPos(i, bCol);
 				if(x >= props.x && y >= props.y && x <= props.x + props.w && y <= props.y + props.h) {
 					if("mouseup" === type) {
-						this.hideGroupLevel(i + 1);
-						this.clickedRowGroupButton = null;
+						this.hideGroupLevel(i + 1, bCol);
+						this.clickedGroupButton = null;
 					} else if("mousedown" === type){
-						this._drawGroupDataMenuButton(null, i, true, true);
-						this.clickedRowGroupButton = {level: i};
+						this._drawGroupDataMenuButton(null, i, true, true, bCol);
+						this.clickedGroupButton = {level: i, bCol: bCol};
 						return true;
 					}
 
@@ -16368,7 +16410,7 @@
 		}
 	};
 
-	WorksheetView.prototype._tryChangeGroup = function (pos, collapsed, level) {
+	WorksheetView.prototype._tryChangeGroup = function (pos, collapsed, level, bCol) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock()) {
 			return;
@@ -16433,7 +16475,7 @@
 				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 			}
 			//тут требуется обновить только rowLevelMap
-			t._updateGroups();
+			t._updateGroups(bCol);
 
 			t.draw(lockDraw);
 
@@ -16458,16 +16500,24 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
+				var changeModelFunc = bCol ? t.model.setColHidden :  t.model.setRowHidden;
 				if(!collapsed) {//скрываем
-					t.model.setRowHidden(true, start, end);
+					changeModelFunc.call(t.model, true, start, end);
+					//hideFunc(true, start, end);
 					//t.model.autoFilters.reDrawFilter(arn);
 				} else {
 					//открываем все строки, кроме внутренних групп
 					//внутренние группы скрываем, если среди них есть раскрытые
-					t.model.setRowHidden(false, start, end);
+					changeModelFunc.call(t.model, false, start, end);
 
-					var groupArr = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
-					var rowLevelMap = t.arrRowGroups ? t.arrRowGroups.levelMap : null;
+					var groupArr, levelMap;
+					if(bCol) {
+						groupArr = t.arrColGroups ? t.arrColGroups.groupArr : null;
+						levelMap = t.arrColGroups ? t.arrColGroups.levelMap : null;
+					} else {
+						groupArr = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
+						levelMap = t.arrRowGroups ? t.arrRowGroups.levelMap : null;
+					}
 					if(groupArr) {
 						for(var i = level + 1; i <= groupArr.length; i++) {
 							if(!groupArr[i]) {
@@ -16475,8 +16525,8 @@
 							}
 							for(var j = 0; j < groupArr[i].length; j++) {
 								if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
-									if(rowLevelMap[groupArr[i][j].end + 1] && rowLevelMap[groupArr[i][j].end + 1].collapsed) {
-										t.model.setRowHidden(true, groupArr[i][j].start, groupArr[i][j].end);
+									if(levelMap[groupArr[i][j].end + 1] && levelMap[groupArr[i][j].end + 1].collapsed) {
+										changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
 									}
 								}
 							}
@@ -16484,9 +16534,10 @@
 					}
 				}
 
+
 				oRecalcType = AscCommonExcel.recalcType.full;
 				reinitRanges = true;
-				updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+				//updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
 				History.EndTransaction();
 
@@ -16497,11 +16548,15 @@
 
 	};
 
-	WorksheetView.prototype.hideGroupLevel = function (level) {
+	WorksheetView.prototype.hideGroupLevel = function (level, bCol) {
 		console_time("hideGroupLevel");
 
-		var t = this;
-		var groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+		var t = this, groupArr;
+		if(bCol) {
+			groupArr = this.arrColGroups ? this.arrColGroups.groupArr : null;
+		} else {
+			groupArr = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+		}
 		//var rowLevelMap = t.arrRowGroups ? t.arrRowGroups.rowLevelMap : null;
 
 		if(!groupArr) {
@@ -16557,7 +16612,7 @@
 				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 			}
 			//тут требуется обновить только rowLevelMap
-			t._updateGroups();
+			t._updateGroups(bCol);
 
 			t.draw(lockDraw);
 
@@ -16584,7 +16639,11 @@
 					continue;
 				}
 				for(var j = 0; j < groupArr[i].length; j++) {
-					t.model.setRowHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
+					if(bCol) {
+						t.model.setColHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
+					} else {
+						t.model.setRowHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
+					}
 				}
 			}
 

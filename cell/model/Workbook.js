@@ -4493,8 +4493,14 @@
 		if(null == stop)
 			stop = start;
 		History.Create_NewPoint();
-		var oThis = this;
+		var oThis = this, outlineLevel;
 		var fProcessCol = function(col){
+
+			if(outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
+				oThis.setCollapsedCol(bHidden, null, col);
+			}
+			outlineLevel = col ? col.getOutlineLevel() : null;
+
 			if(col.getHidden() != bHidden)
 			{
 				var oOldProps = col.getWidthProp();
@@ -4545,6 +4551,31 @@
 				if(null != col)
 					fProcessCol(col);
 			}
+		}
+
+		if(/*bHidden && */outlineLevel) {
+			col = this._getCol(stop + 1);
+			if(col && outlineLevel !== col.getOutlineLevel()) {
+				oThis.setCollapsedCol(bHidden, null, col);
+			}
+		}
+	};
+	Worksheet.prototype.setCollapsedCol = function (bCollapse, colIndex, curCol) {
+		var oThis = this;
+		var fProcessCol = function(col){
+			var oOldProps = col.getCollapsed();
+			col.setCollapsed(bCollapse);
+			var oNewProps = col.getCollapsed();
+
+			if(oOldProps !== oNewProps) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CollapsedRow, oThis.getId(), col._getUpdateRange(), new UndoRedoData_IndexSimpleProp(col.index, true, oOldProps, oNewProps));
+			}
+		};
+
+		if(curCol) {
+			fProcessCol(curCol);
+		} else {
+			this.getRange3(0, colIndex,0, colIndex)._foreachCol(fProcessCol);
 		}
 	};
 	Worksheet.prototype.getColCustomWidth = function (index) {
@@ -4662,7 +4693,7 @@
 			if(row)
 			{
 				if(row.getCollapsed()) {
-					oThis.setCollapsed(false, null, row);
+					oThis.setCollapsedRow(false, null, row);
 				}
 				prevRow = row;
 
@@ -4690,7 +4721,7 @@
 			if(prevRow) {
 				this._getRow(stop + 1, function(row) {
 					if(row.getCollapsed()) {
-						oThis.setCollapsed(false, null, row);
+						oThis.setCollapsedRow(false, null, row);
 					}
 				});
 			}
@@ -4716,7 +4747,7 @@
 
 		var fProcessRow = function(row){
 			if(outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
-				oThis.setCollapsed(bHidden, null, row);
+				oThis.setCollapsedRow(bHidden, null, row);
 			}
 			outlineLevel = row ? row.getOutlineLevel() : null;
 
@@ -4752,7 +4783,7 @@
 			if(/*bHidden && */outlineLevel) {
 				this._getRow(stop + 1, function(row) {
 					if(row && outlineLevel !== row.getOutlineLevel()) {
-						oThis.setCollapsed(bHidden, null, row);
+						oThis.setCollapsedRow(bHidden, null, row);
 					}
 				});
 			}
@@ -4765,7 +4796,7 @@
 		}
 		this.workbook.dependencyFormulas.calcTree();
 	};
-	Worksheet.prototype.setCollapsed = function (bCollapse, rowIndex, curRow) {
+	Worksheet.prototype.setCollapsedRow = function (bCollapse, rowIndex, curRow) {
 		var oThis = this;
 		var fProcessRow = function(row){
 			var oOldProps = row.getCollapsed();

@@ -1413,6 +1413,11 @@
 							t.isRowGroup = true;
 						}
 						return;
+					} else if (t.targetInfo.target === c_oTargetType.GroupCol && 0 === event.button) {
+						if(t._groupRowClick(event, t.targetInfo)) {
+							t.isRowGroup = true;
+						}
+						return;
 					}
 				}
 			} else {
