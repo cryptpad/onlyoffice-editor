@@ -8841,7 +8841,7 @@ Paragraph.prototype.Style_Add = function(Id, bDoNotDeleteProps)
 	if (undefined !== this.Pr.PStyle)
 		this.Style_Remove();
 
-	if (null === Id)
+	if (null === Id || (undefined === Id && true === bDoNotDeleteProps))
 		return;
 
 	var oDefParaId = this.LogicDocument ? this.LogicDocument.Get_Styles().Get_Default_Paragraph() : null;
@@ -8851,7 +8851,7 @@ Paragraph.prototype.Style_Add = function(Id, bDoNotDeleteProps)
 	this.Recalc_RunsCompiledPr();
 
 	// Если стиль является стилем по умолчанию для параграфа, тогда не надо его записывать.
-	if (Id != oDefParaId)
+	if (Id != oDefParaId && undefined !== Id)
 	{
 		this.private_AddPrChange();
 		History.Add(new CChangesParagraphPStyle(this, this.Pr.PStyle, Id));
