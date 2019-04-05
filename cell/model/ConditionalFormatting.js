@@ -602,7 +602,7 @@
 	};
 
 	function CConditionalFormatIconSet () {
-		this.IconSet = true;
+		this.IconSet = null;
 		this.IconId = null;
 
 		return this;
