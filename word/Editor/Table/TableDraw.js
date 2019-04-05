@@ -551,7 +551,7 @@ CTable.prototype.private_DrawCellsBackground = function(pGraphics, PNum, Row_sta
 						var RGBA = CellShd.Get_Color2(Theme, ColorMap);
 						if (true !== RGBA.Auto)
 						{
-							pGraphics.b_color1(252, 230, 244, 255);
+							pGraphics.b_color1(RGBA.r, RGBA.g, RGBA.b, 255);
 
 							if (pGraphics.SetShd)
 							{
