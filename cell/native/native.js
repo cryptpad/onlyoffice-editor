@@ -3863,8 +3863,6 @@ function OfflineEditor () {
         
         this.beforeOpen();
         
-        window["CreateMainTextMeasurerWrapper"]();
-        
         deviceScale = window["native"]["GetDeviceScale"]();
         sdkCheck = settings["sdkCheck"];
         
