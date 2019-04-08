@@ -102,7 +102,9 @@ var SKIP_LBL_LIMIT = 100;
         return false;
     }
 
-
+    function checkNoFillMarkers(symbol){
+        return symbol === AscFormat.SYMBOL_X ||  symbol === AscFormat.SYMBOL_STAR ||  symbol === AscFormat.SYMBOL_PLUS;
+    }
 
     function GetTextPrFormArrObjects(aObjects, bFirstBreak, bLbl)
     {
@@ -12312,6 +12314,8 @@ CChartSpace.prototype.recalculateChartTitleEditMode = function(bWord)
     }
 };
 
+
+
 CChartSpace.prototype.recalculateMarkers = function()
 {
     if(this.chart && this.chart.plotArea)
@@ -12377,12 +12381,17 @@ CChartSpace.prototype.recalculateMarkers = function()
                         {
                             compiled_marker.setSpPr(new AscFormat.CSpPr());
                         }
-                        compiled_marker.spPr.setFill(brushes[pts[i].idx]);
+                        compiled_marker.setSymbol(GetTypeMarkerByIndex(i));
+                        if(!checkNoFillMarkers(compiled_marker.symbol)){
+                            compiled_marker.spPr.setFill(brushes[pts[i].idx]);
+                        }
+                        else{
+                            compiled_marker.spPr.setFill(AscFormat.CreateNoFillUniFill());
+                        }
                         compiled_marker.spPr.Fill.merge(pts[i].brush);
                         if(!compiled_marker.spPr.ln)
                             compiled_marker.spPr.setLn(new AscFormat.CLn());
                         compiled_marker.spPr.ln.merge(pts[i].pen);
-                        compiled_marker.setSymbol(GetTypeMarkerByIndex(i));
                         compiled_marker.merge(ser.marker);
 
                         if(Array.isArray(ser.dPt))
@@ -12444,11 +12453,16 @@ CChartSpace.prototype.recalculateMarkers = function()
                             {
                                 compiled_marker.setSpPr(new AscFormat.CSpPr());
                             }
-                            compiled_marker.spPr.setFill(brushes[series[i].idx]);
+                            compiled_marker.setSymbol(GetTypeMarkerByIndex(series[i].idx));
+                            if(!checkNoFillMarkers(compiled_marker.symbol)){
+                                compiled_marker.spPr.setFill(brushes[series[i].idx]);
+                            }
+                            else{
+                                compiled_marker.spPr.setFill(AscFormat.CreateNoFillUniFill());
+                            }
                             if(!compiled_marker.spPr.ln)
                                 compiled_marker.spPr.setLn(new AscFormat.CLn());
                             compiled_marker.spPr.ln.setFill(pens_fills[series[i].idx]);
-                            compiled_marker.setSymbol(GetTypeMarkerByIndex(series[i].idx));
                             compiled_marker.merge(ser.marker);
                             if(j === 0)
                                 ser.compiledSeriesMarker = compiled_marker.createDuplicate();
