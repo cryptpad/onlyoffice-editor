@@ -19,7 +19,7 @@ exclude_paths:
   - build/
   - cell/document
   - cell/documentation
-  - common/FontsFreeType/Private
+  - common/libfont/js/private
   - common/externs
   - slide/themes
   - slide/document
