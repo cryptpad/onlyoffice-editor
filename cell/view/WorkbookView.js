@@ -1463,6 +1463,7 @@
     var editFunction = function() {
       t.setCellEditMode(true);
       ws.setCellEditMode(true);
+      t.hideSpecialPasteButton();
       ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
@@ -2187,6 +2188,7 @@
 					if (isNotFunction) {
 						t.skipHelpSelector = true;
 					}
+					this.hideSpecialPasteButton();
 					// Открываем, с выставлением позиции курсора
 					if (!ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange)) {
 						t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editEnd);
