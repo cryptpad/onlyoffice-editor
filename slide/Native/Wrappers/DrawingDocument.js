@@ -180,15 +180,9 @@ CDrawingDocument.prototype.Notes_OnRecalculate = function()
 CDrawingDocument.prototype.RenderPage = function(nPageIndex, bTh, bIsPlayMode)
 {
     var _graphics = new CDrawingStream();
-    if(bTh)
-    {
-        _graphics.IsNoDrawingEmptyPlaceholder = true;
-        _graphics.IsThumbnail = true;
-    }
-    if(bIsPlayMode)
-    {
-        _graphics.IsNoDrawingEmptyPlaceholder = true;
-    }
+    _graphics.IsThumbnail = (!!bTh);
+    _graphics.IsDemonstrationMode = (!!bIsPlayMode);
+    _graphics.IsNoDrawingEmptyPlaceholder = (bIsPlayMode || bTh);
     this.m_oWordControl.m_oLogicDocument.DrawPage(nPageIndex, _graphics);
 };
 
