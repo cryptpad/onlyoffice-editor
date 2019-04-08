@@ -835,57 +835,55 @@ DrawingObjectsController.prototype =
             }
         }
         else if(this.drawingObjects && this.drawingObjects.getWorksheetModel){
-            if(/*!drawing.selected*/ true){
-                oNvPr = drawing.getNvProps();
-                if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
+            oNvPr = drawing.getNvProps();
+            if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
 
-                    if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {
-                        if(e.CtrlKey || this.isSlideShow()){
-                            // var wsModel = this.drawingObjects.getWorksheetModel();
-                            //
-                            // var _link = oNvPr.hlinkClick.id;
-                            // var newHyperlink = new AscCommonExcel.Hyperlink();
-                            // if (_link.search('#') === 0) {
-                            //     var sLink2 = _link.replace('#', '');
-                            //     newHyperlink.setLocation(sLink2);
-                            //     var aRanges = AscCommonExcel.getRangeByRef(sLink2, wsModel);
-                            //     newHyperlink.Ref = aRanges[0];
-                            // }
-                            // else {
-                            //     newHyperlink.Hyperlink = _link;
-                            // }
-                            // newHyperlink.Tooltip = oNvPr.hlinkClick.tooltip;
-                            // var ascHyperlink = new Asc.asc_CHyperlink();
-                            // ascHyperlink.hyperlinkModel = newHyperlink;
-                            // oApi._asc_setWorksheetRange(ascHyperlink);
-                            //newHyperlink.Ref.setHyperlink(newHyperlink);
-                            // return AscCommonExcel.getRangeByRef(sFormula, this.worksheet);
-                            // editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
-                            return true;
-                        }
-                        else{
-                            return false;
-                        }
+                if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {
+                    if(e.CtrlKey || this.isSlideShow()){
+                        // var wsModel = this.drawingObjects.getWorksheetModel();
+                        //
+                        // var _link = oNvPr.hlinkClick.id;
+                        // var newHyperlink = new AscCommonExcel.Hyperlink();
+                        // if (_link.search('#') === 0) {
+                        //     var sLink2 = _link.replace('#', '');
+                        //     newHyperlink.setLocation(sLink2);
+                        //     var aRanges = AscCommonExcel.getRangeByRef(sLink2, wsModel);
+                        //     newHyperlink.Ref = aRanges[0];
+                        // }
+                        // else {
+                        //     newHyperlink.Hyperlink = _link;
+                        // }
+                        // newHyperlink.Tooltip = oNvPr.hlinkClick.tooltip;
+                        // var ascHyperlink = new Asc.asc_CHyperlink();
+                        // ascHyperlink.hyperlinkModel = newHyperlink;
+                        // oApi._asc_setWorksheetRange(ascHyperlink);
+                        //newHyperlink.Ref.setHyperlink(newHyperlink);
+                        // return AscCommonExcel.getRangeByRef(sFormula, this.worksheet);
+                        // editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
+                        return true;
                     }
                     else{
+                        return false;
+                    }
+                }
+                else{
 
-                        var _link = oNvPr.hlinkClick.id;
-                        var sLink2;
-                        if (_link.search('#') === 0) {
-                            sLink2 = _link.replace('#', '');
-                        }
-                        else {
-                            sLink2 = _link;
-                        }
-                        var oHyperlink = AscFormat.ExecuteNoHistory(function(){return new ParaHyperlink();}, this, []);
-                        oHyperlink.Value = sLink2;
-                        oHyperlink.Tooltip = oNvPr.hlinkClick.tooltip;
-                        if(hit_in_text_rect){
-                            return {objectId: drawing.Get_Id(), cursorType: "text", bMarker: false, hyperlink: oHyperlink};
-                        }
-                        else{
-                            return {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false, hyperlink: oHyperlink};
-                        }
+                    var _link = oNvPr.hlinkClick.id;
+                    var sLink2;
+                    if (_link.search('#') === 0) {
+                        sLink2 = _link.replace('#', '');
+                    }
+                    else {
+                        sLink2 = _link;
+                    }
+                    var oHyperlink = AscFormat.ExecuteNoHistory(function(){return new ParaHyperlink();}, this, []);
+                    oHyperlink.Value = sLink2;
+                    oHyperlink.Tooltip = oNvPr.hlinkClick.tooltip;
+                    if(hit_in_text_rect){
+                        return {objectId: drawing.Get_Id(), cursorType: "text", bMarker: false, hyperlink: oHyperlink};
+                    }
+                    else{
+                        return {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false, hyperlink: oHyperlink};
                     }
                 }
             }
