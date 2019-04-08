@@ -11745,7 +11745,20 @@
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
-
+			case "groupCols":
+				functionModelAction = function () {
+					History.Create_NewPoint();
+					History.StartTransaction();
+					t.model.setGroupCol(val, arn.c1, arn.c2);
+					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
+					t._updateGroups(true);
+					History.EndTransaction();
+					/*oRecalcType = AscCommonExcel.recalcType.full;
+					 reinitRanges = true;
+					 updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};*/
+				};
+				this._isLockedAll(onChangeWorksheetCallback);
+				break;
 			case "sheetViewSettings":
 				functionModelAction = function () {
 					if (AscCH.historyitem_Worksheet_SetDisplayGridlines === val.type) {

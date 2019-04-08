@@ -4578,6 +4578,20 @@
 			this.getRange3(0, colIndex,0, colIndex)._foreachCol(fProcessCol);
 		}
 	};
+	Worksheet.prototype.setGroupCol = function (bDel, start, stop) {
+		var oThis = this;
+		var fProcessCol = function(col){
+			var oOldProps = col.getOutlineLevel();
+			col.setOutlineLevel(null, bDel);
+			var oNewProps = col.getOutlineLevel();
+
+			if(oOldProps !== oNewProps) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupCol, oThis.getId(), col._getUpdateRange(), new UndoRedoData_IndexSimpleProp(col.index, true, oOldProps, oNewProps));
+			}
+		};
+
+		this.getRange3(0, start, 0, stop)._foreachCol(fProcessCol);
+	};
 	Worksheet.prototype.getColCustomWidth = function (index) {
 		var isBestFit;
 		var column = this._getColNoEmptyWithAll(index);

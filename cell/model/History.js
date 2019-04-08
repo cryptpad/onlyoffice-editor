@@ -74,6 +74,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_GroupRow = 33;
 	window['AscCH'].historyitem_Worksheet_CollapsedRow = 34;
 	window['AscCH'].historyitem_Worksheet_CollapsedCol = 35;
+	window['AscCH'].historyitem_Worksheet_GroupCol = 36;
 // Frozen cell
 	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
 
