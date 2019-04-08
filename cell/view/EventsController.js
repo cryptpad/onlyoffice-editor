@@ -801,15 +801,16 @@
 					if (t.getCellEditMode()) {
 						return true;
 					}
+					var isSelectColumns = !AscBrowser.isMacOs && ctrlKey || AscBrowser.isMacOs && event.altKey;
 					// Обработать как обычный текст
-					if (!ctrlKey && !shiftKey) {
+					if (!isSelectColumns && !shiftKey) {
 						t.skipKeyPress = false;
 						return true;
 					}
 					// Отключим стандартную обработку браузера нажатия
 					// Ctrl+Shift+Spacebar, Ctrl+Spacebar, Shift+Spacebar
 					stop();
-					if (ctrlKey) {
+					if (isSelectColumns) {
 						t.handlers.trigger("selectColumnsByRange");
 					}
 					if (shiftKey) {
