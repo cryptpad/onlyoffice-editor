@@ -1238,22 +1238,23 @@ function CreateThemeUnifill(color, tint, shade){
 }
 
 function WriteTrackRevision(bs, Id, reviewInfo, options) {
-    if(null != reviewInfo.UserName){
-        bs.memory.WriteByte(c_oSerProp_RevisionType.Author);
-        bs.memory.WriteString2(reviewInfo.UserName);
-    }
-    if(reviewInfo.DateTime > 0){
-        var dateStr = new Date(reviewInfo.DateTime).toISOString().slice(0, 19) + 'Z';
-        bs.memory.WriteByte(c_oSerProp_RevisionType.Date);
-        bs.memory.WriteString2(dateStr);
-    }
-    //increment id
-    bs.WriteItem(c_oSerProp_RevisionType.Id, function(){bs.memory.WriteLong(Id);});
-    
-    if(null != reviewInfo.UserId){
-        bs.memory.WriteByte(c_oSerProp_RevisionType.UserId);
-        bs.memory.WriteString2(reviewInfo.UserId);
-    }
+	//increment id
+	bs.WriteItem(c_oSerProp_RevisionType.Id, function(){bs.memory.WriteLong(Id);});
+	if (reviewInfo) {
+		if(null != reviewInfo.UserName){
+			bs.memory.WriteByte(c_oSerProp_RevisionType.Author);
+			bs.memory.WriteString2(reviewInfo.UserName);
+		}
+		if(reviewInfo.DateTime > 0){
+			var dateStr = new Date(reviewInfo.DateTime).toISOString().slice(0, 19) + 'Z';
+			bs.memory.WriteByte(c_oSerProp_RevisionType.Date);
+			bs.memory.WriteString2(dateStr);
+		}
+		if(null != reviewInfo.UserId){
+			bs.memory.WriteByte(c_oSerProp_RevisionType.UserId);
+			bs.memory.WriteString2(reviewInfo.UserId);
+		}
+	}
     if(options){
         if (null != options.run) {
             var delText = reviewtype_Remove == options.ReviewType;
@@ -1268,6 +1269,18 @@ function WriteTrackRevision(bs, Id, reviewInfo, options) {
         if (null != options.pPr) {
             bs.WriteItem(c_oSerProp_RevisionType.pPrChange, function(){options.bpPrs.Write_pPr(options.pPr);});
         }
+		if (null != options.grid) {
+			bs.WriteItem(c_oSerProp_RevisionType.tblGridChange, function(){options.btw.WriteTblGrid(options.grid);});
+		}
+		if (null != options.tblPr) {
+			bs.WriteItem(c_oSerProp_RevisionType.tblPrChange, function(){options.btw.WriteTblPr(options.tblPr);});
+		}
+		if (null != options.trPr) {
+			bs.WriteItem(c_oSerProp_RevisionType.trPrChange, function(){options.btw.WriteRowPr(options.trPr);});
+		}
+		if (null != options.tcPr) {
+			bs.WriteItem(c_oSerProp_RevisionType.tcPrChange, function(){options.btw.WriteCellPr(options.tcPr);});
+		}
     }
 };
 
@@ -1297,6 +1310,22 @@ function ReadTrackRevision(type, length, stream, reviewInfo, options) {
             res = options.brPrr.Read(length, options.rPr, null);
         } else if(c_oSerProp_RevisionType.pPrChange == type) {
             res = options.bpPrr.Read(length, options.pPr, null);
+		} else if(c_oSerProp_RevisionType.tblGridChange == type) {
+			res = options.btblPrr.bcr.Read2(length, function(t, l){
+				return options.btblPrr.Read_tblGrid(t,l, options.grid);
+			});
+		} else if(c_oSerProp_RevisionType.tblPrChange == type) {
+			res = options.btblPrr.bcr.Read1(length, function(t, l){
+				return options.btblPrr.Read_tblPr(t,l, options.tblPr);
+			});
+		} else if(c_oSerProp_RevisionType.trPrChange == type) {
+			res = options.btblPrr.bcr.Read2(length, function(t, l){
+				return options.btblPrr.Read_RowPr(t,l, options.trPr);
+			});
+		} else if(c_oSerProp_RevisionType.tcPrChange == type) {
+			res = options.btblPrr.bcr.Read2(length, function(t, l){
+				return options.btblPrr.Read_CellPr(t,l, options.tcPr);
+			});
         } else {
             res = c_oSerConstants.ReadUnknown;
         }
@@ -3739,6 +3768,7 @@ function Binary_oMathWriter(memory, oMathPara, saveParams)
 function Binary_tblPrWriter(memory, oNumIdMap, saveParams)
 {
     this.memory = memory;
+	this.saveParams = saveParams;
     this.bs = new BinaryCommonWriter(this.memory);
     this.bpPrs = new Binary_pPrWriter(this.memory, oNumIdMap, null, saveParams);
 }
@@ -3843,6 +3873,9 @@ Binary_tblPrWriter.prototype =
 			this.memory.WriteByte(c_oSerProp_tblPrType.tblDescription);
 			this.memory.WriteString2(tblPr.TableDescription);
 		}
+		if (tblPr.PrChange && tblPr.ReviewInfo) {
+			this.bs.WriteItem(c_oSerProp_tblPrType.tblPrChange, function(){WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, tblPr.ReviewInfo, {btw: oThis, tblPr: tblPr.PrChange});});
+		}
     },
     WriteCellMar: function(cellMar)
     {
@@ -3922,7 +3955,7 @@ Binary_tblPrWriter.prototype =
 			this.bs.WriteItemWithLength(function(){oThis.bs.WritePaddings(table.Distance);});
 		}
     },
-    WriteRowPr: function(rowPr)
+    WriteRowPr: function(rowPr, row)
     {
         var oThis = this;
         //CantSplit
@@ -3974,6 +4007,20 @@ Binary_tblPrWriter.prototype =
             this.memory.WriteByte(c_oSerPropLenType.Byte);
             this.memory.WriteBool(rowPr.TableHeader);
         }
+		if (rowPr.PrChange && rowPr.ReviewInfo) {
+			this.memory.WriteByte(c_oSerProp_rowPrType.trPrChange);
+			this.memory.WriteByte(c_oSerPropLenType.Variable);
+			this.bs.WriteItemWithLength(function(){WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, rowPr.ReviewInfo, {btw: oThis, trPr: rowPr.PrChange});});
+		}
+		if (row) {
+			var ReviewType = row.GetReviewType();
+			if (reviewtype_Add === ReviewType || reviewtype_Remove === ReviewType) {
+				var recordType = reviewtype_Remove === ReviewType ? c_oSerProp_rowPrType.Del : c_oSerProp_rowPrType.Ins;
+				this.memory.WriteByte(recordType);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.bs.WriteItemWithLength(function(){WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, row.GetReviewInfo());});
+			}
+		}
     },
     WriteAfter: function(After)
     {
@@ -4126,7 +4173,12 @@ Binary_tblPrWriter.prototype =
             this.memory.WriteByte(c_oSerProp_cellPrType.noWrap);
             this.memory.WriteByte(c_oSerPropLenType.Byte);
             this.memory.WriteBool(noWrap);
-    }
+		}
+		if (cellPr.PrChange && cellPr.ReviewInfo) {
+			this.memory.WriteByte(c_oSerProp_cellPrType.tcPrChange);
+			this.memory.WriteByte(c_oSerPropLenType.Variable);
+			this.bs.WriteItemWithLength(function(){WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, cellPr.ReviewInfo, {btw: oThis, tcPr: cellPr.PrChange});});
+		}
     }
 };
 function BinaryHeaderFooterTableWriter(memory, doc, oNumIdMap, oMapCommentId, saveParams)
@@ -5555,13 +5607,13 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			var aGrid = table.TableGrid;
 			if(null != nMinGrid && null != nMaxGrid && 0 != nMinGrid && aGrid.length - 1 != nMaxGrid)
 				aGrid = aGrid.slice( nMinGrid, nMaxGrid + 1);
-            this.bs.WriteItem(c_oSerDocTableType.tblGrid, function(){oThis.WriteTblGrid(aGrid);});
+            this.bs.WriteItem(c_oSerDocTableType.tblGrid, function(){oThis.WriteTblGrid(aGrid, table.TableGridChange);});
 		}
         //Content
         if(null != table.Content && table.Content.length > 0)
             this.bs.WriteItem(c_oSerDocTableType.Content, function(){oThis.WriteTableContent(table.Content, aRowElems);});
     };
-    this.WriteTblGrid = function(grid)
+    this.WriteTblGrid = function(grid, tableGridChange)
     {
         var oThis = this;
         for(var i = 0, length = grid.length; i < length; i++)
@@ -5570,6 +5622,11 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
             this.memory.WriteByte(c_oSerPropLenType.Long);
             this.bs.writeMmToTwips(grid[i]);
         }
+		if (tableGridChange) {
+			this.memory.WriteByte(c_oSerDocTableType.tblGridChange);
+			this.memory.WriteByte(c_oSerPropLenType.Variable);
+			this.bs.WriteItemWithLength(function(){WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, undefined, {btw: oThis, grid: tableGridChange});});
+		}
     };
     this.WriteTableContent = function(Content, aRowElems)
     {
@@ -5610,7 +5667,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 				else
 					oRowPr.GridBefore = null;
 			}
-            this.bs.WriteItem(c_oSerDocTableType.Row_Pr, function(){oThis.btblPrs.WriteRowPr(oRowPr);});
+            this.bs.WriteItem(c_oSerDocTableType.Row_Pr, function(){oThis.btblPrs.WriteRowPr(oRowPr, Row);});
         }
         //Content
         if(null != Row.Content)
@@ -8850,7 +8907,16 @@ Binary_tblPrReader.prototype =
 		else if( c_oSerProp_tblPrType.tblDescription === type )
 		{
 			Pr.TableDescription = this.stream.GetString2LE(length);
-		} 
+		}
+		else if( c_oSerProp_tblPrType.tblPrChange === type && this.Document instanceof CDocument)
+		{
+			var tblPrChange = new CTablePr();
+			var reviewInfo = new CReviewInfo();
+			res = this.bcr.Read1(length, function(t, l) {
+				return ReadTrackRevision(t, l, oThis.stream, reviewInfo, {btblPrr: oThis, tblPr: tblPrChange});
+			});
+			Pr.SetPrChange(tblPrChange, reviewInfo);
+		}
 		else if(null != table)
 		{
 			if( c_oSerProp_tblPrType.tblpPr === type )
@@ -8900,8 +8966,6 @@ Binary_tblPrReader.prototype =
 			}
 			else if( c_oSerProp_tblPrType.Style === type )
 				this.oReadResult.tableStyles.push({pPr: table, style: this.stream.GetString2LE(length)});
-            else if( c_oSerProp_tblPrType.tblPrChange === type )
-				res = c_oSerConstants.ReadUnknown;//todo
 			else
 				res = c_oSerConstants.ReadUnknown;
 		}
@@ -9072,7 +9136,7 @@ Binary_tblPrReader.prototype =
             res = c_oSerConstants.ReadUnknown;
         return res;
     },
-	Read_RowPr: function(type, length, Pr)
+	Read_RowPr: function(type, length, Pr, row)
     {
         var res = c_oSerConstants.ReadOk;
         var oThis = this;
@@ -9117,14 +9181,27 @@ Binary_tblPrReader.prototype =
         {
             Pr.TableHeader = (this.stream.GetUChar() != 0);
         }
-        else if( c_oSerProp_rowPrType.Del === type ){
-            res = c_oSerConstants.ReadUnknown;//todo
+        else if(c_oSerProp_rowPrType.Del === type && row && this.Document instanceof CDocument){
+			var reviewInfo = new CReviewInfo();
+			res = this.bcr.Read1(length, function(t, l){
+				return ReadTrackRevision(t, l, oThis.stream, reviewInfo, null);
+			});
+			row.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo);
         }
-        else if( c_oSerProp_rowPrType.Ins === type ){
-            res = c_oSerConstants.ReadUnknown;//todo
+        else if(c_oSerProp_rowPrType.Ins === type && row && this.Document instanceof CDocument){
+			var reviewInfo = new CReviewInfo();
+			res = this.bcr.Read1(length, function(t, l){
+				return ReadTrackRevision(t, l, oThis.stream, reviewInfo, null);
+			});
+			row.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo);
         }
-        else if( c_oSerProp_rowPrType.trPrChange === type ){
-            res = c_oSerConstants.ReadUnknown;//todo
+        else if( c_oSerProp_rowPrType.trPrChange === type && this.Document instanceof CDocument){
+			var trPr = new CTableRowPr();
+			var reviewInfo = new CReviewInfo();
+			res = this.bcr.Read1(length, function(t, l) {
+				return ReadTrackRevision(t, l, oThis.stream, reviewInfo, {btblPrr: oThis, trPr: trPr});
+			});
+			Pr.SetPrChange(trPr, reviewInfo);
         }
         else
             res = c_oSerConstants.ReadUnknown;
@@ -9280,8 +9357,13 @@ Binary_tblPrReader.prototype =
         else if( c_oSerProp_cellPrType.CellMerge === type ){
             res = c_oSerConstants.ReadUnknown;//todo
         }
-        else if( c_oSerProp_cellPrType.tcPrChange === type ){
-            res = c_oSerConstants.ReadUnknown;//todo
+        else if( c_oSerProp_cellPrType.tcPrChange === type && this.Document instanceof CDocument){
+			var tcPr = new CTableCellPr();
+			var reviewInfo = new CReviewInfo();
+			res = this.bcr.Read1(length, function(t, l) {
+				return ReadTrackRevision(t, l, oThis.stream, reviewInfo, {btblPrr: oThis, tcPr: tcPr});
+			});
+			Pr.SetPrChange(tcPr, reviewInfo);
         }
         else if( c_oSerProp_cellPrType.textDirection === type ){
             Pr.TextDirection = this.stream.GetUChar();
@@ -11289,7 +11371,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         {
 			var aNewGrid = [];
             res = this.bcr.Read2(length, function(t, l){
-                return oThis.Read_tblGrid(t,l, aNewGrid);
+                return oThis.Read_tblGrid(t,l, aNewGrid, table);
             });
 			table.SetTableGrid(aNewGrid);
         }
@@ -11305,8 +11387,9 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
-    this.Read_tblGrid = function(type, length, tblGrid)
+    this.Read_tblGrid = function(type, length, tblGrid, table)
     {
+		var oThis = this;
         var res = c_oSerConstants.ReadOk;
         if( c_oSerDocTableType.tblGrid_Item === type )
         {
@@ -11315,6 +11398,15 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         else if( c_oSerDocTableType.tblGrid_ItemTwips === type )
 		{
 			tblGrid.push(g_dKoef_twips_to_mm * this.stream.GetULongLE());
+		}
+		else if( c_oSerDocTableType.tblGridChange === type && table && this.Document instanceof CDocument)
+		{
+			var tblGridChange = [];
+			var reviewInfo = new CReviewInfo();
+			res = this.bcr.Read1(length, function(t, l) {
+				return ReadTrackRevision(t, l, oThis.stream, reviewInfo, {btblPrr: oThis, grid: tblGridChange});
+			});
+			table.SetTableGridChange(tblGridChange);
 		}
         else
             res = c_oSerConstants.ReadUnknown;
@@ -11347,7 +11439,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         {
 			var oNewRowPr = new CTableRowPr();
             res = this.bcr.Read2(length, function(t, l){
-                return oThis.btblPrr.Read_RowPr(t, l, oNewRowPr);
+                return oThis.btblPrr.Read_RowPr(t, l, oNewRowPr, Row);
             });
 			Row.Set_Pr(oNewRowPr);
         }
@@ -11413,8 +11505,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 				cell.Content.Internal_Content_Remove(0, 1);
 			}
 			//если 0 == oCellContent.length в ячейке остается параграф который был там при создании.
-        } else if( c_oSerDocTableType.tblGridChange === type ) {
-            res = c_oSerConstants.ReadUnknown;//todo
         }
         else
             res = c_oSerConstants.ReadUnknown;
