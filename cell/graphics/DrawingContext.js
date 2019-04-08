@@ -1119,6 +1119,7 @@
 	};
 
 	DrawingContext.prototype.dashLineCleverHor = function (x1, y, x2) {
+		var isEven = 0 !== this.ctx.lineWidth % 2 ? 0.5 : 0;
 		var w_dot = AscCommonExcel.c_oAscCoAuthoringDottedWidth, w_dist = AscCommonExcel.c_oAscCoAuthoringDottedDistance;
 		var _x1 = this._mct.transformPointX(x1, y);
 		var _y = this._mct.transformPointY(x1, y) - 1;
@@ -1126,7 +1127,7 @@
 		var ctx = this.ctx;
 
 		_x1 = (_x1 >> 0);
-		_y = (_y >> 0) + 0.5;
+		_y = (_y >> 0) + isEven;
 		_x2 = (_x2 >> 0);
 
 		for (; _x1 < _x2; _x1 += w_dist) {
@@ -1141,6 +1142,7 @@
 		}
 	};
 	DrawingContext.prototype.dashLineCleverVer = function (x, y1, y2) {
+		var isEven = 0 !== this.ctx.lineWidth % 2 ? 0.5 : 0;
 		var w_dot = AscCommonExcel.c_oAscCoAuthoringDottedWidth, w_dist = AscCommonExcel.c_oAscCoAuthoringDottedDistance;
 		var _y1 = this._mct.transformPointY(x, y1);
 		var _x = this._mct.transformPointX(x, y1) - 1;
@@ -1148,7 +1150,7 @@
 		var ctx = this.ctx;
 
 		_y1 = (_y1 >> 0);
-		_x = (_x >> 0) + 0.5;
+		_x = (_x >> 0) + isEven;
 		_y2 = (_y2 >> 0);
 
 		for (; _y1 < _y2; _y1 += w_dist) {

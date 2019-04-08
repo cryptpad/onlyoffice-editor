@@ -3405,7 +3405,7 @@
 
 	WorksheetView.prototype._drawCutRange = function () {
 		if(this.cutRange) {
-			this._drawElements(this._drawSelectionElement, this.cutRange, AscCommonExcel.selectionLineType.Dash, AscCommonExcel.c_oAscCoAuthoringOtherBorderColor);
+			this._drawElements(this._drawSelectionElement, this.cutRange, AscCommonExcel.selectionLineType.DashThick, this.settings.activeCellBorderColor);
 		}
 	};
 
@@ -4174,7 +4174,9 @@
         var fHorLine, fVerLine;
         var canFill = AscCommonExcel.selectionLineType.Selection & selectionLineType;
         var isDashLine = AscCommonExcel.selectionLineType.Dash & selectionLineType;
-        if (isDashLine) {
+        var dashThickLine = AscCommonExcel.selectionLineType.DashThick & selectionLineType;
+
+        if (isDashLine || dashThickLine) {
             fHorLine = ctx.dashLineCleverHor;
             fVerLine = ctx.dashLineCleverVer;
         } else {
