@@ -20,8 +20,6 @@ exclude_paths:
   - cell/.unit-tests/qunit
   - cell/document
   - cell/documentation
-  - cell/native/underscore-min.js
-  - cell/native/xregexp-all-min.js
   - common/FontsFreeType/Private
   - common/externs
   - slide/themes
