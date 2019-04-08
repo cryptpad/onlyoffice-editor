@@ -2143,7 +2143,7 @@
         }
         if(this.pos < this.formula.length){
             this.setFlag(PARSER_MASK_CLEAN, false);
-            this.setError(ERROR_TYPE_SYNTAX_ERROR, this.formula[this.pos]);
+            this.error = new CError(ERROR_TYPE_SYNTAX_ERROR, this.formula[this.pos]);
             return;
         }
         while (aStack.length > 0){
