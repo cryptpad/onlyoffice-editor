@@ -1016,6 +1016,26 @@ CTableRow.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
 		this.private_UpdateTrackRevisions();
 	}
 };
+/**
+ * Меняем тип рецензирования вместе с информацией о рецензента
+ * @param {number} nType
+ * @param {CReviewInfo} oInfo
+ */
+CTableRow.prototype.SetReviewTypeWithInfo = function(nType, oInfo)
+{
+	History.Add(new CChangesTableRowReviewType(this, {
+		ReviewType : this.ReviewType,
+		ReviewInfo : this.ReviewInfo ? this.ReviewInfo.Copy() : undefined
+	}, {
+		ReviewType : nType,
+		ReviewInfo : oInfo ? oInfo.Copy() : undefined
+	}));
+
+	this.ReviewType = nType;
+	this.ReviewInfo = oInfo;
+
+	this.private_UpdateTrackRevisions();
+};
 CTableRow.prototype.private_UpdateTrackRevisions = function()
 {
 	var oTable = this.GetTable();
