@@ -268,6 +268,8 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_PresentationField]      = AscCommonWord.CPresentationField;
 		this.m_oFactoryClass[AscDFH.historyitem_type_RelSizeAnchor]      	 = AscFormat.CRelSizeAnchor;
 		this.m_oFactoryClass[AscDFH.historyitem_type_AbsSizeAnchor]      	 = AscFormat.CAbsSizeAnchor;
+		this.m_oFactoryClass[AscDFH.historyitem_type_ParaRevisionMove]       = AscFormat.CParaRevisionMove;
+		this.m_oFactoryClass[AscDFH.historyitem_type_RunRevisionMove]        = AscFormat.CRunRevisionMove;
 
 
 		if (window['AscCommonSlide'])

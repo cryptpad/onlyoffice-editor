@@ -1,0 +1,155 @@
+/*
+ * (c) Copyright Ascensio System SIA 2010-2019
+ *
+ * This program is a free software product. You can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License (AGPL)
+ * version 3 as published by the Free Software Foundation. In accordance with
+ * Section 7(a) of the GNU AGPL its Section 15 shall be amended to the effect
+ * that Ascensio System SIA expressly excludes the warranty of non-infringement
+ * of any third-party rights.
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
+ * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
+ *
+ * The  interactive user interfaces in modified source and object code versions
+ * of the Program must display Appropriate Legal Notices, as required under
+ * Section 5 of the GNU AGPL version 3.
+ *
+ * Pursuant to Section 7(b) of the License you must retain the original Product
+ * logo when distributing the program. Pursuant to Section 7(e) we decline to
+ * grant you any rights under trademark law for use of our trademarks.
+ *
+ * All the Product's GUI elements, including illustrations and icon sets, as
+ * well as technical writing content are licensed under the terms of the
+ * Creative Commons Attribution-ShareAlike 4.0 International. See the License
+ * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
+ *
+ */
+
+"use strict";
+/**
+ * User: Ilja.Kirillov
+ * Date: 05.04.2019
+ * Time: 16:02
+ */
+
+/**
+ * Класс для обозначения элемента начала/конца переноса текста во время рецензирования внутри параграфа
+ * @constructor
+ * @extends {CParagraphContentBase}
+ */
+function CParaRevisionMove(isStart, isFrom, sName)
+{
+	CParagraphContentBase.call(this);
+	this.Id = AscCommon.g_oIdCounter.Get_NewId();
+
+	this.Start = isStart;
+	this.From  = isFrom;
+	this.Name  = sName;
+
+	this.Type = para_RevisionMove;
+
+	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
+	g_oTableId.Add(this, this.Id);
+}
+
+CParaRevisionMove.prototype = Object.create(CParagraphContentBase.prototype);
+CParaRevisionMove.prototype.constructor = CParaRevisionMove;
+
+CParaRevisionMove.prototype.Get_Id = function()
+{
+	return this.Id;
+};
+CParaRevisionMove.prototype.GetId = function()
+{
+	return this.Get_Id();
+};
+CParaRevisionMove.prototype.Copy = function(Selected)
+{
+	return new CParaRevisionMove(this.Start, this.From, this.Name);
+};
+CParaRevisionMove.prototype.Refresh_RecalcData = function()
+{
+};
+CParaRevisionMove.prototype.Write_ToBinary2 = function(oWriter)
+{
+	oWriter.WriteLong(AscDFH.historyitem_type_ParaRevisionMove);
+
+	// String  : Id
+	// Bool    : is Start
+	// Bool    : is From
+	// String  : Name
+
+	oWriter.WriteString2("" + this.Id);
+	oWriter.WriteBool(this.Start);
+	oWriter.WriteBool(this.From);
+	oWriter.WriteString2("" + this.Name);
+};
+CParaRevisionMove.prototype.Read_FromBinary2 = function(oReader)
+{
+	// String  : Id
+	// Bool    : is Start
+	// Bool    : is From
+	// String  : Name
+
+	this.Id    = oReader.GetString2();
+	this.Start = oReader.GetBool();
+	this.From  = oReader.GetBool();
+	this.Name  = oReader.GetString2();
+};
+
+
+/**
+ * Класс для обозначения элемента начала/конца переноса текста во время рецензирования внутри рана
+ * @constructor
+ * @extends {CRunElementBase}
+ */
+function CRunRevisionMove(isStart, isFrom, sName)
+{
+	CRunElementBase.call(this);
+
+	this.Start = isStart;
+	this.From  = isFrom;
+	this.Name  = sName;
+}
+
+CRunRevisionMove.prototype = Object.create(CRunElementBase.prototype);
+CRunRevisionMove.prototype.constructor = CRunRevisionMove;
+CRunRevisionMove.prototype.Type = para_RevisionMove;
+
+CRunRevisionMove.prototype.Copy = function()
+{
+	return new CRunRevisionMove(this.Start, this.From. this.Name);
+};
+CRunRevisionMove.prototype.Write_ToBinary  = function(oWriter)
+{
+	oWriter.WriteLong(this.Type);
+
+	// Bool   : Start
+	// Bool   : From
+	// String : Name
+
+	oWriter.WriteBool(this.Start);
+	oWriter.WriteBool(this.From);
+	oWriter.WriteString2("" + this.Name);
+};
+CRunRevisionMove.prototype.Read_FromBinary = function(oReader)
+{
+	// Bool   : Start
+	// Bool   : From
+	// String : Name
+
+	this.Start = oReader.GetBool();
+	this.From  = oReader.GetBool();
+	this.Name  = oReader.GetString2();
+};
+
+//--------------------------------------------------------export----------------------------------------------------
+window['AscCommon'] = window['AscCommon'] || {};
+
+window['AscCommon'].CParaRevisionMove = CParaRevisionMove;
+window['AscCommon'].CRunRevisionMove  = CRunRevisionMove;

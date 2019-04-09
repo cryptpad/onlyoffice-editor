@@ -109,6 +109,7 @@ var para_InlineLevelSdt            = 0x0044; // Внутристроковый �
 var para_FieldChar                 = 0x0045;
 var para_InstrText                 = 0x0046;
 var para_Bookmark                  = 0x0047;
+var para_RevisionMove              = 0x0048;
 
 var break_Line   = 0x01;
 var break_Page   = 0x02;
@@ -2251,6 +2252,7 @@ function ParagraphContent_Read_FromBinary(Reader)
 		case para_PageCount             : Element = new ParaPageCount(); break;
 		case para_FieldChar             : Element = new ParaFieldChar(); break;
 		case para_InstrText             : Element = new ParaInstrText(); break;
+		case para_RevisionMove          : Element = new CRunRevisionMove(); break;
 	}
 
 	if (null != Element)

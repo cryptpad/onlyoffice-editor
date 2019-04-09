@@ -501,6 +501,28 @@ CSelectedContent.prototype =
                 }
             }
         }
+
+        // Ставим метки переноса в начало и конец
+        if (this.Elements.length > 0 && LogicDocument && null !== LogicDocument.TrackMoveId && LogicDocument.IsTrackRevisions())
+		{
+			var oStartElement = this.Elements[0].Element;
+			var oEndElement   = this.Elements[this.Elements.length - 1].Element;
+
+			var oStartParagraph = oStartElement.GetFirstParagraph();
+			var oEndParagraph   = oEndElement.GetLastParagraph();
+
+			oStartParagraph.AddToContent(0, new CParaRevisionMove(true, false, LogicDocument.TrackMoveId));
+
+			if (oEndParagraph !== oEndElement || this.Elements[this.Elements.length - 1].SelectedAll)
+			{
+				var oEndRun = oEndParagraph.GetParaEndRun();
+				oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, false, LogicDocument.TrackMoveId));
+			}
+			else
+			{
+				oEndParagraph.AddToContent(oEndParagraph.GetElementsCount(), new CParaRevisionMove(false, false, LogicDocument.TrackMoveId));
+			}
+		}
     }
 };
 CSelectedContent.prototype.SetInsertOptionForTable = function(nType)
@@ -1703,6 +1725,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
 	this.DragAndDropAction         = false; // Происходит ли сейчас действие drag-n-drop
 	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
+	this.TrackMoveId               = null;  // Идентификатор переноса внутри рецензирования
 
 	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
 	this.NeedUpdateTracksOnRecalc = false;
@@ -6836,7 +6859,14 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
         NearPos.Paragraph.Check_NearestPos(NearPos);
 
 		if (!bCopy)
+		{
 			this.DragAndDropAction = true;
+			this.TrackMoveId       = this.TrackRevisionsManager.GetNewMoveId();
+		}
+		else
+		{
+			this.TrackMoveId = null;
+		}
 
 		// Получим копию выделенной части документа, которую надо перенести в новое место, одновременно с этим
         // удаляем эту выделенную часть (если надо).
@@ -6872,6 +6902,28 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
                 CheckType : changestype_Paragraph_Content
             }, true))
         {
+        	if (this.TrackMoveId)
+			{
+				var arrParagraphs = this.GetSelectedParagraphs();
+				if (arrParagraphs.length > 0)
+				{
+					var oStartParagraph = oStartElement.GetFirstParagraph();
+					var oEndParagraph   = oEndElement.GetLastParagraph();
+
+					oStartParagraph.AddToContent(0, new CParaRevisionMove(true, false, LogicDocument.TrackMoveId));
+
+					if (oEndParagraph !== oEndElement || this.Elements[this.Elements.length - 1].SelectedAll)
+					{
+						var oEndRun = oEndParagraph.GetParaEndRun();
+						oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, false, LogicDocument.TrackMoveId));
+					}
+					else
+					{
+						oEndParagraph.AddToContent(oEndParagraph.GetElementsCount(), new CParaRevisionMove(false, false, LogicDocument.TrackMoveId));
+					}
+				}
+			}
+
             // Если надо удаляем выделенную часть (пересчет отключаем на время удаления)
             if (true !== bCopy)
             {
@@ -6884,6 +6936,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
                 if (false === Para.Is_UseInDocument())
                 {
 					this.DragAndDropAction = false;
+					this.TrackMoveId       = null;
 
                     this.Document_Undo();
                     this.History.Clear_Redo();
@@ -6910,7 +6963,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 		}
 
 		this.SetCheckContentControlsLock(true);
+
 		this.DragAndDropAction = false;
+		this.TrackMoveId       = null;
 	}
 };
 /**
@@ -18404,8 +18459,10 @@ function CTrackRevisionsManager(LogicDocument)
     this.CurChange     = null; // Текущее изменение
     this.CurElement    = null; // Элемент с текущим изменением
 
-    this.VisibleChanges = []; // Изменения, которые отображаются в сплывающем окне
+    this.VisibleChanges    = []; // Изменения, которые отображаются в сплывающем окне
     this.OldVisibleChanges = [];
+
+    this.MoveId            = 1;
 }
 
 /**
@@ -19004,6 +19061,28 @@ CTrackRevisionsManager.prototype.private_TrackChangesForSingleElement = function
 	}
 
 	return false;
+};
+/**
+ * При чтении файла обновляем Id перетакскиваний в рецензировании
+ * @param sMoveId
+ */
+CTrackRevisionsManager.prototype.UpdateMoveId = function(sMoveId)
+{
+	if (0 === sMoveId.indexOf("move"))
+	{
+		var nId = parseInt(sMoveId.substring(4));
+		if (!isNaN(nId))
+			this.MoveId = Math.max(this.MoveId, nId);
+	}
+};
+/**
+ * Возвращаем новый идентификатор перемещений
+ * @returns {string}
+ */
+CTrackRevisionsManager.prototype.GetNewMoveId = function()
+{
+	this.MoveId++;
+	return "move" + this.MoveId;
 };
 
 function CRevisionsChangeParagraphSearchEngine(nDirection, oCurrentElement, oTrackManager)

@@ -8576,6 +8576,16 @@ ParaRun.prototype.private_GetCollPrChangeOther = function()
 {
     return this.CollPrChangeOther;
 };
+/**
+ * Специальная функция-заглушка, добавляем элементы за знаком конца параграфа, для поддержки разделителей, лежащих
+ * между параграфами
+ * @param {CRunElementBase} oElement
+ */
+ParaRun.prototype.AddAfterParaEnd = function(oElement)
+{
+	this.State.ContentPos = this.Content.length;
+	this.AddToContent(this.State.ContentPos, oElement);
+};
 
 ParaRun.prototype.private_RecalcCtrPrp = function()
 {
