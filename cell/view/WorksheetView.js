@@ -2727,6 +2727,11 @@
 					if (AscCommonExcel.ECfType.dataBar === oRule.type) {
 						min = oRule.getMin(values, this.model);
 						max = oRule.getMax(values, this.model);
+						if (cellValue < min) {
+							cellValue = min;
+						} else if (cellValue > max) {
+							cellValue = max;
+						}
 
 						var minLength = Math.floor(width * oRuleElement.MinLength / 100);
 						var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
