@@ -6907,20 +6907,11 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 				var arrParagraphs = this.GetSelectedParagraphs();
 				if (arrParagraphs.length > 0)
 				{
-					var oStartParagraph = oStartElement.GetFirstParagraph();
-					var oEndParagraph   = oEndElement.GetLastParagraph();
+					var oStartParagraph = arrParagraphs[0];
+					var oEndParagraph   = arrParagraphs[arrParagraphs.length - 1];
 
-					oStartParagraph.AddToContent(0, new CParaRevisionMove(true, false, LogicDocument.TrackMoveId));
-
-					if (oEndParagraph !== oEndElement || this.Elements[this.Elements.length - 1].SelectedAll)
-					{
-						var oEndRun = oEndParagraph.GetParaEndRun();
-						oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, false, LogicDocument.TrackMoveId));
-					}
-					else
-					{
-						oEndParagraph.AddToContent(oEndParagraph.GetElementsCount(), new CParaRevisionMove(false, false, LogicDocument.TrackMoveId));
-					}
+					arrParagraphs[0].AddRevisionMoveMark(true, true, this.TrackMoveId);
+					arrParagraphs[arrParagraphs.length - 1].AddRevisionMoveMark(true, false, this.TrackMoveId);					
 				}
 			}
 

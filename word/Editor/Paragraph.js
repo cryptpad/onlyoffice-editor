@@ -13697,6 +13697,19 @@ Paragraph.prototype.SelectCurrentWord = function()
 
 	return true;
 };
+/**
+ * Добавляем метки переноса текста во время рецензирования
+ * @param {boolean} isFrom
+ * @param {boolaen} isStart
+ * @param {string} sMarkId
+ */
+Paragraph.prototype.AddRevisionMoveMark = function(isFrom, isStart, sMarkId)
+{
+	if (!this.Selection.Use)
+		return;
+
+	// TODO: Реализовать
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
