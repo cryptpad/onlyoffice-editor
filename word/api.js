@@ -498,6 +498,13 @@
 						_content_control_pr.Tag = _current["Props"]["Tag"];
 						_content_control_pr.Lock = c_oAscSdtLockType.Unlocked;
 						_content_control_pr.InternalId = _current["Props"]["InternalId"];
+                        _content_control_pr.Alias = _current["Props"]["Alias"];
+
+                        if (undefined !== _current["Props"]["Appearance"])
+                            _content_control_pr.Appearance = _current["Props"]["Appearance"];
+
+                        if (undefined !== _current["Props"]["Color"])
+                            _content_control_pr.Color = new Asc.asc_CColor(_current["Props"]["Color"]["R"], _current["Props"]["Color"]["G"], _current["Props"]["Color"]["B"]);
 
 						if (null === _blockStd)
 						{
@@ -511,7 +518,7 @@
 						_blockStd.SetContentControlPr(_content_control_pr);
 
 						_obj = _blockStd.GetContentControlPr();
-						this.returnDocuments.push({"Tag" : _obj.Tag, "Id" : _obj.Id, "Lock" : _obj.Lock, "InternalId" : _obj.InternalId});
+						this.returnDocuments.push({"Tag" : _obj.Tag, "Id" : _obj.Id, "Lock" : _obj.Lock, "InternalId" : _obj.InternalId, "Alias" : _obj.Alias, "Appearance" : _obj.Appearance });
 					}
 
 					if (_current["Url"] !== undefined)
@@ -627,6 +634,13 @@
 							_content_control_pr.Tag = _current["Props"]["Tag"];
 							_content_control_pr.Lock = _current["Props"]["Lock"];
 							_content_control_pr.InternalId = _current["Props"]["InternalId"];
+                            _content_control_pr.Alias = _current["Props"]["Alias"];
+
+                            if (undefined !== _current["Props"]["Appearance"])
+                                _content_control_pr.Appearance = _current["Props"]["Appearance"];
+
+                            if (undefined !== _current["Props"]["Color"])
+                                _content_control_pr.Color = new Asc.asc_CColor(_current["Props"]["Color"]["R"], _current["Props"]["Color"]["G"], _current["Props"]["Color"]["B"]);
 
 							_blockStd.SetContentControlPr(_content_control_pr);
 
@@ -635,7 +649,9 @@
 								"Tag":        _obj.Tag,
 								"Id":         _obj.Id,
 								"Lock":       _obj.Lock,
-								"InternalId": _obj.InternalId
+								"InternalId": _obj.InternalId,
+								"Alias": _obj.Alias,
+								"Appearance": _obj.Appearance
 							});
 						}
 					}
@@ -657,6 +673,13 @@
 								_content_control_pr.Tag = _current["Props"]["Tag"];
 								_content_control_pr.Lock = _current["Props"]["Lock"];
 								_content_control_pr.InternalId = _current["Props"]["InternalId"];
+                                _content_control_pr.Alias = _current["Props"]["Alias"];
+
+                                if (undefined !== _current["Props"]["Appearance"])
+                                    _content_control_pr.Appearance = _current["Props"]["Appearance"];
+
+                                if (undefined !== _current["Props"]["Color"])
+                                    _content_control_pr.Color = new Asc.asc_CColor(_current["Props"]["Color"]["R"], _current["Props"]["Color"]["G"], _current["Props"]["Color"]["B"]);
 
 								_blockStd.SetContentControlPr(_content_control_pr);
 
@@ -665,7 +688,9 @@
 									"Tag":        _obj.Tag,
 									"Id":         _obj.Id,
 									"Lock":       _obj.Lock,
-									"InternalId": _obj.InternalId
+									"InternalId": _obj.InternalId,
+                                    "Alias": _obj.Alias,
+                                    "Appearance": _obj.Appearance
 								});
 							}
 						}
@@ -9254,6 +9279,14 @@ background-repeat: no-repeat;\
 			_content_control_pr.Id = pr["Id"];
 			_content_control_pr.Tag = pr["Tag"];
 			_content_control_pr.Lock = pr["Lock"];
+
+            _content_control_pr.Alias = pr["Alias"];
+
+            if (undefined !== pr["Appearance"])
+            	_content_control_pr.Appearance = pr["Appearance"];
+
+            if (undefined !== pr["Color"])
+                _content_control_pr.Color = new Asc.asc_CColor(pr["Color"]["R"], pr["Color"]["G"], pr["Color"]["B"]);
 		}
 
 		var _obj = this.asc_AddContentControl(type, _content_control_pr);
