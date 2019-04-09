@@ -1011,6 +1011,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             {
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
+                oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
                 this.overlayObject.check_bounds(oShapeDrawer);
                 this.brush.fill.srcRect = AscFormat.CalculateSrcRect(_transform, oShapeDrawer, this.originalObject.cropObject.invertTransform, this.originalObject.cropObject.extX, this.originalObject.cropObject.extY);
             }
@@ -1043,6 +1044,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
 
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
+                oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
                 parentCrop.check_bounds(oShapeDrawer);
                 var srcRect = AscFormat.CalculateSrcRect(parentCrop.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.transform), this.resizedExtX, this.resizedExtY);
                 oldPen = this.originalObject.parentCrop.pen;

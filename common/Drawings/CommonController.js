@@ -1189,6 +1189,7 @@ DrawingObjectsController.prototype =
 
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
+                oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
                 cropObject.check_bounds(oShapeDrawer);
                 var bounds_w = oShapeDrawer.max_x - oShapeDrawer.min_x;
                 var bounds_h = oShapeDrawer.max_y - oShapeDrawer.min_y;
@@ -1238,6 +1239,7 @@ DrawingObjectsController.prototype =
                 var oSize = oImgP.asc_getOriginSize(this.getEditorApi());
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
+                oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
                 cropObject.check_bounds(oShapeDrawer);
                 var bounds_w = oShapeDrawer.max_x - oShapeDrawer.min_x;
                 var bounds_h = oShapeDrawer.max_y - oShapeDrawer.min_y;

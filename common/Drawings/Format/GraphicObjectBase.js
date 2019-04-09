@@ -1415,6 +1415,7 @@
                 var _b = srcRect.b ? srcRect.b : 100;
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
+                oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
                 this.check_bounds(oShapeDrawer);
                 var boundsW = oShapeDrawer.max_x - oShapeDrawer.min_x;
                 var boundsH = oShapeDrawer.max_y - oShapeDrawer.min_y;
@@ -1521,6 +1522,7 @@
 
         var oShapeDrawer = new AscCommon.CShapeDrawer();
         oShapeDrawer.bIsCheckBounds = true;
+        oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
         this.check_bounds(oShapeDrawer);
         return  CalculateSrcRect(this.transform, oShapeDrawer, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
     };

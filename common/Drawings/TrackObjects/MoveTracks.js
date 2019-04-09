@@ -127,6 +127,7 @@ function MoveShapeImageTrack(originalObject)
 
             var oShapeDrawer = new AscCommon.CShapeDrawer();
             oShapeDrawer.bIsCheckBounds = true;
+            oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
             this.originalObject.check_bounds(oShapeDrawer);
             this.brush.fill.srcRect = AscFormat.CalculateSrcRect(this.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.originalObject.cropObject.transform), this.originalObject.cropObject.extX, this.originalObject.cropObject.extY);
         }
@@ -159,6 +160,7 @@ function MoveShapeImageTrack(originalObject)
 
             var oShapeDrawer = new AscCommon.CShapeDrawer();
             oShapeDrawer.bIsCheckBounds = true;
+            oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
             parentCrop.check_bounds(oShapeDrawer);
             var srcRect = AscFormat.CalculateSrcRect(parentCrop.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.transform), this.originalObject.extX, this.originalObject.extY);
             oldPen = this.originalObject.parentCrop.pen;
@@ -201,6 +203,7 @@ function MoveShapeImageTrack(originalObject)
             parentCrop.transform = this.transform;
             var oShapeDrawer = new AscCommon.CShapeDrawer();
             oShapeDrawer.bIsCheckBounds = true;
+            oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
             parentCrop.check_bounds(oShapeDrawer);
             var srcRect = AscFormat.CalculateSrcRect(this.transform, oShapeDrawer, global_MatrixTransformer.Invert(oldCropObj.transform), oldCropObj.extX, oldCropObj.extY);
 
