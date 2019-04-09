@@ -1604,7 +1604,16 @@
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseWheel = function (event) {
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
-			if (this.isFillHandleMode || this.isMoveRangeMode || this.isMoveResizeRange || ctrlKey) {
+			if (ctrlKey) {
+				if (event.preventDefault) {
+					event.preventDefault();
+				} else {
+					event.returnValue = false;
+				}
+
+				return false;
+			}
+			if (this.isFillHandleMode || this.isMoveRangeMode || this.isMoveResizeRange) {
 				return true;
 			}
 
