@@ -2188,7 +2188,7 @@
 					if (isNotFunction) {
 						t.skipHelpSelector = true;
 					}
-					this.hideSpecialPasteButton();
+					t.hideSpecialPasteButton();
 					// Открываем, с выставлением позиции курсора
 					if (!ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange)) {
 						t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editEnd);
