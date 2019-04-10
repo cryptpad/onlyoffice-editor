@@ -13700,7 +13700,7 @@ Paragraph.prototype.SelectCurrentWord = function()
 /**
  * Добавляем метки переноса текста во время рецензирования
  * @param {boolean} isFrom
- * @param {boolaen} isStart
+ * @param {boolean} isStart
  * @param {string} sMarkId
  */
 Paragraph.prototype.AddRevisionMoveMark = function(isFrom, isStart, sMarkId)
@@ -13708,7 +13708,69 @@ Paragraph.prototype.AddRevisionMoveMark = function(isFrom, isStart, sMarkId)
 	if (!this.Selection.Use)
 		return;
 
-	// TODO: Реализовать
+	var oStartContentPos = this.Get_ParaContentPos(true, true);
+	var oEndContentPos   = this.Get_ParaContentPos(true, false);
+
+	if (oStartContentPos.Compare(oEndContentPos) > 0)
+	{
+		var oTemp        = oStartContentPos;
+		oStartContentPos = oEndContentPos;
+		oEndContentPos   = oTemp;
+	}
+
+	var nStartPos = oStartContentPos.Get(0);
+	var nEndPos   = oEndContentPos.Get(0);
+
+	// TODO: Как только избавимся от ParaEnd, здесь надо будет переделать.
+	if (this.Content.length - 1 === nEndPos && !isStart)
+	{
+		if (true === this.Selection_CheckParaEnd())
+		{
+			var oEndRun = this.GetParaEndRun();
+			oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, isFrom, sMarkId));
+			return;
+		}
+		else
+		{
+			oEndContentPos = this.Get_EndPos(false);
+			nEndPos        = oEndContentPos.Get(0);
+		}
+	}
+
+	if (!isStart)
+	{
+		var oNewElementE = this.Content[nEndPos].Split(oEndContentPos, 1);
+		if (oNewElementE)
+		{
+			this.AddToContent(nEndPos + 1, oNewElementE);
+			oNewElementE.RemoveSelection();
+		}
+
+		this.AddToContent(nEndPos + 1, new CParaRevisionMove(false, isFrom, sMarkId));
+	}
+
+	if (isStart)
+	{
+		var nSelectionStartPos = this.Selection.StartPos;
+		var nSelectionEndPos   = this.Selection.EndPos;
+
+		var oNewElementS = this.Content[nStartPos].Split(oStartContentPos, 1);
+		if (oNewElementS)
+		{
+			this.AddToContent(nStartPos + 1, oNewElementS);
+			oNewElementS.SelectAll();
+			this.Content[nStartPos].RemoveSelection();
+
+			nSelectionStartPos++;
+			nSelectionEndPos++;
+			nStartPos++;
+		}
+
+		this.AddToContent(nStartPos, new CParaRevisionMove(true, isFrom, sMarkId));
+
+		this.Selection.StartPos = nSelectionStartPos + 1;
+		this.Selection.EndPos   = nSelectionEndPos + 1;
+	}
 };
 
 var pararecalc_0_All  = 0;

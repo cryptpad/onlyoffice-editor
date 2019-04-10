@@ -6907,11 +6907,8 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 				var arrParagraphs = this.GetSelectedParagraphs();
 				if (arrParagraphs.length > 0)
 				{
-					var oStartParagraph = arrParagraphs[0];
-					var oEndParagraph   = arrParagraphs[arrParagraphs.length - 1];
-
+					arrParagraphs[arrParagraphs.length - 1].AddRevisionMoveMark(true, false, this.TrackMoveId);
 					arrParagraphs[0].AddRevisionMoveMark(true, true, this.TrackMoveId);
-					arrParagraphs[arrParagraphs.length - 1].AddRevisionMoveMark(true, false, this.TrackMoveId);					
 				}
 			}
 
