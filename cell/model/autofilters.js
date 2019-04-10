@@ -705,7 +705,7 @@
 				//****open/close rows****
 				var nOpenRowsCount = null;
 				var nAllRowsCount = null;
-				if (!bUndoChanges && !bRedoChanges) {
+				if ((!bUndoChanges && !bRedoChanges) || !window['AscCommonExcel'].filteringMode) {
 					var hiddenProps = autoFilter.setRowHidden(worksheet, newFilterColumn);
 					nOpenRowsCount = hiddenProps.nOpenRowsCount;
 					nAllRowsCount = hiddenProps.nAllRowsCount;
