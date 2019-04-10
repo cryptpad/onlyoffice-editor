@@ -1720,11 +1720,11 @@
 
 		function checkFilteringMode(f, oThis, args) {
 			if (!window['AscCommonExcel'].filteringMode) {
-				History.LocalChange = true;
+				AscCommon.History.LocalChange = true;
 			}
 			var ret = f.apply(oThis, args);
 			if (!window['AscCommonExcel'].filteringMode) {
-				History.LocalChange = false;
+				AscCommon.History.LocalChange = false;
 			}
 			return ret;
 		}
