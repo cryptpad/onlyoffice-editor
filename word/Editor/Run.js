@@ -11065,6 +11065,16 @@ CReviewInfo.prototype.SavePrev = function(nType)
 	this.PrevType = nType;
 	this.PrevInfo = this.Copy();
 };
+CReviewInfo.prototype.SetPrevReviewTypeWithInfoRecursively = function(nType, oInfo)
+{
+	var last = this;
+	while (last.PrevInfo)
+	{
+		last = last.PrevInfo;
+	}
+	last.PrevType = nType;
+	last.PrevInfo = oInfo;
+};
 /**
  * Данная функция запрашивает было ли ранее произведено добавление
  * @returns {?CReviewInfo}

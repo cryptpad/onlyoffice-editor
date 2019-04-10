@@ -1257,11 +1257,10 @@ function WriteTrackRevision(bs, Id, reviewInfo, options) {
 	}
     if(options){
         if (null != options.run) {
-            var delText = reviewtype_Remove == options.ReviewType;
-            bs.WriteItem(c_oSerProp_RevisionType.Content, function(){options.bdtw.WriteRun(options.run, options.bUseSelection, delText);});
+            bs.WriteItem(c_oSerProp_RevisionType.Content, function(){options.run();});
         }
         if (null != options.runContent) {
-            bs.WriteItem(c_oSerProp_RevisionType.ContentRun, function(){options.bmw.WriteMRunContent(options.runContent);});
+            bs.WriteItem(c_oSerProp_RevisionType.ContentRun, function(){options.runContent();});
         }
         if (null != options.rPr) {
             bs.WriteItem(c_oSerProp_RevisionType.rPrChange, function(){options.brPrs.Write_rPr(options.rPr, null, null);});
@@ -1340,6 +1339,24 @@ function initMathRevisions(elem ,props) {
         elem.SetReviewTypeWithInfo(reviewtype_Add, props.ins, false);
     }
 };
+function setNestedReviewType(elem, type, reviewInfo) {
+	if (elem && elem.SetReviewTypeWithInfo) {
+		if (reviewtype_Common !== elem.GetReviewType()) {
+			elem.GetReviewInfo().SetPrevReviewTypeWithInfoRecursively(type, reviewInfo);
+		} else {
+			elem.SetReviewTypeWithInfo(type, reviewInfo, false);
+		}
+	}
+}
+function writeNestedReviewType(type, reviewInfo, fWriteRecord, fCallback) {
+	if (reviewInfo.PrevInfo) {
+		writeNestedReviewType(reviewInfo.PrevType, reviewInfo.PrevInfo, fWriteRecord, function(delText) {
+			fWriteRecord(type, reviewInfo, delText, fCallback);
+		});
+	} else {
+		fWriteRecord(type, reviewInfo, false, fCallback);
+	}
+}
 
 function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml)
 {
@@ -2797,14 +2814,17 @@ function Binary_oMathWriter(memory, oMathPara, saveParams)
 	this.WriteMRun = function(oMRun)
 	{
 		var oThis = this;
-        var ReviewType = oMRun.GetReviewType();
-        if (reviewtype_Remove == ReviewType) {
-            this.bs.WriteItem(c_oSer_OMathContentType.Del,function(){WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, oMRun.ReviewInfo, {bmw: oThis, runContent: oMRun, ReviewType: ReviewType});});
-        } else if (reviewtype_Add == ReviewType) {
-            this.bs.WriteItem(c_oSer_OMathContentType.Ins,function(){WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, oMRun.ReviewInfo, {bmw: oThis, runContent: oMRun, ReviewType: ReviewType});});
-        } else {
-            this.WriteMRunContent(oMRun);
-        }
+		var reviewType = oMRun.GetReviewType();
+		if (reviewtype_Common !== reviewType) {
+			writeNestedReviewType(reviewType, oMRun.GetReviewInfo(), function(reviewType, reviewInfo, delText, fCallback){
+				var recordType = reviewtype_Remove === reviewType ? c_oSer_OMathContentType.Del : c_oSer_OMathContentType.Ins;
+				oThis.bs.WriteItem(recordType, function () {WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, reviewInfo, {runContent: function(){fCallback();}});});
+			}, function() {
+				oThis.WriteMRunContent(oMRun)
+			});
+		} else {
+			this.WriteMRunContent(oMRun)
+		}
     }
     this.WriteMRunContent = function(oMRun)
     {
@@ -4671,10 +4691,20 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
             switch ( item.Type )
             {
                 case para_Run:
-                    var ReviewType = item.GetReviewType();
-                    if (reviewtype_Remove == ReviewType || reviewtype_Add == ReviewType) {
-                        var recordType = reviewtype_Remove == ReviewType ? c_oSerParType.Del : c_oSerParType.Ins;
-                        this.bs.WriteItem(recordType, function () {WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, item.ReviewInfo, {bdtw: oThis, run: item, bUseSelection: bUseSelection, ReviewType: ReviewType});});
+                    var reviewType = item.GetReviewType();
+                    if (reviewtype_Common !== reviewType) {
+						writeNestedReviewType(reviewType, item.GetReviewInfo(), function(reviewType, reviewInfo, delText, fCallback){
+							var recordType;
+							if(reviewtype_Remove === reviewType){
+								recordType = c_oSerParType.Del;
+								delText = true;
+							} else {
+								recordType = c_oSerParType.Ins;
+							}
+							oThis.bs.WriteItem(recordType, function () {WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, reviewInfo, {run: function(){fCallback(delText);}});});
+						}, function(delText) {
+							oThis.WriteRun(item, bUseSelection, delText);
+						});
                     } else {
                         this.WriteRun(item, bUseSelection, false);
                     }
@@ -10133,10 +10163,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			});
             var endPos = oParStruct.getCurPos();
             for(var i = startPos; i < endPos; ++i) {
-                var elem = oParStruct.GetFromContent(i);
-                if(elem && elem.SetReviewTypeWithInfo) {
-                    elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
-                }
+				setNestedReviewType(oParStruct.GetFromContent(i), reviewtype_Remove, reviewInfo);
             }
         } else if (c_oSerParType.Ins == type) {
             var reviewInfo = new CReviewInfo();
@@ -10146,10 +10173,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			});
             var endPos = oParStruct.getCurPos();
             for(var i = startPos; i < endPos; ++i) {
-                var elem = oParStruct.GetFromContent(i);
-                if(elem && elem.SetReviewTypeWithInfo) {
-                    elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
-                }
+				setNestedReviewType(oParStruct.GetFromContent(i), reviewtype_Add, reviewInfo);
             }
 		} else if (c_oSerParType.MoveFrom == type) {
 			var reviewInfo = new CReviewInfo();
@@ -10159,10 +10183,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			});
 			var endPos = oParStruct.getCurPos();
 			for(var i = startPos; i < endPos; ++i) {
-				var elem = oParStruct.GetFromContent(i);
-				if(elem && elem.SetReviewTypeWithInfo) {
-					elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
-				}
+				setNestedReviewType(oParStruct.GetFromContent(i), reviewtype_Remove, reviewInfo);
 			}
 		} else if (c_oSerParType.MoveTo == type) {
 			var reviewInfo = new CReviewInfo();
@@ -10172,10 +10193,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			});
 			var endPos = oParStruct.getCurPos();
 			for(var i = startPos; i < endPos; ++i) {
-				var elem = oParStruct.GetFromContent(i);
-				if(elem && elem.SetReviewTypeWithInfo) {
-					elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
-				}
+				setNestedReviewType(oParStruct.GetFromContent(i), reviewtype_Add, reviewInfo);
 			}
 		} else if ( c_oSerParType.Sdt === type) {
 			var oSdt = new AscCommonWord.CInlineLevelSdt();
@@ -12016,9 +12034,7 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
 			if (oElem) {
 				for (var i = 0; i < oSdtStruct.GetContentLength(); ++i) {
 					var elem = oSdtStruct.GetFromContent(i);
-					if (elem && elem.SetReviewTypeWithInfo) {
-						elem.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
-					}
+					setNestedReviewType(elem, reviewtype_Remove, reviewInfo);
 					oElem.addElementToContent(elem);
 				}
 			}
@@ -12096,9 +12112,7 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
 			if (oElem) {
 				for (var i = 0; i < oSdtStruct.GetContentLength(); ++i) {
 					var elem = oSdtStruct.GetFromContent(i);
-					if (elem && elem.SetReviewTypeWithInfo) {
-						elem.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
-					}
+					setNestedReviewType(elem, reviewtype_Add, reviewInfo);
 					oElem.addElementToContent(elem);
 				}
 			}
