@@ -1128,7 +1128,7 @@
 				var tempWorkbook = new AscCommonExcel.Workbook();
 				var aPastedImages = this._readExcelBinary(base64, tempWorkbook);
 
-				if (this._checkCutBefore(worksheet, tempWorkbook)) {
+				if (!isIntoShape && this._checkCutBefore(worksheet, tempWorkbook)) {
 					return;
 				}
 
