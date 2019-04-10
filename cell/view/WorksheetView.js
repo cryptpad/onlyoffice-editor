@@ -13023,7 +13023,7 @@
 			bIsChangeFilterToTable = true;
 		} else {
 			if (styleName == null) {
-				filterRange = t.model.autoFilters.cutRangeByDefinedCells(ar);
+				filterRange = ar && ar.isOneCell() ? ar.clone() : t.model.autoFilters.cutRangeByDefinedCells(ar);
 				ar = filterRange;
 			} else {
 				filterInfo = t.model.autoFilters._getFilterInfoByAddTableProps(ar, addFormatTableOptionsObj, true);
