@@ -15786,15 +15786,16 @@
 		var arrayLines = groupData.groupArr;
 		var rowLevelMap = groupData.levelMap;
 
-		var lineWidth = 2;
+		var lineWidth = AscCommon.AscBrowser.convertToRetinaValue(2, true);
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
+		var thickLineDiff = AscCommon.AscBrowser.isRetina ? 0.5 : 0;
 		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
 		var minRow;
 		var maxRow;
 		var bFirstLine = true;
-		var buttonSize = 16;
-		var padding = 1;
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(16, true);
+		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var buttons = [];
 		var endPosArr = {};
 		for(var i = 0; i < arrayLines.length; i++) {
@@ -15814,8 +15815,8 @@
 					minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
 					maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
 
-					var diff = startY === arrayLines[i][j].start ? 3 : 0;
-					var startPos = this._getRowTop(startY) + diff - offsetY ;
+					var diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
+					var startPos = this._getRowTop(startY) + diff - offsetY;
 					var endPos = this._getRowTop(endY) - offsetY;
 					var heightNextRow = this._getRowHeight(endY);
 					var paddingTop = (heightNextRow - buttonSize) / 2;
@@ -15847,7 +15848,7 @@
 					// _
 					//|
 					if(!collasedEndRow && startY === arrayLines[i][j].start) {
-						ctx.lineHorPrevPx(posX - 2, startPos, posX + 4);
+						ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, startPos, posX + 4*padding);
 					}
 				}
 				bFirstLine = false;
@@ -15865,7 +15866,7 @@
 			if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || rowHeight === 0) {
 				continue;
 			}
-			ctx.lineHorPrevPx(7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + rowHeight / 2, 7 + (pointLevel) * buttonSize + 2);
+			ctx.lineHorPrevPx(padding * 7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + rowHeight / 2, padding * 7 + (pointLevel) * buttonSize + padding * 2);
 		}
 
 		ctx.stroke();
@@ -15916,15 +15917,16 @@
 		var arrayLines = groupData.groupArr;
 		var rowLevelMap = groupData.levelMap;
 
-		var lineWidth = 2;
+		var lineWidth = AscCommon.AscBrowser.convertToRetinaValue(2, true);
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
+		var thickLineDiff = AscCommon.AscBrowser.isRetina ? 0.5 : 0;
 		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
 		var minCol;
 		var maxCol;
 		var bFirstLine = true;
-		var buttonSize = 16;
-		var padding = 1;
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(16, true);
+		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var buttons = [];
 		var endPosArr = {};
 		for(var i = 0; i < arrayLines.length; i++) {
@@ -15944,7 +15946,7 @@
 					minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
 					maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
 
-					var diff = startX === arrayLines[i][j].start ? 3 : 0;
+					var diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
 					var startPos = this._getColLeft(startX) + diff - offsetX ;
 					var endPos = this._getColLeft(endX) - offsetX;
 					var widthNextRow = /*this.getColWidth(endX)*/this._getColLeft(endX + 1) - this._getColLeft(endX);
@@ -15977,7 +15979,7 @@
 					// _
 					//|
 					if(!collasedEndRow && startX === arrayLines[i][j].start) {
-						ctx.lineVerPrevPx(startPos, posY - 2, posY + 4);
+						ctx.lineVerPrevPx(startPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
 					}
 				}
 				bFirstLine = false;
@@ -15995,7 +15997,7 @@
 			if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || colWidth === 0) {
 				continue;
 			}
-			ctx.lineVerPrevPx(this._getColLeft(l) - offsetX + colWidth / 2, 7 + pointLevel * buttonSize, 7 + (pointLevel) * buttonSize + 2);
+			ctx.lineVerPrevPx(this._getColLeft(l) - offsetX + colWidth / 2, 7 * padding + pointLevel * buttonSize, 7 * padding + (pointLevel) * buttonSize + 2 * padding);
 			//ctx.lineHorPrevPx(7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + colWidth / 2, 7 + (pointLevel) * buttonSize + 2);
 		}
 
@@ -16044,7 +16046,7 @@
 		//buttons
 		//проходимся 2 раза, поскольку разная толщина у рамки и у -/+
 		var i, val, level, diff, pos, x, y, w, h, active;
-		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(1).beginPath();
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
 		for(i = 0; i < buttons.length; i++) {
 			val = buttons[i].r;
 			level = buttons[i].level;
@@ -16063,17 +16065,18 @@
 			ctx.lineHorPrevPx(x, y, x + w);
 			ctx.lineVerPrevPx(x + w, y, y + h);
 			ctx.lineHorPrevPx(x + w, y + h, x);
-			ctx.lineVerPrevPx(x, y + h, y - 1);
+			ctx.lineVerPrevPx(x, y + h, y - AscCommon.AscBrowser.convertToRetinaValue(1, true));
 
 		}
 		ctx.stroke();
 		ctx.closePath();
 
 
-		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(2).beginPath();
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(2, true)).beginPath();
 
-		var sizeLine = 8;
-		var paddingLine = 3;
+		var sizeLine = AscCommon.AscBrowser.convertToRetinaValue(8, true);
+		var paddingLine = AscCommon.AscBrowser.convertToRetinaValue(3, true);
+		diff = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		for(i = 0; i < buttons.length; i++) {
 			val = buttons[i].r;
 			level = buttons[i].level;
@@ -16091,7 +16094,7 @@
 				ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + 1, x + sizeLine + paddingLine);
 				ctx.lineVerPrevPx(x + paddingLine + sizeLine / 2 + 1, y + h / 2 + 1 - sizeLine / 2 - 1,  y + h / 2 + 1 + sizeLine / 2 - 1);
 			} else {
-				ctx.lineHorPrevPx(x + 3, y + h / 2 + 1, x + 8 + 3);
+				ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + diff, x + sizeLine + paddingLine);
 			}
 		}
 
@@ -16101,8 +16104,8 @@
 
 	WorksheetView.prototype._getGroupDataButtonPos = function(val, level, bCol) {
 		//возвращает позицию без учета сдвига offsetY
-		var buttonSize = 16;
-		var padding = 1;
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(16, true);
+		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 
 		if(bCol) {
 			var endPosX = this._getColLeft(val);
@@ -16110,12 +16113,12 @@
 
 			var posY = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
 			x = endPosX + colW/2 - buttonSize / 2;
-			y = posY - 6;
+			y = posY - 6 * padding;
 		} else {
 			var endPosY = this._getRowTop(val);
 			var rowH = this._getRowHeight(val);
 			var posX = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
-			var x = posX - 6;
+			var x = posX - 6 * padding;
 			var y = endPosY + rowH/2 - buttonSize / 2;
 		}
 		var w = buttonSize - 1;
@@ -16190,12 +16193,12 @@
 			this.drawingCtx.clearRect(x, y, w, h);
 		}
 
-		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
 
 		ctx.lineHorPrevPx(x, y, x + w);
 		ctx.lineVerPrevPx(x + w, y, y + h);
 		ctx.lineHorPrevPx(x + w, y + h, x);
-		ctx.lineVerPrevPx(x, y + h, y - 1);
+		ctx.lineVerPrevPx(x, y + h, y - AscCommon.AscBrowser.convertToRetinaValue(1, true));
 
 		var text = level + 1 + "";
 		var sr = this.stringRender;
@@ -16209,16 +16212,16 @@
 	};
 
 	WorksheetView.prototype.getGroupDataMenuButPos = function (level, bCol) {
-		var padding = 1;
-		var buttonSize = 16 - padding;
+		var padding =  AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(16, true) - padding;
 
 		//TODO учитывать будущий отступ для группировке колонок!
 		var x, y;
 		if(bCol) {
 			x = this.headersLeft + this.headersWidth/2 - buttonSize/2;
-			y = padding * 2 + level * (buttonSize + 1)
+			y = padding * 2 + level * (buttonSize + padding)
 		} else {
-			x = padding * 2 + level * (buttonSize + 1);
+			x = padding * 2 + level * (buttonSize + padding);
 			y = this.headersTop + this.headersHeight/2 - buttonSize/2;
 		}
 
@@ -16252,7 +16255,7 @@
 			var section = 16;
 			res = padding * 2 + section + section * level;
 		}
-		return res;
+		return AscCommon.AscBrowser.convertToRetinaValue(res, true);
 	};
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
