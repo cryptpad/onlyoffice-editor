@@ -2265,8 +2265,10 @@
 				this.getWorksheet().emptySelection(c_oAscCleanOptions.All, true);
 			} else {
 				//в данном случае не вырезаем, а записываем
-				this.cutIdSheet = this.getWorksheet().model.Id;
-				this.getWorksheet().cutRange = this.getWorksheet().model.selectionRange.getLast();
+				if(false === this.getWorksheet().isMultiSelect()) {
+					this.cutIdSheet = this.getWorksheet().model.Id;
+					this.getWorksheet().cutRange = this.getWorksheet().model.selectionRange.getLast();
+				}
 			}
 		}
 	};

@@ -9183,6 +9183,13 @@
 		return res;
 	};
 
+	WorksheetView.prototype.isMultiSelect = function () {
+		if(!this.objectRender.selectedGraphicObjectsExists()) {
+			return !this.model.selectionRange.isSingleRange();
+		}
+		return null;
+	};
+
     WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive) {
         // Проверка глобального лока
         if (this.collaborativeEditing.getGlobalLock()) {
