@@ -2293,7 +2293,7 @@ CChartsDrawer.prototype =
 
 				//frame of point
 				if (paths.points[i][k] && paths.points[i][k].framePaths) {
-					this.drawPath(paths.points[i][k].framePaths, markerPen, markerBrush, false);
+					this.drawPath(paths.points[i][k].framePaths, null, markerBrush, false);
 				}
 				//point
 				if (paths.points[i][k]) {
@@ -10280,7 +10280,7 @@ drawRadarChart.prototype = {
 
 				//frame of point
 				if (this.paths.points[i][0].framePaths) {
-					this.cChartDrawer.drawPath(this.paths.points[i][k].framePaths, markerPen, markerBrush, false);
+					this.cChartDrawer.drawPath(this.paths.points[i][k].framePaths, null, markerBrush, false);
 				}
 				//point
 				this.cChartDrawer.drawPath(this.paths.points[i][k].path, markerPen, markerBrush, true);
