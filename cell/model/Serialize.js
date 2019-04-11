@@ -7144,7 +7144,7 @@
                 });
                 if (tmp.cell.isNullTextString()) {
                     //set default value in case of empty cell value
-                    oCell.setTypeInternal(CellValueType.Number);
+                    tmp.cell.setTypeInternal(CellValueType.Number);
                 }
                 if (tmp.cell.hasRowCol()) {
                     tmp.prevCol = tmp.cell.nCol;
