@@ -10975,6 +10975,7 @@ CReviewInfo.prototype.Copy = function()
     Info.UserId   = this.UserId;
     Info.UserName = this.UserName;
     Info.DateTime = this.DateTime;
+    Info.MoveType = this.MoveType;
     Info.PrevType = this.PrevType;
     Info.PrevInfo = this.PrevInfo ? this.PrevInfo.Copy() : null;
     return Info;
