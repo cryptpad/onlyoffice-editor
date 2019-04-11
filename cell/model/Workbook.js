@@ -3296,6 +3296,27 @@
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
 		return getCompiledStyle(this.sheetMergedStyles, this.hiddenManager, row, col, opt_cell, this, opt_styleComponents);
 	};
+	Worksheet.prototype.getCompiledStyleCustom = function(row, col, needTable, needCell, needConditional, opt_cell) {
+		var res;
+		var styleComponents = this.sheetMergedStyles.getStyle(this.hiddenManager, row, col, this);
+		var ws = this;
+		if (!needTable) {
+			styleComponents.table = [];
+		}
+		if (!needConditional) {
+			styleComponents.conditional = [];
+		}
+		if (!needCell) {
+			res = getCompiledStyle(undefined, undefined, row, col, undefined, undefined, styleComponents);
+		} else if (opt_cell) {
+			res = getCompiledStyle(undefined, undefined, row, col, opt_cell, ws, styleComponents);
+		} else {
+			this._getCellNoEmpty(row, col, function(cell) {
+				res = getCompiledStyle(undefined, undefined, row, col, cell, ws, styleComponents);
+			});
+		}
+		return res;
+	};
 	Worksheet.prototype.getColData = function(index) {
 		var sheetMemory = this.cellsByCol[index];
 		if(!sheetMemory){
@@ -6763,6 +6784,9 @@
 	Cell.prototype.getCompiledStyle = function (opt_styleComponents) {
 		return this.ws.getCompiledStyle(this.nRow, this.nCol, this, opt_styleComponents);
 	};
+	Cell.prototype.getCompiledStyleCustom = function(needTable, needCell, needConditional) {
+		return this.ws.getCompiledStyleCustom(this.nRow, this.nCol, needTable, needCell, needConditional, this);
+	};
 	Cell.prototype.getTableStyle = function () {
 		var hiddenManager = this.ws.hiddenManager;
 		var sheetMergedStyles = this.ws.sheetMergedStyles;
@@ -9689,6 +9713,9 @@
 			tableStyle = cell ? cell.getTableStyle() : null;
 		});
 		return tableStyle;
+	};
+	Range.prototype.getCompiledStyleCustom = function(needTable, needCell, needConditional) {
+		return this.worksheet.getCompiledStyleCustom(this.bbox.r1,this.bbox.c1, needTable, needCell, needConditional);
 	};
 	Range.prototype.getNumFormat=function(){
 		return oNumFormatCache.get(this.getNumFormatStr());
