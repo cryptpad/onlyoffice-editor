@@ -1984,11 +1984,11 @@ CAutoshapeTrack.prototype =
                 {
                     overlay.CheckRect(x1, y1, x4 - x1, y4 - y1);
                     var widthCorner = (x4 - x1 + 1) >> 1;
-                    var isCentralMarkerX = widthCorner > 85 ? true : false;
+                    var isCentralMarkerX = widthCorner > 40 ? true : false;
                     if (widthCorner > 17)
                         widthCorner = 17;
                     var heightCorner = (y4 - y1 + 1) >> 1;
-                    var isCentralMarkerY = heightCorner > 85 ? true : false;
+                    var isCentralMarkerY = heightCorner > 40 ? true : false;
                     if (heightCorner > 17)
                         heightCorner = 17;
 
@@ -2109,11 +2109,11 @@ CAutoshapeTrack.prototype =
                     }
 
                     var widthCorner = _len_x >> 1;
-                    var isCentralMarkerX = widthCorner > 85 ? true : false;
+                    var isCentralMarkerX = widthCorner > 40 ? true : false;
                     if (widthCorner > 17)
                         widthCorner = 17;
                     var heightCorner = _len_y >> 1;
-                    var isCentralMarkerY = heightCorner > 85 ? true : false;
+                    var isCentralMarkerY = heightCorner > 40 ? true : false;
                     if (heightCorner > 17)
                         heightCorner = 17;
 
