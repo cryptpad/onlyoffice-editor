@@ -10391,6 +10391,9 @@ drawScatterChart.prototype = {
 				continue;
 			}
 
+			compiledMarkerSize = seria && seria.compiledSeriesMarker ? seria.compiledSeriesMarker.size : null;
+			compiledMarkerSymbol = seria && seria.compiledSeriesMarker ? seria.compiledSeriesMarker.symbol : null;
+
 			for (var n = 0; n < yNumCache.ptCount; n++) {
 				var values = this.cChartDrawer._getScatterPointVal(seria, n);
 				if(values) {
@@ -10399,9 +10402,12 @@ drawScatterChart.prototype = {
 					xPoint = values.xPoint;
 					yPoint = values.yPoint;
 
-					compiledMarkerSize = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.size : null;
-					compiledMarkerSymbol = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.symbol : null;
-
+					if(yPoint && yPoint.compiledMarker) {
+						compiledMarkerSize = yPoint.compiledMarker.size;
+					}
+					if(yPoint && yPoint.compiledMarker) {
+						compiledMarkerSymbol = yPoint.compiledMarker.symbol;
+					}
 
 					if (!this.paths.points) {
 						this.paths.points = [];
