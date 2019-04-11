@@ -391,7 +391,7 @@
 					}
 				}
 
-				ws.handlers.trigger("cleanCutData", true);
+				//ws.handlers.trigger("cleanCutData", true);
 
 				if (!bIsSpecialPaste) {
 					window['AscCommon'].g_specialPasteHelper.specialPasteData._format = _format;
@@ -1180,13 +1180,19 @@
 							var docContent = this._convertTableFromExcelToDocument(worksheet, pasteData, isIntoShape);
 							History.TurnOn();
 
+							var oldCutId = window["Asc"]["editor"].wb.cutIdSheet;
+
 							var callback = function (isSuccess) {
 								if (isSuccess) {
 									t._insertBinaryIntoShapeContent(worksheet, [docContent]);
 								}
+								window["Asc"]["editor"].wb.cutIdSheet = oldCutId;
 								window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 							};
 
+							//когда происходит вставка в шейп, не удаляем область выделения ранее вырезанной ячейки
+							//для этого временно меняем переменную cutIdSheet
+							window["Asc"]["editor"].wb.cutIdSheet = null;
 							worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
 
 						} else if (this._checkPasteFromBinaryExcel(worksheet, true, pasteData)) {
