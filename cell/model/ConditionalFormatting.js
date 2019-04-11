@@ -664,7 +664,8 @@
 		return new AscCommonExcel.RgbColor((r << 16) + (g << 8) + b);
 	};
 
-	var cIconSize = 16;
+	var cDefIconSize = 16;
+	var cDefIconFont = 11;
 
 	var iCheckGreen = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTUgOEMxNSAxMS44NjYgMTEuODY2IDE1IDggMTVDNC4xMzQwMSAxNSAxIDExLjg2NiAxIDhDMSA0LjEzNDAxIDQuMTM0MDEgMSA4IDFDMTEuODY2IDEgMTUgNC4xMzQwMSAxNSA4WiIgZmlsbD0iIzJFOTk1RiIvPjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTIuODA1MSA1LjU5MzJMNy42MzkxOCAxMi42MDQxTDQuMjQxNyA4LjY1MTg5TDUuNzU4MzMgNy4zNDgxMUw3LjUxODc1IDkuMzk1OTRMMTEuMTk1IDQuNDA2OEwxMi44MDUxIDUuNTkzMloiIGZpbGw9IndoaXRlIi8+PC9zdmc+';
 	var iCheckSymbolGreen = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTE0IDQuMjk1NzhMNi42ODIwMyAxNEwyIDguNjc4MjFMMy42MzQxNyA3LjI1NjA4TDYuNTUyMTggMTAuNTcyOEwxMi4yNjI4IDNMMTQgNC4yOTU3OFoiIGZpbGw9IiMyRTk5NUYiLz48L3N2Zz4=';
@@ -776,7 +777,8 @@
 	window['AscCommonExcel'].CConditionalFormatIconSet = CConditionalFormatIconSet;
 	window['AscCommonExcel'].CGradient = CGradient;
 
-	window['AscCommonExcel'].cIconSize = cIconSize;
+	window['AscCommonExcel'].cDefIconSize = cDefIconSize;
+	window['AscCommonExcel'].cDefIconFont = cDefIconFont;
 	window['AscCommonExcel'].getIconsForLoad = getIconsForLoad;
 	window['AscCommonExcel'].getCFIcon = getCFIcon;
 })(window);

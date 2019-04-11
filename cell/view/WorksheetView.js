@@ -2697,12 +2697,13 @@
 
     WorksheetView.prototype._drawCellCF = function (ctx, aRules, c, row, col, top, width, height, offsetX, offsetY) {
 		var ct = this._getCellTextCache(col, row);
-		if (!ct || !ct.flags.isNumberFormat) {
+		if (!ct || !ct.flags.isNumberFormat || 0 === aRules.length) {
 			return null;
 		}
 
 		var graphics = this.handlers.trigger('getMainGraphics');
 
+		var fontSize = c.getFont().fs;
 		var cellValue = c.getNumberValue();
 		width -= 2; // indent
 
@@ -2745,19 +2746,20 @@
 						if (!img) {
 							continue;
 						}
+						var iconSize = AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont;
 						var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
+						var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
+						rect._y = this._calcTextVertPos(rect._y, rect._height, bl, new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0), ct.cellVA);
 						var dScale = asc_getcvt(0, 3, this._getPPIX());
 						rect._x *= dScale;
 						rect._y *= dScale;
 						rect._width *= dScale;
 						rect._height *= dScale;
                         AscFormat.ExecuteNoHistory(
-                            function (img, rect) {
-                            	var imgSize = AscCommonExcel.cIconSize * AscCommon.g_dKoef_pix_to_mm;
+                            function (img, rect, imgSize) {
                                 var oImgP = new Asc.asc_CImgProperty();
                                 oImgP.ImageUrl = img;
 
-                                rect._y = rect._y + rect._height - imgSize;
                                 var geometry = new AscFormat.CreateGeometry("rect");
                                 geometry.Recalculate(imgSize, imgSize, true);
 
@@ -2774,7 +2776,7 @@
                                 shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
                                 shapeDrawer.draw(geometry);
                                 graphics.restore();
-                            }, this, [img, rect]
+                            }, this, [img, rect, iconSize * AscCommon.g_dKoef_pix_to_mm]
                         );
 					}
 				}
