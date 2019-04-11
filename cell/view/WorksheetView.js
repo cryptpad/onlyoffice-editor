@@ -10884,7 +10884,12 @@
 		}
 		else if(rangeStyle.val && specialPasteProps.val)
 		{
-			range.setValue(rangeStyle.val);
+			//TODO возможно стоит всегда вызывать setValueData и тип выставлять в зависимости от val
+			if(rangeStyle.val[0] === "'") {
+				range.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, new AscCommonExcel.CCellValue({text: rangeStyle.val, type: CellValueType.String})));
+			} else {
+				range.setValue(rangeStyle.val);
+			}
 		}
 		else if(rangeStyle.value2 && specialPasteProps.val)
 		{
