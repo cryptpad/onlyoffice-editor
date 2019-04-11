@@ -2751,34 +2751,22 @@
 						rect._y *= dScale;
 						rect._width *= dScale;
 						rect._height *= dScale;
-                        var oSize = {Width: 16*AscCommon.g_dKoef_pix_to_mm, Height: 16*AscCommon.g_dKoef_pix_to_mm};//oImgP.asc_getOriginSize(Asc.editor);Fix IE 11 bug
                         AscFormat.ExecuteNoHistory(
                             function (img, rect) {
+                            	var imgSize = AscCommonExcel.cIconSize * AscCommon.g_dKoef_pix_to_mm;
                                 var oImgP = new Asc.asc_CImgProperty();
                                 oImgP.ImageUrl = img;
 
-                                rect._y = rect._y + rect._height - oSize.Height;
+                                rect._y = rect._y + rect._height - imgSize;
                                 var geometry = new AscFormat.CreateGeometry("rect");
-                                //var path = new AscFormat.Path();
-                                var _x = rect._x;
-                                var _y = rect._y;
-                                var _w = oSize.Width;
-                                var _h = oSize.Height;
-                               // console.log("DRAW CF X: " + _x + "  Y: " + _y + " W: " + _w + " H: " + _h);
-                                // path.moveTo("l", "t");
-                                // path.lnTo(rect._x + rect._width, rect._y);
-                                // path.lnTo(rect._x + rect._width, rect._y + rect._height);
-                                // path.lnTo(rect._x, rect._y + rect._height);
-                                // path.close();
-                                // geometry.AddPath(path);
-                                geometry.Recalculate(_w, _h, true);
+                                geometry.Recalculate(imgSize, imgSize, true);
 
                                 var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
 
                                 graphics.save();
                                 var oMatrix = new AscCommon.CMatrix();
-                                oMatrix.tx = _x;
-                                oMatrix.ty = _y;
+                                oMatrix.tx = rect._x;
+                                oMatrix.ty = rect._y;
                                 graphics.transform3(oMatrix);
                                 var shapeDrawer = new AscCommon.CShapeDrawer();
                                 shapeDrawer.Graphics = graphics;
