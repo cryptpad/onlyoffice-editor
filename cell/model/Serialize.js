@@ -7142,6 +7142,10 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadCell(t,l, tmp, tmp.cell, tmp.prevRow);
                 });
+                if (tmp.cell.isNullTextString()) {
+                    //set default value in case of empty cell value
+                    oCell.setTypeInternal(CellValueType.Number);
+                }
                 if (tmp.cell.hasRowCol()) {
                     tmp.prevCol = tmp.cell.nCol;
                 } else {
@@ -7278,10 +7282,12 @@
 				var val = this.stream.GetDoubleLE();
 				if (CellValueType.String === oCell.getType() || CellValueType.Error === oCell.getType()) {
 					var ss = this.aSharedStrings[val];
-                    if (typeof ss === 'string') {
-                        oCell.setValueTextInternal(ss);
-                    } else {
-                        oCell.setValueMultiTextInternal(ss);
+                    if (undefined !== ss) {
+                        if (typeof ss === 'string') {
+                            oCell.setValueTextInternal(ss);
+                        } else {
+                            oCell.setValueMultiTextInternal(ss);
+                        }
                     }
 				} else {
                     oCell.setValueNumberInternal(val);
