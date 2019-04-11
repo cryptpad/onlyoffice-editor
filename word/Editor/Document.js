@@ -18003,6 +18003,11 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
     }
     return ["", ""];
 };
+CDocument.prototype.SelectReviewMove = function(sMoveName)
+{
+	var oManager = this.GetTrackRevisionsManager();
+	
+};
 
 function CDocumentSelectionState()
 {
@@ -18451,6 +18456,8 @@ function CTrackRevisionsManager(LogicDocument)
     this.OldVisibleChanges = [];
 
     this.MoveId            = 1;
+
+    this.MoveMarks = {};
 }
 
 /**
@@ -19071,6 +19078,58 @@ CTrackRevisionsManager.prototype.GetNewMoveId = function()
 {
 	this.MoveId++;
 	return "move" + this.MoveId;
+};
+CTrackRevisionsManager.prototype.RegisterMoveMark = function(oMark)
+{
+	if (!oMark)
+		return;
+
+	var sMarkId = oMark.GetMarkId();
+	var isFrom  = oMark.IsFrom();
+	var isStart = oMark.IsStart();
+
+	this.UpdateMoveId(sMarkId);
+
+	if (!this.MoveMarks[sMarkId])
+	{
+		this.MoveMarks[sMarkId] = {
+
+			From : {
+				Start : null,
+				End   : null
+			},
+
+			To : {
+				Start : null,
+				End   : null
+			}
+		};
+	}
+
+	if (isFrom)
+	{
+		if (isStart)
+			this.MoveMarks[sMarkId].From.Start = oMark;
+		else
+			this.MoveMarks[sMarkId].From.End = oMark;
+	}
+	else
+	{
+		if (isStart)
+			this.MoveMarks[sMarkId].To.Start = oMark;
+		else
+			this.MoveMarks[sMarkId].To.End = oMark;
+	}
+};
+CTrackRevisionsManager.prototype.UnregisterMoveMark = function(oMark)
+{
+	if (!oMark)
+		return;
+
+	var sMarkId = oMark.GetMarkId();
+	delete this.MoveMarks[sMarkId];
+
+	// TODO: Возможно тут нужно проделать дополнительные действия
 };
 
 function CRevisionsChangeParagraphSearchEngine(nDirection, oCurrentElement, oTrackManager)

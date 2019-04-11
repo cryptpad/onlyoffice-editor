@@ -101,6 +101,36 @@ CParaRevisionMove.prototype.Read_FromBinary2 = function(oReader)
 	this.From  = oReader.GetBool();
 	this.Name  = oReader.GetString2();
 };
+CParaRevisionMove.prototype.SetParagraph = function(oParagraph)
+{
+	if (!editor || !editor.WordControl || !editor.WordControl.m_oLogicDocument || !editor.WordControl.m_oLogicDocument.GetTrackRevisionsManager())
+		return;
+
+	var oManager = editor.WordControl.m_oLogicDocument.GetTrackRevisionsManager();
+
+	if (oParagraph)
+	{
+		this.Paragraph = oParagraph;
+		oManager.RegisterMoveMark(this);
+	}
+	else
+	{
+		this.Paragraph = null;
+		oManager.UnregisterMoveMark(this);
+	}
+};
+CParaRevisionMove.prototype.GetMarkId = function()
+{
+	return this.Name;
+};
+CParaRevisionMove.prototype.IsFrom = function()
+{
+	return this.From;
+};
+CParaRevisionMove.prototype.IsStart = function()
+{
+	return this.Start;
+};
 
 
 /**
@@ -115,6 +145,8 @@ function CRunRevisionMove(isStart, isFrom, sName)
 	this.Start = isStart;
 	this.From  = isFrom;
 	this.Name  = sName;
+
+	this.Run   = null;
 }
 
 CRunRevisionMove.prototype = Object.create(CRunElementBase.prototype);
@@ -146,6 +178,36 @@ CRunRevisionMove.prototype.Read_FromBinary = function(oReader)
 	this.Start = oReader.GetBool();
 	this.From  = oReader.GetBool();
 	this.Name  = oReader.GetString2();
+};
+CRunRevisionMove.prototype.SetParent = function(oParent)
+{
+	if (!editor || !editor.WordControl || !editor.WordControl.m_oLogicDocument || !editor.WordControl.m_oLogicDocument.GetTrackRevisionsManager())
+		return;
+
+	var oManager = editor.WordControl.m_oLogicDocument.GetTrackRevisionsManager();
+
+	if (oParent)
+	{
+		this.Run = oParent;
+		oManager.RegisterMoveMark(this);
+	}
+	else
+	{
+		this.Run = null;
+		oManager
+	}
+};
+CRunRevisionMove.prototype.GetMarkId = function()
+{
+	return this.Name;
+};
+CRunRevisionMove.prototype.IsFrom = function()
+{
+	return this.From;
+};
+CRunRevisionMove.prototype.IsStart = function()
+{
+	return this.Start;
 };
 
 //--------------------------------------------------------export----------------------------------------------------
