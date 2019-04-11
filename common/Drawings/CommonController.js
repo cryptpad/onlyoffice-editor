@@ -3567,6 +3567,21 @@ DrawingObjectsController.prototype =
                 objects_by_type.images[i].setBlipFill(CreateBlipFillRasterImageId(props.ImageUrl));
             }
         }
+        if(props.resetCrop)
+        {
+            for(i = 0; i < objects_by_type.images.length; ++i)
+            {
+                if(objects_by_type.images[i].blipFill)
+                {
+                    var oBlipFill = objects_by_type.images[i].blipFill.createDuplicate();
+                    oBlipFill.tile = null;
+                    oBlipFill.stretch = true;
+                    oBlipFill.srcRect = null;
+                    objects_by_type.images[i].setBlipFill(oBlipFill);
+                }
+
+            }
+        }
         if(props.ChartProperties)
         {
             for(i = 0; i < objects_by_type.charts.length; ++i)

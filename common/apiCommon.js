@@ -2426,6 +2426,7 @@
 			this.rot = obj.rot != undefined ? obj.rot : undefined;
 			this.flipH = obj.flipH != undefined ? obj.flipH : undefined;
 			this.flipV = obj.flipV != undefined ? obj.flipV : undefined;
+			this.resetCrop =  obj.resetCrop != undefined ? obj.resetCrop : undefined;
 
 		} else {
 			this.CanBeFlow = true;
@@ -2446,7 +2447,6 @@
 
 			this.ChartProperties = null;
 			this.ShapeProperties = null;
-			this.ImageProperties = null;
 
 			this.ChangeLevel = null;
 			this.Group = null;
@@ -2474,8 +2474,7 @@
 			this.rotAdd = undefined;
 			this.flipH = undefined;
 			this.flipV = undefined;
-			this.flipHInert = undefined;
-			this.flipVInert = undefined;
+			this.resetCrop = undefined;
 		}
 	}
 
@@ -2799,6 +2798,9 @@
 
 		asc_putFlipVInvert: function(v){
 			this.flipVInvert = v;
+		},
+		asc_putResetCrop: function(v){
+			this.resetCrop = v;
 		}
 	};
 
@@ -4771,6 +4773,7 @@
 	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
 	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
 	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
+	prot["put_ResetCrop"] = prot["asc_putResetCrop"] = prot.asc_putResetCrop;
 
 	prot["get_Title"] = prot["asc_getTitle"] = prot.asc_getTitle;
 	prot["put_Title"] = prot["asc_putTitle"] = prot.asc_putTitle;

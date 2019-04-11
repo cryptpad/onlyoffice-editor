@@ -9718,9 +9718,16 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 
                 var tile = _fill.type;
                 if (tile == c_oAscFillBlipType.STRETCH)
+                {
                     ret.fill.tile = null;
+                    ret.fill.stretch = true;
+                }
                 else if (tile == c_oAscFillBlipType.TILE)
+                {
                     ret.fill.tile = new CBlipFillTile();
+                    ret.fill.stretch = false;
+                    ret.fill.srcRect = null;
+                }
                 break;
             }
             case c_oAscFill.FILL_TYPE_PATT:
