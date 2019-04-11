@@ -209,6 +209,10 @@ CRunRevisionMove.prototype.IsStart = function()
 {
 	return this.Start;
 };
+CRunRevisionMove.prototype.GetRun = function()
+{
+	return this.Run;
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};

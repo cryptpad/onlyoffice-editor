@@ -17860,7 +17860,7 @@ CDocument.prototype.AddBlankPage = function()
 /**
  * Получаем формулу в текущей ячейке таблицы
  * {boolen} [isReturnField=false] - возвращаем само поле
- * @returns {string | oComplexField}
+ * @returns {string | CComplexField}
  */
 CDocument.prototype.GetTableCellFormula = function(isReturnField)
 {
@@ -17987,7 +17987,6 @@ CDocument.prototype.AddTableCellFormula = function(sFormula)
 	}
 
 };
-
 /**
  * Разбираем sInstrLine на формулу и формат числа
  * @param {string} sInstrLine
@@ -18003,10 +18002,54 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
     }
     return ["", ""];
 };
-CDocument.prototype.SelectReviewMove = function(sMoveName)
+/**
+ * Выделяем перемещенный или удаленный после перемещения текст
+ * @param sMoveName {string} идентификатор переноса
+ * @param isFrom {boolean} true - выделяем удаленный текст, false - выделяем перемещенный текст
+ */
+CDocument.prototype.SelectReviewMove = function(sMoveName, isFrom)
 {
 	var oManager = this.GetTrackRevisionsManager();
-	
+
+	function private_GetDocumentPosition(oMark)
+	{
+		if (oMark instanceof CParaRevisionMove)
+		{
+			return oMark.GetDocumentPositionFromObject();
+		}
+		else if (oMark instanceof CRunRevisionMove && oMark.GetRun())
+		{
+			var oRun      = oMark.GetRun();
+			var arrPos    = oRun.GetDocumentPositionFromObject();
+			var nInRunPos = oRun.GetElementPosition(oMark);
+
+			if (oMark.IsStart())
+				arrPos.push({Class : oRun, Position : nInRunPos});
+			else
+				arrPos.push({Class : oRun, Position : nInRunPos + 1});
+
+			return arrPos;
+		}
+
+		return null;
+	}
+
+	var oMarks = oManager.MoveMarks[sMoveName];
+	if (oMarks)
+	{
+		var oStart = isFrom ? oMarks.From.Start : oMarks.To.Start;
+		var oEnd   = isFrom ? oMarks.From.End : oMarks.To.End;
+
+		if (oStart && oEnd)
+		{
+			var oStartDocPos = private_GetDocumentPosition(oStart);
+			var oEndDocPos   = private_GetDocumentPosition(oEnd);
+
+			this.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
+			this.Document_UpdateSelectionState();
+			this.Document_UpdateInterfaceState();
+		}
+	}
 };
 
 function CDocumentSelectionState()
@@ -19131,6 +19174,7 @@ CTrackRevisionsManager.prototype.UnregisterMoveMark = function(oMark)
 
 	// TODO: Возможно тут нужно проделать дополнительные действия
 };
+
 
 function CRevisionsChangeParagraphSearchEngine(nDirection, oCurrentElement, oTrackManager)
 {

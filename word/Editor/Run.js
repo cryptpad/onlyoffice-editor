@@ -10094,34 +10094,6 @@ ParaRun.prototype.Get_ClassesByPos = function(Classes, ContentPos, Depth)
 {
     Classes.push(this);
 };
-ParaRun.prototype.GetDocumentPositionFromObject = function(PosArray)
-{
-    if (!PosArray)
-        PosArray = [];
-
-    if (this.Paragraph)
-    {
-        var ParaContentPos = this.Paragraph.Get_PosByElement(this);
-        if (null !== ParaContentPos)
-        {
-            var Depth = ParaContentPos.Get_Depth();
-            while (Depth > 0)
-            {
-                var Pos = ParaContentPos.Get(Depth);
-                ParaContentPos.Decrease_Depth(1);
-                var Class = this.Paragraph.Get_ElementByPos(ParaContentPos);
-                Depth--;
-
-                PosArray.splice(0, 0, {Class : Class, Position : Pos});
-            }
-            PosArray.splice(0, 0, {Class : this.Paragraph, Position : ParaContentPos.Get(0)});
-        }
-
-        this.Paragraph.GetDocumentPositionFromObject(PosArray);
-    }
-
-    return PosArray;
-};
 ParaRun.prototype.Is_UseInParagraph = function()
 {
     if (!this.Paragraph)

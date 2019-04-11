@@ -716,7 +716,7 @@ CDocumentContentElementBase.prototype.GetDocumentPositionFromObject = function(P
 
 	if (this.Parent)
 	{
-		PosArray.splice(0, 0, {Class : this.Parent, Position : this.Get_Index()});
+		PosArray.splice(0, 0, {Class : this.Parent, Position : this.GetIndex()});
 		this.Parent.GetDocumentPositionFromObject(PosArray);
 	}
 
