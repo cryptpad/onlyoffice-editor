@@ -1047,7 +1047,7 @@
             //var measure_time_start = performance.now();
 
 			var load_mode = this.GetCharLoadMode();
-			if (this.m_bStringGID || !isRaster || !AscFonts.isUseBitmapStrikes(glyph_index_or_unicode))
+			if (this.m_bStringGID || !isRaster || this.m_bNeedDoBold || !AscFonts.isUseBitmapStrikes(glyph_index_or_unicode))
 				load_mode |= AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP;
 
             if (this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, load_mode))
