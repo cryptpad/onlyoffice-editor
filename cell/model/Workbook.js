@@ -10726,7 +10726,7 @@
 		this.worksheet.workbook.dependencyFormulas.lockRecal();
 		var colorFill = nOption === Asc.c_oAscSortOptions.ByColorFill;
 		var colorText = nOption === Asc.c_oAscSortOptions.ByColorFont;
-		var isSortColor = !!(colorFill || colorText);
+		var isSortColor = colorFill || colorText;
 
 		var oRes = null;
 		var oThis = this;
@@ -10768,7 +10768,7 @@
 				var colorFillCell, colorsTextCell = null;
 				if(colorFill)
 				{
-					var styleCell = oCell.getStyle();
+					var styleCell = oCell.getCompiledStyleCustom(false, true, true);
 					colorFillCell = styleCell !== null && styleCell.fill ? styleCell.fill.bg() : null;
 				}
 				else if(colorText)
@@ -10836,7 +10836,7 @@
 			//TODO возможно так сравнивать не правильно, позже пересмотреть
 			if(colorFill)
 			{
-				res = (color1 !== null && color2 !== null && color1.rgb === color2.rgb) || (color1 === color2) ? true : false;
+				res = (color1 !== null && color2 !== null && color1.rgb === color2.rgb) || (color1 === color2);
 			}
 			else if(colorText && color1 && color1.length)
 			{

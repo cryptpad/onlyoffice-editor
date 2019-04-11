@@ -13312,22 +13312,21 @@
                 var filter = autoFilterObject.filter;
                 if (c_oAscAutoFilterTypes.CustomFilters === filter.type) {
                     t.model._getCell(activeCell.row, activeCell.col, function(cell) {
-                        var val = cell.getValueWithoutFormat();
-                        filter.filter.CustomFilters[0].Val = val;
+                        filter.filter.CustomFilters[0].Val = cell.getValueWithoutFormat();
                     });
                 } else if (c_oAscAutoFilterTypes.ColorFilter === filter.type) {
                     t.model._getCell(activeCell.row, activeCell.col, function(cell) {
                         if (filter.filter && filter.filter.dxf && filter.filter.dxf.fill) {
+                            var xfs = cell.getCompiledStyleCustom(false, true, true);
                             if (false === filter.filter.CellColor) {
-                                var fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+                                var fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
                                 //TODO добавлять дефолтовый цвет шрифта в случае, если цвет шрифта не указан
                                 if (null !== fontColor) {
                                     filter.filter.dxf.fill.fromColor(fontColor);
                                 }
                             } else {
                                 //TODO просмотерть ситуации без заливки
-                                var color = cell.getStyle();
-                                var cellColor = null !== color && color.fill && color.fill.bg() ? color.fill.bg() : null;
+                                var cellColor = null !== xfs && xfs.fill && xfs.fill.bg() ? xfs.fill.bg() : null;
                                 filter.filter.dxf.fill.fromColor(null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.getRgb()) : null);
                             }
                         }
@@ -14265,7 +14264,7 @@
             if(rgb === 0) {
                 rgb = null;
             }
-            var isDefaultFontColor = !!(null === rgb);
+            var isDefaultFontColor = null === rgb;
 
             if (true !== alreadyAddFontColors[rgb]) {
                 if (isDefaultFontColor) {
@@ -14281,7 +14280,7 @@
 
         var addCellColorsToArray = function (color) {
             var rgb = null !== color && color.fill && color.fill.bg() ? color.fill.bg().getRgb() : null;
-            var isDefaultCellColor = !!(null === rgb);
+            var isDefaultCellColor = null === rgb;
 
             if (true !== alreadyAddColors[rgb]) {
                 if (isDefaultCellColor) {
@@ -14319,23 +14318,24 @@
 			//font colors
 			var multiText = cell.getValueMultiText();
 			var fontColor = null;
+			var xfs = cell.getCompiledStyleCustom(false, true, true);
 			if (null !== multiText) {
 				for (var j = 0; j < multiText.length; j++) {
 					fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
 					if(null !== fontColor) {
 						addFontColorsToArray(fontColor);
 					} else {
-						fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+						fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
 						addFontColorsToArray(fontColor);
 					}
 				}
 			} else {
-				fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+				fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
 				addFontColorsToArray(fontColor);
 			}
 
 			//cell colors
-			addCellColorsToArray(cell.getStyle());
+			addCellColorsToArray(xfs);
         });
 
         //если один элемент в массиве, не отправляем его в меню
@@ -14346,7 +14346,7 @@
             res.fontColors = [];
         }
 
-        res.text = tempDigit > tempText ? false : true;
+        res.text = tempDigit <= tempText;
 
         return res;
     };

@@ -7109,6 +7109,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 		var filterColor = this.dxf.fill.bg();
 		cell.getLeftTopCellNoEmpty(function(cell) {
 			var fontColor;
+			var xfs = cell ? cell.getCompiledStyleCustom(false, true, true) : null;
 			if(false === t.CellColor)//font color
 			{
 				var multiText;
@@ -7118,7 +7119,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 					{
 						fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
 						if(null === fontColor) {
-							fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+							fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
 						}
 						if(isEqualColors(filterColor,fontColor ))
 						{
@@ -7129,7 +7130,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 				}
 				else
 				{
-					fontColor = cell && cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+					fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
 					if(isEqualColors(filterColor,fontColor))
 					{
 						res = false;
@@ -7138,8 +7139,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 			}
 			else
 			{
-				var color = cell ? cell.getStyle() : null;
-				var cellColor =  color !== null && color.fill && color.fill.bg ? color.fill.bg() : null;
+				var cellColor =  xfs !== null && xfs.fill && xfs.fill.bg ? xfs.fill.bg() : null;
 
 				if(isEqualColors(filterColor, cellColor))
 				{
