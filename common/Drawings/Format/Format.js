@@ -675,7 +675,8 @@ var TYPE_TRACK = {
     GROUP_PASSIVE : 1,
     TEXT : 2,
     EMPTY_PH : 3,
-    CHART_TEXT : 4
+    CHART_TEXT : 4,
+    CROP : 5,
 };
 var TYPE_KIND = {
     SLIDE : 0,
