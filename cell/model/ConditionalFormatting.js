@@ -455,6 +455,12 @@
 					break;
 				case AscCommonExcel.ECfvoType.Formula:
 					break;
+				case AscCommonExcel.ECfvoType.AutoMin:
+					res = Math.min(0, AscCommonExcel.getArrayMin(values));
+					break;
+				case AscCommonExcel.ECfvoType.AutoMax:
+					res = Math.max(0, AscCommonExcel.getArrayMax(values));
+					break;
 				default:
 					res = -Number.MAX_VALUE;
 					break;

@@ -1139,7 +1139,9 @@
         Minimum: 2,
         Number: 3,
         Percent: 4,
-        Percentile: 5
+        Percentile: 5,
+        AutoMin: 6,
+        AutoMax: 7
     };
     var ST_TimePeriod = {
         last7Days : 'last7Days',
