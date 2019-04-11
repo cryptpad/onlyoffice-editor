@@ -1238,7 +1238,12 @@ CopyProcessor.prototype =
 					oThis.oPresentationWriter.WriteDouble(elements[i].Y);
 					oThis.oPresentationWriter.WriteDouble(elements[i].ExtX);
 					oThis.oPresentationWriter.WriteDouble(elements[i].ExtY);
-					oThis.oPresentationWriter.WriteString2(elements[i].ImageUrl);
+					//TODO записывать base64 у картинок для разных контентов в единственном экземпляре
+					if(elements[i].Drawing.isImage()) {
+						oThis.oPresentationWriter.WriteString2("");
+					} else {
+						oThis.oPresentationWriter.WriteString2(elements[i].ImageUrl);
+					}
 				} else {
 					var isOnlyTable = elements.length === 1;
 
