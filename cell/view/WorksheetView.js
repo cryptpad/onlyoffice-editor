@@ -8980,6 +8980,8 @@
             return;
         }
 
+		this.model.workbook.handlers.trigger("cleanCutData");
+
         var arnFrom = this.model.selectionRange.getLast();
         var arnTo = this.activeMoveRange.clone(true);
         if (arnFrom.isEqual(arnTo)) {
@@ -9486,6 +9488,8 @@
                     hasUpdates = true;
                 }
             });
+
+			t.model.workbook.handlers.trigger("cleanCutData");
 
             if (hasUpdates) {
 				t.draw();
@@ -11413,6 +11417,7 @@
 					}
 				}
 
+				t.model.workbook.handlers.trigger("cleanCutData");
 				range = t.model.getRange3(arn.r1, arn.c1, arn.r2, arn.c2);
 				switch (val) {
 					case c_oAscInsertOptions.InsertCellsAndShiftRight:
@@ -11544,6 +11549,7 @@
 					return;
 				}
 
+				t.model.workbook.handlers.trigger("cleanCutData");
 				range = t.model.getRange3(checkRange.r1, checkRange.c1, checkRange.r2, checkRange.c2);
 				switch (val) {
 					case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
@@ -12602,6 +12608,8 @@
 			var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
 			var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);
 
+			this.model.workbook.handlers.trigger("cleanCutData");
+
 			editor.open({
 				fragments: fragments,
 				flags: fl,
@@ -12924,6 +12932,8 @@
 			return;
 		}
 
+		this.model.workbook.handlers.trigger("cleanCutData");
+
 		var t = this;
 		var ar = this.model.selectionRange.getLast().clone();
 
@@ -13051,6 +13061,8 @@
 		if (!window['AscCommonExcel'].filteringMode) {
 			return;
 		}
+
+		this.model.workbook.handlers.trigger("cleanCutData");
 
 		var t = this;
 		var ar = this.model.selectionRange.getLast().clone();
