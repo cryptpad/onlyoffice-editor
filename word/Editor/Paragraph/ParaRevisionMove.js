@@ -42,7 +42,7 @@
  * @constructor
  * @extends {CParagraphContentBase}
  */
-function CParaRevisionMove(isStart, isFrom, sName)
+function CParaRevisionMove(isStart, isFrom, sName, oInfo)
 {
 	CParagraphContentBase.call(this);
 	this.Id = AscCommon.g_oIdCounter.Get_NewId();
@@ -52,6 +52,17 @@ function CParaRevisionMove(isStart, isFrom, sName)
 	this.Name  = sName;
 
 	this.Type = para_RevisionMove;
+
+	this.ReviewInfo = null;
+	if (oInfo)
+	{
+		this.ReviewInfo = oInfo;
+	}
+	else
+	{
+		this.ReviewInfo = new CReviewInfo();
+		this.ReviewInfo.Update();
+	}
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
@@ -79,15 +90,17 @@ CParaRevisionMove.prototype.Write_ToBinary2 = function(oWriter)
 {
 	oWriter.WriteLong(AscDFH.historyitem_type_ParaRevisionMove);
 
-	// String  : Id
-	// Bool    : is Start
-	// Bool    : is From
-	// String  : Name
+	// String      : Id
+	// Bool        : is Start
+	// Bool        : is From
+	// String      : Name
+	// CReviewInfo : Info
 
 	oWriter.WriteString2("" + this.Id);
 	oWriter.WriteBool(this.Start);
 	oWriter.WriteBool(this.From);
 	oWriter.WriteString2("" + this.Name);
+	this.ReviewInfo.WriteToBinary(oWriter);
 };
 CParaRevisionMove.prototype.Read_FromBinary2 = function(oReader)
 {
@@ -100,6 +113,9 @@ CParaRevisionMove.prototype.Read_FromBinary2 = function(oReader)
 	this.Start = oReader.GetBool();
 	this.From  = oReader.GetBool();
 	this.Name  = oReader.GetString2();
+
+	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo.ReadFromBinary(oReader);
 };
 CParaRevisionMove.prototype.SetParagraph = function(oParagraph)
 {
@@ -131,6 +147,10 @@ CParaRevisionMove.prototype.IsStart = function()
 {
 	return this.Start;
 };
+CParaRevisionMove.prototype.GetReviewInfo = function()
+{
+	return this.ReviewInfo;
+};
 
 
 /**
@@ -138,7 +158,7 @@ CParaRevisionMove.prototype.IsStart = function()
  * @constructor
  * @extends {CRunElementBase}
  */
-function CRunRevisionMove(isStart, isFrom, sName)
+function CRunRevisionMove(isStart, isFrom, sName, oInfo)
 {
 	CRunElementBase.call(this);
 
@@ -147,6 +167,17 @@ function CRunRevisionMove(isStart, isFrom, sName)
 	this.Name  = sName;
 
 	this.Run   = null;
+
+	this.ReviewInfo = null;
+	if (oInfo)
+	{
+		this.ReviewInfo = oInfo;
+	}
+	else
+	{
+		this.ReviewInfo = new CReviewInfo();
+		this.ReviewInfo.Update();
+	}
 }
 
 CRunRevisionMove.prototype = Object.create(CRunElementBase.prototype);
@@ -161,23 +192,29 @@ CRunRevisionMove.prototype.Write_ToBinary  = function(oWriter)
 {
 	oWriter.WriteLong(this.Type);
 
-	// Bool   : Start
-	// Bool   : From
-	// String : Name
+	// Bool        : Start
+	// Bool        : From
+	// String      : Name
+	// CReviewInfo : Info
 
 	oWriter.WriteBool(this.Start);
 	oWriter.WriteBool(this.From);
 	oWriter.WriteString2("" + this.Name);
+	this.ReviewInfo.WriteToBinary(oWriter);
 };
 CRunRevisionMove.prototype.Read_FromBinary = function(oReader)
 {
-	// Bool   : Start
-	// Bool   : From
-	// String : Name
+	// Bool        : Start
+	// Bool        : From
+	// String      : Name
+	// CReviewInfo : Info
 
 	this.Start = oReader.GetBool();
 	this.From  = oReader.GetBool();
 	this.Name  = oReader.GetString2();
+
+	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo.ReadFromBinary(oReader);
 };
 CRunRevisionMove.prototype.SetParent = function(oParent)
 {
@@ -212,6 +249,10 @@ CRunRevisionMove.prototype.IsStart = function()
 CRunRevisionMove.prototype.GetRun = function()
 {
 	return this.Run;
+};
+CRunRevisionMove.prototype.GetReviewInfo = function()
+{
+	return this.ReviewInfo;
 };
 
 //--------------------------------------------------------export----------------------------------------------------
