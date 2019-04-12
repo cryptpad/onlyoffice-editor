@@ -1410,7 +1410,9 @@
 		uniteIntoTable: 21,
 		insertAsNewRows: 22,
 		keepTextOnly: 23,
-		overwriteCells : 24
+		overwriteCells : 24,
+
+		useTextImport: 25
 	};
 
 	/** @enum {number} */
@@ -2238,6 +2240,7 @@
 	prot['keepTextOnly'] = prot.keepTextOnly;
 	prot['insertAsNestedTable'] = prot.insertAsNestedTable;
 	prot['overwriteCells'] = prot.overwriteCells;
+	prot['useTextImport'] = prot.useTextImport;
 
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;

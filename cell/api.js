@@ -420,6 +420,16 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.asc_TextImport = function(bPaste) {
+      if (this.canEdit()) {
+        if(bPaste) {
+			//this.wb.specialPasteData(props);
+        } else {
+
+        }
+      }
+  };
+
   spreadsheet_api.prototype.asc_ShowSpecialPasteButton = function(props) {
       if (this.canEdit()) {
           this.wb.showSpecialPasteButton(props);
@@ -3601,6 +3611,8 @@ var editor;
   prot["asc_Cut"] = prot.asc_Cut;
   prot["asc_Undo"] = prot.asc_Undo;
   prot["asc_Redo"] = prot.asc_Redo;
+  prot["asc_TextImport"] = prot.asc_TextImport;
+
 
   prot["asc_getDocumentName"] = prot.asc_getDocumentName;
 	prot["asc_getAppProps"] = prot.asc_getAppProps;

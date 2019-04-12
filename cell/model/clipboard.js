@@ -383,7 +383,7 @@
 							this._pasteTextInCellEditor(data1);
 						} else {
 							//не показываем иконку с/в если вставляется только текст
-							window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
+							//window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
 							t.pasteProcessor.pasteTextOnSheet(ws, data1);
 						}
 
@@ -2809,7 +2809,7 @@
 				var aResult = this._getTableFromText(worksheet, text);
 				if(aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor))
 				{
-					worksheet.setSelectionInfo('paste', {data: aResult});
+					worksheet.setSelectionInfo('paste', {data: aResult, bText: true});
 				}
 			},
 			

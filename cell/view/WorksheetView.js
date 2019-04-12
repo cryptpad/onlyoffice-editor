@@ -9581,7 +9581,7 @@
 		}
 	};
 
-    WorksheetView.prototype._pasteData = function (isLargeRange, fromBinary, val, bIsUpdate, pasteToRange) {
+    WorksheetView.prototype._pasteData = function (isLargeRange, fromBinary, val, bIsUpdate, pasteToRange, bText) {
         var t = this;
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var specialPasteProps = specialPasteHelper.specialPasteProps;
@@ -9791,7 +9791,11 @@
 			else
 			{
 				//matchDestinationFormatting - пока не добавляю, так как работает как и values
-				allowedSpecialPasteProps = [sProps.sourceformatting, sProps.destinationFormatting];
+				if(bText) {
+					allowedSpecialPasteProps = [sProps.keepTextOnly, sProps.useTextImport];
+				} else {
+					allowedSpecialPasteProps = [sProps.sourceformatting, sProps.destinationFormatting];
+				}
 			}
 			window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
 			window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setOptions(allowedSpecialPasteProps);
@@ -9899,7 +9903,7 @@
 				}
 			} else {
 				AscCommonExcel.executeInR1C1Mode(false, function () {
-					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange, val.bText);
 				});
 			}
 
