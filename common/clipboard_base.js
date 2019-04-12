@@ -101,6 +101,8 @@
 		this.bCut = false;
 
 		this.clearBufferTimerId = -1;
+
+		this.needClearBuffer = false;
 	}
 
 	CClipboardBase.prototype =
@@ -118,21 +120,10 @@
 				{
 					this.pushData(AscCommon.c_oAscClipboardDataFormat.Text, "");
 				}
-                if (formats & AscCommon.c_oAscClipboardDataFormat.Html)
-                {
-					if(AscBrowser.isIE) {
-						if(AscBrowser.isIeEdge) {
-							this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, null);
-						} else {
-							//TODO IE 11 не работает очиска буфера!
-							//если раскомментировать только строку ниже и убрать все pushData - тогда очистка происходит
-							//this.ClosureParams.setData("text/plain", "");
-							this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, "");
-						}
-					} else {
-						this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, "");
-					}
-                }
+				if (formats & AscCommon.c_oAscClipboardDataFormat.Html)
+				{
+					this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, "");
+				}
                 if (formats & AscCommon.c_oAscClipboardDataFormat.Internal)
                 {
                     this.pushData(AscCommon.c_oAscClipboardDataFormat.Internal, "");
@@ -849,6 +840,10 @@
 			this.Api.decrementCounterLongAction();
 			this.PasteFlag = false;
 			this.EndFocus();
+			if(this.needClearBuffer) {
+				this.ClearBuffer();
+				this.needClearBuffer = false;
+			}
 		},
 
 		pushData : function(_format, _data)

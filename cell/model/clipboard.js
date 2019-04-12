@@ -1243,8 +1243,7 @@
 						ws.handlers.trigger("cleanCutData", true);
 						res = true;
 
-						//чистим буфер
-						AscCommon.g_clipboardBase.ClearBuffer();
+						AscCommon.g_clipboardBase.needClearBuffer = true;
 					}
 				}
 
