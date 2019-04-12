@@ -47,6 +47,7 @@ function CRevisionsChange()
 	this.X         = 0;
 	this.Y         = 0;
 	this.Value     = "";
+	this.MoveType  = Asc.c_oAscRevisionsMove.NoMove;
 
 	this.UserName  = "";
 	this.UserId    = "";
@@ -142,6 +143,22 @@ CRevisionsChange.prototype.private_UpdateUserColor = function()
 {
 	this.UserColor = AscCommon.getUserColorById(this.UserId, this.UserName, true, false);
 };
+CRevisionsChange.prototype.put_MoveType = function(nType)
+{
+	this.MoveType = nType;
+};
+CRevisionsChange.prototype.get_MoveType = function()
+{
+	return this.MoveType;
+};
+CRevisionsChange.prototype.get_MoveId = function()
+{
+	return "move2";
+};
+CRevisionsChange.prototype.is_MovedDown = function()
+{
+	return true;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 CRevisionsChange.prototype['get_UserId'] = CRevisionsChange.prototype.get_UserId;
@@ -163,3 +180,7 @@ CRevisionsChange.prototype['put_Type'] = CRevisionsChange.prototype.put_Type;
 CRevisionsChange.prototype['put_XY'] = CRevisionsChange.prototype.put_XY;
 CRevisionsChange.prototype['put_Value'] = CRevisionsChange.prototype.put_Value;
 CRevisionsChange.prototype['get_LockUserId'] = CRevisionsChange.prototype.get_LockUserId;
+CRevisionsChange.prototype['put_MoveType'] = CRevisionsChange.prototype.put_MoveType;
+CRevisionsChange.prototype['get_MoveType'] = CRevisionsChange.prototype.get_MoveType;
+CRevisionsChange.prototype['get_MoveId'] = CRevisionsChange.prototype.get_MoveId;
+CRevisionsChange.prototype['is_MovedDown'] = CRevisionsChange.prototype.is_MovedDown;

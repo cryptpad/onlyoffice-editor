@@ -15439,6 +15439,7 @@ function CParagraphRevisionsChangesChecker(Para, RevisionsManager)
     this.AddRemove =
     {
         ChangeType : null,
+		MoveType   : Asc.c_oAscRevisionsMove.NoMove,
         StartPos   : null,
         EndPos     : null,
         Value      : [],
@@ -15469,6 +15470,7 @@ CParagraphRevisionsChangesChecker.prototype.FlushAddRemoveChange = function()
         Change.put_Value(AddRemove.Value);
         Change.put_StartPos(AddRemove.StartPos);
         Change.put_EndPos(AddRemove.EndPos);
+        Change.put_MoveType(AddRemove.MoveType);
         Change.put_UserId(AddRemove.UserId);
         Change.put_UserName(AddRemove.UserName);
         Change.put_DateTime(AddRemove.DateTime);
@@ -15521,20 +15523,25 @@ CParagraphRevisionsChangesChecker.prototype.AddReviewMoveMark = function(oMark)
 	oChange.put_DateTime(oInfo.GetDateTime());
 	this.RevisionsManager.AddChange(this.ParaId, oChange);
 };
-CParagraphRevisionsChangesChecker.prototype.Get_AddRemoveType = function()
+CParagraphRevisionsChangesChecker.prototype.GetAddRemoveType = function()
 {
     return this.AddRemove.ChangeType;
+};
+CParagraphRevisionsChangesChecker.prototype.GetAddRemoveMoveType = function()
+{
+	return this.AddRemove.MoveType;
 };
 CParagraphRevisionsChangesChecker.prototype.Get_AddRemoveUserId = function()
 {
     return this.AddRemove.UserId;
 };
-CParagraphRevisionsChangesChecker.prototype.Start_AddRemove = function(ChangeType, ContentPos)
+CParagraphRevisionsChangesChecker.prototype.StartAddRemove = function(nChangeType, oContentPos, nMoveType)
 {
-    this.AddRemove.ChangeType = ChangeType;
-    this.AddRemove.StartPos   = ContentPos.Copy();
-    this.AddRemove.EndPos     = ContentPos.Copy();
+    this.AddRemove.ChangeType = nChangeType;
+    this.AddRemove.StartPos   = oContentPos.Copy();
+    this.AddRemove.EndPos     = oContentPos.Copy();
     this.AddRemove.Value      = [];
+    this.AddRemove.MoveType   = nMoveType;
 };
 CParagraphRevisionsChangesChecker.prototype.Set_AddRemoveEndPos = function(ContentPos)
 {

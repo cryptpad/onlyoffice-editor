@@ -19101,7 +19101,7 @@ CTrackRevisionsManager.prototype.private_TrackChangesForSingleElement = function
 	return false;
 };
 /**
- * При чтении файла обновляем Id перетакскиваний в рецензировании
+ * При чтении файла обновляем Id перетаскиваний в рецензировании
  * @param sMoveId
  */
 CTrackRevisionsManager.prototype.UpdateMoveId = function(sMoveId)

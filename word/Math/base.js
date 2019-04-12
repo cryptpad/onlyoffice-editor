@@ -2528,6 +2528,19 @@ CMathBase.prototype.GetReviewType = function()
 
     return reviewtype_Common;
 };
+CMathBase.prototype.GetReviewInfo = function()
+{
+	if (this.Id)
+		return this.ReviewInfo;
+	else if (this.Parent && this.Parent.GetReviewInfo)
+		return this.Parent.GetReviewInfo();
+
+	return new CReviewInfo();
+};
+CMathBase.prototype.GetReviewMoveType = function()
+{
+	return this.GetReviewInfo().MoveType;
+};
 CMathBase.prototype.GetReviewColor = function()
 {
     if (this.Id)
@@ -2577,7 +2590,7 @@ CMathBase.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 
     if (true !== Checker.Is_CheckOnlyTextPr())
     {
-        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId()))
+        if (ReviewType !== Checker.GetAddRemoveType() || (reviewtype_Common !== ReviewType && (this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId() || this.GetReviewMoveType() !== Checker.GetAddRemoveMoveType())))
         {
             Checker.FlushAddRemoveChange();
             ContentPos.Update(0, Depth);
@@ -2585,7 +2598,7 @@ CMathBase.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
             if (reviewtype_Add === ReviewType || reviewtype_Remove === ReviewType)
             {
                 this.Get_StartPos(ContentPos, Depth);
-                Checker.Start_AddRemove(ReviewType, ContentPos);
+                Checker.StartAddRemove(ReviewType, ContentPos, this.GetReviewMoveType());
             }
         }
 

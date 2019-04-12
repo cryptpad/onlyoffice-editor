@@ -9661,6 +9661,10 @@ ParaRun.prototype.GetReviewType = function()
 {
     return this.ReviewType;
 };
+ParaRun.prototype.GetReviewMoveType = function()
+{
+	return this.ReviewInfo.MoveType;
+};
 ParaRun.prototype.GetReviewInfo = function()
 {
 	return this.ReviewInfo;
@@ -9804,13 +9808,13 @@ ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
     if (true !== Checker.Is_ParaEndRun() && true !== Checker.Is_CheckOnlyTextPr())
     {
         var ReviewType = this.GetReviewType();
-        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId()))
+        if (ReviewType !== Checker.GetAddRemoveType() || (reviewtype_Common !== ReviewType && (this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId() || this.GetReviewMoveType() !== Checker.GetAddRemoveMoveType())))
         {
             Checker.FlushAddRemoveChange();
             ContentPos.Update(0, Depth);
 
             if (reviewtype_Add === ReviewType || reviewtype_Remove === ReviewType)
-                Checker.Start_AddRemove(ReviewType, ContentPos);
+                Checker.StartAddRemove(ReviewType, ContentPos, this.GetReviewMoveType());
         }
 
         if (reviewtype_Add === ReviewType || reviewtype_Remove === ReviewType)
