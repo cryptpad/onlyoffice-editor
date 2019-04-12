@@ -8970,7 +8970,7 @@
             return;
         }
 
-		this.model.workbook.handlers.trigger("cleanCutData");
+		this.model.workbook.handlers.trigger("cleanCutData", null, true);
 
         var arnFrom = this.model.selectionRange.getLast();
         var arnTo = this.activeMoveRange.clone(true);
@@ -9479,7 +9479,7 @@
                 }
             });
 
-			t.model.workbook.handlers.trigger("cleanCutData", true);
+			t.model.workbook.handlers.trigger("cleanCutData", true, true);
 
             if (hasUpdates) {
 				t.draw();
@@ -11412,7 +11412,7 @@
 					}
 				}
 
-				t.model.workbook.handlers.trigger("cleanCutData", true);
+				t.model.workbook.handlers.trigger("cleanCutData", true, true);
 				range = t.model.getRange3(arn.r1, arn.c1, arn.r2, arn.c2);
 				switch (val) {
 					case c_oAscInsertOptions.InsertCellsAndShiftRight:
@@ -11544,7 +11544,7 @@
 					return;
 				}
 
-				t.model.workbook.handlers.trigger("cleanCutData", true);
+				t.model.workbook.handlers.trigger("cleanCutData", true, true);
 				range = t.model.getRange3(checkRange.r1, checkRange.c1, checkRange.r2, checkRange.c2);
 				switch (val) {
 					case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
@@ -12603,7 +12603,7 @@
 			var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
 			var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);
 
-			this.model.workbook.handlers.trigger("cleanCutData", true);
+			this.model.workbook.handlers.trigger("cleanCutData", true, true);
 
 			editor.open({
 				fragments: fragments,
@@ -12927,7 +12927,7 @@
 			return;
 		}
 
-		this.model.workbook.handlers.trigger("cleanCutData", true);
+		this.model.workbook.handlers.trigger("cleanCutData", true, true);
 
 		var t = this;
 		var ar = this.model.selectionRange.getLast().clone();
@@ -13057,7 +13057,7 @@
 			return;
 		}
 
-		this.model.workbook.handlers.trigger("cleanCutData", true);
+		this.model.workbook.handlers.trigger("cleanCutData", true, true);
 
 		var t = this;
 		var ar = this.model.selectionRange.getLast().clone();
