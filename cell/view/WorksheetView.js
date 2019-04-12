@@ -1963,7 +1963,7 @@
             this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
 
 			//Отрисовываем панель группировки по строкам
-			this._drawGroupData(drawingCtx, null, offsetX, offsetY);
+			//this._drawGroupData(drawingCtx, null, offsetX, offsetY);
 
             var drawingPrintOptions = {
                 ctx: drawingCtx, printPagesData: printPagesData
@@ -1989,9 +1989,9 @@
         this._drawColumnHeaders(null);
         this._drawRowHeaders(null);
         this._drawGrid(null);
-        //this._drawGroupData(null);
         this._drawCellsAndBorders(null);
 		this._drawGroupData(null);
+		this._drawGroupData(null, null, null, null, true);
         this._drawFrozenPane();
         this._drawFrozenPaneLines();
         this._fixSelectionOfMergedCells();
@@ -3906,6 +3906,7 @@
                 if ( !noCells ) {
                     this._drawGrid( null, tmpRange, offsetX, offsetY );
 					this._drawGroupData(null, tmpRange, offsetX, offsetY);
+					this._drawGroupData(null, tmpRange, offsetX, null, true);
                     this._drawCellsAndBorders(null, tmpRange, offsetX, offsetY );
                 }
             }
@@ -3918,6 +3919,7 @@
                 if ( !noCells ) {
                     this._drawGrid( null, tmpRange, offsetX, offsetY );
 					this._drawGroupData(null, tmpRange, offsetX, offsetY);
+					this._drawGroupData(null, tmpRange, offsetX, offsetY, true);
                     this._drawCellsAndBorders(null, tmpRange, offsetX, offsetY );
                 }
             }
@@ -3930,6 +3932,7 @@
                 if ( !noCells ) {
                     this._drawGrid( null, tmpRange, offsetX, offsetY );
 					this._drawGroupData(null, tmpRange, offsetX, offsetY);
+					this._drawGroupData(null, tmpRange, offsetX, offsetY, true);
                     this._drawCellsAndBorders(null, tmpRange, offsetX, offsetY );
                 }
             }
@@ -6283,7 +6286,7 @@
             offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop - diffHeight;
             this._drawColumnHeaders(null, c1, c2);
             this._drawGrid(null, range);
-			this._drawGroupData(null, range);
+			this._drawGroupData(null, range, null, null, true);
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
             this.objectRender.showDrawingObjectsEx(false,
@@ -6295,7 +6298,7 @@
                 range.r2 = rFrozen - 1;
                 offsetY = this._getRowTop(0) - this.cellsTop;
                 this._drawGrid(null, range, undefined, offsetY);
-				this._drawGroupData(null, range, undefined, offsetY);
+				this._drawGroupData(null, range, undefined, offsetY, true);
                 this._drawCellsAndBorders(null, range, undefined, offsetY);
                 this.af_drawButtons(range, offsetX, offsetY);
                 this.objectRender.showDrawingObjectsEx(false,
@@ -15747,12 +15750,12 @@
 		return {groupArr: res, levelMap: levelMap};
 	};
 
-	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, width, height ) {
-		if ( range === undefined ) {
+	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, bCol /*width, height*/  ) {
+		if ( !range ) {
 			range = this.visibleRange;
 		}
-		this._drawGroupDataCol(drawingCtx);
-		this._drawGroupDataMenu(drawingCtx);
+
+		this._drawGroupDataMenu(drawingCtx, bCol);
 
 		var ctx = drawingCtx || this.drawingCtx;
 		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
@@ -15769,111 +15772,215 @@
 		}
 
 		var st = this.settings.header.style[kHeaderDefault];
-		var x1 = 0;
-		var y1 = this._getRowTop(range.r1) - offsetY;
-		var x2 = this.groupWidth;
-		var y2 = this._getRowTop(range.r2 + 1) - offsetY;
-		ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
-		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
-		ctx.lineVerPrevPx(x2, y1, y2);
-		ctx.stroke();
-
-		var groupData = this.arrRowGroups ? this.arrRowGroups : this.getGroupDataArray(null, range.r1, range.r2);
-		if(!groupData || !groupData.groupArr) {
-			return;
-		}
-		console_time("draw");
-		var arrayLines = groupData.groupArr;
-		var rowLevelMap = groupData.levelMap;
-
+		var x1, y1, x2, y2, arrayLines, rowLevelMap, groupData;
 		var lineWidth = AscCommon.AscBrowser.convertToRetinaValue(2, true);
-		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
-
 		var thickLineDiff = AscCommon.AscBrowser.isRetina ? 0.5 : 0;
 		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
-		var minRow;
-		var maxRow;
 		var bFirstLine = true;
 		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(16, true);
 		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var buttons = [];
 		var endPosArr = {};
-		for(var i = 0; i < arrayLines.length; i++) {
-			if(arrayLines[i]) {
-				var index = bFirstLine ? 1 : i;
-				var posX = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
+		var i, j, l, index, diff, startPos, endPos, paddingTop, pointLevel;
 
-				for(var j = 0; j < arrayLines[i].length; j++) {
+		if(bCol) {
+			y1 = 0;
+			x1 = this._getColLeft(range.c1) - offsetX;
+			x2 = this._getColLeft(range.c2 + 1) - offsetX;
+			y2 = this.groupHeight;
 
-					if(endPosArr[arrayLines[i][j].end]) {
-						continue;
-					}
-					endPosArr[arrayLines[i][j].end] = 1;
+			ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
+			ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+			ctx.lineHorPrevPx(x1, y2, x2);
+			ctx.stroke();
 
-					var startY = Math.max(arrayLines[i][j].start, range.r1);
-					var endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
-					minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
-					maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
+			groupData = this.arrColGroups ? this.arrColGroups : this.getGroupDataArray(true, range.r1, range.r2);
+			if(!groupData || !groupData.groupArr) {
+				return;
+			}
+			console_time("draw");
+			arrayLines = groupData.groupArr;
+			rowLevelMap = groupData.levelMap;
 
-					var diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
-					var startPos = this._getRowTop(startY) + diff - offsetY;
-					var endPos = this._getRowTop(endY) - offsetY;
-					var heightNextRow = this._getRowHeight(endY);
-					var paddingTop = (heightNextRow - buttonSize) / 2;
-					if(paddingTop < 0) {
-						paddingTop = 0;
-					}
+			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
-					//button
-					if(endY === arrayLines[i][j].end + 1) {
-						//TODO ms обрезает кнопки сверху/снизу
-						if(heightNextRow && endY >= startY) {
-							if(!tempButtonMap[i]) {
-								tempButtonMap[i] = [];
+			var minCol;
+			var maxCol;
+			for(i = 0; i < arrayLines.length; i++) {
+				if(arrayLines[i]) {
+					index = bFirstLine ? 1 : i;
+					var posY = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
+
+					for(j = 0; j < arrayLines[i].length; j++) {
+
+						if(endPosArr[arrayLines[i][j].end]) {
+							continue;
+						}
+						endPosArr[arrayLines[i][j].end] = 1;
+
+						var startX = Math.max(arrayLines[i][j].start, range.c1);
+						var endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
+						minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
+						maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
+
+						diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
+						startPos = this._getColLeft(startX) + diff - offsetX ;
+						endPos = this._getColLeft(endX) - offsetX;
+						var widthNextRow = /*this.getColWidth(endX)*/this._getColLeft(endX + 1) - this._getColLeft(endX);
+						paddingTop = (widthNextRow - buttonSize) / 2;
+						if(paddingTop < 0) {
+							paddingTop = 0;
+						}
+
+						//button
+						if(endX === arrayLines[i][j].end + 1) {
+							//TODO ms обрезает кнопки сверху/снизу
+							if(widthNextRow && endX >= startX) {
+								if(!tempButtonMap[i]) {
+									tempButtonMap[i] = [];
+								}
+								tempButtonMap[i][endX] = 1;
+								buttons.push({r: endX, level: i});
 							}
-							tempButtonMap[i][endY] = 1;
-							buttons.push({r: endY, level: i});
+						}
+
+						if(startPos >= endPos) {
+							continue;
+						}
+
+						var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+						if(!collasedEndRow) {
+							ctx.lineHorPrevPx(startPos, posY, endPos + paddingTop);
+						}
+
+						// _
+						//|
+						if(!collasedEndRow && startX === arrayLines[i][j].start) {
+							ctx.lineVerPrevPx(startPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
 						}
 					}
-
-					if(startPos >= endPos) {
-						continue;
-					}
-
-					var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
-					if(!collasedEndRow) {
-						ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
-					}
-
-					// _
-					//|
-					if(!collasedEndRow && startY === arrayLines[i][j].start) {
-						ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, startPos, posX + 4*padding);
-					}
+					bFirstLine = false;
 				}
-				bFirstLine = false;
 			}
+
+			//TODO не рисовать точки на местах линий и кнопок
+			for(l = minCol; l < maxCol; l++) {
+				if(!rowLevelMap[l]) {
+					continue;
+				}
+
+				pointLevel = rowLevelMap[l].level;
+				var colWidth = /*this.getColWidth(endX)*/this._getColLeft(l + 1) - this._getColLeft(l);
+				if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || colWidth === 0) {
+					continue;
+				}
+				ctx.lineVerPrevPx(this._getColLeft(l) - offsetX + colWidth / 2, 7 * padding + pointLevel * buttonSize, 7 * padding + (pointLevel) * buttonSize + 2 * padding);
+				//ctx.lineHorPrevPx(7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + colWidth / 2, 7 + (pointLevel) * buttonSize + 2);
+			}
+
+			ctx.stroke();
+			ctx.closePath();
+
+		} else {
+			x1 = 0;
+			y1 = this._getRowTop(range.r1) - offsetY;
+			x2 = this.groupWidth;
+			y2 = this._getRowTop(range.r2 + 1) - offsetY;
+
+			ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
+			ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+			ctx.lineVerPrevPx(x2, y1, y2);
+			ctx.stroke();
+
+			groupData = this.arrRowGroups ? this.arrRowGroups : this.getGroupDataArray(null, range.r1, range.r2);
+			if(!groupData || !groupData.groupArr) {
+				return;
+			}
+			console_time("draw");
+			arrayLines = groupData.groupArr;
+			rowLevelMap = groupData.levelMap;
+
+			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
+
+			var minRow;
+			var maxRow;
+			for(i = 0; i < arrayLines.length; i++) {
+				if(arrayLines[i]) {
+					index = bFirstLine ? 1 : i;
+					var posX = padding * 2 + buttonSize / 2 - padding + (index - 1) * buttonSize;
+
+					for(j = 0; j < arrayLines[i].length; j++) {
+
+						if(endPosArr[arrayLines[i][j].end]) {
+							continue;
+						}
+						endPosArr[arrayLines[i][j].end] = 1;
+
+						var startY = Math.max(arrayLines[i][j].start, range.r1);
+						var endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
+						minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
+						maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
+
+						diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
+						startPos = this._getRowTop(startY) + diff - offsetY;
+						endPos = this._getRowTop(endY) - offsetY;
+						var heightNextRow = this._getRowHeight(endY);
+						paddingTop = (heightNextRow - buttonSize) / 2;
+						if(paddingTop < 0) {
+							paddingTop = 0;
+						}
+
+						//button
+						if(endY === arrayLines[i][j].end + 1) {
+							//TODO ms обрезает кнопки сверху/снизу
+							if(heightNextRow && endY >= startY) {
+								if(!tempButtonMap[i]) {
+									tempButtonMap[i] = [];
+								}
+								tempButtonMap[i][endY] = 1;
+								buttons.push({r: endY, level: i});
+							}
+						}
+
+						if(startPos >= endPos) {
+							continue;
+						}
+
+						var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+						if(!collasedEndCol) {
+							ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
+						}
+
+						// _
+						//|
+						if(!collasedEndCol && startY === arrayLines[i][j].start) {
+							ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, startPos, posX + 4*padding);
+						}
+					}
+					bFirstLine = false;
+				}
+			}
+
+			//TODO не рисовать точки на местах линий и кнопок
+			for(l = minRow; l < maxRow; l++) {
+				if(!rowLevelMap[l]) {
+					continue;
+				}
+
+				pointLevel = rowLevelMap[l].level;
+				var rowHeight = this._getRowHeight(l);
+				if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || rowHeight === 0) {
+					continue;
+				}
+				ctx.lineHorPrevPx(padding * 7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + rowHeight / 2, padding * 7 + (pointLevel) * buttonSize + padding * 2);
+			}
+
+			ctx.stroke();
+			ctx.closePath();
 		}
 
-		//TODO не рисовать точки на местах линий и кнопок
-		for(var l = minRow; l < maxRow; l++) {
-			if(!rowLevelMap[l]) {
-				continue;
-			}
 
-			var pointLevel = rowLevelMap[l].level;
-			var rowHeight = this._getRowHeight(l);
-			if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || rowHeight === 0) {
-				continue;
-			}
-			ctx.lineHorPrevPx(padding * 7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + rowHeight / 2, padding * 7 + (pointLevel) * buttonSize + padding * 2);
-		}
-
-		ctx.stroke();
-		ctx.closePath();
-
-
-		this._drawGroupDataButtons(drawingCtx, buttons, leftFieldInPx, topFieldInPx);
+		this._drawGroupDataButtons(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol);
 
 		console_time_end("draw");
 	};
