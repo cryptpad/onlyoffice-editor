@@ -1048,8 +1048,9 @@
             AscFonts.FT_Done_Glyph(pGlyph);
             pGlyph = null;
 
+            var isDisableNeedBold = (this.m_pFace.os2 && (this.m_pFace.os2.version != 0xFFFF) && (this.m_pFace.os2.usWeightClass >= 800)) ? true : false;
             oSizes.fAdvanceX = (pFaceGlyph.linearHoriAdvance * this.m_dUnitsKoef / this.m_lUnits_Per_Em);
-            if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
+            if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts && !isDisableNeedBold)
 				oSizes.fAdvanceX += 1;
 
             oSizes.oBBox.fMinX = (oBBox.xMin >> 6);
@@ -1096,8 +1097,6 @@
 			oSizes.oBitmap.nY = pFaceGlyph.bitmap_top;
 			oSizes.oBitmap.nWidth = pFaceGlyph.bitmap.width;
 			oSizes.oBitmap.nHeight = pFaceGlyph.bitmap.rows;
-
-			var isDisableNeedBold = (this.m_pFace.os2 && (this.m_pFace.os2.version != 0xFFFF) && (this.m_pFace.os2.usWeightClass >= 800)) ? true : false;
 
 			if (this.m_bNeedDoBold && this.m_bAntiAliasing && !isDisableNeedBold)
 			{
