@@ -420,7 +420,7 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_TextImport = function(options, bPaste) {
+  spreadsheet_api.prototype.asc_TextImport = function(options, callback, bPaste) {
       if (this.canEdit()) {
         var text;
         if(bPaste) {
@@ -428,7 +428,7 @@ var editor;
         } else {
 
         }
-        return AscCommon.parseText(text, options);
+        callback(AscCommon.parseText(text, options));
       }
   };
 
