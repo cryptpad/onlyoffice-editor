@@ -3906,7 +3906,7 @@
                 if ( !noCells ) {
                     this._drawGrid( null, tmpRange, offsetX, offsetY );
 					this._drawGroupData(null, tmpRange, offsetX, offsetY);
-					this._drawGroupData(null, tmpRange, offsetX, null, true);
+					this._drawGroupData(null, tmpRange, offsetX, undefined, true);
                     this._drawCellsAndBorders(null, tmpRange, offsetX, offsetY );
                 }
             }
@@ -6287,7 +6287,7 @@
             offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop - diffHeight;
             this._drawColumnHeaders(null, c1, c2);
             this._drawGrid(null, range);
-			this._drawGroupData(null, range, null, null, true);
+			this._drawGroupData(null, range, undefined, undefined, true);
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
             this.objectRender.showDrawingObjectsEx(false,
@@ -15759,8 +15759,8 @@
 		this._drawGroupDataMenu(drawingCtx, bCol);
 
 		var ctx = drawingCtx || this.drawingCtx;
-		var offsetX = (undefined != leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
-		var offsetY = (undefined != topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 		if (!drawingCtx && this.topLeftFrozenCell) {
 			if (undefined === leftFieldInPx) {
 				var cFrozen = this.topLeftFrozenCell.getCol0();
@@ -16134,7 +16134,7 @@
 
 		var offsetX = 0, offsetY = 0;
 		if(bCol) {
-			offsetX = (undefined != leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+			offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
 			if (!drawingCtx && this.topLeftFrozenCell) {
 				if (undefined === leftFieldInPx) {
 					var cFrozen = this.topLeftFrozenCell.getCol0();
@@ -16142,7 +16142,7 @@
 				}
 			}
 		} else {
-			offsetY = (undefined != topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+			offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 			if (!drawingCtx && this.topLeftFrozenCell) {
 				if (undefined === topFieldInPx) {
 					var rFrozen = this.topLeftFrozenCell.getRow0();
