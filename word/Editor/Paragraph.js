@@ -12210,8 +12210,8 @@ Paragraph.prototype.CheckRevisionsChanges = function(RevisionsManager)
         this.Content[CurPos].CheckRevisionsChanges(Checker, ContentPos, 1);
     }
 
-    Checker.Flush_AddRemoveChange();
-    Checker.Flush_TextPrChange();
+    Checker.FlushAddRemoveChange();
+    Checker.FlushTextPrChange();
 
     var ReviewType = this.GetReviewType();
     var ReviewInfo = this.GetReviewInfo();
@@ -12245,6 +12245,17 @@ Paragraph.prototype.CheckRevisionsChanges = function(RevisionsManager)
         Change.put_DateTime(ReviewInfo.GetDateTime());
         RevisionsManager.AddChange(ParaId, Change);
     }
+
+
+    var oEndRun = this.GetParaEndRun();
+    for (var nPos = 0, nCount = oEndRun.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = oEndRun.Content[nPos];
+		if (para_RevisionMove === oItem.GetType())
+		{
+			Checker.AddReviewMoveMark(oItem);
+		}
+	}
 };
 Paragraph.prototype.private_UpdateTrackRevisionOnChangeParaPr = function(bUpdateInfo)
 {
@@ -15447,7 +15458,7 @@ function CParagraphRevisionsChangesChecker(Para, RevisionsManager)
         DateTime : 0
     };
 }
-CParagraphRevisionsChangesChecker.prototype.Flush_AddRemoveChange = function()
+CParagraphRevisionsChangesChecker.prototype.FlushAddRemoveChange = function()
 {
     var AddRemove = this.AddRemove;
     if (reviewtype_Add === AddRemove.ChangeType || reviewtype_Remove === AddRemove.ChangeType)
@@ -15472,7 +15483,7 @@ CParagraphRevisionsChangesChecker.prototype.Flush_AddRemoveChange = function()
     AddRemove.UserName   = "";
     AddRemove.DateTime   = 0;
 };
-CParagraphRevisionsChangesChecker.prototype.Flush_TextPrChange = function()
+CParagraphRevisionsChangesChecker.prototype.FlushTextPrChange = function()
 {
     var TextPr = this.TextPr;
     if (null !== TextPr.Pr)
@@ -15496,6 +15507,19 @@ CParagraphRevisionsChangesChecker.prototype.Flush_TextPrChange = function()
     TextPr.UserName = "";
     TextPr.DateTime = 0;
 
+};
+CParagraphRevisionsChangesChecker.prototype.AddReviewMoveMark = function(oMark)
+{
+	var oInfo = oMark.GetReviewInfo();
+
+	var oChange = new CRevisionsChange();
+	oChange.put_Type(c_oAscRevisionsChangeType.MoveMark);
+	oChange.put_Paragraph(this.Paragraph);
+	oChange.put_Value(oMark);
+	oChange.put_UserId(oInfo.GetUserId());
+	oChange.put_UserName(oInfo.GetUserName());
+	oChange.put_DateTime(oInfo.GetDateTime());
+	this.RevisionsManager.AddChange(this.ParaId, oChange);
 };
 CParagraphRevisionsChangesChecker.prototype.Get_AddRemoveType = function()
 {

@@ -9806,7 +9806,7 @@ ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
         var ReviewType = this.GetReviewType();
         if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId()))
         {
-            Checker.Flush_AddRemoveChange();
+            Checker.FlushAddRemoveChange();
             ContentPos.Update(0, Depth);
 
             if (reviewtype_Add === ReviewType || reviewtype_Remove === ReviewType)
@@ -9859,7 +9859,7 @@ ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
     var DiffPr = this.GetDiffPrChange();
     if (HavePrChange !== Checker.HavePrChange() || true !== Checker.ComparePrChange(DiffPr) || this.Pr.ReviewInfo.GetUserId() !== Checker.Get_PrChangeUserId())
     {
-        Checker.Flush_TextPrChange();
+        Checker.FlushTextPrChange();
         ContentPos.Update(0, Depth);
         if (true === HavePrChange)
         {

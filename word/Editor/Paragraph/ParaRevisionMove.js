@@ -147,6 +147,12 @@ CParaRevisionMove.prototype.IsStart = function()
 {
 	return this.Start;
 };
+CParaRevisionMove.prototype.CheckRevisionsChanges = function(oChecker, oContentPos, nDepth)
+{
+	oChecker.FlushAddRemoveChange();
+	oChecker.FlushTextPrChange();
+	oChecker.AddReviewMoveMark(this);
+};
 CParaRevisionMove.prototype.GetReviewInfo = function()
 {
 	return this.ReviewInfo;
