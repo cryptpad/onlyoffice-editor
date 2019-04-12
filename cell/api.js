@@ -420,13 +420,15 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_TextImport = function(bPaste) {
+  spreadsheet_api.prototype.asc_TextImport = function(options, bPaste) {
       if (this.canEdit()) {
+        var text;
         if(bPaste) {
-			//this.wb.specialPasteData(props);
+          text = "";
         } else {
 
         }
+        return AscCommon.parseText(text, options);
       }
   };
 
