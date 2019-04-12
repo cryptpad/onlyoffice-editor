@@ -1924,7 +1924,7 @@
 		if (!this.range.isOneCell()) {
 			return null;
 		}
-		return new ApiComment(this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex()).cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1));
+		return new ApiComment(this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex()).cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false));
 	};
 	Object.defineProperty(ApiRange.prototype, "Comments", {
 		get: function () {

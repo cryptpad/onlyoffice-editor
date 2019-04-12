@@ -628,6 +628,7 @@
 		};
 
 		asc_CEventsController.prototype._commentCellClick = function (event) {
+			// ToDo delete this function!
 			var t = this;
 			var coord = t._getCoordinates(event);
 			this.handlers.trigger("commentCellClick", coord.x, coord.y);

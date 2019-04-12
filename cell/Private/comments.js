@@ -62,7 +62,7 @@
       oComment.asc_putRow(activeCell.row);
     }
 
-    var existComment = this.getComment(oComment.nCol, oComment.nRow);
+    var existComment = this.getComment(oComment.nCol, oComment.nRow, false);
     if (existComment) {
       oComment = existComment;
       bChange = true;

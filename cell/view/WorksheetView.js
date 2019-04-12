@@ -6856,7 +6856,7 @@
 			}
 
 			// Проверим есть ли комменты
-			var comment = this.cellCommentator.getComment(c.col, r.row);
+			var comment = this.cellCommentator.getComment(c.col, r.row, true);
 			var coords = null;
 			var indexes = null;
 
@@ -7644,7 +7644,7 @@
             cell_info.hyperlink = null;
         }
 
-        cell_info.comment = this.cellCommentator.getComment(ar.c1, ar.r1);
+        cell_info.comment = this.cellCommentator.getComment(ar.c1, ar.r1, false);
 		cell_info.flags.merge = range.isOneCell() ? Asc.c_oAscMergeOptions.Disabled :
 			null !== range.hasMerged() ? Asc.c_oAscMergeOptions.Merge : Asc.c_oAscMergeOptions.None;
 
@@ -7951,12 +7951,12 @@
 
 		var comment;
 		if (isCoord) {
-			comment = this.cellCommentator.getCommentByXY(x, y);
+			comment = this.cellCommentator.getCommentByXY(x, y, true);
 			// move active range to coordinates x,y
 			this._moveActiveCellToXY(x, y);
 			isChangeSelectionShape = this._endSelectionShape();
 		} else {
-			comment = this.cellCommentator.getComment(x, y);
+			comment = this.cellCommentator.getComment(x, y, true);
 			// move active range to offset x,y
 			this._moveActiveCellToOffset(activeCell, x, y);
 			ret = this._calcRangeOffset();

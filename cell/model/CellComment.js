@@ -429,10 +429,10 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 		History.EndTransaction();
 	};
 
-	CCellCommentator.prototype.getCommentByXY = function (x, y) {
+	CCellCommentator.prototype.getCommentByXY = function (x, y, excludeHidden) {
 		var findCol = this.worksheet._findColUnderCursor(x, true);
 		var findRow = this.worksheet._findRowUnderCursor(y, true);
-		return (findCol && findRow) ? this.getComment(findCol.col, findRow.row) : null;
+		return (findCol && findRow) ? this.getComment(findCol.col, findRow.row, excludeHidden) : null;
 	};
 
 	CCellCommentator.prototype.drawCommentCells = function () {
@@ -776,7 +776,7 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		this._showComment(this.findComment(id), bNew);
 	};
 	CCellCommentator.prototype.showCommentByXY = function (x, y) {
-		this._showComment(this.getCommentByXY(x, y), false);
+		this._showComment(this.getCommentByXY(x, y, true), false);
 	};
 
 	CCellCommentator.prototype._showComment = function (comment, bNew) {
@@ -931,14 +931,14 @@ CCellCommentator.prototype.removeComment = function(id, bNoEvent, bNoAscLock, bN
 
 // Extra functions
 
-	CCellCommentator.prototype.getComment = function (col, row) {
+	CCellCommentator.prototype.getComment = function (col, row, excludeHidden) {
 		// Array of root items
 		var comment = null;
 		var _col = col, _row = row, mergedRange = null;
 		var aComments = this.model.aComments;
 		var length = aComments.length;
 
-		if (this.hiddenComments()) {
+		if (excludeHidden && this.hiddenComments()) {
 			return comment;
 		}
 
@@ -963,7 +963,7 @@ CCellCommentator.prototype.removeComment = function(id, bNoEvent, bNoAscLock, bN
 					}
 				}
 				if (comment) {
-					return this._checkHidden(comment) ? null : comment;
+					return (excludeHidden && this._checkHidden(comment)) ? null : comment;
 				}
 			}
 		}
@@ -1175,7 +1175,7 @@ CCellCommentator.prototype.Undo = function(type, data) {
 
 		case AscCH.historyitem_Comment_Coords:
 			if (data.from) {
-				comment = this.getComment(data.from.nCol, data.from.nRow);
+				comment = this.getComment(data.from.nCol, data.from.nRow, false);
 				if (comment) {
 					comment.coords = data.from.clone();
 				}
@@ -1246,7 +1246,7 @@ CCellCommentator.prototype.Redo = function(type, data) {
 
 		case AscCH.historyitem_Comment_Coords:
 			if (data.to) {
-				comment = this.getComment(data.to.nCol, data.to.nRow);
+				comment = this.getComment(data.to.nCol, data.to.nRow, false);
 				if (comment) {
 					comment.coords = data.to.clone();
 				}
