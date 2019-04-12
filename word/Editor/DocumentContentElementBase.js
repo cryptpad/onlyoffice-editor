@@ -716,7 +716,7 @@ CDocumentContentElementBase.prototype.GetDocumentPositionFromObject = function(P
 
 	if (this.Parent)
 	{
-		PosArray.splice(0, 0, {Class : this.Parent, Position : this.GetIndex()});
+		PosArray.splice(0, 0, {Class : this.Parent, Position : this.Get_Index()});
 		this.Parent.GetDocumentPositionFromObject(PosArray);
 	}
 
@@ -724,12 +724,7 @@ CDocumentContentElementBase.prototype.GetDocumentPositionFromObject = function(P
 };
 CDocumentContentElementBase.prototype.Get_Index = function()
 {
-	if (!this.Parent)
-		return -1;
-
-	this.Parent.Update_ContentIndexing();
-
-	return this.Index;
+	return this.GetIndex();
 };
 CDocumentContentElementBase.prototype.GetOutlineParagraphs = function(arrOutline, oPr)
 {
@@ -818,6 +813,11 @@ CDocumentContentElementBase.prototype.GetPagesCount = function()
 };
 CDocumentContentElementBase.prototype.GetIndex = function()
 {
+	if (!this.Parent)
+		return -1;
+
+	this.Parent.Update_ContentIndexing();
+
 	return this.Index;
 };
 CDocumentContentElementBase.prototype.GetPageBounds = function(CurPage)
