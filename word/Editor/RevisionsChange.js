@@ -48,13 +48,15 @@ function CRevisionsChange()
 	this.Y         = 0;
 	this.Value     = "";
 	this.MoveType  = Asc.c_oAscRevisionsMove.NoMove;
+	this.MoveId    = "";
+	this.MoveDown  = false;
 
 	this.UserName  = "";
 	this.UserId    = "";
 	this.DateTime  = "";
 	this.UserColor = new AscCommon.CColor(0, 0, 0, 255);
 
-	this.Paragraph = null;
+	this.Element   = null;
 	this.StartPos  = null;
 	this.EndPos    = null;
 
@@ -62,6 +64,8 @@ function CRevisionsChange()
 	this._Y       = 0;
 	this._PageNum = 0;
 	this._PosChanged = false;
+
+	this.SimpleChanges = [];
 }
 CRevisionsChange.prototype.get_UserId = function(){return this.UserId;};
 CRevisionsChange.prototype.put_UserId = function(UserId)
@@ -89,8 +93,8 @@ CRevisionsChange.prototype.get_Value = function(){return this.Value;};
 CRevisionsChange.prototype.put_Type  = function(Type){this.Type = Type;};
 CRevisionsChange.prototype.put_XY    = function(X, Y){this.X = X; this.Y = Y;};
 CRevisionsChange.prototype.put_Value = function(Value){this.Value = Value;};
-CRevisionsChange.prototype.put_Paragraph = function(Para){this.Paragraph = Para;};
-CRevisionsChange.prototype.get_Paragraph = function(){return this.Paragraph;};
+CRevisionsChange.prototype.put_Paragraph = function(Para){this.Element = Para;};
+CRevisionsChange.prototype.get_Paragraph = function(){return this.Element;};
 CRevisionsChange.prototype.get_LockUserId = function()
 {
 	if (this.Paragraph)
@@ -143,36 +147,114 @@ CRevisionsChange.prototype.private_UpdateUserColor = function()
 {
 	this.UserColor = AscCommon.getUserColorById(this.UserId, this.UserName, true, false);
 };
-CRevisionsChange.prototype.put_MoveType = function(nType)
+CRevisionsChange.prototype.IsMove = function()
 {
-	this.MoveType = nType;
+	return ((c_oAscRevisionsChangeType.TextAdd === this.Type
+		|| c_oAscRevisionsChangeType.TextRem === this.Type
+		|| c_oAscRevisionsChangeType.ParaAdd === this.Type
+		|| c_oAscRevisionsChangeType.ParaRem === this.Type)
+		&& Asc.c_oAscRevisionsMove.NoMove !== this.MoveType);
 };
-CRevisionsChange.prototype.get_MoveType = function()
+CRevisionsChange.prototype.SetType = function(nType)
+{
+	this.Type = nType;
+};
+CRevisionsChange.prototype.GetType = function()
+{
+	return this.Type;
+};
+CRevisionsChange.prototype.SetElement = function(oElement)
+{
+	this.Element = oElement;
+};
+CRevisionsChange.prototype.GetElement = function()
+{
+	return this.Element;
+};
+CRevisionsChange.prototype.SetValue = function(oValue)
+{
+	this.Value = oValue;
+};
+CRevisionsChange.prototype.GetValue = function()
+{
+	return this.Value;
+};
+CRevisionsChange.prototype.SetUserId = function(sUserId)
+{
+	this.UserId = sUserId;
+	this.private_UpdateUserColor();
+};
+CRevisionsChange.prototype.GetUserId = function()
+{
+	return this.UserId;
+};
+CRevisionsChange.prototype.SetUserName = function(sUserName)
+{
+	this.UserName = sUserName;
+	this.private_UpdateUserColor();
+};
+CRevisionsChange.prototype.GetUserName = function()
+{
+	return this.UserName;
+};
+CRevisionsChange.prototype.SetDateTime = function(sDateTime)
+{
+	this.DateTime = sDateTime;
+};
+CRevisionsChange.prototype.GetDateTime = function()
+{
+	return this.DateTime;
+};
+CRevisionsChange.prototype.SetMoveType = function(nMoveType)
+{
+	this.MoveType = nMoveType;
+};
+CRevisionsChange.prototype.GetMoveType = function()
 {
 	return this.MoveType;
 };
-CRevisionsChange.prototype.get_MoveId = function()
+CRevisionsChange.prototype.IsComplexChange = function()
 {
-	return "move2";
+	return this.SimpleChanges.length !== 0;
 };
-CRevisionsChange.prototype.is_MovedDown = function()
+CRevisionsChange.prototype.SetSimpleChanges = function(arrChanges)
 {
-	return true;
+	this.SimpleChanges = arrChanges;
+};
+CRevisionsChange.prototype.GetSimpleChanges = function()
+{
+	return this.SimpleChanges;
+};
+CRevisionsChange.prototype.SetMoveId = function(sMoveId)
+{
+	this.MoveId = sMoveId;
+};
+CRevisionsChange.prototype.GetMoveId = function()
+{
+	return this.MoveId;
+};
+CRevisionsChange.prototype.IsMovedDown = function()
+{
+	return this.MoveDown;
+};
+CRevisionsChange.prototype.SetMovedDown = function(isMovedDown)
+{
+	this.MoveDown = isMovedDown;
 };
 
 //--------------------------------------------------------export--------------------------------------------------------
-CRevisionsChange.prototype['get_UserId'] = CRevisionsChange.prototype.get_UserId;
-CRevisionsChange.prototype['put_UserId'] = CRevisionsChange.prototype.put_UserId;
-CRevisionsChange.prototype['get_UserName'] = CRevisionsChange.prototype.get_UserName;
-CRevisionsChange.prototype['put_UserName'] = CRevisionsChange.prototype.put_UserName;
-CRevisionsChange.prototype['get_DateTime'] = CRevisionsChange.prototype.get_DateTime;
-CRevisionsChange.prototype['put_DateTime'] = CRevisionsChange.prototype.put_DateTime;
+CRevisionsChange.prototype['get_UserId'] = CRevisionsChange.prototype.GetUserId;
+CRevisionsChange.prototype['put_UserId'] = CRevisionsChange.prototype.SetUserId;
+CRevisionsChange.prototype['get_UserName'] = CRevisionsChange.prototype.GetUserName;
+CRevisionsChange.prototype['put_UserName'] = CRevisionsChange.prototype.SetUserName;
+CRevisionsChange.prototype['get_DateTime'] = CRevisionsChange.prototype.GetDateTime;
+CRevisionsChange.prototype['put_DateTime'] = CRevisionsChange.prototype.SetDateTime;
 CRevisionsChange.prototype['get_UserColor'] = CRevisionsChange.prototype.get_UserColor;
 CRevisionsChange.prototype['get_StartPos'] = CRevisionsChange.prototype.get_StartPos;
 CRevisionsChange.prototype['put_StartPos'] = CRevisionsChange.prototype.put_StartPos;
 CRevisionsChange.prototype['get_EndPos'] = CRevisionsChange.prototype.get_EndPos;
 CRevisionsChange.prototype['put_EndPos'] = CRevisionsChange.prototype.put_EndPos;
-CRevisionsChange.prototype['get_Type'] = CRevisionsChange.prototype.get_Type;
+CRevisionsChange.prototype['get_Type'] = CRevisionsChange.prototype.GetType;
 CRevisionsChange.prototype['get_X'] = CRevisionsChange.prototype.get_X;
 CRevisionsChange.prototype['get_Y'] = CRevisionsChange.prototype.get_Y;
 CRevisionsChange.prototype['get_Value'] = CRevisionsChange.prototype.get_Value;
@@ -180,7 +262,7 @@ CRevisionsChange.prototype['put_Type'] = CRevisionsChange.prototype.put_Type;
 CRevisionsChange.prototype['put_XY'] = CRevisionsChange.prototype.put_XY;
 CRevisionsChange.prototype['put_Value'] = CRevisionsChange.prototype.put_Value;
 CRevisionsChange.prototype['get_LockUserId'] = CRevisionsChange.prototype.get_LockUserId;
-CRevisionsChange.prototype['put_MoveType'] = CRevisionsChange.prototype.put_MoveType;
-CRevisionsChange.prototype['get_MoveType'] = CRevisionsChange.prototype.get_MoveType;
-CRevisionsChange.prototype['get_MoveId'] = CRevisionsChange.prototype.get_MoveId;
-CRevisionsChange.prototype['is_MovedDown'] = CRevisionsChange.prototype.is_MovedDown;
+CRevisionsChange.prototype['put_MoveType'] = CRevisionsChange.prototype.SetMoveType;
+CRevisionsChange.prototype['get_MoveType'] = CRevisionsChange.prototype.GetMoveType;
+CRevisionsChange.prototype['get_MoveId'] = CRevisionsChange.prototype.GetMoveId;
+CRevisionsChange.prototype['is_MovedDown'] = CRevisionsChange.prototype.IsMovedDown;

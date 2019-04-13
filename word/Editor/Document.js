@@ -18826,6 +18826,9 @@ CTrackRevisionsManager.prototype.AddVisibleChange = function(oChange)
 	if (oChange && c_oAscRevisionsChangeType.MoveMark === oChange.get_Type())	
 		return;
 
+	if (oChange.IsMove() && !oChange.IsComplexChange())
+		oChange = this.CollectMoveChange(oChange);		
+
     this.VisibleChanges.push(oChange);
 };
 CTrackRevisionsManager.prototype.Get_VisibleChanges = function()
@@ -19267,6 +19270,229 @@ CTrackRevisionsManager.prototype.private_RemoveChangeObject = function(sId)
 			return;
 		}
 	}
+};
+/**
+ * Собираем изменение связанное с переносом
+ * @param {CRevisionsChange} oChange
+ * @returns {CRevisionsChange}
+ */
+CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
+{	
+	var isFrom = c_oAscRevisionsChangeType.TextRem === oChange.GetType() || c_oAscRevisionsChangeType.ParaRem === oChange.GetType();
+
+	//oChange.SetMoveType(Asc.c_oAscRevisionsMove.NoMove);
+
+	var nStartIndex  = -1;
+	var oStartChange = null;
+
+	var oElement = oChange.GetElement();
+	if (!oElement)
+		return oChange;
+
+	var nDeep = 0;
+	var nSearchIndex = -1;
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.ChangesOutline[nIndex] === oElement)
+		{
+			nSearchIndex = nIndex;
+			break;
+		}
+	}
+
+	if (-1 === nSearchIndex)
+		return oChange;
+
+	var isStart = false;
+	
+	for (var nIndex = nSearchIndex; nIndex >= 0; --nIndex)
+	{
+		var arrChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+
+		if (!arrChanges)
+		{
+			isStart = true;
+			continue;
+		}
+
+		for (var nChangeIndex = arrChanges.length - 1; nChangeIndex >= 0; --nChangeIndex)
+		{
+			var oCurChange = arrChanges[nChangeIndex];
+			if (!isStart)
+			{
+				if (oCurChange === oChange)
+					isStart = true;
+			}
+			else
+			{
+				var nCurChangeType = oCurChange.GetType();
+				if (nCurChangeType === c_oAscRevisionsChangeType.MoveMark)
+				{
+					var oMoveMark = oCurChange.GetValue();
+					if ((isFrom && oMoveMark.IsFrom()) || (!isFrom && !oMoveMark.IsFrom()))
+					{
+						if (oMoveMark.IsStart())
+						{
+							if (nDeep > 0)
+							{
+								nDeep--;
+							}
+							else if (nDeep === 0)
+							{
+								nStartIndex  = nIndex;
+								oStartChange = oCurChange;
+								break;									
+							}
+						}
+						else
+						{
+							nDeep++;
+						}
+					}
+				}
+			}
+		}
+
+		if (oStartChange)
+			break;
+
+		isStart = true;
+	}
+
+	if (!oStartChange || -1 === nStartIndex)
+		return oChange;
+
+	var sValue     = "";
+	var arrChanges = [];
+	
+	isStart = false;
+	nDeep   = 0;
+	var isEnd = false;
+	for (var nIndex = nStartIndex, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		var arrChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+		for (var nChangeIndex = 0, nChangesCount = arrChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+		{
+			var oCurChange = arrChanges[nChangeIndex];
+			if (!isStart)
+			{
+				if (oCurChange === oStartChange)
+					isStart = true;
+			}
+			else
+			{
+				var nCurChangeType = oCurChange.GetType();
+				if (isFrom)
+				{
+					if (c_oAscRevisionsChangeType.TextRem === nCurChangeType || c_oAscRevisionsChangeType.ParaRem === nCurChangeType)
+					{
+						if (0 === nDeep)
+						{
+							sValue += oCurChange.GetValue();
+							arrChanges.push(oCurChange);
+						}
+					}
+					else if (c_oAscRevisionsChangeType.MoveMark === nCurChangeType && oCurChange.GetValue().IsFrom())
+					{
+						if (oCurChange.GetValue().IsStart())
+						{
+							nDeep++;
+						}
+						else if (nDeep > 0)
+						{
+							nDeep--;
+						}
+						else
+						{
+							isEnd = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					if (c_oAscRevisionsChangeType.TextAdd === nCurChangeType || c_oAscRevisionsChangeType.ParaAdd === nCurChangeType)
+					{
+						if (0 === nDeep)
+						{
+							sValue += oCurChange.GetValue();
+							arrChanges.push(oCurChange);
+						}
+					}
+					else if (c_oAscRevisionsChangeType.MoveMark === nCurChangeType && !oCurChange.GetValue().IsFrom())
+					{
+						if (oCurChange.GetValue().IsStart())
+						{
+							nDeep++;
+						}
+						else if (nDeep > 0)
+						{
+							nDeep--;
+						}
+						else
+						{
+							isEnd = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (!isStart)
+			return oChange;
+
+		if (isEnd)
+			break;
+	}
+
+	var sMoveId = oStartChange.GetValue().GetMarkId();
+	var isDown  = null;
+
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		var arrChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+		if (!arrChanges)
+			continue;
+
+		for (var nChangeIndex = 0, nChangesCount = arrChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+		{
+			var oCurChange = arrChanges[nChangeIndex];
+			if (c_oAscRevisionsChangeType.MoveMark === oCurChange.GetType())
+			{
+				var oMark = oCurChange.GetValue();
+				if (sMoveId === oMark.GetMarkId())
+				{
+					if (oMark.IsFrom())
+						isDown = true;
+					else
+						isDown = false;
+
+					break;
+				}
+
+			}
+		}
+
+		if (null !== isDown)
+			break;
+	}
+
+	if (!isEnd || null === isDown)
+		return oChange;
+
+	var oMoveChange = new CRevisionsChange();
+	oMoveChange.SetType(isFrom ? c_oAscRevisionsChangeType.TextRem : c_oAscRevisionsChangeType.TextAdd);
+	oMoveChange.SetValue(sValue);
+	oMoveChange.SetElement(oStartChange.GetElement());
+	oMoveChange.SetUserId(oStartChange.GetUserId());
+	oMoveChange.SetUserName(oStartChange.GetUserName());
+	oMoveChange.SetDateTime(oStartChange.GetDateTime());
+	oMoveChange.SetMoveType(isFrom ? Asc.c_oAscRevisionsMove.MoveFrom : Asc.c_oAscRevisionsMove.MoveTo);
+	oMoveChange.SetSimpleChanges(arrChanges);
+	oMoveChange.SetMoveId(sMoveId);
+	oMoveChange.SetMovedDown(isDown);
+	return oMoveChange;
 };
 
 

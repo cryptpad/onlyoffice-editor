@@ -7709,7 +7709,7 @@ background-repeat: no-repeat;\
 			return;
 
 		var sMoveId = oChange.get_MoveId();
-		var isFrom  = oChange.get_MoveType() === Asc.c_oAscRevisionsMove.MoveTo;
+		var isFrom  = oChange.GetMoveType() === Asc.c_oAscRevisionsMove.MoveTo;
 		oLogicDocument.SelectReviewMove(sMoveId, isFrom);
 	};
 

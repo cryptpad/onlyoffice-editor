@@ -15465,15 +15465,15 @@ CParagraphRevisionsChangesChecker.prototype.FlushAddRemoveChange = function()
     if (reviewtype_Add === AddRemove.ChangeType || reviewtype_Remove === AddRemove.ChangeType)
     {
         var Change = new CRevisionsChange();
-        Change.put_Type(reviewtype_Add === AddRemove.ChangeType ? c_oAscRevisionsChangeType.TextAdd : c_oAscRevisionsChangeType.TextRem);
-        Change.put_Paragraph(this.Paragraph);
+        Change.SetType(reviewtype_Add === AddRemove.ChangeType ? c_oAscRevisionsChangeType.TextAdd : c_oAscRevisionsChangeType.TextRem);
+        Change.SetElement(this.Paragraph);
         Change.put_Value(AddRemove.Value);
         Change.put_StartPos(AddRemove.StartPos);
         Change.put_EndPos(AddRemove.EndPos);
-        Change.put_MoveType(AddRemove.MoveType);
-        Change.put_UserId(AddRemove.UserId);
-        Change.put_UserName(AddRemove.UserName);
-        Change.put_DateTime(AddRemove.DateTime);
+        Change.SetMoveType(AddRemove.MoveType);
+        Change.SetUserId(AddRemove.UserId);
+        Change.SetUserName(AddRemove.UserName);
+        Change.SetDateTime(AddRemove.DateTime);
         this.RevisionsManager.AddChange(this.ParaId, Change);
     }
 
