@@ -18822,7 +18822,10 @@ CTrackRevisionsManager.prototype.Clear_VisibleChanges = function()
  * @param oChange
  */
 CTrackRevisionsManager.prototype.AddVisibleChange = function(oChange)
-{
+{	
+	if (oChange && c_oAscRevisionsChangeType.MoveMark === oChange.get_Type())	
+		return;
+
     this.VisibleChanges.push(oChange);
 };
 CTrackRevisionsManager.prototype.Get_VisibleChanges = function()
