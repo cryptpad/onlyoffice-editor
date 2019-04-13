@@ -241,6 +241,47 @@ CRevisionsChange.prototype.SetMovedDown = function(isMovedDown)
 {
 	this.MoveDown = isMovedDown;
 };
+CRevisionsChange.prototype.GetX = function()
+{
+	return this.X;
+};
+CRevisionsChange.prototype.GetY = function()
+{
+	return this.Y;
+};
+CRevisionsChange.prototype.SetXY = function(X, Y)
+{
+	this.X = X; 
+	this.Y = Y;
+};
+CRevisionsChange.prototype.SetInternalPos = function(dX, dY, nPageNum)
+{
+	if (this._PageNum !== nPageNum
+		|| Math.abs(this._X - dX) > 0.001
+		|| Math.abs(this._Y - dY) > 0.001)
+	{
+		this._X = dX;
+		this._Y = dY;
+		this._PageNum = nPageNum;
+		this._PosChanged = true;
+	}
+	else
+	{
+		this._PosChanged = false;
+	}
+};
+CRevisionsChange.prototype.GetInternalPosX = function()
+{
+	return this._X;
+};
+CRevisionsChange.prototype.GetInternalPosY = function()
+{
+	return this._Y;
+};
+CRevisionsChange.prototype.GetInternalPosPageNum = function()
+{
+	return this._PageNum;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 CRevisionsChange.prototype['get_UserId'] = CRevisionsChange.prototype.GetUserId;
@@ -255,11 +296,11 @@ CRevisionsChange.prototype['put_StartPos'] = CRevisionsChange.prototype.put_Star
 CRevisionsChange.prototype['get_EndPos'] = CRevisionsChange.prototype.get_EndPos;
 CRevisionsChange.prototype['put_EndPos'] = CRevisionsChange.prototype.put_EndPos;
 CRevisionsChange.prototype['get_Type'] = CRevisionsChange.prototype.GetType;
-CRevisionsChange.prototype['get_X'] = CRevisionsChange.prototype.get_X;
-CRevisionsChange.prototype['get_Y'] = CRevisionsChange.prototype.get_Y;
+CRevisionsChange.prototype['get_X'] = CRevisionsChange.prototype.GetX;
+CRevisionsChange.prototype['get_Y'] = CRevisionsChange.prototype.GetY;
 CRevisionsChange.prototype['get_Value'] = CRevisionsChange.prototype.get_Value;
 CRevisionsChange.prototype['put_Type'] = CRevisionsChange.prototype.put_Type;
-CRevisionsChange.prototype['put_XY'] = CRevisionsChange.prototype.put_XY;
+CRevisionsChange.prototype['put_XY'] = CRevisionsChange.prototype.SetXY;
 CRevisionsChange.prototype['put_Value'] = CRevisionsChange.prototype.put_Value;
 CRevisionsChange.prototype['get_LockUserId'] = CRevisionsChange.prototype.get_LockUserId;
 CRevisionsChange.prototype['put_MoveType'] = CRevisionsChange.prototype.SetMoveType;

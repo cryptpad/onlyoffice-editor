@@ -19280,8 +19280,6 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 {	
 	var isFrom = c_oAscRevisionsChangeType.TextRem === oChange.GetType() || c_oAscRevisionsChangeType.ParaRem === oChange.GetType();
 
-	//oChange.SetMoveType(Asc.c_oAscRevisionsMove.NoMove);
-
 	var nStartIndex  = -1;
 	var oStartChange = null;
 
@@ -19307,17 +19305,17 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 	
 	for (var nIndex = nSearchIndex; nIndex >= 0; --nIndex)
 	{
-		var arrChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+		var arrCurChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
 
-		if (!arrChanges)
+		if (!arrCurChanges)
 		{
 			isStart = true;
 			continue;
 		}
 
-		for (var nChangeIndex = arrChanges.length - 1; nChangeIndex >= 0; --nChangeIndex)
+		for (var nChangeIndex = arrCurChanges.length - 1; nChangeIndex >= 0; --nChangeIndex)
 		{
-			var oCurChange = arrChanges[nChangeIndex];
+			var oCurChange = arrCurChanges[nChangeIndex];
 			if (!isStart)
 			{
 				if (oCurChange === oChange)
@@ -19370,10 +19368,10 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 	var isEnd = false;
 	for (var nIndex = nStartIndex, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
 	{
-		var arrChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
-		for (var nChangeIndex = 0, nChangesCount = arrChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+		var arrCurChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+		for (var nChangeIndex = 0, nChangesCount = arrCurChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
 		{
-			var oCurChange = arrChanges[nChangeIndex];
+			var oCurChange = arrCurChanges[nChangeIndex];
 			if (!isStart)
 			{
 				if (oCurChange === oStartChange)
@@ -19451,13 +19449,13 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 
 	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
 	{
-		var arrChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
-		if (!arrChanges)
+		var arrCurChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+		if (!arrCurChanges)
 			continue;
 
-		for (var nChangeIndex = 0, nChangesCount = arrChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+		for (var nChangeIndex = 0, nChangesCount = arrCurChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
 		{
-			var oCurChange = arrChanges[nChangeIndex];
+			var oCurChange = arrCurChanges[nChangeIndex];
 			if (c_oAscRevisionsChangeType.MoveMark === oCurChange.GetType())
 			{
 				var oMark = oCurChange.GetValue();
@@ -19492,6 +19490,8 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 	oMoveChange.SetSimpleChanges(arrChanges);
 	oMoveChange.SetMoveId(sMoveId);
 	oMoveChange.SetMovedDown(isDown);
+	oMoveChange.SetXY(oChange.GetX(), oChange.GetY());
+	oMoveChange.SetInternalPos(oChange.GetInternalPosX(), oChange.GetInternalPosY(), oChange.GetInternalPosPageNum());
 	return oMoveChange;
 };
 
