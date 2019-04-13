@@ -1340,7 +1340,7 @@ function initMathRevisions(elem ,props) {
     }
 };
 function setNestedReviewType(elem, type, reviewInfo) {
-	if (elem && elem.SetReviewTypeWithInfo) {
+	if (elem && elem.SetReviewTypeWithInfo && elem.GetReviewType) {
 		if (reviewtype_Common !== elem.GetReviewType()) {
 			elem.GetReviewInfo().SetPrevReviewTypeWithInfoRecursively(type, reviewInfo);
 		} else {
