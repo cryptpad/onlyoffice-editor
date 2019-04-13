@@ -1436,7 +1436,7 @@ function ReadMoveRangeStart(length, bcr, stream, oReadResult, oParStruct, isFrom
 	}
 	return res;
 }
-function ReadMoveRangeEnd(length, bcr, stream, oReadResult, oParStruct, isFrom) {
+function ReadMoveRangeEnd(length, bcr, stream, oReadResult, oParStruct, isFrom, isRun) {
 	var options = {id: null};
 	var res = bcr.Read1(length, function(t, l) {
 		return ReadMoveRangeEndElem(t, l, stream, options);
@@ -1444,7 +1444,14 @@ function ReadMoveRangeEnd(length, bcr, stream, oReadResult, oParStruct, isFrom) 
 	if (options.id) {
 		var moveStart = oReadResult.moveRanges[options.id];
 		if (moveStart) {
-			oParStruct.addToContent(new CParaRevisionMove(false, isFrom, moveStart.GetMarkId()));
+			if (isRun) {
+				if (oParStruct.GetContentLength() > 0) {
+					var run = oParStruct.GetFromContent(oParStruct.GetContentLength() - 1);
+					run.Add_ToContent(run.GetElementsCount(), new CRunRevisionMove(false, isFrom, moveStart.GetMarkId()), false);
+				}
+			} else {
+				oParStruct.addToContent(new CParaRevisionMove(false, isFrom, moveStart.GetMarkId()));
+			}
 		}
 	}
 	return res;
@@ -1457,7 +1464,7 @@ function initMathRevisions(elem ,props) {
     }
 };
 function setNestedReviewType(elem, type, reviewInfo) {
-	if (elem && elem.SetReviewTypeWithInfo) {
+	if (elem && elem.SetReviewTypeWithInfo && elem.GetReviewType) {
 		if (reviewtype_Common !== elem.GetReviewType()) {
 			elem.GetReviewInfo().SetPrevReviewTypeWithInfoRecursively(type, reviewInfo);
 		} else {
@@ -9979,6 +9986,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 	this.nCurCommentsCount = 0;
 	this.oCurComments = {};//вспомогательный массив  для заполнения QuotedText
 	this.curFootnote = curFootnote;
+	this.lastParStruct = null;
+	this.toNextParStruct = [];
     this.Reset = function()
     {
         this.lastPar = null;
@@ -10104,14 +10113,24 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			// res = this.bcr.Read2(length, function(t, l){
 				// return oThis.ReadBackground(t,l, oThis.Document.Background);
 			// });
-		// } else if (c_oSerParType.MoveFromRangeStart === type) {
-		// 	ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-		// } else if (c_oSerParType.MoveFromRangeEnd === type) {
-		// 	ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-		// } else if (c_oSerParType.MoveToRangeStart === type) {
-		// 	ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
-		// } else if (c_oSerParType.MoveToRangeEnd === type) {
-		// 	ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
+		} else if (c_oSerParType.MoveFromRangeStart === type) {
+			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
+			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
+			this.toNextParStruct.push(tmpPar);
+		} else if (c_oSerParType.MoveFromRangeEnd === type) {
+			if (this.lastParStruct) {
+				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
+			}
+		} else if (c_oSerParType.MoveToRangeStart === type) {
+			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
+			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
+			this.toNextParStruct.push(tmpPar);
+		} else if (c_oSerParType.MoveToRangeEnd === type) {
+			if (this.lastParStruct) {
+				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, false, true);
+			}
 		} else if (c_oSerParType.JsaProject === type) {
 			this.Document.DrawingDocument.m_oWordControl.m_oApi.macros.SetData(AscCommon.GetStringUtf8(this.stream, length));
 		} else
@@ -10161,6 +10180,14 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         else if ( c_oSerParType.Content === type )
         {
 			var oParStruct = new OpenParStruct(paragraph, paragraph);
+			if (this.toNextParStruct.length > 0) {
+				for (var i = 0; i < this.toNextParStruct.length; ++i) {
+					for (var j = 0; j < this.toNextParStruct[i].Content.length - 1; ++j) {
+						oParStruct.addElem(this.toNextParStruct[i].Content[j]);
+					}
+				}
+				this.toNextParStruct = [];
+			}
             //для случая гиперссылок на несколько строк в конце параграфа завершаем начатые, а начале - продолжаем незавершенные
             if (this.aFields.length > 0) {
                 for (var i = 0; i < this.aFields.length; ++i) {
@@ -10182,6 +10209,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
             });
             //завершаем гиперссылки
             oParStruct.commitAll();
+            this.lastParStruct = oParStruct;
         }
         else
             res = c_oSerConstants.ReadUnknown;
@@ -10391,9 +10419,9 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		} else if ( c_oSerParType.MoveFromRangeEnd === type) {
 			ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
 		} else if ( c_oSerParType.MoveToRangeStart === type) {
-			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
 		} else if ( c_oSerParType.MoveToRangeEnd === type) {
-			ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
+			ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
 		} else
 		    res = c_oSerConstants.ReadUnknown;
         return res;
@@ -11606,14 +11634,24 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadSdt(t,l, null, 2, table);
 			});
-		// } else if (c_oSerDocTableType.MoveFromRangeStart === type) {
-		// 	ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-		// } else if (c_oSerDocTableType.MoveFromRangeEnd === type) {
-		// 	ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-		// } else if (c_oSerDocTableType.MoveToRangeStart === type) {
-		// 	ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
-		// } else if (c_oSerDocTableType.MoveToRangeEnd === type) {
-		// 	ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
+		} else if (c_oSerDocTableType.MoveFromRangeStart === type) {
+			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
+			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
+			this.toNextParStruct.push(tmpPar);
+		} else if (c_oSerDocTableType.MoveFromRangeEnd === type) {
+			if (this.lastParStruct) {
+				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
+			}
+		} else if (c_oSerDocTableType.MoveToRangeStart === type) {
+			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
+			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
+			this.toNextParStruct.push(tmpPar);
+		} else if (c_oSerDocTableType.MoveToRangeEnd === type) {
+			if (this.lastParStruct) {
+				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
+			}
 		} else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -11655,14 +11693,24 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadSdt(t,l, null, 3, row);
 			});
-		// } else if (c_oSerDocTableType.MoveFromRangeStart === type) {
-		// 	ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-		// } else if (c_oSerDocTableType.MoveFromRangeEnd === type) {
-		// 	ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-		// } else if (c_oSerDocTableType.MoveToRangeStart === type) {
-		// 	ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
-		// } else if (c_oSerDocTableType.MoveToRangeEnd === type) {
-		// 	ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
+		} else if (c_oSerDocTableType.MoveFromRangeStart === type) {
+			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
+			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
+			this.toNextParStruct.push(tmpPar);
+		} else if (c_oSerDocTableType.MoveFromRangeEnd === type) {
+			if (this.lastParStruct) {
+				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
+			}
+		} else if (c_oSerDocTableType.MoveToRangeStart === type) {
+			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
+			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
+			this.toNextParStruct.push(tmpPar);
+		} else if (c_oSerDocTableType.MoveToRangeEnd === type) {
+			if (this.lastParStruct) {
+				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
+			}
 		} else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -12429,13 +12477,13 @@ function Binary_oMathReader(stream, oReadResult, curFootnote)
                 return oThis.ReadMathSSup(t,l,props,oElem,oContent,oSup, oParStruct);
             });
 		} else if (c_oSer_OMathContentType.MoveFromRangeStart === type) {
-			ReadMoveRangeStart(this.bcr, this.stream, this.oReadResult, oParStruct, true);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
 		} else if (c_oSer_OMathContentType.MoveFromRangeEnd === type) {
-			ReadMoveRangeEnd(this.bcr, this.stream, this.oReadResult, oParStruct, true);
+			ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
 		} else if (c_oSer_OMathContentType.MoveToRangeStart === type) {
-			ReadMoveRangeStart(this.bcr, this.stream, this.oReadResult, oParStruct, false);
+			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
 		} else if (c_oSer_OMathContentType.MoveToRangeEnd === type) {
-			ReadMoveRangeEnd(this.bcr, this.stream, this.oReadResult, oParStruct, false);
+			ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
 		} else
             res = c_oSerConstants.ReadUnknown;
 			
