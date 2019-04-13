@@ -18490,7 +18490,9 @@ function CTrackRevisionsManager(LogicDocument)
 {
     this.LogicDocument = LogicDocument;
     this.CheckElements = {}; // Элементы, которые нужно проверить
-    this.Changes       = {}; // Объект с ключом - Id параграфа, в котором лежит массив изменений
+	this.Changes       = {}; // Объект с ключом - Id параграфа, в котором лежит массив изменений
+	
+	this.ChangesOutline = []; // Упорядоченный массив с объектами, в которых есть изменения в рецензировании
 
     this.CurChange     = null; // Текущее изменение
     this.CurElement    = null; // Элемент с текущим изменением
@@ -18526,9 +18528,7 @@ CTrackRevisionsManager.prototype.CheckElement = function(oElement)
  */
 CTrackRevisionsManager.prototype.AddChange = function(sId, oChange)
 {
-    if (undefined === this.Changes[sId])
-        this.Changes[sId] = [];
-
+	this.private_CheckChangeObject(sId);
     this.Changes[sId].push(oChange);
 };
 /**
@@ -19095,7 +19095,7 @@ CTrackRevisionsManager.prototype.private_TrackChangesForSingleElement = function
 		var oElement = g_oTableId.Get_ById(sId);
 		if (oElement && (oElement instanceof Paragraph || oElement instanceof CTable) && oElement.Is_UseInDocument())
 		{
-			delete this.Changes[sId];
+			this.private_RemoveChangeObject(sId);
 			oElement.CheckRevisionsChanges(this);
 			return true;
 		}
@@ -19176,6 +19176,97 @@ CTrackRevisionsManager.prototype.UnregisterMoveMark = function(oMark)
 	delete this.MoveMarks[sMarkId];
 
 	// TODO: Возможно тут нужно проделать дополнительные действия
+};
+CTrackRevisionsManager.prototype.private_CheckChangeObject = function(sId)
+{
+	var oElement = AscCommon.g_oTableId.Get_ById(sId);
+	if (!oElement)
+		return;
+
+	if (!this.Changes[sId])
+		this.Changes[sId] = [];
+
+	var nDeletePosition = -1;
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.ChangesOutline[nIndex].GetId() === sId)
+		{
+			nDeletePosition = nIndex;
+			break;
+		}
+	}
+
+	var oDocPos = oElement.GetDocumentPositionFromObject();
+	if (!oDocPos)
+		return;
+
+	var nAddPosition = -1;
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		var oTempDocPos = this.ChangesOutline[nIndex].GetDocumentPositionFromObject();
+
+		if (this.private_CompareDocumentPositions(oDocPos, oTempDocPos) < 0)
+		{
+			nAddPosition = nIndex;
+			break;		
+		}	
+	}
+
+	if (-1 === nAddPosition)
+		nAddPosition = this.ChangesOutline.length;
+
+	if (nAddPosition === nDeletePosition)
+		return;
+
+	if (-1 !== nDeletePosition)
+	{
+		this.ChangesOutline.splice(nDeletePosition, 1);
+
+		if (nAddPosition > nDeletePosition)
+			nAddPosition--;
+	}
+
+	this.ChangesOutline.splice(nAddPosition, 0, oElement);
+};
+CTrackRevisionsManager.prototype.private_CompareDocumentPositions = function(oDocPos1, oDocPos2)
+{
+	if (oDocPos1.Class !== oDocPos2.Class)
+	{
+		// TODO: Здесь нужно доработать сравнение позиций, когда они из разных частей документа
+		if (oDocPos1.Class instanceof CDocument)
+			return -1;
+		else if (oDocPos1.Class instanceof CDocument)
+			return 1;
+		else
+			return 1;
+	}
+
+	for (var nIndex = 0, nCount = oDocPos1.length; nIndex < nCount; ++nIndex)
+	{
+		if (oDocPos2.length < nIndex)
+			return 1;
+
+		if (oDocPos1[nIndex].Position < oDocPos2[nIndex].Position)
+			return -1;
+		else if (oDocPos1[nIndex].Position > oDocPos2[nIndex].Position)
+			return 1;
+	}
+
+	return 0;
+};
+CTrackRevisionsManager.prototype.private_RemoveChangeObject = function(sId)
+{
+	if (this.Changes[sId])
+		delete this.Changes[sId];
+
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.ChangesOutline[nIndex].GetId() === sId)
+		{
+			this.ChangesOutline.splice(nIndex, 1);
+			return;
+		}
+	}
 };
 
 
