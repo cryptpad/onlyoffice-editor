@@ -11398,6 +11398,8 @@
 				functionModelAction = function () {
 					AscCommonExcel.checkFilteringMode(function () {
 						t.model.setColHidden(true, arn.c1, arn.c2);
+						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
+						t._updateGroups();
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
 						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
@@ -16777,6 +16779,60 @@
 		this._isLockedAll(onChangeWorksheetCallback);
 
 		console_time_end("hideGroupLevel");
+	};
+
+	WorksheetView.prototype.collapseGroup = function () {
+		//multiselect
+		if(t.model.selectionRange.ranges.length > 1) {
+			return;
+		}
+
+		var ar = this.model.selectionRange.getLast().clone();
+		var t = this;
+		var arrayLines = bCol ? t.arrColGroups.groupArr : t.arrRowGroups.groupArr;
+
+		var collapsedArrRow = [];
+		for(var i = 0; i < arrayLines.length; i++) {
+			if(arrayLines[i]) {
+				for(var j = 0; j < arrayLines[i].length; j++) {
+					var outLineGroupRange = Asc.Range(0, arrayLines[i][j].start, gc_nMaxCol, arrayLines[i][j].end + 1);
+					if(outLineGroupRange.intersection(ar)) {
+						collapsedArrRow.push(outLineGroupRange);
+					}
+				}
+
+			}
+		}
+
+		var collapsedArrCol = [];
+		for(i = 0; i < arrayLines.length; i++) {
+			if(arrayLines[i]) {
+				for(j = 0; j < arrayLines[i].length; j++) {
+					outLineGroupRange = Asc.Range(arrayLines[i][j].start, 0, arrayLines[i][j].end + 1, gc_nMaxRow);
+					if(outLineGroupRange.intersection(ar)) {
+						collapsedArrCol.push(outLineGroupRange);
+					}
+				}
+			}
+		}
+
+		var callback = function(isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			for(i = 0; i < collapsedArrRow.length; i++) {
+				//здесь скрываем предпоследнюю строку
+			}
+
+			for(i = 0; i < collapsedArrCol.length; i++) {
+				//здесь скрываем предпоследний столбец
+			}
+		};
+
+		if(collapsedArrRow.length || collapsedArrCol.length) {
+			this._isLockedAll(callback);
+		}
 	};
 
     //------------------------------------------------------------export---------------------------------------------------
