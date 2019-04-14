@@ -1383,6 +1383,29 @@ function WiteMoveRangeEndElem(bs, Id) {
 		bs.memory.WriteLong(Id);
 	});
 }
+function WiteMoveRange(bs, saveParams, elem) {
+	var recordType;
+	var moveRangeNameToId;
+	if (elem.IsFrom()) {
+		moveRangeNameToId = saveParams.moveRangeFromNameToId;
+		recordType = elem.IsStart() ? c_oSerParType.MoveFromRangeStart : c_oSerParType.MoveFromRangeEnd;
+	} else {
+		moveRangeNameToId = saveParams.moveRangeToNameToId;
+		recordType = elem.IsStart() ? c_oSerParType.MoveToRangeStart : c_oSerParType.MoveToRangeEnd;
+	}
+	var revisionId = moveRangeNameToId[elem.GetMarkId()];
+	if (undefined === revisionId) {
+		revisionId = saveParams.trackRevisionId++;
+		moveRangeNameToId[elem.GetMarkId()] = revisionId;
+	}
+	bs.WriteItem(recordType, function() {
+		if(elem.IsStart()){
+			WiteMoveRangeStartElem(bs, revisionId, elem);
+		} else {
+			WiteMoveRangeEndElem(bs, revisionId);
+		}
+	});
+}
 
 function ReadMoveRangeStartElem(type, length, stream, reviewInfo, options) {
 	var res = c_oSerConstants.ReadOk;
@@ -2834,9 +2857,11 @@ function Binary_rPrWriter(memory, saveParams)
 			} else if (reviewtype_Add === ReviewType) {
 				recordType = EndRun.ReviewInfo.IsMovedTo() ? c_oSerProp_rPrType.MoveTo : c_oSerProp_rPrType.Ins;
 			}
-			this.memory.WriteByte(recordType);
-			this.memory.WriteByte(c_oSerPropLenType.Variable);
-			this.bs.WriteItemWithLength(function(){WriteTrackRevision(_this.bs, _this.saveParams.trackRevisionId++, EndRun.ReviewInfo);});
+			if (recordType) {
+				this.memory.WriteByte(recordType);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.bs.WriteItemWithLength(function() {WriteTrackRevision(_this.bs, _this.saveParams.trackRevisionId++, EndRun.ReviewInfo);});
+			}
         }
     };
 };
@@ -4678,6 +4703,8 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
             {
                 this.memory.WriteByte(c_oSerParType.Par);
                 this.bs.WriteItemWithLength(function(){oThis.WriteParapraph(item);});
+
+                this.WriteRunRevisionMove(item);
             }
             else if(type_Table === item.GetType())
             {
@@ -4705,6 +4732,21 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			}
 		}
     };
+	this.WriteRunRevisionMove = function(par) {
+		var oThis = this;
+		if (par.Content && par.Content.length > 0) {
+			var lastRun = par.Content[par.Content.length - 1];
+			if (para_Run === lastRun.Type) {
+				//first elem is ParaEnd
+				for (var i = 1; i < lastRun.Content.length; ++i) {
+					var runRevision = lastRun.Content[i];
+					if (para_RevisionMove === runRevision.Type) {
+						WiteMoveRange(oThis.bs, oThis.saveParams, runRevision);
+					}
+				}
+			}
+		}
+	};
 	this.WriteBackground = function(oBackground) {
 		var oThis = this;
 		var color = null;
@@ -4941,24 +4983,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 					});
 					break;
 				case para_RevisionMove:
-					var recordType;
-					var rangeId;
-					if (item.IsStart()) {
-						recordType = item.IsFrom() ? c_oSerParType.MoveFromRangeStart : c_oSerParType.MoveToRangeStart;
-						rangeId = oThis.saveParams.trackRevisionId++;
-						this.bs.WriteItem(recordType, function() {
-							WiteMoveRangeStartElem(oThis.bs, rangeId, item);
-						});
-						oThis.saveParams.moveRangeStart[item.GetMarkId()] = rangeId;
-					} else {
-						rangeId = oThis.saveParams.moveRangeStart[item.GetMarkId()];
-						if (undefined !== rangeId) {
-							recordType = item.IsFrom() ? c_oSerParType.MoveFromRangeEnd : c_oSerParType.MoveToRangeEnd;
-							this.bs.WriteItem(recordType, function() {
-								WiteMoveRangeEndElem(oThis.bs, rangeId);
-							});
-						}
-					}
+					WiteMoveRange(this.bs, this.saveParams, item);
 					break;
             }
         }
@@ -10114,19 +10139,15 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 				// return oThis.ReadBackground(t,l, oThis.Document.Background);
 			// });
 		} else if (c_oSerParType.MoveFromRangeStart === type) {
-			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
-			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
-			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-			this.toNextParStruct.push(tmpPar);
+			this.toNextParStruct.push(this.stream.GetCurPos(), length, true);
+			res = c_oSerConstants.ReadUnknown;
 		} else if (c_oSerParType.MoveFromRangeEnd === type) {
 			if (this.lastParStruct) {
 				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
 			}
 		} else if (c_oSerParType.MoveToRangeStart === type) {
-			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
-			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
-			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
-			this.toNextParStruct.push(tmpPar);
+			this.toNextParStruct.push(this.stream.GetCurPos(), length, false);
+			res = c_oSerConstants.ReadUnknown;
 		} else if (c_oSerParType.MoveToRangeEnd === type) {
 			if (this.lastParStruct) {
 				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, false, true);
@@ -10181,11 +10202,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
         {
 			var oParStruct = new OpenParStruct(paragraph, paragraph);
 			if (this.toNextParStruct.length > 0) {
-				for (var i = 0; i < this.toNextParStruct.length; ++i) {
-					for (var j = 0; j < this.toNextParStruct[i].Content.length - 1; ++j) {
-						oParStruct.addElem(this.toNextParStruct[i].Content[j]);
-					}
+				var oldPos = this.stream.GetCurPos();
+				for (var i = 0; i < this.toNextParStruct.length; i+=3) {
+					this.stream.Seek2(this.toNextParStruct[i]);
+					ReadMoveRangeStart(this.toNextParStruct[i + 1], this.bcr, this.stream, this.oReadResult, oParStruct, this.toNextParStruct[i + 2]);
 				}
+				this.stream.Seek2(oldPos);
 				this.toNextParStruct = [];
 			}
             //для случая гиперссылок на несколько строк в конце параграфа завершаем начатые, а начале - продолжаем незавершенные
@@ -11635,19 +11657,15 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 				return oThis.ReadSdt(t,l, null, 2, table);
 			});
 		} else if (c_oSerDocTableType.MoveFromRangeStart === type) {
-			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
-			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
-			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-			this.toNextParStruct.push(tmpPar);
+			this.toNextParStruct.push(this.stream.GetCurPos(), length, true);
+			res = c_oSerConstants.ReadUnknown;
 		} else if (c_oSerDocTableType.MoveFromRangeEnd === type) {
 			if (this.lastParStruct) {
 				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
 			}
 		} else if (c_oSerDocTableType.MoveToRangeStart === type) {
-			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
-			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
-			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
-			this.toNextParStruct.push(tmpPar);
+			this.toNextParStruct.push(this.stream.GetCurPos(), length, false);
+			res = c_oSerConstants.ReadUnknown;
 		} else if (c_oSerDocTableType.MoveToRangeEnd === type) {
 			if (this.lastParStruct) {
 				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
@@ -11694,19 +11712,15 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 				return oThis.ReadSdt(t,l, null, 3, row);
 			});
 		} else if (c_oSerDocTableType.MoveFromRangeStart === type) {
-			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
-			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
-			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
-			this.toNextParStruct.push(tmpPar);
+			this.toNextParStruct.push(this.stream.GetCurPos(), length, true);
+			res = c_oSerConstants.ReadUnknown;
 		} else if (c_oSerDocTableType.MoveFromRangeEnd === type) {
 			if (this.lastParStruct) {
 				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
 			}
 		} else if (c_oSerDocTableType.MoveToRangeStart === type) {
-			var tmpPar = new Paragraph(this.Document.DrawingDocument, this.Document);
-			var oParStruct = new OpenParStruct(tmpPar, tmpPar);
-			ReadMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, false);
-			this.toNextParStruct.push(tmpPar);
+			this.toNextParStruct.push(this.stream.GetCurPos(), length, false);
+			res = c_oSerConstants.ReadUnknown;
 		} else if (c_oSerDocTableType.MoveToRangeEnd === type) {
 			if (this.lastParStruct) {
 				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
@@ -11734,6 +11748,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			oCellContentReader.aFields = this.aFields;
 			oCellContentReader.nCurCommentsCount = this.nCurCommentsCount;
 			oCellContentReader.oCurComments = this.oCurComments;
+			oCellContentReader.toNextParStruct = this.toNextParStruct;
+			oCellContentReader.lastParStruct = this.lastParStruct;
 			oCellContentReader.Read(length, oCellContent);
 			this.nCurCommentsCount = oCellContentReader.nCurCommentsCount;
 			if(oCellContent.length > 0)
@@ -11747,6 +11763,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 				}
 				cell.Content.Internal_Content_Remove(0, 1);
 			}
+			this.toNextParStruct = oCellContentReader.toNextParStruct;
+			this.lastParStruct = oCellContentReader.lastParStruct;
 			//если 0 == oCellContent.length в ячейке остается параграф который был там при создании.
         }
         else
@@ -11782,6 +11800,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 				oSdtContentReader.aFields = this.aFields;
 				oSdtContentReader.nCurCommentsCount = this.nCurCommentsCount;
 				oSdtContentReader.oCurComments = this.oCurComments;
+				oSdtContentReader.toNextParStruct = this.toNextParStruct;
+				oSdtContentReader.lastParStruct = this.lastParStruct;
 				oSdtContentReader.Read(length, oSdtContent);
 				this.nCurCommentsCount = oSdtContentReader.nCurCommentsCount;
 				if (oSdtContent.length > 0) {
@@ -11794,6 +11814,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 					}
 					oSdt.Content.Internal_Content_Remove(0, 1);
 				}
+				this.toNextParStruct = oSdtContentReader.toNextParStruct;
+				this.lastParStruct = oSdtContentReader.lastParStruct;
 			} else if (1 === typeContainer) {
 				res = this.bcr.Read1(length, function(t, l) {
 					return oThis.ReadParagraphContent(t, l, container);
@@ -15715,7 +15737,8 @@ function DocSaveParams(bMailMergeDocx, bMailMergeHtml) {
 	this.footnotes = {};
 	this.footnotesIndex = 0;
 	this.docPrId = 1;
-	this.moveRangeStart = {};
+	this.moveRangeFromNameToId = {};
+	this.moveRangeToNameToId = {};
 };
 function DocReadResult(doc) {
 	this.logicDocument = doc;
