@@ -159,6 +159,7 @@
 			"../word/Editor/Paragraph/ParaDrawingChanges.js",
 			"../word/Editor/Paragraph/ComplexFieldInstruction.js",
 			"../word/Editor/Paragraph/ComplexField.js",
+			"../word/Editor/Paragraph/ParaRevisionMove.js",
 			"../word/Editor/Hyperlink.js",
 			"../word/Editor/HyperlinkChanges.js",
 			"../word/Editor/Field.js",
