@@ -12253,7 +12253,7 @@ Paragraph.prototype.CheckRevisionsChanges = function(RevisionsManager)
 		var oItem = oEndRun.Content[nPos];
 		if (para_RevisionMove === oItem.GetType())
 		{
-			Checker.AddReviewMoveMark(oItem);
+			Checker.AddReviewMoveMark(oItem, this.Get_EndPos(true));
 		}
 	}
 };
@@ -12336,12 +12336,24 @@ Paragraph.prototype.AcceptRevisionChanges = function(Type, bAll)
                 this.Content[this.Content.length - 1].AcceptPrChange();
         }
 
-        // Начинаем с конца, потому что при выполнении данной фунцкции, количество элементов может изменяться
+        // Начинаем с конца, потому что при выполнении данной функции, количество элементов может изменяться
         for (var CurPos = EndPos; CurPos >= StartPos; CurPos--)
         {
-            if (this.Content[CurPos].AcceptRevisionChanges)
-                this.Content[CurPos].AcceptRevisionChanges(Type, bAll);
-        }
+			if (para_RevisionMove === this.Content[CurPos].Type && c_oAscRevisionsChangeType.MoveMark === Type)
+			{
+				this.RemoveFromContent(CurPos, 1);
+			}
+			else if (this.Content[CurPos].AcceptRevisionChanges)
+			{
+				this.Content[CurPos].AcceptRevisionChanges(Type, bAll);
+			}
+		}
+		
+		if (c_oAscRevisionsChangeType.MoveMark === Type && this.IsSelectionToEnd())
+		{
+			var oParaEndRun = this.GetParaEndRun();
+			oParaEndRun.ClearReviewMoveMarks();
+		}
 
         this.Correct_Content();
         this.Correct_ContentPos(false);
@@ -12377,9 +12389,21 @@ Paragraph.prototype.RejectRevisionChanges = function(Type, bAll)
         // Начинаем с конца, потому что при выполнении данной фунцкции, количество элементов может изменяться
         for (var CurPos = EndPos; CurPos >= StartPos; CurPos--)
         {
-            if (this.Content[CurPos].RejectRevisionChanges)
-                this.Content[CurPos].RejectRevisionChanges(Type, bAll);
-        }
+			if (para_RevisionMove === this.Content[CurPos].Type && c_oAscRevisionsChangeType.MoveMark === Type)
+			{
+				this.RemoveFromContent(CurPos, 1);
+			}
+			else if (this.Content[CurPos].RejectRevisionChanges)
+			{
+				this.Content[CurPos].RejectRevisionChanges(Type, bAll);
+			}
+		}
+		
+		if (c_oAscRevisionsChangeType.MoveMark === Type && this.IsSelectionToEnd())
+		{
+			var oParaEndRun = this.GetParaEndRun();
+			oParaEndRun.ClearReviewMoveMarks();
+		}
 
         this.Correct_Content();
         this.Correct_ContentPos(false);
@@ -15510,17 +15534,19 @@ CParagraphRevisionsChangesChecker.prototype.FlushTextPrChange = function()
     TextPr.DateTime = 0;
 
 };
-CParagraphRevisionsChangesChecker.prototype.AddReviewMoveMark = function(oMark)
+CParagraphRevisionsChangesChecker.prototype.AddReviewMoveMark = function(oMark, oParaContentPos)
 {
 	var oInfo = oMark.GetReviewInfo();
 
 	var oChange = new CRevisionsChange();
-	oChange.put_Type(c_oAscRevisionsChangeType.MoveMark);
-	oChange.put_Paragraph(this.Paragraph);
-	oChange.put_Value(oMark);
-	oChange.put_UserId(oInfo.GetUserId());
-	oChange.put_UserName(oInfo.GetUserName());
-	oChange.put_DateTime(oInfo.GetDateTime());
+	oChange.SetType(c_oAscRevisionsChangeType.MoveMark);
+	oChange.SetElement(this.Paragraph);
+	oChange.put_StartPos(oParaContentPos);
+	oChange.put_EndPos(oParaContentPos);
+	oChange.SetValue(oMark);
+	oChange.SetUserId(oInfo.GetUserId());
+	oChange.SetUserName(oInfo.GetUserName());
+	oChange.SetDateTime(oInfo.GetDateTime());
 	this.RevisionsManager.AddChange(this.ParaId, oChange);
 };
 CParagraphRevisionsChangesChecker.prototype.GetAddRemoveType = function()

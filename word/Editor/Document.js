@@ -18949,9 +18949,22 @@ CTrackRevisionsManager.prototype.Get_AllChangesLogicDocuments = function()
 };
 CTrackRevisionsManager.prototype.GetChangeRelatedParagraphs = function(oChange, bAccept)
 {
-    var RelatedParas = {};
-    this.private_GetChangeRelatedParagraphs(oChange, bAccept, RelatedParas);
-    return this.private_ConvertParagraphsObjectToArray(RelatedParas);
+	var oRelatedParas = {};
+	
+	if (oChange.IsComplexChange())
+	{
+		var arrSimpleChanges = oChange.GetSimpleChanges();
+		for (var nIndex = 0, nCount = arrSimpleChanges.length; nIndex < nCount; ++nIndex)
+		{
+			this.private_GetChangeRelatedParagraphs(arrSimpleChanges[nIndex], bAccept, oRelatedParas);
+		}
+	}
+	else
+	{
+		this.private_GetChangeRelatedParagraphs(oChange, bAccept, oRelatedParas);
+	}
+	
+    return this.private_ConvertParagraphsObjectToArray(oRelatedParas);
 };
 CTrackRevisionsManager.prototype.private_GetChangeRelatedParagraphs = function(Change, bAccept, RelatedParas)
 {

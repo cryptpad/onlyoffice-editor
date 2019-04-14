@@ -8586,6 +8586,19 @@ ParaRun.prototype.AddAfterParaEnd = function(oElement)
 	this.State.ContentPos = this.Content.length;
 	this.AddToContent(this.State.ContentPos, oElement);
 };
+/**
+ * Специальная функция очищающая метки переноса во время рецензирования
+ */
+ParaRun.prototype.RemoveReviewMoveMarks = function()
+{
+    for (var nPos = this.Content.length - 1; nPos >= 0; --nPos)
+    {
+        if (para_RevisionMove === this.Content[nPos].Type)
+        {
+            this.RemoveFromContent(nPos, 1);
+        }
+    }
+};
 
 ParaRun.prototype.private_RecalcCtrPrp = function()
 {

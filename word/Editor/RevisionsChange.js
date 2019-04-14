@@ -152,7 +152,8 @@ CRevisionsChange.prototype.IsMove = function()
 	return ((c_oAscRevisionsChangeType.TextAdd === this.Type
 		|| c_oAscRevisionsChangeType.TextRem === this.Type
 		|| c_oAscRevisionsChangeType.ParaAdd === this.Type
-		|| c_oAscRevisionsChangeType.ParaRem === this.Type)
+		|| c_oAscRevisionsChangeType.ParaRem === this.Type
+		|| c_oAscRevisionsChangeType.MoveMark === this.Type)
 		&& Asc.c_oAscRevisionsMove.NoMove !== this.MoveType);
 };
 CRevisionsChange.prototype.SetType = function(nType)
@@ -282,6 +283,22 @@ CRevisionsChange.prototype.GetInternalPosPageNum = function()
 {
 	return this._PageNum;
 };
+CRevisionsChange.prototype.GetStartPos = function()
+{
+	return this.StartPos
+};
+CRevisionsChange.prototype.SetStartPos = function(oStartPos)
+{
+	this.StartPos = oStartPos;
+};
+CRevisionsChange.prototype.GetEndPos = function()
+{
+	return this.EndPos
+};
+CRevisionsChange.prototype.SetEndPos = function(oEndPos)
+{
+	this.EndPos = oEndPos;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 CRevisionsChange.prototype['get_UserId'] = CRevisionsChange.prototype.GetUserId;
@@ -291,17 +308,17 @@ CRevisionsChange.prototype['put_UserName'] = CRevisionsChange.prototype.SetUserN
 CRevisionsChange.prototype['get_DateTime'] = CRevisionsChange.prototype.GetDateTime;
 CRevisionsChange.prototype['put_DateTime'] = CRevisionsChange.prototype.SetDateTime;
 CRevisionsChange.prototype['get_UserColor'] = CRevisionsChange.prototype.get_UserColor;
-CRevisionsChange.prototype['get_StartPos'] = CRevisionsChange.prototype.get_StartPos;
-CRevisionsChange.prototype['put_StartPos'] = CRevisionsChange.prototype.put_StartPos;
-CRevisionsChange.prototype['get_EndPos'] = CRevisionsChange.prototype.get_EndPos;
-CRevisionsChange.prototype['put_EndPos'] = CRevisionsChange.prototype.put_EndPos;
+CRevisionsChange.prototype['get_StartPos'] = CRevisionsChange.prototype.GetStartPos;
+CRevisionsChange.prototype['put_StartPos'] = CRevisionsChange.prototype.SetStartPos;
+CRevisionsChange.prototype['get_EndPos'] = CRevisionsChange.prototype.GetEndPos;
+CRevisionsChange.prototype['put_EndPos'] = CRevisionsChange.prototype.SetEndPos;
 CRevisionsChange.prototype['get_Type'] = CRevisionsChange.prototype.GetType;
 CRevisionsChange.prototype['get_X'] = CRevisionsChange.prototype.GetX;
 CRevisionsChange.prototype['get_Y'] = CRevisionsChange.prototype.GetY;
-CRevisionsChange.prototype['get_Value'] = CRevisionsChange.prototype.get_Value;
-CRevisionsChange.prototype['put_Type'] = CRevisionsChange.prototype.put_Type;
+CRevisionsChange.prototype['get_Value'] = CRevisionsChange.prototype.GetValue;
+CRevisionsChange.prototype['put_Type'] = CRevisionsChange.prototype.SetType;
 CRevisionsChange.prototype['put_XY'] = CRevisionsChange.prototype.SetXY;
-CRevisionsChange.prototype['put_Value'] = CRevisionsChange.prototype.put_Value;
+CRevisionsChange.prototype['put_Value'] = CRevisionsChange.prototype.SetValue;
 CRevisionsChange.prototype['get_LockUserId'] = CRevisionsChange.prototype.get_LockUserId;
 CRevisionsChange.prototype['put_MoveType'] = CRevisionsChange.prototype.SetMoveType;
 CRevisionsChange.prototype['get_MoveType'] = CRevisionsChange.prototype.GetMoveType;

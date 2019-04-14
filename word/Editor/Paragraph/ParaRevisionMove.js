@@ -151,7 +151,7 @@ CParaRevisionMove.prototype.CheckRevisionsChanges = function(oChecker, oContentP
 {
 	oChecker.FlushAddRemoveChange();
 	oChecker.FlushTextPrChange();
-	oChecker.AddReviewMoveMark(this);
+	oChecker.AddReviewMoveMark(this, oContentPos.Copy());
 };
 CParaRevisionMove.prototype.GetReviewInfo = function()
 {
