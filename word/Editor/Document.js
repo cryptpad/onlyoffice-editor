@@ -18004,10 +18004,10 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
 };
 /**
  * Выделяем перемещенный или удаленный после перемещения текст
- * @param sMoveName {string} идентификатор переноса
+ * @param sMoveId {string} идентификатор переноса
  * @param isFrom {boolean} true - выделяем удаленный текст, false - выделяем перемещенный текст
  */
-CDocument.prototype.SelectReviewMove = function(sMoveName, isFrom)
+CDocument.prototype.SelectReviewMove = function(sMoveId, isFrom)
 {
 	var oManager = this.GetTrackRevisionsManager();
 
@@ -18034,7 +18034,9 @@ CDocument.prototype.SelectReviewMove = function(sMoveName, isFrom)
 		return null;
 	}
 
-	var oMarks = oManager.MoveMarks[sMoveName];
+	// TODO: Можно отказаться вообще от MoveMarks в пользу сбора изменений через функцию GetAllMoveChanges
+
+	var oMarks = oManager.MoveMarks[sMoveId];
 	if (oMarks)
 	{
 		var oStart = isFrom ? oMarks.From.Start : oMarks.To.Start;
@@ -19278,7 +19280,7 @@ CTrackRevisionsManager.prototype.private_RemoveChangeObject = function(sId)
  */
 CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 {	
-	var isFrom = c_oAscRevisionsChangeType.TextRem === oChange.GetType() || c_oAscRevisionsChangeType.ParaRem === oChange.GetType();
+	var isFrom = c_oAscRevisionsChangeType.TextRem === oChange.GetType() || c_oAscRevisionsChangeType.ParaRem === oChange.GetType() || (c_oAscRevisionsChangeType.MoveMark === oChange.GetType() && oChange.GetValue().IsFrom());
 
 	var nStartIndex  = -1;
 	var oStartChange = null;
@@ -19321,7 +19323,8 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 				if (oCurChange === oChange)
 					isStart = true;
 			}
-			else
+
+			if (isStart)
 			{
 				var nCurChangeType = oCurChange.GetType();
 				if (nCurChangeType === c_oAscRevisionsChangeType.MoveMark)
@@ -19361,7 +19364,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 		return oChange;
 
 	var sValue     = "";
-	var arrChanges = [];
+	var arrChanges = [oStartChange];
 	
 	isStart = false;
 	nDeep   = 0;
@@ -19402,6 +19405,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 						}
 						else
 						{
+							arrChanges.push(oCurChange);
 							isEnd = true;
 							break;
 						}
@@ -19429,6 +19433,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 						}
 						else
 						{
+							arrChanges.push(oCurChange);
 							isEnd = true;
 							break;
 						}
@@ -19493,6 +19498,43 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 	oMoveChange.SetXY(oChange.GetX(), oChange.GetY());
 	oMoveChange.SetInternalPos(oChange.GetInternalPosX(), oChange.GetInternalPosY(), oChange.GetInternalPosPageNum());
 	return oMoveChange;
+};
+/**
+ * Получаем массив всех изменений связанных с заданным переносом
+ * @param {string} sMoveId
+ * @returns {Array.CRevisionsChange}
+ */
+CTrackRevisionsManager.prototype.GetAllMoveChanges = function(sMoveId)
+{
+	var oStartFromChange = null;
+	var oStartToChange   = null;
+
+	for (var sElementId in this.Changes)
+	{
+		var arrElementChanges = this.Changes[sElementId];
+		for (var nChangeIndex = 0, nChangesCount = arrElementChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+		{
+			var oCurChange = arrElementChanges[nChangeIndex];
+			if (c_oAscRevisionsChangeType.MoveMark === oCurChange.GetType() && sMoveId === oCurChange.GetValue().GetMarkId() && oCurChange.GetValue().IsStart())
+			{
+				if (oCurChange.GetValue().IsFrom())			
+					oStartFromChange = oCurChange;
+				else
+					oStartToChange = oCurChange;
+			}
+		}
+
+		if (oStartFromChange && oStartToChange)
+			break;
+	}
+
+	if (!oStartFromChange || !oStartToChange)
+		return {From : [], To : []};
+
+	return {
+		From : this.CollectMoveChange(oStartFromChange).GetSimpleChanges(),
+		To   : this.CollectMoveChange(oStartToChange).GetSimpleChanges()
+	};
 };
 
 
