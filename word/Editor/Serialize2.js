@@ -1268,7 +1268,7 @@ function WriteTrackRevision(bs, Id, reviewInfo, options) {
 			bs.memory.WriteByte(c_oSerProp_RevisionType.Date);
 			bs.memory.WriteString2(dateStr);
 		}
-		if(null != reviewInfo.UserId){
+		if(reviewInfo.UserId){
 			bs.memory.WriteByte(c_oSerProp_RevisionType.UserId);
 			bs.memory.WriteString2(reviewInfo.UserId);
 		}
@@ -1371,7 +1371,7 @@ function WiteMoveRangeStartElem(bs, Id, moveRange) {
 			bs.memory.WriteByte(c_oSerMoveRange.Date);
 			bs.memory.WriteString2(dateStr);
 		}
-		if (null != reviewInfo.UserId) {
+		if (reviewInfo.UserId) {
 			bs.memory.WriteByte(c_oSerMoveRange.UserId);
 			bs.memory.WriteString2(reviewInfo.UserId);
 		}
@@ -11668,7 +11668,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			res = c_oSerConstants.ReadUnknown;
 		} else if (c_oSerDocTableType.MoveToRangeEnd === type) {
 			if (this.lastParStruct) {
-				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
+				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, false, true);
 			}
 		} else
             res = c_oSerConstants.ReadUnknown;
@@ -11723,7 +11723,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			res = c_oSerConstants.ReadUnknown;
 		} else if (c_oSerDocTableType.MoveToRangeEnd === type) {
 			if (this.lastParStruct) {
-				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, true, true);
+				ReadMoveRangeEnd(length, this.bcr, this.stream, this.oReadResult, this.lastParStruct, false, true);
 			}
 		} else
             res = c_oSerConstants.ReadUnknown;
