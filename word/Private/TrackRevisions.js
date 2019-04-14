@@ -393,14 +393,14 @@ CDocument.prototype.private_GetRevisionsChangeElementInFooters = function(Search
 		arrFootnotes[nPos].GetRevisionsChangeElement(SearchEngine);
 	}
 };
-CDocument.prototype.private_SelectRevisionChange = function(oChange)
+CDocument.prototype.private_SelectRevisionChange = function(oChange, isSkipCompleteCheck)
 {
 	if (oChange && oChange.get_Paragraph())
 	{
 		this.RemoveSelection();
 		var oElement = oChange.get_Paragraph();
 
-		if (this.TrackRevisionsManager.CompleteTrackChangesForElements([oElement]))
+		if (true !== isSkipCompleteCheck && this.TrackRevisionsManager.CompleteTrackChangesForElements([oElement]))
 			return;
 
 		if (oElement instanceof Paragraph)
@@ -437,8 +437,53 @@ CDocument.prototype.AcceptRevisionChange = function(oChange)
 			}))
 		{
 			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AcceptRevisionChange);
-			this.private_SelectRevisionChange(oChange);
-			this.AcceptRevisionChanges(oChange.get_Type(), false);
+
+            if (oChange.IsComplexChange())
+            {                
+                if (oChange.IsMove())
+                {
+                    var oTrackManager = this.GetTrackRevisionsManager();
+                    var oMoveChanges  = oTrackManager.GetAllMoveChanges(oChange.GetMoveId());
+
+                    if (oChange.IsMovedDown())
+                    {
+                        for (var nIndex = oMoveChanges.To.length -1 ; nIndex >= 0; --nIndex)
+                        {
+                            var oTempChange = oMoveChanges.To[nIndex];
+                            this.private_SelectRevisionChange(oTempChange, true);            
+                            this.AcceptRevisionChanges(oTempChange.GetType(), false);
+                        }
+
+                        for (var nIndex = oMoveChanges.From.length -1 ; nIndex >= 0; --nIndex)
+                        {
+                            var oTempChange = oMoveChanges.From[nIndex];
+                            this.private_SelectRevisionChange(oTempChange, true);            
+                            this.AcceptRevisionChanges(oTempChange.GetType(), false);
+                        }
+                    }
+                    else
+                    {
+                        for (var nIndex = oMoveChanges.From.length -1 ; nIndex >= 0; --nIndex)
+                        {
+                            var oTempChange = oMoveChanges.From[nIndex];
+                            this.private_SelectRevisionChange(oTempChange, true);            
+                            this.AcceptRevisionChanges(oTempChange.GetType(), false);
+                        }
+
+                        for (var nIndex = oMoveChanges.To.length -1 ; nIndex >= 0; --nIndex)
+                        {
+                            var oTempChange = oMoveChanges.To[nIndex];
+                            this.private_SelectRevisionChange(oTempChange, true);            
+                            this.AcceptRevisionChanges(oTempChange.GetType(), false);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                this.private_SelectRevisionChange(oChange);            
+                this.AcceptRevisionChanges(oChange.GetType(), false);
+            }
 		}
 	}
 };
@@ -461,9 +506,54 @@ CDocument.prototype.RejectRevisionChange = function(oChange)
 				CheckType : AscCommon.changestype_Paragraph_Content
 			}))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RejectRevisionChange);
-			this.private_SelectRevisionChange(oChange);
-			this.RejectRevisionChanges(oChange.get_Type(), false);
+            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RejectRevisionChange);
+            
+            if (oChange.IsComplexChange())
+            {                
+                if (oChange.IsMove())
+                {
+                    var oTrackManager = this.GetTrackRevisionsManager();
+                    var oMoveChanges  = oTrackManager.GetAllMoveChanges(oChange.GetMoveId());
+
+                    if (oChange.IsMovedDown())
+                    {
+                        for (var nIndex = oMoveChanges.To.length -1 ; nIndex >= 0; --nIndex)
+                        {
+                            var oTempChange = oMoveChanges.To[nIndex];
+                            this.private_SelectRevisionChange(oTempChange, true);            
+                            this.RejectRevisionChanges(oTempChange.GetType(), false);
+                        }
+
+                        for (var nIndex = oMoveChanges.From.length -1 ; nIndex >= 0; --nIndex)
+                        {
+                            var oTempChange = oMoveChanges.From[nIndex];
+                            this.private_SelectRevisionChange(oTempChange, true);            
+                            this.RejectRevisionChanges(oTempChange.GetType(), false);
+                        }
+                    }
+                    else
+                    {
+                        for (var nIndex = oMoveChanges.From.length -1 ; nIndex >= 0; --nIndex)
+                        {
+                            var oTempChange = oMoveChanges.From[nIndex];
+                            this.private_SelectRevisionChange(oTempChange, true);            
+                            this.RejectRevisionChanges(oTempChange.GetType(), false);
+                        }
+
+                        for (var nIndex = oMoveChanges.To.length -1 ; nIndex >= 0; --nIndex)
+                        {
+                            var oTempChange = oMoveChanges.To[nIndex];
+                            this.private_SelectRevisionChange(oTempChange, true);            
+                            this.RejectRevisionChanges(oTempChange.GetType(), false);
+                        }
+                    }
+                }
+            }
+            else
+            {
+			    this.private_SelectRevisionChange(oChange);
+                this.RejectRevisionChanges(oChange.GetType(), false);
+            }
 		}
 	}
 };

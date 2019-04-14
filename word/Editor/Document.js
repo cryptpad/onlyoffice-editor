@@ -501,6 +501,28 @@ CSelectedContent.prototype =
                 }
             }
         }
+
+        // Ставим метки переноса в начало и конец
+        if (this.Elements.length > 0 && LogicDocument && null !== LogicDocument.TrackMoveId && LogicDocument.IsTrackRevisions())
+		{
+			var oStartElement = this.Elements[0].Element;
+			var oEndElement   = this.Elements[this.Elements.length - 1].Element;
+
+			var oStartParagraph = oStartElement.GetFirstParagraph();
+			var oEndParagraph   = oEndElement.GetLastParagraph();
+
+			oStartParagraph.AddToContent(0, new CParaRevisionMove(true, false, LogicDocument.TrackMoveId));
+
+			if (oEndParagraph !== oEndElement || this.Elements[this.Elements.length - 1].SelectedAll)
+			{
+				var oEndRun = oEndParagraph.GetParaEndRun();
+				oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, false, LogicDocument.TrackMoveId));
+			}
+			else
+			{
+				oEndParagraph.AddToContent(oEndParagraph.GetElementsCount(), new CParaRevisionMove(false, false, LogicDocument.TrackMoveId));
+			}
+		}
     }
 };
 CSelectedContent.prototype.SetInsertOptionForTable = function(nType)
@@ -1703,6 +1725,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.CheckInlineSdtOnDelete    = null;  // Проверяем заданный InlineSdt на удалении символов внутри него
 	this.DragAndDropAction         = false; // Происходит ли сейчас действие drag-n-drop
 	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
+	this.TrackMoveId               = null;  // Идентификатор переноса внутри рецензирования
 
 	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
 	this.NeedUpdateTracksOnRecalc = false;
@@ -6836,7 +6859,14 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
         NearPos.Paragraph.Check_NearestPos(NearPos);
 
 		if (!bCopy)
+		{
 			this.DragAndDropAction = true;
+			this.TrackMoveId       = this.TrackRevisionsManager.GetNewMoveId();
+		}
+		else
+		{
+			this.TrackMoveId = null;
+		}
 
 		// Получим копию выделенной части документа, которую надо перенести в новое место, одновременно с этим
         // удаляем эту выделенную часть (если надо).
@@ -6872,6 +6902,16 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
                 CheckType : changestype_Paragraph_Content
             }, true))
         {
+        	if (this.TrackMoveId)
+			{
+				var arrParagraphs = this.GetSelectedParagraphs();
+				if (arrParagraphs.length > 0)
+				{
+					arrParagraphs[arrParagraphs.length - 1].AddRevisionMoveMark(true, false, this.TrackMoveId);
+					arrParagraphs[0].AddRevisionMoveMark(true, true, this.TrackMoveId);
+				}
+			}
+
             // Если надо удаляем выделенную часть (пересчет отключаем на время удаления)
             if (true !== bCopy)
             {
@@ -6884,6 +6924,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
                 if (false === Para.Is_UseInDocument())
                 {
 					this.DragAndDropAction = false;
+					this.TrackMoveId       = null;
 
                     this.Document_Undo();
                     this.History.Clear_Redo();
@@ -6910,7 +6951,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 		}
 
 		this.SetCheckContentControlsLock(true);
+
 		this.DragAndDropAction = false;
+		this.TrackMoveId       = null;
 	}
 };
 /**
@@ -17817,7 +17860,7 @@ CDocument.prototype.AddBlankPage = function()
 /**
  * Получаем формулу в текущей ячейке таблицы
  * {boolen} [isReturnField=false] - возвращаем само поле
- * @returns {string | oComplexField}
+ * @returns {string | CComplexField}
  */
 CDocument.prototype.GetTableCellFormula = function(isReturnField)
 {
@@ -17944,7 +17987,6 @@ CDocument.prototype.AddTableCellFormula = function(sFormula)
 	}
 
 };
-
 /**
  * Разбираем sInstrLine на формулу и формат числа
  * @param {string} sInstrLine
@@ -17959,6 +18001,57 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
         return [oResult.Formula ? "=" + oResult.Formula : "=", oResult.Format && oResult.Format.sFormat ? oResult.Format.sFormat : ""];
     }
     return ["", ""];
+};
+/**
+ * Выделяем перемещенный или удаленный после перемещения текст
+ * @param sMoveId {string} идентификатор переноса
+ * @param isFrom {boolean} true - выделяем удаленный текст, false - выделяем перемещенный текст
+ */
+CDocument.prototype.SelectReviewMove = function(sMoveId, isFrom)
+{
+	var oManager = this.GetTrackRevisionsManager();
+
+	function private_GetDocumentPosition(oMark)
+	{
+		if (oMark instanceof CParaRevisionMove)
+		{
+			return oMark.GetDocumentPositionFromObject();
+		}
+		else if (oMark instanceof CRunRevisionMove && oMark.GetRun())
+		{
+			var oRun      = oMark.GetRun();
+			var arrPos    = oRun.GetDocumentPositionFromObject();
+			var nInRunPos = oRun.GetElementPosition(oMark);
+
+			if (oMark.IsStart())
+				arrPos.push({Class : oRun, Position : nInRunPos});
+			else
+				arrPos.push({Class : oRun, Position : nInRunPos + 1});
+
+			return arrPos;
+		}
+
+		return null;
+	}
+
+	// TODO: Можно отказаться вообще от MoveMarks в пользу сбора изменений через функцию GetAllMoveChanges
+
+	var oMarks = oManager.MoveMarks[sMoveId];
+	if (oMarks)
+	{
+		var oStart = isFrom ? oMarks.From.Start : oMarks.To.Start;
+		var oEnd   = isFrom ? oMarks.From.End : oMarks.To.End;
+
+		if (oStart && oEnd)
+		{
+			var oStartDocPos = private_GetDocumentPosition(oStart);
+			var oEndDocPos   = private_GetDocumentPosition(oEnd);
+
+			this.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
+			this.Document_UpdateSelectionState();
+			this.Document_UpdateInterfaceState();
+		}
+	}
 };
 
 function CDocumentSelectionState()
@@ -18399,13 +18492,19 @@ function CTrackRevisionsManager(LogicDocument)
 {
     this.LogicDocument = LogicDocument;
     this.CheckElements = {}; // Элементы, которые нужно проверить
-    this.Changes       = {}; // Объект с ключом - Id параграфа, в котором лежит массив изменений
+	this.Changes       = {}; // Объект с ключом - Id параграфа, в котором лежит массив изменений
+	
+	this.ChangesOutline = []; // Упорядоченный массив с объектами, в которых есть изменения в рецензировании
 
     this.CurChange     = null; // Текущее изменение
     this.CurElement    = null; // Элемент с текущим изменением
 
-    this.VisibleChanges = []; // Изменения, которые отображаются в сплывающем окне
+    this.VisibleChanges    = []; // Изменения, которые отображаются в сплывающем окне
     this.OldVisibleChanges = [];
+
+    this.MoveId            = 1;
+
+    this.MoveMarks = {};
 }
 
 /**
@@ -18431,9 +18530,7 @@ CTrackRevisionsManager.prototype.CheckElement = function(oElement)
  */
 CTrackRevisionsManager.prototype.AddChange = function(sId, oChange)
 {
-    if (undefined === this.Changes[sId])
-        this.Changes[sId] = [];
-
+	this.private_CheckChangeObject(sId);
     this.Changes[sId].push(oChange);
 };
 /**
@@ -18727,7 +18824,13 @@ CTrackRevisionsManager.prototype.Clear_VisibleChanges = function()
  * @param oChange
  */
 CTrackRevisionsManager.prototype.AddVisibleChange = function(oChange)
-{
+{	
+	if (oChange && c_oAscRevisionsChangeType.MoveMark === oChange.get_Type())	
+		return;
+
+	if (oChange.IsMove() && !oChange.IsComplexChange())
+		oChange = this.CollectMoveChange(oChange);		
+
     this.VisibleChanges.push(oChange);
 };
 CTrackRevisionsManager.prototype.Get_VisibleChanges = function()
@@ -18846,9 +18949,22 @@ CTrackRevisionsManager.prototype.Get_AllChangesLogicDocuments = function()
 };
 CTrackRevisionsManager.prototype.GetChangeRelatedParagraphs = function(oChange, bAccept)
 {
-    var RelatedParas = {};
-    this.private_GetChangeRelatedParagraphs(oChange, bAccept, RelatedParas);
-    return this.private_ConvertParagraphsObjectToArray(RelatedParas);
+	var oRelatedParas = {};
+	
+	if (oChange.IsComplexChange())
+	{
+		var arrSimpleChanges = oChange.GetSimpleChanges();
+		for (var nIndex = 0, nCount = arrSimpleChanges.length; nIndex < nCount; ++nIndex)
+		{
+			this.private_GetChangeRelatedParagraphs(arrSimpleChanges[nIndex], bAccept, oRelatedParas);
+		}
+	}
+	else
+	{
+		this.private_GetChangeRelatedParagraphs(oChange, bAccept, oRelatedParas);
+	}
+	
+    return this.private_ConvertParagraphsObjectToArray(oRelatedParas);
 };
 CTrackRevisionsManager.prototype.private_GetChangeRelatedParagraphs = function(Change, bAccept, RelatedParas)
 {
@@ -18997,7 +19113,7 @@ CTrackRevisionsManager.prototype.private_TrackChangesForSingleElement = function
 		var oElement = g_oTableId.Get_ById(sId);
 		if (oElement && (oElement instanceof Paragraph || oElement instanceof CTable) && oElement.Is_UseInDocument())
 		{
-			delete this.Changes[sId];
+			this.private_RemoveChangeObject(sId);
 			oElement.CheckRevisionsChanges(this);
 			return true;
 		}
@@ -19005,6 +19121,435 @@ CTrackRevisionsManager.prototype.private_TrackChangesForSingleElement = function
 
 	return false;
 };
+/**
+ * При чтении файла обновляем Id перетаскиваний в рецензировании
+ * @param sMoveId
+ */
+CTrackRevisionsManager.prototype.UpdateMoveId = function(sMoveId)
+{
+	if (0 === sMoveId.indexOf("move"))
+	{
+		var nId = parseInt(sMoveId.substring(4));
+		if (!isNaN(nId))
+			this.MoveId = Math.max(this.MoveId, nId);
+	}
+};
+/**
+ * Возвращаем новый идентификатор перемещений
+ * @returns {string}
+ */
+CTrackRevisionsManager.prototype.GetNewMoveId = function()
+{
+	this.MoveId++;
+	return "move" + this.MoveId;
+};
+CTrackRevisionsManager.prototype.RegisterMoveMark = function(oMark)
+{
+	if (!oMark)
+		return;
+
+	var sMarkId = oMark.GetMarkId();
+	var isFrom  = oMark.IsFrom();
+	var isStart = oMark.IsStart();
+
+	this.UpdateMoveId(sMarkId);
+
+	if (!this.MoveMarks[sMarkId])
+	{
+		this.MoveMarks[sMarkId] = {
+
+			From : {
+				Start : null,
+				End   : null
+			},
+
+			To : {
+				Start : null,
+				End   : null
+			}
+		};
+	}
+
+	if (isFrom)
+	{
+		if (isStart)
+			this.MoveMarks[sMarkId].From.Start = oMark;
+		else
+			this.MoveMarks[sMarkId].From.End = oMark;
+	}
+	else
+	{
+		if (isStart)
+			this.MoveMarks[sMarkId].To.Start = oMark;
+		else
+			this.MoveMarks[sMarkId].To.End = oMark;
+	}
+};
+CTrackRevisionsManager.prototype.UnregisterMoveMark = function(oMark)
+{
+	if (!oMark)
+		return;
+
+	var sMarkId = oMark.GetMarkId();
+	delete this.MoveMarks[sMarkId];
+
+	// TODO: Возможно тут нужно проделать дополнительные действия
+};
+CTrackRevisionsManager.prototype.private_CheckChangeObject = function(sId)
+{
+	var oElement = AscCommon.g_oTableId.Get_ById(sId);
+	if (!oElement)
+		return;
+
+	if (!this.Changes[sId])
+		this.Changes[sId] = [];
+
+	var nDeletePosition = -1;
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.ChangesOutline[nIndex].GetId() === sId)
+		{
+			nDeletePosition = nIndex;
+			break;
+		}
+	}
+
+	var oDocPos = oElement.GetDocumentPositionFromObject();
+	if (!oDocPos)
+		return;
+
+	var nAddPosition = -1;
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		var oTempDocPos = this.ChangesOutline[nIndex].GetDocumentPositionFromObject();
+
+		if (this.private_CompareDocumentPositions(oDocPos, oTempDocPos) < 0)
+		{
+			nAddPosition = nIndex;
+			break;		
+		}	
+	}
+
+	if (-1 === nAddPosition)
+		nAddPosition = this.ChangesOutline.length;
+
+	if (nAddPosition === nDeletePosition)
+		return;
+
+	if (-1 !== nDeletePosition)
+	{
+		this.ChangesOutline.splice(nDeletePosition, 1);
+
+		if (nAddPosition > nDeletePosition)
+			nAddPosition--;
+	}
+
+	this.ChangesOutline.splice(nAddPosition, 0, oElement);
+};
+CTrackRevisionsManager.prototype.private_CompareDocumentPositions = function(oDocPos1, oDocPos2)
+{
+	if (oDocPos1.Class !== oDocPos2.Class)
+	{
+		// TODO: Здесь нужно доработать сравнение позиций, когда они из разных частей документа
+		if (oDocPos1.Class instanceof CDocument)
+			return -1;
+		else if (oDocPos1.Class instanceof CDocument)
+			return 1;
+		else
+			return 1;
+	}
+
+	for (var nIndex = 0, nCount = oDocPos1.length; nIndex < nCount; ++nIndex)
+	{
+		if (oDocPos2.length < nIndex)
+			return 1;
+
+		if (oDocPos1[nIndex].Position < oDocPos2[nIndex].Position)
+			return -1;
+		else if (oDocPos1[nIndex].Position > oDocPos2[nIndex].Position)
+			return 1;
+	}
+
+	return 0;
+};
+CTrackRevisionsManager.prototype.private_RemoveChangeObject = function(sId)
+{
+	if (this.Changes[sId])
+		delete this.Changes[sId];
+
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.ChangesOutline[nIndex].GetId() === sId)
+		{
+			this.ChangesOutline.splice(nIndex, 1);
+			return;
+		}
+	}
+};
+/**
+ * Собираем изменение связанное с переносом
+ * @param {CRevisionsChange} oChange
+ * @returns {CRevisionsChange}
+ */
+CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
+{	
+	var isFrom = c_oAscRevisionsChangeType.TextRem === oChange.GetType() || c_oAscRevisionsChangeType.ParaRem === oChange.GetType() || (c_oAscRevisionsChangeType.MoveMark === oChange.GetType() && oChange.GetValue().IsFrom());
+
+	var nStartIndex  = -1;
+	var oStartChange = null;
+
+	var oElement = oChange.GetElement();
+	if (!oElement)
+		return oChange;
+
+	var nDeep = 0;
+	var nSearchIndex = -1;
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.ChangesOutline[nIndex] === oElement)
+		{
+			nSearchIndex = nIndex;
+			break;
+		}
+	}
+
+	if (-1 === nSearchIndex)
+		return oChange;
+
+	var isStart = false;
+	
+	for (var nIndex = nSearchIndex; nIndex >= 0; --nIndex)
+	{
+		var arrCurChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+
+		if (!arrCurChanges)
+		{
+			isStart = true;
+			continue;
+		}
+
+		for (var nChangeIndex = arrCurChanges.length - 1; nChangeIndex >= 0; --nChangeIndex)
+		{
+			var oCurChange = arrCurChanges[nChangeIndex];
+			if (!isStart)
+			{
+				if (oCurChange === oChange)
+					isStart = true;
+			}
+
+			if (isStart)
+			{
+				var nCurChangeType = oCurChange.GetType();
+				if (nCurChangeType === c_oAscRevisionsChangeType.MoveMark)
+				{
+					var oMoveMark = oCurChange.GetValue();
+					if ((isFrom && oMoveMark.IsFrom()) || (!isFrom && !oMoveMark.IsFrom()))
+					{
+						if (oMoveMark.IsStart())
+						{
+							if (nDeep > 0)
+							{
+								nDeep--;
+							}
+							else if (nDeep === 0)
+							{
+								nStartIndex  = nIndex;
+								oStartChange = oCurChange;
+								break;									
+							}
+						}
+						else
+						{
+							nDeep++;
+						}
+					}
+				}
+			}
+		}
+
+		if (oStartChange)
+			break;
+
+		isStart = true;
+	}
+
+	if (!oStartChange || -1 === nStartIndex)
+		return oChange;
+
+	var sValue     = "";
+	var arrChanges = [oStartChange];
+	
+	isStart = false;
+	nDeep   = 0;
+	var isEnd = false;
+	for (var nIndex = nStartIndex, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		var arrCurChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+		for (var nChangeIndex = 0, nChangesCount = arrCurChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+		{
+			var oCurChange = arrCurChanges[nChangeIndex];
+			if (!isStart)
+			{
+				if (oCurChange === oStartChange)
+					isStart = true;
+			}
+			else
+			{
+				var nCurChangeType = oCurChange.GetType();
+				if (isFrom)
+				{
+					if (c_oAscRevisionsChangeType.TextRem === nCurChangeType || c_oAscRevisionsChangeType.ParaRem === nCurChangeType)
+					{
+						if (0 === nDeep)
+						{
+							sValue += oCurChange.GetValue();
+							arrChanges.push(oCurChange);
+						}
+					}
+					else if (c_oAscRevisionsChangeType.MoveMark === nCurChangeType && oCurChange.GetValue().IsFrom())
+					{
+						if (oCurChange.GetValue().IsStart())
+						{
+							nDeep++;
+						}
+						else if (nDeep > 0)
+						{
+							nDeep--;
+						}
+						else
+						{
+							arrChanges.push(oCurChange);
+							isEnd = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					if (c_oAscRevisionsChangeType.TextAdd === nCurChangeType || c_oAscRevisionsChangeType.ParaAdd === nCurChangeType)
+					{
+						if (0 === nDeep)
+						{
+							sValue += oCurChange.GetValue();
+							arrChanges.push(oCurChange);
+						}
+					}
+					else if (c_oAscRevisionsChangeType.MoveMark === nCurChangeType && !oCurChange.GetValue().IsFrom())
+					{
+						if (oCurChange.GetValue().IsStart())
+						{
+							nDeep++;
+						}
+						else if (nDeep > 0)
+						{
+							nDeep--;
+						}
+						else
+						{
+							arrChanges.push(oCurChange);
+							isEnd = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (!isStart)
+			return oChange;
+
+		if (isEnd)
+			break;
+	}
+
+	var sMoveId = oStartChange.GetValue().GetMarkId();
+	var isDown  = null;
+
+	for (var nIndex = 0, nCount = this.ChangesOutline.length; nIndex < nCount; ++nIndex)
+	{
+		var arrCurChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
+		if (!arrCurChanges)
+			continue;
+
+		for (var nChangeIndex = 0, nChangesCount = arrCurChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+		{
+			var oCurChange = arrCurChanges[nChangeIndex];
+			if (c_oAscRevisionsChangeType.MoveMark === oCurChange.GetType())
+			{
+				var oMark = oCurChange.GetValue();
+				if (sMoveId === oMark.GetMarkId())
+				{
+					if (oMark.IsFrom())
+						isDown = true;
+					else
+						isDown = false;
+
+					break;
+				}
+
+			}
+		}
+
+		if (null !== isDown)
+			break;
+	}
+
+	if (!isEnd || null === isDown)
+		return oChange;
+
+	var oMoveChange = new CRevisionsChange();
+	oMoveChange.SetType(isFrom ? c_oAscRevisionsChangeType.TextRem : c_oAscRevisionsChangeType.TextAdd);
+	oMoveChange.SetValue(sValue);
+	oMoveChange.SetElement(oStartChange.GetElement());
+	oMoveChange.SetUserId(oStartChange.GetUserId());
+	oMoveChange.SetUserName(oStartChange.GetUserName());
+	oMoveChange.SetDateTime(oStartChange.GetDateTime());
+	oMoveChange.SetMoveType(isFrom ? Asc.c_oAscRevisionsMove.MoveFrom : Asc.c_oAscRevisionsMove.MoveTo);
+	oMoveChange.SetSimpleChanges(arrChanges);
+	oMoveChange.SetMoveId(sMoveId);
+	oMoveChange.SetMovedDown(isDown);
+	oMoveChange.SetXY(oChange.GetX(), oChange.GetY());
+	oMoveChange.SetInternalPos(oChange.GetInternalPosX(), oChange.GetInternalPosY(), oChange.GetInternalPosPageNum());
+	return oMoveChange;
+};
+/**
+ * Получаем массив всех изменений связанных с заданным переносом
+ * @param {string} sMoveId
+ * @returns {Array.CRevisionsChange}
+ */
+CTrackRevisionsManager.prototype.GetAllMoveChanges = function(sMoveId)
+{
+	var oStartFromChange = null;
+	var oStartToChange   = null;
+
+	for (var sElementId in this.Changes)
+	{
+		var arrElementChanges = this.Changes[sElementId];
+		for (var nChangeIndex = 0, nChangesCount = arrElementChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+		{
+			var oCurChange = arrElementChanges[nChangeIndex];
+			if (c_oAscRevisionsChangeType.MoveMark === oCurChange.GetType() && sMoveId === oCurChange.GetValue().GetMarkId() && oCurChange.GetValue().IsStart())
+			{
+				if (oCurChange.GetValue().IsFrom())			
+					oStartFromChange = oCurChange;
+				else
+					oStartToChange = oCurChange;
+			}
+		}
+
+		if (oStartFromChange && oStartToChange)
+			break;
+	}
+
+	if (!oStartFromChange || !oStartToChange)
+		return {From : [], To : []};
+
+	return {
+		From : this.CollectMoveChange(oStartFromChange).GetSimpleChanges(),
+		To   : this.CollectMoveChange(oStartToChange).GetSimpleChanges()
+	};
+};
+
 
 function CRevisionsChangeParagraphSearchEngine(nDirection, oCurrentElement, oTrackManager)
 {

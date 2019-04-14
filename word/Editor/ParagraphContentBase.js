@@ -614,6 +614,39 @@ CParagraphContentBase.prototype.CanAddComment = function()
 {
 	return true;
 };
+/**
+ * Получаем позицию заданного элемента в документе
+ * @param {?Array} arrPosArray
+ * @returns {Array}
+ */
+CParagraphContentBase.prototype.GetDocumentPositionFromObject = function(arrPosArray)
+{
+	if (!arrPosArray)
+		arrPosArray = [];
+
+	if (this.Paragraph)
+	{
+		var oParaContentPos = this.Paragraph.Get_PosByElement(this);
+		if (oParaContentPos)
+		{
+			var nDepth = oParaContentPos.Get_Depth();
+			while (nDepth > 0)
+			{
+				var Pos = oParaContentPos.Get(nDepth);
+				oParaContentPos.Decrease_Depth(1);
+				var Class = this.Paragraph.Get_ElementByPos(oParaContentPos);
+				nDepth--;
+
+				arrPosArray.splice(0, 0, {Class : Class, Position : Pos});
+			}
+			arrPosArray.splice(0, 0, {Class : this.Paragraph, Position : oParaContentPos.Get(0)});
+		}
+
+		this.Paragraph.GetDocumentPositionFromObject(arrPosArray);
+	}
+
+	return arrPosArray;
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.

@@ -7702,6 +7702,16 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_RejectAllChanges                = function()
 	{
 	};
+	asc_docs_api.prototype.asc_FollowRevisionMove = function(oChange)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var sMoveId = oChange.get_MoveId();
+		var isFrom  = oChange.GetMoveType() === Asc.c_oAscRevisionsMove.MoveTo;
+		oLogicDocument.SelectReviewMove(sMoveId, isFrom);
+	};
 
 	asc_docs_api.prototype.asc_undoAllChanges       = function()
 	{
@@ -9924,6 +9934,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_UpdateRevisionsChangesPosition']       = asc_docs_api.prototype.sync_UpdateRevisionsChangesPosition;
 	asc_docs_api.prototype['asc_AcceptAllChanges']                      = asc_docs_api.prototype.asc_AcceptAllChanges;
 	asc_docs_api.prototype['asc_RejectAllChanges']                      = asc_docs_api.prototype.asc_RejectAllChanges;
+	asc_docs_api.prototype['asc_FollowRevisionMove']                    = asc_docs_api.prototype.asc_FollowRevisionMove;
 	asc_docs_api.prototype['asc_stopSaving']                            = asc_docs_api.prototype.asc_stopSaving;
 	asc_docs_api.prototype['asc_continueSaving']                        = asc_docs_api.prototype.asc_continueSaving;
 	asc_docs_api.prototype['asc_undoAllChanges']                        = asc_docs_api.prototype.asc_undoAllChanges;

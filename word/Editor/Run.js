@@ -8576,6 +8576,29 @@ ParaRun.prototype.private_GetCollPrChangeOther = function()
 {
     return this.CollPrChangeOther;
 };
+/**
+ * Специальная функция-заглушка, добавляем элементы за знаком конца параграфа, для поддержки разделителей, лежащих
+ * между параграфами
+ * @param {CRunElementBase} oElement
+ */
+ParaRun.prototype.AddAfterParaEnd = function(oElement)
+{
+	this.State.ContentPos = this.Content.length;
+	this.AddToContent(this.State.ContentPos, oElement);
+};
+/**
+ * Специальная функция очищающая метки переноса во время рецензирования
+ */
+ParaRun.prototype.RemoveReviewMoveMarks = function()
+{
+    for (var nPos = this.Content.length - 1; nPos >= 0; --nPos)
+    {
+        if (para_RevisionMove === this.Content[nPos].Type)
+        {
+            this.RemoveFromContent(nPos, 1);
+        }
+    }
+};
 
 ParaRun.prototype.private_RecalcCtrPrp = function()
 {
@@ -9651,6 +9674,10 @@ ParaRun.prototype.GetReviewType = function()
 {
     return this.ReviewType;
 };
+ParaRun.prototype.GetReviewMoveType = function()
+{
+	return this.ReviewInfo.MoveType;
+};
 ParaRun.prototype.GetReviewInfo = function()
 {
 	return this.ReviewInfo;
@@ -9794,13 +9821,13 @@ ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
     if (true !== Checker.Is_ParaEndRun() && true !== Checker.Is_CheckOnlyTextPr())
     {
         var ReviewType = this.GetReviewType();
-        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId()))
+        if (ReviewType !== Checker.GetAddRemoveType() || (reviewtype_Common !== ReviewType && (this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId() || this.GetReviewMoveType() !== Checker.GetAddRemoveMoveType())))
         {
-            Checker.Flush_AddRemoveChange();
+            Checker.FlushAddRemoveChange();
             ContentPos.Update(0, Depth);
 
             if (reviewtype_Add === ReviewType || reviewtype_Remove === ReviewType)
-                Checker.Start_AddRemove(ReviewType, ContentPos);
+                Checker.StartAddRemove(ReviewType, ContentPos, this.GetReviewMoveType());
         }
 
         if (reviewtype_Add === ReviewType || reviewtype_Remove === ReviewType)
@@ -9849,7 +9876,7 @@ ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
     var DiffPr = this.GetDiffPrChange();
     if (HavePrChange !== Checker.HavePrChange() || true !== Checker.ComparePrChange(DiffPr) || this.Pr.ReviewInfo.GetUserId() !== Checker.Get_PrChangeUserId())
     {
-        Checker.Flush_TextPrChange();
+        Checker.FlushTextPrChange();
         ContentPos.Update(0, Depth);
         if (true === HavePrChange)
         {
@@ -10083,34 +10110,6 @@ ParaRun.prototype.Is_InHyperlink = function()
 ParaRun.prototype.Get_ClassesByPos = function(Classes, ContentPos, Depth)
 {
     Classes.push(this);
-};
-ParaRun.prototype.GetDocumentPositionFromObject = function(PosArray)
-{
-    if (!PosArray)
-        PosArray = [];
-
-    if (this.Paragraph)
-    {
-        var ParaContentPos = this.Paragraph.Get_PosByElement(this);
-        if (null !== ParaContentPos)
-        {
-            var Depth = ParaContentPos.Get_Depth();
-            while (Depth > 0)
-            {
-                var Pos = ParaContentPos.Get(Depth);
-                ParaContentPos.Decrease_Depth(1);
-                var Class = this.Paragraph.Get_ElementByPos(ParaContentPos);
-                Depth--;
-
-                PosArray.splice(0, 0, {Class : Class, Position : Pos});
-            }
-            PosArray.splice(0, 0, {Class : this.Paragraph, Position : ParaContentPos.Get(0)});
-        }
-
-        this.Paragraph.GetDocumentPositionFromObject(PosArray);
-    }
-
-    return PosArray;
 };
 ParaRun.prototype.Is_UseInParagraph = function()
 {
@@ -10965,6 +10964,7 @@ CReviewInfo.prototype.Copy = function()
     Info.UserId   = this.UserId;
     Info.UserName = this.UserName;
     Info.DateTime = this.DateTime;
+    Info.MoveType = this.MoveType;
     Info.PrevType = this.PrevType;
     Info.PrevInfo = this.PrevInfo ? this.PrevInfo.Copy() : null;
     return Info;
