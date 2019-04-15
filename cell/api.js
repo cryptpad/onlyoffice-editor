@@ -2327,6 +2327,14 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.asc_clearOutline = function() {
+      this.wb.getWorksheet().clearOutline();
+  };
+
+  spreadsheet_api.prototype.asc_changeGroupDetails = function(bExpand) {
+	  this.wb.getWorksheet().collapseGroup(bExpand);
+  };
+
   spreadsheet_api.prototype.asc_insertCells = function(options) {
     this.wb.getWorksheet().changeWorksheet("insCell", options);
   };
@@ -3775,6 +3783,12 @@ var editor;
 
   prot["asc_applyAutoCorrectOptions"] = prot.asc_applyAutoCorrectOptions;
 
+  //Group data
+  prot["asc_group"] = prot.asc_group;
+  prot["asc_ungroup"] = prot.asc_ungroup;
+  prot["asc_clearOutline"] = prot.asc_clearOutline;
+  prot["asc_changeGroupDetails"] = prot.asc_changeGroupDetails;
+  
   // Drawing objects interface
 
   prot["asc_showDrawingObjects"] = prot.asc_showDrawingObjects;

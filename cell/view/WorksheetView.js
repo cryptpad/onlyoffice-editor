@@ -16792,7 +16792,7 @@
 		console_time_end("hideGroupLevel");
 	};
 
-	WorksheetView.prototype.collapseGroup = function () {
+	WorksheetView.prototype.collapseGroup = function (bExpand) {
 		//multiselect
 		if(t.model.selectionRange.ranges.length > 1) {
 			return;
@@ -16844,6 +16844,113 @@
 		if(collapsedArrRow.length || collapsedArrCol.length) {
 			this._isLockedAll(callback);
 		}
+	};
+
+	WorksheetView.prototype.clearOutline = function() {
+		var t = this, groupArr;
+
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock()) {
+			return;
+		}
+
+		var groupArrCol= this.arrColGroups ? this.arrColGroups.groupArr : null;
+		var groupArrRow = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+
+		if(!groupArrCol && groupArrRow) {
+			return;
+		}
+
+		//TODO duplicate code into _tryChangeGroup func
+		var oRecalcType = AscCommonExcel.recalcType.recalc;
+		var reinitRanges = false;
+		var updateDrawingObjectsInfo = null;
+		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
+		var isUpdateCols = false, isUpdateRows = false;
+		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
+		var arrChangedRanges = [];
+
+		var onChangeWorksheetCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			asc_applyFunction(callback);
+
+			t._updateGroups(true);
+			t._updateGroups(null);
+
+			t._initCellsArea(oRecalcType);
+			if (oRecalcType) {
+				t.cache.reset();
+			}
+			t._cleanCellsTextMetricsCache();
+			t._prepareCellTextMetricsCache();
+
+			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
+
+			t.cellCommentator.updateAreaComments();
+
+			if (t.objectRender) {
+				if (reinitRanges && t.objectRender.drawingArea) {
+					t.objectRender.drawingArea.reinitRanges();
+				}
+				if (null !== updateDrawingObjectsInfo) {
+					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
+				}
+				if (null !== updateDrawingObjectsInfo2) {
+					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
+						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
+				}
+				t.model.onUpdateRanges(arrChangedRanges);
+				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+			}
+
+			t.draw(lockDraw);
+
+			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+
+			if (isUpdateCols) {
+				t._updateVisibleColsCount();
+			}
+			if (isUpdateRows) {
+				t._updateVisibleRowsCount();
+			}
+
+			t.handlers.trigger("selectionChanged");
+			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+		};
+
+		var callback = function() {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			//TODO check filtering mode
+
+			for(var i = 0; i <= groupArrRow.length; i++) {
+				if(!groupArrRow[i]) {
+					continue;
+				}
+				for(var j = 0; j < groupArrRow[i].length; j++) {
+					t.model.setRowHidden(false, groupArrRow[i][j].start, groupArrRow[i][j].end);
+					t.model.setOutlineRow(0, groupArrRow[i][j].start, groupArrRow[i][j].end);
+				}
+			}
+
+			for(i = 0; i <= groupArrCol.length; i++) {
+				if(!groupArrCol[i]) {
+					continue;
+				}
+				for(j = 0; j < groupArrCol[i].length; j++) {
+					t.model.setColHidden(false, groupArrCol[i][j].start, groupArrCol[i][j].end);
+					t.model.setOutlineCol(0, groupArrCol[i][j].start, groupArrCol[i][j].end);
+				}
+			}
+
+			History.EndTransaction();
+		};
+
+		this._isLockedAll(onChangeWorksheetCallback);
 	};
 
     //------------------------------------------------------------export---------------------------------------------------

@@ -4592,6 +4592,20 @@
 
 		this.getRange3(0, start, 0, stop)._foreachCol(fProcessCol);
 	};
+	Worksheet.prototype.setOutlineCol = function (val, start, stop) {
+		var oThis = this;
+		var fProcessCol = function(col){
+			var oOldProps = col.getOutlineLevel();
+			col.setOutlineLevel(val);
+			var oNewProps = col.getOutlineLevel();
+
+			if(oOldProps !== oNewProps) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupCol, oThis.getId(), col._getUpdateRange(), new UndoRedoData_IndexSimpleProp(col.index, true, oOldProps, oNewProps));
+			}
+		};
+
+		this.getRange3(0, start, 0, stop)._foreachCol(fProcessCol);
+	};
 	Worksheet.prototype.getColCustomWidth = function (index) {
 		var isBestFit;
 		var column = this._getColNoEmptyWithAll(index);
@@ -4833,6 +4847,20 @@
 		var fProcessRow = function(row){
 			var oOldProps = row.getOutlineLevel();
 			row.setOutlineLevel(null, bDel);
+			var oNewProps = row.getOutlineLevel();
+
+			if(oOldProps !== oNewProps) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupRow, oThis.getId(), row._getUpdateRange(), new UndoRedoData_IndexSimpleProp(row.index, true, oOldProps, oNewProps));
+			}
+		};
+
+		this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
+	};
+	Worksheet.prototype.setOutlineRow = function (val, start, stop) {
+		var oThis = this;
+		var fProcessRow = function(row){
+			var oOldProps = row.getOutlineLevel();
+			row.setOutlineLevel(val);
 			var oNewProps = row.getOutlineLevel();
 
 			if(oOldProps !== oNewProps) {
