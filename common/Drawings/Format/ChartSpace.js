@@ -12370,19 +12370,44 @@ CChartSpace.prototype.recalculateMarkers = function()
                     pts = AscFormat.getPtsFromSeries(ser);
                     var series_marker = ser.marker;
                     var brushes = getArrayFillsFromBase(fill, getMaxIdx(pts));
-                    var pens_fills = getArrayFillsFromBase(line, getMaxIdx(pts));
-                    var compiled_markers = [];
 
                     for(var i = 0;  i < pts.length; ++i)
                     {
+                        var d_pt = null;
+                        if(Array.isArray(ser.dPt))
+                        {
+                            for(var j = 0; j < ser.dPt.length; ++j)
+                            {
+                                if(ser.dPt[j].idx === pts[i].idx)
+                                {
+                                    d_pt = ser.dPt[j];
+                                    break;
+                                }
+                            }
+                        }
+                        var d_pt_marker = null;
+                        if(d_pt)
+                        {
+                            d_pt_marker = d_pt.marker;
+                        }
+                        var symbol = GetTypeMarkerByIndex(i);
+                        if(series_marker && AscFormat.isRealNumber(series_marker.symbol))
+                        {
+                            symbol = series_marker.symbol;
+                        }
+                        if(d_pt_marker && AscFormat.isRealNumber(d_pt_marker.symbol))
+                        {
+                            symbol = d_pt_marker.symbol;
+                        }
+
                         var compiled_marker = new AscFormat.CMarker();
                         compiled_marker.merge(default_marker);
                         if(!compiled_marker.spPr)
                         {
                             compiled_marker.setSpPr(new AscFormat.CSpPr());
                         }
-                        compiled_marker.setSymbol(GetTypeMarkerByIndex(i));
-                        if(!checkNoFillMarkers(compiled_marker.symbol)){
+                        compiled_marker.setSymbol(symbol);
+                        if(!checkNoFillMarkers(symbol)){
                             compiled_marker.spPr.setFill(brushes[pts[i].idx]);
                         }
                         else{
@@ -12392,41 +12417,28 @@ CChartSpace.prototype.recalculateMarkers = function()
                         if(!compiled_marker.spPr.ln)
                             compiled_marker.spPr.setLn(new AscFormat.CLn());
                         compiled_marker.spPr.ln.merge(pts[i].pen);
-                        compiled_marker.merge(ser.marker);
+                        compiled_marker.merge(series_marker);
 
-                        if(Array.isArray(ser.dPt))
+                        if(d_pt)
                         {
-                            for(var j = 0; j < ser.dPt.length; ++j)
+                            if(d_pt.spPr)
                             {
-                                if(ser.dPt[j].idx === pts[i].idx)
+                                if(d_pt.spPr.Fill)
                                 {
-
-                                    var d_pt = ser.dPt[j];
-                                    if(d_pt.spPr && (d_pt.spPr.Fill || d_pt.spPr.ln))
+                                    compiled_marker.spPr.setFill(d_pt.spPr.Fill.createDuplicate());
+                                }
+                                if(d_pt.spPr.ln)
+                                {
+                                    if(!compiled_marker.spPr.ln)
                                     {
-                                        if(!compiled_marker.spPr)
-                                        {
-                                            compiled_marker.setSpPr(new AscFormat.CSpPr());
-                                        }
-                                        if(d_pt.spPr.Fill)
-                                        {
-                                            compiled_marker.spPr.setFill(d_pt.spPr.Fill.createDuplicate());
-                                        }
-                                        if(d_pt.spPr.ln)
-                                        {
-                                            if(!compiled_marker.spPr.ln)
-                                            {
-                                                compiled_marker.spPr.setLn(new AscFormat.CLn());
-                                            }
-                                            compiled_marker.spPr.ln.merge(d_pt.spPr.ln);
-                                        }
+                                        compiled_marker.spPr.setLn(new AscFormat.CLn());
                                     }
-
-                                    compiled_marker.merge(ser.dPt[j].marker);
-                                    break;
+                                    compiled_marker.spPr.ln.merge(d_pt.spPr.ln);
                                 }
                             }
+                            compiled_marker.merge(d_pt.marker);
                         }
+
                         pts[i].compiledMarker = compiled_marker;
                         pts[i].compiledMarker.pen = compiled_marker.spPr.ln;
                         pts[i].compiledMarker.brush = compiled_marker.spPr.Fill;
@@ -12447,35 +12459,53 @@ CChartSpace.prototype.recalculateMarkers = function()
                         pts = AscFormat.getPtsFromSeries(ser);
                         for(var j = 0; j < pts.length; ++j)
                         {
-                            var compiled_marker = new AscFormat.CMarker();
-                            compiled_marker.merge(default_marker);
-                            if(!compiled_marker.spPr)
-                            {
-                                compiled_marker.setSpPr(new AscFormat.CSpPr());
-                            }
-                            compiled_marker.setSymbol(GetTypeMarkerByIndex(series[i].idx));
-                            if(!checkNoFillMarkers(compiled_marker.symbol)){
-                                compiled_marker.spPr.setFill(brushes[series[i].idx]);
-                            }
-                            else{
-                                compiled_marker.spPr.setFill(AscFormat.CreateNoFillUniFill());
-                            }
-                            if(!compiled_marker.spPr.ln)
-                                compiled_marker.spPr.setLn(new AscFormat.CLn());
-                            compiled_marker.spPr.ln.setFill(pens_fills[series[i].idx]);
-                            compiled_marker.merge(ser.marker);
-                            if(j === 0)
-                                ser.compiledSeriesMarker = compiled_marker.createDuplicate();
+                            var d_pt = null;
                             if(Array.isArray(ser.dPt))
                             {
                                 for(var k = 0; k < ser.dPt.length; ++k)
                                 {
                                     if(ser.dPt[k].idx === pts[j].idx)
                                     {
-                                        compiled_marker.merge(ser.dPt[k].marker);
+                                        d_pt = ser.dPt[k];
                                         break;
                                     }
                                 }
+                            }
+                            var symbol = GetTypeMarkerByIndex(ser.idx);
+                            if(ser && ser.marker && AscFormat.isRealNumber(ser.marker.symbol))
+                            {
+                                symbol = ser.marker.symbol;
+                            }
+                            if(d_pt && d_pt.marker && AscFormat.isRealNumber(d_pt.marker.symbol))
+                            {
+                                symbol = d_pt.marker.symbol;
+                            }
+
+                            var compiled_marker = new AscFormat.CMarker();
+                            compiled_marker.merge(default_marker);
+                            if(!compiled_marker.spPr)
+                            {
+                                compiled_marker.setSpPr(new AscFormat.CSpPr());
+                            }
+                            compiled_marker.setSymbol(symbol);
+                            if(!checkNoFillMarkers(compiled_marker.symbol)){
+                                compiled_marker.spPr.setFill(brushes[ser.idx]);
+                            }
+                            else{
+                                compiled_marker.spPr.setFill(AscFormat.CreateNoFillUniFill());
+                            }
+                            if(!compiled_marker.spPr.ln)
+                                compiled_marker.spPr.setLn(new AscFormat.CLn());
+                            compiled_marker.spPr.ln.setFill(pens_fills[ser.idx]);
+                            compiled_marker.merge(ser.marker);
+                            if(j === 0)
+                            {
+                                ser.compiledSeriesMarker = compiled_marker.createDuplicate();
+                            }
+
+                            if(d_pt)
+                            {
+                                compiled_marker.merge(d_pt.marker);
                             }
                             pts[j].compiledMarker = compiled_marker;
                             pts[j].compiledMarker.pen = compiled_marker.spPr.ln;
