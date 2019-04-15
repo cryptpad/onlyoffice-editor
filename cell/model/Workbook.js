@@ -6721,6 +6721,9 @@
 						this.multiText = wb.sharedStrings.get(this.textIndex);
 					}
 					res = true;
+
+					// ToDo delete this after fix bug 40788
+					this.ws.nRowsCount = Math.max(this.ws.nRowsCount, this.nRow + 1);
 				}
 			}
 		}
