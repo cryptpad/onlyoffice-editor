@@ -8588,14 +8588,29 @@ ParaRun.prototype.AddAfterParaEnd = function(oElement)
 };
 /**
  * Специальная функция очищающая метки переноса во время рецензирования
+ * @param {CTrackRevisionsManager} oTrackManager
  */
-ParaRun.prototype.RemoveReviewMoveMarks = function()
+ParaRun.prototype.RemoveTrackMoveMarks = function(oTrackManager)
 {
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
+
+	var sMoveId = oTrackMove.GetMoveId();
+	var isFrom  = oTrackMove.IsFrom();
+
     for (var nPos = this.Content.length - 1; nPos >= 0; --nPos)
     {
-        if (para_RevisionMove === this.Content[nPos].Type)
+    	var oItem = this.Content[nPos];
+        if (para_RevisionMove === oItem.Type)
         {
-            this.RemoveFromContent(nPos, 1);
+        	if (sMoveId === oItem.GetMarkId())
+			{
+				if (isFrom === oItem.IsFrom())
+				this.RemoveFromContent(nPos, 1);
+			}
+        	else
+			{
+				oTrackMove.RegisterOtherMove(oItem.GetMarkId());
+			}
         }
     }
 };
@@ -9927,149 +9942,183 @@ ParaRun.prototype.private_UpdateTrackRevisions = function()
         RevisionsManager.CheckElement(this.Paragraph);
     }
 };
-ParaRun.prototype.AcceptRevisionChanges = function(Type, bAll)
+ParaRun.prototype.AcceptRevisionChanges = function(nType, bAll)
 {
-    var Parent = this.Get_Parent();
-    var RunPos = this.private_GetPosInParent();
+	var Parent = this.Get_Parent();
+	var RunPos = this.private_GetPosInParent();
 
-    var ReviewType   = this.GetReviewType();
-    var HavePrChange = this.HavePrChange();
+	var ReviewType   = this.GetReviewType();
+	var HavePrChange = this.HavePrChange();
 
-    // Нет изменений в данном ране
-    if (reviewtype_Common === ReviewType && true !== HavePrChange)
-        return;
+	// Нет изменений в данном ране
+	if (reviewtype_Common === ReviewType && true !== HavePrChange)
+		return;
 
-    if (true === this.Selection.Use || true === bAll)
-    {
-        var StartPos = this.Selection.StartPos;
-        var EndPos = this.Selection.EndPos;
-        if (StartPos > EndPos)
-        {
-            StartPos = this.Selection.EndPos;
-            EndPos = this.Selection.StartPos;
-        }
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	var oProcessMove  = oTrackManager ? oTrackManager.GetProcessTrackMove() : null;
 
-        if (true === bAll)
-        {
-            StartPos = 0;
-            EndPos   = this.Content.length;
-        }
+	if (true === this.Selection.Use || true === bAll)
+	{
+		var StartPos = this.Selection.StartPos;
+		var EndPos   = this.Selection.EndPos;
+		if (StartPos > EndPos)
+		{
+			StartPos = this.Selection.EndPos;
+			EndPos   = this.Selection.StartPos;
+		}
 
-        var CenterRun = null, CenterRunPos = RunPos;
-        if (0 === StartPos && this.Content.length === EndPos)
-        {
-            CenterRun = this;
-        }
-        else if (StartPos > 0 && this.Content.length === EndPos)
-        {
-            CenterRun = this.Split2(StartPos, Parent, RunPos);
-            CenterRunPos = RunPos + 1;
-        }
-        else if (0 === StartPos && this.Content.length > EndPos)
-        {
-            CenterRun = this;
-            this.Split2(EndPos, Parent, RunPos);
-        }
-        else
-        {
-            this.Split2(EndPos, Parent, RunPos);
-            CenterRun = this.Split2(StartPos, Parent, RunPos);
-            CenterRunPos = RunPos + 1;
-        }
+		if (true === bAll)
+		{
+			StartPos = 0;
+			EndPos   = this.Content.length;
+		}
 
-        if (true === HavePrChange && (undefined === Type || c_oAscRevisionsChangeType.TextPr === Type))
-        {
-            CenterRun.RemovePrChange();
-        }
+		var CenterRun = null, CenterRunPos = RunPos;
+		if (0 === StartPos && this.Content.length === EndPos)
+		{
+			CenterRun = this;
+		}
+		else if (StartPos > 0 && this.Content.length === EndPos)
+		{
+			CenterRun    = this.Split2(StartPos, Parent, RunPos);
+			CenterRunPos = RunPos + 1;
+		}
+		else if (0 === StartPos && this.Content.length > EndPos)
+		{
+			CenterRun = this;
+			this.Split2(EndPos, Parent, RunPos);
+		}
+		else
+		{
+			this.Split2(EndPos, Parent, RunPos);
+			CenterRun    = this.Split2(StartPos, Parent, RunPos);
+			CenterRunPos = RunPos + 1;
+		}
 
-        if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.TextAdd === Type))
-        {
-            CenterRun.SetReviewType(reviewtype_Common);
-        }
-        else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.TextRem === Type))
-        {
-            Parent.Remove_FromContent(CenterRunPos, 1);
+		if (true === HavePrChange && (undefined === nType || c_oAscRevisionsChangeType.TextPr === nType))
+		{
+			CenterRun.RemovePrChange();
+		}
 
-            if (Parent.Get_ContentLength() <= 0)
-            {
-                Parent.RemoveSelection();
-                Parent.Add_ToContent(0, new ParaRun());
-                Parent.MoveCursorToStartPos();
-            }
-        }
-    }
+		if (reviewtype_Add === ReviewType
+			&& (undefined === nType
+			|| c_oAscRevisionsChangeType.TextAdd === nType
+			|| (c_oAscRevisionsChangeType.MoveMark === nType
+			&& Asc.c_oAscRevisionsMove.NoMove !== this.GetReviewMoveType()
+			&& oProcessMove
+			&& !oProcessMove.IsFrom()
+			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
+		{
+			CenterRun.SetReviewType(reviewtype_Common);
+		}
+		else if (reviewtype_Remove === ReviewType
+			&& (undefined === nType
+			|| c_oAscRevisionsChangeType.TextRem === nType
+			|| (c_oAscRevisionsChangeType.MoveMark === nType
+			&& Asc.c_oAscRevisionsMove.NoMove !== this.GetReviewMoveType()
+			&& oProcessMove
+			&& oProcessMove.IsFrom()
+			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
+		{
+			Parent.RemoveFromContent(CenterRunPos, 1);
+
+			if (Parent.GetContentLength() <= 0)
+			{
+				Parent.RemoveSelection();
+				Parent.AddToContent(0, new ParaRun());
+				Parent.MoveCursorToStartPos();
+			}
+		}
+	}
 };
-ParaRun.prototype.RejectRevisionChanges = function(Type, bAll)
+ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 {
-    var Parent = this.Get_Parent();
-    var RunPos = this.private_GetPosInParent();
+	var Parent = this.Get_Parent();
+	var RunPos = this.private_GetPosInParent();
 
-    var ReviewType   = this.GetReviewType();
-    var HavePrChange = this.HavePrChange();
+	var ReviewType   = this.GetReviewType();
+	var HavePrChange = this.HavePrChange();
 
-    // Нет изменений в данном ране
-    if (reviewtype_Common === ReviewType && true !== HavePrChange)
-        return;
+	// Нет изменений в данном ране
+	if (reviewtype_Common === ReviewType && true !== HavePrChange)
+		return;
 
-    if (true === this.Selection.Use || true === bAll)
-    {
-        var StartPos = this.Selection.StartPos;
-        var EndPos = this.Selection.EndPos;
-        if (StartPos > EndPos)
-        {
-            StartPos = this.Selection.EndPos;
-            EndPos = this.Selection.StartPos;
-        }
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	var oProcessMove  = oTrackManager ? oTrackManager.GetProcessTrackMove() : null;
 
-        if (true === bAll)
-        {
-            StartPos = 0;
-            EndPos   = this.Content.length;
-        }
+	if (true === this.Selection.Use || true === bAll)
+	{
+		var StartPos = this.Selection.StartPos;
+		var EndPos   = this.Selection.EndPos;
+		if (StartPos > EndPos)
+		{
+			StartPos = this.Selection.EndPos;
+			EndPos   = this.Selection.StartPos;
+		}
 
-        var CenterRun = null, CenterRunPos = RunPos;
-        if (0 === StartPos && this.Content.length === EndPos)
-        {
-            CenterRun = this;
-        }
-        else if (StartPos > 0 && this.Content.length === EndPos)
-        {
-            CenterRun = this.Split2(StartPos, Parent, RunPos);
-            CenterRunPos = RunPos + 1;
-        }
-        else if (0 === StartPos && this.Content.length > EndPos)
-        {
-            CenterRun = this;
-            this.Split2(EndPos, Parent, RunPos);
-        }
-        else
-        {
-            this.Split2(EndPos, Parent, RunPos);
-            CenterRun = this.Split2(StartPos, Parent, RunPos);
-            CenterRunPos = RunPos + 1;
-        }
+		if (true === bAll)
+		{
+			StartPos = 0;
+			EndPos   = this.Content.length;
+		}
 
-        if (true === HavePrChange && (undefined === Type || c_oAscRevisionsChangeType.TextPr === Type))
-        {
-            CenterRun.Set_Pr(CenterRun.Pr.PrChange);
-        }
+		var CenterRun = null, CenterRunPos = RunPos;
+		if (0 === StartPos && this.Content.length === EndPos)
+		{
+			CenterRun = this;
+		}
+		else if (StartPos > 0 && this.Content.length === EndPos)
+		{
+			CenterRun    = this.Split2(StartPos, Parent, RunPos);
+			CenterRunPos = RunPos + 1;
+		}
+		else if (0 === StartPos && this.Content.length > EndPos)
+		{
+			CenterRun = this;
+			this.Split2(EndPos, Parent, RunPos);
+		}
+		else
+		{
+			this.Split2(EndPos, Parent, RunPos);
+			CenterRun    = this.Split2(StartPos, Parent, RunPos);
+			CenterRunPos = RunPos + 1;
+		}
 
-        if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.TextAdd === Type))
-        {
-            Parent.Remove_FromContent(CenterRunPos, 1);
+		if (true === HavePrChange && (undefined === nType || c_oAscRevisionsChangeType.TextPr === nType))
+		{
+			CenterRun.Set_Pr(CenterRun.Pr.PrChange);
+		}
 
-            if (Parent.Get_ContentLength() <= 0)
-            {
-                Parent.RemoveSelection();
-                Parent.Add_ToContent(0, new ParaRun());
-                Parent.MoveCursorToStartPos();
-            }
-        }
-        else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.TextRem === Type))
-        {
-        	var oReviewInfo = this.GetReviewInfo();
-        	var oPrevInfo = oReviewInfo.GetPrevAdded();
-        	if (oPrevInfo)
+		if (reviewtype_Add === ReviewType
+			&& (undefined === nType
+			|| c_oAscRevisionsChangeType.TextAdd === nType
+			|| (c_oAscRevisionsChangeType.MoveMark === nType
+			&& Asc.c_oAscRevisionsMove.NoMove !== this.GetReviewMoveType()
+			&& oProcessMove
+			&& !oProcessMove.IsFrom()
+			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
+		{
+			Parent.RemoveFromContent(CenterRunPos, 1);
+
+			if (Parent.GetContentLength() <= 0)
+			{
+				Parent.RemoveSelection();
+				Parent.AddToContent(0, new ParaRun());
+				Parent.MoveCursorToStartPos();
+			}
+		}
+		else if (reviewtype_Remove === ReviewType
+			&& (undefined === nType
+			|| c_oAscRevisionsChangeType.TextRem === nType
+			|| (c_oAscRevisionsChangeType.MoveMark === nType
+			&& Asc.c_oAscRevisionsMove.NoMove !== this.GetReviewMoveType()
+			&& oProcessMove
+			&& oProcessMove.IsFrom()
+			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
+		{
+			var oReviewInfo = this.GetReviewInfo();
+			var oPrevInfo   = oReviewInfo.GetPrevAdded();
+			if (oPrevInfo && c_oAscRevisionsChangeType.MoveMark !== nType)
 			{
 				CenterRun.SetReviewTypeWithInfo(reviewtype_Add, oPrevInfo.Copy());
 			}
@@ -10077,8 +10126,8 @@ ParaRun.prototype.RejectRevisionChanges = function(Type, bAll)
 			{
 				CenterRun.SetReviewType(reviewtype_Common);
 			}
-        }
-    }
+		}
+	}
 };
 ParaRun.prototype.Is_InHyperlink = function()
 {

@@ -18488,23 +18488,20 @@ function CDocumentCompareDrawingsLogicPositions(Drawing1, Drawing2)
     this.Result   = 0;
 }
 
-function CTrackRevisionsManager(LogicDocument)
+function CTrackRevisionsManager(oLogicDocument)
 {
-    this.LogicDocument = LogicDocument;
-    this.CheckElements = {}; // Элементы, которые нужно проверить
-	this.Changes       = {}; // Объект с ключом - Id параграфа, в котором лежит массив изменений
-	
-	this.ChangesOutline = []; // Упорядоченный массив с объектами, в которых есть изменения в рецензировании
+	this.LogicDocument     = oLogicDocument;
+	this.CheckElements     = {};   // Элементы, которые нужно проверить
+	this.Changes           = {};   // Объект с ключом - Id параграфа, в котором лежит массив изменений
+	this.ChangesOutline    = [];   // Упорядоченный массив с объектами, в которых есть изменения в рецензировании
+	this.CurChange         = null; // Текущее изменение
+	this.CurElement        = null; // Элемент с текущим изменением
+	this.VisibleChanges    = [];   // Изменения, которые отображаются в сплывающем окне
+	this.OldVisibleChanges = [];
 
-    this.CurChange     = null; // Текущее изменение
-    this.CurElement    = null; // Элемент с текущим изменением
-
-    this.VisibleChanges    = []; // Изменения, которые отображаются в сплывающем окне
-    this.OldVisibleChanges = [];
-
-    this.MoveId            = 1;
-
-    this.MoveMarks = {};
+	this.MoveId      = 1;
+	this.MoveMarks   = {};
+	this.ProcessMove = null;
 }
 
 /**
@@ -19515,7 +19512,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 /**
  * Получаем массив всех изменений связанных с заданным переносом
  * @param {string} sMoveId
- * @returns {Array.CRevisionsChange}
+ * @returns {CRevisionsChange[]}
  */
 CTrackRevisionsManager.prototype.GetAllMoveChanges = function(sMoveId)
 {
@@ -19530,7 +19527,7 @@ CTrackRevisionsManager.prototype.GetAllMoveChanges = function(sMoveId)
 			var oCurChange = arrElementChanges[nChangeIndex];
 			if (c_oAscRevisionsChangeType.MoveMark === oCurChange.GetType() && sMoveId === oCurChange.GetValue().GetMarkId() && oCurChange.GetValue().IsStart())
 			{
-				if (oCurChange.GetValue().IsFrom())			
+				if (oCurChange.GetValue().IsFrom())
 					oStartFromChange = oCurChange;
 				else
 					oStartToChange = oCurChange;
@@ -19548,6 +19545,87 @@ CTrackRevisionsManager.prototype.GetAllMoveChanges = function(sMoveId)
 		From : this.CollectMoveChange(oStartFromChange).GetSimpleChanges(),
 		To   : this.CollectMoveChange(oStartToChange).GetSimpleChanges()
 	};
+};
+/**
+ * Начинаем процесс обработки(принятия или отклонения) перетаскивания текста
+ * @param sMoveId {string} идентификатор перетаскивания
+ * @param sUserId {string} идентификатор пользователя
+ * @returns {CTrackRevisionsMoveProcessEngine}
+ */
+CTrackRevisionsManager.prototype.StartProcessReviewMove = function(sMoveId, sUserId)
+{
+	return (this.ProcessMove = new CTrackRevisionsMoveProcessEngine(sMoveId, sUserId));
+};
+/**
+ * Завершаем процесс обработки перетаскивания текста
+ */
+CTrackRevisionsManager.prototype.EndProcessReviewMove = function()
+{
+	// TODO: Здесь нужно сделать обработку MovesToDelete
+
+	this.ProcessMove = null;
+};
+/**
+ * Проверям, запущен ли процесс обрабокти перетаскивания текста
+ * @returns {?CTrackRevisionsMoveProcessEngine}
+ */
+CTrackRevisionsManager.prototype.GetProcessTrackMove = function()
+{
+	return this.ProcessMove;
+};
+
+/**
+ * Класс для обработки (принятия/отклонения) изменения связанного с переносом
+ * @param sMoveId
+ * @param sUserId
+ * @constructor
+ */
+function CTrackRevisionsMoveProcessEngine(sMoveId, sUserId)
+{
+	this.MoveId        = sMoveId; // Идентификатор обрабаываемого переноса
+	this.UserId        = sUserId; // Идентификатор пользователя, сделавшего перенос
+	this.From          = false;   // Фаза обработки (обрабатываем удаленную или вставленную часть)
+	this.MovesToDelete = {};      // Если в процессе обработки встретились отметки других переносов, тогда мы превратим такие переносы в обычный добавлненый/удаленный текст
+}
+/**
+ * Меняем фазу проверки
+ * @param {boolean} isFrom
+ */
+CTrackRevisionsMoveProcessEngine.prototype.SetFrom = function(isFrom)
+{
+	this.From = isFrom;
+};
+/**
+ * Получаем индентификатор переноса
+ * @returns {string}
+ */
+CTrackRevisionsMoveProcessEngine.prototype.GetMoveId = function()
+{
+	return this.MoveId;
+};
+/**
+ * Проверяем, происходит ли сейчас обработка удаленного текста во время переноса
+ * @returns {boolean}
+ */
+CTrackRevisionsMoveProcessEngine.prototype.IsFrom = function()
+{
+	return this.From;
+};
+/**
+ * Регистрируем наличие меток другого переноса во время обработки заданного переноса
+ * @param sMoveId {string}
+ */
+CTrackRevisionsMoveProcessEngine.prototype.RegisterOtherMove = function(sMoveId)
+{
+	this.MovesToDelete[sMoveId] = sMoveId;
+};
+/**
+ * Получаем идентификатор пользователя, сделавшего перенос, который сейчас обрабатывается
+ * @returns {string}
+ */
+CTrackRevisionsMoveProcessEngine.prototype.GetUserId = function()
+{
+	return this.UserId;
 };
 
 

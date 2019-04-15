@@ -12312,6 +12312,9 @@ Paragraph.prototype.UpdateDocumentOutline = function()
 };
 Paragraph.prototype.AcceptRevisionChanges = function(Type, bAll)
 {
+	var oTrackManager = this.LogicDocument ? this.LogicDocument.GetTrackRevisionsManager() : null;
+	var oProcessMove  = oTrackManager ? oTrackManager.GetProcessTrackMove() : null;
+
     if (true === this.Selection.Use || true === bAll)
     {
         var StartPos = this.Selection.StartPos;
@@ -12336,25 +12339,36 @@ Paragraph.prototype.AcceptRevisionChanges = function(Type, bAll)
                 this.Content[this.Content.length - 1].AcceptPrChange();
         }
 
-        // Начинаем с конца, потому что при выполнении данной функции, количество элементов может изменяться
-        for (var CurPos = EndPos; CurPos >= StartPos; CurPos--)
-        {
-			if (para_RevisionMove === this.Content[CurPos].Type && c_oAscRevisionsChangeType.MoveMark === Type)
+		if (oTrackManager && oTrackManager.GetProcessTrackMove() && c_oAscRevisionsChangeType.MoveMark === Type && this.IsSelectionToEnd())
+		{
+			var oParaEndRun = this.GetParaEndRun();
+			oParaEndRun.RemoveTrackMoveMarks(oTrackManager);
+		}
+
+		// Начинаем с конца, потому что при выполнении данной функции, количество элементов может изменяться
+        for (var nCurPos = EndPos; nCurPos >= StartPos; --nCurPos)
+		{
+			var oItem = this.Content[nCurPos];
+			if (c_oAscRevisionsChangeType.MoveMark === Type
+				&& para_RevisionMove === oItem.Type
+				&& oProcessMove)
 			{
-				this.RemoveFromContent(CurPos, 1);
+				if (oItem.GetMarkId() === oProcessMove.GetMoveId())
+				{
+					if (oItem.IsFrom() === oProcessMove.IsFrom())
+						this.RemoveFromContent(nCurPos, 1);
+				}
+				else
+				{
+					oProcessMove.RegisterOtherMove(oItem.GetMarkId());
+				}
 			}
-			else if (this.Content[CurPos].AcceptRevisionChanges)
+			else if (oItem.AcceptRevisionChanges)
 			{
-				this.Content[CurPos].AcceptRevisionChanges(Type, bAll);
+				oItem.AcceptRevisionChanges(Type, bAll);
 			}
 		}
 		
-		if (c_oAscRevisionsChangeType.MoveMark === Type && this.IsSelectionToEnd())
-		{
-			var oParaEndRun = this.GetParaEndRun();
-			oParaEndRun.ClearReviewMoveMarks();
-		}
-
         this.Correct_Content();
         this.Correct_ContentPos(false);
         this.private_UpdateTrackRevisions();
@@ -12362,53 +12376,67 @@ Paragraph.prototype.AcceptRevisionChanges = function(Type, bAll)
 };
 Paragraph.prototype.RejectRevisionChanges = function(Type, bAll)
 {
-    if (true === this.Selection.Use || true === bAll)
-    {
-        var StartPos = this.Selection.StartPos;
-        var EndPos   = this.Selection.EndPos;
-        if (StartPos > EndPos)
-        {
-            StartPos = this.Selection.EndPos;
-            EndPos   = this.Selection.StartPos;
-        }
+	var oTrackManager = this.LogicDocument ? this.LogicDocument.GetTrackRevisionsManager() : null;
+	var oProcessMove  = oTrackManager ? oTrackManager.GetProcessTrackMove() : null;
 
-        if (true === bAll)
-        {
-            StartPos = 0;
-            EndPos   = this.Content.length - 1;
-        }
-
-        // TODO: Как переделаем ParaEnd переделать здесь
-        if (EndPos >= this.Content.length - 1)
-        {
-            EndPos = this.Content.length - 2;
-            if (true === bAll || undefined === Type || c_oAscRevisionsChangeType.TextPr === Type)
-                this.Content[this.Content.length - 1].RejectPrChange();
-        }
-
-        // Начинаем с конца, потому что при выполнении данной фунцкции, количество элементов может изменяться
-        for (var CurPos = EndPos; CurPos >= StartPos; CurPos--)
-        {
-			if (para_RevisionMove === this.Content[CurPos].Type && c_oAscRevisionsChangeType.MoveMark === Type)
-			{
-				this.RemoveFromContent(CurPos, 1);
-			}
-			else if (this.Content[CurPos].RejectRevisionChanges)
-			{
-				this.Content[CurPos].RejectRevisionChanges(Type, bAll);
-			}
+	if (true === this.Selection.Use || true === bAll)
+	{
+		var StartPos = this.Selection.StartPos;
+		var EndPos   = this.Selection.EndPos;
+		if (StartPos > EndPos)
+		{
+			StartPos = this.Selection.EndPos;
+			EndPos   = this.Selection.StartPos;
 		}
-		
-		if (c_oAscRevisionsChangeType.MoveMark === Type && this.IsSelectionToEnd())
+
+		if (true === bAll)
+		{
+			StartPos = 0;
+			EndPos   = this.Content.length - 1;
+		}
+
+		// TODO: Как переделаем ParaEnd переделать здесь
+		if (EndPos >= this.Content.length - 1)
+		{
+			EndPos = this.Content.length - 2;
+			if (true === bAll || undefined === Type || c_oAscRevisionsChangeType.TextPr === Type)
+				this.Content[this.Content.length - 1].RejectPrChange();
+		}
+
+		if (oTrackManager && oTrackManager.GetProcessTrackMove() && c_oAscRevisionsChangeType.MoveMark === Type && this.IsSelectionToEnd())
 		{
 			var oParaEndRun = this.GetParaEndRun();
-			oParaEndRun.ClearReviewMoveMarks();
+			oParaEndRun.RemoveTrackMoveMarks(oTrackManager);
 		}
 
-        this.Correct_Content();
-        this.Correct_ContentPos(false);
-        this.private_UpdateTrackRevisions();
-    }
+		// Начинаем с конца, потому что при выполнении данной фунцкции, количество элементов может изменяться
+		for (var nCurPos = EndPos; nCurPos >= StartPos; --nCurPos)
+		{
+			var oItem = this.Content[nCurPos];
+			if (c_oAscRevisionsChangeType.MoveMark === Type
+				&& para_RevisionMove === oItem.Type
+				&& oProcessMove)
+			{
+				if (oItem.GetMarkId() === oProcessMove.GetMoveId())
+				{
+					if (oItem.IsFrom() === oProcessMove.IsFrom())
+						this.RemoveFromContent(nCurPos, 1);
+				}
+				else
+				{
+					oProcessMove.RegisterOtherMove(oItem.GetMarkId());
+				}
+			}
+			else if (oItem.RejectRevisionChanges)
+			{
+				oItem.RejectRevisionChanges(Type, bAll);
+			}
+		}
+
+		this.Correct_Content();
+		this.Correct_ContentPos(false);
+		this.private_UpdateTrackRevisions();
+	}
 };
 Paragraph.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
@@ -12630,7 +12658,7 @@ Paragraph.prototype.Get_XYByContentPos = function(ContentPos)
 	this.Set_ParaContentPos(ParaContentPos, true, this.CurPos.Line, this.CurPos.Range, false);
 	return Result;
 };
-Paragraph.prototype.Get_ContentLength = function()
+Paragraph.prototype.GetContentLength = function()
 {
     return this.Content.length;
 };
