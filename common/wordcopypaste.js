@@ -5480,7 +5480,9 @@ PasteProcessor.prototype =
 						var nUnicode = oIterator.value();
 
 						var Item;
-						if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
+						if(0x0A === nUnicode || 0x0D === nUnicode) {
+							Item = new ParaNewLine(break_Line);
+						} else if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
 							Item = new ParaText(nUnicode);
 						} else {
 							Item = new ParaSpace();
