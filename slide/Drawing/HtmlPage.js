@@ -299,6 +299,7 @@ function CEditorPage(api)
 
 	// сплиттеры (для табнейлов и для заметок)
 	this.Splitter1Pos    = 0;
+    this.Splitter1PosSetUp = 0;
 	this.Splitter1PosMin = 0;
 	this.Splitter1PosMax = 0;
 
@@ -450,6 +451,7 @@ function CEditorPage(api)
 		this.m_oBody = CreateControlContainer(this.Name);
 
 		this.Splitter1Pos    = 67.5;
+        this.Splitter1PosSetUp = this.Splitter1Pos;
 		this.Splitter2Pos    = (this.IsSupportNotes === true) ? 11 : 0;
 
 		this.OldSplitter1Pos = this.Splitter1Pos;
@@ -1987,7 +1989,7 @@ function CEditorPage(api)
 			AscCommon.stopEvent(e);
 	};
 
-	this.OnResizeSplitter = function()
+	this.OnResizeSplitter = function(isNoNeedResize)
 	{
 		this.OldSplitter1Pos = this.Splitter1Pos;
 
@@ -2043,7 +2045,8 @@ function CEditorPage(api)
 			this.m_oNotes_scroll.HtmlElement.style.display = "block";
 		}
 
-		this.OnResize2(true);
+		if (true !== isNoNeedResize)
+			this.OnResize2(true);
 	};
 
 	this.onBodyMouseUp = function(e)
@@ -2074,6 +2077,7 @@ function CEditorPage(api)
 				if (Math.abs(oWordControl.Splitter1Pos - _posX) > 1)
 				{
 					oWordControl.Splitter1Pos = _posX;
+                    oWordControl.Splitter1PosSetUp = oWordControl.Splitter1Pos;
 					oWordControl.OnResizeSplitter();
 					oWordControl.m_oApi.syncOnThumbnailsShow();
 				}
@@ -3011,6 +3015,24 @@ function CEditorPage(api)
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_Before();
 
+		if (true)
+		{
+            var maxSplitterThMax = g_dKoef_pix_to_mm * this.Width / 3;
+            if (maxSplitterThMax > 80)
+            	maxSplitterThMax = 80;
+
+			this.Splitter1PosMin = maxSplitterThMax >> 2;
+			this.Splitter1PosMax = maxSplitterThMax >> 0;
+
+            this.Splitter1Pos = this.Splitter1PosSetUp;
+            if (this.Splitter1Pos < this.Splitter1PosMin)
+                this.Splitter1Pos = this.Splitter1PosMin;
+            if (this.Splitter1Pos > this.Splitter1PosMax)
+                this.Splitter1Pos = this.Splitter1PosMax;
+
+            this.OnResizeSplitter(true);
+        }
+
 		//console.log("resize");
 		this.CheckRetinaDisplay();
 
@@ -3339,6 +3361,7 @@ function CEditorPage(api)
 			{
 				this.m_oPanelRight.Bounds.B = 0;
 				this.m_oMainView.Bounds.B   = 0;
+                this.m_oScrollHor.HtmlElement.style.display = 'none';
 			}
 			else
 			{
