@@ -2149,8 +2149,8 @@ DrawingObjectsController.prototype =
                         {
                             drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(true, oldGlobalAlpha);
                         }
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CROP, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
                         drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CROP, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
                     }
                 }
             }
@@ -3575,8 +3575,15 @@ DrawingObjectsController.prototype =
                 {
                     var oBlipFill = objects_by_type.images[i].blipFill.createDuplicate();
                     oBlipFill.tile = null;
-                    oBlipFill.stretch = true;
+                    oBlipFill.stretch = null;
                     oBlipFill.srcRect = null;
+                    if(!oBlipFill.srcRect){
+                        oBlipFill.srcRect = new AscFormat.CSrcRect();
+                        oBlipFill.srcRect.l = 0;
+                        oBlipFill.srcRect.t = 0;
+                        oBlipFill.srcRect.r = 100;
+                        oBlipFill.srcRect.b = 100;
+                    }
                     objects_by_type.images[i].setBlipFill(oBlipFill);
                 }
 

@@ -9721,6 +9721,7 @@ function CorrectUniFill(asc_fill, unifill, editorId)
                 if (tile == c_oAscFillBlipType.STRETCH)
                 {
                     ret.fill.tile = null;
+                    ret.fill.srcRect = null;
                     ret.fill.stretch = true;
                 }
                 else if (tile == c_oAscFillBlipType.TILE)
