@@ -11399,7 +11399,7 @@
 					AscCommonExcel.checkFilteringMode(function () {
 						t.model.setColHidden(true, arn.c1, arn.c2);
 						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
-						t._updateGroups();
+						t._updateGroups(true);
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
 						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
@@ -15634,20 +15634,27 @@
 	}
 
 	//GROUP DATA FUNCTIONS
-	WorksheetView.prototype._updateGroups = function(bCol, start, end) {
+	WorksheetView.prototype._updateGroups = function(bCol, start, end, bUpdateOnlyRowLevelMap) {
 		console_time('_updateRowGroups');
 		if(bCol) {
-			this.arrColGroups = this.getGroupDataArray(true, start, end);
-			this.groupHeight = this.getGroupCommonWidth(this.getGroupCommonLevel(true));
+			if(bUpdateOnlyRowLevelMap) {
+				this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
+			} else {
+				this.arrColGroups = this.getGroupDataArray(bCol, start, end);
+				this.groupHeight = this.getGroupCommonWidth(this.getGroupCommonLevel(bCol));
+			}
 		} else {
-			this.arrRowGroups = this.getGroupDataArray(null, start, end);
-			this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
+			if(bUpdateOnlyRowLevelMap) {
+				this.arrRowGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
+			} else {
+				this.arrRowGroups = this.getGroupDataArray(bCol, start, end);
+				this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
+			}
 		}
 		console_time_end('_updateRowGroups');
 	};
 
-
-	WorksheetView.prototype.getGroupDataArray = function (bCol, start, end) {
+	WorksheetView.prototype.getGroupDataArray = function (bCol, start, end, bUpdateOnlyRowLevelMap) {
 		//проходимся по диапазону, и проверяем верхние/нижние строчки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
 
@@ -15663,6 +15670,11 @@
 		var fProcess = function(val){
 			var outLineLevel = val.getOutlineLevel();
 			var collapsed = val.getCollapsed();
+
+			levelMap[val.index] = {level: outLineLevel, collapsed: collapsed};
+			if(bUpdateOnlyRowLevelMap) {
+				return;
+			}
 
 			var continueRange = function(level, index) {
 				var tempNeedPush = true;
@@ -15682,7 +15694,6 @@
 				return tempNeedPush;
 			};
 
-			levelMap[val.index] = {level: outLineLevel, collapsed: collapsed};
 			if(!outLineLevel) {
 				if(start === val.index) {
 					up = false;
@@ -16601,7 +16612,7 @@
 				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 			}
 			//тут требуется обновить только rowLevelMap
-			t._updateGroups(bCol);
+			t._updateGroups(bCol, undefined, undefined, true);
 
 			t.draw(lockDraw);
 
@@ -16738,7 +16749,7 @@
 				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 			}
 			//тут требуется обновить только rowLevelMap
-			t._updateGroups(bCol);
+			t._updateGroups(bCol, undefined, undefined, true);
 
 			t.draw(lockDraw);
 
