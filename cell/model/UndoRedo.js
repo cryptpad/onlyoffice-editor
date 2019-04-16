@@ -2423,7 +2423,7 @@ function (window, undefined) {
 				}
 			});
 			//TODO need redraw group lines
-		} else if(AscCH.historyitem_Worksheet_CollapsedRow) {
+		} else if(AscCH.historyitem_Worksheet_CollapsedRow == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
 				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
@@ -2440,9 +2440,11 @@ function (window, undefined) {
 					row.setCollapsed(Data.oNewVal);
 				}
 			});
-			
+
+			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			worksheetView._updateGroups(false, undefined, undefined, true);
 			//TODO need redraw group lines
-		} else if(AscCH.historyitem_Worksheet_CollapsedCol) {
+		} else if(AscCH.historyitem_Worksheet_CollapsedCol == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
 				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
@@ -2452,14 +2454,18 @@ function (window, undefined) {
 				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
 				wb.aCollaborativeChangeElements.push(oLockInfo);
 			}
-			ws._getCol(index, function (col) {
+
+			col = ws._getCol(index);
+			if(col) {
 				if (bUndo) {
 					col.setCollapsed(Data.oOldVal);
 				} else {
 					col.setCollapsed(Data.oNewVal);
 				}
-			});
+			}
 
+			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			worksheetView._updateGroups(true, undefined, undefined, true);
 			//TODO need redraw group lines
 		} else if (AscCH.historyitem_Worksheet_GroupCol == Type) {
 			index = Data.index;

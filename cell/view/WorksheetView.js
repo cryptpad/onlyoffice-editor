@@ -887,6 +887,7 @@
             t.model.setColWidth(cc, col, col);
             t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
             t.changeWorksheet("update", {reinitRanges: true});
+			t._updateGroups(true, undefined, undefined, true);
             t._updateVisibleColsCount();
 			t.cellCommentator.updateActiveComment();
             t.cellCommentator.updateAreaComments();
@@ -946,7 +947,7 @@
             t.model.autoFilters.reDrawFilter(null, row);
             t._cleanCache(new asc_Range(0, row, t.cols.length - 1, row));
             t.changeWorksheet("update", {reinitRanges: true});
-            t._updateGroups();
+            t._updateGroups(false, undefined, undefined, true);
             t._updateVisibleRowsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
