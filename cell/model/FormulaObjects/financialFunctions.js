@@ -1956,7 +1956,7 @@
 			return new cNumber(0);
 		}
 
-		if (cost < salvage || cost <= 0 || salvage < 0 || factor <= 0 || life <= 0 || period <= 0 || life < period) {
+		if (/*cost < salvage ||*/ cost <= 0 || salvage < 0 || factor <= 0 || life <= 0 || period <= 0 || life < period) {
 			return new cError(cErrorType.not_numeric);
 		}
 
