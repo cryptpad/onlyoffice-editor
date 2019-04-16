@@ -73,8 +73,109 @@ function CheckWordArtTextPr(oRun)
     return false;
 }
 
+
+function hitInRect(x, y, l, t, r, b)
+{
+    return x >= l && x <= r && y >= t && y <= b;
+}
+
+function hitToCropHandles(x, y, object)
+{
+    var invert_transform = object.getInvertTransform();
+    if(!invert_transform)
+    {
+        return -1;
+    }
+    var t_x, t_y;
+    t_x = invert_transform.TransformPointX(x, y);
+    t_y = invert_transform.TransformPointY(x, y);
+    var fCoeff = object.convertPixToMM(1);
+    var fCoeff2 = 1/fCoeff;
+
+
+    var widthCorner = (object.extX*fCoeff2 + 1) >> 1;
+    var isCentralMarkerX = widthCorner > 40 ? true : false;
+    if (widthCorner > 17)
+        widthCorner = 17;
+    var heightCorner = (object.extY*fCoeff2 + 1) >> 1;
+    var isCentralMarkerY = heightCorner > 40 ? true : false;
+    if (heightCorner > 17)
+        heightCorner = 17;
+
+    widthCorner *= fCoeff;
+    heightCorner *= fCoeff;
+    var markerWidth = 5*fCoeff;
+
+    if(hitInRect(t_x, t_y, 0, 0, widthCorner, markerWidth))
+    {
+        return 0;
+    }
+    if(hitInRect(t_x, t_y, 0, 0, markerWidth, heightCorner))
+    {
+        return 0;
+    }
+
+    if(isCentralMarkerX)
+    {
+        if(hitInRect(t_x, t_y, object.extX/2 - widthCorner/2, 0, object.extX/2 + widthCorner/2, markerWidth))
+        {
+            return 1;
+        }
+        if(hitInRect(t_x, t_y, object.extX/2 - widthCorner/2, object.extY - markerWidth, object.extX/2 + widthCorner/2, object.extY))
+        {
+            return 5;
+        }
+    }
+
+    if(hitInRect(t_x, t_y, object.extX - widthCorner, 0, object.extX, markerWidth))
+    {
+        return 2;
+    }
+    if(hitInRect(t_x, t_y, object.extX - markerWidth, 0, object.extX, heightCorner))
+    {
+        return 2;
+    }
+
+    if(isCentralMarkerY)
+    {
+        if(hitInRect(t_x, t_y, object.extX - markerWidth, object.extY/2 - heightCorner/2, object.extY, object.extY/2 + heightCorner/2))
+        {
+            return 3;
+        }
+        if(hitInRect(t_x, t_y, 0, object.extY/2 - heightCorner/2, markerWidth, object.extY/2 + heightCorner/2))
+        {
+            return 7;
+        }
+    }
+
+    if(hitInRect(t_x, t_y, object.extX - markerWidth, object.extY - heightCorner, object.extX, object.extY))
+    {
+        return 4;
+    }
+    if(hitInRect(t_x, t_y, object.extX - widthCorner, object.extY - markerWidth, object.extX, object.extY))
+    {
+        return 4;
+    }
+
+    if(hitInRect(t_x, t_y, 0, object.extY - heightCorner, markerWidth, object.extY))
+    {
+        return 6;
+    }
+    if(hitInRect(t_x, t_y, 0, object.extY - markerWidth, widthCorner, object.extY))
+    {
+        return 6;
+    }
+
+    return -1;
+
+}
+
 function hitToHandles(x, y, object)
 {
+    if(object.cropObject)
+    {
+        return hitToCropHandles(x, y, object);
+    }
     var invert_transform = object.getInvertTransform();
     if(!invert_transform)
     {
