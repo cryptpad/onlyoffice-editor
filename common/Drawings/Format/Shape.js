@@ -138,7 +138,7 @@ function hitToCropHandles(x, y, object)
 
     if(isCentralMarkerY)
     {
-        if(hitInRect(t_x, t_y, object.extX - markerWidth, object.extY/2 - heightCorner/2, object.extY, object.extY/2 + heightCorner/2))
+        if(hitInRect(t_x, t_y, object.extX - markerWidth, object.extY/2 - heightCorner/2, object.extX, object.extY/2 + heightCorner/2))
         {
             return 3;
         }
