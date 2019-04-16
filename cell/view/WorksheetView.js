@@ -12412,7 +12412,7 @@
 		var oldMode = this.isFormulaEditMode;
 		this.isFormulaEditMode = false;
 
-		t.model.workbook.dependencyFormulas.lockRecal();
+		//t.model.workbook.dependencyFormulas.lockRecal();
 
 		if (!isNotHistory) {
 			History.Create_NewPoint();
@@ -12463,7 +12463,7 @@
 			if (!ret) {
 				this.isFormulaEditMode = oldMode;
 				History.EndTransaction();
-				t.model.workbook.dependencyFormulas.unlockRecal();
+				//t.model.workbook.dependencyFormulas.unlockRecal();
 				return false;
 			}
 
@@ -12518,7 +12518,7 @@
 			t.handlers.trigger("toggleAutoCorrectOptions");
 		}
 
-		t.model.workbook.dependencyFormulas.unlockRecal();
+		//t.model.workbook.dependencyFormulas.unlockRecal();
 
 		this.canChangeColWidth = isNotHistory ? c_oAscCanChangeColWidth.none : c_oAscCanChangeColWidth.numbers;
 		this._updateRange(bbox);
