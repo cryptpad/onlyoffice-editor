@@ -18826,7 +18826,35 @@ CTrackRevisionsManager.prototype.AddVisibleChange = function(oChange)
 		return;
 
 	if (oChange.IsMove() && !oChange.IsComplexChange())
-		oChange = this.CollectMoveChange(oChange);		
+		oChange = this.CollectMoveChange(oChange);
+
+	for (var nIndex = 0, nCount = this.VisibleChanges.length; nIndex < nCount; ++nIndex)
+	{
+		var oVisChange = this.VisibleChanges[nIndex];
+		if (oVisChange.IsComplexChange() && !oChange.IsComplexChange())
+		{
+			var arrSimpleChanges = oVisChange.GetSimpleChanges();
+			for (var nSimpleIndex = 0, nSimpleCount = arrSimpleChanges.length; nSimpleIndex < nSimpleCount; ++nSimpleIndex)
+			{
+				if (arrSimpleChanges[nSimpleIndex] === oChange)
+					return;
+			}
+		}
+		else if (!oVisChange.IsComplexChange() && oChange.IsComplexChange())
+		{
+			var arrSimpleChanges = oChange.GetSimpleChanges();
+			for (var nSimpleIndex = 0, nSimpleCount = arrSimpleChanges.length; nSimpleIndex < nSimpleCount; ++nSimpleIndex)
+			{
+				if (arrSimpleChanges[nSimpleIndex] === oVisChange)
+				{
+					this.VisibleChanges.splice(nIndex, 1);
+					nCount--;
+					nIndex--;
+					break;
+				}
+			}
+		}
+	}
 
     this.VisibleChanges.push(oChange);
 };
@@ -19399,7 +19427,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 					{
 						if (0 === nDeep)
 						{
-							sValue += oCurChange.GetValue();
+							sValue += c_oAscRevisionsChangeType.TextRem === nCurChangeType ? oCurChange.GetValue() : "\n";
 							arrChanges.push(oCurChange);
 						}
 					}
@@ -19427,7 +19455,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 					{
 						if (0 === nDeep)
 						{
-							sValue += oCurChange.GetValue();
+							sValue += c_oAscRevisionsChangeType.TextAdd === nCurChangeType ? oCurChange.GetValue() : "\n";
 							arrChanges.push(oCurChange);
 						}
 					}
