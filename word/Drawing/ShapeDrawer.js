@@ -724,8 +724,6 @@ CShapeDrawer.prototype =
             {
                 if (this.IsRectShape)
                 {
-                    this.Graphics._s();
-
                     if ((null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
                     {
                         this.Graphics.drawImage(getFullImageSrc2(this.UniFill.fill.RasterImageId), this.min_x, this.min_y, (this.max_x - this.min_x), (this.max_y - this.min_y), undefined, this.UniFill.fill.srcRect, this.UniFill.fill.canvas);
