@@ -8605,7 +8605,7 @@ ParaRun.prototype.RemoveTrackMoveMarks = function(oTrackManager)
         	if (sMoveId === oItem.GetMarkId())
 			{
 				if (isFrom === oItem.IsFrom())
-				this.RemoveFromContent(nPos, 1);
+				this.RemoveFromContent(nPos, 1, true);
 			}
         	else
 			{
