@@ -147,6 +147,9 @@
 				this.transpose = null;
 
 				this.comment = null;
+
+				//for paste text as csv
+				this.advancedOptions = null;
 			},
 			asc_setProps: function (props) {
 				this.property = props;
@@ -240,6 +243,9 @@
 						break;
 					}
 				}
+			},
+			asc_setAdvancedOptions: function (props) {
+				this.advancedOptions = props;
 			}
 
 		};
@@ -4289,5 +4295,7 @@
 		window["Asc"]["SpecialPasteProps"]       = window["Asc"].SpecialPasteProps = CSpecialPasteProps;
 		prot									 = CSpecialPasteProps.prototype;
 		prot["asc_setProps"]				     = prot.asc_setProps;
+		prot["asc_setAdvancedOptions"]			 = prot.asc_setAdvancedOptions;
+
 	}
 )(jQuery, window);
