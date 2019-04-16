@@ -2332,7 +2332,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_changeGroupDetails = function(bExpand) {
-	  this.wb.getWorksheet().collapseGroup(bExpand);
+	  this.wb.getWorksheet().changeGroupDetails(bExpand);
   };
 
   spreadsheet_api.prototype.asc_insertCells = function(options) {

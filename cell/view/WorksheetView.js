@@ -16793,40 +16793,46 @@
 		console_time_end("hideGroupLevel");
 	};
 
-	WorksheetView.prototype.collapseGroup = function (bExpand) {
+	WorksheetView.prototype.changeGroupDetails = function (bExpand) {
 		//multiselect
-		if(t.model.selectionRange.ranges.length > 1) {
+		if(this.model.selectionRange.ranges.length > 1) {
 			return;
 		}
 
 		var ar = this.model.selectionRange.getLast().clone();
 		var t = this;
-		var arrayLines = bCol ? t.arrColGroups.groupArr : t.arrRowGroups.groupArr;
 
 		var collapsedArrRow = [];
-		for(var i = 0; i < arrayLines.length; i++) {
-			if(arrayLines[i]) {
-				for(var j = 0; j < arrayLines[i].length; j++) {
-					var outLineGroupRange = Asc.Range(0, arrayLines[i][j].start, gc_nMaxCol, arrayLines[i][j].end + 1);
-					if(outLineGroupRange.intersection(ar)) {
-						collapsedArrRow.push(outLineGroupRange);
+		var arrayLines = t.arrRowGroups.groupArr;
+		if(arrayLines) {
+			for(var i = 0; i < arrayLines.length; i++) {
+				if(arrayLines[i]) {
+					for(var j = 0; j < arrayLines[i].length; j++) {
+						var outLineGroupRange = Asc.Range(0, arrayLines[i][j].start, gc_nMaxCol, arrayLines[i][j].end + 1);
+						if(outLineGroupRange.intersection(ar)) {
+							collapsedArrRow.push(outLineGroupRange);
+						}
 					}
-				}
 
+				}
 			}
 		}
 
+		arrayLines = t.arrColGroups.groupArr;
 		var collapsedArrCol = [];
-		for(i = 0; i < arrayLines.length; i++) {
-			if(arrayLines[i]) {
-				for(j = 0; j < arrayLines[i].length; j++) {
-					outLineGroupRange = Asc.Range(arrayLines[i][j].start, 0, arrayLines[i][j].end + 1, gc_nMaxRow);
-					if(outLineGroupRange.intersection(ar)) {
-						collapsedArrCol.push(outLineGroupRange);
+		if(arrayLines) {
+			for(i = 0; i < arrayLines.length; i++) {
+				if(arrayLines[i]) {
+					for(j = 0; j < arrayLines[i].length; j++) {
+						outLineGroupRange = Asc.Range(arrayLines[i][j].start, 0, arrayLines[i][j].end + 1, gc_nMaxRow);
+						if(outLineGroupRange.intersection(ar)) {
+							collapsedArrCol.push(outLineGroupRange);
+						}
 					}
 				}
 			}
 		}
+		
 
 		var callback = function(isSuccess) {
 			if (false === isSuccess) {
