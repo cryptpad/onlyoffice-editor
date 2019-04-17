@@ -45,7 +45,6 @@
 	var gc_nMaxRow0 = AscCommon.gc_nMaxRow0;
 	var gc_nMaxCol0 = AscCommon.gc_nMaxCol0;
 	var g_oCellAddressUtils = AscCommon.g_oCellAddressUtils;
-	var AscBrowser = AscCommon.AscBrowser;
 	var CellAddress = AscCommon.CellAddress;
 	var isRealObject = AscCommon.isRealObject;
 	var History = AscCommon.History;
@@ -63,7 +62,6 @@
 	var UndoRedoData_BBox = AscCommonExcel.UndoRedoData_BBox;
 	var UndoRedoData_SheetAdd = AscCommonExcel.UndoRedoData_SheetAdd;
 	var UndoRedoData_DefinedNames = AscCommonExcel.UndoRedoData_DefinedNames;
-	var UndoRedoData_ArrayFormula = AscCommonExcel.UndoRedoData_ArrayFormula;
 	var g_oDefaultFormat = AscCommonExcel.g_oDefaultFormat;
 	var g_StyleCache = AscCommonExcel.g_StyleCache;
 	var Border = AscCommonExcel.Border;
