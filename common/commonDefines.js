@@ -205,7 +205,9 @@
 			CannotChangeFormulaArray: -450,
 			MultiCellsInTablesFormulaArray: -451,
 
-			MailToClientMissing	: -452
+			MailToClientMissing	: -452,
+
+			NoDataToParse : -601
 		}
 	};
 

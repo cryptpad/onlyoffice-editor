@@ -15563,6 +15563,29 @@
 		this.viewPrintLines = val;
 	};
 
+	WorksheetView.prototype.getRangeText = function (range, delimiter) {
+		if (range === undefined) {
+			range = this.model.selectionRange.getLast();
+		}
+		if(delimiter === undefined) {
+			delimiter = "\n";
+		}
+
+		var res = "";
+		var bImptyText = true;
+		this.model.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach(function(cell) {
+			var text = cell.getValueForEdit();
+			if(text !== "") {
+				res += text;
+				bImptyText = false;
+			}
+			if(cell.col !== range.c1) {
+				res += delimiter;
+			}
+		});
+		return bImptyText ? "" : res;
+	};
+
     //------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;

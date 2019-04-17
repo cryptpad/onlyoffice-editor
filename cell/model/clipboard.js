@@ -2756,10 +2756,10 @@
 				var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 				var specialPasteProps = specialPasteHelper.specialPasteProps;
 				var textImport;
-				if(specialPasteHelper.specialPasteStart) {
-					var props = specialPasteProps ? specialPasteProps.property : null;
-					textImport = props === c_oSpecialPasteProps.useTextImport;
-				}
+
+				var props = specialPasteProps ? specialPasteProps.property : null;
+				textImport = props === c_oSpecialPasteProps.useTextImport;
+
 
 
 				//TODO сделать вставку текста всегда через эту функцию
@@ -2828,7 +2828,7 @@
 					var advancedOptions = specialPasteProps.asc_getAdvancedOptions();
 					text = AscCommon.parseText(text, advancedOptions);
 				}
-				var aResult = this._getTableFromText(worksheet, text, textImport);
+				var aResult = this._getTableFromText(text, textImport);
 				if(aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor))
 				{
 					worksheet.setSelectionInfo('paste', {data: aResult, bText: true});
@@ -2924,7 +2924,7 @@
 				return res;
 			},
 
-			_getTableFromText: function (worksheet, text, bPastedArray) {
+			_getTableFromText: function (text, bPastedArray) {
 
 				var addTextIntoCell = function (row, col, sText) {
 					var cell = aResult.getCell(rowCounter, colCounter);

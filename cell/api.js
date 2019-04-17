@@ -426,10 +426,32 @@ var editor;
         if(bPaste) {
 			text = AscCommon.g_specialPasteHelper.GetPastedData(true);
         } else {
-            
+			var ws = this.wb.getWorksheet();
+			text = ws.getRangeText();
+        }
+        if(!text) {
+            //error
+            //no data was selected to parse
+			this.sendEvent('asc_onError', c_oAscError.ID.NoDataToParse, c_oAscError.Level.NoCritical);
+			callback(false);
+			return;
         }
         callback(AscCommon.parseText(text, options));
       }
+  };
+
+  spreadsheet_api.prototype.asc_TextToColumns = function(options) {
+	  if (this.canEdit()) {
+          var ws = this.wb.getWorksheet();
+		  var text = ws.getRangeText();
+		  var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
+		  if(!specialPasteHelper.specialPasteProps) {
+			  specialPasteHelper.specialPasteProps = new Asc.SpecialPasteProps();
+          }
+		  specialPasteHelper.specialPasteProps.property = Asc.c_oSpecialPasteProps.useTextImport;
+		  specialPasteHelper.specialPasteProps.asc_setAdvancedOptions(options);
+		  this.wb.pasteData(AscCommon.c_oAscClipboardDataFormat.Text, text, null, null, true);
+	  }
   };
 
   spreadsheet_api.prototype.asc_ShowSpecialPasteButton = function(props) {
