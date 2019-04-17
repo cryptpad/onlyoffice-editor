@@ -3019,7 +3019,7 @@ DrawingObjectsController.prototype =
         var oThis = this;
         this.checkSelectedObjectsAndCallback(function(){
             oThis.resetInternalSelection();
-            oThis.removeCallback(-1);
+            oThis.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
         }, [], false, AscDFH.historydescription_Spreadsheet_Remove);
     },
 
@@ -3085,7 +3085,7 @@ DrawingObjectsController.prototype =
             {
                 if ( null != HyperProps.Text && "" != HyperProps.Text && true === content.IsSelectionUse() )
                 {
-                    this.removeCallback(-1, undefined, undefined, true);
+                    this.removeCallback(-1, undefined, undefined, undefined, undefined, true);
                     bCheckExtents = true;
                 }
             }
@@ -6120,30 +6120,30 @@ DrawingObjectsController.prototype =
         }
     },
 
-    remove: function(dir, bOnlyText, bRemoveOnlySelection)
+    remove: function(dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
         if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection))
         {
             return;
         }
-        this.checkSelectedObjectsAndCallback(this.removeCallback, [dir, bOnlyText, bRemoveOnlySelection], false, AscDFH.historydescription_Spreadsheet_Remove);
+        this.checkSelectedObjectsAndCallback(this.removeCallback, [dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord, undefined], false, AscDFH.historydescription_Spreadsheet_Remove);
     },
 
-    removeCallback: function(dir, bOnlyText, bRemoveOnlySelection, bNoCheck)
+    removeCallback: function(dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord, bNoCheck)
     {
         var target_text_object = getTargetTextObject(this);
         if(target_text_object)
         {
             if(target_text_object.getObjectType() === AscDFH.historyitem_type_GraphicFrame)
             {
-                target_text_object.graphicObject.Remove(dir, bOnlyText, bRemoveOnlySelection);
+                target_text_object.graphicObject.Remove(dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
             }
             else
             {
                 var content = this.getTargetDocContent(true);
                 if(content)
                 {
-                    content.Remove(dir, true, bRemoveOnlySelection)
+                    content.Remove(dir, true, bRemoveOnlySelection, bOnTextAdd, isWord)
                 }
 
                 bNoCheck !== true && target_text_object.checkExtentsByDocContent && target_text_object.checkExtentsByDocContent();
@@ -6221,7 +6221,7 @@ DrawingObjectsController.prototype =
                             if(cur_group.spTree.length === 0)
                             {
                                 this.resetInternalSelection();
-                                this.removeCallback();
+                                this.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
                                 return;
                             }
                             else if(cur_group.spTree.length === 1)
@@ -6756,7 +6756,7 @@ DrawingObjectsController.prototype =
         if ( e.keyCode == 8 && canEdit ) // BackSpace
         {
             var oTargetTextObject = getTargetTextObject(this);
-            drawingObjectsController.remove(-1);
+            drawingObjectsController.remove(-1, undefined, undefined, undefined, ctrlKey);
             bRetValue = true;
         }
         else if ( e.keyCode == 9 && canEdit ) // Tab
@@ -7006,7 +7006,7 @@ DrawingObjectsController.prototype =
 			if (!e.shiftKey)
 			{
 				var oTargetTextObject = getTargetTextObject(this);
-				drawingObjectsController.remove(1);
+				drawingObjectsController.remove(1, undefined, undefined, undefined, ctrlKey);
 				bRetValue = true;
 			}
         }

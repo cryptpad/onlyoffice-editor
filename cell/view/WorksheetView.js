@@ -9158,7 +9158,7 @@
         // Удаляем выделенные графичекие объекты
         if ( this.objectRender.selectedGraphicObjectsExists() ) {
 			if(bIsCut) {
-				this.objectRender.controller.remove();
+				this.objectRender.controller.remove(-1, undefined, undefined, undefined, undefined);
 			} else {
 				this.objectRender.controller.deleteSelectedObjects();
 			}

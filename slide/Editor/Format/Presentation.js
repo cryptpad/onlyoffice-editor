@@ -2587,7 +2587,7 @@ CPresentation.prototype =
         }
     },
 
-    Remove : function(Count, bOnlyText, bRemoveOnlySelection)
+    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
         if(this.GetFocusObjType() === FOCUS_OBJECT_THUMBNAILS)
         {
@@ -2620,7 +2620,7 @@ CPresentation.prototype =
         }
         if(oController && oController.selectedObjects.length !== 0)
         {
-            oController.remove(Count, bOnlyText, bRemoveOnlySelection);
+            oController.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
             this.Document_UpdateInterfaceState();
         }
     },
@@ -3215,7 +3215,7 @@ CPresentation.prototype =
         {
             if(this.CanEdit())
             {
-                this.Remove( -1, true );
+                this.Remove( -1, true, undefined, undefined, e.CtrlKey );
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -3671,7 +3671,7 @@ CPresentation.prototype =
                 if (this.CanEdit())
                 {
                     //this.Create_NewHistoryPoint();
-                    this.Remove( 1, true );
+                    this.Remove( 1, true, undefined, undefined, e.CtrlKey );
                 }
                 bRetValue = keydownresult_PreventAll;
             }
@@ -4327,7 +4327,7 @@ CPresentation.prototype =
                                 NearPos.Paragraph.Check_NearestPos(NearPos);
                                 if(!bCopy)
                                 {
-                                    oController.removeCallback(-1,  undefined, undefined, true);
+                                    oController.removeCallback(-1, undefined, undefined, undefined, undefined, true);
                                 }
                                 oController.resetSelection(false, false);
                                 oSelectedContent = oSelectedContent.copy();
@@ -4367,7 +4367,7 @@ CPresentation.prototype =
                         {
                             if(!bCopy)
                             {
-                                oController.removeCallback(-1,  undefined, undefined, true);
+                                oController.removeCallback(-1, undefined, undefined, undefined, undefined, true);
                             }
                             this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
                             oSelectedContent = oSelectedContent.copy();
@@ -6477,7 +6477,7 @@ CPresentation.prototype =
                     {
                         if(target_doc_content.Selection.Use)
                         {
-                            oController.removeCallback(1);
+                            oController.removeCallback(1, undefined, undefined, undefined, undefined, undefined);
                         }
                         paragraph = target_doc_content.Content[target_doc_content.CurPos.ContentPos];
                         if (null != paragraph && type_Paragraph == paragraph.GetType())
@@ -6990,7 +6990,7 @@ CPresentation.prototype =
             var oTargetContent = oController.getTargetDocContent();
             if (oTargetContent)
             {
-                oTargetContent.Remove(-1, true, true, true);
+                oTargetContent.Remove(-1, true, true, true, undefined);
             }
 
         }

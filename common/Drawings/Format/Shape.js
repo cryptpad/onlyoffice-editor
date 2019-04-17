@@ -5447,9 +5447,9 @@ CShape.prototype.createMoveTrack = function () {
 };
 
 
-CShape.prototype.remove = function (Count, bOnlyText, bRemoveOnlySelection) {
+CShape.prototype.remove = function (Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord) {
     if (this.txBody) {
-        this.txBody.content.Remove(Count, bOnlyText, bRemoveOnlySelection);
+        this.txBody.content.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
         this.recalcInfo.recalculateContent = true;
         this.recalcInfo.recalculateTransformText = true;
     }
