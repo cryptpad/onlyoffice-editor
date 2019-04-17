@@ -3481,7 +3481,7 @@
         {
 			var i, names, bboxes;
             if (!this.isCopyPaste && ws.mergeManager.fGetUninitialized) {
-				var names = ws.mergeManager.fGetUninitialized();
+				names = ws.mergeManager.fGetUninitialized();
 				for (i = 0; i < names.length; ++i) {
                     this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
 					this.memory.WriteString2(names[i]);
