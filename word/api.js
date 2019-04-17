@@ -7710,7 +7710,7 @@ background-repeat: no-repeat;\
 
 		var sMoveId = oChange.get_MoveId();
 		var isFrom  = oChange.GetMoveType() === Asc.c_oAscRevisionsMove.MoveTo;
-		oLogicDocument.SelectReviewMove(sMoveId, isFrom);
+		oLogicDocument.SelectTrackMove(sMoveId, isFrom);
 	};
 
 	asc_docs_api.prototype.asc_undoAllChanges       = function()

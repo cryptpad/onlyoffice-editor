@@ -6877,6 +6877,10 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
         {
             this.History.Remove_LastPoint();
 			NearPos.Paragraph.Clear_NearestPosArray();
+
+			this.DragAndDropAction = false;
+			this.TrackMoveId       = null;
+
             return;
         }
 
@@ -6907,8 +6911,8 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 				var arrParagraphs = this.GetSelectedParagraphs();
 				if (arrParagraphs.length > 0)
 				{
-					arrParagraphs[arrParagraphs.length - 1].AddRevisionMoveMark(true, false, this.TrackMoveId);
-					arrParagraphs[0].AddRevisionMoveMark(true, true, this.TrackMoveId);
+					arrParagraphs[arrParagraphs.length - 1].AddTrackMoveMark(true, false, this.TrackMoveId);
+					arrParagraphs[0].AddTrackMoveMark(true, true, this.TrackMoveId);
 				}
 			}
 
@@ -18007,7 +18011,7 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
  * @param sMoveId {string} идентификатор переноса
  * @param isFrom {boolean} true - выделяем удаленный текст, false - выделяем перемещенный текст
  */
-CDocument.prototype.SelectReviewMove = function(sMoveId, isFrom)
+CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom)
 {
 	var oManager = this.GetTrackRevisionsManager();
 
@@ -18036,7 +18040,7 @@ CDocument.prototype.SelectReviewMove = function(sMoveId, isFrom)
 
 	// TODO: Можно отказаться вообще от MoveMarks в пользу сбора изменений через функцию GetAllMoveChanges
 
-	var oMarks = oManager.MoveMarks[sMoveId];
+	var oMarks = oManager.GetMoveMarks(sMoveId);
 	if (oMarks)
 	{
 		var oStart = isFrom ? oMarks.From.Start : oMarks.To.Start;
@@ -18052,6 +18056,45 @@ CDocument.prototype.SelectReviewMove = function(sMoveId, isFrom)
 			this.Document_UpdateInterfaceState();
 		}
 	}
+};
+/**
+ * Превращаем изменение связанное с переносом в обычные изменения
+ * @param sMoveId
+ */
+CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
+{
+	var oManager = this.GetTrackRevisionsManager();
+	var oMarks   = oManager.GetMoveMarks(sMoveId);
+
+	if (!oMarks)
+		return;
+
+	var oDocState = this.SaveDocumentState();
+
+	this.SelectTrackMove(sMoveId, true);
+	this.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMarkRemove, false);
+
+	this.SelectTrackMove(sMoveId, false);
+	this.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMarkRemove, false);
+
+	this.LoadDocumentState(oDocState);
+
+	function privateRemoveMark(oMark)
+	{
+		if (oMark instanceof CRunRevisionMove)
+		{
+			oMark.GetRun().RemoveElement(oMark);
+		}
+		else if (oMark instanceof CParaRevisionMove && oMark.GetParagraph())
+		{
+			oMark.GetParagraph().RemoveElement(oMark);
+		}
+	}
+
+	privateRemoveMark(oMarks.To.Start);
+	privateRemoveMark(oMarks.To.End);
+	privateRemoveMark(oMarks.From.Start);
+	privateRemoveMark(oMarks.From.End);
 };
 
 function CDocumentSelectionState()
@@ -19600,6 +19643,14 @@ CTrackRevisionsManager.prototype.EndProcessReviewMove = function()
 CTrackRevisionsManager.prototype.GetProcessTrackMove = function()
 {
 	return this.ProcessMove;
+};
+/**
+ * Получаем метки переноса
+ * @param sMarkId
+ */
+CTrackRevisionsManager.prototype.GetMoveMarks = function(sMarkId)
+{
+	return this.MoveMarks[sMarkId];
 };
 
 /**

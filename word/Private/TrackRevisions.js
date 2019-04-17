@@ -501,7 +501,7 @@ CDocument.prototype.private_ProcessMoveReview = function(oChange, isAccept)
 	function privateProcessChanges(isFrom)
 	{
 		oTrackMove.SetFrom(isFrom);
-		oThis.SelectReviewMove(sMoveId, isFrom);
+		oThis.SelectTrackMove(sMoveId, isFrom);
 
 		if (isAccept)
 			oThis.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMark, false);

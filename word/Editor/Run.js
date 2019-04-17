@@ -1270,6 +1270,12 @@ ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
     var DeletedItems = this.Content.slice( Pos, Pos + Count );
 	History.Add(new CChangesRunRemoveItem(this, Pos, DeletedItems));
 
+	for (var nIndex = 0, nCount = DeletedItems.length; nIndex < nCount; ++nIndex)
+	{
+		if (DeletedItems[nIndex].PreDelete)
+			DeletedItems[nIndex].PreDelete();
+	}
+
     this.Content.splice( Pos, Count );
 
     if (true === UpdatePosition)
@@ -9693,6 +9699,25 @@ ParaRun.prototype.GetReviewMoveType = function()
 {
 	return this.ReviewInfo.MoveType;
 };
+ParaRun.prototype.RemoveReviewMoveType = function()
+{
+	if (!this.ReviewInfo || Asc.c_oAscRevisionsMove.NoMove === this.ReviewInfo.MoveType)
+		return;
+
+	var oInfo = this.ReviewInfo.Copy();
+	oInfo.MoveType = Asc.c_oAscRevisionsMove.NoMove;
+
+	History.Add(new CChangesRunReviewType(this, {
+		ReviewType : this.ReviewType,
+		ReviewInfo : this.ReviewInfo.Copy()
+	}, {
+		ReviewType : this.ReviewType,
+		ReviewInfo : oInfo.Copy()
+	}));
+
+	this.ReviewInfo = oInfo;
+	this.private_UpdateTrackRevisions();
+};
 ParaRun.prototype.GetReviewInfo = function()
 {
 	return this.ReviewInfo;
@@ -9944,6 +9969,9 @@ ParaRun.prototype.private_UpdateTrackRevisions = function()
 };
 ParaRun.prototype.AcceptRevisionChanges = function(nType, bAll)
 {
+	if (this.Selection.Use && c_oAscRevisionsChangeType.MoveMarkRemove === nType)
+		return this.RemoveReviewMoveType();
+
 	var Parent = this.Get_Parent();
 	var RunPos = this.private_GetPosInParent();
 
@@ -10277,7 +10305,7 @@ ParaRun.prototype.RemoveElement = function(oElement)
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		if (oElement === this.Content[nIndex])
-			return this.Remove_FromContent(nIndex, 1, true);
+			return this.RemoveFromContent(nIndex, 1, true);
 	}
 };
 ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
@@ -10412,7 +10440,7 @@ ParaRun.prototype.PreDelete = function()
 {
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		if (para_Drawing === this.Content[nIndex].Type)
+		if (this.Content[nIndex].PreDelete)
 			this.Content[nIndex].PreDelete();
 	}
 

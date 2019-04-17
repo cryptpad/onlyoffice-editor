@@ -803,13 +803,14 @@ Paragraph.prototype.Internal_Content_Remove = function(Pos)
 {
 	var Item = this.Content[Pos];
 	History.Add(new CChangesParagraphRemoveItem(this, Pos, [Item]));
+
+	if (Item.PreDelete)
+		Item.PreDelete();
+
 	this.Content.splice(Pos, 1);
 	this.private_UpdateTrackRevisions();
 	this.private_CheckUpdateBookmarks([Item]);
 	this.UpdateDocumentOutline();
-
-	if (Item.PreDelete)
-		Item.PreDelete();
 
 	if (this.Selection.StartPos > Pos)
 	{
@@ -12339,10 +12340,18 @@ Paragraph.prototype.AcceptRevisionChanges = function(Type, bAll)
                 this.Content[this.Content.length - 1].AcceptPrChange();
         }
 
-		if (oTrackManager && oTrackManager.GetProcessTrackMove() && c_oAscRevisionsChangeType.MoveMark === Type && this.IsSelectionToEnd())
+        if (this.IsSelectionToEnd())
 		{
-			var oParaEndRun = this.GetParaEndRun();
-			oParaEndRun.RemoveTrackMoveMarks(oTrackManager);
+			if (oTrackManager && oTrackManager.GetProcessTrackMove() && c_oAscRevisionsChangeType.MoveMark === Type)
+			{
+				var oParaEndRun = this.GetParaEndRun();
+				oParaEndRun.RemoveTrackMoveMarks(oTrackManager);
+			}
+			else if (c_oAscRevisionsChangeType.MoveMarkRemove === Type)
+			{
+				var oParaEndRun = this.GetParaEndRun();
+				oParaEndRun.RemoveReviewMoveType();
+			}
 		}
 
 		// Начинаем с конца, потому что при выполнении данной функции, количество элементов может изменяться
@@ -12368,10 +12377,13 @@ Paragraph.prototype.AcceptRevisionChanges = function(Type, bAll)
 				oItem.AcceptRevisionChanges(Type, bAll);
 			}
 		}
-		
-        this.Correct_Content();
-        this.Correct_ContentPos(false);
-        this.private_UpdateTrackRevisions();
+
+		if (c_oAscRevisionsChangeType.MoveMarkRemove !== Type)
+		{
+			this.Correct_Content();
+			this.Correct_ContentPos(false);
+			this.private_UpdateTrackRevisions();
+		}
     }
 };
 Paragraph.prototype.RejectRevisionChanges = function(Type, bAll)
@@ -13766,7 +13778,7 @@ Paragraph.prototype.SelectCurrentWord = function()
  * @param {boolean} isStart
  * @param {string} sMarkId
  */
-Paragraph.prototype.AddRevisionMoveMark = function(isFrom, isStart, sMarkId)
+Paragraph.prototype.AddTrackMoveMark = function(isFrom, isStart, sMarkId)
 {
 	if (!this.Selection.Use)
 		return;
@@ -13833,6 +13845,27 @@ Paragraph.prototype.AddRevisionMoveMark = function(isFrom, isStart, sMarkId)
 
 		this.Selection.StartPos = nSelectionStartPos + 1;
 		this.Selection.EndPos   = nSelectionEndPos + 1;
+	}
+};
+/**
+ * Удаляем из параграфа заданный элемент, если он тут есть
+ * @param oElement
+ */
+Paragraph.prototype.RemoveElement = function(oElement)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (oItem === oElement)
+		{
+			this.Internal_Content_Remove(nPos);
+			nPos--;
+			nCount--;
+		}
+		else if (oItem.RemoveElement)
+		{
+			oItem.RemoveElement(oElement);
+		}
 	}
 };
 
