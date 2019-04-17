@@ -19915,28 +19915,29 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 
 		if (oParaNumPrPrev)
 		{
-			var oNum         = this.Numbering.GetNum(oParaNumPrPrev.NumId);
-			var oAbstractNum = oNum.GetAbstractNum();
-
-			if (oAbstractNum === this.AbstractNum)
+			var oNum = this.Numbering.GetNum(oParaNumPrPrev.NumId);
+			if (oNum)
 			{
-				var oReviewType = oPara.GetReviewType();
-				var oReviewInfo = oPara.GetReviewInfo();
+				var oAbstractNum = oNum.GetAbstractNum();
+				if (oAbstractNum === this.AbstractNum)
+				{
+					var oReviewType = oPara.GetReviewType();
+					var oReviewInfo = oPara.GetReviewInfo();
 
-				if (reviewtype_Common === oReviewType)
-				{
-					this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
-				}
-				else if (reviewtype_Add === oReviewType)
-				{
-				}
-				else if (reviewtype_Remove === oReviewType)
-				{
-					if (!oReviewInfo.GetPrevAdded())
+					if (reviewtype_Common === oReviewType)
+					{
 						this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
+					}
+					else if (reviewtype_Add === oReviewType)
+					{
+					}
+					else if (reviewtype_Remove === oReviewType)
+					{
+						if (!oReviewInfo.GetPrevAdded())
+							this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
+					}
 				}
 			}
-
 		}
 	}
 };
