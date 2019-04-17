@@ -19329,7 +19329,7 @@ CTrackRevisionsManager.prototype.private_CompareDocumentPositions = function(oDo
 
 	for (var nIndex = 0, nCount = oDocPos1.length; nIndex < nCount; ++nIndex)
 	{
-		if (oDocPos2.length < nIndex)
+		if (oDocPos2.length <= nIndex)
 			return 1;
 
 		if (oDocPos1[nIndex].Position < oDocPos2[nIndex].Position)
