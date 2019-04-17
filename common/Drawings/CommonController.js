@@ -12521,10 +12521,13 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
             par = content.Content[hit_paragraph];
             if(isRealObject(par))
             {
-                check_hyperlink = par.CheckHyperlink(tx, ty, 0);
-                if(isRealObject(check_hyperlink))
+                if(par.IsInText && par.IsInText(tx, ty, 0))
                 {
-                    return check_hyperlink;
+                    check_hyperlink = par.CheckHyperlink(tx, ty, 0);
+                    if(isRealObject(check_hyperlink))
+                    {
+                        return check_hyperlink;
+                    }
                 }
             }
         }
