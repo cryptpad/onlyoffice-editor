@@ -308,6 +308,10 @@ DrawingObjectsController.prototype.handleSlideComments  =  function(e, x, y, pag
     if(!this.drawingObjects.slideComments){
         return;
     }
+    if(this.isSlideShow && this.isSlideShow())
+    {
+        return false;
+    }
     var comments = this.drawingObjects.slideComments.comments, i, index_selected = -1;
     var ret = {result: null, selectedIndex: -1};
     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
