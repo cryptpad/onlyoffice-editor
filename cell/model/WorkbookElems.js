@@ -4257,17 +4257,16 @@ function RangeDataManagerElem(bbox, data)
 	this.bbox = bbox;
 	this.data = data;
 }
-function RangeDataManager(fChange)
-{
-	this.tree = new AscCommon.DataIntervalTree2D();
-	this.oDependenceManager = null;
-	this.fChange = fChange;
 
-	this.initData = null;
-	this.worksheet = null;
-}
-RangeDataManager.prototype = {
-	_delayedInit: function () {
+	function RangeDataManager(fChange) {
+		this.tree = new AscCommon.DataIntervalTree2D();
+		this.oDependenceManager = null;
+		this.fChange = fChange;
+
+		this.initData = null;
+		this.worksheet = null;
+	}
+	RangeDataManager.prototype._delayedInit = function () {
 		if (this.initData) {
 			var initData = this.initData;
 			this.initData = null;
@@ -4283,17 +4282,16 @@ RangeDataManager.prototype = {
 				History.TurnOn();
 			});
 		}
-	},
-    add: function (bbox, data, oChangeParam)
-	{
+	};
+	RangeDataManager.prototype.add = function (bbox, data, oChangeParam) {
 		this._delayedInit();
 		var oNewElem = new RangeDataManagerElem(new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2), data);
 		this.tree.insert(bbox, oNewElem);
-		if(null != this.fChange)
-		    this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
-	},
-	get : function(bbox)
-	{
+		if (null != this.fChange) {
+			this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
+		}
+	};
+	RangeDataManager.prototype.get = function (bbox) {
 		this._delayedInit();
 		var oRes = {all: [], inner: [], outer: []};
 		var intervals = this.tree.searchNodes(bbox);
@@ -4310,14 +4308,12 @@ RangeDataManager.prototype = {
 			}
 		}
 		return oRes;
-	},
-	getAny : function(bbox)
-	{
+	};
+	RangeDataManager.prototype.getAny = function (bbox) {
 		this._delayedInit();
 		return this.tree.searchAny(bbox);
-	},
-	getByCell : function(nRow, nCol)
-	{
+	};
+	RangeDataManager.prototype.getByCell = function (nRow, nCol) {
 		this._delayedInit();
 		var bbox = new Asc.Range(nCol, nRow, nCol, nRow)
 		var res = this.getAny(bbox);
@@ -4328,180 +4324,174 @@ RangeDataManager.prototype = {
 			}
 		}
 		return res;
-	},
-	remove: function (bbox, bInnerOnly, oChangeParam)
-	{
+	};
+	RangeDataManager.prototype.remove = function (bbox, bInnerOnly, oChangeParam) {
 		this._delayedInit();
-	    var aElems = this.get(bbox);
-	    var aTargetArray;
-	    if (bInnerOnly)
-	        aTargetArray = aElems.inner;
-	    else
-	        aTargetArray = aElems.all;
-	    for (var i = 0, length = aTargetArray.length; i < length; ++i)
-		{
-	        var elem = aTargetArray[i];
-	        this.removeElement(elem, oChangeParam);
+		var aElems = this.get(bbox);
+		var aTargetArray;
+		if (bInnerOnly) {
+			aTargetArray = aElems.inner;
+		} else {
+			aTargetArray = aElems.all;
 		}
-	},
-	removeElement: function (elemToDelete, oChangeParam)
-	{
+		for (var i = 0, length = aTargetArray.length; i < length; ++i) {
+			var elem = aTargetArray[i];
+			this.removeElement(elem, oChangeParam);
+		}
+	};
+	RangeDataManager.prototype.removeElement = function (elemToDelete, oChangeParam) {
 		this._delayedInit();
-		if(null != elemToDelete)
-		{
+		if (null != elemToDelete) {
 			this.tree.remove(elemToDelete.bbox, elemToDelete);
-			if(null != this.fChange)
-			    this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
+			if (null != this.fChange) {
+				this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
+			}
 		}
-	},
-	shiftGet : function(bbox, bHor)
-	{
+	};
+	RangeDataManager.prototype.shiftGet = function (bbox, bHor) {
 		this._delayedInit();
 		var bboxGet = shiftGetBBox(bbox, bHor);
 		return {bbox: bboxGet, elems: this.get(bboxGet)};
-	},
-	shift: function (bbox, bAdd, bHor, oGetRes, oChangeParam)
-	{
+	};
+	RangeDataManager.prototype.shift = function (bbox, bAdd, bHor, oGetRes, oChangeParam) {
 		this._delayedInit();
-	    var _this = this;
-	    if (null == oGetRes)
-	        oGetRes = this.shiftGet(bbox, bHor);
-	    var offset;
-	    if (bHor)
-	        offset = new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1);
-	    else
-	        offset = new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0);
-	    if (!bAdd) {
-	        offset.row *= -1;
-	        offset.col *= -1;
-	    }
-	    this._shiftmove(true, bbox, offset, oGetRes.elems, oChangeParam);
-	},
-	move: function (from, to, oChangeParam)
-	{
+		var _this = this;
+		if (null == oGetRes) {
+			oGetRes = this.shiftGet(bbox, bHor);
+		}
+		var offset;
+		if (bHor) {
+			offset = new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1);
+		} else {
+			offset = new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0);
+		}
+		if (!bAdd) {
+			offset.row *= -1;
+			offset.col *= -1;
+		}
+		this._shiftmove(true, bbox, offset, oGetRes.elems, oChangeParam);
+	};
+	RangeDataManager.prototype.move = function (from, to, oChangeParam) {
 		this._delayedInit();
-	    var offset = new AscCommon.CellBase(to.r1 - from.r1, to.c1 - from.c1);
-	    var oGetRes = this.get(from);
-	    this._shiftmove(false, from, offset, oGetRes, oChangeParam);
-	},
-	_shiftmove: function (bShift, bbox, offset, elems, oChangeParam) {
-	    var aToChange = [];
-	    var bAdd = offset.row > 0 || offset.col > 0;
-	    var bHor = 0 != offset.col ? true : false;
-	    //сдвигаем inner
-	    if (elems.inner.length > 0) {
-	        var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
-	        for (var i = 0, length = elems.inner.length; i < length; i++) {
-	            var elem = elems.inner[i];
-	            var from = elem.bbox;
-	            var to = null;
-	            if (bShift) {
-	                if (bAdd) {
-	                    to = from.clone();
-	                    to.setOffset(offset);
-	                }
-	                else if (!bboxAsc.containsRange(from)) {
-	                    to = from.clone();
-	                    if (bHor) {
-	                        if (to.c1 <= bbox.c2)
-	                            to.setOffsetFirst(new AscCommon.CellBase(0,  bbox.c2 - to.c1 + 1));
-	                    }
-	                    else {
-	                        if (to.r1 <= bbox.r2)
-	                            to.setOffsetFirst(new AscCommon.CellBase(bbox.r2 - to.r1 + 1, 0));
-	                    }
-	                    to.setOffset(offset);
-	                }
-	            }
-	            else {
-	                to = from.clone();
-	                to.setOffset(offset);
-	            }
-	            aToChange.push({ elem: elem, to: to });
-	        }
-	    }
-	    //меняем outer
-	    if (bShift) {
-	        if (elems.outer.length > 0) {
-	            for (var i = 0, length = elems.outer.length; i < length; i++) {
-	                var elem = elems.outer[i];
-	                var from = elem.bbox;
-	                var to = null;
-	                if (bHor) {
-	                    if (from.c1 < bbox.c1 && bbox.r1 <= from.r1 && from.r2 <= bbox.r2) {
-	                        if (bAdd) {
-	                            to = from.clone();
-	                            to.setOffsetLast(new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1));
-	                        }
-	                        else {
-	                            to = from.clone();
-	                            var nTemp1 = from.c2 - bbox.c1 + 1;
-	                            var nTemp2 = bbox.c2 - bbox.c1 + 1;
-	                            to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
-	                        }
-	                    }
-	                }
-	                else {
-	                    if (from.r1 < bbox.r1 && bbox.c1 <= from.c1 && from.c2 <= bbox.c2) {
-	                        if (bAdd) {
-	                            to = from.clone();
-	                            to.setOffsetLast(new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0));
-	                        }
-	                        else {
-	                            to = from.clone();
-	                            var nTemp1 = from.r2 - bbox.r1 + 1;
-	                            var nTemp2 = bbox.r2 - bbox.r1 + 1;
-	                            to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
-	                        }
-	                    }
-	                }
-	                if (null != to)
-	                    aToChange.push({ elem: elem, to: to });
-	            }
-	        }
-	    }
-	    //сначала сортируем чтобы не было конфликтов при сдвиге
-	    aToChange.sort(function (a, b) { return shiftSort(a, b, offset); });
+		var offset = new AscCommon.CellBase(to.r1 - from.r1, to.c1 - from.c1);
+		var oGetRes = this.get(from);
+		this._shiftmove(false, from, offset, oGetRes, oChangeParam);
+	};
+	RangeDataManager.prototype._shiftmove = function (bShift, bbox, offset, elems, oChangeParam) {
+		var aToChange = [];
+		var bAdd = offset.row > 0 || offset.col > 0;
+		var bHor = 0 != offset.col ? true : false;
+		//сдвигаем inner
+		if (elems.inner.length > 0) {
+			var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
+			for (var i = 0, length = elems.inner.length; i < length; i++) {
+				var elem = elems.inner[i];
+				var from = elem.bbox;
+				var to = null;
+				if (bShift) {
+					if (bAdd) {
+						to = from.clone();
+						to.setOffset(offset);
+					} else if (!bboxAsc.containsRange(from)) {
+						to = from.clone();
+						if (bHor) {
+							if (to.c1 <= bbox.c2) {
+								to.setOffsetFirst(new AscCommon.CellBase(0, bbox.c2 - to.c1 + 1));
+							}
+						} else {
+							if (to.r1 <= bbox.r2) {
+								to.setOffsetFirst(new AscCommon.CellBase(bbox.r2 - to.r1 + 1, 0));
+							}
+						}
+						to.setOffset(offset);
+					}
+				} else {
+					to = from.clone();
+					to.setOffset(offset);
+				}
+				aToChange.push({elem: elem, to: to});
+			}
+		}
+		//меняем outer
+		if (bShift) {
+			if (elems.outer.length > 0) {
+				for (var i = 0, length = elems.outer.length; i < length; i++) {
+					var elem = elems.outer[i];
+					var from = elem.bbox;
+					var to = null;
+					if (bHor) {
+						if (from.c1 < bbox.c1 && bbox.r1 <= from.r1 && from.r2 <= bbox.r2) {
+							if (bAdd) {
+								to = from.clone();
+								to.setOffsetLast(new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1));
+							} else {
+								to = from.clone();
+								var nTemp1 = from.c2 - bbox.c1 + 1;
+								var nTemp2 = bbox.c2 - bbox.c1 + 1;
+								to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
+							}
+						}
+					} else {
+						if (from.r1 < bbox.r1 && bbox.c1 <= from.c1 && from.c2 <= bbox.c2) {
+							if (bAdd) {
+								to = from.clone();
+								to.setOffsetLast(new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0));
+							} else {
+								to = from.clone();
+								var nTemp1 = from.r2 - bbox.r1 + 1;
+								var nTemp2 = bbox.r2 - bbox.r1 + 1;
+								to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
+							}
+						}
+					}
+					if (null != to) {
+						aToChange.push({elem: elem, to: to});
+					}
+				}
+			}
+		}
+		//сначала сортируем чтобы не было конфликтов при сдвиге
+		aToChange.sort(function (a, b) {
+			return shiftSort(a, b, offset);
+		});
 
-	    if (null != this.fChange) {
-	        for (var i = 0, length = aToChange.length; i < length; ++i) {
-	            var item = aToChange[i];
-	            this.fChange.call(this, item.elem.data, item.elem.bbox, item.to, oChangeParam);
-	        }
-	    }
-	    //убираем fChange, чтобы потом послать его только на одну операцию, а не 2
-	    var fOldChange = this.fChange;
-	    this.fChange = null;
-	    //сначала удаляем все чтобы не было конфликтов
-	    for (var i = 0, length = aToChange.length; i < length; ++i) {
-	        var item = aToChange[i];
-	        var elem = item.elem;
-	        this.removeElement(elem, oChangeParam);
-	    }
-	    //добавляем измененные ячейки
-	    for (var i = 0, length = aToChange.length; i < length; ++i) {
-	        var item = aToChange[i];
-	        if (null != item.to)
-	            this.add(item.to, item.elem.data, oChangeParam);
-	    }
-	    this.fChange = fOldChange;
-	},
-	getAll : function()
-	{
+		if (null != this.fChange) {
+			for (var i = 0, length = aToChange.length; i < length; ++i) {
+				var item = aToChange[i];
+				this.fChange.call(this, item.elem.data, item.elem.bbox, item.to, oChangeParam);
+			}
+		}
+		//убираем fChange, чтобы потом послать его только на одну операцию, а не 2
+		var fOldChange = this.fChange;
+		this.fChange = null;
+		//сначала удаляем все чтобы не было конфликтов
+		for (var i = 0, length = aToChange.length; i < length; ++i) {
+			var item = aToChange[i];
+			var elem = item.elem;
+			this.removeElement(elem, oChangeParam);
+		}
+		//добавляем измененные ячейки
+		for (var i = 0, length = aToChange.length; i < length; ++i) {
+			var item = aToChange[i];
+			if (null != item.to) {
+				this.add(item.to, item.elem.data, oChangeParam);
+			}
+		}
+		this.fChange = fOldChange;
+	};
+	RangeDataManager.prototype.getAll = function () {
 		this._delayedInit();
 		var res = [];
 		var intervals = this.tree.searchNodes(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0));
-		for(var i = 0; i < intervals.length; i++) {
+		for (var i = 0; i < intervals.length; i++) {
 			var interval = intervals[i];
 			res.push(interval.data);
 		}
 		return res;
-	},
-	setDependenceManager : function(oDependenceManager)
-	{
+	};
+	RangeDataManager.prototype.setDependenceManager = function (oDependenceManager) {
 		this.oDependenceManager = oDependenceManager;
-	}
-};
+	};
 
 	/** @constructor */
 	function sparklineGroup(addId) {
