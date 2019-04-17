@@ -3636,6 +3636,7 @@ var editor;
   prot["asc_Undo"] = prot.asc_Undo;
   prot["asc_Redo"] = prot.asc_Redo;
   prot["asc_TextImport"] = prot.asc_TextImport;
+  prot["asc_TextToColumns"] = prot.asc_TextImport;
 
 
   prot["asc_getDocumentName"] = prot.asc_getDocumentName;
