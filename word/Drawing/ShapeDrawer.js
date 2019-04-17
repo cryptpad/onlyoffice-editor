@@ -1253,8 +1253,16 @@ CShapeDrawer.prototype =
                         }
                         else
                         {
-                            this.Graphics.drawImage(getFullImageSrc2(this.UniFill.fill.RasterImageId), this.min_x, this.min_y, (this.max_x - this.min_x), (this.max_y - this.min_y), undefined, this.UniFill.fill.srcRect);
-                            bIsFill = false;
+                            if (this.IsRectShape)
+                            {
+                                this.Graphics.drawImage(getFullImageSrc2(this.UniFill.fill.RasterImageId), this.min_x, this.min_y, (this.max_x - this.min_x), (this.max_y - this.min_y), undefined, this.UniFill.fill.srcRect);
+                                bIsFill = false;
+                            }
+                            else
+                            {
+                                // TODO: support srcRect
+                                this.Graphics.put_brushTexture(getFullImageSrc2(this.UniFill.fill.RasterImageId), 0);
+                            }
                         }
                     }
                     else
@@ -1392,7 +1400,7 @@ CShapeDrawer.prototype =
             {
                 this.Graphics.drawpath(1);
             }
-            else
+            else if (false)
             {
                 // такого быть не должно по идее
                 this.Graphics.b_color1(0, 0, 0, 0);
