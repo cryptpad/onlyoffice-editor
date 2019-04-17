@@ -1993,7 +1993,7 @@ function CDrawingDocument()
 			this.m_oWordControl.m_oApi.checkLastWork();
 
 		this.m_oWordControl.m_oLogicDocument.Set_TargetPos(x, y, pageIndex);
-		if (pageIndex != this.SlideCurrent)
+		if (pageIndex != this.SlideCurrent && !this.m_oWordControl.DemonstrationManager.Mode)
 		{
 			// сначала выставим страницу
 			this.m_oWordControl.GoToPage(pageIndex);
