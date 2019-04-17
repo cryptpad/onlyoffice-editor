@@ -4315,7 +4315,7 @@ function RangeDataManagerElem(bbox, data)
 	};
 	RangeDataManager.prototype.getByCell = function (nRow, nCol) {
 		this._delayedInit();
-		var bbox = new Asc.Range(nCol, nRow, nCol, nRow)
+		var bbox = new Asc.Range(nCol, nRow, nCol, nRow);
 		var res = this.getAny(bbox);
 		if (!res && null != this.oDependenceManager) {
 			var oDependence = this.oDependenceManager.getAny(bbox);
