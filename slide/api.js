@@ -6429,6 +6429,12 @@ background-repeat: no-repeat;\
                 this.isCheckCryptoReporter = true;
         }
 
+        this.asc_registerCallback('asc_onHyperlinkClick', function(url){
+            if (url && window.editor.asc_getUrlType(url) > 0) {
+                window.open(url);
+            }
+        });
+
 		if (!this.WordControl)
 			return;
 
