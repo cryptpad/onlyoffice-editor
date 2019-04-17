@@ -7644,7 +7644,7 @@
             cell_info.hyperlink = null;
         }
 
-        cell_info.comment = this.cellCommentator.getComment(ar.c1, ar.r1, false);
+        cell_info.comment = this.cellCommentator.getComment(c1, r1, false);
 		cell_info.flags.merge = range.isOneCell() ? Asc.c_oAscMergeOptions.Disabled :
 			null !== range.hasMerged() ? Asc.c_oAscMergeOptions.Merge : Asc.c_oAscMergeOptions.None;
 
