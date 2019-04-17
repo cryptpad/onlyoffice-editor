@@ -647,6 +647,14 @@ CParagraphContentBase.prototype.GetDocumentPositionFromObject = function(arrPosA
 
 	return arrPosArray;
 };
+/**
+ * Проверяем есть ли выделение внутри объекта
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.IsSelectionUse = function()
+{
+	return false;
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
