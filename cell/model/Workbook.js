@@ -3227,6 +3227,7 @@
 					oThis.nColsCount = maxCol + 1;
 			}
 		});
+		this.mergeManager.worksheet = this;
 		this.hyperlinkManager = new RangeDataManager(function(data, from, to, oChangeParam){
 			if(History.Is_On() && (null != from || null != to))
 			{

@@ -3480,8 +3480,8 @@
         this.WriteMergeCells = function(ws)
         {
 			var i, names, bboxes;
-            if (!this.isCopyPaste && ws.mergeManager.fGetUninitialized) {
-				names = ws.mergeManager.fGetUninitialized();
+            if (!this.isCopyPaste && ws.mergeManager.initData) {
+				names = ws.mergeManager.initData;
 				for (i = 0; i < names.length; ++i) {
                     this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
 					this.memory.WriteString2(names[i]);
@@ -6638,25 +6638,10 @@
                 });
                 this.curWorksheet = null;
                 //merged
-                var i;
-                oNewWorksheet.mergeManager.setDelayedInit((function(merged) {
-                    return function() {
-                        History.TurnOff();
-                        for (i = 0, length = merged.length; i < length; ++i) {
-                            var range = oNewWorksheet.getRange2(merged[i]);
-                            if (null != range) {
-                                range.mergeOpen();
-                            }
-                        }
-                        History.TurnOn();
-                    }
-                })(this.aMerged), (function(merged) {
-                    return function() {
-                        return merged;
-                    }
-                })(this.aMerged));
+                oNewWorksheet.mergeManager.initData = this.aMerged.slice();
 
                 //hyperlinks
+                var i;
                 for(i = 0, length = this.aHyperlinks.length; i < length; ++i)
                 {
                     var hyperlink = this.aHyperlinks[i];

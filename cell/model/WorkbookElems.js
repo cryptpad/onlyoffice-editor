@@ -4263,16 +4263,25 @@ function RangeDataManager(fChange)
 	this.oDependenceManager = null;
 	this.fChange = fChange;
 
-	this.fInit = null;
-	this.fGetUninitialized = null;
+	this.initData = null;
+	this.worksheet = null;
 }
 RangeDataManager.prototype = {
-	_delayedInit: function(){
-		if (this.fInit) {
-			var _fInit = this.fInit;
-			this.fInit = null;
-			this.fGetUninitialized = null;
-			_fInit();
+	_delayedInit: function () {
+		if (this.initData) {
+			var initData = this.initData;
+			this.initData = null;
+			var t = this;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				History.TurnOff();
+				for (var i = 0; i < initData.length; ++i) {
+					var range = t.worksheet.getRange2(initData[i]);
+					if (null != range) {
+						range.mergeOpen();
+					}
+				}
+				History.TurnOn();
+			});
 		}
 	},
     add: function (bbox, data, oChangeParam)
@@ -4487,11 +4496,6 @@ RangeDataManager.prototype = {
 			res.push(interval.data);
 		}
 		return res;
-	},
-	setDelayedInit : function(fInit, fGetUninitialized)
-	{
-		this.fInit = fInit;
-		this.fGetUninitialized = fGetUninitialized;
 	},
 	setDependenceManager : function(oDependenceManager)
 	{
