@@ -424,9 +424,9 @@ var editor;
       if (this.canEdit()) {
         var text;
         if(bPaste) {
-          text = "";
+			text = AscCommon.g_specialPasteHelper.GetPastedData(true);
         } else {
-
+            
         }
         callback(AscCommon.parseText(text, options));
       }
