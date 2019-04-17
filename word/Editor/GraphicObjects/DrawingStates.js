@@ -1238,60 +1238,57 @@ MoveInGroupState.prototype =
 
     onMouseUp: function(e, x, y, pageIndex)
     {
-        History.Create_NewPoint(AscDFH.historydescription_Document_MoveInGroup);
-        var old_x = this.group.bounds.x;
-        var old_y = this.group.bounds.y;
-        var i;
-        var tracks = this.drawingObjects.arrTrackObjects;
-        if(this instanceof MoveInGroupState && e.CtrlKey)
-        {
-            this.group.resetSelection();
-            for(i = 0; i < tracks.length; ++i)
-            {
-                var copy = tracks[i].originalObject.copy();
-                copy.setGroup(tracks[i].originalObject.group);
-                copy.group.addToSpTree(copy.group.length, copy);
-                tracks[i].originalObject = copy;
-                tracks[i].trackEnd(true);
-                this.group.selectObject(copy, 0);
-            }
-        }
-        else
-        {
-            for(i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
-            {
-                this.drawingObjects.arrTrackObjects[i].trackEnd(true);
-            }
-        }
-        var oPosObject = this.group.updateCoordinatesAfterInternalResize();
-        this.group.recalculate();
-        var bounds = this.group.bounds;
+        var parent_paragraph = this.group.parent.Get_ParentParagraph();
         var check_paragraphs = [];
-        check_paragraphs.push(this.group.parent.Get_ParentParagraph());
-        var posX = oPosObject.posX;
-        var posY = oPosObject.posY;
-        this.group.spPr.xfrm.setOffX(0);
-        this.group.spPr.xfrm.setOffY(0);
         if(this.group.parent.Is_Inline())
         {
-            this.group.parent.CheckWH();
+            check_paragraphs.push(parent_paragraph);
         }
-        else
-        {
-            this.group.parent.CheckWH();
-            this.group.parent.Set_XY(this.group.posX + posX, this.group.posY + posY, check_paragraphs[0], this.group.parent.pageIndex, false);
-            check_paragraphs.length = 0;
-         }
         if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : check_paragraphs, CheckType : AscCommon.changestype_Paragraph_Content}))
         {
+            History.Create_NewPoint(AscDFH.historydescription_Document_MoveInGroup);
+            var i;
+            var tracks = this.drawingObjects.arrTrackObjects;
+            if(this instanceof MoveInGroupState && e.CtrlKey)
+            {
+                this.group.resetSelection();
+                for(i = 0; i < tracks.length; ++i)
+                {
+                    var copy = tracks[i].originalObject.copy();
+                    copy.setGroup(tracks[i].originalObject.group);
+                    copy.group.addToSpTree(copy.group.length, copy);
+                    tracks[i].originalObject = copy;
+                    tracks[i].trackEnd(true);
+                    this.group.selectObject(copy, 0);
+                }
+            }
+            else
+            {
+                for(i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
+                {
+                    this.drawingObjects.arrTrackObjects[i].trackEnd(true);
+                }
+            }
+            var oPosObject = this.group.updateCoordinatesAfterInternalResize();
+            this.group.recalculate();
+            var posX = oPosObject.posX;
+            var posY = oPosObject.posY;
+            this.group.spPr.xfrm.setOffX(0);
+            this.group.spPr.xfrm.setOffY(0);
+            if(this.group.parent.Is_Inline())
+            {
+                this.group.parent.CheckWH();
+            }
+            else
+            {
+                this.group.parent.CheckWH();
+                this.group.parent.Set_XY(this.group.posX + posX, this.group.posY + posY, parent_paragraph, this.group.parent.pageIndex, false);
+            }
             this.drawingObjects.document.Recalculate();
-        }
-        else
-        {
-            this.drawingObjects.document.Document_Undo();
         }
         this.drawingObjects.clearTrackObjects();
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
+        this.drawingObjects.updateOverlay();
     }
 };
 
