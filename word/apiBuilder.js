@@ -1741,8 +1741,8 @@
 	};
 	/**
 	 * Insert the number of the current document page into the paragraph.
-	 * @typeofeditors ["CDE"]
 	 * <note>This method works for the paragraphs in the document header/footer only.</note>
+	 * @typeofeditors ["CDE"]
 	 * @returns {ApiRun}
 	 */
 	ApiParagraph.prototype.AddPageNumber = function()
@@ -1754,8 +1754,8 @@
 	};
 	/**
 	 * Insert the number of pages in the current document into the paragraph.
-	 * @typeofeditors ["CDE"]
 	 * <note>This method works for the paragraphs in the document header/footer only.</note>
+	 * @typeofeditors ["CDE"]
 	 * @returns {ApiRun}
 	 */
 	ApiParagraph.prototype.AddPagesCount = function()
@@ -3733,7 +3733,7 @@
 	};
 	/**
 	 * Set the preferred width for this table.
-	 * <note>Tables are created with the ApiTable.SetWidth method properties set by default, which always override the {@link ApiTablePr#SetWidth} method properties. That is why there is no use to try and apply ApiTablePr.SetWidth, we recommend that you use the  {@link ApiTablePr#SetWidth}  method instead.</node>
+	 * <note>Tables are created with the ApiTable.SetWidth method properties set by default, which always override the {@link ApiTablePr#SetWidth} method properties. That is why there is no use to try and apply ApiTablePr.SetWidth, we recommend that you use the  {@link ApiTablePr#SetWidth}  method instead.</note>
 	 * @typeofeditors ["CDE"]
 	 * @param {TableWidth} sType - Type of the width value from one of the available width values types.
 	 * @param {number} [nValue] - The table width value measured in positive integers.
