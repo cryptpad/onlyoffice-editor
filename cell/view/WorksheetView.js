@@ -2636,6 +2636,17 @@
 								return;
 							}
 
+
+
+
+                            if(ctx instanceof AscCommonExcel.CPdfPrinter)
+                            {
+                                graphics.SaveGrState();
+                                var _baseTransform = new AscCommon.CMatrix();
+                                graphics.SetBaseTransform(_baseTransform);
+                            }
+
+
 							graphics.save();
                             var oMatrix = new AscCommon.CMatrix();
                             oMatrix.tx = rect._x;
@@ -2647,6 +2658,12 @@
 							shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
 							shapeDrawer.draw(geometry);
 							graphics.restore();
+
+                            if(ctx instanceof AscCommonExcel.CPdfPrinter)
+                            {
+                                graphics.SetBaseTransform(null);
+                                graphics.RestoreGrState();
+                            }
 						}, this, [fill, rect]
 					);
 				}
