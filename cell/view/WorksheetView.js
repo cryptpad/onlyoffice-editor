@@ -15581,7 +15581,7 @@
 				res += text;
 				bImptyText = false;
 			}
-			if(cell.col !== range.c1) {
+			if(cell.nRow !== range.r2) {
 				res += delimiter;
 			}
 		});

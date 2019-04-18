@@ -4423,7 +4423,8 @@
 			}
 		}
 		var matrix = [];
-		var rows = text.match(/[^\r\n]+/g);
+		//var rows = text.match(/[^\r\n]+/g);
+		var rows = text.split(/\r?\n/);
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows[i];
 			//todo quotes

@@ -2939,6 +2939,13 @@
 				var rowCounter = 0;
 				var sCurChar = "";
 				var _parseText = function(sText, ignoreTab) {
+					if(bPastedArray && sText === "") {
+						if (colCounter > width) {
+							width = colCounter;
+						}
+						addTextIntoCell(rowCounter, colCounter, sText);
+						sCurChar = "";
+					}
 					for (var i = 0, length = sText.length; i < length; i++) {
 						var Char = sText.charAt(i);
 						var Code = sText.charCodeAt(i);
