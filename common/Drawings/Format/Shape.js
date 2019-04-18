@@ -3078,7 +3078,7 @@ CShape.prototype.recalculateLocalTransform = function(transform)
         if(bUserShape)
         {
         }
-        else if(this.drawingBase)
+        else if(this.drawingBase && !this.isCrop)
         {
             var metrics = this.drawingBase.getGraphicObjectMetrics();
             this.x = metrics.x;
