@@ -2615,8 +2615,8 @@
 							if (fill.patternFill) {
 								oUniFill.fill = new AscFormat.CPattFill();
 								oUniFill.fill.ftype = fill.patternFill.getHatchOffset();
-								oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor);
-								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor);
+								oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor || AscCommonExcel.createRgbColor(0, 0, 0));
+								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor || AscCommonExcel.createRgbColor(255, 255, 255));
 							} else if (fill.gradientFill) {
                                 oUniFill.fill = new AscFormat.CGradFill();
                                 if(fill.gradientFill.type === AscCommonExcel.c_oAscGradientType.Linear) {
@@ -2629,7 +2629,7 @@
 								for(var i = 0; i < fill.gradientFill.stop.length; ++i) {
                                     var oGradStop = new AscFormat.CGs();
                                     oGradStop.pos = fill.gradientFill.stop[i].position*100000;
-                                    oGradStop.color = AscFormat.CreateUniColorRGB2(fill.gradientFill.stop[i].color);
+                                    oGradStop.color = AscFormat.CreateUniColorRGB2(fill.gradientFill.stop[i].color || AscCommonExcel.createRgbColor(255, 255, 255));
                                     oUniFill.fill.addColor(oGradStop);
                                 }
 							} else {

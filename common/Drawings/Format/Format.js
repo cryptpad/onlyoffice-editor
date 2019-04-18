@@ -2173,7 +2173,6 @@ function CreateUniColorRGB(r, g, b)
 
 function CreateUniColorRGB2(color)
 {
-    color = color || AscCommonExcel.createRgbColor(255, 255, 255);
     var ret = new CUniColor();
     ret.setColor(new CRGBColor());
     ret.color.setColor(ret.RGBA.R = color.getR(), ret.RGBA.G = color.getG(), ret.RGBA.B = color.getB());
