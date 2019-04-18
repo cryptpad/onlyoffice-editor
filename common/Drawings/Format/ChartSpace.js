@@ -1278,8 +1278,6 @@ function CChartSpace()
     CChartSpace.prototype.select = CShape.prototype.select;
 CChartSpace.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
 CChartSpace.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
-CChartSpace.prototype.deleteBFromSerialize = CShape.prototype.deleteBFromSerialize;
-CChartSpace.prototype.setBFromSerialize = CShape.prototype.setBFromSerialize;
 CChartSpace.prototype.checkTypeCorrect = function(){
     if(!this.chart){
         return false;
@@ -2526,10 +2524,6 @@ CChartSpace.prototype.copy = function(drawingDocument)
     copy.cachedImage = this.getBase64Img();
     copy.cachedPixH = this.cachedPixH;
     copy.cachedPixW = this.cachedPixW;
-    if(this.fromSerialize)
-    {
-        copy.setBFromSerialize(true);
-    }
     return copy;
 };
 CChartSpace.prototype.convertToWord = function(document)

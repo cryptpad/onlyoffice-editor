@@ -257,7 +257,7 @@ function MoveShapeImageTrack(originalObject)
         }
         else
         {
-            AscFormat.CheckSpPrXfrm(this.originalObject);
+            AscFormat.CheckSpPrXfrm3(this.originalObject, true);
         }
         if(this.originalObject.group)
         {

@@ -180,10 +180,6 @@ function (window, undefined) {
             copy.setStyle(this.style.createDuplicate());
         }
         copy.setBDeleted(this.bDeleted);
-        if(this.fromSerialize)
-        {
-            copy.setBFromSerialize(true);
-        }
         copy.setData(this.m_sData);
         copy.setApplicationId(this.m_sApplicationId);
         copy.setPixSizes(this.m_nPixWidth, this.m_nPixHeight);

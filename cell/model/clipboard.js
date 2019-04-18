@@ -1828,11 +1828,7 @@
 					aCopies.push(data.Drawings[i].graphicObject);
 
 					drawingObject = data.Drawings[i];
-
-					if (drawingObject.graphicObject.fromSerialize && drawingObject.graphicObject.setBFromSerialize) {
-						drawingObject.graphicObject.setBFromSerialize(false);
-					}
-					AscFormat.CheckSpPrXfrm(drawingObject.graphicObject);
+					AscFormat.CheckSpPrXfrm2(drawingObject.graphicObject);
 					xfrm = drawingObject.graphicObject.spPr.xfrm;
 
 					activeRow = activeCell.row;
@@ -1984,7 +1980,7 @@
 					}
 
 
-					AscFormat.CheckSpPrXfrm(drawingObject.graphicObject);
+					AscFormat.CheckSpPrXfrm2(drawingObject.graphicObject);
 					xfrm = drawingObject.graphicObject.spPr.xfrm;
 
 					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws._getColLeft(addImagesFromWord[i].col + activeRange.c1) - ws._getColLeft(0), 0, 3);

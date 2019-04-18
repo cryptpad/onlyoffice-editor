@@ -5844,14 +5844,6 @@ CXfrm.prototype =
         return duplicate;
     },
 
-    checkFromSerialize: function()
-    {
-        if(this.parent && this.parent.checkFromSerialize)
-        {
-            this.parent.checkFromSerialize();
-        }
-    },
-
     setParent: function(pr)
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Xfrm_SetParent, this.parent,  pr));
@@ -5860,77 +5852,66 @@ CXfrm.prototype =
 
     setOffX: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffX, this.offX,  pr));
         this.offX = pr;
         this.handleUpdatePosition();
     },
     setOffY: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffY, this.offY,  pr));
         this.offY = pr;
         this.handleUpdatePosition();
     },
     setExtX: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtX, this.extX,  pr));
         this.extX = pr;
         this.handleUpdateExtents();
     },
     setExtY: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtY, this.extY,  pr));
         this.extY = pr;
         this.handleUpdateExtents();
     },
     setChOffX: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffX, this.chOffX,  pr));
         this.chOffX = pr;
         this.handleUpdateChildOffset();
     },
     setChOffY: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffY, this.chOffY,  pr));
         this.chOffY = pr;
         this.handleUpdateChildOffset();
     },
     setChExtX: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtX, this.chExtX,  pr));
         this.chExtX = pr;
         this.handleUpdateChildExtents();
     },
     setChExtY: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtY, this.chExtY,  pr));
         this.chExtY = pr;
         this.handleUpdateChildExtents();
     },
     setFlipH: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipH, this.flipH,  pr));
         this.flipH = pr;
         this.handleUpdateFlip();
     },
     setFlipV: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipV, this.flipV,  pr));
         this.flipV = pr;
         this.handleUpdateFlip();
     },
     setRot: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetRot, this.rot,  pr));
         this.rot = pr;
         this.handleUpdateRot();
@@ -6190,14 +6171,6 @@ CSpPr.prototype =
     Read_FromBinary2: function (r)
     {
         this.Id = r.GetString2();
-    },
-
-    checkFromSerialize: function()
-    {
-        if(this.parent && this.parent.deleteBFromSerialize)
-        {
-            this.parent.deleteBFromSerialize();
-        }
     },
 
     setParent: function(pr)

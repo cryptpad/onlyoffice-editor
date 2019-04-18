@@ -1204,27 +1204,6 @@ CShape.prototype.clearContent = function () {
     }
 };
 
-
-CShape.prototype.setBFromSerialize = function(bVal)
-{
-    History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_AutoShapes_SetBFromSerialize, this.fromSerialize, bVal));
-    this.fromSerialize = bVal;
-};
-
-CShape.prototype.deleteBFromSerialize = function()
-{
-    if(this.fromSerialize)
-    {
-        this.setBFromSerialize(false);
-        if(this.drawingBase)
-        {
-            var drawingObject = this.drawingBase;
-            var metrics = drawingObject.getGraphicObjectMetrics();
-            SetXfrmFromMetrics(this, metrics);
-        }
-    }
-};
-
 CShape.prototype.getDocContent = function () {
     if (this.txBody) {
         return this.txBody.content;
@@ -2654,10 +2633,6 @@ CShape.prototype.fillObject = function(copy){
     }
     copy.setWordShape(this.bWordShape);
     copy.setBDeleted(this.bDeleted);
-    if(this.fromSerialize)
-    {
-        copy.setBFromSerialize(true);
-    }
     copy.setLocks(this.locks);
     copy.cachedImage = this.getBase64Img();
     copy.cachedPixH = this.cachedPixH;
@@ -3103,7 +3078,7 @@ CShape.prototype.recalculateLocalTransform = function(transform)
         if(bUserShape)
         {
         }
-        else if(this.drawingBase  && this.fromSerialize)
+        else if(this.drawingBase)
         {
             var metrics = this.drawingBase.getGraphicObjectMetrics();
             this.x = metrics.x;

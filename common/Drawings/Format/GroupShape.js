@@ -316,10 +316,6 @@ function CGroupShape()
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;
         copy.setLocks(this.locks);
-        if(this.fromSerialize)
-        {
-            copy.setBFromSerialize(true);
-        }
         return copy;
     };
 
@@ -608,7 +604,7 @@ function CGroupShape()
                 }
 
 
-                if(this.drawingBase  && this.fromSerialize)
+                if(this.drawingBase)
                 {
                     var metrics = this.drawingBase.getGraphicObjectMetrics();
                     var rot = 0;
@@ -1633,9 +1629,6 @@ function CGroupShape()
 
     CGroupShape.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
 
-    CGroupShape.prototype.deleteBFromSerialize = CShape.prototype.deleteBFromSerialize;
-
-    CGroupShape.prototype.setBFromSerialize = CShape.prototype.setBFromSerialize;
 
     CGroupShape.prototype.calculateSnapArrays = function(snapArrayX, snapArrayY)
     {

@@ -3534,25 +3534,18 @@
                     }
                     else
                     {
-                        var oCurDrawingToWrite;
-                        if(!oDrawing.graphicObject.fromSerialize)
+                        var oCurDrawingToWrite = AscFormat.ExecuteNoHistory(function()
                         {
-                            this.bs.WriteItem(c_oSerWorksheetsTypes.Drawing, function(){oThis.WriteDrawing(oDrawing);});
-                        }
-                        else
-                        {
-                            var oCurDrawingToWrite = AscFormat.ExecuteNoHistory(function()
-                            {
-                                var oRet = oDrawing.graphicObject.copy();
-                                var oMetrics = oDrawing.getGraphicObjectMetrics();
-                                AscFormat.SetXfrmFromMetrics(oRet, oMetrics);
-                                return oRet;
-                            }, this, []);
-                            var oOldGrObject = oDrawing.graphicObject;
-                            oDrawing.graphicObject = oCurDrawingToWrite;
-                            this.bs.WriteItem(c_oSerWorksheetsTypes.Drawing, function(){oThis.WriteDrawing(oDrawing);});
-                            oDrawing.graphicObject = oOldGrObject;
-                        }
+                            var oRet = oDrawing.graphicObject.copy();
+                            var oMetrics = oDrawing.getGraphicObjectMetrics();
+                            AscFormat.SetXfrmFromMetrics(oRet, oMetrics);
+                            return oRet;
+                        }, this, []);
+                        var oOldGrObject = oDrawing.graphicObject;
+                        oDrawing.graphicObject = oCurDrawingToWrite;
+                        this.bs.WriteItem(c_oSerWorksheetsTypes.Drawing, function(){oThis.WriteDrawing(oDrawing);});
+                        oDrawing.graphicObject = oOldGrObject;
+
                     }
                 }
             }
@@ -7361,11 +7354,6 @@
                         oNewDrawing.graphicObject.spPr.xfrm.setExtX(0);
                         oNewDrawing.graphicObject.spPr.xfrm.setExtY(0);
                     }
-                    if(oNewDrawing.graphicObject.setBFromSerialize)
-                    {
-                        oNewDrawing.graphicObject.setBFromSerialize(true);
-                    }
-                    oNewDrawing.graphicObject.fromSerialize = true;
                     aDrawings.push(oNewDrawing);
                 }
             }

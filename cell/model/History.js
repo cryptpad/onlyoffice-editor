@@ -346,10 +346,15 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
     }
 };
 
-CHistory.prototype.CheckXfrmChanges = function(xfrm)
+CHistory.prototype.Remove_LastPoint = function()
 {
+	this.Index--;
+	this.Points.length = this.Index + 1;
 };
-
+CHistory.prototype.RemoveLastPoint = function()
+{
+	this.Remove_LastPoint();
+};
 CHistory.prototype.RedoExecute = function(Point, oRedoObjectParam)
 {
 	// Выполняем все действия в прямом порядке
