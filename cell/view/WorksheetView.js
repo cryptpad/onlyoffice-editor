@@ -7696,6 +7696,8 @@
 			}
 		}
 
+		cell_info.selectedColsCount = Math.abs(ar.c2 - ar.c1);
+
         return cell_info;
 	};
 
