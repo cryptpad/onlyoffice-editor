@@ -1992,7 +1992,7 @@
         this._drawGrid(null);
         this._drawCellsAndBorders(null);
 		this._drawGroupData(null);
-		this._drawGroupData(null, null, null, null, true);
+		this._drawGroupData(null, null, undefined, undefined, true);
         this._drawFrozenPane();
         this._drawFrozenPaneLines();
         this._fixSelectionOfMergedCells();
@@ -6726,7 +6726,9 @@
 		//TODO проверить!
 		//group row
 		if(x <= this.cellsLeft && this.groupWidth && x < this.groupWidth) {
-			r = this._findRowUnderCursor(y, true);
+			if(y > this.groupHeight + this.headersHeight) {
+				r = this._findRowUnderCursor(y, true);
+			}
 			row = -1;
 			if(r) {
 				row = r.row + (isNotFirst && f && y < r.top + 3 ? -1 : 0);
@@ -6745,7 +6747,10 @@
 		//TODO проверить!
 		//group col
 		if (y <= this.cellsTop && this.groupHeight && y < this.groupHeight) {
-			c = this._findColUnderCursor(x, true);
+			c = null;
+			if(x > this.groupWidth + this.headersWidth) {
+				c = this._findColUnderCursor(x, true);
+			}
 			col = -1;
 			if (c) {
 				col = c.col + (isNotFirst && f && x < c.left + 3 ? -1 : 0);
@@ -15859,7 +15864,7 @@
 							}
 						}
 
-						if(startPos >= endPos) {
+						if(startPos > endPos) {
 							continue;
 						}
 
@@ -15957,7 +15962,7 @@
 							}
 						}
 
-						if(startPos >= endPos) {
+						if(startPos > endPos) {
 							continue;
 						}
 
@@ -16415,7 +16420,7 @@
 						if (x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
 							return true;
 						} else {
-							t._drawGroupDataButtons(null, [{r: t.clickedGroupButton.r, level: t.clickedGroupButton.level, active: false, clean: true}], null, null, bCol);
+							t._drawGroupDataButtons(null, [{r: t.clickedGroupButton.r, level: t.clickedGroupButton.level, active: false, clean: true}], undefined, undefined, bCol);
 							t.clickedGroupButton = null;
 							return false;
 						}
@@ -16470,7 +16475,7 @@
 										t.clickedGroupButton = null;
 									} else if("mousedown" === type) {
 										//перерисовываем кнопку в нажатом состоянии
-										t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}], null, null, bCol);
+										t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}], undefined, undefined, bCol);
 										t.clickedGroupButton = {level: i, r: arrayLines[i][j].end + 1, bCol: bCol};
 										mouseDownClick = true;
 									}
