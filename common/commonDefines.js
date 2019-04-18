@@ -1618,6 +1618,7 @@
 	prot['MailToClientMissing']				 = prot.MailToClientMissing;
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
+	prot['NoDataToParse']                    = prot.NoDataToParse;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
