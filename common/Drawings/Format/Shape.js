@@ -3035,12 +3035,6 @@ CShape.prototype.Check_AutoFit = function () {
     return this.checkAutofit(true) || this.checkContentWordArt(this.getDocContent()) || this.getBodyPr().prstTxWarp != null;
 };
 
-CShape.prototype.checkExtentsByAutofit = function(oShape)
-{
-
-};
-
-
 CShape.prototype.recalculateLocalTransform = function(transform)
 {
     var bNotesShape = false;
