@@ -967,8 +967,10 @@ CDocumentContentBase.prototype.private_AddContentControl = function(nContentCont
 
 				for (var nIndex = nEndPos; nIndex >= nStartPos; --nIndex)
 				{
-					oSdt.Content.Add_ToContent(0, this.Content[nIndex]);
+					var oElement = this.Content[nIndex];
+					oSdt.Content.Add_ToContent(0, oElement);
 					this.Remove_FromContent(nIndex, 1);
+					oElement.SelectAll(1);
 				}
 
 				oSdt.Content.Remove_FromContent(oSdt.Content.GetElementsCount() - 1, 1);
