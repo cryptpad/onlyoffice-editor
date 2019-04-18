@@ -1806,7 +1806,7 @@
 		}
     };
 
-	WorksheetView.prototype._checkPrintRange = function (range, printOnlySelection) {
+	WorksheetView.prototype._checkPrintRange = function (range) {
 		this._prepareCellTextMetricsCache(range);
 
 		var maxCol = -1;
