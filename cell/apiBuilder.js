@@ -711,9 +711,9 @@
 
 	/**
 	 * Create a chart of the set type from the selected data range of the current sheet.
-	 * @memberof ApiWorksheet
 	 * <note>Please note, that the horizontal nColOffset and vertical nRowOffset offsets are calculated within the limits of the specified nFromCol column and nFromRow
 	 * row cell only. If this value exceeds the cell width or height, another vertical/horizontal position will be set.</note>
+	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @param {string} sDataRange - The selected cell range which will be used to get the data for the chart, formed specifically and including the sheet name.
 	 * @param {bool} bInRows - Specifies whether to take the data from the rows or from the columns. If true the data from the rows will be used.

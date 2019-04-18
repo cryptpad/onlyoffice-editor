@@ -469,8 +469,8 @@
      * Set the size for the current presentation.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
-     /* @param {EMU} nWidth - The presentation width in English measure units.
-     /* @param {EMU} nHeight - The presentation height in English measure units.
+     * @param {EMU} nWidth - The presentation width in English measure units.
+     * @param {EMU} nHeight - The presentation height in English measure units.
      */
     ApiPresentation.prototype.SetSizes = function(nWidth, nHeight) {
         if(this.Presentation){
