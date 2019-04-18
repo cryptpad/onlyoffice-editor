@@ -147,6 +147,9 @@
 				this.transpose = null;
 
 				this.comment = null;
+
+				//for paste text as csv
+				this.advancedOptions = null;
 			},
 			asc_setProps: function (props) {
 				this.property = props;
@@ -240,8 +243,13 @@
 						break;
 					}
 				}
+			},
+			asc_setAdvancedOptions: function (props) {
+				this.advancedOptions = props;
+			},
+			asc_getAdvancedOptions: function () {
+				return this.advancedOptions;
 			}
-
 		};
 
 		/** @constructor */
@@ -383,7 +391,7 @@
 							this._pasteTextInCellEditor(data1);
 						} else {
 							//не показываем иконку с/в если вставляется только текст
-							window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
+							//window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
 							t.pasteProcessor.pasteTextOnSheet(ws, data1);
 						}
 
@@ -2743,6 +2751,16 @@
 					return;
 				}
 
+				//TEXT IMPORT WITH OPTIONS
+				var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
+				var specialPasteProps = specialPasteHelper.specialPasteProps;
+				var textImport;
+
+				var props = specialPasteProps ? specialPasteProps.property : null;
+				textImport = props === c_oSpecialPasteProps.useTextImport;
+
+
+
 				//TODO сделать вставку текста всегда через эту функцию
 				this.activeRange = worksheet.model.selectionRange.getLast().clone(true);
 				
@@ -2804,11 +2822,15 @@
 					worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
 					return;
 				}
-				
-				var aResult = this._getTableFromText(worksheet, text);
+
+				if(textImport) {
+					var advancedOptions = specialPasteProps.asc_getAdvancedOptions();
+					text = AscCommon.parseText(text, advancedOptions);
+				}
+				var aResult = this._getTableFromText(text, textImport);
 				if(aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor))
 				{
-					worksheet.setSelectionInfo('paste', {data: aResult});
+					worksheet.setSelectionInfo('paste', {data: aResult, bText: true});
 				}
 			},
 			
@@ -2901,11 +2923,11 @@
 				return res;
 			},
 
-			_getTableFromText: function (worksheet, sText) {
+			_getTableFromText: function (text, bPastedArray) {
 
-				var addTextIntoCell = function (row, col, text) {
+				var addTextIntoCell = function (row, col, sText) {
 					var cell = aResult.getCell(rowCounter, colCounter);
-					cell.content[0] = {text: text, format: new AscCommonExcel.Font()};
+					cell.content[0] = {text: sText, format: new AscCommonExcel.Font()};
 
 					return cell;
 				};
@@ -2915,44 +2937,69 @@
 				var colCounter = 0;
 				var rowCounter = 0;
 				var sCurChar = "";
-				for (var i = 0, length = sText.length; i < length; i++) {
-					var Char = sText.charAt(i);
-					var Code = sText.charCodeAt(i);
-
-					if (colCounter > width) {
-						width = colCounter;
-					}
-
-					if (13 === Code) {
-						continue;
-					}
-
-					if ('\n' === Char || sCurChar.length >= Asc.c_oAscMaxCellOrCommentLength) {
-						if ("" == sCurChar) {
-							addTextIntoCell(rowCounter, colCounter, sCurChar);
-							colCounter = 0;
-							rowCounter++;
-						} else {
-							addTextIntoCell(rowCounter, colCounter, sCurChar);
-							colCounter = 0;
-
-							rowCounter++;
-							sCurChar = "";
+				var _parseText = function(sText, ignoreTab) {
+					if(bPastedArray && sText === "") {
+						if (colCounter > width) {
+							width = colCounter;
 						}
-					} else {
-						if (32 === Code || 160 === Code) {//160 - nbsp
-							sCurChar += " ";
-						} else if (9 === Code) {//tab
-							addTextIntoCell(rowCounter, colCounter, sCurChar);
+						addTextIntoCell(rowCounter, colCounter, sText);
+						sCurChar = "";
+					}
+					for (var i = 0, length = sText.length; i < length; i++) {
+						var Char = sText.charAt(i);
+						var Code = sText.charCodeAt(i);
+
+						if (colCounter > width) {
+							width = colCounter;
+						}
+
+						if (13 === Code) {
+							continue;
+						}
+
+						if ('\n' === Char || sCurChar.length >= Asc.c_oAscMaxCellOrCommentLength) {
+							if ("" == sCurChar) {
+								addTextIntoCell(rowCounter, colCounter, sCurChar);
+								colCounter = 0;
+								rowCounter++;
+							} else {
+								addTextIntoCell(rowCounter, colCounter, sCurChar);
+								colCounter = 0;
+
+								rowCounter++;
+								sCurChar = "";
+							}
+						} else {
+							if (32 === Code || 160 === Code) {//160 - nbsp
+								sCurChar += " ";
+							} else if (9 === Code) {//tab
+								if(!ignoreTab) {
+									addTextIntoCell(rowCounter, colCounter, sCurChar);
+									colCounter++;
+									sCurChar = "";
+								}
+							} else {
+								sCurChar += Char;
+							}
+
+							if (i === length - 1) {
+								addTextIntoCell(rowCounter, colCounter, sCurChar);
+								sCurChar = "";
+							}
+						}
+					}
+				};
+
+				if(!bPastedArray) {
+					_parseText(text);
+				} else {
+					for(var i = 0; i < text.length; i++) {
+						colCounter = 0;
+						for(var j = 0; j < text[i].length; j++) {
+							_parseText(text[i][j], true);
 							colCounter++;
-							sCurChar = "";
-						} else {
-							sCurChar += Char;
 						}
-
-						if (i === length - 1) {
-							addTextIntoCell(rowCounter, colCounter, sCurChar);
-						}
+						rowCounter++;
 					}
 				}
 
@@ -4288,5 +4335,7 @@
 		window["Asc"]["SpecialPasteProps"]       = window["Asc"].SpecialPasteProps = CSpecialPasteProps;
 		prot									 = CSpecialPasteProps.prototype;
 		prot["asc_setProps"]				     = prot.asc_setProps;
+		prot["asc_setAdvancedOptions"]			 = prot.asc_setAdvancedOptions;
+
 	}
 )(jQuery, window);

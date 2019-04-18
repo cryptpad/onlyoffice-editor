@@ -4396,6 +4396,43 @@
 		Float64Array.prototype.fill = Array.prototype.fill;
 	}
 
+	function parseText(text, options) {
+		var delimiterChar;
+		if (options.asc_getDelimiterChar()) {
+			delimiterChar = options.asc_getDelimiterChar();
+		} else {
+			switch (options.asc_getDelimiter()) {
+				case AscCommon.c_oAscCsvDelimiter.None:
+					delimiterChar = undefined;
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Tab:
+					delimiterChar = "\t";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Semicolon:
+					delimiterChar = ";";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Colon:
+					delimiterChar = ":";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Comma:
+					delimiterChar = ",";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Space:
+					delimiterChar = " ";
+					break;
+			}
+		}
+		var matrix = [];
+		//var rows = text.match(/[^\r\n]+/g);
+		var rows = text.split(/\r?\n/);
+		for (var i = 0; i < rows.length; ++i) {
+			var row = rows[i];
+			//todo quotes
+			matrix.push(row.split(delimiterChar));
+		}
+		return matrix;
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -4485,6 +4522,8 @@
 	prot["destroy"] 	= prot.destroy;
 
 	window["AscCommon"].translateManager = new CTranslateManager();
+
+	window["AscCommon"].parseText = parseText;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

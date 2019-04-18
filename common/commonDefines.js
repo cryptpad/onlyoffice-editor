@@ -205,7 +205,9 @@
 			CannotChangeFormulaArray: -450,
 			MultiCellsInTablesFormulaArray: -451,
 
-			MailToClientMissing	: -452
+			MailToClientMissing	: -452,
+
+			NoDataToParse : -601
 		}
 	};
 
@@ -1410,7 +1412,9 @@
 		uniteIntoTable: 21,
 		insertAsNewRows: 22,
 		keepTextOnly: 23,
-		overwriteCells : 24
+		overwriteCells : 24,
+
+		useTextImport: 25
 	};
 
 	/** @enum {number} */
@@ -1614,6 +1618,7 @@
 	prot['MailToClientMissing']				 = prot.MailToClientMissing;
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
+	prot['NoDataToParse']                    = prot.NoDataToParse;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -2238,6 +2243,7 @@
 	prot['keepTextOnly'] = prot.keepTextOnly;
 	prot['insertAsNestedTable'] = prot.insertAsNestedTable;
 	prot['overwriteCells'] = prot.overwriteCells;
+	prot['useTextImport'] = prot.useTextImport;
 
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;

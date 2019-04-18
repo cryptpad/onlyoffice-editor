@@ -1198,6 +1198,13 @@
 		CleanButtonInfo: function()
 		{
 			this.buttonInfo.clean();
+		},
+
+		GetPastedData: function(bText) {
+			if(bText && this.specialPasteData.text_data) {
+				return this.specialPasteData.text_data;
+			}
+			return this.specialPasteData.data1;
 		}
 	};
 
