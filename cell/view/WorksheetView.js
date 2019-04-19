@@ -9849,6 +9849,7 @@
 					t.handlers.trigger("slowOperation", false);
 				}
 				t.isChanged = true;
+				t._cleanCache(arn);
 				t.changeWorksheet("update", {reinitRanges: true});
 				t.objectRender.rebuildChartGraphicObjects(selectData);
                 t.objectRender.showDrawingObjectsEx(true);
@@ -10895,7 +10896,7 @@
 		{
 			range.setValueData(rangeStyle.cellValueData);
 		}
-		else if(rangeStyle.val && specialPasteProps.val)
+		else if(null != rangeStyle.val && specialPasteProps.val)
 		{
 			//TODO возможно стоит всегда вызывать setValueData и тип выставлять в зависимости от val
 			if(rangeStyle.val[0] === "'") {
