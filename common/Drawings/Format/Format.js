@@ -4378,7 +4378,7 @@ EndArrow.prototype =
 
     GetWidth: function(_size, _max)
     {
-        var size = Math.max(_size, _max ? _max : 2.5);
+        var size = Math.max(_size, _max ? _max : 2);
         var _ret = 3 * size;
         if (null != this.w)
         {

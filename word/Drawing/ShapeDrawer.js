@@ -1127,6 +1127,8 @@ CShapeDrawer.prototype =
 
             var _max_delta_eps2 = 0.001;
 
+            var arrKoef = this.isArrPix ? (1 / AscCommon.g_dKoef_mm_to_pix) : 1;
+
             if (this.Ln.headEnd != null)
             {
                 var _x1 = trans.TransformPointX(arr[0].x, arr[0].y);
@@ -1149,7 +1151,7 @@ CShapeDrawer.prototype =
                 if (_max_delta > _max_delta_eps2)
                 {
 					_graphicsCtx.ArrayPoints = null;
-					DrawLineEnd(_x1, _y1, _x2, _y2, this.Ln.headEnd.type, this.Ln.headEnd.GetWidth(_pen_w, _max_w), this.Ln.headEnd.GetLen(_pen_w, _max_w), this, trans1);
+					DrawLineEnd(_x1, _y1, _x2, _y2, this.Ln.headEnd.type, arrKoef * this.Ln.headEnd.GetWidth(_pen_w, _max_w), arrKoef * this.Ln.headEnd.GetLen(_pen_w, _max_w), this, trans1);
 					_graphicsCtx.ArrayPoints = arr;
                 }
             }
@@ -1177,7 +1179,7 @@ CShapeDrawer.prototype =
                 if (_max_delta > _max_delta_eps2)
                 {
 					_graphicsCtx.ArrayPoints = null;
-					DrawLineEnd(_x1, _y1, _x2, _y2, this.Ln.tailEnd.type, this.Ln.tailEnd.GetWidth(_pen_w, _max_w), this.Ln.tailEnd.GetLen(_pen_w, _max_w), this, trans1);
+					DrawLineEnd(_x1, _y1, _x2, _y2, this.Ln.tailEnd.type, arrKoef * this.Ln.tailEnd.GetWidth(_pen_w, _max_w), arrKoef * this.Ln.tailEnd.GetLen(_pen_w, _max_w), this, trans1);
 					_graphicsCtx.ArrayPoints = arr;
                 }
             }

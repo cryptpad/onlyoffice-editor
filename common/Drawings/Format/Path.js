@@ -1015,7 +1015,7 @@ Path.prototype = {
             var _lineWidth = Math.max((shape_drawer.StrokeWidth * dKoefMMToPx + 0.5) >> 0, 1);
             _ctx.lineWidth = _lineWidth;
 
-            if (_lineWidth & 0x01 == 0x01)
+            if ((_lineWidth & 0x01) == 0x01)
                 bIsEven = true;
 
             if (_graphics.dash_no_smart)
@@ -1690,7 +1690,7 @@ Path.prototype = {
                 var _lineWidth = Math.max((shape_drawer.StrokeWidth * dKoefMMToPx + 0.5) >> 0, 1);
                 _ctx.lineWidth = _lineWidth;
 
-                if (_lineWidth & 0x01 == 0x01)
+                if ((_lineWidth & 0x01) == 0x01)
                     bIsEven = true;
             }
 
@@ -1721,6 +1721,12 @@ Path.prototype = {
                                 _y -= 0.5;
                             }
                             _ctx.moveTo(_x, _y);
+
+                            if (_graphics.ArrayPoints != null)
+                            {
+                                _graphics.ArrayPoints.push({x: X, y: Y});
+                            }
+
                             i+=3;
                             break;
                         }
@@ -1737,6 +1743,11 @@ Path.prototype = {
                                 _y -= 0.5;
                             }
                             _ctx.lineTo(_x, _y);
+
+                            if (_graphics.ArrayPoints != null)
+                            {
+                                _graphics.ArrayPoints.push({x: X, y: Y});
+                            }
 
                             i+=3;
                             break;
@@ -1841,7 +1852,9 @@ Path.prototype = {
 
             if (bIsDrawLast)
             {
+                shape_drawer.isArrPix = true;
                 shape_drawer.drawFillStroke(true, this.fill, bIsStroke);
+                shape_drawer.isArrPix = false;
             }
 
             shape_drawer._e();

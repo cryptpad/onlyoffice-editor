@@ -3252,7 +3252,7 @@ function OfflineEditor () {
                 var _lineWidth = Math.max((shape_drawer.StrokeWidth * dKoefMMToPx + 0.5) >> 0, 1);
                 _ctx.lineWidth = _lineWidth;
                 
-                if (_lineWidth & 0x01 == 0x01)
+                if ((_lineWidth & 0x01) == 0x01)
                     bIsEven = true;
             }
             
