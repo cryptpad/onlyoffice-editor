@@ -15586,6 +15586,7 @@
 	};
 
 	WorksheetView.prototype.getRangeText = function (range, delimiter) {
+		var t = this;
 		if (range === undefined) {
 			range = this.model.selectionRange.getLast();
 		}
@@ -15593,15 +15594,19 @@
 			delimiter = "\n";
 		}
 
+		var firstDefCell;
 		var res = "";
 		var bImptyText = true;
-		this.model.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach(function(cell) {
-			var text = cell.getValueForEdit();
-			if(text !== "") {
-				res += text;
-				bImptyText = false;
+		this.model.getRange3(range.r1, range.c1, Math.min(range.r2, t.rows.length), range.c2)._foreach2(function(cell, r, c) {
+			if(cell !== null) {
+				var text = cell.getValueForEdit();
+				if(text !== "") {
+					res += text;
+					bImptyText = false;
+				}
+				firstDefCell = true;
 			}
-			if(cell.nRow !== range.r2) {
+			if(r !== range.r2 && firstDefCell) {
 				res += delimiter;
 			}
 		});
