@@ -1423,8 +1423,14 @@ function DrawingObjects() {
                 break;
             }
         }
-
-
+        if(metrics.extX < 0)
+        {
+            metrics.extX = 0;
+        }
+        if(metrics.extY < 0)
+        {
+            metrics.extY = 0;
+        }
         return metrics;
     };
 

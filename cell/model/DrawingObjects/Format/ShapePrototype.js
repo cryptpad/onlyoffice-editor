@@ -174,6 +174,7 @@ function addToDrawings(worksheet, graphic, position, lockByDefault, anchor)
      worksheet.setSelectionShape(true);  */
     if(oldDrawingBase)
     {
+        drawingObject.Type = oldDrawingBase.Type;
         drawingObject.from.col = oldDrawingBase.from.col;
         drawingObject.from.colOff = oldDrawingBase.from.colOff;
         drawingObject.from.row = oldDrawingBase.from.row;
@@ -183,6 +184,11 @@ function addToDrawings(worksheet, graphic, position, lockByDefault, anchor)
         drawingObject.to.colOff = oldDrawingBase.to.colOff;
         drawingObject.to.row = oldDrawingBase.to.row;
         drawingObject.to.rowOff = oldDrawingBase.to.rowOff;
+
+        drawingObject.Pos.X = oldDrawingBase.Pos.X;
+        drawingObject.Pos.Y = oldDrawingBase.Pos.Y;
+        drawingObject.ext.cx = oldDrawingBase.ext.cx;
+        drawingObject.ext.cy = oldDrawingBase.ext.cy;
     }
     if(graphic.recalcTransform)
     {
