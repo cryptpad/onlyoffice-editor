@@ -1206,16 +1206,24 @@ function CEditorPage(api)
 			return;
 
 		var _h       = 5;
-		var rectSize = (_h * g_dKoef_mm_to_pix / 100);
+		var rectSize = (_h * this.m_nZoomValue * g_dKoef_mm_to_pix / 100);
 		var pos      = this.m_oDrawingDocument.ConvertCoordsToCursor2(x, y, PageNum);
 
 		if (true === pos.Error)
 			return;
 
-		var boxX = 0;
-		var boxY = 0;
-		var boxR = this.m_oEditor.HtmlElement.width - 2;
-		var boxB = this.m_oEditor.HtmlElement.height - rectSize;
+        var _ww = this.m_oEditor.HtmlElement.width;
+        var _hh = this.m_oEditor.HtmlElement.height;
+        if (this.bIsRetinaSupport)
+        {
+            _ww /= AscCommon.AscBrowser.retinaPixelRatio;
+            _hh /= AscCommon.AscBrowser.retinaPixelRatio;
+        }
+
+        var boxX = 0;
+        var boxY = 0;
+        var boxR = _ww - 2;
+        var boxB = _hh - rectSize;
 
 		var nValueScrollHor = 0;
 		if (pos.X < boxX)
@@ -1224,7 +1232,7 @@ function CEditorPage(api)
 		}
 		if (pos.X > boxR)
 		{
-			var _mem        = x - g_dKoef_pix_to_mm * this.m_oEditor.HtmlElement.width * 100 / this.m_nZoomValue;
+			var _mem        = x - g_dKoef_pix_to_mm * _ww * 100 / this.m_nZoomValue;
 			nValueScrollHor = this.GetHorizontalScrollTo(_mem, PageNum);
 		}
 
@@ -1235,7 +1243,7 @@ function CEditorPage(api)
 		}
 		if (pos.Y > boxB)
 		{
-			var _mem        = y + _h + 10 - g_dKoef_pix_to_mm * this.m_oEditor.HtmlElement.height * 100 / this.m_nZoomValue;
+			var _mem        = y + _h + 10 - g_dKoef_pix_to_mm * _hh * 100 / this.m_nZoomValue;
 			nValueScrollVer = this.GetVerticalScrollTo(_mem, PageNum);
 		}
 
@@ -1244,14 +1252,14 @@ function CEditorPage(api)
 		{
 			isNeedScroll                   = true;
 			this.m_bIsUpdateTargetNoAttack = true;
-			var temp                       = nValueScrollHor * this.m_dScrollX_max / (this.m_dDocumentWidth - this.m_oEditor.HtmlElement.width);
+			var temp                       = nValueScrollHor * this.m_dScrollX_max / (this.m_dDocumentWidth - _ww);
 			this.m_oScrollHorApi.scrollToX(parseInt(temp), false);
 		}
 		if (0 != nValueScrollVer)
 		{
 			isNeedScroll                   = true;
 			this.m_bIsUpdateTargetNoAttack = true;
-			var temp                       = nValueScrollVer * this.m_dScrollY_max / (this.m_dDocumentHeight - this.m_oEditor.HtmlElement.height);
+			var temp                       = nValueScrollVer * this.m_dScrollY_max / (this.m_dDocumentHeight - _hh);
 			this.m_oScrollVerApi.scrollToY(parseInt(temp), false);
 		}
 
