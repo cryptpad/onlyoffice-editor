@@ -1786,7 +1786,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.LogicDocumentController = new CLogicDocumentController(this);
 	this.DrawingsController      = new CDrawingsController(this, this.DrawingObjects);
 	this.HeaderFooterController  = new CHdrFtrController(this, this.HdrFtr);
-	
+
 	this.Controller = this.LogicDocumentController;
 
     this.StartTime = 0;
@@ -1801,7 +1801,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	if (this.CollaborativeEditing && !this.CollaborativeEditing.Is_SingleUser())
 	{
 		this.StartCollaborationEditing();
-}
+	}
 	//__________________________________________________________________________________________________________________
 }
 CDocument.prototype = Object.create(CDocumentContentBase.prototype);
@@ -16767,8 +16767,11 @@ CDocument.prototype.EndViewModeInReview = function()
 };
 CDocument.prototype.StartCollaborationEditing = function()
 {
-	this.DrawingDocument.Start_CollaborationEditing();
-	this.EndViewModeInReview();
+	if (this.DrawingDocument)
+	{
+		this.DrawingDocument.Start_CollaborationEditing();
+		this.EndViewModeInReview();
+	}
 };
 CDocument.prototype.IsViewModeInReview = function()
 {
