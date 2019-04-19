@@ -15597,7 +15597,8 @@
 		var firstDefCell;
 		var res = "";
 		var bImptyText = true;
-		this.model.getRange3(range.r1, range.c1, Math.min(range.r2, t.rows.length), range.c2)._foreach2(function(cell, r, c) {
+		var maxRow = Math.min(range.r2, t.rows.length - 1);
+		this.model.getRange3(range.r1, range.c1, maxRow, range.c2)._foreach2(function(cell, r, c) {
 			if(cell !== null) {
 				var text = cell.getValueForEdit();
 				//извлекаем тест до первого переноса строки
@@ -15609,7 +15610,7 @@
 				}
 				firstDefCell = true;
 			}
-			if(r !== range.r2 && firstDefCell) {
+			if(r !== maxRow && firstDefCell) {
 				res += delimiter;
 			}
 		});
