@@ -15600,6 +15600,9 @@
 		this.model.getRange3(range.r1, range.c1, Math.min(range.r2, t.rows.length), range.c2)._foreach2(function(cell, r, c) {
 			if(cell !== null) {
 				var text = cell.getValueForEdit();
+				//извлекаем тест до первого переноса строки
+				//TODO ms  в данном случае показывает на первом preview всю ячейку в одну строку, а на втором preview обрубает до первого переноса строки
+				text = text.split(/\r?\n/)[0];
 				if(text !== "") {
 					res += text;
 					bImptyText = false;
