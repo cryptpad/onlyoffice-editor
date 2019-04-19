@@ -374,12 +374,12 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		if (true === this.IsTrackRevisions())
 		{
 			var _nEndPos;
-			if (this.Content[EndPos].IsParagraph() && this.Content[EndPos].IsSelectionToEnd())
-				_nEndPos = EndPos;
-			else
+			if (this.Content[EndPos].IsParagraph() && !this.Content[EndPos].IsSelectionToEnd())
 				_nEndPos = EndPos - 1;
+			else
+				_nEndPos = EndPos;
 
-			var oDirectParaPr = null
+			var oDirectParaPr = null;
 			if (this.Content[StartPos].IsParagraph())
 				oDirectParaPr = this.Content[StartPos].GetDirectParaPr();
 
@@ -429,34 +429,44 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 				var nReviewType = oElement.GetReviewType();
 				var oReviewInfo = oElement.GetReviewInfo();
 
-				if (oElement.IsParagraph()
-					&& ((reviewtype_Add === nReviewType && oReviewInfo.IsCurrentUser())
-					|| (reviewtype_Remove === nReviewType && oReviewInfo.IsPrevAddedByCurrentUser())))
+				if (oElement.IsParagraph())
 				{
-					// Если параграф пустой, тогда удаляем параграф, если не пустой, тогда объединяем его со
-					// следующим параграф. Если следующий элемент таблица, тогда ничего не делаем.
-					if (oElement.IsEmpty())
+					if ((reviewtype_Add === nReviewType && oReviewInfo.IsCurrentUser())
+						|| (reviewtype_Remove === nReviewType && oReviewInfo.IsPrevAddedByCurrentUser()))
 					{
-						this.RemoveFromContent(nIndex, 1);
-					}
-					else if (nIndex < this.Content.length - 1 && this.Content[nIndex + 1].IsParagraph())
-					{
-						oElement.Concat(this.Content[nIndex + 1]);
-						this.RemoveFromContent(nIndex + 1, 1);
-					}
-				}
-				else
-				{
-					if (oElement.IsParagraph() && reviewtype_Add === nReviewType)
-					{
-						var oNewReviewInfo = oReviewInfo.Copy();
-						oNewReviewInfo.SavePrev(reviewtype_Add);
-						oNewReviewInfo.Update();
-						oElement.SetReviewType(reviewtype_Remove, oNewReviewInfo);
+						// Если параграф пустой, тогда удаляем параграф, если не пустой, тогда объединяем его со
+						// следующим параграф. Если следующий элемент таблица, тогда ничего не делаем.
+						if (oElement.IsEmpty())
+						{
+							this.RemoveFromContent(nIndex, 1);
+						}
+						else if (nIndex < this.Content.length - 1 && this.Content[nIndex + 1].IsParagraph())
+						{
+							oElement.Concat(this.Content[nIndex + 1]);
+							this.RemoveFromContent(nIndex + 1, 1);
+						}
 					}
 					else
 					{
-						oElement.SetReviewType(reviewtype_Remove);
+						if (reviewtype_Add === nReviewType)
+						{
+							var oNewReviewInfo = oReviewInfo.Copy();
+							oNewReviewInfo.SavePrev(reviewtype_Add);
+							oNewReviewInfo.Update();
+							oElement.SetReviewType(reviewtype_Remove, oNewReviewInfo);
+						}
+						else
+						{
+							oElement.SetReviewType(reviewtype_Remove);
+						}
+					}
+				}
+				else if (oElement.IsTable())
+				{
+					// После принятия изменений у нас могла остаться пустая таблица, такую мы должны удалить
+					if (oElement.GetRowsCount() <= 0)
+					{
+						this.RemoveFromContent(nIndex, 1, false);
 					}
 				}
 			}
