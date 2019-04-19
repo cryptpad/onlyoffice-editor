@@ -10452,7 +10452,7 @@
 
 				pastedRangeProps.bordersFull = fullBorders;
 				//fill
-				pastedRangeProps.fill = newVal.getFillColor();
+				pastedRangeProps.fill = newVal.getFill();
 				//wrap
 				//range.setWrap(newVal.getWrap());
 				pastedRangeProps.wrap = align.getWrap();
@@ -10942,7 +10942,7 @@
 		//fill
 		if(specialPasteProps.fill && undefined !== rangeStyle.fill)
 		{
-			range.setFillColor(rangeStyle.fill);
+			range.setFill(rangeStyle.fill);
 		}
 		//angle
 		if(undefined !== rangeStyle.angle && specialPasteProps.angle)
