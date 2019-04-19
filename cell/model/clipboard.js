@@ -3502,6 +3502,7 @@
 
 							innerCol = paraRunObj.col;
 							row = paraRunObj.row;
+							oNewItem = paraRunObj.oNewItem;
 							break;
 						}
 						case para_Hyperlink://*hyperLink*
