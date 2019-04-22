@@ -472,6 +472,18 @@ CShape.prototype.addToDrawingObjects =  function(pos, type)
 
 CShape.prototype.deleteDrawingBase = function()
 {
+    if(this.drawingBase)
+    {
+        var oFrom = this.drawingBase.from;
+        var oTo = this.drawingBase.to;
+        var oPos = this.drawingBase.Pos;
+        var oExt = this.drawingBase.ext;
+        if(oFrom && oTo && oPos && oExt && this.setDrawingBaseType && this.setDrawingBaseCoords)
+        {
+            this.setDrawingBaseType(this.drawingBase.Type);
+            this.setDrawingBaseCoords(oFrom.col, oFrom.colOff, oFrom.row, oFrom.rowOff, oTo.col, oTo.colOff, oTo.row, oTo.rowOff, oPos.X, oPos.Y, oExt.cx, oExt.cy)
+        }
+    }
     var position = AscFormat.deleteDrawingBase(this.worksheet.Drawings, this.Get_Id());
     if(AscFormat.isRealNumber(position))
     {
