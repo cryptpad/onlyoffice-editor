@@ -4236,6 +4236,7 @@ background-repeat: no-repeat;\
 		ImagePr.flipV = obj.flipV;
 		ImagePr.flipHInvert = obj.flipHInvert;
 		ImagePr.flipVInvert = obj.flipVInvert;
+		ImagePr.resetCrop = obj.resetCrop;
 
 		if (undefined != obj.Position)
 		{
