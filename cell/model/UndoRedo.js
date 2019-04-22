@@ -902,16 +902,18 @@ function (window, undefined) {
 			this.hd = col.hd;
 			this.CustomWidth = col.CustomWidth;
 			this.BestFit = col.BestFit;
+			this.OutlineLevel = col.outlineLevel;
 		} else {
 			this.width = null;
 			this.hd = null;
 			this.CustomWidth = null;
 			this.BestFit = null;
+			this.OutlineLevel = null;
 		}
 	}
 
 	UndoRedoData_ColProp.prototype.Properties = {
-		width: 0, hd: 1, CustomWidth: 2, BestFit: 3
+		width: 0, hd: 1, CustomWidth: 2, BestFit: 3, OutlineLevel: 4
 	};
 	UndoRedoData_ColProp.prototype.isEqual = function (val) {
 		var defaultColWidth = AscCommonExcel.oDefaultMetrics.ColWidthChars;
@@ -920,7 +922,7 @@ function (window, undefined) {
 				((null == this.width || defaultColWidth == this.width) &&
 					(null == this.BestFit || true == this.BestFit) &&
 					(null == val.width || defaultColWidth == val.width) &&
-					(null == val.BestFit || true == val.BestFit)));
+					(null == val.BestFit || true == val.BestFit))) && this.OutlineLevel == val.OutlineLevel;
 	};
 	UndoRedoData_ColProp.prototype.getType = function () {
 		return UndoRedoDataTypes.ColProp;
@@ -942,6 +944,9 @@ function (window, undefined) {
 			case this.Properties.BestFit:
 				return this.BestFit;
 				break;
+			case this.Properties.OutlineLevel:
+				return this.OutlineLevel;
+				break;
 		}
 		return null;
 	};
@@ -959,6 +964,9 @@ function (window, undefined) {
 			case this.Properties.BestFit:
 				this.BestFit = value;
 				break;
+			case this.Properties.OutlineLevel:
+				this.OutlineLevel = value;
+				break;
 		}
 	};
 
@@ -967,15 +975,17 @@ function (window, undefined) {
 			this.h = row.getHeight();
 			this.hd = row.getHidden();
 			this.CustomHeight = row.getCustomHeight();
+			this.OutlineLevel = row.getOutlineLevel();
 		} else {
 			this.h = null;
 			this.hd = null;
 			this.CustomHeight = null;
+			this.OutlineLevel = null;
 		}
 	}
 
 	UndoRedoData_RowProp.prototype.Properties = {
-		h: 0, hd: 1, CustomHeight: 2
+		h: 0, hd: 1, CustomHeight: 2, OutlineLevel: 3
 	};
 	UndoRedoData_RowProp.prototype.isEqual = function (val) {
 		var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
@@ -983,7 +993,7 @@ function (window, undefined) {
 			((null == this.h || defaultRowHeight == this.h) &&
 				(null == this.CustomHeight || false == this.CustomHeight) &&
 				(null == val.h || defaultRowHeight == val.h) &&
-				(null == val.CustomHeight || false == val.CustomHeight)));
+				(null == val.CustomHeight || false == val.CustomHeight))) && this.OutlineLevel == val.OutlineLevel;
 	};
 	UndoRedoData_RowProp.prototype.getType = function () {
 		return UndoRedoDataTypes.RowProp;
@@ -1002,6 +1012,9 @@ function (window, undefined) {
 			case this.Properties.CustomHeight:
 				return this.CustomHeight;
 				break;
+			case this.Properties.OutlineLevel:
+				return this.OutlineLevel;
+				break;
 		}
 		return null;
 	};
@@ -1015,6 +1028,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.CustomHeight:
 				this.CustomHeight = value;
+				break;
+			case this.Properties.OutlineLevel:
+				this.OutlineLevel = value;
 				break;
 		}
 	};
@@ -1993,6 +2009,7 @@ function (window, undefined) {
 			return;
 		}
 		var collaborativeEditing = wb.oApi.collaborativeEditing;
+		var workSheetView;
 		if (AscCH.historyitem_Worksheet_RemoveCell == Type) {
 			nRow = Data.nRow;
 			nCol = Data.nCol;
@@ -2038,6 +2055,8 @@ function (window, undefined) {
 			var col = ws._getCol(index);
 			col.setWidthProp(bUndo ? Data.oOldVal : Data.oNewVal);
 			ws.initColumn(col);
+			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			workSheetView._updateGroups(true);
 		} else if (AscCH.historyitem_Worksheet_RowProp == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
@@ -2058,8 +2077,10 @@ function (window, undefined) {
 
 			//нужно для того, чтобы грамотно выставлялись цвета в ф/т при ручном скрытии строк, затрагивающих ф/т(undo/redo)
 			//TODO для случая скрытия строк фильтром(undo), может два раза вызываться функция setColorStyleTable - пересмотреть
-			var workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			workSheetView.model.autoFilters.reDrawFilter(null, index);
+			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
+			workSheetView._updateGroups();
 		} else if (AscCH.historyitem_Worksheet_RowHide == Type) {
 			from = Data.from;
 			to = Data.to;
@@ -2082,7 +2103,7 @@ function (window, undefined) {
 
 			ws.setRowHidden(nRow, from, to);
 
-			var workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			workSheetView.model.autoFilters.reDrawFilter(new Asc.Range(0, from, ws.nColsCount - 1, to));
 		} else if (AscCH.historyitem_Worksheet_AddRows == Type || AscCH.historyitem_Worksheet_RemoveRows == Type) {
 			from = Data.from;
@@ -2119,6 +2140,8 @@ function (window, undefined) {
 			// ToDo Так делать неправильно, нужно поправить (перенести логику в model, а отрисовку отделить)
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			worksheetView.cellCommentator.updateCommentsDependencies(bInsert, operType, range);
+			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
+			worksheetView._updateGroups();
 		} else if (AscCH.historyitem_Worksheet_AddCols == Type || AscCH.historyitem_Worksheet_RemoveCols == Type) {
 			from = Data.from;
 			to = Data.to;
@@ -2155,6 +2178,8 @@ function (window, undefined) {
 			// ToDo Так делать неправильно, нужно поправить (перенести логику в model, а отрисовку отделить)
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			worksheetView.cellCommentator.updateCommentsDependencies(bInsert, operType, range);
+			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
+			worksheetView._updateGroups(true);
 		} else if (AscCH.historyitem_Worksheet_ShiftCellsLeft == Type ||
 			AscCH.historyitem_Worksheet_ShiftCellsRight == Type) {
 			r1 = Data.r1;
@@ -2442,6 +2467,7 @@ function (window, undefined) {
 			});
 
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
 			worksheetView._updateGroups(false, undefined, undefined, true);
 			//TODO need redraw group lines
 		} else if(AscCH.historyitem_Worksheet_CollapsedCol == Type) {
@@ -2465,6 +2491,7 @@ function (window, undefined) {
 			}
 
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
 			worksheetView._updateGroups(true, undefined, undefined, true);
 			//TODO need redraw group lines
 		} else if (AscCH.historyitem_Worksheet_GroupCol == Type) {

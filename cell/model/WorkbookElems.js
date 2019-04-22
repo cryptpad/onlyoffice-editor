@@ -3550,6 +3550,9 @@ Hyperlink.prototype = {
 			} else {
 				this.BestFit = null;
 			}
+			if (null != prop.OutlineLevel) {
+				this.outlineLevel = prop.OutlineLevel;
+			}
 		}
 	};
 	Col.prototype.getStyle = function () {
@@ -3875,7 +3878,7 @@ Hyperlink.prototype = {
 	};
 	Row.prototype.isEmptyProp = function () {
 		//todo
-		return null == this.xfs && null == this.h && g_nRowFlag_init == this.flags;
+		return null == this.xfs && null == this.h && g_nRowFlag_init == this.flags && 0 === this.outlineLevel;
 	};
 	Row.prototype.clone = function (oNewWs, renameParams) {
 		if (!oNewWs) {
@@ -3890,6 +3893,9 @@ Hyperlink.prototype = {
 		if (null != this.h) {
 			oNewRow.h = this.h;
 		}
+		if(0 !== this.outlineLevel) {
+			oNewRow.outlineLevel = this.outlineLevel;
+		}
 		return oNewRow;
 	};
 	Row.prototype.copyFrom = function (row) {
@@ -3899,6 +3905,9 @@ Hyperlink.prototype = {
 		}
 		if (null != row.h) {
 			this.h = row.h;
+		}
+		if(0 !== this.outlineLevel) {
+			this.outlineLevel = row.outlineLevel;
 		}
 		this._hasChanged = true;
 	};
@@ -3921,6 +3930,7 @@ Hyperlink.prototype = {
 			}
 			this.setHidden(prop.hd);
 			this.setCustomHeight(prop.CustomHeight);
+			this.setOutlineLevel(prop.OutlineLevel);
 		}
 	};
 	Row.prototype.getStyle = function () {
