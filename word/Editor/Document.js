@@ -1631,6 +1631,14 @@ function CDocument(DrawingDocument, isMainLogicDocument)
         DragDrop : { Flag : 0, Data : null }  // 0 - не drag-n-drop, и мы его проверяем, 1 - drag-n-drop, -1 - не проверять drag-n-drop
     };
 
+	this.Action = {
+		Start           : false,
+		Recalculate     : false,
+		UpdateSelection : false,
+		UpdateInterface : false,
+		UpdateRulers    : false
+	};
+
     if (false !== isMainLogicDocument)
         this.ColumnsMarkup = new CColumnsMarkup();
 
@@ -2048,6 +2056,85 @@ CDocument.prototype.Get_Theme                      = function()
 CDocument.prototype.Get_ColorMap                   = function()
 {
     return this.clrSchemeMap;
+};
+/**
+ * Начинаем новое действие, связанное с изменением документа
+ * @param {number} nDescription
+ */
+CDocument.prototype.StartAction = function(nDescription)
+{
+	this.History.Create_NewPoint(nDescription);
+
+	this.Action.Start           = true;
+	this.Action.Recalculate     = false;
+	this.Action.UpdateSelection = false;
+	this.Action.UpdateInterface = false;
+	this.Action.UpdateRulers    = false;
+};
+/**
+ * Сообщаем документу, что потребуется пересчет
+ */
+CDocument.prototype.NeedRecalculate = function()
+{
+	if (this.Action.Start)
+		this.Action.Recalculate = true;
+	else
+		this.Recalculate();
+};
+/**
+ * Сообщаем документу, что потребуется обновить состояние селекта
+ */
+CDocument.prototype.NeedUpdateSelection = function()
+{
+	if (this.Action.Start)
+		this.Action.UpdateSelection = true;
+	else
+		this.Document_UpdateSelectionState();
+};
+/**
+ * Сообщаем документу, что потребуется обновить состояние интерфейса
+ */
+CDocument.prototype.NeedUpdateInterface = function()
+{
+	if (this.Action.Start)
+		this.Action.UpdateInterface = true;
+	else
+		this.Document_UpdateInterfaceState();
+};
+/**
+ * Сообщаем документу, что потребуется обновить линейки
+ */
+CDocument.prototype.NeedUpdateRulers = function()
+{
+	if (this.Action.Start)
+		this.Action.UpdateRulers = true;
+	else
+		this.Document_UpdateRulersState();
+};
+/**
+ * Завершаем действие
+ */
+CDocument.prototype.FinilizeAction = function()
+{
+	if (!this.Action.Start)
+		return;
+
+	// TODO: Дополнительные действия
+
+	if (this.Action.Recalculate)
+		this.Recalculate();
+
+	if (this.Action.UpdateInterface)
+		this.Document_UpdateInterfaceState();
+
+	if (this.Action.UpdateSelection)
+		this.Document_UpdateSelectionState();
+
+	this.Action.Start           = false;
+	this.Action.Recalculate     = false;
+	this.Action.UpdateSelection = false;
+	this.Action.UpdateInterface = false;
+	this.Action.UpdateRulers    = false;
 };
 /**
  * Данная функция предназначена для отключения пересчета. Это может быть полезно, т.к. редактор всегда запускает
@@ -4855,17 +4942,17 @@ CDocument.prototype.SetParagraphSpacing = function(Spacing)
 CDocument.prototype.SetParagraphTabs = function(Tabs)
 {
 	this.Controller.SetParagraphTabs(Tabs);
-	this.Recalculate();
-	this.Document_UpdateSelectionState();
-	this.Document_UpdateInterfaceState();
+	this.NeedRecalculate();
+	this.NeedUpdateSelection();
+	this.NeedUpdateInterface();
 	this.Api.Update_ParaTab(AscCommonWord.Default_Tab_Stop, Tabs);
 };
 CDocument.prototype.SetParagraphIndent = function(Ind)
 {
 	this.Controller.SetParagraphIndent(Ind);
-	this.Recalculate();
-	this.Document_UpdateSelectionState();
-	this.Document_UpdateInterfaceState();
+	this.NeedRecalculate();
+	this.NeedUpdateSelection();
+	this.NeedUpdateInterface();
 };
 CDocument.prototype.SetParagraphNumbering = function(NumInfo)
 {
@@ -5893,10 +5980,10 @@ CDocument.prototype.Set_DocumentMargin = function(MarPr)
 	SectPr.Set_PageMargins(L, T, R, B);
 	this.DrawingObjects.CheckAutoFit();
 
-	this.Recalculate();
-	this.Document_UpdateSelectionState();
-	this.Document_UpdateInterfaceState();
-	this.Document_UpdateRulersState();
+	this.NeedRecalculate();
+	this.NeedUpdateSelection();
+	this.NeedUpdateInterface();
+	this.NeedUpdateRulers();
 };
 CDocument.prototype.Set_DocumentPageSize = function(W, H, bNoRecalc)
 {
@@ -9901,9 +9988,9 @@ CDocument.prototype.Get_CurPage = function()
 //----------------------------------------------------------------------------------------------------------------------
 // Undo/Redo функции
 //----------------------------------------------------------------------------------------------------------------------
-CDocument.prototype.Create_NewHistoryPoint = function(Description)
+CDocument.prototype.Create_NewHistoryPoint = function(nDescription)
 {
-	this.History.Create_NewPoint(Description);
+	this.History.Create_NewPoint(nDescription);
 };
 CDocument.prototype.Document_Undo = function(Options)
 {

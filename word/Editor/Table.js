@@ -10365,8 +10365,11 @@ CTable.prototype.Update_TableMarkupFromRuler = function(NewMarkup, bCol, Index)
 		}
 	}
 
-	this.Internal_Recalculate_1();
-	editor.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
+	if (this.LogicDocument)
+	{
+		this.LogicDocument.NeedRecalculate();
+		this.LogicDocument.NeedUpdateSelection();
+	}
 };
 /**
  * Распраделяем выделенные ячейки по ширине или высоте

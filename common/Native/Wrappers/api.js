@@ -168,8 +168,9 @@ Asc['asc_docs_api'].prototype["Call_HR_Tabs"] = function(arrT, arrP)
     var _logic = this.WordControl.m_oLogicDocument;
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties) )
     {
-        _logic.Create_NewHistoryPoint();
+        _logic.StartAction();
         _logic.SetParagraphTabs(_arr);
+        _logic.FinilizeAction();
     }
 };
 Asc['asc_docs_api'].prototype["Call_HR_Pr"] = function(_indent_left, _indent_right, _indent_first)
@@ -177,9 +178,9 @@ Asc['asc_docs_api'].prototype["Call_HR_Pr"] = function(_indent_left, _indent_rig
     var _logic = this.WordControl.m_oLogicDocument;
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties) )
     {
-        _logic.Create_NewHistoryPoint();
+        _logic.StartAction();
         _logic.SetParagraphIndent( { Left : _indent_left, Right : _indent_right, FirstLine: _indent_first } );
-        _logic.Document_UpdateInterfaceState();
+		_logic.FinilizeAction();
     }
 };
 Asc['asc_docs_api'].prototype["Call_HR_Margins"] = function(_margin_left, _margin_right)
@@ -187,8 +188,9 @@ Asc['asc_docs_api'].prototype["Call_HR_Margins"] = function(_margin_left, _margi
     var _logic = this.WordControl.m_oLogicDocument;
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
-        _logic.Create_NewHistoryPoint();
+        _logic.StartAction();
         _logic.Set_DocumentMargin( { Left : _margin_left, Right : _margin_right });
+		_logic.FinilizeAction();
     }
 };
 Asc['asc_docs_api'].prototype["Call_HR_Table"] = function(_params, _cols, _margins, _rows)
@@ -196,7 +198,7 @@ Asc['asc_docs_api'].prototype["Call_HR_Table"] = function(_params, _cols, _margi
     var _logic = this.WordControl.m_oLogicDocument;
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
     {
-        _logic.Create_NewHistoryPoint();
+        _logic.StartAction();
 
         var _table_murkup = Deserialize_Table_Markup(_params, _cols, _margins, _rows);
         _table_murkup.Table = this.WordControl.m_oDrawingDocument.Table;
@@ -204,6 +206,8 @@ Asc['asc_docs_api'].prototype["Call_HR_Table"] = function(_params, _cols, _margi
         _table_murkup.CorrectTo();
         _table_murkup.Table.Update_TableMarkupFromRuler(_table_murkup, true, _params[6]);
         _table_murkup.CorrectFrom();
+
+        _logic.FinilizeAction();
     }
 };
 
@@ -212,8 +216,9 @@ Asc['asc_docs_api'].prototype["Call_VR_Margins"] = function(_top, _bottom)
     var _logic = this.WordControl.m_oLogicDocument;
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
-        _logic.Create_NewHistoryPoint();
+        _logic.StartAction();
         _logic.Set_DocumentMargin( { Top : _top, Bottom : _bottom });
+        _logic.FinilizeAction();
     }
 };
 Asc['asc_docs_api'].prototype["Call_VR_Header"] = function(_header_top, _header_bottom)
@@ -221,8 +226,9 @@ Asc['asc_docs_api'].prototype["Call_VR_Header"] = function(_header_top, _header_
     var _logic = this.WordControl.m_oLogicDocument;
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_HdrFtr) )
     {
-        _logic.Create_NewHistoryPoint();
+        _logic.StartAction();
         _logic.Document_SetHdrFtrBounds(_header_top, _header_bottom);
+        _logic.FinilizeAction();
     }
 };
 Asc['asc_docs_api'].prototype["Call_VR_Table"] = function(_params, _cols, _margins, _rows)
@@ -230,7 +236,7 @@ Asc['asc_docs_api'].prototype["Call_VR_Table"] = function(_params, _cols, _margi
     var _logic = this.WordControl.m_oLogicDocument;
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
     {
-        _logic.Create_NewHistoryPoint();
+        _logic.StartAction();
 
         var _table_murkup = Deserialize_Table_Markup(_params, _cols, _margins, _rows);
         _table_murkup.Table = this.WordControl.m_oDrawingDocument.Table;
@@ -238,6 +244,8 @@ Asc['asc_docs_api'].prototype["Call_VR_Table"] = function(_params, _cols, _margi
         _table_murkup.CorrectTo();
         _table_murkup.Table.Update_TableMarkupFromRuler(_table_murkup, false, _params[6]);
         _table_murkup.CorrectFrom();
+
+        _logic.FinilizeAction();
     }
 };
 
