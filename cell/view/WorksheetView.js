@@ -16386,6 +16386,15 @@
 	};
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
+		if(this.collaborativeEditing.getGlobalLock()) {
+			return;
+		}
+		var currentSheetId = this.model.getId();
+		var nLockAllType = this.collaborativeEditing.isLockAllOther(currentSheetId);
+		if (Asc.c_oAscMouseMoveLockedObjectType.Sheet === nLockAllType || Asc.c_oAscMouseMoveLockedObjectType.TableProperties === nLockAllType) {
+			return;
+		}
+
 		var t = this;
 		var bCol = c_oTargetType.GroupCol === target.target;
 
@@ -16516,6 +16525,14 @@
 	};
 
 	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type, bCol) {
+		if(this.collaborativeEditing.getGlobalLock()) {
+			return;
+		}
+		var currentSheetId = this.model.getId();
+		var nLockAllType = this.collaborativeEditing.isLockAllOther(currentSheetId);
+		if (Asc.c_oAscMouseMoveLockedObjectType.Sheet === nLockAllType || Asc.c_oAscMouseMoveLockedObjectType.TableProperties === nLockAllType) {
+			return;
+		}
 
 		//TODO для группировки колонок - y должен быть больше поля колонок
 		var bButtonClick = !bCol && x <= this.cellsLeft && this.groupWidth && x < this.groupWidth && y < this.cellsTop;
