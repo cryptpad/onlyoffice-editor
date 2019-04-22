@@ -12092,7 +12092,7 @@
 			var findResult = this.model.lastFindOptions.findResults.values;
 			for (var row in findResult) {
 				for (var col in findResult[row]) {
-					var curRange = new Asc.Range(+(col), +(row), +(col), +(row));
+					var curRange = new Asc.Range(col|0, row|0, col|0, row|0);
 					aReplaceCells.push(curRange);
 				}
 			}
