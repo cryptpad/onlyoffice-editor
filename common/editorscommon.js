@@ -4396,7 +4396,7 @@
 		Float64Array.prototype.fill = Array.prototype.fill;
 	}
 
-	function parseText(text, options) {
+	function parseText(text, options, bTrimSpaces) {
 		var delimiterChar;
 		if (options.asc_getDelimiterChar()) {
 			delimiterChar = options.asc_getDelimiterChar();
@@ -4427,6 +4427,13 @@
 		var rows = text.split(/\r?\n/);
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows[i];
+			if(" " === delimiterChar && bTrimSpaces) {
+				var addSpace = false;
+				if(row[0] === delimiterChar) {
+					addSpace = true;
+				}
+				row = addSpace ? delimiterChar + row.trim() : row.trim();
+			}
 			//todo quotes
 			matrix.push(row.split(delimiterChar));
 		}

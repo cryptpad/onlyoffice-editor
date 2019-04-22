@@ -436,7 +436,7 @@ var editor;
 			callback(false);
 			return;
         }
-        callback(AscCommon.parseText(text, options));
+        callback(AscCommon.parseText(text, options, true));
       }
   };
 

@@ -2821,7 +2821,7 @@
 
 				if(textImport) {
 					var advancedOptions = specialPasteProps.asc_getAdvancedOptions();
-					text = AscCommon.parseText(text, advancedOptions);
+					text = AscCommon.parseText(text, advancedOptions, true);
 				}
 				var aResult = this._getTableFromText(text, textImport);
 				if(aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor))
