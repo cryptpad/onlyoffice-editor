@@ -804,6 +804,9 @@ CAutoshapeTrack.prototype =
     SetClip : function(r)
     {
     },
+    AddClipRect : function()
+    {
+    },
     RemoveClip : function()
     {
     },
