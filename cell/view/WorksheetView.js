@@ -12085,28 +12085,16 @@
 		options.countFind = 0;
 		options.countReplace = 0;
 
-		var t = this;
 		var activeCell;
 		var aReplaceCells = [];
 		if (options.isReplaceAll) {
-			var selectionRange = this.model.selectionRange.clone();
-			activeCell = selectionRange.activeCell;
-			var aReplaceCellsIndex = {};
-			options.selectionRange = selectionRange;
-			var findResult, index;
-			while (true) {
-				findResult = t.findCellText(options);
-				if (null === findResult) {
-					break;
+			this.model._findAllCells(options);
+			var findResult = this.model.lastFindOptions.findResults.values;
+			for (var row in findResult) {
+				for (var col in findResult[row]) {
+					var curRange = new Asc.Range(+(col), +(row), +(col), +(row));
+					aReplaceCells.push(curRange);
 				}
-				index = findResult.c1 + '-' + findResult.r1;
-				if (aReplaceCellsIndex[index]) {
-					break;
-				}
-				aReplaceCellsIndex[index] = true;
-				aReplaceCells.push(findResult);
-				activeCell.col = findResult.c1;
-				activeCell.row = findResult.r1;
 			}
 		} else {
 			activeCell = this.model.selectionRange.activeCell;
@@ -12120,7 +12108,7 @@
 		if (0 > aReplaceCells.length) {
 			return callback(options);
 		}
-
+		this.model.clearFindResults();
 		return this._replaceCellsText(aReplaceCells, options, lockDraw, callback);
 	};
 
