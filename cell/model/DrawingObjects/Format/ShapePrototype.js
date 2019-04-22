@@ -434,6 +434,10 @@ CShape.prototype.addToDrawingObjects =  function(pos, type)
     var position = addToDrawings(this.worksheet, this, pos, /*lockByDefault*/undefined, type);
     //var data = {Type: AscDFH.historyitem_AutoShapes_AddToDrawingObjects, Pos: position};
     History.Add(new CChangesDrawingObjectsAddToDrawingObjects(this, position));
+    if(AscFormat.isRealNumber(type) && this.setDrawingBaseType)
+    {
+        this.setDrawingBaseType(type);
+    }
     //this.worksheet.addContentChanges(new AscCommon.CContentChangesElement(AscCommon.contentchanges_Add, position, 1, data));
     var nv_sp_pr, bNeedSet = false;
     switch(this.getObjectType()){
