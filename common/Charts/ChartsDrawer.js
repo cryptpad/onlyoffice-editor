@@ -10864,7 +10864,7 @@ drawStockChart.prototype = {
 			if (val2 !== null && val1 !== null) {
 				this.paths.values[i].lowLines = this._calculateLine(xVal, yVal2, xVal, yVal1);
 			}
-			if (val3 && val4) {
+			if (val3 !== null && val4 !== null) {
 				this.paths.values[i].highLines = this._calculateLine(xVal, yVal4, xVal, yVal3);
 			}
 
