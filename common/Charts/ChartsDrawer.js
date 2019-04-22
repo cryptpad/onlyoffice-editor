@@ -10871,7 +10871,7 @@ drawStockChart.prototype = {
 			if (val1 !== null && val4 !== null) {
 				if (parseFloat(val1) > parseFloat(val4)) {
 					this.paths.values[i].downBars = this._calculateUpDownBars(xVal, yVal1, xVal, yVal4, widthBar / this.chartProp.pxToMM);
-				} else if (val1 && val4) {
+				} else {
 					this.paths.values[i].upBars = this._calculateUpDownBars(xVal, yVal1, xVal, yVal4, widthBar / this.chartProp.pxToMM);
 				}
 			}
