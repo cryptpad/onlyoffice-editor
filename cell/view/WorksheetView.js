@@ -9172,7 +9172,8 @@
     WorksheetView.prototype.emptySelection = function ( options, bIsCut ) {
         // Удаляем выделенные графичекие объекты
         if ( this.objectRender.selectedGraphicObjectsExists() ) {
-			if(bIsCut) {
+			var isIntoShape = this.objectRender.controller.getTargetDocContent();
+			if(bIsCut && isIntoShape) {
 				this.objectRender.controller.remove(-1, undefined, undefined, undefined, undefined);
 			} else {
 				this.objectRender.controller.deleteSelectedObjects();
