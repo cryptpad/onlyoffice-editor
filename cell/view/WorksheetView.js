@@ -4153,7 +4153,7 @@
         this.visibleRange.r1 = row;
 		this._updateVisibleRowsCount(true);
         this._updateVisibleColsCount(true);
-        this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+        this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 
         if (this.objectRender && this.objectRender.drawingArea) {
             this.objectRender.drawingArea.init();
@@ -11296,9 +11296,8 @@
 				t.model.onUpdateRanges(arrChangedRanges);
 				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 			}
+			t.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 			t.draw(lockDraw);
-
-			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 
 			if (isUpdateCols) {
 				t._updateVisibleColsCount();
@@ -13522,8 +13521,8 @@
 			arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
 			this.model.onUpdateRanges(arrChanged);
 			this.objectRender.rebuildChartGraphicObjects(arrChanged);
+			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 			this.draw();
-			this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 			this._updateSelectionNameAndInfo();
             return;
         }
@@ -13561,8 +13560,8 @@
             arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
 			this.model.onUpdateRanges(arrChanged);
             this.objectRender.rebuildChartGraphicObjects(arrChanged);
+			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
             this.draw();
-            this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
 			this._updateSelectionNameAndInfo();
         } else {
             // Просто отрисуем
