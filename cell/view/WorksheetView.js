@@ -791,7 +791,7 @@
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
             this.handlers.trigger("toggleAutoCorrectOptions", null, true);
             this.handlers.trigger("onDocumentPlaceChanged");
-            this.objectRender.drawingArea.reinitRanges();
+            this._updateDrawingArea();
             this.updateZoom = false;
             this.notUpdateRowHeight = false;
         } else {
@@ -812,7 +812,7 @@
         this.cellCommentator.updateActiveComment();
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
         this.handlers.trigger("onDocumentPlaceChanged");
-        this.objectRender.drawingArea.reinitRanges();
+		this._updateDrawingArea();
 
         this.updateResize = false;
         this.updateZoom = false;
@@ -6066,9 +6066,7 @@
           .fillRect(this.headersLeft, clearTop, ctxW, clearHeight);
         this.drawingGraphicCtx.clearRect(this.headersLeft, clearTop, ctxW, clearHeight);
 
-        if (this.objectRender && this.objectRender.drawingArea) {
-            this.objectRender.drawingArea.reinitRanges();
-        }
+		this._updateDrawingArea();
 
         // Дорисовываем необходимое
         if (dy < 0 || vr.r2 !== oldEnd || oldVRE_isPartial || dx !== 0) {
@@ -6252,9 +6250,7 @@
           .fillRect(clearLeft, y, clearWidth, ctxH);
         this.drawingGraphicCtx.clearRect(clearLeft, y, clearWidth, ctxH);
 
-        if (this.objectRender && this.objectRender.drawingArea) {
-            this.objectRender.drawingArea.reinitRanges();
-        }
+		this._updateDrawingArea();
 
         // Дорисовываем необходимое
         if (dx < 0 || vr.c2 !== oldEnd || oldVCE_isPartial) {
@@ -11289,8 +11285,8 @@
 			t.cellCommentator.updateAreaComments();
 
 			if (t.objectRender) {
-				if (reinitRanges && t.objectRender.drawingArea) {
-					t.objectRender.drawingArea.reinitRanges();
+				if (reinitRanges) {
+					t._updateDrawingArea();
 				}
 				if (null !== updateDrawingObjectsInfo) {
 					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
@@ -11894,7 +11890,7 @@
 				t._updateVisibleColsCount();
 				t._calcHeightRows(AscCommonExcel.recalcType.recalc);
 				t._updateVisibleRowsCount();
-				t.objectRender.drawingArea.reinitRanges();
+				t._updateDrawingArea();
 				t.changeWorksheet("update");
 			}
 			History.EndTransaction();
@@ -11951,7 +11947,7 @@
             t._calcHeightRows(AscCommonExcel.recalcType.recalc);
             t._updateVisibleRowsCount();
             t._cleanCache(new asc_Range(0, row1, t.cols.length - 1, row2));
-            t.objectRender.drawingArea.reinitRanges();
+			t._updateDrawingArea();
             t.changeWorksheet("update");
             History.EndTransaction();
         };
@@ -12837,6 +12833,11 @@
 		}
 		this._reinitializeScroll();
 	};
+	WorksheetView.prototype._updateDrawingArea = function () {
+		if (this.objectRender && this.objectRender.drawingArea) {
+			this.objectRender.drawingArea.reinitRanges();
+		}
+	};
 
     WorksheetView.prototype.setChartRange = function (range) {
         this.isChartAreaEditMode = true;
@@ -13513,9 +13514,7 @@
 			this.cache.reset();
 			this._cleanCellsTextMetricsCache();
 			this._prepareCellTextMetricsCache();
-			if (this.objectRender && this.objectRender.drawingArea) {
-				this.objectRender.drawingArea.reinitRanges();
-			}
+			this._updateDrawingArea();
 			arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
 			this.model.onUpdateRanges(arrChanged);
 			this.objectRender.rebuildChartGraphicObjects(arrChanged);
@@ -13554,9 +13553,7 @@
             this.cache.reset();
             this._cleanCellsTextMetricsCache();
             this._prepareCellTextMetricsCache();
-            if (this.objectRender && this.objectRender.drawingArea) {
-                this.objectRender.drawingArea.reinitRanges();
-            }
+			this._updateDrawingArea();
             arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
 			this.model.onUpdateRanges(arrChanged);
             this.objectRender.rebuildChartGraphicObjects(arrChanged);

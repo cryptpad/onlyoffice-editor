@@ -5183,8 +5183,8 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     range.c1 = _s.col0;
     range.r1 = _s.row0;
     ws.visibleRange = range;
-    
-    ws.objectRender.drawingArea.reinitRanges();
+
+    ws._updateDrawingArea();
     var graphicsInfo = wb._onGetGraphicsInfo(x, y);
     if (graphicsInfo) {
         ws.endEditChart();
@@ -5881,7 +5881,7 @@ window["native"]["offline_get_header_sizes"] = function() {
 }
 window["native"]["offline_get_graphics_object"] = function(x, y) {
     var ws = _api.wb.getWorksheet();
-    ws.objectRender.drawingArea.reinitRanges();
+    ws._updateDrawingArea();
     
     var drawingInfo = ws.objectRender.checkCursorDrawingObject(x, y);
     if (drawingInfo) {
@@ -7258,9 +7258,7 @@ function testLockedObjects () {
         var drawingObject = aObjects[i];
         
         if (drawingObject.isGraphicObject()) {
-            
-            var drawingArea = objectRender.drawingArea;
-            objectRender.drawingArea.reinitRanges();
+            ws._updateDrawingArea();
             
             for (var j = 0; j < drawingArea.frozenPlaces.length; ++j) {
                 if (drawingArea.frozenPlaces[j].isObjectInside(drawingObject)) {
