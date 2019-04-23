@@ -4447,10 +4447,16 @@
 			History.SetSelection(oSelection);
 			History.SetSelectionRedo(oSelection);
 		}
-		var oThis = this;
+
+		var oThis = this, prevCol;
 		var fProcessCol = function(col){
 			if(col.width != width)
 			{
+				if(col.getCollapsed()) {
+					oThis.setCollapsedCol(false, null, col);
+				}
+				prevCol = col;
+
 				var oOldProps = col.getWidthProp();
 				col.width = width;
 				col.CustomWidth = true;
@@ -4479,6 +4485,13 @@
 			for(var i = start; i <= stop; i++){
 				var col = this._getCol(i);
 				fProcessCol(col);
+			}
+
+			if(prevCol) {
+				col = this._getCol(stop + 1);
+				if(col.getCollapsed()) {
+					this.setCollapsedCol(false, null, col);
+				}
 			}
 		}
 	};
