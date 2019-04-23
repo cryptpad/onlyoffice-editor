@@ -2804,8 +2804,11 @@ function DrawingObjects() {
                     oNewChartSpace.setWorksheet(model);
                     oNewChartSpace.addToDrawingObjects();
                     oNewChartSpace.recalcInfo.recalculateReferences = false;
+                    var oDrawingBase_ = oNewChartSpace.drawingBase;
+                    oNewChartSpace.drawingBase = null;
                     oNewChartSpace.recalculate();
                     AscFormat.CheckSpPrXfrm(oNewChartSpace);
+                    oNewChartSpace.drawingBase = oDrawingBase_;
 
                     var canvas_height = worksheet.drawingCtx.getHeight(3);
                     var pos_y = (canvas_height - oNewChartSpace.spPr.xfrm.extY)/2;
