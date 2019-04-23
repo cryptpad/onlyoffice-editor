@@ -202,11 +202,24 @@ CGroupShape.prototype.handleUpdatePosition = function()
     this.recalcBounds();
     this.addToRecalculate();
 };
-CGroupShape.prototype.handleUpdateExtents = function()
+CGroupShape.prototype.handleUpdateExtents = function(bCell)
 {
     this.recalcTransform();
     this.recalcBounds();
     this.addToRecalculate();
+    if(bCell)
+    {
+        if(this.spTree)
+        {
+            for(var i = 0; i < this.spTree.length; ++i)
+            {
+                if(this.spTree[i].handleUpdateExtents)
+                {
+                    this.spTree[i].handleUpdateExtents(bCell);
+                }
+            }
+        }
+    }
 };
 CGroupShape.prototype.handleUpdateRot = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.handleUpdateFlip = CGroupShape.prototype.handleUpdatePosition;

@@ -604,7 +604,7 @@ function CGroupShape()
                 }
 
 
-                if(this.drawingBase)
+                if(this.drawingBase && !this.group)
                 {
                     var metrics = this.drawingBase.getGraphicObjectMetrics();
                     var rot = 0;

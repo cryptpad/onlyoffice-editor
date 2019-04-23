@@ -3303,7 +3303,7 @@ function DrawingObjects() {
                                     }
                                 }
                                 if(bRecalculate){
-                                    oGraphicObject.handleUpdateExtents();
+                                    oGraphicObject.handleUpdateExtents(true);
                                     oGraphicObject.recalculate();
                                 }
                             }
