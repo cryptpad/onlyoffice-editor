@@ -7952,7 +7952,7 @@ DrawingObjectsController.prototype =
             this.selection.cropSelection = selection_state.cropObject;
             this.sendCropState();
             if(this.selection.cropSelection){
-                this.selection.cropSelection.cropObject = selection_state.cropImage;
+                this.selection.cropSelection.cropObject = null;
             }
         }
         else
