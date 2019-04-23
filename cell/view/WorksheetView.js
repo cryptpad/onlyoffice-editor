@@ -5272,12 +5272,12 @@
 
 	WorksheetView.prototype._updateRowsHeight = function () {
 	    if (0 === this.arrRecalcRangesWithHeight.length) {
-	        return;
+	        return null;
         }
 	    var canChangeColWidth = this.canChangeColWidth;
 	    var t = this;
         var duplicate = {};
-		var range, cache, row;
+		var range, cache, row, minRow = gc_nMaxRow0;
 		for (var i = 0; i < this.arrRecalcRangesWithHeight.length; ++i) {
 		    range = this.arrRecalcRangesWithHeight[i];
 			this.canChangeColWidth = this.arrRecalcRangesCanChangeColWidth[i];
@@ -5307,6 +5307,8 @@
 				History.TurnOff();
 				this.model.setRowHeight(row.heightReal, r, r, false);
 				History.TurnOn();
+
+				minRow = Math.min(minRow, range.r1);
 			}
         }
 		this.arrRecalcRangesWithHeight = [];
@@ -5314,13 +5316,7 @@
 		this.canChangeColWidth = canChangeColWidth;
 
 		this._updateRowPositions();
-		this._calcVisibleRows();
-
-		if (this.objectRender) {
-			this.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: range.r1}, true);
-		}
-
-		this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+		return minRow;
 	};
 
     WorksheetView.prototype._calcMaxWidth = function (col, row, mc) {
@@ -12816,9 +12812,15 @@
 			this._calcHeightRows(AscCommonExcel.recalcType.newLines);
 			this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
 
-			this._updateRowsHeight();
+			var minRow = this._updateRowsHeight();
 			this._updateVisibleRowsCount(/*skipScrolReinit*/true);
 			this._updateSelectionNameAndInfo();
+
+			if (null !== minRow) {
+				if (this.objectRender) {
+					this.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minRow}, true);
+				}
+			}
 
 			this.model.onUpdateRanges(ranges);
 			this.objectRender.rebuildChartGraphicObjects(ranges);
