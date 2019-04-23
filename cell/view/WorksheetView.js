@@ -10073,7 +10073,7 @@
 
 			//fill
 			if (currentObj.bc && currentObj.bc.rgb) {
-				pastedRangeProps.fill = currentObj.bc;
+				pastedRangeProps.fillColor = currentObj.bc;
 			}
 
 			//hyperlink
@@ -10938,6 +10938,10 @@
 		if(specialPasteProps.fill && undefined !== rangeStyle.fill)
 		{
 			range.setFill(rangeStyle.fill);
+		}
+		if(specialPasteProps.fill && undefined !== rangeStyle.fillColor)
+		{
+			range.setFillColor(rangeStyle.fillColor);
 		}
 		//angle
 		if(undefined !== rangeStyle.angle && specialPasteProps.angle)
