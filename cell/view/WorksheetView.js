@@ -5929,6 +5929,7 @@
 				}
 			}
 		}
+        this._updateDrawingArea();
     };
 
     WorksheetView.prototype._updateVisibleColsCount = function (skipScrollReinit) {
