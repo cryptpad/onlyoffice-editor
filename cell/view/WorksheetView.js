@@ -6767,6 +6767,23 @@
 			};
 		}
 
+		if (x <= this.cellsLeft && y >= this.cellsTop) {
+			r = this._findRowUnderCursor(y, true);
+			if (r === null) {
+				return oResDefault;
+			}
+			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
+			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.isCellEditMode;
+			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
+			return {
+				cursor: f ? kCurRowResize : kCurRowSelect,
+				target: f ? c_oTargetType.RowResize : c_oTargetType.RowHeader,
+				col: -1,
+				row: r.row + (isNotFirst && f && y < r.top + 3 ? -1 : 0),
+				mouseY: f ? (((y < r.top + 3) ? r.top : r.bottom) - y - 1) : null
+			};
+		}
+
 		if (y <= this.cellsTop && x >= this.cellsLeft) {
 			c = this._findColUnderCursor(x, true);
 			if (c === null) {
