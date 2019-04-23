@@ -903,17 +903,19 @@ function (window, undefined) {
 			this.CustomWidth = col.CustomWidth;
 			this.BestFit = col.BestFit;
 			this.OutlineLevel = col.outlineLevel;
+			this.Collapsed = col.collapsed;
 		} else {
 			this.width = null;
 			this.hd = null;
 			this.CustomWidth = null;
 			this.BestFit = null;
 			this.OutlineLevel = null;
+			this.Collapsed = null;
 		}
 	}
 
 	UndoRedoData_ColProp.prototype.Properties = {
-		width: 0, hd: 1, CustomWidth: 2, BestFit: 3, OutlineLevel: 4
+		width: 0, hd: 1, CustomWidth: 2, BestFit: 3, OutlineLevel: 4, Collapsed: 5
 	};
 	UndoRedoData_ColProp.prototype.isEqual = function (val) {
 		var defaultColWidth = AscCommonExcel.oDefaultMetrics.ColWidthChars;
@@ -922,7 +924,7 @@ function (window, undefined) {
 				((null == this.width || defaultColWidth == this.width) &&
 					(null == this.BestFit || true == this.BestFit) &&
 					(null == val.width || defaultColWidth == val.width) &&
-					(null == val.BestFit || true == val.BestFit))) && this.OutlineLevel == val.OutlineLevel;
+					(null == val.BestFit || true == val.BestFit))) && this.OutlineLevel == val.OutlineLevel && this.Collapsed == val.Collapsed;
 	};
 	UndoRedoData_ColProp.prototype.getType = function () {
 		return UndoRedoDataTypes.ColProp;
@@ -947,6 +949,9 @@ function (window, undefined) {
 			case this.Properties.OutlineLevel:
 				return this.OutlineLevel;
 				break;
+			case this.Properties.Collapsed:
+				return this.Collapsed;
+				break;
 		}
 		return null;
 	};
@@ -967,6 +972,9 @@ function (window, undefined) {
 			case this.Properties.OutlineLevel:
 				this.OutlineLevel = value;
 				break;
+			case this.Properties.Collapsed:
+				this.Collapsed = value;
+				break;
 		}
 	};
 
@@ -976,16 +984,18 @@ function (window, undefined) {
 			this.hd = row.getHidden();
 			this.CustomHeight = row.getCustomHeight();
 			this.OutlineLevel = row.getOutlineLevel();
+			this.Collapsed = row.getCollapsed();
 		} else {
 			this.h = null;
 			this.hd = null;
 			this.CustomHeight = null;
 			this.OutlineLevel = null;
+			this.Collapsed = null;
 		}
 	}
 
 	UndoRedoData_RowProp.prototype.Properties = {
-		h: 0, hd: 1, CustomHeight: 2, OutlineLevel: 3
+		h: 0, hd: 1, CustomHeight: 2, OutlineLevel: 3, Collapsed: 4
 	};
 	UndoRedoData_RowProp.prototype.isEqual = function (val) {
 		var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
@@ -993,7 +1003,7 @@ function (window, undefined) {
 			((null == this.h || defaultRowHeight == this.h) &&
 				(null == this.CustomHeight || false == this.CustomHeight) &&
 				(null == val.h || defaultRowHeight == val.h) &&
-				(null == val.CustomHeight || false == val.CustomHeight))) && this.OutlineLevel == val.OutlineLevel;
+				(null == val.CustomHeight || false == val.CustomHeight))) && this.OutlineLevel == val.OutlineLevel && this.Collapsed == val.Collapsed;
 	};
 	UndoRedoData_RowProp.prototype.getType = function () {
 		return UndoRedoDataTypes.RowProp;
@@ -1015,6 +1025,9 @@ function (window, undefined) {
 			case this.Properties.OutlineLevel:
 				return this.OutlineLevel;
 				break;
+			case this.Properties.Collapsed:
+				return this.Collapsed;
+				break;
 		}
 		return null;
 	};
@@ -1031,6 +1044,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.OutlineLevel:
 				this.OutlineLevel = value;
+				break;
+			case this.Properties.Collapsed:
+				this.Collapsed = value;
 				break;
 		}
 	};
