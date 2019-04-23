@@ -1800,7 +1800,7 @@ function t1_cmap_custom_char_next(cmap, _char_code)
 var t1_cmap_custom_class_rec = create_cmap_class_rec(0,t1_cmap_custom_init,t1_cmap_custom_done,t1_cmap_custom_char_index,t1_cmap_custom_char_next,null,null,null,null,null);
 
 // unicode
-function t1_get_glyph_name(face, idx)
+function psaux_get_glyph_name(face, idx)
 {
     return face.type1.glyph_names[idx];
 }
@@ -1811,7 +1811,7 @@ function t1_cmap_unicode_init(unicodes)
     var memory  = face.memory;
     var psnames = face.psnames;
 
-    return psnames.unicodes_init(memory, unicodes, face.type1.num_glyphs, t1_get_glyph_name, null, face);
+    return psnames.unicodes_init(memory, unicodes, face.type1.num_glyphs, psaux_get_glyph_name, null, face);
 }
 
 function t1_cmap_unicode_done(unicodes)

@@ -52,6 +52,7 @@
 
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
+        this.isLoadFonts = false;
 		this.openResult    = null;
 
 		this.HtmlElementName = config['id-view'] || '';
@@ -224,6 +225,14 @@
 		}, function(err) {
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
 		});
+
+        AscFonts.load(t, function()
+        {
+            t.isLoadFonts = true;
+            t.onEndLoadFile(null);
+        }, function() {
+            t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
+        });
 
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
@@ -1390,7 +1399,7 @@
 		{
 			this.openResult = result;
 		}
-		if (this.isLoadFullApi && this.DocInfo && this.openResult)
+		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
 		{
 			this.openDocument(this.openResult);
 			this.openResult = null;
@@ -1669,10 +1678,14 @@
         for (var i = text.getUnicodeIterator(); i.check(); i.next())
 			codes.push(i.value());
 
-        for (var i = 0; i < textReplace.length; i++)
-        	AscCommon.g_inputContext.emulateKeyDownApi(8);
+        if (textReplace)
+        {
+            for (var i = 0; i < textReplace.length; i++)
+                AscCommon.g_inputContext.emulateKeyDownApi(8);
+        }
 
         AscCommon.g_inputContext.apiInputText(codes);
+        AscCommon.g_inputContext.keyPressInput = "";
     };
 
 	baseEditorsApi.prototype["pluginMethod_PasteHtml"] = function(htmlText)
@@ -2064,6 +2077,14 @@
         else
             _frame.style.zIndex = 5001;
 
+        if (!_frame.style.boxShadow)
+        {
+        	_frame.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
+            _frame.style.webkitBoxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
+            //_frame.style.borderRadius = "3px";
+        }
+
+
         if (isKeyboardTake)
         {
             _frame.setAttribute("oo_editor_input", "true");
@@ -2086,7 +2107,7 @@
         }
     };
 
-    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid)
+    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid, isclear)
     {
         var _frame = document.getElementById("iframe_" + guid);
         if (!_frame)
@@ -2114,6 +2135,11 @@
 
             AscCommon.g_inputContext.isInputHelpersPresent = (0 != count);
         }
+
+        if (AscCommon.g_inputContext && isclear)
+		{
+            AscCommon.g_inputContext.keyPressInput = "";
+		}
     };
 
     // Builder

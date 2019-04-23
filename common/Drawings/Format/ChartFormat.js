@@ -12180,10 +12180,10 @@ CTitle.prototype =
         }
     },
 
-    GetRevisionsChangeParagraph: function(SearchEngine){
+    GetRevisionsChangeElement: function(SearchEngine){
         var oContent = this.getDocContent();
         if(oContent){
-            oContent.GetRevisionsChangeParagraph(SearchEngine);
+            oContent.GetRevisionsChangeElement(SearchEngine);
         }
     },
 

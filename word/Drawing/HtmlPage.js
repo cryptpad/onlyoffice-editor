@@ -3473,17 +3473,17 @@ function CEditorPage(api)
 			{
 				if (49 == global_keyboardEvent.KeyCode)
 				{
-					AscCommon.SetHintsProps(false, false);
+                    AscCommon.g_fontManager.SetHintsProps(false, false);
 					bFlag = true;
 				}
 				else if (50 == global_keyboardEvent.KeyCode)
 				{
-					AscCommon.SetHintsProps(true, false);
+                    AscCommon.g_fontManager.SetHintsProps(true, false);
 					bFlag = true;
 				}
 				else if (51 == global_keyboardEvent.KeyCode)
 				{
-					AscCommon.SetHintsProps(true, true);
+                    AscCommon.g_fontManager.SetHintsProps(true, true);
 					bFlag = true;
 				}
 			}
@@ -3492,7 +3492,6 @@ function CEditorPage(api)
 		if (bFlag)
 		{
 			this.m_oDrawingDocument.ClearCachePages();
-			AscCommon.g_fontManager.ClearFontsRasterCache();
 
 			if (AscCommon.g_fontManager2)
 				AscCommon.g_fontManager2.ClearFontsRasterCache();

@@ -1646,6 +1646,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cArea3D.prototype.getMatrixNoEmpty = function () {
 		var arr = [], r = this.getRanges(), res;
+
+		var ws = r[0] ? r[0].worksheet : null;
+		var oldExcludeHiddenRows = ws ? ws.bExcludeHiddenRows : null;
+
 		for (var k = 0; k < r.length; k++) {
 			arr[k] = [];
 			r[k]._foreachNoEmpty(function (cell, i, j, r1, c1) {
@@ -3282,7 +3286,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 							if (!newArg) {
 								//TODO проверить что ставить, если данный эламент массива недоступен
 								//пока делаю так - если не последний аргумент, то пустой элемент, если последний - undefined
-								newArg = /*j === argumentsCount - 1 ? undefined : */new cEmpty();
+								newArg = /*j === argumentsCount - 1 ? undefined : */new cError(cErrorType.not_available);
 							}
 						} else if(changeArgByIndexArr && changeArgByIndexArr[j]) {
 							if(_cCol === changeArgByIndexArr[j]) {

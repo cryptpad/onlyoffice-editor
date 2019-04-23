@@ -2571,13 +2571,13 @@ CMathBase.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo)
 	History.Add(new CChangesMathBaseReviewType(this, {Type : this.ReviewType, Info : this.ReviewInfo}, {Type : ReviewType, Info : ReviewInfo}));
 	this.raw_SetReviewType(ReviewType, ReviewInfo);
 };
-CMathBase.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+CMathBase.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
     var ReviewType = this.GetReviewType();
 
     if (true !== Checker.Is_CheckOnlyTextPr())
     {
-        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.Get_UserId() !== Checker.Get_AddRemoveUserId()))
+        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId()))
         {
             Checker.Flush_AddRemoveChange();
             ContentPos.Update(0, Depth);
@@ -2619,7 +2619,7 @@ CMathBase.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth
     if (reviewtype_Common !== ReviewType)
         Checker.Begin_CheckOnlyTextPr();
 
-    CParagraphContentWithParagraphLikeContent.prototype.Check_RevisionsChanges.apply(this, arguments);
+    CParagraphContentWithParagraphLikeContent.prototype.CheckRevisionsChanges.apply(this, arguments);
 
     if (reviewtype_Common !== ReviewType)
         Checker.End_CheckOnlyTextPr();

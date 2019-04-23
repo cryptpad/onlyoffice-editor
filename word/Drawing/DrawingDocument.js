@@ -1194,7 +1194,7 @@ function CCacheManager()
 	}
 }
 
-function CPolygonPoint(X, Y)
+function CPolygonPoint2(X, Y)
 {
 	this.X = X;
 	this.Y = Y;
@@ -1214,7 +1214,7 @@ function CPolygonPath(precision)
 }
 CPolygonPath.prototype.PushPoint = function (x, y)
 {
-	this.Points.push(new CPolygonPoint(x / this.precision, y / this.precision));
+	this.Points.push(new CPolygonPoint2(x / this.precision, y / this.precision));
 };
 CPolygonPath.prototype.CorrectExtremePoints = function ()
 {
@@ -2693,6 +2693,9 @@ function CDrawingDocument()
 	this._search_HdrFtr_Odd = []; // Поиск в колонтитуле, который находится только на четных страницах, включая первую
 	this._search_HdrFtr_Odd_no_First = []; // Поиск в колонтитуле, который находится только на нечетных страницах, кроме первой
 
+	this.isFirstRecalculate = false;
+    this.isScrollToTargetAttack = false;
+
 	this.showTarget = function (isShow)
 	{
 		if (this.TargetHtmlElementBlock)
@@ -2745,6 +2748,15 @@ function CDrawingDocument()
 	{
 		this.m_sLockedCursorType = "";
 	}
+
+	this.scrollToTargetOnRecalculate = function(pageCountOld, pageCountNew)
+    {
+        if (this.m_lTargetPage > pageCountOld && this.m_lTargetPage < pageCountNew)
+        {
+            this.isScrollToTargetAttack = true;
+            this.UpdateTarget(this.m_dTargetX, this.m_dTargetY, this.m_lTargetPage);
+        }
+    }
 
 	this.OnStartRecalculate = function (pageCount)
 	{
@@ -2853,6 +2865,7 @@ function CDrawingDocument()
 		}
 
 		this.m_bIsBreakRecalculate = (isFull === true) ? false : true;
+		var oldPagesCount = this.m_lPagesCount;
 		if (isFull)
 		{
 			if (this.m_lPagesCount > this.m_lCountCalculatePages)
@@ -2923,12 +2936,23 @@ function CDrawingDocument()
 			}
 		}
 
+		if (!this.isFirstRecalculate)
+        {
+            this.scrollToTargetOnRecalculate(oldPagesCount, this.m_lPagesCount);
+        }
+
 		if (isFull)
 		{
 			this.m_oWordControl.OnScroll();
 
 			if (this.m_arPrintingWaitEndRecalculate)
 				this.m_oWordControl.m_oApi._downloadAs.apply(this.m_oWordControl.m_oApi, this.m_arPrintingWaitEndRecalculate);
+
+			if (!this.isFirstRecalculate)
+			{
+                this.isFirstRecalculate = true;
+                // actions after first recalculates...
+			}
 		}
 
 		//console.log("end " + this.m_lCountCalculatePages + "," + isFull + "," + isBreak);
@@ -3869,8 +3893,10 @@ function CDrawingDocument()
 		}
 
 		var bNeedScrollToTarget = true;
-		if (this.m_dTargetX == x && this.m_dTargetY == y && this.m_lTargetPage == pageIndex)
+		if (!this.isScrollToTargetAttack && this.m_dTargetX == x && this.m_dTargetY == y && this.m_lTargetPage == pageIndex)
 			bNeedScrollToTarget = false;
+
+		this.isScrollToTargetAttack = false;
 
 		if (-1 != this.m_lTimerUpdateTargetID)
 		{
@@ -4445,7 +4471,7 @@ function CDrawingDocument()
 
 					for (var k = 0; k < _points1.length; k++)
 					{
-						if (Math.abs(_points1[k].X - _points[k].X) > 0.00001 || Math.abs(_points1[k].Y - _points[k].Y) > 0.00001)
+						if (Math.abs(_points1[k].X - _points2[k].X) > 0.00001 || Math.abs(_points1[k].Y - _points2[k].Y) > 0.00001)
 							return true;
 					}
 				}

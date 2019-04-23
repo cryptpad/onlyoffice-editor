@@ -34,11 +34,20 @@
 
 (function (window, undefined)
 {
+    var AscFonts = window['AscFonts'];
+    var AscCommon = window['AscCommon'];
+
     var FT_Set_Charmap = AscFonts.FT_Set_Charmap;
     var FT_Get_Char_Index = AscFonts.FT_Get_Char_Index;
     var __FT_CharmapRec = AscFonts.__FT_CharmapRec;
 
     var raster_memory = AscFonts.raster_memory;
+    AscFonts.initVariables = function()
+    {
+        FT_Set_Charmap = AscFonts.FT_Set_Charmap;
+        FT_Get_Char_Index = AscFonts.FT_Get_Char_Index;
+        __FT_CharmapRec = AscFonts.__FT_CharmapRec;
+    };
 
 	var FONT_ITALIC_ANGLE 	= 0.3090169943749;
 	var FT_ENCODING_UNICODE = 1970170211;
@@ -635,11 +644,8 @@
 		}
 	};
 
-    function CFontFile(fileName, faceIndex)
+    function CFontFile()
 	{
-        this.m_sFileName = fileName;
-        this.m_lFaceIndex = faceIndex;
-
 		this.m_arrdFontMatrix = ("undefined" == typeof Float64Array) ? new Array(6) : new Float64Array(6);
 		this.m_arrdTextMatrix = ("undefined" == typeof Float64Array) ? new Array(6) : new Float64Array(6);
 
@@ -1619,6 +1625,24 @@
                 this.HintsSubpixelSupport = false;
             }
         };
+
+        this.cellGetMetrics = function()
+		{
+			var face = this.m_pFace;
+			var ret = [];
+			ret.push(face.header.Units_Per_EM);
+            if (face.os2.version != 0xFFFF)
+            {
+                ret.push(face.os2.usWinAscent);
+                ret.push(-face.os2.usWinDescent);
+            }
+            else
+			{
+                ret.push(face.header.yMax);
+                ret.push(face.header.yMin);
+            }
+			return ret;
+		};
 	}
 
 	function CFontLoaderBySymbol()
@@ -1692,7 +1716,7 @@
 		};
 	}
 
-	window['AscFonts'] = window['AscFonts'] || {};
 	window['AscFonts'].EGlyphState = EGlyphState;
 	window['AscFonts'].CFontFile = CFontFile;
+    window['AscFonts'].onLoadModule();
 })(window);

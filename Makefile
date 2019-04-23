@@ -38,8 +38,6 @@ WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/documenteditor/main/app.
 WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/presentationeditor/main/app.js
 WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/spreadsheeteditor/main/app.js
 SDKJS_FILES += word/sdk-all.js
-SDKJS_FILES += cell/sdk-all.js
-SDKJS_FILES += slide/sdk-all.js
 
 .PHONY: all desktop
 
@@ -55,7 +53,7 @@ $(WEBAPPS_FILES): $(NODE_MODULES) $(SDKJS_FILES)
 
 $(SDKJS_FILES): $(NODE_MODULES)
 	cd build && \
-		$(GRUNT_ENV) $(GRUNT) build_$(@D) $(GRUNT_FLAGS)
+		$(GRUNT_ENV) $(GRUNT) $(GRUNT_FLAGS)
 
 desktop: GRUNT_FLAGS += --desktop=true
 desktop: WEBAPPS_DIR = web-apps-pro

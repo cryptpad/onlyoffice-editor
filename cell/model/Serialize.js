@@ -1345,6 +1345,47 @@
 		return refs.join(' ');
 	}
 
+    function getDisjointMerged(wb, bboxes) {
+        var res = [];
+        var curY, elem;
+        var error = false;
+        var indexTop = 0;
+        var indexBottom = 0;
+        var rangesTop = bboxes;
+        var rangesBottom = bboxes.concat();
+        rangesTop.sort(Asc.Range.prototype.compareByLeftTop);
+        rangesBottom.sort(Asc.Range.prototype.compareByRightBottom);
+        var tree = new AscCommon.DataIntervalTree();
+        while (indexBottom < rangesBottom.length) {
+            //next curY
+            if (indexTop < rangesTop.length) {
+                curY = Math.min(rangesTop[indexTop].r1, rangesBottom[indexBottom].r2);
+            } else {
+                curY = rangesBottom[indexBottom].r2;
+            }
+            while (indexTop < rangesTop.length && curY === rangesTop[indexTop].r1) {
+                elem = rangesTop[indexTop];
+                if (!tree.searchAny(elem.c1, elem.c2)) {
+                    tree.insert(elem.c1, elem.c2, elem);
+                    res.push(elem);
+                } else {
+                    error = true;
+                }
+                indexTop++;
+            }
+            while (indexBottom < rangesBottom.length && curY === rangesBottom[indexBottom].r2) {
+                elem = rangesBottom[indexBottom];
+                tree.remove(elem.c1, elem.c2, elem);
+                indexBottom++;
+            }
+        }
+        if (wb.oApi && wb.oApi.CoAuthoringApi) {
+            var msg = 'Error: intersection of merged areas';
+            wb.oApi.CoAuthoringApi.sendChangesError(msg);
+        }
+        return res;
+	}
+
     /** @constructor */
     function BinaryTableWriter(memory, aDxfs, isCopyPaste)
     {
@@ -3467,27 +3508,24 @@
         };
         this.WriteMergeCells = function(ws)
         {
-            var i, aMerged;
+			var i, names, bboxes;
             if (!this.isCopyPaste && ws.mergeManager.fGetUninitialized) {
-                aMerged = ws.mergeManager.fGetUninitialized();
-                for (i = 0; i < aMerged.length; ++i) {
+				var names = ws.mergeManager.fGetUninitialized();
+				for (i = 0; i < names.length; ++i) {
                     this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
-                    this.memory.WriteString2(aMerged[i]);
+					this.memory.WriteString2(names[i]);
                 }
             } else {
-                //todo check overlapping ranges
-                var aMergedUsed = {};//to prevent writing same range
-                aMerged = ws.mergeManager.getAll();
-                for (i = 0; i < aMerged.length; ++i) {
-                    var bbox = aMerged[i].bbox;
-                    //write only active merge, if copy/paste
-                    if (!bbox.isOneCell() && (!this.isCopyPaste || this.isCopyPaste.containsRange(bbox))) {
-                        var sCurMerged = bbox.getName();
-                        if (null == aMergedUsed[sCurMerged]) {
-                            aMergedUsed[sCurMerged] = 1;
-                            this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
-                            this.memory.WriteString2(sCurMerged);
-                        }
+				if (this.isCopyPaste) {
+					bboxes = ws.mergeManager.get(this.isCopyPaste).inner.map(function(elem){return elem.bbox});
+				} else {
+					bboxes = ws.mergeManager.getAll().map(function(elem){return elem.bbox});
+				}
+				bboxes = getDisjointMerged(this.wb, bboxes);
+				for (i = 0; i < bboxes.length; ++i) {
+					if (!bboxes[i].isOneCell()) {
+						this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
+						this.memory.WriteString2(bboxes[i].getName());
                     }
                 }
             }
@@ -5217,6 +5255,8 @@
 						this.aSharedStrings.push(tempValue.text);
 					} else if (null != tempValue.multiText) {
 						this.aSharedStrings.push(tempValue.multiText);
+					} else {
+						this.aSharedStrings.push("");
 					}
 				}
             }
@@ -6656,12 +6696,14 @@
                 var i;
                 oNewWorksheet.mergeManager.setDelayedInit((function(merged) {
                     return function() {
+                        History.TurnOff();
                         for (i = 0, length = merged.length; i < length; ++i) {
                             var range = oNewWorksheet.getRange2(merged[i]);
                             if (null != range) {
                                 range.mergeOpen();
                             }
                         }
+                        History.TurnOn();
                     }
                 })(this.aMerged), (function(merged) {
                     return function() {
@@ -9042,11 +9084,11 @@
 			}
 			val = vals["pivot"];
 			if (undefined !== val) {
-				this.pivot = getBoolFromXml(val);
+				this.pivot = AscCommon.getBoolFromXml(val);
 			}
 			val = vals["table"];
 			if (undefined !== val) {
-				this.table = getBoolFromXml(val);
+				this.table = AscCommon.getBoolFromXml(val);
 			}
 		}
 	};

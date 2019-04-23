@@ -10097,7 +10097,7 @@ Paragraph.prototype.Document_UpdateInterfaceState = function()
 
 	if (editor && this.bFromDocument)
 	{
-		var TrackManager = this.LogicDocument.Get_TrackRevisionsManager();
+		var TrackManager = this.LogicDocument.GetTrackRevisionsManager();
 
 		if (this.Pages.length <= 0 && this.Lines.length <= 0)
 			return;
@@ -10121,12 +10121,12 @@ Paragraph.prototype.Document_UpdateInterfaceState = function()
 			if (null !== Change)
 			{
 				Change.put_InternalPos(_X, _Y, Page_abs);
-				TrackManager.Add_VisibleChange(Change);
+				TrackManager.AddVisibleChange(Change);
 			}
 		}
 		else if (false === this.Selection.Use)
 		{
-			var Changes = TrackManager.Get_ParagraphChanges(this.Get_Id());
+			var Changes = TrackManager.GetElementChanges(this.GetId());
 			if (Changes.length > 0)
 			{
 				for (var ChangeIndex = 0, ChangesCount = Changes.length; ChangeIndex < ChangesCount; ChangeIndex++)
@@ -10140,7 +10140,7 @@ Paragraph.prototype.Document_UpdateInterfaceState = function()
 						&& StartPos.Compare(Change.get_EndPos()) <= 0))
 					{
 						Change.put_InternalPos(_X, _Y, Page_abs);
-						TrackManager.Add_VisibleChange(Change);
+						TrackManager.AddVisibleChange(Change);
 					}
 				}
 			}
@@ -12161,7 +12161,7 @@ Paragraph.prototype.Get_SectPr = function()
 
     return null;
 };
-Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
+Paragraph.prototype.CheckRevisionsChanges = function(RevisionsManager)
 {
     var ParaId = this.Get_Id();
 
@@ -12177,10 +12177,10 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
         Change.put_EndPos(EndPos);
         Change.put_Type(c_oAscRevisionsChangeType.ParaPr);
         Change.put_Value(this.Pr.GetDiffPrChange());
-        Change.put_UserId(this.Pr.ReviewInfo.Get_UserId());
-        Change.put_UserName(this.Pr.ReviewInfo.Get_UserName());
-        Change.put_DateTime(this.Pr.ReviewInfo.Get_DateTime());
-        RevisionsManager.Add_Change(ParaId, Change);
+        Change.put_UserId(this.Pr.ReviewInfo.GetUserId());
+        Change.put_UserName(this.Pr.ReviewInfo.GetUserName());
+        Change.put_DateTime(this.Pr.ReviewInfo.GetDateTime());
+        RevisionsManager.AddChange(ParaId, Change);
     }
 
     var Checker    = new CParagraphRevisionsChangesChecker(this, RevisionsManager);
@@ -12191,7 +12191,7 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
             Checker.Set_ParaEndRun();
 
         ContentPos.Update(CurPos, 0);
-        this.Content[CurPos].Check_RevisionsChanges(Checker, ContentPos, 1);
+        this.Content[CurPos].CheckRevisionsChanges(Checker, ContentPos, 1);
     }
 
     Checker.Flush_AddRemoveChange();
@@ -12209,10 +12209,10 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
         Change.put_StartPos(StartPos);
         Change.put_EndPos(EndPos);
         Change.put_Type(c_oAscRevisionsChangeType.ParaAdd);
-        Change.put_UserId(ReviewInfo.Get_UserId());
-        Change.put_UserName(ReviewInfo.Get_UserName());
-        Change.put_DateTime(ReviewInfo.Get_DateTime());
-        RevisionsManager.Add_Change(ParaId, Change);
+        Change.put_UserId(ReviewInfo.GetUserId());
+        Change.put_UserName(ReviewInfo.GetUserName());
+        Change.put_DateTime(ReviewInfo.GetDateTime());
+        RevisionsManager.AddChange(ParaId, Change);
     }
     else if (reviewtype_Remove == ReviewType)
     {
@@ -12224,10 +12224,10 @@ Paragraph.prototype.Check_RevisionsChanges = function(RevisionsManager)
         Change.put_StartPos(StartPos);
         Change.put_EndPos(EndPos);
         Change.put_Type(c_oAscRevisionsChangeType.ParaRem);
-        Change.put_UserId(ReviewInfo.Get_UserId());
-        Change.put_UserName(ReviewInfo.Get_UserName());
-        Change.put_DateTime(ReviewInfo.Get_DateTime());
-        RevisionsManager.Add_Change(ParaId, Change);
+        Change.put_UserId(ReviewInfo.GetUserId());
+        Change.put_UserName(ReviewInfo.GetUserName());
+        Change.put_DateTime(ReviewInfo.GetDateTime());
+        RevisionsManager.AddChange(ParaId, Change);
     }
 };
 Paragraph.prototype.private_UpdateTrackRevisionOnChangeParaPr = function(bUpdateInfo)
@@ -12246,10 +12246,10 @@ Paragraph.prototype.private_UpdateTrackRevisionOnChangeParaPr = function(bUpdate
 };
 Paragraph.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.LogicDocument && this.LogicDocument.Get_TrackRevisionsManager)
+    if (this.LogicDocument && this.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.LogicDocument.Get_TrackRevisionsManager();
-        RevisionsManager.Check_Paragraph(this);
+        var RevisionsManager = this.LogicDocument.GetTrackRevisionsManager();
+        RevisionsManager.CheckElement(this);
     }
 };
 Paragraph.prototype.UpdateDocumentOutline = function()
@@ -12359,40 +12359,40 @@ Paragraph.prototype.RejectRevisionChanges = function(Type, bAll)
         this.private_UpdateTrackRevisions();
     }
 };
-Paragraph.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+Paragraph.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-    if (true === SearchEngine.Is_Found())
+    if (true === SearchEngine.IsFound())
         return;
 
-    var Direction = SearchEngine.Get_Direction();
+    var Direction = SearchEngine.GetDirection();
     if (Direction > 0)
     {
         var DrawingObjects = this.GetAllDrawingObjects();
         for (var DrawingIndex = 0, Count = DrawingObjects.length; DrawingIndex < Count; DrawingIndex++)
         {
-            DrawingObjects[DrawingIndex].GetRevisionsChangeParagraph(SearchEngine);
-            if (true === SearchEngine.Is_Found())
+            DrawingObjects[DrawingIndex].GetRevisionsChangeElement(SearchEngine);
+            if (true === SearchEngine.IsFound())
                 return;
         }
     }
 
-    if (true !== SearchEngine.Is_CurrentFound())
+    if (true !== SearchEngine.IsCurrentFound())
     {
-        if (this === SearchEngine.GetCurrentParagraph())
-            SearchEngine.Set_CurrentFound(this);
+        if (this === SearchEngine.GetCurrentElement())
+            SearchEngine.SetCurrentFound();
     }
     else
     {
-        SearchEngine.Set_FoundedParagraph(this);
+        SearchEngine.SetFoundedElement(this);
     }
 
-    if (Direction < 0 && true !== SearchEngine.Is_Found())
+    if (Direction < 0 && true !== SearchEngine.IsFound())
     {
         var DrawingObjects = this.GetAllDrawingObjects();
         for (var DrawingIndex = DrawingObjects.length - 1; DrawingIndex >= 0; DrawingIndex--)
         {
-            DrawingObjects[DrawingIndex].GetRevisionsChangeParagraph(SearchEngine);
-            if (true === SearchEngine.Is_Found())
+            DrawingObjects[DrawingIndex].GetRevisionsChangeElement(SearchEngine);
+            if (true === SearchEngine.IsFound())
                 return;
         }
     }
@@ -12403,13 +12403,6 @@ Paragraph.prototype.IsSelectedAll = function()
     var bEnd   = this.Selection_CheckParaEnd();
 
     return ((true === bStart && true === bEnd) || true === this.ApplyToAll ? true : false);
-};
-Paragraph.prototype.Get_HdrFtr = function()
-{
-    if (this.Parent)
-        return this.Parent.IsHdrFtr(true);
-
-    return null;
 };
 Paragraph.prototype.GetContentPosition = function(bSelection, bStart, PosArray)
 {
@@ -12585,10 +12578,6 @@ Paragraph.prototype.Get_XYByContentPos = function(ContentPos)
 	var Result = this.Internal_Recalculate_CurPos(-1, false, false, true);
 	this.Set_ParaContentPos(ParaContentPos, true, this.CurPos.Line, this.CurPos.Range, false);
 	return Result;
-};
-Paragraph.prototype.Get_Lock = function()
-{
-    return this.Lock;
 };
 Paragraph.prototype.Get_ContentLength = function()
 {
@@ -15380,7 +15369,7 @@ CParagraphRevisionsChangesChecker.prototype.Flush_AddRemoveChange = function()
         Change.put_UserId(AddRemove.UserId);
         Change.put_UserName(AddRemove.UserName);
         Change.put_DateTime(AddRemove.DateTime);
-        this.RevisionsManager.Add_Change(this.ParaId, Change);
+        this.RevisionsManager.AddChange(this.ParaId, Change);
     }
 
     AddRemove.ChangeType = null;
@@ -15405,7 +15394,7 @@ CParagraphRevisionsChangesChecker.prototype.Flush_TextPrChange = function()
         Change.put_UserId(TextPr.UserId);
         Change.put_UserName(TextPr.UserName);
         Change.put_DateTime(TextPr.DateTime);
-        this.RevisionsManager.Add_Change(this.ParaId, Change);
+        this.RevisionsManager.AddChange(this.ParaId, Change);
     }
 
     TextPr.Pr       = null;
@@ -15437,11 +15426,11 @@ CParagraphRevisionsChangesChecker.prototype.Set_AddRemoveEndPos = function(Conte
 };
 CParagraphRevisionsChangesChecker.prototype.Update_AddRemoveReviewInfo = function(ReviewInfo)
 {
-    if (ReviewInfo && this.AddRemove.DateTime <= ReviewInfo.Get_DateTime())
+    if (ReviewInfo && this.AddRemove.DateTime <= ReviewInfo.GetDateTime())
     {
-        this.AddRemove.UserId   = ReviewInfo.Get_UserId();
-        this.AddRemove.UserName = ReviewInfo.Get_UserName();
-        this.AddRemove.DateTime = ReviewInfo.Get_DateTime();
+        this.AddRemove.UserId   = ReviewInfo.GetUserId();
+        this.AddRemove.UserName = ReviewInfo.GetUserName();
+        this.AddRemove.DateTime = ReviewInfo.GetDateTime();
     }
 };
 CParagraphRevisionsChangesChecker.prototype.Add_Text = function(Text)
@@ -15516,11 +15505,11 @@ CParagraphRevisionsChangesChecker.prototype.SetPrChangeEndPos = function(Content
 };
 CParagraphRevisionsChangesChecker.prototype.Update_PrChangeReviewInfo = function(ReviewInfo)
 {
-    if (ReviewInfo && this.TextPr.DateTime <= ReviewInfo.Get_DateTime())
+    if (ReviewInfo && this.TextPr.DateTime <= ReviewInfo.GetDateTime())
     {
-        this.TextPr.UserId   = ReviewInfo.Get_UserId();
-        this.TextPr.UserName = ReviewInfo.Get_UserName();
-        this.TextPr.DateTime = ReviewInfo.Get_DateTime();
+        this.TextPr.UserId   = ReviewInfo.GetUserId();
+        this.TextPr.UserName = ReviewInfo.GetUserName();
+        this.TextPr.DateTime = ReviewInfo.GetDateTime();
     }
 };
 CParagraphRevisionsChangesChecker.prototype.Is_ParaEndRun = function()

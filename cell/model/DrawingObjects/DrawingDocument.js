@@ -1646,7 +1646,7 @@ function CDrawingDocument(drawingObjects)
         }
 
         // заглушка под мобильную версию (iPad не рисует большие картинки (наверное страховка по памяти))
-        if (g_bIsMobile)
+        if (AscCommon.AscBrowser.isMobile)
         {
             var _mobile_max = 2000;
             if (w > _mobile_max || h > _mobile_max)
@@ -1904,7 +1904,7 @@ function CDrawingDocument(drawingObjects)
         var x_mm = (_x - rect.left) * dKoef;
         var y_mm = (_y - rect.top) * dKoef;
 
-        return { X : x_mm, Y : y_mm, Page: rect.pageIndex, DrawPage: i };
+        return { X : x_mm, Y : y_mm, Page: rect.pageIndex, DrawPage: page };
     }
 
     this.ConvertCoordsToAnotherPage = function(x, y, pageCoord, pageNeed)

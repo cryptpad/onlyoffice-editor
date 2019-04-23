@@ -33,8 +33,6 @@
 "use strict";
 
 // Import
-var g_memory = AscFonts.g_memory;
-
 var fontslot_ASCII    = 0x00;
 var fontslot_EastAsia = 0x01;
 var fontslot_CS       = 0x02;
@@ -832,7 +830,7 @@ var g_aLcidNameIdArray = [
 var g_oLcidNameToIdMap = {};
 var g_oLcidIdToNameMap = {};
 
-(function(document){
+(function(){
 	for(var i = 0, length = g_aLcidNameIdArray.length; i + 1< length; i+=2)
 	{
 		var name = g_aLcidNameIdArray[i];
@@ -854,8 +852,8 @@ var g_oLcidIdToNameMap = {};
 
         this.Init = function()
         {
-            this.DetectData = g_memory.Alloc(this.TableChunkLen * this.TableChunks);
-            var _data = this.DetectData.data;
+            this.DetectData = AscFonts.allocate(this.TableChunkLen * this.TableChunks);
+            var _data = this.DetectData;
             var i, j;
 
             // ********************** 1st table *********************** //
@@ -1313,14 +1311,14 @@ var g_oLcidIdToNameMap = {};
 			}			
             else if (nHint != fonthint_EastAsia)
             {
-                _glyph_slot = this.DetectData.data[nUnicode];
+                _glyph_slot = this.DetectData[nUnicode];
             }
             else
             {
                 if (nEastAsia_lcid == lcid_zh)
-                    _glyph_slot = this.DetectData.data[this.TableChunkHintZH + nUnicode];
+                    _glyph_slot = this.DetectData[this.TableChunkHintZH + nUnicode];
                 else
-                    _glyph_slot = this.DetectData.data[this.TableChunkHintEA + nUnicode];
+                    _glyph_slot = this.DetectData[this.TableChunkHintEA + nUnicode];
 
                 if (_glyph_slot == fontslot_EastAsia)
                     return _glyph_slot;
@@ -1335,7 +1333,7 @@ var g_oLcidIdToNameMap = {};
 
     window.CDetectFontUse = CDetectFontUse;
 	window.CDetectFontUse;
-})(window.document);
+})();
 
 var g_font_detector = new window.CDetectFontUse();
 g_font_detector.Init();

@@ -2529,14 +2529,13 @@ background-repeat: no-repeat;\
 		}
 
 		if (c_oAscFontRenderingModeType.noHinting === mode)
-			AscCommon.SetHintsProps(false, false);
+            AscCommon.g_fontManager.SetHintsProps(false, false);
 		else if (c_oAscFontRenderingModeType.hinting === mode)
-			AscCommon.SetHintsProps(true, false);
+            AscCommon.g_fontManager.SetHintsProps(true, false);
 		else if (c_oAscFontRenderingModeType.hintingAndSubpixeling === mode)
-			AscCommon.SetHintsProps(true, true);
+            AscCommon.g_fontManager.SetHintsProps(true, true);
 
 		this.WordControl.m_oDrawingDocument.ClearCachePages();
-		AscCommon.g_fontManager.ClearFontsRasterCache();
 
 		if (AscCommon.g_fontManager2 !== undefined && AscCommon.g_fontManager2 !== null)
             AscCommon.g_fontManager2.ClearFontsRasterCache();
@@ -2859,7 +2858,7 @@ background-repeat: no-repeat;\
 		var _headers = [];
 		for (var i = 0; i < headers.length; i++)
 		{
-			_headers[i] = new CHeader(headers[i]);
+			_headers[i] = new Asc.CHeader(headers[i]);
 		}
 
 		this.sendEvent("asc_onReturnHeaders", _headers);
@@ -6205,7 +6204,7 @@ background-repeat: no-repeat;\
 			var isShowParaMarks = LogicDocument.Is_ShowParagraphMarks();
 
 			if (true === isTrackRevision)
-				LogicDocument.Set_TrackRevisions(false);
+				LogicDocument.SetTrackRevisions(false);
 
 			if (true === isShowParaMarks)
 				LogicDocument.Set_ShowParagraphMarks(false, false);
@@ -6213,7 +6212,7 @@ background-repeat: no-repeat;\
 			StylesPainter.GenerateStyles(this, (null == this.LoadedObject) ? this.WordControl.m_oLogicDocument.Get_Styles().Style : this.LoadedObjectDS);
 
 			if (true === isTrackRevision)
-				LogicDocument.Set_TrackRevisions(true);
+				LogicDocument.SetTrackRevisions(true);
 
 			if (true === isShowParaMarks)
 				LogicDocument.Set_ShowParagraphMarks(true, false);
@@ -6520,6 +6519,22 @@ background-repeat: no-repeat;\
 							this.ChangeReaderMode();
 						else
 							this.WordControl.UpdateReaderContent();
+					}
+
+					var options = this.DocInfo.asc_getOptions();
+					var action = options ? options["action"] : null;
+					if (action)
+					{
+						switch (action["type"])
+						{
+							case "bookmark":
+							{
+                                Document.GoToBookmark(action["data"]);
+								break;
+							}
+							default:
+								break;
+						}
 					}
 				}
 			}

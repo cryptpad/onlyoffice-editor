@@ -274,7 +274,7 @@ CPdfPrinter.prototype =
     getFontMetrix : function()
     {
         console.log("error");
-        return new FontMetrics();
+        return new Asc.FontMetrics();
     },
     makeFontDoc : function(font)
     {
@@ -418,7 +418,7 @@ CPdfPrinter.prototype =
         }
         if (0 == sx && 0 == sy && sw == src_w && sh == src_h)
         {
-            this.DocumentRenderer.Memory.WriteByte(CommandType.ctDrawImageFromFile);
+            this.DocumentRenderer.Memory.WriteByte(AscCommon.CommandType.ctDrawImageFromFile);
             this.DocumentRenderer.Memory.WriteString2(_src);
             this.DocumentRenderer.Memory.WriteDouble(dx * vector_koef);
             this.DocumentRenderer.Memory.WriteDouble(dy * vector_koef);
@@ -437,7 +437,7 @@ CPdfPrinter.prototype =
             var dstW = dKoefX * src_w;
             var dstH = dKoefY * src_h;
 
-            this.DocumentRenderer.Memory.WriteByte(CommandType.ctDrawImageFromFile);
+            this.DocumentRenderer.Memory.WriteByte(AscCommon.CommandType.ctDrawImageFromFile);
             this.DocumentRenderer.Memory.WriteString2(_src);
             this.DocumentRenderer.Memory.WriteDouble(dstX * vector_koef);
             this.DocumentRenderer.Memory.WriteDouble(dstY * vector_koef);

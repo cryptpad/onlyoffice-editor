@@ -1247,9 +1247,9 @@ CHeaderFooter.prototype.SetParagraphFramePr = function(FramePr, bDelete)
 {
     return this.Content.SetParagraphFramePr(FramePr, bDelete);
 };
-CHeaderFooter.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+CHeaderFooter.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-    return this.Content.GetRevisionsChangeParagraph(SearchEngine);
+    return this.Content.GetRevisionsChangeElement(SearchEngine);
 };
 CHeaderFooter.prototype.GetSelectionBounds = function()
 {
@@ -1459,7 +1459,7 @@ CHeaderFooterController.prototype =
                 var bEven   = ( true === SectionPageInfo.bEven  && true === EvenAndOddHeaders      ? true : false );
                 var bHeader = ( hdrftr_Header === this.CurHdrFtr.Type ? true : false );
 
-                Pr.LinkToPrevious = ( null === SectPr.Get_HdrFtr( bHeader, bFirst, bEven ) ? true : false );
+                Pr.LinkToPrevious = ( null === SectPr.GetHdrFtr( bHeader, bFirst, bEven ) ? true : false );
             }
 
             Pr.Locked = this.Lock.Is_Locked();
@@ -1686,7 +1686,7 @@ CHeaderFooterController.prototype =
     },
 
     // Запрашиваем низ у верхнего колонтитула для данной страницы
-    Get_HdrFtrLines : function(PageIndex)
+    GetHdrFtrLines : function(PageIndex)
     {
         var Header = null;
         var Footer = null;

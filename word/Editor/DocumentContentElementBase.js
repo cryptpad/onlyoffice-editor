@@ -699,7 +699,7 @@ CDocumentContentElementBase.prototype.FindNextFillingForm = function(isNext, isC
 {
 	return null;
 };
-CDocumentContentElementBase.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+CDocumentContentElementBase.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
 	return null;
 };
@@ -1028,6 +1028,25 @@ CDocumentContentElementBase.prototype.GetTopElement = function()
 		return this;
 
 	return this.Parent.GetTopElement();
+};
+/**
+ * Получаем объект лока данного элемента
+ * @returns {AscCommon.CLock}
+ */
+CDocumentContentElementBase.prototype.GetLock = function()
+{
+	return this.Lock;
+};
+/**
+ * Если мы находимся в колонтитуле возвращаем его
+ * @returns {?CHdrFtr}
+ */
+CDocumentContentElementBase.prototype.GetHdrFtr = function()
+{
+	if (this.Parent)
+		return this.Parent.IsHdrFtr(true);
+
+	return null;
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

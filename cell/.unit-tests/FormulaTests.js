@@ -3932,6 +3932,26 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.7001157 );
 
+		oParser = new parserFormula( "TIME(1,1,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0423727 );
+
+		oParser = new parserFormula( "TIME(1.34,1,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0423727 );
+
+		oParser = new parserFormula( "TIME(1.34,1.456,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0423727 );
+
+		oParser = new parserFormula( "TIME(1.34,1.456,1.9)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0423727 );
+
+		oParser = new parserFormula( "TIME(-1.34,1.456,1.9)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
+
 		testArrayFormula2("TIME", 3, 3);
 	} );
 

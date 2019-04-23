@@ -1506,10 +1506,22 @@ function (window, undefined) {
 		}
 
 		var arg0 = arg[0];
-		if (cElementType.cellsRange === arg0.type || cElementType.array === arg0.type) {
-			arg0 = arg0.getMatrix();
+		if (cElementType.cellsRange === arg0.type) {
+			//TODO возможно стоит на вход функции Calculate в случае применения как формулы массива сразу передавать преобразованный range в array
+			if(!this.bArrayFormula) {
+				arg0 = arg0.cross(arguments[1]);
+			} else {
+				arg0 = arg0.getMatrix();
+			}
 		} else if(cElementType.cellsRange3D === arg0.type) {
-			arg0 = arg0.getMatrix()[0];
+			//TODO возможно стоит на вход функции в случае применения как формулы массива сразу передавать преобразованный range в array
+			if(!this.bArrayFormula) {
+				arg0 = arg0.cross(arguments[1]);
+			} else {
+				arg0 = arg0.getMatrix()[0];
+			}
+		} else if(cElementType.array === arg0.type) {
+			arg0 = arg0.getMatrix();
 		} else if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
 			return arg0.getValue();
 		} else if (cElementType.number === arg0.type || cElementType.string === arg0.type ||
@@ -1519,6 +1531,9 @@ function (window, undefined) {
 			return new cError(cErrorType.not_available);
 		}
 
+		if (cElementType.error === arg0.type) {
+			return arg0;
+		}
 		if(0 === arg0.length){
 			return new cError(cErrorType.wrong_value_type);
 		}

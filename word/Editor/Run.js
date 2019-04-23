@@ -1193,7 +1193,10 @@ ParaRun.prototype.GetLogicDocument = function()
 	if (this.Paragraph && this.Paragraph.LogicDocument)
 		return this.Paragraph.LogicDocument;
 
-	return editor.WordControl.m_oLogicDocument;
+	if (editor && editor.WordControl)
+		return editor.WordControl.m_oLogicDocument;
+
+	return null;
 };
 
 // Добавляем элемент в позицию с сохранием в историю
@@ -8425,7 +8428,7 @@ ParaRun.prototype.Write_ToBinary2 = function(Writer)
     if (this.ReviewInfo)
     {
         Writer.WriteBool(false);
-        this.ReviewInfo.Write_ToBinary(Writer);
+        this.ReviewInfo.WriteToBinary(Writer);
     }
     else
     {
@@ -8461,7 +8464,7 @@ ParaRun.prototype.Read_FromBinary2 = function(Reader)
     this.ReviewType = Reader.GetLong();
     this.ReviewInfo = new CReviewInfo();
     if (false === Reader.GetBool())
-        this.ReviewInfo.Read_FromBinary(Reader);
+        this.ReviewInfo.ReadFromBinary(Reader);
 
     if (para_Math_Run == this.Type)
 	{
@@ -9716,7 +9719,7 @@ ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
             this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
     }
 };
-ParaRun.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
     if (this.Is_Empty())
         return;
@@ -9724,7 +9727,7 @@ ParaRun.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
     if (true !== Checker.Is_ParaEndRun() && true !== Checker.Is_CheckOnlyTextPr())
     {
         var ReviewType = this.GetReviewType();
-        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.Get_UserId() !== Checker.Get_AddRemoveUserId()))
+        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId()))
         {
             Checker.Flush_AddRemoveChange();
             ContentPos.Update(0, Depth);
@@ -9777,7 +9780,7 @@ ParaRun.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
 
     var HavePrChange = this.HavePrChange();
     var DiffPr = this.GetDiffPrChange();
-    if (HavePrChange !== Checker.HavePrChange() || true !== Checker.ComparePrChange(DiffPr) || this.Pr.ReviewInfo.Get_UserId() !== Checker.Get_PrChangeUserId())
+    if (HavePrChange !== Checker.HavePrChange() || true !== Checker.ComparePrChange(DiffPr) || this.Pr.ReviewInfo.GetUserId() !== Checker.Get_PrChangeUserId())
     {
         Checker.Flush_TextPrChange();
         ContentPos.Update(0, Depth);
@@ -9824,10 +9827,10 @@ ParaRun.prototype.private_UpdateTrackRevisionOnChangeTextPr = function(bUpdateIn
 };
 ParaRun.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.Paragraph && this.Paragraph.bFromDocument && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.Get_TrackRevisionsManager)
+    if (this.Paragraph && this.Paragraph.bFromDocument && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.Paragraph.LogicDocument.Get_TrackRevisionsManager();
-        RevisionsManager.Check_Paragraph(this.Paragraph);
+        var RevisionsManager = this.Paragraph.LogicDocument.GetTrackRevisionsManager();
+        RevisionsManager.CheckElement(this.Paragraph);
     }
 };
 ParaRun.prototype.AcceptRevisionChanges = function(Type, bAll)
@@ -10895,17 +10898,21 @@ CReviewInfo.prototype.Copy = function()
     Info.PrevInfo = this.PrevInfo ? this.PrevInfo.Copy() : null;
     return Info;
 };
-CReviewInfo.prototype.Get_UserId = function()
+/**
+ * Получаем имя пользователя
+ * @returns {string}
+ */
+CReviewInfo.prototype.GetUserName = function()
 {
-    return this.UserId;
+	return this.UserName;
 };
-CReviewInfo.prototype.Get_UserName = function()
+/**
+ * Получаем дату-время изменения
+ * @returns {number}
+ */
+CReviewInfo.prototype.GetDateTime = function()
 {
-    return this.UserName;
-};
-CReviewInfo.prototype.Get_DateTime = function()
-{
-    return this.DateTime;
+	return this.DateTime;
 };
 CReviewInfo.prototype.Write_ToBinary = function(oWriter)
 {
@@ -10960,9 +10967,21 @@ CReviewInfo.prototype.IsCurrentUser = function()
 
     return true;
 };
-CReviewInfo.prototype.Get_UserId = function()
+/**
+ * Получаем идентификатор пользователя
+ * @returns {string}
+ */
+CReviewInfo.prototype.GetUserId = function()
 {
-    return this.UserId;
+	return this.UserId;
+};
+CReviewInfo.prototype.WriteToBinary = function(oWriter)
+{
+	this.Write_ToBinary(oWriter);
+};
+CReviewInfo.prototype.ReadFromBinary = function(oReader)
+{
+	this.Read_FromBinary(oReader);
 };
 /**
  * Сохраняем предыдущее действие (обычно это добавление, а новое - удаление)

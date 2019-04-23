@@ -6958,7 +6958,7 @@ function BinaryPPTYLoader()
                         case 5: props.TextDirection = Asc.c_oAscCellTextDirection.BTLR; break;
                         case 6: props.TextDirection = Asc.c_oAscCellTextDirection.TBRL; break;
                         default:
-                            props.TextDirection = LRTB;
+                            props.TextDirection = Asc.c_oAscCellTextDirection.LRTB;
                             break;
                     }
                     break;

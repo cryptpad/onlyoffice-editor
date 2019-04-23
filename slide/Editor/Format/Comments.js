@@ -200,7 +200,7 @@ ParaComment.prototype =
     {
     },
 
-    Check_RevisionsChanges : function(Checker, ContentPos, Depth)
+    CheckRevisionsChanges : function(Checker, ContentPos, Depth)
     {
     },
 
@@ -500,7 +500,7 @@ ParaComment.prototype.Get_TextPr = function(ContentPos, Depth)
 //----------------------------------------------------------------------------------------------------------------------
 ParaComment.prototype.SetReviewType = function(ReviewType, RemovePrChange){};
 ParaComment.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo){};
-ParaComment.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth){};
+ParaComment.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth){};
 ParaComment.prototype.AcceptRevisionChanges = function(Type, bAll){};
 ParaComment.prototype.RejectRevisionChanges = function(Type, bAll){};
 

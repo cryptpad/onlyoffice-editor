@@ -900,9 +900,9 @@ CBlockLevelSdt.prototype.FindNextFillingForm = function(isNext, isCurrent, isSta
 
 	return null;
 };
-CBlockLevelSdt.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+CBlockLevelSdt.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-	return this.Content.GetRevisionsChangeParagraph(SearchEngine);
+	return this.Content.GetRevisionsChangeElement(SearchEngine);
 };
 CBlockLevelSdt.prototype.AcceptRevisionChanges = function(Type, bAll)
 {

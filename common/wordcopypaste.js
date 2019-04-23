@@ -2788,7 +2788,7 @@ PasteProcessor.prototype =
 				{
 					for(var i = 0; i < paragraphContent.length; i++)
 					{
-						var elem = paragraphContent[j];
+						var elem = paragraphContent[i];
 						if(pasteIntoParaRunPr && elem.Pr)
 						{
 							elem.Pr.Merge(pasteIntoParaRunPr);
@@ -4640,8 +4640,105 @@ PasteProcessor.prototype =
 		
 		var fPasteHtmlPresentationCallback = function(fonts, images)
 		{
+			oThis.aContent = [];
+			//на время заполнения контента для вставки отключаем историю
+			var arrShapes = [], arrImages = [], arrTables = [];
+
 			var executePastePresentation = function()
 			{
+				//PREPARE CONTENT
+				//если не добавили даные внутрь arrShapes - удаляем пустой CShape
+				if(arrShapes.length === 1 && arrShapes[0].txBody && arrShapes[0].txBody.content && arrShapes[0].txBody.content.Content && arrShapes[0].txBody.content.Content.length === 1)
+				{
+					var txBodyContent = arrShapes[0].txBody.content.Content[0].Content;
+					if(txBodyContent && txBodyContent.length === 2 && txBodyContent[0].Content && txBodyContent[0].Content.length === 0)
+					{
+						arrShapes = [];
+					}
+				}
+
+				var i, w, h;
+				for(i = 0; i < arrShapes.length; ++i)
+				{
+					shape = arrShapes[i];
+
+					var txBobyContent = shape.txBody.content.Content;
+					if(txBobyContent.length > 1 && txBobyContent[0].Content)
+					{
+						if(txBobyContent[0].Content.length === 1 || (txBobyContent[0].Content.length === 2 && txBobyContent[0].Content[0].Content && txBobyContent[0].Content[0].Content.length === 0))
+						{
+							shape.txBody.content.Internal_Content_Remove(0, 1);
+						}
+					}
+
+					w =  shape.txBody.getRectWidth(presentation.Width*2/3);
+					h = shape.txBody.content.GetSummaryHeight();
+					AscFormat.CheckSpPrXfrm(shape);
+					shape.spPr.xfrm.setExtX(w);
+					shape.spPr.xfrm.setExtY(h);
+					shape.spPr.xfrm.setOffX((presentation.Width - w)/2.0);
+					shape.spPr.xfrm.setOffY((presentation.Height - h)/2.0);
+
+
+					var oBodyPr = shape.getBodyPr().createDuplicate();
+					oBodyPr.rot = 0;
+					oBodyPr.spcFirstLastPara = false;
+					oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
+					oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
+					oBodyPr.vert = AscFormat.nVertTThorz;
+					oBodyPr.lIns = 2.54;
+					oBodyPr.tIns = 1.27;
+					oBodyPr.rIns = 2.54;
+					oBodyPr.bIns = 1.27;
+					oBodyPr.numCol = 1;
+					oBodyPr.spcCol = 0;
+					oBodyPr.rtlCol = 0;
+					oBodyPr.fromWordArt = false;
+					oBodyPr.anchor = 4;
+					oBodyPr.anchorCtr = false;
+					oBodyPr.forceAA = false;
+					oBodyPr.compatLnSpc = true;
+					oBodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function(){return AscFormat.CreatePrstTxWarpGeometry("textNoShape");}, this, []);
+					oBodyPr.textFit = new AscFormat.CTextFit();
+					oBodyPr.textFit.type = AscFormat.text_fit_Auto;
+					shape.txBody.setBodyPr(oBodyPr);
+					shape.txBody.content.MoveCursorToEndPos();
+					arrShapes[i] = new DrawingCopyObject(shape, 0, 0, w, h);
+				}
+
+				for(i = 0; i < arrTables.length; ++i)
+				{
+					shape = arrTables[i];
+
+					//TODO передалать высоту/ширину!
+					//var w =  shape.txBody.getRectWidth(presentation.Width*2/3);
+					//var h = shape.txBody.content.GetSummaryHeight();
+					w = 100;
+					h = 100;
+					AscFormat.CheckSpPrXfrm(shape);
+					shape.spPr.xfrm.setExtX(w);
+					shape.spPr.xfrm.setExtY(h);
+					shape.spPr.xfrm.setOffX(0);
+					shape.spPr.xfrm.setOffY(0);
+
+					arrShapes[arrShapes.length] = new DrawingCopyObject(shape, 0, 0, w, h);
+				}
+
+				for(i = 0; i < arrImages.length; ++i)
+				{
+					shape = arrImages[i];
+
+					AscFormat.CheckSpPrXfrm(shape);
+					//shape.spPr.xfrm.setExtX(w);
+					//shape.spPr.xfrm.setExtY(h);
+					shape.spPr.xfrm.setOffX(0);
+					shape.spPr.xfrm.setOffY(0);
+
+					arrShapes[arrShapes.length] = new DrawingCopyObject(shape, 0, 0, w, h);
+				}
+
+
+				//INSERT CONTENT
 				var oController = presentation.GetCurrentController();
 				var targetDocContent =  oController  && oController.getTargetDocContent();
 				if(targetDocContent && arrShapes.length === 1 && arrImages.length === 0 && arrTables.length === 0)
@@ -4665,7 +4762,7 @@ PasteProcessor.prototype =
 					var pasteOnlyImg = false;
 					if(2 === presentationSelectedContent.getContentType()) {
 						pasteOnlyImg = true;
-						for(var i = 0; i < presentationSelectedContent.Drawings.length; i++) {
+						for(i = 0; i < presentationSelectedContent.Drawings.length; i++) {
 							if(presentationSelectedContent.Drawings[i].Drawing.getObjectType() !== AscDFH.historyitem_type_ImageShape) {
 								pasteOnlyImg = false;
 								break;
@@ -4688,9 +4785,6 @@ PasteProcessor.prototype =
 				}
 			};
 
-			oThis.aContent = [];
-			//на время заполнения контента для вставки отключаем историю
-			 var arrShapes = [], arrImages = [], arrTables = [];
 			var presentation = editor.WordControl.m_oLogicDocument;
 			if(presentation.Slides.length === 0)
 			{
@@ -4702,95 +4796,6 @@ PasteProcessor.prototype =
 			arrShapes.push(shape);
 			
 			oThis._Execute(node, {}, true, true, false, arrShapes, arrImages, arrTables);
-			
-			//если не добавили даные внутрь arrShapes - удаляем пустой CShape
-			if(arrShapes.length === 1 && arrShapes[0].txBody && arrShapes[0].txBody.content && arrShapes[0].txBody.content.Content && arrShapes[0].txBody.content.Content.length === 1)
-			{
-				var txBodyContent = arrShapes[0].txBody.content.Content[0].Content;
-				if(txBodyContent && txBodyContent.length === 2 && txBodyContent[0].Content && txBodyContent[0].Content.length === 0)
-				{
-					arrShapes = [];
-				}
-			}	
-			
-			for(var i = 0; i < arrShapes.length; ++i)
-			{
-				shape = arrShapes[i];
-				
-				var txBobyContent = shape.txBody.content.Content;
-				if(txBobyContent.length > 1 && txBobyContent[0].Content)
-				{
-					if(txBobyContent[0].Content.length === 1 || (txBobyContent[0].Content.length === 2 && txBobyContent[0].Content[0].Content && txBobyContent[0].Content[0].Content.length === 0))
-					{
-						shape.txBody.content.Internal_Content_Remove(0, 1);
-					}
-				}
-				
-				var w =  shape.txBody.getRectWidth(presentation.Width*2/3);
-				var h = shape.txBody.content.GetSummaryHeight();
-				AscFormat.CheckSpPrXfrm(shape);
-				shape.spPr.xfrm.setExtX(w);
-				shape.spPr.xfrm.setExtY(h);
-				shape.spPr.xfrm.setOffX((presentation.Width - w)/2.0);
-				shape.spPr.xfrm.setOffY((presentation.Height - h)/2.0);
-
-
-                var oBodyPr = shape.getBodyPr().createDuplicate();
-                oBodyPr.rot = 0;
-                oBodyPr.spcFirstLastPara = false;
-                oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
-                oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
-                oBodyPr.vert = AscFormat.nVertTThorz;
-                oBodyPr.lIns = 2.54;
-                oBodyPr.tIns = 1.27;
-                oBodyPr.rIns = 2.54;
-                oBodyPr.bIns = 1.27;
-                oBodyPr.numCol = 1;
-                oBodyPr.spcCol = 0;
-                oBodyPr.rtlCol = 0;
-                oBodyPr.fromWordArt = false;
-                oBodyPr.anchor = 4;
-                oBodyPr.anchorCtr = false;
-                oBodyPr.forceAA = false;
-                oBodyPr.compatLnSpc = true;
-                oBodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function(){return AscFormat.CreatePrstTxWarpGeometry("textNoShape");}, this, []);
-                oBodyPr.textFit = new AscFormat.CTextFit();
-                oBodyPr.textFit.type = AscFormat.text_fit_Auto;
-                shape.txBody.setBodyPr(oBodyPr);
-				shape.txBody.content.MoveCursorToEndPos();
-				arrShapes[i] = new DrawingCopyObject(shape, 0, 0, w, h);
-			}
-			
-			for(var i = 0; i < arrTables.length; ++i)
-			{
-				shape = arrTables[i];
-			   
-				//TODO передалать высоту/ширину!
-				//var w =  shape.txBody.getRectWidth(presentation.Width*2/3);
-				//var h = shape.txBody.content.GetSummaryHeight();
-				var w = 100;
-				var h = 100;
-				AscFormat.CheckSpPrXfrm(shape);
-				shape.spPr.xfrm.setExtX(w);
-				shape.spPr.xfrm.setExtY(h);
-				shape.spPr.xfrm.setOffX(0);
-				shape.spPr.xfrm.setOffY(0);
-				
-				arrShapes[arrShapes.length] = new DrawingCopyObject(shape, 0, 0, w, h);
-			}
-			
-			for(var i = 0; i < arrImages.length; ++i)
-			{
-				shape = arrImages[i];
-
-				AscFormat.CheckSpPrXfrm(shape);
-				//shape.spPr.xfrm.setExtX(w);
-				//shape.spPr.xfrm.setExtY(h);
-				shape.spPr.xfrm.setOffX(0);
-				shape.spPr.xfrm.setOffY(0);
-				
-				arrShapes[arrShapes.length] = new DrawingCopyObject(shape, 0, 0, w, h);
-			}
 
 			if(!fonts)
 			{
@@ -5312,7 +5317,7 @@ PasteProcessor.prototype =
 		var diffRow = activeRange.r2 - activeRange.r1;
 		var diffCol = activeRange.c2 - activeRange.c1;
 		for (var i = 0; i <= diffRow; i++) {
-			var row = table.Internal_Add_Row(table.Content.length, 0);
+			var row = table.private_AddRow(table.Content.length, 0);
 			var heightRowPt = worksheet.getRowHeight(i + activeRange.r1);
 			row.SetHeight(heightRowPt * g_dKoef_pt_to_mm, linerule_AtLeast);
 
@@ -7935,7 +7940,7 @@ PasteProcessor.prototype =
 			//TODO временная правка в условии для того, чтобы избежать ошибки при копировании из excel мерженной ячейки
             if("tr" === tr.nodeName.toLowerCase() && tr.childNodes && tr.childNodes.length)
             {
-				var row = table.Internal_Add_Row(table.Content.length, 0);
+				var row = table.private_AddRow(table.Content.length, 0);
                 this._ExecuteTableRow(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef);
             }
         }
@@ -9224,7 +9229,7 @@ PasteProcessor.prototype =
             var tr = node.childNodes[i];
             if("tr" === tr.nodeName.toLowerCase() && tr.children.length !== 0)//в случае, если внутри строки нет ни одной ячейки, не добавляем данную строку
             {
-                var row = table.Internal_Add_Row(table.Content.length, 0);
+                var row = table.private_AddRow(table.Content.length, 0);
                 this._ExecuteTableRowPresentation(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
             }
         }

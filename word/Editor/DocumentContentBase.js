@@ -402,10 +402,21 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 				}
 			}
 
-			// Сначала проводим обычное удаление по выделению
-			for (var nIndex = StartPos; nIndex <= EndPos; ++nIndex)
+			if (StartPos === EndPos && this.Content[StartPos].IsTable() && !this.Content[StartPos].IsCellSelection())
 			{
-				this.Content[nIndex].Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
+				this.Content[StartPos].Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
+			}
+			else
+			{
+				// Сначала проводим обычное удаление по выделению
+				for (var nIndex = StartPos; nIndex <= EndPos; ++nIndex)
+				{
+					var oElement = this.Content[nIndex];
+					if (oElement.IsTable())
+						oElement.RemoveTableRow();
+					else
+						oElement.Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
+				}
 			}
 
 			this.RemoveSelection();

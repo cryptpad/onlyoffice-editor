@@ -723,7 +723,7 @@ RotateState.prototype =
                             // при этом мы должны сохранить их начальные настройки рецензирования.
                             var bTrackRevisions = this.drawingObjects.document.IsTrackRevisions();
                             if (bTrackRevisions)
-                                this.drawingObjects.document.Set_TrackRevisions(false);
+                                this.drawingObjects.document.SetTrackRevisions(false);
 
                             var oOriginalRun = original.Parent.Get_DrawingObjectRun(original.Id);
 
@@ -736,7 +736,7 @@ RotateState.prototype =
                             originalCopy.Add_ToDocument(aNearestPos[i], false, null, oOriginalRun);
 
                             if (bTrackRevisions)
-                                this.drawingObjects.document.Set_TrackRevisions(true);
+                                this.drawingObjects.document.SetTrackRevisions(true);
 
                             this.drawingObjects.selectObject(originalCopy.GraphicObj, pageIndex);
                         }

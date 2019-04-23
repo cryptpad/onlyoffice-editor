@@ -1667,11 +1667,16 @@
 			return second;
 		}
 
-		hour = hour.getValue();
-		minute = minute.getValue();
-		second = second.getValue();
+		//LO - не округляет. ms - округляет.
+		hour = parseInt(hour.getValue());
+		minute = parseInt(minute.getValue());
+		second = parseInt(second.getValue());
 
 		var v = (hour * 60 * 60 + minute * 60 + second) / c_sPerDay;
+		if(v < 0) {
+			return new cError(cErrorType.not_numeric);
+		}
+
 		var res = new cNumber(v - Math.floor(v));
 		res.numFormat = 18;
 		return res;

@@ -5632,8 +5632,8 @@
                         apl: _t1.left + _t1.width / 4
                     };
                 } else {
-                    var _t1 = gCM(_wsV, me[id].getBBox0().c1, me[id].getBBox0().r1), _t2 = gCM(_wsV, me[id].getBBox0().c2,
-                      me[id].getBBox0().r2);
+                    var _t1 = gCM(this, node[id].getBBox0().c1, node[id].getBBox0().r1), _t2 = gCM(this, node[id].getBBox0().c2,
+                        node[id].getBBox0().r2);
 
                     nodeCellMetrics = {
                         t: _t1.top,
@@ -9934,7 +9934,7 @@
 					oImageMap = pasteContent.props.oImageMap;
 					if (window["NATIVE_EDITOR_ENJINE"]) {
 						//TODO для мобильных приложений  - не рабочий код!
-						AscCommon.ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
+						AscCommon.ResetNewUrls(pasteContent.props.data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
 						AscCommonExcel.executeInR1C1Mode(false, function () {
 							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 						});

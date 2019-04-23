@@ -3870,22 +3870,15 @@ function OfflineEditor () {
         
         window.g_file_path = "native_open_file";
         window.NATIVE_DOCUMENT_TYPE = "";
-        
-        var apiConfig = {};
-        if (this.translate) {
-            var t = JSON.parse(this.translate);
-            if (t) {
-                apiConfig['translate'] = {
-                    'Diagram Title' : t['diagrammtitle'],
-                    'X Axis' : t['xaxis'],
-                    'Y Axis' : t['yaxis'],
-                    'Series' : t['series'],
-                    'Your text here' : t['art']
-                };
-            }
+  
+        var translations = this.initSettings["translations"];
+        if (undefined != translations && null != translations && translations.length > 0) {
+            translations = JSON.parse(translations)
+        } else {
+            translations = "";
         }
-        
-        _api = new window["Asc"]["spreadsheet_api"](apiConfig);
+
+        _api = new window["Asc"]["spreadsheet_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
         
@@ -4809,7 +4802,7 @@ function OfflineEditor () {
                 oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
                 
                 window["native"]["BeginDrawDefaultStyle"](oStyle.Name, styleIndex);
-                this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, oStyle.Name, styleIndex);
+                this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
                 window["native"]["EndDrawStyle"]();
                 ++styleIndex;
             }
@@ -4826,7 +4819,7 @@ function OfflineEditor () {
                 }
                 
                 window["native"]["BeginDrawDocumentStyle"](oStyle.Name, styleIndex);
-                this.drawStyle(oGraphics, stringRenderer, oStyle, oStyle.Name, styleIndex);
+                this.drawStyle(oGraphics, stringRenderer, oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
                 window["native"]["EndDrawStyle"]();
                 ++styleIndex;
             }
@@ -6182,8 +6175,6 @@ window["native"]["offline_calculate_complete_range"] = function(x, y, w, h) {
             ws._getColLeft(range.c2) + ws._getColumnWidth(range.c2),
             ws._getRowTop(range.r2)  + ws._getRowHeight(range.r1)];
 }
-
-window["native"]["offline_set_translate"] = function(translate) {_s.translate = translate;}
 
 window["native"]["offline_apply_event"] = function(type,params) {
     var _borderOptions = Asc.c_oAscBorderOptions;

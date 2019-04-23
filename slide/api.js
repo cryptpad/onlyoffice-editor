@@ -2334,7 +2334,7 @@ background-repeat: no-repeat;\
 		var _headers = [];
 		for (var i = 0; i < headers.length; i++)
 		{
-			_headers[i] = new CHeader(headers[i]);
+			_headers[i] = new Asc.CHeader(headers[i]);
 		}
 
 		this.sendEvent("asc_onReturnHeaders", _headers);
@@ -3471,7 +3471,6 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.sync_HeadersAndFootersPropCallback = function(hafProp)
 	{
-		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.Header, new CHeaderProp(hafProp));
 	};
 
 	/*----------------------------------------------------------------*/
@@ -7019,13 +7018,11 @@ background-repeat: no-repeat;\
         }
 
         if (c_oAscFontRenderingModeType.noHinting === mode)
-            AscCommon.SetHintsProps(false, false);
+            AscCommon.g_fontManager.SetHintsProps(false, false);
         else if (c_oAscFontRenderingModeType.hinting === mode)
-            AscCommon.SetHintsProps(true, false);
+            AscCommon.g_fontManager.SetHintsProps(true, false);
         else if (c_oAscFontRenderingModeType.hintingAndSubpixeling === mode)
-            AscCommon.SetHintsProps(true, true);
-
-        AscCommon.g_fontManager.ClearFontsRasterCache();
+            AscCommon.g_fontManager.SetHintsProps(true, true);
 
         if (AscCommon.g_fontManager2 !== undefined && AscCommon.g_fontManager2 !== null)
             AscCommon.g_fontManager2.ClearFontsRasterCache();

@@ -2647,10 +2647,10 @@ ParaDrawing.prototype.private_ConvertToMathObject = function(isOpen)
 		}
 	}
 };
-ParaDrawing.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+ParaDrawing.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-	if (this.GraphicObj && this.GraphicObj.GetRevisionsChangeParagraph)
-		this.GraphicObj.GetRevisionsChangeParagraph(SearchEngine);
+	if (this.GraphicObj && this.GraphicObj.GetRevisionsChangeElement)
+		this.GraphicObj.GetRevisionsChangeElement(SearchEngine);
 };
 ParaDrawing.prototype.Get_ObjectType = function()
 {

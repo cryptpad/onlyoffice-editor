@@ -3215,6 +3215,7 @@
 						AscCommon.ResetNewUrls( data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap );
 						History.TurnOn();
 						t.aResult.props.oImageMap = oImageMap;
+						t.aResult.props.data = data;
 						worksheet.setSelectionInfo('paste', {data: t.aResult});
 					}, true );
 				}

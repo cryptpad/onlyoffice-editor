@@ -797,45 +797,6 @@ var editor;
     this.onEndLoadFile(AscCommonExcel.getEmptyWorkbook());
   };
 
-  spreadsheet_api.prototype._asc_save2 = function () {
-    var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
-    var dataContainer = {data: null, part: null, index: 0, count: 0};
-    dataContainer.data = oBinaryFileWriter.Write();
-    var filetype = 0x1002;
-    var oAdditionalData = {};
-    oAdditionalData["c"] = "sfct";
-    oAdditionalData["id"] = this.documentId;
-    oAdditionalData["userid"] = this.documentUserId;
-    oAdditionalData["jwt"] = this.CoAuthoringApi.get_jwt();
-    oAdditionalData["outputformat"] = filetype;
-    oAdditionalData["title"] =
-        AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(filetype));
-    oAdditionalData["savetype"] = AscCommon.c_oAscSaveTypes.CompleteAll;
-    oAdditionalData["nobase64"] = true;
-    var t = this;
-    t.fCurCallback = function (incomeObject) {
-      if (null != input && "save" == input["type"]) {
-        if ('ok' == input["status"]) {
-          var url = input["data"];
-          if (url) {
-            t.processSavedFile(url, false);
-          } else {
-            t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-          }
-        } else {
-          t.handlers.trigger("asc_onError",
-              mapAscServerErrorToAscError(parseInt(input["data"]), AscCommon.c_oAscAdvancedOptionsAction.Save),
-              c_oAscError.Level.NoCritical);
-        }
-      } else {
-        t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
-      }
-    };
-    AscCommon.saveWithParts(function (fCallback1, oAdditionalData1, dataContainer1) {
-      sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
-    }, t.fCurCallback, null, oAdditionalData, dataContainer);
-  };
-
   spreadsheet_api.prototype._asc_downloadAs = function(sFormat, actionType, options) { //fCallback({returnCode:"", ...})
     var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
     if (isCloudCrypto)
@@ -1058,7 +1019,6 @@ var editor;
   };
 
   spreadsheet_api.prototype.openDocument = function(sData) {
-    var t = this;
 	this._openDocument(sData);
 	this._onOpenCommandXlsx();
   };
@@ -1078,7 +1038,7 @@ var editor;
 				var wbXml = null;
 				var pivotCaches = {};
 				var jsZipWrapper = new AscCommon.JSZipWrapper();
-				nextPromise = jsZipWrapper.loadAsync(data || path).then(function (zip) {
+				nextPromise = jsZipWrapper.loadAsync(data).then(function (zip) {
 					return doc.openFromZip(zip);
 				}).then(function () {
 					wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
@@ -2494,7 +2454,7 @@ var editor;
 
     spreadsheet_api.prototype.asc_CallSignatureDblClickEvent = function(sGuid){
         var allSpr = this.asc_getAllSignatures();
-        for(i = 0; i < allSpr.length; ++i){
+        for(var i = 0; i < allSpr.length; ++i){
           if(allSpr[i].signatureLine && allSpr[i].signatureLine.id === sGuid){
               this.sendEvent("asc_onSignatureDblClick", sGuid, allSpr[i].extX, allSpr[i].extY);
           }
