@@ -10367,8 +10367,8 @@ CTable.prototype.Update_TableMarkupFromRuler = function(NewMarkup, bCol, Index)
 
 	if (this.LogicDocument)
 	{
-		this.LogicDocument.NeedRecalculate();
-		this.LogicDocument.NeedUpdateSelection();
+		this.LogicDocument.Recalculate();
+		this.LogicDocument.UpdateSelection();
 	}
 };
 /**

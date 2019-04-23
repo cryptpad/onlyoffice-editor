@@ -2074,7 +2074,7 @@ CDocument.prototype.StartAction = function(nDescription)
 /**
  * Сообщаем документу, что потребуется пересчет
  */
-CDocument.prototype.NeedRecalculate = function()
+CDocument.prototype.Recalculate2 = function()
 {
 	if (this.Action.Start)
 		this.Action.Recalculate = true;
@@ -2084,7 +2084,7 @@ CDocument.prototype.NeedRecalculate = function()
 /**
  * Сообщаем документу, что потребуется обновить состояние селекта
  */
-CDocument.prototype.NeedUpdateSelection = function()
+CDocument.prototype.UpdateSelection = function()
 {
 	if (this.Action.Start)
 		this.Action.UpdateSelection = true;
@@ -2094,7 +2094,7 @@ CDocument.prototype.NeedUpdateSelection = function()
 /**
  * Сообщаем документу, что потребуется обновить состояние интерфейса
  */
-CDocument.prototype.NeedUpdateInterface = function()
+CDocument.prototype.UpdateInterface = function()
 {
 	if (this.Action.Start)
 		this.Action.UpdateInterface = true;
@@ -2104,7 +2104,7 @@ CDocument.prototype.NeedUpdateInterface = function()
 /**
  * Сообщаем документу, что потребуется обновить линейки
  */
-CDocument.prototype.NeedUpdateRulers = function()
+CDocument.prototype.UpdateRulers = function()
 {
 	if (this.Action.Start)
 		this.Action.UpdateRulers = true;
@@ -4942,17 +4942,17 @@ CDocument.prototype.SetParagraphSpacing = function(Spacing)
 CDocument.prototype.SetParagraphTabs = function(Tabs)
 {
 	this.Controller.SetParagraphTabs(Tabs);
-	this.NeedRecalculate();
-	this.NeedUpdateSelection();
-	this.NeedUpdateInterface();
+	this.Recalculate();
+	this.UpdateSelection();
+	this.UpdateInterface();
 	this.Api.Update_ParaTab(AscCommonWord.Default_Tab_Stop, Tabs);
 };
 CDocument.prototype.SetParagraphIndent = function(Ind)
 {
 	this.Controller.SetParagraphIndent(Ind);
-	this.NeedRecalculate();
-	this.NeedUpdateSelection();
-	this.NeedUpdateInterface();
+	this.Recalculate();
+	this.UpdateSelection();
+	this.UpdateInterface();
 };
 CDocument.prototype.SetParagraphNumbering = function(NumInfo)
 {
@@ -5980,10 +5980,10 @@ CDocument.prototype.Set_DocumentMargin = function(MarPr)
 	SectPr.Set_PageMargins(L, T, R, B);
 	this.DrawingObjects.CheckAutoFit();
 
-	this.NeedRecalculate();
-	this.NeedUpdateSelection();
-	this.NeedUpdateInterface();
-	this.NeedUpdateRulers();
+	this.Recalculate();
+	this.UpdateSelection();
+	this.UpdateInterface();
+	this.UpdateRulers();
 };
 CDocument.prototype.Set_DocumentPageSize = function(W, H, bNoRecalc)
 {

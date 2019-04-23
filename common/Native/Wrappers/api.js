@@ -1202,16 +1202,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 }
             }
 
-            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+            this.WordControl.m_oLogicDocument.StartAction();
             this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(_textPr));
-            this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+            this.WordControl.m_oLogicDocument.UpdateInterface();
+			this.WordControl.m_oLogicDocument.FinilizeAction();
             break;
         }
         case 2: // ASC_MENU_EVENT_TYPE_PARAPR
         {
             var _textPr = undefined;
 
-            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+            this.WordControl.m_oLogicDocument.StartAction();
 
             while (_continue)
             {
@@ -1408,7 +1409,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             if (undefined !== _textPr)
                 this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(_textPr));
 
-            this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
+			this.WordControl.m_oLogicDocument.FinilizeAction();
             break;
         }
         case 22003: //ASC_MENU_EVENT_TYPE_ON_EDIT_TEXT
@@ -1435,7 +1437,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var bIsApply = (this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_HdrFtr) === false) ? true : false;
 
             if (bIsApply)
-                this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+                this.WordControl.m_oLogicDocument.StartAction();
 
             while (_continue)
             {
@@ -1492,6 +1494,9 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     }
                 }
             }
+
+            if (bIsApply)
+            	this.WordControl.m_oLogicDocument.FinilizeAction();
 
             break;
         }
@@ -1909,13 +1914,15 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content_Add) )
             {
-                this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+                this.WordControl.m_oLogicDocument.StartAction();
                 this.WordControl.m_oLogicDocument.AddInlineTable(_rows, _cols);
 
                 if (_style != null)
                 {
                     this.WordControl.m_oLogicDocument.SetTableProps({TableStyle : _style});
                 }
+
+                this.WordControl.m_oLogicDocument.FinilizeAction();
             }
             break;
         }
@@ -1952,8 +1959,9 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var _props = asc_menu_ReadHyperPr(_params, _current);
             if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
             {
-                this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+                this.WordControl.m_oLogicDocument.StartAction();
                 this.WordControl.m_oLogicDocument.AddHyperlink( _props );
+                this.WordControl.m_oLogicDocument.FinilizeAction();
             }
             break;
         }
@@ -1972,8 +1980,9 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             }
             if ( oHyperProps && false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
             {
-                this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+                this.WordControl.m_oLogicDocument.StartAction();
                 this.WordControl.m_oLogicDocument.ModifyHyperlink( _props );
+                this.WordControl.m_oLogicDocument.FinilizeAction();
             }
             break;
         }
@@ -1991,8 +2000,9 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             }
             if (oHyperProps && false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
             {
-                this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+                this.WordControl.m_oLogicDocument.StartAction();
                 this.WordControl.m_oLogicDocument.RemoveHyperlink(oHyperProps);
+                this.WordControl.m_oLogicDocument.FinilizeAction();
             }
             break;
         }
@@ -2220,22 +2230,26 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             {
                 if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
                 {
-                    this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_TableAddColumnLeft);
+                    this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
                     if (_is_add)
                         this.WordControl.m_oLogicDocument.AddTableColumn(!_is_above);
                     else
                         this.WordControl.m_oLogicDocument.RemoveTableColumn();
+
+					this.WordControl.m_oLogicDocument.FinilizeAction();
                 }
             }
             else if (2 == _type)
             {
                 if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
                 {
-                    this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_TableAddColumnLeft);
+                    this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
                     if (_is_add)
                         this.WordControl.m_oLogicDocument.AddTableRow(!_is_above);
                     else
                         this.WordControl.m_oLogicDocument.RemoveTableRow();
+
+					this.WordControl.m_oLogicDocument.FinilizeAction();
                 }
             }
 
@@ -4692,16 +4706,18 @@ Asc['asc_docs_api'].prototype.put_PageNum = function(where,align)
     {
         if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : AscCommon.changestype_2_HdrFtr }) )
         {
-            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+            this.WordControl.m_oLogicDocument.StartAction();
             this.WordControl.m_oLogicDocument.Document_AddPageNum( where, align );
+			this.WordControl.m_oLogicDocument.FinilizeAction();
         }
     }
     else
     {
         if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
         {
-            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+            this.WordControl.m_oLogicDocument.StartAction();
             this.WordControl.m_oLogicDocument.Document_AddPageNum( where, align );
+			this.WordControl.m_oLogicDocument.FinilizeAction();
         }
     }
 };
@@ -4714,8 +4730,9 @@ Asc['asc_docs_api'].prototype.put_AddPageBreak = function()
 
         if ( null === Document.IsCursorInHyperlink(false) )
         {
-            Document.Create_NewHistoryPoint();
+            Document.StartAction();
             Document.AddToParagraph( new ParaNewLine( break_Page ) );
+			Document.FinilizeAction();
         }
     }
 };
@@ -4724,8 +4741,9 @@ Asc['asc_docs_api'].prototype.add_SectionBreak = function(_Type)
 {
     if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content) )
     {
-        this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+        this.WordControl.m_oLogicDocument.StartAction();
         this.WordControl.m_oLogicDocument.Add_SectionBreak(_Type);
+		this.WordControl.m_oLogicDocument.FinilizeAction();
     }
 };
 
@@ -4737,8 +4755,9 @@ Asc['asc_docs_api'].prototype.put_AddLineBreak = function()
 
         if ( null === Document.IsCursorInHyperlink(false) )
         {
-            Document.Create_NewHistoryPoint();
+            Document.StartAction();
             Document.AddToParagraph( new ParaNewLine( para_NewLine ) );
+			Document.FinilizeAction();
         }
     }
 };
@@ -4805,14 +4824,16 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
 
         if(ImagePr.ImageUrl != undefined && ImagePr.ImageUrl != null && ImagePr.ImageUrl != "")
         {
-            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+            this.WordControl.m_oLogicDocument.StartAction();
             this.WordControl.m_oLogicDocument.SetImageProps( ImagePr );
+			this.WordControl.m_oLogicDocument.FinilizeAction();
         }
         else if (ImagePr.ShapeProperties && ImagePr.ShapeProperties.fill && ImagePr.ShapeProperties.fill.fill &&
                  ImagePr.ShapeProperties.fill.fill.url !== undefined && ImagePr.ShapeProperties.fill.fill.url != null && ImagePr.ShapeProperties.fill.fill.url != "")
         {
-            this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+            this.WordControl.m_oLogicDocument.StartAction();
             this.WordControl.m_oLogicDocument.SetImageProps( ImagePr );
+			this.WordControl.m_oLogicDocument.FinilizeAction();
         }
         else
         {
@@ -4828,8 +4849,9 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
                 }
                 else
                 {
-                    this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+                    this.WordControl.m_oLogicDocument.StartAction();
                     this.WordControl.m_oLogicDocument.SetImageProps( ImagePr );
+					this.WordControl.m_oLogicDocument.FinilizeAction();
                 }
                 if(this.exucuteHistory)
                 {
@@ -4852,16 +4874,18 @@ Asc['asc_docs_api'].prototype.MergeCells = function()
 {
     if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
     {
-        this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+        this.WordControl.m_oLogicDocument.StartAction();
         this.WordControl.m_oLogicDocument.MergeTableCells();
+		this.WordControl.m_oLogicDocument.FinilizeAction();
     }
 }
 Asc['asc_docs_api'].prototype.SplitCell = function(Cols, Rows)
 {
     if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
     {
-        this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+        this.WordControl.m_oLogicDocument.StartAction();
         this.WordControl.m_oLogicDocument.SplitTableCells(Cols, Rows);
+		this.WordControl.m_oLogicDocument.FinilizeAction();
     }
 }
 
@@ -4917,7 +4941,7 @@ Asc['asc_docs_api'].prototype.AddImageUrlNative = function(url, _w, _h, _pageNum
         hI *= _koef;
     }
 
-    this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+    this.WordControl.m_oLogicDocument.StartAction();
 
     if (undefined === _pageNum)
     {
@@ -4928,6 +4952,8 @@ Asc['asc_docs_api'].prototype.AddImageUrlNative = function(url, _w, _h, _pageNum
         var _sectionPr = this.WordControl.m_oLogicDocument.Get_PageLimits(_pageNum);
         this.AddImageToPage(url, _pageNum, (_sectionPr.XLimit - wI) / 2, (_sectionPr.YLimit - hI) / 2, wI, hI);
     }
+
+	this.WordControl.m_oLogicDocument.FinilizeAction();
 };
 Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _pageNum)
 {
@@ -4963,11 +4989,12 @@ Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _p
       {
         src = imageLocal;
       }
-      this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddImageUrlLong);
+      this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddImageUrlLong);
       //if (undefined === imgProp || undefined === imgProp.WrappingStyle || 0 == imgProp.WrappingStyle)
         this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src);
       //else
       //  this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src, null, true);
+      this.WordControl.m_oLogicDocument.FinilizeAction();
     }
   }
 };
@@ -5232,7 +5259,7 @@ Asc['asc_docs_api'].prototype.change_PageOrient = function(isPortrait)
 {
     if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
-        this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+        this.WordControl.m_oLogicDocument.StartAction();
         if (isPortrait)
         {
             this.WordControl.m_oLogicDocument.Set_DocumentOrientation(Asc.c_oAscPageOrientation.PagePortrait);
@@ -5243,6 +5270,7 @@ Asc['asc_docs_api'].prototype.change_PageOrient = function(isPortrait)
             this.WordControl.m_oLogicDocument.Set_DocumentOrientation(Asc.c_oAscPageOrientation.PageLandscape);
             this.DocumentOrientation = isPortrait;
         }
+		this.WordControl.m_oLogicDocument.FinilizeAction();
         this.sync_PageOrientCallback(editor.get_DocumentOrientation());
     }
 };
@@ -5250,11 +5278,13 @@ Asc['asc_docs_api'].prototype.change_DocSize = function(width,height)
 {
     if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
-        this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+        this.WordControl.m_oLogicDocument.StartAction();
         if (this.DocumentOrientation)
             this.WordControl.m_oLogicDocument.Set_DocumentPageSize(width, height);
         else
             this.WordControl.m_oLogicDocument.Set_DocumentPageSize(height, width);
+
+		this.WordControl.m_oLogicDocument.FinilizeAction();
     }
 };
 Asc['asc_docs_api'].prototype.sync_PageOrientCallback = function(isPortrait)
@@ -5793,8 +5823,9 @@ Asc['asc_docs_api'].prototype.Call_Menu_Context_Delete = function()
 {
     if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Delete) )
     {
-        this.WordControl.m_oLogicDocument.Create_NewHistoryPoint();
+        this.WordControl.m_oLogicDocument.StartAction();
         this.WordControl.m_oLogicDocument.Remove( 1, true );
+		this.WordControl.m_oLogicDocument.FinilizeAction();
     }
 };
 Asc['asc_docs_api'].prototype.Call_Menu_Context_Select = function()
