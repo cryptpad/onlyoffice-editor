@@ -1464,13 +1464,17 @@
 
 		var _count = AscCommon.g_oUserTexturePresets.length;
 		var arr    = new Array(_count);
+		var arrToDownload = [];
 		for (var i = 0; i < _count; ++i)
 		{
 			arr[i]       = new AscCommon.asc_CTexture();
 			arr[i].Id    = i;
 			arr[i].Image = AscCommon.g_oUserTexturePresets[i];
-			this.ImageLoader.LoadImage(AscCommon.g_oUserTexturePresets[i], 1);
+			arrToDownload.push(AscCommon.g_oUserTexturePresets[i]);
 		}
+		this.ImageLoader.LoadImagesWithCallback(arrToDownload, function () {
+
+		}, 0);
 
 		this.sendEvent('asc_onInitStandartTextures', arr);
 	};
