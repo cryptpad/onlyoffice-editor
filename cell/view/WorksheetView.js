@@ -2718,7 +2718,9 @@
 			return null;
 		}
 
-		var graphics = this.handlers.trigger('getMainGraphics');
+
+        var context = ctx || this.drawingCtx;
+        var graphics = ctx && ctx.DocumentRenderer ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
 
 		var fontSize = c.getFont().fs;
 		var cellValue = c.getNumberValue();
@@ -2782,6 +2784,17 @@
 
                                 var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
 
+
+
+
+                                if(context instanceof AscCommonExcel.CPdfPrinter)
+                                {
+                                    graphics.SaveGrState();
+                                    var _baseTransform = new AscCommon.CMatrix();
+                                    graphics.SetBaseTransform(_baseTransform);
+                                }
+
+
                                 graphics.save();
                                 var oMatrix = new AscCommon.CMatrix();
                                 oMatrix.tx = rect._x;
@@ -2793,6 +2806,12 @@
                                 shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
                                 shapeDrawer.draw(geometry);
                                 graphics.restore();
+
+                                if(ctx instanceof AscCommonExcel.CPdfPrinter)
+                                {
+                                    graphics.SetBaseTransform(null);
+                                    graphics.RestoreGrState();
+                                }
                             }, this, [img, rect, iconSize * AscCommon.g_dKoef_pix_to_mm]
                         );
 					}
