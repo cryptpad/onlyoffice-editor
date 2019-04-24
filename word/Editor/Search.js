@@ -320,7 +320,7 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 
 	if (nReplacedCount > 0)
 	{
-		this.History.Create_NewPoint(bAll ? AscDFH.historydescription_Document_ReplaceAll : AscDFH.historydescription_Document_ReplaceSingle);
+		this.StartAction(bAll ? AscDFH.historydescription_Document_ReplaceAll : AscDFH.historydescription_Document_ReplaceSingle);
 
 		for (var nIndex = 0; nIndex < nReplacedCount; ++nIndex)
 		{
@@ -330,6 +330,7 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 		this.SearchEngine.ClearOnRecalc = false;
 		this.Recalculate();
 		this.SearchEngine.ClearOnRecalc = true;
+		this.FinilizeAction();
 	}
 
 	if (bAll && !bInterfaceEvent)

@@ -208,13 +208,16 @@ CGraphicObjects.prototype =
 
     checkSelectedObjectsAndCallback: function(callback, args, bNoSendProps, nHistoryPointType, aAdditionaObjects)
     {
+    	var oLogicDocument = editor.WordControl.m_oLogicDocument;
+
         var check_type = AscCommon.changestype_Drawing_Props;
-        if(editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(check_type, null, false, false) === false)
+        if(oLogicDocument.Document_Is_SelectionLocked(check_type, null, false, false) === false)
         {
             var nPointType = AscFormat.isRealNumber(nHistoryPointType) ? nHistoryPointType : AscDFH.historydescription_CommonControllerCheckSelected;
-            History.Create_NewPoint(nPointType);
+			oLogicDocument.StartAction(nPointType);
             callback.apply(this, args);
-            this.document.Recalculate();
+			oLogicDocument.Recalculate();
+			oLogicDocument.FinilizeAction();
         }
     },
 
@@ -709,7 +712,7 @@ CGraphicObjects.prototype =
     {
         if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
         {
-            History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsBringToFront);
+            this.document.StartAction(AscDFH.historydescription_Document_GrObjectsBringToFront);
             if(this.selection.groupSelection)
             {
                 this.selection.groupSelection.bringToFront();
@@ -728,7 +731,8 @@ CGraphicObjects.prototype =
                 }
             }
             this.document.Recalculate();
-            this.document.Document_UpdateUndoRedoState();
+            this.document.UpdateUndoRedo();
+            this.document.FinilizeAction();
         }
     },
 
@@ -828,10 +832,11 @@ CGraphicObjects.prototype =
         {
             if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsBringForwardGroup);
+                this.document.StartAction(AscDFH.historydescription_Document_GrObjectsBringForwardGroup);
                 this.selection.groupSelection.bringForward();
                 this.document.Recalculate();
-                this.document.Document_UpdateUndoRedoState();
+                this.document.UpdateUndoRedo();
+                this.document.FinilizeAction();
             }
         }
         else
@@ -871,10 +876,11 @@ CGraphicObjects.prototype =
             var oCheckObject = this.checkDrawingsMap(oDrawingsMap);
             if(false === this.document.Document_Is_SelectionLocked(AscCommon.changestype_None, {Type: changestype_2_ElementsArray_and_Type, CheckType: changestype_Drawing_Props, Elements:oCheckObject.aDrawings}))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsBringForward);
+                this.document.StartAction(AscDFH.historydescription_Document_GrObjectsBringForward);
                 this.applyZIndex(oCheckObject);
                 this.document.Recalculate();
-                this.document.Document_UpdateUndoRedoState();
+                this.document.UpdateUndoRedo();
+                this.document.FinilizeAction();
             }
         }
     },
@@ -885,10 +891,11 @@ CGraphicObjects.prototype =
         {
             if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsSendToBackGroup);
+                this.document.StartAction(AscDFH.historydescription_Document_GrObjectsSendToBackGroup);
                 this.selection.groupSelection.sendToBack();
                 this.document.Recalculate();
-                this.document.Document_UpdateUndoRedoState();
+                this.document.UpdateUndoRedo();
+                this.document.FinilizeAction();
             }
         }
         else
@@ -907,10 +914,11 @@ CGraphicObjects.prototype =
             var oCheckObject = this.checkDrawingsMap(oDrawingsMap);
             if(false === this.document.Document_Is_SelectionLocked(AscCommon.changestype_None, {Type: changestype_2_ElementsArray_and_Type, CheckType: changestype_Drawing_Props, Elements:oCheckObject.aDrawings}))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsSendToBack);
+                this.document.StartAction(AscDFH.historydescription_Document_GrObjectsSendToBack);
                 this.applyZIndex(oCheckObject);
                 this.document.Recalculate();
-                this.document.Document_UpdateUndoRedoState();
+                this.document.UpdateUndoRedo();
+                this.document.FinilizeAction();
             }
         }
     },
@@ -921,10 +929,11 @@ CGraphicObjects.prototype =
         {
             if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : [this.selection.groupSelection.parent.Get_ParentParagraph()], CheckType : AscCommon.changestype_Paragraph_Content}))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsBringBackwardGroup);
+                this.document.StartAction(AscDFH.historydescription_Document_GrObjectsBringBackwardGroup);
                 this.selection.groupSelection.bringBackward();
                 this.document.Recalculate();
-                this.document.Document_UpdateUndoRedoState();
+                this.document.UpdateUndoRedo();
+                this.document.FinilizeAction();
             }
         }
         else
@@ -964,10 +973,11 @@ CGraphicObjects.prototype =
             var oCheckObject = this.checkDrawingsMap(oDrawingsMap);
             if(false === this.document.Document_Is_SelectionLocked(AscCommon.changestype_None, {Type: changestype_2_ElementsArray_and_Type, CheckType: changestype_Drawing_Props, Elements:oCheckObject.aDrawings}))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsBringBackward);
+                this.document.StartAction(AscDFH.historydescription_Document_GrObjectsBringBackward);
                 this.applyZIndex(oCheckObject);
                 this.document.Recalculate();
-                this.document.Document_UpdateUndoRedoState();
+                this.document.UpdateUndoRedo();
+                this.document.FinilizeAction();
             }
         }
     },
@@ -2433,7 +2443,7 @@ CGraphicObjects.prototype =
 
             if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsBringBackward);
+                this.document.StartAction(AscDFH.historydescription_Document_GrObjectsBringBackward);
                 if(!oShape.bWordShape){
                     oShape.createTextBody();
                 }
@@ -2444,6 +2454,7 @@ CGraphicObjects.prototype =
                 var oContent = oShape.getDocContent();
                 oContent.Set_CurrentElement(0, true);
                 this.updateSelectionState();
+                this.document.FinilizeAction();
             }
             this.clearTrackObjects();
             this.clearPreTrackObjects();
@@ -3748,12 +3759,13 @@ CGraphicObjects.prototype =
             {
                 if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : AscCommon.changestype_2_Element_and_Type , Element : this.selectedObjects[0].parent.Get_ParentParagraph(), CheckType : AscCommon.changestype_Paragraph_Content} ))
                 {
-                    History.Create_NewPoint(AscDFH.historydescription_Document_GrObjectsChangeWrapPolygon);
+                    this.document.StartAction(AscDFH.historydescription_Document_GrObjectsChangeWrapPolygon);
                     this.selectedObjects[0].parent.Set_WrappingType(WRAPPING_TYPE_TIGHT);
                     this.selectedObjects[0].parent.Set_BehindDoc(bNeedBehindDoc);
                     this.selectedObjects[0].parent.Check_WrapPolygon();
                     this.document.Recalculate();
-                    this.document.Document_UpdateInterfaceState();
+                    this.document.UpdateInterface();
+                    this.document.FinilizeAction();
                 }
             }
             this.resetInternalSelection();

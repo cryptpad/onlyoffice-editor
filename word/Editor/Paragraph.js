@@ -6642,20 +6642,17 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 					CheckType : AscCommon.changestype_Paragraph_Content
 				}))
 			{
-				History.Create_NewPoint(AscDFH.historydescription_Document_ParagraphExtendToPos);
-				History.Set_Additional_ExtendDocumentToPos();
+				this.LogicDocument.StartAction(AscDFH.historydescription_Document_ParagraphExtendToPos);
+				this.LogicDocument.GetHistory().Set_Additional_ExtendDocumentToPos();
 
-				if (true === this.Extend_ToPos(X))
+				if (this.Extend_ToPos(X))
 				{
 					this.MoveCursorToEndPos();
 					this.Document_SetThisElementCurrent(true);
 					this.LogicDocument.Recalculate();
-					return;
 				}
-				else
-				{
-					History.Remove_LastPoint();
-				}
+
+				this.LogicDocument.FinilizeAction();
 			}
 		}
 	}
@@ -10529,20 +10526,18 @@ Paragraph.prototype.Get_LineDropCapWidth = function()
 };
 Paragraph.prototype.Change_Frame = function(X, Y, W, H, PageIndex)
 {
-	var LogicDocument = editor.WordControl.m_oLogicDocument;
-
 	var FramePr = this.Get_FramePr();
-	if (undefined === FramePr || ( Math.abs(Y - this.CalculatedFrame.T) < 0.001 && Math.abs(X - this.CalculatedFrame.L) < 0.001 && Math.abs(W - this.CalculatedFrame.W) < 0.001 && Math.abs(H - this.CalculatedFrame.H) < 0.001 && PageIndex === this.CalculatedFrame.PageIndex ))
+	if (!this.LogicDocument || undefined === FramePr || ( Math.abs(Y - this.CalculatedFrame.T) < 0.001 && Math.abs(X - this.CalculatedFrame.L) < 0.001 && Math.abs(W - this.CalculatedFrame.W) < 0.001 && Math.abs(H - this.CalculatedFrame.H) < 0.001 && PageIndex === this.CalculatedFrame.PageIndex ))
 		return;
 
 	var FrameParas = this.Internal_Get_FrameParagraphs();
-	if (false === LogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+	if (false === this.LogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 			Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 			Elements  : FrameParas,
 			CheckType : AscCommon.changestype_Paragraph_Content
 		}))
 	{
-		History.Create_NewPoint(AscDFH.historydescription_Document_ParagraphChangeFrame);
+		this.LogicDocument.StartAction(AscDFH.historydescription_Document_ParagraphChangeFrame);
 		var NewFramePr = FramePr.Copy();
 
 		if (Math.abs(X - this.CalculatedFrame.L) > 0.001)
@@ -10590,9 +10585,10 @@ Paragraph.prototype.Change_Frame = function(X, Y, W, H, PageIndex)
 			Para.Set_FramePr(NewFramePr, false);
 		}
 
-		LogicDocument.Recalculate();
-		LogicDocument.Document_UpdateInterfaceState();
-		LogicDocument.Document_UpdateRulersState();
+		this.LogicDocument.Recalculate();
+		this.LogicDocument.UpdateInterface();
+		this.LogicDocument.UpdateRulers();
+		this.LogicDocument.FinilizeAction();
 	}
 };
 Paragraph.prototype.Supplement_FramePr = function(FramePr)

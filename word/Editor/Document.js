@@ -1289,7 +1289,7 @@ CDocumentFieldsManager.prototype.Restore_MailMergeTemplate = function()
         var LogicDocument = (ParagrapsToRestore.length > 0 ? ParagrapsToRestore[0].LogicDocument : null);
         if (LogicDocument && false === LogicDocument.Document_Is_SelectionLocked(changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : ParagrapsToRestore, CheckType : changestype_Paragraph_Content }))
         {
-            History.Create_NewPoint(AscDFH.historydescription_Document_RestoreFieldTemplateText);
+            LogicDocument.StartAction(AscDFH.historydescription_Document_RestoreFieldTemplateText);
             for (var nIndex = 0, nCount = FieldsToRestore.length; nIndex < nCount; nIndex++)
             {
                 var oField = FieldsToRestore[nIndex];
@@ -1301,6 +1301,7 @@ CDocumentFieldsManager.prototype.Restore_MailMergeTemplate = function()
                 var oField = FieldsRemain[nIndex];
                 oField.Restore_Template();
             }
+            LogicDocument.FinilizeAction();
         }
         else
         {
@@ -1636,7 +1637,12 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		Recalculate     : false,
 		UpdateSelection : false,
 		UpdateInterface : false,
-		UpdateRulers    : false
+		UpdateRulers    : false,
+		UpdateUndoRedo  : false,
+		Redraw          : {
+			Start : undefined,
+			End   : undefined
+		}
 	};
 
     if (false !== isMainLogicDocument)
@@ -2070,6 +2076,9 @@ CDocument.prototype.StartAction = function(nDescription)
 	this.Action.UpdateSelection = false;
 	this.Action.UpdateInterface = false;
 	this.Action.UpdateRulers    = false;
+	this.Action.UpdateUndoRedo  = false;
+	this.Action.Redraw.Start    = undefined;
+	this.Action.Redraw.End      = undefined;
 };
 /**
  * Сообщаем документу, что потребуется пересчет
@@ -2112,17 +2121,86 @@ CDocument.prototype.UpdateRulers = function()
 		this.Document_UpdateRulersState();
 };
 /**
- * Завершаем действие
+ * Сообщаем документу, что потребуется обновить состояние кнопки Unddo/Redo
  */
-CDocument.prototype.FinilizeAction = function()
+CDocument.prototype.UpdateUndoRedo = function()
+{
+	if (this.Action.Start)
+		this.Action.UpdateUndoRedo = true;
+	else
+		this.Document_UpdateUndoRedoState();
+};
+/**
+ * Перерисовываем заданные страницы
+ * @param {number} nStartPage
+ * @param {number} nEndPage
+ */
+CDocument.prototype.Redraw = function(nStartPage, nEndPage)
+{
+	if (this.Action.Start)
+	{
+		if (undefined !== nStartPage && undefined !== nEndPage && -1 !== this.Action.Redraw.Start)
+		{
+			if (undefined === this.Action.Redraw.Start || nStartPage < this.Action.Redraw.Start)
+				this.Action.Redraw.Start = nStartPage;
+
+			if (undefined === this.Action.Redraw.End || nEndPage > this.Action.Redraw.End)
+				this.Action.Redraw.End = nEndPage;
+		}
+		else
+		{
+			this.Action.Redraw.Start = -1;
+			this.Action.Redraw.End   = -1;
+		}
+	}
+	else
+	{
+		this.private_Redraw(nStartPage, nEndPage);
+	}
+};
+CDocument.prototype.private_Redraw = function(nStartPage, nEndPage)
+{
+	if (-1 !== nStartPage && -1 !== nEndPage)
+	{
+		var _nStartPage = Math.max(0, nStartPage);
+		var _nEndPage   = Math.min(this.DrawingDocument.m_lCountCalculatePages - 1, nEndPage);
+
+		for (var nCurPage = _nStartPage; nCurPage <= _nEndPage; ++nCurPage)
+			this.DrawingDocument.OnRepaintPage(nCurPage);
+	}
+	else
+	{
+		this.DrawingDocument.ClearCachePages();
+		this.DrawingDocument.FirePaint();
+	}
+};
+/**
+ * Завершаем действие
+ * @param {boolean} [isCheckEmptyAction=true] Нужно ли проверять, что действие ничего не делало
+ */
+CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
 {
 	if (!this.Action.Start)
 		return;
 
 	// TODO: Дополнительные действия
 
-	if (this.Action.Recalculate)
-		this.Recalculate();
+
+	if (false !== isCheckEmptyAction && this.History.Is_LastPointEmpty())
+	{
+		this.History.Remove_LastPoint();
+	}
+	else
+	{
+		if (this.Action.Recalculate)
+		{
+			this.Recalculate();
+		}
+		else if (undefined !== this.Action.Redraw.Start && undefined !== this.Action.Redraw.End)
+		{
+			this.private_Redraw(this.Action.Redraw.Start, this.Action.Redraw.End);
+		}
+	}
 
 	if (this.Action.UpdateInterface)
 		this.Document_UpdateInterfaceState();
@@ -2135,6 +2213,10 @@ CDocument.prototype.FinilizeAction = function()
 	this.Action.UpdateSelection = false;
 	this.Action.UpdateInterface = false;
 	this.Action.UpdateRulers    = false;
+	this.Action.UpdateUndoRedo  = false;
+	this.Action.Redraw.Start    = undefined;
+	this.Action.Redraw.End      = undefined;
+
 };
 /**
  * Данная функция предназначена для отключения пересчета. Это может быть полезно, т.к. редактор всегда запускает
@@ -4338,7 +4420,7 @@ CDocument.prototype.Extend_ToPos = function(X, Y)
     var LastPara  = this.GetLastParagraph();
     var LastPara2 = LastPara;
 
-    this.Create_NewHistoryPoint(AscDFH.historydescription_Document_DocumentExtendToPos);
+    this.StartAction(AscDFH.historydescription_Document_DocumentExtendToPos);
     this.History.Set_Additional_ExtendDocumentToPos();
 
     while (true)
@@ -4414,6 +4496,7 @@ CDocument.prototype.Extend_ToPos = function(X, Y)
     LastPara.Document_SetThisElementCurrent(true);
 
     this.Recalculate();
+    this.FinilizeAction();
 };
 CDocument.prototype.GroupGraphicObjects = function()
 {
@@ -4548,7 +4631,7 @@ CDocument.prototype.AddDropCap = function(bInText)
 			CheckType : changestype_Paragraph_Content
 		}))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddDropCap);
+		this.StartAction(AscDFH.historydescription_Document_AddDropCap);
 
 		var NewParagraph = new Paragraph(this.DrawingDocument, this);
 
@@ -4572,8 +4655,9 @@ CDocument.prototype.AddDropCap = function(bInText)
 		this.SetDocPosType(docpostype_Content);
 
 		this.Recalculate();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateRulersState();
+		this.UpdateInterface();
+		this.UpdateRulers();
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.RemoveDropCap = function(bDropCap)
@@ -4625,7 +4709,7 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 				CheckType : changestype_Paragraph_Content
 			}))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RemoveDropCap);
+			this.StartAction(AscDFH.historydescription_Document_RemoveDropCap);
 			var Count = FrameParas.length;
 			for (var Index = 0; Index < Count; Index++)
 			{
@@ -4633,8 +4717,9 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 			}
 
 			this.Recalculate();
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateRulersState();
+			this.UpdateInterface();
+			this.UpdateRulers();
+			this.FinilizeAction();
 		}
 	}
 	else
@@ -4660,7 +4745,7 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 					CheckType : changestype_Paragraph_Content
 				}))
 			{
-				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RemoveDropCap);
+				this.StartAction(AscDFH.historydescription_Document_RemoveDropCap);
 
 				// Удалим ненужный элемент
 				FrameParas.splice(FrameParas.length - 1, 1);
@@ -4691,8 +4776,9 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 				Last.Document_SetThisElementCurrent(true);
 
 				this.Recalculate();
-				this.Document_UpdateInterfaceState();
-				this.Document_UpdateRulersState();
+				this.UpdateInterface();
+				this.UpdateRulers();
+				this.FinilizeAction();
 			}
 		}
 		else
@@ -4703,7 +4789,7 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 					CheckType : changestype_Paragraph_Content
 				}))
 			{
-				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RemoveDropCap);
+				this.StartAction(AscDFH.historydescription_Document_RemoveDropCap);
 				var Count = FrameParas.length;
 				for (var Index = 0; Index < Count; Index++)
 				{
@@ -4711,8 +4797,9 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 				}
 
 				this.Recalculate();
-				this.Document_UpdateInterfaceState();
-				this.Document_UpdateRulersState();
+				this.UpdateInterface();
+				this.UpdateRulers();
+				this.FinilizeAction();
 			}
 		}
 	}
@@ -5827,14 +5914,15 @@ CDocument.prototype.Paragraph_SetHighlight = function(IsColor, r, g, b)
 	{
 		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextHighlight);
+			this.StartAction(AscDFH.historydescription_Document_SetTextHighlight);
 
 			if (false === IsColor)
 				this.AddToParagraph(new ParaTextPr({HighLight : highlight_None}));
 			else
 				this.AddToParagraph(new ParaTextPr({HighLight : new CDocumentColor(r, g, b)}));
 
-			this.Document_UpdateInterfaceState();
+			this.UpdateInterface();
+			this.FinilizeAction();
 			editor.sync_MarkerFormatCallback(false);
 		}
 	}
@@ -6941,7 +7029,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
         // Создаем сразу точку в истории, т.к. при выполнении функции GetSelectedContent нам надо, чтобы данная
         // точка уже набивалась изменениями. Если из-за совместного редактирования действие сделать невозможно будет,
         // тогда последнюю точку удаляем.
-        History.Create_NewPoint(AscDFH.historydescription_Document_DragText);
+        this.StartAction(AscDFH.historydescription_Document_DragText);
 
         NearPos.Paragraph.Check_NearestPos(NearPos);
 
@@ -6968,6 +7056,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 			this.DragAndDropAction = false;
 			this.TrackMoveId       = null;
 
+			this.FinilizeAction(false);
             return;
         }
 
@@ -7020,6 +7109,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
                     this.Document_Undo();
                     this.History.Clear_Redo();
 					this.SetCheckContentControlsLock(true);
+					this.FinilizeAction(false);
                     return;
                 }
             }
@@ -7030,15 +7120,16 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             Para.Parent.Insert_Content(DocContent, NearPos);
 
 			this.Recalculate();
-
-            this.Document_UpdateSelectionState();
-            this.Document_UpdateInterfaceState();
-            this.Document_UpdateRulersState();
+            this.UpdateSelection();
+            this.UpdateInterface();
+            this.UpdateRulers();
+			this.FinilizeAction();
         }
         else
 		{
 			this.History.Remove_LastPoint();
 			NearPos.Paragraph.Clear_NearestPosArray();
+			this.FinilizeAction(false);
 		}
 
 		this.SetCheckContentControlsLock(true);
@@ -7554,7 +7645,7 @@ CDocument.prototype.OnKeyDown = function(e)
     {
         if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Remove, null, true, this.IsFormFieldEditing()))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_BackSpaceButton);
+            this.StartAction(AscDFH.historydescription_Document_BackSpaceButton);
 
 			var oSelectInfo = this.GetSelectedElementsInfo();
 			if (oSelectInfo.GetInlineLevelSdt())
@@ -7563,6 +7654,8 @@ CDocument.prototype.OnKeyDown = function(e)
 			this.Remove(-1, true, false, false, e.CtrlKey);
 
 			this.CheckInlineSdtOnDelete = null;
+
+			this.FinilizeAction();
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -7580,9 +7673,10 @@ CDocument.prototype.OnKeyDown = function(e)
                     CheckType : changestype_Paragraph_Content
                 }))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTabToMath);
+                this.StartAction(AscDFH.historydescription_Document_AddTabToMath);
                 ParaMath.HandleTab(!e.ShiftKey);
                 this.Recalculate();
+                this.FinilizeAction();
             }
         }
         else if (true === SelectedInfo.Is_InTable() && true != e.CtrlKey)
@@ -7614,18 +7708,19 @@ CDocument.prototype.OnKeyDown = function(e)
                             CheckType : AscCommon.changestype_Paragraph_Properties
                         }))
                     {
-                        this.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveParagraphByTab);
+                        this.StartAction(AscDFH.historydescription_Document_MoveParagraphByTab);
                         Paragraph.Add_Tab(e.ShiftKey);
                         this.Recalculate();
-
-                        this.Document_UpdateInterfaceState();
-                        this.Document_UpdateSelectionState();
+                        this.UpdateInterface();
+                        this.UpdateSelection();
+						this.FinilizeAction();
                     }
                 }
                 else if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
                 {
-                    this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTab);
+                    this.StartAction(AscDFH.historydescription_Document_AddTab);
                     this.AddToParagraph(new ParaTab());
+					this.FinilizeAction();
                 }
             }
         }
@@ -7679,7 +7774,7 @@ CDocument.prototype.OnKeyDown = function(e)
             }
 			if (bCanPerform && false === this.Document_Is_SelectionLocked(CheckType, null, false, true !== e.CtrlKey && this.IsFormFieldEditing()))
 			{
-				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_EnterButton);
+				this.StartAction(AscDFH.historydescription_Document_EnterButton);
 
 				var oMath = oSelectedInfo.Get_Math();
 				if (null !== oMath && oMath.Is_InInnerContent())
@@ -7706,6 +7801,7 @@ CDocument.prototype.OnKeyDown = function(e)
 						this.AddNewParagraph();
 					}
 				}
+				this.FinilizeAction();
 			}
 		}
 
@@ -7766,7 +7862,7 @@ CDocument.prototype.OnKeyDown = function(e)
 
         if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, bFillingForm))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SpaceButton);
+            this.StartAction(AscDFH.historydescription_Document_SpaceButton);
 
             // Если мы находимся в формуле, тогда пытаемся выполнить автозамену
 
@@ -7800,6 +7896,7 @@ CDocument.prototype.OnKeyDown = function(e)
                     this.CheckLanguageOnTextAdd = false;
                 }
             }
+			this.FinilizeAction();
         }
 
         bRetValue = keydownresult_PreventAll;
@@ -7987,7 +8084,7 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Delete, null, true, this.IsFormFieldEditing()))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_DeleteButton);
+                this.StartAction(AscDFH.historydescription_Document_DeleteButton);
 
 				var oSelectInfo = this.GetSelectedElementsInfo();
 				if (oSelectInfo.GetInlineLevelSdt())
@@ -7996,6 +8093,8 @@ CDocument.prototype.OnKeyDown = function(e)
 				this.Remove(1, true, false, false, e.CtrlKey);
 
 				this.CheckInlineSdtOnDelete = null;
+
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8004,9 +8103,10 @@ CDocument.prototype.OnKeyDown = function(e)
     {
         if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetStyleHeading1);
+            this.StartAction(AscDFH.historydescription_Document_SetStyleHeading1);
             this.SetParagraphStyle("Heading 1");
-            this.Document_UpdateInterfaceState();
+            this.UpdateInterface();
+			this.FinilizeAction();
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -8014,9 +8114,10 @@ CDocument.prototype.OnKeyDown = function(e)
     {
         if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetStyleHeading2);
+            this.StartAction(AscDFH.historydescription_Document_SetStyleHeading2);
             this.SetParagraphStyle("Heading 2");
-            this.Document_UpdateInterfaceState();
+            this.UpdateInterface();
+			this.FinilizeAction();
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -8024,9 +8125,10 @@ CDocument.prototype.OnKeyDown = function(e)
     {
         if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetStyleHeading3);
+            this.StartAction(AscDFH.historydescription_Document_SetStyleHeading3);
             this.SetParagraphStyle("Heading 3");
-            this.Document_UpdateInterfaceState();
+            this.UpdateInterface();
+			this.FinilizeAction();
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -8037,9 +8139,10 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextStrikeoutHotKey);
+                this.StartAction(AscDFH.historydescription_Document_SetTextStrikeoutHotKey);
                 this.AddToParagraph(new ParaTextPr({Strikeout : TextPr.Strikeout === true ? false : true}));
-                this.Document_UpdateInterfaceState();
+                this.UpdateInterface();
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8064,9 +8167,10 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextBoldHotKey);
+                this.StartAction(AscDFH.historydescription_Document_SetTextBoldHotKey);
                 this.AddToParagraph(new ParaTextPr({Bold : TextPr.Bold === true ? false : true}));
-                this.Document_UpdateInterfaceState();
+                this.UpdateInterface();
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8090,11 +8194,11 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddEuroLetter);
-
+                this.StartAction(AscDFH.historydescription_Document_AddEuroLetter);
                 this.DrawingDocument.TargetStart();
                 this.DrawingDocument.TargetShow();
                 this.AddToParagraph(new ParaText(0x20AC));
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8114,9 +8218,10 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextItalicHotKey);
+                this.StartAction(AscDFH.historydescription_Document_SetTextItalicHotKey);
                 this.AddToParagraph(new ParaTextPr({Italic : TextPr.Italic === true ? false : true}));
-                this.Document_UpdateInterfaceState();
+                this.UpdateInterface();
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8139,9 +8244,10 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetParagraphNumberingHotKey);
+                this.StartAction(AscDFH.historydescription_Document_SetParagraphNumberingHotKey);
                 this.SetParagraphNumbering({Type : 0, SubType : 1});
-                this.Document_UpdateInterfaceState();
+                this.UpdateInterface();
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8166,8 +8272,9 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddPageNumHotKey);
+                this.StartAction(AscDFH.historydescription_Document_AddPageNumHotKey);
                 this.AddToParagraph(new ParaPageNum());
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8194,9 +8301,10 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextUnderlineHotKey);
+                this.StartAction(AscDFH.historydescription_Document_SetTextUnderlineHotKey);
                 this.AddToParagraph(new ParaTextPr({Underline : TextPr.Underline === true ? false : true}));
-                this.Document_UpdateInterfaceState();
+                this.UpdateInterface();
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8207,8 +8315,9 @@ CDocument.prototype.OnKeyDown = function(e)
 		{
 			if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 			{
-				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_FormatPasteHotKey);
+				this.StartAction(AscDFH.historydescription_Document_FormatPasteHotKey);
 				this.Document_Format_Paste();
+				this.FinilizeAction();
 			}
 			bRetValue = keydownresult_PreventAll;
 		}
@@ -8243,37 +8352,6 @@ CDocument.prototype.OnKeyDown = function(e)
         bUpdateSelection = false;
         bRetValue        = keydownresult_PreventAll;
     }
-	// else if (e.KeyCode === 112 && true === e.CtrlKey)
-	// {
-	// 	// TODO: Добавлено для теста
-	// 	//
-	// 	// this.Create_NewHistoryPoint();
-	// 	// this.AddField(fieldtype_TOC);
-	// 	// this.Recalculate();
-	//
-	// 	this.ContinueNumbering();
-	//
-	// 	bRetValue = keydownresult_PreventAll;
-	// }
-	// else if (e.KeyCode === 113 && true === e.CtrlKey)
-	// {
-	// 	// TODO: Добавлено для теста
-	// 	// var arrFields = this.GetComplexFieldsByContentPos(this.GetContentPosition(false));
-	// 	// if (arrFields && arrFields.length > 0)
-	// 	// 	this.UpdateComplexField(arrFields[arrFields.length - 1]);
-	//
-	// 	this.RestartNumbering(3);
-	//
-	// 	bRetValue = keydownresult_PreventAll;
-	// }
-	// else if (e.KeyCode === 114 && true === e.CtrlKey)
-	// {
-	// 	this.Create_NewHistoryPoint();
-	// 	this.AddField(fieldtype_PAGEREF);
-	// 	this.Recalculate();
-	//
-	// 	bRetValue = keydownresult_PreventAll;
-	// }
 	else if (e.KeyCode == 120) // F9 - обновление полей
 	{
 		this.UpdateFields(true);
@@ -8323,8 +8401,9 @@ CDocument.prototype.OnKeyDown = function(e)
             {
                 if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
                 {
-                    this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddMathHotKey);
+                    this.StartAction(AscDFH.historydescription_Document_AddMathHotKey);
                     this.AddToParagraph(new MathMenu(-1));
+					this.FinilizeAction();
                     bRetValue = keydownresult_PreventAll;
                 }
             }
@@ -8337,9 +8416,10 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextVertAlignHotKey2);
+                this.StartAction(AscDFH.historydescription_Document_SetTextVertAlignHotKey2);
                 this.AddToParagraph(new ParaTextPr({VertAlign : TextPr.VertAlign === AscCommon.vertalign_SuperScript ? AscCommon.vertalign_Baseline : AscCommon.vertalign_SuperScript}));
-                this.Document_UpdateInterfaceState();
+                this.UpdateInterface();
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8348,7 +8428,7 @@ CDocument.prototype.OnKeyDown = function(e)
     {
         if (true === e.CtrlKey && true === e.ShiftKey && false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_MinusButton);
+            this.StartAction(AscDFH.historydescription_Document_MinusButton);
 
             this.DrawingDocument.TargetStart();
             this.DrawingDocument.TargetShow();
@@ -8357,6 +8437,7 @@ CDocument.prototype.OnKeyDown = function(e)
             Item.Set_SpaceAfter(false);
 
             this.AddToParagraph(Item);
+			this.FinilizeAction();
             bRetValue = keydownresult_PreventAll;
         }
     }
@@ -8367,9 +8448,10 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
             {
-                this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextVertAlignHotKey3);
+                this.StartAction(AscDFH.historydescription_Document_SetTextVertAlignHotKey3);
                 this.AddToParagraph(new ParaTextPr({VertAlign : TextPr.VertAlign === AscCommon.vertalign_SubScript ? AscCommon.vertalign_Baseline : AscCommon.vertalign_SubScript}));
-                this.Document_UpdateInterfaceState();
+                this.UpdateInterface();
+				this.FinilizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8390,7 +8472,7 @@ CDocument.prototype.OnKeyDown = function(e)
     {
         if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, this.IsFormFieldEditing()))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SpaceButton);
+            this.StartAction(AscDFH.historydescription_Document_SpaceButton);
 
             this.DrawingDocument.TargetStart();
             this.DrawingDocument.TargetShow();
@@ -8398,6 +8480,8 @@ CDocument.prototype.OnKeyDown = function(e)
             this.CheckLanguageOnTextAdd = true;
             this.AddToParagraph(new ParaSpace());
             this.CheckLanguageOnTextAdd = false;
+
+			this.FinilizeAction();
         }
 
         bRetValue = keydownresult_PreventAll;
@@ -8428,7 +8512,7 @@ CDocument.prototype.OnKeyPress = function(e)
 	{
 		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_AddText, null, true, this.IsFormFieldEditing()))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddLetter);
+			this.StartAction(AscDFH.historydescription_Document_AddLetter);
 
 			this.DrawingDocument.TargetStart();
 			this.DrawingDocument.TargetShow();
@@ -8436,6 +8520,8 @@ CDocument.prototype.OnKeyPress = function(e)
 			this.CheckLanguageOnTextAdd = true;
 			this.AddToParagraph(new ParaText(Code));
 			this.CheckLanguageOnTextAdd = false;
+
+			this.FinilizeAction();
 		}
 		bRetValue = true;
 	}
@@ -8701,8 +8787,9 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 		{
 			if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 			{
-				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_FormatPasteHotKey2);
+				this.StartAction(AscDFH.historydescription_Document_FormatPasteHotKey2);
 				this.Document_Format_Paste();
+				this.FinilizeAction();
 			}
 
 			if (c_oAscFormatPainterState.kOn === editor.isPaintFormat)
@@ -8712,7 +8799,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 		{
 			if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
 			{
-				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTextHighlight2);
+				this.StartAction(AscDFH.historydescription_Document_SetTextHighlight2);
 				var ParaItem = null;
 				if (this.HighlightColor != highlight_None)
 				{
@@ -8724,11 +8811,15 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 						ParaItem = new ParaTextPr({HighLight : highlight_None});
 				}
 				else
+				{
 					ParaItem = new ParaTextPr({HighLight : this.HighlightColor});
+				}
 
 				this.AddToParagraph(ParaItem);
 				this.MoveCursorToXY(X, Y, false);
 				this.Document_UpdateSelectionState();
+
+				this.FinilizeAction();
 
 				editor.sync_MarkerFormatCallback(true);
 			}
@@ -10691,7 +10782,7 @@ CDocument.prototype.TextBox_Put = function(sText, rFonts)
 {
 	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTextFromTextBox);
+		this.StartAction(AscDFH.historydescription_Document_AddTextFromTextBox);
 
 		// Отключаем пересчет, включим перед последним добавлением. Поскольку,
 		// у нас все добавляется в 1 параграф, так можно делать.
@@ -10720,6 +10811,8 @@ CDocument.prototype.TextBox_Put = function(sText, rFonts)
 		}
 
 		this.End_SilentMode(true);
+
+		this.FinilizeAction();
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -12413,10 +12506,11 @@ CDocument.prototype.private_ToggleParagraphAlignByHotkey = function(Align)
 		{
 			if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 			{
-				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetParagraphAlignHotKey);
+				this.StartAction(AscDFH.historydescription_Document_SetParagraphAlignHotKey);
 				Math.Set_Align(Align);
 				this.Recalculate();
-				this.Document_UpdateInterfaceState();
+				this.UpdateInterface();
+				this.FinilizeAction();
 			}
 		}
 	}
@@ -12427,9 +12521,10 @@ CDocument.prototype.private_ToggleParagraphAlignByHotkey = function(Align)
 		{
 			if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties))
 			{
-				this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetParagraphAlignHotKey);
+				this.StartAction(AscDFH.historydescription_Document_SetParagraphAlignHotKey);
 				this.SetParagraphAlign(ParaPr.Jc === Align ? (Align === align_Left ? AscCommon.align_Justify : align_Left) : Align);
-				this.Document_UpdateInterfaceState();
+				this.UpdateInterface();
+				this.FinilizeAction();
 			}
 		}
 	}
@@ -12592,7 +12687,7 @@ CDocument.prototype.Update_ColumnsMarkupFromRuler = function(NewMarkup)
 
 	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetColumnsFromRuler);
+		this.StartAction(AscDFH.historydescription_Document_SetColumnsFromRuler);
 
 		SectPr.Set_Columns_EqualWidth(NewMarkup.EqualWidth);
 		SectPr.Set_PageMargins(NewMarkup.X, undefined, SectPr.Get_PageWidth() - NewMarkup.R, undefined);
@@ -12610,9 +12705,10 @@ CDocument.prototype.Update_ColumnsMarkupFromRuler = function(NewMarkup)
 		}
 
 		this.Recalculate();
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateRulersState();
+		this.UpdateSelection();
+		this.UpdateInterface();
+		this.UpdateRulers();
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
@@ -12644,7 +12740,7 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 		if (this.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr))
 			return;
 
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetColumnsProps);
+		this.StartAction(AscDFH.historydescription_Document_SetColumnsProps);
 
 		var oEndParagraph = null;
 		if (type_Paragraph !== this.Content[nEndPos].GetType())
@@ -12702,9 +12798,10 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 		}
 
 		this.Recalculate();
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateRulersState();
+		this.UpdateSelection();
+		this.UpdateInterface();
+		this.UpdateRulers();
+		this.FinilizeAction();
 	}
 	else
 	{
@@ -12716,14 +12813,15 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 
 		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetColumnsProps);
+			this.StartAction(AscDFH.historydescription_Document_SetColumnsProps);
 
 			SectPr.SetColumnProps(ColumnsProps);
 
 			this.Recalculate();
-			this.Document_UpdateSelectionState();
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateRulersState();
+			this.UpdateSelection();
+			this.UpdateInterface();
+			this.UpdateRulers();
+			this.FinilizeAction();
 		}
 	}
 };
@@ -12761,7 +12859,7 @@ CDocument.prototype.Set_SectionProps = function(Props)
 
 	if (SectPr && false === this.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetSectionProps);
+		this.StartAction(AscDFH.historydescription_Document_SetSectionProps);
 
 		if (undefined !== Props.get_W() || undefined !== Props.get_H())
 		{
@@ -12791,17 +12889,11 @@ CDocument.prototype.Set_SectionProps = function(Props)
 			SectPr.Set_PageMargins_Footer(Props.get_FooterDistance());
 		}
 
-		if (true === this.History.Is_LastPointEmpty())
-		{
-			this.History.Remove_LastPoint();
-		}
-		else
-		{
-			this.Recalculate();
-			this.Document_UpdateSelectionState();
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateRulersState();
-		}
+		this.Recalculate();
+		this.UpdateSelection();
+		this.UpdateInterface();
+		this.UpdateRulers();
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.Get_SectionProps = function()
@@ -12854,11 +12946,12 @@ CDocument.prototype.IncreaseIndent = function()
 {
 	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_IncParagraphIndent);
+		this.StartAction(AscDFH.historydescription_Document_IncParagraphIndent);
 		this.IncreaseDecreaseIndent(true);
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState();
+		this.UpdateSelection();
+		this.UpdateInterface();
 		this.Recalculate();
+		this.FinilizeAction();
 	}
 };
 /**
@@ -12868,11 +12961,12 @@ CDocument.prototype.DecreaseIndent = function()
 {
 	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_DecParagraphIndent);
+		this.StartAction(AscDFH.historydescription_Document_DecParagraphIndent);
 		this.IncreaseDecreaseIndent(false);
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState();
+		this.UpdateSelection();
+		this.UpdateInterface();
 		this.Recalculate();
+		this.FinilizeAction();
 	}
 };
 /**
@@ -12890,8 +12984,9 @@ CDocument.prototype.AddPageCount = function()
 {
 	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddPageCount);
+		this.StartAction(AscDFH.historydescription_Document_AddPageCount);
 		this.AddToParagraph(new ParaPageCount(this.Pages.length));
+		this.FinilizeAction();
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -12956,14 +13051,15 @@ CDocument.prototype.Set_MathProps = function(MathProps)
 	var SelectedInfo = this.GetSelectedElementsInfo();
 	if (null !== SelectedInfo.Get_Math() && false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetMathProps);
+		this.StartAction(AscDFH.historydescription_Document_SetMathProps);
 
 		var ParaMath = SelectedInfo.Get_Math();
 		ParaMath.Set_MenuProps(MathProps);
 
 		this.Recalculate();
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState();
+		this.UpdateSelection();
+		this.UpdateInterface();
+		this.FinilizeAction();
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -13032,9 +13128,10 @@ CDocument.prototype.SetTrackRevisions = function(bTrack){};
  */
 CDocument.prototype.Begin_CompositeInput = function()
 {
+	var bResult = false;
 	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, this.IsFormFieldEditing()))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_CompositeInput);
+		this.StartAction(AscDFH.historydescription_Document_CompositeInput);
 		this.DrawingObjects.CreateDocContent();
 		this.DrawingDocument.TargetStart();
 		this.DrawingDocument.TargetShow();
@@ -13048,46 +13145,42 @@ CDocument.prototype.Begin_CompositeInput = function()
 		}
 
 		var oPara = this.GetCurrentParagraph();
-		if (!oPara)
+		if (oPara)
 		{
-			this.History.Remove_LastPoint();
-			return false;
+			var oRun = oPara.Get_ElementByPos(oPara.Get_ParaContentPos(false, false));
+			if (oRun instanceof ParaRun)
+			{
+				var oTrackRun = oRun.CheckTrackRevisionsBeforeAdd();
+				if (oTrackRun)
+				{
+					oRun = oTrackRun;
+					oRun.Make_ThisElementCurrent();
+				}
+
+				this.CompositeInput = {
+					Run     : oRun,
+					Pos     : oRun.State.ContentPos,
+					Length  : 0,
+					CanUndo : true
+				};
+
+				oRun.Set_CompositeInput(this.CompositeInput);
+
+				bResult = true;
+			}
 		}
 
-		var oRun = oPara.Get_ElementByPos(oPara.Get_ParaContentPos(false, false));
-		if (!oRun || !(oRun instanceof ParaRun))
-		{
-			this.History.Remove_LastPoint();
-			return false;
-		}
-
-		var oTrackRun = oRun.CheckTrackRevisionsBeforeAdd();
-		if (oTrackRun)
-		{
-			oRun = oTrackRun;
-			oRun.Make_ThisElementCurrent();
-		}
-
-		this.CompositeInput = {
-			Run     : oRun,
-			Pos     : oRun.State.ContentPos,
-			Length  : 0,
-			CanUndo : true
-		};
-
-		oRun.Set_CompositeInput(this.CompositeInput);
-
-		return true;
+		this.FinilizeAction();
 	}
 
-	return false;
+	return bResult;
 };
 CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 {
 	if (null === this.CompositeInput)
 		return;
 
-	this.Create_NewHistoryPoint(AscDFH.historydescription_Document_CompositeInputReplace);
+	this.StartAction(AscDFH.historydescription_Document_CompositeInputReplace);
 	this.Start_SilentMode();
 	this.private_RemoveCompositeText(this.CompositeInput.Length);
 	for (var nIndex = 0, nCount = arrCharCodes.length; nIndex < nCount; ++nIndex)
@@ -13097,8 +13190,9 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 	this.End_SilentMode(false);
 
 	this.Recalculate();
-	this.Document_UpdateSelectionState();
-	this.Document_UpdateUndoRedoState();
+	this.UpdateSelection();
+	this.UpdateUndoRedo();
+	this.FinilizeAction();
 
 	this.private_UpdateCursorXY(true, true);
 
@@ -13263,7 +13357,7 @@ CDocument.prototype.AddFootnote = function(sText)
 
 	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddFootnote);
+		this.StartAction(AscDFH.historydescription_Document_AddFootnote);
 
 		var nDocPosType = this.GetDocPosType();
 		if (docpostype_Content === nDocPosType)
@@ -13290,6 +13384,7 @@ CDocument.prototype.AddFootnote = function(sText)
 			this.Footnotes.AddFootnoteRef();
 			this.Recalculate();
 		}
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.RemoveAllFootnotes = function()
@@ -13315,7 +13410,7 @@ CDocument.prototype.RemoveAllFootnotes = function()
 
 	if (false === this.Document_Is_SelectionLocked(changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : arrParagraphs, CheckType : changestype_Paragraph_Content }, true))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RemoveAllFootnotes);
+		this.StartAction(AscDFH.historydescription_Document_RemoveAllFootnotes);
 
 		for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
 		{
@@ -13333,6 +13428,7 @@ CDocument.prototype.RemoveAllFootnotes = function()
 			if (arrRuns.length > 0)
 				arrRuns[0].Make_ThisElementCurrent();
 		}
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.GotoFootnote = function(isNext)
@@ -13381,7 +13477,7 @@ CDocument.prototype.SetFootnotePr = function(oFootnotePr, bApplyToAll)
 	var nPos        = oFootnotePr.get_Pos();
 	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetFootnotePr);
+		this.StartAction(AscDFH.historydescription_Document_SetFootnotePr);
 
 		if (bApplyToAll)
 		{
@@ -13418,6 +13514,7 @@ CDocument.prototype.SetFootnotePr = function(oFootnotePr, bApplyToAll)
 		}
 
 		this.Recalculate();
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.GetFootnotePr = function()
@@ -16546,7 +16643,7 @@ CDocument.prototype.AddFormTextField = function(sName, sDefaultText)
 {
 	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddMailMergeField);
+		this.StartAction(AscDFH.historydescription_Document_AddMailMergeField);
 
 		var oField = new ParaField(fieldtype_FORMTEXT);
 		var oRun = new ParaRun();
@@ -16557,7 +16654,8 @@ CDocument.prototype.AddFormTextField = function(sName, sDefaultText)
 
 		this.Register_Field(oField);
 		this.AddToParagraph(oField);
-		this.Document_UpdateInterfaceState();
+		this.UpdateInterface();
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.GetAllFormTextFields = function()
@@ -16670,12 +16768,13 @@ CDocument.prototype.RemoveContentControlWrapper = function(Id)
 	if (!oContentControl)
 		return;
 
-	this.History.Create_NewPoint();
+	this.StartAction();
 
 	oContentControl.RemoveContentControlWrapper();
 	this.Recalculate();
-	this.Document_UpdateInterfaceState();
-	this.Document_UpdateSelectionState();
+	this.UpdateInterface();
+	this.UpdateSelection();
+	this.FinilizeAction();
 };
 CDocument.prototype.GetContentControl = function(Id)
 {
@@ -17119,8 +17218,7 @@ CDocument.prototype.UpdateFields = function(isBySelection)
 			CheckType : changestype_Paragraph_Content
 		}))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_UpdateFields);
-
+		this.StartAction(AscDFH.historydescription_Document_UpdateFields);
 
 		for (var nIndex = 0, nCount = arrFields.length; nIndex < nCount; ++nIndex)
 		{
@@ -17130,8 +17228,9 @@ CDocument.prototype.UpdateFields = function(isBySelection)
 		this.LoadDocumentState(oDocState);
 
 		this.Recalculate();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateSelectionState();
+		this.UpdateInterface();
+		this.UpdateSelection();
+		this.FinilizeAction();
 	}
 
 };
@@ -17210,7 +17309,7 @@ CDocument.prototype.AddBookmark = function(sName)
 
 	if (false === this.Document_Is_SelectionLocked(changestype_None, {Type : AscCommon.changestype_2_ElementsArray_and_Type, Elements : arrParagraphs, CheckType : changestype_Paragraph_Content}, true))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddBookmark);
+		this.StartAction(AscDFH.historydescription_Document_AddBookmark);
 
 		if (this.BookmarksManager.HaveBookmark(sName))
 			this.private_RemoveBookmark(sName);
@@ -17239,6 +17338,7 @@ CDocument.prototype.AddBookmark = function(sName)
 
 		// TODO: Здесь добавляются просто метки закладок, нужно сделать упрощенный пересчет
 		this.Recalculate();
+		this.FinilizeAction();
 	}
 
 };
@@ -17261,12 +17361,13 @@ CDocument.prototype.RemoveBookmark = function(sName)
 
 	if (false === this.Document_Is_SelectionLocked(changestype_None, {Type : AscCommon.changestype_2_ElementsArray_and_Type, Elements : arrParagraphs, CheckType : changestype_Paragraph_Content}, true))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RemoveBookmark);
+		this.StartAction(AscDFH.historydescription_Document_RemoveBookmark);
 
 		this.private_RemoveBookmark(sName);
 
 		// TODO: Здесь добавляются просто метки закладок, нужно сделать упрощенный пересчет
 		this.Recalculate();
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.GoToBookmark = function(sName)
@@ -17286,7 +17387,7 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 {
 	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTableOfContents);
+		this.StartAction(AscDFH.historydescription_Document_AddTableOfContents);
 
         if(this.DrawingObjects.selectedObjects.length > 0)
         {
@@ -17345,10 +17446,10 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 		}
 
 		this.Recalculate();
-
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateRulersState();
+		this.UpdateInterface();
+		this.UpdateSelection();
+		this.UpdateRulers();
+		this.FinilizeAction();
 	}
 };
 CDocument.prototype.GetPagesCount = function()
@@ -17595,7 +17696,7 @@ CDocument.prototype.ContinueNumbering = function()
 			CheckType : AscCommon.changestype_Paragraph_Properties
 		}))
 	{
-		this.Create_NewHistoryPoint(AscDFH.historydescription_Document_ContinueNumbering);
+		this.StartAction(AscDFH.historydescription_Document_ContinueNumbering);
 
 		for (var nIndex = 0, nCount = arrParagraphsToChange.length; nIndex < nCount; ++nIndex)
 		{
@@ -17606,8 +17707,9 @@ CDocument.prototype.ContinueNumbering = function()
 		}
 
 		this.Recalculate();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateSelectionState();
+		this.UpdateInterface();
+		this.UpdateSelection();
+		this.FinilizeAction();
 	}
 
 	return true;
@@ -17683,15 +17785,16 @@ CDocument.prototype.RestartNumbering = function(nRestartValue)
 				CheckType : AscCommon.changestype_Paragraph_Properties
 			}))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RestartNumbering);
+			this.StartAction(AscDFH.historydescription_Document_RestartNumbering);
 
 			var oLvl   = oNum.GetLvl(oNumPr.Lvl).Copy();
 			oLvl.Start = nRestartValue;
 			oNum.SetLvl(oLvl, oNumPr.Lvl);
 
 			this.Recalculate();
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateSelectionState();
+			this.UpdateInterface();
+			this.UpdateSelection();
+			this.FinilizeAction();
 		}
 	}
 	else
@@ -17702,7 +17805,7 @@ CDocument.prototype.RestartNumbering = function(nRestartValue)
 				CheckType : AscCommon.changestype_Paragraph_Properties
 			}))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RestartNumbering);
+			this.StartAction(AscDFH.historydescription_Document_RestartNumbering);
 
 			var oNewNum = oNum.Copy();
 			if (Asc.c_oAscNumberingFormat.Bullet !== oNum.GetLvl(oNumPr.Lvl).GetFormat())
@@ -17726,8 +17829,9 @@ CDocument.prototype.RestartNumbering = function(nRestartValue)
 				this.SelectNumbering(oParagraph.GetNumPr(), oParagraph);
 
 			this.Recalculate();
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateSelectionState();
+			this.UpdateInterface();
+			this.UpdateSelection();
+			this.FinilizeAction();
 		}
 	}
 
@@ -17872,7 +17976,7 @@ CDocument.prototype.AddBlankPage = function()
 	{
 		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddBlankPage);
+			this.StartAction(AscDFH.historydescription_Document_AddBlankPage);
 
 			if (this.IsSelectionUse())
 			{
@@ -17945,9 +18049,9 @@ CDocument.prototype.AddBlankPage = function()
 
 
 			this.Recalculate();
-
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateSelectionState();
+			this.UpdateInterface();
+			this.UpdateSelection();
+			this.FinilizeAction();
 		}
 	}
 };
@@ -18059,24 +18163,26 @@ CDocument.prototype.AddTableCellFormula = function(sFormula)
 	{
 		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTableFormula);
+			this.StartAction(AscDFH.historydescription_Document_AddTableFormula);
 			this.AddFieldWithInstruction(sFormula);
 			this.Recalculate();
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateSelectionState();
+			this.UpdateInterface();
+			this.UpdateSelection();
+			this.FinilizeAction();
 		}
 	}
 	else
 	{
 		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_ChangeTableFormula);
+			this.StartAction(AscDFH.historydescription_Document_ChangeTableFormula);
 			oField.ChangeInstruction(sFormula);
 			oField.Update();
 			oField.MoveCursorOutsideElement(false);
 			this.Recalculate();
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateSelectionState();
+			this.UpdateInterface();
+			this.UpdateSelection();
+			this.FinilizeAction();
 		}
 	}
 

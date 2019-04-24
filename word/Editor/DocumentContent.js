@@ -2420,8 +2420,8 @@ CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
     var LastPara  = this.GetLastParagraph();
     var LastPara2 = LastPara;
 
-    History.Create_NewPoint(AscDFH.historydescription_Document_DocumentContentExtendToPos);
-    History.Set_Additional_ExtendDocumentToPos();
+    this.LogicDocument.StartAction(AscDFH.historydescription_Document_DocumentContentExtendToPos);
+    this.LogicDocument.GetHistory().Set_Additional_ExtendDocumentToPos();
 
     while (true)
     {
@@ -2498,6 +2498,7 @@ CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
     LastPara.Document_SetThisElementCurrent(true);
 
     this.LogicDocument.Recalculate();
+    this.LogicDocument.FinilizeAction();
 };
 CDocumentContent.prototype.AddInlineImage = function(W, H, Img, Chart, bFlow)
 {

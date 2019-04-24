@@ -2613,7 +2613,7 @@ ParaDrawing.prototype.private_ConvertToMathObject = function(isOpen)
 	{
 		if (!isOpen)
 		{
-			LogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_ConvertOldEquation);
+			LogicDocument.StartAction(AscDFH.historydescription_Document_ConvertOldEquation);
 		}
 
 		// Коректируем формулу после конвертации
@@ -2642,8 +2642,9 @@ ParaDrawing.prototype.private_ConvertToMathObject = function(isOpen)
 			Para.Document_SetThisElementCurrent(false);
 
 			LogicDocument.Recalculate();
-			LogicDocument.Document_UpdateSelectionState();
-			LogicDocument.Document_UpdateInterfaceState();
+			LogicDocument.UpdateSelection();
+			LogicDocument.UpdateInterface();
+			LogicDocument.FinilizeAction();
 		}
 	}
 };

@@ -10675,11 +10675,14 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 
 			// Проверку на лок можно не делать, т.к. мы собираемся менять содержимое данного рана, а такую проверку мы уже делали
 
-			oDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AutoCorrectSmartQuotes);
+			oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectSmartQuotes);
 
 			this.RemoveFromContent(nPos, 1);
 			this.AddToContent(nPos, new ParaText(nCharCode));
 			this.State.ContentPos = nPos + 1;
+
+			oDocument.FinilizeAction();
+
 			return true;
 		}
 		return false;
@@ -10694,7 +10697,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 			var arrElements = oRunElementsBefore.GetElements();
 			if (arrElements.length > 0 && para_Text === arrElements[0].Type && 45 === arrElements[0].Value)
 			{
-				oDocument.Create_NewHistoryPoint(AscDFH.Document_AutoCorrectHyphensWithDash);
+				oDocument.StartAction(AscDFH.Document_AutoCorrectHyphensWithDash);
 
 				var oDash = new ParaText(8212);
 				this.AddToContent(nPos + 1, oDash);
@@ -10718,6 +10721,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 					}
 				}
 
+				oDocument.FinilizeAction();
 				return true;
 			}
 		}
@@ -10823,7 +10827,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 					CheckType : AscCommon.changestype_Paragraph_Properties
 				}))
 			{
-				oDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AutomaticListAsType);
+				oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
 
 				var oStartPos = oParagraph.GetStartPos();
 				var oEndPos   = oContentPos;
@@ -10839,6 +10843,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 				oParagraph.ApplyNumPr(oNumPr.NumId, oNumPr.Lvl);
 
 				oDocument.Recalculate();
+				oDocument.FinilizeAction();
 			}
 		}
 	}

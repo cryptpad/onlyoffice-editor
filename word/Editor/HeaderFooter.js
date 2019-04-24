@@ -2205,7 +2205,7 @@ CHeaderFooterController.prototype =
                 {
                     // Меняем старый режим редактирования, чтобы при Undo/Redo возвращаться в режим редактирования документа
                     this.LogicDocument.SetDocPosType(docpostype_Content);
-                    History.Create_NewPoint(AscDFH.historydescription_Document_AddHeader);
+                    this.LogicDocument.StartAction(AscDFH.historydescription_Document_AddHeader);
                     this.LogicDocument.SetDocPosType(docpostype_HdrFtr);
                     HdrFtr = this.LogicDocument.Create_SectionHdrFtr( hdrftr_Header, PageIndex );
 
@@ -2215,6 +2215,7 @@ CHeaderFooterController.prototype =
                     this.CurHdrFtr = HdrFtr;
 
                     this.LogicDocument.Recalculate();
+                    this.LogicDocument.FinilizeAction();
                 }
                 else
                     return false;
@@ -2230,7 +2231,7 @@ CHeaderFooterController.prototype =
                 {
                     // Меняем старый режим редактирования, чтобы при Undo/Redo возвращаться в режим редактирования документа
                     this.LogicDocument.SetDocPosType(docpostype_Content);
-                    History.Create_NewPoint(AscDFH.historydescription_Document_AddFooter);
+                    this.LogicDocument.StartAction(AscDFH.historydescription_Document_AddFooter);
                     this.LogicDocument.SetDocPosType(docpostype_HdrFtr);
                     HdrFtr = this.LogicDocument.Create_SectionHdrFtr( hdrftr_Footer, PageIndex );
 
@@ -2240,6 +2241,7 @@ CHeaderFooterController.prototype =
 					this.CurHdrFtr = HdrFtr;
 
                     this.LogicDocument.Recalculate();
+                    this.LogicDocument.FinilizeAction();
                 }
                 else
                     return false;

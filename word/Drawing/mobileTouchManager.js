@@ -612,9 +612,10 @@
 
 					if ( false === HtmlPage.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
 					{
-						HtmlPage.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTableMarkup_Hor);
+						HtmlPage.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTableMarkup_Hor);
 						_markup.Table.Update_TableMarkupFromRuler(_markup, true, this.TableCurrentMovePos + 1);
-						HtmlPage.m_oLogicDocument.Document_UpdateInterfaceState();
+						HtmlPage.m_oLogicDocument.UpdateInterface();
+						HtmlPage.m_oLogicDocument.FinilizeAction();
 					}
 				}
 				else
@@ -637,9 +638,10 @@
 
 					if ( false === this.delegate.HtmlPage.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
 					{
-						HtmlPage.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_SetTableMarkup_Hor);
+						HtmlPage.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTableMarkup_Hor);
 						_markup.Table.Update_TableMarkupFromRuler(_markup, false, this.TableCurrentMovePos + 1);
-						HtmlPage.m_oLogicDocument.Document_UpdateInterfaceState();
+						HtmlPage.m_oLogicDocument.UpdateInterface();
+						HtmlPage.m_oLogicDocument.FinilizeAction();
 					}
 				}
 
