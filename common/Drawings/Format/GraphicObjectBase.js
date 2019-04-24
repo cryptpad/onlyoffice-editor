@@ -1723,10 +1723,15 @@
         var rb_x_rel = oInvertTransformCrop.TransformPointX(rb_x_abs, rb_y_abs);
         var rb_y_rel = oInvertTransformCrop.TransformPointY(rb_x_abs, rb_y_abs);
         var srcRect = new AscFormat.CSrcRect();
-        srcRect.l = (100*lt_x_rel / cropExtX);
-        srcRect.t = (100*lt_y_rel / cropExtY);
-        srcRect.r = (100*rb_x_rel / cropExtX);
-        srcRect.b = (100*rb_y_rel / cropExtY);
+        var _l = (100*lt_x_rel / cropExtX);
+        var _t = (100*lt_y_rel / cropExtY);
+        var _r = (100*rb_x_rel / cropExtX);
+        var _b = (100*rb_y_rel / cropExtY);
+        srcRect.l = Math.min(_l, _r);
+        srcRect.t = Math.min(_t, _b);
+        srcRect.r = Math.max(_l, _r);
+        srcRect.b = Math.max(_t, _b);
+
         return srcRect;
     }
 

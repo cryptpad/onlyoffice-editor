@@ -848,7 +848,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
 
 
-            if(this.originalObject.isCrop){
+            if(isCrop){
                 this.resizedflipH = this.originalFlipH;
                 this.resizedflipV = this.originalFlipV;
             }
@@ -959,7 +959,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
 
 
-            if(this.originalObject.isCrop){
+            if(isCrop){
                 this.resizedflipH = this.originalFlipH;
                 this.resizedflipV = this.originalFlipV;
             }
