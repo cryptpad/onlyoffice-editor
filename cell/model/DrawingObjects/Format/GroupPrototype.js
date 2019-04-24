@@ -221,7 +221,13 @@ CGroupShape.prototype.handleUpdateExtents = function(bCell)
         }
     }
 };
-CGroupShape.prototype.handleUpdateRot = CGroupShape.prototype.handleUpdatePosition;
+CGroupShape.prototype.handleUpdateRot = function()
+{
+    if(this.handleUpdateExtents)
+    {
+        this.handleUpdateChildExtents(true);
+    }
+};
 CGroupShape.prototype.handleUpdateFlip = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.handleUpdateChildOffset = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.handleUpdateChildExtents = CGroupShape.prototype.handleUpdatePosition;
