@@ -15796,9 +15796,9 @@
 		//следующему за последней скрытой в группе
 		//TODO рассмотреть: запись свойства collapsed только на сохранение
 
-
-		var setCollapsedModel = function(cell, val) {
-			cell.setCollapsed(val);
+		var bCollapsed = false;
+		var setCollapsedModel = function(cell) {
+			cell.setCollapsed(bCollapsed);
 		};
 
 		var groupArr, index, i, j;
@@ -15810,7 +15810,8 @@
 					if (groupArr[i]) {
 						for (j = 0; j < groupArr[i].length; j++) {
 							index = groupArr[i][j].end;
-							bCol ? setCollapsedModel(this.model._getCol(index + 1), false) : this.model._getRow(index + 1, setCollapsedModel, false);
+							bCollapsed = false;
+							bCol ? setCollapsedModel(this.model._getCol(index + 1)) : this.model._getRow(index + 1, setCollapsedModel);
 						}
 					}
 				}
@@ -15823,7 +15824,6 @@
 			groupArr = groupArr ? groupArr.groupArr : null;
 		}
 		if(groupArr) {
-			var bCollapsed = false;
 			var addCollapsed = function(val) {
 				bCollapsed = val.getHidden();
 				if(bCollapsed) {
@@ -15840,8 +15840,9 @@
 				if (groupArr[i]) {
 					for (j = 0; j < groupArr[i].length; j++) {
 						index = groupArr[i][j].end;
+						bCollapsed = false;
 						bCol ? addCollapsed(this.model._getCol(index)) : this.model._getRow(index, addCollapsed);
-						bCol ? setCollapsedModel(this.model._getCol(index + 1), bCollapsed) : this.model._getRow(index + 1, setCollapsedModel, bCollapsed);
+						bCol ? setCollapsedModel(this.model._getCol(index + 1)) : this.model._getRow(index + 1, setCollapsedModel);
 					}
 				}
 			}
@@ -15857,7 +15858,7 @@
 			range = this.visibleRange;
 		} else {
 			//expand
-			/*var bHidden = false;
+			var bHidden = false;
 			var checkHidden = function(val) {
 				if(val && val.getHidden()) {
 					bHidden = true;
@@ -15871,15 +15872,15 @@
 				if(bCol) {
 					checkHidden(this.model._getCol(range.c1 - 1));
 				} else {
-					checkHidden(this.model._getCol(range.r1 - 1));
+					this.model._getRow(range.r1 - 1, checkHidden);
 				}
 				if(bHidden) {
 					bCol ? range.c1-- : range.r1--;
 				} else {
 					break;
 				}
-			}*/
-			/*var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
+			}
+			var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
 			while(true) {
 				if((bCol && range.c2 + 1 >= maxCount) || (!bCol && range.r2 + 1 >= maxCount)) {
 					break;
@@ -15888,13 +15889,29 @@
 				if(bCol) {
 					checkHidden(this.model._getCol(range.c2 + 1));
 				} else {
-					checkHidden(this.model._getCol(range.r2 + 1));
+					this.model._getRow(range.r2 + 1, checkHidden);
 				}
 				if(bHidden) {
 					bCol ? range.c2++ : range.r2++;
 				} else {
 					break;
 				}
+			}
+			/*if(bCol) {
+				checkHidden(this.model._getCol(range.c1));
+			} else {
+				this.model._getRow(range.r1, checkHidden);
+			}
+			if(bHidden) {
+				bCol ? range.c1-- : range.r1--;
+			}
+			if(bCol) {
+				checkHidden(this.model._getCol(range.c2));
+			} else {
+				this.model._getRow(range.r2, checkHidden);
+			}
+			if(bHidden) {
+				bCol ? range.c2++ : range.r2++;
 			}*/
 		}
 
