@@ -8065,6 +8065,14 @@ CPresentation.prototype.IsViewModeInReview = function()
 {
 	return false;
 };
+CPresentation.prototype.StartAction = function(nDescription)
+{
+	this.Create_NewHistoryPoint(nDescription);
+};
+CPresentation.prototype.FinilizeAction = function()
+{
+
+};
 
 
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting)

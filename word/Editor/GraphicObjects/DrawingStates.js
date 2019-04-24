@@ -136,12 +136,15 @@ StartAddNewShape.prototype =
                 }
                 this.onMouseMove({IsLocked: true}, this.startX + ext_x, this.startY + ext_y, this.pageIndex);
             }
-            History.Create_NewPoint(AscDFH.historydescription_Document_AddNewShape);
+
+            var oLogicDocument = this.drawingObjects.document;
+
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddNewShape);
             var bounds = this.drawingObjects.arrTrackObjects[0].getBounds();
             var shape = this.drawingObjects.arrTrackObjects[0].getShape(true, this.drawingObjects.drawingDocument);
             var drawing = new ParaDrawing(shape.spPr.xfrm.extX, shape.spPr.xfrm.extY, shape, this.drawingObjects.drawingDocument, this.drawingObjects.document, null);
             var nearest_pos = this.drawingObjects.document.Get_NearestPos(this.pageIndex, bounds.min_x, bounds.min_y, true, drawing);
-            if(nearest_pos && false === this.drawingObjects.document.Document_Is_SelectionLocked(AscCommon.changestype_None, {Type : AscCommon.changestype_2_Element_and_Type , Element : nearest_pos.Paragraph, CheckType : AscCommon.changestype_Paragraph_Content} ))
+            if(nearest_pos && false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {Type : AscCommon.changestype_2_Element_and_Type , Element : nearest_pos.Paragraph, CheckType : AscCommon.changestype_Paragraph_Content} ))
             {
                 drawing.Set_DrawingType(drawing_Anchor);
                 drawing.Set_GraphicObject(shape);
@@ -162,10 +165,13 @@ StartAddNewShape.prototype =
                     shape.selectionSetStart(e, x, y, pageIndex);
                     shape.selectionSetEnd(e, x, y, pageIndex);
                 }
+
+				oLogicDocument.FinilizeAction();
             }
             else
             {
                 this.drawingObjects.document.Document_Undo();
+				oLogicDocument.FinilizeAction(false);
             }
         }
         this.drawingObjects.clearTrackObjects();
@@ -224,14 +230,15 @@ NullState.prototype =
                             {
                                 if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : AscCommon.changestype_2_Element_and_Type , Element : selection.wrapPolygonSelection.parent.Get_ParentParagraph(), CheckType : AscCommon.changestype_Paragraph_Content}))
                                 {
-                                    History.Create_NewPoint(AscDFH.historydescription_Document_EditWrapPolygon);
+									this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_EditWrapPolygon);
                                     var new_rel_array = [].concat(wrap_polygon.relativeArrPoints);
                                     new_rel_array.splice(hit_to_wrap_polygon.pointNum, 1);
                                     wrap_polygon.setEdited(true);
                                     wrap_polygon.setArrRelPoints(new_rel_array);
                                     this.drawingObjects.document.Recalculate();
                                     this.drawingObjects.updateOverlay();
-                                }
+									this.drawingObjects.document.FinilizeAction();
+								}
                             }
                         }
                         return true;
@@ -521,8 +528,9 @@ MoveInlineObject.prototype =
                 check_paragraphs.push(new_check_paragraph);
             if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : check_paragraphs, CheckType : AscCommon.changestype_Paragraph_Content}, true))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_MoveInlineObject);
+				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_MoveInlineObject);
                 this.majorObject.parent.OnEnd_MoveInline(this.InlinePos);
+				this.drawingObjects.document.FinilizeAction();
             }
         }
         else
@@ -530,7 +538,7 @@ MoveInlineObject.prototype =
             check_paragraphs.push(this.majorObject.parent.checkShapeChildAndGetTopParagraph(this.InlinePos.Paragraph));
             if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : check_paragraphs, CheckType : AscCommon.changestype_Paragraph_Content}, true))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_CopyAndMoveInlineObject);
+				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_CopyAndMoveInlineObject);
                 var new_para_drawing = new ParaDrawing(this.majorObject.parent.Extent.W, this.majorObject.parent.Extent.H, null, this.drawingObjects.drawingDocument, null, null);
                 var drawing = this.majorObject.copy();
                 drawing.setParent(new_para_drawing);
@@ -539,6 +547,7 @@ MoveInlineObject.prototype =
                 this.drawingObjects.resetSelection();
                 this.drawingObjects.selectObject(drawing, pageIndex);
                 this.drawingObjects.document.Recalculate();
+				this.drawingObjects.document.FinilizeAction();
             }
         }
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -623,13 +632,14 @@ RotateState.prototype =
         {
             if(this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props) === false)
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_RotateInlineDrawing);
+				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_RotateInlineDrawing);
                 this.drawingObjects.arrTrackObjects[0].trackEnd(true);
                 if(!this.drawingObjects.arrTrackObjects[0].view3D)
                 {
                     this.majorObject.parent.CheckWH();
                 }
                 this.drawingObjects.document.Recalculate();
+				this.drawingObjects.document.FinilizeAction();
             }
         }
         else
@@ -658,7 +668,7 @@ RotateState.prototype =
                 if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : aCheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content}))
                 {
                     this.drawingObjects.resetSelection();
-                    History.Create_NewPoint(AscDFH.historydescription_Document_RotateFlowDrawingCtrl);
+					this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_RotateFlowDrawingCtrl);
                     for(i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
                     {
                         bounds = aBounds[i];
@@ -678,6 +688,7 @@ RotateState.prototype =
                         this.drawingObjects.selectObject(para_drawing.GraphicObj, pageIndex);
                     }
                     this.drawingObjects.document.Recalculate();
+					this.drawingObjects.document.FinilizeAction();
                 }
             }
             else
@@ -700,7 +711,7 @@ RotateState.prototype =
                 }
                 if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : aCheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content}, bNoNeedCheck))
                 {
-                    History.Create_NewPoint(AscDFH.historydescription_Document_RotateFlowDrawingNoCtrl);
+					this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_RotateFlowDrawingNoCtrl);
                     if(bMoveState && !this.drawingObjects.selection.cropSelection){
                         this.drawingObjects.resetSelection();
                     }
@@ -752,6 +763,7 @@ RotateState.prototype =
                         }
                         this.drawingObjects.document.Recalculate();
                     }
+					this.drawingObjects.document.FinilizeAction();
                 }
             }
         }
@@ -1246,7 +1258,7 @@ MoveInGroupState.prototype =
         }
         if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : check_paragraphs, CheckType : AscCommon.changestype_Paragraph_Content}))
         {
-            History.Create_NewPoint(AscDFH.historydescription_Document_MoveInGroup);
+			this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_MoveInGroup);
             var i;
             var tracks = this.drawingObjects.arrTrackObjects;
             if(this instanceof MoveInGroupState && e.CtrlKey)
@@ -1285,6 +1297,7 @@ MoveInGroupState.prototype =
                 this.group.parent.Set_XY(this.group.posX + posX, this.group.posY + posY, parent_paragraph, this.group.parent.pageIndex, false);
             }
             this.drawingObjects.document.Recalculate();
+			this.drawingObjects.document.FinilizeAction();
         }
         this.drawingObjects.clearTrackObjects();
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -1607,7 +1620,7 @@ ChangeWrapContour.prototype.onMouseUp = function(e, x, y, pageIndex)
 {
     if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
     {
-        History.Create_NewPoint(AscDFH.historydescription_Document_ChangeWrapContour);
+		this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_ChangeWrapContour);
         var calc_points = [], calc_points2 = [], i;
         for(i = 0; i < this.majorObject.parent.wrappingPolygon.calculatedPoints.length; ++i)
         {
@@ -1627,6 +1640,7 @@ ChangeWrapContour.prototype.onMouseUp = function(e, x, y, pageIndex)
         this.majorObject.parent.wrappingPolygon.setEdited(true);
         this.majorObject.parent.wrappingPolygon.setArrRelPoints(calc_points2);
         this.drawingObjects.document.Recalculate();
+		this.drawingObjects.document.FinilizeAction();
     }
     this.drawingObjects.clearTrackObjects();
     this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -1702,7 +1716,7 @@ ChangeWrapContourAddPoint.prototype.onMouseUp = function(e, x, y, pageIndex)
 {
     if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
     {
-        History.Create_NewPoint(AscDFH.historydescription_Document_ChangeWrapContourAddPoint);
+		this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_ChangeWrapContourAddPoint);
         var calc_points = [], calc_points2 = [], i;
         for(i = 0; i < this.drawingObjects.arrTrackObjects[0].arrPoints.length; ++i)
         {
@@ -1721,6 +1735,7 @@ ChangeWrapContourAddPoint.prototype.onMouseUp = function(e, x, y, pageIndex)
         this.majorObject.parent.wrappingPolygon.setEdited(true);
         this.majorObject.parent.wrappingPolygon.setArrRelPoints(calc_points2);
         this.drawingObjects.document.Recalculate();
+		this.drawingObjects.document.FinilizeAction();
     }
     this.drawingObjects.clearTrackObjects();
     this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));

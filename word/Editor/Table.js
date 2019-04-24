@@ -2654,7 +2654,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 	{
 		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties, null, true))
 		{
-			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveFlowTable);
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_MoveFlowTable);
 
 			// Переносим привязку (если получается, что заносим таблицу саму в себя, тогда привязку не меняем)
 			var NewDocContent = NearestPos.Paragraph.Parent;
@@ -2779,6 +2779,8 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 				oTargetTable.Set_PositionV(c_oAscVAnchor.Page, false, Y);
 				oTargetTable.PositionV_Old = undefined;
 			}
+
+			oLogicDocument.FinilizeAction();
 		}
 	}
 	else
@@ -2791,7 +2793,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 				Y       : Y
 			}, true))
 		{
-			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_MoveInlineTable);
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_MoveInlineTable);
 
 			var NewDocContent = NearestPos.Paragraph.Parent;
 			var OldDocContent = this.Parent;
@@ -2851,6 +2853,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 				editor.WordControl.m_oLogicDocument.Recalculate();
 			}
 			oTargetTable.Start_TrackTable();
+			oLogicDocument.FinilizeAction();
 		}
 	}
 	editor.WordControl.m_oLogicDocument.RemoveSelection();
@@ -4927,7 +4930,7 @@ CTable.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent)
 					CheckType : AscCommon.changestype_Table_Properties
 				}))
 			{
-				History.Create_NewPoint(AscDFH.historydescription_Document_MoveTableBorder);
+				LogicDocument.StartAction(AscDFH.historydescription_Document_MoveTableBorder);
 
 				if (true === this.Selection.Data2.bCol)
 				{
@@ -5302,7 +5305,8 @@ CTable.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent)
 					}
 				}
 
-				this.Internal_Recalculate_1();
+				LogicDocument.Recalculate();
+				LogicDocument.FinilizeAction();
 			}
 
 			this.Selection.Type2 = table_Selection_Common;
@@ -6949,9 +6953,10 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 						CheckType : AscCommon.changestype_Table_Properties
 					}))
 				{
-					History.Create_NewPoint(AscDFH.historydescription_Document_TableAddNewRowByTab);
+					this.LogicDocument.StartAction(AscDFH.historydescription_Document_TableAddNewRowByTab);
 					this.AddTableRow(false);
 					this.LogicDocument.Recalculate();
+					this.LogicDocument.FinilizeAction();
 				}
 				else
 					return;
@@ -10365,8 +10370,11 @@ CTable.prototype.Update_TableMarkupFromRuler = function(NewMarkup, bCol, Index)
 		}
 	}
 
-	this.Internal_Recalculate_1();
-	editor.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
+	if (this.LogicDocument)
+	{
+		this.LogicDocument.Recalculate();
+		this.LogicDocument.UpdateSelection();
+	}
 };
 /**
  * Распраделяем выделенные ячейки по ширине или высоте
@@ -13838,13 +13846,14 @@ CTable.prototype.ResizeTableInDocument = function(nWidth, nHeight)
 	if (true === this.LogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties, null, true))
 		return;
 
-	this.LogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_ResizeTable);
+	this.LogicDocument.StartAction(AscDFH.historydescription_Document_ResizeTable);
 
 	this.Resize(nWidth, nHeight);
 
 	this.LogicDocument.Recalculate();
 	this.Start_TrackTable();
-	this.LogicDocument.Document_UpdateSelectionState();
+	this.LogicDocument.UpdateSelection();
+	this.LogicDocument.FinilizeAction();
 };
 /**
  * Получаем минимальную ширину таблицы

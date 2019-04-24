@@ -978,6 +978,7 @@
 										}
 
 										window.g_asc_plugins.api.asc_Recalculate(true);
+										window.g_asc_plugins.api.WordControl.m_oLogicDocument.FinilizeAction();
 
 										if (window.g_asc_plugins.api.SaveAfterMacros)
 										{
