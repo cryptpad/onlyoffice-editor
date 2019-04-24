@@ -4574,6 +4574,7 @@
 		}
 	};
 	Worksheet.prototype.setCollapsedCol = function (bCollapse, colIndex, curCol) {
+		return;
 		var oThis = this;
 		var fProcessCol = function(col){
 			var oOldProps = col.getCollapsed();
@@ -4838,6 +4839,7 @@
 		this.workbook.dependencyFormulas.calcTree();
 	};
 	Worksheet.prototype.setCollapsedRow = function (bCollapse, rowIndex, curRow) {
+		return;
 		var oThis = this;
 		var fProcessRow = function(row){
 			var oOldProps = row.getCollapsed();

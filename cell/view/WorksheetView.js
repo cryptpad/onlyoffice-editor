@@ -15696,9 +15696,8 @@
 		var up = true, down = true;
 		var fProcess = function(val){
 			var outLineLevel = val.getOutlineLevel();
-			var collapsed = val.getCollapsed();
 
-			levelMap[val.index] = {level: outLineLevel, collapsed: collapsed};
+			levelMap[val.index] = {level: outLineLevel, collapsed: false};
 			if(bUpdateOnlyRowLevelMap) {
 				return;
 			}
@@ -15767,13 +15766,12 @@
 			this.model.getRange3(start, 0, end, 0)._foreachRowNoEmpty(fProcess);
 		}
 
-
 		while(up) {
 			start--;
 			if(start < 0) {
 				break;
 			}
-			bCol ? this.model._getCol(start, fProcess) : this.model._getRow(start, fProcess);
+			bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
 		}
 
 		var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
@@ -15783,7 +15781,69 @@
 			if(end > maxCount || end > cMaxCount) {
 				break;
 			}
-			bCol ? this.model._getCol(start, fProcess) : this.model._getRow(start, fProcess);
+			bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
+		}
+
+		//TODO возможно стоит вначале пройтись по старому groupArr и проставить всем столбцам/строкам false - могут быть проблемы при удалении всех групп и тд
+		//val.setCollapsed(false);
+
+
+		//вычисляем опцию collapsed уже после основных вычислений
+		//связано с тем, что она проставляется в строке/столбце, следующей за последней в группе
+		//если последний столбец/строка скрыты, то в следующей ячейке необходимо проставить collapsed = true
+		//не записываю в историю, а высчитываю каждый раз здесь в связи с тем
+		// что при удалении столбца/строки с данным свойством, оно переходит следующему столбцу/строке, те столбцу/строке
+		//следующему за последней скрытой в группе
+		//TODO рассмотреть: запись свойства collapsed только на сохранение
+
+
+		var setCollapsedModel = function(cell, val) {
+			cell.setCollapsed(val);
+		};
+
+		var groupArr, index, i, j;
+		if(res) {
+			groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
+			groupArr = groupArr ? groupArr.groupArr : null;
+			if(groupArr) {
+				for(i = 0; i < groupArr.length; i++) {
+					if (groupArr[i]) {
+						for (j = 0; j < groupArr[i].length; j++) {
+							index = groupArr[i][j].end;
+							bCol ? setCollapsedModel(this.model._getCol(index + 1), false) : this.model._getRow(index + 1, setCollapsedModel, false);
+						}
+					}
+				}
+			}
+		}
+
+		if(!groupArr) {
+			groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
+			groupArr = groupArr ? groupArr.groupArr : null;
+		}
+		if(groupArr) {
+			var bCollapsed = false;
+			var addCollapsed = function(val) {
+				bCollapsed = val.getHidden();
+				if(bCollapsed) {
+					if(!levelMap[val.index + 1]) {
+						levelMap[val.index + 1] = {level: 0, collapsed: true};
+					} else {
+						levelMap[val.index + 1].collapsed = true;
+					}
+				}
+			};
+
+
+			for(i = 0; i < groupArr.length; i++) {
+				if (groupArr[i]) {
+					for (j = 0; j < groupArr[i].length; j++) {
+						index = groupArr[i][j].end;
+						bCol ? addCollapsed(this.model._getCol(index)) : this.model._getRow(index, addCollapsed);
+						bCol ? setCollapsedModel(this.model._getCol(index + 1), bCollapsed) : this.model._getRow(index + 1, setCollapsedModel, bCollapsed);
+					}
+				}
+			}
 		}
 
 		console_time_end("old");

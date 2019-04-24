@@ -2121,6 +2121,7 @@ function (window, undefined) {
 
 			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			workSheetView.model.autoFilters.reDrawFilter(new Asc.Range(0, from, ws.nColsCount - 1, to));
+			workSheetView._updateGroups();
 		} else if (AscCH.historyitem_Worksheet_AddRows == Type || AscCH.historyitem_Worksheet_RemoveRows == Type) {
 			from = Data.from;
 			to = Data.to;
@@ -2464,7 +2465,7 @@ function (window, undefined) {
 				}
 			});
 			//TODO need redraw group lines
-		} else if(AscCH.historyitem_Worksheet_CollapsedRow == Type) {
+		} /*else if(AscCH.historyitem_Worksheet_CollapsedRow == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
 				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
@@ -2510,7 +2511,7 @@ function (window, undefined) {
 			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
 			worksheetView._updateGroups(true, undefined, undefined, true);
 			//TODO need redraw group lines
-		} else if (AscCH.historyitem_Worksheet_GroupCol == Type) {
+		}*/ else if (AscCH.historyitem_Worksheet_GroupCol == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
 				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
