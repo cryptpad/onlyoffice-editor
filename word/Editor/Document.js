@@ -1642,6 +1642,10 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		Redraw          : {
 			Start : undefined,
 			End   : undefined
+		},
+
+		Additional : {
+
 		}
 	};
 
@@ -2079,6 +2083,7 @@ CDocument.prototype.StartAction = function(nDescription)
 	this.Action.UpdateUndoRedo  = false;
 	this.Action.Redraw.Start    = undefined;
 	this.Action.Redraw.End      = undefined;
+	this.Action.Additional      = {};
 };
 /**
  * Сообщаем документу, что потребуется пересчет
@@ -2183,8 +2188,31 @@ CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
 	if (!this.Action.Start)
 		return;
 
-	// TODO: Дополнительные действия
 
+	// Дополнительная обработка
+	if (this.Action.Additional.TrackMarks)
+	{
+		function privateRemoveMark(oMark)
+		{
+			if (oMark instanceof CRunRevisionMove)
+			{
+				oMark.GetRun().RemoveElement(oMark);
+			}
+			else if (oMark instanceof CParaRevisionMove && oMark.GetParagraph())
+			{
+				oMark.GetParagraph().RemoveElement(oMark);
+			}
+		}
+
+		for (var sMoveId in this.Action.Additional.TrackMarks)
+		{
+			var oMarks = this.Action.Additional.TrackMarks[sMoveId];
+			privateRemoveMark(oMarks.To.Start);
+			privateRemoveMark(oMarks.To.End);
+			privateRemoveMark(oMarks.From.Start);
+			privateRemoveMark(oMarks.From.End);
+		}
+	}
 
 	if (false !== isCheckEmptyAction && this.History.Is_LastPointEmpty())
 	{
@@ -2216,7 +2244,7 @@ CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
 	this.Action.UpdateUndoRedo  = false;
 	this.Action.Redraw.Start    = undefined;
 	this.Action.Redraw.End      = undefined;
-
+	this.Action.Additional      = {};
 };
 /**
  * Данная функция предназначена для отключения пересчета. Это может быть полезно, т.к. редактор всегда запускает
@@ -18254,7 +18282,7 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom)
 	}
 };
 /**
- * Превращаем изменение связанное с переносом в обычные изменения
+ * Удаляем метки переноса
  * @param sMoveId
  */
 CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
@@ -18275,22 +18303,17 @@ CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
 
 	this.LoadDocumentState(oDocState);
 
-	function privateRemoveMark(oMark)
-	{
-		if (oMark instanceof CRunRevisionMove)
-		{
-			oMark.GetRun().RemoveElement(oMark);
-		}
-		else if (oMark instanceof CParaRevisionMove && oMark.GetParagraph())
-		{
-			oMark.GetParagraph().RemoveElement(oMark);
-		}
-	}
+	if (!this.Action.Start)
+		return;
 
-	privateRemoveMark(oMarks.To.Start);
-	privateRemoveMark(oMarks.To.End);
-	privateRemoveMark(oMarks.From.Start);
-	privateRemoveMark(oMarks.From.End);
+	if (!this.Action.Additional.TrackMove)
+		this.Action.Additional.TrackMove = {};
+
+
+	if (this.Action.Additional.TrackMove[sMoveId])
+		return;
+
+	this.Action.Additional.TrackMove[sMoveId] = oMarks;
 };
 
 function CDocumentSelectionState()

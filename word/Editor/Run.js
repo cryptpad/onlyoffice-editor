@@ -8603,22 +8603,22 @@ ParaRun.prototype.RemoveTrackMoveMarks = function(oTrackManager)
 	var sMoveId = oTrackMove.GetMoveId();
 	var isFrom  = oTrackMove.IsFrom();
 
-    for (var nPos = this.Content.length - 1; nPos >= 0; --nPos)
-    {
-    	var oItem = this.Content[nPos];
-        if (para_RevisionMove === oItem.Type)
-        {
-        	if (sMoveId === oItem.GetMarkId())
+	for (var nPos = this.Content.length - 1; nPos >= 0; --nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_RevisionMove === oItem.Type)
+		{
+			if (sMoveId === oItem.GetMarkId())
 			{
 				if (isFrom === oItem.IsFrom())
-				this.RemoveFromContent(nPos, 1, true);
+					this.RemoveFromContent(nPos, 1, true);
 			}
-        	else
+			else
 			{
 				oTrackMove.RegisterOtherMove(oItem.GetMarkId());
 			}
-        }
-    }
+		}
+	}
 };
 
 ParaRun.prototype.private_RecalcCtrPrp = function()

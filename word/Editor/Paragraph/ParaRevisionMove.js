@@ -157,6 +157,12 @@ CParaRevisionMove.prototype.GetReviewInfo = function()
 {
 	return this.ReviewInfo;
 };
+CParaRevisionMove.prototype.PreDelete = function()
+{
+	var oParagraph = this.GetParagraph();
+	if (oParagraph && oParagraph.LogicDocument)
+		oParagraph.RemoveTrackMoveMarks();
+};
 
 
 /**
