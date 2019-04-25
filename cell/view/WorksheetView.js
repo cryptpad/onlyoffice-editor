@@ -2765,7 +2765,7 @@
 						if (!img) {
 							continue;
 						}
-						var iconSize = AscCommon.AscBrowser.convertToRetinaValue(AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont);
+						var iconSize = AscCommon.AscBrowser.convertToRetinaValue(AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont, true);
 						var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
 						var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
 						rect._y = this._calcTextVertPos(rect._y, rect._height, bl, new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0), ct.cellVA);
@@ -2812,7 +2812,7 @@
                                     graphics.SetBaseTransform(null);
                                     graphics.RestoreGrState();
                                 }
-                            }, this, [img, rect, iconSize * AscCommon.g_dKoef_pix_to_mm]
+                            }, this, [img, rect, iconSize * dScale]
                         );
 					}
 				}
