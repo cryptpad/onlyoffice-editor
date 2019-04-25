@@ -190,17 +190,7 @@ CGroupShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CGroupShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CGroupShape.prototype.handleUpdatePosition = function()
 {
-    this.recalcTransform();
-    this.addToRecalculate();
-    for(var i = 0; i < this.spTree.length; ++i)
-    {
-        if(this.spTree[i].handleUpdatePosition)
-        {
-            this.spTree[i].handleUpdatePosition();
-        }
-    }
-    this.recalcBounds();
-    this.addToRecalculate();
+    this.handleUpdateExtents(true);
 };
 CGroupShape.prototype.handleUpdateExtents = function(bCell)
 {
@@ -225,7 +215,7 @@ CGroupShape.prototype.handleUpdateRot = function()
 {
     if(this.handleUpdateExtents)
     {
-        this.handleUpdateChildExtents(true);
+        this.handleUpdateExtents(true);
     }
 };
 CGroupShape.prototype.handleUpdateFlip = CGroupShape.prototype.handleUpdatePosition;
