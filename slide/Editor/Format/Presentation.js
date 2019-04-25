@@ -2543,6 +2543,7 @@ CPresentation.prototype =
             if(!(noUpdateInterface === true) || (editor.asc_getKeyboardLanguage() !== -1))
             {
                 this.Document_UpdateInterfaceState();
+                this.Document_UpdateRulersState();
             }
             this.NeedUpdateTargetForCollaboration = true;
         }
@@ -4131,6 +4132,7 @@ CPresentation.prototype =
             {
                 b_update_interface = true;
                 this.Document_UpdateInterfaceState();
+                this.Document_UpdateRulersState();
             }
         }
         bRetValue = true;
@@ -4142,6 +4144,7 @@ CPresentation.prototype =
             if(!b_update_interface)
             {
                 this.Document_UpdateUndoRedoState();
+                this.Document_UpdateRulersState();
             }
         }
 
