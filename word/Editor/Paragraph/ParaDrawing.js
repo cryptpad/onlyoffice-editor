@@ -1176,10 +1176,10 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 	var OtherFlowObjects = editor.WordControl.m_oLogicDocument.DrawingObjects.getAllFloatObjectsOnPage(PageNum, this.Parent.Parent);
 	var bInline          = this.Is_Inline();
 	var W, H;
-	if (this.Is_Inline())
+	if (bInline)
 	{
-		W = this.GraphicObj.bounds.w;
-		H = this.GraphicObj.bounds.h;
+		W = this.Width;
+		H = this.Height;
 	}
 	else
 	{
