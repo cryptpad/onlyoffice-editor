@@ -2196,33 +2196,11 @@ CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
 	if (!this.Action.Start)
 		return;
 
-
-	// Дополнительная обработка
+	// Дополнительная обработка-----------------------------------------------------------------------------------------
 	if (this.Action.Additional.TrackMove)
-	{
-		function privateRemoveMark(oMark)
-		{
-			if (oMark instanceof CRunRevisionMove)
-			{
-				oMark.GetRun().RemoveElement(oMark);
-			}
-			else if (oMark instanceof CParaRevisionMove && oMark.GetParagraph())
-			{
-				oMark.GetParagraph().RemoveElement(oMark);
-			}
-		}
+		this.private_FinilizeRemoveTrackMove();
 
-		for (var sMoveId in this.Action.Additional.TrackMove)
-		{
-			var oMarks = this.Action.Additional.TrackMove[sMoveId];
-			privateRemoveMark(oMarks.To.Start);
-			privateRemoveMark(oMarks.To.End);
-			privateRemoveMark(oMarks.From.Start);
-			privateRemoveMark(oMarks.From.End);
-		}
-
-		this.Action.Recalculate = true;
-	}
+	//------------------------------------------------------------------------------------------------------------------
 
 	if (false !== isCheckEmptyAction && this.History.Is_LastPointEmpty())
 	{
@@ -2255,6 +2233,31 @@ CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
 	this.Action.Redraw.Start    = undefined;
 	this.Action.Redraw.End      = undefined;
 	this.Action.Additional      = {};
+};
+CDocument.prototype.private_FinilizeRemoveTrackMove = function()
+{
+	function privateRemoveTrackMoveMark(oMark)
+	{
+		if (oMark instanceof CRunRevisionMove)
+		{
+			oMark.GetRun().RemoveElement(oMark);
+		}
+		else if (oMark instanceof CParaRevisionMove && oMark.GetParagraph())
+		{
+			oMark.GetParagraph().RemoveElement(oMark);
+		}
+	}
+
+	for (var sMoveId in this.Action.Additional.TrackMove)
+	{
+		var oMarks = this.Action.Additional.TrackMove[sMoveId];
+		privateRemoveTrackMoveMark(oMarks.To.Start);
+		privateRemoveTrackMoveMark(oMarks.To.End);
+		privateRemoveTrackMoveMark(oMarks.From.Start);
+		privateRemoveTrackMoveMark(oMarks.From.End);
+
+		this.Action.Recalculate = true;
+	}
 };
 /**
  * Данная функция предназначена для отключения пересчета. Это может быть полезно, т.к. редактор всегда запускает
