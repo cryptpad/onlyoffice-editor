@@ -5477,7 +5477,9 @@ background-repeat: no-repeat;\
 		var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
 		if (null != _image)//картинка уже должна быть загружена
 		{
+            this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_PasteHotKey);
 			this.WordControl.m_oLogicDocument.AddOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+            this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
 
@@ -5485,9 +5487,11 @@ background-repeat: no-repeat;\
 	{
 		if (oOleObject)
 		{
+            this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_PasteHotKey);
 			this.WordControl.m_oLogicDocument.EditOleObject(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight);
 			this.WordControl.m_oLogicDocument.Recalculate();
 			this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+            this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
 
@@ -10064,8 +10068,6 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype["asc_nativeInitBuilder"]                     = asc_docs_api.prototype.asc_nativeInitBuilder;
 	asc_docs_api.prototype["asc_SetSilentMode"]                         = asc_docs_api.prototype.asc_SetSilentMode;
-	asc_docs_api.prototype["asc_addOleObject"]                          = asc_docs_api.prototype.asc_addOleObject;
-	asc_docs_api.prototype["asc_editOleObject"]                         = asc_docs_api.prototype.asc_editOleObject;
 	asc_docs_api.prototype["asc_startEditCurrentOleObject"]             = asc_docs_api.prototype.asc_startEditCurrentOleObject;
 	asc_docs_api.prototype["asc_InputClearKeyboardElement"]             = asc_docs_api.prototype.asc_InputClearKeyboardElement;
 	asc_docs_api.prototype["asc_SpecialPaste"]                          = asc_docs_api.prototype.asc_SpecialPaste;

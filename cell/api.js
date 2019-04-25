@@ -2653,7 +2653,9 @@ var editor;
     if (null != _image){
         var ws = this.wb.getWorksheet();
       if(ws.objectRender){
+        this.asc_canPaste();
         ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+        this.asc_endPaste();
       }
     }
   };
@@ -2664,7 +2666,9 @@ var editor;
     {
       var ws = this.wb.getWorksheet();
       if(ws.objectRender){
+        this.asc_canPaste();
         ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize);
+        this.asc_endPaste();
       }
     }
   };
@@ -3928,8 +3932,6 @@ var editor;
   prot["asc_pluginRun"]             = prot.asc_pluginRun;
   prot["asc_pluginResize"]          = prot.asc_pluginResize;
   prot["asc_pluginButtonClick"]     = prot.asc_pluginButtonClick;
-  prot["asc_addOleObject"]          = prot.asc_addOleObject;
-  prot["asc_editOleObject"]         = prot.asc_editOleObject;
   prot["asc_startEditCurrentOleObject"]         = prot.asc_startEditCurrentOleObject;
   prot["asc_pluginEnableMouseEvents"] = prot.asc_pluginEnableMouseEvents;
 

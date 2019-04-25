@@ -165,7 +165,7 @@
 						}
 						catch(err)
 						{
-							_message = JSON.stringify({ type : data });
+							return false;
 						}
 						window.plugin_sendMessage(_message);
 						return true;
