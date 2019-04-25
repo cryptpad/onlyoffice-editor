@@ -915,6 +915,14 @@
 		return this.WordControl.m_oLogicDocument;
 	};
 
+	asc_docs_api.prototype.isLongAction = function()
+	{
+		if (this.WordControl.m_oLogicDocument)
+			return (0 !== this.IsLongActionCurrent || this.WordControl.m_oLogicDocument.IsActionInProgress());
+
+		return (0 !== this.IsLongActionCurrent);
+	};
+
 	asc_docs_api.prototype.Clear_CollaborativeMarks = function()
 	{
 		AscCommon.CollaborativeEditing.Clear_CollaborativeMarks(true);

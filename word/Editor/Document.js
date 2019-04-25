@@ -2086,6 +2086,14 @@ CDocument.prototype.StartAction = function(nDescription)
 	this.Action.Additional      = {};
 };
 /**
+ * В процессе ли какое-либо действие
+ * @returns {boolean}
+ */
+CDocument.prototype.IsActionInProgress = function()
+{
+	return this.Action.Start;
+};
+/**
  * Сообщаем документу, что потребуется пересчет
  */
 CDocument.prototype.Recalculate2 = function()
