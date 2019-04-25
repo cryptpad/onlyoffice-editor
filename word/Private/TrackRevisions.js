@@ -585,7 +585,7 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-            this.History.Remove_LastPoint();
+			this.FinilizeAction();
             return;
         }
 

@@ -2095,13 +2095,14 @@ CDocument.prototype.IsActionInProgress = function()
 };
 /**
  * Сообщаем документу, что потребуется пересчет
+ * @param {boolean} [isForceRecalculate = false] Запускать ли пересчет прямо сейчас
  */
-CDocument.prototype.Recalculate2 = function()
+CDocument.prototype.Recalculate = function(isForceRecalculate)
 {
-	if (this.Action.Start)
+	if (this.Action.Start && true !== isForceRecalculate)
 		this.Action.Recalculate = true;
 	else
-		this.Recalculate();
+		this.private_Recalculate();
 };
 /**
  * Сообщаем документу, что потребуется обновить состояние селекта
@@ -2210,7 +2211,7 @@ CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
 	{
 		if (this.Action.Recalculate)
 		{
-			this.Recalculate();
+			this.private_Recalculate();
 		}
 		else if (undefined !== this.Action.Redraw.Start && undefined !== this.Action.Redraw.End)
 		{
@@ -2294,7 +2295,7 @@ CDocument.prototype.Is_OnRecalculate = function()
  * @param _RecalcData
  * @param [isForceStrictRecalc=false] {boolean} Запускать ли пересчет первый раз без таймера
  */
-CDocument.prototype.Recalculate = function(_RecalcData, isForceStrictRecalc)
+CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRecalc)
 {
 	if (this.RecalcInfo.Is_NeedRecalculateFromStart())
 	{
@@ -2663,6 +2664,15 @@ CDocument.prototype.Recalculate = function(_RecalcData, isForceStrictRecalc)
 	{
 		this.Recalculate_Page();
 	}
+};
+/**
+ * Запускаем пересчет документа.
+ * @param _RecalcData
+ * @param [isForceStrictRecalc=false] {boolean} Запускать ли пересчет первый раз без таймера
+ */
+CDocument.prototype.RecalculateWithParams = function(oRecalcData, isForceStrictRecalc)
+{
+	this.private_Recalculate(oRecalcData, isForceStrictRecalc);
 };
 /**
  * Пересчитываем следующую страницу.
@@ -10152,7 +10162,7 @@ CDocument.prototype.Document_Undo = function(Options)
 			this.History.Undo(Options);
 			this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
 			this.DrawingObjects.TurnOnCheckChartSelection();
-			this.Recalculate(this.History.RecalculateData);
+			this.RecalculateWithParams(this.History.RecalculateData);
 
 			this.Document_UpdateSelectionState();
 			this.Document_UpdateInterfaceState();
@@ -10178,7 +10188,7 @@ CDocument.prototype.Document_Redo = function()
 		this.History.Redo();
 		this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
 		this.DrawingObjects.TurnOnCheckChartSelection();
-		this.Recalculate(this.History.RecalculateData);
+		this.RecalculateWithParams(this.History.RecalculateData);
 
 		this.Document_UpdateSelectionState();
 		this.Document_UpdateInterfaceState();
@@ -11363,7 +11373,7 @@ CDocument.prototype.RecalculateFromStart = function(bUpdateStates)
 	};
 
 	this.Reset_RecalculateCache();
-	this.Recalculate(RecalculateData, true);
+	this.RecalculateWithParams(RecalculateData, true);
 
 	if (true === bUpdateStates)
 	{
