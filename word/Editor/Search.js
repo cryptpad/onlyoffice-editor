@@ -330,7 +330,7 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 		this.SearchEngine.ClearOnRecalc = false;
 		this.Recalculate();
 		this.SearchEngine.ClearOnRecalc = true;
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 
 	if (bAll && !bInterfaceEvent)

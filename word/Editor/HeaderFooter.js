@@ -2215,7 +2215,7 @@ CHeaderFooterController.prototype =
                     this.CurHdrFtr = HdrFtr;
 
                     this.LogicDocument.Recalculate();
-                    this.LogicDocument.FinilizeAction();
+                    this.LogicDocument.FinalizeAction();
                 }
                 else
                     return false;
@@ -2241,7 +2241,7 @@ CHeaderFooterController.prototype =
 					this.CurHdrFtr = HdrFtr;
 
                     this.LogicDocument.Recalculate();
-                    this.LogicDocument.FinilizeAction();
+                    this.LogicDocument.FinalizeAction();
                 }
                 else
                     return false;

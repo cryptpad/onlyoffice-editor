@@ -6652,7 +6652,7 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 					this.LogicDocument.Recalculate();
 				}
 
-				this.LogicDocument.FinilizeAction();
+				this.LogicDocument.FinalizeAction();
 			}
 		}
 	}
@@ -10588,7 +10588,7 @@ Paragraph.prototype.Change_Frame = function(X, Y, W, H, PageIndex)
 		this.LogicDocument.Recalculate();
 		this.LogicDocument.UpdateInterface();
 		this.LogicDocument.UpdateRulers();
-		this.LogicDocument.FinilizeAction();
+		this.LogicDocument.FinalizeAction();
 	}
 };
 Paragraph.prototype.Supplement_FramePr = function(FramePr)

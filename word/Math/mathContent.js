@@ -5522,7 +5522,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
         }
     }
 
-	oLogicDocument.FinilizeAction();
+	oLogicDocument.FinalizeAction();
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
     var CharCode;

@@ -55,7 +55,7 @@ Asc['asc_docs_api'].prototype.asc_addComment = function(AscCommentData)
 			this.sync_AddComment(Comment.Get_Id(), CommentData);
 		}
 
-		this.WordControl.m_oLogicDocument.FinilizeAction();
+		this.WordControl.m_oLogicDocument.FinalizeAction();
 
 		return Comment.Get_Id();
 	}

@@ -217,7 +217,7 @@ CGraphicObjects.prototype =
 			oLogicDocument.StartAction(nPointType);
             callback.apply(this, args);
 			oLogicDocument.Recalculate();
-			oLogicDocument.FinilizeAction();
+			oLogicDocument.FinalizeAction();
         }
     },
 
@@ -732,7 +732,7 @@ CGraphicObjects.prototype =
             }
             this.document.Recalculate();
             this.document.UpdateUndoRedo();
-            this.document.FinilizeAction();
+            this.document.FinalizeAction();
         }
     },
 
@@ -836,7 +836,7 @@ CGraphicObjects.prototype =
                 this.selection.groupSelection.bringForward();
                 this.document.Recalculate();
                 this.document.UpdateUndoRedo();
-                this.document.FinilizeAction();
+                this.document.FinalizeAction();
             }
         }
         else
@@ -880,7 +880,7 @@ CGraphicObjects.prototype =
                 this.applyZIndex(oCheckObject);
                 this.document.Recalculate();
                 this.document.UpdateUndoRedo();
-                this.document.FinilizeAction();
+                this.document.FinalizeAction();
             }
         }
     },
@@ -895,7 +895,7 @@ CGraphicObjects.prototype =
                 this.selection.groupSelection.sendToBack();
                 this.document.Recalculate();
                 this.document.UpdateUndoRedo();
-                this.document.FinilizeAction();
+                this.document.FinalizeAction();
             }
         }
         else
@@ -918,7 +918,7 @@ CGraphicObjects.prototype =
                 this.applyZIndex(oCheckObject);
                 this.document.Recalculate();
                 this.document.UpdateUndoRedo();
-                this.document.FinilizeAction();
+                this.document.FinalizeAction();
             }
         }
     },
@@ -933,7 +933,7 @@ CGraphicObjects.prototype =
                 this.selection.groupSelection.bringBackward();
                 this.document.Recalculate();
                 this.document.UpdateUndoRedo();
-                this.document.FinilizeAction();
+                this.document.FinalizeAction();
             }
         }
         else
@@ -977,7 +977,7 @@ CGraphicObjects.prototype =
                 this.applyZIndex(oCheckObject);
                 this.document.Recalculate();
                 this.document.UpdateUndoRedo();
-                this.document.FinilizeAction();
+                this.document.FinalizeAction();
             }
         }
     },
@@ -2454,7 +2454,7 @@ CGraphicObjects.prototype =
                 var oContent = oShape.getDocContent();
                 oContent.Set_CurrentElement(0, true);
                 this.updateSelectionState();
-                this.document.FinilizeAction();
+                this.document.FinalizeAction();
             }
             this.clearTrackObjects();
             this.clearPreTrackObjects();
@@ -3765,7 +3765,7 @@ CGraphicObjects.prototype =
                     this.selectedObjects[0].parent.Check_WrapPolygon();
                     this.document.Recalculate();
                     this.document.UpdateInterface();
-                    this.document.FinilizeAction();
+                    this.document.FinalizeAction();
                 }
             }
             this.resetInternalSelection();

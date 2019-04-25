@@ -1301,7 +1301,7 @@ CDocumentFieldsManager.prototype.Restore_MailMergeTemplate = function()
                 var oField = FieldsRemain[nIndex];
                 oField.Restore_Template();
             }
-            LogicDocument.FinilizeAction();
+            LogicDocument.FinalizeAction();
         }
         else
         {
@@ -2192,7 +2192,7 @@ CDocument.prototype.private_Redraw = function(nStartPage, nEndPage)
  * Завершаем действие
  * @param {boolean} [isCheckEmptyAction=true] Нужно ли проверять, что действие ничего не делало
  */
-CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
+CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 {
 	if (!this.Action.Start)
 		return;
@@ -4547,7 +4547,7 @@ CDocument.prototype.Extend_ToPos = function(X, Y)
     LastPara.Document_SetThisElementCurrent(true);
 
     this.Recalculate();
-    this.FinilizeAction();
+    this.FinalizeAction();
 };
 CDocument.prototype.GroupGraphicObjects = function()
 {
@@ -4708,7 +4708,7 @@ CDocument.prototype.AddDropCap = function(bInText)
 		this.Recalculate();
 		this.UpdateInterface();
 		this.UpdateRulers();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.RemoveDropCap = function(bDropCap)
@@ -4770,7 +4770,7 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 			this.Recalculate();
 			this.UpdateInterface();
 			this.UpdateRulers();
-			this.FinilizeAction();
+			this.FinalizeAction();
 		}
 	}
 	else
@@ -4829,7 +4829,7 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 				this.Recalculate();
 				this.UpdateInterface();
 				this.UpdateRulers();
-				this.FinilizeAction();
+				this.FinalizeAction();
 			}
 		}
 		else
@@ -4850,7 +4850,7 @@ CDocument.prototype.RemoveDropCap = function(bDropCap)
 				this.Recalculate();
 				this.UpdateInterface();
 				this.UpdateRulers();
-				this.FinilizeAction();
+				this.FinalizeAction();
 			}
 		}
 	}
@@ -5973,7 +5973,7 @@ CDocument.prototype.Paragraph_SetHighlight = function(IsColor, r, g, b)
 				this.AddToParagraph(new ParaTextPr({HighLight : new CDocumentColor(r, g, b)}));
 
 			this.UpdateInterface();
-			this.FinilizeAction();
+			this.FinalizeAction();
 			editor.sync_MarkerFormatCallback(false);
 		}
 	}
@@ -7107,7 +7107,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 			this.DragAndDropAction = false;
 			this.TrackMoveId       = null;
 
-			this.FinilizeAction(false);
+			this.FinalizeAction(false);
             return;
         }
 
@@ -7160,7 +7160,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
                     this.Document_Undo();
                     this.History.Clear_Redo();
 					this.SetCheckContentControlsLock(true);
-					this.FinilizeAction(false);
+					this.FinalizeAction(false);
                     return;
                 }
             }
@@ -7174,13 +7174,13 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             this.UpdateSelection();
             this.UpdateInterface();
             this.UpdateRulers();
-			this.FinilizeAction();
+			this.FinalizeAction();
         }
         else
 		{
 			this.History.Remove_LastPoint();
 			NearPos.Paragraph.Clear_NearestPosArray();
-			this.FinilizeAction(false);
+			this.FinalizeAction(false);
 		}
 
 		this.SetCheckContentControlsLock(true);
@@ -7706,7 +7706,7 @@ CDocument.prototype.OnKeyDown = function(e)
 
 			this.CheckInlineSdtOnDelete = null;
 
-			this.FinilizeAction();
+			this.FinalizeAction();
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -7727,7 +7727,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.StartAction(AscDFH.historydescription_Document_AddTabToMath);
                 ParaMath.HandleTab(!e.ShiftKey);
                 this.Recalculate();
-                this.FinilizeAction();
+                this.FinalizeAction();
             }
         }
         else if (true === SelectedInfo.Is_InTable() && true != e.CtrlKey)
@@ -7764,14 +7764,14 @@ CDocument.prototype.OnKeyDown = function(e)
                         this.Recalculate();
                         this.UpdateInterface();
                         this.UpdateSelection();
-						this.FinilizeAction();
+						this.FinalizeAction();
                     }
                 }
                 else if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
                 {
                     this.StartAction(AscDFH.historydescription_Document_AddTab);
                     this.AddToParagraph(new ParaTab());
-					this.FinilizeAction();
+					this.FinalizeAction();
                 }
             }
         }
@@ -7852,7 +7852,7 @@ CDocument.prototype.OnKeyDown = function(e)
 						this.AddNewParagraph();
 					}
 				}
-				this.FinilizeAction();
+				this.FinalizeAction();
 			}
 		}
 
@@ -7947,7 +7947,7 @@ CDocument.prototype.OnKeyDown = function(e)
                     this.CheckLanguageOnTextAdd = false;
                 }
             }
-			this.FinilizeAction();
+			this.FinalizeAction();
         }
 
         bRetValue = keydownresult_PreventAll;
@@ -8145,7 +8145,7 @@ CDocument.prototype.OnKeyDown = function(e)
 
 				this.CheckInlineSdtOnDelete = null;
 
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8157,7 +8157,7 @@ CDocument.prototype.OnKeyDown = function(e)
             this.StartAction(AscDFH.historydescription_Document_SetStyleHeading1);
             this.SetParagraphStyle("Heading 1");
             this.UpdateInterface();
-			this.FinilizeAction();
+			this.FinalizeAction();
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -8168,7 +8168,7 @@ CDocument.prototype.OnKeyDown = function(e)
             this.StartAction(AscDFH.historydescription_Document_SetStyleHeading2);
             this.SetParagraphStyle("Heading 2");
             this.UpdateInterface();
-			this.FinilizeAction();
+			this.FinalizeAction();
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -8179,7 +8179,7 @@ CDocument.prototype.OnKeyDown = function(e)
             this.StartAction(AscDFH.historydescription_Document_SetStyleHeading3);
             this.SetParagraphStyle("Heading 3");
             this.UpdateInterface();
-			this.FinilizeAction();
+			this.FinalizeAction();
         }
         bRetValue = keydownresult_PreventAll;
     }
@@ -8193,7 +8193,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.StartAction(AscDFH.historydescription_Document_SetTextStrikeoutHotKey);
                 this.AddToParagraph(new ParaTextPr({Strikeout : TextPr.Strikeout === true ? false : true}));
                 this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8221,7 +8221,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.StartAction(AscDFH.historydescription_Document_SetTextBoldHotKey);
                 this.AddToParagraph(new ParaTextPr({Bold : TextPr.Bold === true ? false : true}));
                 this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8249,7 +8249,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.DrawingDocument.TargetStart();
                 this.DrawingDocument.TargetShow();
                 this.AddToParagraph(new ParaText(0x20AC));
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8272,7 +8272,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.StartAction(AscDFH.historydescription_Document_SetTextItalicHotKey);
                 this.AddToParagraph(new ParaTextPr({Italic : TextPr.Italic === true ? false : true}));
                 this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8298,7 +8298,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.StartAction(AscDFH.historydescription_Document_SetParagraphNumberingHotKey);
                 this.SetParagraphNumbering({Type : 0, SubType : 1});
                 this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8325,7 +8325,7 @@ CDocument.prototype.OnKeyDown = function(e)
             {
                 this.StartAction(AscDFH.historydescription_Document_AddPageNumHotKey);
                 this.AddToParagraph(new ParaPageNum());
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8355,7 +8355,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.StartAction(AscDFH.historydescription_Document_SetTextUnderlineHotKey);
                 this.AddToParagraph(new ParaTextPr({Underline : TextPr.Underline === true ? false : true}));
                 this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8368,7 +8368,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			{
 				this.StartAction(AscDFH.historydescription_Document_FormatPasteHotKey);
 				this.Document_Format_Paste();
-				this.FinilizeAction();
+				this.FinalizeAction();
 			}
 			bRetValue = keydownresult_PreventAll;
 		}
@@ -8454,7 +8454,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 {
                     this.StartAction(AscDFH.historydescription_Document_AddMathHotKey);
                     this.AddToParagraph(new MathMenu(-1));
-					this.FinilizeAction();
+					this.FinalizeAction();
                     bRetValue = keydownresult_PreventAll;
                 }
             }
@@ -8470,7 +8470,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.StartAction(AscDFH.historydescription_Document_SetTextVertAlignHotKey2);
                 this.AddToParagraph(new ParaTextPr({VertAlign : TextPr.VertAlign === AscCommon.vertalign_SuperScript ? AscCommon.vertalign_Baseline : AscCommon.vertalign_SuperScript}));
                 this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8488,7 +8488,7 @@ CDocument.prototype.OnKeyDown = function(e)
             Item.Set_SpaceAfter(false);
 
             this.AddToParagraph(Item);
-			this.FinilizeAction();
+			this.FinalizeAction();
             bRetValue = keydownresult_PreventAll;
         }
     }
@@ -8502,7 +8502,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 this.StartAction(AscDFH.historydescription_Document_SetTextVertAlignHotKey3);
                 this.AddToParagraph(new ParaTextPr({VertAlign : TextPr.VertAlign === AscCommon.vertalign_SubScript ? AscCommon.vertalign_Baseline : AscCommon.vertalign_SubScript}));
                 this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -8532,7 +8532,7 @@ CDocument.prototype.OnKeyDown = function(e)
             this.AddToParagraph(new ParaSpace());
             this.CheckLanguageOnTextAdd = false;
 
-			this.FinilizeAction();
+			this.FinalizeAction();
         }
 
         bRetValue = keydownresult_PreventAll;
@@ -8572,7 +8572,7 @@ CDocument.prototype.OnKeyPress = function(e)
 			this.AddToParagraph(new ParaText(Code));
 			this.CheckLanguageOnTextAdd = false;
 
-			this.FinilizeAction();
+			this.FinalizeAction();
 		}
 		bRetValue = true;
 	}
@@ -8840,7 +8840,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 			{
 				this.StartAction(AscDFH.historydescription_Document_FormatPasteHotKey2);
 				this.Document_Format_Paste();
-				this.FinilizeAction();
+				this.FinalizeAction();
 			}
 
 			if (c_oAscFormatPainterState.kOn === editor.isPaintFormat)
@@ -8870,7 +8870,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 				this.MoveCursorToXY(X, Y, false);
 				this.Document_UpdateSelectionState();
 
-				this.FinilizeAction();
+				this.FinalizeAction();
 
 				editor.sync_MarkerFormatCallback(true);
 			}
@@ -10863,7 +10863,7 @@ CDocument.prototype.TextBox_Put = function(sText, rFonts)
 
 		this.End_SilentMode(true);
 
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -12561,7 +12561,7 @@ CDocument.prototype.private_ToggleParagraphAlignByHotkey = function(Align)
 				Math.Set_Align(Align);
 				this.Recalculate();
 				this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
 			}
 		}
 	}
@@ -12575,7 +12575,7 @@ CDocument.prototype.private_ToggleParagraphAlignByHotkey = function(Align)
 				this.StartAction(AscDFH.historydescription_Document_SetParagraphAlignHotKey);
 				this.SetParagraphAlign(ParaPr.Jc === Align ? (Align === align_Left ? AscCommon.align_Justify : align_Left) : Align);
 				this.UpdateInterface();
-				this.FinilizeAction();
+				this.FinalizeAction();
 			}
 		}
 	}
@@ -12759,7 +12759,7 @@ CDocument.prototype.Update_ColumnsMarkupFromRuler = function(NewMarkup)
 		this.UpdateSelection();
 		this.UpdateInterface();
 		this.UpdateRulers();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
@@ -12852,7 +12852,7 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 		this.UpdateSelection();
 		this.UpdateInterface();
 		this.UpdateRulers();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 	else
 	{
@@ -12872,7 +12872,7 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 			this.UpdateSelection();
 			this.UpdateInterface();
 			this.UpdateRulers();
-			this.FinilizeAction();
+			this.FinalizeAction();
 		}
 	}
 };
@@ -12944,7 +12944,7 @@ CDocument.prototype.Set_SectionProps = function(Props)
 		this.UpdateSelection();
 		this.UpdateInterface();
 		this.UpdateRulers();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.Get_SectionProps = function()
@@ -13002,7 +13002,7 @@ CDocument.prototype.IncreaseIndent = function()
 		this.UpdateSelection();
 		this.UpdateInterface();
 		this.Recalculate();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 /**
@@ -13017,7 +13017,7 @@ CDocument.prototype.DecreaseIndent = function()
 		this.UpdateSelection();
 		this.UpdateInterface();
 		this.Recalculate();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 /**
@@ -13037,7 +13037,7 @@ CDocument.prototype.AddPageCount = function()
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddPageCount);
 		this.AddToParagraph(new ParaPageCount(this.Pages.length));
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -13110,7 +13110,7 @@ CDocument.prototype.Set_MathProps = function(MathProps)
 		this.Recalculate();
 		this.UpdateSelection();
 		this.UpdateInterface();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -13221,7 +13221,7 @@ CDocument.prototype.Begin_CompositeInput = function()
 			}
 		}
 
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 
 	return bResult;
@@ -13243,7 +13243,7 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 	this.Recalculate();
 	this.UpdateSelection();
 	this.UpdateUndoRedo();
-	this.FinilizeAction();
+	this.FinalizeAction();
 
 	this.private_UpdateCursorXY(true, true);
 
@@ -13435,7 +13435,7 @@ CDocument.prototype.AddFootnote = function(sText)
 			this.Footnotes.AddFootnoteRef();
 			this.Recalculate();
 		}
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.RemoveAllFootnotes = function()
@@ -13479,7 +13479,7 @@ CDocument.prototype.RemoveAllFootnotes = function()
 			if (arrRuns.length > 0)
 				arrRuns[0].Make_ThisElementCurrent();
 		}
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.GotoFootnote = function(isNext)
@@ -13565,7 +13565,7 @@ CDocument.prototype.SetFootnotePr = function(oFootnotePr, bApplyToAll)
 		}
 
 		this.Recalculate();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.GetFootnotePr = function()
@@ -16706,7 +16706,7 @@ CDocument.prototype.AddFormTextField = function(sName, sDefaultText)
 		this.Register_Field(oField);
 		this.AddToParagraph(oField);
 		this.UpdateInterface();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.GetAllFormTextFields = function()
@@ -16825,7 +16825,7 @@ CDocument.prototype.RemoveContentControlWrapper = function(Id)
 	this.Recalculate();
 	this.UpdateInterface();
 	this.UpdateSelection();
-	this.FinilizeAction();
+	this.FinalizeAction();
 };
 CDocument.prototype.GetContentControl = function(Id)
 {
@@ -17281,7 +17281,7 @@ CDocument.prototype.UpdateFields = function(isBySelection)
 		this.Recalculate();
 		this.UpdateInterface();
 		this.UpdateSelection();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 
 };
@@ -17389,7 +17389,7 @@ CDocument.prototype.AddBookmark = function(sName)
 
 		// TODO: Здесь добавляются просто метки закладок, нужно сделать упрощенный пересчет
 		this.Recalculate();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 
 };
@@ -17418,7 +17418,7 @@ CDocument.prototype.RemoveBookmark = function(sName)
 
 		// TODO: Здесь добавляются просто метки закладок, нужно сделать упрощенный пересчет
 		this.Recalculate();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.GoToBookmark = function(sName)
@@ -17500,7 +17500,7 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 		this.UpdateInterface();
 		this.UpdateSelection();
 		this.UpdateRulers();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 };
 CDocument.prototype.GetPagesCount = function()
@@ -17760,7 +17760,7 @@ CDocument.prototype.ContinueNumbering = function()
 		this.Recalculate();
 		this.UpdateInterface();
 		this.UpdateSelection();
-		this.FinilizeAction();
+		this.FinalizeAction();
 	}
 
 	return true;
@@ -17845,7 +17845,7 @@ CDocument.prototype.RestartNumbering = function(nRestartValue)
 			this.Recalculate();
 			this.UpdateInterface();
 			this.UpdateSelection();
-			this.FinilizeAction();
+			this.FinalizeAction();
 		}
 	}
 	else
@@ -17882,7 +17882,7 @@ CDocument.prototype.RestartNumbering = function(nRestartValue)
 			this.Recalculate();
 			this.UpdateInterface();
 			this.UpdateSelection();
-			this.FinilizeAction();
+			this.FinalizeAction();
 		}
 	}
 
@@ -18102,7 +18102,7 @@ CDocument.prototype.AddBlankPage = function()
 			this.Recalculate();
 			this.UpdateInterface();
 			this.UpdateSelection();
-			this.FinilizeAction();
+			this.FinalizeAction();
 		}
 	}
 };
@@ -18219,7 +18219,7 @@ CDocument.prototype.AddTableCellFormula = function(sFormula)
 			this.Recalculate();
 			this.UpdateInterface();
 			this.UpdateSelection();
-			this.FinilizeAction();
+			this.FinalizeAction();
 		}
 	}
 	else
@@ -18233,7 +18233,7 @@ CDocument.prototype.AddTableCellFormula = function(sFormula)
 			this.Recalculate();
 			this.UpdateInterface();
 			this.UpdateSelection();
-			this.FinilizeAction();
+			this.FinalizeAction();
 		}
 	}
 

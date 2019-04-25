@@ -615,7 +615,7 @@
 						HtmlPage.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTableMarkup_Hor);
 						_markup.Table.Update_TableMarkupFromRuler(_markup, true, this.TableCurrentMovePos + 1);
 						HtmlPage.m_oLogicDocument.UpdateInterface();
-						HtmlPage.m_oLogicDocument.FinilizeAction();
+						HtmlPage.m_oLogicDocument.FinalizeAction();
 					}
 				}
 				else
@@ -641,7 +641,7 @@
 						HtmlPage.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTableMarkup_Hor);
 						_markup.Table.Update_TableMarkupFromRuler(_markup, false, this.TableCurrentMovePos + 1);
 						HtmlPage.m_oLogicDocument.UpdateInterface();
-						HtmlPage.m_oLogicDocument.FinilizeAction();
+						HtmlPage.m_oLogicDocument.FinalizeAction();
 					}
 				}
 

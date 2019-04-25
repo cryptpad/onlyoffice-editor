@@ -336,7 +336,7 @@ CDocumentOutline.prototype.private_PromoteDemote = function(nIndex, isPromote)
 
 		this.LogicDocument.Recalculate();
 		this.LogicDocument.UpdateInterface();
-		this.LogicDocument.FinilizeAction();
+		this.LogicDocument.FinalizeAction();
 	}
 };
 CDocumentOutline.prototype.InsertHeader = function(nIndex, isBefore)
@@ -360,7 +360,7 @@ CDocumentOutline.prototype.InsertHeader = function(nIndex, isBefore)
 
 		oParagraph.MoveCursorToStartPos(false);
 		oParagraph.Document_SetThisElementCurrent(true);
-		this.LogicDocument.FinilizeAction();
+		this.LogicDocument.FinalizeAction();
 	}
 };
 CDocumentOutline.prototype.InsertSubHeader = function(nIndex)
@@ -387,7 +387,7 @@ CDocumentOutline.prototype.InsertSubHeader = function(nIndex)
 
 		oParagraph.MoveCursorToStartPos(false);
 		oParagraph.Document_SetThisElementCurrent(true);
-		this.LogicDocument.FinilizeAction();
+		this.LogicDocument.FinalizeAction();
 	}
 };
 CDocumentOutline.prototype.private_GetPositionForInsertHeaderBefore = function(nIndex)

@@ -8072,7 +8072,7 @@ CPresentation.prototype.StartAction = function(nDescription)
 {
 	this.Create_NewHistoryPoint(nDescription);
 };
-CPresentation.prototype.FinilizeAction = function()
+CPresentation.prototype.FinalizeAction = function()
 {
 
 };

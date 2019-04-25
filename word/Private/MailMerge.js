@@ -250,7 +250,7 @@ CDocument.prototype.Add_MailMergeField = function(Name)
         this.Register_Field(oField);
         this.AddToParagraph(oField);
         this.UpdateInterface();
-        this.FinilizeAction();
+        this.FinalizeAction();
     }
 };
 CDocument.prototype.Set_HightlighMailMergeFields = function(Value)

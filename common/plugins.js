@@ -978,7 +978,7 @@
 										}
 
 										window.g_asc_plugins.api.asc_Recalculate(true);
-										window.g_asc_plugins.api.WordControl.m_oLogicDocument.FinilizeAction();
+										window.g_asc_plugins.api.WordControl.m_oLogicDocument.FinalizeAction();
 
 										if (window.g_asc_plugins.api.SaveAfterMacros)
 										{
@@ -1042,7 +1042,7 @@
 							else if (AscCommon.c_oEditorId.Word === editorId ||
 								AscCommon.c_oEditorId.Presentation === editorId)
 							{
-								window.g_asc_plugins.api.WordControl.m_oLogicDocument.FinilizeAction();
+								window.g_asc_plugins.api.WordControl.m_oLogicDocument.FinalizeAction();
 							}
 						}
 					}

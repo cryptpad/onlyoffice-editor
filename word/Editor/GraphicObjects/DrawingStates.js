@@ -166,12 +166,12 @@ StartAddNewShape.prototype =
                     shape.selectionSetEnd(e, x, y, pageIndex);
                 }
 
-				oLogicDocument.FinilizeAction();
+				oLogicDocument.FinalizeAction();
             }
             else
             {
                 this.drawingObjects.document.Document_Undo();
-				oLogicDocument.FinilizeAction(false);
+				oLogicDocument.FinalizeAction(false);
             }
         }
         this.drawingObjects.clearTrackObjects();
@@ -237,7 +237,7 @@ NullState.prototype =
                                     wrap_polygon.setArrRelPoints(new_rel_array);
                                     this.drawingObjects.document.Recalculate();
                                     this.drawingObjects.updateOverlay();
-									this.drawingObjects.document.FinilizeAction();
+									this.drawingObjects.document.FinalizeAction();
 								}
                             }
                         }
@@ -530,7 +530,7 @@ MoveInlineObject.prototype =
             {
 				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_MoveInlineObject);
                 this.majorObject.parent.OnEnd_MoveInline(this.InlinePos);
-				this.drawingObjects.document.FinilizeAction();
+				this.drawingObjects.document.FinalizeAction();
             }
         }
         else
@@ -547,7 +547,7 @@ MoveInlineObject.prototype =
                 this.drawingObjects.resetSelection();
                 this.drawingObjects.selectObject(drawing, pageIndex);
                 this.drawingObjects.document.Recalculate();
-				this.drawingObjects.document.FinilizeAction();
+				this.drawingObjects.document.FinalizeAction();
             }
         }
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -639,7 +639,7 @@ RotateState.prototype =
                     this.majorObject.parent.CheckWH();
                 }
                 this.drawingObjects.document.Recalculate();
-				this.drawingObjects.document.FinilizeAction();
+				this.drawingObjects.document.FinalizeAction();
             }
         }
         else
@@ -688,7 +688,7 @@ RotateState.prototype =
                         this.drawingObjects.selectObject(para_drawing.GraphicObj, pageIndex);
                     }
                     this.drawingObjects.document.Recalculate();
-					this.drawingObjects.document.FinilizeAction();
+					this.drawingObjects.document.FinalizeAction();
                 }
             }
             else
@@ -763,7 +763,7 @@ RotateState.prototype =
                         }
                         this.drawingObjects.document.Recalculate();
                     }
-					this.drawingObjects.document.FinilizeAction();
+					this.drawingObjects.document.FinalizeAction();
                 }
             }
         }
@@ -1297,7 +1297,7 @@ MoveInGroupState.prototype =
                 this.group.parent.Set_XY(this.group.posX + posX, this.group.posY + posY, parent_paragraph, this.group.parent.pageIndex, false);
             }
             this.drawingObjects.document.Recalculate();
-			this.drawingObjects.document.FinilizeAction();
+			this.drawingObjects.document.FinalizeAction();
         }
         this.drawingObjects.clearTrackObjects();
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -1640,7 +1640,7 @@ ChangeWrapContour.prototype.onMouseUp = function(e, x, y, pageIndex)
         this.majorObject.parent.wrappingPolygon.setEdited(true);
         this.majorObject.parent.wrappingPolygon.setArrRelPoints(calc_points2);
         this.drawingObjects.document.Recalculate();
-		this.drawingObjects.document.FinilizeAction();
+		this.drawingObjects.document.FinalizeAction();
     }
     this.drawingObjects.clearTrackObjects();
     this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -1735,7 +1735,7 @@ ChangeWrapContourAddPoint.prototype.onMouseUp = function(e, x, y, pageIndex)
         this.majorObject.parent.wrappingPolygon.setEdited(true);
         this.majorObject.parent.wrappingPolygon.setArrRelPoints(calc_points2);
         this.drawingObjects.document.Recalculate();
-		this.drawingObjects.document.FinilizeAction();
+		this.drawingObjects.document.FinalizeAction();
     }
     this.drawingObjects.clearTrackObjects();
     this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));

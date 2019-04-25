@@ -2498,7 +2498,7 @@ CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
     LastPara.Document_SetThisElementCurrent(true);
 
     this.LogicDocument.Recalculate();
-    this.LogicDocument.FinilizeAction();
+    this.LogicDocument.FinalizeAction();
 };
 CDocumentContent.prototype.AddInlineImage = function(W, H, Img, Chart, bFlow)
 {

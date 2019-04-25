@@ -2356,7 +2356,7 @@ function CHorRuler()
 		{
 			this.m_oWordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphTabs);
 			this.m_oWordControl.m_oLogicDocument.SetParagraphTabs(_arr);
-			this.m_oWordControl.m_oLogicDocument.FinilizeAction();
+			this.m_oWordControl.m_oLogicDocument.FinalizeAction();
 		}
 	}
 
@@ -2371,7 +2371,7 @@ function CHorRuler()
 				FirstLine : (this.m_dIndentLeftFirst - this.m_dIndentLeft)
 			});
 			this.m_oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
-			this.m_oWordControl.m_oLogicDocument.FinilizeAction();
+			this.m_oWordControl.m_oLogicDocument.FinalizeAction();
 		}
 	}
     this.SetMarginProperties = function()
@@ -2380,7 +2380,7 @@ function CHorRuler()
         {
             this.m_oWordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetDocumentMargin_Hor);
             this.m_oWordControl.m_oLogicDocument.Set_DocumentMargin( { Left : this.m_dMarginLeft, Right : this.m_dMarginRight });
-			this.m_oWordControl.m_oLogicDocument.FinilizeAction();
+			this.m_oWordControl.m_oLogicDocument.FinalizeAction();
         }
         //oWordControl.m_oLogicDocument.SetParagraphIndent( { Left : this.m_dIndentLeft, Right : this.m_dIndentRight,
         //    FirstLine: (this.m_dIndentLeftFirst - this.m_dIndentLeft) } );
@@ -2399,7 +2399,7 @@ function CHorRuler()
 
             this.m_oWordControl.m_oLogicDocument.UpdateInterface();
             this.m_oWordControl.m_oLogicDocument.UpdateRulers();
-			this.m_oWordControl.m_oLogicDocument.FinilizeAction();
+			this.m_oWordControl.m_oLogicDocument.FinalizeAction();
         }
     }
 
@@ -3807,7 +3807,7 @@ function CVerRuler()
         {
             this.m_oWordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetDocumentMargin_Ver);
             this.m_oWordControl.m_oLogicDocument.Set_DocumentMargin( { Top : this.m_dMarginTop, Bottom : this.m_dMarginBottom });
-			this.m_oWordControl.m_oLogicDocument.FinilizeAction();
+			this.m_oWordControl.m_oLogicDocument.FinalizeAction();
         }
     }
     this.SetHeaderProperties = function()
@@ -3819,7 +3819,7 @@ function CVerRuler()
 
             this.m_oWordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetHdrFtrBounds);
             this.m_oWordControl.m_oLogicDocument.Document_SetHdrFtrBounds(this.header_top, this.header_bottom);
-			this.m_oWordControl.m_oLogicDocument.FinilizeAction();
+			this.m_oWordControl.m_oLogicDocument.FinalizeAction();
         }
     }
     this.SetTableProperties = function()
@@ -3833,7 +3833,7 @@ function CVerRuler()
             if (this.m_oTableMarkup)
                 this.m_oTableMarkup.CorrectFrom();
 
-			this.m_oWordControl.m_oLogicDocument.FinilizeAction();
+			this.m_oWordControl.m_oLogicDocument.FinalizeAction();
         }
     }
 }

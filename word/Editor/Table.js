@@ -2780,7 +2780,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 				oTargetTable.PositionV_Old = undefined;
 			}
 
-			oLogicDocument.FinilizeAction();
+			oLogicDocument.FinalizeAction();
 		}
 	}
 	else
@@ -2853,7 +2853,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 				editor.WordControl.m_oLogicDocument.Recalculate();
 			}
 			oTargetTable.Start_TrackTable();
-			oLogicDocument.FinilizeAction();
+			oLogicDocument.FinalizeAction();
 		}
 	}
 	editor.WordControl.m_oLogicDocument.RemoveSelection();
@@ -5306,7 +5306,7 @@ CTable.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent)
 				}
 
 				LogicDocument.Recalculate();
-				LogicDocument.FinilizeAction();
+				LogicDocument.FinalizeAction();
 			}
 
 			this.Selection.Type2 = table_Selection_Common;
@@ -6956,7 +6956,7 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 					this.LogicDocument.StartAction(AscDFH.historydescription_Document_TableAddNewRowByTab);
 					this.AddTableRow(false);
 					this.LogicDocument.Recalculate();
-					this.LogicDocument.FinilizeAction();
+					this.LogicDocument.FinalizeAction();
 				}
 				else
 					return;
@@ -13853,7 +13853,7 @@ CTable.prototype.ResizeTableInDocument = function(nWidth, nHeight)
 	this.LogicDocument.Recalculate();
 	this.Start_TrackTable();
 	this.LogicDocument.UpdateSelection();
-	this.LogicDocument.FinilizeAction();
+	this.LogicDocument.FinalizeAction();
 };
 /**
  * Получаем минимальную ширину таблицы

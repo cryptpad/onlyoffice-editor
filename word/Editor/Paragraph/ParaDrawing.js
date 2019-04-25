@@ -2644,7 +2644,7 @@ ParaDrawing.prototype.private_ConvertToMathObject = function(isOpen)
 			LogicDocument.Recalculate();
 			LogicDocument.UpdateSelection();
 			LogicDocument.UpdateInterface();
-			LogicDocument.FinilizeAction();
+			LogicDocument.FinalizeAction();
 		}
 	}
 };

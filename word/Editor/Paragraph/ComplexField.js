@@ -409,7 +409,7 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 
 	if (isCreateHistoryPoint)
 	{
-		this.LogicDocument.FinilizeAction();
+		this.LogicDocument.FinalizeAction();
 	}
 };
 CComplexField.prototype.private_UpdateFORMULA = function()

@@ -89,7 +89,7 @@ CDocument.prototype.Add_NewStyle = function(oStyle)
         this.SetParagraphStyle(NewStyle.Get_Name());
         this.Recalculate();
         this.UpdateInterface();
-        this.FinilizeAction();
+        this.FinalizeAction();
     }
 };
 /**
@@ -108,7 +108,7 @@ CDocument.prototype.Remove_Style = function(sStyleName)
         this.Styles.Remove_StyleFromInterface(StyleId);
         this.Recalculate();
         this.UpdateInterface();
-        this.FinilizeAction();
+        this.FinalizeAction();
     }
 };
 /**
@@ -122,7 +122,7 @@ CDocument.prototype.Remove_AllCustomStyles = function()
         this.Styles.Remove_AllCustomStylesFromInterface();
         this.Recalculate();
         this.UpdateInterface();
-        this.FinilizeAction();
+        this.FinalizeAction();
     }
 };
 /**

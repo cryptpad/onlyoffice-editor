@@ -449,7 +449,7 @@ CDocument.prototype.AcceptRevisionChange = function(oChange)
                 this.AcceptRevisionChanges(oChange.GetType(), false);
             }
 
-            this.FinilizeAction();
+            this.FinalizeAction();
 		}
 	}
 };
@@ -519,7 +519,7 @@ CDocument.prototype.RejectRevisionChange = function(oChange)
                 this.RejectRevisionChanges(oChange.GetType(), false);
             }
 
-            this.FinilizeAction();
+            this.FinalizeAction();
 		}
 	}
 };
@@ -538,7 +538,7 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
         {
             this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
             this.AcceptRevisionChanges(undefined, false);
-            this.FinilizeAction();
+            this.FinalizeAction();
         }
     }
 
@@ -560,7 +560,7 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
         {
             this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
             this.RejectRevisionChanges(undefined, false);
-            this.FinilizeAction();
+            this.FinalizeAction();
         }
     }
 
@@ -585,7 +585,7 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-			this.FinilizeAction();
+			this.FinalizeAction();
             return;
         }
 
@@ -594,7 +594,7 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
         this.Recalculate();
         this.UpdateSelection();
         this.UpdateInterface();
-        this.FinilizeAction();
+        this.FinalizeAction();
     }
 };
 CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
@@ -608,7 +608,7 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-			this.FinilizeAction();
+			this.FinalizeAction();
             return;
         }
 
@@ -617,7 +617,7 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
         this.Recalculate();
         this.UpdateSelection();
         this.UpdateInterface();
-        this.FinilizeAction();
+        this.FinalizeAction();
     }
 };
 CDocument.prototype.private_RejectAllRevisionChanges = function()

@@ -10681,7 +10681,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 			this.AddToContent(nPos, new ParaText(nCharCode));
 			this.State.ContentPos = nPos + 1;
 
-			oDocument.FinilizeAction();
+			oDocument.FinalizeAction();
 
 			return true;
 		}
@@ -10721,7 +10721,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 					}
 				}
 
-				oDocument.FinilizeAction();
+				oDocument.FinalizeAction();
 				return true;
 			}
 		}
@@ -10843,7 +10843,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 				oParagraph.ApplyNumPr(oNumPr.NumId, oNumPr.Lvl);
 
 				oDocument.Recalculate();
-				oDocument.FinilizeAction();
+				oDocument.FinalizeAction();
 			}
 		}
 	}
