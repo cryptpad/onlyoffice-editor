@@ -8075,6 +8075,45 @@ CPresentation.prototype.FinilizeAction = function()
 };
 
 
+CPresentation.prototype.IsActionInProgress = function()
+{
+};
+/**
+ * Сообщаем документу, что потребуется пересчет
+ */
+CPresentation.prototype.Recalculate2 = function()
+{
+    this.Recalculate();
+};
+/**
+ * Сообщаем документу, что потребуется обновить состояние селекта
+ */
+CPresentation.prototype.UpdateSelection = function()
+{
+    this.Document_UpdateSelectionState();
+};
+/**
+ * Сообщаем документу, что потребуется обновить состояние интерфейса
+ */
+CPresentation.prototype.UpdateInterface = function()
+{
+    this.Document_UpdateInterfaceState();
+};
+/**
+ * Сообщаем документу, что потребуется обновить линейки
+ */
+CPresentation.prototype.UpdateRulers = function()
+{
+    this.Document_UpdateRulersState();
+};
+/**
+ * Сообщаем документу, что потребуется обновить состояние кнопки Unddo/Redo
+ */
+CPresentation.prototype.UpdateUndoRedo = function()
+{
+    this.Document_UpdateUndoRedoState();
+};
+
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting)
 {
     var oSp;
