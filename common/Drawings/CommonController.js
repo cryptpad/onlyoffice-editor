@@ -8779,6 +8779,7 @@ DrawingObjectsController.prototype =
         var ascSelectedObjects = [];
 
         var ret = [], i, bParaLocked = false;
+        var oDrawingDocument = this.drawingObjects && this.drawingObjects.drawingDocument;
         if(isRealObject(props.shapeChartProps))
         {
             shape_props = new Asc.asc_CImgProperty();
@@ -8803,20 +8804,24 @@ DrawingObjectsController.prototype =
             shape_props.Height = props.shapeChartProps.h;
             var pr = shape_props.ShapeProperties;
             var oTextArtProperties;
-            if (!isRealObject(props.shapeProps))
+            if (!isRealObject(props.shapeProps) && oDrawingDocument)
             {
                 if (pr.fill != null && pr.fill.fill != null && pr.fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
                 {
                     if(api)
-                        this.drawingObjects.drawingDocument.InitGuiCanvasShape(api.shapeElementId);
-                    this.drawingObjects.drawingDocument.LastDrawingUrl = null;
-                    this.drawingObjects.drawingDocument.DrawImageTextureFillShape(pr.fill.fill.RasterImageId);
+                    {
+                        oDrawingDocument.InitGuiCanvasShape(api.shapeElementId);
+                    }
+                    oDrawingDocument.LastDrawingUrl = null;
+                    oDrawingDocument.DrawImageTextureFillShape(pr.fill.fill.RasterImageId);
                 }
                 else
                 {
                     if(api)
-                        this.drawingObjects.drawingDocument.InitGuiCanvasShape(api.shapeElementId);
-                    this.drawingObjects.drawingDocument.DrawImageTextureFillShape(null);
+                    {
+                        oDrawingDocument.InitGuiCanvasShape(api.shapeElementId);
+                    }
+                    oDrawingDocument.DrawImageTextureFillShape(null);
                 }
 
 
@@ -8826,13 +8831,15 @@ DrawingObjectsController.prototype =
                     if(oTextArtProperties && oTextArtProperties.Fill && oTextArtProperties.Fill.fill  && oTextArtProperties.Fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
                     {
                         if(api)
-                            this.drawingObjects.drawingDocument.InitGuiCanvasTextArt(api.textArtElementId);
-                        this.drawingObjects.drawingDocument.LastDrawingUrlTextArt = null;
-                        this.WordControl.m_oDrawingDocument.DrawImageTextureFillTextArt(oTextArtProperties.Fill.fill.RasterImageId);
+                        {
+                            oDrawingDocument.InitGuiCanvasTextArt(api.textArtElementId);
+                        }
+                        oDrawingDocument.LastDrawingUrlTextArt = null;
+                        oDrawingDocument.DrawImageTextureFillTextArt(oTextArtProperties.Fill.fill.RasterImageId);
                     }
                     else
                     {
-                        this.WordControl.m_oDrawingDocument.DrawImageTextureFillTextArt(null);
+                        oDrawingDocument.DrawImageTextureFillTextArt(null);
                     }
                 }
 
@@ -8868,19 +8875,21 @@ DrawingObjectsController.prototype =
 
             shape_props.ShapeProperties.columnNumber = props.shapeProps.columnNumber;
             shape_props.ShapeProperties.columnSpace = props.shapeProps.columnSpace;
-            if(props.shapeProps.textArtProperties)
+            if(props.shapeProps.textArtProperties && oDrawingDocument)
             {
                 oTextArtProperties = props.shapeProps.textArtProperties;
                 if(oTextArtProperties && oTextArtProperties.Fill && oTextArtProperties.Fill.fill  && oTextArtProperties.Fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
                 {
                     if(api)
-                        this.drawingObjects.drawingDocument.InitGuiCanvasTextArt(api.textArtElementId);
-                    this.drawingObjects.drawingDocument.LastDrawingUrlTextArt = null;
-                    this.drawingObjects.drawingDocument.DrawImageTextureFillTextArt(oTextArtProperties.Fill.fill.RasterImageId);
+                    {
+                        oDrawingDocument.InitGuiCanvasTextArt(api.textArtElementId);
+                    }
+                    oDrawingDocument.LastDrawingUrlTextArt = null;
+                    oDrawingDocument.DrawImageTextureFillTextArt(oTextArtProperties.Fill.fill.RasterImageId);
                 }
                 else
                 {
-                    this.drawingObjects.drawingDocument.DrawImageTextureFillTextArt(null);
+                    oDrawingDocument.DrawImageTextureFillTextArt(null);
                 }
             }
 
@@ -8897,18 +8906,25 @@ DrawingObjectsController.prototype =
             shape_props.flipH = props.shapeProps.flipH;
             shape_props.flipV = props.shapeProps.flipV;
             var pr = shape_props.ShapeProperties;
-            if (pr.fill != null && pr.fill.fill != null && pr.fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
+            if(oDrawingDocument)
             {
-                if(api)
-                    this.drawingObjects.drawingDocument.InitGuiCanvasShape(api.shapeElementId);
-                this.drawingObjects.drawingDocument.LastDrawingUrl = null;
-                this.drawingObjects.drawingDocument.DrawImageTextureFillShape(pr.fill.fill.RasterImageId);
-            }
-            else
-            {
-                if(api)
-                    this.drawingObjects.drawingDocument.InitGuiCanvasShape(api.shapeElementId);
-                this.drawingObjects.drawingDocument.DrawImageTextureFillShape(null);
+                if (pr.fill != null && pr.fill.fill != null && pr.fill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
+                {
+                    if(api)
+                    {
+                        oDrawingDocument.InitGuiCanvasShape(api.shapeElementId);
+                    }
+                    oDrawingDocument.LastDrawingUrl = null;
+                    oDrawingDocument.DrawImageTextureFillShape(pr.fill.fill.RasterImageId);
+                }
+                else
+                {
+                    if(api)
+                    {
+                        oDrawingDocument.InitGuiCanvasShape(api.shapeElementId);
+                    }
+                    oDrawingDocument.DrawImageTextureFillShape(null);
+                }
             }
             shape_props.ShapeProperties.fill = AscFormat.CreateAscFill(shape_props.ShapeProperties.fill);
             shape_props.ShapeProperties.stroke = AscFormat.CreateAscStroke(shape_props.ShapeProperties.stroke, shape_props.ShapeProperties.canChangeArrows === true);
@@ -8948,6 +8964,7 @@ DrawingObjectsController.prototype =
                 bParaLocked = image_props.Locked;
             }
             ret.push(image_props);
+            this.sendCropState();
         }
         if (isRealObject(props.chartProps) && isRealObject(props.chartProps.chartProps))
         {
