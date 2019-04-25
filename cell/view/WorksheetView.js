@@ -15904,7 +15904,7 @@
 			}
 			if(bHidden) {
 				bCol ? range.c1-- : range.r1--;
-			}
+			}*/
 			if(bCol) {
 				checkHidden(this.model._getCol(range.c2));
 			} else {
@@ -15912,7 +15912,7 @@
 			}
 			if(bHidden) {
 				bCol ? range.c2++ : range.r2++;
-			}*/
+			}
 		}
 
 		this._drawGroupDataMenu(drawingCtx, bCol);

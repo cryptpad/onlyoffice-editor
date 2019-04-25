@@ -4448,14 +4448,14 @@
 			History.SetSelectionRedo(oSelection);
 		}
 
-		var oThis = this, prevCol;
+		var oThis = this/*, prevCol*/;
 		var fProcessCol = function(col){
 			if(col.width != width)
 			{
-				if(col.getCollapsed()) {
+				/*if(col.getCollapsed()) {
 					oThis.setCollapsedCol(false, null, col);
 				}
-				prevCol = col;
+				prevCol = col;*/
 
 				var oOldProps = col.getWidthProp();
 				col.width = width;
@@ -4487,12 +4487,12 @@
 				fProcessCol(col);
 			}
 
-			if(prevCol) {
+			/*if(prevCol) {
 				col = this._getCol(stop + 1);
 				if(col.getCollapsed()) {
 					this.setCollapsedCol(false, null, col);
 				}
-			}
+			}*/
 		}
 	};
 	Worksheet.prototype.getColHidden=function(index){
@@ -4506,13 +4506,13 @@
 		if(null == stop)
 			stop = start;
 		History.Create_NewPoint();
-		var oThis = this, outlineLevel;
+		var oThis = this/*, outlineLevel*/;
 		var fProcessCol = function(col){
 
-			if(outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
+			/*if(outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
 				oThis.setCollapsedCol(bHidden, null, col);
-			}
-			outlineLevel = col ? col.getOutlineLevel() : null;
+			}*/
+			//outlineLevel = col ? col.getOutlineLevel() : null;
 
 			if(col.getHidden() != bHidden)
 			{
@@ -4566,15 +4566,15 @@
 			}
 		}
 
-		if(/*bHidden && */outlineLevel) {
+		/*if(outlineLevel) {
 			col = this._getCol(stop + 1);
 			if(col && outlineLevel !== col.getOutlineLevel()) {
 				oThis.setCollapsedCol(bHidden, null, col);
 			}
-		}
+		}*/
 	};
+	//TODO если collapsed не будет выставляться и заносится, удалить
 	Worksheet.prototype.setCollapsedCol = function (bCollapse, colIndex, curCol) {
-		return;
 		var oThis = this;
 		var fProcessCol = function(col){
 			var oOldProps = col.getCollapsed();
@@ -4730,14 +4730,14 @@
 			History.SetSelection(oSelection);
 			History.SetSelectionRedo(oSelection);
 		}
-		var prevRow;
+		/*var prevRow;*/
 		var fProcessRow = function(row){
 			if(row)
 			{
-				if(row.getCollapsed()) {
+				/*if(row.getCollapsed()) {
 					oThis.setCollapsedRow(false, null, row);
 				}
-				prevRow = row;
+				prevRow = row;*/
 
 				var oOldProps = row.getHeightProp();
 				row.setHeight(height);
@@ -4760,13 +4760,13 @@
 		{
 			this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
 
-			if(prevRow) {
+			/*if(prevRow) {
 				this._getRow(stop + 1, function(row) {
 					if(row.getCollapsed()) {
 						oThis.setCollapsedRow(false, null, row);
 					}
 				});
-			}
+			}*/
 		}
 		this.workbook.dependencyFormulas.calcTree();
 	};
@@ -4785,13 +4785,13 @@
 			stop = start;
 		History.Create_NewPoint();
 		var oThis = this, i;
-		var startIndex = null, endIndex = null, updateRange, outlineLevel;
+		var startIndex = null, endIndex = null, updateRange/*, outlineLevel*/;
 
 		var fProcessRow = function(row){
-			if(outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
+			/*if(outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
 				oThis.setCollapsedRow(bHidden, null, row);
 			}
-			outlineLevel = row ? row.getOutlineLevel() : null;
+			outlineLevel = row ? row.getOutlineLevel() : null;*/
 
 			if(row && bHidden != row.getHidden())
 			{
@@ -4822,13 +4822,13 @@
 				false == bHidden ? this._getRowNoEmpty(i, fProcessRow) : this._getRow(i, fProcessRow);
 			}
 
-			if(/*bHidden && */outlineLevel) {
+			/*if(outlineLevel) {
 				this._getRow(stop + 1, function(row) {
 					if(row && outlineLevel !== row.getOutlineLevel()) {
 						oThis.setCollapsedRow(bHidden, null, row);
 					}
 				});
-			}
+			}*/
 
 			if(startIndex !== null)//заносим последние строки
 			{
@@ -4838,8 +4838,8 @@
 		}
 		this.workbook.dependencyFormulas.calcTree();
 	};
+	//TODO
 	Worksheet.prototype.setCollapsedRow = function (bCollapse, rowIndex, curRow) {
-		return;
 		var oThis = this;
 		var fProcessRow = function(row){
 			var oOldProps = row.getCollapsed();
