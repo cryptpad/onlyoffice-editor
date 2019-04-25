@@ -1212,14 +1212,14 @@
 				fPos = undefined;
 				fName = undefined;
 			}
-			fCurrent = this._getEditableFunction(this._parseResult);
+			fCurrent = this._getEditableFunction(this._parseResult).func;
 		}
 
 		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName);
 		this.handlers.trigger("updatedEditableFunction", fCurrent);
 	};
 
-	CellEditor.prototype._getEditableFunction = function (parseResult) {
+	CellEditor.prototype._getEditableFunction = function (parseResult, bEndCurPos) {
 		var findOpenFunc = [], editableFunction = null, level = -1;
 		if(!parseResult) {
 			//в этом случае запускаю парсинг формулы до текущей позиции
@@ -1232,9 +1232,11 @@
 				var bbox = this.options.bbox;
 
 				var endPos = pos;
-				for(var n = pos; n < s.length; n++) {
-					if("(" === s[n]) {
-						endPos = n;
+				if(!bEndCurPos) {
+					for(var n = pos; n < s.length; n++) {
+						if("(" === s[n]) {
+							endPos = n;
+						}
 					}
 				}
 
@@ -1275,9 +1277,8 @@
 				}
 			}
 		}
-		//console.log(editableFunction);
 
-		return editableFunction;
+		return {func: editableFunction, argPos: parseResult ? parseResult.argPos : null};
 	};
 
 	CellEditor.prototype._expandWidth = function () {
@@ -1558,6 +1559,8 @@
 		if (this.isTopLineActive && !this.skipTLUpdate) {
 			this._updateTopLineCurPos();
 		}
+		//var fCurrent = this._getEditableFunction(null, true);
+		//console.log("func: " + fCurrent.func + " arg: " + fCurrent.argPos);
 		this._updateSelectionInfo();
 	};
 

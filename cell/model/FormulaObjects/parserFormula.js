@@ -5032,6 +5032,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 		this.elems = elems;
 		this.error = undefined;
 		this.operand_expected = undefined;
+		this.argPos = undefined;
 	}
 
 	ParseResult.prototype.addRefPos = function(start, end, index, oper, isName) {
@@ -5660,6 +5661,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			elemArr.push(cFormulaOperators[ph.operand_str].prototype);
 			parseResult.addElem(cFormulaOperators[ph.operand_str].prototype);
 			leftParentArgumentsCurrentArr[elemArr.length - 1] = 1;
+			parseResult.argPos = 1;
 
 			if(startSumproduct){
 				counterSumproduct++;
@@ -5728,6 +5730,7 @@ parserFormula.prototype.setFormula = function(formula) {
 						return false;
 					}
 				}
+				parseResult.argPos = leftParentArgumentsCurrentArr[elemArr.length - 1];
 			} else if(wasLeftParentheses && 0 === top_elem_arg_count && elemArr[elemArr.length - 1] && " " === elemArr[elemArr.length - 1].name && !ignoreErrors) {
 				//intersection with empty range
 				t.outStack = [];
@@ -5797,6 +5800,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				return false;
 			}
 			leftParentArgumentsCurrentArr[top_elem_arg_pos]++;
+			parseResult.argPos = leftParentArgumentsCurrentArr[top_elem_arg_pos];
 			parseResult.operand_expected = true;
 			return true;
 		};
@@ -5894,7 +5898,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				parseResult.operand_expected = true;
 			}
 
-			if (!parseResult.operand_expected) {
+			if (!parseResult.operand_expected && !ignoreErrors) {
 				parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
 				t.outStack = [];
 				return false;
