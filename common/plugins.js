@@ -1031,10 +1031,18 @@
 											_iframe.contentWindow.postMessage(pluginData.serialize(), "*");
 									});
 							}
-						} else {
-							if (AscCommon.c_oEditorId.Spreadsheet === editorId) {
+						}
+						else
+						{
+							if (AscCommon.c_oEditorId.Spreadsheet === editorId)
+							{
 								// На asc_canPaste создается точка в истории и startTransaction. Поэтому нужно ее закрыть без пересчета.
 								window.g_asc_plugins.api.asc_endPaste();
+							}
+							else if (AscCommon.c_oEditorId.Word === editorId ||
+								AscCommon.c_oEditorId.Presentation === editorId)
+							{
+								window.g_asc_plugins.api.WordControl.m_oLogicDocument.FinilizeAction();
 							}
 						}
 					}
