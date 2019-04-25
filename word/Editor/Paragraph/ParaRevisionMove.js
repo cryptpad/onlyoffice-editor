@@ -161,7 +161,7 @@ CParaRevisionMove.prototype.PreDelete = function()
 {
 	var oParagraph = this.GetParagraph();
 	if (oParagraph && oParagraph.LogicDocument)
-		oParagraph.RemoveTrackMoveMarks();
+		oParagraph.LogicDocument.RemoveTrackMoveMarks(this.GetMarkId());
 };
 
 
@@ -265,6 +265,15 @@ CRunRevisionMove.prototype.GetRun = function()
 CRunRevisionMove.prototype.GetReviewInfo = function()
 {
 	return this.ReviewInfo;
+};
+CRunRevisionMove.prototype.PreDelete = function()
+{
+	var oRun = this.GetRun();
+	var oParagraph = oRun ? oRun.GetParagraph() : null;
+	var oLogicDocument = oParagraph ? oParagraph.LogicDocument : null;
+
+	if (oLogicDocument)
+		oLogicDocument.RemoveTrackMoveMarks(this.GetMarkId());
 };
 
 //--------------------------------------------------------export----------------------------------------------------

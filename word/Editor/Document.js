@@ -2190,7 +2190,7 @@ CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
 
 
 	// Дополнительная обработка
-	if (this.Action.Additional.TrackMarks)
+	if (this.Action.Additional.TrackMove)
 	{
 		function privateRemoveMark(oMark)
 		{
@@ -2204,14 +2204,16 @@ CDocument.prototype.FinilizeAction = function(isCheckEmptyAction)
 			}
 		}
 
-		for (var sMoveId in this.Action.Additional.TrackMarks)
+		for (var sMoveId in this.Action.Additional.TrackMove)
 		{
-			var oMarks = this.Action.Additional.TrackMarks[sMoveId];
+			var oMarks = this.Action.Additional.TrackMove[sMoveId];
 			privateRemoveMark(oMarks.To.Start);
 			privateRemoveMark(oMarks.To.End);
 			privateRemoveMark(oMarks.From.Start);
 			privateRemoveMark(oMarks.From.End);
 		}
+
+		this.Action.Recalculate = true;
 	}
 
 	if (false !== isCheckEmptyAction && this.History.Is_LastPointEmpty())
