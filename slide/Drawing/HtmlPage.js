@@ -3015,7 +3015,7 @@ function CEditorPage(api)
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_Before();
 
-		if (true)
+		if (this.Splitter1Pos > 0.1)
 		{
             var maxSplitterThMax = g_dKoef_pix_to_mm * this.Width / 3;
             if (maxSplitterThMax > 80)
