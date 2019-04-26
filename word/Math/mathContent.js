@@ -5424,7 +5424,10 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
         var bFindFunction = false;
         // var bFindFunction = oAutoCorrectControl.FindFunction(false);
         if (false === bFindFunction)
-            return false;
+		{
+			oLogicDocument.FinalizeAction();
+			return false;
+		}
         if (oAutoCorrectControl.Type === MATH_DELIMITER && oAutoCorrectControl.BrAccount.LBracket === 0x28 && oAutoCorrectControl.BrAccount.RBracket === 0x29)
             oAutoCorrectControl.AutoCorrectDelimiter(AutoCorrectEngine, false);
         else if (oAutoCorrectControl.Type === MATH_MATRIX)

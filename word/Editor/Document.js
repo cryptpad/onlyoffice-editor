@@ -1634,6 +1634,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 
 	this.Action = {
 		Start           : false,
+		Depth           : 0,
+		PointsCount     : 0,
 		Recalculate     : false,
 		UpdateSelection : false,
 		UpdateInterface : false,
@@ -1644,9 +1646,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 			End   : undefined
 		},
 
-		Additional : {
-
-		}
+		Additional : {}
 	};
 
     if (false !== isMainLogicDocument)
@@ -2075,16 +2075,26 @@ CDocument.prototype.StartAction = function(nDescription)
 {
 	this.History.Create_NewPoint(nDescription);
 
-	this.Action.Start           = true;
-	this.Action.Recalculate     = false;
-	this.Action.UpdateSelection = false;
-	this.Action.UpdateInterface = false;
-	this.Action.UpdateRulers    = false;
-	this.Action.UpdateUndoRedo  = false;
-	this.Action.UpdateTracks    = false;
-	this.Action.Redraw.Start    = undefined;
-	this.Action.Redraw.End      = undefined;
-	this.Action.Additional      = {};
+	if (true === this.Action.Start)
+	{
+		this.Action.Depth++;
+		this.Action.PointsCount++;
+	}
+	else
+	{
+		this.Action.Start           = true;
+		this.Action.Depth           = 0;
+		this.Action.PointsCount     = 1;
+		this.Action.Recalculate     = false;
+		this.Action.UpdateSelection = false;
+		this.Action.UpdateInterface = false;
+		this.Action.UpdateRulers    = false;
+		this.Action.UpdateUndoRedo  = false;
+		this.Action.UpdateTracks    = false;
+		this.Action.Redraw.Start    = undefined;
+		this.Action.Redraw.End      = undefined;
+		this.Action.Additional      = {};
+	}
 };
 /**
  * В процессе ли какое-либо действие
@@ -2208,17 +2218,40 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	if (!this.Action.Start)
 		return;
 
+	if (this.Action.Depth > 0)
+	{
+		this.Action.Depth--;
+		return;
+	}
+
 	// Дополнительная обработка-----------------------------------------------------------------------------------------
 	if (this.Action.Additional.TrackMove)
 		this.private_FinalizeRemoveTrackMove();
 
 	//------------------------------------------------------------------------------------------------------------------
 
-	if (false !== isCheckEmptyAction && this.History.Is_LastPointEmpty())
+	var isAllPointsEmpty = true;
+	if (false !== isCheckEmptyAction)
 	{
-		this.History.Remove_LastPoint();
+		for (var nIndex = 0, nPointsCount = this.Action.PointsCount; nIndex < nPointsCount; ++nIndex)
+		{
+			if (this.History.Is_LastPointEmpty())
+			{
+				this.History.Remove_LastPoint();
+			}
+			else
+			{
+				isAllPointsEmpty = false;
+				break;
+			}
+		}
 	}
 	else
+	{
+		isAllPointsEmpty = false;
+	}
+
+	if (!isAllPointsEmpty)
 	{
 		if (this.Action.Recalculate)
 		{
@@ -2246,6 +2279,8 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 		this.private_UpdateDocumentTracks();
 
 	this.Action.Start           = false;
+	this.Action.Depth           = 0;
+	this.Action.PointsCount     = 0;
 	this.Action.Recalculate     = false;
 	this.Action.UpdateSelection = false;
 	this.Action.UpdateInterface = false;
