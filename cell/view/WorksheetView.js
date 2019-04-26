@@ -17039,6 +17039,56 @@
 		var ar = this.model.selectionRange.getLast().clone();
 		var t = this;
 
+		//ms делает следущим образом:
+		//закрываем группы, кнопки которых попали в выделение. если же ни одна из кнопок не попала - смотрим пересечение с группой с максимальным уровнем
+		//TODO если кнопка группа с наименьшим уровнем попала в выделение и внутри этой группы на предыдущей строке есть кнопка группы с меньшим уровнем,
+		//TODO то скрываем именно внутреннюю группу - это необходимо сделать! касается только группы с самым наименьшим уровенем, далее внутренни группы не нужно проверять
+
+
+		var getNeedGroups = function(groupArr, levelMap, bCol) {
+
+			var maxGroupIndexMap = {}, deleteIndexes = {};
+			var selectPartGroup, curLevel = 0;
+			var container = [];
+			if(groupArr) {
+				for(var i = 0; i < groupArr.length; i++) {
+					if(groupArr[i]) {
+						for(var j = 0; j < groupArr[i].length; j++) {
+							//полностью выделена группа, если выделена кнопка
+							if(groupArr[i][j].end + 1 >= ar.r1 && groupArr[i][j].end + 1 <= ar.r2 && undefined === maxGroupIndexMap[groupArr[i][j].end]) {
+								if(!deleteIndexes[groupArr[i][j].end] && undefined !== maxGroupIndexMap[groupArr[i][j].end + 1] && !levelMap[groupArr[i][j].end + 1].collapsed) {
+									delete container[maxGroupIndexMap[groupArr[i][j].end + 1]];
+									deleteIndexes[maxGroupIndexMap[groupArr[i][j].end + 1]] = 1;
+								} else {
+									maxGroupIndexMap[groupArr[i][j].end] = container.length;
+								}
+								container.push(groupArr[i][j]);
+							} else {
+								//частичное выделение - выбираем максимальный уровень, первую по счёту группу
+								var outLineGroupRange;
+								if(bCol) {
+									outLineGroupRange = Asc.Range(groupArr[i][j].start, 0, groupArr[i][j].end, gc_nMaxRow);
+								} else {
+									outLineGroupRange = Asc.Range(0, groupArr[i][j].start, gc_nMaxCol, groupArr[i][j].end);
+								}
+								if(i > curLevel && outLineGroupRange.intersection(ar)) {
+									selectPartGroup = groupArr[i][j];
+									curLevel = i;
+								}
+							}
+						}
+					}
+				}
+			}
+			return {container: container, selectPartGroup: selectPartGroup};
+		};
+
+		var needGroups = getNeedGroups(t.arrRowGroups.groupArr, t.arrRowGroups.levelMap);
+		var allGroupSelectedRow = needGroups.container;
+		var selectPartRowGroup = needGroups.selectPartGroup;
+
+
+		/*var maxGroupIndexMap = {}, deleteIndexes = {};
 		var allGroupSelectedRow = [];
 		var selectPartRowGroup, curLevel = 0;
 		var arrayLines = t.arrRowGroups.groupArr;
@@ -17046,8 +17096,14 @@
 			for(var i = 0; i < arrayLines.length; i++) {
 				if(arrayLines[i]) {
 					for(var j = 0; j < arrayLines[i].length; j++) {
-						//полностью выделена группа
-						if(arrayLines[i][j].start >= ar.r1 && arrayLines[i][j].end + 1 <= ar.r2) {
+						//полностью выделена группа, если выделена кнопка
+						if(arrayLines[i][j].end + 1 >= ar.r1 && arrayLines[i][j].end + 1 <= ar.r2 && undefined === maxGroupIndexMap[arrayLines[i][j].end]) {
+							if(!deleteIndexes[arrayLines[i][j].end] && undefined !== maxGroupIndexMap[arrayLines[i][j].end + 1] && !t.arrRowGroups.levelMap[arrayLines[i][j].end + 1].collapsed) {
+								delete allGroupSelectedRow[maxGroupIndexMap[arrayLines[i][j].end + 1]];
+								deleteIndexes[maxGroupIndexMap[arrayLines[i][j].end + 1]] = 1;
+							} else {
+								maxGroupIndexMap[arrayLines[i][j].end] = allGroupSelectedRow.length;
+							}
 							allGroupSelectedRow.push(arrayLines[i][j]);
 						} else {
 							//частичное выделение - выбираем максимальный уровень, первую по счёту группу
@@ -17060,18 +17116,34 @@
 					}
 				}
 			}
+		}*/
+
+		if(allGroupSelectedRow.length) {
+			selectPartRowGroup = null;
 		}
 
-		arrayLines = t.arrColGroups.groupArr;
+		//arrayLines = t.arrColGroups.groupArr;
 
-		var allGroupSelectedCol = [];
+		needGroups = getNeedGroups(t.arrColGroups.groupArr, t.arrColGroups.levelMap);
+		var allGroupSelectedCol = needGroups.container;
+		var selectPartColGroup = needGroups.selectPartGroup;
+
+		/*var allGroupSelectedCol = [];
 		var selectPartColGroup;
 		curLevel = 0;
+		maxGroupIndexMap = {};
+		deleteIndexes = {};
 		if(arrayLines) {
 			for(i = 0; i < arrayLines.length; i++) {
 				if(arrayLines[i]) {
 					for(j = 0; j < arrayLines[i].length; j++) {
-						if(arrayLines[i][j].start >= ar.c1 && arrayLines[i][j].end + 1 <= ar.c2) {
+						if(arrayLines[i][j].end + 1 >= ar.c1 && arrayLines[i][j].end + 1 <= ar.c2) {
+							if(!deleteIndexes[arrayLines[i][j].end] && undefined !== maxGroupIndexMap[arrayLines[i][j].end + 1]) {
+								allGroupSelectedCol.splice(maxGroupIndexMap[arrayLines[i][j].end + 1], 1);
+								deleteIndexes[maxGroupIndexMap[arrayLines[i][j].end + 1]] = 1;
+							} else {
+								maxGroupIndexMap[arrayLines[i][j].end] = allGroupSelectedCol.length;
+							}
 							allGroupSelectedCol.push(arrayLines[i][j]);
 						} else {
 							outLineGroupRange = Asc.Range(arrayLines[i][j].start, 0, arrayLines[i][j].end, gc_nMaxRow);
@@ -17083,6 +17155,10 @@
 					}
 				}
 			}
+		}*/
+
+		if(allGroupSelectedCol.length) {
+			selectPartColGroup = null;
 		}
 
 		//TODO duplicate code into _tryChangeGroup func
@@ -17156,8 +17232,13 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+			var i;
 			if(allGroupSelectedRow.length) {
 				for(i = 0; i < allGroupSelectedRow.length; i++) {
+					if(!allGroupSelectedRow[i]) {
+						continue;
+					}
+
 					//если блок попал полностью под выделение
 					t.model.setRowHidden(!bExpand, allGroupSelectedRow[i].start, allGroupSelectedRow[i].end);
 				}
@@ -17169,6 +17250,10 @@
 
 			if(allGroupSelectedCol.length) {
 				for(i = 0; i < allGroupSelectedCol.length; i++) {
+					if(!allGroupSelectedCol[i]) {
+						continue;
+					}
+
 					//если блок попал полностью под выделение
 					t.model.setColHidden(!bExpand, allGroupSelectedCol[i].start, allGroupSelectedCol[i].end);
 				}
