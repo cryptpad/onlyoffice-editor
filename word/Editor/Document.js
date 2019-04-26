@@ -2132,7 +2132,7 @@ CDocument.prototype.UpdateRulers = function()
 	if (this.Action.Start)
 		this.Action.UpdateRulers = true;
 	else
-		this.Document_UpdateRulersState();
+		this.private_UpdateRulers();
 };
 /**
  * Сообщаем документу, что потребуется обновить состояние кнопки Unddo/Redo
@@ -2199,7 +2199,7 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 
 	// Дополнительная обработка-----------------------------------------------------------------------------------------
 	if (this.Action.Additional.TrackMove)
-		this.private_FinilizeRemoveTrackMove();
+		this.private_FinalizeRemoveTrackMove();
 
 	//------------------------------------------------------------------------------------------------------------------
 
@@ -2235,7 +2235,7 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	this.Action.Redraw.End      = undefined;
 	this.Action.Additional      = {};
 };
-CDocument.prototype.private_FinilizeRemoveTrackMove = function()
+CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 {
 	function privateRemoveTrackMoveMark(oMark)
 	{
@@ -9760,7 +9760,7 @@ CDocument.prototype.Document_UpdateInterfaceState = function(bSaveCurRevisionCha
 	this.Document_UpdateSectionPr();
 	this.Document_UpdateStylesPanel();
 };
-CDocument.prototype.Document_UpdateRulersState = function()
+CDocument.prototype.private_UpdateRulers = function()
 {
 	if (true === this.TurnOffInterfaceEvents)
 		return;
@@ -9771,6 +9771,10 @@ CDocument.prototype.Document_UpdateRulersState = function()
 	this.DrawingDocument.Set_RulerState_Start();
 	this.Controller.UpdateRulersState();
 	this.DrawingDocument.Set_RulerState_End();
+};
+CDocument.prototype.Document_UpdateRulersState = function()
+{
+	this.UpdateRulers();
 };
 CDocument.prototype.Document_UpdateRulersStateBySection = function(Pos)
 {

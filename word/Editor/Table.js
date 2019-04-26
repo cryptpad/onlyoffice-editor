@@ -11420,7 +11420,7 @@ CTable.prototype.private_UpdateTableMarkup = function(nRowIndex, nCellIndex, nCu
 	};
 
 	var oPage = this.Pages[nCurPage];
-	if (!oPage)
+	if (!oPage || !this.IsRecalculated())
 		return;
 
 	this.Markup.X = oPage.X;
