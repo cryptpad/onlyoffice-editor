@@ -17087,75 +17087,15 @@
 		var allGroupSelectedRow = needGroups.container;
 		var selectPartRowGroup = needGroups.selectPartGroup;
 
-
-		/*var maxGroupIndexMap = {}, deleteIndexes = {};
-		var allGroupSelectedRow = [];
-		var selectPartRowGroup, curLevel = 0;
-		var arrayLines = t.arrRowGroups.groupArr;
-		if(arrayLines) {
-			for(var i = 0; i < arrayLines.length; i++) {
-				if(arrayLines[i]) {
-					for(var j = 0; j < arrayLines[i].length; j++) {
-						//полностью выделена группа, если выделена кнопка
-						if(arrayLines[i][j].end + 1 >= ar.r1 && arrayLines[i][j].end + 1 <= ar.r2 && undefined === maxGroupIndexMap[arrayLines[i][j].end]) {
-							if(!deleteIndexes[arrayLines[i][j].end] && undefined !== maxGroupIndexMap[arrayLines[i][j].end + 1] && !t.arrRowGroups.levelMap[arrayLines[i][j].end + 1].collapsed) {
-								delete allGroupSelectedRow[maxGroupIndexMap[arrayLines[i][j].end + 1]];
-								deleteIndexes[maxGroupIndexMap[arrayLines[i][j].end + 1]] = 1;
-							} else {
-								maxGroupIndexMap[arrayLines[i][j].end] = allGroupSelectedRow.length;
-							}
-							allGroupSelectedRow.push(arrayLines[i][j]);
-						} else {
-							//частичное выделение - выбираем максимальный уровень, первую по счёту группу
-							var outLineGroupRange = Asc.Range(0, arrayLines[i][j].start, gc_nMaxCol, arrayLines[i][j].end);
-							if(i > curLevel && outLineGroupRange.intersection(ar)) {
-								selectPartRowGroup = arrayLines[i][j];
-								curLevel = i;
-							}
-						}
-					}
-				}
-			}
-		}*/
-
 		if(allGroupSelectedRow.length) {
 			selectPartRowGroup = null;
 		}
 
-		//arrayLines = t.arrColGroups.groupArr;
 
 		needGroups = getNeedGroups(t.arrColGroups.groupArr, t.arrColGroups.levelMap);
 		var allGroupSelectedCol = needGroups.container;
 		var selectPartColGroup = needGroups.selectPartGroup;
 
-		/*var allGroupSelectedCol = [];
-		var selectPartColGroup;
-		curLevel = 0;
-		maxGroupIndexMap = {};
-		deleteIndexes = {};
-		if(arrayLines) {
-			for(i = 0; i < arrayLines.length; i++) {
-				if(arrayLines[i]) {
-					for(j = 0; j < arrayLines[i].length; j++) {
-						if(arrayLines[i][j].end + 1 >= ar.c1 && arrayLines[i][j].end + 1 <= ar.c2) {
-							if(!deleteIndexes[arrayLines[i][j].end] && undefined !== maxGroupIndexMap[arrayLines[i][j].end + 1]) {
-								allGroupSelectedCol.splice(maxGroupIndexMap[arrayLines[i][j].end + 1], 1);
-								deleteIndexes[maxGroupIndexMap[arrayLines[i][j].end + 1]] = 1;
-							} else {
-								maxGroupIndexMap[arrayLines[i][j].end] = allGroupSelectedCol.length;
-							}
-							allGroupSelectedCol.push(arrayLines[i][j]);
-						} else {
-							outLineGroupRange = Asc.Range(arrayLines[i][j].start, 0, arrayLines[i][j].end, gc_nMaxRow);
-							if(i > curLevel && outLineGroupRange.intersection(ar)) {
-								selectPartColGroup = arrayLines[i][j];
-								curLevel = i;
-							}
-						}
-					}
-				}
-			}
-		}*/
 
 		if(allGroupSelectedCol.length) {
 			selectPartColGroup = null;
