@@ -163,6 +163,15 @@ CParaRevisionMove.prototype.PreDelete = function()
 	if (oParagraph && oParagraph.LogicDocument)
 		oParagraph.LogicDocument.RemoveTrackMoveMarks(this.GetMarkId());
 };
+CParaRevisionMove.prototype.IsUseInDocument = function()
+{
+	var oParagraph = this.GetParagraph();
+
+	if (!oParagraph || !this.Paragraph.Get_PosByElement(this))
+		return false;
+
+	return oParagraph.Is_UseInDocument();
+};
 
 
 /**
@@ -198,7 +207,7 @@ CRunRevisionMove.prototype.Type = para_RevisionMove;
 
 CRunRevisionMove.prototype.Copy = function()
 {
-	return new CRunRevisionMove(this.Start, this.From. this.Name);
+	return new CRunRevisionMove(this.Start, this.From, this.Name);
 };
 CRunRevisionMove.prototype.Write_ToBinary  = function(oWriter)
 {
@@ -274,6 +283,11 @@ CRunRevisionMove.prototype.PreDelete = function()
 
 	if (oLogicDocument)
 		oLogicDocument.RemoveTrackMoveMarks(this.GetMarkId());
+};
+CRunRevisionMove.prototype.IsUseInDocument = function()
+{
+	var oRun = this.GetRun();
+	return (oRun && oRun.Is_UseInDocument());
 };
 
 //--------------------------------------------------------export----------------------------------------------------

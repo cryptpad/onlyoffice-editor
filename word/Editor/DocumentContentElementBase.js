@@ -818,6 +818,9 @@ CDocumentContentElementBase.prototype.GetIndex = function()
 
 	this.Parent.Update_ContentIndexing();
 
+	if (this !== this.Parent.GetElement(this.Index))
+		this.Index = -1;
+
 	return this.Index;
 };
 CDocumentContentElementBase.prototype.GetPageBounds = function(CurPage)

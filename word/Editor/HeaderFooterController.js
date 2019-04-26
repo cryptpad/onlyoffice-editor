@@ -382,7 +382,7 @@ CHdrFtrController.prototype.UpdateRulersState = function()
 CHdrFtrController.prototype.UpdateSelectionState = function()
 {
 	this.HdrFtr.Document_UpdateSelectionState();
-	this.LogicDocument.Document_UpdateTracks();
+	this.LogicDocument.UpdateTracks();
 };
 CHdrFtrController.prototype.GetSelectionState = function()
 {

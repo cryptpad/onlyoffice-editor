@@ -468,7 +468,7 @@ CDrawingsController.prototype.UpdateRulersState = function()
 CDrawingsController.prototype.UpdateSelectionState = function()
 {
 	this.DrawingObjects.documentUpdateSelectionState();
-	this.LogicDocument.Document_UpdateTracks();
+	this.LogicDocument.UpdateTracks();
 };
 CDrawingsController.prototype.GetSelectionState = function()
 {

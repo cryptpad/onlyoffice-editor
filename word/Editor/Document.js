@@ -2081,6 +2081,7 @@ CDocument.prototype.StartAction = function(nDescription)
 	this.Action.UpdateInterface = false;
 	this.Action.UpdateRulers    = false;
 	this.Action.UpdateUndoRedo  = false;
+	this.Action.UpdateTracks    = false;
 	this.Action.Redraw.Start    = undefined;
 	this.Action.Redraw.End      = undefined;
 	this.Action.Additional      = {};
@@ -2143,6 +2144,16 @@ CDocument.prototype.UpdateUndoRedo = function()
 		this.Action.UpdateUndoRedo = true;
 	else
 		this.private_UpdateUndoRedo();
+};
+/**
+ * Сообщаем документу, что нужно обновить треки
+ */
+CDocument.prototype.UpdateTracks = function()
+{
+	if (this.Action.Start)
+		this.Action.UpdateTracks = true;
+	else
+		this.private_UpdateDocumentTracks();
 };
 /**
  * Перерисовываем заданные страницы
@@ -2231,12 +2242,16 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	if (this.Action.UpdateUndoRedo)
 		this.private_UpdateUndoRedo();
 
+	if (this.Action.UpdateTracks)
+		this.private_UpdateDocumentTracks();
+
 	this.Action.Start           = false;
 	this.Action.Recalculate     = false;
 	this.Action.UpdateSelection = false;
 	this.Action.UpdateInterface = false;
 	this.Action.UpdateRulers    = false;
 	this.Action.UpdateUndoRedo  = false;
+	this.Action.UpdateTracks    = false;
 	this.Action.Redraw.Start    = undefined;
 	this.Action.Redraw.End      = undefined;
 	this.Action.Additional      = {};
@@ -4915,10 +4930,9 @@ CDocument.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelectio
 	this.Controller.Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 	this.Recalculate();
-
-	this.Document_UpdateInterfaceState();
-	this.Document_UpdateRulersState();
-	this.Document_UpdateTracks();
+	this.UpdateInterface();
+	this.UpdateRulers();
+	this.UpdateTracks();
 };
 CDocument.prototype.RemoveBeforePaste = function()
 {
@@ -9857,7 +9871,7 @@ CDocument.prototype.UpdateDocumentOutlinePosition = function()
 		}
 	}
 };
-CDocument.prototype.Document_UpdateTracks = function()
+CDocument.prototype.private_UpdateDocumentTracks = function()
 {
 	if (true === this.TurnOffInterfaceEvents)
 		return;
@@ -16892,10 +16906,10 @@ CDocument.prototype.SelectContentControl = function(sId)
 		this.RemoveSelection();
 
 		oContentControl.SelectContentControl();
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateRulersState();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateTracks();
+		this.UpdateSelection();
+		this.UpdateRulers();
+		this.UpdateInterface();
+		this.UpdateTracks();
 
 		this.private_UpdateCursorXY(true, true);
 	}
@@ -16921,10 +16935,10 @@ CDocument.prototype.MoveCursorToContentControl = function(sId, isBegin)
 			isBegin = true;
 
 		oContentControl.MoveCursorToContentControl(isBegin);
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateRulersState();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateTracks();
+		this.UpdateSelection();
+		this.UpdateRulers();
+		this.UpdateInterface();
+		this.UpdateTracks();
 
 		this.private_UpdateCursorXY(true, true);
 	}
@@ -18289,6 +18303,9 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom)
 
 	function private_GetDocumentPosition(oMark)
 	{
+		if (!oMark.IsUseInDocument())
+			return null;
+
 		if (oMark instanceof CParaRevisionMove)
 		{
 			return oMark.GetDocumentPositionFromObject();
@@ -18323,9 +18340,13 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom)
 			var oStartDocPos = private_GetDocumentPosition(oStart);
 			var oEndDocPos   = private_GetDocumentPosition(oEnd);
 
-			this.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
-			this.Document_UpdateSelectionState();
-			this.Document_UpdateInterfaceState();
+			if (oStartDocPos && oEndDocPos)
+				this.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
+			else
+				this.RemoveSelection();
+
+			this.UpdateSelection();
+			this.UpdateInterface();
 		}
 	}
 };

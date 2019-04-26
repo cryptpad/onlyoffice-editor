@@ -1011,8 +1011,9 @@ CBlockLevelSdt.prototype.Set_CurrentElement = function(bUpdateStates, PageAbs, o
 {
 	if (oDocContent === this.Content)
 	{
-		this.Parent.Update_ContentIndexing();
-		this.Parent.Set_CurrentElement(this.Index, bUpdateStates);
+		var nIndex = this.GetIndex();
+		if (-1 !== nIndex)
+			this.Parent.Set_CurrentElement(nIndex, bUpdateStates);
 	}
 };
 CBlockLevelSdt.prototype.Refresh_RecalcData2 = function(CurPage)
