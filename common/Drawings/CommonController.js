@@ -595,6 +595,20 @@ function CheckSpPrXfrm2(object)
     function CheckSpPrXfrm3(object)
     {
         if(object.recalcInfo && object.recalcInfo.recalculateTransform){
+            if(!object.spPr)
+            {
+                object.setSpPr(new AscFormat.CSpPr());
+                object.spPr.setParent(object);
+            }
+            if(!object.spPr.xfrm)
+            {
+                object.spPr.setXfrm(new AscFormat.CXfrm());
+                object.spPr.xfrm.setParent(object.spPr);
+                object.spPr.xfrm.setOffX(AscFormat.isRealNumber(object.x) ? object.x : 0);
+                object.spPr.xfrm.setOffY(AscFormat.isRealNumber(object.y) ? object.x : 0);
+                object.spPr.xfrm.setExtX(AscFormat.isRealNumber(object.extX) ? object.extX : 0);
+                object.spPr.xfrm.setExtY(AscFormat.isRealNumber(object.extY) ? object.extY : 0);
+            }
             return;
         }
         if(!object.spPr)
