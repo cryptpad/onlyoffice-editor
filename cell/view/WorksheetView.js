@@ -17009,7 +17009,7 @@
 				}
 			}
 		}
-		
+
 
 		var callback = function(isSuccess) {
 			if (false === isSuccess) {
@@ -17027,6 +17027,158 @@
 
 		if(collapsedArrRow.length || collapsedArrCol.length) {
 			this._isLockedAll(callback);
+		}
+	};
+
+	WorksheetView.prototype.changeGroupDetails2 = function (bExpand) {
+		//multiselect
+		if(this.model.selectionRange.ranges.length > 1) {
+			return;
+		}
+
+		var ar = this.model.selectionRange.getLast().clone();
+		var t = this;
+
+		var allGroupSelectedRow = [];
+		var collapsedArrRow = [];
+		var arrayLines = t.arrRowGroups.groupArr;
+		if(arrayLines) {
+			for(var i = 0; i < arrayLines.length; i++) {
+				if(arrayLines[i]) {
+					for(var j = 0; j < arrayLines[i].length; j++) {
+						if(arrayLines[i][j].start >= ar.r1 && arrayLines[i][j].end + 1 <= ar.r2) {
+							allGroupSelectedRow.push(arrayLines[i][j]);
+						} else {
+							var outLineGroupRange = Asc.Range(0, arrayLines[i][j].start, gc_nMaxCol, arrayLines[i][j].end);
+							if(outLineGroupRange.intersection(ar)) {
+								collapsedArrRow.push(arrayLines[i][j]);
+							}
+						}
+					}
+
+				}
+			}
+		}
+
+		arrayLines = t.arrColGroups.groupArr;
+
+		var allGroupSelectedCol = [];
+		var collapsedArrCol = [];
+		if(arrayLines) {
+			for(i = 0; i < arrayLines.length; i++) {
+				if(arrayLines[i]) {
+					for(j = 0; j < arrayLines[i].length; j++) {
+						if(arrayLines[i][j].start >= ar.c1 && arrayLines[i][j].end + 1 <= ar.c2) {
+							allGroupSelectedCol.push(arrayLines[i][j]);
+						} else {
+							outLineGroupRange = Asc.Range(arrayLines[i][j].start, 0, arrayLines[i][j].end, gc_nMaxRow);
+							if(outLineGroupRange.intersection(ar)) {
+								collapsedArrCol.push(arrayLines[i][j]);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		//TODO duplicate code into _tryChangeGroup func
+		var oRecalcType = AscCommonExcel.recalcType.recalc;
+		var reinitRanges = false;
+		var updateDrawingObjectsInfo = null;
+		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
+		var isUpdateCols = false, isUpdateRows = false;
+		var isCheckChangeAutoFilter;
+		var functionModelAction = null;
+		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
+		var arrChangedRanges = [];
+
+		var onChangeWorksheetCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			asc_applyFunction(callback);
+
+			t._initCellsArea(oRecalcType);
+			if (oRecalcType) {
+				t.cache.reset();
+			}
+			t._cleanCellsTextMetricsCache();
+			t._prepareCellTextMetricsCache();
+
+			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
+
+			t.cellCommentator.updateAreaComments();
+
+			if (t.objectRender) {
+				if (reinitRanges && t.objectRender.drawingArea) {
+					t.objectRender.drawingArea.reinitRanges();
+				}
+				if (null !== updateDrawingObjectsInfo) {
+					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
+				}
+				if (null !== updateDrawingObjectsInfo2) {
+					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
+						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
+				}
+				t.model.onUpdateRanges(arrChangedRanges);
+				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+			}
+			//тут требуется обновить только rowLevelMap
+			t._updateGroups(true, undefined, undefined, true);
+			t._updateGroups(false, undefined, undefined, true);
+
+			t.draw(lockDraw);
+
+			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+
+			if (isUpdateCols) {
+				t._updateVisibleColsCount();
+			}
+			if (isUpdateRows) {
+				t._updateVisibleRowsCount();
+			}
+
+			t.handlers.trigger("selectionChanged");
+			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+		};
+
+		//TODO необходимо не закрывать полностью выделенные 1 уровни и обработать тот случай, когда выделены уровни частично
+		var callback = function(isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			if(allGroupSelectedRow.length) {
+				for(i = 0; i < allGroupSelectedRow.length; i++) {
+					//если блок попал полностью под выделение
+					t.model.setRowHidden(!bExpand, allGroupSelectedRow[i].start, allGroupSelectedRow[i].end);
+				}
+			} else {
+				for(i = 0; i < collapsedArrRow.length; i++) {
+
+				}
+			}
+
+			if(allGroupSelectedCol.length) {
+				for(i = 0; i < allGroupSelectedCol.length; i++) {
+					//если блок попал полностью под выделение
+					t.model.setRowHidden(!bExpand, allGroupSelectedCol[i].start, allGroupSelectedCol[i].end);
+				}
+			} else {
+				for(i = 0; i < collapsedArrCol.length; i++) {
+
+				}
+			}
+
+			History.EndTransaction();
+		};
+
+		if(collapsedArrRow.length || collapsedArrCol.length || allGroupSelectedRow.length || allGroupSelectedCol.length) {
+			this._isLockedAll(onChangeWorksheetCallback);
 		}
 	};
 
