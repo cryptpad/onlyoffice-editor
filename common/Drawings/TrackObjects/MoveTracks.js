@@ -72,6 +72,10 @@ function MoveShapeImageTrack(originalObject)
     {
         this.brush = this.brush.createDuplicate();
     }
+    if(this.originalObject.cropObject)
+    {
+        this.cropObject = this.originalObject.cropObject;
+    }
     this.overlayObject = new AscFormat.OverlayObject(originalObject.getGeom(), this.originalObject.extX, this.originalObject.extY, this.brush, this.pen, this.transform);
 
     this.groupInvertMatrix = null;
@@ -368,7 +372,15 @@ function MoveShapeImageTrack(originalObject)
         }
         if(this.originalObject.isCrop)
         {
+            if(!this.originalObject.parentCrop.cropObject)
+            {
+                this.originalObject.parentCrop.cropObject = this.originalObject;
+            }
             this.originalObject.parentCrop.calculateSrcRect();
+        }
+        if(this.cropObject && !this.originalObject.cropObject)
+        {
+            this.originalObject.cropObject = this.cropObject;
         }
         if(this.originalObject.cropObject)
         {

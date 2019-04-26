@@ -312,7 +312,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
 
         this.transform = originalObject.transform.CreateDublicate();
         this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getGeom().createDuplicate();}, this, []);
-
+        this.cropObject = originalObject.cropObject;
         if(!originalObject.isChart())
         {
             if(originalObject.blipFill)
@@ -1273,7 +1273,15 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     this.originalObject.extX = this.resizedExtX;
                     this.originalObject.extY = this.resizedExtY;
 
+                    if(!this.originalObject.parentCrop.cropObject)
+                    {
+                        this.originalObject.parentCrop.cropObject = this.originalObject;
+                    }
                     this.originalObject.parentCrop.calculateSrcRect();
+                }
+                if(this.cropObject && !this.originalObject.cropObject)
+                {
+                    this.originalObject.cropObject = this.cropObject;
                 }
                 if(this.originalObject.cropObject)
                 {
