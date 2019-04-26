@@ -563,7 +563,6 @@
     };
 
 
-    /**
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -658,7 +657,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Get the type of the class based on this base class.
      * @returns {"drawing"}
      */
     ApiDrawing.prototype.GetClassType = function()
@@ -731,7 +730,7 @@
 
 
     /**
-     * Get content of this shape.
+     * Get the shape inner contents where a paragraph or text runs can be inserted. 
      * @typeofeditors ["CPE"]
      * @returns {?ApiDocumentContent}
      */
@@ -746,9 +745,9 @@
     };
 
     /**
-     * Set shape's content vertical align
+     * Set the vertical alignment for the shape content where a paragraph or text runs can be inserted.
      * @typeofeditors ["CPE"]
-     * @param {VerticalTextAlign} VerticalAlign
+     * @param {VerticalTextAlign} VerticalAlign - The type of the vertical alignment for the shape inner contents.
      */
     ApiShape.prototype.SetVerticalTextAlign = function(VerticalAlign)
     {
@@ -791,11 +790,11 @@
     };
 
     /**
-     *  Specifies a chart title
+     *  Specify the chart title.
      *  @typeofeditors ["CPE"]
      *  @param {string} sTitle - The title which will be displayed for the current chart.
-     *  @param {hps} nFontSize - 	The text size value measured in points.
-     *  @param {?bool} bIsBold
+     *  @param {hps} nFontSize - The text size value measured in points.
+     *  @param {?bool} bIsBold - Specifies if the chart title is written in bold font or not.
      */
     ApiChart.prototype.SetTitle = function (sTitle, nFontSize, bIsBold)
     {
@@ -803,11 +802,11 @@
     };
 
     /**
-     *  Specifies a horizontal axis title
+     *  Specify the chart horizontal axis title.
      *  @typeofeditors ["CPE"]
      *  @param {string} sTitle - The title which will be displayed for the horizontal axis of the current chart.
      *  @param {hps} nFontSize - The text size value measured in points.
-     *  @param {?bool} bIsBold
+     *  @param {?bool} bIsBold - Specifies if the horizontal axis title is written in bold font or not.
      * */
     ApiChart.prototype.SetHorAxisTitle = function (sTitle, nFontSize, bIsBold)
     {
@@ -815,11 +814,11 @@
     };
 
     /**
-     *  Specifies a vertical axis title
+     *  Specify the chart vertical axis title.
      *  @typeofeditors ["CPE"]
      *  @param {string} sTitle - The title which will be displayed for the vertical axis of the current chart.
      *  @param {hps} nFontSize - The text size value measured in points.
-     *  @param {?bool} bIsBold
+     *  @param {?bool} bIsBold - Specifies if the vertical axis title is written in bold font or not.
      * */
     ApiChart.prototype.SetVerAxisTitle = function (sTitle, nFontSize, bIsBold)
     {
@@ -827,7 +826,7 @@
     };
 
     /**
-     * Specifies a legend position
+     * Specify the chart legend position.
      * @typeofeditors ["CPE"]
      * @param {"left" | "top" | "right" | "bottom" | "none"} sLegendPos - The position of the chart legend inside the chart window.
      * */
@@ -862,7 +861,7 @@
     };
 
     /**
-     * Spicifies a show options for data labels
+     *  Specifies which chart data labels are shown for the chart.
      * @typeofeditors ["CPE"]
      * @param {boolean} bShowSerName - Whether to show or hide the source table column names used for the data which the chart will be build from.
      * @param {boolean} bShowCatName - Whether to show or hide the source table row names used for the data which the chart will be build from.

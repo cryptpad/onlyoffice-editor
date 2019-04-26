@@ -957,7 +957,7 @@
 	 * Create a linear gradient fill which allows to fill the object using a selected linear gradient as the object background.
 	 * @memberof Api
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @param {Array} aGradientStop - The angle measured in 60000th of a degree that will define the gradient direction.
+	 * @param {Array} aGradientStop - The array of gradient color stops measured in 1000th of percent.
 	 * @param {PositiveFixedAngle} Angle - The angle measured in 60000th of a degree that will define the gradient direction.
 	 * @returns {ApiFill}
 	 */
@@ -1164,7 +1164,7 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Get the type of this class.
+	 * Get the type of the current class. 
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"documentContent"}
 	 */
@@ -1232,7 +1232,7 @@
 	/**
 	 * Remove all elements from the current document or from the current document element.
 	 * <note>When all elements are removed, a new empty paragraph is automatically created. If you want to add
-	 * content to this paragraph, use the ApiDocumentContent.GetElement method.</note>
+	 * content to this paragraph, use the {@link ApiDocumentContent#GetElement} method.</note>
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 */
 	ApiDocumentContent.prototype.RemoveAllElements = function()
@@ -1366,7 +1366,7 @@
 		return new ApiParaPr(this, oStyles.Get_DefaultParaPr().Copy());
 	};
 	/**
-	 * Get document final section
+	 * Get the document final section
 	 * @typeofeditors ["CDE"]
 	 * @return {ApiSection}
 	 */
@@ -1804,10 +1804,10 @@
 		return new ApiNumberingLevel(oNumbering, oNumPr.Lvl);
 	};
 	/**
-	 * Specifies that the current paragraph references a numbering definition instance in the current document.
+	 * Specify that the current paragraph references a numbering definition instance in the current document.
 	 * @typeofeditors ["CDE"]
 	 * @see Same as {@link ApiParagraph#SetNumPr}
-	 * @param {ApiNumberingLevel} oNumberingLevel
+	 * @param {ApiNumberingLevel} oNumberingLevel - The numbering level which will be used for assigning the numbers to the paragraph.
 	 */
 	ApiParagraph.prototype.SetNumbering = function(oNumberingLevel)
 	{
@@ -1842,6 +1842,9 @@
 	};
 	/**
 	 * Remove the element using the position specified.
+	 * <note>If the element you remove is the last paragraph element (i.e. all elements are removed from the paragraph),
+     * a new empty run is automatically created. If you want to add
+	 * content to this run, use the {@link ApiParagraph#GetElement} method.</note>
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {number} nPos - The position of the element which we want to remove in the paragraph.
 	 */
@@ -1854,6 +1857,8 @@
 	};
 	/**
 	 * Remove all elements from the current paragraph.
+	 * <note>When all elements are removed from the paragraph, a new empty run is automatically created. If you want to add
+	 * content to this run, use the {@link ApiParagraph#GetElement} method.</note>
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 */
 	ApiParagraph.prototype.RemoveAllElements = function()
@@ -2042,17 +2047,17 @@
 		return "section";
 	};
 	/**
-	 * Specify the section type of the current section. The section type specifies how the contents of the current
-	 * section shall be placed relative to the previous section.<br/>
-	 * WordprocessingML supports five distinct types of section breaks:<br/>
+	 * Specify the type of the current section. The section type defines how the contents of the current 
+	 * section are placed relative to the previous section.<br/>
+	 * WordprocessingML supports five distinct types of section breaks:
 	 *   * <b>Next page</b> section breaks (the default if type is not specified), which begin the new section on the
-	 *   following page.<br/>
-	 *   * <b>Odd</b> page section breaks, which begin the new section on the next odd-numbered page.<br/>
-	 *   * <b>Even</b> page section breaks, which begin the new section on the next even-numbered page.<br/>
+	 *   following page.
+	 *   * <b>Odd</b> page section breaks, which begin the new section on the next odd-numbered page.
+	 *   * <b>Even</b> page section breaks, which begin the new section on the next even-numbered page.
 	 *   * <b>Continuous</b> section breaks, which begin the new section on the following paragraph. This means that
 	 *   continuous section breaks might not specify certain page-level section properties, since they shall be
 	 *   inherited from the following section. These breaks, however, can specify other section properties, such
-	 *   as line numbering and footnote/endnote settings.<br/>
+	 *   as line numbering and footnote/endnote settings.
 	 *   * <b>Column</b> section breaks, which begin the new section on the next column on the page.
 	 *   @typeofeditors ["CDE"]
 	 * @param {("nextPage" | "oddPage" | "evenPage" | "continuous" | "nextColumn")} sType - Type of the section break
@@ -2083,9 +2088,8 @@
 		this.Section.Set_Columns_Space(private_Twips2MM(nSpace));
 	};
 	/**
-	 * Set all columns of this section are of different widths. Count of columns are equal length of
-	 * <code>aWidth</code> array. The length of <code>aSpaces</code> array <b>MUST BE</b> (<code>aWidth.length -
-	 * 1</code>).
+	 * Specify that all columns in the current section are of a different width. Number of columns is equal 
+	 * to the length of the aWidth array. The length of the aSpaces array MUST BE equal to (aWidth.length - 1).
 	 * @typeofeditors ["CDE"]
 	 * @param {twips[]} aWidths - An array of column width values measured in twentieths of a point (1/1440 of an inch).
 	 * @param {twips[]} aSpaces - An array of distances values between the columns measured in twentieths of a point (1/1440 of an inch).
@@ -2143,7 +2147,6 @@
 	};
 	/**
 	 * Specify the distance from the bottom edge of the page to the bottom edge of the footer.
-	 * footer.
 	 * @typeofeditors ["CDE"]
 	 * @param {twips} nDistance - The distance from the bottom edge of the page to the bottom edge of the footer measured
 	 * in twentieths of a point (1/1440 of an inch).
@@ -2240,9 +2243,8 @@
 		return new ApiDocumentContent(oFooter.Get_DocumentContent());
 	};
 	/**
-	 * Remove a footer of the specified type from the current section. After removing the footer will be inherited from
-	 * the previous section or, if this is the first section in the document, there won't be no footer of the specified
-	 * type.
+	 * Remove the footer of the specified type from the current section. After removal the footer will be inherited from 
+	 * the previous section or, if this is the first section in the document, no footer of the specified type will be present.
 	 * @typeofeditors ["CDE"]
 	 * @param {HdrFtrType} sType - Type of footer.
 	 */
@@ -2290,7 +2292,7 @@
 	};
 	/**
 	 * Get the table row by its position in the table.
-	 * @param {number} nPos - The row position within the tabl
+	 * @param {number} nPos - The row position within the table.
 	 * @returns {ApiTableRow}
 	 */
 	ApiTable.prototype.GetRow = function(nPos)
@@ -2301,10 +2303,10 @@
 		return new ApiTableRow(this.Table.Content[nPos]);
 	};
 	/**
-	 * Merge array of cells. If merge was done successfully it will return merged cell, otherwise "null".
+	 * Merge an array of cells. If the merge is done successfully it will return the resulting merged cell, otherwise the result will be "null".
 	 * <note><b>Please note</b>: the number of cells in any row and the number of rows in the current table may be changed.</note>
 	 * @typeofeditors ["CDE"]
-	 * @param {ApiTableCell[]} aCells
+	 * @param {ApiTableCell[]} aCells - The array of cells to be merged.
 	 * @returns {?ApiTableCell}
 	 */
 	ApiTable.prototype.MergeCells = function(aCells)
@@ -2359,9 +2361,9 @@
 		return null;
 	};
 	/**
-	 * Set table style.
+	 * Set the style for the current table.
 	 * @typeofeditors ["CDE"]
-	 * @param {ApiStyle} oStyle
+	 * @param {ApiStyle} oStyle - The style which will be applied to the current table.
 	 */
 	ApiTable.prototype.SetStyle = function(oStyle)
 	{
@@ -2371,12 +2373,12 @@
 		this.Table.Set_TableStyle(oStyle.Style.Get_Id(), true);
 	};
 	/**
-	 * Specify the components of the conditional formatting of the referenced table style (if one exists)
-	 * which shall be applied to the set of table rows with the current table-level property exceptions. A table style
-	 * can specify up to six different optional conditional formats [Example: Different formatting for first column.
-	 * end example], which then can be applied or omitted from individual table rows in the parent table.
-	 *
-	 * The default setting is to apply the row and column banding formatting, but not the first row, last row, first
+	 * Specify the components of the conditional formatting of the referenced table style (if one exists) 
+	 * which will be applied to the set of table rows with the current table-level property exceptions. A table style 
+	 * can specify up to six different optional conditional formats, for example, different formatting for first column, 
+	 * which then can be applied or omitted from individual table rows in the parent table.
+	 * <br /><br />
+	 * The default setting is to apply the row and column banding formatting, but not the first row, last row, first 
 	 * column, or last column formatting.
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} isFirstColumn - Specifies that the first column conditional formatting will be applied to the table.
@@ -2556,7 +2558,7 @@
 		return "tableCell";
 	};
 	/**
-	 * Get cell content.
+	 * Get the cell content.
 	 * @typeofeditors ["CDE"]
 	 * @returns {ApiDocumentContent}
 	 */
@@ -2687,8 +2689,8 @@
 		this.Style.Set_BasedOn(oStyle.Style.Get_Id());
 	};
 	/**
-	 * Get a set of formatting properties which shall be conditionally applied to the parts of a table which match the
-	 * requirement specified on the <code>sType</code> parameter.
+	 * Get a set of formatting properties which will be conditionally applied to the parts of a table that match the 
+	 * requirement specified in the sType parameter.
 	 * @typeofeditors ["CDE"]
 	 * @param {TableStyleOverrideType} [sType="wholeTable"] - The part of the table which the formatting properties must be applied to.
 	 * @returns {ApiTableStylePr}
@@ -2743,7 +2745,7 @@
 	};
 	/**
 	 * The text style base method.
-	 * <note>This method is not used by itself, as it only forms the basis for the ApiRun.SetStyle method which sets
+	 * <note>This method is not used by itself, as it only forms the basis for the {@link ApiRun#SetStyle} method which sets
 	 * the selected or created style for the text.</note>
 	 * @typeofeditors ["CDE"]
 	 * @param {ApiStyle} oStyle - The style which must be applied to the text character.
@@ -2995,8 +2997,8 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Specifies that any space specified before or after this paragraph, specified using the spacing element
-	 * {@link ApiParaPr#SetSpacingBefore}{@link ApiParaPr#SetSpacingAfter}, should not be applied when the preceding and
+	 * Specify that any space before or after this paragraph set using the 
+	 * {@link ApiParaPr#SetSpacingBefore} or {@link ApiParaPr#SetSpacingAfter} spacing element, should not be applied when the preceding and 
 	 * following paragraphs are of the same paragraph style, affecting the top and bottom spacing respectively.
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} isContextualSpacing - The true value will enable the paragraph contextual spacing.
@@ -3082,11 +3084,10 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Set paragraph line spacing. If the value of the <code>sLineRule</code> parameter is either
-	 * <code>"atLeast"</code>
-	 * or <code>"exact"</code>, then the value of <code>nLine</code> shall be interpreted as twentieths of a point. If
-	 * the value of the <code>sLineRule</code> parameter is <code>"auto"</code>, then the value of the
-	 * <code>nLine</code> attribute shall be interpreted as 240ths of a line.
+	 * Set the paragraph line spacing. If the value of the sLineRule parameter is either 
+	 * "atLeast" or "exact", then the value of nLine will be interpreted as twentieths of a point. If 
+	 * the value of the sLineRule parameter is "auto", then the value of the 
+	 * nLine parameter will be interpreted as 240ths of a line.
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {(twips | line240)} nLine - The line spacing value measured either in twentieths of a point (1/1440 of an inch) or in 240ths of a line.
 	 * @param {("auto" | "atLeast" | "exact")} sLineRule - The rule that determines the measuring units of the nLine parameter.
@@ -3116,9 +3117,9 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Set paragraph spacing before. If the value of the <code>isBeforeAuto</code> parameter is <code>true</code>, then
-	 * any value of the <code>nBefore</code> is ignored. If <code>isBeforeAuto</code> parameter is not specified, then
-	 * it will be interpreted as <code>false</code>.
+	 * Set the spacing before the current paragraph. If the value of the isBeforeAuto parameter is true, then 
+	 * any value of the nBefore is ignored. If isBeforeAuto parameter is not specified, then 
+	 * it will be interpreted as false.
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {twips} nBefore - The value of the spacing before the current paragraph measured in twentieths of a point (1/1440 of an inch).
 	 * @param {boolean} [isBeforeAuto=false] - The true value will disable the nBefore parameter.
@@ -3134,9 +3135,9 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Set paragraph spacing after. If the value of the <code>isAfterAuto</code> parameter is <code>true</code>, then
-	 * any value of the <code>nAfter</code> is ignored. If <code>isAfterAuto</code> parameter is not specified, then it
-	 * will be interpreted as <code>false</code>.
+	 * Set the spacing after the current paragraph. If the value of the isAfterAuto parameter is true, then 
+	 * any value of the nAfter is ignored. If isAfterAuto parameter is not specified, then it 
+	 * will be interpreted as false.
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {twips} nAfter - The value of the spacing after the current paragraph measured in twentieths of a point (1/1440 of an inch).
 	 * @param {boolean} [isAfterAuto=false] - The true value will disable the nAfter parameter.
@@ -3185,7 +3186,7 @@
 	/**
 	 * Specify the border which will be displayed at the left side of the page around the specified paragraph.
 	 * @typeofeditors ["CDE"]
-	 * @param {BorderType} sType - The style of border.
+	 * @param {BorderType} sType - The border style.
 	 * @param {pt_8} nSize - The width of the current left border measured in eighths of a point.
 	 * @param {pt} nSpace - The spacing offset to the left of the paragraph measured in points used to place this border.
 	 * @param {byte} r - Red color component value.
@@ -3254,8 +3255,8 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Specifies a sequence of custom tab stops which shall be used for any tab characters in the current paragraph.
-	 * <b>Warning</b>: The lengths of aPos array and aVal array <b>MUST BE</b> equal.
+	 * Specify a sequence of custom tab stops which will be used for any tab characters in the current paragraph.
+	 * <b>Warning</b>: The lengths of aPos array and aVal array <b>MUST BE</b> equal to each other.
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {twips[]} aPos - An array of the positions of custom tab stops with respect to the current page margins
 	 * measured in twentieths of a point (1/1440 of an inch).
@@ -3367,7 +3368,7 @@
 		return new ApiNumbering(this.Num);
 	};
 	/**
-	 * Get level index.
+	 * Get the level index.
 	 * @typeofeditors ["CDE"]
 	 * @returns {number}
 	 */
@@ -3377,7 +3378,7 @@
 	};
 	/**
 	 * Specify the text properties which will be applied to the text in the current numbering level itself, not to the text in the subsequent paragraph.
-	 * <note>To change the text style for the paragraph, a style must be applied to it using the ApiRun.SetStyle method.</note>
+	 * <note>To change the text style for the paragraph, a style must be applied to it using the {@link ApiRun#SetStyle} method.</note>
 	 * @typeofeditors ["CDE"]
 	 * @returns {ApiTextPr}
 	 */
@@ -3484,7 +3485,7 @@
 	/**
 	 * Specify the starting value for the numbering used by the parent numbering level within a given numbering level definition. By default this value is 1.
 	 * @typeofeditors ["CDE"]
-	 * @param {number} nStart -
+	 * @param {number} nStart - The starting value for the numbering used by the parent numbering level.
 	 */
 	ApiNumberingLevel.prototype.SetStart = function(nStart)
 	{
@@ -3733,7 +3734,7 @@
 	};
 	/**
 	 * Set the preferred width for this table.
-	 * <note>Tables are created with the ApiTable.SetWidth method properties set by default, which always override the {@link ApiTablePr#SetWidth} method properties. That is why there is no use to try and apply ApiTablePr.SetWidth, we recommend that you use the  {@link ApiTablePr#SetWidth}  method instead.</note>
+	 * <note>Tables are created with the {@link ApiTable#SetWidth} method properties set by default, which always override the {@link ApiTablePr#SetWidth} method properties. That is why there is no use to try and apply {@link ApiTablePr#SetWidth}, we recommend that you use the  {@link ApiTablePr#SetWidth}  method instead.</note>
 	 * @typeofeditors ["CDE"]
 	 * @param {TableWidth} sType - Type of the width value from one of the available width values types.
 	 * @param {number} [nValue] - The table width value measured in positive integers.
@@ -3774,6 +3775,7 @@
 		return "tableRowPr";
 	};
 	/**
+     * Set the height of the current table row within the current table.
 	 * @typeofeditors ["CDE"]
 	 * @param {("auto" | "atLeast")} sHRule - The rule to either apply or ignore the height value to the current table row. Use the <code>"atLeast"</code> value to enable the <code>SetHeight</code> method use.
 	 * @param {twips} [nValue] - The height for the current table row measured in twentieths of a point (1/1440 of an inch). This value will be ignored if <code>sHRule="auto"<code>.
@@ -3788,7 +3790,10 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Specify that all the current table rows will be styled as its header row.
+	 * Specify that the current table row will be repeated at the top of each new page 
+     * wherever this table is displayed. This gives this table row the behavior of a 'header' row on 
+     * each of these pages. This element can be applied to any number of rows at the top of the 
+     * table structure in order to generate multi-row table headers.
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} isHeader - The true value will enable the SetTableHeader method use.
 	 */
@@ -3855,8 +3860,8 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Specifies the amount of space which shall be left between the right extent of the current cell contents and the
-	 * right edge border of a specific individual table cell within a table.
+	 * Specify the amount of space which will be left between the left extent of the cell contents and 
+	 * the border of a specific table cell within a table.
 	 * @typeofeditors ["CDE"]
 	 * @param {?twips} nValue - The value for the amount of space to the left extent of the cell measured in twentieths
 	 * of a point (1/1440 of an inch). If this value is <code>null<c/ode>, then default table cell left margin will be used, otherwise
@@ -4164,7 +4169,7 @@
 	 * * <b>"behind"</b> - the text overlaps the object.
 	 * * <b>"inFront"</b> - the object overlaps the text.
 	 * @typeofeditors ["CDE"]
-	 * @param {"inline" | "square" | "tight" | "through" | "topAndBottom" | "behind" | "inFront"} sType
+	 * @param {"inline" | "square" | "tight" | "through" | "topAndBottom" | "behind" | "inFront"} sType - The wrapping style type available for the object.
 	 */
 	ApiDrawing.prototype.SetWrappingStyle = function(sType)
 	{
@@ -4259,7 +4264,7 @@
 	/**
 	 * Set an absolute measurement for the vertical positioning of the floating object.
 	 * @typeofeditors ["CDE"]
-	 * @param {RelFromH} sRelativeFrom - The document element which will be taken as a countdown point for the object vertical alignment.
+	 * @param {RelFromV} sRelativeFrom - The document element which will be taken as a countdown point for the object vertical alignment.
 	 * @param {EMU} nDistance - The distance from the bottom part of the document element to the floating object measured in English measure units.
 	 */
 	ApiDrawing.prototype.SetVerPosition = function(sRelativeFrom, nDistance)
@@ -4424,11 +4429,11 @@
 
 
 	/**
-	 *  Specifies a chart title
+	 *  Specify the chart title.
 	 *  @typeofeditors ["CDE"]
 	 *  @param {string} sTitle - The title which will be displayed for the current chart.
 	 *  @param {hps} nFontSize - The text size value measured in points.
-	 *  @param {?bool} bIsBold
+	 *  @param {?bool} bIsBold - Specifies if the chart title is written in bold font or not.
 	 */
 	ApiChart.prototype.SetTitle = function (sTitle, nFontSize, bIsBold)
 	{
@@ -4436,11 +4441,11 @@
 	};
 
 	/**
-	 *  Specifies a horizontal axis title
+	 *  Specify the chart horizontal axis title.
 	 *  @typeofeditors ["CDE"]
 	 *  @param {string} sTitle - The title which will be displayed for the horizontal axis of the current chart.
 	 *  @param {hps} nFontSize - The text size value measured in points.
-	 *  @param {?bool} bIsBold
+	 *  @param {?bool} bIsBold - Specifies if the horizontal axis title is written in bold font or not.
 	 * */
 	ApiChart.prototype.SetHorAxisTitle = function (sTitle, nFontSize, bIsBold)
 	{
@@ -4448,11 +4453,11 @@
 	};
 
 	/**
-	 *  Specifies a vertical axis title
+	 *  Specify the chart vertical axis title.
 	 *  @typeofeditors ["CDE"]
 	 *  @param {string} sTitle - The title which will be displayed for the vertical axis of the current chart.
 	 *  @param {hps} nFontSize - The text size value measured in points.
-	 *  @param {?bool} bIsBold
+	 *  @param {?bool} bIsBold - Specifies if the vertical axis title is written in bold font or not.
 	 * */
 	ApiChart.prototype.SetVerAxisTitle = function (sTitle, nFontSize, bIsBold)
 	{
@@ -4476,7 +4481,7 @@
 	};
 
 	/**
-	 * Specifies a legend position
+	 * Specify the chart legend position.
 	 * @typeofeditors ["CDE"]
 	 * @param {"left" | "top" | "right" | "bottom" | "none"} sLegendPos - The position of the chart legend inside the chart window.
 	 * */
