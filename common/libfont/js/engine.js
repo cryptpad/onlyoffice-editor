@@ -36086,6 +36086,7 @@ function cff_decoder_parse_charstrings(decoder, charstring_base, charstring_len)
                 case 49:
                 {
                     var idx = ((tops[args] >> 16) + decoder.locals_bias);
+                    idx = FT_Common.IntToUInt(idx);
 
                     if (idx >= decoder.num_locals)
                         return 3;
@@ -36113,6 +36114,7 @@ function cff_decoder_parse_charstrings(decoder, charstring_base, charstring_len)
                 case 50:
                 {
                     var idx = ((tops[args] >> 16) + decoder.globals_bias);
+                    idx = FT_Common.IntToUInt(idx);
 
                     if (idx >= decoder.num_globals)
                         return 3;
