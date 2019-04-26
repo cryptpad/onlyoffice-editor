@@ -2112,7 +2112,7 @@ CDocument.prototype.UpdateSelection = function()
 	if (this.Action.Start)
 		this.Action.UpdateSelection = true;
 	else
-		this.Document_UpdateSelectionState();
+		this.private_UpdateSelection();
 };
 /**
  * Сообщаем документу, что потребуется обновить состояние интерфейса
@@ -2122,7 +2122,7 @@ CDocument.prototype.UpdateInterface = function()
 	if (this.Action.Start)
 		this.Action.UpdateInterface = true;
 	else
-		this.Document_UpdateInterfaceState();
+		this.private_UpdateInterface();
 };
 /**
  * Сообщаем документу, что потребуется обновить линейки
@@ -2142,7 +2142,7 @@ CDocument.prototype.UpdateUndoRedo = function()
 	if (this.Action.Start)
 		this.Action.UpdateUndoRedo = true;
 	else
-		this.Document_UpdateUndoRedoState();
+		this.private_UpdateUndoRedo();
 };
 /**
  * Перерисовываем заданные страницы
@@ -2220,10 +2220,16 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	}
 
 	if (this.Action.UpdateInterface)
-		this.Document_UpdateInterfaceState();
+		this.private_UpdateInterface();
 
 	if (this.Action.UpdateSelection)
-		this.Document_UpdateSelectionState();
+		this.private_UpdateSelection();
+
+	if (this.Action.UpdateRulers)
+		this.private_UpdateRulers();
+
+	if (this.Action.UpdateUndoRedo)
+		this.private_UpdateUndoRedo();
 
 	this.Action.Start           = false;
 	this.Action.Recalculate     = false;
@@ -9735,6 +9741,13 @@ CDocument.prototype.Document_Get_AllFontNames = function()
  */
 CDocument.prototype.Document_UpdateInterfaceState = function(bSaveCurRevisionChange)
 {
+	if (undefined !== bSaveCurRevisionChange)
+		this.private_UpdateInterface(bSaveCurRevisionChange);
+	else
+		this.UpdateInterface();
+};
+CDocument.prototype.private_UpdateInterface = function(bSaveCurRevisionChange)
+{
 	if (true === this.TurnOffInterfaceEvents)
 		return;
 
@@ -9806,6 +9819,10 @@ CDocument.prototype.Document_UpdateRulersStateBySection = function(Pos)
 	}
 };
 CDocument.prototype.Document_UpdateSelectionState = function()
+{
+	this.UpdateSelection();
+};
+CDocument.prototype.private_UpdateSelection = function()
 {
 	if (true === this.TurnOffInterfaceEvents)
 		return;
@@ -9903,6 +9920,10 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 	}
 };
 CDocument.prototype.Document_UpdateUndoRedoState = function()
+{
+	this.UpdateUndoRedo();
+};
+CDocument.prototype.private_UpdateUndoRedo = function()
 {
 	if (true === this.TurnOffInterfaceEvents)
 		return;
