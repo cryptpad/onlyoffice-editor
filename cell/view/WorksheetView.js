@@ -15691,6 +15691,7 @@
 		}
 
 		console_time("old");
+
 		var levelMap = {};
 		var res = null;
 		var up = true, down = true;
@@ -15745,16 +15746,30 @@
 					res[outLineLevel].push({start: val.index, end: val.index});
 				}
 
+				//расширяем предыдущие(младшие) уровни
+				//для того что - младший уровень не может быть меньше старшего
 				for(var n = 1; n < outLineLevel; n++) {
+
+					var bAdd = false;
 					if(!res[n]) {
+						bAdd = true;
 						if(res[outLineLevel]) {
 							res[n] = [{start: res[outLineLevel][res[outLineLevel].length - 1].start, end: res[outLineLevel][res[outLineLevel].length - 1].end}];
 						} else {
 							res[n] = [];
 						}
 					}
+
+					var bContinue = false;
 					for(var m = 0; m < res[n].length; m++) {
-						continueRange(n, m);
+						if(!continueRange(n, m)) {
+							bContinue = true;
+						}
+					}
+
+					//если не расширен данный(предыдущий) уровень или не добавлен новый элемент, тогда в него добавляем строки текущего
+					if(!bContinue && !bAdd) {
+						res[n].push({start: res[outLineLevel][res[outLineLevel].length - 1].start, end: res[outLineLevel][res[outLineLevel].length - 1].end});
 					}
 				}
 			}
