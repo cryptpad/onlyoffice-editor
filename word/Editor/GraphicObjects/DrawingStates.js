@@ -159,14 +159,13 @@ StartAddNewShape.prototype =
                 this.drawingObjects.resetSelection();
                 shape.select(this.drawingObjects, this.pageIndex);
                 this.drawingObjects.document.Recalculate();
+				oLogicDocument.FinalizeAction();
                 if(this.preset === "textRect")
                 {
                     this.drawingObjects.selection.textSelection = shape;
                     shape.selectionSetStart(e, x, y, pageIndex);
                     shape.selectionSetEnd(e, x, y, pageIndex);
                 }
-
-				oLogicDocument.FinalizeAction();
             }
             else
             {
