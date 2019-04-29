@@ -197,7 +197,7 @@ CDocument.prototype.GetPrevRevisionChange = function()
 		this.RemoveSelection();
 		this.private_SelectRevisionChange(oChange);
 		this.UpdateSelection(false);
-		this.UpdateInterfaceState(true);
+		this.UpdateInterface(true);
 	}
 };
 CDocument.prototype.GetRevisionsChangeElement = function(nDirection, oCurrentElement)
