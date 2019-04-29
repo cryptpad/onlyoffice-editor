@@ -10283,7 +10283,7 @@ CDocument.prototype.GetSelectionState = function()
 
 	DocState.Selection = {
 
-		Start    : this.Selection.Start,
+		Start    : false,
 		Use      : this.Selection.Use,
 		StartPos : this.Selection.StartPos,
 		EndPos   : this.Selection.EndPos,
@@ -10335,7 +10335,7 @@ CDocument.prototype.SetSelectionState = function(State)
 	this.CurPos.RealY      = DocState.CurPos.RealY;
 	this.SetDocPosType(DocState.CurPos.Type);
 
-	this.Selection.Start    = DocState.Selection.Start;
+	this.Selection.Start    = false;
 	this.Selection.Use      = DocState.Selection.Use;
 	this.Selection.StartPos = DocState.Selection.StartPos;
 	this.Selection.EndPos   = DocState.Selection.EndPos;
