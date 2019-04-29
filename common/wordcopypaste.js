@@ -2233,7 +2233,7 @@ PasteProcessor.prototype =
         }
 		
 		//for special paste
-		if(dNotShowOptions) {
+		if(dNotShowOptions && !window['AscCommon'].g_specialPasteHelper.specialPasteStart) {
 			window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
 		} else {
 			this._specialPasteSetShowOptions();
@@ -4998,7 +4998,7 @@ PasteProcessor.prototype =
 		var fPasteTextWordCallback = function () {
 			var executePasteWord = function () {
 				if (false === oThis.bNested) {
-					oThis.InsertInDocument(true);
+					oThis.InsertInDocument(!window['AscCommon'].g_specialPasteHelper.specialPasteStart);
 				}
 			};
 
