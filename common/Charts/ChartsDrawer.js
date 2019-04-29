@@ -8360,7 +8360,19 @@ drawPieChart.prototype = {
 
 		//TODO сделать через idx как у drawDoughnutChart!!!
 		if (!this.paths.series[val]) {
-			return;
+			var numCache = this._getFirstRealNumCache();
+			if(numCache) {
+				for (var i = 0; i < numCache.length; i++) {
+					if(val === numCache[i].idx) {
+						val = i;
+						break;
+					}
+				}
+			}
+
+			if(!this.paths.series[val]) {
+				return;
+			}
 		}
 
 		var path;
@@ -8380,9 +8392,8 @@ drawPieChart.prototype = {
 			var a = radius1 * radius2;
 			var b = Math.sqrt(Math.pow(radius2, 2) * Math.pow(Math.cos(alpha), 2) +
 				Math.pow(radius1, 2) * Math.pow(Math.sin(alpha), 2));
-			var res = a / b;
 
-			return res;
+			return  a / b;
 		};
 
 		var oPath = this.cChartSpace.GetPath(path);
