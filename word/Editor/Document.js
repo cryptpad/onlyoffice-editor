@@ -2738,7 +2738,7 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
 };
 /**
  * Запускаем пересчет документа.
- * @param _RecalcData
+ * @param oRecalcData
  * @param [isForceStrictRecalc=false] {boolean} Запускать ли пересчет первый раз без таймера
  */
 CDocument.prototype.RecalculateWithParams = function(oRecalcData, isForceStrictRecalc)
@@ -18405,7 +18405,7 @@ CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
 	if (!oMarks)
 		return;
 
-	var oDocState = this.SaveDocumentState();
+	var oDocState = this.GetSelectionState();
 
 	this.SelectTrackMove(sMoveId, true);
 	this.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMarkRemove, false);
@@ -18413,7 +18413,7 @@ CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
 	this.SelectTrackMove(sMoveId, false);
 	this.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMarkRemove, false);
 
-	this.LoadDocumentState(oDocState);
+	this.SetSelectionState(oDocState);
 
 	if (!this.Action.Start)
 		return;
@@ -20115,7 +20115,7 @@ function CDocumentNumberingInfoEngine(oPara, oNumPr, oNumbering)
 {
 	this.Paragraph   = oPara;
 	this.NumId       = oNumPr.NumId;
-	this.Lvl         = oNumPr.Lvl;
+	this.Lvl         = oNumPr.Lvl !== undefined ? oNumPr.Lvl : 0;
 	this.Numbering   = oNumbering;
 	this.NumInfo     = new Array(this.Lvl + 1);
 	this.Restart     = [-1, -1, -1, -1, -1, -1, -1, -1, -1]; // Этот параметр контролирует уровень, начиная с которого делаем рестарт для текущего уровня
