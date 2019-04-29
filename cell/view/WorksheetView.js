@@ -17062,7 +17062,9 @@
 								} else {
 									maxGroupIndexMap[groupArr[i][j].end] = container.length;
 								}
-								container.push(groupArr[i][j]);
+								if(!bExpand && (!levelMap[groupArr[i][j].end + 1] || !levelMap[groupArr[i][j].end + 1].collapsed)) {
+									container.push(groupArr[i][j]);
+								}
 							} else {
 								//частичное выделение - выбираем максимальный уровень, первую по счёту группу
 								var outLineGroupRange;
