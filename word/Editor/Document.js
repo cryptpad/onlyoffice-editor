@@ -1551,7 +1551,7 @@ CSelectedElementsInfo.prototype.GetPagesCount = function()
 var document_compatibility_mode_Word14  = 14;
 var document_compatibility_mode_Word15  = 15;
 
-var document_compatibility_mode_Current = 0xFFFF;
+var document_compatibility_mode_Current = document_compatibility_mode_Word14;
 
 function CDocumentSettings()
 {
