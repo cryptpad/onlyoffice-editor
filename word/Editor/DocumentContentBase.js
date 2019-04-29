@@ -731,7 +731,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 									oReviewInfo.Update();
 
 									this.Content[nCurContentPos + 1].SetDirectParaPr(oParaPr);
-									this.Content[nCurContentPoss + 1].SetPrChange(oPrChange, oReviewInfo);
+									this.Content[nCurContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
 								}
 							}
 							else
