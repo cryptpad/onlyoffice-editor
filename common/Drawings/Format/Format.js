@@ -1210,15 +1210,15 @@ CColorModifiers.prototype =
 
             if (colorMod.name == "alpha")
             {
-                RGBA.A = AscFormat.ClampColor(val);
+                RGBA.A = AscFormat.ClampColor(255 * val);
             }
             else if (colorMod.name == "blue")
             {
-                RGBA.B = AscFormat.ClampColor(val);
+                RGBA.B = AscFormat.ClampColor(255 * val);
             }
             else if (colorMod.name == "blueMod")
             {
-                RGBA.B = AscFormat.ClampColor(val);
+                RGBA.B = AscFormat.ClampColor(RGBA.B * val);
             }
             else if (colorMod.name == "blueOff")
             {
