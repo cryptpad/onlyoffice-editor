@@ -2268,7 +2268,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_hideRows = function() {
-	  this.wb.getWorksheet().changeGroupDetails2();
+    this.wb.getWorksheet().changeWorksheet("hideRows");
   };
 
   spreadsheet_api.prototype.asc_group = function(val) {
