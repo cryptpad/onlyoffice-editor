@@ -2096,6 +2096,40 @@ DrawingObjectsController.prototype =
                     this.selection.textSelection.drawAdjustments(drawingDocument);
             }
         }
+        else if(this.selection.cropSelection)
+        {
+            if(this.arrTrackObjects.length === 0)
+            {
+                if(this.selection.cropSelection.selectStartPage === pageIndex)
+                {
+                    var oCropSelection =  this.selection.cropSelection;
+                    var cropObject = oCropSelection.getCropObject();
+                    if(cropObject)
+                    {
+                        var oldGlobalAlpha;
+                        if(drawingDocument.AutoShapesTrack.Graphics)
+                        {
+                            oldGlobalAlpha = drawingDocument.AutoShapesTrack.Graphics.globalAlpha;
+                            drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(false, 1.0);
+                        }
+                        drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage, true);
+                        cropObject.draw(drawingDocument.AutoShapesTrack);
+                        drawingDocument.AutoShapesTrack.CorrectOverlayBounds();
+
+                        drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage, true);
+                        oCropSelection.draw(drawingDocument.AutoShapesTrack);
+                        drawingDocument.AutoShapesTrack.CorrectOverlayBounds();
+
+                        if(drawingDocument.AutoShapesTrack.Graphics)
+                        {
+                            drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(true, oldGlobalAlpha);
+                        }
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CROP, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
+                    }
+                }
+            }
+        }
         else if(this.selection.groupSelection)
         {
             if(this.selection.groupSelection.selectStartPage === pageIndex)
@@ -2134,40 +2168,6 @@ DrawingObjectsController.prototype =
         {
             if(this.selection.wrapPolygonSelection.selectStartPage === pageIndex)
                 drawingDocument.AutoShapesTrack.DrawEditWrapPointsPolygon(this.selection.wrapPolygonSelection.parent.wrappingPolygon.calculatedPoints, new AscCommon.CMatrix());
-        }
-        else if(this.selection.cropSelection)
-        {
-            if(this.arrTrackObjects.length === 0)
-            {
-                if(this.selection.cropSelection.selectStartPage === pageIndex)
-                {
-                    var oCropSelection =  this.selection.cropSelection;
-                    var cropObject = oCropSelection.getCropObject();
-                    if(cropObject)
-                    {
-                        var oldGlobalAlpha;
-                        if(drawingDocument.AutoShapesTrack.Graphics)
-                        {
-                            oldGlobalAlpha = drawingDocument.AutoShapesTrack.Graphics.globalAlpha;
-                            drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(false, 1.0);
-                        }
-                        drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage, true);
-                        cropObject.draw(drawingDocument.AutoShapesTrack);
-                        drawingDocument.AutoShapesTrack.CorrectOverlayBounds();
-
-                        drawingDocument.AutoShapesTrack.SetCurrentPage(cropObject.selectStartPage, true);
-                        oCropSelection.draw(drawingDocument.AutoShapesTrack);
-                        drawingDocument.AutoShapesTrack.CorrectOverlayBounds();
-
-                        if(drawingDocument.AutoShapesTrack.Graphics)
-                        {
-                            drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(true, oldGlobalAlpha);
-                        }
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CROP, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
-                    }
-                }
-            }
         }
         else
         {

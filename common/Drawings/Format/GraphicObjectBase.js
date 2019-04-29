@@ -1429,10 +1429,10 @@
                 var YC = DY + extY/2.0;
 
                 var oTransform = this.transform.CreateDublicate();
-                if(this.group)
-                {
-                    AscCommon.global_MatrixTransformer.MultiplyAppend(oTransform, this.group.invertTransform);
-                }
+                // if(this.group)
+                // {
+                //     AscCommon.global_MatrixTransformer.MultiplyAppend(oTransform, this.group.invertTransform);
+                // }
 
                 var XC_ = oTransform.TransformPointX(XC, YC);
                 var YC_ = oTransform.TransformPointY(XC, YC);
@@ -1448,7 +1448,7 @@
                 oImage.spPr.xfrm.setRot(this.rot);
                 oImage.spPr.xfrm.setFlipH(this.flipH);
                 oImage.spPr.xfrm.setFlipV(this.flipV);
-                oImage.setGroup(this.group);
+                // oImage.setGroup(this.group);
 
 
                 oImage.setParent(this.parent);
