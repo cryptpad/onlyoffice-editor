@@ -16046,7 +16046,7 @@
 
 				pointLevel = rowLevelMap[l].level;
 				var colWidth = /*this.getColWidth(endX)*/this._getColLeft(l + 1) - this._getColLeft(l);
-				if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || colWidth === 0) {
+				if(pointLevel === 0 || (tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || colWidth === 0) {
 					continue;
 				}
 				ctx.lineVerPrevPx(this._getColLeft(l) - offsetX + colWidth / 2, 7 * padding + pointLevel * buttonSize, 7 * padding + (pointLevel) * buttonSize + 2 * padding);
@@ -16144,7 +16144,7 @@
 
 				pointLevel = rowLevelMap[l].level;
 				var rowHeight = this._getRowHeight(l);
-				if((tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || rowHeight === 0) {
+				if(pointLevel === 0 || (tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || rowHeight === 0) {
 					continue;
 				}
 				ctx.lineHorPrevPx(padding * 7 + pointLevel * buttonSize, this._getRowTop(l) - offsetY + rowHeight / 2, padding * 7 + (pointLevel) * buttonSize + padding * 2);
@@ -17073,7 +17073,7 @@
 								} else {
 									outLineGroupRange = Asc.Range(0, groupArr[i][j].start, gc_nMaxCol, groupArr[i][j].end);
 								}
-								if(i > curLevel && outLineGroupRange.intersection(ar)) {
+								if((!levelMap[groupArr[i][j].end + 1] || !levelMap[groupArr[i][j].end + 1].collapsed) && i > curLevel && outLineGroupRange.intersection(ar)) {
 									selectPartGroup = groupArr[i][j];
 									curLevel = i;
 								}
@@ -17174,6 +17174,7 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+			//строки
 			var i;
 			if(allGroupSelectedRow.length) {
 				for(i = 0; i < allGroupSelectedRow.length; i++) {
@@ -17190,6 +17191,7 @@
 				t.model.setRowHidden(!bExpand, selectPartRowGroup.start, selectPartRowGroup.end);
 			}
 
+			//столбцы
 			if(allGroupSelectedCol.length) {
 				for(i = 0; i < allGroupSelectedCol.length; i++) {
 					if(!allGroupSelectedCol[i]) {
