@@ -1488,6 +1488,8 @@ function initMathRevisions(elem ,props) {
 };
 function setNestedReviewType(elem, type, reviewInfo) {
 	if (elem && elem.SetReviewTypeWithInfo && elem.GetReviewType) {
+		//coping prevents self reference in case of setting one reviewInfo to multiple elems (<ins><ins><r/><r/></ins></ins>)
+		reviewInfo = reviewInfo.Copy();
 		if (reviewtype_Common !== elem.GetReviewType()) {
 			elem.GetReviewInfo().SetPrevReviewTypeWithInfoRecursively(type, reviewInfo);
 		} else {
