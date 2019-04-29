@@ -690,218 +690,218 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		if (true === bRemoveOnlySelection || true === bOnTextAdd)
 			return true;
 
-		if (type_Paragraph == this.Content[this.CurPos.ContentPos].GetType())
+		var nCurContentPos = this.CurPos.ContentPos;
+		if (type_Paragraph == this.Content[nCurContentPos].GetType())
 		{
-			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord))
+			if (false === this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord))
 			{
 				if (Count < 0)
 				{
-					if (this.CurPos.ContentPos > 0 && type_Paragraph == this.Content[this.CurPos.ContentPos - 1].GetType())
+					if (nCurContentPos > 0 && type_Paragraph == this.Content[nCurContentPos - 1].GetType())
 					{
-						var CurrFramePr = this.Content[this.CurPos.ContentPos].Get_FramePr();
-						var PrevFramePr = this.Content[this.CurPos.ContentPos - 1].Get_FramePr();
+						var CurrFramePr = this.Content[nCurContentPos].Get_FramePr();
+						var PrevFramePr = this.Content[nCurContentPos - 1].Get_FramePr();
 
 						if ((undefined === CurrFramePr && undefined === PrevFramePr) || (undefined !== CurrFramePr && undefined !== PrevFramePr && true === CurrFramePr.Compare(PrevFramePr)))
 						{
 							if (true === this.IsTrackRevisions()
-								&& (reviewtype_Add !== this.Content[this.CurPos.ContentPos - 1].GetReviewType() || !this.Content[this.CurPos.ContentPos - 1].GetReviewInfo().IsCurrentUser())
-								&& (reviewtype_Remove !== this.Content[this.CurPos.ContentPos - 1].GetReviewType() || !this.Content[this.CurPos.ContentPos - 1].GetReviewInfo().IsPrevAddedByCurrentUser()))
+								&& (reviewtype_Add !== this.Content[nCurContentPos - 1].GetReviewType() || !this.Content[nCurContentPos - 1].GetReviewInfo().IsCurrentUser())
+								&& (reviewtype_Remove !== this.Content[nCurContentPos - 1].GetReviewType() || !this.Content[nCurContentPos - 1].GetReviewInfo().IsPrevAddedByCurrentUser()))
 							{
-								if (reviewtype_Add === this.Content[this.CurPos.ContentPos - 1].GetReviewType())
+								if (reviewtype_Add === this.Content[nCurContentPos - 1].GetReviewType())
 								{
-									var oReviewInfo = this.Content[this.CurPos.ContentPos - 1].GetReviewInfo().Copy();
+									var oReviewInfo = this.Content[nCurContentPos - 1].GetReviewInfo().Copy();
 									oReviewInfo.SavePrev(reviewtype_Add);
 									oReviewInfo.Update();
-									this.Content[this.CurPos.ContentPos - 1].SetReviewTypeWithInfo(reviewtype_Remove, oReviewInfo);
+									this.Content[nCurContentPos - 1].SetReviewTypeWithInfo(reviewtype_Remove, oReviewInfo);
 								}
 								else
 								{
-									this.Content[this.CurPos.ContentPos - 1].SetReviewType(reviewtype_Remove);
+									this.Content[nCurContentPos - 1].SetReviewType(reviewtype_Remove);
 								}
 
-								this.CurPos.ContentPos--;
-								this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false, false);
+								nCurContentPos--;
+								this.Content[nCurContentPos].MoveCursorToEndPos(false, false);
 
-								if (this.Content[this.CurPos.ContentPos].IsParagraph())
+								if (this.Content[nCurContentPos].IsParagraph())
 								{
-									var oParaPr   = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
-									var oPrChange = this.Content[this.CurPos.ContentPos + 1].GetDirectParaPr();
+									var oParaPr   = this.Content[nCurContentPos].GetDirectParaPr();
+									var oPrChange = this.Content[nCurContentPos + 1].GetDirectParaPr();
 									var oReviewInfo = new CReviewInfo();
 									oReviewInfo.Update();
 
-									this.Content[this.CurPos.ContentPos + 1].SetDirectParaPr(oParaPr);
-									this.Content[this.CurPos.ContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
-
+									this.Content[nCurContentPos + 1].SetDirectParaPr(oParaPr);
+									this.Content[nCurContentPoss + 1].SetPrChange(oPrChange, oReviewInfo);
 								}
 							}
 							else
 							{
-								if (true === this.Content[this.CurPos.ContentPos - 1].IsEmpty() && undefined === this.Content[this.CurPos.ContentPos - 1].GetNumPr())
+								if (true === this.Content[nCurContentPos - 1].IsEmpty() && undefined === this.Content[nCurContentPos - 1].GetNumPr())
 								{
 									// Просто удаляем предыдущий параграф
-									this.Internal_Content_Remove(this.CurPos.ContentPos - 1, 1);
-									this.CurPos.ContentPos--;
-									this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+									this.Internal_Content_Remove(nCurContentPos - 1, 1);
+									nCurContentPos--;
+									this.Content[nCurContentPos].MoveCursorToStartPos(false);
 								}
 								else
 								{
 									// Соединяем текущий и предыдущий параграфы
-									var Prev = this.Content[this.CurPos.ContentPos - 1];
+									var Prev = this.Content[nCurContentPos - 1];
 
 									// Смещаемся в конец до объединения параграфов, чтобы курсор стоял в месте
 									// соединения.
 									Prev.MoveCursorToEndPos(false, false);
 
 									// Запоминаем новую позицию курсора, после совмещения параграфов
-									Prev.Concat(this.Content[this.CurPos.ContentPos]);
-									this.Internal_Content_Remove(this.CurPos.ContentPos, 1);
-									this.CurPos.ContentPos--;
+									Prev.Concat(this.Content[nCurContentPos]);
+									this.Internal_Content_Remove(nCurContentPos, 1);
+									nCurContentPos--;
 								}
 							}
 						}
 					}
-					else if (this.CurPos.ContentPos > 0 && type_BlockLevelSdt === this.Content[this.CurPos.ContentPos - 1].GetType())
+					else if (nCurContentPos > 0 && type_BlockLevelSdt === this.Content[nCurContentPos - 1].GetType())
 					{
-						this.CurPos.ContentPos--;
-						this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+						nCurContentPos--;
+						this.Content[nCurContentPos].MoveCursorToEndPos(false);
 					}
-					else if (0 === this.CurPos.ContentPos)
+					else if (0 === nCurContentPos)
 					{
 						bRetValue = false;
 					}
 				}
 				else if (Count > 0)
 				{
-					if (this.CurPos.ContentPos < this.Content.length - 1 && type_Paragraph == this.Content[this.CurPos.ContentPos + 1].GetType())
+					if (nCurContentPos < this.Content.length - 1 && type_Paragraph == this.Content[nCurContentPos + 1].GetType())
 					{
-						var CurrFramePr = this.Content[this.CurPos.ContentPos].Get_FramePr();
-						var NextFramePr = this.Content[this.CurPos.ContentPos + 1].Get_FramePr();
+						var CurrFramePr = this.Content[nCurContentPos].Get_FramePr();
+						var NextFramePr = this.Content[nCurContentPos + 1].Get_FramePr();
 
 						if ((undefined === CurrFramePr && undefined === NextFramePr) || ( undefined !== CurrFramePr && undefined !== NextFramePr && true === CurrFramePr.Compare(NextFramePr) ))
 						{
 							if (true === this.IsTrackRevisions()
-								&& (reviewtype_Add !== this.Content[this.CurPos.ContentPos].GetReviewType() || !this.Content[this.CurPos.ContentPos].GetReviewInfo().IsCurrentUser())
-								&& (reviewtype_Remove !== this.Content[this.CurPos.ContentPos].GetReviewType() || !this.Content[this.CurPos.ContentPos].GetReviewInfo().IsPrevAddedByCurrentUser()))
+								&& (reviewtype_Add !== this.Content[nCurContentPos].GetReviewType() || !this.Content[nCurContentPos].GetReviewInfo().IsCurrentUser())
+								&& (reviewtype_Remove !== this.Content[nCurContentPos].GetReviewType() || !this.Content[nCurContentPos].GetReviewInfo().IsPrevAddedByCurrentUser()))
 							{
-								if (reviewtype_Add === this.Content[this.CurPos.ContentPos].GetReviewType())
+								if (reviewtype_Add === this.Content[nCurContentPos].GetReviewType())
 								{
-									var oReviewInfo = this.Content[this.CurPos.ContentPos].GetReviewInfo().Copy();
+									var oReviewInfo = this.Content[nCurContentPos].GetReviewInfo().Copy();
 									oReviewInfo.SavePrev(reviewtype_Add);
 									oReviewInfo.Update();
-									this.Content[this.CurPos.ContentPos].SetReviewTypeWithInfo(reviewtype_Remove, oReviewInfo);
+									this.Content[nCurContentPos].SetReviewTypeWithInfo(reviewtype_Remove, oReviewInfo);
 								}
 								else
 								{
-									this.Content[this.CurPos.ContentPos].SetReviewType(reviewtype_Remove);
+									this.Content[nCurContentPos].SetReviewType(reviewtype_Remove);
 								}
 
 
-								this.Content[this.CurPos.ContentPos].SetReviewType(reviewtype_Remove);
-								this.CurPos.ContentPos++;
-								this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+								this.Content[nCurContentPos].SetReviewType(reviewtype_Remove);
+								nCurContentPos++;
+								this.Content[nCurContentPos].MoveCursorToStartPos(false);
 
-								if (this.Content[this.CurPos.ContentPos - 1].IsParagraph())
+								if (this.Content[nCurContentPos - 1].IsParagraph())
 								{
-									var oParaPr   = this.Content[this.CurPos.ContentPos - 1].GetDirectParaPr();
-									var oPrChange = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
+									var oParaPr   = this.Content[nCurContentPos - 1].GetDirectParaPr();
+									var oPrChange = this.Content[nCurContentPos].GetDirectParaPr();
 									var oReviewInfo = new CReviewInfo();
 									oReviewInfo.Update();
 
-									this.Content[this.CurPos.ContentPos].SetDirectParaPr(oParaPr);
-									this.Content[this.CurPos.ContentPos].SetPrChange(oPrChange, oReviewInfo);
+									this.Content[nCurContentPos].SetDirectParaPr(oParaPr);
+									this.Content[nCurContentPos].SetPrChange(oPrChange, oReviewInfo);
 								}
 							}
 							else
 							{
-								if (true === this.Content[this.CurPos.ContentPos].IsEmpty())
+								if (true === this.Content[nCurContentPos].IsEmpty())
 								{
 									// Просто удаляем текущий параграф
-									this.Internal_Content_Remove(this.CurPos.ContentPos, 1);
-									this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+									this.Internal_Content_Remove(nCurContentPos, 1);
+									this.Content[nCurContentPos].MoveCursorToStartPos(false);
 								}
 								else
 								{
 									// Соединяем текущий и следующий параграфы
-									var Cur = this.Content[this.CurPos.ContentPos];
-									Cur.Concat(this.Content[this.CurPos.ContentPos + 1]);
-									this.Internal_Content_Remove(this.CurPos.ContentPos + 1, 1);
+									var Cur = this.Content[nCurContentPos];
+									Cur.Concat(this.Content[nCurContentPos + 1]);
+									this.Internal_Content_Remove(nCurContentPos + 1, 1);
 								}
 							}
 						}
 					}
-					else if (this.CurPos.ContentPos < this.Content.length - 1 && type_BlockLevelSdt === this.Content[this.CurPos.ContentPos + 1].GetType())
+					else if (nCurContentPos < this.Content.length - 1 && type_BlockLevelSdt === this.Content[nCurContentPos + 1].GetType())
 					{
-						this.CurPos.ContentPos++;
-						this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+						nCurContentPos++;
+						this.Content[nCurContentPos].MoveCursorToStartPos(false);
 					}
-					else if (true == this.Content[this.CurPos.ContentPos].IsEmpty() && this.CurPos.ContentPos == this.Content.length - 1 && this.CurPos.ContentPos != 0 && type_Paragraph === this.Content[this.CurPos.ContentPos - 1].GetType())
+					else if (true == this.Content[nCurContentPos].IsEmpty() && nCurContentPos == this.Content.length - 1 && nCurContentPos != 0 && type_Paragraph === this.Content[nCurContentPos - 1].GetType())
 					{
 						// Если данный параграф пустой, последний, не единственный и идущий перед
 						// ним элемент не таблица, удаляем его
-						this.Internal_Content_Remove(this.CurPos.ContentPos, 1);
-						this.CurPos.ContentPos--;
-						this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false, false);
+						this.Internal_Content_Remove(nCurContentPos, 1);
+						nCurContentPos--;
+						this.Content[nCurContentPos].MoveCursorToEndPos(false, false);
 					}
-					else if (this.CurPos.ContentPos === this.Content.length - 1)
+					else if (nCurContentPos === this.Content.length - 1)
 					{
 						bRetValue = false;
 					}
 				}
 			}
 
-			var Item = this.Content[this.CurPos.ContentPos];
+			var Item = this.Content[nCurContentPos];
 			if (type_Paragraph === Item.GetType())
 			{
 				Item.CurPos.RealX = Item.CurPos.X;
 				Item.CurPos.RealY = Item.CurPos.Y;
 			}
 		}
-		else if (type_BlockLevelSdt === this.Content[this.CurPos.ContentPos].GetType())
+		else if (type_BlockLevelSdt === this.Content[nCurContentPos].GetType())
 		{
-			if (false === this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord))
+			if (false === this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord))
 			{
 				var oLogicDocument = this.GetLogicDocument();
 				if (oLogicDocument && true === oLogicDocument.IsFillingFormMode())
 				{
-					if (Count < 0 && this.CurPos.ContentPos > 0)
-						this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+					if (Count < 0 && nCurContentPos > 0)
+						this.Content[nCurContentPos].MoveCursorToStartPos(false);
 					else
-						this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+						this.Content[nCurContentPos].MoveCursorToEndPos(false);
 				}
 				else
 				{
-					if (this.Content[this.CurPos.ContentPos].IsEmpty())
+					if (this.Content[nCurContentPos].IsEmpty())
 					{
-						if (this.Content[this.CurPos.ContentPos].CanBeDeleted())
+						if (this.Content[nCurContentPos].CanBeDeleted())
 						{
-							this.RemoveFromContent(this.CurPos.ContentPos, 1);
+							this.RemoveFromContent(nCurContentPos, 1);
 
-							if ((Count < 0 && this.CurPos.ContentPos > 0) || this.CurPos.ContentPos >= this.Content.length)
+							if ((Count < 0 && nCurContentPos > 0) || nCurContentPos >= this.Content.length)
 							{
-								this.CurPos.ContentPos--;
-								this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+								nCurContentPos--;
+								this.Content[nCurContentPos].MoveCursorToEndPos(false);
 							}
 							else
 							{
-								this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+								this.Content[nCurContentPos].MoveCursorToStartPos(false);
 							}
 						}
 						else
 						{
 							if (Count < 0)
 							{
-								if (this.CurPos.ContentPos > 0)
+								if (nCurContentPos > 0)
 								{
-									this.CurPos.ContentPos--;
-									this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+									nCurContentPos--;
+									this.Content[nCurContentPos].MoveCursorToEndPos(false);
 								}
 							}
 							else
 							{
-								if (this.CurPos.ContentPos < this.Content.length - 1)
+								if (nCurContentPos < this.Content.length - 1)
 								{
-									this.CurPos.ContentPos++;
-									this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+									nCurContentPos++;
+									this.Content[nCurContentPos].MoveCursorToStartPos(false);
 								}
 							}
 						}
@@ -910,18 +910,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 					{
 						if (Count < 0)
 						{
-							if (this.CurPos.ContentPos > 0)
+							if (nCurContentPos > 0)
 							{
-								this.CurPos.ContentPos--;
-								this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+								nCurContentPos--;
+								this.Content[nCurContentPos].MoveCursorToEndPos(false);
 							}
 						}
 						else
 						{
-							if (this.CurPos.ContentPos < this.Content.length - 1)
+							if (nCurContentPos < this.Content.length - 1)
 							{
-								this.CurPos.ContentPos++;
-								this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+								nCurContentPos++;
+								this.Content[nCurContentPos].MoveCursorToStartPos(false);
 							}
 						}
 					}
@@ -930,8 +930,10 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else
 		{
-			this.Content[this.CurPos.ContentPos].Remove(Count, bOnlyText, false, false, isWord);
+			this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord);
 		}
+
+		this.CurPos.ContentPos = nCurContentPos;
 	}
 
 	return bRetValue;
