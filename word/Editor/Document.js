@@ -503,7 +503,7 @@ CSelectedContent.prototype =
         }
 
         // Ставим метки переноса в начало и конец
-        if (this.Elements.length > 0 && LogicDocument && null !== LogicDocument.TrackMoveId && LogicDocument.IsTrackRevisions())
+        if (this.Elements.length > 0 && LogicDocument && null !== LogicDocument.TrackMoveId)
 		{
 			var oStartElement = this.Elements[0].Element;
 			var oEndElement   = this.Elements[this.Elements.length - 1].Element;
@@ -7157,7 +7157,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 		if (!bCopy)
 		{
 			this.DragAndDropAction = true;
-			this.TrackMoveId       = this.TrackRevisionsManager.GetNewMoveId();
+			this.TrackMoveId       = this.IsTrackRevisions() ? this.TrackRevisionsManager.GetNewMoveId() : null;
 		}
 		else
 		{
