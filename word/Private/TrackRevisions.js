@@ -184,8 +184,8 @@ CDocument.prototype.GetNextRevisionChange = function()
 	{
 		this.RemoveSelection();
 		this.private_SelectRevisionChange(oChange);
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState(true);
+		this.UpdateSelection(false);
+		this.UpdateInterface(true);
 	}
 };
 CDocument.prototype.GetPrevRevisionChange = function()
@@ -196,8 +196,8 @@ CDocument.prototype.GetPrevRevisionChange = function()
 	{
 		this.RemoveSelection();
 		this.private_SelectRevisionChange(oChange);
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState(true);
+		this.UpdateSelection(false);
+		this.UpdateInterfaceState(true);
 	}
 };
 CDocument.prototype.GetRevisionsChangeElement = function(nDirection, oCurrentElement)
@@ -405,9 +405,10 @@ CDocument.prototype.private_SelectRevisionChange = function(oChange, isSkipCompl
 
 		if (oElement instanceof Paragraph)
 		{
+			// Текущую позицию нужно выставить до селекта
+			oElement.Set_ParaContentPos(oChange.get_StartPos(), false, -1, -1);
 			oElement.Selection.Use = true;
 			oElement.Set_SelectionContentPos(oChange.get_StartPos(), oChange.get_EndPos());
-			oElement.Set_ParaContentPos(oChange.get_StartPos(), false, -1, -1);
 			oElement.Document_SetThisElementCurrent(false);
 		}
 		else if (oElement instanceof CTable)

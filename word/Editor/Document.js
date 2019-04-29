@@ -1744,6 +1744,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.DragAndDropAction         = false; // Происходит ли сейчас действие drag-n-drop
 	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
 	this.TrackMoveId               = null;  // Идентификатор переноса внутри рецензирования
+	this.RemoveEmptySelection      = true;  // При обновлении селекта, если он пустой тогда сбрасываем его
 
 	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
 	this.NeedUpdateTracksOnRecalc = false;
@@ -2117,20 +2118,34 @@ CDocument.prototype.Recalculate = function(isForceRecalculate)
 };
 /**
  * Сообщаем документу, что потребуется обновить состояние селекта
+ * @param {boolean} [isRemoveEmptySelection = true]
  */
-CDocument.prototype.UpdateSelection = function()
+CDocument.prototype.UpdateSelection = function(isRemoveEmptySelection)
 {
-	if (this.Action.Start)
-		this.Action.UpdateSelection = true;
-	else
+	if (false === isRemoveEmptySelection)
+	{
+		this.RemoveEmptySelection = false;
 		this.private_UpdateSelection();
+		this.RemoveEmptySelection = true;
+	}
+	else if (this.Action.Start)
+	{
+		this.Action.UpdateSelection = true;
+	}
+	else
+	{
+		this.private_UpdateSelection();
+	}
 };
 /**
  * Сообщаем документу, что потребуется обновить состояние интерфейса
+ * @param {?boolean} bSaveCurRevisionChange
  */
-CDocument.prototype.UpdateInterface = function()
+CDocument.prototype.UpdateInterface = function(bSaveCurRevisionChange)
 {
-	if (this.Action.Start)
+	if (undefined !== bSaveCurRevisionChange)
+		this.private_UpdateInterface(bSaveCurRevisionChange);
+	else if (this.Action.Start)
 		this.Action.UpdateInterface = true;
 	else
 		this.private_UpdateInterface();
@@ -9784,16 +9799,9 @@ CDocument.prototype.Document_Get_AllFontNames = function()
 	AscFormat.checkThemeFonts(AllFonts, this.theme.themeElements.fontScheme);
 	return AllFonts;
 };
-/**
- * Обновляем текущее состояние (определяем где мы находимся, картинка/параграф/таблица/колонтитул)
- * @param bSaveCurRevisionChange
- */
 CDocument.prototype.Document_UpdateInterfaceState = function(bSaveCurRevisionChange)
 {
-	if (undefined !== bSaveCurRevisionChange)
-		this.private_UpdateInterface(bSaveCurRevisionChange);
-	else
-		this.UpdateInterface();
+	this.UpdateInterface(bSaveCurRevisionChange);
 };
 CDocument.prototype.private_UpdateInterface = function(bSaveCurRevisionChange)
 {
@@ -16401,7 +16409,7 @@ CDocument.prototype.controller_UpdateSelectionState = function()
 		}
 		else
 		{
-			if (false === this.IsSelectionEmpty())
+			if (false === this.IsSelectionEmpty() || !this.RemoveEmptySelection)
 			{
 				if (true !== this.Selection.Start)
 				{
