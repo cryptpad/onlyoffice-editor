@@ -1181,7 +1181,7 @@ DrawingObjectsController.prototype =
             this.updateOverlay();
             if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
             {
-                this.drawingObjects.showDrawingObjects();
+                this.drawingObjects.showDrawingObjects(true);
             }
         }
     },
