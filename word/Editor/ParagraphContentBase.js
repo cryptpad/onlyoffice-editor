@@ -173,6 +173,10 @@ CParagraphContentBase.prototype.Copy = function(Selected)
 {
 	return new this.constructor();
 };
+CParagraphContentBase.prototype.GetSelectedContent = function(oSelectedContent)
+{
+	return this.Copy();
+};
 CParagraphContentBase.prototype.CopyContent = function(Selected)
 {
 	return [];
@@ -891,6 +895,35 @@ CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oP
     }
 
     return NewElement;
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetSelectedContent = function(oSelectedContent)
+{
+	var oNewElement = new this.constructor();
+
+	var nStartPos = this.State.Selection.StartPos;
+	var nEndPos   = this.State.Selection.EndPos;
+
+	if (nStartPos > nEndPos)
+	{
+		nStartPos = this.State.Selection.EndPos;
+		nEndPos   = this.State.Selection.StartPos;
+	}
+
+	var nItemPos = 0;
+	for (var nPos = nStartPos, nItemPos = 0; nPos <= nEndPos; ++nPos)
+	{
+		var oNewItem = this.Content[nPos].GetSelectedContent(oSelectedContent);
+		if (oNewItem)
+		{
+			oNewElement.AddToContent(nItemPos, oNewItem);
+			nItemPos++;
+		}
+	}
+
+	if (0 === nItemPos)
+		return null;
+
+	return oNewElement;
 };
 CParagraphContentWithParagraphLikeContent.prototype.CopyContent = function(Selected)
 {

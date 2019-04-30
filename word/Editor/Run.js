@@ -273,6 +273,12 @@ ParaRun.prototype.CopyContent = function(Selected)
 {
     return [this.Copy(Selected)];
 };
+ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
+{
+	// TODO: Разруливалка для TrackMove
+
+	return this.Copy(true);
+};
 
 ParaRun.prototype.GetAllDrawingObjects = function(DrawingObjs)
 {

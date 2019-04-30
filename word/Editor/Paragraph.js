@@ -7460,61 +7460,79 @@ Paragraph.prototype.GetElementsInfoByXY = function(oInfo, X, Y, CurPage)
 	var SearchPosXY = this.Get_ParaContentPosByXY(X, Y, CurPage, false, false);
 	this.GetSelectedElementsInfo(oInfo, SearchPosXY.Pos, 0);
 };
-Paragraph.prototype.GetSelectedContent = function(DocContent)
+Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 {
 	if (true !== this.Selection.Use)
 		return;
 
-	var StartPos = this.Selection.StartPos;
-	var EndPos   = this.Selection.EndPos;
-	if (StartPos > EndPos)
+	var isAllSelected = (true === this.Selection_IsFromStart(true) && true === this.Selection_CheckParaEnd());
+
+	var nStartPos = this.Selection.StartPos;
+	var nEndPos   = this.Selection.EndPos;
+	if (nStartPos > nEndPos)
 	{
-		StartPos = this.Selection.EndPos;
-		EndPos   = this.Selection.StartPos;
+		nStartPos = this.Selection.EndPos;
+		nEndPos   = this.Selection.StartPos;
 	}
 
-	var Para = null;
-	if (true === this.Selection_IsFromStart(true) && true === this.Selection_CheckParaEnd())
+	var oPara = null;
+	if (oSelectedContent.IsTrackRevisions())
 	{
-		Para = this.Copy(this.Parent);
-		DocContent.Add(new CSelectedElement(Para, true));
+		for (var nPos = nStartPos, nParaPos = 0; nPos <= nEndPos; ++nPos)
+		{
+			var oNewItem = this.Content[nPos].GetSelectedContent(oSelectedContent);
+			if (oNewItem)
+			{
+				oPara.AddToContent(nParaPos, oNewItem);
+				nParaPos++;
+			}
+		}
 	}
 	else
 	{
-		Para = new Paragraph(this.DrawingDocument, this.Parent, !this.bFromDocument);
-
-		// Копируем настройки
-		Para.Set_Pr(this.Pr.Copy());
-		Para.TextPr.Set_Value(this.TextPr.Value.Copy());
-
-		// Копируем содержимое параграфа
-		for (var Pos = StartPos; Pos <= EndPos; Pos++)
+		if (isAllSelected)
 		{
-			var Item = this.Content[Pos];
+			oPara = this.Copy(this.Parent);
+		}
+		else
+		{
+			oPara = new Paragraph(this.DrawingDocument, this.Parent, !this.bFromDocument);
 
-			if ((StartPos === Pos || EndPos === Pos) && true !== Item.IsSelectedAll())
+			// Копируем настройки
+			oPara.Set_Pr(this.Pr.Copy());
+			oPara.TextPr.Set_Value(this.TextPr.Value.Copy());
+
+			// Копируем содержимое параграфа
+			for (var Pos = nStartPos; Pos <= nEndPos; Pos++)
 			{
-				var Content = Item.CopyContent(true);
-				for (var ContentPos = 0, ContentLen = Content.length; ContentPos < ContentLen; ContentPos++)
+				var Item = this.Content[Pos];
+
+				if ((nStartPos === Pos || nEndPos === Pos) && true !== Item.IsSelectedAll())
 				{
-					Para.Internal_Content_Add(Pos - StartPos + ContentPos, Content[ContentPos], false);
+					var Content = Item.CopyContent(true);
+					for (var ContentPos = 0, ContentLen = Content.length; ContentPos < ContentLen; ContentPos++)
+					{
+						oPara.Internal_Content_Add(Pos - nStartPos + ContentPos, Content[ContentPos], false);
+					}
+				}
+				else
+				{
+					oPara.Internal_Content_Add(Pos - nStartPos, Item.Copy(false), false);
 				}
 			}
-			else
+
+			// Добавляем секцию в конце
+			if (undefined !== this.SectPr)
 			{
-				Para.Internal_Content_Add(Pos - StartPos, Item.Copy(false), false);
+				var SectPr = new CSectionPr(this.SectPr.LogicDocument);
+				SectPr.Copy(this.SectPr);
+				oPara.Set_SectionPr(SectPr);
 			}
 		}
-
-		// Добавляем секцию в конце
-		if (undefined !== this.SectPr)
-		{
-			var SectPr = new CSectionPr(this.SectPr.LogicDocument);
-			SectPr.Copy(this.SectPr);
-			Para.Set_SectionPr(SectPr);
-		}
-		DocContent.Add(new CSelectedElement(Para, false));
 	}
+
+	if (oPara)
+		oSelectedContent.Add(new CSelectedElement(oPara, isAllSelected));
 };
 Paragraph.prototype.GetCalculatedTextPr = function()
 {

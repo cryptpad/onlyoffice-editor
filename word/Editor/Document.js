@@ -353,6 +353,12 @@ function CSelectedContent()
     this.InsertOptions = {
     	Table : Asc.c_oSpecialPasteProps.overwriteCells
 	};
+
+
+    // Опции для отслеживания переноса
+    this.TrackRevisions = false;
+    this.MoveTrackId    = null;
+    this.MoveTrackRuns  = [];
 }
 
 CSelectedContent.prototype =
@@ -505,22 +511,39 @@ CSelectedContent.prototype =
         // Ставим метки переноса в начало и конец
         if (this.Elements.length > 0 && LogicDocument && null !== LogicDocument.TrackMoveId)
 		{
-			var oStartElement = this.Elements[0].Element;
-			var oEndElement   = this.Elements[this.Elements.length - 1].Element;
-
-			var oStartParagraph = oStartElement.GetFirstParagraph();
-			var oEndParagraph   = oEndElement.GetLastParagraph();
-
-			oStartParagraph.AddToContent(0, new CParaRevisionMove(true, false, LogicDocument.TrackMoveId));
-
-			if (oEndParagraph !== oEndElement || this.Elements[this.Elements.length - 1].SelectedAll)
+			var isCanMove = true;
+			for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
 			{
-				var oEndRun = oEndParagraph.GetParaEndRun();
-				oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, false, LogicDocument.TrackMoveId));
+				if (!this.Elements[nIndex].Element.IsParagraph())
+				{
+					isCanMove = false;
+					break;
+				}
+			}
+
+			if (isCanMove)
+			{
+				var oStartElement = this.Elements[0].Element;
+				var oEndElement   = this.Elements[this.Elements.length - 1].Element;
+
+				var oStartParagraph = oStartElement.GetFirstParagraph();
+				var oEndParagraph   = oEndElement.GetLastParagraph();
+
+				oStartParagraph.AddToContent(0, new CParaRevisionMove(true, false, LogicDocument.TrackMoveId));
+
+				if (oEndParagraph !== oEndElement || this.Elements[this.Elements.length - 1].SelectedAll)
+				{
+					var oEndRun = oEndParagraph.GetParaEndRun();
+					oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, false, LogicDocument.TrackMoveId));
+				}
+				else
+				{
+					oEndParagraph.AddToContent(oEndParagraph.GetElementsCount(), new CParaRevisionMove(false, false, LogicDocument.TrackMoveId));
+				}
 			}
 			else
 			{
-				oEndParagraph.AddToContent(oEndParagraph.GetElementsCount(), new CParaRevisionMove(false, false, LogicDocument.TrackMoveId));
+				LogicDocument.TrackMoveId = null;
 			}
 		}
     }
@@ -587,6 +610,40 @@ CSelectedContent.prototype.ConvertToMath = function()
 	oParaMath.Root.Correct_Content(true);
 	return oParaMath;
 };
+/**
+ * Устанавливаем, что сейчас происходит перенос во время рецензирования
+ * @oaram {boolean} isTrackRevision
+ * @param {string} sMoveId
+ */
+CSelectedContent.prototype.SetMoveTrack = function(isTrackRevision, sMoveId)
+{
+	this.TrackRevisions = isTrackRevision;
+	this.MoveTrackId    = sMoveId;
+};
+/**
+ * Проверяем собираем ли содержимое для переноса в рецензировании
+ * @returns {boolean}
+ */
+CSelectedContent.prototype.IsMoveTrack = function()
+{
+	return this.MoveTrackId !== null;
+};
+/**
+ * @returns {boolean}
+ */
+CSelectedContent.prototype.IsTrackRevisions = function()
+{
+	return this.TrackRevisions;
+};
+/**
+ * Добавляем ран, который участвует в переносе
+ * @param {ParaRun} oRun
+ */
+CSelectedContent.prototype.AddRunForMoveTrack = function(oRun)
+{
+	this.MoveTrackRuns.push(oRun);
+};
+
 
 function CDocumentRecalculateState()
 {
@@ -7281,9 +7338,10 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 		g_oTableId.m_bTurnOff = true;
 	}
 
-	var SelectedContent = new CSelectedContent();
-	this.Controller.GetSelectedContent(SelectedContent);
-	SelectedContent.On_EndCollectElements(this, false);
+	var oSelectedContent = new CSelectedContent();
+	oSelectedContent.SetMoveTrack(this.IsTrackRevisions(), this.TrackMoveId);
+	this.Controller.GetSelectedContent(oSelectedContent);
+	oSelectedContent.On_EndCollectElements(this, false);
 
 	if (!bUseHistory)
 		History.TurnOn();
@@ -7296,7 +7354,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 	if (isTrack)
 		this.SetTrackRevisions(true);
 
-	return SelectedContent;
+	return oSelectedContent;
 };
 CDocument.prototype.Can_InsertContent = function(SelectedContent, NearPos)
 {
