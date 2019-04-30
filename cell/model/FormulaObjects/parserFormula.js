@@ -6220,6 +6220,10 @@ parserFormula.prototype.setFormula = function(formula) {
 					elemArr.push(_tmp);
 				}
 			} else if (currentElement.type === cElementType.name || currentElement.type === cElementType.name3D) {
+				var defName = currentElement.getDefName();
+				if(defName && defName.parsedRef && this.ref) {
+					currentElement.getDefName().parsedRef.ref = this.ref;
+				}
 				defNameCalcArr = currentElement.Calculate(null, opt_bbox, true);
 				defNameArgCount = [];
 				if(defNameCalcArr && defNameCalcArr.length) {
@@ -6251,7 +6255,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			//для обработки формулы массива
 			//передаётся последним параметром cell и временно подменяется parent у parserFormula для того, чтобы поменялось значение в элементе массива
 			var cell = arguments[3];
-			if(this.ref && cell && !(this.ref.r1 === cell.nRow && this.ref.c1 === cell.nCol)) {
+			if(this.ref && cell && undefined !== cell.nRow && !(this.ref.r1 === cell.nRow && this.ref.c1 === cell.nCol)) {
 				var oldParent = this.parent;
 				this.parent = new AscCommonExcel.CCellWithFormula(cell.ws, cell.nRow, cell.nCol);
 				this._endCalculate();
