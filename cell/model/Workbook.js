@@ -3582,8 +3582,8 @@
 		var aRules = this.aConditionalFormattingRules.sort(function(v1, v2) {
 			return v2.priority - v1.priority;
 		});
-		var oGradient1, oGradient2, oRule, multiplyRange, oRuleElement = null, bboxCf, formulaParent, parsed1, parsed2;
-		var o, l, cell, ranges, values, value, tmp, min, mid, max, dxf, compareFunction, nc, sum;
+		var oGradient1, oGradient2, aWeights, oRule, multiplyRange, oRuleElement, bboxCf, formulaParent, parsed1, parsed2;
+		var o, l, cell, ranges, values, value, tmp, dxf, compareFunction, nc, sum;
 		this.sheetMergedStyles.clearConditionalStyle(range);
 		var getCacheFunction = function(rule, setFunc) {
 			var cache = {
@@ -3634,32 +3634,42 @@
 						// ToDo CFVO Type formula (page 2681)
 						l = oRuleElement.aColors.length;
 						if (0 < values.length && 2 <= l) {
+							aWeights = [];
 							oGradient1 = new AscCommonExcel.CGradient(oRuleElement.aColors[0], oRuleElement.aColors[1]);
-							min = oRule.getMin(values, t);
-							max = oRule.getMax(values, t);
-							oGradient2 = null;
+							aWeights.push(oRule.getMin(values, t), oRule.getMax(values, t));
 							if (2 < l) {
 								oGradient2 = new AscCommonExcel.CGradient(oRuleElement.aColors[1], oRuleElement.aColors[2]);
-								mid = oRule.getMid(values, t);
+								aWeights.push(oRule.getMid(values, t));
 
-								oGradient1.init(min, mid);
-								oGradient2.init(mid, max);
+								aWeights.sort(AscCommon.fSortAscending);
+								oGradient1.init(aWeights[0], aWeights[1]);
+								oGradient2.init(aWeights[1], aWeights[2]);
 							} else {
-								oGradient1.init(min, max);
+								oGradient2 = null;
+								aWeights.sort(AscCommon.fSortAscending);
+								oGradient1.init(aWeights[0], aWeights[1]);
 							}
 
 							compareFunction = (function (oGradient1, oGradient2) {
 								return function (row, col) {
-									var val;
+									var val, color, gradient;
 									t._getCellNoEmpty(row, col, function (cell) {
 										val = cell && cell.getNumberValue();
 									});
 									dxf = null;
 									if (null !== val) {
 										dxf = new AscCommonExcel.CellXfs();
-										tmp = (oGradient2 && val > oGradient1.max) ? oGradient2 : oGradient1;
+										gradient = oGradient2 ? oGradient2 : oGradient1;
+										if (val >= gradient.max) {
+											color = gradient.getMaxColor();
+										} else if (val <= oGradient1.min) {
+											color = oGradient1.getMinColor();
+										} else {
+											gradient = (oGradient2 && val > oGradient1.max) ? oGradient2 : oGradient1;
+											color = gradient.calculateColor(val);
+										}
 										dxf.fill = new AscCommonExcel.Fill();
-										dxf.fill.fromColor(tmp.calculateColor(val));
+										dxf.fill.fromColor(color);
 										dxf = g_StyleCache.addXf(dxf, true);
 									}
 									return dxf;

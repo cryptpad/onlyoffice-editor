@@ -650,18 +650,19 @@
 		this.b2 = this.c2.getB();
 	};
 	CGradient.prototype.calculateColor = function (indexColor) {
-		if (indexColor < this.min) {
-			indexColor = this.min;
-		} else if (indexColor > this.max) {
-			indexColor = this.max;
-		}
-		indexColor = (this.koef ? (indexColor - this.min) * this.koef : this.MaxColorIndex / 2) >> 0;
+		indexColor = ((indexColor - this.min) * this.koef) >> 0;
 
 		var r = (this.r1 + ((FT_Common.IntToUInt(this.r2 - this.r1) * indexColor) >> this.base_shift)) & 0xFF;
 		var g = (this.g1 + ((FT_Common.IntToUInt(this.g2 - this.g1) * indexColor) >> this.base_shift)) & 0xFF;
 		var b = (this.b1 + ((FT_Common.IntToUInt(this.b2 - this.b1) * indexColor) >> this.base_shift)) & 0xFF;
 		//console.log("index=" + indexColor + ": r=" + r + " g=" + g + " b=" + b);
 		return new AscCommonExcel.RgbColor((r << 16) + (g << 8) + b);
+	};
+	CGradient.prototype.getMinColor = function () {
+		return new AscCommonExcel.RgbColor((this.r1 << 16) + (this.g1 << 8) + this.b1);
+	};
+	CGradient.prototype.getMaxColor = function () {
+		return new AscCommonExcel.RgbColor((this.r2 << 16) + (this.g2 << 8) + this.b2);
 	};
 
 	var cDefIconSize = 16;
