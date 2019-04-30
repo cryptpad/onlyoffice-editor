@@ -211,6 +211,9 @@ function CEditorPage(api)
 	this.m_oScrollVer_   = null;
 	this.m_oScrollThumb_ = null;
 	this.m_oScrollNotes_ = null;
+	this.m_nVerticalSlideChangeOnScrollInterval = 300; // AscCommon.AscBrowser.isMacOs ? 300 : 0; // как часто можно менять слайды при вертикальном скролле
+	this.m_nVerticalSlideChangeOnScrollLast = -1;
+    this.m_nVerticalSlideChangeOnScrollEnabled = false;
 
 	this.m_oScrollHorApi   = null;
 	this.m_oScrollVerApi   = null;
@@ -2536,10 +2539,14 @@ function CEditorPage(api)
 		deltaX >>= 0;
 		deltaY >>= 0;
 
+        oThis.m_nVerticalSlideChangeOnScrollEnabled = true;
+
 		if (0 != deltaX)
 			oThis.m_oScrollHorApi.scrollBy(deltaX, 0, false);
 		else if (0 != deltaY)
 			oThis.m_oScrollVerApi.scrollBy(0, deltaY, false);
+
+        oThis.m_nVerticalSlideChangeOnScrollEnabled = false;
 
 		if (e.preventDefault)
 			e.preventDefault();
@@ -2729,6 +2736,37 @@ function CEditorPage(api)
 	// -----------------end demonstration---------------------- //
 	// -------------------------------------------------------- //
 
+	this.verticalScrollCheckChangeSlide = function()
+	{
+		if (0 == this.m_nVerticalSlideChangeOnScrollInterval || !this.m_nVerticalSlideChangeOnScrollEnabled)
+		{
+            this.m_oScrollVer_.disableCurrentScroll = false;
+            return true;
+        }
+
+        // защита от внутренних скроллах. мы превентим ТОЛЬКО самый верхний из onMouseWheel
+        this.m_nVerticalSlideChangeOnScrollEnabled = false;
+
+		var newTime = new Date().getTime();
+		if (-1 == this.m_nVerticalSlideChangeOnScrollLast)
+		{
+			this.m_nVerticalSlideChangeOnScrollLast = newTime;
+            this.m_oScrollVer_.disableCurrentScroll = false;
+			return true;
+		}
+
+		var checkTime = this.m_nVerticalSlideChangeOnScrollLast + this.m_nVerticalSlideChangeOnScrollInterval;
+		if (newTime < this.m_nVerticalSlideChangeOnScrollLast || newTime > checkTime)
+		{
+            this.m_nVerticalSlideChangeOnScrollLast = newTime;
+            this.m_oScrollVer_.disableCurrentScroll = false;
+			return true;
+		}
+
+		this.m_oScrollVer_.disableCurrentScroll = true;
+		return false;
+	};
+
 	this.verticalScroll                = function(sender, scrollPositionY, maxY, isAtTop, isAtBottom)
 	{
 		if (false === oThis.m_oApi.bInit_word_control)
@@ -2764,6 +2802,9 @@ function CEditorPage(api)
 			{
 				if (lNumSlide != this.m_oDrawingDocument.SlideCurrent)
 				{
+					if (!this.verticalScrollCheckChangeSlide())
+						return;
+
 					if (this.IsGoToPageMAXPosition)
 					{
 						if (lNumSlide >= this.m_oDrawingDocument.SlideCurrent)
@@ -2775,6 +2816,9 @@ function CEditorPage(api)
 				}
 				else if (this.SlideScrollMAX < scrollPositionY)
 				{
+                    if (!this.verticalScrollCheckChangeSlide())
+                        return;
+
 					this.IsGoToPageMAXPosition = false;
 					this.GoToPage(this.m_oDrawingDocument.SlideCurrent + 1);
 					return;
@@ -2782,6 +2826,9 @@ function CEditorPage(api)
 			}
 			else
 			{
+                if (!this.verticalScrollCheckChangeSlide())
+                    return;
+
 				this.GoToPage(this.ZoomFreePageNum);
 			}
 		}
