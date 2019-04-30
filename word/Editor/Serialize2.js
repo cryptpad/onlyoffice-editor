@@ -6948,6 +6948,7 @@ function BinaryFileReader(doc, openParams)
 		if(null != oNewId)
 			stDefault.TOCHeading = oNewId.id;
 
+		var localHyperlink = AscCommon.translateManager.getValue("Hyperlink").toLowerCase().replace(/\s/g,"");
 		//меняем старые id
 		for(var sOldId in oIdRenameMap)
 		{
@@ -6968,7 +6969,7 @@ function BinaryFileReader(doc, openParams)
                 stDefault.Header = oNewId.id;
             if(stDefault.Footer == stId || "footer" == sNewStyleName)
                 stDefault.Footer = oNewId.id;
-			if(stDefault.Hyperlink == stId || "hyperlink" == sNewStyleName)
+			if(stDefault.Hyperlink == stId || "hyperlink" === sNewStyleName || localHyperlink === sNewStyleName)
                 stDefault.Hyperlink = oNewId.id;
             if(stDefault.TableGrid == stId || "tablegrid" == sNewStyleName)
                 stDefault.TableGrid = oNewId.id;
@@ -7045,7 +7046,7 @@ function BinaryFileReader(doc, openParams)
                 stDefault.Header = sNewStyleId;
             if("footer" == sNewStyleName)
                 stDefault.Footer = sNewStyleId;
-            if("hyperlink" == sNewStyleName)
+            if("hyperlink" === sNewStyleName || localHyperlink === sNewStyleName)
                 stDefault.Hyperlink = sNewStyleId;
             if("tablegrid" == sNewStyleName)
                 stDefault.TableGrid = sNewStyleId;
