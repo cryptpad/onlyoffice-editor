@@ -12101,21 +12101,21 @@
 		options.countFind = 0;
 		options.countReplace = 0;
 
-		var activeCell;
+		var cell;
 		var aReplaceCells = [];
 		if (options.isReplaceAll) {
 			this.model._findAllCells(options);
 			var findResult = this.model.lastFindOptions.findResults.values;
 			for (var row in findResult) {
 				for (var col in findResult[row]) {
-					var curRange = new Asc.Range(col|0, row|0, col|0, row|0);
-					aReplaceCells.push(curRange);
+					cell = findResult[row][col];
+					aReplaceCells.push(new Asc.Range(cell.nCol, cell.nRow, cell.nCol, cell.nRow));
 				}
 			}
 		} else {
-			activeCell = this.model.selectionRange.activeCell;
+			cell = this.model.selectionRange.activeCell;
 			// Попробуем сначала найти
-			var isEqual = this._isCellEqual(activeCell.col, activeCell.row, options);
+			var isEqual = this._isCellEqual(cell.col, cell.row, options);
 			if (isEqual) {
 				aReplaceCells.push(isEqual);
 			}
