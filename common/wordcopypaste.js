@@ -8643,14 +8643,14 @@ PasteProcessor.prototype =
 				if ("a" === sChildNodeName) {
 					var href = child.href;
 					if (null != href) {
-						var sDecoded;
+						/*var sDecoded;
 						//decodeURI может выдавать malformed exception, потому что наш сайт в utf8, а некоторые сайты могут кодировать url в своей кодировке(например windows-1251)
 						try {
 							sDecoded = decodeURI(href);
 						} catch (e) {
 							sDecoded = href;
 						}
-						href = sDecoded;
+						href = sDecoded;*/
 						bHyperlink = true;
 						var title = child.getAttribute("title");
 
@@ -8776,14 +8776,14 @@ PasteProcessor.prototype =
 				if ("a" === sChildNodeName) {
 					var href = child.href;
 					if (null != href) {
-						var sDecoded;
+						/*var sDecoded;
 						//decodeURI может выдавать malformed exception, потому что наш сайт в utf8, а некоторые сайты могут кодировать url в своей кодировке(например windows-1251)
 						try {
 							sDecoded = decodeURI(href);
 						} catch (e) {
 							sDecoded = href;
 						}
-						href = sDecoded;
+						href = sDecoded;*/
 						if (href && href.length > 0) {
 							var title = child.getAttribute("title");
 
