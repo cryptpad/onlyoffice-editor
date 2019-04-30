@@ -18399,6 +18399,9 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom)
  */
 CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
 {
+	if (sMoveId === this.TrackMoveId)
+		return;
+
 	var oManager = this.GetTrackRevisionsManager();
 	var oMarks   = oManager.GetMoveMarks(sMoveId);
 
