@@ -65,7 +65,6 @@
 	var g_oDefaultFormat = AscCommonExcel.g_oDefaultFormat;
 	var g_StyleCache = AscCommonExcel.g_StyleCache;
 	var Border = AscCommonExcel.Border;
-	var RangeDataManagerElem = AscCommonExcel.RangeDataManagerElem;
 	var RangeDataManager = AscCommonExcel.RangeDataManager;
 
 	var cElementType = AscCommonExcel.cElementType;
@@ -10369,20 +10368,14 @@
 			History.EndTransaction();
 		}
 	};
-	Range.prototype.removeHyperlink = function (val, removeStyle) {
+	Range.prototype.removeHyperlink = function (elem, removeStyle) {
 		var bbox = this.bbox;
-		var elem = null;
-		if(null != val)
-		{
-			bbox = val.Ref.getBBox0();
-			elem = new RangeDataManagerElem(bbox, val);
-		}
 		if(false == this.worksheet.workbook.bUndoChanges && false == this.worksheet.workbook.bRedoChanges)
 		{
 			History.Create_NewPoint();
 			History.StartTransaction();
 			var oChangeParam = { removeStyle: removeStyle };
-			if(null != elem)
+			if(elem)
 				this.worksheet.hyperlinkManager.removeElement(elem, oChangeParam);
 			else
 				this.worksheet.hyperlinkManager.remove(bbox, !bbox.isOneCell(), oChangeParam);
@@ -10683,7 +10676,7 @@
 		//удаляем только гиперссылки, которые полностью лежат в области
 		var aHyperlinks = this.worksheet.hyperlinkManager.get(this.bbox);
 		for(var i = 0, length = aHyperlinks.inner.length; i < length; ++i)
-			this.removeHyperlink(aHyperlinks.inner[i].data);
+			this.removeHyperlink(aHyperlinks.inner[i]);
 		var oThis = this;
 		this._setPropertyNoEmpty(function(row){
 			row.setStyle(null);
@@ -10706,7 +10699,7 @@
 		//удаляем только гиперссылки, которые полностью лежат в области
 		var aHyperlinks = this.worksheet.hyperlinkManager.get(this.bbox);
 		for(var i = 0, length = aHyperlinks.inner.length; i < length; ++i)
-			this.removeHyperlink(aHyperlinks.inner[i].data);
+			this.removeHyperlink(aHyperlinks.inner[i]);
 		History.EndTransaction();
 	};
 	Range.prototype.sort=function(nOption, nStartCol, sortColor, opt_guessHeader){
@@ -11011,8 +11004,7 @@
 					{
 						//удаляем ссылки, а не перемещаем, чтобы не было конфликтов(например в случае если все ячейки имеют ссылки
 						// и их надо передвинуть)
-						var oTempBBox = hyp.Ref.getBBox0();
-						this.worksheet.hyperlinkManager.removeElement(new RangeDataManagerElem(oTempBBox, hyp));
+						this.worksheet.hyperlinkManager.removeElement(elem);
 						var oNewHyp = hyp.clone();
 						oNewHyp.Ref.setOffset(new AscCommon.CellBase(nTo - nFrom, 0));
 						aSortedHyperlinks.push(oNewHyp);
