@@ -1171,17 +1171,20 @@ DrawingObjectsController.prototype =
         },[], false);
     },
 
-    endImageCrop: function()
+    endImageCrop: function(bDoNotRedraw)
     {
         if(this.selection.cropSelection)
         {
             this.selection.cropSelection.clearCropObject();
             this.selection.cropSelection = null;
             this.sendCropState();
-            this.updateOverlay();
-            if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
+            if(bDoNotRedraw !== true)
             {
-                this.drawingObjects.showDrawingObjects(true);
+                this.updateOverlay();
+                if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
+                {
+                    this.drawingObjects.showDrawingObjects(true);
+                }
             }
         }
     },
@@ -1411,7 +1414,7 @@ DrawingObjectsController.prototype =
 
     },
 
-    resetInternalSelection: function(noResetContentSelect)
+    resetInternalSelection: function(noResetContentSelect, bDoNotRedraw)
     {
         var oApi = this.getEditorApi && this.getEditorApi();
         if(oApi && oApi.hideVideoControl)
@@ -1453,7 +1456,7 @@ DrawingObjectsController.prototype =
         }
         if(this.selection.cropSelection)
         {
-            this.endImageCrop && this.endImageCrop();
+            this.endImageCrop && this.endImageCrop(bDoNotRedraw);
         }
     },
 
@@ -7566,13 +7569,13 @@ DrawingObjectsController.prototype =
         return bRet;
     },
 
-    resetSelection: function(noResetContentSelect, bNoCheckChart)
+    resetSelection: function(noResetContentSelect, bNoCheckChart, bDoNotRedraw)
     {
         if(bNoCheckChart !== true)
         {
             this.checkChartTextSelection();
         }
-        this.resetInternalSelection(noResetContentSelect);
+        this.resetInternalSelection(noResetContentSelect, bDoNotRedraw);
         for(var i = 0; i < this.selectedObjects.length; ++i)
         {
             this.selectedObjects[i].selected = false;

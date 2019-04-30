@@ -3734,7 +3734,7 @@ CGraphicObjects.prototype =
     {
         this.clearPreTrackObjects();
         this.clearTrackObjects();
-        this.resetSelection();
+        this.resetSelection(undefined, undefined, true);
         this.changeCurrentState(new AscFormat.NullState(this));
         return this.loadDocumentStateAfterLoadChanges(oState);
     },

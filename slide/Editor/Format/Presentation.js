@@ -5492,7 +5492,7 @@ CPresentation.prototype =
                             var oDrawingObjects = this.Slides[this.CurPage].graphicObjects;
                             oDrawingObjects.clearPreTrackObjects();
                             oDrawingObjects.clearTrackObjects();
-                            oDrawingObjects.resetSelection(undefined, true);
+                            oDrawingObjects.resetSelection(undefined, true, true);
                             oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
                         }
                     }
@@ -5504,7 +5504,7 @@ CPresentation.prototype =
                         var oDrawingObjects = this.Slides[this.CurPage].graphicObjects;
                         oDrawingObjects.clearPreTrackObjects();
                         oDrawingObjects.clearTrackObjects();
-                        oDrawingObjects.resetSelection(undefined, true);
+                        oDrawingObjects.resetSelection(undefined, true, true);
                         oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
                     }
                     return;
@@ -5513,7 +5513,7 @@ CPresentation.prototype =
             var oDrawingObjects = this.Slides[this.CurPage].graphicObjects;
             oDrawingObjects.clearPreTrackObjects();
             oDrawingObjects.clearTrackObjects();
-            oDrawingObjects.resetSelection(undefined, true);
+            oDrawingObjects.resetSelection(undefined, true, true);
             oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
             if(oState.FocusOnNotes){
                 if(this.Slides[this.CurPage].notes){
@@ -5539,7 +5539,7 @@ CPresentation.prototype =
                 this.FocusOnNotes = false;
                 oDrawingObjects.clearPreTrackObjects();
                 oDrawingObjects.clearTrackObjects();
-                oDrawingObjects.resetSelection(undefined, true);
+                oDrawingObjects.resetSelection(undefined, true, true);
                 oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
             }
         }
