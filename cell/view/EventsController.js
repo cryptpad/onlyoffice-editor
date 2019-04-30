@@ -117,6 +117,24 @@
             this.vsbApiLockMouse = false;
             this.hsbApiLockMouse = false;
 
+            this.smoothWheelCorrector = null;
+            if (AscCommon.AscBrowser.isMacOs) {
+                this.smoothWheelCorrector = new AscCommon.CMouseSmoothWheelCorrector(this, function (deltaX, deltaY) {
+
+                    if (deltaX) {
+                        deltaX = Math.sign(deltaX) * Math.ceil(Math.abs(deltaX / 3));
+                        this.scrollHorizontal(deltaX, null);
+                    }
+                    if (deltaY) {
+                        deltaY = Math.sign(deltaY) * Math.ceil(Math.abs(deltaY * this.settings.wheelScrollLinesV / 3));
+                        this.scrollVertical(deltaY, null);
+                    }
+
+                });
+
+                this.smoothWheelCorrector.setNormalDeltaActive(3);
+            }
+
             return this;
 		}
 
@@ -1635,6 +1653,9 @@
 				// FF
 				deltaY = event.deltaY;
 			}
+            if (undefined !== event.deltaX && 0 !== event.deltaX) {
+                deltaX = event.deltaX;
+            }
 			if (event.axis !== undefined && event.axis === event.HORIZONTAL_AXIS) {
 				deltaX = deltaY;
 				deltaY = 0;
@@ -1653,18 +1674,27 @@
 				deltaY = 0;
 			}
 
+			if (this.smoothWheelCorrector)
+			{
+				deltaX = this.smoothWheelCorrector.get_DeltaX(deltaX);
+                deltaY = this.smoothWheelCorrector.get_DeltaY(deltaY);
+			}
+
 			this.handlers.trigger("updateWorksheet", /*x*/undefined, /*y*/undefined, /*ctrlKey*/undefined,
 				function () {
-					if (deltaX) {
+					if (deltaX && (!self.smoothWheelCorrector || !self.smoothWheelCorrector.isBreakX())) {
 						deltaX = Math.sign(deltaX) * Math.ceil(Math.abs(deltaX / 3));
 						self.scrollHorizontal(deltaX, event);
 					}
-					if (deltaY) {
+					if (deltaY && (!self.smoothWheelCorrector || !self.smoothWheelCorrector.isBreakY())) {
 						deltaY = Math.sign(deltaY) * Math.ceil(Math.abs(deltaY * self.settings.wheelScrollLinesV / 3));
 						self.scrollVertical(deltaY, event);
 					}
 					self._onMouseMove(event);
 				});
+
+            this.smoothWheelCorrector && this.smoothWheelCorrector.checkBreak();
+            AscCommon.stopEvent(event);
 			return true;
 		};
 

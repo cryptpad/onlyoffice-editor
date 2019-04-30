@@ -4289,6 +4289,8 @@ function CThumbnailsManager()
 			e.preventDefault();
 		else
 			e.returnValue = false;
+
+		AscCommon.stopEvent(e);
 		return false;
 	};
 

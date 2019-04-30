@@ -253,6 +253,17 @@
 			} else {
 				return false;
 			}
+		};
+
+		// disable mousewheel on macOS
+		if (AscCommon.AscBrowser.isMacOs)
+		{
+			document.body.onmousewheel = function(e) {
+				if (e.stopPropagation)
+					e.stopPropagation();
+				e.returnValue = false;
+				return false;
+			};
 		}
 	};
 	baseEditorsApi.prototype._editorNameById                 = function()

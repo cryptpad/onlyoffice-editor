@@ -4309,6 +4309,96 @@
 
     AscCommon.EncryptionWorker = new CEncryptionData();
 
+    function CMouseSmoothWheelCorrector(t, scrollFunction)
+	{
+		this._deltaX = 0;
+		this._deltaY = 0;
+
+		this._isBreakX = false;
+        this._isBreakY = false;
+
+        this._timeoutCorrector = -1;
+        this._api = t;
+        this._scrollFunction = scrollFunction;
+
+        this._normalDelta = 120;
+        this._isNormalDeltaActive = false;
+
+        this.setNormalDeltaActive = function(value)
+		{
+            this._isNormalDeltaActive = true;
+            this._normalDelta = value;
+		};
+
+		this.isBreakX = function()
+		{
+			return this._isBreakX;
+		};
+        this.isBreakY = function()
+        {
+            return this._isBreakY;
+        };
+        this.get_DeltaX = function(wheelDeltaX)
+        {
+            this._isBreakX = false;
+
+            if (!AscCommon.AscBrowser.isMacOs)
+                return wheelDeltaX;
+
+            this._deltaX += wheelDeltaX;
+            if (Math.abs(this._deltaX) >= this._normalDelta)
+				return this._isNormalDeltaActive ? ((this._deltaX > 0) ? this._normalDelta : -this._normalDelta) : this._deltaX;
+
+            this._isBreakX = true;
+            return 0;
+        };
+        this.get_DeltaY = function(wheelDeltaY)
+        {
+            this._isBreakY = false;
+
+            if (!AscCommon.AscBrowser.isMacOs)
+                return wheelDeltaY;
+
+            this._deltaY += wheelDeltaY;
+            if (Math.abs(this._deltaY) >= this._normalDelta)
+            	return this._isNormalDeltaActive ? ((this._deltaY > 0) ? this._normalDelta : -this._normalDelta) : this._deltaY;
+
+            this._isBreakY = true;
+            return 0;
+        };
+
+        this.checkBreak = function()
+		{
+			if (-1 != this._timeoutCorrector)
+			{
+				clearTimeout(this._timeoutCorrector);
+				this._timeoutCorrector = -1;
+			}
+
+			if ((this._isBreakX || this._isBreakY) && this._scrollFunction)
+			{
+				var obj = { t : this, x : (this._isBreakX ? this._deltaX : 0), y : (this._isBreakY ? this._deltaY : 0) };
+				this._timeoutCorrector = setTimeout(function(){
+                    var t = obj.t;
+					t._scrollFunction.call(t._api, obj.x, obj.y);
+					t._timeoutCorrector = -1;
+					t._deltaX = 0;
+					t._deltaY = 0;
+				}, 100);
+			}
+
+			if (!this._isBreakX)
+				this._deltaX = 0;
+            if (!this._isBreakY)
+                this._deltaY = 0;
+
+			this._isBreakX = false;
+            this._isBreakY = false;
+		};
+	}
+
+	AscCommon.CMouseSmoothWheelCorrector = CMouseSmoothWheelCorrector;
+
 	/** @constructor */
 	function CTranslateManager()
 	{
