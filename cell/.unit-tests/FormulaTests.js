@@ -438,7 +438,7 @@ $( function () {
 
 
 		oParser = new parserFormula( func + "(A100:C101)", "A1", ws );
-		oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
+		oParser.setArrayFormulaRef(ws.getRange2("E106:H107").bbox);
 		ok( oParser.parse() );
 		var array = oParser.calculate();
 		if(AscCommonExcel.cElementType.array === array.type) {
@@ -456,7 +456,7 @@ $( function () {
 		}
 
 		oParser = new parserFormula( func + "({1,2,-3})", "A1", ws );
-		oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
+		oParser.setArrayFormulaRef(ws.getRange2("E106:H107").bbox);
 		ok( oParser.parse() );
 		array = oParser.calculate();
 		strictEqual( array.getElementRowCol(0,0).getValue(), getValue(1));
@@ -522,7 +522,7 @@ $( function () {
 			}
 
 			oParser = new parserFormula( func + argStrArr, "A1", ws );
-			oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
+			oParser.setArrayFormulaRef(ws.getRange2("E106:H107").bbox);
 			ok( oParser.parse() );
 			var array = oParser.calculate();
 			if(AscCommonExcel.cElementType.array === array.type) {
@@ -540,7 +540,7 @@ $( function () {
 			}
 
 			oParser = new parserFormula( func + randomArgStrArr, "A1", ws );
-			oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
+			oParser.setArrayFormulaRef(ws.getRange2("E106:H107").bbox);
 			ok( oParser.parse() );
 			array = oParser.calculate();
 			if(AscCommonExcel.cElementType.array === array.type) {

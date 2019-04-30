@@ -3183,6 +3183,21 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			return res;
 		};
 
+		var checkOneRowCol = function() {
+			var res = false;
+			for (var j = 0; j < argumentsCount; j++) {
+				if(cElementType.array === arg[j].type) {
+					if(1 === arg[j].getRowCount() || 1 === arg[j].getCountElementInRow()) {
+						res = true;
+					}
+				} else {
+					res = false;
+					break;
+				}
+			}
+			return res;
+		};
+
 		//bIsSpecialFunction - сделано только для для функции sumproduct
 		//необходимо, чтобы все внутренние функции возвращали массив, те обрабатывались как формулы массива
 
@@ -3257,7 +3272,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 			//для функций row/column с нулевым количеством аргументов необходимо рассчитывать
 			//значение для каждой ячейки массива, изменяя при этом opt_bbox
-			if ((replaceAreaByRefs && 0 === argumentsCount) || null !== changeArgByIndexArr) {
+			//TODO добавляю ещё одну проверку. в будущем стоит рассмотреть использование всегда parserFormula.ref
+			if ((replaceAreaByRefs && 0 === argumentsCount) || null !== changeArgByIndexArr || (!bIsSpecialFunction && firstArray && checkOneRowCol())) {
 				firstArray = new cArray();
 				firstArray.fillEmptyFromRange(parserFormula.ref);
 			}
