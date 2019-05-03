@@ -1178,8 +1178,8 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 	var W, H;
 	if (bInline)
 	{
-		W = this.Width;
-		H = this.Height;
+		W = this.GraphicObj.bounds.w;
+		H = this.GraphicObj.bounds.h;
 	}
 	else
 	{
