@@ -658,6 +658,7 @@ function CPresentation(DrawingDocument)
     this.notesMasters = [];
     this.notes        = [];
     this.globalTableStyles = null;
+    this.TrackMoveId = null;
 
 
     this.Width = 254;
