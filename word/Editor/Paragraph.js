@@ -7478,13 +7478,21 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 	var oPara = null;
 	if (oSelectedContent.IsTrackRevisions())
 	{
+		oPara = new Paragraph(this.DrawingDocument, this.Parent, !this.bFromDocument);
 		for (var nPos = nStartPos, nParaPos = 0; nPos <= nEndPos; ++nPos)
 		{
 			var oNewItem = this.Content[nPos].GetSelectedContent(oSelectedContent);
 			if (oNewItem)
 			{
-				oPara.AddToContent(nParaPos, oNewItem);
-				nParaPos++;
+				if (oNewItem.Type === para_RevisionMove)
+				{
+					oSelectedContent.SetMovedParts(true);
+				}
+				else
+				{
+					oPara.AddToContent(nParaPos, oNewItem);
+					nParaPos++;
+				}
 			}
 		}
 	}

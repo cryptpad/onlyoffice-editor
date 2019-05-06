@@ -359,6 +359,7 @@ function CSelectedContent()
     this.TrackRevisions = false;
     this.MoveTrackId    = null;
     this.MoveTrackRuns  = [];
+    this.HaveMovedParts = false;
 }
 
 CSelectedContent.prototype =
@@ -511,7 +512,7 @@ CSelectedContent.prototype =
         // Ставим метки переноса в начало и конец
         if (this.Elements.length > 0 && LogicDocument && null !== LogicDocument.TrackMoveId)
 		{
-			var isCanMove = true;
+			var isCanMove = !this.IsHaveMovedParts();
 			for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
 			{
 				if (!this.Elements[nIndex].Element.IsParagraph())
@@ -539,6 +540,15 @@ CSelectedContent.prototype =
 				else
 				{
 					oEndParagraph.AddToContent(oEndParagraph.GetElementsCount(), new CParaRevisionMove(false, false, LogicDocument.TrackMoveId));
+				}
+
+				for (var nIndex = 0, nCount = this.MoveTrackRuns.length; nIndex < nCount; ++nIndex)
+				{
+					var oRun = this.MoveTrackRuns[nIndex];
+					var oInfo = new CReviewInfo();
+					oInfo.Update();
+					oInfo.SetMove(Asc.c_oAscRevisionsMove.MoveTo);
+					oRun.SetReviewTypeWithInfo(reviewtype_Add, oInfo);
 				}
 			}
 			else
@@ -612,7 +622,7 @@ CSelectedContent.prototype.ConvertToMath = function()
 };
 /**
  * Устанавливаем, что сейчас происходит перенос во время рецензирования
- * @oaram {boolean} isTrackRevision
+ * @param {boolean} isTrackRevision
  * @param {string} sMoveId
  */
 CSelectedContent.prototype.SetMoveTrack = function(isTrackRevision, sMoveId)
@@ -642,6 +652,22 @@ CSelectedContent.prototype.IsTrackRevisions = function()
 CSelectedContent.prototype.AddRunForMoveTrack = function(oRun)
 {
 	this.MoveTrackRuns.push(oRun);
+};
+/**
+ * Устанавливаем есть ли в содержимом текст перенесенный во время рецензирования
+ * @param {boolean} isHave
+ */
+CSelectedContent.prototype.SetMovedParts = function(isHave)
+{
+	this.HaveMovedParts = isHave;
+};
+/**
+ * Запрашиваем, есть ли перенесенная во время рецензирования часть
+ * @returns {boolean}
+ */
+CSelectedContent.prototype.IsHaveMovedParts = function()
+{
+	return this.HaveMovedParts;
 };
 
 

@@ -116,9 +116,6 @@ function ParaRun(Paragraph, bMathRun)
 	{
 		this.ReviewType = reviewtype_Add;
 		this.ReviewInfo.Update();
-
-		if (editor.WordControl.m_oLogicDocument.DragAndDropAction)
-			this.ReviewInfo.SetMove(Asc.c_oAscRevisionsMove.MoveTo);
 	}
 
 	if (bMathRun)
@@ -182,7 +179,7 @@ ParaRun.prototype.Save_StartState = function()
 //-----------------------------------------------------------------------------------
 // Функции для работы с содержимым данного рана
 //-----------------------------------------------------------------------------------
-ParaRun.prototype.Copy = function(Selected, oPr)
+ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
 {
 	if (!oPr)
 		oPr = {};
@@ -194,10 +191,19 @@ ParaRun.prototype.Copy = function(Selected, oPr)
     NewRun.Set_Pr( this.Pr.Copy() );
 
     var oLogicDocument = this.GetLogicDocument();
-    if (oLogicDocument && oLogicDocument.RecalcTableHeader)
-    	NewRun.SetReviewTypeWithInfo(this.GetReviewType(), this.GetReviewInfo());
+    if (true === isCopyReviewPr || (oLogicDocument && oLogicDocument.RecalcTableHeader))
+	{
+		var nReviewType = this.GetReviewType();
+		var oReviewInfo = this.GetReviewInfo();
+		if (!(oLogicDocument && oLogicDocument.RecalcTableHeader))
+			oReviewInfo.SetMove(Asc.c_oAscRevisionsMove.NoMove);
+
+		NewRun.SetReviewTypeWithInfo(nReviewType, oReviewInfo);
+	}
     else if (oLogicDocument && true === oLogicDocument.IsTrackRevisions())
-        NewRun.SetReviewType(reviewtype_Add);
+	{
+		NewRun.SetReviewType(reviewtype_Add);
+	}
 
     if(true === bMath)
         NewRun.Set_MathPr(this.MathPrp.Copy());
@@ -217,7 +223,9 @@ ParaRun.prototype.Copy = function(Selected, oPr)
         }
     }
     else if (true === Selected && true !== this.State.Selection.Use)
-        EndPos = -1;
+	{
+		EndPos = -1;
+	}
 
 	for (var CurPos = StartPos, AddedPos = 0; CurPos < EndPos; CurPos++)
 	{
@@ -271,13 +279,47 @@ ParaRun.prototype.Copy2 = function()
 
 ParaRun.prototype.CopyContent = function(Selected)
 {
-    return [this.Copy(Selected)];
+    return [this.Copy(Selected, undefined, true)];
 };
 ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 {
-	// TODO: Разруливалка для TrackMove
+	if (oSelectedContent.IsTrackRevisions())
+	{
+		var nReviewType = this.GetReviewType();
+		var oReviewInfo = this.GetReviewInfo();
 
-	return this.Copy(true);
+		if (reviewtype_Add === nReviewType || reviewtype_Common === nReviewType)
+		{
+			var oRun = this.Copy(true, undefined, false);
+
+			if (oReviewInfo.IsMovedTo() || oReviewInfo.IsMovedFrom())
+				oSelectedContent.SetMovedParts(true);
+
+			if (oSelectedContent.IsMoveTrack())
+				oSelectedContent.AddRunForMoveTrack(oRun);
+
+
+			for (var nPos = 0, nCount = oRun.Content.length; nPos < nCount; ++nPos)
+			{
+				if (oRun.Content[nPos].Type === para_RevisionMove)
+				{
+					oRun.RemoveFromContent(nPos, 1);
+					nPos--;
+					nCount--;
+
+					oSelectedContent.SetMovedParts(true);
+				}
+			}
+
+			return oRun;
+		}
+	}
+	else
+	{
+		return this.Copy(true, undefined, true);
+	}
+
+	return null;
 };
 
 ParaRun.prototype.GetAllDrawingObjects = function(DrawingObjs)
@@ -9771,7 +9813,7 @@ ParaRun.prototype.SetReviewType = function(nType, isCheckDeleteAdded)
 		this.ReviewType = nType;
 		this.ReviewInfo.Update();
 
-		if (this.GetLogicDocument() && this.GetLogicDocument().DragAndDropAction)
+		if (this.GetLogicDocument() && null !== this.GetLogicDocument().TrackMoveId)
 			this.ReviewInfo.SetMove(Asc.c_oAscRevisionsMove.MoveFrom);
 
 		History.Add(new CChangesRunReviewType(this, {
