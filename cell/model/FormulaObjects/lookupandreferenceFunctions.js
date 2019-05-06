@@ -793,7 +793,15 @@ function (window, undefined) {
 			var b = arg2.getBBox0();
 			if (2 === arg.length) {
 				if (arg1Range[0].length >= 2) {
-					return new cRef(ws.getCell3(b.r1 + index, b.c2 + 0).getName(), ws);
+					//var range = ws.getRange3(b.r1 + index, b.c1, b.r1 + index, b.c2);
+					var lastCol = b.c2;
+					//ищем последнюю непустую в данной строке
+					/*range._foreachNoEmpty(function (cell, r, c) {
+						if(!cell.isEmptyTextString()) {
+							lastCol = c;
+						}
+					});*/
+					return new cRef(ws.getCell3(b.r1 + index, lastCol + 0).getName(), ws);
 				} else {
 					return new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
 				}

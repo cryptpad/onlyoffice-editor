@@ -8476,7 +8476,26 @@ $( function () {
 
     } );
 
-    test( "Test: \"MATCH\"", function () {
+	/*test( "Test: \"LOOKUP\"", function () {
+
+		ws.getRange2( "A501" ).setValue( "1" );
+		ws.getRange2( "B501" ).setValue( "" );
+		ws.getRange2( "C501" ).setValue( "" );
+		ws.getRange2( "D501" ).setValue( "" );
+		ws.getRange2( "E501" ).setValue( "" );
+		ws.getRange2( "F501" ).setValue( "123" );
+		ws.getRange2( "G501" ).setValue( "12" );
+		ws.getRange2( "H501" ).setValue( "" );
+		ws.getRange2( "I501" ).setValue( "" );
+		ws.getRange2( "J501" ).setValue( "" );
+
+		oParser = new parserFormula( "LOOKUP(100,A501:J501)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1 );
+	} );*/
+
+
+	test( "Test: \"MATCH\"", function () {
 
         ws.getRange2( "A551" ).setValue( "28" );
         ws.getRange2( "A552" ).setValue( "29" );
