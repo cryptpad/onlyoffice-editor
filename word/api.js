@@ -2188,9 +2188,18 @@ background-repeat: no-repeat;\
 			AscCommon.Editor_Paste_Exec(this, _format, data1, data2, text_data);
 
 			if (!useCurrentPoint) {
-				_logicDoc.FinalizeAction();
+				//_logicDoc.FinalizeAction();
 			}
 		}
+	};
+
+	asc_docs_api.prototype._finalizeAction = function()
+	{
+		var _logicDoc = this.WordControl.m_oLogicDocument;
+		if (!_logicDoc){
+			return;
+		}
+		_logicDoc.FinalizeAction();
 	};
 	
 	asc_docs_api.prototype.asc_SpecialPaste = function(props) 
