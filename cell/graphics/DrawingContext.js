@@ -419,24 +419,9 @@
 
 		this.ppiX = 96;
 		this.ppiY = 96;
+		this.scaleFactor = 1;
+		this._ppiInit();
 
-		if (window["IS_NATIVE_EDITOR"]) {
-			this.ppiX = this.ppiY = window["native"]["GetDeviceDPI"]();
-
-			//this.deviceDPI = window["native"]["GetDeviceDPI"]();
-			//this.deviceScale = window["native"]["GetDeviceScale"]();
-
-			//this.ppiX = 96.0 * this.deviceScale * (96.0 / (this.deviceDPI * this.deviceScale));
-			//this.ppiY = 96.0 * this.deviceScale * (96.0 / (this.deviceDPI * this.deviceScale));
-
-			//this.ppiX = this.deviceDPI; //96.0 * this.deviceScale * (96.0 / (this.deviceDPI * this.deviceScale));
-			//this.ppiY = this.deviceDPI; //96.0 * this.deviceScale * (96.0 / (this.deviceDPI * this.deviceScale));
-		} else {
-			if (AscCommon.AscBrowser.isRetina) {
-				this.ppiX = AscCommon.AscBrowser.convertToRetinaValue(this.ppiX, true);
-				this.ppiY = AscCommon.AscBrowser.convertToRetinaValue(this.ppiY, true);
-			}
-		}
 		this.LastFontOriginInfo = undefined;
 
 		this._mct = new Matrix();  // units transform
@@ -445,8 +430,6 @@
 		this._mft = new Matrix();  // full transform
 		this._mift = new Matrix();  // inverted full transform
 		this._im = new Matrix();
-
-		this.scaleFactor = 1;
 
 		this.units = 3/*mm*/;
 		this.changeUnits(undefined !== settings.units ? settings.units : this.units);
@@ -471,6 +454,21 @@
 		this.fillColor = new AscCommon.CColor(255, 255, 255);
 		return this;
 	}
+
+	DrawingContext.prototype._ppiInit = function () {
+		this.ppiX = 96;
+		this.ppiY = 96;
+		this.scaleFactor = 1;
+
+		if (window["IS_NATIVE_EDITOR"]) {
+			this.ppiX = this.ppiY = window["native"]["GetDeviceDPI"]();
+		} else {
+			if (AscCommon.AscBrowser.isRetina) {
+				this.ppiX = AscCommon.AscBrowser.convertToRetinaValue(this.ppiX, true);
+				this.ppiY = AscCommon.AscBrowser.convertToRetinaValue(this.ppiY, true);
+			}
+		}
+	};
 
 	/**
 	 * Returns width of drawing context in current units
