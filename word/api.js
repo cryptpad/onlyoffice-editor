@@ -545,7 +545,7 @@
 								window.g_asc_plugins.api.__content_control_worker.run();
 							}, 1);
 						}};
-						this.api.asc_DownloadAs(Asc.c_oAscFileType.CANVAS_WORD);
+						this.api.asc_DownloadAs(Asc.c_oAscFileType.CANVAS_WORD, undefined, true);
 						return;
 					}
 					else if (_current["Script"] !== undefined)
@@ -2636,7 +2636,7 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.Recalculate();
 		}
 		if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.documents.length > 0) {
-			this.asc_DownloadAs(Asc.c_oAscFileType.CANVAS_WORD);
+			this.asc_DownloadAs(Asc.c_oAscFileType.CANVAS_WORD, undefined, true);
 		} else {
 			this.endInsertDocumentUrls();
 		}
