@@ -63,10 +63,21 @@
                 pluginData = {};
             }
 
-            if (pluginData.guid != window.Asc.plugin.guid)
-                return;
-
             var type = pluginData.type;
+
+            if (pluginData.guid != window.Asc.plugin.guid)
+            {
+                if (undefined !== pluginData.guid)
+                    return;
+
+                switch (type)
+                {
+                    case "onExternalPluginMessage":
+                        break;
+                    default:
+                        return;
+                }
+            }
 
             if (type == "init")
                 window.Asc.plugin.info = pluginData;

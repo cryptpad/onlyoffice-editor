@@ -1423,8 +1423,26 @@
 						}
 						else if (data.type === "onExternalPluginMessage")
 						{
-							if (window.g_asc_plugins)
-								window.g_asc_plugins.sendToAllPlugins(event.data);
+                            if (!window.g_asc_plugins)
+                            	return;
+
+							if (data["subType"] == "internalCommand")
+							{
+								// такие команды перечисляем здесь и считаем их функционалом
+								switch (data.data.type)
+								{
+									case "onbeforedrop":
+									case "ondrop":
+									{
+                                        window.g_asc_plugins.api.privateDropEvent(data.data);
+										return;
+									}
+									default:
+										break;
+								}
+							}
+
+							window.g_asc_plugins.sendToAllPlugins(event.data);
 						}
 					} catch (err)
 					{

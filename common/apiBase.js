@@ -1976,6 +1976,39 @@
 		}
 	};
 
+    baseEditorsApi.prototype.privateDropEvent = function(obj)
+    {
+    	if (!obj || !obj.type)
+    		return;
+
+        var e = {
+            pageX : obj["x"],
+            pageY : obj["y"]
+        };
+
+        switch (obj.type)
+        {
+            case "onbeforedrop":
+			{
+                this.beginInlineDropTarget(e);
+				break;
+			}
+            case "ondrop":
+            {
+                this.endInlineDropTarget(e);
+
+                if (obj["html"])
+                    this["pluginMethod_PasteHtml"](obj["html"]);
+                else if (obj["text"])
+                    this["pluginMethod_PasteText"](obj["text"]);
+
+                break;
+            }
+            default:
+                break;
+        }
+    };
+
 	// input helper
     baseEditorsApi.prototype.getTargetOnBodyCoords = function()
     {
