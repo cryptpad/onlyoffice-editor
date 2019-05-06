@@ -141,7 +141,6 @@ var editor;
     this.topLineEditorElement = document.getElementById(this.topLineEditorName);
     // ToDo нужно ли это
     asc['editor'] = ( asc['editor'] || this );
-    AscCommon.AscBrowser.checkZoom();
   };
 
   spreadsheet_api.prototype._loadSdkImages = function () {
