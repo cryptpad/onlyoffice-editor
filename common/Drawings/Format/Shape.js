@@ -5515,6 +5515,13 @@ CShape.prototype.Refresh_RecalcData2 = function(pageIndex/*для текста*/
         this.recalcInfo.recalcTitle = this.getDocContent();
         this.recalcInfo.bRecalculatedTitle = true;
     }
+    if(this.parent && this.parent.getObjectType && this.parent.getObjectType() === AscDFH.historyitem_type_Notes)
+    {
+        if(this.parent.slide && this.parent.slide.addToRecalculate)
+        {
+            this.parent.slide.addToRecalculate();
+        }
+    }
 };
 
 
