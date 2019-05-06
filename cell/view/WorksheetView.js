@@ -437,7 +437,6 @@
 
 	WorksheetView.prototype._init = function () {
 		this._initWorksheetDefaultWidth();
-		this.model.initColumns();
 		this._initPane();
 		this._initCellsArea(AscCommonExcel.recalcType.full);
 		this.model.setTableStyleAfterOpen();
@@ -481,6 +480,8 @@
 		// чтобы могли показать последнюю строку/столбец (http://bugzilla.onlyoffice.com/show_bug.cgi?id=23513)
 		this._initRowsCount();
 		this._initColsCount();
+
+		this.model.initColumns();
 	};
 
 	WorksheetView.prototype._initRowsCount = function () {
