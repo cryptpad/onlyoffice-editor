@@ -513,8 +513,12 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_Resize = function () {
+    var isRetinaOld = AscCommon.AscBrowser.isRetina;
     AscCommon.AscBrowser.checkZoom();
     if (this.wb) {
+      if (isRetinaOld !== AscCommon.AscBrowser.isRetina) {
+        this.wb.changeZoom(null);
+      }
       this.wb.resize();
 
       if (AscCommon.g_inputContext) {

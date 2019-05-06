@@ -1985,7 +1985,7 @@
   };
 
   WorkbookView.prototype.changeZoom = function(factor) {
-    if (factor === this.getZoom()) {
+  	if (factor === this.getZoom()) {
       return;
     }
 
@@ -2007,15 +2007,24 @@
         AscCommon.g_fontManager2.m_pFont = null;
     }
 
+    if (!factor) {
+		this.wsMustDraw = true;
+		this._calcMaxDigitWidth();
+	}
+
     var item;
     var activeIndex = this.model.getActive();
     for (i in this.wsViews) {
       item = this.wsViews[i];
       // Меняем zoom (для не активных сменим как только сделаем его активным)
+      if (!factor) {
+      	item._initWorksheetDefaultWidth();
+      	item.model.initColumns();
+	  }
       item.changeZoom(/*isDraw*/i == activeIndex);
       this._reInitGraphics();
       item.objectRender.changeZoom(this.drawingCtx.scaleFactor);
-      if (i == activeIndex) {
+      if (i == activeIndex && factor) {
         item.draw();
         //ToDo item.drawDepCells();
       }

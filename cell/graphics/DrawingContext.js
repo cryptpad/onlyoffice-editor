@@ -599,8 +599,9 @@
 	 * @param {Number} factor
 	 */
 	DrawingContext.prototype.changeZoom = function (factor) {
-		if (factor <= 0) {
-			throw "Scale factor must be >= 0";
+		if (!factor) {
+			factor = this.scaleFactor;
+			this._ppiInit();
 		}
 
 		factor = asc_round(factor * 1000) / 1000;
