@@ -107,6 +107,7 @@
 	ApiChart.prototype.constructor = ApiChart;
 
 	/**
+     * The available preset color names.
 	 * @typedef {("aliceBlue" | "antiqueWhite" | "aqua" | "aquamarine" | "azure" | "beige" | "bisque" | "black" |
 	 *     "blanchedAlmond" | "blue" | "blueViolet" | "brown" | "burlyWood" | "cadetBlue" | "chartreuse" | "chocolate"
 	 *     | "coral" | "cornflowerBlue" | "cornsilk" | "crimson" | "cyan" | "darkBlue" | "darkCyan" | "darkGoldenrod" |
@@ -137,6 +138,11 @@
 	 * */
 
 	/**
+     * Possible values for the position of chart tick labels (either horizontal or vertical).
+     * * **"none"** - not display the selected tick labels.
+     * * **"nextTo"** - set the position of the selected tick labels next to the main label.
+     * * **"low"** - set the position of the selected tick labels in the part of the chart with lower values.
+     * * **"high"** - set the position of the selected tick labels in the part of the chart with higher values.
 	 * @typedef {("none" | "nextTo" | "low" | "high")} TickLabelPosition
 	 * **/
 	
@@ -1009,12 +1015,12 @@
 	};
 
 	/**
-	 * Specifies the border to be retrieved.
+	 * Specifies the cell border position.
 	 * @typedef {("DiagonalDown" | "DiagonalUp" | "Bottom" | "Left" | "Right" | "Top" | "InsideHorizontal" | "InsideVertical")} BordersIndex
 	 */
 
 	/**
-	 * Specifies the line style for the border.
+	 * Specifies the line style used to form the cell border.
 	 * @typedef {("None" | "Double" | "Hair" | "DashDotDot" | "DashDot" | "Dotted" | "Dashed" | "Thin" | "MediumDashDotDot" | "SlantDashDot" | "MediumDashDot" | "MediumDashed" | "Medium" | "Thick")} LineStyle
 	 */
 

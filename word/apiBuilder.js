@@ -409,20 +409,22 @@
 	 */
 
 	/**
+     * Any valid element which can be added to the document structure.
 	 * @typedef {(ApiParagraph | ApiTable | ApiBlockLvlSdt)} DocumentElement
 	 */
 
 	/**
+     * The style type used for the document element.
 	 * @typedef {("paragraph" | "table" | "run" | "numbering")} StyleType
 	 */
 
 	/**
-	 * A 240ths of a line.
+	 * 240ths of a line.
 	 * @typedef {number} line240
 	 */
 
 	/**
-	 * Half-points.
+	 * Half-points (2 half-points = 1 point).
 	 * @typedef {number} hps
 	 */
 
@@ -432,89 +434,96 @@
 	 */
 
 	/**
-	 *  A numeric value from 0 to 359.
+	 * A 60000th of a degree (5400000 = 90 degrees).
 	 * @typedef {number} PositiveFixedAngle
 	 * */
 
 	/**
-	 * A border type
+	 * A border type which will be added to the document element.
+     * * **"none"** - no border will be added to the created element or the selected element side.
+     * * **"single"** - a single border will be added to the created element or the selected element side.
 	 * @typedef {("none" | "single")} BorderType
 	 */
 
 	/**
-	 * A shade type
+	 * A shade type which can be added to the document element.
 	 * @typedef {("nil" | "clear")} ShdType
 	 */
 
 	/**
-	 * Types of custom tab
+	 * Types of custom tab.
 	 * @typedef {("clear" | "left" | "right" | "center")} TabJc
 	 */
 
 	/**
-	 * Eighths of a point (24 eighths of a point = 3 points)
+	 * Eighths of a point (24 eighths of a point = 3 points).
 	 * @typedef {number} pt_8
 	 */
 
 	/**
-	 * point
+	 * A point.
 	 * @typedef {number} pt
 	 */
 
 	/**
-	 * Header and footer types
+	 * Header and footer types which can be applied to the document sections.
+     * * **"default"** - a header or footer which can be applied to any default page.
+     * * **"title"** - a header or footer which is applied to the title page.
+     * * **"even"** - a header or footer which can be applied to even pages to distinguish them from the odd ones (which will be considered default).
 	 * @typedef {("default" | "title" | "even")} HdrFtrType
 	 */
 
 	/**
-	 * The possible values for the units of the width property being defined by a specific table width property.
+	 * The possible values for the units of the width property are defined by a specific table or table cell width property.
+     * * **"auto"** - set the table or table cell width to auto width.
+     * * **"twips"** - set the table or table cell width to be measured in twentieths of a point.
+     * * **"nul"** - set the table or table cell width to be of a zero value.
+     * * **"percent"** - set the table or table cell width to be measured in percent to the parent container.
 	 * @typedef {("auto" | "twips" | "nul" | "percent")} TableWidth
 	 */
 
 	/**
-	 * This simple type specifies possible values for the sections of the table to which the current conditional
-	 * formatting properties shall be applied when this table style is used.
-	 * <b>"topLeftCell"</b> - Specifies that the table formatting applies to the top left cell. <br/>
-	 * <b>"topRightCell"</b> - Specifies that the table formatting applies to the top right cell. <br/>
-	 * <b>"bottomLeftCell"</b> - Specifies that the table formatting applies to the bottom left cell.<br/>
-	 * <b>"bottomRightCell"</b> - Specifies that the table formatting applies to the bottom right cell.<br/>
-	 * <b>"firstRow"</b> - Specifies that the table formatting applies to the first row. <br/>
-	 * <b>"lastRow"</b> - Specifies that the table formatting applies to the last row. <br/>
-	 * <b>"firstColumn"</b> - Specifies that the table formatting applies to the first column. Any subsequent row which
-	 * is in <i>table header</i>{@link ApiTableRowPr#SetTableHeader} shall also use this conditional format.<br/>
-	 * <b>"lastColumn"</b> - Specifies that the table formatting applies to the last column. <br/>
-	 * <b>"bandedColumn"</b> - Specifies that the table formatting applies to odd numbered groupings of rows.<br/>
-	 * <b>"bandedColumnEven"</b> - Specifies that the table formatting applies to even numbered groupings of rows.<br/>
-	 * <b>"bandedRow"</b> - Specifies that the table formatting applies to odd numbered groupings of columns.<br/>
-	 * <b>"bandedRowEven"</b> - Specifies that the table formatting applies to even numbered groupings of columns.<br/>
-	 * <b>"wholeTable"</b> - Specifies that the conditional formatting applies to the whole table.<br/>
+	 * This simple type specifies possible values for the table sections to which the current conditional formatting properties will be applied when this selected table style is used.
+	 * * **"topLeftCell"** - specifies that the table formatting applies to the top left cell.
+	 * * **"topRightCell"** - specifies that the table formatting applies to the top right cell.
+	 * * **"bottomLeftCell"** - specifies that the table formatting applies to the bottom left cell.
+	 * * **"bottomRightCell"** - specifies that the table formatting applies to the bottom right cell.
+	 * * **"firstRow"** - specifies that the table formatting applies to the first row.
+	 * * **"lastRow"** - specifies that the table formatting applies to the last row.
+	 * * **"firstColumn"** - specifies that the table formatting applies to the first column. Any subsequent row which is in *table header* ({@link ApiTableRowPr#SetTableHeader}) will also use this conditional format.
+	 * * **"lastColumn"** - specifies that the table formatting applies to the last column.
+	 * * **"bandedColumn"** - specifies that the table formatting applies to odd numbered groupings of rows.
+	 * * **"bandedColumnEven"** - specifies that the table formatting applies to even numbered groupings of rows.
+	 * * **"bandedRow"** - specifies that the table formatting applies to odd numbered groupings of columns.
+	 * * **"bandedRowEven"** - specifies that the table formatting applies to even numbered groupings of columns.
+	 * * **"wholeTable"** - specifies that the conditional formatting applies to the whole table.
 	 * @typedef {("topLeftCell" | "topRightCell" | "bottomLeftCell" | "bottomRightCell" | "firstRow" | "lastRow" |
 	 *     "firstColumn" | "lastColumn" | "bandedColumn" | "bandedColumnEven" | "bandedRow" | "bandedRowEven" |
 	 *     "wholeTable")} TableStyleOverrideType
 	 */
 
 	/**
-	 * The types of elements that can be in the paragraph
+	 * The types of elements that can be added to the paragraph structure.
 	 * @typedef {(ApiUnsupported | ApiRun | ApiInlineLvlSdt)} ParagraphContent
 	 */
 
 	/**
-	 * The possible values for the base from which the relative horizontal positioning of an object shall be calculated.
+	 * The possible values for the base which the relative horizontal positioning of an object will be calculated from.
 	 * @typedef {("character" | "column" | "leftMargin" | "rightMargin" | "margin" | "page")} RelFromH
 	 */
 
 	/**
-	 * The possible values for the base from which the relative vertical positioning of an object shall be calculated.
+	 * The possible values for the base which the relative vertical positioning of an object will be calculated from.
 	 * @typedef {("bottomMargin" | "topMargin" | "margin" | "page" | "line" | "paragraph")} RelFromV
 	 */
 
 	/**
-	 * English measure unit. 1mm = 36000EMUs, 1inch = 914400EMUs
+	 * English measure unit. 1 mm = 36000 EMUs, 1 inch = 914400 EMUs.
 	 * @typedef {number} EMU
 	 */
 
 	/**
-	 * This type specifies the preset shape geometry that is to be used for a shape
+	 * This type specifies the preset shape geometry that will be used for a shape.
 	 * @typedef {("accentBorderCallout1" | "accentBorderCallout2" | "accentBorderCallout3" | "accentCallout1" |
 	 *     "accentCallout2" | "accentCallout3" | "actionButtonBackPrevious" | "actionButtonBeginning" |
 	 *     "actionButtonBlank" | "actionButtonDocument" | "actionButtonEnd" | "actionButtonForwardNext" |
@@ -529,7 +538,7 @@
 	 */
 
 	/**
-	 * This type specifies the types, create charts
+	 * This type specifies the available chart types which can be used to create a new chart.
 	 * @typedef {("bar" | "barStacked" | "barStackedPercent" | "bar3D" | "barStacked3D" | "barStackedPercent3D" |
 	 *     "barStackedPercent3DPerspective" | "horizontalBar" | "horizontalBarStacked" | "horizontalBarStackedPercent"
 	 *     | "horizontalBar3D" | "horizontalBarStacked3D" | "horizontalBarStackedPercent3D" | "lineNormal" |
@@ -538,15 +547,18 @@
 	 */
 
 	/**
+     * The available text vertical alignment (used to align text in a shape with a placement for text inside it).
 	 * @typedef {("top" | "center" | "bottom")} VerticalTextAlign
 	 * */
 
 	/**
+     * The available color scheme identifiers.
 	 * @typedef {("accent1" | "accent2" | "accent3" | "accent4" | "accent5" | "accent6" | "bg1" | "bg2" | "dk1" | "dk2"
 	 *     | "lt1" | "lt2" | "tx1" | "tx2")} SchemeColorId
 	 * */
 
 	/**
+     * The available preset color names.
 	 * @typedef {("aliceBlue" | "antiqueWhite" | "aqua" | "aquamarine" | "azure" | "beige" | "bisque" | "black" |
 	 *     "blanchedAlmond" | "blue" | "blueViolet" | "brown" | "burlyWood" | "cadetBlue" | "chartreuse" | "chocolate"
 	 *     | "coral" | "cornflowerBlue" | "cornsilk" | "crimson" | "cyan" | "darkBlue" | "darkCyan" | "darkGoldenrod" |
@@ -562,15 +574,23 @@
 
 
 	/**
-	 *
+     * Possible values for the position of chart tick labels (either horizontal or vertical).
+     * * **"none"** - not display the selected tick labels.
+     * * **"nextTo"** - set the position of the selected tick labels next to the main label.
+     * * **"low"** - set the position of the selected tick labels in the part of the chart with lower values.
+     * * **"high"** - set the position of the selected tick labels in the part of the chart with higher values.
 	 * @typedef {("none" | "nextTo" | "low" | "high")} TickLabelPosition
 	 * **/
 
 	/**
+     * The type of a fill which uses an image as a background.
+     * * **"tile"** - if the image is smaller than the shaped which is filled, the image will be tiled all over the created shape surface.
+     * * **"stretch"** - if the image is smaller than the shape which is filled, the image will be stretched to fit the created shape surface.
 	 * @typedef {"tile" | "stretch"} BlipFillType
 	 * */
 
 	/**
+     * The available preset patterns which can be used for the fill.
 	 * @typedef {"cross" | "dashDnDiag" | "dashHorz" | "dashUpDiag" | "dashVert" | "diagBrick" | "diagCross" | "divot"
 	 *     | "dkDnDiag" | "dkHorz" | "dkUpDiag" | "dkVert" | "dnDiag" | "dotDmnd" | "dotGrid" | "horz" | "horzBrick" |
 	 *     "lgCheck" | "lgConfetti" | "lgGrid" | "ltDnDiag" | "ltHorz" | "ltUpDiag" | "ltVert" | "narHorz" | "narVert"
@@ -591,6 +611,7 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
+     * The 1000th of a percent (100000 = 100%).
 	 * @typedef {number} PositivePercentage
 	 * */
 
