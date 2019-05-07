@@ -3211,6 +3211,9 @@ CPresentation.prototype =
         var bUpdateSelection = true;
         var bRetValue = keydownresult_PreventNothing;
 
+        // Сбрасываем текущий элемент в поиске
+        if (this.SearchEngine.Count > 0)
+            this.SearchEngine.Reset_Current();
 
         var oController = this.GetCurrentController();
         if ( e.KeyCode == 8) // BackSpace
@@ -4168,6 +4171,7 @@ CPresentation.prototype =
 
     OnMouseDown : function(e, X, Y, PageIndex)
     {
+
         this.CurPage = PageIndex;
 
 
@@ -4175,6 +4179,10 @@ CPresentation.prototype =
         this.FocusOnNotes = false;
         if ( PageIndex < 0 )
             return;
+
+        // Сбрасываем текущий элемент в поиске
+        if (this.SearchEngine.Count > 0)
+            this.SearchEngine.Reset_Current();
 
         this.CurPage = PageIndex;
         e.ctrlKey = e.CtrlKey;
@@ -4411,6 +4419,9 @@ CPresentation.prototype =
 
     Notes_OnMouseDown : function(e, X, Y)
     {
+        // Сбрасываем текущий элемент в поиске
+        if (this.SearchEngine.Count > 0)
+            this.SearchEngine.Reset_Current();
         var bFocusOnSlide = !this.FocusOnNotes;
         this.FocusOnNotes = true;
         var oCurSlide = this.Slides[this.CurPage];
