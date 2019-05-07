@@ -763,17 +763,46 @@ function (window, undefined) {
 				arg2Range = arg2.getMatrix();
 			}
 
-			var index = _func.binarySearch(arg0, function () {
-				var a = [];
-				for (var i = 0; i < arg1Range.length; i++) {
-					a.push(arg1Range[i][0])
+			var bVertical = arg1Range[0].length >= arg1Range.length;//r>=c
+			var index;
+			var tempArr = [], i;
+			if(bVertical) {
+				for (i = 0; i < arg1Range[0].length; i++) {
+					tempArr.push(arg1Range[0][i]);
 				}
-				return a;
-			}());
+			} else {
+				for (i = 0; i < arg1Range.length; i++) {
+					tempArr.push(arg1Range[i][0]);
+				}
+			}
+			if(tempArr[tempArr.length - 1] && tempArr[tempArr.length - 1].value < arg0.value) {
+				//в этом случае фукнция бинарного поиска одаст последний элемент. для конкретного случая это неверно
+				//Если функции не удается найти искомое_значение, то в просматриваемом_векторе выбирается наибольшее значение, которое меньше искомого_значения или равно ему.
+				var diff = null;
+				var endNumber;
+				for(i = 0; i < tempArr.length; i++) {
+					if(cElementType.number === tempArr[i].type) {
+						if(tempArr[i].value <= arg0.value && (null === diff || diff > (arg0.value - tempArr[i].value))) {
+							index = i;
+							diff = arg0.value - tempArr[i].value;
+						}
+						endNumber = i;
+					}
+				}
+				if(undefined === index) {
+					if(undefined !== endNumber) {
+						index = endNumber;
+					} /*else {
+						index = tempArr.length - 1;
+					}*/
+				}
+			}
+			if(index === undefined) {
+				index = _func.binarySearch(arg0, tempArr);
 
-
-			if (index < 0) {
-				return new cError(cErrorType.not_available);
+				if (index < 0) {
+					return new cError(cErrorType.not_available);
+				}
 			}
 
 			var ws = cElementType.cellsRange3D === arg1.type && arg1.isSingleSheet() ? arg1.getWS() : arg1.ws;
@@ -792,18 +821,10 @@ function (window, undefined) {
 
 			var b = arg2.getBBox0();
 			if (2 === arg.length) {
-				if (arg1Range[0].length >= 2) {
-					//var range = ws.getRange3(b.r1 + index, b.c1, b.r1 + index, b.c2);
-					var lastCol = b.c2;
-					//ищем последнюю непустую в данной строке
-					/*range._foreachNoEmpty(function (cell, r, c) {
-						if(!cell.isEmptyTextString()) {
-							lastCol = c;
-						}
-					});*/
-					return new cRef(ws.getCell3(b.r1 + index, lastCol + 0).getName(), ws);
-				} else {
+				if (bVertical) {
 					return new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
+				} else {
+					return new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
 				}
 			} else {
 				if (1 === arg2Range.length) {

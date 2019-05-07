@@ -4818,52 +4818,52 @@ _func[cElementType.number][cElementType.array] = _func[cElementType.string][cEle
 
 
 _func.binarySearch = function ( sElem, arrTagert, regExp ) {
-    var first = 0, /* Номер первого элемента в массиве */
-        last = arrTagert.length - 1, /* Номер элемента в массиве, СЛЕДУЮЩЕГО ЗА последним */
-    /* Если просматриваемый участок непустой, first<last */
-        mid;
+	var first = 0, /* Номер первого элемента в массиве */
+		last = arrTagert.length - 1, /* Номер элемента в массиве, СЛЕДУЮЩЕГО ЗА последним */
+		/* Если просматриваемый участок непустой, first<last */
+		mid;
 
-    var arrTagertOneType = [], isString = false;
+	var arrTagertOneType = [], isString = false;
 
-    for ( var i = 0; i < arrTagert.length; i++ ) {
-        if ( (arrTagert[i] instanceof cString || sElem instanceof cString) && !isString ) {
-            i = 0;
-            isString = true;
-            sElem = new cString( sElem.toString().toLowerCase() );
-        }
-        if ( isString ) {
-            arrTagertOneType[i] = new cString( arrTagert[i].toString().toLowerCase() );
-    } else {
-            arrTagertOneType[i] = arrTagert[i].tocNumber();
-        }
-    }
+	for (var i = 0; i < arrTagert.length; i++) {
+		if ((arrTagert[i] instanceof cString || sElem instanceof cString) && !isString) {
+			i = 0;
+			isString = true;
+			sElem = new cString(sElem.toString().toLowerCase());
+		}
+		if (isString) {
+			arrTagertOneType[i] = new cString(arrTagert[i].toString().toLowerCase());
+		} else {
+			arrTagertOneType[i] = arrTagert[i].tocNumber();
+		}
+	}
 
-    if ( arrTagert.length === 0 ) {
-        return -1;
-        /* массив пуст */
-  } else if (arrTagert[0].value > sElem.value) {
-        return -2;
-  } else if (arrTagert[arrTagert.length - 1].value < sElem.value) {
-        return arrTagert.length - 1;
-    }
+	if (arrTagert.length === 0) {
+		return -1;
+		/* массив пуст */
+	} else if (arrTagert[0].value > sElem.value) {
+		return -2;
+	} else if (arrTagert[arrTagert.length - 1].value < sElem.value) {
+		return arrTagert.length - 1;
+	}
 
-    while ( first < last ) {
-        mid = Math.floor( first + (last - first) / 2 );
-        if ( sElem.value <= arrTagert[mid].value || ( regExp && regExp.test( arrTagert[mid].value ) ) ) {
-            last = mid;
-    } else {
-            first = mid + 1;
-        }
-    }
+	while (first < last) {
+		mid = Math.floor(first + (last - first) / 2);
+		if (sElem.value <= arrTagert[mid].value || ( regExp && regExp.test(arrTagert[mid].value) )) {
+			last = mid;
+		} else {
+			first = mid + 1;
+		}
+	}
 
-    /* Если условный оператор if(n==0) и т.д. в начале опущен - значит, тут раскомментировать!    */
-    if ( /* last<n &&*/ arrTagert[last].value === sElem.value ) {
-        return last;
-        /* Искомый элемент найден. last - искомый индекс */
-  } else {
-        return last - 1;
-        /* Искомый элемент не найден. Но если вам вдруг надо его вставить со сдвигом, то его место - last.    */
-    }
+	/* Если условный оператор if(n==0) и т.д. в начале опущен - значит, тут раскомментировать!    */
+	if (/* last<n &&*/ arrTagert[last].value === sElem.value) {
+		return last;
+		/* Искомый элемент найден. last - искомый индекс */
+	} else {
+		return last - 1;
+		/* Искомый элемент не найден. Но если вам вдруг надо его вставить со сдвигом, то его место - last.    */
+	}
 
 };
 
