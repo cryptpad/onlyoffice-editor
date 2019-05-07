@@ -7511,7 +7511,7 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 			oPara.TextPr.Set_Value(this.TextPr.Value.Copy());
 
 			// Копируем содержимое параграфа
-			for (var Pos = nStartPos; Pos <= nEndPos; Pos++)
+			for (var Pos = nStartPos, nParaPos = 0; Pos <= nEndPos; Pos++)
 			{
 				var Item = this.Content[Pos];
 
@@ -7520,12 +7520,20 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 					var Content = Item.CopyContent(true);
 					for (var ContentPos = 0, ContentLen = Content.length; ContentPos < ContentLen; ContentPos++)
 					{
-						oPara.Internal_Content_Add(Pos - nStartPos + ContentPos, Content[ContentPos], false);
+						if (Content[ContentPos].Type !== para_RevisionMove)
+						{
+							oPara.Internal_Content_Add(nParaPos, Content[ContentPos], false);
+							nParaPos++;
+						}
 					}
 				}
 				else
 				{
-					oPara.Internal_Content_Add(Pos - nStartPos, Item.Copy(false), false);
+					if (Item.Type !== para_RevisionMove)
+					{
+						oPara.Internal_Content_Add(nParaPos, Item.Copy(false), false);
+						nParaPos++;
+					}
 				}
 			}
 

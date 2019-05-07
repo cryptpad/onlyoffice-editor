@@ -194,7 +194,7 @@ ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
     if (true === isCopyReviewPr || (oLogicDocument && oLogicDocument.RecalcTableHeader))
 	{
 		var nReviewType = this.GetReviewType();
-		var oReviewInfo = this.GetReviewInfo();
+		var oReviewInfo = this.GetReviewInfo().Copy();
 		if (!(oLogicDocument && oLogicDocument.RecalcTableHeader))
 			oReviewInfo.SetMove(Asc.c_oAscRevisionsMove.NoMove);
 
@@ -11132,7 +11132,6 @@ CReviewInfo.prototype.Write_ToBinary = function(oWriter)
 	{
 		oWriter.WriteBool(false);
 	}
-
 };
 CReviewInfo.prototype.Read_FromBinary = function(oReader)
 {
