@@ -1709,24 +1709,38 @@ var g_oBorderProperties = {
 		return this._index = val;
 	};
 	Border.prototype._mergeProperty = function (first, second, def) {
-		if ((null != def.isEqual && false == def.isEqual(first)) || (null == def.isEqual && def != first)) {
+		if (first.s !== c_oAscBorderStyles.None) {
 			return first;
 		} else {
 			return second;
 		}
 	};
-	Border.prototype.merge = function (border) {
+	Border.prototype.merge = function (border, isTable) {
 		var defaultBorder = g_oDefaultFormat.Border;
 		var oRes = new Border();
-		oRes.l = this._mergeProperty(this.l, border.l, defaultBorder.l).clone();
-		oRes.t = this._mergeProperty(this.t, border.t, defaultBorder.t).clone();
-		oRes.r = this._mergeProperty(this.r, border.r, defaultBorder.r).clone();
-		oRes.b = this._mergeProperty(this.b, border.b, defaultBorder.b).clone();
-		oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
-		oRes.ih = this._mergeProperty(this.ih, border.ih, defaultBorder.ih).clone();
-		oRes.iv = this._mergeProperty(this.iv, border.iv, defaultBorder.iv).clone();
-		oRes.dd = this._mergeProperty(this.dd, border.dd, defaultBorder.dd);
-		oRes.du = this._mergeProperty(this.du, border.du, defaultBorder.du);
+		//todo null border props
+		if (isTable) {
+			oRes.l = this._mergeProperty(this.l, border.l, defaultBorder.l).clone();
+			oRes.t = this._mergeProperty(this.t, border.t, defaultBorder.t).clone();
+			oRes.r = this._mergeProperty(this.r, border.r, defaultBorder.r).clone();
+			oRes.b = this._mergeProperty(this.b, border.b, defaultBorder.b).clone();
+			oRes.ih = this._mergeProperty(this.ih, border.ih, defaultBorder.ih).clone();
+			oRes.iv = this._mergeProperty(this.iv, border.iv, defaultBorder.iv).clone();
+			oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
+			oRes.dd = this.dd || border.dd;
+			oRes.du = this.du || border.du;
+		} else {
+			//todo merge with default
+			oRes.l = this.l.clone();
+			oRes.t = this.t.clone();
+			oRes.r = this.r.clone();
+			oRes.b = this.b.clone();
+			oRes.ih = this.ih.clone();
+			oRes.iv = this.iv.clone();
+			oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
+			oRes.dd = this.dd || border.dd;
+			oRes.du = this.du || border.du;
+		}
 		return oRes;
 	};
 	Border.prototype.getDif = function (val) {
@@ -2190,7 +2204,7 @@ CellXfs.prototype =
 		var cache = this.getOperationCache("merge", xfIndexNumber);
 		if (!cache) {
 			cache = new CellXfs();
-			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border);
+			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border, isTable);
 			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFill === xfs.fill)) {
 				if (g_StyleCache.firstFill === xfs.fill) {
 					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
