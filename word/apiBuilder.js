@@ -4813,8 +4813,8 @@
 		return "inlineLvlSdt";
 	};
 	/**
-	 * Set the lock type of this container
-	 * @param {SdtLock} sLockType
+	 * Set the lock to the current inline text content control: either locks the content from editing, or from deleting the control, or both.
+	 * @param {SdtLock} sLockType - The type of the lock applied to the inline text content control.
 	 */
 	ApiInlineLvlSdt.prototype.SetLock = function(sLockType)
 	{
@@ -4848,8 +4848,8 @@
 		return sResult;
 	};
 	/**
-	 * Set the tag attribute for this container
-	 * @param {string} sTag
+	 * Add a string tag to the current inline text content control.
+	 * @param {string} sTag - The tag which will be added to the current inline text content control.
 	 */
 	ApiInlineLvlSdt.prototype.SetTag = function(sTag)
 	{
@@ -4864,8 +4864,8 @@
 		return this.Sdt.GetTag();
 	};
 	/**
-	 * Set the label attribute for this container
-	 * @param {string} sLabel
+	 * Add a string label to the current inline text content control.
+	 * @param {string} sLabel - The label which will be added to the current inline text content control. Can be a positive or negative integer from **-2147483647** to **2147483647**.
 	 */
 	ApiInlineLvlSdt.prototype.SetLabel = function(sLabel)
 	{
@@ -4896,7 +4896,9 @@
 		return this.Sdt.GetAlias();
 	};
 	/**
-	 * Get the number of elements in the current container.
+	 * Get the number of elements in the current inline text content control. The text content 
+     * control is created with one text run present in it by default, so any even without any 
+     * element added this method will return the value of '1'.
 	 * @returns {number}
 	 */
 	ApiInlineLvlSdt.prototype.GetElementsCount = function()
@@ -4904,8 +4906,8 @@
 		return this.Sdt.Content.length;
 	};
 	/**
-	 * Get the element of the container content by specified position.
-	 * @param {number} nPos
+	 * Get the element of the current inline text content control using the position specified.
+	 * @param {number} nPos - The position where the element which content we want to get must be located.
 	 * @returns {?ParagraphContent}
 	 */
 	ApiInlineLvlSdt.prototype.GetElement = function(nPos)
@@ -4916,8 +4918,8 @@
 		return private_GetSupportedParaElement(this.Sdt.Content[nPos]);
 	};
 	/**
-	 * Remove element by specified position.
-	 * @param {number} nPos
+	 * Remove the element using the position specified from the current inline text content control.
+	 * @param {number} nPos - The position of the element which we want to remove from the current inline text content control.
 	 */
 	ApiInlineLvlSdt.prototype.RemoveElement = function(nPos)
 	{
@@ -4927,7 +4929,7 @@
 		this.Sdt.Remove_FromContent(nPos, 1);
 	};
 	/**
-	 * Remove all elements.
+	 * Remove all the elements from the current inline text content control.
 	 */
 	ApiInlineLvlSdt.prototype.RemoveAllElements = function()
 	{
@@ -4935,11 +4937,10 @@
 			this.Sdt.Remove_FromContent(0, this.Sdt.Content.length);
 	};
 	/**
-	 * Add an element to inline container.
-	 * @param {ParagraphContent} oElement
-	 * @param {number} [nPos] If this value is not specified then element will be added to the end of this container.
-	 * @returns {boolean} Returns <code>false</code> if the type of <code>oElement</code> is not supported.
-	 * content.
+	 * Add an element to the inline text content control.
+	 * @param {ParagraphContent} oElement - The document element which will be added at the position specified. Returns **false** if the type of *oElement* is not supported by an inline text content control.
+	 * @param {number} [nPos] - The position of the element where it will be added to the current inline text content control. If this value is not specified then the element will be added to the end of the current inline text content control.
+	 * @returns {boolean}
 	 */
 	ApiInlineLvlSdt.prototype.AddElement = function(oElement, nPos)
 	{
