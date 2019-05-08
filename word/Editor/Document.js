@@ -18508,6 +18508,10 @@ CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
 	if (!oMarks)
 		return;
 
+	var oTrackMoveProcess = oManager.GetProcessTrackMove();
+	if (oTrackMoveProcess && oTrackMoveProcess.GetMoveId() === sMoveId)
+		return;
+
 	var oDocState = this.GetSelectionState();
 
 	this.SelectTrackMove(sMoveId, true);
