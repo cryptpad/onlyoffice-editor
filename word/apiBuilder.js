@@ -3460,7 +3460,6 @@
 	 * @param {("none" | "bullet" | "decimal" | "lowerRoman" | "upperRoman" | "lowerLetter" | "upperLetter" |
 	 *     "decimalZero")} sType - The custom numbering type used for the current numbering definition.
 	 * @param {string} sTextFormatString - Any text in this parameter will be taken as literal text to be repeated in each instance of this numbering level, except for any use of the percent symbol (%) followed by a number, which will be used to indicate the one-based index of the number to be used at this level. Any number of a level higher than this level will be ignored.
-	 * higher than this level shall be ignored.
 	 * @param {("left" | "right" | "center")} sAlign - Type of justification applied to the text run in the current numbering level.
 	 */
 	ApiNumberingLevel.prototype.SetCustomType = function(sType, sTextFormatString, sAlign)
