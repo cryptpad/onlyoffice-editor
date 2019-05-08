@@ -1813,7 +1813,7 @@
 	 *  Specify the chart title.
 	 *  @typeofeditors ["CSE"]
 	 *  @param {string} sTitle - The title which will be displayed for the current chart.
-	 *  @param {hps} nFontSize - The text size value measured in points.
+	 *  @param {pt} nFontSize - The text size value measured in points.
 	 *  @param {?bool} bIsBold - Specifies if the chart title is written in bold font or not.
 	 */
 	ApiChart.prototype.SetTitle = function (sTitle, nFontSize, bIsBold)
@@ -1825,7 +1825,7 @@
 	 *  Specify the chart horizontal axis title.
 	 *  @typeofeditors ["CSE"]
 	 *  @param {string} sTitle - The title which will be displayed for the horizontal axis of the current chart.
-	 *  @param {hps} nFontSize - The text size value measured in points.
+	 *  @param {pt} nFontSize - The text size value measured in points.
 	 *  @param {?bool} bIsBold - Specifies if the horizontal axis title is written in bold font or not.
 	 * */
 	ApiChart.prototype.SetHorAxisTitle = function (sTitle, nFontSize, bIsBold)
@@ -1837,7 +1837,7 @@
 	 *  Specify the chart vertical axis title.
 	 *  @typeofeditors ["CSE"]
 	 *  @param {string} sTitle - The title which will be displayed for the vertical axis of the current chart.
-	 *  @param {hps} nFontSize - The text size value measured in points.
+	 *  @param {pt} nFontSize - The text size value measured in points.
 	 *  @param {?bool} bIsBold - Specifies if the vertical axis title is written in bold font or not.
 	 * */
 	ApiChart.prototype.SetVerAxisTitle = function (sTitle, nFontSize, bIsBold)
