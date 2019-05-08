@@ -6599,6 +6599,8 @@ background-repeat: no-repeat;\
 		if (this.isDocumentLoadComplete || !this.ServerImagesWaitComplete || !this.ServerIdWaitComplete || !this.WordControl || !this.WordControl.m_oLogicDocument)
 			return;
 
+		var isSendOnReady = false;
+
 		if (0 == this.DocumentType)
 			this.WordControl.m_oLogicDocument.LoadEmptyDocument();
 		else if (1 == this.DocumentType)
@@ -6609,68 +6611,67 @@ background-repeat: no-repeat;\
 		{
 			if (this.LoadedObject)
 			{
-					var Document = this.WordControl.m_oLogicDocument;
+				var Document = this.WordControl.m_oLogicDocument;
 
-					if (this.isApplyChangesOnOpenEnabled)
+				if (this.isApplyChangesOnOpenEnabled)
+				{
+					if (AscCommon.EncryptionWorker)
 					{
-                        if (AscCommon.EncryptionWorker)
-                        {
-                            AscCommon.EncryptionWorker.init();
-                            if (!AscCommon.EncryptionWorker.isChangesHandled)
-                                return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
-                        }
-
-						this.isApplyChangesOnOpenEnabled = false;
-						this._applyPreOpenLocks();
-						AscCommon.CollaborativeEditing.Apply_Changes();
-						AscCommon.CollaborativeEditing.Release_Locks();
-
-						this.isApplyChangesOnOpen = true;
+						AscCommon.EncryptionWorker.init();
+						if (!AscCommon.EncryptionWorker.isChangesHandled)
+							return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
 					}
 
-					//Recalculate для Document
-					Document.MoveCursorToStartPos(false);
+                    if (false === this.isSaveFonts_Images && !isSendOnReady)
+                    {
+                        isSendOnReady = true;
+                        this.bInit_word_control = true;
+                        this.onDocumentContentReady();
+                    }
 
-					if (!this.isOnlyReaderMode)
-					{
-						if (false === this.isSaveFonts_Images)
-							Document.RecalculateFromStart();
+					this.isApplyChangesOnOpenEnabled = false;
+					this._applyPreOpenLocks();
+					AscCommon.CollaborativeEditing.Apply_Changes();
+					AscCommon.CollaborativeEditing.Release_Locks();
 
-						this.WordControl.m_oDrawingDocument.TargetStart();
-					}
+					this.isApplyChangesOnOpen = true;
+				}
+
+                if (false === this.isSaveFonts_Images && !isSendOnReady)
+                {
+                    isSendOnReady = true;
+                    this.bInit_word_control = true;
+                    this.onDocumentContentReady();
+                }
+
+				//Recalculate для Document
+				Document.MoveCursorToStartPos(false);
+
+				if (!this.isOnlyReaderMode)
+				{
+					if (false === this.isSaveFonts_Images)
+						Document.RecalculateFromStart();
+
+					this.WordControl.m_oDrawingDocument.TargetStart();
+				}
+				else
+				{
+					Document.RecalculateAllTables();
+					var data = {All : true};
+					Document.DrawingObjects.recalculate_(data);
+					Document.DrawingObjects.recalculateText_(data);
+
+					if (!this.WordControl.IsReaderMode())
+						this.ChangeReaderMode();
 					else
-					{
-						Document.RecalculateAllTables();
-						var data = {All : true};
-						Document.DrawingObjects.recalculate_(data);
-						Document.DrawingObjects.recalculateText_(data);
-
-						if (!this.WordControl.IsReaderMode())
-							this.ChangeReaderMode();
-						else
-							this.WordControl.UpdateReaderContent();
-					}
-
-					var options = this.DocInfo.asc_getOptions();
-					var action = options ? options["action"] : null;
-					if (action)
-					{
-						switch (action["type"])
-						{
-							case "bookmark":
-							{
-                                Document.GoToBookmark(action["data"]);
-								break;
-							}
-							default:
-								break;
-						}
-					}
+						this.WordControl.UpdateReaderContent();
 				}
 			}
+		}
 
-		if (false === this.isSaveFonts_Images)
+		if (false === this.isSaveFonts_Images && !isSendOnReady)
 		{
+            isSendOnReady = true;
 			this.bInit_word_control = true;
 			this.onDocumentContentReady();
 		}

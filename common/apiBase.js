@@ -611,6 +611,9 @@
 
         if (this.editorId == c_oEditorId.Spreadsheet)
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
+
+		if (this.DocInfo)
+			this["pluginMethod_SetProperties"](this.DocInfo.asc_getOptions());
 	};
 	// Save
 	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType)
@@ -1915,6 +1918,9 @@
 
 	baseEditorsApi.prototype["pluginMethod_SetProperties"] = function(obj)
 	{
+		if (!obj)
+			return;
+
 		for (var prop in obj)
 		{
 			switch (prop)

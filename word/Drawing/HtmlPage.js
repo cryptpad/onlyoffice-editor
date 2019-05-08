@@ -3282,7 +3282,11 @@ function CEditorPage(api)
 
 	this.OnPaint = function()
 	{
-		if (this.m_oApi.isLongAction())
+		var isNoPaint = this.m_oApi.isLongAction();
+		if (isNoPaint && this.m_oDrawingDocument && this.m_oDrawingDocument.isDisableEditBeforeCalculateLA)
+			isNoPaint = false;
+
+		if (isNoPaint)
 			return;
 
 		if (this.DrawingFreeze || true === window["DisableVisibleComponents"])
@@ -3699,10 +3703,14 @@ function CEditorPage(api)
 		if (!oWordControl.m_oApi.bInit_word_control)
 			return;
 
-        if (oWordControl.m_oApi.isLongAction())
+        var isLongAction = oWordControl.m_oApi.isLongAction();
+        if (isLongAction && oWordControl.m_oDrawingDocument && oWordControl.m_oDrawingDocument.isDisableEditBeforeCalculateLA)
+            isLongAction = false;
+
+        if (isLongAction)
             return;
 
-		var isRepaint                   = oWordControl.m_bIsScroll;
+		var isRepaint = oWordControl.m_bIsScroll;
 		if (null != oWordControl.m_oLogicDocument && !oWordControl.m_oApi.isLockTargetUpdate)
 		{
 			oWordControl.m_oDrawingDocument.UpdateTargetFromPaint = true;
