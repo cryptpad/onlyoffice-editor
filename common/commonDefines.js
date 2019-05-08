@@ -230,7 +230,8 @@
 		DownloadMerge     : 14, // cкачать файл с mail merge
 		SendMailMerge     : 15,  // рассылка mail merge по почте
 		ForceSaveButton   : 16,
-		ForceSaveTimeout  : 17
+		ForceSaveTimeout  : 17,
+		Waiting	: 18
 	};
 
 	var c_oAscAdvancedOptionsID = {
