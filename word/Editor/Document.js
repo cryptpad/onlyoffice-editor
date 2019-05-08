@@ -1818,6 +1818,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     this.Spelling = new CDocumentSpelling();
 
     // Дополнительные настройки
+	this.ForceHideCCTrack          = false; // Насильно запрещаем отрисовку рамок у ContentControl
     this.UseTextShd                = true;  // Использовать ли заливку текста
     this.ForceCopySectPr           = false; // Копировать ли настройки секции, если родительский класс параграфа не документ
     this.CopyNumberingMap          = null;  // Мап старый индекс -> новый индекс для копирования нумерации
@@ -17587,9 +17588,12 @@ CDocument.prototype.RemoveBookmark = function(sName)
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.GoToBookmark = function(sName)
+CDocument.prototype.GoToBookmark = function(sName, isSelect)
 {
-	this.BookmarksManager.GoToBookmark(sName);
+	if (isSelect)
+		this.BookmarksManager.SelectBookmark(sName);
+	else
+		this.BookmarksManager.GoToBookmark(sName);
 };
 CDocument.prototype.private_RemoveBookmark = function(sName)
 {
@@ -18514,6 +18518,24 @@ CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
 
 	this.Action.Additional.TrackMove[sMoveId] = oMarks;
 };
+/**
+ * Выставляем параметр для насильного запрета отрисовки рамок для ContentControl
+ * @param {boolean} isHide
+ */
+CDocument.prototype.SetForceHideContentControlTrack = function(isHide)
+{
+	this.ForceHideCCTrack = isHide;
+	this.UpdateTracks();
+};
+/**
+ * Выставлен ли насильный запрет отрисовки рамок ContentControl
+ * @returns {boolean}
+ */
+CDocument.prototype.IsForceHideContentControlTrack = function()
+{
+	return this.ForceHideCCTrack;
+};
+
 
 function CDocumentSelectionState()
 {
@@ -19028,6 +19050,34 @@ CTrackRevisionsManager.prototype.ContinueTrackRevisions = function()
  * @returns {?CRevisionsChange}
  */
 CTrackRevisionsManager.prototype.GetNextChange = function()
+{
+	if (this.CurChange && this.CurChange.IsComplexChange())
+	{
+		var arrChanges = this.CurChange.GetSimpleChanges();
+
+		this.CurChange  = null;
+		this.CurElement = null;
+
+		if (arrChanges.length > 0)
+		{
+			this.CurChange  = arrChanges[arrChanges.length - 1];
+			this.CurElement = this.CurChange.GetElement();
+
+			if (!this.CurElement || !this.Changes[this.CurElement.GetId()])
+			{
+				this.CurChange  = null;
+				this.CurElement = null;
+			}
+		}
+	}
+
+	var oChange = this.private_GetNextChange();
+	if (oChange && oChange.IsMove() && !oChange.IsComplexChange())
+		oChange = this.CollectMoveChange(oChange);
+
+	return oChange;
+};
+CTrackRevisionsManager.prototype.private_GetNextChange = function()
 {
 	var oInitialCurChange  = this.CurChange;
 	var oInitialCurElement = this.CurElement;

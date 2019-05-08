@@ -1970,6 +1970,13 @@
 
 					break;
 				}
+				case "hideContentControlTrack":
+				{
+					if (this.editorId === c_oEditorId.Word)
+						this.WordControl.m_oLogicDocument.SetForceHideContentControlTrack(obj[prop]);
+
+					break;
+				}
 				default:
 					break;
 			}

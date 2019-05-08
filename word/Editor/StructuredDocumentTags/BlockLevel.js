@@ -776,7 +776,7 @@ CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 	var oDrawingDocument = this.LogicDocument.Get_DrawingDocument();
 	var arrRects = [];
 
-	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance())
+	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance() || (this.LogicDocument && this.LogicDocument.IsForceHideContentControlTrack()))
 	{
 		oDrawingDocument.OnDrawContentControl(null, isHover ? c_oContentControlTrack.Hover : c_oContentControlTrack.In);
 		return;
