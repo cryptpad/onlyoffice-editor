@@ -281,6 +281,11 @@ function CGroupShape()
     CGroupShape.prototype.copy = function(oIdMap, bSourceFormatting)
     {
         var copy = new CGroupShape();
+        this.copy2(copy, oIdMap, bSourceFormatting);
+        return copy;
+    };
+    CGroupShape.prototype.copy2 = function(copy, oIdMap, bSourceFormatting)
+    {
         if(this.nvGrpSpPr)
         {
             copy.setNvGrpSpPr(this.nvGrpSpPr.createDuplicate());

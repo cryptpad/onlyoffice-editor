@@ -79,6 +79,10 @@
     CLockedCanvas.prototype.hitInPath = function () {
         return false;
     };
+    CLockedCanvas.prototype.copy = function (oIdMap, bSourceFormatting) {
+        var copy = new CLockedCanvas();
+        return this.copy2(copy, oIdMap, bSourceFormatting);
+    };
 
     CLockedCanvas.prototype.hitInInnerArea = function (x, y) {
         var invert_transform = this.getInvertTransform();

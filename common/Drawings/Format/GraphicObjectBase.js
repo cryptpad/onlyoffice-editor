@@ -1052,7 +1052,7 @@
 
     CGraphicObjectBase.prototype.getMainGroup = function () {
         if(!isRealObject(this.group)){
-            if(this.getObjectType() === AscDFH.historyitem_type_GroupShape){
+            if(this.getObjectType() === AscDFH.historyitem_type_GroupShape || this.getObjectType() === AscDFH.historyitem_type_LockedCanvas){
                 return this;
             }
             return null;
