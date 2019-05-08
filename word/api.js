@@ -7824,7 +7824,7 @@ background-repeat: no-repeat;\
 
 		var sMoveId = oChange.get_MoveId();
 		var isFrom  = oChange.GetMoveType() === Asc.c_oAscRevisionsMove.MoveTo;
-		oLogicDocument.SelectTrackMove(sMoveId, isFrom);
+		oLogicDocument.SelectTrackMove(sMoveId, isFrom, true);
 	};
 
 	asc_docs_api.prototype.asc_undoAllChanges       = function()

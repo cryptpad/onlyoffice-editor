@@ -172,6 +172,18 @@ CParaRevisionMove.prototype.IsUseInDocument = function()
 
 	return oParagraph.Is_UseInDocument();
 };
+CParaRevisionMove.prototype.GetReviewChange = function()
+{
+	var oParagraph     = this.GetParagraph();
+	var oLogicDocument = oParagraph ? oParagraph.LogicDocument : null;
+	if (oLogicDocument)
+	{
+		var oTrackManager = oLogicDocument.GetTrackRevisionsManager();
+		return oTrackManager.GetMoveMarkChange(this.GetMarkId(), this.IsFrom(), this.IsStart());
+	}
+
+	return null;
+};
 
 
 /**
@@ -288,6 +300,19 @@ CRunRevisionMove.prototype.IsUseInDocument = function()
 {
 	var oRun = this.GetRun();
 	return (oRun && oRun.Is_UseInDocument());
+};
+CRunRevisionMove.prototype.GetReviewChange = function()
+{
+	var oRun           = this.GetRun();
+	var oParagraph     = oRun ? oRun.GetParagraph() : null;
+	var oLogicDocument = oParagraph ? oParagraph.LogicDocument : null;
+	if (oLogicDocument)
+	{
+		var oTrackManager = oLogicDocument.GetTrackRevisionsManager();
+		return oTrackManager.GetMoveMarkChange(this.GetMarkId(), this.IsFrom(), this.IsStart());
+	}
+
+	return null;
 };
 
 //--------------------------------------------------------export----------------------------------------------------

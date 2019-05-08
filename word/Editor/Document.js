@@ -18427,8 +18427,9 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
  * Выделяем перемещенный или удаленный после перемещения текст
  * @param sMoveId {string} идентификатор переноса
  * @param isFrom {boolean} true - выделяем удаленный текст, false - выделяем перемещенный текст
+ * @param [isSetCurrentChange=false] {boolean} Выставлять или нет данное изменение текущим
  */
-CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom)
+CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom, isSetCurrentChange)
 {
 	var oManager = this.GetTrackRevisionsManager();
 
@@ -18472,9 +18473,20 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom)
 			var oEndDocPos   = private_GetDocumentPosition(oEnd);
 
 			if (oStartDocPos && oEndDocPos)
+			{
 				this.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
+
+				if (isSetCurrentChange)
+				{
+					var oChange = oStart.GetReviewChange();
+					if (oChange)
+						oManager.SetCurrentChange(oManager.CollectMoveChange(oChange));
+				}
+			}
 			else
+			{
 				this.RemoveSelection();
+			}
 
 			this.UpdateSelection();
 			this.UpdateInterface(true);
@@ -19346,6 +19358,14 @@ CTrackRevisionsManager.prototype.ClearCurrentChange = function()
     this.CurChange  = null;
     this.CurElement = null;
 };
+CTrackRevisionsManager.prototype.SetCurrentChange = function(oCurChange)
+{
+	if (oCurChange)
+	{
+		this.CurChange  = oCurChange;
+		this.CurElement = oCurChange.GetElement();
+	}
+};
 CTrackRevisionsManager.prototype.Get_CurrentChangeParagraph = function()
 {
     return this.CurElement;
@@ -20175,6 +20195,34 @@ CTrackRevisionsManager.prototype.GetProcessTrackMove = function()
 CTrackRevisionsManager.prototype.GetMoveMarks = function(sMarkId)
 {
 	return this.MoveMarks[sMarkId];
+};
+/**
+ * Получаем элементарное изменение связанное с заданным переносом, относящееся к метке переноса
+ * @param {string} sMoveId
+ * @param {boolean} isFrom
+ * @param {boolean} isStart
+ */
+CTrackRevisionsManager.prototype.GetMoveMarkChange = function(sMoveId, isFrom, isStart)
+{
+	this.CompleteTrackChanges();
+
+	var oMoveChanges = this.GetAllMoveChanges(sMoveId);
+	var arrChanges   = isFrom ? oMoveChanges.From : oMoveChanges.To;
+
+	for (var nIndex = 0, nCount = arrChanges.length; nIndex < nCount; ++nIndex)
+	{
+		var oChange = arrChanges[nIndex];
+		if (Asc.c_oAscRevisionsChangeType.MoveMark === oChange.GetType())
+		{
+			var oMark = oChange.GetValue();
+			if (oMark.IsFrom() === isFrom && oMark.IsStart() === isStart)
+			{
+				return oChange;
+			}
+		}
+	}
+
+	return null;
 };
 
 /**
