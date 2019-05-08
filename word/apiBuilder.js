@@ -2398,7 +2398,7 @@
 	 * which will be applied to the set of table rows with the current table-level property exceptions. A table style 
 	 * can specify up to six different optional conditional formats, for example, different formatting for first column, 
 	 * which then can be applied or omitted from individual table rows in the parent table.
-	 * <br /><br />
+	 * 
 	 * The default setting is to apply the row and column banding formatting, but not the first row, last row, first 
 	 * column, or last column formatting.
 	 * @typeofeditors ["CDE"]
@@ -2686,7 +2686,7 @@
 		return new ApiTableRowPr(this, this.Style.TableRowPr.Copy());
 	};
 	/**
-	 * Get the table cell properties of the current style.
+	 * Get the table cell properties for the current style.
 	 * @typeofeditors ["CDE"]
 	 * @returns {?ApiTableCellPr}
 	 */
