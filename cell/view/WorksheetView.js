@@ -787,6 +787,7 @@
         if (isUpdate) {
             this.notUpdateRowHeight = true;
             this.cleanSelection();
+			this._updateGroupsWidth();
             this._initCellsArea(AscCommonExcel.recalcType.recalc);
             this._normalizeViewRange();
             this._cleanCellsTextMetricsCache();
@@ -15668,7 +15669,7 @@
 				this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
 			} else {
 				this.arrColGroups = this.getGroupDataArray(bCol, start, end);
-				this.groupHeight = this.getGroupCommonWidth(this.getGroupCommonLevel(bCol));
+				this.groupHeight = this.getGroupCommonWidth(this.getGroupCommonLevel(bCol), bCol);
 			}
 		} else {
 			if(bUpdateOnlyRowLevelMap) {
@@ -15679,6 +15680,11 @@
 			}
 		}
 		console_time_end('_updateRowGroups');
+	};
+
+	WorksheetView.prototype._updateGroupsWidth = function() {
+		this.groupHeight = this.getGroupCommonWidth(this.getGroupCommonLevel(true), true);
+		this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
 	};
 
 	WorksheetView.prototype.getGroupDataArray = function (bCol, start, end, bUpdateOnlyRowLevelMap) {
@@ -16484,7 +16490,19 @@
 
 		var text = level + 1 + "";
 		var sr = this.stringRender;
+		var factor = asc.round(1 * 1000) / 1000;
+		var dc = sr.drawingCtx;
+		var oldPpiX = dc.ppiX;
+		var oldPpiY = dc.ppiY;
+		var oldScaleFactor = dc.scaleFactor;
+		dc.ppiX = asc.round(dc.ppiX / dc.scaleFactor * factor * 1000) / 1000;
+		dc.ppiY = asc.round(dc.ppiY / dc.scaleFactor * factor * 1000) / 1000;
+		dc.scaleFactor = factor;
+
 		var tm = this._roundTextMetrics(sr.measureString(text));
+		dc.ppiX = oldPpiX;
+		dc.ppiY = oldPpiY;
+		dc.scaleFactor = oldScaleFactor;
 
 		var diff = bActive ? 1 : 0;
 		ctx.setFillStyle(st.color).fillText(text, x + w / 2 - tm.width / 2 + diff, y + Asc.round(tm.baseline) + h / 2 -  tm.height / 2 + diff, undefined, sr.charWidths);
@@ -16495,6 +16513,7 @@
 
 	WorksheetView.prototype.getGroupDataMenuButPos = function (level, bCol) {
 		var padding =  AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		//var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(Math.min(16, bCol ? this.headersWidth : this.headersHeight), true) - 1 * padding;
 		var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(16, true) - padding;
 
 		//TODO учитывать будущий отступ для группировке колонок!
@@ -16529,12 +16548,15 @@
 		return res;
 	};
 
-	WorksheetView.prototype.getGroupCommonWidth = function (level) {
+	WorksheetView.prototype.getGroupCommonWidth = function (level, bCol) {
 		//width group menu - padding left - 2px, padding right - 2px, 1 section - 16px
 		var res = 0;
 		if(level > 0) {
 			var padding = 2;
 			var section = 16;
+			/*if(this.headersWidth !== 0) {
+				section = Math.min(section, bCol ? this.headersWidth : this.headersHeight);
+			}*/
 			res = padding * 2 + section + section * level;
 		}
 		return AscCommon.AscBrowser.convertToRetinaValue(res, true);
