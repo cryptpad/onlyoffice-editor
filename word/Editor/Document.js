@@ -9899,13 +9899,13 @@ CDocument.prototype.private_UpdateInterface = function(bSaveCurRevisionChange)
 	// Удаляем весь список
 	this.Api.sync_BeginCatchSelectedElements();
 
-	this.TrackRevisionsManager.Begin_CollectChanges(bSaveCurRevisionChange);
+	this.TrackRevisionsManager.BeginCollectChanges(bSaveCurRevisionChange);
 
 	// Уберем из интерфейса записи о том где мы находимся (параграф, таблица, картинка или колонтитул)
 	this.Api.ClearPropObjCallback();
 
 	this.Controller.UpdateInterfaceState();
-	this.TrackRevisionsManager.End_CollectChanges(this.Api);
+	this.TrackRevisionsManager.EndCollectChanges(this.Api);
 
 	// Сообщаем, что список составлен
 	this.Api.sync_EndCatchSelectedElements();
@@ -18477,7 +18477,7 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom)
 				this.RemoveSelection();
 
 			this.UpdateSelection();
-			this.UpdateInterface();
+			this.UpdateInterface(true);
 		}
 	}
 };
@@ -19073,7 +19073,10 @@ CTrackRevisionsManager.prototype.GetNextChange = function()
 
 	var oChange = this.private_GetNextChange();
 	if (oChange && oChange.IsMove() && !oChange.IsComplexChange())
-		oChange = this.CollectMoveChange(oChange);
+	{
+		oChange        = this.CollectMoveChange(oChange);
+		this.CurChange = oChange;
+	}
 
 	return oChange;
 };
@@ -19174,7 +19177,42 @@ CTrackRevisionsManager.prototype.private_GetNextChange = function()
 	this.CurElement = null;
 	return null;
 };
+/**
+ * Ищем следующее изменение
+ * @returns {?CRevisionsChange}
+ */
 CTrackRevisionsManager.prototype.GetPrevChange = function()
+{
+	if (this.CurChange && this.CurChange.IsComplexChange())
+	{
+		var arrChanges = this.CurChange.GetSimpleChanges();
+
+		this.CurChange  = null;
+		this.CurElement = null;
+
+		if (arrChanges.length > 0)
+		{
+			this.CurChange  = arrChanges[0];
+			this.CurElement = this.CurChange.GetElement();
+
+			if (!this.CurElement || !this.Changes[this.CurElement.GetId()])
+			{
+				this.CurChange  = null;
+				this.CurElement = null;
+			}
+		}
+	}
+
+	var oChange = this.private_GetPrevChange();
+	if (oChange && oChange.IsMove() && !oChange.IsComplexChange())
+	{
+		oChange        = this.CollectMoveChange(oChange);
+		this.CurChange = oChange;
+	}
+
+	return oChange;
+};
+CTrackRevisionsManager.prototype.private_GetPrevChange = function()
 {
 	var oInitialCurChange  = this.CurChange;
 	var oInitialCurElement = this.CurElement;
@@ -19303,7 +19341,7 @@ CTrackRevisionsManager.prototype.HaveOtherUsersChanges = function()
 
 	return false;
 };
-CTrackRevisionsManager.prototype.Clear_CurrentChange = function()
+CTrackRevisionsManager.prototype.ClearCurrentChange = function()
 {
     this.CurChange  = null;
     this.CurElement = null;
@@ -19332,8 +19370,11 @@ CTrackRevisionsManager.prototype.Clear_VisibleChanges = function()
  * @param oChange
  */
 CTrackRevisionsManager.prototype.AddVisibleChange = function(oChange)
-{	
-	if (oChange && c_oAscRevisionsChangeType.MoveMark === oChange.get_Type())	
+{
+	if (this.CurChange)
+		return;
+
+	if (oChange && c_oAscRevisionsChangeType.MoveMark === oChange.get_Type())
 		return;
 
 	if (oChange.IsMove() && !oChange.IsComplexChange())
@@ -19373,18 +19414,33 @@ CTrackRevisionsManager.prototype.Get_VisibleChanges = function()
 {
     return this.VisibleChanges;
 };
-CTrackRevisionsManager.prototype.Begin_CollectChanges = function(bSaveCurrentChange)
+CTrackRevisionsManager.prototype.BeginCollectChanges = function(bSaveCurrentChange)
 {
     if (true === this.private_HaveParasToCheck())
         return;
 
-    if (true !== bSaveCurrentChange)
-        this.Clear_CurrentChange();
+	this.OldVisibleChanges = this.VisibleChanges;
+	this.VisibleChanges = [];
 
-    this.OldVisibleChanges = this.VisibleChanges;
-    this.VisibleChanges = [];
+    if (true !== bSaveCurrentChange)
+	{
+		this.ClearCurrentChange();
+	}
+	else if (this.CurElement && this.CurChange)
+	{
+		var oSelectionBounds = this.CurElement.GetSelectionBounds();
+
+		var oBounds = oSelectionBounds.Direction > 0 ? oSelectionBounds.Start : oSelectionBounds.End;
+
+		if (oBounds)
+		{
+			var X = this.LogicDocument.Get_PageLimits(oBounds.Page).XLimit;
+			this.CurChange.put_InternalPos(X, oBounds.Y, oBounds.Page);
+			this.VisibleChanges.push(this.CurChange);
+		}
+	}
 };
-CTrackRevisionsManager.prototype.End_CollectChanges = function(oEditor)
+CTrackRevisionsManager.prototype.EndCollectChanges = function(oEditor)
 {
     if (true === this.private_HaveParasToCheck())
         return;
@@ -19894,7 +19950,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 								break;									
 							}
 						}
-						else
+						else if (oCurChange !== oChange)
 						{
 							nDeep++;
 						}

@@ -149,12 +149,16 @@ CRevisionsChange.prototype.private_UpdateUserColor = function()
 };
 CRevisionsChange.prototype.IsMove = function()
 {
-	return ((c_oAscRevisionsChangeType.TextAdd === this.Type
+	return (((c_oAscRevisionsChangeType.TextAdd === this.Type
 		|| c_oAscRevisionsChangeType.TextRem === this.Type
 		|| c_oAscRevisionsChangeType.ParaAdd === this.Type
-		|| c_oAscRevisionsChangeType.ParaRem === this.Type
-		|| c_oAscRevisionsChangeType.MoveMark === this.Type)
-		&& Asc.c_oAscRevisionsMove.NoMove !== this.MoveType);
+		|| c_oAscRevisionsChangeType.ParaRem === this.Type)
+		&& Asc.c_oAscRevisionsMove.NoMove !== this.MoveType)
+		|| Asc.c_oAscRevisionsChangeType.MoveMark === this.Type);
+};
+CRevisionsChange.prototype.IsMoveFrom = function()
+{
+	return (this.MoveType === Asc.c_oAscRevisionsMove.MoveFrom);
 };
 CRevisionsChange.prototype.SetType = function(nType)
 {

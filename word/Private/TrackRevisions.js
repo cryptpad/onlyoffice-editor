@@ -398,23 +398,34 @@ CDocument.prototype.private_SelectRevisionChange = function(oChange, isSkipCompl
 	if (oChange && oChange.get_Paragraph())
 	{
 		this.RemoveSelection();
-		var oElement = oChange.get_Paragraph();
 
-		if (true !== isSkipCompleteCheck && this.TrackRevisionsManager.CompleteTrackChangesForElements([oElement]))
-			return;
-
-		if (oElement instanceof Paragraph)
+		if (oChange.IsComplexChange())
 		{
-			// Текущую позицию нужно выставить до селекта
-			oElement.Set_ParaContentPos(oChange.get_StartPos(), false, -1, -1);
-			oElement.Selection.Use = true;
-			oElement.Set_SelectionContentPos(oChange.get_StartPos(), oChange.get_EndPos());
-			oElement.Document_SetThisElementCurrent(false);
+			if (oChange.IsMove())
+			{
+				this.SelectTrackMove(oChange.GetMoveId(), oChange.IsMoveFrom());
+			}
 		}
-		else if (oElement instanceof CTable)
+		else
 		{
-			oElement.SelectRows(oChange.get_StartPos(), oChange.get_EndPos());
-			oElement.Document_SetThisElementCurrent(false);
+			var oElement = oChange.get_Paragraph();
+
+			if (true !== isSkipCompleteCheck && this.TrackRevisionsManager.CompleteTrackChangesForElements([oElement]))
+				return;
+
+			if (oElement instanceof Paragraph)
+			{
+				// Текущую позицию нужно выставить до селекта
+				oElement.Set_ParaContentPos(oChange.get_StartPos(), false, -1, -1);
+				oElement.Selection.Use = true;
+				oElement.Set_SelectionContentPos(oChange.get_StartPos(), oChange.get_EndPos());
+				oElement.Document_SetThisElementCurrent(false);
+			}
+			else if (oElement instanceof CTable)
+			{
+				oElement.SelectRows(oChange.get_StartPos(), oChange.get_EndPos());
+				oElement.Document_SetThisElementCurrent(false);
+			}
 		}
 	}
 };
@@ -543,7 +554,7 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
         }
     }
 
-    this.TrackRevisionsManager.Clear_CurrentChange();
+    this.TrackRevisionsManager.ClearCurrentChange();
     this.GetNextRevisionChange();
 };
 CDocument.prototype.RejectRevisionChangesBySelection = function()
@@ -565,7 +576,7 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
         }
     }
 
-	this.TrackRevisionsManager.Clear_CurrentChange();
+	this.TrackRevisionsManager.ClearCurrentChange();
     this.GetNextRevisionChange();
 };
 CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)

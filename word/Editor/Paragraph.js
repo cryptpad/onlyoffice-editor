@@ -10161,16 +10161,7 @@ Paragraph.prototype.Document_UpdateInterfaceState = function()
 		var _X     = (this.LogicDocument ? this.LogicDocument.Get_PageLimits(Page_abs).XLimit : 0);
 		var Coords = this.DrawingDocument.ConvertCoordsToCursorWR(_X, _Y, Page_abs, TextTransform);
 
-		if (this === TrackManager.Get_CurrentChangeParagraph())
-		{
-			var Change = TrackManager.Get_CurrentChange();
-			if (null !== Change)
-			{
-				Change.put_InternalPos(_X, _Y, Page_abs);
-				TrackManager.AddVisibleChange(Change);
-			}
-		}
-		else if (false === this.Selection.Use)
+		if (false === this.Selection.Use)
 		{
 			var Changes = TrackManager.GetElementChanges(this.GetId());
 			if (Changes.length > 0)
