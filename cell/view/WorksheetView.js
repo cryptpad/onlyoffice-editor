@@ -7956,6 +7956,9 @@
 				this.model.selectionRange.getLast().assign2(bbox);
 			}
 		}
+		if (!bFirst) {
+			this.model.selectionRange.update();
+		}
 
 		this._fixSelectionOfMergedCells();
 		this.updateSelectionWithSparklines();
