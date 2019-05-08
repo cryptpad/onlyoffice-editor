@@ -4236,13 +4236,15 @@
 		var oRange = this.getRange(new CellAddress(index, 0, 0), new CellAddress(index + count - 1, gc_nMaxCol0, 0));
 		oRange.addCellsShiftBottom();
 	};
-	Worksheet.prototype._getBordersForInsert = function(r1, c1, r2, c2, bRow) {
+	Worksheet.prototype._getBordersForInsert = function(bbox, bRow) {
 		var t = this;
 		var borders = {};
-		var offsetRow = (bRow && r1 > 0) ? -1 : 0;
-		var offsetCol = (!bRow && c1 > 0) ? -1 : 0;
+		var offsetRow = (bRow && bbox.r1 > 0) ? -1 : 0;
+		var offsetCol = (!bRow && bbox.c1 > 0) ? -1 : 0;
+		var r2 = bRow ? bbox.r1 : bbox.r2;
+		var c2 = !bRow ? bbox.c1 : bbox.c2;
 		if(0 !== offsetRow || 0 !== offsetCol){
-			this.getRange3(r1, c1, r2, c2)._foreachNoEmpty(function(cell) {
+			this.getRange3(bbox.r1, bbox.c1, r2, c2)._foreachNoEmpty(function(cell) {
 				if (cell.xfs && cell.xfs.border) {
 					t._getCellNoEmpty(cell.nRow + offsetRow, cell.nCol + offsetCol, function(neighbor) {
 						if (neighbor && neighbor.xfs && neighbor.xfs.border) {
@@ -4267,15 +4269,18 @@
 		this.updatePivotOffset(oActualRange, offset);
 
 		this._updateFormulasParents(index, 0, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
-		var borders = this._getBordersForInsert(index, 0, index, gc_nMaxCol0, true);
+		var borders;
+		if (index > 0 && !this.workbook.bUndoChanges) {
+			borders = this._getBordersForInsert(oActualRange, true);
+		}
 		//insert new row/cell
 		this.rowsData.insertRange(index, count);
 		this._forEachColData(function(sheetMemory) {
 			sheetMemory.insertRange(index, count);
 		});
-		if (index > 0 && false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))
+		//copy property from row/cell above
+		if (index > 0 && !this.workbook.bUndoChanges)
 		{
-			//copy property from row/cell above
 			this.rowsData.copyRangeByChunk((index - 1), 1, index, count);
 			this._forEachColData(function(sheetMemory) {
 				sheetMemory.copyRangeByChunk((index - 1), 1, index, count);
@@ -4371,18 +4376,54 @@
 		this.updatePivotOffset(oActualRange, offset);
 
 		this._updateFormulasParents(0, index, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
-		var borders = this._getBordersForInsert(0, index, gc_nMaxRow0, index, false);
+		var borders;
+		if (index > 0 && !this.workbook.bUndoChanges) {
+			borders = this._getBordersForInsert(oActualRange, false);
+		}
 		//remove tail
 		this.cellsByCol.splice(gc_nMaxCol0 - count + 1, count);
-		var prevCellsByCol = index > 0 ? this.cellsByCol[index - 1] : null;
-		for(var i = 0; i < count; ++i) {
-			var sheetMemory = prevCellsByCol ? prevCellsByCol.clone() : undefined;
-			this.cellsByCol.splice(index + i, 0, sheetMemory);
+		for(var i = this.cellsByCol.length - 1; i >= index; --i) {
+			this.cellsByCol[i + count] = this.cellsByCol[i];
+			this.cellsByCol[i] = undefined;
 		}
-		//show rows and remain only cell xf property
-		this.getRange3(0, index, gc_nMaxRow0, index + count - 1)._foreachNoEmpty(function(cell) {
-			cell.clearDataKeepXf(borders[cell.nRow]);
-		});
+		this.aCols.splice(gc_nMaxCol0 - count + 1, count);
+		for(var i = this.aCols.length - 1; i >= index; --i) {
+			this.aCols[i + count] = this.aCols[i];
+			this.aCols[i] = undefined;
+			if (this.aCols[i + count]) {
+				this.aCols[i + count].moveHor(count);
+			}
+		}
+		if (!this.workbook.bUndoChanges) {
+			//copy property from col/cell above
+			var oPrevCol = null;
+			if (index > 0)
+				oPrevCol = this.aCols[index - 1];
+			if (null == oPrevCol && null != this.oAllCol)
+				oPrevCol = this.oAllCol;
+			if (null != oPrevCol) {
+				History.LocalChange = true;
+				for (var i = index; i < index + count; ++i) {
+					var oNewCol =  oPrevCol.clone();
+					oNewCol.setHidden(null);
+					oNewCol.BestFit = null;
+					oNewCol.index = index + i;
+					this.aCols[i] = oNewCol;
+				}
+				History.LocalChange = false;
+			}
+			var prevCellsByCol = index > 0 ? this.cellsByCol[index - 1] : null;
+			if (prevCellsByCol) {
+				for(var i = index; i < index + count; ++i) {
+					this.cellsByCol[i] = prevCellsByCol.clone();
+				}
+				//show rows and remain only cell xf property
+				this.getRange3(0, index, gc_nMaxRow0, index + count - 1)._foreachNoEmpty(function(cell) {
+					cell.clearDataKeepXf(borders[cell.nRow]);
+				});
+			}
+		}
+
 		//notifyChanged after move cells to get new locations(for intersect ranges)
 		this.workbook.dependencyFormulas.notifyChanged(renameRes.changed);
 		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_AddCols, this.getId(), new Asc.Range(index, 0, gc_nMaxCol0, gc_nMaxRow0), new UndoRedoData_FromToRowCol(false, index, index + count - 1));
@@ -4391,31 +4432,6 @@
 
 		this.workbook.dependencyFormulas.unlockRecal();
 
-		var oPrevCol = null;
-		if(index > 0)
-			oPrevCol = this.aCols[index - 1];
-		if(null == oPrevCol && null != this.oAllCol)
-			oPrevCol = this.oAllCol;
-		for(var i = 0; i < count; ++i)
-		{
-			var oNewCol = null;
-			if (null != oPrevCol && false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))
-			{
-				History.LocalChange = true;
-				oNewCol = oPrevCol.clone();
-				oNewCol.setHidden(null);
-				oNewCol.BestFit = null;
-				oNewCol.index = index + i;
-				History.LocalChange = false;
-			}
-			this.aCols.splice(index, 0, oNewCol);
-		}
-		for(var i = index + count, length = this.aCols.length; i < length; ++i)
-		{
-			var elem = this.aCols[i];
-			if(null != elem)
-				elem.moveHor(count);
-		}
 		this.nColsCount += count;
 
 		return true;
@@ -5418,7 +5434,10 @@
 		var redrawTablesArr = this.autoFilters.insertColumn( oBBox, dif, displayNameFormatTable );
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
-		var borders = this._getBordersForInsert(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2, false);
+		var borders;
+		if (nLeft > 0 && !this.workbook.bUndoChanges) {
+			borders = this._getBordersForInsert(oBBox, false);
+		}
 		var cellsByColLength = this.getColDataLength();
 		for (var i = cellsByColLength - 1; i >= nLeft; --i) {
 			var sheetMemoryFrom = this.getColDataNoEmpty(i);
@@ -5429,7 +5448,8 @@
 				sheetMemoryFrom.clear(oBBox.r1, oBBox.r2 + 1);
 			}
 		}
-		if (nLeft > 0 && false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))
+		//copy property from row/cell above
+		if (nLeft > 0 && !this.workbook.bUndoChanges)
 		{
 			var prevSheetMemory = this.getColDataNoEmpty(nLeft - 1);
 			if (prevSheetMemory) {
@@ -5464,20 +5484,25 @@
 				displayNameFormatTable);
 		}
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
-		var borders = this._getBordersForInsert(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2, true);
+		var borders;
+		if (nTop > 0 && !this.workbook.bUndoChanges) {
+			borders = this._getBordersForInsert(oBBox, true);
+		}
 		//rowcount
 		for (var i = oBBox.c1; i <= oBBox.c2; ++i) {
 			var sheetMemory = this.getColDataNoEmpty(i);
 			if (sheetMemory) {
 				sheetMemory.insertRange(nTop, dif);
-				if (nTop > 0 && false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))
-				{
-					sheetMemory.copyRangeByChunk((nTop - 1), 1, nTop, dif);
-				}
 			}
 		}
-		if (nTop > 0 && false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))
+		if (nTop > 0 && !this.workbook.bUndoChanges)
 		{
+			for (var i = oBBox.c1; i <= oBBox.c2; ++i) {
+				var sheetMemory = this.getColDataNoEmpty(i);
+				if (sheetMemory) {
+						sheetMemory.copyRangeByChunk((nTop - 1), 1, nTop, dif);
+				}
+			}
 			//show rows and remain only cell xf property
 			this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell) {
 				cell.clearDataKeepXf(borders[cell.nCol]);
