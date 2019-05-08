@@ -399,7 +399,7 @@ function (window, undefined) {
 				arg[2] = arg[2].getValue2(0,0);
 			}
 		}
-		return g_oHLOOKUPCache.calculate(arg);
+		return g_oHLOOKUPCache.calculate(arg, arguments[1]);
 	};
 
 	/**
@@ -1730,10 +1730,12 @@ function (window, undefined) {
 			return arg0;
 		}
 
+		var arg0Val;
 		if(cElementType.array === arg0.type) {
-			var arg0Val = arg0.getElementRowCol(0,0);
+			arg0Val = arg0.getElementRowCol(0,0);
 			valueForSearching = ('' + arg0Val.getValue()).toLowerCase();
 		} else {
+			arg0Val = arg0;
 			valueForSearching = ('' + arg0.getValue()).toLowerCase();
 		}
 
@@ -1804,7 +1806,17 @@ function (window, undefined) {
 		c = this.bHor ? bb.c2 : bb.c1;
 		var oSearchRange = ws.getRange3(bb.r1, bb.c1, r, c);
 
-		res = this._get(oSearchRange, valueForSearching, arg3);
+		if(cElementType.cellsRange === arg0Val.type) {
+			arg0Val = arg0Val.cross(arguments[1]);
+		} else if(cElementType.cellsRange3D === arg0Val.type) {
+			arg0Val = arg0Val.cross(arguments[1]);
+		}
+
+		if (cElementType.error === arg0Val.type) {
+			return arg0;
+		}
+
+		res = this._get(oSearchRange, arg0Val, arg3);
 		if (-1 === res) {
 			return new cError(cErrorType.not_available);
 		}
@@ -1827,7 +1839,7 @@ function (window, undefined) {
 		if (!cacheElem) {
 			cacheElem = {elements: [], results: {}};
 			range._foreachNoEmpty(function (cell, r, c) {
-				cacheElem.elements.push({v: cell.getValueWithoutFormat().toLowerCase(), i: (_this.bHor ? c : r)});
+				cacheElem.elements.push({v: checkTypeCell(cell), i: (_this.bHor ? c : r)});
 			});
 			this.cacheId[sRangeName] = cacheElem;
 			var cacheRange = this.cacheRanges[wsId];
@@ -1837,7 +1849,7 @@ function (window, undefined) {
 			}
 			cacheRange.add(range.getBBox0(), cacheElem);
 		}
-		var sInputKey = valueForSearching + g_cCharDelimiter + arg3Value;
+		var sInputKey = valueForSearching.getValue() + g_cCharDelimiter + arg3Value + g_cCharDelimiter + valueForSearching.type;
 		res = cacheElem.results[sInputKey];
 		if (!res) {
 			cacheElem.results[sInputKey] = res = this._calculate(cacheElem.elements, valueForSearching, arg3Value);
@@ -1846,9 +1858,36 @@ function (window, undefined) {
 	};
 	VHLOOKUPCache.prototype._calculate = function (cacheArray, valueForSearching, lookup) {
 		var res = -1, i = 0, j, length = cacheArray.length, k, elem, val;
-		/*if ('' === valueForSearching && 0 !== length) {
-			return cacheArray[0].i;
-		}*/
+
+		//TODO неверно работает функция, допустим для случая: VLOOKUP("12",A1:A5,1) 12.00 ; "qwe" ; "3" ; 3.00 ; 4.00
+
+		//ascending order: ..., -2, -1, 0, 1, 2, ..., A-Z, FALSE
+		var _compareValues = function (val1, val2, op) {
+			var res = _func[val1.type][val2.type](val1, val2, op);
+
+			//op == true -> "="; op == false -> "<"
+			/*if(op) {
+				if(val1.type === val2.type) {
+					res = val1.value === val2.value;
+				} else {
+					res = false;
+				}
+			} else {
+				if(val1.type === val2.type) {
+					res = val1.value < val2.value;
+				} else if(cElementType.number === val1.type && cElementType.string === val2.type) {
+					res = true;
+				} else if(cElementType.string === val1.type && cElementType.number === val2.type) {
+					res = false;
+				} else if(cElementType.number === val1.type && cElementType.bool === val2.type) {
+					res = true;
+				} else if(cElementType.bool === val1.type && cElementType.number === val2.type) {
+					res = false;
+				}
+			}*/
+
+			return res ? res.value : false;
+		};
 
 		if (lookup) {
 			j = length - 1;
@@ -1856,9 +1895,9 @@ function (window, undefined) {
 				k = Math.floor((i + j) / 2);
 				elem = cacheArray[k];
 				val = elem.v;
-				if (valueForSearching === val) {
+				if (_compareValues(valueForSearching, val, "=")) {
 					return elem.i;
-				} else if (valueForSearching < val) {
+				} else if (_compareValues(valueForSearching, val, "<")) {
 					j = k - 1;
 				} else {
 					i = k + 1;
@@ -1871,7 +1910,7 @@ function (window, undefined) {
 			for (; i < length; i++) {
 				elem = cacheArray[i];
 				val = elem.v;
-				if (valueForSearching === val) {
+				if (_compareValues(valueForSearching, val, "=")) {
 					return elem.i;
 				}
 			}
@@ -2069,7 +2108,7 @@ function (window, undefined) {
 			}
 		}
 
-		return g_oVLOOKUPCache.calculate(arg);
+		return g_oVLOOKUPCache.calculate(arg, arguments[1]);
 	};
 
 	var g_oVLOOKUPCache = new VHLOOKUPCache(false);
