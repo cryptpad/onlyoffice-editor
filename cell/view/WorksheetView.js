@@ -13029,24 +13029,41 @@
 					History.Create_NewPoint();
 					History.StartTransaction();
 
-					if (null != styleName) {
+
+					var type = ar.getType();
+					var isSlowOperation = false;
+					if (c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type ||  c_oAscSelectionType.RangeCol === type) {
+						isSlowOperation = null != styleName;
+					}
+
+					if (isSlowOperation) {
 						t.handlers.trigger("slowOperation", true);
 					}
 
-					//add to model
-					t.model.autoFilters.addAutoFilter(styleName, ar, addFormatTableOptionsObj, null, null, filterInfo);
+					var slowOperationCallback = function() {
+						//add to model
+						t.model.autoFilters.addAutoFilter(styleName, ar, addFormatTableOptionsObj, null, null, filterInfo);
 
-					//updates
-					if (styleName && addNameColumn) {
-						t.setSelection(filterRange);
+						//updates
+						if (styleName && addNameColumn) {
+							t.setSelection(filterRange);
+						}
+						t._onUpdateFormatTable(filterRange, !!(styleName), true);
+
+						if (isSlowOperation) {
+							t.handlers.trigger("slowOperation", false);
+						}
+
+						History.EndTransaction();
+					};
+
+					if(isSlowOperation) {
+						window.setTimeout(function() {
+							slowOperationCallback();
+						}, 0);
+					} else {
+						slowOperationCallback();
 					}
-					t._onUpdateFormatTable(filterRange, !!(styleName), true);
-
-					if (null != styleName) {
-						t.handlers.trigger("slowOperation", false);
-					}
-
-					History.EndTransaction();
 				};
 
 				if (styleName == null) {
