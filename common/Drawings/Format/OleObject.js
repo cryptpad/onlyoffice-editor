@@ -198,7 +198,7 @@ function (window, undefined) {
 
     COleObject.prototype.handleUpdateExtents = function(){
         if(!AscFormat.isRealNumber(this.m_fDefaultSizeX) || !AscFormat.isRealNumber(this.m_fDefaultSizeY)){
-            if(this.spPr && this.spPr.xfrm && AscFormat.isRealNumber(this.spPr.xfrm.extX) && AscFormat.isRealNumber(this.spPr.xfrm.extY)){
+            if(this.spPr && this.spPr.xfrm && AscFormat.isRealNumber(this.spPr.xfrm.extX) && AscFormat.isRealNumber(this.spPr.xfrm.extY) && this.spPr.xfrm.extX > 0 && this.spPr.xfrm.extY > 0){
                 this.m_fDefaultSizeX = this.spPr.xfrm.extX;
                 this.m_fDefaultSizeY = this.spPr.xfrm.extY;
             }

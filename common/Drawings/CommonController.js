@@ -3672,7 +3672,7 @@ DrawingObjectsController.prototype =
             {
                 for(i = 0; i < objects_by_type.images.length; ++i)
                 {
-                    CheckSpPrXfrm(objects_by_type.images[i]);
+                    CheckSpPrXfrm3(objects_by_type.images[i]);
                     objects_by_type.images[i].spPr.xfrm.setExtX(props.Width);
                     objects_by_type.images[i].spPr.xfrm.setExtY(props.Height);
                     if(objects_by_type.images[i].group)
@@ -3683,7 +3683,7 @@ DrawingObjectsController.prototype =
                 }
                 for(i = 0; i < objects_by_type.charts.length; ++i)
                 {
-                    CheckSpPrXfrm(objects_by_type.charts[i]);
+                    CheckSpPrXfrm3(objects_by_type.charts[i]);
                     objects_by_type.charts[i].spPr.xfrm.setExtX(props.Width);
                     objects_by_type.charts[i].spPr.xfrm.setExtY(props.Height);
                     if(objects_by_type.charts[i].group)
@@ -3694,7 +3694,7 @@ DrawingObjectsController.prototype =
                 }
                 for(i = 0; i < objects_by_type.oleObjects.length; ++i)
                 {
-                    CheckSpPrXfrm(objects_by_type.oleObjects[i]);
+                    CheckSpPrXfrm3(objects_by_type.oleObjects[i]);
                     objects_by_type.oleObjects[i].spPr.xfrm.setExtX(props.Width);
                     objects_by_type.oleObjects[i].spPr.xfrm.setExtY(props.Height);
                     if(objects_by_type.oleObjects[i].group)
