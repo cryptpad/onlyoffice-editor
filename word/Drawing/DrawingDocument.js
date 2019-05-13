@@ -2782,7 +2782,7 @@ function CDrawingDocument()
             var api = this.m_oWordControl.m_oApi;
             var options = api.DocInfo ? api.DocInfo.asc_getOptions() : null;
 
-            if (options["disableEditBeforeCalculate"])
+            if (options && options["disableEditBeforeCalculate"])
             {
             	this.isDisableEditBeforeCalculateLA = true;
                 api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
@@ -2994,7 +2994,7 @@ function CDrawingDocument()
                         }
 					}
 
-					if (options["disableEditBeforeCalculate"])
+					if (options && options["disableEditBeforeCalculate"])
 					{
                         api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
                         this.isDisableEditBeforeCalculateLA = false;
