@@ -15952,13 +15952,18 @@
 			}
 		}
 
+		var zoom = this.getZoom();
+		if(zoom > 1) {
+			zoom = 1;
+		}
+
 		var st = this.settings.header.style[kHeaderDefault];
 		var x1, y1, x2, y2, arrayLines, rowLevelMap, groupData;
 		var lineWidth = AscCommon.AscBrowser.convertToRetinaValue(2, true);
 		var thickLineDiff = AscCommon.AscBrowser.isRetina ? 0.5 : 0;
 		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
 		var bFirstLine = true;
-		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(16, true);
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true);
 		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var buttons = [];
 		var endPosArr = {};
@@ -16260,7 +16265,12 @@
 
 	WorksheetView.prototype._getGroupDataButtonPos = function(val, level, bCol) {
 		//возвращает позицию без учета сдвига offsetY
-		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(16, true);
+
+		var zoom = this.getZoom();
+		if(zoom > 1) {
+			zoom = 1;
+		}
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true);
 		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 
 		if(bCol) {
@@ -16358,13 +16368,21 @@
 
 		var text = level + 1 + "";
 		var sr = this.stringRender;
-		var factor = asc.round(1 * 1000) / 1000;
+		var zoom = 1/*this.getZoom()*/;
+
+		var factor = asc.round(zoom * 1000) / 1000;
 		var dc = sr.drawingCtx;
 		var oldPpiX = dc.ppiX;
 		var oldPpiY = dc.ppiY;
 		var oldScaleFactor = dc.scaleFactor;
 		dc.ppiX = asc.round(dc.ppiX / dc.scaleFactor * factor * 1000) / 1000;
 		dc.ppiY = asc.round(dc.ppiY / dc.scaleFactor * factor * 1000) / 1000;
+
+		if (AscCommon.AscBrowser.isRetina) {
+			dc.ppiX = AscCommon.AscBrowser.convertToRetinaValue(dc.ppiX, true);
+			dc.ppiY = AscCommon.AscBrowser.convertToRetinaValue(dc.ppiY, true);
+		}
+
 		dc.scaleFactor = factor;
 
 		var tm = this._roundTextMetrics(sr.measureString(text));
@@ -16380,15 +16398,19 @@
 	};
 
 	WorksheetView.prototype.getGroupDataMenuButPos = function (level, bCol) {
-		var padding =  AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		//var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(Math.min(16, bCol ? this.headersWidth : this.headersHeight), true) - 1 * padding;
-		var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(16, true) - padding;
+		var zoom = this.getZoom();
+		if(zoom > 1) {
+			zoom = 1;
+		}
+		var padding =  AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true) - padding;
 
 		//TODO учитывать будущий отступ для группировке колонок!
 		var x, y;
 		if(bCol) {
 			x = this.headersLeft + this.headersWidth/2 - buttonSize/2;
-			y = padding * 2 + level * (buttonSize + padding)
+			y = padding * 2 + level * (buttonSize + padding);
 		} else {
 			x = padding * 2 + level * (buttonSize + padding);
 			y = this.headersTop + this.headersHeight/2 - buttonSize/2;
@@ -16418,13 +16440,30 @@
 
 	WorksheetView.prototype.getGroupCommonWidth = function (level, bCol) {
 		//width group menu - padding left - 2px, padding right - 2px, 1 section - 16px
+		var zoom = this.getZoom();
+		if(zoom > 1) {
+			zoom = 1;
+		}
+
 		var res = 0;
 		if(level > 0) {
 			var padding = 2;
-			var section = 16;
-			/*if(this.headersWidth !== 0) {
-				section = Math.min(section, bCol ? this.headersWidth : this.headersHeight);
+			/*var headersSize;
+			//так как headersHeight и headersWidth рассчитывается после вызова данной функции, рассчитываем ихъ здесь самостоятельно
+			if(!bCol) {
+				headersSize = (false === this.model.getSheetView().asc_getShowRowColHeaders()) ? 0 : Asc.round(this.headersHeightByFont * this.getZoom());
+			} else {
+				if (false === this.model.getSheetView().asc_getShowRowColHeaders()) {
+					headersSize = 0;
+				} else {
+					// Ширина колонки заголовков считается  - max число знаков в строке - перевести в символы - перевести в пикселы
+					var numDigit = Math.max(AscCommonExcel.calcDecades(this.visibleRange.r2 + 1), 3);
+					var nCharCount = this.model.charCountToModelColWidth(numDigit);
+					headersSize = Asc.round(this.model.modelColWidthToColWidth(nCharCount) * this.getZoom());
+				}
 			}*/
+
+			var section = Math.floor(16 * zoom);
 			res = padding * 2 + section + section * level;
 		}
 		return AscCommon.AscBrowser.convertToRetinaValue(res, true);
