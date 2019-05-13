@@ -499,6 +499,7 @@ CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelecti
 
 	if (this.IsEmpty()
 		&& !bOnAddText
+		&& true !== bOnlyText
 		&& this.CanBeEdited())
 	{
 		this.private_ReplaceContentWithPlaceHolder();
