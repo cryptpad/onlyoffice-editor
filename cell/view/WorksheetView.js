@@ -16236,7 +16236,7 @@
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(2, true)).beginPath();
 
 		var sizeLine = AscCommon.AscBrowser.convertToRetinaValue(8, true);
-		var paddingLine = AscCommon.AscBrowser.convertToRetinaValue(3, true);
+		//var paddingLine = AscCommon.AscBrowser.convertToRetinaValue(3, true);
 		diff = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		for(i = 0; i < buttons.length; i++) {
 			val = buttons[i].r;
@@ -16251,11 +16251,15 @@
 			w = pos.w;
 			h = pos.h;
 
-			if(rowLevelMap[val] && rowLevelMap[val].collapsed) {
-				ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + 1, x + sizeLine + paddingLine);
-				ctx.lineVerPrevPx(x + paddingLine + sizeLine / 2 + 1, y + h / 2 + 1 - sizeLine / 2 - 1,  y + h / 2 + 1 + sizeLine / 2 - 1);
-			} else {
-				ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + diff, x + sizeLine + paddingLine);
+			var paddingLine = Math.floor((w - sizeLine) / 2);
+
+			if(w > sizeLine + 2) {
+				if(rowLevelMap[val] && rowLevelMap[val].collapsed) {
+					ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + 1, x + sizeLine + paddingLine);
+					ctx.lineVerPrevPx(x + paddingLine + sizeLine / 2 + 1, y + h / 2 - sizeLine / 2,  y + h / 2 + sizeLine / 2);
+				} else {
+					ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + diff, x + sizeLine + paddingLine);
+				}
 			}
 		}
 
@@ -16279,12 +16283,12 @@
 
 			var posY = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
 			x = endPosX + colW/2 - buttonSize / 2;
-			y = posY - 6 * padding;
+			y = posY - Math.floor(6 * zoom) * padding;
 		} else {
 			var endPosY = this._getRowTop(val);
 			var rowH = this._getRowHeight(val);
 			var posX = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
-			var x = posX - 6 * padding;
+			var x = posX - Math.floor(6 * zoom) * padding;
 			var y = endPosY + rowH/2 - buttonSize / 2;
 		}
 		var w = buttonSize - 1;
@@ -16390,8 +16394,10 @@
 		dc.ppiY = oldPpiY;
 		dc.scaleFactor = oldScaleFactor;
 
-		var diff = bActive ? 1 : 0;
-		ctx.setFillStyle(st.color).fillText(text, x + w / 2 - tm.width / 2 + diff, y + Asc.round(tm.baseline) + h / 2 -  tm.height / 2 + diff, undefined, sr.charWidths);
+		if(w > tm.width + 3) {
+			var diff = bActive ? 1 : 0;
+			ctx.setFillStyle(st.color).fillText(text, x + w / 2 - tm.width / 2 + diff, y + Asc.round(tm.baseline) + h / 2 -  tm.height / 2 + diff, undefined, sr.charWidths);
+		}
 
 		ctx.stroke();
 		ctx.closePath();
