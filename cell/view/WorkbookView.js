@@ -2019,7 +2019,6 @@
       // Меняем zoom (для не активных сменим как только сделаем его активным)
       if (!factor) {
       	item._initWorksheetDefaultWidth();
-      	item.model.initColumns();
 	  }
       item.changeZoom(/*isDraw*/i == activeIndex);
       this._reInitGraphics();
