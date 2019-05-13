@@ -3200,7 +3200,7 @@ function CDrawingDocument(drawingObjects)
         if (this.m_oWordControl.MobileTouchManager)
         {
             this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = true;
-            markup.Table.Start_TrackTable();
+            markup.Table.StartTrackTable();
             this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
         }
     }

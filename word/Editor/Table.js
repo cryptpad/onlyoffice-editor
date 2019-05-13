@@ -2753,7 +2753,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 				oTargetTable.Set_TableInd(0);
 
 			editor.WordControl.m_oLogicDocument.Recalculate();
-			oTargetTable.Start_TrackTable();
+			oTargetTable.StartTrackTable();
 
 			// Если так случилось, что после пересчета позиции не пересчитались, тогда нам нужно оставить привязку к
 			// странице, чтобы таблица правильна расположилась. Такое происходит, если перемещать таблицу больше,
@@ -2852,8 +2852,10 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 
 				editor.WordControl.m_oLogicDocument.Recalculate();
 			}
-			oTargetTable.Start_TrackTable();
+
+			oTargetTable.StartTrackTable();
 			oLogicDocument.FinalizeAction();
+
 		}
 	}
 	editor.WordControl.m_oLogicDocument.RemoveSelection();
@@ -3494,7 +3496,7 @@ CTable.prototype.UpdateCursorType = function(X, Y, CurPage)
 	var Cell     = this.Content[Cell_Pos.Row].Get_Cell(Cell_Pos.Cell);
 	Cell.Content_UpdateCursorType(X, Y, CurPage - Cell.Content.Get_StartPage_Relative());
 };
-CTable.prototype.Start_TrackTable = function()
+CTable.prototype.StartTrackTable = function()
 {
 	var CurPage = 0;
 	while (CurPage < this.Pages.length)
@@ -12786,7 +12788,7 @@ CTable.prototype.IsEmptyPage = function(CurPage)
 {
     if (!this.Pages[CurPage]
         || (this.Pages[CurPage].LastRow < this.Pages[CurPage].FirstRow)
-        || (0 === CurPage && true !== this.RowsInfo[0].FirstPage))
+        || (0 === CurPage && (!this.RowsInfo[0] || true !== this.RowsInfo[0].FirstPage)))
         return true;
 
     return false;
@@ -13851,7 +13853,7 @@ CTable.prototype.ResizeTableInDocument = function(nWidth, nHeight)
 	this.Resize(nWidth, nHeight);
 
 	this.LogicDocument.Recalculate();
-	this.Start_TrackTable();
+	this.StartTrackTable();
 	this.LogicDocument.UpdateSelection();
 	this.LogicDocument.FinalizeAction();
 };
