@@ -2637,16 +2637,12 @@
 								return;
 							}
 
-
-
-
                             if(ctx instanceof AscCommonExcel.CPdfPrinter)
                             {
                                 graphics.SaveGrState();
                                 var _baseTransform = new AscCommon.CMatrix();
                                 graphics.SetBaseTransform(_baseTransform);
                             }
-
 
 							graphics.save();
                             var oMatrix = new AscCommon.CMatrix();
