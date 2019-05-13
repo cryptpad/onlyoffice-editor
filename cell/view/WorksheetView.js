@@ -2777,16 +2777,10 @@
 						rect._height *= dScale;
                         AscFormat.ExecuteNoHistory(
                             function (img, rect, imgSize) {
-                                var oImgP = new Asc.asc_CImgProperty();
-                                oImgP.ImageUrl = img;
-
                                 var geometry = new AscFormat.CreateGeometry("rect");
                                 geometry.Recalculate(imgSize, imgSize, true);
 
                                 var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
-
-
-
 
                                 if(context instanceof AscCommonExcel.CPdfPrinter)
                                 {
@@ -2794,7 +2788,6 @@
                                     var _baseTransform = new AscCommon.CMatrix();
                                     graphics.SetBaseTransform(_baseTransform);
                                 }
-
 
                                 graphics.save();
                                 var oMatrix = new AscCommon.CMatrix();
