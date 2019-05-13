@@ -3035,16 +3035,17 @@ DrawingObjectsController.prototype =
         }
         var oThis = this;
         this.checkSelectedObjectsAndCallback(function(){
-            
-            if(oThis.selection.chartSelection){
-                oThis.selection.chartSelection.resetSelection(true);
-                oThis.selection.chartSelection = null;
+
+            var oSelection  = oThis.selection.groupSelection ? oThis.selection.groupSelection.selection : oThis.selection;
+            if(oSelection.chartSelection) {
+                oSelection.chartSelection.resetSelection(true);
+                oSelection.chartSelection = null;
             }
-            if(oThis.selection.groupSelection && oThis.selection.groupSelection.selection.chartSelection){
-                oThis.selection.groupSelection.selection.chartSelection.resetSelection(true);
-                oThis.selection.groupSelection.selection.chartSelection = null;
+            if(oSelection.textSelection) {
+                oSelection.textSelection = null;
             }
             oThis.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
+            oThis.updateSelectionState();
         }, [], false, AscDFH.historydescription_Spreadsheet_Remove);
     },
 
