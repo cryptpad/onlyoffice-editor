@@ -966,6 +966,26 @@ CAutoshapeTrack.prototype =
             y4 = y3;
             nIsCleverWithTransform = true;
             nType = 1;
+
+            if (true)
+            {
+                if (x1 > x2)
+                {
+                    var tmp = x1;
+                    x1 = x2; x3 = x2;
+                    x2 = tmp; x4 = tmp;
+                }
+
+                if (y1 > y3)
+                {
+                    var tmp = y1;
+                    y1 = y3; y2 = y3;
+                    y3 = tmp; y4 = tmp;
+                }
+
+                nType = 0;
+                bIsClever = true;
+            }
         }
         if (!nIsCleverWithTransform &&
             Math.abs(dx1 - dx2) < _eps &&
