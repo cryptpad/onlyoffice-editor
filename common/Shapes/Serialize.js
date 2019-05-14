@@ -2019,6 +2019,836 @@ function BinaryPPTYLoader()
         return _path;
     }
 
+
+    this.ReadEffect = function()
+    {
+        var s = this.stream;
+        var ___type___ =  s.GetUChar(); // type
+        var ____len = s.GetLong(); // len
+        if(____len === 0)
+        {
+            return null;
+        }
+        var  _type = s.GetUChar();
+        var _rec_start = s.cur;
+        var  _end_rec = _rec_start + ____len + 4;
+        var ____len2 = s.GetLong();
+        var oEffect = null;
+        switch(_type)
+        {
+            case 0:
+            {
+                break;//var  EFFECT_TYPE_NONE			=
+            }
+            case 1:
+            {
+                oEffect = new AscFormat.COuterShdw();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var  _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0: oEffect.algn = s.GetUChar(); break;
+                        case 1:	oEffect.blurRad = s.GetLong(); break;
+                        case 2:	oEffect.dir		= s.GetLong(); break;
+                        case 3:	oEffect.dist	= s.GetLong(); break;
+                        case 4:	oEffect.kx		= s.GetLong(); break;
+                        case 5:	oEffect.ky		= s.GetLong(); break;
+                        case 6:	oEffect.sx		= s.GetLong(); break;
+                        case 7:	oEffect.sy		= s.GetLong(); break;
+                        case 8:	oEffect.rotWithShape = s.GetBool(); break;
+                    }
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.color = this.ReadUniColor();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_OUTERSHDW		=
+            }
+            case 2:
+            {
+                oEffect = new AscFormat.CGlow();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.rad = s.GetLong();
+                    else break;
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.color = this.ReadUniColor();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_GLOW			=
+            }
+            case 3:
+            {
+                oEffect = new AscFormat.CDuotone();
+                var count = s.GetULong();
+                for (var i = 0; i < count; ++i)
+                {
+                    s.Skip2(1); // type
+
+                    var oUniColor = this.ReadUniColor();
+                    if(oUniColor.color)
+                    {
+                        oEffect.colors.push(oUniColor);
+                    }
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_DUOTONE		=
+            }
+            case 4:
+            {
+                oEffect = new AscFormat.CXfrmEffect();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:	oEffect.kx	= s.GetLong(); break;
+                        case 1: oEffect.ky	= s.GetLong(); break;
+                        case 2: oEffect.sx	= s.GetLong(); break;
+                        case 3: oEffect.sy	= s.GetLong(); break;
+                        case 4: oEffect.tx	= s.GetULong(); break;
+                        case 5: oEffect.ty	= s.GetULong(); break;
+                    }
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_XFRM			=
+            }
+            case 5:
+            {
+                oEffect = new AscFormat.CBlur();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:	oEffect.rad = s.GetULong(); break;
+                        case 1:	oEffect.grow = s.GetBool(); break;
+                    }
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_BLUR			=
+            }
+            case 6:
+            {
+                oEffect = new AscFormat.CPrstShdw();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:	oEffect.dir		= s.GetLong(); break;
+                        case 1:	oEffect.dist	= s.GetLong(); break;
+                        case 2:	oEffect.prst = s.GetUChar(); break;
+                    }
+
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.color = this.ReadUniColor();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_PRSTSHDW		=
+            }
+            case 7:
+            {
+                oEffect = new AscFormat.CInnerShdw();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:	oEffect.dir = s.GetLong(); break;
+                        case 1:	oEffect.dist = s.GetLong(); break;
+                        case 2:	oEffect.blurRad = s.GetLong(); break;
+                    }
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.color = this.ReadUniColor();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_INNERSHDW		=
+            }
+            case 8:
+            {
+                oEffect = new AscFormat.CReflection();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.algn = ( s.GetUChar());
+                        }break;
+                        case 1:	oEffect.blurRad = s.GetLong(); break;
+                        case 2:	oEffect.stA		= s.GetLong(); break;
+                        case 3:	oEffect.endA	= s.GetLong(); break;
+                        case 4:	oEffect.stPos	= s.GetLong(); break;
+                        case 5:	oEffect.endPos	= s.GetLong(); break;
+                        case 6:	oEffect.dir		= s.GetLong(); break;
+                        case 7:	oEffect.fadeDir	= s.GetLong(); break;
+                        case 8:	oEffect.dist	= s.GetLong(); break;
+                        case 9:	oEffect.kx		= s.GetLong(); break;
+                        case 10:oEffect.ky		= s.GetLong(); break;
+                        case 11:oEffect.sx		= s.GetLong(); break;
+                        case 12:oEffect.sy		= s.GetLong(); break;
+                        case 13:oEffect.rotWithShape = s.GetBool(); break;
+                    }
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_REFLECTION		=
+            }
+            case 9:
+            {
+                oEffect = new AscFormat.CSoftEdge();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0) oEffect.rad = s.GetULong();
+                    else break;
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_SOFTEDGE		=
+            }
+            case 10:
+            {
+                oEffect = new AscFormat.CFillOverlay();
+                s.Skip2(1); // start attributes
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.blend = (s.GetUChar());
+                    else break;
+                }
+
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.fill = this.ReadUniFill();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_FILLOVERLAY	=
+            }
+            case 11:
+            {
+                oEffect = new AscFormat.CAlphaCeiling();
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ALPHACEILING	=
+            }
+            case 12:
+            {
+                oEffect = new AscFormat.CAlphaFloor();
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ALPHAFLOOR		=
+            }
+            case 13:
+            {
+                oEffect = new AscFormat.CTintEffect();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:	oEffect.amt = s.GetLong(); break;
+                        case 1:	oEffect.hue = s.GetLong(); break;
+                    }
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_TINTEFFECT		=
+            }
+            case 14:
+            {
+                oEffect = new AscFormat.CRelOff();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:	oEffect.tx	= s.GetLong(); break;
+                        case 1:	oEffect.ty	= s.GetLong(); break;
+                    }
+
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_RELOFF			=
+            }
+            case 15:
+            {
+                oEffect = new AscFormat.CLumEffect();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:	oEffect.bright = s.GetLong(); break;
+                        case 1:	oEffect.contrast = s.GetLong(); break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_LUM			=
+            }
+            case 16:
+            {
+                oEffect = new AscFormat.CHslEffect();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:
+                            oEffect.hue = s.GetLong(); break;
+                        case 1:
+                            oEffect.lum = s.GetLong(); break;
+                        case 2:
+                            oEffect.sat = s.GetLong(); break;
+                    }
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_HSL			=
+            }
+            case 17:
+            {
+                oEffect = new AscFormat.CGrayscl();
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_GRAYSCL		=
+            }
+            case 18:
+            {
+                oEffect = new AscFormat.CEffectElement();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.ref = s.GetString2();
+                    else break;
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ELEMENT		=
+            }
+            case 19:
+            {
+                oEffect = new AscFormat.CAlphaRepl();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.a = s.GetLong();
+                    else break;
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ALPHAREPL		=
+            }
+            case 20:
+            {
+                oEffect = new AscFormat.CAlphaOutset();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.rad = s.GetULong();
+                    else break;
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ALPHAOUTSET	=
+            }
+            case 21:
+            {
+                oEffect = new AscFormat.CAlphaModFix();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.amt = s.GetLong();
+                    else break;
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ALPHAMODFIX	=
+            }
+            case 22:
+            {
+                oEffect = new AscFormat.CAlphaBiLevel();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.thresh = s.GetLong();
+                    else break;
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ALPHABILEVEL	=
+            }
+            case 23:
+            {
+                oEffect = new AscFormat.CBiLevel();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.thresh = s.GetLong();
+                    else break;
+                }
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_BILEVEL		=
+            }
+            case 24:
+            {
+                oEffect = new AscFormat.CEffectContainer();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:
+                            oEffect.name = s.GetString2(); break;
+                        case 1:
+                        {
+                            oEffect.type = (s.GetUChar());
+                        }break;
+                    }
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            var count_effects2 = s.GetULong();
+                            for (var _eff2 = 0; _eff2 < count_effects2; ++_eff2)
+                            {
+                                s.Skip2(1); // type
+                                var eff2 = this.ReadEffect();
+                                if(!eff2)
+                                {
+                                    oEffect.effectList.push(eff2);
+                                }
+                            }
+                        }break;
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_DAG			=
+            }
+            case 25:
+            {
+
+                oEffect = new AscFormat.CFillEffect();
+                s.Skip2(1); // start attributes
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+                }
+
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.fill = this.ReadUniFill();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_FILL			=
+            }
+            case 26:
+            {
+                oEffect = new AscFormat.CClrRepl();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.color = this.ReadUniColor();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_CLRREPL		=
+            }
+            case 27:
+            {
+                oEffect = new AscFormat.CClrChange();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    switch (_at)
+                    {
+                        case 0:
+                            oEffect.useA = s.GetBool(); break;
+                    }
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.clrFrom = this.ReadUniColor();
+                        }break;
+                        case 1:
+                        {
+                            oEffect.clrTo = this.ReadUniColor();
+                        }break;
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_CLRCHANGE		=
+            }
+            case 28:
+            {
+                oEffect = new AscFormat.CAlphaInv();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.color = this.ReadUniColor();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ALPHAINV		=
+            }
+            case 29:
+            {
+                oEffect = new AscFormat.CAlphaMod();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.cont = this.ReadEffectDag();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_ALPHAMOD		=
+            }
+            case 30:
+            {
+
+                oEffect = new AscFormat.CBlend();
+                s.Skip2(1);
+
+                while (true)
+                {
+                    var _at = s.GetUChar();
+                    if (_at == g_nodeAttributeEnd)
+                        break;
+
+                    if (_at == 0)
+                        oEffect.blend = (s.GetUChar());
+                    else break;
+                }
+                while (s.cur < _end_rec)
+                {
+                    var _at = s.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            oEffect.cont = this.ReadEffectDag();
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                s.Seek2(_end_rec);
+                break;//var  EFFECT_TYPE_BLEND			=
+            }
+            default:
+            {
+                s.Seek2(_end_rec);
+                break;
+            }
+        }
+
+        return oEffect;
+    };
+
+    this.ReadEffectDag = function ()
+    {
+        var ret = new AscFormat.CEffectContainer();
+        var s = this.stream;
+        s.Skip2(4); // len
+        var  _type = s.GetUChar();
+        var _start_pos = s.cur;
+        var _end_rec = _start_pos + s.GetLong() + 4;
+
+        s.Skip(1);
+
+        while (true)
+        {
+            var _at = s.GetUChar();
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0:
+                {
+                    ret.name = s.GetString2(); break;
+                }
+                case 1:
+                {
+                    ret.type = (s.GetUChar()); break;
+                }
+            }
+        }
+        while (s.cur < _end_rec)
+        {
+            var _at = s.GetUChar();
+            switch (_at)
+            {
+                case 0:
+                {
+                    var count_effects = s.GetULong();
+                    for (var _eff = 0; _eff < count_effects; ++_eff)
+                    {
+                        s.Skip(1); // type
+                        var effect = this.ReadEffect();
+                        if(effect)
+                        {
+                            ret.effectList.push(effect);
+                        }
+                    }
+                }break;
+                default:
+                    break;
+            }
+        }
+
+        s.Seek(_end_rec);
+        return ret;
+    };
+
+    
     this.ReadUniFill = function(oSpPr, oImageShape, oLn)
     {
         var s = this.stream;
@@ -2104,43 +2934,25 @@ function BinaryPPTYLoader()
                                         }
                                         case 2:
                                         {
-                                            s.Skip2(4);
-                                            var count_effects = s.GetLong();
+                                            var len2 = s.GetLong();
+
+                                            var  _end_rec_effect = s.cur + len2;
+
+                                            var count_effects = s.GetULong();
                                             for (var _eff = 0; _eff < count_effects; ++_eff)
                                             {
-                                                s.Skip2(1); // type
-                                                var __rec_len = s.GetLong();
-                                                if (0 == __rec_len)
-                                                    continue;
 
-                                                var recE = s.GetUChar();
-
-                                                if (recE == 21)
+                                                var oEffect = this.ReadEffect();
+                                                if(oEffect)
                                                 {
-                                                    // alpha!!!
-                                                    var _e22 = s.cur + s.GetLong() + 4;
-
-                                                    s.Skip2(1); // startattr
-
-                                                    while (true)
+                                                    uni_fill.fill.Effects.push(oEffect);
+                                                    if(oEffect instanceof AscFormat.CAlphaModFix)
                                                     {
-                                                        var _at222 = s.GetUChar();
-                                                        if (g_nodeAttributeEnd == _at222)
-                                                            break;
-
-                                                        if (_at222 == 0)
-                                                        {
-                                                            uni_fill.setTransparent(255 * s.GetLong() / 100000);
-                                                        }
+                                                        uni_fill.setTransparent(255 * oEffect.amt / 100000);
                                                     }
-
-                                                    s.Seek2(_e22);
-                                                }
-                                                else
-                                                {
-                                                    s.SkipRecord();
                                                 }
                                             }
+                                            s.Seek2(_end_rec_effect);
                                             break;
                                         }
                                         case 3:
