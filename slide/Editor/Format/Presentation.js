@@ -3517,37 +3517,6 @@ CPresentation.prototype =
             }
             bRetValue = keydownresult_PreventAll;
         }
-        else if ( e.KeyCode == 32) // Space
-        {
-            if(this.CanEdit())
-            {
-                if ( true === e.ShiftKey && true === e.CtrlKey ) {
-                    this.DrawingDocument.TargetStart();
-                    this.DrawingDocument.TargetShow();
-
-
-                    if(true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
-                        if(oController && oController.selectedObjects.length !== 0){
-                            History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                            this.AddToParagraph(new ParaText(0x00A0));
-                        }
-                    }
-                }
-                else if ( true === e.CtrlKey ) {
-                    this.ClearParagraphFormatting(false, true);
-                }
-                else
-                {
-                    if(true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
-                        if(oController && oController.selectedObjects.length !== 0) {
-                            History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                            this.AddToParagraph(new ParaSpace());
-                        }
-                    }
-                }
-            }
-            bRetValue = keydownresult_PreventAll;
-        }
         else if ( e.KeyCode == 33 ) // PgUp
         {
             if ( true === e.AltKey )
@@ -4112,35 +4081,64 @@ CPresentation.prototype =
          return true;
          }
          else*/ if ( Code > 0x20 )
-    {
-        if(true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
-            History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-            //this.Create_NewHistoryPoint();
+        {
+            if(true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
+                History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
+                //this.Create_NewHistoryPoint();
 
-           //this.DrawingDocument.TargetStart();
-           //this.DrawingDocument.TargetShow();
-            var target_doc_content1, target_doc_content2, b_update_interface = false;
-            var oController = this.GetCurrentController();
-            if(oController)
-            {
-                target_doc_content1 = oController.getTargetDocContent();
+               //this.DrawingDocument.TargetStart();
+               //this.DrawingDocument.TargetShow();
+                var target_doc_content1, target_doc_content2, b_update_interface = false;
+                var oController = this.GetCurrentController();
+                if(oController)
+                {
+                    target_doc_content1 = oController.getTargetDocContent();
+                }
+                this.CheckLanguageOnTextAdd = true;
+                this.AddToParagraph(new ParaText(Code), false, true);
+                this.CheckLanguageOnTextAdd = false;
+                if(oController)
+                {
+                    target_doc_content2 = oController.getTargetDocContent();
+                }
+                if(!target_doc_content1 && target_doc_content2)
+                {
+                    b_update_interface = true;
+                    this.Document_UpdateInterfaceState();
+                    this.Document_UpdateRulersState();
+                }
             }
-			this.CheckLanguageOnTextAdd = true;
-            this.AddToParagraph(new ParaText(Code), false, true);
-			this.CheckLanguageOnTextAdd = false;
-            if(oController)
-            {
-                target_doc_content2 = oController.getTargetDocContent();
-            }
-            if(!target_doc_content1 && target_doc_content2)
-            {
-                b_update_interface = true;
-                this.Document_UpdateInterfaceState();
-                this.Document_UpdateRulersState();
-            }
+            bRetValue = true;
         }
-        bRetValue = true;
-    }
+        else if ( Code == 32) // Space
+        {
+            var oController = this.GetCurrentController();
+            if ( true === e.ShiftKey && true === e.CtrlKey ) {
+                this.DrawingDocument.TargetStart();
+                this.DrawingDocument.TargetShow();
+
+
+                if(true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
+                    if(oController && oController.selectedObjects.length !== 0){
+                        History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
+                        this.AddToParagraph(new ParaText(0x00A0));
+                    }
+                }
+            }
+            else if ( true === e.CtrlKey ) {
+                this.ClearParagraphFormatting(false, true);
+            }
+            else
+            {
+                if(true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
+                    if(oController && oController.selectedObjects.length !== 0) {
+                        History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
+                        this.AddToParagraph(new ParaSpace());
+                    }
+                }
+            }
+            bRetValue = true;
+        }
 
         if ( true == bRetValue )
         {

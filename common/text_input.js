@@ -1004,7 +1004,8 @@
                         // send, but not prevent
 
                         //window.g_asc_plugins.onPluginEvent2("onKeyDown", { "keyCode" : e.keyCode }, this.isInputHelpers);
-                        this.keyPressInput += " ";
+						//теперь пробел - на keyPress - и добавится там
+                        //this.keyPressInput += " ";
                         if (window.g_asc_plugins)
                             window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.keyPressInput });
                     }
@@ -1013,7 +1014,10 @@
                 }
 			}
 			else if (32 == e.keyCode)
-                this.keyPressInput += " ";
+			{
+                //теперь пробел - на keyPress - и добавится там
+				//this.keyPressInput += " ";
+            }
 
 			if (this.isSystem && this.isShow)
 			{

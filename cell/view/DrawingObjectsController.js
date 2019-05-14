@@ -643,6 +643,18 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
 
         bRetValue = true;
     }
+    else if ( Code == 0x20 )
+    {
+        var oApi = window["Asc"] && window["Asc"]["editor"];
+        var fCallback = function(){
+            this.paragraphAdd(new ParaSpace(1));
+            this.checkMobileCursorPosition();
+        };
+        this.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Spreadsheet_AddSpace, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+
+        bRetValue = true;
+    }
+
     return bRetValue;
 };
 //------------------------------------------------------------export---------------------------------------------------
