@@ -8885,6 +8885,8 @@ PasteProcessor.prototype =
 			} else {
 				if ("table" === sNodeName && this.pasteInExcel !== true && this.pasteInPresentationShape !== true) {
 					if (PasteElementsId.g_bIsDocumentCopyPaste) {
+						this._Commit_Br(1, node, pPr);
+
 						this._StartExecuteTable(node, pPr);
 						return bAddParagraph;
 					} else {
