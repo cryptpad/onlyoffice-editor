@@ -2795,6 +2795,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.tresh = 0;
     }
+    CAlphaBiLevel.prototype.Type = EFFECT_TYPE_ALPHABILEVEL;
     CAlphaBiLevel.prototype.Write_ToBinary = function(w)
     {
         w.WriteLong(EFFECT_TYPE_ALPHABILEVEL);
@@ -2809,6 +2810,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     function CAlphaCeiling()
     {
     }
+    CAlphaCeiling.prototype.Type = EFFECT_TYPE_ALPHACEILING;
     CAlphaCeiling.prototype.Write_ToBinary = function(w)
     {
         w.WriteLong(EFFECT_TYPE_ALPHACEILING);
@@ -2820,6 +2822,7 @@ var  EFFECT_TYPE_BLEND			=	30;
 
     function CAlphaFloor()
     {}
+    CAlphaFloor.prototype.Type = EFFECT_TYPE_ALPHAFLOOR;
     CAlphaFloor.prototype.Write_ToBinary = function(w)
     {
         w.WriteLong(EFFECT_TYPE_ALPHAFLOOR);
@@ -2832,6 +2835,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.unicolor = null;
     }
+    CAlphaInv.prototype.Type = EFFECT_TYPE_ALPHAINV;
     CAlphaInv.prototype.Write_ToBinary = function(w)
     {
         w.WriteLong(EFFECT_TYPE_ALPHAINV);
@@ -2864,6 +2868,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.effectList = [];
     }
 
+    CEffectContainer.prototype.Type = EFFECT_TYPE_DAG;
     CEffectContainer.prototype.Write_ToBinary = function(w)
     {
         w.WriteLong(EFFECT_TYPE_DAG);
@@ -2896,6 +2901,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.cont = new CEffectContainer();
     }
+    CAlphaMod.prototype.Type  = EFFECT_TYPE_ALPHAMOD;
     CAlphaMod.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_ALPHAMOD);
         this.cont.Write_ToBinary(w);
@@ -2908,6 +2914,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.amt = null;
     }
+    CAlphaModFix.prototype.Type = EFFECT_TYPE_ALPHAMODFIX;
     CAlphaModFix.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_ALPHAMODFIX);
         writeLong(w, this.amt);
@@ -2920,6 +2927,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.rad = null;
     }
+    CAlphaOutset.prototype.Type = EFFECT_TYPE_ALPHAOUTSET;
     CAlphaOutset.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_ALPHAOUTSET);
         writeLong(w, this.rad);
@@ -2932,6 +2940,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.a = null;
     }
+    CAlphaRepl.prototype.Type  = EFFECT_TYPE_ALPHAREPL;
     CAlphaRepl.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_ALPHAREPL);
         writeLong(w, this.a);
@@ -2945,6 +2954,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.thresh = null;
     }
+    CBiLevel.prototype.Type = EFFECT_TYPE_BILEVEL;
     CBiLevel.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_BILEVEL);
         writeLong(w, this.thresh);
@@ -2964,6 +2974,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.blend = null;
         this.cont = new CEffectContainer();
     }
+    CBlend.prototype.Type = EFFECT_TYPE_BLEND;
     CBlend.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_BLEND);
         writeLong(w, this.blend);
@@ -2980,6 +2991,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.grow = null;
     }
 
+    CBlur.prototype.Type  = EFFECT_TYPE_BLUR;
     CBlur.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_BLUR);
         writeLong(w, this.rad);
@@ -2997,6 +3009,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.clrTo =  new CUniColor();
         this.useA = null;
     }
+    CClrChange.prototype.Type = EFFECT_TYPE_CLRCHANGE;
     CClrChange.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_CLRCHANGE);
         this.clrFrom.Write_ToBinary(w);
@@ -3014,6 +3027,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.color = new CUniColor();
     }
+    CClrRepl.prototype.Type = EFFECT_TYPE_CLRREPL;
     CClrRepl.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_CLRREPL);
         this.color.Write_ToBinary(w);
@@ -3028,6 +3042,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.colors = [];
     }
+    CDuotone.prototype.Type  = EFFECT_TYPE_DUOTONE;
     CDuotone.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_DUOTONE);
         w.WriteLong(this.colors.length);
@@ -3051,6 +3066,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.ref = null;
     }
+    CEffectElement.prototype.Type = EFFECT_TYPE_ELEMENT;
     CEffectElement.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_ELEMENT);
         writeString(w, this.ref);
@@ -3064,6 +3080,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.fill = new CUniFill();
     }
+    CFillEffect.prototype.Type = EFFECT_TYPE_FILL;
     CFillEffect.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_FILL);
         this.fill.Write_ToBinary(w);
@@ -3077,7 +3094,8 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.fill = new CUniFill();
         this.blend = 0;
     }
-    CFillOverlay.prototype.Write_ToBinary  = function (w) {
+    CFillOverlay.prototype.Type = EFFECT_TYPE_FILLOVERLAY;
+    CFillOverlay.prototype.Write_ToBinary = function (w) {
         w.WriteLong(EFFECT_TYPE_FILLOVERLAY);
         this.fill.Write_ToBinary(w);
         w.WriteLong(this.blend);
@@ -3092,6 +3110,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.color = new CUniColor();
         this.rad = null;
     }
+    CGlow.prototype.Type = EFFECT_TYPE_GLOW;
     CGlow.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_GLOW);
         this.color.Write_ToBinary(w);
@@ -3105,6 +3124,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     function CGrayscl()
     {
     }
+    CGrayscl.prototype.Type = EFFECT_TYPE_GRAYSCL;
     CGrayscl.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_GRAYSCL);
     };
@@ -3118,6 +3138,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.s = null;
         this.l = null;
     }
+    CHslEffect.prototype.Type = EFFECT_TYPE_HSL;
     CHslEffect.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_HSL);
         writeLong(w, this.h);
@@ -3137,6 +3158,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.dir = null;
         this.dist = null;
     }
+    CInnerShdw.prototype.Type  = EFFECT_TYPE_INNERSHDW;
     CInnerShdw.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_INNERSHDW);
         this.color.Write_ToBinary(w);
@@ -3156,6 +3178,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.bright = null;
         this.contrast = null;
     }
+    CLumEffect.prototype.Type = EFFECT_TYPE_LUM;
     CLumEffect.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_LUM);
         writeLong(w, this.bright);
@@ -3179,6 +3202,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.sx = null;
         this.sy = null;
     }
+    COuterShdw.prototype.Type = EFFECT_TYPE_OUTERSHDW;
     COuterShdw.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_OUTERSHDW);
         this.color.Write_ToBinary(w);
@@ -3212,6 +3236,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.dir = null;
         this.dis = null;
     }
+    CPrstShdw.prototype.Type  = EFFECT_TYPE_PRSTSHDW;
     CPrstShdw.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_PRSTSHDW);
         this.color.Write_ToBinary(w);
@@ -3244,6 +3269,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.sx = null;
         this.sy = null;
     }
+    CReflection.prototype.Type  = EFFECT_TYPE_REFLECTION;
     CReflection.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_REFLECTION);
         writeLong(w, this.algn);
@@ -3283,6 +3309,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.tx = null;
         this.ty = null;
     }
+    CRelOff.prototype.Type  = EFFECT_TYPE_RELOFF;
     CRelOff.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_RELOFF);
         writeLong(w, this.tx);
@@ -3298,6 +3325,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     {
         this.rad = null;
     }
+    CSoftEdge.prototype.Type  = EFFECT_TYPE_SOFTEDGE;
     CSoftEdge.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_SOFTEDGE);
         writeLong(w, this.rad);
@@ -3312,6 +3340,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.amt = null;
         this.hue = null;
     }
+    CTintEffect.prototype.Type  = EFFECT_TYPE_TINTEFFECT;
     CTintEffect.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_TINTEFFECT);
         writeLong(w, this.amt);
@@ -3330,6 +3359,7 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.tx = null;
         this.ty = null;
     }
+    CXfrmEffect.prototype.Type  = EFFECT_TYPE_XFRM;
     CXfrmEffect.prototype.Write_ToBinary  = function (w) {
         w.WriteLong(EFFECT_TYPE_XFRM);
         writeLong(w, this.kx);
