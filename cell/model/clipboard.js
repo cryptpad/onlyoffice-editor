@@ -3198,7 +3198,8 @@
 			this.ws = ws;
 			this.isUsuallyPutImages = null;
 			this.maxLengthRowCount = 0;
-			this.rowDiff = 0;//для обработки данных в ране, разделенных shift+enter
+			//для этого сделал функцию _getParagraphMeasure у DocumentContentBoundsElement
+			//this.rowDiff = 0;//для обработки данных в ране, разделенных shift+enter
 			
 			this.paragraphText = "";
 			this.bFromPresentation = bFromPresentation;
@@ -3323,7 +3324,7 @@
 								}
 
 
-								var newCell = this.aResult.getCell(row, col);
+								var newCell = this.aResult.getCell(row /*+ this.rowDiff*/, col);
 								newCell.rowSpan = rowSpan;
 								newCell.colSpan = colSpan;
 
@@ -3343,7 +3344,7 @@
 						colSpan = null;
 						rowSpan = null;
 
-						this._parseParagraph(childrens[i], childrens[i].top + this.rowDiff, childrens[i].left);
+						this._parseParagraph(childrens[i], childrens[i].top /*+ this.rowDiff*/, childrens[i].left);
 					} else {
 						this._parseChildren(childrens[i]);
 					}
@@ -3580,7 +3581,7 @@
 				}
 
 				oNewItem.textVal = this.paragraphText;
-				this.rowDiff += row - startRow;
+				//this.rowDiff += row - startRow;
 			},
 
 			_parseParaRun: function (paraRun, oNewItem, paraPr, innerCol, row, col, text, prevTextPr) {
@@ -4187,9 +4188,7 @@
 					var oNewElem = null;
 					if(type_Paragraph === elem.GetType())
 					{
-						oNewElem = new DocumentContentBoundsElement(elem, c_oAscBoundsElementType.Paragraph, oRes);
-						oNewElem.width = 1;
-						oNewElem.height = 1;
+						oNewElem = this._getParagraphMeasure(elem, oRes);
 					}
 					else if(type_Table === elem.GetType())
 					{
@@ -4210,6 +4209,25 @@
 					}
 				}
 				return oRes;
+			},
+			_getParagraphMeasure: function(elem, oParent) {
+				var oNewElem = new DocumentContentBoundsElement(elem, c_oAscBoundsElementType.Paragraph, oParent);
+				oNewElem.width = 1;
+				oNewElem.height = 1;
+
+				for(var i = 0, length = elem.Content.length; i < length; i++)
+				{
+					if(elem.Content[i] && elem.Content[i].Content) {
+						for(var j = 0; j < elem.Content[i].Content.length; j++)
+						{
+							if(elem.Content[i].Content[j] && para_NewLine === elem.Content[i].Content[j].GetType()) {
+								oNewElem.height++;
+							}
+						}
+					}
+				}
+
+				return oNewElem;
 			},
 			_getTableMeasure: function(table, oParent){
 				var oRes = new DocumentContentBoundsElement(table, c_oAscBoundsElementType.Table, oParent);
