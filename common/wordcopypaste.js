@@ -8695,7 +8695,7 @@ PasteProcessor.prototype =
 				//не нашёл такой ситуации, когда пропадают пробелы между словами
 				//todo протестровать "o:p"!
 				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
-					sChildNodeName === "#comment" || sChildNodeName === "script" || sChildNodeName === "o:p") {
+					sChildNodeName === "#comment" || sChildNodeName === "script" /*|| sChildNodeName === "o:p"*/) {
 					if(sChildNodeName === "#comment") {
 						if(child.nodeValue === "[if !supportAnnotations]") {
 							oThis.startMsoAnnotation = true;
