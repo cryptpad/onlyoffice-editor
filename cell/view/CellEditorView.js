@@ -157,7 +157,6 @@
 		this.sAutoComplete = null;
 
 		/** @type RegExp */
-		this.reReplaceNL = /\r?\n|\r/g;
 		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", ",", "<", ">", "^", "!", "&", ":", ";", " "];
 		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.]", "i" );
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
