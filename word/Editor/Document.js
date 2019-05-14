@@ -18434,8 +18434,9 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
  * @param sMoveId {string} идентификатор переноса
  * @param isFrom {boolean} true - выделяем удаленный текст, false - выделяем перемещенный текст
  * @param [isSetCurrentChange=false] {boolean} Выставлять или нет данное изменение текущим
+ * @param [isUpdateInterface=true] {boolean} Обновлять ли интерфейс
  */
-CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom, isSetCurrentChange)
+CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom, isSetCurrentChange, isUpdateInterface)
 {
 	var oManager = this.GetTrackRevisionsManager();
 
@@ -18495,7 +18496,9 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom, isSetCurrentChan
 			}
 
 			this.UpdateSelection();
-			this.UpdateInterface(true);
+
+			if (false !== isUpdateInterface)
+				this.UpdateInterface();
 		}
 	}
 };
@@ -18520,10 +18523,10 @@ CDocument.prototype.RemoveTrackMoveMarks = function(sMoveId)
 
 	var oDocState = this.GetSelectionState();
 
-	this.SelectTrackMove(sMoveId, true);
+	this.SelectTrackMove(sMoveId, true, false, false);
 	this.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMarkRemove, false);
 
-	this.SelectTrackMove(sMoveId, false);
+	this.SelectTrackMove(sMoveId, false, false, false);
 	this.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMarkRemove, false);
 
 	this.SetSelectionState(oDocState);
