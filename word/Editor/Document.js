@@ -8066,53 +8066,6 @@ CDocument.prototype.OnKeyDown = function(e)
 
         bRetValue = keydownresult_PreventAll;
     }
-    else if (e.KeyCode == 32) // Space
-    {
-    	var bFillingForm = false;
-    	if (this.IsFormFieldEditing() && ((true === e.ShiftKey && true === e.CtrlKey) || true !== e.CtrlKey))
-			bFillingForm = true;
-
-        if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, bFillingForm))
-        {
-            this.StartAction(AscDFH.historydescription_Document_SpaceButton);
-
-            // Если мы находимся в формуле, тогда пытаемся выполнить автозамену
-
-            var oSelectedInfo = this.GetSelectedElementsInfo();
-            var oMath         = oSelectedInfo.Get_Math();
-
-            if (null !== oMath && true === oMath.Make_AutoCorrect())
-            {
-                // Ничего тут не делаем. Все делается в автозамене
-            }
-            else
-            {
-                if (true === e.ShiftKey && true === e.CtrlKey)
-                {
-                    this.DrawingDocument.TargetStart();
-                    this.DrawingDocument.TargetShow();
-
-                    this.AddToParagraph(new ParaText(0x00A0));
-                }
-                else if (true === e.CtrlKey)
-                {
-                    this.ClearParagraphFormatting(false, true);
-                }
-                else
-                {
-                    this.DrawingDocument.TargetStart();
-                    this.DrawingDocument.TargetShow();
-
-                    this.CheckLanguageOnTextAdd = true;
-                    this.AddToParagraph(new ParaSpace());
-                    this.CheckLanguageOnTextAdd = false;
-                }
-            }
-			this.FinalizeAction();
-        }
-
-        bRetValue = keydownresult_PreventAll;
-    }
     else if (e.KeyCode == 33) // PgUp
     {
         if (true === e.AltKey)
@@ -8737,6 +8690,53 @@ CDocument.prototype.OnKeyPress = function(e)
 		}
 		bRetValue = true;
 	}
+    else if (Code == 32) // Space
+    {
+        var bFillingForm = false;
+        if (this.IsFormFieldEditing() && ((true === e.ShiftKey && true === e.CtrlKey) || true !== e.CtrlKey))
+            bFillingForm = true;
+
+        if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, bFillingForm))
+        {
+            this.StartAction(AscDFH.historydescription_Document_SpaceButton);
+
+            // Если мы находимся в формуле, тогда пытаемся выполнить автозамену
+
+            var oSelectedInfo = this.GetSelectedElementsInfo();
+            var oMath         = oSelectedInfo.Get_Math();
+
+            if (null !== oMath && true === oMath.Make_AutoCorrect())
+            {
+                // Ничего тут не делаем. Все делается в автозамене
+            }
+            else
+            {
+                if (true === e.ShiftKey && true === e.CtrlKey)
+                {
+                    this.DrawingDocument.TargetStart();
+                    this.DrawingDocument.TargetShow();
+
+                    this.AddToParagraph(new ParaText(0x00A0));
+                }
+                else if (true === e.CtrlKey)
+                {
+                    this.ClearParagraphFormatting(false, true);
+                }
+                else
+                {
+                    this.DrawingDocument.TargetStart();
+                    this.DrawingDocument.TargetShow();
+
+                    this.CheckLanguageOnTextAdd = true;
+                    this.AddToParagraph(new ParaSpace());
+                    this.CheckLanguageOnTextAdd = false;
+                }
+            }
+            this.FinalizeAction();
+        }
+
+        bRetValue = true;
+    }
 
 	if (true == bRetValue)
 		this.Document_UpdateSelectionState();

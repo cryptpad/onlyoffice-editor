@@ -6913,29 +6913,6 @@ DrawingObjectsController.prototype =
             }
             bRetValue = true;
         }
-        else if ( e.keyCode == 32 && canEdit ) // Space
-        {
-            if(!ctrlKey)
-            {
-                //if(this.selection.textSelection || this.selection.groupSelection && this.selection.groupSelection.selection.textSelection
-                //    || this.selection.chartSelection && this.selection.chartSelection.selection.textSelection)
-                //{
-
-                var oThis = this;
-                var callBack = function()
-                {
-                    oThis.paragraphAdd(new ParaSpace(1));
-                };
-                this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddSpace, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
-                //}
-               // else
-               // {
-               //     //TODO: this.selectNextObject(!e.shiftKey ? 1 : -1);
-               // }
-            }
-
-            bRetValue = true;
-        }
         else if ( e.keyCode == 33 ) // PgUp
         {
         }
