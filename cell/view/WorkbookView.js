@@ -1882,15 +1882,14 @@
   };
 
   WorkbookView.prototype._canResize = function() {
+    var isRetina = AscBrowser.isRetina;
     var oldWidth = this.canvas.width;
     var oldHeight = this.canvas.height;
-    var width = this.element.offsetWidth - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.widthPx);
-    var height = this.element.offsetHeight - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.heightPx);
-    var styleWidth, styleHeight, isRetina = AscBrowser.isRetina;
+    var width, height, styleWidth, styleHeight;
+    width = styleWidth = this.element.offsetWidth - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.widthPx);
+    height = styleHeight = this.element.offsetHeight - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.heightPx);
 
     if (isRetina) {
-      styleWidth = width;
-      styleHeight = height;
       width = AscCommon.AscBrowser.convertToRetinaValue(width, true);
       height = AscCommon.AscBrowser.convertToRetinaValue(height, true);
     }
@@ -1903,13 +1902,8 @@
 
     this.canvas.width = this.canvasOverlay.width = this.canvasGraphic.width = this.canvasGraphicOverlay.width = width;
     this.canvas.height = this.canvasOverlay.height = this.canvasGraphic.height = this.canvasGraphicOverlay.height = height;
-    if (isRetina) {
       this.canvas.style.width = this.canvasOverlay.style.width = this.canvasGraphic.style.width = this.canvasGraphicOverlay.style.width = styleWidth + 'px';
       this.canvas.style.height = this.canvasOverlay.style.height = this.canvasGraphic.style.height = this.canvasGraphicOverlay.style.height = styleHeight + 'px';
-    } else {
-      this.canvas.style.width = this.canvasOverlay.style.width = this.canvasGraphic.style.width = this.canvasGraphicOverlay.style.width = width + 'px';
-      this.canvas.style.height = this.canvasOverlay.style.height = this.canvasGraphic.style.height = this.canvasGraphicOverlay.style.height = height + 'px';
-    }
 
     this._reInitGraphics();
 
