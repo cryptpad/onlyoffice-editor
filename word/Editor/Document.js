@@ -18498,7 +18498,7 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom, isSetCurrentChan
 			this.UpdateSelection();
 
 			if (false !== isUpdateInterface)
-				this.UpdateInterface();
+				this.UpdateInterface(true);
 		}
 	}
 };
