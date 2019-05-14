@@ -481,9 +481,9 @@
 		return this.drawingCtx.getZoom();
 	};
 
-	CellEditor.prototype.changeZoom = function ( factor ) {
-		this.drawingCtx.changeZoom( factor );
-		this.overlayCtx.changeZoom( factor );
+	CellEditor.prototype.changeZoom = function (factor) {
+		this.drawingCtx.changeZoom(factor);
+		this.overlayCtx.changeZoom(factor);
 	};
 
 	CellEditor.prototype.canEnterCellRange = function () {
@@ -1354,23 +1354,26 @@
 	};
 
 	CellEditor.prototype._adjustCanvas = function () {
+		var isRetina = AscBrowser.isRetina;
 		var z = this.defaults.canvasZIndex;
+		var borderSize = 1;
 		var left = this.left * this.kx;
 		var top = this.top * this.ky;
-		var widthStyle = (this.right - this.left) * this.kx - 1; // ToDo разобраться с '-1'
-		var heightStyle = (this.bottom - this.top) * this.ky - 1;
-		var isRetina = AscBrowser.isRetina;
-		var width = widthStyle, height = heightStyle;
+		var width, height, widthStyle, heightStyle;
 
-		if ( isRetina ) {
+		if (isRetina) {
+			borderSize = AscCommon.AscBrowser.convertToRetinaValue(borderSize, true);
+		}
+
+		width = widthStyle = (this.right - this.left) * this.kx - borderSize;
+		height = heightStyle = (this.bottom - this.top) * this.ky - borderSize;
+
+		if (isRetina) {
 			left = AscCommon.AscBrowser.convertToRetinaValue(left);
 			top = AscCommon.AscBrowser.convertToRetinaValue(top);
 
 			widthStyle = AscCommon.AscBrowser.convertToRetinaValue(widthStyle);
 			heightStyle = AscCommon.AscBrowser.convertToRetinaValue(heightStyle);
-
-			width = AscCommon.AscBrowser.convertToRetinaValue(widthStyle, true);
-			height = AscCommon.AscBrowser.convertToRetinaValue(heightStyle, true);
 		}
 
 		this.canvasOuterStyle.left = left + 'px';
@@ -1381,10 +1384,8 @@
 
 		this.canvas.width = this.canvasOverlay.width = width;
 		this.canvas.height = this.canvasOverlay.height = height;
-		if ( isRetina ) {
-			this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
-			this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
-		}
+		this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
+		this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
 	};
 
 	CellEditor.prototype._renderText = function (dy) {
