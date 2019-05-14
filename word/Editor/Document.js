@@ -7274,7 +7274,13 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 			if (!bCopy
 				&& ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
 				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted())))
+			{
+				this.DragAndDropAction = false;
+				this.TrackMoveId       = null;
+
+				this.FinalizeAction();
 				return;
+			}
 
 			this.SetCheckContentControlsLock(false);
 		}
