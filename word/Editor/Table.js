@@ -12653,7 +12653,7 @@ CTable.prototype.SetContentSelection = function(StartDocPos, EndDocPos, Depth, S
     this.Selection.Type2        = table_Selection_Common;
     this.Selection.Data2        = null;
 
-    if (StartRow === EndRow && StartCell === EndCell)
+    if (StartRow === EndRow && StartCell === EndCell && null !== __StartDocPos && null !== __EndDocPos)
     {
         this.CurCell = this.Get_Row(StartRow).Get_Cell(StartCell);
         this.Selection.Type = table_Selection_Text;
