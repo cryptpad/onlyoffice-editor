@@ -1382,6 +1382,35 @@
 		return hiddenW;
 	};
 
+	WorksheetView.prototype._calcHeightRow = function (y, i) {
+		var r, hR, hiddenH = 0;
+		this.model._getRowNoEmptyWithAll(i, function (row) {
+			if (!row) {
+				hR = -1; // Будет использоваться дефолтная высота строки
+			} else if (row.getHidden()) {
+				hR = 0;  // Скрытая строка, высоту выставляем 0
+				hiddenH += row.h > 0 ? row.h - 1 : this.defaultRowHeightPx;
+			} else {
+				// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
+				if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
+					hR = row.h;
+				} else {
+					hR = -1;
+				}
+			}
+		});
+		if (hR < 0) {
+			hR = AscCommonExcel.oDefaultMetrics.RowHeight;
+		}
+		r = this.rows[i] = new CacheRow();
+		r.top = y;
+		r.height = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
+		r.heightReal = hR;
+		r.descender = this.defaultRowDescender;
+
+		return hiddenH;
+	};
+
     /** Вычисляет ширину колонки заголовков */
     WorksheetView.prototype._calcHeaderColumnWidth = function () {
     	var old = this.cellsLeft;
@@ -1435,8 +1464,7 @@
     WorksheetView.prototype._calcHeightRows = function (type) {
         var y = this.cellsTop;
         var l = this.model.getRowsCount();
-        var defaultH = this.defaultRowHeightPx;
-        var i = 0, r, h, hR, hiddenH = 0;
+        var i = 0, hiddenH = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.rows = [];
@@ -1445,31 +1473,8 @@
             y = this._getRowTop(i);
         }
         for (; i < l; ++i) {
-            this.model._getRowNoEmptyWithAll(i, function(row){
-				if (!row) {
-					hR = -1; // Будет использоваться дефолтная высота строки
-				} else if (row.getHidden()) {
-					hR = 0;  // Скрытая строка, высоту выставляем 0
-					hiddenH += row.h > 0 ? row.h - 1 : defaultH;
-				} else {
-					// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
-					if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
-						hR = row.h;
-					} else {
-						hR = -1;
-					}
-				}
-            });
-            if (hR < 0) {
-                hR = AscCommonExcel.oDefaultMetrics.RowHeight;
-            }
-            h = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
-            r = this.rows[i] = new CacheRow();
-			r.top = y;
-			r.height = h;
-			r.heightReal = hR;
-			r.descender = this.defaultRowDescender;
-            y += h;
+			hiddenH += this._calcHeightRow(y, i);
+			y += this._getRowHeight(i);
         }
 
         this.nRowsCount = Math.min(Math.max(this.nRowsCount, i), gc_nMaxRow);
