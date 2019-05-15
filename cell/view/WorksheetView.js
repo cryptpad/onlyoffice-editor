@@ -5297,7 +5297,11 @@
 			this.canChangeColWidth = this.arrRecalcRangesCanChangeColWidth[i];
 
 			for (var r = range.r1; r <= range.r2 && r < this.rows.length; duplicate[r++] = 1) {
-				if (duplicate[r] || this.model.getRowCustomHeight(r)) {
+				if (duplicate[r]) {
+					continue;
+				}
+				if (this.model.getRowCustomHeight(r)) {
+					this._calcHeightRow(0, r);
 					continue;
 				}
 
