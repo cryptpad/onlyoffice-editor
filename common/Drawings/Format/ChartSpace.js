@@ -15442,6 +15442,7 @@ function checkBlipFillRasterImages(sp)
     window['AscFormat'].CreateDefaultAxises = CreateDefaultAxises;
     window['AscFormat'].CreateScatterAxis = CreateScatterAxis;
     window['AscFormat'].getChartSeries = getChartSeries;
+    window['AscFormat'].parseSeriesHeaders = parseSeriesHeaders;
     window['AscFormat'].checkSpPrRasterImages = checkSpPrRasterImages;
     window['AscFormat'].checkBlipFillRasterImages = checkBlipFillRasterImages;
 
