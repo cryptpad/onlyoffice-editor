@@ -6646,6 +6646,15 @@
 
 		return res;
 	};
+	Worksheet.prototype.setRowsCount = function (val, onlyExpand) {
+		if(val > gc_nMaxRow0 || val < 0) {
+			return;
+		}
+		if(onlyExpand && val < this.nRowsCount) {
+			return;
+		}
+		this.nRowsCount = val;
+	};
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
