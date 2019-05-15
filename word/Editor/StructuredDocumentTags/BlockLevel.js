@@ -968,7 +968,7 @@ CBlockLevelSdt.prototype.GetEndInfo = function()
 };
 CBlockLevelSdt.prototype.Is_UseInDocument = function(Id)
 {
-	if (Id === this.Content.GetId())
+	if (Id === this.Content.GetId() && this.Parent)
 		return this.Parent.Is_UseInDocument(this.GetId());
 
 	return false;

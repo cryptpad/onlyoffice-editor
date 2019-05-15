@@ -528,7 +528,7 @@ CDocumentContent.prototype.Is_UseInDocument = function(Id)
 	else
 		bUse = true;
 
-	if (true === bUse && null != this.Parent)
+	if (true === bUse && this.Parent)
 		return this.Parent.Is_UseInDocument(this.Get_Id());
 
 	return false;
