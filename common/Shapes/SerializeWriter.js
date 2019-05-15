@@ -2413,7 +2413,7 @@ function CBinaryFileWriter()
         {
                 /*EFFECT_TYPE_OUTERSHDW		=*/	case 1:
                 {
-
+                    oThis.StartRecord(type);
                     oThis.WriteUChar(g_nodeAttributeStart);
                     oThis._WriteUChar2(0, oEffect.algn);
                     oThis._WriteInt2(1,	oEffect.blurRad);
@@ -2425,123 +2425,339 @@ function CBinaryFileWriter()
                     oThis._WriteInt2(7,	oEffect.sy);
                     oThis._WriteBool2(8, oEffect.rotWithShape);
                     oThis.WriteUChar(g_nodeAttributeEnd);
-                    oThis.WriteRecord2(0, oEffect.color, oThis.WriteUniColor)
+                    oThis.WriteRecord2(0, oEffect.color, oThis.WriteUniColor);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_GLOW			=*/	case 2:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0,	oEffect.rad);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.WriteRecord2(0, oEffect.color, oThis.WriteUniColor);
+                    oThis.EndRecord();
+
                     break;
                 }
                         /*EFFECT_TYPE_DUOTONE		    =*/	case 3:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteULong(oEffect.colors.length);
+                    for(var i = 0; i < oEffect.colors.length; ++i)
+                    {
+                        oThis.WriteRecord1(0, oEffect.colors[i], oThis.WriteUniColor);
+                    }
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_XFRM			=*/	case 4:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.kx);
+                    oThis._WriteInt2(1, oEffect.ky);
+                    oThis._WriteInt2(2, oEffect.sx);
+                    oThis._WriteInt2(3, oEffect.sy);
+                    oThis._WriteInt2(4, oEffect.tx);
+                    oThis._WriteInt2(5, oEffect.tx);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_BLUR			=*/	case 5:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.rad);
+                    oThis._WriteBool2(1, oEffect.grow);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_PRSTSHDW		=*/	case 6:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.dir);
+                    oThis._WriteInt2(1, oEffect.dist);
+                    oThis._WriteLimit1(2, oEffect.prst);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_INNERSHDW		=*/	case 7:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.dir);
+                    oThis._WriteInt2(1, oEffect.dist);
+                    oThis._WriteLimit1(2, oEffect.blurRad);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.WriteRecord1(0, oEffect.color, oThis.WriteUniColor);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_REFLECTION		=*/	case 8:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteLimit2(0, oEffect.algn);
+                    oThis._WriteInt2(1, oEffect.blurRad);
+                    oThis._WriteInt2(2, oEffect.stA);
+                    oThis._WriteInt2(3, oEffect.endA);
+                    oThis._WriteInt2(4, oEffect.stPos);
+                    oThis._WriteInt2(5, oEffect.endPos);
+                    oThis._WriteInt2(6, oEffect.dir);
+                    oThis._WriteInt2(7, oEffect.fadeDir);
+                    oThis._WriteInt2(8, oEffect.dist);
+                    oThis._WriteInt2(9, oEffect.kx);
+                    oThis._WriteInt2(10, oEffect.ky);
+                    oThis._WriteInt2(11, oEffect.sx);
+                    oThis._WriteInt2(12, oEffect.sy);
+                    oThis._WriteBool2(13, oEffect.rotWithShape);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_SOFTEDGE		=*/	case 9:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.rad);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_FILLOVERLAY	    =*/	case 10:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteLimit2(0, oEffect.blend);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.WriteRecord1(0, oEffect.fill, oThis.WriteUniFill);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ALPHACEILING	=*/	case 11:
                 {
+                    oThis.StartRecord(type);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ALPHAFLOOR		=*/	case 12:
                 {
+                    oThis.StartRecord(type);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_TINTEFFECT		=*/	case 13:
                 {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.amt);
+                    oThis._WriteInt2(1, oEffect.hue);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_RELOFF			=*/	case 14:
                 {
+
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.tx);
+                    oThis._WriteInt2(1, oEffect.ty);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_LUM			    =*/	case 15:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.bright);
+                    oThis._WriteInt2(1, oEffect.contrast);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_HSL			    =*/	case 16:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.hue);
+                    oThis._WriteInt2(1, oEffect.lum);
+                    oThis._WriteInt2(2, oEffect.sat);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_GRAYSCL		    =*/	case 17:
                 {
+                    oThis.StartRecord(type);
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ELEMENT		    =*/	case 18:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis.WriteString2(0, oEffect.ref);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ALPHAREPL		=*/	case 19:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.a);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ALPHAOUTSET	    =*/	case 20:
                 {
+
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.rad);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ALPHAMODFIX	    =*/	case 21:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.amt);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ALPHABILEVEL	=*/	case 22:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.thresh);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_BILEVEL		    =*/	case 23:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.thresh);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_DAG			    =*/	case 24:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis.WriteString2(0, oEffect.name);
+                    oThis._WriteLimit2(1, oEffect.type);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.StartRecord(type);
+                    var len__ = oEffect.effectList.length;
+                    oThis._WriteInt2(0, len__);
+
+                    for (var i = 0; i < len__; ++i)
+                    {
+                        oThis.WriteRecord1(1, oEffect.effectList[i], oThis.WriteEffect); // id неважен
+                    }
+                    oThis.EndRecord();
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_FILL			=*/	case 25:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteRecord1(0, oEffect.Fill);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_CLRREPL		    =*/	case 26:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteRecord1(0, oEffect.color);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_CLRCHANGE		=*/	case 27:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteBool2(0, oEffect.useA);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.WriteRecord1(0, oEffect.clrFrom);
+                    oThis.WriteRecord1(1, oEffect.clrTo);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ALPHAINV		=*/	case 28:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteRecord1(0, oEffect.color);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_ALPHAMOD		=*/	case 29:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteRecord1(0, oEffect.cont);
+
+                    oThis.EndRecord();
                     break;
                 }
                         /*EFFECT_TYPE_BLEND			=*/	case 30:
                 {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteLimit2(0, oEffect.blend);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.WriteRecord1(0, oEffect.cont);
+
+                    oThis.EndRecord();
                     break;
                 }
         }
