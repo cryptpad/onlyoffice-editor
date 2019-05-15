@@ -403,7 +403,7 @@ CDocument.prototype.private_SelectRevisionChange = function(oChange, isSkipCompl
 		{
 			if (oChange.IsMove())
 			{
-				this.SelectTrackMove(oChange.GetMoveId(), oChange.IsMoveFrom());
+				this.SelectTrackMove(oChange.GetMoveId(), oChange.IsMoveFrom(), false, false);
 			}
 		}
 		else
@@ -478,7 +478,7 @@ CDocument.prototype.private_ProcessMoveReview = function(oChange, isAccept)
 	function privateProcessChanges(isFrom)
 	{
 		oTrackMove.SetFrom(isFrom);
-		oThis.SelectTrackMove(sMoveId, isFrom);
+		oThis.SelectTrackMove(sMoveId, isFrom, false, false);
 
 		if (isAccept)
 			oThis.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMark, false);

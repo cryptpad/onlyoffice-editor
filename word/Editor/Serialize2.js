@@ -11274,7 +11274,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		{
 			oParaDrawing.Set_WrappingType(WRAPPING_TYPE_TOP_AND_BOTTOM);
 			res = this.bcr.Read2(length, function(t, l){
-                    return oThis.ReadWrapThroughTight(t, l,  oParaDrawing.wrappingPolygon);
+                    return oThis.ReadWrapTopBottom(t, l,  oParaDrawing.wrappingPolygon);
                 });
 		}
 		else if( c_oSerImageType2.GraphicFramePr === type )

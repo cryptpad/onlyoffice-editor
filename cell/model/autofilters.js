@@ -5226,6 +5226,9 @@
 					addNameColumn = false;
 				}
 
+				//expand by merged cells(if selected columns/rows)
+				tempRange = this.worksheet.expandRangeByMerged(tempRange);
+
 				//expand range
 				var tablePartsContainsRange = this._isTablePartsContainsRange(tempRange);
 				if(tablePartsContainsRange)

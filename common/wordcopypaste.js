@@ -7588,6 +7588,7 @@ PasteProcessor.prototype =
 						{
 							newNode.insertBefore(headNode.childNodes[0], newNode.childNodes[0]);
 						}
+						pPr.repeatHeaderRow = true;
 					}
 				}
 				else
@@ -7970,6 +7971,7 @@ PasteProcessor.prototype =
 
         //content
         var oRowSpans = {};
+		var bFirstRow = true;
         for(var i = 0, length = node.childNodes.length; i < length; ++i)
         {
             var tr = node.childNodes[i];
@@ -7977,7 +7979,11 @@ PasteProcessor.prototype =
             if("tr" === tr.nodeName.toLowerCase() && tr.childNodes && tr.childNodes.length)
             {
 				var row = table.private_AddRow(table.Content.length, 0);
-                this._ExecuteTableRow(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef);
+				if(bFirstRow && pPr.repeatHeaderRow) {
+					row.Pr.TableHeader = true;
+				}
+				bFirstRow = false;
+				this._ExecuteTableRow(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef);
             }
         }
     },
