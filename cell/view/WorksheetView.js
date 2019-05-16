@@ -7359,9 +7359,10 @@
     // Потеряем ли мы что-то при merge ячеек
     WorksheetView.prototype.getSelectionMergeInfo = function (options) {
         // ToDo now check only last selection range
-        var arn = this.model.selectionRange.getLast().clone(true);
-        var notEmpty = false;
-        var r, c;
+		var t = this;
+		var arn = this.model.selectionRange.getLast().clone(true);
+		var range = this.model.getRange3(arn.r1, arn.c1, arn.r2, arn.c2);
+		var lastRow = -1, res;
 
         if (this.cellCommentator.isMissComments(arn)) {
             return true;
@@ -7370,33 +7371,28 @@
         switch (options) {
             case c_oAscMergeOptions.Merge:
             case c_oAscMergeOptions.MergeCenter:
-                for (r = arn.r1; r <= arn.r2; ++r) {
-                    for (c = arn.c1; c <= arn.c2; ++c) {
-                        if (false === this._isCellNullText(c, r)) {
-                            if (notEmpty) {
-                                return true;
-                            }
-                            notEmpty = true;
-                        }
-                    }
-                }
+				res = range._foreachNoEmptyByCol(function(cell) {
+					if (false === t._isCellNullText(cell)) {
+						if (-1 !== lastRow) {
+							return true;
+						}
+						lastRow = cell.nRow;
+					}
+				});
                 break;
             case c_oAscMergeOptions.MergeAcross:
-                for (r = arn.r1; r <= arn.r2; ++r) {
-                    notEmpty = false;
-                    for (c = arn.c1; c <= arn.c2; ++c) {
-                        if (false === this._isCellNullText(c, r)) {
-                            if (notEmpty) {
-                                return true;
-                            }
-                            notEmpty = true;
-                        }
-                    }
-                }
+				res = range._foreachNoEmpty(function(cell) {
+					if (false === t._isCellNullText(cell)) {
+						if (lastRow === cell.nRow) {
+							return true;
+						}
+						lastRow = cell.nRow;
+					}
+				});
                 break;
         }
 
-        return false;
+        return !!res;
     };
 
 	//нужно ли спрашивать пользователя о расширении диапазона
