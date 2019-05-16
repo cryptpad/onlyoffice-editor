@@ -807,8 +807,11 @@ CFootnotesController.prototype.RejectRevisionChanges = function(Type, bAll)
 //----------------------------------------------------------------------------------------------------------------------
 CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, bAll)
 {
-	var oTrackManager = this.GetLogicDocument().GetTrackRevisionsManager();
-	var oTrackMove    = oTrackManager.GetProcessTrackMove();
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	if (!oTrackManager)
+		return;
+
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
 
 	if (true === this.Selection.Use || true === bAll)
 	{
@@ -902,8 +905,11 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 };
 CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, bAll)
 {
-	var oTrackManager = this.GetLogicDocument().GetTrackRevisionsManager();
-	var oTrackMove    = oTrackManager.GetProcessTrackMove();
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	if (!oTrackManager)
+		return;
+
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
 
 	if (true === this.Selection.Use || true === bAll)
 	{
