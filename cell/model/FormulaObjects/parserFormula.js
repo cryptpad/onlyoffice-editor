@@ -2434,7 +2434,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 		//TODO
 		if(this.oneColumnIndex) {
-			tryDiffHdtcIndex(this.oneColumnIndex);
+			if(offset && offset.col) {
+				tryDiffHdtcIndex(this.oneColumnIndex);
+			}
 		} else if(this.colStartIndex && this.colEndIndex) {
 
 		} else if(this.hdtIndexes || this.hdtcstartIndex || this.hdtcendIndex) {
