@@ -2415,6 +2415,40 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			}
 		}
 	};
+	cStrucTable.prototype.setOffset = function(offset) {
+		var t = this;
+
+		//TODO
+		if(this.oneColumnIndex) {
+
+		} else if(this.colStartIndex && this.colEndIndex) {
+
+		} else if(this.hdtIndexes || this.hdtcstartIndex || this.hdtcendIndex) {
+
+			var tryDiffHdtcIndex = function(oIndex) {
+				var table = t.wb.getTableByName(t.tableName, oIndex.wsID);
+				if(table) {
+					var tableColumnsCount = table.TableColumns.length;
+					var index = oIndex.index + offset.col;
+					index = index - Math.floor(index / tableColumnsCount) * tableColumnsCount;
+					var columnName = t.wb.getTableNameColumnByIndex(t.tableName, index);
+					if(columnName) {
+						oIndex.index = index;
+						oIndex.name = columnName.columnName;
+					}
+				}
+			};
+
+			if(offset && offset.col) {
+				if(this.hdtcstartIndex) {
+					tryDiffHdtcIndex(this.hdtcstartIndex);
+				}
+				if(this.hdtcendIndex) {
+					tryDiffHdtcIndex(this.hdtcendIndex);
+				}
+			}
+		}
+	};
 
 	/**
 	 * @constructor
@@ -6330,7 +6364,11 @@ parserFormula.prototype.setFormula = function(formula) {
 		} else if (cElementType.cellsRange3D === elem.type) {
 			isErr = true;
 			bbox = elem.getBBox0NoCheck();
+		} else if(cElementType.table === elem.type) {
+			elem.setOffset(offset);
+			elem._updateArea(null, false);
 		}
+
 		if (bbox) {
 			bbox = bbox.clone();
 			if (bbox.setOffsetWithAbs(offset, canResize)) {

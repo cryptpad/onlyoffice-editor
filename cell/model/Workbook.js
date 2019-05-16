@@ -2899,6 +2899,11 @@
 		}
 		return res;
 	};
+	Workbook.prototype.getTableByName = function(tableName, wsID){
+		var res = null;
+		var ws = this.getWorksheetById(wsID);
+		return ws.getTableByName(tableName);
+	};
 	Workbook.prototype.updateSparklineCache = function (sheet, ranges) {
 		this.forEach(function (ws) {
 			ws.updateSparklineCache(sheet, ranges);
@@ -5602,6 +5607,21 @@
 			if(this.TableParts[i].DisplayName === tableName)
 			{
 				res = this.TableParts[i].getTableNameColumnByIndex(columnIndex);
+				break;
+			}
+		}
+		return res;
+	};
+	Worksheet.prototype.getTableByName = function(tableName){
+		var res = null;
+		if(!this.TableParts)
+			return res;
+
+		for(var i = 0; i < this.TableParts.length; i++)
+		{
+			if(this.TableParts[i].DisplayName === tableName)
+			{
+				res = this.TableParts[i];
 				break;
 			}
 		}
