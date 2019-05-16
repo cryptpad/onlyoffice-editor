@@ -510,7 +510,7 @@ CSelectedContent.prototype =
         }
 
         // Ставим метки переноса в начало и конец
-        if (this.Elements.length > 0 && LogicDocument && null !== LogicDocument.TrackMoveId)
+        if (this.Elements.length > 0 && LogicDocument && null !== LogicDocument.TrackMoveId && undefined !== LogicDocument.TrackMoveId)
 		{
 			var isCanMove = !this.IsHaveMovedParts();
 			for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
