@@ -3412,8 +3412,8 @@ PasteProcessor.prototype =
 				return;
 			}
 
+			this.oLogicDocument.RemoveBeforePaste();
 			this.oDocument = this._GetTargetDocument(this.oDocument);
-            this.oLogicDocument.RemoveBeforePaste();
 			this._pasteText(text);
 			return;
 		}
