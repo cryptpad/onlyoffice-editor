@@ -8139,6 +8139,7 @@ PasteProcessor.prototype =
 
         //content
         var oPasteProcessor = new PasteProcessor(this.api, false, false, true);
+		oPasteProcessor.msoComments = this.msoComments;
         oPasteProcessor.oFonts = this.oFonts;
         oPasteProcessor.oImages = this.oImages;
         oPasteProcessor.oDocument = cell.Content;
