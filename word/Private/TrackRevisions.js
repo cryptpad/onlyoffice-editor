@@ -812,9 +812,6 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 
 	if (true === this.Selection.Use || true === bAll)
 	{
-		var nOldStartPos = this.Selection.StartPos;
-		var nOldEndPos   = this.Selection.EndPos;
-
 		var StartPos = this.Selection.StartPos;
 		var EndPos   = this.Selection.EndPos;
 		if (StartPos > EndPos)
@@ -851,7 +848,6 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 			oElement.AcceptRevisionChanges(nType, bAll);
 		}
 
-		var nDeletedCount = 0;
 		if (undefined === nType
 			|| c_oAscRevisionsChangeType.ParaAdd === nType
 			|| c_oAscRevisionsChangeType.ParaRem === nType
@@ -889,8 +885,7 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
 					{
 						oElement.SetReviewType(reviewtype_Common);
-						this.Concat_Paragraphs(nCurPos);
-						nDeletedCount++;
+						this.ConcatParagraphs(nCurPos);;
 					}
 				}
 				else if (oElement.IsTable())
@@ -899,18 +894,9 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 					if (oElement.GetRowsCount() <= 0)
 					{
 						this.RemoveFromContent(nCurPos, 1, false);
-						nDeletedCount++;
 					}
 				}
 			}
-		}
-
-		if (nDeletedCount > 0)
-		{
-			if (nOldEndPos < nOldStartPos)
-				this.Selection.StartPos = nOldStartPos - nDeletedCount;
-			else
-				this.Selection.EndPos = nOldEndPos - nDeletedCount;
 		}
 	}
 };
@@ -921,9 +907,6 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 
 	if (true === this.Selection.Use || true === bAll)
 	{
-		var nOldStartPos = this.Selection.StartPos;
-		var nOldEndPos   = this.Selection.EndPos;
-
 		var StartPos = this.Selection.StartPos;
 		var EndPos   = this.Selection.EndPos;
 		if (StartPos > EndPos)
@@ -960,7 +943,6 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 			oElement.RejectRevisionChanges(nType, bAll);
 		}
 
-		var nDeletedCount = 0;
 		if (undefined === nType
 			|| c_oAscRevisionsChangeType.ParaAdd === nType
 			|| c_oAscRevisionsChangeType.ParaRem === nType
@@ -992,8 +974,7 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 							oNextParaPr = oNextPara.GetDirectParaPr(false);
 
 						oElement.SetReviewType(reviewtype_Common);
-						this.Concat_Paragraphs(nCurPos);
-						nDeletedCount++;
+						this.ConcatParagraphs(nCurPos);
 
 						if (oNextParaPr)
 							oElement.SetDirectParaPr(oNextParaPr.Copy(true));
@@ -1025,18 +1006,9 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 					if (oElement.GetRowsCount() <= 0)
 					{
 						this.RemoveFromContent(nCurPos, 1, false);
-						nDeletedCount++;
 					}
 				}
 			}
-		}
-
-		if (nDeletedCount > 0)
-		{
-			if (nOldEndPos < nOldStartPos)
-				this.Selection.StartPos = nOldStartPos - nDeletedCount;
-			else
-				this.Selection.EndPos = nOldEndPos - nDeletedCount;
 		}
 	}
 };

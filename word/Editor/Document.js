@@ -9215,6 +9215,7 @@ CDocument.prototype.Internal_Content_Add = function(Position, NewObject, bCheckL
 	this.private_RecalculateNumbering([NewObject]);
 	this.History.Add(new CChangesDocumentAddItem(this, Position, [NewObject]));
 	this.Content.splice(Position, 0, NewObject);
+	this.private_UpdateSelectionPosOnAdd(Position)
 	NewObject.Set_Parent(this);
 	NewObject.Set_DocumentNext(NextObj);
 	NewObject.Set_DocumentPrev(PrevObj);
@@ -9259,6 +9260,7 @@ CDocument.prototype.Internal_Content_Remove = function(Position, Count, bCheckLa
 	this.History.Add(new CChangesDocumentRemoveItem(this, Position, this.Content.slice(Position, Position + Count)));
 	var Elements = this.Content.splice(Position, Count);
 	this.private_RecalculateNumbering(Elements);
+	this.private_UpdateSelectionPosOnRemove(Position, Count);
 
 	if (null != PrevObj)
 		PrevObj.Set_DocumentNext(NextObj);
@@ -12205,30 +12207,6 @@ CDocument.prototype.Add_ToContent = function(Pos, Item, isCorrectContent)
 CDocument.prototype.Remove_FromContent = function(Pos, Count, isCorrectContent)
 {
 	this.Internal_Content_Remove(Pos, Count, isCorrectContent);
-};
-CDocument.prototype.Concat_Paragraphs = function(Pos)
-{
-	if (Pos < this.Content.length - 1 && type_Paragraph === this.Content[Pos].Get_Type() && type_Paragraph === this.Content[Pos + 1].Get_Type())
-	{
-		var Para1 = this.Content[Pos];
-		var Para2 = this.Content[Pos + 1];
-
-		var OldSelectionStartPos = this.Selection.StartPos;
-		var OldSelectionEndPos   = this.Selection.EndPos;
-		var OldCurPos            = this.CurPos.ContentPos;
-
-		Para1.Concat(Para2);
-		this.Remove_FromContent(Pos + 1, 1);
-
-		if (OldCurPos > Pos)
-			this.CurPos.ContentPos = OldCurPos - 1;
-
-		if (OldSelectionStartPos > Pos)
-			this.Selection.StartPos = OldSelectionStartPos - 1;
-
-		if (OldSelectionEndPos > Pos)
-			this.Selection.EndPos = OldSelectionEndPos - 1;
-	}
 };
 CDocument.prototype.Set_FastCollaborativeEditing = function(isOn)
 {
