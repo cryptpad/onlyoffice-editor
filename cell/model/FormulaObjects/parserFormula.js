@@ -2418,27 +2418,26 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cStrucTable.prototype.setOffset = function(offset) {
 		var t = this;
 
+		var tryDiffHdtcIndex = function(oIndex) {
+			var table = t.wb.getTableByName(t.tableName, oIndex.wsID);
+			if(table) {
+				var tableColumnsCount = table.TableColumns.length;
+				var index = oIndex.index + offset.col;
+				index = index - Math.floor(index / tableColumnsCount) * tableColumnsCount;
+				var columnName = t.wb.getTableNameColumnByIndex(t.tableName, index);
+				if(columnName) {
+					oIndex.index = index;
+					oIndex.name = columnName.columnName;
+				}
+			}
+		};
+
 		//TODO
 		if(this.oneColumnIndex) {
-
+			tryDiffHdtcIndex(this.oneColumnIndex);
 		} else if(this.colStartIndex && this.colEndIndex) {
 
 		} else if(this.hdtIndexes || this.hdtcstartIndex || this.hdtcendIndex) {
-
-			var tryDiffHdtcIndex = function(oIndex) {
-				var table = t.wb.getTableByName(t.tableName, oIndex.wsID);
-				if(table) {
-					var tableColumnsCount = table.TableColumns.length;
-					var index = oIndex.index + offset.col;
-					index = index - Math.floor(index / tableColumnsCount) * tableColumnsCount;
-					var columnName = t.wb.getTableNameColumnByIndex(t.tableName, index);
-					if(columnName) {
-						oIndex.index = index;
-						oIndex.name = columnName.columnName;
-					}
-				}
-			};
-
 			if(offset && offset.col) {
 				if(this.hdtcstartIndex) {
 					tryDiffHdtcIndex(this.hdtcstartIndex);
@@ -6344,13 +6343,13 @@ parserFormula.prototype.setFormula = function(formula) {
 	};
 
 	/* Для обратной сборки функции иногда необходимо поменять ссылки на ячейки */
-	parserFormula.prototype.changeOffset = function (offset, canResize) {//offset = AscCommon.CellBase
+	parserFormula.prototype.changeOffset = function (offset, canResize, nChangeTable) {//offset = AscCommon.CellBase
 		for (var i = 0; i < this.outStack.length; i++) {
-			this._changeOffsetElem(this.outStack[i], this.outStack, i, offset, canResize);
+			this._changeOffsetElem(this.outStack[i], this.outStack, i, offset, canResize, nChangeTable);
 		}
 		return this;
 	};
-	parserFormula.prototype._changeOffsetElem = function(elem, container, index, offset, canResize) {//offset =
+	parserFormula.prototype._changeOffsetElem = function(elem, container, index, offset, canResize, nChangeTable) {//offset =
 		// AscCommon.CellBase
 		var range, bbox = null, ws, isErr = false;
 		if (cElementType.cell === elem.type || cElementType.cell3D === elem.type ||
@@ -6364,7 +6363,8 @@ parserFormula.prototype.setFormula = function(formula) {
 		} else if (cElementType.cellsRange3D === elem.type) {
 			isErr = true;
 			bbox = elem.getBBox0NoCheck();
-		} else if(cElementType.table === elem.type) {
+		} else if(cElementType.table === elem.type && !nChangeTable) {
+			//когда клонируем диапазон, диапазон таблиц не изменяется
 			elem.setOffset(offset);
 			elem._updateArea(null, false);
 		}
