@@ -4488,6 +4488,10 @@
 					
 					//заполняем стили
 					styleForCurTable.initStyle(worksheet.sheetMergedStyles, bbox, style, headerRowCount, totalsRowCount);
+					//expand init rows
+					if(bbox.r2 > worksheet.nRowsCount) {
+						worksheet.setRowsCount(bbox.r2);
+					}
 				}
 			},
 

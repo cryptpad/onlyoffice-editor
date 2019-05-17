@@ -6670,11 +6670,8 @@
 
 		return res;
 	};
-	Worksheet.prototype.setRowsCount = function (val, onlyExpand) {
+	Worksheet.prototype.setRowsCount = function (val) {
 		if(val > gc_nMaxRow0 || val < 0) {
-			return;
-		}
-		if(onlyExpand && val < this.nRowsCount) {
 			return;
 		}
 		this.nRowsCount = val;
