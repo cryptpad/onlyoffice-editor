@@ -967,7 +967,7 @@
 
 			var addChangedSheet = function(row, col) {
 				var cellIndex = getCellIndex(row, col);
-				if (t.isInCalc && !changedSheet[cellIndex]) {
+				if (t.isInCalc && undefined === changedSheet[cellIndex]) {
 					if (!t.changedCellRepeated) {
 						t.changedCellRepeated = {};
 					}
