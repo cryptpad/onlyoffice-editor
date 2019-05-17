@@ -14777,7 +14777,7 @@
         };
 
         var newActiveRange = this.model.selectionRange.getLast().clone();
-        var displayName = null;
+        var displayName = undefined;
         var type = null;
         switch (optionType) {
             case c_oAscInsertOptions.InsertTableRowAbove:
