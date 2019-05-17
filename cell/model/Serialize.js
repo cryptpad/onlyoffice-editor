@@ -413,7 +413,24 @@
     var  c_oSer_PageSetup =
     {
         Orientation: 0,
-        PaperSize: 1
+        PaperSize: 1,
+        BlackAndWhite: 2,
+        CellComments: 3,
+        Copies: 4,
+        Draft: 5,
+        Errors: 6,
+        FirstPageNumber: 7,
+        FitToHeight: 8,
+        FitToWidth: 9,
+        HorizontalDpi: 10,
+        PageOrder: 11,
+        PaperHeight: 12,
+        PaperWidth: 13,
+        PaperUnits: 14,
+        Scale: 15,
+        UseFirstPageNumber: 16,
+        UsePrinterDefaults: 17,
+        VerticalDpi: 18
     };
     /** @enum */
     var  c_oSer_PrintOptions =
@@ -3399,6 +3416,61 @@
         };
         this.WritePageSetup = function(oPageSetup)
         {
+            //PageSize
+            var dWidth = oPageSetup.asc_getWidth();
+            var dHeight = oPageSetup.asc_getHeight();
+            if(null != dWidth && null != dHeight)
+            {
+                var item = DocumentPageSize.getSizeByWH(dWidth, dHeight);
+                this.memory.WriteByte(c_oSer_PageSetup.PaperSize);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteByte(item.id);
+            }
+            if (null != oPageSetup.blackAndWhite) {
+                this.memory.WriteByte(c_oSer_PageSetup.BlackAndWhite);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteBool(oPageSetup.blackAndWhite);
+            }
+            if (null != oPageSetup.cellComments) {
+                this.memory.WriteByte(c_oSer_PageSetup.CellComments);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteByte(oPageSetup.cellComments);
+            }
+            if (null != oPageSetup.copies) {
+                this.memory.WriteByte(c_oSer_PageSetup.Copies);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oPageSetup.copies);
+            }
+            if (null != oPageSetup.draft) {
+                this.memory.WriteByte(c_oSer_PageSetup.Draft);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteBool(oPageSetup.draft);
+            }
+            if (null != oPageSetup.errors) {
+                this.memory.WriteByte(c_oSer_PageSetup.Errors);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteByte(oPageSetup.errors);
+            }
+            if (null != oPageSetup.firstPageNumber) {
+                this.memory.WriteByte(c_oSer_PageSetup.FirstPageNumber);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oPageSetup.firstPageNumber);
+            }
+            if (null != oPageSetup.fitToHeight) {
+                this.memory.WriteByte(c_oSer_PageSetup.FitToHeight);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oPageSetup.fitToHeight ? 1 : 0);
+            }
+            if (null != oPageSetup.fitToWidth) {
+                this.memory.WriteByte(c_oSer_PageSetup.FitToWidth);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oPageSetup.fitToWidth ? 1 : 0);
+            }
+            if (null != oPageSetup.horizontalDpi) {
+                this.memory.WriteByte(c_oSer_PageSetup.HorizontalDpi);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oPageSetup.horizontalDpi);
+            }
             //Orientation
             var byteOrientation = oPageSetup.asc_getOrientation();
             if(null != byteOrientation)
@@ -3416,15 +3488,45 @@
                     this.memory.WriteByte(byteFormatOrientation);
                 }
             }
-            //PageSize
-            var dWidth = oPageSetup.asc_getWidth();
-            var dHeight = oPageSetup.asc_getHeight();
-            if(null != dWidth && null != dHeight)
-            {
-                var item = DocumentPageSize.getSizeByWH(dWidth, dHeight);
-                this.memory.WriteByte(c_oSer_PageSetup.PaperSize);
+            if (null != oPageSetup.pageOrder) {
+                this.memory.WriteByte(c_oSer_PageSetup.PageOrder);
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
-                this.memory.WriteByte(item.id);
+                this.memory.WriteByte(oPageSetup.pageOrder);
+            }
+            // if (null != oPageSetup.height) {
+            //     this.memory.WriteByte(c_oSer_PageSetup.PaperHeight);
+            //     this.memory.WriteByte(c_oSerPropLenType.Double);
+            //     this.memory.WriteDouble2(oPageSetup.height);
+            // }
+            // if (null != oPageSetup.width) {
+            //     this.memory.WriteByte(c_oSer_PageSetup.PaperWidth);
+            //     this.memory.WriteByte(c_oSerPropLenType.Double);
+            //     this.memory.WriteDouble2(oPageSetup.width);
+            // }
+            // if (null != oPageSetup.paperUnits) {
+            //     this.memory.WriteByte(c_oSer_PageSetup.PaperUnits);
+            //     this.memory.WriteByte(c_oSerPropLenType.Byte);
+            //     this.memory.WriteByte(oPageSetup.paperUnits);
+            // }
+            if (null != oPageSetup.scale) {
+                this.memory.WriteByte(c_oSer_PageSetup.Scale);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oPageSetup.scale);
+            }
+            if (null != oPageSetup.useFirstPageNumber) {
+                this.memory.WriteByte(c_oSer_PageSetup.UseFirstPageNumber);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteBool(oPageSetup.useFirstPageNumber);
+            }
+            if (null != oPageSetup.usePrinterDefaults) {
+                this.memory.WriteByte(c_oSer_PageSetup.UsePrinterDefaults);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteBool(oPageSetup.usePrinterDefaults);
+            }
+            if (null != oPageSetup.verticalDpi) {
+                this.memory.WriteByte(c_oSer_PageSetup.VerticalDpi);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oPageSetup.verticalDpi);
             }
         };
         this.WritePrintOptions = function(oPrintOptions)
@@ -6954,8 +7056,25 @@
         this.ReadPageSetup = function(type, length, oPageSetup)
         {
             var res = c_oSerConstants.ReadOk;
-            if ( c_oSer_PageSetup.Orientation == type )
-            {
+            if (c_oSer_PageSetup.BlackAndWhite === type) {
+                oPageSetup.blackAndWhite = this.stream.GetBool();
+            } else if ( c_oSer_PageSetup.CellComments == type ) {
+                oPageSetup.cellComments = this.stream.GetUChar();
+            } else if ( c_oSer_PageSetup.Copies == type ) {
+                oPageSetup.copies = this.stream.GetULongLE();
+            } else if ( c_oSer_PageSetup.Draft == type ) {
+                oPageSetup.draft = this.stream.GetBool();
+            } else if ( c_oSer_PageSetup.Errors == type ) {
+                oPageSetup.errors = this.stream.GetUChar();
+            } else if ( c_oSer_PageSetup.FirstPageNumber == type ) {
+                oPageSetup.firstPageNumber = this.stream.GetULongLE();
+            } else if ( c_oSer_PageSetup.FitToHeight == type ) {
+                oPageSetup.fitToHeight = !!this.stream.GetULongLE();
+            } else if ( c_oSer_PageSetup.FitToWidth == type ) {
+                oPageSetup.fitToWidth = !!this.stream.GetULongLE();
+            } else if ( c_oSer_PageSetup.HorizontalDpi == type ) {
+                oPageSetup.horizontalDpi = this.stream.GetULongLE();
+            } else if ( c_oSer_PageSetup.Orientation == type ) {
                 var byteFormatOrientation = this.stream.GetUChar();
                 var byteOrientation = null;
                 switch(byteFormatOrientation)
@@ -6965,15 +7084,28 @@
                 }
                 if(null != byteOrientation)
                     oPageSetup.asc_setOrientation(byteOrientation);
-            }
-            else if ( c_oSer_PageSetup.PaperSize == type )
-            {
+            } else if ( c_oSer_PageSetup.PageOrder == type ) {
+                oPageSetup.pageOrder = this.stream.GetUChar();
+            // } else if ( c_oSer_PageSetup.PaperHeight == type ) {
+            //     oPageSetup.height = this.stream.GetDoubleLE();
+            } else if ( c_oSer_PageSetup.PaperSize == type ) {
                 var bytePaperSize = this.stream.GetUChar();
                 var item = DocumentPageSize.getSizeById(bytePaperSize);
                 oPageSetup.asc_setWidth(item.w_mm);
                 oPageSetup.asc_setHeight(item.h_mm);
-            }
-            else
+            // } else if ( c_oSer_PageSetup.PaperWidth == type ) {
+            //     oPageSetup.width = this.stream.GetDoubleLE();
+            // } else if ( c_oSer_PageSetup.PaperUnits == type ) {
+            //     oPageSetup.paperUnits = this.stream.GetUChar();
+            } else if ( c_oSer_PageSetup.Scale == type ) {
+                oPageSetup.scale = this.stream.GetULongLE();
+            } else if ( c_oSer_PageSetup.UseFirstPageNumber == type ) {
+                oPageSetup.useFirstPageNumber = this.stream.GetBool();
+            } else if ( c_oSer_PageSetup.UsePrinterDefaults == type ) {
+                oPageSetup.usePrinterDefaults = this.stream.GetBool();
+            } else if ( c_oSer_PageSetup.VerticalDpi == type ) {
+                oPageSetup.verticalDpi = this.stream.GetULongLE();
+            } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
