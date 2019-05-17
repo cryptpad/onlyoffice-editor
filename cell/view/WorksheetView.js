@@ -1383,13 +1383,14 @@
 	};
 
 	WorksheetView.prototype._calcHeightRow = function (y, i) {
+		var t = this;
 		var r, hR, hiddenH = 0;
 		this.model._getRowNoEmptyWithAll(i, function (row) {
 			if (!row) {
 				hR = -1; // Будет использоваться дефолтная высота строки
 			} else if (row.getHidden()) {
 				hR = 0;  // Скрытая строка, высоту выставляем 0
-				hiddenH += row.h > 0 ? row.h - 1 : this.defaultRowHeightPx;
+				hiddenH += row.h > 0 ? row.h - 1 : t.defaultRowHeightPx;
 			} else {
 				// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
 				if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
