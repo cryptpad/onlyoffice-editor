@@ -1289,7 +1289,7 @@ ParaDrawing.prototype.GetPosCorrection = function()
 	var bCell;
 
 	var oEffectExtent = this.EffectExtent;
-	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent.IsTableCellContent(false))))
+	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.Use_TextWrap() && this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent.IsTableCellContent(false))))
 	{
 		var extX, extY, rot;
 		if (this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm )
