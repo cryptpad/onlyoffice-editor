@@ -677,6 +677,10 @@ CDocumentContentElementBase.prototype.GetStyleFromFormatting = function()
 CDocumentContentElementBase.prototype.GetAllContentControls = function(arrContentControls)
 {
 };
+/**
+ * Проверяем выделен ли элемент целиком
+ * @returns {boolean}
+ */
 CDocumentContentElementBase.prototype.IsSelectedAll = function()
 {
 	return false;

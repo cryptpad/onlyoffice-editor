@@ -12195,26 +12195,26 @@ CTable.prototype.Get_SectPr = function()
 };
 CTable.prototype.IsSelectedAll = function()
 {
-    if (true !== this.Selection.Use)
-        return false;
+	if (!this.IsCellSelection())
+		return false;
 
-    var ArrayPos = 0;
-    var SelectionArray = this.Selection.Data;
-    for (var CurRow = 0, RowsCount = this.Content.length; CurRow < RowsCount; CurRow++)
-    {
-        var Row = this.Content[CurRow];
-        for (var CurCell = 0, CellsCount = Row.Get_CellsCount(); CurCell < CellsCount; CurCell++, ArrayPos++)
-        {
-            if (ArrayPos >= SelectionArray.length)
-                return false;
+	var nArrayPos         = 0;
+	var arrSelectionArray = this.Selection.Data;
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell, ++nArrayPos)
+		{
+			if (nArrayPos >= arrSelectionArray.length)
+				return false;
 
-            var Pos = SelectionArray[ArrayPos];
-            if (Pos.Row !== CurRow || Pos.Cell !== CurCell)
-                return false;
-        }
-    }
+			var oPos = arrSelectionArray[nArrayPos];
+			if (oPos.Row !== nCurRow || oPos.Cell !== nCurCell)
+				return false;
+		}
+	}
 
-    return true;
+	return true;
 };
 CTable.prototype.AcceptRevisionChanges = function(nType, bAll)
 {
