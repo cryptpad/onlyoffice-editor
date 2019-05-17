@@ -8300,13 +8300,7 @@ PasteProcessor.prototype =
 						}
 						oThis.needAddCommentStart = null;
 					} else if(oThis.needAddCommentEnd) {
-						for(var i = 0; i < oThis.needAddCommentEnd.length; i++) {
-							oThis._CommitElemToParagraph(oThis.needAddCommentEnd[i]);
-							clonePr = oThis.oCurRun.Pr.Copy();
-							oThis.oCurRun = new ParaRun(oThis.oCurPar);
-							oThis.oCurRun.Set_Pr(clonePr);
-						}
-						oThis.needAddCommentEnd = null;
+						oThis._commitCommentEnd();
 					}
 
 
@@ -8967,12 +8961,28 @@ PasteProcessor.prototype =
 			}
 
 			parseChildNodes();
+
+			if(i === length - 1) {
+				oThis._commitCommentEnd();
+			}
 		}
 
 		if (bRoot && bPresentation) {
 			this._Commit_Br(2, node, pPr);//word игнорируем 2 последних br
 		}
 		return bAddParagraph;
+	},
+
+	_commitCommentEnd: function() {
+		if(this.needAddCommentEnd && this.oCurRun && this.oCurPar) {
+			for(var n = 0; n < this.needAddCommentEnd.length; n++) {
+				this._CommitElemToParagraph(this.needAddCommentEnd[n]);
+				var clonePr = this.oCurRun.Pr.Copy();
+				this.oCurRun = new ParaRun(this.oCurPar);
+				this.oCurRun.Set_Pr(clonePr);
+			}
+			this.needAddCommentEnd = null;
+		}
 	},
 
     _StartExecuteTablePresentation : function(node, pPr, arrShapes, arrImages, arrTables)
