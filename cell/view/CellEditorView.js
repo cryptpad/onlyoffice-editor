@@ -2594,7 +2594,9 @@
 				var res = this._findRangeUnderCursor();
 				if (res.range) {
 					res.range.switchReference();
-					this.enterCellRange(res.range.getName());
+					//_getNameRange - работает только для случая, когда ссылаемся на тот же лист, в противном функция _findRangeUnderCursor возвращает null
+					//если поменяется функция _findRangeUnderCursor для 3d ссылок, тогда необходимо это учитывать и в функции _getNameRange
+					this.enterCellRange(this._getNameRange(res.range));
 				}
 
 				event.stopPropagation();
@@ -2605,6 +2607,18 @@
 		t.skipKeyPress = false;
 		t.skipTLUpdate = true;
 		return true;
+	};
+
+	CellEditor.prototype._getNameRange = function (range) {
+		//check on merge
+		var currentRange = range.clone();
+		var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+		var mergedRange = ws.getMergedByCell(currentRange.r1, currentRange.c1);
+		if (mergedRange && currentRange.isEqual(mergedRange)) {
+			currentRange.r2 = currentRange.r1;
+			currentRange.c2 = currentRange.c1;
+		}
+		return currentRange.getName();
 	};
 
 	/** @param event {KeyboardEvent} */
