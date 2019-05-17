@@ -870,14 +870,34 @@
 								if (!nameRef.isSingleSheet()) {
 									continue;
 								}
+								
+								ret = true;
+								localStrObj = nameRef.toLocaleStringObj();
+								refStr = localStrObj[1];
+								wsName = nameRef.getWS().getName();
+
+								localStrObj = r.oper.toLocaleStringObj();
+								_s = _e - localStrObj[1].length;
+								_sColorPos = _e - localStrObj[0].length;
+								break;
 							}
-							case cElementType.cellsRange          :
-							case cElementType.cell3D        : {
+							case cElementType.cellsRange          :{
 								ret = true;
 								localStrObj = r.oper.toLocaleStringObj();
 								refStr = localStrObj[1];
 								wsName = nameRef.getWS().getName();
 								_s = _e - localStrObj[1].length;
+								break;
+							}
+							case cElementType.cell3D        : {
+								ret = true;
+								localStrObj = nameRef.toLocaleStringObj();
+								refStr = localStrObj[1];
+								wsName = nameRef.getWS().getName();
+
+								localStrObj = r.oper.toLocaleStringObj();
+								_s = _e - localStrObj[1].length;
+								_sColorPos = _e - localStrObj[0].length;
 								break;
 							}
 						}

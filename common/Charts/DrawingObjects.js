@@ -3967,7 +3967,24 @@ function DrawingObjects() {
             if (selectedRange)
             {
                 var box = selectedRange.getBBox0();
-                settings.putInColumns((box.r2 - box.r1 > box.c2 - box.c1));
+                var nRows = box.r2 - box.r1 + 1;
+                var nCols = box.c2 - box.c1 + 1;
+                if(nRows === nCols)
+                {
+                    if(nRows <= 4096 && nCols <= 4096 && worksheet && worksheet.model)
+                    {
+                        var oHeaders = AscFormat.parseSeriesHeaders(worksheet.model, box);
+                        if(oHeaders.bTop)
+                        {
+                            --nRows;
+                        }
+                        if(oHeaders.bLeft)
+                        {
+                            --nCols;
+                        }
+                    }
+                }
+                settings.putInColumns(nRows > nCols);
             }
             var oRangeValue = worksheet.getSelectionRangeValue();
             if(oRangeValue){

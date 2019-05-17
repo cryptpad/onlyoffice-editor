@@ -807,8 +807,11 @@ CFootnotesController.prototype.RejectRevisionChanges = function(Type, bAll)
 //----------------------------------------------------------------------------------------------------------------------
 CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, bAll)
 {
-	var oTrackManager = this.GetLogicDocument().GetTrackRevisionsManager();
-	var oTrackMove    = oTrackManager.GetProcessTrackMove();
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	if (!oTrackManager)
+		return;
+
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
 
 	if (true === this.Selection.Use || true === bAll)
 	{
@@ -885,7 +888,7 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
 					{
 						oElement.SetReviewType(reviewtype_Common);
-						this.Concat_Paragraphs(nCurPos);
+						this.ConcatParagraphs(nCurPos);;
 					}
 				}
 				else if (oElement.IsTable())
@@ -902,8 +905,11 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 };
 CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, bAll)
 {
-	var oTrackManager = this.GetLogicDocument().GetTrackRevisionsManager();
-	var oTrackMove    = oTrackManager.GetProcessTrackMove();
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	if (!oTrackManager)
+		return;
+
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
 
 	if (true === this.Selection.Use || true === bAll)
 	{
@@ -974,7 +980,7 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 							oNextParaPr = oNextPara.GetDirectParaPr(false);
 
 						oElement.SetReviewType(reviewtype_Common);
-						this.Concat_Paragraphs(nCurPos);
+						this.ConcatParagraphs(nCurPos);
 
 						if (oNextParaPr)
 							oElement.SetDirectParaPr(oNextParaPr.Copy(true));

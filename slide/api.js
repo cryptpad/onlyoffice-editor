@@ -6226,6 +6226,12 @@ background-repeat: no-repeat;\
 			this.WordControl.DemonstrationManager.StartWaitReporter(div_id, slidestart_num, true);
 		else
 			this.WordControl.DemonstrationManager.Start(div_id, slidestart_num, true);
+
+        if (undefined !== this.EndShowMessage)
+        {
+            this.WordControl.DemonstrationManager.EndShowMessage = this.EndShowMessage;
+            this.EndShowMessage = undefined;
+        }
 	};
 
 	asc_docs_api.prototype.EndDemonstration = function(isNoUseFullScreen)

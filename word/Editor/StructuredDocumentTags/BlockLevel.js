@@ -330,7 +330,12 @@ CBlockLevelSdt.prototype.CanUpdateTarget = function(CurPage)
 CBlockLevelSdt.prototype.MoveCursorLeft = function(AddToSelect, Word)
 {
 	if (this.IsPlaceHolder())
+	{
+		if (AddToSelect)
+			this.SelectAll(-1);
+
 		return false;
+	}
 
 	var bResult = this.Content.MoveCursorLeft(AddToSelect, Word);
 	if (!bResult && this.LogicDocument.IsFillingFormMode())
@@ -345,7 +350,12 @@ CBlockLevelSdt.prototype.MoveCursorLeftWithSelectionFromEnd = function(Word)
 CBlockLevelSdt.prototype.MoveCursorRight = function(AddToSelect, Word)
 {
 	if (this.IsPlaceHolder())
+	{
+		if (AddToSelect)
+			this.SelectAll(1);
+
 		return false;
+	}
 
 	var bResult = this.Content.MoveCursorRight(AddToSelect, Word, false);
 	if (!bResult && this.LogicDocument.IsFillingFormMode())
@@ -968,7 +978,7 @@ CBlockLevelSdt.prototype.GetEndInfo = function()
 };
 CBlockLevelSdt.prototype.Is_UseInDocument = function(Id)
 {
-	if (Id === this.Content.GetId())
+	if (Id === this.Content.GetId() && this.Parent)
 		return this.Parent.Is_UseInDocument(this.GetId());
 
 	return false;

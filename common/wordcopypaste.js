@@ -3412,8 +3412,8 @@ PasteProcessor.prototype =
 				return;
 			}
 
+			this.oLogicDocument.RemoveBeforePaste();
 			this.oDocument = this._GetTargetDocument(this.oDocument);
-            this.oLogicDocument.RemoveBeforePaste();
 			this._pasteText(text);
 			return;
 		}
@@ -8139,6 +8139,7 @@ PasteProcessor.prototype =
 
         //content
         var oPasteProcessor = new PasteProcessor(this.api, false, false, true);
+		oPasteProcessor.msoComments = this.msoComments;
         oPasteProcessor.oFonts = this.oFonts;
         oPasteProcessor.oImages = this.oImages;
         oPasteProcessor.oDocument = cell.Content;

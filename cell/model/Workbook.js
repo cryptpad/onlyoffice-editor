@@ -2899,6 +2899,11 @@
 		}
 		return res;
 	};
+	Workbook.prototype.getTableByName = function(tableName, wsID){
+		var res = null;
+		var ws = this.getWorksheetById(wsID);
+		return ws.getTableByName(tableName);
+	};
 	Workbook.prototype.updateSparklineCache = function (sheet, ranges) {
 		this.forEach(function (ws) {
 			ws.updateSparklineCache(sheet, ranges);
@@ -5607,6 +5612,21 @@
 		}
 		return res;
 	};
+	Worksheet.prototype.getTableByName = function(tableName){
+		var res = null;
+		if(!this.TableParts)
+			return res;
+
+		for(var i = 0; i < this.TableParts.length; i++)
+		{
+			if(this.TableParts[i].DisplayName === tableName)
+			{
+				res = this.TableParts[i];
+				break;
+			}
+		}
+		return res;
+	};
 	Worksheet.prototype.isApplyFilterBySheet = function () {
 		var res = false;
 
@@ -6645,6 +6665,15 @@
 		});
 
 		return res;
+	};
+	Worksheet.prototype.setRowsCount = function (val, onlyExpand) {
+		if(val > gc_nMaxRow0 || val < 0) {
+			return;
+		}
+		if(onlyExpand && val < this.nRowsCount) {
+			return;
+		}
+		this.nRowsCount = val;
 	};
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;

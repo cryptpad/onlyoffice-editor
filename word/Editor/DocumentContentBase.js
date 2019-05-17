@@ -1455,7 +1455,7 @@ CDocumentContentBase.prototype.RemoveNumberingSelection = function()
  * Рассчитываем значение нумерованного списка для заданной нумерации
  * @param oPara {Paragraph}
  * @param oNumPr {CNumPr}
- * @param [isUserReview=false] {boolean}
+ * @param [isUseReview=false] {boolean}
  * @returns {number[]}
  */
 CDocumentContentBase.prototype.CalculateNumberingValues = function(oPara, oNumPr, isUseReview)
@@ -1479,4 +1479,112 @@ CDocumentContentBase.prototype.GetSimilarNumbering = function(oContinueEngine)
 		if (oContinueEngine.IsFound())
 			break;
 	}
+};
+/**
+ * Обновляем позиции курсора и селекта во время добавления элементов
+ * @param nPosition {number}
+ * @param [nCount=1] {number}
+ */
+CDocumentContentBase.prototype.private_UpdateSelectionPosOnAdd = function(nPosition, nCount)
+{
+	if (this.Content.length <= 0)
+	{
+		this.CurPos.ContentPos  = 0;
+		this.Selection.StartPos = 0;
+		this.Selection.EndPos   = 0;
+		return;
+	}
+
+	if (undefined === nCount || null === nCount)
+		nCount = 1;
+
+	if (this.CurPos.ContentPos >= nPosition)
+	{
+		if (this.CurPos.ContentPos + nCount >= this.Content.length)
+			this.CurPos.ContentPos = this.Content.length - 1;
+		else
+			this.CurPos.ContentPos += nCount;
+	}
+
+	if (this.Selection.StartPos >= nPosition)
+		this.Selection.StartPos += nCount;
+
+	if (this.Selection.EndPos >= nPosition)
+		this.Selection.EndPos += nCount;
+};
+/**
+ * Обновляем позиции курсора и селекта во время удаления элементов
+ * @param nPosition {number}
+ * @param nCount {number}
+ */
+CDocumentContentBase.prototype.private_UpdateSelectionPosOnRemove = function(nPosition, nCount)
+{
+	if (this.CurPos.ContentPos >= nPosition + nCount)
+	{
+		this.CurPos.ContentPos -= nCount;
+	}
+	else if (this.CurPos.ContentPos >= nPosition)
+	{
+		if (nPosition < this.Content.length)
+			this.CurPos.ContentPos = nPosition;
+		else if (nPosition > 0)
+			this.CurPos.ContentPos = nPosition - 1;
+		else
+			this.CurPos.ContentPos = 0;
+	}
+
+	if (this.Selection.StartPos <= this.Selection.EndPos)
+	{
+		if (this.Selection.StartPos >= nPosition + nCount)
+			this.Selection.StartPos -= nCount;
+		else if (this.Selection.StartPos >= nPosition)
+			this.Selection.StartPos = nPosition;
+
+		if (this.Selection.EndPos >= nPosition + nCount)
+			this.Selection.EndPos -= nCount;
+		else if (this.Selection.EndPos >= nPosition)
+			this.Selection.StartPos = nPosition - 1;
+
+		if (this.Selection.StartPos > this.Selection.EndPos)
+		{
+			this.Selection.Use = false;
+			this.Selection.StartPos = 0;
+			this.Selection.EndPos   = 0;
+		}
+	}
+	else
+	{
+		if (this.Selection.EndPos >= nPosition + nCount)
+			this.Selection.EndPos -= nCount;
+		else if (this.Selection.EndPos >= nPosition)
+			this.Selection.EndPos = nPosition;
+
+		if (this.Selection.StartPos >= nPosition + nCount)
+			this.Selection.StartPos -= nCount;
+		else if (this.Selection.StartPos >= nPosition)
+			this.Selection.StartPos = nPosition - 1;
+
+		if (this.Selection.EndPos > this.Selection.StartPos)
+		{
+			this.Selection.Use = false;
+			this.Selection.StartPos = 0;
+			this.Selection.EndPos   = 0;
+		}
+	}
+};
+/**
+ * Соединяем параграф со следующим в заданной позиции
+ * @param nPosition {number}
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition)
+{
+	if (nPosition < this.Content.length - 1 && this.Content[nPosition].IsParagraph() && this.Content[nPosition + 1].IsParagraph())
+	{
+		this.Content[nPosition].Concat(this.Content[nPosition + 1]);
+		this.RemoveFromContent(nPosition + 1, 1);
+		return true;
+	}
+
+	return false;
 };

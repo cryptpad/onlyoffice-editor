@@ -12221,10 +12221,28 @@ CTable.prototype.AcceptRevisionChanges = function(nType, bAll)
 	var arrSelectionArray = this.GetSelectionArray();
 	var nFirstRow         = arrSelectionArray.length > 0 ? arrSelectionArray[0].Row : 0;
 	var isCellSelection   = this.IsCellSelection();
+	var isAllSelected     = this.IsSelectedAll();
 
-	if ((bAll || (this.IsCellSelection() && !this.ApplyToAll)) && (undefined === nType || c_oAscRevisionsChangeType.TablePr === nType || c_oAscRevisionsChangeType.RowsAdd === nType || c_oAscRevisionsChangeType.RowsRem === nType))
+	if (bAll)
 	{
-		if (this.IsSelectedAll() && (undefined === nType || c_oAscRevisionsChangeType.TablePr === nType) && this.HavePrChange())
+		nFirstRow = 0;
+		arrSelectionArray = [];
+		for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+		{
+			var oRow = this.GetRow(nCurRow);
+			for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+			{
+				arrSelectionArray.push({Row : nCurRow, Cell : nCurCell});
+			}
+		}
+
+		isAllSelected   = true;
+		isCellSelection = true;
+	}
+
+	if ((bAll || (isCellSelection && !this.ApplyToAll)) && (undefined === nType || c_oAscRevisionsChangeType.TablePr === nType || c_oAscRevisionsChangeType.RowsAdd === nType || c_oAscRevisionsChangeType.RowsRem === nType))
+	{
+		if (isAllSelected && (undefined === nType || c_oAscRevisionsChangeType.TablePr === nType) && this.HavePrChange())
 		{
 			this.AcceptPrChange();
 		}
@@ -12307,10 +12325,28 @@ CTable.prototype.RejectRevisionChanges = function(nType, bAll)
 	var arrSelectionArray = this.GetSelectionArray();
 	var nFirstRow         = arrSelectionArray.length > 0 ? arrSelectionArray[0].Row : 0;
 	var isCellSelection   = this.IsCellSelection();
+	var isAllSelected     = this.IsSelectedAll();
+
+	if (bAll)
+	{
+		nFirstRow = 0;
+		arrSelectionArray = [];
+		for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+		{
+			var oRow = this.GetRow(nCurRow);
+			for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+			{
+				arrSelectionArray.push({Row : nCurRow, Cell : nCurCell});
+			}
+		}
+
+		isAllSelected   = true;
+		isCellSelection = true;
+	}
 
 	if ((bAll || (this.IsCellSelection() && !this.ApplyToAll)) && (undefined === nType || c_oAscRevisionsChangeType.TablePr === nType || c_oAscRevisionsChangeType.RowsAdd === nType || c_oAscRevisionsChangeType.RowsRem === nType))
 	{
-		if (this.IsSelectedAll() && (undefined === nType || c_oAscRevisionsChangeType.TablePr === nType) && this.HavePrChange())
+		if (isAllSelected && (undefined === nType || c_oAscRevisionsChangeType.TablePr === nType) && this.HavePrChange())
 		{
 			this.RejectPrChange();
 		}
@@ -12653,7 +12689,7 @@ CTable.prototype.SetContentSelection = function(StartDocPos, EndDocPos, Depth, S
     this.Selection.Type2        = table_Selection_Common;
     this.Selection.Data2        = null;
 
-    if (StartRow === EndRow && StartCell === EndCell)
+    if (StartRow === EndRow && StartCell === EndCell && null !== __StartDocPos && null !== __EndDocPos)
     {
         this.CurCell = this.Get_Row(StartRow).Get_Cell(StartCell);
         this.Selection.Type = table_Selection_Text;

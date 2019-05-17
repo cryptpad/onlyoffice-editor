@@ -1382,6 +1382,35 @@
 		return hiddenW;
 	};
 
+	WorksheetView.prototype._calcHeightRow = function (y, i) {
+		var r, hR, hiddenH = 0;
+		this.model._getRowNoEmptyWithAll(i, function (row) {
+			if (!row) {
+				hR = -1; // Будет использоваться дефолтная высота строки
+			} else if (row.getHidden()) {
+				hR = 0;  // Скрытая строка, высоту выставляем 0
+				hiddenH += row.h > 0 ? row.h - 1 : this.defaultRowHeightPx;
+			} else {
+				// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
+				if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
+					hR = row.h;
+				} else {
+					hR = -1;
+				}
+			}
+		});
+		if (hR < 0) {
+			hR = AscCommonExcel.oDefaultMetrics.RowHeight;
+		}
+		r = this.rows[i] = new CacheRow();
+		r.top = y;
+		r.height = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
+		r.heightReal = hR;
+		r.descender = this.defaultRowDescender;
+
+		return hiddenH;
+	};
+
     /** Вычисляет ширину колонки заголовков */
     WorksheetView.prototype._calcHeaderColumnWidth = function () {
     	var old = this.cellsLeft;
@@ -1435,8 +1464,7 @@
     WorksheetView.prototype._calcHeightRows = function (type) {
         var y = this.cellsTop;
         var l = this.model.getRowsCount();
-        var defaultH = this.defaultRowHeightPx;
-        var i = 0, r, h, hR, hiddenH = 0;
+        var i = 0, hiddenH = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.rows = [];
@@ -1445,31 +1473,8 @@
             y = this._getRowTop(i);
         }
         for (; i < l; ++i) {
-            this.model._getRowNoEmptyWithAll(i, function(row){
-				if (!row) {
-					hR = -1; // Будет использоваться дефолтная высота строки
-				} else if (row.getHidden()) {
-					hR = 0;  // Скрытая строка, высоту выставляем 0
-					hiddenH += row.h > 0 ? row.h - 1 : defaultH;
-				} else {
-					// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
-					if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
-						hR = row.h;
-					} else {
-						hR = -1;
-					}
-				}
-            });
-            if (hR < 0) {
-                hR = AscCommonExcel.oDefaultMetrics.RowHeight;
-            }
-            h = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
-            r = this.rows[i] = new CacheRow();
-			r.top = y;
-			r.height = h;
-			r.heightReal = hR;
-			r.descender = this.defaultRowDescender;
-            y += h;
+			hiddenH += this._calcHeightRow(y, i);
+			y += this._getRowHeight(i);
         }
 
         this.nRowsCount = Math.min(Math.max(this.nRowsCount, i), gc_nMaxRow);
@@ -5292,7 +5297,11 @@
 			this.canChangeColWidth = this.arrRecalcRangesCanChangeColWidth[i];
 
 			for (var r = range.r1; r <= range.r2 && r < this.rows.length; duplicate[r++] = 1) {
-				if (duplicate[r] || this.model.getRowCustomHeight(r)) {
+				if (duplicate[r]) {
+					continue;
+				}
+				if (this.model.getRowCustomHeight(r)) {
+					this._calcHeightRow(0, r);
 					continue;
 				}
 
@@ -7350,9 +7359,10 @@
     // Потеряем ли мы что-то при merge ячеек
     WorksheetView.prototype.getSelectionMergeInfo = function (options) {
         // ToDo now check only last selection range
-        var arn = this.model.selectionRange.getLast().clone(true);
-        var notEmpty = false;
-        var r, c;
+		var t = this;
+		var arn = this.model.selectionRange.getLast().clone(true);
+		var range = this.model.getRange3(arn.r1, arn.c1, arn.r2, arn.c2);
+		var lastRow = -1, res;
 
         if (this.cellCommentator.isMissComments(arn)) {
             return true;
@@ -7361,33 +7371,28 @@
         switch (options) {
             case c_oAscMergeOptions.Merge:
             case c_oAscMergeOptions.MergeCenter:
-                for (r = arn.r1; r <= arn.r2; ++r) {
-                    for (c = arn.c1; c <= arn.c2; ++c) {
-                        if (false === this._isCellNullText(c, r)) {
-                            if (notEmpty) {
-                                return true;
-                            }
-                            notEmpty = true;
-                        }
-                    }
-                }
+				res = range._foreachNoEmptyByCol(function(cell) {
+					if (false === t._isCellNullText(cell)) {
+						if (-1 !== lastRow) {
+							return true;
+						}
+						lastRow = cell.nRow;
+					}
+				});
                 break;
             case c_oAscMergeOptions.MergeAcross:
-                for (r = arn.r1; r <= arn.r2; ++r) {
-                    notEmpty = false;
-                    for (c = arn.c1; c <= arn.c2; ++c) {
-                        if (false === this._isCellNullText(c, r)) {
-                            if (notEmpty) {
-                                return true;
-                            }
-                            notEmpty = true;
-                        }
-                    }
-                }
+				res = range._foreachNoEmpty(function(cell) {
+					if (false === t._isCellNullText(cell)) {
+						if (lastRow === cell.nRow) {
+							return true;
+						}
+						lastRow = cell.nRow;
+					}
+				});
                 break;
         }
 
-        return false;
+        return !!res;
     };
 
 	//нужно ли спрашивать пользователя о расширении диапазона

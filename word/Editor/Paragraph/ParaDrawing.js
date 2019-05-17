@@ -1570,10 +1570,11 @@ ParaDrawing.prototype.Get_ParentTextTransform = function()
 };
 ParaDrawing.prototype.GoTo_Text = function(bBefore, bUpdateStates)
 {
-	if (undefined != this.Parent && null != this.Parent)
+	var Paragraph = this.Get_ParentParagraph();
+	if (Paragraph)
 	{
-		this.Parent.Cursor_MoveTo_Drawing(this.Id, bBefore);
-		this.Parent.Document_SetThisElementCurrent(undefined === bUpdateStates ? true : bUpdateStates);
+		Paragraph.Cursor_MoveTo_Drawing(this.Id, bBefore);
+		Paragraph.Document_SetThisElementCurrent(undefined === bUpdateStates ? true : bUpdateStates);
 	}
 };
 ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
