@@ -2721,7 +2721,6 @@
 			return null;
 		}
 
-
         var context = ctx || this.drawingCtx;
         var graphics = ctx && ctx.DocumentRenderer ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
 
@@ -2808,7 +2807,7 @@
                                     graphics.SetBaseTransform(null);
                                     graphics.RestoreGrState();
                                 }
-                            }, this, [img, rect, iconSize * dScale]
+                            }, this, [img, rect, iconSize * dScale * this.getZoom()]
                         );
 					}
 				}
