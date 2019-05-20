@@ -15861,14 +15861,14 @@
 							this.font.s = !this.font.s;
 							break;
 						case 'X':   //superscript
-							if(this.font.va === AscCommon.vertalign_SuperScript) {
+							if (this.font.va === AscCommon.vertalign_SuperScript) {
 								this.font.va = AscCommon.vertalign_Baseline;
 							} else {
 								this.font.va = AscCommon.vertalign_SuperScript;
 							}
 							break;
 						case 'Y':   //subsrcipt
-							if(this.font.va === AscCommon.vertalign_SubScript) {
+							if (this.font.va === AscCommon.vertalign_SubScript) {
 								this.font.va = AscCommon.vertalign_Baseline;
 							} else {
 								this.font.va = AscCommon.vertalign_SubScript;
@@ -15881,10 +15881,9 @@
 
 							break;
 						case 'K':   //text color
-							if( i + 6 < date.length )
-							{
+							if (i + 6 < date.length) {
 								// eat the following 6 characters
-								this.font.c = this.convertFontColor( date.substr(i + 1, 6) );
+								this.font.c = this.convertFontColor(date.substr(i + 1, 6));
 								i += 6;
 							}
 							break;
@@ -15997,20 +15996,6 @@
 		}
 
 		return color;
-	};
-
-	HeaderFooterParser.prototype.setAttr = function () {
-        /*if(!this.font) {
-         this.font = new AscCommonExcel.Font();
-         } else {
-         if(!this.portions[this.currPortion]) {
-         this.portions[this.currPortion] = [];
-         }
-         if(!this.portions[this.currPortion][this.portions[this.currPortion].length - 1]) {
-         this.portions[this.currPortion][this.portions[this.currPortion].length] = {};
-         }
-         this.portions[this.currPortion][this.portions[this.currPortion].length - 1].props = this.font.clone();
-         }*/
 	};
 
 	HeaderFooterParser.prototype.pushText = function () {
