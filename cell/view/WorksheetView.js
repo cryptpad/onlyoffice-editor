@@ -16206,6 +16206,7 @@
 
 		//buttons
 		//проходимся 2 раза, поскольку разная толщина у рамки и у -/+
+
 		var i, val, level, diff, pos, x, y, w, h, active;
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
 		for(i = 0; i < buttons.length; i++) {
@@ -16214,20 +16215,47 @@
 
 			pos = this._getGroupDataButtonPos(val, level, bCol);
 
-			x = pos.x - offsetX;
-			y = pos.y - offsetY;
+			x = pos.x;
+			y = pos.y;
 			w = pos.w;
 			h = pos.h;
+
+			var doNotDrawHor = false, doNotDrawVer = false;
+			if(!bCol) {
+				if(y < pos.pos) {
+					y = pos.pos;
+					doNotDrawHor = true;
+				}
+				if(h > pos.size) {
+					h = pos.size;
+					doNotDrawHor = true;
+				}
+			} else {
+				if(x < pos.pos) {
+					x = pos.pos;
+					doNotDrawVer = true;
+				}
+				if(w > pos.size) {
+					w = pos.size;
+					doNotDrawVer = true;
+				}
+			}
+
+			x = x - offsetX;
+			y = y - offsetY;
 
 			if(buttons[i].clean) {
 				ctx.clearRect(x, y, w, h);
 			}
 
-			ctx.lineHorPrevPx(x, y, x + w);
-			ctx.lineVerPrevPx(x + w, y, y + h);
-			ctx.lineHorPrevPx(x + w, y + h, x);
-			ctx.lineVerPrevPx(x, y + h, y - AscCommon.AscBrowser.convertToRetinaValue(1, true));
-
+			if(!doNotDrawHor) {
+				ctx.lineHorPrevPx(x, y, x + w);
+				ctx.lineHorPrevPx(x + w, y + h, x);
+			}
+			if(!doNotDrawVer) {
+				ctx.lineVerPrevPx(x + w, y, y + h);
+				ctx.lineVerPrevPx(x, y + h, y - AscCommon.AscBrowser.convertToRetinaValue(1, true));
+			}
 		}
 		ctx.stroke();
 		ctx.closePath();
@@ -16294,7 +16322,7 @@
 		var w = buttonSize - 1;
 		var h = buttonSize - 1;
 
-		return {x: x, y: y, w: w, h: h};
+		return {x: x, y: y, w: w, h: h, size: bCol ? colW : rowH, pos: bCol ? endPosX : endPosY};
 	};
 
 	//GROUP MENU BUTTONS
