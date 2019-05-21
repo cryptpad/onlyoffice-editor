@@ -677,6 +677,10 @@ CDocumentContentElementBase.prototype.GetStyleFromFormatting = function()
 CDocumentContentElementBase.prototype.GetAllContentControls = function(arrContentControls)
 {
 };
+/**
+ * Проверяем выделен ли элемент целиком
+ * @returns {boolean}
+ */
 CDocumentContentElementBase.prototype.IsSelectedAll = function()
 {
 	return false;
@@ -1050,6 +1054,19 @@ CDocumentContentElementBase.prototype.GetHdrFtr = function()
 		return this.Parent.IsHdrFtr(true);
 
 	return null;
+};
+/**
+ * Используется ли данный элемент в содержимом документа
+ * @param {string} sId - идентификатор внутреннего класса
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.IsUseInDocument = function(sId)
+{
+	return this.Is_UseInDocument(sId);
+};
+CDocumentContentElementBase.prototype.Is_UseInDocument = function(sId)
+{
+	return false;
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

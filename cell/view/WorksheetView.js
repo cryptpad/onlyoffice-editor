@@ -1383,13 +1383,14 @@
 	};
 
 	WorksheetView.prototype._calcHeightRow = function (y, i) {
+		var t = this;
 		var r, hR, hiddenH = 0;
 		this.model._getRowNoEmptyWithAll(i, function (row) {
 			if (!row) {
 				hR = -1; // Будет использоваться дефолтная высота строки
 			} else if (row.getHidden()) {
 				hR = 0;  // Скрытая строка, высоту выставляем 0
-				hiddenH += row.h > 0 ? row.h - 1 : this.defaultRowHeightPx;
+				hiddenH += row.h > 0 ? row.h - 1 : t.defaultRowHeightPx;
 			} else {
 				// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
 				if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
@@ -2720,7 +2721,6 @@
 			return null;
 		}
 
-
         var context = ctx || this.drawingCtx;
         var graphics = ctx && ctx.DocumentRenderer ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
 
@@ -2807,7 +2807,7 @@
                                     graphics.SetBaseTransform(null);
                                     graphics.RestoreGrState();
                                 }
-                            }, this, [img, rect, iconSize * dScale]
+                            }, this, [img, rect, iconSize * dScale * this.getZoom()]
                         );
 					}
 				}
@@ -12809,6 +12809,11 @@
 
     WorksheetView.prototype._updateRange = function (range, skipHeight) {
 		this._cleanCache(range);
+		if (c_oAscSelectionType.RangeMax === range.getType()) {
+			// ToDo refactoring. Clean this only delete/insert/update info rows/column
+			this.rows = [];
+			this.cols = [];
+		}
 		if (skipHeight) {
 			this.arrRecalcRanges.push(range);
 		} else {
@@ -14777,7 +14782,7 @@
         };
 
         var newActiveRange = this.model.selectionRange.getLast().clone();
-        var displayName = null;
+        var displayName = undefined;
         var type = null;
         switch (optionType) {
             case c_oAscInsertOptions.InsertTableRowAbove:

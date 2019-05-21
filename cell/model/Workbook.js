@@ -967,7 +967,7 @@
 
 			var addChangedSheet = function(row, col) {
 				var cellIndex = getCellIndex(row, col);
-				if (t.isInCalc && !changedSheet[cellIndex]) {
+				if (t.isInCalc && undefined === changedSheet[cellIndex]) {
 					if (!t.changedCellRepeated) {
 						t.changedCellRepeated = {};
 					}
@@ -3199,6 +3199,7 @@
 		this.nColsCount = 0;
 		this.rowsData = new SheetMemory(AscCommonExcel.g_nRowStructSize, gc_nMaxRow0);
 		this.cellsByCol = [];
+		this.cellsByColRowsCount = 0;//maximum rows count in cellsByCol
 		this.aCols = [];// 0 based
 		this.hiddenManager = new HiddenManager(this);
 		this.Drawings = [];
@@ -3418,6 +3419,7 @@
 		wsFrom._forEachColData(function(sheetMemory, index){
 			t.cellsByCol[index] = sheetMemory.clone();
 		});
+		this.cellsByColRowsCount = wsFrom.cellsByColRowsCount;
 
 		var aMerged = wsFrom.mergeManager.getAll();
 		for(i in aMerged)
@@ -4190,12 +4192,9 @@
 					t.workbook.dependencyFormulas.addToChangedCell(cellWithFormula);
 				}
 			}
-			if (newNRow >= t.nRowsCount) {
-				t.nRowsCount = newNRow + 1;
-			}
-			if (newNCol >= t.nColsCount) {
-				t.nColsCount = newNCol + 1;
-			}
+			t.cellsByColRowsCount = Math.max(t.cellsByColRowsCount, newNRow + 1);
+			t.nRowsCount = Math.max(t.nRowsCount, t.cellsByColRowsCount);
+			t.nColsCount = Math.max(t.nColsCount, newNCol + 1);
 		});
 	};
 	Worksheet.prototype._removeRows=function(start, stop){
@@ -4284,8 +4283,9 @@
 		this.nRowsCount = Math.max(this.nRowsCount, this.rowsData.getSize());
 		this._forEachColData(function(sheetMemory) {
 			sheetMemory.insertRange(index, count);
-			t.nRowsCount = Math.max(t.nRowsCount, sheetMemory.getSize());
+			t.cellsByColRowsCount = Math.max(t.cellsByColRowsCount, sheetMemory.getSize());
 		});
+		this.nRowsCount = Math.max(this.nRowsCount, this.cellsByColRowsCount);
 		//copy property from row/cell above
 		if (index > 0 && !this.workbook.bUndoChanges)
 		{
@@ -4293,8 +4293,9 @@
 			this.nRowsCount = Math.max(this.nRowsCount, this.rowsData.getSize());
 			this._forEachColData(function(sheetMemory) {
 				sheetMemory.copyRangeByChunk((index - 1), 1, index, count);
-				t.nRowsCount = Math.max(t.nRowsCount, sheetMemory.getSize());
+				t.cellsByColRowsCount = Math.max(t.cellsByColRowsCount, sheetMemory.getSize());
 			});
+			this.nRowsCount = Math.max(this.nRowsCount, this.cellsByColRowsCount);
 			//show rows and remain only cell xf property
 			this.getRange3(index, 0, index + count - 1, gc_nMaxCol0)._foreachRowNoEmpty(function(row) {
 				row.setHidden(false);
@@ -4951,8 +4952,8 @@
 			else if (null != oCol && null != oCol.xfs)
 				xfs = oCol.xfs.clone();
 			cell.setStyleInternal(xfs);
-			if (nRow >= t.nRowsCount)
-				t.nRowsCount = nRow + 1;
+			t.cellsByColRowsCount = Math.max(t.cellsByColRowsCount, nRow + 1);
+			t.nRowsCount = Math.max(t.nRowsCount, t.cellsByColRowsCount);
 			if (nCol >= t.nColsCount)
 				t.nColsCount = nCol + 1;
 		});
@@ -5252,7 +5253,8 @@
 		var shiftedArrayFormula = {};
 		var oldNewArrayFormulaMap = {};
 		//modify nRowsCount/nColsCount for correct foreach functions
-		wsTo.nRowsCount = Math.max(wsTo.nRowsCount, nRowsCountNew);
+		wsTo.cellsByColRowsCount = Math.max(wsTo.cellsByColRowsCount, nRowsCountNew);
+		wsTo.nRowsCount = Math.max(wsTo.nRowsCount, wsTo.cellsByColRowsCount);
 		wsTo.nColsCount = Math.max(wsTo.nColsCount, nColsCountNew);
 		wsTo.getRange3(oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2)._foreachNoEmpty(function(cell){
 			var formula = cell.getFormulaParsed();
@@ -5503,18 +5505,20 @@
 			var sheetMemory = this.getColDataNoEmpty(i);
 			if (sheetMemory) {
 				sheetMemory.insertRange(nTop, dif);
-				t.nRowsCount = Math.max(t.nRowsCount, sheetMemory.getSize());
+				t.cellsByColRowsCount = Math.max(t.cellsByColRowsCount, sheetMemory.getSize());
 			}
 		}
+		this.nRowsCount = Math.max(this.nRowsCount, this.cellsByColRowsCount);
 		if (nTop > 0 && !this.workbook.bUndoChanges)
 		{
 			for (var i = oBBox.c1; i <= oBBox.c2; ++i) {
 				var sheetMemory = this.getColDataNoEmpty(i);
 				if (sheetMemory) {
 					sheetMemory.copyRangeByChunk((nTop - 1), 1, nTop, dif);
-					t.nRowsCount = Math.max(t.nRowsCount, sheetMemory.getSize());
+					t.cellsByColRowsCount = Math.max(t.cellsByColRowsCount, sheetMemory.getSize());
 				}
 			}
+			this.nRowsCount = Math.max(this.nRowsCount, this.cellsByColRowsCount);
 			//show rows and remain only cell xf property
 			this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell) {
 				cell.clearDataKeepXf(borders[cell.nCol]);
@@ -6666,11 +6670,8 @@
 
 		return res;
 	};
-	Worksheet.prototype.setRowsCount = function (val, onlyExpand) {
+	Worksheet.prototype.setRowsCount = function (val) {
 		if(val > gc_nMaxRow0 || val < 0) {
-			return;
-		}
-		if(onlyExpand && val < this.nRowsCount) {
 			return;
 		}
 		this.nRowsCount = val;
@@ -8618,7 +8619,7 @@
 			var oRes;
 			var tempCell = new Cell(this.worksheet);
 			wb.loadCells.push(tempCell);
-			var oBBox = this.bbox, minC = Math.min( this.worksheet.getColsCount(), oBBox.c2 ), minR = Math.min( this.worksheet.getRowsCount() - 1, oBBox.r2 );
+			var oBBox = this.bbox, minC = Math.min( this.worksheet.getColDataLength(), oBBox.c2 ), minR = Math.min( this.worksheet.cellsByColRowsCount - 1, oBBox.r2 );
 			for(var i = oBBox.r1; i <= minR; i++){
 				if (this.worksheet.bExcludeHiddenRows && this.worksheet.getRowHidden(i)) {
 					continue;
@@ -8655,7 +8656,8 @@
 	Range.prototype._foreachNoEmpty = function(actionCell, actionRow, excludeHiddenRows) {
 		var oRes, i;
 		var wb = this.worksheet.workbook;
-		var oBBox = this.bbox, minR = Math.min(this.worksheet.getRowsCount() - 1, oBBox.r2);
+		var oBBox = this.bbox, minR = Math.max(this.worksheet.cellsByColRowsCount - 1, this.worksheet.rowsData.getSize() - 1);
+		minR = Math.min(minR, oBBox.r2);
 		if (actionCell || actionRow) {
 			var colData;
 			var bExcludeHiddenRows = (this.worksheet.bExcludeHiddenRows || excludeHiddenRows);
@@ -8746,9 +8748,9 @@
 	Range.prototype._foreachNoEmptyByCol = function(actionCell, excludeHiddenRows) {
 		var oRes, i, j, colData;
 		var wb = this.worksheet.workbook;
-		var oBBox = this.bbox, minR = Math.min(this.worksheet.getRowsCount() - 1, oBBox.r2);
+		var oBBox = this.bbox, minR = Math.min(this.worksheet.cellsByColRowsCount - 1, oBBox.r2);
 		var minC = Math.min(this.worksheet.getColDataLength() - 1, oBBox.c2);
-		if (actionCell) {
+		if (actionCell && oBBox.c1 <= minC && oBBox.r1 <= minR) {
 			var bExcludeHiddenRows = (this.worksheet.bExcludeHiddenRows || excludeHiddenRows);
 			var excludedCount = 0;
 			var tempCell = new Cell(this.worksheet);
@@ -8826,7 +8828,7 @@
 	};
 	Range.prototype._foreachColNoEmpty=function(actionCol, actionCell){
 		var oBBox = this.bbox;
-		var minC = Math.min( oBBox.c2,this.worksheet.getColsCount() );
+		var minC = Math.min(oBBox.c2, this.worksheet.aCols.length);
 			if(null != actionCol)
 			{
 				for(var i = oBBox.c1; i <= minC; ++i)
@@ -8840,9 +8842,9 @@
 					}
 				}
 			}
-		if(null != actionCell) {
+		if (null != actionCell) {
 			return this._foreachNoEmpty(actionCell);
-							}
+		}
 	};
 	Range.prototype._getRangeType=function(oBBox){
 		if(null == oBBox)

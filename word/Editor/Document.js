@@ -10421,6 +10421,8 @@ CDocument.prototype.GetSelectionState = function()
 };
 CDocument.prototype.SetSelectionState = function(State)
 {
+	this.RemoveSelection();
+
 	if (docpostype_DrawingObjects === this.GetDocPosType())
 		this.DrawingObjects.resetSelection();
 
@@ -19569,32 +19571,32 @@ CTrackRevisionsManager.prototype.GetChangeRelatedParagraphs = function(oChange, 
 	
     return this.private_ConvertParagraphsObjectToArray(oRelatedParas);
 };
-CTrackRevisionsManager.prototype.private_GetChangeRelatedParagraphs = function(Change, bAccept, RelatedParas)
+CTrackRevisionsManager.prototype.private_GetChangeRelatedParagraphs = function(oChange, bAccept, oRelatedParas)
 {
-    if (undefined !== Change)
-    {
-        var Type = Change.get_Type();
-        var Para = Change.get_Paragraph();
-        if (Para)
-        {
-            RelatedParas[Para.Get_Id()] = true;
-            if ((c_oAscRevisionsChangeType.ParaAdd === Type && true !== bAccept) || (c_oAscRevisionsChangeType.ParaRem === Type && true === bAccept))
-            {
-                var LogicDocument = Para.Get_Parent();
-                var ParaIndex = Para.Get_Index();
+	if (oChange)
+	{
+		var nType    = oChange.GetType();
+		var oElement = oChange.GetElement();
+		if (oElement && oElement.IsUseInDocument())
+		{
+			oRelatedParas[oElement.GetId()] = true;
+			if ((c_oAscRevisionsChangeType.ParaAdd === nType && true !== bAccept) || (c_oAscRevisionsChangeType.ParaRem === nType && true === bAccept))
+			{
+				var oLogicDocument = oElement.GetParent();
+				var nParaIndex     = oElement.GetIndex();
 
-                if (LogicDocument && -1 !== ParaIndex)
-                {
-                    if (ParaIndex < LogicDocument.GetElementsCount() - 1)
-                    {
-                        var Element = LogicDocument.GetElement(ParaIndex + 1);
-                        if (Element && type_Paragraph === Element.Get_Type())
-                            RelatedParas[Element.Get_Id()] = true;
-                    }
-                }
-            }
-        }
-    }
+				if (oLogicDocument && -1 !== nParaIndex)
+				{
+					if (nParaIndex < oLogicDocument.GetElementsCount() - 1)
+					{
+						var oNextElement = oLogicDocument.GetElement(nParaIndex + 1);
+						if (oNextElement && oNextElement.IsParagraph())
+							oRelatedParas[oNextElement.GetId()] = true;
+					}
+				}
+			}
+		}
+	}
 };
 CTrackRevisionsManager.prototype.private_ConvertParagraphsObjectToArray = function(ParagraphsObject)
 {
