@@ -16208,6 +16208,118 @@
 		//проходимся 2 раза, поскольку разная толщина у рамки и у -/+
 
 		var i, val, level, diff, pos, x, y, w, h, active;
+		var borderSize = AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( borderSize ).beginPath();
+		for(i = 0; i < buttons.length; i++) {
+			val = buttons[i].r;
+			level = buttons[i].level;
+
+			pos = this._getGroupDataButtonPos(val, level, bCol);
+
+			x = pos.x;
+			y = pos.y;
+			w = pos.w;
+			h = pos.h;
+
+			x = x - offsetX;
+			y = y - offsetY;
+
+			ctx.AddClipRect(bCol ? pos.pos - borderSize - offsetX : x - borderSize, bCol ? y - borderSize : pos.pos - borderSize - offsetY, bCol ? pos.size + borderSize : w + borderSize, bCol ? h + borderSize : pos.size + borderSize);
+			ctx.beginPath();
+
+			if(buttons[i].clean) {
+				ctx.clearRect(x, y, w, h);
+			}
+
+			ctx.lineHorPrevPx(x, y, x + w);
+			ctx.lineHorPrevPx(x + w, y + h, x);
+			ctx.lineVerPrevPx(x + w, y, y + h);
+			ctx.lineVerPrevPx(x, y + h, y - borderSize);
+
+			ctx.stroke();
+			ctx.RemoveClipRect();
+		}
+		ctx.closePath();
+
+		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(2, true)).beginPath();
+
+		var sizeLine = AscCommon.AscBrowser.convertToRetinaValue(8, true);
+		//var paddingLine = AscCommon.AscBrowser.convertToRetinaValue(3, true);
+		diff = AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		for(i = 0; i < buttons.length; i++) {
+			val = buttons[i].r;
+			level = buttons[i].level;
+			active = buttons[i].active;
+
+			diff = active ? 1 : 0;
+			pos = this._getGroupDataButtonPos(val, level, bCol);
+
+			x = pos.x;
+			y = pos.y;
+			w = pos.w;
+			h = pos.h;
+
+			x = x - offsetX;
+			y = y - offsetY;
+
+			ctx.AddClipRect(bCol ? pos.pos - offsetX : x, bCol ? y : pos.pos - offsetY, bCol ? pos.size : w, bCol ? h : pos.size);
+			ctx.beginPath();
+
+			var paddingLine = Math.floor((w - sizeLine) / 2);
+
+			if(w > sizeLine + 2) {
+				if(rowLevelMap[val] && rowLevelMap[val].collapsed) {
+					ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + 1, x + sizeLine + paddingLine);
+					ctx.lineVerPrevPx(x + paddingLine + sizeLine / 2 + 1, y + h / 2 - sizeLine / 2,  y + h / 2 + sizeLine / 2);
+				} else {
+					ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + diff, x + sizeLine + paddingLine);
+				}
+			}
+
+			ctx.stroke();
+			ctx.RemoveClipRect();
+		}
+
+		ctx.closePath();
+	};
+
+	WorksheetView.prototype._drawGroupDataButtons2 = function(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol) {
+		if(!buttons) {
+			return;
+		}
+
+		var groupData = bCol ? this.arrColGroups : this.arrRowGroups;
+		if(!groupData || !groupData.groupArr) {
+			return;
+		}
+
+		var rowLevelMap = groupData.levelMap;
+
+		var ctx = drawingCtx || this.drawingCtx;
+
+		var offsetX = 0, offsetY = 0;
+		if(bCol) {
+			offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+			if (!drawingCtx && this.topLeftFrozenCell) {
+				if (undefined === leftFieldInPx) {
+					var cFrozen = this.topLeftFrozenCell.getCol0();
+					offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
+				}
+			}
+		} else {
+			offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+			if (!drawingCtx && this.topLeftFrozenCell) {
+				if (undefined === topFieldInPx) {
+					var rFrozen = this.topLeftFrozenCell.getRow0();
+					offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
+				}
+			}
+		}
+
+		//buttons
+		//проходимся 2 раза, поскольку разная толщина у рамки и у -/+
+
+		var i, val, level, diff, pos, x, y, w, h, active;
 		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
 		for(i = 0; i < buttons.length; i++) {
 			val = buttons[i].r;
