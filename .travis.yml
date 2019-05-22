@@ -16,7 +16,7 @@ jobs:
     - stage: Check all files use Linux Line Ending (LF)
       script: if [[ $(find . -not -type d -exec file '{}' ';' | grep CRLF | wc -l) -ne 0 ]]; then exit 1 ; fi
     - stage: Check all files has trailing newline
-      script: if [[ $(sed -ns '${/./F}' ./**/*.js | wc -l) -ne 0 ]]; then exit 1 ; fi
+      script: if [[ $(pcregrep --buffer-size=64M --include='.*\.js$' -LMr '\n\Z' . | wc -l) -ne 0 ]]; then exit 1 ; fi
     - stage: SonarQube Scanner
       if: branch = develop
       script:
