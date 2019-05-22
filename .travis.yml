@@ -1,4 +1,8 @@
 sudo: required
+addons:
+  apt:
+    packages:
+    - pcregrep
 services:
   - docker
 language: node_js
