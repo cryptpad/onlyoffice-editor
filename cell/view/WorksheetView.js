@@ -152,7 +152,7 @@
 		var res = c_oAscMergeType.none;
 		if (null !== merged) {
 			if (merged.c1 !== merged.c2) {
-				res |= c_oAscMergeType.columns;
+				res |= c_oAscMergeType.cols;
 			}
 			if (merged.r1 !== merged.r2) {
 				res |= c_oAscMergeType.rows;
@@ -5296,38 +5296,43 @@
 		    range = this.arrRecalcRangesWithHeight[i];
 			this.canChangeColWidth = this.arrRecalcRangesCanChangeColWidth[i];
 
-			for (var r = range.r1; r <= range.r2 && r < this.rows.length; duplicate[r++] = 1) {
-				if (duplicate[r]) {
-					continue;
-				}
-				if (this.model.getRowCustomHeight(r)) {
-					this._calcHeightRow(0, r);
-					continue;
-				}
-
-				row = this.rows[r];
-				row.heightReal = AscCommonExcel.oDefaultMetrics.RowHeight;
-				row.height = Asc.round(AscCommonExcel.convertPtToPx(row.heightReal) * this.getZoom());
-				row.descender = this.defaultRowDescender;
-
-				cache = this._getRowCache(r);
-				this.model.getRange3(r, 0, r, gc_nMaxCol0)._foreachNoEmptyByCol(function(cell, row, col) {
-					if (c_oAscMergeType.cols & getMergeType(t.model.getMergedByCell(row, col))) {
-						return;
+			this.model.getRowIterator(range.r1, 0, gc_nMaxCol0, function(itRow) {
+				for (var r = range.r1; r <= range.r2 && r < t.rows.length; duplicate[r++] = 1) {
+					if (duplicate[r]) {
+						continue;
 					}
-					if (cache && cache[col]) {
-						t._updateRowHeight(cache[col], r);
-					} else {
-						t._updateRowHeight2(cell);
+					if (t.model.getRowCustomHeight(r)) {
+						t._calcHeightRow(0, r);
+						continue;
 					}
-				});
 
-				History.TurnOff();
-				this.model.setRowHeight(row.heightReal, r, r, false);
-				History.TurnOn();
+					row = t.rows[r];
+					row.heightReal = AscCommonExcel.oDefaultMetrics.RowHeight;
+					row.height = Asc.round(AscCommonExcel.convertPtToPx(row.heightReal) * t.getZoom());
+					row.descender = t.defaultRowDescender;
 
-				minRow = Math.min(minRow, range.r1);
-			}
+					cache = t._getRowCache(r);
+
+					itRow.setRow(r);
+					var cell;
+					while (cell = itRow.next()) {
+						if (c_oAscMergeType.cols & getMergeType(t.model.getMergedByCell(cell.nRow, cell.nCol))) {
+							return;
+						}
+						if (cache && cache[cell.nCol]) {
+							t._updateRowHeight(cache[cell.nCol], r);
+						} else {
+							t._updateRowHeight2(cell);
+						}
+					}
+
+					History.TurnOff();
+					t.model.setRowHeight(row.heightReal, r, r, false);
+					History.TurnOn();
+
+					minRow = Math.min(minRow, range.r1);
+				}
+			});
         }
 		this.arrRecalcRangesWithHeight = [];
 		this.arrRecalcRangesCanChangeColWidth = [];
