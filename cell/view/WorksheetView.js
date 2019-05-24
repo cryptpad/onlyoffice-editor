@@ -1867,7 +1867,7 @@
 		var range, maxCell, t = this;
 		var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
 
-		this.model.PagePrintOptions.pageSetup.scale  = 145;
+		//this.model.PagePrintOptions.pageSetup.scale  = 145;
 
 		var getPrintAreaRanges = function() {
 			var res = false;
@@ -1930,7 +1930,8 @@
 	};
 
     WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData) {
-		this.stringRender.fontNeedUpdate = true;
+		this.fitPrintPages(1,1);
+    	this.stringRender.fontNeedUpdate = true;
         if (null === printPagesData) {
             // Напечатаем пустую страницу
             drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
@@ -2003,6 +2004,143 @@
             drawingCtx.EndPage();
         }
     };
+
+	WorksheetView.prototype.fitPrintPages = function (width, height) {
+		//width/height - count of pages
+		//automatic -> width/height = undefined
+		//define print scale
+
+		if(width === undefined && height === undefined) {
+			return;
+		}
+
+		var pageOptions = this.model.PagePrintOptions;
+		var bFitToWidth = false;
+		var bFitToHeight = false;
+		var pageMargins, pageSetup, pageGridLines, pageHeadings;
+		if (pageOptions) {
+			pageMargins = pageOptions.asc_getPageMargins();
+			pageSetup = pageOptions.asc_getPageSetup();
+			pageGridLines = pageOptions.asc_getGridLines();
+			pageHeadings = pageOptions.asc_getHeadings();
+		}
+
+		var pageWidth, pageHeight, pageOrientation, scale;
+		if (pageSetup instanceof asc_CPageSetup) {
+			pageWidth = pageSetup.asc_getWidth();
+			pageHeight = pageSetup.asc_getHeight();
+			pageOrientation = pageSetup.asc_getOrientation();
+			bFitToWidth = pageSetup.asc_getFitToWidth();
+			bFitToHeight = pageSetup.asc_getFitToHeight();
+			scale = pageSetup.asc_getScale() / 100;
+		}
+
+		var pageLeftField, pageRightField, pageTopField, pageBottomField;
+		if (pageMargins) {
+			pageLeftField = Math.max(pageMargins.asc_getLeft(), c_oAscPrintDefaultSettings.MinPageLeftField);
+			pageRightField = Math.max(pageMargins.asc_getRight(), c_oAscPrintDefaultSettings.MinPageRightField);
+			pageTopField = Math.max(pageMargins.asc_getTop(), c_oAscPrintDefaultSettings.MinPageTopField);
+			pageBottomField = Math.max(pageMargins.asc_getBottom(), c_oAscPrintDefaultSettings.MinPageBottomField);
+		}
+
+
+		var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
+		if (AscCommon.AscBrowser.isRetina) {
+			vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
+		}
+
+		if (null == pageGridLines) {
+			pageGridLines = c_oAscPrintDefaultSettings.PageGridLines;
+		}
+		if (null == pageHeadings) {
+			pageHeadings = c_oAscPrintDefaultSettings.PageHeadings;
+		}
+
+		if (null == pageWidth) {
+			pageWidth = c_oAscPrintDefaultSettings.PageWidth;
+		}
+		if (null == pageHeight) {
+			pageHeight = c_oAscPrintDefaultSettings.PageHeight;
+		}
+		if (null == pageOrientation) {
+			pageOrientation = c_oAscPrintDefaultSettings.PageOrientation;
+		}
+
+		if (null == pageLeftField) {
+			pageLeftField = c_oAscPrintDefaultSettings.PageLeftField;
+		}
+		if (null == pageRightField) {
+			pageRightField = c_oAscPrintDefaultSettings.PageRightField;
+		}
+		if (null == pageTopField) {
+			pageTopField = c_oAscPrintDefaultSettings.PageTopField;
+		}
+		if (null == pageBottomField) {
+			pageBottomField = c_oAscPrintDefaultSettings.PageBottomField;
+		}
+
+
+		var range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
+		var maxCell = this._checkPrintRange(range);
+		var maxCol = maxCell.col;
+		var maxRow = maxCell.row;
+
+		maxCell = this.model.autoFilters.getMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+		maxCell = this.objectRender.getMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+
+		if(width) {
+			var widthAllCols = pageHeadings ? this.cellsLeft : 0;
+			for(var i = 0; i <= maxCol; i++) {
+				widthAllCols += this._getColumnWidth(i);
+			}
+		}
+		if(height) {
+			var heightAllRows = pageHeadings ? this.cellsTop : 0;
+			for(i = 0; i <= maxRow; i++) {
+				heightAllRows += this._getRowHeight(i);
+			}
+		}
+
+
+		if (Asc.c_oAscPageOrientation.PageLandscape === pageOrientation) {
+			var tmp = pageWidth;
+			pageWidth = pageHeight;
+			pageHeight = tmp;
+		}
+
+		var pageWidthWithFields = pageWidth - pageLeftField - pageRightField;
+		var pageHeightWithFields = pageHeight - pageTopField - pageBottomField;
+		var leftFieldInPx = pageLeftField / vector_koef + 1;
+		var topFieldInPx = pageTopField / vector_koef + 1;
+
+		if (pageHeadings) {
+			// Рисуем заголовки, нужно чуть сдвинуться
+			leftFieldInPx += this.cellsLeft;
+			topFieldInPx += this.cellsTop;
+		}
+
+		//TODO при сравнении резальтатов рассчета страниц в зависимости от scale - LO выдаёт похожие результаты, MS - другие. Необходимо пересмотреть!
+		var pageWidthWithFieldsHeadings = ((pageWidth - pageRightField) / vector_koef - leftFieldInPx) / scale;
+		var pageHeightWithFieldsHeadings = ((pageHeight - pageBottomField) / vector_koef - topFieldInPx) / scale;
+
+		var wScale = ((pageWidthWithFieldsHeadings * width) / widthAllCols) * 100;
+		var hScale = ((pageHeightWithFieldsHeadings * height) / heightAllRows) * 100;
+		var minScale = Math.min(Math.ceil(wScale), Math.ceil(hScale));
+		if(minScale < 10) {
+			minScale = 10;
+		}
+		if(minScale > 100) {
+			minScale = 100;
+		}
+
+		console.log(minScale);
+	};
 
     // ----- Drawing -----
 
