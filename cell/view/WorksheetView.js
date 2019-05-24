@@ -430,6 +430,8 @@
 
         this.cutRange = null;
 
+        this.usePrintScale = false;
+
         this._init();
 
         return this;
@@ -775,6 +777,16 @@
     WorksheetView.prototype.getZoom = function () {
         return this.drawingCtx.getZoom();
     };
+
+	WorksheetView.prototype.getPrintScale = function () {
+		var res = 1;
+		if(this.usePrintScale) {
+			var printOptions = this.model.PagePrintOptions;
+			res = printOptions && printOptions.pageSetup ? printOptions.pageSetup.scale : 100;
+			res = res / 100;
+		}
+		return res;
+	};
 
     WorksheetView.prototype.changeZoom = function (isUpdate) {
         if (isUpdate) {
@@ -1935,6 +1947,22 @@
             // Сменим visibleRange для прохождения проверок отрисовки
             this.visibleRange = range;
 
+            this.usePrintScale = true;
+
+            var transformMtarix;
+			if(drawingCtx.Transform) {
+				var mmToPx = asc_getcvt(3/*mm*/, 0/*px*/, this._getPPIX());
+				var printScale = this.getPrintScale();
+				if(printScale !== 1) {
+					var leftDiff = printPagesData.pageClipRectLeft * (1 - printScale);
+					var topDiff = printPagesData.pageClipRectTop * (1 - printScale);
+					transformMtarix = drawingCtx.Transform.CreateDublicate();
+
+					//drawingCtx.Transform.Scale(printScale, printScale);
+					drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale, leftDiff / mmToPx, topDiff / mmToPx);
+				}
+			}
+
             // Нужно отрисовать заголовки
             if (printPagesData.pageHeadings) {
                 this._drawColumnHeaders(drawingCtx, range.c1, range.c2, /*style*/ undefined, offsetX,
@@ -1955,6 +1983,11 @@
 
             // Отрисовываем ячейки и бордеры
             this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
+
+			if(transformMtarix) {
+				drawingCtx.setTransform(transformMtarix.sx,transformMtarix.shy, transformMtarix.shx, transformMtarix.sy, transformMtarix.tx, transformMtarix.ty);
+			}
+			this.usePrintScale = false;
 
             var drawingPrintOptions = {
                 ctx: drawingCtx, printPagesData: printPagesData
@@ -2119,8 +2152,7 @@
     };
 
     /** Рисует заголовки видимых колонок */
-    WorksheetView.prototype._drawColumnHeaders =
-      function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
+    WorksheetView.prototype._drawColumnHeaders = function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
           if (!drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
               return;
           }
@@ -2407,9 +2439,10 @@
 		if (range === undefined) {
 			range = this.visibleRange;
 		}
+		var printScale = this.getPrintScale();
 		var ctx = drawingCtx || this.drawingCtx;
-		var widthCtx = (width) ? width : ctx.getWidth();
-		var heightCtx = (height) ? height : ctx.getHeight();
+		var widthCtx = (width) ? width / printScale : ctx.getWidth() / printScale;
+		var heightCtx = (height) ? height / printScale : ctx.getHeight() / printScale;
 		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
 		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 		if (!drawingCtx && this.topLeftFrozenCell) {
