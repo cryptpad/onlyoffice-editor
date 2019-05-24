@@ -1867,6 +1867,8 @@
 		var range, maxCell, t = this;
 		var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
 
+		this.model.PagePrintOptions.pageSetup.scale  = 145;
+
 		var getPrintAreaRanges = function() {
 			var res = false;
 			AscCommonExcel.executeInR1C1Mode(false, function () {
@@ -1934,9 +1936,26 @@
             drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
             drawingCtx.EndPage();
         } else {
-            drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
-            drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
-              printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);
+			this.usePrintScale = true;
+			var printScale = this.getPrintScale();
+
+
+			drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
+
+			var transformMtarix;
+			if(printScale !== 1 && drawingCtx.Transform) {
+				var mmToPx = asc_getcvt(3/*mm*/, 0/*px*/, this._getPPIX());
+				var leftDiff = printPagesData.pageClipRectLeft * (1 - printScale);
+				var topDiff = printPagesData.pageClipRectTop * (1 - printScale);
+				transformMtarix = drawingCtx.Transform.CreateDublicate();
+
+				//drawingCtx.Transform.Scale(printScale, printScale);
+				drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale, leftDiff / mmToPx, topDiff / mmToPx);
+			}
+
+			//TODO пересмотреть условие printScale < 1 ? printScale
+			drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
+				printPagesData.pageClipRectWidth / (printScale < 1 ? printScale : 1), printPagesData.pageClipRectHeight / (printScale < 1 ? printScale : 1));
 
             var offsetCols = printPagesData.startOffsetPx;
             var range = printPagesData.pageRange;
@@ -1947,21 +1966,6 @@
             // Сменим visibleRange для прохождения проверок отрисовки
             this.visibleRange = range;
 
-            this.usePrintScale = true;
-
-            var transformMtarix;
-			if(drawingCtx.Transform) {
-				var mmToPx = asc_getcvt(3/*mm*/, 0/*px*/, this._getPPIX());
-				var printScale = this.getPrintScale();
-				if(printScale !== 1) {
-					var leftDiff = printPagesData.pageClipRectLeft * (1 - printScale);
-					var topDiff = printPagesData.pageClipRectTop * (1 - printScale);
-					transformMtarix = drawingCtx.Transform.CreateDublicate();
-
-					//drawingCtx.Transform.Scale(printScale, printScale);
-					drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale, leftDiff / mmToPx, topDiff / mmToPx);
-				}
-			}
 
             // Нужно отрисовать заголовки
             if (printPagesData.pageHeadings) {
