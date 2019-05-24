@@ -1139,7 +1139,7 @@
 	 */
 	Api.prototype.CreateBlockLvlSdt = function()
 	{
-		return new ApiBlockLvlSdt(new CBlockLvlSdt());
+		return new ApiBlockLvlSdt(new CBlockLevelSdt());
 	};
 
 	/**
@@ -2222,7 +2222,7 @@
 		if (null === oHeader && true === isCreate)
 		{
 			var oLogicDocument = private_GetLogicDocument();
-			oHeader            = new CHeaderFooter(oLogicDocument.Get_HdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Header);
+			oHeader            = new CHeaderFooter(oLogicDocument.GetHdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Header);
 			if ("title" === sType)
 				this.Section.Set_Header_First(oHeader);
 			else if ("even" === sType)
@@ -2274,7 +2274,7 @@
 		if (null === oFooter && true === isCreate)
 		{
 			var oLogicDocument = private_GetLogicDocument();
-			oFooter            = new CHeaderFooter(oLogicDocument.Get_HdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Footer);
+			oFooter            = new CHeaderFooter(oLogicDocument.GetHdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Footer);
 			if ("title" === sType)
 				this.Section.Set_Footer_First(oFooter);
 			else if ("even" === sType)
@@ -4869,13 +4869,13 @@
 	 */
 	ApiInlineLvlSdt.prototype.SetLock = function(sLockType)
 	{
-		var nLock = sdtlock_Unlocked;
+		var nLock = c_oAscSdtLockType.Unlocked;
 		if ("contentLocked" === sLockType)
-			nLock = sdtlock_ContentLocked;
+			nLock = c_oAscSdtLockType.ContentLocked;
 		else if ("sdtContentLocked" === sLockType)
-			nLock = sdtlock_SdtContentLocked;
+			nLock = c_oAscSdtLockType.SdtContentLocked;
 		else if ("sdtLocked" === sLockType)
-			nLock = sdtlock_SdtLocked;
+			nLock = c_oAscSdtLockType.SdtLocked;
 
 		this.Sdt.SetContentControlLock(nLock);
 	};
@@ -4889,11 +4889,11 @@
 
 		var sResult = "unlocked";
 
-		if (sdtlock_ContentLocked === nLock)
+		if (c_oAscSdtLockType.ContentLocked === nLock)
 			sResult = "contentLocked";
-		else if (sdtlock_SdtContentLocked === nLock)
+		else if (c_oAscSdtLockType.SdtContentLocked === nLock)
 			sResult = "sdtContentLocked";
-		else if (sdtlock_SdtLocked === nLock)
+		else if (c_oAscSdtLockType.SdtLocked === nLock)
 			sResult = "sdtLocked";
 
 		return sResult;
@@ -5033,13 +5033,13 @@
 	 */
 	ApiBlockLvlSdt.prototype.SetLock = function(sLockType)
 	{
-		var nLock = sdtlock_Unlocked;
+		var nLock = c_oAscSdtLockType.Unlocked;
 		if ("contentLocked" === sLockType)
-			nLock = sdtlock_ContentLocked;
+			nLock = c_oAscSdtLockType.ContentLocked;
 		else if ("sdtContentLocked" === sLockType)
-			nLock = sdtlock_SdtContentLocked;
+			nLock = c_oAscSdtLockType.SdtContentLocked;
 		else if ("sdtLocked" === sLockType)
-			nLock = sdtlock_SdtLocked;
+			nLock = c_oAscSdtLockType.SdtLocked;
 
 		this.Sdt.SetContentControlLock(nLock);
 	};
@@ -5053,11 +5053,11 @@
 
 		var sResult = "unlocked";
 
-		if (sdtlock_ContentLocked === nLock)
+		if (c_oAscSdtLockType.ContentLocked === nLock)
 			sResult = "contentLocked";
-		else if (sdtlock_SdtContentLocked === nLock)
+		else if (c_oAscSdtLockType.SdtContentLocked === nLock)
 			sResult = "sdtContentLocked";
-		else if (sdtlock_SdtLocked === nLock)
+		else if (c_oAscSdtLockType.SdtLocked === nLock)
 			sResult = "sdtLocked";
 
 		return sResult;
@@ -5699,10 +5699,10 @@
 		oTextFill2.transparent = 127;
 
 		var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
-		var TrackRevisions = (MainLogicDocument ? MainLogicDocument.Is_TrackRevisions() : false);
+		var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
 
 		if (MainLogicDocument && true === TrackRevisions)
-			MainLogicDocument.Set_TrackRevisions(false);
+			MainLogicDocument.SetTrackRevisions(false);
 
 		var oShape = new AscFormat.CShape();
 		oShape.setWordShape(true);

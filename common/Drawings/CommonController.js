@@ -1827,7 +1827,7 @@ DrawingObjectsController.prototype =
     isSlideShow: function()
     {
         if(this.drawingObjects && this.drawingObjects.cSld){
-            return editor.WordControl.DemonstrationManager.Mode;
+            return editor && editor.WordControl && editor.WordControl.DemonstrationManager && editor.WordControl.DemonstrationManager.Mode;
         }
         return false;
     },
@@ -9078,10 +9078,10 @@ DrawingObjectsController.prototype =
     createTextArt: function(nStyle, bWord, wsModel, sStartString)
     {
         var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
-        var TrackRevisions = (MainLogicDocument ? MainLogicDocument.Is_TrackRevisions() : false);
+        var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
 
         if (MainLogicDocument && true === TrackRevisions)
-            MainLogicDocument.Set_TrackRevisions(false);
+            MainLogicDocument.SetTrackRevisions(false);
 
         var oShape = new AscFormat.CShape();
         oShape.setWordShape(bWord === true);
@@ -9266,7 +9266,7 @@ DrawingObjectsController.prototype =
         }
 
         if (MainLogicDocument && true === TrackRevisions)
-            MainLogicDocument.Set_TrackRevisions(true);
+            MainLogicDocument.SetTrackRevisions(true);
 
         return oShape;
     },

@@ -240,6 +240,14 @@ CRunElementBase.prototype.CanStartAutoCorrect = function()
 {
 	return false;
 };
+/**
+ * Является ли данный элемент символом пунктуации
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsPunctuation = function()
+{
+	return false;
+};
 
 /**
  * Класс представляющий текстовый символ
@@ -370,14 +378,11 @@ ParaText.prototype.Copy = function()
 };
 ParaText.prototype.Is_NBSP = function()
 {
-	return ( this.Value === nbsp_charcode ? true : false);
+	return (this.Value === nbsp_charcode);
 };
-ParaText.prototype.Is_Punctuation = function()
+ParaText.prototype.IsPunctuation = function()
 {
-	if (undefined !== AscCommon.g_aPunctuation[this.Value])
-		return true;
-
-	return false;
+	return !!(undefined !== AscCommon.g_aPunctuation[this.Value]);
 };
 ParaText.prototype.Is_Number = function()
 {
@@ -1205,38 +1210,103 @@ function ParaNumbering()
 	this.Page  = 0;
 
 	this.Internal = {
-		NumInfo   : undefined,
-		CalcValue : -1
+		FinalNumInfo    : undefined,
+		FinalCalcValue  : -1,
+		FinalNumId      : null,
+		FinalNumLvl     : -1,
+
+		SourceNumInfo   : undefined,
+		SourceCalcValue : -1,
+		SourceNumId     : null,
+		SourceNumLvl    : -1,
+		SourceWidth     : 0,
+
+		Reset : function()
+		{
+			this.FinalNumInfo    = undefined;
+			this.FinalCalcValue  = -1;
+			this.FinalNumId      = null;
+			this.FinalNumLvl     = -1;
+
+			this.SourceNumInfo   = undefined;
+			this.SourceCalcValue = -1;
+			this.SourceNumId     = null;
+			this.SourceNumLvl    = -1;
+			this.SourceWidth     = 0;
+		}
 	};
 }
 ParaNumbering.prototype = Object.create(CRunElementBase.prototype);
 ParaNumbering.prototype.constructor = ParaNumbering;
 
 ParaNumbering.prototype.Type = para_Numbering;
-ParaNumbering.prototype.Draw = function(X,Y,Context, Numbering, TextPr, NumPr, Theme)
+ParaNumbering.prototype.Draw = function(X, Y, oContext, oNumbering, oTextPr, oTheme)
 {
-	Numbering.Draw(NumPr.NumId, NumPr.Lvl, X, Y, Context, this.Internal.NumInfo, TextPr, Theme);
-};
-ParaNumbering.prototype.Measure = function (Context, Numbering, NumInfo, TextPr, NumPr, Theme)
-{
-	this.Internal.NumInfo   = NumInfo;
-	this.Internal.CalcValue = NumInfo && NumPr ? NumInfo[NumPr.Lvl] : -1;
+	var _X = X;
+	if (this.Internal.SourceNumInfo)
+	{
+		oNumbering.Draw(this.Internal.SourceNumId,this.Internal.SourceNumLvl, _X, Y, oContext, this.Internal.SourceNumInfo, oTextPr, oTheme);
+		_X += this.Internal.SourceWidth;
+	}
 
+	if (this.Internal.FinalNumInfo)
+	{
+		oNumbering.Draw(this.Internal.FinalNumId,this.Internal.FinalNumLvl, _X, Y, oContext, this.Internal.FinalNumInfo, oTextPr, oTheme);
+	}
+};
+ParaNumbering.prototype.Measure = function (oContext, oNumbering, oTextPr, oTheme, oFinalNumInfo, oFinalNumPr, oSourceNumInfo, oSourceNumPr)
+{
 	this.Width        = 0;
 	this.Height       = 0;
 	this.WidthVisible = 0;
 	this.WidthNum     = 0;
 	this.WidthSuff    = 0;
 
-	if (undefined === Numbering)
-		return {Width : this.Width, Height : this.Height, WidthVisible : this.WidthVisible};
+	this.Internal.Reset();
 
-	var Temp          = Numbering.Measure(NumPr.NumId, NumPr.Lvl, Context, NumInfo, TextPr, Theme);
-	this.Width        = Temp.Width;
-	this.WidthVisible = Temp.Width;
-	this.WidthNum     = Temp.Width;
+	if (!oNumbering)
+	{
+		return {
+			Width        : this.Width,
+			Height       : this.Height,
+			WidthVisible : this.WidthVisible
+		}
+	}
+
+	var nWidth = 0, nAscent = 0;
+	if (oFinalNumInfo && oFinalNumPr && undefined !== oFinalNumInfo[oFinalNumPr.Lvl])
+	{
+		var oTemp = oNumbering.Measure(oFinalNumPr.NumId, oFinalNumPr.Lvl, oContext, oFinalNumInfo, oTextPr, oTheme);
+
+		this.Internal.FinalNumInfo   = oFinalNumInfo;
+		this.Internal.FinalCalcValue = oFinalNumInfo[oFinalNumPr.Lvl];
+		this.Internal.FinalNumId     = oFinalNumPr.NumId;
+		this.Internal.FinalNumLvl    = oFinalNumPr.Lvl;
+
+		nWidth    = oTemp.Width;
+		nAscent   = oTemp.Ascent;
+	}
+
+	if (oSourceNumInfo && oSourceNumPr && undefined !== oSourceNumInfo[oSourceNumPr.Lvl])
+	{
+		var oTemp = oNumbering.Measure(oSourceNumPr.NumId, oSourceNumPr.Lvl, oContext, oSourceNumInfo, oTextPr, oTheme);
+
+		this.Internal.SourceNumInfo   = oSourceNumInfo;
+		this.Internal.SourceCalcValue = oSourceNumInfo[oSourceNumPr.Lvl];
+		this.Internal.SourceNumId     = oSourceNumPr.NumId;
+		this.Internal.SourceNumLvl    = oSourceNumPr.Lvl;
+		this.Internal.SourceWidth     = oTemp.Width;
+		nWidth += this.Internal.SourceWidth;
+
+		if (nAscent < oTemp.Ascent)
+			nAscent = oTemp.Ascent;
+	}
+
+	this.Width        = nWidth;
+	this.WidthVisible = nWidth;
+	this.WidthNum     = nWidth;
 	this.WidthSuff    = 0;
-	this.Height       = Temp.Ascent; // Это не вся высота, а только высота над BaseLine
+	this.Height       = nAscent; // Это не вся высота, а только высота над BaseLine
 };
 ParaNumbering.prototype.Check_Range = function(Range, Line)
 {
@@ -1267,7 +1337,31 @@ ParaNumbering.prototype.Read_FromBinary = function(Reader)
 };
 ParaNumbering.prototype.GetCalculatedValue = function()
 {
-	return this.Internal.CalcValue;
+	return this.Internal.FinalCalcValue;
+};
+/**
+ * Нужно ли отрисовывать исходную нумерацию
+ * @returns {boolean}
+ */
+ParaNumbering.prototype.HaveSourceNumbering = function()
+{
+	return !!this.Internal.SourceNumInfo;
+};
+/**
+ * Нужно ли отрисовывать финальную нумерацию
+ * @returns {boolean}
+ */
+ParaNumbering.prototype.HaveFinalNumbering = function()
+{
+	return !!this.Internal.FinalNumInfo;
+};
+/**
+ * Получаем ширину исходной нумерации
+ * @returns {number}
+ */
+ParaNumbering.prototype.GetSourceWidth = function()
+{
+	return this.Internal.SourceWidth;
 };
 
 // TODO: Реализовать табы по точке и с чертой.

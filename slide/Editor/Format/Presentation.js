@@ -761,8 +761,8 @@ CPresentation.prototype =
     },
 
     removeSection: function(pos){
-        History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSection, pos, [pr], true));
-        this.Sections.splice(pos, 0, pr);
+        History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSection, pos, [], true));
+        this.Sections.splice(pos, 0);
     },
 
     Set_DefaultLanguage: function(NewLangId)
@@ -2088,7 +2088,7 @@ CPresentation.prototype =
 
             // TODO: В будушем надо будет переделать, чтобы искалось заново только в том параграфе, в котором произошла замена
             //       Тут появляется проблема с вложенным поиском, если то что мы заменяем содержится в том, на что мы заменяем.
-            if (true === this.Is_TrackRevisions())
+            if (true === this.IsTrackRevisions())
                 this.SearchEngine.Reset();
         }
 
@@ -2978,7 +2978,7 @@ CPresentation.prototype =
                     aConnectors[i].calculateTransform(false);
                     var oGroup = aConnectors[i].getMainGroup();
                     if(oGroup){
-                        checkObjectInArray([], oGroup);
+                        AscFormat.checkObjectInArray([], oGroup);
                     }
                 }
                 if(aConnectors.length > 0)
@@ -3306,9 +3306,11 @@ CPresentation.prototype =
                                 }
                             }
                         }
-                        if(!bChangeSelect){
-                            History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                            this.addNextSlide();
+                        if(this.CanEdit()){
+                            if(!bChangeSelect){
+                                History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
+                                this.addNextSlide();
+                            }
                         }
                     }
                 }
@@ -3505,6 +3507,11 @@ CPresentation.prototype =
             if (true === this.DrawingDocument.IsTrackText())
             {
                 this.DrawingDocument.CancelTrackText();
+            }
+            if (AscCommon.c_oAscFormatPainterState.kOn === this.Api.isPaintFormat)
+            {
+                this.Api.sync_PaintFormatCallback(AscCommon.c_oAscFormatPainterState.kOff);
+                this.OnMouseMove(global_mouseEvent, 0, 0, this.CurPage);
             }
             bRetValue = keydownresult_PreventAll;
         }
@@ -4616,7 +4623,7 @@ CPresentation.prototype =
                         aConnectors[i].calculateTransform(false);
                         var oGroup = aConnectors[i].getMainGroup();
                         if(oGroup){
-                            checkObjectInArray([], oGroup);
+                            AscFormat.checkObjectInArray([], oGroup);
                         }
                     }
                     if(aConnectors.length > 0)
@@ -4665,7 +4672,7 @@ CPresentation.prototype =
                             aConnectors[i].calculateTransform(false);
                             var oGroup = aConnectors[i].getMainGroup();
                             if(oGroup){
-                                checkObjectInArray([], oGroup);
+                                AscFormat.checkObjectInArray([], oGroup);
                             }
                         }
                         if(aConnectors.length > 0)
@@ -5463,10 +5470,13 @@ CPresentation.prototype =
             oController.Save_DocumentStateBeforeLoadChanges(oDocState);
         }
 
+        this.CollaborativeEditing.WatchDocumentPositionsByState(oDocState);
         return oDocState;
     },
 
     Load_DocumentStateAfterLoadChanges: function(oState){
+
+        this.CollaborativeEditing.UpdateDocumentPositionsByState(oState);
         if(oState.Slide){
             var oSlide = oState.Slide;
             if(oSlide !== this.Slides[this.CurPage]){
@@ -7972,7 +7982,7 @@ CPresentation.prototype =
             var _data = _comments[i].Data;
             var _commId = 0;
 
-            var _autID = _data.m_sUserId + _uniIdSplitter + _data.m_sUserName;
+            var _autID = _data.m_sUserName;
             var _author = this.CommentAuthors[_autID];
             if (!_author)
             {
@@ -8007,7 +8017,7 @@ CPresentation.prototype =
             {
                 var _data2 = _comments2[j];
 
-                var _autID2 = _data2.m_sUserId + _uniIdSplitter + _data2.m_sUserName;
+                var _autID2 = _data2.m_sUserName;
                 var _author2 = this.CommentAuthors[_autID2];
                 if (!_author2)
                 {
@@ -8049,7 +8059,7 @@ CPresentation.prototype =
         }
     },
 
-    Is_TrackRevisions: function()
+    IsTrackRevisions: function()
     {
         return false;
     }

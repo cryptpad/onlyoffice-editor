@@ -399,10 +399,17 @@ function CEditorPage(api)
 
     this.onTimerScroll = function()
     {
+            var oWordControl = editor.WordControl;
+            if(oWordControl.m_oLogicDocument)
+            {
+                oWordControl.m_oLogicDocument.ContinueCheckSpelling();
+            }
+            oWordControl.m_nPaintTimerId = setTimeout(oWordControl.onTimerScroll, 500);
     }
 
     this.StartMainTimer = function()
     {
+        this.onTimerScroll();
     }
 
     this.onTimerScroll2 = function()

@@ -1153,7 +1153,7 @@ ParaMath.prototype.Get_CompiledTextPr = function(Copy)
 ParaMath.prototype.Add = function(Item)
 {
     var LogicDocument  = (this.Paragraph ? this.Paragraph.LogicDocument : undefined);
-    var TrackRevisions = (LogicDocument && true === LogicDocument.Is_TrackRevisions() ? true : false);
+    var TrackRevisions = (LogicDocument && true === LogicDocument.IsTrackRevisions() ? true : false);
 
     var Type = Item.Type;
     var oSelectedContent = this.GetSelectContent();
@@ -1177,12 +1177,12 @@ ParaMath.prototype.Add = function(Item)
             var CtrRunPr = oContent.Get_ParentCtrRunPr(false); // ctrPrp (не копия)
 
             if (true === TrackRevisions)
-                LogicDocument.Set_TrackRevisions(false);
+                LogicDocument.SetTrackRevisions(false);
 
             Run.Apply_TextPr(CtrRunPr, undefined, true);
 
             if (true === TrackRevisions)
-                LogicDocument.Set_TrackRevisions(true);
+                LogicDocument.SetTrackRevisions(true);
         }
 
         if(Item.Value == 38)
@@ -1232,7 +1232,7 @@ ParaMath.prototype.Add = function(Item)
         TextPr.RFonts.Set_All("Cambria Math", -1);
 
         if (true === TrackRevisions)
-            LogicDocument.Set_TrackRevisions(false);
+            LogicDocument.SetTrackRevisions(false);
 
         if(bPlh)
             oContent.Apply_TextPr(TextPr, undefined, true);
@@ -1240,7 +1240,7 @@ ParaMath.prototype.Add = function(Item)
             oContent.Apply_TextPr(TextPr, undefined, false, StartPos + 1, StartPos + lng2 - lng);
 
         if (true === TrackRevisions)
-            LogicDocument.Set_TrackRevisions(true);
+            LogicDocument.SetTrackRevisions(true);
     }
 
     if ((para_Text === Type || para_Space === Type) && null !== NewElement)
@@ -1343,7 +1343,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
 {
     var TrackRevisions = null;
     if (this.Paragraph && this.Paragraph.LogicDocument)
-        TrackRevisions = this.Paragraph.LogicDocument.Is_TrackRevisions();
+        TrackRevisions = this.Paragraph.LogicDocument.IsTrackRevisions();
 
     var oSelectedContent = this.GetSelectContent();
 
@@ -1354,7 +1354,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
     if (nStartPos === nEndPos)
     {
         var oElement = oContent.getElem(nStartPos);
-        var ElementReviewType = oElement.Get_ReviewType();
+        var ElementReviewType = oElement.GetReviewType();
 
         // Если данный элемент - ран, удаляем внутри рана, если нет, тогда удаляем целиком элемент
         if (para_Math_Run === oElement.Type)
@@ -1449,7 +1449,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                     if (para_Math_Run === oElement.Type !== oElement.Type)
                         oElement.RejectRevisionChanges(c_oAscRevisionsChangeType.TextAdd, true);
 
-                    oElement.Set_ReviewType(reviewtype_Remove);
+                    oElement.SetReviewType(reviewtype_Remove);
                 }
                 else if (reviewtype_Add === ElementReviewType)
                 {
@@ -1487,7 +1487,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
             for (var CurPos = nEndPos; CurPos >= nStartPos; --CurPos)
             {
                 var Element = oContent.getElem(CurPos);
-                var ElementReviewType = Element.Get_ReviewType();
+                var ElementReviewType = Element.GetReviewType();
 
                 if (para_Math_Run === Element.Type && (CurPos === nEndPos || CurPos === nStartPos))
                 {
@@ -1501,7 +1501,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                         if (para_Math_Run === Element.Type !== Element.Type)
                             Element.RejectRevisionChanges(c_oAscRevisionsChangeType.TextAdd, true);
 
-                        Element.Set_ReviewType(reviewtype_Remove);
+                        Element.SetReviewType(reviewtype_Remove);
                     }
                     else if (reviewtype_Add === ElementReviewType)
                     {
@@ -3353,9 +3353,9 @@ ParaMath.prototype.Correct_AfterConvertFromEquation = function()
     this.ParaMathRPI.bCorrect_ConvertFontSize = true;
 };
 
-ParaMath.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+ParaMath.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
-    return this.Root.Check_RevisionsChanges(Checker, ContentPos, Depth);
+    return this.Root.CheckRevisionsChanges(Checker, ContentPos, Depth);
 };
 ParaMath.prototype.AcceptRevisionChanges = function(Type, bAll)
 {
@@ -3365,9 +3365,9 @@ ParaMath.prototype.RejectRevisionChanges = function(Type, bAll)
 {
     return this.Root.RejectRevisionChanges(Type, bAll);
 };
-ParaMath.prototype.Set_ReviewType = function(ReviewType, RemovePrChange)
+ParaMath.prototype.SetReviewType = function(ReviewType, RemovePrChange)
 {
-    return this.Root.Set_ReviewType(ReviewType, RemovePrChange);
+    return this.Root.SetReviewType(ReviewType, RemovePrChange);
 };
 ParaMath.prototype.HandleTab = function(isForward)
 {

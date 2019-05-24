@@ -437,11 +437,11 @@ CDocumentContentElementBase.prototype.AddInlineTable = function(nCols, nRows)
 CDocumentContentElementBase.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
 };
-CDocumentContentElementBase.prototype.Set_ReviewType = function(ReviewType)
+CDocumentContentElementBase.prototype.SetReviewType = function(ReviewType)
 {
 
 };
-CDocumentContentElementBase.prototype.Get_ReviewType = function()
+CDocumentContentElementBase.prototype.GetReviewType = function()
 {
 	return reviewtype_Common;
 };
@@ -699,7 +699,7 @@ CDocumentContentElementBase.prototype.FindNextFillingForm = function(isNext, isC
 {
 	return null;
 };
-CDocumentContentElementBase.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+CDocumentContentElementBase.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
 	return null;
 };
@@ -848,13 +848,12 @@ CDocumentContentElementBase.prototype.SetSelectionState2 = function(State)
 {
 	return this.Set_SelectionState2(State);
 };
-CDocumentContentElementBase.prototype.SetReviewType = function(ReviewType)
+CDocumentContentElementBase.prototype.GetReviewInfo = function()
 {
-	this.Set_ReviewType(ReviewType);
+	return new CReviewInfo();
 };
-CDocumentContentElementBase.prototype.GetReviewType = function()
+CDocumentContentElementBase.prototype.SetReviewTypeWithInfo = function(nType, oInfo)
 {
-	return this.Get_ReviewType();
 };
 CDocumentContentElementBase.prototype.IsEmpty = function(oProps)
 {
@@ -1029,6 +1028,25 @@ CDocumentContentElementBase.prototype.GetTopElement = function()
 		return this;
 
 	return this.Parent.GetTopElement();
+};
+/**
+ * Получаем объект лока данного элемента
+ * @returns {AscCommon.CLock}
+ */
+CDocumentContentElementBase.prototype.GetLock = function()
+{
+	return this.Lock;
+};
+/**
+ * Если мы находимся в колонтитуле возвращаем его
+ * @returns {?CHdrFtr}
+ */
+CDocumentContentElementBase.prototype.GetHdrFtr = function()
+{
+	if (this.Parent)
+		return this.Parent.IsHdrFtr(true);
+
+	return null;
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

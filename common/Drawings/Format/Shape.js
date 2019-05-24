@@ -1154,10 +1154,10 @@ CShape.prototype.getBodyPr = function () {
     }, this, []);
 };
 
-CShape.prototype.GetRevisionsChangeParagraph = function(SearchEngine){
+CShape.prototype.GetRevisionsChangeElement = function(SearchEngine){
     var oContent = this.getDocContent();
     if(oContent){
-        oContent.GetRevisionsChangeParagraph(SearchEngine);
+        oContent.GetRevisionsChangeElement(SearchEngine);
     }
 };
 
@@ -4473,7 +4473,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
             this.brush = AscFormat.CreateBlipFillUniFillFromUrl(sSignatureUrl);
         }
     }
-    if (geometry && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
+    if ((geometry || (this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_DLbl)) && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
         graphics.SetIntegerGrid(false);
         graphics.transform3(_transform, false);
 

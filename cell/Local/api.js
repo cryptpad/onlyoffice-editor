@@ -90,7 +90,7 @@ var c_oAscError = Asc.c_oAscError;
 		}
 		this.handlers.trigger("asc_onAdvancedOptions", options, AscCommon.c_oAscAdvancedOptionsAction.Open);
 	};
-	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url)
+	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url, imgProp, withAuthorization)
 	{
 		var ws = this.wb.getWorksheet();
 		if (ws) 

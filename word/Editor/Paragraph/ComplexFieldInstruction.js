@@ -154,7 +154,7 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 {
 	this.ErrStr = null;
 	this.ResultStr = null;
-	this.private_Calculate();
+	this.private_Calculate(oLogicDocument);
 	if(this.Error)
 	{
 		this.ErrStr = this.GetErrorStr(this.Error);
@@ -184,9 +184,18 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 };
 
 
-CFieldInstructionFORMULA.prototype.private_Calculate = function ()
+CFieldInstructionFORMULA.prototype.private_Calculate = function (oLogicDocument)
 {
-	var oParser = new AscCommonWord.CFormulaParser(",", ".");//TODO: take list separator and digits separator from settings
+	var sListSeparator = ",";
+	var sDigitSeparator = ".";
+	if(oLogicDocument && oLogicDocument.Settings){
+		var oSettings = oLogicDocument.Settings;
+		if(oSettings.DecimalSymbol && oSettings.ListSeparator && oSettings.DecimalSymbol !== oSettings.ListSeparator){
+			sListSeparator = oSettings.ListSeparator;
+			sDigitSeparator = oSettings.DecimalSymbol;
+		}
+	}
+	var oParser = new AscCommonWord.CFormulaParser(sListSeparator, sDigitSeparator);
 	oParser.parse(this.Formula, this.ParentContent);
 
 	this.SetParseQueue(oParser.parseQueue);
@@ -854,7 +863,7 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 	var oFormat;
 	if(null !== sFormat)
 	{
-        oFormat = AscCommon.oNumFormatCache.get(sFormat);
+        oFormat = AscCommon.oNumFormatCache.get(sFormat, true);
         this.Result.SetFormat(oFormat);
 	}
 	this.Result.SetFormula(sFormula);

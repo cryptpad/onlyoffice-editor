@@ -2966,6 +2966,7 @@ function CDemonstrationManager(htmlpage)
 
     this.StartSlide = function(is_transition_use, is_first_play)
     {
+        oThis.HtmlPage.m_oApi.hideVideoControl();
         if (oThis.Canvas)
         {
             oThis.Canvas.style.cursor = "default";
@@ -3020,6 +3021,7 @@ function CDemonstrationManager(htmlpage)
 
     this.StartSlideBackward = function()
     {
+        oThis.HtmlPage.m_oApi.hideVideoControl();
         var _is_transition = oThis.Transition.IsPlaying();
         oThis.StopTransition();
 

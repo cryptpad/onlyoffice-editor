@@ -805,7 +805,7 @@
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
 		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
-		this._formula.parse(true, true, this._parseResult);
+		this._formula.parse(true, true, this._parseResult, true);
 
 		var r, offset, _e, _s, wsName = null, refStr, isName = false, _sColorPos, localStrObj;
 
@@ -1195,26 +1195,90 @@
 	CellEditor.prototype._fireUpdated = function () {
 		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
 		var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
-		var funcPos, funcName, match;
+		var fPos, fName, match, fCurrent;
 
 		if (!this.isTopLineActive || !this.skipTLUpdate || this.undoMode) {
 			this.input.value = s;
 		}
 
 		if (isFormula) {
-			funcPos = asc_lastidx(s, this.reNotFormula, this.cursorPos) + 1;
-			if (funcPos > 0) {
-				match = s.slice(funcPos, this.cursorPos).match(this.reFormula);
+			fPos = asc_lastidx(s, this.reNotFormula, this.cursorPos) + 1;
+			if (fPos > 0) {
+				match = s.slice(fPos, this.cursorPos).match(this.reFormula);
 			}
 			if (match) {
-				funcName = match[1];
+				fName = match[1];
 			} else {
-				funcPos = undefined;
-				funcName = undefined;
+				fPos = undefined;
+				fName = undefined;
+			}
+			fCurrent = this._getEditableFunction(this._parseResult).func;
+		}
+
+		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName);
+		this.handlers.trigger("updatedEditableFunction", fCurrent);
+	};
+
+	CellEditor.prototype._getEditableFunction = function (parseResult, bEndCurPos) {
+		var findOpenFunc = [], editableFunction = null, level = -1;
+		if(!parseResult) {
+			//в этом случае запускаю парсинг формулы до текущей позиции
+			var s = AscCommonExcel.getFragmentsText(this.options.fragments);
+			var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
+			if(isFormula) {
+				var pos = this.cursorPos;
+				var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen");
+				var ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+				var bbox = this.options.bbox;
+
+				var endPos = pos;
+				if(!bEndCurPos) {
+					for(var n = pos; n < s.length; n++) {
+						if("(" === s[n]) {
+							endPos = n;
+						}
+					}
+				}
+
+				var formulaStr = s.substring(1, endPos);
+				parseResult = new AscCommonExcel.ParseResult([], []);
+				var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
+				var tempFormula = new AscCommonExcel.parserFormula(formulaStr, cellWithFormula, ws);
+				tempFormula.parse(true, true, parseResult, true);
 			}
 		}
 
-		this.handlers.trigger("updated", s, this.cursorPos, isFormula, funcPos, funcName);
+		var elements = parseResult ? parseResult.elems : null;
+		if(elements) {
+			for(var i = 0; i < elements.length; i++) {
+				if(cElementType.func === elements[i].type && elements[i + 1] && "(" === elements[i + 1].name) {
+					level++;
+					findOpenFunc[level] = {elem: elements[i], counter: 1};
+					i++;
+				} else if(-1 !== level) {
+					if("(" === elements[i].name) {
+						findOpenFunc[level].counter++;
+					} else if(")" === elements[i].name) {
+						findOpenFunc[level].counter--;
+					}
+				}
+				if(level > -1 && findOpenFunc[level].counter === 0) {
+					findOpenFunc.splice(level,1);
+					level--;
+				}
+			}
+		}
+
+		if(findOpenFunc) {
+			for(var j = findOpenFunc.length - 1; j >= 0; j--) {
+				if(findOpenFunc[j].counter > 0 && !(findOpenFunc[j].elem instanceof window['AscCommonExcel'].cUnknownFunction)) {
+					editableFunction = findOpenFunc[j].elem.name;
+					break;
+				}
+			}
+		}
+
+		return {func: editableFunction, argPos: parseResult ? parseResult.argPos : null};
 	};
 
 	CellEditor.prototype._expandWidth = function () {
@@ -1475,12 +1539,11 @@
 			curHeight = AscCommon.AscBrowser.convertToRetinaValue(curHeight);
 		}
 
+		this.curLeft = curLeft;
+		this.curTop = curTop;
+		this.curHeight = curHeight;
 
-		if (window['IS_NATIVE_EDITOR']) {
-			this.curLeft = curLeft;
-			this.curTop = curTop;
-			this.curHeight = curHeight;
-		} else {
+		if (!window['IS_NATIVE_EDITOR']) {
 			this.cursorStyle.left = curLeft + "px";
 			this.cursorStyle.top = curTop + "px";
 			this.cursorStyle.height = curHeight + "px";
@@ -1496,6 +1559,8 @@
 		if (this.isTopLineActive && !this.skipTLUpdate) {
 			this._updateTopLineCurPos();
 		}
+		//var fCurrent = this._getEditableFunction(null, true);
+		//console.log("func: " + fCurrent.func + " arg: " + fCurrent.argPos);
 		this._updateSelectionInfo();
 	};
 

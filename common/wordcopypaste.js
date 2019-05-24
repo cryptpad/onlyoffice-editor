@@ -1963,7 +1963,7 @@ function Editor_Paste_Exec(api, _format, data1, data2, text_data, specialPastePr
 function trimString( str ){
     return str.replace(/^\s+|\s+$/g, '') ;
 }
-function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
+function sendImgUrls(api, images, callback, bExcel, bNotShowError, withAuthorization) {
 
   if (window["AscDesktopEditor"])
   {
@@ -1986,7 +1986,10 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError) {
 		return;
 	}
 
-  var rData = {"id": api.documentId, "c": "imgurls", "userid":  api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(), "data": images};
+  var rData = {
+    "id": api.documentId, "c": "imgurls", "userid": api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(),
+    "withAuthorization": withAuthorization, "data": images
+  };
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 
   api.fCurCallback = function (input) {
@@ -2785,7 +2788,7 @@ PasteProcessor.prototype =
 				{
 					for(var i = 0; i < paragraphContent.length; i++)
 					{
-						var elem = paragraphContent[j];
+						var elem = paragraphContent[i];
 						if(pasteIntoParaRunPr && elem.Pr)
 						{
 							elem.Pr.Merge(pasteIntoParaRunPr);
@@ -3095,12 +3098,16 @@ PasteProcessor.prototype =
 			presentationSelectedContent.DocContent.Elements[i] = oSelectedElement;
 		}
 
-		presentation.Insert_Content(presentationSelectedContent);
-		presentation.Recalculate();
-        presentation.Check_CursorMoveRight();
-		presentation.Document_UpdateInterfaceState();
+		if(presentation.Insert_Content(presentationSelectedContent)) {
+			presentation.Recalculate();
+			presentation.Check_CursorMoveRight();
+			presentation.Document_UpdateInterfaceState();
 
-		this._setSpecialPasteShowOptionsPresentation();
+			this._setSpecialPasteShowOptionsPresentation();
+		} else {
+			//window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+		}
+
 		window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 	},
 
@@ -3387,9 +3394,16 @@ PasteProcessor.prototype =
 	Start : function(node, nodeDisplay, bDuplicate, fromBinary, text)
     {
 		//PASTE
+		var tempPresentation = !PasteElementsId.g_bIsDocumentCopyPaste && editor && editor.WordControl ? editor.WordControl.m_oLogicDocument : null;
+		var insertToPresentationWithoutSlides = tempPresentation && tempPresentation.Slides && !tempPresentation.Slides.length;
 		if(text){
+			if(insertToPresentationWithoutSlides) {
+				window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+				return;
+			}
 
-            this.oDocument = this._GetTargetDocument(this.oDocument);
+			this.oDocument = this._GetTargetDocument(this.oDocument);
             this.oLogicDocument.RemoveBeforePaste();
 			this._pasteText(text);
 			return;
@@ -3427,7 +3441,14 @@ PasteProcessor.prototype =
 					}
 				}
 			}
-			
+
+			//paste form word/excel/html into empty presentation without slides
+			if(insertToPresentationWithoutSlides && !base64FromPresentation) {
+				window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+				return;
+			}
+
 			//insert from binary
 			if(base64FromExcel)//вставка из редактора таблиц
 			{
@@ -3502,9 +3523,10 @@ PasteProcessor.prototype =
 			return null;
 		}
 
+		var aContent;
 		if (window['AscCommon'].g_specialPasteHelper.specialPasteStart &&
 			Asc.c_oSpecialPasteProps.keepTextOnly === window['AscCommon'].g_specialPasteHelper.specialPasteProps) {
-			var aContent = oThis._convertExcelBinary(aContentExcel);
+			aContent = oThis._convertExcelBinary(aContentExcel);
 			oThis.aContent = aContent.content;
 			fPrepasteCallback();
 		} else if (aContentExcel.arrImages && aContentExcel.arrImages.length) {
@@ -3517,7 +3539,7 @@ PasteProcessor.prototype =
 				oThis.api.pre_Paste(aContent.fonts, oImageMap, fPrepasteCallback);
 			}, null, true);
 		} else {
-			var aContent = oThis._convertExcelBinary(aContentExcel);
+			aContent = oThis._convertExcelBinary(aContentExcel);
 			oThis.aContent = aContent.content;
 			oThis.api.pre_Paste(aContent.fonts, aContent.images, fPrepasteCallback);
 		}
@@ -3537,8 +3559,8 @@ PasteProcessor.prototype =
 		var aPastedImages = excelContent.arrImages;
 
 		//если есть шейпы, то вставляем их из excel
-		if (aContentExcel && aContentExcel.aWorksheets && aContentExcel.aWorksheets[0] &&
-			aContentExcel.aWorksheets[0].Drawings && aContentExcel.aWorksheets[0].Drawings.length) {
+		var aContent;
+		if (aContentExcel && aContentExcel.aWorksheets && aContentExcel.aWorksheets[0] && aContentExcel.aWorksheets[0].Drawings && aContentExcel.aWorksheets[0].Drawings.length) {
 			var paste_callback = function () {
 				if (false === oThis.bNested) {
 					var oIdMap = {};
@@ -3615,11 +3637,15 @@ PasteProcessor.prototype =
 					var presentationSelectedContent = new PresentationSelectedContent();
 					presentationSelectedContent.Drawings = arr_shapes;
 
-					presentation.Insert_Content(presentationSelectedContent);
-					presentation.Recalculate();
 
-					presentation.Check_CursorMoveRight();
-					presentation.Document_UpdateInterfaceState();
+					if(presentation.Insert_Content(presentationSelectedContent)) {
+						presentation.Recalculate();
+
+						presentation.Check_CursorMoveRight();
+						presentation.Document_UpdateInterfaceState();
+					} else {
+						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+					}
 
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				}
@@ -3633,7 +3659,7 @@ PasteProcessor.prototype =
 				aImagesToDownload.push(aPastedImages[i].Url);
 			}
 
-			var aContent = {aPastedImages: aPastedImages, images: aImagesToDownload};
+			aContent = {aPastedImages: aPastedImages, images: aImagesToDownload};
 
 			//fonts
 			var font_map = {};
@@ -3674,10 +3700,10 @@ PasteProcessor.prototype =
 			var presentationSelectedContent = new PresentationSelectedContent();
 			presentationSelectedContent.DocContent = new CSelectedContent();
 
-			var aContent = AscFormat.ExecuteNoHistory(this._convertExcelBinary, this, [excelContent]);
+			aContent = AscFormat.ExecuteNoHistory(this._convertExcelBinary, this, [excelContent]);
 
-			var elements = [], selectedElement, element, drawings = [], pDrawings = [], drawingCopyObject;
-			var defaultTableStyleId = presentation.DefaultTableStyleId;
+			var selectedElement, element, pDrawings = [], drawingCopyObject;
+			//var defaultTableStyleId = presentation.DefaultTableStyleId;
 			for (var i = 0; i < aContent.content.length; ++i) {
 				selectedElement = new CSelectedElement();
 				element = aContent.content[i];
@@ -3710,21 +3736,26 @@ PasteProcessor.prototype =
 			presentationSelectedContent.Drawings = pDrawings;
 
 			//вставка
-			var paste_callback = function () {
+			var paste_callback_presentation = function () {
 				if (false == oThis.bNested) {
-					presentation.Insert_Content(presentationSelectedContent);
-					presentation.Recalculate();
-					presentation.Check_CursorMoveRight();
-					presentation.Document_UpdateInterfaceState();
 
-					var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
-					oThis._setSpecialPasteShowOptionsPresentation(props);
+					if(presentation.Insert_Content(presentationSelectedContent)) {
+						presentation.Recalculate();
+
+						presentation.Check_CursorMoveRight();
+						presentation.Document_UpdateInterfaceState();
+
+						var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
+						oThis._setSpecialPasteShowOptionsPresentation(props);
+					} else {
+						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+					}
 
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				}
 			};
 
-			oThis.api.pre_Paste(aContent.fonts, null, paste_callback);
+			oThis.api.pre_Paste(aContent.fonts, null, paste_callback_presentation);
 		}
 	},
 
@@ -3908,13 +3939,16 @@ PasteProcessor.prototype =
 		{
 			if(false === oThis.bNested)
 			{
-				presentation.Insert_Content(presentationSelectedContent);
-				presentation.Recalculate();
-				presentation.Check_CursorMoveRight();
-				presentation.Document_UpdateInterfaceState();
+				if(presentation.Insert_Content(presentationSelectedContent)) {
+					presentation.Recalculate();
+					presentation.Check_CursorMoveRight();
+					presentation.Document_UpdateInterfaceState();
 
-				var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
-				oThis._setSpecialPasteShowOptionsPresentation(props);
+					var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
+					oThis._setSpecialPasteShowOptionsPresentation(props);
+				} else {
+					window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				}
 
 				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 			}
@@ -4606,8 +4640,105 @@ PasteProcessor.prototype =
 		
 		var fPasteHtmlPresentationCallback = function(fonts, images)
 		{
+			oThis.aContent = [];
+			//на время заполнения контента для вставки отключаем историю
+			var arrShapes = [], arrImages = [], arrTables = [];
+
 			var executePastePresentation = function()
 			{
+				//PREPARE CONTENT
+				//если не добавили даные внутрь arrShapes - удаляем пустой CShape
+				if(arrShapes.length === 1 && arrShapes[0].txBody && arrShapes[0].txBody.content && arrShapes[0].txBody.content.Content && arrShapes[0].txBody.content.Content.length === 1)
+				{
+					var txBodyContent = arrShapes[0].txBody.content.Content[0].Content;
+					if(txBodyContent && txBodyContent.length === 2 && txBodyContent[0].Content && txBodyContent[0].Content.length === 0)
+					{
+						arrShapes = [];
+					}
+				}
+
+				var i, w, h;
+				for(i = 0; i < arrShapes.length; ++i)
+				{
+					shape = arrShapes[i];
+
+					var txBobyContent = shape.txBody.content.Content;
+					if(txBobyContent.length > 1 && txBobyContent[0].Content)
+					{
+						if(txBobyContent[0].Content.length === 1 || (txBobyContent[0].Content.length === 2 && txBobyContent[0].Content[0].Content && txBobyContent[0].Content[0].Content.length === 0))
+						{
+							shape.txBody.content.Internal_Content_Remove(0, 1);
+						}
+					}
+
+					w =  shape.txBody.getRectWidth(presentation.Width*2/3);
+					h = shape.txBody.content.GetSummaryHeight();
+					AscFormat.CheckSpPrXfrm(shape);
+					shape.spPr.xfrm.setExtX(w);
+					shape.spPr.xfrm.setExtY(h);
+					shape.spPr.xfrm.setOffX((presentation.Width - w)/2.0);
+					shape.spPr.xfrm.setOffY((presentation.Height - h)/2.0);
+
+
+					var oBodyPr = shape.getBodyPr().createDuplicate();
+					oBodyPr.rot = 0;
+					oBodyPr.spcFirstLastPara = false;
+					oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
+					oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
+					oBodyPr.vert = AscFormat.nVertTThorz;
+					oBodyPr.lIns = 2.54;
+					oBodyPr.tIns = 1.27;
+					oBodyPr.rIns = 2.54;
+					oBodyPr.bIns = 1.27;
+					oBodyPr.numCol = 1;
+					oBodyPr.spcCol = 0;
+					oBodyPr.rtlCol = 0;
+					oBodyPr.fromWordArt = false;
+					oBodyPr.anchor = 4;
+					oBodyPr.anchorCtr = false;
+					oBodyPr.forceAA = false;
+					oBodyPr.compatLnSpc = true;
+					oBodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function(){return AscFormat.CreatePrstTxWarpGeometry("textNoShape");}, this, []);
+					oBodyPr.textFit = new AscFormat.CTextFit();
+					oBodyPr.textFit.type = AscFormat.text_fit_Auto;
+					shape.txBody.setBodyPr(oBodyPr);
+					shape.txBody.content.MoveCursorToEndPos();
+					arrShapes[i] = new DrawingCopyObject(shape, 0, 0, w, h);
+				}
+
+				for(i = 0; i < arrTables.length; ++i)
+				{
+					shape = arrTables[i];
+
+					//TODO передалать высоту/ширину!
+					//var w =  shape.txBody.getRectWidth(presentation.Width*2/3);
+					//var h = shape.txBody.content.GetSummaryHeight();
+					w = 100;
+					h = 100;
+					AscFormat.CheckSpPrXfrm(shape);
+					shape.spPr.xfrm.setExtX(w);
+					shape.spPr.xfrm.setExtY(h);
+					shape.spPr.xfrm.setOffX(0);
+					shape.spPr.xfrm.setOffY(0);
+
+					arrShapes[arrShapes.length] = new DrawingCopyObject(shape, 0, 0, w, h);
+				}
+
+				for(i = 0; i < arrImages.length; ++i)
+				{
+					shape = arrImages[i];
+
+					AscFormat.CheckSpPrXfrm(shape);
+					//shape.spPr.xfrm.setExtX(w);
+					//shape.spPr.xfrm.setExtY(h);
+					shape.spPr.xfrm.setOffX(0);
+					shape.spPr.xfrm.setOffY(0);
+
+					arrShapes[arrShapes.length] = new DrawingCopyObject(shape, 0, 0, w, h);
+				}
+
+
+				//INSERT CONTENT
 				var oController = presentation.GetCurrentController();
 				var targetDocContent =  oController  && oController.getTargetDocContent();
 				if(targetDocContent && arrShapes.length === 1 && arrImages.length === 0 && arrTables.length === 0)
@@ -4622,19 +4753,38 @@ PasteProcessor.prototype =
 					var presentationSelectedContent = new PresentationSelectedContent();
 					presentationSelectedContent.Drawings = arrShapes;
 
-					presentation.Insert_Content(presentationSelectedContent);
+					var bPaste = presentation.Insert_Content(presentationSelectedContent);
 					presentation.Recalculate();
 					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
 
-					oThis._setSpecialPasteShowOptionsPresentation([Asc.c_oSpecialPasteProps.sourceformatting, Asc.c_oSpecialPasteProps.keepTextOnly]);
+					//check only images
+					var pasteOnlyImg = false;
+					if(2 === presentationSelectedContent.getContentType()) {
+						pasteOnlyImg = true;
+						for(i = 0; i < presentationSelectedContent.Drawings.length; i++) {
+							if(presentationSelectedContent.Drawings[i].Drawing.getObjectType() !== AscDFH.historyitem_type_ImageShape) {
+								pasteOnlyImg = false;
+								break;
+							}
+						}
+					}
+
+					if(pasteOnlyImg || !bPaste) {
+						window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
+						if(window['AscCommon'].g_specialPasteHelper.buttonInfo)
+						{
+							window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph = null;
+							window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+						}
+					} else {
+						oThis._setSpecialPasteShowOptionsPresentation([Asc.c_oSpecialPasteProps.sourceformatting, Asc.c_oSpecialPasteProps.keepTextOnly]);
+					}
+
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				}
 			};
 
-			oThis.aContent = [];
-			//на время заполнения контента для вставки отключаем историю
-			 var arrShapes = [], arrImages = [], arrTables = [];
 			var presentation = editor.WordControl.m_oLogicDocument;
 			if(presentation.Slides.length === 0)
 			{
@@ -4646,95 +4796,6 @@ PasteProcessor.prototype =
 			arrShapes.push(shape);
 			
 			oThis._Execute(node, {}, true, true, false, arrShapes, arrImages, arrTables);
-			
-			//если не добавили даные внутрь arrShapes - удаляем пустой CShape
-			if(arrShapes.length === 1 && arrShapes[0].txBody && arrShapes[0].txBody.content && arrShapes[0].txBody.content.Content && arrShapes[0].txBody.content.Content.length === 1)
-			{
-				var txBodyContent = arrShapes[0].txBody.content.Content[0].Content;
-				if(txBodyContent && txBodyContent.length === 2 && txBodyContent[0].Content && txBodyContent[0].Content.length === 0)
-				{
-					arrShapes = [];
-				}
-			}	
-			
-			for(var i = 0; i < arrShapes.length; ++i)
-			{
-				shape = arrShapes[i];
-				
-				var txBobyContent = shape.txBody.content.Content;
-				if(txBobyContent.length > 1 && txBobyContent[0].Content)
-				{
-					if(txBobyContent[0].Content.length === 1 || (txBobyContent[0].Content.length === 2 && txBobyContent[0].Content[0].Content && txBobyContent[0].Content[0].Content.length === 0))
-					{
-						shape.txBody.content.Internal_Content_Remove(0, 1);
-					}
-				}
-				
-				var w =  shape.txBody.getRectWidth(presentation.Width*2/3);
-				var h = shape.txBody.content.GetSummaryHeight();
-				AscFormat.CheckSpPrXfrm(shape);
-				shape.spPr.xfrm.setExtX(w);
-				shape.spPr.xfrm.setExtY(h);
-				shape.spPr.xfrm.setOffX((presentation.Width - w)/2.0);
-				shape.spPr.xfrm.setOffY((presentation.Height - h)/2.0);
-
-
-                var oBodyPr = shape.getBodyPr().createDuplicate();
-                oBodyPr.rot = 0;
-                oBodyPr.spcFirstLastPara = false;
-                oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
-                oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
-                oBodyPr.vert = AscFormat.nVertTThorz;
-                oBodyPr.lIns = 2.54;
-                oBodyPr.tIns = 1.27;
-                oBodyPr.rIns = 2.54;
-                oBodyPr.bIns = 1.27;
-                oBodyPr.numCol = 1;
-                oBodyPr.spcCol = 0;
-                oBodyPr.rtlCol = 0;
-                oBodyPr.fromWordArt = false;
-                oBodyPr.anchor = 4;
-                oBodyPr.anchorCtr = false;
-                oBodyPr.forceAA = false;
-                oBodyPr.compatLnSpc = true;
-                oBodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function(){return AscFormat.CreatePrstTxWarpGeometry("textNoShape");}, this, []);
-                oBodyPr.textFit = new AscFormat.CTextFit();
-                oBodyPr.textFit.type = AscFormat.text_fit_Auto;
-                shape.txBody.setBodyPr(oBodyPr);
-				shape.txBody.content.MoveCursorToEndPos();
-				arrShapes[i] = new DrawingCopyObject(shape, 0, 0, w, h);
-			}
-			
-			for(var i = 0; i < arrTables.length; ++i)
-			{
-				shape = arrTables[i];
-			   
-				//TODO передалать высоту/ширину!
-				//var w =  shape.txBody.getRectWidth(presentation.Width*2/3);
-				//var h = shape.txBody.content.GetSummaryHeight();
-				var w = 100;
-				var h = 100;
-				AscFormat.CheckSpPrXfrm(shape);
-				shape.spPr.xfrm.setExtX(w);
-				shape.spPr.xfrm.setExtY(h);
-				shape.spPr.xfrm.setOffX(0);
-				shape.spPr.xfrm.setOffY(0);
-				
-				arrShapes[arrShapes.length] = new DrawingCopyObject(shape, 0, 0, w, h);
-			}
-			
-			for(var i = 0; i < arrImages.length; ++i)
-			{
-				shape = arrImages[i];
-
-				AscFormat.CheckSpPrXfrm(shape);
-				//shape.spPr.xfrm.setExtX(w);
-				//shape.spPr.xfrm.setExtY(h);
-				shape.spPr.xfrm.setOffX(0);
-				shape.spPr.xfrm.setOffY(0);
-				
-				arrShapes[arrShapes.length] = new DrawingCopyObject(shape, 0, 0, w, h);
-			}
 
 			if(!fonts)
 			{
@@ -5256,7 +5317,7 @@ PasteProcessor.prototype =
 		var diffRow = activeRange.r2 - activeRange.r1;
 		var diffCol = activeRange.c2 - activeRange.c1;
 		for (var i = 0; i <= diffRow; i++) {
-			var row = table.Internal_Add_Row(table.Content.length, 0);
+			var row = table.private_AddRow(table.Content.length, 0);
 			var heightRowPt = worksheet.getRowHeight(i + activeRange.r1);
 			row.SetHeight(heightRowPt * g_dKoef_pt_to_mm, linerule_AtLeast);
 
@@ -7879,7 +7940,7 @@ PasteProcessor.prototype =
 			//TODO временная правка в условии для того, чтобы избежать ошибки при копировании из excel мерженной ячейки
             if("tr" === tr.nodeName.toLowerCase() && tr.childNodes && tr.childNodes.length)
             {
-				var row = table.Internal_Add_Row(table.Content.length, 0);
+				var row = table.private_AddRow(table.Content.length, 0);
                 this._ExecuteTableRow(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef);
             }
         }
@@ -8593,8 +8654,12 @@ PasteProcessor.prototype =
 				}
 			} else {
 				sChildNodeName = child.nodeName.toLowerCase();
+
+				//исключаю чтение тега "o:p", потому что ms в пустые ячейки таблицы добавляется внутрь данного тега неразрывные пробелы
+				//не нашёл такой ситуации, когда пропадают пробелы между словами
+				//todo протестровать "o:p"!
 				if (!(Node.ELEMENT_NODE === nodeType || Node.TEXT_NODE === nodeType) || sChildNodeName === "style" ||
-					sChildNodeName === "#comment" || sChildNodeName === "script") {
+					sChildNodeName === "#comment" || sChildNodeName === "script" || sChildNodeName === "o:p") {
 					if(sChildNodeName === "#comment") {
 						if(child.nodeValue === "[if !supportAnnotations]") {
 							oThis.startMsoAnnotation = true;
@@ -9164,7 +9229,7 @@ PasteProcessor.prototype =
             var tr = node.childNodes[i];
             if("tr" === tr.nodeName.toLowerCase() && tr.children.length !== 0)//в случае, если внутри строки нет ни одной ячейки, не добавляем данную строку
             {
-                var row = table.Internal_Add_Row(table.Content.length, 0);
+                var row = table.private_AddRow(table.Content.length, 0);
                 this._ExecuteTableRowPresentation(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
             }
         }

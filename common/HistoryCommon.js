@@ -1100,6 +1100,9 @@
 			case AscDFH.historydescription_Document_AddTableFormula:
 				sString = "Document_AddTableFormula";
 				break;
+			case AscDFH.historydescription_Document_ChangeTableFormula:
+				sString = "Document_ChangeTableFormula";
+				break;
 		}
 		return sString;
 	}
@@ -1483,6 +1486,8 @@
 	window['AscDFH'].historyitem_Table_TableLayout           = window['AscDFH'].historyitem_type_Table | 25;
 	window['AscDFH'].historyitem_Table_TableDescription      = window['AscDFH'].historyitem_type_Table | 26;
 	window['AscDFH'].historyitem_Table_TableCaption          = window['AscDFH'].historyitem_type_Table | 27;
+	window['AscDFH'].historyitem_Table_TableGridChange       = window['AscDFH'].historyitem_type_Table | 28;
+	window['AscDFH'].historyitem_Table_PrChange              = window['AscDFH'].historyitem_type_Table | 29;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CTableRow
 	//------------------------------------------------------------------------------------------------------------------
@@ -1494,6 +1499,8 @@
 	window['AscDFH'].historyitem_TableRow_RemoveCell  = window['AscDFH'].historyitem_type_TableRow | 6;
 	window['AscDFH'].historyitem_TableRow_TableHeader = window['AscDFH'].historyitem_type_TableRow | 7;
 	window['AscDFH'].historyitem_TableRow_Pr          = window['AscDFH'].historyitem_type_TableRow | 8;
+	window['AscDFH'].historyitem_TableRow_PrChange    = window['AscDFH'].historyitem_type_TableRow | 9;
+	window['AscDFH'].historyitem_TableRow_ReviewType  = window['AscDFH'].historyitem_type_TableRow | 10;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CTableCell
 	//------------------------------------------------------------------------------------------------------------------
@@ -1511,6 +1518,7 @@
 	window['AscDFH'].historyitem_TableCell_TextDirection = window['AscDFH'].historyitem_type_TableCell | 12;
 	window['AscDFH'].historyitem_TableCell_NoWrap        = window['AscDFH'].historyitem_type_TableCell | 13;
 	window['AscDFH'].historyitem_TableCell_HMerge        = window['AscDFH'].historyitem_type_TableCell | 14;
+	window['AscDFH'].historyitem_TableCell_PrChange      = window['AscDFH'].historyitem_type_TableCell | 15;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CDocumentContent
 	//------------------------------------------------------------------------------------------------------------------
@@ -3095,6 +3103,7 @@
 	window['AscDFH'].historydescription_Document_UpdateFields                       = 0x015c;
 	window['AscDFH'].historydescription_Document_AddBlankPage                       = 0x015d;
 	window['AscDFH'].historydescription_Document_AddTableFormula                    = 0x015e;
+	window['AscDFH'].historydescription_Document_ChangeTableFormula                 = 0x015e;
 
 
 
@@ -3218,22 +3227,6 @@
 		this.Add      = isAdd;
 
 		this.Reverted = false;
-
-		if (Class && Pos && Items)
-		{
-			if (isAdd)
-			{
-				for (var nIndex = 0, nCount = Items.length; nIndex < nCount; ++nIndex)
-				{
-					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(Class, Pos + nIndex);
-				}
-			}
-			else
-			{
-				if (Items.length > 0)
-					AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(Class, Pos, Items.length);
-			}
-		}
 	}
 
 	CChangesBaseContentChange.prototype = Object.create(CChangesBase.prototype);

@@ -37,6 +37,8 @@ window.IS_NATIVE_EDITOR = true;
 
 
 var sdkCheck = true;
+var spellCheck = true;
+
 // endsectionPr -----------------------------------------------------------------------------------------
 
 window['SockJS'] = createSockJS();
@@ -2928,7 +2930,6 @@ function asc_menu_WriteHyperPr(_hyperPr, _stream)
     _stream["WriteByte"](255);
 };
 
-
 function asc_menu_WriteMath(oMath, s){
     s["WriteLong"](oMath.Type);
     s["WriteLong"](oMath.Action);
@@ -2937,6 +2938,79 @@ function asc_menu_WriteMath(oMath, s){
     s["WriteBool"](oMath.CanInsertForcedBreak);
     s["WriteBool"](oMath.CanDeleteForcedBreak);
     s["WriteBool"](oMath.CanAlignToCharacter);
+}
+
+function initSpellCheckApi() {
+    
+    _api.SpellCheckApi = new AscCommon.CSpellCheckApi();
+    _api.isSpellCheckEnable = true;
+
+    _api.SpellCheckApi.spellCheck = function (spellData) {
+        window["native"]["SpellCheck"](JSON.stringify(spellData));
+    };
+    
+    _api.SpellCheckApi.disconnect = function () {};
+
+    _api.sendEvent('asc_onSpellCheckInit', [
+        "1026",
+        "1027",
+        "1029",
+        "1030",
+        "1031",
+        "1032",
+        "1033",
+        "1036",
+        "1038",
+        "1040",
+        "1042",
+        "1043",
+        "1044",
+        "1045",
+        "1046",
+        "1048",
+        "1049",
+        "1050",
+        "1051",
+        "1053",
+        "1055",
+        "1057",
+        "1058",
+        "1060",
+        "1062",
+        "1063",
+        "1066",
+        "1068",
+        "1069",
+        "1087",
+        "1104",
+        "1110",
+        "1134",
+        "2051",
+        "2055",
+        "2057",
+        "2068",
+        "2070",
+        "3079",
+        "3081",
+        "3082",
+        "4105",
+        "7177",
+        "9242",
+        "10266"
+    ]);
+
+    _api.SpellCheckApi.onInit = function (e) {
+        _api.sendEvent('asc_onSpellCheckInit', e);
+    };
+
+    _api.SpellCheckApi.onSpellCheck = function (e) {
+        _api.SpellCheck_CallBack(e);
+    };
+
+    _api.SpellCheckApi.init(_api.documentId);
+
+    _api.asc_setSpellCheck(spellCheck);
+
 }
 
 function NativeOpenFileP(_params, documentInfo){
@@ -2949,6 +3023,7 @@ function NativeOpenFileP(_params, documentInfo){
     }
 
     sdkCheck = documentInfo["sdkCheck"];
+    spellCheck = documentInfo["spellCheck"];
 
     var translations = documentInfo["translations"];
     if (undefined != translations && null != translations && translations.length > 0) {
@@ -3074,6 +3149,7 @@ function NativeOpenFileP(_params, documentInfo){
         _presentation.DrawingDocument.CheckThemes();
         _api.WordControl.CheckLayouts();
 
+        initSpellCheckApi();
 
         return [nSlidesCount, dPresentationWidth, dPresentationHeight, aTimings];
     }
@@ -3354,6 +3430,8 @@ Asc['asc_docs_api'].prototype.openDocument = function(sData)
 
     _api.asc_GetDefaultTableStyles();
 
+    initSpellCheckApi();
+
     var t = this;
     setInterval(function() {
         t._autoSave();
@@ -3526,6 +3604,36 @@ Asc['asc_docs_api'].prototype.asc_setDocumentPassword = function(password)
     };
 
     AscCommon.sendCommand(this, null, v);
+};
+
+
+Asc['asc_docs_api'].prototype.asc_setSpellCheck = function(isOn)
+{
+    if (editor.WordControl.m_oLogicDocument)
+    {
+        var _presentation = editor.WordControl.m_oLogicDocument;
+        _presentation.Spelling.Use = isOn;
+        var _drawing_document = editor.WordControl.m_oDrawingDocument;
+        if(isOn)
+        {
+            this.spellCheckTimerId = setInterval(function(){_presentation.ContinueCheckSpelling();}, 500);
+        }
+        else
+        {
+            if(this.spellCheckTimerId)
+            {
+               clearInterval(this.spellCheckTimerId);
+            }
+        }
+        var oCurSlide = _presentation.Slides[_presentation.CurPage];
+
+        if(oCurSlide)
+        {
+            _drawing_document.OnStartRecalculate(_presentation.Slides.length);
+            _drawing_document.OnRecalculatePage(_presentation.CurPage, oCurSlide);
+            _drawing_document.OnEndRecalculate();
+        }
+    }
 };
 
 if(!window.native){

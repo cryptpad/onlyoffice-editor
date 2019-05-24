@@ -2630,16 +2630,15 @@ function CBinaryFileWriter()
                 }
 
                 if (oThis.IsUseFullUrl) {
-                  var displayN = oThis._isDisplayedImage(imageLocal);
-                  if (0 != displayN) {
-                      var additionalUrl = AscCommon.g_oDocumentUrls.getImageUrlsWithOtherExtention(imageLocal);
-                    oThis.StartRecord(101);
-                    oThis.WriteUChar(additionalUrl.length);
-                    for (var i = 0; i < additionalUrl.length; ++i) {
-                      oThis.WriteString2(additionalUrl[i]);
-                    }
-                    oThis.EndRecord();
-                  }
+					var additionalUrl = AscCommon.g_oDocumentUrls.getImageUrlsWithOtherExtention(imageLocal);
+					if (additionalUrl.length > 0) {
+						oThis.StartRecord(101);
+						oThis.WriteUChar(additionalUrl.length);
+						for (var i = 0; i < additionalUrl.length; ++i) {
+							oThis.WriteString2(additionalUrl[i]);
+						}
+						oThis.EndRecord();
+					}
                 }
 
                 oThis.EndRecord();
@@ -2659,25 +2658,6 @@ function CBinaryFileWriter()
             default:
                 break;
         }
-    }
-    this._isDisplayedImage = function (strName) {
-      var res = 0;
-      if (strName) {
-        //шаблон display[N]image.ext
-        var findStr = "display";
-        var index = strName.indexOf(findStr);
-        if (-1 != index) {
-          if (index + findStr.length < strName.length) {
-            var displayN = parseInt(strName[index + findStr.length]);
-            if (!isNaN(displayN)) {
-              var imageIndex = index + findStr.length + 1;
-              if (imageIndex == strName.indexOf("image", imageIndex))
-                res = displayN;
-            }
-          }
-        }
-      }
-      return res;
     }
     this.WriteLn = function(ln)
     {
@@ -3221,7 +3201,7 @@ function CBinaryFileWriter()
         }
 
         var unifill = new AscFormat.CUniFill();
-        unifill.fill = image.blipFill
+        unifill.fill = image.blipFill;
         oThis.WriteRecord1(1, unifill, oThis.WriteUniFill);
         oThis.WriteRecord1(2, image.spPr, oThis.WriteSpPr);
         if(bSetGeometry){

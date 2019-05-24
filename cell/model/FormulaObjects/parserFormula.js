@@ -471,6 +471,7 @@ var c_Date1900Const = 25568; //разница в днях между 01.01.1970 
 var c_sPerDay = 86400;
 var c_msPerDay = c_sPerDay * 1000;
   var rx_sFuncPref = /_xlfn\./i;
+  var rx_sDefNamePref = /_xlnm\./i;
 	var cNumFormatFirstCell = -1;
 	var cNumFormatNone = -2;
 	var cNumFormatNull = -3;
@@ -1623,7 +1624,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					}
 				}
 
-				arr[i - r1][j - c1] = resValue;
+				arr[k][i - r1][j - c1] = resValue;
 			});
 		}
 		return arr;
@@ -1645,6 +1646,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cArea3D.prototype.getMatrixNoEmpty = function () {
 		var arr = [], r = this.getRanges(), res;
+
+		var ws = r[0] ? r[0].worksheet : null;
+		var oldExcludeHiddenRows = ws ? ws.bExcludeHiddenRows : null;
+
 		for (var k = 0; k < r.length; k++) {
 			arr[k] = [];
 			r[k]._foreachNoEmpty(function (cell, i, j, r1, c1) {
@@ -1942,9 +1947,26 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cName.prototype.toString = function () {
 		var defName = this.getDefName();
 		if (defName) {
+			if (defName.isXLNM) {
+				return new cString("_xlnm." + defName.name);
+			}
 			return defName.name;
 		} else {
 			return this.value;
+		}
+	};
+	cName.prototype.toLocaleString = function () {
+		var defName = this.getDefName();
+		if (defName) {
+			return defName.sheetId ? AscCommon.translateManager.getValue(defName.name) : defName.name;
+		} else {
+			//сделано для: создаем формулу со ссылкой на Область_печати, далее удаляем область печати с листа
+			//поскольку в стеке лежит cName c именем "Print_Area", формула собиралась уже без учёта локали(мы попадали в текущую ветку и возвращали this.value)
+			// - вместо области печати мы видим Print_Area
+			//но с данной правкой есть проблема. если мы ссылаемся, допустим, в русской локали в формуле на именованный
+			//диапазон Print_Area, то при сборке формулы он автоматически преобразуется в Область_Печати
+			//аналогично тому, что если мы создаём в менеджере имен новое имя "Print_Area" - преоразуется с учетом локали
+			return AscCommon.translateManager.getValue(this.value);
 		}
 	};
 	cName.prototype.getValue = function () {
@@ -3264,7 +3286,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 							if (!newArg) {
 								//TODO проверить что ставить, если данный эламент массива недоступен
 								//пока делаю так - если не последний аргумент, то пустой элемент, если последний - undefined
-								newArg = /*j === argumentsCount - 1 ? undefined : */new cEmpty();
+								newArg = /*j === argumentsCount - 1 ? undefined : */new cError(cErrorType.not_available);
 							}
 						} else if(changeArgByIndexArr && changeArgByIndexArr[j]) {
 							if(_cCol === changeArgByIndexArr[j]) {
@@ -5010,6 +5032,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 		this.elems = elems;
 		this.error = undefined;
 		this.operand_expected = undefined;
+		this.argPos = undefined;
 	}
 
 	ParseResult.prototype.addRefPos = function(start, end, index, oper, isName) {
@@ -5226,7 +5249,7 @@ parserFormula.prototype.setFormula = function(formula) {
   this.isInDependencies = false;
 };
 
-	parserFormula.prototype.parse = function (local, digitDelim, parseResult) {
+	parserFormula.prototype.parse = function (local, digitDelim, parseResult, ignoreErrors) {
 		var elemArr = [];
 		var ph = {operand_str: null, pCurrPos: 0};
 		var needAssemble = false;
@@ -5606,7 +5629,7 @@ parserFormula.prototype.setFormula = function(formula) {
 					if (ph.operand_str in cFormulaOperators) {
 						found_operator = cFormulaOperators[ph.operand_str].prototype;
 						parseResult.operand_expected = true;
-					} else {
+					} else if(!ignoreErrors) {
 						parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
 						t.outStack = [];
 						return false;
@@ -5638,6 +5661,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			elemArr.push(cFormulaOperators[ph.operand_str].prototype);
 			parseResult.addElem(cFormulaOperators[ph.operand_str].prototype);
 			leftParentArgumentsCurrentArr[elemArr.length - 1] = 1;
+			parseResult.argPos = 1;
 
 			if(startSumproduct){
 				counterSumproduct++;
@@ -5675,7 +5699,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				top_elem_arg_count = leftParentArgumentsCurrentArr[elemArr.length - 1];
 			}
 
-			if (0 === elemArr.length || null === top_elem/* && !wasLeftParentheses */) {
+			if ((0 === elemArr.length || null === top_elem) && !ignoreErrors) {
 				t.outStack = [];
 				parseResult.setError(c_oAscError.ID.FrmlWrongCountParentheses);
 				return false;
@@ -5686,7 +5710,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			if (0 !== elemArr.length &&
 				( func = elemArr[elemArr.length - 1] ).type === cElementType.func) {
 				p = elemArr.pop();
-				if (top_elem_arg_count > func.argumentsMax) {
+				if (top_elem_arg_count > func.argumentsMax && !ignoreErrors) {
 					t.outStack = [];
 					parseResult.setError(c_oAscError.ID.FrmlWrongMaxArgument);
 					return false;
@@ -5700,20 +5724,20 @@ parserFormula.prototype.setFormula = function(formula) {
 						bError = true;
 					}
 
-					if (bError) {
+					if (bError && !ignoreErrors) {
 						t.outStack = [];
 						parseResult.setError(c_oAscError.ID.FrmlWrongCountArgument);
 						return false;
 					}
 				}
-			} else if(wasLeftParentheses && 0 === top_elem_arg_count && elemArr[elemArr.length - 1] && " " === elemArr[elemArr.length - 1].name) {
+				parseResult.argPos = leftParentArgumentsCurrentArr[elemArr.length - 1];
+			} else if(wasLeftParentheses && 0 === top_elem_arg_count && elemArr[elemArr.length - 1] && " " === elemArr[elemArr.length - 1].name && !ignoreErrors) {
 				//intersection with empty range
 				t.outStack = [];
 				parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
 				return false;
 			} else {
-				if (wasLeftParentheses && (!elemArr[elemArr.length - 1] ||
-					'(' === elemArr[elemArr.length - 1].name)) {
+				if (wasLeftParentheses && (!elemArr[elemArr.length - 1] || '(' === elemArr[elemArr.length - 1].name) && !ignoreErrors) {
 					t.outStack = [];
 					parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
 					return false;
@@ -5763,19 +5787,20 @@ parserFormula.prototype.setFormula = function(formula) {
 				}
 			}
 
-			if (parseResult.operand_expected) {
+			if (parseResult.operand_expected && !ignoreErrors) {
 				parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
 				t.outStack = [];
 				return false;
 			}
 
 			//TODO заглушка для парсинга множественного диапазона в _xlnm.Print_Area. необходимо сделать общий парсинг подобного содержимого
-			if (!wasLeftParentheses && !(t.parent && t.parent instanceof window['AscCommonExcel'].DefName /*&& t.parent.name === "_xlnm.Print_Area"*/)) {
+			if (!wasLeftParentheses && !(t.parent && t.parent instanceof window['AscCommonExcel'].DefName /*&& t.parent.name === "_xlnm.Print_Area"*/) && !ignoreErrors) {
 				parseResult.setError(c_oAscError.ID.FrmlWrongCountParentheses);
 				t.outStack = [];
 				return false;
 			}
 			leftParentArgumentsCurrentArr[top_elem_arg_pos]++;
+			parseResult.argPos = leftParentArgumentsCurrentArr[top_elem_arg_pos];
 			parseResult.operand_expected = true;
 			return true;
 		};
@@ -5812,14 +5837,50 @@ parserFormula.prototype.setFormula = function(formula) {
 				} else if (parserHelp.isOperator.call(ph, t.Formula, ph.pCurrPos)) {
 					operator.isOperator = true;
 					operator.operatorName = ph.operand_str;
-				} else {
+				} /*else if(ignoreErrors && parserHelp.isFunc.call(ph, t.Formula, ph.pCurrPos)) {
+					//TODO при нахождении функции внутри массива ms выдаёт подсказки к аргументам данной функции(lookup(,{,3,sum()
+					//если расскоментировать данный код, то проверка на функцию должна осуществляться, необходимо проверить!
+
+					if (wasRigthParentheses && parseResult.operand_expected) {
+						elemArr.push(new cMultOperator());
+					}
+
+					var found_operator = null, operandStr = ph.operand_str.replace(rx_sFuncPref, "").toUpperCase();
+					if (operandStr in cFormulaList) {
+						found_operator = cFormulaList[operandStr].prototype;
+					} else if (operandStr in cAllFormulaFunction) {
+						found_operator = cAllFormulaFunction[operandStr].prototype;
+					} else {
+						found_operator = new cUnknownFunction(operandStr);
+						found_operator.isXLFN = ( ph.operand_str.indexOf("_xlfn.") === 0 );
+					}
+
+					if (found_operator !== null) {
+						if (found_operator.ca) {
+							t.ca = found_operator.ca;
+						}
+						elemArr.push(found_operator);
+						parseResult.addElem(found_operator);
+						if("SUMPRODUCT" === found_operator.name){
+							startSumproduct = true;
+						}
+					} else if(!ignoreErrors) {
+						parseResult.setError(c_oAscError.ID.FrmlWrongFunctionName);
+						t.outStack = [];
+						return false;
+					}
+					parseResult.operand_expected = false;
+					wasRigthParentheses = false;
+					return true;
+				}*/ else {
+					//убираю проверку на ignoreErrors из-за зацикливания в формулах типа lookup(,{,3,sum(
 					t.outStack = [];
 					/*в массиве используется недопустимый параметр*/
 					parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
 					return false;
 				}
 			}
-			if (!arr.isValidArray()) {
+			if (!arr.isValidArray() && !ignoreErrors) {
 				t.outStack = [];
 				/*размер массива не согласован*/
 				parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
@@ -5837,7 +5898,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				parseResult.operand_expected = true;
 			}
 
-			if (!parseResult.operand_expected) {
+			if (!parseResult.operand_expected && !ignoreErrors) {
 				parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
 				t.outStack = [];
 				return false;
@@ -5864,7 +5925,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				var wsF = t.wb.getWorksheetByName(_3DRefTmp[1]);
 				var wsT = (null !== _3DRefTmp[2]) ? t.wb.getWorksheetByName(_3DRefTmp[2]) : wsF;
 
-				if (!(wsF && wsT)) {
+				if (!(wsF && wsT) && !ignoreErrors) {
 					parseResult.setError(c_oAscError.ID.FrmlWrongReferences);
 					t.outStack = [];
 					return false;
@@ -5885,8 +5946,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				}
 			}
 
-			/* Referens to cells area A1:A10 */ else if (parserHelp.isArea.call(ph, t.Formula,
-					ph.pCurrPos)) {
+			/* Referens to cells area A1:A10 */ else if (parserHelp.isArea.call(ph, t.Formula, ph.pCurrPos)) {
 				found_operand = new cArea(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), t.ws);
 				parseResult.addRefPos(ph.pCurrPos - ph.operand_str.length, ph.pCurrPos, t.outStack.length, found_operand);
 			}
@@ -5900,7 +5960,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				found_operand = cStrucTable.prototype.createFromVal(_tableTMP, t.wb, t.ws);
 
 				//todo undo delete column
-				if (found_operand.type === cElementType.error) {
+				if (found_operand.type === cElementType.error && !ignoreErrors) {
 					/*используется неверный именованный диапазон или таблица*/
 					parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
 					t.outStack = [];
@@ -5912,11 +5972,23 @@ parserFormula.prototype.setFormula = function(formula) {
 				}
 			}
 
-			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos,
-					t.wb, t.ws)[0]) {
-				found_operand = new cName(ph.operand_str, t.ws);
-				var defName = found_operand.getDefName();
-				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(ph.operand_str + "[]", 0))) {
+			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos, t.wb, t.ws)[0]) {
+
+				//проверяем вдруг это область печати
+				var defName;
+				var sDefNameOperand = ph.operand_str.replace(rx_sDefNamePref, "");
+				var tryTranslate = AscCommonExcel.tryTranslateToPrintArea(sDefNameOperand);
+				if(tryTranslate) {
+					found_operand = new cName(tryTranslate, t.ws);
+					defName = found_operand.getDefName();
+				}
+				//TODO возможно здесь нужно else ставить
+				if(!defName) {
+					found_operand = new cName(sDefNameOperand, t.ws);
+					defName = found_operand.getDefName();
+				}
+
+				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(sDefNameOperand + "[]", 0))) {
 					found_operand = cStrucTable.prototype.createFromVal(_tableTMP, t.wb, t.ws);
 					//need assemble becase source formula wrong
 					needAssemble = true;
@@ -5927,7 +5999,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			/* Numbers*/ else if (parserHelp.isNumber.call(ph, t.Formula, ph.pCurrPos, digitDelim)) {
 				if (ph.operand_str !== ".") {
 					found_operand = new cNumber(parseFloat(ph.operand_str));
-				} else {
+				} else if(!ignoreErrors) {
 					parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
 					t.outStack = [];
 					return false;
@@ -5959,7 +6031,7 @@ parserFormula.prototype.setFormula = function(formula) {
 					if("SUMPRODUCT" === found_operator.name){
 						startSumproduct = true;
 					}
-				} else {
+				} else if(!ignoreErrors) {
 					parseResult.setError(c_oAscError.ID.FrmlWrongFunctionName);
 					t.outStack = [];
 					return false;
@@ -6433,6 +6505,14 @@ parserFormula.prototype.setFormula = function(formula) {
 						}
 						if (elem.type === cElementType.cellsRange3D) {
 							elem.bbox = _cellsBbox;
+							var isDefName;
+							if (this.parent && this.parent.onFormulaEvent) {
+								isDefName = this.parent.onFormulaEvent(AscCommon.c_oNotifyParentType.IsDefName);
+							}
+							//только если это defName
+							if(null === isDefName) {
+								elem.changeSheet(ws, wsTo);
+							}
 						} else {
 							elem.range = _cellsRange.createFromBBox(wsTo, _cellsBbox);
 						}
@@ -6679,7 +6759,7 @@ parserFormula.prototype.setFormula = function(formula) {
 		for (var i = 0, j = 0; i < _count; i++) {
 			currentElement = this.outStack[i];
 
-			if(currentElement.type !== cElementType.cellsRange3D && currentElement.type !== cElementType.cell3D) {
+			if(currentElement.type !== cElementType.cellsRange3D && currentElement.type !== cElementType.cell3D && currentElement.type !== cElementType.name && currentElement.type !== cElementType.name3D) {
 				onlyRangesElements = false;
 				rangesStr = null;
 			}
@@ -7650,6 +7730,7 @@ function rtl_math_erfc( x ) {
 	window['AscCommonExcel'].cArray = cArray;
 	window['AscCommonExcel'].cUndefined = cUndefined;
 	window['AscCommonExcel'].cBaseFunction = cBaseFunction;
+	window['AscCommonExcel'].cUnknownFunction = cUnknownFunction;
 
 	window['AscCommonExcel'].checkTypeCell = checkTypeCell;
 	window['AscCommonExcel'].cFormulaFunctionGroup = cFormulaFunctionGroup;

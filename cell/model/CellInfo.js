@@ -369,7 +369,7 @@
 	};
 
 	/** @constructor */
-	function asc_CDefName(n, r, s, t, h, l, x) {
+	function asc_CDefName(n, r, s, t, h, l, x, bLocale) {
 		this.Name = n;
 		this.LocalSheetId = s;
 		this.Ref = r;
@@ -377,11 +377,15 @@
 		this.Hidden = h;
 		this.isLock = l;
 		this.isXLNM = x;
+
+		if(bLocale) {
+			this._translate()
+		}
 	}
 
 	asc_CDefName.prototype = {
-		asc_getName: function () {
-			return this.Name;
+		asc_getName: function (bLocale) {
+			return bLocale && null !== this.LocalSheetId ? AscCommon.translateManager.getValue(this.Name) : this.Name;
 		}, asc_getScope: function () {
 			return this.LocalSheetId;
 		}, asc_getRef: function () {
@@ -394,6 +398,14 @@
 			return this.isLock;
 		}, asc_getIsXlnm: function () {
 			return this.isXLNM;
+		}, _translate: function() {
+			if(null !== this.LocalSheetId) {
+				var translatePrintArea = AscCommonExcel.tryTranslateToPrintArea(this.Name);
+				if(translatePrintArea) {
+					this.Name = translatePrintArea;
+					this.isXLNM = true;
+				}
+			}
 		}
 	};
 

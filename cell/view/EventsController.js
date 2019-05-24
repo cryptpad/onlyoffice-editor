@@ -705,6 +705,17 @@
 			t.skipKeyPress = true;
 
 			switch (event.which) {
+				case 82:
+					if (ctrlKey && shiftKey) {
+						stop();
+						if (canEdit && !t.getCellEditMode() && !t.isSelectionDialogMode) {
+							t.handlers.trigger("changeFormatTableInfo");
+						}
+						return result;
+					}
+					t.skipKeyPress = false;
+					return true;
+
 				case 120: // F9
 					t.handlers.trigger("calcAll", ctrlKey, event.altKey, shiftKey);
 					return result;

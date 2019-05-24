@@ -1329,11 +1329,11 @@ ParaDrawing.prototype.GetPosCorrection = function()
 		}
 		if(bCell || this.Is_Inline() || this.PositionH.Align)
 		{
-			DiffX = AscFormat.getValOrDefault(oEffectExtent.L, 0.0) - (xc - extX / 2) + oBounds.l;
+			DiffX = AscFormat.getValOrDefault(oEffectExtent.L, 0.0) - (xc - extX / 2) + (this.PositionH.Align ? 0 : oBounds.l);
 		}
 		if(/*bCell ||*/ this.Is_Inline() || this.PositionV.Align)
 		{
-			DiffY = AscFormat.getValOrDefault(oEffectExtent.T, 0.0) - (yc - extY / 2) + oBounds.t;
+			DiffY = AscFormat.getValOrDefault(oEffectExtent.T, 0.0) - (yc - extY / 2) + (this.PositionV.Align ? 0 : oBounds.t);
 		}
 	}
 	return {DiffX: DiffX, DiffY: DiffY, ExtX: extX, ExtY: extY, Rot: rot};
@@ -1618,7 +1618,7 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 		DrawingRun.Set_Pr(RunPr.Copy());
 
 	if (Run)
-		DrawingRun.Set_ReviewTypeWithInfo(Run.Get_ReviewType(), Run.Get_ReviewInfo());
+		DrawingRun.SetReviewTypeWithInfo(Run.GetReviewType(), Run.GetReviewInfo());
 
 	Para.Add_ToContent(0, DrawingRun);
 
@@ -2647,10 +2647,10 @@ ParaDrawing.prototype.private_ConvertToMathObject = function(isOpen)
 		}
 	}
 };
-ParaDrawing.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+ParaDrawing.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-	if (this.GraphicObj && this.GraphicObj.GetRevisionsChangeParagraph)
-		this.GraphicObj.GetRevisionsChangeParagraph(SearchEngine);
+	if (this.GraphicObj && this.GraphicObj.GetRevisionsChangeElement)
+		this.GraphicObj.GetRevisionsChangeElement(SearchEngine);
 };
 ParaDrawing.prototype.Get_ObjectType = function()
 {

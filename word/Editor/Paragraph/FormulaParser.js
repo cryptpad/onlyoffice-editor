@@ -4,9 +4,9 @@
 //var window = {};
 (function (undefined) {
 
-    var sIdentifier = '(\u0009|\u0000A|\u0000D|[\u0020-\uD7FF]|[\uE000-\uFFFD]|[\u10000-\u10FFFF])+';
-    var sComparison = '<=|<>|>=|=|<|>';
-    var sOperator =  "<>|<=|>=|>|<|-|\\^|\\*|/|\\%|\\+|=";
+    var sIdentifier = '(\u0009\|\u0000A\|\u0000D\|[\u0020-\uD7FF]\|[\uE000-\uFFFD]\|[\u10000-\u10FFFF])+';
+    var sComparison = '<=\|<>\|>=\|=\|<\|>';
+    var sOperator =  "<>\|<=\|>=\|>\|<\|-\|\\^\|\\*\|/\|\\\%|\\+\|=";
     var sColumnName = '([A-Z]){1,2}';
     var sDecimalDigit = '[0-9]';
     var sRowName = sDecimalDigit + '+';
@@ -16,32 +16,32 @@
     var sWholeNumberPart = '([0-9]+)((,[0-9]{3})+[0-9]+)*';
     var sFractionalPart = sDecimalDigit + '+';
 
-    var sConstant =  sWholeNumberPart + sFullStop + sFractionalPart + '|' + '(' + sWholeNumberPart + '(' + sFullStop +')*)' + '|(' + sFullStop + sFractionalPart + ')';
+    var sConstant =  sWholeNumberPart + sFullStop + sFractionalPart + '\|' + '(' + sWholeNumberPart + '(' + sFullStop +')*)' + '\|(' + sFullStop + sFractionalPart + ')';
     var sCellName = sColumnName + sRowName;
     var sCellCellRange = sCellName + sColon + sCellName;
     var sRowRange = sRowName + sColon + sRowName;
     var sColumnRange = sColumnName + sColon + sColumnName;
-    var sCellRange = '(' + sCellCellRange + ')|(' + sRowRange + ')|(' + sColumnRange + ')';
-    var sCellReference = '(' + sCellRange + ')|(' + sCellName + ')';
+    var sCellRange = '(' + sCellCellRange + ')\|(' + sRowRange + ')\|(' + sColumnRange + ')';
+    var sCellReference = '(' + sCellRange + ')\|(' + sCellName + ')';
     var sBookmark = "[_A-Z]([A-Z0-9]{0,39})";//TODO: not only latin
     var sBookmarkCellRef = sBookmark + '( +(' + sCellReference + '))*';
-    var sFunctions = "(ABS|AND|AVERAGE|COUNT|DEFINED|FALSE|INT|MAX|MIN|MOD|NOT|OR|PRODUCT|ROUND|SIGN|SUM|TRUE)" ;
+    var sFunctions = "(ABS\|AND\|AVERAGE\|COUNT\|DEFINED\|FALSE\|INT\|MAX\|MIN\|MOD\|NOT\|OR\|PRODUCT\|ROUND\|SIGN\|SUM\|TRUE)" ;
 
-    const oComparisonOpRegExp = new RegExp(sComparison, 'g');
-    const oColumnNameRegExp = new RegExp(sColumnName, 'g');
-    const oCellNameRegExp = new RegExp(sCellName, 'g');
-    const oRowNameRegExp = new RegExp(sRowName, 'g');
-    const oCellRangeRegExp = new RegExp(sCellRange, 'g');
-    const oCellCellRangeRegExp = new RegExp(sCellCellRange, 'g');
-    const oRowRangeRegExp = new RegExp(sRowRange, 'g');
-    const oColRangeRegExp = new RegExp(sColumnRange, 'g');
-    const oCellReferenceRegExp = new RegExp(sCellReference, 'g');
-    const oIdentifierRegExp = new RegExp(sIdentifier, 'g');
-    const oBookmarkNameRegExp = new RegExp(sBookmark, 'g');
-    const oBookmarkCellRefRegExp = new RegExp(sBookmarkCellRef, 'g');
-    const oConstantRegExp = new RegExp(sConstant, 'g');
-    const oOperatorRegExp = new RegExp(sOperator, 'g');
-    const oFunctionsRegExp = new RegExp(sFunctions, 'g');
+    var oComparisonOpRegExp = new RegExp(sComparison, 'g');
+    var oColumnNameRegExp = new RegExp(sColumnName, 'g');
+    var oCellNameRegExp = new RegExp(sCellName, 'g');
+    var oRowNameRegExp = new RegExp(sRowName, 'g');
+    var oCellRangeRegExp = new RegExp(sCellRange, 'g');
+    var oCellCellRangeRegExp = new RegExp(sCellCellRange, 'g');
+    var oRowRangeRegExp = new RegExp(sRowRange, 'g');
+    var oColRangeRegExp = new RegExp(sColumnRange, 'g');
+    var oCellReferenceRegExp = new RegExp(sCellReference, 'g');
+    var oIdentifierRegExp = new RegExp(sIdentifier, 'g');
+    var oBookmarkNameRegExp = new RegExp(sBookmark, 'g');
+    var oBookmarkCellRefRegExp = new RegExp(sBookmarkCellRef, 'g');
+    var oConstantRegExp = new RegExp(sConstant, 'g');
+    var oOperatorRegExp = new RegExp(sOperator, 'g');
+    var oFunctionsRegExp = new RegExp(sFunctions, 'g');
 
 
     var oLettersMap = {};
@@ -136,7 +136,7 @@
                 _result = -1.0;
             }
             if(this.parseQueue.format){
-                return this.parseQueue.format.formatToChart(_result, 14);
+                return this.parseQueue.format.formatToWord(_result, 14);
             }
             sResult = "";
             if(_result < 0){
@@ -551,10 +551,10 @@
     oOperatorsMap[")"] = CRightParenOperatorNode;
 
 
-    const LEFT = 0;
-    const RIGHT = 1;
-    const ABOVE = 2;
-    const BELOW = 3;
+    var LEFT = 0;
+    var RIGHT = 1;
+    var ABOVE = 2;
+    var BELOW = 3;
 
     var sLetters = "ZABCDEFGHIJKLMNOPQRSTUVWXY";
     var sDigits = "0123456789";
@@ -1460,6 +1460,7 @@
     oFuncMap['ROUND'] = CROUNDFunctionNode;
     oFuncMap['SIGN'] = CSIGNFunctionNode;
     oFuncMap['SUM'] = CSUMFunctionNode;
+    oFuncMap['TRUE'] = CTRUEFunctionNode;
 
     var PARSER_MASK_LEFT_PAREN      = 1;
     var PARSER_MASK_RIGHT_PAREN     = 2;
@@ -2242,296 +2243,5 @@
         }
         return null;
     };
-
-
-//GENERATE TEST DATA
-    var sListSeparator = ",";
-    var sDisitSeparator = ".";
-
-
-    function addParens(sExpression){
-        var ret = [];
-        ret.push("(" + sExpression + ")");
-        return ret;
-    }
-
-    function createConstant(){
-        var ret = [];
-        // ret.push("0"+sDisitSeparator+"32");
-        // ret.push(sDisitSeparator + "163");
-        ret.push("153");
-        ret.push("12" /*+ sDisitSeparator*/);
-        //ret.push("0" + sDisitSeparator + "0");
-        return ret;
-    }
-
-    function addPrefix(sExpression){
-        var ret = [];
-        ret.push("-"+sExpression);
-        return ret;
-    }
-
-    var aInfixOp = ["<>","<=",">=",">","<","-","^","*","/","%","+","="];
-    function createInfixExpression(sExpression1, sExpression2){
-        var ret = [];
-        for(var i = 0; i < aInfixOp.length; ++i){
-            ret.push(sExpression1 + aInfixOp[i] + sExpression2);
-        }
-        return ret;
-    }
-
-    function createBookmark(){
-        var ret = [];
-        ret.push("jsdj");
-        ret.push("jsdj1");
-        return ret;
-    }
-    function createDir(){
-        var ret = [];
-        ret.push("LeFt");
-        ret.push("AboVe");
-        ret.push("RIGHT");
-        ret.push("below");
-        return ret;
-    }
-
-    function createCellReference(){
-        var ret = [];
-        ret.push("Cd3");
-        ret.push("a:B");
-        ret.push("3:10");
-        ret.push("a1:B3");
-        return ret;
-    }
-
-    function createBookMarkCellRef(){
-        var ret = [];
-        var aBookMarks = createBookmark();
-        var aCellRefs = createCellReference();
-        for(var i = 0; i < aBookMarks.length; ++i){
-            for(var j = 0; j < aCellRefs.length; ++j){
-                ret.push(aBookMarks[i] + " " + aCellRefs[j]);
-            }
-        }
-        return ret;
-    }
-
-    function getAllCombinations(aExp, len){
-        var ret = [], i;
-        if(len === 1){
-            for(i = 0; i < aExp.length; ++i){
-                ret.push([aExp[i]]);
-            }
-            return ret;
-        }
-        var aSets = getAllCombinations(aExp, len - 1);
-        for(i = 0; i < aExp.length; ++i){
-            var sExp = aExp[i];
-            for(var j = 0; j < aSets.length; ++j){
-                var aSet = [].concat(aSets[j]);
-                aSet.push(sExp);
-                ret.push(aSet);
-            }
-        }
-        return ret;
-    }
-
-    var nMaxArgCount = 3;
-    function createExpression(aExp){
-        var ret = [].concat(aExp);
-        var oArgsMap = {};
-        oArgsMap[1] = getAllCombinations(aExp, 1);
-        for(var i = 0; i < oArgsMap[1].length; ++i){
-            ret = ret.concat(addParens(oArgsMap[1][i][0]));
-            ret = ret.concat(addPrefix(oArgsMap[1][i][0]));
-        }
-        oArgsMap[2] = getAllCombinations(aExp, 2);
-        for(i = 0; i < oArgsMap[2].length; ++i){
-            ret = ret.concat(createInfixExpression(oArgsMap[2][i][0], oArgsMap[2][i][1]));
-        }
-        var aFunctions = [];
-        for(var key in oFuncMap){
-            if(oFuncMap.hasOwnProperty(key)){
-                var oFunc = oFuncMap[key];
-                if(oFunc.prototype.maxArgumentsCount === 0){
-                    aFunctions.push(key);
-                    continue;
-                }
-                for(i = oFunc.prototype.minArgumentsCount; i <= oFunc.prototype.maxArgumentsCount && i <= nMaxArgCount; ++i){
-                    if(!oArgsMap[i]){
-                        oArgsMap[i] = getAllCombinations(aExp, i);
-                    }
-                    var aArgs = oArgsMap[i];
-                    for(var i1 = 0; i1 < aArgs.length; ++i1){
-                        var aList = aArgs[i1];
-                        var sStr = key + "(";
-                        for(var j1 = 0; j1 < aList.length - 1; ++j1){
-                            sStr += (aList[j1] + sListSeparator + " ");
-                        }
-                        sStr += (aList[j1] + ")");
-                        aFunctions.push(sStr);
-                    }
-                }
-            }
-        }
-        ret = ret.concat(aFunctions);
-        return ret;
-    }
-
-    function fTest(fTextFunction, oResObject){
-
-        var aExp1 = createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))));
-        fTextFunction(createExpression(aExp1), oResObject);
-        return;
-        var aExp2 = ["(153>=153)"];//(createExpression(aExp1));
-        var aExp3;
-        var i = 0;
-        while(i < aExp2.length){
-            console.log("4");
-            aExp3 = createExpression(aExp2.slice(i, i + aExp1.length));
-            i+= aExp1.length;
-            fTextFunction(aExp3, oResObject);
-        }
-    }
-
-    function TEST2(){
-        var oRes = {sString: ""};
-        fTest(function (aExp, oRes) {
-            var sRes = "";
-            var aFields = [];
-            editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
-            AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
-            var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
-            oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
-            for(var i = 0; i < aExp.length; ++i) {
-                var sExp = aExp[i];
-                // if(i < aExp.length - 1){
-                //     sExp += ("+" + aExp[i+1]);
-                // }
-                oComplexField.InstructionLine = '=' + sExp;
-                oComplexField.Instruction = null;
-                oComplexField.private_UpdateInstruction();
-                if (oComplexField.Instruction) {
-                    oComplexField.Instruction.Calculate(editor.WordControl.m_oLogicDocument);
-                }
-                // oComplexField.Update(true, true);
-                if (oComplexField.Instruction.ErrStr !== null) {
-                    oRes.sString += ( oComplexField.Instruction.ErrStr + '\n');
-                }
-                else {
-                    if (oComplexField.Instruction.ResultStr !== null) {
-                        sRes += oComplexField.Instruction.ResultStr;
-                        oRes.sString += (oComplexField.Instruction.ResultStr + '\n');
-                    }
-                    else{
-                        oRes.sString += '\n';
-                    }
-                }
-            }
-        }, oRes);
-        console.log(oRes.sString);
-    }
-
-    function TEST3(){
-        var oRes = {sString: ""};
-        fTest(function (aExp, oRes) {
-            var aFields = [];
-            editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
-            AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
-            var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
-            oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
-            for(var i = 0; i < aExp.length; ++i){
-                var sExp = aExp[i];
-                oRes.sString += sExp;
-                oRes.sString += '\n';
-                // oParser.parse(sExp);
-                // console.log("\n___________EXPRESSION____________");
-                //console.log(sExp);
-                // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
-                // console.log("ERROR: " + JSON.stringify(oParser.error));
-                // console.log("__________________________________");
-
-            }
-            editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
-        }, oRes);
-        console.log(oRes.sString);
-    }
-
-
-    function TEST5(){
-        var aExp = ["AND(Cd3, LeFt)"];//(createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
-        //console.log(JSON.stringify(aExp));
-        //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
-        var sRes = "";
-        var aFields = [];
-        editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
-        AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
-        var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
-        oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
-        for(var i = 0; i < aExp.length; ++i){
-            var sExp = aExp[i];
-            oComplexField.InstructionLine = '=' + sExp;
-            oComplexField.Instruction = null;
-            oComplexField.private_UpdateInstruction();
-            if(oComplexField.Instruction){
-                oComplexField.Instruction.Calculate(editor.WordControl.m_oLogicDocument);
-            }
-            // oComplexField.Update(true, true);
-            if(oComplexField.Instruction.ErrStr !== null)
-            {
-                sRes += oComplexField.Instruction.ErrStr;
-            }
-            else
-            {
-                if(oComplexField.Instruction.ResultStr !== null)
-                {
-                    sRes += oComplexField.Instruction.ResultStr;
-                }
-            }
-
-            sRes += '\n';
-            // oParser.parse(sExp);
-            // console.log("\n___________EXPRESSION____________");
-            //console.log(sExp);
-            // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
-            // console.log("ERROR: " + JSON.stringify(oParser.error));
-            // console.log("__________________________________");
-
-        }
-        editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
-        return sRes;
-    }
-
-    function TEST6(){
-        var aExp = (createExpression(createConstant().concat(/*createBookmark()*/[].concat(/*createBookMarkCellRef()*/[].concat(createCellReference().concat(createDir()))))));
-        //console.log(JSON.stringify(aExp));
-        //var oParser = new CFormulaParser(sListSeparator, sDisitSeparator);
-        var sRes = "";
-        var aFields = [];
-        editor.WordControl.m_oLogicDocument.TurnOff_Recalculate();
-        AscCommon.g_oTableId.Get_ById("251").GetAllFields(false, aFields);
-        var oComplexField = new CComplexField(editor.WordControl.m_oLogicDocument);
-        oComplexField.BeginChar = {Run: AscCommon.g_oTableId.Get_ById("253")};
-        for(var i = 0; i < aExp.length; ++i){
-            var sExp = aExp[i];
-            sRes += sExp;
-            sRes += '\n';
-            // oParser.parse(sExp);
-            // console.log("\n___________EXPRESSION____________");
-            //console.log(sExp);
-            // console.log("QUEUE: " + JSON.stringify(oParser.parseQueue));
-            // console.log("ERROR: " + JSON.stringify(oParser.error));
-            // console.log("__________________________________");
-
-        }
-        editor.WordControl.m_oLogicDocument.TurnOn_Recalculate();
-        return sRes;
-    }
-
-
-    window['AscCommonWord'].createExpression = TEST2;
-    window['AscCommonWord'].createExpression2 = TEST5;
-    window['AscCommonWord'].TEST3 = TEST3;
-    window['AscCommonWord'].TEST6 = TEST6;
 })();
 //window['AscCommonWord'].createExpression();

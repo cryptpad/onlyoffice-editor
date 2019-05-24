@@ -620,8 +620,8 @@ function (window, undefined) {
     AscDFH.changesFactory[AscDFH.historyitem_Layout_SetY                       ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_OfPieChart_SetSplitPos            ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_PictureOptions_SetPictureStackUnit] = window['AscDFH'].CChangesDrawingsDouble;
-    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetLogBase                ] = window['AscDFH'].CChangesDrawingsDouble;
-    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMax                    ] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetLogBase                ] = window['AscDFH'].CChangesDrawingsDouble2;
+    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMax                    ] = window['AscDFH'].CChangesDrawingsDouble2;
     AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMin                    ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Trendline_SetBackward             ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Trendline_SetForward              ] = window['AscDFH'].CChangesDrawingsDouble;
@@ -7192,8 +7192,8 @@ CDispUnits.prototype =
             if(AscFormat.isRealNumber(UNIT_MULTIPLIERS[this.builtInUnit]))
                 return UNIT_MULTIPLIERS[this.builtInUnit];
         }
-        else if(AscFormat.isRealNumber(this.custUnit))
-            return this.custUnit;
+        else if(AscFormat.isRealNumber(this.custUnit) && this.custUnit > 0.0)
+            return 1.0/this.custUnit;
         return 1;
     },
 
@@ -10672,7 +10672,7 @@ CScaling.prototype =
 
     setMax: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Scaling_SetMax, this.max, pr));
+        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetMax, this.max, pr));
         this.max = pr;
         if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart)
         {
@@ -10682,7 +10682,7 @@ CScaling.prototype =
 
     setMin: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Scaling_SetMin, this.min, pr));
+        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetMin, this.min, pr));
         this.min = pr;
         if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart)
         {
@@ -12180,10 +12180,10 @@ CTitle.prototype =
         }
     },
 
-    GetRevisionsChangeParagraph: function(SearchEngine){
+    GetRevisionsChangeElement: function(SearchEngine){
         var oContent = this.getDocContent();
         if(oContent){
-            oContent.GetRevisionsChangeParagraph(SearchEngine);
+            oContent.GetRevisionsChangeElement(SearchEngine);
         }
     },
 
@@ -14008,15 +14008,18 @@ function CreateMarkerGeometryByType(type, src)
         }
         case SYMBOL_PLUS:
         {
-            ret.AddPathCommand(0,undefined,  "none", false, w, h);
+            /* extrusionOk, fill, stroke, w, h*/
+            ret.AddPathCommand(0,undefined,  undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined,  "none", false, w, h);
             AddPlus(ret, w, h);
             break;
         }
         case SYMBOL_STAR:
         {
-            ret.AddPathCommand(0,undefined,  "none", false, w, h);
+            ret.AddPathCommand(0,undefined,  undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined,  "none", false, w, h);
             AddPlus(ret, w, h);
             AddX(ret, w, h);
             break;
@@ -14032,8 +14035,9 @@ function CreateMarkerGeometryByType(type, src)
         }
         case SYMBOL_X:
         {
-            ret.AddPathCommand(0,undefined, "none", false, w, h);
+            ret.AddPathCommand(0,undefined, undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined, "none", false, w, h);
             AddX(ret, w, h);
             break;
         }

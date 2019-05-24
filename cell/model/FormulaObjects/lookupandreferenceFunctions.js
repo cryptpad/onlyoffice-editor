@@ -470,12 +470,13 @@ function (window, undefined) {
 	cINDEX.prototype.constructor = cINDEX;
 	cINDEX.prototype.name = 'INDEX';
 	cINDEX.prototype.argumentsMin = 2;
-	cINDEX.prototype.argumentsMax = 3;
+	cINDEX.prototype.argumentsMax = 4;
 	cINDEX.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cINDEX.prototype.arrayIndexes = {0: 1};
 	cINDEX.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] && (cElementType.empty !== arg[1].type) ? arg[1] : new cNumber(1),
-			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1), res;
+			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1),
+			arg3 = arg[3] && (cElementType.empty !== arg[3].type) ? arg[3] : new cNumber(1), res;
 
 		if (cElementType.cellsRange3D === arg0.type) {
 			arg0 = arg0.tocArea();
@@ -488,9 +489,14 @@ function (window, undefined) {
 
 		arg1 = arg1.tocNumber();
 		arg2 = arg2.tocNumber();
+		arg3 = arg3.tocNumber();
 
-		if (cElementType.error === arg1.type || cElementType.error === arg2.type) {
+		if (cElementType.error === arg1.type || cElementType.error === arg2.type || cElementType.error === arg3.type) {
 			return new cError(cErrorType.wrong_value_type);
+		}
+
+		if(arg[3] && cElementType.empty !== arg[3].type && arg3 > 1) {
+			return new cError(cErrorType.bad_reference);
 		}
 
 		arg1 = arg1.getValue();
@@ -502,9 +508,9 @@ function (window, undefined) {
 
 		if (cElementType.array === arg0.type) {
 			if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
-				res = arg0.getValue2(0, arg1 - 1);
+				res = arg0.getValue2(0, (0 === arg1) ? 0 : arg1 - 1);
 			} else if(undefined === arg[2] && 1 === arg0.getCountElementInRow()) {//если последний аргумент опущен, и выделен 1 столбец
-				res = arg0.getValue2(arg1 - 1, 0);
+				res = arg0.getValue2((0 === arg1) ? 0 : arg1 - 1, 0);
 			} else {
 				res = arg0.getValue2((1 === arg0.rowCount || 0 === arg1) ? 0 : arg1 - 1, 0 === arg2 ? 0 : arg2 - 1);
 			}
@@ -515,18 +521,20 @@ function (window, undefined) {
 				arg1 = 0;
 			}
 
+			var diffArg1 = arg1 === 0 ? 0 : 1;
+			var diffArg2 = arg2 === 0 ? 0 : 1;
 			if(undefined === arg[2] && bbox.r1 === bbox.r2) {//если последний аргумент опущен, и выделенa 1 строка
 				if (arg1 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 					res = new cError(cErrorType.bad_reference);
 				} else {
-					res = new Asc.Range(bbox.c1 + arg1 - 1, bbox.r1, bbox.c1 + arg1 - 1, bbox.r1);
+					res = new Asc.Range(bbox.c1 + arg1 - diffArg1, bbox.r1, bbox.c1 + arg1 - diffArg1, bbox.r1);
 					res = new cRef(res.getName(), ws);
 				}
-			} else if(undefined === arg[2] && bbox.c1 === bbox.c2) {//если последний аргумент опущен, и выделен 1 столбец
+			} else if(undefined === arg[2] && bbox.c1 === bbox.c2 && arg1 > 0) {//если последний аргумент опущен, и выделен 1 столбец
 				if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1) {
 					res = new cError(cErrorType.bad_reference);
 				} else {
-					res = new Asc.Range(bbox.c1, bbox.r1 + arg1 - 1, bbox.c1, bbox.r1 + arg1 - 1);
+					res = new Asc.Range(bbox.c1, bbox.r1 + arg1 - diffArg1, bbox.c1, bbox.r1 + arg1 - diffArg1);
 					res = new cRef(res.getName(), ws);
 				}
 			} else if(undefined === arg[2] && Math.abs(bbox.r1 - bbox.r2) + 1 > 1 && Math.abs(bbox.c1 - bbox.c2) + 1 > 1) {//если последний аргумент опущен, и выделен более 1 строки и более 1 столбца
@@ -547,8 +555,6 @@ function (window, undefined) {
 					if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1 || arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 						res = new cError(cErrorType.bad_reference);
 					} else {
-						var diffArg1 = arg1 === 0 ? 0 : 1;
-						var diffArg2 = arg2 === 0 ? 0 : 1;
 						res = new Asc.Range(bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1, bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1);
 						res = new cRef(res.getName(), ws);
 					}
@@ -586,10 +592,21 @@ function (window, undefined) {
 				Formula: "", pCurrPos: 0
 			}, ref, found_operand, ret;
 
+		var _getWorksheetByName = function(name){
+			if(!name) {
+				return null;
+			}
+			for(var i = 0; i < wb.aWorksheets.length; i++)
+				if(wb.aWorksheets[i].getName().toLowerCase() == name.toLowerCase()){
+					return wb.aWorksheets[i];
+				}
+			return null;
+		};
+
 		function parseReference() {
 			if ((ref = parserHelp.is3DRef.call(o, o.Formula, o.pCurrPos))[0]) {
-				var wsFrom = wb.getWorksheetByName(ref[1]);
-				var wsTo = (null !== ref[2]) ? wb.getWorksheetByName(ref[2]) : wsFrom;
+				var wsFrom = _getWorksheetByName(ref[1]);
+				var wsTo = (null !== ref[2]) ? _getWorksheetByName(ref[2]) : wsFrom;
 				if (!(wsFrom && wsTo)) {
 					return new cError(cErrorType.bad_reference);
 				}
@@ -1489,10 +1506,22 @@ function (window, undefined) {
 		}
 
 		var arg0 = arg[0];
-		if (cElementType.cellsRange === arg0.type || cElementType.array === arg0.type) {
-			arg0 = arg0.getMatrix();
+		if (cElementType.cellsRange === arg0.type) {
+			//TODO возможно стоит на вход функции Calculate в случае применения как формулы массива сразу передавать преобразованный range в array
+			if(!this.bArrayFormula) {
+				arg0 = arg0.cross(arguments[1]);
+			} else {
+				arg0 = arg0.getMatrix();
+			}
 		} else if(cElementType.cellsRange3D === arg0.type) {
-			arg0 = arg0.getMatrix()[0];
+			//TODO возможно стоит на вход функции в случае применения как формулы массива сразу передавать преобразованный range в array
+			if(!this.bArrayFormula) {
+				arg0 = arg0.cross(arguments[1]);
+			} else {
+				arg0 = arg0.getMatrix()[0];
+			}
+		} else if(cElementType.array === arg0.type) {
+			arg0 = arg0.getMatrix();
 		} else if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
 			return arg0.getValue();
 		} else if (cElementType.number === arg0.type || cElementType.string === arg0.type ||
@@ -1502,6 +1531,9 @@ function (window, undefined) {
 			return new cError(cErrorType.not_available);
 		}
 
+		if (cElementType.error === arg0.type) {
+			return arg0;
+		}
 		if(0 === arg0.length){
 			return new cError(cErrorType.wrong_value_type);
 		}

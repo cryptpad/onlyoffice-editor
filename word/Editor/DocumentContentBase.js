@@ -328,7 +328,7 @@ CDocumentContentBase.prototype.StopSelection = function()
 	if (this.Content[this.Selection.StartPos])
 		this.Content[this.Selection.StartPos].StopSelection();
 };
-CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPara, oNumPr)
+CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPara, oNumPr, isUseReview)
 {
 	if (undefined === oNumberingEngine || null === oNumberingEngine)
 		oNumberingEngine = new CDocumentNumberingInfoEngine(oPara, oNumPr, this.GetNumbering());
@@ -339,6 +339,9 @@ CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPa
 		if (oNumberingEngine.IsStop())
 			break;
 	}
+
+	if (true === isUseReview)
+		return [oNumberingEngine.GetNumInfo(), oNumberingEngine.GetNumInfo(false)];
 
 	return oNumberingEngine.GetNumInfo();
 };
@@ -368,34 +371,93 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		if (StartPos !== EndPos && true === this.Content[EndPos].IsSelectionEmpty(true))
 			EndPos--;
 
-		if (true === this.Is_TrackRevisions())
+		if (true === this.IsTrackRevisions())
 		{
-			// Если есть параграфы, которые были добавлены во время рецензирования, тогда мы их удаляем
-			for (var Index = StartPos; Index <= EndPos; Index++)
+			var _nEndPos;
+			if (this.Content[EndPos].IsParagraph() && this.Content[EndPos].IsSelectionToEnd())
+				_nEndPos = EndPos;
+			else
+				_nEndPos = EndPos - 1;
+
+			var oDirectParaPr = null
+			if (this.Content[StartPos].IsParagraph())
+				oDirectParaPr = this.Content[StartPos].GetDirectParaPr();
+
+			// TODO: Сделать для таблиц
+			if (oDirectParaPr)
 			{
-				this.Content[Index].Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
+				for (var nIndex = StartPos; nIndex <= EndPos; ++nIndex)
+				{
+					var oElement = this.Content[nIndex + 1];
+
+					if (oElement && oElement.IsParagraph() && (nIndex < EndPos || this.Content[nIndex].IsSelectionToEnd()))
+					{
+						var oPrChange   = oElement.GetDirectParaPr();
+						var oReviewInfo = new CReviewInfo();
+						oReviewInfo.Update();
+
+						oElement.SetDirectParaPr(oDirectParaPr);
+						oElement.SetPrChange(oPrChange, oReviewInfo);
+					}
+				}
+			}
+
+			if (StartPos === EndPos && this.Content[StartPos].IsTable() && !this.Content[StartPos].IsCellSelection())
+			{
+				this.Content[StartPos].Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
+			}
+			else
+			{
+				// Сначала проводим обычное удаление по выделению
+				for (var nIndex = StartPos; nIndex <= EndPos; ++nIndex)
+				{
+					var oElement = this.Content[nIndex];
+					if (oElement.IsTable())
+						oElement.RemoveTableRow();
+					else
+						oElement.Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
+				}
 			}
 
 			this.RemoveSelection();
-			for (var Index = EndPos - 1; Index >= StartPos; Index--)
+
+			// Удаляем параграфы, если они были ранее добавлены в рецензировании этим же пользователем
+			for (var nIndex = _nEndPos; nIndex >= StartPos; --nIndex)
 			{
-				if (type_Paragraph === this.Content[Index].GetType() && reviewtype_Add === this.Content[Index].GetReviewType())
+				var oElement = this.Content[nIndex];
+
+				var nReviewType = oElement.GetReviewType();
+				var oReviewInfo = oElement.GetReviewInfo();
+
+				if (oElement.IsParagraph()
+					&& ((reviewtype_Add === nReviewType && oReviewInfo.IsCurrentUser())
+					|| (reviewtype_Remove === nReviewType && oReviewInfo.IsPrevAddedByCurrentUser())))
 				{
 					// Если параграф пустой, тогда удаляем параграф, если не пустой, тогда объединяем его со
 					// следующим параграф. Если следующий элемент таблица, тогда ничего не делаем.
-					if (this.Content[Index].IsEmpty())
+					if (oElement.IsEmpty())
 					{
-						this.Internal_Content_Remove(Index, 1);
+						this.RemoveFromContent(nIndex, 1);
 					}
-					else if (Index < this.Content.length - 1 && type_Paragraph === this.Content[Index + 1].GetType())
+					else if (nIndex < this.Content.length - 1 && this.Content[nIndex + 1].IsParagraph())
 					{
-						this.Content[Index].Concat(this.Content[Index + 1]);
-						this.Internal_Content_Remove(Index + 1, 1);
+						oElement.Concat(this.Content[nIndex + 1]);
+						this.RemoveFromContent(nIndex + 1, 1);
 					}
 				}
 				else
 				{
-					this.Content[Index].SetReviewType(reviewtype_Remove);
+					if (oElement.IsParagraph() && reviewtype_Add === nReviewType)
+					{
+						var oNewReviewInfo = oReviewInfo.Copy();
+						oNewReviewInfo.SavePrev(reviewtype_Add);
+						oNewReviewInfo.Update();
+						oElement.SetReviewType(reviewtype_Remove, oNewReviewInfo);
+					}
+					else
+					{
+						oElement.SetReviewType(reviewtype_Remove);
+					}
 				}
 			}
 
@@ -631,11 +693,36 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 
 						if ((undefined === CurrFramePr && undefined === PrevFramePr) || (undefined !== CurrFramePr && undefined !== PrevFramePr && true === CurrFramePr.Compare(PrevFramePr)))
 						{
-							if (true === this.Is_TrackRevisions() && reviewtype_Add !== this.Content[this.CurPos.ContentPos - 1].GetReviewType())
+							if (true === this.IsTrackRevisions()
+								&& (reviewtype_Add !== this.Content[this.CurPos.ContentPos - 1].GetReviewType() || !this.Content[this.CurPos.ContentPos - 1].GetReviewInfo().IsCurrentUser())
+								&& (reviewtype_Remove !== this.Content[this.CurPos.ContentPos - 1].GetReviewType() || !this.Content[this.CurPos.ContentPos - 1].GetReviewInfo().IsPrevAddedByCurrentUser()))
 							{
-								this.Content[this.CurPos.ContentPos - 1].SetReviewType(reviewtype_Remove);
+								if (reviewtype_Add === this.Content[this.CurPos.ContentPos - 1].GetReviewType())
+								{
+									var oReviewInfo = this.Content[this.CurPos.ContentPos - 1].GetReviewInfo().Copy();
+									oReviewInfo.SavePrev(reviewtype_Add);
+									oReviewInfo.Update();
+									this.Content[this.CurPos.ContentPos - 1].SetReviewTypeWithInfo(reviewtype_Remove, oReviewInfo);
+								}
+								else
+								{
+									this.Content[this.CurPos.ContentPos - 1].SetReviewType(reviewtype_Remove);
+								}
+
 								this.CurPos.ContentPos--;
 								this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false, false);
+
+								if (this.Content[this.CurPos.ContentPos].IsParagraph())
+								{
+									var oParaPr   = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
+									var oPrChange = this.Content[this.CurPos.ContentPos + 1].GetDirectParaPr();
+									var oReviewInfo = new CReviewInfo();
+									oReviewInfo.Update();
+
+									this.Content[this.CurPos.ContentPos + 1].SetDirectParaPr(oParaPr);
+									this.Content[this.CurPos.ContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
+
+								}
 							}
 							else
 							{
@@ -682,11 +769,37 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 
 						if ((undefined === CurrFramePr && undefined === NextFramePr) || ( undefined !== CurrFramePr && undefined !== NextFramePr && true === CurrFramePr.Compare(NextFramePr) ))
 						{
-							if (true === this.Is_TrackRevisions() && reviewtype_Add !== this.Content[this.CurPos.ContentPos].Get_ReviewType())
+							if (true === this.IsTrackRevisions()
+								&& (reviewtype_Add !== this.Content[this.CurPos.ContentPos].GetReviewType() || !this.Content[this.CurPos.ContentPos].GetReviewInfo().IsCurrentUser())
+								&& (reviewtype_Remove !== this.Content[this.CurPos.ContentPos].GetReviewType() || !this.Content[this.CurPos.ContentPos].GetReviewInfo().IsPrevAddedByCurrentUser()))
 							{
+								if (reviewtype_Add === this.Content[this.CurPos.ContentPos].GetReviewType())
+								{
+									var oReviewInfo = this.Content[this.CurPos.ContentPos].GetReviewInfo().Copy();
+									oReviewInfo.SavePrev(reviewtype_Add);
+									oReviewInfo.Update();
+									this.Content[this.CurPos.ContentPos].SetReviewTypeWithInfo(reviewtype_Remove, oReviewInfo);
+								}
+								else
+								{
+									this.Content[this.CurPos.ContentPos].SetReviewType(reviewtype_Remove);
+								}
+
+
 								this.Content[this.CurPos.ContentPos].SetReviewType(reviewtype_Remove);
 								this.CurPos.ContentPos++;
 								this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+
+								if (this.Content[this.CurPos.ContentPos - 1].IsParagraph())
+								{
+									var oParaPr   = this.Content[this.CurPos.ContentPos - 1].GetDirectParaPr();
+									var oPrChange = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
+									var oReviewInfo = new CReviewInfo();
+									oReviewInfo.Update();
+
+									this.Content[this.CurPos.ContentPos].SetDirectParaPr(oParaPr);
+									this.Content[this.CurPos.ContentPos].SetPrChange(oPrChange, oReviewInfo);
+								}
 							}
 							else
 							{
@@ -1328,15 +1441,16 @@ CDocumentContentBase.prototype.RemoveNumberingSelection = function()
  * Рассчитываем значение нумерованного списка для заданной нумерации
  * @param oPara {Paragraph}
  * @param oNumPr {CNumPr}
+ * @param [isUserReview=false] {boolean}
  * @returns {number[]}
  */
-CDocumentContentBase.prototype.CalculateNumberingValues = function(oPara, oNumPr)
+CDocumentContentBase.prototype.CalculateNumberingValues = function(oPara, oNumPr, isUseReview)
 {
 	var oTopDocument = this.GetTopDocumentContent();
 	if (oTopDocument instanceof CFootEndnote)
-		return oTopDocument.Parent.GetNumberingInfo(oPara, oNumPr, oTopDocument);
+		return oTopDocument.Parent.GetNumberingInfo(oPara, oNumPr, oTopDocument, true === isUseReview);
 
-	return oTopDocument.GetNumberingInfo(null, oPara, oNumPr);
+	return oTopDocument.GetNumberingInfo(null, oPara, oNumPr, true === isUseReview);
 };
 /**
  * Вплоть до заданного параграфа ищем последнюю похожую нумерацию

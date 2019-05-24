@@ -48,6 +48,9 @@ var c_oAscTickMark = Asc.c_oAscTickMark;
 var c_oAscChartDataLabelsPos = Asc.c_oAscChartDataLabelsPos;
 var c_oAscChartLegendShowSettings = Asc.c_oAscChartLegendShowSettings;
 
+var test_compare_paths = false;
+var test_compare_paths_arr;
+
 var c_oChartTypes =
 {
 	Bar: 0,
@@ -201,6 +204,9 @@ CChartsDrawer.prototype =
 				this.charts[i].recalculate();
 			}
 		}
+
+		//for test
+		this._testChartsPaths();
 	},
 
 	init: function(chartSpace) {
@@ -292,9 +298,11 @@ CChartsDrawer.prototype =
 				return;
 			}
 
-			//TODO в дальнейшем нужно вместо массива формировать map с id модели
-			for(var i in t.charts) {
-				var chartModel = t._getChartModelById(chartSpace.chart.plotArea, i);
+			//для начала нужно отсортировать
+			var sortCharts = t._sortChartsForDrawing(chartSpace);
+			for(var i = 0; i < sortCharts.length; i++) {
+				var id = sortCharts[i];
+				var chartModel = t._getChartModelById(chartSpace.chart.plotArea, id);
 				if(!chartModel) {
 					continue;
 				}
@@ -304,7 +312,7 @@ CChartsDrawer.prototype =
 				//рисуем линейные диаграммы после отрисовки сетки
 				if(t.nDimensionCount !== 3 && ((isLinesChart && bBeforeAxes) || (!isLinesChart && !bBeforeAxes))) {
 					continue;
-				} 
+				}
 
 				var bIsNoSmartAttack = false;
 				if(t.nDimensionCount === 3 || isLinesChart) {
@@ -315,12 +323,11 @@ CChartsDrawer.prototype =
 					t.cShapeDrawer.bIsNoSmartAttack = true;
 				}
 				t.calcProp.series = chartModel.series;
-				t.charts[i].draw();
+				t.charts[id].draw();
 				if(bIsNoSmartAttack) {
 					t.cShapeDrawer.bIsNoSmartAttack = false;
 				}
 			}
-
 		};
 
 		if (!chartSpace.bEmptySeries) {
@@ -359,6 +366,141 @@ CChartsDrawer.prototype =
 			//DRAW CHARTS
 			drawCharts();
 		}
+	},
+
+	_testChartsPaths: function() {
+		//чтобы сгенерировать все paths нужно выставить buildAllPaths в true
+		//добавляем данные из консоли(console.log(JSON.stringify(test_compare_paths_arr));) в буфер обмена
+		//далее открыаем файл, запускаем макрос - получаем готовый файл с текстом наших paths в колонке с индексом col
+
+		var buildAllPaths = false;
+		var col = 41;
+		if(test_compare_paths) {
+			if(undefined === window.test_compare_paths_count) {
+				window.test_compare_paths_count = 0;
+			}
+			if (!test_compare_paths_arr) {
+				var row = 0;
+				var str = "";
+				while (true) {
+					var val = this.cChartSpace.worksheet.getCell3(row, col).getValue();
+					if ("" !== val) {
+						str += val;
+						row++;
+					} else {
+						break;
+					}
+				}
+				if("" !== str) {
+					test_compare_paths_arr = JSON.parse(str);
+				}
+			}
+
+			if(!test_compare_paths_arr) {
+				test_compare_paths_arr = [];
+			}
+			if(test_compare_paths_arr[window.test_compare_paths_count] !== JSON.stringify(this.cChartSpace.GetPath().ArrPathCommand)) {
+				console.log("error drawing charts" + window.test_compare_paths_count);
+			}
+			if(buildAllPaths) {
+				test_compare_paths_arr[window.test_compare_paths_count] = JSON.stringify(this.cChartSpace.GetPath().ArrPathCommand);
+				console.log(JSON.stringify(test_compare_paths_arr));
+			}
+			window.test_compare_paths_count++;
+		}
+
+		//с помощью данного макроса добавляю paths в файл
+		/*Private Sub CommandButton1_Click()
+
+		Dim DataObj As MSForms.DataObject
+		Set DataObj = New MSForms.DataObject
+		DataObj.GetFromClipboard
+
+		SText = DataObj.GetText(1)
+
+		Dim columnNameStart As String
+		Dim rowNameStart As String
+
+		Dim test As String, row As Integer
+		For i = 1 To Len(SText) Step 1000
+		test = Mid(SText, i, 1000)
+		ActiveSheet.Cells(row + 1, 42).Value = test
+		ActiveSheet.Cells(row + 1, 42).WrapText = False
+
+		row = row + 1
+		Next
+
+		End Sub*/
+
+	},
+
+	_sortChartsForDrawing: function(chartSpace) {
+		var arr = [];
+
+		var pushIndex = function(index) {
+			if(!arr[index]) {
+				arr[index] = [];
+			}
+			arr[index].push(i);
+		};
+
+		for(var i in this.charts) {
+			var chartModel = this._getChartModelById(chartSpace.chart.plotArea, i);
+			if(!chartModel) {
+				continue;
+			}
+
+			var type = chartModel.getObjectType();
+			switch(type) {
+				case AscDFH.historyitem_type_DoughnutChart: {
+					pushIndex(0);
+					break;
+				}
+				case AscDFH.historyitem_type_PieChart: {
+					pushIndex(1);
+					break;
+				}
+				case AscDFH.historyitem_type_AreaChart: {
+					pushIndex(2);
+					break;
+				}
+				case AscDFH.historyitem_type_BarChart: {
+					pushIndex(3);
+					break;
+				}
+				case AscDFH.historyitem_type_StockChart: {
+					pushIndex(4);
+					break;
+				}
+				case AscDFH.historyitem_type_LineChart: {
+					pushIndex(5);
+					break;
+				}
+				case AscDFH.historyitem_type_ScatterChart: {
+					pushIndex(6);
+					break;
+				}
+				case AscDFH.historyitem_type_RadarChart: {
+					pushIndex(7);
+					break;
+				}
+				default: {
+					//bubble, stock
+					pushIndex(8);
+					break;
+				}
+			}
+		}
+		var sortArr = [];
+		for(var j = 0; j < arr.length; j++) {
+			if(arr[j]) {
+				for(var k = 0; k < arr[j].length; k++) {
+					sortArr.push(arr[j][k]);
+				}
+			}
+		}
+
+		return sortArr;
 	},
 
 	recalculateOnly3dProps: function (chartSpace) {
@@ -1353,6 +1495,30 @@ CChartsDrawer.prototype =
 		var series = chart.series;
 		var chartType = this._getChartType(chart);
 		var t = this;
+		var bFirst = true;
+
+		var addValues = function(tempValX, tempValY) {
+			if(bFirst) {
+				min = tempValX;
+				max = tempValX;
+				minY = tempValY;
+				maxY = tempValY;
+				bFirst = false;
+			}
+
+			if (tempValX < min) {
+				min = tempValX;
+			}
+			if (tempValX > max) {
+				max = tempValX;
+			}
+			if (tempValY < minY) {
+				minY = tempValY;
+			}
+			if (tempValY > maxY) {
+				maxY = tempValY;
+			}
+		};
 
 		var generateArrValues = function () {
 
@@ -1435,19 +1601,20 @@ CChartsDrawer.prototype =
 		};
 
 		var generateArrValuesScatter = function () {
-			var yVal;
-			var xVal;
 			newArr = [];
 			for (var l = 0; l < series.length; ++l) {
 				newArr[l] = [];
+
 				yNumCache = t.getNumCache(series[l].yVal);
 
-				if (!yNumCache) {
-					continue;
-				}
-
 				for (var j = 0; j < yNumCache.ptCount; ++j) {
-					if (yNumCache.pts[j]) {
+					var val = t._getScatterPointVal(series[l], j);
+					if(val) {
+						addValues(val.x, val.y);
+						newArr[l][j] = [val.x, val.y];
+					}
+
+					/*if (yNumCache.pts[j]) {
 						yVal = parseFloat(yNumCache.pts[j].val);
 
 						xNumCache = t.getNumCache(series[l].xVal);
@@ -1506,7 +1673,7 @@ CChartsDrawer.prototype =
 						if (xVal > max) {
 							max = xVal;
 						}
-					}
+					}*/
 				}
 			}
 		};
@@ -1534,6 +1701,34 @@ CChartsDrawer.prototype =
 		}
 
 		return {min: min, max: max, ymin: minY, ymax: maxY};
+	},
+
+	_getScatterPointVal: function(seria, idx) {
+		var yNumCache = this.getNumCache(seria.yVal);
+
+		if (!yNumCache) {
+			return null;
+		}
+		var xNumCache = seria.xVal ? this.getNumCache(seria.xVal) : null;
+		var yPoint, xPoint, xVal, yVal;
+		var res = null;
+		if(yNumCache && xNumCache) {
+			yPoint = yNumCache.getPtByIndex(idx);
+			xPoint = xNumCache.getPtByIndex(idx);
+			if(yPoint && xPoint) {
+				yVal = parseFloat(yPoint.val);
+				xVal = parseFloat(xPoint.val);
+				res = {x: xVal, y: yVal};
+			}
+		} else if(yNumCache) {
+			yPoint = yNumCache.getPtByIndex(idx);
+			if(yPoint) {
+				yVal = parseFloat(yPoint.val);
+				xVal = idx + 1;
+				res = {x: xVal, y: yVal, xPoint: xPoint, yPoint: yPoint};
+			}
+		}
+		return res;
 	},
 
 	_getAxisValues2: function (axis, chartSpace, isStackedType) {
@@ -1866,14 +2061,17 @@ CChartsDrawer.prototype =
 
 		var axisMax, axisMin, diffMaxMin;
 		var cDiff = 1/6;
+		//добавил правку в первую ветку: если минмальное значение оказывается равно 0, то максимальное высчитываем
+		//с учётом минимального, равного 0.
+		// TODO пересмотреть все остальные ситуации!
 		if (yMin >= 0 && yMax >= 0) {
-			axisMax = isStackedType ? yMax : yMax + 0.05 * ( yMax - yMin );
-
 			diffMaxMin = (yMax - yMin) / yMax;
 			if (cDiff > diffMaxMin) {
 				axisMin = yMin - ((yMax - yMin) / 2);
+				axisMax = isStackedType ? yMax : yMax + 0.05 * ( yMax - yMin );
 			} else {
 				axisMin = 0;
+				axisMax = isStackedType ? yMax : yMax + 0.05 * ( yMax - 0 );
 			}
 		} else if (yMin <= 0 && yMax <= 0) {
 			diffMaxMin = (yMin - yMax) / yMin;
@@ -2094,7 +2292,7 @@ CChartsDrawer.prototype =
 				}
 
 				//frame of point
-				if (paths.points[i][0] && paths.points[i][0].framePaths) {
+				if (paths.points[i][k] && paths.points[i][k].framePaths) {
 					this.drawPath(paths.points[i][k].framePaths, markerPen, markerBrush, false);
 				}
 				//point
@@ -2178,91 +2376,79 @@ CChartsDrawer.prototype =
 	},
 	
 	//****functions for chart classes****
-	calculatePoint: function(x, y, size, symbol)
-	{
+	calculatePoint: function (x, y, size, symbol) {
 		size = size / 2.69;
 		var halfSize = size / 2;
 		var dashDotHeight = size / 5;
 		var pathId = this.cChartSpace.AllocPath();
-		var path  = this.cChartSpace.GetPath(pathId);
+		var path = this.cChartSpace.GetPath(pathId);
 		var pathH = this.calcProp.pathH;
 		var pathW = this.calcProp.pathW;
 
 		var framePaths = null, framePathsId = null;
-		
-		var result;
 
 		/*
-		var AscFormat.SYMBOL_PICTURE = 5;*/
-		
+		 var AscFormat.SYMBOL_PICTURE = 5;*/
+
 		path.moveTo(x * pathW, y * pathW);
-		
-		switch ( symbol )
-		{
-			case AscFormat.SYMBOL_DASH:
-			{
-				path.moveTo((x - halfSize) * pathW, (y - dashDotHeight/2) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y - dashDotHeight/2) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y + dashDotHeight/2) * pathW);
-				path.lnTo((x - halfSize) * pathW, (y + dashDotHeight/2) * pathW);
+
+		switch (symbol) {
+			case AscFormat.SYMBOL_DASH: {
+				path.moveTo((x - halfSize) * pathW, (y - dashDotHeight / 2) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y - dashDotHeight / 2) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y + dashDotHeight / 2) * pathW);
+				path.lnTo((x - halfSize) * pathW, (y + dashDotHeight / 2) * pathW);
 				break;
 			}
-			case AscFormat.SYMBOL_DOT:
-			{
-				path.moveTo((x) * pathW, (y - dashDotHeight/2) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y - dashDotHeight/2) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y + dashDotHeight/2) * pathW);
-				path.lnTo((x) * pathW, (y + dashDotHeight/2) * pathW);
+			case AscFormat.SYMBOL_DOT: {
+				path.moveTo((x) * pathW, (y - dashDotHeight / 2) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y - dashDotHeight / 2) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y + dashDotHeight / 2) * pathW);
+				path.lnTo((x) * pathW, (y + dashDotHeight / 2) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_PLUS:
-			{
-				path.moveTo(x * pathW, (y  + halfSize) * pathW);
-				path.lnTo(x * pathW, (y  - halfSize) * pathW);
+
+			case AscFormat.SYMBOL_PLUS: {
+				path.moveTo(x * pathW, (y + halfSize) * pathW);
+				path.lnTo(x * pathW, (y - halfSize) * pathW);
 				path.moveTo((x - halfSize) * pathW, y * pathW);
-				path.lnTo((x  + halfSize) * pathW, y * pathW);
+				path.lnTo((x + halfSize) * pathW, y * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_CIRCLE:
-			{
+
+			case AscFormat.SYMBOL_CIRCLE: {
 				path.moveTo((x + halfSize) * pathW, y * pathW);
 				path.arcTo(halfSize * pathW, halfSize * pathW, 0, Math.PI * 2 * cToDeg);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_STAR:
-			{
-				path.moveTo((x - halfSize) * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y  - halfSize) * pathW);
-				path.moveTo((x + halfSize) * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x  - halfSize) * pathW, (y  - halfSize) * pathW);
-				path.moveTo(x * pathW, (y  + halfSize) * pathW);
-				path.lnTo(x * pathW, (y  - halfSize) * pathW);
+
+			case AscFormat.SYMBOL_STAR: {
+				path.moveTo((x - halfSize) * pathW, (y + halfSize) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y - halfSize) * pathW);
+				path.moveTo((x + halfSize) * pathW, (y + halfSize) * pathW);
+				path.lnTo((x - halfSize) * pathW, (y - halfSize) * pathW);
+				path.moveTo(x * pathW, (y + halfSize) * pathW);
+				path.lnTo(x * pathW, (y - halfSize) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_X:
-			{
-				path.moveTo((x - halfSize) * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x + halfSize) * pathW, (y  - halfSize) * pathW);
-				path.moveTo((x + halfSize) * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x  - halfSize) * pathW, (y  - halfSize) * pathW);
+
+			case AscFormat.SYMBOL_X: {
+				path.moveTo((x - halfSize) * pathW, (y + halfSize) * pathW);
+				path.lnTo((x + halfSize) * pathW, (y - halfSize) * pathW);
+				path.moveTo((x + halfSize) * pathW, (y + halfSize) * pathW);
+				path.lnTo((x - halfSize) * pathW, (y - halfSize) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_TRIANGLE:
-			{
-				path.moveTo((x - size/Math.sqrt(3)) * pathW, (y  + size/3) * pathW);
-				path.lnTo(x * pathW, (y  - (2/3)*size) * pathW);
-				path.lnTo((x + size/Math.sqrt(3)) * pathW, (y  + size/3) * pathW);
-				path.lnTo((x - size/Math.sqrt(3)) * pathW, (y  + size/3) * pathW);
+
+			case AscFormat.SYMBOL_TRIANGLE: {
+				path.moveTo((x - size / Math.sqrt(3)) * pathW, (y + size / 3) * pathW);
+				path.lnTo(x * pathW, (y - (2 / 3) * size) * pathW);
+				path.lnTo((x + size / Math.sqrt(3)) * pathW, (y + size / 3) * pathW);
+				path.lnTo((x - size / Math.sqrt(3)) * pathW, (y + size / 3) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_SQUARE:
-			{
+
+			case AscFormat.SYMBOL_SQUARE: {
 				path.moveTo((x - halfSize) * pathW, (y + halfSize) * pathW);
 				path.lnTo((x - halfSize) * pathW, (y - halfSize) * pathW);
 				path.lnTo((x + halfSize) * pathW, (y - halfSize) * pathW);
@@ -2270,33 +2456,28 @@ CChartsDrawer.prototype =
 				path.lnTo((x - halfSize) * pathW, (y + halfSize) * pathW);
 				break;
 			}
-			
-			case AscFormat.SYMBOL_DIAMOND:
-			{
+
+			case AscFormat.SYMBOL_DIAMOND: {
 				path.moveTo((x - halfSize) * pathW, y * pathW);
-				path.lnTo(x * pathW, (y  - halfSize) * pathW);
+				path.lnTo(x * pathW, (y - halfSize) * pathW);
 				path.lnTo((x + halfSize) * pathW, y * pathW);
-				path.lnTo(x * pathW, (y  + halfSize) * pathW);
-				path.lnTo((x - halfSize) * pathW, y  * pathW);
+				path.lnTo(x * pathW, (y + halfSize) * pathW);
+				path.lnTo((x - halfSize) * pathW, y * pathW);
 				break;
 			}
 		}
-		
-		if(symbol === "Plus" || symbol === "Star" || symbol === "X")
-		{
+
+		if (symbol === AscFormat.SYMBOL_PLUS || symbol === AscFormat.SYMBOL_STAR || symbol === AscFormat.SYMBOL_X) {
 			framePathsId = this.cChartSpace.AllocPath();
-            framePaths = this.cChartSpace.GetPath(framePathsId);
+			framePaths = this.cChartSpace.GetPath(framePathsId);
 			framePaths.moveTo((x - halfSize) * pathW, (y + halfSize) * pathW);
 			framePaths.lnTo((x - halfSize) * pathW, (y - halfSize) * pathW);
 			framePaths.lnTo((x + halfSize) * pathW, (y - halfSize) * pathW);
 			framePaths.lnTo((x + halfSize) * pathW, (y + halfSize) * pathW);
 			framePaths.lnTo((x - halfSize) * pathW, (y + halfSize) * pathW);
 		}
-		
 
-		result = {framePaths: framePaths, path: pathId};
-		
-		return result;
+		return {framePaths: framePathsId, path: pathId};
 	},
 
 	getYPosition: function (val, axis, ignoreAxisLimits) {
@@ -2587,48 +2768,56 @@ CChartsDrawer.prototype =
 		return {val: val, numPow: numPow};
 	},
 	
-	getIdxPoint: function(seria, val, bXVal)
+	getIdxPoint: function(seria, index, bXVal)
 	{
-		var seriaVal;
-		if(bXVal) {
-			seriaVal = seria.val ? seria.val :  seria.xVal;
-		} else {
-			seriaVal = seria.val ? seria.val :  seria.yVal;
-		}
-		
-		if(!seriaVal)
-			return null;
+		var res = null;
 
-		//todo use getNumCache
-		var pts = seriaVal.numRef &&  seriaVal.numRef.numCache ? seriaVal.numRef.numCache.pts : seriaVal.numLit ? seriaVal.numLit.pts : null;
-		
-		if(pts == null)
-			return null;
-		
-		for(var p = 0; p < pts.length; p++)
-		{
-			if(pts[p].idx === val)
-				return pts[p];
+		var ser;
+		if (bXVal) {
+			ser = seria.val ? seria.val : seria.xVal;
+		} else {
+			ser = seria.val ? seria.val : seria.yVal;
 		}
+
+		if (!ser) {
+			return null;
+		}
+
+		var numCache = this.getNumCache(ser);
+		var pts = numCache ? numCache.pts : null;
+
+		if (pts == null) {
+			return null;
+		}
+
+		for(var i = 0; i < pts.length; i++) {
+			if(pts[i].idx === index) {
+				res = pts[i];
+				break;
+			}
+		}
+
+		return res;
 	},
-	
-	getPointByIndex: function(seria, index, bXVal)
-	{
-		var seriaVal;
-		if(bXVal) {
-			seriaVal = seria.val ? seria.val :  seria.xVal;
+
+	getPointByIndex: function (seria, index, bXVal) {
+		var ser;
+		if (bXVal) {
+			ser = seria.val ? seria.val : seria.xVal;
 		} else {
-			seriaVal = seria.val ? seria.val :  seria.yVal;
+			ser = seria.val ? seria.val : seria.yVal;
 		}
 
-		if(!seriaVal)
+		if (!ser) {
 			return null;
+		}
 
 		//todo use getNumCache
-		var pts = seriaVal.numRef &&  seriaVal.numRef.numCache ? seriaVal.numRef.numCache.pts : seriaVal.numLit ? seriaVal.numLit.pts : null;
+		var pts = ser.numRef && ser.numRef.numCache ? ser.numRef.numCache.pts : ser.numLit ? ser.numLit.pts : null;
 
-		if(pts == null)
+		if (pts == null) {
 			return null;
+		}
 
 		return pts[index];
 	},
@@ -4186,18 +4375,18 @@ drawBarChart.prototype = {
 
 				//стартовая позиция колонки X
 				if (this.catAx.scaling.orientation === ORIENTATION_MIN_MAX) {
-					if (xPoints[1] && xPoints[1].pos && xPoints[j]) {
-						startXPosition = xPoints[j].pos - Math.abs((xPoints[1].pos - xPoints[0].pos) / 2);
-					} else if(xPoints[j]){
-						startXPosition = xPoints[j].pos - Math.abs(xPoints[0].pos - this.valAx.posX);
+					if (xPoints[1] && xPoints[1].pos && xPoints[idx]) {
+						startXPosition = xPoints[idx].pos - Math.abs((xPoints[1].pos - xPoints[0].pos) / 2);
+					} else if(xPoints[idx]){
+						startXPosition = xPoints[idx].pos - Math.abs(xPoints[0].pos - this.valAx.posX);
 					} else {
 						startXPosition = xPoints[0].pos - Math.abs(xPoints[0].pos - this.valAx.posX);
 					}
 				} else {
-					if (xPoints[1] && xPoints[1].pos && xPoints[j]) {
-						startXPosition = xPoints[j].pos + Math.abs((xPoints[1].pos - xPoints[0].pos) / 2);
-					} else if(xPoints[j]){
-						startXPosition = xPoints[j].pos + Math.abs(xPoints[0].pos - this.valAx.posX);
+					if (xPoints[1] && xPoints[1].pos && xPoints[idx]) {
+						startXPosition = xPoints[idx].pos + Math.abs((xPoints[1].pos - xPoints[0].pos) / 2);
+					} else if(xPoints[idx]){
+						startXPosition = xPoints[idx].pos + Math.abs(xPoints[0].pos - this.valAx.posX);
 					} else {
 						startXPosition = xPoints[0].pos + Math.abs(xPoints[0].pos - this.valAx.posX);
 					}
@@ -4528,10 +4717,9 @@ drawBarChart.prototype = {
 			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], j);
 			curVal = idxPoint ? idxPoint.val : 0;
 
-			if (idxPoint && val > 0 && curVal > 0) {
+			if (idxPoint && val >= 0 && curVal > 0) {
 				result += parseFloat(curVal);
-			} else if (idxPoint && val < 0 &&
-				curVal < 0) {
+			} else if (idxPoint && val <= 0 && curVal < 0) {
 				result += parseFloat(curVal);
 			}
 		}
@@ -5528,6 +5716,10 @@ drawAreaChart.prototype = {
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
+				/*if(null === val && this.cChartDrawer.nDimensionCount !== 3) {
+					continue;
+				}*/
+
 				x = this.xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
 
@@ -5650,31 +5842,65 @@ drawAreaChart.prototype = {
 		var point;
 		var pxToMm = this.chartProp.pxToMM;
 
-		//точки данной серии
-		for (var i = 0; i < points.length; i++) {
-			point = points[i];
-			if (i === 0) {
-				path.moveTo(point.x * pathW, point.y * pathH);
-			} else {
-				path.lnTo(point.x * pathW, point.y * pathH);
-			}
-		}
-
-		//точки предыдущей серии
 		var nullPositionOX = this.catAx.posY * this.chartProp.pxToMM;
-		if (prevPoints != null) {
-			for (var i = prevPoints.length - 1; i >= 0; i--) {
-				point = prevPoints[i];
-				path.lnTo(point.x * pathW, point.y * pathH);
 
-				if (i === 0) {
-					path.lnTo(points[0].x * pathW, points[0].y * pathH);
+		//точки данной серии
+		if(this.subType === "stacked" || this.subType === "stackedPer") {
+			for (var i = 0; i < points.length; i++) {
+				point = points[i];
+				if(!point) {
+
+				} else if (i === 0) {
+					path.moveTo(point.x * pathW, point.y * pathH);
+				} else {
+					path.lnTo(point.x * pathW, point.y * pathH);
 				}
 			}
+
+			//точки предыдущей серии
+			if (prevPoints != null) {
+				for (var i = prevPoints.length - 1; i >= 0; i--) {
+					point = prevPoints[i];
+					path.lnTo(point.x * pathW, point.y * pathH);
+
+					if (i === 0) {
+						path.lnTo(points[0].x * pathW, points[0].y * pathH);
+					}
+				}
+			} else {
+				path.lnTo(points[points.length - 1].x * pathW, nullPositionOX / pxToMm * pathH);
+				path.lnTo(points[0].x * pathW, nullPositionOX / pxToMm * pathH);
+				path.lnTo(points[0].x * pathW, points[0].y * pathH);
+			}
 		} else {
-			path.lnTo(points[points.length - 1].x * pathW, nullPositionOX / pxToMm * pathH);
-			path.lnTo(points[0].x * pathW, nullPositionOX / pxToMm * pathH);
-			path.lnTo(points[0].x * pathW, points[0].y * pathH);
+			var startSegmentPoint;
+			for (var i = 0; i < points.length; i++) {
+				point = points[i];
+				if(!point) {
+					if(startSegmentPoint) {
+						//возвращаемся к оси, далее к начальной точки сегмента
+						path.lnTo(points[i - 1].x * pathW, nullPositionOX / pxToMm * pathH);
+						path.lnTo(startSegmentPoint.x * pathW, nullPositionOX / pxToMm * pathH);
+						path.lnTo(startSegmentPoint.x * pathW, startSegmentPoint.y * pathH);
+					}
+					startSegmentPoint = null;
+				} else {
+					if(!startSegmentPoint) {
+						startSegmentPoint = point;
+						path.moveTo(point.x * pathW, nullPositionOX / pxToMm * pathH);
+					}
+					path.lnTo(point.x * pathW, point.y * pathH);
+				}
+
+				if(i === points.length - 1 && point) {
+					if(startSegmentPoint) {
+						//возвращаемся к оси, далее к начальной точки сегмента
+						path.lnTo(point.x * pathW, nullPositionOX / pxToMm * pathH);
+						path.lnTo(startSegmentPoint.x * pathW, nullPositionOX / pxToMm * pathH);
+						path.lnTo(startSegmentPoint.x * pathW, startSegmentPoint.y * pathH);
+					}
+				}
+			}
 		}
 
 		return pathId;
@@ -6207,6 +6433,11 @@ drawAreaChart.prototype = {
 
 		for (var seria = 0; seria < allPoints.length; seria++) {
 			var points = allPoints[seria];
+
+			if(!points) {
+				continue;
+			}
+
 			for (var i = 0; i < points.length - 1; i++) {
 				var x = points[i].x * pxToMm;
 				var y = points[i].y * pxToMm;
@@ -6666,7 +6897,7 @@ drawAreaChart.prototype = {
 
 		if (this.subType === "stacked") {
 			for (var k = 0; k <= i; k++) {
-				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					val += tempVal;
@@ -6675,7 +6906,7 @@ drawAreaChart.prototype = {
 		} else if (this.subType === "stackedPer") {
 			var summVal = 0;
 			for (var k = 0; k < this.chart.series.length; k++) {
-				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
+				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
@@ -6686,7 +6917,7 @@ drawAreaChart.prototype = {
 			}
 			val = val / summVal;
 		} else {
-			idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
+			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
 			val = idxPoint ? parseFloat(idxPoint.val) : null;
 		}
 		return val;
@@ -6813,11 +7044,15 @@ drawAreaChart.prototype = {
 					pen = seria.pen;
 
 					numCache = this.cChartDrawer.getNumCache(seria.val);
-					if (numCache.pts[0].pen) {
+					if (numCache.pts[0] && numCache.pts[0].pen) {
 						pen = numCache.pts[0].pen;
 					}
-					if (numCache.pts[0].brush) {
+					if (numCache.pts[0] && numCache.pts[0].brush) {
 						brush = numCache.pts[0].brush;
+					}
+
+					if(!this.paths.series[j]) {
+						continue;
 					}
 
 					this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
@@ -7044,18 +7279,18 @@ drawHBarChart.prototype = {
 
 				//стартовая позиция колонки Y
 				if (this.catAx.scaling.orientation === ORIENTATION_MIN_MAX) {
-					if (yPoints[1] && yPoints[1].pos && yPoints[j]) {
-						startYPosition = yPoints[j].pos + Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
-					} else if(yPoints[j]){
-						startYPosition = yPoints[j].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
+					if (yPoints[1] && yPoints[1].pos && yPoints[idx]) {
+						startYPosition = yPoints[idx].pos + Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
+					} else if(yPoints[idx]){
+						startYPosition = yPoints[idx].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
 					} else {
 						startYPosition = yPoints[0].pos + Math.abs(yPoints[0].pos - this.valAx.posY);
 					}
 				} else {
-					if (yPoints[1] && yPoints[1].pos && yPoints[j]) {
-						startYPosition = yPoints[j].pos - Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
-					} else if(yPoints[j]){
-						startYPosition = yPoints[j].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
+					if (yPoints[1] && yPoints[1].pos && yPoints[idx]) {
+						startYPosition = yPoints[idx].pos - Math.abs((yPoints[1].pos - yPoints[0].pos) / 2);
+					} else if(yPoints[idx]){
+						startYPosition = yPoints[idx].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
 					} else {
 						startYPosition = yPoints[0].pos - Math.abs(yPoints[0].pos - this.valAx.posY);
 					}
@@ -9981,7 +10216,7 @@ drawRadarChart.prototype = {
 	},
 
 	_calculateDLbl: function (chartSpace, ser, val) {
-		var numCache = this.cChartDrawer.getNumCache(chart.series[ser].val);
+		var numCache = this.cChartDrawer.getNumCache(this.chart.series[ser].val);
 		if(!numCache) {
 			return;
 		}
@@ -10202,10 +10437,6 @@ drawScatterChart.prototype = {
 	},
 
 	_recalculateScatter: function () {
-		var xPoints = this.catAx.xPoints;
-		var yPoints = this.valAx.yPoints;
-		var betweenAxisCross = this.valAx.crossBetween === AscFormat.CROSS_BETWEEN_BETWEEN;
-
 		var seria, yVal, xVal, points, yNumCache, compiledMarkerSize, compiledMarkerSymbol, yPoint, idx, xPoint;
 		for (var i = 0; i < this.chart.series.length; i++) {
 			seria = this.chart.series[i];
@@ -10216,8 +10447,43 @@ drawScatterChart.prototype = {
 			}
 
 			for (var n = 0; n < yNumCache.ptCount; n++) {
+				var values = this.cChartDrawer._getScatterPointVal(seria, n);
+				if(values) {
+					yVal = values.y;
+					xVal = values.x;
+					xPoint = values.xPoint;
+					yPoint = values.yPoint;
+
+					compiledMarkerSize = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.size : null;
+					compiledMarkerSymbol = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.symbol : null;
+
+
+					if (!this.paths.points) {
+						this.paths.points = [];
+					}
+					if (!this.paths.points[i]) {
+						this.paths.points[i] = [];
+					}
+
+					if (!points) {
+						points = [];
+					}
+					if (!points[i]) {
+						points[i] = [];
+					}
+
+					if (yVal != null) {
+						this.paths.points[i][n] = this.cChartDrawer.calculatePoint(this.cChartDrawer.getYPosition(xVal, this.catAx), this.cChartDrawer.getYPosition(yVal, this.valAx, true), compiledMarkerSize, compiledMarkerSymbol);
+						points[i][n] = {x: xVal, y: yVal};
+					} else {
+						this.paths.points[i][n] = null;
+						points[i][n] = null;
+					}
+				}
+
+
 				//idx - индекс точки по оси OY
-				idx = yNumCache.pts && undefined !== yNumCache.pts[n] ? yNumCache.pts[n].idx : null;
+				/*idx = yNumCache.pts && undefined !== yNumCache.pts[n] ? yNumCache.pts[n].idx : null;
 				if(null === idx) {
 					continue;
 				}
@@ -10227,6 +10493,10 @@ drawScatterChart.prototype = {
 				yVal = this._getYVal(n, i);
 
 				xPoint = this.cChartDrawer.getIdxPoint(seria, idx, true);
+				if(undefined === xPoint) {
+					continue;
+				}
+
 				if (xPoint) {
 					xVal = xPoint.val;
 					if (!isNaN(parseFloat(xVal))) {
@@ -10265,7 +10535,7 @@ drawScatterChart.prototype = {
 				} else {
 					this.paths.points[i][n] = null;
 					points[i][n] = null;
-				}
+				}*/
 			}
 		}
 

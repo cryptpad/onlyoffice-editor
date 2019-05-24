@@ -383,6 +383,17 @@
 		}
 		return bbox;
 	};
+	CConditionalFormattingRule.prototype.getIndexRule = function(values, ws, value) {
+		var valueCFVO;
+		var aCFVOs = this._getCFVOs();
+		for (var i = aCFVOs.length - 1; i >= 0; --i) {
+			valueCFVO = this._getValue(values, aCFVOs[i], ws);
+			if (value > valueCFVO || (aCFVOs[i].Gte && value === valueCFVO)) {
+				return i;
+			}
+		}
+		return 0;
+	};
 	CConditionalFormattingRule.prototype.getMin = function(values, ws) {
 		var aCFVOs = this._getCFVOs();
 		var oCFVO = (aCFVOs && 0 < aCFVOs.length) ? aCFVOs[0] : null;
@@ -405,6 +416,21 @@
 	CConditionalFormattingRule.prototype._getValue = function (values, oCFVO, ws) {
 		var res, min;
 		if (oCFVO) {
+			if (oCFVO.Val) {
+				res = 0;
+				if (null === oCFVO.formula) {
+					oCFVO.formulaParent = new CConditionalFormattingFormulaParent(ws, this, false);
+					oCFVO.formula = new CFormulaCF();
+					oCFVO.formula.Text = oCFVO.Val;
+				}
+				var calcRes = oCFVO.formula.getValue(ws, oCFVO.formulaParent, null, null, true);
+				if (calcRes && calcRes.tocNumber) {
+					calcRes = calcRes.tocNumber();
+					if (calcRes && calcRes.toNumber) {
+						res = calcRes.toNumber();
+					}
+				}
+			}
 			switch (oCFVO.Type) {
 				case AscCommonExcel.ECfvoType.Minimum:
 					res = AscCommonExcel.getArrayMin(values);
@@ -413,14 +439,13 @@
 					res = AscCommonExcel.getArrayMax(values);
 					break;
 				case AscCommonExcel.ECfvoType.Number:
-					res = parseFloat(oCFVO.Val);
 					break;
 				case AscCommonExcel.ECfvoType.Percent:
 					min = AscCommonExcel.getArrayMin(values);
-					res = min + Math.floor((AscCommonExcel.getArrayMax(values) - min) * parseFloat(oCFVO.Val) / 100);
+					res = min + (AscCommonExcel.getArrayMax(values) - min) * res / 100;
 					break;
 				case AscCommonExcel.ECfvoType.Percentile:
-					res = AscCommonExcel.getPercentile(values, parseFloat(oCFVO.Val) / 100.0);
+					res = AscCommonExcel.getPercentile(values, res / 100.0);
 					if (AscCommonExcel.cElementType.number === res.type) {
 						res = res.getValue();
 					} else {
@@ -428,18 +453,6 @@
 					}
 					break;
 				case AscCommonExcel.ECfvoType.Formula:
-					if (null === oCFVO.formula) {
-						oCFVO.formulaParent = new CConditionalFormattingFormulaParent(ws, this, false);
-						oCFVO.formula = new CFormulaCF();
-						oCFVO.formula.Text = oCFVO.Val;
-					}
-					var calcRes = oCFVO.formula.getValue(ws, oCFVO.formulaParent, null, null, true);
-					if (calcRes && calcRes.tocNumber) {
-						calcRes = calcRes.tocNumber();
-						if (calcRes && calcRes.toNumber) {
-							res = calcRes.toNumber();
-						}
-					}
 					break;
 				default:
 					res = -Number.MAX_VALUE;
@@ -554,6 +567,7 @@
 
 		return this;
 	}
+	CIconSet.prototype.type = AscCommonExcel.ECfType.iconSet;
 	CIconSet.prototype.clone = function() {
 		var i, res = new CIconSet();
 		res.IconSet = this.IconSet;

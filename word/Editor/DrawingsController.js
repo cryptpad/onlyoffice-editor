@@ -489,8 +489,9 @@ CDrawingsController.prototype.AddComment = function(Comment)
 };
 CDrawingsController.prototype.CanAddComment = function()
 {
+	// TODO: Как будет реализовано добавление комментариев к объекту, возвращать тут true
 	if (true != this.DrawingObjects.isSelectedText())
-		return true;
+		return false;
 	else
 		return this.DrawingObjects.canAddComment();
 };

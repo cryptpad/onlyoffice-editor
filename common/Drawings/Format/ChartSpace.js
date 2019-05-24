@@ -4633,10 +4633,26 @@ CChartSpace.prototype.getValAxisCrossType = function()
                     oNumFormat = oNumFormatCache.get(oNumFmt.formatCode);
                 }
                 else{
-                    if(oSeries && oSeries.xVal){
-                        var strCache = oSeries.xVal.strRef && oSeries.xVal.strRef.strCache;
-                        if(strCache && strCache.pts[0] && typeof strCache.pts[0].formatCode === "string"){
-                            oNumFormat = oNumFormatCache.get(strCache.pts[0].formatCode);
+                    if(oSeries){
+                        if(oSeries.xVal){
+                            var strCache = oSeries.xVal.strRef && oSeries.xVal.strRef.strCache;
+                            if(strCache && strCache.pts[0] && typeof strCache.pts[0].formatCode === "string"){
+                                oNumFormat = oNumFormatCache.get(strCache.pts[0].formatCode);
+                            }
+                        }
+                        else{
+                            var pts = getPtsFromSeries(oSeries);
+                            if(pts.length > 0 && typeof pts[0].formatCode === "string" && pts[0].formatCode.length > 0){
+                                oNumFormat = oNumFormatCache.get(pts[0].formatCode);
+                            }
+                            else {
+                                if(oSeries.getFormatCode){
+                                    var sFormatCode = oSeries.getFormatCode();
+                                    if(sFormatCode === "string" && sFormatCode.length > 0){
+                                        oNumFormat = oNumFormatCache.get(sFormatCode);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -9683,10 +9699,6 @@ CChartSpace.prototype.hitInTextRect = function()
     {
         if(this.chart && this.chart.legend)
         {
-            var aSeries = this.getAllSeries();
-            var oParents = this.getParentObjects();
-            var oLegend = this.chart.legend;
-
             var parents = this.getParentObjects();
             var RGBA = {R:0, G:0, B: 0, A:255};
             var legend = this.chart.legend;
@@ -9694,6 +9706,16 @@ CChartSpace.prototype.hitInTextRect = function()
             var calc_entryes = legend.calcEntryes;
             calc_entryes.length = 0;
             var series = this.getAllSeries();
+
+            //sort series
+            series.sort(function(ser1, ser2){
+                if(ser1.getObjectType() === AscDFH.historyitem_type_PieSeries && ser2.getObjectType() !== AscDFH.historyitem_type_PieSeries){
+                    return -1;
+                }
+                return ser1.idx - ser2.idx;
+            });
+
+
             var calc_entry, union_marker, entry;
             var max_width = 0, cur_width, max_font_size = 0, cur_font_size, ser, b_line_series;
             var max_word_width = 0;
@@ -9765,11 +9787,23 @@ CChartSpace.prototype.hitInTextRect = function()
                         case AscDFH.historyitem_type_BarSeries:
                         case AscDFH.historyitem_type_BubbleSeries:
                         case AscDFH.historyitem_type_AreaSeries:
-                        case AscDFH.historyitem_type_PieSeries:
                         {
                             union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
                             union_marker.marker.pen = ser.compiledSeriesPen;
                             union_marker.marker.brush = ser.compiledSeriesBrush;
+                            break;
+                        }
+                        case AscDFH.historyitem_type_PieSeries:
+                        {
+                            union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
+                            if(pts.length > 0){
+                                union_marker.marker.pen = pts[0].pen;
+                                union_marker.marker.brush = pts[0].brush;
+                            }
+                            else{
+                                union_marker.marker.pen = ser.compiledSeriesPen;
+                                union_marker.marker.brush = ser.compiledSeriesBrush;
+                            }
                             break;
                         }
                         case AscDFH.historyitem_type_SurfaceSeries:{
@@ -12800,7 +12834,7 @@ CChartSpace.prototype.recalculateChart = function()
 
 
 
-CChartSpace.prototype.GetRevisionsChangeParagraph = function(SearchEngine){
+CChartSpace.prototype.GetRevisionsChangeElement = function(SearchEngine){
     var titles = this.getAllTitles(), i;
     if(titles.length === 0){
         return;
@@ -12817,16 +12851,16 @@ CChartSpace.prototype.GetRevisionsChangeParagraph = function(SearchEngine){
         }
     }
     else{
-        if(SearchEngine.Get_Direction() > 0){
+        if(SearchEngine.GetDirection() > 0){
             i = 0;
         }
         else{
             i = titles.length - 1;
         }
     }
-    while(!SearchEngine.Is_Found()){
-        titles[i].GetRevisionsChangeParagraph(SearchEngine);
-        if(SearchEngine.Get_Direction() > 0){
+    while(!SearchEngine.IsFound()){
+        titles[i].GetRevisionsChangeElement(SearchEngine);
+        if(SearchEngine.GetDirection() > 0){
             if(i === titles.length - 1){
                 break;
             }

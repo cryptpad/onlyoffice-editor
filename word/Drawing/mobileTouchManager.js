@@ -60,7 +60,7 @@
 		var _element = this.delegate.GetScrollerParent();
 		this.CreateScrollerDiv(_element);
 
-		this.iScroll = new window.IScroll(_element, {
+		this.iScroll = new window.IScrollMobile(_element, {
 			scrollbars: true,
 			mouseWheel: true,
 			interactiveScrollbars: true,
@@ -751,7 +751,7 @@
 		// создаем делегата. инициализация его - ПОСЛЕ создания iScroll
 		this.delegate = new CMobileDelegateEditorReader(this);
 
-		this.iScroll = new window.IScroll(this.delegate.GetScrollerParent(), {
+		this.iScroll = new window.IScrollMobile(this.delegate.GetScrollerParent(), {
 			scrollbars: true,
 			mouseWheel: true,
 			interactiveScrollbars: true,

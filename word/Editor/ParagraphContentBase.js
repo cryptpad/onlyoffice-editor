@@ -548,13 +548,13 @@ CParagraphContentBase.prototype.Get_TextPr = function(ContentPos, Depth)
 {
 	return new CTextPr();
 };
-CParagraphContentBase.prototype.Set_ReviewType = function(ReviewType, RemovePrChange)
+CParagraphContentBase.prototype.SetReviewType = function(ReviewType, RemovePrChange)
 {
 };
-CParagraphContentBase.prototype.Set_ReviewTypeWithInfo = function(ReviewType, ReviewInfo)
+CParagraphContentBase.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo)
 {
 };
-CParagraphContentBase.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+CParagraphContentBase.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
 };
 CParagraphContentBase.prototype.AcceptRevisionChanges = function(Type, bAll)
@@ -774,10 +774,10 @@ CParagraphContentWithContentBase.prototype.protected_GetPrevRangeEndPos = functi
 };
 CParagraphContentWithContentBase.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.Get_TrackRevisionsManager)
+    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.Paragraph.LogicDocument.Get_TrackRevisionsManager();
-        RevisionsManager.Check_Paragraph(this.Paragraph);
+        var RevisionsManager = this.Paragraph.LogicDocument.GetTrackRevisionsManager();
+        RevisionsManager.CheckElement(this.Paragraph);
     }
 };
 CParagraphContentWithContentBase.prototype.CanSplit = function()
@@ -1302,11 +1302,11 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
                 this.Remove_FromContent(EndPos, 1, true);
             }
 
-            if (this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.Is_TrackRevisions())
+            if (this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsTrackRevisions())
             {
                 for (var CurPos = EndPos - 1; CurPos > StartPos; CurPos--)
                 {
-                    this.Content[CurPos].Set_ReviewType(reviewtype_Remove, false);
+                    this.Content[CurPos].SetReviewType(reviewtype_Remove, false);
                 }
             }
             else
@@ -3145,37 +3145,37 @@ CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNex
 //----------------------------------------------------------------------------------------------------------------------
 // Разное
 //----------------------------------------------------------------------------------------------------------------------
-CParagraphContentWithParagraphLikeContent.prototype.Set_ReviewType = function(ReviewType, RemovePrChange)
+CParagraphContentWithParagraphLikeContent.prototype.SetReviewType = function(ReviewType, RemovePrChange)
 {
     for (var Index = 0, Count = this.Content.length; Index < Count; Index++)
     {
         var Element = this.Content[Index];
         if (para_Run === Element.Type)
         {
-            Element.Set_ReviewType(ReviewType);
+            Element.SetReviewType(ReviewType);
 
             if (true === RemovePrChange)
-                Element.Remove_PrChange();
+                Element.RemovePrChange();
         }
-        else if (Element.Set_ReviewType)
-            Element.Set_ReviewType(ReviewType);
+        else if (Element.SetReviewType)
+            Element.SetReviewType(ReviewType);
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.Set_ReviewTypeWithInfo = function(ReviewType, ReviewInfo)
+CParagraphContentWithParagraphLikeContent.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo)
 {
     for (var Index = 0, Count = this.Content.length; Index < Count; Index++)
     {
         var Element = this.Content[Index];
-        if (Element && Element.Set_ReviewTypeWithInfo)
-            Element.Set_ReviewTypeWithInfo(ReviewType, ReviewInfo);
+        if (Element && Element.SetReviewTypeWithInfo)
+            Element.SetReviewTypeWithInfo(ReviewType, ReviewInfo);
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
     for (var CurPos = 0, Count = this.Content.length; CurPos < Count; CurPos++)
     {
         ContentPos.Update(CurPos, Depth);
-        this.Content[CurPos].Check_RevisionsChanges(Checker, ContentPos, Depth + 1);
+        this.Content[CurPos].CheckRevisionsChanges(Checker, ContentPos, Depth + 1);
     }
 };
 CParagraphContentWithParagraphLikeContent.prototype.AcceptRevisionChanges = function(Type, bAll)
@@ -3205,13 +3205,13 @@ CParagraphContentWithParagraphLikeContent.prototype.AcceptRevisionChanges = func
             for (var CurPos = EndPos - 1; CurPos > StartPos; CurPos--)
             {
                 var Element = this.Content[CurPos];
-                var ReviewType = Element.Get_ReviewType ? Element.Get_ReviewType() : reviewtype_Common;
+                var ReviewType = Element.GetReviewType ? Element.GetReviewType() : reviewtype_Common;
 
                 var isGoInside = false;
                 if (reviewtype_Add === ReviewType)
                 {
                     if (undefined === Type || c_oAscRevisionsChangeType.TextAdd === Type)
-                        Element.Set_ReviewType(reviewtype_Common);
+                        Element.SetReviewType(reviewtype_Common);
 
                     isGoInside = true;
                 }
@@ -3263,13 +3263,13 @@ CParagraphContentWithParagraphLikeContent.prototype.RejectRevisionChanges = func
             for (var CurPos = EndPos - 1; CurPos > StartPos; CurPos--)
             {
                 var Element = this.Content[CurPos];
-                var ReviewType = Element.Get_ReviewType ? Element.Get_ReviewType() : reviewtype_Common;
+                var ReviewType = Element.GetReviewType ? Element.GetReviewType() : reviewtype_Common;
 
                 var isGoInside = false;
                 if (reviewtype_Remove === ReviewType)
                 {
                     if (undefined === Type || c_oAscRevisionsChangeType.TextRem === Type)
-                        Element.Set_ReviewType(reviewtype_Common);
+                        Element.SetReviewType(reviewtype_Common);
 
                     isGoInside = true;
                 }
@@ -3296,10 +3296,10 @@ CParagraphContentWithParagraphLikeContent.prototype.RejectRevisionChanges = func
 };
 CParagraphContentWithParagraphLikeContent.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.Get_TrackRevisionsManager)
+    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.Paragraph.LogicDocument.Get_TrackRevisionsManager();
-        RevisionsManager.Check_Paragraph(this.Paragraph);
+        var RevisionsManager = this.Paragraph.LogicDocument.GetTrackRevisionsManager();
+        RevisionsManager.CheckElement(this.Paragraph);
     }
 };
 CParagraphContentWithParagraphLikeContent.prototype.private_CheckUpdateBookmarks = function(Items)

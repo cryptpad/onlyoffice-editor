@@ -56,7 +56,9 @@ var AscBrowser = {
 	isRetina : false,
     isLinuxOS : false,
 	retinaPixelRatio : 1,
-	isVivaldiLinux : false
+	isVivaldiLinux : false,
+    isSailfish : false,
+    isEmulateDevicePixelRatio : false
 };
 
 // user agent lower case
@@ -114,10 +116,33 @@ AscBrowser.isLinuxOS = (AscBrowser.userAgent.indexOf(" linux ") > -1);
 
 AscBrowser.isVivaldiLinux = AscBrowser.isLinuxOS && (AscBrowser.userAgent.indexOf("vivaldi") > -1);
 
+AscBrowser.isSailfish = (AscBrowser.userAgent.indexOf("sailfish") > -1);
+
+AscBrowser.isEmulateDevicePixelRatio = (AscBrowser.userAgent.indexOf("emulatedevicepixelratio") > -1);
+
 AscBrowser.zoom = 1;
 
 AscBrowser.checkZoom = function()
 {
+    if (AscBrowser.isSailfish && AscBrowser.isEmulateDevicePixelRatio)
+    {
+        var scale = 1;
+        if (screen.width <= 540)
+            scale = 1.5;
+        else if (screen.width > 540 && screen.width <= 768)
+            scale = 2;
+        else if (screen.width > 768)
+            scale = 3;
+
+
+        //document.body.style.zoom = scale;
+        //AscBrowser.zoom = 1 / scale;
+        AscBrowser.isRetina = (scale >= 1.9);
+        AscBrowser.retinaPixelRatio = scale;
+        window.devicePixelRatio = scale;
+        return;
+    }
+
     if (AscBrowser.isAndroid)
 	{
 		AscBrowser.isRetina = (window.devicePixelRatio >= 1.9);

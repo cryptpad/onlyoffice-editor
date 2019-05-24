@@ -2529,17 +2529,16 @@ background-repeat: no-repeat;\
 		}
 
 		if (c_oAscFontRenderingModeType.noHinting === mode)
-			AscCommon.SetHintsProps(false, false);
+            AscCommon.g_fontManager.SetHintsProps(false, false);
 		else if (c_oAscFontRenderingModeType.hinting === mode)
-			AscCommon.SetHintsProps(true, false);
+            AscCommon.g_fontManager.SetHintsProps(true, false);
 		else if (c_oAscFontRenderingModeType.hintingAndSubpixeling === mode)
-			AscCommon.SetHintsProps(true, true);
+            AscCommon.g_fontManager.SetHintsProps(true, true);
 
 		this.WordControl.m_oDrawingDocument.ClearCachePages();
-		AscCommon.g_fontManager.ClearFontsRasterCache();
 
-		if (window.g_fontManager2 !== undefined && window.g_fontManager2 !== null)
-			window.g_fontManager2.ClearFontsRasterCache();
+		if (AscCommon.g_fontManager2 !== undefined && AscCommon.g_fontManager2 !== null)
+            AscCommon.g_fontManager2.ClearFontsRasterCache();
 
 		if (this.bInit_word_control)
 			this.WordControl.OnScroll();
@@ -2859,7 +2858,7 @@ background-repeat: no-repeat;\
 		var _headers = [];
 		for (var i = 0; i < headers.length; i++)
 		{
-			_headers[i] = new CHeader(headers[i]);
+			_headers[i] = new Asc.CHeader(headers[i]);
 		}
 
 		this.sendEvent("asc_onReturnHeaders", _headers);
@@ -4797,7 +4796,7 @@ background-repeat: no-repeat;\
             }
         }
 	};
-	asc_docs_api.prototype.AddImageUrl       = function(url, imgProp)
+	asc_docs_api.prototype.AddImageUrl       = function(url, imgProp, withAuthorization)
 	{
 		if (g_oDocumentUrls.getLocal(url))
 		{
@@ -4811,7 +4810,7 @@ background-repeat: no-repeat;\
                 if (data && data[0])
                     t.AddImageUrlAction(data[0].url, imgProp);
 
-            }, false);
+            }, false, undefined, withAuthorization);
 		}
 	};
 	asc_docs_api.prototype.AddImageUrlAction = function(url, imgProp)
@@ -6201,11 +6200,11 @@ background-repeat: no-repeat;\
 		var LogicDocument = this.WordControl.m_oLogicDocument;
 		if (LogicDocument)
 		{
-			var isTrackRevision = LogicDocument.Is_TrackRevisions();
+			var isTrackRevision = LogicDocument.IsTrackRevisions();
 			var isShowParaMarks = LogicDocument.Is_ShowParagraphMarks();
 
 			if (true === isTrackRevision)
-				LogicDocument.Set_TrackRevisions(false);
+				LogicDocument.SetTrackRevisions(false);
 
 			if (true === isShowParaMarks)
 				LogicDocument.Set_ShowParagraphMarks(false, false);
@@ -6213,7 +6212,7 @@ background-repeat: no-repeat;\
 			StylesPainter.GenerateStyles(this, (null == this.LoadedObject) ? this.WordControl.m_oLogicDocument.Get_Styles().Style : this.LoadedObjectDS);
 
 			if (true === isTrackRevision)
-				LogicDocument.Set_TrackRevisions(true);
+				LogicDocument.SetTrackRevisions(true);
 
 			if (true === isShowParaMarks)
 				LogicDocument.Set_ShowParagraphMarks(true, false);
@@ -6520,6 +6519,22 @@ background-repeat: no-repeat;\
 							this.ChangeReaderMode();
 						else
 							this.WordControl.UpdateReaderContent();
+					}
+
+					var options = this.DocInfo.asc_getOptions();
+					var action = options ? options["action"] : null;
+					if (action)
+					{
+						switch (action["type"])
+						{
+							case "bookmark":
+							{
+                                Document.GoToBookmark(action["data"]);
+								break;
+							}
+							default:
+								break;
+						}
 					}
 				}
 			}
@@ -8608,21 +8623,36 @@ background-repeat: no-repeat;\
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 
-		if (!oLogicDocument || !sFormula || "=" !== sFormula.charAt(0))
+		if (!oLogicDocument)
 			return;
 
-		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
-		{
-			oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddTableFormula);
-			oLogicDocument.AddFieldWithInstruction(sFormula);
-			oLogicDocument.Recalculate();
-			oLogicDocument.Document_UpdateInterfaceState();
-			oLogicDocument.Document_UpdateSelectionState();
-		}
+		oLogicDocument.AddTableCellFormula(sFormula);
 	};
 	asc_docs_api.prototype.asc_GetTableFormula = function()
 	{
-		return "=";
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return "=";
+
+		return oLogicDocument.GetTableCellFormula();
+	};
+	asc_docs_api.prototype.asc_GetTableFormulaFormats = function()
+	{
+		return ["#,##0", "#,##0.00", "$#,##0.00;($#,##0.00)", "0", "0%", "0.00", "0.00%"];
+	};
+
+	asc_docs_api.prototype.asc_ParseTableFormulaInstrLine = function(sInstrLine)
+	{
+		return this.WordControl.m_oLogicDocument.ParseTableFormulaInstrLine(sInstrLine);
+	};
+
+	asc_docs_api.prototype.asc_CreateInstructionLine = function(sFormula, sFormat)
+	{
+		var sRet = sFormula;
+		if(typeof sFormat === "string" && sFormat.length > 0){
+			sRet += " \\# \"" + sFormat + "\"";
+		}
+		return sRet;
 	};
 
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
@@ -9239,6 +9269,10 @@ background-repeat: no-repeat;\
 	{
 		return this.asc_GetCurrentContentControl();
 	};
+    window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControlPr"] = function()
+    {
+        return this.asc_GetContentControlProperties();
+    };
 	window["asc_docs_api"].prototype["pluginMethod_SelectContentControl"] = function(id)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
@@ -9918,6 +9952,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetComplexFieldPr']                     = asc_docs_api.prototype.asc_SetComplexFieldPr;
 	asc_docs_api.prototype['asc_AddTableFormula']                       = asc_docs_api.prototype.asc_AddTableFormula;
 	asc_docs_api.prototype['asc_GetTableFormula']                       = asc_docs_api.prototype.asc_GetTableFormula;
+	asc_docs_api.prototype['asc_GetTableFormulaFormats']                = asc_docs_api.prototype.asc_GetTableFormulaFormats;
+	asc_docs_api.prototype['asc_ParseTableFormulaInstrLine']            = asc_docs_api.prototype.asc_ParseTableFormulaInstrLine;
+	asc_docs_api.prototype['asc_CreateInstructionLine']                 = asc_docs_api.prototype.asc_CreateInstructionLine;
+
 
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
 

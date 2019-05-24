@@ -36,18 +36,16 @@
 
 // Import
 var FT_Common = AscFonts.FT_Common;
-var FT_Stream = AscFonts.FT_Stream;
-var g_memory = AscFonts.g_memory;
 
-    var FontStyle =
-    {
-        FontStyleRegular:    0,
-        FontStyleBold:       1,
-        FontStyleItalic:     2,
-        FontStyleBoldItalic: 3,
-        FontStyleUnderline:  4,
-        FontStyleStrikeout:  8
-    };
+var FontStyle =
+{
+    FontStyleRegular:    0,
+    FontStyleBold:       1,
+    FontStyleItalic:     2,
+    FontStyleBoldItalic: 3,
+    FontStyleUnderline:  4,
+    FontStyleStrikeout:  8
+};
 
 var charA = "A".charCodeAt(0);
 var charZ = "Z".charCodeAt(0);
@@ -94,9 +92,7 @@ function CreateFontData2(szSrc, dstLen)
     if (dstLen === undefined)
         dstLen = srcLen;
 
-    var pointer = g_memory.Alloc(dstLen);
-    var stream = new FT_Stream(pointer.data, dstLen);
-    stream.obj = pointer.obj;
+    var stream = new AscFonts.FontStream(AscFonts.allocate(dstLen), dstLen);
 
     var dstPx = stream.data;
     var index = 0;
@@ -169,11 +165,7 @@ function CreateFontData2(szSrc, dstLen)
 function CreateFontData3(szSrc)
 {
     var srcLen = szSrc.length;
-    var nWritten = 0;
-
-    var pointer = g_memory.Alloc(srcLen);
-    var stream = new FT_Stream(pointer.data, srcLen);
-    stream.obj = pointer.obj;
+    var stream = new AscFonts.FontStream(AscFonts.allocate(srcLen), srcLen);
 
     var dstPx = stream.data;
     var index = 0;
@@ -210,9 +202,7 @@ function CreateFontData4(szSrc)
     if (dstLen <= 0)
         return null;
 
-    var pointer = g_memory.Alloc(dstLen);
-    var stream = new FT_Stream(pointer.data, dstLen);
-    stream.obj = pointer.obj;
+    var stream = new AscFonts.FontStream(AscFonts.allocate(dstLen), dstLen);
 
     var dstPx = stream.data;
 

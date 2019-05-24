@@ -3870,22 +3870,15 @@ function OfflineEditor () {
         
         window.g_file_path = "native_open_file";
         window.NATIVE_DOCUMENT_TYPE = "";
-        
-        var apiConfig = {};
-        if (this.translate) {
-            var t = JSON.parse(this.translate);
-            if (t) {
-                apiConfig['translate'] = {
-                    'Diagram Title' : t['diagrammtitle'],
-                    'X Axis' : t['xaxis'],
-                    'Y Axis' : t['yaxis'],
-                    'Series' : t['series'],
-                    'Your text here' : t['art']
-                };
-            }
+  
+        var translations = this.initSettings["translations"];
+        if (undefined != translations && null != translations && translations.length > 0) {
+            translations = JSON.parse(translations)
+        } else {
+            translations = "";
         }
-        
-        _api = new window["Asc"]["spreadsheet_api"](apiConfig);
+
+        _api = new window["Asc"]["spreadsheet_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
         
@@ -4809,7 +4802,7 @@ function OfflineEditor () {
                 oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
                 
                 window["native"]["BeginDrawDefaultStyle"](oStyle.Name, styleIndex);
-                this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, oStyle.Name, styleIndex);
+                this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
                 window["native"]["EndDrawStyle"]();
                 ++styleIndex;
             }
@@ -4826,17 +4819,19 @@ function OfflineEditor () {
                 }
                 
                 window["native"]["BeginDrawDocumentStyle"](oStyle.Name, styleIndex);
-                this.drawStyle(oGraphics, stringRenderer, oStyle, oStyle.Name, styleIndex);
+                this.drawStyle(oGraphics, stringRenderer, oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
                 window["native"]["EndDrawStyle"]();
                 ++styleIndex;
             }
         };
         AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
-            
-            var oColor = oStyle.getFillColor();
-            if (null !== oColor) {
-                oGraphics.setFillStyle(oColor);
-                oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+
+            if (oStyle.ApplyFill) {
+                var oColor = oStyle.getFillColor();
+                if (null !== oColor) {
+                    oGraphics.setFillStyle(oColor);
+                    oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+                }
             }
             
             var drawBorder = function (b, x1, y1, x2, y2) {
@@ -4850,12 +4845,14 @@ function OfflineEditor () {
                     oGraphics.stroke();
                 }
             };
-            
-            var oBorders = oStyle.getBorder();
-            drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt); // left
-            drawBorder(oBorders.r, this.styleThumbnailWidthPt - 0.25, 0, this.styleThumbnailWidthPt - 0.25, this.styleThumbnailHeightPt);     // right
-            drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0); // up
-            drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt - 0.25, this.styleThumbnailWidthPt,  this.styleThumbnailHeightPt - 0.25);   // down
+
+            if (oStyle.ApplyBorder) {
+                var oBorders = oStyle.getBorder();
+                drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt); // left
+                drawBorder(oBorders.r, this.styleThumbnailWidthPt - 0.25, 0, this.styleThumbnailWidthPt - 0.25, this.styleThumbnailHeightPt);     // right
+                drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0); // up
+                drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt - 0.25, this.styleThumbnailWidthPt,  this.styleThumbnailHeightPt - 0.25);   // down
+            }
             
             // Draw text
             var format = oStyle.getFont().clone();
@@ -6178,8 +6175,6 @@ window["native"]["offline_calculate_complete_range"] = function(x, y, w, h) {
             ws._getColLeft(range.c2) + ws._getColumnWidth(range.c2),
             ws._getRowTop(range.r2)  + ws._getRowHeight(range.r1)];
 }
-
-window["native"]["offline_set_translate"] = function(translate) {_s.translate = translate;}
 
 window["native"]["offline_apply_event"] = function(type,params) {
     var _borderOptions = Asc.c_oAscBorderOptions;

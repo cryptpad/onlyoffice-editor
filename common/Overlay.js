@@ -2439,8 +2439,8 @@ CAutoshapeTrack.prototype =
 
         if (overlayNotes)
         {
-            dKoefX = g_dKoef_mm_to_pix;
-			dKoefY = g_dKoef_mm_to_pix;
+            dKoefX = AscCommon.g_dKoef_mm_to_pix;
+			dKoefY = AscCommon.g_dKoef_mm_to_pix;
 
 			overlay = overlayNotes;
 
@@ -2592,7 +2592,7 @@ CAutoshapeTrack.prototype =
 
     DrawPresentationComment : function(type, x, y, w, h)
     {
-        if (!window.g_comment_image || !window.g_comment_image.asc_complete)
+        if (!AscCommon.g_comment_image || !AscCommon.g_comment_image.asc_complete)
             return;
 
         var overlay = this.m_oOverlay;
@@ -2623,10 +2623,10 @@ CAutoshapeTrack.prototype =
         if ((type & 0x01) == 0x01)
             _index += 1;
 
-        var _offset = g_comment_image_offsets[_index];
+        var _offset = AscCommon.g_comment_image_offsets[_index];
         overlay.CheckRect(__x, __y, _offset[2], _offset[3]);
 
-        this.m_oContext.drawImage(window.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], __x, __y, _offset[2], _offset[3]);
+        this.m_oContext.drawImage(AscCommon.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], __x, __y, _offset[2], _offset[3]);
 
         ctx.globalAlpha = _oldAlpha;
     }

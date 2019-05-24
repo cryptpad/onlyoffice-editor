@@ -416,6 +416,7 @@
 				ifr.style.height   = '100px';
 				ifr.style.overflow = 'hidden';
 				ifr.style.zIndex   = -1000;
+				ifr.setAttribute("frameBorder", "0");
 				document.body.appendChild(ifr);
 
 				if (runObject.startData.getAttribute("resize") !== true)
@@ -670,13 +671,41 @@
 
                 if (plugin && plugin.variations[runObject.currentVariation].eventsMap[name])
                 {
-                	if (!runObject.isInitReceive)
-					{
-						if (!runObject.waitEvents)
-							runObject.waitEvents = [];
-						runObject.waitEvents.push({ n : name, d : data });
-						continue;
-					}
+                    if (!runObject.isInitReceive)
+                    {
+                        if (!runObject.waitEvents)
+                            runObject.waitEvents = [];
+                        runObject.waitEvents.push({ n : name, d : data });
+                        continue;
+                    }
+                    var pluginData = new CPluginData();
+                    pluginData.setAttribute("guid", plugin.guid);
+                    pluginData.setAttribute("type", "onEvent");
+                    pluginData.setAttribute("eventName", name);
+                    pluginData.setAttribute("eventData", data);
+                    var _iframe = document.getElementById(runObject.frameId);
+                    if (_iframe)
+                        _iframe.contentWindow.postMessage(pluginData.serialize(), "*");
+                }
+            }
+        },
+
+        onPluginEvent2 : function(name, data, guids)
+        {
+            for (var guid in this.runnedPluginsMap)
+            {
+                var plugin = this.getPluginByGuid(guid);
+                var runObject = this.runnedPluginsMap[guid];
+
+                if (plugin && guids[guid])
+                {
+                    if (!runObject.isInitReceive)
+                    {
+                        if (!runObject.waitEvents)
+                            runObject.waitEvents = [];
+                        runObject.waitEvents.push({ n : name, d : data });
+                        continue;
+                    }
                     var pluginData = new CPluginData();
                     pluginData.setAttribute("guid", plugin.guid);
                     pluginData.setAttribute("type", "onEvent");
@@ -860,7 +889,7 @@
 			var pluginData = new CPluginData();
 			pluginData.setAttribute("guid", guid);
 			pluginData.setAttribute("type", "plugin_init");
-			pluginData.setAttribute("data", "!function(u,o){var l=!1,g=\"\";u.plugin_sendMessage=function(n){u.parent.postMessage(n,\"*\")},u.plugin_onMessage=function(n){if(u.Asc.plugin&&\"string\"==typeof n.data){var e={};try{e=JSON.parse(n.data)}catch(n){e={}}if(e.guid!=u.Asc.plugin.guid)return;var t=e.type;if(\"init\"==t&&(u.Asc.plugin.info=e),u.Asc.plugin.tr&&u.Asc.plugin.tr_init||(u.Asc.plugin.tr_init=!0,u.Asc.plugin.tr=function(n){return u.Asc.plugin.translateManager&&u.Asc.plugin.translateManager[n]?u.Asc.plugin.translateManager[n]:n}),u.Asc.plugin.info.lang!=g)if(\"en-EN\"==(g=u.Asc.plugin.info.lang))u.Asc.plugin.translateManager=null,u.Asc.plugin.onTranslate&&u.Asc.plugin.onTranslate();else{var a=new XMLHttpRequest;a.open(\"GET\",\"./translations/\"+g+\".json\"),a.onreadystatechange=function(){if(4==a.readyState&&(200==a.status||0==location.href.indexOf(\"file:\")))try{u.Asc.plugin.translateManager=JSON.parse(a.responseText),u.Asc.plugin.onTranslate&&u.Asc.plugin.onTranslate()}catch(n){}},a.send()}switch(t){case\"init\":u.Asc.plugin.executeCommand=function(n,e){u.Asc.plugin.info.type=n,u.Asc.plugin.info.data=e;var t=\"\";try{t=JSON.stringify(u.Asc.plugin.info)}catch(n){t=JSON.stringify({type:e})}u.plugin_sendMessage(t)},u.Asc.plugin.executeMethod=function(n,e,t){if(!0===u.Asc.plugin.isWaitMethod)return o===this.executeMethodStack&&(this.executeMethodStack=[]),this.executeMethodStack.push({name:n,params:e,callback:t}),!1;u.Asc.plugin.isWaitMethod=!0,u.Asc.plugin.methodCallback=t,u.Asc.plugin.info.type=\"method\",u.Asc.plugin.info.methodName=n,u.Asc.plugin.info.data=e;var a=\"\";try{a=JSON.stringify(u.Asc.plugin.info)}catch(n){a=JSON.stringify({type:data})}return u.plugin_sendMessage(a),!0},u.Asc.plugin.resizeWindow=function(n,e,t,a,i,s){o==t&&(t=0),o==a&&(a=0),o==i&&(i=0),o==s&&(s=0);var c=JSON.stringify({width:n,height:e,minw:t,minh:a,maxw:i,maxh:s});u.Asc.plugin.info.type=\"resize\",u.Asc.plugin.info.data=c;var l=\"\";try{l=JSON.stringify(u.Asc.plugin.info)}catch(n){l=JSON.stringify({type:c})}u.plugin_sendMessage(l)},u.Asc.plugin.callCommand=function(n,e,t){var a=\"var Asc = {}; Asc.scope = \"+JSON.stringify(u.Asc.scope)+\"; var scope = Asc.scope; (\"+n.toString()+\")();\",i=!0===e?\"close\":\"command\";u.Asc.plugin.info.recalculate=!1!==t,u.Asc.plugin.executeCommand(i,a)},u.Asc.plugin.callModule=function(n,e,t){var a=t,i=new XMLHttpRequest;i.open(\"GET\",n),i.onreadystatechange=function(){if(4==i.readyState&&(200==i.status||0==location.href.indexOf(\"file:\"))){var n=!0===a?\"close\":\"command\";u.Asc.plugin.info.recalculate=!0,u.Asc.plugin.executeCommand(n,i.responseText),e&&e(i.responseText)}},i.send()},u.Asc.plugin.loadModule=function(n,e){var t=new XMLHttpRequest;t.open(\"GET\",n),t.onreadystatechange=function(){4!=t.readyState||200!=t.status&&0!=location.href.indexOf(\"file:\")||e&&e(t.responseText)},t.send()},u.Asc.plugin.init(u.Asc.plugin.info.data);break;case\"button\":var i=parseInt(e.button);u.Asc.plugin.button||-1!=i?u.Asc.plugin.button(i):u.Asc.plugin.executeCommand(\"close\",\"\");break;case\"enableMouseEvent\":l=e.isEnabled,u.Asc.plugin.onEnableMouseEvent&&u.Asc.plugin.onEnableMouseEvent(l);break;case\"onExternalMouseUp\":u.Asc.plugin.onExternalMouseUp&&u.Asc.plugin.onExternalMouseUp();break;case\"onMethodReturn\":if(u.Asc.plugin.isWaitMethod=!1,u.Asc.plugin.methodCallback){var s=u.Asc.plugin.methodCallback;u.Asc.plugin.methodCallback=null,s(e.methodReturnData),s=null}else u.Asc.plugin.onMethodReturn&&u.Asc.plugin.onMethodReturn(e.methodReturnData);if(u.Asc.plugin.executeMethodStack&&0<u.Asc.plugin.executeMethodStack.length){var c=u.Asc.plugin.executeMethodStack.shift();u.Asc.plugin.executeMethod(c.name,c.params,c.callback)}break;case\"onCommandCallback\":u.Asc.plugin.onCommandCallback&&u.Asc.plugin.onCommandCallback();break;case\"onExternalPluginMessage\":u.Asc.plugin.onExternalPluginMessage&&e.data&&e.data.type&&u.Asc.plugin.onExternalPluginMessage(e.data);case\"onEvent\":u.Asc.plugin[\"event_\"+e.eventName]&&u.Asc.plugin[\"event_\"+e.eventName](e.eventData)}}},u.onmousemove=function(n){if(l&&u.Asc.plugin&&u.Asc.plugin.executeCommand){var e=o===n.clientX?n.pageX:n.clientX,t=o===n.clientY?n.pageY:n.clientY;u.Asc.plugin.executeCommand(\"onmousemove\",JSON.stringify({x:e,y:t}))}},u.onmouseup=function(n){if(l&&u.Asc.plugin&&u.Asc.plugin.executeCommand){var e=o===n.clientX?n.pageX:n.clientX,t=o===n.clientY?n.pageY:n.clientY;u.Asc.plugin.executeCommand(\"onmouseup\",JSON.stringify({x:e,y:t}))}},u.plugin_sendMessage(JSON.stringify({guid:u.Asc.plugin.guid,type:\"initialize_internal\"}))}(window,void 0);");
+			pluginData.setAttribute("data", "!function(u,o){var g=!1,p=\"\";u.plugin_sendMessage=function(n){u.parent.postMessage(n,\"*\")},u.plugin_onMessage=function(n){if(u.Asc.plugin&&\"string\"==typeof n.data){var e={};try{e=JSON.parse(n.data)}catch(n){e={}}if(e.guid!=u.Asc.plugin.guid)return;var t=e.type;\"init\"==t&&(u.Asc.plugin.info=e),u.Asc.plugin.tr&&u.Asc.plugin.tr_init||(u.Asc.plugin.tr_init=!0,u.Asc.plugin.tr=function(n){return u.Asc.plugin.translateManager&&u.Asc.plugin.translateManager[n]?u.Asc.plugin.translateManager[n]:n});var a=\"\";if(u.Asc.plugin.info&&(a=u.Asc.plugin.info.lang),\"\"==a||a!=p)if(\"en-EN\"==(p=a)||\"\"==p)u.Asc.plugin.translateManager={},u.Asc.plugin.onTranslate&&u.Asc.plugin.onTranslate();else{var i=new XMLHttpRequest;i.open(\"GET\",\"./translations/\"+p+\".json\"),i.onreadystatechange=function(){if(4==i.readyState&&(200==i.status||0==location.href.indexOf(\"file:\")))try{u.Asc.plugin.translateManager=JSON.parse(i.responseText),u.Asc.plugin.onTranslate&&u.Asc.plugin.onTranslate()}catch(n){}},i.send()}switch(t){case\"init\":u.Asc.plugin.executeCommand=function(n,e,t){u.Asc.plugin.info.type=n,u.Asc.plugin.info.data=e;var a=\"\";try{a=JSON.stringify(u.Asc.plugin.info)}catch(n){a=JSON.stringify({type:e})}u.Asc.plugin.onCallCommandCallback=t,u.plugin_sendMessage(a)},u.Asc.plugin.executeMethod=function(n,e,t){if(!0===u.Asc.plugin.isWaitMethod)return o===this.executeMethodStack&&(this.executeMethodStack=[]),this.executeMethodStack.push({name:n,params:e,callback:t}),!1;u.Asc.plugin.isWaitMethod=!0,u.Asc.plugin.methodCallback=t,u.Asc.plugin.info.type=\"method\",u.Asc.plugin.info.methodName=n,u.Asc.plugin.info.data=e;var a=\"\";try{a=JSON.stringify(u.Asc.plugin.info)}catch(n){a=JSON.stringify({type:data})}return u.plugin_sendMessage(a),!0},u.Asc.plugin.resizeWindow=function(n,e,t,a,i,s){o==t&&(t=0),o==a&&(a=0),o==i&&(i=0),o==s&&(s=0);var c=JSON.stringify({width:n,height:e,minw:t,minh:a,maxw:i,maxh:s});u.Asc.plugin.info.type=\"resize\",u.Asc.plugin.info.data=c;var l=\"\";try{l=JSON.stringify(u.Asc.plugin.info)}catch(n){l=JSON.stringify({type:c})}u.plugin_sendMessage(l)},u.Asc.plugin.callCommand=function(n,e,t,a){var i=\"var Asc = {}; Asc.scope = \"+JSON.stringify(u.Asc.scope)+\"; var scope = Asc.scope; (\"+n.toString()+\")();\",s=!0===e?\"close\":\"command\";u.Asc.plugin.info.recalculate=!1!==t,u.Asc.plugin.executeCommand(s,i,a)},u.Asc.plugin.callModule=function(n,e,t){var a=t,i=new XMLHttpRequest;i.open(\"GET\",n),i.onreadystatechange=function(){if(4==i.readyState&&(200==i.status||0==location.href.indexOf(\"file:\"))){var n=!0===a?\"close\":\"command\";u.Asc.plugin.info.recalculate=!0,u.Asc.plugin.executeCommand(n,i.responseText),e&&e(i.responseText)}},i.send()},u.Asc.plugin.loadModule=function(n,e){var t=new XMLHttpRequest;t.open(\"GET\",n),t.onreadystatechange=function(){4!=t.readyState||200!=t.status&&0!=location.href.indexOf(\"file:\")||e&&e(t.responseText)},t.send()},u.Asc.plugin.init(u.Asc.plugin.info.data);break;case\"button\":var s=parseInt(e.button);u.Asc.plugin.button||-1!=s?u.Asc.plugin.button(s):u.Asc.plugin.executeCommand(\"close\",\"\");break;case\"enableMouseEvent\":g=e.isEnabled,u.Asc.plugin.onEnableMouseEvent&&u.Asc.plugin.onEnableMouseEvent(g);break;case\"onExternalMouseUp\":u.Asc.plugin.onExternalMouseUp&&u.Asc.plugin.onExternalMouseUp();break;case\"onMethodReturn\":if(u.Asc.plugin.isWaitMethod=!1,u.Asc.plugin.methodCallback){var c=u.Asc.plugin.methodCallback;u.Asc.plugin.methodCallback=null,c(e.methodReturnData),c=null}else u.Asc.plugin.onMethodReturn&&u.Asc.plugin.onMethodReturn(e.methodReturnData);if(u.Asc.plugin.executeMethodStack&&0<u.Asc.plugin.executeMethodStack.length){var l=u.Asc.plugin.executeMethodStack.shift();u.Asc.plugin.executeMethod(l.name,l.params,l.callback)}break;case\"onCommandCallback\":u.Asc.plugin.onCallCommandCallback?(u.Asc.plugin.onCallCommandCallback(),u.Asc.plugin.onCallCommandCallback=null):u.Asc.plugin.onCommandCallback&&u.Asc.plugin.onCommandCallback();break;case\"onExternalPluginMessage\":u.Asc.plugin.onExternalPluginMessage&&e.data&&e.data.type&&u.Asc.plugin.onExternalPluginMessage(e.data);case\"onEvent\":u.Asc.plugin[\"event_\"+e.eventName]&&u.Asc.plugin[\"event_\"+e.eventName](e.eventData)}}},u.onmousemove=function(n){if(g&&u.Asc.plugin&&u.Asc.plugin.executeCommand){var e=o===n.clientX?n.pageX:n.clientX,t=o===n.clientY?n.pageY:n.clientY;u.Asc.plugin.executeCommand(\"onmousemove\",JSON.stringify({x:e,y:t}))}},u.onmouseup=function(n){if(g&&u.Asc.plugin&&u.Asc.plugin.executeCommand){var e=o===n.clientX?n.pageX:n.clientX,t=o===n.clientY?n.pageY:n.clientY;u.Asc.plugin.executeCommand(\"onmouseup\",JSON.stringify({x:e,y:t}))}},u.plugin_sendMessage(JSON.stringify({guid:u.Asc.plugin.guid,type:\"initialize_internal\"}))}(window,void 0);");
 			var _iframe = document.getElementById(runObject.frameId);
 			if (_iframe)
 				_iframe.contentWindow.postMessage(pluginData.serialize(), "*");
@@ -1152,4 +1181,199 @@
 				return this[name] = value;
 			};
 	};
+
+    window["Asc"].loadConfigAsInterface = function(url)
+	{
+        if (url)
+        {
+            try {
+                var xhrObj = new XMLHttpRequest();
+                if ( xhrObj )
+                {
+                    xhrObj.open('GET', url, false);
+                    xhrObj.send('');
+
+                    return JSON.parse(xhrObj.responseText);
+                }
+            } catch (e) {}
+        }
+        return null;
+	};
+
+	window["Asc"].loadPluginsAsInterface = function(api)
+	{
+		if (window.g_asc_plugins.srcPluginsLoaded)
+			return;
+        window.g_asc_plugins.srcPluginsLoaded = true;
+
+		var configs = window["Asc"].loadConfigAsInterface("../../../../plugins.json");
+
+        if (!configs)
+        	return;
+
+        var pluginsData = configs["pluginsData"];
+        if (!pluginsData || pluginsData.length < 1)
+        	return;
+
+        var arrPluginsConfigs = [];
+        pluginsData.forEach(function(item) {
+            var value = window["Asc"].loadConfigAsInterface(item);
+            if (value) {
+                value["baseUrl"] = item.substring(0, item.lastIndexOf("config.json"));
+                arrPluginsConfigs.push(value);
+            }
+        });
+
+        var arrPlugins = [];
+        arrPluginsConfigs.forEach(function(item) {
+            var plugin = new Asc.CPlugin();
+            plugin["set_Name"](item["name"]);
+            plugin["set_Guid"](item["guid"]);
+            plugin["set_BaseUrl"](item["baseUrl"]);
+            var variations = item["variations"];
+        	var variationsArr = [];
+            variations.forEach(function(itemVar){
+                var variation = new Asc.CPluginVariation();
+                variation["set_Description"](itemVar["description"]);
+                variation["set_Url"](itemVar["url"]);
+                variation["set_Icons"](itemVar["icons"]);
+                variation["set_Visual"](itemVar["isVisual"]);
+                variation["set_CustomWindow"](itemVar["'isCustomWindow"]);
+                variation["set_System"](itemVar["isSystem"]);
+                variation["set_Viewer"](itemVar["isViewer"]);
+                variation["set_EditorsSupport"](itemVar["EditorsSupport"]);
+                variation["set_Modal"](itemVar["isModal"]);
+                variation["set_InsideMode"](itemVar["isInsideMode"]);
+                variation["set_InitDataType"](itemVar["initDataType"]);
+                variation["set_InitData"](itemVar["initData"]);
+                variation["set_UpdateOleOnResize"](itemVar["isUpdateOleOnResize"]);
+                variation["set_Buttons"](itemVar["buttons"]);
+                variation["set_Size"](itemVar["size"]);
+                variation["set_InitOnSelectionChanged"](itemVar["initOnSelectionChanged"]);
+                variation["set_Events"](itemVar["events"]);
+                variationsArr.push(variation);
+            });
+            plugin["set_Variations"](variationsArr);
+            arrPlugins.push(plugin);
+        });
+
+        window.g_asc_plugins.srcPlugins = arrPluginsConfigs;
+        api.asc_pluginsRegister('', arrPlugins);
+
+        api.asc_registerCallback('asc_onPluginShow', function(plugin, variationIndex, frameId) {
+
+        	var _t = window.g_asc_plugins;
+
+        	var srcPlugin = null;
+        	for (var i = 0; i < _t.srcPlugins.length; i++)
+			{
+				if (plugin.guid == _t.srcPlugins[i]["guid"])
+				{
+					srcPlugin = _t.srcPlugins[i];
+					break;
+				}
+            }
+
+        	var variation = plugin.get_Variations()[variationIndex];
+
+            var _elem = document.createElement("div");
+            _elem.id = "parent_" + frameId;
+            _elem.setAttribute("style", "user-select:none;z-index:5000;position:fixed;left:10px;top:10px;right:10px;bottom:10px;box-sizing:border-box;z-index:5000;box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);border-radius: 5px;background-color: #fff;border: solid 1px #cbcbcb;");
+
+            var _elemBody = "";
+            _elemBody += "<div style=\"box-sizing:border-box;height: 34px;padding: 5px 6px 6px;left:0;right:0;top:0;border-bottom: solid 1px #cbcbcb;background: #ededed;text-align: center;vertical-align: bottom;\">";
+            _elemBody += "<span style=\"color: #848484;text-align: center;font-size: 12px;font-weight:700;text-shadow: 1px 1px #f8f8f8;line-height:26px;vertical-align: bottom;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;\">";
+
+            var lang = _t.language;
+            var lang2 = _t.language.substr(0, 2);
+
+            var _name = plugin.name;
+            if (srcPlugin && srcPlugin["nameLocale"])
+			{
+				if (srcPlugin["nameLocale"][lang])
+					_name = srcPlugin["nameLocale"][lang];
+				else if (srcPlugin["nameLocale"][lang2])
+                    _name = srcPlugin["nameLocale"][lang2];
+			}
+
+            _elemBody += _name;
+            _elemBody += "</span></div>";
+
+            _elemBody += "<div style=\"position:absolute;box-sizing:border-box;height:calc(100% - 86px);padding: 0;left:0;right:0;top:34px;background:#FFFFFF;\">";
+
+            var _add = plugin.baseUrl == "" ? _t.path : plugin.baseUrl;
+            _elemBody += ("<iframe name=\"" + frameId + "\" id=\"" + frameId + "\" src=\"" + (_add + variation.url) + "\" ");
+            _elemBody += "style=\"position:absolute;left:0; top:0px; right: 0; bottom: 0; width:100%; height:100%; overflow: hidden;\" frameBorder=\"0\">";
+            _elemBody += "</iframe>";
+
+            _elemBody += "</div>";
+
+            _elemBody += "<div style=\"position:absolute;box-sizing:border-box;height:52px;padding: 15px 15px 15px 15px;left:0;right:0;top:calc(100% - 52px);bottom:0;border-top: solid 1px #cbcbcb;background: #ededed;text-align: center;vertical-align: bottom;\">";
+
+            var buttons = variation["get_Buttons"]();
+
+            for (var i = 0; i < buttons.length; i++)
+			{
+            	_elemBody += ("<button id=\"plugin_button_id_" + i + "\" style=\"border-radius:1px;margin-right:10px;height:22px;font-weight:bold;background-color:#d8dadc;color:#444444;touch-action: manipulation;border: 1px solid transparent;text-align:center;vertical-align: middle;outline:none;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size: 12px;\">");
+
+                _name = buttons[i]["text"];
+                if (srcPlugin && srcPlugin["variations"][variationIndex]["buttons"][i]["textLocale"])
+                {
+                    if (srcPlugin["variations"][variationIndex]["buttons"][i]["textLocale"][lang])
+                        _name = srcPlugin["variations"][variationIndex]["buttons"][i]["textLocale"][lang];
+                    else if (srcPlugin["variations"][variationIndex]["buttons"][i]["textLocale"][lang2])
+                        _name = srcPlugin["variations"][variationIndex]["buttons"][i]["textLocale"][lang2];
+                }
+
+            	_elemBody += _name;
+
+            	_elemBody += "</button>";
+			}
+
+			if (0 == buttons.length)
+			{
+                _elemBody += ("<button id=\"plugin_button_id_0\" style=\"border-radius:1px;margin-right:10px;height:22px;font-weight:bold;background-color:#d8dadc;color:#444444;touch-action: manipulation;border: 1px solid transparent;text-align:center;vertical-align: middle;outline:none;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size: 12px;\">");
+                _elemBody += "Ok</button>";
+			}
+
+            _elemBody += "</div>";
+
+            _elem.innerHTML = _elemBody;
+
+            document.body.appendChild(_elem);
+
+            for (var i = 0; i < buttons.length; i++)
+            {
+            	var _button = document.getElementById("plugin_button_id_" + i);
+            	if (_button)
+				{
+					_button.onclick = function()
+					{
+						var nId = this.id.substr("plugin_button_id_".length);
+                        window.g_asc_plugins.api.asc_pluginButtonClick(parseInt(nId));
+					}
+				}
+            }
+
+            if (0 == buttons.length)
+			{
+                var _button = document.getElementById("plugin_button_id_0");
+                if (_button)
+                {
+                    _button.onclick = function()
+                    {
+                       	window.g_asc_plugins.api.asc_pluginButtonClick(-1);
+                    }
+                }
+			}
+        });
+
+        api.asc_registerCallback('asc_onPluginClose', function(plugin, variationIndex) {
+
+        	var _elem = document.getElementById("parent_iframe_" + plugin.guid);
+        	if (_elem)
+        		document.body.removeChild(_elem);
+            _elem = null;
+        });
+	}
 })(window, undefined);
