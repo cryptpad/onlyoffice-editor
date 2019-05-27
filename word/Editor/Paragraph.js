@@ -6650,12 +6650,14 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 
 				if (this.Extend_ToPos(X))
 				{
+					this.RemoveSelection();
 					this.MoveCursorToEndPos();
 					this.Document_SetThisElementCurrent(true);
 					this.LogicDocument.Recalculate();
 				}
 
 				this.LogicDocument.FinalizeAction();
+				return;
 			}
 		}
 	}
