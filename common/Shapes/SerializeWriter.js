@@ -1017,11 +1017,15 @@ function CBinaryFileWriter()
         this._WriteBool2(2, pres.attrCompatMode);
         this._WriteLimit2(3, pres.attrConformance);
         this._WriteBool2(4, pres.attrEmbedTrueTypeFonts);
+
+        pres.attrFirstSlideNum = presentation.firstSlideNum;
         this._WriteInt2(5, pres.attrFirstSlideNum);
         this._WriteBool2(6, pres.attrRemovePersonalInfoOnSave);
         this._WriteBool2(7, pres.attrRtl);
         this._WriteBool2(8, pres.attrSaveSubsetFonts);
         this._WriteString2(9, pres.attrServerZoom);
+
+        pres.attrShowSpecialPlsOnTitleSld = presentation.showSpecialPlsOnTitleSld;
         this._WriteBool2(10, pres.attrShowSpecialPlsOnTitleSld);
         this._WriteBool2(11, pres.attrStrictFirstAndLastChars);
 

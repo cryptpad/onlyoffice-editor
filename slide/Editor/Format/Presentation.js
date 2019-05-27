@@ -559,6 +559,9 @@ AscDFH.changesFactory[AscDFH.historyitem_Presentation_ChangeColorScheme] = AscDF
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_RemoveSlide] = AscDFH.CChangesDrawingsContentPresentation         ;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_AddSlide] = AscDFH.CChangesDrawingsContentPresentation         ;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetDefaultTextStyle] = AscDFH.CChangesDrawingsObjectNoId;
+AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetFirstSlideNum] = AscDFH.CChangesDrawingsLong;
+AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetShowSpecialPlsOnTitleSld] = AscDFH.CChangesDrawingsBool;
+
 
 AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetName] = AscDFH.CChangesDrawingsString;
 AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetStartIndex] = AscDFH.CChangesDrawingsLong;
@@ -571,6 +574,8 @@ AscDFH.drawingsChangesMap[AscDFH.historyitem_PresentationSectionSetGuid] = funct
 AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetShowPr] = function(oClass, value){oClass.showPr  = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SlideSize] = function(oClass, value){oClass.Width = value.a; oClass.Height = value.b; oClass.changeSlideSizeFunction(oClass.Width, oClass.Height);};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetDefaultTextStyle] = function(oClass, value){oClass.defaultTextStyle = value;};
+AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetFirstSlideNum] = function(oClass, value){oClass.firstSlideNum = value;};
+AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetShowSpecialPlsOnTitleSld] = function(oClass, value){oClass.showSpecialPlsOnTitleSld = value;};
 
 AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_AddSlide] = function(oClass){return oClass.Slides;};
 AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_RemoveSlide] = function(oClass){return oClass.Slides;};
@@ -603,6 +608,9 @@ function CPresentation(DrawingDocument)
 
     //------------------------------------------------------------------------
 
+    this.firstSlideNum = null;
+    this.showSpecialPlsOnTitleSld = null;
+
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     //Props
     this.App = null;
@@ -611,7 +619,7 @@ function CPresentation(DrawingDocument)
     this.StartPage = 0; // Для совместимости с CDocumentContent
     this.CurPage   = 0;
 
-    this.Orientation = Asc.c_oAscPageOrientation.PagePortrait; // ориентация страницы
+    this.Orientation = Asc.c_oAscPageOrientation.PagePortrait; // ориентация страницы//TODO: remove this
 
     this.slidesToUnlock = [];
 
@@ -746,6 +754,17 @@ CPresentation.prototype =
     },
 
     TurnOnCheckChartSelection: function(){
+    },
+
+    setFirstSlideNum: function(val)
+    {
+        History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_Presentation_SetFirstSlideNum, this.firstSlideNum, val));
+        this.firstSlideNum = val;
+    },
+    setShowSpecialPlsOnTitleSld: function(val)
+    {
+        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_Presentation_SetShowSpecialPlsOnTitleSld, this.showSpecialPlsOnTitleSld, val));
+        this.showSpecialPlsOnTitleSld = val;
     },
 
     setDefaultTextStyle: function(oStyle)

@@ -437,6 +437,16 @@ function BinaryPPTYLoader()
 
             pres.fromStream(s, this);
 
+            if(pres.attrShowSpecialPlsOnTitleSld !== null)
+            {
+                this.presentation.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
+            }
+
+            if(pres.attrFirstSlideNum !== null)
+            {
+                this.presentation.setFirstSlideNum(pres.attrFirstSlideNum);
+            }
+
             this.presentation.defaultTextStyle = pres.defaultTextStyle;
             this.presentation.Width = pres.SldSz.cx / c_dScalePPTXSizes;
             this.presentation.Height = pres.SldSz.cy / c_dScalePPTXSizes;
