@@ -2005,6 +2005,27 @@
         }
     };
 
+	WorksheetView.prototype.fitOnOnePage = function(val) {
+		//TODO add constant!
+		var width = undefined, height = undefined;
+		if(val === 0) {
+			//sheet
+			width = 1;
+			height = 1;
+			//todo fitToPage
+		} else if(val === 1) {
+			//columns
+			width = 1;
+			//pageSetup.asc_setFitToWidth();
+		} else {
+			//rows
+			height = 1;
+			//pageSetup.asc_setFitToHeight();
+		}
+
+		this.fitPrintPages(width, height);
+	};
+	
 	WorksheetView.prototype.fitPrintPages = function (width, height) {
 		//width/height - count of pages
 		//automatic -> width/height = undefined
@@ -2021,9 +2042,12 @@
 		if(newScale !== oldScale) {
 			pageSetup.asc_setScale(newScale);
 		}
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
 	};
 
-	WorksheetView.prototype.calcPrintScale = function() {
+	WorksheetView.prototype.calcPrintScale = function(width, height) {
 		var pageOptions = this.model.PagePrintOptions;
 		var bFitToWidth = false;
 		var bFitToHeight = false;
@@ -2090,34 +2114,6 @@
 		}
 
 
-		var range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
-		var maxCell = this._checkPrintRange(range);
-		var maxCol = maxCell.col;
-		var maxRow = maxCell.row;
-
-		maxCell = this.model.autoFilters.getMaxColRow();
-		maxCol = Math.max(maxCol, maxCell.col);
-		maxRow = Math.max(maxRow, maxCell.row);
-
-		maxCell = this.objectRender.getMaxColRow();
-		maxCol = Math.max(maxCol, maxCell.col);
-		maxRow = Math.max(maxRow, maxCell.row);
-
-
-		if(width) {
-			var widthAllCols = pageHeadings ? this.cellsLeft * width : 0;
-			for(var i = 0; i <= maxCol; i++) {
-				widthAllCols += this._getColumnWidth(i);
-			}
-		}
-		if(height) {
-			var heightAllRows = pageHeadings ? this.cellsTop * height : 0;
-			for(i = 0; i <= maxRow; i++) {
-				heightAllRows += this._getRowHeight(i);
-			}
-		}
-
-
 		if (Asc.c_oAscPageOrientation.PageLandscape === pageOrientation) {
 			var tmp = pageWidth;
 			pageWidth = pageHeight;
@@ -2140,16 +2136,53 @@
 		var pageWidthWithFieldsHeadings = ((pageWidth - pageRightField) / vector_koef - leftFieldInPx) /*/ scale*/;
 		var pageHeightWithFieldsHeadings = ((pageHeight - pageBottomField) / vector_koef - topFieldInPx) /*/ scale*/;
 
-		var wScale = ((pageWidthWithFieldsHeadings * width) / widthAllCols) * 100;
-		var hScale = ((pageHeightWithFieldsHeadings * height) / heightAllRows) * 100;
-		var minScale = Math.min(Math.round(wScale), Math.round(hScale));
+		//calculate width/height all columns/rows
+		var range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
+		var maxCell = this._checkPrintRange(range);
+		var maxCol = maxCell.col;
+		var maxRow = maxCell.row;
+
+		maxCell = this.model.autoFilters.getMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+		maxCell = this.objectRender.getMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+
+		var wScale;
+		var hScale;
+		if(width) {
+			var widthAllCols = pageHeadings ? this.cellsLeft * width : 0;
+			for(var i = 0; i <= maxCol; i++) {
+				widthAllCols += this._getColumnWidth(i);
+			}
+			wScale = ((pageWidthWithFieldsHeadings * width) / widthAllCols) * 100;
+		}
+		if(height) {
+			var heightAllRows = pageHeadings ? this.cellsTop * height : 0;
+			for(i = 0; i <= maxRow; i++) {
+				heightAllRows += this._getRowHeight(i);
+			}
+			hScale = ((pageHeightWithFieldsHeadings * height) / heightAllRows) * 100;
+		}
+		var minScale;
+		if(width && height) {
+			minScale = Math.min(Math.round(wScale), Math.round(hScale));
+		} else if(width) {
+			minScale = Math.round(wScale);
+		} else {
+			minScale = Math.round(hScale);
+		}
+
 		if(minScale < 10) {
 			minScale = 10;
 		}
 		if(minScale > 100) {
 			minScale = 100;
 		}
-
+		console.log(minScale);
 		return minScale;
 	};
 
