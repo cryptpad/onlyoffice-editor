@@ -865,7 +865,7 @@ CPresentation.prototype =
                 oSlideHF.put_ShowFooter(false);
             }
             oSlideHF.put_ShowHeader(null);
-
+            oSlideHF.put_ShowOnTitleSlide(this.showSpecialPlsOnTitleSld !== false);
 
         }
         return oProps;

@@ -290,7 +290,7 @@ function CAscHFProps() {
     this.ShowSlideNum = null;
     this.ShowFooter = null;
     this.ShowHeader = null;
-    this.ShowOnFirsSlide = null;
+    this.ShowOnTitleSlide = null;
 }
 
 CAscHFProps.prototype['get_DateTime'] = CAscHFProps.prototype.get_DateTime = function(){return this.DateTime;};
@@ -301,7 +301,8 @@ CAscHFProps.prototype['get_ShowDateTime'] = CAscHFProps.prototype.get_ShowDateTi
 CAscHFProps.prototype['get_ShowSlideNum'] = CAscHFProps.prototype.get_ShowSlideNum = function(){return this.ShowSlideNum;};
 CAscHFProps.prototype['get_ShowFooter'] = CAscHFProps.prototype.get_ShowFooter = function(){return this.ShowFooter;};
 CAscHFProps.prototype['get_ShowHeader'] = CAscHFProps.prototype.get_ShowHeader = function(){return this.ShowHeader;};
-CAscHFProps.prototype['get_ShowOnFirstSlide'] = CAscHFProps.prototype.get_ShowOnFirstSlide = function(){return this.ShowOnFirsSlide;};
+CAscHFProps.prototype['get_ShowOnTitleSlide'] = CAscHFProps.prototype.get_ShowOnTitleSlide = function(){return this.ShowOnTitleSlide;};
+CAscHFProps.prototype['put_ShowOnTitleSlide'] = CAscHFProps.prototype.put_ShowOnTitleSlide = function(v){this.ShowOnTitleSlide = v;};
 CAscHFProps.prototype['put_DateTime'] = CAscHFProps.prototype.put_DateTime = function(v){this.DateTime = v;};
 CAscHFProps.prototype['put_CustomDateTime']  = CAscHFProps.prototype.put_CustomDateTime = function(v){this.CustomDateTime = v;};
 CAscHFProps.prototype['put_Footer'] = CAscHFProps.prototype.put_Footer = function(v){this.Footer = v;};
