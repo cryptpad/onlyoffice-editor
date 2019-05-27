@@ -1930,7 +1930,7 @@
 	};
 
     WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData) {
-		this.fitPrintPages(1,1);
+		this.fitPrintPages(2,1);
     	this.stringRender.fontNeedUpdate = true;
         if (null === printPagesData) {
             // Напечатаем пустую страницу
@@ -2015,6 +2015,16 @@
 		}
 
 		var pageOptions = this.model.PagePrintOptions;
+		var pageSetup = pageOptions.asc_getPageSetup();
+		var oldScale = pageSetup.asc_getScale() / 100;
+		var newScale = this.calcPrintScale(width, height);
+		if(newScale !== oldScale) {
+			pageSetup.asc_setScale(newScale);
+		}
+	};
+
+	WorksheetView.prototype.calcPrintScale = function() {
+		var pageOptions = this.model.PagePrintOptions;
 		var bFitToWidth = false;
 		var bFitToHeight = false;
 		var pageMargins, pageSetup, pageGridLines, pageHeadings;
@@ -2095,13 +2105,13 @@
 
 
 		if(width) {
-			var widthAllCols = pageHeadings ? this.cellsLeft : 0;
+			var widthAllCols = pageHeadings ? this.cellsLeft * width : 0;
 			for(var i = 0; i <= maxCol; i++) {
 				widthAllCols += this._getColumnWidth(i);
 			}
 		}
 		if(height) {
-			var heightAllRows = pageHeadings ? this.cellsTop : 0;
+			var heightAllRows = pageHeadings ? this.cellsTop * height : 0;
 			for(i = 0; i <= maxRow; i++) {
 				heightAllRows += this._getRowHeight(i);
 			}
@@ -2119,19 +2129,20 @@
 		var leftFieldInPx = pageLeftField / vector_koef + 1;
 		var topFieldInPx = pageTopField / vector_koef + 1;
 
-		if (pageHeadings) {
-			// Рисуем заголовки, нужно чуть сдвинуться
-			leftFieldInPx += this.cellsLeft;
-			topFieldInPx += this.cellsTop;
-		}
+		//TODO ms считает именно так - каждый раз прибаляются размеры заголовков к полям. необходимо перепроверить!
+		//if (pageHeadings) {
+		// Рисуем заголовки, нужно чуть сдвинуться
+		leftFieldInPx += this.cellsLeft;
+		topFieldInPx += this.cellsTop;
+		//}
 
 		//TODO при сравнении резальтатов рассчета страниц в зависимости от scale - LO выдаёт похожие результаты, MS - другие. Необходимо пересмотреть!
-		var pageWidthWithFieldsHeadings = ((pageWidth - pageRightField) / vector_koef - leftFieldInPx) / scale;
-		var pageHeightWithFieldsHeadings = ((pageHeight - pageBottomField) / vector_koef - topFieldInPx) / scale;
+		var pageWidthWithFieldsHeadings = ((pageWidth - pageRightField) / vector_koef - leftFieldInPx) /*/ scale*/;
+		var pageHeightWithFieldsHeadings = ((pageHeight - pageBottomField) / vector_koef - topFieldInPx) /*/ scale*/;
 
 		var wScale = ((pageWidthWithFieldsHeadings * width) / widthAllCols) * 100;
 		var hScale = ((pageHeightWithFieldsHeadings * height) / heightAllRows) * 100;
-		var minScale = Math.min(Math.ceil(wScale), Math.ceil(hScale));
+		var minScale = Math.min(Math.round(wScale), Math.round(hScale));
 		if(minScale < 10) {
 			minScale = 10;
 		}
@@ -2139,7 +2150,7 @@
 			minScale = 100;
 		}
 
-		console.log(minScale);
+		return minScale;
 	};
 
     // ----- Drawing -----

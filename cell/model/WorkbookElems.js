@@ -7816,6 +7816,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
+	asc_CPageSetup.prototype.asc_setScale = function (newVal) { this.scale = newVal; };
+
 	/** @constructor */
 	//этот объект используется как в модели, так и в меню для передачи измененных опций page layout
 	//если определена ws - это означает, что этот объект лежит в модели и при изменении его свойств идёт запись в историю
