@@ -794,7 +794,34 @@ CPresentation.prototype =
     },
 
     getHFProperties: function()
-    {},
+    {
+        var oProps = new AscCommonSlide.CAscHF();
+        var oSlide = this.Slides[this.CurPage];
+        if(oSlide)
+
+        {
+
+            this.DateTime = null;
+            this.CustomDateTime = null;
+            this.Footer = null;
+            this.Header = null;
+            this.Lang = null;
+
+            this.ShowDateTime = null;
+            this.ShowSlideNum = null;
+            this.ShowFooter = null;
+            this.ShowHeader = null;
+            this.ShowOnFirsSlide = null;
+            _ph_type != AscFormat.phType_dt && _ph_type != AscFormat.phType_ftr && _ph_type != AscFormat.phType_hdr && _ph_type != AscFormat.phType_sldNum
+            var oSlideHF = new AscCommonSlide.CAscHFProps();
+            var oDTShape = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
+            oSlideHF.put_ShowDateTime(AscFormat.isReaPbject(oDTShape));
+            var oHF = oSlide.layout.master.hf;
+
+        }
+
+        return oProps;
+    },
 
     Restart_CheckSpelling: function()
     {

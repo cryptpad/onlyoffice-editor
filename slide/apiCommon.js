@@ -279,15 +279,18 @@ function CompareTiming(timing1, timing2){
     return ret;
 
 }
-function CAscHFProps(){
+function CAscHFProps() {
     this.DateTime = null;
     this.CustomDateTime = null;
     this.Footer = null;
+    this.Header = null;
     this.Lang = null;
 
     this.ShowDateTime = null;
     this.ShowSlideNum = null;
     this.ShowFooter = null;
+    this.ShowHeader = null;
+    this.ShowOnFirsSlide = null;
 }
 
 CAscHFProps.prototype['get_DateTime'] = CAscHFProps.prototype.get_DateTime = function(){return this.DateTime;};
@@ -297,6 +300,8 @@ CAscHFProps.prototype['get_Lang'] = CAscHFProps.prototype.get_Lang = function(){
 CAscHFProps.prototype['get_ShowDateTime'] = CAscHFProps.prototype.get_ShowDateTime = function(){return this.ShowDateTime;};
 CAscHFProps.prototype['get_ShowSlideNum'] = CAscHFProps.prototype.get_ShowSlideNum = function(){return this.ShowSlideNum;};
 CAscHFProps.prototype['get_ShowFooter'] = CAscHFProps.prototype.get_ShowFooter = function(){return this.ShowFooter;};
+CAscHFProps.prototype['get_ShowHeader'] = CAscHFProps.prototype.get_ShowHeader = function(){return this.ShowHeader;};
+CAscHFProps.prototype['get_ShowOnFirstSlide'] = CAscHFProps.prototype.get_ShowOnFirstSlide = function(){return this.ShowOnFirsSlide;};
 CAscHFProps.prototype['put_DateTime'] = CAscHFProps.prototype.put_DateTime = function(v){this.DateTime = v;};
 CAscHFProps.prototype['put_CustomDateTime']  = CAscHFProps.prototype.put_CustomDateTime = function(v){this.CustomDateTime = v;};
 CAscHFProps.prototype['put_Footer'] = CAscHFProps.prototype.put_Footer = function(v){this.Footer = v;};
@@ -305,6 +310,17 @@ CAscHFProps.prototype['put_ShowDateTime'] = CAscHFProps.prototype.put_ShowDateTi
 CAscHFProps.prototype['put_ShowSlideNum'] = CAscHFProps.prototype.put_ShowSlideNum = function(v){this.ShowSlideNum = v;};
 CAscHFProps.prototype['put_ShowFooter'] = CAscHFProps.prototype.put_ShowFooter = function(v){this.ShowFooter = v;};
 
+
+function CAscHF() {
+    this.Slide = null;
+    this.Notes = null;
+}
+
+CAscHF.prototype['put_Slide'] = CAscHF.prototype.put_Slide = function(v){this.Slide = v;};
+CAscHF.prototype['get_Slide'] = CAscHF.prototype.get_Slide = function(){return this.Slide;};
+CAscHF.prototype['put_Notes'] = CAscHF.prototype.put_Notes = function(v){this.Notes = v;};
+CAscHF.prototype['get_Notes'] = CAscHF.prototype.get_Notes = function(){return this.Notes;};
+
 //------------------------------------------------------------export----------------------------------------------------
 window['Asc'] = window['Asc'] || {};
 window['AscCommonSlide'] = window['AscCommonSlide'] || {};
@@ -312,6 +328,7 @@ window['AscCommonSlide'] = window['AscCommonSlide'] || {};
 
 
 window['AscCommonSlide']['CAscHFProps'] = window['AscCommonSlide'].CAscHFProps = CAscHFProps;
+window['AscCommonSlide']['CAscHF'] = window['AscCommonSlide'].CAscHF = CAscHF;
 
 window['Asc']['CAscSlideTiming'] = CAscSlideTiming;
 window['AscCommonSlide'].CompareTiming = CompareTiming;
