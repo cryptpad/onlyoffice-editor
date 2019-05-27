@@ -798,7 +798,6 @@ CPresentation.prototype =
         var oProps = new AscCommonSlide.CAscHF();
         var oSlide = this.Slides[this.CurPage];
         if(oSlide)
-
         {
 
             this.DateTime = null;
@@ -813,13 +812,43 @@ CPresentation.prototype =
             this.ShowHeader = null;
             this.ShowOnFirsSlide = null;
             _ph_type != AscFormat.phType_dt && _ph_type != AscFormat.phType_ftr && _ph_type != AscFormat.phType_hdr && _ph_type != AscFormat.phType_sldNum
-            var oSlideHF = new AscCommonSlide.CAscHFProps();
-            var oDTShape = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
-            oSlideHF.put_ShowDateTime(AscFormat.isReaPbject(oDTShape));
+
             var oHF = oSlide.layout.master.hf;
 
-        }
+            var oSlideHF = new AscCommonSlide.CAscHFProps();
+            var oDTShape = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
+            if(AscFormat.isRealObject(oDTShape))
+            {
+                oSlideHF.put_ShowDateTime(true);
+            }
+            else
+            {
+                oSlideHF.put_ShowDateTime(false);
+            }
 
+            var oSldNumShape = oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+            if(oSldNumShape)
+            {
+                oSlideHF.put_ShowSlideNum(true);
+            }
+            else
+            {
+                oSlideHF.put_ShowSlideNum(false);
+            }
+
+            var oFooterShape = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+            if(oFooterShape)
+            {
+                oSlideHF.put_ShowFooter(true);
+            }
+            else
+            {
+                oSlideHF.put_ShowFooter(false);
+            }
+            oSlideHF.put_ShowHeader(null);
+
+
+        }
         return oProps;
     },
 
