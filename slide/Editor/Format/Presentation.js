@@ -832,13 +832,32 @@ CPresentation.prototype =
             this.ShowOnFirsSlide = null;
             _ph_type != AscFormat.phType_dt && _ph_type != AscFormat.phType_ftr && _ph_type != AscFormat.phType_hdr && _ph_type != AscFormat.phType_sldNum
 
+            var oContent, sText, oField;
             var oHF = oSlide.layout.master.hf;
 
             var oSlideHF = new AscCommonSlide.CAscHFProps();
             var oDTShape = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
-            if(AscFormat.isRealObject(oDTShape))
+
+            if(oDTShape)
             {
-                oSlideHF.put_ShowDateTime(true);
+                oContent = oDTShape.getDocContent();
+                if(oContent)
+                {
+                    oSlideHF.put_ShowDateTime(true);
+                    oContent.Set_ApplyToAll(true);
+                    sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
+                    oContent.Set_ApplyToAll(false);
+                    oSlideHF.put_CustomDateTime(sText);
+                    oField = oContent.GetFielByType('datetime');
+                    if(oField)
+                    {
+                        oSlideHF.put_DateTime()
+                    }
+                }
+                else
+                {
+                    oSlideHF.put_ShowDateTime(false);
+                }
             }
             else
             {

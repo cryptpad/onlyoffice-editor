@@ -115,6 +115,12 @@
             }
         }, this, []);
     };
+    CPresentationField.prototype.GetFieldType = function(){
+        if(typeof this.FieldType === 'string') {
+            return this.FieldType.toLowerCase();
+        }
+        return "";
+    };
     CPresentationField.prototype.private_GetString = function()
     {
         var sStr = null;

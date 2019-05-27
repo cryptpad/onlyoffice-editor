@@ -59,6 +59,17 @@
             }
         }
     };
+    CDrawingDocContent.prototype.GetFielByType = function (sType) {
+        var sType_ = sType.toLowerCase();
+        var oField;
+        for(var i = 0; i < this.AllFields.length; ++i){
+            oField = this.AllFields[i];
+            if(oField.GetFieldType() === sType_){
+                return oField;
+            }
+        }
+        return null;
+    };
 
     CDrawingDocContent.prototype.GetAllDrawingObjects = function(arrDrawings){
         if (undefined === arrDrawings || null === arrDrawings)
