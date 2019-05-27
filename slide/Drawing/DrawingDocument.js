@@ -965,6 +965,11 @@ function CDrawingDocument()
 
 	this.TableStylesLastLook = null;
 
+	this.InlineTextTrackEnabled = false;
+	this.InlineTextTrack = null;
+	this.InlineTextTrackPage = -1;
+	this.InlineTextInNotes = false;
+
 	this.GuiControlColorsMap  = null;
 	this.IsSendStandartColors = false;
 
@@ -1020,15 +1025,19 @@ function CDrawingDocument()
 
 	this.SetCursorType     = function(sType, Data)
 	{
+		var elem = this.m_oWordControl.m_oMainContent.HtmlElement;
+		if (this.m_oWordControl.DemonstrationManager.Mode)
+			elem = this.m_oWordControl.DemonstrationManager.Canvas;
+
 		if ("" == this.m_sLockedCursorType)
 		{
 			if (this.m_oWordControl.m_oApi.isPaintFormat && (("default" == sType) || ("text" == sType)))
 				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(AscCommon.kCurFormatPainterWord);
 			else
-				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
+                elem.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
 		}
 		else
-			this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(this.m_sLockedCursorType);
+            elem.style.cursor = AscCommon.g_oHtmlCursor.value(this.m_sLockedCursorType);
 
 		if ("undefined" === typeof(Data) || null === Data)
 			Data = new AscCommon.CMouseMoveData();
@@ -1631,7 +1640,7 @@ function CDrawingDocument()
 
 	this.ClearCachePages = function()
 	{
-		if (this.m_oWordControl.bInit_word_control && 0 <= this.SlideCurrent)
+		if (this.m_oWordControl.m_oApi.bInit_word_control && 0 <= this.SlideCurrent)
 			this.m_oWordControl.SlideDrawer.CheckSlide(this.SlideCurrent);
 	}
 
@@ -1707,11 +1716,11 @@ function CDrawingDocument()
 		return false;
 	}
 
-	this.ConvertCoordsToCursorWR = function(x, y, pageIndex, transform)
+	this.ConvertCoordsToCursorWR = function(x, y, pageIndex, transform, isMainAttack)
 	{
 		var _word_control = this.m_oWordControl;
 
-		if (!_word_control.m_oLogicDocument.IsFocusOnNotes())
+		if (isMainAttack || !_word_control.m_oLogicDocument.IsFocusOnNotes())
 		{
 			var dKoef = (this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
 
@@ -1984,7 +1993,7 @@ function CDrawingDocument()
 			this.m_oWordControl.m_oApi.checkLastWork();
 
 		this.m_oWordControl.m_oLogicDocument.Set_TargetPos(x, y, pageIndex);
-		if (pageIndex != this.SlideCurrent)
+		if (pageIndex != this.SlideCurrent && !this.m_oWordControl.DemonstrationManager.Mode)
 		{
 			// сначала выставим страницу
 			this.m_oWordControl.GoToPage(pageIndex);
@@ -2423,7 +2432,7 @@ function CDrawingDocument()
 		if (this.m_oWordControl.MobileTouchManager)
 		{
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = true;
-			markup.Table.Start_TrackTable();
+			markup.Table.StartTrackTable();
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
 		}
 	}
@@ -3240,7 +3249,7 @@ function CDrawingDocument()
 		if ((type & 0x01) == 0x01)
 			_index += 1;
 
-		return g_comment_image_offsets[_index][2] * g_dKoef_pix_to_mm * 100 / this.m_oWordControl.m_nZoomValue;
+		return AscCommon.g_comment_image_offsets[_index][2] * g_dKoef_pix_to_mm * 100 / this.m_oWordControl.m_nZoomValue;
 	}
 
 	this.GetCommentHeight = function(type)
@@ -3251,7 +3260,7 @@ function CDrawingDocument()
 		if ((type & 0x01) == 0x01)
 			_index += 1;
 
-		return g_comment_image_offsets[_index][3] * g_dKoef_pix_to_mm * 100 / this.m_oWordControl.m_nZoomValue;
+		return AscCommon.g_comment_image_offsets[_index][3] * g_dKoef_pix_to_mm * 100 / this.m_oWordControl.m_nZoomValue;
 	}
 
 	this.DrawVerAnchor = function(pageNum, xPos, bIsFromDrawings)
@@ -3404,6 +3413,105 @@ function CDrawingDocument()
 			return;
 
 		this.m_oWordControl.m_oNotesApi.OnRecalculateNote(slideNum, width, height);
+	};
+
+	// mouse events
+	this.checkMouseDown_Drawing = function (pos)
+	{
+		return false;
+	};
+
+	this.checkMouseDown_DrawingOnUp = function (pos)
+	{
+		return false;
+	};
+
+	this.checkMouseMove_Drawing = function (pos)
+	{
+		var oWordControl = this.m_oWordControl;
+
+		if (this.InlineTextTrackEnabled)
+		{
+			if (-1 != oWordControl.m_oTimerScrollSelect)
+			{
+				clearInterval(oWordControl.m_oTimerScrollSelect);
+				oWordControl.m_oTimerScrollSelect = -1;
+			}
+
+			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
+			this.InlineTextTrackPage = pos.Page;
+			this.InlineTextInNotes = pos.isNotes ? true : false;
+
+			oWordControl.ShowOverlay();
+			oWordControl.OnUpdateOverlay();
+			oWordControl.EndUpdateOverlay();
+			return true;
+		}
+
+		return false;
+	};
+
+	this.checkMouseUp_Drawing = function (pos)
+	{
+		var oWordControl = this.m_oWordControl;
+
+		if (this.InlineTextTrackEnabled)
+		{
+			this.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y, pos.isNotes);
+			this.InlineTextTrackPage = pos.Page;
+			this.InlineTextInNotes = pos.isNotes ? true : false;
+			this.EndTrackText();
+
+			oWordControl.ShowOverlay();
+			oWordControl.OnUpdateOverlay();
+			oWordControl.EndUpdateOverlay();
+			return true;
+		}
+
+		return false;
+	};
+
+	// track text (inline)
+	this.StartTrackText = function ()
+	{
+		this.InlineTextTrackEnabled = true;
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
+	};
+	this.EndTrackText = function (isOnlyMoveTarget)
+	{
+		this.InlineTextTrackEnabled = false;
+
+		if (true !== isOnlyMoveTarget)
+			this.m_oWordControl.m_oLogicDocument.OnEndTextDrag(this.InlineTextTrack, AscCommon.global_keyboardEvent.CtrlKey);
+		else if (this.InlineTextTrack)
+		{
+			var Paragraph = this.InlineTextTrack.Paragraph;
+			Paragraph.Cursor_MoveToNearPos(this.InlineTextTrack);
+			Paragraph.Document_SetThisElementCurrent(false);
+
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateSelectionState();
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+			this.m_oWordControl.m_oLogicDocument.Document_UpdateRulersState();
+		}
+
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
+	};
+
+	this.IsTrackText = function ()
+	{
+		return this.InlineTextTrackEnabled;
+	};
+
+	this.CancelTrackText = function ()
+	{
+		this.InlineTextTrackEnabled = false;
+		this.InlineTextTrack = null;
+		this.InlineTextTrackPage = -1;
+		this.InlineTextInNotes = false;
 	};
 }
 
@@ -4181,6 +4289,8 @@ function CThumbnailsManager()
 			e.preventDefault();
 		else
 			e.returnValue = false;
+
+		AscCommon.stopEvent(e);
 		return false;
 	};
 
@@ -5740,6 +5850,11 @@ function CNotesDrawer(page)
 	this.m_oOverlayApi.m_oHtmlPage = this.HtmlPage;
 	this.m_oOverlayApi.Clear();
 
+	this.m_oOverlayApi.getNotesOffsets = function()
+	{
+		return { X : this.m_oHtmlPage.m_oNotesApi.OffsetX, Y : AscCommon.AscBrowser.convertToRetinaValue(-this.m_oHtmlPage.m_oNotesApi.Scroll, true) };
+	};
+
 	this.OffsetX = 10;
 	this.OffsetY = 10;
 
@@ -5932,6 +6047,14 @@ function CNotesDrawer(page)
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var ret = oThis.HtmlPage.m_oDrawingDocument.checkMouseDown_Drawing(pos);
+		if (ret === true)
+		{
+			AscCommon.stopEvent(e);
+			return;
+		}
+
 		oThis.HtmlPage.StartUpdateOverlay();
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseDown(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
@@ -5952,9 +6075,21 @@ function CNotesDrawer(page)
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 
+		if (oThis.HtmlPage.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			if (_y < 0)
+				return;
+		}
+
 		oThis.HtmlPage.StartUpdateOverlay();
 		if ((-1 != oThis.m_oTimerScrollSelect) || (is_overlay_attack === true))
 			oThis.HtmlPage.OnUpdateOverlay();
+
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var is_drawing = oThis.HtmlPage.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseMove(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
 	};
@@ -5979,7 +6114,19 @@ function CNotesDrawer(page)
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 
+		if (oThis.HtmlPage.m_oDrawingDocument.InlineTextTrackEnabled)
+		{
+			if (_y < 0)
+				return;
+		}
+
 		oThis.HtmlPage.StartUpdateOverlay();
+
+		var pos = { Page : oThis.HtmlPage.m_oDrawingDocument.SlideCurrent, X : _x, Y : _y, isNotes : true };
+		var is_drawing = oThis.HtmlPage.m_oDrawingDocument.checkMouseUp_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
 		oThis.HtmlPage.m_oLogicDocument.Notes_OnMouseUp(global_mouseEvent, _x, _y);
 		oThis.HtmlPage.EndUpdateOverlay();
 
@@ -6106,15 +6253,19 @@ function CNotesDrawer(page)
 	};
 }
 
-window.g_comment_image = new Image();
-window.g_comment_image;
-window.g_comment_image.asc_complete = false;
-window.g_comment_image.onload       = function()
+//--------------------------------------------------------export----------------------------------------------------
+window['AscCommon']                  = window['AscCommon'] || {};
+window['AscCommon'].CDrawingDocument = CDrawingDocument;
+
+window['AscCommon'].g_comment_image = new Image();
+window['AscCommon'].g_comment_image;
+window['AscCommon'].g_comment_image.asc_complete = false;
+window['AscCommon'].g_comment_image.onload       = function()
 {
-	window.g_comment_image.asc_complete = true;
+    window['AscCommon'].g_comment_image.asc_complete = true;
 };
-window.g_comment_image.src          = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAR0AAAAlCAMAAABI6s09AAAABGdBTUEAALGPC/xhBQAAAMBQTFRF2Ypk03pP0nZJ1oNb68Ku03hL1X9U7MWy1X9V9d7T3JNv5bCW0nZJ9uXc////8dPE+vDq5rSb5a6U4aOF5K6T2Idg////1HxR6r6o03lN0nZJ6Lef+u7p8NDA0ndK////78++0nZJ8dPE////0nZJ1HtP2Ihh////03hM////////3JVy0nZJ0nZJ9+Xc0nZJ////3JVy3JVx////////AAAA3Zh38tbJ3ZZ08dXH4qaJ5a6U9N3R+/Tw////0nZJQeZHfgAAADZ0Uk5TZJaoUk+v3lzdEi9hDlIbKVN8eY54xTTnc/NKegRg9EJm8WQz7+3EFPYoSKborlkmCqeoJ00ATKvZ0wAAA3tJREFUaN7dmOdi2jAUhelukjaQkkGCGIHYbDAYNYOh93+r2mZIsq6WwVHD+RfukWx93OtjUsCxHoaE0fAB7yWvHFCcjB6JRI+jCc7kzMVfSEzD5zWj5yFdPuSXDLm9C7/nVOMyX5SvnDwRhZ4mWZz5+Dd0yJoToevTK7jNLxHzByryRYZcqemzK0fkbbWWaPVGRqxTqVH6tJ8/XbBfGPPVjVtlT/Tr9t/ToZ+l6bR2l2hxdITJQfLil6/syjqRwonwkDrrVKqePu15fy5XWfTr9s/eO+I0EvlYnRFuz7VCRHF1ZSdHavfOEIaEUHBZE/0XJbjTmuWfyf7Ze0ckqjgWeh86AVaoKPrlrVb6ztGx7h2RKLesRa8UUcUiHei0MJ2KePMVgY4+rQJj/7fzy0YZ6h2AzuacTYCOee8cRKcq0qmm78YgrZCNH/1w2zvHnSyTHOT9mjQsUjreK7vbq0d38fhVnqp3PFXvePnSMclB3q9Jw4DS+XNHFvHuq0X82d013SWqMGIrwjSia6B3dgPJrczhuWNC3Io7onQ6jfk0wrNazOJLNzp0l7iS2IWK0Duoo+gdbmUOz52j08GUTqQwwrOYhkAShjEesSKfRuVA5jRZJsTTO1fgMK8AdHA4+AvCiSsAHMU0KgfyP6JThelUITo4rIaS9yiwIp/GTXGW3NsUKEInUdGpAE+cd56s+EjS10xJRT6N8oHMQOdqzOjKFR17yadxgwcufsTnTjY80mlUFD/kcyeTOhmKXfWbW5d1KtW1nKyu5WR1D6WTRb76rd9nnUr5lnR8Szq+Czq1+/j6L0t698sXel/3tbRTJtZp8KT/5dWUz51Kmo5Xc0Gn3bxJRmaPZ8kMy02zLTrBseKcJnRabZ4Ol4VCGnp+q+2CTpD802m2x7Pc/k7ZqB8ATiqJ02CyEO/XTVa8vws6OLjtM3g4OP3bAHSKcHinCR3er6PTbwfYCZ1EvS2eBE5P69zB6R2agzZp6I7OFo8eDoNH7jTPQZs0dEgnOvRUfWQLp3kO2qShSzo4jA89nYdHcJrnoE0aOqUTHXpgBEfvNM9B1j9goQxEv1s60aHN4Oid5jnI+gcQHOp3TAeH4TGd5jm470gKB9jfNR1nOZjCA8I5NToWOcjhgeGcHB2LHGTwSOCcHh2LHNz7ZXBOkI5FDmr9J0jHIgd1/n8LiumvxDAoYwAAAABJRU5ErkJggg==";
-var g_comment_image_offsets         = [
+window['AscCommon'].g_comment_image.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAR0AAAAlCAMAAABI6s09AAAABGdBTUEAALGPC/xhBQAAAMBQTFRF2Ypk03pP0nZJ1oNb68Ku03hL1X9U7MWy1X9V9d7T3JNv5bCW0nZJ9uXc////8dPE+vDq5rSb5a6U4aOF5K6T2Idg////1HxR6r6o03lN0nZJ6Lef+u7p8NDA0ndK////78++0nZJ8dPE////0nZJ1HtP2Ihh////03hM////////3JVy0nZJ0nZJ9+Xc0nZJ////3JVy3JVx////////AAAA3Zh38tbJ3ZZ08dXH4qaJ5a6U9N3R+/Tw////0nZJQeZHfgAAADZ0Uk5TZJaoUk+v3lzdEi9hDlIbKVN8eY54xTTnc/NKegRg9EJm8WQz7+3EFPYoSKborlkmCqeoJ00ATKvZ0wAAA3tJREFUaN7dmOdi2jAUhelukjaQkkGCGIHYbDAYNYOh93+r2mZIsq6WwVHD+RfukWx93OtjUsCxHoaE0fAB7yWvHFCcjB6JRI+jCc7kzMVfSEzD5zWj5yFdPuSXDLm9C7/nVOMyX5SvnDwRhZ4mWZz5+Dd0yJoToevTK7jNLxHzByryRYZcqemzK0fkbbWWaPVGRqxTqVH6tJ8/XbBfGPPVjVtlT/Tr9t/ToZ+l6bR2l2hxdITJQfLil6/syjqRwonwkDrrVKqePu15fy5XWfTr9s/eO+I0EvlYnRFuz7VCRHF1ZSdHavfOEIaEUHBZE/0XJbjTmuWfyf7Ze0ckqjgWeh86AVaoKPrlrVb6ztGx7h2RKLesRa8UUcUiHei0MJ2KePMVgY4+rQJj/7fzy0YZ6h2AzuacTYCOee8cRKcq0qmm78YgrZCNH/1w2zvHnSyTHOT9mjQsUjreK7vbq0d38fhVnqp3PFXvePnSMclB3q9Jw4DS+XNHFvHuq0X82d013SWqMGIrwjSia6B3dgPJrczhuWNC3Io7onQ6jfk0wrNazOJLNzp0l7iS2IWK0Duoo+gdbmUOz52j08GUTqQwwrOYhkAShjEesSKfRuVA5jRZJsTTO1fgMK8AdHA4+AvCiSsAHMU0KgfyP6JThelUITo4rIaS9yiwIp/GTXGW3NsUKEInUdGpAE+cd56s+EjS10xJRT6N8oHMQOdqzOjKFR17yadxgwcufsTnTjY80mlUFD/kcyeTOhmKXfWbW5d1KtW1nKyu5WR1D6WTRb76rd9nnUr5lnR8Szq+Czq1+/j6L0t698sXel/3tbRTJtZp8KT/5dWUz51Kmo5Xc0Gn3bxJRmaPZ8kMy02zLTrBseKcJnRabZ4Ol4VCGnp+q+2CTpD802m2x7Pc/k7ZqB8ATiqJ02CyEO/XTVa8vws6OLjtM3g4OP3bAHSKcHinCR3er6PTbwfYCZ1EvS2eBE5P69zB6R2agzZp6I7OFo8eDoNH7jTPQZs0dEgnOvRUfWQLp3kO2qShSzo4jA89nYdHcJrnoE0aOqUTHXpgBEfvNM9B1j9goQxEv1s60aHN4Oid5jnI+gcQHOp3TAeH4TGd5jm470gKB9jfNR1nOZjCA8I5NToWOcjhgeGcHB2LHGTwSOCcHh2LHNz7ZXBOkI5FDmr9J0jHIgd1/n8LiumvxDAoYwAAAABJRU5ErkJggg==";
+window['AscCommon'].g_comment_image_offsets = [
 	[5, 0, 16, 15],
 	[31, 0, 16, 15],
 	[57, 0, 19, 18],
@@ -6125,6 +6276,3 @@ var g_comment_image_offsets         = [
 	[247, 0, 38, 36]
 ];
 
-//--------------------------------------------------------export----------------------------------------------------
-window['AscCommon']                  = window['AscCommon'] || {};
-window['AscCommon'].CDrawingDocument = CDrawingDocument;

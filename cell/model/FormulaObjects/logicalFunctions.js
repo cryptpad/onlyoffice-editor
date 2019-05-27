@@ -60,10 +60,12 @@
 	function cAND() {
 	}
 
+	//***array-formula***
 	cAND.prototype = Object.create(cBaseFunction.prototype);
 	cAND.prototype.constructor = cAND;
 	cAND.prototype.name = 'AND';
 	cAND.prototype.argumentsMin = 1;
+	cAND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cAND.prototype.Calculate = function (arg) {
 		var argResult = null;
 		for (var i = 0; i < arg.length; i++) {
@@ -131,6 +133,7 @@
 	function cFALSE() {
 	}
 
+	//***array-formula***
 	cFALSE.prototype = Object.create(cBaseFunction.prototype);
 	cFALSE.prototype.constructor = cFALSE;
 	cFALSE.prototype.name = 'FALSE';
@@ -146,6 +149,7 @@
 	function cIF() {
 	}
 
+	//***array-formula***
 	cIF.prototype = Object.create(cBaseFunction.prototype);
 	cIF.prototype.constructor = cIF;
 	cIF.prototype.name = 'IF';
@@ -184,6 +188,7 @@
 	function cIFERROR() {
 	}
 
+	//***array-formula***
 	cIFERROR.prototype = Object.create(cBaseFunction.prototype);
 	cIFERROR.prototype.constructor = cIFERROR;
 	cIFERROR.prototype.name = 'IFERROR';
@@ -215,6 +220,7 @@
 	function cIFNA() {
 	}
 
+	//***array-formula***
 	cIFNA.prototype = Object.create(cBaseFunction.prototype);
 	cIFNA.prototype.constructor = cIFNA;
 	cIFNA.prototype.name = 'IFNA';
@@ -247,6 +253,7 @@
 	function cIFS() {
 	}
 
+	//***array-formula***
 	cIFS.prototype = Object.create(cBaseFunction.prototype);
 	cIFS.prototype.constructor = cIFS;
 	cIFS.prototype.name = 'IFS';
@@ -299,6 +306,7 @@
 	function cNOT() {
 	}
 
+	//***array-formula***
 	cNOT.prototype = Object.create(cBaseFunction.prototype);
 	cNOT.prototype.constructor = cNOT;
 	cNOT.prototype.name = 'NOT';
@@ -335,10 +343,12 @@
 	function cOR() {
 	}
 
+	//***array-formula***
 	cOR.prototype = Object.create(cBaseFunction.prototype);
 	cOR.prototype.constructor = cOR;
 	cOR.prototype.name = 'OR';
 	cOR.prototype.argumentsMin = 1;
+	cOR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cOR.prototype.Calculate = function (arg) {
 		var argResult = null;
 		for (var i = 0; i < arg.length; i++) {
@@ -403,6 +413,7 @@
 	function cSWITCH() {
 	}
 
+	//***array-formula***
 	cSWITCH.prototype = Object.create(cBaseFunction.prototype);
 	cSWITCH.prototype.constructor = cSWITCH;
 	cSWITCH.prototype.name = 'SWITCH';
@@ -423,12 +434,13 @@
 			arg0 = arg0.getValue()
 		}
 
+
 		var res = null;
 		for (var i = 1; i < argClone.length; i++) {
 			var argN = argClone[i].getValue();
 			if (arg0 === argN) {
 				if (!argClone[i + 1]) {
-					return cErrorType.not_available;
+					return new cError(cErrorType.not_available);
 				} else {
 					res = argClone[i + 1];
 					break;
@@ -454,6 +466,7 @@
 	function cTRUE() {
 	}
 
+	//***array-formula***
 	cTRUE.prototype = Object.create(cBaseFunction.prototype);
 	cTRUE.prototype.constructor = cTRUE;
 	cTRUE.prototype.name = 'TRUE';
@@ -469,31 +482,49 @@
 	function cXOR() {
 	}
 
+	//***array-formula***
 	cXOR.prototype = Object.create(cBaseFunction.prototype);
 	cXOR.prototype.constructor = cXOR;
 	cXOR.prototype.name = 'XOR';
 	cXOR.prototype.argumentsMin = 1;
 	cXOR.prototype.argumentsMax = 254;
 	cXOR.prototype.isXLFN = true;
+	cXOR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cXOR.prototype.Calculate = function (arg) {
 		var argResult = null;
 		var nTrueValues = 0;
 		for (var i = 0; i < arg.length; i++) {
 			if (arg[i] instanceof cArea || arg[i] instanceof cArea3D) {
+				var allCellsEmpty = true;
 				var argArr = arg[i].getValue();
 				for (var j = 0; j < argArr.length; j++) {
+					var emptyArg = argArr[j] instanceof cEmpty;
 					if (argArr[j] instanceof cError) {
 						return argArr[j];
-					} else if (argArr[j] instanceof cString || argArr[j] instanceof cEmpty) {
-						if (argResult === null) {
+					} else if (argArr[j] instanceof cString || emptyArg || argArr[j] instanceof cBool) {
+						argResult = new cBool(true);
+						nTrueValues++;
+					} else if(argArr.length === 1 && argArr[j] instanceof cNumber) {
+						if (argResult == null) {
 							argResult = argArr[j].tocBool();
 						} else {
-							argResult = new cBool(argResult.value || argArr[j].tocBool().value);
+							argResult = new cBool(argArr[j].tocBool().value);
+						}
+
+						if (argResult.value === true) {
+							nTrueValues++;
 						}
 					}
-					if (argResult.value === true) {
-						nTrueValues++;
+					if(!emptyArg) {
+						allCellsEmpty = false;
 					}
+				}
+				//если диапазон пустой - выдаём ошибку
+				//если диапазон содержит хоть одну непустую ячейку(без ошибки) - результат false
+				if (argResult == null && !allCellsEmpty) {
+					argResult = new cBool(false);
+				} else if(allCellsEmpty) {
+					argResult = null;
 				}
 			} else {
 				if (arg[i] instanceof cString) {

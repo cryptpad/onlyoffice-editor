@@ -201,9 +201,7 @@ CPdfPrinter.prototype =
 		var _g = val.getG();
 		var _b = val.getB();
 		var _a = val.getA();
-        //this.DocumentRenderer.b_color1(_r, _g, _b, (_a * 255 + 0.5) >> 0);
-        // не менять!!! баг в хромиуме !!! (41ом)
-        this.DocumentRenderer.b_color1(_r, _g, _b, parseInt(_a * 255 + 0.5));
+        this.DocumentRenderer.b_color1(_r, _g, _b, (_a * 255 + 0.5) >> 0);
         return this;
     },
     setFillPattern : function(val)
@@ -220,9 +218,7 @@ CPdfPrinter.prototype =
 		var _g = val.getG();
 		var _b = val.getB();
 		var _a = val.getA();
-        //this.DocumentRenderer.p_color(_r, _g, _b, (_a * 255 + 0.5) >> 0);
-        // не менять!!! баг в хромиуме !!! (41ом)
-        this.DocumentRenderer.p_color(_r, _g, _b, parseInt(_a * 255 + 0.5));
+        this.DocumentRenderer.p_color(_r, _g, _b, (_a * 255 + 0.5) >> 0);
         return this;
     },
     setLineWidth : function(val)
@@ -278,7 +274,7 @@ CPdfPrinter.prototype =
     getFontMetrix : function()
     {
         console.log("error");
-        return new FontMetrics();
+        return new Asc.FontMetrics();
     },
     makeFontDoc : function(font)
     {
@@ -422,7 +418,7 @@ CPdfPrinter.prototype =
         }
         if (0 == sx && 0 == sy && sw == src_w && sh == src_h)
         {
-            this.DocumentRenderer.Memory.WriteByte(CommandType.ctDrawImageFromFile);
+            this.DocumentRenderer.Memory.WriteByte(AscCommon.CommandType.ctDrawImageFromFile);
             this.DocumentRenderer.Memory.WriteString2(_src);
             this.DocumentRenderer.Memory.WriteDouble(dx * vector_koef);
             this.DocumentRenderer.Memory.WriteDouble(dy * vector_koef);
@@ -441,7 +437,7 @@ CPdfPrinter.prototype =
             var dstW = dKoefX * src_w;
             var dstH = dKoefY * src_h;
 
-            this.DocumentRenderer.Memory.WriteByte(CommandType.ctDrawImageFromFile);
+            this.DocumentRenderer.Memory.WriteByte(AscCommon.CommandType.ctDrawImageFromFile);
             this.DocumentRenderer.Memory.WriteString2(_src);
             this.DocumentRenderer.Memory.WriteDouble(dstX * vector_koef);
             this.DocumentRenderer.Memory.WriteDouble(dstY * vector_koef);

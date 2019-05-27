@@ -348,7 +348,9 @@ DrawingObjectsController.prototype.handleChartDoubleClick = function()
         oThis.changeCurrentState(new AscFormat.NullState(this));
         drawingObjects.showChartSettings();
     }, []);
-}
+};
+
+
 DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing, oleObject, e, x, y, pageIndex)
 {
     var drawingObjects = this.drawingObjects;
@@ -471,7 +473,7 @@ DrawingObjectsController.prototype.addImageFromParams = function(rasterImageId, 
     var image = this.createImage(rasterImageId, x, y, extX, extY);
     image.setWorksheet(this.drawingObjects.getWorksheetModel());
     image.setDrawingObjects(this.drawingObjects);
-    image.addToDrawingObjects();
+    image.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorOneCell);
     image.checkDrawingBaseCoords();
     this.selectObject(image, 0);
     image.addToRecalculate();
@@ -565,9 +567,12 @@ DrawingObjectsController.prototype.canIncreaseParagraphLevel = function(bIncreas
     if(content)
     {
         var target_text_object = AscFormat.getTargetTextObject(this);
-        if(target_text_object && target_text_object.getObjectType() === AscDFH.historyitem_type_Shape
-            && (!target_text_object.isPlaceholder() || !target_text_object.getPhType() !== AscFormat.phType_title && target_text_object.getPhType() !== AscFormat.phType_ctrTitle))
+        if(target_text_object && target_text_object.getObjectType() === AscDFH.historyitem_type_Shape)
         {
+            if(target_text_object.isPlaceholder() && (target_text_object.getPhType() === AscFormat.phType_title || target_text_object.getPhType() === AscFormat.phType_ctrTitle))
+            {
+                return false;
+            }
             return content.Can_IncreaseParagraphLevel(bIncrease);
         }
     }
@@ -638,6 +643,18 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
 
         bRetValue = true;
     }
+    else if ( Code == 0x20 )
+    {
+        var oApi = window["Asc"] && window["Asc"]["editor"];
+        var fCallback = function(){
+            this.paragraphAdd(new ParaSpace(1));
+            this.checkMobileCursorPosition();
+        };
+        this.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Spreadsheet_AddSpace, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+
+        bRetValue = true;
+    }
+
     return bRetValue;
 };
 //------------------------------------------------------------export---------------------------------------------------

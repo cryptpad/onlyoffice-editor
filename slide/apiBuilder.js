@@ -395,6 +395,15 @@
         return this.private_CreateApiParagraph(new Paragraph(oDrawingDocument, null, true));
     };
 
+    /**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CPE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
+	};
+
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -469,8 +478,8 @@
      * Set the size for the current presentation.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
-     /* {EMU} nWidth - The presentation width in English measure units.
-     /* {EMU} nHeight - The presentation height in English measure units.
+     * @param {EMU} nWidth - The presentation width in English measure units.
+     * @param {EMU} nHeight - The presentation height in English measure units.
      */
     ApiPresentation.prototype.SetSizes = function(nWidth, nHeight) {
         if(this.Presentation){
@@ -1539,6 +1548,7 @@
     Api.prototype["CreateGroup"]                     = Api.prototype.CreateGroup;
     Api.prototype["CreateTable"]                     = Api.prototype.CreateTable;
     Api.prototype["CreateParagraph"]                 = Api.prototype.CreateParagraph;
+    Api.prototype["Save"]                            = Api.prototype.Save;
 
     ApiPresentation.prototype["GetClassType"]          = ApiPresentation.prototype.GetClassType;
     ApiPresentation.prototype["GetCurSlideIndex"]      = ApiPresentation.prototype.GetCurSlideIndex;

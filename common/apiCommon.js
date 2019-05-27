@@ -231,6 +231,7 @@
 		this.canCoAuthoring = true;
 		this.canReaderMode = true;
 		this.canBranding = false;
+		this.customization = false;
 		this.isAutosaveEnable = true;
 		this.AutosaveMinInterval = 300;
 		this.isAnalyticsEnable = false;
@@ -250,6 +251,9 @@
 	};
 	asc_CAscEditorPermissions.prototype.asc_getCanBranding = function () {
 		return this.canBranding;
+	};
+	asc_CAscEditorPermissions.prototype.asc_getCustomization = function () {
+		return this.customization;
 	};
 	asc_CAscEditorPermissions.prototype.asc_getIsAutosaveEnable = function () {
 		return this.isAutosaveEnable;
@@ -281,6 +285,9 @@
 	};
 	asc_CAscEditorPermissions.prototype.setCanBranding = function (v) {
 		this.canBranding = v;
+	};
+	asc_CAscEditorPermissions.prototype.setCustomization = function (v) {
+		this.customization = v;
 	};
 	asc_CAscEditorPermissions.prototype.setIsLight = function (v) {
 		this.isLight = v;
@@ -1822,6 +1829,8 @@
 			this.DStrikeout = (undefined != obj.DStrikeout) ? obj.DStrikeout : undefined;
 			this.TextSpacing = (undefined != obj.TextSpacing) ? obj.TextSpacing : undefined;
 			this.Position = (undefined != obj.Position) ? obj.Position : undefined;
+			this.Jc = (undefined != obj.Jc) ? obj.Jc : undefined;
+			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -1861,6 +1870,8 @@
 			this.DStrikeout = undefined;
 			this.TextSpacing = undefined;
 			this.Position = undefined;
+			this.Jc = undefined;
+			this.ListType = undefined;
 		}
 	}
 
@@ -1874,6 +1885,10 @@
 			return this.Ind;
 		}, asc_putInd: function (v) {
 			this.Ind = v;
+		}, asc_getJc: function () {
+			return this.Jc;
+		}, asc_putJc: function (v) {
+			this.Jc = v;
 		}, asc_getKeepLines: function () {
 			return this.KeepLines;
 		}, asc_putKeepLines: function (v) {
@@ -2049,6 +2064,13 @@
         this.columnNumber = null;
         this.columnSpace = null;
         this.signatureId = null;
+
+		this.rot = null;
+		this.rotAdd = null;
+		this.flipH = null;
+		this.flipV = null;
+		this.flipHInvert = null;
+		this.flipVInvert = null;
 	}
 
 	asc_CShapeProperty.prototype = {
@@ -2151,6 +2173,53 @@
 
 		asc_putFromImage: function(v){
 			this.bFromImage = v;
+		},
+
+		asc_getRot: function(){
+			return this.rot;
+		},
+
+		asc_putRot: function(v){
+			this.rot = v;
+		},
+
+		asc_getRotAdd: function(){
+			return this.rotAdd;
+		},
+
+		asc_putRotAdd: function(v){
+			this.rotAdd = v;
+		},
+
+		asc_getFlipH: function(){
+			return this.flipH;
+		},
+
+		asc_putFlipH: function(v){
+			this.flipH = v;
+		},
+
+		asc_getFlipV: function(){
+			return this.flipV;
+		},
+
+		asc_putFlipV: function(v){
+			this.flipV = v;
+		},
+		asc_getFlipHInvert: function(){
+			return this.flipHInvert;
+		},
+
+		asc_putFlipHInvert: function(v){
+			this.flipHInvert = v;
+		},
+
+		asc_getFlipVInvert: function(){
+			return this.flipVInvert;
+		},
+
+		asc_putFlipVInvert: function(v){
+			this.flipVInvert = v;
 		}
 	};
 
@@ -2361,6 +2430,11 @@
             this.columnNumber =  obj.columnNumber != undefined ? obj.columnNumber : undefined;
             this.columnSpace =  obj.columnSpace != undefined ? obj.columnSpace : undefined;
 
+			this.rot = obj.rot != undefined ? obj.rot : undefined;
+			this.flipH = obj.flipH != undefined ? obj.flipH : undefined;
+			this.flipV = obj.flipV != undefined ? obj.flipV : undefined;
+			this.resetCrop =  obj.resetCrop != undefined ? obj.resetCrop : undefined;
+
 		} else {
 			this.CanBeFlow = true;
 			this.Width = undefined;
@@ -2380,7 +2454,6 @@
 
 			this.ChartProperties = null;
 			this.ShapeProperties = null;
-			this.ImageProperties = null;
 
 			this.ChangeLevel = null;
 			this.Group = null;
@@ -2402,6 +2475,13 @@
 
             this.columnNumber = undefined;
             this.columnSpace =  undefined;
+
+
+			this.rot = undefined;
+			this.rotAdd = undefined;
+			this.flipH = undefined;
+			this.flipV = undefined;
+			this.resetCrop = undefined;
 		}
 	}
 
@@ -2545,15 +2625,21 @@
 			this.ShapeProperties = v;
 		},
 
-		asc_getOriginSize: function (api) {
-			if (window['AscFormat'].isRealNumber(this.oleWidth) && window['AscFormat'].isRealNumber(this.oleHeight)) {
+		asc_getOriginSize: function (api)
+		{
+			if (window['AscFormat'].isRealNumber(this.oleWidth) && window['AscFormat'].isRealNumber(this.oleHeight))
+			{
 				return new asc_CImageSize(this.oleWidth, this.oleHeight, true);
 			}
-			if(this.ImageUrl === null)
+			if (this.ImageUrl === null)
 			{
 				return new asc_CImageSize(50, 50, false);
 			}
-			var _section_select = api.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
+			var _section_select;
+			if(api.WordControl && api.WordControl.m_oLogicDocument)
+			{
+				_section_select = api.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
+			}
 			var _page_width = AscCommon.Page_Width;
 			var _page_height = AscCommon.Page_Height;
 			var _page_x_left_margin = AscCommon.X_Left_Margin;
@@ -2561,36 +2647,59 @@
 			var _page_x_right_margin = AscCommon.X_Right_Margin;
 			var _page_y_bottom_margin = AscCommon.Y_Bottom_Margin;
 
-			if (_section_select) {
-          if (_section_select.W) {
-              _page_width = _section_select.W;
-          }
+			if (_section_select)
+			{
+				if (_section_select.W)
+				{
+					_page_width = _section_select.W;
+				}
 
-          if (_section_select.H) {
-              _page_height = _section_select.H;
-          }
+				if (_section_select.H)
+				{
+					_page_height = _section_select.H;
+				}
 			}
 
+			var origW = 0;
+			var origH = 0;
 			var _image = api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(this.ImageUrl)];
-			if (_image != undefined && _image.Image != null && _image.Status == window['AscFonts'].ImageLoadStatus.Complete) {
+			if (_image != undefined && _image.Image != null && _image.Status == window['AscFonts'].ImageLoadStatus.Complete)
+			{
+				origW = _image.Image.width;
+				origH = _image.Image.height;
+			}
+			else if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["GetImageOriginalSize"])
+			{
+				var _size = window["AscDesktopEditor"]["GetImageOriginalSize"](this.ImageUrl);
+				if (_size.W != 0 && _size.H != 0)
+				{
+					origW = _size.W;
+					origH = _size.H;
+				}
+			}
+
+			if (origW != 0 && origH != 0)
+			{
 				var _w = Math.max(1, _page_width - (_page_x_left_margin + _page_x_right_margin));
 				var _h = Math.max(1, _page_height - (_page_y_top_margin + _page_y_bottom_margin));
 
 				var bIsCorrect = false;
-				if (_image.Image != null) {
-					var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
-					var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
 
-					var dKoef = Math.max(__w / _w, __h / _h);
-					if (dKoef > 1) {
-						_w = Math.max(5, __w / dKoef);
-						_h = Math.max(5, __h / dKoef);
+				var __w = Math.max((origW * AscCommon.g_dKoef_pix_to_mm), 1);
+				var __h = Math.max((origH * AscCommon.g_dKoef_pix_to_mm), 1);
 
-						bIsCorrect = true;
-					} else {
-						_w = __w;
-						_h = __h;
-					}
+				var dKoef = Math.max(__w / _w, __h / _h);
+				if (dKoef > 1)
+				{
+					_w = Math.max(5, __w / dKoef);
+					_h = Math.max(5, __h / dKoef);
+
+					bIsCorrect = true;
+				}
+				else
+				{
+					_w = __w;
+					_h = __h;
 				}
 
 				return new asc_CImageSize(_w, _h, bIsCorrect);
@@ -2651,6 +2760,54 @@
 			if (this.ShapeProperties)
 				return this.ShapeProperties.asc_getSignatureId();
 			return undefined;
+		},
+
+		asc_getRot: function(){
+			return this.rot;
+		},
+
+		asc_putRot: function(v){
+			this.rot = v;
+		},
+		asc_getRotAdd: function(){
+			return this.rotAdd;
+		},
+
+		asc_putRotAdd: function(v){
+			this.rotAdd = v;
+		},
+
+		asc_getFlipH: function(){
+			return this.flipH;
+		},
+
+		asc_putFlipH: function(v){
+			this.flipH = v;
+		},
+		asc_getFlipHInvert: function(){
+			return this.flipHInvert;
+		},
+
+		asc_putFlipHInvert: function(v){
+			this.flipHInvert = v;
+		},
+
+		asc_getFlipV: function(){
+			return this.flipV;
+		},
+
+		asc_putFlipV: function(v){
+			this.flipV = v;
+		},
+		asc_getFlipVInvert: function(){
+			return this.flipVInvert;
+		},
+
+		asc_putFlipVInvert: function(v){
+			this.flipVInvert = v;
+		},
+		asc_putResetCrop: function(v){
+			this.resetCrop = v;
 		}
 	};
 
@@ -3516,8 +3673,8 @@
 		};
 		this.DrawOnRenderer = function(renderer, w, h)
 		{
-			var wMM = this.width * g_dKoef_pix_to_mm / this.zoom;
-			var hMM = this.height * g_dKoef_pix_to_mm / this.zoom;
+			var wMM = this.width * AscCommon.g_dKoef_pix_to_mm / this.zoom;
+			var hMM = this.height * AscCommon.g_dKoef_pix_to_mm / this.zoom;
 			var x = (w - wMM) / 2;
 			var y = (h - hMM) / 2;
 
@@ -3667,8 +3824,8 @@
 
 				var w_mm = 210;
 				var h_mm = 297;
-				var w_px = AscCommon.AscBrowser.convertToRetinaValue(w_mm * g_dKoef_mm_to_pix * this.zoom, true);
-				var h_px = AscCommon.AscBrowser.convertToRetinaValue(h_mm * g_dKoef_mm_to_pix * this.zoom, true);
+				var w_px = AscCommon.AscBrowser.convertToRetinaValue(w_mm * AscCommon.g_dKoef_mm_to_pix * this.zoom, true);
+				var h_px = AscCommon.AscBrowser.convertToRetinaValue(h_mm * AscCommon.g_dKoef_mm_to_pix * this.zoom, true);
 
 				_bounds_cheker.init(w_px, h_px, w_mm, h_mm);
 				_bounds_cheker.transform(1,0,0,1,0,0);
@@ -4099,6 +4256,7 @@
 	prot["asc_getCanCoAuthoring"] = prot.asc_getCanCoAuthoring;
 	prot["asc_getCanReaderMode"] = prot.asc_getCanReaderMode;
 	prot["asc_getCanBranding"] = prot.asc_getCanBranding;
+	prot["asc_getCustomization"] = prot.asc_getCustomization;
 	prot["asc_getIsAutosaveEnable"] = prot.asc_getIsAutosaveEnable;
 	prot["asc_getAutosaveMinInterval"] = prot.asc_getAutosaveMinInterval;
 	prot["asc_getIsAnalyticsEnable"] = prot.asc_getIsAnalyticsEnable;
@@ -4390,6 +4548,8 @@
 	prot["put_ContextualSpacing"] = prot["asc_putContextualSpacing"] = prot.asc_putContextualSpacing;
 	prot["get_Ind"] = prot["asc_getInd"] = prot.asc_getInd;
 	prot["put_Ind"] = prot["asc_putInd"] = prot.asc_putInd;
+	prot["get_Jc"] = prot["asc_getJc"] = prot.asc_getJc;
+	prot["put_Jc"] = prot["asc_putJc"] = prot.asc_putJc;
 	prot["get_KeepLines"] = prot["asc_getKeepLines"] = prot.asc_getKeepLines;
 	prot["put_KeepLines"] = prot["asc_putKeepLines"] = prot.asc_putKeepLines;
 	prot["get_KeepNext"] = prot["asc_getKeepNext"] = prot.asc_getKeepNext;
@@ -4495,6 +4655,18 @@
 	prot["put_SignatureId"] = prot["asc_putSignatureId"] = prot.asc_putSignatureId;
 	prot["get_FromImage"] = prot["asc_getFromImage"] = prot.asc_getFromImage;
 	prot["put_FromImage"] = prot["asc_putFromImage"] = prot.asc_putFromImage;
+	prot["get_Rot"] = prot["asc_getRot"] = prot.asc_getRot;
+	prot["put_Rot"] = prot["asc_putRot"] = prot.asc_putRot;
+	prot["get_RotAdd"] = prot["asc_getRotAdd"] = prot.asc_getRotAdd;
+	prot["put_RotAdd"] = prot["asc_putRotAdd"] = prot.asc_putRotAdd;
+	prot["get_FlipH"] = prot["asc_getFlipH"] = prot.asc_getFlipH;
+	prot["put_FlipH"] = prot["asc_putFlipH"] = prot.asc_putFlipH;
+	prot["get_FlipV"] = prot["asc_getFlipV"] = prot.asc_getFlipV;
+	prot["put_FlipV"] = prot["asc_putFlipV"] = prot.asc_putFlipV;
+	prot["get_FlipHInvert"] = prot["asc_getFlipHInvert"] = prot.asc_getFlipHInvert;
+	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
+	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
+	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;
@@ -4597,6 +4769,19 @@
 	prot["put_PluginGuid"] = prot["asc_putPluginGuid"] = prot.asc_putPluginGuid;
 	prot["get_PluginData"] = prot["asc_getPluginData"] = prot.asc_getPluginData;
 	prot["put_PluginData"] = prot["asc_putPluginData"] = prot.asc_putPluginData;
+	prot["get_Rot"] = prot["asc_getRot"] = prot.asc_getRot;
+	prot["put_Rot"] = prot["asc_putRot"] = prot.asc_putRot;
+	prot["get_RotAdd"] = prot["asc_getRotAdd"] = prot.asc_getRotAdd;
+	prot["put_RotAdd"] = prot["asc_putRotAdd"] = prot.asc_putRotAdd;
+	prot["get_FlipH"] = prot["asc_getFlipH"] = prot.asc_getFlipH;
+	prot["put_FlipH"] = prot["asc_putFlipH"] = prot.asc_putFlipH;
+	prot["get_FlipV"] = prot["asc_getFlipV"] = prot.asc_getFlipV;
+	prot["put_FlipV"] = prot["asc_putFlipV"] = prot.asc_putFlipV;
+	prot["get_FlipHInvert"] = prot["asc_getFlipHInvert"] = prot.asc_getFlipHInvert;
+	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
+	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
+	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
+	prot["put_ResetCrop"] = prot["asc_putResetCrop"] = prot.asc_putResetCrop;
 
 	prot["get_Title"] = prot["asc_getTitle"] = prot.asc_getTitle;
 	prot["put_Title"] = prot["asc_putTitle"] = prot.asc_putTitle;

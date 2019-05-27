@@ -944,6 +944,10 @@ CChangesParagraphShdValue.prototype.private_SetValue = function(Value)
 };
 CChangesParagraphShdValue.prototype.Merge = private_ParagraphChangesOnMergeShdPr;
 CChangesParagraphShdValue.prototype.Load = private_ParagraphChangesOnLoadPr;
+CChangesParagraphShdValue.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -974,6 +978,10 @@ CChangesParagraphShdColor.prototype.private_SetValue = function(Value)
 };
 CChangesParagraphShdColor.prototype.Merge = private_ParagraphChangesOnMergeShdPr;
 CChangesParagraphShdColor.prototype.Load = private_ParagraphChangesOnLoadPr;
+CChangesParagraphShdColor.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -1004,6 +1012,10 @@ CChangesParagraphShdUnifill.prototype.private_SetValue = function(Value)
 };
 CChangesParagraphShdUnifill.prototype.Merge = private_ParagraphChangesOnMergeShdPr;
 CChangesParagraphShdUnifill.prototype.Load = private_ParagraphChangesOnLoadPr;
+CChangesParagraphShdUnifill.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -1061,6 +1073,10 @@ CChangesParagraphShd.prototype.Merge = function(oChange)
 	return true;
 };
 CChangesParagraphShd.prototype.Load = private_ParagraphChangesOnLoadPr;
+CChangesParagraphShd.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseBoolProperty}
@@ -1812,6 +1828,20 @@ CChangesParagraphPrChange.prototype.Merge = function(oChange)
 		this.New.ReviewInfo = oChange.New;
 
 	return true;
+};
+CChangesParagraphPrChange.prototype.IsChangedNumbering = function()
+{
+	var oNewNumPr = this.New.PrChange ? this.New.PrChange.NumPr : null;
+	var oOldNumPr = this.Old.PrChange ? this.Old.PrChange.NumPr : null;
+
+	if ((!oNewNumPr && oOldNumPr)
+		|| (oNewNumPr && !oOldNumPr)
+		|| (oNewNumPr && oOldNumPr && (oNewNumPr.NumId !== oOldNumPr.NumId || oNewNumPr.Lvl !== oOldNumPr.Lvl)))
+	{
+		return true;
+	}
+
+	return false;
 };
 /**
  * @constructor

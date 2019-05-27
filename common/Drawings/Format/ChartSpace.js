@@ -102,7 +102,9 @@ var SKIP_LBL_LIMIT = 100;
         return false;
     }
 
-
+    function checkNoFillMarkers(symbol){
+        return symbol === AscFormat.SYMBOL_X ||  symbol === AscFormat.SYMBOL_STAR ||  symbol === AscFormat.SYMBOL_PLUS;
+    }
 
     function GetTextPrFormArrObjects(aObjects, bFirstBreak, bLbl)
     {
@@ -500,7 +502,6 @@ function checkPointInMap(map, worksheet, row, col)
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetSpPr                 ] = CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetStyle                  ] = CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetTxPr                 ] = CChangesDrawingsObject;
-    AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetUserShapes           ] = CChangesDrawingsString;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetGroup                ] = CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ExternalData_SetAutoUpdate           ] = CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_ExternalData_SetId                 ] = CChangesDrawingsString;
@@ -685,7 +686,6 @@ function checkPointInMap(map, worksheet, row, col)
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetSpPr                       ] = function(oClass, value){oClass.spPr           = value;};
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetStyle                      ] = function(oClass, value){oClass.style          = value;};
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetTxPr                       ] = function(oClass, value){oClass.txPr           = value;};
-    drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetUserShapes                 ] = function(oClass, value){oClass.userShapes     = value;};
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetGroup                      ] = function(oClass, value){oClass.group          = value;};
     drawingsChangesMap[AscDFH.historyitem_ExternalData_SetAutoUpdate               ] = function(oClass, value){oClass.autoUpdate     = value;};
     drawingsChangesMap[AscDFH.historyitem_ExternalData_SetId                       ] = function(oClass, value){oClass.id             = value;};
@@ -1234,11 +1234,12 @@ function CChartSpace()
     this.spPr = null;
     this.style = 2;
     this.txPr = null;
-    this.userShapes = null;
     this.themeOverride = null;
 
     this.pathMemory = new CPathMemory();
 
+
+    this.userShapes = [];//userShapes
 
     this.bbox = null;
     this.ptsCount = 0;
@@ -1277,8 +1278,6 @@ function CChartSpace()
     CChartSpace.prototype.select = CShape.prototype.select;
 CChartSpace.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
 CChartSpace.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
-CChartSpace.prototype.deleteBFromSerialize = CShape.prototype.deleteBFromSerialize;
-CChartSpace.prototype.setBFromSerialize = CShape.prototype.setBFromSerialize;
 CChartSpace.prototype.checkTypeCorrect = function(){
     if(!this.chart){
         return false;
@@ -2515,17 +2514,16 @@ CChartSpace.prototype.copy = function(drawingDocument)
     {
         copy.setTxPr(this.txPr.createDuplicate(drawingDocument))
     }
-    copy.setUserShapes(this.userShapes);
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        copy.addUserShape(undefined, this.userShapes[i].copy(drawingDocument));
+    }
     copy.setThemeOverride(this.themeOverride);
     copy.setBDeleted(this.bDeleted);
     copy.setLocks(this.locks);
     copy.cachedImage = this.getBase64Img();
     copy.cachedPixH = this.cachedPixH;
     copy.cachedPixW = this.cachedPixW;
-    if(this.fromSerialize)
-    {
-        copy.setBFromSerialize(true);
-    }
     return copy;
 };
 CChartSpace.prototype.convertToWord = function(document)
@@ -2740,9 +2738,19 @@ CChartSpace.prototype.handleUpdateInternalChart = function()
     this.recalcInfo.recalculateLegend = true;
     this.recalcInfo.recalculateBBox = true;
     this.chartObj = null;
+
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        {
+            this.userShapes[i].object.handleUpdateExtents();
+        }
+    }
     this.addToRecalculate();
 
 };
+
+
 CChartSpace.prototype.handleUpdateGridlines = function()
 {
     this.recalcInfo.recalculateGridLines = true;
@@ -2805,6 +2813,13 @@ CChartSpace.prototype.updateChildLabelsTransform = function(posX, posY)
         if(this.chart.legend)
         {
             this.chart.legend.updatePosition(posX, posY);
+        }
+    }
+    for(var i = 0; i < this.userShapes.length; ++ i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.updatePosition)
+        {
+            this.userShapes[i].object.updatePosition(posX, posY);
         }
     }
 };
@@ -2948,6 +2963,13 @@ CChartSpace.prototype.getAllRasterImages = function(images)
             }
         }
     }
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.getAllRasterImages)
+        {
+            this.userShapes[i].object.getAllRasterImages(images);
+        }
+    }
 };
 CChartSpace.prototype.getAllContents = function()
 {
@@ -3011,6 +3033,14 @@ CChartSpace.prototype.documentGetAllFontNames = function(allFonts)
             }
         }
     }
+
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.documentGetAllFontNames)
+        {
+            this.userShapes[i].object.documentGetAllFontNames(allFonts);
+        }
+    }
 };
 CChartSpace.prototype.documentCreateFontMap = function(allFonts)
 {
@@ -3060,11 +3090,42 @@ CChartSpace.prototype.documentCreateFontMap = function(allFonts)
             }
         }
     }
+
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.documentCreateFontMap)
+        {
+            this.userShapes[i].object.documentCreateFontMap(allFonts);
+        }
+    }
 };
 CChartSpace.prototype.setThemeOverride = function(pr)
 {
     History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_SetThemeOverride, this.themeOverride,  pr));
     this.themeOverride = pr;
+};
+CChartSpace.prototype.addUserShape = function(pos, item)
+{
+    if(!AscFormat.isRealNumber(pos))
+        pos = this.userShapes.length;
+    History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_ChartSpace_AddUserShape, pos,  [item], true));
+    this.userShapes.splice(pos, 0, item);
+    item.setParent(this);
+};
+CChartSpace.prototype.removeUserShape = function(pos)
+{
+    var aSplicedShape = this.userShapes.splice(pos, 1);
+    History.Add(new AscDFH.CChangesDrawingsContent(this,AscDFH.historyitem_ChartSpace_RemoveUserShape, pos, aSplicedShape, false));
+    return aSplicedShape[0];
+};
+
+CChartSpace.prototype.recalculateUserShapes = function()
+{
+    for(var i = 0; i < this.userShapes.length; ++i){
+        if(this.userShapes[i].object){
+            this.userShapes[i].object.recalculate();
+        }
+    }
 };
 CChartSpace.prototype.setParent = function (parent)
 {
@@ -3139,11 +3200,6 @@ CChartSpace.prototype.setTxPr = function(txPr)
     {
         txPr.setParent(this);
     }
-};
-CChartSpace.prototype.setUserShapes = function(userShapes)
-{
-    History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_ChartSpace_SetUserShapes, this.userShapes, userShapes));
-    this.userShapes = userShapes;
 };
 CChartSpace.prototype.getTransformMatrix = function()
 {
@@ -3698,7 +3754,11 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                 if(range.r1 === range.r2 || bVertical === true)
                 {
                     row_hidden = source_worksheet.getRowHidden(range.r1);
-                    for(j = range.c1;  j <= range.c2; ++j)
+                    j = range.c1;
+                    while(i === 0 && source_worksheet.getColHidden(j) && (this.displayHidden !== true) && j <= range.c2){
+                        ++j;
+                    }
+                    for(;  j <= range.c2; ++j)
                     {
                         if(!row_hidden && !source_worksheet.getColHidden(j) || (this.displayHidden === true))
                         {
@@ -3715,7 +3775,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                             if(AscFormat.isRealNumber(value))
                             {
                                 pt = new AscFormat.CNumericPoint();
-                                pt.setIdx(pt_index);
+                                pt.setIdx(nPtCount);
                                 pt.setVal(value);
                                 if(cell.getNumFormatStr() !== lit_format_code)
                                 {
@@ -3736,7 +3796,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                     }
                                     aSpanPoints.length = 0;
                                 }
-                                nLastNoEmptyIndex = pt_index;
+                                nLastNoEmptyIndex = nPtCount;
                                 nSpliceIndex = num_cache.pts.length;
                                 dLastNoEmptyVal = pt.val;
                             }
@@ -3747,7 +3807,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                     if(this.displayEmptyCellsAs === 2 || ((typeof sCellValue === "string") && sCellValue.length > 0))
                                     {
                                         pt = new AscFormat.CNumericPoint();
-                                        pt.setIdx(pt_index);
+                                        pt.setIdx(nPtCount);
                                         pt.setVal(0);
                                         num_cache.addPt(pt);
                                         if(aSpanPoints.length > 0 )
@@ -3763,14 +3823,14 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                             }
                                             aSpanPoints.length = 0;
                                         }
-                                        nLastNoEmptyIndex = pt_index;
+                                        nLastNoEmptyIndex = nPtCount;
                                         nSpliceIndex = num_cache.pts.length;
                                         dLastNoEmptyVal = pt.val;
                                     }
                                     else if(this.displayEmptyCellsAs === 0 && ser.getObjectType() === AscDFH.historyitem_type_LineSeries)
                                     {
                                         pt = new AscFormat.CNumericPoint();
-                                        pt.setIdx(pt_index);
+                                        pt.setIdx(nPtCount);
                                         pt.setVal(0);
                                         aSpanPoints.push(pt);
                                     }
@@ -3784,7 +3844,15 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                 else
                 {
                     col_hidden = source_worksheet.getColHidden(range.c1);
-                    for(j = range.r1; j <= range.r2; ++j)
+                    var r2 = range.r2;
+                    if(source_worksheet.isTableTotalRow(new Asc.Range(range.c1, r2, range.c1, r2))){
+                        --r2;
+                    }
+                    j = range.r1;
+                    while(i === 0 && source_worksheet.getRowHidden(j) && (this.displayHidden !== true) && j <= r2){
+                        ++j;
+                    }
+                    for(; j <= r2; ++j)
                     {
                         if(!col_hidden && !source_worksheet.getRowHidden(j) || (this.displayHidden === true))
                         {
@@ -3801,7 +3869,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                             if(AscFormat.isRealNumber(value))
                             {
                                 pt = new AscFormat.CNumericPoint();
-                                pt.setIdx(pt_index);
+                                pt.setIdx(nPtCount);
                                 pt.setVal(value);
                                 if(cell.getNumFormatStr() !== lit_format_code)
                                 {
@@ -3816,7 +3884,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                     if(this.displayEmptyCellsAs === 2 || ((typeof sCellValue === "string") && sCellValue.length > 0))
                                     {
                                         pt = new AscFormat.CNumericPoint();
-                                        pt.setIdx(pt_index);
+                                        pt.setIdx(nPtCount);
                                         pt.setVal(0);
                                         num_cache.addPt(pt);
                                         if(aSpanPoints.length > 0 )
@@ -3832,14 +3900,14 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                             }
                                             aSpanPoints.length = 0;
                                         }
-                                        nLastNoEmptyIndex = pt_index;
+                                        nLastNoEmptyIndex = nPtCount;
                                         nSpliceIndex = num_cache.pts.length;
                                         dLastNoEmptyVal = pt.val;
                                     }
                                     else if(this.displayEmptyCellsAs === 0 && ser.getObjectType() === AscDFH.historyitem_type_LineSeries)
                                     {
                                         pt = new AscFormat.CNumericPoint();
-                                        pt.setIdx(pt_index);
+                                        pt.setIdx(nPtCount);
                                         pt.setVal(0);
                                         aSpanPoints.push(pt);
                                     }
@@ -3932,7 +4000,11 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
                 if(range.r1 === range.r2 || bVertical === true)
                 {
                     row_hidden = source_worksheet.getRowHidden(range.r1);
-                    for(j = range.c1;  j <= range.c2; ++j)
+                    j = range.c1;
+                    while(i === 0 && source_worksheet.getColHidden(j) && j <= range.c2){
+                        ++j;
+                    }
+                    for(;  j <= range.c2; ++j)
                     {
                         if(!row_hidden && !source_worksheet.getColHidden(j))
                         {
@@ -3941,7 +4013,7 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
                             if(typeof value_width_format === "string" && value_width_format.length > 0)
                             {
                                 pt = new AscFormat.CStringPoint();
-                                pt.setIdx(pt_index);
+                                pt.setIdx(nPtCount);
                                 pt.setVal(value_width_format);
 
                                 if(str_cache.pts.length === 0){
@@ -3958,7 +4030,11 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
                 else
                 {
                     col_hidden = source_worksheet.getColHidden(range.c1);
-                    for(j = range.r1;  j <= range.r2; ++j)
+                    j = range.r1;
+                    while(i === 0 && source_worksheet.getRowHidden(j) && j <= range.r2){
+                        ++j;
+                    }
+                    for(;  j <= range.r2; ++j)
                     {
                         if(!col_hidden && !source_worksheet.getRowHidden(j))
                         {
@@ -3967,7 +4043,7 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
                             if(typeof value_width_format === "string" && value_width_format.length > 0)
                             {
                                 pt = new AscFormat.CStringPoint();
-                                pt.setIdx(pt_index);
+                                pt.setIdx(nPtCount);
                                 pt.setVal(cell.getValueWithFormat());
 
                                 if(str_cache.pts.length === 0){
@@ -4553,10 +4629,26 @@ CChartSpace.prototype.getValAxisCrossType = function()
                     oNumFormat = oNumFormatCache.get(oNumFmt.formatCode);
                 }
                 else{
-                    if(oSeries && oSeries.xVal){
-                        var strCache = oSeries.xVal.strRef && oSeries.xVal.strRef.strCache;
-                        if(strCache && strCache.pts[0] && typeof strCache.pts[0].formatCode === "string"){
-                            oNumFormat = oNumFormatCache.get(strCache.pts[0].formatCode);
+                    if(oSeries){
+                        if(oSeries.xVal){
+                            var strCache = oSeries.xVal.strRef && oSeries.xVal.strRef.strCache;
+                            if(strCache && strCache.pts[0] && typeof strCache.pts[0].formatCode === "string"){
+                                oNumFormat = oNumFormatCache.get(strCache.pts[0].formatCode);
+                            }
+                        }
+                        else{
+                            var pts = getPtsFromSeries(oSeries);
+                            if(pts.length > 0 && typeof pts[0].formatCode === "string" && pts[0].formatCode.length > 0){
+                                oNumFormat = oNumFormatCache.get(pts[0].formatCode);
+                            }
+                            else {
+                                if(oSeries.getFormatCode){
+                                    var sFormatCode = oSeries.getFormatCode();
+                                    if(sFormatCode === "string" && sFormatCode.length > 0){
+                                        oNumFormat = oNumFormatCache.get(sFormatCode);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -4790,9 +4882,9 @@ CChartSpace.prototype.getValAxisCrossType = function()
                     }
 
 
-                    var bTickSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip);
-                    var nTickLblSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip) ? oCurAxis.tickLblSkip :  1;
 
+                    var nTickLblSkip = AscFormat.isRealNumber(oCurAxis.tickLblSkip) ? oCurAxis.tickLblSkip :  1;
+                    var bTickSkip = nTickLblSkip> 1;
                     var fAxisLength = fPosEnd - fPosStart;
                     var nLabelsCount = oLabelsBox.aLabels.length;
 
@@ -9603,10 +9695,6 @@ CChartSpace.prototype.hitInTextRect = function()
     {
         if(this.chart && this.chart.legend)
         {
-            var aSeries = this.getAllSeries();
-            var oParents = this.getParentObjects();
-            var oLegend = this.chart.legend;
-
             var parents = this.getParentObjects();
             var RGBA = {R:0, G:0, B: 0, A:255};
             var legend = this.chart.legend;
@@ -9614,6 +9702,16 @@ CChartSpace.prototype.hitInTextRect = function()
             var calc_entryes = legend.calcEntryes;
             calc_entryes.length = 0;
             var series = this.getAllSeries();
+
+            //sort series
+            series.sort(function(ser1, ser2){
+                if(ser1.getObjectType() === AscDFH.historyitem_type_PieSeries && ser2.getObjectType() !== AscDFH.historyitem_type_PieSeries){
+                    return -1;
+                }
+                return ser1.idx - ser2.idx;
+            });
+
+
             var calc_entry, union_marker, entry;
             var max_width = 0, cur_width, max_font_size = 0, cur_font_size, ser, b_line_series;
             var max_word_width = 0;
@@ -9623,15 +9721,17 @@ CChartSpace.prototype.hitInTextRect = function()
          (this.chart.plotArea.charts[0].scatterStyle === AscFormat.SCATTER_STYLE_MARKER || this.chart.plotArea.charts[0].scatterStyle === AscFormat.SCATTER_STYLE_NONE));  */
             this.legendLength = null;
 
-            if( !(this.chart.plotArea.charts.length === 1 && this.chart.plotArea.charts[0].varyColors)
-                || (this.chart.plotArea.charts[0].getObjectType() !== AscDFH.historyitem_type_PieChart && this.chart.plotArea.charts[0].getObjectType() !== AscDFH.historyitem_type_DoughnutChart) && series.length !== 1
-                || this.chart.plotArea.charts[0].getObjectType() === AscDFH.historyitem_type_SurfaceChart)
+            var aCharts = this.chart.plotArea.charts;
+            var oFirstChart = aCharts[0];
+            var bNoPieChart = (oFirstChart.getObjectType() !== AscDFH.historyitem_type_PieChart && oFirstChart.getObjectType() !== AscDFH.historyitem_type_DoughnutChart);
+            var bSurfaceChart = (oFirstChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart);
+
+            var bSeriesLegend = aCharts.length > 1 || (bNoPieChart && (!(oFirstChart.varyColors && series.length === 1) || bSurfaceChart));
+            if(bSeriesLegend)
             {
-                var bSurfaceChart = false;
-                if(this.chart.plotArea.charts[0].getObjectType() === AscDFH.historyitem_type_SurfaceChart){
+                if(bSurfaceChart){
                     this.legendLength = this.chart.plotArea.charts[0].compiledBandFormats.length;
                     ser = series[0];
-                    bSurfaceChart = true;
                 }
                 else {
                     this.legendLength = series.length;
@@ -9683,11 +9783,23 @@ CChartSpace.prototype.hitInTextRect = function()
                         case AscDFH.historyitem_type_BarSeries:
                         case AscDFH.historyitem_type_BubbleSeries:
                         case AscDFH.historyitem_type_AreaSeries:
-                        case AscDFH.historyitem_type_PieSeries:
                         {
                             union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
                             union_marker.marker.pen = ser.compiledSeriesPen;
                             union_marker.marker.brush = ser.compiledSeriesBrush;
+                            break;
+                        }
+                        case AscDFH.historyitem_type_PieSeries:
+                        {
+                            union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
+                            if(pts.length > 0){
+                                union_marker.marker.pen = pts[0].pen;
+                                union_marker.marker.brush = pts[0].brush;
+                            }
+                            else{
+                                union_marker.marker.pen = ser.compiledSeriesPen;
+                                union_marker.marker.brush = ser.compiledSeriesBrush;
+                            }
                             break;
                         }
                         case AscDFH.historyitem_type_SurfaceSeries:{
@@ -9700,7 +9812,6 @@ CChartSpace.prototype.hitInTextRect = function()
                         }
                         case AscDFH.historyitem_type_LineSeries:
                         case AscDFH.historyitem_type_ScatterSer:
-                        case AscDFH.historyitem_type_SurfaceSeries:
                         {
                             if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this))
                             {
@@ -10862,9 +10973,15 @@ function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMa
                 }
             }
             if(oObject.brush){
+                if(oTheme && oColorMap){
+                    oObject.brush.check(oTheme, oColorMap);
+                }
                 oObjectCopy.spPr.setFill(oObject.brush.saveSourceFormatting());
             }
             if(oObject.pen){
+                if(oObject.pen.Fill && oTheme && oColorMap){
+                    oObject.pen.Fill.check(oTheme, oColorMap);
+                }
                 oObjectCopy.spPr.setLn(oObject.pen.createDuplicate(true));
             }
         }
@@ -11749,7 +11866,10 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                             {
                                                 if(ser.dPt[k].spPr)
                                                 {
-                                                    compiled_brush.merge(ser.dPt[k].spPr.Fill);
+                                                    if(ser.dPt[k].spPr.Fill && ser.dPt[k].spPr.Fill.fill)
+                                                    {
+                                                        compiled_brush = ser.dPt[k].spPr.Fill.createDuplicate();
+                                                    }
                                                 }
                                                 break;
                                             }
@@ -12066,7 +12186,10 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                         {
                                             if(ser.dPt[k].spPr)
                                             {
-                                                compiled_brush.merge(ser.dPt[k].spPr.Fill);
+                                                if(ser.dPt[k].spPr.Fill && ser.dPt[k].spPr.Fill.fill)
+                                                {
+                                                    compiled_brush = ser.dPt[k].spPr.Fill.createDuplicate();
+                                                }
                                             }
                                             break;
                                         }
@@ -12185,6 +12308,8 @@ CChartSpace.prototype.recalculateChartTitleEditMode = function(bWord)
     }
 };
 
+
+
 CChartSpace.prototype.recalculateMarkers = function()
 {
     if(this.chart && this.chart.plotArea)
@@ -12239,58 +12364,75 @@ CChartSpace.prototype.recalculateMarkers = function()
                     pts = AscFormat.getPtsFromSeries(ser);
                     var series_marker = ser.marker;
                     var brushes = getArrayFillsFromBase(fill, getMaxIdx(pts));
-                    var pens_fills = getArrayFillsFromBase(line, getMaxIdx(pts));
-                    var compiled_markers = [];
 
                     for(var i = 0;  i < pts.length; ++i)
                     {
-                        var compiled_marker = new AscFormat.CMarker();
-                        compiled_marker.merge(default_marker);
-                        if(!compiled_marker.spPr)
-                        {
-                            compiled_marker.setSpPr(new AscFormat.CSpPr());
-                        }
-                        compiled_marker.spPr.setFill(brushes[pts[i].idx]);
-                        compiled_marker.spPr.Fill.merge(pts[i].brush);
-                        if(!compiled_marker.spPr.ln)
-                            compiled_marker.spPr.setLn(new AscFormat.CLn());
-                        compiled_marker.spPr.ln.merge(pts[i].pen);
-                        compiled_marker.setSymbol(GetTypeMarkerByIndex(i));
-                        compiled_marker.merge(ser.marker);
-
+                        var d_pt = null;
                         if(Array.isArray(ser.dPt))
                         {
                             for(var j = 0; j < ser.dPt.length; ++j)
                             {
                                 if(ser.dPt[j].idx === pts[i].idx)
                                 {
-
-                                    var d_pt = ser.dPt[j];
-                                    if(d_pt.spPr && (d_pt.spPr.Fill || d_pt.spPr.ln))
-                                    {
-                                        if(!compiled_marker.spPr)
-                                        {
-                                            compiled_marker.setSpPr(new AscFormat.CSpPr());
-                                        }
-                                        if(d_pt.spPr.Fill)
-                                        {
-                                            compiled_marker.spPr.setFill(d_pt.spPr.Fill.createDuplicate());
-                                        }
-                                        if(d_pt.spPr.ln)
-                                        {
-                                            if(!compiled_marker.spPr.ln)
-                                            {
-                                                compiled_marker.spPr.setLn(new AscFormat.CLn());
-                                            }
-                                            compiled_marker.spPr.ln.merge(d_pt.spPr.ln);
-                                        }
-                                    }
-
-                                    compiled_marker.merge(ser.dPt[j].marker);
+                                    d_pt = ser.dPt[j];
                                     break;
                                 }
                             }
                         }
+                        var d_pt_marker = null;
+                        if(d_pt)
+                        {
+                            d_pt_marker = d_pt.marker;
+                        }
+                        var symbol = GetTypeMarkerByIndex(i);
+                        if(series_marker && AscFormat.isRealNumber(series_marker.symbol))
+                        {
+                            symbol = series_marker.symbol;
+                        }
+                        if(d_pt_marker && AscFormat.isRealNumber(d_pt_marker.symbol))
+                        {
+                            symbol = d_pt_marker.symbol;
+                        }
+
+                        var compiled_marker = new AscFormat.CMarker();
+                        compiled_marker.merge(default_marker);
+                        if(!compiled_marker.spPr)
+                        {
+                            compiled_marker.setSpPr(new AscFormat.CSpPr());
+                        }
+                        compiled_marker.setSymbol(symbol);
+                        if(!checkNoFillMarkers(symbol)){
+                            compiled_marker.spPr.setFill(brushes[pts[i].idx]);
+                        }
+                        else{
+                            compiled_marker.spPr.setFill(AscFormat.CreateNoFillUniFill());
+                        }
+                        compiled_marker.spPr.Fill.merge(pts[i].brush);
+                        if(!compiled_marker.spPr.ln)
+                            compiled_marker.spPr.setLn(new AscFormat.CLn());
+                        compiled_marker.spPr.ln.merge(pts[i].pen);
+                        compiled_marker.merge(series_marker);
+
+                        if(d_pt)
+                        {
+                            if(d_pt.spPr)
+                            {
+                                if(d_pt.spPr.Fill)
+                                {
+                                    compiled_marker.spPr.setFill(d_pt.spPr.Fill.createDuplicate());
+                                }
+                                if(d_pt.spPr.ln)
+                                {
+                                    if(!compiled_marker.spPr.ln)
+                                    {
+                                        compiled_marker.spPr.setLn(new AscFormat.CLn());
+                                    }
+                                    compiled_marker.spPr.ln.merge(d_pt.spPr.ln);
+                                }
+                            }
+                            compiled_marker.merge(d_pt.marker);
+                        }
+
                         pts[i].compiledMarker = compiled_marker;
                         pts[i].compiledMarker.pen = compiled_marker.spPr.ln;
                         pts[i].compiledMarker.brush = compiled_marker.spPr.Fill;
@@ -12311,30 +12453,53 @@ CChartSpace.prototype.recalculateMarkers = function()
                         pts = AscFormat.getPtsFromSeries(ser);
                         for(var j = 0; j < pts.length; ++j)
                         {
-                            var compiled_marker = new AscFormat.CMarker();
-                            compiled_marker.merge(default_marker);
-                            if(!compiled_marker.spPr)
-                            {
-                                compiled_marker.setSpPr(new AscFormat.CSpPr());
-                            }
-                            compiled_marker.spPr.setFill(brushes[series[i].idx]);
-                            if(!compiled_marker.spPr.ln)
-                                compiled_marker.spPr.setLn(new AscFormat.CLn());
-                            compiled_marker.spPr.ln.setFill(pens_fills[series[i].idx]);
-                            compiled_marker.setSymbol(GetTypeMarkerByIndex(series[i].idx));
-                            compiled_marker.merge(ser.marker);
-                            if(j === 0)
-                                ser.compiledSeriesMarker = compiled_marker.createDuplicate();
+                            var d_pt = null;
                             if(Array.isArray(ser.dPt))
                             {
                                 for(var k = 0; k < ser.dPt.length; ++k)
                                 {
                                     if(ser.dPt[k].idx === pts[j].idx)
                                     {
-                                        compiled_marker.merge(ser.dPt[k].marker);
+                                        d_pt = ser.dPt[k];
                                         break;
                                     }
                                 }
+                            }
+                            var symbol = GetTypeMarkerByIndex(ser.idx);
+                            if(ser && ser.marker && AscFormat.isRealNumber(ser.marker.symbol))
+                            {
+                                symbol = ser.marker.symbol;
+                            }
+                            if(d_pt && d_pt.marker && AscFormat.isRealNumber(d_pt.marker.symbol))
+                            {
+                                symbol = d_pt.marker.symbol;
+                            }
+
+                            var compiled_marker = new AscFormat.CMarker();
+                            compiled_marker.merge(default_marker);
+                            if(!compiled_marker.spPr)
+                            {
+                                compiled_marker.setSpPr(new AscFormat.CSpPr());
+                            }
+                            compiled_marker.setSymbol(symbol);
+                            if(!checkNoFillMarkers(compiled_marker.symbol)){
+                                compiled_marker.spPr.setFill(brushes[ser.idx]);
+                            }
+                            else{
+                                compiled_marker.spPr.setFill(AscFormat.CreateNoFillUniFill());
+                            }
+                            if(!compiled_marker.spPr.ln)
+                                compiled_marker.spPr.setLn(new AscFormat.CLn());
+                            compiled_marker.spPr.ln.setFill(pens_fills[ser.idx]);
+                            compiled_marker.merge(ser.marker);
+                            if(j === 0)
+                            {
+                                ser.compiledSeriesMarker = compiled_marker.createDuplicate();
+                            }
+
+                            if(d_pt)
+                            {
+                                compiled_marker.merge(d_pt.marker);
                             }
                             pts[j].compiledMarker = compiled_marker;
                             pts[j].compiledMarker.pen = compiled_marker.spPr.ln;
@@ -12594,6 +12759,14 @@ CChartSpace.prototype.draw = function(graphics)
             || bounds.y + bounds.h < rect.y)
             return;
     }
+    var oClipRect;
+    if(!graphics.IsSlideBoundsCheckerType){
+        oClipRect = this.getClipRect();
+    }
+    if(oClipRect){
+        graphics.SaveGrState();
+        graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+    }
     graphics.SaveGrState();
     graphics.SetIntegerGrid(false);
     graphics.transform3(this.transform, false);
@@ -12665,8 +12838,18 @@ CChartSpace.prototype.draw = function(graphics)
             this.chart.legend.draw(graphics);
         }
     }
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object)
+        {
+            this.userShapes[i].object.draw(graphics);  
+        }
+    }
     graphics.RestoreGrState();
     if(this.drawLocks(this.transform, graphics)){
+        graphics.RestoreGrState();
+    }
+    if(oClipRect){
         graphics.RestoreGrState();
     }
 };
@@ -12689,7 +12872,7 @@ CChartSpace.prototype.recalculateChart = function()
 
 
 
-CChartSpace.prototype.GetRevisionsChangeParagraph = function(SearchEngine){
+CChartSpace.prototype.GetRevisionsChangeElement = function(SearchEngine){
     var titles = this.getAllTitles(), i;
     if(titles.length === 0){
         return;
@@ -12706,16 +12889,16 @@ CChartSpace.prototype.GetRevisionsChangeParagraph = function(SearchEngine){
         }
     }
     else{
-        if(SearchEngine.Get_Direction() > 0){
+        if(SearchEngine.GetDirection() > 0){
             i = 0;
         }
         else{
             i = titles.length - 1;
         }
     }
-    while(!SearchEngine.Is_Found()){
-        titles[i].GetRevisionsChangeParagraph(SearchEngine);
-        if(SearchEngine.Get_Direction() > 0){
+    while(!SearchEngine.IsFound()){
+        titles[i].GetRevisionsChangeElement(SearchEngine);
+        if(SearchEngine.GetDirection() > 0){
             if(i === titles.length - 1){
                 break;
             }
@@ -15259,6 +15442,7 @@ function checkBlipFillRasterImages(sp)
     window['AscFormat'].CreateDefaultAxises = CreateDefaultAxises;
     window['AscFormat'].CreateScatterAxis = CreateScatterAxis;
     window['AscFormat'].getChartSeries = getChartSeries;
+    window['AscFormat'].parseSeriesHeaders = parseSeriesHeaders;
     window['AscFormat'].checkSpPrRasterImages = checkSpPrRasterImages;
     window['AscFormat'].checkBlipFillRasterImages = checkBlipFillRasterImages;
 

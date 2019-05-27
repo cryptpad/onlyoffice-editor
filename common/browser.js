@@ -48,6 +48,7 @@ var AscBrowser = {
     isGecko : false,
     isChrome : false,
     isOpera : false,
+	isOperaOld : false,
     isWebkit : false,
     isSafari : false,
     isArm : false,
@@ -55,7 +56,9 @@ var AscBrowser = {
 	isRetina : false,
     isLinuxOS : false,
 	retinaPixelRatio : 1,
-	isVivaldiLinux : false
+	isVivaldiLinux : false,
+    isSailfish : false,
+    isEmulateDevicePixelRatio : false
 };
 
 // user agent lower case
@@ -99,6 +102,7 @@ AscBrowser.isGecko = (AscBrowser.userAgent.indexOf("gecko/") > -1);
 
 // opera detect
 AscBrowser.isOpera = (!!window.opera || AscBrowser.userAgent.indexOf("opr/") > -1);
+AscBrowser.isOperaOld = (!!window.opera);
 
 // webkit detect
 AscBrowser.isWebkit = !AscBrowser.isIE && (AscBrowser.userAgent.indexOf("webkit") > -1);
@@ -112,10 +116,33 @@ AscBrowser.isLinuxOS = (AscBrowser.userAgent.indexOf(" linux ") > -1);
 
 AscBrowser.isVivaldiLinux = AscBrowser.isLinuxOS && (AscBrowser.userAgent.indexOf("vivaldi") > -1);
 
+AscBrowser.isSailfish = (AscBrowser.userAgent.indexOf("sailfish") > -1);
+
+AscBrowser.isEmulateDevicePixelRatio = (AscBrowser.userAgent.indexOf("emulatedevicepixelratio") > -1);
+
 AscBrowser.zoom = 1;
 
 AscBrowser.checkZoom = function()
 {
+    if (AscBrowser.isSailfish && AscBrowser.isEmulateDevicePixelRatio)
+    {
+        var scale = 1;
+        if (screen.width <= 540)
+            scale = 1.5;
+        else if (screen.width > 540 && screen.width <= 768)
+            scale = 2;
+        else if (screen.width > 768)
+            scale = 3;
+
+
+        //document.body.style.zoom = scale;
+        //AscBrowser.zoom = 1 / scale;
+        AscBrowser.isRetina = (scale >= 1.9);
+        AscBrowser.retinaPixelRatio = scale;
+        window.devicePixelRatio = scale;
+        return;
+    }
+
     if (AscBrowser.isAndroid)
 	{
 		AscBrowser.isRetina = (window.devicePixelRatio >= 1.9);
@@ -127,7 +154,7 @@ AscBrowser.checkZoom = function()
 	AscBrowser.isRetina = false;
 	AscBrowser.retinaPixelRatio = 1;
 
-    if (AscBrowser.isChrome && !AscBrowser.isOpera && !AscBrowser.isMobile && document && document.firstElementChild && document.body)
+    if (AscBrowser.isChrome && !AscBrowser.isOperaOld && !AscBrowser.isMobile && document && document.firstElementChild && document.body)
     {
         if (false)
 		{

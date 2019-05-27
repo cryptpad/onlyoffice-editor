@@ -157,6 +157,22 @@
 	}
 
 	/**
+	 * Class representing a names
+	 * @constructor
+	 */
+	function ApiName(DefName) {
+		this.DefName = DefName;
+	}
+
+	/**
+	 * Class representing a comments
+	 * @constructor
+	 */
+	function ApiComment(comment) {
+		this.Comment = comment;
+	}
+
+	/**
 	 * Returns a class formatted according to instructions contained in a format expression
 	 * @memberof Api
 	 * @param {string} expression Any valid expression.
@@ -307,6 +323,71 @@
 	};
 
 	/**
+	 * Returns a ApiRange object that represents the rectangular intersection of two or more ranges. If one or more ranges from a different worksheet are specified, an error will be returned.
+	 * @memberof Api
+	 * @param {ApiRange} Range1 The intersecting ranges. At least two Range objects must be specified.
+	 * @param {ApiRange} Range2 The intersecting ranges. At least two Range objects must be specified.
+	 * @returns {ApiRange | Error}
+	 */
+	Api.prototype.Intersect  = function (Range1, Range2) {
+		if (Range1.Worksheet.Id === Range2.Worksheet.Id) {
+			var res = Range1.range.bbox.intersection(Range2.range.bbox);
+			if (!res) {
+				return "Ranges do not intersect.";
+			} else {
+				return new ApiRange(this.ActiveSheet.worksheet.getRange3(res.r1, res.c1, res.r2, res.c2));
+			}
+		} else {
+			return new Error('Ranges should be from one worksheet.');
+		}
+	};
+
+	/**
+	 * Returns an object that represents the selection range
+	 * @memberof Api
+	 * @returns {ApiRange}
+	 */
+	Api.prototype.GetSelection = function () {
+		return this.GetActiveSheet().GetSelection();
+	};
+	Object.defineProperty(Api.prototype, "Selection", {
+		get: function () {
+			return this.GetSelection();
+		}
+	});
+
+	/**
+	 * Defines a new name for a range of cells.
+	 * @typeofeditors ["CSE"]
+	 * @memberof Api
+	 */
+	Api.prototype.AddDefName = function (name, ref, hidden) {
+		private_AddDefName(this.wbModel, name, ref, null, hidden);
+	};
+
+	/**
+	 * Returns a ApiName.
+	 * @typeofeditors ["CSE"]
+	 * @memberof Api
+	 * @returns {ApiName}
+	 */
+	Api.prototype.GetDefName = function (defName) {
+		if (defName && typeof defName === "string") {
+			defName = this.wbModel.getDefinesNames(defName);
+		}
+		return new ApiName(defName);
+	};
+
+	/**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CSE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
+	};
+
+	/**
 	 * Returns Visible of sheet
 	 * @memberof ApiWorksheet
 	 * @returns {bool}
@@ -329,6 +410,19 @@
 		},
 		set: function (value) {
 			this.SetVisible(value);
+		}
+	});
+
+	/**
+	 * Makes the current sheet the active sheet.
+	 * @memberof ApiWorksheet
+	 */
+	ApiWorksheet.prototype.SetActive = function () {
+		this.worksheet.workbook.setActive(this.worksheet.index);
+	};
+	Object.defineProperty(ApiWorksheet.prototype, "Active", {
+		get: function () {
+			this.SetActive();
 		}
 	});
 
@@ -388,7 +482,9 @@
 	 * @param {string | number} value
 	 */
 	ApiWorksheet.prototype.GetRows = function (value) {
-		if (typeof value == "number" || value.indexOf(':') == -1) {
+		if (typeof  value === "undefined") {
+			return this.Rows;
+		} else if (typeof value == "number" || value.indexOf(':') == -1) {
 			value = parseInt(value);
 			if (value > 0) {
 				value --;
@@ -710,6 +806,111 @@
 	});
 
 	/**
+	 * Returns array a ApiName.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiWorksheet
+	 * @returns {ApiName}
+	 */
+	ApiWorksheet.prototype.GetDefNames = function () {
+		var res =  this.worksheet.workbook.getDefinedNamesWS(this.worksheet.getId());
+		var name = [];
+		if (!res.length) {
+			return [new ApiName(undefined)]
+		}
+		for (var i = 0; i < res.length; i++) {
+			name.push(new ApiName(res[i]));
+		}
+		return name;
+	};
+
+	/**
+	 * Returns a ApiName.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiWorksheet
+	 * @returns {ApiName}
+	 */
+	ApiWorksheet.prototype.GetDefName = function (defName) {
+		if (defName && typeof defName === "string") {
+			defName = this.worksheet.workbook.getDefinesNames(defName, this.worksheet.getId());
+		}
+		return new ApiName(defName);
+	};
+
+	/**
+	 * Defines a new name for a range of cells.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiWorksheet
+	 * @returns {ApiName}
+	 */
+	ApiWorksheet.prototype.AddDefName = function (name, ref, hidden) {
+		private_AddDefName(this.worksheet.workbook, name, ref, this.worksheet.getId(), hidden);
+	};
+
+	Object.defineProperty(ApiWorksheet.prototype, "DefNames", {
+		get: function () {
+			return this.GetDefNames();
+		}
+	});
+
+	/**
+	 * Returns a ApiComment.
+	 * @memberof ApiWorksheet
+	 * @returns {ApiComment}
+	 */
+	ApiWorksheet.prototype.GetComments = function () {
+		var comments = [];
+		for (var i = 0; i < this.worksheet.aComments.length; i++) {
+			comments.push(new ApiComment(this.worksheet.aComments[i]));
+		}
+		return comments;
+	};
+	Object.defineProperty(ApiWorksheet.prototype, "Comments", {
+		get: function () {
+			return this.GetComments();
+		}
+	});
+
+	/**
+	 * Deletes the object.
+	 * @memberof ApiWorksheet
+	 */
+	ApiWorksheet.prototype.Delete = function () {
+		this.worksheet.workbook.removeWorksheet(this.worksheet.getIndex());
+	};
+
+	/**
+	 * Add Hyperlink
+	 * @memberof ApiWorksheet
+	 * @param {Anchor} Anchor
+	 * @param {Address} Address
+	 * @param {ScreenTip} ScreenTip
+	 * @param {TextToDisplay} TextToDisplay
+	 * */
+	ApiWorksheet.prototype.SetHyperlink = function (Anchor, Address, ScreenTip, TextToDisplay)	{
+		var range = new ApiRange(this.worksheet.getRange2(Anchor));
+		var p = /^(?:http:\/\/|https:\/\/)/;
+		if (range && range.range.isOneCell() && Address) {
+			this.worksheet.selectionRange.assign2(range.range.bbox);
+			var  Hyperlink = new Asc.asc_CHyperlink();
+			if (ScreenTip) {
+				Hyperlink.asc_setText(ScreenTip);
+			} else {
+				Hyperlink.asc_setText(Address);
+			}
+			if (TextToDisplay) {
+				Hyperlink.asc_setTooltip(TextToDisplay);
+			}
+			if (Address.match(p) || Address.search(/mailto:/i) !== -1) {
+				Hyperlink.asc_setHyperlinkUrl(Address);
+			} else {
+				Hyperlink.asc_setRange(Address);
+				Hyperlink.asc_setSheet(this.Name);
+			}
+			this.worksheet.workbook.oApi.wb.insertHyperlink(Hyperlink);
+		}
+	};
+
+	/**
 	 * Create a chart of the set type from the selected data range of the current sheet.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
@@ -864,7 +1065,6 @@
 			if(arguments.length === 8){//support old variant
 				oChart.setBDeleted(false);
 				oChart.setWorksheet(this.worksheet);
-				oChart.setBFromSerialize(true);
 				oChart.addToDrawingObjects();
 				oChart.setDrawingBaseCoords(arguments[4], 0, arguments[5], 0, arguments[6], 0, arguments[7], 0, 0, 0, 0, 0);
 			}
@@ -987,7 +1187,6 @@
 								_object.deleteDrawingBase();
 								oImage.setBDeleted(false);
 								oImage.setWorksheet(oWorksheet.model);
-								oImage.setBFromSerialize(true);
 								oImage.addToDrawingObjects(i);
 								oImage.setDrawingBaseType(AscCommon.c_oAscCellAnchorType.cellanchorAbsolute);
 								oImage.setDrawingBaseCoords(0, 0, 0, 0, 0, 0, 0, 0, _object.x, _object.y, oImage.spPr.xfrm.extX, oImage.spPr.xfrm.extY);
@@ -1044,6 +1243,41 @@
 	Object.defineProperty(ApiRange.prototype, "Col", {
 		get: function () {
 			return this.GetCol();
+		}
+	});
+
+	/**
+	 * Clears the entire object.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiRange
+	 */
+	ApiRange.prototype.Clear = function () {
+		this.range.cleanAll();
+	};
+
+	/**
+	 * Returns a Range object that represents the rows in the specified range.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiRange
+	 * @param {number} number - The number of the row. * 
+	 * @returns {ApiRange}
+	 */
+	ApiRange.prototype.GetRows = function (number) {
+		if (typeof number === "undefined") {
+			var r1 = this.range.bbox.r1;
+			var r2 = this.range.bbox.r2;
+			return new ApiWorksheet(this.range.worksheet).GetRows(r1 + ":" + r2);
+			// return new ApiWorksheet(this.range.worksheet).Rows;	// return all rows from current sheet
+		} else if ( (number >= this.range.bbox.r1) && (number <= this.range.bbox.r2) ) {
+			return new ApiWorksheet(this.range.worksheet).GetRows(number);
+		} else {
+			var bbox = this.range.bbox;
+			return new ApiRange(this.range.worksheet.getRange3(number, bbox.c1, number, bbox.c2));
+		}
+	};
+	Object.defineProperty(ApiRange.prototype, "Rows", {
+		get: function () {
+			return this.GetRows();
 		}
 	});
 
@@ -1505,7 +1739,7 @@
 	 * @param {ApiColor} color - The color object previously created to set the color to the background in the cell/cell range.
 	 */
 	ApiRange.prototype.SetFillColor = function (color) {
-		this.range.setFill(color.color);
+		this.range.setFillColor(color.color);
 	};
 	Object.defineProperty(ApiRange.prototype, "FillColor", {
 		set: function (color) {
@@ -1641,6 +1875,70 @@
 			comment.nRow = this.range.bbox.r1;
 			comment.bDocument = false;
 			ws.cellCommentator.addComment(comment, true);
+		}
+	};
+
+	/**
+	 * Returns a Worksheet object that represents the worksheet containing the specified range. Read-only.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiRange
+	 */
+	ApiRange.prototype.GetWorksheet = function () {
+		return new ApiWorksheet(this.range.worksheet);
+	};
+	Object.defineProperty(ApiRange.prototype, "Worksheet", {
+		get: function () {
+			return this.GetWorksheet();
+		}
+	});
+
+	/**
+	 * Returns a ApiName.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiRange
+	 * @returns {ApiName}
+	 */
+	ApiRange.prototype.GetDefName = function () {
+		var defName = this.range.worksheet.getName() + "!" + this.range.bbox.getAbsName();
+		var SheetId = this.range.worksheet.getId();
+		defName = this.range.worksheet.workbook.findDefinesNames(defName, SheetId);
+		if (defName) {
+			defName = this.range.worksheet.workbook.getDefinesNames(defName, SheetId);
+		}
+		return new ApiName(defName);
+	};
+	Object.defineProperty(ApiRange.prototype, "DefName", {
+		get: function () {
+			return this.GetDefName();
+		}
+	});
+
+	/**
+	 * Returns a ApiComment.
+	 * @memberof ApiRange
+	 * @returns {ApiComment}
+	 */
+	ApiRange.prototype.GetComment = function () {
+		if (!this.range.isOneCell()) {
+			return null;
+		}
+		return new ApiComment(this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex()).cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false));
+	};
+	Object.defineProperty(ApiRange.prototype, "Comments", {
+		get: function () {
+			return this.GetComment();
+		}
+	});
+
+	/**
+	 * Selects the object.
+	 * @memberof ApiRange
+	 */
+	ApiRange.prototype.Select = function () {
+		if (this.range.worksheet.getId() === this.range.worksheet.workbook.getActiveWs().getId()) {
+			var newSelection = new AscCommonExcel.SelectionRange(this.range.worksheet);
+			newSelection.assign2(this.range.bbox);
+			newSelection.Select();
 		}
 	};
 
@@ -2038,7 +2336,123 @@
 	ApiColor.prototype.GetClassType = function () {
 		return "color";
 	};
+	
+	//------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiName
+	//
+	//------------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Returns a String value representing the name of the object.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiName
+	 * @returns {string} 
+	 */
+	ApiName.prototype.GetName = function () {
+		if (this.DefName) {
+			return this.DefName.name
+		} else {
+			return this.DefName;
+		}
+	};
+
+	/**
+	 * Sets a String value representing the name of the object.
+	 * @typeofeditors ["CSE"]
+	 * @param {string} Name	// new name for range
+	 * @memberof ApiName
+	 * @returns {Error}
+	 */
+	ApiName.prototype.SetName = function (Name) {
+		if (!Name || typeof Name !== 'string' || !this.DefName) {
+			return new Error('Invalid name or Defname is undefined.');
+		}
+		var res = this.DefName.wb.checkDefName(Name);
+		if (!res.status) {
+			return new Error('Invalid name.'); // invalid name
+		}
+		var oldName = this.DefName.getAscCDefName(false);
+		var newName = this.DefName.getAscCDefName(false);
+		newName.Name = Name;
+		this.DefName.wb.editDefinesNames(oldName, newName);
+	};
+
+	Object.defineProperty(ApiName.prototype, "Name", {
+		get: function () {
+			return this.GetName();
+		}, 
+		set: function (Name) {
+			return this.SetName(Name);
+		}
+	});
+
+	/**
+	 * Deletes the DefName object.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiName
+	 */
+	ApiName.prototype.Delete = function () {
+		this.DefName.wb.delDefinesNames(this.DefName.getAscCDefName(false));
+	};
+
+	/**
+	 * Sets the formula that the name is defined to refer to.
+	 * @typeofeditors ["CSE"]
+	 * @param {string} Ref	// new refers to defined name
+	 * @memberof ApiName
+	 */
+	ApiName.prototype.SetRefersTo = function (Ref) {
+		this.DefName.setRef(Ref);
+	};
+
+	/**
+	 * Returns the formula that the name is defined to refer to.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiName
+	 * @returns {string} 
+	 */
+	ApiName.prototype.GetRefersTo = function () {
+		return (this.DefName) ? this.DefName.ref : this.DefName;
+	};
+
+	Object.defineProperty(ApiName.prototype, "RefersTo", {
+		get: function () {
+			return this.GetRefersTo();
+		}, 
+		set: function (Ref) {
+			return this.SetRefersTo(Ref);
+		}
+	});
+
+	//------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiComment
+	//
+	//------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Returns the text of comment.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiComment
+	 */
+	ApiComment.prototype.GetText = function () {
+		return this.Comment.asc_getText();
+	};
+	Object.defineProperty(ApiComment.prototype, "Text", {
+		get: function () {
+			return this.GetText();
+		}
+	});
+
+	/**
+	 * Deletes the object.
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiComment
+	 */
+	ApiComment.prototype.Delete = function () {
+		this.Comment.worksheet.cellCommentator.removeComment(this.Comment.asc_getId());
+	};
 
 	Api.prototype["Format"] = Api.prototype.Format;
 	Api.prototype["AddSheet"] = Api.prototype.AddSheet;
@@ -2052,9 +2466,15 @@
 	Api.prototype["CreateNewHistoryPoint"] = Api.prototype.CreateNewHistoryPoint;
 	Api.prototype["CreateColorFromRGB"] = Api.prototype.CreateColorFromRGB;
 	Api.prototype["CreateColorByName"] = Api.prototype.CreateColorByName;
+	Api.prototype["Intersect"] = Api.prototype.Intersect;
+	Api.prototype["GetSelection"] = Api.prototype.GetSelection;
+	Api.prototype["AddDefName"] = Api.prototype.AddDefName;
+	Api.prototype["GetDefName"] = Api.prototype.GetDefName;
+	Api.prototype["Save"] = Api.prototype.Save;
 
 	ApiWorksheet.prototype["GetVisible"] = ApiWorksheet.prototype.GetVisible;
 	ApiWorksheet.prototype["SetVisible"] = ApiWorksheet.prototype.SetVisible;
+	ApiWorksheet.prototype["SetActive"] = ApiWorksheet.prototype.SetActive;		
 	ApiWorksheet.prototype["GetActiveCell"] = ApiWorksheet.prototype.GetActiveCell;
 	ApiWorksheet.prototype["GetSelection"] = ApiWorksheet.prototype.GetSelection;
 	ApiWorksheet.prototype["GetCells"] = ApiWorksheet.prototype.GetCells;
@@ -2081,6 +2501,12 @@
 	ApiWorksheet.prototype["GetBottomMargin"] = ApiWorksheet.prototype.GetBottomMargin;		
 	ApiWorksheet.prototype["SetPageOrientation"] = ApiWorksheet.prototype.SetPageOrientation;
 	ApiWorksheet.prototype["GetPageOrientation"] = ApiWorksheet.prototype.GetPageOrientation;
+	ApiWorksheet.prototype["GetDefNames"] = ApiWorksheet.prototype.GetDefNames;
+	ApiWorksheet.prototype["GetDefName"] = ApiWorksheet.prototype.GetDefName;
+	ApiWorksheet.prototype["AddDefName"] = ApiWorksheet.prototype.AddDefName;
+	ApiWorksheet.prototype["GetComments"] = ApiWorksheet.prototype.GetComments;
+	ApiWorksheet.prototype["Delete"] = ApiWorksheet.prototype.Delete;
+	ApiWorksheet.prototype["SetHyperlink"] = ApiWorksheet.prototype.SetHyperlink;
 	ApiWorksheet.prototype["AddChart"] = ApiWorksheet.prototype.AddChart;
 	ApiWorksheet.prototype["AddShape"] = ApiWorksheet.prototype.AddShape;
 	ApiWorksheet.prototype["AddImage"] = ApiWorksheet.prototype.AddImage;
@@ -2088,6 +2514,8 @@
 
 	ApiRange.prototype["GetRow"] = ApiRange.prototype.GetRow;
 	ApiRange.prototype["GetCol"] = ApiRange.prototype.GetCol;
+	ApiRange.prototype["Clear"] = ApiRange.prototype.Clear;
+	ApiRange.prototype["GetRows"] = ApiRange.prototype.GetRows;
 	ApiRange.prototype["SetOffset"] = ApiRange.prototype.SetOffset;
 	ApiRange.prototype["GetAddress"] = ApiRange.prototype.GetAddress;	
 	ApiRange.prototype["GetCount"] = ApiRange.prototype.GetCount;
@@ -2118,6 +2546,10 @@
 	ApiRange.prototype["UnMerge"] = ApiRange.prototype.UnMerge;
 	ApiRange.prototype["ForEach"] = ApiRange.prototype.ForEach;
 	ApiRange.prototype["AddComment"] = ApiRange.prototype.AddComment;
+	ApiRange.prototype["GetWorksheet"] = ApiRange.prototype.GetWorksheet;
+	ApiRange.prototype["GetDefName"] = ApiRange.prototype.GetDefName;
+	ApiRange.prototype["GetComment"] = ApiRange.prototype.GetComment;
+	ApiRange.prototype["Select"] = ApiRange.prototype.Select;
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;
@@ -2162,6 +2594,17 @@
 	ApiColor.prototype["GetClassType"]                 =  ApiColor.prototype.GetClassType;
 
 
+	ApiName.prototype["GetName"]                 =  ApiName.prototype.GetName;
+	ApiName.prototype["SetName"]                 =  ApiName.prototype.SetName;
+	ApiName.prototype["Delete"]                  =  ApiName.prototype.Delete;
+	ApiName.prototype["GetRefersTo"]             =  ApiName.prototype.GetRefersTo;
+	ApiName.prototype["SetRefersTo"]             =  ApiName.prototype.SetRefersTo;
+
+
+	ApiComment.prototype["GetText"]              =  ApiComment.prototype.GetText;
+	ApiComment.prototype["Delete"]               =  ApiComment.prototype.Delete;
+
+
 	function private_SetCoords(oDrawing, oWorksheet, nExtX, nExtY, nFromCol, nColOffset,  nFromRow, nRowOffset, pos){
 		oDrawing.x = 0;
 		oDrawing.y = 0;
@@ -2172,7 +2615,6 @@
 		oDrawing.spPr.xfrm.setExtY(nExtY/36000.0);
 		oDrawing.setBDeleted(false);
 		oDrawing.setWorksheet(oWorksheet);
-		oDrawing.setBFromSerialize(true);
 		oDrawing.addToDrawingObjects(pos);
 		oDrawing.setDrawingBaseType(AscCommon.c_oAscCellAnchorType.cellanchorOneCell);
 		oDrawing.setDrawingBaseCoords(nFromCol, nColOffset/36000.0, nFromRow, nRowOffset/36000.0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -2231,6 +2673,21 @@
 			border.c = color.color;
 		}
 		return border;
+	}
+
+	function private_AddDefName(wb, name, ref, sheetId, hidden) {
+		var res = wb.checkDefName(name);
+		if (!res.status) {
+			return new Error('Invalid name.');
+		}
+		res = wb.oApi.asc_checkDataRange(Asc.c_oAscSelectionDialogType.Chart, ref, false);
+		if (res === Asc.c_oAscError.ID.DataRangeError) {
+			return new Error('Invalid range.');
+		}
+		if (sheetId) {
+			sheetId = (wb.getWorksheetById(sheetId)) ? sheetId : undefined;
+		}
+		wb.addDefName(name, ref, sheetId, hidden, false)
 	}
 
 }(window, null));

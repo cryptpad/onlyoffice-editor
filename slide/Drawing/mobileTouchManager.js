@@ -364,7 +364,7 @@
 		var _element = this.delegate.GetScrollerParent();
 		this.CreateScrollerDiv(_element);
 
-		this.iScroll = new window.IScroll(_element, {
+		this.iScroll = new window.IScrollMobile(_element, {
 			scrollbars: true,
 			mouseWheel: true,
 			interactiveScrollbars: true,
@@ -957,7 +957,10 @@
 		this.checkPointerMultiTouchRemove(e);
 
 		if (this.Api.isViewMode || isPreventDefault)
-			AscCommon.g_inputContext.preventVirtualKeyboard(e);
+            AscCommon.stopEvent(e);//AscCommon.g_inputContext.preventVirtualKeyboard(e);
+
+        if (AscCommon.AscBrowser.isSailfish && AscCommon.AscBrowser.isEmulateDevicePixelRatio && isPreventDefault)
+            AscCommon.stopEvent(e);
 
 		if (true !== this.iScroll.isAnimating)
 			this.CheckContextMenuTouchEnd(isCheckContextMenuMode, isCheckContextMenuSelect, isCheckContextMenuCursor, isCheckContextMenuTableRuler);
@@ -1146,7 +1149,7 @@
 		var _element = this.delegate.GetScrollerParent();
 		this.CreateScrollerDiv(_element);
 
-		this.iScroll = new window.IScroll(_element, {
+		this.iScroll = new window.IScrollMobile(_element, {
 			scrollbars: true,
 			mouseWheel: true,
 			interactiveScrollbars: true,

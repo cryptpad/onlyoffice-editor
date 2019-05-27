@@ -153,7 +153,7 @@ ParaComment.prototype =
         return "";
     },
 
-    Get_SelectionDirection : function()
+	GetSelectDirection : function()
     {
         return 1;
     },
@@ -200,7 +200,7 @@ ParaComment.prototype =
     {
     },
 
-    Check_RevisionsChanges : function(Checker, ContentPos, Depth)
+    CheckRevisionsChanges : function(Checker, ContentPos, Depth)
     {
     },
 
@@ -254,7 +254,7 @@ ParaComment.prototype =
     {
     },
 
-    Is_EmptyRange : function(_CurLine, _CurRange)
+    IsEmptyRange : function(_CurLine, _CurRange)
     {
         return true;
     },
@@ -498,9 +498,9 @@ ParaComment.prototype.Get_TextPr = function(ContentPos, Depth)
 //----------------------------------------------------------------------------------------------------------------------
 // Разное
 //----------------------------------------------------------------------------------------------------------------------
-ParaComment.prototype.Set_ReviewType = function(ReviewType, RemovePrChange){};
-ParaComment.prototype.Set_ReviewTypeWithInfo = function(ReviewType, ReviewInfo){};
-ParaComment.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth){};
+ParaComment.prototype.SetReviewType = function(ReviewType, RemovePrChange){};
+ParaComment.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo){};
+ParaComment.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth){};
 ParaComment.prototype.AcceptRevisionChanges = function(Type, bAll){};
 ParaComment.prototype.RejectRevisionChanges = function(Type, bAll){};
 

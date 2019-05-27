@@ -2343,7 +2343,7 @@ CDocMeta.prototype =
                                     var old = curIndex;
                                     var start = curIndex;
                                     var end = start + lineSpans[i].inner.length;
-                                    curIndex = end + 1;
+                                    curIndex = end;
 
                                     if (_g1 > start)
                                         start = _g1;

@@ -98,6 +98,11 @@
 		this.DivOnCopyText = "";
 
 		this.bSaveFormat = false; //для вставки, допустим, из плагина необходимо чтобы при добавлении текста в шейп сохранялось форматирование
+		this.bCut = false;
+
+		this.clearBufferTimerId = -1;
+
+		this.needClearBuffer = false;
 	}
 
 	CClipboardBase.prototype =
@@ -105,6 +110,31 @@
 		_console_log : function(_obj)
 		{
 			//console.log(_obj);
+		},
+
+		checkCopy : function(formats)
+		{
+            if (-1 != this.clearBufferTimerId)
+			{
+                if (formats & AscCommon.c_oAscClipboardDataFormat.Text)
+				{
+					this.pushData(AscCommon.c_oAscClipboardDataFormat.Text, "");
+				}
+				if (formats & AscCommon.c_oAscClipboardDataFormat.Html)
+				{
+					this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, "");
+				}
+                if (formats & AscCommon.c_oAscClipboardDataFormat.Internal)
+                {
+                    this.pushData(AscCommon.c_oAscClipboardDataFormat.Internal, "");
+                }
+
+                clearTimeout(this.clearBufferTimerId);
+                this.clearBufferTimerId = -1;
+                return;
+			}
+
+			return this.Api.asc_CheckCopy(this, formats);
 		},
 
 		_private_oncopy : function(e)
@@ -122,7 +152,7 @@
 			else
 			{
 				this.LastCopyBinary = null;
-				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+				this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 
 				setTimeout(function(){
 					//вызываю CommonDiv_End, поскольку на _private_onbeforecopy всегда делается CommonDiv_Start
@@ -142,6 +172,8 @@
 			if (!this.Api.asc_IsFocus(true))
 				return;
 
+			this.bCut = true;
+
 			this.ClosureParams._e = e;
 			if (this.IsNeedDivOnCopy)
 			{
@@ -150,10 +182,11 @@
 			else
 			{
 				this.LastCopyBinary = null;
-				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+				this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 			}
 
 			this.Api.asc_SelectionCut();
+			this.bCut = false;
 
 			if (!this.IsNeedDivOnCopy)
 			{
@@ -202,6 +235,8 @@
 				var _clipboard = (e && e.clipboardData) ? e.clipboardData : window.clipboardData;
 				if (!_clipboard || !_clipboard.getData)
 					return false;
+
+				//window['AscCommon'].g_clipboardBase.rtf = this.ClosureParams.getData("text/rtf");
 
 				var _text_format = this.ClosureParams.getData("text/plain");
 				var _internal = this.ClosureParams.getData("text/x-custom");
@@ -704,6 +739,7 @@
 			document.body.style.overflow = this.ClosureParams.overflowBody;
 
 			this.CopyFlag = false;
+			this.bCut = false;
 			this.EndFocus();
 		},
 
@@ -718,7 +754,7 @@
 			this.DivOnCopyHtmlPresent = false;
 			this.DivOnCopyText = "";
 			this.LastCopyBinary = null;
-			this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+			this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 			this.ClosureParams.isDivCopy = false;
 
 			if (!this.DivOnCopyHtmlPresent && this.DivOnCopyText != "")
@@ -804,6 +840,10 @@
 			this.Api.decrementCounterLongAction();
 			this.PasteFlag = false;
 			this.EndFocus();
+			if(this.needClearBuffer) {
+				this.ClearBuffer();
+				this.needClearBuffer = false;
+			}
 		},
 
 		pushData : function(_format, _data)
@@ -871,7 +911,7 @@
 			{
 				//　копирования не было
 				this.LastCopyBinary = null;
-				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+				this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 			}
 			return  _ret;
 		},
@@ -896,9 +936,11 @@
 			{
 				//　копирования не было
 				this.LastCopyBinary = null;
-				this.Api.asc_CheckCopy(this, AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
+				this.bCut = true;
+				this.checkCopy(AscCommon.c_oAscClipboardDataFormat.Text | AscCommon.c_oAscClipboardDataFormat.Html | AscCommon.c_oAscClipboardDataFormat.Internal);
 
 				this.Api.asc_SelectionCut();
+				this.bCut = false;
 			}
 			return _ret;
 		},
@@ -936,6 +978,21 @@
 					this.Api.asc_PasteData(this.LastCopyBinary[0].type, this.LastCopyBinary[0].data);
 			}
 			return _ret;
+		},
+
+		ClearBuffer : function()
+		{
+            if (-1 != this.clearBufferTimerId)
+            {
+                // clear old timer (restart interval)
+                clearTimeout(this.clearBufferTimerId);
+            }
+            this.clearBufferTimerId = setTimeout(function(){
+                if (AscCommon.g_clipboardBase)
+                    AscCommon.g_clipboardBase.clearBufferTimerId = -1;
+            }, 500);
+
+			this.Button_Copy();
 		},
 
 		isCopyOutEnabled : function()
@@ -1011,7 +1068,7 @@
 			this.doNotShowButton = true;
 		},
 
-		Paste_Process_End : function()
+		Paste_Process_End : function(checkEnd)
 		{
 			AscFonts.IsCheckSymbols             = false;
 			//todo возможно стоит добавить проверку
@@ -1037,13 +1094,20 @@
 				this.SpecialPasteButton_Show();
 			}
 
-			this.doNotShowButton = false;
+			if(!checkEnd || (checkEnd && this.endRecalcDocument)) {
+				this.doNotShowButton = false;
+			}
 
 			//TODO для excel заглушка. пересмотреть!
 			if(this.bIsEndTransaction)
 			{
 				this.bIsEndTransaction = false;
 				History.EndTransaction();
+			}
+
+			var _logicDoc = this.Api.WordControl ? this.Api.WordControl.m_oLogicDocument : null;
+			if (_logicDoc && _logicDoc.Action && _logicDoc.Action.Start && this.Api._finalizeAction) {
+				this.Api._finalizeAction();
 			}
 		},
 		
@@ -1072,11 +1136,20 @@
 
 		SpecialPasteButtonById_Show: function()
 		{
+			if(!this.pasteStart) {
+				this.endRecalcDocument = true;
+			}
+
+			if(!this.showButtonIdParagraph || this.pasteStart) {
+				return;
+			}
+
 			if(!this.Api || !this.Api.asc_specialPasteShowButton || this.doNotShowButton)
 			{
 				if(this.doNotShowButton) {
 					this.showButtonIdParagraph = null;
 				}
+				this.doNotShowButton = false;
 				return;
 			}
 
@@ -1141,6 +1214,13 @@
 		CleanButtonInfo: function()
 		{
 			this.buttonInfo.clean();
+		},
+
+		GetPastedData: function(bText) {
+			if(bText && this.specialPasteData.text_data) {
+				return this.specialPasteData.text_data;
+			}
+			return this.specialPasteData.data1;
 		}
 	};
 

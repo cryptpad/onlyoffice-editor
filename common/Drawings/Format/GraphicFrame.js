@@ -967,9 +967,9 @@ CGraphicFrame.prototype.applyTextFunction = function(docContentFunction, tableFu
         tableFunction.apply(this.graphicObject, args);
 };
 
-CGraphicFrame.prototype.remove = function(Count, bOnlyText, bRemoveOnlySelection)
+CGraphicFrame.prototype.remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
     {
-        this.graphicObject.Remove(Count, bOnlyText, bRemoveOnlySelection);
+        this.graphicObject.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
         this.recalcInfo.recalculateSizes = true;
         this.recalcInfo.recalculateTransform = true;
 };

@@ -493,7 +493,12 @@ CShapeDrawer.prototype =
             if ((this.Ln.headEnd != null && this.Ln.headEnd.type != null) || (this.Ln.tailEnd != null && this.Ln.tailEnd.type != null))
             {
                 if (true === graphics.IsTrack)
-                    graphics.Graphics.ArrayPoints = [];
+                {
+                    if(graphics.Graphics)
+                    {
+                        graphics.Graphics.ArrayPoints = [];
+                    }
+                }
                 else
                     graphics.ArrayPoints = [];
         }
@@ -807,6 +812,11 @@ CShapeDrawer.prototype =
 		if (this.Graphics.IsSlideBoundsCheckerType)
 			return;
 
+        if (this.Graphics.RENDERER_PDF_FLAG)
+        {
+            this.Graphics.drawpath(1);
+            return;
+        }
         if (this.Ln.Join != null && this.Ln.Join.type != null)
         {
             switch (this.Ln.Join.type)
@@ -1158,8 +1168,10 @@ CShapeDrawer.prototype =
         else
         {
             // такого быть не должно по идее
-            this.Graphics.b_color1(0, 0, 0, 0);
-            this.Graphics.drawpath(256);
+            // может - см выше: 1) this.Graphics.drawImage(...); 2) bIsFill = false;
+
+            //this.Graphics.b_color1(0, 0, 0, 0);
+            //this.Graphics.drawpath(256);
         }
 
         var arr = this.Graphics.ArrayPoints;

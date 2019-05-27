@@ -240,7 +240,7 @@ CDocument.prototype.Add_MailMergeField = function(Name)
 {
     if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
     {
-        this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AddMailMergeField);
+        this.StartAction(AscDFH.historydescription_Document_AddMailMergeField);
 
         var oField = new ParaField(fieldtype_MERGEFIELD, [Name], []);
         var oRun = new ParaRun();
@@ -249,7 +249,8 @@ CDocument.prototype.Add_MailMergeField = function(Name)
 
         this.Register_Field(oField);
         this.AddToParagraph(oField);
-        this.Document_UpdateInterfaceState();
+        this.UpdateInterface();
+        this.FinalizeAction();
     }
 };
 CDocument.prototype.Set_HightlighMailMergeFields = function(Value)
@@ -276,7 +277,7 @@ CDocument.prototype.Preview_MailMergeResult = function(Index)
     }
 
     this.FieldsManager.Update_MailMergeFields(this.MailMergeMap[Index]);
-    this.Recalculate_FromStart(true);
+    this.RecalculateFromStart(true);
 
     editor.sync_PreviewMailMergeResult(Index);
 };
@@ -289,7 +290,7 @@ CDocument.prototype.EndPreview_MailMergeResult = function()
     AscCommon.CollaborativeEditing.Set_GlobalLock(false);
 
     this.FieldsManager.Restore_MailMergeTemplate();
-    this.Recalculate_FromStart(true);
+    this.RecalculateFromStart(true);
 
     editor.sync_EndPreviewMailMergeResult();
 };

@@ -51,28 +51,126 @@ function CheckCoordsNeedPage(x, y, pageIndex, needPageIndex, drawingDocument)
 
 function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageIndex, bWord)
 {
+    if(drawingObjectsController.isSlideShow())
+    {
+        return false;
+    }
     var selected_objects = group ? group.selectedObjects : drawingObjectsController.getSelectedObjects();
-    var tx, ty, t;
+    var oCropSelection = drawingObjectsController.selection.cropSelection ? drawingObjectsController.selection.cropSelection : null;
+    var tx, ty, t, hit_to_handles;
     var ret = null;
     var drawing = null;
-    if(selected_objects.length === 1)
+    if(oCropSelection && !window["IS_NATIVE_EDITOR"])
     {
-        if(bWord && pageIndex !== selected_objects[0].selectStartPage)
+        var oCropObject = oCropSelection.getCropObject();
+        if(oCropObject)
         {
-            t = drawingObjectsController.drawingDocument.ConvertCoordsToAnotherPage(x, y, pageIndex, selected_objects[0].selectStartPage);
-            tx = t.X;
-            ty = t.Y;
+            if(bWord && pageIndex !== oCropSelection.selectStartPage)
+            {
+                t = drawingObjectsController.drawingDocument.ConvertCoordsToAnotherPage(x, y, pageIndex, oCropSelection.selectStartPage);
+                tx = t.X;
+                ty = t.Y;
+            }
+            else
+            {
+                tx = x;
+                ty = y;
+            }
+            hit_to_handles = oCropSelection.hitToHandles(tx, ty);
+            if(hit_to_handles > -1)
+            {
+                ret = drawingObjectsController.handleHandleHit(hit_to_handles, oCropSelection, group);
+                drawing = oCropSelection;
+            }
+
+            if(!ret)
+            {
+                if(oCropSelection.hitInBoundingRect(tx, ty))
+                {
+                    ret = drawingObjectsController.handleMoveHit(oCropSelection, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                }
+            }
+
+
+            var oldSelectedObjects;
+            if(group)
+            {
+                oldSelectedObjects = group.selectedObjects;
+                group.selectedObjects = [oCropObject];
+            }
+            else
+            {
+                oldSelectedObjects = drawingObjectsController.selectedObjects;
+                drawingObjectsController.selectedObjects = [oCropObject];
+            }
+            if(!ret)
+            {
+                hit_to_handles = oCropObject.hitToHandles(tx, ty);
+                if(hit_to_handles > -1)
+                {
+                    ret = drawingObjectsController.handleHandleHit(hit_to_handles, oCropObject, group);
+                    drawing = oCropObject;
+                }
+            }
+            if(!ret)
+            {
+                if(oCropObject.hitInBoundingRect(tx, ty))
+                {
+                    ret = drawingObjectsController.handleMoveHit(oCropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                }
+            }
+            if(!ret)
+            {
+                if(oCropSelection.hit(tx, ty))
+                {
+                    ret = drawingObjectsController.handleMoveHit(oCropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                }
+            }
+            if(!ret)
+            {
+                if(oCropObject.hit(tx, ty))
+                {
+                    ret = drawingObjectsController.handleMoveHit(oCropObject, e, tx, ty, group, true, oCropSelection.selectStartPage, true);
+                }
+            }
+            if(group)
+            {
+                group.selectedObjects = oldSelectedObjects;
+            }
+            else
+            {
+                drawingObjectsController.selectedObjects = oldSelectedObjects;
+            }
         }
-        else
+    }
+    if(!ret)
+    {
+        if(selected_objects.length === 1)
         {
-            tx = x;
-            ty = y;
-        }
-        var hit_to_adj = selected_objects[0].hitToAdjustment(tx, ty);
-        if(hit_to_adj.hit)
-        {
-            ret = drawingObjectsController.handleAdjustmentHit(hit_to_adj, selected_objects[0], group, pageIndex);
-            drawing = selected_objects[0];
+            if(window["IS_NATIVE_EDITOR"] && e.ClickCount > 1)
+            {
+                if(selected_objects[0].getObjectType() === AscDFH.historyitem_type_Shape)
+                {
+                    return null;
+                }
+            }
+            if(bWord && pageIndex !== selected_objects[0].selectStartPage)
+            {
+                t = drawingObjectsController.drawingDocument.ConvertCoordsToAnotherPage(x, y, pageIndex, selected_objects[0].selectStartPage);
+                tx = t.X;
+                ty = t.Y;
+            }
+            else
+            {
+                tx = x;
+                ty = y;
+            }
+            var hit_to_adj = selected_objects[0].hitToAdjustment(tx, ty);
+            if(hit_to_adj.hit)
+            {
+                ret = drawingObjectsController.handleAdjustmentHit(hit_to_adj, selected_objects[0], group, pageIndex);
+                drawing = selected_objects[0];
+            }
         }
     }
 
@@ -103,9 +201,17 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
             }
             if(!ret)
             {
-                var hit_to_handles = selected_objects[i].hitToHandles(tx, ty);
+                hit_to_handles = selected_objects[i].hitToHandles(tx, ty);
                 if(hit_to_handles > -1)
                 {
+
+                    if(window["IS_NATIVE_EDITOR"] && e.ClickCount > 1)
+                    {
+                        if(selected_objects[i].getObjectType() === AscDFH.historyitem_type_Shape)
+                        {
+                            return null;
+                        }
+                    }
                     ret = drawingObjectsController.handleHandleHit(hit_to_handles, selected_objects[i], group);
                     drawing = selected_objects[i];
                     break;
@@ -136,8 +242,16 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
             }
             if(!ret)
             {
-                if(selected_objects[i].hitInBoundingRect(tx, ty) /*&& (!selected_objects[i].hitInTextRect || !selected_objects[i].hitInTextRect(tx, ty))*/)
+                
+                if(selected_objects[i].hitInBoundingRect(tx, ty))
                 {
+                    if(window["IS_NATIVE_EDITOR"])
+                    {
+                        if(selected_objects[i] === AscFormat.getTargetTextObject(drawingObjectsController))
+                        {
+                            return null;
+                        }
+                    }
                     if(bWord && selected_objects[i].parent && selected_objects[i].parent.Is_Inline())
                         ret = handleInlineHitNoText(selected_objects[i], drawingObjectsController, e, tx, ty, pageIndex, true);
                     else
@@ -186,6 +300,7 @@ function handleFloatObjects(drawingObjectsController, drawingArr, e, x, y, group
             case AscDFH.historyitem_type_ImageShape:
             case AscDFH.historyitem_type_OleObject:
             case AscDFH.historyitem_type_Cnx:
+            case AscDFH.historyitem_type_LockedCanvas:
             {
                 ret = handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord);
                 break;
@@ -202,7 +317,7 @@ function handleFloatObjects(drawingObjectsController, drawingArr, e, x, y, group
             }
             case AscDFH.historyitem_type_GraphicFrame:
             {
-                ret = handleFloatTable(drawing, drawingObjectsController, e, x, y, group, pageIndex);
+                ret = !drawingObjectsController.isSlideShow() && handleFloatTable(drawing, drawingObjectsController, e, x, y, group, pageIndex);
                 break;
             }
         }
@@ -244,8 +359,33 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
             }
         }
     }
+
+
+    if(window["IS_NATIVE_EDITOR"])
+    {
+        if(drawing.getObjectType() === AscDFH.historyitem_type_Shape && drawing.getDocContent && drawing.getDocContent())
+        {
+            if(e.ClickCount > 1 && !e.ShiftKey && !e.CtrlKey && ((drawingObjectsController.selection.groupSelection && drawingObjectsController.selection.groupSelection.selectedObjects.length === 1) || drawingObjectsController.selectedObjects.length === 1))
+            {
+                if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
+                {
+                    hit_in_text_rect = true;
+                    hit_in_inner_area = false;
+                    hit_in_path = false;
+                }
+            }
+        }
+    }
     if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
     {
+        if(drawingObjectsController.isSlideShow())
+        {
+            var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
+            if(!sMediaFile)
+            {
+                return false;
+            }
+        }
         return drawingObjectsController.handleMoveHit(drawing, e, x, y, group, false, pageIndex, bWord);
     }
     else if(hit_in_text_rect)
@@ -261,6 +401,13 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
             var ret = handleInlineObjects(drawingObjectsController, drawings2, e, x, y, pageIndex, bWord);
             if(ret)
                 return ret;
+        }
+        if(drawingObjectsController.isSlideShow())
+        {
+            if(!AscFormat.fCheckObjectHyperlink(drawing,x, y))
+            {
+                return false
+            }
         }
         return drawingObjectsController.handleTextHit(drawing, e, x, y, group, pageIndex, bWord);
     }
@@ -285,6 +432,14 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
     }
     if(!hit_in_text_rect && (hit_in_inner_area || hit_in_path))
     {
+        if(drawingObjectsController.isSlideShow())
+        {
+            var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
+            if(!sMediaFile)
+            {
+                return false;
+            }
+        }
         return drawingObjectsController.handleMoveHit(drawing, e, x, y, null, false, pageIndex, true);
     }
     else if(hit_in_text_rect)
@@ -299,6 +454,13 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
             ret = handleInlineObjects(drawingObjectsController, drawings2, e, x, y, pageIndex, true);
             if (ret)
                 return ret;
+        }
+        if(drawingObjectsController.isSlideShow())
+        {
+            if(!AscFormat.fCheckObjectHyperlink(drawing,x, y))
+            {
+                return false
+            }
         }
         return drawingObjectsController.handleTextHit(shape, e, x, y, drawing, pageIndex, bWord);
     }
@@ -317,6 +479,7 @@ function handleGroup(drawing, drawingObjectsController, e, x, y, group, pageInde
             case AscDFH.historyitem_type_ImageShape:
             case AscDFH.historyitem_type_OleObject:
             case AscDFH.historyitem_type_Cnx:
+            case AscDFH.historyitem_type_LockedCanvas:
             {
                 ret = handleShapeImageInGroup(drawingObjectsController, drawing, cur_grouped_object, e, x, y, pageIndex, bWord);
                 if(ret)
@@ -325,70 +488,73 @@ function handleGroup(drawing, drawingObjectsController, e, x, y, group, pageInde
             }
             case AscDFH.historyitem_type_ChartSpace:
             {
-                var ret, i, title;
-                if(cur_grouped_object.hit(x, y))
+                if(!drawingObjectsController.isSlideShow())
                 {
-                    var chart_titles = cur_grouped_object.getAllTitles();
-                    for(i = 0; i < chart_titles.length; ++i)
+                    var ret, i, title;
+                    if(cur_grouped_object.hit(x, y))
                     {
-                        title = chart_titles[i];
-                        var hit_in_inner_area = title.hitInInnerArea(x, y);
-                        var hit_in_path = title.hitInPath(x, y);
-                        var hit_in_text_rect = title.hitInTextRect(x, y);
-                        if(hit_in_inner_area && !hit_in_text_rect || hit_in_path)
+                        var chart_titles = cur_grouped_object.getAllTitles();
+                        for(i = 0; i < chart_titles.length; ++i)
                         {
-                            if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+                            title = chart_titles[i];
+                            var hit_in_inner_area = title.hitInInnerArea(x, y);
+                            var hit_in_path = title.hitInPath(x, y);
+                            var hit_in_text_rect = title.hitInTextRect(x, y);
+                            if(hit_in_inner_area && !hit_in_text_rect || hit_in_path)
                             {
-                                drawingObjectsController.checkChartTextSelection();
-                                drawingObjectsController.resetSelection();
-                                drawingObjectsController.selectObject(drawing, pageIndex);
-                                drawingObjectsController.selection.groupSelection = drawing;
-                                drawing.selectObject(cur_grouped_object, pageIndex);
-                                drawing.chartSelection = cur_grouped_object;
-                                drawing.selection.title = title;
-                                cur_grouped_object.selectTitle(title, pageIndex);
-                                drawingObjectsController.updateSelectionState();
-                                return true;
-                            }
-                            else
-                            {
-                                return {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
-                            }
-                        }
-                        else if(hit_in_text_rect)
-                        {
-                            if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
-                            {
-                                drawingObjectsController.checkChartTextSelection();
-                                drawingObjectsController.resetSelection();
-                                drawingObjectsController.selectObject(drawing, pageIndex);
-                                drawingObjectsController.selection.groupSelection = drawing;
-                                drawing.selectObject(cur_grouped_object, pageIndex);
-                                drawing.selection.chartSelection = cur_grouped_object;
-                                cur_grouped_object.selectTitle(title, pageIndex);
-                                cur_grouped_object.selection.textSelection = title;
-                                title.selectionSetStart(e, x, y, pageIndex);
-                                drawingObjectsController.changeCurrentState(new AscFormat.TextAddState(drawingObjectsController, title, x, y));
-                                if(e.ClickCount <= 1)
+                                if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                                 {
+                                    drawingObjectsController.checkChartTextSelection();
+                                    drawingObjectsController.resetSelection();
+                                    drawingObjectsController.selectObject(drawing, pageIndex);
+                                    drawingObjectsController.selection.groupSelection = drawing;
+                                    drawing.selectObject(cur_grouped_object, pageIndex);
+                                    drawing.chartSelection = cur_grouped_object;
+                                    drawing.selection.title = title;
+                                    cur_grouped_object.selectTitle(title, pageIndex);
                                     drawingObjectsController.updateSelectionState();
+                                    return true;
                                 }
-                                return true;
-                            }
-                            else
-                            {
-                                if(drawingObjectsController.document)
+                                else
                                 {
-                                    var content = title.getDocContent();
-                                    var invert_transform_text = title.invertTransformText, tx, ty;
-                                    if(content && invert_transform_text)
-                                    {
-                                        tx = invert_transform_text.TransformPointX(x, y);
-                                        ty = invert_transform_text.TransformPointY(x, y);
-                                        content.UpdateCursorType(tx, ty, 0);
-                                    }
+                                    return {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
                                 }
-                                return {objectId: drawing.Get_Id(), cursorType: "text"};
+                            }
+                            else if(hit_in_text_rect)
+                            {
+                                if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+                                {
+                                    drawingObjectsController.checkChartTextSelection();
+                                    drawingObjectsController.resetSelection();
+                                    drawingObjectsController.selectObject(drawing, pageIndex);
+                                    drawingObjectsController.selection.groupSelection = drawing;
+                                    drawing.selectObject(cur_grouped_object, pageIndex);
+                                    drawing.selection.chartSelection = cur_grouped_object;
+                                    cur_grouped_object.selectTitle(title, pageIndex);
+                                    cur_grouped_object.selection.textSelection = title;
+                                    title.selectionSetStart(e, x, y, pageIndex);
+                                    drawingObjectsController.changeCurrentState(new AscFormat.TextAddState(drawingObjectsController, title, x, y));
+                                    if(e.ClickCount <= 1)
+                                    {
+                                        drawingObjectsController.updateSelectionState();
+                                    }
+                                    return true;
+                                }
+                                else
+                                {
+                                    if(drawingObjectsController.document)
+                                    {
+                                        var content = title.getDocContent();
+                                        var invert_transform_text = title.invertTransformText, tx, ty;
+                                        if(content && invert_transform_text)
+                                        {
+                                            tx = invert_transform_text.TransformPointX(x, y);
+                                            ty = invert_transform_text.TransformPointY(x, y);
+                                            content.UpdateCursorType(tx, ty, 0);
+                                        }
+                                    }
+                                    return {objectId: drawing.Get_Id(), cursorType: "text"};
+                                }
                             }
                         }
                     }
@@ -689,7 +855,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
 
 function handleChart(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord)
 {
-    var ret = handleInternalChart(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord);
+    var ret = !drawingObjectsController.isSlideShow() && handleInternalChart(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord);
     if(ret)
     {
         return ret;
@@ -763,8 +929,9 @@ function handleInlineHitNoText(drawing, drawingObjects, e, x, y, pageIndex, bInS
                     drawingObjects.handleSignatureDblClick(drawing.signatureLine.id, drawing.extX, drawing.extY);
                 }
                 else if (2 == e.ClickCount && drawing.parent instanceof ParaDrawing && drawing.parent.Is_MathEquation())
+                {
                     drawingObjects.handleMathDrawingDoubleClick(drawing.parent, e, x, y, pageIndex);
-
+                }
             }
             drawingObjects.updateOverlay();
             return true;
@@ -801,6 +968,7 @@ function handleInlineObjects(drawingObjectsController, drawingArr, e, x, y, page
             case AscDFH.historyitem_type_ImageShape:
             case AscDFH.historyitem_type_OleObject:
             case AscDFH.historyitem_type_Cnx:
+            case AscDFH.historyitem_type_LockedCanvas:
             {
                 ret = handleInlineShapeImage(drawing, drawingObjectsController, e, x, y, pageIndex);
                 if(ret)
@@ -853,10 +1021,33 @@ function handleMouseUpPreMoveState(drawingObjects, e, x, y, pageIndex, bWord)
             {
                 break;
             }
+            case AscDFH.historyitem_type_ImageShape:
+            {
+
+                break;
+            }
         }
     }
     if(!bHandle)
     {
+        if(!state.shift && !state.ctrl && state.bInside && state.majorObject.getObjectType() === AscDFH.historyitem_type_ImageShape)
+        {
+            var sMediaName = state.majorObject.getMediaFileName();
+            if(sMediaName)
+            {
+                var oApi = state.drawingObjects.getEditorApi();
+                if(oApi && oApi.showVideoControl)
+                {
+                    oApi.showVideoControl(sMediaName, state.majorObject.extX, state.majorObject.extY, state.majorObject.transform);
+                    bHandle = true;
+                }
+            }
+        }
+    }
+    if(!bHandle)
+    {
+
+
         if(e.CtrlKey && state.majorObjectIsSelected)
         {
             drawingObjects.deselectObject(state.majorObject);

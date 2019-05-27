@@ -265,6 +265,11 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_InlineLevelSdt]         = AscCommonWord.CInlineLevelSdt;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ParaBookmark]           = AscCommonWord.CParagraphBookmark;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Num]                    = AscCommonWord.CNum;
+		this.m_oFactoryClass[AscDFH.historyitem_type_PresentationField]      = AscCommonWord.CPresentationField;
+		this.m_oFactoryClass[AscDFH.historyitem_type_RelSizeAnchor]      	 = AscFormat.CRelSizeAnchor;
+		this.m_oFactoryClass[AscDFH.historyitem_type_AbsSizeAnchor]      	 = AscFormat.CAbsSizeAnchor;
+		this.m_oFactoryClass[AscDFH.historyitem_type_ParaRevisionMove]       = AscCommon.CParaRevisionMove;
+		this.m_oFactoryClass[AscDFH.historyitem_type_RunRevisionMove]        = AscCommon.CRunRevisionMove;
 
 
 		if (window['AscCommonSlide'])

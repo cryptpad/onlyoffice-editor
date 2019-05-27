@@ -134,7 +134,7 @@ AscCommon.CHistory.prototype.Have_Changes = function(IsNotUserSave, IsNoSavedNoM
 	
 window["DesktopOfflineAppDocumentApplyChanges"] = function(_changes)
 {
-	editor._coAuthoringSetChanges(_changes, new CDocumentColor( 191, 255, 199 ));
+	editor._coAuthoringSetChanges(_changes, null);
     //editor["asc_nativeApplyChanges"](_changes);
 	//editor["asc_nativeCalculateFile"]();
 };
@@ -245,12 +245,15 @@ window["DesktopOfflineAppDocumentEndSave"] = function(error, hash, password)
 	if (0 == error)
 		editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
 };
-Asc['asc_docs_api'].prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent) 
+Asc['asc_docs_api'].prototype.asc_DownloadAs2 = Asc['asc_docs_api'].prototype.asc_DownloadAs;
+Asc['asc_docs_api'].prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, isNaturalDownloadAs)
 {
+    if (isNaturalDownloadAs)
+        return this.asc_DownloadAs2(typeFile, bIsDownloadEvent);
 	this.asc_Save(false, true);
 };
 
-Asc['asc_docs_api'].prototype.AddImageUrl = function(url, imgProp)
+Asc['asc_docs_api'].prototype.AddImageUrl = function(url, imgProp, withAuthorization)
 {
 	var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](url);
 	this.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url), imgProp);

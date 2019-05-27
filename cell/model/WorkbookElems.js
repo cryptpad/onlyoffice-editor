@@ -495,28 +495,6 @@ g_oColorManager = new ColorManager();
 		}
 	};
 
-	function readValAttr(attr){
-		if(attr()){
-			var val = attr()["val"];
-			return val ? val : null;
-		}
-		return null;
-	}
-	function getNumFromXml(val) {
-		return val ? val - 0 : null;
-	}
-	function getColorFromXml(attr) {
-		if(attr()){
-			var vals = attr();
-			if(null != vals["theme"]) {
-				return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(vals["theme"]), getNumFromXml(vals["tint"]));
-			} else if(null != vals["rgb"]){
-				return new AscCommonExcel.RgbColor(0x00ffffff & getNumFromXml(vals["rgb"]));
-			}
-		}
-		return null;
-	}
-
 var g_oFontProperties = {
 		fn: 0,
 		scheme: 1,
@@ -560,6 +538,25 @@ var g_oFontProperties = {
 	};
 	Font.prototype.setIndexNumber = function(val) {
 		return this._index = val;
+	};
+	Font.prototype.initDefault = function(wb) {
+		if (!this.fn) {
+			var sThemeFont = null;
+			if (null != wb.theme.themeElements && null != wb.theme.themeElements.fontScheme) {
+				if (Asc.EFontScheme.fontschemeMinor == this.scheme && wb.theme.themeElements.fontScheme.minorFont) {
+					sThemeFont = wb.theme.themeElements.fontScheme.minorFont.latin;
+				} else if (Asc.EFontScheme.fontschemeMajor == this.scheme && wb.theme.themeElements.fontScheme.majorFont) {
+					sThemeFont = wb.theme.themeElements.fontScheme.majorFont.latin;
+				}
+			}
+			this.fn = sThemeFont ? sThemeFont : "Calibri";
+		}
+		if (!this.fs) {
+			this.fs = 11;
+		}
+		if (!this.c) {
+			this.c = AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorTextDefault);
+		}
 	};
 	Font.prototype.assign = function(font) {
 		this.fn = font.fn;
@@ -609,32 +606,32 @@ var g_oFontProperties = {
 			this.setRepeat(font.repeat);
 		}
 	};
-	Font.prototype.merge = function (font, isTable) {
+	Font.prototype.merge = function (font, isTable, isTableColor) {
 		var oRes = new Font();
 		oRes.fn = this.fn || font.fn;
 		oRes.scheme = this.scheme || font.scheme;
 		oRes.fs = this.fs || font.fs;
-		oRes.b = this.b || font.b;
-		oRes.i = this.i || font.i;
-		oRes.s = this.s || font.s;
-		oRes.u = this.u || font.u;
-		//заглушка excel при merge стилей игнорирует default цвет
-		if (isTable && this.c && this.c.isEqual(g_oDefaultFormat.Font.c)) {
+
+		oRes.b = null !== this.b ? this.b : font.b;
+		if (isTable) {
+			oRes.i = null !== font.i ? font.i : this.i;
+			oRes.s = null !== font.s ? font.s : this.s;
+			oRes.u = font.u || this.u;
+			oRes.va = font.va || this.va;
+		} else {
+			oRes.i = null !== this.i ? this.i : font.i;
+			oRes.s = null !== this.s ? this.s : font.s;
+			oRes.u = this.u || font.u;
+			oRes.va = this.va || font.va;
+		}
+		if (isTable && isTableColor) {
 			oRes.c = font.c || this.c;
 		} else {
 			oRes.c = this.c || font.c;
 		}
-		oRes.va = this.va || font.va;
 		oRes.skip = this.skip || font.skip;
 		oRes.repeat = this.repeat || font.repeat;
 		return oRes;
-	};
-	Font.prototype.getRgbOrNull = function () {
-		var nRes = null;
-		if (null != this.c) {
-			nRes = this.c.getRgb();
-		}
-		return nRes;
 	};
 	Font.prototype.isEqual = function (font) {
 		var bRes = this.fs == font.fs && this.b == font.b && this.i == font.i && this.u == font.u && this.s == font.s &&
@@ -825,21 +822,21 @@ var g_oFontProperties = {
 	Font.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if("b" === elem){
-			this.b = getBoolFromXml(readValAttr(attr));
+			this.b = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("color" === elem){
-			this.c = getColorFromXml(attr);
+			this.c = AscCommon.getColorFromXml(attr);
 		} else if("i" === elem){
-			this.i = getBoolFromXml(readValAttr(attr));
+			this.i = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("name" === elem){
-			this.fn = readValAttr(attr);
+			this.fn = AscCommon.readValAttr(attr);
 		} else if("scheme" === elem){
-			this.scheme = readValAttr(attr);
+			this.scheme = AscCommon.readValAttr(attr);
 		} else if("strike" === elem){
-			this.s = getBoolFromXml(readValAttr(attr));
+			this.s = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("sz" === elem){
-			this.fs = getNumFromXml(readValAttr(attr));
+			this.fs = AscCommon.getNumFromXml(AscCommon.readValAttr(attr));
 		} else if("u" === elem){
-			switch (readValAttr(attr)) {
+			switch (AscCommon.readValAttr(attr)) {
 				case "single":
 					this.u = Asc.EUnderline.underlineSingle;
 					break;
@@ -857,7 +854,7 @@ var g_oFontProperties = {
 					break;
 			}
 		} else if("vertAlign" === elem){
-			switch (readValAttr(attr)) {
+			switch (AscCommon.readValAttr(attr)) {
 				case "baseline":
 					this.va = AscCommon.vertalign_Baseline;
 					break;
@@ -874,35 +871,80 @@ var g_oFontProperties = {
 		return newContext;
 	};
 
-	var st_gradienttypeLINEAR = 0;
-	var st_gradienttypePATH = 1;
+	var c_oAscGradientType = {
+		Linear : 0,
+		Path : 1
+	};
 
-	var st_patterntypeNONE = 0;
-	var st_patterntypeSOLID = 1;
-	var st_patterntypeMEDIUMGRAY = 2;
-	var st_patterntypeDARKGRAY = 3;
-	var st_patterntypeLIGHTGRAY = 4;
-	var st_patterntypeDARKHORIZONTAL = 5;
-	var st_patterntypeDARKVERTICAL = 6;
-	var st_patterntypeDARKDOWN = 7;
-	var st_patterntypeDARKUP = 8;
-	var st_patterntypeDARKGRID = 9;
-	var st_patterntypeDARKTRELLIS = 10;
-	var st_patterntypeLIGHTHORIZONTAL = 11;
-	var st_patterntypeLIGHTVERTICAL = 12;
-	var st_patterntypeLIGHTDOWN = 13;
-	var st_patterntypeLIGHTUP = 14;
-	var st_patterntypeLIGHTGRID = 15;
-	var st_patterntypeLIGHTTRELLIS = 16;
-	var st_patterntypeGRAY125 = 17;
-	var st_patterntypeGRAY0625 = 18;
+	var c_oAscPatternType = {
+		DarkDown :  0,
+		DarkGray :  1,
+		DarkGrid :  2,
+		DarkHorizontal :  3,
+		DarkTrellis :  4,
+		DarkUp :  5,
+		DarkVertical :  6,
+		Gray0625 :  7,
+		Gray125 :  8,
+		LightDown :  9,
+		LightGray : 10,
+		LightGrid : 11,
+		LightHorizontal : 12,
+		LightTrellis : 13,
+		LightUp : 14,
+		LightVertical : 15,
+		MediumGray : 16,
+		None : 17,
+		Solid : 18
+	};
+
+	function hatchFromExcelToWord(val) {
+		switch (val) {
+			case c_oAscPatternType.DarkDown:
+				return 'dkDnDiag';
+			case c_oAscPatternType.DarkGray:
+				return 'pct70';
+			case c_oAscPatternType.DarkGrid:
+				return 'smCheck';
+			case c_oAscPatternType.DarkHorizontal:
+				return 'dkHorz';
+			case c_oAscPatternType.DarkTrellis:
+				return 'trellis';
+			case c_oAscPatternType.DarkUp:
+				return 'dkUpDiag';
+			case c_oAscPatternType.DarkVertical:
+				return 'dkVert';
+			case c_oAscPatternType.Gray0625:
+				return 'pct10';
+			case c_oAscPatternType.Gray125:
+				return 'pct20';
+			case c_oAscPatternType.LightDown:
+				return 'ltDnDiag';
+			case c_oAscPatternType.LightGray:
+				return 'pct25';
+			case c_oAscPatternType.LightGrid:
+				return 'smGrid';
+			case c_oAscPatternType.LightHorizontal:
+				return 'ltHorz';
+			case c_oAscPatternType.LightTrellis:
+				return 'pct30';
+			case c_oAscPatternType.LightUp:
+				return 'ltUpDiag';
+			case c_oAscPatternType.LightVertical:
+				return 'ltVert';
+			case c_oAscPatternType.MediumGray:
+				return 'pct50';
+			default:
+				return 'cross';
+		}
+	}
 
 	function FromXml_ST_GradientType(val) {
 		var res = -1;
 		if ("linear" === val) {
-			res = st_gradienttypeLINEAR;
+			res = c_oAscGradientType.Linear;
 		} else if ("path" === val) {
-			res = st_gradienttypePATH;
+			res = c_oAscGradientType.Path;
 		}
 		return res;
 	}
@@ -910,60 +952,163 @@ var g_oFontProperties = {
 	function FromXml_ST_PatternType(val) {
 		var res = -1;
 		if ("none" === val) {
-			res = st_patterntypeNONE;
+			res = c_oAscPatternType.None;
 		} else if ("solid" === val) {
-			res = st_patterntypeSOLID;
+			res = c_oAscPatternType.Solid;
 		} else if ("mediumGray" === val) {
-			res = st_patterntypeMEDIUMGRAY;
+			res = c_oAscPatternType.MediumGray;
 		} else if ("darkGray" === val) {
-			res = st_patterntypeDARKGRAY;
+			res = c_oAscPatternType.DarkGray;
 		} else if ("lightGray" === val) {
-			res = st_patterntypeLIGHTGRAY;
+			res = c_oAscPatternType.LightGray;
 		} else if ("darkHorizontal" === val) {
-			res = st_patterntypeDARKHORIZONTAL;
+			res = c_oAscPatternType.DarkHorizontal;
 		} else if ("darkVertical" === val) {
-			res = st_patterntypeDARKVERTICAL;
+			res = c_oAscPatternType.DarkVertical;
 		} else if ("darkDown" === val) {
-			res = st_patterntypeDARKDOWN;
+			res = c_oAscPatternType.DarkDown;
 		} else if ("darkUp" === val) {
-			res = st_patterntypeDARKUP;
+			res = c_oAscPatternType.DarkUp;
 		} else if ("darkGrid" === val) {
-			res = st_patterntypeDARKGRID;
+			res = c_oAscPatternType.DarkGrid;
 		} else if ("darkTrellis" === val) {
-			res = st_patterntypeDARKTRELLIS;
+			res = c_oAscPatternType.DarkTrellis;
 		} else if ("lightHorizontal" === val) {
-			res = st_patterntypeLIGHTHORIZONTAL;
+			res = c_oAscPatternType.LightHorizontal;
 		} else if ("lightVertical" === val) {
-			res = st_patterntypeLIGHTVERTICAL;
+			res = c_oAscPatternType.LightVertical;
 		} else if ("lightDown" === val) {
-			res = st_patterntypeLIGHTDOWN;
+			res = c_oAscPatternType.LightDown;
 		} else if ("lightUp" === val) {
-			res = st_patterntypeLIGHTUP;
+			res = c_oAscPatternType.LightUp;
 		} else if ("lightGrid" === val) {
-			res = st_patterntypeLIGHTGRID;
+			res = c_oAscPatternType.LightGrid;
 		} else if ("lightTrellis" === val) {
-			res = st_patterntypeLIGHTTRELLIS;
+			res = c_oAscPatternType.LightTrellis;
 		} else if ("gray125" === val) {
-			res = st_patterntypeGRAY125;
+			res = c_oAscPatternType.Gray125;
 		} else if ("gray0625" === val) {
-			res = st_patterntypeGRAY0625;
+			res = c_oAscPatternType.Gray0625;
 		}
 		return res;
 	}
 
-	function CT_GradientFill() {
+	function GradientFill() {
 		//Attributes
-		this.type = null;//linear
-		this.degree = null;//0
-		this.left = null;//0
-		this.right = null;//0
-		this.top = null;//0
-		this.bottom = null;//0
+		this.type = c_oAscGradientType.Linear;
+		this.degree = 0;
+		this.left = 0;
+		this.right = 0;
+		this.top = 0;
+		this.bottom = 0;
 		//Members
 		this.stop = [];
-	}
 
-	CT_GradientFill.prototype.readAttributes = function(attr, uq) {
+		this._hash = null;
+	}
+	GradientFill.prototype.Properties = {
+		type: 0,
+		degree: 1,
+		left: 2,
+		right: 3,
+		top: 4,
+		bottom: 5,
+		stop: 6
+	};
+	GradientFill.prototype.getType = function () {
+		return UndoRedoDataTypes.StyleGradientFill;
+	};
+	GradientFill.prototype.getProperties = function () {
+		return this.Properties;
+	};
+	GradientFill.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.type:
+				return this.type;
+				break;
+			case this.Properties.degree:
+				return this.degree;
+				break;
+			case this.Properties.left:
+				return this.left;
+				break;
+			case this.Properties.right:
+				return this.right;
+				break;
+			case this.Properties.top:
+				return this.top;
+				break;
+			case this.Properties.bottom:
+				return this.bottom;
+				break;
+			case this.Properties.stop:
+				return this.stop;
+				break;
+		}
+	};
+	GradientFill.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.type:
+				this.type = value;
+				break;
+			case this.Properties.degree:
+				this.degree = value;
+				break;
+			case this.Properties.left:
+				this.left = value;
+				break;
+			case this.Properties.right:
+				this.right = value;
+				break;
+			case this.Properties.top:
+				this.top = value;
+				break;
+			case this.Properties.bottom:
+				this.bottom = value;
+				break;
+			case this.Properties.stop:
+				this.stop = value;
+				break;
+		}
+	};
+	GradientFill.prototype.getHash = function() {
+		if (!this._hash) {
+			this._hash = this.type + ';' + this.degree + ';' + this.left + ';' + this.right + ';' + this.top + ';' +
+				this.bottom + ';' + this.stop.length;
+			for (var i = 0; i < this.stop.length; ++i) {
+				this._hash += ';' + this.stop[i].getHash();
+			}
+		}
+		return this._hash;
+	};
+	GradientFill.prototype.isEqual = function(gradientFill) {
+		var res = this.type === gradientFill.type && this.degree === gradientFill.degree &&
+			this.left === gradientFill.left && this.right === gradientFill.right && this.top === gradientFill.top &&
+			this.bottom === gradientFill.bottom && this.stop.length == gradientFill.stop.length;
+		if (res) {
+			for (var i = 0; i < this.stop.length; ++i) {
+				res = res && this.stop[i].isEqual(gradientFill.stop[i]);
+			}
+		}
+		return res;
+	};
+	GradientFill.prototype.clone = function() {
+		var res = new GradientFill();
+		res.type = this.type;
+		res.degree = this.degree;
+		res.left = this.left;
+		res.right = this.right;
+		res.top = this.top;
+		res.bottom = this.bottom;
+		for (var i = 0; i < this.stop.length; ++i) {
+			res.stop[i] = this.stop[i].clone();
+		}
+		return res;
+	};
+	GradientFill.prototype.notEmpty = function() {
+		return true;
+	};
+	GradientFill.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
 			var vals = attr();
 			var val;
@@ -996,10 +1141,10 @@ var g_oFontProperties = {
 			}
 		}
 	};
-	CT_GradientFill.prototype.onStartNode = function(elem, attr, uq) {
+	GradientFill.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if ("stop" === elem) {
-			newContext = new CT_GradientStop();
+			newContext = new GradientStop();
 			if (newContext.readAttributes) {
 				newContext.readAttributes(attr, uq);
 			}
@@ -1010,14 +1155,61 @@ var g_oFontProperties = {
 		}
 		return newContext;
 	};
-	function CT_GradientStop() {
+	function GradientStop() {
 		//Attributes
 		this.position = null;
 		//Members
 		this.color = null;
-	}
 
-	CT_GradientStop.prototype.readAttributes = function(attr, uq) {
+		this._hash = null;
+	}
+	GradientStop.prototype.Properties = {
+		position: 0,
+		color: 1
+	};
+	GradientStop.prototype.getType = function () {
+		return UndoRedoDataTypes.StyleGradientFillStop;
+	};
+	GradientStop.prototype.getProperties = function () {
+		return this.Properties;
+	};
+	GradientStop.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.position:
+				return this.position;
+				break;
+			case this.Properties.color:
+				return this.color;
+				break;
+		}
+	};
+	GradientStop.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.position:
+				this.position = value;
+				break;
+			case this.Properties.color:
+				this.color = value;
+				break;
+		}
+	};
+	GradientStop.prototype.getHash = function() {
+		if (!this._hash) {
+			var color = this.color ? this.color.getHash() : '';
+			this._hash = this.position + ';' +color;
+		}
+		return this._hash;
+	};
+	GradientStop.prototype.isEqual = function(gradientStop) {
+		return this.position === gradientStop.position && g_oColorManager.isEqual(this.color, gradientStop.color);
+	};
+	GradientStop.prototype.clone = function() {
+		var res = new GradientStop();
+		res.position = this.position;
+		res.color = this.color;
+		return res;
+	};
+	GradientStop.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
 			var vals = attr();
 			var val;
@@ -1027,25 +1219,107 @@ var g_oFontProperties = {
 			}
 		}
 	};
-	CT_GradientStop.prototype.onStartNode = function(elem, attr, uq) {
+	GradientStop.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if ("color" === elem) {
-			this.color = getColorFromXml(attr);
+			this.color = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
 		}
 		return newContext;
 	};
-	function CT_PatternFill() {
+	function PatternFill() {
 		//Attributes
-		this.patternType = null;
+		this.patternType = c_oAscPatternType.None;
 		//Members
 		this.fgColor = null;
 		this.bgColor = null;
-	}
 
-	CT_PatternFill.prototype.readAttributes = function(attr, uq) {
+		this._hash = null;
+	}
+	PatternFill.prototype.Properties = {
+		patternType: 0,
+		fgColor: 1,
+		bgColor: 2
+	};
+	PatternFill.prototype.getType = function () {
+		return UndoRedoDataTypes.StylePatternFill;
+	};
+	PatternFill.prototype.getProperties = function () {
+		return this.Properties;
+	};
+	PatternFill.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.patternType:
+				return this.patternType;
+				break;
+			case this.Properties.fgColor:
+				return this.fgColor;
+				break;
+			case this.Properties.bgColor:
+				return this.bgColor;
+				break;
+		}
+	};
+	PatternFill.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.patternType:
+				this.patternType = value;
+				break;
+			case this.Properties.fgColor:
+				this.fgColor = value;
+				break;
+			case this.Properties.bgColor:
+				this.bgColor = value;
+				break;
+		}
+	};
+	PatternFill.prototype.getHatchOffset = function () {
+		return AscCommon.global_hatch_offsets[hatchFromExcelToWord(this.patternType)];
+	};
+	PatternFill.prototype.fromColor = function(color) {
+		this.patternType = c_oAscPatternType.Solid;
+		this.fgColor = color;
+		this.bgColor = color;
+	};
+	PatternFill.prototype.getHash = function() {
+		if (!this._hash) {
+			this._hash = this.patternType + ';';
+			if(this.fgColor){
+				this._hash += this.fgColor.getHash();
+			}
+			this._hash += ';';
+			if(this.bgColor){
+				this._hash += this.bgColor.getHash();
+			}
+		}
+		return this._hash;
+	};
+	PatternFill.prototype.isEqual = function(patternFill) {
+		return this.patternType === patternFill.patternType &&
+			g_oColorManager.isEqual(this.fgColor, patternFill.fgColor) &&
+			g_oColorManager.isEqual(this.bgColor, patternFill.bgColor);
+	};
+	PatternFill.prototype.clone = function() {
+		var res = new PatternFill();
+		res.patternType = this.patternType;
+		res.fgColor = this.fgColor;
+		res.bgColor = this.bgColor;
+		return res;
+	};
+	PatternFill.prototype.notEmpty = function() {
+		return c_oAscPatternType.None !== this.patternType;
+	};
+	PatternFill.prototype.fixForDxf = function () {
+		if ((c_oAscPatternType.None === this.patternType || c_oAscPatternType.Solid === this.patternType) && null !== this.bgColor) {
+			this.patternType = c_oAscPatternType.Solid;
+			var tmp = this.fgColor;
+			this.fgColor = this.bgColor;
+			this.bgColor = tmp || this.bgColor;
+		}
+	};
+	PatternFill.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
 			var vals = attr();
 			var val;
@@ -1058,13 +1332,13 @@ var g_oFontProperties = {
 			}
 		}
 	};
-	CT_PatternFill.prototype.onStartNode = function(elem, attr, uq) {
+	PatternFill.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if ("fgColor" === elem) {
-			this.fgColor = getColorFromXml(attr);
+			this.fgColor = AscCommon.getColorFromXml(attr);
 		}
 		else if ("bgColor" === elem) {
-			this.bgColor = getColorFromXml(attr);
+			this.bgColor = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
@@ -1072,25 +1346,51 @@ var g_oFontProperties = {
 		return newContext;
 	};
 
-	var g_oFillProperties = {
-		bg: 0
-	};
-
 	/** @constructor */
-	function Fill(val) {
-		if (null == val) {
-			val = g_oDefaultFormat.FillAbs;
-		}
-		this.bg = val.bg;
+	function Fill() {
+		this.patternFill = null;
+		this.gradientFill = null;
 
-		this._hash;
+		this._hash = null;
 		this._index;
 	}
 
-	Fill.prototype.Properties = g_oFillProperties;
+	Fill.prototype.Properties = {
+		patternFill: 0,
+		gradientFill: 1
+	};
+	Fill.prototype.hasFill = function () {
+		return ((this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) || this.gradientFill);
+	};
+	Fill.prototype.getSolidFill = function () {
+		return (this.patternFill && c_oAscPatternType.Solid === this.patternFill.patternType) ? this.patternFill.fgColor : null;
+	};
+	Fill.prototype.bg = function () {
+		var res = null;
+		if (this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) {
+			res = this.patternFill.fgColor || AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0);
+		} else if (this.gradientFill) {
+			res = this.gradientFill.stop.length > 0 ? this.gradientFill.stop[0].color : AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0)
+		}
+		return res;
+	};
+	Fill.prototype.fixForDxf = function () {
+		if (this.patternFill) {
+			this.patternFill.fixForDxf();
+		}
+	};
+	Fill.prototype.fromColor = function (color) {
+		this.patternFill = null;
+		this.gradientFill = null;
+		if (color) {
+			this.patternFill = new PatternFill();
+			this.patternFill.fromColor(color);
+		}
+	};
 	Fill.prototype.getHash = function () {
 		if (!this._hash) {
-			this._hash = this.bg ? this.bg.getHash() : '';
+			this._hash = (this.patternFill ? this.patternFill.getHash() : '') + '|';
+			this._hash += (this.gradientFill ? this.gradientFill.getHash() : '');
 		}
 		return this._hash;
 	};
@@ -1100,43 +1400,19 @@ var g_oFontProperties = {
 	Fill.prototype.setIndexNumber = function (val) {
 		return this._index = val;
 	};
-	Fill.prototype._mergeProperty = function (first, second, def) {
-		if (def != first) {
-			return first;
-		} else {
-			return second;
-		}
-	};
-	Fill.prototype.merge = function (fill) {
-		var oRes = new Fill();
-		oRes.bg = this._mergeProperty(this.bg, fill.bg, g_oDefaultFormat.Fill.bg);
-		return oRes;
-	};
-	Fill.prototype.getRgbOrNull = function () {
-		var nRes = null;
-		if (null != this.bg) {
-			nRes = this.bg.getRgb();
-		}
-		return nRes;
-	};
-	Fill.prototype.getDif = function (val) {
-		var oRes = new Fill(this);
-		var bEmpty = true;
-		if (g_oColorManager.isEqual(this.bg, val.bg)) {
-			oRes.bg = null;
-		} else {
-			bEmpty = false;
-		}
-		if (bEmpty) {
-			oRes = null;
-		}
-		return oRes;
-	};
 	Fill.prototype.isEqual = function (fill) {
-		return g_oColorManager.isEqual(this.bg, fill.bg);
+		if (this.patternFill && fill.patternFill) {
+			return this.patternFill.isEqual(fill.patternFill);
+		} else if (this.gradientFill && fill.gradientFill) {
+			return this.gradientFill.isEqual(fill.gradientFill);
+		}
+		return false;
 	};
 	Fill.prototype.clone = function () {
-		return new Fill(this);
+		var res = new Fill();
+		res.patternFill = this.patternFill ? this.patternFill.clone() : null;
+		res.gradientFill = this.gradientFill ? this.gradientFill.clone() : null;
+		return res;
 	};
 	Fill.prototype.getType = function () {
 		return UndoRedoDataTypes.StyleFill;
@@ -1146,62 +1422,49 @@ var g_oFontProperties = {
 	};
 	Fill.prototype.getProperty = function (nType) {
 		switch (nType) {
-			case this.Properties.bg:
-				return this.bg;
+			case this.Properties.patternFill:
+				return this.patternFill;
+				break;
+			case this.Properties.gradientFill:
+				return this.gradientFill;
 				break;
 		}
 	};
 	Fill.prototype.setProperty = function (nType, value) {
 		switch (nType) {
-			case this.Properties.bg:
-				this.bg = value;
+			case this.Properties.patternFill:
+				this.patternFill = value;
+				break;
+			case this.Properties.gradientFill:
+				this.gradientFill = value;
 				break;
 		}
 	};
-	Fill.prototype.notEmpty = function () {
-		return null !== this.bg;
+	Fill.prototype.notEmpty = function() {
+		return (this.patternFill && this.patternFill.notEmpty()) || (this.gradientFill && this.gradientFill.notEmpty());
 	};
 	Fill.prototype.onStartNode = function (elem, attr, uq) {
 		var newContext = this;
 		if ("gradientFill" === elem) {
-			newContext = new CT_GradientFill();
+			newContext = new GradientFill();
 			if (newContext.readAttributes) {
 				newContext.readAttributes(attr, uq);
 			}
+			this.gradientFill = newContext;
 		} else if ("patternFill" === elem) {
-			newContext = new CT_PatternFill();
+			newContext = new PatternFill();
 			if (newContext.readAttributes) {
 				newContext.readAttributes(attr, uq);
 			}
+			this.patternFill = newContext;
 		} else {
 			newContext = null;
 		}
 		return newContext;
 	};
 	Fill.prototype.onEndNode = function (prevContext, elem) {
-		if ("gradientFill" === elem) {
-			if (prevContext.stop.length > 0) {
-				var stop = prevContext.stop[0];
-				if (stop.color) {
-					this.bg = stop.color;
-				}
-			}
-		} else if ("patternFill" === elem) {
-			if (st_patterntypeNONE !== prevContext.patternType) {
-				if (AscCommon.openXml.SaxParserDataTransfer.priorityBg) {
-					if (prevContext.bgColor) {
-						this.bg = prevContext.bgColor;
-					} else if (prevContext.fgColor) {
-						this.bg = prevContext.fgColor;
-					}
-				} else {
-					if (prevContext.fgColor) {
-						this.bg = prevContext.fgColor;
-					} else if (prevContext.bgColor) {
-						this.bg = prevContext.bgColor;
-					}
-				}
-			}
+		if ("patternFill" === elem && AscCommon.openXml.SaxParserDataTransfer.priorityBg) {
+			prevContext.fixForDxf();
 		}
 	};
 
@@ -1386,7 +1649,7 @@ var g_oFontProperties = {
 	BorderProp.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if("color" === elem){
-			this.c = getColorFromXml(attr);
+			this.c = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
@@ -1446,24 +1709,38 @@ var g_oBorderProperties = {
 		return this._index = val;
 	};
 	Border.prototype._mergeProperty = function (first, second, def) {
-		if ((null != def.isEqual && false == def.isEqual(first)) || (null == def.isEqual && def != first)) {
+		if (first.s !== c_oAscBorderStyles.None) {
 			return first;
 		} else {
 			return second;
 		}
 	};
-	Border.prototype.merge = function (border) {
+	Border.prototype.merge = function (border, isTable) {
 		var defaultBorder = g_oDefaultFormat.Border;
 		var oRes = new Border();
-		oRes.l = this._mergeProperty(this.l, border.l, defaultBorder.l).clone();
-		oRes.t = this._mergeProperty(this.t, border.t, defaultBorder.t).clone();
-		oRes.r = this._mergeProperty(this.r, border.r, defaultBorder.r).clone();
-		oRes.b = this._mergeProperty(this.b, border.b, defaultBorder.b).clone();
-		oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
-		oRes.ih = this._mergeProperty(this.ih, border.ih, defaultBorder.ih).clone();
-		oRes.iv = this._mergeProperty(this.iv, border.iv, defaultBorder.iv).clone();
-		oRes.dd = this._mergeProperty(this.dd, border.dd, defaultBorder.dd);
-		oRes.du = this._mergeProperty(this.du, border.du, defaultBorder.du);
+		//todo null border props
+		if (isTable) {
+			oRes.l = this._mergeProperty(this.l, border.l, defaultBorder.l).clone();
+			oRes.t = this._mergeProperty(this.t, border.t, defaultBorder.t).clone();
+			oRes.r = this._mergeProperty(this.r, border.r, defaultBorder.r).clone();
+			oRes.b = this._mergeProperty(this.b, border.b, defaultBorder.b).clone();
+			oRes.ih = this._mergeProperty(this.ih, border.ih, defaultBorder.ih).clone();
+			oRes.iv = this._mergeProperty(this.iv, border.iv, defaultBorder.iv).clone();
+			oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
+			oRes.dd = this.dd || border.dd;
+			oRes.du = this.du || border.du;
+		} else {
+			//todo merge with default
+			oRes.l = this.l.clone();
+			oRes.t = this.t.clone();
+			oRes.r = this.r.clone();
+			oRes.b = this.b.clone();
+			oRes.ih = this.ih.clone();
+			oRes.iv = this.iv.clone();
+			oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
+			oRes.dd = this.dd || border.dd;
+			oRes.du = this.du || border.du;
+		}
 		return oRes;
 	};
 	Border.prototype.getDif = function (val) {
@@ -1675,11 +1952,11 @@ var g_oBorderProperties = {
 			var val;
 			val = vals["diagonalUp"];
 			if(undefined !== val){
-				this.du = getBoolFromXml(val);
+				this.du = AscCommon.getBoolFromXml(val);
 			}
 			val = vals["diagonalDown"];
 			if(undefined !== val){
-				this.dd = getBoolFromXml(val);
+				this.dd = AscCommon.getBoolFromXml(val);
 			}
 		}
 	};
@@ -1790,24 +2067,6 @@ Num.prototype =
     oRes.id = this._mergeProperty(this.id, num.id, g_oDefaultFormat.Num.id);
 		return oRes;
 	},
-  getDif: function(val) {
-    var oRes = new Num(this);
-    var bEmpty = true;
-    if (this.f == val.f) {
-      oRes.f = null;
-    } else {
-      bEmpty = false;
-    }
-    if (this.id == val.id) {
-      oRes.id = null;
-    } else {
-      bEmpty = false;
-    }
-    if (bEmpty) {
-      oRes = null;
-    }
-    return oRes;
-  },
   isEqual: function(val) {
     if (null != this.id && null != val.id) {
       return this.id == val.id;
@@ -1915,7 +2174,7 @@ CellXfs.prototype =
 	setIndexNumber: function(val) {
 		this._index = val;
 	},
-	_mergeProperty : function(addFunc, first, second, isTable)
+	_mergeProperty : function(addFunc, first, second, isTable, isTableColor)
 	{
 		var res = null;
 		if(null != first || null != second)
@@ -1927,7 +2186,7 @@ CellXfs.prototype =
 			else
 			{
 				if (null != first.merge) {
-					res = addFunc.call(g_StyleCache, first.merge(second, isTable));
+					res = addFunc.call(g_StyleCache, first.merge(second, isTable, isTableColor));
 				} else {
 					res = first;
 				}
@@ -1939,15 +2198,33 @@ CellXfs.prototype =
 	{
 		var xfIndexNumber = xfs.getIndexNumber();
 		if (undefined === xfIndexNumber) {
-			xfs = g_StyleCache.addXf(xfs, true);
+			xfs = g_StyleCache.addXf(xfs);
 			xfIndexNumber = xfs.getIndexNumber();
 		}
 		var cache = this.getOperationCache("merge", xfIndexNumber);
 		if (!cache) {
 			cache = new CellXfs();
-			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border);
-			cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
-			cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable);
+			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border, isTable);
+			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFill === xfs.fill)) {
+				if (g_StyleCache.firstFill === xfs.fill) {
+					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
+				} else {
+					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, xfs.fill);
+				}
+			} else {
+				cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
+			}
+			var isTableColor = true;
+			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFont === xfs.font)) {
+				if (g_StyleCache.firstFont === xfs.font) {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
+				} else {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+				}
+			} else {
+				isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.firstFont.c);
+				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+			}
 			cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
 			cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
 			cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
@@ -2165,17 +2442,17 @@ Align.prototype =
 		else
 			return second;
 	},
-	merge : function(border)
+	merge : function(align)
 	{
 		var defaultAlign = g_oDefaultFormat.Align;
 		var oRes = new Align();
-		oRes.hor = this._mergeProperty(this.hor, border.hor, defaultAlign.hor);
-		oRes.indent = this._mergeProperty(this.indent, border.indent, defaultAlign.indent);
-		oRes.RelativeIndent = this._mergeProperty(this.RelativeIndent, border.RelativeIndent, defaultAlign.RelativeIndent);
-		oRes.shrink = this._mergeProperty(this.shrink, border.shrink, defaultAlign.shrink);
-		oRes.angle = this._mergeProperty(this.angle, border.angle, defaultAlign.angle);
-		oRes.ver = this._mergeProperty(this.ver, border.ver, defaultAlign.ver);
-		oRes.wrap = this._mergeProperty(this.wrap, border.wrap, defaultAlign.wrap);
+		oRes.hor = this._mergeProperty(this.hor, align.hor, defaultAlign.hor);
+		oRes.indent = this._mergeProperty(this.indent, align.indent, defaultAlign.indent);
+		oRes.RelativeIndent = this._mergeProperty(this.RelativeIndent, align.RelativeIndent, defaultAlign.RelativeIndent);
+		oRes.shrink = this._mergeProperty(this.shrink, align.shrink, defaultAlign.shrink);
+		oRes.angle = this._mergeProperty(this.angle, align.angle, defaultAlign.angle);
+		oRes.ver = this._mergeProperty(this.ver, align.ver, defaultAlign.ver);
+		oRes.wrap = this._mergeProperty(this.wrap, align.wrap, defaultAlign.wrap);
 		return oRes;
 	},
 	getDif : function(val)
@@ -2316,7 +2593,7 @@ Align.prototype =
 		}
 		val = vals["wrapText"];
 		if(undefined !== val){
-			this.wrap = getBoolFromXml(val);
+			this.wrap = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["indent"];
 		if(undefined !== val){
@@ -2328,7 +2605,7 @@ Align.prototype =
 		}
 		val = vals["shrinkToFit"];
 		if(undefined !== val){
-			this.shrink = getBoolFromXml(val);
+			this.shrink = AscCommon.getBoolFromXml(val);
 		}
 	}
 }
@@ -2500,9 +2777,12 @@ CCellStyle.prototype.clone = function () {
 };
 CCellStyle.prototype.getFill = function () {
 	if (null != this.xfs && null != this.xfs.fill)
-		return this.xfs.fill.bg;
+		return this.xfs.fill;
 
-	return g_oDefaultFormat.Fill.bg;
+	return g_oDefaultFormat.Fill;
+};
+CCellStyle.prototype.getFillColor = function () {
+	return this.getFill().bg();
 };
 CCellStyle.prototype.getFontColor = function () {
 	if (null != this.xfs && null != this.xfs.font)
@@ -2527,50 +2807,27 @@ CCellStyle.prototype.getNumFormatStr = function () {
 };
 /** @constructor */
 function StyleManager(){
-	//стиль ячейки по умолчанию, может содержать не все свойства
-	this.oDefaultXfs = new CellXfs();
 }
 StyleManager.prototype =
 {
-	init: function(oDefaultXfs, wb) {
-		//font
-		if (!oDefaultXfs.font) {
-			oDefaultXfs.font = new AscCommonExcel.Font();
+	init: function(wb, firstXf, firstFont, firstFill, firstBorder) {
+		g_StyleCache.firstXf = firstXf;
+		g_StyleCache.firstFont = firstFont;
+		g_StyleCache.firstFill = firstFill;
+		g_StyleCache.firstBorder = firstBorder;
+		if(null != firstXf.font)
+			g_oDefaultFormat.Font = firstXf.font;
+		if(null != firstXf.fill)
+			g_oDefaultFormat.Fill = firstXf.fill.clone();
+		if(null != firstXf.border)
+			g_oDefaultFormat.Border = firstXf.border.clone();
+		if(null != firstXf.num)
+			g_oDefaultFormat.Num = firstXf.num.clone();
+		if(null != firstXf.align)
+			g_oDefaultFormat.Align = firstXf.align.clone();
+		if (null !== firstXf.XfId) {
+			g_oDefaultFormat.XfId = firstXf.XfId;
 		}
-		if (!oDefaultXfs.font.scheme) {
-			oDefaultXfs.font.scheme = Asc.EFontScheme.fontschemeMinor;
-		}
-		if (!oDefaultXfs.font.fn) {
-			var sThemeFont = null;
-			if (null != wb.theme.themeElements && null != wb.theme.themeElements.fontScheme) {
-				if (Asc.EFontScheme.fontschemeMinor == oDefaultXfs.font.scheme && wb.theme.themeElements.fontScheme.minorFont) {
-					sThemeFont = wb.theme.themeElements.fontScheme.minorFont.latin;
-				} else if (Asc.EFontScheme.fontschemeMajor == oDefaultXfs.font.scheme && wb.theme.themeElements.fontScheme.majorFont) {
-					sThemeFont = wb.theme.themeElements.fontScheme.majorFont.latin;
-				}
-			}
-			oDefaultXfs.font.fn = sThemeFont ? sThemeFont : "Calibri";
-		}
-		if (!oDefaultXfs.font.fs) {
-			oDefaultXfs.font.fs = 11;
-		}
-		if (!oDefaultXfs.font.c) {
-			oDefaultXfs.font.c = AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorTextDefault);
-		}
-		g_oDefaultFormat.Font = oDefaultXfs.font;
-		if(null != oDefaultXfs.fill)
-			g_oDefaultFormat.Fill = oDefaultXfs.fill.clone();
-		if(null != oDefaultXfs.border)
-			g_oDefaultFormat.Border = oDefaultXfs.border.clone();
-		if(null != oDefaultXfs.num)
-			g_oDefaultFormat.Num = oDefaultXfs.num.clone();
-		if(null != oDefaultXfs.align)
-			g_oDefaultFormat.Align = oDefaultXfs.align.clone();
-		if (null !== oDefaultXfs.XfId) {
-			this.oDefaultXfs.XfId = oDefaultXfs.XfId;
-			g_oDefaultFormat.XfId = oDefaultXfs.XfId;
-		}
-		this.oDefaultXfs = oDefaultXfs;
 	},
 	setCellStyle : function(oItemWithXfs, val)
 	{
@@ -2586,19 +2843,7 @@ StyleManager.prototype =
 	},
 	setFill : function(oItemWithXfs, val)
 	{
-		if(val){
-			var fill = new Fill();
-			fill.bg = val;
-			val = fill;
-		}
-		var oRes = this._setProperty(oItemWithXfs, val, "fill", CellXfs.prototype.getFill, CellXfs.prototype.setFill, g_StyleCache.addFill);
-		if (oRes.oldVal) {
-			oRes.oldVal = oRes.oldVal.bg;
-		}
-		if (oRes.newVal) {
-			oRes.newVal = oRes.newVal.bg;
-		}
-		return oRes;
+		return this._setProperty(oItemWithXfs, val, "fill", CellXfs.prototype.getFill, CellXfs.prototype.setFill, g_StyleCache.addFill);
 	},
 	setBorder : function(oItemWithXfs, val)
 	{
@@ -2683,7 +2928,7 @@ StyleManager.prototype =
 				xfs = oItemWithXfs.getDefaultXfs();
 			}
 			if (!xfs) {
-				xfs = this.oDefaultXfs;
+				xfs = g_StyleCache.firstXf;
 			}
 		}
 		return xfs;
@@ -2786,16 +3031,20 @@ StyleManager.prototype =
 		this.nums = {count: 0, vals: {}};
 		this.aligns = {count: 0, vals: {}};
 		this.xfs = {list: [], vals: {}};
+		this.firstXf =  new CellXfs();
+		this.firstFont = null;
+		this.firstFill = null;
+		this.firstBorder = null;
 	}
 
 	StyleCache.prototype.addFont = function(newFont) {
 		return this._add(this.fonts, newFont);
 	};
-	StyleCache.prototype.addFill = function(newFill) {
-		return this._add(this.fills, newFill);
+	StyleCache.prototype.addFill = function(newFill, forceAdd) {
+		return this._add(this.fills, newFill, forceAdd);
 	};
-	StyleCache.prototype.addBorder = function(newBorder) {
-		return this._add(this.borders, newBorder);
+	StyleCache.prototype.addBorder = function(newBorder, forceAdd) {
+		return this._add(this.borders, newBorder, forceAdd);
 	};
 	StyleCache.prototype.addNum = function(newNum) {
 		return this._add(this.nums, newNum);
@@ -2803,7 +3052,7 @@ StyleManager.prototype =
 	StyleCache.prototype.addAlign = function(newAlign) {
 		return this._add(this.aligns, newAlign);
 	};
-	StyleCache.prototype.addXf = function(newXf, recursively) {
+	StyleCache.prototype.addXf = function(newXf, forceAdd) {
 		if (newXf) {
 			if(newXf.font){
 				newXf.font = this.addFont(newXf.font);
@@ -2821,7 +3070,7 @@ StyleManager.prototype =
 				newXf.align = this.addAlign(newXf.align);
 			}
 		}
-		return this._add(this.xfs, newXf);
+		return this._add(this.xfs, newXf, forceAdd);
 	};
 	StyleCache.prototype.getXf = function(index) {
 		return 1 <= index && index <= this.xfs.list.length ? this.xfs.list[index - 1] : null;
@@ -2829,18 +3078,20 @@ StyleManager.prototype =
 	StyleCache.prototype.getXfCount = function() {
 		return this.xfs.list.length;
 	};
-	StyleCache.prototype._add = function(container, newVal) {
+	StyleCache.prototype._add = function(container, newVal, forceAdd) {
 		if (newVal && undefined === newVal.getIndexNumber()) {
 			var hash = newVal.getHash();
 			var res = container.vals[hash];
-			if (!res) {
+			if (!res || forceAdd) {
 				if (container.list) {
 					//index starts with 1
 					newVal.setIndexNumber(container.list.push(newVal));
 				} else {
 					newVal.setIndexNumber(container.count++);
 				}
-				container.vals[hash] = newVal;
+				if (!res) {
+					container.vals[hash] = newVal;
+				}
 				res = newVal;
 			}
 			return res;
@@ -4015,685 +4266,246 @@ CCellValue.prototype =
 	}
 };
 
-function TreeRBNode(key, storedValue){
-	this.storedValue = storedValue;
-	this.key = key;
-	this.red = null;
-	
-	this.left = null;
-	this.right = null;
-	this.parent = null;
-}
-TreeRBNode.prototype = {
-	constructor: TreeRBNode,
-	isEqual : function(x){
-		return this.key == x.key;
-	}
-};
-/**
- *
- * @param low
- * @param high
- * @param storedValue
- * @constructor
- * @extends {TreeRBNode}
- */
-function IntervalTreeRBNode(low, high, storedValue){
-	TreeRBNode.call(this, low, storedValue);
-	this.high = high;
-	this.maxHigh = this.high;
-	this.minLow = this.key;
-}
-IntervalTreeRBNode.prototype = Object.create(TreeRBNode.prototype);
-IntervalTreeRBNode.prototype.constructor = IntervalTreeRBNode;
-IntervalTreeRBNode.prototype.isEqual = function (x) {
-	return this.key == x.key && this.high == x.high;
-};
-		
-function TreeRB(){
-	this.nil = null;
-	this.root = null;
-	this._init();
-}
-TreeRB.prototype = {
-	constructor: TreeRB,
-	_init : function(){
-		this.nil = new TreeRBNode();
-		this.nil.left = this.nil.right = this.nil.parent = this.nil;
-		this.nil.key = -Number.MAX_VALUE;
-		this.nil.red = 0;
-		this.nil.storedValue = null;
-		
-		this.root = new TreeRBNode();
-		this.root.left = this.nil.right = this.nil.parent = this.nil;
-		this.root.key = Number.MAX_VALUE;
-		this.root.red = 0;
-		this.root.storedValue = null;
-	},
-	_treeInsertHelp : function(z){
-		var oRes = z;
-		z.left = z.right = this.nil;
-		var y = this.root;
-		var x = this.root.left;
-		while(x != this.nil && !x.isEqual(z)){
-			y = x;
-			if(x.key > z.key)
-				x = x.left;
-			else
-				x = x.right;
-		}
-		if(x == this.nil)
-		{
-			z.parent = y;
-			if(y == this.root || y.key > z.key)
-				y.left = z;
-			else
-				y.right = z;
-		}
-		else
-			oRes = x;
-		return oRes;
-	},
-	_fixUpMaxHigh : function(x){
-	},
-	_cleanMaxHigh : function(x){
-	},
-	_leftRotate : function(x){
-		var y = x.right;
-		x.right = y.left;
-		if (y.left != this.nil)
-			y.left.parent = x;
-		y.parent = x.parent;
-		if(x == x.parent.left){
-			x.parent.left = y;
-		}
-		else{
-			x.parent.right = y;
-		}
-		y.left = x;
-		x.parent = y;
-	},
-	_rightRotate : function(y){
-		var x = y.left;
-		y.left = x.right;
-		if(this.nil !=  x.right)
-			x.right.parent = y;
-		x.parent = y.parent;
-		if(y == y.parent.left){
-			y.parent.left = x;
-		}
-		else{
-			y.parent.right = x;
-		}
-		x.right = y;
-		y.parent = x;
-	},
-	insertOrGet : function(x){
-		var y = null;
-		var oRes = x;
-		oRes = this._treeInsertHelp(x);
-		if(x == oRes)
-		{
-			this._fixUpMaxHigh(x.parent);
-			x.red = 1;
-			while(x.parent.red)
-			{
-				if(x.parent == x.parent.parent.left){
-					y = x.parent.parent.right;
-					if(y.red){
-						x.parent.red = 0;
-						y.red = 0;
-						x.parent.parent.red = 1;
-						x = x.parent.parent;
-					}
-					else{
-						if (x == x.parent.right) {
-						  x = x.parent;
-						  this._leftRotate(x);
-						}
-						x.parent.red=0;
-						x.parent.parent.red=1;
-						this._rightRotate(x.parent.parent);
-					}
-				}
-				else{
-					y = x.parent.parent.left;
-					if (y.red){
-						x.parent.red = 0;
-						y.red = 0;
-						x.parent.parent.red = 1;
-						x = x.parent.parent;
-					}
-					else{
-						if (x == x.parent.left) {
-							x = x.parent;
-							this._rightRotate(x);
-						}
-						x.parent.red = 0;
-						x.parent.parent.red = 1;
-						this._leftRotate(x.parent.parent);
-					} 
-				}
-			}
-			this.root.left.red = 0;
-		}
-		return oRes;
-	},
-	_getSuccessorOf : function(x){
-		var y;
-		if(this.nil != (y = x.right)){
-			while(y.left != this.nil){
-				y = y.left;
-			}
-			return(y);
-		}
-		else{
-			y = x.parent;
-			while(x == y.right) {
-			  x = y;
-			  y = y.parent;
-			}
-			if (y == this.root) return(this.nil);
-			return(y);
-		}
-	},
-	_deleteFixUp : function(x){
-		var w;
-		var rootLeft = this.root.left;
-		
-		while((!x.red) && (rootLeft != x)){
-			if(x == x.parent.left){
-				w = x.parent.right;
-				if (w.red){
-					w.red = 0;
-					x.parent.red = 1;
-					this._leftRotate(x.parent);
-					w = x.parent.right;
-				}
-				if((!w.right.red) && (!w.left.red)){
-					w.red = 1;
-					x = x.parent;
-				}
-				else{
-					if(!w.right.red){
-						w.left.red = 0;
-						w.red = 1;
-						this._rightRotate(w);
-						w = x.parent.right;
-					}
-					w.red = x.parent.red;
-					x.parent.red = 0;
-					w.right.red = 0;
-					this._leftRotate(x.parent);
-					x = rootLeft; /* this is to exit while loop */
-				}
-			}
-			else{
-				w = x.parent.left;
-				if (w.red){
-					w.red = 0;
-					x.parent.red = 1;
-					this._rightRotate(x.parent);
-					w = x.parent.left;
-				}
-				if ( (!w.right.red) && (!w.left.red)){
-					w.red = 1;
-					x = x.parent;
-				}
-				else{
-					if (!w.left.red) {
-						w.right.red = 0;
-						w.red = 1;
-						this._leftRotate(w);
-						w = x.parent.left;
-					}
-					w.red = x.parent.red;
-					x.parent.red = 0;
-					w.left.red = 0;
-					this._rightRotate(x.parent);
-					x = rootLeft; /* this is to exit while loop */
-				}
-			}
-		}
-		x.red=0;
-	},
-	deleteNode : function(z){
-		var oRes = z.storedValue;
-		var y = ((z.left == this.nil) || (z.right == this.nil)) ? z : this._getSuccessorOf(z);
-		var x = (y.left == this.nil) ? y.right : y.left;
-		if (this.root == (x.parent = y.parent)){
-			this.root.left = x;
-		}
-		else{
-			if (y == y.parent.left){
-				y.parent.left = x;
-			}
-			else{
-				y.parent.right = x;
-			}
-		}
-		if (y != z){
-			this._cleanMaxHigh(y);
-			y.left = z.left;
-			y.right = z.right;
-			y.parent = z.parent;
-			z.left.parent = z.right.parent = y;
-			if (z == z.parent.left){
-				z.parent.left = y; 
-			}
-			else{
-				z.parent.right = y;
-			}
-			this._fixUpMaxHigh(x.parent); 
-			if(!(y.red)){
-				y.red = z.red;
-				this._deleteFixUp(x);
-			}
-			else
-				y.red = z.red; 
-		}
-		else{
-			this._fixUpMaxHigh(x.parent);
-			if (!(y.red))
-				this._deleteFixUp(x);
-		}
-		return oRes;
-	},
-	_enumerateRecursion : function(low, high, x, enumResultStack){
-		if(x != this.nil){
-			if(low > x.key)
-				this._enumerateRecursion(low, high, x.right, enumResultStack);
-			else if(high < x.key)
-				this._enumerateRecursion(low, high, x.left, enumResultStack);
-			else
-			{
-				this._enumerateRecursion(low, high, x.left, enumResultStack);
-				enumResultStack.push(x);
-				this._enumerateRecursion(low, high, x.right, enumResultStack);
-			}
-		}
-	},
-	enumerate : function(low, high){
-		var enumResultStack = [];
-		if(low <= high)
-			this._enumerateRecursion(low, high, this.root.left, enumResultStack);
-		return enumResultStack;
-	},
-	getElem : function(val){
-		var oRes = null;
-		//todo переделать
-		var aElems = this.enumerate(val, val);
-		if(aElems.length > 0)
-			oRes = aElems[0];
-		return oRes;
-	},
-	getNodeAll : function(){
-		return this.enumerate(-Number.MAX_VALUE, Number.MAX_VALUE);
-	},
-	isEmpty : function(){
-		return this.nil == this.root.left;
-	}
-};
-
-/**
- *
- * @constructor
- * @extends {TreeRB}
- */
-function IntervalTreeRB(){
-	TreeRB.call(this);
-}
-IntervalTreeRB.prototype = Object.create(TreeRB.prototype);
-IntervalTreeRB.prototype.constructor = IntervalTreeRB;
-IntervalTreeRB.prototype._init = function (x) {
-	this.nil = new IntervalTreeRBNode();
-	this.nil.left = this.nil.right = this.nil.parent = this.nil;
-	this.nil.key = this.nil.high = this.nil.maxHigh = -Number.MAX_VALUE;
-	this.nil.minLow = Number.MAX_VALUE;
-	this.nil.red = 0;
-	this.nil.storedValue = null;
-	
-	this.root = new IntervalTreeRBNode();
-	this.root.left = this.nil.right = this.nil.parent = this.nil;
-	this.root.key = this.root.high = this.root.maxHigh = Number.MAX_VALUE;
-	this.root.minLow = -Number.MAX_VALUE;
-	this.root.red = 0;
-	this.root.storedValue = null;
-};
-IntervalTreeRB.prototype._fixUpMaxHigh = function (x) {
-	while(x != this.root){
-		x.maxHigh = Math.max(x.high, Math.max(x.left.maxHigh, x.right.maxHigh));
-		x.minLow = Math.min(x.key, Math.min(x.left.minLow, x.right.minLow));
-		x = x.parent;
-	}
-};
-IntervalTreeRB.prototype._cleanMaxHigh = function (x) {
-	x.maxHigh = -Number.MAX_VALUE;
-	x.minLow = Number.MAX_VALUE;
-};
-IntervalTreeRB.prototype._overlap = function (a1, a2, b1, b2) {
-	if (a1 <= b1){
-		return ((b1 <= a2));
-	}
-	else{
-		return ((a1 <= b2));
-	}
-};
-IntervalTreeRB.prototype._enumerateRecursion = function (low, high, x, enumResultStack) {
-	if(x != this.nil){
-		if(this._overlap(low, high, x.minLow, x.maxHigh))
-		{
-			this._enumerateRecursion(low, high, x.left, enumResultStack);
-			if (this._overlap(low, high, x.key, x.high))
-				enumResultStack.push(x);
-			this._enumerateRecursion(low, high, x.right, enumResultStack);
-		}
-	}
-};
-IntervalTreeRB.prototype._leftRotate = function (x) {
-	var y = x.right;
-	TreeRB.prototype._leftRotate.call(this, x);
-
-	x.maxHigh = Math.max(x.left.maxHigh,Math.max(x.right.maxHigh,x.high));
-	x.minLow = Math.min(x.left.minLow,Math.min(x.right.minLow,x.key));
-	y.maxHigh = Math.max(x.maxHigh,Math.max(y.right.maxHigh,y.high));
-	y.minLow = Math.min(x.minLow,Math.min(y.right.minLow,y.key));
-};
-IntervalTreeRB.prototype._rightRotate = function (y) {
-	var x = y.left;
-	TreeRB.prototype._rightRotate.call(this, y);
-	
-	y.maxHigh = Math.max(y.left.maxHigh,Math.max(y.right.maxHigh,y.high));
-	y.minLow = Math.min(y.left.minLow,Math.min(y.right.minLow,y.key));
-	x.maxHigh = Math.max(x.left.maxHigh,Math.max(y.maxHigh,x.high));
-	x.minLow = Math.min(x.left.minLow,Math.min(y.minLow,y.key));
-};
 function RangeDataManagerElem(bbox, data)
 {
 	this.bbox = bbox;
 	this.data = data;
 }
-function RangeDataManager(fChange)
-{
-	this.oIntervalTreeRB = new IntervalTreeRB();
-	this.oDependenceManager = null;
-	this.fChange = fChange;
-}
-RangeDataManager.prototype = {
-    add: function (bbox, data, oChangeParam)
-	{
-		var oNewNode = new IntervalTreeRBNode(bbox.r1, bbox.r2, null);
-		var oStoredNode = this.oIntervalTreeRB.insertOrGet(oNewNode);
-		if(oStoredNode == oNewNode)
-			oStoredNode.storedValue = [];
+
+	function RangeDataManager(fChange) {
+		this.tree = new AscCommon.DataIntervalTree2D();
+		this.oDependenceManager = null;
+		this.fChange = fChange;
+
+		this.initData = null;
+		this.worksheet = null;
+	}
+	RangeDataManager.prototype._delayedInit = function () {
+		if (this.initData) {
+			var initData = this.initData;
+			this.initData = null;
+			var t = this;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				History.TurnOff();
+				for (var i = 0; i < initData.length; ++i) {
+					var range = t.worksheet.getRange2(initData[i]);
+					if (null != range) {
+						range.mergeOpen();
+					}
+				}
+				History.TurnOn();
+			});
+		}
+	};
+	RangeDataManager.prototype.add = function (bbox, data, oChangeParam) {
+		this._delayedInit();
 		var oNewElem = new RangeDataManagerElem(new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2), data);
-		oStoredNode.storedValue.push(oNewElem);
-		if(null != this.fChange)
-		    this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
-	},
-	get : function(bbox)
-	{
+		this.tree.insert(bbox, oNewElem);
+		if (null != this.fChange) {
+			this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
+		}
+	};
+	RangeDataManager.prototype.get = function (bbox) {
+		this._delayedInit();
 		var oRes = {all: [], inner: [], outer: []};
-		var oNodes = this.oIntervalTreeRB.enumerate(bbox.r1, bbox.r2);
-		for(var i = 0, length = oNodes.length; i < length; i++)
-		{
-			var oNode = oNodes[i];
-			if(oNode.storedValue)
-			{
-				for(var j = 0, length2 = oNode.storedValue.length; j < length2; j++)
-				{
-					var elem = oNode.storedValue[j];
-					if(elem.bbox.isIntersect(bbox))
-					{
-						oRes.all.push(elem);
-						if(bbox.containsRange(elem.bbox))
-							oRes.inner.push(elem);
-						else
-							oRes.outer.push(elem);
-					}
+		var intervals = this.tree.searchNodes(bbox);
+		for (var i = 0; i < intervals.length; i++) {
+			var interval = intervals[i];
+			var elem = interval.data;
+			if (elem.bbox.isIntersect(bbox)) {
+				oRes.all.push(elem);
+				if (bbox.containsRange(elem.bbox)) {
+					oRes.inner.push(elem);
+				} else {
+					oRes.outer.push(elem);
 				}
 			}
 		}
 		return oRes;
-	},
-	getExact : function(bbox)
-	{
-		var oRes = null;
-		var oGet = this.get(bbox);
-		for(var i = 0, length = oGet.inner.length; i < length; i++)
-		{
-			var elem = oGet.inner[i];
-			if(elem.bbox.isEqual(bbox))
-			{
-				oRes = elem;
-				break;
+	};
+	RangeDataManager.prototype.getAny = function (bbox) {
+		this._delayedInit();
+		return this.tree.searchAny(bbox);
+	};
+	RangeDataManager.prototype.getByCell = function (nRow, nCol) {
+		this._delayedInit();
+		var bbox = new Asc.Range(nCol, nRow, nCol, nRow);
+		var res = this.getAny(bbox);
+		if (!res && null != this.oDependenceManager) {
+			var oDependence = this.oDependenceManager.getAny(bbox);
+			if (oDependence) {
+				res = this.getAny(oDependence.bbox);
 			}
 		}
-		return oRes;
-	},
-	_getByCell : function(nRow, nCol)
-	{
-		var oRes = null;
-		var aAll = this.get(new Asc.Range(nCol, nRow, nCol, nRow));
-		if(aAll.all.length > 0)
-			oRes = aAll.all[0];
-		return oRes;
-	},
-	getByCell : function(nRow, nCol)
-	{
-		var oRes = this._getByCell(nRow, nCol);
-		if(null == oRes && null != this.oDependenceManager)
-		{
-			var oDependence = this.oDependenceManager._getByCell(nRow, nCol);
-			if(null != oDependence)
-			{
-				var oTempRes = this.get(oDependence.bbox);
-				if(oTempRes.all.length > 0)
-					oRes = oTempRes.all[0];
+		return res;
+	};
+	RangeDataManager.prototype.remove = function (bbox, bInnerOnly, oChangeParam) {
+		this._delayedInit();
+		var aElems = this.get(bbox);
+		var aTargetArray;
+		if (bInnerOnly) {
+			aTargetArray = aElems.inner;
+		} else {
+			aTargetArray = aElems.all;
+		}
+		for (var i = 0, length = aTargetArray.length; i < length; ++i) {
+			var elem = aTargetArray[i];
+			this.removeElement(elem, oChangeParam);
+		}
+	};
+	RangeDataManager.prototype.removeElement = function (elemToDelete, oChangeParam) {
+		this._delayedInit();
+		if (null != elemToDelete) {
+			this.tree.remove(elemToDelete.bbox, elemToDelete);
+			if (null != this.fChange) {
+				this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
 			}
 		}
-		return oRes;
-	},
-	remove: function (bbox, bInnerOnly, oChangeParam)
-	{
-	    var aElems = this.get(bbox);
-	    var aTargetArray;
-	    if (bInnerOnly)
-	        aTargetArray = aElems.inner;
-	    else
-	        aTargetArray = aElems.all;
-	    for (var i = 0, length = aTargetArray.length; i < length; ++i)
-		{
-	        var elem = aTargetArray[i];
-	        this.removeElement(elem, oChangeParam);
-		}
-	},
-	removeElement: function (elemToDelete, oChangeParam)
-	{
-		if(null != elemToDelete)
-		{
-			var bbox = elemToDelete.bbox;
-			var oNodes = this.oIntervalTreeRB.enumerate(bbox.r1, bbox.r2);
-			for(var i = 0, length = oNodes.length; i < length; i++)
-			{
-				var oNode = oNodes[i];
-				if(oNode.storedValue)
-				{
-					for(var j = 0, length2 = oNode.storedValue.length; j < length2; j++)
-					{
-						var elem = oNode.storedValue[j];
-						if(elem.bbox.isEqual(bbox))
-						{
-							oNode.storedValue.splice(j, 1);
-							break;
-						}
-					}
-					if(0 == oNode.storedValue.length)
-						this.oIntervalTreeRB.deleteNode(oNode);
-				}
-			}
-			if(null != this.fChange)
-			    this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
-		}
-	},
-	removeAll : function(oChangeParam)
-	{
-	    this.remove(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0), null, oChangeParam);
-		//todo
-		this.oIntervalTreeRB = new IntervalTreeRB();
-	},
-	shiftGet : function(bbox, bHor)
-	{
+	};
+	RangeDataManager.prototype.shiftGet = function (bbox, bHor) {
+		this._delayedInit();
 		var bboxGet = shiftGetBBox(bbox, bHor);
 		return {bbox: bboxGet, elems: this.get(bboxGet)};
-	},
-	shift: function (bbox, bAdd, bHor, oGetRes, oChangeParam)
-	{
-	    var _this = this;
-	    if (null == oGetRes)
-	        oGetRes = this.shiftGet(bbox, bHor);
-	    var offset;
-	    if (bHor)
-	        offset = new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1);
-	    else
-	        offset = new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0);
-	    if (!bAdd) {
-	        offset.row *= -1;
-	        offset.col *= -1;
-	    }
-	    this._shiftmove(true, bbox, offset, oGetRes.elems, oChangeParam);
-	},
-	move: function (from, to, oChangeParam)
-	{
-	    var offset = new AscCommon.CellBase(to.r1 - from.r1, to.c1 - from.c1);
-	    var oGetRes = this.get(from);
-	    this._shiftmove(false, from, offset, oGetRes, oChangeParam);
-	},
-	_shiftmove: function (bShift, bbox, offset, elems, oChangeParam) {
-	    var aToChange = [];
-	    var bAdd = offset.row > 0 || offset.col > 0;
-	    var bHor = 0 != offset.col ? true : false;
-	    //сдвигаем inner
-	    if (elems.inner.length > 0) {
-	        var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
-	        for (var i = 0, length = elems.inner.length; i < length; i++) {
-	            var elem = elems.inner[i];
-	            var from = elem.bbox;
-	            var to = null;
-	            if (bShift) {
-	                if (bAdd) {
-	                    to = from.clone();
-	                    to.setOffset(offset);
-	                }
-	                else if (!bboxAsc.containsRange(from)) {
-	                    to = from.clone();
-	                    if (bHor) {
-	                        if (to.c1 <= bbox.c2)
-	                            to.setOffsetFirst(new AscCommon.CellBase(0,  bbox.c2 - to.c1 + 1));
-	                    }
-	                    else {
-	                        if (to.r1 <= bbox.r2)
-	                            to.setOffsetFirst(new AscCommon.CellBase(bbox.r2 - to.r1 + 1, 0));
-	                    }
-	                    to.setOffset(offset);
-	                }
-	            }
-	            else {
-	                to = from.clone();
-	                to.setOffset(offset);
-	            }
-	            aToChange.push({ elem: elem, to: to });
-	        }
-	    }
-	    //меняем outer
-	    if (bShift) {
-	        if (elems.outer.length > 0) {
-	            for (var i = 0, length = elems.outer.length; i < length; i++) {
-	                var elem = elems.outer[i];
-	                var from = elem.bbox;
-	                var to = null;
-	                if (bHor) {
-	                    if (from.c1 < bbox.c1 && bbox.r1 <= from.r1 && from.r2 <= bbox.r2) {
-	                        if (bAdd) {
-	                            to = from.clone();
-	                            to.setOffsetLast(new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1));
-	                        }
-	                        else {
-	                            to = from.clone();
-	                            var nTemp1 = from.c2 - bbox.c1 + 1;
-	                            var nTemp2 = bbox.c2 - bbox.c1 + 1;
-	                            to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
-	                        }
-	                    }
-	                }
-	                else {
-	                    if (from.r1 < bbox.r1 && bbox.c1 <= from.c1 && from.c2 <= bbox.c2) {
-	                        if (bAdd) {
-	                            to = from.clone();
-	                            to.setOffsetLast(new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0));
-	                        }
-	                        else {
-	                            to = from.clone();
-	                            var nTemp1 = from.r2 - bbox.r1 + 1;
-	                            var nTemp2 = bbox.r2 - bbox.r1 + 1;
-	                            to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
-	                        }
-	                    }
-	                }
-	                if (null != to)
-	                    aToChange.push({ elem: elem, to: to });
-	            }
-	        }
-	    }
-	    //сначала сортируем чтобы не было конфликтов при сдвиге
-	    aToChange.sort(function (a, b) { return shiftSort(a, b, offset); });
-
-	    if (null != this.fChange) {
-	        for (var i = 0, length = aToChange.length; i < length; ++i) {
-	            var item = aToChange[i];
-	            this.fChange.call(this, item.elem.data, item.elem.bbox, item.to, oChangeParam);
-	        }
-	    }
-	    //убираем fChange, чтобы потом послать его только на одну операцию, а не 2
-	    var fOldChange = this.fChange;
-	    this.fChange = null;
-	    //сначала удаляем все чтобы не было конфликтов
-	    for (var i = 0, length = aToChange.length; i < length; ++i) {
-	        var item = aToChange[i];
-	        var elem = item.elem;
-	        this.removeElement(elem, oChangeParam);
-	    }
-	    //добавляем измененные ячейки
-	    for (var i = 0, length = aToChange.length; i < length; ++i) {
-	        var item = aToChange[i];
-	        if (null != item.to)
-	            this.add(item.to, item.elem.data, oChangeParam);
-	    }
-	    this.fChange = fOldChange;
-	},
-	getAll : function()
-	{
-		var aRes = [];
-		var oNodes = this.oIntervalTreeRB.getNodeAll();
-		for(var i = 0, length = oNodes.length; i < length; i++)
-		{
-			var oNode = oNodes[i];
-			if(oNode.storedValue)
-			{
-				for(var j = 0, length2 = oNode.storedValue.length; j < length2; j++)
-				{
-					var elem = oNode.storedValue[j];
-					aRes.push(elem);
+	};
+	RangeDataManager.prototype.shift = function (bbox, bAdd, bHor, oGetRes, oChangeParam) {
+		this._delayedInit();
+		var _this = this;
+		if (null == oGetRes) {
+			oGetRes = this.shiftGet(bbox, bHor);
+		}
+		var offset;
+		if (bHor) {
+			offset = new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1);
+		} else {
+			offset = new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0);
+		}
+		if (!bAdd) {
+			offset.row *= -1;
+			offset.col *= -1;
+		}
+		this._shiftmove(true, bbox, offset, oGetRes.elems, oChangeParam);
+	};
+	RangeDataManager.prototype.move = function (from, to, oChangeParam) {
+		this._delayedInit();
+		var offset = new AscCommon.CellBase(to.r1 - from.r1, to.c1 - from.c1);
+		var oGetRes = this.get(from);
+		this._shiftmove(false, from, offset, oGetRes, oChangeParam);
+	};
+	RangeDataManager.prototype._shiftmove = function (bShift, bbox, offset, elems, oChangeParam) {
+		var aToChange = [];
+		var bAdd = offset.row > 0 || offset.col > 0;
+		var bHor = 0 != offset.col ? true : false;
+		//сдвигаем inner
+		if (elems.inner.length > 0) {
+			var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
+			for (var i = 0, length = elems.inner.length; i < length; i++) {
+				var elem = elems.inner[i];
+				var from = elem.bbox;
+				var to = null;
+				if (bShift) {
+					if (bAdd) {
+						to = from.clone();
+						to.setOffset(offset);
+					} else if (!bboxAsc.containsRange(from)) {
+						to = from.clone();
+						if (bHor) {
+							if (to.c1 <= bbox.c2) {
+								to.setOffsetFirst(new AscCommon.CellBase(0, bbox.c2 - to.c1 + 1));
+							}
+						} else {
+							if (to.r1 <= bbox.r2) {
+								to.setOffsetFirst(new AscCommon.CellBase(bbox.r2 - to.r1 + 1, 0));
+							}
+						}
+						to.setOffset(offset);
+					}
+				} else {
+					to = from.clone();
+					to.setOffset(offset);
+				}
+				aToChange.push({elem: elem, to: to});
+			}
+		}
+		//меняем outer
+		if (bShift) {
+			if (elems.outer.length > 0) {
+				for (var i = 0, length = elems.outer.length; i < length; i++) {
+					var elem = elems.outer[i];
+					var from = elem.bbox;
+					var to = null;
+					if (bHor) {
+						if (from.c1 < bbox.c1 && bbox.r1 <= from.r1 && from.r2 <= bbox.r2) {
+							if (bAdd) {
+								to = from.clone();
+								to.setOffsetLast(new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1));
+							} else {
+								to = from.clone();
+								var nTemp1 = from.c2 - bbox.c1 + 1;
+								var nTemp2 = bbox.c2 - bbox.c1 + 1;
+								to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
+							}
+						}
+					} else {
+						if (from.r1 < bbox.r1 && bbox.c1 <= from.c1 && from.c2 <= bbox.c2) {
+							if (bAdd) {
+								to = from.clone();
+								to.setOffsetLast(new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0));
+							} else {
+								to = from.clone();
+								var nTemp1 = from.r2 - bbox.r1 + 1;
+								var nTemp2 = bbox.r2 - bbox.r1 + 1;
+								to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
+							}
+						}
+					}
+					if (null != to) {
+						aToChange.push({elem: elem, to: to});
+					}
 				}
 			}
 		}
-		return aRes;
-	},
-	setDependenceManager : function(oDependenceManager)
-	{
+		//сначала сортируем чтобы не было конфликтов при сдвиге
+		aToChange.sort(function (a, b) {
+			return shiftSort(a, b, offset);
+		});
+
+		if (null != this.fChange) {
+			for (var i = 0, length = aToChange.length; i < length; ++i) {
+				var item = aToChange[i];
+				this.fChange.call(this, item.elem.data, item.elem.bbox, item.to, oChangeParam);
+			}
+		}
+		//убираем fChange, чтобы потом послать его только на одну операцию, а не 2
+		var fOldChange = this.fChange;
+		this.fChange = null;
+		//сначала удаляем все чтобы не было конфликтов
+		for (var i = 0, length = aToChange.length; i < length; ++i) {
+			var item = aToChange[i];
+			var elem = item.elem;
+			this.removeElement(elem, oChangeParam);
+		}
+		//добавляем измененные ячейки
+		for (var i = 0, length = aToChange.length; i < length; ++i) {
+			var item = aToChange[i];
+			if (null != item.to) {
+				this.add(item.to, item.elem.data, oChangeParam);
+			}
+		}
+		this.fChange = fOldChange;
+	};
+	RangeDataManager.prototype.getAll = function () {
+		this._delayedInit();
+		var res = [];
+		var intervals = this.tree.searchNodes(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0));
+		for (var i = 0; i < intervals.length; i++) {
+			var interval = intervals[i];
+			res.push(interval.data);
+		}
+		return res;
+	};
+	RangeDataManager.prototype.setDependenceManager = function (oDependenceManager) {
 		this.oDependenceManager = oDependenceManager;
-	}
-};
+	};
 
 	/** @constructor */
 	function sparklineGroup(addId) {
@@ -5046,7 +4858,7 @@ RangeDataManager.prototype = {
 			}
 		} else {
 			this.arrSparklines.forEach(function (item) {
-				arrResultData.push(item.f || cErrorOrigin['ref']);
+				arrResultData.push(item.f || AscCommon.cErrorOrigin['ref']);
 				arrResultLocation.push(item.sqref.getAbsName());
 			});
 		}
@@ -5795,6 +5607,16 @@ RangeDataManager.prototype = {
 		return this.TotalsRowCount > 0;
 	};
 
+	TablePart.prototype.getTotalsRowRange = function () {
+		var res = null;
+
+		if(this.TotalsRowCount > 0) {
+			res = new Asc.Range(this.Ref.c1, this.Ref.r2, this.Ref.c2, this.Ref.r2);
+		}
+
+		return res;
+	};
+
 	TablePart.prototype.generateSortState = function () {
 		this.SortState = new AscCommonExcel.SortState();
 		this.SortState.SortConditions = [];
@@ -6094,7 +5916,6 @@ RangeDataManager.prototype = {
 					}
 
 					var currentValue = (isDateTimeFormat || isNumberFilter) ? cell.getValueWithoutFormat() : cell.getValueWithFormat();
-					currentValue = window["Asc"].trim(currentValue);
 					var isSetHidden = newFilterColumn.isHideValue(currentValue, isDateTimeFormat, null, cell);
 
 					if (isSetHidden !== worksheet.getRowHidden(i) && minChangeRow === null) {
@@ -6657,6 +6478,7 @@ RangeDataManager.prototype = {
 	Filters.prototype.isHideValue = function (val, isDateTimeFormat) {
 		var res = false;
 
+		val = window["Asc"].trim(val);
 		if (isDateTimeFormat && this.Dates) {
 			if (val === "") {
 				res = !this.Blank ? true : false;
@@ -6942,42 +6764,30 @@ CustomFilter.prototype.init = function(operator, val) {
 	this.Operator = operator;
 	this.Val = val;
 };
-CustomFilter.prototype.isHideValue = function(val) {
+CustomFilter.prototype.isHideValue = function (val) {
 
 	var result = false;
 	var isDigitValue = !isNaN(val);
-	if(!isDigitValue)
-	{
+	if (!isDigitValue) {
 		val = val.toLowerCase();
 	}
 
 	var checkComplexSymbols = null, filterVal;
-	if(checkComplexSymbols != null)
-	{
+	if (checkComplexSymbols != null) {
 		result = checkComplexSymbols;
-	}
-	else
-	{
+	} else {
 		var isNumberFilter = this.Operator == c_oAscCustomAutoFilter.isGreaterThan || this.Operator == c_oAscCustomAutoFilter.isGreaterThanOrEqualTo || this.Operator == c_oAscCustomAutoFilter.isLessThan || this.Operator == c_oAscCustomAutoFilter.isLessThanOrEqualTo;
-		
-		if(c_oAscCustomAutoFilter.equals === this.Operator || c_oAscCustomAutoFilter.doesNotEqual === this.Operator)
-		{
+
+		if (c_oAscCustomAutoFilter.equals === this.Operator || c_oAscCustomAutoFilter.doesNotEqual === this.Operator) {
 			filterVal = isNaN(this.Val) ? this.Val.toLowerCase() : this.Val;
-		}
-		else if(isNumberFilter)
-		{
-			if(isNaN(this.Val) && isNaN(val))
-			{
-				filterVal =  this.Val;
-			}
-			else
-			{
-				filterVal =  parseFloat(this.Val);
+		} else if (isNumberFilter) {
+			if (isNaN(this.Val) && isNaN(val)) {
+				filterVal = this.Val.toLowerCase();
+			} else {
+				filterVal = parseFloat(this.Val);
 				val = parseFloat(val);
 			}
-		}
-		else
-		{
+		} else {
 			filterVal = isNaN(this.Val) ? this.Val.toLowerCase() : this.Val;
 		}
 
@@ -6985,142 +6795,133 @@ CustomFilter.prototype.isHideValue = function(val) {
 		var trimFilterVal = "string" === typeof(filterVal) ? window["Asc"].trim(filterVal) : filterVal;
 
 
-		var matchingValues = function(val1, val2, op) {
+		var matchingValues = function (val1, val2, op) {
 			var matchingInfo = AscCommonExcel.matchingValue(new AscCommonExcel.cString(val1));
-			if(op) {
+			if (op) {
 				matchingInfo.op = op;
 			}
 			return AscCommonExcel.matching(new AscCommonExcel.cString(val2), matchingInfo);
 		};
 
-		switch (this.Operator)
-		{
+		switch (this.Operator) {
 			case c_oAscCustomAutoFilter.equals://equals
 			{
-				if(!isDigitValue) {
+				if (!isDigitValue) {
 					result = matchingValues(trimFilterVal, trimVal);
-				} else if(trimVal === trimFilterVal) {
+				} else if (trimVal === trimFilterVal) {
 					result = true;
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.doesNotEqual://doesNotEqual
 			{
-				if(!isDigitValue) {
+				if (!isDigitValue) {
 					result = matchingValues(trimFilterVal, trimVal, "<>");
-				} else if(trimVal !== trimFilterVal) {
+				} else if (trimVal !== trimFilterVal) {
 					result = true;
 				}
-					
+
 				break;
 			}
-			
+
 			case c_oAscCustomAutoFilter.isGreaterThan://isGreaterThan
 			{
-				if(val > filterVal)
-				{
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal, trimVal, ">");
+				} else if (val > filterVal) {
 					result = true;
-				}	
-				
+				}
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.isGreaterThanOrEqualTo://isGreaterThanOrEqualTo
 			{
-				if(val >= filterVal)
-				{
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal, trimVal, ">=");
+				} else if (val >= filterVal) {
 					result = true;
-				}	
-				
+				}
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.isLessThan://isLessThan
 			{
-				if(val < filterVal)
-				{
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal, trimVal, "<");
+				} else if (val < filterVal) {
 					result = true;
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.isLessThanOrEqualTo://isLessThanOrEqualTo
 			{
-				if(val <= filterVal)
-				{
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal, trimVal, "<=");
+				} else if (val <= filterVal) {
 					result = true;
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.beginsWith://beginsWith
 			{
-				if(!isDigitValue)
-				{
-					if(val.startsWith(filterVal))
-						result = true;
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal + "*", trimVal);
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.doesNotBeginWith://doesNotBeginWith
 			{
-				if(!isDigitValue)
-				{
-					if(!val.startsWith(filterVal))
-						result = true;
-				}
-				else
+				if (!isDigitValue) {
+					result = matchingValues(trimFilterVal + "*", trimVal, "<>");
+				} else {
 					result = true;
-				
+				}
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.endsWith://endsWith
 			{
-				if(!isDigitValue)
-				{
-					if(val.endsWith(filterVal))
-						result = true;
+				if (!isDigitValue) {
+					result = matchingValues("*" + trimFilterVal, trimVal);
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.doesNotEndWith://doesNotEndWith
 			{
-				if(!isDigitValue)
-				{
-					if(!val.endsWith(filterVal))
-						result = true;
-				}
-				else
+				if (!isDigitValue) {
+					result = matchingValues("*" + trimFilterVal, trimVal, "<>");
+				} else {
 					result = true;
-				
+				}
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.contains://contains
 			{
-				if(!isDigitValue)
-				{
-					if(val.indexOf(filterVal) !== -1)
-						result = true;
+				if (!isDigitValue) {
+					result = matchingValues("*" + trimFilterVal + "*", trimVal);
 				}
-				
+
 				break;
 			}
 			case c_oAscCustomAutoFilter.doesNotContain://doesNotContain
 			{
-				if(!isDigitValue)
-				{
-					if(val.indexOf(filterVal) === -1)
-						result = true;
-				}
-				else
+				if (!isDigitValue) {
+					result = matchingValues("*" + trimFilterVal + "*", trimVal, "<>");
+				} else {
 					result = true;
-				
+				}
+
 				break;
 			}
 		}
-	}	
-	
+	}
+
 	return !result;
 };
 
@@ -7313,8 +7114,10 @@ ColorFilter.prototype.isHideValue = function(cell) {
 	
 	if(this.dxf && this.dxf.fill && cell)
 	{
-		var filterColor = this.dxf.fill.bg;
+		var filterColor = this.dxf.fill.bg();
 		cell.getLeftTopCellNoEmpty(function(cell) {
+			var fontColor;
+			var xfs = cell ? cell.getCompiledStyleCustom(false, true, true) : null;
 			if(false === t.CellColor)//font color
 			{
 				var multiText;
@@ -7322,7 +7125,10 @@ ColorFilter.prototype.isHideValue = function(cell) {
 				{
 					for(var j = 0; j < multiText.length; j++)
 					{
-						var fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
+						fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
+						if(null === fontColor) {
+							fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
+						}
 						if(isEqualColors(filterColor,fontColor ))
 						{
 							res = false;
@@ -7332,7 +7138,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 				}
 				else
 				{
-					var fontColor = cell && cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+					fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
 					if(isEqualColors(filterColor,fontColor))
 					{
 						res = false;
@@ -7341,8 +7147,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 			}
 			else
 			{
-				var color = cell ? cell.getStyle() : null;
-				var cellColor =  color !== null && color.fill && color.fill.bg ? color.fill.bg : null;
+				var cellColor =  xfs !== null && xfs.fill && xfs.fill.bg ? xfs.fill.bg() : null;
 
 				if(isEqualColors(filterColor, cellColor))
 				{
@@ -7364,9 +7169,9 @@ ColorFilter.prototype.asc_getCColor = function ()
 { 
 	var res = null;
 	
-	if(this.dxf && this.dxf.fill && null !== this.dxf.fill.bg && null !== this.dxf.fill.bg.rgb)
+	if(this.dxf && this.dxf.fill && null !== this.dxf.fill.bg() && null !== this.dxf.fill.bg().rgb)
 	{
-		var color = this.dxf.fill.bg;
+		var color = this.dxf.fill.bg();
 		
 		var res = new Asc.asc_CColor();
 		res.asc_putR(color.getR());
@@ -7384,19 +7189,18 @@ ColorFilter.prototype.asc_setCColor = function (asc_CColor)
 		this.dxf = new CellXfs();
 	}
 	
-	if(!this.dxf.bg)
+	if(!this.dxf.fill)
 	{
 		this.dxf.fill = new Fill();
 	}
 	
 	if(null === asc_CColor)
 	{
-		this.dxf.fill.bg = new RgbColor();
-		this.dxf.fill.bg.rgb = null;
+		this.dxf.fill.fromColor(null);
 	}
 	else
 	{
-		this.dxf.fill.bg = new RgbColor((asc_CColor.asc_getR() << 16) + (asc_CColor.asc_getG() << 8) + asc_CColor.asc_getB());
+		this.dxf.fill.fromColor(new RgbColor((asc_CColor.asc_getR() << 16) + (asc_CColor.asc_getG() << 8) + asc_CColor.asc_getB()));
 	}
 };
 
@@ -7620,8 +7424,8 @@ SortCondition.prototype.getSortColor = function() {
 	var res = null;
 
 	if(this.dxf) {
-		if(this.dxf.fill && this.dxf.fill.bg) {
-			res = this.dxf.fill.bg;
+		if(this.dxf.fill && this.dxf.fill.notEmpty()) {
+			res = this.dxf.fill.bg();
 		} else if(this.dxf.font && this.dxf.font.c) {
 			res = this.dxf.font.c;
 		}
@@ -7638,7 +7442,7 @@ SortCondition.prototype.applySort = function(type, ref, color) {
 		if (type === Asc.c_oAscSortOptions.ByColorFill) {
 			newDxf = new AscCommonExcel.CellXfs();
 			newDxf.fill = new AscCommonExcel.Fill();
-			newDxf.fill.bg = color;
+			newDxf.fill.fromColor(color);
 			this.ConditionSortBy = Asc.ESortBy.sortbyCellColor;
 		} else {
 			newDxf.font = new AscCommonExcel.Font();
@@ -7646,7 +7450,7 @@ SortCondition.prototype.applySort = function(type, ref, color) {
 			this.ConditionSortBy = Asc.ESortBy.sortbyFontColor;
 		}
 
-		this.dxf = AscCommonExcel.g_StyleCache.addXf(newDxf, true);
+		this.dxf = AscCommonExcel.g_StyleCache.addXf(newDxf);
 	} else if(type === Asc.c_oAscSortOptions.Ascending || type === Asc.c_oAscSortOptions.Descending) {
 		this.ConditionDescending = type !== Asc.c_oAscSortOptions.Ascending;
 	}
@@ -7672,7 +7476,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	{
 		case 1://day
 		{
-			date = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day));
+			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day));
 			startDate = date.getExcelDateWithTime();
 			date.addDays(1)
 			endDate = date.getExcelDateWithTime();
@@ -7680,19 +7484,19 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 		case 2://hour
 		{
-			startDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, 1)).getExcelDateWithTime();
-			endDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, 59)).getExcelDateWithTime();
+			startDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, 1)).getExcelDateWithTime();
+			endDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, 59)).getExcelDateWithTime();
 			break;
 		}
 		case 3://minute
 		{
-			startDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Minute, 1)).getExcelDateWithTime();
-			endDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Minute, 59)).getExcelDateWithTime();
+			startDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Minute, 1)).getExcelDateWithTime();
+			endDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Minute, 59)).getExcelDateWithTime();
 			break;
 		}
 		case 4://month
 		{
-			date = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, 1));
+			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, 1));
 			startDate = date.getExcelDateWithTime();
 			date.addMonths(1)
 			endDate = date.getExcelDateWithTime();
@@ -7700,13 +7504,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 		case 5://second
 		{
-			startDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Second)).getExcelDateWithTime();
-			endDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Second )).getExcelDateWithTime();
+			startDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Second)).getExcelDateWithTime();
+			endDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Second )).getExcelDateWithTime();
 			break;
 		}
 		case 6://year
 		{
-			date = new cDate(Date.UTC( oDateGroupItem.Year, 0));
+			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, 0));
 			startDate = date.getExcelDateWithTime();
 			date.addYears(1)
 			endDate = date.getExcelDateWithTime();
@@ -7965,6 +7769,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	asc_CPageSetup.prototype.asc_getFitToWidth = function () { return this.fitToWidth; };
 	asc_CPageSetup.prototype.asc_getFitToHeight = function () { return this.fitToHeight; };
 
+	asc_CPageSetup.prototype.asc_getScale = function () { return this.scale; };
+
 	asc_CPageSetup.prototype.asc_setFitToWidth = function (newVal) {
 		var oldVal = this.fitToWidth;
 		this.fitToWidth = newVal;
@@ -8061,7 +7867,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			this.asc_setGridLines(gridLines);
 		}
 		var heading = obj.asc_getHeadings();
-		if(gridLines !== this.asc_getHeadings()) {
+		if(heading !== this.asc_getHeadings()) {
 			this.asc_setHeadings(heading);
 		}
 
@@ -8106,7 +7912,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].Row = Row;
 	window['AscCommonExcel'].CMultiTextElem = CMultiTextElem;
 	window['AscCommonExcel'].CCellValue = CCellValue;
-	window['AscCommonExcel'].RangeDataManagerElem = RangeDataManagerElem;
 	window['AscCommonExcel'].RangeDataManager = RangeDataManager;
 	window['AscCommonExcel'].CSharedStrings = CSharedStrings;
 	window['AscCommonExcel'].CWorkbookFormulas = CWorkbookFormulas;
@@ -8176,6 +7981,11 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].DateGroupItem = DateGroupItem;
 	window['AscCommonExcel'].SortCondition = SortCondition;
 	window['AscCommonExcel'].AutoFilterDateElem = AutoFilterDateElem;
+	window['AscCommonExcel'].PatternFill = PatternFill;
+	window['AscCommonExcel'].GradientFill = GradientFill;
+	window['AscCommonExcel'].GradientStop = GradientStop;
+	window['AscCommonExcel'].c_oAscGradientType = c_oAscGradientType;
+	window['AscCommonExcel'].c_oAscPatternType = c_oAscPatternType;
 
 	window["Asc"]["CustomFilters"]			= window["Asc"].CustomFilters = CustomFilters;
 	prot									= CustomFilters.prototype;
@@ -8219,17 +8029,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setPercent"]					= prot.asc_setPercent;
 	prot["asc_setTop"]						= prot.asc_setTop;
 	prot["asc_setVal"]						= prot.asc_setVal;
-
-	window["Asc"]["TreeRBNode"]			= window["Asc"].TreeRBNode = TreeRBNode;
-	window["Asc"]["TreeRB"]			= window["Asc"].TreeRB = TreeRB;
-	prot									= TreeRB.prototype;
-	prot["insertOrGet"]						= prot.insertOrGet;
-	prot["deleteNode"]			= prot.deleteNode;
-	prot["enumerate"]						= prot.enumerate;
-	prot["getElem"]			= prot.getElem;
-	prot["getNodeAll"]			= prot.getNodeAll;
-	prot["isEmpty"]			= prot.getNodeAll;
-
 
 	window["Asc"]["asc_CPageMargins"] = window["Asc"].asc_CPageMargins = asc_CPageMargins;
 	prot = asc_CPageMargins.prototype;

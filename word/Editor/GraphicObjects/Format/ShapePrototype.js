@@ -318,12 +318,13 @@ CShape.prototype.recalculateTxBoxContent = function()
     return oRecalcObj;
 };
 
-CShape.prototype.recalculate = function ()
+
+
+CShape.prototype.recalculatePresentation = function ()
 {
-    if(this.bDeleted || !this.bWordShape)
-        return;
-    AscFormat.ExecuteNoHistory(function()
-    {
+
+    AscFormat.ExecuteNoHistory(function(){
+
         if (this.recalcInfo.recalculateBrush) {
             this.recalculateBrush();
             this.recalcInfo.recalculateBrush = false;
@@ -335,6 +336,7 @@ CShape.prototype.recalculate = function ()
         }
         if (this.recalcInfo.recalculateTransform) {
             this.recalculateTransform();
+            this.recalculateSnapArrays();
             this.recalcInfo.recalculateTransform = false;
         }
 
@@ -343,18 +345,107 @@ CShape.prototype.recalculate = function ()
             this.recalcInfo.recalculateGeometry = false;
         }
 
+        if (this.recalcInfo.recalculateContent) {
+            this.recalcInfo.oContentMetrics = this.recalculateContent();
+            this.recalcInfo.recalculateContent = false;
+        }
+        if (this.recalcInfo.recalculateTransformText) {
+            this.recalculateTransformText();
+            this.recalcInfo.recalculateTransformText = false;
+        }
         if(this.recalcInfo.recalculateBounds)
         {
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
         }
-        if(this.recalcInfo.recalculateWrapPolygon)
+
+    }, this, []);
+};
+
+CShape.prototype.recalculate = function ()
+{
+    if(this.bDeleted)
+        return;
+    if(!this.bWordShape){
+        this.recalculatePresentation();
+       return;
+    }
+    AscFormat.ExecuteNoHistory(function()
+    {
+        if(this.bWordShape)
         {
-            this.recalculateWrapPolygon();
-            this.recalcInfo.recalculateWrapPolygon = false;
+            if (this.recalcInfo.recalculateBrush) {
+                this.recalculateBrush();
+                this.recalcInfo.recalculateBrush = false;
+            }
+
+            if (this.recalcInfo.recalculatePen) {
+                this.recalculatePen();
+                this.recalcInfo.recalculatePen = false;
+            }
+            if (this.recalcInfo.recalculateTransform) {
+                this.recalculateTransform();
+                this.recalcInfo.recalculateTransform = false;
+            }
+
+            if (this.recalcInfo.recalculateGeometry) {
+                this.recalculateGeometry();
+                this.recalcInfo.recalculateGeometry = false;
+            }
+
+            if(this.recalcInfo.recalculateBounds)
+            {
+                this.recalculateBounds();
+                this.recalcInfo.recalculateBounds = false;
+            }
+            if(this.recalcInfo.recalculateWrapPolygon)
+            {
+                this.recalculateWrapPolygon();
+                this.recalcInfo.recalculateWrapPolygon = false;
+            }
         }
+        else
+        {
+            if (this.recalcInfo.recalculateBrush) {
+                this.recalculateBrush();
+                this.recalcInfo.recalculateBrush = false;
+            }
+
+            if (this.recalcInfo.recalculatePen) {
+                this.recalculatePen();
+                this.recalcInfo.recalculatePen = false;
+            }
+            if (this.recalcInfo.recalculateTransform) {
+                this.recalculateTransform();
+                this.recalculateSnapArrays();
+                this.recalcInfo.recalculateTransform = false;
+            }
+
+            if (this.recalcInfo.recalculateGeometry) {
+                this.recalculateGeometry();
+                this.recalcInfo.recalculateGeometry = false;
+            }
+
+            if (this.recalcInfo.recalculateContent) {
+                this.recalcInfo.oContentMetrics = this.recalculateContent();
+                this.recalcInfo.recalculateContent = false;
+            }
+
+            if (this.recalcInfo.recalculateTransformText) {
+                this.recalculateTransformText();
+                this.recalcInfo.recalculateTransformText = false;
+            }
+
+            if(this.recalcInfo.recalculateBounds)
+            {
+                this.recalculateBounds();
+                this.recalcInfo.recalculateBounds = false;
+            }
+        }
+        this.clearCropObject();
         this.bNeedUpdatePosition = true;
     }, this, []);
+
 };
 
 CShape.prototype.recalculateText = function()
@@ -631,6 +722,22 @@ CShape.prototype.Refresh_RecalcData2 = function()
     var HdrFtr = this.IsHdrFtr(true);
     if (HdrFtr)
         HdrFtr.Refresh_RecalcData2();
+    else
+    {
+        if(!this.group)
+        {
+            if(isRealObject(this.parent) && this.parent.Refresh_RecalcData2)
+                this.parent.Refresh_RecalcData2({Type: AscDFH.historyitem_Drawing_SetExtent});
+        }
+        else
+        {
+            var cur_group = this.group;
+            while(cur_group.group)
+                cur_group = cur_group.group;
+            if(isRealObject(cur_group.parent) && cur_group.parent.Refresh_RecalcData2)
+                cur_group.parent.Refresh_RecalcData2({Type: AscDFH.historyitem_Drawing_SetExtent});
+        }
+    }
 };
 
 CShape.prototype.Get_StartPage_Absolute = function()
@@ -710,12 +817,12 @@ CShape.prototype.Set_CurrentElement = function(bUpdate, pageIndex)
         var hdr_ftr = para_drawing.DocumentContent.IsHdrFtr(true);
         if(hdr_ftr)
         {
-            hdr_ftr.Content.Set_DocPosType(docpostype_DrawingObjects);
+            hdr_ftr.Content.SetDocPosType(docpostype_DrawingObjects);
             hdr_ftr.Set_CurrentElement(bUpdate);
         }
         else
         {
-            drawing_objects.document.Set_DocPosType(docpostype_DrawingObjects);
+            drawing_objects.document.SetDocPosType(docpostype_DrawingObjects);
             drawing_objects.document.Selection.Use = true;
 
             if ( true === bUpdate )
@@ -840,7 +947,7 @@ CShape.prototype.OnContentReDraw = function()
 {
     if(!isRealObject(this.group))
     {
-        if(isRealObject(this.parent))
+        if(isRealObject(this.parent) && this.parent.OnContentReDraw)
         {
             this.parent.OnContentReDraw();
         }

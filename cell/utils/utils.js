@@ -292,6 +292,16 @@
 			return normalize ? this.normalize() : this;
 		}
 
+		Range.prototype.compareCell = function (c1, r1, c2, r2) {
+			var dif = r1 - r2;
+			return 0 !== dif ? dif : c1 - c2;
+		};
+		Range.prototype.compareByLeftTop = function (a, b) {
+			return Range.prototype.compareCell(a.c1, a.r1, b.c1, b.r1);
+		};
+		Range.prototype.compareByRightBottom = function (a, b) {
+			return Range.prototype.compareCell(a.c2, a.r2, b.c2, b.r2);
+		};
 		Range.prototype.assign = function (c1, r1, c2, r2, normalize) {
 			this.c1 = c1;
 			this.r1 = r1;
@@ -1148,7 +1158,7 @@
 
 			// Check active cell in merge cell (bug 36708)
 			var mc = this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col);
-			if (this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col)) {
+			if (mc) {
 				res = -1 === this.offsetCell(1, 0, false, function () {return false;});
 				if (res) {
 					this.activeCell.row = mc.r1;
@@ -1708,6 +1718,17 @@
 			AscCommonExcel.g_R1C1Mode = oldMode;
 		}
 
+		function checkFilteringMode(f, oThis, args) {
+			if (!window['AscCommonExcel'].filteringMode) {
+				AscCommon.History.LocalChange = true;
+			}
+			var ret = f.apply(oThis, args);
+			if (!window['AscCommonExcel'].filteringMode) {
+				AscCommon.History.LocalChange = false;
+			}
+			return ret;
+		}
+
 		function getEndValueRange (dx, start, v1, v2) {
 			var x1, x2;
 			if (0 !== dx) {
@@ -1855,6 +1876,7 @@
 			// Вид печати
 			this.printType = Asc.c_oAscPrintType.ActiveSheets;
 			this.pageOptionsMap = null;
+			this.ignorePrintArea = null;
 
 			// ToDo сюда же start и end page index
 
@@ -1864,6 +1886,8 @@
 		asc_CAdjustPrint.prototype.asc_setPrintType = function (val) { this.printType = val; };
 		asc_CAdjustPrint.prototype.asc_getPageOptionsMap = function () { return this.pageOptionsMap; };
 		asc_CAdjustPrint.prototype.asc_setPageOptionsMap = function (val) { this.pageOptionsMap = val; };
+		asc_CAdjustPrint.prototype.asc_getIgnorePrintArea = function () { return this.ignorePrintArea; };
+		asc_CAdjustPrint.prototype.asc_setIgnorePrintArea = function (val) { this.ignorePrintArea = val; };
 
 		/** @constructor */
 		function asc_CLockInfo () {
@@ -2067,10 +2091,12 @@
 		asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
 			oGraphics.clear();
 			// Fill cell
-			var oColor = oStyle.getFill();
-			if (null !== oColor) {
-				oGraphics.setFillStyle(oColor);
-				oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+			if (oStyle.ApplyFill) {
+				var oColor = oStyle.getFillColor();
+				if (null !== oColor) {
+					oGraphics.setFillStyle(oColor);
+					oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+				}
 			}
 
 			var drawBorder = function (b, x1, y1, x2, y2) {
@@ -2082,14 +2108,16 @@
 				}
 			};
 
-			// borders
-			var oBorders = oStyle.getBorder();
-			drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt);
-			drawBorder(oBorders.r, this.styleThumbnailWidthPt, 0, this.styleThumbnailWidthPt,
-				this.styleThumbnailHeightPt);
-			drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0);
-			drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt, this.styleThumbnailWidthPt,
-				this.styleThumbnailHeightPt);
+			if (oStyle.ApplyBorder) {
+				// borders
+				var oBorders = oStyle.getBorder();
+				drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt);
+				drawBorder(oBorders.r, this.styleThumbnailWidthPt, 0, this.styleThumbnailWidthPt,
+					this.styleThumbnailHeightPt);
+				drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0);
+				drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt, this.styleThumbnailWidthPt,
+					this.styleThumbnailHeightPt);
+			}
 
 			// Draw text
 			var format = oStyle.getFont().clone();
@@ -2405,6 +2433,7 @@
 		window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 		window['AscCommonExcel'].g_ActiveCell = null; // Active Cell for calculate (in R1C1 mode for relative cell)
 		window['AscCommonExcel'].g_R1C1Mode = false; // No calculate in R1C1 mode
+		window['AscCommonExcel'].kCurCells = "se-cells";
 		window["AscCommonExcel"].c_oAscShiftType = c_oAscShiftType;
 		window["AscCommonExcel"].recalcType = recalcType;
 		window["AscCommonExcel"].sizePxinPt = sizePxinPt;
@@ -2432,6 +2461,7 @@
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
 		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 		window["Asc"].getEndValueRange = getEndValueRange;
+		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 
 		window["AscCommonExcel"].referenceType = referenceType;
 		window["Asc"].Range = Range;
@@ -2487,6 +2517,8 @@
 		prot["asc_setPrintType"] = prot.asc_setPrintType;
 		prot["asc_getPageOptionsMap"] = prot.asc_getPageOptionsMap;
 		prot["asc_setPageOptionsMap"] = prot.asc_setPageOptionsMap;
+		prot["asc_getIgnorePrintArea"] = prot.asc_getIgnorePrintArea;
+		prot["asc_setIgnorePrintArea"] = prot.asc_setIgnorePrintArea;
 
 		window["AscCommonExcel"].asc_CLockInfo = asc_CLockInfo;
 

@@ -163,6 +163,13 @@ CChartSpace.prototype.handleUpdatePosition = function()
 {
     this.recalcTransform();
     this.recalcBounds();
+    for(var i = 0; i < this.userShapes.length; ++i)
+    {
+        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        {
+            this.userShapes[i].object.handleUpdateExtents();
+        }
+    }
     this.addToRecalculate();
 };
 CChartSpace.prototype.handleUpdateExtents = function()
@@ -413,6 +420,7 @@ CChartSpace.prototype.recalculate = function()
             this.recalculateWrapPolygon();
             this.recalcInfo.recalculateWrapPolygon = false;
         }
+        this.recalculateUserShapes();
         this.recalcInfo.axisLabels.length = 0;
         this.bNeedUpdatePosition = true;
         if(AscFormat.isRealNumber(this.posX) && AscFormat.isRealNumber(this.posY))
@@ -537,6 +545,57 @@ CChartSpace.prototype.Is_UseInDocument = CShape.prototype.Is_UseInDocument;
 //    this.addToRecalculate();
 //};
 
+CChartSpace.prototype.IsHdrFtr = function(bool)
+{
+    if(!this.group)
+    {
+        if(isRealObject(this.parent) && isRealObject(this.parent.DocumentContent))
+            return this.parent.DocumentContent.IsHdrFtr(bool);
+    }
+    else
+    {
+        var cur_group = this.group;
+        while(cur_group.group)
+            cur_group = cur_group.group;
+        if(isRealObject(cur_group.parent) && isRealObject(cur_group.parent.DocumentContent))
+            return cur_group.parent.DocumentContent.IsHdrFtr(bool);
+    }
+    return bool ? null : false;
+};
+
+CChartSpace.prototype.Refresh_RecalcData2 = function(pageIndex, object)
+{
+    if(object && object.getObjectType && object.getObjectType() === AscDFH.historyitem_type_Title && this.selection.title === object)
+    {
+        this.recalcInfo.recalcTitle = object;
+    }
+    else
+    {
+        var bOldRecalculateRef = this.recalcInfo.recalculateReferences;
+        this.setRecalculateInfo();
+        this.recalcInfo.recalculateReferences = bOldRecalculateRef;
+    }
+    this.addToRecalculate();
+    var HdrFtr = this.IsHdrFtr(true);
+    if (HdrFtr)
+        HdrFtr.Refresh_RecalcData2();
+    else
+    {
+        if(!this.group)
+        {
+            if(isRealObject(this.parent) && this.parent.Refresh_RecalcData2)
+                this.parent.Refresh_RecalcData2({Type: AscDFH.historyitem_Drawing_SetExtent});
+        }
+        else
+        {
+            var cur_group = this.group;
+            while(cur_group.group)
+                cur_group = cur_group.group;
+            if(isRealObject(cur_group.parent) && cur_group.parent.Refresh_RecalcData2)
+                cur_group.parent.Refresh_RecalcData2({Type: AscDFH.historyitem_Drawing_SetExtent});
+        }
+    }
+};
 function CreateUnifillSolidFillSchemeColor(colorId, tintOrShade)
 {
     var unifill = new AscFormat.CUniFill();

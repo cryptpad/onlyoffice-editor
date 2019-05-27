@@ -1,9 +1,36 @@
-"use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 10.06.2016
- * Time: 15:31
+/*
+ * (c) Copyright Ascensio System SIA 2010-2019
+ *
+ * This program is a free software product. You can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License (AGPL)
+ * version 3 as published by the Free Software Foundation. In accordance with
+ * Section 7(a) of the GNU AGPL its Section 15 shall be amended to the effect
+ * that Ascensio System SIA expressly excludes the warranty of non-infringement
+ * of any third-party rights.
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
+ * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
+ *
+ * The  interactive user interfaces in modified source and object code versions
+ * of the Program must display Appropriate Legal Notices, as required under
+ * Section 5 of the GNU AGPL version 3.
+ *
+ * Pursuant to Section 7(b) of the License you must retain the original Product
+ * logo when distributing the program. Pursuant to Section 7(e) we decline to
+ * grant you any rights under trademark law for use of our trademarks.
+ *
+ * All the Product's GUI elements, including illustrations and icon sets, as
+ * well as technical writing content are licensed under the terms of the
+ * Creative Commons Attribution-ShareAlike 4.0 International. See the License
+ * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
+ *
  */
+
+"use strict";
 
 /**
  * Специальный класс-обработчик команд в автофигурах
@@ -83,9 +110,9 @@ CDrawingsController.prototype.AddToParagraph = function(oItem, bRecalculate)
 	this.LogicDocument.Document_UpdateUndoRedoState();
 	this.LogicDocument.Document_UpdateInterfaceState();
 };
-CDrawingsController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CDrawingsController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
-	return this.DrawingObjects.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	return this.DrawingObjects.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CDrawingsController.prototype.GetCursorPosXY = function()
 {
@@ -363,9 +390,9 @@ CDrawingsController.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.DrawingObjects.getSelectedText(bClearText, oPr);
 };
-CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
-	return this.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	return this.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
 CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -441,7 +468,7 @@ CDrawingsController.prototype.UpdateRulersState = function()
 CDrawingsController.prototype.UpdateSelectionState = function()
 {
 	this.DrawingObjects.documentUpdateSelectionState();
-	this.LogicDocument.Document_UpdateTracks();
+	this.LogicDocument.UpdateTracks();
 };
 CDrawingsController.prototype.GetSelectionState = function()
 {
@@ -489,8 +516,9 @@ CDrawingsController.prototype.AddComment = function(Comment)
 };
 CDrawingsController.prototype.CanAddComment = function()
 {
+	// TODO: Как будет реализовано добавление комментариев к объекту, возвращать тут true
 	if (true != this.DrawingObjects.isSelectedText())
-		return true;
+		return false;
 	else
 		return this.DrawingObjects.canAddComment();
 };
@@ -517,7 +545,7 @@ CDrawingsController.prototype.RestoreDocumentStateAfterLoadChanges = function(St
 	if (true !== this.DrawingObjects.Load_DocumentStateAfterLoadChanges(State))
 	{
 		var LogicDocument = this.LogicDocument;
-		LogicDocument.Set_DocPosType(docpostype_Content);
+		LogicDocument.SetDocPosType(docpostype_Content);
 
 		var ContentPos = 0;
 		if (LogicDocument.Pages[LogicDocument.CurPage])
@@ -563,4 +591,8 @@ CDrawingsController.prototype.GetSimilarNumbering = function(oEngine)
 
 	if (oDocContent && oDocContent.GetSimilarNumbering)
 		oDocContent.GetSimilarNumbering(oEngine);
+};
+CDrawingsController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	return this.DrawingObjects.GetAllFields(isUseSelection, arrFields);
 };

@@ -54,6 +54,14 @@ function CBlockLevelSdt(oLogicDocument, oParent)
 	this.Pr            = new CSdtPr();
 	this.Lock          = new AscCommon.CLock();
 
+	this.PlaceHolder = new Paragraph(oLogicDocument ? oLogicDocument.Get_DrawingDocument() : null, this.Content, false);
+	var oRun = new ParaRun();
+	this.PlaceHolder.AddToContent(0, oRun);
+	oRun.AddText(AscCommon.translateManager.getValue('Your text here'));
+
+	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
+	this.Content.AddToContent(0, this.PlaceHolder);
+
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
 }
@@ -64,7 +72,15 @@ CBlockLevelSdt.prototype.constructor = CBlockLevelSdt;
 CBlockLevelSdt.prototype.Copy = function(Parent)
 {
 	var oNew = new CBlockLevelSdt(this.LogicDocument, Parent ? Parent : this.Parent);
-	oNew.Content.Copy2(this.Content);
+
+	if (!this.IsPlaceHolder())
+	{
+		oNew.private_ReplacePlaceHolderWithContent();
+		oNew.Content.Copy2(this.Content);
+		if (oNew.IsEmpty())
+			oNew.private_ReplaceContentWithPlaceHolder();
+	}
+
 	oNew.SetPr(this.Pr);
 	return oNew;
 };
@@ -99,6 +115,8 @@ CBlockLevelSdt.prototype.Reset = function(X, Y, XLimit, YLimit, PageAbs, ColumnA
 };
 CBlockLevelSdt.prototype.Recalculate_Page = function(CurPage)
 {
+	this.SetIsRecalculated(true);
+
 	this.Content.RecalcInfo = this.Parent.RecalcInfo;
 
 	var RecalcResult = this.Content.Recalculate_Page(CurPage, true);
@@ -135,8 +153,10 @@ CBlockLevelSdt.prototype.Write_ToBinary2 = function(Writer)
 	Writer.WriteLong(AscDFH.historyitem_type_BlockLevelSdt);
 	// String : Id
 	// String : Content id
+	// String : PlaceHolder Id
 	Writer.WriteString2(this.GetId());
 	Writer.WriteString2(this.Content.GetId());
+	Writer.WriteString2(this.PlaceHolder.GetId());
 };
 CBlockLevelSdt.prototype.Read_FromBinary2 = function(Reader)
 {
@@ -144,8 +164,10 @@ CBlockLevelSdt.prototype.Read_FromBinary2 = function(Reader)
 
 	// String : Id
 	// String : Content id
-	this.Id      = Reader.GetString2();
-	this.Content = this.LogicDocument.Get_TableId().Get_ById(Reader.GetString2());
+	// String : PlaceHolder Id
+	this.Id          = Reader.GetString2();
+	this.Content     = this.LogicDocument.Get_TableId().Get_ById(Reader.GetString2());
+	this.PlaceHolder = this.LogicDocument.Get_TableId().Get_ById(Reader.GetString2());
 };
 CBlockLevelSdt.prototype.Draw = function(CurPage, oGraphics)
 {
@@ -208,10 +230,24 @@ CBlockLevelSdt.prototype.UpdateCursorType = function(X, Y, CurPage)
 };
 CBlockLevelSdt.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEvent, isTableBorder)
 {
+	if (this.IsPlaceHolder())
+	{
+		var nDirection = this.Parent && this.Parent.GetSelectDirection ? this.Parent.GetSelectDirection() : 1;
+		this.SelectAll(nDirection);
+		return;
+	}
+
 	this.Content.Selection_SetStart(X, Y, CurPage, MouseEvent, isTableBorder);
 };
 CBlockLevelSdt.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, isTableBorder)
 {
+	if (this.IsPlaceHolder())
+	{
+		var nDirection = this.Parent && this.Parent.GetSelectDirection ? this.Parent.GetSelectDirection() : 1;
+		this.SelectAll(nDirection);
+		return;
+	}
+
 	this.Content.Selection_SetEnd(X, Y, CurPage, MouseEvent, isTableBorder);
 };
 CBlockLevelSdt.prototype.IsSelectionEmpty = function(isCheckHidden)
@@ -295,6 +331,14 @@ CBlockLevelSdt.prototype.CanUpdateTarget = function(CurPage)
 };
 CBlockLevelSdt.prototype.MoveCursorLeft = function(AddToSelect, Word)
 {
+	if (this.IsPlaceHolder())
+	{
+		if (AddToSelect)
+			this.SelectAll(-1);
+
+		return false;
+	}
+
 	var bResult = this.Content.MoveCursorLeft(AddToSelect, Word);
 	if (!bResult && this.LogicDocument.IsFillingFormMode())
 		return true;
@@ -307,6 +351,14 @@ CBlockLevelSdt.prototype.MoveCursorLeftWithSelectionFromEnd = function(Word)
 };
 CBlockLevelSdt.prototype.MoveCursorRight = function(AddToSelect, Word)
 {
+	if (this.IsPlaceHolder())
+	{
+		if (AddToSelect)
+			this.SelectAll(1);
+
+		return false;
+	}
+
 	var bResult = this.Content.MoveCursorRight(AddToSelect, Word, false);
 	if (!bResult && this.LogicDocument.IsFillingFormMode())
 		return true;
@@ -375,6 +427,7 @@ CBlockLevelSdt.prototype.IsCursorAtEnd = function()
 };
 CBlockLevelSdt.prototype.AddNewParagraph = function()
 {
+	this.private_ReplacePlaceHolderWithContent();
 	return this.Content.AddNewParagraph();
 };
 CBlockLevelSdt.prototype.Get_SelectionState2 = function()
@@ -415,42 +468,57 @@ CBlockLevelSdt.prototype.GetNumberingInfo = function(oNumberingEngine)
 };
 CBlockLevelSdt.prototype.AddInlineImage = function(W, H, Img, Chart, bFlow)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddInlineImage(W, H, Img, Chart, bFlow);
 };
 CBlockLevelSdt.prototype.AddImages = function(aImages)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddImages(aImages);
 };
 CBlockLevelSdt.prototype.AddSignatureLine = function(oSignatureDrawing)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddSignatureLine(oSignatureDrawing);
 };
 CBlockLevelSdt.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
 };
 CBlockLevelSdt.prototype.AddTextArt = function(nStyle)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddTextArt(nStyle);
 };
 CBlockLevelSdt.prototype.AddInlineTable = function(nCols, nRows)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddInlineTable(nCols, nRows);
 };
-CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText)
+CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
-	var Res = this.Content.Remove(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText);
-
-	if (this.Is_Empty() && !bOnAddText && this.LogicDocument && true === this.LogicDocument.IsFillingFormMode())
+	if (this.IsPlaceHolder())
 	{
-		var oParagraph = new Paragraph(this.LogicDocument.Get_DrawingDocument(), this.Content);
-		this.Content.Add_ToContent(0, oParagraph);
-		this.Content.Remove_FromContent(1, this.Content.GetElementsCount() - 1);
-		this.Content.MoveCursorToStartPos(false);
+		if (!bOnAddText)
+			return false;
+
+		this.private_ReplacePlaceHolderWithContent();
 		return true;
 	}
 
-	return Res;
+	var bResult = this.Content.Remove(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord);
+
+	if (this.IsEmpty()
+		&& !bOnAddText
+		&& true !== bOnlyText
+		&& this.CanBeEdited())
+	{
+		this.private_ReplaceContentWithPlaceHolder();
+		return true;
+	}
+
+	return bResult;
 };
 CBlockLevelSdt.prototype.Is_Empty = function()
 {
@@ -458,14 +526,23 @@ CBlockLevelSdt.prototype.Is_Empty = function()
 };
 CBlockLevelSdt.prototype.Add = function(oParaItem)
 {
+	if (oParaItem && oParaItem.Type !== para_TextPr)
+		this.private_ReplacePlaceHolderWithContent();
+
 	return this.Content.AddToParagraph(oParaItem);
 };
 CBlockLevelSdt.prototype.PreDelete = function()
 {
+	if (this.IsPlaceHolder())
+		return;
+
 	this.Content.PreDelete();
 };
 CBlockLevelSdt.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTextPr)
 {
+	if (this.IsPlaceHolder())
+		return;
+
 	this.Content.ClearParagraphFormatting(isClearParaPr, isClearTextPr);
 };
 CBlockLevelSdt.prototype.GetCursorPosXY = function()
@@ -546,7 +623,7 @@ CBlockLevelSdt.prototype.SetTableProps = function(oProps)
 };
 CBlockLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 {
-	if (this.Content.IsSelectedAll())
+	if (this.Content.IsSelectedAll() || this.IsPlaceHolder())
 	{
 		oSelectedContent.Add(new CSelectedElement(this.Copy(this.Parent)));
 	}
@@ -567,48 +644,81 @@ CBlockLevelSdt.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.Content.GetSelectedText(bClearText, oPr);
 };
-CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
+	if (oPr && true === oPr.ReplacePlaceHolder)
+		this.private_ReplacePlaceHolderWithContent();
+
 	return this.Content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
 };
 CBlockLevelSdt.prototype.AddTableRow = function(bBefore)
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.AddTableRow(bBefore);
 };
 CBlockLevelSdt.prototype.AddTableColumn = function(bBefore)
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.AddTableColumn(bBefore);
 };
 CBlockLevelSdt.prototype.RemoveTableRow = function(nRowIndex)
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.RemoveTableRow(nRowIndex);
 };
 CBlockLevelSdt.prototype.RemoveTableColumn = function()
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.RemoveTableColumn();
 };
 CBlockLevelSdt.prototype.MergeTableCells = function()
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.MergeTableCells();
 };
 CBlockLevelSdt.prototype.SplitTableCells = function(nColsCount, nRowsCount)
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.SplitTableCells(nColsCount, nRowsCount);
 };
 CBlockLevelSdt.prototype.RemoveTable = function()
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.RemoveTable();
 };
 CBlockLevelSdt.prototype.SelectTable = function(Type)
 {
+	if (this.IsPlaceHolder())
+		return;
+
 	return this.Content.SelectTable(Type);
 };
 CBlockLevelSdt.prototype.CanMergeTableCells = function()
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.CanMergeTableCells();
 };
 CBlockLevelSdt.prototype.CanSplitTableCells = function()
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.CanSplitTableCells();
 };
 CBlockLevelSdt.prototype.DistributeTableCells = function(isHorizontally)
@@ -632,26 +742,38 @@ CBlockLevelSdt.prototype.GetTableProps = function()
 };
 CBlockLevelSdt.prototype.AddHyperlink = function(Props)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	return this.Content.AddHyperlink(Props);
 };
 CBlockLevelSdt.prototype.ModifyHyperlink = function(Props)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	this.Content.ModifyHyperlink(Props);
 };
 CBlockLevelSdt.prototype.RemoveHyperlink = function()
 {
+	this.private_ReplacePlaceHolderWithContent();
 	this.Content.RemoveHyperlink();
 };
 CBlockLevelSdt.prototype.CanAddHyperlink = function(bCheckInHyperlink)
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.CanAddHyperlink(bCheckInHyperlink);
 };
 CBlockLevelSdt.prototype.IsCursorInHyperlink = function(bCheckEnd)
 {
+	if (this.IsPlaceHolder())
+		return null;
+
 	return this.Content.IsCursorInHyperlink(bCheckEnd);
 };
 CBlockLevelSdt.prototype.AddComment = function(Comment, bStart, bEnd)
 {
+	if (this.IsPlaceHolder())
+		return false;
+
 	return this.Content.AddComment(Comment, bStart, bEnd);
 };
 CBlockLevelSdt.prototype.CanAddComment = function()
@@ -664,10 +786,13 @@ CBlockLevelSdt.prototype.GetSelectionAnchorPos = function()
 };
 CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 {
+	if (!this.IsRecalculated())
+		return;
+
 	var oDrawingDocument = this.LogicDocument.Get_DrawingDocument();
 	var arrRects = [];
 
-	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance())
+	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance() || (this.LogicDocument && this.LogicDocument.IsForceHideContentControlTrack()))
 	{
 		oDrawingDocument.OnDrawContentControl(null, isHover ? c_oContentControlTrack.Hover : c_oContentControlTrack.In);
 		return;
@@ -791,9 +916,9 @@ CBlockLevelSdt.prototype.FindNextFillingForm = function(isNext, isCurrent, isSta
 
 	return null;
 };
-CBlockLevelSdt.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+CBlockLevelSdt.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-	return this.Content.GetRevisionsChangeParagraph(SearchEngine);
+	return this.Content.GetRevisionsChangeElement(SearchEngine);
 };
 CBlockLevelSdt.prototype.AcceptRevisionChanges = function(Type, bAll)
 {
@@ -858,7 +983,7 @@ CBlockLevelSdt.prototype.GetEndInfo = function()
 };
 CBlockLevelSdt.prototype.Is_UseInDocument = function(Id)
 {
-	if (Id === this.Content.GetId())
+	if (Id === this.Content.GetId() && this.Parent)
 		return this.Parent.Is_UseInDocument(this.GetId());
 
 	return false;
@@ -902,8 +1027,9 @@ CBlockLevelSdt.prototype.Set_CurrentElement = function(bUpdateStates, PageAbs, o
 {
 	if (oDocContent === this.Content)
 	{
-		this.Parent.Update_ContentIndexing();
-		this.Parent.Set_CurrentElement(this.Index, bUpdateStates);
+		var nIndex = this.GetIndex();
+		if (-1 !== nIndex)
+			this.Parent.Set_CurrentElement(nIndex, bUpdateStates);
 	}
 };
 CBlockLevelSdt.prototype.Refresh_RecalcData2 = function(CurPage)
@@ -984,13 +1110,6 @@ CBlockLevelSdt.prototype.Get_SectPr = function()
 
 	return null;
 };
-CBlockLevelSdt.prototype.GetTopElement = function()
-{
-	if (true === this.Parent.Is_TopDocument(false))
-		return this;
-
-	return this.Parent.GetTopElement();
-};
 CBlockLevelSdt.prototype.GetMargins = function()
 {
 	return this.Parent.GetMargins();
@@ -999,6 +1118,15 @@ CBlockLevelSdt.prototype.SelectContentControl = function()
 {
 	this.SelectAll(1);
 	this.Set_CurrentElement(false, 0, this.Content);
+};
+CBlockLevelSdt.prototype.MoveCursorToContentControl = function(isBegin)
+{
+	if (isBegin)
+		this.MoveCursorToStartPos(false);
+	else
+		this.MoveCursorToEndPos(false);
+
+	this.SetThisElementCurrent();
 };
 CBlockLevelSdt.prototype.SetThisElementCurrent = function()
 {
@@ -1290,6 +1418,85 @@ CBlockLevelSdt.prototype.GetOutlineParagraphs = function(arrOutline, oPr)
 CBlockLevelSdt.prototype.IsLastTableCellInRow = function(isSelection)
 {
 	return this.Parent.IsLastTableCellInRow(isSelection);
+};
+/**
+ * Можно ли удалить данный контейнер
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.CanBeDeleted = function()
+{
+	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
+};
+/**
+ * Можно ли редактировать данный контейнер
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.CanBeEdited = function()
+{
+	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
+};
+/**
+ * Активен PlaceHolder сейчас или нет
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.IsPlaceHolder = function()
+{
+	return (1 === this.Content.GetElementsCount() && this.PlaceHolder === this.Content.GetElement(0));
+};
+CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
+{
+	if (!this.IsPlaceHolder())
+		return;
+
+	var oTextPr = null;
+	if (this.Content.GetElementsCount() && this.Content.GetElement(0).IsParagraph())
+	{
+		this.Content.GetElement(0).MoveCursorToStartPos();
+		oTextPr = this.Content.GetElement(0).GetFirstRunPr();
+	}
+
+	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
+
+	var oParagraph = new Paragraph(this.LogicDocument ? this.LogicDocument.GetDrawingDocument() : null, this.Content, false);
+	oParagraph.Correct_Content();
+
+	if (oTextPr)
+	{
+		oParagraph.SelectAll();
+		oParagraph.ApplyTextPr(oTextPr);
+		oParagraph.RemoveSelection();
+	}
+
+	this.Content.AddToContent(0, oParagraph);
+	this.Content.RemoveSelection();
+	this.Content.MoveCursorToStartPos();
+};
+CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
+{
+	if (this.IsPlaceHolder())
+		return;
+
+	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
+	this.Content.AddToContent(0, this.PlaceHolder);
+	this.SelectContentControl();
+};
+CBlockLevelSdt.prototype.GetPlaceHolderObject = function()
+{
+	if (this.IsPlaceHolder())
+		return this;
+
+	return this.Content.GetPlaceHolderObject();
+};
+CBlockLevelSdt.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	if (this.IsPlaceHolder())
+		return arrFields ? arrFields : [];
+
+	return this.Content.GetAllFields(isUseSelection, arrFields);
+};
+CBlockLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
+{
+	return this.private_ReplacePlaceHolderWithContent();
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

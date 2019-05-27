@@ -63,7 +63,7 @@ function (window, undefined) {
 		cTRIM, cUNICHAR, cUNICODE, cUPPER, cVALUE);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
-	cFormulaFunctionGroup['NotRealised'].push(cASC, cBAHTTEXT, cJIS, cPHONETIC);
+	cFormulaFunctionGroup['NotRealised'].push(cBAHTTEXT, cJIS, cPHONETIC);
 
 	/**
 	 * @constructor
@@ -75,6 +75,54 @@ function (window, undefined) {
 	cASC.prototype = Object.create(cBaseFunction.prototype);
 	cASC.prototype.constructor = cASC;
 	cASC.prototype.name = 'ASC';
+	cASC.prototype.argumentsMin = 1;
+	cASC.prototype.argumentsMax = 1;
+	cASC.prototype.Calculate = function (arg) {
+		var arg0 = arg[0];
+
+		var calcAsc = function(str) {
+			var res = '';
+			var fullWidthFrom = 0xFF00;
+			var fullWidthTo = 0xFFEF;
+
+			for (var i = 0; i < str.length; i++) {
+				var nCh = str[i].charCodeAt(0);
+				if (nCh >= fullWidthFrom && nCh <= fullWidthTo) {
+					nCh = 0xFF & (nCh + 0x20);
+				}
+				res += String.fromCharCode(nCh);
+			}
+
+			return new cString(res);
+		};
+
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
+			arg0 = arg0.cross(arguments[1]).tocString();
+		} else if (arg0 instanceof cArray) {
+			var ret = new cArray();
+			arg0.foreach(function (elem, r, c) {
+				var _elem = elem.tocString();
+				if (!ret.array[r]) {
+					ret.addRow();
+				}
+
+				if (_elem instanceof cError) {
+					ret.addElement(_elem.toString());
+				} else {
+					ret.addElement(calcAsc(_elem));
+				}
+			});
+			return ret;
+		}
+
+		arg0 = arg0.tocString();
+
+		if (arg0 instanceof cError) {
+			return arg0;
+		}
+
+		return calcAsc(arg0.toString());
+	};
 
 	/**
 	 * @constructor
@@ -94,6 +142,7 @@ function (window, undefined) {
 	function cCHAR() {
 	}
 
+	//***array-formula***
 	cCHAR.prototype = Object.create(cBaseFunction.prototype);
 	cCHAR.prototype.constructor = cCHAR;
 	cCHAR.prototype.name = 'CHAR';
@@ -137,6 +186,7 @@ function (window, undefined) {
 	function cCLEAN() {
 	}
 
+	//***array-formula***
 	cCLEAN.prototype = Object.create(cBaseFunction.prototype);
 	cCLEAN.prototype.constructor = cCLEAN;
 	cCLEAN.prototype.name = 'CLEAN';
@@ -172,6 +222,7 @@ function (window, undefined) {
 	function cCODE() {
 	}
 
+	//***array-formula***
 	cCODE.prototype = Object.create(cBaseFunction.prototype);
 	cCODE.prototype.constructor = cCODE;
 	cCODE.prototype.name = 'CODE';
@@ -215,6 +266,7 @@ function (window, undefined) {
 	function cCONCATENATE() {
 	}
 
+	//***array-formula***
 	//TODO пересмотреть функцию!!!
 	cCONCATENATE.prototype = Object.create(cBaseFunction.prototype);
 	cCONCATENATE.prototype.constructor = cCONCATENATE;
@@ -258,11 +310,13 @@ function (window, undefined) {
 	function cCONCAT() {
 	}
 
+	//***array-formula***
 	cCONCAT.prototype = Object.create(cBaseFunction.prototype);
 	cCONCAT.prototype.constructor = cCONCAT;
 	cCONCAT.prototype.name = 'CONCAT';
 	cCONCAT.prototype.argumentsMin = 1;
 	cCONCAT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCONCAT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cCONCAT.prototype.Calculate = function (arg) {
 		var arg0 = new cString(""), argI;
 
@@ -274,7 +328,7 @@ function (window, undefined) {
 				for (var j = 0; j < _arrVal.length; j++) {
 					var _arrElem = _arrVal[j].tocString();
 					if (cElementType.error === _arrElem.type) {
-						return arrVal[j];
+						return _arrVal[j];
 					} else {
 						arg0 = new cString(arg0.toString().concat(_arrElem));
 					}
@@ -552,6 +606,7 @@ function (window, undefined) {
 	function cFIND() {
 	}
 
+	//***array-formula***
 	cFIND.prototype = Object.create(cBaseFunction.prototype);
 	cFIND.prototype.constructor = cFIND;
 	cFIND.prototype.name = 'FIND';
@@ -636,6 +691,7 @@ function (window, undefined) {
 	function cFINDB() {
 	}
 
+	//***array-formula***
 	cFINDB.prototype = Object.create(cFIND.prototype);
 	cFINDB.prototype.constructor = cFINDB;
 	cFINDB.prototype.name = 'FINDB';
@@ -785,7 +841,7 @@ function (window, undefined) {
 				arg0.foreach(function (elem, r, c) {
 					var a = elem;
 					var b = arg1.getElementRowCol(r, c);
-					if (a instanceof cNumber && b instanceof cNumber) {
+					if (a instanceof cNumber && b instanceof cNumber && arg2.toBool) {
 						var res = roundHelper(a.getValue(), b.getValue());
 						this.array[r][c] = toFix(res.toString(), arg2.toBool());
 					} else {
@@ -798,7 +854,7 @@ function (window, undefined) {
 			arg0.foreach(function (elem, r, c) {
 				var a = elem;
 				var b = arg1;
-				if (a instanceof cNumber && b instanceof cNumber) {
+				if (a instanceof cNumber && b instanceof cNumber && arg2.toBool) {
 					var res = roundHelper(a.getValue(), b.getValue());
 					this.array[r][c] = toFix(res.toString(), arg2.toBool());
 				} else {
@@ -810,7 +866,7 @@ function (window, undefined) {
 			arg1.foreach(function (elem, r, c) {
 				var a = arg0;
 				var b = elem;
-				if (a instanceof cNumber && b instanceof cNumber) {
+				if (a instanceof cNumber && b instanceof cNumber && arg2.toBool) {
 					var res = roundHelper(a.getValue(), b.getValue());
 					this.array[r][c] = toFix(res.toString(), arg2.toBool());
 				} else {
@@ -829,6 +885,9 @@ function (window, undefined) {
 			for (var i = 0; i < num_digits; i++, cNull += "0") {
 			}
 		}
+		if(!arg2.toBool) {
+			return new cError(cErrorType.wrong_value_type);
+		}
 		return new cString(oNumFormatCache.get("#" + (arg2.toBool() ? "" : ",") + "##0" + cNull)
 			.format(roundHelper(number, num_digits).getValue(), CellValueType.Number,
 				AscCommon.gc_nMaxDigCount)[0].text)
@@ -844,6 +903,54 @@ function (window, undefined) {
 	cJIS.prototype = Object.create(cBaseFunction.prototype);
 	cJIS.prototype.constructor = cJIS;
 	cJIS.prototype.name = 'JIS';
+	cJIS.prototype.argumentsMin = 1;
+	cJIS.prototype.argumentsMax = 1;
+	cJIS.prototype.Calculate = function (arg) {
+		var arg0 = arg[0];
+
+		var calc = function(str) {
+			var res = '';
+			var fullWidthFrom = 0xFF00;
+			var fullWidthTo = 0xFFEF;
+
+			for (var i = 0; i < str.length; i++) {
+				var nCh = str[i].charCodeAt(0);
+				if (!(nCh >= fullWidthFrom && nCh <= fullWidthTo)) {
+					nCh = nCh - 0x20 + 0xff00;
+				}
+				res += String.fromCharCode(nCh);
+			}
+
+			return new cString(res);
+		};
+
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
+			arg0 = arg0.cross(arguments[1]).tocString();
+		} else if (arg0 instanceof cArray) {
+			var ret = new cArray();
+			arg0.foreach(function (elem, r, c) {
+				var _elem = elem.tocString();
+				if (!ret.array[r]) {
+					ret.addRow();
+				}
+
+				if (_elem instanceof cError) {
+					ret.addElement(_elem.toString());
+				} else {
+					ret.addElement(calc(_elem));
+				}
+			});
+			return ret;
+		}
+
+		arg0 = arg0.tocString();
+
+		if (arg0 instanceof cError) {
+			return arg0;
+		}
+
+		return calc(arg0.toString());
+	};
 
 	/**
 	 * @constructor
@@ -911,6 +1018,7 @@ function (window, undefined) {
 	function cLEN() {
 	}
 
+	//***array-formula***
 	cLEN.prototype = Object.create(cBaseFunction.prototype);
 	cLEN.prototype.constructor = cLEN;
 	cLEN.prototype.name = 'LEN';
@@ -943,6 +1051,7 @@ function (window, undefined) {
 	function cLENB() {
 	}
 
+	//***array-formula***
 	cLENB.prototype = Object.create(cLEN.prototype);
 	cLENB.prototype.constructor = cLENB;
 	cLENB.prototype.name = 'LENB';
@@ -954,6 +1063,7 @@ function (window, undefined) {
 	function cLOWER() {
 	}
 
+	//***array-formula***
 	cLOWER.prototype = Object.create(cBaseFunction.prototype);
 	cLOWER.prototype.constructor = cLOWER;
 	cLOWER.prototype.name = 'LOWER';
@@ -985,6 +1095,7 @@ function (window, undefined) {
 	function cMID() {
 	}
 
+	//***array-formula***
 	cMID.prototype = Object.create(cBaseFunction.prototype);
 	cMID.prototype.constructor = cMID;
 	cMID.prototype.name = 'MID';
@@ -1052,6 +1163,7 @@ function (window, undefined) {
 	function cMIDB() {
 	}
 
+	//***array-formula***
 	cMIDB.prototype = Object.create(cMID.prototype);
 	cMIDB.prototype.constructor = cMIDB;
 	cMIDB.prototype.name = 'MIDB';
@@ -1063,6 +1175,7 @@ function (window, undefined) {
 	function cNUMBERVALUE() {
 	}
 
+	//***array-formula***
 	cNUMBERVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cNUMBERVALUE.prototype.constructor = cNUMBERVALUE;
 	cNUMBERVALUE.prototype.name = 'NUMBERVALUE';
@@ -1199,6 +1312,7 @@ function (window, undefined) {
 	function cPROPER() {
 	}
 
+	//***array-formula***
 	cPROPER.prototype = Object.create(cBaseFunction.prototype);
 	cPROPER.prototype.constructor = cPROPER;
 	cPROPER.prototype.name = 'PROPER';
@@ -1263,6 +1377,7 @@ function (window, undefined) {
 	function cREPLACE() {
 	}
 
+	//***array-formula***
 	cREPLACE.prototype = Object.create(cBaseFunction.prototype);
 	cREPLACE.prototype.constructor = cREPLACE;
 	cREPLACE.prototype.name = 'REPLACE';
@@ -1339,6 +1454,7 @@ function (window, undefined) {
 	function cREPLACEB() {
 	}
 
+	//***array-formula***
 	cREPLACEB.prototype = Object.create(cREPLACE.prototype);
 	cREPLACEB.prototype.constructor = cREPLACEB;
 	cREPLACEB.prototype.name = 'REPLACEB';
@@ -1410,6 +1526,7 @@ function (window, undefined) {
 	function cRIGHT() {
 	}
 
+	//***array-formula***
 	cRIGHT.prototype = Object.create(cBaseFunction.prototype);
 	cRIGHT.prototype.constructor = cRIGHT;
 	cRIGHT.prototype.name = 'RIGHT';
@@ -1458,6 +1575,7 @@ function (window, undefined) {
 	function cRIGHTB() {
 	}
 
+	//***array-formula***
 	cRIGHTB.prototype = Object.create(cRIGHT.prototype);
 	cRIGHTB.prototype.constructor = cRIGHTB;
 	cRIGHTB.prototype.name = 'RIGHTB';
@@ -1469,6 +1587,7 @@ function (window, undefined) {
 	function cSEARCH() {
 	}
 
+	//***array-formula***
 	cSEARCH.prototype = Object.create(cBaseFunction.prototype);
 	cSEARCH.prototype.constructor = cSEARCH;
 	cSEARCH.prototype.name = 'SEARCH';
@@ -1558,6 +1677,7 @@ function (window, undefined) {
 	function cSEARCHB() {
 	}
 
+	//***array-formula***
 	cSEARCHB.prototype = Object.create(cSEARCH.prototype);
 	cSEARCHB.prototype.constructor = cSEARCHB;
 	cSEARCHB.prototype.name = 'SEARCHB';
@@ -1569,6 +1689,7 @@ function (window, undefined) {
 	function cSUBSTITUTE() {
 	}
 
+	//***array-formula***
 	cSUBSTITUTE.prototype = Object.create(cBaseFunction.prototype);
 	cSUBSTITUTE.prototype.constructor = cSUBSTITUTE;
 	cSUBSTITUTE.prototype.name = 'SUBSTITUTE';
@@ -1649,11 +1770,13 @@ function (window, undefined) {
 	function cT() {
 	}
 
+	//***array-formula***
 	cT.prototype = Object.create(cBaseFunction.prototype);
 	cT.prototype.constructor = cT;
 	cT.prototype.name = 'T';
 	cT.prototype.argumentsMin = 1;
 	cT.prototype.argumentsMax = 1;
+	cT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.replace_only_array;
 	cT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
@@ -1661,7 +1784,7 @@ function (window, undefined) {
 		} else if (arg0 instanceof cString || arg0 instanceof cError) {
 			return arg0;
 		} else if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]);
+			return arg0.getValue2(0,0);
 		} else if (arg[0] instanceof cArray) {
 			arg0 = arg[0].getElementRowCol(0, 0);
 		}
@@ -1680,6 +1803,7 @@ function (window, undefined) {
 	function cTEXT() {
 	}
 
+	//***array-formula***
 	cTEXT.prototype = Object.create(cBaseFunction.prototype);
 	cTEXT.prototype.constructor = cTEXT;
 	cTEXT.prototype.name = 'TEXT';
@@ -1749,6 +1873,7 @@ function (window, undefined) {
 	function cTEXTJOIN() {
 	}
 
+	//***array-formula***
 	cTEXTJOIN.prototype = Object.create(cBaseFunction.prototype);
 	cTEXTJOIN.prototype.constructor = cTEXTJOIN;
 	cTEXTJOIN.prototype.name = 'TEXTJOIN';
@@ -1756,6 +1881,8 @@ function (window, undefined) {
 	cTEXTJOIN.prototype.argumentsMax = 255;
 	cTEXTJOIN.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cTEXTJOIN.prototype.isXLFN = true;
+	//TODO все, кроме 2 аргумента - массивы
+	cTEXTJOIN.prototype.arrayIndexes = {0: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1};
 	cTEXTJOIN.prototype.Calculate = function (arg) {
 
 		var argClone = [arg[0], arg[1]];
@@ -1834,6 +1961,7 @@ function (window, undefined) {
 	function cTRIM() {
 	}
 
+	//***array-formula***
 	cTRIM.prototype = Object.create(cBaseFunction.prototype);
 	cTRIM.prototype.constructor = cTRIM;
 	cTRIM.prototype.name = 'TRIM';
@@ -1867,6 +1995,7 @@ function (window, undefined) {
 	function cUNICHAR() {
 	}
 
+	//***array-formula***
 	cUNICHAR.prototype = Object.create(cBaseFunction.prototype);
 	cUNICHAR.prototype.constructor = cUNICHAR;
 	cUNICHAR.prototype.name = 'UNICHAR';
@@ -1909,6 +2038,7 @@ function (window, undefined) {
 	function cUNICODE() {
 	}
 
+	//***array-formula***
 	cUNICODE.prototype = Object.create(cBaseFunction.prototype);
 	cUNICODE.prototype.constructor = cUNICODE;
 	cUNICODE.prototype.name = 'UNICODE';
@@ -1942,6 +2072,7 @@ function (window, undefined) {
 	function cUPPER() {
 	}
 
+	//***array-formula***
 	cUPPER.prototype = Object.create(cBaseFunction.prototype);
 	cUPPER.prototype.constructor = cUPPER;
 	cUPPER.prototype.name = 'UPPER';
@@ -1971,6 +2102,7 @@ function (window, undefined) {
 	function cVALUE() {
 	}
 
+	//***array-formula***
 	cVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cVALUE.prototype.constructor = cVALUE;
 	cVALUE.prototype.name = 'VALUE';

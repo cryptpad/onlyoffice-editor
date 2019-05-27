@@ -140,6 +140,16 @@
 
 		this.LastReplaceText = [];
 		this.IsLastReplaceFlag = false;
+
+		this.isNoClearOnFocus = false;
+
+		this.keyPressInput = "";
+        this.isInputHelpersPresent = false;
+        this.isInputHelpers = {};
+
+        this.isKeyPressOnUp = AscCommon.AscBrowser.isAppleDevices; // keyPress может приходить ДО oncompositionstart, а это проблема.
+		this.keyPressOnUpCodes = [];
+		this.isKeyPressOnUpStackedMode = false;
 	}
 
 	CTextInput.prototype =
@@ -350,9 +360,9 @@
 			    _elem1.parentNode.style.pointerEvents = "";
 
 
-                _elem1.style.left = "-100px";
-			    _elem1.style.top = "-100px";
-			    _elem1.style.right = "-100px";
+                _elem1.style.left = "0px";
+			    _elem1.style.top = "-1000px";
+			    _elem1.style.right = "0px";
 			    _elem1.style.bottom = "-100px";
 			    _elem1.style.width = "auto";
                 _elem1.style.height = "auto";
@@ -363,6 +373,7 @@
                 _elem2.style.bottom = "0px";
                 _elem2.style.width = "100%";
                 _elem2.style.height = "100%";
+                _elem2.style.fontSize = "8px";
 
                 if (AscCommon.AscBrowser.isIE)
 				{
@@ -426,7 +437,7 @@
 				shiftKey : false,
 				target : null,
 				charCode : 0,
-				which : 0,
+				which : code,
 				keyCode : code,
 				code : "",
 
@@ -458,6 +469,10 @@
 			this.CompositionStart = 0;
 			this.CompositionEnd = 0;
 			this.IsComposition = false;
+
+            this.keyPressInput = "";
+			if (window.g_asc_plugins)
+				window.g_asc_plugins.onPluginEvent("onInputHelperClear");
 		},
 
 		getAreaValue : function()
@@ -637,6 +652,24 @@
 				return;
 			}
 
+			if (this.isKeyPressOnUp && this.keyPressOnUpCodes.length > 0)
+			{
+				// clear light
+                if (!this.TextArea_Not_ContentEditableDiv)
+                {
+                    this.HtmlArea.innerHTML = "";
+                }
+                else
+                {
+                    this.HtmlArea.value = "";
+                }
+                this.TextBeforeComposition = "";
+                this.Text = "";
+
+                AscCommon.stopEvent(e);
+                return false;
+			}
+
 			this.log("ti: onInput");
 
 			// current text value
@@ -776,7 +809,7 @@
 			}
 		},
 
-		emulateNativeKeyDown : function(e)
+		emulateNativeKeyDown : function(e, target)
 		{
 			var oEvent = document.createEvent('KeyboardEvent');
 
@@ -868,7 +901,7 @@
 			oEvent.metaKeyVal = e.metaKey;
 			oEvent.ctrlKeyVal = e.ctrlKey;
 
-			var _elem = _getElementKeyboardDown(this.nativeFocusElement, 3);
+			var _elem = target ? target : _getElementKeyboardDown(this.nativeFocusElement, 3);
 			_elem.dispatchEvent(oEvent);
 
 			return oEvent.defaultPrevented;
@@ -947,6 +980,45 @@
 				return false;
 			}
 
+			if (this.isInputHelpersPresent)
+			{
+                switch (e.keyCode)
+                {
+                    case 9:		// tab
+                    case 13:	// enter
+                    case 38:	// top
+                    case 40:	// bottom
+                    case 33: 	// pageup
+                    case 34: 	// pagedown
+                    case 35: 	// end
+                    case 36: 	// home
+					case 27:	// escape
+                    {
+                    	window.g_asc_plugins.onPluginEvent2("onKeyDown", { "keyCode" : e.keyCode }, this.isInputHelpers);
+
+                        AscCommon.stopEvent(e);
+                        return false;
+                    }
+                    case 32:
+                    {
+                        // send, but not prevent
+
+                        //window.g_asc_plugins.onPluginEvent2("onKeyDown", { "keyCode" : e.keyCode }, this.isInputHelpers);
+						//теперь пробел - на keyPress - и добавится там
+                        //this.keyPressInput += " ";
+                        if (window.g_asc_plugins)
+                            window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.keyPressInput });
+                    }
+                    default:
+                        break;
+                }
+			}
+			else if (32 == e.keyCode)
+			{
+                //теперь пробел - на keyPress - и добавится там
+				//this.keyPressInput += " ";
+            }
+
 			if (this.isSystem && this.isShow)
 			{
 				// нужно проверить на enter
@@ -1023,6 +1095,18 @@
 			switch (e.keyCode)
 			{
 				case 8:		// backspace
+                {
+                    var oldKeyPressInput = this.keyPressInput;
+                    this.clear();
+                    
+                    if (oldKeyPressInput.length > 1)
+                    {
+                        this.keyPressInput = oldKeyPressInput.substr(0, oldKeyPressInput.length - 1);
+                        if (window.g_asc_plugins)
+                            window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.keyPressInput });
+                    }
+                    return false;
+                }
 				case 9:		// tab
 				case 13:	// enter
 				case 37:	// left
@@ -1050,6 +1134,12 @@
 				default:
 					break;
 			}
+
+			if (e.keyCode == 32 && AscCommon.global_keyboardEvent.CtrlKey && !AscCommon.global_keyboardEvent.ShiftKey)
+            {
+                if (window.g_asc_plugins)
+                    window.g_asc_plugins.onPluginEvent("onClick");
+            }
 
 			return ret;
 		},
@@ -1099,11 +1189,46 @@
 				return false;
 			}
 
+			if (this.isKeyPressOnUp)
+			{
+				var isSaveCode = true;
+                switch (e.which)
+                {
+                    case 46: // delete
+                    {
+                        isSaveCode = false;
+                        break;
+                    }
+                    default:
+                        break;
+                }
+
+                if (isSaveCode)
+                {
+                	if (this.isKeyPressOnUpStackedMode)
+                	{
+                        this.keyPressOnUpCodes.push({
+                            which: e.which,
+                            charCode: e.charCode,
+                            keyCode: e.keyCode,
+                            shiftKey: e.shiftKey,
+                            ctrlKey: e.ctrlKey,
+                            metaKey: e.metaKey,
+                            altKey: e.altKey,
+
+                            preventDefault: function () {
+                            }
+                        });
+                    }
+                    return;
+                }
+			}
+
 			var ret = this.Api.onKeyPress(e);
 
 			switch (e.which)
 			{
-				case 46:
+				case 46: // delete
 				{
 					AscCommon.stopEvent(e);
 					this.clear();
@@ -1112,6 +1237,11 @@
 				default:
 					break;
 			}
+
+			this.keyPressInput += String.fromCharCode(e.which);
+			if (window.g_asc_plugins)
+                window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.keyPressInput });
+
 
 			AscCommon.stopEvent(e);
 			return ret;
@@ -1128,9 +1258,19 @@
 			if (this.isSystem && this.isShow)
 				return;
 
-			this.KeyDownFlag = false;
-			this.KeyPressFlag = false;
+			if (this.isKeyPressOnUp && this.keyPressOnUpCodes.length > 0)
+			{
+                this.isKeyPressOnUp = false;
+				for (var i = 0; i < this.keyPressOnUpCodes.length; i++)
+				{
+                    this.onKeyPress(this.keyPressOnUpCodes[i]);
+                }
+                this.isKeyPressOnUp = true;
+                this.keyPressOnUpCodes = [];
+			}
 
+            this.KeyDownFlag = false;
+            this.KeyPressFlag = false;
 			AscCommon.global_keyboardEvent.Up();
 		},
 
@@ -1269,6 +1409,7 @@
 				return;
 
 			this.IsComposition = true;
+            this.keyPressOnUpCodes = [];
 		},
 
 		onCompositionUpdate : function(e)
@@ -1277,6 +1418,7 @@
 				return;
 
 			this.IsComposition = true;
+            this.keyPressOnUpCodes = [];
 			this.onInput(e, true);
 		},
 
@@ -1336,6 +1478,12 @@
 			{
                 this.HtmlArea.readOnly = true;
 				this.virtualKeyboardClickPrevent = true;
+
+                this.virtualKeyboardClickTimeout = setTimeout(function ()
+                {
+                    window['AscCommon'].g_inputContext.HtmlArea.readOnly = false;
+                    window['AscCommon'].g_inputContext.virtualKeyboardClickTimeout = -1;
+                }, 1);
 			}
 		},
 
@@ -1426,8 +1574,10 @@
 				t.externalEndCompositeInput();
 			}
 
-			if (!t.isSystem)
+			if (!t.isSystem && !t.isNoClearOnFocus)
 				t.clear(true);
+
+            t.isNoClearOnFocus = false;
 
 			var _nativeFocusElementNoRemoveOnElementFocus = t.nativeFocusElementNoRemoveOnElementFocus;
 			t.nativeFocusElementNoRemoveOnElementFocus = false;
@@ -1520,7 +1670,8 @@
 		}, true);
 
 		// send focus
-		window['AscCommon'].g_inputContext.HtmlArea.focus();
+		if (!api.isMobileVersion)
+			window['AscCommon'].g_inputContext.HtmlArea.focus();
 	};
 
 	window["SetInputDebugMode"] = function()

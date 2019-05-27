@@ -581,7 +581,7 @@ CTableCell.prototype =
         if ( false === Table.Selection.Use && this === Table.CurCell )
         {
             var Parent = Table.Parent;
-            if ((Parent instanceof AscFormat.CGraphicFrame) || docpostype_Content === Parent.Get_DocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos )
+            if ((Parent instanceof AscFormat.CGraphicFrame) || docpostype_Content === Parent.GetDocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos )
                 return Table.Parent.Is_ThisElementCurrent();
         }
 
@@ -609,11 +609,20 @@ CTableCell.prototype =
         return this.Row.Table.Get_StartPage_Relative();
     },
 
+	/**
+	 * Получаем абсолютный номер страницы по относительному номеру страницы (относительно таблицы, а не ячейки!)
+	 * @param CurPage
+	 * @returns {number}
+	 */
     Get_AbsolutePage : function(CurPage)
     {
 		return this.Row.Table.Get_AbsolutePage(CurPage);
     },
-
+	/**
+	 * Получаем абсолютный номер колонки по относительному номеру страницы (относительно таблицы, а не ячейки!)
+	 * @param CurPage
+	 * @returns {number}
+	 */
     Get_AbsoluteColumn : function(CurPage)
     {
         return this.Row.Table.Get_AbsoluteColumn(CurPage);
@@ -942,7 +951,7 @@ CTableCell.prototype =
 
     Recalculate : function()
     {
-        this.Content.Recalculate(false);
+        this.Content.Recalculate();
     },
 
     Content_Merge : function(OtherContent)
@@ -997,6 +1006,7 @@ CTableCell.prototype =
 
 	Set_Pr : function(CellPr)
 	{
+		this.private_AddPrChange();
 		History.Add(new CChangesTableCellPr(this, this.Pr, CellPr));
 		this.Pr = CellPr;
 		this.Recalc_CompiledPr();
@@ -1141,6 +1151,7 @@ CTableCell.prototype =
 
 	Set_W : function(CellW)
 	{
+		this.private_AddPrChange();
 		History.Add(new CChangesTableCellW(this, this.Pr.TableCellW, CellW));
 		this.Pr.TableCellW = CellW;
 		this.Recalc_CompiledPr();
@@ -1157,6 +1168,7 @@ CTableCell.prototype =
 		if (this.Pr.GridSpan === Value)
 			return;
 
+		this.private_AddPrChange();
 		History.Add(new CChangesTableCellGridSpan(this, this.Pr.GridSpan, Value));
 		this.Pr.GridSpan = Value;
 		this.Recalc_CompiledPr();
@@ -1203,6 +1215,7 @@ CTableCell.prototype =
 		{
 			if (Margin !== this.Pr.TableCellMar)
 			{
+				this.private_AddPrChange();
 				History.Add(new CChangesTableCellMargins(this, OldValue, Margin));
 				this.Pr.TableCellMar = undefined;
 				this.Recalc_CompiledPr();
@@ -1299,6 +1312,7 @@ CTableCell.prototype =
 
 		if (true === bNeedChange)
 		{
+			this.private_AddPrChange();
 			History.Add(new CChangesTableCellMargins(this, OldValue, Margins_new));
 			this.Pr.TableCellMar = Margins_new;
 			this.Recalc_CompiledPr();
@@ -1318,12 +1332,14 @@ CTableCell.prototype =
 
 		if (undefined === Shd)
 		{
+			this.private_AddPrChange();
 			History.Add(new CChangesTableCellShd(this, this.Pr.Shd, undefined));
 			this.Pr.Shd = undefined;
 			this.Recalc_CompiledPr();
 		}
 		else if (undefined === this.Pr.Shd || false === this.Pr.Shd.Compare(Shd))
 		{
+			this.private_AddPrChange();
 			var _Shd = new CDocumentShd();
 			_Shd.Set_FromObject(Shd);
 			History.Add(new CChangesTableCellShd(this, this.Pr.Shd, _Shd));
@@ -1343,6 +1359,7 @@ CTableCell.prototype =
 		if (Value === this.Pr.VAlign)
 			return;
 
+		this.private_AddPrChange();
 		History.Add(new CChangesTableCellVAlign(this, this.Pr.VAlign, Value));
 		this.Pr.VAlign = Value;
 		this.Recalc_CompiledPr();
@@ -1357,6 +1374,7 @@ CTableCell.prototype =
 	{
 		if (this.Pr.NoWrap !== Value)
 		{
+			this.private_AddPrChange();
 			History.Add(new CChangesTableCellNoWrap(this, this.Pr.NoWrap, Value));
 			this.Pr.NoWrap = Value;
 			this.Recalc_CompiledPr();
@@ -1381,6 +1399,7 @@ CTableCell.prototype =
 	{
 		if (Value !== this.Pr.TextDirection)
 		{
+			this.private_AddPrChange();
 			History.Add(new CChangesTableCellTextDirection(this, this.Pr.TextDirection, Value));
 			this.Pr.TextDirection = Value;
 			this.Recalc_CompiledPr();
@@ -1520,6 +1539,7 @@ CTableCell.prototype =
 			if (Border === DstBorder)
 				return;
 
+			this.private_AddPrChange();
 			switch (Type)
 			{
 				case 0:
@@ -1561,6 +1581,7 @@ CTableCell.prototype =
 			NewBorder.Color.b = null != Border.Color ? Border.Color.b : NewBorder.Color.b;
 			NewBorder.Unifill = null != Border.Unifill ? Border.Unifill : NewBorder.Unifill;
 
+			this.private_AddPrChange();
 			switch (Type)
 			{
 				case 0:
@@ -1606,6 +1627,7 @@ CTableCell.prototype =
 			NewBorder.Color.b = null != Border.Color ? Border.Color.b : DefBorder.Color.b;
 			NewBorder.Unifill = null != Border.Unifill ? Border.Unifill : DefBorder.Unifill;
 
+			this.private_AddPrChange();
 			switch (Type)
 			{
 				case 0:
@@ -1998,6 +2020,7 @@ CTableCell.prototype.SetVMerge = function(nType)
 	if (nType === this.Pr.VMerge)
 		return;
 
+	this.private_AddPrChange();
 	History.Add(new CChangesTableCellVMerge(this, this.Pr.VMerge, nType));
 	this.Pr.VMerge = nType;
 	this.Recalc_CompiledPr();
@@ -2128,9 +2151,148 @@ CTableCell.prototype.SetHMerge = function(nType)
 	if (nType === this.Pr.HMerge)
 		return;
 
+	this.private_AddPrChange();
 	History.Add(new CChangesTableCellHMerge(this, this.Pr.HMerge, nType));
 	this.Pr.HMerge = nType;
 	this.Recalc_CompiledPr();
+};
+/**
+ * По заданной абсолютной странице получаем массив относительных страниц (относительно таблицы)
+ * @param nPageAbs
+ * @returns {Array}
+ */
+CTableCell.prototype.GetCurPageByAbsolutePage = function(nPageAbs)
+{
+	var arrPages = [];
+
+	var oRow = this.GetRow();
+	var oTable = this.GetTable();
+
+	if (!oRow || !oTable || !oTable.RowsInfo[oRow.GetIndex()])
+		return arrPages;
+
+	var nStartPage = oTable.RowsInfo[oRow.GetIndex()].StartPage;
+
+	var nPagesCount = this.Content.Pages.length;
+	for (var nCurPage = 0; nCurPage < nPagesCount; ++nCurPage)
+	{
+		if (nPageAbs === this.Get_AbsolutePage(nStartPage + nCurPage))
+		{
+			arrPages.push(nStartPage + nCurPage);
+		}
+	}
+
+	return arrPages;
+};
+/**
+ * Получаем границы ячейки
+ * @param nCurPage Номер страницы относительно таблицы
+ * @returns {CDocumentBounds}
+ */
+CTableCell.prototype.GetPageBounds = function(nCurPage)
+{
+	var oTable = this.GetTable();
+	var oRow   = this.GetRow();
+
+	if (!oRow || !oTable || !oTable.Pages[nCurPage])
+		return new CDocumentBounds(0, 0, 0, 0);
+
+	var nCurRow = oRow.GetIndex();
+	if (!oTable.RowsInfo[nCurRow] || !oTable.RowsInfo[nCurRow].Y[nCurPage] || !oTable.RowsInfo[nCurRow].H[nCurPage])
+		return new CDocumentBounds(0, 0, 0, 0);
+
+
+	var oPage = oTable.Pages[nCurPage];
+
+	var oCellInfo = oRow.GetCellInfo(this.GetIndex());
+
+
+	var nL = oPage.X + oCellInfo.X_cell_start;
+	var nR = oPage.X + oCellInfo.X_cell_end;
+
+	var nT = oTable.RowsInfo[nCurRow].Y[nCurPage];
+	var nB = oTable.RowsInfo[nCurRow].Y[nCurPage] + oTable.RowsInfo[nCurRow].H[nCurPage];
+
+	return new CDocumentBounds(nL, nT, nR, nB);
+};
+/**
+ * Получаем колонку в виде массива ячеек
+ * @returns {[CTableCell]}
+ */
+CTableCell.prototype.GetColumn = function()
+{
+	var oTable = this.GetTable();
+	if (!oTable)
+		return [this];
+
+	return oTable.GetColumn(this.GetIndex(), this.GetRow().GetIndex());
+};
+CTableCell.prototype.private_UpdateTrackRevisions = function()
+{
+	var oTable = this.GetTable();
+	if (oTable)
+		oTable.UpdateTrackRevisions();
+};
+CTableCell.prototype.HavePrChange = function()
+{
+	return this.Pr.HavePrChange();
+};
+CTableCell.prototype.AddPrChange = function()
+{
+	if (false === this.HavePrChange())
+	{
+		this.Pr.AddPrChange();
+		History.Add(new CChangesTableCellPrChange(this, {
+			PrChange   : undefined,
+			ReviewInfo : undefined
+		}, {
+			PrChange   : this.Pr.PrChange,
+			ReviewInfo : this.Pr.ReviewInfo
+		}));
+		this.private_UpdateTrackRevisions();
+	}
+};
+CTableCell.prototype.RemovePrChange = function()
+{
+	if (true === this.HavePrChange())
+	{
+		History.Add(new CChangesTableCellPrChange(this, {
+			PrChange   : this.Pr.PrChange,
+			ReviewInfo : this.Pr.ReviewInfo
+		}, {
+			PrChange   : undefined,
+			ReviewInfo : undefined
+		}));
+		this.Pr.RemovePrChange();
+		this.private_UpdateTrackRevisions();
+	}
+};
+CTableCell.prototype.private_AddPrChange = function()
+{
+	var oTable = this.GetTable();
+	var oRow   = this.GetRow();
+	if (oTable
+		&& oRow
+		&& oTable.LogicDocument
+		&& true === oTable.LogicDocument.IsTrackRevisions()
+		&& true !== this.HavePrChange()
+		&& reviewtype_Common === oRow.GetReviewType())
+	{
+		this.AddPrChange();
+		oTable.AddPrChange();
+	}
+};
+CTableCell.prototype.AcceptPrChange = function()
+{
+	this.RemovePrChange();
+};
+CTableCell.prototype.RejectPrChange = function()
+{
+	if (this.HavePrChange())
+	{
+		this.Set_Pr(this.Pr.PrChange);
+		this.RemovePrChange();
+	}
 };
 
 

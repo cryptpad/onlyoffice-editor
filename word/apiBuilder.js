@@ -1139,7 +1139,16 @@
 	 */
 	Api.prototype.CreateBlockLvlSdt = function()
 	{
-		return new ApiBlockLvlSdt(new CBlockLvlSdt());
+		return new ApiBlockLvlSdt(new CBlockLevelSdt());
+	};
+
+	/**
+	 * Saves changes to the specified document.
+	 * @typeofeditors ["CDE"]
+	 * @memberof Api
+	 */
+	Api.prototype.Save = function () {
+		this.SaveAfterMacros = true;
 	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -1237,7 +1246,7 @@
 	 */
 	ApiDocumentContent.prototype.RemoveAllElements = function()
 	{
-		this.Document.Internal_Content_Remove(0, this.Document.Content.length);
+		this.Document.Internal_Content_Remove(0, this.Document.Content.length, true);
 	};
 	/**
 	 * Remove element using the position specified.
@@ -1249,7 +1258,7 @@
 		if (nPos < 0 || nPos >= this.GetElementsCount())
 			return;
 
-		this.Document.Internal_Content_Remove(nPos, 1);
+		this.Document.Internal_Content_Remove(nPos, 1, true);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -1801,7 +1810,7 @@
 		if (!oNum)
 			return null;
 
-		return new ApiNumberingLevel(oNumbering, oNumPr.Lvl);
+		return new ApiNumberingLevel(oNum, oNumPr.Lvl);
 	};
 	/**
 	 * Specifies that the current paragraph references a numbering definition instance in the current document.
@@ -1841,7 +1850,8 @@
 		return private_GetSupportedParaElement(this.Paragraph.Content[nPos]);
 	};
 	/**
-	 * Remove the element using the position specified.
+	 * Remove the element using the position specified. Since we don't make an invalid document an empty run will
+	 * be added to the paragraph if we have deleted the last element.
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {number} nPos - The position of the element which we want to remove in the paragraph.
 	 */
@@ -1850,16 +1860,37 @@
 		if (nPos < 0 || nPos >= this.Paragraph.Content.length - 1)
 			return;
 
-		this.Paragraph.Remove_FromContent(nPos, 1);
+		this.Paragraph.RemoveFromContent(nPos, 1);
+		this.Paragraph.CorrectContent();
 	};
 	/**
-	 * Remove all elements from the current paragraph.
+	 * Remove all elements from the current paragraph. Since we don't make an invalid document an empty run will
+	 * be added to the paragraph.
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 */
 	ApiParagraph.prototype.RemoveAllElements = function()
 	{
 		if (this.Paragraph.Content.length > 1)
-			this.Paragraph.Remove_FromContent(0, this.Paragraph.Content.length - 1);
+		{
+			this.Paragraph.RemoveFromContent(0, this.Paragraph.Content.length - 1);
+			this.Paragraph.CorrectContent();
+		}
+	};
+	/**
+	 * Create a copy of the paragraph. Ingonore comments, footnote references, complex fields
+	 * @returns {ApiParagraph}
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 */
+	ApiParagraph.prototype.Copy = function()
+	{
+		var oParagraph = this.Paragraph.Copy(undefined, private_GetDrawingDocument(), {
+			SkipComments          : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true
+		});
+
+		return new ApiParagraph(oParagraph);
 	};
 	/**
 	 * Add an element to the current paragraph.
@@ -2024,7 +2055,22 @@
 
 		this.Run.Add_ToContent(this.Run.Content.length, oDrawing.Drawing);
 	};
+	/**
+	 * Create a copy of the run.
+	 * @returns {ApiRun}
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 */
+	ApiRun.prototype.Copy = function()
+	{
+		var oRun = this.Run.Copy(false, {
+			SkipComments          : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true
+		});
 
+		return new ApiRun(oRun);
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -2176,7 +2222,7 @@
 		if (null === oHeader && true === isCreate)
 		{
 			var oLogicDocument = private_GetLogicDocument();
-			oHeader            = new CHeaderFooter(oLogicDocument.Get_HdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Header);
+			oHeader            = new CHeaderFooter(oLogicDocument.GetHdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Header);
 			if ("title" === sType)
 				this.Section.Set_Header_First(oHeader);
 			else if ("even" === sType)
@@ -2228,7 +2274,7 @@
 		if (null === oFooter && true === isCreate)
 		{
 			var oLogicDocument = private_GetLogicDocument();
-			oFooter            = new CHeaderFooter(oLogicDocument.Get_HdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Footer);
+			oFooter            = new CHeaderFooter(oLogicDocument.GetHdrFtr(), oLogicDocument, oLogicDocument.Get_DrawingDocument(), hdrftr_Footer);
 			if ("title" === sType)
 				this.Section.Set_Footer_First(oFooter);
 			else if ("even" === sType)
@@ -2500,6 +2546,16 @@
 
 		private_EndSilentMode();
 		return isEmpty;
+	};
+	/**
+	 * Create a copy of the table.
+	 * @returns {ApiTable}
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 */
+	ApiTable.prototype.Copy = function()
+	{
+		var oTable = this.Table.Copy();
+		return new ApiTable(oTable);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -4813,13 +4869,13 @@
 	 */
 	ApiInlineLvlSdt.prototype.SetLock = function(sLockType)
 	{
-		var nLock = sdtlock_Unlocked;
+		var nLock = c_oAscSdtLockType.Unlocked;
 		if ("contentLocked" === sLockType)
-			nLock = sdtlock_ContentLocked;
+			nLock = c_oAscSdtLockType.ContentLocked;
 		else if ("sdtContentLocked" === sLockType)
-			nLock = sdtlock_SdtContentLocked;
+			nLock = c_oAscSdtLockType.SdtContentLocked;
 		else if ("sdtLocked" === sLockType)
-			nLock = sdtlock_SdtLocked;
+			nLock = c_oAscSdtLockType.SdtLocked;
 
 		this.Sdt.SetContentControlLock(nLock);
 	};
@@ -4833,11 +4889,11 @@
 
 		var sResult = "unlocked";
 
-		if (sdtlock_ContentLocked === nLock)
+		if (c_oAscSdtLockType.ContentLocked === nLock)
 			sResult = "contentLocked";
-		else if (sdtlock_SdtContentLocked === nLock)
+		else if (c_oAscSdtLockType.SdtContentLocked === nLock)
 			sResult = "sdtContentLocked";
-		else if (sdtlock_SdtLocked === nLock)
+		else if (c_oAscSdtLockType.SdtLocked === nLock)
 			sResult = "sdtLocked";
 
 		return sResult;
@@ -4919,7 +4975,8 @@
 		if (nPos < 0 || nPos >= this.Sdt.Content.length)
 			return;
 
-		this.Sdt.Remove_FromContent(nPos, 1);
+		this.Sdt.RemoveFromContent(nPos, 1);
+		this.Sdt.CorrectContent();
 	};
 	/**
 	 * Remove all elements.
@@ -4927,7 +4984,10 @@
 	ApiInlineLvlSdt.prototype.RemoveAllElements = function()
 	{
 		if (this.Sdt.Content.length > 0)
-			this.Sdt.Remove_FromContent(0, this.Sdt.Content.length);
+		{
+			this.Sdt.RemoveFromContent(0, this.Sdt.Content.length);
+			this.Sdt.CorrectContent();
+		}
 	};
 	/**
 	 * Add an element to inline container.
@@ -4944,7 +5004,7 @@
 		var oParaElement = oElement.private_GetImpl();
 		if (undefined !== nPos)
 		{
-			this.Sdt.Add_ToContent(nPos, oParaElement);
+			this.Sdt.AddToContent(nPos, oParaElement);
 		}
 		else
 		{
@@ -4973,13 +5033,13 @@
 	 */
 	ApiBlockLvlSdt.prototype.SetLock = function(sLockType)
 	{
-		var nLock = sdtlock_Unlocked;
+		var nLock = c_oAscSdtLockType.Unlocked;
 		if ("contentLocked" === sLockType)
-			nLock = sdtlock_ContentLocked;
+			nLock = c_oAscSdtLockType.ContentLocked;
 		else if ("sdtContentLocked" === sLockType)
-			nLock = sdtlock_SdtContentLocked;
+			nLock = c_oAscSdtLockType.SdtContentLocked;
 		else if ("sdtLocked" === sLockType)
-			nLock = sdtlock_SdtLocked;
+			nLock = c_oAscSdtLockType.SdtLocked;
 
 		this.Sdt.SetContentControlLock(nLock);
 	};
@@ -4993,11 +5053,11 @@
 
 		var sResult = "unlocked";
 
-		if (sdtlock_ContentLocked === nLock)
+		if (c_oAscSdtLockType.ContentLocked === nLock)
 			sResult = "contentLocked";
-		else if (sdtlock_SdtContentLocked === nLock)
+		else if (c_oAscSdtLockType.SdtContentLocked === nLock)
 			sResult = "sdtContentLocked";
-		else if (sdtlock_SdtLocked === nLock)
+		else if (c_oAscSdtLockType.SdtLocked === nLock)
 			sResult = "sdtLocked";
 
 		return sResult;
@@ -5083,6 +5143,7 @@
 	Api.prototype["CreateNumbering"]                 = Api.prototype.CreateNumbering;
 	Api.prototype["CreateInlineLvlSdt"]              = Api.prototype.CreateInlineLvlSdt;
 	Api.prototype["CreateBlockLvlSdt"]               = Api.prototype.CreateBlockLvlSdt;
+	Api.prototype["Save"]               			 = Api.prototype.Save;
 
 	ApiUnsupported.prototype["GetClassType"]         = ApiUnsupported.prototype.GetClassType;
 
@@ -5131,6 +5192,7 @@
 	ApiParagraph.prototype["AddTabStop"]             = ApiParagraph.prototype.AddTabStop;
 	ApiParagraph.prototype["AddDrawing"]             = ApiParagraph.prototype.AddDrawing;
 	ApiParagraph.prototype["AddInlineLvlSdt"]        = ApiParagraph.prototype.AddInlineLvlSdt;
+	ApiParagraph.prototype["Copy"]                   = ApiParagraph.prototype.Copy;
 
 	ApiRun.prototype["GetClassType"]                 = ApiRun.prototype.GetClassType;
 	ApiRun.prototype["GetTextPr"]                    = ApiRun.prototype.GetTextPr;
@@ -5141,6 +5203,7 @@
 	ApiRun.prototype["AddColumnBreak"]               = ApiRun.prototype.AddColumnBreak;
 	ApiRun.prototype["AddTabStop"]                   = ApiRun.prototype.AddTabStop;
 	ApiRun.prototype["AddDrawing"]                   = ApiRun.prototype.AddDrawing;
+	ApiRun.prototype["Copy"]                         = ApiRun.prototype.Copy;
 
 	ApiSection.prototype["GetClassType"]             = ApiSection.prototype.GetClassType;
 	ApiSection.prototype["SetType"]                  = ApiSection.prototype.SetType;
@@ -5167,6 +5230,7 @@
 	ApiTable.prototype["AddColumn"]                  = ApiTable.prototype.AddColumn;
 	ApiTable.prototype["RemoveRow"]                  = ApiTable.prototype.RemoveRow;
 	ApiTable.prototype["RemoveColumn"]               = ApiTable.prototype.RemoveColumn;
+	ApiTable.prototype["Copy"]                       = ApiTable.prototype.Copy;
 
 	ApiTableRow.prototype["GetClassType"]            = ApiTableRow.prototype.GetClassType;
 	ApiTableRow.prototype["GetCellsCount"]           = ApiTableRow.prototype.GetCellsCount;
@@ -5635,10 +5699,10 @@
 		oTextFill2.transparent = 127;
 
 		var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
-		var TrackRevisions = (MainLogicDocument ? MainLogicDocument.Is_TrackRevisions() : false);
+		var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
 
 		if (MainLogicDocument && true === TrackRevisions)
-			MainLogicDocument.Set_TrackRevisions(false);
+			MainLogicDocument.SetTrackRevisions(false);
 
 		var oShape = new AscFormat.CShape();
 		oShape.setWordShape(true);

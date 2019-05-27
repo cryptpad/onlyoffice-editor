@@ -114,9 +114,13 @@ function CEditorPage(api)
     this.m_oDrawingDocument = new AscCommon.CDrawingDocument();
     this.m_oLogicDocument   = null;
 
+
+    this.SlideDrawer = new CSlideDrawer();
+
     this.m_oDrawingDocument.m_oWordControl = this;
     this.m_oDrawingDocument.m_oLogicDocument = this.m_oLogicDocument;
     this.m_oApi = api;
+
     this.Native = window["native"];
 }
 
@@ -224,11 +228,44 @@ CEditorPage.prototype.onButtonTabsDraw = function()
 
 CEditorPage.prototype.onPrevPage = function()
 {
+    var DD = this.m_oDrawingDocument;
+    if(DD)
+    {
+        if (0 < DD.SlideCurrent)
+        {
+            this.GoToPage(DD.SlideCurrent - 1);
+        }
+        else
+        {
+            this.GoToPage(0);
+        }
+    }
 };
-
 CEditorPage.prototype.onNextPage = function()
 {
+    var oWordControl = this;
+    if ((oWordControl.m_oDrawingDocument.SlidesCount - 1) > oWordControl.m_oDrawingDocument.SlideCurrent)
+    {
+        oWordControl.GoToPage(oWordControl.m_oDrawingDocument.SlideCurrent + 1);
+    }
+    else if (oWordControl.m_oDrawingDocument.SlidesCount > 0)
+    {
+        oWordControl.GoToPage(oWordControl.m_oDrawingDocument.SlidesCount - 1);
+    }
+    var DD = this.m_oDrawingDocument;
+    if(DD)
+    {
+        if (DD.SlidesCount - 1 > DD.SlideCurrent)
+        {
+            this.GoToPage(DD.SlideCurrent + 1);
+        }
+        else
+        {
+            this.GoToPage(oWordControl.m_oDrawingDocument.SlidesCount - 1);
+        }
+    }
 };
+
 
 CEditorPage.prototype.horRulerMouseDown = function(e)
 {
@@ -402,29 +439,35 @@ CEditorPage.prototype.OnUpdateOverlay = function()
     this.Native["DD_Overlay_UpdateStart"]();
     drDoc.AutoShapesTrack.SetCurrentPage(-100);
     this.Native["DD_Overlay_Clear"]();
-    if (drDoc.m_bIsSelection)
+    var oSlide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
+    if(oSlide)
     {
-        this.Native["DD_Overlay_StartDrawSelection"]();
-        drDoc.AutoShapesTrack.SetCurrentPage(-101);
-        if (this.m_oLogicDocument.CurPage > -1)
+        if (drDoc.m_bIsSelection)
         {
-            this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage].drawSelect(1);
+            this.Native["DD_Overlay_StartDrawSelection"]();
+            drDoc.AutoShapesTrack.SetCurrentPage(-101);
+            if (oSlide)
+            {
+                oSlide.drawSelect(1);
+                drDoc.CheckSelectMobile();
+            }
+            drDoc.AutoShapesTrack.SetCurrentPage(-100);
+            this.Native["DD_Overlay_EndDrawSelection"]();
         }
-        drDoc.AutoShapesTrack.SetCurrentPage(-100);
-        this.Native["DD_Overlay_EndDrawSelection"]();
-    }
-    if (this.m_oLogicDocument && this.m_oLogicDocument.CurPage > -1)
-    {
-        drDoc.AutoShapesTrack.SetCurrentPage(-101);
-        this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage].drawSelect(2);
-        drDoc.AutoShapesTrack.SetCurrentPage(-100);
-        var elements = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage].graphicObjects;
-        if (!elements.canReceiveKeyPress())
+        if (this.m_oLogicDocument && this.m_oLogicDocument.CurPage > -1)
         {
-            elements.DrawOnOverlay(drDoc.AutoShapesTrack);
-            drDoc.AutoShapesTrack.CorrectOverlayBounds();
+            drDoc.AutoShapesTrack.SetCurrentPage(-101);
+            oSlide.drawSelect(2);
+            drDoc.AutoShapesTrack.SetCurrentPage(-100);
+            var elements = oSlide.graphicObjects;
+            if (!elements.canReceiveKeyPress())
+            {
+                elements.DrawOnOverlay(drDoc.AutoShapesTrack);
+                drDoc.AutoShapesTrack.CorrectOverlayBounds();
+            }
         }
     }
+    drDoc.Collaborative_TargetsUpdate();
     this.Native["DD_Overlay_UpdateEnd"]();
     return true;
 };
@@ -471,10 +514,16 @@ CEditorPage.prototype.InitControl = function()
 
 CEditorPage.prototype.StartMainTimer = function()
 {
+    this.onTimerScroll();
 };
-
-CEditorPage.prototype.onTimerScroll = function(isThUpdateSync)
+CEditorPage.prototype.onTimerScroll = function()
 {
+    var oWordControl = editor.WordControl;
+    if(oWordControl.m_oLogicDocument)
+    {
+        oWordControl.m_oLogicDocument.ContinueCheckSpelling();
+    }
+    oWordControl.m_nPaintTimerId = setTimeout(oWordControl.onTimerScroll, 500);
 };
 
 CEditorPage.prototype.onTimerScroll_sync = function(isThUpdateSync)
@@ -518,14 +567,38 @@ CEditorPage.prototype.CheckLayouts = function(bIsAttack)
     if(!this.m_oLogicDocument || !this.m_oLogicDocument.Api){
         return;
     }
+    
+    var master;
     var slide = this.m_oLogicDocument.Slides[this.m_oLogicDocument.CurPage];
-    var master = slide.Layout.Master;
-    this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
+    if (slide) {
+        master = slide.Layout.Master;
+    }
+    else{
+        master = this.m_oLogicDocument.slideMasters[0];
+    }
+    if(!master){
+        return;
+    }
+    if(bIsAttack || this.MasterLayouts !== master){
+        this.MasterLayouts = master;
+        this.m_oDrawingDocument.CheckLayouts(master);
+        this.m_oLogicDocument.Api.sendEvent("asc_onUpdateThemeIndex", master.ThemeIndex);
+        this.m_oLogicDocument.Api.sendColorThemes(master.Theme);
+    }
 };
 
 CEditorPage.prototype.GoToPage = function(lPageNum)
 {
+    if(this.m_oDrawingDocument){
+        this.m_oDrawingDocument.SlidesCount = this.m_oLogicDocument.Slides.length;
+        this.m_oDrawingDocument.SlideCurrent = this.m_oLogicDocument.CurPage;
+    }
+    if(this.m_oLogicDocument)
+    {
+        this.m_oLogicDocument.Set_CurPage(lPageNum);
+    }
     this.Native["DD_SetCurrentPage"](lPageNum);
+    this.CheckLayouts(false);
 };
 
 CEditorPage.prototype.GetVerticalScrollTo = function(y)

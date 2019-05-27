@@ -432,6 +432,37 @@ CBookmarksManager.prototype.GetNameForHeadingBookmark = function(oParagraph)
 
 	return "_" + sName;
 };
+/**
+ * Выделяем содержимое закладки
+ * @param sName
+ * @returns {boolean}
+ * @constructor
+ */
+CBookmarksManager.prototype.SelectBookmark = function(sName)
+{
+	this.Update();
+
+	var oBookmark = this.GetBookmarkByName(sName);
+	if (oBookmark)
+	{
+		var oDocument = this.LogicDocument;
+		oDocument.RemoveSelection();
+
+		oBookmark[0].GoToBookmark();
+		var oStartPos = oDocument.GetContentPosition(false);
+
+		oBookmark[1].GoToBookmark();
+		var oEndPos = oDocument.GetContentPosition(false);
+
+		oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
+		oDocument.Document_UpdateSelectionState();
+		oDocument.Document_UpdateInterfaceState();
+		return true;
+	}
+
+	return false;
+};
+
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -446,6 +477,4 @@ CBookmarksManager.prototype['asc_HaveBookmark']          = CBookmarksManager.pro
 CBookmarksManager.prototype['asc_IsHiddenBookmark']      = CBookmarksManager.prototype.IsHiddenBookmark;
 CBookmarksManager.prototype['asc_IsInternalUseBookmark'] = CBookmarksManager.prototype.IsInternalUseBookmark;
 CBookmarksManager.prototype['asc_CheckNewBookmarkName']  = CBookmarksManager.prototype.CheckNewBookmarkName;
-
-
-
+CBookmarksManager.prototype['asc_SelectBookmark']        = CBookmarksManager.prototype.SelectBookmark;

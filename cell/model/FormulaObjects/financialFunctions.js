@@ -475,12 +475,14 @@
 	function cACCRINT() {
 	}
 
+	//***array-formula***
 	cACCRINT.prototype = Object.create(cBaseFunction.prototype);
 	cACCRINT.prototype.constructor = cACCRINT;
 	cACCRINT.prototype.name = 'ACCRINT';
 	cACCRINT.prototype.argumentsMin = 6;
 	cACCRINT.prototype.argumentsMax = 8;
 	cACCRINT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cACCRINT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cACCRINT.prototype.Calculate = function (arg) {
 		var issue = arg[0], firstInterest = arg[1], settlement = arg[2], rate = arg[3],
 			par = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(1000), frequency = arg[5],
@@ -643,12 +645,14 @@
 	function cACCRINTM() {
 	}
 
+	//***array-formula***
 	cACCRINTM.prototype = Object.create(cBaseFunction.prototype);
 	cACCRINTM.prototype.constructor = cACCRINTM;
 	cACCRINTM.prototype.name = 'ACCRINTM';
-	cACCRINTM.prototype.argumentsMin = 3;
+	cACCRINTM.prototype.argumentsMin = 4;
 	cACCRINTM.prototype.argumentsMax = 5;
 	cACCRINTM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cACCRINTM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cACCRINTM.prototype.Calculate = function (arg) {
 		var issue = arg[0], settlement = arg[1], rate = arg[2],
 			par = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(1000),
@@ -732,12 +736,14 @@
 	function cAMORDEGRC() {
 	}
 
+	//***array-formula***
 	cAMORDEGRC.prototype = Object.create(cBaseFunction.prototype);
 	cAMORDEGRC.prototype.constructor = cAMORDEGRC;
 	cAMORDEGRC.prototype.name = 'AMORDEGRC';
 	cAMORDEGRC.prototype.argumentsMin = 6;
 	cAMORDEGRC.prototype.argumentsMax = 7;
 	cAMORDEGRC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cAMORDEGRC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cAMORDEGRC.prototype.Calculate = function (arg) {
 		var cost = arg[0], datePurch = arg[1], firstPer = arg[2], salvage = arg[3], period = arg[4], rate = arg[5],
 			basis = arg[6] && !(arg[6] instanceof cEmpty) ? arg[6] : new cNumber(0);
@@ -923,12 +929,14 @@
 	function cAMORLINC() {
 	}
 
+	//***array-formula***
 	cAMORLINC.prototype = Object.create(cBaseFunction.prototype);
 	cAMORLINC.prototype.constructor = cAMORLINC;
 	cAMORLINC.prototype.name = 'AMORLINC';
 	cAMORLINC.prototype.argumentsMin = 6;
 	cAMORLINC.prototype.argumentsMax = 7;
 	cAMORLINC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cAMORLINC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cAMORLINC.prototype.Calculate = function (arg) {
 		var cost = arg[0], datePurch = arg[1], firstPer = arg[2], salvage = arg[3], period = arg[4], rate = arg[5],
 			basis = arg[6] && !(arg[6] instanceof cEmpty) ? arg[6] : new cNumber(0);
@@ -1052,12 +1060,14 @@
 	function cCOUPDAYBS() {
 	}
 
+	//***array-formula***
 	cCOUPDAYBS.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPDAYBS.prototype.constructor = cCOUPDAYBS;
 	cCOUPDAYBS.prototype.name = 'COUPDAYBS';
 	cCOUPDAYBS.prototype.argumentsMin = 3;
 	cCOUPDAYBS.prototype.argumentsMax = 4;
 	cCOUPDAYBS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPDAYBS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPDAYBS.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1129,12 +1139,14 @@
 	function cCOUPDAYS() {
 	}
 
+	//***array-formula***
 	cCOUPDAYS.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPDAYS.prototype.constructor = cCOUPDAYS;
 	cCOUPDAYS.prototype.name = 'COUPDAYS';
 	cCOUPDAYS.prototype.argumentsMin = 3;
 	cCOUPDAYS.prototype.argumentsMax = 4;
 	cCOUPDAYS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPDAYS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPDAYS.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1205,12 +1217,14 @@
 	function cCOUPDAYSNC() {
 	}
 
+	//***array-formula***
 	cCOUPDAYSNC.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPDAYSNC.prototype.constructor = cCOUPDAYSNC;
 	cCOUPDAYSNC.prototype.name = 'COUPDAYSNC';
 	cCOUPDAYSNC.prototype.argumentsMin = 3;
 	cCOUPDAYSNC.prototype.argumentsMax = 4;
 	cCOUPDAYSNC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPDAYSNC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPDAYSNC.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1281,12 +1295,14 @@
 	function cCOUPNCD() {
 	}
 
+	//***array-formula***
 	cCOUPNCD.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPNCD.prototype.constructor = cCOUPNCD;
 	cCOUPNCD.prototype.name = 'COUPNCD';
 	cCOUPNCD.prototype.argumentsMin = 3;
 	cCOUPNCD.prototype.argumentsMax = 4;
 	cCOUPNCD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPNCD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPNCD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1359,12 +1375,14 @@
 	function cCOUPNUM() {
 	}
 
+	//***array-formula***
 	cCOUPNUM.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPNUM.prototype.constructor = cCOUPNUM;
 	cCOUPNUM.prototype.name = 'COUPNUM';
 	cCOUPNUM.prototype.argumentsMin = 3;
 	cCOUPNUM.prototype.argumentsMax = 4;
 	cCOUPNUM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPNUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPNUM.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1437,12 +1455,14 @@
 	function cCOUPPCD() {
 	}
 
+	//***array-formula***
 	cCOUPPCD.prototype = Object.create(cBaseFunction.prototype);
 	cCOUPPCD.prototype.constructor = cCOUPPCD;
 	cCOUPPCD.prototype.name = 'COUPPCD';
 	cCOUPPCD.prototype.argumentsMin = 3;
 	cCOUPPCD.prototype.argumentsMax = 4;
 	cCOUPPCD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOUPPCD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCOUPPCD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], frequency = arg[2],
 			basis = arg[3] && !(arg[3] instanceof cEmpty) ? arg[3] : new cNumber(0);
@@ -1517,12 +1537,14 @@
 	function cCUMIPMT() {
 	}
 
+	//***array-formula***
 	cCUMIPMT.prototype = Object.create(cBaseFunction.prototype);
 	cCUMIPMT.prototype.constructor = cCUMIPMT;
 	cCUMIPMT.prototype.name = 'CUMIPMT';
 	cCUMIPMT.prototype.argumentsMin = 6;
 	cCUMIPMT.prototype.argumentsMax = 6;
 	cCUMIPMT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCUMIPMT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCUMIPMT.prototype.Calculate = function (arg) {
 		var rate = arg[0], nper = arg[1], pv = arg[2], startPeriod = arg[3], endPeriod = arg[4], type = arg[5];
 
@@ -1632,12 +1654,14 @@
 	function cCUMPRINC() {
 	}
 
+	//***array-formula***
 	cCUMPRINC.prototype = Object.create(cBaseFunction.prototype);
 	cCUMPRINC.prototype.constructor = cCUMPRINC;
 	cCUMPRINC.prototype.name = 'CUMPRINC';
 	cCUMPRINC.prototype.argumentsMin = 6;
 	cCUMPRINC.prototype.argumentsMax = 6;
 	cCUMPRINC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCUMPRINC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cCUMPRINC.prototype.Calculate = function (arg) {
 		var rate = arg[0], nper = arg[1], pv = arg[2], startPeriod = arg[3],
 			endPeriod = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0),
@@ -1749,6 +1773,7 @@
 	function cDB() {
 	}
 
+	//***array-formula***
 	cDB.prototype = Object.create(cBaseFunction.prototype);
 	cDB.prototype.constructor = cDB;
 	cDB.prototype.name = 'DB';
@@ -1858,6 +1883,7 @@
 	function cDDB() {
 	}
 
+	//***array-formula***
 	cDDB.prototype = Object.create(cBaseFunction.prototype);
 	cDDB.prototype.constructor = cDDB;
 	cDDB.prototype.name = 'DDB';
@@ -1926,16 +1952,17 @@
 		period = period.getValue();
 		factor = factor.getValue();
 
+		if (/*cost < salvage ||*/ cost <= 0 || salvage < 0 || factor <= 0 || life <= 0 || period <= 0 || life < period) {
+			return new cError(cErrorType.not_numeric);
+		}
+
 		if (cost == 0 || salvage == 0) {
 			return new cNumber(0);
 		}
 
-		if (cost < salvage || cost <= 0 || salvage < 0 || factor <= 0 || life <= 0 || period <= 0 || life < period) {
-			return new cError(cErrorType.not_numeric);
-		}
-
-		return new cNumber(getDDB(cost, salvage, life, period, factor));
-
+		var res = new cNumber(getDDB(cost, salvage, life, period, factor));
+		res.numFormat = /*Asc.c_oAscNumFormatType.Currency*/7;
+		return res;
 	};
 
 	/**
@@ -1945,12 +1972,14 @@
 	function cDISC() {
 	}
 
+	//***array-formula***
 	cDISC.prototype = Object.create(cBaseFunction.prototype);
 	cDISC.prototype.constructor = cDISC;
 	cDISC.prototype.name = 'DISC';
 	cDISC.prototype.argumentsMin = 4;
 	cDISC.prototype.argumentsMax = 5;
 	cDISC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDISC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDISC.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], pr = arg[2], redemption = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -2033,12 +2062,14 @@
 	function cDOLLARDE() {
 	}
 
+	//***array-formula***
 	cDOLLARDE.prototype = Object.create(cBaseFunction.prototype);
 	cDOLLARDE.prototype.constructor = cDOLLARDE;
 	cDOLLARDE.prototype.name = 'DOLLARDE';
 	cDOLLARDE.prototype.argumentsMin = 2;
 	cDOLLARDE.prototype.argumentsMax = 2;
 	cDOLLARDE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDOLLARDE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDOLLARDE.prototype.Calculate = function (arg) {
 		var fractionalDollar = arg[0], fraction = arg[1];
 
@@ -2094,12 +2125,14 @@
 	function cDOLLARFR() {
 	}
 
+	//***array-formula***
 	cDOLLARFR.prototype = Object.create(cBaseFunction.prototype);
 	cDOLLARFR.prototype.constructor = cDOLLARFR;
 	cDOLLARFR.prototype.name = 'DOLLARFR';
 	cDOLLARFR.prototype.argumentsMin = 2;
 	cDOLLARFR.prototype.argumentsMax = 2;
 	cDOLLARFR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDOLLARFR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDOLLARFR.prototype.Calculate = function (arg) {
 		var decimalDollar = arg[0], fraction = arg[1];
 
@@ -2155,12 +2188,14 @@
 	function cDURATION() {
 	}
 
+	//***array-formula***
 	cDURATION.prototype = Object.create(cBaseFunction.prototype);
 	cDURATION.prototype.constructor = cDURATION;
 	cDURATION.prototype.name = 'DURATION';
 	cDURATION.prototype.argumentsMin = 5;
 	cDURATION.prototype.argumentsMax = 6;
 	cDURATION.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDURATION.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cDURATION.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], coupon = arg[2], yld = arg[3], frequency = arg[4],
 			basis = arg[5] && !(arg[5] instanceof cEmpty) ? arg[5] : new cNumber(0);
@@ -2253,12 +2288,14 @@
 	function cEFFECT() {
 	}
 
+	//***array-formula***
 	cEFFECT.prototype = Object.create(cBaseFunction.prototype);
 	cEFFECT.prototype.constructor = cEFFECT;
 	cEFFECT.prototype.name = 'EFFECT';
 	cEFFECT.prototype.argumentsMin = 2;
 	cEFFECT.prototype.argumentsMax = 2;
 	cEFFECT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cEFFECT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cEFFECT.prototype.Calculate = function (arg) {
 		var nominalRate = arg[0], npery = arg[1];
 
@@ -2301,6 +2338,7 @@
 	function cFV() {
 	}
 
+	//***array-formula***
 	cFV.prototype = Object.create(cBaseFunction.prototype);
 	cFV.prototype.constructor = cFV;
 	cFV.prototype.name = 'FV';
@@ -2386,12 +2424,15 @@
 	function cFVSCHEDULE() {
 	}
 
+	//***array-formula***
 	cFVSCHEDULE.prototype = Object.create(cBaseFunction.prototype);
 	cFVSCHEDULE.prototype.constructor = cFVSCHEDULE;
 	cFVSCHEDULE.prototype.name = 'FVSCHEDULE';
 	cFVSCHEDULE.prototype.argumentsMin = 2;
 	cFVSCHEDULE.prototype.argumentsMax = 2;
 	cFVSCHEDULE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cFVSCHEDULE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cFVSCHEDULE.prototype.arrayIndexes = {1: 1};
 	cFVSCHEDULE.prototype.Calculate = function (arg) {
 		var principal = arg[0], schedule = arg[1], shedList = [];
 
@@ -2440,12 +2481,14 @@
 	function cINTRATE() {
 	}
 
+	//***array-formula***
 	cINTRATE.prototype = Object.create(cBaseFunction.prototype);
 	cINTRATE.prototype.constructor = cINTRATE;
 	cINTRATE.prototype.name = 'INTRATE';
 	cINTRATE.prototype.argumentsMin = 4;
 	cINTRATE.prototype.argumentsMax = 5;
 	cINTRATE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cINTRATE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cINTRATE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], investment = arg[2], redemption = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -2530,6 +2573,7 @@
 	function cIPMT() {
 	}
 
+	//***array-formula***
 	cIPMT.prototype = Object.create(cBaseFunction.prototype);
 	cIPMT.prototype.constructor = cIPMT;
 	cIPMT.prototype.name = 'IPMT';
@@ -2628,12 +2672,14 @@
 	function cIRR() {
 	}
 
+	//***array-formula***
 	cIRR.prototype = Object.create(cBaseFunction.prototype);
 	cIRR.prototype.constructor = cIRR;
 	cIRR.prototype.name = 'IRR';
 	cIRR.prototype.argumentsMin = 1;
 	cIRR.prototype.argumentsMax = 2;
 	cIRR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cIRR.prototype.arrayIndexes = {0: 1};
 	cIRR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(0.1);
 
@@ -2757,6 +2803,7 @@
 	function cISPMT() {
 	}
 
+	//***array-formula***
 	cISPMT.prototype = Object.create(cBaseFunction.prototype);
 	cISPMT.prototype.constructor = cISPMT;
 	cISPMT.prototype.name = 'ISPMT';
@@ -2822,12 +2869,14 @@
 	function cMDURATION() {
 	}
 
+	//***array-formula***
 	cMDURATION.prototype = Object.create(cBaseFunction.prototype);
 	cMDURATION.prototype.constructor = cMDURATION;
 	cMDURATION.prototype.name = 'MDURATION';
 	cMDURATION.prototype.argumentsMin = 5;
 	cMDURATION.prototype.argumentsMax = 6;
 	cMDURATION.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMDURATION.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cMDURATION.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], coupon = arg[2], yld = arg[3], frequency = arg[4],
 			basis = arg[5] && !(arg[5] instanceof cEmpty) ? arg[5] : new cNumber(0);
@@ -2924,12 +2973,14 @@
 	function cMIRR() {
 	}
 
+	//***array-formula***
 	cMIRR.prototype = Object.create(cBaseFunction.prototype);
 	cMIRR.prototype.constructor = cMIRR;
 	cMIRR.prototype.name = 'MIRR';
 	cMIRR.prototype.argumentsMin = 3;
 	cMIRR.prototype.argumentsMax = 3;
 	cMIRR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMIRR.prototype.arrayIndexes = {0: 1};
 	cMIRR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], invest = arg[1], reinvest = arg[2];
 
@@ -3032,12 +3083,14 @@
 	function cNOMINAL() {
 	}
 
+	//***array-formula***
 	cNOMINAL.prototype = Object.create(cBaseFunction.prototype);
 	cNOMINAL.prototype.constructor = cNOMINAL;
 	cNOMINAL.prototype.name = 'NOMINAL';
 	cNOMINAL.prototype.argumentsMin = 2;
 	cNOMINAL.prototype.argumentsMax = 2;
 	cNOMINAL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cNOMINAL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cNOMINAL.prototype.Calculate = function (arg) {
 		var effectRate = arg[0], npery = arg[1];
 
@@ -3083,6 +3136,7 @@
 	function cNPER() {
 	}
 
+	//***array-formula***
 	cNPER.prototype = Object.create(cBaseFunction.prototype);
 	cNPER.prototype.constructor = cNPER;
 	cNPER.prototype.name = 'NPER';
@@ -3172,11 +3226,14 @@
 	function cNPV() {
 	}
 
+	//***array-formula***
 	cNPV.prototype = Object.create(cBaseFunction.prototype);
 	cNPV.prototype.constructor = cNPV;
 	cNPV.prototype.name = 'NPV';
 	cNPV.prototype.argumentsMin = 2;
 	cNPV.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	//TODO нужен новый тип - все элементы приходят в виде массива, кроме первого
+	cNPV.prototype.arrayIndexes = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1};
 	cNPV.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], iStart = 1, res = 0, rate;
 
@@ -3243,12 +3300,14 @@
 	function cODDFPRICE() {
 	}
 
+	//***array-formula***
 	cODDFPRICE.prototype = Object.create(cBaseFunction.prototype);
 	cODDFPRICE.prototype.constructor = cODDFPRICE;
 	cODDFPRICE.prototype.name = 'ODDFPRICE';
 	cODDFPRICE.prototype.argumentsMin = 8;
 	cODDFPRICE.prototype.argumentsMax = 9;
 	cODDFPRICE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cODDFPRICE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cODDFPRICE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], issue = arg[2], first_coupon = arg[3], rate = arg[4], yld = arg[5],
 			redemption = arg[6], frequency = arg[7],
@@ -3377,12 +3436,14 @@
 	function cODDFYIELD() {
 	}
 
+	//***array-formula***
 	cODDFYIELD.prototype = Object.create(cBaseFunction.prototype);
 	cODDFYIELD.prototype.constructor = cODDFYIELD;
 	cODDFYIELD.prototype.name = 'ODDFYIELD';
 	cODDFYIELD.prototype.argumentsMin = 8;
 	cODDFYIELD.prototype.argumentsMax = 9;
 	cODDFYIELD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cODDFYIELD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cODDFYIELD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], issue = arg[2], first_coupon = arg[3], rate = arg[4], pr = arg[5],
 			redemption = arg[6], frequency = arg[7],
@@ -3581,6 +3642,7 @@
 	cODDLPRICE.prototype.argumentsMin = 7;
 	cODDLPRICE.prototype.argumentsMax = 8;
 	cODDLPRICE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cODDLPRICE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cODDLPRICE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], last_interest = arg[2], rate = arg[3], yld = arg[4],
 			redemption = arg[5], frequency = arg[6],
@@ -3712,6 +3774,7 @@
 	cODDLYIELD.prototype.argumentsMin = 7;
 	cODDLYIELD.prototype.argumentsMax = 8;
 	cODDLYIELD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cODDLYIELD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cODDLYIELD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], last_interest = arg[2], rate = arg[3], pr = arg[4],
 			redemption = arg[5], frequency = arg[6],
@@ -3838,6 +3901,7 @@
 	function cPDURATION() {
 	}
 
+	//***array-formula***
 	cPDURATION.prototype = Object.create(cBaseFunction.prototype);
 	cPDURATION.prototype.constructor = cPDURATION;
 	cPDURATION.prototype.name = 'PDURATION';
@@ -3879,6 +3943,7 @@
 	function cPMT() {
 	}
 
+	//***array-formula***
 	cPMT.prototype = Object.create(cBaseFunction.prototype);
 	cPMT.prototype.constructor = cPMT;
 	cPMT.prototype.name = 'PMT';
@@ -3969,6 +4034,7 @@
 	function cPPMT() {
 	}
 
+	//***array-formula***
 	cPPMT.prototype = Object.create(cBaseFunction.prototype);
 	cPPMT.prototype.constructor = cPPMT;
 	cPPMT.prototype.name = 'PPMT';
@@ -4069,12 +4135,14 @@
 	function cPRICE() {
 	}
 
+	//***array-formula***
 	cPRICE.prototype = Object.create(cBaseFunction.prototype);
 	cPRICE.prototype.constructor = cPRICE;
 	cPRICE.prototype.name = 'PRICE';
 	cPRICE.prototype.argumentsMin = 6;
 	cPRICE.prototype.argumentsMax = 7;
 	cPRICE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cPRICE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cPRICE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], rate = arg[2], yld = arg[3], redemption = arg[4],
 			frequency = arg[5], basis = arg[6] && !(arg[6] instanceof cEmpty) ? arg[6] : new cNumber(0);
@@ -4178,12 +4246,14 @@
 	function cPRICEDISC() {
 	}
 
+	//***array-formula***
 	cPRICEDISC.prototype = Object.create(cBaseFunction.prototype);
 	cPRICEDISC.prototype.constructor = cPRICEDISC;
 	cPRICEDISC.prototype.name = 'PRICEDISC';
 	cPRICEDISC.prototype.argumentsMin = 4;
 	cPRICEDISC.prototype.argumentsMax = 5;
 	cPRICEDISC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cPRICEDISC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cPRICEDISC.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], discount = arg[2], redemption = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -4266,12 +4336,14 @@
 	function cPRICEMAT() {
 	}
 
+	//***array-formula***
 	cPRICEMAT.prototype = Object.create(cBaseFunction.prototype);
 	cPRICEMAT.prototype.constructor = cPRICEMAT;
 	cPRICEMAT.prototype.name = 'PRICEMAT';
 	cPRICEMAT.prototype.argumentsMin = 5;
 	cPRICEMAT.prototype.argumentsMax = 6;
 	cPRICEMAT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cPRICEMAT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cPRICEMAT.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], issue = arg[2], rate = arg[3], yld = arg[4],
 			basis = arg[5] && !(arg[5] instanceof cEmpty) ? arg[5] : new cNumber(0);
@@ -4374,6 +4446,7 @@
 	function cPV() {
 	}
 
+	//***array-formula***
 	cPV.prototype = Object.create(cBaseFunction.prototype);
 	cPV.prototype.constructor = cPV;
 	cPV.prototype.name = 'PV';
@@ -4459,6 +4532,7 @@
 	function cRATE() {
 	}
 
+	//***array-formula***
 	cRATE.prototype = Object.create(cBaseFunction.prototype);
 	cRATE.prototype.constructor = cRATE;
 	cRATE.prototype.name = 'RATE';
@@ -4555,12 +4629,14 @@
 	function cRECEIVED() {
 	}
 
+	//***array-formula***
 	cRECEIVED.prototype = Object.create(cBaseFunction.prototype);
 	cRECEIVED.prototype.constructor = cRECEIVED;
 	cRECEIVED.prototype.name = 'RECEIVED';
 	cRECEIVED.prototype.argumentsMin = 4;
 	cRECEIVED.prototype.argumentsMax = 5;
 	cRECEIVED.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cRECEIVED.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cRECEIVED.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], investment = arg[2], discount = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -4643,6 +4719,7 @@
 	function cRRI() {
 	}
 
+	//***array-formula***
 	cRRI.prototype = Object.create(cBaseFunction.prototype);
 	cRRI.prototype.constructor = cRRI;
 	cRRI.prototype.name = 'RRI';
@@ -4744,6 +4821,7 @@
 	function cSYD() {
 	}
 
+	//***array-formula***
 	cSYD.prototype = Object.create(cBaseFunction.prototype);
 	cSYD.prototype.constructor = cSYD;
 	cSYD.prototype.name = 'SYD';
@@ -4819,12 +4897,14 @@
 	function cTBILLEQ() {
 	}
 
+	//***array-formula***
 	cTBILLEQ.prototype = Object.create(cBaseFunction.prototype);
 	cTBILLEQ.prototype.constructor = cTBILLEQ;
 	cTBILLEQ.prototype.name = 'TBILLEQ';
 	cTBILLEQ.prototype.argumentsMin = 3;
 	cTBILLEQ.prototype.argumentsMax = 3;
 	cTBILLEQ.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTBILLEQ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cTBILLEQ.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], discount = arg[2];
 
@@ -4896,12 +4976,14 @@
 	function cTBILLPRICE() {
 	}
 
+	//***array-formula***
 	cTBILLPRICE.prototype = Object.create(cBaseFunction.prototype);
 	cTBILLPRICE.prototype.constructor = cTBILLPRICE;
 	cTBILLPRICE.prototype.name = 'TBILLPRICE';
 	cTBILLPRICE.prototype.argumentsMin = 3;
 	cTBILLPRICE.prototype.argumentsMax = 3;
 	cTBILLPRICE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTBILLPRICE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cTBILLPRICE.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], discount = arg[2];
 
@@ -4967,12 +5049,14 @@
 	function cTBILLYIELD() {
 	}
 
+	//***array-formula***
 	cTBILLYIELD.prototype = Object.create(cBaseFunction.prototype);
 	cTBILLYIELD.prototype.constructor = cTBILLYIELD;
 	cTBILLYIELD.prototype.name = 'TBILLYIELD';
 	cTBILLYIELD.prototype.argumentsMin = 3;
 	cTBILLYIELD.prototype.argumentsMax = 3;
 	cTBILLYIELD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTBILLYIELD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cTBILLYIELD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], pr = arg[2];
 
@@ -5041,6 +5125,7 @@
 	function cVDB() {
 	}
 
+	//***array-formula***
 	cVDB.prototype = Object.create(cBaseFunction.prototype);
 	cVDB.prototype.constructor = cVDB;
 	cVDB.prototype.name = 'VDB';
@@ -5163,6 +5248,10 @@
 		factor = factor.getValue();
 		flag = flag.getValue();
 
+		if (life === 0 && startPeriod === 0 && endPeriod === 0) {
+			return new cError(cErrorType.division_by_zero);
+		}
+
 		if (cost < salvage || life < 0 || startPeriod < 0 || life < startPeriod || startPeriod > endPeriod ||
 			life < endPeriod || factor < 0) {
 			return new cError(cErrorType.not_numeric);
@@ -5212,12 +5301,15 @@
 	function cXIRR() {
 	}
 
+	//***array-formula***
 	cXIRR.prototype = Object.create(cBaseFunction.prototype);
 	cXIRR.prototype.constructor = cXIRR;
 	cXIRR.prototype.name = 'XIRR';
 	cXIRR.prototype.argumentsMin = 2;
 	cXIRR.prototype.argumentsMax = 3;
 	cXIRR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cXIRR.prototype.arrayIndexes = {0:1, 1: 1};
+	cXIRR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cXIRR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(0.1);
 
@@ -5460,12 +5552,16 @@
 	function cXNPV() {
 	}
 
+	//***array-formula***
+	//todo формула массива имеет различия в резальтатах в случае с range - аргументами
 	cXNPV.prototype = Object.create(cBaseFunction.prototype);
 	cXNPV.prototype.constructor = cXNPV;
 	cXNPV.prototype.name = 'XNPV';
 	cXNPV.prototype.argumentsMin = 3;
 	cXNPV.prototype.argumentsMax = 3;
 	cXNPV.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cXNPV.prototype.arrayIndexes = {1: 1, 2: 1};
+	cXNPV.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cXNPV.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
 
@@ -5586,12 +5682,14 @@
 	function cYIELD() {
 	}
 
+	//***array-formula***
 	cYIELD.prototype = Object.create(cBaseFunction.prototype);
 	cYIELD.prototype.constructor = cYIELD;
 	cYIELD.prototype.name = 'YIELD';
 	cYIELD.prototype.argumentsMin = 6;
 	cYIELD.prototype.argumentsMax = 7;
 	cYIELD.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cYIELD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cYIELD.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], rate = arg[2], pr = arg[3], redemption = arg[4], frequency = arg[5],
 			basis = arg[6] && !(arg[6] instanceof cEmpty) ? arg[6] : new cNumber(0);
@@ -5696,12 +5794,14 @@
 	function cYIELDDISC() {
 	}
 
+	//***array-formula***
 	cYIELDDISC.prototype = Object.create(cBaseFunction.prototype);
 	cYIELDDISC.prototype.constructor = cYIELDDISC;
 	cYIELDDISC.prototype.name = 'YIELDDISC';
 	cYIELDDISC.prototype.argumentsMin = 4;
 	cYIELDDISC.prototype.argumentsMax = 5;
 	cYIELDDISC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cYIELDDISC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cYIELDDISC.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], pr = arg[2], redemption = arg[3],
 			basis = arg[4] && !(arg[4] instanceof cEmpty) ? arg[4] : new cNumber(0);
@@ -5787,12 +5887,14 @@
 	function cYIELDMAT() {
 	}
 
+	//***array-formula***
 	cYIELDMAT.prototype = Object.create(cBaseFunction.prototype);
 	cYIELDMAT.prototype.constructor = cYIELDMAT;
 	cYIELDMAT.prototype.name = 'YIELDMAT';
 	cYIELDMAT.prototype.argumentsMin = 5;
 	cYIELDMAT.prototype.argumentsMax = 6;
 	cYIELDMAT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cYIELDMAT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cYIELDMAT.prototype.Calculate = function (arg) {
 		var settlement = arg[0], maturity = arg[1], issue = arg[2], rate = arg[3], pr = arg[4],
 			basis = arg[5] && !(arg[5] instanceof cEmpty) ? arg[5] : new cNumber(0);

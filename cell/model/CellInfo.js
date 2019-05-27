@@ -296,6 +296,7 @@
 		this.formatTableInfo = null;
 		this.sparklineInfo = null;
 		this.pivotTableInfo = null;
+		this.selectedColsCount = null;
 	}
 
 	asc_CCellInfo.prototype.asc_getFormula = function () {
@@ -367,20 +368,28 @@
 	asc_CCellInfo.prototype.asc_getPivotTableInfo = function () {
 		return this.pivotTableInfo;
 	};
+	asc_CCellInfo.prototype.asc_getSelectedColsCount = function () {
+		return this.selectedColsCount;
+	};
 
 	/** @constructor */
-	function asc_CDefName(n, r, s, t, h, l) {
+	function asc_CDefName(n, r, s, t, h, l, x, bLocale) {
 		this.Name = n;
 		this.LocalSheetId = s;
 		this.Ref = r;
 		this.isTable = t;
 		this.Hidden = h;
 		this.isLock = l;
+		this.isXLNM = x;
+
+		if(bLocale) {
+			this._translate()
+		}
 	}
 
 	asc_CDefName.prototype = {
-		asc_getName: function () {
-			return this.Name;
+		asc_getName: function (bLocale) {
+			return bLocale && null !== this.LocalSheetId ? AscCommon.translateManager.getValue(this.Name) : this.Name;
 		}, asc_getScope: function () {
 			return this.LocalSheetId;
 		}, asc_getRef: function () {
@@ -391,6 +400,16 @@
 			return this.Hidden;
 		}, asc_getIsLock: function () {
 			return this.isLock;
+		}, asc_getIsXlnm: function () {
+			return this.isXLNM;
+		}, _translate: function() {
+			if(null !== this.LocalSheetId) {
+				var translatePrintArea = AscCommonExcel.tryTranslateToPrintArea(this.Name);
+				if(translatePrintArea) {
+					this.Name = translatePrintArea;
+					this.isXLNM = true;
+				}
+			}
 		}
 	};
 
@@ -506,6 +525,7 @@
 	prot["asc_getFormatTableInfo"] = prot.asc_getFormatTableInfo;
 	prot["asc_getSparklineInfo"] = prot.asc_getSparklineInfo;
 	prot["asc_getPivotTableInfo"] = prot.asc_getPivotTableInfo;
+	prot["asc_getSelectedColsCount"] = prot.asc_getSelectedColsCount;
 
 	window["Asc"].asc_CDefName = window["Asc"]["asc_CDefName"] = asc_CDefName;
 	prot = asc_CDefName.prototype;
@@ -515,6 +535,7 @@
 	prot["asc_getIsTable"] = prot.asc_getIsTable;
 	prot["asc_getIsHidden"] = prot.asc_getIsHidden;
 	prot["asc_getIsLock"] = prot.asc_getIsLock;
+	prot["asc_getIsXlnm"] = prot.asc_getIsXlnm;
 
 	window["Asc"].asc_CCheckDefName = window["Asc"]["asc_CCheckDefName"] = asc_CCheckDefName;
 	prot = asc_CCheckDefName.prototype;

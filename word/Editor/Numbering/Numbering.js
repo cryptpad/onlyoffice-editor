@@ -184,7 +184,13 @@ CNumbering.prototype.GetAbstractNum = function(sId)
 		var oNumStyle = oStyles.Get(oAbstractNum.GetNumStyleLink());
 
 		if (oNumStyle && oNumStyle.ParaPr.NumPr && undefined !== oNumStyle.ParaPr.NumPr.NumId)
-			return this.GetAbstractNum(oNumStyle.ParaPr.NumPr.NumId);
+		{
+			var oStyleNum = this.GetNum(oNumStyle.ParaPr.NumPr.NumId);
+			if (!oStyleNum)
+				return null;
+
+			return oStyleNum.GetAbstractNum();
+		}
 	}
 
 	return oAbstractNum;

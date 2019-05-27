@@ -495,7 +495,7 @@
             }
         };
         
-        this.LoadDocumentImages = function(_images, isUrl)
+        this.LoadDocumentImages = function(_images)
         {
             // сначала заполним массив
             if (this.ThemeLoader == null)
@@ -706,6 +706,7 @@
 				{
 					this.parentImage.Image = null;
 					this.parentImage.Status = ImageLoadStatus.Complete;
+                    oThis.loadImageCallBackCounter++;
 
 					if (oThis.loadImageCallBackCounter == oThis.loadImageCallBackCounterMax)
 						oThis.LoadImagesWithCallbackEnd();

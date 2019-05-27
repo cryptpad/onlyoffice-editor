@@ -675,7 +675,8 @@ var TYPE_TRACK = {
     GROUP_PASSIVE : 1,
     TEXT : 2,
     EMPTY_PH : 3,
-    CHART_TEXT : 4
+    CHART_TEXT : 4,
+    CROP : 5,
 };
 var TYPE_KIND = {
     SLIDE : 0,
@@ -945,6 +946,8 @@ function CColorModifiers()
 
 CColorModifiers.prototype =
 {
+    isUsePow : (!AscCommon.AscBrowser.isSailfish || !AscCommon.AscBrowser.isEmulateDevicePixelRatio),
+
     getObjectType: function()
     {
         return AscDFH.historyitem_type_ColorModifiers;
@@ -1033,8 +1036,8 @@ CColorModifiers.prototype =
 
     RGB2HSL : function(R, G, B, HLS)
     {
-        var iMin = Math.min(R, G, B);
-        var iMax = Math.max(R, G, B);
+        var iMin = (R < G ? R : G); iMin = iMin < B ? iMin : B;//Math.min(R, G, B);
+        var iMax = (R > G ? R : G); iMax = iMax > B ? iMax : B;//Math.max(R, G, B);
         var iDelta = iMax - iMin;
         var dMax = (iMax + iMin)/255.0;
         var dDelta = iDelta/255.0;
@@ -1161,17 +1164,37 @@ CColorModifiers.prototype =
 
     RgbtoCrgb: function(RGBA)
     {
-        RGBA.R = this.lclGamma(this.lclRgbCompToCrgbComp(RGBA.R), DEC_GAMMA);
-        RGBA.G = this.lclGamma(this.lclRgbCompToCrgbComp(RGBA.G), DEC_GAMMA);
-        RGBA.B = this.lclGamma(this.lclRgbCompToCrgbComp(RGBA.B), DEC_GAMMA);
+        //RGBA.R = this.lclGamma(this.lclRgbCompToCrgbComp(RGBA.R), DEC_GAMMA);
+        //RGBA.G = this.lclGamma(this.lclRgbCompToCrgbComp(RGBA.G), DEC_//GAMMA);
+        //RGBA.B = this.lclGamma(this.lclRgbCompToCrgbComp(RGBA.B), DEC_GAMMA);
+
+        if (this.isUsePow)
+        {
+            RGBA.R = (Math.pow(RGBA.R / 255, DEC_GAMMA) * MAX_PERCENT + 0.5) >> 0;
+            RGBA.G = (Math.pow(RGBA.G / 255, DEC_GAMMA) * MAX_PERCENT + 0.5) >> 0;
+            RGBA.B = (Math.pow(RGBA.B / 255, DEC_GAMMA) * MAX_PERCENT + 0.5) >> 0;
+        }
     },
 
 
     CrgbtoRgb: function(RGBA)
     {
-        RGBA.R = (this.lclCrgbCompToRgbComp(this.lclGamma(RGBA.R, INC_GAMMA)) + 0.5) >> 0;
-        RGBA.G = (this.lclCrgbCompToRgbComp(this.lclGamma(RGBA.G, INC_GAMMA)) + 0.5) >> 0;
-        RGBA.B = (this.lclCrgbCompToRgbComp(this.lclGamma(RGBA.B, INC_GAMMA)) + 0.5) >> 0;
+        //RGBA.R = (this.lclCrgbCompToRgbComp(this.lclGamma(RGBA.R, INC_GAMMA)) + 0.5) >> 0;
+        //RGBA.G = (this.lclCrgbCompToRgbComp(this.lclGamma(RGBA.G, INC_GAMMA)) + 0.5) >> 0;
+        //RGBA.B = (this.lclCrgbCompToRgbComp(this.lclGamma(RGBA.B, INC_GAMMA)) + 0.5) >> 0;
+
+        if (this.isUsePow)
+        {
+            RGBA.R = (Math.pow(RGBA.R / 100000, INC_GAMMA) * 255 + 0.5) >> 0;
+            RGBA.G = (Math.pow(RGBA.G / 100000, INC_GAMMA) * 255 + 0.5) >> 0;
+            RGBA.B = (Math.pow(RGBA.B / 100000, INC_GAMMA) * 255 + 0.5) >> 0;
+        }
+        else
+        {
+            RGBA.R = AscFormat.ClampColor(RGBA.R);
+            RGBA.G = AscFormat.ClampColor(RGBA.G);
+            RGBA.B = AscFormat.ClampColor(RGBA.B);
+        }
     },
 
     Apply : function(RGBA)
@@ -1187,43 +1210,43 @@ CColorModifiers.prototype =
 
             if (colorMod.name == "alpha")
             {
-                RGBA.A = Math.min(255, Math.max(0, 255 * val + 0.5)) >> 0;
+                RGBA.A = AscFormat.ClampColor(255 * val);
             }
             else if (colorMod.name == "blue")
             {
-                RGBA.B = Math.min(255, Math.max(0, 255 * val + 0.5)) >> 0;
+                RGBA.B = AscFormat.ClampColor(255 * val);
             }
             else if (colorMod.name == "blueMod")
             {
-                RGBA.B = Math.max(0, ((RGBA.B * val) + 0.5) >> 0);
+                RGBA.B = AscFormat.ClampColor(RGBA.B * val);
             }
             else if (colorMod.name == "blueOff")
             {
-                RGBA.B = Math.max(0, ((RGBA.B + val * 255) + 0.5)) >> 0;
+                RGBA.B = AscFormat.ClampColor(RGBA.B + val * 255);
             }
             else if (colorMod.name == "green")
             {
-                RGBA.G = Math.min(255, Math.max(0, 255 * val + 0.5)) >> 0;
+                RGBA.G = AscFormat.ClampColor(255 * val);
             }
             else if (colorMod.name == "greenMod")
             {
-                RGBA.G = Math.max(0, (RGBA.G * val  + 0.5) >> 0);
+                RGBA.G = AscFormat.ClampColor(RGBA.G * val);
             }
             else if (colorMod.name == "greenOff")
             {
-                RGBA.G = Math.max(0, (RGBA.G + val * 255  + 0.5)) >> 0;
+                RGBA.G = AscFormat.ClampColor(RGBA.G + val * 255);
             }
             else if (colorMod.name == "red")
             {
-                RGBA.R = Math.min(255, Math.max(0, 255 * val + 0.5)) >> 0;
+                RGBA.R = AscFormat.ClampColor(255 * val);
             }
             else if (colorMod.name == "redMod")
             {
-                RGBA.R = Math.max(0, (RGBA.R * val + 0.5) >> 0);
+                RGBA.R = AscFormat.ClampColor(RGBA.R * val);
             }
             else if (colorMod.name == "redOff")
             {
-                RGBA.R = Math.max(0, (RGBA.R + val * 255 + 0.5) >> 0);
+                RGBA.R = AscFormat.ClampColor(RGBA.R + val * 255);
             }
             else if (colorMod.name == "hueOff")
             {
@@ -1231,7 +1254,7 @@ CColorModifiers.prototype =
                 this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
                 var res = (HSL.H + (val * 10.0) / 9.0 + 0.5) >> 0;
-                HSL.H = Math.min(max_hls, Math.max(0, res));
+                HSL.H = AscFormat.ClampColor2(res, 0, max_hls);
 
                 this.HSL2RGB(HSL, RGBA);
             }
@@ -1246,10 +1269,7 @@ CColorModifiers.prototype =
                 var HSL = {H: 0, S: 0, L: 0};
                 this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
-                if(HSL.L*val > max_hls)
-                    HSL.L = max_hls;
-                else
-                    HSL.L = Math.max(0, (HSL.L * val + 0.5) >> 0);
+                HSL.L = AscFormat.ClampColor2(HSL.L * val, 0, max_hls);
                 this.HSL2RGB(HSL, RGBA);
             }
             else if (colorMod.name == "lumOff")
@@ -1258,7 +1278,7 @@ CColorModifiers.prototype =
                 this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
                 var res = (HSL.L + val * max_hls + 0.5) >> 0;
-                HSL.L = Math.min(max_hls, Math.max(0, res));
+                HSL.L = AscFormat.ClampColor2(res, 0, max_hls);
 
                 this.HSL2RGB(HSL, RGBA);
             }
@@ -1267,10 +1287,7 @@ CColorModifiers.prototype =
                 var HSL = {H: 0, S: 0, L: 0};
                 this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
-                if(HSL.S*val > max_hls)
-                    HSL.S = max_hls;
-                else
-                    HSL.S = Math.max(0, (HSL.S * val + 0.5) >> 0);
+                HSL.S = AscFormat.ClampColor2(HSL.S * val, 0, max_hls);
                 this.HSL2RGB(HSL, RGBA);
             }
             else if (colorMod.name == "satOff")
@@ -1279,7 +1296,7 @@ CColorModifiers.prototype =
                 this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
                 var res = (HSL.S + val * max_hls + 0.5) >> 0;
-                HSL.S = Math.min(max_hls, Math.max(0, res));
+                HSL.S = AscFormat.ClampColor2(res, 0, max_hls);
 
                 this.HSL2RGB(HSL, RGBA);
             }
@@ -1298,10 +1315,7 @@ CColorModifiers.prototype =
                 var HSL = {H: 0, S: 0, L: 0};
                 this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
-                if(HSL.L*val_ > max_hls)
-                    HSL.L = max_hls;
-                else
-                    HSL.L = Math.max(0, (HSL.L * val_ + 0.5) >> 0);
+                HSL.L = AscFormat.ClampColor2(HSL.L * val_, 0, max_hls);
                 this.HSL2RGB(HSL, RGBA);
             }
             else if (colorMod.name == "wordTint")
@@ -1315,10 +1329,7 @@ CColorModifiers.prototype =
                 this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
                 var L_ = HSL.L*_val + (255 - colorMod.val);
-                if(L_ > max_hls)
-                    HSL.L = max_hls;
-                else
-                    HSL.L = Math.max(0, (L_ + 0.5) >> 0);
+                HSL.L = AscFormat.ClampColor2(L_, 0, max_hls);
                 this.HSL2RGB(HSL, RGBA);
             }
             else if (colorMod.name == "shade")
@@ -2157,6 +2168,14 @@ function CreateUniColorRGB(r, g, b)
     var ret = new CUniColor();
     ret.setColor(new CRGBColor());
     ret.color.setColor(r, g, b);
+    return ret;
+}
+
+function CreateUniColorRGB2(color)
+{
+    var ret = new CUniColor();
+    ret.setColor(new CRGBColor());
+    ret.color.setColor(ret.RGBA.R = color.getR(), ret.RGBA.G = color.getG(), ret.RGBA.B = color.getB());
     return ret;
 }
 
@@ -4155,6 +4174,30 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     {
         _result_shape_prop.w = null;
     }
+    if(shapeProp1.rot === shapeProp2.rot)
+    {
+        _result_shape_prop.rot = shapeProp1.rot;
+    }
+    else
+    {
+        _result_shape_prop.rot = null;
+    }
+    if(shapeProp1.flipH === shapeProp2.flipH)
+    {
+        _result_shape_prop.flipH = shapeProp1.flipH;
+    }
+    else
+    {
+        _result_shape_prop.flipH = null;
+    }
+    if(shapeProp1.flipV === shapeProp2.flipV)
+    {
+        _result_shape_prop.flipV = shapeProp1.flipV;
+    }
+    else
+    {
+        _result_shape_prop.flipV = null;
+    }
 
     if(shapeProp1.stroke == null || shapeProp2.stroke == null)
     {
@@ -4333,8 +4376,9 @@ EndArrow.prototype =
         return arrow && arrow.type == this.type &&  arrow.len == this.len && arrow.w  == this.w;
     },
 
-    GetWidth: function(size, _max)
+    GetWidth: function(_size, _max)
     {
+        var size = Math.max(_size, _max ? _max : 2);
         var _ret = 3 * size;
         if (null != this.w)
         {
@@ -4350,10 +4394,11 @@ EndArrow.prototype =
                     break;
             }
         }
-        return Math.max(_ret, _max ? _max : 7);
+        return _ret;
     },
-    GetLen: function(size, _max)
+    GetLen: function(_size, _max)
     {
+        var size = Math.max(_size, _max ? _max : 2);
         var _ret = 3 * size;
         if (null != this.len)
         {
@@ -4369,7 +4414,7 @@ EndArrow.prototype =
                     break;
             }
         }
-        return Math.max(_ret, _max ? _max : 7);
+        return _ret;
     },
 
     getObjectType: function()
@@ -4866,11 +4911,6 @@ DefaultShapeDefinition.prototype=
 };
 
 
-
-function CHyperlink(){
-
-}
-
 function CNvPr()
 {
     this.id = 0;
@@ -5087,6 +5127,10 @@ NvPr.prototype =
         if(this.ph != null)
         {
             duplicate.setPh(this.ph.createDuplicate());
+        }
+        if(this.unimedia != null)
+        {
+            duplicate.setUniMedia(this.unimedia.createDuplicate());
         }
         return duplicate;
     },
@@ -5799,14 +5843,6 @@ CXfrm.prototype =
         return duplicate;
     },
 
-    checkFromSerialize: function()
-    {
-        if(this.parent && this.parent.checkFromSerialize)
-        {
-            this.parent.checkFromSerialize();
-        }
-    },
-
     setParent: function(pr)
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Xfrm_SetParent, this.parent,  pr));
@@ -5815,77 +5851,66 @@ CXfrm.prototype =
 
     setOffX: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffX, this.offX,  pr));
         this.offX = pr;
         this.handleUpdatePosition();
     },
     setOffY: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffY, this.offY,  pr));
         this.offY = pr;
         this.handleUpdatePosition();
     },
     setExtX: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtX, this.extX,  pr));
         this.extX = pr;
         this.handleUpdateExtents();
     },
     setExtY: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtY, this.extY,  pr));
         this.extY = pr;
         this.handleUpdateExtents();
     },
     setChOffX: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffX, this.chOffX,  pr));
         this.chOffX = pr;
         this.handleUpdateChildOffset();
     },
     setChOffY: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffY, this.chOffY,  pr));
         this.chOffY = pr;
         this.handleUpdateChildOffset();
     },
     setChExtX: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtX, this.chExtX,  pr));
         this.chExtX = pr;
         this.handleUpdateChildExtents();
     },
     setChExtY: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtY, this.chExtY,  pr));
         this.chExtY = pr;
         this.handleUpdateChildExtents();
     },
     setFlipH: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipH, this.flipH,  pr));
         this.flipH = pr;
         this.handleUpdateFlip();
     },
     setFlipV: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipV, this.flipV,  pr));
         this.flipV = pr;
         this.handleUpdateFlip();
     },
     setRot: function(pr)
     {
-        this.checkFromSerialize();
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetRot, this.rot,  pr));
         this.rot = pr;
         this.handleUpdateRot();
@@ -6145,14 +6170,6 @@ CSpPr.prototype =
     Read_FromBinary2: function (r)
     {
         this.Id = r.GetString2();
-    },
-
-    checkFromSerialize: function()
-    {
-        if(this.parent && this.parent.deleteBFromSerialize)
-        {
-            this.parent.deleteBFromSerialize();
-        }
     },
 
     setParent: function(pr)
@@ -9674,9 +9691,17 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 
                 var tile = _fill.type;
                 if (tile == c_oAscFillBlipType.STRETCH)
+                {
                     ret.fill.tile = null;
+                    ret.fill.srcRect = null;
+                    ret.fill.stretch = true;
+                }
                 else if (tile == c_oAscFillBlipType.TILE)
+                {
                     ret.fill.tile = new CBlipFillTile();
+                    ret.fill.stretch = false;
+                    ret.fill.srcRect = null;
+                }
                 break;
             }
             case c_oAscFill.FILL_TYPE_PATT:
@@ -10039,7 +10064,7 @@ function CreateAscShapeProp(shape)
     if(shape.textBoxContent)
     {
         var body_pr = shape.bodyPr;
-        paddings = new asc_CPaddings();
+        paddings = new Asc.asc_CPaddings();
         if(typeof body_pr.lIns === "number")
             paddings.Left = body_pr.lIns;
         else
@@ -10089,6 +10114,9 @@ function CreateAscShapePropFromProp(shapeProp)
     obj.bFromImage = shapeProp.bFromImage;
     obj.w = shapeProp.w;
     obj.h = shapeProp.h;
+    obj.rot = shapeProp.rot;
+    obj.flipH = shapeProp.flipH;
+    obj.flipV = shapeProp.flipV;
     obj.vert = shapeProp.vert;
     obj.verticalTextAlign = shapeProp.verticalTextAlign;
     if(shapeProp.textArtProperties)
@@ -10546,8 +10574,8 @@ function CorrectUniColor(asc_color, unicolor, flag)
         var oUniFill = new AscFormat.CUniFill();
         oUniFill.fill = new AscFormat.CPattFill();
         oUniFill.fill.ftype = AscCommon.global_hatch_offsets[sPatternType];
-        oUniFill.fill.fgClr = FgColor.Unicolor;
-        oUniFill.fill.bgClr = BgColor.Unicolor;
+        oUniFill.fill.fgClr = FgColor && FgColor.Unicolor;
+        oUniFill.fill.bgClr = BgColor && BgColor.Unicolor;
         return oUniFill;
     }
 
@@ -10662,7 +10690,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
             if(verAxis)
             {
                 if(!verAxis.scaling)
-                    verAxis.setScaling(new CScaling());
+                    verAxis.setScaling(new AscFormat.CScaling());
                 var scaling = verAxis.scaling;
                 if(bIsMinMax){
                     scaling.setOrientation(AscFormat.ORIENTATION_MIN_MAX);
@@ -10679,7 +10707,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
             var horAxis = oChartSpace.chart.plotArea.getHorizontalAxis();
             if(horAxis){
                 if(!horAxis.scaling)
-                    horAxis.setScaling(new CScaling());
+                    horAxis.setScaling(new AscFormat.CScaling());
                 var scaling = horAxis.scaling;
                 if(bIsMinMax){
                     scaling.setOrientation(AscFormat.ORIENTATION_MIN_MAX);
@@ -11034,6 +11062,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].CSchemeColor = CSchemeColor;
     window['AscFormat'].CUniColor = CUniColor;
     window['AscFormat'].CreateUniColorRGB = CreateUniColorRGB;
+    window['AscFormat'].CreateUniColorRGB2 = CreateUniColorRGB2;
     window['AscFormat'].CreteSolidFillRGB = CreteSolidFillRGB;
     window['AscFormat'].CreateSolidFillRGBA = CreateSolidFillRGBA;
     window['AscFormat'].CSrcRect = CSrcRect;

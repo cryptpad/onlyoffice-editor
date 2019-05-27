@@ -119,6 +119,7 @@ function SlideLayout()
     };
 
 
+    this.lastRecalcSlideIndex = -1;
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add(this, this.Id);
 }
@@ -257,21 +258,36 @@ SlideLayout.prototype =
 
     changeSize: Slide.prototype.changeSize,
     checkDrawingUniNvPr: Slide.prototype.checkDrawingUniNvPr,
+    handleAllContents: Slide.prototype.handleAllContents,
 
     Get_Id: function()
     {
         return this.Id;
     },
 
-    draw: function(graphics)
-    {
-        for(var i=0; i < this.cSld.spTree.length; ++i)
-        {
-            if(!this.cSld.spTree[i].isPlaceholder())
+    draw: function (graphics, slide) {
+        if(slide){
+            if(slide.num !== this.lastRecalcSlideIndex){
+                this.lastRecalcSlideIndex = slide.num;
+                this.handleAllContents(function (oContent) {
+                    if(oContent){
+                        if(oContent.AllFields && oContent.AllFields.length > 0){
+                            for(var j = 0; j < oContent.AllFields.length; j++){
+                                oContent.AllFields[j].RecalcInfo.Measure = true;
+                                oContent.AllFields[j].Refresh_RecalcData2();
+                            }
+                        }
+                    }
+                });
+                this.recalculate();
+
+            }
+        }
+        for (var i = 0; i < this.cSld.spTree.length; ++i) {
+            if (this.cSld.spTree[i].isPlaceholder && !this.cSld.spTree[i].isPlaceholder())
                 this.cSld.spTree[i].draw(graphics);
         }
     },
-
     //-----------------------------------------------
 
     calculateType: function()
@@ -669,6 +685,126 @@ SlideLayout.prototype =
     }
 };
 
+
+function DrawLineDash(g, x1, y1, x2, y2, w_dot, w_dist){
+    var len = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+        if (len < 1)
+            len = 1;
+
+        var len_x1 = Math.abs(w_dot*(x2-x1)/len);
+        var len_y1 = Math.abs(w_dot*(y2-y1)/len);
+        var len_x2 = Math.abs(w_dist*(x2-x1)/len);
+        var len_y2 = Math.abs(w_dist*(y2-y1)/len);
+
+		if (len_x1 < 0.01 && len_y1 < 0.01)
+			return;
+		if (len_x2 < 0.01 && len_y2 < 0.01)
+			return;
+
+        if (x1 <= x2 && y1 <= y2)
+        {
+            for (var i = x1, j = y1; i <= x2 && j <= y2; i += len_x2, j += len_y2)
+            {
+                g._m(i, j);
+
+                i += len_x1;
+                j += len_y1;
+
+                if (i > x2)
+                    i = x2;
+                if (j > y2)
+                    j = y2;
+
+                g._l(i, j);
+            }
+        }
+        else if (x1 <= x2 && y1 > y2)
+        {
+            for (var i = x1, j = y1; i <= x2 && j >= y2; i += len_x2, j -= len_y2)
+            {
+                g._m(i, j);
+
+                i += len_x1;
+                j -= len_y1;
+
+                if (i > x2)
+                    i = x2;
+                if (j < y2)
+                    j = y2;
+
+                g._l(i, j);
+            }
+        }
+        else if (x1 > x2 && y1 <= y2)
+        {
+            for (var i = x1, j = y1; i >= x2 && j <= y2; i -= len_x2, j += len_y2)
+            {
+                g._m(i, j);
+
+                i -= len_x1;
+                j += len_y1;
+
+                if (i < x2)
+                    i = x2;
+                if (j > y2)
+                    j = y2;
+
+                g._l(i, j);
+            }
+        }
+        else
+        {
+            for (var i = x1, j = y1; i >= x2 && j >= y2; i -= len_x2, j -= len_y2)
+            {
+                g._m(i, j);
+
+                i -= len_x1;
+                j -= len_y1;
+
+                if (i < x2)
+                    i = x2;
+                if (j < y2)
+                    j = y2;
+
+                g._l(i, j);
+            }
+        }
+}
+
+function DrawNativeDashRect(g, transform, extX, extY) {
+    var x1, y1, x2, y2, x3, y3, x4, y4;
+    x1 = transform.TransformPointX(0, 0);
+    y1 = transform.TransformPointY(0, 0);
+    x2 = transform.TransformPointX(extX, 0);
+    y2 = transform.TransformPointY(extX, 0);
+    x3 = transform.TransformPointX(extX, extY);
+    y3 = transform.TransformPointY(extX, extY);
+    x4 = transform.TransformPointX(0, extY);
+    y4 = transform.TransformPointY(0, extY);
+    g.p_width(1500);
+    g.p_color(128, 128, 128, 255);
+    g._s();
+    g._m(x1, y1);
+    g._l(x2, y2);
+    g._l(x3, y3);
+    g._l(x4, y4);
+    g._z();
+    g.ds();
+    g._e();
+    var w_dot = 5;
+    var w_dist = 5;
+  
+    g._s();
+    g.p_color(255, 255, 255, 255);
+    DrawLineDash(g, x1, y1, x2, y2, w_dot, w_dist);
+    DrawLineDash(g, x2, y2, x3, y3, w_dot, w_dist);
+    DrawLineDash(g, x3, y3, x4, y4, w_dot, w_dist);
+    DrawLineDash(g, x4, y4, x1, y1, w_dot, w_dist);
+    g.ds();
+    g._e();
+  }
+
+
 function CLayoutThumbnailDrawer()
 {
     this.CanvasImage    = null;
@@ -681,39 +817,7 @@ function CLayoutThumbnailDrawer()
 
     this.DrawingDocument = null;
 
-    this.GetThumbnail = function(_layout, use_background, use_master_shapes, use_layout_shapes)
-    {
-        _layout.recalculate2();
-
-        var h_px = 67;
-        var w_px = (this.WidthMM * h_px / this.HeightMM) >> 0;
-
-        // пока не будем генерить для ретины
-        /*
-        if (this.IsRetina)
-        {
-            w_px <<= 1;
-            h_px <<= 1;
-        }
-        */
-
-        this.WidthPx  = w_px;
-        this.HeightPx = h_px;
-
-        if (this.CanvasImage == null)
-            this.CanvasImage = document.createElement('canvas');
-
-        this.CanvasImage.width = w_px;
-        this.CanvasImage.height = h_px;
-
-        var _ctx = this.CanvasImage.getContext('2d');
-
-        var g = new AscCommon.CGraphics();
-        g.init(_ctx, w_px, h_px, this.WidthMM, this.HeightMM);
-        g.m_oFontManager = AscCommon.g_fontManager;
-
-        g.transform(1,0,0,1,0,0);
-
+    this.Draw = function (g, _layout, use_background, use_master_shapes, use_layout_shapes) {
         // background
         var _back_fill = null;
         var RGBA = {R:0, G:0, B:0, A:255};
@@ -806,117 +910,162 @@ function CLayoutThumbnailDrawer()
                 _sp_elem.draw(g);
                 if(!_sp_elem.pen || !_sp_elem.pen.Fill)
                 {
-                    _ctx.globalAlpha = 1;
-                    var _matrix = _sp_elem.transform;
-                    var _x = 1;
-                    var _y = 1;
-                    var _r = Math.max(_sp_elem.extX - 1, 1);
-                    var _b = Math.max(_sp_elem.extY - 1, 1);
-
-                    var _isIntegerGrid = g.GetIntegerGrid();
-                    if (!_isIntegerGrid)
-                        g.SetIntegerGrid(true);
-
-                    if (_matrix)
+                    if(!window["NATIVE_EDITOR_ENJINE"])
                     {
-                        var _x1 = _sx * _matrix.TransformPointX(_x, _y);
-                        var _y1 = _sy * _matrix.TransformPointY(_x, _y);
+                        var _ctx = g.m_oContext;
+                        _ctx.globalAlpha = 1;
+                        var _matrix = _sp_elem.transform;
+                        var _x = 1;
+                        var _y = 1;
+                        var _r = Math.max(_sp_elem.extX - 1, 1);
+                        var _b = Math.max(_sp_elem.extY - 1, 1);
 
-                        var _x2 = _sx * _matrix.TransformPointX(_r, _y);
-                        var _y2 = _sy * _matrix.TransformPointY(_r, _y);
+                        var _isIntegerGrid = g.GetIntegerGrid();
+                        if (!_isIntegerGrid)
+                            g.SetIntegerGrid(true);
 
-                        var _x3 = _sx * _matrix.TransformPointX(_x, _b);
-                        var _y3 = _sy * _matrix.TransformPointY(_x, _b);
-
-                        var _x4 = _sx * _matrix.TransformPointX(_r, _b);
-                        var _y4 = _sy * _matrix.TransformPointY(_r, _b);
-
-                        if (Math.abs(_matrix.shx) < 0.001 && Math.abs(_matrix.shy) < 0.001)
+                        if (_matrix)
                         {
-                            _x = _x1;
-                            if (_x > _x2)
-                                _x = _x2;
-                            if (_x > _x3)
-                                _x = _x3;
+                            var _x1 = _sx * _matrix.TransformPointX(_x, _y);
+                            var _y1 = _sy * _matrix.TransformPointY(_x, _y);
 
-                            _r = _x1;
-                            if (_r < _x2)
-                                _r = _x2;
-                            if (_r < _x3)
-                                _r = _x3;
+                            var _x2 = _sx * _matrix.TransformPointX(_r, _y);
+                            var _y2 = _sy * _matrix.TransformPointY(_r, _y);
 
-                            _y = _y1;
-                            if (_y > _y2)
-                                _y = _y2;
-                            if (_y > _y3)
-                                _y = _y3;
+                            var _x3 = _sx * _matrix.TransformPointX(_x, _b);
+                            var _y3 = _sy * _matrix.TransformPointY(_x, _b);
 
-                            _b = _y1;
-                            if (_b < _y2)
-                                _b = _y2;
-                            if (_b < _y3)
-                                _b = _y3;
+                            var _x4 = _sx * _matrix.TransformPointX(_r, _b);
+                            var _y4 = _sy * _matrix.TransformPointY(_r, _b);
 
-                            _x >>= 0;
-                            _y >>= 0;
-                            _r >>= 0;
-                            _b >>= 0;
+                            if (Math.abs(_matrix.shx) < 0.001 && Math.abs(_matrix.shy) < 0.001)
+                            {
+                                _x = _x1;
+                                if (_x > _x2)
+                                    _x = _x2;
+                                if (_x > _x3)
+                                    _x = _x3;
+
+                                _r = _x1;
+                                if (_r < _x2)
+                                    _r = _x2;
+                                if (_r < _x3)
+                                    _r = _x3;
+
+                                _y = _y1;
+                                if (_y > _y2)
+                                    _y = _y2;
+                                if (_y > _y3)
+                                    _y = _y3;
+
+                                _b = _y1;
+                                if (_b < _y2)
+                                    _b = _y2;
+                                if (_b < _y3)
+                                    _b = _y3;
+
+                                _x >>= 0;
+                                _y >>= 0;
+                                _r >>= 0;
+                                _b >>= 0;
+
+                                _ctx.lineWidth = 1;
+
+                                _ctx.strokeStyle = "#FFFFFF";
+                                _ctx.beginPath();
+                                _ctx.strokeRect(_x + 0.5, _y + 0.5, _r - _x, _b - _y);
+                                _ctx.strokeStyle = "#000000";
+                                _ctx.beginPath();
+                                this.DrawingDocument.AutoShapesTrack.AddRectDashClever(_ctx, _x, _y, _r, _b, 2, 2, true);
+                                _ctx.beginPath();
+                            }
+                            else
+                            {
+                                _ctx.lineWidth = 1;
+
+                                _ctx.strokeStyle = "#000000";
+                                _ctx.beginPath();
+                                _ctx.moveTo(_x1, _y1);
+                                _ctx.lineTo(_x2, _y2);
+                                _ctx.lineTo(_x4, _y4);
+                                _ctx.lineTo(_x3, _y3);
+                                _ctx.closePath();
+                                _ctx.stroke();
+                                _ctx.strokeStyle = "#FFFFFF";
+                                _ctx.beginPath();
+                                this.DrawingDocument.AutoShapesTrack.AddRectDash(_ctx, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, 2, 2, true);
+                                _ctx.beginPath();
+                            }
+                        }
+                        else
+                        {
+                            _x = (_sx * _x) >> 0;
+                            _y = (_sy * _y) >> 0;
+                            _r = (_sx * _r) >> 0;
+                            _b = (_sy * _b) >> 0;
 
                             _ctx.lineWidth = 1;
 
-                            _ctx.strokeStyle = "#FFFFFF";
+                            _ctx.strokeStyle = "#000000";
                             _ctx.beginPath();
                             _ctx.strokeRect(_x + 0.5, _y + 0.5, _r - _x, _b - _y);
-                            _ctx.strokeStyle = "#000000";
+                            _ctx.strokeStyle = "#FFFFFF";
                             _ctx.beginPath();
                             this.DrawingDocument.AutoShapesTrack.AddRectDashClever(_ctx, _x, _y, _r, _b, 2, 2, true);
                             _ctx.beginPath();
                         }
-                        else
-                        {
-                            _ctx.lineWidth = 1;
 
-                            _ctx.strokeStyle = "#000000";
-                            _ctx.beginPath();
-                            _ctx.moveTo(_x1, _y1);
-                            _ctx.lineTo(_x2, _y2);
-                            _ctx.lineTo(_x4, _y4);
-                            _ctx.lineTo(_x3, _y3);
-                            _ctx.closePath();
-                            _ctx.stroke();
-                            _ctx.strokeStyle = "#FFFFFF";
-                            _ctx.beginPath();
-                            this.DrawingDocument.AutoShapesTrack.AddRectDash(_ctx, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, 2, 2, true);
-                            _ctx.beginPath();
-                        }
+                        if (!_isIntegerGrid)
+                            g.SetIntegerGrid(true);
                     }
                     else
                     {
-                        _x = (_sx * _x) >> 0;
-                        _y = (_sy * _y) >> 0;
-                        _r = (_sx * _r) >> 0;
-                        _b = (_sy * _b) >> 0;
-
-                        _ctx.lineWidth = 1;
-
-                        _ctx.strokeStyle = "#000000";
-                        _ctx.beginPath();
-                        _ctx.strokeRect(_x + 0.5, _y + 0.5, _r - _x, _b - _y);
-                        _ctx.strokeStyle = "#FFFFFF";
-                        _ctx.beginPath();
-                        this.DrawingDocument.AutoShapesTrack.AddRectDashClever(_ctx, _x, _y, _r, _b, 2, 2, true);
-                        _ctx.beginPath();
+                        DrawNativeDashRect(g, _sp_elem.transform, _sp_elem.extX, _sp_elem.extY);
                     }
-
-                    if (!_isIntegerGrid)
-                        g.SetIntegerGrid(true);
                 }
             }
-            else 
+            else
             {
                 _sp_elem.draw(g);
             }
         }
+
+    };
+
+    this.GetThumbnail = function(_layout, use_background, use_master_shapes, use_layout_shapes)
+    {
+        _layout.recalculate2();
+
+        var h_px = 67;
+        var w_px = (this.WidthMM * h_px / this.HeightMM) >> 0;
+
+        // пока не будем генерить для ретины
+        /*
+        if (this.IsRetina)
+        {
+            w_px <<= 1;
+            h_px <<= 1;
+        }
+        */
+
+        this.WidthPx  = w_px;
+        this.HeightPx = h_px;
+
+        if (this.CanvasImage == null)
+            this.CanvasImage = document.createElement('canvas');
+
+        this.CanvasImage.width = w_px;
+        this.CanvasImage.height = h_px;
+
+        var _ctx = this.CanvasImage.getContext('2d');
+
+        var g = new AscCommon.CGraphics();
+        g.init(_ctx, w_px, h_px, this.WidthMM, this.HeightMM);
+        g.m_oFontManager = AscCommon.g_fontManager;
+
+        g.transform(1,0,0,1,0,0);
+
+        this.Draw(g, _layout, use_background, use_master_shapes, use_layout_shapes);
 
         try
         {

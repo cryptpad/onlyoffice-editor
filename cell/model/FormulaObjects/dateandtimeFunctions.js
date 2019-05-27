@@ -519,6 +519,7 @@
 	function cDATE() {
 	}
 
+	//***array-formula***
 	cDATE.prototype = Object.create(cBaseFunction.prototype);
 	cDATE.prototype.constructor = cDATE;
 	cDATE.prototype.name = 'DATE';
@@ -585,6 +586,7 @@
 	function cDATEDIF() {
 	}
 
+	//***array-formula***
 	cDATEDIF.prototype = Object.create(cBaseFunction.prototype);
 	cDATEDIF.prototype.constructor = cDATEDIF;
 	cDATEDIF.prototype.name = 'DATEDIF';
@@ -697,6 +699,7 @@
 	function cDATEVALUE() {
 	}
 
+	//***array-formula***
 	cDATEVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cDATEVALUE.prototype.constructor = cDATEVALUE;
 	cDATEVALUE.prototype.name = 'DATEVALUE';
@@ -733,6 +736,7 @@
 	function cDAY() {
 	}
 
+	//***array-formula***
 	cDAY.prototype = Object.create(cBaseFunction.prototype);
 	cDAY.prototype.constructor = cDAY;
 	cDAY.prototype.name = 'DAY';
@@ -819,6 +823,7 @@
 	function cDAYS() {
 	}
 
+	//***array-formula***
 	cDAYS.prototype = Object.create(cBaseFunction.prototype);
 	cDAYS.prototype.constructor = cDAYS;
 	cDAYS.prototype.name = 'DAYS';
@@ -830,25 +835,59 @@
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
 		var argClone = oArguments.args;
 
-		argClone[0] = argClone[0].tocNumber();
-		argClone[1] = argClone[1].tocNumber();
+		var calulateDay = function(curArg) {
+			var val;
+			if (curArg instanceof cArray) {
+				curArg = curArg.getElement(0);
+			} else if (curArg instanceof cArea || curArg instanceof cArea3D) {
+				curArg = curArg.cross(arguments[1]).tocNumber();
+				val = curArg.tocNumber().getValue();
+			}
 
-		var argError;
-		if (argError = this._checkErrorArg(argClone)) {
-			return argError;
-		}
+			if (curArg instanceof cError) {
+				return curArg;
+			} else if (curArg instanceof cNumber || curArg instanceof cBool || curArg instanceof cEmpty) {
+				val = curArg.tocNumber().getValue();
+			} else if (curArg instanceof cRef || curArg instanceof cRef3D) {
+				val = curArg.getValue().tocNumber();
+				if (val instanceof cNumber || val instanceof cBool || curArg instanceof cEmpty) {
+					val = curArg.tocNumber().getValue();
+				} else {
+					return new cError(cErrorType.wrong_value_type);
+				}
+			} else if (curArg instanceof cString) {
+				val = curArg.tocNumber();
+				if (val instanceof cError || val instanceof cEmpty) {
+					var d = new cDate(curArg.getValue());
+					if (isNaN(d)) {
+						return new cError(cErrorType.wrong_value_type);
+					} else {
+						val = Math.floor(( d.getTime() / 1000 - d.getTimezoneOffset() * 60 ) / c_sPerDay +
+							( AscCommonExcel.c_DateCorrectConst + (AscCommon.bDate1904 ? 0 : 1) ));
+					}
+				} else {
+					val = curArg.tocNumber().getValue();
+				}
+			}
+
+			return val;
+		};
 
 		var calulateDays = function (argArray) {
-			var val = argArray[0];
-			var val1 = argArray[1];
-			if (val < 0 || val1 < 0) {
+			var val = calulateDay(argArray[0]);
+			var val1 = calulateDay(argArray[1]);
+			if(val instanceof cError) {
+				return val;
+			} else if(val1 instanceof cError) {
+				return val1;
+			} else if (val < 0 || val1 < 0) {
 				return new cError(cErrorType.not_numeric);
 			} else {
 				return new cNumber(val - val1);
 			}
 		};
 
-		return this._findArrayInNumberArguments(oArguments, calulateDays);
+		return calulateDays(argClone);
 	};
 
 	/**
@@ -858,6 +897,7 @@
 	function cDAYS360() {
 	}
 
+	//***array-formula***
 	cDAYS360.prototype = Object.create(cBaseFunction.prototype);
 	cDAYS360.prototype.constructor = cDAYS360;
 	cDAYS360.prototype.name = 'DAYS360';
@@ -920,12 +960,14 @@
 	function cEDATE() {
 	}
 
+	//***array-formula***
 	cEDATE.prototype = Object.create(cBaseFunction.prototype);
 	cEDATE.prototype.constructor = cEDATE;
 	cEDATE.prototype.name = 'EDATE';
 	cEDATE.prototype.argumentsMin = 2;
 	cEDATE.prototype.argumentsMax = 2;
 	cEDATE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cEDATE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cEDATE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 
@@ -991,12 +1033,14 @@
 	function cEOMONTH() {
 	}
 
+	//***array-formula***
 	cEOMONTH.prototype = Object.create(cBaseFunction.prototype);
 	cEOMONTH.prototype.constructor = cEOMONTH;
 	cEOMONTH.prototype.name = 'EOMONTH';
 	cEOMONTH.prototype.argumentsMin = 2;
 	cEOMONTH.prototype.argumentsMax = 2;
 	cEOMONTH.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cEOMONTH.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cEOMONTH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 
@@ -1053,6 +1097,7 @@
 	function cHOUR() {
 	}
 
+	//***array-formula***
 	cHOUR.prototype = Object.create(cBaseFunction.prototype);
 	cHOUR.prototype.constructor = cHOUR;
 	cHOUR.prototype.name = 'HOUR';
@@ -1132,6 +1177,7 @@
 	function cISOWEEKNUM() {
 	}
 
+	//***array-formula***
 	cISOWEEKNUM.prototype = Object.create(cBaseFunction.prototype);
 	cISOWEEKNUM.prototype.constructor = cISOWEEKNUM;
 	cISOWEEKNUM.prototype.name = 'ISOWEEKNUM';
@@ -1166,6 +1212,7 @@
 	function cMINUTE() {
 	}
 
+	//***array-formula***
 	cMINUTE.prototype = Object.create(cBaseFunction.prototype);
 	cMINUTE.prototype.constructor = cMINUTE;
 	cMINUTE.prototype.name = 'MINUTE';
@@ -1245,6 +1292,7 @@
 	function cMONTH() {
 	}
 
+	//***array-formula***
 	cMONTH.prototype = Object.create(cBaseFunction.prototype);
 	cMONTH.prototype.constructor = cMONTH;
 	cMONTH.prototype.name = 'MONTH';
@@ -1321,12 +1369,15 @@
 	function cNETWORKDAYS() {
 	}
 
+	//***array-formula***
 	cNETWORKDAYS.prototype = Object.create(cBaseFunction.prototype);
 	cNETWORKDAYS.prototype.constructor = cNETWORKDAYS;
 	cNETWORKDAYS.prototype.name = 'NETWORKDAYS';
 	cNETWORKDAYS.prototype.argumentsMin = 2;
 	cNETWORKDAYS.prototype.argumentsMax = 3;
 	cNETWORKDAYS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cNETWORKDAYS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cNETWORKDAYS.prototype.arrayIndexes = {2: 1};
 	cNETWORKDAYS.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
 		var argClone = oArguments.args;
@@ -1392,12 +1443,16 @@
 	function cNETWORKDAYS_INTL() {
 	}
 
+	//***array-formula***
 	cNETWORKDAYS_INTL.prototype = Object.create(cBaseFunction.prototype);
 	cNETWORKDAYS_INTL.prototype.constructor = cNETWORKDAYS_INTL;
 	cNETWORKDAYS_INTL.prototype.name = 'NETWORKDAYS.INTL';
 	cNETWORKDAYS_INTL.prototype.argumentsMin = 2;
 	cNETWORKDAYS_INTL.prototype.argumentsMax = 4;
 	cNETWORKDAYS_INTL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cNETWORKDAYS_INTL.prototype.arrayIndexes = {2: 1, 3: 1};
+	//TODO в данном случае есть различия с ms. при 3 и 4 аргументах - замена результата на ошибку не происходит.
+	cNETWORKDAYS_INTL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cNETWORKDAYS_INTL.prototype.Calculate = function (arg) {
 		var tempArgs = arg[2] ? [arg[0], arg[1], arg[2]] : [arg[0], arg[1]];
 		var oArguments = this._prepareArguments(tempArgs, arguments[1]);
@@ -1470,6 +1525,7 @@
 	function cNOW() {
 	}
 
+	//***array-formula***
 	cNOW.prototype = Object.create(cBaseFunction.prototype);
 	cNOW.prototype.constructor = cNOW;
 	cNOW.prototype.name = 'NOW';
@@ -1490,6 +1546,7 @@
 	function cSECOND() {
 	}
 
+	//***array-formula***
 	cSECOND.prototype = Object.create(cBaseFunction.prototype);
 	cSECOND.prototype.constructor = cSECOND;
 	cSECOND.prototype.name = 'SECOND';
@@ -1571,6 +1628,7 @@
 	function cTIME() {
 	}
 
+	//***array-formula***
 	cTIME.prototype = Object.create(cBaseFunction.prototype);
 	cTIME.prototype.constructor = cTIME;
 	cTIME.prototype.name = 'TIME';
@@ -1609,11 +1667,16 @@
 			return second;
 		}
 
-		hour = hour.getValue();
-		minute = minute.getValue();
-		second = second.getValue();
+		//LO - не округляет. ms - округляет.
+		hour = parseInt(hour.getValue());
+		minute = parseInt(minute.getValue());
+		second = parseInt(second.getValue());
 
 		var v = (hour * 60 * 60 + minute * 60 + second) / c_sPerDay;
+		if(v < 0) {
+			return new cError(cErrorType.not_numeric);
+		}
+
 		var res = new cNumber(v - Math.floor(v));
 		res.numFormat = 18;
 		return res;
@@ -1626,6 +1689,7 @@
 	function cTIMEVALUE() {
 	}
 
+	//***array-formula***
 	cTIMEVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cTIMEVALUE.prototype.constructor = cTIMEVALUE;
 	cTIMEVALUE.prototype.name = 'TIMEVALUE';
@@ -1663,6 +1727,7 @@
 	function cTODAY() {
 	}
 
+	//***array-formula***
 	cTODAY.prototype = Object.create(cBaseFunction.prototype);
 	cTODAY.prototype.constructor = cTODAY;
 	cTODAY.prototype.name = 'TODAY';
@@ -1681,6 +1746,7 @@
 	function cWEEKDAY() {
 	}
 
+	//***array-formula***
 	cWEEKDAY.prototype = Object.create(cBaseFunction.prototype);
 	cWEEKDAY.prototype.constructor = cWEEKDAY;
 	cWEEKDAY.prototype.name = 'WEEKDAY';
@@ -1760,12 +1826,14 @@
 	function cWEEKNUM() {
 	}
 
+	//***array-formula***
 	cWEEKNUM.prototype = Object.create(cBaseFunction.prototype);
 	cWEEKNUM.prototype.constructor = cWEEKNUM;
 	cWEEKNUM.prototype.name = 'WEEKNUM';
 	cWEEKNUM.prototype.argumentsMin = 1;
 	cWEEKNUM.prototype.argumentsMax = 2;
 	cWEEKNUM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cWEEKNUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cWEEKNUM.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(1), type = 0;
 
@@ -1842,15 +1910,18 @@
 	function cWORKDAY() {
 	}
 
+	//***array-formula***
 	cWORKDAY.prototype = Object.create(cBaseFunction.prototype);
 	cWORKDAY.prototype.constructor = cWORKDAY;
 	cWORKDAY.prototype.name = 'WORKDAY';
 	cWORKDAY.prototype.argumentsMin = 2;
 	cWORKDAY.prototype.argumentsMax = 3;
 	cWORKDAY.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cWORKDAY.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cWORKDAY.prototype.arrayIndexes = {2: 1};
 	cWORKDAY.prototype.Calculate = function (arg) {
 		var t = this;
-		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
+		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1], true);
 		var argClone = oArguments.args;
 
 		argClone[0] = argClone[0].tocNumber();
@@ -1890,6 +1961,10 @@
 			return currentDate;
 		};
 
+		if(undefined === arg1.getValue()) {
+			return new cError(cErrorType.not_numeric);
+		}
+
 		var date = calcDate(val0, arg1.getValue(), holidays);
 		var val = date.getExcelDate();
 
@@ -1907,12 +1982,16 @@
 	function cWORKDAY_INTL() {
 	}
 
+	//***array-formula***
 	cWORKDAY_INTL.prototype = Object.create(cBaseFunction.prototype);
 	cWORKDAY_INTL.prototype.constructor = cWORKDAY_INTL;
 	cWORKDAY_INTL.prototype.name = 'WORKDAY.INTL';
 	cWORKDAY_INTL.prototype.argumentsMin = 2;
 	cWORKDAY_INTL.prototype.argumentsMax = 4;
 	cWORKDAY_INTL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cWORKDAY_INTL.prototype.arrayIndexes = {2: 1, 3: 1};
+	//TODO в данном случае есть различия с ms. при 3 и 4 аргументах - замена результата на ошибку не происходит.
+	cWORKDAY_INTL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cWORKDAY_INTL.prototype.Calculate = function (arg) {
 		//TODO проблема с формулами следующего типа - WORKDAY.INTL(8,60,"0000000")
 		var t = this;
@@ -1994,6 +2073,7 @@
 	function cYEAR() {
 	}
 
+	//***array-formula***
 	cYEAR.prototype = Object.create(cBaseFunction.prototype);
 	cYEAR.prototype.constructor = cYEAR;
 	cYEAR.prototype.name = 'YEAR';
@@ -2065,12 +2145,14 @@
 	function cYEARFRAC() {
 	}
 
+	//***array-formula***
 	cYEARFRAC.prototype = Object.create(cBaseFunction.prototype);
 	cYEARFRAC.prototype.constructor = cYEARFRAC;
 	cYEARFRAC.prototype.name = 'YEARFRAC';
 	cYEARFRAC.prototype.argumentsMin = 2;
 	cYEARFRAC.prototype.argumentsMax = 3;
 	cYEARFRAC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cYEARFRAC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cYEARFRAC.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(0);
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {

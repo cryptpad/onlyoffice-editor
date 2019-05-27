@@ -327,6 +327,23 @@
 		return lockedElement;
 	}
 
+	function check_MouseClickOnUp()
+	{
+		// call after check mouseUp
+        if (0 == global_mouseEvent.ClickCount)
+        	return false;
+
+        var _eps = 3 * global_mouseEvent.KoefPixToMM;
+        if ((Math.abs(global_mouseEvent.X - global_mouseEvent.LastX) > _eps) || (Math.abs(global_mouseEvent.Y - global_mouseEvent.LastY) > _eps))
+            return false;
+
+        var CurTime = new Date().getTime();
+        if (500 < (CurTime - global_mouseEvent.LastClickTime))
+        	return false;
+
+        return true;
+	}
+
 	function check_MouseDownEvent(e, isClicks)
 	{
 		if (e.pageX || e.pageY)
@@ -714,5 +731,6 @@
 	window['AscCommon'].Window_OnMouseUp         = Window_OnMouseUp;
 	window['AscCommon'].button_eventHandlers     = button_eventHandlers;
 	window['AscCommon'].emulateKeyDown 			 = emulateKeyDown;
+    window['AscCommon'].check_MouseClickOnUp 	 = check_MouseClickOnUp;
 
 })(window);

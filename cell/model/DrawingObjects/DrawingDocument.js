@@ -1339,6 +1339,8 @@ function CDrawingDocument(drawingObjects)
     this.NeedScrollToTargetFlag = false;
 
     this.TargetHtmlElement = null;
+    this.TargetHtmlElementLeft = 0;
+    this.TargetHtmlElementTop = 0;
 
     this.m_bIsBreakRecalculate = false;
 
@@ -1644,7 +1646,7 @@ function CDrawingDocument(drawingObjects)
         }
 
         // заглушка под мобильную версию (iPad не рисует большие картинки (наверное страховка по памяти))
-        if (g_bIsMobile)
+        if (AscCommon.AscBrowser.isMobile)
         {
             var _mobile_max = 2000;
             if (w > _mobile_max || h > _mobile_max)
@@ -1902,7 +1904,7 @@ function CDrawingDocument(drawingObjects)
         var x_mm = (_x - rect.left) * dKoef;
         var y_mm = (_y - rect.top) * dKoef;
 
-        return { X : x_mm, Y : y_mm, Page: rect.pageIndex, DrawPage: i };
+        return { X : x_mm, Y : y_mm, Page: rect.pageIndex, DrawPage: page };
     }
 
     this.ConvertCoordsToAnotherPage = function(x, y, pageCoord, pageNeed)
@@ -2312,6 +2314,8 @@ function CDrawingDocument(drawingObjects)
 			targetPosX = (Math.min(pos1.X, pos2.X) / _factor) >> 0;
             targetPosY = (Math.min(pos1.Y, pos2.Y) / _factor) >> 0;
 
+            this.TargetHtmlElementLeft = targetPosX;
+            this.TargetHtmlElementTop = targetPosY;
             this.TargetHtmlElement.style.left = targetPosX + "px";
             this.TargetHtmlElement.style.top = targetPosY + "px";
         }
@@ -2347,6 +2351,8 @@ function CDrawingDocument(drawingObjects)
 			targetPosX = (pos.X / _factor) >> 0;
 			targetPosY = (pos.Y / _factor) >> 0;
 
+            this.TargetHtmlElementLeft = targetPosX;
+            this.TargetHtmlElementTop = targetPosY;
 			this.TargetHtmlElement.style.left = targetPosX + "px";
 			this.TargetHtmlElement.style.top = targetPosY + "px";
         }
@@ -3194,7 +3200,7 @@ function CDrawingDocument(drawingObjects)
         if (this.m_oWordControl.MobileTouchManager)
         {
             this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = true;
-            markup.Table.Start_TrackTable();
+            markup.Table.StartTrackTable();
             this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
         }
     }

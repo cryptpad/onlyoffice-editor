@@ -1,17 +1,30 @@
 sudo: required
+addons:
+  apt:
+    packages:
+    - pcregrep
 services:
   - docker
 language: node_js
 node_js:
   - '6'
 before_script:
-  - git clone -b develop https://github.com/ONLYOFFICE/web-apps.git ../web-apps
+  - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
+  - echo "Project branch $BRANCH"
+  - git clone -b develop https://github.com/ONLYOFFICE/web-apps-pro.git ../web-apps-pro
+  - cd ../web-apps-pro && git checkout -B $BRANCH && cd -
 jobs:
   include:
+    - stage: Check all files contains Copyright
+      script: if [[ $(grep -L -R --include='*.js' --exclude-dir={\*vendor,externs\*} --exclude='jquery_native.js' 'Copyright Ascensio System' | wc -l) -ne 0 ]]; then exit 1 ; fi
+    - stage: Check all files use Linux Line Ending (LF)
+      script: if [[ $(find . -not -type d -exec file '{}' ';' | grep CRLF | wc -l) -ne 0 ]]; then exit 1 ; fi
+    - stage: Check all files has trailing newline
+      script: if [[ $(pcregrep --buffer-size=64M --include='.*\.js$' -LMr '\n\Z' . | wc -l) -ne 0 ]]; then exit 1 ; fi
     - stage: SonarQube Scanner
       if: branch = develop
       script:
-        - wget -P /tmp https://sonarsource.bintray.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.0.3.778-linux.zip
+        - wget -P /tmp https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.0.3.778-linux.zip
         - unzip -d /tmp /tmp/sonar-scanner-cli-3.0.3.778-linux.zip
         - /tmp/sonar-scanner-3.0.3.778-linux/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN
     - stage: Formulas tests
@@ -24,10 +37,13 @@ jobs:
         - npm install --prefix build
         - grunt --level=WHITESPACE_ONLY --base build --gruntfile build/Gruntfile.js
         - docker pull onlyofficetestingrobot/doc-builder-testing:develop-latest
-        - travis_wait 30 docker run -v $PWD/word:/opt/onlyoffice/documentbuilder/sdkjs/word
+        - travis_wait 30 docker run -v $PWD/common:/opt/onlyoffice/documentbuilder/sdkjs/common
+                                    -v $PWD/word:/opt/onlyoffice/documentbuilder/sdkjs/word
                                     -v $PWD/cell:/opt/onlyoffice/documentbuilder/sdkjs/cell
                                     -v $PWD/slide:/opt/onlyoffice/documentbuilder/sdkjs/slide
                                     onlyofficetestingrobot/doc-builder-testing:develop-latest
+  allow_failures:
+    - stage: SonarQube Scanner                                    
 notifications:
   email:
     recipients:

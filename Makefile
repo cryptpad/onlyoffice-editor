@@ -4,8 +4,11 @@ GRUNT_FLAGS = --no-color -v
 OUTPUT_DIR = deploy
 OUTPUT = $(OUTPUT_DIR)
 
-COMPANY_NAME ?= onlyoffice
-PRODUCT_NAME ?= documentserver
+COMPANY_NAME ?= ONLYOFFICE
+PRODUCT_NAME ?= DocumentServer
+
+COMPANY_NAME_LOW = $(shell echo $(COMPANY_NAME) | tr A-Z a-z)
+PRODUCT_NAME_LOW = $(shell echo $(PRODUCT_NAME) | tr A-Z a-z)
 
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
@@ -21,11 +24,7 @@ GRUNT_ENV += BUILD_NUMBER=$(BUILD_NUMBER)
 GRUNT_ENV += APP_COPYRIGHT="$(APP_COPYRIGHT)"
 GRUNT_ENV += PUBLISHER_URL="$(PUBLISHER_URL)"
 
-WEBAPPS_DIR ?= web-apps
-
-ifeq ($(PRODUCT_NAME),$(filter $(PRODUCT_NAME),documentserver-de documentserver-ie))
 WEBAPPS_DIR := web-apps-pro
-endif
 
 WEBAPPS = $(OUTPUT)/$(WEBAPPS_DIR)
 NODE_MODULES = build/node_modules ../$(WEBAPPS_DIR)/build/node_modules
@@ -35,8 +34,6 @@ WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/documenteditor/main/app.
 WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/presentationeditor/main/app.js
 WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/spreadsheeteditor/main/app.js
 SDKJS_FILES += word/sdk-all.js
-SDKJS_FILES += cell/sdk-all.js
-SDKJS_FILES += slide/sdk-all.js
 
 .PHONY: all desktop
 
@@ -52,7 +49,7 @@ $(WEBAPPS_FILES): $(NODE_MODULES) $(SDKJS_FILES)
 
 $(SDKJS_FILES): $(NODE_MODULES)
 	cd build && \
-		$(GRUNT_ENV) $(GRUNT) build_$(@D) $(GRUNT_FLAGS)
+		$(GRUNT_ENV) $(GRUNT) $(GRUNT_FLAGS)
 
 desktop: GRUNT_FLAGS += --desktop=true
 desktop: all

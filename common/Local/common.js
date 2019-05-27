@@ -75,7 +75,7 @@ AscFonts.CFontFileLoader.prototype.LoadFontAsync = function(basePath, _callback,
 		{
 			var __font_data_idx = fontStreams.length;
 			var _uintData = new Uint8Array(this.response);
-			fontStreams[__font_data_idx] = new AscFonts.FT_Stream(_uintData, _uintData.length);
+			fontStreams[__font_data_idx] = new AscFonts.FontStream(_uintData, _uintData.length);
 			oThis.SetStreamIndex(__font_data_idx);
 		}
 		else
@@ -189,7 +189,12 @@ prot.getUrl = function(strPath){
 		return null;
 
 	if (strPath == "Editor.xlsx")
-		return this.documentUrl + "/" + strPath;
+	{
+		var test = this.documentUrl + "/" + strPath;
+		if (window["AscDesktopEditor"]["IsLocalFileExist"](test))
+			return test;
+		return undefined;
+    }
 
 	return this.documentUrl + "/media/" + strPath;
 };

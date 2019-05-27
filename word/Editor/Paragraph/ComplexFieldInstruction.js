@@ -50,6 +50,7 @@ var fieldtype_NUMPAGES   = fieldtype_PAGECOUNT;
 var fieldtype_ASK        = 0x0007;
 var fieldtype_REF        = 0x0008;
 var fieldtype_HYPERLINK  = 0x0009;
+var fieldtype_FORMULA    = 0x0010;
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -66,6 +67,8 @@ window['AscCommonWord'].fieldtype_NUMPAGES   = fieldtype_NUMPAGES;
 window['AscCommonWord'].fieldtype_ASK        = fieldtype_ASK;
 window['AscCommonWord'].fieldtype_REF        = fieldtype_REF;
 window['AscCommonWord'].fieldtype_HYPERLINK  = fieldtype_HYPERLINK;
+window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
+
 
 /**
  * Базовый класс для инструкции сложного поля.
@@ -94,6 +97,130 @@ CFieldInstructionBase.prototype.ToString = function()
 };
 CFieldInstructionBase.prototype.SetPr = function()
 {
+};
+/**
+* FORMULA field
+* @constructor
+*/
+function CFieldInstructionFORMULA()
+{
+	CFieldInstructionBase.call(this);
+	this.ParseQueue = null;
+	this.Error = null;
+	this.ErrStr = null;
+	this.ResultStr = null;
+	this.Format = null;
+	this.ParentContent = null;
+}
+
+CFieldInstructionFORMULA.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionFORMULA.prototype.constructor = CFieldInstructionFORMULA;
+CFieldInstructionFORMULA.prototype.Type = fieldtype_FORMULA;
+CFieldInstructionFORMULA.prototype.SetFormat = function(oFormat)
+{
+    this.Format = oFormat;
+};
+CFieldInstructionFORMULA.prototype.SetParseQueue = function(oParseQueue)
+{
+    this.ParseQueue = oParseQueue;
+};
+CFieldInstructionFORMULA.prototype.SetError = function(oError)
+{
+    this.Error = oError;
+};
+
+CFieldInstructionFORMULA.prototype.SetFormula = function(sFormula)
+{
+    this.Formula = sFormula;
+};
+
+CFieldInstructionFORMULA.prototype.GetErrorStr = function (oErr) {
+	var ret = "!";
+	if(oErr)
+	{
+		if(typeof oErr.Type === 'string')
+		{
+			ret += AscCommon.translateManager.getValue(oErr.Type);
+		}
+		if(typeof oErr.Data === 'string')
+		{
+			ret += (", " + oErr.Data);
+		}
+	}
+	return ret;
+};
+
+CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
+{
+	this.ErrStr = null;
+	this.ResultStr = null;
+	this.private_Calculate(oLogicDocument);
+	if(this.Error)
+	{
+		this.ErrStr = this.GetErrorStr(this.Error);
+		return;
+	}
+	if(this.ParseQueue)
+	{
+		var oCalcError = this.ParseQueue.calculate(oLogicDocument);
+		if(oCalcError)
+		{
+			this.ErrStr = this.GetErrorStr(oCalcError);
+			return;
+		}
+		if(typeof this.ParseQueue.resultS === "string")
+		{
+			this.ResultStr = this.ParseQueue.resultS;
+		}
+		else
+		{
+			this.ResultStr = '';
+		}
+	}
+	else
+	{
+		this.ResultStr = '';
+	}
+};
+
+
+CFieldInstructionFORMULA.prototype.private_Calculate = function (oLogicDocument)
+{
+	var sListSeparator = ",";
+	var sDigitSeparator = ".";
+	if(oLogicDocument && oLogicDocument.Settings){
+		var oSettings = oLogicDocument.Settings;
+		if(oSettings.DecimalSymbol && oSettings.ListSeparator && oSettings.DecimalSymbol !== oSettings.ListSeparator){
+			sListSeparator = oSettings.ListSeparator;
+			sDigitSeparator = oSettings.DecimalSymbol;
+		}
+	}
+	var oParser = new AscCommonWord.CFormulaParser(sListSeparator, sDigitSeparator);
+	oParser.parse(this.Formula, this.ParentContent);
+
+	this.SetParseQueue(oParser.parseQueue);
+	if(oParser.parseQueue){
+		oParser.parseQueue.format = this.Format;
+	}
+	this.SetError(oParser.error);
+};
+
+CFieldInstructionFORMULA.prototype.SetComplexField = function(oComplexField){
+	CFieldInstructionBase.prototype.SetComplexField.call(this, oComplexField);
+	this.ParentContent = null;
+	var oBeginChar = oComplexField.BeginChar;
+	if(oBeginChar)
+	{
+		var oRun = oBeginChar.Run;
+		if(oRun)
+		{
+			var oParagraph = oRun.Paragraph;
+			if(oParagraph)
+			{
+				this.ParentContent = oParagraph.Parent;
+			}
+		}
+	}
 };
 
 /**
@@ -528,17 +655,43 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	if (!this.private_ReadNext())
 		return this.private_ReadREF("");
 
-	switch (this.Buffer.toUpperCase())
-	{
-		case "PAGE": this.private_ReadPAGE(); break;
-		case "PAGEREF": this.private_ReadPAGEREF(); break;
-		case "TOC": this.private_ReadTOC(); break;
-		case "ASK": this.private_ReadASK(); break;
-		case "REF": this.private_ReadREF(); break;
-		case "NUMPAGES": this.private_ReadNUMPAGES(); break;
-		case "HYPERLINK": this.private_ReadHYPERLINK(); break;
 
-		default: this.private_ReadREF(this.Buffer); break;
+	var sBuffer = this.Buffer.toUpperCase();
+	if("PAGE" === sBuffer)
+	{
+		this.private_ReadPAGE();
+	}
+	else if("PAGEREF" === sBuffer)
+	{
+		this.private_ReadPAGEREF();
+	}
+	else if("TOC" === sBuffer)
+	{
+		this.private_ReadTOC();
+	}
+	else if("ASC" === sBuffer)
+	{
+		this.private_ReadASK();
+	}
+	else if("REF" === sBuffer)
+	{
+		this.private_ReadREF();
+	}
+	else if("NUMPAGES" === sBuffer)
+	{
+		this.private_ReadNUMPAGES();
+	}
+	else if("HYPERLINK" === sBuffer)
+	{
+		this.private_ReadHYPERLINK();
+	}
+	else if(sBuffer.indexOf("=") === 0)
+	{
+		this.private_ReadFORMULA();
+	}
+	else
+	{
+		this.private_ReadREF();
 	}
 };
 CFieldInstructionParser.prototype.private_ReadNext = function()
@@ -671,6 +824,50 @@ CFieldInstructionParser.prototype.private_ReadPAGE = function()
 		if (this.private_IsSwitch())
 			this.private_ReadGeneralFormatSwitch();
 	}
+};
+CFieldInstructionParser.prototype.private_ReadFORMULA = function()
+{
+	this.Result = new CFieldInstructionFORMULA();
+    var sFormula = this.Buffer.slice(1, this.Buffer.length);
+    var sFormat = null;
+    var bFormat = false;
+    var bNumFormat = false;
+    while(this.private_ReadNext())
+	{
+    	if(this.private_IsSwitch())
+    	{
+            bFormat = true;
+            if ('#' === this.Buffer.charAt(1))
+            {
+                bNumFormat = true;
+            }
+		}
+		else
+		{
+			if(bFormat)
+			{
+				if(bNumFormat)
+				{
+                    sFormat = this.Buffer;
+				}
+			}
+			else
+			{
+                sFormula += this.Buffer;
+			}
+            bFormat = false;
+            bNumFormat = false;
+		}
+	}
+	sFormula = sFormula.toUpperCase();
+	var oFormat;
+	if(null !== sFormat)
+	{
+        oFormat = AscCommon.oNumFormatCache.get(sFormat, true);
+        this.Result.SetFormat(oFormat);
+	}
+	this.Result.SetFormula(sFormula);
+
 };
 CFieldInstructionParser.prototype.private_ReadPAGEREF = function()
 {
@@ -850,6 +1047,3 @@ CFieldInstructionParser.prototype.private_ParseIntegerRange = function(sValue)
 
 	return [nValue1, nValue2];
 };
-
-
-

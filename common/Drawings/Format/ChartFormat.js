@@ -322,6 +322,7 @@ function (window, undefined) {
     drawingsChangesMap[AscDFH.historyitem_PieChart_SetDLbls]                  = function(oClass, value){oClass.dLbls          = value;};
     drawingsChangesMap[AscDFH.historyitem_PieChart_SetFirstSliceAng]          = function(oClass, value){oClass.firstSliceAng  = value;};
     drawingsChangesMap[AscDFH.historyitem_PieChart_SetVaryColors]             = function(oClass, value){oClass.varyColors = value;};
+    drawingsChangesMap[AscDFH.historyitem_PieChart_3D]                        = function(oClass, value){oClass.b3D = value;};
     drawingsChangesMap[AscDFH.historyitem_PieSeries_SetCat]                   = function(oClass, value){oClass.cat       = value;};
     drawingsChangesMap[AscDFH.historyitem_PieSeries_SetDLbls]                 = function(oClass, value){oClass.dLbls     = value;};
     drawingsChangesMap[AscDFH.historyitem_PieSeries_SetExplosion]             = function(oClass, value){oClass.explosion = value;};
@@ -481,6 +482,7 @@ function (window, undefined) {
     AscDFH.changesFactory[AscDFH.historyitem_NumFmt_SetSourceLinked          ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_OfPieChart_SetVaryColors        ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_PieChart_SetVaryColors          ] = window['AscDFH'].CChangesDrawingsBool;
+    AscDFH.changesFactory[AscDFH.historyitem_PieChart_3D                     ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_RadarChart_SetVaryColors        ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_ScatterChart_SetVaryColors      ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_ScatterSer_SetSmooth            ] = window['AscDFH'].CChangesDrawingsBool;
@@ -618,8 +620,8 @@ function (window, undefined) {
     AscDFH.changesFactory[AscDFH.historyitem_Layout_SetY                       ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_OfPieChart_SetSplitPos            ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_PictureOptions_SetPictureStackUnit] = window['AscDFH'].CChangesDrawingsDouble;
-    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetLogBase                ] = window['AscDFH'].CChangesDrawingsDouble;
-    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMax                    ] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetLogBase                ] = window['AscDFH'].CChangesDrawingsDouble2;
+    AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMax                    ] = window['AscDFH'].CChangesDrawingsDouble2;
     AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetMin                    ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Trendline_SetBackward             ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Trendline_SetForward              ] = window['AscDFH'].CChangesDrawingsDouble;
@@ -1620,8 +1622,8 @@ CDLbl.prototype =
             }
             styles.Add(style);
             if(!(this instanceof CTitle))
-                this.lastStyleObject = {lastId: style.Id, styles: styles};
-            return {lastId: style.Id, styles: styles};
+                this.lastStyleObject = {lastId: style.Id, styles: styles, shape: this, slide: null};
+            return {lastId: style.Id, styles: styles, shape: this, slide: null};
         }, this, []);
     },
 
@@ -1682,6 +1684,36 @@ CDLbl.prototype =
         }
     },
 
+    getPercentageString: function()
+    {
+        if(this.series && this.pt)
+        {
+            return this.series.getValByIndex(this.pt.idx, true)
+        }
+        return "";
+    },
+
+    getValueString: function()
+    {
+        var sFormatCode;
+        if(this.pt && this.series)
+        {
+            if(this.numFmt && typeof this.numFmt.formatCode === "string" && this.numFmt.formatCode.length > 0){
+                sFormatCode = this.numFmt.formatCode;
+            }
+            else if(typeof this.pt.formatCode === "string" && this.pt.formatCode.length > 0){
+                sFormatCode =  this.pt.formatCode;
+            }
+            else{
+                sFormatCode = this.series.getFormatCode();
+            }
+
+            var num_format = AscCommon.oNumFormatCache.get(sFormatCode);
+            return num_format.formatToChart(this.series.getValByIndex(this.pt.idx))
+        }
+        return "";
+    },
+
     getDefaultTextForTxBody: function()
     {
         var compiled_string = "";
@@ -1714,22 +1746,13 @@ CDLbl.prototype =
         {
             if(compiled_string.length > 0)
                 compiled_string += separator;
-            var sFormatCode;
-            if(typeof this.pt.formatCode === "string" && this.pt.formatCode.length > 0){
-                sFormatCode =  this.pt.formatCode;
-            }
-            else{
-                sFormatCode = this.series.getFormatCode();
-            }
-
-            var num_format = AscCommon.oNumFormatCache.get(sFormatCode);
-            compiled_string += num_format.formatToChart(this.series.getValByIndex(this.pt.idx));
+            compiled_string += this.getValueString();
         }
         if(this.showPercent)
         {
             if(compiled_string.length > 0)
                 compiled_string += separator;
-            compiled_string += this.series.getValByIndex(this.pt.idx, true);
+            compiled_string += this.getPercentageString();
         }
         return compiled_string;
     },
@@ -1853,9 +1876,10 @@ CDLbl.prototype =
             var max_content_width = max_box_width - 2*SCALE_INSET_COEFF;
 
             var content = this.txBody.content;
-            content.Reset(0, 0, max_content_width, 20000);
-
-            content.Recalculate_Page(0, true);
+            content.RecalculateContent(max_content_width, 20000, 0);
+            // content.Reset(0, 0, max_content_width, 20000);
+            //
+            // content.Recalculate_Page(0, true);
             var pargs = content.Content;
             var max_width = 0;
             for(var i = 0; i < pargs.length; ++i)
@@ -1870,9 +1894,10 @@ CDLbl.prototype =
                 }
             }
             max_width += 1;
-            content.Reset(0, 0, max_width, 20000);
-            content.Recalculate_Page(0, true);
+            // content.Reset(0, 0, max_width, 20000);
+            // content.Recalculate_Page(0, true);
 
+            content.RecalculateContent(max_width, 20000, 0);
             switch (bodyPr.vert)
             {
                 case AscFormat.nVertTTeaVert:
@@ -3447,11 +3472,17 @@ CAreaSeries.prototype =
             }
             if(this.tx.strRef
                 && this.tx.strRef.strCache
-                && this.tx.strRef.strCache.pts.length > 0
-                && this.tx.strRef.strCache.pts[0]
-                && typeof this.tx.strRef.strCache.pts[0].val === "string")
+                &&  AscFormat.isRealNumber(this.tx.strRef.strCache.ptCount)
+                    && this.tx.strRef.strCache.ptCount > 0)
+
             {
-                return this.tx.strRef.strCache.pts[0].val;
+                if(this.tx.strRef.strCache.pts.length > 0
+                    && this.tx.strRef.strCache.pts[0]
+                    && typeof this.tx.strRef.strCache.pts[0].val === "string")
+                {
+                    return this.tx.strRef.strCache.pts[0].val;
+                }
+                return "";
             }
         }
         return AscCommon.translateManager.getValue('Series') + " " + (this.idx + 1);
@@ -7161,8 +7192,8 @@ CDispUnits.prototype =
             if(AscFormat.isRealNumber(UNIT_MULTIPLIERS[this.builtInUnit]))
                 return UNIT_MULTIPLIERS[this.builtInUnit];
         }
-        else if(AscFormat.isRealNumber(this.custUnit))
-            return this.custUnit;
+        else if(AscFormat.isRealNumber(this.custUnit) && this.custUnit > 0.0)
+            return 1.0/this.custUnit;
         return 1;
     },
 
@@ -9632,6 +9663,8 @@ function CPieChart()
     this.parent = null;
 
 
+    this.b3D = null;
+
     this.m_oSeriesContentChanges =  new AscCommon.CContentChanges();
 
     this.Id = g_oIdCounter.Get_NewId();
@@ -9645,6 +9678,11 @@ CPieChart.prototype =
         return this.Id;
     },
 
+    set3D: function(pr)
+    {
+        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_PieChart_3D, this.b3D, pr));
+        this.b3D = pr;
+    },
 
     getContentChangesByType: function(type){
         switch(type){
@@ -9729,6 +9767,9 @@ CPieChart.prototype =
             c.addSer(this.series[i].createDuplicate());
         }
         c.setVaryColors(this.varyColors);
+        if(this.b3D){
+            c.set3D(this.b3D);
+        }
         return c;
     },
 
@@ -10631,7 +10672,7 @@ CScaling.prototype =
 
     setMax: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Scaling_SetMax, this.max, pr));
+        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetMax, this.max, pr));
         this.max = pr;
         if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart)
         {
@@ -10641,7 +10682,7 @@ CScaling.prototype =
 
     setMin: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Scaling_SetMin, this.min, pr));
+        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetMin, this.min, pr));
         this.min = pr;
         if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart)
         {
@@ -12139,10 +12180,10 @@ CTitle.prototype =
         }
     },
 
-    GetRevisionsChangeParagraph: function(SearchEngine){
+    GetRevisionsChangeElement: function(SearchEngine){
         var oContent = this.getDocContent();
         if(oContent){
-            oContent.GetRevisionsChangeParagraph(SearchEngine);
+            oContent.GetRevisionsChangeElement(SearchEngine);
         }
     },
 
@@ -12219,12 +12260,12 @@ CTitle.prototype =
                     var hdr_ftr = para_drawing.DocumentContent.IsHdrFtr(true);
                     if(hdr_ftr)
                     {
-                        hdr_ftr.Content.Set_DocPosType(docpostype_DrawingObjects);
+                        hdr_ftr.Content.SetDocPosType(docpostype_DrawingObjects);
                         hdr_ftr.Set_CurrentElement(bUpdate);
                     }
                     else
                     {
-                        drawing_objects.document.Set_DocPosType(docpostype_DrawingObjects);
+                        drawing_objects.document.SetDocPosType(docpostype_DrawingObjects);
                     }
                 }
             }
@@ -13159,27 +13200,35 @@ CChart.prototype =
 
     getView3d: function(){
         return AscFormat.ExecuteNoHistory(function(){
-
-            if(this.view3D){
-                var _ret = this.view3D.createDuplicate();
-                var oChart = this.plotArea &&  this.plotArea.charts[0];
-                if(oChart){
-                    if(oChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart){
-                        if(!AscFormat.isRealNumber(_ret.rotX)){
-                            _ret.rotX = 15;
+            var _ret;
+            var oChart = this.plotArea &&  this.plotArea.charts[0];
+            if(oChart){
+                if(this.view3D){
+                    _ret = this.view3D.createDuplicate();
+                        if(oChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart){
+                            if(!AscFormat.isRealNumber(_ret.rotX)){
+                                _ret.rotX = 15;
+                            }
+                            if(!AscFormat.isRealNumber(_ret.rotY)){
+                                _ret.rotY = 20;
+                            }
                         }
-                        if(!AscFormat.isRealNumber(_ret.rotY)){
-                            _ret.rotY = 20;
+                        else{
+                            if(!AscFormat.isRealNumber(_ret.rotX)){
+                                _ret.rotX = 0;
+                            }
+                            if(!AscFormat.isRealNumber(_ret.rotY)){
+                                _ret.rotY = 0;
+                            }
                         }
-                    }
-                    else{
-                        if(!AscFormat.isRealNumber(_ret.rotX)){
-                            _ret.rotX = 0;
-                        }
-                        if(!AscFormat.isRealNumber(_ret.rotY)){
-                            _ret.rotY = 0;
-                        }
-                    }
+                        return _ret;
+                }
+                if(oChart.b3D){
+                    _ret = new CView3d();
+                    _ret.setRotX(30);
+                    _ret.setRotY(0);
+                    _ret.setRAngAx(false);
+                    _ret.setDepthPercent(100);
                     return _ret;
                 }
             }
@@ -13959,15 +14008,18 @@ function CreateMarkerGeometryByType(type, src)
         }
         case SYMBOL_PLUS:
         {
-            ret.AddPathCommand(0,undefined,  "none", false, w, h);
+            /* extrusionOk, fill, stroke, w, h*/
+            ret.AddPathCommand(0,undefined,  undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined,  "none", false, w, h);
             AddPlus(ret, w, h);
             break;
         }
         case SYMBOL_STAR:
         {
-            ret.AddPathCommand(0,undefined,  "none", false, w, h);
+            ret.AddPathCommand(0,undefined,  undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined,  "none", false, w, h);
             AddPlus(ret, w, h);
             AddX(ret, w, h);
             break;
@@ -13983,8 +14035,9 @@ function CreateMarkerGeometryByType(type, src)
         }
         case SYMBOL_X:
         {
-            ret.AddPathCommand(0,undefined, "none", false, w, h);
+            ret.AddPathCommand(0,undefined, undefined, false, w, h);
             AddRect(ret, w, h);
+            ret.AddPathCommand(0,undefined, "none", false, w, h);
             AddX(ret, w, h);
             break;
         }

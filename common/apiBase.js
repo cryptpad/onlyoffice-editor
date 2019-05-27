@@ -52,6 +52,7 @@
 
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
+        this.isLoadFonts = false;
 		this.openResult    = null;
 
 		this.HtmlElementName = config['id-view'] || '';
@@ -189,6 +190,8 @@
 
 		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
 
+		this.SaveAfterMacros = false;
+
 		return this;
 	}
 
@@ -223,20 +226,44 @@
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
 		});
 
+        AscFonts.load(t, function()
+        {
+            t.isLoadFonts = true;
+            t.onEndLoadFile(null);
+        }, function() {
+            t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
+        });
+
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
+			//send only first error to reduce number of requests. also following error may be consequences of first
+			window.onerror = oldOnError;
 			var msg = 'Error: ' + errorMsg + ' Script: ' + url + ' Line: ' + lineNumber + ':' + column +
 				' userAgent: ' + (navigator.userAgent || navigator.vendor || window.opera) + ' platform: ' +
 				navigator.platform + ' isLoadFullApi: ' + t.isLoadFullApi + ' isDocumentLoadComplete: ' +
 				t.isDocumentLoadComplete + ' StackTrace: ' + (errorObj ? errorObj.stack : "");
 			t.CoAuthoringApi.sendChangesError(msg);
-			//send only first error to reduce number of requests. also following error may be consequences of first
-			window.onerror = oldOnError;
+			if (t.isLoadFullApi && t.isDocumentLoadComplete) {
+				//todo disconnect and downloadAs ability
+				t.sendEvent("asc_onError", Asc.c_oAscError.ID.EditingError, c_oAscError.Level.NoCritical);
+				t.asc_setViewMode(true);
+			}
 			if (oldOnError) {
 				return oldOnError.apply(this, arguments);
 			} else {
 				return false;
 			}
+		};
+
+		// disable mousewheel on macOS
+		if (AscCommon.AscBrowser.isMacOs)
+		{
+			document.body.onmousewheel = function(e) {
+				if (e.stopPropagation)
+					e.stopPropagation();
+				e.returnValue = false;
+				return false;
+			};
 		}
 	};
 	baseEditorsApi.prototype._editorNameById                 = function()
@@ -267,6 +294,14 @@
 	baseEditorsApi.prototype.asc_getDocumentName             = function()
 	{
 		return this.documentTitle;
+	};
+	baseEditorsApi.prototype.asc_getAppProps                 = function()
+	{
+		return null;
+	};
+	baseEditorsApi.prototype.asc_getCoreProps                = function()
+	{
+		return null;
 	};
 	baseEditorsApi.prototype.asc_setDocInfo                  = function(oDocInfo)
 	{
@@ -568,10 +603,17 @@
 		this.sendEvent('asc_onDocumentContentReady');
 
 		if (window.g_asc_plugins)
-			window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
+        {
+         	if (this.isMobileVersion)
+         		Asc.loadPluginsAsInterface(this);
+            window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
+        }
 
         if (this.editorId == c_oEditorId.Spreadsheet)
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
+
+		if (this.DocInfo)
+			this["pluginMethod_SetProperties"](this.DocInfo.asc_getOptions());
 	};
 	// Save
 	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType)
@@ -1212,25 +1254,24 @@
 		if(this.isViewMode){
 			return;
 		}
-		Asc.CPluginData_wrap(oPluginData);
 		var oThis      = this;
-		var sImgSrc    = oPluginData.getAttribute("imgSrc");
-		var nWidthPix  = oPluginData.getAttribute("widthPix");
-		var nHeightPix = oPluginData.getAttribute("heightPix");
-		var fWidth     = oPluginData.getAttribute("width");
-		var fHeight    = oPluginData.getAttribute("height");
-		var sData      = oPluginData.getAttribute("data");
-		var sGuid      = oPluginData.getAttribute("guid");
+		var sImgSrc    = oPluginData["imgSrc"];
+		var nWidthPix  = oPluginData["widthPix"];
+		var nHeightPix = oPluginData["heightPix"];
+		var fWidth     = oPluginData["width"];
+		var fHeight    = oPluginData["height"];
+		var sData      = oPluginData["data"];
+		var sGuid      = oPluginData["guid"];
 		if (typeof sImgSrc === "string" && sImgSrc.length > 0 && typeof sData === "string"
 			&& typeof sGuid === "string" && sGuid.length > 0
 			&& AscFormat.isRealNumber(nWidthPix) && AscFormat.isRealNumber(nHeightPix)
 			&& AscFormat.isRealNumber(fWidth) && AscFormat.isRealNumber(fHeight)
 		)
 
-			this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
-			{
-				oThis.asc_addOleObjectAction(AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, sGuid, fWidth, fHeight, nWidthPix, nHeightPix);
-			});
+		this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
+		{
+			oThis.asc_addOleObjectAction(AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, sGuid, fWidth, fHeight, nWidthPix, nHeightPix);
+		});
 	};
 
 	baseEditorsApi.prototype.asc_editOleObject = function(oPluginData)
@@ -1238,23 +1279,25 @@
 		if(this.isViewMode){
 			return;
 		}
-		Asc.CPluginData_wrap(oPluginData);
 		var oThis      = this;
-		var bResize    = oPluginData.getAttribute("resize");
-		var sImgSrc    = oPluginData.getAttribute("imgSrc");
-		var oOleObject = AscCommon.g_oTableId.Get_ById(oPluginData.getAttribute("objectId"));
-		var nWidthPix  = oPluginData.getAttribute("widthPix");
-		var nHeightPix = oPluginData.getAttribute("heightPix");
-		var sData      = oPluginData.getAttribute("data");
+		var bResize    = oPluginData["resize"];
+		var sImgSrc    = oPluginData["imgSrc"];
+		var oOleObject = AscCommon.g_oTableId.Get_ById(oPluginData["objectId"]);
+		var nWidthPix  = oPluginData["widthPix"];
+		var nHeightPix = oPluginData["heightPix"];
+		var sData      = oPluginData["data"];
 		if (typeof sImgSrc === "string" && sImgSrc.length > 0 && typeof sData === "string"
 			&& oOleObject && AscFormat.isRealNumber(nWidthPix) && AscFormat.isRealNumber(nHeightPix))
 		{
-			this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
+            this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
 			{
 				oThis.asc_editOleObjectAction(bResize, oOleObject, AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, nWidthPix, nHeightPix);
 			});
 		}
 	};
+
+    baseEditorsApi.prototype["pluginMethod_AddOleObject"] = baseEditorsApi.prototype.asc_addOleObject;
+    baseEditorsApi.prototype["pluginMethod_EditOleObject"] = baseEditorsApi.prototype.asc_editOleObject;
 
 	baseEditorsApi.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight)
 	{
@@ -1277,6 +1320,25 @@
 
 	baseEditorsApi.prototype.asc_startEditCurrentOleObject = function(){
 
+	};
+	baseEditorsApi.prototype.asc_canEditCrop = function()
+	{
+	};
+
+	baseEditorsApi.prototype.asc_startEditCrop = function()
+	{
+	};
+
+	baseEditorsApi.prototype.asc_endEditCrop = function()
+	{
+	};
+
+	baseEditorsApi.prototype.asc_cropFit = function()
+	{
+	};
+
+	baseEditorsApi.prototype.asc_cropFill = function()
+	{
 	};
 	// Version History
 	baseEditorsApi.prototype.asc_showRevision   = function(newObj)
@@ -1362,7 +1424,7 @@
 		{
 			this.openResult = result;
 		}
-		if (this.isLoadFullApi && this.DocInfo && this.openResult)
+		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
 		{
 			this.openDocument(this.openResult);
 			this.openResult = null;
@@ -1401,6 +1463,11 @@
 		this.pluginsManager     = Asc.createPluginsManager(this);
 
 		this.macros = new AscCommon.CDocumentMacros();
+
+		this._loadSdkImages();
+	};
+	baseEditorsApi.prototype._loadSdkImages = function ()
+	{
 	};
 
 	baseEditorsApi.prototype.sendStandartTextures = function()
@@ -1412,13 +1479,17 @@
 
 		var _count = AscCommon.g_oUserTexturePresets.length;
 		var arr    = new Array(_count);
+		var arrToDownload = [];
 		for (var i = 0; i < _count; ++i)
 		{
 			arr[i]       = new AscCommon.asc_CTexture();
 			arr[i].Id    = i;
 			arr[i].Image = AscCommon.g_oUserTexturePresets[i];
-			this.ImageLoader.LoadImage(AscCommon.g_oUserTexturePresets[i], 1);
+			arrToDownload.push(AscCommon.g_oUserTexturePresets[i]);
 		}
+		this.ImageLoader.LoadImagesWithCallback(arrToDownload, function () {
+
+		}, 0);
 
 		this.sendEvent('asc_onInitStandartTextures', arr);
 	};
@@ -1516,6 +1587,71 @@
 		return result;
 	};
 
+
+	baseEditorsApi.prototype.showVideoControl = function(sMediaName, extX, extY, transform)
+	{
+		if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["MediaStart"])
+			return;
+
+		switch (this.editorId)
+		{
+			case c_oEditorId.Word:
+			{
+				break;
+			}
+			case c_oEditorId.Presentation:
+			{
+                var manager = this.WordControl.DemonstrationManager;
+                if (!manager.Mode)
+                {
+                    var pos = this.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(0, 0, this.WordControl.m_oLogicDocument.CurPage, null, true);
+                    pos.X += this.WordControl.X;
+                    pos.Y += this.WordControl.Y;
+
+                    if (!transform)
+                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, this.WordControl.m_nZoomValue / 100);
+                    else
+                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, this.WordControl.m_nZoomValue / 100, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                }
+                else
+				{
+					var transition = this.WordControl.DemonstrationManager.Transition;
+                    if ((manager.SlideNum >= 0 && manager.SlideNum < manager.SlidesCount) && (!transition || !transition.IsPlaying()))
+                    {
+                        var _w = transition.Rect.w;
+                        var _h = transition.Rect.h;
+                        var _w_mm = manager.HtmlPage.m_oLogicDocument.Width;
+                        var _h_mm = manager.HtmlPage.m_oLogicDocument.Height;
+
+                        var _x = transition.Rect.x;
+                        if (this.isReporterMode)
+						{
+                            _x += ((this.WordControl.m_oMainParent.AbsolutePosition.L * AscCommon.g_dKoef_mm_to_pix) >> 0);
+						}
+
+                        var _zoom = _w / (_w_mm * AscCommon.g_dKoef_mm_to_pix);
+
+                        if (!transform)
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x, transition.Rect.y, extX, extY, _zoom);
+                        else
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x, transition.Rect.y, extX, extY, _zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                    }
+
+				}
+				break;
+			}
+            case c_oEditorId.Spreadsheet:
+            {
+                break;
+            }
+		}
+	};
+	baseEditorsApi.prototype.hideVideoControl = function()
+	{
+        if (!window["AscDesktopEditor"] || !window["AscDesktopEditor"]["MediaEnd"])
+            return;
+        window["AscDesktopEditor"]["MediaEnd"]();
+	};
 	// plugins
 	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
 	{
@@ -1567,12 +1703,36 @@
     	return AscFonts.g_fontApplication.g_fontSelections.SerializeList();
     };
 
+    baseEditorsApi.prototype["pluginMethod_InputText"] = function(text, textReplace)
+    {
+        if (this.isViewMode || !AscCommon.g_inputContext)
+        	return;
+
+        var codes = [];
+        for (var i = text.getUnicodeIterator(); i.check(); i.next())
+			codes.push(i.value());
+
+        if (textReplace)
+        {
+            for (var i = 0; i < textReplace.length; i++)
+                AscCommon.g_inputContext.emulateKeyDownApi(8);
+        }
+
+        AscCommon.g_inputContext.apiInputText(codes);
+        AscCommon.g_inputContext.keyPressInput = "";
+    };
+
 	baseEditorsApi.prototype["pluginMethod_PasteHtml"] = function(htmlText)
 	{
 		if (!AscCommon.g_clipboardBase)
 			return null;
 
-		var _elem = document.createElement("div");
+		var _elem = document.getElementById("pmpastehtml");
+		if (_elem)
+			return;
+
+		_elem = document.createElement("div");
+		_elem.id = "pmpastehtml";
 
 		if (this.editorId == c_oEditorId.Word || this.editorId == c_oEditorId.Presentation)
 		{
@@ -1758,6 +1918,9 @@
 
 	baseEditorsApi.prototype["pluginMethod_SetProperties"] = function(obj)
 	{
+		if (!obj)
+			return;
+
 		for (var prop in obj)
 		{
 			switch (prop)
@@ -1813,13 +1976,255 @@
 
 					break;
 				}
+				case "hideContentControlTrack":
+				{
+					if (this.editorId === c_oEditorId.Word)
+						this.WordControl.m_oLogicDocument.SetForceHideContentControlTrack(obj[prop]);
+
+					break;
+				}
 				default:
 					break;
 			}
 		}
 	};
 
-	// Builder
+    baseEditorsApi.prototype.privateDropEvent = function(obj)
+    {
+    	if (!obj || !obj.type)
+    		return;
+
+        var e = {
+            pageX : obj["x"],
+            pageY : obj["y"]
+        };
+
+        switch (obj.type)
+        {
+            case "onbeforedrop":
+			{
+                this.beginInlineDropTarget(e);
+				break;
+			}
+            case "ondrop":
+            {
+                this.endInlineDropTarget(e);
+
+                if (obj["html"])
+                    this["pluginMethod_PasteHtml"](obj["html"]);
+                else if (obj["text"])
+                    this["pluginMethod_PasteText"](obj["text"]);
+
+                break;
+            }
+            default:
+                break;
+        }
+    };
+
+	// input helper
+    baseEditorsApi.prototype.getTargetOnBodyCoords = function()
+    {
+        var ret = { X : 0, Y : 0, W : 0, H : 0, TargetH : 0 };
+        ret.W = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        ret.H = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+        switch (this.editorId)
+        {
+            case c_oEditorId.Word:
+			{
+                ret.X += this.WordControl.X;
+                ret.Y += this.WordControl.Y;
+                ret.X += (this.WordControl.m_oMainView.AbsolutePosition.L * AscCommon.g_dKoef_mm_to_pix);
+                ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
+                ret.X += (this.WordControl.m_oDrawingDocument.TargetHtmlElementLeft);
+                ret.Y += (this.WordControl.m_oDrawingDocument.TargetHtmlElementTop);
+
+                ret.X >>= 0;
+                ret.Y >>= 0;
+
+                ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100) >> 0;
+				break;
+			}
+            case c_oEditorId.Presentation:
+            {
+				ret.X += this.WordControl.X;
+				ret.Y += this.WordControl.Y;
+
+				ret.X += (this.WordControl.m_oMainParent.AbsolutePosition.L * AscCommon.g_dKoef_mm_to_pix);
+
+				if (!this.WordControl.m_oLogicDocument.IsFocusOnNotes())
+				{
+					ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
+				}
+				else
+				{
+					ret.Y += (this.WordControl.m_oNotesContainer.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
+				}
+
+				ret.X += (this.WordControl.m_oDrawingDocument.TargetHtmlElementLeft);
+				ret.Y += (this.WordControl.m_oDrawingDocument.TargetHtmlElementTop);
+
+				ret.X >>= 0;
+				ret.Y >>= 0;
+
+				ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100) >> 0;
+                break;
+            }
+            case c_oEditorId.Spreadsheet:
+            {
+                var off, selectionType = this.asc_getCellInfo().asc_getFlags().asc_getSelectionType();
+                if (this.asc_getCellEditMode())
+				{
+					// cell edit
+					var cellEditor = this.wb.cellEditor;
+					ret.X = cellEditor.curLeft;
+					ret.Y = cellEditor.curTop;
+					ret.TargetH = cellEditor.curHeight;
+					off = cellEditor.cursor;
+				}
+				else if (Asc.c_oAscSelectionType.RangeShapeText === selectionType ||
+					Asc.c_oAscSelectionType.RangeChartText === selectionType)
+                {
+					// shape target
+					var drDoc = this.wb.getWorksheet().objectRender.controller.drawingDocument;
+					ret.X = drDoc.TargetHtmlElementLeft;
+					ret.Y = drDoc.TargetHtmlElementTop;
+					ret.TargetH = drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix;
+					off = this.HtmlElement;
+                }
+
+				if (off) {
+					off = jQuery(off).offset();
+					if (off)
+					{
+						ret.X += off.left;
+						ret.Y += off.top;
+					}
+				}
+
+				ret.X >>= 0;
+				ret.Y >>= 0;
+				ret.TargetH >>= 0;
+                break;
+            }
+        }
+        return ret;
+    };
+
+    baseEditorsApi.prototype["pluginMethod_ShowInputHelper"] = function(guid, w, h, isKeyboardTake)
+    {
+        var _frame = document.getElementById("iframe_" + guid);
+        if (!_frame)
+            return;
+
+        var _offset = this.getTargetOnBodyCoords();
+        if (w > _offset.W)
+            w = _offset.W;
+        if (h > _offset.H)
+            h = _offset.H;
+
+        var _offsetToFrame = 10;
+        var _r = _offset.X + _offsetToFrame + w;
+        var _t = _offset.Y - _offsetToFrame - h;
+        var _b = _offset.Y + _offset.TargetH + _offsetToFrame + h;
+
+        var _x = _offset.X + _offsetToFrame;
+        if (_r > _offset.W)
+            _x += (_offset.W - _r);
+
+        var _y = 0;
+
+        if (_b < _offset.H)
+        {
+            _y = _offset.Y + _offset.TargetH + _offsetToFrame;
+        }
+        else if (_t > 0)
+        {
+            _y = _t;
+        }
+        else
+        {
+            _y = _offset.Y + _offset.TargetH + _offsetToFrame;
+            h += (_offset.H - _b);
+        }
+
+        _frame.style.left = _x + "px";
+        _frame.style.top = _y + "px";
+        _frame.style.width = w + "px";
+        _frame.style.height = h + "px";
+
+        if (!this.isMobileVersion)
+        	_frame.style.zIndex = 1000;
+        else
+            _frame.style.zIndex = 5001;
+
+        if (!_frame.style.boxShadow)
+        {
+        	_frame.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
+            _frame.style.webkitBoxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
+            //_frame.style.borderRadius = "3px";
+        }
+
+
+        if (isKeyboardTake)
+        {
+            _frame.setAttribute("oo_editor_input", "true");
+            _frame.focus();
+        }
+        else
+        {
+            _frame.removeAttribute("oo_editor_input");
+            if (AscCommon.g_inputContext)
+            {
+                AscCommon.g_inputContext.isNoClearOnFocus = true;
+                AscCommon.g_inputContext.HtmlArea.focus();
+            }
+        }
+
+        if (AscCommon.g_inputContext)
+        {
+            AscCommon.g_inputContext.isInputHelpersPresent = true;
+            AscCommon.g_inputContext.isInputHelpers[guid] = true;
+        }
+    };
+
+    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid, isclear)
+    {
+        var _frame = document.getElementById("iframe_" + guid);
+        if (!_frame)
+            return;
+
+        _frame.style.width = "10px";
+        _frame.style.height = "10px";
+        _frame.removeAttribute("oo_editor_input");
+
+        _frame.style.zIndex = -1000;
+
+        if (AscCommon.g_inputContext && AscCommon.g_inputContext.HtmlArea)
+		{
+			AscCommon.g_inputContext.HtmlArea.focus();
+
+			if (AscCommon.g_inputContext.isInputHelpers[guid])
+				delete AscCommon.g_inputContext.isInputHelpers[guid];
+
+			var count = 0;
+			for (var test in AscCommon.g_inputContext.isInputHelpers)
+			{
+				if (AscCommon.g_inputContext.isInputHelpers[test])
+					count++;
+            }
+
+            AscCommon.g_inputContext.isInputHelpersPresent = (0 != count);
+        }
+
+        if (AscCommon.g_inputContext && isclear)
+		{
+            AscCommon.g_inputContext.keyPressInput = "";
+		}
+    };
+
+    // Builder
 	baseEditorsApi.prototype.asc_nativeInitBuilder = function()
 	{
 		this.asc_setDocInfo(new Asc.asc_CDocInfo());
@@ -2248,41 +2653,10 @@
 		return this.macros.GetData();
 	};
 
-	function parseCSV(text, options) {
-		var delimiterChar;
-		if (options.asc_getDelimiterChar()) {
-			delimiterChar = options.asc_getDelimiterChar();
-		} else {
-			switch (options.asc_getDelimiter()) {
-				case AscCommon.c_oAscCsvDelimiter.None:
-					delimiterChar = undefined;
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Tab:
-					delimiterChar = "\t";
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Semicolon:
-					delimiterChar = ";";
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Colon:
-					delimiterChar = ":";
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Comma:
-					delimiterChar = ",";
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Space:
-					delimiterChar = " ";
-					break;
-			}
-		}
-		var matrix = [];
-		var rows = text.match(/[^\r\n]+/g);
-		for (var i = 0; i < rows.length; ++i) {
-			var row = rows[i];
-			//todo quotes
-			matrix.push(row.split(delimiterChar));
-		}
-		return matrix;
-	}
+	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
+	{
+		return 0;
+	};
 
 	baseEditorsApi.prototype.asc_decodeBuffer = function(buffer, options, callback) {
 		var reader = new FileReader();
@@ -2290,13 +2664,25 @@
 		reader.onload = reader.onerror = function(e) {
 			var text = e.target.result ? e.target.result : "";
 			if (options instanceof Asc.asc_CCSVAdvancedOptions) {
-				callback(parseCSV(text, options));
+				callback(AscCommon.parseText(text, options));
 			} else {
 				callback(text.match(/[^\r\n]+/g));
 			}
 		};
 
-		reader.readAsText(new Blob([buffer]), AscCommon.c_oAscEncodings[options.asc_getCodePage()][2]);
+		var encoding = "UTF-8";
+		var codePage = options.asc_getCodePage();
+		var encodingsLen = AscCommon.c_oAscEncodings.length;
+		for (var i = 0; i < encodingsLen; ++i)
+		{
+			if (AscCommon.c_oAscEncodings[i][0] == codePage)
+			{
+				encoding = AscCommon.c_oAscEncodings[i][2];
+				break;
+			}
+		}
+
+		reader.readAsText(new Blob([buffer]), encoding);
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------

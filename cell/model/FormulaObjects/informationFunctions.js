@@ -62,6 +62,7 @@
 	function cERROR_TYPE() {
 	}
 
+	//***array-formula***
 	cERROR_TYPE.prototype = Object.create(cBaseFunction.prototype);
 	cERROR_TYPE.prototype.constructor = cERROR_TYPE;
 	cERROR_TYPE.prototype.name = 'ERROR.TYPE';
@@ -106,7 +107,7 @@
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
-				ret.addElement(found_operand);
+				ret.addElement(typeError(elem));
 			});
 			return ret;
 		}
@@ -120,6 +121,7 @@
 	function cISBLANK() {
 	}
 
+	//***array-formula***
 	cISBLANK.prototype = Object.create(cBaseFunction.prototype);
 	cISBLANK.prototype.constructor = cISBLANK;
 	cISBLANK.prototype.name = 'ISBLANK';
@@ -146,6 +148,7 @@
 	function cISERR() {
 	}
 
+	//***array-formula***
 	cISERR.prototype = Object.create(cBaseFunction.prototype);
 	cISERR.prototype.constructor = cISERR;
 	cISERR.prototype.name = 'ISERR';
@@ -172,9 +175,11 @@
 	 * @constructor
 	 * @extends {AscCommonExcel.cBaseFunction}
 	 */
+
 	function cISERROR() {
 	}
 
+	//***array-formula***
 	cISERROR.prototype = Object.create(cBaseFunction.prototype);
 	cISERROR.prototype.constructor = cISERROR;
 	cISERROR.prototype.name = 'ISERROR';
@@ -204,11 +209,13 @@
 	function cISEVEN() {
 	}
 
+	//***array-formula***
 	cISEVEN.prototype = Object.create(cBaseFunction.prototype);
 	cISEVEN.prototype.constructor = cISEVEN;
 	cISEVEN.prototype.name = 'ISEVEN';
 	cISEVEN.prototype.argumentsMin = 1;
 	cISEVEN.prototype.argumentsMax = 1;
+	cISEVEN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cISEVEN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -238,12 +245,14 @@
 	function cISFORMULA() {
 	}
 
+	//***array-formula***
 	cISFORMULA.prototype = Object.create(cBaseFunction.prototype);
 	cISFORMULA.prototype.constructor = cISFORMULA;
 	cISFORMULA.prototype.name = 'ISFORMULA';
 	cISFORMULA.prototype.argumentsMin = 1;
 	cISFORMULA.prototype.argumentsMax = 1;
 	cISFORMULA.prototype.isXLFN = true;
+	cISFORMULA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cISFORMULA.prototype.Calculate = function (arg) {
 		//есть различия в поведении этой формулы для ms и lo(для нескольких ячеек с данными)
 		var arg0 = arg[0];
@@ -268,6 +277,7 @@
 	function cISLOGICAL() {
 	}
 
+	//***array-formula***
 	cISLOGICAL.prototype = Object.create(cBaseFunction.prototype);
 	cISLOGICAL.prototype.constructor = cISLOGICAL;
 	cISLOGICAL.prototype.name = 'ISLOGICAL';
@@ -297,6 +307,7 @@
 	function cISNA() {
 	}
 
+	//***array-formula***
 	cISNA.prototype = Object.create(cBaseFunction.prototype);
 	cISNA.prototype.constructor = cISNA;
 	cISNA.prototype.name = 'ISNA';
@@ -326,6 +337,7 @@
 	function cISNONTEXT() {
 	}
 
+	//***array-formula***
 	cISNONTEXT.prototype = Object.create(cBaseFunction.prototype);
 	cISNONTEXT.prototype.constructor = cISNONTEXT;
 	cISNONTEXT.prototype.name = 'ISNONTEXT';
@@ -354,6 +366,7 @@
 	function cISNUMBER() {
 	}
 
+	//***array-formula***
 	cISNUMBER.prototype = Object.create(cBaseFunction.prototype);
 	cISNUMBER.prototype.constructor = cISNUMBER;
 	cISNUMBER.prototype.name = 'ISNUMBER';
@@ -383,11 +396,13 @@
 	function cISODD() {
 	}
 
+	//***array-formula***
 	cISODD.prototype = Object.create(cBaseFunction.prototype);
 	cISODD.prototype.constructor = cISODD;
 	cISODD.prototype.name = 'ISODD';
 	cISODD.prototype.argumentsMin = 1;
 	cISODD.prototype.argumentsMax = 1;
+	cISODD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cISODD.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -417,11 +432,13 @@
 	function cISREF() {
 	}
 
+	//***array-formula***
 	cISREF.prototype = Object.create(cBaseFunction.prototype);
 	cISREF.prototype.constructor = cISREF;
 	cISREF.prototype.name = 'ISREF';
 	cISREF.prototype.argumentsMin = 1;
 	cISREF.prototype.argumentsMax = 1;
+	cISREF.prototype.arrayIndexes = {0:1};
 	cISREF.prototype.Calculate = function (arg) {
 		if ((arg[0] instanceof cRef || arg[0] instanceof cArea || arg[0] instanceof cArea3D ||
 			arg[0] instanceof cRef3D) && arg[0].isValid && arg[0].isValid()) {
@@ -438,6 +455,7 @@
 	function cISTEXT() {
 	}
 
+	//***array-formula***
 	cISTEXT.prototype = Object.create(cBaseFunction.prototype);
 	cISTEXT.prototype.constructor = cISTEXT;
 	cISTEXT.prototype.name = 'ISTEXT';
@@ -467,12 +485,14 @@
 	function cN() {
 	}
 
+	//***array-formula***
 	cN.prototype = Object.create(cBaseFunction.prototype);
 	cN.prototype.constructor = cN;
 	cN.prototype.name = 'N';
 	cN.prototype.argumentsMin = 1;
 	cN.prototype.argumentsMax = 1;
 	cN.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cN.prototype.arrayIndexes = {0: 1};
 	cN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -509,6 +529,7 @@
 	function cNA() {
 	}
 
+	//***array-formula***
 	cNA.prototype = Object.create(cBaseFunction.prototype);
 	cNA.prototype.constructor = cNA;
 	cNA.prototype.name = 'NA';
@@ -524,12 +545,14 @@
 	function cSHEET() {
 	}
 
+	//***array-formula***
 	cSHEET.prototype = Object.create(cBaseFunction.prototype);
 	cSHEET.prototype.constructor = cSHEET;
 	cSHEET.prototype.name = 'SHEET';
 	cSHEET.prototype.argumentsMin = 0;
 	cSHEET.prototype.argumentsMax = 1;
 	cSHEET.prototype.isXLFN = true;
+	cSHEET.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSHEET.prototype.Calculate = function (arg, opt_bbox, opt_defName, ws) {
 
 		var res = null;
@@ -570,12 +593,14 @@
 	function cSHEETS() {
 	}
 
+	//***array-formula***
 	cSHEETS.prototype = Object.create(cBaseFunction.prototype);
 	cSHEETS.prototype.constructor = cSHEETS;
 	cSHEETS.prototype.name = 'SHEETS';
 	cSHEETS.prototype.argumentsMin = 0;
 	cSHEETS.prototype.argumentsMax = 1;
 	cSHEETS.prototype.isXLFN = true;
+	cSHEETS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSHEETS.prototype.Calculate = function (arg, opt_bbox, opt_defName, ws) {
 
 		var res;
@@ -612,15 +637,25 @@
 	function cTYPE() {
 	}
 
+	//***array-formula***
 	cTYPE.prototype = Object.create(cBaseFunction.prototype);
 	cTYPE.prototype.constructor = cTYPE;
 	cTYPE.prototype.name = 'TYPE';
 	cTYPE.prototype.argumentsMin = 1;
 	cTYPE.prototype.argumentsMax = 1;
+	cTYPE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cTYPE.prototype.arrayIndexes = {0: 1};
 	cTYPE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]);
+			//todo пересмотреть!
+			//заглушка для формулы массива
+			//ms воспринимает данный аргумент как массив
+			if(this.bArrayFormula) {
+				arg0 = arg[0].getValue()
+			} else {
+				arg0 = arg0.cross(arguments[1]);
+			}
 		} else if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
 			arg0 = arg0.getValue();
 		}

@@ -61,7 +61,9 @@ var c_oSerPropLenType = {
     Three:3,
     Long:4,
     Double:5,
-    Variable:6
+    Variable:6,
+	Double64: 7,
+	Long64: 8
 };
 var c_oSer_ColorObjectType =
 {
@@ -79,7 +81,9 @@ var c_oSerBorderType = {
     Space: 1,
     Size: 2,
     Value: 3,
-	ColorTheme: 4
+	ColorTheme: 4,
+	SpacePoint: 5,
+	Size8Point: 6
 };
 var c_oSerBordersType = {
     left: 0,
@@ -99,7 +103,11 @@ var c_oSerPaddingType = {
     left: 0,
     top: 1,
     right: 2,
-    bottom: 3
+    bottom: 3,
+	leftTwips: 4,
+	topTwips: 5,
+	rightTwips: 6,
+	bottomTwips: 7
 };
 var c_oSerShdType = {
     Value: 0,
@@ -177,14 +185,14 @@ BinaryCommonWriter.prototype.WriteBorder = function(border)
         if (null != color && !color.Auto)
             this.WriteColor(c_oSerBorderType.Color, color);
         if (null != border.Space) {
-            this.memory.WriteByte(c_oSerBorderType.Space);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(border.Space);
+            this.memory.WriteByte(c_oSerBorderType.SpacePoint);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.writeMmToPt(border.Space);
         }
         if (null != border.Size) {
-            this.memory.WriteByte(c_oSerBorderType.Size);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble(border.Size);
+            this.memory.WriteByte(c_oSerBorderType.Size8Point);
+            this.memory.WriteByte(c_oSerPropLenType.Long);
+            this.writeMmToPt(8 * border.Size);
         }
         if (null != border.Unifill || (null != border.Color && border.Color.Auto)) {
             this.memory.WriteByte(c_oSerBorderType.ColorTheme);
@@ -264,30 +272,30 @@ BinaryCommonWriter.prototype.WritePaddings = function(Paddings)
     //left
     if(null != Paddings.L)
     {
-        this.memory.WriteByte(c_oSerPaddingType.left);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(Paddings.L);
+        this.memory.WriteByte(c_oSerPaddingType.leftTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.writeMmToTwips(Paddings.L);
     }
     //top
     if(null != Paddings.T)
     {
-        this.memory.WriteByte(c_oSerPaddingType.top);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(Paddings.T);
+        this.memory.WriteByte(c_oSerPaddingType.topTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.writeMmToTwips(Paddings.T);
     }
     //Right
     if(null != Paddings.R)
     {
-        this.memory.WriteByte(c_oSerPaddingType.right);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(Paddings.R);
+        this.memory.WriteByte(c_oSerPaddingType.rightTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.writeMmToTwips(Paddings.R);
     }
     //bottom
     if(null != Paddings.B)
     {
-        this.memory.WriteByte(c_oSerPaddingType.bottom);
-        this.memory.WriteByte(c_oSerPropLenType.Double);
-        this.memory.WriteDouble(Paddings.B);
+        this.memory.WriteByte(c_oSerPaddingType.bottomTwips);
+        this.memory.WriteByte(c_oSerPropLenType.Long);
+        this.writeMmToTwips(Paddings.B);
     }
 };
 BinaryCommonWriter.prototype.WriteColorSpreadsheet = function(color)
@@ -377,6 +385,21 @@ BinaryCommonWriter.prototype.WriteBookmark = function(bookmark) {
 		this.memory.WriteString2(bookmark.BookmarkName);
 	}
 };
+BinaryCommonWriter.prototype.mmToTwips = function(val) {
+	return Math.round(AscCommonWord.g_dKoef_mm_to_twips * val);
+};
+BinaryCommonWriter.prototype.writeMmToTwips = function(val) {
+	return this.memory.WriteLong(this.mmToTwips(val));
+};
+BinaryCommonWriter.prototype.writeMmToPt = function(val) {
+	return this.memory.WriteLong(Math.round(AscCommonWord.g_dKoef_mm_to_pt * val));
+};
+BinaryCommonWriter.prototype.writeMmToEmu = function(val) {
+	return this.memory.WriteLong(Math.round(AscCommonWord.g_dKoef_mm_to_emu * val));
+};
+BinaryCommonWriter.prototype.writeMmToUEmu = function(val) {
+	return this.memory.WriteULong(Math.round(AscCommonWord.g_dKoef_mm_to_emu * val));
+};
 function Binary_CommonReader(stream)
 {
     this.stream = stream;
@@ -440,6 +463,8 @@ Binary_CommonReader.prototype.Read2 = function(stLen, fRead)
             case c_oSerPropLenType.Three: nRealLen = 3;break;
             case c_oSerPropLenType.Long:
             case c_oSerPropLenType.Double: nRealLen = 4;break;
+			case c_oSerPropLenType.Double64: nRealLen = 8;break;
+			case c_oSerPropLenType.Long: nRealLen = 8;break;
             case c_oSerPropLenType.Variable:
                 nRealLen = this.stream.GetULongLE();
                 nCurPosShift += 4;
@@ -478,6 +503,8 @@ Binary_CommonReader.prototype.Read2Spreadsheet = function(stLen, fRead)
             case c_oSerPropLenType.Three: nRealLen = 3;break;
             case c_oSerPropLenType.Long: nRealLen = 4;break;
             case c_oSerPropLenType.Double: nRealLen = 8;break;
+			case c_oSerPropLenType.Double64: nRealLen = 8;break;
+			case c_oSerPropLenType.Long: nRealLen = 8;break;
             case c_oSerPropLenType.Variable:
                 nRealLen = this.stream.GetULongLE();
                 nCurPosShift += 4;
@@ -641,7 +668,7 @@ FT_Stream2.prototype.GetULongLE = function() {
 	return (this.data[this.cur++] | this.data[this.cur++] << 8 | this.data[this.cur++] << 16 | this.data[this.cur++] << 24);
 };
 FT_Stream2.prototype.GetLongLE = function() {
-	return this.GetULongLE();
+	return AscFonts.FT_Common.UintToInt(this.GetULongLE());
 };
 FT_Stream2.prototype.GetLong = function() {
 	return this.GetULongLE();
@@ -755,6 +782,19 @@ FT_Stream2.prototype.GetBuffer = function(length) {
 		res[i] = this.data[this.cur++]
 	}
 	return res;
+};
+FT_Stream2.prototype.ToFileStream = function() {
+	var res = new AscCommon.FileStream();
+	res.obj = this.obj;
+	res.data = this.data;
+	res.size = this.size;
+	res.pos = this.pos;
+	res.cur= this.cur;
+	return res;
+};
+FT_Stream2.prototype.FromFileStream = function(stream) {
+	this.pos = stream.pos;
+	this.cur = stream.cur;
 };
 var gc_nMaxRow = 1048576;
 var gc_nMaxCol = 16384;

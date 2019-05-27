@@ -127,6 +127,7 @@ function MasterSlide(presentation, theme)
     };
 
 
+    this.lastRecalcSlideIndex = -1;
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add(this, this.Id);
 }
@@ -157,7 +158,24 @@ MasterSlide.prototype =
             this.theme = AscFormat.readObject(r);
         },
 
-        draw: function (graphics) {
+        draw: function (graphics, slide) {
+            if(slide){
+                if(slide.num !== this.lastRecalcSlideIndex){
+                    this.lastRecalcSlideIndex = slide.num;
+                    this.handleAllContents(function (oContent) {
+                        if(oContent){
+                            if(oContent.AllFields && oContent.AllFields.length > 0){
+                                for(var j = 0; j < oContent.AllFields.length; j++){
+                                    oContent.AllFields[j].RecalcInfo.Measure = true;
+                                    oContent.AllFields[j].Refresh_RecalcData2();
+                                }
+                            }
+                        }
+                    });
+                    this.recalculate();
+
+                }
+            }
             for (var i = 0; i < this.cSld.spTree.length; ++i) {
                 if (this.cSld.spTree[i].isPlaceholder && !this.cSld.spTree[i].isPlaceholder())
                     this.cSld.spTree[i].draw(graphics);
@@ -230,6 +248,7 @@ MasterSlide.prototype =
             return this.sldLayoutLst[0];
         },
 
+        handleAllContents: Slide.prototype.handleAllContents,
         getMatchingShape: Slide.prototype.getMatchingShape, /*function(type, idx, bSingleBody)
     {
         var _input_reduced_type;
@@ -566,6 +585,201 @@ function CMasterThumbnailDrawer()
 
     this.DrawingDocument = null;
 
+    this.Draw = function(g, _master, use_background, use_master_shapes) {
+        var w_px = this.WidthPx;
+        var h_px = this.HeightPx;
+        var dKoefPixToMM = this.HeightMM / h_px;
+        var _back_fill = null;
+        var RGBA = {R:0, G:0, B:0, A:255};
+        var _layout = null;
+        for (var i = 0; i < _master.sldLayoutLst.length; i++) {
+          if (_master.sldLayoutLst[i].type == AscFormat.nSldLtTTitle) {
+            _layout = _master.sldLayoutLst[i];
+            break;
+          }
+        }
+        var _theme = _master.Theme;
+        if (_layout != null && _layout.cSld.Bg != null) {
+          if (null != _layout.cSld.Bg.bgPr) {
+            _back_fill = _layout.cSld.Bg.bgPr.Fill;
+          } else {
+            if (_layout.cSld.Bg.bgRef != null) {
+              _layout.cSld.Bg.bgRef.Color.Calculate(_theme, null, _layout, _master, RGBA);
+              RGBA = _layout.cSld.Bg.bgRef.Color.RGBA;
+              _back_fill = _theme.themeElements.fmtScheme.GetFillStyle(_layout.cSld.Bg.bgRef.idx, _layout.cSld.Bg.bgRef.Color);
+            }
+          }
+        } else {
+          if (_master != null) {
+            if (_master.cSld.Bg != null) {
+              if (null != _master.cSld.Bg.bgPr) {
+                _back_fill = _master.cSld.Bg.bgPr.Fill;
+              } else {
+                if (_master.cSld.Bg.bgRef != null) {
+                  _master.cSld.Bg.bgRef.Color.Calculate(_theme, null, _layout, _master, RGBA);
+                  RGBA = _master.cSld.Bg.bgRef.Color.RGBA;
+                  _back_fill = _theme.themeElements.fmtScheme.GetFillStyle(_master.cSld.Bg.bgRef.idx, _master.cSld.Bg.bgRef.Color);
+                }
+              }
+            } else {
+              _back_fill = new AscFormat.CUniFill;
+              _back_fill.fill = new AscFormat.CSolidFill;
+              _back_fill.fill.color = new AscFormat.CUniColor;
+              _back_fill.fill.color.color = new AscFormat.CRGBColor;
+              _back_fill.fill.color.color.RGBA = {R:255, G:255, B:255, A:255};
+            }
+          }
+        }
+        if (_back_fill != null) {
+          _back_fill.calculate(_theme, null, _layout, _master, RGBA);
+        }
+        if (use_background !== false) {
+          DrawBackground(g, _back_fill, this.WidthMM, this.HeightMM);
+        }
+        var _sx = g.m_oCoordTransform.sx;
+        var _sy = g.m_oCoordTransform.sy;
+
+        if (use_master_shapes !== false)
+        {
+            if (null == _layout)
+            {
+                if(_master.needRecalc && _master.needRecalc())
+                {
+                    _master.recalculate();
+                }
+                _master.draw(g);
+            }
+            else
+            {
+                if (_layout.showMasterSp == true || _layout.showMasterSp == undefined)
+                {
+                    if(_master.needRecalc && _master.needRecalc())
+                    {
+                        _master.recalculate();
+                    }
+                    _master.draw(g);
+                }
+                _layout.recalculate();
+                _layout.draw(g);
+            }
+        }
+        g.reset();
+        g.SetIntegerGrid(true);
+        var _text_x = 8 * dKoefPixToMM;
+        var _text_y = (h_px - 10) * dKoefPixToMM;
+        var _color_w = 6;
+        var _color_h = 3;
+        var _color_x = 4;
+        var _color_y = 31;
+        var _color_delta = 1;
+        if (!window["NATIVE_EDITOR_ENJINE"]) {
+          g.p_color(255, 255, 255, 255);
+          g.init(g.m_oContext, w_px, h_px, w_px, h_px);
+          g.CalculateFullTransform();
+          g.m_bIntegerGrid = true;
+          g.b_color1(255, 255, 255, 255);
+          g._s();
+          g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5);
+          g.df();
+          g._s();
+          var _color = new AscFormat.CSchemeColor;
+          for (var i = 0; i < 6; i++) {
+            g._s();
+            _color.id = i;
+            _color.Calculate(_theme, null, null, _master, RGBA);
+            g.b_color1(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B, 255);
+            g.rect(_color_x, _color_y, _color_w, _color_h);
+            g.df();
+            _color_x += _color_w + _color_delta;
+          }
+          g._s();
+        } else {
+          _color_w = this.WidthMM/8.0;
+          _color_h = this.HeightMM/10.0;
+          _color_x = this.WidthMM/20.0;
+          _color_y = this.HeightMM - _color_x*(w_px/this.WidthMM)*(this.HeightMM/h_px) - _color_h;
+          _color_delta = 2 * dKoefPixToMM;
+            var __color_x = _color_x;
+          g.p_color(255, 255, 255, 255);
+          g.m_bIntegerGrid = true;
+          g.b_color1(255, 255, 255, 255);
+          g._s();
+          g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, _color_h + 2 * _color_delta);
+          g.df();
+          g._s();
+          var _color = new AscFormat.CSchemeColor;
+          for (var i = 0; i < 6; i++) {
+            g._s();
+            _color.id = i;
+            _color.Calculate(_theme, null, null, _master, RGBA);
+            g.b_color1(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B, 255);
+            g.rect(_color_x, _color_y, _color_w, _color_h);
+            g.df();
+            _color_x += _color_w + _color_delta;
+          }
+          g._s();
+          _color_x = __color_x;
+        }
+        var _api = this.DrawingDocument.m_oWordControl.m_oApi;
+        History.TurnOff();
+        var _oldTurn = _api.isViewMode;
+        _api.isViewMode = true;
+        _color.id = 15;
+        _color.Calculate(_theme, null, null, _master, RGBA);
+        var nFontSize = 18;
+        if (window["NATIVE_EDITOR_ENJINE"]) {
+          nFontSize = 600;
+        }
+        var _textPr1 = new CTextPr;
+        _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};
+        _textPr1.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.majorFont.latin, Index: -1};
+        _textPr1.FontSize = nFontSize;
+        _textPr1.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
+        var _textPr2 = new CTextPr;
+        _textPr2.FontFamily = {Name:_theme.themeElements.fontScheme.minorFont.latin, Index:-1};
+        _textPr2.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.minorFont.latin, Index: -1};
+        _textPr2.FontSize = nFontSize;
+        _textPr2.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
+        var docContent = new CDocumentContent(editor.WordControl.m_oLogicDocument, editor.WordControl.m_oDrawingDocument, 0, 0, 1000, 1000, false, false, true);
+        var par = docContent.Content[0];
+        par.MoveCursorToStartPos();
+        var _paraPr = new CParaPr;
+        par.Pr = _paraPr;
+        var parRun = new ParaRun(par);
+        parRun.Set_Pr(_textPr1);
+        parRun.AddText("A");
+        par.Add_ToContent(0, parRun);
+        parRun = new ParaRun(par);
+        parRun.Set_Pr(_textPr2);
+        parRun.AddText("a");
+        par.Add_ToContent(1, parRun);
+        par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+        par.Recalculate_Page(0);
+        if (!window["NATIVE_EDITOR_ENJINE"]) {
+          g.init(g.m_oContext, w_px, h_px, w_px * AscCommon.g_dKoef_pix_to_mm, h_px * AscCommon.g_dKoef_pix_to_mm);
+          g.CalculateFullTransform();
+          _text_x = 8 * AscCommon.g_dKoef_pix_to_mm;
+          _text_y = (h_px - 11) * AscCommon.g_dKoef_pix_to_mm;
+          par.Lines[0].Ranges[0].XVisible = _text_x;
+          par.Lines[0].Y = _text_y;
+          var old_marks = _api.ShowParaMarks;
+          _api.ShowParaMarks = false;
+          par.Draw(0, g);
+          _api.ShowParaMarks = old_marks;
+        } else {
+          _text_x = _color_x;
+          _text_y = _color_y - _color_h;
+          par.Lines[0].Ranges[0].XVisible = _text_x;
+          par.Lines[0].Y = _text_y;
+          var old_marks = _api.ShowParaMarks;
+          _api.ShowParaMarks = false;
+          par.Draw(0, g);
+          _api.ShowParaMarks = old_marks;
+        }
+        History.TurnOn();
+        _api.isViewMode = _oldTurn;
+      };
+
     this.GetThumbnail = function(_master, use_background, use_master_shapes)
     {
         if(window["NATIVE_EDITOR_ENJINE"])
@@ -601,213 +815,7 @@ function CMasterThumbnailDrawer()
 
         g.transform(1,0,0,1,0,0);
 
-        var dKoefPixToMM = this.HeightMM / h_px;
-
-        // background
-        var _back_fill = null;
-        var RGBA = {R:0, G:0, B:0, A:255};
-
-        var _layout = null;
-        for (var i = 0; i < _master.sldLayoutLst.length; i++)
-        {
-            if (_master.sldLayoutLst[i].type == AscFormat.nSldLtTTitle)
-            {
-                _layout = _master.sldLayoutLst[i];
-                break;
-            }
-        }
-
-        var _theme = _master.Theme;
-
-        if (_layout != null && _layout.cSld.Bg != null)
-        {
-            if (null != _layout.cSld.Bg.bgPr)
-                _back_fill = _layout.cSld.Bg.bgPr.Fill;
-            else if(_layout.cSld.Bg.bgRef != null)
-            {
-                _layout.cSld.Bg.bgRef.Color.Calculate(_theme, null, _layout, _master, RGBA);
-                RGBA = _layout.cSld.Bg.bgRef.Color.RGBA;
-                _back_fill = _theme.themeElements.fmtScheme.GetFillStyle(_layout.cSld.Bg.bgRef.idx, _layout.cSld.Bg.bgRef.Color);
-            }
-        }
-        else if (_master != null)
-        {
-            if (_master.cSld.Bg != null)
-            {
-                if (null != _master.cSld.Bg.bgPr)
-                    _back_fill = _master.cSld.Bg.bgPr.Fill;
-                else if(_master.cSld.Bg.bgRef != null)
-                {
-                    _master.cSld.Bg.bgRef.Color.Calculate(_theme, null, _layout, _master, RGBA);
-                    RGBA = _master.cSld.Bg.bgRef.Color.RGBA;
-                    _back_fill = _theme.themeElements.fmtScheme.GetFillStyle(_master.cSld.Bg.bgRef.idx, _master.cSld.Bg.bgRef.Color);
-                }
-            }
-            else
-            {
-                _back_fill = new AscFormat.CUniFill();
-                _back_fill.fill = new AscFormat.CSolidFill();
-                _back_fill.fill.color = new AscFormat.CUniColor();
-                _back_fill.fill.color.color = new AscFormat.CRGBColor();
-                _back_fill.fill.color.color.RGBA = {R:255, G:255, B:255, A:255};
-            }
-        }
-
-        if (_back_fill != null)
-            _back_fill.calculate(_theme, null, _layout, _master, RGBA);
-
-        if (use_background !== false)
-            DrawBackground(g, _back_fill, this.WidthMM, this.HeightMM);
-
-        var _sx = g.m_oCoordTransform.sx;
-        var _sy = g.m_oCoordTransform.sy;
-
-        if (use_master_shapes !== false)
-        {
-            if (null == _layout)
-            {
-                if(_master.needRecalc && _master.needRecalc())
-                {
-                    _master.recalculate();
-                }
-                _master.draw(g);
-            }
-            else
-            {
-                if (_layout.showMasterSp == true || _layout.showMasterSp == undefined)
-                {
-                    if(_master.needRecalc && _master.needRecalc())
-                    {
-                        _master.recalculate();
-                    }
-                    _master.draw(g);
-                }
-                _layout.recalculate();
-                _layout.draw(g);
-            }
-        }
-
-        g.reset();
-        g.SetIntegerGrid(true);
-
-        // цвета
-        var _color_w = 6;
-        var _color_h = 3;
-        var _color_x = 4;
-        var _text_x = 8 * dKoefPixToMM;
-        var _text_y = (h_px - 10) * dKoefPixToMM;
-        var _color_y = 31;
-        var _color_delta = 1;
-
-        _ctx.beginPath();
-        _ctx.fillStyle = "#FFFFFF";
-        _ctx.fillRect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5);
-        _ctx.beginPath();
-
-        var _color = new AscFormat.CSchemeColor();
-        for (var i = 0; i < 6; i++)
-        {
-            _ctx.beginPath();
-            _color.id = i;
-            _color.Calculate(_theme, null, null, _master, RGBA);
-            g.b_color1(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B, 255);
-
-            _ctx.fillRect(_color_x, _color_y, _color_w, _color_h);
-            _color_x += (_color_w + _color_delta);
-        }
-        _ctx.beginPath();
-
-        // text
-        var _api = this.DrawingDocument.m_oWordControl.m_oApi;
-
-        History.TurnOff();
-        var _oldTurn = _api.isViewMode;
-        _api.isViewMode = true;
-
-        _color.id = 15;
-        _color.Calculate(_theme, null, null, _master, RGBA);
-
-        var _textPr1 = new CTextPr();
-        _textPr1.FontFamily = { Name : _theme.themeElements.fontScheme.majorFont.latin, Index : -1 };
-        _textPr1.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.majorFont.latin, Index: -1};
-        _textPr1.FontSize = 18;
-        _textPr1.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
-        var _textPr2 = new CTextPr();
-        _textPr2.FontFamily = { Name : _theme.themeElements.fontScheme.minorFont.latin, Index : -1 };
-        _textPr2.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.minorFont.latin, Index: -1};
-        _textPr2.FontSize = 18;
-        _textPr2.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
-
-
-        /*
-        *   var docContent = new CDocumentContent(this.m_oWordControl.m_oLogicDocument, this.m_oWordControl.m_oDrawingDocument, 0, 0,1000, 1000, false, false, true);
-         var par = docContent.Content[0];
-
-         par.MoveCursorToStartPos();
-
-         par.Set_Pr(new CParaPr());
-         var _textPr = new CTextPr();
-         _textPr.FontFamily = { Name : "Arial", Index : -1 };
-
-         _textPr.Strikeout  = this.GuiLastTextProps.Strikeout;
-
-         if (true === this.GuiLastTextProps.Subscript)
-         _textPr.VertAlign  = vertalign_SubScript;
-         else if (true === this.GuiLastTextProps.Superscript)
-         _textPr.VertAlign  = vertalign_SuperScript;
-         else
-         _textPr.VertAlign = vertalign_Baseline;
-
-         _textPr.DStrikeout = this.GuiLastTextProps.DStrikeout;
-         _textPr.Caps       = this.GuiLastTextProps.AllCaps;
-         _textPr.SmallCaps  = this.GuiLastTextProps.SmallCaps;
-
-         _textPr.Spacing    = this.GuiLastTextProps.TextSpacing;
-         _textPr.Position   = this.GuiLastTextProps.Position;
-
-         var parRun = new ParaRun(par); var Pos = 0;
-         parRun.Set_Pr(_textPr);
-         parRun.AddText("Hello World", Pos);
-         par.Add_ToContent(0, parRun);
-
-         docContent.Recalculate_Page(0, true);
-
-         * */
-
-        var docContent = new CDocumentContent(editor.WordControl.m_oLogicDocument, editor.WordControl.m_oDrawingDocument, 0, 0,1000, 1000, false, false, true);
-        var par = docContent.Content[0];
-        par.MoveCursorToStartPos();
-        var _paraPr = new CParaPr();
-        par.Pr = _paraPr;
-        var parRun = new ParaRun(par);
-        parRun.Set_Pr(_textPr1);
-        parRun.AddText("A");
-        par.Add_ToContent(0, parRun);
-        parRun = new ParaRun(par);
-        parRun.Set_Pr(_textPr2);
-        parRun.AddText("a");
-        par.Add_ToContent(1, parRun);
-        par.Reset(0, 0, 1000, 1000, 0, 0, 1);
-
-        par.Recalculate_Page(0);
-
-        // сбрасываем дпи
-        g.init(_ctx, w_px, h_px, w_px * AscCommon.g_dKoef_pix_to_mm,  h_px * AscCommon.g_dKoef_pix_to_mm);
-        g.CalculateFullTransform();
-        _text_x = 8 * AscCommon.g_dKoef_pix_to_mm;
-        _text_y = (h_px - 11) * AscCommon.g_dKoef_pix_to_mm;
-
-        par.Lines[0].Ranges[0].XVisible = _text_x;
-        par.Lines[0].Y = _text_y;
-
-        var old_marks = _api.ShowParaMarks;
-        _api.ShowParaMarks = false;
-
-        par.Draw(0, g);
-        _api.ShowParaMarks = old_marks;
-
-        History.TurnOn();
-        _api.isViewMode = _oldTurn;
+        this.Draw(g, _master, use_background, use_master_shapes);
 
         try
         {

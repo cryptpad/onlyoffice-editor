@@ -216,6 +216,11 @@ var c_oserct_chartspaceUSERSHAPES = 13;
 var c_oserct_chartspaceEXTLST = 14;
 var c_oserct_chartspaceTHEMEOVERRIDE = 15;
 
+
+var c_oserct_usershapes_COUNT = 0;
+var c_oserct_usershapes_SHAPE_REL = 1;
+var c_oserct_usershapes_SHAPE_ABS = 2;
+
 var c_oserct_booleanVAL = 0;
 
 var c_oserct_relidID = 0;
@@ -1125,12 +1130,12 @@ BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
             oThis.WriteCT_PrintSettings(oVal.printSettings);
         });
     }
-    //var oCurVal = oVal.m_userShapes;
-    //if (null != oCurVal) {
-    //    this.bs.WriteItem(c_oserct_chartspaceUSERSHAPES, function () {
-    //        oThis.WriteCT_RelId(oCurVal);
-    //    });
-    //}
+
+    if(oVal.userShapes.length > 0){
+        this.bs.WriteItem(c_oserct_chartspaceUSERSHAPES, function () {
+            oThis.WriteCT_UserShapes(oVal.userShapes);
+        });
+    }
     // var oCurVal = oVal.m_extLst;
     // if (null != oCurVal) {
     // this.bs.WriteItem(c_oserct_chartspaceEXTLST, function () {
@@ -1139,6 +1144,57 @@ BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
     // }
     if (null != oVal.themeOverride)
 	    this.bs.WriteItem(c_oserct_chartspaceTHEMEOVERRIDE, function () { AscCommon.pptx_content_writer.WriteTheme(oThis.memory, oVal.themeOverride); });
+}
+
+
+    BinaryChartWriter.prototype.WriteCT_FromTo = function(oVal){
+        this.memory.WriteByte(Asc.c_oSer_DrawingPosType.X);
+        this.memory.WriteByte(AscCommon.c_oSerPropLenType.Double);
+        this.memory.WriteDouble2(oVal.x);
+        this.memory.WriteByte(Asc.c_oSer_DrawingPosType.Y);
+        this.memory.WriteByte(AscCommon.c_oSerPropLenType.Double);
+        this.memory.WriteDouble2(oVal.y);
+    };
+
+    BinaryChartWriter.prototype.WriteCT_UserShape = function (oVal){
+        var oThis = this;
+        var res = c_oSerConstants.ReadOk;
+        if(AscFormat.isRealNumber(oVal.fromX) && AscFormat.isRealNumber(oVal.fromY))
+        {
+            var oNewVal = {x: oVal.fromX, y: oVal.fromY};
+            this.bs.WriteItem(Asc.c_oSer_DrawingType.From, function () { oThis.WriteCT_FromTo(oNewVal); });
+        }
+        if(AscFormat.isRealNumber(oVal.toX) && AscFormat.isRealNumber(oVal.toY))
+        {
+            var oNewVal = {x: oVal.toX, y: oVal.toY};
+            var type = oVal.getObjectType() === AscDFH.historyitem_type_AbsSizeAnchor ? Asc.c_oSer_DrawingType.Ext : Asc.c_oSer_DrawingType.To;
+            this.bs.WriteItem(type, function () { oThis.WriteCT_FromTo(oNewVal); });
+        }
+        this.bs.WriteItem(Asc.c_oSer_DrawingType.pptxDrawing, function(){pptx_content_writer.WriteDrawing(oThis.memory, oVal.object, null, null, null);});
+    };
+
+BinaryChartWriter.prototype.WriteCT_UserShapes = function (oVal) {
+
+    var oThis = this;
+    this.bs.WriteItem(c_oserct_usershapes_COUNT, function () {
+        oThis.memory.WriteLong(oVal.length);
+    });
+    for(var i = 0; i < oVal.length; ++i)
+    {
+        if(oVal[i] instanceof AscFormat.CRelSizeAnchor)
+        {
+            this.bs.WriteItem(c_oserct_usershapes_SHAPE_REL, function(t, l){
+               oThis.WriteCT_UserShape(oVal[i]);
+            });
+        }
+        else
+        {
+            this.bs.WriteItem(c_oserct_usershapes_SHAPE_ABS, function(t, l){
+                oThis.WriteCT_UserShape(oVal[i]);
+            });
+        }
+    }
+
 }
 BinaryChartWriter.prototype.WriteSpPr = function (oVal) {
   AscCommon.pptx_content_writer.WriteSpPr(this.memory, oVal);
@@ -4886,7 +4942,7 @@ BinaryChartWriter.prototype.WriteCT_PlotArea = function (oVal, oChart) {
             });
         }
         else if (chart instanceof AscFormat.CPieChart) {
-            if(!oChart.view3D) {
+            if(!oChart.view3D && !chart.b3D) {
                 this.bs.WriteItem(c_oserct_plotareaPIECHART, function () {
                     oThis.WriteCT_PieChart(chart);
                 });
@@ -5461,14 +5517,11 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
         });
         val.setPrintSettings(oNewVal);
     }
-    //else if (c_oserct_chartspaceUSERSHAPES === type) {
-    //    var oNewVal;
-    //    oNewVal = {};
-    //    res = this.bcr.Read1(length, function (t, l) {
-    //        return oThis.ReadCT_RelId(t, l, oNewVal);
-    //    });
-    //    val.m_userShapes = oNewVal;
-    //}
+    else if (c_oserct_chartspaceUSERSHAPES === type) {
+       res = this.bcr.Read1(length, function (t, l) {
+           return oThis.ReadCT_UserShapes(t, l, val);
+       });
+    }
     else if (c_oserct_chartspaceEXTLST === type) {
         var oNewVal;
         oNewVal = {};
@@ -5728,6 +5781,91 @@ BinaryChartReader.prototype.ReadCT_RelId = function (type, length, val) {
         res = c_oSerConstants.ReadUnknown;
     return res;
 }
+
+BinaryChartReader.prototype.ReadCT_UserShapes = function (type, length, val) {
+    var res = c_oSerConstants.ReadOk;
+    var oThis = this;
+    var nCount;
+    if (c_oserct_usershapes_COUNT === type) {
+        nCount = this.stream.GetULongLE();
+    }
+    else if(c_oserct_usershapes_SHAPE_REL){
+        var oNewVal = new AscFormat.CRelSizeAnchor();
+        res = this.bcr.Read1(length, function (t, l) {
+            return oThis.ReadCT_userShape(t, l, oNewVal);
+        });
+        val.addUserShape(undefined, oNewVal);
+    }
+    else if(c_oserct_usershapes_SHAPE_ABS){
+        var oNewVal = new AscFormat.CAbsSizeAnchor();
+        res = this.bcr.Read1(length, function (t, l) {
+            return oThis.ReadCT_userShape(t, l, oNewVal);
+        });
+        val.addUserShape(undefined, oNewVal);
+    }
+    else
+        res = c_oSerConstants.ReadUnknown;
+    return res;
+}
+
+BinaryChartReader.prototype.ReadCT_FromTo = function(type, length, poResult)
+{
+    var res = c_oSerConstants.ReadOk;
+    if(Asc.c_oSer_DrawingPosType.X == type)
+    {
+        poResult.x = this.stream.GetDoubleLE();
+    }
+    else if(Asc.c_oSer_DrawingPosType.Y == type)
+    {
+        poResult.y = this.stream.GetDoubleLE();
+    }
+    else
+        res = c_oSerConstants.ReadUnknown;
+    return res;
+}
+
+BinaryChartReader.prototype.ReadCT_userShape = function(type, length, poResult)
+{
+    var oThis = this;
+
+    var res = c_oSerConstants.ReadOk;
+    if(Asc.c_oSer_DrawingType.From == type)
+    {
+        var oNewVal = {};
+        res = this.bcr.Read2Spreadsheet(length, function (t, l) {
+            return oThis.ReadCT_FromTo(t, l, oNewVal);
+        });
+        poResult.setFromTo(oNewVal.x, oNewVal.y, poResult.toX, poResult.toY);
+    }
+    else if(Asc.c_oSer_DrawingType.To == type)
+    {
+        var oNewVal = {};
+        res = this.bcr.Read2Spreadsheet(length, function (t, l) {
+            return oThis.ReadCT_FromTo(t, l, oNewVal);
+        });
+        poResult.setFromTo( poResult.fromX, poResult.fromY, oNewVal.x, oNewVal.y);
+    }
+    else if(Asc.c_oSer_DrawingType.Ext == type)
+    {
+        var oNewVal = {};
+        res = this.bcr.Read2Spreadsheet(length, function (t, l) {
+            return oThis.ReadCT_FromTo(t, l, oNewVal);
+        });
+        poResult.setFromTo( poResult.fromX, poResult.fromY, oNewVal.x, oNewVal.y);
+    }
+    else if(Asc.c_oSer_DrawingType.pptxDrawing == type)
+    {
+        var oGraphicObject = AscCommon.pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet);
+        poResult.setObject(oGraphicObject);
+        // oGraphicObject.createTextBody();
+        // oGraphicObject.txBody.content.AddText("Test user Shapes");
+    }
+    else
+        res = c_oSerConstants.ReadUnknown;
+    return res;
+}
+
+
 BinaryChartReader.prototype.ReadCT_PageSetup = function (type, length, val) {
     var res = c_oSerConstants.ReadOk;
     var oThis = this;
@@ -9719,7 +9857,7 @@ BinaryChartReader.prototype.ReadCT_ScatterChart = function (type, length, val, a
         });
         val.addSer(oNewVal);
         if(oNewVal.smooth === null){
-            oNewVal.setSmooth(false);
+           // oNewVal.setSmooth(false);
         }
     }
     else if (c_oserct_scatterchartDLBLS === type) {
@@ -10137,7 +10275,7 @@ BinaryChartReader.prototype.ReadCT_Line3DChart = function (type, length, val, aC
             return oThis.ReadCT_LineSer(t, l, oNewVal);
         });
         if(oNewVal.smooth === null){
-            oNewVal.setSmooth(false);
+            //oNewVal.setSmooth(false);
         }
         val.addSer(oNewVal);
     }
@@ -10226,7 +10364,7 @@ BinaryChartReader.prototype.ReadCT_LineChart = function (type, length, val, aCha
         });
         val.addSer(oNewVal);
         if(oNewVal.smooth === null){
-            oNewVal.setSmooth(false);
+           // oNewVal.setSmooth(false);
         }
     }
     else if (c_oserct_linechartDLBLS === type) {
@@ -10613,7 +10751,7 @@ BinaryChartReader.prototype.ReadCT_PlotArea = function (type, length, val, oIdTo
         });
         val.addChart(oNewVal);
         if(oNewVal.smooth === null){
-            oNewVal.setSmooth(false);
+            //oNewVal.setSmooth(false);
         }
     }
     else if (c_oserct_plotareaOFPIECHART === type) {
@@ -10630,8 +10768,9 @@ BinaryChartReader.prototype.ReadCT_PlotArea = function (type, length, val, oIdTo
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_Pie3DChart(t, l, oNewVal, aChartWithAxis);
         });
+        oNewVal.set3D(true);
         //3d->2d
-        oNewVal.setFirstSliceAng(0);
+       // oNewVal.setFirstSliceAng(0);
         val.addChart(oNewVal);
     }
     else if (c_oserct_plotareaPIECHART === type) {
@@ -11209,7 +11348,7 @@ BinaryChartReader.prototype.ReadCT_Chart = function (type, length, val) {
                     oChart.setVaryColors(false);
                 }
                 if(oChart.setSmooth && oChart.smooth === null){
-                    oChart.setSmooth(false);
+                    //oChart.setSmooth(false);
                 }
                 if(oChart.setGapWidth && oChart.gapWidth === null){
                     oChart.setGapWidth(150);

@@ -1,3 +1,37 @@
+/*
+ * (c) Copyright Ascensio System SIA 2010-2019
+ *
+ * This program is a free software product. You can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License (AGPL)
+ * version 3 as published by the Free Software Foundation. In accordance with
+ * Section 7(a) of the GNU AGPL its Section 15 shall be amended to the effect
+ * that Ascensio System SIA expressly excludes the warranty of non-infringement
+ * of any third-party rights.
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
+ * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
+ *
+ * The  interactive user interfaces in modified source and object code versions
+ * of the Program must display Appropriate Legal Notices, as required under
+ * Section 5 of the GNU AGPL version 3.
+ *
+ * Pursuant to Section 7(b) of the License you must retain the original Product
+ * logo when distributing the program. Pursuant to Section 7(e) we decline to
+ * grant you any rights under trademark law for use of our trademarks.
+ *
+ * All the Product's GUI elements, including illustrations and icon sets, as
+ * well as technical writing content are licensed under the terms of the
+ * Creative Commons Attribution-ShareAlike 4.0 International. See the License
+ * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
+ *
+ */
+
+"use strict";
+
 (function(window, undefined){
 
     var g_isMouseSendEnabled = false;
@@ -29,16 +63,28 @@
                 pluginData = {};
             }
 
-            if (pluginData.guid != window.Asc.plugin.guid)
-                return;
-
             var type = pluginData.type;
+
+            if (pluginData.guid != window.Asc.plugin.guid)
+            {
+                if (undefined !== pluginData.guid)
+                    return;
+
+                switch (type)
+                {
+                    case "onExternalPluginMessage":
+                        break;
+                    default:
+                        return;
+                }
+            }
 
             if (type == "init")
                 window.Asc.plugin.info = pluginData;
 
-            if (!window.Asc.plugin.tr)
+            if (!window.Asc.plugin.tr || !window.Asc.plugin.tr_init)
             {
+				window.Asc.plugin.tr_init = true;
                 window.Asc.plugin.tr = function(val) {
                     if (!window.Asc.plugin.translateManager || !window.Asc.plugin.translateManager[val])
                         return val;
@@ -46,35 +92,47 @@
                 };
             }
 
-            if (window.Asc.plugin.info.lang != g_language)
+            var newLang = "";
+            if (window.Asc.plugin.info)
+                newLang = window.Asc.plugin.info.lang;
+            if (newLang == "" || newLang != g_language)
             {
-                g_language = window.Asc.plugin.info.lang;
+                g_language = newLang;
+                if (g_language == "en-EN" || g_language == "")
+				{
+					window.Asc.plugin.translateManager = {};
+					if (window.Asc.plugin.onTranslate)
+						window.Asc.plugin.onTranslate();
+				}
+				else
+				{
+					var _client = new XMLHttpRequest();
+					_client.open("GET", "./translations/" + g_language + ".json");
 
-                var _client = new XMLHttpRequest();
-                _client.open("GET", "./translations/" + g_language + ".json");
-
-                _client.onreadystatechange = function() {
-                    if (_client.readyState == 4 && (_client.status == 200 || location.href.indexOf("file:") == 0))
-                    {
-                        try
-                        {
-                            window.Asc.plugin.translateManager = JSON.parse(_client.responseText);
-                            if (window.Asc.plugin.onTranslate)
-                                window.Asc.plugin.onTranslate();
-                        }
-                        catch (err)
-                        {
-                        }
-                    }
-                };
-                _client.send();
+					_client.onreadystatechange = function ()
+					{
+						if (_client.readyState == 4 && (_client.status == 200 || location.href.indexOf("file:") == 0))
+						{
+							try
+							{
+								window.Asc.plugin.translateManager = JSON.parse(_client.responseText);
+								if (window.Asc.plugin.onTranslate)
+									window.Asc.plugin.onTranslate();
+							}
+							catch (err)
+							{
+							}
+						}
+					};
+					_client.send();
+				}
             }
 
             switch (type)
             {
                 case "init":
                 {
-                    window.Asc.plugin.executeCommand = function(type, data)
+                    window.Asc.plugin.executeCommand = function(type, data, callback)
                     {
                         window.Asc.plugin.info.type = type;
                         window.Asc.plugin.info.data = data;
@@ -88,6 +146,8 @@
                         {
                             _message = JSON.stringify({ type : data });
                         }
+
+                        window.Asc.plugin.onCallCommandCallback = callback;
                         window.plugin_sendMessage(_message);
                     };
 
@@ -116,7 +176,7 @@
 						}
 						catch(err)
 						{
-							_message = JSON.stringify({ type : data });
+							return false;
 						}
 						window.plugin_sendMessage(_message);
 						return true;
@@ -150,12 +210,12 @@
                         window.plugin_sendMessage(_message);
                     };
 
-                    window.Asc.plugin.callCommand = function(func, isClose, isCalc)
+                    window.Asc.plugin.callCommand = function(func, isClose, isCalc, callback)
 					{
 						var _txtFunc = "var Asc = {}; Asc.scope = " + JSON.stringify(window.Asc.scope) + "; var scope = Asc.scope; (" + func.toString() + ")();";
 						var _type = (isClose === true) ? "close" : "command";
 						window.Asc.plugin.info.recalculate = (false === isCalc) ? false : true;
-						window.Asc.plugin.executeCommand(_type, _txtFunc);
+						window.Asc.plugin.executeCommand(_type, _txtFunc, callback);
 					};
 
                     window.Asc.plugin.callModule = function(url, callback, isClose)
@@ -243,7 +303,12 @@
                 }
 				case "onCommandCallback":
 				{
-					if (window.Asc.plugin.onCommandCallback)
+                    if (window.Asc.plugin.onCallCommandCallback)
+                    {
+                        window.Asc.plugin.onCallCommandCallback();
+                        window.Asc.plugin.onCallCommandCallback = null;
+                    }
+                    else if (window.Asc.plugin.onCommandCallback)
 						window.Asc.plugin.onCommandCallback();
 					break;
 				}

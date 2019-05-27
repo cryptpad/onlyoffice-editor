@@ -51,6 +51,7 @@ AscDFH.changesFactory[AscDFH.historyitem_TableCell_Pr]            = CChangesTabl
 AscDFH.changesFactory[AscDFH.historyitem_TableCell_TextDirection] = CChangesTableCellTextDirection;
 AscDFH.changesFactory[AscDFH.historyitem_TableCell_NoWrap]        = CChangesTableCellNoWrap;
 AscDFH.changesFactory[AscDFH.historyitem_TableCell_HMerge]        = CChangesTableCellHMerge;
+AscDFH.changesFactory[AscDFH.historyitem_TableCell_PrChange]      = CChangesTableCellPrChange;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -109,7 +110,8 @@ AscDFH.changesRelationMap[AscDFH.historyitem_TableCell_Pr]            = [
 	AscDFH.historyitem_TableCell_Pr,
 	AscDFH.historyitem_TableCell_TextDirection,
 	AscDFH.historyitem_TableCell_NoWrap,
-	AscDFH.historyitem_TableCell_HMerge
+	AscDFH.historyitem_TableCell_HMerge,
+	AscDFH.historyitem_TableCell_PrChange
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_TableCell_TextDirection] = [
 	AscDFH.historyitem_TableCell_TextDirection,
@@ -121,6 +123,10 @@ AscDFH.changesRelationMap[AscDFH.historyitem_TableCell_NoWrap]        = [
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_TableCell_HMerge]        = [
 	AscDFH.historyitem_TableCell_HMerge,
+	AscDFH.historyitem_TableCell_Pr
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_TableCell_PrChange] = [
+	AscDFH.historyitem_TableCell_PrChange,
 	AscDFH.historyitem_TableCell_Pr
 ];
 /**
@@ -177,6 +183,15 @@ CChangesTableCellMargins.prototype.WriteToBinary = function(Writer)
 	// 3-bit : Is Old undefined?
 	// 4-bit : Is Old null?
 
+	// 5-bit  : is New.Left undefined
+	// 6-bit  : is New.Top undefined
+	// 7-bit  : is New.Right undefined
+	// 8-bit  : is New.Bottom undefined
+	// 9-bit  : is Old.Left undefined
+	// 10-bit : is Old.Top undefined
+	// 11-bit : is Old.Right undefined
+	// 12-bit : is Old.Bottom undefined
+
 	// CTableMeasure : New.Left
 	// CTableMeasure : New.Top
 	// CTableMeasure : New.Right
@@ -197,22 +212,66 @@ CChangesTableCellMargins.prototype.WriteToBinary = function(Writer)
 	if (null === this.Old)
 		nFlags |= 8;
 
-	Writer.WriteLong(nFlags);
-
-	if (undefined !== this.New && null !== this.New)
+	if (this.New)
 	{
-		this.New.Left.Write_ToBinary(Writer);
-		this.New.Top.Write_ToBinary(Writer);
-		this.New.Right.Write_ToBinary(Writer);
-		this.New.Bottom.Write_ToBinary(Writer);
+		if (this.New.Left)
+			nFlags |= 16;
+
+		if (this.New.Top)
+			nFlags |= 32;
+
+		if (this.New.Right)
+			nFlags |= 64;
+
+		if (this.New.Bottom)
+			nFlags |= 128;
 	}
 
-	if (undefined !== this.Old && null !== this.Old)
+	if (this.Old)
 	{
-		this.Old.Left.Write_ToBinary(Writer);
-		this.Old.Top.Write_ToBinary(Writer);
-		this.Old.Right.Write_ToBinary(Writer);
-		this.Old.Bottom.Write_ToBinary(Writer);
+		if (this.Old.Left)
+			nFlags |= 256;
+
+		if (this.Old.Top)
+			nFlags |= 512;
+
+		if (this.Old.Right)
+			nFlags |= 1024;
+
+		if (this.Old.Bottom)
+			nFlags |= 2048;
+	}
+
+	Writer.WriteLong(nFlags);
+
+	if (this.New)
+	{
+		if (this.New.Left)
+			this.New.Left.WriteToBinary(Writer);
+
+		if (this.New.Top)
+			this.New.Top.WriteToBinary(Writer);
+
+		if (this.New.Right)
+			this.New.Right.WriteToBinary(Writer);
+
+		if (this.New.Bottom)
+			this.New.Bottom.WriteToBinary(Writer);
+	}
+
+	if (this.Old)
+	{
+		if (this.Old.Left)
+			this.Old.Left.WriteToBinary(Writer);
+
+		if (this.Old.Top)
+			this.Old.Top.WriteToBinary(Writer);
+
+		if (this.Old.Right)
+			this.Old.Right.WriteToBinary(Writer);
+
+		if (this.Old.Bottom)
+			this.Old.Bottom.WriteToBinary(Writer);
 	}
 };
 CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
@@ -222,6 +281,15 @@ CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
 	// 2-bit : Is New null?
 	// 3-bit : Is Old undefined?
 	// 4-bit : Is Old null?
+
+	// 5-bit  : is New.Left undefined
+	// 6-bit  : is New.Top undefined
+	// 7-bit  : is New.Right undefined
+	// 8-bit  : is New.Bottom undefined
+	// 9-bit  : is Old.Left undefined
+	// 10-bit : is Old.Top undefined
+	// 11-bit : is Old.Right undefined
+	// 12-bit : is Old.Bottom undefined
 
 	// CTableMeasure : New.Left
 	// CTableMeasure : New.Top
@@ -245,16 +313,35 @@ CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
 	else
 	{
 		this.New = {
-			Left   : new CTableMeasurement(tblwidth_Auto, 0),
-			Top    : new CTableMeasurement(tblwidth_Auto, 0),
-			Right  : new CTableMeasurement(tblwidth_Auto, 0),
-			Bottom : new CTableMeasurement(tblwidth_Auto, 0)
+			Left   : undefined,
+			Top    : undefined,
+			Right  : undefined,
+			Bottom : undefined
 		};
 
-		this.New.Left.Read_FromBinary(Reader);
-		this.New.Top.Read_FromBinary(Reader);
-		this.New.Right.Read_FromBinary(Reader);
-		this.New.Bottom.Read_FromBinary(Reader);
+		if (nFlags & 16)
+		{
+			this.New.Left = new CTableMeasurement(tblwidth_Auto, 0);
+			this.New.Left.ReadFromBinary(Reader);
+		}
+
+		if (nFlags & 32)
+		{
+			this.New.Top = new CTableMeasurement(tblwidth_Auto, 0);
+			this.New.Top.ReadFromBinary(Reader);
+		}
+
+		if (nFlags & 64)
+		{
+			this.New.Right = new CTableMeasurement(tblwidth_Auto, 0);
+			this.New.Right.ReadFromBinary(Reader);
+		}
+
+		if (nFlags & 128)
+		{
+			this.New.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
+			this.New.Bottom.ReadFromBinary(Reader);
+		}
 	}
 
 	if (nFlags & 4)
@@ -268,16 +355,35 @@ CChangesTableCellMargins.prototype.ReadFromBinary = function(Reader)
 	else
 	{
 		this.Old = {
-			Left   : new CTableMeasurement(tblwidth_Auto, 0),
-			Top    : new CTableMeasurement(tblwidth_Auto, 0),
-			Right  : new CTableMeasurement(tblwidth_Auto, 0),
-			Bottom : new CTableMeasurement(tblwidth_Auto, 0)
+			Left   : undefined,
+			Top    : undefined,
+			Right  : undefined,
+			Bottom : undefined
 		};
 
-		this.Old.Left.Read_FromBinary(Reader);
-		this.Old.Top.Read_FromBinary(Reader);
-		this.Old.Right.Read_FromBinary(Reader);
-		this.Old.Bottom.Read_FromBinary(Reader);
+		if (nFlags & 256)
+		{
+			this.Old.Left = new CTableMeasurement(tblwidth_Auto, 0);
+			this.Old.Left.ReadFromBinary(Reader);
+		}
+
+		if (nFlags & 512)
+		{
+			this.Old.Top = new CTableMeasurement(tblwidth_Auto, 0);
+			this.Old.Top.ReadFromBinary(Reader);
+		}
+
+		if (nFlags & 1024)
+		{
+			this.Old.Right = new CTableMeasurement(tblwidth_Auto, 0);
+			this.Old.Right.ReadFromBinary(Reader);
+		}
+
+		if (nFlags & 2048)
+		{
+			this.Old.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
+			this.Old.Bottom.ReadFromBinary(Reader);
+		}
 	}
 };
 CChangesTableCellMargins.prototype.private_SetValue = function(Value)
@@ -880,3 +986,148 @@ CChangesTableCellHMerge.prototype.private_SetValue = function(Value)
 	oCell.Recalc_CompiledPr();
 };
 CChangesTableCellHMerge.prototype.Merge = private_TableCellChangesOnMergePr;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBase}
+ */
+function CChangesTableCellPrChange(Class, Old, New)
+{
+	AscDFH.CChangesBase.call(this, Class);
+
+	this.Old = Old;
+	this.New = New;
+}
+CChangesTableCellPrChange.prototype = Object.create(AscDFH.CChangesBase.prototype);
+CChangesTableCellPrChange.prototype.constructor = CChangesTableCellPrChange;
+CChangesTableCellPrChange.prototype.Type = AscDFH.historyitem_TableCell_PrChange;
+CChangesTableCellPrChange.prototype.Undo = function()
+{
+	var oTableCell = this.Class;
+	oTableCell.Pr.PrChange   = this.Old.PrChange;
+	oTableCell.Pr.ReviewInfo = this.Old.ReviewInfo;
+	oTableCell.private_UpdateTrackRevisions();
+};
+CChangesTableCellPrChange.prototype.Redo = function()
+{
+	var oTableCell = this.Class;
+	oTableCell.Pr.PrChange   = this.New.PrChange;
+	oTableCell.Pr.ReviewInfo = this.New.ReviewInfo;
+	oTableCell.private_UpdateTrackRevisions();
+};
+CChangesTableCellPrChange.prototype.WriteToBinary = function(oWriter)
+{
+	// Long : Flags
+	// 1-bit : is New.PrChange undefined ?
+	// 2-bit : is New.ReviewInfo undefined ?
+	// 3-bit : is Old.PrChange undefined ?
+	// 4-bit : is Old.ReviewInfo undefined ?
+	// Variable(CTableCellPr) : New.PrChange   (1bit = 0)
+	// Variable(CReviewInfo)  : New.ReviewInfo (2bit = 0)
+	// Variable(CTableCellPr) : Old.PrChange   (3bit = 0)
+	// Variable(CReviewInfo)  : Old.ReviewInfo (4bit = 0)
+
+	var nFlags = 0;
+	if (undefined === this.New.PrChange)
+		nFlags |= 1;
+
+	if (undefined === this.New.ReviewInfo)
+		nFlags |= 2;
+
+	if (undefined === this.Old.PrChange)
+		nFlags |= 4;
+
+	if (undefined === this.Old.ReviewInfo)
+		nFlags |= 8;
+
+	oWriter.WriteLong(nFlags);
+
+	if (undefined !== this.New.PrChange)
+		this.New.PrChange.WriteToBinary(oWriter);
+
+	if (undefined !== this.New.ReviewInfo)
+		this.New.ReviewInfo.WriteToBinary(oWriter);
+
+	if (undefined !== this.Old.PrChange)
+		this.Old.PrChange.WriteToBinary(oWriter);
+
+	if (undefined !== this.Old.ReviewInfo)
+		this.Old.ReviewInfo.WriteToBinary(oWriter);
+};
+CChangesTableCellPrChange.prototype.ReadFromBinary = function(oReader)
+{
+	// Long : Flags
+	// 1-bit : is New.PrChange undefined ?
+	// 2-bit : is New.ReviewInfo undefined ?
+	// 3-bit : is Old.PrChange undefined ?
+	// 4-bit : is Old.ReviewInfo undefined ?
+	// Variable(CTableCellPr) : New.PrChange   (1bit = 0)
+	// Variable(CReviewInfo)  : New.ReviewInfo (2bit = 0)
+	// Variable(CTableCellPr) : Old.PrChange   (3bit = 0)
+	// Variable(CReviewInfo)  : Old.ReviewInfo (4bit = 0)
+
+	var nFlags = oReader.GetLong();
+
+	this.New = {
+		PrChange   : undefined,
+		ReviewInfo : undefined
+	};
+
+	this.Old = {
+		PrChange   : undefined,
+		ReviewInfo : undefined
+	};
+
+	if (nFlags & 1)
+	{
+		this.New.PrChange = undefined;
+	}
+	else
+	{
+		this.New.PrChange = new CTableCellPr();
+		this.New.PrChange.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 2)
+	{
+		this.New.ReviewInfo = undefined;
+	}
+	else
+	{
+		this.New.ReviewInfo = new CReviewInfo();
+		this.New.ReviewInfo.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 4)
+	{
+		this.Old.PrChange = undefined;
+	}
+	else
+	{
+		this.Old.PrChange = new CTableCellPr();
+		this.Old.PrChange.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 8)
+	{
+		this.Old.ReviewInfo = undefined;
+	}
+	else
+	{
+		this.Old.ReviewInfo = new CReviewInfo();
+		this.Old.ReviewInfo.ReadFromBinary(oReader);
+	}
+};
+CChangesTableCellPrChange.prototype.CreateReverseChange = function()
+{
+	return new CChangesTableCellPrChange(this.Class, this.New, this.Old);
+};
+CChangesTableCellPrChange.prototype.Merge = function(oChange)
+{
+	if (this.Class !== oChange.Class)
+		return true;
+
+	if (oChange.Type === this.Type || AscDFH.historyitem_TableCell_Pr === oChange.Type)
+		return false;
+
+	return true;
+};

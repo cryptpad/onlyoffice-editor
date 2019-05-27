@@ -157,7 +157,6 @@
 		this.sAutoComplete = null;
 
 		/** @type RegExp */
-		this.reReplaceNL = /\r?\n|\r/g;
 		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", ",", "<", ">", "^", "!", "&", ":", ";", " "];
 		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.]", "i" );
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
@@ -314,8 +313,51 @@
 		this._updateUndoRedoChanged();
 	};
 
-	CellEditor.prototype.close = function (saveValue) {
+	CellEditor.prototype.close = function (saveValue, bApplyByArray, callback) {
 		var opt = this.options;
+		var t = this;
+
+		var localSaveValueCallback = function(isSuccess) {
+			t.textFlags.bApplyByArray = null;
+			if(!isSuccess) {
+				t.handlers.trigger('setStrictClose', true);
+				if(callback) {
+					callback(false);
+				}
+				return false;
+			}
+
+			t.isOpened = false;
+
+			t._formula = null;
+			t._parseResult = null;
+
+			if (!window['IS_NATIVE_EDITOR']) {
+				if (window.removeEventListener) {
+					window.removeEventListener("mouseup", t.fKeyMouseUp, false);
+					window.removeEventListener("mousemove", t.fKeyMouseMove, false);
+				}
+				t.input.blur();
+				t.isTopLineActive = false;
+				t.input.isFocused = false;
+				t._hideCursor();
+				// hide
+				t._hideCanvas();
+			}
+
+			// delete autoComplete
+			t.objAutoComplete = {};
+
+			// Сброс состояния редактора
+			t.m_nEditorState = c_oAscCellEditorState.editEnd;
+			t.handlers.trigger("closed");
+
+			if(callback) {
+				callback(true);
+			} else {
+				return true;
+			}
+		};
 
 		if (saveValue) {
 			// Пересчет делаем всегда для не пустой ячейки или если были изменения. http://bugzilla.onlyoffice.com/show_bug.cgi?id=34864
@@ -330,11 +372,8 @@
 					this.noUpdateMode = false;
 				}
 
-				if (!opt.saveValueCallback(opt.fragments, this.textFlags)) {
-					// При ошибке нужно выставить флаг, чтобы по стрелкам не закрывался редактор
-					this.handlers.trigger('setStrictClose', true);
-					return false;
-				}
+				this.textFlags.bApplyByArray = bApplyByArray;
+				return opt.saveValueCallback(opt.fragments, this.textFlags, localSaveValueCallback);
 			}
 		}
 
@@ -366,6 +405,9 @@
 	};
 
 	CellEditor.prototype.setTextStyle = function (prop, val) {
+		if (this.isFormula()) {
+			return;
+		}
 		var t = this, opt = t.options, begin, end, i, first, last;
 
 		if (t.selectionBegin !== t.selectionEnd) {
@@ -439,9 +481,9 @@
 		return this.drawingCtx.getZoom();
 	};
 
-	CellEditor.prototype.changeZoom = function ( factor ) {
-		this.drawingCtx.changeZoom( factor );
-		this.overlayCtx.changeZoom( factor );
+	CellEditor.prototype.changeZoom = function (factor) {
+		this.drawingCtx.changeZoom(factor);
+		this.overlayCtx.changeZoom(factor);
 	};
 
 	CellEditor.prototype.canEnterCellRange = function () {
@@ -579,45 +621,11 @@
 		text = text.replace(/\r/g, "");
 		text = text.replace(/^\n+|\n+$/g, "");
 
-		var length = text.length;
-		if (!(length > 0)) {
-			return;
-		}
-		if (!this._checkMaxCellLength(length)) {
+		if (0 === text.length) {
 			return;
 		}
 
-		var wrap = -1 !== text.indexOf(kNewLine);
-		if (this.selectionBegin !== this.selectionEnd) {
-			this._removeChars();
-		}
-
-		// save info to undo/redo
-		this.undoList.push({fn: this._removeChars, args: [this.cursorPos, length]});
-		this.redoList = [];
-
-		var opt = this.options;
-		var nInsertPos = this.cursorPos;
-		var fr;
-		fr = this._findFragmentToInsertInto(nInsertPos - (nInsertPos > 0 ? 1 : 0));
-		if (fr) {
-			var oCurFragment = opt.fragments[fr.index];
-			if (fr.end <= nInsertPos) {
-				oCurFragment.text += text;
-			} else {
-				var sNewText = oCurFragment.text.substring(0, nInsertPos);
-				sNewText += text;
-				sNewText += oCurFragment.text.substring(nInsertPos);
-				oCurFragment.text = sNewText;
-			}
-			this.cursorPos = nInsertPos + length;
-			this._update();
-		}
-
-		if (wrap) {
-			this._wrapText();
-			this._update();
-		}
+		this._addChars(text);
 	};
 
 	CellEditor.prototype.paste = function (fragments, cursorPos) {
@@ -628,10 +636,6 @@
 		if (!this._checkMaxCellLength(length)) {
 			return;
 		}
-
-		var wrap = fragments.some(function (val) {
-			return -1 !== val.text.indexOf(kNewLine);
-		});
 
 		this._cleanFragments(fragments);
 
@@ -644,11 +648,6 @@
 		this.redoList = [];
 
 		this._addFragments(fragments, this.cursorPos);
-
-		if (wrap) {
-			this._wrapText();
-			this._update();
-		}
 
 		// Сделано только для вставки формулы в ячейку (когда не открыт редактор)
 		if (undefined !== cursorPos) {
@@ -805,7 +804,7 @@
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
 		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
-		this._formula.parse(true, true, this._parseResult);
+		this._formula.parse(true, true, this._parseResult, true);
 
 		var r, offset, _e, _s, wsName = null, refStr, isName = false, _sColorPos, localStrObj;
 
@@ -871,14 +870,34 @@
 								if (!nameRef.isSingleSheet()) {
 									continue;
 								}
+								
+								ret = true;
+								localStrObj = nameRef.toLocaleStringObj();
+								refStr = localStrObj[1];
+								wsName = nameRef.getWS().getName();
+
+								localStrObj = r.oper.toLocaleStringObj();
+								_s = _e - localStrObj[1].length;
+								_sColorPos = _e - localStrObj[0].length;
+								break;
 							}
-							case cElementType.cellsRange          :
-							case cElementType.cell3D        : {
+							case cElementType.cellsRange          :{
 								ret = true;
 								localStrObj = r.oper.toLocaleStringObj();
 								refStr = localStrObj[1];
 								wsName = nameRef.getWS().getName();
 								_s = _e - localStrObj[1].length;
+								break;
+							}
+							case cElementType.cell3D        : {
+								ret = true;
+								localStrObj = nameRef.toLocaleStringObj();
+								refStr = localStrObj[1];
+								wsName = nameRef.getWS().getName();
+
+								localStrObj = r.oper.toLocaleStringObj();
+								_s = _e - localStrObj[1].length;
+								_sColorPos = _e - localStrObj[0].length;
 								break;
 							}
 						}
@@ -1195,26 +1214,89 @@
 	CellEditor.prototype._fireUpdated = function () {
 		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
 		var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
-		var funcPos, funcName, match;
+		var fPos, fName, match, fCurrent;
 
 		if (!this.isTopLineActive || !this.skipTLUpdate || this.undoMode) {
 			this.input.value = s;
 		}
 
 		if (isFormula) {
-			funcPos = asc_lastidx(s, this.reNotFormula, this.cursorPos) + 1;
-			if (funcPos > 0) {
-				match = s.slice(funcPos, this.cursorPos).match(this.reFormula);
+			fPos = asc_lastidx(s, this.reNotFormula, this.cursorPos) + 1;
+			if (fPos > 0) {
+				match = s.slice(fPos, this.cursorPos).match(this.reFormula);
 			}
 			if (match) {
-				funcName = match[1];
+				fName = match[1];
 			} else {
-				funcPos = undefined;
-				funcName = undefined;
+				fPos = undefined;
+				fName = undefined;
+			}
+			fCurrent = this._getEditableFunction(this._parseResult);
+		}
+
+		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName);
+		this.handlers.trigger("updatedEditableFunction", fCurrent);
+	};
+
+	CellEditor.prototype._getEditableFunction = function (parseResult) {
+		var findOpenFunc = [], editableFunction = null, level = -1;
+		if(!parseResult) {
+			//в этом случае запускаю парсинг формулы до текущей позиции
+			var s = AscCommonExcel.getFragmentsText(this.options.fragments);
+			var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
+			if(isFormula) {
+				var pos = this.cursorPos;
+				var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen");
+				var ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+				var bbox = this.options.bbox;
+
+				var endPos = pos;
+				for(var n = pos; n < s.length; n++) {
+					if("(" === s[n]) {
+						endPos = n;
+					}
+				}
+
+				var formulaStr = s.substring(1, endPos);
+				parseResult = new AscCommonExcel.ParseResult([], []);
+				var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
+				var tempFormula = new AscCommonExcel.parserFormula(formulaStr, cellWithFormula, ws);
+				tempFormula.parse(true, true, parseResult, true);
 			}
 		}
 
-		this.handlers.trigger("updated", s, this.cursorPos, isFormula, funcPos, funcName);
+		var elements = parseResult ? parseResult.elems : null;
+		if(elements) {
+			for(var i = 0; i < elements.length; i++) {
+				if(cElementType.func === elements[i].type && elements[i + 1] && "(" === elements[i + 1].name) {
+					level++;
+					findOpenFunc[level] = {elem: elements[i], counter: 1};
+					i++;
+				} else if(-1 !== level) {
+					if("(" === elements[i].name) {
+						findOpenFunc[level].counter++;
+					} else if(")" === elements[i].name) {
+						findOpenFunc[level].counter--;
+					}
+				}
+				if(level > -1 && findOpenFunc[level].counter === 0) {
+					findOpenFunc.splice(level,1);
+					level--;
+				}
+			}
+		}
+
+		if(findOpenFunc) {
+			for(var j = findOpenFunc.length - 1; j >= 0; j--) {
+				if(findOpenFunc[j].counter > 0 && !(findOpenFunc[j].elem instanceof window['AscCommonExcel'].cUnknownFunction)) {
+					editableFunction = findOpenFunc[j].elem.name;
+					break;
+				}
+			}
+		}
+		//console.log(editableFunction);
+
+		return editableFunction;
 	};
 
 	CellEditor.prototype._expandWidth = function () {
@@ -1292,23 +1374,26 @@
 	};
 
 	CellEditor.prototype._adjustCanvas = function () {
+		var isRetina = AscBrowser.isRetina;
 		var z = this.defaults.canvasZIndex;
+		var borderSize = 1;
 		var left = this.left * this.kx;
 		var top = this.top * this.ky;
-		var widthStyle = (this.right - this.left) * this.kx - 1; // ToDo разобраться с '-1'
-		var heightStyle = (this.bottom - this.top) * this.ky - 1;
-		var isRetina = AscBrowser.isRetina;
-		var width = widthStyle, height = heightStyle;
+		var width, height, widthStyle, heightStyle;
 
-		if ( isRetina ) {
+		if (isRetina) {
+			borderSize = AscCommon.AscBrowser.convertToRetinaValue(borderSize, true);
+		}
+
+		width = widthStyle = (this.right - this.left) * this.kx - borderSize;
+		height = heightStyle = (this.bottom - this.top) * this.ky - borderSize;
+
+		if (isRetina) {
 			left = AscCommon.AscBrowser.convertToRetinaValue(left);
 			top = AscCommon.AscBrowser.convertToRetinaValue(top);
 
 			widthStyle = AscCommon.AscBrowser.convertToRetinaValue(widthStyle);
 			heightStyle = AscCommon.AscBrowser.convertToRetinaValue(heightStyle);
-
-			width = AscCommon.AscBrowser.convertToRetinaValue(widthStyle, true);
-			height = AscCommon.AscBrowser.convertToRetinaValue(heightStyle, true);
 		}
 
 		this.canvasOuterStyle.left = left + 'px';
@@ -1319,10 +1404,8 @@
 
 		this.canvas.width = this.canvasOverlay.width = width;
 		this.canvas.height = this.canvasOverlay.height = height;
-		if ( isRetina ) {
-			this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
-			this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
-		}
+		this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
+		this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
 	};
 
 	CellEditor.prototype._renderText = function (dy) {
@@ -1475,12 +1558,11 @@
 			curHeight = AscCommon.AscBrowser.convertToRetinaValue(curHeight);
 		}
 
+		this.curLeft = curLeft;
+		this.curTop = curTop;
+		this.curHeight = curHeight;
 
-		if (window['IS_NATIVE_EDITOR']) {
-			this.curLeft = curLeft;
-			this.curTop = curTop;
-			this.curHeight = curHeight;
-		} else {
+		if (!window['IS_NATIVE_EDITOR']) {
 			this.cursorStyle.left = curLeft + "px";
 			this.cursorStyle.top = curTop + "px";
 			this.cursorStyle.height = curHeight + "px";
@@ -1714,6 +1796,9 @@
 			}
 
 			this.cursorPos = pos + str.length;
+			if (-1 !== str.indexOf(kNewLine)) {
+				this._wrapText();
+			}
 		}
 
 		this.noUpdateMode = noUpdateMode;
@@ -2098,10 +2183,18 @@
 		t.undoMode = false;
 	};
 
-	CellEditor.prototype._tryCloseEditor = function (event) {
-		if (this.close(true)) {
-			this.handlers.trigger("applyCloseEvent", event);
+	CellEditor.prototype._tryCloseEditor = function (event, bApplyByArray) {
+		var t = this;
+		var callback = function(success) {
+			//для случая, когда пользователь нажимает ctrl+shift+enter переход на новую строку не осуществляется
+			if(!bApplyByArray && success) {
+				t.handlers.trigger("applyCloseEvent", event);
+			}
+		};
+		if(!window['AscCommonExcel'].bIsSupportArrayFormula) {
+			bApplyByArray = false;
 		}
+		this.close(true, bApplyByArray, callback);
 	};
 
 	CellEditor.prototype._getAutoComplete = function (str) {
@@ -2215,7 +2308,7 @@
 							t._addNewLine();
 						} else {
 							if (false === t.handlers.trigger("isGlobalLockEditCell")) {
-								t._tryCloseEditor(event);
+								t._tryCloseEditor(event, event.shiftKey&&event.ctrlKey);
 							}
 						}
 					}
@@ -2501,7 +2594,9 @@
 				var res = this._findRangeUnderCursor();
 				if (res.range) {
 					res.range.switchReference();
-					this.enterCellRange(res.range.getName());
+					//_getNameRange - работает только для случая, когда ссылаемся на тот же лист, в противном функция _findRangeUnderCursor возвращает null
+					//если поменяется функция _findRangeUnderCursor для 3d ссылок, тогда необходимо это учитывать и в функции _getNameRange
+					this.enterCellRange(this._getNameRange(res.range));
 				}
 
 				event.stopPropagation();
@@ -2512,6 +2607,18 @@
 		t.skipKeyPress = false;
 		t.skipTLUpdate = true;
 		return true;
+	};
+
+	CellEditor.prototype._getNameRange = function (range) {
+		//check on merge
+		var currentRange = range.clone();
+		var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+		var mergedRange = ws.getMergedByCell(currentRange.r1, currentRange.c1);
+		if (mergedRange && currentRange.isEqual(mergedRange)) {
+			currentRange.r2 = currentRange.r1;
+			currentRange.c2 = currentRange.c1;
+		}
+		return currentRange.getName();
 	};
 
 	/** @param event {KeyboardEvent} */

@@ -75,6 +75,14 @@ CNumberingLvl.prototype.GetPStyle = function()
 	return this.PStyle;
 };
 /**
+ * Устанавливаем связанный стиль
+ * @param {string} sStyleId
+ */
+CNumberingLvl.prototype.SetPStyle = function(sStyleId)
+{
+	this.PStyle = sStyleId;
+};
+/**
  * Доступ к начальному значению для данного уровня
  * @returns {number}
  */

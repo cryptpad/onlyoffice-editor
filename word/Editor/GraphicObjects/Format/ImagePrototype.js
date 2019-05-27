@@ -197,6 +197,8 @@ CImageShape.prototype.recalculate = function ()
             this.recalculateWrapPolygon();
             this.recalcInfo.recalculateWrapPolygon = false;
         }
+
+        this.clearCropObject();
         this.bNeedUpdatePosition = true;
     }, this, []);
 };

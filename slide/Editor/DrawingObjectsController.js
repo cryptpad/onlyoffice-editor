@@ -282,7 +282,6 @@ DrawingObjectsController.prototype.editChart = function(binary)
                         this.selection.groupSelection.selectObject(chart_space, this.drawingObjects.num);
                     }
                     this.startRecalculate();
-                    this.sendGraphicObjectProps();
                     return;
                 }
             }
@@ -298,7 +297,6 @@ DrawingObjectsController.prototype.editChart = function(binary)
             this.resetSelection();
             this.selectObject(chart_space, this.drawingObjects.num);
             this.startRecalculate();
-            this.sendGraphicObjectProps();
             this.updateOverlay();
         }
     }
@@ -309,6 +307,10 @@ DrawingObjectsController.prototype.handleSlideComments  =  function(e, x, y, pag
 
     if(!this.drawingObjects.slideComments){
         return;
+    }
+    if(this.isSlideShow && this.isSlideShow())
+    {
+        return false;
     }
     var comments = this.drawingObjects.slideComments.comments, i, index_selected = -1;
     var ret = {result: null, selectedIndex: -1};

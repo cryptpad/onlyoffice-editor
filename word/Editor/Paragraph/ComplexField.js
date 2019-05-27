@@ -365,7 +365,7 @@ CComplexField.prototype.SetSeparateChar = function(oChar)
 	this.SeparateChar = oChar;
 	this.EndChar      = null;
 };
-CComplexField.prototype.Update = function(isCreateHistoryPoint)
+CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculate)
 {
 	this.private_UpdateInstruction();
 
@@ -379,7 +379,7 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint)
 		if (true === this.LogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 			return;
 
-		this.LogicDocument.Create_NewHistoryPoint();
+		this.LogicDocument.StartAction();
 	}
 
 	switch (this.Instruction.GetType())
@@ -398,10 +398,54 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint)
 		case fieldtype_PAGECOUNT:
 			this.private_UpdateNUMPAGES();
 			break;
+		case fieldtype_FORMULA:
+			this.private_UpdateFORMULA();
+			break;
 
 	}
 
-	this.LogicDocument.Recalculate();
+	if (false !== isNeedRecalculate)
+		this.LogicDocument.Recalculate();
+
+	if (isCreateHistoryPoint)
+	{
+		this.LogicDocument.FinalizeAction();
+	}
+};
+CComplexField.prototype.private_UpdateFORMULA = function()
+{
+	this.Instruction.Calculate(this.LogicDocument);
+	if(this.Instruction.ErrStr !== null)
+	{
+		var oSelectedContent = new CSelectedContent();
+		var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+		var oRun  = new ParaRun(oPara, false);
+		oRun.Set_Bold(true);
+		oRun.AddText(this.Instruction.ErrStr);
+		oPara.AddToContent(0, oRun);
+		oSelectedContent.Add(new CSelectedElement(oPara, false));
+		this.LogicDocument.TurnOff_Recalculate();
+		this.LogicDocument.TurnOff_InterfaceEvents();
+		this.LogicDocument.Remove(1, false, false, false);
+		this.LogicDocument.TurnOn_Recalculate(false);
+		this.LogicDocument.TurnOn_InterfaceEvents(false);
+		oRun       = this.BeginChar.GetRun();
+		var oParagraph = oRun.GetParagraph();
+		var oNearPos   = {
+			Paragraph  : oParagraph,
+			ContentPos : oParagraph.Get_ParaContentPos(false, false)
+		};
+		oParagraph.Check_NearestPos(oNearPos);
+		oSelectedContent.DoNotAddEmptyPara = true;
+		oParagraph.Parent.Insert_Content(oSelectedContent, oNearPos);
+	}
+	else
+	{
+		if(this.Instruction.ResultStr !== null)
+		{
+			this.LogicDocument.AddText(this.Instruction.ResultStr);
+		}
+	}
 };
 CComplexField.prototype.private_UpdatePAGE = function()
 {
@@ -481,6 +525,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 				SkipComments          : true
 			});
 			oPara.Style_Add(oStyles.GetDefaultTOC(arrOutline[nIndex].Lvl), false);
+			oPara.SetOutlineLvl(undefined);
 
 
 			var oClearTextPr = new CTextPr();
@@ -750,7 +795,7 @@ CComplexField.prototype.SelectField = function()
 CComplexField.prototype.GetTopDocumentContent = function()
 {
 	if (!this.BeginChar || !this.SeparateChar || !this.EndChar)
-		return;
+		return null;
 
 	var oTopDocument = this.BeginChar.GetTopDocumentContent();
 
@@ -920,17 +965,31 @@ CComplexField.prototype.SetPr = function(oPr)
 	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
 	oRun.AddInstrText(sNewInstruction, nInRunPos);
 };
+/**
+ * Изменяем строку инструкции у поля
+ * @param {string} sNewInstruction
+ */
+CComplexField.prototype.ChangeInstruction = function(sNewInstruction)
+{
+	if (!this.IsValid())
+		return;
+
+	var oDocument = this.GetTopDocumentContent();
+	if (!oDocument)
+		return;
+
+	this.SelectFieldCode();
+	oDocument.Remove();
+
+	var oRun      = this.BeginChar.GetRun();
+	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
+	oRun.AddInstrText(sNewInstruction, nInRunPos);
+
+	this.Instruction     = null;
+	this.InstructionLine = sNewInstruction;
+	this.private_UpdateInstruction();
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CComplexField = CComplexField;
-
-
-
-function TEST_ADDFIELD(sInstruction)
-{
-	var oLogicDocument = editor.WordControl.m_oLogicDocument;
-	oLogicDocument.Create_NewHistoryPoint();
-	oLogicDocument.AddFieldWithInstruction(sInstruction);
-	oLogicDocument.Recalculate();
-}

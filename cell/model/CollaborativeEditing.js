@@ -363,6 +363,7 @@
 //                }
 
 				this.handlers.trigger("updateAllLayoutsLock");
+				this.handlers.trigger("asc_onLockPrintArea");
 
 				if (0 === this.m_nUseType)
 					this.m_nUseType = 1;

@@ -109,6 +109,7 @@
 	function cABS() {
 	}
 
+	//***array-formula***
 	cABS.prototype = Object.create(cBaseFunction.prototype);
 	cABS.prototype.constructor = cABS;
 	cABS.prototype.name = 'ABS';
@@ -143,6 +144,7 @@
 	function cACOS() {
 	}
 
+	//***array-formula***
 	cACOS.prototype = Object.create(cBaseFunction.prototype);
 	cACOS.prototype.constructor = cACOS;
 	cACOS.prototype.name = 'ACOS';
@@ -179,6 +181,7 @@
 	function cACOSH() {
 	}
 
+	//***array-formula***
 	cACOSH.prototype = Object.create(cBaseFunction.prototype);
 	cACOSH.prototype.constructor = cACOSH;
 	cACOSH.prototype.name = 'ACOSH';
@@ -215,6 +218,7 @@
 	function cACOT() {
 	}
 
+	//***array-formula***
 	cACOT.prototype = Object.create(cBaseFunction.prototype);
 	cACOT.prototype.constructor = cACOT;
 	cACOT.prototype.name = 'ACOT';
@@ -253,6 +257,7 @@
 	function cACOTH() {
 	}
 
+	//***array-formula***
 	cACOTH.prototype = Object.create(cBaseFunction.prototype);
 	cACOTH.prototype.constructor = cACOTH;
 	cACOTH.prototype.name = 'ACOTH';
@@ -291,12 +296,15 @@
 	function cAGGREGATE() {
 	}
 
+	//***array-formula***
 	cAGGREGATE.prototype = Object.create(cBaseFunction.prototype);
 	cAGGREGATE.prototype.constructor = cAGGREGATE;
 	cAGGREGATE.prototype.name = 'AGGREGATE';
 	cAGGREGATE.prototype.argumentsMin = 3;
 	cAGGREGATE.prototype.argumentsMax = 253;
 	cAGGREGATE.prototype.isXLFN = true;
+	//TODO начиная со 3 аргумента все оставшиеся - массивы
+	cAGGREGATE.prototype.arrayIndexes = {2: 1, 3: 1, 4: 1, 5: 1, 6: 1};
 	cAGGREGATE.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
 		var argClone = oArguments.args;
@@ -471,6 +479,7 @@
 	function cARABIC() {
 	}
 
+	//***array-formula***
 	cARABIC.prototype = Object.create(cBaseFunction.prototype);
 	cARABIC.prototype.constructor = cARABIC;
 	cARABIC.prototype.name = 'ARABIC';
@@ -544,6 +553,7 @@
 	function cASIN() {
 	}
 
+	//***array-formula***
 	cASIN.prototype = Object.create(cBaseFunction.prototype);
 	cASIN.prototype.constructor = cASIN;
 	cASIN.prototype.name = 'ASIN';
@@ -580,6 +590,7 @@
 	function cASINH() {
 	}
 
+	//***array-formula***
 	cASINH.prototype = Object.create(cBaseFunction.prototype);
 	cASINH.prototype.constructor = cASINH;
 	cASINH.prototype.name = 'ASINH';
@@ -616,6 +627,7 @@
 	function cATAN() {
 	}
 
+	//***array-formula***
 	cATAN.prototype = Object.create(cBaseFunction.prototype);
 	cATAN.prototype.constructor = cATAN;
 	cATAN.prototype.name = 'ATAN';
@@ -722,6 +734,7 @@
 	function cATANH() {
 	}
 
+	//***array-formula***
 	cATANH.prototype = Object.create(cBaseFunction.prototype);
 	cATANH.prototype.constructor = cATANH;
 	cATANH.prototype.name = 'ATANH';
@@ -758,6 +771,7 @@
 	function cBASE() {
 	}
 
+	//***array-formula***
 	cBASE.prototype = Object.create(cBaseFunction.prototype);
 	cBASE.prototype.constructor = cBASE;
 	cBASE.prototype.name = 'BASE';
@@ -809,6 +823,7 @@
 	function cCEILING() {
 	}
 
+	//***array-formula***
 	cCEILING.prototype = Object.create(cBaseFunction.prototype);
 	cCEILING.prototype.constructor = cCEILING;
 	cCEILING.prototype.name = 'CEILING';
@@ -903,6 +918,7 @@
 	function cCEILING_MATH() {
 	}
 
+	//***array-formula***
 	cCEILING_MATH.prototype = Object.create(cBaseFunction.prototype);
 	cCEILING_MATH.prototype.constructor = cCEILING_MATH;
 	cCEILING_MATH.prototype.name = 'CEILING.MATH';
@@ -994,6 +1010,7 @@
 	function cCOMBIN() {
 	}
 
+	//***array-formula***
 	cCOMBIN.prototype = Object.create(cBaseFunction.prototype);
 	cCOMBIN.prototype.constructor = cCOMBIN;
 	cCOMBIN.prototype.name = 'COMBIN';
@@ -1078,6 +1095,7 @@
 	function cCOMBINA() {
 	}
 
+	//***array-formula***
 	cCOMBINA.prototype = Object.create(cBaseFunction.prototype);
 	cCOMBINA.prototype.constructor = cCOMBINA;
 	cCOMBINA.prototype.name = 'COMBINA';
@@ -1119,6 +1137,7 @@
 	function cCOS() {
 	}
 
+	//***array-formula***
 	cCOS.prototype = Object.create(cBaseFunction.prototype);
 	cCOS.prototype.constructor = cCOS;
 	cCOS.prototype.name = 'COS';
@@ -1155,6 +1174,7 @@
 	function cCOSH() {
 	}
 
+	//***array-formula***
 	cCOSH.prototype = Object.create(cBaseFunction.prototype);
 	cCOSH.prototype.constructor = cCOSH;
 	cCOSH.prototype.name = 'COSH';
@@ -1191,6 +1211,7 @@
 	function cCOT() {
 	}
 
+	//***array-formula***
 	cCOT.prototype = Object.create(cBaseFunction.prototype);
 	cCOT.prototype.constructor = cCOT;
 	cCOT.prototype.name = 'COT';
@@ -1242,6 +1263,7 @@
 	function cCOTH() {
 	}
 
+	//***array-formula***
 	cCOTH.prototype = Object.create(cBaseFunction.prototype);
 	cCOTH.prototype.constructor = cCOTH;
 	cCOTH.prototype.name = 'COTH';
@@ -1291,6 +1313,7 @@
 	function cCSC() {
 	}
 
+	//***array-formula***
 	cCSC.prototype = Object.create(cBaseFunction.prototype);
 	cCSC.prototype.constructor = cCSC;
 	cCSC.prototype.name = 'CSC';
@@ -1342,6 +1365,7 @@
 	function cCSCH() {
 	}
 
+	//***array-formula***
 	cCSCH.prototype = Object.create(cBaseFunction.prototype);
 	cCSCH.prototype.constructor = cCSCH;
 	cCSCH.prototype.name = 'CSCH';
@@ -1391,6 +1415,7 @@
 	function cDECIMAL() {
 	}
 
+	//***array-formula***
 	cDECIMAL.prototype = Object.create(cBaseFunction.prototype);
 	cDECIMAL.prototype.constructor = cDECIMAL;
 	cDECIMAL.prototype.name = 'DECIMAL';
@@ -1465,6 +1490,7 @@
 	function cDEGREES() {
 	}
 
+	//***array-formula***
 	cDEGREES.prototype = Object.create(cBaseFunction.prototype);
 	cDEGREES.prototype.constructor = cDEGREES;
 	cDEGREES.prototype.name = 'DEGREES';
@@ -1503,6 +1529,7 @@
 	function cECMA_CEILING() {
 	}
 
+	//***array-formula***
 	cECMA_CEILING.prototype = Object.create(cCEILING.prototype);
 	cECMA_CEILING.prototype.constructor = cECMA_CEILING;
 	cECMA_CEILING.prototype.name = 'ECMA.CEILING';
@@ -1514,6 +1541,7 @@
 	function cEVEN() {
 	}
 
+	//***array-formula***
 	cEVEN.prototype = Object.create(cBaseFunction.prototype);
 	cEVEN.prototype.constructor = cEVEN;
 	cEVEN.prototype.name = 'EVEN';
@@ -1573,6 +1601,7 @@
 	function cEXP() {
 	}
 
+	//***array-formula***
 	cEXP.prototype = Object.create(cBaseFunction.prototype);
 	cEXP.prototype.constructor = cEXP;
 	cEXP.prototype.name = 'EXP';
@@ -1611,6 +1640,7 @@
 	function cFACT() {
 	}
 
+	//***array-formula***
 	cFACT.prototype = Object.create(cBaseFunction.prototype);
 	cFACT.prototype.constructor = cFACT;
 	cFACT.prototype.name = 'FACT';
@@ -1654,11 +1684,13 @@
 	function cFACTDOUBLE() {
 	}
 
+	//***array-formula***
 	cFACTDOUBLE.prototype = Object.create(cBaseFunction.prototype);
 	cFACTDOUBLE.prototype.constructor = cFACTDOUBLE;
 	cFACTDOUBLE.prototype.name = 'FACTDOUBLE';
 	cFACTDOUBLE.prototype.argumentsMin = 1;
 	cFACTDOUBLE.prototype.argumentsMax = 1;
+	cFACTDOUBLE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cFACTDOUBLE.prototype.Calculate = function (arg) {
 		function factDouble(n) {
 			if (n == 0) {
@@ -1813,6 +1845,7 @@
 	function cFLOOR_PRECISE() {
 	}
 
+	//***array-formula***
 	cFLOOR_PRECISE.prototype = Object.create(cBaseFunction.prototype);
 	cFLOOR_PRECISE.prototype.constructor = cFLOOR_PRECISE;
 	cFLOOR_PRECISE.prototype.name = 'FLOOR.PRECISE';
@@ -1853,6 +1886,7 @@
 	function cFLOOR_MATH() {
 	}
 
+	//***array-formula***
 	cFLOOR_MATH.prototype = Object.create(cBaseFunction.prototype);
 	cFLOOR_MATH.prototype.constructor = cFLOOR_MATH;
 	cFLOOR_MATH.prototype.name = 'FLOOR.MATH';
@@ -1908,6 +1942,7 @@
 	cGCD.prototype.constructor = cGCD;
 	cGCD.prototype.name = 'GCD';
 	cGCD.prototype.argumentsMin = 1;
+	cGCD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cGCD.prototype.Calculate = function (arg) {
 
 		var _gcd = 0, argArr;
@@ -1997,6 +2032,7 @@
 	function cINT() {
 	}
 
+	//***array-formula***
 	cINT.prototype = Object.create(cBaseFunction.prototype);
 	cINT.prototype.constructor = cINT;
 	cINT.prototype.name = 'INT';
@@ -2078,10 +2114,12 @@
 	function cLCM() {
 	}
 
+	//***array-formula***
 	cLCM.prototype = Object.create(cBaseFunction.prototype);
 	cLCM.prototype.constructor = cLCM;
 	cLCM.prototype.name = 'LCM';
 	cLCM.prototype.argumentsMin = 1;
+	cLCM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cLCM.prototype.Calculate = function (arg) {
 
 		var _lcm = 1, argArr;
@@ -2175,6 +2213,7 @@
 	function cLN() {
 	}
 
+	//***array-formula***
 	cLN.prototype = Object.create(cBaseFunction.prototype);
 	cLN.prototype.constructor = cLN;
 	cLN.prototype.name = 'LN';
@@ -2251,6 +2290,10 @@
 					var a = elem;
 					var b = arg1.getElementRowCol(r, c);
 					if (a instanceof cNumber && b instanceof cNumber) {
+						if(1 === b.getValue()) {
+							return new cError(cErrorType.division_by_zero);
+						}
+
 						this.array[r][c] = new cNumber(Math.log(a.getValue()) / Math.log(b.getValue()));
 					} else {
 						this.array[r][c] = new cError(cErrorType.wrong_value_type);
@@ -2267,6 +2310,10 @@
 						this.array[r][c] = new cError(cErrorType.not_numeric);
 					}
 
+					if(1 === b.getValue()) {
+						return new cError(cErrorType.division_by_zero);
+					}
+
 					this.array[r][c] = new cNumber(Math.log(a.getValue()) / Math.log(b.getValue()));
 				} else {
 					this.array[r][c] = new cError(cErrorType.wrong_value_type);
@@ -2280,6 +2327,10 @@
 
 					if (a.getValue() <= 0 || a.getValue() <= 0) {
 						this.array[r][c] = new cError(cErrorType.not_numeric);
+					}
+
+					if(1 === b.getValue()) {
+						return new cError(cErrorType.division_by_zero);
 					}
 
 					this.array[r][c] = new cNumber(Math.log(a.getValue()) / Math.log(b.getValue()));
@@ -2298,6 +2349,10 @@
 			return new cError(cErrorType.not_numeric);
 		}
 
+		if(1 === arg1.getValue()) {
+			return new cError(cErrorType.division_by_zero);
+		}
+
 		return new cNumber(Math.log(arg0.getValue()) / Math.log(arg1.getValue()));
 	};
 
@@ -2308,6 +2363,7 @@
 	function cLOG10() {
 	}
 
+	//***array-formula***
 	cLOG10.prototype = Object.create(cBaseFunction.prototype);
 	cLOG10.prototype.constructor = cLOG10;
 	cLOG10.prototype.name = 'LOG10';
@@ -2352,12 +2408,14 @@
 	function cMDETERM() {
 	}
 
+	//***array-formula***
 	cMDETERM.prototype = Object.create(cBaseFunction.prototype);
 	cMDETERM.prototype.constructor = cMDETERM;
 	cMDETERM.prototype.name = 'MDETERM';
 	cMDETERM.prototype.argumentsMin = 1;
 	cMDETERM.prototype.argumentsMax = 1;
 	cMDETERM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMDETERM.prototype.arrayIndexes = {0: 1};
 	cMDETERM.prototype.Calculate = function (arg) {
 
 		function determ(A) {
@@ -2435,12 +2493,14 @@
 	function cMINVERSE() {
 	}
 
+	//***array-formula***
 	cMINVERSE.prototype = Object.create(cBaseFunction.prototype);
 	cMINVERSE.prototype.constructor = cMINVERSE;
 	cMINVERSE.prototype.name = 'MINVERSE';
 	cMINVERSE.prototype.argumentsMin = 1;
 	cMINVERSE.prototype.argumentsMax = 1;
 	cMINVERSE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMINVERSE.prototype.arrayIndexes = {0: 1};
 	cMINVERSE.prototype.Calculate = function (arg) {
 
 		function Determinant(A) {
@@ -2583,6 +2643,7 @@
 	cMMULT.prototype.argumentsMin = 2;
 	cMMULT.prototype.argumentsMax = 2;
 	cMMULT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMMULT.prototype.arrayIndexes = {0: 1, 1: 1};
 	cMMULT.prototype.Calculate = function (arg) {
 
 		function mult(A, B) {
@@ -2624,11 +2685,15 @@
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArray) {
 			arg0 = arg0.getMatrix();
+		} else if(arg1 instanceof cArea3D) {
+			arg0 = arg0.getMatrix()[0];
 		} else {
 			return new cError(cErrorType.not_available);
 		}
 		if (arg1 instanceof cArea || arg1 instanceof cArray) {
 			arg1 = arg1.getMatrix();
+		} else if(arg1 instanceof cArea3D) {
+			arg1 = arg1.getMatrix()[0];
 		} else {
 			return new cError(cErrorType.not_available);
 		}
@@ -2732,6 +2797,7 @@
 	cMROUND.prototype.name = 'MROUND';
 	cMROUND.prototype.argumentsMin = 2;
 	cMROUND.prototype.argumentsMax = 2;
+	cMROUND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cMROUND.prototype.Calculate = function (arg) {
 
 		var multiple;
@@ -2828,10 +2894,12 @@
 	function cMULTINOMIAL() {
 	}
 
+	//***array-formula***
 	cMULTINOMIAL.prototype = Object.create(cBaseFunction.prototype);
 	cMULTINOMIAL.prototype.constructor = cMULTINOMIAL;
 	cMULTINOMIAL.prototype.name = 'MULTINOMIAL';
 	cMULTINOMIAL.prototype.argumentsMin = 1;
+	cMULTINOMIAL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMULTINOMIAL.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), fact = 1;
 
@@ -2841,14 +2909,14 @@
 				for (var j = 0; j < _arrVal.length; j++) {
 					if (_arrVal[j] instanceof cNumber) {
 						if (_arrVal[j].getValue() < 0) {
-							return new cError(cError.not_numeric);
+							return new cError(cErrorType.not_numeric);
 						}
 						arg0 = _func[arg0.type][_arrVal[j].type](arg0, _arrVal[j], "+");
 						fact *= Math.fact(_arrVal[j].getValue());
 					} else if (_arrVal[j] instanceof cError) {
 						return _arrVal[j];
 					} else {
-						return new cError(cError.wrong_value_type);
+						return new cError(cErrorType.wrong_value_type);
 					}
 				}
 			} else if (arg[i] instanceof cArray) {
@@ -2917,6 +2985,7 @@
 	function cODD() {
 	}
 
+	//***array-formula***
 	cODD.prototype = Object.create(cBaseFunction.prototype);
 	cODD.prototype.constructor = cODD;
 	cODD.prototype.name = 'ODD';
@@ -2976,6 +3045,7 @@
 	function cPI() {
 	}
 
+	//***array-formula***
 	cPI.prototype = Object.create(cBaseFunction.prototype);
 	cPI.prototype.constructor = cPI;
 	cPI.prototype.name = 'PI';
@@ -3070,10 +3140,12 @@
 	function cPRODUCT() {
 	}
 
+	//***array-formula***
 	cPRODUCT.prototype = Object.create(cBaseFunction.prototype);
 	cPRODUCT.prototype.constructor = cPRODUCT;
 	cPRODUCT.prototype.name = 'PRODUCT';
 	cPRODUCT.prototype.argumentsMin = 1;
+	cPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cPRODUCT.prototype.Calculate = function (arg) {
 		var element, arg0 = new cNumber(1);
 		for (var i = 0; i < arg.length; i++) {
@@ -3119,11 +3191,13 @@
 	function cQUOTIENT() {
 	}
 
+	//***array-formula***
 	cQUOTIENT.prototype = Object.create(cBaseFunction.prototype);
 	cQUOTIENT.prototype.constructor = cQUOTIENT;
 	cQUOTIENT.prototype.name = 'QUOTIENT';
 	cQUOTIENT.prototype.argumentsMin = 2;
 	cQUOTIENT.prototype.argumentsMax = 2;
+	cQUOTIENT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cQUOTIENT.prototype.Calculate = function (arg) {
 
 		function quotient(a, b) {
@@ -3195,6 +3269,7 @@
 	function cRADIANS() {
 	}
 
+	//***array-formula***
 	cRADIANS.prototype = Object.create(cBaseFunction.prototype);
 	cRADIANS.prototype.constructor = cRADIANS;
 	cRADIANS.prototype.name = 'RADIANS';
@@ -3235,11 +3310,13 @@
 	function cRAND() {
 	}
 
+	//***array-formula***
 	cRAND.prototype = Object.create(cBaseFunction.prototype);
 	cRAND.prototype.constructor = cRAND;
 	cRAND.prototype.name = 'RAND';
 	cRAND.prototype.argumentsMax = 0;
 	cRAND.prototype.ca = true;
+	cRAND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cRAND.prototype.Calculate = function () {
 		return new cNumber(Math.random());
 	};
@@ -3251,12 +3328,14 @@
 	function cRANDBETWEEN() {
 	}
 
+	//***array-formula***
 	cRANDBETWEEN.prototype = Object.create(cBaseFunction.prototype);
 	cRANDBETWEEN.prototype.constructor = cRANDBETWEEN;
 	cRANDBETWEEN.prototype.name = 'RANDBETWEEN';
 	cRANDBETWEEN.prototype.argumentsMin = 2;
 	cRANDBETWEEN.prototype.argumentsMax = 2;
 	cRANDBETWEEN.prototype.ca = true;
+	cRANDBETWEEN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cRANDBETWEEN.prototype.Calculate = function (arg) {
 
 		function randBetween(a, b) {
@@ -3722,7 +3801,7 @@
 				return new cNumber(number);
 			}
 			var x = number * Math.pow(10, num_digits);
-			x = (x | x) + (x > 0 ? 1 : x < 0 ? -1 : 0) * 1;
+			x = (x | x) + ((x ^ 0) === x ? 0 : x > 0 ? 1 : x < 0 ? -1 : 0) * 1;
 			return new cNumber(x * significance);
 		}
 
@@ -3818,6 +3897,7 @@
 	function cSEC() {
 	}
 
+	//***array-formula***
 	cSEC.prototype = Object.create(cBaseFunction.prototype);
 	cSEC.prototype.constructor = cSEC;
 	cSEC.prototype.name = 'SEC';
@@ -3865,6 +3945,7 @@
 	function cSECH() {
 	}
 
+	//***array-formula***
 	cSECH.prototype = Object.create(cBaseFunction.prototype);
 	cSECH.prototype.constructor = cSECH;
 	cSECH.prototype.name = 'SECH';
@@ -3906,11 +3987,14 @@
 	function cSERIESSUM() {
 	}
 
+	//***array-formula***
 	cSERIESSUM.prototype = Object.create(cBaseFunction.prototype);
 	cSERIESSUM.prototype.constructor = cSERIESSUM;
 	cSERIESSUM.prototype.name = 'SERIESSUM';
 	cSERIESSUM.prototype.argumentsMin = 4;
 	cSERIESSUM.prototype.argumentsMax = 4;
+	cSERIESSUM.prototype.arrayIndexes = {3: 1};
+	cSERIESSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cSERIESSUM.prototype.Calculate = function (arg) {
 
 		function SERIESSUM(x, n, m, a) {
@@ -3975,6 +4059,7 @@
 	function cSIGN() {
 	}
 
+	//***array-formula***
 	cSIGN.prototype = Object.create(cBaseFunction.prototype);
 	cSIGN.prototype.constructor = cSIGN;
 	cSIGN.prototype.name = 'SIGN';
@@ -4024,6 +4109,7 @@
 	function cSIN() {
 	}
 
+	//***array-formula***
 	cSIN.prototype = Object.create(cBaseFunction.prototype);
 	cSIN.prototype.constructor = cSIN;
 	cSIN.prototype.name = 'SIN';
@@ -4060,6 +4146,7 @@
 	function cSINH() {
 	}
 
+	//***array-formula***
 	cSINH.prototype = Object.create(cBaseFunction.prototype);
 	cSINH.prototype.constructor = cSINH;
 	cSINH.prototype.name = 'SINH';
@@ -4096,6 +4183,7 @@
 	function cSQRT() {
 	}
 
+	//***array-formula***
 	cSQRT.prototype = Object.create(cBaseFunction.prototype);
 	cSQRT.prototype.constructor = cSQRT;
 	cSQRT.prototype.name = 'SQRT';
@@ -4132,11 +4220,13 @@
 	function cSQRTPI() {
 	}
 
+	//***array-formula***
 	cSQRTPI.prototype = Object.create(cBaseFunction.prototype);
 	cSQRTPI.prototype.constructor = cSQRTPI;
 	cSQRTPI.prototype.name = 'SQRTPI';
 	cSQRTPI.prototype.argumentsMin = 1;
 	cSQRTPI.prototype.argumentsMax = 1;
+	cSQRTPI.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cSQRTPI.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -4168,10 +4258,13 @@
 	function cSUBTOTAL() {
 	}
 
+	//***array-formula***
 	cSUBTOTAL.prototype = Object.create(cBaseFunction.prototype);
 	cSUBTOTAL.prototype.constructor = cSUBTOTAL;
 	cSUBTOTAL.prototype.name = 'SUBTOTAL';
 	cSUBTOTAL.prototype.argumentsMin = 1;
+	//TODO все оставшиеся аргументы приходят на вход функции как массивы
+	cSUBTOTAL.prototype.arrayIndexes = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1};
 	cSUBTOTAL.prototype.Calculate = function (arg) {
 		var f, exclude = false, arg0 = arg[0];
 
@@ -4268,10 +4361,12 @@
 	function cSUM() {
 	}
 
+	//***array-formula***
 	cSUM.prototype = Object.create(cBaseFunction.prototype);
 	cSUM.prototype.constructor = cSUM;
 	cSUM.prototype.name = 'SUM';
 	cSUM.prototype.argumentsMin = 1;
+	cSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSUM.prototype.Calculate = function (arg) {
 		var element, _arg, arg0 = new cNumber(0);
 		for (var i = 0; i < arg.length; i++) {
@@ -4321,11 +4416,13 @@
 	function cSUMIF() {
 	}
 
+	//***array-formula***
 	cSUMIF.prototype = Object.create(cBaseFunction.prototype);
 	cSUMIF.prototype.constructor = cSUMIF;
 	cSUMIF.prototype.name = 'SUMIF';
 	cSUMIF.prototype.argumentsMin = 2;
 	cSUMIF.prototype.argumentsMax = 3;
+	cSUMIF.prototype.arrayIndexes = {0: 1, 2: 1};
 	cSUMIF.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : arg[0], _sum = 0, matchingInfo;
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&
@@ -4389,10 +4486,13 @@
 	function cSUMIFS() {
 	}
 
+	//TODO есть расхождение с MS - смотри в файле + arrayIndexes - нужно формировать при условии что все нечетные аргумента - массивы(начиная с 3 аргумента)
+	//***array-formula***
 	cSUMIFS.prototype = Object.create(cBaseFunction.prototype);
 	cSUMIFS.prototype.constructor = cSUMIFS;
 	cSUMIFS.prototype.name = 'SUMIFS';
 	cSUMIFS.prototype.argumentsMin = 3;
+	cSUMIFS.prototype.arrayIndexes = {0: 1, 1: 1, 3: 1, 5: 1, 7: 1};
 	cSUMIFS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&
@@ -4503,10 +4603,12 @@
 	function cSUMPRODUCT() {
 	}
 
+	//***array-formula***
 	cSUMPRODUCT.prototype = Object.create(cBaseFunction.prototype);
 	cSUMPRODUCT.prototype.constructor = cSUMPRODUCT;
 	cSUMPRODUCT.prototype.name = 'SUMPRODUCT';
 	cSUMPRODUCT.prototype.argumentsMin = 1;
+	cSUMPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSUMPRODUCT.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), resArr = [], col = 0, row = 0, res = 1, _res = [], i;
 
@@ -4580,10 +4682,12 @@
 	function cSUMSQ() {
 	}
 
+	//***array-formula***
 	cSUMSQ.prototype = Object.create(cBaseFunction.prototype);
 	cSUMSQ.prototype.constructor = cSUMSQ;
 	cSUMSQ.prototype.name = 'SUMSQ';
 	cSUMSQ.prototype.argumentsMin = 1;
+	cSUMSQ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSUMSQ.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), _arg;
 
@@ -4638,6 +4742,7 @@
 	cSUMX2MY2.prototype.name = 'SUMX2MY2';
 	cSUMX2MY2.prototype.argumentsMin = 2;
 	cSUMX2MY2.prototype.argumentsMax = 2;
+	cSUMX2MY2.prototype.arrayIndexes = {0: 1, 1: 1};
 	cSUMX2MY2.prototype.Calculate = function (arg) {
 
 		function sumX2MY2(a, b, _3d) {
@@ -4719,6 +4824,7 @@
 	cSUMX2PY2.prototype.name = 'SUMX2PY2';
 	cSUMX2PY2.prototype.argumentsMin = 2;
 	cSUMX2PY2.prototype.argumentsMax = 2;
+	cSUMX2PY2.prototype.arrayIndexes = {0: 1, 1: 1};
 	cSUMX2PY2.prototype.Calculate = function (arg) {
 
 		function sumX2MY2(a, b, _3d) {
@@ -4800,6 +4906,7 @@
 	cSUMXMY2.prototype.name = 'SUMXMY2';
 	cSUMXMY2.prototype.argumentsMin = 2;
 	cSUMXMY2.prototype.argumentsMax = 2;
+	cSUMXMY2.prototype.arrayIndexes = {0: 1, 1: 1};
 	cSUMXMY2.prototype.Calculate = function (arg) {
 
 		function sumX2MY2(a, b, _3d) {
@@ -4876,6 +4983,7 @@
 	function cTAN() {
 	}
 
+	//***array-formula***
 	cTAN.prototype = Object.create(cBaseFunction.prototype);
 	cTAN.prototype.constructor = cTAN;
 	cTAN.prototype.name = 'TAN';
@@ -4912,6 +5020,7 @@
 	function cTANH() {
 	}
 
+	//***array-formula***
 	cTANH.prototype = Object.create(cBaseFunction.prototype);
 	cTANH.prototype.constructor = cTANH;
 	cTANH.prototype.name = 'TANH';

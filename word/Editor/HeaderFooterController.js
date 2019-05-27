@@ -1,9 +1,36 @@
-"use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 10.06.2016
- * Time: 15:33
+/*
+ * (c) Copyright Ascensio System SIA 2010-2019
+ *
+ * This program is a free software product. You can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License (AGPL)
+ * version 3 as published by the Free Software Foundation. In accordance with
+ * Section 7(a) of the GNU AGPL its Section 15 shall be amended to the effect
+ * that Ascensio System SIA expressly excludes the warranty of non-infringement
+ * of any third-party rights.
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
+ * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
+ *
+ * The  interactive user interfaces in modified source and object code versions
+ * of the Program must display Appropriate Legal Notices, as required under
+ * Section 5 of the GNU AGPL version 3.
+ *
+ * Pursuant to Section 7(b) of the License you must retain the original Product
+ * logo when distributing the program. Pursuant to Section 7(e) we decline to
+ * grant you any rights under trademark law for use of our trademarks.
+ *
+ * All the Product's GUI elements, including illustrations and icon sets, as
+ * well as technical writing content are licensed under the terms of the
+ * Creative Commons Attribution-ShareAlike 4.0 International. See the License
+ * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
+ *
  */
+
+"use strict";
 
 
 // TODO: На самом деле этот класс не нужен. Его нужно совместить с классом CHeaderFooterController, пока он будет сделан
@@ -85,9 +112,9 @@ CHdrFtrController.prototype.AddToParagraph = function(oItem, bRecalculate)
 	this.LogicDocument.Document_UpdateSelectionState();
 	this.LogicDocument.Document_UpdateUndoRedoState();
 };
-CHdrFtrController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+CHdrFtrController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
-	var nResult = this.HdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+	var nResult = this.HdrFtr.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 	// TODO: Проверить зачем была добавлена эта заглушка. При удалении могут быть выставлены новые позиции курсора
 	//       и селекта, поэтому странно убирать селект здесь.
@@ -294,9 +321,9 @@ CHdrFtrController.prototype.GetSelectedText = function(bClearText, oPr)
 {
 	return this.HdrFtr.GetSelectedText(bClearText, oPr);
 };
-CHdrFtrController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
+CHdrFtrController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
-	return this.HdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	return this.HdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
 CHdrFtrController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -355,7 +382,7 @@ CHdrFtrController.prototype.UpdateRulersState = function()
 CHdrFtrController.prototype.UpdateSelectionState = function()
 {
 	this.HdrFtr.Document_UpdateSelectionState();
-	this.LogicDocument.Document_UpdateTracks();
+	this.LogicDocument.UpdateTracks();
 };
 CHdrFtrController.prototype.GetSelectionState = function()
 {
@@ -412,13 +439,13 @@ CHdrFtrController.prototype.SaveDocumentStateBeforeLoadChanges = function(State)
 		State.HdrFtrDocPosType = HdrFtrContent.CurPos.Type;
 		State.HdrFtrSelection  = HdrFtrContent.Selection.Use;
 
-		if (docpostype_Content === HdrFtrContent.Get_DocPosType())
+		if (docpostype_Content === HdrFtrContent.GetDocPosType())
 		{
 			State.Pos      = HdrFtrContent.GetContentPosition(false, false, undefined);
 			State.StartPos = HdrFtrContent.GetContentPosition(true, true, undefined);
 			State.EndPos   = HdrFtrContent.GetContentPosition(true, false, undefined);
 		}
-		else if (docpostype_DrawingObjects === HdrFtrContent.Get_DocPosType())
+		else if (docpostype_DrawingObjects === HdrFtrContent.GetDocPosType())
 		{
 			this.LogicDocument.DrawingObjects.Save_DocumentStateBeforeLoadChanges(State);
 		}
@@ -433,7 +460,7 @@ CHdrFtrController.prototype.RestoreDocumentStateAfterLoadChanges = function(Stat
 		var HdrFtrContent = HdrFtr.Get_DocumentContent();
 		if (docpostype_Content === State.HdrFtrDocPosType)
 		{
-			HdrFtrContent.Set_DocPosType(docpostype_Content);
+			HdrFtrContent.SetDocPosType(docpostype_Content);
 			HdrFtrContent.Selection.Use = State.HdrFtrSelection;
 			if (true === HdrFtrContent.Selection.Use)
 			{
@@ -448,11 +475,11 @@ CHdrFtrController.prototype.RestoreDocumentStateAfterLoadChanges = function(Stat
 		}
 		else if (docpostype_DrawingObjects === State.HdrFtrDocPosType)
 		{
-			HdrFtrContent.Set_DocPosType(docpostype_DrawingObjects);
+			HdrFtrContent.SetDocPosType(docpostype_DrawingObjects);
 
 			if (true !== this.LogicDocument.DrawingObjects.Load_DocumentStateAfterLoadChanges(State))
 			{
-				HdrFtrContent.Set_DocPosType(docpostype_Content);
+				HdrFtrContent.SetDocPosType(docpostype_Content);
 				HdrFtrContent.MoveCursorToStartPos();
 			}
 		}
@@ -508,4 +535,12 @@ CHdrFtrController.prototype.GetStyleFromFormatting = function()
 CHdrFtrController.prototype.GetSimilarNumbering = function(oEngine)
 {
 	this.HdrFtr.GetSimilarNumbering(oEngine)
+};
+CHdrFtrController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	// Поиск по всем колонтитулам должен происходить не здесь
+	if (!isUseSelection)
+		return arrFields ? arrFields : [];
+
+	return this.HdrFtr.GetAllFields(isUseSelection, arrFields);
 };

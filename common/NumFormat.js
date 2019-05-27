@@ -72,6 +72,9 @@ var numFormat_DecimalPointText = 22;
 var numFormat_MonthMinute = 101;
 var numFormat_Percent = 102;
 var numFormat_General = 103;
+var numFormat_DigitDrop = 104;
+var numFormat_Plus = 105;
+var numFormat_Minus = 106;
 
 var FormatStates = {Decimal: 1, Frac: 2, Scientific: 3, Slash: 4, SlashFrac: 5};
 var SignType = {Negative: 1, Null:2, Positive: 3};
@@ -346,13 +349,13 @@ NumFormat.prototype =
     {
         this.aRawFormat.push(oFormatObj);
     },
-    _ReadText : function()
+    _ReadText : function(endChar)
     {
         var sText = "";
         while(true)
         {
             var next = this._readChar();
-            if(this.EOF == next || "\"" == next)
+            if(this.EOF == next || endChar == next)
                 break;
             else
             {
@@ -423,7 +426,7 @@ NumFormat.prototype =
             this.bDateTime = true;
         }
     },
-    _parseFormat : function(format)
+    _parseFormat : function(digitSpaceSymbol)
     {
         var sGeneral = AscCommon.g_cGeneralFormat.toLowerCase();
         var sGeneralFirst = sGeneral[0];
@@ -437,7 +440,7 @@ NumFormat.prototype =
             else if("[" == next)
                 this._ReadBracket();
             else if("\"" == next)
-                this._ReadText();
+                this._ReadText("\"");
             else if("\\" == next)
                 this._ReadChar();
             else if("%" == next)
@@ -461,7 +464,7 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_DigitNoDisp);
             }
-            else if("?" == next)
+            else if(digitSpaceSymbol == next)
             {
                 this._addToFormat(numFormat_DigitSpace);
             }
@@ -540,41 +543,39 @@ NumFormat.prototype =
         }
         return true;
     },
-    _getDateTimeBracket : function(val)
+    _parseFormatWord : function(digitSpaceSymbol)
     {
-        var res = null;
-        var length = val.length;
-        if(length > 0)
+        while(true)
         {
-            var first = val[0];
-            if("y" == first || "m" == first || "d" == first || "h" == first || "s" == first)
-            {
-                var bSame = true;
-                var nCount = 1;
-                for(var i = 1; i < length; ++i)
-                {
-                    if(first != val[i])
-                    {
-                        bSame = false;
-                        break;
-                    }
-                    nCount++;
-                }
-                if(true == bSame)
-                {
-                    switch(first)
-                    {
-                        case "y": res = new FormatObjDateVal(numFormat_Year, nCount, true);break;
-                        case "m": res = new FormatObjDateVal(numFormat_MonthMinute, nCount, true);break;
-                        case "d": res = new FormatObjDateVal(numFormat_Day, nCount, true);break;
-                        case "h": res = new FormatObjDateVal(numFormat_Hour, nCount, true);break;
-                        case "s": res = new FormatObjDateVal(numFormat_Second, nCount, true);break;
-                    }
-                }
-            }
+            var next = this._readChar();
+			if (this.EOF == next) {
+				break;
+			} else if ("\'" === next) {
+				this._ReadText("\'");
+			} else if ('0' === next) {
+				this._addToFormat(numFormat_Digit, 0);
+			} else if (digitSpaceSymbol === next) {
+				this._addToFormat(numFormat_DigitSpace);
+			} else if ('x' === next || 'X' === next) {
+				this._addToFormat(numFormat_DigitDrop);
+			} else if (gc_sFormatDecimalPoint === next) {
+				this._addToFormat(numFormat_DecimalPoint);
+			} else if (gc_sFormatThousandSeparator === next) {
+				this._addToFormat(numFormat_Thousand, 1);
+			} else if ('+' === next) {
+				this._addToFormat(numFormat_Plus);
+			} else if ('-' === next) {
+				this._addToFormat(numFormat_Minus);
+			} else {
+				this._addToFormat(numFormat_Text, next);
+			}
         }
-        return res;
+        return true;
     },
+	_isDigitType: function(type) {
+		return numFormat_Digit === type || numFormat_DigitNoDisp === type || numFormat_DigitSpace === type ||
+			numFormat_DigitDrop === type;
+	},
     _prepareFormat : function()
     {
         //Color
@@ -663,7 +664,7 @@ NumFormat.prototype =
                     for(var j = i + 1; j < nFormatLength; ++j)
                     {
                         var nextItem = this.aRawFormat[j];
-                        if(numFormat_Digit == nextItem.type || numFormat_DigitNoDisp == nextItem.type || numFormat_DigitSpace == nextItem.type)
+                        if(this._isDigitType(nextItem.type))
                             aDigitArray.push(nextItem);
                     }
                     if(aDigitArray.length > 0)
@@ -689,7 +690,7 @@ NumFormat.prototype =
                 for(var j = i - 1; j >= 0; --j)
                 {
                     var subitem = this.aRawFormat[j];
-                    if(numFormat_Digit == subitem.type || numFormat_DigitNoDisp == subitem.type || numFormat_DigitSpace == subitem.type)
+                    if(this._isDigitType(subitem.type))
                         nLeft = j;
                     else
                         break;
@@ -700,7 +701,7 @@ NumFormat.prototype =
                     for(var j = i + 1; j < nFormatLength; ++j)
                     {
                         var subitem = this.aRawFormat[j];
-                        if(numFormat_Digit == subitem.type || numFormat_DigitNoDisp == subitem.type || numFormat_DigitSpace == subitem.type)
+                        if(this._isDigitType(subitem.type))
                             nRight = j;
                         else
                             break;
@@ -865,7 +866,7 @@ NumFormat.prototype =
                     if(i > 0)
                     {
                         var prevItem = this.aRawFormat[i - 1];
-                        if(numFormat_Digit == prevItem.type || numFormat_DigitNoDisp == prevItem.type || numFormat_DigitSpace == prevItem.type)
+                        if(this._isDigitType(prevItem.type))
                         {
                             bStartCondition = true;
                         }
@@ -874,7 +875,7 @@ NumFormat.prototype =
                     if(i+1 < nFormatLength)
                     {
                         var nextItem = this.aRawFormat[i+1];
-                        if(numFormat_Digit == nextItem.type || numFormat_DigitNoDisp == nextItem.type || numFormat_DigitSpace == nextItem.type)
+                        if(this._isDigitType(nextItem.type))
                             bEndCondition = true;
                     }
 
@@ -894,7 +895,7 @@ NumFormat.prototype =
                 if(i > 0)
                 {
                     var prevItem = this.aRawFormat[i - 1];
-                    if(numFormat_Digit == prevItem.type || numFormat_DigitNoDisp == prevItem.type || numFormat_DigitSpace == prevItem.type)
+                    if(this._isDigitType(prevItem.type))
                     {
                         bStartCondition = true;
                     }
@@ -904,7 +905,7 @@ NumFormat.prototype =
                 for(var j = i + 1; j < nFormatLength; ++j)
                 {
                     var nextItem = this.aRawFormat[j];
-                    if(numFormat_Digit == nextItem.type || numFormat_DigitNoDisp == nextItem.type || numFormat_DigitSpace == nextItem.type || numFormat_DecimalPoint == nextItem.type)
+                    if(this._isDigitType(nextItem.type) || numFormat_DecimalPoint == nextItem.type)
                     {
                         bEndCondition = false;
                         break;
@@ -914,7 +915,7 @@ NumFormat.prototype =
                     this.nThousandScale = item.val;
 
             }
-            else if(numFormat_Digit == item.type || numFormat_DigitNoDisp == item.type || numFormat_DigitSpace == item.type)
+            else if(this._isDigitType(item.type))
             {
                 if(FormatStates.Decimal == nReadState)
                 {
@@ -1175,10 +1176,14 @@ NumFormat.prototype =
                 {
                     if(false === bIsNUll)
                     {
-                        var nSplitIndex = nNumberLen - nFormatLen + 1;
-                        aRes.push(new FormatObj(numFormat_Text, sNumber.slice(0, nSplitIndex)));
-                        sNumber = sNumber.substring(nSplitIndex);
-                        format.shift();
+						var item = format.shift();
+						if (numFormat_DigitDrop !== item.type) {
+							var nSplitIndex = nNumberLen - nFormatLen + 1;
+							aRes.push(new FormatObj(numFormat_Text, sNumber.slice(0, nSplitIndex)));
+							sNumber = sNumber.substring(nSplitIndex);
+						} else {
+							sNumber = sNumber.substring(nNumberLen - nFormatLen);
+						}
                     }
                 }
                 else if(nNumberLen < nFormatLen)
@@ -1323,7 +1328,7 @@ NumFormat.prototype =
             if(null != item.val)
                 oCurText.text += item.val;
         }
-        else if(numFormat_DigitSpace == item.type)
+        else if(numFormat_DigitSpace == item.type || numFormat_DigitDrop == item.type)
         {
             var oNewFont = new AscCommonExcel.Font();
 			oNewFont.skip = true;
@@ -1369,14 +1374,18 @@ NumFormat.prototype =
             }
         }
     },
-    setFormat: function(format, cultureInfo) {
+    setFormat: function(format, cultureInfo, isWord) {
 		if (null == cultureInfo) {
             cultureInfo = g_oDefaultCultureInfo;
         }
         this.formatString = format;
         this.length = this.formatString.length;
         //string -> tokens
-        this.valid = this._parseFormat();
+		if (!isWord) {
+			this.valid = this._parseFormat("?");
+		} else {
+			this.valid = this._parseFormatWord("#");
+		}
         if (true == this.valid) {
             //prepare tokens
             this.valid = this._prepareFormat();
@@ -1506,7 +1515,7 @@ NumFormat.prototype =
 		}
 		return forceNull;
 	},
-    format: function (number, nValType, dDigitsCount, cultureInfo, bChart)
+    format: function (number, nValType, dDigitsCount, cultureInfo, bChart, opt_forceNull)
     {
         if (null == cultureInfo)
             cultureInfo = g_oDefaultCultureInfo;
@@ -1535,7 +1544,7 @@ NumFormat.prototype =
             {
                 return this._applyGeneralFormat(number, nValType, dDigitsCount, bChart, cultureInfo);
             }
-			var forceNull = false;
+			var forceNull = !!opt_forceNull;
 			if (this.bSlash) {
 				forceNull = this._formatDecimalFrac(oParsedNumber);
 			}
@@ -1547,19 +1556,14 @@ NumFormat.prototype =
                 aDec = this._FormatNumber(oParsedNumber.dec, oParsedNumber.exponent, this.aDecFormat.concat(), FormatStates.Decimal, cultureInfo, forceNull);
                 aFrac = this._FormatNumber(oParsedNumber.frac, oParsedNumber.exponentFrac, this.aFracFormat.concat(), FormatStates.Frac, cultureInfo);
             }
-            if(true == this.bAddMinusIfNes && SignType.Negative == oParsedNumber.sign)//&& oParsedNumber.dec > 0)
-            {
-                //todo разобраться с минусами
-                //Добавляем в самое начало знак минус
-                oCurText.text += "-";
-            }
+
             var bNoDecFormat = false;
             if((null == aDec || 0 == aDec.length) && 0 != oParsedNumber.dec)
             {
                 //случай ".00"
                 bNoDecFormat = true;
             }
-            
+            var hasSign = false;
             var nReadState = FormatStates.Decimal;
             var nFormatLength = this.aRawFormat.length;    
             for(var i = 0; i < nFormatLength; ++i)
@@ -1582,7 +1586,7 @@ NumFormat.prototype =
                 else if (numFormat_DecimalPointText == item.type) {
                     oCurText.text += cultureInfo.NumberDecimalSeparator;
                 }
-                else if(numFormat_Digit == item.type || numFormat_DigitNoDisp == item.type || numFormat_DigitSpace == item.type)
+                else if(this._isDigitType(item.type))
                 {
                     var text = null;
                     if(nReadState == FormatStates.Decimal)
@@ -1793,8 +1797,30 @@ NumFormat.prototype =
                     this._CommitText(res, oCurText, null, null);
                     //todo minus sign
                     res = res.concat(this._applyGeneralFormat(Math.abs(number), nValType, dDigitsCount, bChart, cultureInfo));
-                }
+                } else if (numFormat_Plus == item.type) {
+					hasSign = true;
+					if (number > 0) {
+						oCurText.text += '+';
+					} else if (number < 0) {
+						oCurText.text += '-';
+					} else {
+						oCurText.text += ' ';
+					}
+				} else if (numFormat_Minus == item.type) {
+					hasSign = true;
+					if (number < 0) {
+						oCurText.text += '-';
+					} else {
+						oCurText.text += ' ';
+					}
+				}
             }
+
+			if (true == this.bAddMinusIfNes && SignType.Negative == oParsedNumber.sign && !hasSign) {
+				//todo разобраться с минусами
+				//Добавляем в самое начало знак минус
+				res.unshift({text: "-"});
+			}
             this._CommitText(res, oCurText, null, null);
 			if(0 == res.length)
                 res = [{text: ""}];
@@ -1849,6 +1875,8 @@ NumFormat.prototype =
                     res += "#";
                 else if(numFormat_DigitSpace == item.type)
                     res += "?";
+				else if(numFormat_DigitDrop == item.type)
+					res += "x";
             }
             return res;
         };
@@ -1916,7 +1944,7 @@ NumFormat.prototype =
                 for(var j = 0; j < item.val; ++j)
                     res += gc_sFormatThousandSeparator;
             }
-            else if(numFormat_Digit == item.type || numFormat_DigitNoDisp == item.type || numFormat_DigitSpace == item.type)
+            else if(this._isDigitType(item.type))
             {
                 if(FormatStates.Decimal == nReadState)
                     nDecIndex++;
@@ -1933,6 +1961,8 @@ NumFormat.prototype =
                         sCurSimbol = "#";
                     else if(numFormat_DigitSpace == item.type)
                         sCurSimbol = "?";
+					else if(numFormat_DigitDrop == item.type)
+						sCurSimbol = "x";
                     res += sCurSimbol;
                     if(nReadState == FormatStates.Frac && nFracIndex == nFracLength)
                     {
@@ -2013,6 +2043,10 @@ NumFormat.prototype =
                 res += "AM/PM";
             else if(numFormat_Milliseconds == item.type)
                 res += fFormatToString(item.format);
+			else if(numFormat_Plus == item.type)
+				res += "+";
+			else if(numFormat_Minus == item.type)
+				res += "-";
         }
         output.format = res;
         return true;
@@ -2037,26 +2071,22 @@ NumFormatCache.prototype =
 	cleanCache : function(){
 		this.oNumFormats = {};
 	},
-    get : function(format)
+    get : function(format, isWord)
     {
-        var res = this.oNumFormats[format];
+		var key = format + String.fromCharCode(5) + isWord;
+        var res = this.oNumFormats[key];
         if(null == res)
         {
-            res = new CellFormat(format);
-            this.oNumFormats[format] = res;
+            res = new CellFormat(format, isWord);
+            this.oNumFormats[key] = res;
         }
         return res;
-    },
-    set : function(format)
-    {
-        var res = new CellFormat(format);
-        this.oNumFormats[format] = res;
     }
 };
 //кеш структур по строке формата
 var oNumFormatCache = new NumFormatCache();
 
-function CellFormat(format)
+function CellFormat(format, isWord)
 {
     this.sFormat = format;
     this.oPositiveFormat = null;
@@ -2080,7 +2110,7 @@ function CellFormat(format)
       }
     }
 		var oNewFormat = new NumFormat(false);
-		oNewFormat.setFormat(sNewFormat);
+		oNewFormat.setFormat(sNewFormat, undefined, isWord);
 		aParsedFormats.push(oNewFormat);
 	}
   var nFormatsLength = aParsedFormats.length;
@@ -2291,7 +2321,7 @@ CellFormat.prototype =
 		}
 		return oRes;
 	},
-    format : function(number, nValType, dDigitsCount, bChart, cultureInfo, opt_withoutCache)
+    format : function(number, nValType, dDigitsCount, bChart, cultureInfo, opt_withoutCache, opt_forceNull)
     {
         var res = null;
         if (null == bChart)
@@ -2318,7 +2348,7 @@ CellFormat.prototype =
 		{
 			oFormat = this.getFormatByValue(dNumber);
 			if(null != oFormat)
-			    res = oFormat.format(number, nValType, dDigitsCount, cultureInfo, bChart);
+			    res = oFormat.format(number, nValType, dDigitsCount, cultureInfo, bChart, opt_forceNull);
 			else if(null != this.aComporationFormats)
 			{
 			    var oNewFont = new AscCommonExcel.Font();
@@ -2331,7 +2361,7 @@ CellFormat.prototype =
 			//text
 		    if (null != this.oTextFormat) {
 		        oFormat = this.oTextFormat;
-		        res = oFormat.format(number, nValType, dDigitsCount, cultureInfo, bChart);
+		        res = oFormat.format(number, nValType, dDigitsCount, cultureInfo, bChart, opt_forceNull);
 		    }
 		}
         if (!opt_withoutCache) {
@@ -2421,10 +2451,14 @@ CellFormat.prototype =
 	{
 		return this._formatToText(number, CellValueType.Number, dDigitsCount || gc_nMaxDigCount, true, cultureInfo);
 	},
-	_formatToText : function(number, nValType, dDigitsCount, bChart, cultureInfo)
+	formatToWord : function(number, dDigitsCount, cultureInfo)
+	{
+		return this._formatToText(number, CellValueType.Number, dDigitsCount || gc_nMaxDigCount, false, cultureInfo, true);
+	},
+	_formatToText : function(number, nValType, dDigitsCount, bChart, cultureInfo, opt_forceNull)
 	{
 		var result = "";
-		var arrFormat = this.format(number, nValType, dDigitsCount, bChart, cultureInfo);
+		var arrFormat = this.format(number, nValType, dDigitsCount, bChart, cultureInfo, undefined, opt_forceNull);
 		for (var i = 0, item; i < arrFormat.length; ++i) {
 			item = arrFormat[i];
 			if (item.format) {
@@ -3786,6 +3820,15 @@ function setCurrentCultureInfo(val) {
 		return dateElems.join('/');
 	}
 
+	function getShortTimeFormat(opt_cultureInfo) {
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		if (cultureInfo.AMDesignator.length > 0 && cultureInfo.PMDesignator.length > 0) {
+			return 'h:mm AM/PM;@';
+		} else {
+			return 'h:mm;@'
+		}
+	}
+
 	function getNumberFormatSimple(opt_separate, opt_fraction) {
 		var numberFormat = opt_separate ? '#,##0' : '0';
 		if (opt_fraction > 0) {
@@ -4303,6 +4346,7 @@ var g_aCultureInfos = {
 	38: {LCID: 38, Name: "lv", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "€", NumberDecimalSeparator: ",", NumberGroupSeparator: " ", NumberGroupSizes: [3], DayNames: ["svētdiena", "pirmdiena", "otrdiena", "trešdiena", "ceturtdiena", "piektdiena", "sestdiena"], AbbreviatedDayNames: ["svētd.", "pirmd.", "otrd.", "trešd.", "ceturtd.", "piektd.", "sestd."], MonthNames: ["janvāris", "februāris", "marts", "aprīlis", "maijs", "jūnijs", "jūlijs", "augusts", "septembris", "oktobris", "novembris", "decembris", ""], AbbreviatedMonthNames: ["janv.", "febr.", "marts", "apr.", "maijs", "jūn.", "jūl.", "aug.", "sept.", "okt.", "nov.", "dec.", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "priekšp.", PMDesignator: "pēcp.", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "135"},
 	42: {LCID: 42, Name: "vi", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "₫", NumberDecimalSeparator: ",", NumberGroupSeparator: ".", NumberGroupSizes: [3], DayNames: ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"], AbbreviatedDayNames: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"], MonthNames: ["Tháng Giêng", "Tháng Hai", "Tháng Ba", "Tháng Tư", "Tháng Năm", "Tháng Sáu", "Tháng Bảy", "Tháng Tám", "Tháng Chín", "Tháng Mười", "Tháng Mười Một", "Tháng Mười Hai", ""], AbbreviatedMonthNames: ["Thg1", "Thg2", "Thg3", "Thg4", "Thg5", "Thg6", "Thg7", "Thg8", "Thg9", "Thg10", "Thg11", "Thg12", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "SA", PMDesignator: "CH", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "135"},
 	44: {LCID: 44, Name: "az", CurrencyPositivePattern: 2, CurrencyNegativePattern: 9, CurrencySymbol: "₼", NumberDecimalSeparator: ",", NumberGroupSeparator: ".", NumberGroupSizes: [3], DayNames: ["bazar", "bazar ertəsi", "çərşənbə axşamı", "çərşənbə", "cümə axşamı", "cümə", "şənbə"], AbbreviatedDayNames: ["B.", "B.E.", "Ç.A.", "Ç.", "C.A.", "C.", "Ş."], MonthNames: ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr", ""], AbbreviatedMonthNames: ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek", ""], MonthGenitiveNames: ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avqust", "sentyabr", "oktyabr", "noyabr", "dekabr", ""], AbbreviatedMonthGenitiveNames: [], AMDesignator: "AM", PMDesignator: "PM", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "135"},
+	1026: {LCID: 1026, Name: "bg-BG", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "лв.", NumberDecimalSeparator: ",", NumberGroupSeparator: " ", NumberGroupSizes: [3], DayNames: ["неделя", "понеделник", "вторник", "сряда", "четвъртък", "петък", "събота"], AbbreviatedDayNames: ["нед", "пон", "вт", "ср", "четв", "пет", "съб"], MonthNames: ["януари", "февруари", "март", "април", "май", "юни", "юли", "август", "септември", "октомври", "ноември", "декември", ""], AbbreviatedMonthNames: ["яну", "фев", "мар", "апр", "май", "юни", "юли", "авг", "сеп", "окт", "ное", "дек", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "", PMDesignator: "", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "025"},
 	1028: {LCID: 1028, Name: "zh-TW", CurrencyPositivePattern: 0, CurrencyNegativePattern: 1, CurrencySymbol: "NT$", NumberDecimalSeparator: ".", NumberGroupSeparator: ",", NumberGroupSizes: [3], DayNames: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"], AbbreviatedDayNames: ["週日", "週一", "週二", "週三", "週四", "週五", "週六"], MonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], AbbreviatedMonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "上午", PMDesignator: "下午", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "520"},
 	1029: {LCID: 1029, Name: "cs-CZ", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "Kč", NumberDecimalSeparator: ",", NumberGroupSeparator: " ", NumberGroupSizes: [3], DayNames: ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"], AbbreviatedDayNames: ["ne", "po", "út", "st", "čt", "pá", "so"], MonthNames: ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec", ""], AbbreviatedMonthNames: ["led", "úno", "bře", "dub", "kvě", "čvn", "čvc", "srp", "zář", "říj", "lis", "pro", ""], MonthGenitiveNames: ["ledna", "února", "března", "dubna", "května", "června", "července", "srpna", "září", "října", "listopadu", "prosince", ""], AbbreviatedMonthGenitiveNames: [], AMDesignator: "dop.", PMDesignator: "odp.", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "135"},
 	1031: {LCID: 1031, Name: "de-DE", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "€", NumberDecimalSeparator: ",", NumberGroupSeparator: ".", NumberGroupSizes: [3], DayNames: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"], AbbreviatedDayNames: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"], MonthNames: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember", ""], AbbreviatedMonthNames: ["Jan", "Feb", "Mrz", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "", PMDesignator: "", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "135"},
@@ -4408,6 +4452,7 @@ var g_oDefaultCultureInfo = g_aCultureInfos[1033];//en-US//1033//fr-FR//1036//ba
 	window["AscCommon"].checkCultureInfoFontPicker = checkCultureInfoFontPicker;
 	window['AscCommon'].getShortDateFormat = getShortDateFormat;
 	window['AscCommon'].getShortDateFormat2 = getShortDateFormat2;
+	window['AscCommon'].getShortTimeFormat = getShortTimeFormat;
 	window['AscCommon'].getShortDateMonthFormat = getShortDateMonthFormat;
 	window['AscCommon'].getNumberFormatSimple = getNumberFormatSimple;
 	window['AscCommon'].getNumberFormat = getNumberFormat;

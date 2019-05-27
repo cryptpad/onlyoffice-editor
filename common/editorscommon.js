@@ -457,7 +457,7 @@
 		}
 		dataContainer.index++;
 		oAdditionalData["saveindex"] = dataContainer.index;
-		fSendCommand(function (incomeObject)
+		fSendCommand(function (incomeObject, done, status)
 		{
 			if (null != incomeObject && "ok" == incomeObject["status"])
 			{
@@ -468,12 +468,12 @@
 				}
 				else if (fCallbackRequest)
 				{
-					fCallbackRequest(incomeObject);
+					fCallbackRequest(incomeObject, status);
 				}
 			}
 			else
 			{
-				fCallbackRequest ? fCallbackRequest(incomeObject) : fCallback(incomeObject);
+				fCallbackRequest ? fCallbackRequest(incomeObject, status) : fCallback(incomeObject, status);
 			}
 		}, oAdditionalData, dataContainer);
 	}
@@ -669,11 +669,11 @@
 			url:         sDownloadServiceLocalUrl + '/' + rdata["id"] + '?cmd=' + encodeURIComponent(JSON.stringify(rdata)),
 			data:        dataContainer.part || dataContainer.data,
 			contentType: "application/octet-stream",
-			error:       function ()
+			error:       function (httpRequest, statusText, status)
 						 {
 							 if (fCallback)
 							 {
-								 fCallback(null, true);
+								 fCallback(null, true, status);
 							 }
 						 },
 			success:     function (httpRequest)
@@ -1296,6 +1296,21 @@
 			case c_oAscFileType.MOBI:
 				return 'mobi';
 				break;
+			case c_oAscFileType.DOCM:
+				return 'docm';
+				break;
+			case c_oAscFileType.DOTX:
+				return 'dotx';
+				break;
+			case c_oAscFileType.DOTM:
+				return 'dotm';
+				break;
+			case c_oAscFileType.FODT:
+				return 'fodt';
+				break;
+			case c_oAscFileType.OTT:
+				return 'ott';
+				break;
 			case c_oAscFileType.DOCY:
 				return 'doct';
 				break;
@@ -1318,6 +1333,21 @@
 			case c_oAscFileType.CSV:
 				return 'csv';
 				break;
+			case c_oAscFileType.XLSM:
+				return 'xlsm';
+				break;
+			case c_oAscFileType.XLTX:
+				return 'xltx';
+				break;
+			case c_oAscFileType.XLTM:
+				return 'xltm';
+				break;
+			case c_oAscFileType.FODS:
+				return 'fods';
+				break;
+			case c_oAscFileType.OTS:
+				return 'ots';
+				break;
 			case c_oAscFileType.XLSY:
 				return 'xlst';
 				break;
@@ -1330,6 +1360,27 @@
 				break;
 			case c_oAscFileType.ODP:
 				return 'odp';
+				break;
+			case c_oAscFileType.PPSX:
+				return 'ppsx';
+				break;
+			case c_oAscFileType.PPTM:
+				return 'pptm';
+				break;
+			case c_oAscFileType.PPSM:
+				return 'ppsm';
+				break;
+			case c_oAscFileType.POTX:
+				return 'potx';
+				break;
+			case c_oAscFileType.POTM:
+				return 'potm';
+				break;
+			case c_oAscFileType.FODP:
+				return 'fodp';
+				break;
+			case c_oAscFileType.OTP:
+				return 'otp';
 				break;
 		}
 		return '';
@@ -1372,8 +1423,26 @@
 						}
 						else if (data.type === "onExternalPluginMessage")
 						{
-							if (window.g_asc_plugins)
-								window.g_asc_plugins.sendToAllPlugins(event.data);
+                            if (!window.g_asc_plugins)
+                            	return;
+
+							if (data["subType"] == "internalCommand")
+							{
+								// такие команды перечисляем здесь и считаем их функционалом
+								switch (data.data.type)
+								{
+									case "onbeforedrop":
+									case "ondrop":
+									{
+                                        window.g_asc_plugins.api.privateDropEvent(data.data);
+										return;
+									}
+									default:
+										break;
+								}
+							}
+
+							window.g_asc_plugins.sendToAllPlugins(event.data);
 						}
 					} catch (err)
 					{
@@ -2668,8 +2737,11 @@
 			else if (Asc.c_oAscSelectionDialogType.FormatTable === dialogType)
 			{
 				// ToDo убрать эту проверку, заменить на более грамотную после правки функции _searchFilters
-				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(range))
+				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(range)) {
 					return Asc.c_oAscError.ID.AutoFilterDataRangeError;
+				} else if (wb.getWorksheet().intersectionFormulaArray(range, true, true)) {
+					return Asc.c_oAscError.ID.MultiCellsInTablesFormulaArray;
+				}
 			}
 			else if (Asc.c_oAscSelectionDialogType.FormatTableChangeRange === dialogType)
 			{
@@ -3000,7 +3072,7 @@
 			var bNeedUpdate = false;
 			for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 			{
-				if (arrParagraphs[nIndex].Get_Lock() === this)
+				if (arrParagraphs[nIndex].GetLock() === this)
 				{
 					bNeedUpdate = true;
 					break;
@@ -3343,6 +3415,30 @@
 		//todo remove in the future
 		//https://bugs.chromium.org/p/v8/issues/detail?id=2869
 		return (' ' + s).substr(1);
+	}
+	function readValAttr(attr){
+		if(attr()){
+			var val = attr()["val"];
+			return val ? val : null;
+		}
+		return null;
+	}
+	function getNumFromXml(val) {
+		return val ? val - 0 : null;
+	}
+	function getColorFromXml(attr) {
+		if(attr()){
+			var vals = attr();
+			if(null != vals["theme"]) {
+				return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(vals["theme"]), getNumFromXml(vals["tint"]));
+			} else if(null != vals["rgb"]){
+				return new AscCommonExcel.RgbColor(0x00ffffff & getNumFromXml(vals["rgb"]));
+			}
+		}
+		return null;
+	}
+	function getBoolFromXml(val) {
+		return "0" !== val && "false" !== val && "off" !== val;
 	}
 
 	function CUserCacheColor(nColor)
@@ -3781,11 +3877,11 @@
 		{
 			if (_api.ImageLoader.map_image_index[_guid])
 				return;
-			var _obj = { Image : (this.Valid ? this.ImageValid : this.ImageInvalid), Status : ImageLoadStatus.Complete, src : _guid };
+			var _obj = { Image : (this.Valid ? this.ImageValid : this.ImageInvalid), Status : AscFonts.ImageLoadStatus.Complete, src : _guid };
 			_api.ImageLoader.map_image_index[_guid] = _obj;
 		};
 
-		this.Unregister = function(api, _guid)
+		this.Unregister = function(_api, _guid)
 		{
 			if (_api.ImageLoader.map_image_index[_guid])
 				delete _api.ImageLoader.map_image_index[_guid];
@@ -4231,6 +4327,96 @@
 
     AscCommon.EncryptionWorker = new CEncryptionData();
 
+    function CMouseSmoothWheelCorrector(t, scrollFunction)
+	{
+		this._deltaX = 0;
+		this._deltaY = 0;
+
+		this._isBreakX = false;
+        this._isBreakY = false;
+
+        this._timeoutCorrector = -1;
+        this._api = t;
+        this._scrollFunction = scrollFunction;
+
+        this._normalDelta = 120;
+        this._isNormalDeltaActive = false;
+
+        this.setNormalDeltaActive = function(value)
+		{
+            this._isNormalDeltaActive = true;
+            this._normalDelta = value;
+		};
+
+		this.isBreakX = function()
+		{
+			return this._isBreakX;
+		};
+        this.isBreakY = function()
+        {
+            return this._isBreakY;
+        };
+        this.get_DeltaX = function(wheelDeltaX)
+        {
+            this._isBreakX = false;
+
+            if (!AscCommon.AscBrowser.isMacOs)
+                return wheelDeltaX;
+
+            this._deltaX += wheelDeltaX;
+            if (Math.abs(this._deltaX) >= this._normalDelta)
+				return this._isNormalDeltaActive ? ((this._deltaX > 0) ? this._normalDelta : -this._normalDelta) : this._deltaX;
+
+            this._isBreakX = true;
+            return 0;
+        };
+        this.get_DeltaY = function(wheelDeltaY)
+        {
+            this._isBreakY = false;
+
+            if (!AscCommon.AscBrowser.isMacOs)
+                return wheelDeltaY;
+
+            this._deltaY += wheelDeltaY;
+            if (Math.abs(this._deltaY) >= this._normalDelta)
+            	return this._isNormalDeltaActive ? ((this._deltaY > 0) ? this._normalDelta : -this._normalDelta) : this._deltaY;
+
+            this._isBreakY = true;
+            return 0;
+        };
+
+        this.checkBreak = function()
+		{
+			if (-1 != this._timeoutCorrector)
+			{
+				clearTimeout(this._timeoutCorrector);
+				this._timeoutCorrector = -1;
+			}
+
+			if ((this._isBreakX || this._isBreakY) && this._scrollFunction)
+			{
+				var obj = { t : this, x : (this._isBreakX ? this._deltaX : 0), y : (this._isBreakY ? this._deltaY : 0) };
+				this._timeoutCorrector = setTimeout(function(){
+                    var t = obj.t;
+					t._scrollFunction.call(t._api, obj.x, obj.y);
+					t._timeoutCorrector = -1;
+					t._deltaX = 0;
+					t._deltaY = 0;
+				}, 100);
+			}
+
+			if (!this._isBreakX)
+				this._deltaX = 0;
+            if (!this._isBreakY)
+                this._deltaY = 0;
+
+			this._isBreakX = false;
+            this._isBreakY = false;
+		};
+	}
+
+	AscCommon.CMouseSmoothWheelCorrector = CMouseSmoothWheelCorrector;
+
 	/** @constructor */
 	function CTranslateManager()
 	{
@@ -4318,6 +4504,50 @@
 		Float64Array.prototype.fill = Array.prototype.fill;
 	}
 
+	function parseText(text, options, bTrimSpaces) {
+		var delimiterChar;
+		if (options.asc_getDelimiterChar()) {
+			delimiterChar = options.asc_getDelimiterChar();
+		} else {
+			switch (options.asc_getDelimiter()) {
+				case AscCommon.c_oAscCsvDelimiter.None:
+					delimiterChar = undefined;
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Tab:
+					delimiterChar = "\t";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Semicolon:
+					delimiterChar = ";";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Colon:
+					delimiterChar = ":";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Comma:
+					delimiterChar = ",";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Space:
+					delimiterChar = " ";
+					break;
+			}
+		}
+		var matrix = [];
+		//var rows = text.match(/[^\r\n]+/g);
+		var rows = text.split(/\r?\n/);
+		for (var i = 0; i < rows.length; ++i) {
+			var row = rows[i];
+			if(" " === delimiterChar && bTrimSpaces) {
+				var addSpace = false;
+				if(row[0] === delimiterChar) {
+					addSpace = true;
+				}
+				row = addSpace ? delimiterChar + row.trim() : row.trim();
+			}
+			//todo quotes
+			matrix.push(row.split(delimiterChar));
+		}
+		return matrix;
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -4358,6 +4588,10 @@
 	window["AscCommon"].getUserColorById = getUserColorById;
 	window["AscCommon"].isNullOrEmptyString = isNullOrEmptyString;
 	window["AscCommon"].unleakString = unleakString;
+	window["AscCommon"].readValAttr = readValAttr;
+	window["AscCommon"].getNumFromXml = getNumFromXml;
+	window["AscCommon"].getColorFromXml = getColorFromXml;
+	window["AscCommon"].getBoolFromXml = getBoolFromXml;
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
 
 	window["AscCommon"].DocumentUrls = DocumentUrls;
@@ -4372,6 +4606,7 @@
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 
 	window["AscCommon"].loadSdk = loadSdk;
+    window["AscCommon"].loadScript = loadScript;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorThemeByIndex = getColorThemeByIndex;
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
@@ -4402,6 +4637,8 @@
 	prot["destroy"] 	= prot.destroy;
 
 	window["AscCommon"].translateManager = new CTranslateManager();
+
+	window["AscCommon"].parseText = parseText;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
