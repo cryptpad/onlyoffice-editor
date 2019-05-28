@@ -141,7 +141,14 @@ var editor;
     this.topLineEditorElement = document.getElementById(this.topLineEditorName);
     // ToDo нужно ли это
     asc['editor'] = ( asc['editor'] || this );
-    AscCommon.AscBrowser.checkZoom();
+  };
+
+  spreadsheet_api.prototype._loadSdkImages = function () {
+    var aImages = AscCommonExcel.getIconsForLoad();
+    aImages.push(AscCommonExcel.sFrozenImageUrl, AscCommonExcel.sFrozenImageRotUrl);
+    this.ImageLoader.bIsAsyncLoadDocumentImages = false;
+    this.ImageLoader.LoadDocumentImages(aImages);
+    this.ImageLoader.bIsAsyncLoadDocumentImages = true;
   };
 
   spreadsheet_api.prototype.asc_CheckGuiControlColors = function() {
@@ -412,6 +419,40 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.asc_TextImport = function(options, callback, bPaste) {
+      if (this.canEdit()) {
+        var text;
+        if(bPaste) {
+			text = AscCommon.g_specialPasteHelper.GetPastedData(true);
+        } else {
+			var ws = this.wb.getWorksheet();
+			text = ws.getRangeText();
+        }
+        if(!text) {
+            //error
+            //no data was selected to parse
+			this.sendEvent('asc_onError', c_oAscError.ID.NoDataToParse, c_oAscError.Level.NoCritical);
+			callback(false);
+			return;
+        }
+        callback(AscCommon.parseText(text, options, true));
+      }
+  };
+
+  spreadsheet_api.prototype.asc_TextToColumns = function(options) {
+	  if (this.canEdit()) {
+          var ws = this.wb.getWorksheet();
+		  var text = ws.getRangeText();
+		  var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
+		  if(!specialPasteHelper.specialPasteProps) {
+			  specialPasteHelper.specialPasteProps = new Asc.SpecialPasteProps();
+          }
+		  specialPasteHelper.specialPasteProps.property = Asc.c_oSpecialPasteProps.useTextImport;
+		  specialPasteHelper.specialPasteProps.asc_setAdvancedOptions(options);
+		  this.wb.pasteData(AscCommon.c_oAscClipboardDataFormat.Text, text, null, null, true);
+	  }
+  };
+
   spreadsheet_api.prototype.asc_ShowSpecialPasteButton = function(props) {
       if (this.canEdit()) {
           this.wb.showSpecialPasteButton(props);
@@ -472,8 +513,12 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_Resize = function () {
+    var isRetinaOld = AscCommon.AscBrowser.isRetina;
     AscCommon.AscBrowser.checkZoom();
     if (this.wb) {
+      if (isRetinaOld !== AscCommon.AscBrowser.isRetina) {
+        this.wb.changeZoom(null);
+      }
       this.wb.resize();
 
       if (AscCommon.g_inputContext) {
@@ -2635,7 +2680,9 @@ var editor;
     if (null != _image){
         var ws = this.wb.getWorksheet();
       if(ws.objectRender){
+        this.asc_canPaste();
         ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+        this.asc_endPaste();
       }
     }
   };
@@ -2646,7 +2693,9 @@ var editor;
     {
       var ws = this.wb.getWorksheet();
       if(ws.objectRender){
+        this.asc_canPaste();
         ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize);
+        this.asc_endPaste();
       }
     }
   };
@@ -3503,7 +3552,7 @@ var editor;
         }
       }
       if(aImages.length > 0)      {
-         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages, null);
+         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages);
       }
       callback();
     });
@@ -3617,6 +3666,9 @@ var editor;
   prot["asc_Cut"] = prot.asc_Cut;
   prot["asc_Undo"] = prot.asc_Undo;
   prot["asc_Redo"] = prot.asc_Redo;
+  prot["asc_TextImport"] = prot.asc_TextImport;
+  prot["asc_TextToColumns"] = prot.asc_TextToColumns;
+
 
   prot["asc_getDocumentName"] = prot.asc_getDocumentName;
 	prot["asc_getAppProps"] = prot.asc_getAppProps;
@@ -3913,8 +3965,6 @@ var editor;
   prot["asc_pluginRun"]             = prot.asc_pluginRun;
   prot["asc_pluginResize"]          = prot.asc_pluginResize;
   prot["asc_pluginButtonClick"]     = prot.asc_pluginButtonClick;
-  prot["asc_addOleObject"]          = prot.asc_addOleObject;
-  prot["asc_editOleObject"]         = prot.asc_editOleObject;
   prot["asc_startEditCurrentOleObject"]         = prot.asc_startEditCurrentOleObject;
   prot["asc_pluginEnableMouseEvents"] = prot.asc_pluginEnableMouseEvents;
 

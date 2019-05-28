@@ -330,7 +330,8 @@ var c_oAscFormulaRangeBorderColor = [
     ActiveCell  : 2,
     Resize      : 4,
     Promote     : 8,
-    Dash        : 16
+    Dash        : 16,
+    DashThick   : 32
   };
 
   var c_oAscLockNameFrozenPane = "frozenPane";

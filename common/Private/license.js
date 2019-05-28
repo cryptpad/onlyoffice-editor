@@ -39,6 +39,7 @@ AscCommon.baseEditorsApi.prototype._onEndPermissions = function () {
 			var type = this.licenseResult['type'];
 			oResult.setLicenseType(type);
 			oResult.setCanBranding(this.licenseResult['branding']);
+			oResult.setCustomization(this.licenseResult['customization']);
 			oResult.setIsLight(this.licenseResult['light']);
 			oResult.setLicenseMode(this.licenseResult['mode']);
 			oResult.setRights(this.licenseResult['rights']);

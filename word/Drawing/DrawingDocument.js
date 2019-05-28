@@ -2693,7 +2693,10 @@ function CDrawingDocument()
 	this._search_HdrFtr_Odd = []; // Поиск в колонтитуле, который находится только на четных страницах, включая первую
 	this._search_HdrFtr_Odd_no_First = []; // Поиск в колонтитуле, который находится только на нечетных страницах, кроме первой
 
-	this.isFirstRecalculate = false;
+	this.isFirstStartRecalculate = false; // был ли хоть раз вызван OnStartRecalculate
+	this.isDisableEditBeforeCalculateLA = false; // залочили все, пока не досчитаем до конца
+	this.isFirstRecalculate = false; // был ли хоть раз вызван OnEndRecalculate
+	this.isFirstFullRecalculate = false; // был ли хоть раз вызван OnEndRecalculate c параметром isFull == true
     this.isScrollToTargetAttack = false;
 
 	this.showTarget = function (isShow)
@@ -2773,6 +2776,20 @@ function CDrawingDocument()
 			this.m_oWordControl.MobileTouchManager.ClearContextMenu();
 
 		this.m_bIsDocumentCalculating = true;
+
+		if (!this.isFirstStartRecalculate)
+		{
+            var api = this.m_oWordControl.m_oApi;
+            var options = api.DocInfo ? api.DocInfo.asc_getOptions() : null;
+
+            if (options && options["disableEditBeforeCalculate"])
+            {
+            	this.isDisableEditBeforeCalculateLA = true;
+                api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+            }
+
+            this.isFirstStartRecalculate = true;
+		}
 	}
 
 	this.OnRepaintPage = function (index)
@@ -2850,6 +2867,8 @@ function CDrawingDocument()
 
 	this.OnEndRecalculate = function (isFull, isBreak)
 	{
+		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+
 		if (this.m_oWordControl)
 			this.m_oWordControl.m_oApi.checkLastWork();
 
@@ -2947,13 +2966,50 @@ function CDrawingDocument()
 
 			if (this.m_arPrintingWaitEndRecalculate)
 				this.m_oWordControl.m_oApi._downloadAs.apply(this.m_oWordControl.m_oApi, this.m_arPrintingWaitEndRecalculate);
+		}
 
-			if (!this.isFirstRecalculate)
+        if (isFull || isBreak)
+        {
+        	if (isFull)
+			{
+				if (!this.isFirstFullRecalculate)
+				{
+                    var api = this.m_oWordControl.m_oApi;
+                    var options = api.DocInfo ? api.DocInfo.asc_getOptions() : null;
+
+					if (!this.isFirstRecalculate && api.WordControl && api.WordControl.m_oLogicDocument)
+					{
+						// полный пересчет закончился, и не был пересчет документа.
+                        var action = options ? options["action"] : null;
+                        if (action)
+                        {
+                            switch (action["type"])
+                            {
+                                case "bookmark":
+                                {
+                                    api.WordControl.m_oLogicDocument.GoToBookmark(action["data"], true);
+                                    break;
+                                }
+                                default:
+                                    break;
+                            }
+                        }
+					}
+
+					if (options && options["disableEditBeforeCalculate"])
+					{
+                        api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+                        this.isDisableEditBeforeCalculateLA = false;
+                    }
+				}
+
+				this.isFirstFullRecalculate = true;
+			}
+			else if (isBreak)
 			{
                 this.isFirstRecalculate = true;
-                // actions after first recalculates...
 			}
-		}
+        }
 
 		//console.log("end " + this.m_lCountCalculatePages + "," + isFull + "," + isBreak);
 	}
@@ -6372,7 +6428,7 @@ function CDrawingDocument()
 		if (this.m_oWordControl.MobileTouchManager)
 		{
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = true;
-			markup.Table.Start_TrackTable();
+			markup.Table.StartTrackTable();
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
 		}
 	}

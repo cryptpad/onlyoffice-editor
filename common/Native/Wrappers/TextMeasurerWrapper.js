@@ -426,4 +426,6 @@ window["CreateMainTextMeasurerWrapper"] = function()
     AscCommon.g_oTextMeasurer = g_oTextMeasurer;
 	g_oTextMeasurer.Init();
     window['AscCommon'].g_oTextMeasurer = g_oTextMeasurer;
+
+    return AscCommon.g_oTextMeasurer.Measurer;
 };

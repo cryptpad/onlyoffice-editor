@@ -2415,6 +2415,41 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			}
 		}
 	};
+	cStrucTable.prototype.setOffset = function(offset) {
+		var t = this;
+
+		var tryDiffHdtcIndex = function(oIndex) {
+			var table = t.wb.getTableByName(t.tableName, oIndex.wsID);
+			if(table) {
+				var tableColumnsCount = table.TableColumns.length;
+				var index = oIndex.index + offset.col;
+				index = index - Math.floor(index / tableColumnsCount) * tableColumnsCount;
+				var columnName = t.wb.getTableNameColumnByIndex(t.tableName, index);
+				if(columnName) {
+					oIndex.index = index;
+					oIndex.name = columnName.columnName;
+				}
+			}
+		};
+
+		//TODO
+		if(this.oneColumnIndex) {
+			if(offset && offset.col) {
+				tryDiffHdtcIndex(this.oneColumnIndex);
+			}
+		} else if(this.colStartIndex && this.colEndIndex) {
+
+		} else if(this.hdtIndexes || this.hdtcstartIndex || this.hdtcendIndex) {
+			if(offset && offset.col) {
+				if(this.hdtcstartIndex) {
+					tryDiffHdtcIndex(this.hdtcstartIndex);
+				}
+				if(this.hdtcendIndex) {
+					tryDiffHdtcIndex(this.hdtcendIndex);
+				}
+			}
+		}
+	};
 
 	/**
 	 * @constructor
@@ -3183,6 +3218,21 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			return res;
 		};
 
+		var checkOneRowCol = function() {
+			var res = false;
+			for (var j = 0; j < argumentsCount; j++) {
+				if(cElementType.array === arg[j].type) {
+					if(1 === arg[j].getRowCount() || 1 === arg[j].getCountElementInRow()) {
+						res = true;
+					}
+				} else {
+					res = false;
+					break;
+				}
+			}
+			return res;
+		};
+
 		//bIsSpecialFunction - сделано только для для функции sumproduct
 		//необходимо, чтобы все внутренние функции возвращали массив, те обрабатывались как формулы массива
 
@@ -3257,7 +3307,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 			//для функций row/column с нулевым количеством аргументов необходимо рассчитывать
 			//значение для каждой ячейки массива, изменяя при этом opt_bbox
-			if ((replaceAreaByRefs && 0 === argumentsCount) || null !== changeArgByIndexArr) {
+			//TODO добавляю ещё одну проверку. в будущем стоит рассмотреть использование всегда parserFormula.ref
+			if ((replaceAreaByRefs && 0 === argumentsCount) || null !== changeArgByIndexArr || (!bIsSpecialFunction && firstArray && checkOneRowCol())) {
 				firstArray = new cArray();
 				firstArray.fillEmptyFromRange(parserFormula.ref);
 			}
@@ -4802,52 +4853,52 @@ _func[cElementType.number][cElementType.array] = _func[cElementType.string][cEle
 
 
 _func.binarySearch = function ( sElem, arrTagert, regExp ) {
-    var first = 0, /* Номер первого элемента в массиве */
-        last = arrTagert.length - 1, /* Номер элемента в массиве, СЛЕДУЮЩЕГО ЗА последним */
-    /* Если просматриваемый участок непустой, first<last */
-        mid;
+	var first = 0, /* Номер первого элемента в массиве */
+		last = arrTagert.length - 1, /* Номер элемента в массиве, СЛЕДУЮЩЕГО ЗА последним */
+		/* Если просматриваемый участок непустой, first<last */
+		mid;
 
-    var arrTagertOneType = [], isString = false;
+	var arrTagertOneType = [], isString = false;
 
-    for ( var i = 0; i < arrTagert.length; i++ ) {
-        if ( (arrTagert[i] instanceof cString || sElem instanceof cString) && !isString ) {
-            i = 0;
-            isString = true;
-            sElem = new cString( sElem.toString().toLowerCase() );
-        }
-        if ( isString ) {
-            arrTagertOneType[i] = new cString( arrTagert[i].toString().toLowerCase() );
-    } else {
-            arrTagertOneType[i] = arrTagert[i].tocNumber();
-        }
-    }
+	for (var i = 0; i < arrTagert.length; i++) {
+		if ((arrTagert[i] instanceof cString || sElem instanceof cString) && !isString) {
+			i = 0;
+			isString = true;
+			sElem = new cString(sElem.toString().toLowerCase());
+		}
+		if (isString) {
+			arrTagertOneType[i] = new cString(arrTagert[i].toString().toLowerCase());
+		} else {
+			arrTagertOneType[i] = arrTagert[i].tocNumber();
+		}
+	}
 
-    if ( arrTagert.length === 0 ) {
-        return -1;
-        /* массив пуст */
-  } else if (arrTagert[0].value > sElem.value) {
-        return -2;
-  } else if (arrTagert[arrTagert.length - 1].value < sElem.value) {
-        return arrTagert.length - 1;
-    }
+	if (arrTagert.length === 0) {
+		return -1;
+		/* массив пуст */
+	} else if (arrTagert[0].value > sElem.value) {
+		return -2;
+	} else if (arrTagert[arrTagert.length - 1].value < sElem.value) {
+		return arrTagert.length - 1;
+	}
 
-    while ( first < last ) {
-        mid = Math.floor( first + (last - first) / 2 );
-        if ( sElem.value <= arrTagert[mid].value || ( regExp && regExp.test( arrTagert[mid].value ) ) ) {
-            last = mid;
-    } else {
-            first = mid + 1;
-        }
-    }
+	while (first < last) {
+		mid = Math.floor(first + (last - first) / 2);
+		if (sElem.value <= arrTagert[mid].value || ( regExp && regExp.test(arrTagert[mid].value) )) {
+			last = mid;
+		} else {
+			first = mid + 1;
+		}
+	}
 
-    /* Если условный оператор if(n==0) и т.д. в начале опущен - значит, тут раскомментировать!    */
-    if ( /* last<n &&*/ arrTagert[last].value === sElem.value ) {
-        return last;
-        /* Искомый элемент найден. last - искомый индекс */
-  } else {
-        return last - 1;
-        /* Искомый элемент не найден. Но если вам вдруг надо его вставить со сдвигом, то его место - last.    */
-    }
+	/* Если условный оператор if(n==0) и т.д. в начале опущен - значит, тут раскомментировать!    */
+	if (/* last<n &&*/ arrTagert[last].value === sElem.value) {
+		return last;
+		/* Искомый элемент найден. last - искомый индекс */
+	} else {
+		return last - 1;
+		/* Искомый элемент не найден. Но если вам вдруг надо его вставить со сдвигом, то его место - last.    */
+	}
 
 };
 
@@ -5032,6 +5083,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 		this.elems = elems;
 		this.error = undefined;
 		this.operand_expected = undefined;
+		this.argPos = undefined;
 	}
 
 	ParseResult.prototype.addRefPos = function(start, end, index, oper, isName) {
@@ -5660,6 +5712,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			elemArr.push(cFormulaOperators[ph.operand_str].prototype);
 			parseResult.addElem(cFormulaOperators[ph.operand_str].prototype);
 			leftParentArgumentsCurrentArr[elemArr.length - 1] = 1;
+			parseResult.argPos = 1;
 
 			if(startSumproduct){
 				counterSumproduct++;
@@ -5728,6 +5781,7 @@ parserFormula.prototype.setFormula = function(formula) {
 						return false;
 					}
 				}
+				parseResult.argPos = leftParentArgumentsCurrentArr[elemArr.length - 1];
 			} else if(wasLeftParentheses && 0 === top_elem_arg_count && elemArr[elemArr.length - 1] && " " === elemArr[elemArr.length - 1].name && !ignoreErrors) {
 				//intersection with empty range
 				t.outStack = [];
@@ -5797,6 +5851,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				return false;
 			}
 			leftParentArgumentsCurrentArr[top_elem_arg_pos]++;
+			parseResult.argPos = leftParentArgumentsCurrentArr[top_elem_arg_pos];
 			parseResult.operand_expected = true;
 			return true;
 		};
@@ -5894,7 +5949,7 @@ parserFormula.prototype.setFormula = function(formula) {
 				parseResult.operand_expected = true;
 			}
 
-			if (!parseResult.operand_expected) {
+			if (!parseResult.operand_expected && !ignoreErrors) {
 				parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
 				t.outStack = [];
 				return false;
@@ -5927,10 +5982,20 @@ parserFormula.prototype.setFormula = function(formula) {
 					return false;
 				}
 				if (parserHelp.isArea.call(ph, t.Formula, ph.pCurrPos)) {
-					found_operand = new cArea3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF, wsT);
+					if(!(wsF && wsT)) {
+						//for edit formula mode
+						//found_operand = new cUnknownFunction(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase());
+						found_operand = new cName(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), t.ws);
+					} else {
+						found_operand = new cArea3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF, wsT);
+					}
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
 				} else if (parserHelp.isRef.call(ph, t.Formula, ph.pCurrPos)) {
-					if (wsT !== wsF) {
+					if(!(wsF && wsT)) {
+						//for edit formula mode
+						//found_operand = new cUnknownFunction(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase());
+						found_operand = new cName(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), t.ws);
+					} else if (wsT !== wsF) {
 						found_operand = new cArea3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF, wsT);
 					} else {
 						found_operand = new cRef3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF);
@@ -6220,6 +6285,10 @@ parserFormula.prototype.setFormula = function(formula) {
 					elemArr.push(_tmp);
 				}
 			} else if (currentElement.type === cElementType.name || currentElement.type === cElementType.name3D) {
+				var defName = currentElement.getDefName();
+				if(defName && defName.parsedRef && this.ref) {
+					currentElement.getDefName().parsedRef.ref = this.ref;
+				}
 				defNameCalcArr = currentElement.Calculate(null, opt_bbox, true);
 				defNameArgCount = [];
 				if(defNameCalcArr && defNameCalcArr.length) {
@@ -6251,7 +6320,7 @@ parserFormula.prototype.setFormula = function(formula) {
 			//для обработки формулы массива
 			//передаётся последним параметром cell и временно подменяется parent у parserFormula для того, чтобы поменялось значение в элементе массива
 			var cell = arguments[3];
-			if(this.ref && cell && !(this.ref.r1 === cell.nRow && this.ref.c1 === cell.nCol)) {
+			if(this.ref && cell && undefined !== cell.nRow && !(this.ref.r1 === cell.nRow && this.ref.c1 === cell.nCol)) {
 				var oldParent = this.parent;
 				this.parent = new AscCommonExcel.CCellWithFormula(cell.ws, cell.nRow, cell.nCol);
 				this._endCalculate();
@@ -6280,13 +6349,13 @@ parserFormula.prototype.setFormula = function(formula) {
 	};
 
 	/* Для обратной сборки функции иногда необходимо поменять ссылки на ячейки */
-	parserFormula.prototype.changeOffset = function (offset, canResize) {//offset = AscCommon.CellBase
+	parserFormula.prototype.changeOffset = function (offset, canResize, nChangeTable) {//offset = AscCommon.CellBase
 		for (var i = 0; i < this.outStack.length; i++) {
-			this._changeOffsetElem(this.outStack[i], this.outStack, i, offset, canResize);
+			this._changeOffsetElem(this.outStack[i], this.outStack, i, offset, canResize, nChangeTable);
 		}
 		return this;
 	};
-	parserFormula.prototype._changeOffsetElem = function(elem, container, index, offset, canResize) {//offset =
+	parserFormula.prototype._changeOffsetElem = function(elem, container, index, offset, canResize, nChangeTable) {//offset =
 		// AscCommon.CellBase
 		var range, bbox = null, ws, isErr = false;
 		if (cElementType.cell === elem.type || cElementType.cell3D === elem.type ||
@@ -6300,7 +6369,12 @@ parserFormula.prototype.setFormula = function(formula) {
 		} else if (cElementType.cellsRange3D === elem.type) {
 			isErr = true;
 			bbox = elem.getBBox0NoCheck();
+		} else if(cElementType.table === elem.type && !nChangeTable) {
+			//когда клонируем диапазон, диапазон таблиц не изменяется
+			elem.setOffset(offset);
+			elem._updateArea(null, false);
 		}
+
 		if (bbox) {
 			bbox = bbox.clone();
 			if (bbox.setOffsetWithAbs(offset, canResize)) {

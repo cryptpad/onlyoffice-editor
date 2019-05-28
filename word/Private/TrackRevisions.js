@@ -184,8 +184,8 @@ CDocument.prototype.GetNextRevisionChange = function()
 	{
 		this.RemoveSelection();
 		this.private_SelectRevisionChange(oChange);
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState(true);
+		this.UpdateSelection(false);
+		this.UpdateInterface(true);
 	}
 };
 CDocument.prototype.GetPrevRevisionChange = function()
@@ -196,8 +196,8 @@ CDocument.prototype.GetPrevRevisionChange = function()
 	{
 		this.RemoveSelection();
 		this.private_SelectRevisionChange(oChange);
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState(true);
+		this.UpdateSelection(false);
+		this.UpdateInterface(true);
 	}
 };
 CDocument.prototype.GetRevisionsChangeElement = function(nDirection, oCurrentElement)
@@ -393,27 +393,39 @@ CDocument.prototype.private_GetRevisionsChangeElementInFooters = function(Search
 		arrFootnotes[nPos].GetRevisionsChangeElement(SearchEngine);
 	}
 };
-CDocument.prototype.private_SelectRevisionChange = function(oChange)
+CDocument.prototype.private_SelectRevisionChange = function(oChange, isSkipCompleteCheck)
 {
 	if (oChange && oChange.get_Paragraph())
 	{
 		this.RemoveSelection();
-		var oElement = oChange.get_Paragraph();
 
-		if (this.TrackRevisionsManager.CompleteTrackChangesForElements([oElement]))
-			return;
-
-		if (oElement instanceof Paragraph)
+		if (oChange.IsComplexChange())
 		{
-			oElement.Selection.Use = true;
-			oElement.Set_SelectionContentPos(oChange.get_StartPos(), oChange.get_EndPos());
-			oElement.Set_ParaContentPos(oChange.get_StartPos(), false, -1, -1);
-			oElement.Document_SetThisElementCurrent(false);
+			if (oChange.IsMove())
+			{
+				this.SelectTrackMove(oChange.GetMoveId(), oChange.IsMoveFrom(), false, false);
+			}
 		}
-		else if (oElement instanceof CTable)
+		else
 		{
-			oElement.SelectRows(oChange.get_StartPos(), oChange.get_EndPos());
-			oElement.Document_SetThisElementCurrent(false);
+			var oElement = oChange.get_Paragraph();
+
+			if (true !== isSkipCompleteCheck && this.TrackRevisionsManager.CompleteTrackChangesForElements([oElement]))
+				return;
+
+			if (oElement instanceof Paragraph)
+			{
+				// Текущую позицию нужно выставить до селекта
+				oElement.Set_ParaContentPos(oChange.get_StartPos(), false, -1, -1);
+				oElement.Selection.Use = true;
+				oElement.Set_SelectionContentPos(oChange.get_StartPos(), oChange.get_EndPos());
+				oElement.Document_SetThisElementCurrent(false);
+			}
+			else if (oElement instanceof CTable)
+			{
+				oElement.SelectRows(oChange.get_StartPos(), oChange.get_EndPos());
+				oElement.Document_SetThisElementCurrent(false);
+			}
 		}
 	}
 };
@@ -436,11 +448,56 @@ CDocument.prototype.AcceptRevisionChange = function(oChange)
 				CheckType : AscCommon.changestype_Paragraph_Content
 			}))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AcceptRevisionChange);
-			this.private_SelectRevisionChange(oChange);
-			this.AcceptRevisionChanges(oChange.get_Type(), false);
+			this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChange);
+
+			if (oChange.IsComplexChange())
+			{
+				if (oChange.IsMove())
+					this.private_ProcessMoveReview(oChange, true);
+			}
+			else
+			{
+				this.private_SelectRevisionChange(oChange);
+				this.AcceptRevisionChanges(oChange.GetType(), false);
+			}
+
+			this.FinalizeAction();
 		}
 	}
+};
+CDocument.prototype.private_ProcessMoveReview = function(oChange, isAccept)
+{
+	var oTrackRevisionsManager = this.GetTrackRevisionsManager();
+
+	var sMoveId     = oChange.GetMoveId();
+	var isMovedDown = oChange.IsMovedDown();
+
+	var oThis = this;
+
+	var oTrackMove = oTrackRevisionsManager.StartProcessReviewMove(sMoveId, oChange.GetUserId());
+	function privateProcessChanges(isFrom)
+	{
+		oTrackMove.SetFrom(isFrom);
+		oThis.SelectTrackMove(sMoveId, isFrom, false, false);
+
+		if (isAccept)
+			oThis.AcceptRevisionChanges(c_oAscRevisionsChangeType.MoveMark, false);
+		else
+			oThis.RejectRevisionChanges(c_oAscRevisionsChangeType.MoveMark, false);
+	}
+
+	if (isMovedDown)
+	{
+		privateProcessChanges(false);
+		privateProcessChanges(true);
+	}
+	else
+	{
+		privateProcessChanges(true);
+		privateProcessChanges(false);
+	}
+
+	oTrackRevisionsManager.EndProcessReviewMove();
 };
 CDocument.prototype.RejectRevisionChange = function(oChange)
 {
@@ -461,9 +518,20 @@ CDocument.prototype.RejectRevisionChange = function(oChange)
 				CheckType : AscCommon.changestype_Paragraph_Content
 			}))
 		{
-			this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RejectRevisionChange);
-			this.private_SelectRevisionChange(oChange);
-			this.RejectRevisionChanges(oChange.get_Type(), false);
+			this.StartAction(AscDFH.historydescription_Document_RejectRevisionChange);
+
+			if (oChange.IsComplexChange())
+			{
+				if (oChange.IsMove())
+					this.private_ProcessMoveReview(oChange, false);
+			}
+			else
+			{
+				this.private_SelectRevisionChange(oChange);
+				this.RejectRevisionChanges(oChange.GetType(), false);
+			}
+
+			this.FinalizeAction();
 		}
 	}
 };
@@ -480,15 +548,13 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
         var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, true);
         if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
+            this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
             this.AcceptRevisionChanges(undefined, false);
-
-            if (true === this.History.Is_LastPointEmpty())
-                this.History.Remove_LastPoint();
+            this.FinalizeAction();
         }
     }
 
-    this.TrackRevisionsManager.Clear_CurrentChange();
+    this.TrackRevisionsManager.ClearCurrentChange();
     this.GetNextRevisionChange();
 };
 CDocument.prototype.RejectRevisionChangesBySelection = function()
@@ -504,15 +570,13 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
         var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, false);
         if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
         {
-            this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
+            this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
             this.RejectRevisionChanges(undefined, false);
-
-            if (true === this.History.Is_LastPointEmpty())
-                this.History.Remove_LastPoint();
+            this.FinalizeAction();
         }
     }
 
-	this.TrackRevisionsManager.Clear_CurrentChange();
+	this.TrackRevisionsManager.ClearCurrentChange();
     this.GetNextRevisionChange();
 };
 CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
@@ -520,7 +584,7 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
     var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(true);
     if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
     {
-        this.Create_NewHistoryPoint(AscDFH.historydescription_Document_AcceptAllRevisionChanges);
+        this.StartAction(AscDFH.historydescription_Document_AcceptAllRevisionChanges);
         var LogicDocuments = this.TrackRevisionsManager.Get_AllChangesLogicDocuments();
         for (var LogicDocId in LogicDocuments)
         {
@@ -533,15 +597,16 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-            this.History.Remove_LastPoint();
+			this.FinalizeAction();
             return;
         }
 
         this.RemoveSelection();
         this.private_CorrectDocumentPosition();
         this.Recalculate();
-        this.Document_UpdateSelectionState();
-        this.Document_UpdateInterfaceState();
+        this.UpdateSelection();
+        this.UpdateInterface();
+        this.FinalizeAction();
     }
 };
 CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
@@ -549,21 +614,22 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
     var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(false);
     if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
     {
-        this.Create_NewHistoryPoint(AscDFH.historydescription_Document_RejectAllRevisionChanges);
+        this.StartAction(AscDFH.historydescription_Document_RejectAllRevisionChanges);
 
         this.private_RejectAllRevisionChanges();
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-            this.History.Remove_LastPoint();
+			this.FinalizeAction();
             return;
         }
 
         this.RemoveSelection();
         this.private_CorrectDocumentPosition();
         this.Recalculate();
-        this.Document_UpdateSelectionState();
-        this.Document_UpdateInterfaceState();
+        this.UpdateSelection();
+        this.UpdateInterface();
+        this.FinalizeAction();
     }
 };
 CDocument.prototype.private_RejectAllRevisionChanges = function()
@@ -578,221 +644,70 @@ CDocument.prototype.private_RejectAllRevisionChanges = function()
 		}
 	}
 };
-CDocument.prototype.AcceptRevisionChanges = function(Type, bAll)
+CDocument.prototype.AcceptRevisionChanges = function(nType, bAll)
 {
-    // Принимаем все изменения, которые попали в селект.
-    // Принимаем изменения в следующей последовательности:
-    // 1. Изменение настроек параграфа
-    // 2. Изменение настроек текста
-    // 3. Добавление/удаление текста
-    // 4. Добавление/удаление параграфа
-    if (docpostype_Content === this.CurPos.Type || true === bAll)
-    {
-        if (true === this.Selection.Use || true === bAll)
-        {
-            var StartPos = this.Selection.StartPos;
-            var EndPos = this.Selection.EndPos;
-            if (StartPos > EndPos)
-            {
-                StartPos = this.Selection.EndPos;
-                EndPos = this.Selection.StartPos;
-            }
-
-            var LastElement = this.Content[EndPos];
-			var LastParaEnd = (!LastElement.IsParagraph() || true === LastElement.Selection_CheckParaEnd());
-
-            if (true === bAll)
-            {
-                StartPos = 0;
-                EndPos = this.Content.length - 1;
-                LastParaEnd = true;
-            }
-
-            if (undefined === Type || c_oAscRevisionsChangeType.ParaPr === Type)
-            {
-                for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
-                {
-                    var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true == bAll) && true === Element.HavePrChange())
-                    {
-                        Element.AcceptPrChange();
-                    }
-                }
-            }
-
-            for (var nCurPos = StartPos; nCurPos <= EndPos; ++nCurPos)
-            {
-                var oElement = this.Content[nCurPos];
-				oElement.AcceptRevisionChanges(Type, bAll);
-            }
-
-            if (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type || c_oAscRevisionsChangeType.ParaRem === Type || c_oAscRevisionsChangeType.RowsRem === Type || c_oAscRevisionsChangeType.RowsAdd === Type)
-            {
-                EndPos = (true === LastParaEnd ? EndPos : EndPos - 1);
-                for (var nCurPos = EndPos; nCurPos >= StartPos; --nCurPos)
-                {
-                    var oElement = this.Content[nCurPos];
-                    if (oElement.IsParagraph())
-                    {
-                        var ReviewType = oElement.GetReviewType();
-                        if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
-                        {
-							oElement.SetReviewType(reviewtype_Common);
-                        }
-                        else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
-                        {
-							oElement.SetReviewType(reviewtype_Common);
-                            this.Concat_Paragraphs(nCurPos);
-                        }
-                    }
-                    else if (oElement.IsTable())
-					{
-						// После принятия изменений у нас могла остаться пустая таблица, такую мы должны удалить
-						if (oElement.GetRowsCount() <= 0)
-						{
-							this.RemoveFromContent(nCurPos, 1, false);
-						}
-					}
-                }
-            }
-        }
-    }
-    else if (docpostype_HdrFtr === this.CurPos.Type)
-    {
-        this.HdrFtr.AcceptRevisionChanges(Type, bAll);
-    }
-    else if (docpostype_DrawingObjects === this.CurPos.Type)
-    {
-        this.DrawingObjects.AcceptRevisionChanges(Type, bAll);
-    }
-    else if (docpostype_Footnotes === this.CurPos.Type)
+	// Принимаем все изменения, которые попали в селект.
+	// Принимаем изменения в следующей последовательности:
+	// 1. Изменение настроек параграфа
+	// 2. Изменение настроек текста
+	// 3. Добавление/удаление текста
+	// 4. Добавление/удаление параграфа
+	if (docpostype_Content === this.CurPos.Type || true === bAll)
 	{
-		this.Footnotes.AcceptRevisionChanges(Type, bAll);
+		this.private_AcceptRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_HdrFtr === this.CurPos.Type)
+	{
+		this.HdrFtr.AcceptRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		this.DrawingObjects.AcceptRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_Footnotes === this.CurPos.Type)
+	{
+		this.Footnotes.AcceptRevisionChanges(nType, bAll);
 	}
 
-    if (true !== bAll)
-    {
-        this.Recalculate();
-        this.Document_UpdateInterfaceState();
-        this.Document_UpdateSelectionState();
-    }
+	if (true !== bAll)
+	{
+		this.Recalculate();
+		this.UpdateInterface();
+		this.UpdateSelection();
+	}
 };
-CDocument.prototype.RejectRevisionChanges = function(Type, bAll)
+CDocument.prototype.RejectRevisionChanges = function(nType, bAll)
 {
-    // Отменяем все изменения, которые попали в селект.
-    // Отменяем изменения в следующей последовательности:
-    // 1. Изменение настроек параграфа
-    // 2. Изменение настроек текста
-    // 3. Добавление/удаление текста
-    // 4. Добавление/удаление параграфа
+	// Отменяем все изменения, которые попали в селект.
+	// Отменяем изменения в следующей последовательности:
+	// 1. Изменение настроек параграфа
+	// 2. Изменение настроек текста
+	// 3. Добавление/удаление текста
+	// 4. Добавление/удаление параграфа
 
-    if (docpostype_Content === this.CurPos.Type || true === bAll)
-    {
-        if (true === this.Selection.Use || true === bAll)
-        {
-            var StartPos = this.Selection.StartPos;
-            var EndPos = this.Selection.EndPos;
-            if (StartPos > EndPos)
-            {
-                StartPos = this.Selection.EndPos;
-                EndPos = this.Selection.StartPos;
-            }
-
-            var LastElement = this.Content[EndPos];
-            var LastParaEnd = (!LastElement.IsParagraph() || true === LastElement.Selection_CheckParaEnd());
-
-            if (true === bAll)
-            {
-                StartPos = 0;
-                EndPos = this.Content.length - 1;
-                LastParaEnd = true;
-            }
-
-            if (undefined === Type || c_oAscRevisionsChangeType.ParaPr === Type)
-            {
-                for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
-                {
-                    var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
-                    {
-                        Element.RejectPrChange();
-                    }
-                }
-            }
-
-            for (var nCurPos = StartPos; nCurPos <= EndPos; ++nCurPos)
-            {
-                var oElement = this.Content[nCurPos];
-				oElement.RejectRevisionChanges(Type, bAll);
-            }
-
-			if (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type || c_oAscRevisionsChangeType.ParaRem === Type || c_oAscRevisionsChangeType.RowsRem === Type || c_oAscRevisionsChangeType.RowsAdd === Type)
-            {
-                EndPos = (true === LastParaEnd ? EndPos : EndPos - 1);
-                for (var nCurPos = EndPos; nCurPos >= StartPos; --nCurPos)
-                {
-                    var oElement = this.Content[nCurPos];
-                    if (oElement.IsParagraph())
-                    {
-                        var ReviewType = oElement.GetReviewType();
-                        if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
-                        {
-                        	var oNextPara   = this.Content[nCurPos + 1];
-                        	var oNextParaPr = null;
-                        	if (oNextPara && oNextPara.IsParagraph())
-								oNextParaPr = oNextPara.GetDirectParaPr(false);
-
-							oElement.SetReviewType(reviewtype_Common);
-                            this.Concat_Paragraphs(nCurPos);
-
-                            if (oNextParaPr)
-								oElement.SetDirectParaPr(oNextParaPr.Copy(true));
-                        }
-                        else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
-                        {
-							var oReviewInfo = oElement.GetReviewInfo();
-							var oPrevInfo   = oReviewInfo.GetPrevAdded();
-							if (oPrevInfo)
-							{
-								oElement.SetReviewTypeWithInfo(reviewtype_Add, oPrevInfo.Copy());
-							}
-							else
-							{
-								oElement.SetReviewType(reviewtype_Common);
-							}
-                        }
-                    }
-                    else if (oElement.IsTable())
-					{
-						// После принятия изменений у нас могла остаться пустая таблица, такую мы должны удалить
-						if (oElement.GetRowsCount() <= 0)
-						{
-							this.RemoveFromContent(nCurPos, 1, false);
-						}
-					}
-                }
-            }
-        }
-    }
-    else if (docpostype_HdrFtr === this.CurPos.Type)
-    {
-        this.HdrFtr.RejectRevisionChanges(Type, bAll);
-    }
-    else if (docpostype_DrawingObjects === this.CurPos.Type)
-    {
-        this.DrawingObjects.RejectRevisionChanges(Type, bAll);
-    }
-    else if (docpostype_Footnotes === this.CurPos.Type)
+	if (docpostype_Content === this.CurPos.Type || true === bAll)
 	{
-		this.Footnotes.RejectRevisionChanges(Type, bAll);
+		this.private_RejectRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_HdrFtr === this.CurPos.Type)
+	{
+		this.HdrFtr.RejectRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		this.DrawingObjects.RejectRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_Footnotes === this.CurPos.Type)
+	{
+		this.Footnotes.RejectRevisionChanges(nType, bAll);
 	}
 
-    if (true !== bAll)
-    {
-        this.Recalculate();
-        this.Document_UpdateInterfaceState();
-        this.Document_UpdateSelectionState();
-    }
+	if (true !== bAll)
+	{
+		this.Recalculate();
+		this.UpdateInterface();
+		this.UpdateSelection();
+	}
 };
 CDocument.prototype.HaveRevisionChanges = function(isCheckOwnChanges)
 {
@@ -819,160 +734,27 @@ CHeaderFooterController.prototype.RejectRevisionChanges = function(Type, bAll)
 //----------------------------------------------------------------------------------------------------------------------
 // CDocumentContent
 //----------------------------------------------------------------------------------------------------------------------
-CDocumentContent.prototype.AcceptRevisionChanges = function(Type, bAll)
+CDocumentContent.prototype.AcceptRevisionChanges = function(nType, bAll)
 {
-    if (docpostype_Content === this.CurPos.Type || true === bAll)
-    {
-        if (true === this.Selection.Use || true === bAll)
-        {
-        	var StartPos, EndPos, LastParaEnd;
-
-			if (true === bAll)
-			{
-				StartPos    = 0;
-				EndPos      = this.Content.length - 1;
-				LastParaEnd = true;
-			}
-			else
-			{
-				StartPos = this.Selection.StartPos;
-				EndPos   = this.Selection.EndPos;
-				if (StartPos > EndPos)
-				{
-					StartPos = this.Selection.EndPos;
-					EndPos   = this.Selection.StartPos;
-				}
-
-				var LastElement = this.Content[EndPos];
-				LastParaEnd = type_Paragraph === LastElement.GetType() && true === LastElement.Selection_CheckParaEnd() ? true : false;
-			}
-
-            if (undefined === Type || c_oAscRevisionsChangeType.ParaPr === Type)
-            {
-                for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
-                {
-                    var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
-                    {
-                        Element.AcceptPrChange();
-                    }
-                }
-            }
-
-            for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
-            {
-                var Element = this.Content[CurPos];
-                Element.AcceptRevisionChanges(Type, bAll);
-            }
-
-            if (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type || c_oAscRevisionsChangeType.ParaRem === Type)
-            {
-                EndPos = (true === LastParaEnd ? EndPos : EndPos - 1);
-                for (var CurPos = EndPos; CurPos >= StartPos; CurPos--)
-                {
-                    var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type())
-                    {
-                        var ReviewType = Element.GetReviewType();
-                        if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
-                        {
-                            Element.SetReviewType(reviewtype_Common);
-                        }
-                        else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
-                        {
-                            Element.SetReviewType(reviewtype_Common);
-                            this.Concat_Paragraphs(CurPos);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    else if (docpostype_DrawingObjects === this.CurPos.Type)
-    {
-        this.DrawingObjects.AcceptRevisionChanges(Type, bAll);
-    }
+	if (docpostype_Content === this.CurPos.Type || true === bAll)
+	{
+		this.private_AcceptRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		this.DrawingObjects.AcceptRevisionChanges(nType, bAll);
+	}
 };
-CDocumentContent.prototype.RejectRevisionChanges = function(Type, bAll)
+CDocumentContent.prototype.RejectRevisionChanges = function(nType, bAll)
 {
-    if (docpostype_Content === this.CurPos.Type || true === bAll)
-    {
-        if (true === this.Selection.Use || true === bAll)
-        {
-        	var StartPos, EndPos, LastParaEnd;
-			if (true === bAll)
-			{
-				StartPos = 0;
-				EndPos = this.Content.length - 1;
-				LastParaEnd = true;
-			}
-			else
-			{
-				StartPos = this.Selection.StartPos;
-				EndPos   = this.Selection.EndPos;
-				if (StartPos > EndPos)
-				{
-					StartPos = this.Selection.EndPos;
-					EndPos   = this.Selection.StartPos;
-				}
-
-				var LastElement = this.Content[EndPos];
-				LastParaEnd = type_Paragraph === LastElement.GetType() && true === LastElement.Selection_CheckParaEnd() ? true : false;
-			}
-
-            if (undefined === Type || c_oAscRevisionsChangeType.ParaPr === Type)
-            {
-                for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
-                {
-                    var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type() && (true === Element.IsSelectedAll() || true === bAll) && true === Element.HavePrChange())
-                    {
-                        Element.RejectPrChange();
-                    }
-                }
-            }
-
-            for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
-            {
-                var Element = this.Content[CurPos];
-                Element.RejectRevisionChanges(Type, bAll);
-            }
-
-            if (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type || c_oAscRevisionsChangeType.ParaRem === Type)
-            {
-                EndPos = (true === LastParaEnd ? EndPos : EndPos - 1);
-                for (var CurPos = EndPos; CurPos >= StartPos; CurPos--)
-                {
-                    var Element = this.Content[CurPos];
-                    if (type_Paragraph === Element.Get_Type())
-                    {
-                        var ReviewType = Element.GetReviewType();
-                        if (reviewtype_Add === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaAdd === Type))
-                        {
-							var oNextPara   = this.Content[CurPos + 1];
-							var oNextParaPr = null;
-							if (oNextPara && oNextPara.IsParagraph())
-								oNextParaPr = oNextPara.GetDirectParaPr(false);
-
-							Element.SetReviewType(reviewtype_Common);
-							this.Concat_Paragraphs(CurPos);
-
-							if (oNextParaPr)
-								Element.SetDirectParaPr(oNextParaPr.Copy(true));
-                        }
-                        else if (reviewtype_Remove === ReviewType && (undefined === Type || c_oAscRevisionsChangeType.ParaRem === Type))
-                        {
-                            Element.SetReviewType(reviewtype_Common);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    else if (docpostype_DrawingObjects === this.CurPos.Type)
-    {
-        this.DrawingObjects.RejectRevisionChanges(Type, bAll);
-    }
+	if (docpostype_Content === this.CurPos.Type || true === bAll)
+	{
+		this.private_RejectRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		this.DrawingObjects.RejectRevisionChanges(nType, bAll);
+	}
 };
 CDocumentContent.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
@@ -1019,4 +801,227 @@ CFootnotesController.prototype.RejectRevisionChanges = function(Type, bAll)
 {
 	if (null !== this.CurFootnote)
 		this.CurFootnote.RejectRevisionChanges(Type, bAll);
+};
+//----------------------------------------------------------------------------------------------------------------------
+// CDocumentContentBase
+//----------------------------------------------------------------------------------------------------------------------
+CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, bAll)
+{
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	if (!oTrackManager)
+		return;
+
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
+
+	if (true === this.Selection.Use || true === bAll)
+	{
+		var StartPos = this.Selection.StartPos;
+		var EndPos   = this.Selection.EndPos;
+		if (StartPos > EndPos)
+		{
+			StartPos = this.Selection.EndPos;
+			EndPos   = this.Selection.StartPos;
+		}
+
+		var LastParaEnd;
+		if (true === bAll)
+		{
+			StartPos    = 0;
+			EndPos      = this.Content.length - 1;
+			LastParaEnd = true;
+		}
+		else
+		{
+			var LastElement = this.Content[EndPos];
+			LastParaEnd = (!LastElement.IsParagraph() || true === LastElement.Selection_CheckParaEnd());
+		}
+
+
+		if (undefined === nType || c_oAscRevisionsChangeType.ParaPr === nType)
+		{
+			for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+			{
+				var Element = this.Content[CurPos];
+				if (type_Paragraph === Element.Get_Type() && (true === bAll || true === Element.IsSelectedAll()) && true === Element.HavePrChange())
+				{
+					Element.AcceptPrChange();
+				}
+			}
+		}
+
+		for (var nCurPos = StartPos; nCurPos <= EndPos; ++nCurPos)
+		{
+			var oElement = this.Content[nCurPos];
+			oElement.AcceptRevisionChanges(nType, bAll);
+		}
+
+		if (undefined === nType
+			|| c_oAscRevisionsChangeType.ParaAdd === nType
+			|| c_oAscRevisionsChangeType.ParaRem === nType
+			|| c_oAscRevisionsChangeType.RowsRem === nType
+			|| c_oAscRevisionsChangeType.RowsAdd === nType
+			|| c_oAscRevisionsChangeType.MoveMark === nType)
+		{
+			EndPos = (true === LastParaEnd ? EndPos : EndPos - 1);
+			for (var nCurPos = EndPos; nCurPos >= StartPos; --nCurPos)
+			{
+				var oElement = this.Content[nCurPos];
+				if (oElement.IsParagraph())
+				{
+					var nReviewType = oElement.GetReviewType();
+					var oReviewInfo = oElement.GetReviewInfo();
+
+					if (reviewtype_Add === nReviewType
+						&& (undefined === nType
+						|| c_oAscRevisionsChangeType.ParaAdd === nType
+						|| (c_oAscRevisionsChangeType.MoveMark === nType
+						&& oReviewInfo.IsMovedTo()
+						&& oTrackMove
+						&& !oTrackMove.IsFrom()
+						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
+					{
+						oElement.SetReviewType(reviewtype_Common);
+					}
+					else if (reviewtype_Remove === nReviewType
+						&& (undefined === nType
+						|| c_oAscRevisionsChangeType.ParaRem === nType
+						|| (c_oAscRevisionsChangeType.MoveMark === nType
+						&& oReviewInfo.IsMovedFrom()
+						&& oTrackMove
+						&& oTrackMove.IsFrom()
+						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
+					{
+						oElement.SetReviewType(reviewtype_Common);
+						this.ConcatParagraphs(nCurPos);;
+					}
+				}
+				else if (oElement.IsTable())
+				{
+					// После принятия изменений у нас могла остаться пустая таблица, такую мы должны удалить
+					if (oElement.GetRowsCount() <= 0)
+					{
+						this.RemoveFromContent(nCurPos, 1, false);
+					}
+				}
+			}
+		}
+	}
+};
+CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, bAll)
+{
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	if (!oTrackManager)
+		return;
+
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
+
+	if (true === this.Selection.Use || true === bAll)
+	{
+		var StartPos = this.Selection.StartPos;
+		var EndPos   = this.Selection.EndPos;
+		if (StartPos > EndPos)
+		{
+			StartPos = this.Selection.EndPos;
+			EndPos   = this.Selection.StartPos;
+		}
+
+		var LastParaEnd;
+		if (true === bAll)
+		{
+			StartPos    = 0;
+			EndPos      = this.Content.length - 1;
+			LastParaEnd = true;
+		}
+		else
+		{
+			var LastElement = this.Content[EndPos];
+			LastParaEnd = (!LastElement.IsParagraph() || true === LastElement.Selection_CheckParaEnd());
+		}
+
+		if (undefined === nType || c_oAscRevisionsChangeType.ParaPr === nType)
+		{
+			for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+			{
+				var Element = this.Content[CurPos];
+				if (type_Paragraph === Element.Get_Type() && (true === bAll || true === Element.IsSelectedAll()) && true === Element.HavePrChange())
+				{
+					Element.RejectPrChange();
+				}
+			}
+		}
+
+		for (var nCurPos = StartPos; nCurPos <= EndPos; ++nCurPos)
+		{
+			var oElement = this.Content[nCurPos];
+			oElement.RejectRevisionChanges(nType, bAll);
+		}
+
+		if (undefined === nType
+			|| c_oAscRevisionsChangeType.ParaAdd === nType
+			|| c_oAscRevisionsChangeType.ParaRem === nType
+			|| c_oAscRevisionsChangeType.RowsRem === nType
+			|| c_oAscRevisionsChangeType.RowsAdd === nType
+			|| c_oAscRevisionsChangeType.MoveMark === nType)
+		{
+			EndPos = (true === LastParaEnd ? EndPos : EndPos - 1);
+			for (var nCurPos = EndPos; nCurPos >= StartPos; --nCurPos)
+			{
+				var oElement = this.Content[nCurPos];
+				if (oElement.IsParagraph())
+				{
+					var nReviewType = oElement.GetReviewType();
+					var oReviewInfo = oElement.GetReviewInfo();
+
+					if (reviewtype_Add === nReviewType
+						&& (undefined === nType
+						|| c_oAscRevisionsChangeType.ParaAdd === nType
+						|| (c_oAscRevisionsChangeType.MoveMark === nType
+						&& oReviewInfo.IsMovedTo()
+						&& oTrackMove
+						&& !oTrackMove.IsFrom()
+						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
+					{
+						var oNextPara   = this.Content[nCurPos + 1];
+						var oNextParaPr = null;
+						if (oNextPara && oNextPara.IsParagraph())
+							oNextParaPr = oNextPara.GetDirectParaPr(false);
+
+						oElement.SetReviewType(reviewtype_Common);
+						this.ConcatParagraphs(nCurPos);
+
+						if (oNextParaPr)
+							oElement.SetDirectParaPr(oNextParaPr.Copy(true));
+					}
+					else if (reviewtype_Remove === nReviewType
+						&& (undefined === nType
+						|| c_oAscRevisionsChangeType.ParaRem === nType
+						|| (c_oAscRevisionsChangeType.MoveMark === nType
+						&& oReviewInfo.IsMovedFrom()
+						&& oTrackMove
+						&& oTrackMove.IsFrom()
+						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
+					{
+						var oReviewInfo = oElement.GetReviewInfo();
+						var oPrevInfo   = oReviewInfo.GetPrevAdded();
+						if (oPrevInfo && c_oAscRevisionsChangeType.MoveMark !== nType)
+						{
+							oElement.SetReviewTypeWithInfo(reviewtype_Add, oPrevInfo.Copy());
+						}
+						else
+						{
+							oElement.SetReviewType(reviewtype_Common);
+						}
+					}
+				}
+				else if (oElement.IsTable())
+				{
+					// После принятия изменений у нас могла остаться пустая таблица, такую мы должны удалить
+					if (oElement.GetRowsCount() <= 0)
+					{
+						this.RemoveFromContent(nCurPos, 1, false);
+					}
+				}
+			}
+		}
+	}
 };

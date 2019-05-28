@@ -2094,6 +2094,7 @@
 					 }
 					 */
 
+					/*
 					var _img = undefined;
 					if (window.editor)
 						_img = window.editor.ImageLoader.map_image_index[img];
@@ -2113,6 +2114,7 @@
 						this.m_arrayPages[this.m_lPagesCount - 1].drawImage(img, x, y, w, h);
 						return;
 					}
+					*/
 
 					var bIsClip = false;
 					if (srcRect.l > 0 || srcRect.t > 0 || srcRect.r < 100 || srcRect.b < 100)

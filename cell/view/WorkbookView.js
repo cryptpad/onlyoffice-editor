@@ -162,6 +162,7 @@
     this.canUpdateAfterShiftUp = false;	// Нужно ли обновлять информацию после отпускания Shift
     this.keepType = false;
     this.timerId = null;
+    this.timerEnd = false;
 
     //----- declaration -----
     this.isInit = false;
@@ -1047,6 +1048,7 @@
 
   WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
     var ws = this.getWorksheet();
+    var t = this;
     var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
       ws.changeSelectionEndPoint(dc, dr, isCoord, isCoord && this.keepType);
     if (!isCoord && !isStartPoint) {
@@ -1054,11 +1056,25 @@
       this.canUpdateAfterShiftUp = true;
     }
     this.keepType = isCoord;
+    if (isCoord && !this.timerEnd && this.timerId === null) {
+    	this.timerId = setTimeout(function () {
+    		var arrClose = [];
+    		arrClose.push(new asc_CMM({type: c_oAscMouseMoveType.None}));
+    		t.handlers.trigger("asc_onMouseMove", arrClose);
+    		t._onUpdateCursor(AscCommonExcel.kCurCells);
+    		t.timerId = null;
+    		t.timerEnd = true;
+    		},1000);
+    }
     asc_applyFunction(callback, d);
   };
 
   // Окончание выделения
   WorkbookView.prototype._onChangeSelectionDone = function(x, y) {
+  	if (this.timerId !== null) {
+		clearTimeout(this.timerId);
+		this.timerId = null;
+	}
   	this.keepType = false;
     if (c_oAscSelectionDialogType.None !== this.selectionDialogType) {
       return;
@@ -1079,7 +1095,7 @@
 
     var ct = ws.getCursorTypeFromXY(x, y);
 
-    if (c_oTargetType.Hyperlink === ct.target) {
+    if (c_oTargetType.Hyperlink === ct.target && !this.controller.isFormulaEditMode) {
       // Проверим замерженность
       var isHyperlinkClick = false;
       if (ar.isOneCell() || isSelectOnShape) {
@@ -1090,7 +1106,7 @@
           isHyperlinkClick = true;
         }
       }
-      if (isHyperlinkClick) {
+      if (isHyperlinkClick && !this.timerEnd) {
         if (false === ct.hyperlink.hyperlinkModel.getVisited() && !isSelectOnShape) {
           ct.hyperlink.hyperlinkModel.setVisited(true);
           if (ct.hyperlink.hyperlinkModel.Ref) {
@@ -1110,6 +1126,7 @@
         }
       }
     }
+    this.timerEnd = false;
   };
 
   // Обработка нажатия правой кнопки мыши
@@ -1192,18 +1209,17 @@
       }
       // Проверяем гиперссылку
       if (ct.target === c_oTargetType.Hyperlink) {
-        if (true === ctrlKey) {
-          // Мы без нажатия на гиперлинк
-        } else {
-          ct.cursor = ct.cellCursor.cursor;
-        }
-		  arrMouseMoveObjects.push(new asc_CMM({
-			  type: c_oAscMouseMoveType.Hyperlink,
-			  x: AscCommon.AscBrowser.convertToRetinaValue(x),
-			  y: AscCommon.AscBrowser.convertToRetinaValue(y),
-			  hyperlink: ct.hyperlink
-		  }));
-      }
+		  if (!ctrlKey) {
+			  arrMouseMoveObjects.push(new asc_CMM({
+				  type: c_oAscMouseMoveType.Hyperlink,
+				  x: AscCommon.AscBrowser.convertToRetinaValue(x),
+				  y: AscCommon.AscBrowser.convertToRetinaValue(y),
+				  hyperlink: ct.hyperlink
+			  }));
+		  } else {
+			  ct.cursor = AscCommonExcel.kCurCells;
+		  }
+	  }
 
 		// проверяем фильтр
 		if (ct.target === c_oTargetType.FilterObject) {
@@ -1467,6 +1483,7 @@
     var editFunction = function() {
       t.setCellEditMode(true);
       ws.setCellEditMode(true);
+      t.hideSpecialPasteButton();
       ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
@@ -1885,15 +1902,14 @@
   };
 
   WorkbookView.prototype._canResize = function() {
+    var isRetina = AscBrowser.isRetina;
     var oldWidth = this.canvas.width;
     var oldHeight = this.canvas.height;
-    var width = this.element.offsetWidth - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.widthPx);
-    var height = this.element.offsetHeight - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.heightPx);
-    var styleWidth, styleHeight, isRetina = AscBrowser.isRetina;
+    var width, height, styleWidth, styleHeight;
+    width = styleWidth = this.element.offsetWidth - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.widthPx);
+    height = styleHeight = this.element.offsetHeight - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.heightPx);
 
     if (isRetina) {
-      styleWidth = width;
-      styleHeight = height;
       width = AscCommon.AscBrowser.convertToRetinaValue(width, true);
       height = AscCommon.AscBrowser.convertToRetinaValue(height, true);
     }
@@ -1906,13 +1922,8 @@
 
     this.canvas.width = this.canvasOverlay.width = this.canvasGraphic.width = this.canvasGraphicOverlay.width = width;
     this.canvas.height = this.canvasOverlay.height = this.canvasGraphic.height = this.canvasGraphicOverlay.height = height;
-    if (isRetina) {
-      this.canvas.style.width = this.canvasOverlay.style.width = this.canvasGraphic.style.width = this.canvasGraphicOverlay.style.width = styleWidth + 'px';
-      this.canvas.style.height = this.canvasOverlay.style.height = this.canvasGraphic.style.height = this.canvasGraphicOverlay.style.height = styleHeight + 'px';
-    } else {
-      this.canvas.style.width = this.canvasOverlay.style.width = this.canvasGraphic.style.width = this.canvasGraphicOverlay.style.width = width + 'px';
-      this.canvas.style.height = this.canvasOverlay.style.height = this.canvasGraphic.style.height = this.canvasGraphicOverlay.style.height = height + 'px';
-    }
+    this.canvas.style.width = this.canvasOverlay.style.width = this.canvasGraphic.style.width = this.canvasGraphicOverlay.style.width = styleWidth + 'px';
+    this.canvas.style.height = this.canvasOverlay.style.height = this.canvasGraphic.style.height = this.canvasGraphicOverlay.style.height = styleHeight + 'px';
 
     this._reInitGraphics();
 
@@ -1988,7 +1999,7 @@
   };
 
   WorkbookView.prototype.changeZoom = function(factor) {
-    if (factor === this.getZoom()) {
+  	if (factor === this.getZoom()) {
       return;
     }
 
@@ -1996,6 +2007,9 @@
     this.buffers.overlay.changeZoom(factor);
     this.buffers.mainGraphic.changeZoom(factor);
     this.buffers.overlayGraphic.changeZoom(factor);
+    if (!factor) {
+    	this.cellEditor.changeZoom(factor);
+	}
     // Нужно сбросить кэш букв
     var i, length;
     for (i = 0, length = this.fmgrGraphics.length; i < length; ++i)
@@ -2010,15 +2024,23 @@
         AscCommon.g_fontManager2.m_pFont = null;
     }
 
+    if (!factor) {
+		this.wsMustDraw = true;
+		this._calcMaxDigitWidth();
+	}
+
     var item;
     var activeIndex = this.model.getActive();
     for (i in this.wsViews) {
       item = this.wsViews[i];
       // Меняем zoom (для не активных сменим как только сделаем его активным)
+      if (!factor) {
+      	item._initWorksheetDefaultWidth();
+	  }
       item.changeZoom(/*isDraw*/i == activeIndex);
       this._reInitGraphics();
       item.objectRender.changeZoom(this.drawingCtx.scaleFactor);
-      if (i == activeIndex) {
+      if (i == activeIndex && factor) {
         item.draw();
         //ToDo item.drawDepCells();
       }
@@ -2191,6 +2213,7 @@
 					if (isNotFunction) {
 						t.skipHelpSelector = true;
 					}
+					t.hideSpecialPasteButton();
 					// Открываем, с выставлением позиции курсора
 					if (!ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange)) {
 						t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editEnd);
@@ -2267,8 +2290,10 @@
 				this.getWorksheet().emptySelection(c_oAscCleanOptions.All, true);
 			} else {
 				//в данном случае не вырезаем, а записываем
-				this.cutIdSheet = this.getWorksheet().model.Id;
-				this.getWorksheet().cutRange = this.getWorksheet().model.selectionRange.getLast();
+				if(false === this.getWorksheet().isMultiSelect()) {
+					this.cutIdSheet = this.getWorksheet().model.Id;
+					this.getWorksheet().cutRange = this.getWorksheet().model.selectionRange.getLast();
+				}
 			}
 		}
 	};

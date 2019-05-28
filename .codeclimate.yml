@@ -17,16 +17,12 @@ ratings:
     - "**.js"
 exclude_paths:
   - build/
-  - cell/.unit-tests/qunit
   - cell/document
   - cell/documentation
-  - cell/model/FormulaObjects/Ebnf-Visualizer
-  - cell/model/FormulaObjects/PegJs
-  - cell/native/underscore-min.js
-  - cell/native/xregexp-all-min.js
-  - common/FontsFreeType/Private
+  - common/libfont/js/private
   - common/externs
   - slide/themes
   - slide/document
+  - vendor/
   - word/document
   - word/Documents

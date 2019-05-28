@@ -1198,6 +1198,8 @@
 	window['AscDFH'].historyitem_type_ParaBookmark       = 62 << 16;
 	window['AscDFH'].historyitem_type_Num                = 63 << 16;
 	window['AscDFH'].historyitem_type_PresentationField  = 64 << 16;
+	window['AscDFH'].historyitem_type_ParaRevisionMove   = 65 << 16;
+	window['AscDFH'].historyitem_type_RunRevisionMove    = 66 << 16;
 
 	window['AscDFH'].historyitem_type_CommonShape            = 1000 << 16; // Этот класс добавлен для элементов, у которых нет конкретного класса
 
