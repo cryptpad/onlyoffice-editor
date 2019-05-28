@@ -14744,7 +14744,7 @@ function CreateStockChart(chartSeries, bUseCache, oOptions)
         var asc_series = chartSeries.series;
         var oChartSpace = new AscFormat.CChartSpace();
         oChartSpace.setDate1904(false);
-        oChartSpace.setLang("en-Us");
+        oChartSpace.setLang("en-US");
         oChartSpace.setRoundedCorners(false);
         oChartSpace.setStyle(2);
         oChartSpace.setChart(new AscFormat.CChart());
