@@ -1114,7 +1114,7 @@ NumFormat.prototype =
 			if(d.val)
 				stDate.setUTCDate( stDate.getUTCDate() + d.val );
 			day = stDate.getUTCDate();
-			dayWeek = ( stDate.getUTCDay() > 0) ? stDate.getUTCDay() - 1 : 6;
+			dayWeek = stDate.getUTCDay();
 			month = stDate.getUTCMonth();
 			year = stDate.getUTCFullYear();
 		}
