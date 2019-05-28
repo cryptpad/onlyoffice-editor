@@ -1045,11 +1045,22 @@
 		Special_Paste_Start : function()
 		{
 			this.specialPasteStart = true;
+
+			//для того, чтобы были доступны скомпилированые стили во время вставки
+			if (g_clipboardBase.CommonIframe && g_clipboardBase.CommonIframe.style.display != "block")
+			{
+				g_clipboardBase.CommonIframe.style.display = "block";
+			}
 		},
 		
 		Special_Paste_End : function()
 		{
 			this.specialPasteStart = false;
+
+			if (g_clipboardBase.CommonIframe && g_clipboardBase.CommonIframe.style.display != "none")
+			{
+				g_clipboardBase.CommonIframe.style.display = "none";
+			}
 		},
 		
 		Paste_Process_Start : function(doNotShowButton)
