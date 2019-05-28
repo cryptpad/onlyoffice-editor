@@ -812,30 +812,13 @@ CPresentation.prototype =
         return oTextPr && oTextPr.Lang.Val ? oTextPr.Lang.Val : 1033;
     },
 
-    getHFProperties: function()
+    collectHFProps: function(oProps, oSlide)
     {
-        var oProps = new AscCommonSlide.CAscHF();
-        var oSlide = this.Slides[this.CurPage];
         if(oSlide)
         {
-
-            this.DateTime = null;
-            this.CustomDateTime = null;
-            this.Footer = null;
-            this.Header = null;
-            this.Lang = null;
-
-            this.ShowDateTime = null;
-            this.ShowSlideNum = null;
-            this.ShowFooter = null;
-            this.ShowHeader = null;
-            this.ShowOnFirsSlide = null;
-            _ph_type != AscFormat.phType_dt && _ph_type != AscFormat.phType_ftr && _ph_type != AscFormat.phType_hdr && _ph_type != AscFormat.phType_sldNum
-
             var oContent, sText, oField;
-            var oHF = oSlide.layout.master.hf;
-
             var oSlideHF = new AscCommonSlide.CAscHFProps();
+            oSlideHF.put_Api(this.Api);
             var oDTShape = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
 
             if(oDTShape)
@@ -843,15 +826,16 @@ CPresentation.prototype =
                 oContent = oDTShape.getDocContent();
                 if(oContent)
                 {
-                    oSlideHF.put_ShowDateTime(true);
                     oContent.Set_ApplyToAll(true);
                     sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
                     oContent.Set_ApplyToAll(false);
                     oSlideHF.put_CustomDateTime(sText);
-                    oField = oContent.GetFielByType('datetime');
+                    oField = oContent.GetFieldByType2('datetime');
                     if(oField)
                     {
-                        oSlideHF.put_DateTime()
+                        oSlideHF.put_DateTime(oField.FieldType);
+                        oSlideHF.put_ShowDateTime(true);
+                        oSlideHF.put_Lang(oField.CompiledPr.Lang.Val);
                     }
                 }
                 else
@@ -877,15 +861,67 @@ CPresentation.prototype =
             var oFooterShape = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
             if(oFooterShape)
             {
-                oSlideHF.put_ShowFooter(true);
+                oContent = oFooterShape.getDocContent();
+                if(oContent)
+                {
+                    oSlideHF.put_ShowFooter(true);
+                    oContent.Set_ApplyToAll(true);
+                    sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
+                    oContent.Set_ApplyToAll(false);
+                    oSlideHF.put_Footer(sText);
+                }
+                else
+                {
+                    oSlideHF.put_ShowFooter(false);
+                }
             }
             else
             {
                 oSlideHF.put_ShowFooter(false);
             }
-            oSlideHF.put_ShowHeader(null);
+            var oHeaderShape = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+            if(oHeaderShape)
+            {
+                oContent = oHeaderShape.getDocContent();
+                if(oContent)
+                {
+                    oSlideHF.put_ShowHeader(true);
+                    oContent.Set_ApplyToAll(true);
+                    sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
+                    oContent.Set_ApplyToAll(false);
+                    oSlideHF.put_Header(sText);
+                }
+                else
+                {
+                    oSlideHF.put_ShowHeader(false);
+                }
+            }
+            else
+            {
+                oSlideHF.put_ShowHeader(false);
+            }
             oSlideHF.put_ShowOnTitleSlide(this.showSpecialPlsOnTitleSld !== false);
+            return oSlideHF
+        }
+        return null;
+    },
 
+    getHFProperties: function()
+    {
+        var oProps = new AscCommonSlide.CAscHF();
+        var oSlide = this.Slides[this.CurPage];
+        oProps.put_Slide(this.collectHFProps(oSlide));
+        if(oProps.Slide)
+        {
+            oProps.Slide.slide =  oSlide;
+        }
+        if(oSlide)
+        {
+            oProps.put_Notes(oSlide.notes);
+            if(oProps.Notes)
+            {
+                oProps.Notes.notes =  oSlide.notes;
+            }
         }
         return oProps;
     },
