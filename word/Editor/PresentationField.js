@@ -25,16 +25,6 @@
     oDays[5] = "Friday";
     oDays[6] = "Saturday";
 
-    function AlignNum(Num, nDigitsCount)
-    {
-        var sStr = "" + Num;
-        for(var i = sStr.length; i < nDigitsCount; ++i)
-        {
-            sStr = '0' + sStr;
-        }
-        return sStr;
-    }
-
     function CPresentationField(Paragraph)
     {
         ParaRun.call(this, Paragraph, false);
@@ -192,98 +182,98 @@
                 {
                     oDateTime = new Asc.cDate();
                     oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime1":
                 {
                     oDateTime = new Asc.cDate();
                     oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime2":
                 {
                     oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("dddd, mmmm dd, yyyy");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    oFormat = AscCommon.oNumFormatCache.get("dddd\\,\\ mmmm\\ dd\\,\\ yyyy");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime3":
                 {
                     oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("DD MMMM YYYY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    oFormat = AscCommon.oNumFormatCache.get("DD\\ MMMM\\ YYYY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime4":
                 {
                     oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MMMM DD, YYYY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    oFormat = AscCommon.oNumFormatCache.get("MMMM\\ DD\\,\\ YYYY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime5":
                 {
                     oDateTime = new Asc.cDate();
                     oFormat = AscCommon.oNumFormatCache.get("DD-MMM-YY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime6":
                 {
                     oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MMMM YY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    oFormat = AscCommon.oNumFormatCache.get("MMMM\\ YY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime7":
                 {
                     oDateTime = new Asc.cDate();
                     oFormat = AscCommon.oNumFormatCache.get("MMM-YY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime8":
                 {
                     oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY hh:mm AM/PM");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY\\ hh:mm\\ AM/PM");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime9":
                 {
                     oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY hh:mm:ss AM/PM");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY\\ hh:mm:ss\\ AM/PM");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime10":
                 {
                     oDateTime = new Asc.cDate();
                     oFormat = AscCommon.oNumFormatCache.get("hh:mm");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime11":
                 {
                     oDateTime = new Asc.cDate();
                     oFormat = AscCommon.oNumFormatCache.get("hh:mm:ss");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime12":
                 {
                     oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("hh:mm AM/PM");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    oFormat = AscCommon.oNumFormatCache.get("hh:mm\\ AM/PM");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 case "datetime13":
                 {
                     oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("hh:mm:ss: AM/PM");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate(), 15, oCultureInfo);
+                    oFormat = AscCommon.oNumFormatCache.get("hh:mm:ss:\\ AM/PM");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDateWithTime(), 15, oCultureInfo);
                     break;
                 }
                 default:
