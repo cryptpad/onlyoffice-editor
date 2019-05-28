@@ -93,6 +93,7 @@ module.exports = function(grunt) {
 
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-replace');
 	grunt.loadNpmTasks('grunt-split-file');
 
@@ -244,6 +245,8 @@ module.exports = function(grunt) {
 		var cellJs = 'cell.js';
 		var slideJs = 'slide.js';
 		var license = 'license.header';
+		var deploy = '../deploy/sdkjs/';
+		var sdkjspattern = 'sdk-*.js';
 		var splitLine;
 		if ('ADVANCED' === level) {
 			splitLine = ('PRETTY_PRINT' === formatting) ? 'window.split = "split";' : 'window.split="split";';
@@ -327,8 +330,52 @@ module.exports = function(grunt) {
 						slide + cache
 					]
 				}
+			},
+			copy: {
+				sdkjs: {
+					files: [
+						{
+							expand: true,
+							cwd: '../common/',
+							src: [
+								'Images/*',
+								'Native/*.js',
+								'libfont/js/fonts.*',
+								'libfont/wasm/fonts.*'
+							],
+							dest: path.join(deploy, 'common')
+						},
+						{
+							expand: true,
+							src: path.join(word, sdkjspattern),
+							dest: path.join(deploy, 'word')
+						},
+						{
+							expand: true,
+							cwd: path.join(cell, 'css'),
+							src: '*.css',
+							dest: path.join(deploy, 'cell', 'css')
+						},
+						{
+							expand: true,
+							src: path.join(cell, sdkjspattern),
+							dest: path.join(deploy, 'cell')
+						},
+						{
+							expand: true,
+							cwd: path.join(slide, 'themes'),
+							src: '**/**',
+							dest: path.join(deploy, 'slide', 'themes')
+						},
+						{
+							expand: true,
+							src: path.join(slide, sdkjspattern),
+							dest: path.join(deploy, 'slide')
+						}
+					]
+				}
 			}
 		})
 	});
-	grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'clean', 'license', 'splitfile', 'concat', 'replace', 'clean']);
+	grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'clean', 'license', 'splitfile', 'concat', 'replace', 'clean', 'copy']);
 };
