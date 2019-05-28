@@ -812,7 +812,7 @@ CPresentation.prototype =
         return oTextPr && oTextPr.Lang.Val ? oTextPr.Lang.Val : 1033;
     },
 
-    collectHFProps: function(oProps, oSlide)
+    collectHFProps: function(oSlide)
     {
         if(oSlide)
         {
@@ -837,6 +837,7 @@ CPresentation.prototype =
                         oDateTime.put_DateTime(oField.FieldType);
                         oDateTime.put_Lang(oField.CompiledPr.Lang.Val);
                     }
+                    oSlideHF.put_DateTime(oDateTime);
                 }
             }
             var oSldNumShape = oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
