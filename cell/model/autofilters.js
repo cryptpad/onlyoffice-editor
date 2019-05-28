@@ -705,7 +705,7 @@
 				//****open/close rows****
 				var nOpenRowsCount = null;
 				var nAllRowsCount = null;
-				if (!bUndoChanges && !bRedoChanges) {
+				if ((!bUndoChanges && !bRedoChanges) || !window['AscCommonExcel'].filteringMode) {
 					var hiddenProps = autoFilter.setRowHidden(worksheet, newFilterColumn);
 					nOpenRowsCount = hiddenProps.nOpenRowsCount;
 					nAllRowsCount = hiddenProps.nAllRowsCount;
@@ -4488,6 +4488,10 @@
 					
 					//заполняем стили
 					styleForCurTable.initStyle(worksheet.sheetMergedStyles, bbox, style, headerRowCount, totalsRowCount);
+					//expand init rows
+					if(bbox.r2 > worksheet.nRowsCount) {
+						worksheet.setRowsCount(bbox.r2);
+					}
 				}
 			},
 
@@ -5225,6 +5229,9 @@
 				{
 					addNameColumn = false;
 				}
+
+				//expand by merged cells(if selected columns/rows)
+				tempRange = this.worksheet.expandRangeByMerged(tempRange);
 
 				//expand range
 				var tablePartsContainsRange = this._isTablePartsContainsRange(tempRange);

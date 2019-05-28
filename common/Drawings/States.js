@@ -636,7 +636,7 @@ RotateState.prototype =
                             copy.recalculateTransform();
                         }
                     }
-                    if(tracks[i].originalObject.fromSerialize && tracks[i].originalObject.drawingBase)
+                    if(tracks[i].originalObject.drawingBase)
                     {
                         var drawingObject = tracks[i].originalObject.drawingBase;
                         var metrics = drawingObject.getGraphicObjectMetrics();

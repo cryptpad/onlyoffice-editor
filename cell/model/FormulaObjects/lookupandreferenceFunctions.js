@@ -399,7 +399,7 @@ function (window, undefined) {
 				arg[2] = arg[2].getValue2(0,0);
 			}
 		}
-		return g_oHLOOKUPCache.calculate(arg);
+		return g_oHLOOKUPCache.calculate(arg, arguments[1]);
 	};
 
 	/**
@@ -763,17 +763,172 @@ function (window, undefined) {
 				arg2Range = arg2.getMatrix();
 			}
 
-			var index = _func.binarySearch(arg0, function () {
-				var a = [];
-				for (var i = 0; i < arg1Range.length; i++) {
-					a.push(arg1Range[i][0])
+			var bVertical = arg1Range[0].length >= arg1Range.length;//r>=c
+			var index;
+			var tempArr = [], i;
+			if(bVertical) {
+				for (i = 0; i < arg1Range[0].length; i++) {
+					tempArr.push(arg1Range[0][i]);
 				}
-				return a;
-			}());
+			} else {
+				for (i = 0; i < arg1Range.length; i++) {
+					tempArr.push(arg1Range[i][0]);
+				}
+			}
+
+			//As LO
+			/*if (tempArr && tempArr.length) {
+				var _compare = function (i, rMat) {
+					var elem = rMat[i];
+					if (elem.type === cElementType.empty) {
+						return -1;
+					}
+
+					var bByString = arg0.type === cElementType.string;
+					if (elem.type === cElementType.number) {
+						if (bByString) {
+							return -1;
+						}
+
+						var nVal1 = elem.value;
+						var nVal2 = arg0.value;
+						if (nVal1 == nVal2) {
+							return 0;
+						}
+
+						return nVal1 < nVal2 ? -1 : 1;
+					}
+
+					if (!bByString) {
+						return 1;
+					}
+
+					//var aStr1 = elem.toString();
+					//var aStr2 = arg0.toString();
+
+					//return compareString(aStr1, aStr2);
+				};
 
 
-			if (index < 0) {
-				return new cError(cErrorType.not_available);
+				var nLenMajor = tempArr.length;
+
+				var bFound = false;
+				var nDelta = -1;
+
+				var nFirst = 0, nLast = nLenMajor - 1; //, nHitIndex = 0;
+				for (var nLen = nLast - nFirst; nLen > 0; nLen = nLast - nFirst) {
+					var nMid = Math.floor(nFirst + nLen / 2);
+					var nCmp = _compare(nMid, tempArr);
+					if (nCmp == 0) {
+						_match(nMid, tempArr, nLenMajor, false);
+						nDelta = nMid;
+						bFound = true;
+						break;
+					}
+
+					if (nLen == 1) {
+						nDelta = nCmp < 0 ? nLast - 1 : nFirst - 1;
+
+						bFound = (nDelta >= 0);
+						break;
+					}
+
+					if (nCmp < 0) {
+						nFirst = nMid;
+					} else {
+						nLast = nMid;
+					}
+				}
+
+
+				if (nDelta === nLenMajor - 2) // last item
+				{
+					var nCmp = _compare(nDelta + 1, tempArr);
+					if (nCmp <= 0) {
+						nDelta += 1;
+						bFound = true;
+					}
+				} else if (nDelta > 0)
+				{
+					// non-exact match
+					bFound = true;
+				}
+
+				if (bFound) {
+					var n = bVertical ? arg1Range[0].length : arg1Range.length;
+					if (nDelta >= n) {
+						nDelta = n;
+					}
+					var foundVal = bVertical ? arg1Range[0][nDelta] : arg1Range[nDelta][0];
+					//bool bByString = rEntry.GetQueryItem().meType == ScQueryEntry::ByString;
+					//if (bByString == aMatAcc.IsValue(i))
+					//bFound = false;
+				}
+
+				if (!bFound) {
+					return new cError(cErrorType.not_available);
+				}
+
+				var ws = cElementType.cellsRange3D === arg1.type && arg1.isSingleSheet() ? arg1.getWS() : arg1.ws;
+
+				if (cElementType.cellsRange3D === arg1.type) {
+					if (arg1.isSingleSheet()) {
+						ws = arg1.getWS();
+					} else {
+						return new cError(cErrorType.bad_reference);
+					}
+				} else if (cElementType.cellsRange === arg1.type) {
+					ws = arg1.getWS();
+				} else {
+					return new cError(cErrorType.bad_reference);
+				}
+
+				var b = arg2.getBBox0();
+				if (2 === arg.length) {
+					if (bVertical) {
+						return new cRef(ws.getCell3(b.r1 + 0, b.c1 + nDelta).getName(), ws);
+					} else {
+						return new cRef(ws.getCell3(b.r1 + nDelta, b.c1 + 0).getName(), ws);
+					}
+				} else {
+					if (1 === arg2Range.length) {
+						return new cRef(ws.getCell3(b.r1 + 0, b.c1 + nDelta).getName(), ws);
+					} else {
+						return new cRef(ws.getCell3(b.r1 + nDelta, b.c1 + 0).getName(), ws);
+					}
+				}
+
+				return;
+			}*/
+
+			if(tempArr[tempArr.length - 1] && tempArr[tempArr.length - 1].value < arg0.value) {
+				//в этом случае фукнция бинарного поиска одаст последний элемент. для конкретного случая это неверно
+				//Если функции не удается найти искомое_значение, то в просматриваемом_векторе выбирается наибольшее значение, которое меньше искомого_значения или равно ему.
+				var diff = null;
+				var endNumber;
+				for(i = 0; i < tempArr.length; i++) {
+					if(cElementType.number === tempArr[i].type) {
+						if(tempArr[i].value <= arg0.value && (null === diff || diff > (arg0.value - tempArr[i].value))) {
+							index = i;
+							diff = arg0.value - tempArr[i].value;
+						}
+						endNumber = i;
+					}
+				}
+				if(undefined === index) {
+					if(undefined !== endNumber) {
+						index = endNumber;
+					} /*else {
+						index = tempArr.length - 1;
+					}*/
+				}
+			}
+			if(index === undefined) {
+				index = _func.binarySearch(arg0, tempArr);
+
+				if (index < 0) {
+					return new cError(cErrorType.not_available);
+				}
 			}
 
 			var ws = cElementType.cellsRange3D === arg1.type && arg1.isSingleSheet() ? arg1.getWS() : arg1.ws;
@@ -792,10 +947,10 @@ function (window, undefined) {
 
 			var b = arg2.getBBox0();
 			if (2 === arg.length) {
-				if (arg1Range[0].length >= 2) {
-					return new cRef(ws.getCell3(b.r1 + index, b.c2 + 0).getName(), ws);
-				} else {
+				if (bVertical) {
 					return new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
+				} else {
+					return new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
 				}
 			} else {
 				if (1 === arg2Range.length) {
@@ -1506,10 +1661,22 @@ function (window, undefined) {
 		}
 
 		var arg0 = arg[0];
-		if (cElementType.cellsRange === arg0.type || cElementType.array === arg0.type) {
-			arg0 = arg0.getMatrix();
+		if (cElementType.cellsRange === arg0.type) {
+			//TODO возможно стоит на вход функции Calculate в случае применения как формулы массива сразу передавать преобразованный range в array
+			if(!this.bArrayFormula) {
+				arg0 = arg0.cross(arguments[1]);
+			} else {
+				arg0 = arg0.getMatrix();
+			}
 		} else if(cElementType.cellsRange3D === arg0.type) {
-			arg0 = arg0.getMatrix()[0];
+			//TODO возможно стоит на вход функции в случае применения как формулы массива сразу передавать преобразованный range в array
+			if(!this.bArrayFormula) {
+				arg0 = arg0.cross(arguments[1]);
+			} else {
+				arg0 = arg0.getMatrix()[0];
+			}
+		} else if(cElementType.array === arg0.type) {
+			arg0 = arg0.getMatrix();
 		} else if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
 			return arg0.getValue();
 		} else if (cElementType.number === arg0.type || cElementType.string === arg0.type ||
@@ -1519,6 +1686,9 @@ function (window, undefined) {
 			return new cError(cErrorType.not_available);
 		}
 
+		if (cElementType.error === arg0.type) {
+			return arg0;
+		}
 		if(0 === arg0.length){
 			return new cError(cErrorType.wrong_value_type);
 		}
@@ -1560,10 +1730,12 @@ function (window, undefined) {
 			return arg0;
 		}
 
+		var arg0Val;
 		if(cElementType.array === arg0.type) {
-			var arg0Val = arg0.getElementRowCol(0,0);
+			arg0Val = arg0.getElementRowCol(0,0);
 			valueForSearching = ('' + arg0Val.getValue()).toLowerCase();
 		} else {
+			arg0Val = arg0;
 			valueForSearching = ('' + arg0.getValue()).toLowerCase();
 		}
 
@@ -1634,7 +1806,17 @@ function (window, undefined) {
 		c = this.bHor ? bb.c2 : bb.c1;
 		var oSearchRange = ws.getRange3(bb.r1, bb.c1, r, c);
 
-		res = this._get(oSearchRange, valueForSearching, arg3);
+		if(cElementType.cellsRange === arg0Val.type) {
+			arg0Val = arg0Val.cross(arguments[1]);
+		} else if(cElementType.cellsRange3D === arg0Val.type) {
+			arg0Val = arg0Val.cross(arguments[1]);
+		}
+
+		if (cElementType.error === arg0Val.type) {
+			return arg0;
+		}
+
+		res = this._get(oSearchRange, arg0Val, arg3);
 		if (-1 === res) {
 			return new cError(cErrorType.not_available);
 		}
@@ -1657,7 +1839,7 @@ function (window, undefined) {
 		if (!cacheElem) {
 			cacheElem = {elements: [], results: {}};
 			range._foreachNoEmpty(function (cell, r, c) {
-				cacheElem.elements.push({v: cell.getValueWithoutFormat().toLowerCase(), i: (_this.bHor ? c : r)});
+				cacheElem.elements.push({v: checkTypeCell(cell), i: (_this.bHor ? c : r)});
 			});
 			this.cacheId[sRangeName] = cacheElem;
 			var cacheRange = this.cacheRanges[wsId];
@@ -1667,7 +1849,7 @@ function (window, undefined) {
 			}
 			cacheRange.add(range.getBBox0(), cacheElem);
 		}
-		var sInputKey = valueForSearching + g_cCharDelimiter + arg3Value;
+		var sInputKey = valueForSearching.getValue() + g_cCharDelimiter + arg3Value + g_cCharDelimiter + valueForSearching.type;
 		res = cacheElem.results[sInputKey];
 		if (!res) {
 			cacheElem.results[sInputKey] = res = this._calculate(cacheElem.elements, valueForSearching, arg3Value);
@@ -1676,9 +1858,36 @@ function (window, undefined) {
 	};
 	VHLOOKUPCache.prototype._calculate = function (cacheArray, valueForSearching, lookup) {
 		var res = -1, i = 0, j, length = cacheArray.length, k, elem, val;
-		/*if ('' === valueForSearching && 0 !== length) {
-			return cacheArray[0].i;
-		}*/
+
+		//TODO неверно работает функция, допустим для случая: VLOOKUP("12",A1:A5,1) 12.00 ; "qwe" ; "3" ; 3.00 ; 4.00
+
+		//ascending order: ..., -2, -1, 0, 1, 2, ..., A-Z, FALSE
+		var _compareValues = function (val1, val2, op) {
+			var res = _func[val1.type][val2.type](val1, val2, op);
+
+			//op == true -> "="; op == false -> "<"
+			/*if(op) {
+				if(val1.type === val2.type) {
+					res = val1.value === val2.value;
+				} else {
+					res = false;
+				}
+			} else {
+				if(val1.type === val2.type) {
+					res = val1.value < val2.value;
+				} else if(cElementType.number === val1.type && cElementType.string === val2.type) {
+					res = true;
+				} else if(cElementType.string === val1.type && cElementType.number === val2.type) {
+					res = false;
+				} else if(cElementType.number === val1.type && cElementType.bool === val2.type) {
+					res = true;
+				} else if(cElementType.bool === val1.type && cElementType.number === val2.type) {
+					res = false;
+				}
+			}*/
+
+			return res ? res.value : false;
+		};
 
 		if (lookup) {
 			j = length - 1;
@@ -1686,9 +1895,9 @@ function (window, undefined) {
 				k = Math.floor((i + j) / 2);
 				elem = cacheArray[k];
 				val = elem.v;
-				if (valueForSearching === val) {
+				if (_compareValues(valueForSearching, val, "=")) {
 					return elem.i;
-				} else if (valueForSearching < val) {
+				} else if (_compareValues(valueForSearching, val, "<")) {
 					j = k - 1;
 				} else {
 					i = k + 1;
@@ -1701,7 +1910,7 @@ function (window, undefined) {
 			for (; i < length; i++) {
 				elem = cacheArray[i];
 				val = elem.v;
-				if (valueForSearching === val) {
+				if (_compareValues(valueForSearching, val, "=")) {
 					return elem.i;
 				}
 			}
@@ -1899,7 +2108,7 @@ function (window, undefined) {
 			}
 		}
 
-		return g_oVLOOKUPCache.calculate(arg);
+		return g_oVLOOKUPCache.calculate(arg, arguments[1]);
 	};
 
 	var g_oVLOOKUPCache = new VHLOOKUPCache(false);

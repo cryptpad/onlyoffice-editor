@@ -5546,575 +5546,622 @@ function CTablePr()
     this.TableLayout           = undefined;
     this.TableDescription      = undefined;
     this.TableCaption          = undefined;
+    this.PrChange              = undefined;
+    this.ReviewInfo            = undefined;
 }
 
-CTablePr.prototype =
+CTablePr.prototype.Copy = function(bCopyPrChange)
 {
-    Copy : function()
-    {
-        var TablePr = new CTablePr();
+	var TablePr = new CTablePr();
 
-        TablePr.TableStyleColBandSize = this.TableStyleColBandSize;
-        TablePr.TableStyleRowBandSize = this.TableStyleRowBandSize;
-        TablePr.Jc                    = this.Jc;
+	TablePr.TableStyleColBandSize = this.TableStyleColBandSize;
+	TablePr.TableStyleRowBandSize = this.TableStyleRowBandSize;
+	TablePr.Jc                    = this.Jc;
 
-        if ( undefined != this.Shd )
-            TablePr.Shd = this.Shd.Copy();
+	if (undefined != this.Shd)
+		TablePr.Shd = this.Shd.Copy();
 
-        // TableBorders
-        if ( undefined != this.TableBorders.Bottom )
-            TablePr.TableBorders.Bottom = this.TableBorders.Bottom.Copy();
+	// TableBorders
+	if (undefined != this.TableBorders.Bottom)
+		TablePr.TableBorders.Bottom = this.TableBorders.Bottom.Copy();
 
-        if ( undefined != this.TableBorders.Left )
-            TablePr.TableBorders.Left = this.TableBorders.Left.Copy();
+	if (undefined != this.TableBorders.Left)
+		TablePr.TableBorders.Left = this.TableBorders.Left.Copy();
 
-        if ( undefined != this.TableBorders.Right )
-            TablePr.TableBorders.Right = this.TableBorders.Right.Copy();
+	if (undefined != this.TableBorders.Right)
+		TablePr.TableBorders.Right = this.TableBorders.Right.Copy();
 
-        if ( undefined != this.TableBorders.Top )
-            TablePr.TableBorders.Top = this.TableBorders.Top.Copy();
+	if (undefined != this.TableBorders.Top)
+		TablePr.TableBorders.Top = this.TableBorders.Top.Copy();
 
-        if ( undefined != this.TableBorders.InsideH )
-            TablePr.TableBorders.InsideH = this.TableBorders.InsideH.Copy();
+	if (undefined != this.TableBorders.InsideH)
+		TablePr.TableBorders.InsideH = this.TableBorders.InsideH.Copy();
 
-        if ( undefined != this.TableBorders.InsideV )
-            TablePr.TableBorders.InsideV = this.TableBorders.InsideV.Copy();
+	if (undefined != this.TableBorders.InsideV)
+		TablePr.TableBorders.InsideV = this.TableBorders.InsideV.Copy();
 
-        // TableCellMar
-        if ( undefined != this.TableCellMar.Bottom )
-            TablePr.TableCellMar.Bottom = this.TableCellMar.Bottom.Copy();
+	// TableCellMar
+	if (undefined != this.TableCellMar.Bottom)
+		TablePr.TableCellMar.Bottom = this.TableCellMar.Bottom.Copy();
 
-        if ( undefined != this.TableCellMar.Left )
-            TablePr.TableCellMar.Left = this.TableCellMar.Left.Copy();
+	if (undefined != this.TableCellMar.Left)
+		TablePr.TableCellMar.Left = this.TableCellMar.Left.Copy();
 
-        if ( undefined != this.TableCellMar.Right )
-            TablePr.TableCellMar.Right = this.TableCellMar.Right.Copy();
+	if (undefined != this.TableCellMar.Right)
+		TablePr.TableCellMar.Right = this.TableCellMar.Right.Copy();
 
-        if ( undefined != this.TableCellMar.Top )
-            TablePr.TableCellMar.Top = this.TableCellMar.Top.Copy();
+	if (undefined != this.TableCellMar.Top)
+		TablePr.TableCellMar.Top = this.TableCellMar.Top.Copy();
 
-        TablePr.TableCellSpacing = this.TableCellSpacing;
-        TablePr.TableInd         = this.TableInd;
+	TablePr.TableCellSpacing = this.TableCellSpacing;
+	TablePr.TableInd         = this.TableInd;
 
-        if ( undefined != this.TableW )
-            TablePr.TableW = this.TableW.Copy();
+	if (undefined != this.TableW)
+		TablePr.TableW = this.TableW.Copy();
 
-        TablePr.TableLayout = this.TableLayout;
+	TablePr.TableLayout = this.TableLayout;
 
-        TablePr.TableDescription = this.TableDescription;
-        TablePr.TableCaption     = this.TableCaption;
+	TablePr.TableDescription = this.TableDescription;
+	TablePr.TableCaption     = this.TableCaption;
 
-        return TablePr;
-    },
-
-    Merge : function(TablePr)
-    {
-        if ( undefined != TablePr.TableStyleColBandSize )
-            this.TableStyleColBandSize = TablePr.TableStyleColBandSize;
-
-        if ( undefined != TablePr.TableStyleRowBandSize )
-            this.TableStyleRowBandSize = TablePr.TableStyleRowBandSize;
-
-        if ( undefined != TablePr.Jc )
-            this.Jc = TablePr.Jc;
-
-        if ( undefined != TablePr.Shd )
-            this.Shd = TablePr.Shd.Copy();
-
-        // TableBorders
-        if ( undefined != TablePr.TableBorders.Bottom )
-            this.TableBorders.Bottom = TablePr.TableBorders.Bottom.Copy();
-
-        if ( undefined != TablePr.TableBorders.Left )
-            this.TableBorders.Left = TablePr.TableBorders.Left.Copy();
-
-        if ( undefined != TablePr.TableBorders.Right )
-            this.TableBorders.Right = TablePr.TableBorders.Right.Copy();
-
-        if ( undefined != TablePr.TableBorders.Top )
-            this.TableBorders.Top = TablePr.TableBorders.Top.Copy();
-
-        if ( undefined != TablePr.TableBorders.InsideH )
-            this.TableBorders.InsideH = TablePr.TableBorders.InsideH.Copy();
-
-        if ( undefined != TablePr.TableBorders.InsideV )
-            this.TableBorders.InsideV = TablePr.TableBorders.InsideV.Copy();
-
-        // TableCellMar
-        if ( undefined != TablePr.TableCellMar.Bottom )
-            this.TableCellMar.Bottom = TablePr.TableCellMar.Bottom.Copy();
-
-        if ( undefined != TablePr.TableCellMar.Left )
-            this.TableCellMar.Left = TablePr.TableCellMar.Left.Copy();
-
-        if ( undefined != TablePr.TableCellMar.Right )
-            this.TableCellMar.Right = TablePr.TableCellMar.Right.Copy();
-
-        if ( undefined != TablePr.TableCellMar.Top )
-            this.TableCellMar.Top = TablePr.TableCellMar.Top.Copy();
-
-        if ( undefined != TablePr.TableCellSpacing )
-            this.TableCellSpacing = TablePr.TableCellSpacing;
-
-        if ( undefined != TablePr.TableInd )
-            this.TableInd         = TablePr.TableInd;
-
-        if ( undefined != TablePr.TableW )
-            this.TableW = TablePr.TableW.Copy();
-
-        if ( undefined != TablePr.TableLayout )
-            this.TableLayout = TablePr.TableLayout;
-
-        if (undefined !== TablePr.TableDescription)
-        	this.TableDescription = TablePr.TableDescription;
-
-        if (undefined !== TablePr.TableCaption)
-        	this.TableCaption = TablePr.TableCaption;
-    },
-
-    Is_Equal : function(TablePr)
-    {
-        if (this.TableStyleColBandSize !== TablePr.TableStyleColBandSize
-            || this.TableStyleRowBandSize !== TablePr.TableStyleRowBandSize
-            || this.Jc !== TablePr.Jc
-            || true !== IsEqualStyleObjects(this.TableBorders.Bottom, TablePr.TableBorders.Bottom)
-            || true !== IsEqualStyleObjects(this.TableBorders.Left   , TablePr.TableBorders.Left   )
-            || true !== IsEqualStyleObjects(this.TableBorders.Right  , TablePr.TableBorders.Right  )
-            || true !== IsEqualStyleObjects(this.TableBorders.Top    , TablePr.TableBorders.Top    )
-            || true !== IsEqualStyleObjects(this.TableBorders.InsideH, TablePr.TableBorders.InsideH)
-            || true !== IsEqualStyleObjects(this.TableBorders.InsideV, TablePr.TableBorders.InsideV)
-            || true !== IsEqualStyleObjects(this.TableCellMar.Bottom, TablePr.TableCellMar.Bottom)
-            || true !== IsEqualStyleObjects(this.TableCellMar.Left  , TablePr.TableCellMar.Left  )
-            || true !== IsEqualStyleObjects(this.TableCellMar.Right , TablePr.TableCellMar.Right )
-            || true !== IsEqualStyleObjects(this.TableCellMar.Top   , TablePr.TableCellMar.Top   )
-            || this.TableCellSpacing !== TablePr.TableCellSpacing
-            || this.TableInd !== TablePr.TableInd
-            || true !== IsEqualStyleObjects(this.TableW, TablePr.TableW)
-            || this.TableLayout !== TablePr.TableLayout)
-            return false;
-
-        return true;
-    },
-
-    Init_Default : function()
-    {
-        this.TableStyleColBandSize = 1;
-        this.TableStyleRowBandSize = 1;
-        this.Jc                    = align_Left;
-        this.Shd                   = new CDocumentShd();
-        this.TableBorders.Bottom   = new CDocumentBorder();
-        this.TableBorders.Left     = new CDocumentBorder();
-        this.TableBorders.Right    = new CDocumentBorder();
-        this.TableBorders.Top      = new CDocumentBorder();
-        this.TableBorders.InsideH  = new CDocumentBorder();
-        this.TableBorders.InsideV  = new CDocumentBorder();
-        this.TableCellMar.Bottom   = new CTableMeasurement(tblwidth_Mm, 0);
-        this.TableCellMar.Left     = new CTableMeasurement(tblwidth_Mm, 1.9/*5.4 * g_dKoef_pt_to_mm*/); // 5.4pt
-        this.TableCellMar.Right    = new CTableMeasurement(tblwidth_Mm, 1.9/*5.4 * g_dKoef_pt_to_mm*/); // 5.4pt
-        this.TableCellMar.Top      = new CTableMeasurement(tblwidth_Mm, 0);
-        this.TableCellSpacing      = null;
-        this.TableInd              = 0;
-        this.TableW                = new CTableMeasurement(tblwidth_Auto, 0);
-        this.TableLayout           = tbllayout_AutoFit;
-        this.TableDescription      = "";
-        this.TableCaption          = "";
-    },
-
-    Set_FromObject : function(TablePr)
-    {
-        this.TableStyleColBandSize = TablePr.TableStyleColBandSize;
-        this.TableStyleRowBandSize = TablePr.TableStyleRowBandSize;
-        this.Jc = TablePr.Jc;
-
-        if ( undefined != TablePr.Shd )
-        {
-            this.Shd = new CDocumentShd();
-            this.Shd.Set_FromObject(TablePr.Shd);
-        }
-        else
-            this.Shd = undefined;
-
-        if ( undefined != TablePr.TableBorders )
-        {
-            if ( undefined != TablePr.TableBorders.Bottom )
-            {
-                this.TableBorders.Bottom = new CDocumentBorder();
-                this.TableBorders.Bottom.Set_FromObject( TablePr.TableBorders.Bottom );
-            }
-            else
-                this.TableBorders.Bottom = undefined;
-
-            if ( undefined != TablePr.TableBorders.Left )
-            {
-                this.TableBorders.Left = new CDocumentBorder();
-                this.TableBorders.Left.Set_FromObject( TablePr.TableBorders.Left );
-            }
-            else
-                this.TableBorders.Left = undefined;
-
-            if ( undefined != TablePr.TableBorders.Right )
-            {
-                this.TableBorders.Right = new CDocumentBorder();
-                this.TableBorders.Right.Set_FromObject( TablePr.TableBorders.Right );
-            }
-            else
-                this.TableBorders.Right = undefined;
-
-            if ( undefined != TablePr.TableBorders.Top )
-            {
-                this.TableBorders.Top = new CDocumentBorder();
-                this.TableBorders.Top.Set_FromObject( TablePr.TableBorders.Top );
-            }
-            else
-                this.TableBorders.Top = undefined;
-
-            if ( undefined != TablePr.TableBorders.InsideH )
-            {
-                this.TableBorders.InsideH = new CDocumentBorder();
-                this.TableBorders.InsideH.Set_FromObject( TablePr.TableBorders.InsideH );
-            }
-            else
-                this.TableBorders.InsideH = undefined;
-
-            if ( undefined != TablePr.TableBorders.InsideV )
-            {
-                this.TableBorders.InsideV = new CDocumentBorder();
-                this.TableBorders.InsideV.Set_FromObject( TablePr.TableBorders.InsideV );
-            }
-            else
-                this.TableBorders.InsideV = undefined;
-        }
-        else
-        {
-            this.TableBorders.Bottom  = undefined;
-            this.TableBorders.Left    = undefined;
-            this.TableBorders.Right   = undefined;
-            this.TableBorders.Top     = undefined;
-            this.TableBorders.InsideH = undefined;
-            this.TableBorders.InsideV = undefined;
-        }
-
-        if ( undefined != TablePr.TableCellMar )
-        {
-            if ( undefined != TablePr.TableCellMar.Bottom )
-                this.TableCellMar.Bottom = new CTableMeasurement( TablePr.TableCellMar.Bottom.Type, TablePr.TableCellMar.Bottom.W );
-            else
-                this.TableCellMar.Bottom = undefined;
-
-            if ( undefined != TablePr.TableCellMar.Left )
-                this.TableCellMar.Left = new CTableMeasurement( TablePr.TableCellMar.Left.Type, TablePr.TableCellMar.Left.W );
-            else
-                this.TableCellMar.Left = undefined;
-
-            if ( undefined != TablePr.TableCellMar.Right )
-                this.TableCellMar.Right = new CTableMeasurement( TablePr.TableCellMar.Right.Type, TablePr.TableCellMar.Right.W );
-            else
-                this.TableCellMar.Right = undefined;
-
-            if ( undefined != TablePr.TableCellMar.Top )
-                this.TableCellMar.Top = new CTableMeasurement( TablePr.TableCellMar.Top.Type, TablePr.TableCellMar.Top.W );
-            else
-                this.TableCellMar.Top = undefined;
-        }
-        else
-        {
-            this.TableCellMar.Bottom = undefined;
-            this.TableCellMar.Left   = undefined;
-            this.TableCellMar.Right  = undefined;
-            this.TableCellMar.Top    = undefined;
-        }
-
-        this.TableCellSpacing = TablePr.TableCellSpacing;
-        this.TableInd         = TablePr.TableInd;
-
-        if ( undefined != TablePr.TableW )
-            this.TableW = new CTableMeasurement( TablePr.TableW.Type, TablePr.TableW.W );
-        else
-            this.TableW = undefined;
-
-        this.TableLayout = TablePr.TableLayout;
-
-        this.TableDescription = TablePr.TableDescription;
-        this.TableCaption     = TablePr.TableCaption;
-    },
-
-    Check_PresentationPr : function(Theme)
-    {
-        if(this.Shd)
-        {
-            this.Shd.Check_PresentationPr(Theme);
-        }
-        if(this.TableBorders.Bottom)
-        {
-            this.TableBorders.Bottom.Check_PresentationPr(Theme);
-        }
-        if(this.TableBorders.Left)
-        {
-            this.TableBorders.Left.Check_PresentationPr(Theme);
-        }
-        if(this.TableBorders.Right)
-        {
-            this.TableBorders.Right.Check_PresentationPr(Theme);
-        }
-        if(this.TableBorders.Top)
-        {
-            this.TableBorders.Top.Check_PresentationPr(Theme);
-        }
-        if(this.TableBorders.InsideH)
-        {
-            this.TableBorders.InsideH.Check_PresentationPr(Theme);
-        }
-        if(this.TableBorders.InsideV)
-        {
-            this.TableBorders.InsideV.Check_PresentationPr(Theme);
-        }
-    },
-
-    Write_ToBinary : function(Writer)
-    {
-        var StartPos = Writer.GetCurPosition();
-        Writer.Skip(4);
-        var Flags = 0;
-
-        if ( undefined != this.TableStyleColBandSize )
-        {
-            Writer.WriteLong( this.TableStyleColBandSize );
-            Flags |= 1;
-        }
-
-        if ( undefined != this.TableStyleRowBandSize )
-        {
-            Writer.WriteLong( this.TableStyleRowBandSize );
-            Flags |= 2;
-        }
-
-        if ( undefined != this.Jc )
-        {
-            Writer.WriteLong( this.Jc );
-            Flags |= 4;
-        }
-
-        if ( undefined != this.Shd )
-        {
-            this.Shd.Write_ToBinary( Writer );
-            Flags |= 8;
-        }
-
-        if ( undefined != this.TableBorders.Bottom )
-        {
-            this.TableBorders.Bottom.Write_ToBinary( Writer );
-            Flags |= 16;
-        }
-
-        if ( undefined != this.TableBorders.Left )
-        {
-            this.TableBorders.Left.Write_ToBinary( Writer );
-            Flags |= 32;
-        }
-
-        if ( undefined != this.TableBorders.Right )
-        {
-            this.TableBorders.Right.Write_ToBinary( Writer );
-            Flags |= 64;
-        }
-
-        if ( undefined != this.TableBorders.Top )
-        {
-            this.TableBorders.Top.Write_ToBinary( Writer );
-            Flags |= 128;
-        }
-
-        if ( undefined != this.TableBorders.InsideH )
-        {
-            this.TableBorders.InsideH.Write_ToBinary( Writer );
-            Flags |= 256;
-        }
-
-        if ( undefined != this.TableBorders.InsideV )
-        {
-            this.TableBorders.InsideV.Write_ToBinary( Writer );
-            Flags |= 512;
-        }
-
-        if ( undefined != this.TableCellMar.Bottom )
-        {
-            this.TableCellMar.Bottom.Write_ToBinary( Writer );
-            Flags |= 1024;
-        }
-
-        if ( undefined != this.TableCellMar.Left )
-        {
-            this.TableCellMar.Left.Write_ToBinary( Writer );
-            Flags |= 2048;
-        }
-
-        if ( undefined != this.TableCellMar.Right )
-        {
-            this.TableCellMar.Right.Write_ToBinary( Writer );
-            Flags |= 4096;
-        }
-
-        if ( undefined != this.TableCellMar.Top )
-        {
-            this.TableCellMar.Top.Write_ToBinary( Writer );
-            Flags |= 8192;
-        }
-
-        if ( undefined != this.TableCellSpacing )
-        {
-            if ( null === this.TableCellSpacing )
-                Writer.WriteBool(true);
-            else
-            {
-                Writer.WriteBool(false);
-                Writer.WriteDouble(this.TableCellSpacing);
-            }
-
-            Flags |= 16384;
-        }
-
-        if ( undefined != this.TableInd )
-        {
-            Writer.WriteDouble(this.TableInd);
-
-            Flags |= 32768;
-        }
-
-        if ( undefined != this.TableW )
-        {
-            this.TableW.Write_ToBinary( Writer );
-            Flags |= 65536;
-        }
-
-        if ( undefined != this.TableLayout )
-        {
-            Writer.WriteLong( this.TableLayout );
-            Flags |= 131072;
-        }
-
-        if (undefined !== this.TableDescription)
+	if (true === bCopyPrChange && undefined !== this.PrChange)
+	{
+		TablePr.PrChange   = this.PrChange.Copy();
+		TablePr.ReviewInfo = this.ReviewInfo.Copy();
+	}
+
+	return TablePr;
+};
+CTablePr.prototype.Merge = function(TablePr)
+{
+	if (undefined != TablePr.TableStyleColBandSize)
+		this.TableStyleColBandSize = TablePr.TableStyleColBandSize;
+
+	if (undefined != TablePr.TableStyleRowBandSize)
+		this.TableStyleRowBandSize = TablePr.TableStyleRowBandSize;
+
+	if (undefined != TablePr.Jc)
+		this.Jc = TablePr.Jc;
+
+	if (undefined != TablePr.Shd)
+		this.Shd = TablePr.Shd.Copy();
+
+	// TableBorders
+	if (undefined != TablePr.TableBorders.Bottom)
+		this.TableBorders.Bottom = TablePr.TableBorders.Bottom.Copy();
+
+	if (undefined != TablePr.TableBorders.Left)
+		this.TableBorders.Left = TablePr.TableBorders.Left.Copy();
+
+	if (undefined != TablePr.TableBorders.Right)
+		this.TableBorders.Right = TablePr.TableBorders.Right.Copy();
+
+	if (undefined != TablePr.TableBorders.Top)
+		this.TableBorders.Top = TablePr.TableBorders.Top.Copy();
+
+	if (undefined != TablePr.TableBorders.InsideH)
+		this.TableBorders.InsideH = TablePr.TableBorders.InsideH.Copy();
+
+	if (undefined != TablePr.TableBorders.InsideV)
+		this.TableBorders.InsideV = TablePr.TableBorders.InsideV.Copy();
+
+	// TableCellMar
+	if (undefined != TablePr.TableCellMar.Bottom)
+		this.TableCellMar.Bottom = TablePr.TableCellMar.Bottom.Copy();
+
+	if (undefined != TablePr.TableCellMar.Left)
+		this.TableCellMar.Left = TablePr.TableCellMar.Left.Copy();
+
+	if (undefined != TablePr.TableCellMar.Right)
+		this.TableCellMar.Right = TablePr.TableCellMar.Right.Copy();
+
+	if (undefined != TablePr.TableCellMar.Top)
+		this.TableCellMar.Top = TablePr.TableCellMar.Top.Copy();
+
+	if (undefined != TablePr.TableCellSpacing)
+		this.TableCellSpacing = TablePr.TableCellSpacing;
+
+	if (undefined != TablePr.TableInd)
+		this.TableInd = TablePr.TableInd;
+
+	if (undefined != TablePr.TableW)
+		this.TableW = TablePr.TableW.Copy();
+
+	if (undefined != TablePr.TableLayout)
+		this.TableLayout = TablePr.TableLayout;
+
+	if (undefined !== TablePr.TableDescription)
+		this.TableDescription = TablePr.TableDescription;
+
+	if (undefined !== TablePr.TableCaption)
+		this.TableCaption = TablePr.TableCaption;
+};
+CTablePr.prototype.Is_Equal = function(TablePr)
+{
+	if (this.TableStyleColBandSize !== TablePr.TableStyleColBandSize
+		|| this.TableStyleRowBandSize !== TablePr.TableStyleRowBandSize
+		|| this.Jc !== TablePr.Jc
+		|| true !== IsEqualStyleObjects(this.TableBorders.Bottom, TablePr.TableBorders.Bottom)
+		|| true !== IsEqualStyleObjects(this.TableBorders.Left, TablePr.TableBorders.Left)
+		|| true !== IsEqualStyleObjects(this.TableBorders.Right, TablePr.TableBorders.Right)
+		|| true !== IsEqualStyleObjects(this.TableBorders.Top, TablePr.TableBorders.Top)
+		|| true !== IsEqualStyleObjects(this.TableBorders.InsideH, TablePr.TableBorders.InsideH)
+		|| true !== IsEqualStyleObjects(this.TableBorders.InsideV, TablePr.TableBorders.InsideV)
+		|| true !== IsEqualStyleObjects(this.TableCellMar.Bottom, TablePr.TableCellMar.Bottom)
+		|| true !== IsEqualStyleObjects(this.TableCellMar.Left, TablePr.TableCellMar.Left)
+		|| true !== IsEqualStyleObjects(this.TableCellMar.Right, TablePr.TableCellMar.Right)
+		|| true !== IsEqualStyleObjects(this.TableCellMar.Top, TablePr.TableCellMar.Top)
+		|| this.TableCellSpacing !== TablePr.TableCellSpacing
+		|| this.TableInd !== TablePr.TableInd
+		|| true !== IsEqualStyleObjects(this.TableW, TablePr.TableW)
+		|| this.TableLayout !== TablePr.TableLayout)
+		return false;
+
+	return true;
+};
+CTablePr.prototype.Init_Default = function()
+{
+	this.TableStyleColBandSize = 1;
+	this.TableStyleRowBandSize = 1;
+	this.Jc                    = align_Left;
+	this.Shd                   = new CDocumentShd();
+	this.TableBorders.Bottom   = new CDocumentBorder();
+	this.TableBorders.Left     = new CDocumentBorder();
+	this.TableBorders.Right    = new CDocumentBorder();
+	this.TableBorders.Top      = new CDocumentBorder();
+	this.TableBorders.InsideH  = new CDocumentBorder();
+	this.TableBorders.InsideV  = new CDocumentBorder();
+	this.TableCellMar.Bottom   = new CTableMeasurement(tblwidth_Mm, 0);
+	this.TableCellMar.Left     = new CTableMeasurement(tblwidth_Mm, 1.9/*5.4 * g_dKoef_pt_to_mm*/); // 5.4pt
+	this.TableCellMar.Right    = new CTableMeasurement(tblwidth_Mm, 1.9/*5.4 * g_dKoef_pt_to_mm*/); // 5.4pt
+	this.TableCellMar.Top      = new CTableMeasurement(tblwidth_Mm, 0);
+	this.TableCellSpacing      = null;
+	this.TableInd              = 0;
+	this.TableW                = new CTableMeasurement(tblwidth_Auto, 0);
+	this.TableLayout           = tbllayout_AutoFit;
+	this.TableDescription      = "";
+	this.TableCaption          = "";
+	this.PrChange              = undefined;
+	this.ReviewInfo            = undefined;
+};
+CTablePr.prototype.Set_FromObject = function(TablePr)
+{
+	this.TableStyleColBandSize = TablePr.TableStyleColBandSize;
+	this.TableStyleRowBandSize = TablePr.TableStyleRowBandSize;
+	this.Jc                    = TablePr.Jc;
+
+	if (undefined != TablePr.Shd)
+	{
+		this.Shd = new CDocumentShd();
+		this.Shd.Set_FromObject(TablePr.Shd);
+	}
+	else
+		this.Shd = undefined;
+
+	if (undefined != TablePr.TableBorders)
+	{
+		if (undefined != TablePr.TableBorders.Bottom)
 		{
-			Writer.WriteString2(this.TableDescription);
-			Flags |= 262144;
+			this.TableBorders.Bottom = new CDocumentBorder();
+			this.TableBorders.Bottom.Set_FromObject(TablePr.TableBorders.Bottom);
+		}
+		else
+			this.TableBorders.Bottom = undefined;
+
+		if (undefined != TablePr.TableBorders.Left)
+		{
+			this.TableBorders.Left = new CDocumentBorder();
+			this.TableBorders.Left.Set_FromObject(TablePr.TableBorders.Left);
+		}
+		else
+			this.TableBorders.Left = undefined;
+
+		if (undefined != TablePr.TableBorders.Right)
+		{
+			this.TableBorders.Right = new CDocumentBorder();
+			this.TableBorders.Right.Set_FromObject(TablePr.TableBorders.Right);
+		}
+		else
+			this.TableBorders.Right = undefined;
+
+		if (undefined != TablePr.TableBorders.Top)
+		{
+			this.TableBorders.Top = new CDocumentBorder();
+			this.TableBorders.Top.Set_FromObject(TablePr.TableBorders.Top);
+		}
+		else
+			this.TableBorders.Top = undefined;
+
+		if (undefined != TablePr.TableBorders.InsideH)
+		{
+			this.TableBorders.InsideH = new CDocumentBorder();
+			this.TableBorders.InsideH.Set_FromObject(TablePr.TableBorders.InsideH);
+		}
+		else
+			this.TableBorders.InsideH = undefined;
+
+		if (undefined != TablePr.TableBorders.InsideV)
+		{
+			this.TableBorders.InsideV = new CDocumentBorder();
+			this.TableBorders.InsideV.Set_FromObject(TablePr.TableBorders.InsideV);
+		}
+		else
+			this.TableBorders.InsideV = undefined;
+	}
+	else
+	{
+		this.TableBorders.Bottom  = undefined;
+		this.TableBorders.Left    = undefined;
+		this.TableBorders.Right   = undefined;
+		this.TableBorders.Top     = undefined;
+		this.TableBorders.InsideH = undefined;
+		this.TableBorders.InsideV = undefined;
+	}
+
+	if (undefined != TablePr.TableCellMar)
+	{
+		if (undefined != TablePr.TableCellMar.Bottom)
+			this.TableCellMar.Bottom = new CTableMeasurement(TablePr.TableCellMar.Bottom.Type, TablePr.TableCellMar.Bottom.W);
+		else
+			this.TableCellMar.Bottom = undefined;
+
+		if (undefined != TablePr.TableCellMar.Left)
+			this.TableCellMar.Left = new CTableMeasurement(TablePr.TableCellMar.Left.Type, TablePr.TableCellMar.Left.W);
+		else
+			this.TableCellMar.Left = undefined;
+
+		if (undefined != TablePr.TableCellMar.Right)
+			this.TableCellMar.Right = new CTableMeasurement(TablePr.TableCellMar.Right.Type, TablePr.TableCellMar.Right.W);
+		else
+			this.TableCellMar.Right = undefined;
+
+		if (undefined != TablePr.TableCellMar.Top)
+			this.TableCellMar.Top = new CTableMeasurement(TablePr.TableCellMar.Top.Type, TablePr.TableCellMar.Top.W);
+		else
+			this.TableCellMar.Top = undefined;
+	}
+	else
+	{
+		this.TableCellMar.Bottom = undefined;
+		this.TableCellMar.Left   = undefined;
+		this.TableCellMar.Right  = undefined;
+		this.TableCellMar.Top    = undefined;
+	}
+
+	this.TableCellSpacing = TablePr.TableCellSpacing;
+	this.TableInd         = TablePr.TableInd;
+
+	if (undefined != TablePr.TableW)
+		this.TableW = new CTableMeasurement(TablePr.TableW.Type, TablePr.TableW.W);
+	else
+		this.TableW = undefined;
+
+	this.TableLayout = TablePr.TableLayout;
+
+	this.TableDescription = TablePr.TableDescription;
+	this.TableCaption     = TablePr.TableCaption;
+};
+CTablePr.prototype.Check_PresentationPr = function(Theme)
+{
+	if (this.Shd)
+	{
+		this.Shd.Check_PresentationPr(Theme);
+	}
+	if (this.TableBorders.Bottom)
+	{
+		this.TableBorders.Bottom.Check_PresentationPr(Theme);
+	}
+	if (this.TableBorders.Left)
+	{
+		this.TableBorders.Left.Check_PresentationPr(Theme);
+	}
+	if (this.TableBorders.Right)
+	{
+		this.TableBorders.Right.Check_PresentationPr(Theme);
+	}
+	if (this.TableBorders.Top)
+	{
+		this.TableBorders.Top.Check_PresentationPr(Theme);
+	}
+	if (this.TableBorders.InsideH)
+	{
+		this.TableBorders.InsideH.Check_PresentationPr(Theme);
+	}
+	if (this.TableBorders.InsideV)
+	{
+		this.TableBorders.InsideV.Check_PresentationPr(Theme);
+	}
+};
+CTablePr.prototype.Write_ToBinary = function(Writer)
+{
+	var StartPos = Writer.GetCurPosition();
+	Writer.Skip(4);
+	var Flags = 0;
+
+	if (undefined != this.TableStyleColBandSize)
+	{
+		Writer.WriteLong(this.TableStyleColBandSize);
+		Flags |= 1;
+	}
+
+	if (undefined != this.TableStyleRowBandSize)
+	{
+		Writer.WriteLong(this.TableStyleRowBandSize);
+		Flags |= 2;
+	}
+
+	if (undefined != this.Jc)
+	{
+		Writer.WriteLong(this.Jc);
+		Flags |= 4;
+	}
+
+	if (undefined != this.Shd)
+	{
+		this.Shd.Write_ToBinary(Writer);
+		Flags |= 8;
+	}
+
+	if (undefined != this.TableBorders.Bottom)
+	{
+		this.TableBorders.Bottom.Write_ToBinary(Writer);
+		Flags |= 16;
+	}
+
+	if (undefined != this.TableBorders.Left)
+	{
+		this.TableBorders.Left.Write_ToBinary(Writer);
+		Flags |= 32;
+	}
+
+	if (undefined != this.TableBorders.Right)
+	{
+		this.TableBorders.Right.Write_ToBinary(Writer);
+		Flags |= 64;
+	}
+
+	if (undefined != this.TableBorders.Top)
+	{
+		this.TableBorders.Top.Write_ToBinary(Writer);
+		Flags |= 128;
+	}
+
+	if (undefined != this.TableBorders.InsideH)
+	{
+		this.TableBorders.InsideH.Write_ToBinary(Writer);
+		Flags |= 256;
+	}
+
+	if (undefined != this.TableBorders.InsideV)
+	{
+		this.TableBorders.InsideV.Write_ToBinary(Writer);
+		Flags |= 512;
+	}
+
+	if (undefined != this.TableCellMar.Bottom)
+	{
+		this.TableCellMar.Bottom.Write_ToBinary(Writer);
+		Flags |= 1024;
+	}
+
+	if (undefined != this.TableCellMar.Left)
+	{
+		this.TableCellMar.Left.Write_ToBinary(Writer);
+		Flags |= 2048;
+	}
+
+	if (undefined != this.TableCellMar.Right)
+	{
+		this.TableCellMar.Right.Write_ToBinary(Writer);
+		Flags |= 4096;
+	}
+
+	if (undefined != this.TableCellMar.Top)
+	{
+		this.TableCellMar.Top.Write_ToBinary(Writer);
+		Flags |= 8192;
+	}
+
+	if (undefined != this.TableCellSpacing)
+	{
+		if (null === this.TableCellSpacing)
+			Writer.WriteBool(true);
+		else
+		{
+			Writer.WriteBool(false);
+			Writer.WriteDouble(this.TableCellSpacing);
 		}
 
-		if (undefined !== this.TableCaption)
-		{
-			Writer.WriteString2(this.TableCaption);
-			Flags |= 524288;
-		}
+		Flags |= 16384;
+	}
 
-        var EndPos = Writer.GetCurPosition();
-        Writer.Seek( StartPos );
-        Writer.WriteLong( Flags );
-        Writer.Seek( EndPos );
-    },
+	if (undefined != this.TableInd)
+	{
+		Writer.WriteDouble(this.TableInd);
 
-    Read_FromBinary : function(Reader)
-    {
-        var Flags = Reader.GetLong();
+		Flags |= 32768;
+	}
 
-        if ( 1 & Flags )
-            this.TableStyleColBandSize = Reader.GetLong();
+	if (undefined != this.TableW)
+	{
+		this.TableW.Write_ToBinary(Writer);
+		Flags |= 65536;
+	}
 
-        if ( 2 & Flags )
-            this.TableStyleRowBandSize = Reader.GetLong();
+	if (undefined != this.TableLayout)
+	{
+		Writer.WriteLong(this.TableLayout);
+		Flags |= 131072;
+	}
 
-        if ( 4 & Flags )
-            this.Jc = Reader.GetLong();
+	if (undefined !== this.TableDescription)
+	{
+		Writer.WriteString2(this.TableDescription);
+		Flags |= 262144;
+	}
 
-        if ( 8 & Flags )
-        {
-            this.Shd = new CDocumentShd();
-            this.Shd.Read_FromBinary(Reader);
-        }
+	if (undefined !== this.TableCaption)
+	{
+		Writer.WriteString2(this.TableCaption);
+		Flags |= 524288;
+	}
 
-        if ( 16 & Flags )
-        {
-            this.TableBorders.Bottom = new CDocumentBorder();
-            this.TableBorders.Bottom.Read_FromBinary( Reader );
-        }
+	if (undefined !== this.PrChange && undefined !== this.ReviewInfo)
+	{
+		this.PrChange.WriteToBinary(Writer);
+		this.ReviewInfo.WriteToBinary(Writer);
+		Flags |= 1048576;
+	}
 
-        if ( 32 & Flags )
-        {
-            this.TableBorders.Left = new CDocumentBorder();
-            this.TableBorders.Left.Read_FromBinary( Reader );
-        }
+	var EndPos = Writer.GetCurPosition();
+	Writer.Seek(StartPos);
+	Writer.WriteLong(Flags);
+	Writer.Seek(EndPos);
+};
+CTablePr.prototype.Read_FromBinary = function(Reader)
+{
+	var Flags = Reader.GetLong();
 
-        if ( 64 & Flags )
-        {
-            this.TableBorders.Right = new CDocumentBorder();
-            this.TableBorders.Right.Read_FromBinary( Reader );
-        }
+	if (1 & Flags)
+		this.TableStyleColBandSize = Reader.GetLong();
 
-        if ( 128 & Flags )
-        {
-            this.TableBorders.Top = new CDocumentBorder();
-            this.TableBorders.Top.Read_FromBinary( Reader );
-        }
+	if (2 & Flags)
+		this.TableStyleRowBandSize = Reader.GetLong();
 
-        if ( 256 & Flags )
-        {
-            this.TableBorders.InsideH = new CDocumentBorder();
-            this.TableBorders.InsideH.Read_FromBinary( Reader );
-        }
+	if (4 & Flags)
+		this.Jc = Reader.GetLong();
 
-        if ( 512 & Flags )
-        {
-            this.TableBorders.InsideV = new CDocumentBorder();
-            this.TableBorders.InsideV.Read_FromBinary( Reader );
-        }
+	if (8 & Flags)
+	{
+		this.Shd = new CDocumentShd();
+		this.Shd.Read_FromBinary(Reader);
+	}
 
-        if ( 1024 & Flags )
-        {
-            this.TableCellMar.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
-            this.TableCellMar.Bottom.Read_FromBinary(Reader);
-        }
+	if (16 & Flags)
+	{
+		this.TableBorders.Bottom = new CDocumentBorder();
+		this.TableBorders.Bottom.Read_FromBinary(Reader);
+	}
 
-        if ( 2048 & Flags )
-        {
-            this.TableCellMar.Left = new CTableMeasurement(tblwidth_Auto, 0);
-            this.TableCellMar.Left.Read_FromBinary(Reader);
-        }
+	if (32 & Flags)
+	{
+		this.TableBorders.Left = new CDocumentBorder();
+		this.TableBorders.Left.Read_FromBinary(Reader);
+	}
 
-        if ( 4096 & Flags )
-        {
-            this.TableCellMar.Right = new CTableMeasurement(tblwidth_Auto, 0);
-            this.TableCellMar.Right.Read_FromBinary(Reader);
-        }
+	if (64 & Flags)
+	{
+		this.TableBorders.Right = new CDocumentBorder();
+		this.TableBorders.Right.Read_FromBinary(Reader);
+	}
 
-        if ( 8192 & Flags )
-        {
-            this.TableCellMar.Top = new CTableMeasurement(tblwidth_Auto, 0);
-            this.TableCellMar.Top.Read_FromBinary(Reader);
-        }
+	if (128 & Flags)
+	{
+		this.TableBorders.Top = new CDocumentBorder();
+		this.TableBorders.Top.Read_FromBinary(Reader);
+	}
 
-        if ( 16384 & Flags )
-        {
-            if ( true === Reader.GetBool() )
-                this.TableCellSpacing = null;
-            else
-                this.TableCellSpacing = Reader.GetDouble()
-        }
+	if (256 & Flags)
+	{
+		this.TableBorders.InsideH = new CDocumentBorder();
+		this.TableBorders.InsideH.Read_FromBinary(Reader);
+	}
 
-        if ( 32768 & Flags )
-            this.TableInd = Reader.GetDouble();
+	if (512 & Flags)
+	{
+		this.TableBorders.InsideV = new CDocumentBorder();
+		this.TableBorders.InsideV.Read_FromBinary(Reader);
+	}
 
-        if ( 65536 & Flags )
-        {
-            this.TableW = new CTableMeasurement(tblwidth_Auto, 0);
-            this.TableW.Read_FromBinary(Reader);
-        }
+	if (1024 & Flags)
+	{
+		this.TableCellMar.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
+		this.TableCellMar.Bottom.Read_FromBinary(Reader);
+	}
 
-        if ( 131072 & Flags )
-            this.TableLayout = Reader.GetLong();
+	if (2048 & Flags)
+	{
+		this.TableCellMar.Left = new CTableMeasurement(tblwidth_Auto, 0);
+		this.TableCellMar.Left.Read_FromBinary(Reader);
+	}
 
-		if (262144 & Flags)
-			this.TableDescription = Reader.GetString2();
+	if (4096 & Flags)
+	{
+		this.TableCellMar.Right = new CTableMeasurement(tblwidth_Auto, 0);
+		this.TableCellMar.Right.Read_FromBinary(Reader);
+	}
 
-		if (524288 & Flags)
-			this.TableCaption = Reader.GetString2();
-    }
+	if (8192 & Flags)
+	{
+		this.TableCellMar.Top = new CTableMeasurement(tblwidth_Auto, 0);
+		this.TableCellMar.Top.Read_FromBinary(Reader);
+	}
+
+	if (16384 & Flags)
+	{
+		if (true === Reader.GetBool())
+			this.TableCellSpacing = null;
+		else
+			this.TableCellSpacing = Reader.GetDouble()
+	}
+
+	if (32768 & Flags)
+		this.TableInd = Reader.GetDouble();
+
+	if (65536 & Flags)
+	{
+		this.TableW = new CTableMeasurement(tblwidth_Auto, 0);
+		this.TableW.Read_FromBinary(Reader);
+	}
+
+	if (131072 & Flags)
+		this.TableLayout = Reader.GetLong();
+
+	if (262144 & Flags)
+		this.TableDescription = Reader.GetString2();
+
+	if (524288 & Flags)
+		this.TableCaption = Reader.GetString2();
+
+	if (1048576 & Flags)
+	{
+		this.PrChange   = new CTablePr();
+		this.ReviewInfo = new CReviewInfo();
+
+		this.PrChange.ReadFromBinary(Reader);
+		this.ReviewInfo.ReadFromBinary(Reader);
+	}
+};
+CTablePr.prototype.WriteToBinary = function(oWriter)
+{
+	this.Write_ToBinary(oWriter);
+};
+CTablePr.prototype.ReadFromBinary = function(oReader)
+{
+	this.Read_FromBinary(oReader);
+};
+CTablePr.prototype.HavePrChange = function()
+{
+	if (undefined === this.PrChange || null === this.PrChange)
+		return false;
+
+	return true;
+};
+CTablePr.prototype.AddPrChange = function()
+{
+	this.PrChange   = this.Copy(false);
+	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo.Update();
+};
+CTablePr.prototype.SetPrChange = function(oPrChange, oReviewInfo)
+{
+	this.PrChange   = oPrChange;
+	this.ReviewInfo = oReviewInfo;
+};
+CTablePr.prototype.RemovePrChange = function()
+{
+	delete this.PrChange;
+	delete this.ReviewInfo;
 };
 
 function CTableRowHeight(Value, HRule)
@@ -6180,237 +6227,285 @@ function CTableRowPr()
     this.WAfter           = undefined;
     this.WBefore          = undefined;
     this.TableHeader      = undefined;
+    this.PrChange         = undefined;
+    this.ReviewInfo       = undefined;
 }
 
-CTableRowPr.prototype =
+CTableRowPr.prototype.Copy = function(bCopyPrChange)
 {
-    Copy : function()
-    {
-        var RowPr = new CTableRowPr();
+	var RowPr = new CTableRowPr();
 
-        RowPr.CantSplit        = this.CantSplit;
-        RowPr.GridAfter        = this.GridAfter;
-        RowPr.GridBefore       = this.GridBefore;
-        RowPr.Jc               = this.Jc;
-        RowPr.TableCellSpacing = this.TableCellSpacing;
+	RowPr.CantSplit        = this.CantSplit;
+	RowPr.GridAfter        = this.GridAfter;
+	RowPr.GridBefore       = this.GridBefore;
+	RowPr.Jc               = this.Jc;
+	RowPr.TableCellSpacing = this.TableCellSpacing;
 
-        if ( undefined != this.Height )
-            RowPr.Height = this.Height.Copy();
+	if (undefined != this.Height)
+		RowPr.Height = this.Height.Copy();
 
-        if ( undefined != this.WAfter )
-            RowPr.WAfter = this.WAfter.Copy();
+	if (undefined != this.WAfter)
+		RowPr.WAfter = this.WAfter.Copy();
 
-        if ( undefined != this.WBefore )
-            RowPr.WBefore = this.WBefore.Copy();
+	if (undefined != this.WBefore)
+		RowPr.WBefore = this.WBefore.Copy();
 
-        RowPr.TableHeader = this.TableHeader;
+	RowPr.TableHeader = this.TableHeader;
 
-        return RowPr;
-    },
-
-    Merge : function(RowPr)
+	if (true === bCopyPrChange && undefined !== this.PrChange)
 	{
-		if (undefined !== RowPr.CantSplit)
-			this.CantSplit = RowPr.CantSplit;
+		RowPr.PrChange   = this.PrChange.Copy();
+		RowPr.ReviewInfo = this.ReviewInfo.Copy();
+	}
 
-		if (undefined !== RowPr.GridAfter)
-			this.GridAfter = RowPr.GridAfter;
+	return RowPr;
+};
+CTableRowPr.prototype.Merge = function(RowPr)
+{
+	if (undefined !== RowPr.CantSplit)
+		this.CantSplit = RowPr.CantSplit;
 
-		if (undefined !== RowPr.GridBefore)
-			this.GridBefore = RowPr.GridBefore;
+	if (undefined !== RowPr.GridAfter)
+		this.GridAfter = RowPr.GridAfter;
 
-		if (undefined !== RowPr.Jc)
-			this.Jc = RowPr.Jc;
+	if (undefined !== RowPr.GridBefore)
+		this.GridBefore = RowPr.GridBefore;
 
-		if (undefined !== RowPr.TableCellSpacing)
-			this.TableCellSpacing = RowPr.TableCellSpacing;
+	if (undefined !== RowPr.Jc)
+		this.Jc = RowPr.Jc;
 
-		if (undefined !== RowPr.Height)
-			this.Height = RowPr.Height.Copy();
+	if (undefined !== RowPr.TableCellSpacing)
+		this.TableCellSpacing = RowPr.TableCellSpacing;
 
-		if (undefined !== RowPr.WAfter)
-			this.WAfter = RowPr.WAfter.Copy();
+	if (undefined !== RowPr.Height)
+		this.Height = RowPr.Height.Copy();
 
-		if (undefined !== RowPr.WBefore)
-			this.WBefore = RowPr.WBefore.Copy();
+	if (undefined !== RowPr.WAfter)
+		this.WAfter = RowPr.WAfter.Copy();
 
-		if (undefined !== RowPr.TableHeader)
-			this.TableHeader = RowPr.TableHeader;
-	},
+	if (undefined !== RowPr.WBefore)
+		this.WBefore = RowPr.WBefore.Copy();
 
-    Is_Equal : function(RowPr)
-    {
-        if (this.CantSplit !== RowPr.CantSplit
-            || this.GridAfter !== RowPr.GridAfter
-            || this.GridBefore !== RowPr.GridBefore
-            || this.Jc !== RowPr.Jc
-            || this.TableCellSpacing !== RowPr.TableCellSpacing
-            || true !== IsEqualStyleObjects(this.Height, RowPr.Height)
-            || true !== IsEqualStyleObjects(this.WAfter, RowPr.WAfter)
-            || true !== IsEqualStyleObjects(this.WBefore, RowPr.WBefore)
-            || this.TableHeader !== RowPr.TableHeader)
-            return false;
+	if (undefined !== RowPr.TableHeader)
+		this.TableHeader = RowPr.TableHeader;
+};
+CTableRowPr.prototype.Is_Equal = function(RowPr)
+{
+	if (this.CantSplit !== RowPr.CantSplit
+		|| this.GridAfter !== RowPr.GridAfter
+		|| this.GridBefore !== RowPr.GridBefore
+		|| this.Jc !== RowPr.Jc
+		|| this.TableCellSpacing !== RowPr.TableCellSpacing
+		|| true !== IsEqualStyleObjects(this.Height, RowPr.Height)
+		|| true !== IsEqualStyleObjects(this.WAfter, RowPr.WAfter)
+		|| true !== IsEqualStyleObjects(this.WBefore, RowPr.WBefore)
+		|| this.TableHeader !== RowPr.TableHeader)
+		return false;
 
-        return true;
-    },
+	return true;
+};
+CTableRowPr.prototype.Init_Default = function()
+{
+	this.CantSplit        = false;
+	this.GridAfter        = 0;
+	this.GridBefore       = 0;
+	this.Jc               = align_Left;
+	this.TableCellSpacing = null;
+	this.Height           = new CTableRowHeight(0, Asc.linerule_Auto);
+	this.WAfter           = new CTableMeasurement(tblwidth_Auto, 0);
+	this.WBefore          = new CTableMeasurement(tblwidth_Auto, 0);
+	this.TableHeader      = false;
+	this.PrChange         = undefined;
+	this.ReviewInfo       = undefined;
+};
+CTableRowPr.prototype.Set_FromObject = function(RowPr)
+{
+	this.CantSplit        = RowPr.CantSplit;
+	this.GridAfter        = RowPr.GridAfter;
+	this.GridBefore       = RowPr.GridBefore;
+	this.Jc               = RowPr.Jc;
+	this.TableCellSpacing = RowPr.TableCellSpacing;
 
-    Init_Default : function()
-    {
-        this.CantSplit        = false;
-        this.GridAfter        = 0;
-        this.GridBefore       = 0;
-        this.Jc               = align_Left;
-        this.TableCellSpacing = null;
-        this.Height           = new CTableRowHeight(0, Asc.linerule_Auto);
-        this.WAfter           = new CTableMeasurement(tblwidth_Auto, 0);
-        this.WBefore          = new CTableMeasurement(tblwidth_Auto, 0);
-        this.TableHeader      = false;
-    },
+	if (undefined != RowPr.Height)
+		this.Height = new CTableRowHeight(RowPr.Height.Value, RowPr.Height.HRule);
+	else
+		this.Height = undefined;
 
-    Set_FromObject : function(RowPr)
-    {
-        this.CantSplit        = RowPr.CantSplit;
-        this.GridAfter        = RowPr.GridAfter;
-        this.GridBefore       = RowPr.GridBefore;
-        this.Jc               = RowPr.Jc;
-        this.TableCellSpacing = RowPr.TableCellSpacing;
+	if (undefined != RowPr.WAfter)
+		this.WAfter = new CTableMeasurement(RowPr.WAfter.Type, RowPr.WAfter.W);
+	else
+		this.WAfter = undefined;
 
-        if ( undefined != RowPr.Height )
-            this.Height = new CTableRowHeight( RowPr.Height.Value, RowPr.Height.HRule );
-        else
-            this.Height = undefined;
+	if (undefined != RowPr.WBefore)
+		this.WBefore = new CTableMeasurement(RowPr.WBefore.Type, RowPr.WBefore.W);
+	else
+		this.WBefore = undefined;
 
-        if ( undefined != RowPr.WAfter )
-            this.WAfter = new CTableMeasurement( RowPr.WAfter.Type, RowPr.WAfter.W );
-        else
-            this.WAfter = undefined;
+	this.TableHeader = RowPr.TableHeader;
+};
+CTableRowPr.prototype.Write_ToBinary = function(Writer)
+{
+	var StartPos = Writer.GetCurPosition();
+	Writer.Skip(4);
+	var Flags = 0;
 
-        if ( undefined != RowPr.WBefore )
-            this.WBefore = new CTableMeasurement( RowPr.WBefore.Type, RowPr.WBefore.W );
-        else
-            this.WBefore = undefined;
+	if (undefined != this.CantSplit)
+	{
+		Writer.WriteBool(this.CantSplit);
+		Flags |= 1;
+	}
 
-        this.TableHeader = RowPr.TableHeader;
-    },
+	if (undefined != this.GridAfter)
+	{
+		Writer.WriteLong(this.GridAfter);
+		Flags |= 2;
+	}
 
-    Write_ToBinary : function(Writer)
-    {
-        var StartPos = Writer.GetCurPosition();
-        Writer.Skip(4);
-        var Flags = 0;
+	if (undefined != this.GridBefore)
+	{
+		Writer.WriteLong(this.GridBefore);
+		Flags |= 4;
+	}
 
-        if ( undefined != this.CantSplit )
-        {
-            Writer.WriteBool( this.CantSplit );
-            Flags |= 1;
-        }
+	if (undefined != this.Jc)
+	{
+		Writer.WriteLong(this.Jc);
+		Flags |= 8;
+	}
 
-        if ( undefined != this.GridAfter )
-        {
-            Writer.WriteLong( this.GridAfter );
-            Flags |= 2;
-        }
+	if (undefined != this.TableCellSpacing)
+	{
+		if (null === this.TableCellSpacing)
+			Writer.WriteBool(true);
+		else
+		{
+			Writer.WriteBool(false);
+			Writer.WriteDouble(this.TableCellSpacing);
+		}
 
-        if ( undefined != this.GridBefore )
-        {
-            Writer.WriteLong( this.GridBefore );
-            Flags |= 4;
-        }
+		Flags |= 16;
+	}
 
-        if ( undefined != this.Jc )
-        {
-            Writer.WriteLong( this.Jc );
-            Flags |= 8;
-        }
+	if (undefined != this.Height)
+	{
+		this.Height.Write_ToBinary(Writer);
+		Flags |= 32;
+	}
 
-        if ( undefined != this.TableCellSpacing )
-        {
-            if ( null === this.TableCellSpacing )
-                Writer.WriteBool( true );
-            else
-            {
-                Writer.WriteBool( false );
-                Writer.WriteDouble( this.TableCellSpacing );
-            }
+	if (undefined != this.WAfter)
+	{
+		this.WAfter.Write_ToBinary(Writer);
+		Flags |= 64;
+	}
 
-            Flags |= 16;
-        }
+	if (undefined != this.WBefore)
+	{
+		this.WBefore.Write_ToBinary(Writer);
+		Flags |= 128;
+	}
 
-        if ( undefined != this.Height )
-        {
-            this.Height.Write_ToBinary( Writer );
-            Flags |= 32;
-        }
+	if (undefined != this.TableHeader)
+	{
+		Writer.WriteBool(this.TableHeader);
+		Flags |= 256;
+	}
 
-        if ( undefined != this.WAfter )
-        {
-            this.WAfter.Write_ToBinary(Writer);
-            Flags |= 64;
-        }
+	if (undefined !== this.PrChange && undefined !== this.ReviewInfo)
+	{
+		this.PrChange.WriteToBinary(Writer);
+		this.ReviewInfo.WriteToBinary(Writer);
+		Flags |= 512;
+	}
 
-        if ( undefined != this.WBefore )
-        {
-            this.WBefore.Write_ToBinary(Writer);
-            Flags |= 128;
-        }
+	var EndPos = Writer.GetCurPosition();
+	Writer.Seek(StartPos);
+	Writer.WriteLong(Flags);
+	Writer.Seek(EndPos);
+};
+CTableRowPr.prototype.Read_FromBinary = function(Reader)
+{
+	var Flags = Reader.GetLong();
 
-        if ( undefined != this.TableHeader )
-        {
-            Writer.WriteBool( this.TableHeader );
-            Flags |= 256;
-        }
+	if (1 & Flags)
+		this.CantSplit = Reader.GetBool();
 
-        var EndPos = Writer.GetCurPosition();
-        Writer.Seek( StartPos );
-        Writer.WriteLong( Flags );
-        Writer.Seek( EndPos );
-    },
+	if (2 & Flags)
+		this.GridAfter = Reader.GetLong();
 
-    Read_FromBinary : function(Reader)
-    {
-        var Flags = Reader.GetLong();
+	if (4 & Flags)
+		this.GridBefore = Reader.GetLong();
 
-        if ( 1 & Flags )
-            this.CantSplit = Reader.GetBool();
+	if (8 & Flags)
+		this.Jc = Reader.GetLong();
 
-        if ( 2 & Flags )
-            this.GridAfter = Reader.GetLong();
+	if (16 & Flags)
+	{
+		if (true === Reader.GetBool())
+			this.TableCellSpacing = Reader.GetLong();
+		else
+			this.TableCellSpacing = Reader.GetDouble();
+	}
 
-        if ( 4 & Flags )
-            this.GridBefore = Reader.GetLong();
+	if (32 & Flags)
+	{
+		this.Height = new CTableRowHeight(0, Asc.linerule_Auto);
+		this.Height.Read_FromBinary(Reader);
+	}
 
-        if ( 8 & Flags )
-            this.Jc = Reader.GetLong();
+	if (64 & Flags)
+	{
+		this.WAfter = new CTableMeasurement(tblwidth_Auto, 0);
+		this.WAfter.Read_FromBinary(Reader);
+	}
 
-        if ( 16 & Flags )
-        {
-            if ( true === Reader.GetBool() )
-                this.TableCellSpacing = Reader.GetLong();
-            else
-                this.TableCellSpacing = Reader.GetDouble();
-        }
+	if (128 & Flags)
+	{
+		this.WBefore = new CTableMeasurement(tblwidth_Auto, 0);
+		this.WBefore.Read_FromBinary(Reader);
+	}
 
-        if ( 32 & Flags )
-        {
-            this.Height = new CTableRowHeight(0, Asc.linerule_Auto);
-            this.Height.Read_FromBinary(Reader);
-        }
+	if (256 & Flags)
+		this.TableHeader = Reader.GetBool();
 
-        if ( 64 & Flags )
-        {
-            this.WAfter = new CTableMeasurement(tblwidth_Auto, 0);
-            this.WAfter.Read_FromBinary(Reader);
-        }
+	if (512 & Flags)
+	{
+		this.PrChange   = new CTableRowPr();
+		this.ReviewInfo = new CReviewInfo();
 
-        if ( 128 & Flags )
-        {
-            this.WBefore = new CTableMeasurement(tblwidth_Auto, 0);
-            this.WBefore.Read_FromBinary(Reader);
-        }
+		this.PrChange.ReadFromBinary(Reader);
+		this.ReviewInfo.ReadFromBinary(Reader);
+	}
+};
+CTableRowPr.prototype.WriteToBinary = function(oWriter)
+{
+	this.Write_ToBinary(oWriter);
+};
+CTableRowPr.prototype.ReadFromBinary = function(oReader)
+{
+	this.Read_FromBinary(oReader);
+};
+CTableRowPr.prototype.HavePrChange = function()
+{
+	if (undefined === this.PrChange || null === this.PrChange)
+		return false;
 
-        if ( 256 & Flags )
-            this.TableHeader = Reader.GetBool();
-    }
+	return true;
+};
+CTableRowPr.prototype.AddPrChange = function()
+{
+	this.PrChange   = this.Copy(false);
+	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo.Update();
+};
+CTableRowPr.prototype.SetPrChange = function(oPrChange, oReviewInfo)
+{
+	this.PrChange   = oPrChange;
+	this.ReviewInfo = oReviewInfo;
+};
+CTableRowPr.prototype.RemovePrChange = function()
+{
+	delete this.PrChange;
+	delete this.ReviewInfo;
 };
 
 function CTableCellPr()
@@ -6431,488 +6526,512 @@ function CTableCellPr()
     this.TextDirection    = undefined;
     this.NoWrap           = undefined;
     this.HMerge           = undefined;
+    this.PrChange         = undefined;
+    this.ReviewInfo       = undefined;
 }
 
-CTableCellPr.prototype =
+CTableCellPr.prototype.Copy = function(bCopyPrChange)
 {
-    Copy : function()
-    {
-        var CellPr = new CTableCellPr();
+	var CellPr = new CTableCellPr();
 
-        CellPr.GridSpan = this.GridSpan;
+	CellPr.GridSpan = this.GridSpan;
 
-        if (undefined != this.Shd)
-            CellPr.Shd = this.Shd.Copy();
+	if (undefined != this.Shd)
+		CellPr.Shd = this.Shd.Copy();
 
-        if (undefined === this.TableCellMar)
-            CellPr.TableCellMar = undefined;
-        else if (null === this.TableCellMar)
-            CellPr.TableCellMar = null;
-        else
-        {
-            CellPr.TableCellMar        = {};
-            CellPr.TableCellMar.Bottom = undefined != this.TableCellMar.Bottom ? this.TableCellMar.Bottom.Copy() : undefined;
-            CellPr.TableCellMar.Left   = undefined != this.TableCellMar.Left ? this.TableCellMar.Left.Copy() : undefined;
-            CellPr.TableCellMar.Right  = undefined != this.TableCellMar.Right ? this.TableCellMar.Right.Copy() : undefined;
-            CellPr.TableCellMar.Top    = undefined != this.TableCellMar.Top ? this.TableCellMar.Top.Copy() : undefined;
-        }
+	if (undefined === this.TableCellMar)
+		CellPr.TableCellMar = undefined;
+	else if (null === this.TableCellMar)
+		CellPr.TableCellMar = null;
+	else
+	{
+		CellPr.TableCellMar        = {};
+		CellPr.TableCellMar.Bottom = undefined != this.TableCellMar.Bottom ? this.TableCellMar.Bottom.Copy() : undefined;
+		CellPr.TableCellMar.Left   = undefined != this.TableCellMar.Left ? this.TableCellMar.Left.Copy() : undefined;
+		CellPr.TableCellMar.Right  = undefined != this.TableCellMar.Right ? this.TableCellMar.Right.Copy() : undefined;
+		CellPr.TableCellMar.Top    = undefined != this.TableCellMar.Top ? this.TableCellMar.Top.Copy() : undefined;
+	}
 
-        if (undefined != this.TableCellBorders.Bottom)
-            CellPr.TableCellBorders.Bottom = this.TableCellBorders.Bottom.Copy();
+	if (undefined != this.TableCellBorders.Bottom)
+		CellPr.TableCellBorders.Bottom = this.TableCellBorders.Bottom.Copy();
 
-        if (undefined != this.TableCellBorders.Left)
-            CellPr.TableCellBorders.Left = this.TableCellBorders.Left.Copy();
+	if (undefined != this.TableCellBorders.Left)
+		CellPr.TableCellBorders.Left = this.TableCellBorders.Left.Copy();
 
-        if (undefined != this.TableCellBorders.Right)
-            CellPr.TableCellBorders.Right = this.TableCellBorders.Right.Copy();
+	if (undefined != this.TableCellBorders.Right)
+		CellPr.TableCellBorders.Right = this.TableCellBorders.Right.Copy();
 
-        if (undefined != this.TableCellBorders.Top)
-            CellPr.TableCellBorders.Top = this.TableCellBorders.Top.Copy();
+	if (undefined != this.TableCellBorders.Top)
+		CellPr.TableCellBorders.Top = this.TableCellBorders.Top.Copy();
 
-        if (undefined != this.TableCellW)
-            CellPr.TableCellW = this.TableCellW.Copy();
+	if (undefined != this.TableCellW)
+		CellPr.TableCellW = this.TableCellW.Copy();
 
-        CellPr.VAlign        = this.VAlign;
-        CellPr.VMerge        = this.VMerge;
-        CellPr.TextDirection = this.TextDirection;
-        CellPr.NoWrap        = this.NoWrap;
-        CellPr.HMerge        = this.HMerge;
+	CellPr.VAlign        = this.VAlign;
+	CellPr.VMerge        = this.VMerge;
+	CellPr.TextDirection = this.TextDirection;
+	CellPr.NoWrap        = this.NoWrap;
+	CellPr.HMerge        = this.HMerge;
 
-        return CellPr;
-    },
+	if (true === bCopyPrChange && undefined !== this.PrChange)
+	{
+		CellPr.PrChange   = this.PrChange.Copy();
+		CellPr.ReviewInfo = this.ReviewInfo.Copy();
+	}
 
-    Merge : function(CellPr)
-    {
-        if (undefined != CellPr.GridSpan)
-            this.GridSpan = CellPr.GridSpan;
+	return CellPr;
+};
+CTableCellPr.prototype.Merge = function(CellPr)
+{
+	if (undefined != CellPr.GridSpan)
+		this.GridSpan = CellPr.GridSpan;
 
-        if (undefined != CellPr.Shd)
-            this.Shd = CellPr.Shd.Copy();
+	if (undefined != CellPr.Shd)
+		this.Shd = CellPr.Shd.Copy();
 
-        if (undefined === CellPr.TableCellMar)
-        {
-        }
-        else if (null === CellPr.TableCellMar)
-            this.TableCellMar = null;
-        else
-        {
-            this.TableCellMar        = {};
-            this.TableCellMar.Bottom = undefined != CellPr.TableCellMar.Bottom ? CellPr.TableCellMar.Bottom.Copy() : undefined;
-            this.TableCellMar.Left   = undefined != CellPr.TableCellMar.Left ? CellPr.TableCellMar.Left.Copy() : undefined;
-            this.TableCellMar.Right  = undefined != CellPr.TableCellMar.Right ? CellPr.TableCellMar.Right.Copy() : undefined;
-            this.TableCellMar.Top    = undefined != CellPr.TableCellMar.Top ? CellPr.TableCellMar.Top.Copy() : undefined;
-        }
+	if (undefined === CellPr.TableCellMar)
+	{
+	}
+	else if (null === CellPr.TableCellMar)
+		this.TableCellMar = null;
+	else
+	{
+		this.TableCellMar        = {};
+		this.TableCellMar.Bottom = undefined != CellPr.TableCellMar.Bottom ? CellPr.TableCellMar.Bottom.Copy() : undefined;
+		this.TableCellMar.Left   = undefined != CellPr.TableCellMar.Left ? CellPr.TableCellMar.Left.Copy() : undefined;
+		this.TableCellMar.Right  = undefined != CellPr.TableCellMar.Right ? CellPr.TableCellMar.Right.Copy() : undefined;
+		this.TableCellMar.Top    = undefined != CellPr.TableCellMar.Top ? CellPr.TableCellMar.Top.Copy() : undefined;
+	}
 
-        if (undefined != CellPr.TableCellBorders.Bottom)
-            this.TableCellBorders.Bottom = CellPr.TableCellBorders.Bottom.Copy();
+	if (undefined != CellPr.TableCellBorders.Bottom)
+		this.TableCellBorders.Bottom = CellPr.TableCellBorders.Bottom.Copy();
 
-        if (undefined != CellPr.TableCellBorders.Left)
-            this.TableCellBorders.Left = CellPr.TableCellBorders.Left.Copy();
+	if (undefined != CellPr.TableCellBorders.Left)
+		this.TableCellBorders.Left = CellPr.TableCellBorders.Left.Copy();
 
-        if (undefined != CellPr.TableCellBorders.Right)
-            this.TableCellBorders.Right = CellPr.TableCellBorders.Right.Copy();
+	if (undefined != CellPr.TableCellBorders.Right)
+		this.TableCellBorders.Right = CellPr.TableCellBorders.Right.Copy();
 
-        if (undefined != CellPr.TableCellBorders.Top)
-            this.TableCellBorders.Top = CellPr.TableCellBorders.Top.Copy();
+	if (undefined != CellPr.TableCellBorders.Top)
+		this.TableCellBorders.Top = CellPr.TableCellBorders.Top.Copy();
 
-        if (undefined != CellPr.TableCellW)
-            this.TableCellW = CellPr.TableCellW.Copy();
+	if (undefined != CellPr.TableCellW)
+		this.TableCellW = CellPr.TableCellW.Copy();
 
-        if (undefined != CellPr.VAlign)
-            this.VAlign = CellPr.VAlign;
+	if (undefined != CellPr.VAlign)
+		this.VAlign = CellPr.VAlign;
 
-        if (undefined != CellPr.VMerge)
-            this.VMerge = CellPr.VMerge;
+	if (undefined != CellPr.VMerge)
+		this.VMerge = CellPr.VMerge;
 
-        if (undefined != CellPr.TextDirection)
-            this.TextDirection = CellPr.TextDirection;
+	if (undefined != CellPr.TextDirection)
+		this.TextDirection = CellPr.TextDirection;
 
-        if (undefined !== CellPr.NoWrap)
-            this.NoWrap = CellPr.NoWrap;
+	if (undefined !== CellPr.NoWrap)
+		this.NoWrap = CellPr.NoWrap;
 
-        if (undefined != CellPr.HMerge)
-        	this.HMerge = CellPr.HMerge;
-    },
+	if (undefined != CellPr.HMerge)
+		this.HMerge = CellPr.HMerge;
+};
+CTableCellPr.prototype.Is_Equal = function(CellPr)
+{
+	if (this.GridSpan !== CellPr.GridSpan
+		|| true !== IsEqualStyleObjects(this.Shd, CellPr.Shd)
+		|| (this.TableCellMar !== undefined
+		&& CellPr.TableCellMar === undefined)
+		|| (CellPr.TableCellMar !== undefined
+		&& this.TableCellMar === undefined)
+		|| (this.TableCellMar !== null
+		&& CellPr.TableCellMar === null)
+		|| (CellPr.TableCellMar !== null
+		&& this.TableCellMar === null)
+		|| (this.TableCellMar !== undefined
+		&& this.TableCellMar !== null
+		&& (true !== IsEqualStyleObjects(this.TableCellMar.Top, CellPr.TableCellMar.Top)
+		|| true !== IsEqualStyleObjects(this.TableCellMar.Left, CellPr.TableCellMar.Left)
+		|| true !== IsEqualStyleObjects(this.TableCellMar.Right, CellPr.TableCellMar.Right)
+		|| true !== IsEqualStyleObjects(this.TableCellMar.Bottom, CellPr.TableCellMar.Bottom)))
+		|| true !== IsEqualStyleObjects(this.TableCellBorders.Bottom, CellPr.TableCellBorders.Bottom)
+		|| true !== IsEqualStyleObjects(this.TableCellBorders.Left, CellPr.TableCellBorders.Left)
+		|| true !== IsEqualStyleObjects(this.TableCellBorders.Right, CellPr.TableCellBorders.Right)
+		|| true !== IsEqualStyleObjects(this.TableCellBorders.Top, CellPr.TableCellBorders.Top)
+		|| true !== IsEqualStyleObjects(this.TableCellW, CellPr.TableCellW)
+		|| this.VAlign !== CellPr.VAlign
+		|| this.VMerge !== CellPr.VMerge
+		|| this.TextDirection !== CellPr.TextDirection
+		|| this.NoWrap !== CellPr.NoWrap
+		|| this.HMerge !== CellPr.HMerge)
+		return false;
 
-    Is_Equal : function(CellPr)
-    {
-        if (this.GridSpan !== CellPr.GridSpan
-            || true !== IsEqualStyleObjects(this.Shd, CellPr.Shd)
-            || (this.TableCellMar !== undefined
-                && CellPr.TableCellMar === undefined)
-            || (CellPr.TableCellMar !== undefined
-                && this.TableCellMar === undefined)
-            || (this.TableCellMar !== null
-                && CellPr.TableCellMar === null)
-            || (CellPr.TableCellMar !== null
-                && this.TableCellMar === null)
-            || (this.TableCellMar !== undefined
-                && this.TableCellMar !== null
-                && (true !== IsEqualStyleObjects(this.TableCellMar.Top, CellPr.TableCellMar.Top)
-                    || true !== IsEqualStyleObjects(this.TableCellMar.Left, CellPr.TableCellMar.Left)
-                    || true !== IsEqualStyleObjects(this.TableCellMar.Right, CellPr.TableCellMar.Right)
-                    || true !== IsEqualStyleObjects(this.TableCellMar.Bottom, CellPr.TableCellMar.Bottom)))
-            || true !== IsEqualStyleObjects(this.TableCellBorders.Bottom, CellPr.TableCellBorders.Bottom)
-            || true !== IsEqualStyleObjects(this.TableCellBorders.Left, CellPr.TableCellBorders.Left)
-            || true !== IsEqualStyleObjects(this.TableCellBorders.Right, CellPr.TableCellBorders.Right)
-            || true !== IsEqualStyleObjects(this.TableCellBorders.Top, CellPr.TableCellBorders.Top)
-            || true !== IsEqualStyleObjects(this.TableCellW, CellPr.TableCellW)
-            || this.VAlign !== CellPr.VAlign
-            || this.VMerge !== CellPr.VMerge
-            || this.TextDirection !== CellPr.TextDirection
-            || this.NoWrap !== CellPr.NoWrap
-			|| this.HMerge !== CellPr.HMerge)
-            return false;
+	return true;
+};
+CTableCellPr.prototype.Init_Default = function()
+{
+	this.GridSpan                = 1;
+	this.Shd                     = new CDocumentShd();
+	this.TableCellMar            = null;
+	this.TableCellBorders.Bottom = undefined;
+	this.TableCellBorders.Left   = undefined;
+	this.TableCellBorders.Right  = undefined;
+	this.TableCellBorders.Top    = undefined;
+	this.TableCellW              = new CTableMeasurement(tblwidth_Auto, 0);
+	this.VAlign                  = vertalignjc_Top;
+	this.VMerge                  = vmerge_Restart;
+	this.TextDirection           = textdirection_LRTB;
+	this.NoWrap                  = false;
+	this.HMerge                  = vmerge_Restart;
+	this.PrChange                = undefined;
+	this.ReviewInfo              = undefined;
+};
+CTableCellPr.prototype.Set_FromObject = function(CellPr)
+{
+	this.GridSpan = CellPr.GridSpan;
 
-        return true;
-    },
+	if (undefined != CellPr.Shd)
+	{
+		this.Shd = new CDocumentShd();
+		this.Shd.Set_FromObject(CellPr.Shd);
+	}
+	else
+		this.Shd = undefined;
 
-    Init_Default : function()
-    {
-        this.GridSpan                = 1;
-        this.Shd                     = new CDocumentShd();
-        this.TableCellMar            = null;
-        this.TableCellBorders.Bottom = undefined;
-        this.TableCellBorders.Left   = undefined;
-        this.TableCellBorders.Right  = undefined;
-        this.TableCellBorders.Top    = undefined;
-        this.TableCellW              = new CTableMeasurement(tblwidth_Auto, 0);
-        this.VAlign                  = vertalignjc_Top;
-        this.VMerge                  = vmerge_Restart;
-        this.TextDirection           = textdirection_LRTB;
-        this.NoWrap                  = false;
-        this.HMerge                  = vmerge_Restart;
-    },
+	if (undefined === CellPr.TableCellMar)
+		this.TableCellMar = undefined;
+	else if (null === CellPr.TableCellMar)
+		this.TableCellMar = null;
+	else
+	{
+		this.TableCellMar = {};
 
-    Set_FromObject : function(CellPr)
-    {
-        this.GridSpan = CellPr.GridSpan;
+		if (undefined != CellPr.TableCellMar.Bottom)
+			this.TableCellMar.Bottom = new CTableMeasurement(CellPr.TableCellMar.Bottom.Type, CellPr.TableCellMar.Bottom.W);
+		else
+			this.TableCellMar.Bottom = undefined;
 
-        if ( undefined != CellPr.Shd )
-        {
-            this.Shd = new CDocumentShd();
-            this.Shd.Set_FromObject( CellPr.Shd );
-        }
-        else
-            this.Shd = undefined;
+		if (undefined != CellPr.TableCellMar.Left)
+			this.TableCellMar.Left = new CTableMeasurement(CellPr.TableCellMar.Left.Type, CellPr.TableCellMar.Left.W);
+		else
+			this.TableCellMar.Left = undefined;
 
-        if ( undefined === CellPr.TableCellMar )
-            this.TableCellMar = undefined;
-        else if ( null === CellPr.TableCellMar )
-            this.TableCellMar = null;
-        else
-        {
-            this.TableCellMar = {};
+		if (undefined != CellPr.TableCellMar.Right)
+			this.TableCellMar.Right = new CTableMeasurement(CellPr.TableCellMar.Right.Type, CellPr.TableCellMar.Right.W);
+		else
+			this.TableCellMar.Right = undefined;
 
-            if ( undefined != CellPr.TableCellMar.Bottom )
-                this.TableCellMar.Bottom = new CTableMeasurement( CellPr.TableCellMar.Bottom.Type, CellPr.TableCellMar.Bottom.W );
-            else
-                this.TableCellMar.Bottom = undefined;
+		if (undefined != CellPr.TableCellMar.Top)
+			this.TableCellMar.Top = new CTableMeasurement(CellPr.TableCellMar.Top.Type, CellPr.TableCellMar.Top.W);
+		else
+			this.TableCellMar.Top = undefined;
+	}
 
-            if ( undefined != CellPr.TableCellMar.Left )
-                this.TableCellMar.Left = new CTableMeasurement( CellPr.TableCellMar.Left.Type, CellPr.TableCellMar.Left.W );
-            else
-                this.TableCellMar.Left = undefined;
-
-            if ( undefined != CellPr.TableCellMar.Right )
-                this.TableCellMar.Right = new CTableMeasurement( CellPr.TableCellMar.Right.Type, CellPr.TableCellMar.Right.W );
-            else
-                this.TableCellMar.Right = undefined;
-
-            if ( undefined != CellPr.TableCellMar.Top )
-                this.TableCellMar.Top = new CTableMeasurement( CellPr.TableCellMar.Top.Type, CellPr.TableCellMar.Top.W );
-            else
-                this.TableCellMar.Top = undefined;
-        }
-
-        if ( undefined != CellPr.TableCellBorders )
-        {
-            if ( undefined != CellPr.TableCellBorders.Bottom )
-            {
-                this.TableCellBorders.Bottom = new CDocumentBorder();
-                this.TableCellBorders.Bottom.Set_FromObject( CellPr.TableCellBorders.Bottom );
-            }
-            else
-                this.TableCellBorders.Bottom = undefined;
-
-            if ( undefined != CellPr.TableCellBorders.Left )
-            {
-                this.TableCellBorders.Left = new CDocumentBorder();
-                this.TableCellBorders.Left.Set_FromObject( CellPr.TableCellBorders.Left );
-            }
-            else
-                this.TableCellBorders.Left = undefined;
-
-            if ( undefined != CellPr.TableCellBorders.Right )
-            {
-                this.TableCellBorders.Right = new CDocumentBorder();
-                this.TableCellBorders.Right.Set_FromObject( CellPr.TableCellBorders.Right );
-            }
-            else
-                this.TableCellBorders.Right = undefined;
-
-            if ( undefined != CellPr.TableCellBorders.Top )
-            {
-                this.TableCellBorders.Top = new CDocumentBorder();
-                this.TableCellBorders.Top.Set_FromObject( CellPr.TableCellBorders.Top );
-            }
-            else
-                this.TableCellBorders.Top = undefined;
-        }
-        else
-        {
-            this.TableCellBorders.Bottom = undefined;
-            this.TableCellBorders.Left   = undefined;
-            this.TableCellBorders.Right  = undefined;
-            this.TableCellBorders.Top    = undefined;
-        }
-
-        if ( undefined != CellPr.TableCellW )
-            this.TableCellW = new CTableMeasurement( CellPr.TableCellW.Type, CellPr.TableCellW.W );
-        else
-            this.TableCellW = undefined;
-
-
-        this.VAlign = CellPr.VAlign;
-        this.VMerge = CellPr.VMerge;
-        this.TextDirection = CellPr.TextDirection;
-        this.NoWrap = CellPr.NoWrap;
-        this.HMerge = CellPr.HMerge;
-
-    },
-
-    Check_PresentationPr : function(Theme)
-    {
-        if(this.Shd)
-        {
-            this.Shd.Check_PresentationPr(Theme);
-        }
-        if(this.TableCellBorders.Bottom)
-        {
-            this.TableCellBorders.Bottom.Check_PresentationPr(Theme);
-        }
-        if(this.TableCellBorders.Left)
-        {
-            this.TableCellBorders.Left.Check_PresentationPr(Theme);
-        }
-        if(this.TableCellBorders.Right)
-        {
-            this.TableCellBorders.Right.Check_PresentationPr(Theme);
-        }
-        if(this.TableCellBorders.Top)
-        {
-            this.TableCellBorders.Top.Check_PresentationPr(Theme);
-        }
-    },
-
-    Write_ToBinary : function(Writer)
-    {
-        var StartPos = Writer.GetCurPosition();
-        Writer.Skip(4);
-        var Flags = 0;
-
-        if ( undefined != this.GridSpan )
-        {
-            Writer.WriteLong( this.GridSpan );
-            Flags |= 1;
-        }
-
-        if ( undefined != this.Shd )
-        {
-            this.Shd.Write_ToBinary( Writer );
-            Flags |= 2;
-        }
-
-        if ( undefined != this.TableCellMar )
-        {
-            if ( null === this.TableCellMar )
-            {
-                Flags |= 4;
-            }
-            else
-            {
-                if ( undefined != this.TableCellMar.Bottom )
-                {
-                    this.TableCellMar.Bottom.Write_ToBinary(Writer);
-                    Flags |= 8;
-                }
-
-                if ( undefined != this.TableCellMar.Left )
-                {
-                    this.TableCellMar.Left.Write_ToBinary(Writer);
-                    Flags |= 16;
-                }
-
-                if ( undefined != this.TableCellMar.Right )
-                {
-                    this.TableCellMar.Right.Write_ToBinary(Writer);
-                    Flags |= 32;
-                }
-
-                if ( undefined != this.TableCellMar.Top )
-                {
-                    this.TableCellMar.Top.Write_ToBinary(Writer);
-                    Flags |= 64;
-                }
-
-                Flags |= 128;
-            }
-        }
-
-        if ( undefined != this.TableCellBorders.Bottom )
-        {
-            this.TableCellBorders.Bottom.Write_ToBinary( Writer );
-            Flags |= 256;
-        }
-
-        if ( undefined != this.TableCellBorders.Left )
-        {
-            this.TableCellBorders.Left.Write_ToBinary( Writer );
-            Flags |= 512;
-        }
-
-        if ( undefined != this.TableCellBorders.Right )
-        {
-            this.TableCellBorders.Right.Write_ToBinary( Writer );
-            Flags |= 1024;
-        }
-
-        if ( undefined != this.TableCellBorders.Top )
-        {
-            this.TableCellBorders.Top.Write_ToBinary( Writer );
-            Flags |= 2048;
-        }
-
-        if ( undefined != this.TableCellW )
-        {
-            this.TableCellW.Write_ToBinary(Writer);
-            Flags |= 4096;
-        }
-
-        if ( undefined != this.VAlign )
-        {
-            Writer.WriteLong( this.VAlign );
-            Flags |= 8192;
-        }
-
-        if ( undefined != this.VMerge )
-        {
-            Writer.WriteLong( this.VMerge );
-            Flags |= 16384;
-        }
-
-        if (undefined !== this.TextDirection)
-        {
-            Writer.WriteLong( this.TextDirection );
-            Flags |= 32768;
-        }
-
-        if (undefined !== this.NoWrap)
-        {
-            Writer.WriteBool(this.NoWrap);
-            Flags |= 65536;
-        }
-
-        if (undefined !== this.HMerge)
+	if (undefined != CellPr.TableCellBorders)
+	{
+		if (undefined != CellPr.TableCellBorders.Bottom)
 		{
-			Writer.WriteLong(this.HMerge);
-			Flags |= 131072;
+			this.TableCellBorders.Bottom = new CDocumentBorder();
+			this.TableCellBorders.Bottom.Set_FromObject(CellPr.TableCellBorders.Bottom);
+		}
+		else
+			this.TableCellBorders.Bottom = undefined;
+
+		if (undefined != CellPr.TableCellBorders.Left)
+		{
+			this.TableCellBorders.Left = new CDocumentBorder();
+			this.TableCellBorders.Left.Set_FromObject(CellPr.TableCellBorders.Left);
+		}
+		else
+			this.TableCellBorders.Left = undefined;
+
+		if (undefined != CellPr.TableCellBorders.Right)
+		{
+			this.TableCellBorders.Right = new CDocumentBorder();
+			this.TableCellBorders.Right.Set_FromObject(CellPr.TableCellBorders.Right);
+		}
+		else
+			this.TableCellBorders.Right = undefined;
+
+		if (undefined != CellPr.TableCellBorders.Top)
+		{
+			this.TableCellBorders.Top = new CDocumentBorder();
+			this.TableCellBorders.Top.Set_FromObject(CellPr.TableCellBorders.Top);
+		}
+		else
+			this.TableCellBorders.Top = undefined;
+	}
+	else
+	{
+		this.TableCellBorders.Bottom = undefined;
+		this.TableCellBorders.Left   = undefined;
+		this.TableCellBorders.Right  = undefined;
+		this.TableCellBorders.Top    = undefined;
+	}
+
+	if (undefined != CellPr.TableCellW)
+		this.TableCellW = new CTableMeasurement(CellPr.TableCellW.Type, CellPr.TableCellW.W);
+	else
+		this.TableCellW = undefined;
+
+
+	this.VAlign        = CellPr.VAlign;
+	this.VMerge        = CellPr.VMerge;
+	this.TextDirection = CellPr.TextDirection;
+	this.NoWrap        = CellPr.NoWrap;
+	this.HMerge        = CellPr.HMerge;
+
+};
+CTableCellPr.prototype.Check_PresentationPr = function(Theme)
+{
+	if (this.Shd)
+	{
+		this.Shd.Check_PresentationPr(Theme);
+	}
+	if (this.TableCellBorders.Bottom)
+	{
+		this.TableCellBorders.Bottom.Check_PresentationPr(Theme);
+	}
+	if (this.TableCellBorders.Left)
+	{
+		this.TableCellBorders.Left.Check_PresentationPr(Theme);
+	}
+	if (this.TableCellBorders.Right)
+	{
+		this.TableCellBorders.Right.Check_PresentationPr(Theme);
+	}
+	if (this.TableCellBorders.Top)
+	{
+		this.TableCellBorders.Top.Check_PresentationPr(Theme);
+	}
+};
+CTableCellPr.prototype.Write_ToBinary = function(Writer)
+{
+	var StartPos = Writer.GetCurPosition();
+	Writer.Skip(4);
+	var Flags = 0;
+
+	if (undefined != this.GridSpan)
+	{
+		Writer.WriteLong(this.GridSpan);
+		Flags |= 1;
+	}
+
+	if (undefined != this.Shd)
+	{
+		this.Shd.Write_ToBinary(Writer);
+		Flags |= 2;
+	}
+
+	if (undefined != this.TableCellMar)
+	{
+		if (null === this.TableCellMar)
+		{
+			Flags |= 4;
+		}
+		else
+		{
+			if (undefined != this.TableCellMar.Bottom)
+			{
+				this.TableCellMar.Bottom.Write_ToBinary(Writer);
+				Flags |= 8;
+			}
+
+			if (undefined != this.TableCellMar.Left)
+			{
+				this.TableCellMar.Left.Write_ToBinary(Writer);
+				Flags |= 16;
+			}
+
+			if (undefined != this.TableCellMar.Right)
+			{
+				this.TableCellMar.Right.Write_ToBinary(Writer);
+				Flags |= 32;
+			}
+
+			if (undefined != this.TableCellMar.Top)
+			{
+				this.TableCellMar.Top.Write_ToBinary(Writer);
+				Flags |= 64;
+			}
+
+			Flags |= 128;
+		}
+	}
+
+	if (undefined != this.TableCellBorders.Bottom)
+	{
+		this.TableCellBorders.Bottom.Write_ToBinary(Writer);
+		Flags |= 256;
+	}
+
+	if (undefined != this.TableCellBorders.Left)
+	{
+		this.TableCellBorders.Left.Write_ToBinary(Writer);
+		Flags |= 512;
+	}
+
+	if (undefined != this.TableCellBorders.Right)
+	{
+		this.TableCellBorders.Right.Write_ToBinary(Writer);
+		Flags |= 1024;
+	}
+
+	if (undefined != this.TableCellBorders.Top)
+	{
+		this.TableCellBorders.Top.Write_ToBinary(Writer);
+		Flags |= 2048;
+	}
+
+	if (undefined != this.TableCellW)
+	{
+		this.TableCellW.Write_ToBinary(Writer);
+		Flags |= 4096;
+	}
+
+	if (undefined != this.VAlign)
+	{
+		Writer.WriteLong(this.VAlign);
+		Flags |= 8192;
+	}
+
+	if (undefined != this.VMerge)
+	{
+		Writer.WriteLong(this.VMerge);
+		Flags |= 16384;
+	}
+
+	if (undefined !== this.TextDirection)
+	{
+		Writer.WriteLong(this.TextDirection);
+		Flags |= 32768;
+	}
+
+	if (undefined !== this.NoWrap)
+	{
+		Writer.WriteBool(this.NoWrap);
+		Flags |= 65536;
+	}
+
+	if (undefined !== this.HMerge)
+	{
+		Writer.WriteLong(this.HMerge);
+		Flags |= 131072;
+	}
+
+	if (undefined !== this.PrChange && undefined !== this.ReviewInfo)
+	{
+		this.PrChange.WriteToBinary(Writer);
+		this.ReviewInfo.WriteToBinary(Writer);
+		Flags |= 262144;
+	}
+
+	var EndPos = Writer.GetCurPosition();
+	Writer.Seek(StartPos);
+	Writer.WriteLong(Flags);
+	Writer.Seek(EndPos);
+};
+CTableCellPr.prototype.Read_FromBinary = function(Reader)
+{
+	var Flags = Reader.GetLong();
+
+	if (1 & Flags)
+		this.GridSpan = Reader.GetLong();
+
+	if (2 & Flags)
+	{
+		this.Shd = new CDocumentShd();
+		this.Shd.Read_FromBinary(Reader);
+	}
+
+	if (4 & Flags)
+		this.TableCellMar = null;
+	else if (128 & Flags)
+	{
+		this.TableCellMar = {};
+		if (8 & Flags)
+		{
+			this.TableCellMar.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
+			this.TableCellMar.Bottom.Read_FromBinary(Reader);
 		}
 
-        var EndPos = Writer.GetCurPosition();
-        Writer.Seek( StartPos );
-        Writer.WriteLong( Flags );
-        Writer.Seek( EndPos );
-    },
+		if (16 & Flags)
+		{
+			this.TableCellMar.Left = new CTableMeasurement(tblwidth_Auto, 0);
+			this.TableCellMar.Left.Read_FromBinary(Reader);
+		}
 
-    Read_FromBinary : function(Reader)
-    {
-        var Flags = Reader.GetLong();
+		if (32 & Flags)
+		{
+			this.TableCellMar.Right = new CTableMeasurement(tblwidth_Auto, 0);
+			this.TableCellMar.Right.Read_FromBinary(Reader);
+		}
 
-        if ( 1 & Flags )
-            this.GridSpan = Reader.GetLong();
+		if (64 & Flags)
+		{
+			this.TableCellMar.Top = new CTableMeasurement(tblwidth_Auto, 0);
+			this.TableCellMar.Top.Read_FromBinary(Reader);
+		}
+	}
 
-        if ( 2 & Flags )
-        {
-            this.Shd = new CDocumentShd();
-            this.Shd.Read_FromBinary( Reader );
-        }
+	if (256 & Flags)
+	{
+		this.TableCellBorders.Bottom = new CDocumentBorder();
+		this.TableCellBorders.Bottom.Read_FromBinary(Reader);
+	}
 
-        if ( 4 & Flags )
-            this.TableCellMar = null;
-        else if ( 128 & Flags )
-        {
-            this.TableCellMar = {};
-            if ( 8 & Flags )
-            {
-                this.TableCellMar.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
-                this.TableCellMar.Bottom.Read_FromBinary( Reader );
-            }
+	if (512 & Flags)
+	{
+		this.TableCellBorders.Left = new CDocumentBorder();
+		this.TableCellBorders.Left.Read_FromBinary(Reader);
+	}
 
-            if ( 16 & Flags )
-            {
-                this.TableCellMar.Left = new CTableMeasurement(tblwidth_Auto, 0);
-                this.TableCellMar.Left.Read_FromBinary( Reader );
-            }
+	if (1024 & Flags)
+	{
+		this.TableCellBorders.Right = new CDocumentBorder();
+		this.TableCellBorders.Right.Read_FromBinary(Reader);
+	}
 
-            if ( 32 & Flags )
-            {
-                this.TableCellMar.Right = new CTableMeasurement(tblwidth_Auto, 0);
-                this.TableCellMar.Right.Read_FromBinary( Reader );
-            }
+	if (2048 & Flags)
+	{
+		this.TableCellBorders.Top = new CDocumentBorder();
+		this.TableCellBorders.Top.Read_FromBinary(Reader);
+	}
 
-            if ( 64 & Flags )
-            {
-                this.TableCellMar.Top = new CTableMeasurement(tblwidth_Auto, 0);
-                this.TableCellMar.Top.Read_FromBinary( Reader );
-            }
-        }
+	if (4096 & Flags)
+	{
+		this.TableCellW = new CTableMeasurement(tblwidth_Auto, 0);
+		this.TableCellW.Read_FromBinary(Reader);
+	}
 
-        if ( 256 & Flags )
-        {
-            this.TableCellBorders.Bottom = new CDocumentBorder();
-            this.TableCellBorders.Bottom.Read_FromBinary( Reader );
-        }
+	if (8192 & Flags)
+		this.VAlign = Reader.GetLong();
 
-        if ( 512 & Flags )
-        {
-            this.TableCellBorders.Left = new CDocumentBorder();
-            this.TableCellBorders.Left.Read_FromBinary( Reader );
-        }
+	if (16384 & Flags)
+		this.VMerge = Reader.GetLong();
 
-        if ( 1024 & Flags )
-        {
-            this.TableCellBorders.Right = new CDocumentBorder();
-            this.TableCellBorders.Right.Read_FromBinary( Reader );
-        }
+	if (32768 & Flags)
+		this.TextDirection = Reader.GetLong();
 
-        if ( 2048 & Flags )
-        {
-            this.TableCellBorders.Top = new CDocumentBorder();
-            this.TableCellBorders.Top.Read_FromBinary( Reader );
-        }
+	if (65536 & Flags)
+		this.NoWrap = Reader.GetBool();
 
-        if ( 4096 & Flags )
-        {
-            this.TableCellW = new CTableMeasurement(tblwidth_Auto, 0);
-            this.TableCellW.Read_FromBinary( Reader );
-        }
+	if (131072 & Flags)
+		this.HMerge = Reader.GetLong();
 
-        if ( 8192 & Flags )
-            this.VAlign = Reader.GetLong();
+	if (262144 & Flags)
+	{
+		this.PrChange   = new CTableCellPr();
+		this.ReviewInfo = new CReviewInfo();
 
-        if ( 16384 & Flags )
-            this.VMerge = Reader.GetLong();
-
-        if (32768 & Flags)
-            this.TextDirection = Reader.GetLong();
-
-        if (65536 & Flags)
-            this.NoWrap = Reader.GetBool();
-
-		if (131072 & Flags)
-			this.HMerge = Reader.GetLong();
-    }
+		this.PrChange.ReadFromBinary(Reader);
+		this.ReviewInfo.ReadFromBinary(Reader);
+	}
+};
+CTableCellPr.prototype.WriteToBinary = function(oWriter)
+{
+	this.Write_ToBinary(oWriter);
+};
+CTableCellPr.prototype.ReadFromBinary = function(oReader)
+{
+	this.Read_FromBinary(oReader);
 };
 CTableCellPr.prototype.Is_Empty = function()
 {
@@ -6932,6 +7051,29 @@ CTableCellPr.prototype.Is_Empty = function()
 		return false;
 
 	return true;
+};
+CTableCellPr.prototype.HavePrChange = function()
+{
+	if (undefined === this.PrChange || null === this.PrChange)
+		return false;
+
+	return true;
+};
+CTableCellPr.prototype.AddPrChange = function()
+{
+	this.PrChange   = this.Copy(false);
+	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo.Update();
+};
+CTableCellPr.prototype.SetPrChange = function(oPrChange, oReviewInfo)
+{
+	this.PrChange   = oPrChange;
+	this.ReviewInfo = oReviewInfo;
+};
+CTableCellPr.prototype.RemovePrChange = function()
+{
+	delete this.PrChange;
+	delete this.ReviewInfo;
 };
 
 function CRFonts()
@@ -7387,1406 +7529,1187 @@ function CTextPr()
     this.TextOutline = undefined;
     this.TextFill    = undefined;
 	this.HighlightColor = undefined;
+
+	this.PrChange   = undefined;
+	this.ReviewInfo = undefined;
 }
 
-CTextPr.prototype =
+CTextPr.prototype.Clear = function()
 {
-    Clear : function()
-    {
-        this.Bold       = undefined;
-        this.Italic     = undefined;
-        this.Strikeout  = undefined;
-        this.Underline  = undefined;
-        this.FontFamily = undefined;
-        this.FontSize   = undefined;
-        this.Color      = undefined;
-        this.VertAlign  = undefined;
-        this.HighLight  = undefined;
-        this.RStyle     = undefined;
-        this.Spacing    = undefined;
-        this.DStrikeout = undefined;
-        this.Caps       = undefined;
-        this.SmallCaps  = undefined;
-        this.Position   = undefined;
+	this.Bold       = undefined;
+	this.Italic     = undefined;
+	this.Strikeout  = undefined;
+	this.Underline  = undefined;
+	this.FontFamily = undefined;
+	this.FontSize   = undefined;
+	this.Color      = undefined;
+	this.VertAlign  = undefined;
+	this.HighLight  = undefined;
+	this.RStyle     = undefined;
+	this.Spacing    = undefined;
+	this.DStrikeout = undefined;
+	this.Caps       = undefined;
+	this.SmallCaps  = undefined;
+	this.Position   = undefined;
 
-        this.RFonts     = new CRFonts();
-        this.BoldCS     = undefined;
-        this.ItalicCS   = undefined;
-        this.FontSizeCS = undefined;
-        this.CS         = undefined;
-        this.RTL        = undefined;
-        this.Lang       = new CLang();
-        this.Unifill    = undefined;
-        this.FontRef    = undefined;
-        this.Shd        = undefined;
-        this.Vanish     = undefined;
-        this.TextOutline = undefined;
-        this.TextFill    = undefined;
-		this.HighlightColor = undefined;
-        this.AscFill    = undefined;
-        this.AscUnifill = undefined;
-        this.AscLine    = undefined;
-    },
+	this.RFonts         = new CRFonts();
+	this.BoldCS         = undefined;
+	this.ItalicCS       = undefined;
+	this.FontSizeCS     = undefined;
+	this.CS             = undefined;
+	this.RTL            = undefined;
+	this.Lang           = new CLang();
+	this.Unifill        = undefined;
+	this.FontRef        = undefined;
+	this.Shd            = undefined;
+	this.Vanish         = undefined;
+	this.TextOutline    = undefined;
+	this.TextFill       = undefined;
+	this.HighlightColor = undefined;
+	this.AscFill        = undefined;
+	this.AscUnifill     = undefined;
+	this.AscLine        = undefined;
 
-    Copy : function(bCopyPrChange)
-    {
-        var TextPr = new CTextPr();
-        TextPr.Bold      = this.Bold;
-        TextPr.Italic    = this.Italic;
-        TextPr.Strikeout = this.Strikeout;
-        TextPr.Underline = this.Underline;
+	this.PrChange   = undefined;
+	this.ReviewInfo = undefined;
+};
+CTextPr.prototype.Copy = function(bCopyPrChange)
+{
+	var TextPr       = new CTextPr();
+	TextPr.Bold      = this.Bold;
+	TextPr.Italic    = this.Italic;
+	TextPr.Strikeout = this.Strikeout;
+	TextPr.Underline = this.Underline;
 
-        if ( undefined != this.FontFamily )
-        {
-            TextPr.FontFamily = {};
-            TextPr.FontFamily.Name  = this.FontFamily.Name;
-            TextPr.FontFamily.Index = this.FontFamily.Index;
-        }
-
-        TextPr.FontSize   = this.FontSize;
-
-        if ( undefined != this.Color )
-            TextPr.Color = new CDocumentColor(this.Color.r, this.Color.g, this.Color.b, this.Color.Auto);
-
-        TextPr.VertAlign = this.VertAlign;
-        TextPr.HighLight = this.Copy_HighLight();
-
-        TextPr.RStyle     = this.RStyle;
-        TextPr.Spacing    = this.Spacing;
-        TextPr.DStrikeout = this.DStrikeout;
-        TextPr.Caps       = this.Caps;
-        TextPr.SmallCaps  = this.SmallCaps;
-        TextPr.Position   = this.Position;
-        TextPr.RFonts     = this.RFonts.Copy();
-        TextPr.BoldCS     = this.BoldCS;
-        TextPr.ItalicCS   = this.ItalicCS;
-        TextPr.FontSizeCS = this.FontSizeCS;
-        TextPr.CS         = this.CS;
-        TextPr.RTL        = this.RTL;
-        TextPr.Lang       = this.Lang.Copy();
-        if(undefined != this.Unifill)
-            TextPr.Unifill = this.Unifill.createDuplicate();
-        if(undefined != this.FontRef)
-            TextPr.FontRef = this.FontRef.createDuplicate();
-        
-        if (undefined !== this.Shd )
-            TextPr.Shd = this.Shd.Copy();
-        
-        TextPr.Vanish     = this.Vanish;
-
-        if (true === bCopyPrChange && undefined !== this.PrChange)
-        {
-            TextPr.PrChange   = this.PrChange.Copy();
-            TextPr.ReviewInfo = this.ReviewInfo.Copy();
-        }
-        if(undefined != this.TextOutline)
-        {
-            TextPr.TextOutline = this.TextOutline.createDuplicate();
-        }
-        if(undefined != this.TextFill)
-        {
-            TextPr.TextFill = this.TextFill.createDuplicate();
-        }
-        if(undefined !== this.HighlightColor)
-		{
-			TextPr.HighlightColor = this.HighlightColor.createDuplicate();
-		}
-
-        return TextPr;
-    },
-
-    Copy_HighLight : function()
-    {
-        if ( undefined === this.HighLight )
-            return undefined;
-        else if ( highlight_None === this.HighLight )
-            return highlight_None;
-        else
-            return this.HighLight.Copy();
-
-        return undefined;
-    },
-
-    Merge : function(TextPr)
-    {
-        if ( undefined != TextPr.Bold )
-            this.Bold = TextPr.Bold;
-
-        if ( undefined != TextPr.Italic )
-            this.Italic = TextPr.Italic;
-
-        if ( undefined != TextPr.Strikeout )
-            this.Strikeout = TextPr.Strikeout;
-
-        if ( undefined != TextPr.Underline )
-            this.Underline = TextPr.Underline;
-
-        if ( undefined != TextPr.FontFamily )
-        {
-            this.FontFamily = {};
-            this.FontFamily.Name  = TextPr.FontFamily.Name;
-            this.FontFamily.Index = TextPr.FontFamily.Index;
-        }
-
-        if ( undefined != TextPr.FontSize )
-            this.FontSize = TextPr.FontSize;
-
-        if ( undefined != TextPr.Color )
-            this.Color = TextPr.Color.Copy();
-
-        if ( undefined != TextPr.VertAlign )
-            this.VertAlign = TextPr.VertAlign;
-
-        if ( undefined === TextPr.HighLight )
-        {}
-        else if ( highlight_None === TextPr.HighLight )
-            this.HighLight = highlight_None;
-        else
-            this.HighLight = TextPr.HighLight.Copy();
-
-        if ( undefined != TextPr.RStyle )
-            this.RStyle = TextPr.RStyle;
-
-        if ( undefined != TextPr.Spacing )
-            this.Spacing = TextPr.Spacing;
-
-        if ( undefined != TextPr.DStrikeout )
-            this.DStrikeout = TextPr.DStrikeout;
-
-        if ( undefined != TextPr.SmallCaps )
-            this.SmallCaps = TextPr.SmallCaps;
-
-        if ( undefined != TextPr.Caps )
-            this.Caps = TextPr.Caps;
-
-        if ( undefined != TextPr.Position )
-            this.Position = TextPr.Position;
-
-        this.RFonts.Merge( TextPr.RFonts );
-
-        if ( undefined != TextPr.BoldCS )
-            this.BoldCS = TextPr.BoldCS;
-
-        if ( undefined != TextPr.ItalicCS )
-            this.ItalicCS = TextPr.ItalicCS;
-
-        if ( undefined != TextPr.FontSizeCS )
-            this.FontSizeCS = TextPr.FontSizeCS;
-
-        if ( undefined != TextPr.CS )
-            this.CS = TextPr.CS;
-
-        if ( undefined != TextPr.RTL )
-            this.RTL = TextPr.RTL;
-
-        this.Lang.Merge( TextPr.Lang );
-
-        if(undefined != TextPr.Unifill)
-            this.Unifill = TextPr.Unifill.createDuplicate();
-        else
-        {
-            if(undefined != TextPr.Color)
-            {
-                this.Unifill = undefined;
-            }
-        }
-        if(undefined != TextPr.FontRef)
-        {
-            this.FontRef = TextPr.FontRef.createDuplicate();
-        }
-        
-        if ( undefined !== TextPr.Shd )
-            this.Shd = TextPr.Shd.Copy();
-        
-        if ( undefined !== TextPr.Vanish )
-            this.Vanish = TextPr.Vanish;
-
-        if(undefined != TextPr.TextOutline)
-        {
-            this.TextOutline = TextPr.TextOutline.createDuplicate();
-        }
-        if(undefined != TextPr.TextFill)
-        {
-            this.TextFill = TextPr.TextFill.createDuplicate();
-        }
-        if(undefined !== TextPr.HighlightColor)
-		{
-			this.HighlightColor = TextPr.HighlightColor.createDuplicate();
-		}
-    },
-
-    Init_Default : function()
-    {
-        this.Bold       = false;
-        this.Italic     = false;
-        this.Underline  = false;
-        this.Strikeout  = false;
-        this.FontFamily =
-        {
-            Name  : "Arial",
-            Index : -1
-        };
-        this.FontSize   = 11;
-        this.Color      = new CDocumentColor(0, 0, 0, true);
-        this.VertAlign  = AscCommon.vertalign_Baseline;
-        this.HighLight  = highlight_None;
-        this.RStyle     = undefined;
-        this.Spacing    = 0;
-        this.DStrikeout = false;
-        this.SmallCaps  = false;
-        this.Caps       = false;
-        this.Position   = 0;
-        this.RFonts.Init_Default();
-        this.BoldCS     = false;
-        this.ItalicCS   = false;
-        this.FontSizeCS = 11;
-        this.CS         = false;
-        this.RTL        = false;
-        this.Lang.Init_Default();
-        this.Unifill    = undefined;
-        this.FontRef    = undefined;
-        this.Shd        = undefined;     
-        this.Vanish     = false;
-
-        this.TextOutline = undefined;
-        this.TextFill    = undefined;
-		this.HighlightColor = undefined;
-    },
-
-    Set_FromObject : function(TextPr, isUndefinedToNull)
+	if (undefined != this.FontFamily)
 	{
-		this.Bold      = CheckUndefinedToNull(isUndefinedToNull, TextPr.Bold);
-		this.Italic    = CheckUndefinedToNull(isUndefinedToNull, TextPr.Italic);
-		this.Strikeout = CheckUndefinedToNull(isUndefinedToNull, TextPr.Strikeout);
-		this.Underline = CheckUndefinedToNull(isUndefinedToNull, TextPr.Underline);
+		TextPr.FontFamily       = {};
+		TextPr.FontFamily.Name  = this.FontFamily.Name;
+		TextPr.FontFamily.Index = this.FontFamily.Index;
+	}
 
-		if (undefined !== TextPr.FontFamily)
+	TextPr.FontSize = this.FontSize;
+
+	if (undefined != this.Color)
+		TextPr.Color = new CDocumentColor(this.Color.r, this.Color.g, this.Color.b, this.Color.Auto);
+
+	TextPr.VertAlign = this.VertAlign;
+	TextPr.HighLight = this.Copy_HighLight();
+
+	TextPr.RStyle     = this.RStyle;
+	TextPr.Spacing    = this.Spacing;
+	TextPr.DStrikeout = this.DStrikeout;
+	TextPr.Caps       = this.Caps;
+	TextPr.SmallCaps  = this.SmallCaps;
+	TextPr.Position   = this.Position;
+	TextPr.RFonts     = this.RFonts.Copy();
+	TextPr.BoldCS     = this.BoldCS;
+	TextPr.ItalicCS   = this.ItalicCS;
+	TextPr.FontSizeCS = this.FontSizeCS;
+	TextPr.CS         = this.CS;
+	TextPr.RTL        = this.RTL;
+	TextPr.Lang       = this.Lang.Copy();
+	if (undefined != this.Unifill)
+		TextPr.Unifill = this.Unifill.createDuplicate();
+	if (undefined != this.FontRef)
+		TextPr.FontRef = this.FontRef.createDuplicate();
+
+	if (undefined !== this.Shd)
+		TextPr.Shd = this.Shd.Copy();
+
+	TextPr.Vanish = this.Vanish;
+
+	if (true === bCopyPrChange && undefined !== this.PrChange)
+	{
+		TextPr.PrChange   = this.PrChange.Copy();
+		TextPr.ReviewInfo = this.ReviewInfo.Copy();
+	}
+	if (undefined != this.TextOutline)
+	{
+		TextPr.TextOutline = this.TextOutline.createDuplicate();
+	}
+	if (undefined != this.TextFill)
+	{
+		TextPr.TextFill = this.TextFill.createDuplicate();
+	}
+	if (undefined !== this.HighlightColor)
+	{
+		TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+	}
+
+	return TextPr;
+};
+CTextPr.prototype.Copy_HighLight = function()
+{
+	if (undefined === this.HighLight)
+		return undefined;
+	else if (highlight_None === this.HighLight)
+		return highlight_None;
+	else
+		return this.HighLight.Copy();
+
+	return undefined;
+};
+CTextPr.prototype.Merge = function(TextPr)
+{
+	if (undefined != TextPr.Bold)
+		this.Bold = TextPr.Bold;
+
+	if (undefined != TextPr.Italic)
+		this.Italic = TextPr.Italic;
+
+	if (undefined != TextPr.Strikeout)
+		this.Strikeout = TextPr.Strikeout;
+
+	if (undefined != TextPr.Underline)
+		this.Underline = TextPr.Underline;
+
+	if (undefined != TextPr.FontFamily)
+	{
+		this.FontFamily       = {};
+		this.FontFamily.Name  = TextPr.FontFamily.Name;
+		this.FontFamily.Index = TextPr.FontFamily.Index;
+	}
+
+	if (undefined != TextPr.FontSize)
+		this.FontSize = TextPr.FontSize;
+
+	if (undefined != TextPr.Color)
+		this.Color = TextPr.Color.Copy();
+
+	if (undefined != TextPr.VertAlign)
+		this.VertAlign = TextPr.VertAlign;
+
+	if (undefined === TextPr.HighLight)
+	{
+	}
+	else if (highlight_None === TextPr.HighLight)
+		this.HighLight = highlight_None;
+	else
+		this.HighLight = TextPr.HighLight.Copy();
+
+	if (undefined != TextPr.RStyle)
+		this.RStyle = TextPr.RStyle;
+
+	if (undefined != TextPr.Spacing)
+		this.Spacing = TextPr.Spacing;
+
+	if (undefined != TextPr.DStrikeout)
+		this.DStrikeout = TextPr.DStrikeout;
+
+	if (undefined != TextPr.SmallCaps)
+		this.SmallCaps = TextPr.SmallCaps;
+
+	if (undefined != TextPr.Caps)
+		this.Caps = TextPr.Caps;
+
+	if (undefined != TextPr.Position)
+		this.Position = TextPr.Position;
+
+	this.RFonts.Merge(TextPr.RFonts);
+
+	if (undefined != TextPr.BoldCS)
+		this.BoldCS = TextPr.BoldCS;
+
+	if (undefined != TextPr.ItalicCS)
+		this.ItalicCS = TextPr.ItalicCS;
+
+	if (undefined != TextPr.FontSizeCS)
+		this.FontSizeCS = TextPr.FontSizeCS;
+
+	if (undefined != TextPr.CS)
+		this.CS = TextPr.CS;
+
+	if (undefined != TextPr.RTL)
+		this.RTL = TextPr.RTL;
+
+	this.Lang.Merge(TextPr.Lang);
+
+	if (undefined != TextPr.Unifill)
+		this.Unifill = TextPr.Unifill.createDuplicate();
+	else
+	{
+		if (undefined != TextPr.Color)
 		{
-			this.FontFamily       = {};
-			this.FontFamily.Name  = TextPr.FontFamily.Name;
-			this.FontFamily.Index = TextPr.FontFamily.Index;
+			this.Unifill = undefined;
+		}
+	}
+	if (undefined != TextPr.FontRef)
+	{
+		this.FontRef = TextPr.FontRef.createDuplicate();
+	}
+
+	if (undefined !== TextPr.Shd)
+		this.Shd = TextPr.Shd.Copy();
+
+	if (undefined !== TextPr.Vanish)
+		this.Vanish = TextPr.Vanish;
+
+	if (undefined != TextPr.TextOutline)
+	{
+		this.TextOutline = TextPr.TextOutline.createDuplicate();
+	}
+	if (undefined != TextPr.TextFill)
+	{
+		this.TextFill = TextPr.TextFill.createDuplicate();
+	}
+	if (undefined !== TextPr.HighlightColor)
+	{
+		this.HighlightColor = TextPr.HighlightColor.createDuplicate();
+	}
+};
+CTextPr.prototype.Init_Default = function()
+{
+	this.Bold       = false;
+	this.Italic     = false;
+	this.Underline  = false;
+	this.Strikeout  = false;
+	this.FontFamily = {
+		Name  : "Arial",
+		Index : -1
+	};
+	this.FontSize   = 11;
+	this.Color      = new CDocumentColor(0, 0, 0, true);
+	this.VertAlign  = AscCommon.vertalign_Baseline;
+	this.HighLight  = highlight_None;
+	this.RStyle     = undefined;
+	this.Spacing    = 0;
+	this.DStrikeout = false;
+	this.SmallCaps  = false;
+	this.Caps       = false;
+	this.Position   = 0;
+	this.RFonts.Init_Default();
+	this.BoldCS     = false;
+	this.ItalicCS   = false;
+	this.FontSizeCS = 11;
+	this.CS         = false;
+	this.RTL        = false;
+	this.Lang.Init_Default();
+	this.Unifill = undefined;
+	this.FontRef = undefined;
+	this.Shd     = undefined;
+	this.Vanish  = false;
+
+	this.TextOutline    = undefined;
+	this.TextFill       = undefined;
+	this.HighlightColor = undefined;
+
+	this.PrChange   = undefined;
+	this.ReviewInfo = undefined;
+};
+CTextPr.prototype.Set_FromObject = function(TextPr, isUndefinedToNull)
+{
+	this.Bold      = CheckUndefinedToNull(isUndefinedToNull, TextPr.Bold);
+	this.Italic    = CheckUndefinedToNull(isUndefinedToNull, TextPr.Italic);
+	this.Strikeout = CheckUndefinedToNull(isUndefinedToNull, TextPr.Strikeout);
+	this.Underline = CheckUndefinedToNull(isUndefinedToNull, TextPr.Underline);
+
+	if (undefined !== TextPr.FontFamily)
+	{
+		this.FontFamily       = {};
+		this.FontFamily.Name  = TextPr.FontFamily.Name;
+		this.FontFamily.Index = TextPr.FontFamily.Index;
+	}
+	else
+	{
+		if (isUndefinedToNull)
+			this.FontFamily = null;
+		else
+			this.FontFamily = undefined;
+	}
+
+	this.FontSize = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontSize);
+
+	if (null === TextPr.Color || undefined === TextPr.Color)
+		this.Color = CheckUndefinedToNull(isUndefinedToNull, TextPr.Color);
+	else
+		this.Color = new CDocumentColor(TextPr.Color.r, TextPr.Color.g, TextPr.Color.b, TextPr.Color.Auto);
+
+	this.VertAlign = CheckUndefinedToNull(isUndefinedToNull, TextPr.VertAlign);
+
+	if (undefined === TextPr.HighLight || null === TextPr.HighLight)
+		this.HighLight = CheckUndefinedToNull(isUndefinedToNull, undefined);
+	else if (highlight_None === TextPr.HighLight)
+		this.HighLight = highlight_None;
+	else
+		this.HighLight = new CDocumentColor(TextPr.HighLight.r, TextPr.HighLight.g, TextPr.HighLight.b);
+
+	this.RStyle     = CheckUndefinedToNull(isUndefinedToNull, TextPr.RStyle);
+	this.Spacing    = CheckUndefinedToNull(isUndefinedToNull, TextPr.Spacing);
+	this.DStrikeout = CheckUndefinedToNull(isUndefinedToNull, TextPr.DStrikeout);
+	this.Caps       = CheckUndefinedToNull(isUndefinedToNull, TextPr.Caps);
+	this.SmallCaps  = CheckUndefinedToNull(isUndefinedToNull, TextPr.SmallCaps);
+	this.Position   = CheckUndefinedToNull(isUndefinedToNull, TextPr.Position);
+
+	if (undefined !== TextPr.RFonts)
+		this.RFonts.Set_FromObject(TextPr.RFonts, isUndefinedToNull);
+
+	this.BoldCS     = CheckUndefinedToNull(isUndefinedToNull, TextPr.BoldCS);
+	this.ItalicCS   = CheckUndefinedToNull(isUndefinedToNull, TextPr.ItalicCS);
+	this.FontSizeCS = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontSizeCS);
+	this.CS         = CheckUndefinedToNull(isUndefinedToNull, TextPr.CS);
+	this.RTL        = CheckUndefinedToNull(isUndefinedToNull, TextPr.RTL);
+
+	if (undefined !== TextPr.Lang)
+		this.Lang.Set_FromObject(TextPr.Lang, isUndefinedToNull);
+
+	if (undefined !== TextPr.Shd)
+	{
+		this.Shd = new CDocumentShd();
+		this.Shd.Set_FromObject(TextPr.Shd);
+	}
+	else
+	{
+		this.Shd = undefined;
+	}
+
+	this.Vanish         = CheckUndefinedToNull(isUndefinedToNull, TextPr.Vanish);
+	this.Unifill        = CheckUndefinedToNull(isUndefinedToNull, TextPr.Unifill);
+	this.FontRef        = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontRef);
+	this.TextFill       = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextFill);
+	this.HighlightColor = CheckUndefinedToNull(isUndefinedToNull, TextPr.HighlightColor);
+	this.TextOutline    = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextOutline);
+	this.AscFill        = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscFill);
+	this.AscUnifill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscUnifill);
+	this.AscLine        = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscLine);
+};
+CTextPr.prototype.Check_PresentationPr = function()
+{
+	if (this.FontRef && !this.Unifill)
+	{
+		var prefix;
+		if (this.FontRef.idx === AscFormat.fntStyleInd_minor)
+		{
+			prefix = "+mn-";
 		}
 		else
 		{
-			if (isUndefinedToNull)
-				this.FontFamily = null;
-			else
-				this.FontFamily = undefined;
+			prefix = "+mj-";
+		}
+		this.RFonts.Set_FromObject(
+			{
+				Ascii    : {
+					Name  : prefix + "lt",
+					Index : -1
+				},
+				EastAsia : {
+					Name  : prefix + "ea",
+					Index : -1
+				},
+				HAnsi    : {
+					Name  : prefix + "lt",
+					Index : -1
+				},
+				CS       : {
+					Name  : prefix + "lt",
+					Index : -1
+				}
+			}
+		);
+		if (this.FontRef.Color && !this.Unifill)
+		{
+			this.Unifill = AscFormat.CreateUniFillByUniColorCopy(this.FontRef.Color);
+		}
+	}
+};
+CTextPr.prototype.Compare = function(TextPr)
+{
+	// Bold
+	if (undefined !== this.Bold && this.Bold !== TextPr.Bold)
+		this.Bold = undefined;
+
+	// Italic
+	if (undefined !== this.Italic && this.Italic !== TextPr.Italic)
+		this.Italic = undefined;
+
+	// Strikeout
+	if (undefined !== this.Strikeout && this.Strikeout !== TextPr.Strikeout)
+		this.Strikeout = undefined;
+
+	// Underline
+	if (undefined !== this.Underline && this.Underline !== TextPr.Underline)
+		this.Underline = undefined;
+
+	// FontFamily
+	if (undefined !== this.FontFamily && ( undefined === TextPr.FontFamily || this.FontFamily.Name !== TextPr.FontFamily.Name ))
+		this.FontFamily = undefined;
+
+	// FontSize
+	if (undefined !== this.FontSize && ( undefined === TextPr.FontSize || Math.abs(this.FontSize - TextPr.FontSize) >= 0.001 ))
+		this.FontSize = undefined;
+
+	// Color
+	if (undefined !== this.Color && ( undefined === TextPr.Color || true !== this.Color.Compare(TextPr.Color) ))
+		this.Color = undefined;
+
+	// VertAlign
+	if (undefined !== this.VertAlign && this.VertAlign !== TextPr.VertAlign)
+		this.VertAlign = undefined;
+
+	// HighLight
+	if (undefined !== this.HighLight && ( undefined === TextPr.HighLight || ( highlight_None === this.HighLight && highlight_None !== TextPr.HighLight ) || ( highlight_None !== this.HighLight && highlight_None === TextPr.HighLight ) || ( highlight_None !== this.HighLight && highlight_None !== TextPr.HighLight && true !== this.HighLight.Compare(TextPr.HighLight) ) ))
+		this.HighLight = undefined;
+
+	// RStyle
+	if (undefined !== this.RStyle && ( undefined === TextPr.RStyle || this.RStyle !== TextPr.RStyle ))
+		this.RStyle = undefined;
+
+	// Spacing
+	if (undefined !== this.Spacing && ( undefined === TextPr.Spacing || Math.abs(this.Spacing - TextPr.Spacing) >= 0.001 ))
+		this.Spacing = undefined;
+
+	// DStrikeout
+	if (undefined !== this.DStrikeout && ( undefined === TextPr.DStrikeout || this.DStrikeout !== TextPr.DStrikeout ))
+		this.DStrikeout = undefined;
+
+	// Caps
+	if (undefined !== this.Caps && ( undefined === TextPr.Caps || this.Caps !== TextPr.Caps ))
+		this.Caps = undefined;
+
+	// SmallCaps
+	if (undefined !== this.SmallCaps && ( undefined === TextPr.SmallCaps || this.SmallCaps !== TextPr.SmallCaps ))
+		this.SmallCaps = undefined;
+
+	// Position
+	if (undefined !== this.Position && ( undefined === TextPr.Position || Math.abs(this.Position - TextPr.Position) >= 0.001 ))
+		this.Position = undefined;
+
+	// RFonts
+	this.RFonts.Compare(TextPr.RFonts);
+
+	// BoldCS
+	if (undefined !== this.BoldCS && this.BoldCS !== TextPr.BoldCS)
+		this.BoldCS = undefined;
+
+	// ItalicCS
+	if (undefined !== this.ItalicCS && this.ItalicCS !== TextPr.ItalicCS)
+		this.ItalicCS = undefined;
+
+	// FontSizeCS
+	if (undefined !== this.FontSizeCS && ( undefined === TextPr.FontSizeCS || Math.abs(this.FontSizeCS - TextPr.FontSizeCS) >= 0.001 ))
+		this.FontSizeCS = undefined;
+
+	// CS
+	if (undefined !== this.CS && this.CS !== TextPr.CS)
+		this.CS = undefined;
+
+	// RTL
+	if (undefined !== this.RTL && this.RTL !== TextPr.RTL)
+		this.RTL = undefined;
+
+	// Lang
+	this.Lang.Compare(TextPr.Lang);
+	//Result_TextPr.Unifill = CompareUniFill(this.Unifill, TextPr.Unifill);
+
+	// Vanish
+	if (undefined !== this.Vanish && this.Vanish !== TextPr.Vanish)
+		this.Vanish = undefined;
+
+	if (undefined !== this.Unifill && !this.Unifill.IsIdentical(TextPr.Unifill))
+	{
+		this.Unifill = AscFormat.CompareUniFill(this.Unifill, TextPr.Unifill);
+		if (null === this.Unifill)
+		{
+			this.Unifill = undefined;
+		}
+		this.Color    = undefined;
+		this.TextFill = undefined;
+	}
+
+
+	if (undefined !== this.TextFill && !this.TextFill.IsIdentical(TextPr.TextFill))
+	{
+		this.Unifill  = undefined;
+		this.Color    = undefined;
+		this.TextFill = AscFormat.CompareUniFill(this.TextFill, TextPr.TextFill);
+		if (null === this.TextFill)
+		{
+			this.TextFill = undefined;
+		}
+	}
+
+	if (undefined !== this.HighlightColor && !this.HighlightColor.IsIdentical(TextPr.HighlightColor))
+	{
+		this.HighlightColor = this.HighlightColor.compare(TextPr.HighlightColor);
+		if (null === this.HighlightColor)
+		{
+			this.HighlightColor = undefined;
+		}
+	}
+
+
+	if (undefined !== this.TextOutline && !this.TextOutline.IsIdentical(TextPr.TextOutline))
+	{
+		if (TextPr.TextOutline !== undefined)
+		{
+			this.TextOutline = this.TextOutline.compare(TextPr.TextOutline);
+		}
+		else
+		{
+			this.TextOutline = undefined;
 		}
 
-		this.FontSize = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontSize);
+	}
 
-		if (null === TextPr.Color || undefined === TextPr.Color)
-			this.Color = CheckUndefinedToNull(isUndefinedToNull, TextPr.Color);
+	return this;
+};
+CTextPr.prototype.Write_ToBinary = function(Writer)
+{
+	var StartPos = Writer.GetCurPosition();
+	Writer.Skip(4);
+	var Flags = 0;
+
+	if (undefined != this.Bold)
+	{
+		Writer.WriteBool(this.Bold);
+		Flags |= 1;
+	}
+
+	if (undefined != this.Italic)
+	{
+		Writer.WriteBool(this.Italic);
+		Flags |= 2;
+	}
+
+	if (undefined != this.Underline)
+	{
+		Writer.WriteBool(this.Underline);
+		Flags |= 4;
+	}
+
+	if (undefined != this.Strikeout)
+	{
+		Writer.WriteBool(this.Strikeout);
+		Flags |= 8;
+	}
+
+	if (undefined != this.FontFamily)
+	{
+		Writer.WriteString2(this.FontFamily.Name);
+		Flags |= 16;
+	}
+
+	if (undefined != this.FontSize)
+	{
+		Writer.WriteDouble(this.FontSize);
+		Flags |= 32;
+	}
+
+	if (undefined != this.Color)
+	{
+		this.Color.Write_ToBinary(Writer);
+		Flags |= 64;
+	}
+
+	if (undefined != this.VertAlign)
+	{
+		Writer.WriteLong(this.VertAlign);
+		Flags |= 128;
+	}
+
+	if (undefined != this.HighLight)
+	{
+		if (highlight_None === this.HighLight)
+		{
+			Writer.WriteLong(highlight_None);
+		}
 		else
-			this.Color = new CDocumentColor(TextPr.Color.r, TextPr.Color.g, TextPr.Color.b, TextPr.Color.Auto);
+		{
+			Writer.WriteLong(0);
+			this.HighLight.Write_ToBinary(Writer);
+		}
 
-		this.VertAlign = CheckUndefinedToNull(isUndefinedToNull, TextPr.VertAlign);
+		Flags |= 256;
+	}
 
-		if (undefined === TextPr.HighLight || null === TextPr.HighLight)
-			this.HighLight = CheckUndefinedToNull(isUndefinedToNull, undefined);
-		else if (highlight_None === TextPr.HighLight)
+	if (undefined != this.RStyle)
+	{
+		Writer.WriteString2(this.RStyle);
+		Flags |= 512;
+	}
+
+	if (undefined != this.Spacing)
+	{
+		Writer.WriteDouble(this.Spacing);
+		Flags |= 1024;
+	}
+
+	if (undefined != this.DStrikeout)
+	{
+		Writer.WriteBool(this.DStrikeout);
+		Flags |= 2048;
+	}
+
+	if (undefined != this.Caps)
+	{
+		Writer.WriteBool(this.Caps);
+		Flags |= 4096;
+	}
+
+	if (undefined != this.SmallCaps)
+	{
+		Writer.WriteBool(this.SmallCaps);
+		Flags |= 8192;
+	}
+
+	if (undefined != this.Position)
+	{
+		Writer.WriteDouble(this.Position);
+		Flags |= 16384;
+	}
+
+	if (undefined != this.RFonts)
+	{
+		this.RFonts.Write_ToBinary(Writer);
+		Flags |= 32768;
+	}
+
+	if (undefined != this.BoldCS)
+	{
+		Writer.WriteBool(this.BoldCS);
+		Flags |= 65536;
+	}
+
+	if (undefined != this.ItalicCS)
+	{
+		Writer.WriteBool(this.ItalicCS);
+		Flags |= 131072;
+	}
+
+	if (undefined != this.FontSizeCS)
+	{
+		Writer.WriteDouble(this.FontSizeCS);
+		Flags |= 262144;
+	}
+
+	if (undefined != this.CS)
+	{
+		Writer.WriteBool(this.CS);
+		Flags |= 524288;
+	}
+
+	if (undefined != this.RTL)
+	{
+		Writer.WriteBool(this.RTL);
+		Flags |= 1048576;
+	}
+
+	if (undefined != this.Lang)
+	{
+		this.Lang.Write_ToBinary(Writer);
+		Flags |= 2097152;
+	}
+
+	if (undefined != this.Unifill)
+	{
+		this.Unifill.Write_ToBinary(Writer);
+		Flags |= 4194304;
+	}
+
+	if (undefined !== this.Shd)
+	{
+		this.Shd.Write_ToBinary(Writer);
+		Flags |= 8388608;
+	}
+
+	if (undefined !== this.Vanish)
+	{
+		Writer.WriteBool(this.Vanish);
+		Flags |= 16777216;
+	}
+
+	if (undefined !== this.FontRef)
+	{
+		this.FontRef.Write_ToBinary(Writer);
+		Flags |= 33554432;
+	}
+
+	if (undefined !== this.PrChange)
+	{
+		this.PrChange.Write_ToBinary(Writer);
+		Flags |= 67108864;
+	}
+	if (undefined !== this.TextOutline)
+	{
+		this.TextOutline.Write_ToBinary(Writer);
+		Flags |= 134217728;
+	}
+	if (undefined !== this.TextFill)
+	{
+		this.TextFill.Write_ToBinary(Writer);
+		Flags |= 268435456;
+	}
+
+	if (undefined !== this.PrChange)
+	{
+		this.PrChange.WriteToBinary(Writer);
+		this.ReviewInfo.WriteToBinary(Writer);
+		Flags |= 536870912;
+	}
+
+	if (undefined != this.HighlightColor)
+	{
+		this.HighlightColor.Write_ToBinary(Writer);
+		Flags |= 1073741824;
+	}
+
+	var EndPos = Writer.GetCurPosition();
+	Writer.Seek(StartPos);
+	Writer.WriteLong(Flags);
+	Writer.Seek(EndPos);
+};
+CTextPr.prototype.Read_FromBinary = function(Reader)
+{
+	var Flags = Reader.GetLong();
+
+	// Bold
+	if (Flags & 1)
+		this.Bold = Reader.GetBool();
+
+	// Italic
+	if (Flags & 2)
+		this.Italic = Reader.GetBool();
+
+	// Underline
+	if (Flags & 4)
+		this.Underline = Reader.GetBool();
+
+	// Strikeout
+	if (Flags & 8)
+		this.Strikeout = Reader.GetBool();
+
+	// FontFamily
+	if (Flags & 16)
+		this.FontFamily = {Name : Reader.GetString2(), Index : -1};
+
+	// FontSize
+	if (Flags & 32)
+		this.FontSize = Reader.GetDouble();
+
+	// Color
+	if (Flags & 64)
+	{
+		this.Color = new CDocumentColor(0, 0, 0);
+		this.Color.Read_FromBinary(Reader);
+	}
+
+	// VertAlign
+	if (Flags & 128)
+		this.VertAlign = Reader.GetLong();
+
+	// HighLight
+	if (Flags & 256)
+	{
+		var HL_type = Reader.GetLong();
+		if (highlight_None == HL_type)
 			this.HighLight = highlight_None;
 		else
-			this.HighLight = new CDocumentColor(TextPr.HighLight.r, TextPr.HighLight.g, TextPr.HighLight.b);
-
-		this.RStyle     = CheckUndefinedToNull(isUndefinedToNull, TextPr.RStyle);
-		this.Spacing    = CheckUndefinedToNull(isUndefinedToNull, TextPr.Spacing);
-		this.DStrikeout = CheckUndefinedToNull(isUndefinedToNull, TextPr.DStrikeout);
-		this.Caps       = CheckUndefinedToNull(isUndefinedToNull, TextPr.Caps);
-		this.SmallCaps  = CheckUndefinedToNull(isUndefinedToNull, TextPr.SmallCaps);
-		this.Position   = CheckUndefinedToNull(isUndefinedToNull, TextPr.Position);
-
-		if (undefined !== TextPr.RFonts)
-			this.RFonts.Set_FromObject(TextPr.RFonts, isUndefinedToNull);
-
-		this.BoldCS     = CheckUndefinedToNull(isUndefinedToNull, TextPr.BoldCS);
-		this.ItalicCS   = CheckUndefinedToNull(isUndefinedToNull, TextPr.ItalicCS);
-		this.FontSizeCS = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontSizeCS);
-		this.CS         = CheckUndefinedToNull(isUndefinedToNull, TextPr.CS);
-		this.RTL        = CheckUndefinedToNull(isUndefinedToNull, TextPr.RTL);
-
-		if (undefined !== TextPr.Lang)
-			this.Lang.Set_FromObject(TextPr.Lang, isUndefinedToNull);
-
-		if (undefined !== TextPr.Shd)
 		{
-			this.Shd = new CDocumentShd();
-			this.Shd.Set_FromObject(TextPr.Shd);
+			this.HighLight = new CDocumentColor(0, 0, 0);
+			this.HighLight.Read_FromBinary(Reader);
+		}
+	}
+
+	// RStyle
+	if (Flags & 512)
+		this.RStyle = Reader.GetString2();
+
+	// Spacing
+	if (Flags & 1024)
+		this.Spacing = Reader.GetDouble();
+
+	// DStrikeout
+	if (Flags & 2048)
+		this.DStrikeout = Reader.GetBool();
+
+	// Caps
+	if (Flags & 4096)
+		this.Caps = Reader.GetBool();
+
+	// SmallCaps
+	if (Flags & 8192)
+		this.SmallCaps = Reader.GetBool();
+
+	// Position
+	if (Flags & 16384)
+		this.Position = Reader.GetDouble();
+
+	// RFonts
+	if (Flags & 32768)
+		this.RFonts.Read_FromBinary(Reader);
+
+	// BoldCS
+	if (Flags & 65536)
+		this.BoldCS = Reader.GetBool();
+
+	// ItalicCS
+	if (Flags & 131072)
+		this.ItalicCS = Reader.GetBool();
+
+	// FontSizeCS
+	if (Flags & 262144)
+		this.FontSizeCS = Reader.GetDouble();
+
+	// CS
+	if (Flags & 524288)
+		this.CS = Reader.GetBool();
+
+	// RTL
+	if (Flags & 1048576)
+		this.RTL = Reader.GetBool();
+
+	// Lang
+	if (Flags & 2097152)
+		this.Lang.Read_FromBinary(Reader);
+
+	// Unifill
+	if (Flags & 4194304)
+	{
+		this.Unifill = new AscFormat.CUniFill()
+		this.Unifill.Read_FromBinary(Reader);
+	}
+
+	// Shd
+	if (Flags & 8388608)
+	{
+		this.Shd = new CDocumentShd();
+		this.Shd.Read_FromBinary(Reader);
+	}
+
+	// Vanish
+	if (Flags & 16777216)
+		this.Vanish = Reader.GetBool();
+
+	if (Flags & 33554432)
+	{
+		this.FontRef = new AscFormat.FontRef();
+		this.FontRef.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 67108864)
+	{
+		this.PrChange = new CTextPr();
+		this.PrChange.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 134217728)
+	{
+		this.TextOutline = new AscFormat.CLn();
+		this.TextOutline.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 268435456)
+	{
+		this.TextFill = new AscFormat.CUniFill();
+		this.TextFill.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 536870912)
+	{
+		this.PrChange   = new CTextPr();
+		this.ReviewInfo = new CReviewInfo();
+		this.PrChange.ReadFromBinary(Reader);
+		this.ReviewInfo.ReadFromBinary(Reader);
+	}
+
+	if (Flags & 1073741824)
+	{
+		this.HighlightColor = new AscFormat.CUniColor();
+		this.HighlightColor.Read_FromBinary(Reader);
+	}
+};
+CTextPr.prototype.Check_NeedRecalc = function()
+{
+	// Потому что в параграфе внутри Internal_recalculate_0 кэшируются ParaTextPr
+	return true;
+
+	if (undefined != this.Bold)
+		return true;
+
+	if (undefined != this.Italic)
+		return true;
+
+	if (undefined != this.FontFamily)
+		return true;
+
+	if (undefined != this.FontSize)
+		return true;
+
+	if (undefined != this.VertAlign)
+		return true;
+
+	if (undefined != this.Spacing)
+		return true;
+
+	if (undefined != this.Caps)
+		return true;
+
+	if (undefined != this.SmallCaps)
+		return true;
+
+	if (undefined != this.Position)
+		return true;
+
+	if (undefined != this.RFonts.Ascii)
+		return true;
+
+	if (undefined != this.RFonts.EastAsia)
+		return true;
+
+	if (undefined != this.RFonts.HAnsi)
+		return true;
+
+	if (undefined != this.RFonts.CS)
+		return true;
+
+	if (undefined != this.RTL || undefined != this.CS || undefined != this.BoldCS || undefined != this.ItalicCS || undefined != this.FontSizeCS)
+		return true;
+
+	if (undefined != this.Lang.Val)
+		return true;
+
+	// Потому что в параграфе внутри Internal_recalculate_0 кэшируются ParaTextPr
+	if (undefined != this.Color)
+		return true;
+
+	if (undefined != this.HighLight)
+		return true;
+
+	if (undefined != this.Shd)
+		return true;
+
+	return false;
+};
+CTextPr.prototype.Get_FontKoef = function()
+{
+	var dFontKoef = 1;
+
+	switch (this.VertAlign)
+	{
+		case AscCommon.vertalign_Baseline:
+		{
+			dFontKoef = 1;
+			break;
+		}
+		case AscCommon.vertalign_SubScript:
+		case AscCommon.vertalign_SuperScript:
+		{
+			dFontKoef = AscCommon.vaKSize;
+			break;
+		}
+	}
+
+	return dFontKoef;
+};
+CTextPr.prototype.Document_Get_AllFontNames = function(AllFonts)
+{
+	if (undefined != this.RFonts.Ascii)
+		AllFonts[this.RFonts.Ascii.Name] = true;
+
+	if (undefined != this.RFonts.HAnsi)
+		AllFonts[this.RFonts.HAnsi.Name] = true;
+
+	if (undefined != this.RFonts.EastAsia)
+		AllFonts[this.RFonts.EastAsia.Name] = true;
+
+	if (undefined != this.RFonts.CS)
+		AllFonts[this.RFonts.CS.Name] = true;
+};
+CTextPr.prototype.Document_CreateFontMap = function(FontMap, FontScheme)
+{
+	var Style   = ( true === this.Bold ? 1 : 0 ) + ( true === this.Italic ? 2 : 0 );
+	var StyleCS = ( true === this.BoldCS ? 1 : 0 ) + ( true === this.ItalicCS ? 2 : 0 );
+	var Size    = this.FontSize;
+	var SizeCS  = this.FontSizeCS;
+
+	var RFonts = this.RFonts;
+	var CheckedName;
+	if (undefined != RFonts.Ascii)
+	{
+		CheckedName  = FontScheme.checkFont(RFonts.Ascii.Name);
+		var Key      = "" + CheckedName + "_" + Style + "_" + Size;
+		FontMap[Key] =
+			{
+				Name  : CheckedName,
+				Style : Style,
+				Size  : Size
+			};
+	}
+
+	if (undefined != RFonts.EastAsia)
+	{
+		CheckedName  = FontScheme.checkFont(RFonts.EastAsia.Name);
+		var Key      = "" + CheckedName + "_" + Style + "_" + Size;
+		FontMap[Key] =
+			{
+				Name  : CheckedName,
+				Style : Style,
+				Size  : Size
+			};
+	}
+
+	if (undefined != RFonts.HAnsi)
+	{
+		CheckedName  = FontScheme.checkFont(RFonts.HAnsi.Name);
+		var Key      = "" + CheckedName + "_" + Style + "_" + Size;
+		FontMap[Key] =
+			{
+				Name  : CheckedName,
+				Style : Style,
+				Size  : Size
+			};
+	}
+
+	if (undefined != RFonts.CS)
+	{
+
+		CheckedName  = FontScheme.checkFont(RFonts.CS.Name);
+		var Key      = "" + CheckedName + "_" + StyleCS + "_" + SizeCS;
+		FontMap[Key] =
+			{
+				Name  : CheckedName,
+				Style : StyleCS,
+				Size  : SizeCS
+			};
+	}
+};
+CTextPr.prototype.isEqual = function(TextPrOld, TextPrNew)
+{
+	if (TextPrOld == undefined || TextPrNew == undefined)
+		return false;
+	for (var TextPr in TextPrOld)
+	{
+		if (typeof TextPrOld[TextPr] == 'object')
+		{
+			/*for(var cpPr in TextPrOld[TextPr])
+			 {
+			 if(TextPrOld[TextPr][cpPr] != TextPrNew[TextPr][cpPr])
+			 return false;
+			 }*/
+			this.isEqual(TextPrOld[TextPr], TextPrNew[TextPr]);
 		}
 		else
 		{
-			this.Shd = undefined;
+			if (typeof TextPrOld[TextPr] == "number" && typeof TextPrNew[TextPr] == "number")
+			{
+				if (Math.abs(TextPrOld[TextPr] - TextPrNew[TextPr]) > 0.001)
+					return false;
+			}
+			else if (TextPrOld[TextPr] != TextPrNew[TextPr])
+				return false;
 		}
+	}
+	return true;
+};
+CTextPr.prototype.Is_Equal = function(TextPr)
+{
+	if (this.Bold !== TextPr.Bold)
+		return false;
 
-		this.Vanish      = CheckUndefinedToNull(isUndefinedToNull, TextPr.Vanish);
-		this.Unifill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.Unifill);
-		this.FontRef     = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontRef);
-		this.TextFill    = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextFill);
-		this.HighlightColor = CheckUndefinedToNull(isUndefinedToNull, TextPr.HighlightColor);
-		this.TextOutline = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextOutline);
-		this.AscFill     = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscFill);
-		this.AscUnifill  = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscUnifill);
-		this.AscLine     = CheckUndefinedToNull(isUndefinedToNull, TextPr.AscLine);
-	},
+	if (this.Italic !== TextPr.Italic)
+		return false;
+
+	if (this.Strikeout !== TextPr.Strikeout)
+		return false;
 
-    Check_PresentationPr: function()
-    {
-        if(this.FontRef && !this.Unifill)
-        {
-            var prefix;
-            if(this.FontRef.idx === AscFormat.fntStyleInd_minor)
-            {
-                prefix = "+mn-";
-            }
-            else
-            {
-                prefix = "+mj-";
-            }
-            this.RFonts.Set_FromObject(
-                {
-                    Ascii: {
-                        Name: prefix+"lt",
-                        Index: -1
-                    },
-                    EastAsia: {
-                        Name: prefix+"ea",
-                        Index: -1
-                    },
-                    HAnsi: {
-                        Name: prefix+"lt",
-                        Index: -1
-                    },
-                    CS: {
-                        Name: prefix+"lt",
-                        Index: -1
-                    }
-                }
-            );
-            if(this.FontRef.Color && !this.Unifill)
-            {
-                this.Unifill = AscFormat.CreateUniFillByUniColorCopy(this.FontRef.Color);
-            }
-        }
-    },
+	if (this.Underline !== TextPr.Underline)
+		return false;
 
-    Compare : function(TextPr)
-    {
-        // Bold
-        if ( undefined !== this.Bold && this.Bold !== TextPr.Bold )
-            this.Bold = undefined;
+	if ((undefined === this.FontFamily && undefined !== TextPr.FontFamily) || (undefined !== this.FontFamily && (undefined === TextPr.FontFamily || this.FontFamily.Name !== TextPr.FontFamily.Name)))
+		return false;
 
-        // Italic
-        if ( undefined !== this.Italic && this.Italic !== TextPr.Italic )
-            this.Italic = undefined;
+	if (false
+		|| (undefined === this.FontSize
+		&& undefined !== TextPr.FontSize)
+		|| (undefined !== this.FontSize
+		&& (undefined === TextPr.FontSize
+		|| Math.abs(this.FontSize - TextPr.FontSize) >= 0.001)))
+		return false;
 
-        // Strikeout
-        if ( undefined !== this.Strikeout && this.Strikeout !== TextPr.Strikeout )
-            this.Strikeout = undefined;
+	if ((undefined === this.Color && undefined !== TextPr.Color) || (undefined !== this.Color && (undefined === TextPr.Color || true !== this.Color.Compare(TextPr.Color))))
+		return false;
 
-        // Underline
-        if ( undefined !== this.Underline && this.Underline !== TextPr.Underline )
-            this.Underline = undefined;
+	if (this.VertAlign !== TextPr.VertAlign)
+		return false;
 
-        // FontFamily
-        if ( undefined !== this.FontFamily && ( undefined === TextPr.FontFamily || this.FontFamily.Name !== TextPr.FontFamily.Name ) )
-            this.FontFamily = undefined;
+	if ((undefined === this.HighLight && undefined !== TextPr.HighLight) || (undefined !== this.HighLight && (undefined === TextPr.HighLight || (highlight_None === this.HighLight && highlight_None !== TextPr.HighLight) || (highlight_None !== this.HighLight && highlight_None === TextPr.HighLight) || (highlight_None !== this.HighLight && highlight_None !== TextPr.HighLight && true !== this.HighLight.Compare(TextPr.HighLight)))))
+		return false;
 
-        // FontSize
-        if ( undefined !== this.FontSize && ( undefined === TextPr.FontSize || Math.abs( this.FontSize - TextPr.FontSize ) >= 0.001 ) )
-            this.FontSize = undefined;
+	if (this.RStyle !== TextPr.RStyle)
+		return false;
 
-        // Color
-        if ( undefined !== this.Color && ( undefined === TextPr.Color || true !== this.Color.Compare(TextPr.Color) ) )
-            this.Color = undefined;
+	if ((undefined === this.Spacing && undefined !== TextPr.Spacing) || (undefined !== this.Spacing && (undefined === TextPr.Spacing || Math.abs(this.Spacing - TextPr.Spacing) >= 0.001)))
+		return false;
 
-        // VertAlign
-        if ( undefined !== this.VertAlign && this.VertAlign !== TextPr.VertAlign )
-            this.VertAlign = undefined;
+	if (this.DStrikeout !== TextPr.DStrikeout)
+		return false;
 
-        // HighLight
-        if ( undefined !== this.HighLight && ( undefined === TextPr.HighLight || ( highlight_None === this.HighLight && highlight_None !== TextPr.HighLight )  || ( highlight_None !== this.HighLight && highlight_None === TextPr.HighLight ) || ( highlight_None !== this.HighLight && highlight_None !== TextPr.HighLight && true !== this.HighLight.Compare( TextPr.HighLight ) ) ) )
-            this.HighLight = undefined;
+	if (this.Caps !== TextPr.Caps)
+		return false;
 
-        // RStyle
-        if ( undefined !== this.RStyle && ( undefined === TextPr.RStyle || this.RStyle !== TextPr.RStyle ) )
-            this.RStyle = undefined;
+	if (this.SmallCaps !== TextPr.SmallCaps)
+		return false;
 
-        // Spacing
-        if ( undefined !== this.Spacing && ( undefined === TextPr.Spacing || Math.abs(this.Spacing - TextPr.Spacing) >= 0.001 ) )
-            this.Spacing = undefined;
+	if ((undefined === this.Position && undefined !== TextPr.Position) || (undefined !== this.Position && (undefined === TextPr.Position || Math.abs(this.Position - TextPr.Position) >= 0.001)))
+		return false;
 
-        // DStrikeout
-        if ( undefined !== this.DStrikeout && ( undefined === TextPr.DStrikeout || this.DStrikeout !== TextPr.DStrikeout ) )
-            this.DStrikeout = undefined;
+	if (true !== this.RFonts.Is_Equal(TextPr.RFonts))
+		return false;
 
-        // Caps
-        if ( undefined !== this.Caps && ( undefined === TextPr.Caps || this.Caps !== TextPr.Caps ) )
-            this.Caps = undefined;
+	if (this.BoldCS !== TextPr.BoldCS)
+		return false;
 
-        // SmallCaps
-        if ( undefined !== this.SmallCaps && ( undefined === TextPr.SmallCaps || this.SmallCaps !== TextPr.SmallCaps ) )
-            this.SmallCaps = undefined;
+	if (this.ItalicCS !== TextPr.ItalicCS)
+		return false;
 
-        // Position
-        if ( undefined !== this.Position && ( undefined === TextPr.Position || Math.abs(this.Position - TextPr.Position) >= 0.001 ) )
-            this.Position = undefined;
+	if (false
+		|| (undefined === this.FontSizeCS
+		&& undefined !== TextPr.FontSizeCS)
+		|| (undefined !== this.FontSizeCS
+		&& (undefined === TextPr.FontSizeCS
+		|| Math.abs(this.FontSizeCS - TextPr.FontSizeCS) >= 0.001)))
+		return false;
 
-        // RFonts
-        this.RFonts.Compare( TextPr.RFonts );
+	if (this.CS !== TextPr.CS)
+		return false;
 
-        // BoldCS
-        if ( undefined !== this.BoldCS && this.BoldCS !== TextPr.BoldCS )
-            this.BoldCS = undefined;
+	if (this.RTL !== TextPr.RTL)
+		return false;
 
-        // ItalicCS
-        if ( undefined !== this.ItalicCS && this.ItalicCS !== TextPr.ItalicCS )
-            this.ItalicCS = undefined;
+	if (true !== this.Lang.Is_Equal(TextPr.Lang))
+		return false;
 
-        // FontSizeCS
-        if ( undefined !== this.FontSizeCS && ( undefined === TextPr.FontSizeCS || Math.abs( this.FontSizeCS - TextPr.FontSizeCS ) >= 0.001 ) )
-            this.FontSizeCS = undefined;
+	if ((undefined === this.Unifill && undefined !== TextPr.Unifill) || (undefined !== this.Unifill && (undefined === TextPr.Unifill || true !== this.Unifill.IsIdentical(TextPr.Unifill))))
+		return false;
 
-        // CS
-        if ( undefined !== this.CS && this.CS !== TextPr.CS )
-            this.CS = undefined;
+	if ((undefined === this.TextOutline && undefined !== TextPr.TextOutline) || (undefined !== this.TextOutline && (undefined === TextPr.TextOutline || true !== this.TextOutline.IsIdentical(TextPr.TextOutline))))
+		return false;
 
-        // RTL
-        if ( undefined !== this.RTL && this.RTL !== TextPr.RTL )
-            this.RTL = undefined;
+	if ((undefined === this.TextFill && undefined !== TextPr.TextFill) || (undefined !== this.TextFill && (undefined === TextPr.TextFill || true !== this.TextFill.IsIdentical(TextPr.TextFill))))
+		return false;
 
-        // Lang
-        this.Lang.Compare( TextPr.Lang );
-        //Result_TextPr.Unifill = CompareUniFill(this.Unifill, TextPr.Unifill);       
-        
-        // Vanish
-        if ( undefined !== this.Vanish && this.Vanish !== TextPr.Vanish )
-            this.Vanish = undefined;
+	if ((undefined === this.HighlightColor && undefined !== TextPr.HighlightColor) || (undefined !== this.HighlightColor && (undefined === TextPr.HighlightColor || true !== this.HighlightColor.IsIdentical(TextPr.HighlightColor))))
+		return false;
 
-        if(undefined !== this.Unifill && !this.Unifill.IsIdentical(TextPr.Unifill))
-        {
-            this.Unifill = AscFormat.CompareUniFill(this.Unifill, TextPr.Unifill);
-            if(null === this.Unifill){
-                this.Unifill = undefined;
-            }
-            this.Color = undefined;
-            this.TextFill = undefined;
-        }
+	if (this.Vanish !== TextPr.Vanish)
+		return false;
 
-
-        if(undefined !== this.TextFill &&  !this.TextFill.IsIdentical(TextPr.TextFill))
-        {
-            this.Unifill = undefined;
-            this.Color = undefined;
-            this.TextFill = AscFormat.CompareUniFill(this.TextFill, TextPr.TextFill);
-            if(null === this.TextFill){
-                this.TextFill = undefined;
-            }
-        }
-
-        if(undefined !== this.HighlightColor &&  !this.HighlightColor.IsIdentical(TextPr.HighlightColor))
-        {
-            this.HighlightColor = this.HighlightColor.compare(TextPr.HighlightColor);
-            if(null === this.HighlightColor)
-            {
-                this.HighlightColor = undefined;
-            }
-        }
-
-
-        if(undefined !== this.TextOutline &&  !this.TextOutline.IsIdentical(TextPr.TextOutline)){
-            if(TextPr.TextOutline !== undefined){
-                this.TextOutline = this.TextOutline.compare(TextPr.TextOutline);
-            }
-            else{
-                this.TextOutline = undefined;
-            }
-
-        }
-
-
-
-
-        return this;
-    },
-
-    Write_ToBinary : function(Writer)
-    {
-        var StartPos = Writer.GetCurPosition();
-        Writer.Skip(4);
-        var Flags = 0;
-
-        if ( undefined != this.Bold )
-        {
-            Writer.WriteBool( this.Bold );
-            Flags |= 1;
-        }
-
-        if ( undefined != this.Italic )
-        {
-            Writer.WriteBool( this.Italic );
-            Flags |= 2;
-        }
-
-        if ( undefined != this.Underline )
-        {
-            Writer.WriteBool( this.Underline );
-            Flags |= 4;
-        }
-
-        if ( undefined != this.Strikeout )
-        {
-            Writer.WriteBool( this.Strikeout );
-            Flags |= 8;
-        }
-
-        if ( undefined != this.FontFamily )
-        {
-            Writer.WriteString2( this.FontFamily.Name );
-            Flags |= 16;
-        }
-
-        if ( undefined != this.FontSize )
-        {
-            Writer.WriteDouble( this.FontSize );
-            Flags |= 32;
-        }
-
-        if ( undefined != this.Color )
-        {
-            this.Color.Write_ToBinary(Writer);
-            Flags |= 64;
-        }
-
-        if ( undefined != this.VertAlign )
-        {
-            Writer.WriteLong( this.VertAlign );
-            Flags |= 128;
-        }
-
-        if ( undefined != this.HighLight )
-        {
-            if ( highlight_None === this.HighLight )
-            {
-                Writer.WriteLong( highlight_None );
-            }
-            else
-            {
-                Writer.WriteLong( 0 );
-                this.HighLight.Write_ToBinary( Writer );
-            }
-
-            Flags |= 256;
-        }
-
-        if ( undefined != this.RStyle )
-        {
-            Writer.WriteString2( this.RStyle );
-            Flags |= 512;
-        }
-
-        if ( undefined != this.Spacing )
-        {
-            Writer.WriteDouble( this.Spacing );
-            Flags |= 1024;
-        }
-
-        if ( undefined != this.DStrikeout )
-        {
-            Writer.WriteBool( this.DStrikeout );
-            Flags |= 2048;
-        }
-
-        if ( undefined != this.Caps )
-        {
-            Writer.WriteBool( this.Caps );
-            Flags |= 4096;
-        }
-
-        if ( undefined != this.SmallCaps )
-        {
-            Writer.WriteBool( this.SmallCaps );
-            Flags |= 8192;
-        }
-
-        if ( undefined != this.Position )
-        {
-            Writer.WriteDouble( this.Position );
-            Flags |= 16384;
-        }
-
-        if ( undefined != this.RFonts )
-        {
-            this.RFonts.Write_ToBinary( Writer );
-            Flags |= 32768;
-        }
-
-        if ( undefined != this.BoldCS )
-        {
-            Writer.WriteBool( this.BoldCS );
-            Flags |= 65536;
-        }
-
-        if ( undefined != this.ItalicCS )
-        {
-            Writer.WriteBool( this.ItalicCS );
-            Flags |= 131072;
-        }
-
-        if ( undefined != this.FontSizeCS )
-        {
-            Writer.WriteDouble( this.FontSizeCS );
-            Flags |= 262144;
-        }
-
-        if ( undefined != this.CS )
-        {
-            Writer.WriteBool( this.CS );
-            Flags |= 524288;
-        }
-
-        if ( undefined != this.RTL )
-        {
-            Writer.WriteBool( this.RTL );
-            Flags |= 1048576;
-        }
-
-        if ( undefined != this.Lang )
-        {
-            this.Lang.Write_ToBinary( Writer );
-            Flags |= 2097152;
-        }
-
-        if(undefined != this.Unifill)
-        {
-            this.Unifill.Write_ToBinary(Writer);
-            Flags |= 4194304;
-        }
-        
-        if ( undefined !== this.Shd )
-        {
-            this.Shd.Write_ToBinary(Writer);
-            Flags |= 8388608;
-        }
-        
-        if ( undefined !== this.Vanish )
-        {
-            Writer.WriteBool( this.Vanish );    
-            Flags |= 16777216;
-        }
-
-        if( undefined !== this.FontRef )
-        {
-            this.FontRef.Write_ToBinary(Writer);
-            Flags |= 33554432;
-        }
-
-        if (undefined !== this.PrChange)
-        {
-            this.PrChange.Write_ToBinary(Writer);
-            Flags |= 67108864;
-        }
-        if(undefined !== this.TextOutline)
-        {
-            this.TextOutline.Write_ToBinary(Writer);
-            Flags |= 134217728;
-        }
-        if(undefined !== this.TextFill)
-        {
-            this.TextFill.Write_ToBinary(Writer);
-            Flags |= 268435456;
-        }
-
-        if (undefined !== this.PrChange)
-        {
-            this.PrChange.Write_ToBinary(Writer);
-            this.ReviewInfo.Write_ToBinary(Writer);
-            Flags |= 536870912;
-        }
-        if (undefined != this.HighlightColor)
-        {
-			this.HighlightColor.Write_ToBinary(Writer);
-            Flags |= 1073741824;
-        }
-
-        var EndPos = Writer.GetCurPosition();
-        Writer.Seek( StartPos );
-        Writer.WriteLong( Flags );
-        Writer.Seek( EndPos );
-    },
-
-    Read_FromBinary : function(Reader)
-    {
-        var Flags = Reader.GetLong();
-
-        // Bold
-        if ( Flags & 1 )
-            this.Bold = Reader.GetBool();
-
-        // Italic
-        if ( Flags & 2 )
-            this.Italic = Reader.GetBool();
-
-        // Underline
-        if ( Flags & 4 )
-            this.Underline = Reader.GetBool();
-
-        // Strikeout
-        if ( Flags & 8 )
-            this.Strikeout = Reader.GetBool();
-
-        // FontFamily
-        if ( Flags & 16 )
-            this.FontFamily = { Name : Reader.GetString2(), Index : -1 };
-
-        // FontSize
-        if ( Flags & 32 )
-            this.FontSize = Reader.GetDouble();
-
-        // Color
-        if ( Flags & 64 )
-        {
-            this.Color = new CDocumentColor(0, 0, 0);
-            this.Color.Read_FromBinary(Reader);
-        }
-
-        // VertAlign
-        if ( Flags & 128 )
-            this.VertAlign = Reader.GetLong();
-
-        // HighLight
-        if ( Flags & 256 )
-        {
-            var HL_type = Reader.GetLong();
-            if ( highlight_None == HL_type )
-                this.HighLight = highlight_None;
-            else
-            {
-                this.HighLight = new CDocumentColor(0, 0, 0);
-                this.HighLight.Read_FromBinary(Reader);
-            }
-        }
-
-        // RStyle
-        if ( Flags & 512 )
-            this.RStyle = Reader.GetString2();
-
-        // Spacing
-        if ( Flags & 1024 )
-            this.Spacing = Reader.GetDouble();
-
-        // DStrikeout
-        if ( Flags & 2048 )
-            this.DStrikeout = Reader.GetBool();
-
-        // Caps
-        if ( Flags & 4096 )
-            this.Caps = Reader.GetBool();
-
-        // SmallCaps
-        if ( Flags & 8192 )
-            this.SmallCaps = Reader.GetBool();
-
-        // Position
-        if ( Flags & 16384 )
-            this.Position = Reader.GetDouble();
-
-        // RFonts
-        if ( Flags & 32768 )
-            this.RFonts.Read_FromBinary( Reader );
-
-        // BoldCS
-        if ( Flags & 65536 )
-            this.BoldCS = Reader.GetBool();
-
-        // ItalicCS
-        if ( Flags & 131072 )
-            this.ItalicCS = Reader.GetBool();
-
-        // FontSizeCS
-        if ( Flags & 262144 )
-            this.FontSizeCS = Reader.GetDouble();
-
-        // CS
-        if ( Flags & 524288 )
-            this.CS = Reader.GetBool();
-
-        // RTL
-        if ( Flags & 1048576 )
-            this.RTL = Reader.GetBool();
-
-        // Lang
-        if ( Flags & 2097152 )
-            this.Lang.Read_FromBinary( Reader );
-
-        // Unifill
-        if ( Flags & 4194304 )
-        {
-            this.Unifill = new AscFormat.CUniFill()
-            this.Unifill.Read_FromBinary( Reader );
-        }
-        
-        // Shd
-        if ( Flags & 8388608 )
-        {
-            this.Shd = new CDocumentShd();
-            this.Shd.Read_FromBinary( Reader );
-        }
-        
-        // Vanish
-        if ( Flags & 16777216 )
-            this.Vanish = Reader.GetBool();
-
-        if ( Flags & 33554432 )
-        {
-            this.FontRef = new AscFormat.FontRef();
-            this.FontRef.Read_FromBinary(Reader);
-        }
-
-        if (Flags & 67108864)
-        {
-            this.PrChange = new CTextPr();
-            this.PrChange.Read_FromBinary(Reader);
-        }
-
-        if(Flags & 134217728)
-        {
-            this.TextOutline = new AscFormat.CLn();
-            this.TextOutline.Read_FromBinary(Reader);
-        }
-
-        if(Flags & 268435456)
-        {
-            this.TextFill = new AscFormat.CUniFill();
-            this.TextFill.Read_FromBinary(Reader);
-        }
-
-        if (Flags & 536870912)
-        {
-            this.PrChange   = new CTextPr();
-            this.ReviewInfo = new CReviewInfo();
-            this.PrChange.Read_FromBinary(Reader);
-            this.ReviewInfo.Read_FromBinary(Reader);
-        }
-
-		if (Flags & 1073741824)
-		{
-			this.HighlightColor = new AscFormat.CUniColor();
-			this.HighlightColor.Read_FromBinary(Reader);
-		}
-    },
-
-    Check_NeedRecalc : function()
-    {
-        // Потому что в параграфе внутри Internal_recalculate_0 кэшируются ParaTextPr
-        return true;
-
-        if ( undefined != this.Bold )
-            return true;
-
-        if ( undefined != this.Italic )
-            return true;
-
-        if ( undefined != this.FontFamily )
-            return true;
-
-        if ( undefined != this.FontSize )
-            return true;
-
-        if ( undefined != this.VertAlign )
-            return true;
-
-        if ( undefined != this.Spacing )
-            return true;
-
-        if ( undefined != this.Caps )
-            return true;
-
-        if ( undefined != this.SmallCaps )
-            return true;
-
-        if ( undefined != this.Position )
-            return true;
-
-        if ( undefined != this.RFonts.Ascii )
-            return true;
-
-        if ( undefined != this.RFonts.EastAsia )
-            return true;
-
-        if ( undefined != this.RFonts.HAnsi )
-            return true;
-
-        if ( undefined != this.RFonts.CS )
-            return true;
-
-        if ( undefined != this.RTL || undefined != this.CS || undefined != this.BoldCS || undefined != this.ItalicCS || undefined != this.FontSizeCS )
-            return true;
-
-        if ( undefined != this.Lang.Val )
-            return true;
-
-        // Потому что в параграфе внутри Internal_recalculate_0 кэшируются ParaTextPr
-        if ( undefined != this.Color )
-            return true;
-
-        if ( undefined != this.HighLight )
-            return true;
-        
-        if ( undefined != this.Shd )
-            return true;
-
-        return false;
-    },
-
-    Get_FontKoef : function()
-    {
-        var dFontKoef  = 1;
-
-        switch ( this.VertAlign )
-        {
-            case AscCommon.vertalign_Baseline:
-            {
-                dFontKoef = 1;
-                break;
-            }
-            case AscCommon.vertalign_SubScript:
-            case AscCommon.vertalign_SuperScript:
-            {
-                dFontKoef = AscCommon.vaKSize;
-                break;
-            }
-        }
-
-        return dFontKoef;
-    },
-
-    Document_Get_AllFontNames : function(AllFonts)
-    {
-        if ( undefined != this.RFonts.Ascii )
-            AllFonts[this.RFonts.Ascii.Name] = true;
-
-        if ( undefined != this.RFonts.HAnsi )
-            AllFonts[this.RFonts.HAnsi.Name] = true;
-
-        if ( undefined != this.RFonts.EastAsia )
-            AllFonts[this.RFonts.EastAsia.Name] = true;
-
-        if ( undefined != this.RFonts.CS )
-            AllFonts[this.RFonts.CS.Name] = true;
-    },
-
-    Document_CreateFontMap : function(FontMap, FontScheme)
-    {
-        var Style   = ( true === this.Bold   ? 1 : 0 ) + ( true === this.Italic   ? 2 : 0 );
-        var StyleCS = ( true === this.BoldCS ? 1 : 0 ) + ( true === this.ItalicCS ? 2 : 0 );
-        var Size    = this.FontSize;
-        var SizeCS  = this.FontSizeCS;
-
-        var RFonts = this.RFonts;
-        var CheckedName;
-        if ( undefined != RFonts.Ascii )
-        {
-            CheckedName = FontScheme.checkFont(RFonts.Ascii.Name);
-            var Key = "" + CheckedName + "_" + Style + "_" + Size;
-            FontMap[Key] =
-            {
-                Name  : CheckedName,
-                Style : Style,
-                Size  : Size
-            };
-        }
-
-        if ( undefined != RFonts.EastAsia )
-        {
-            CheckedName = FontScheme.checkFont(RFonts.EastAsia.Name);
-            var Key = "" + CheckedName + "_" + Style + "_" + Size;
-            FontMap[Key] =
-            {
-                Name  : CheckedName,
-                Style : Style,
-                Size  : Size
-            };
-        }
-
-        if ( undefined != RFonts.HAnsi )
-        {
-            CheckedName = FontScheme.checkFont(RFonts.HAnsi.Name);
-            var Key = "" + CheckedName + "_" + Style + "_" + Size;
-            FontMap[Key] =
-            {
-                Name  : CheckedName,
-                Style : Style,
-                Size  : Size
-            };
-        }
-
-        if ( undefined != RFonts.CS )
-        {
-
-            CheckedName = FontScheme.checkFont(RFonts.CS.Name);
-            var Key = "" + CheckedName + "_" + StyleCS + "_" + SizeCS;
-            FontMap[Key] =
-            {
-                Name  : CheckedName,
-                Style : StyleCS,
-                Size  : SizeCS
-            };
-        }
-    },
-
-    isEqual: function(TextPrOld, TextPrNew)
-    {
-        if(TextPrOld == undefined || TextPrNew == undefined)
-            return false;
-        for(var TextPr in TextPrOld)
-        {
-            if(typeof TextPrOld[TextPr] == 'object')
-            {
-                /*for(var cpPr in TextPrOld[TextPr])
-                 {
-                 if(TextPrOld[TextPr][cpPr] != TextPrNew[TextPr][cpPr])
-                 return false;
-                 }*/
-                this.isEqual(TextPrOld[TextPr],TextPrNew[TextPr]);
-            }
-            else
-            {
-                if(typeof TextPrOld[TextPr] == "number" && typeof TextPrNew[TextPr] == "number")
-                {
-                    if(Math.abs(TextPrOld[TextPr] - TextPrNew[TextPr]) > 0.001)
-                        return false;
-                }
-                else if(TextPrOld[TextPr] != TextPrNew[TextPr])
-                    return false;
-            }
-        }
-        return true;
-    },
-
-    Is_Equal : function(TextPr)
-    {
-        if (this.Bold !== TextPr.Bold)
-            return false;
-
-        if (this.Italic !== TextPr.Italic)
-            return false;
-
-        if (this.Strikeout !== TextPr.Strikeout)
-            return false;
-
-        if (this.Underline !== TextPr.Underline)
-            return false;
-
-		if ((undefined === this.FontFamily && undefined !== TextPr.FontFamily) || (undefined !== this.FontFamily && (undefined === TextPr.FontFamily || this.FontFamily.Name !== TextPr.FontFamily.Name)))
-			return false;
-
-        if (false
-            || (undefined === this.FontSize
-                && undefined !== TextPr.FontSize)
-            || (undefined !== this.FontSize
-                && (undefined === TextPr.FontSize
-                    || Math.abs(this.FontSize - TextPr.FontSize) >= 0.001)))
-            return false;
-
-        if ((undefined === this.Color && undefined !== TextPr.Color) || (undefined !== this.Color && (undefined === TextPr.Color || true !== this.Color.Compare(TextPr.Color))))
-            return false;
-
-        if (this.VertAlign !== TextPr.VertAlign)
-            return false;
-
-        if ((undefined === this.HighLight && undefined !== TextPr.HighLight) || (undefined !== this.HighLight && (undefined === TextPr.HighLight || (highlight_None === this.HighLight && highlight_None !== TextPr.HighLight) || (highlight_None !== this.HighLight && highlight_None === TextPr.HighLight) || (highlight_None !== this.HighLight && highlight_None !== TextPr.HighLight && true !== this.HighLight.Compare(TextPr.HighLight)))))
-            return false;
-
-        if (this.RStyle !== TextPr.RStyle)
-            return false;
-
-        if ((undefined === this.Spacing && undefined !== TextPr.Spacing) || (undefined !== this.Spacing && (undefined === TextPr.Spacing || Math.abs(this.Spacing - TextPr.Spacing) >= 0.001)))
-            return false;
-
-        if (this.DStrikeout !== TextPr.DStrikeout)
-            return false;
-
-        if (this.Caps !== TextPr.Caps)
-            return false;
-
-        if (this.SmallCaps !== TextPr.SmallCaps)
-            return false;
-
-        if ((undefined === this.Position && undefined !== TextPr.Position) || (undefined !== this.Position && (undefined === TextPr.Position || Math.abs(this.Position - TextPr.Position) >= 0.001)))
-            return false;
-
-        if (true !== this.RFonts.Is_Equal(TextPr.RFonts))
-            return false;
-
-        if (this.BoldCS !== TextPr.BoldCS)
-            return false;
-
-        if (this.ItalicCS !== TextPr.ItalicCS)
-            return false;
-
-        if (false
-            || (undefined === this.FontSizeCS
-                && undefined !== TextPr.FontSizeCS)
-            || (undefined !== this.FontSizeCS
-                && (undefined === TextPr.FontSizeCS
-                    || Math.abs(this.FontSizeCS - TextPr.FontSizeCS) >= 0.001)))
-            return false;
-
-        if (this.CS !== TextPr.CS)
-            return false;
-
-        if (this.RTL !== TextPr.RTL)
-            return false;
-
-        if (true !== this.Lang.Is_Equal(TextPr.Lang))
-            return false;
-
-        if ((undefined === this.Unifill && undefined !== TextPr.Unifill) || (undefined !== this.Unifill && (undefined === TextPr.Unifill || true !== this.Unifill.IsIdentical(TextPr.Unifill))))
-            return false;
-
-        if ((undefined === this.TextOutline && undefined !== TextPr.TextOutline) || (undefined !== this.TextOutline && (undefined === TextPr.TextOutline || true !== this.TextOutline.IsIdentical(TextPr.TextOutline))))
-            return false;
-
-        if ((undefined === this.TextFill && undefined !== TextPr.TextFill) || (undefined !== this.TextFill && (undefined === TextPr.TextFill || true !== this.TextFill.IsIdentical(TextPr.TextFill))))
-            return false;
-
-        if ((undefined === this.HighlightColor && undefined !== TextPr.HighlightColor) || (undefined !== this.HighlightColor && (undefined === TextPr.HighlightColor || true !== this.HighlightColor.IsIdentical(TextPr.HighlightColor))))
-            return false;
-
-        if (this.Vanish !== TextPr.Vanish)
-            return false;
-
-		if (!IsEqualStyleObjects(this.Shd, TextPr.Shd))
-			return false;
-		if(undefined != TextPr.AscLine){
-		    return false;
-        }
-        if(undefined != TextPr.AscUnifill){
-            return false;
-        }
-        if(undefined != TextPr.AscFill){
-            return false;
-        }
-
-        return true;
-    },
-
-	HavePrChange : function()
-    {
-        if (undefined === this.PrChange || null === this.PrChange)
-            return false;
-
-        return true;
-    },
-
-	AddPrChange : function()
-    {
-        this.PrChange   = this.Copy();
-        this.ReviewInfo = new CReviewInfo();
-        this.ReviewInfo.Update();
-    },
-
-	SetPrChange : function(PrChange, ReviewInfo)
-    {
-        this.PrChange   = PrChange;
-        this.ReviewInfo = ReviewInfo;
-    },
-
-	RemovePrChange : function()
-    {
-        delete this.PrChange;
-        delete this.ReviewInfo;
-    },
-
-	GetDiffPrChange : function()
-    {
-        var TextPr = new CTextPr();
-
-        if (false === this.HavePrChange())
-            return TextPr;
-
-        var PrChange = this.PrChange;
-        if (this.Bold !== PrChange.Bold)
-            TextPr.Bold = this.Bold;
-
-        if (this.Italic !== PrChange.Italic)
-            TextPr.Italic = this.Italic;
-
-        if (this.Strikeout !== PrChange.Strikeout)
-            TextPr.Strikeout = this.Strikeout;
-
-        if (this.Underline !== PrChange.Underline)
-            TextPr.Underline = this.Underline;
-
-        if (undefined !== this.FontFamily && (undefined === PrChange.FontFamily || this.FontFamily.Name !== PrChange.FontFamily.Name))
-            TextPr.FontFamily = {Name : this.FontFamily.Name, Index : -1};
-
-        if (undefined !== this.FontSize && (undefined === PrChange.FontSize || Math.abs(this.FontSize - PrChange.FontSize) >= 0.001))
-            TextPr.FontSize = this.FontSize;
-
-        if (undefined !== this.Color && (undefined === PrChange.Color || true !== this.Color.Compare(PrChange.Color)))
-            TextPr.Color = this.Color.Copy();
-
-        if (this.VertAlign !== PrChange.VertAlign)
-            TextPr.VertAlign = this.VertAlign;
-
-        if (highlight_None === this.HighLight)
-        {
-            if (highlight_None !== PrChange.HighLight)
-                TextPr.HighLight = highlight_None;
-        }
-        else if (undefined !== this.HighLight)
-        {
-            if (undefined === PrChange.HighLight || highlight_None === PrChange.HighLight || true !== this.HighLight.Compare(PrChange.HighLight))
-                TextPr.HighLight = this.HighLight.Copy();
-        }
-
-        if (this.RStyle !== PrChange.RStyle)
-            TextPr.RStyle = this.RStyle;
-
-        if (undefined !== this.Spacing && (undefined === PrChange.Spacing || Math.abs(this.Spacing - PrChange.Spacing) >= 0.001))
-            TextPr.Spacing = this.Spacing;
-
-        if (this.DStrikeout !== PrChange.DStrikeout)
-            TextPr.DStrikeout = this.DStrikeout;
-
-        if (this.Caps !== PrChange.Caps)
-            TextPr.Caps = this.Caps;
-
-        if (this.SmallCaps !== PrChange.SmallCaps)
-            TextPr.SmallCaps = this.SmallCaps;
-
-        if (undefined !== this.Position && (undefined === PrChange.Position || Math.abs(this.Position - PrChange.Position) >= 0.001))
-            TextPr.Position = this.Position;
-
-        if (undefined !== this.RFonts && (undefined === PrChange.RFonts || true !== this.RFonts.Is_Equal(TextPr.RFonts)))
-            TextPr.RFonts = this.RFonts.Copy();
-
-        if (this.BoldCS !== PrChange.BoldCS)
-            TextPr.BoldCS = this.BoldCS;
-
-        if (this.ItalicCS !== PrChange.ItalicCS)
-            TextPr.ItalicCS = this.ItalicCS;
-
-        if (undefined !== this.FontSizeCS && (undefined === PrChange.FontSizeCS || Math.abs(this.FontSizeCS - PrChange.FontSizeCS) >= 0.001))
-            TextPr.FontSizeCS = this.FontSizeCS;
-
-        if (this.CS !== PrChange.CS)
-            TextPr.CS = this.CS;
-
-        if (this.RTL !== PrChange.RTL)
-            TextPr.RTL = this.RTL;
-
-        if (undefined !== this.Lang && (undefined === PrChange.Lang || true !== this.Lang.Is_Equal(PrChange.Lang)))
-            TextPr.Lang = this.Lang.Copy();
-
-        if (undefined !== this.Unifill && (undefined === PrChange.Unifill || true !== this.Unifill.IsIdentical(PrChange.Unifill)))
-            TextPr.Unifill = this.Unifill.createDuplicate();
-
-        if (undefined !== this.TextOutline && (undefined === PrChange.TextOutline || true !== this.TextOutline.IsIdentical(PrChange.TextOutline)))
-            TextPr.TextOutline = this.TextOutline.createDuplicate();
-
-        if (undefined !== this.TextFill && (undefined === PrChange.TextFill || true !== this.TextFill.IsIdentical(PrChange.TextFill)))
-            TextPr.TextFill = this.TextFill.createDuplicate();
-
-        if (undefined !== this.HighlightColor && (undefined === PrChange.HighlightColor || true !== this.HighlightColor.IsIdentical(PrChange.HighlightColor)))
-            TextPr.HighlightColor = this.HighlightColor.createDuplicate();
-
-        if (this.Vanish !== PrChange.Vanish)
-            TextPr.Vanish = this.Vanish;
-
-        // TODO: Shd
-
-        return TextPr;
-    },
-
-    Get_Description : function()
-    {
-        var Description = "Text formatting: ";
-
-        if (undefined !== this.Bold)
-            Description += this.Bold ? "Bold; " : "No Bold; ";
-
-        if (undefined !== this.Italic)
-            Description += this.Italic ? "Italic; " : "No Italic; ";
-
-        if (undefined !== this.Strikeout)
-            Description += this.Strikeout ? "Strikeout; " : "No Strikeout; ";
-
-        if (undefined !== this.DStrikeout)
-            Description += this.DStrikeout ? "Double Strikeout; " : "No Double Strikeout; ";
-
-        if (undefined !== this.FontSize)
-            Description += this.FontSize + "FontSize; ";
-
-//        if (undefined !== this.Color && (undefined === PrChange.Color || true !== this.Color.Compare(PrChange.Color)))
-//            TextPr.Color = this.Color.Copy();
-//
-//        if (this.VertAlign !== PrChange.VertAlign)
-//            TextPr.VertAlign = this.VertAlign;
-//
-//        if (highlight_None === this.HighLight)
-//        {
-//            if (highlight_None !== PrChange.HighLight)
-//                TextPr.HighLight = highlight_None;
-//        }
-//        else if (undefined !== this.HighLight)
-//        {
-//            if (undefined === PrChange.HighLight || highlight_None === PrChange.HighLight || true !== this.HighLight.Compare(PrChange.HighLight))
-//                TextPr.HighLight = this.HighLight.Copy();
-//        }
-//
-//        if (this.RStyle !== PrChange.RStyle)
-//            TextPr.RStyle = this.RStyle;
-//
-//        if (undefined !== this.Spacing && (undefined === PrChange.Spacing || Math.abs(this.Spacing - PrChange.Spacing) >= 0.001))
-//            TextPr.Spacing = this.Spacing;
-//
-//        if (this.Caps !== PrChange.Caps)
-//            TextPr.Caps = this.Caps;
-//
-//        if (this.SmallCaps !== PrChange.SmallCaps)
-//            TextPr.SmallCaps = this.SmallCaps;
-//
-//        if (undefined !== this.Position && (undefined === PrChange.Position || Math.abs(this.Position - PrChange.Position) >= 0.001))
-//            TextPr.Position = this.Position;
-//
-//        if (undefined !== this.RFonts && (undefined === PrChange.RFonts || true !== this.RFonts.Is_Equal(TextPr.RFonts)))
-//            TextPr.RFonts = this.RFonts.Copy();
-//
-//        if (this.BoldCS !== PrChange.BoldCS)
-//            TextPr.BoldCS = this.BoldCS;
-//
-//        if (this.ItalicCS !== PrChange.ItalicCS)
-//            TextPr.ItalicCS = this.ItalicCS;
-//
-//        if (undefined !== this.FontSizeCS && (undefined === PrChange.FontSizeCS || Math.abs(this.FontSizeCS - PrChange.FontSizeCS) >= 0.001))
-//            TextPr.FontSizeCS = this.FontSizeCS;
-//
-//        if (this.CS !== PrChange.CS)
-//            TextPr.CS = this.CS;
-//
-//        if (this.RTL !== PrChange.RTL)
-//            TextPr.RTL = this.RTL;
-//
-//        if (undefined !== this.Lang && (undefined === PrChange.Lang || true !== this.Lang.Is_Equal(PrChange.Lang)))
-//            TextPr.Lang = this.Lang.Copy();
-//
-//        if (undefined !== this.Unifill && (undefined === PrChange.Unifill || true !== this.Unifill.IsIdentical(PrChange.Unifill)))
-//            TextPr.Unifill = this.Unifill.createDuplicate();
-//
-//        if (undefined !== this.TextOutline && (undefined === PrChange.TextOutline || true !== this.TextOutline.IsIdentical(PrChange.TextOutline)))
-//            TextPr.TextOutline = this.TextOutline.createDublicate();
-//
-//        if (undefined !== this.TextFill && (undefined === PrChange.TextFill || true !== this.TextFill.IsIdentical(PrChange.TextFill)))
-//            TextPr.TextFill = this.TextFill.createDublicate();
-//
-//        if (this.Vanish !== PrChange.Vanish)
-//            TextPr.Vanish = this.Vanish;
-
-        return Description;
-    }
+	if (!IsEqualStyleObjects(this.Shd, TextPr.Shd))
+		return false;
+	if (undefined != TextPr.AscLine)
+	{
+		return false;
+	}
+	if (undefined != TextPr.AscUnifill)
+	{
+		return false;
+	}
+	if (undefined != TextPr.AscFill)
+	{
+		return false;
+	}
+
+	return true;
 };
 CTextPr.prototype.Is_Empty = function()
 {
@@ -8853,7 +8776,7 @@ CTextPr.prototype.GetUnderline = function()
 };
 CTextPr.prototype.SetUnderline = function(isUnderling)
 {
-	this.Underline = isUnderline;
+	this.Underline = isUnderling;
 };
 CTextPr.prototype.GetColor = function()
 {
@@ -8985,6 +8908,216 @@ CTextPr.prototype.ReadFromBinary = function(oReader)
 CTextPr.prototype.GetAllFontNames = function(arrAllFonts)
 {
 	return this.Document_Get_AllFontNames(arrAllFonts);
+};
+CTextPr.prototype.HavePrChange = function()
+{
+	if (undefined === this.PrChange || null === this.PrChange)
+		return false;
+
+	return true;
+};
+CTextPr.prototype.AddPrChange = function()
+{
+	this.PrChange   = this.Copy();
+	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo.Update();
+};
+CTextPr.prototype.SetPrChange = function(PrChange, ReviewInfo)
+{
+	this.PrChange   = PrChange;
+	this.ReviewInfo = ReviewInfo;
+};
+CTextPr.prototype.RemovePrChange = function()
+{
+	delete this.PrChange;
+	delete this.ReviewInfo;
+};
+CTextPr.prototype.GetDiffPrChange = function()
+{
+	var TextPr = new CTextPr();
+
+	if (false === this.HavePrChange())
+		return TextPr;
+
+	var PrChange = this.PrChange;
+	if (this.Bold !== PrChange.Bold)
+		TextPr.Bold = this.Bold;
+
+	if (this.Italic !== PrChange.Italic)
+		TextPr.Italic = this.Italic;
+
+	if (this.Strikeout !== PrChange.Strikeout)
+		TextPr.Strikeout = this.Strikeout;
+
+	if (this.Underline !== PrChange.Underline)
+		TextPr.Underline = this.Underline;
+
+	if (undefined !== this.FontFamily && (undefined === PrChange.FontFamily || this.FontFamily.Name !== PrChange.FontFamily.Name))
+		TextPr.FontFamily = {Name : this.FontFamily.Name, Index : -1};
+
+	if (undefined !== this.FontSize && (undefined === PrChange.FontSize || Math.abs(this.FontSize - PrChange.FontSize) >= 0.001))
+		TextPr.FontSize = this.FontSize;
+
+	if (undefined !== this.Color && (undefined === PrChange.Color || true !== this.Color.Compare(PrChange.Color)))
+		TextPr.Color = this.Color.Copy();
+
+	if (this.VertAlign !== PrChange.VertAlign)
+		TextPr.VertAlign = this.VertAlign;
+
+	if (highlight_None === this.HighLight)
+	{
+		if (highlight_None !== PrChange.HighLight)
+			TextPr.HighLight = highlight_None;
+	}
+	else if (undefined !== this.HighLight)
+	{
+		if (undefined === PrChange.HighLight || highlight_None === PrChange.HighLight || true !== this.HighLight.Compare(PrChange.HighLight))
+			TextPr.HighLight = this.HighLight.Copy();
+	}
+
+	if (this.RStyle !== PrChange.RStyle)
+		TextPr.RStyle = this.RStyle;
+
+	if (undefined !== this.Spacing && (undefined === PrChange.Spacing || Math.abs(this.Spacing - PrChange.Spacing) >= 0.001))
+		TextPr.Spacing = this.Spacing;
+
+	if (this.DStrikeout !== PrChange.DStrikeout)
+		TextPr.DStrikeout = this.DStrikeout;
+
+	if (this.Caps !== PrChange.Caps)
+		TextPr.Caps = this.Caps;
+
+	if (this.SmallCaps !== PrChange.SmallCaps)
+		TextPr.SmallCaps = this.SmallCaps;
+
+	if (undefined !== this.Position && (undefined === PrChange.Position || Math.abs(this.Position - PrChange.Position) >= 0.001))
+		TextPr.Position = this.Position;
+
+	if (undefined !== this.RFonts && (undefined === PrChange.RFonts || true !== this.RFonts.Is_Equal(TextPr.RFonts)))
+		TextPr.RFonts = this.RFonts.Copy();
+
+	if (this.BoldCS !== PrChange.BoldCS)
+		TextPr.BoldCS = this.BoldCS;
+
+	if (this.ItalicCS !== PrChange.ItalicCS)
+		TextPr.ItalicCS = this.ItalicCS;
+
+	if (undefined !== this.FontSizeCS && (undefined === PrChange.FontSizeCS || Math.abs(this.FontSizeCS - PrChange.FontSizeCS) >= 0.001))
+		TextPr.FontSizeCS = this.FontSizeCS;
+
+	if (this.CS !== PrChange.CS)
+		TextPr.CS = this.CS;
+
+	if (this.RTL !== PrChange.RTL)
+		TextPr.RTL = this.RTL;
+
+	if (undefined !== this.Lang && (undefined === PrChange.Lang || true !== this.Lang.Is_Equal(PrChange.Lang)))
+		TextPr.Lang = this.Lang.Copy();
+
+	if (undefined !== this.Unifill && (undefined === PrChange.Unifill || true !== this.Unifill.IsIdentical(PrChange.Unifill)))
+		TextPr.Unifill = this.Unifill.createDuplicate();
+
+	if (undefined !== this.TextOutline && (undefined === PrChange.TextOutline || true !== this.TextOutline.IsIdentical(PrChange.TextOutline)))
+		TextPr.TextOutline = this.TextOutline.createDuplicate();
+
+	if (undefined !== this.TextFill && (undefined === PrChange.TextFill || true !== this.TextFill.IsIdentical(PrChange.TextFill)))
+		TextPr.TextFill = this.TextFill.createDuplicate();
+
+	if (undefined !== this.HighlightColor && (undefined === PrChange.HighlightColor || true !== this.HighlightColor.IsIdentical(PrChange.HighlightColor)))
+		TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+
+	if (this.Vanish !== PrChange.Vanish)
+		TextPr.Vanish = this.Vanish;
+
+	// TODO: Shd
+
+	return TextPr;
+};
+CTextPr.prototype.GetDescription = function()
+{
+	var Description = "Text formatting: ";
+
+	if (undefined !== this.Bold)
+		Description += this.Bold ? "Bold; " : "No Bold; ";
+
+	if (undefined !== this.Italic)
+		Description += this.Italic ? "Italic; " : "No Italic; ";
+
+	if (undefined !== this.Strikeout)
+		Description += this.Strikeout ? "Strikeout; " : "No Strikeout; ";
+
+	if (undefined !== this.DStrikeout)
+		Description += this.DStrikeout ? "Double Strikeout; " : "No Double Strikeout; ";
+
+	if (undefined !== this.FontSize)
+		Description += this.FontSize + "FontSize; ";
+
+	//        if (undefined !== this.Color && (undefined === PrChange.Color || true !== this.Color.Compare(PrChange.Color)))
+	//            TextPr.Color = this.Color.Copy();
+	//
+	//        if (this.VertAlign !== PrChange.VertAlign)
+	//            TextPr.VertAlign = this.VertAlign;
+	//
+	//        if (highlight_None === this.HighLight)
+	//        {
+	//            if (highlight_None !== PrChange.HighLight)
+	//                TextPr.HighLight = highlight_None;
+	//        }
+	//        else if (undefined !== this.HighLight)
+	//        {
+	//            if (undefined === PrChange.HighLight || highlight_None === PrChange.HighLight || true !== this.HighLight.Compare(PrChange.HighLight))
+	//                TextPr.HighLight = this.HighLight.Copy();
+	//        }
+	//
+	//        if (this.RStyle !== PrChange.RStyle)
+	//            TextPr.RStyle = this.RStyle;
+	//
+	//        if (undefined !== this.Spacing && (undefined === PrChange.Spacing || Math.abs(this.Spacing - PrChange.Spacing) >= 0.001))
+	//            TextPr.Spacing = this.Spacing;
+	//
+	//        if (this.Caps !== PrChange.Caps)
+	//            TextPr.Caps = this.Caps;
+	//
+	//        if (this.SmallCaps !== PrChange.SmallCaps)
+	//            TextPr.SmallCaps = this.SmallCaps;
+	//
+	//        if (undefined !== this.Position && (undefined === PrChange.Position || Math.abs(this.Position - PrChange.Position) >= 0.001))
+	//            TextPr.Position = this.Position;
+	//
+	//        if (undefined !== this.RFonts && (undefined === PrChange.RFonts || true !== this.RFonts.Is_Equal(TextPr.RFonts)))
+	//            TextPr.RFonts = this.RFonts.Copy();
+	//
+	//        if (this.BoldCS !== PrChange.BoldCS)
+	//            TextPr.BoldCS = this.BoldCS;
+	//
+	//        if (this.ItalicCS !== PrChange.ItalicCS)
+	//            TextPr.ItalicCS = this.ItalicCS;
+	//
+	//        if (undefined !== this.FontSizeCS && (undefined === PrChange.FontSizeCS || Math.abs(this.FontSizeCS - PrChange.FontSizeCS) >= 0.001))
+	//            TextPr.FontSizeCS = this.FontSizeCS;
+	//
+	//        if (this.CS !== PrChange.CS)
+	//            TextPr.CS = this.CS;
+	//
+	//        if (this.RTL !== PrChange.RTL)
+	//            TextPr.RTL = this.RTL;
+	//
+	//        if (undefined !== this.Lang && (undefined === PrChange.Lang || true !== this.Lang.Is_Equal(PrChange.Lang)))
+	//            TextPr.Lang = this.Lang.Copy();
+	//
+	//        if (undefined !== this.Unifill && (undefined === PrChange.Unifill || true !== this.Unifill.IsIdentical(PrChange.Unifill)))
+	//            TextPr.Unifill = this.Unifill.createDuplicate();
+	//
+	//        if (undefined !== this.TextOutline && (undefined === PrChange.TextOutline || true !== this.TextOutline.IsIdentical(PrChange.TextOutline)))
+	//            TextPr.TextOutline = this.TextOutline.createDublicate();
+	//
+	//        if (undefined !== this.TextFill && (undefined === PrChange.TextFill || true !== this.TextFill.IsIdentical(PrChange.TextFill)))
+	//            TextPr.TextFill = this.TextFill.createDublicate();
+	//
+	//        if (this.Vanish !== PrChange.Vanish)
+	//            TextPr.Vanish = this.Vanish;
+
+	return Description;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CTextPr Export
@@ -9943,992 +10076,958 @@ CFramePr.prototype =
 
 function CParaPr()
 {
-    this.ContextualSpacing = undefined;          // Удалять ли интервал между параграфами одинакового стиля
-    this.Ind               = new CParaInd();     // Отступы
-    this.Jc                = undefined;          // Прилегание параграфа
-    this.KeepLines         = undefined;          // Неразрывный параграф
-    this.KeepNext          = undefined;          // Не разъединять со следующим параграфом
-    this.PageBreakBefore   = undefined;          // Разрыв страницы перед параграфом
-    this.Spacing           = new CParaSpacing(); // Расстояния между строками внутри параграфа и между параграфами
-    this.Shd               = undefined;          // Заливка параграфа
-    this.Brd =
-    {
-        First   : undefined,            // Является ли данный параграф первым в группе параграфов с одинаковыми краями и настройками границ
-        Last    : undefined,            // Является ли данный параграф последним в группе параграфов с одинаковыми краями и настройками границ
-        Between : undefined,
-        Bottom  : undefined,
-        Left    : undefined,
-        Right   : undefined,
-        Top     : undefined
-    };
-    this.WidowControl      = undefined; // Запрет висячих строк
-    this.Tabs              = undefined; // Заданные табы
-    this.NumPr             = undefined; // Нумерация
-    this.PStyle            = undefined; // Стиль параграфа
-    this.FramePr           = undefined;
-    this.OutlineLvl        = undefined; // Для TableOfContents
-
-    this.DefaultRunPr      = undefined;
-    this.Bullet            = undefined;
-    this.Lvl               = undefined;
-    this.DefaultTab    = undefined;
-
-    this.PrChange          = undefined;
+	this.ContextualSpacing = undefined;          // Удалять ли интервал между параграфами одинакового стиля
+	this.Ind               = new CParaInd();     // Отступы
+	this.Jc                = undefined;          // Прилегание параграфа
+	this.KeepLines         = undefined;          // Неразрывный параграф
+	this.KeepNext          = undefined;          // Не разъединять со следующим параграфом
+	this.PageBreakBefore   = undefined;          // Разрыв страницы перед параграфом
+	this.Spacing           = new CParaSpacing(); // Расстояния между строками внутри параграфа и между параграфами
+	this.Shd               = undefined;          // Заливка параграфа
+	this.Brd               = {
+		First   : undefined,            // Является ли данный параграф первым в группе параграфов с одинаковыми краями и настройками границ
+		Last    : undefined,            // Является ли данный параграф последним в группе параграфов с одинаковыми краями и настройками границ
+		Between : undefined,
+		Bottom  : undefined,
+		Left    : undefined,
+		Right   : undefined,
+		Top     : undefined
+	};
+	this.WidowControl      = undefined; // Запрет висячих строк
+	this.Tabs              = undefined; // Заданные табы
+	this.NumPr             = undefined; // Нумерация
+	this.PStyle            = undefined; // Стиль параграфа
+	this.FramePr           = undefined;
+	this.OutlineLvl        = undefined; // Для TableOfContents
+	this.DefaultRunPr      = undefined;
+	this.Bullet            = undefined;
+	this.Lvl               = undefined;
+	this.DefaultTab        = undefined;
+	this.PrChange          = undefined;
+	this.ReviewInfo        = undefined;
 }
 
-CParaPr.prototype =
+CParaPr.prototype.Copy = function(bCopyPrChange)
 {
-    Copy : function(bCopyPrChange)
-    {
-        var ParaPr = new CParaPr();
+	var ParaPr = new CParaPr();
 
-        ParaPr.ContextualSpacing = this.ContextualSpacing;
+	ParaPr.ContextualSpacing = this.ContextualSpacing;
 
-        if ( undefined != this.Ind )
-            ParaPr.Ind = this.Ind.Copy();
+	if (undefined != this.Ind)
+		ParaPr.Ind = this.Ind.Copy();
 
-        ParaPr.Jc              = this.Jc;
-        ParaPr.KeepLines       = this.KeepLines;
-        ParaPr.KeepNext        = this.KeepNext;
-        ParaPr.PageBreakBefore = this.PageBreakBefore;
+	ParaPr.Jc              = this.Jc;
+	ParaPr.KeepLines       = this.KeepLines;
+	ParaPr.KeepNext        = this.KeepNext;
+	ParaPr.PageBreakBefore = this.PageBreakBefore;
 
-        if ( undefined != this.Spacing )
-            ParaPr.Spacing = this.Spacing.Copy();
+	if (undefined != this.Spacing)
+		ParaPr.Spacing = this.Spacing.Copy();
 
-        if ( undefined != this.Shd )
-            ParaPr.Shd = this.Shd.Copy();
+	if (undefined != this.Shd)
+		ParaPr.Shd = this.Shd.Copy();
 
-        ParaPr.Brd.First = this.Brd.First;
-        ParaPr.Brd.Last  = this.Brd.Last;
+	ParaPr.Brd.First = this.Brd.First;
+	ParaPr.Brd.Last  = this.Brd.Last;
 
-        if ( undefined != this.Brd.Between )
-            ParaPr.Brd.Between = this.Brd.Between.Copy();
+	if (undefined != this.Brd.Between)
+		ParaPr.Brd.Between = this.Brd.Between.Copy();
 
-        if ( undefined != this.Brd.Bottom )
-            ParaPr.Brd.Bottom = this.Brd.Bottom.Copy();
+	if (undefined != this.Brd.Bottom)
+		ParaPr.Brd.Bottom = this.Brd.Bottom.Copy();
 
-        if ( undefined != this.Brd.Left )
-            ParaPr.Brd.Left = this.Brd.Left.Copy();
+	if (undefined != this.Brd.Left)
+		ParaPr.Brd.Left = this.Brd.Left.Copy();
 
-        if ( undefined != this.Brd.Right )
-            ParaPr.Brd.Right = this.Brd.Right.Copy();
+	if (undefined != this.Brd.Right)
+		ParaPr.Brd.Right = this.Brd.Right.Copy();
 
-        if ( undefined != this.Brd.Top )
-            ParaPr.Brd.Top = this.Brd.Top.Copy();
+	if (undefined != this.Brd.Top)
+		ParaPr.Brd.Top = this.Brd.Top.Copy();
 
-        ParaPr.WidowControl = this.WidowControl;
+	ParaPr.WidowControl = this.WidowControl;
 
-        if ( undefined != this.Tabs )
-            ParaPr.Tabs = this.Tabs.Copy();
+	if (undefined != this.Tabs)
+		ParaPr.Tabs = this.Tabs.Copy();
 
-        if ( undefined != this.NumPr )
-            ParaPr.NumPr = this.NumPr.Copy();
+	if (undefined != this.NumPr)
+		ParaPr.NumPr = this.NumPr.Copy();
 
-        if ( undefined != this.PStyle )
-            ParaPr.PStyle = this.PStyle;
+	if (undefined != this.PStyle)
+		ParaPr.PStyle = this.PStyle;
 
-        if ( undefined != this.FramePr )
-            ParaPr.FramePr = this.FramePr.Copy();
-        else
-            ParaPr.FramePr = undefined;
+	if (undefined != this.FramePr)
+		ParaPr.FramePr = this.FramePr.Copy();
+	else
+		ParaPr.FramePr = undefined;
 
-        if( undefined != this.DefaultRunPr)
-            ParaPr.DefaultRunPr = this.DefaultRunPr.Copy();
+	if (undefined != this.DefaultRunPr)
+		ParaPr.DefaultRunPr = this.DefaultRunPr.Copy();
 
-        if( undefined != this.Bullet)
-            ParaPr.Bullet = this.Bullet.createDuplicate();
+	if (undefined != this.Bullet)
+		ParaPr.Bullet = this.Bullet.createDuplicate();
 
-        if(undefined != this.Lvl)
-            ParaPr.Lvl = this.Lvl;
+	if (undefined != this.Lvl)
+		ParaPr.Lvl = this.Lvl;
 
-        if(undefined != this.DefaultTab)
-            ParaPr.DefaultTab = this.DefaultTab;
+	if (undefined != this.DefaultTab)
+		ParaPr.DefaultTab = this.DefaultTab;
 
-        if (true === bCopyPrChange && undefined !== this.PrChange)
-        {
-            ParaPr.PrChange   = this.PrChange.Copy();
-            ParaPr.ReviewInfo = this.ReviewInfo.Copy();
-        }
-
-        if (undefined !== this.OutlineLvl)
-        	ParaPr.OutlineLvl = this.OutlineLvl;
-
-        return ParaPr;
-    },
-
-    Merge : function(ParaPr)
-    {
-        if ( undefined != ParaPr.ContextualSpacing )
-            this.ContextualSpacing = ParaPr.ContextualSpacing;
-
-        if ( undefined != ParaPr.Ind )
-            this.Ind.Merge( ParaPr.Ind );
-
-        if ( undefined != ParaPr.Jc )
-            this.Jc = ParaPr.Jc;
-
-        if ( undefined != ParaPr.KeepLines )
-            this.KeepLines = ParaPr.KeepLines;
-
-        if ( undefined != ParaPr.KeepNext )
-            this.KeepNext = ParaPr.KeepNext;
-
-        if ( undefined != ParaPr.PageBreakBefore )
-            this.PageBreakBefore = ParaPr.PageBreakBefore;
-
-        if ( undefined != ParaPr.Spacing )
-            this.Spacing.Merge( ParaPr.Spacing );
-
-        if ( undefined != ParaPr.Shd )
-            this.Shd = ParaPr.Shd.Copy();
-
-        if ( undefined != ParaPr.Brd.First )
-            this.Brd.First = ParaPr.Brd.First;
-
-        if ( undefined != ParaPr.Brd.Last )
-            this.Brd.Last  = ParaPr.Brd.Last;
-
-        if ( undefined != ParaPr.Brd.Between )
-            this.Brd.Between = ParaPr.Brd.Between.Copy();
-
-        if ( undefined != ParaPr.Brd.Bottom )
-            this.Brd.Bottom = ParaPr.Brd.Bottom.Copy();
-
-        if ( undefined != ParaPr.Brd.Left )
-            this.Brd.Left = ParaPr.Brd.Left.Copy();
-
-        if ( undefined != ParaPr.Brd.Right )
-            this.Brd.Right = ParaPr.Brd.Right.Copy();
-
-        if ( undefined != ParaPr.Brd.Top )
-            this.Brd.Top = ParaPr.Brd.Top.Copy();
-
-        if ( undefined != ParaPr.WidowControl )
-            this.WidowControl = ParaPr.WidowControl;
-
-        if ( undefined != ParaPr.Tabs )
-        {
-            if ( undefined === this.Tabs )
-                this.Tabs = ParaPr.Tabs.Copy();
-            else
-                this.Tabs.Merge( ParaPr.Tabs );
-        }
-
-        if ( undefined != ParaPr.NumPr )
-        {
-            if ( undefined === this.NumPr )
-                this.NumPr = ParaPr.NumPr.Copy();
-            else
-                this.NumPr.Merge( ParaPr.NumPr );
-
-            if ( undefined != this.NumPr && this.NumPr.Lvl > 8 )
-                this.NumPr = undefined;
-        }
-
-        if ( undefined != ParaPr.PStyle )
-            this.PStyle = ParaPr.PStyle;
-
-        this.FramePr = undefined;
-
-        if( undefined != ParaPr.DefaultRunPr )
-        {
-            if( undefined == this.DefaultRunPr )
-                this.DefaultRunPr = new CTextPr();
-            this.DefaultRunPr.Merge(ParaPr.DefaultRunPr);
-        }
-
-        if(undefined != ParaPr.Bullet)
-        {
-            if(ParaPr.Bullet.isBullet())
-            {
-                if(!this.Bullet)
-                {
-                    this.Bullet = new AscFormat.CBullet();
-                }
-                var PrBullet = ParaPr.Bullet;
-                if(PrBullet.bulletColor)
-                {
-                    this.Bullet.bulletColor = PrBullet.bulletColor.createDuplicate();
-                }
-                if(PrBullet.bulletSize)
-                {
-                    this.Bullet.bulletSize = PrBullet.bulletSize.createDuplicate();
-                }
-                if(PrBullet.bulletTypeface)
-                {
-                    this.Bullet.bulletTypeface = PrBullet.bulletTypeface.createDuplicate();
-                }
-                if(PrBullet.bulletType)
-                {
-                    this.Bullet.bulletType = PrBullet.bulletType.createDuplicate();
-                }
-                this.Bullet.Bullet = PrBullet.Bullet;
-
-            }
-            else
-            {
-                if(this.Bullet && this.Bullet.isBullet()){
-                    if(ParaPr.Bullet.bulletColor){
-                        this.Bullet.bulletColor = ParaPr.Bullet.bulletColor.createDuplicate();
-                    }
-                    if(ParaPr.Bullet.bulletSize){
-                        this.Bullet.bulletSize = ParaPr.Bullet.bulletSize.createDuplicate();
-                    }
-                    if(ParaPr.Bullet.bulletTypeface){
-                        this.Bullet.bulletTypeface = ParaPr.Bullet.bulletTypeface.createDuplicate();
-                    }
-                }
-            }
-        }
-
-        if(undefined != ParaPr.Lvl)
-            this.Lvl = ParaPr.Lvl;
-
-        if(undefined != ParaPr.DefaultTab)
-            this.DefaultTab = ParaPr.DefaultTab;
-
-        if (undefined !== ParaPr.OutlineLvl)
-        	this.OutlineLvl = ParaPr.OutlineLvl;
-    },
-
-    Init_Default : function()
-    {
-        this.ContextualSpacing         = false;
-        this.Ind                       = new CParaInd();
-        this.Ind.Left                  = 0;
-        this.Ind.Right                 = 0;
-        this.Ind.FirstLine             = 0;
-        this.Jc                        = align_Left;
-        this.KeepLines                 = false;
-        this.KeepNext                  = false;
-        this.PageBreakBefore           = false;
-        this.Spacing                   = new CParaSpacing();
-        this.Spacing.Line              = 1.15;
-        this.Spacing.LineRule          = linerule_Auto;
-        this.Spacing.Before            = 0;
-        this.Spacing.BeforeAutoSpacing = false;
-        this.Spacing.After             = 10 * g_dKoef_pt_to_mm;
-        this.Spacing.AfterAutoSpacing  = false;
-        this.Shd                       = new CDocumentShd();
-        this.Brd.First                 = true;
-        this.Brd.Last                  = true;
-        this.Brd.Between               = new CDocumentBorder();
-        this.Brd.Bottom                = new CDocumentBorder();
-        this.Brd.Left                  = new CDocumentBorder();
-        this.Brd.Right                 = new CDocumentBorder();
-        this.Brd.Top                   = new CDocumentBorder();
-        this.WidowControl              = true;
-        this.Tabs                      = new CParaTabs();
-        this.NumPr                     = undefined;
-        this.PStyle                    = undefined;
-        this.FramePr                   = undefined;
-        this.OutlineLvl                = undefined;
-
-        this.DefaultRunPr              = undefined;
-        this.Bullet                    = undefined;
-        this.DefaultTab            = undefined;
-    },
-
-    Set_FromObject : function(ParaPr)
-    {
-        this.ContextualSpacing = ParaPr.ContextualSpacing;
-
-		this.Ind = new CParaInd();
-		if (undefined != ParaPr.Ind)
-			this.Ind.Set_FromObject(ParaPr.Ind);
-
-        this.Jc              = ParaPr.Jc;
-        this.KeepLines       = ParaPr.KeepLines;
-        this.KeepNext        = ParaPr.KeepNext;
-        this.PageBreakBefore = ParaPr.PageBreakBefore;
-
-		this.Spacing = new CParaSpacing();
-		if (undefined != ParaPr.Spacing)
-			this.Spacing.Set_FromObject(ParaPr.Spacing);
-
-        if ( undefined != ParaPr.Shd )
-        {
-            this.Shd = new CDocumentShd();
-            this.Shd.Set_FromObject( ParaPr.Shd );
-        }
-        else
-            this.Shd = undefined;
-
-        if ( undefined != ParaPr.Brd )
-        {
-            if ( undefined != ParaPr.Brd.Between )
-            {
-                this.Brd.Between = new CDocumentBorder();
-                this.Brd.Between.Set_FromObject( ParaPr.Brd.Between );
-            }
-            else
-                this.Brd.Between = undefined;
-
-            if ( undefined != ParaPr.Brd.Bottom )
-            {
-                this.Brd.Bottom = new CDocumentBorder();
-                this.Brd.Bottom.Set_FromObject( ParaPr.Brd.Bottom );
-            }
-            else
-                this.Brd.Bottom = undefined;
-
-            if ( undefined != ParaPr.Brd.Left )
-            {
-                this.Brd.Left = new CDocumentBorder();
-                this.Brd.Left.Set_FromObject( ParaPr.Brd.Left );
-            }
-            else
-                this.Brd.Left = undefined;
-
-            if ( undefined != ParaPr.Brd.Right )
-            {
-                this.Brd.Right = new CDocumentBorder();
-                this.Brd.Right.Set_FromObject( ParaPr.Brd.Right );
-            }
-            else
-                this.Brd.Right = undefined;
-
-            if ( undefined != ParaPr.Brd.Top )
-            {
-                this.Brd.Top = new CDocumentBorder();
-                this.Brd.Top.Set_FromObject( ParaPr.Brd.Top );
-            }
-            else
-                this.Brd.Top = undefined;
-        }
-        else
-        {
-            this.Brd.Between = undefined;
-            this.Brd.Bottom  = undefined;
-            this.Brd.Left    = undefined;
-            this.Brd.Right   = undefined;
-            this.Brd.Top     = undefined;
-        }
-
-        this.WidowControl = ParaPr.WidowControl;
-
-        if ( undefined != ParaPr.Tabs )
-        {
-            this.Tabs = new CParaTabs();
-            this.Tabs.Set_FromObject( ParaPr.Tabs.Tabs );
-        }
-        else
-            this.Tabs = undefined;
-
-        if ( undefined != ParaPr.NumPr )
-        {
-            this.NumPr = new CNumPr();
-            this.NumPr.Set_FromObject( ParaPr.NumPr );
-        }
-        else
-            this.NumPr = undefined;
-
-        if ( undefined != ParaPr.FramePr )
-        {
-            this.FramePr = new CFramePr();
-            this.FramePr.Set_FromObject( ParaPr.FramePr );
-        }
-        else
-            this.FramePr = undefined;
-
-        if( undefined != ParaPr.DefaultRunPr )
-        {
-            this.DefaultRunPr = new CTextPr();
-            this.DefaultRunPr.Set_FromObject(ParaPr.DefaultRunPr);
-        }
-
-        if( undefined != ParaPr.Bullet )
-        {
-            this.Bullet = new AscFormat.CBullet();
-            this.Bullet.Set_FromObject(ParaPr.Bullet);
-        }
-
-        if(undefined != ParaPr.DefaultTab)
-        {
-            this.DefaultTab = ParaPr.DefaultTab;
-        }
-
-        if (undefined !== ParaPr.OutlineLvl)
-        	this.OutlineLvl = ParaPr.OutlineLvl;
-    },
-
-    Compare : function(ParaPr)
-    {
-        // При сравнении добавляем 1 элемент Locked
-        var Result_ParaPr = new CParaPr();
-        Result_ParaPr.Locked  = false;
-
-        if ( ParaPr.ContextualSpacing === this.ContextualSpacing )
-            Result_ParaPr.ContextualSpacing = ParaPr.ContextualSpacing;
-
-        Result_ParaPr.Ind = new CParaInd();
-        if ( undefined != ParaPr.Ind && undefined != this.Ind )
-        {
-            if ( undefined != ParaPr.Ind.Left && undefined != this.Ind.Left && Math.abs( ParaPr.Ind.Left - this.Ind.Left ) < 0.001 )
-                Result_ParaPr.Ind.Left = ParaPr.Ind.Left;
-
-            if ( undefined != ParaPr.Ind.Right && undefined != this.Ind.Right && Math.abs( ParaPr.Ind.Right - this.Ind.Right ) < 0.001 )
-                Result_ParaPr.Ind.Right = ParaPr.Ind.Right;
-
-            if ( undefined != ParaPr.Ind.FirstLine && undefined != this.Ind.FirstLine && Math.abs( ParaPr.Ind.FirstLine - this.Ind.FirstLine ) < 0.001 )
-                Result_ParaPr.Ind.FirstLine = ParaPr.Ind.FirstLine;
-        }
-
-        if ( ParaPr.Jc === this.Jc )
-            Result_ParaPr.Jc = ParaPr.Jc;
-
-        if ( ParaPr.KeepLines === this.KeepLines )
-            Result_ParaPr.KeepLines = ParaPr.KeepLines;
-
-        if ( ParaPr.KeepNext === this.KeepNext )
-            Result_ParaPr.KeepNext = ParaPr.KeepNext;
-
-        if ( ParaPr.PageBreakBefore === this.PageBreakBefore )
-            Result_ParaPr.PageBreakBefore = ParaPr.PageBreakBefore;
-
-        Result_ParaPr.Spacing = new CParaSpacing();
-        if ( undefined != this.Spacing && undefined != ParaPr.Spacing )
-        {
-            if ( undefined != this.Spacing.After && undefined != ParaPr.Spacing.After && Math.abs( this.Spacing.After - ParaPr.Spacing.After ) < 0.001 )
-                Result_ParaPr.Spacing.After = ParaPr.Spacing.After;
-
-            if ( this.Spacing.AfterAutoSpacing === ParaPr.Spacing.AfterAutoSpacing )
-                Result_ParaPr.Spacing.AfterAutoSpacing = ParaPr.Spacing.AfterAutoSpacing;
-
-            if ( undefined != this.Spacing.Before && undefined != ParaPr.Spacing.Before && Math.abs( this.Spacing.Before - ParaPr.Spacing.Before ) < 0.001 )
-                Result_ParaPr.Spacing.Before = ParaPr.Spacing.Before;
-
-            if ( this.Spacing.BeforeAutoSpacing === ParaPr.Spacing.BeforeAutoSpacing )
-                Result_ParaPr.Spacing.BeforeAutoSpacing = ParaPr.Spacing.BeforeAutoSpacing;
-
-            if ( undefined != this.Spacing.Line && undefined != ParaPr.Spacing.Line && Math.abs( this.Spacing.Line - ParaPr.Spacing.Line ) < 0.001 )
-                Result_ParaPr.Spacing.Line = ParaPr.Spacing.Line;
-
-            if ( this.Spacing.LineRule === ParaPr.Spacing.LineRule )
-                Result_ParaPr.Spacing.LineRule = ParaPr.Spacing.LineRule;
-        }
-
-        if ( undefined != this.Shd && undefined != ParaPr.Shd && true === this.Shd.Compare(ParaPr.Shd) )
-            Result_ParaPr.Shd = ParaPr.Shd.Copy();
-
-        if ( undefined != this.Brd.Between && undefined != ParaPr.Brd.Between && true === this.Brd.Between.Compare( ParaPr.Brd.Between ) )
-            Result_ParaPr.Brd.Between = ParaPr.Brd.Between.Copy();
-
-        if ( undefined != this.Brd.Bottom && undefined != ParaPr.Brd.Bottom && true === this.Brd.Bottom.Compare( ParaPr.Brd.Bottom ) )
-            Result_ParaPr.Brd.Bottom = ParaPr.Brd.Bottom.Copy();
-
-        if ( undefined != this.Brd.Left && undefined != ParaPr.Brd.Left && true === this.Brd.Left.Compare( ParaPr.Brd.Left ) )
-            Result_ParaPr.Brd.Left = ParaPr.Brd.Left.Copy();
-
-        if ( undefined != this.Brd.Right && undefined != ParaPr.Brd.Right && true === this.Brd.Right.Compare( ParaPr.Brd.Right ) )
-            Result_ParaPr.Brd.Right = ParaPr.Brd.Right.Copy();
-
-        if ( undefined != this.Brd.Top && undefined != ParaPr.Brd.Top && true === this.Brd.Top.Compare( ParaPr.Brd.Top ) )
-            Result_ParaPr.Brd.Top = ParaPr.Brd.Top.Copy();
-
-        if ( ParaPr.WidowControl === this.WidowControl )
-            Result_ParaPr.WidowControl = ParaPr.WidowControl;
-
-        // PStyle
-        if ( undefined != this.PStyle && undefined != ParaPr.PStyle && this.PStyle === ParaPr.PStyle )
-            Result_ParaPr.PStyle = ParaPr.PStyle;
-
-        // NumPr
-        if ( undefined != this.NumPr && undefined != ParaPr.NumPr && this.NumPr.NumId === ParaPr.NumPr.NumId )
-        {
-            Result_ParaPr.NumPr = new CParaPr();
-            Result_ParaPr.NumPr.NumId = ParaPr.NumPr.NumId;
-            Result_ParaPr.NumPr.Lvl   = Math.max( this.NumPr.Lvl, ParaPr.NumPr.Lvl );
-        }
-
-        // Locked
-        if ( undefined != this.Locked && undefined != ParaPr.Locked )
-        {
-            if ( this.Locked != ParaPr.Locked )
-                Result_ParaPr.Locked = true;
-            else
-                Result_ParaPr.Locked = ParaPr.Locked;
-        }
-
-        // FramePr
-        if ( undefined != this.FramePr && undefined != ParaPr.FramePr && true === this.FramePr.Compare(ParaPr.FramePr) )
-            Result_ParaPr.FramePr = this.FramePr;
-
-        if(undefined != this.Bullet && undefined != ParaPr.Bullet )
-            Result_ParaPr.Bullet = AscFormat.CompareBullets(ParaPr.Bullet, this.Bullet);
-
-        if(undefined != this.DefaultRunPr && undefined != ParaPr.DefaultRunPr)
-            Result_ParaPr.DefaultRunPr = this.DefaultRunPr.Compare(ParaPr.DefaultRunPr);
-
-        if(undefined != this.Lvl && undefined != ParaPr.Lvl && ParaPr.Lvl === this.Lvl)
-            Result_ParaPr.Lvl = this.Lvl;
-
-
-        if(undefined != this.DefaultTab && undefined != ParaPr.DefaultTab && ParaPr.DefaultTab === this.DefaultTab)
-            Result_ParaPr.DefaultTab = this.DefaultTab;
-
-        if (undefined !== this.Tabs && undefined !== ParaPr.Tabs && this.Tabs.Is_Equal(ParaPr.Tabs))
-        	Result_ParaPr.Tabs = this.Tabs.Copy();
-
-        if (this.OutlineLvl === ParaPr.OutlineLvl)
-        	Result_ParaPr.OutlineLvl = this.OutlineLvl;
-
-        return Result_ParaPr;
-    },
-
-    Write_ToBinary : function(Writer)
-    {
-        var StartPos = Writer.GetCurPosition();
-        Writer.Skip(4);
-        var Flags = 0;
-
-        if ( undefined != this.ContextualSpacing )
-        {
-            Writer.WriteBool( this.ContextualSpacing );
-            Flags |= 1;
-        }
-
-        if ( undefined != this.Ind )
-        {
-            this.Ind.Write_ToBinary(Writer);
-            Flags |= 2;
-        }
-
-        if ( undefined != this.Jc )
-        {
-            Writer.WriteByte( this.Jc );
-            Flags |= 4;
-        }
-
-        if ( undefined != this.KeepLines )
-        {
-            Writer.WriteBool( this.KeepLines );
-            Flags |= 8;
-        }
-
-        if ( undefined != this.KeepNext )
-        {
-            Writer.WriteBool( this.KeepNext );
-            Flags |= 16;
-        }
-
-        if ( undefined != this.PageBreakBefore )
-        {
-            Writer.WriteBool( this.PageBreakBefore );
-            Flags |= 32;
-        }
-
-        if ( undefined != this.Spacing )
-        {
-            this.Spacing.Write_ToBinary(Writer);
-            Flags |= 64;
-        }
-
-        if ( undefined != this.Shd )
-        {
-            this.Shd.Write_ToBinary(Writer);
-            Flags |= 128;
-        }
-
-        if ( undefined != this.Brd.Between )
-        {
-            this.Brd.Between.Write_ToBinary( Writer );
-            Flags |= 256;
-        }
-
-        if ( undefined != this.Brd.Bottom )
-        {
-            this.Brd.Bottom.Write_ToBinary( Writer );
-            Flags |= 512;
-        }
-
-        if ( undefined != this.Brd.Left )
-        {
-            this.Brd.Left.Write_ToBinary( Writer );
-            Flags |= 1024;
-        }
-
-        if ( undefined != this.Brd.Right )
-        {
-            this.Brd.Right.Write_ToBinary( Writer );
-            Flags |= 2048;
-        }
-
-        if ( undefined != this.Brd.Top )
-        {
-            this.Brd.Top.Write_ToBinary( Writer );
-            Flags |= 4096;
-        }
-
-        if ( undefined != this.WidowControl )
-        {
-            Writer.WriteBool( this.WidowControl );
-            Flags |= 8192;
-        }
-
-        if ( undefined != this.Tabs )
-        {
-            this.Tabs.Write_ToBinary( Writer );
-            Flags |= 16384;
-        }
-
-        if ( undefined != this.NumPr )
-        {
-            this.NumPr.Write_ToBinary( Writer );
-            Flags |= 32768;
-        }
-
-        if ( undefined != this.PStyle )
-        {
-            Writer.WriteString2( this.PStyle );
-            Flags |= 65536;
-        }
-
-        if ( undefined != this.FramePr )
-        {
-            this.FramePr.Write_ToBinary( Writer );
-            Flags |= 131072;
-        }
-
-        if(undefined != this.DefaultRunPr)
-        {
-            this.DefaultRunPr.Write_ToBinary( Writer );
-            Flags |= 262144;
-        }
-
-        if(undefined != this.Bullet)
-        {
-            this.Bullet.Write_ToBinary( Writer );
-            Flags |= 524288;
-        }
-
-        if(undefined != this.Lvl)
-        {
-            Writer.WriteByte(this.Lvl);
-            Flags |= 1048576;
-        }
-
-        if(undefined != this.DefaultTab)
-        {
-            Writer.WriteDouble(this.DefaultTab);
-            Flags |= 2097152;
-        }
-
-        if (undefined !== this.OutlineLvl)
-		{
-			Writer.WriteByte(this.OutlineLvl);
-			Flags |= 4194304;
-		}
-
-		if (undefined !== this.PrChange)
-		{
-			this.PrChange.Write_ToBinary(Writer);
-			this.ReviewInfo.Write_ToBinary(Writer);
-			Flags |= 8388608;
-		}
-
-        var EndPos = Writer.GetCurPosition();
-        Writer.Seek( StartPos );
-        Writer.WriteLong( Flags );
-        Writer.Seek( EndPos );
-    },
-
-    Read_FromBinary : function(Reader)
-    {
-        var Flags = Reader.GetLong();
-
-        if ( Flags & 1 )
-            this.ContextualSpacing = Reader.GetBool();
-
-        if ( Flags & 2 )
-        {
-            this.Ind = new CParaInd();
-            this.Ind.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 4 )
-            this.Jc = Reader.GetByte();
-
-        if ( Flags & 8 )
-            this.KeepLines = Reader.GetBool();
-
-        if ( Flags & 16 )
-            this.KeepNext = Reader.GetBool();
-
-        if ( Flags & 32 )
-            this.PageBreakBefore = Reader.GetBool();
-
-        if ( Flags & 64 )
-        {
-            this.Spacing = new CParaSpacing();
-            this.Spacing.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 128 )
-        {
-            this.Shd = new CDocumentShd();
-            this.Shd.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 256 )
-        {
-            this.Brd.Between = new CDocumentBorder();
-            this.Brd.Between.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 512 )
-        {
-            this.Brd.Bottom = new CDocumentBorder();
-            this.Brd.Bottom.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 1024 )
-        {
-            this.Brd.Left = new CDocumentBorder();
-            this.Brd.Left.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 2048 )
-        {
-            this.Brd.Right = new CDocumentBorder();
-            this.Brd.Right.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 4096 )
-        {
-            this.Brd.Top = new CDocumentBorder();
-            this.Brd.Top.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 8192 )
-            this.WidowControl = Reader.GetBool();
-
-        if ( Flags & 16384 )
-        {
-            this.Tabs = new CParaTabs();
-            this.Tabs.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 32768 )
-        {
-            this.NumPr = new CNumPr();
-            this.NumPr.Read_FromBinary( Reader );
-        }
-
-        if ( Flags & 65536 )
-            this.PStyle = Reader.GetString2();
-
-        if ( Flags & 131072 )
-        {
-            this.FramePr = new CFramePr();
-            this.FramePr.Read_FromBinary( Reader );
-        }
-
-        if(Flags & 262144)
-        {
-            this.DefaultRunPr = new CTextPr();
-            this.DefaultRunPr.Read_FromBinary(Reader);
-        }
-
-        if(Flags & 524288)
-        {
-            this.Bullet = new AscFormat.CBullet();
-            this.Bullet.Read_FromBinary(Reader);
-        }
-
-        if(Flags & 1048576)
-        {
-            this.Lvl = Reader.GetByte();
-        }
-
-        if(Flags & 2097152)
-        {
-            this.DefaultTab = Reader.GetDouble();
-        }
-
-        if (Flags & 4194304)
-			this.OutlineLvl = Reader.GetByte();
-
-        if (Flags & 8388608)
-		{
-			this.PrChange = new CParaPr();
-			this.PrChange.Read_FromBinary(Reader);
-			this.ReviewInfo = new CReviewInfo();
-			this.ReviewInfo.Read_FromBinary(Reader);
-		}
-    },
-
-    isEqual: function(ParaPrUOld,ParaPrNew)
-    {
-        if(ParaPrUOld == undefined || ParaPrNew == undefined)
-            return false;
-        for(var pPr in ParaPrUOld)
-        {
-            if(typeof ParaPrUOld[pPr] == 'object')
-            {
-                if(!this.isEqual(ParaPrUOld[pPr],ParaPrNew[pPr]))
-                    return false
-            }
-            else
-            {
-                if(typeof ParaPrUOld[pPr] == "number" && typeof ParaPrNew[pPr] == "number")
-                {
-                    if(Math.abs(ParaPrUOld[pPr] - ParaPrNew[pPr]) > 0.001)
-                        return false;
-                }
-                else if(ParaPrUOld[pPr] != ParaPrNew[pPr])
-                    return false;
-            }
-        }
-        return true;
-    },
-
-    Is_Equal : function(ParaPr)
-    {
-        if (this.ContextualSpacing !== ParaPr.ContextualSpacing
-            || true !== IsEqualStyleObjects(this.Ind, ParaPr.Ind)
-            || this.Jc !== ParaPr.Jc
-            || this.KeepLines !== ParaPr.KeepLines
-            || this.KeepNext !== ParaPr.KeepNext
-            || this.PageBreakBefore !== ParaPr.PageBreakBefore
-            || true !== IsEqualStyleObjects(this.Spacing, ParaPr.Spacing)
-            || true !== IsEqualStyleObjects(this.Shd, ParaPr.Shd)
-            || true !== IsEqualStyleObjects(this.Brd.Between, ParaPr.Brd.Between)
-            || true !== IsEqualStyleObjects(this.Brd.Bottom , ParaPr.Brd.Bottom )
-            || true !== IsEqualStyleObjects(this.Brd.Left   , ParaPr.Brd.Left   )
-            || true !== IsEqualStyleObjects(this.Brd.Right  , ParaPr.Brd.Right  )
-            || true !== IsEqualStyleObjects(this.Brd.Top    , ParaPr.Brd.Top    )
-            || this.WidowControl !== ParaPr.WidowControl
-            || true !== IsEqualStyleObjects(this.Tabs, ParaPr.Tabs)
-            || true !== IsEqualStyleObjects(this.NumPr, ParaPr.NumPr)
-            || this.PStyle !== ParaPr.PStyle
-            || true !== IsEqualStyleObjects(this.FramePr, ParaPr.FramePr)
-			|| this.OutlineLvl !== ParaPr.OutlineLvl)
-            return false;
-
-        return true;
-    },
-
-    Get_PresentationBullet: function(theme, colorMap)
-    {
-        var Bullet = new CPresentationBullet();
-        if(this.Bullet && this.Bullet.isBullet())
-        {
-            switch(this.Bullet.bulletType.type)
-            {
-                case AscFormat.BULLET_TYPE_BULLET_CHAR:
-                {
-                    Bullet.m_nType = numbering_presentationnumfrmt_Char;
-                    if(typeof this.Bullet.bulletType.Char === "string" && this.Bullet.bulletType.Char.length > 0)
-                    {
-                        Bullet.m_sChar = this.Bullet.bulletType.Char.substring(0, 1);
-                    }
-                    else
-                    {
-                        Bullet.m_sChar = "•";
-                    }
-                    break;
-                }
-
-                case AscFormat.BULLET_TYPE_BULLET_AUTONUM :
-                {
-                    Bullet.m_nType = g_NumberingArr[this.Bullet.bulletType.AutoNumType];
-                    Bullet.m_nStartAt = this.Bullet.bulletType.startAt;
-                    break;
-                }
-                case AscFormat.BULLET_TYPE_BULLET_NONE :
-                {
-                    break;
-                }
-                case AscFormat.BULLET_TYPE_BULLET_BLIP :
-                {
-                    Bullet.m_nType = numbering_presentationnumfrmt_Char;
-                    Bullet.m_sChar = "•";
-                    break;
-                }
-            }
-
-            if(this.Bullet.bulletColor){
-                if(this.Bullet.bulletColor.type === AscFormat.BULLET_TYPE_COLOR_NONE){
-                    Bullet.m_bColorTx = false;
-                    Bullet.m_oColor.a = 0;
-                }
-                if(this.Bullet.bulletColor.type === AscFormat.BULLET_TYPE_COLOR_CLR){
-                    if(this.Bullet.bulletColor.UniColor && this.Bullet.bulletColor.UniColor.color && theme && colorMap){
-                        Bullet.m_bColorTx = false;
-                        Bullet.Unifill = AscFormat.CreateUniFillByUniColor(this.Bullet.bulletColor.UniColor);
-                    }
-                }
-            }
-            if(this.Bullet.bulletTypeface)
-            {
-                if(this.Bullet.bulletTypeface.type == AscFormat.BULLET_TYPE_TYPEFACE_BUFONT){
-                    Bullet.m_bFontTx = false;
-                    Bullet.m_sFont = this.Bullet.bulletTypeface.typeface;
-                }
-
-            }
-            if(this.Bullet.bulletSize)
-            {
-                switch (this.Bullet.bulletSize.type){
-                    case AscFormat.BULLET_TYPE_SIZE_TX:{
-                        Bullet.m_bSizeTx = true;
-                        break;
-                    }
-                    case AscFormat.BULLET_TYPE_SIZE_PCT:{
-                        Bullet.m_bSizeTx = false;
-                        Bullet.m_bSizePct = true;
-                        Bullet.m_dSize = this.Bullet.bulletSize.val/100000.0;
-                        break;
-                    }
-                    case AscFormat.BULLET_TYPE_SIZE_PTS:{
-                        Bullet.m_bSizeTx = false;
-                        Bullet.m_bSizePct = false;
-                        Bullet.m_dSize = this.Bullet.bulletSize.val/100.0;
-                        break;
-                    }
-                }
-            }
-        }
-        return Bullet;
-    },
-
-	HavePrChange : function()
-    {
-        if (undefined === this.PrChange || null === this.PrChange)
-            return false;
-
-        return true;
-    },
-
-	GetPrChangeNumPr : function()
+	if (true === bCopyPrChange && undefined !== this.PrChange)
 	{
-		if (!this.HavePrChange() || !this.PrChange.NumPr)
-			return null;
+		ParaPr.PrChange   = this.PrChange.Copy();
+		ParaPr.ReviewInfo = this.ReviewInfo.Copy();
+	}
 
-		return this.PrChange.NumPr;
-	},
+	if (undefined !== this.OutlineLvl)
+		ParaPr.OutlineLvl = this.OutlineLvl;
 
-	AddPrChange : function()
-    {
-        this.PrChange = this.Copy();
-        this.ReviewInfo = new CReviewInfo();
-        this.ReviewInfo.Update();
-    },
-
-	SetPrChange : function(PrChange, ReviewInfo)
-    {
-        this.PrChange   = PrChange;
-        this.ReviewInfo = ReviewInfo;
-    },
-
-	RemovePrChange : function()
-    {
-        delete this.PrChange;
-        delete this.ReviewInfo;
-    }
+	return ParaPr;
 };
-CParaPr.prototype.Is_Empty         = function()
+CParaPr.prototype.Merge = function(ParaPr)
+{
+	if (undefined != ParaPr.ContextualSpacing)
+		this.ContextualSpacing = ParaPr.ContextualSpacing;
+
+	if (undefined != ParaPr.Ind)
+		this.Ind.Merge(ParaPr.Ind);
+
+	if (undefined != ParaPr.Jc)
+		this.Jc = ParaPr.Jc;
+
+	if (undefined != ParaPr.KeepLines)
+		this.KeepLines = ParaPr.KeepLines;
+
+	if (undefined != ParaPr.KeepNext)
+		this.KeepNext = ParaPr.KeepNext;
+
+	if (undefined != ParaPr.PageBreakBefore)
+		this.PageBreakBefore = ParaPr.PageBreakBefore;
+
+	if (undefined != ParaPr.Spacing)
+		this.Spacing.Merge(ParaPr.Spacing);
+
+	if (undefined != ParaPr.Shd)
+		this.Shd = ParaPr.Shd.Copy();
+
+	if (undefined != ParaPr.Brd.First)
+		this.Brd.First = ParaPr.Brd.First;
+
+	if (undefined != ParaPr.Brd.Last)
+		this.Brd.Last = ParaPr.Brd.Last;
+
+	if (undefined != ParaPr.Brd.Between)
+		this.Brd.Between = ParaPr.Brd.Between.Copy();
+
+	if (undefined != ParaPr.Brd.Bottom)
+		this.Brd.Bottom = ParaPr.Brd.Bottom.Copy();
+
+	if (undefined != ParaPr.Brd.Left)
+		this.Brd.Left = ParaPr.Brd.Left.Copy();
+
+	if (undefined != ParaPr.Brd.Right)
+		this.Brd.Right = ParaPr.Brd.Right.Copy();
+
+	if (undefined != ParaPr.Brd.Top)
+		this.Brd.Top = ParaPr.Brd.Top.Copy();
+
+	if (undefined != ParaPr.WidowControl)
+		this.WidowControl = ParaPr.WidowControl;
+
+	if (undefined != ParaPr.Tabs)
+	{
+		if (undefined === this.Tabs)
+			this.Tabs = ParaPr.Tabs.Copy();
+		else
+			this.Tabs.Merge(ParaPr.Tabs);
+	}
+
+	if (undefined != ParaPr.NumPr)
+	{
+		if (undefined === this.NumPr)
+			this.NumPr = ParaPr.NumPr.Copy();
+		else
+			this.NumPr.Merge(ParaPr.NumPr);
+
+		if (undefined != this.NumPr && this.NumPr.Lvl > 8)
+			this.NumPr = undefined;
+	}
+
+	if (undefined != ParaPr.PStyle)
+		this.PStyle = ParaPr.PStyle;
+
+	this.FramePr = undefined;
+
+	if (undefined != ParaPr.DefaultRunPr)
+	{
+		if (undefined == this.DefaultRunPr)
+			this.DefaultRunPr = new CTextPr();
+		this.DefaultRunPr.Merge(ParaPr.DefaultRunPr);
+	}
+
+	if (undefined != ParaPr.Bullet)
+	{
+		if (ParaPr.Bullet.isBullet())
+		{
+			if (!this.Bullet)
+			{
+				this.Bullet = new AscFormat.CBullet();
+			}
+			var PrBullet = ParaPr.Bullet;
+			if (PrBullet.bulletColor)
+			{
+				this.Bullet.bulletColor = PrBullet.bulletColor.createDuplicate();
+			}
+			if (PrBullet.bulletSize)
+			{
+				this.Bullet.bulletSize = PrBullet.bulletSize.createDuplicate();
+			}
+			if (PrBullet.bulletTypeface)
+			{
+				this.Bullet.bulletTypeface = PrBullet.bulletTypeface.createDuplicate();
+			}
+			if (PrBullet.bulletType)
+			{
+				this.Bullet.bulletType = PrBullet.bulletType.createDuplicate();
+			}
+			this.Bullet.Bullet = PrBullet.Bullet;
+
+		}
+		else
+		{
+			if (this.Bullet && this.Bullet.isBullet())
+			{
+				if (ParaPr.Bullet.bulletColor)
+				{
+					this.Bullet.bulletColor = ParaPr.Bullet.bulletColor.createDuplicate();
+				}
+				if (ParaPr.Bullet.bulletSize)
+				{
+					this.Bullet.bulletSize = ParaPr.Bullet.bulletSize.createDuplicate();
+				}
+				if (ParaPr.Bullet.bulletTypeface)
+				{
+					this.Bullet.bulletTypeface = ParaPr.Bullet.bulletTypeface.createDuplicate();
+				}
+			}
+		}
+	}
+
+	if (undefined != ParaPr.Lvl)
+		this.Lvl = ParaPr.Lvl;
+
+	if (undefined != ParaPr.DefaultTab)
+		this.DefaultTab = ParaPr.DefaultTab;
+
+	if (undefined !== ParaPr.OutlineLvl)
+		this.OutlineLvl = ParaPr.OutlineLvl;
+};
+CParaPr.prototype.Init_Default = function()
+{
+	this.ContextualSpacing         = false;
+	this.Ind                       = new CParaInd();
+	this.Ind.Left                  = 0;
+	this.Ind.Right                 = 0;
+	this.Ind.FirstLine             = 0;
+	this.Jc                        = align_Left;
+	this.KeepLines                 = false;
+	this.KeepNext                  = false;
+	this.PageBreakBefore           = false;
+	this.Spacing                   = new CParaSpacing();
+	this.Spacing.Line              = 1.15;
+	this.Spacing.LineRule          = linerule_Auto;
+	this.Spacing.Before            = 0;
+	this.Spacing.BeforeAutoSpacing = false;
+	this.Spacing.After             = 10 * g_dKoef_pt_to_mm;
+	this.Spacing.AfterAutoSpacing  = false;
+	this.Shd                       = new CDocumentShd();
+	this.Brd.First                 = true;
+	this.Brd.Last                  = true;
+	this.Brd.Between               = new CDocumentBorder();
+	this.Brd.Bottom                = new CDocumentBorder();
+	this.Brd.Left                  = new CDocumentBorder();
+	this.Brd.Right                 = new CDocumentBorder();
+	this.Brd.Top                   = new CDocumentBorder();
+	this.WidowControl              = true;
+	this.Tabs                      = new CParaTabs();
+	this.NumPr                     = undefined;
+	this.PStyle                    = undefined;
+	this.FramePr                   = undefined;
+	this.OutlineLvl                = undefined;
+
+	this.DefaultRunPr = undefined;
+	this.Bullet       = undefined;
+	this.DefaultTab   = undefined;
+	this.PrChange     = undefined;
+	this.ReviewInfo   = undefined
+};
+CParaPr.prototype.Set_FromObject = function(ParaPr)
+{
+	this.ContextualSpacing = ParaPr.ContextualSpacing;
+
+	this.Ind = new CParaInd();
+	if (undefined != ParaPr.Ind)
+		this.Ind.Set_FromObject(ParaPr.Ind);
+
+	this.Jc              = ParaPr.Jc;
+	this.KeepLines       = ParaPr.KeepLines;
+	this.KeepNext        = ParaPr.KeepNext;
+	this.PageBreakBefore = ParaPr.PageBreakBefore;
+
+	this.Spacing = new CParaSpacing();
+	if (undefined != ParaPr.Spacing)
+		this.Spacing.Set_FromObject(ParaPr.Spacing);
+
+	if (undefined != ParaPr.Shd)
+	{
+		this.Shd = new CDocumentShd();
+		this.Shd.Set_FromObject(ParaPr.Shd);
+	}
+	else
+		this.Shd = undefined;
+
+	if (undefined != ParaPr.Brd)
+	{
+		if (undefined != ParaPr.Brd.Between)
+		{
+			this.Brd.Between = new CDocumentBorder();
+			this.Brd.Between.Set_FromObject(ParaPr.Brd.Between);
+		}
+		else
+			this.Brd.Between = undefined;
+
+		if (undefined != ParaPr.Brd.Bottom)
+		{
+			this.Brd.Bottom = new CDocumentBorder();
+			this.Brd.Bottom.Set_FromObject(ParaPr.Brd.Bottom);
+		}
+		else
+			this.Brd.Bottom = undefined;
+
+		if (undefined != ParaPr.Brd.Left)
+		{
+			this.Brd.Left = new CDocumentBorder();
+			this.Brd.Left.Set_FromObject(ParaPr.Brd.Left);
+		}
+		else
+			this.Brd.Left = undefined;
+
+		if (undefined != ParaPr.Brd.Right)
+		{
+			this.Brd.Right = new CDocumentBorder();
+			this.Brd.Right.Set_FromObject(ParaPr.Brd.Right);
+		}
+		else
+			this.Brd.Right = undefined;
+
+		if (undefined != ParaPr.Brd.Top)
+		{
+			this.Brd.Top = new CDocumentBorder();
+			this.Brd.Top.Set_FromObject(ParaPr.Brd.Top);
+		}
+		else
+			this.Brd.Top = undefined;
+	}
+	else
+	{
+		this.Brd.Between = undefined;
+		this.Brd.Bottom  = undefined;
+		this.Brd.Left    = undefined;
+		this.Brd.Right   = undefined;
+		this.Brd.Top     = undefined;
+	}
+
+	this.WidowControl = ParaPr.WidowControl;
+
+	if (undefined != ParaPr.Tabs)
+	{
+		this.Tabs = new CParaTabs();
+		this.Tabs.Set_FromObject(ParaPr.Tabs.Tabs);
+	}
+	else
+		this.Tabs = undefined;
+
+	if (undefined != ParaPr.NumPr)
+	{
+		this.NumPr = new CNumPr();
+		this.NumPr.Set_FromObject(ParaPr.NumPr);
+	}
+	else
+		this.NumPr = undefined;
+
+	if (undefined != ParaPr.FramePr)
+	{
+		this.FramePr = new CFramePr();
+		this.FramePr.Set_FromObject(ParaPr.FramePr);
+	}
+	else
+		this.FramePr = undefined;
+
+	if (undefined != ParaPr.DefaultRunPr)
+	{
+		this.DefaultRunPr = new CTextPr();
+		this.DefaultRunPr.Set_FromObject(ParaPr.DefaultRunPr);
+	}
+
+	if (undefined != ParaPr.Bullet)
+	{
+		this.Bullet = new AscFormat.CBullet();
+		this.Bullet.Set_FromObject(ParaPr.Bullet);
+	}
+
+	if (undefined != ParaPr.DefaultTab)
+	{
+		this.DefaultTab = ParaPr.DefaultTab;
+	}
+
+	if (undefined !== ParaPr.OutlineLvl)
+		this.OutlineLvl = ParaPr.OutlineLvl;
+};
+CParaPr.prototype.Compare = function(ParaPr)
+{
+	// При сравнении добавляем 1 элемент Locked
+	var Result_ParaPr    = new CParaPr();
+	Result_ParaPr.Locked = false;
+
+	if (ParaPr.ContextualSpacing === this.ContextualSpacing)
+		Result_ParaPr.ContextualSpacing = ParaPr.ContextualSpacing;
+
+	Result_ParaPr.Ind = new CParaInd();
+	if (undefined != ParaPr.Ind && undefined != this.Ind)
+	{
+		if (undefined != ParaPr.Ind.Left && undefined != this.Ind.Left && Math.abs(ParaPr.Ind.Left - this.Ind.Left) < 0.001)
+			Result_ParaPr.Ind.Left = ParaPr.Ind.Left;
+
+		if (undefined != ParaPr.Ind.Right && undefined != this.Ind.Right && Math.abs(ParaPr.Ind.Right - this.Ind.Right) < 0.001)
+			Result_ParaPr.Ind.Right = ParaPr.Ind.Right;
+
+		if (undefined != ParaPr.Ind.FirstLine && undefined != this.Ind.FirstLine && Math.abs(ParaPr.Ind.FirstLine - this.Ind.FirstLine) < 0.001)
+			Result_ParaPr.Ind.FirstLine = ParaPr.Ind.FirstLine;
+	}
+
+	if (ParaPr.Jc === this.Jc)
+		Result_ParaPr.Jc = ParaPr.Jc;
+
+	if (ParaPr.KeepLines === this.KeepLines)
+		Result_ParaPr.KeepLines = ParaPr.KeepLines;
+
+	if (ParaPr.KeepNext === this.KeepNext)
+		Result_ParaPr.KeepNext = ParaPr.KeepNext;
+
+	if (ParaPr.PageBreakBefore === this.PageBreakBefore)
+		Result_ParaPr.PageBreakBefore = ParaPr.PageBreakBefore;
+
+	Result_ParaPr.Spacing = new CParaSpacing();
+	if (undefined != this.Spacing && undefined != ParaPr.Spacing)
+	{
+		if (undefined != this.Spacing.After && undefined != ParaPr.Spacing.After && Math.abs(this.Spacing.After - ParaPr.Spacing.After) < 0.001)
+			Result_ParaPr.Spacing.After = ParaPr.Spacing.After;
+
+		if (this.Spacing.AfterAutoSpacing === ParaPr.Spacing.AfterAutoSpacing)
+			Result_ParaPr.Spacing.AfterAutoSpacing = ParaPr.Spacing.AfterAutoSpacing;
+
+		if (undefined != this.Spacing.Before && undefined != ParaPr.Spacing.Before && Math.abs(this.Spacing.Before - ParaPr.Spacing.Before) < 0.001)
+			Result_ParaPr.Spacing.Before = ParaPr.Spacing.Before;
+
+		if (this.Spacing.BeforeAutoSpacing === ParaPr.Spacing.BeforeAutoSpacing)
+			Result_ParaPr.Spacing.BeforeAutoSpacing = ParaPr.Spacing.BeforeAutoSpacing;
+
+		if (undefined != this.Spacing.Line && undefined != ParaPr.Spacing.Line && Math.abs(this.Spacing.Line - ParaPr.Spacing.Line) < 0.001)
+			Result_ParaPr.Spacing.Line = ParaPr.Spacing.Line;
+
+		if (this.Spacing.LineRule === ParaPr.Spacing.LineRule)
+			Result_ParaPr.Spacing.LineRule = ParaPr.Spacing.LineRule;
+	}
+
+	if (undefined != this.Shd && undefined != ParaPr.Shd && true === this.Shd.Compare(ParaPr.Shd))
+		Result_ParaPr.Shd = ParaPr.Shd.Copy();
+
+	if (undefined != this.Brd.Between && undefined != ParaPr.Brd.Between && true === this.Brd.Between.Compare(ParaPr.Brd.Between))
+		Result_ParaPr.Brd.Between = ParaPr.Brd.Between.Copy();
+
+	if (undefined != this.Brd.Bottom && undefined != ParaPr.Brd.Bottom && true === this.Brd.Bottom.Compare(ParaPr.Brd.Bottom))
+		Result_ParaPr.Brd.Bottom = ParaPr.Brd.Bottom.Copy();
+
+	if (undefined != this.Brd.Left && undefined != ParaPr.Brd.Left && true === this.Brd.Left.Compare(ParaPr.Brd.Left))
+		Result_ParaPr.Brd.Left = ParaPr.Brd.Left.Copy();
+
+	if (undefined != this.Brd.Right && undefined != ParaPr.Brd.Right && true === this.Brd.Right.Compare(ParaPr.Brd.Right))
+		Result_ParaPr.Brd.Right = ParaPr.Brd.Right.Copy();
+
+	if (undefined != this.Brd.Top && undefined != ParaPr.Brd.Top && true === this.Brd.Top.Compare(ParaPr.Brd.Top))
+		Result_ParaPr.Brd.Top = ParaPr.Brd.Top.Copy();
+
+	if (ParaPr.WidowControl === this.WidowControl)
+		Result_ParaPr.WidowControl = ParaPr.WidowControl;
+
+	// PStyle
+	if (undefined != this.PStyle && undefined != ParaPr.PStyle && this.PStyle === ParaPr.PStyle)
+		Result_ParaPr.PStyle = ParaPr.PStyle;
+
+	// NumPr
+	if (undefined != this.NumPr && undefined != ParaPr.NumPr && this.NumPr.NumId === ParaPr.NumPr.NumId)
+	{
+		Result_ParaPr.NumPr       = new CParaPr();
+		Result_ParaPr.NumPr.NumId = ParaPr.NumPr.NumId;
+		Result_ParaPr.NumPr.Lvl   = Math.max(this.NumPr.Lvl, ParaPr.NumPr.Lvl);
+	}
+
+	// Locked
+	if (undefined != this.Locked && undefined != ParaPr.Locked)
+	{
+		if (this.Locked != ParaPr.Locked)
+			Result_ParaPr.Locked = true;
+		else
+			Result_ParaPr.Locked = ParaPr.Locked;
+	}
+
+	// FramePr
+	if (undefined != this.FramePr && undefined != ParaPr.FramePr && true === this.FramePr.Compare(ParaPr.FramePr))
+		Result_ParaPr.FramePr = this.FramePr;
+
+	if (undefined != this.Bullet && undefined != ParaPr.Bullet)
+		Result_ParaPr.Bullet = AscFormat.CompareBullets(ParaPr.Bullet, this.Bullet);
+
+	if (undefined != this.DefaultRunPr && undefined != ParaPr.DefaultRunPr)
+		Result_ParaPr.DefaultRunPr = this.DefaultRunPr.Compare(ParaPr.DefaultRunPr);
+
+	if (undefined != this.Lvl && undefined != ParaPr.Lvl && ParaPr.Lvl === this.Lvl)
+		Result_ParaPr.Lvl = this.Lvl;
+
+
+	if (undefined != this.DefaultTab && undefined != ParaPr.DefaultTab && ParaPr.DefaultTab === this.DefaultTab)
+		Result_ParaPr.DefaultTab = this.DefaultTab;
+
+	if (undefined !== this.Tabs && undefined !== ParaPr.Tabs && this.Tabs.Is_Equal(ParaPr.Tabs))
+		Result_ParaPr.Tabs = this.Tabs.Copy();
+
+	if (this.OutlineLvl === ParaPr.OutlineLvl)
+		Result_ParaPr.OutlineLvl = this.OutlineLvl;
+
+	return Result_ParaPr;
+};
+CParaPr.prototype.Write_ToBinary = function(Writer)
+{
+	var StartPos = Writer.GetCurPosition();
+	Writer.Skip(4);
+	var Flags = 0;
+
+	if (undefined != this.ContextualSpacing)
+	{
+		Writer.WriteBool(this.ContextualSpacing);
+		Flags |= 1;
+	}
+
+	if (undefined != this.Ind)
+	{
+		this.Ind.Write_ToBinary(Writer);
+		Flags |= 2;
+	}
+
+	if (undefined != this.Jc)
+	{
+		Writer.WriteByte(this.Jc);
+		Flags |= 4;
+	}
+
+	if (undefined != this.KeepLines)
+	{
+		Writer.WriteBool(this.KeepLines);
+		Flags |= 8;
+	}
+
+	if (undefined != this.KeepNext)
+	{
+		Writer.WriteBool(this.KeepNext);
+		Flags |= 16;
+	}
+
+	if (undefined != this.PageBreakBefore)
+	{
+		Writer.WriteBool(this.PageBreakBefore);
+		Flags |= 32;
+	}
+
+	if (undefined != this.Spacing)
+	{
+		this.Spacing.Write_ToBinary(Writer);
+		Flags |= 64;
+	}
+
+	if (undefined != this.Shd)
+	{
+		this.Shd.Write_ToBinary(Writer);
+		Flags |= 128;
+	}
+
+	if (undefined != this.Brd.Between)
+	{
+		this.Brd.Between.Write_ToBinary(Writer);
+		Flags |= 256;
+	}
+
+	if (undefined != this.Brd.Bottom)
+	{
+		this.Brd.Bottom.Write_ToBinary(Writer);
+		Flags |= 512;
+	}
+
+	if (undefined != this.Brd.Left)
+	{
+		this.Brd.Left.Write_ToBinary(Writer);
+		Flags |= 1024;
+	}
+
+	if (undefined != this.Brd.Right)
+	{
+		this.Brd.Right.Write_ToBinary(Writer);
+		Flags |= 2048;
+	}
+
+	if (undefined != this.Brd.Top)
+	{
+		this.Brd.Top.Write_ToBinary(Writer);
+		Flags |= 4096;
+	}
+
+	if (undefined != this.WidowControl)
+	{
+		Writer.WriteBool(this.WidowControl);
+		Flags |= 8192;
+	}
+
+	if (undefined != this.Tabs)
+	{
+		this.Tabs.Write_ToBinary(Writer);
+		Flags |= 16384;
+	}
+
+	if (undefined != this.NumPr)
+	{
+		this.NumPr.Write_ToBinary(Writer);
+		Flags |= 32768;
+	}
+
+	if (undefined != this.PStyle)
+	{
+		Writer.WriteString2(this.PStyle);
+		Flags |= 65536;
+	}
+
+	if (undefined != this.FramePr)
+	{
+		this.FramePr.Write_ToBinary(Writer);
+		Flags |= 131072;
+	}
+
+	if (undefined != this.DefaultRunPr)
+	{
+		this.DefaultRunPr.Write_ToBinary(Writer);
+		Flags |= 262144;
+	}
+
+	if (undefined != this.Bullet)
+	{
+		this.Bullet.Write_ToBinary(Writer);
+		Flags |= 524288;
+	}
+
+	if (undefined != this.Lvl)
+	{
+		Writer.WriteByte(this.Lvl);
+		Flags |= 1048576;
+	}
+
+	if (undefined != this.DefaultTab)
+	{
+		Writer.WriteDouble(this.DefaultTab);
+		Flags |= 2097152;
+	}
+
+	if (undefined !== this.OutlineLvl)
+	{
+		Writer.WriteByte(this.OutlineLvl);
+		Flags |= 4194304;
+	}
+
+	if (undefined !== this.PrChange)
+	{
+		this.PrChange.WriteToBinary(Writer);
+		this.ReviewInfo.WriteToBinary(Writer);
+		Flags |= 8388608;
+	}
+
+	var EndPos = Writer.GetCurPosition();
+	Writer.Seek(StartPos);
+	Writer.WriteLong(Flags);
+	Writer.Seek(EndPos);
+};
+CParaPr.prototype.Read_FromBinary = function(Reader)
+{
+	var Flags = Reader.GetLong();
+
+	if (Flags & 1)
+		this.ContextualSpacing = Reader.GetBool();
+
+	if (Flags & 2)
+	{
+		this.Ind = new CParaInd();
+		this.Ind.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 4)
+		this.Jc = Reader.GetByte();
+
+	if (Flags & 8)
+		this.KeepLines = Reader.GetBool();
+
+	if (Flags & 16)
+		this.KeepNext = Reader.GetBool();
+
+	if (Flags & 32)
+		this.PageBreakBefore = Reader.GetBool();
+
+	if (Flags & 64)
+	{
+		this.Spacing = new CParaSpacing();
+		this.Spacing.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 128)
+	{
+		this.Shd = new CDocumentShd();
+		this.Shd.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 256)
+	{
+		this.Brd.Between = new CDocumentBorder();
+		this.Brd.Between.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 512)
+	{
+		this.Brd.Bottom = new CDocumentBorder();
+		this.Brd.Bottom.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 1024)
+	{
+		this.Brd.Left = new CDocumentBorder();
+		this.Brd.Left.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 2048)
+	{
+		this.Brd.Right = new CDocumentBorder();
+		this.Brd.Right.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 4096)
+	{
+		this.Brd.Top = new CDocumentBorder();
+		this.Brd.Top.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 8192)
+		this.WidowControl = Reader.GetBool();
+
+	if (Flags & 16384)
+	{
+		this.Tabs = new CParaTabs();
+		this.Tabs.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 32768)
+	{
+		this.NumPr = new CNumPr();
+		this.NumPr.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 65536)
+		this.PStyle = Reader.GetString2();
+
+	if (Flags & 131072)
+	{
+		this.FramePr = new CFramePr();
+		this.FramePr.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 262144)
+	{
+		this.DefaultRunPr = new CTextPr();
+		this.DefaultRunPr.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 524288)
+	{
+		this.Bullet = new AscFormat.CBullet();
+		this.Bullet.Read_FromBinary(Reader);
+	}
+
+	if (Flags & 1048576)
+	{
+		this.Lvl = Reader.GetByte();
+	}
+
+	if (Flags & 2097152)
+	{
+		this.DefaultTab = Reader.GetDouble();
+	}
+
+	if (Flags & 4194304)
+		this.OutlineLvl = Reader.GetByte();
+
+	if (Flags & 8388608)
+	{
+		this.PrChange   = new CParaPr();
+		this.ReviewInfo = new CReviewInfo();
+		this.PrChange.ReadFromBinary(Reader);
+		this.ReviewInfo.ReadFromBinary(Reader);
+	}
+};
+CParaPr.prototype.isEqual = function(ParaPrUOld,ParaPrNew)
+{
+	if (ParaPrUOld == undefined || ParaPrNew == undefined)
+		return false;
+	for (var pPr in ParaPrUOld)
+	{
+		if (typeof ParaPrUOld[pPr] == 'object')
+		{
+			if (!this.isEqual(ParaPrUOld[pPr], ParaPrNew[pPr]))
+				return false
+		}
+		else
+		{
+			if (typeof ParaPrUOld[pPr] == "number" && typeof ParaPrNew[pPr] == "number")
+			{
+				if (Math.abs(ParaPrUOld[pPr] - ParaPrNew[pPr]) > 0.001)
+					return false;
+			}
+			else if (ParaPrUOld[pPr] != ParaPrNew[pPr])
+				return false;
+		}
+	}
+	return true;
+};
+CParaPr.prototype.Is_Equal = function(ParaPr)
+{
+	if (this.ContextualSpacing !== ParaPr.ContextualSpacing
+		|| true !== IsEqualStyleObjects(this.Ind, ParaPr.Ind)
+		|| this.Jc !== ParaPr.Jc
+		|| this.KeepLines !== ParaPr.KeepLines
+		|| this.KeepNext !== ParaPr.KeepNext
+		|| this.PageBreakBefore !== ParaPr.PageBreakBefore
+		|| true !== IsEqualStyleObjects(this.Spacing, ParaPr.Spacing)
+		|| true !== IsEqualStyleObjects(this.Shd, ParaPr.Shd)
+		|| true !== IsEqualStyleObjects(this.Brd.Between, ParaPr.Brd.Between)
+		|| true !== IsEqualStyleObjects(this.Brd.Bottom, ParaPr.Brd.Bottom)
+		|| true !== IsEqualStyleObjects(this.Brd.Left, ParaPr.Brd.Left)
+		|| true !== IsEqualStyleObjects(this.Brd.Right, ParaPr.Brd.Right)
+		|| true !== IsEqualStyleObjects(this.Brd.Top, ParaPr.Brd.Top)
+		|| this.WidowControl !== ParaPr.WidowControl
+		|| true !== IsEqualStyleObjects(this.Tabs, ParaPr.Tabs)
+		|| true !== IsEqualStyleObjects(this.NumPr, ParaPr.NumPr)
+		|| this.PStyle !== ParaPr.PStyle
+		|| true !== IsEqualStyleObjects(this.FramePr, ParaPr.FramePr)
+		|| this.OutlineLvl !== ParaPr.OutlineLvl)
+		return false;
+
+	return true;
+};
+CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
+{
+	var Bullet = new CPresentationBullet();
+	if (this.Bullet && this.Bullet.isBullet())
+	{
+		switch (this.Bullet.bulletType.type)
+		{
+			case AscFormat.BULLET_TYPE_BULLET_CHAR:
+			{
+				Bullet.m_nType = numbering_presentationnumfrmt_Char;
+				if (typeof this.Bullet.bulletType.Char === "string" && this.Bullet.bulletType.Char.length > 0)
+				{
+					Bullet.m_sChar = this.Bullet.bulletType.Char.substring(0, 1);
+				}
+				else
+				{
+					Bullet.m_sChar = "•";
+				}
+				break;
+			}
+
+			case AscFormat.BULLET_TYPE_BULLET_AUTONUM :
+			{
+				Bullet.m_nType    = g_NumberingArr[this.Bullet.bulletType.AutoNumType];
+				Bullet.m_nStartAt = this.Bullet.bulletType.startAt;
+				break;
+			}
+			case AscFormat.BULLET_TYPE_BULLET_NONE :
+			{
+				break;
+			}
+			case AscFormat.BULLET_TYPE_BULLET_BLIP :
+			{
+				Bullet.m_nType = numbering_presentationnumfrmt_Char;
+				Bullet.m_sChar = "•";
+				break;
+			}
+		}
+
+		if (this.Bullet.bulletColor)
+		{
+			if (this.Bullet.bulletColor.type === AscFormat.BULLET_TYPE_COLOR_NONE)
+			{
+				Bullet.m_bColorTx = false;
+				Bullet.m_oColor.a = 0;
+			}
+			if (this.Bullet.bulletColor.type === AscFormat.BULLET_TYPE_COLOR_CLR)
+			{
+				if (this.Bullet.bulletColor.UniColor && this.Bullet.bulletColor.UniColor.color && theme && colorMap)
+				{
+					Bullet.m_bColorTx = false;
+					Bullet.Unifill    = AscFormat.CreateUniFillByUniColor(this.Bullet.bulletColor.UniColor);
+				}
+			}
+		}
+		if (this.Bullet.bulletTypeface)
+		{
+			if (this.Bullet.bulletTypeface.type == AscFormat.BULLET_TYPE_TYPEFACE_BUFONT)
+			{
+				Bullet.m_bFontTx = false;
+				Bullet.m_sFont   = this.Bullet.bulletTypeface.typeface;
+			}
+
+		}
+		if (this.Bullet.bulletSize)
+		{
+			switch (this.Bullet.bulletSize.type)
+			{
+				case AscFormat.BULLET_TYPE_SIZE_TX:
+				{
+					Bullet.m_bSizeTx = true;
+					break;
+				}
+				case AscFormat.BULLET_TYPE_SIZE_PCT:
+				{
+					Bullet.m_bSizeTx  = false;
+					Bullet.m_bSizePct = true;
+					Bullet.m_dSize    = this.Bullet.bulletSize.val / 100000.0;
+					break;
+				}
+				case AscFormat.BULLET_TYPE_SIZE_PTS:
+				{
+					Bullet.m_bSizeTx  = false;
+					Bullet.m_bSizePct = false;
+					Bullet.m_dSize    = this.Bullet.bulletSize.val / 100.0;
+					break;
+				}
+			}
+		}
+	}
+	return Bullet;
+};
+CParaPr.prototype.Is_Empty = function()
 {
 	if (undefined !== this.ContextualSpacing
 		|| true !== this.Ind.Is_Empty()
@@ -10955,48 +11054,78 @@ CParaPr.prototype.Is_Empty         = function()
 };
 CParaPr.prototype.GetDiffPrChange = function()
 {
-    var ParaPr = new CParaPr();
+	var ParaPr = new CParaPr();
 
-    if (false === this.HavePrChange())
-        return ParaPr;
+	if (false === this.HavePrChange())
+		return ParaPr;
 
-    var PrChange = this.PrChange;
+	var PrChange = this.PrChange;
 
-    if (this.ContextualSpacing !== PrChange.ContextualSpacing)
-        ParaPr.ContextualSpacing = this.ContextualSpacing;
+	if (this.ContextualSpacing !== PrChange.ContextualSpacing)
+		ParaPr.ContextualSpacing = this.ContextualSpacing;
 
-    ParaPr.Ind = this.Ind.Get_Diff(PrChange.Ind);
+	ParaPr.Ind = this.Ind.Get_Diff(PrChange.Ind);
 
-    if (this.Jc !== PrChange.Jc)
-        ParaPr.Jc = this.Jc;
+	if (this.Jc !== PrChange.Jc)
+		ParaPr.Jc = this.Jc;
 
-    if (this.KeepLines !== PrChange.KeepLines)
-        ParaPr.KeepLines = this.KeepLines;
+	if (this.KeepLines !== PrChange.KeepLines)
+		ParaPr.KeepLines = this.KeepLines;
 
-    if (this.KeepNext !== PrChange.KeepNext)
-        ParaPr.KeepNext = this.KeepNext;
+	if (this.KeepNext !== PrChange.KeepNext)
+		ParaPr.KeepNext = this.KeepNext;
 
-    if (this.PageBreakBefore !== PrChange.PageBreakBefore)
-        ParaPr.PageBreakBefore = this.PageBreakBefore;
+	if (this.PageBreakBefore !== PrChange.PageBreakBefore)
+		ParaPr.PageBreakBefore = this.PageBreakBefore;
 
-    ParaPr.Spacing = this.Spacing.Get_Diff(PrChange.Spacing);
+	ParaPr.Spacing = this.Spacing.Get_Diff(PrChange.Spacing);
 
-    // TODO: Shd
-    // TODO: Brd
+	// TODO: Shd
+	// TODO: Brd
 
-    if (this.WidowControl !== PrChange.WidowControl)
-        ParaPr.WidowControl = this.WidowControl;
+	if (this.WidowControl !== PrChange.WidowControl)
+		ParaPr.WidowControl = this.WidowControl;
 
-    if (this.Tabs !== PrChange.Tabs)
-        ParaPr.Tabs = this.Tabs;
+	if (this.Tabs !== PrChange.Tabs)
+		ParaPr.Tabs = this.Tabs;
 
-    if (this.NumPr !== PrChange.NumPr)
-        ParaPr.NumPr = this.NumPr;
+	if (this.NumPr !== PrChange.NumPr)
+		ParaPr.NumPr = this.NumPr;
 
-    if (this.PStyle !== PrChange.PStyle)
-        ParaPr.PStyle = this.PStyle;
+	if (this.PStyle !== PrChange.PStyle)
+		ParaPr.PStyle = this.PStyle;
 
-    return ParaPr;
+	return ParaPr;
+};
+CParaPr.prototype.HavePrChange = function()
+{
+	if (undefined === this.PrChange || null === this.PrChange)
+		return false;
+
+	return true;
+};
+CParaPr.prototype.GetPrChangeNumPr = function()
+{
+	if (!this.HavePrChange() || !this.PrChange.NumPr)
+		return null;
+
+	return this.PrChange.NumPr;
+};
+CParaPr.prototype.AddPrChange = function()
+{
+	this.PrChange   = this.Copy();
+	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo.Update();
+};
+CParaPr.prototype.SetPrChange = function(PrChange, ReviewInfo)
+{
+	this.PrChange   = PrChange;
+	this.ReviewInfo = ReviewInfo;
+};
+CParaPr.prototype.RemovePrChange = function()
+{
+	delete this.PrChange;
+	delete this.ReviewInfo;
 };
 CParaPr.prototype.GetContextualSpacing = function()
 {

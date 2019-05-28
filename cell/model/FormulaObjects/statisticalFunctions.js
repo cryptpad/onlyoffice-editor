@@ -776,7 +776,7 @@ function (window, undefined) {
 
 		if (null !== calcTest) {
 			if (false === calcTest) {
-				return new cError(cErrorType.wrong_value_type);
+				return new cError(cErrorType.division_by_zero);
 			} else {
 				fT = calcTest.fT;
 				fF = calcTest.fF;
@@ -1023,7 +1023,7 @@ function (window, undefined) {
 				//return HUGE_VAL;
 				return;
 			}
-			return fA * pow(fX, fA - 1);
+			return fA * Math.pow(fX, fA - 1);
 		}
 		if (fX <= 0) {
 			if (fA < 1 && fX === 0) {
@@ -2767,7 +2767,7 @@ function (window, undefined) {
 							}
 							break;
 						case 7 : // SUM
-							while (i < mnCount && maRange[i].X === maRange[i - 1].X) {
+							while (i < this.mnCount && maRange[i].X === maRange[i - 1].X) {
 								fTmp += maRange[i].Y;
 								maRange.splice(i, 1);
 								--this.mnCount;
@@ -2800,7 +2800,7 @@ function (window, undefined) {
 
 							var aTmp = [];
 							aTmp.push(maRange[i - 1].Y);
-							while (i < mnCount && maRange[i].X === maRange[i - 1].X) {
+							while (i < this.mnCount && maRange[i].X === maRange[i - 1].X) {
 								aTmp.push(maRange[i].Y);
 								nCounter++;
 								maRange.splice(i, 1);
@@ -3624,6 +3624,7 @@ function (window, undefined) {
 		var z = gaussinv(( 1.0 + fPILevel ) / 2.0);
 		var o = 1 - fPILevel;
 		//std::vector< double > c( nSize );
+		var c = [];
 		for (var i = 0; i < nSize; i++) {
 			c[i] = Math.sqrt(1 + ( fPILevel / Math.pow(1 + o, 3.0) ) *
 				( ( 1 + 4 * o + 5 * o * o ) + 2 * ( i ) * fPILevel * ( 1 + 3 * o ) + 2 * ( i * i ) * fPILevel *

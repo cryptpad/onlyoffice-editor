@@ -172,14 +172,16 @@ CCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, AdditionalIn
 							};
 						}
 						else {
-							check_obj =
-							{
-								"type": c_oAscLockTypeElemPresentation.Object,
-								"slideId": Class.Parent.slide.deleteLock.Get_Id(),
-								"objId": Class.Get_Id(),
-								"guid": Class.Get_Id()
-							};
-							map[Class.Parent.slide.num] = true;
+                            if(Class.Parent.slide.deleteLock){
+                                check_obj =
+                                {
+                                    "type": c_oAscLockTypeElemPresentation.Object,
+                                    "slideId": Class.Parent.slide.deleteLock.Get_Id(),
+                                    "objId": Class.Get_Id(),
+                                    "guid": Class.Get_Id()
+                                };
+                                map[Class.Parent.slide.num] = true;
+                            }
 						}
 					}
 				}

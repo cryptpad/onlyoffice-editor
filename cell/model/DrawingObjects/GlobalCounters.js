@@ -147,7 +147,7 @@ CCollaborativeEditing.prototype.SendImagesCallback = function (aImages)
     {
         bOldVal =  oApi.ImageLoader.bIsAsyncLoadDocumentImages;
         oApi.ImageLoader.bIsAsyncLoadDocumentImages = true;
-        oApi.ImageLoader.LoadDocumentImages(aImages, null);
+        oApi.ImageLoader.LoadDocumentImages(aImages);
         oApi.ImageLoader.bIsAsyncLoadDocumentImages = bOldVal;
         this.WaitImages = {};
     }

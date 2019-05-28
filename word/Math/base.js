@@ -2528,6 +2528,19 @@ CMathBase.prototype.GetReviewType = function()
 
     return reviewtype_Common;
 };
+CMathBase.prototype.GetReviewInfo = function()
+{
+	if (this.Id)
+		return this.ReviewInfo;
+	else if (this.Parent && this.Parent.GetReviewInfo)
+		return this.Parent.GetReviewInfo();
+
+	return new CReviewInfo();
+};
+CMathBase.prototype.GetReviewMoveType = function()
+{
+	return this.GetReviewInfo().MoveType;
+};
 CMathBase.prototype.GetReviewColor = function()
 {
     if (this.Id)
@@ -2571,21 +2584,21 @@ CMathBase.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo)
 	History.Add(new CChangesMathBaseReviewType(this, {Type : this.ReviewType, Info : this.ReviewInfo}, {Type : ReviewType, Info : ReviewInfo}));
 	this.raw_SetReviewType(ReviewType, ReviewInfo);
 };
-CMathBase.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+CMathBase.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
     var ReviewType = this.GetReviewType();
 
     if (true !== Checker.Is_CheckOnlyTextPr())
     {
-        if (ReviewType !== Checker.Get_AddRemoveType() || (reviewtype_Common !== ReviewType && this.ReviewInfo.Get_UserId() !== Checker.Get_AddRemoveUserId()))
+        if (ReviewType !== Checker.GetAddRemoveType() || (reviewtype_Common !== ReviewType && (this.ReviewInfo.GetUserId() !== Checker.Get_AddRemoveUserId() || this.GetReviewMoveType() !== Checker.GetAddRemoveMoveType())))
         {
-            Checker.Flush_AddRemoveChange();
+            Checker.FlushAddRemoveChange();
             ContentPos.Update(0, Depth);
 
             if (reviewtype_Add === ReviewType || reviewtype_Remove === ReviewType)
             {
                 this.Get_StartPos(ContentPos, Depth);
-                Checker.Start_AddRemove(ReviewType, ContentPos);
+                Checker.StartAddRemove(ReviewType, ContentPos, this.GetReviewMoveType());
             }
         }
 
@@ -2619,7 +2632,7 @@ CMathBase.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth
     if (reviewtype_Common !== ReviewType)
         Checker.Begin_CheckOnlyTextPr();
 
-    CParagraphContentWithParagraphLikeContent.prototype.Check_RevisionsChanges.apply(this, arguments);
+    CParagraphContentWithParagraphLikeContent.prototype.CheckRevisionsChanges.apply(this, arguments);
 
     if (reviewtype_Common !== ReviewType)
         Checker.End_CheckOnlyTextPr();

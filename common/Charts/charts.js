@@ -780,7 +780,7 @@ TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
 	oBodypr.prstTxWarp = AscFormat.ExecuteNoHistory(
 		function()
 		{
-			return  CreatePrstTxWarpGeometry(prst)
+			return AscFormat.CreatePrstTxWarpGeometry(prst)
 		}, []);
 	if(!oShape.bWordShape)
 	{
@@ -815,6 +815,8 @@ TextArtPreviewManager.prototype.getShape =  function()
 			}
 		}
 	}
+
+
 	var oParentObjects = oShape.getParentObjects();
 	var oTrack = new AscFormat.NewShapeTrack("textRect", 0, 0, oParentObjects.theme, oParentObjects.master, oParentObjects.layout, oParentObjects.slide, 0);
 	oTrack.track({}, oShape.convertPixToMM(this.canvasWidth), oShape.convertPixToMM(this.canvasHeight));
@@ -855,18 +857,34 @@ TextArtPreviewManager.prototype.getTAShape = function()
 {
 	if(!this.TAShape)
 	{
+
+		var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
+		var TrackRevisions = (MainLogicDocument && MainLogicDocument.IsTrackRevisions ? MainLogicDocument.IsTrackRevisions() : false);
+		if (MainLogicDocument && true === TrackRevisions)
+			MainLogicDocument.SetTrackRevisions(false);
 		var oShape = this.getShape();
         if(!oShape)
         {
+			if (MainLogicDocument && true === TrackRevisions)
+				MainLogicDocument.SetTrackRevisions(true);
             return null;
         }
 		var oContent = oShape.getDocContent();
-		oContent.AddText("Ta");
-		oContent.Set_ApplyToAll(true);
-		oContent.AddToParagraph(new ParaTextPr({FontSize: 109, RFonts: {Ascii : {Name: "Arial", Index: -1}}}));
-		oContent.SetParagraphAlign(AscCommon.align_Center);
-		oContent.SetParagraphIndent({FirstLine: 0, Left: 0, Right: 0});
-		oContent.Set_ApplyToAll(false);
+		if(oContent)
+		{
+			if(oContent.MoveCursorToStartPos)
+			{
+				oContent.MoveCursorToStartPos();
+			}
+			oContent.AddText("Ta");
+			oContent.Set_ApplyToAll(true);
+			oContent.AddToParagraph(new ParaTextPr({FontSize: 109, RFonts: {Ascii : {Name: "Arial", Index: -1}}}));
+			oContent.SetParagraphAlign(AscCommon.align_Center);
+			oContent.SetParagraphIndent({FirstLine: 0, Left: 0, Right: 0});
+			oContent.Set_ApplyToAll(false);
+		}
+		if (MainLogicDocument && true === TrackRevisions)
+			MainLogicDocument.SetTrackRevisions(true);
 		this.TAShape = oShape;
 	}
 	return this.TAShape;
@@ -963,9 +981,9 @@ function GenerateWordArtPrewiewCode()
 	var oWordArtPreview = new TextArtPreviewManager();
 	var i, j;
 	var oRetString =  "g_PresetTxWarpTypes = \n [";
-	for(i = 0; i < g_PresetTxWarpTypes.length; ++i)
+	for(i = 0; i < AscCommon.g_PresetTxWarpTypes.length; ++i)
 	{
-		var aByTypes = g_PresetTxWarpTypes[i];
+		var aByTypes = AscCommon.g_PresetTxWarpTypes[i];
 		oRetString += "\n\t[";
 		for(j = 0; j < aByTypes.length; ++j)
 		{

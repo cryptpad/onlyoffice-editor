@@ -438,8 +438,19 @@ function BinaryPPTYLoader()
             pres.fromStream(s, this);
 
             this.presentation.defaultTextStyle = pres.defaultTextStyle;
-            this.presentation.Width = pres.SldSz.cx / c_dScalePPTXSizes;
-            this.presentation.Height = pres.SldSz.cy / c_dScalePPTXSizes;
+            if(pres.SldSz)
+            {
+                this.presentation.Width = pres.SldSz.cx / c_dScalePPTXSizes;
+                this.presentation.Height = pres.SldSz.cy / c_dScalePPTXSizes;
+            }
+            else
+            {
+                this.presentation.Width = 254;
+                this.presentation.Height = 190.5;
+                pres.SldSz = {};
+                pres.SldSz.cx = this.presentation.Width * c_dScalePPTXSizes;
+                pres.SldSz.cy = this.presentation.Height * c_dScalePPTXSizes;
+            }
         }
 
         if (!this.IsThemeLoader)
@@ -6958,7 +6969,7 @@ function BinaryPPTYLoader()
                         case 5: props.TextDirection = Asc.c_oAscCellTextDirection.BTLR; break;
                         case 6: props.TextDirection = Asc.c_oAscCellTextDirection.TBRL; break;
                         default:
-                            props.TextDirection = LRTB;
+                            props.TextDirection = Asc.c_oAscCellTextDirection.LRTB;
                             break;
                     }
                     break;
@@ -9240,7 +9251,7 @@ CCore.prototype.asc_getCreated = function(){return this.created;};
 CCore.prototype.asc_getModified = function(){return this.modified;};
 CCore.prototype.asc_getCategory = function(){return this.category;};
 CCore.prototype.asc_getContentStatus = function(){return this.contentStatus;};
-CCore.prototype.asc_getSescription = function(){return this.description;};
+CCore.prototype.asc_getDescription = function(){return this.description;};
 CCore.prototype.asc_getIdentifier = function(){return this.identifier;};
 CCore.prototype.asc_getKeywords = function(){return this.keywords;};
 CCore.prototype.asc_getLanguage = function(){return this.language;};

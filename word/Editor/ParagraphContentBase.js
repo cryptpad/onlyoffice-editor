@@ -173,6 +173,10 @@ CParagraphContentBase.prototype.Copy = function(Selected)
 {
 	return new this.constructor();
 };
+CParagraphContentBase.prototype.GetSelectedContent = function(oSelectedContent)
+{
+	return this.Copy();
+};
 CParagraphContentBase.prototype.CopyContent = function(Selected)
 {
 	return [];
@@ -554,7 +558,7 @@ CParagraphContentBase.prototype.SetReviewType = function(ReviewType, RemovePrCha
 CParagraphContentBase.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo)
 {
 };
-CParagraphContentBase.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+CParagraphContentBase.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
 };
 CParagraphContentBase.prototype.AcceptRevisionChanges = function(Type, bAll)
@@ -613,6 +617,47 @@ CParagraphContentBase.prototype.GetAllFields = function(isUseSelection, arrField
 CParagraphContentBase.prototype.CanAddComment = function()
 {
 	return true;
+};
+/**
+ * Получаем позицию заданного элемента в документе
+ * @param {?Array} arrPosArray
+ * @returns {Array}
+ */
+CParagraphContentBase.prototype.GetDocumentPositionFromObject = function(arrPosArray)
+{
+	if (!arrPosArray)
+		arrPosArray = [];
+
+	if (this.Paragraph)
+	{
+		var oParaContentPos = this.Paragraph.Get_PosByElement(this);
+		if (oParaContentPos)
+		{
+			var nDepth = oParaContentPos.Get_Depth();
+			while (nDepth > 0)
+			{
+				var Pos = oParaContentPos.Get(nDepth);
+				oParaContentPos.Decrease_Depth(1);
+				var Class = this.Paragraph.Get_ElementByPos(oParaContentPos);
+				nDepth--;
+
+				arrPosArray.splice(0, 0, {Class : Class, Position : Pos});
+			}
+			arrPosArray.splice(0, 0, {Class : this.Paragraph, Position : oParaContentPos.Get(0)});
+		}
+
+		this.Paragraph.GetDocumentPositionFromObject(arrPosArray);
+	}
+
+	return arrPosArray;
+};
+/**
+ * Проверяем есть ли выделение внутри объекта
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.IsSelectionUse = function()
+{
+	return false;
 };
 
 /**
@@ -774,10 +819,10 @@ CParagraphContentWithContentBase.prototype.protected_GetPrevRangeEndPos = functi
 };
 CParagraphContentWithContentBase.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.Get_TrackRevisionsManager)
+    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.Paragraph.LogicDocument.Get_TrackRevisionsManager();
-        RevisionsManager.Check_Paragraph(this.Paragraph);
+        var RevisionsManager = this.Paragraph.LogicDocument.GetTrackRevisionsManager();
+        RevisionsManager.CheckElement(this.Paragraph);
     }
 };
 CParagraphContentWithContentBase.prototype.CanSplit = function()
@@ -850,6 +895,35 @@ CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oP
     }
 
     return NewElement;
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetSelectedContent = function(oSelectedContent)
+{
+	var oNewElement = new this.constructor();
+
+	var nStartPos = this.State.Selection.StartPos;
+	var nEndPos   = this.State.Selection.EndPos;
+
+	if (nStartPos > nEndPos)
+	{
+		nStartPos = this.State.Selection.EndPos;
+		nEndPos   = this.State.Selection.StartPos;
+	}
+
+	var nItemPos = 0;
+	for (var nPos = nStartPos, nItemPos = 0; nPos <= nEndPos; ++nPos)
+	{
+		var oNewItem = this.Content[nPos].GetSelectedContent(oSelectedContent);
+		if (oNewItem)
+		{
+			oNewElement.AddToContent(nItemPos, oNewItem);
+			nItemPos++;
+		}
+	}
+
+	if (0 === nItemPos)
+		return null;
+
+	return oNewElement;
 };
 CParagraphContentWithParagraphLikeContent.prototype.CopyContent = function(Selected)
 {
@@ -1770,7 +1844,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_ClassesByPos = function(
     if (0 <= CurPos && CurPos <= this.Content.length - 1)
         this.Content[CurPos].Get_ClassesByPos(Classes, ContentPos, Depth + 1);
 };
-CParagraphContentWithParagraphLikeContent.prototype.Get_ContentLength = function()
+CParagraphContentWithParagraphLikeContent.prototype.GetContentLength = function()
 {
     return this.Content.length;
 };
@@ -3170,12 +3244,12 @@ CParagraphContentWithParagraphLikeContent.prototype.SetReviewTypeWithInfo = func
             Element.SetReviewTypeWithInfo(ReviewType, ReviewInfo);
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {
     for (var CurPos = 0, Count = this.Content.length; CurPos < Count; CurPos++)
     {
         ContentPos.Update(CurPos, Depth);
-        this.Content[CurPos].Check_RevisionsChanges(Checker, ContentPos, Depth + 1);
+        this.Content[CurPos].CheckRevisionsChanges(Checker, ContentPos, Depth + 1);
     }
 };
 CParagraphContentWithParagraphLikeContent.prototype.AcceptRevisionChanges = function(Type, bAll)
@@ -3296,10 +3370,10 @@ CParagraphContentWithParagraphLikeContent.prototype.RejectRevisionChanges = func
 };
 CParagraphContentWithParagraphLikeContent.prototype.private_UpdateTrackRevisions = function()
 {
-    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.Get_TrackRevisionsManager)
+    if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.LogicDocument.GetTrackRevisionsManager)
     {
-        var RevisionsManager = this.Paragraph.LogicDocument.Get_TrackRevisionsManager();
-        RevisionsManager.Check_Paragraph(this.Paragraph);
+        var RevisionsManager = this.Paragraph.LogicDocument.GetTrackRevisionsManager();
+        RevisionsManager.CheckElement(this.Paragraph);
     }
 };
 CParagraphContentWithParagraphLikeContent.prototype.private_CheckUpdateBookmarks = function(Items)
@@ -3642,6 +3716,8 @@ CParagraphContentWithParagraphLikeContent.prototype.PreDelete = function()
 		if (this.Content[nIndex] && this.Content[nIndex].PreDelete)
 			this.Content[nIndex].PreDelete();
 	}
+
+	this.RemoveSelection();
 };
 CParagraphContentWithParagraphLikeContent.prototype.GetCurrentComplexFields = function(arrComplexFields, isCurrent, isFieldPos)
 {

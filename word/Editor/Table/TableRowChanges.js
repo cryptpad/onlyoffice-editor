@@ -45,7 +45,8 @@ AscDFH.changesFactory[AscDFH.historyitem_TableRow_AddCell]     = CChangesTableRo
 AscDFH.changesFactory[AscDFH.historyitem_TableRow_RemoveCell]  = CChangesTableRowRemoveCell;
 AscDFH.changesFactory[AscDFH.historyitem_TableRow_TableHeader] = CChangesTableRowTableHeader;
 AscDFH.changesFactory[AscDFH.historyitem_TableRow_Pr]          = CChangesTableRowPr;
-
+AscDFH.changesFactory[AscDFH.historyitem_TableRow_PrChange]    = CChangesTableRowPrChange;
+AscDFH.changesFactory[AscDFH.historyitem_TableRow_ReviewType]  = CChangesTableRowReviewType;
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
@@ -83,7 +84,15 @@ AscDFH.changesRelationMap[AscDFH.historyitem_TableRow_Pr]          = [
 	AscDFH.historyitem_TableRow_CellSpacing,
 	AscDFH.historyitem_TableRow_Height,
 	AscDFH.historyitem_TableRow_TableHeader,
+	AscDFH.historyitem_TableRow_Pr,
+	AscDFH.historyitem_TableRow_PrChange
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_TableRow_PrChange] = [
+	AscDFH.historyitem_TableRow_PrChange,
 	AscDFH.historyitem_TableRow_Pr
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_TableRow_ReviewType] = [
+	AscDFH.historyitem_TableRow_ReviewType
 ];
 /**
  * Общая функция объединения изменений, которые зависят только от себя и AscDFH.historyitem_TableRow_Pr
@@ -431,6 +440,7 @@ CChangesTableRowAddCell.prototype.Undo = function()
 	oRow.Content.splice(this.Pos, 1);
 	oRow.CellsInfo.splice(this.Pos, 1);
 	oRow.Internal_ReIndexing(this.Pos);
+	oRow.private_CheckCurCell();
 };
 CChangesTableRowAddCell.prototype.Redo = function()
 {
@@ -441,6 +451,7 @@ CChangesTableRowAddCell.prototype.Redo = function()
 	oRow.Content.splice(this.Pos, 0, this.Items[0]);
 	oRow.CellsInfo.splice(this.Pos, 0, {});
 	oRow.Internal_ReIndexing(this.Pos);
+	oRow.private_CheckCurCell();
 };
 CChangesTableRowAddCell.prototype.private_WriteItem = function(Writer, Item)
 {
@@ -467,6 +478,7 @@ CChangesTableRowAddCell.prototype.Load = function(Color)
 	}
 
 	oRow.Internal_ReIndexing();
+	oRow.private_CheckCurCell();
 };
 CChangesTableRowAddCell.prototype.IsRelated = function(oChanges)
 {
@@ -499,6 +511,7 @@ CChangesTableRowRemoveCell.prototype.Undo = function()
 	oRow.Content.splice(this.Pos, 0, this.Items[0]);
 	oRow.CellsInfo.splice(this.Pos, 0, {});
 	oRow.Internal_ReIndexing(this.Pos);
+	oRow.private_CheckCurCell();
 };
 CChangesTableRowRemoveCell.prototype.Redo = function()
 {
@@ -510,6 +523,7 @@ CChangesTableRowRemoveCell.prototype.Redo = function()
 	oRow.Content.splice(this.Pos, 1);
 	oRow.CellsInfo.splice(this.Pos, 1);
 	oRow.Internal_ReIndexing(this.Pos);
+	oRow.private_CheckCurCell();
 };
 CChangesTableRowRemoveCell.prototype.private_WriteItem = function(Writer, Item)
 {
@@ -535,6 +549,7 @@ CChangesTableRowRemoveCell.prototype.Load = function(Color)
 	AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(oRow, Pos, 1);
 
 	oRow.Internal_ReIndexing();
+	oRow.private_CheckCurCell();
 };
 CChangesTableRowRemoveCell.prototype.IsRelated = function(oChanges)
 {
@@ -630,4 +645,201 @@ CChangesTableRowPr.prototype.Merge = function(oChange)
 	}
 
 	return true;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBase}
+ */
+function CChangesTableRowPrChange(Class, Old, New)
+{
+	AscDFH.CChangesBase.call(this, Class);
+
+	this.Old = Old;
+	this.New = New;
+}
+CChangesTableRowPrChange.prototype = Object.create(AscDFH.CChangesBase.prototype);
+CChangesTableRowPrChange.prototype.constructor = CChangesTableRowPrChange;
+CChangesTableRowPrChange.prototype.Type = AscDFH.historyitem_TableRow_PrChange;
+CChangesTableRowPrChange.prototype.Undo = function()
+{
+	var oTableRow = this.Class;
+	oTableRow.Pr.PrChange   = this.Old.PrChange;
+	oTableRow.Pr.ReviewInfo = this.Old.ReviewInfo;
+	oTableRow.private_UpdateTrackRevisions();
+};
+CChangesTableRowPrChange.prototype.Redo = function()
+{
+	var oTableRow = this.Class;
+	oTableRow.Pr.PrChange   = this.New.PrChange;
+	oTableRow.Pr.ReviewInfo = this.New.ReviewInfo;
+	oTableRow.private_UpdateTrackRevisions();
+};
+CChangesTableRowPrChange.prototype.WriteToBinary = function(oWriter)
+{
+	// Long : Flags
+	// 1-bit : is New.PrChange undefined ?
+	// 2-bit : is New.ReviewInfo undefined ?
+	// 3-bit : is Old.PrChange undefined ?
+	// 4-bit : is Old.ReviewInfo undefined ?
+	// Variable(CTableRowPr) : New.PrChange   (1bit = 0)
+	// Variable(CReviewInfo) : New.ReviewInfo (2bit = 0)
+	// Variable(CTableRowPr) : Old.PrChange   (3bit = 0)
+	// Variable(CReviewInfo) : Old.ReviewInfo (4bit = 0)
+
+	var nFlags = 0;
+	if (undefined === this.New.PrChange)
+		nFlags |= 1;
+
+	if (undefined === this.New.ReviewInfo)
+		nFlags |= 2;
+
+	if (undefined === this.Old.PrChange)
+		nFlags |= 4;
+
+	if (undefined === this.Old.ReviewInfo)
+		nFlags |= 8;
+
+	oWriter.WriteLong(nFlags);
+
+	if (undefined !== this.New.PrChange)
+		this.New.PrChange.WriteToBinary(oWriter);
+
+	if (undefined !== this.New.ReviewInfo)
+		this.New.ReviewInfo.WriteToBinary(oWriter);
+
+	if (undefined !== this.Old.PrChange)
+		this.Old.PrChange.WriteToBinary(oWriter);
+
+	if (undefined !== this.Old.ReviewInfo)
+		this.Old.ReviewInfo.WriteToBinary(oWriter);
+};
+CChangesTableRowPrChange.prototype.ReadFromBinary = function(oReader)
+{
+	// Long : Flags
+	// 1-bit : is New.PrChange undefined ?
+	// 2-bit : is New.ReviewInfo undefined ?
+	// 3-bit : is Old.PrChange undefined ?
+	// 4-bit : is Old.ReviewInfo undefined ?
+	// Variable(CTableRowPr) : New.PrChange   (1bit = 0)
+	// Variable(CReviewInfo) : New.ReviewInfo (2bit = 0)
+	// Variable(CTableRowPr) : Old.PrChange   (3bit = 0)
+	// Variable(CReviewInfo) : Old.ReviewInfo (4bit = 0)
+
+	var nFlags = oReader.GetLong();
+
+	this.New = {
+		PrChange   : undefined,
+		ReviewInfo : undefined
+	};
+
+	this.Old = {
+		PrChange   : undefined,
+		ReviewInfo : undefined
+	};
+
+	if (nFlags & 1)
+	{
+		this.New.PrChange = undefined;
+	}
+	else
+	{
+		this.New.PrChange = new CTableRowPr();
+		this.New.PrChange.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 2)
+	{
+		this.New.ReviewInfo = undefined;
+	}
+	else
+	{
+		this.New.ReviewInfo = new CReviewInfo();
+		this.New.ReviewInfo.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 4)
+	{
+		this.Old.PrChange = undefined;
+	}
+	else
+	{
+		this.Old.PrChange = new CTableRowPr();
+		this.Old.PrChange.ReadFromBinary(oReader);
+	}
+
+	if (nFlags & 8)
+	{
+		this.Old.ReviewInfo = undefined;
+	}
+	else
+	{
+		this.Old.ReviewInfo = new CReviewInfo();
+		this.Old.ReviewInfo.ReadFromBinary(oReader);
+	}
+};
+CChangesTableRowPrChange.prototype.CreateReverseChange = function()
+{
+	return new CChangesTableRowPrChange(this.Class, this.New, this.Old);
+};
+CChangesTableRowPrChange.prototype.Merge = function(oChange)
+{
+	if (this.Class !== oChange.Class)
+		return true;
+
+	if (oChange.Type === this.Type || AscDFH.historyitem_TableRow_Pr === oChange.Type)
+		return false;
+
+	return true;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseProperty}
+ */
+function CChangesTableRowReviewType(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseProperty.call(this, Class, Old, New, Color);
+}
+CChangesTableRowReviewType.prototype = Object.create(AscDFH.CChangesBaseProperty.prototype);
+CChangesTableRowReviewType.prototype.constructor = CChangesTableRowReviewType;
+CChangesTableRowReviewType.prototype.Type = AscDFH.historyitem_TableRow_ReviewType;
+CChangesTableRowReviewType.prototype.WriteToBinary = function(oWriter)
+{
+	// Long        : New ReviewType
+	// CReviewInfo : New ReviewInfo
+	// Long        : Old ReviewType
+	// CReviewInfo : Old ReviewInfo
+	oWriter.WriteLong(this.New.ReviewType);
+	this.New.ReviewInfo.WriteToBinary(oWriter);
+	oWriter.WriteLong(this.Old.ReviewType);
+	this.Old.ReviewInfo.WriteToBinary(oWriter);
+};
+CChangesTableRowReviewType.prototype.ReadFromBinary = function(oReader)
+{
+	// Long        : New ReviewType
+	// CReviewInfo : New ReviewInfo
+	// Long        : Old ReviewType
+	// CReviewInfo : Old ReviewInfo
+
+	this.New = {
+		ReviewType : reviewtype_Common,
+		ReviewInfo : new CReviewInfo()
+	};
+
+	this.Old = {
+		ReviewType : reviewtype_Common,
+		ReviewInfo : new CReviewInfo()
+	};
+
+	this.New.ReviewType = oReader.GetLong();
+	this.New.ReviewInfo.ReadFromBinary(oReader);
+	this.Old.ReviewType = oReader.GetLong();
+	this.Old.ReviewInfo.ReadFromBinary(oReader);
+};
+CChangesTableRowReviewType.prototype.private_SetValue = function(Value)
+{
+	var oTableRow = this.Class;
+
+	oTableRow.ReviewType = Value.ReviewType;
+	oTableRow.ReviewInfo = Value.ReviewInfo;
+	oTableRow.private_UpdateTrackRevisions();
 };

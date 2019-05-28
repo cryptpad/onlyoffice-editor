@@ -211,6 +211,9 @@ function CEditorPage(api)
 	this.m_oScrollVer_   = null;
 	this.m_oScrollThumb_ = null;
 	this.m_oScrollNotes_ = null;
+	this.m_nVerticalSlideChangeOnScrollInterval = 300; // AscCommon.AscBrowser.isMacOs ? 300 : 0; // как часто можно менять слайды при вертикальном скролле
+	this.m_nVerticalSlideChangeOnScrollLast = -1;
+    this.m_nVerticalSlideChangeOnScrollEnabled = false;
 
 	this.m_oScrollHorApi   = null;
 	this.m_oScrollVerApi   = null;
@@ -299,6 +302,7 @@ function CEditorPage(api)
 
 	// сплиттеры (для табнейлов и для заметок)
 	this.Splitter1Pos    = 0;
+    this.Splitter1PosSetUp = 0;
 	this.Splitter1PosMin = 0;
 	this.Splitter1PosMax = 0;
 
@@ -450,6 +454,7 @@ function CEditorPage(api)
 		this.m_oBody = CreateControlContainer(this.Name);
 
 		this.Splitter1Pos    = 67.5;
+        this.Splitter1PosSetUp = this.Splitter1Pos;
 		this.Splitter2Pos    = (this.IsSupportNotes === true) ? 11 : 0;
 
 		this.OldSplitter1Pos = this.Splitter1Pos;
@@ -696,7 +701,7 @@ function CEditorPage(api)
 
 
 			styleContent += "";
-			styleContent += ".btn-text-default { position: absolute; background: #fff; border: 1px solid #cfcfcf; border-radius: 2px; color: #444444; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 20px; cursor: pointer; }";
+			styleContent += ".btn-text-default { position: absolute; background: #fff; border: 1px solid #cfcfcf; border-radius: 2px; color: #444444; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }";
 			styleContent += ".btn-text-default-img { background-repeat: no-repeat; position: absolute; background: transparent; border: none; color: #444444; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }";
 			styleContent += ".btn-text-default-img:focus { outline: 0; outline-offset: 0; } .btn-text-default-img:hover { background-color: #d8dadc; }";
 			styleContent += ".btn-text-default-img:active, .btn-text-default.active { background-color: #7d858c !important; color: white; -webkit-box-shadow: none; box-shadow: none; }";
@@ -736,8 +741,8 @@ function CEditorPage(api)
 			var _buttonsContent = "";
 			_buttonsContent += "<label class=\"block_elem_no_select\" id=\"dem_id_time\" style=\"color:#666666;text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:10px; bottom: 7px;\">00:00:00</label>";
 			_buttonsContent += "<button class=\"btn-text-default-img\" id=\"dem_id_play\" style=\"left: 60px; bottom: 3px; width: 20px; height: 20px;\"><span class=\"btn-play back_image_buttons\" id=\"dem_id_play_span\" style=\"width:100%;height:100%;\"></span></button>";
-			_buttonsContent += ("<button class=\"btn-text-default\"     id=\"dem_id_reset\" style=\"left: 85px; bottom: 3px; \">" + this.reporterTranslates[0] + "</button>");
-			_buttonsContent += ("<button class=\"btn-text-default\"     id=\"dem_id_end\" style=\"right: 10px; bottom: 3px; \">" + this.reporterTranslates[2] + "</button>");
+			_buttonsContent += ("<button class=\"btn-text-default\"     id=\"dem_id_reset\" style=\"left: 85px; bottom: 2px; \">" + this.reporterTranslates[0] + "</button>");
+			_buttonsContent += ("<button class=\"btn-text-default\"     id=\"dem_id_end\" style=\"right: 10px; bottom: 2px; \">" + this.reporterTranslates[2] + "</button>");
 
 			_buttonsContent += "<button class=\"btn-text-default-img\" id=\"dem_id_prev\"  style=\"left: 150px; bottom: 3px; width: 20px; height: 20px;\"><span class=\"btn-prev back_image_buttons\" style=\"width:100%;height:100%;\"></span></button>";
 			_buttonsContent += "<button class=\"btn-text-default-img\" id=\"dem_id_next\"  style=\"left: 170px; bottom: 3px; width: 20px; height: 20px;\"><span class=\"btn-next back_image_buttons\" style=\"width:100%;height:100%;\"></span></button>";
@@ -1987,7 +1992,7 @@ function CEditorPage(api)
 			AscCommon.stopEvent(e);
 	};
 
-	this.OnResizeSplitter = function()
+	this.OnResizeSplitter = function(isNoNeedResize)
 	{
 		this.OldSplitter1Pos = this.Splitter1Pos;
 
@@ -2043,7 +2048,8 @@ function CEditorPage(api)
 			this.m_oNotes_scroll.HtmlElement.style.display = "block";
 		}
 
-		this.OnResize2(true);
+		if (true !== isNoNeedResize)
+			this.OnResize2(true);
 	};
 
 	this.onBodyMouseUp = function(e)
@@ -2074,6 +2080,7 @@ function CEditorPage(api)
 				if (Math.abs(oWordControl.Splitter1Pos - _posX) > 1)
 				{
 					oWordControl.Splitter1Pos = _posX;
+                    oWordControl.Splitter1PosSetUp = oWordControl.Splitter1Pos;
 					oWordControl.OnResizeSplitter();
 					oWordControl.m_oApi.syncOnThumbnailsShow();
 				}
@@ -2406,7 +2413,7 @@ function CEditorPage(api)
 		var oWordControl = oThis;
 
 		if (oWordControl.DemonstrationManager.Mode)
-			return oWordControl.DemonstrationManager.onMouseUp(e);
+			return oWordControl.DemonstrationManager.onMouseUp({ pageX:0, pageY:0 });
 
 		//---
 		global_mouseEvent.X = x;
@@ -2532,10 +2539,14 @@ function CEditorPage(api)
 		deltaX >>= 0;
 		deltaY >>= 0;
 
+        oThis.m_nVerticalSlideChangeOnScrollEnabled = true;
+
 		if (0 != deltaX)
 			oThis.m_oScrollHorApi.scrollBy(deltaX, 0, false);
 		else if (0 != deltaY)
 			oThis.m_oScrollVerApi.scrollBy(0, deltaY, false);
+
+        oThis.m_nVerticalSlideChangeOnScrollEnabled = false;
 
 		if (e.preventDefault)
 			e.preventDefault();
@@ -2725,6 +2736,37 @@ function CEditorPage(api)
 	// -----------------end demonstration---------------------- //
 	// -------------------------------------------------------- //
 
+	this.verticalScrollCheckChangeSlide = function()
+	{
+		if (0 == this.m_nVerticalSlideChangeOnScrollInterval || !this.m_nVerticalSlideChangeOnScrollEnabled)
+		{
+            this.m_oScrollVer_.disableCurrentScroll = false;
+            return true;
+        }
+
+        // защита от внутренних скроллах. мы превентим ТОЛЬКО самый верхний из onMouseWheel
+        this.m_nVerticalSlideChangeOnScrollEnabled = false;
+
+		var newTime = new Date().getTime();
+		if (-1 == this.m_nVerticalSlideChangeOnScrollLast)
+		{
+			this.m_nVerticalSlideChangeOnScrollLast = newTime;
+            this.m_oScrollVer_.disableCurrentScroll = false;
+			return true;
+		}
+
+		var checkTime = this.m_nVerticalSlideChangeOnScrollLast + this.m_nVerticalSlideChangeOnScrollInterval;
+		if (newTime < this.m_nVerticalSlideChangeOnScrollLast || newTime > checkTime)
+		{
+            this.m_nVerticalSlideChangeOnScrollLast = newTime;
+            this.m_oScrollVer_.disableCurrentScroll = false;
+			return true;
+		}
+
+		this.m_oScrollVer_.disableCurrentScroll = true;
+		return false;
+	};
+
 	this.verticalScroll                = function(sender, scrollPositionY, maxY, isAtTop, isAtBottom)
 	{
 		if (false === oThis.m_oApi.bInit_word_control)
@@ -2760,6 +2802,9 @@ function CEditorPage(api)
 			{
 				if (lNumSlide != this.m_oDrawingDocument.SlideCurrent)
 				{
+					if (!this.verticalScrollCheckChangeSlide())
+						return;
+
 					if (this.IsGoToPageMAXPosition)
 					{
 						if (lNumSlide >= this.m_oDrawingDocument.SlideCurrent)
@@ -2771,6 +2816,9 @@ function CEditorPage(api)
 				}
 				else if (this.SlideScrollMAX < scrollPositionY)
 				{
+                    if (!this.verticalScrollCheckChangeSlide())
+                        return;
+
 					this.IsGoToPageMAXPosition = false;
 					this.GoToPage(this.m_oDrawingDocument.SlideCurrent + 1);
 					return;
@@ -2778,6 +2826,9 @@ function CEditorPage(api)
 			}
 			else
 			{
+                if (!this.verticalScrollCheckChangeSlide())
+                    return;
+
 				this.GoToPage(this.ZoomFreePageNum);
 			}
 		}
@@ -3010,6 +3061,24 @@ function CEditorPage(api)
 
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_Before();
+
+		if (this.Splitter1Pos > 0.1)
+		{
+            var maxSplitterThMax = g_dKoef_pix_to_mm * this.Width / 3;
+            if (maxSplitterThMax > 80)
+            	maxSplitterThMax = 80;
+
+			this.Splitter1PosMin = maxSplitterThMax >> 2;
+			this.Splitter1PosMax = maxSplitterThMax >> 0;
+
+            this.Splitter1Pos = this.Splitter1PosSetUp;
+            if (this.Splitter1Pos < this.Splitter1PosMin)
+                this.Splitter1Pos = this.Splitter1PosMin;
+            if (this.Splitter1Pos > this.Splitter1PosMax)
+                this.Splitter1Pos = this.Splitter1PosMax;
+
+            this.OnResizeSplitter(true);
+        }
 
 		//console.log("resize");
 		this.CheckRetinaDisplay();
@@ -3339,6 +3408,7 @@ function CEditorPage(api)
 			{
 				this.m_oPanelRight.Bounds.B = 0;
 				this.m_oMainView.Bounds.B   = 0;
+                this.m_oScrollHor.HtmlElement.style.display = 'none';
 			}
 			else
 			{

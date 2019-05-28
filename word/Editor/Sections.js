@@ -565,7 +565,7 @@ CSectionPr.prototype =
         return this.PageMargins.Footer;
     },
     
-    Get_HdrFtr : function(bHeader, bFirst, bEven)
+    GetHdrFtr : function(bHeader, bFirst, bEven)
     {
         if ( true === bHeader )
         {
@@ -609,7 +609,7 @@ CSectionPr.prototype =
         }
     },
     
-    Get_HdrFtrInfo : function(HdrFtr)
+    GetHdrFtrInfo : function(HdrFtr)
     {
         if  ( HdrFtr === this.HeaderFirst )
             return { Header : true, First : true, Even : false };

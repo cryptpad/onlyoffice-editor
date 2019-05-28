@@ -804,6 +804,9 @@ CAutoshapeTrack.prototype =
     SetClip : function(r)
     {
     },
+    AddClipRect : function()
+    {
+    },
     RemoveClip : function()
     {
     },
@@ -963,6 +966,26 @@ CAutoshapeTrack.prototype =
             y4 = y3;
             nIsCleverWithTransform = true;
             nType = 1;
+
+            if (true)
+            {
+                if (x1 > x2)
+                {
+                    var tmp = x1;
+                    x1 = x2; x3 = x2;
+                    x2 = tmp; x4 = tmp;
+                }
+
+                if (y1 > y3)
+                {
+                    var tmp = y1;
+                    y1 = y3; y2 = y3;
+                    y3 = tmp; y4 = tmp;
+                }
+
+                nType = 0;
+                bIsClever = true;
+            }
         }
         if (!nIsCleverWithTransform &&
             Math.abs(dx1 - dx2) < _eps &&
@@ -1004,6 +1027,7 @@ CAutoshapeTrack.prototype =
         var _style_blue = "#939393";
         var _style_green = "#84E036";
         var _style_white = "#FFFFFF";
+        var _style_black = "#000000";
 
         var _len_x = Math.sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
         var _len_y = Math.sqrt((x1 - x3)*(x1 - x3) + (y1 - y3)*(y1 - y3));
@@ -1977,6 +2001,245 @@ CAutoshapeTrack.prototype =
 
                 break;
             }
+            case AscFormat.TYPE_TRACK.CROP:
+            {
+                if (bIsClever)
+                {
+                    overlay.CheckRect(x1, y1, x4 - x1, y4 - y1);
+                    var widthCorner = (x4 - x1 + 1) >> 1;
+                    var isCentralMarkerX = widthCorner > 40 ? true : false;
+                    if (widthCorner > 17)
+                        widthCorner = 17;
+                    var heightCorner = (y4 - y1 + 1) >> 1;
+                    var isCentralMarkerY = heightCorner > 40 ? true : false;
+                    if (heightCorner > 17)
+                        heightCorner = 17;
+
+                    ctx.rect(x1 + 0.5, y2 + 0.5, x4 - x1 + 1, y4 - y1);
+                    ctx.strokeStyle = _style_black;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+
+                    ctx.strokeStyle = _style_white;
+                    ctx.fillStyle = _style_black;
+
+                    ctx.moveTo(x1 + 0.5, y1 + 0.5);
+                    ctx.lineTo(x1 + widthCorner + 0.5, y1 + 0.5);
+                    ctx.lineTo(x1 + widthCorner + 0.5, y1 + 5.5);
+                    ctx.lineTo(x1 + 5.5, y1 + 5.5);
+                    ctx.lineTo(x1 + 5.5, y1 + widthCorner + 0.5);
+                    ctx.lineTo(x1 + 0.5, y1 + widthCorner + 0.5);
+                    ctx.closePath();
+
+                    ctx.moveTo(x2 - widthCorner + 0.5, y2 + 0.5);
+                    ctx.lineTo(x2 + 0.5, y2 + 0.5);
+                    ctx.lineTo(x2 + 0.5, y2 + heightCorner + 0.5);
+                    ctx.lineTo(x2 - 4.5, y2 + heightCorner + 0.5);
+                    ctx.lineTo(x2 - 4.5, y2 + 5.5);
+                    ctx.lineTo(x2 - widthCorner + 0.5, y2 + 5.5);
+                    ctx.closePath();
+
+                    ctx.moveTo(x4 - 4.5, y4 - heightCorner + 0.5);
+                    ctx.lineTo(x4 + 0.5, y4 - heightCorner + 0.5);
+                    ctx.lineTo(x4 + 0.5, y4 + 0.5);
+                    ctx.lineTo(x4 - widthCorner + 0.5, y4 + 0.5);
+                    ctx.lineTo(x4 - widthCorner + 0.5, y4 - 4.5);
+                    ctx.lineTo(x4 - 4.5, y4 - 4.5);
+                    ctx.closePath();
+
+                    ctx.moveTo(x3 + 0.5, y3 - heightCorner + 0.5);
+                    ctx.lineTo(x3 + 5.5, y3 - heightCorner + 0.5);
+                    ctx.lineTo(x3 + 5.5, y3 - 4.5);
+                    ctx.lineTo(x3 + widthCorner + 0.5, y3 - 4.5);
+                    ctx.lineTo(x3 + widthCorner + 0.5, y3 + 0.5);
+                    ctx.lineTo(x3 + 0.5, y3 + 0.5);
+                    ctx.closePath();
+
+                    if (isCentralMarkerX)
+                    {
+                        var xCentral = (x4 + x1 - widthCorner) >> 1;
+                        ctx.moveTo(xCentral + 0.5, y1 + 0.5);
+                        ctx.lineTo(xCentral + widthCorner + 0.5, y1 + 0.5);
+                        ctx.lineTo(xCentral + widthCorner + 0.5, y1 + 5.5);
+                        ctx.lineTo(xCentral + 0.5, y1 + 5.5);
+                        ctx.closePath();
+
+                        ctx.moveTo(xCentral + 0.5, y4 - 4.5);
+                        ctx.lineTo(xCentral + widthCorner + 0.5, y4 - 4.5);
+                        ctx.lineTo(xCentral + widthCorner + 0.5, y4);
+                        ctx.lineTo(xCentral + 0.5, y4 + 0.5);
+                        ctx.closePath();
+                    }
+
+                    if (isCentralMarkerY)
+                    {
+                        var yCentral = (y4 + y1 - heightCorner) >> 1;
+                        ctx.moveTo(x1 + 0.5, yCentral + 0.5);
+                        ctx.lineTo(x1 + 5.5, yCentral + 0.5);
+                        ctx.lineTo(x1 + 5.5, yCentral + heightCorner + 0.5);
+                        ctx.lineTo(x1 + 0.5, yCentral + heightCorner + 0.5);
+                        ctx.closePath();
+
+                        ctx.moveTo(x4 - 4.5, yCentral + 0.5);
+                        ctx.lineTo(x4 + 0.5, yCentral + 0.5);
+                        ctx.lineTo(x4 + 0.5, yCentral + heightCorner + 0.5);
+                        ctx.lineTo(x4 - 4.5, yCentral + heightCorner + 0.5);
+                        ctx.closePath();
+                    }
+
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                }
+                else
+                {
+                    overlay.CheckPoint(x1, y1);
+                    overlay.CheckPoint(x2, y2);
+                    overlay.CheckPoint(x3, y3);
+                    overlay.CheckPoint(x4, y4);
+
+                    var ex1 = (x2 - x1) / _len_x;
+                    var ey1 = (y2 - y1) / _len_x;
+                    var ex2 = (x1 - x3) / _len_y;
+                    var ey2 = (y1 - y3) / _len_y;
+
+                    var _bAbsX1 = Math.abs(ex1) < 0.01;
+                    var _bAbsY1 = Math.abs(ey1) < 0.01;
+                    var _bAbsX2 = Math.abs(ex2) < 0.01;
+                    var _bAbsY2 = Math.abs(ey2) < 0.01;
+
+                    if (_bAbsX2 && _bAbsY2)
+                    {
+                        if (_bAbsX1 && _bAbsY1)
+                        {
+                            ex1 = 1;
+                            ey1 = 0;
+                            ex2 = 0;
+                            ey2 = 1;
+                        }
+                        else
+                        {
+                            ex2 = -ey1;
+                            ey2 = ex1;
+                        }
+                    }
+                    else if (_bAbsX1 && _bAbsY1)
+                    {
+                        ex1 = ey2;
+                        ey1 = -ex2;
+                    }
+
+                    var widthCorner = _len_x >> 1;
+                    var isCentralMarkerX = widthCorner > 40 ? true : false;
+                    if (widthCorner > 17)
+                        widthCorner = 17;
+                    var heightCorner = _len_y >> 1;
+                    var isCentralMarkerY = heightCorner > 40 ? true : false;
+                    if (heightCorner > 17)
+                        heightCorner = 17;
+
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.lineTo(x4, y4);
+                    ctx.lineTo(x3, y3);
+                    ctx.closePath();
+                    ctx.strokeStyle = _style_black;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+
+                    ctx.strokeStyle = _style_white;
+                    ctx.fillStyle = _style_black;
+
+                    var xOff1 = widthCorner * ex1;
+                    var xOff2 = 5 * ex1;
+                    var xOff3 = -heightCorner * ex2;
+                    var xOff4 = -5 * ex2;
+                    var yOff1 = widthCorner * ey1;
+                    var yOff2 = 5 * ey1;
+                    var yOff3 = -heightCorner * ey2;
+                    var yOff4 = -5 * ey2;
+
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x1 + xOff1, y1 + yOff1);
+                    ctx.lineTo(x1 + xOff1 + xOff4, y1 + yOff1 + yOff4);
+                    ctx.lineTo(x1 + xOff2 + xOff4, y1 + yOff2 + yOff4);
+                    ctx.lineTo(x1 + xOff2 + xOff3, y1 + yOff2 + yOff3);
+                    ctx.lineTo(x1 + xOff3, y1 + yOff3);
+                    ctx.closePath();
+
+                    ctx.moveTo(x2 - xOff1, y2 - yOff1);
+                    ctx.lineTo(x2, y2);
+                    ctx.lineTo(x2 + xOff3, y2 + yOff3);
+                    ctx.lineTo(x2 + xOff3 - xOff2, y2 + yOff3 - yOff2);
+                    ctx.lineTo(x2 - xOff2 + xOff4, y2 - yOff2 + yOff4);
+                    ctx.lineTo(x2 - xOff1 + xOff4, y2 - yOff1 + yOff4);
+                    ctx.closePath();
+
+                    ctx.moveTo(x4 - xOff3 - xOff2, y4 - yOff3 - yOff2);
+                    ctx.lineTo(x4 - xOff3, y4 - yOff3);
+                    ctx.lineTo(x4, y4);
+                    ctx.lineTo(x4 - xOff1, y4 - yOff1);
+                    ctx.lineTo(x4 - xOff1 - xOff4, y4 - yOff1 - yOff4);
+                    ctx.lineTo(x4 - xOff2 - xOff4, y4 - yOff2 - yOff4);
+                    ctx.closePath();
+
+                    ctx.moveTo(x3 - xOff3, y3 - yOff3);
+                    ctx.lineTo(x3 - xOff3 + xOff2, y3 - yOff3 + yOff2);
+                    ctx.lineTo(x3 - xOff4 + xOff2, y3 - yOff4 + yOff2);
+                    ctx.lineTo(x3 + xOff1 - xOff4, y3 + yOff1 - yOff4);
+                    ctx.lineTo(x3 + xOff1, y3 + yOff1);
+                    ctx.lineTo(x3, y3);
+                    ctx.closePath();
+
+                    if (isCentralMarkerX)
+                    {
+                        var xCentral = x1 + (ex1 * (_len_x - widthCorner) / 2);
+                        var yCentral = y1 + (ey1 * (_len_x - widthCorner) / 2);
+                        ctx.moveTo(xCentral, yCentral);
+                        ctx.lineTo(xCentral + xOff1, yCentral + yOff1);
+                        ctx.lineTo(xCentral + xOff1 + xOff4, yCentral + yOff1 + yOff4);
+                        ctx.lineTo(xCentral + xOff4, yCentral + yOff4);
+                        ctx.closePath();
+
+                        xCentral = x3 + (ex1 * (_len_x - widthCorner) / 2) - xOff4;
+                        yCentral = y3 + (ey1 * (_len_x - widthCorner) / 2) - yOff4;
+                        ctx.moveTo(xCentral, yCentral);
+                        ctx.lineTo(xCentral + xOff1, yCentral + yOff1);
+                        ctx.lineTo(xCentral + xOff1 + xOff4, yCentral + yOff1 + yOff4);
+                        ctx.lineTo(xCentral + xOff4, yCentral + yOff4);
+                        ctx.closePath();
+                    }
+
+                    if (isCentralMarkerY)
+                    {
+                        var xCentral = x1 - (ex2 * (_len_y - heightCorner) / 2);
+                        var yCentral = y1 - (ey2 * (_len_y - heightCorner) / 2);
+                        ctx.moveTo(xCentral, yCentral);
+                        ctx.lineTo(xCentral + xOff2, yCentral + yOff2);
+                        ctx.lineTo(xCentral + xOff2 + xOff3, yCentral + yOff2 + yOff3);
+                        ctx.lineTo(xCentral + xOff3, yCentral + yOff3);
+                        ctx.closePath();
+
+                        xCentral = x2 - (ex2 * (_len_y - heightCorner) / 2) - xOff2;
+                        yCentral = y2 - (ey2 * (_len_y - heightCorner) / 2) - yOff2;
+                        ctx.moveTo(xCentral, yCentral);
+                        ctx.lineTo(xCentral + xOff2, yCentral + yOff2);
+                        ctx.lineTo(xCentral + xOff2 + xOff3, yCentral + yOff2 + yOff3);
+                        ctx.lineTo(xCentral + xOff3, yCentral + yOff3);
+                        ctx.closePath();
+                    }
+
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                }
+
+                break;
+            }
 
             default:
                 break;
@@ -2439,8 +2702,8 @@ CAutoshapeTrack.prototype =
 
         if (overlayNotes)
         {
-            dKoefX = g_dKoef_mm_to_pix;
-			dKoefY = g_dKoef_mm_to_pix;
+            dKoefX = AscCommon.g_dKoef_mm_to_pix;
+			dKoefY = AscCommon.g_dKoef_mm_to_pix;
 
 			overlay = overlayNotes;
 
@@ -2592,7 +2855,7 @@ CAutoshapeTrack.prototype =
 
     DrawPresentationComment : function(type, x, y, w, h)
     {
-        if (!window.g_comment_image || !window.g_comment_image.asc_complete)
+        if (!AscCommon.g_comment_image || !AscCommon.g_comment_image.asc_complete)
             return;
 
         var overlay = this.m_oOverlay;
@@ -2623,10 +2886,10 @@ CAutoshapeTrack.prototype =
         if ((type & 0x01) == 0x01)
             _index += 1;
 
-        var _offset = g_comment_image_offsets[_index];
+        var _offset = AscCommon.g_comment_image_offsets[_index];
         overlay.CheckRect(__x, __y, _offset[2], _offset[3]);
 
-        this.m_oContext.drawImage(window.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], __x, __y, _offset[2], _offset[3]);
+        this.m_oContext.drawImage(AscCommon.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], __x, __y, _offset[2], _offset[3]);
 
         ctx.globalAlpha = _oldAlpha;
     }

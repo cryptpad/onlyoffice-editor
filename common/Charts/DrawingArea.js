@@ -43,6 +43,10 @@ function (window, undefined) {
 // Drawing area manager
 //-----------------------------------------------------------------------------------
 
+	var sFrozenImageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAKCAYAAAB10jRKAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAAJElEQVQYV2MAAjUQoQIiFECEDIiQABHCIIIPRHCBCDYgZmACABohANImre1SAAAAAElFTkSuQmCC';
+	//var sFrozenImageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAADCAQAAAD41K0JAAAAD0lEQVR42mNgEGJmAAJmAACcABmX0vttAAAAAElFTkSuQmCC';
+	var sFrozenImageRotUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAAGklEQVQYV2NkYGBQA+J/QPwHCf+GYiif4Q8AnJAJBNqB9DYAAAAASUVORK5CYII=';
+
 // Type
 var FrozenAreaType = {
 
@@ -747,31 +751,31 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
 			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
 			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
 			fLeft = 0;
-			autoShapeTrack.drawImage(AscFormat.sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
+			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.Right){
 			fTop = 0;
 			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
-			autoShapeTrack.drawImage(AscFormat.sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
+			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.RightBottom){
 			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
 			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
 			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
-			autoShapeTrack.drawImage(AscFormat.sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
-			autoShapeTrack.drawImage(AscFormat.sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
+			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
+			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.LeftBottom){
 			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
 			fLeft = 0;
 			fRight = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
-			autoShapeTrack.drawImage(AscFormat.sFrozenImageUrl, fLeft, fTop, fRight, nShadowLength);
+			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, fRight, nShadowLength);
 		}
 		else if(this.frozenPlaces[i].type === FrozenAreaType.RightTop){
 			fTop = 0;
 			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
 			fBottom = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
-			autoShapeTrack.drawImage(AscFormat.sFrozenImageRotUrl, fLeft, fTop, nShadowLength, fBottom);
+			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, fBottom);
 		}
 
     }
@@ -788,5 +792,9 @@ DrawingArea.prototype.getOffsets = function(x, y, bEvents) {
 
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscFormat'] = window['AscFormat'] || {};
+	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscFormat'].DrawingArea = DrawingArea;
+
+	window["AscCommonExcel"].sFrozenImageUrl = sFrozenImageUrl;
+	window["AscCommonExcel"].sFrozenImageRotUrl = sFrozenImageRotUrl;
 })(window);

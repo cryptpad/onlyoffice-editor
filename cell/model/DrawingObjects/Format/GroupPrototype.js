@@ -190,27 +190,34 @@ CGroupShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CGroupShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CGroupShape.prototype.handleUpdatePosition = function()
 {
-    this.recalcTransform();
-    this.addToRecalculate();
-    for(var i = 0; i < this.spTree.length; ++i)
-    {
-        if(this.spTree[i].handleUpdatePosition)
-        {
-            this.spTree[i].handleUpdatePosition();
-        }
-    }
-    this.recalcBounds();
-    this.addToRecalculate();
-    //delete this.fromSerialize;
+    this.handleUpdateExtents(true);
 };
-CGroupShape.prototype.handleUpdateExtents = function()
+CGroupShape.prototype.handleUpdateExtents = function(bCell)
 {
     this.recalcTransform();
     this.recalcBounds();
     this.addToRecalculate();
-    //delete this.fromSerialize;
+    if(bCell)
+    {
+        if(this.spTree)
+        {
+            for(var i = 0; i < this.spTree.length; ++i)
+            {
+                if(this.spTree[i].handleUpdateExtents)
+                {
+                    this.spTree[i].handleUpdateExtents(bCell);
+                }
+            }
+        }
+    }
 };
-CGroupShape.prototype.handleUpdateRot = CGroupShape.prototype.handleUpdatePosition;
+CGroupShape.prototype.handleUpdateRot = function()
+{
+    if(this.handleUpdateExtents)
+    {
+        this.handleUpdateExtents(true);
+    }
+};
 CGroupShape.prototype.handleUpdateFlip = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.handleUpdateChildOffset = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.handleUpdateChildExtents = CGroupShape.prototype.handleUpdatePosition;

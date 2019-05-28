@@ -115,6 +115,8 @@ CBlockLevelSdt.prototype.Reset = function(X, Y, XLimit, YLimit, PageAbs, ColumnA
 };
 CBlockLevelSdt.prototype.Recalculate_Page = function(CurPage)
 {
+	this.SetIsRecalculated(true);
+
 	this.Content.RecalcInfo = this.Parent.RecalcInfo;
 
 	var RecalcResult = this.Content.Recalculate_Page(CurPage, true);
@@ -330,7 +332,12 @@ CBlockLevelSdt.prototype.CanUpdateTarget = function(CurPage)
 CBlockLevelSdt.prototype.MoveCursorLeft = function(AddToSelect, Word)
 {
 	if (this.IsPlaceHolder())
+	{
+		if (AddToSelect)
+			this.SelectAll(-1);
+
 		return false;
+	}
 
 	var bResult = this.Content.MoveCursorLeft(AddToSelect, Word);
 	if (!bResult && this.LogicDocument.IsFillingFormMode())
@@ -345,7 +352,12 @@ CBlockLevelSdt.prototype.MoveCursorLeftWithSelectionFromEnd = function(Word)
 CBlockLevelSdt.prototype.MoveCursorRight = function(AddToSelect, Word)
 {
 	if (this.IsPlaceHolder())
+	{
+		if (AddToSelect)
+			this.SelectAll(1);
+
 		return false;
+	}
 
 	var bResult = this.Content.MoveCursorRight(AddToSelect, Word, false);
 	if (!bResult && this.LogicDocument.IsFillingFormMode())
@@ -499,6 +511,7 @@ CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelecti
 
 	if (this.IsEmpty()
 		&& !bOnAddText
+		&& true !== bOnlyText
 		&& this.CanBeEdited())
 	{
 		this.private_ReplaceContentWithPlaceHolder();
@@ -773,10 +786,13 @@ CBlockLevelSdt.prototype.GetSelectionAnchorPos = function()
 };
 CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 {
+	if (!this.IsRecalculated())
+		return;
+
 	var oDrawingDocument = this.LogicDocument.Get_DrawingDocument();
 	var arrRects = [];
 
-	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance())
+	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance() || (this.LogicDocument && this.LogicDocument.IsForceHideContentControlTrack()))
 	{
 		oDrawingDocument.OnDrawContentControl(null, isHover ? c_oContentControlTrack.Hover : c_oContentControlTrack.In);
 		return;
@@ -900,9 +916,9 @@ CBlockLevelSdt.prototype.FindNextFillingForm = function(isNext, isCurrent, isSta
 
 	return null;
 };
-CBlockLevelSdt.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+CBlockLevelSdt.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-	return this.Content.GetRevisionsChangeParagraph(SearchEngine);
+	return this.Content.GetRevisionsChangeElement(SearchEngine);
 };
 CBlockLevelSdt.prototype.AcceptRevisionChanges = function(Type, bAll)
 {
@@ -967,7 +983,7 @@ CBlockLevelSdt.prototype.GetEndInfo = function()
 };
 CBlockLevelSdt.prototype.Is_UseInDocument = function(Id)
 {
-	if (Id === this.Content.GetId())
+	if (Id === this.Content.GetId() && this.Parent)
 		return this.Parent.Is_UseInDocument(this.GetId());
 
 	return false;
@@ -1011,8 +1027,9 @@ CBlockLevelSdt.prototype.Set_CurrentElement = function(bUpdateStates, PageAbs, o
 {
 	if (oDocContent === this.Content)
 	{
-		this.Parent.Update_ContentIndexing();
-		this.Parent.Set_CurrentElement(this.Index, bUpdateStates);
+		var nIndex = this.GetIndex();
+		if (-1 !== nIndex)
+			this.Parent.Set_CurrentElement(nIndex, bUpdateStates);
 	}
 };
 CBlockLevelSdt.prototype.Refresh_RecalcData2 = function(CurPage)

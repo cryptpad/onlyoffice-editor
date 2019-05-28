@@ -157,7 +157,6 @@
 		this.sAutoComplete = null;
 
 		/** @type RegExp */
-		this.reReplaceNL = /\r?\n|\r/g;
 		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", ",", "<", ">", "^", "!", "&", ":", ";", " "];
 		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.]", "i" );
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
@@ -488,9 +487,9 @@
 		return this.drawingCtx.getZoom();
 	};
 
-	CellEditor.prototype.changeZoom = function ( factor ) {
-		this.drawingCtx.changeZoom( factor );
-		this.overlayCtx.changeZoom( factor );
+	CellEditor.prototype.changeZoom = function (factor) {
+		this.drawingCtx.changeZoom(factor);
+		this.overlayCtx.changeZoom(factor);
 	};
 
 	CellEditor.prototype.canEnterCellRange = function () {
@@ -877,14 +876,34 @@
 								if (!nameRef.isSingleSheet()) {
 									continue;
 								}
+								
+								ret = true;
+								localStrObj = nameRef.toLocaleStringObj();
+								refStr = localStrObj[1];
+								wsName = nameRef.getWS().getName();
+
+								localStrObj = r.oper.toLocaleStringObj();
+								_s = _e - localStrObj[1].length;
+								_sColorPos = _e - localStrObj[0].length;
+								break;
 							}
-							case cElementType.cellsRange          :
-							case cElementType.cell3D        : {
+							case cElementType.cellsRange          :{
 								ret = true;
 								localStrObj = r.oper.toLocaleStringObj();
 								refStr = localStrObj[1];
 								wsName = nameRef.getWS().getName();
 								_s = _e - localStrObj[1].length;
+								break;
+							}
+							case cElementType.cell3D        : {
+								ret = true;
+								localStrObj = nameRef.toLocaleStringObj();
+								refStr = localStrObj[1];
+								wsName = nameRef.getWS().getName();
+
+								localStrObj = r.oper.toLocaleStringObj();
+								_s = _e - localStrObj[1].length;
+								_sColorPos = _e - localStrObj[0].length;
 								break;
 							}
 						}
@@ -1238,14 +1257,14 @@
 				fPos = undefined;
 				fName = undefined;
 			}
-			fCurrent = this._getEditableFunction(this._parseResult);
+			fCurrent = this._getEditableFunction(this._parseResult).func;
 		}
 
 		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName);
 		this.handlers.trigger("updatedEditableFunction", fCurrent);
 	};
 
-	CellEditor.prototype._getEditableFunction = function (parseResult) {
+	CellEditor.prototype._getEditableFunction = function (parseResult, bEndCurPos) {
 		var findOpenFunc = [], editableFunction = null, level = -1;
 		if(!parseResult) {
 			//в этом случае запускаю парсинг формулы до текущей позиции
@@ -1258,9 +1277,11 @@
 				var bbox = this.options.bbox;
 
 				var endPos = pos;
-				for(var n = pos; n < s.length; n++) {
-					if("(" === s[n]) {
-						endPos = n;
+				if(!bEndCurPos) {
+					for(var n = pos; n < s.length; n++) {
+						if("(" === s[n]) {
+							endPos = n;
+						}
 					}
 				}
 
@@ -1301,9 +1322,8 @@
 				}
 			}
 		}
-		//console.log(editableFunction);
 
-		return editableFunction;
+		return {func: editableFunction, argPos: parseResult ? parseResult.argPos : null};
 	};
 
 	CellEditor.prototype._expandWidth = function () {
@@ -1393,23 +1413,26 @@
 	};
 
 	CellEditor.prototype._adjustCanvas = function () {
+		var isRetina = AscBrowser.isRetina;
 		var z = this.defaults.canvasZIndex;
+		var borderSize = 1;
 		var left = this.left * this.kx;
 		var top = this.top * this.ky;
-		var widthStyle = (this.right - this.left) * this.kx - 1; // ToDo разобраться с '-1'
-		var heightStyle = (this.bottom - this.top) * this.ky - 1;
-		var isRetina = AscBrowser.isRetina;
-		var width = widthStyle, height = heightStyle;
+		var width, height, widthStyle, heightStyle;
 
-		if ( isRetina ) {
+		if (isRetina) {
+			borderSize = AscCommon.AscBrowser.convertToRetinaValue(borderSize, true);
+		}
+
+		width = widthStyle = (this.right - this.left) * this.kx - borderSize;
+		height = heightStyle = (this.bottom - this.top) * this.ky - borderSize;
+
+		if (isRetina) {
 			left = AscCommon.AscBrowser.convertToRetinaValue(left);
 			top = AscCommon.AscBrowser.convertToRetinaValue(top);
 
 			widthStyle = AscCommon.AscBrowser.convertToRetinaValue(widthStyle);
 			heightStyle = AscCommon.AscBrowser.convertToRetinaValue(heightStyle);
-
-			width = AscCommon.AscBrowser.convertToRetinaValue(widthStyle, true);
-			height = AscCommon.AscBrowser.convertToRetinaValue(heightStyle, true);
 		}
 
 		this.canvasOuterStyle.left = left + 'px';
@@ -1422,10 +1445,8 @@
 
 		this.canvas.width = this.canvasOverlay.width = width;
 		this.canvas.height = this.canvasOverlay.height = height;
-		if ( isRetina ) {
-			this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
-			this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
-		}
+		this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
+		this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
 	};
 
 	CellEditor.prototype._renderText = function (dy) {
@@ -1603,6 +1624,8 @@
 			this.handlers.trigger( "updateMenuEditorCursorPosition", curTop, curHeight );
 		}
 
+		//var fCurrent = this._getEditableFunction(null, true);
+		//console.log("func: " + fCurrent.func + " arg: " + fCurrent.argPos);
 		this._updateSelectionInfo();
 	};
 
@@ -2621,7 +2644,9 @@
 				var res = this._findRangeUnderCursor();
 				if (res.range) {
 					res.range.switchReference();
-					this.enterCellRange(res.range.getName());
+					//_getNameRange - работает только для случая, когда ссылаемся на тот же лист, в противном функция _findRangeUnderCursor возвращает null
+					//если поменяется функция _findRangeUnderCursor для 3d ссылок, тогда необходимо это учитывать и в функции _getNameRange
+					this.enterCellRange(this._getNameRange(res.range));
 				}
 
 				event.stopPropagation();
@@ -2632,6 +2657,18 @@
 		t.skipKeyPress = false;
 		t.skipTLUpdate = true;
 		return true;
+	};
+
+	CellEditor.prototype._getNameRange = function (range) {
+		//check on merge
+		var currentRange = range.clone();
+		var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+		var mergedRange = ws.getMergedByCell(currentRange.r1, currentRange.c1);
+		if (mergedRange && currentRange.isEqual(mergedRange)) {
+			currentRange.r2 = currentRange.r1;
+			currentRange.c2 = currentRange.c1;
+		}
+		return currentRange.getName();
 	};
 
 	/** @param event {KeyboardEvent} */

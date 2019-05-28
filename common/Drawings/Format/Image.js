@@ -157,10 +157,6 @@ CImageShape.prototype.copy = function()
         copy.setStyle(this.style.createDuplicate());
     }
     copy.setBDeleted(this.bDeleted);
-    if(this.fromSerialize)
-    {
-        copy.setBFromSerialize(true);
-    }
     copy.cachedImage = this.getBase64Img();
     copy.cachedPixH = this.cachedPixH;
     copy.cachedPixW = this.cachedPixW;
@@ -189,10 +185,6 @@ CImageShape.prototype.getSnapArrays = function(snapX, snapY)
 CImageShape.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
 
 CImageShape.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
-
-CImageShape.prototype.deleteBFromSerialize = CShape.prototype.deleteBFromSerialize;
-
-CImageShape.prototype.setBFromSerialize = CShape.prototype.setBFromSerialize;
 
 CImageShape.prototype.isPlaceholder  = function()
 {

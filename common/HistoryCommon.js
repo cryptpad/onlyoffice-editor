@@ -1198,6 +1198,8 @@
 	window['AscDFH'].historyitem_type_ParaBookmark       = 62 << 16;
 	window['AscDFH'].historyitem_type_Num                = 63 << 16;
 	window['AscDFH'].historyitem_type_PresentationField  = 64 << 16;
+	window['AscDFH'].historyitem_type_ParaRevisionMove   = 65 << 16;
+	window['AscDFH'].historyitem_type_RunRevisionMove    = 66 << 16;
 
 	window['AscDFH'].historyitem_type_CommonShape            = 1000 << 16; // Этот класс добавлен для элементов, у которых нет конкретного класса
 
@@ -1486,6 +1488,8 @@
 	window['AscDFH'].historyitem_Table_TableLayout           = window['AscDFH'].historyitem_type_Table | 25;
 	window['AscDFH'].historyitem_Table_TableDescription      = window['AscDFH'].historyitem_type_Table | 26;
 	window['AscDFH'].historyitem_Table_TableCaption          = window['AscDFH'].historyitem_type_Table | 27;
+	window['AscDFH'].historyitem_Table_TableGridChange       = window['AscDFH'].historyitem_type_Table | 28;
+	window['AscDFH'].historyitem_Table_PrChange              = window['AscDFH'].historyitem_type_Table | 29;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CTableRow
 	//------------------------------------------------------------------------------------------------------------------
@@ -1497,6 +1501,8 @@
 	window['AscDFH'].historyitem_TableRow_RemoveCell  = window['AscDFH'].historyitem_type_TableRow | 6;
 	window['AscDFH'].historyitem_TableRow_TableHeader = window['AscDFH'].historyitem_type_TableRow | 7;
 	window['AscDFH'].historyitem_TableRow_Pr          = window['AscDFH'].historyitem_type_TableRow | 8;
+	window['AscDFH'].historyitem_TableRow_PrChange    = window['AscDFH'].historyitem_type_TableRow | 9;
+	window['AscDFH'].historyitem_TableRow_ReviewType  = window['AscDFH'].historyitem_type_TableRow | 10;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CTableCell
 	//------------------------------------------------------------------------------------------------------------------
@@ -1514,6 +1520,7 @@
 	window['AscDFH'].historyitem_TableCell_TextDirection = window['AscDFH'].historyitem_type_TableCell | 12;
 	window['AscDFH'].historyitem_TableCell_NoWrap        = window['AscDFH'].historyitem_type_TableCell | 13;
 	window['AscDFH'].historyitem_TableCell_HMerge        = window['AscDFH'].historyitem_type_TableCell | 14;
+	window['AscDFH'].historyitem_TableCell_PrChange      = window['AscDFH'].historyitem_type_TableCell | 15;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CDocumentContent
 	//------------------------------------------------------------------------------------------------------------------

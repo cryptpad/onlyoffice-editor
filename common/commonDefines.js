@@ -205,7 +205,9 @@
 			CannotChangeFormulaArray: -450,
 			MultiCellsInTablesFormulaArray: -451,
 
-			MailToClientMissing	: -452
+			MailToClientMissing	: -452,
+
+			NoDataToParse : -601
 		}
 	};
 
@@ -228,7 +230,8 @@
 		DownloadMerge     : 14, // cкачать файл с mail merge
 		SendMailMerge     : 15,  // рассылка mail merge по почте
 		ForceSaveButton   : 16,
-		ForceSaveTimeout  : 17
+		ForceSaveTimeout  : 17,
+		Waiting	: 18
 	};
 
 	var c_oAscAdvancedOptionsID = {
@@ -1412,7 +1415,9 @@
 		uniteIntoTable: 21,
 		insertAsNewRows: 22,
 		keepTextOnly: 23,
-		overwriteCells : 24
+		overwriteCells : 24,
+
+		useTextImport: 25
 	};
 
 	/** @enum {number} */
@@ -1455,6 +1460,31 @@
 		Page: 2,
 		Margin: 3
 	};
+
+	var c_oAscItemType = {
+		Default: 0,
+		Avg: 1,
+		Count: 2,
+		CountA: 3,
+		Max: 4,
+		Min: 5,
+		Product: 6,
+		StdDev: 7,
+		StdDevP: 8,
+		Sum: 9,
+		Var: 10,
+		VarP: 11,
+		Data: 12,
+		Grand: 13,
+		Blank: 14
+	};
+
+	var c_oAscRevisionsMove = {
+		NoMove   : 0,
+		MoveTo   : 1,
+		MoveFrom : 2
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -1591,6 +1621,7 @@
 	prot['MailToClientMissing']				 = prot.MailToClientMissing;
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
+	prot['NoDataToParse']                    = prot.NoDataToParse;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -2215,6 +2246,7 @@
 	prot['keepTextOnly'] = prot.keepTextOnly;
 	prot['insertAsNestedTable'] = prot.insertAsNestedTable;
 	prot['overwriteCells'] = prot.overwriteCells;
+	prot['useTextImport'] = prot.useTextImport;
 
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;
@@ -2248,4 +2280,26 @@
 	prot['Slide'] = c_oAscObjectsAlignType.Slide;
 	prot['Page'] = c_oAscObjectsAlignType.Page;
 	prot['Margin'] = c_oAscObjectsAlignType.Margin;
+
+	prot = window['Asc']['c_oAscItemType'] = window['Asc'].c_oAscItemType = c_oAscItemType;
+	prot['Data'] = prot.Data;
+	prot['Default'] = prot.Default;
+	prot['Sum'] = prot.Sum;
+	prot['CountA'] = prot.CountA;
+	prot['Avg'] = prot.Avg;
+	prot['Max'] = prot.Max;
+	prot['Min'] = prot.Min;
+	prot['Product'] = prot.Product;
+	prot['Count'] = prot.Count;
+	prot['StdDev'] = prot.StdDev;
+	prot['StdDevP'] = prot.StdDevP;
+	prot['Var'] = prot.Var;
+	prot['VarP'] = prot.VarP;
+	prot['Grand'] = prot.Grand;
+	prot['Blank'] = prot.Blank;
+
+	prot = window['Asc']['c_oAscRevisionsMove'] = window['Asc'].c_oAscRevisionsMove = c_oAscRevisionsMove;
+	prot['NoMove']   = c_oAscRevisionsMove.NoMove;
+	prot['MoveTo']   = c_oAscRevisionsMove.MoveTo;
+	prot['MoveFrom'] = c_oAscRevisionsMove.MoveFrom;
 })(window);

@@ -677,6 +677,10 @@ CDocumentContentElementBase.prototype.GetStyleFromFormatting = function()
 CDocumentContentElementBase.prototype.GetAllContentControls = function(arrContentControls)
 {
 };
+/**
+ * Проверяем выделен ли элемент целиком
+ * @returns {boolean}
+ */
 CDocumentContentElementBase.prototype.IsSelectedAll = function()
 {
 	return false;
@@ -699,7 +703,7 @@ CDocumentContentElementBase.prototype.FindNextFillingForm = function(isNext, isC
 {
 	return null;
 };
-CDocumentContentElementBase.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+CDocumentContentElementBase.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
 	return null;
 };
@@ -724,12 +728,7 @@ CDocumentContentElementBase.prototype.GetDocumentPositionFromObject = function(P
 };
 CDocumentContentElementBase.prototype.Get_Index = function()
 {
-	if (!this.Parent)
-		return -1;
-
-	this.Parent.Update_ContentIndexing();
-
-	return this.Index;
+	return this.GetIndex();
 };
 CDocumentContentElementBase.prototype.GetOutlineParagraphs = function(arrOutline, oPr)
 {
@@ -818,6 +817,14 @@ CDocumentContentElementBase.prototype.GetPagesCount = function()
 };
 CDocumentContentElementBase.prototype.GetIndex = function()
 {
+	if (!this.Parent)
+		return -1;
+
+	this.Parent.Update_ContentIndexing();
+
+	if (this !== this.Parent.GetElement(this.Index))
+		this.Index = -1;
+
 	return this.Index;
 };
 CDocumentContentElementBase.prototype.GetPageBounds = function(CurPage)
@@ -1028,6 +1035,38 @@ CDocumentContentElementBase.prototype.GetTopElement = function()
 		return this;
 
 	return this.Parent.GetTopElement();
+};
+/**
+ * Получаем объект лока данного элемента
+ * @returns {AscCommon.CLock}
+ */
+CDocumentContentElementBase.prototype.GetLock = function()
+{
+	return this.Lock;
+};
+/**
+ * Если мы находимся в колонтитуле возвращаем его
+ * @returns {?CHdrFtr}
+ */
+CDocumentContentElementBase.prototype.GetHdrFtr = function()
+{
+	if (this.Parent)
+		return this.Parent.IsHdrFtr(true);
+
+	return null;
+};
+/**
+ * Используется ли данный элемент в содержимом документа
+ * @param {string} sId - идентификатор внутреннего класса
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.IsUseInDocument = function(sId)
+{
+	return this.Is_UseInDocument(sId);
+};
+CDocumentContentElementBase.prototype.Is_UseInDocument = function(sId)
+{
+	return false;
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

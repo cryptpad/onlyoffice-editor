@@ -910,9 +910,9 @@ ParaDrawing.prototype.CheckWH = function()
 
 		var startX, startY;
 		if(!AscFormat.checkNormalRotate(rot)){
-			var t = extX;
+			var temp = extX;
 			extX = extY;
-			extY = t;
+			extY = temp;
 		}
 
 
@@ -1176,7 +1176,7 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 	var OtherFlowObjects = editor.WordControl.m_oLogicDocument.DrawingObjects.getAllFloatObjectsOnPage(PageNum, this.Parent.Parent);
 	var bInline          = this.Is_Inline();
 	var W, H;
-	if (this.Is_Inline())
+	if (bInline)
 	{
 		W = this.GraphicObj.bounds.w;
 		H = this.GraphicObj.bounds.h;
@@ -1289,7 +1289,7 @@ ParaDrawing.prototype.GetPosCorrection = function()
 	var bCell;
 
 	var oEffectExtent = this.EffectExtent;
-	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent.IsTableCellContent(false))))
+	if(this.Is_Inline() || this.PositionH.Align || this.PositionV.Align || (bCell = (this.Use_TextWrap() && this.IsLayoutInCell() && this.DocumentContent && this.DocumentContent.IsTableCellContent(false))))
 	{
 		var extX, extY, rot;
 		if (this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm )
@@ -1570,10 +1570,11 @@ ParaDrawing.prototype.Get_ParentTextTransform = function()
 };
 ParaDrawing.prototype.GoTo_Text = function(bBefore, bUpdateStates)
 {
-	if (undefined != this.Parent && null != this.Parent)
+	var Paragraph = this.Get_ParentParagraph();
+	if (Paragraph)
 	{
-		this.Parent.Cursor_MoveTo_Drawing(this.Id, bBefore);
-		this.Parent.Document_SetThisElementCurrent(undefined === bUpdateStates ? true : bUpdateStates);
+		Paragraph.Cursor_MoveTo_Drawing(this.Id, bBefore);
+		Paragraph.Document_SetThisElementCurrent(undefined === bUpdateStates ? true : bUpdateStates);
 	}
 };
 ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
@@ -1749,6 +1750,16 @@ ParaDrawing.prototype.Refresh_RecalcData = function(Data)
 			}
 		}
 		return this.Parent.Refresh_RecalcData2();
+	}
+};
+
+
+ParaDrawing.prototype.Refresh_RecalcData2 = function(Data)
+{
+
+	if(this.Parent && this.Parent.Refresh_RecalcData2)
+	{
+		return this.Parent.Refresh_RecalcData2(this.PageNum);
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -2613,7 +2624,7 @@ ParaDrawing.prototype.private_ConvertToMathObject = function(isOpen)
 	{
 		if (!isOpen)
 		{
-			LogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Document_ConvertOldEquation);
+			LogicDocument.StartAction(AscDFH.historydescription_Document_ConvertOldEquation);
 		}
 
 		// Коректируем формулу после конвертации
@@ -2642,15 +2653,16 @@ ParaDrawing.prototype.private_ConvertToMathObject = function(isOpen)
 			Para.Document_SetThisElementCurrent(false);
 
 			LogicDocument.Recalculate();
-			LogicDocument.Document_UpdateSelectionState();
-			LogicDocument.Document_UpdateInterfaceState();
+			LogicDocument.UpdateSelection();
+			LogicDocument.UpdateInterface();
+			LogicDocument.FinalizeAction();
 		}
 	}
 };
-ParaDrawing.prototype.GetRevisionsChangeParagraph = function(SearchEngine)
+ParaDrawing.prototype.GetRevisionsChangeElement = function(SearchEngine)
 {
-	if (this.GraphicObj && this.GraphicObj.GetRevisionsChangeParagraph)
-		this.GraphicObj.GetRevisionsChangeParagraph(SearchEngine);
+	if (this.GraphicObj && this.GraphicObj.GetRevisionsChangeElement)
+		this.GraphicObj.GetRevisionsChangeElement(SearchEngine);
 };
 ParaDrawing.prototype.Get_ObjectType = function()
 {

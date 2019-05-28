@@ -438,7 +438,7 @@ $( function () {
 
 
 		oParser = new parserFormula( func + "(A100:C101)", "A1", ws );
-		oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
+		oParser.setArrayFormulaRef(ws.getRange2("E106:H107").bbox);
 		ok( oParser.parse() );
 		var array = oParser.calculate();
 		if(AscCommonExcel.cElementType.array === array.type) {
@@ -456,7 +456,7 @@ $( function () {
 		}
 
 		oParser = new parserFormula( func + "({1,2,-3})", "A1", ws );
-		oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
+		oParser.setArrayFormulaRef(ws.getRange2("E106:H107").bbox);
 		ok( oParser.parse() );
 		array = oParser.calculate();
 		strictEqual( array.getElementRowCol(0,0).getValue(), getValue(1));
@@ -522,7 +522,7 @@ $( function () {
 			}
 
 			oParser = new parserFormula( func + argStrArr, "A1", ws );
-			oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
+			oParser.setArrayFormulaRef(ws.getRange2("E106:H107").bbox);
 			ok( oParser.parse() );
 			var array = oParser.calculate();
 			if(AscCommonExcel.cElementType.array === array.type) {
@@ -540,7 +540,7 @@ $( function () {
 			}
 
 			oParser = new parserFormula( func + randomArgStrArr, "A1", ws );
-			oParser.setArrayFormulaRef(ws.getRange2("E106:H107"));
+			oParser.setArrayFormulaRef(ws.getRange2("E106:H107").bbox);
 			ok( oParser.parse() );
 			array = oParser.calculate();
 			if(AscCommonExcel.cElementType.array === array.type) {
@@ -3931,6 +3931,26 @@ $( function () {
 		oParser = new parserFormula( "TIME(A3,B3,C3)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.7001157 );
+
+		oParser = new parserFormula( "TIME(1,1,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0423727 );
+
+		oParser = new parserFormula( "TIME(1.34,1,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0423727 );
+
+		oParser = new parserFormula( "TIME(1.34,1.456,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0423727 );
+
+		oParser = new parserFormula( "TIME(1.34,1.456,1.9)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(7) - 0, 0.0423727 );
+
+		oParser = new parserFormula( "TIME(-1.34,1.456,1.9)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
 
 		testArrayFormula2("TIME", 3, 3);
 	} );
@@ -8456,7 +8476,26 @@ $( function () {
 
     } );
 
-    test( "Test: \"MATCH\"", function () {
+	/*test( "Test: \"LOOKUP\"", function () {
+
+		ws.getRange2( "A501" ).setValue( "1" );
+		ws.getRange2( "B501" ).setValue( "" );
+		ws.getRange2( "C501" ).setValue( "" );
+		ws.getRange2( "D501" ).setValue( "" );
+		ws.getRange2( "E501" ).setValue( "" );
+		ws.getRange2( "F501" ).setValue( "123" );
+		ws.getRange2( "G501" ).setValue( "12" );
+		ws.getRange2( "H501" ).setValue( "" );
+		ws.getRange2( "I501" ).setValue( "" );
+		ws.getRange2( "J501" ).setValue( "" );
+
+		oParser = new parserFormula( "LOOKUP(100,A501:J501)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1 );
+	} );*/
+
+
+	test( "Test: \"MATCH\"", function () {
 
         ws.getRange2( "A551" ).setValue( "28" );
         ws.getRange2( "A552" ).setValue( "29" );
@@ -10388,6 +10427,36 @@ $( function () {
         oParser = new parserFormula( "DDB(2400,300,10,10)", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), ddb(2400,300,10,10) );
+
+
+        //TODO format $
+		ws.getRange2( "A102" ).setValue( "2400" );
+		ws.getRange2( "A103" ).setValue( "300" );
+		ws.getRange2( "A104" ).setValue( "10" );
+
+		oParser = new parserFormula( "DDB(A102,A103,A104*365,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(2) - 0, 1.32 );
+
+		oParser = new parserFormula( "DDB(A102,A103,A104*12,1,2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 40 );
+
+		oParser = new parserFormula( "DDB(A102,A103,A104,1,2)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 480 );
+
+		oParser = new parserFormula( "DDB(A102,A103,A104,2,1.5)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(0) - 0, 306 );
+
+		oParser = new parserFormula( "DDB(A102,A103,A104,10)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().toFixed(2) - 0, 22.12 );
+
+		oParser = new parserFormula( "DDB(A102,A103,0,10)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
 
 		testArrayFormula2("DDB",4,5);
 

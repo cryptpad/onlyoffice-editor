@@ -136,12 +136,15 @@ StartAddNewShape.prototype =
                 }
                 this.onMouseMove({IsLocked: true}, this.startX + ext_x, this.startY + ext_y, this.pageIndex);
             }
-            History.Create_NewPoint(AscDFH.historydescription_Document_AddNewShape);
+
+            var oLogicDocument = this.drawingObjects.document;
+
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddNewShape);
             var bounds = this.drawingObjects.arrTrackObjects[0].getBounds();
             var shape = this.drawingObjects.arrTrackObjects[0].getShape(true, this.drawingObjects.drawingDocument);
             var drawing = new ParaDrawing(shape.spPr.xfrm.extX, shape.spPr.xfrm.extY, shape, this.drawingObjects.drawingDocument, this.drawingObjects.document, null);
             var nearest_pos = this.drawingObjects.document.Get_NearestPos(this.pageIndex, bounds.min_x, bounds.min_y, true, drawing);
-            if(nearest_pos && false === this.drawingObjects.document.Document_Is_SelectionLocked(AscCommon.changestype_None, {Type : AscCommon.changestype_2_Element_and_Type , Element : nearest_pos.Paragraph, CheckType : AscCommon.changestype_Paragraph_Content} ))
+            if(nearest_pos && false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {Type : AscCommon.changestype_2_Element_and_Type , Element : nearest_pos.Paragraph, CheckType : AscCommon.changestype_Paragraph_Content} ))
             {
                 drawing.Set_DrawingType(drawing_Anchor);
                 drawing.Set_GraphicObject(shape);
@@ -156,6 +159,7 @@ StartAddNewShape.prototype =
                 this.drawingObjects.resetSelection();
                 shape.select(this.drawingObjects, this.pageIndex);
                 this.drawingObjects.document.Recalculate();
+				oLogicDocument.FinalizeAction();
                 if(this.preset === "textRect")
                 {
                     this.drawingObjects.selection.textSelection = shape;
@@ -166,6 +170,7 @@ StartAddNewShape.prototype =
             else
             {
                 this.drawingObjects.document.Document_Undo();
+				oLogicDocument.FinalizeAction(false);
             }
         }
         this.drawingObjects.clearTrackObjects();
@@ -224,14 +229,15 @@ NullState.prototype =
                             {
                                 if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : AscCommon.changestype_2_Element_and_Type , Element : selection.wrapPolygonSelection.parent.Get_ParentParagraph(), CheckType : AscCommon.changestype_Paragraph_Content}))
                                 {
-                                    History.Create_NewPoint(AscDFH.historydescription_Document_EditWrapPolygon);
+									this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_EditWrapPolygon);
                                     var new_rel_array = [].concat(wrap_polygon.relativeArrPoints);
                                     new_rel_array.splice(hit_to_wrap_polygon.pointNum, 1);
                                     wrap_polygon.setEdited(true);
                                     wrap_polygon.setArrRelPoints(new_rel_array);
                                     this.drawingObjects.document.Recalculate();
                                     this.drawingObjects.updateOverlay();
-                                }
+									this.drawingObjects.document.FinalizeAction();
+								}
                             }
                         }
                         return true;
@@ -521,8 +527,9 @@ MoveInlineObject.prototype =
                 check_paragraphs.push(new_check_paragraph);
             if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : check_paragraphs, CheckType : AscCommon.changestype_Paragraph_Content}, true))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_MoveInlineObject);
+				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_MoveInlineObject);
                 this.majorObject.parent.OnEnd_MoveInline(this.InlinePos);
+				this.drawingObjects.document.FinalizeAction();
             }
         }
         else
@@ -530,7 +537,7 @@ MoveInlineObject.prototype =
             check_paragraphs.push(this.majorObject.parent.checkShapeChildAndGetTopParagraph(this.InlinePos.Paragraph));
             if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : check_paragraphs, CheckType : AscCommon.changestype_Paragraph_Content}, true))
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_CopyAndMoveInlineObject);
+				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_CopyAndMoveInlineObject);
                 var new_para_drawing = new ParaDrawing(this.majorObject.parent.Extent.W, this.majorObject.parent.Extent.H, null, this.drawingObjects.drawingDocument, null, null);
                 var drawing = this.majorObject.copy();
                 drawing.setParent(new_para_drawing);
@@ -539,6 +546,7 @@ MoveInlineObject.prototype =
                 this.drawingObjects.resetSelection();
                 this.drawingObjects.selectObject(drawing, pageIndex);
                 this.drawingObjects.document.Recalculate();
+				this.drawingObjects.document.FinalizeAction();
             }
         }
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -623,13 +631,14 @@ RotateState.prototype =
         {
             if(this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props) === false)
             {
-                History.Create_NewPoint(AscDFH.historydescription_Document_RotateInlineDrawing);
+				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_RotateInlineDrawing);
                 this.drawingObjects.arrTrackObjects[0].trackEnd(true);
                 if(!this.drawingObjects.arrTrackObjects[0].view3D)
                 {
                     this.majorObject.parent.CheckWH();
                 }
                 this.drawingObjects.document.Recalculate();
+				this.drawingObjects.document.FinalizeAction();
             }
         }
         else
@@ -658,7 +667,7 @@ RotateState.prototype =
                 if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : aCheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content}))
                 {
                     this.drawingObjects.resetSelection();
-                    History.Create_NewPoint(AscDFH.historydescription_Document_RotateFlowDrawingCtrl);
+					this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_RotateFlowDrawingCtrl);
                     for(i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
                     {
                         bounds = aBounds[i];
@@ -678,6 +687,7 @@ RotateState.prototype =
                         this.drawingObjects.selectObject(para_drawing.GraphicObj, pageIndex);
                     }
                     this.drawingObjects.document.Recalculate();
+					this.drawingObjects.document.FinalizeAction();
                 }
             }
             else
@@ -700,7 +710,7 @@ RotateState.prototype =
                 }
                 if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : aCheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content}, bNoNeedCheck))
                 {
-                    History.Create_NewPoint(AscDFH.historydescription_Document_RotateFlowDrawingNoCtrl);
+					this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_RotateFlowDrawingNoCtrl);
                     if(bMoveState && !this.drawingObjects.selection.cropSelection){
                         this.drawingObjects.resetSelection();
                     }
@@ -723,7 +733,7 @@ RotateState.prototype =
                             // при этом мы должны сохранить их начальные настройки рецензирования.
                             var bTrackRevisions = this.drawingObjects.document.IsTrackRevisions();
                             if (bTrackRevisions)
-                                this.drawingObjects.document.Set_TrackRevisions(false);
+                                this.drawingObjects.document.SetTrackRevisions(false);
 
                             var oOriginalRun = original.Parent.Get_DrawingObjectRun(original.Id);
 
@@ -736,7 +746,7 @@ RotateState.prototype =
                             originalCopy.Add_ToDocument(aNearestPos[i], false, null, oOriginalRun);
 
                             if (bTrackRevisions)
-                                this.drawingObjects.document.Set_TrackRevisions(true);
+                                this.drawingObjects.document.SetTrackRevisions(true);
 
                             this.drawingObjects.selectObject(originalCopy.GraphicObj, pageIndex);
                         }
@@ -752,6 +762,7 @@ RotateState.prototype =
                         }
                         this.drawingObjects.document.Recalculate();
                     }
+					this.drawingObjects.document.FinalizeAction();
                 }
             }
         }
@@ -1238,60 +1249,58 @@ MoveInGroupState.prototype =
 
     onMouseUp: function(e, x, y, pageIndex)
     {
-        History.Create_NewPoint(AscDFH.historydescription_Document_MoveInGroup);
-        var old_x = this.group.bounds.x;
-        var old_y = this.group.bounds.y;
-        var i;
-        var tracks = this.drawingObjects.arrTrackObjects;
-        if(this instanceof MoveInGroupState && e.CtrlKey)
-        {
-            this.group.resetSelection();
-            for(i = 0; i < tracks.length; ++i)
-            {
-                var copy = tracks[i].originalObject.copy();
-                copy.setGroup(tracks[i].originalObject.group);
-                copy.group.addToSpTree(copy.group.length, copy);
-                tracks[i].originalObject = copy;
-                tracks[i].trackEnd(true);
-                this.group.selectObject(copy, 0);
-            }
-        }
-        else
-        {
-            for(i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
-            {
-                this.drawingObjects.arrTrackObjects[i].trackEnd(true);
-            }
-        }
-        var oPosObject = this.group.updateCoordinatesAfterInternalResize();
-        this.group.recalculate();
-        var bounds = this.group.bounds;
+        var parent_paragraph = this.group.parent.Get_ParentParagraph();
         var check_paragraphs = [];
-        check_paragraphs.push(this.group.parent.Get_ParentParagraph());
-        var posX = oPosObject.posX;
-        var posY = oPosObject.posY;
-        this.group.spPr.xfrm.setOffX(0);
-        this.group.spPr.xfrm.setOffY(0);
         if(this.group.parent.Is_Inline())
         {
-            this.group.parent.CheckWH();
+            check_paragraphs.push(parent_paragraph);
         }
-        else
-        {
-            this.group.parent.CheckWH();
-            this.group.parent.Set_XY(this.group.posX + posX, this.group.posY + posY, check_paragraphs[0], this.group.parent.pageIndex, false);
-            check_paragraphs.length = 0;
-         }
         if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : check_paragraphs, CheckType : AscCommon.changestype_Paragraph_Content}))
         {
+			this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_MoveInGroup);
+            var i;
+            var tracks = this.drawingObjects.arrTrackObjects;
+            if(this instanceof MoveInGroupState && e.CtrlKey)
+            {
+                this.group.resetSelection();
+                for(i = 0; i < tracks.length; ++i)
+                {
+                    var copy = tracks[i].originalObject.copy();
+                    copy.setGroup(tracks[i].originalObject.group);
+                    copy.group.addToSpTree(copy.group.length, copy);
+                    tracks[i].originalObject = copy;
+                    tracks[i].trackEnd(true);
+                    this.group.selectObject(copy, 0);
+                }
+            }
+            else
+            {
+                for(i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
+                {
+                    this.drawingObjects.arrTrackObjects[i].trackEnd(true);
+                }
+            }
+            var oPosObject = this.group.updateCoordinatesAfterInternalResize();
+            this.group.recalculate();
+            var posX = oPosObject.posX;
+            var posY = oPosObject.posY;
+            this.group.spPr.xfrm.setOffX(0);
+            this.group.spPr.xfrm.setOffY(0);
+            if(this.group.parent.Is_Inline())
+            {
+                this.group.parent.CheckWH();
+            }
+            else
+            {
+                this.group.parent.CheckWH();
+                this.group.parent.Set_XY(this.group.posX + posX, this.group.posY + posY, parent_paragraph, this.group.parent.pageIndex, false);
+            }
             this.drawingObjects.document.Recalculate();
-        }
-        else
-        {
-            this.drawingObjects.document.Document_Undo();
+			this.drawingObjects.document.FinalizeAction();
         }
         this.drawingObjects.clearTrackObjects();
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
+        this.drawingObjects.updateOverlay();
     }
 };
 
@@ -1610,7 +1619,7 @@ ChangeWrapContour.prototype.onMouseUp = function(e, x, y, pageIndex)
 {
     if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
     {
-        History.Create_NewPoint(AscDFH.historydescription_Document_ChangeWrapContour);
+		this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_ChangeWrapContour);
         var calc_points = [], calc_points2 = [], i;
         for(i = 0; i < this.majorObject.parent.wrappingPolygon.calculatedPoints.length; ++i)
         {
@@ -1630,6 +1639,7 @@ ChangeWrapContour.prototype.onMouseUp = function(e, x, y, pageIndex)
         this.majorObject.parent.wrappingPolygon.setEdited(true);
         this.majorObject.parent.wrappingPolygon.setArrRelPoints(calc_points2);
         this.drawingObjects.document.Recalculate();
+		this.drawingObjects.document.FinalizeAction();
     }
     this.drawingObjects.clearTrackObjects();
     this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -1705,7 +1715,7 @@ ChangeWrapContourAddPoint.prototype.onMouseUp = function(e, x, y, pageIndex)
 {
     if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
     {
-        History.Create_NewPoint(AscDFH.historydescription_Document_ChangeWrapContourAddPoint);
+		this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_ChangeWrapContourAddPoint);
         var calc_points = [], calc_points2 = [], i;
         for(i = 0; i < this.drawingObjects.arrTrackObjects[0].arrPoints.length; ++i)
         {
@@ -1724,6 +1734,7 @@ ChangeWrapContourAddPoint.prototype.onMouseUp = function(e, x, y, pageIndex)
         this.majorObject.parent.wrappingPolygon.setEdited(true);
         this.majorObject.parent.wrappingPolygon.setArrRelPoints(calc_points2);
         this.drawingObjects.document.Recalculate();
+		this.drawingObjects.document.FinalizeAction();
     }
     this.drawingObjects.clearTrackObjects();
     this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));

@@ -33,6 +33,8 @@
 "use strict";
 CTable.prototype.Recalculate_Page = function(PageIndex)
 {
+	this.SetIsRecalculated(true);
+
 	if (0 === PageIndex)
 	{
 		// TODO: Внутри функции private_RecalculateBorders происходит персчет метрик каждой ячейки, это надо бы

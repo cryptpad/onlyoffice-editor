@@ -3252,7 +3252,7 @@ function OfflineEditor () {
                 var _lineWidth = Math.max((shape_drawer.StrokeWidth * dKoefMMToPx + 0.5) >> 0, 1);
                 _ctx.lineWidth = _lineWidth;
                 
-                if (_lineWidth & 0x01 == 0x01)
+                if ((_lineWidth & 0x01) == 0x01)
                     bIsEven = true;
             }
             
@@ -3863,29 +3863,20 @@ function OfflineEditor () {
         
         this.beforeOpen();
         
-        window["CreateMainTextMeasurerWrapper"]();
-        
         deviceScale = window["native"]["GetDeviceScale"]();
         sdkCheck = settings["sdkCheck"];
         
         window.g_file_path = "native_open_file";
         window.NATIVE_DOCUMENT_TYPE = "";
-        
-        var apiConfig = {};
-        if (this.translate) {
-            var t = JSON.parse(this.translate);
-            if (t) {
-                apiConfig['translate'] = {
-                    'Diagram Title' : t['diagrammtitle'],
-                    'X Axis' : t['xaxis'],
-                    'Y Axis' : t['yaxis'],
-                    'Series' : t['series'],
-                    'Your text here' : t['art']
-                };
-            }
+  
+        var translations = this.initSettings["translations"];
+        if (undefined != translations && null != translations && translations.length > 0) {
+            translations = JSON.parse(translations)
+        } else {
+            translations = "";
         }
-        
-        _api = new window["Asc"]["spreadsheet_api"](apiConfig);
+
+        _api = new window["Asc"]["spreadsheet_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
         
@@ -4809,7 +4800,7 @@ function OfflineEditor () {
                 oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
                 
                 window["native"]["BeginDrawDefaultStyle"](oStyle.Name, styleIndex);
-                this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, oStyle.Name, styleIndex);
+                this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
                 window["native"]["EndDrawStyle"]();
                 ++styleIndex;
             }
@@ -4826,7 +4817,7 @@ function OfflineEditor () {
                 }
                 
                 window["native"]["BeginDrawDocumentStyle"](oStyle.Name, styleIndex);
-                this.drawStyle(oGraphics, stringRenderer, oStyle, oStyle.Name, styleIndex);
+                this.drawStyle(oGraphics, stringRenderer, oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
                 window["native"]["EndDrawStyle"]();
                 ++styleIndex;
             }
@@ -5192,8 +5183,8 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     range.c1 = _s.col0;
     range.r1 = _s.row0;
     ws.visibleRange = range;
-    
-    ws.objectRender.drawingArea.reinitRanges();
+
+    ws._updateDrawingArea();
     var graphicsInfo = wb._onGetGraphicsInfo(x, y);
     if (graphicsInfo) {
         ws.endEditChart();
@@ -5890,7 +5881,7 @@ window["native"]["offline_get_header_sizes"] = function() {
 }
 window["native"]["offline_get_graphics_object"] = function(x, y) {
     var ws = _api.wb.getWorksheet();
-    ws.objectRender.drawingArea.reinitRanges();
+    ws._updateDrawingArea();
     
     var drawingInfo = ws.objectRender.checkCursorDrawingObject(x, y);
     if (drawingInfo) {
@@ -6182,8 +6173,6 @@ window["native"]["offline_calculate_complete_range"] = function(x, y, w, h) {
             ws._getColLeft(range.c2) + ws._getColumnWidth(range.c2),
             ws._getRowTop(range.r2)  + ws._getRowHeight(range.r1)];
 }
-
-window["native"]["offline_set_translate"] = function(translate) {_s.translate = translate;}
 
 window["native"]["offline_apply_event"] = function(type,params) {
     var _borderOptions = Asc.c_oAscBorderOptions;
@@ -7269,9 +7258,7 @@ function testLockedObjects () {
         var drawingObject = aObjects[i];
         
         if (drawingObject.isGraphicObject()) {
-            
-            var drawingArea = objectRender.drawingArea;
-            objectRender.drawingArea.reinitRanges();
+            ws._updateDrawingArea();
             
             for (var j = 0; j < drawingArea.frozenPlaces.length; ++j) {
                 if (drawingArea.frozenPlaces[j].isObjectInside(drawingObject)) {

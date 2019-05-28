@@ -1646,7 +1646,7 @@ function CDrawingDocument(drawingObjects)
         }
 
         // заглушка под мобильную версию (iPad не рисует большие картинки (наверное страховка по памяти))
-        if (g_bIsMobile)
+        if (AscCommon.AscBrowser.isMobile)
         {
             var _mobile_max = 2000;
             if (w > _mobile_max || h > _mobile_max)
@@ -1904,7 +1904,7 @@ function CDrawingDocument(drawingObjects)
         var x_mm = (_x - rect.left) * dKoef;
         var y_mm = (_y - rect.top) * dKoef;
 
-        return { X : x_mm, Y : y_mm, Page: rect.pageIndex, DrawPage: i };
+        return { X : x_mm, Y : y_mm, Page: rect.pageIndex, DrawPage: page };
     }
 
     this.ConvertCoordsToAnotherPage = function(x, y, pageCoord, pageNeed)
@@ -3200,7 +3200,7 @@ function CDrawingDocument(drawingObjects)
         if (this.m_oWordControl.MobileTouchManager)
         {
             this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = true;
-            markup.Table.Start_TrackTable();
+            markup.Table.StartTrackTable();
             this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
         }
     }

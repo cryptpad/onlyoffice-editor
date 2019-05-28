@@ -31,7 +31,6 @@
  */
 
 var editor = undefined;
-var window = {};
 var navigator = {};
 navigator.userAgent = "chrome";
 window.navigator = navigator;
@@ -284,10 +283,6 @@ document.createComment = function() { return undefined; };
 
 document.documentElement = _null_object;
 document.body = _null_object;
-
-var native = CreateNativeEngine();
-window.native = native;
-window["native"] = native;
 
 var _api = null;
 

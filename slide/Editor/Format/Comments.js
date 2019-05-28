@@ -200,7 +200,7 @@ ParaComment.prototype =
     {
     },
 
-    Check_RevisionsChanges : function(Checker, ContentPos, Depth)
+    CheckRevisionsChanges : function(Checker, ContentPos, Depth)
     {
     },
 
@@ -500,7 +500,7 @@ ParaComment.prototype.Get_TextPr = function(ContentPos, Depth)
 //----------------------------------------------------------------------------------------------------------------------
 ParaComment.prototype.SetReviewType = function(ReviewType, RemovePrChange){};
 ParaComment.prototype.SetReviewTypeWithInfo = function(ReviewType, ReviewInfo){};
-ParaComment.prototype.Check_RevisionsChanges = function(Checker, ContentPos, Depth){};
+ParaComment.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth){};
 ParaComment.prototype.AcceptRevisionChanges = function(Type, bAll){};
 ParaComment.prototype.RejectRevisionChanges = function(Type, bAll){};
 
@@ -580,6 +580,8 @@ CWriteCommentData.prototype =
         else
         {
             this.AdditionalData = "teamlab_data:";
+            this.AdditionalData += ("0;" + this.Data.m_sUserId.length + ";" + this.Data.m_sUserId + ";" );
+            this.AdditionalData += ("1;" + this.Data.m_sUserName.length + ";" + this.Data.m_sUserName + ";" );
             this.AdditionalData += ("2;1;" + (this.Data.m_bSolved ? "1;" : "0;"));
             if (this.Data.m_sOOTime)
             {
@@ -636,7 +638,11 @@ CWriteCommentData.prototype =
             var _value = _parsed.data.substr(_parsed.pos, _len);
             _parsed.pos += (_len + 1);
 
-            if (2 == _attr)
+            if (0 == _attr)
+                _comment_data.m_sUserId = _value;
+            else if (1 == _attr)
+                _comment_data.m_sUserName = _value;
+            else if (2 == _attr)
                 _comment_data.m_bSolved = ("1" == _value) ? true : false;
             else if (3 == _attr)
             {

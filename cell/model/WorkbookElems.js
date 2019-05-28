@@ -495,28 +495,6 @@ g_oColorManager = new ColorManager();
 		}
 	};
 
-	function readValAttr(attr){
-		if(attr()){
-			var val = attr()["val"];
-			return val ? val : null;
-		}
-		return null;
-	}
-	function getNumFromXml(val) {
-		return val ? val - 0 : null;
-	}
-	function getColorFromXml(attr) {
-		if(attr()){
-			var vals = attr();
-			if(null != vals["theme"]) {
-				return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(vals["theme"]), getNumFromXml(vals["tint"]));
-			} else if(null != vals["rgb"]){
-				return new AscCommonExcel.RgbColor(0x00ffffff & getNumFromXml(vals["rgb"]));
-			}
-		}
-		return null;
-	}
-
 var g_oFontProperties = {
 		fn: 0,
 		scheme: 1,
@@ -844,21 +822,21 @@ var g_oFontProperties = {
 	Font.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if("b" === elem){
-			this.b = getBoolFromXml(readValAttr(attr));
+			this.b = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("color" === elem){
-			this.c = getColorFromXml(attr);
+			this.c = AscCommon.getColorFromXml(attr);
 		} else if("i" === elem){
-			this.i = getBoolFromXml(readValAttr(attr));
+			this.i = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("name" === elem){
-			this.fn = readValAttr(attr);
+			this.fn = AscCommon.readValAttr(attr);
 		} else if("scheme" === elem){
-			this.scheme = readValAttr(attr);
+			this.scheme = AscCommon.readValAttr(attr);
 		} else if("strike" === elem){
-			this.s = getBoolFromXml(readValAttr(attr));
+			this.s = AscCommon.getBoolFromXml(AscCommon.readValAttr(attr));
 		} else if("sz" === elem){
-			this.fs = getNumFromXml(readValAttr(attr));
+			this.fs = AscCommon.getNumFromXml(AscCommon.readValAttr(attr));
 		} else if("u" === elem){
-			switch (readValAttr(attr)) {
+			switch (AscCommon.readValAttr(attr)) {
 				case "single":
 					this.u = Asc.EUnderline.underlineSingle;
 					break;
@@ -876,7 +854,7 @@ var g_oFontProperties = {
 					break;
 			}
 		} else if("vertAlign" === elem){
-			switch (readValAttr(attr)) {
+			switch (AscCommon.readValAttr(attr)) {
 				case "baseline":
 					this.va = AscCommon.vertalign_Baseline;
 					break;
@@ -964,9 +942,9 @@ var g_oFontProperties = {
 	function FromXml_ST_GradientType(val) {
 		var res = -1;
 		if ("linear" === val) {
-			res = st_gradienttypeLINEAR;
+			res = c_oAscGradientType.Linear;
 		} else if ("path" === val) {
-			res = st_gradienttypePATH;
+			res = c_oAscGradientType.Path;
 		}
 		return res;
 	}
@@ -1244,7 +1222,7 @@ var g_oFontProperties = {
 	GradientStop.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if ("color" === elem) {
-			this.color = getColorFromXml(attr);
+			this.color = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
@@ -1357,10 +1335,10 @@ var g_oFontProperties = {
 	PatternFill.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if ("fgColor" === elem) {
-			this.fgColor = getColorFromXml(attr);
+			this.fgColor = AscCommon.getColorFromXml(attr);
 		}
 		else if ("bgColor" === elem) {
-			this.bgColor = getColorFromXml(attr);
+			this.bgColor = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
@@ -1671,7 +1649,7 @@ var g_oFontProperties = {
 	BorderProp.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if("color" === elem){
-			this.c = getColorFromXml(attr);
+			this.c = AscCommon.getColorFromXml(attr);
 		}
 		else {
 			newContext = null;
@@ -1731,24 +1709,38 @@ var g_oBorderProperties = {
 		return this._index = val;
 	};
 	Border.prototype._mergeProperty = function (first, second, def) {
-		if ((null != def.isEqual && false == def.isEqual(first)) || (null == def.isEqual && def != first)) {
+		if (first.s !== c_oAscBorderStyles.None) {
 			return first;
 		} else {
 			return second;
 		}
 	};
-	Border.prototype.merge = function (border) {
+	Border.prototype.merge = function (border, isTable) {
 		var defaultBorder = g_oDefaultFormat.Border;
 		var oRes = new Border();
-		oRes.l = this._mergeProperty(this.l, border.l, defaultBorder.l).clone();
-		oRes.t = this._mergeProperty(this.t, border.t, defaultBorder.t).clone();
-		oRes.r = this._mergeProperty(this.r, border.r, defaultBorder.r).clone();
-		oRes.b = this._mergeProperty(this.b, border.b, defaultBorder.b).clone();
-		oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
-		oRes.ih = this._mergeProperty(this.ih, border.ih, defaultBorder.ih).clone();
-		oRes.iv = this._mergeProperty(this.iv, border.iv, defaultBorder.iv).clone();
-		oRes.dd = this._mergeProperty(this.dd, border.dd, defaultBorder.dd);
-		oRes.du = this._mergeProperty(this.du, border.du, defaultBorder.du);
+		//todo null border props
+		if (isTable) {
+			oRes.l = this._mergeProperty(this.l, border.l, defaultBorder.l).clone();
+			oRes.t = this._mergeProperty(this.t, border.t, defaultBorder.t).clone();
+			oRes.r = this._mergeProperty(this.r, border.r, defaultBorder.r).clone();
+			oRes.b = this._mergeProperty(this.b, border.b, defaultBorder.b).clone();
+			oRes.ih = this._mergeProperty(this.ih, border.ih, defaultBorder.ih).clone();
+			oRes.iv = this._mergeProperty(this.iv, border.iv, defaultBorder.iv).clone();
+			oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
+			oRes.dd = this.dd || border.dd;
+			oRes.du = this.du || border.du;
+		} else {
+			//todo merge with default
+			oRes.l = this.l.clone();
+			oRes.t = this.t.clone();
+			oRes.r = this.r.clone();
+			oRes.b = this.b.clone();
+			oRes.ih = this.ih.clone();
+			oRes.iv = this.iv.clone();
+			oRes.d = this._mergeProperty(this.d, border.d, defaultBorder.d).clone();
+			oRes.dd = this.dd || border.dd;
+			oRes.du = this.du || border.du;
+		}
 		return oRes;
 	};
 	Border.prototype.getDif = function (val) {
@@ -1960,11 +1952,11 @@ var g_oBorderProperties = {
 			var val;
 			val = vals["diagonalUp"];
 			if(undefined !== val){
-				this.du = getBoolFromXml(val);
+				this.du = AscCommon.getBoolFromXml(val);
 			}
 			val = vals["diagonalDown"];
 			if(undefined !== val){
-				this.dd = getBoolFromXml(val);
+				this.dd = AscCommon.getBoolFromXml(val);
 			}
 		}
 	};
@@ -2212,7 +2204,7 @@ CellXfs.prototype =
 		var cache = this.getOperationCache("merge", xfIndexNumber);
 		if (!cache) {
 			cache = new CellXfs();
-			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border);
+			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border, isTable);
 			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFill === xfs.fill)) {
 				if (g_StyleCache.firstFill === xfs.fill) {
 					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
@@ -2601,7 +2593,7 @@ Align.prototype =
 		}
 		val = vals["wrapText"];
 		if(undefined !== val){
-			this.wrap = getBoolFromXml(val);
+			this.wrap = AscCommon.getBoolFromXml(val);
 		}
 		val = vals["indent"];
 		if(undefined !== val){
@@ -2613,7 +2605,7 @@ Align.prototype =
 		}
 		val = vals["shrinkToFit"];
 		if(undefined !== val){
-			this.shrink = getBoolFromXml(val);
+			this.shrink = AscCommon.getBoolFromXml(val);
 		}
 	}
 }
@@ -4279,34 +4271,41 @@ function RangeDataManagerElem(bbox, data)
 	this.bbox = bbox;
 	this.data = data;
 }
-function RangeDataManager(fChange)
-{
-	this.tree = new AscCommon.DataIntervalTree2D();
-	this.oDependenceManager = null;
-	this.fChange = fChange;
 
-	this.fInit = null;
-	this.fGetUninitialized = null;
-}
-RangeDataManager.prototype = {
-	_delayedInit: function(){
-		if (this.fInit) {
-			var _fInit = this.fInit;
-			this.fInit = null;
-			this.fGetUninitialized = null;
-			_fInit();
+	function RangeDataManager(fChange) {
+		this.tree = new AscCommon.DataIntervalTree2D();
+		this.oDependenceManager = null;
+		this.fChange = fChange;
+
+		this.initData = null;
+		this.worksheet = null;
+	}
+	RangeDataManager.prototype._delayedInit = function () {
+		if (this.initData) {
+			var initData = this.initData;
+			this.initData = null;
+			var t = this;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				History.TurnOff();
+				for (var i = 0; i < initData.length; ++i) {
+					var range = t.worksheet.getRange2(initData[i]);
+					if (null != range) {
+						range.mergeOpen();
+					}
+				}
+				History.TurnOn();
+			});
 		}
-	},
-    add: function (bbox, data, oChangeParam)
-	{
+	};
+	RangeDataManager.prototype.add = function (bbox, data, oChangeParam) {
 		this._delayedInit();
 		var oNewElem = new RangeDataManagerElem(new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2), data);
 		this.tree.insert(bbox, oNewElem);
-		if(null != this.fChange)
-		    this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
-	},
-	get : function(bbox)
-	{
+		if (null != this.fChange) {
+			this.fChange.call(this, oNewElem.data, null, oNewElem.bbox, oChangeParam);
+		}
+	};
+	RangeDataManager.prototype.get = function (bbox) {
 		this._delayedInit();
 		var oRes = {all: [], inner: [], outer: []};
 		var intervals = this.tree.searchNodes(bbox);
@@ -4323,16 +4322,14 @@ RangeDataManager.prototype = {
 			}
 		}
 		return oRes;
-	},
-	getAny : function(bbox)
-	{
+	};
+	RangeDataManager.prototype.getAny = function (bbox) {
 		this._delayedInit();
 		return this.tree.searchAny(bbox);
-	},
-	getByCell : function(nRow, nCol)
-	{
+	};
+	RangeDataManager.prototype.getByCell = function (nRow, nCol) {
 		this._delayedInit();
-		var bbox = new Asc.Range(nCol, nRow, nCol, nRow)
+		var bbox = new Asc.Range(nCol, nRow, nCol, nRow);
 		var res = this.getAny(bbox);
 		if (!res && null != this.oDependenceManager) {
 			var oDependence = this.oDependenceManager.getAny(bbox);
@@ -4341,185 +4338,174 @@ RangeDataManager.prototype = {
 			}
 		}
 		return res;
-	},
-	remove: function (bbox, bInnerOnly, oChangeParam)
-	{
+	};
+	RangeDataManager.prototype.remove = function (bbox, bInnerOnly, oChangeParam) {
 		this._delayedInit();
-	    var aElems = this.get(bbox);
-	    var aTargetArray;
-	    if (bInnerOnly)
-	        aTargetArray = aElems.inner;
-	    else
-	        aTargetArray = aElems.all;
-	    for (var i = 0, length = aTargetArray.length; i < length; ++i)
-		{
-	        var elem = aTargetArray[i];
-	        this.removeElement(elem, oChangeParam);
+		var aElems = this.get(bbox);
+		var aTargetArray;
+		if (bInnerOnly) {
+			aTargetArray = aElems.inner;
+		} else {
+			aTargetArray = aElems.all;
 		}
-	},
-	removeElement: function (elemToDelete, oChangeParam)
-	{
+		for (var i = 0, length = aTargetArray.length; i < length; ++i) {
+			var elem = aTargetArray[i];
+			this.removeElement(elem, oChangeParam);
+		}
+	};
+	RangeDataManager.prototype.removeElement = function (elemToDelete, oChangeParam) {
 		this._delayedInit();
-		if(null != elemToDelete)
-		{
+		if (null != elemToDelete) {
 			this.tree.remove(elemToDelete.bbox, elemToDelete);
-			if(null != this.fChange)
-			    this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
+			if (null != this.fChange) {
+				this.fChange.call(this, elemToDelete.data, elemToDelete.bbox, null, oChangeParam);
+			}
 		}
-	},
-	shiftGet : function(bbox, bHor)
-	{
+	};
+	RangeDataManager.prototype.shiftGet = function (bbox, bHor) {
 		this._delayedInit();
 		var bboxGet = shiftGetBBox(bbox, bHor);
 		return {bbox: bboxGet, elems: this.get(bboxGet)};
-	},
-	shift: function (bbox, bAdd, bHor, oGetRes, oChangeParam)
-	{
+	};
+	RangeDataManager.prototype.shift = function (bbox, bAdd, bHor, oGetRes, oChangeParam) {
 		this._delayedInit();
-	    var _this = this;
-	    if (null == oGetRes)
-	        oGetRes = this.shiftGet(bbox, bHor);
-	    var offset;
-	    if (bHor)
-	        offset = new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1);
-	    else
-	        offset = new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0);
-	    if (!bAdd) {
-	        offset.row *= -1;
-	        offset.col *= -1;
-	    }
-	    this._shiftmove(true, bbox, offset, oGetRes.elems, oChangeParam);
-	},
-	move: function (from, to, oChangeParam)
-	{
+		var _this = this;
+		if (null == oGetRes) {
+			oGetRes = this.shiftGet(bbox, bHor);
+		}
+		var offset;
+		if (bHor) {
+			offset = new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1);
+		} else {
+			offset = new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0);
+		}
+		if (!bAdd) {
+			offset.row *= -1;
+			offset.col *= -1;
+		}
+		this._shiftmove(true, bbox, offset, oGetRes.elems, oChangeParam);
+	};
+	RangeDataManager.prototype.move = function (from, to, oChangeParam) {
 		this._delayedInit();
-	    var offset = new AscCommon.CellBase(to.r1 - from.r1, to.c1 - from.c1);
-	    var oGetRes = this.get(from);
-	    this._shiftmove(false, from, offset, oGetRes, oChangeParam);
-	},
-	_shiftmove: function (bShift, bbox, offset, elems, oChangeParam) {
-	    var aToChange = [];
-	    var bAdd = offset.row > 0 || offset.col > 0;
-	    var bHor = 0 != offset.col ? true : false;
-	    //сдвигаем inner
-	    if (elems.inner.length > 0) {
-	        var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
-	        for (var i = 0, length = elems.inner.length; i < length; i++) {
-	            var elem = elems.inner[i];
-	            var from = elem.bbox;
-	            var to = null;
-	            if (bShift) {
-	                if (bAdd) {
-	                    to = from.clone();
-	                    to.setOffset(offset);
-	                }
-	                else if (!bboxAsc.containsRange(from)) {
-	                    to = from.clone();
-	                    if (bHor) {
-	                        if (to.c1 <= bbox.c2)
-	                            to.setOffsetFirst(new AscCommon.CellBase(0,  bbox.c2 - to.c1 + 1));
-	                    }
-	                    else {
-	                        if (to.r1 <= bbox.r2)
-	                            to.setOffsetFirst(new AscCommon.CellBase(bbox.r2 - to.r1 + 1, 0));
-	                    }
-	                    to.setOffset(offset);
-	                }
-	            }
-	            else {
-	                to = from.clone();
-	                to.setOffset(offset);
-	            }
-	            aToChange.push({ elem: elem, to: to });
-	        }
-	    }
-	    //меняем outer
-	    if (bShift) {
-	        if (elems.outer.length > 0) {
-	            for (var i = 0, length = elems.outer.length; i < length; i++) {
-	                var elem = elems.outer[i];
-	                var from = elem.bbox;
-	                var to = null;
-	                if (bHor) {
-	                    if (from.c1 < bbox.c1 && bbox.r1 <= from.r1 && from.r2 <= bbox.r2) {
-	                        if (bAdd) {
-	                            to = from.clone();
-	                            to.setOffsetLast(new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1));
-	                        }
-	                        else {
-	                            to = from.clone();
-	                            var nTemp1 = from.c2 - bbox.c1 + 1;
-	                            var nTemp2 = bbox.c2 - bbox.c1 + 1;
-	                            to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
-	                        }
-	                    }
-	                }
-	                else {
-	                    if (from.r1 < bbox.r1 && bbox.c1 <= from.c1 && from.c2 <= bbox.c2) {
-	                        if (bAdd) {
-	                            to = from.clone();
-	                            to.setOffsetLast(new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0));
-	                        }
-	                        else {
-	                            to = from.clone();
-	                            var nTemp1 = from.r2 - bbox.r1 + 1;
-	                            var nTemp2 = bbox.r2 - bbox.r1 + 1;
-	                            to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
-	                        }
-	                    }
-	                }
-	                if (null != to)
-	                    aToChange.push({ elem: elem, to: to });
-	            }
-	        }
-	    }
-	    //сначала сортируем чтобы не было конфликтов при сдвиге
-	    aToChange.sort(function (a, b) { return shiftSort(a, b, offset); });
+		var offset = new AscCommon.CellBase(to.r1 - from.r1, to.c1 - from.c1);
+		var oGetRes = this.get(from);
+		this._shiftmove(false, from, offset, oGetRes, oChangeParam);
+	};
+	RangeDataManager.prototype._shiftmove = function (bShift, bbox, offset, elems, oChangeParam) {
+		var aToChange = [];
+		var bAdd = offset.row > 0 || offset.col > 0;
+		var bHor = 0 != offset.col ? true : false;
+		//сдвигаем inner
+		if (elems.inner.length > 0) {
+			var bboxAsc = new Asc.Range(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
+			for (var i = 0, length = elems.inner.length; i < length; i++) {
+				var elem = elems.inner[i];
+				var from = elem.bbox;
+				var to = null;
+				if (bShift) {
+					if (bAdd) {
+						to = from.clone();
+						to.setOffset(offset);
+					} else if (!bboxAsc.containsRange(from)) {
+						to = from.clone();
+						if (bHor) {
+							if (to.c1 <= bbox.c2) {
+								to.setOffsetFirst(new AscCommon.CellBase(0, bbox.c2 - to.c1 + 1));
+							}
+						} else {
+							if (to.r1 <= bbox.r2) {
+								to.setOffsetFirst(new AscCommon.CellBase(bbox.r2 - to.r1 + 1, 0));
+							}
+						}
+						to.setOffset(offset);
+					}
+				} else {
+					to = from.clone();
+					to.setOffset(offset);
+				}
+				aToChange.push({elem: elem, to: to});
+			}
+		}
+		//меняем outer
+		if (bShift) {
+			if (elems.outer.length > 0) {
+				for (var i = 0, length = elems.outer.length; i < length; i++) {
+					var elem = elems.outer[i];
+					var from = elem.bbox;
+					var to = null;
+					if (bHor) {
+						if (from.c1 < bbox.c1 && bbox.r1 <= from.r1 && from.r2 <= bbox.r2) {
+							if (bAdd) {
+								to = from.clone();
+								to.setOffsetLast(new AscCommon.CellBase(0, bbox.c2 - bbox.c1 + 1));
+							} else {
+								to = from.clone();
+								var nTemp1 = from.c2 - bbox.c1 + 1;
+								var nTemp2 = bbox.c2 - bbox.c1 + 1;
+								to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
+							}
+						}
+					} else {
+						if (from.r1 < bbox.r1 && bbox.c1 <= from.c1 && from.c2 <= bbox.c2) {
+							if (bAdd) {
+								to = from.clone();
+								to.setOffsetLast(new AscCommon.CellBase(bbox.r2 - bbox.r1 + 1, 0));
+							} else {
+								to = from.clone();
+								var nTemp1 = from.r2 - bbox.r1 + 1;
+								var nTemp2 = bbox.r2 - bbox.r1 + 1;
+								to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
+							}
+						}
+					}
+					if (null != to) {
+						aToChange.push({elem: elem, to: to});
+					}
+				}
+			}
+		}
+		//сначала сортируем чтобы не было конфликтов при сдвиге
+		aToChange.sort(function (a, b) {
+			return shiftSort(a, b, offset);
+		});
 
-	    if (null != this.fChange) {
-	        for (var i = 0, length = aToChange.length; i < length; ++i) {
-	            var item = aToChange[i];
-	            this.fChange.call(this, item.elem.data, item.elem.bbox, item.to, oChangeParam);
-	        }
-	    }
-	    //убираем fChange, чтобы потом послать его только на одну операцию, а не 2
-	    var fOldChange = this.fChange;
-	    this.fChange = null;
-	    //сначала удаляем все чтобы не было конфликтов
-	    for (var i = 0, length = aToChange.length; i < length; ++i) {
-	        var item = aToChange[i];
-	        var elem = item.elem;
-	        this.removeElement(elem, oChangeParam);
-	    }
-	    //добавляем измененные ячейки
-	    for (var i = 0, length = aToChange.length; i < length; ++i) {
-	        var item = aToChange[i];
-	        if (null != item.to)
-	            this.add(item.to, item.elem.data, oChangeParam);
-	    }
-	    this.fChange = fOldChange;
-	},
-	getAll : function()
-	{
+		if (null != this.fChange) {
+			for (var i = 0, length = aToChange.length; i < length; ++i) {
+				var item = aToChange[i];
+				this.fChange.call(this, item.elem.data, item.elem.bbox, item.to, oChangeParam);
+			}
+		}
+		//убираем fChange, чтобы потом послать его только на одну операцию, а не 2
+		var fOldChange = this.fChange;
+		this.fChange = null;
+		//сначала удаляем все чтобы не было конфликтов
+		for (var i = 0, length = aToChange.length; i < length; ++i) {
+			var item = aToChange[i];
+			var elem = item.elem;
+			this.removeElement(elem, oChangeParam);
+		}
+		//добавляем измененные ячейки
+		for (var i = 0, length = aToChange.length; i < length; ++i) {
+			var item = aToChange[i];
+			if (null != item.to) {
+				this.add(item.to, item.elem.data, oChangeParam);
+			}
+		}
+		this.fChange = fOldChange;
+	};
+	RangeDataManager.prototype.getAll = function () {
 		this._delayedInit();
 		var res = [];
 		var intervals = this.tree.searchNodes(new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0));
-		for(var i = 0; i < intervals.length; i++) {
+		for (var i = 0; i < intervals.length; i++) {
 			var interval = intervals[i];
 			res.push(interval.data);
 		}
 		return res;
-	},
-	setDelayedInit : function(fInit, fGetUninitialized)
-	{
-		this.fInit = fInit;
-		this.fGetUninitialized = fGetUninitialized;
-	},
-	setDependenceManager : function(oDependenceManager)
-	{
+	};
+	RangeDataManager.prototype.setDependenceManager = function (oDependenceManager) {
 		this.oDependenceManager = oDependenceManager;
-	}
-};
+	};
 
 	/** @constructor */
 	function sparklineGroup(addId) {
@@ -4872,7 +4858,7 @@ RangeDataManager.prototype = {
 			}
 		} else {
 			this.arrSparklines.forEach(function (item) {
-				arrResultData.push(item.f || cErrorOrigin['ref']);
+				arrResultData.push(item.f || AscCommon.cErrorOrigin['ref']);
 				arrResultLocation.push(item.sqref.getAbsName());
 			});
 		}
@@ -7131,6 +7117,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 		var filterColor = this.dxf.fill.bg();
 		cell.getLeftTopCellNoEmpty(function(cell) {
 			var fontColor;
+			var xfs = cell ? cell.getCompiledStyleCustom(false, true, true) : null;
 			if(false === t.CellColor)//font color
 			{
 				var multiText;
@@ -7140,7 +7127,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 					{
 						fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
 						if(null === fontColor) {
-							fontColor = cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+							fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
 						}
 						if(isEqualColors(filterColor,fontColor ))
 						{
@@ -7151,7 +7138,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 				}
 				else
 				{
-					fontColor = cell && cell.xfs && cell.xfs.font ? cell.xfs.font.getColor() : null;
+					fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
 					if(isEqualColors(filterColor,fontColor))
 					{
 						res = false;
@@ -7160,8 +7147,7 @@ ColorFilter.prototype.isHideValue = function(cell) {
 			}
 			else
 			{
-				var color = cell ? cell.getStyle() : null;
-				var cellColor =  color !== null && color.fill && color.fill.bg ? color.fill.bg() : null;
+				var cellColor =  xfs !== null && xfs.fill && xfs.fill.bg ? xfs.fill.bg() : null;
 
 				if(isEqualColors(filterColor, cellColor))
 				{
@@ -7490,7 +7476,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	{
 		case 1://day
 		{
-			date = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day));
+			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day));
 			startDate = date.getExcelDateWithTime();
 			date.addDays(1);
 			endDate = date.getExcelDateWithTime();
@@ -7498,19 +7484,19 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 		case 2://hour
 		{
-			startDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, 1)).getExcelDateWithTime();
-			endDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, 59)).getExcelDateWithTime();
+			startDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, 1)).getExcelDateWithTime();
+			endDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, 59)).getExcelDateWithTime();
 			break;
 		}
 		case 3://minute
 		{
-			startDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Minute, 1)).getExcelDateWithTime();
-			endDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Minute, 59)).getExcelDateWithTime();
+			startDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Minute, 1)).getExcelDateWithTime();
+			endDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Minute, 59)).getExcelDateWithTime();
 			break;
 		}
 		case 4://month
 		{
-			date = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, 1));
+			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, 1));
 			startDate = date.getExcelDateWithTime();
 			date.addMonths(1);
 			endDate = date.getExcelDateWithTime();
@@ -7518,13 +7504,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 		case 5://second
 		{
-			startDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Second)).getExcelDateWithTime();
-			endDate = new cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Second )).getExcelDateWithTime();
+			startDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Second)).getExcelDateWithTime();
+			endDate = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day, oDateGroupItem.Hour, oDateGroupItem.Second )).getExcelDateWithTime();
 			break;
 		}
 		case 6://year
 		{
-			date = new cDate(Date.UTC( oDateGroupItem.Year, 0));
+			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, 0));
 			startDate = date.getExcelDateWithTime();
 			date.addYears(1);
 			endDate = date.getExcelDateWithTime();
@@ -8237,7 +8223,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].Row = Row;
 	window['AscCommonExcel'].CMultiTextElem = CMultiTextElem;
 	window['AscCommonExcel'].CCellValue = CCellValue;
-	window['AscCommonExcel'].RangeDataManagerElem = RangeDataManagerElem;
 	window['AscCommonExcel'].RangeDataManager = RangeDataManager;
 	window['AscCommonExcel'].CSharedStrings = CSharedStrings;
 	window['AscCommonExcel'].CWorkbookFormulas = CWorkbookFormulas;

@@ -1194,7 +1194,7 @@ function CCacheManager()
 	}
 }
 
-function CPolygonPoint(X, Y)
+function CPolygonPoint2(X, Y)
 {
 	this.X = X;
 	this.Y = Y;
@@ -1214,7 +1214,7 @@ function CPolygonPath(precision)
 }
 CPolygonPath.prototype.PushPoint = function (x, y)
 {
-	this.Points.push(new CPolygonPoint(x / this.precision, y / this.precision));
+	this.Points.push(new CPolygonPoint2(x / this.precision, y / this.precision));
 };
 CPolygonPath.prototype.CorrectExtremePoints = function ()
 {
@@ -2693,6 +2693,12 @@ function CDrawingDocument()
 	this._search_HdrFtr_Odd = []; // Поиск в колонтитуле, который находится только на четных страницах, включая первую
 	this._search_HdrFtr_Odd_no_First = []; // Поиск в колонтитуле, который находится только на нечетных страницах, кроме первой
 
+	this.isFirstStartRecalculate = false; // был ли хоть раз вызван OnStartRecalculate
+	this.isDisableEditBeforeCalculateLA = false; // залочили все, пока не досчитаем до конца
+	this.isFirstRecalculate = false; // был ли хоть раз вызван OnEndRecalculate
+	this.isFirstFullRecalculate = false; // был ли хоть раз вызван OnEndRecalculate c параметром isFull == true
+    this.isScrollToTargetAttack = false;
+
 	this.showTarget = function (isShow)
 	{
 		if (this.TargetHtmlElementBlock)
@@ -2746,6 +2752,15 @@ function CDrawingDocument()
 		this.m_sLockedCursorType = "";
 	}
 
+	this.scrollToTargetOnRecalculate = function(pageCountOld, pageCountNew)
+    {
+        if (this.m_lTargetPage > pageCountOld && this.m_lTargetPage < pageCountNew)
+        {
+            this.isScrollToTargetAttack = true;
+            this.UpdateTarget(this.m_dTargetX, this.m_dTargetY, this.m_lTargetPage);
+        }
+    }
+
 	this.OnStartRecalculate = function (pageCount)
 	{
 		if (!this.m_oWordControl.MobileTouchManager)
@@ -2761,6 +2776,20 @@ function CDrawingDocument()
 			this.m_oWordControl.MobileTouchManager.ClearContextMenu();
 
 		this.m_bIsDocumentCalculating = true;
+
+		if (!this.isFirstStartRecalculate)
+		{
+            var api = this.m_oWordControl.m_oApi;
+            var options = api.DocInfo ? api.DocInfo.asc_getOptions() : null;
+
+            if (options && options["disableEditBeforeCalculate"])
+            {
+            	this.isDisableEditBeforeCalculateLA = true;
+                api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+            }
+
+            this.isFirstStartRecalculate = true;
+		}
 	}
 
 	this.OnRepaintPage = function (index)
@@ -2838,6 +2867,8 @@ function CDrawingDocument()
 
 	this.OnEndRecalculate = function (isFull, isBreak)
 	{
+		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+
 		if (this.m_oWordControl)
 			this.m_oWordControl.m_oApi.checkLastWork();
 
@@ -2853,6 +2884,7 @@ function CDrawingDocument()
 		}
 
 		this.m_bIsBreakRecalculate = (isFull === true) ? false : true;
+		var oldPagesCount = this.m_lPagesCount;
 		if (isFull)
 		{
 			if (this.m_lPagesCount > this.m_lCountCalculatePages)
@@ -2923,6 +2955,11 @@ function CDrawingDocument()
 			}
 		}
 
+		if (!this.isFirstRecalculate)
+        {
+            this.scrollToTargetOnRecalculate(oldPagesCount, this.m_lPagesCount);
+        }
+
 		if (isFull)
 		{
 			this.m_oWordControl.OnScroll();
@@ -2930,6 +2967,49 @@ function CDrawingDocument()
 			if (this.m_arPrintingWaitEndRecalculate)
 				this.m_oWordControl.m_oApi._downloadAs.apply(this.m_oWordControl.m_oApi, this.m_arPrintingWaitEndRecalculate);
 		}
+
+        if (isFull || isBreak)
+        {
+        	if (isFull)
+			{
+				if (!this.isFirstFullRecalculate)
+				{
+                    var api = this.m_oWordControl.m_oApi;
+                    var options = api.DocInfo ? api.DocInfo.asc_getOptions() : null;
+
+					if (!this.isFirstRecalculate && api.WordControl && api.WordControl.m_oLogicDocument)
+					{
+						// полный пересчет закончился, и не был пересчет документа.
+                        var action = options ? options["action"] : null;
+                        if (action)
+                        {
+                            switch (action["type"])
+                            {
+                                case "bookmark":
+                                {
+                                    api.WordControl.m_oLogicDocument.GoToBookmark(action["data"], true);
+                                    break;
+                                }
+                                default:
+                                    break;
+                            }
+                        }
+					}
+
+					if (options && options["disableEditBeforeCalculate"])
+					{
+                        api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+                        this.isDisableEditBeforeCalculateLA = false;
+                    }
+				}
+
+				this.isFirstFullRecalculate = true;
+			}
+			else if (isBreak)
+			{
+                this.isFirstRecalculate = true;
+			}
+        }
 
 		//console.log("end " + this.m_lCountCalculatePages + "," + isFull + "," + isBreak);
 	}
@@ -3869,8 +3949,10 @@ function CDrawingDocument()
 		}
 
 		var bNeedScrollToTarget = true;
-		if (this.m_dTargetX == x && this.m_dTargetY == y && this.m_lTargetPage == pageIndex)
+		if (!this.isScrollToTargetAttack && this.m_dTargetX == x && this.m_dTargetY == y && this.m_lTargetPage == pageIndex)
 			bNeedScrollToTarget = false;
+
+		this.isScrollToTargetAttack = false;
 
 		if (-1 != this.m_lTimerUpdateTargetID)
 		{
@@ -4445,7 +4527,7 @@ function CDrawingDocument()
 
 					for (var k = 0; k < _points1.length; k++)
 					{
-						if (Math.abs(_points1[k].X - _points[k].X) > 0.00001 || Math.abs(_points1[k].Y - _points[k].Y) > 0.00001)
+						if (Math.abs(_points1[k].X - _points2[k].X) > 0.00001 || Math.abs(_points1[k].Y - _points2[k].Y) > 0.00001)
 							return true;
 					}
 				}
@@ -6346,7 +6428,7 @@ function CDrawingDocument()
 		if (this.m_oWordControl.MobileTouchManager)
 		{
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = true;
-			markup.Table.Start_TrackTable();
+			markup.Table.StartTrackTable();
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
 		}
 	}
