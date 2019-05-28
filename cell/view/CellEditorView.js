@@ -100,7 +100,7 @@
 	 * @param {HandlersList} handlers
 	 * @param {Number} padding
 	 */
-	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, padding ) {
+	function CellEditor( elem, input, fmgrGraphics, oFont, handlers, padding, settings ) {
 		this.element = elem;
 		this.input = input;
 		this.handlers = new asc_HL( handlers );
@@ -175,33 +175,39 @@
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
 
-		this._init();
+		//TODO сейчас setting нужен только для того, чтобы передать в init флаг menuEditor. пересмотреть!
+		this._init(settings);
 
 		return this;
 	}
 
-	CellEditor.prototype._init = function () {
+	CellEditor.prototype._init = function (settings) {
 		var t = this;
 		var z = t.defaults.canvasZIndex;
 		this.sAutoComplete = null;
 
 		if (null != this.element) {
+			var ceCanvasOuterId = settings && settings.menuEditor ? "ce-canvas-outer-menu" : "ce-canvas-outer";
+			var ceCanvasId = settings && settings.menuEditor ? "ce-canvas-menu" : "ce-canvas";
+			var ceCanvasOverlay = settings && settings.menuEditor ? "ce-canvas-overlay-menu" : "ce-canvas-overlay";
+			var ceCursor = settings && settings.menuEditor ? "ce-cursor-menu" : "ce-cursor";
+
 			t.canvasOuter = document.createElement('div');
-			t.canvasOuter.id = "ce-canvas-outer";
+			t.canvasOuter.id = ceCanvasOuterId;
 			t.canvasOuter.style.position = "absolute";
 			t.canvasOuter.style.display = "none";
 			t.canvasOuter.style.zIndex = z;
-			var innerHTML = '<canvas id="ce-canvas" style="z-index: ' + (z + 1) + '"></canvas>';
-			innerHTML += '<canvas id="ce-canvas-overlay" style="z-index: ' + (z + 2) + '; cursor: ' + t.defaults.cursorShape +
+			var innerHTML = '<canvas id='+ ceCanvasId +' style="z-index: ' + (z + 1) + '"></canvas>';
+			innerHTML += '<canvas id='+ ceCanvasOverlay +' style="z-index: ' + (z + 2) + '; cursor: ' + t.defaults.cursorShape +
 				'"></canvas>';
-			innerHTML += '<div id="ce-cursor" style="display: none; z-index: ' + (z + 3) + '"></div>';
+			innerHTML += '<div id='+ ceCursor +' style="display: none; z-index: ' + (z + 3) + '"></div>';
 			t.canvasOuter.innerHTML = innerHTML;
 			this.element.appendChild(t.canvasOuter);
 
 			t.canvasOuterStyle = t.canvasOuter.style;
-			t.canvas = document.getElementById("ce-canvas");
-			t.canvasOverlay = document.getElementById("ce-canvas-overlay");
-			t.cursor = document.getElementById("ce-cursor");
+			t.canvas = document.getElementById(ceCanvasId);
+			t.canvasOverlay = document.getElementById(ceCanvasOverlay);
+			t.cursor = document.getElementById(ceCursor);
 			t.cursorStyle = t.cursor.style;
 		}
 
@@ -1058,6 +1064,9 @@
 		}
 	};
 	CellEditor.prototype._updateFormulaEditMod = function ( bIsOpen ) {
+		if(this.getMenuEditorMode()) {
+			return;
+		}
 		var isFormula = this.isFormula();
 		if ( !bIsOpen ) {
 			this._updateEditorState( isFormula );
@@ -1162,7 +1171,9 @@
 		this._adjustCanvas();
 		this._showCanvas();
 		this._renderText();
-		this.input.value = AscCommonExcel.getFragmentsText(fragments);
+		if(!this.getMenuEditorMode()) {
+			this.input.value = AscCommonExcel.getFragmentsText(fragments);
+		}
 		this._updateCursorPosition();
 		this._showCursor();
 	};
@@ -1170,7 +1181,7 @@
 	CellEditor.prototype._update = function () {
 		this._updateFormulaEditMod(/*bIsOpen*/false);
 
-		var tm, canExpW, canExpH, oldLC, doAjust = false, fragments = this._getRenderFragments();
+		var tm, canExpW, canExpH, oldLC, doAjust = false, fragments = this._getRenderFragments(), bChangedH;
 
 		if (0 < fragments.length) {
 			oldLC = this.textRender.getLinesCount();
@@ -1193,14 +1204,29 @@
 			while (tm.height > this._getContentHeight() && canExpH) {
 				canExpH = this._expandHeight();
 				doAjust = true;
+				bChangedH = true;
+			}
+
+			//reduce editor height for interface
+			if(this.getMenuEditorMode()) {
+				if(!bChangedH && tm.height < this._getContentHeight() && this._reduceHeight(tm.height)) {
+					doAjust = true;
+					bChangedH = true;
+				}
 			}
 		}
 		if (doAjust) {
 			this._adjustCanvas();
+			if(bChangedH && this.getMenuEditorMode()) {
+				this.handlers.trigger("resizeEditorHeight");
+			}
 		}
 
 		this._renderText();  // вызов нужен для пересчета поля line.startX, которое используется в _updateCursorPosition
-		this._fireUpdated(); // вызов нужен для обновление текста верхней строки, перед обновлением позиции курсора
+		// вызов нужен для обновление текста верхней строки, перед обновлением позиции курсора
+		if(!this.getMenuEditorMode()) {
+			this._fireUpdated();
+		}
 		this._updateCursorPosition(true);
 		this._showCursor();
 
@@ -1363,6 +1389,18 @@
 		return false;
 	};
 
+	CellEditor.prototype._reduceHeight = function (height) {
+
+		var t = this, bottomSide = this.sides.b, i = asc_search( bottomSide, function ( v ) {
+			return v > height;
+		} );
+		if ( i >= 0 ) {
+			t.bottom = bottomSide[i];
+			return true;
+		}
+		return false;
+	};
+
 	CellEditor.prototype._cleanText = function () {
 		this.drawingCtx.clear();
 	};
@@ -1401,7 +1439,9 @@
 		this.canvasOuterStyle.top = top + 'px';
 		this.canvasOuterStyle.width = widthStyle + 'px';
 		this.canvasOuterStyle.height = heightStyle + 'px';
-		this.canvasOuterStyle.zIndex = this.top < 0 ? -1 : z;
+		if(!this.getMenuEditorMode()) {
+			this.canvasOuterStyle.zIndex = this.top < 0 ? -1 : z;
+		}
 
 		this.canvas.width = this.canvasOverlay.width = width;
 		this.canvas.height = this.canvasOverlay.height = height;
@@ -1579,6 +1619,11 @@
 		if (this.isTopLineActive && !this.skipTLUpdate) {
 			this._updateTopLineCurPos();
 		}
+
+		if(this.getMenuEditorMode()) {
+			this.handlers.trigger( "updateMenuEditorCursorPosition", curTop, curHeight );
+		}
+
 		//var fCurrent = this._getEditableFunction(null, true);
 		//console.log("func: " + fCurrent.func + " arg: " + fCurrent.argPos);
 		this._updateSelectionInfo();
@@ -2291,7 +2336,7 @@
 		switch (event.which) {
 
 			case 27:  // "esc"
-				if (t.handlers.trigger("isGlobalLockEditCell")) {
+				if (t.handlers.trigger("isGlobalLockEditCell") || this.getMenuEditorMode()) {
 					return false;
 				}
 				t.close();
@@ -2308,6 +2353,8 @@
 					}
 					if (!(event.altKey && event.shiftKey)) {
 						if (event.altKey) {
+							t._addNewLine();
+						} else if(this.getMenuEditorMode()) {
 							t._addNewLine();
 						} else {
 							if (false === t.handlers.trigger("isGlobalLockEditCell")) {
@@ -2892,6 +2939,9 @@
 	};
 	CellEditor.prototype.Get_MaxCursorPosInCompositeText = function () {
 		return this.compositeLength;
+	};
+	CellEditor.prototype.getMenuEditorMode = function () {
+		return this.options && this.options.menuEditor;
 	};
 
 

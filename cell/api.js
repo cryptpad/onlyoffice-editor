@@ -323,6 +323,7 @@ var editor;
     AscCommonExcel.g_DefNameWorksheet = new AscCommonExcel.Worksheet(wbModel, -1);
     AscCommonExcel.g_oUndoRedoSharedFormula = new AscCommonExcel.UndoRedoSharedFormula(wbModel);
     AscCommonExcel.g_oUndoRedoLayout = new AscCommonExcel.UndoRedoRedoLayout(wbModel);
+    AscCommonExcel.g_oUndoRedoHeaderFooter = new AscCommonExcel.UndoRedoHeaderFooter(wbModel);
     AscCommonExcel.g_oUndoRedoArrayFormula = new AscCommonExcel.UndoRedoArrayFormula(wbModel);
   };
 
@@ -1257,6 +1258,9 @@ var editor;
       },
       "updateAllLayoutsLock": function() {
           t._onUpdateAllLayoutsLock.apply(t, arguments);
+      },
+      "updateAllHeaderFooterLock": function() {
+          t._onUpdateAllHeaderFooterLock.apply(t, arguments);
       }
     }, this.getViewMode());
 
@@ -1307,6 +1311,8 @@ var editor;
           t._onUpdateLayoutLock(lockElem);
           //эвент о локе в меню опции print area во вкладке layout
           t._onUpdatePrintAreaLock(lockElem);
+          //эвент о локе в меню опции headers/footers во вкладке layout
+          t._onUpdateHeaderFooterLock(lockElem);
 
           var ws = t.wb.getWorksheet();
           var lockSheetId = lockElem.Element["sheetId"];
@@ -1382,6 +1388,8 @@ var editor;
           t._onUpdateLayoutLock(lockElem);
           //эвент о локе в меню опции print area во вкладке layout
           t._onUpdatePrintAreaLock(lockElem);
+          //эвент о локе в меню опции headers/footers во вкладке layout
+          t._onUpdateHeaderFooterLock(lockElem);
         }
       }
     };
@@ -1519,6 +1527,24 @@ var editor;
       }
   };
 
+  spreadsheet_api.prototype._onUpdateAllHeaderFooterLock = function () {
+      var t = this;
+      if (t.wbModel) {
+          var i, length, wsModel, wsIndex;
+          for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
+              wsModel = t.wbModel.getWorksheet(i);
+              wsIndex = wsModel.getIndex();
+
+              var isLocked = t.asc_isLayoutLocked(wsIndex);
+              if (isLocked) {
+                  t.handlers.trigger("asc_onLockHeaderFooter", wsIndex);
+              } else {
+                  t.handlers.trigger("asc_onUnLockHeaderFooter", wsIndex);
+              }
+          }
+      }
+  };
+
   spreadsheet_api.prototype._onUpdateLayoutMenu = function (nSheetId) {
       var t = this;
       if (t.wbModel) {
@@ -1586,6 +1612,22 @@ var editor;
           t.handlers.trigger("asc_onLockPrintArea");
       } else {
           t.handlers.trigger("asc_onUnLockPrintArea");
+      }
+  };
+
+  spreadsheet_api.prototype._onUpdateHeaderFooterLock = function(lockElem) {
+      var t = this;
+
+      var wsModel = t.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
+      if (wsModel) {
+          var wsIndex = wsModel.getIndex();
+
+          var isLocked = t.asc_isHeaderFooterLocked();
+          if(isLocked) {
+              t.handlers.trigger("asc_onLockHeaderFooter");
+          } else {
+              t.handlers.trigger("asc_onUnLockHeaderFooter");
+          }
       }
   };
 
@@ -1939,6 +1981,21 @@ var editor;
       }
 
       var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, "layoutOptions");
+      // Проверим, редактирует ли кто-то лист
+      return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
+  };
+
+	// Залочена ли работа с листом
+  spreadsheet_api.prototype.asc_isHeaderFooterLocked = function(index) {
+      var ws = this.wbModel.getWorksheet(index);
+      var sheetId = null;
+      if (null === ws || undefined === ws) {
+          sheetId = this.asc_getActiveWorksheetId();
+      } else {
+          sheetId = ws.getId();
+      }
+
+      var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, "headerFooter");
       // Проверим, редактирует ли кто-то лист
       return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
   };
@@ -3697,6 +3754,7 @@ var editor;
   prot["asc_isWorkbookLocked"] = prot.asc_isWorkbookLocked;
   prot["asc_isLayoutLocked"] = prot.asc_isLayoutLocked;
   prot["asc_isPrintAreaLocked"] = prot.asc_isPrintAreaLocked;
+  prot["asc_isHeaderFooterLocked"] = prot.asc_isHeaderFooterLocked;
   prot["asc_getHiddenWorksheets"] = prot.asc_getHiddenWorksheets;
   prot["asc_showWorksheet"] = prot.asc_showWorksheet;
   prot["asc_hideWorksheet"] = prot.asc_hideWorksheet;

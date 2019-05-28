@@ -864,6 +864,8 @@
 		PageRightField  : 17.8,
 		PageTopField    : 19.1,
 		PageBottomField : 19.1,
+		PageHeaderField : 7.62,
+		PageFooterField : 7.62,
 		MinPageLeftField	: 0.17,
 		MinPageRightField	: 0.17,
 		MinPageTopField		: 0.17,
