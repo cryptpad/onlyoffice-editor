@@ -16809,6 +16809,9 @@
 		} else {
 			cursorPos = editor._findCursorPosition({x: x, y: y});
 		}
+		
+		ws.objectRender.controller.resetTextSelection();
+		ws.objectRender.controller.updateSelectionState();
 
 		wb.setCellEditMode(true);
 		ws.setCellEditMode(true);
