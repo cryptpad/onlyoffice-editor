@@ -2839,13 +2839,13 @@ Paragraph.prototype.Shift = function(PageIndex, Dx, Dy)
 /**
  * Удаляем элементы параграфа
  * @param nCount - количество удаляемых элементов, > 0 удаляем элементы после курсора, < 0 удаляем элементы до курсора
- * @param bOnlyText - true: удаляем только текст и пробелы, false - Удаляем любые элементы
+ * @param isRemoveWholeElement {boolean} true: удаляем элементы целиком, false - Удаляем содержимое элементов (если нужно содержимое заменяется PlaceHolder)
  * @param bRemoveOnlySelection
  * @param bOnAddText - удаление происходит на добавлении текста
  * @param isWord - удаление по словам (работает только при отсутсвии селекта)
  * @returns {boolean} Если возвращается false, то значит ничего нельзя удалить в заданном направлении
  */
-Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
+Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlySelection, bOnAddText, isWord)
 {
 	var Direction = nCount;
 	var Result    = true;

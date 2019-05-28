@@ -5041,7 +5041,7 @@ CDocument.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTe
 	this.Document_UpdateSelectionState();
 	this.Document_UpdateInterfaceState();
 };
-CDocument.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
+CDocument.prototype.Remove = function(nDirection, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (undefined === bRemoveOnlySelection)
 		bRemoveOnlySelection = false;
@@ -5052,7 +5052,7 @@ CDocument.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelectio
 	if (undefined === isWord)
 		isWord = false;
 
-	this.Controller.Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
+	this.Controller.Remove(nDirection, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 	this.Recalculate();
 	this.UpdateInterface();
@@ -8246,7 +8246,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				if (oSelectInfo.GetInlineLevelSdt())
 					this.CheckInlineSdtOnDelete = oSelectInfo.GetInlineLevelSdt();
 
-				this.Remove(1, true, false, false, e.CtrlKey);
+				this.Remove(1, false, false, false, e.CtrlKey);
 
 				this.CheckInlineSdtOnDelete = null;
 

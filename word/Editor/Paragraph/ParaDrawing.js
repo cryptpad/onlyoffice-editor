@@ -2378,10 +2378,10 @@ ParaDrawing.prototype.cursorMoveStartOfLine = function(AddToSelect)
 	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveStartOfLine === "function")
 		this.GraphicObj.cursorMoveStartOfLine(AddToSelect);
 };
-ParaDrawing.prototype.remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd)
+ParaDrawing.prototype.remove = function(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd)
 {
 	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.remove === "function")
-		this.GraphicObj.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd);
+		this.GraphicObj.remove(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd);
 };
 ParaDrawing.prototype.hitToWrapPolygonPoint = function(x, y)
 {
