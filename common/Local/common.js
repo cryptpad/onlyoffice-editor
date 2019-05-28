@@ -189,7 +189,12 @@ prot.getUrl = function(strPath){
 		return null;
 
 	if (strPath == "Editor.xlsx")
-		return this.documentUrl + "/" + strPath;
+	{
+		var test = this.documentUrl + "/" + strPath;
+		if (window["AscDesktopEditor"]["IsLocalFileExist"](test))
+			return test;
+		return undefined;
+    }
 
 	return this.documentUrl + "/media/" + strPath;
 };

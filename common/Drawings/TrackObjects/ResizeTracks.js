@@ -312,7 +312,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
 
         this.transform = originalObject.transform.CreateDublicate();
         this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getGeom().createDuplicate();}, this, []);
-
+        this.cropObject = originalObject.cropObject;
         if(!originalObject.isChart())
         {
             if(originalObject.blipFill)
@@ -548,8 +548,8 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                    kd2 = 0;
                }
            }
-
-            if((ShiftKey === true || (window.AscAlwaysSaveAspectOnResizeTrack === true && !this.isLine) || this.originalObject.getNoChangeAspect()) && this.bAspect === true)
+            var isCrop = (this.originalObject.isCrop || !!this.originalObject.cropObject);
+            if((ShiftKey === true || (window.AscAlwaysSaveAspectOnResizeTrack === true && !this.isLine) || (!isCrop && this.originalObject.getNoChangeAspect())) && this.bAspect === true)
             {
                 var _new_aspect = this.aspect*(Math.abs(kd1/ kd2));
 
@@ -848,7 +848,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
 
 
-            if(this.originalObject.isCrop){
+            if(isCrop){
                 this.resizedflipH = this.originalFlipH;
                 this.resizedflipV = this.originalFlipV;
             }
@@ -895,7 +895,8 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             var _real_height, _real_width;
             var _abs_height, _abs_width;
 
-            if((ShiftKey === true || window.AscAlwaysSaveAspectOnResizeTrack === true || this.originalObject.getNoChangeAspect()) && this.bAspect === true)
+            var isCrop = (this.originalObject.isCrop || !!this.originalObject.cropObject);
+            if((ShiftKey === true || window.AscAlwaysSaveAspectOnResizeTrack === true || (!isCrop && this.originalObject.getNoChangeAspect())) && this.bAspect === true)
             {
                 var _new_aspect = this.aspect*(Math.abs(kd1/ kd2));
 
@@ -958,7 +959,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
 
 
-            if(this.originalObject.isCrop){
+            if(isCrop){
                 this.resizedflipH = this.originalFlipH;
                 this.resizedflipV = this.originalFlipV;
             }
@@ -1011,6 +1012,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             {
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
+                oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
                 this.overlayObject.check_bounds(oShapeDrawer);
                 this.brush.fill.srcRect = AscFormat.CalculateSrcRect(_transform, oShapeDrawer, this.originalObject.cropObject.invertTransform, this.originalObject.cropObject.extX, this.originalObject.cropObject.extY);
             }
@@ -1043,6 +1045,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
 
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
+                oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
                 parentCrop.check_bounds(oShapeDrawer);
                 var srcRect = AscFormat.CalculateSrcRect(parentCrop.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.transform), this.resizedExtX, this.resizedExtY);
                 oldPen = this.originalObject.parentCrop.pen;
@@ -1270,7 +1273,15 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     this.originalObject.extX = this.resizedExtX;
                     this.originalObject.extY = this.resizedExtY;
 
+                    if(!this.originalObject.parentCrop.cropObject)
+                    {
+                        this.originalObject.parentCrop.cropObject = this.originalObject;
+                    }
                     this.originalObject.parentCrop.calculateSrcRect();
+                }
+                if(this.cropObject && !this.originalObject.cropObject)
+                {
+                    this.originalObject.cropObject = this.cropObject;
                 }
                 if(this.originalObject.cropObject)
                 {
@@ -1479,7 +1490,8 @@ function ResizeTrackGroup(originalObject, cardDirection, parentTrack)
             var _new_used_half_height;
             var _temp;
 
-            if((ShiftKey === true || window.AscAlwaysSaveAspectOnResizeTrack === true || this.originalObject.getNoChangeAspect()) && this.bAspect === true)
+            var isCrop = (this.originalObject.isCrop || !!this.originalObject.cropObject);
+            if((ShiftKey === true || window.AscAlwaysSaveAspectOnResizeTrack === true || (!isCrop && this.originalObject.getNoChangeAspect())) && this.bAspect === true)
             {
                 var _new_aspect = this.aspect*(Math.abs(kd1/ kd2));
 
@@ -1791,7 +1803,8 @@ function ResizeTrackGroup(originalObject, cardDirection, parentTrack)
             var _real_height, _real_width;
             var _abs_height, _abs_width;
 
-            if((ShiftKey === true || window.AscAlwaysSaveAspectOnResizeTrack === true || this.originalObject.getNoChangeAspect()) && this.bAspect === true)
+            var isCrop = (this.originalObject.isCrop || !!this.originalObject.cropObject);
+            if((ShiftKey === true || window.AscAlwaysSaveAspectOnResizeTrack === true || (!isCrop && this.originalObject.getNoChangeAspect())) && this.bAspect === true)
             {
                 var _new_aspect = this.aspect*(Math.abs(kd1/ kd2));
 

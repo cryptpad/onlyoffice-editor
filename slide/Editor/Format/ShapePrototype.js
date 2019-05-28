@@ -116,53 +116,6 @@ CShape.prototype.getDrawingObjectsController = function()
 };
 
 
-function addToDrawings(worksheet, graphic, position, lockByDefault)
-{
-
-    var drawingObjects;
-    var wsViews = Asc["editor"].wb.wsViews;
-    for(var i = 0; i < wsViews.length; ++i)
-    {
-        if(wsViews[i] && wsViews[i].model === worksheet)
-        {
-            drawingObjects = wsViews[i].objectRender;
-            break;
-        }
-    }
-    if(!drawingObjects)
-    {
-        drawingObjects = new AscFormat.DrawingObjects();
-    }
-
-    var drawingObject = drawingObjects.createDrawingObject();
-    drawingObject.graphicObject = graphic;
-    graphic.setDrawingBase(drawingObject);
-    if(!worksheet)
-        return;
-    var ret, aObjects = worksheet.Drawings;
-    if (AscFormat.isRealNumber(position)) {
-        aObjects.splice(position, 0, drawingObject);
-        ret = position;
-    }
-    else {
-        ret = aObjects.length;
-        aObjects.push(drawingObject);
-    }
-
-    /*if ( lockByDefault ) {
-     _this.objectLocker.reset();
-     _this.objectLocker.addObjectId(drawingObject.graphicObject.Id);
-     _this.objectLocker.checkObjects( function(result) {} );
-     }
-     worksheet.setSelectionShape(true);  */
-    if(graphic.recalcTransform)
-    {
-        graphic.recalcTransform();
-        graphic.addToRecalculate();
-    }
-    return ret;
-}
-
 CShape.prototype.addToDrawingObjects =  function(pos)
 {
     if(this.parent && this.parent.cSld && this.parent.cSld.spTree)
@@ -890,5 +843,4 @@ CShape.prototype.OnContentReDraw = function(){
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].G_O_DEFAULT_COLOR_MAP = G_O_DEFAULT_COLOR_MAP;
-    window['AscFormat'].addToDrawings = addToDrawings;
 })(window);

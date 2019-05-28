@@ -337,7 +337,7 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 
 	var oDrawingDocument = this.Paragraph.LogicDocument.GetDrawingDocument();
 
-	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance())
+	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance() || this.Paragraph.LogicDocument.IsForceHideContentControlTrack())
 	{
 		oDrawingDocument.OnDrawContentControl(null, isHover ? c_oContentControlTrack.Hover : c_oContentControlTrack.In);
 		return;

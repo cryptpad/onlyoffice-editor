@@ -296,6 +296,7 @@
 		this.formatTableInfo = null;
 		this.sparklineInfo = null;
 		this.pivotTableInfo = null;
+		this.selectedColsCount = null;
 	}
 
 	asc_CCellInfo.prototype.asc_getFormula = function () {
@@ -366,6 +367,9 @@
 	};
 	asc_CCellInfo.prototype.asc_getPivotTableInfo = function () {
 		return this.pivotTableInfo;
+	};
+	asc_CCellInfo.prototype.asc_getSelectedColsCount = function () {
+		return this.selectedColsCount;
 	};
 
 	/** @constructor */
@@ -521,6 +525,7 @@
 	prot["asc_getFormatTableInfo"] = prot.asc_getFormatTableInfo;
 	prot["asc_getSparklineInfo"] = prot.asc_getSparklineInfo;
 	prot["asc_getPivotTableInfo"] = prot.asc_getPivotTableInfo;
+	prot["asc_getSelectedColsCount"] = prot.asc_getSelectedColsCount;
 
 	window["Asc"].asc_CDefName = window["Asc"]["asc_CDefName"] = asc_CDefName;
 	prot = asc_CDefName.prototype;

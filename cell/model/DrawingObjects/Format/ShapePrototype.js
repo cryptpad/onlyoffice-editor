@@ -174,6 +174,7 @@ function addToDrawings(worksheet, graphic, position, lockByDefault, anchor)
      worksheet.setSelectionShape(true);  */
     if(oldDrawingBase)
     {
+        drawingObject.Type = oldDrawingBase.Type;
         drawingObject.from.col = oldDrawingBase.from.col;
         drawingObject.from.colOff = oldDrawingBase.from.colOff;
         drawingObject.from.row = oldDrawingBase.from.row;
@@ -183,6 +184,11 @@ function addToDrawings(worksheet, graphic, position, lockByDefault, anchor)
         drawingObject.to.colOff = oldDrawingBase.to.colOff;
         drawingObject.to.row = oldDrawingBase.to.row;
         drawingObject.to.rowOff = oldDrawingBase.to.rowOff;
+
+        drawingObject.Pos.X = oldDrawingBase.Pos.X;
+        drawingObject.Pos.Y = oldDrawingBase.Pos.Y;
+        drawingObject.ext.cx = oldDrawingBase.ext.cx;
+        drawingObject.ext.cy = oldDrawingBase.ext.cy;
     }
     if(graphic.recalcTransform)
     {
@@ -428,6 +434,10 @@ CShape.prototype.addToDrawingObjects =  function(pos, type)
     var position = addToDrawings(this.worksheet, this, pos, /*lockByDefault*/undefined, type);
     //var data = {Type: AscDFH.historyitem_AutoShapes_AddToDrawingObjects, Pos: position};
     History.Add(new CChangesDrawingObjectsAddToDrawingObjects(this, position));
+    if(AscFormat.isRealNumber(type) && this.setDrawingBaseType)
+    {
+        this.setDrawingBaseType(type);
+    }
     //this.worksheet.addContentChanges(new AscCommon.CContentChangesElement(AscCommon.contentchanges_Add, position, 1, data));
     var nv_sp_pr, bNeedSet = false;
     switch(this.getObjectType()){
@@ -466,6 +476,18 @@ CShape.prototype.addToDrawingObjects =  function(pos, type)
 
 CShape.prototype.deleteDrawingBase = function()
 {
+    if(this.drawingBase)
+    {
+        var oFrom = this.drawingBase.from;
+        var oTo = this.drawingBase.to;
+        var oPos = this.drawingBase.Pos;
+        var oExt = this.drawingBase.ext;
+        if(oFrom && oTo && oPos && oExt && this.setDrawingBaseType && this.setDrawingBaseCoords)
+        {
+            this.setDrawingBaseType(this.drawingBase.Type);
+            this.setDrawingBaseCoords(oFrom.col, oFrom.colOff, oFrom.row, oFrom.rowOff, oTo.col, oTo.colOff, oTo.row, oTo.rowOff, oPos.X, oPos.Y, oExt.cx, oExt.cy)
+        }
+    }
     var position = AscFormat.deleteDrawingBase(this.worksheet.Drawings, this.Get_Id());
     if(AscFormat.isRealNumber(position))
     {
@@ -582,7 +604,6 @@ CShape.prototype.handleUpdatePosition = function()
     this.recalcBounds();
     this.recalcTransformText();
     this.addToRecalculate();
-    //delete this.fromSerialize;
 };
 CShape.prototype.handleUpdateExtents = function()
 {
@@ -593,7 +614,6 @@ CShape.prototype.handleUpdateExtents = function()
     this.recalcTransformText();
     this.recalcContent();
     this.addToRecalculate();
-   //delete this.fromSerialize;
 };
 CShape.prototype.handleUpdateRot = function()
 {
@@ -605,7 +625,6 @@ CShape.prototype.handleUpdateRot = function()
     this.recalcTransformText();
     this.recalcBounds();
     this.addToRecalculate();
-    //delete this.fromSerialize;
 };
 CShape.prototype.handleUpdateFlip = function()
 {
@@ -613,7 +632,6 @@ CShape.prototype.handleUpdateFlip = function()
     this.recalcTransformText();
     this.recalcContent();
     this.addToRecalculate();
-    //delete this.fromSerialize;
 };
 CShape.prototype.handleUpdateFill = function()
 {

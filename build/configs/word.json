@@ -66,7 +66,6 @@
 			"../common/Drawings/Format/TextBody.js",
 			"../common/Drawings/Format/GraphicFrame.js",
 			"../common/Charts/charts.js",
-			"../common/Charts/DrawingArea.js",
 			"../common/Charts/DrawingObjects.js",
 			"../common/Charts/3DTransformation.js",
 			"../common/Charts/ChartsDrawer.js",
@@ -88,7 +87,7 @@
 			"../common/Drawings/HatchPattern.js",
 
 			"../common/scroll.js",
-			"../common/Scrolls/iscroll.js",
+			"../vendor/iscroll.js",
 			"../common/Scrolls/mobileTouchManagerBase.js",
 			"../word/Drawing/mobileTouchManager.js",
 
@@ -127,6 +126,7 @@
 			"../word/Editor/Paragraph/ComplexFieldInstruction.js",
 			"../word/Editor/Paragraph/ComplexField.js",
 			"../word/Editor/Paragraph/FormulaParser.js",
+			"../word/Editor/Paragraph/ParaRevisionMove.js",
 			"../word/Editor/Hyperlink.js",
 			"../word/Editor/HyperlinkChanges.js",
 			"../word/Editor/Field.js",
@@ -251,7 +251,7 @@
 			"../common/libfont/glyphstring.js",
 			"../common/libfont/manager.js",
 			"../common/libfont/textmeasurer.js",
-			"../common/Scrolls/iscroll.js",
+			"../vendor/iscroll.js",
 			"../common/Scrolls/mobileTouchManagerBase.js",
 			"../word/Drawing/mobileTouchManager.js",
 			"../word/Drawing/HtmlPage.js"

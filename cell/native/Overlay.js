@@ -504,6 +504,10 @@ function CAutoshapeTrack()
 
 CAutoshapeTrack.prototype =
 {
+    AddClipRect: function()
+    {},
+
+
     SetFont : function(font)
     {
     },

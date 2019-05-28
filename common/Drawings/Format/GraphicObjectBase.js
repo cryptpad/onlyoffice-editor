@@ -1052,7 +1052,7 @@
 
     CGraphicObjectBase.prototype.getMainGroup = function () {
         if(!isRealObject(this.group)){
-            if(this.getObjectType() === AscDFH.historyitem_type_GroupShape){
+            if(this.getObjectType() === AscDFH.historyitem_type_GroupShape || this.getObjectType() === AscDFH.historyitem_type_LockedCanvas){
                 return this;
             }
             return null;
@@ -1247,7 +1247,7 @@
                         }
                     }
                 }
-                if(bCoMarksDraw){
+                if(bCoMarksDraw && graphics.DrawLockObjectRect){
                     graphics.transform3(transform);
                     graphics.DrawLockObjectRect(oLock.Get_Type(), 0, 0, this.extX, this.extY);
                     return true;
@@ -1415,6 +1415,7 @@
                 var _b = srcRect.b ? srcRect.b : 100;
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
                 oShapeDrawer.bIsCheckBounds = true;
+                oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
                 this.check_bounds(oShapeDrawer);
                 var boundsW = oShapeDrawer.max_x - oShapeDrawer.min_x;
                 var boundsH = oShapeDrawer.max_y - oShapeDrawer.min_y;
@@ -1428,10 +1429,10 @@
                 var YC = DY + extY/2.0;
 
                 var oTransform = this.transform.CreateDublicate();
-                if(this.group)
-                {
-                    AscCommon.global_MatrixTransformer.MultiplyAppend(oTransform, this.group.invertTransform);
-                }
+                // if(this.group)
+                // {
+                //     AscCommon.global_MatrixTransformer.MultiplyAppend(oTransform, this.group.invertTransform);
+                // }
 
                 var XC_ = oTransform.TransformPointX(XC, YC);
                 var YC_ = oTransform.TransformPointY(XC, YC);
@@ -1447,7 +1448,7 @@
                 oImage.spPr.xfrm.setRot(this.rot);
                 oImage.spPr.xfrm.setFlipH(this.flipH);
                 oImage.spPr.xfrm.setFlipV(this.flipV);
-                oImage.setGroup(this.group);
+                // oImage.setGroup(this.group);
 
 
                 oImage.setParent(this.parent);
@@ -1521,6 +1522,7 @@
 
         var oShapeDrawer = new AscCommon.CShapeDrawer();
         oShapeDrawer.bIsCheckBounds = true;
+        oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
         this.check_bounds(oShapeDrawer);
         return  CalculateSrcRect(this.transform, oShapeDrawer, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
     };
@@ -1721,10 +1723,15 @@
         var rb_x_rel = oInvertTransformCrop.TransformPointX(rb_x_abs, rb_y_abs);
         var rb_y_rel = oInvertTransformCrop.TransformPointY(rb_x_abs, rb_y_abs);
         var srcRect = new AscFormat.CSrcRect();
-        srcRect.l = (100*lt_x_rel / cropExtX);
-        srcRect.t = (100*lt_y_rel / cropExtY);
-        srcRect.r = (100*rb_x_rel / cropExtX);
-        srcRect.b = (100*rb_y_rel / cropExtY);
+        var _l = (100*lt_x_rel / cropExtX);
+        var _t = (100*lt_y_rel / cropExtY);
+        var _r = (100*rb_x_rel / cropExtX);
+        var _b = (100*rb_y_rel / cropExtY);
+        srcRect.l = Math.min(_l, _r);
+        srcRect.t = Math.min(_t, _b);
+        srcRect.r = Math.max(_l, _r);
+        srcRect.b = Math.max(_t, _b);
+
         return srcRect;
     }
 

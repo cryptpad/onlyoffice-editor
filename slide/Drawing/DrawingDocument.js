@@ -1993,7 +1993,7 @@ function CDrawingDocument()
 			this.m_oWordControl.m_oApi.checkLastWork();
 
 		this.m_oWordControl.m_oLogicDocument.Set_TargetPos(x, y, pageIndex);
-		if (pageIndex != this.SlideCurrent)
+		if (pageIndex != this.SlideCurrent && !this.m_oWordControl.DemonstrationManager.Mode)
 		{
 			// сначала выставим страницу
 			this.m_oWordControl.GoToPage(pageIndex);
@@ -2432,7 +2432,7 @@ function CDrawingDocument()
 		if (this.m_oWordControl.MobileTouchManager)
 		{
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = true;
-			markup.Table.Start_TrackTable();
+			markup.Table.StartTrackTable();
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
 		}
 	}
@@ -4289,6 +4289,8 @@ function CThumbnailsManager()
 			e.preventDefault();
 		else
 			e.returnValue = false;
+
+		AscCommon.stopEvent(e);
 		return false;
 	};
 

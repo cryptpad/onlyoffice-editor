@@ -245,8 +245,11 @@ window["DesktopOfflineAppDocumentEndSave"] = function(error, hash, password)
 	if (0 == error)
 		editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
 };
-Asc['asc_docs_api'].prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent) 
+Asc['asc_docs_api'].prototype.asc_DownloadAs2 = Asc['asc_docs_api'].prototype.asc_DownloadAs;
+Asc['asc_docs_api'].prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, isNaturalDownloadAs)
 {
+    if (isNaturalDownloadAs)
+        return this.asc_DownloadAs2(typeFile, bIsDownloadEvent);
 	this.asc_Save(false, true);
 };
 

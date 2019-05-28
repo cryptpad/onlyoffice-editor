@@ -1047,7 +1047,7 @@
             //var measure_time_start = performance.now();
 
 			var load_mode = this.GetCharLoadMode();
-			if (this.m_bStringGID || !isRaster || !AscFonts.isUseBitmapStrikes(glyph_index_or_unicode))
+			if (this.m_bStringGID || !isRaster || this.m_bNeedDoBold || !AscFonts.isUseBitmapStrikes(glyph_index_or_unicode))
 				load_mode |= AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP;
 
             if (this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, load_mode))
@@ -1072,8 +1072,9 @@
 
             //window.measureTime += (performance.now() - measure_time_start);
 
+            var isDisableNeedBold = ((this.m_pFaceInfo.os2_version != 0xFFFF) && (this.m_pFaceInfo.os2_usWeightClass >= 800)) ? true : false;
             oSizes.fAdvanceX = (measureInfo.linearHoriAdvance * this.m_dUnitsKoef / this.m_lUnits_Per_Em);
-            if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts)
+            if (this.m_bNeedDoBold && this.m_oFontManager.IsAdvanceNeedBoldFonts && !isDisableNeedBold)
 				oSizes.fAdvanceX += 1;
 
             oSizes.oBBox.fMinX = (measureInfo.bbox_xMin >> 6);
@@ -1125,8 +1126,6 @@
 			oSizes.oBitmap.nHeight = rasterInfo.rows;
 
             var rasterBitmap = AscFonts.FT_Get_Glyph_Render_Buffer(this.m_pFace, rasterInfo, true);
-
-			var isDisableNeedBold = ((this.m_pFaceInfo.os2_version != 0xFFFF) && (this.m_pFaceInfo.os2_usWeightClass >= 800)) ? true : false;
 
 			if (this.m_bNeedDoBold && this.m_bAntiAliasing && !isDisableNeedBold)
 			{
