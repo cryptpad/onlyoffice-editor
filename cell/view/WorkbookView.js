@@ -1546,8 +1546,12 @@
     if (isCellEditMode) {
       this.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editEnd);
     }
+
     // Обновляем состояние Undo/Redo
-    History._sendCanUndoRedo();
+	  if(!(this.cellEditor.options && this.cellEditor.options.menuEditor)) {
+		  History._sendCanUndoRedo();
+	  }
+
     // Обновляем состояние информации
     this._onWSSelectionChanged();
 
