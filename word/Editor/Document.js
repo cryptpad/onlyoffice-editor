@@ -20333,12 +20333,22 @@ function CDocumentPagePosition()
 
 function CDocumentNumberingInfoCounter()
 {
+	this.Nums    = {}; // Список Num, которые использовались. Нужно для обработки startOverride
 	this.NumInfo = new Array(9);
 	this.PrevLvl = -1;
 
 	for (var nIndex = 0; nIndex < 9; ++nIndex)
 		this.NumInfo[nIndex] = undefined;
 }
+CDocumentNumberingInfoCounter.prototype.CheckNum = function(oNum)
+{
+	if (this.Nums[oNum.GetId()])
+		return false;
+
+	this.Nums[oNum.GetId()] = oNum;
+
+	return true;
+};
 
 /**
  * Класс для рассчета значение номера для нумерации заданного параграфа
@@ -20358,7 +20368,6 @@ function CDocumentNumberingInfoEngine(oPara, oNumPr, oNumbering)
 	this.PrevLvl     = -1;
 	this.Found       = false;
 	this.AbstractNum = null;
-	this.Nums        = {}; // Список Num, которые использовались. Нужно для обработки startOverride
 	this.Start       = [];
 
 	this.FinalCounter  = new CDocumentNumberingInfoCounter();
@@ -20515,15 +20524,6 @@ CDocumentNumberingInfoEngine.prototype.GetNumInfo = function(isFinal)
 
 	return this.FinalCounter.NumInfo;
 };
-CDocumentNumberingInfoEngine.prototype.private_CheckNum = function(oNum)
-{
-	if (this.Nums[oNum.GetId()])
-		return false;
-
-	this.Nums[oNum.GetId()] = oNum;
-
-	return true;
-};
 CDocumentNumberingInfoEngine.prototype.private_UpdateCounter = function(oCounter, oNum, oParaNumPr)
 {
 	if (-1 === oCounter.PrevLvl)
@@ -20556,7 +20556,7 @@ CDocumentNumberingInfoEngine.prototype.private_UpdateCounter = function(oCounter
 
 	oCounter.NumInfo[oParaNumPr.Lvl]++;
 
-	if (this.private_CheckNum(oNum))
+	if (oCounter.CheckNum(oNum))
 	{
 		var nForceStart = oNum.GetStartOverride(oParaNumPr.Lvl);
 		if (-1 !== nForceStart)
