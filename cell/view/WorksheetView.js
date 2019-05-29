@@ -2456,8 +2456,6 @@
 		for(var i = 0; i < headerFooterParser.portions.length; i++) {
 			drawPortion(i);
 		}
-		
-		drawingCtx.stroke();
 	};
 
     WorksheetView.prototype._cleanColumnHeaders = function (colStart, colEnd) {
