@@ -17089,35 +17089,35 @@
 	};
 
 	CHeaderFooterEditor.prototype.setAlignWithMargins = function(val) {
-		this.alignWithMargins = val ? 1 : 0;
+		this.alignWithMargins = val;
 	};
 
 	CHeaderFooterEditor.prototype.setDifferentFirst = function(val) {
-		this.differentFirst = val ? 1 : 0;
+		this.differentFirst = val;
 	};
 
 	CHeaderFooterEditor.prototype.setDifferentOddEven = function(val) {
-		this.differentOddEven = val ? 1 : 0;
+		this.differentOddEven = val;
 	};
 
 	CHeaderFooterEditor.prototype.setScaleWithDoc = function(val) {
-		this.scaleWithDoc = val ? 1 : 0;
+		this.scaleWithDoc = val;
 	};
 
 	CHeaderFooterEditor.prototype.getAlignWithMargins = function() {
-		return 1 === this.alignWithMargins || null === this.alignWithMargins;
+		return true === this.alignWithMargins || null === this.alignWithMargins;
 	};
 
 	CHeaderFooterEditor.prototype.getDifferentFirst = function() {
-		return 1 === this.differentFirst;
+		return true === this.differentFirst;
 	};
 
 	CHeaderFooterEditor.prototype.getDifferentOddEven = function() {
-		return 1 === this.differentOddEven;
+		return true === this.differentOddEven;
 	};
 
 	CHeaderFooterEditor.prototype.getScaleWithDoc = function() {
-		return 1 === this.scaleWithDoc || null === this.scaleWithDoc;
+		return true === this.scaleWithDoc || null === this.scaleWithDoc;
 	};
 
 	CHeaderFooterEditor.prototype._createAndDrawSections = function(pageCommonType) {
