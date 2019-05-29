@@ -4129,6 +4129,12 @@ function OfflineEditor () {
                                   stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
                                   });
+
+        _api.asc_registerCallback("asc_onEditCell", function(state) {
+            if (Asc.c_oAscCellEditorState.editStart === state) {
+                // ToDo Cell Edit
+            }
+        });
     };
     this.updateFrozen = function () {
         var ws = _api.wb.getWorksheet();
