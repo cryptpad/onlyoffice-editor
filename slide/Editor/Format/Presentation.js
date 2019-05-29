@@ -970,7 +970,8 @@ CPresentation.prototype =
         //TODO: check locks
         History.Create_NewPoint(AscDFH.historydescription_Presentation_SetHF);
         var oSlideProps = oProps.get_Slide();
-        var i, j, oSlide, oMaster, oParents, oHF, oLayout, oSp, sText, oContent;
+        var i, j, oSlide, oMaster, oParents, oHF, oLayout, oSp,
+            sText, oContent, oDateTime, sDateTime, sCustomDateTime, oFld, oParagraph;
         if(oSlideProps)
         {
             var bShowOnTitleSlide = oSlideProps.get_ShowOnTitleSlide();
@@ -1043,9 +1044,9 @@ CPresentation.prototype =
                                 {
                                     oHF.setFtr(null);
                                 }
+                                sText = oSlideProps.get_Footer();
                                 if(!oMastersMap[oMaster.Get_Id()])
                                 {
-                                    sText = oSlideProps.get_Footer();
                                     if(typeof sText === "string")
                                     {
                                         for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
@@ -1076,7 +1077,7 @@ CPresentation.prototype =
                                 else
                                 {
                                     oContent = oSp.getDocContent && oSp.getDocContent();
-                                    if(oContent)
+                                    if(oContent && typeof sText === "string")
                                     {
                                         oContent.Set_ApplyToAll(true);
                                         oContent.Remove(-1, false, false, false, false);
@@ -1105,9 +1106,9 @@ CPresentation.prototype =
                                 {
                                     oHF.setHdr(null);
                                 }
+                                sText = oSlideProps.get_Header();
                                 if(!oMastersMap[oMaster.Get_Id()])
                                 {
-                                    sText = oSlideProps.get_Header();
                                     if(typeof sText === "string")
                                     {
                                         for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
@@ -1138,7 +1139,7 @@ CPresentation.prototype =
                                 else
                                 {
                                     oContent = oSp.getDocContent && oSp.getDocContent();
-                                    if(oContent)
+                                    if(oContent && typeof sText === "string")
                                     {
                                         oContent.Set_ApplyToAll(true);
                                         oContent.Remove(-1, false, false, false, false);
@@ -1168,29 +1169,52 @@ CPresentation.prototype =
                                 {
                                     oHF.setDt(null);
                                 }
-                                if(!oMastersMap[oMaster.Get_Id()])
+                                oDateTime = oSlideProps.get_DateTime();
+                                if(oDateTime)
                                 {
-                                    sText = oSlideProps.get_Header();
-                                    if(typeof sText === "string")
+                                    sDateTime = oDateTime.get_DateTime();
+                                    sCustomDateTime = oDateTime.get_CustomDateTime();
+                                    if(!oMastersMap[oMaster.Get_Id()])
                                     {
-                                        for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
+                                        if(typeof sDateTime === "string" || typeof sCustomDateTime === "string")
                                         {
-                                            oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_hdr, null, false, {});
-                                            oContent = oSp.getDocContent && oSp.getDocContent();
-                                            if(oContent)
+                                            for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
                                             {
-                                                oContent.Set_ApplyToAll(true);
-                                                oContent.Remove(-1, false, false, false, false);
-                                                oContent.Set_ApplyToAll(false);
-                                                AscFormat.AddToContentFromString(oContent, sText);
+                                                oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_dt, null, false, {});
+                                                if(oSp)
+                                                {
+                                                    oContent = oSp.getDocContent && oSp.getDocContent();
+                                                    if(oContent)
+                                                    {
+                                                        oContent.Set_ApplyToAll(true);
+                                                        oContent.Remove(-1, false, false, false, false);
+                                                        oContent.Set_ApplyToAll(false);
+                                                        if(sDateTime)
+                                                        {
+                                                            oParagraph = oContent.Content[0];
+                                                            oFld = new AscCommonWord.CPresentationField(oParagraph);
+                                                            oFld.SetGuid(AscCommon.GUID());
+                                                            oFld.SetFieldType(sDateTime);
+                                                            if(typeof sCustomDateTime === "string")
+                                                            {
+                                                                oFld.AddText(sCustomDateTime);
+                                                            }
+                                                            oParagraph.Internal_Content_Add(0, oFld);
+                                                        }
+                                                        else
+                                                        {
+                                                            AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
-                                oSp = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                oSp = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
                                 if(!oSp)
                                 {
-                                    oSp = oLayout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_dt, null, false, {});
                                     if(oSp)
                                     {
                                         oSp = oSp.copy();
@@ -1206,7 +1230,22 @@ CPresentation.prototype =
                                         oContent.Set_ApplyToAll(true);
                                         oContent.Remove(-1, false, false, false, false);
                                         oContent.Set_ApplyToAll(false);
-                                        AscFormat.AddToContentFromString(oContent, sText);
+                                        if(sDateTime)
+                                        {
+                                            oParagraph = oContent.Content[0];
+                                            oFld = new AscCommonWord.CPresentationField(oParagraph);
+                                            oFld.SetGuid(AscCommon.GUID());
+                                            oFld.SetFieldType(sDateTime);
+                                            if(typeof sCustomDateTime === "string")
+                                            {
+                                                oFld.AddText(sCustomDateTime);
+                                            }
+                                            oParagraph.Internal_Content_Add(0, oFld);
+                                        }
+                                        else
+                                        {
+                                            AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                        }
                                     }
                                 }
                             }
