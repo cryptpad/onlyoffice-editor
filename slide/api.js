@@ -3990,7 +3990,9 @@ background-repeat: no-repeat;\
 		var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
 		if (null != _image)//картинка уже должна быть загружена
 		{
+            this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_PasteHotKey);
 			this.WordControl.m_oLogicDocument.AddOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+            this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
 
@@ -3998,8 +4000,10 @@ background-repeat: no-repeat;\
 	{
 		if (oOleObject)
 		{
+            this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_PasteHotKey);
 			this.WordControl.m_oLogicDocument.EditOleObject(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight);
 			this.WordControl.m_oLogicDocument.Recalculate();
+            this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
 
@@ -4236,6 +4240,7 @@ background-repeat: no-repeat;\
 		ImagePr.flipV = obj.flipV;
 		ImagePr.flipHInvert = obj.flipHInvert;
 		ImagePr.flipVInvert = obj.flipVInvert;
+		ImagePr.resetCrop = obj.resetCrop;
 
 		if (undefined != obj.Position)
 		{
@@ -4899,7 +4904,7 @@ background-repeat: no-repeat;\
 				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadImage);
 			}
 
-			this.ImageLoader.LoadDocumentImages(this.pasteImageMap, false);
+			this.ImageLoader.LoadDocumentImages(this.pasteImageMap);
 			return;
 		}
 		else if (this.isSaveFonts_Images)
@@ -4914,7 +4919,7 @@ background-repeat: no-repeat;\
 				this.sync_StartAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadImage);
 			}
 
-			this.ImageLoader.LoadDocumentImages(this.saveImageMap, false);
+			this.ImageLoader.LoadDocumentImages(this.saveImageMap);
 			return;
 		}
 
@@ -4941,7 +4946,7 @@ background-repeat: no-repeat;\
 		}
 
 		this.ImageLoader.bIsLoadDocumentFirst = true;
-		this.ImageLoader.LoadDocumentImages(_loader_object.ImageMap, true);
+		this.ImageLoader.LoadDocumentImages(_loader_object.ImageMap);
 	};
 	asc_docs_api.prototype.asyncImagesDocumentEndLoaded  = function()
 	{
@@ -6229,6 +6234,12 @@ background-repeat: no-repeat;\
 			this.WordControl.DemonstrationManager.StartWaitReporter(div_id, slidestart_num, true);
 		else
 			this.WordControl.DemonstrationManager.Start(div_id, slidestart_num, true);
+
+        if (undefined !== this.EndShowMessage)
+        {
+            this.WordControl.DemonstrationManager.EndShowMessage = this.EndShowMessage;
+            this.EndShowMessage = undefined;
+        }
 	};
 
 	asc_docs_api.prototype.EndDemonstration = function(isNoUseFullScreen)
@@ -6437,10 +6448,17 @@ background-repeat: no-repeat;\
                 this.isCheckCryptoReporter = true;
         }
 
+        this.asc_registerCallback('asc_onHyperlinkClick', function(url){
+            if (url && window.editor.asc_getUrlType(url) > 0) {
+                window.open(url);
+            }
+        });
+
 		if (!this.WordControl)
 			return;
 
 		this.WordControl.reporterTranslates = this.reporterTranslates;
+        this.WordControl.DemonstrationManager.EndShowMessage = this.reporterTranslates[3];
 
 		var _button1 = document.getElementById("dem_id_reset");
 		var _button2 = document.getElementById("dem_id_end");
@@ -6770,15 +6788,6 @@ background-repeat: no-repeat;\
 			return 0;
 		}
 		return this.WordControl.m_oLogicDocument.getSelectedDrawingObjectsCount();
-	};
-	asc_docs_api.prototype.asc_canStartImageCrop = function(){
-
-	};
-	asc_docs_api.prototype.asc_startImageCrop = function(){
-
-	};
-	asc_docs_api.prototype.asc_endImageCrop = function(){
-
 	};
 
 	//-----------------------------------------------------------------
@@ -7700,7 +7709,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_UnLockComment']                  = asc_docs_api.prototype.sync_UnLockComment;
 	asc_docs_api.prototype['GenerateStyles']                      = asc_docs_api.prototype.GenerateStyles;
 	asc_docs_api.prototype['asyncFontsDocumentEndLoaded']         = asc_docs_api.prototype.asyncFontsDocumentEndLoaded;
-	asc_docs_api.prototype['asyncImagesDocumentEndLoaded']        = asc_docs_api.prototype.asyncImagesDocumentEndLoaded;
 	asc_docs_api.prototype['asyncFontEndLoaded']                  = asc_docs_api.prototype.asyncFontEndLoaded;
 	asc_docs_api.prototype['asyncImageEndLoaded']                 = asc_docs_api.prototype.asyncImageEndLoaded;
 	asc_docs_api.prototype['get_PresentationWidth']               = asc_docs_api.prototype.get_PresentationWidth;
@@ -7812,9 +7820,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getTextArtPreviews']              = asc_docs_api.prototype.asc_getTextArtPreviews;
 	asc_docs_api.prototype['sync_closeChartEditor']               = asc_docs_api.prototype.sync_closeChartEditor;
 	asc_docs_api.prototype['asc_getSelectedDrawingObjectsCount']  = asc_docs_api.prototype.asc_getSelectedDrawingObjectsCount;
-	asc_docs_api.prototype['asc_canStartImageCrop']               = asc_docs_api.prototype.asc_canStartImageCrop;
-	asc_docs_api.prototype['asc_startImageCrop']                  = asc_docs_api.prototype.asc_startImageCrop;
-	asc_docs_api.prototype['asc_endImageCrop']                    = asc_docs_api.prototype.asc_endImageCrop;
 	asc_docs_api.prototype['asc_stopSaving']                      = asc_docs_api.prototype.asc_stopSaving;
 	asc_docs_api.prototype['asc_continueSaving']                  = asc_docs_api.prototype.asc_continueSaving;
 	asc_docs_api.prototype['asc_undoAllChanges']                  = asc_docs_api.prototype.asc_undoAllChanges;
@@ -7833,8 +7838,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_pluginButtonClick"]               = asc_docs_api.prototype.asc_pluginButtonClick;
 	asc_docs_api.prototype["asc_pluginEnableMouseEvents"]         = asc_docs_api.prototype.asc_pluginEnableMouseEvents;
 
-	asc_docs_api.prototype["asc_addOleObject"]                    = asc_docs_api.prototype.asc_addOleObject;
-	asc_docs_api.prototype["asc_editOleObject"]                   = asc_docs_api.prototype.asc_editOleObject;
 	asc_docs_api.prototype["asc_startEditCurrentOleObject"]       = asc_docs_api.prototype.asc_startEditCurrentOleObject;
 	asc_docs_api.prototype["asc_InputClearKeyboardElement"]       = asc_docs_api.prototype.asc_InputClearKeyboardElement;
 

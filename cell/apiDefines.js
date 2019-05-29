@@ -328,13 +328,15 @@ var c_oAscFormulaRangeBorderColor = [
     ActiveCell  : 2,
     Resize      : 4,
     Promote     : 8,
-    Dash        : 16
+    Dash        : 16,
+    DashThick   : 32
   };
 
   var c_oAscLockNameFrozenPane = "frozenPane";
   var c_oAscLockNameTabColor = "tabColor";
   var c_oAscLockAddSheet = "addSheet";
   var c_oAscLockLayoutOptions = "layoutOptions";
+  var c_oAscHeaderFooterEdit = "headerFooterEdit";
 
 var c_oAscGetDefinedNamesList = {
   Worksheet: 0,
@@ -390,6 +392,55 @@ var c_oAscPopUpSelectorType = {
       add: 2
   };
 
+  //поля header/footer
+  var c_oAscHeaderFooterField = {
+      pageNumber: 0,
+      pageCount: 1,
+      sheetName: 2,
+      fileName: 3,
+      filePath: 4,
+      date: 5,
+      time: 6,
+      lineBreak: 7
+  };
+
+  var c_oAscPageHFType = {
+      firstHeader: 0,
+      oddHeader: 1,
+      evenHeader: 2,
+      firstFooter: 3,
+      oddFooter: 4,
+      evenFooter: 5
+  };
+
+  var c_oAscHeaderFooterType = {
+      first: 0,
+      odd: 1,
+      even: 2
+  };
+
+  var c_oAscHeaderFooterPresets = {
+      none: 0,
+      page: 1,
+      pageOfQuestion: 2,
+      sheet: 3,
+      confidential: 4,
+      bookName: 5,
+      //bookPath: 5
+      sheetPage: 6,
+      sheetConfidentialPage: 7,
+      bookNamePage: 8,
+      pageSheet: 9,
+      pageBook: 10,
+      //bookPathPage: 11;
+      pageBookName: 11,
+      userPageDate: 12,
+      //bookPathPagePathFile: 12;
+      preparedUserDatePage: 13,
+      custom: 14
+  };
+
+
   var c_kMaxPrintPages = 1500;
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -415,6 +466,8 @@ var c_oAscPopUpSelectorType = {
   window['AscCommonExcel'].c_oAscLockNameTabColor = c_oAscLockNameTabColor;
   window['AscCommonExcel'].c_oAscLockAddSheet = c_oAscLockAddSheet;
   window['AscCommonExcel'].c_oAscLockLayoutOptions = c_oAscLockLayoutOptions;
+  window['AscCommonExcel'].c_oAscHeaderFooterEdit = c_oAscHeaderFooterEdit;
+
   window['AscCommonExcel'].c_kMaxPrintPages = c_kMaxPrintPages;
   window['AscCommonExcel'].filteringMode = true;
 
@@ -598,5 +651,47 @@ var c_oAscPopUpSelectorType = {
   prot['set'] = prot.set;
   prot['clear'] = prot.clear;
   prot['add'] = prot.add;
+  window['Asc']['c_oAscHeaderFooterField'] = window['Asc'].c_oAscHeaderFooterField = c_oAscHeaderFooterField;
+  prot = c_oAscHeaderFooterField;
+  prot['pageNumber'] = prot.pageNumber;
+  prot['pageCount'] = prot.pageCount;
+  prot['sheetName'] = prot.sheetName;
+  prot['fileName'] = prot.fileName;
+  prot['filePath'] = prot.filePath;
+  prot['date'] = prot.date;
+  prot['time'] = prot.time;
+  prot['lineBreak'] = prot.lineBreak;
+  window['Asc']['c_oAscPageHFType'] = window['Asc'].c_oAscPageHFType = c_oAscPageHFType;
+  prot = c_oAscHeaderFooterField;
+  prot['firstHeader'] = prot.firstHeader;
+  prot['oddHeader'] = prot.oddHeader;
+  prot['evenHeader'] = prot.evenHeader;
+  prot['firstFooter'] = prot.firstFooter;
+  prot['oddFooter'] = prot.oddFooter;
+  prot['evenFooter'] = prot.evenFooter;
+
+  window['Asc']['c_oAscHeaderFooterType'] = window['Asc'].c_oAscHeaderFooterType = c_oAscHeaderFooterType;
+  prot = c_oAscHeaderFooterType;
+  prot['first'] = prot.first;
+  prot['odd'] = prot.odd;
+  prot['even'] = prot.even;
+
+  window['Asc']['c_oAscHeaderFooterPresets'] = window['Asc'].c_oAscHeaderFooterPresets = c_oAscHeaderFooterPresets;
+  prot = c_oAscHeaderFooterType;
+  prot['none'] = prot.none;
+  prot['page'] = prot.page;
+  prot['pageOfQuestion'] = prot.pageOfQuestion;
+  prot['sheet'] = prot.sheet;
+  prot['confidential'] = prot.confidential;
+  prot['bookName'] = prot.bookName;
+  prot['sheetPage'] = prot.sheetPage;
+  prot['sheetConfidentialPage'] = prot.sheetConfidentialPage;
+  prot['bookNamePage'] = prot.bookNamePage;
+  prot['pageSheet'] = prot.pageSheet;
+  prot['pageBook'] = prot.pageBook;
+  prot['pageBookName'] = prot.pageBookName;
+  prot['userPageDate'] = prot.userPageDate;
+  prot['preparedUserDatePage'] = prot.preparedUserDatePage;
+  prot['custom'] = prot.custom;
 
 })(window);

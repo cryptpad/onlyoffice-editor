@@ -1952,16 +1952,17 @@
 		period = period.getValue();
 		factor = factor.getValue();
 
+		if (/*cost < salvage ||*/ cost <= 0 || salvage < 0 || factor <= 0 || life <= 0 || period <= 0 || life < period) {
+			return new cError(cErrorType.not_numeric);
+		}
+
 		if (cost == 0 || salvage == 0) {
 			return new cNumber(0);
 		}
 
-		if (cost < salvage || cost <= 0 || salvage < 0 || factor <= 0 || life <= 0 || period <= 0 || life < period) {
-			return new cError(cErrorType.not_numeric);
-		}
-
-		return new cNumber(getDDB(cost, salvage, life, period, factor));
-
+		var res = new cNumber(getDDB(cost, salvage, life, period, factor));
+		res.numFormat = /*Asc.c_oAscNumFormatType.Currency*/7;
+		return res;
 	};
 
 	/**

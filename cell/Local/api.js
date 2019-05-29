@@ -172,8 +172,11 @@ var c_oAscError = Asc.c_oAscError;
 				window["DesktopOfflineAppDocumentStartSave"](isSaveAs);
 		}
 	};
-	spreadsheet_api.prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, adjustPrint)
+    spreadsheet_api.prototype.asc_DownloadAs2 = spreadsheet_api.prototype.asc_DownloadAs;
+	spreadsheet_api.prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, adjustPrint, isNaturalDownloadAs)
 	{
+        if (isNaturalDownloadAs)
+            return this.asc_DownloadAs2(typeFile, bIsDownloadEvent, adjustPrint);
 		this.asc_Save(false, true);
 	};
 	spreadsheet_api.prototype.asc_isOffline = function()

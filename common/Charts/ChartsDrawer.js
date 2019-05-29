@@ -2293,7 +2293,7 @@ CChartsDrawer.prototype =
 
 				//frame of point
 				if (paths.points[i][k] && paths.points[i][k].framePaths) {
-					this.drawPath(paths.points[i][k].framePaths, markerPen, markerBrush, false);
+					this.drawPath(paths.points[i][k].framePaths, null, markerBrush, false);
 				}
 				//point
 				if (paths.points[i][k]) {
@@ -8415,7 +8415,19 @@ drawPieChart.prototype = {
 
 		//TODO сделать через idx как у drawDoughnutChart!!!
 		if (!this.paths.series[val]) {
-			return;
+			var numCache = this._getFirstRealNumCache();
+			if(numCache) {
+				for (var i = 0; i < numCache.length; i++) {
+					if(val === numCache[i].idx) {
+						val = i;
+						break;
+					}
+				}
+			}
+
+			if(!this.paths.series[val]) {
+				return;
+			}
 		}
 
 		var path;
@@ -8435,9 +8447,8 @@ drawPieChart.prototype = {
 			var a = radius1 * radius2;
 			var b = Math.sqrt(Math.pow(radius2, 2) * Math.pow(Math.cos(alpha), 2) +
 				Math.pow(radius1, 2) * Math.pow(Math.sin(alpha), 2));
-			var res = a / b;
 
-			return res;
+			return  a / b;
 		};
 
 		var oPath = this.cChartSpace.GetPath(path);
@@ -10335,7 +10346,7 @@ drawRadarChart.prototype = {
 
 				//frame of point
 				if (this.paths.points[i][0].framePaths) {
-					this.cChartDrawer.drawPath(this.paths.points[i][k].framePaths, markerPen, markerBrush, false);
+					this.cChartDrawer.drawPath(this.paths.points[i][k].framePaths, null, markerBrush, false);
 				}
 				//point
 				this.cChartDrawer.drawPath(this.paths.points[i][k].path, markerPen, markerBrush, true);
@@ -10446,6 +10457,9 @@ drawScatterChart.prototype = {
 				continue;
 			}
 
+			compiledMarkerSize = seria && seria.compiledSeriesMarker ? seria.compiledSeriesMarker.size : null;
+			compiledMarkerSymbol = seria && seria.compiledSeriesMarker ? seria.compiledSeriesMarker.symbol : null;
+
 			for (var n = 0; n < yNumCache.ptCount; n++) {
 				var values = this.cChartDrawer._getScatterPointVal(seria, n);
 				if(values) {
@@ -10454,9 +10468,12 @@ drawScatterChart.prototype = {
 					xPoint = values.xPoint;
 					yPoint = values.yPoint;
 
-					compiledMarkerSize = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.size : null;
-					compiledMarkerSymbol = yPoint && yPoint.compiledMarker ? yPoint.compiledMarker.symbol : null;
-
+					if(yPoint && yPoint.compiledMarker) {
+						compiledMarkerSize = yPoint.compiledMarker.size;
+					}
+					if(yPoint && yPoint.compiledMarker) {
+						compiledMarkerSymbol = yPoint.compiledMarker.symbol;
+					}
 
 					if (!this.paths.points) {
 						this.paths.points = [];
@@ -10913,14 +10930,14 @@ drawStockChart.prototype = {
 			if (val2 !== null && val1 !== null) {
 				this.paths.values[i].lowLines = this._calculateLine(xVal, yVal2, xVal, yVal1);
 			}
-			if (val3 && val4) {
+			if (val3 !== null && val4 !== null) {
 				this.paths.values[i].highLines = this._calculateLine(xVal, yVal4, xVal, yVal3);
 			}
 
 			if (val1 !== null && val4 !== null) {
 				if (parseFloat(val1) > parseFloat(val4)) {
 					this.paths.values[i].downBars = this._calculateUpDownBars(xVal, yVal1, xVal, yVal4, widthBar / this.chartProp.pxToMM);
-				} else if (val1 && val4) {
+				} else {
 					this.paths.values[i].upBars = this._calculateUpDownBars(xVal, yVal1, xVal, yVal4, widthBar / this.chartProp.pxToMM);
 				}
 			}
@@ -12210,10 +12227,13 @@ catAxisChart.prototype = {
 		var pathH = this.chartProp.pathH;
 		var pathW = this.chartProp.pathW;
 
-
-		path.moveTo(x * pathW, y * pathH);
-		path.lnTo(x1 * pathW, y1 * pathH);
-
+		if (this.catAx.axPos === window['AscFormat'].AX_POS_L || this.catAx.axPos === window['AscFormat'].AX_POS_R) {
+			path.moveTo(x1 * pathW, y1 * pathH);
+			path.lnTo(x * pathW, y * pathH);
+		} else {
+			path.moveTo(x * pathW, y * pathH);
+			path.lnTo(x1 * pathW, y1 * pathH);
+		}
 
 		return pathId;
 	},
@@ -12495,8 +12515,13 @@ valAxisChart.prototype = {
 		var pathH = this.chartProp.pathH;
 		var pathW = this.chartProp.pathW;
 
-		path.moveTo(x * pathW, y * pathH);
-		path.lnTo(x1 * pathW, y1 * pathH);
+		if (this.valAx.axPos === window['AscFormat'].AX_POS_L || this.valAx.axPos === window['AscFormat'].AX_POS_R) {
+			path.moveTo(x1 * pathW, y1 * pathH);
+			path.lnTo(x * pathW, y * pathH);
+		} else {
+			path.moveTo(x * pathW, y * pathH);
+			path.lnTo(x1 * pathW, y1 * pathH);
+		}
 
 		return pathId;
 	},

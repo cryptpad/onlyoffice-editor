@@ -1722,11 +1722,11 @@
 
 		function checkFilteringMode(f, oThis, args) {
 			if (!window['AscCommonExcel'].filteringMode) {
-				History.LocalChange = true;
+				AscCommon.History.LocalChange = true;
 			}
 			var ret = f.apply(oThis, args);
 			if (!window['AscCommonExcel'].filteringMode) {
-				History.LocalChange = false;
+				AscCommon.History.LocalChange = false;
 			}
 			return ret;
 		}
@@ -2573,6 +2573,7 @@
 		window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 		window['AscCommonExcel'].g_ActiveCell = null; // Active Cell for calculate (in R1C1 mode for relative cell)
 		window['AscCommonExcel'].g_R1C1Mode = false; // No calculate in R1C1 mode
+		window['AscCommonExcel'].kCurCells = "se-cells";
 		window["AscCommonExcel"].c_oAscShiftType = c_oAscShiftType;
 		window["AscCommonExcel"].recalcType = recalcType;
 		window["AscCommonExcel"].sizePxinPt = sizePxinPt;

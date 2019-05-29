@@ -214,24 +214,7 @@ CWordCollaborativeEditing.prototype.OnEnd_Load_Objects = function()
     AscCommon.CollaborativeEditing.Set_GlobalLockSelection(false);
 
     // Запускаем полный пересчет документа
-    var LogicDocument = editor.WordControl.m_oLogicDocument;
-
-    var RecalculateData =
-    {
-        Inline   : { Pos : 0, PageNum : 0 },
-        Flow     : [],
-        HdrFtr   : [],
-        Drawings : {
-            All : true,
-            Map : {}
-        }
-    };
-
-    LogicDocument.Reset_RecalculateCache();
-
-    LogicDocument.Recalculate(RecalculateData);
-    LogicDocument.Document_UpdateSelectionState();
-    LogicDocument.Document_UpdateInterfaceState();
+    editor.WordControl.m_oLogicDocument.RecalculateFromStart(true);
 
     editor.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.ApplyChanges);
 };
@@ -618,7 +601,7 @@ CWordCollaborativeEditing.prototype.Update_ForeignCursorLabelPosition = function
 
 
 CWordCollaborativeEditing.prototype.private_RecalculateDocument = function(oRecalcData){
-    this.m_oLogicDocument.Recalculate(oRecalcData);
+    this.m_oLogicDocument.RecalculateWithParams(oRecalcData);
 };
 
 

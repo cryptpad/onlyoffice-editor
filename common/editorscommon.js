@@ -1022,7 +1022,7 @@
 		this.test = function (str)
 		{
 			var match, m1, m2;
-			if (!nameRangeRE.test(str))
+			if (!nameRangeRE.test(str) && "_xlnm.print_area" !== str)
 			{
 				return false;
 			}
@@ -1423,8 +1423,26 @@
 						}
 						else if (data.type === "onExternalPluginMessage")
 						{
-							if (window.g_asc_plugins)
-								window.g_asc_plugins.sendToAllPlugins(event.data);
+                            if (!window.g_asc_plugins)
+                            	return;
+
+							if (data["subType"] == "internalCommand")
+							{
+								// такие команды перечисляем здесь и считаем их функционалом
+								switch (data.data.type)
+								{
+									case "onbeforedrop":
+									case "ondrop":
+									{
+                                        window.g_asc_plugins.api.privateDropEvent(data.data);
+										return;
+									}
+									default:
+										break;
+								}
+							}
+
+							window.g_asc_plugins.sendToAllPlugins(event.data);
 						}
 					} catch (err)
 					{
@@ -3054,7 +3072,7 @@
 			var bNeedUpdate = false;
 			for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 			{
-				if (arrParagraphs[nIndex].Get_Lock() === this)
+				if (arrParagraphs[nIndex].GetLock() === this)
 				{
 					bNeedUpdate = true;
 					break;
@@ -4309,6 +4327,96 @@
 
     AscCommon.EncryptionWorker = new CEncryptionData();
 
+    function CMouseSmoothWheelCorrector(t, scrollFunction)
+	{
+		this._deltaX = 0;
+		this._deltaY = 0;
+
+		this._isBreakX = false;
+        this._isBreakY = false;
+
+        this._timeoutCorrector = -1;
+        this._api = t;
+        this._scrollFunction = scrollFunction;
+
+        this._normalDelta = 120;
+        this._isNormalDeltaActive = false;
+
+        this.setNormalDeltaActive = function(value)
+		{
+            this._isNormalDeltaActive = true;
+            this._normalDelta = value;
+		};
+
+		this.isBreakX = function()
+		{
+			return this._isBreakX;
+		};
+        this.isBreakY = function()
+        {
+            return this._isBreakY;
+        };
+        this.get_DeltaX = function(wheelDeltaX)
+        {
+            this._isBreakX = false;
+
+            if (!AscCommon.AscBrowser.isMacOs)
+                return wheelDeltaX;
+
+            this._deltaX += wheelDeltaX;
+            if (Math.abs(this._deltaX) >= this._normalDelta)
+				return this._isNormalDeltaActive ? ((this._deltaX > 0) ? this._normalDelta : -this._normalDelta) : this._deltaX;
+
+            this._isBreakX = true;
+            return 0;
+        };
+        this.get_DeltaY = function(wheelDeltaY)
+        {
+            this._isBreakY = false;
+
+            if (!AscCommon.AscBrowser.isMacOs)
+                return wheelDeltaY;
+
+            this._deltaY += wheelDeltaY;
+            if (Math.abs(this._deltaY) >= this._normalDelta)
+            	return this._isNormalDeltaActive ? ((this._deltaY > 0) ? this._normalDelta : -this._normalDelta) : this._deltaY;
+
+            this._isBreakY = true;
+            return 0;
+        };
+
+        this.checkBreak = function()
+		{
+			if (-1 != this._timeoutCorrector)
+			{
+				clearTimeout(this._timeoutCorrector);
+				this._timeoutCorrector = -1;
+			}
+
+			if ((this._isBreakX || this._isBreakY) && this._scrollFunction)
+			{
+				var obj = { t : this, x : (this._isBreakX ? this._deltaX : 0), y : (this._isBreakY ? this._deltaY : 0) };
+				this._timeoutCorrector = setTimeout(function(){
+                    var t = obj.t;
+					t._scrollFunction.call(t._api, obj.x, obj.y);
+					t._timeoutCorrector = -1;
+					t._deltaX = 0;
+					t._deltaY = 0;
+				}, 100);
+			}
+
+			if (!this._isBreakX)
+				this._deltaX = 0;
+            if (!this._isBreakY)
+                this._deltaY = 0;
+
+			this._isBreakX = false;
+            this._isBreakY = false;
+		};
+	}
+
+	AscCommon.CMouseSmoothWheelCorrector = CMouseSmoothWheelCorrector;
+
 	/** @constructor */
 	function CTranslateManager()
 	{
@@ -4394,6 +4502,50 @@
 	}
 	if (typeof Float64Array !== 'undefined' && !Float64Array.prototype.fill) {
 		Float64Array.prototype.fill = Array.prototype.fill;
+	}
+
+	function parseText(text, options, bTrimSpaces) {
+		var delimiterChar;
+		if (options.asc_getDelimiterChar()) {
+			delimiterChar = options.asc_getDelimiterChar();
+		} else {
+			switch (options.asc_getDelimiter()) {
+				case AscCommon.c_oAscCsvDelimiter.None:
+					delimiterChar = undefined;
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Tab:
+					delimiterChar = "\t";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Semicolon:
+					delimiterChar = ";";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Colon:
+					delimiterChar = ":";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Comma:
+					delimiterChar = ",";
+					break;
+				case AscCommon.c_oAscCsvDelimiter.Space:
+					delimiterChar = " ";
+					break;
+			}
+		}
+		var matrix = [];
+		//var rows = text.match(/[^\r\n]+/g);
+		var rows = text.split(/\r?\n/);
+		for (var i = 0; i < rows.length; ++i) {
+			var row = rows[i];
+			if(" " === delimiterChar && bTrimSpaces) {
+				var addSpace = false;
+				if(row[0] === delimiterChar) {
+					addSpace = true;
+				}
+				row = addSpace ? delimiterChar + row.trim() : row.trim();
+			}
+			//todo quotes
+			matrix.push(row.split(delimiterChar));
+		}
+		return matrix;
 	}
 
 	//------------------------------------------------------------export---------------------------------------------------
@@ -4485,6 +4637,8 @@
 	prot["destroy"] 	= prot.destroy;
 
 	window["AscCommon"].translateManager = new CTranslateManager();
+
+	window["AscCommon"].parseText = parseText;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

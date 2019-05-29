@@ -117,6 +117,24 @@
             this.vsbApiLockMouse = false;
             this.hsbApiLockMouse = false;
 
+            this.smoothWheelCorrector = null;
+            if (AscCommon.AscBrowser.isMacOs) {
+                this.smoothWheelCorrector = new AscCommon.CMouseSmoothWheelCorrector(this, function (deltaX, deltaY) {
+
+                    if (deltaX) {
+                        deltaX = Math.sign(deltaX) * Math.ceil(Math.abs(deltaX / 3));
+                        this.scrollHorizontal(deltaX, null);
+                    }
+                    if (deltaY) {
+                        deltaY = Math.sign(deltaY) * Math.ceil(Math.abs(deltaY * this.settings.wheelScrollLinesV / 3));
+                        this.scrollVertical(deltaY, null);
+                    }
+
+                });
+
+                this.smoothWheelCorrector.setNormalDeltaActive(3);
+            }
+
             return this;
 		}
 
@@ -503,7 +521,7 @@
 		asc_CEventsController.prototype._changeSelectionDone = function (event) {
 			var coord = this._getCoordinates(event);
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
-			if (false === ctrlKey) {
+			if (false !== ctrlKey) {
 				coord.x = -1;
 				coord.y = -1;
 			}
@@ -628,6 +646,7 @@
 		};
 
 		asc_CEventsController.prototype._commentCellClick = function (event) {
+			// ToDo delete this function!
 			var t = this;
 			var coord = t._getCoordinates(event);
 			this.handlers.trigger("commentCellClick", coord.x, coord.y);
@@ -801,15 +820,16 @@
 					if (t.getCellEditMode()) {
 						return true;
 					}
+					var isSelectColumns = !AscBrowser.isMacOs && ctrlKey || AscBrowser.isMacOs && event.altKey;
 					// Обработать как обычный текст
-					if (!ctrlKey && !shiftKey) {
+					if (!isSelectColumns && !shiftKey) {
 						t.skipKeyPress = false;
 						return true;
 					}
 					// Отключим стандартную обработку браузера нажатия
 					// Ctrl+Shift+Spacebar, Ctrl+Spacebar, Shift+Spacebar
 					stop();
-					if (ctrlKey) {
+					if (isSelectColumns) {
 						t.handlers.trigger("selectColumnsByRange");
 					}
 					if (shiftKey) {
@@ -1603,7 +1623,16 @@
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseWheel = function (event) {
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
-			if (this.isFillHandleMode || this.isMoveRangeMode || this.isMoveResizeRange || ctrlKey) {
+			if (ctrlKey) {
+				if (event.preventDefault) {
+					event.preventDefault();
+				} else {
+					event.returnValue = false;
+				}
+
+				return false;
+			}
+			if (this.isFillHandleMode || this.isMoveRangeMode || this.isMoveResizeRange) {
 				return true;
 			}
 
@@ -1624,6 +1653,9 @@
 				// FF
 				deltaY = event.deltaY;
 			}
+            if (undefined !== event.deltaX && 0 !== event.deltaX) {
+                deltaX = event.deltaX;
+            }
 			if (event.axis !== undefined && event.axis === event.HORIZONTAL_AXIS) {
 				deltaX = deltaY;
 				deltaY = 0;
@@ -1642,18 +1674,27 @@
 				deltaY = 0;
 			}
 
+			if (this.smoothWheelCorrector)
+			{
+				deltaX = this.smoothWheelCorrector.get_DeltaX(deltaX);
+                deltaY = this.smoothWheelCorrector.get_DeltaY(deltaY);
+			}
+
 			this.handlers.trigger("updateWorksheet", /*x*/undefined, /*y*/undefined, /*ctrlKey*/undefined,
 				function () {
-					if (deltaX) {
+					if (deltaX && (!self.smoothWheelCorrector || !self.smoothWheelCorrector.isBreakX())) {
 						deltaX = Math.sign(deltaX) * Math.ceil(Math.abs(deltaX / 3));
 						self.scrollHorizontal(deltaX, event);
 					}
-					if (deltaY) {
+					if (deltaY && (!self.smoothWheelCorrector || !self.smoothWheelCorrector.isBreakY())) {
 						deltaY = Math.sign(deltaY) * Math.ceil(Math.abs(deltaY * self.settings.wheelScrollLinesV / 3));
 						self.scrollVertical(deltaY, event);
 					}
 					self._onMouseMove(event);
 				});
+
+            this.smoothWheelCorrector && this.smoothWheelCorrector.checkBreak();
+            AscCommon.stopEvent(event);
 			return true;
 		};
 

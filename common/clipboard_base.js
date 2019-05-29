@@ -101,6 +101,8 @@
 		this.bCut = false;
 
 		this.clearBufferTimerId = -1;
+
+		this.needClearBuffer = false;
 	}
 
 	CClipboardBase.prototype =
@@ -118,21 +120,10 @@
 				{
 					this.pushData(AscCommon.c_oAscClipboardDataFormat.Text, "");
 				}
-                if (formats & AscCommon.c_oAscClipboardDataFormat.Html)
-                {
-					if(AscBrowser.isIE) {
-						if(AscBrowser.isIeEdge) {
-							this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, null);
-						} else {
-							//TODO IE 11 не работает очиска буфера!
-							//если раскомментировать только строку ниже и убрать все pushData - тогда очистка происходит
-							//this.ClosureParams.setData("text/plain", "");
-							this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, "");
-						}
-					} else {
-						this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, "");
-					}
-                }
+				if (formats & AscCommon.c_oAscClipboardDataFormat.Html)
+				{
+					this.pushData(AscCommon.c_oAscClipboardDataFormat.Html, "");
+				}
                 if (formats & AscCommon.c_oAscClipboardDataFormat.Internal)
                 {
                     this.pushData(AscCommon.c_oAscClipboardDataFormat.Internal, "");
@@ -849,6 +840,10 @@
 			this.Api.decrementCounterLongAction();
 			this.PasteFlag = false;
 			this.EndFocus();
+			if(this.needClearBuffer) {
+				this.ClearBuffer();
+				this.needClearBuffer = false;
+			}
 		},
 
 		pushData : function(_format, _data)
@@ -1050,11 +1045,22 @@
 		Special_Paste_Start : function()
 		{
 			this.specialPasteStart = true;
+
+			//для того, чтобы были доступны скомпилированые стили во время вставки
+			if (g_clipboardBase.CommonIframe && g_clipboardBase.CommonIframe.style.display != "block")
+			{
+				g_clipboardBase.CommonIframe.style.display = "block";
+			}
 		},
 		
 		Special_Paste_End : function()
 		{
 			this.specialPasteStart = false;
+
+			if (g_clipboardBase.CommonIframe && g_clipboardBase.CommonIframe.style.display != "none")
+			{
+				g_clipboardBase.CommonIframe.style.display = "none";
+			}
 		},
 		
 		Paste_Process_Start : function(doNotShowButton)
@@ -1073,7 +1079,7 @@
 			this.doNotShowButton = true;
 		},
 
-		Paste_Process_End : function()
+		Paste_Process_End : function(checkEnd)
 		{
 			AscFonts.IsCheckSymbols             = false;
 			//todo возможно стоит добавить проверку
@@ -1099,13 +1105,20 @@
 				this.SpecialPasteButton_Show();
 			}
 
-			this.doNotShowButton = false;
+			if(!checkEnd || (checkEnd && this.endRecalcDocument)) {
+				this.doNotShowButton = false;
+			}
 
 			//TODO для excel заглушка. пересмотреть!
 			if(this.bIsEndTransaction)
 			{
 				this.bIsEndTransaction = false;
 				History.EndTransaction();
+			}
+
+			var _logicDoc = this.Api.WordControl ? this.Api.WordControl.m_oLogicDocument : null;
+			if (_logicDoc && _logicDoc.Action && _logicDoc.Action.Start && this.Api._finalizeAction) {
+				this.Api._finalizeAction();
 			}
 		},
 		
@@ -1134,11 +1147,20 @@
 
 		SpecialPasteButtonById_Show: function()
 		{
+			if(!this.pasteStart) {
+				this.endRecalcDocument = true;
+			}
+
+			if(!this.showButtonIdParagraph || this.pasteStart) {
+				return;
+			}
+
 			if(!this.Api || !this.Api.asc_specialPasteShowButton || this.doNotShowButton)
 			{
 				if(this.doNotShowButton) {
 					this.showButtonIdParagraph = null;
 				}
+				this.doNotShowButton = false;
 				return;
 			}
 
@@ -1203,6 +1225,13 @@
 		CleanButtonInfo: function()
 		{
 			this.buttonInfo.clean();
+		},
+
+		GetPastedData: function(bText) {
+			if(bText && this.specialPasteData.text_data) {
+				return this.specialPasteData.text_data;
+			}
+			return this.specialPasteData.data1;
 		}
 	};
 

@@ -231,6 +231,7 @@
 		this.canCoAuthoring = true;
 		this.canReaderMode = true;
 		this.canBranding = false;
+		this.customization = false;
 		this.isAutosaveEnable = true;
 		this.AutosaveMinInterval = 300;
 		this.isAnalyticsEnable = false;
@@ -250,6 +251,9 @@
 	};
 	asc_CAscEditorPermissions.prototype.asc_getCanBranding = function () {
 		return this.canBranding;
+	};
+	asc_CAscEditorPermissions.prototype.asc_getCustomization = function () {
+		return this.customization;
 	};
 	asc_CAscEditorPermissions.prototype.asc_getIsAutosaveEnable = function () {
 		return this.isAutosaveEnable;
@@ -281,6 +285,9 @@
 	};
 	asc_CAscEditorPermissions.prototype.setCanBranding = function (v) {
 		this.canBranding = v;
+	};
+	asc_CAscEditorPermissions.prototype.setCustomization = function (v) {
+		this.customization = v;
 	};
 	asc_CAscEditorPermissions.prototype.setIsLight = function (v) {
 		this.isLight = v;
@@ -2426,6 +2433,7 @@
 			this.rot = obj.rot != undefined ? obj.rot : undefined;
 			this.flipH = obj.flipH != undefined ? obj.flipH : undefined;
 			this.flipV = obj.flipV != undefined ? obj.flipV : undefined;
+			this.resetCrop =  obj.resetCrop != undefined ? obj.resetCrop : undefined;
 
 		} else {
 			this.CanBeFlow = true;
@@ -2446,7 +2454,6 @@
 
 			this.ChartProperties = null;
 			this.ShapeProperties = null;
-			this.ImageProperties = null;
 
 			this.ChangeLevel = null;
 			this.Group = null;
@@ -2474,8 +2481,7 @@
 			this.rotAdd = undefined;
 			this.flipH = undefined;
 			this.flipV = undefined;
-			this.flipHInert = undefined;
-			this.flipVInert = undefined;
+			this.resetCrop = undefined;
 		}
 	}
 
@@ -2799,6 +2805,9 @@
 
 		asc_putFlipVInvert: function(v){
 			this.flipVInvert = v;
+		},
+		asc_putResetCrop: function(v){
+			this.resetCrop = v;
 		}
 	};
 
@@ -4247,6 +4256,7 @@
 	prot["asc_getCanCoAuthoring"] = prot.asc_getCanCoAuthoring;
 	prot["asc_getCanReaderMode"] = prot.asc_getCanReaderMode;
 	prot["asc_getCanBranding"] = prot.asc_getCanBranding;
+	prot["asc_getCustomization"] = prot.asc_getCustomization;
 	prot["asc_getIsAutosaveEnable"] = prot.asc_getIsAutosaveEnable;
 	prot["asc_getAutosaveMinInterval"] = prot.asc_getAutosaveMinInterval;
 	prot["asc_getIsAnalyticsEnable"] = prot.asc_getIsAnalyticsEnable;
@@ -4771,6 +4781,7 @@
 	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
 	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
 	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
+	prot["put_ResetCrop"] = prot["asc_putResetCrop"] = prot.asc_putResetCrop;
 
 	prot["get_Title"] = prot["asc_getTitle"] = prot.asc_getTitle;
 	prot["put_Title"] = prot["asc_putTitle"] = prot.asc_putTitle;

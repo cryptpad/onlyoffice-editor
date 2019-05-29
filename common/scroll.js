@@ -1616,6 +1616,8 @@ function _HEXTORGB_( colorHEX ) {
 		this.piperImgHor[0].height = 5;
 		this.piperImgHor[1].height = 5;
 
+		this.disableCurrentScroll = false;
+
 		if(this.settings.slimScroll){
 			this.piperImgVert[0].width =
 				this.piperImgVert[1].width =
@@ -1757,6 +1759,14 @@ function _HEXTORGB_( colorHEX ) {
 
 		return true;
 	};
+    ScrollObject.prototype.disableCurrentScroll = function() {
+        this.disableCurrentScroll = true;
+    };
+	ScrollObject.prototype.checkDisableCurrentScroll = function() {
+        var ret = this.disableCurrentScroll;
+        this.disableCurrentScroll = false;
+        return ret;
+    };
 	ScrollObject.prototype.getMousePosition = function ( evt ) {
 		// get canvas position
 		var obj = this.canvas;
@@ -1946,11 +1956,17 @@ function _HEXTORGB_( colorHEX ) {
 		}
 
 		if ( that.scrollVCurrentY !== pos || bIsAttack === true ) {
-			that.scrollVCurrentY = pos;
-			evt.scrollD = evt.scrollPositionY = that.scrollVCurrentY;
+            var oldPos = that.scrollVCurrentY;
+		    that.scrollVCurrentY = pos;
+		    evt.scrollD = evt.scrollPositionY = that.scrollVCurrentY;
 			evt.maxScrollY = that.maxScrollY;
-			that._draw();
 			that.handleEvents( "onscrollvertical", evt );
+			if (that.checkDisableCurrentScroll()) {
+			    // prevented...
+                that.scrollVCurrentY = oldPos;
+                return;
+            }
+            that._draw();
 		}
 		else if ( that.scrollVCurrentY === pos && pos > 0 && !this.reinit && !this.moveble && !this.lock ) {
 			evt.pos = pos;

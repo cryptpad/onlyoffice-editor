@@ -180,10 +180,6 @@ function (window, undefined) {
             copy.setStyle(this.style.createDuplicate());
         }
         copy.setBDeleted(this.bDeleted);
-        if(this.fromSerialize)
-        {
-            copy.setBFromSerialize(true);
-        }
         copy.setData(this.m_sData);
         copy.setApplicationId(this.m_sApplicationId);
         copy.setPixSizes(this.m_nPixWidth, this.m_nPixHeight);
@@ -202,7 +198,7 @@ function (window, undefined) {
 
     COleObject.prototype.handleUpdateExtents = function(){
         if(!AscFormat.isRealNumber(this.m_fDefaultSizeX) || !AscFormat.isRealNumber(this.m_fDefaultSizeY)){
-            if(this.spPr && this.spPr.xfrm && AscFormat.isRealNumber(this.spPr.xfrm.extX) && AscFormat.isRealNumber(this.spPr.xfrm.extY)){
+            if(this.spPr && this.spPr.xfrm && AscFormat.isRealNumber(this.spPr.xfrm.extX) && AscFormat.isRealNumber(this.spPr.xfrm.extY) && this.spPr.xfrm.extX > 0 && this.spPr.xfrm.extY > 0){
                 this.m_fDefaultSizeX = this.spPr.xfrm.extX;
                 this.m_fDefaultSizeY = this.spPr.xfrm.extY;
             }

@@ -72,6 +72,10 @@ function MoveShapeImageTrack(originalObject)
     {
         this.brush = this.brush.createDuplicate();
     }
+    if(this.originalObject.cropObject)
+    {
+        this.cropObject = this.originalObject.cropObject;
+    }
     this.overlayObject = new AscFormat.OverlayObject(originalObject.getGeom(), this.originalObject.extX, this.originalObject.extY, this.brush, this.pen, this.transform);
 
     this.groupInvertMatrix = null;
@@ -127,6 +131,7 @@ function MoveShapeImageTrack(originalObject)
 
             var oShapeDrawer = new AscCommon.CShapeDrawer();
             oShapeDrawer.bIsCheckBounds = true;
+            oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
             this.originalObject.check_bounds(oShapeDrawer);
             this.brush.fill.srcRect = AscFormat.CalculateSrcRect(this.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.originalObject.cropObject.transform), this.originalObject.cropObject.extX, this.originalObject.cropObject.extY);
         }
@@ -159,6 +164,7 @@ function MoveShapeImageTrack(originalObject)
 
             var oShapeDrawer = new AscCommon.CShapeDrawer();
             oShapeDrawer.bIsCheckBounds = true;
+            oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
             parentCrop.check_bounds(oShapeDrawer);
             var srcRect = AscFormat.CalculateSrcRect(parentCrop.transform, oShapeDrawer, global_MatrixTransformer.Invert(this.transform), this.originalObject.extX, this.originalObject.extY);
             oldPen = this.originalObject.parentCrop.pen;
@@ -201,6 +207,7 @@ function MoveShapeImageTrack(originalObject)
             parentCrop.transform = this.transform;
             var oShapeDrawer = new AscCommon.CShapeDrawer();
             oShapeDrawer.bIsCheckBounds = true;
+            oShapeDrawer.Graphics = new AscFormat.CSlideBoundsChecker();
             parentCrop.check_bounds(oShapeDrawer);
             var srcRect = AscFormat.CalculateSrcRect(this.transform, oShapeDrawer, global_MatrixTransformer.Invert(oldCropObj.transform), oldCropObj.extX, oldCropObj.extY);
 
@@ -254,7 +261,7 @@ function MoveShapeImageTrack(originalObject)
         }
         else
         {
-            AscFormat.CheckSpPrXfrm(this.originalObject);
+            AscFormat.CheckSpPrXfrm3(this.originalObject, true);
         }
         if(this.originalObject.group)
         {
@@ -365,7 +372,15 @@ function MoveShapeImageTrack(originalObject)
         }
         if(this.originalObject.isCrop)
         {
+            if(!this.originalObject.parentCrop.cropObject)
+            {
+                this.originalObject.parentCrop.cropObject = this.originalObject;
+            }
             this.originalObject.parentCrop.calculateSrcRect();
+        }
+        if(this.cropObject && !this.originalObject.cropObject)
+        {
+            this.originalObject.cropObject = this.cropObject;
         }
         if(this.originalObject.cropObject)
         {

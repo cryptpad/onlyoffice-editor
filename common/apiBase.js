@@ -253,6 +253,17 @@
 			} else {
 				return false;
 			}
+		};
+
+		// disable mousewheel on macOS
+		if (AscCommon.AscBrowser.isMacOs)
+		{
+			document.body.onmousewheel = function(e) {
+				if (e.stopPropagation)
+					e.stopPropagation();
+				e.returnValue = false;
+				return false;
+			};
 		}
 	};
 	baseEditorsApi.prototype._editorNameById                 = function()
@@ -600,6 +611,9 @@
 
         if (this.editorId == c_oEditorId.Spreadsheet)
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
+
+		if (this.DocInfo)
+			this["pluginMethod_SetProperties"](this.DocInfo.asc_getOptions());
 	};
 	// Save
 	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType)
@@ -1240,25 +1254,24 @@
 		if(this.isViewMode){
 			return;
 		}
-		Asc.CPluginData_wrap(oPluginData);
 		var oThis      = this;
-		var sImgSrc    = oPluginData.getAttribute("imgSrc");
-		var nWidthPix  = oPluginData.getAttribute("widthPix");
-		var nHeightPix = oPluginData.getAttribute("heightPix");
-		var fWidth     = oPluginData.getAttribute("width");
-		var fHeight    = oPluginData.getAttribute("height");
-		var sData      = oPluginData.getAttribute("data");
-		var sGuid      = oPluginData.getAttribute("guid");
+		var sImgSrc    = oPluginData["imgSrc"];
+		var nWidthPix  = oPluginData["widthPix"];
+		var nHeightPix = oPluginData["heightPix"];
+		var fWidth     = oPluginData["width"];
+		var fHeight    = oPluginData["height"];
+		var sData      = oPluginData["data"];
+		var sGuid      = oPluginData["guid"];
 		if (typeof sImgSrc === "string" && sImgSrc.length > 0 && typeof sData === "string"
 			&& typeof sGuid === "string" && sGuid.length > 0
 			&& AscFormat.isRealNumber(nWidthPix) && AscFormat.isRealNumber(nHeightPix)
 			&& AscFormat.isRealNumber(fWidth) && AscFormat.isRealNumber(fHeight)
 		)
 
-			this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
-			{
-				oThis.asc_addOleObjectAction(AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, sGuid, fWidth, fHeight, nWidthPix, nHeightPix);
-			});
+		this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
+		{
+			oThis.asc_addOleObjectAction(AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, sGuid, fWidth, fHeight, nWidthPix, nHeightPix);
+		});
 	};
 
 	baseEditorsApi.prototype.asc_editOleObject = function(oPluginData)
@@ -1266,23 +1279,25 @@
 		if(this.isViewMode){
 			return;
 		}
-		Asc.CPluginData_wrap(oPluginData);
 		var oThis      = this;
-		var bResize    = oPluginData.getAttribute("resize");
-		var sImgSrc    = oPluginData.getAttribute("imgSrc");
-		var oOleObject = AscCommon.g_oTableId.Get_ById(oPluginData.getAttribute("objectId"));
-		var nWidthPix  = oPluginData.getAttribute("widthPix");
-		var nHeightPix = oPluginData.getAttribute("heightPix");
-		var sData      = oPluginData.getAttribute("data");
+		var bResize    = oPluginData["resize"];
+		var sImgSrc    = oPluginData["imgSrc"];
+		var oOleObject = AscCommon.g_oTableId.Get_ById(oPluginData["objectId"]);
+		var nWidthPix  = oPluginData["widthPix"];
+		var nHeightPix = oPluginData["heightPix"];
+		var sData      = oPluginData["data"];
 		if (typeof sImgSrc === "string" && sImgSrc.length > 0 && typeof sData === "string"
 			&& oOleObject && AscFormat.isRealNumber(nWidthPix) && AscFormat.isRealNumber(nHeightPix))
 		{
-			this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
+            this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
 			{
 				oThis.asc_editOleObjectAction(bResize, oOleObject, AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, nWidthPix, nHeightPix);
 			});
 		}
 	};
+
+    baseEditorsApi.prototype["pluginMethod_AddOleObject"] = baseEditorsApi.prototype.asc_addOleObject;
+    baseEditorsApi.prototype["pluginMethod_EditOleObject"] = baseEditorsApi.prototype.asc_editOleObject;
 
 	baseEditorsApi.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight)
 	{
@@ -1306,14 +1321,24 @@
 	baseEditorsApi.prototype.asc_startEditCurrentOleObject = function(){
 
 	};
-	baseEditorsApi.prototype.asc_canStartImageCrop = function(){
-
+	baseEditorsApi.prototype.asc_canEditCrop = function()
+	{
 	};
-	baseEditorsApi.prototype.asc_startImageCrop = function(){
 
+	baseEditorsApi.prototype.asc_startEditCrop = function()
+	{
 	};
-	baseEditorsApi.prototype.asc_endImageCrop = function(){
 
+	baseEditorsApi.prototype.asc_endEditCrop = function()
+	{
+	};
+
+	baseEditorsApi.prototype.asc_cropFit = function()
+	{
+	};
+
+	baseEditorsApi.prototype.asc_cropFill = function()
+	{
 	};
 	// Version History
 	baseEditorsApi.prototype.asc_showRevision   = function(newObj)
@@ -1438,6 +1463,11 @@
 		this.pluginsManager     = Asc.createPluginsManager(this);
 
 		this.macros = new AscCommon.CDocumentMacros();
+
+		this._loadSdkImages();
+	};
+	baseEditorsApi.prototype._loadSdkImages = function ()
+	{
 	};
 
 	baseEditorsApi.prototype.sendStandartTextures = function()
@@ -1449,13 +1479,17 @@
 
 		var _count = AscCommon.g_oUserTexturePresets.length;
 		var arr    = new Array(_count);
+		var arrToDownload = [];
 		for (var i = 0; i < _count; ++i)
 		{
 			arr[i]       = new AscCommon.asc_CTexture();
 			arr[i].Id    = i;
 			arr[i].Image = AscCommon.g_oUserTexturePresets[i];
-			this.ImageLoader.LoadImage(AscCommon.g_oUserTexturePresets[i], 1);
+			arrToDownload.push(AscCommon.g_oUserTexturePresets[i]);
 		}
+		this.ImageLoader.LoadImagesWithCallback(arrToDownload, function () {
+
+		}, 0);
 
 		this.sendEvent('asc_onInitStandartTextures', arr);
 	};
@@ -1693,7 +1727,12 @@
 		if (!AscCommon.g_clipboardBase)
 			return null;
 
-		var _elem = document.createElement("div");
+		var _elem = document.getElementById("pmpastehtml");
+		if (_elem)
+			return;
+
+		_elem = document.createElement("div");
+		_elem.id = "pmpastehtml";
 
 		if (this.editorId == c_oEditorId.Word || this.editorId == c_oEditorId.Presentation)
 		{
@@ -1879,6 +1918,9 @@
 
 	baseEditorsApi.prototype["pluginMethod_SetProperties"] = function(obj)
 	{
+		if (!obj)
+			return;
+
 		for (var prop in obj)
 		{
 			switch (prop)
@@ -1934,11 +1976,51 @@
 
 					break;
 				}
+				case "hideContentControlTrack":
+				{
+					if (this.editorId === c_oEditorId.Word)
+						this.WordControl.m_oLogicDocument.SetForceHideContentControlTrack(obj[prop]);
+
+					break;
+				}
 				default:
 					break;
 			}
 		}
 	};
+
+    baseEditorsApi.prototype.privateDropEvent = function(obj)
+    {
+    	if (!obj || !obj.type)
+    		return;
+
+        var e = {
+            pageX : obj["x"],
+            pageY : obj["y"]
+        };
+
+        switch (obj.type)
+        {
+            case "onbeforedrop":
+			{
+                this.beginInlineDropTarget(e);
+				break;
+			}
+            case "ondrop":
+            {
+                this.endInlineDropTarget(e);
+
+                if (obj["html"])
+                    this["pluginMethod_PasteHtml"](obj["html"]);
+                else if (obj["text"])
+                    this["pluginMethod_PasteText"](obj["text"]);
+
+                break;
+            }
+            default:
+                break;
+        }
+    };
 
 	// input helper
     baseEditorsApi.prototype.getTargetOnBodyCoords = function()
@@ -2576,50 +2658,13 @@
 		return 0;
 	};
 
-
-	function parseCSV(text, options) {
-		var delimiterChar;
-		if (options.asc_getDelimiterChar()) {
-			delimiterChar = options.asc_getDelimiterChar();
-		} else {
-			switch (options.asc_getDelimiter()) {
-				case AscCommon.c_oAscCsvDelimiter.None:
-					delimiterChar = undefined;
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Tab:
-					delimiterChar = "\t";
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Semicolon:
-					delimiterChar = ";";
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Colon:
-					delimiterChar = ":";
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Comma:
-					delimiterChar = ",";
-					break;
-				case AscCommon.c_oAscCsvDelimiter.Space:
-					delimiterChar = " ";
-					break;
-			}
-		}
-		var matrix = [];
-		var rows = text.match(/[^\r\n]+/g);
-		for (var i = 0; i < rows.length; ++i) {
-			var row = rows[i];
-			//todo quotes
-			matrix.push(row.split(delimiterChar));
-		}
-		return matrix;
-	}
-
 	baseEditorsApi.prototype.asc_decodeBuffer = function(buffer, options, callback) {
 		var reader = new FileReader();
 		//todo onerror
 		reader.onload = reader.onerror = function(e) {
 			var text = e.target.result ? e.target.result : "";
 			if (options instanceof Asc.asc_CCSVAdvancedOptions) {
-				callback(parseCSV(text, options));
+				callback(AscCommon.parseText(text, options));
 			} else {
 				callback(text.match(/[^\r\n]+/g));
 			}

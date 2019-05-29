@@ -281,6 +281,11 @@ function CGroupShape()
     CGroupShape.prototype.copy = function(oIdMap, bSourceFormatting)
     {
         var copy = new CGroupShape();
+        this.copy2(copy, oIdMap, bSourceFormatting);
+        return copy;
+    };
+    CGroupShape.prototype.copy2 = function(copy, oIdMap, bSourceFormatting)
+    {
         if(this.nvGrpSpPr)
         {
             copy.setNvGrpSpPr(this.nvGrpSpPr.createDuplicate());
@@ -316,10 +321,6 @@ function CGroupShape()
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;
         copy.setLocks(this.locks);
-        if(this.fromSerialize)
-        {
-            copy.setBFromSerialize(true);
-        }
         return copy;
     };
 
@@ -608,7 +609,7 @@ function CGroupShape()
                 }
 
 
-                if(this.drawingBase  && this.fromSerialize)
+                if(this.drawingBase && !this.group)
                 {
                     var metrics = this.drawingBase.getGraphicObjectMetrics();
                     var rot = 0;
@@ -1633,9 +1634,6 @@ function CGroupShape()
 
     CGroupShape.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
 
-    CGroupShape.prototype.deleteBFromSerialize = CShape.prototype.deleteBFromSerialize;
-
-    CGroupShape.prototype.setBFromSerialize = CShape.prototype.setBFromSerialize;
 
     CGroupShape.prototype.calculateSnapArrays = function(snapArrayX, snapArrayY)
     {

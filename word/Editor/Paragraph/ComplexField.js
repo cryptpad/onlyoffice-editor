@@ -379,7 +379,7 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 		if (true === this.LogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 			return;
 
-		this.LogicDocument.Create_NewHistoryPoint();
+		this.LogicDocument.StartAction();
 	}
 
 	switch (this.Instruction.GetType())
@@ -406,6 +406,11 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 
 	if (false !== isNeedRecalculate)
 		this.LogicDocument.Recalculate();
+
+	if (isCreateHistoryPoint)
+	{
+		this.LogicDocument.FinalizeAction();
+	}
 };
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
@@ -988,13 +993,3 @@ CComplexField.prototype.ChangeInstruction = function(sNewInstruction)
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CComplexField = CComplexField;
-
-
-
-function TEST_ADDFIELD(sInstruction)
-{
-	var oLogicDocument = editor.WordControl.m_oLogicDocument;
-	oLogicDocument.Create_NewHistoryPoint();
-	oLogicDocument.AddFieldWithInstruction(sInstruction);
-	oLogicDocument.Recalculate();
-}

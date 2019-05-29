@@ -1065,7 +1065,6 @@
 			if(arguments.length === 8){//support old variant
 				oChart.setBDeleted(false);
 				oChart.setWorksheet(this.worksheet);
-				oChart.setBFromSerialize(true);
 				oChart.addToDrawingObjects();
 				oChart.setDrawingBaseCoords(arguments[4], 0, arguments[5], 0, arguments[6], 0, arguments[7], 0, 0, 0, 0, 0);
 			}
@@ -1188,7 +1187,6 @@
 								_object.deleteDrawingBase();
 								oImage.setBDeleted(false);
 								oImage.setWorksheet(oWorksheet.model);
-								oImage.setBFromSerialize(true);
 								oImage.addToDrawingObjects(i);
 								oImage.setDrawingBaseType(AscCommon.c_oAscCellAnchorType.cellanchorAbsolute);
 								oImage.setDrawingBaseCoords(0, 0, 0, 0, 0, 0, 0, 0, _object.x, _object.y, oImage.spPr.xfrm.extX, oImage.spPr.xfrm.extY);
@@ -1924,7 +1922,7 @@
 		if (!this.range.isOneCell()) {
 			return null;
 		}
-		return new ApiComment(this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex()).cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1));
+		return new ApiComment(this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex()).cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false));
 	};
 	Object.defineProperty(ApiRange.prototype, "Comments", {
 		get: function () {
@@ -2617,7 +2615,6 @@
 		oDrawing.spPr.xfrm.setExtY(nExtY/36000.0);
 		oDrawing.setBDeleted(false);
 		oDrawing.setWorksheet(oWorksheet);
-		oDrawing.setBFromSerialize(true);
 		oDrawing.addToDrawingObjects(pos);
 		oDrawing.setDrawingBaseType(AscCommon.c_oAscCellAnchorType.cellanchorOneCell);
 		oDrawing.setDrawingBaseCoords(nFromCol, nColOffset/36000.0, nFromRow, nRowOffset/36000.0, 0, 0, 0, 0, 0, 0, 0, 0);

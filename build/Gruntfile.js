@@ -242,7 +242,7 @@ module.exports = function(grunt) {
 		var slideJs = 'slide.js';
 		var sdkAllMin = 'sdk-all-min.js';
 		var sdkAll = 'sdk-all.js';
-		var license = 'license.js';
+		var license = 'license.header';
 		var splitLine;
 		if ('ADVANCED' === level) {
 			splitLine = ('PRETTY_PRINT' === formatting) ? 'window.split = "split";' : 'window.split="split";';
