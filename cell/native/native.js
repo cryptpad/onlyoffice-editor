@@ -6973,7 +6973,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
         case 4010: // ASC_SPREADSHEETS_EVENT_TYPE_INSERT_FORMULA
         {
             if (params && params.length && params[0]) {
-                _return = window["native"]["offline_insertFormula"](params[0], params[1] ? true : undefined, params[2] ? true : undefined);
+                _api.asc_insertFormula(params[0], Asc.c_oAscPopUpSelectorType.Func, params[1]);
             }
             break;
         }
