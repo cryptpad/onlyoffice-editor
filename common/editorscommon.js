@@ -1022,7 +1022,7 @@
 		this.test = function (str)
 		{
 			var match, m1, m2;
-			if (!nameRangeRE.test(str))
+			if (!nameRangeRE.test(str) && "_xlnm.print_area" !== str)
 			{
 				return false;
 			}

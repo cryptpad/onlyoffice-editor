@@ -7478,7 +7478,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		{
 			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, oDateGroupItem.Day));
 			startDate = date.getExcelDateWithTime();
-			date.addDays(1)
+			date.addDays(1);
 			endDate = date.getExcelDateWithTime();
 			break;
 		}
@@ -7498,7 +7498,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		{
 			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, oDateGroupItem.Month - 1, 1));
 			startDate = date.getExcelDateWithTime();
-			date.addMonths(1)
+			date.addMonths(1);
 			endDate = date.getExcelDateWithTime();
 			break;
 		}
@@ -7512,7 +7512,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		{
 			date = new Asc.cDate(Date.UTC( oDateGroupItem.Year, 0));
 			startDate = date.getExcelDateWithTime();
-			date.addYears(1)
+			date.addYears(1);
 			endDate = date.getExcelDateWithTime();
 			break;
 		}
@@ -7641,6 +7641,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.top = null;
 		this.bottom = null;
 
+		//TODO в историю нужно будет записывать эти параметры
+		this.header = null;
+		this.footer = null;
+
 		this.ws = ws;
 
 		return this;
@@ -7654,11 +7658,17 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			this.right = c_oAscPrintDefaultSettings.PageRightField;
 		if (null == this.bottom)
 			this.bottom = c_oAscPrintDefaultSettings.PageBottomField;
+		if (null == this.header)
+			this.header = c_oAscPrintDefaultSettings.PageHeaderField;
+		if (null == this.footer)
+			this.footer = c_oAscPrintDefaultSettings.PageFooterField;
 	};
 	asc_CPageMargins.prototype.asc_getLeft = function () { return this.left; };
 	asc_CPageMargins.prototype.asc_getRight = function () { return this.right; };
 	asc_CPageMargins.prototype.asc_getTop = function () { return this.top; };
 	asc_CPageMargins.prototype.asc_getBottom = function () { return this.bottom; };
+	asc_CPageMargins.prototype.asc_getHeader = function () { return this.header; };
+	asc_CPageMargins.prototype.asc_getFooter = function () { return this.footer; };
 
 	asc_CPageMargins.prototype.asc_setLeft = function (newVal) {
 		var oldVal = this.left;
@@ -7691,6 +7701,23 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Bottom, this.ws.getId(),
 				null, new UndoRedoData_Layout(oldVal, newVal));
 		}
+	};
+
+	asc_CPageMargins.prototype.asc_setHeader = function (newVal) {
+		var oldVal = this.header;
+		this.header = newVal;
+		/*if (this.ws && History.Is_On() && oldVal !== this.top) {
+			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Top, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}*/
+	};
+	asc_CPageMargins.prototype.asc_setFooter = function (newVal) {
+		var oldVal = this.footer;
+		this.footer = newVal;
+		/*if (this.ws && History.Is_On() && oldVal !== this.bottom) {
+			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Bottom, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}*/
 	};
 	asc_CPageMargins.prototype.asc_setOptions = function (obj) {
 		var prop;
@@ -7877,6 +7904,290 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.asc_getPageSetup().asc_setOptions(obj.asc_getPageSetup());
 	};
 
+
+	function CHeaderFooter(ws) {
+		this.ws = ws;
+
+		this.alignWithMargins = null;
+		this.differentFirst = null;
+		this.differentOddEven = null;
+		this.scaleWithDoc = null;
+		this.evenFooter = null;
+		this.evenHeader = null;
+		this.firstFooter = null;
+		this.firstHeader = null;
+		this.oddFooter = null;
+		this.oddHeader = null;
+
+		return this;
+	}
+
+	CHeaderFooter.prototype.getAlignWithMargins = function () { return this.alignWithMargins; };
+	CHeaderFooter.prototype.getDifferentFirst = function () { return this.differentFirst; };
+	CHeaderFooter.prototype.getDifferentOddEven = function () { return this.differentOddEven; };
+	CHeaderFooter.prototype.getScaleWithDoc = function () { return this.scaleWithDoc; };
+	CHeaderFooter.prototype.getEvenFooter = function () { return this.evenFooter; };
+	CHeaderFooter.prototype.getEvenHeader = function () { return this.evenHeader; };
+	CHeaderFooter.prototype.getFirstFooter = function () { return this.firstFooter; };
+	CHeaderFooter.prototype.getFirstHeader = function () { return this.firstHeader; };
+	CHeaderFooter.prototype.getOddFooter = function () { return this.oddFooter; };
+	CHeaderFooter.prototype.getOddHeader = function () { return this.oddHeader; };
+
+	CHeaderFooter.prototype.setAlignWithMargins = function (val) { this.alignWithMargins = val; };
+	CHeaderFooter.prototype.setDifferentFirst = function (val) { this.differentFirst = val; };
+	CHeaderFooter.prototype.setDifferentOddEven = function (val) { this.differentOddEven = val; };
+	CHeaderFooter.prototype.setScaleWithDoc = function (val) { this.scaleWithDoc = val; };
+	CHeaderFooter.prototype.setEvenFooter = function (newVal) {
+		var oldVal = this.evenFooter ? this.evenFooter.str : null;
+
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.evenFooter = null;
+			} else {
+				this.evenFooter = new Asc.CHeaderFooterData();
+				this.evenFooter.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_Even, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+	CHeaderFooter.prototype.setEvenHeader = function (newVal) {
+		var oldVal = this.evenHeader ? this.evenHeader.str : null;
+
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.evenHeader = null;
+			} else {
+				this.evenHeader = new Asc.CHeaderFooterData();
+				this.evenHeader.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_Even, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+	CHeaderFooter.prototype.setFirstFooter = function (newVal) {
+		var oldVal = this.firstFooter ? this.firstFooter.str : null;
+
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.firstFooter = null;
+			} else {
+				this.firstFooter = new Asc.CHeaderFooterData();
+				this.firstFooter.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_First, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+	CHeaderFooter.prototype.setFirstHeader = function (newVal) {
+		var oldVal = this.firstHeader ? this.firstHeader.str : null;
+
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.firstHeader = null;
+			} else {
+				this.firstHeader = new Asc.CHeaderFooterData();
+				this.firstHeader.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_First, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+	CHeaderFooter.prototype.setOddFooter = function (newVal) {
+		var oldVal = this.oddFooter ? this.oddFooter.str : null;
+
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.oddFooter = null;
+			} else {
+				this.oddFooter = new Asc.CHeaderFooterData();
+				this.oddFooter.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Footer_Odd, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+	CHeaderFooter.prototype.setOddHeader = function (newVal) {
+		var oldVal = this.oddHeader ? this.oddHeader.str : null;
+
+		if(oldVal !== newVal) {
+			if(null === newVal) {
+				this.oddHeader = null;
+			} else {
+				this.oddHeader = new Asc.CHeaderFooterData();
+				this.oddHeader.setStr(newVal);
+			}
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Header_Odd, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.setAlignWithMargins = function (newVal) {
+		var oldVal = this.alignWithMargins;
+		var defaultVal = null === oldVal && (newVal === 1 || newVal === true);
+
+		if(oldVal !== newVal && !defaultVal) {
+			this.alignWithMargins = newVal;
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Align_With_Margins, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.setScaleWithDoc = function (newVal) {
+		var oldVal = this.scaleWithDoc;
+		var defaultVal = null === oldVal && (newVal === 1 || newVal === true);
+
+		if(oldVal !== newVal && !defaultVal) {
+			this.scaleWithDoc = newVal;
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Scale_With_Doc, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.setDifferentFirst = function (newVal) {
+		var oldVal = this.differentFirst;
+		var defaultVal = null === oldVal && (newVal === 0 || newVal === false);
+
+		if(oldVal !== newVal && !defaultVal) {
+			this.differentFirst = newVal;
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Different_First, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.setDifferentOddEven = function (newVal) {
+		var oldVal = this.differentOddEven;
+		var defaultVal = null === oldVal && (newVal === 0 || newVal === false);
+
+		if(oldVal !== newVal && !defaultVal) {
+			this.differentOddEven = newVal;
+
+			if (this.ws && History.Is_On()) {
+				History.Add(AscCommonExcel.g_oUndoRedoHeaderFooter, AscCH.historyitem_Different_Odd_Even, this.ws.getId(),
+					null, new UndoRedoData_Layout(oldVal, newVal));
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.setHeaderFooterData = function(str, type) {
+		switch (type){
+			case Asc.c_oAscPageHFType.firstHeader: {
+				this.setFirstHeader(str);
+				break;
+			}
+			case Asc.c_oAscPageHFType.oddHeader: {
+				this.setOddHeader(str);
+				break;
+			}
+			case Asc.c_oAscPageHFType.evenHeader: {
+				this.setEvenHeader(str);
+				break;
+			}
+			case Asc.c_oAscPageHFType.firstFooter: {
+				this.setFirstFooter(str);
+				break;
+			}
+			case Asc.c_oAscPageHFType.oddFooter: {
+				this.setOddFooter(str);
+				break;
+			}
+			case Asc.c_oAscPageHFType.evenFooter: {
+				this.setEvenFooter(str);
+				break;
+			}
+		}
+	};
+
+	CHeaderFooter.prototype.init = function () {
+		if(this.evenFooter) {
+			this.evenFooter.parse();
+		}
+		if(this.evenHeader) {
+			this.evenHeader.parse();
+		}
+		if(this.firstFooter) {
+			this.firstFooter.parse();
+		}
+		if(this.firstHeader) {
+			this.firstHeader.parse();
+		}
+		if(this.oddFooter) {
+			this.oddFooter.parse();
+		}
+		if(this.oddHeader) {
+			this.oddHeader.parse();
+		}
+	};
+	CHeaderFooter.prototype.getAllFonts = function (oFontMap) {
+		if(this.evenFooter) {
+			this.evenFooter.getAllFonts(oFontMap);
+		}
+		if(this.evenHeader) {
+			this.evenHeader.getAllFonts(oFontMap);
+		}
+		if(this.firstFooter) {
+			this.firstFooter.getAllFonts(oFontMap);
+		}
+		if(this.firstHeader) {
+			this.firstHeader.getAllFonts(oFontMap);
+		}
+		if(this.oddFooter) {
+			this.oddFooter.getAllFonts(oFontMap);
+		}
+		if(this.oddHeader) {
+			this.oddHeader.getAllFonts(oFontMap);
+		}
+	};
+
+	function CHeaderFooterData(str) {
+		this.str = str;
+		this.parser = null;
+
+		return this;
+	}
+
+	CHeaderFooterData.prototype.getStr = function () { return this.str; };
+	CHeaderFooterData.prototype.setStr = function (val) { this.str = val; };
+	CHeaderFooterData.prototype.parse = function () {
+		var parser = new window["AscCommonExcel"].HeaderFooterParser();
+		parser.parse(this.str);
+		this.parser = parser;
+		return parser;
+	};
+	CHeaderFooterData.prototype.getAllFonts = function (oFontMap) {
+		if(this.parser) {
+			this.parser.getAllFonts(oFontMap);
+		}
+	};
+
+
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
 	window['Asc'] = window['Asc'] || {};
@@ -8042,6 +8353,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setRight"] = prot.asc_setRight;
 	prot["asc_setTop"] = prot.asc_setTop;
 	prot["asc_setBottom"] = prot.asc_setBottom;
+	prot["asc_setHeader"] = prot.asc_setHeader;
+	prot["asc_setFooter"] = prot.asc_setFooter;
 
 	window["Asc"]["asc_CPageSetup"] = window["Asc"].asc_CPageSetup = asc_CPageSetup;
 	prot = asc_CPageSetup.prototype;
@@ -8066,4 +8379,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setPageSetup"] = prot.asc_setPageSetup;
 	prot["asc_setGridLines"] = prot.asc_setGridLines;
 	prot["asc_setHeadings"] = prot.asc_setHeadings;
+
+	window["Asc"]["CHeaderFooter"] = window["Asc"].CHeaderFooter = CHeaderFooter;
+	window["Asc"]["CHeaderFooterData"] = window["Asc"].CHeaderFooterData = CHeaderFooterData;
 })(window);
