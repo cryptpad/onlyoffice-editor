@@ -518,18 +518,21 @@ cDate.prototype.getExcelDate = function () {
 	return Math.floor( this.getExcelDateWithTime() );
 };
 
-cDate.prototype.getExcelDateWithTime = function () {
+cDate.prototype.getExcelDateWithTime = function (bNotUtc) {
 //    return Math.floor( ( this.getTime() / 1000 - this.getTimezoneOffset() * 60 ) / c_sPerDay + ( AscCommonExcel.c_DateCorrectConst + (bDate1904 ? 0 : 1) ) );
 	var year = this.getUTCFullYear(), month = this.getUTCMonth(), date = this.getUTCDate(), res;
+	var hours = bNotUtc ? this.getHours() : this.getUTCHours();
+	var minutes = this.getUTCMinutes();
+	var seconds = this.getUTCSeconds();
 
 	if(1900 === year && 0 === month && 0 === date) {
 		res = 0;
 	} else if (1900 < year || (1900 == year && 1 < month)) {
-		res = (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() ) / c_msPerDay;
+		res = (Date.UTC(year, month, date, hours, minutes, seconds) - this.getExcelNullDate() ) / c_msPerDay;
 	} else if (1900 == year && 1 == month && 29 == date) {
 		res = 60;
 	} else {
-		res = (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() ) / c_msPerDay - 1;
+		res = (Date.UTC(year, month, date, hours, minutes, seconds) - this.getExcelNullDate() ) / c_msPerDay - 1;
 	}
 
 	return res;

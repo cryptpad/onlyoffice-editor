@@ -3418,13 +3418,21 @@
                 this.memory.WriteDouble2(dBottom);
             }
 
-            this.memory.WriteByte(c_oSer_PageMargins.Header);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble2(12.7);//0.5inch
+			var dHeader = oMargins.asc_getHeader();
+			if(null != dHeader) {
+				this.memory.WriteByte(c_oSer_PageMargins.Header);
+				this.memory.WriteByte(c_oSerPropLenType.Double);
+				this.memory.WriteDouble2(dHeader);//0.5inch
+				//this.memory.WriteDouble2(12.7);//0.5inch
+			}
 
-            this.memory.WriteByte(c_oSer_PageMargins.Footer);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble2(12.7);//0.5inch
+			var dFooter = oMargins.asc_getFooter();
+			if(null != dFooter) {
+				this.memory.WriteByte(c_oSer_PageMargins.Footer);
+				this.memory.WriteByte(c_oSerPropLenType.Double);
+				this.memory.WriteDouble2(dFooter);//0.5inch
+				//this.memory.WriteDouble2(12.7);//0.5inch
+			}
         };
         this.WritePageSetup = function(oPageSetup)
         {
@@ -4449,27 +4457,27 @@
             }
             if (null !== headerFooter.evenFooter) {
                 this.memory.WriteByte(c_oSer_HeaderFooter.EvenFooter);
-                this.memory.WriteString2(headerFooter.evenFooter);
+                this.memory.WriteString2(headerFooter.evenFooter.getStr());
             }
             if (null !== headerFooter.evenHeader) {
                 this.memory.WriteByte(c_oSer_HeaderFooter.EvenHeader);
-                this.memory.WriteString2(headerFooter.evenHeader);
+                this.memory.WriteString2(headerFooter.evenHeader.getStr());
             }
             if (null !== headerFooter.firstFooter) {
                 this.memory.WriteByte(c_oSer_HeaderFooter.FirstFooter);
-                this.memory.WriteString2(headerFooter.firstFooter);
+                this.memory.WriteString2(headerFooter.firstFooter.getStr());
             }
             if (null !== headerFooter.firstHeader) {
                 this.memory.WriteByte(c_oSer_HeaderFooter.FirstHeader);
-                this.memory.WriteString2(headerFooter.firstHeader);
+                this.memory.WriteString2(headerFooter.firstHeader.getStr());
             }
             if (null !== headerFooter.oddFooter) {
                 this.memory.WriteByte(c_oSer_HeaderFooter.OddFooter);
-                this.memory.WriteString2(headerFooter.oddFooter);
+                this.memory.WriteString2(headerFooter.oddFooter.getStr());
             }
             if (null !== headerFooter.oddHeader) {
                 this.memory.WriteByte(c_oSer_HeaderFooter.OddHeader);
-                this.memory.WriteString2(headerFooter.oddHeader);
+                this.memory.WriteString2(headerFooter.oddHeader.getStr());
             }
         }
         this.WriteRowColBreaks = function(breaks)
@@ -6817,18 +6825,13 @@
                     return oThis.ReadSheetPr(t, l, oWorksheet.sheetPr);
                 });
 			} else if (c_oSerWorksheetsTypes.SparklineGroups === type) {
-                res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadSparklineGroups(t, l, oWorksheet);
+				res = this.bcr.Read1(length, function (t, l) {
+					return oThis.ReadSparklineGroups(t, l, oWorksheet);
+				});
+			} else if (c_oSerWorksheetsTypes.HeaderFooter === type) {
+                res = this.bcr.Read1(length, function(t, l) {
+                    return oThis.ReadHeaderFooter(t, l, oWorksheet.headerFooter);
                 });
-            // } else if (c_oSerWorksheetsTypes.HeaderFooter === type) {
-            //     oWorksheet.headerFooter = {
-            //         alignWithMargins: null, differentFirst: null, differentOddEven: null, scaleWithDoc: null,
-            //         evenFooter: null, evenHeader: null, firstFooter: null, firstHeader: null, oddFooter: null,
-            //         oddHeader: null
-            //     };
-            //     res = this.bcr.Read1(length, function(t, l) {
-            //         return oThis.ReadHeaderFooter(t, l, oWorksheet.headerFooter);
-            //     });
             // } else if (c_oSerWorksheetsTypes.RowBreaks === type) {
             //     oWorksheet.rowBreaks = {count: null, manualBreakCount: null, breaks: []};
             //     res = this.bcr.Read1(length, function (t, l) {
@@ -6970,6 +6973,10 @@
                 oPageMargins.asc_setRight(this.stream.GetDoubleLE());
             else if ( c_oSer_PageMargins.Bottom == type )
                 oPageMargins.asc_setBottom(this.stream.GetDoubleLE());
+			else if ( c_oSer_PageMargins.Header == type )
+				oPageMargins.asc_setHeader(this.stream.GetDoubleLE());
+			else if ( c_oSer_PageMargins.Footer == type )
+				oPageMargins.asc_setFooter(this.stream.GetDoubleLE());
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -8056,26 +8063,45 @@
         };
         this.ReadHeaderFooter = function (type, length, headerFooter) {
             var res = c_oSerConstants.ReadOk;
+            var sVal;
             if (c_oSer_HeaderFooter.AlignWithMargins === type) {
-                headerFooter.alignWithMargins = this.stream.GetBool();
+                headerFooter.setAlignWithMargins(this.stream.GetBool());
             } else if (c_oSer_HeaderFooter.DifferentFirst === type) {
-                headerFooter.differentFirst = this.stream.GetBool();
+                headerFooter.setDifferentFirst(this.stream.GetBool());
             } else if (c_oSer_HeaderFooter.DifferentOddEven === type) {
-                headerFooter.differentOddEven = this.stream.GetBool();
+                headerFooter.setDifferentOddEven(this.stream.GetBool());
             } else if (c_oSer_HeaderFooter.ScaleWithDoc === type) {
-                headerFooter.scaleWithDoc = this.stream.GetBool();
+                headerFooter.setScaleWithDoc(this.stream.GetBool());
             } else if (c_oSer_HeaderFooter.EvenFooter === type) {
-                headerFooter.evenFooter = this.stream.GetString2LE(length);
+				sVal = this.stream.GetString2LE(length);
+				if(sVal) {
+					headerFooter.setEvenFooter(sVal);
+                }
             } else if (c_oSer_HeaderFooter.EvenHeader === type) {
-                headerFooter.evenHeader = this.stream.GetString2LE(length);
+				sVal = this.stream.GetString2LE(length);
+				if(sVal) {
+					headerFooter.setEvenHeader(sVal);
+				}
             } else if (c_oSer_HeaderFooter.FirstFooter === type) {
-                headerFooter.firstFooter = this.stream.GetString2LE(length);
+				sVal = this.stream.GetString2LE(length);
+				if(sVal) {
+					headerFooter.setFirstFooter(sVal);
+				}
             } else if (c_oSer_HeaderFooter.FirstHeader === type) {
-                headerFooter.firstHeader = this.stream.GetString2LE(length);
+				sVal = this.stream.GetString2LE(length);
+				if(sVal) {
+					headerFooter.setFirstHeader(sVal);
+				}
             } else if (c_oSer_HeaderFooter.OddFooter === type) {
-                headerFooter.oddFooter = this.stream.GetString2LE(length);
+				sVal = this.stream.GetString2LE(length);
+				if(sVal) {
+					headerFooter.setOddFooter(sVal);
+				}
             } else if (c_oSer_HeaderFooter.OddHeader === type) {
-                headerFooter.oddHeader = this.stream.GetString2LE(length);
+				sVal = this.stream.GetString2LE(length);
+				if(sVal) {
+					headerFooter.setOddHeader(sVal);
+				}
             } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
