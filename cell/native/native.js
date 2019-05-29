@@ -5904,69 +5904,6 @@ window["native"]["offline_get_selected_object"] = function() {
     return null;
 }
 window["native"]["offline_can_enter_cell_range"] = function() {return _api.wb.cellEditor.canEnterCellRange();}
-window["native"]["offline_insertFormula"] = function(functionName, autoComplete, isDefName) {
-    var ws = _api.wb.getWorksheet();
-    var wb = _api.wb;
-    var t = ws, cursorPos;
-    
-    var cellRange = null;
-    // Если нужно сделать автозаполнение формулы, то ищем ячейки)
-    if (autoComplete) {
-        cellRange = ws.autoCompleteFormula(functionName);
-    }
-    
-    if (isDefName) {
-        functionName = "=" + functionName;
-    } else{
-        if (cellRange) {
-            if (cellRange.notEditCell) {
-                // Мы уже ввели все что нужно, редактор открывать не нужно
-                return null;
-            }
-            // Меняем значение ячейки
-            functionName = "=" + functionName + "(" + cellRange.text + ")";
-        } else {
-            // Меняем значение ячейки
-            functionName = "=" + functionName + "()";
-        }
-        // Вычисляем позицию курсора (он должен быть в функции)
-        cursorPos = functionName.length - 1;
-    }
-    
-    var arn = ws.model.selectionRange.clone();
-    
-    var openEditor = function (res) {
-        if (res) {
-            // Выставляем переменные, что мы редактируем
-            ws.setCellEditMode(true);
-
-            if (isDefName)
-                ws.skipHelpSelector = true;
-            // Открываем, с выставлением позиции курсора
-            if (!ws.openCellEditorWithText(wb.cellEditor, functionName, cursorPos, /*isFocus*/false,
-                                           /*activeRange*/arn)) {
-                ws.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editEnd);
-                // t.controller.setStrictClose(false);
-                // t.controller.setFormulaEditMode(false);
-                ws.setCellEditMode(false);
-                ws.setFormulaEditMode(false);
-            }
-            if (isDefName)
-                ws.skipHelpSelector = false;
-            
-            return  [wb.cellEditor.left, wb.cellEditor.top, wb.cellEditor.right, wb.cellEditor.bottom,
-                     wb.cellEditor.curLeft, wb.cellEditor.curTop, wb.cellEditor.curHeight];
-            
-        } else {
-            //t.controller.setStrictClose(false);
-            //t.controller.setFormulaEditMode(false);
-            ws.setCellEditMode(false);
-            ws.setFormulaEditMode(false);
-        }
-    };
-    
-    return openEditor(true);
-}
 
 window["native"]["offline_copy"] = function() {
     var worksheet = _api.wb.getWorksheet();
