@@ -5580,7 +5580,6 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
         ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
                           /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
         //t.input.disabled = false;
-        t.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editStart);
         
         // Эвент на обновление состояния редактора
         t.cellEditor._updateEditorState();
@@ -5934,8 +5933,7 @@ window["native"]["offline_insertFormula"] = function(functionName, autoComplete,
         if (res) {
             // Выставляем переменные, что мы редактируем
             ws.setCellEditMode(true);
-            
-            ws.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editStart);
+
             if (isDefName)
                 ws.skipHelpSelector = true;
             // Открываем, с выставлением позиции курсора

@@ -1467,7 +1467,6 @@
       ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
-      t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editStart);
 
       // Эвент на обновление состояния редактора
       t.cellEditor._updateEditorState();
@@ -2189,7 +2188,6 @@
 					t.setCellEditMode(true);
 					ws.setCellEditMode(true);
 
-					t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editStart);
 					if (isNotFunction) {
 						t.skipHelpSelector = true;
 					}
