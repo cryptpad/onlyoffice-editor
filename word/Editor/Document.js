@@ -2158,18 +2158,20 @@ CDocument.prototype.Get_ColorMap                   = function()
  */
 CDocument.prototype.StartAction = function(nDescription)
 {
-	this.History.Create_NewPoint(nDescription);
+	var isNewPoint = this.History.Create_NewPoint(nDescription);
 
 	if (true === this.Action.Start)
 	{
 		this.Action.Depth++;
-		this.Action.PointsCount++;
+
+		if (isNewPoint)
+			this.Action.PointsCount++;
 	}
 	else
 	{
 		this.Action.Start           = true;
 		this.Action.Depth           = 0;
-		this.Action.PointsCount     = 1;
+		this.Action.PointsCount     = isNewPoint ? 1 : 0;
 		this.Action.Recalculate     = false;
 		this.Action.UpdateSelection = false;
 		this.Action.UpdateInterface = false;
