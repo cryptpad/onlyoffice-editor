@@ -61,7 +61,6 @@
   var c_oAscCleanOptions = asc.c_oAscCleanOptions;
   var c_oAscSelectionDialogType = asc.c_oAscSelectionDialogType;
   var c_oAscMouseMoveType = asc.c_oAscMouseMoveType;
-  var c_oAscCellEditorState = asc.c_oAscCellEditorState;
   var c_oAscPopUpSelectorType = asc.c_oAscPopUpSelectorType;
   var c_oAscAsyncAction = asc.c_oAscAsyncAction;
   var c_oAscFontRenderingModeType = asc.c_oAscFontRenderingModeType;
@@ -1529,7 +1528,7 @@
 	  ws.updateSelectionWithSparklines();
 
     if (isCellEditMode) {
-      this.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editEnd);
+      this.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editEnd);
     }
     // Обновляем состояние Undo/Redo
     History._sendCanUndoRedo();
