@@ -16810,9 +16810,6 @@
 			cursorPos = editor._findCursorPosition({x: x, y: y});
 		}
 
-		ws.objectRender.controller.resetSelection();
-		ws.objectRender.controller.updateSelectionState();
-
 		wb.setCellEditMode(true);
 		ws.setCellEditMode(true);
 		options.cursorPos = cursorPos;
