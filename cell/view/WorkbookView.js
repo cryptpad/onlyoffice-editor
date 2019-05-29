@@ -2195,14 +2195,7 @@
 					}
 					t.hideSpecialPasteButton();
 					// Открываем, с выставлением позиции курсора
-					if (!ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange)) {
-						t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editEnd);
-						t.setCellEditMode(false);
-						t.controller.setStrictClose(false);
-						t.controller.setFormulaEditMode(false);
-						ws.setCellEditMode(false);
-						ws.setFormulaEditMode(false);
-					}
+					ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange);
 					if (isNotFunction) {
 						t.skipHelpSelector = false;
 					}
