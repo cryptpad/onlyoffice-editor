@@ -3110,6 +3110,7 @@
 	window['AscDFH'].historydescription_Document_AddBlankPage                       = 0x015d;
 	window['AscDFH'].historydescription_Document_AddTableFormula                    = 0x015e;
 	window['AscDFH'].historydescription_Document_ChangeTableFormula                 = 0x015e;
+	window['AscDFH'].historydescription_Presentation_SetHF                          = 0x015f;
 
 
 

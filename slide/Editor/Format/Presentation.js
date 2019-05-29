@@ -817,11 +817,31 @@ CPresentation.prototype =
     {
         if(oSlide)
         {
+            var oParentObjects = oSlide.getParentObjects();
             var oContent, sText, oField;
             var oSlideHF = new AscCommonSlide.CAscHFProps();
             oSlideHF.put_Api(this.Api);
             var oDTShape = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
 
+            oSlideHF.put_ShowDateTime(false);
+            if(oDTShape)
+            {
+                oSlideHF.put_ShowDateTime(true);
+            }
+            if(!oDTShape)
+            {
+                if(oParentObjects.layout)
+                {
+                    oDTShape = oParentObjects.layout.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                }
+            }
+            if(!oDTShape)
+            {
+                if(oParentObjects.master)
+                {
+                    oDTShape = oParentObjects.master.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                }
+            }
             if(oDTShape)
             {
                 oContent = oDTShape.getDocContent();
@@ -841,6 +861,8 @@ CPresentation.prototype =
                     oSlideHF.put_DateTime(oDateTime);
                 }
             }
+
+
             var oSldNumShape = oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
             if(oSldNumShape)
             {
@@ -851,9 +873,30 @@ CPresentation.prototype =
                 oSlideHF.put_ShowSlideNum(false);
             }
 
+
+            oSlideHF.put_ShowFooter(false);
             var oFooterShape = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
             if(oFooterShape)
             {
+                oSlideHF.put_ShowFooter(true);
+            }
+            if(!oFooterShape)
+            {
+                if(oParentObjects.layout)
+                {
+                    oFooterShape = oParentObjects.layout.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                }
+            }
+            if(!oFooterShape)
+            {
+                if(oParentObjects.master)
+                {
+                    oFooterShape = oParentObjects.master.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                }
+            }
+            if(oFooterShape)
+            {
+                oSlideHF.put_ShowFooter(true);
                 oContent = oFooterShape.getDocContent();
                 if(oContent)
                 {
@@ -863,16 +906,37 @@ CPresentation.prototype =
                     oSlideHF.put_Footer(sText);
                 }
             }
+
+            oSlideHF.put_ShowHeader(false);
             var oHeaderShape = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
             if(oHeaderShape)
             {
+                oSlideHF.put_ShowHeader(true);
+            }
+            if(!oHeaderShape)
+            {
+                if(oParentObjects.layout)
+                {
+                    oHeaderShape = oParentObjects.layout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                }
+            }
+            if(!oHeaderShape)
+            {
+                if(oParentObjects.master)
+                {
+                    oHeaderShape = oParentObjects.master.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                }
+            }
+            if(oHeaderShape)
+            {
+                oSlideHF.put_ShowFooter(true);
                 oContent = oHeaderShape.getDocContent();
                 if(oContent)
                 {
                     oContent.Set_ApplyToAll(true);
                     sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
                     oContent.Set_ApplyToAll(false);
-                    oSlideHF.put_Header(sText);
+                    oSlideHF.put_Footer(sText);
                 }
             }
             oSlideHF.put_ShowOnTitleSlide(this.showSpecialPlsOnTitleSld !== false);
@@ -905,8 +969,9 @@ CPresentation.prototype =
     setHFProperties: function(oProps, bAll)
     {
         //TODO: check locks
+        History.Create_NewPoint(AscDFH.historydescription_Presentation_SetHF);
         var oSlideProps = oProps.get_Slide();
-        var i, oSlide, oMaster, oParents, oHF;
+        var i, oSlide, oMaster, oParents, oHF, oLayout, oSp, sText;
         if(oSlideProps)
         {
             var bShowOnTitleSlide = oSlideProps.get_ShowOnTitleSlide();
@@ -932,6 +997,7 @@ CPresentation.prototype =
                     oSlide = this.Slides[i];
                     oParents = oSlide.getParentObjects();
                     oMaster = oParents.master;
+                    oLayout = oParent.layout;
                     if(oMaster)
                     {
                         if(!oMastersMap[oMaster.Get_Id()])
@@ -941,6 +1007,43 @@ CPresentation.prototype =
                                 oMaster.setHF(new AscFormat.HF());
                             }
                             oHF = oMaster.hf;
+                            if(oSlideProps.get_ShowSlideNum())
+                            {
+                                if(oHF.sldNum !== null)
+                                {
+                                    oHF.setSldNum(null);
+                                }
+                                if(!oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {}))
+                                {
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+                                    if(oSp)
+                                    {
+                                        oSlide.addToSpTreeToPos(undefined, oSp);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if(oHF.sldNum !== false)
+                                {
+                                    oHF.setSldNum(false);
+                                }
+                                oSp = oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+                                if(oSp)
+                                {
+                                    oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                }
+                            }
+
+                            sText = oSlideProps.get_Footer();
+                            if(null !== sText)
+                            {
+
+                            }
+                            else
+                            {
+
+                            }
                         }
                     }
                 }
