@@ -12778,14 +12778,13 @@
 					return {l: arrLeftS, r: arrRightS, b: arrBottomS, cellX: cellX, cellY: cellY, ri: ri, bi: bi};
 				}
 			});
-			return true;
+			this.model.workbook.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editStart);
 		};
 
     WorksheetView.prototype.openCellEditorWithText = function (editor, text, cursorPos, isFocus, selectionRange) {
-        var t = this;
         selectionRange = (selectionRange) ? selectionRange : this.model.selectionRange;
         var activeCell = selectionRange.activeCell;
-        var c = t._getVisibleCell(activeCell.col, activeCell.row);
+        var c = this._getVisibleCell(activeCell.col, activeCell.row);
         var v, copyValue;
         // get first fragment and change its text
         v = c.getValueForEdit2().slice(0, 1);
@@ -12793,12 +12792,9 @@
         copyValue = [];
         copyValue[0] = new AscCommonExcel.Fragment({text: text, format: v[0].format.clone()});
 
-        var bSuccess = t.openCellEditor(editor, /*cursorPos*/undefined, isFocus, /*isClearCell*/
-          true, /*isHideCursor*/false, /*isQuickInput*/false, selectionRange);
-        if (bSuccess) {
-            editor.paste(copyValue, cursorPos);
-        }
-        return bSuccess;
+        this.openCellEditor(editor, /*cursorPos*/undefined, isFocus, /*isClearCell*/true,
+			/*isHideCursor*/false, /*isQuickInput*/false, selectionRange);
+		editor.paste(copyValue, cursorPos);
     };
 
     WorksheetView.prototype.getFormulaRanges = function () {
