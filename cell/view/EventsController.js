@@ -309,6 +309,11 @@
 			// Для формулы не нужно выходить из редактирования ячейки
 			if (!this.canEdit() || t.isFormulaEditMode || t.isSelectionDialogMode) {return true;}
 
+			if (this.targetInfo && (this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupRow ||
+				this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupCol)) {
+				return false;
+			}
+
 			if(this.targetInfo && (this.targetInfo.target == c_oTargetType.MoveResizeRange ||
 				this.targetInfo.target == c_oTargetType.MoveRange ||
 				this.targetInfo.target == c_oTargetType.FillHandle || this.targetInfo.target == c_oTargetType.FilterObject))
