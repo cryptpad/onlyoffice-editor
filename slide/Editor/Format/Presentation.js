@@ -873,7 +873,6 @@ CPresentation.prototype =
                 oSlideHF.put_ShowSlideNum(false);
             }
 
-
             oSlideHF.put_ShowFooter(false);
             var oFooterShape = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
             if(oFooterShape)
@@ -971,7 +970,7 @@ CPresentation.prototype =
         //TODO: check locks
         History.Create_NewPoint(AscDFH.historydescription_Presentation_SetHF);
         var oSlideProps = oProps.get_Slide();
-        var i, oSlide, oMaster, oParents, oHF, oLayout, oSp, sText;
+        var i, j, oSlide, oMaster, oParents, oHF, oLayout, oSp, sText, oContent;
         if(oSlideProps)
         {
             var bShowOnTitleSlide = oSlideProps.get_ShowOnTitleSlide();
@@ -997,10 +996,10 @@ CPresentation.prototype =
                     oSlide = this.Slides[i];
                     oParents = oSlide.getParentObjects();
                     oMaster = oParents.master;
-                    oLayout = oParent.layout;
+                    oLayout = oParents.layout;
                     if(oMaster)
                     {
-                        if(!oMastersMap[oMaster.Get_Id()])
+                        //if(!oMastersMap[oMaster.Get_Id()])
                         {
                             if(!oMaster.hf)
                             {
@@ -1018,7 +1017,9 @@ CPresentation.prototype =
                                     oSp = oLayout.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
                                     if(oSp)
                                     {
+                                        oSp = oSp.copy();
                                         oSlide.addToSpTreeToPos(undefined, oSp);
+                                        oSp.setParent(oSlide);
                                     }
                                 }
                             }
@@ -1032,19 +1033,139 @@ CPresentation.prototype =
                                 if(oSp)
                                 {
                                     oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                    oSp.setBDeleted(true);
                                 }
                             }
 
-                            sText = oSlideProps.get_Footer();
-                            if(null !== sText)
+                            if(oSlideProps.get_ShowFooter())
                             {
-
+                                if(oHF.ftr !== null)
+                                {
+                                    oHF.setFtr(null);
+                                }
+                                if(!oMastersMap[oMaster.Get_Id()])
+                                {
+                                    sText = oSlideProps.get_Footer();
+                                    if(typeof sText === "string")
+                                    {
+                                        for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
+                                        {
+                                            oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                                            oContent = oSp.getDocContent && oSp.getDocContent();
+                                            if(oContent)
+                                            {
+                                                oContent.Set_ApplyToAll(true);
+                                                oContent.Remove(-1, false, false, false, false);
+                                                oContent.Set_ApplyToAll(false);
+                                                AscFormat.AddToContentFromString(oContent, sText);
+                                            }
+                                        }
+                                    }
+                                }
+                                oSp = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                                if(!oSp)
+                                {
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                                    if(oSp)
+                                    {
+                                        oSp = oSp.copy();
+                                        oSlide.addToSpTreeToPos(undefined, oSp);
+                                        oSp.setParent(oSlide);
+                                    }
+                                }
+                                else
+                                {
+                                    oContent = oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent)
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
+                                    }
+                                }
                             }
                             else
                             {
-
+                                if(oHF.ftr !== false)
+                                {
+                                    oHF.setFtr(false);
+                                }
+                                oSp = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                                if(oSp)
+                                {
+                                    oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                    oSp.setBDeleted(true);
+                                }
                             }
+
+                            if(oSlideProps.get_ShowHeader())
+                            {
+                                if(oHF.hdr !== null)
+                                {
+                                    oHF.setHdr(null);
+                                }
+                                if(!oMastersMap[oMaster.Get_Id()])
+                                {
+                                    sText = oSlideProps.get_Header();
+                                    if(typeof sText === "string")
+                                    {
+                                        for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
+                                        {
+                                            oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                            oContent = oSp.getDocContent && oSp.getDocContent();
+                                            if(oContent)
+                                            {
+                                                oContent.Set_ApplyToAll(true);
+                                                oContent.Remove(-1, false, false, false, false);
+                                                oContent.Set_ApplyToAll(false);
+                                                AscFormat.AddToContentFromString(oContent, sText);
+                                            }
+                                        }
+                                    }
+                                }
+                                oSp = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                if(!oSp)
+                                {
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                    if(oSp)
+                                    {
+                                        oSp = oSp.copy();
+                                        oSlide.addToSpTreeToPos(undefined, oSp);
+                                        oSp.setParent(oSlide);
+                                    }
+                                }
+                                else
+                                {
+                                    oContent = oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent)
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if(oHF.hdr !== false)
+                                {
+                                    oHF.setHdr(false);
+                                }
+                                oSp = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                if(oSp)
+                                {
+                                    oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                    oSp.setBDeleted(true);
+                                }
+                            }
+
+
+                            
                         }
+
+                        oMastersMap[oMaster.Get_Id()] = oMaster;
                     }
                 }
             }
