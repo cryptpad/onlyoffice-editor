@@ -5194,7 +5194,13 @@ background-repeat: no-repeat;\
 		this.WordControl.m_oLogicDocument.Set_MathProps(MathProps);
 	};
 
-
+	asc_docs_api.prototype.asc_SetHFProps = function(HFProps, bAll)
+	{
+		if(this.WordControl && this.WordControl.m_oLogicDocument)
+		{
+			this.WordControl.m_oLogicDocument.setHFProperties(HFProps, bAll);
+		}
+	};
 
 	asc_docs_api.prototype.asyncFontEndLoaded = function(fontinfo)
 	{

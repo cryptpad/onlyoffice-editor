@@ -7114,10 +7114,10 @@ CTheme.prototype =
 
 function HF()
 {
-    this.dt     = true;
-    this.ftr    = true;
-    this.hdr    = true;
-    this.sldNum = true;
+    this.dt     = null;
+    this.ftr    = null;
+    this.hdr    = null;
+    this.sldNum = null;
 
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
@@ -7618,76 +7618,6 @@ _global_layout_summs_array["_" + _ph_summ__two_obj_and_two_tx] = nSldLtTTwoTxTwo
 _global_layout_summs_array["_" + _ph_summ__tx] = nSldLtTTx;
 _global_layout_summs_array["_" + _ph_summ__tx_and_clip_art] = nSldLtTTxAndClipArt;
 
-
-// ----------------------------------
-
-// NOTEMASTER -----------------------
-
-function NoteMaster()
-{
-    this.cSld = new CSld();
-    this.clrMap = new ClrMap();
-
-    this.hf = new HF();
-    this.notesStyle = null;
-
-    // pointers
-    this.Theme = null;
-    this.TableStyles = null;
-
-}
-
-NoteMaster.prototype =
-{
-    Get_Id: function()
-    {
-        return this.Id;
-    } ,
-
-    Refresh_RecalcData: function()
-    {},
-
-    Calculate: function()
-    {
-        // нужно пробежаться по всем шейпам:
-        // учесть тему во всех заливках
-        // учесть тему во всех текстовых настройках,
-    }
-};
-
-// ----------------------------------
-
-// NOTE -----------------------------
-
-function NoteSlide()
-{
-    this.cSld = new CSld();
-    this.clrMap = null; // override ClrMap
-
-    this.showMasterPhAnim = false;
-    this.showMasterSp = false;
-}
-
-NoteSlide.prototype =
-{
-    Get_Id: function()
-    {
-        return this.Id;
-    },
-
-    Refresh_RecalcData: function()
-    {},
-
-    // pointers
-    Calculate: function()
-    {
-        // нужно пробежаться по всем шейпам:
-        // учесть тему во всех заливках
-        // учесть тему во всех текстовых настройках,
-    }
-};
-
-// ----------------------------------
 
 // SLIDE ----------------------------
 function redrawSlide(slide, presentation, arrInd, pos,  direction, arr_slides)

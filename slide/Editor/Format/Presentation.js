@@ -901,6 +901,56 @@ CPresentation.prototype =
         return oProps;
     },
 
+
+    setHFProperties: function(oProps, bAll)
+    {
+        //TODO: check locks
+        var oSlideProps = oProps.get_Slide();
+        var i, oSlide, oMaster, oParents, oHF;
+        if(oSlideProps)
+        {
+            var bShowOnTitleSlide = oSlideProps.get_ShowOnTitleSlide();
+            if(bShowOnTitleSlide)
+            {
+                if(this.showSpecialPlsOnTitleSld !== null)
+                {
+                    this.setShowSpecialPlsOnTitleSld(null);
+                }
+            }
+            else
+            {
+                if(this.showSpecialPlsOnTitleSld !== false)
+                {
+                    this.setShowSpecialPlsOnTitleSld(false);
+                }
+            }
+            if(bAll)
+            {
+                var oMastersMap = {};
+                for(i = 0; i < this.Slides.length; ++i)
+                {
+                    oSlide = this.Slides[i];
+                    oParents = oSlide.getParentObjects();
+                    oMaster = oParents.master;
+                    if(oMaster)
+                    {
+                        if(!oMastersMap[oMaster.Get_Id()])
+                        {
+                            if(!oMaster.hf)
+                            {
+                                oMaster.setHF(new AscFormat.HF());
+                            }
+                            oHF = oMaster.hf;
+                        }
+                    }
+                }
+            }
+
+            oSlide = this.Slides[this.CurPage];
+
+        }
+    },
+
     Restart_CheckSpelling: function()
     {
         this.Spelling.Reset();

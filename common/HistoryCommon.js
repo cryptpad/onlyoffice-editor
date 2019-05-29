@@ -2637,6 +2637,7 @@
 	window['AscDFH'].historyitem_SlideLayoutSetClrMapOverride = window['AscDFH'].historyitem_type_SlideLayout | 9;
 	window['AscDFH'].historyitem_SlideLayoutAddToSpTree       = window['AscDFH'].historyitem_type_SlideLayout | 10;
 	window['AscDFH'].historyitem_SlideLayoutSetSize           = window['AscDFH'].historyitem_type_SlideLayout | 11;
+	window['AscDFH'].historyitem_SlideLayoutSetHF           = window['AscDFH'].historyitem_type_SlideLayout | 12;
 
 	window['AscDFH'].historyitem_SlideMasterAddToSpTree       = window['AscDFH'].historyitem_type_SlideMaster | 1;
 	window['AscDFH'].historyitem_SlideMasterSetTheme          = window['AscDFH'].historyitem_type_SlideMaster | 2;
@@ -2647,6 +2648,7 @@
 	window['AscDFH'].historyitem_SlideMasterAddLayout         = window['AscDFH'].historyitem_type_SlideMaster | 7;
 	window['AscDFH'].historyitem_SlideMasterSetThemeIndex     = window['AscDFH'].historyitem_type_SlideMaster | 8;
 	window['AscDFH'].historyitem_SlideMasterSetSize           = window['AscDFH'].historyitem_type_SlideMaster | 9;
+	window['AscDFH'].historyitem_SlideMasterSetHF             = window['AscDFH'].historyitem_type_SlideMaster | 10;
 
 	window['AscDFH'].historyitem_SlideCommentsAddComment    = window['AscDFH'].historyitem_type_SlideComments | 1;
 	window['AscDFH'].historyitem_SlideCommentsRemoveComment = window['AscDFH'].historyitem_type_SlideComments | 2;

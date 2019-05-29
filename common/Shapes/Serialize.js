@@ -2935,7 +2935,7 @@ function BinaryPPTYLoader()
                 }
                 case 5:
                 {
-                    master.hf = this.ReadHF();
+                    master.setHF(this.ReadHF());
                     break;
                 }
                 case 6:
@@ -3082,7 +3082,7 @@ function BinaryPPTYLoader()
                 }
                 case 4:
                 {
-                    layout.hf = this.ReadHF();
+                    layout.setHF(this.ReadHF());
                     break;
                 }
                 default:
