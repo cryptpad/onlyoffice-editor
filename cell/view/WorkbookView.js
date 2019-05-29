@@ -2118,7 +2118,7 @@
 
 		if (ws.model.inPivotTable(activeCellRange)) {
 			this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
-			return false;
+			return;
 		}
 
 		if (c_oAscPopUpSelectorType.None === type) {
@@ -2154,7 +2154,7 @@
 		} else {
 			// Проверка глобального лока
 			if (this.collaborativeEditing.getGlobalLock()) {
-				return false;
+				return;
 			}
 
 			var selectionRange = ws.model.selectionRange.clone();
