@@ -12778,7 +12778,7 @@
 					return {l: arrLeftS, r: arrRightS, b: arrBottomS, cellX: cellX, cellY: cellY, ri: ri, bi: bi};
 				}
 			});
-			this.model.workbook.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editStart);
+			this.model.workbook.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editStart);
 		};
 
     WorksheetView.prototype.openCellEditorWithText = function (editor, text, cursorPos, isFocus, selectionRange) {

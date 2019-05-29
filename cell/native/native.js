@@ -4057,10 +4057,16 @@ function OfflineEditor () {
                                   });
         
         _api.asc_registerCallback("asc_onEditCell", function(state) {
-                                  var stream = global_memory_stream_menu;
-                                  stream["ClearNoAttack"]();
-                                  stream["WriteLong"](state);
-                                  window["native"]["OnCallMenuEvent"](2600, stream); // ASC_SPREADSHEETS_EVENT_TYPE_ON_EDIT_CELL
+                                  if (Asc.c_oAscCellEditorState.editStart === state) {
+                                    var stream = global_memory_stream_menu;
+                                    stream["ClearNoAttack"]();
+                                    window["native"]["OnCallMenuEvent"](50000, stream); // ASC_SPREADSHEETS_EVENT_TYPE_AFTER_INSERT_FORMULA
+                                  } else {
+                                    var stream = global_memory_stream_menu;
+                                    stream["ClearNoAttack"]();
+                                    stream["WriteLong"](state);
+                                    window["native"]["OnCallMenuEvent"](2600, stream); // ASC_SPREADSHEETS_EVENT_TYPE_ON_EDIT_CELL
+                                  }
                                   });
         
         _api.asc_registerCallback("asc_onSetAFDialog", function(state) {
@@ -4129,12 +4135,6 @@ function OfflineEditor () {
                                   stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
                                   });
-
-        _api.asc_registerCallback("asc_onEditCell", function(state) {
-            if (Asc.c_oAscCellEditorState.editStart === state) {
-                // ToDo Cell Edit
-            }
-        });
     };
     this.updateFrozen = function () {
         var ws = _api.wb.getWorksheet();
