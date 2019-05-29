@@ -1162,7 +1162,55 @@ CPresentation.prototype =
                             }
 
 
-                            
+                            if(oSlideProps.get_ShowDateTime())
+                            {
+                                if(oHF.dt !== null)
+                                {
+                                    oHF.setDt(null);
+                                }
+                                if(!oMastersMap[oMaster.Get_Id()])
+                                {
+                                    sText = oSlideProps.get_Header();
+                                    if(typeof sText === "string")
+                                    {
+                                        for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
+                                        {
+                                            oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                            oContent = oSp.getDocContent && oSp.getDocContent();
+                                            if(oContent)
+                                            {
+                                                oContent.Set_ApplyToAll(true);
+                                                oContent.Remove(-1, false, false, false, false);
+                                                oContent.Set_ApplyToAll(false);
+                                                AscFormat.AddToContentFromString(oContent, sText);
+                                            }
+                                        }
+                                    }
+                                }
+                                oSp = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                if(!oSp)
+                                {
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                    if(oSp)
+                                    {
+                                        oSp = oSp.copy();
+                                        oSlide.addToSpTreeToPos(undefined, oSp);
+                                        oSp.setParent(oSlide);
+                                    }
+                                }
+                                else
+                                {
+                                    oContent = oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent)
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
+                                    }
+                                }
+                            }
+
                         }
 
                         oMastersMap[oMaster.Get_Id()] = oMaster;
