@@ -2389,6 +2389,11 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.asc_checkAddGroup = function() {
+	  //true - rows, false - columns, null - show dialog, undefined - error
+    return this.wb.getWorksheet().checkAddGroup();
+  };
+
   spreadsheet_api.prototype.asc_clearOutline = function() {
       this.wb.getWorksheet().clearOutline();
   };
@@ -3858,6 +3863,7 @@ var editor;
   prot["asc_ungroup"] = prot.asc_ungroup;
   prot["asc_clearOutline"] = prot.asc_clearOutline;
   prot["asc_changeGroupDetails"] = prot.asc_changeGroupDetails;
+  prot["asc_checkAddGroup"] = prot.asc_checkAddGroup;
   
   // Drawing objects interface
 

@@ -17669,6 +17669,28 @@
 		this._isLockedAll(onChangeWorksheetCallback);
 	};
 
+	WorksheetView.prototype.checkAddGroup = function() {
+		//true - rows, false - columns, null - show dialog, undefined - error
+
+		//multiselect
+		if(this.model.selectionRange.ranges.length > 1) {
+			//error!
+			return;
+		}
+
+		var res = null;
+		var ar = this.model.selectionRange.getLast().clone();
+		var type = ar.getType();
+
+		if (c_oAscSelectionType.RangeCol === type) {
+			res = true;
+		} else if(c_oAscSelectionType.RangeRow === type) {
+			res = false;
+		}
+
+		return res;
+	};
+
     //------------------------------------------------------------export---------------------------------------------------
 	function HeaderFooterField(val) {
 		this.field = val;
