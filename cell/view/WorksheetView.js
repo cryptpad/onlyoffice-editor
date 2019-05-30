@@ -15942,7 +15942,14 @@
 				this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
 			} else {
 				this.arrColGroups = this.getGroupDataArray(bCol, start, end);
+				var oldGroupHeight = this.groupHeight;
 				this.groupHeight = this.getGroupCommonWidth(this.getGroupCommonLevel(bCol), bCol);
+
+				//TODO пересмотреть! добавлено, потому что при undo не вызывается
+
+				if(oldGroupHeight !== this.groupHeight) {
+					this._calcHeaderRowHeight();
+				}
 			}
 		} else {
 			if(bUpdateOnlyRowLevelMap) {
