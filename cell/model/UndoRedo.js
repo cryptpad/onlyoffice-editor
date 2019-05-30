@@ -2071,8 +2071,6 @@ function (window, undefined) {
 			var col = ws._getCol(index);
 			col.setWidthProp(bUndo ? Data.oOldVal : Data.oNewVal);
 			ws.initColumn(col);
-			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
-			workSheetView._updateGroups(true);
 		} else if (AscCH.historyitem_Worksheet_RowProp == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
@@ -2095,8 +2093,6 @@ function (window, undefined) {
 			//TODO для случая скрытия строк фильтром(undo), может два раза вызываться функция setColorStyleTable - пересмотреть
 			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			workSheetView.model.autoFilters.reDrawFilter(null, index);
-			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
-			workSheetView._updateGroups();
 		} else if (AscCH.historyitem_Worksheet_RowHide == Type) {
 			from = Data.from;
 			to = Data.to;
@@ -2121,7 +2117,6 @@ function (window, undefined) {
 
 			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			workSheetView.model.autoFilters.reDrawFilter(new Asc.Range(0, from, ws.nColsCount - 1, to));
-			workSheetView._updateGroups();
 		} else if (AscCH.historyitem_Worksheet_AddRows == Type || AscCH.historyitem_Worksheet_RemoveRows == Type) {
 			from = Data.from;
 			to = Data.to;
@@ -2157,8 +2152,6 @@ function (window, undefined) {
 			// ToDo Так делать неправильно, нужно поправить (перенести логику в model, а отрисовку отделить)
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			worksheetView.cellCommentator.updateCommentsDependencies(bInsert, operType, range);
-			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
-			worksheetView._updateGroups();
 		} else if (AscCH.historyitem_Worksheet_AddCols == Type || AscCH.historyitem_Worksheet_RemoveCols == Type) {
 			from = Data.from;
 			to = Data.to;
@@ -2195,8 +2188,6 @@ function (window, undefined) {
 			// ToDo Так делать неправильно, нужно поправить (перенести логику в model, а отрисовку отделить)
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			worksheetView.cellCommentator.updateCommentsDependencies(bInsert, operType, range);
-			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
-			worksheetView._updateGroups(true);
 		} else if (AscCH.historyitem_Worksheet_ShiftCellsLeft == Type ||
 			AscCH.historyitem_Worksheet_ShiftCellsRight == Type) {
 			r1 = Data.r1;
@@ -2465,53 +2456,7 @@ function (window, undefined) {
 				}
 			});
 			//TODO need redraw group lines
-		} /*else if(AscCH.historyitem_Worksheet_CollapsedRow == Type) {
-			index = Data.index;
-			if (wb.bCollaborativeChanges) {
-				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
-				oLockInfo = new AscCommonExcel.asc_CLockInfo();
-				oLockInfo["sheetId"] = nSheetId;
-				oLockInfo["type"] = c_oAscLockTypeElem.Range;
-				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
-				wb.aCollaborativeChangeElements.push(oLockInfo);
-			}
-			ws._getRow(index, function (row) {
-				if (bUndo) {
-					row.setCollapsed(Data.oOldVal);
-				} else {
-					row.setCollapsed(Data.oNewVal);
-				}
-			});
-
-			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
-			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
-			worksheetView._updateGroups(false, undefined, undefined, true);
-			//TODO need redraw group lines
-		} else if(AscCH.historyitem_Worksheet_CollapsedCol == Type) {
-			index = Data.index;
-			if (wb.bCollaborativeChanges) {
-				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
-				oLockInfo = new AscCommonExcel.asc_CLockInfo();
-				oLockInfo["sheetId"] = nSheetId;
-				oLockInfo["type"] = c_oAscLockTypeElem.Range;
-				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
-				wb.aCollaborativeChangeElements.push(oLockInfo);
-			}
-
-			col = ws._getCol(index);
-			if(col) {
-				if (bUndo) {
-					col.setCollapsed(Data.oOldVal);
-				} else {
-					col.setCollapsed(Data.oNewVal);
-				}
-			}
-
-			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
-			//todo стоит вызывать 1 раз после всех изменений. перенести в undoredoend - но вызывать нужно только в случае действий со строками/столбцами!!!
-			worksheetView._updateGroups(true, undefined, undefined, true);
-			//TODO need redraw group lines
-		}*/ else if (AscCH.historyitem_Worksheet_GroupCol == Type) {
+		} else if (AscCH.historyitem_Worksheet_GroupCol == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
 				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);

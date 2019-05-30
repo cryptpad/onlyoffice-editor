@@ -495,6 +495,8 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.bRedoChanges = false;
 		if (oRedoObjectParam.bIsReInit)
 			this.workbook.handlers.trigger("reInit");
+		//TODO вызывать только в случае, если были изменения строк/столбцов и отдельно для строк и столбцов
+		this.workbook.handlers.trigger("updateGroupData");
 		this.workbook.handlers.trigger("drawWS");
 		if (bUndo) {
 			if (AscCommon.isRealObject(this.lastDrawingObjects)) {

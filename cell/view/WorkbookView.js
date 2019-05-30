@@ -892,6 +892,9 @@
 	this.model.handlers.add("cleanCutData", function(bDrawSelection, bCleanBuffer) {
 	  self.cleanCutData(bDrawSelection, bCleanBuffer);
 	});
+	this.model.handlers.add("updateGroupData", function() {
+	  self.updateGroupData();
+	});
     this.cellCommentator = new AscCommonExcel.CCellCommentator({
       model: new WorkbookCommentsModel(this.handlers, this.model.aComments),
       collaborativeEditing: this.collaborativeEditing,
@@ -3243,6 +3246,10 @@
 				AscCommon.g_clipboardBase.ClearBuffer();
 			}
 		}
+	};
+	WorkbookView.prototype.updateGroupData = function () {
+		this.getWorksheet()._updateGroups(true);
+		this.getWorksheet()._updateGroups(null);
 	};
 
   //------------------------------------------------------------export---------------------------------------------------
