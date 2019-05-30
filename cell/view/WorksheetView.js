@@ -17698,9 +17698,9 @@
 		var type = ar.getType();
 
 		if (c_oAscSelectionType.RangeCol === type) {
-			res = true;
-		} else if(c_oAscSelectionType.RangeRow === type) {
 			res = false;
+		} else if(c_oAscSelectionType.RangeRow === type) {
+			res = true;
 		}
 
 		return res;
