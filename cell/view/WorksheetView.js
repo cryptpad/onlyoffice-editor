@@ -17573,7 +17573,7 @@
 		var groupArrCol= this.arrColGroups ? this.arrColGroups.groupArr : null;
 		var groupArrRow = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
 
-		if(!groupArrCol && groupArrRow) {
+		if(!groupArrCol && !groupArrRow) {
 			return;
 		}
 
@@ -17642,24 +17642,39 @@
 			History.StartTransaction();
 
 			//TODO check filtering mode
+			var ar = t.model.selectionRange;
+			var range, intersection;
+			for(var n = 0; n < ar.ranges.length; n++) {
+				if(groupArrRow) {
+					for(var i = 0; i <= groupArrRow.length; i++) {
+						if(!groupArrRow[i]) {
+							continue;
+						}
+						for(var j = 0; j < groupArrRow[i].length; j++) {
+							range = Asc.Range(0, groupArrRow[i][j].start, gc_nMaxCol, groupArrRow[i][j].end);
+							intersection = ar.ranges[n].intersection(range);
+							if(intersection) {
+								t.model.setRowHidden(false, intersection.r1, intersection.r2);
+								t.model.setOutlineRow(0, intersection.r1, intersection.r2);
+							}
+						}
+					}
+				}
 
-			for(var i = 0; i <= groupArrRow.length; i++) {
-				if(!groupArrRow[i]) {
-					continue;
-				}
-				for(var j = 0; j < groupArrRow[i].length; j++) {
-					t.model.setRowHidden(false, groupArrRow[i][j].start, groupArrRow[i][j].end);
-					t.model.setOutlineRow(0, groupArrRow[i][j].start, groupArrRow[i][j].end);
-				}
-			}
-
-			for(i = 0; i <= groupArrCol.length; i++) {
-				if(!groupArrCol[i]) {
-					continue;
-				}
-				for(j = 0; j < groupArrCol[i].length; j++) {
-					t.model.setColHidden(false, groupArrCol[i][j].start, groupArrCol[i][j].end);
-					t.model.setOutlineCol(0, groupArrCol[i][j].start, groupArrCol[i][j].end);
+				if(groupArrCol) {
+					for(i = 0; i <= groupArrCol.length; i++) {
+						if(!groupArrCol[i]) {
+							continue;
+						}
+						for(j = 0; j < groupArrCol[i].length; j++) {
+							range = Asc.Range(groupArrRow[i][j].start, 0, groupArrRow[i][j].end, gc_nMaxRow);
+							intersection = ar.ranges[n].intersection(range);
+							if(intersection) {
+								t.model.setColHidden(false, intersection.c1, intersection.c2);
+								t.model.setOutlineCol(0, intersection.c1, intersection.c2);
+							}
+						}
+					}
 				}
 			}
 
