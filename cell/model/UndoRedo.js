@@ -2455,7 +2455,6 @@ function (window, undefined) {
 					row.setOutlineLevel(Data.oNewVal);
 				}
 			});
-			//TODO need redraw group lines
 		} else if (AscCH.historyitem_Worksheet_GroupCol == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {
@@ -2466,14 +2465,14 @@ function (window, undefined) {
 				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
 				wb.aCollaborativeChangeElements.push(oLockInfo);
 			}
-			ws._getCol(index, function (col) {
+			col = ws._getCol(index);
+			if(col) {
 				if (bUndo) {
 					col.setOutlineLevel(Data.oOldVal);
 				} else {
 					col.setOutlineLevel(Data.oNewVal);
 				}
-			});
-			//TODO need redraw group lines
+			}
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {
