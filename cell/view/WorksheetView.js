@@ -17674,7 +17674,7 @@
 
 		//multiselect
 		if(this.model.selectionRange.ranges.length > 1) {
-			//error!
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CopyMultiselectAreaError, c_oAscError.Level.NoCritical);
 			return;
 		}
 
