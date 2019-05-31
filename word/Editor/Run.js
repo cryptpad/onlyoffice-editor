@@ -3462,12 +3462,24 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					PRS.LastTab.Item         = Item;
 					PRS.LastTab.TabRightEdge = TabPos.TabRightEdge;
 
-                    // Если таб не левый, значит он не может быть сразу рассчитан, а если левый, тогда
+					var oLogicDocument     = PRS.Paragraph.LogicDocument;
+					var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : document_compatibility_mode_Current;
+
+					// Если таб не левый, значит он не может быть сразу рассчитан, а если левый, тогда
                     // рассчитываем его сразу здесь
                     if (tab_Left !== TabValue)
                     {
 						Item.Width        = 0;
 						Item.WidthVisible = 0;
+
+						// В Word2013 и раньше, если не левый таб заканчивается правее правой границы, тогда у параграфа
+						// правая граница имеет максимально возможное значение (55см)
+						if (AscCommon.MMToTwips(TabPos.NewX) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode <= document_compatibility_mode_Word14)
+						{
+							Para.Lines[PRS.Line].Ranges[PRS.Range].XEnd = 558.7;
+							XEnd                                        = 558.7;
+							PRS.BadLeftTab                              = true;
+						}
                     }
                     else
 					{
@@ -3479,8 +3491,6 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						var twXEnd = AscCommon.MMToTwips(XEnd);
 						var twNewX = AscCommon.MMToTwips(NewX);
 
-						var oLogicDocument     = PRS.Paragraph.LogicDocument;
-						var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : document_compatibility_mode_Current;
 						if (nCompatibilityMode <= document_compatibility_mode_Word14
 							&& !isLastTabToRightEdge
 							&& true !== TabPos.DefaultTab

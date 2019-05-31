@@ -2294,6 +2294,19 @@ CTableCell.prototype.RejectPrChange = function()
 		this.RemovePrChange();
 	}
 };
+/**
+ * Проверяем является ли данная ячейка частью смерженной ячейки
+ * @returns {boolean}
+ */
+CTableCell.prototype.IsMergedCell = function()
+{
+	var oTable  = this.GetTable();
+	var nVMerge = this.GetVMerge();
+	if (nVMerge === vmerge_Continue && oTable)
+		return (oTable.GetStartMergedCell(this.GetIndex(), this.GetRow().GetIndex()) !== this);
+
+	return false;
+};
 
 
 function CTableCellRecalculateObject()
