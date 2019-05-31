@@ -6351,6 +6351,7 @@
 				if (!this.model.isDefaultWidthHidden()) {
 					result.col += ((x - sum) / (this.defaultColWidthPx * this.getZoom())) | 0;
 					result.col = Math.min(result.col, gc_nMaxCol0);
+                    sum +=  (result.col - this.nColsCount) * (this.defaultColWidthPx * this.getZoom());
 				}
 			} else {
 				sum = this.cellsLeft;
@@ -6375,6 +6376,7 @@
                 if (!this.model.isDefaultHeightHidden()) {
 					result.row += ((y - sum) / (this.defaultRowHeightPx * this.getZoom())) | 0;
 					result.row = Math.min(result.row, gc_nMaxRow0);
+                    sum +=  (result.row - this.nRowsCount) * (this.defaultRowHeightPx * this.getZoom());
                 }
             } else {
                 sum = this.cellsTop;
