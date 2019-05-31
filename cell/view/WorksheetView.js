@@ -14613,7 +14613,7 @@
         var tablePart;
 
         var checkMoveRangeIntoApplyAutoFilter = function (arnTo) {
-            if (ws.AutoFilter && ws.AutoFilter.Ref && arnTo.intersection(ws.AutoFilter.Ref)) {
+            if (ws.AutoFilter && ws.AutoFilter.Ref && arnTo.intersection(ws.AutoFilter.Ref) && !arnFrom.isEqual(ws.AutoFilter.Ref)) {
                 //если затрагиваем скрытые строки а/ф - выдаём ошибку
                 if (ws.autoFilters._searchHiddenRowsByFilter(ws.AutoFilter, arnTo)) {
                     return false;
