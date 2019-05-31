@@ -5329,12 +5329,12 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         CurTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
         RGBA = CurTextPr.Unifill.getRGBAColor();
 
-        if ( true === PDSE.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill || bPresentation) )
-        {
-            AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
-            RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
-            pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
-        }
+		if (true === PDSE.VisitedHyperlink)
+		{
+			AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
+			RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
+			pGraphics.b_color1(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+		}
         else
         {
             if(bPresentation && PDSE.Hyperlink)
@@ -5351,7 +5351,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
     }
     else
     {
-        if ( true === PDSE.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill ) )
+        if (true === PDSE.VisitedHyperlink)
         {
             AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
             RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
@@ -5626,14 +5626,16 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     // Выставляем цвет обводки
 
     var bPresentation = this.Paragraph && !this.Paragraph.bFromDocument;
-    if ( true === PDSL.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill || bPresentation) )
-    {
-        AscFormat.G_O_VISITED_HLINK_COLOR.check(Theme, ColorMap);
-        RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
-        CurColor = new CDocumentColor( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
-    }
+    if (true === PDSL.VisitedHyperlink)
+	{
+		AscFormat.G_O_VISITED_HLINK_COLOR.check(Theme, ColorMap);
+		RGBA     = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
+		CurColor = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+	}
     else if ( true === CurTextPr.Color.Auto && !CurTextPr.Unifill)
-        CurColor = new CDocumentColor( AutoColor.r, AutoColor.g, AutoColor.b );
+	{
+		CurColor = new CDocumentColor(AutoColor.r, AutoColor.g, AutoColor.b);
+	}
     else
     {
         if(bPresentation && PDSL.Hyperlink)
