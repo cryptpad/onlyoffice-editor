@@ -17409,6 +17409,7 @@
 				for(var i = 0; i < groupArr.length; i++) {
 					if(groupArr[i]) {
 						for(var j = 0; j < groupArr[i].length; j++) {
+							//TODO COLUMNS! - bCol
 							//полностью выделена группа, если выделена кнопка
 							if(groupArr[i][j].end + 1 >= ar.r1 && groupArr[i][j].end + 1 <= ar.r2 && undefined === maxGroupIndexMap[groupArr[i][j].end]) {
 								if(!deleteIndexes[groupArr[i][j].end] && undefined !== maxGroupIndexMap[groupArr[i][j].end + 1] && !levelMap[groupArr[i][j].end + 1].collapsed) {
@@ -17449,7 +17450,7 @@
 		}
 
 
-		needGroups = getNeedGroups(t.arrColGroups.groupArr, t.arrColGroups.levelMap);
+		needGroups = getNeedGroups(t.arrColGroups.groupArr, t.arrColGroups.levelMap, true);
 		var allGroupSelectedCol = needGroups.container;
 		var selectPartColGroup = needGroups.selectPartGroup;
 
@@ -17565,6 +17566,140 @@
 		};
 
 		if(selectPartRowGroup || selectPartColGroup || allGroupSelectedRow.length || allGroupSelectedCol.length) {
+			this._isLockedAll(onChangeWorksheetCallback);
+		}
+	};
+
+	//самый простой вариант реализации данной функции
+	//ориентируемся по первой строке выделенного диапазона
+	//попали внутрь группы или затронули кнопку - выполняем действие
+	//приоритет у группы с максимальным уровнем
+	WorksheetView.prototype.changeGroupDetailsSimple = function (bExpand) {
+		//multiselect
+		if (this.model.selectionRange.ranges.length > 1) {
+			return;
+		}
+
+		var ar = this.model.selectionRange.getLast().clone();
+		var t = this;
+
+
+		var getNeedGroups = function(groupArr, bCol) {
+			var res;
+			if(groupArr) {
+				for(var i = 0; i < groupArr.length; i++) {
+					if(groupArr[i]) {
+						for(var j = 0; j < groupArr[i].length; j++) {
+							//полностью выделена группа, если выделена кнопка
+							if(!bCol && groupArr[i][j].start <= ar.r1 && groupArr[i][j].end + 1 >= ar.r1) {
+								res = groupArr[i][j];
+							} else if(groupArr[i][j].start <= ar.c1 && groupArr[i][j].end + 1 >= ar.c1) {
+								res = groupArr[i][j];
+							}
+						}
+					}
+				}
+			}
+			return res;
+		};
+
+		var needGroups = getNeedGroups(t.arrRowGroups.groupArr);
+		var allGroupSelectedRow = needGroups;
+
+
+		needGroups = getNeedGroups(t.arrColGroups.groupArr, true);
+		var allGroupSelectedCol = needGroups;
+
+
+		//TODO duplicate code into _tryChangeGroup func
+		var oRecalcType = AscCommonExcel.recalcType.recalc;
+		var reinitRanges = false;
+		var updateDrawingObjectsInfo = null;
+		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
+		var isUpdateCols = false, isUpdateRows = false;
+		var isCheckChangeAutoFilter;
+		var functionModelAction = null;
+		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
+		var arrChangedRanges = [];
+
+		var onChangeWorksheetCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			asc_applyFunction(callback);
+
+			t._initCellsArea(oRecalcType);
+			if (oRecalcType) {
+				t.cache.reset();
+			}
+			t._cleanCellsTextMetricsCache();
+			t._prepareCellTextMetricsCache();
+
+			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
+
+			t.cellCommentator.updateAreaComments();
+
+			if (t.objectRender) {
+				if (reinitRanges && t.objectRender.drawingArea) {
+					t.objectRender.drawingArea.reinitRanges();
+				}
+				if (null !== updateDrawingObjectsInfo) {
+					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
+				}
+				if (null !== updateDrawingObjectsInfo2) {
+					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
+						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
+				}
+				t.model.onUpdateRanges(arrChangedRanges);
+				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+			}
+			//тут требуется обновить только rowLevelMap
+			t._updateGroups(true, undefined, undefined, true);
+			t._updateGroups(false, undefined, undefined, true);
+
+			t.draw(lockDraw);
+
+			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+
+			if (isUpdateCols) {
+				t._updateVisibleColsCount();
+			}
+			if (isUpdateRows) {
+				t._updateVisibleRowsCount();
+			}
+
+			t.handlers.trigger("selectionChanged");
+			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+		};
+
+		//TODO необходимо не закрывать полностью выделенные 1 уровни
+		var callback = function(isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			//строки
+			var i;
+			if(allGroupSelectedRow) {
+				//если блок попал полностью под выделение
+				t.model.setRowHidden(!bExpand, allGroupSelectedRow.start, allGroupSelectedRow.end);
+			}
+
+
+			//столбцы
+			if(allGroupSelectedCol) {
+				//если блок попал полностью под выделение
+				t.model.setColHidden(!bExpand, allGroupSelectedCol.start, allGroupSelectedCol.end);
+			}
+
+			History.EndTransaction();
+		};
+
+		if(allGroupSelectedRow || allGroupSelectedCol) {
 			this._isLockedAll(onChangeWorksheetCallback);
 		}
 	};
