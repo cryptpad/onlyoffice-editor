@@ -17325,7 +17325,7 @@
 		console_time_end("hideGroupLevel");
 	};
 
-	WorksheetView.prototype.changeGroupDetails = function (bExpand) {
+	WorksheetView.prototype.changeGroupDetails2 = function (bExpand) {
 		//multiselect
 		if(this.model.selectionRange.ranges.length > 1) {
 			return;
@@ -17385,7 +17385,7 @@
 		}
 	};
 
-	WorksheetView.prototype.changeGroupDetails2 = function (bExpand) {
+	WorksheetView.prototype.changeGroupDetails = function (bExpand) {
 		//multiselect
 		if(this.model.selectionRange.ranges.length > 1) {
 			return;
