@@ -733,6 +733,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 									this.Content[nCurContentPos + 1].SetDirectParaPr(oParaPr);
 									this.Content[nCurContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
 								}
+
+								if (this.Content[this.CurPos.ContentPos].IsParagraph())
+								{
+									var oParaPr   = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
+									var oPrChange = this.Content[this.CurPos.ContentPos + 1].GetDirectParaPr();
+									var oReviewInfo = new CReviewInfo();
+									oReviewInfo.Update();
+
+									this.Content[this.CurPos.ContentPos + 1].SetDirectParaPr(oParaPr);
+									this.Content[this.CurPos.ContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
+
+								}
 							}
 							else
 							{
@@ -809,6 +821,17 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 
 									this.Content[nCurContentPos].SetDirectParaPr(oParaPr);
 									this.Content[nCurContentPos].SetPrChange(oPrChange, oReviewInfo);
+								}
+
+								if (this.Content[this.CurPos.ContentPos - 1].IsParagraph())
+								{
+									var oParaPr   = this.Content[this.CurPos.ContentPos - 1].GetDirectParaPr();
+									var oPrChange = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
+									var oReviewInfo = new CReviewInfo();
+									oReviewInfo.Update();
+
+									this.Content[this.CurPos.ContentPos].SetDirectParaPr(oParaPr);
+									this.Content[this.CurPos.ContentPos].SetPrChange(oPrChange, oReviewInfo);
 								}
 							}
 							else
@@ -1005,24 +1028,25 @@ CDocumentContentBase.prototype.private_AddContentControl = function(nContentCont
 			{
 				var oSdt = new CBlockLevelSdt(editor.WordControl.m_oLogicDocument, this);
 
+				var nContentPos = this.CurPos.ContentPos;
 				if (oElement.IsCursorAtBegin())
 				{
-					this.Internal_Content_Add(this.CurPos.ContentPos, oSdt);
+					this.AddToContent(nContentPos, oSdt);
+					this.CurPos.ContentPos = nContentPos;
 				}
 				else if (oElement.IsCursorAtEnd())
 				{
-					this.Internal_Content_Add(this.CurPos.ContentPos + 1, oSdt);
-					this.CurPos.ContentPos = this.CurPos.ContentPos + 1;
+					this.AddToContent(nContentPos + 1, oSdt);
+					this.CurPos.ContentPos = nContentPos + 1;
 				}
 				else
 				{
 					var oNewParagraph = new Paragraph(this.DrawingDocument, this);
 					oElement.Split(oNewParagraph);
 
-					this.Internal_Content_Add(this.CurPos.ContentPos + 1, oNewParagraph);
-					this.Internal_Content_Add(this.CurPos.ContentPos + 1, oSdt);
-
-					this.CurPos.ContentPos = this.CurPos.ContentPos + 1;
+					this.AddToContent(nContentPos + 1, oNewParagraph);
+					this.AddToContent(nContentPos + 1, oSdt);
+					this.CurPos.ContentPos = nContentPos + 1;
 				}
 				oSdt.MoveCursorToStartPos(false);
 				return oSdt;
@@ -1499,18 +1523,17 @@ CDocumentContentBase.prototype.private_UpdateSelectionPosOnAdd = function(nPosit
 		nCount = 1;
 
 	if (this.CurPos.ContentPos >= nPosition)
-	{
-		if (this.CurPos.ContentPos + nCount >= this.Content.length)
-			this.CurPos.ContentPos = this.Content.length - 1;
-		else
-			this.CurPos.ContentPos += nCount;
-	}
+		this.CurPos.ContentPos += nCount;
 
 	if (this.Selection.StartPos >= nPosition)
 		this.Selection.StartPos += nCount;
 
 	if (this.Selection.EndPos >= nPosition)
 		this.Selection.EndPos += nCount;
+
+	this.Selection.StartPos = Math.max(0, Math.min(this.Content.length - 1, this.Selection.StartPos));
+	this.Selection.EndPos   = Math.max(0, Math.min(this.Content.length - 1, this.Selection.EndPos));
+	this.CurPos.ContentPos  = Math.max(0, Math.min(this.Content.length - 1, this.CurPos.ContentPos));
 };
 /**
  * Обновляем позиции курсора и селекта во время удаления элементов

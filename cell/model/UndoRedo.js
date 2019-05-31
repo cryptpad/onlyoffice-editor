@@ -2833,6 +2833,65 @@ function (window, undefined) {
 				break;
 		}
 	};	//----------------------------------------------------------export----------------------------------------------------
+	function UndoRedoHeaderFooter(wb) {
+		this.wb = wb;
+		this.nType = UndoRedoClassTypes.Add(function () {
+			return AscCommonExcel.g_oUndoRedoHeaderFooter;
+		});
+	}
+
+	UndoRedoHeaderFooter.prototype.getClassType = function () {
+		return this.nType;
+	};
+	UndoRedoHeaderFooter.prototype.Undo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, true);
+	};
+	UndoRedoHeaderFooter.prototype.Redo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, false);
+	};
+	UndoRedoHeaderFooter.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+		var ws = this.wb.getWorksheetById(nSheetId);
+		if (!ws) {
+			return;
+		}
+
+		var headerFooter = ws.headerFooter;
+		var value = bUndo ? Data.from : Data.to;
+		switch (Type) {
+			case AscCH.historyitem_Header_First:
+				headerFooter.setFirstHeader(value);
+				break;
+			case AscCH.historyitem_Header_Even:
+				headerFooter.setEvenHeader(value);
+				break;
+			case AscCH.historyitem_Header_Odd:
+				headerFooter.setOddHeader(value);
+				break;
+			case AscCH.historyitem_Footer_First:
+				headerFooter.setFirstFooter(value);
+				break;
+			case AscCH.historyitem_Footer_Even:
+				headerFooter.setEvenFooter(value);
+				break;
+			case AscCH.historyitem_Footer_Odd:
+				headerFooter.setOddFooter(value);
+				break;
+			case AscCH.historyitem_Align_With_Margins:
+				headerFooter.setAlignWithMargins(value);
+				break;
+			case AscCH.historyitem_Scale_With_Doc:
+				headerFooter.setScaleWithDoc(value);
+				break;
+			case AscCH.historyitem_Different_First:
+				headerFooter.setDifferentFirst(value);
+				break;
+			case AscCH.historyitem_Different_Odd_Even:
+				headerFooter.setDifferentOddEven(value);
+				break;
+		}
+	};
+
+	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].UndoRedoItemSerializable = UndoRedoItemSerializable;
 	window['AscCommonExcel'].UndoRedoDataTypes = UndoRedoDataTypes;
@@ -2867,6 +2926,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoSharedFormula = UndoRedoSharedFormula;
 	window['AscCommonExcel'].UndoRedoRedoLayout = UndoRedoRedoLayout;
 	window['AscCommonExcel'].UndoRedoArrayFormula = UndoRedoArrayFormula;
+	window['AscCommonExcel'].UndoRedoHeaderFooter = UndoRedoHeaderFooter;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;
 	window['AscCommonExcel'].g_oUndoRedoCell = null;
@@ -2880,4 +2940,5 @@ function (window, undefined) {
 	window['AscCommonExcel'].g_oUndoRedoSharedFormula = null;
 	window['AscCommonExcel'].g_oUndoRedoLayout = null;
 	window['AscCommonExcel'].g_UndoRedoArrayFormula = null;
+	window['AscCommonExcel'].g_oUndoRedoHeaderFooter = null;
 })(window);

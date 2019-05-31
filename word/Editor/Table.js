@@ -8995,6 +8995,8 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 
 	this.CurCell = Cell_tl;
 
+	this.CurCell.GetContent().SelectAll();
+
 	if (true !== isClearMerge)
 	{
 		// Запускаем пересчет
@@ -10771,6 +10773,8 @@ CTable.prototype.private_RemoveRow = function(nIndex)
 	this.RowsInfo.splice(nIndex, 1);
 
 	this.Internal_ReIndexing(nIndex);
+
+	this.private_CheckCurCell();
 };
 CTable.prototype.private_AddRow = function(Index, CellsCount, bReIndexing, _NewRow)
 {
@@ -10814,6 +10818,8 @@ CTable.prototype.private_AddRow = function(Index, CellsCount, bReIndexing, _NewR
 	}
 
 	NewRow.Table = this;
+
+	this.private_CheckCurCell();
 
 	return NewRow;
 };
@@ -11799,7 +11805,7 @@ CTable.prototype.Internal_CheckNullBorder = function(Border)
 };
 CTable.prototype.Internal_Get_SelectionArray = function()
 {
-	var SelectionArray = null;
+	var SelectionArray = [];
 	if (true === this.ApplyToAll)
 	{
 		SelectionArray = [];
@@ -11820,7 +11826,7 @@ CTable.prototype.Internal_Get_SelectionArray = function()
 	}
 	else if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 		SelectionArray = this.Selection.Data;
-	else
+	else if (this.CurCell)
 		SelectionArray = [{Cell : this.CurCell.Index, Row : this.CurCell.Row.Index}];
 
 	return SelectionArray;
@@ -13352,7 +13358,7 @@ CTable.prototype.CanUpdateTarget = function(nCurPage)
 CTable.prototype.IsCellSelection = function()
 {
 	if (true === this.ApplyToAll
-		|| (this.IsSelectionUse()
+		|| (true === this.Selection.Use
 		&& table_Selection_Cell === this.Selection.Type
 		&& this.Selection.Data.length > 0))
 		return true;
@@ -14729,6 +14735,28 @@ CTable.prototype.RejectPrChange = function()
 		// Может так случиться, что сетка станет некорректной для текущего состояния таблицы, поэтому нужно
 		// произвести корректировку
 		this.CorrectBadGrid();
+	}
+};
+CTable.prototype.private_CheckCurCell = function()
+{
+	if (this.CurCell)
+	{
+		var oRow = this.CurCell.GetRow();
+		if (!oRow || oRow.GetTable() !== this || this.GetRow(oRow.GetIndex()) !== oRow || this.CurCell !== oRow.GetCell(this.CurCell.GetIndex()))
+			this.CurCell = null;
+	}
+
+	if (!this.CurCell)
+	{
+		for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+		{
+			var oRow = this.GetRow(nCurRow);
+			if (oRow.GetCellsCount() > 0)
+			{
+				this.CurCell = oRow.GetCell(0);
+				return;
+			}
+		}
 	}
 };
 

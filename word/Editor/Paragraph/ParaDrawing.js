@@ -910,9 +910,9 @@ ParaDrawing.prototype.CheckWH = function()
 
 		var startX, startY;
 		if(!AscFormat.checkNormalRotate(rot)){
-			var t = extX;
+			var temp = extX;
 			extX = extY;
-			extY = t;
+			extY = temp;
 		}
 
 
@@ -1750,6 +1750,16 @@ ParaDrawing.prototype.Refresh_RecalcData = function(Data)
 			}
 		}
 		return this.Parent.Refresh_RecalcData2();
+	}
+};
+
+
+ParaDrawing.prototype.Refresh_RecalcData2 = function(Data)
+{
+
+	if(this.Parent && this.Parent.Refresh_RecalcData2)
+	{
+		return this.Parent.Refresh_RecalcData2(this.PageNum);
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------

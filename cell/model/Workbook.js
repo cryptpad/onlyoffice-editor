@@ -3280,7 +3280,7 @@
 		this.selectionRange = new AscCommonExcel.SelectionRange(this);
 		this.sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
 		this.pivotTables = [];
-		this.headerFooter = null;
+		this.headerFooter = new Asc.CHeaderFooter(this);
 		this.rowBreaks = null;
 		this.colBreaks = null;
 		this.legacyDrawingHF = null;
@@ -3368,6 +3368,11 @@
 			var drawing = this.Drawings[i];
 			if(drawing)
 				drawing.getAllFonts(oFontMap);
+		}
+
+		//пробегаемся по header/footer
+		if(this.headerFooter){
+			this.headerFooter.getAllFonts(oFontMap);
 		}
 	};
 	Worksheet.prototype.getAllImageUrls = function(aImages){
@@ -3538,6 +3543,7 @@
 	};
 	Worksheet.prototype.initPostOpen = function (handlers) {
 		this.PagePrintOptions.init();
+		this.headerFooter.init();
 
 		// Sheet Views
 		if (0 === this.sheetViews.length) {
