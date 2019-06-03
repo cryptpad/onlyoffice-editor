@@ -2473,6 +2473,38 @@ function (window, undefined) {
 					col.setOutlineLevel(Data.oNewVal);
 				}
 			}
+		} else if (AscCH.historyitem_Worksheet_CollapsedRow == Type) {
+			index = Data.index;
+			if (wb.bCollaborativeChanges) {
+				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
+				oLockInfo = new AscCommonExcel.asc_CLockInfo();
+				oLockInfo["sheetId"] = nSheetId;
+				oLockInfo["type"] = c_oAscLockTypeElem.Range;
+				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
+				wb.aCollaborativeChangeElements.push(oLockInfo);
+			}
+
+			if (bUndo) {
+				ws.setCollapsedRow(Data.oOldVal, Data.index);
+			} else {
+				ws.setCollapsedRow(Data.oNewVal, Data.index);
+			}
+		} else if (AscCH.historyitem_Worksheet_CollapsedCol == Type) {
+			index = Data.index;
+			if (wb.bCollaborativeChanges) {
+				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
+				oLockInfo = new AscCommonExcel.asc_CLockInfo();
+				oLockInfo["sheetId"] = nSheetId;
+				oLockInfo["type"] = c_oAscLockTypeElem.Range;
+				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
+				wb.aCollaborativeChangeElements.push(oLockInfo);
+			}
+
+			if (bUndo) {
+				ws.setCollapsedCol(Data.oOldVal, index);
+			} else {
+				ws.setCollapsedCol(Data.oNewVal, index);
+			}
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {

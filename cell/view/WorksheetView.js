@@ -16099,7 +16099,7 @@
 
 		var bCollapsed = false;
 		var setCollapsedModel = function(cell) {
-			cell.setCollapsed(bCollapsed);
+			//cell.setCollapsed(bCollapsed);
 		};
 
 		var groupArr, index, i, j;
@@ -16112,7 +16112,7 @@
 						for (j = 0; j < groupArr[i].length; j++) {
 							index = groupArr[i][j].end;
 							bCollapsed = false;
-							bCol ? setCollapsedModel(this.model._getCol(index + 1)) : this.model._getRow(index + 1, setCollapsedModel);
+							//bCol ? setCollapsedModel(this.model._getCol(index + 1)) : this.model._getRow(index + 1, setCollapsedModel);
 						}
 					}
 				}
@@ -16126,12 +16126,12 @@
 		}
 		if(groupArr) {
 			var addCollapsed = function(val) {
-				bCollapsed = val.getHidden();
+				bCollapsed = val.getCollapsed();
 				if(bCollapsed) {
-					if(!levelMap[val.index + 1]) {
-						levelMap[val.index + 1] = {level: 0, collapsed: true};
+					if(!levelMap[val.index]) {
+						levelMap[val.index] = {level: 0, collapsed: true};
 					} else {
-						levelMap[val.index + 1].collapsed = true;
+						levelMap[val.index].collapsed = true;
 					}
 				}
 			};
@@ -16140,10 +16140,10 @@
 			for(i = 0; i < groupArr.length; i++) {
 				if (groupArr[i]) {
 					for (j = 0; j < groupArr[i].length; j++) {
-						index = groupArr[i][j].end;
+						index = groupArr[i][j].end + 1;
 						bCollapsed = false;
 						bCol ? addCollapsed(this.model._getCol(index)) : this.model._getRow(index, addCollapsed);
-						bCol ? setCollapsedModel(this.model._getCol(index + 1)) : this.model._getRow(index + 1, setCollapsedModel);
+						//bCol ? setCollapsedModel(this.model._getCol(index + 1)) : this.model._getRow(index + 1, setCollapsedModel);
 					}
 				}
 			}
@@ -17171,14 +17171,17 @@
 				History.StartTransaction();
 
 				var changeModelFunc = bCol ? t.model.setColHidden :  t.model.setRowHidden;
+				var collapsedFunction = bCol ? t.model.setCollapsedCol :  t.model.setCollapsedRow;
 				if(!collapsed) {//скрываем
 					changeModelFunc.call(t.model, true, start, end);
+					collapsedFunction.call(t.model, !collapsed, end + 1);
 					//hideFunc(true, start, end);
 					//t.model.autoFilters.reDrawFilter(arn);
 				} else {
 					//открываем все строки, кроме внутренних групп
 					//внутренние группы скрываем, если среди них есть раскрытые
 					changeModelFunc.call(t.model, false, start, end);
+					collapsedFunction.call(t.model, !collapsed, end + 1);
 
 					var groupArr, levelMap;
 					if(bCol) {
@@ -17304,15 +17307,17 @@
 			History.StartTransaction();
 
 			//TODO check filtering mode
-			for(var i = 0; i <= groupArr.length; i++) {
+			for(var i = 0; i <= level; i++) {
 				if(!groupArr[i]) {
 					continue;
 				}
 				for(var j = 0; j < groupArr[i].length; j++) {
 					if(bCol) {
 						t.model.setColHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
+						t.model.setCollapsedCol(i >= level, groupArr[i][j].end + 1);
 					} else {
 						t.model.setRowHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
+						t.model.setCollapsedRow(i >= level, groupArr[i][j].end + 1);
 					}
 				}
 			}
