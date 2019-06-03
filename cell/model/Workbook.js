@@ -4577,7 +4577,7 @@
 		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
 		var fProcessCol = function(col){
 
-			if(!bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
+			if(col && !bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
 				oThis.setCollapsedCol(bHidden, null, col);
 			}
 			outlineLevel = col ? col.getOutlineLevel() : null;
@@ -4858,7 +4858,7 @@
 		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
 
 		var fProcessRow = function(row){
-			if(!bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
+			if(row && !bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
 				oThis.setCollapsedRow(bHidden, null, row);
 			}
 			outlineLevel = row ? row.getOutlineLevel() : null;

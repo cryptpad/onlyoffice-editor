@@ -5441,7 +5441,10 @@
 				rowInfo.heightReal = AscCommonExcel.convertPxToPt(newHeight);
 				rowInfo.height = Asc.round(newHeight * this.getZoom());
 				History.TurnOff();
+				var oldExcludeCollapsed = this.model.bExcludeCollapsed;
+				this.model.bExcludeCollapsed = true;
 				this.model.setRowHeight(rowInfo.heightReal, row, row, false);
+				this.model.bExcludeCollapsed = oldExcludeCollapsed;
 				History.TurnOn();
 
 				if (cache.angle) {
@@ -5497,7 +5500,10 @@
 				});
 
 				History.TurnOff();
+				var oldExcludeCollapsed = t.model.bExcludeCollapsed;
+				this.model.bExcludeCollapsed = true;
 				this.model.setRowHeight(row.heightReal, r, r, false);
+				this.model.bExcludeCollapsed = oldExcludeCollapsed;
 				History.TurnOn();
 
 				minRow = Math.min(minRow, range.r1);
@@ -11620,6 +11626,7 @@
 				functionModelAction = function () {
 					AscCommonExcel.checkFilteringMode(function () {
 						t.model.setColHidden(false, arn.c1, arn.c2);
+						t._updateGroups(true);
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
 						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};

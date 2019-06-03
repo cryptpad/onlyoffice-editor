@@ -2485,9 +2485,9 @@ function (window, undefined) {
 			}
 
 			if (bUndo) {
-				ws.setCollapsedRow(Data.oOldVal, Data.index);
+				ws.setCollapsedRow(Data.oOldVal, index);
 			} else {
-				ws.setCollapsedRow(Data.oNewVal, Data.index);
+				ws.setCollapsedRow(Data.oNewVal, index);
 			}
 		} else if (AscCH.historyitem_Worksheet_CollapsedCol == Type) {
 			index = Data.index;
