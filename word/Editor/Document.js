@@ -2158,18 +2158,20 @@ CDocument.prototype.Get_ColorMap                   = function()
  */
 CDocument.prototype.StartAction = function(nDescription)
 {
-	this.History.Create_NewPoint(nDescription);
+	var isNewPoint = this.History.Create_NewPoint(nDescription);
 
 	if (true === this.Action.Start)
 	{
 		this.Action.Depth++;
-		this.Action.PointsCount++;
+
+		if (isNewPoint)
+			this.Action.PointsCount++;
 	}
 	else
 	{
 		this.Action.Start           = true;
 		this.Action.Depth           = 0;
-		this.Action.PointsCount     = 1;
+		this.Action.PointsCount     = isNewPoint ? 1 : 0;
 		this.Action.Recalculate     = false;
 		this.Action.UpdateSelection = false;
 		this.Action.UpdateInterface = false;
@@ -5041,7 +5043,7 @@ CDocument.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTe
 	this.Document_UpdateSelectionState();
 	this.Document_UpdateInterfaceState();
 };
-CDocument.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
+CDocument.prototype.Remove = function(nDirection, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (undefined === bRemoveOnlySelection)
 		bRemoveOnlySelection = false;
@@ -5052,7 +5054,7 @@ CDocument.prototype.Remove = function(nDirection, bOnlyText, bRemoveOnlySelectio
 	if (undefined === isWord)
 		isWord = false;
 
-	this.Controller.Remove(nDirection, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
+	this.Controller.Remove(nDirection, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord);
 
 	this.Recalculate();
 	this.UpdateInterface();
@@ -8246,7 +8248,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				if (oSelectInfo.GetInlineLevelSdt())
 					this.CheckInlineSdtOnDelete = oSelectInfo.GetInlineLevelSdt();
 
-				this.Remove(1, true, false, false, e.CtrlKey);
+				this.Remove(1, false, false, false, e.CtrlKey);
 
 				this.CheckInlineSdtOnDelete = null;
 
@@ -20333,12 +20335,22 @@ function CDocumentPagePosition()
 
 function CDocumentNumberingInfoCounter()
 {
+	this.Nums    = {}; // Список Num, которые использовались. Нужно для обработки startOverride
 	this.NumInfo = new Array(9);
 	this.PrevLvl = -1;
 
 	for (var nIndex = 0; nIndex < 9; ++nIndex)
 		this.NumInfo[nIndex] = undefined;
 }
+CDocumentNumberingInfoCounter.prototype.CheckNum = function(oNum)
+{
+	if (this.Nums[oNum.GetId()])
+		return false;
+
+	this.Nums[oNum.GetId()] = oNum;
+
+	return true;
+};
 
 /**
  * Класс для рассчета значение номера для нумерации заданного параграфа
@@ -20358,7 +20370,6 @@ function CDocumentNumberingInfoEngine(oPara, oNumPr, oNumbering)
 	this.PrevLvl     = -1;
 	this.Found       = false;
 	this.AbstractNum = null;
-	this.Nums        = {}; // Список Num, которые использовались. Нужно для обработки startOverride
 	this.Start       = [];
 
 	this.FinalCounter  = new CDocumentNumberingInfoCounter();
@@ -20515,15 +20526,6 @@ CDocumentNumberingInfoEngine.prototype.GetNumInfo = function(isFinal)
 
 	return this.FinalCounter.NumInfo;
 };
-CDocumentNumberingInfoEngine.prototype.private_CheckNum = function(oNum)
-{
-	if (this.Nums[oNum.GetId()])
-		return false;
-
-	this.Nums[oNum.GetId()] = oNum;
-
-	return true;
-};
 CDocumentNumberingInfoEngine.prototype.private_UpdateCounter = function(oCounter, oNum, oParaNumPr)
 {
 	if (-1 === oCounter.PrevLvl)
@@ -20556,7 +20558,7 @@ CDocumentNumberingInfoEngine.prototype.private_UpdateCounter = function(oCounter
 
 	oCounter.NumInfo[oParaNumPr.Lvl]++;
 
-	if (this.private_CheckNum(oNum))
+	if (oCounter.CheckNum(oNum))
 	{
 		var nForceStart = oNum.GetStartOverride(oParaNumPr.Lvl);
 		if (-1 !== nForceStart)
