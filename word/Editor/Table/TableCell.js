@@ -2206,12 +2206,15 @@ CTableCell.prototype.GetPageBounds = function(nCurPage)
 
 	var oCellInfo = oRow.GetCellInfo(this.GetIndex());
 
+	var nVMergeCountOnPage = oTable.private_GetVertMergeCountOnPage(nCurPage, oRow.GetIndex(), oCellInfo.StartGridCol, this.GetGridSpan());
+	if (nVMergeCountOnPage <= 0)
+		return new CDocumentBounds(0, 0, 0, 0);
 
 	var nL = oPage.X + oCellInfo.X_cell_start;
 	var nR = oPage.X + oCellInfo.X_cell_end;
 
 	var nT = oTable.RowsInfo[nCurRow].Y[nCurPage];
-	var nB = oTable.RowsInfo[nCurRow].Y[nCurPage] + oTable.RowsInfo[nCurRow].H[nCurPage];
+	var nB = oTable.RowsInfo[nCurRow + nVMergeCountOnPage - 1].Y[nCurPage] + oTable.RowsInfo[nCurRow + nVMergeCountOnPage - 1].H[nCurPage];
 
 	return new CDocumentBounds(nL, nT, nR, nB);
 };
@@ -2293,6 +2296,19 @@ CTableCell.prototype.RejectPrChange = function()
 		this.Set_Pr(this.Pr.PrChange);
 		this.RemovePrChange();
 	}
+};
+/**
+ * Проверяем является ли данная ячейка частью смерженной ячейки
+ * @returns {boolean}
+ */
+CTableCell.prototype.IsMergedCell = function()
+{
+	var oTable  = this.GetTable();
+	var nVMerge = this.GetVMerge();
+	if (nVMerge === vmerge_Continue && oTable)
+		return (oTable.GetStartMergedCell(this.GetIndex(), this.GetRow().GetIndex()) !== this);
+
+	return false;
 };
 
 
