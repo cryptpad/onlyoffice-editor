@@ -11656,6 +11656,8 @@
 				functionModelAction = function () {
 					AscCommonExcel.checkFilteringMode(function () {
 						t.model.setRowHidden(false, arn.r1, arn.r2);
+						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
+						t._updateGroups();
 						t.model.autoFilters.reDrawFilter(arn);
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
@@ -17170,6 +17172,9 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
+				var oldExcludeCollapsed = t.model.bExcludeCollapsed;
+				t.model.bExcludeCollapsed = true;
+
 				var changeModelFunc = bCol ? t.model.setColHidden :  t.model.setRowHidden;
 				var collapsedFunction = bCol ? t.model.setCollapsedCol :  t.model.setCollapsedRow;
 				if(!collapsed) {//скрываем
@@ -17207,6 +17212,7 @@
 					}
 				}
 
+				t.model.bExcludeCollapsed = oldExcludeCollapsed;
 
 				oRecalcType = AscCommonExcel.recalcType.full;
 				reinitRanges = true;
@@ -17307,6 +17313,8 @@
 			History.StartTransaction();
 
 			//TODO check filtering mode
+			var oldExcludeCollapsed = t.model.bExcludeCollapsed;
+			t.model.bExcludeCollapsed = true;
 			for(var i = 0; i <= level; i++) {
 				if(!groupArr[i]) {
 					continue;
@@ -17321,6 +17329,7 @@
 					}
 				}
 			}
+			t.model.bExcludeCollapsed = oldExcludeCollapsed;
 
 			History.EndTransaction();
 		};

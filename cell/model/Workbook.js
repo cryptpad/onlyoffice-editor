@@ -3293,6 +3293,13 @@
 
 		this.lastFindOptions = null;
 
+		//чтобы разделять ситуации, когда группы скрываются/открываются из меню(в данном случае не скрываются внутренние группы)
+		//и ситуацию, когда группы скрываются/открываются при скрытии строк/столбцов(все внутренние группы скрываются)
+		//этот флаг проставляются в true при скрытии групп из меню группировки(нажатие на +/- и скрытие целиком всего уровня)
+		//в данном случае не нужно при скрытии строк делать setCollapsed(из-за внутренних групп) и заносить данные в историю
+		//во всех остальных ситуациях это делать необходимо
+		this.bExcludeCollapsed = false;
+
 		/*handlers*/
 		this.handlers = null;
 	}
@@ -4507,14 +4514,15 @@
 			History.SetSelectionRedo(oSelection);
 		}
 
-		var oThis = this/*, prevCol*/;
+		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
+		var oThis = this, prevCol;
 		var fProcessCol = function(col){
 			if(col.width != width)
 			{
-				/*if(col.getCollapsed()) {
+				if(!bNotAddCollapsed && col.getCollapsed()) {
 					oThis.setCollapsedCol(false, null, col);
 				}
-				prevCol = col;*/
+				prevCol = col;
 
 				var oOldProps = col.getWidthProp();
 				col.width = width;
@@ -4546,12 +4554,12 @@
 				fProcessCol(col);
 			}
 
-			/*if(prevCol) {
+			if(!bNotAddCollapsed && prevCol) {
 				col = this._getCol(stop + 1);
 				if(col.getCollapsed()) {
 					this.setCollapsedCol(false, null, col);
 				}
-			}*/
+			}
 		}
 	};
 	Worksheet.prototype.getColHidden=function(index){
@@ -4565,13 +4573,14 @@
 		if(null == stop)
 			stop = start;
 		History.Create_NewPoint();
-		var oThis = this/*, outlineLevel*/;
+		var oThis = this, outlineLevel;
+		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
 		var fProcessCol = function(col){
 
-			/*if(outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
+			if(!bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
 				oThis.setCollapsedCol(bHidden, null, col);
-			}*/
-			//outlineLevel = col ? col.getOutlineLevel() : null;
+			}
+			outlineLevel = col ? col.getOutlineLevel() : null;
 
 			if(col.getHidden() != bHidden)
 			{
@@ -4625,12 +4634,12 @@
 			}
 		}
 
-		/*if(outlineLevel) {
+		if(!bNotAddCollapsed && outlineLevel) {
 			col = this._getCol(stop + 1);
 			if(col && outlineLevel !== col.getOutlineLevel()) {
 				oThis.setCollapsedCol(bHidden, null, col);
 			}
-		}*/
+		}
 	};
 	//TODO если collapsed не будет выставляться и заносится, удалить
 	Worksheet.prototype.setCollapsedCol = function (bCollapse, colIndex, curCol) {
@@ -4789,14 +4798,15 @@
 			History.SetSelection(oSelection);
 			History.SetSelectionRedo(oSelection);
 		}
-		/*var prevRow;*/
+		var prevRow;
+		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
 		var fProcessRow = function(row){
 			if(row)
 			{
-				/*if(row.getCollapsed()) {
+				if(!bNotAddCollapsed && row.getCollapsed()) {
 					oThis.setCollapsedRow(false, null, row);
 				}
-				prevRow = row;*/
+				prevRow = row;
 
 				var oOldProps = row.getHeightProp();
 				row.setHeight(height);
@@ -4819,13 +4829,13 @@
 		{
 			this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
 
-			/*if(prevRow) {
+			if(!bNotAddCollapsed && prevRow) {
 				this._getRow(stop + 1, function(row) {
 					if(row.getCollapsed()) {
 						oThis.setCollapsedRow(false, null, row);
 					}
 				});
-			}*/
+			}
 		}
 		this.workbook.dependencyFormulas.calcTree();
 	};
@@ -4844,13 +4854,14 @@
 			stop = start;
 		History.Create_NewPoint();
 		var oThis = this, i;
-		var startIndex = null, endIndex = null, updateRange/*, outlineLevel*/;
+		var startIndex = null, endIndex = null, updateRange, outlineLevel;
+		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
 
 		var fProcessRow = function(row){
-			/*if(outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
+			if(!bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
 				oThis.setCollapsedRow(bHidden, null, row);
 			}
-			outlineLevel = row ? row.getOutlineLevel() : null;*/
+			outlineLevel = row ? row.getOutlineLevel() : null;
 
 			if(row && bHidden != row.getHidden())
 			{
@@ -4881,13 +4892,13 @@
 				false == bHidden ? this._getRowNoEmpty(i, fProcessRow) : this._getRow(i, fProcessRow);
 			}
 
-			/*if(outlineLevel) {
+			if(outlineLevel && !bNotAddCollapsed) {
 				this._getRow(stop + 1, function(row) {
 					if(row && outlineLevel !== row.getOutlineLevel()) {
 						oThis.setCollapsedRow(bHidden, null, row);
 					}
 				});
-			}*/
+			}
 
 			if(startIndex !== null)//заносим последние строки
 			{
