@@ -1023,7 +1023,7 @@ CPresentation.prototype =
                     oParents = oSlide.getParentObjects();
                     oMaster = oParents.master;
                     oLayout = oParents.layout;
-                    bRemoveOnTitle = oLayout.type !== AscFormat.nSldLtTTitle || this.showSpecialPlsOnTitleSld !== false;
+                    bRemoveOnTitle = oLayout.type === AscFormat.nSldLtTTitle && this.showSpecialPlsOnTitleSld === false;
                     if(oMaster)
                     {
                         if(!oMaster.hf)
@@ -1323,6 +1323,20 @@ CPresentation.prototype =
                                 }
                             }
                         }
+                        else
+                        {
+                            if(oHF.dt !== false)
+                            {
+                                oHF.setDt(false);
+                            }
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                            if(oSp)
+                            {
+                                oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                oSp.setBDeleted(true);
+                            }
+                        }
+
                         oMastersMap[oMaster.Get_Id()] = oMaster;
                     }
                 }
@@ -1333,7 +1347,7 @@ CPresentation.prototype =
 
                 oParents = oSlide.getParentObjects();
                 oLayout = oParents.layout;
-                bRemoveOnTitle = oLayout.type !== AscFormat.nSldLtTTitle || this.showSpecialPlsOnTitleSld !== false;
+                bRemoveOnTitle = oLayout.type === AscFormat.nSldLtTTitle && this.showSpecialPlsOnTitleSld === false;
                 if(oSlide)
                 {
                     if(oSlideProps.get_ShowSlideNum() && !bRemoveOnTitle)
