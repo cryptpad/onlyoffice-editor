@@ -709,11 +709,6 @@
 		return (c && c.charCount) || this.defaultColWidthChars;
 	};
 
-	WorksheetView.prototype.getColumnWidthInPx = function (index) {
-		var c = this.model._getColNoEmptyWithAll(index);
-		return (c && c.widthPx) || this.defaultColWidthPx;
-	};
-
     WorksheetView.prototype.getSelectedColumnWidthInSymbols = function () {
         var i, charCount, res = null;
         var range = this.model.selectionRange.getLast();
@@ -1675,12 +1670,6 @@
 		var nCountOffset = 0;
 
 		var t = this;
-		var getRealRowHeight = function(index) {
-			var res = (index < t.rows.length) ? t.rows[index].heightReal :
-				(!t.model.isDefaultHeightHidden()) * t.defaultRowHeightPx;
-			return  AscCommonExcel.convertPtToPx(res);
-		};
-
 		while (AscCommonExcel.c_kMaxPrintPages > arrPages.length) {
 			var newPagePrint = new asc_CPagePrint();
 
@@ -1699,7 +1688,7 @@
 			newPagePrint.topFieldInPx = topFieldInPx;
 
 			for (rowIndex = currentRowIndex; rowIndex <= range.r2; ++rowIndex) {
-				var currentRowHeight = bPageLayout ? getRealRowHeight(rowIndex) : this._getRowHeight(rowIndex);
+				var currentRowHeight = this._getRowHeight(rowIndex);
 				if (!bFitToHeight && currentHeight + currentRowHeight > pageHeightWithFieldsHeadings) {
 					// Закончили рисовать страницу
 					rowIndex = rowIndex;
@@ -1707,7 +1696,7 @@
 				}
 				if (isCalcColumnsWidth) {
 					for (colIndex = currentColIndex; colIndex <= range.c2; ++colIndex) {
-						var currentColWidth = bPageLayout ? this.getColumnWidthInPx(colIndex) : this._getColumnWidth(colIndex);
+						var currentColWidth = this._getColumnWidth(colIndex);
 						if (bIsAddOffset) {
 							newPagePrint.startOffset = ++nCountOffset;
 							newPagePrint.startOffsetPx = (pageWidthWithFieldsHeadings * newPagePrint.startOffset);
@@ -1776,9 +1765,7 @@
 
 			pageRange = new asc_Range(currentColIndex, currentRowIndex, colIndex - 1, rowIndex - 1);
 			newPagePrint.pageRange = pageRange;
-			if(!bPageLayout || (bPageLayout && pageRange.intersection(this.visibleRange))){
-				arrPages.push(newPagePrint);
-			}
+			arrPages.push(newPagePrint);
 
 			if (bIsAddOffset) {
 				// Мы еще не дорисовали колонку
