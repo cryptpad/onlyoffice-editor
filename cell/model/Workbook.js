@@ -4233,11 +4233,11 @@
 			row.setStyle(null);
 
 			if(!t.workbook.bRedoChanges) {
-				if(collapsedInfo && collapsedInfo.level < row.getOutlineLevel()) {
+				if(collapsedInfo !== null && collapsedInfo < row.getOutlineLevel()) {
 					collapsedInfo = null;
 				}
 				if(row.getCollapsed()) {
-					collapsedInfo = {level: row.getOutlineLevel(), index: row.index};
+					collapsedInfo = row.getOutlineLevel();
 					t.setCollapsedRow(false, null, row);
 				}
 			}
@@ -4247,9 +4247,9 @@
 		});
 
 		//ms не удаляет collapsed с удаляемой строки, он наследует это свойство следующей
-		if(collapsedInfo && lastRowIndex === stop) {
+		if(collapsedInfo !== null && lastRowIndex === stop) {
 			this._getRow(stop + 1, function(row) {
-				if(collapsedInfo.level >= row.getOutlineLevel()) {
+				if(collapsedInfo >= row.getOutlineLevel()) {
 					//row.setCollapsed(true);
 					t.setCollapsedRow(true, null, row);
 				}
@@ -4375,6 +4375,7 @@
 		var redrawTablesArr = this.autoFilters.insertColumn(oActualRange, nDif);
 		this.updatePivotOffset(oActualRange, offset);
 
+		var collapsedInfo = null, lastRowIndex;
 		var oDefColPr = new AscCommonExcel.UndoRedoData_ColProp();
 		this.getRange3(0, start, gc_nMaxRow0,stop)._foreachColNoEmpty(function(col){
 			var nIndex = col.getIndex();
@@ -4382,9 +4383,28 @@
 			if(false === oOldProps.isEqual(oDefColPr))
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_ColProp, t.getId(), new Asc.Range(nIndex, 0, nIndex, gc_nMaxRow0), new UndoRedoData_IndexSimpleProp(nIndex, false, oOldProps, oDefColPr));
 			col.setStyle(null);
+
+			lastRowIndex = col.index;
+			if(!t.workbook.bRedoChanges) {
+				if(collapsedInfo !== null && collapsedInfo < col.getOutlineLevel()) {
+					collapsedInfo = null;
+				}
+				if(col.getCollapsed()) {
+					collapsedInfo = col.getOutlineLevel();
+					t.setCollapsedCol(false, null, col);
+				}
+			}
 		}, function(cell){
 			t._removeCell(null, null, cell);
 		});
+
+		if(collapsedInfo !== null && lastRowIndex === stop) {
+			var curCol = this._getCol(stop + 1);
+			if(curCol && collapsedInfo >= curCol.getOutlineLevel()) {
+				t.setCollapsedCol(true, null, curCol);
+			}
+		}
+
 		this._updateFormulasParents(0, start, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
 		this.cellsByCol.splice(start, stop - start + 1);
 		this.aCols.splice(start, stop - start + 1);
