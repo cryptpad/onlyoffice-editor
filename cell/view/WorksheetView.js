@@ -642,6 +642,20 @@
 		return this._getColLeft(column) * asc_getcvt(0/*px*/, u, this._getPPIX());
     };
 
+	WorksheetView.prototype._getRowHeightReal = function (i) {
+		// Реальная высота из файла (может быть не кратна 1 px, в Excel можно выставить через меню строки)
+		var h = -1;
+		this.model._getRowNoEmptyWithAll(i, function (row) {
+			if (row) {
+				if (row.getHidden()) {
+					h = 0;
+				} else if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
+					h = row.h;
+				}
+			}
+		});
+		return (h < 0) ? AscCommonExcel.oDefaultMetrics.RowHeight : h;
+	};
     WorksheetView.prototype._getRowDescender = function (i) {
         return (i < this.rows.length) ? this.rows[i].descender : this.defaultRowDescender;
 	};
