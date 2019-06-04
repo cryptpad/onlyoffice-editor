@@ -263,7 +263,7 @@ CTable.prototype.Get_Props = function()
 
 	var Pr = {};
 
-	if (tblwidth_Auto === TablePr.TableW.Type)
+	if (tblwidth_Auto === TablePr.TableW.Type || (tblwidth_Mm === TablePr.TableW.Type && TablePr.TableW.W < 0.001))
 		Pr.TableWidth = null;
 	else if (tblwidth_Mm === TablePr.TableW.Type)
 		Pr.TableWidth = TablePr.TableW.W;
