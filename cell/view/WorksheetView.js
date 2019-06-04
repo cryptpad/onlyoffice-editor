@@ -180,7 +180,6 @@
 	function CacheRow() {
 		this.top = 0;
 		this.height = 0;			// Высота с точностью до 1 px
-		this.heightReal = 0;		// Реальная высота из файла (может быть не кратна 1 px, в Excel можно выставить через меню строки)
 		this.descender = 0;
 	}
 
@@ -425,6 +424,7 @@
         this.skipUpdateRowHeight = false;
         this.canChangeColWidth = c_oAscCanChangeColWidth.none;
         this.scrollType = 0;
+        this.updateRowHeightValuePx = null;
 
         this.viewPrintLines = false;
 
@@ -746,8 +746,8 @@
         for (i = range.r1; i <= range.r2; ++i) {
 			hR = this._getRowHeightReal(i);
 			if (null !== res && res !== hR) {
-                return null;
-            }
+				return null;
+			}
 			res = hR;
 
 			if (i >= this.rows.length) {
@@ -1420,7 +1420,6 @@
 		r = this.rows[i] = new CacheRow();
 		r.top = y;
 		r.height = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
-		r.heightReal = hR;
 		r.descender = this.defaultRowDescender;
 
 		return hiddenH;
@@ -5358,7 +5357,8 @@
 		var va = align.getAlignVertical();
 		var rowInfo = this.rows[cell.nRow];
 		var updateDescender = (va === Asc.c_oAscVAlign.Bottom && !angle);
-		var d = this._getRowDescender(cell.nRow), th = AscCommonExcel.convertPtToPx(rowInfo.heightReal);
+		var d = this._getRowDescender(cell.nRow);
+		var th = this.updateRowHeightValuePx || AscCommonExcel.convertPtToPx(this._getRowHeightReal(cell.nRow));
 		if (cell.getValueMultiText()) {
 			fr = cell.getValue2();
 		} else {
@@ -5387,14 +5387,15 @@
 			}
 		}
 
-		rowInfo.heightReal = AscCommonExcel.convertPxToPt(th);
 		rowInfo.height = Asc.round(th * this.getZoom());
 		rowInfo.descender = d;
+		return th;
 	};
 	WorksheetView.prototype._updateRowHeight = function (cache, row, maxW, colWidth) {
 	    if (this.skipUpdateRowHeight) {
 	        return;
         }
+	    var res = null;
 		var mergeType = cache.flags && cache.flags.getMergeType();
 		var isMergedRows = (mergeType & c_oAscMergeType.rows) || (mergeType && cache.flags.wrapText);
 		var tm = cache.metrics;
@@ -5415,17 +5416,18 @@
 		// Замерженная ячейка (с 2-мя или более строками) не влияет на высоту строк!
 		if (!isCustomHeight && !(window["NATIVE_EDITOR_ENJINE"] && this.notUpdateRowHeight) && !isMergedRows) {
 			var newHeight = tm.height;
-			var oldHeight = AscCommonExcel.convertPtToPx(rowInfo.heightReal);
+			var oldHeight = this.updateRowHeightValuePx || AscCommonExcel.convertPtToPx(this._getRowHeightReal(row));
 			if (cache.angle && textBound) {
 				newHeight = Math.max(oldHeight, textBound.height);
 			}
 
 			newHeight = Math.min(this.maxRowHeightPx, Math.max(oldHeight, newHeight));
 			if (newHeight !== oldHeight) {
-				rowInfo.heightReal = AscCommonExcel.convertPxToPt(newHeight);
 				rowInfo.height = Asc.round(newHeight * this.getZoom());
 				History.TurnOff();
-				this.model.setRowHeight(rowInfo.heightReal, row, row, false);
+				res = newHeight;
+				// ToDo delete setRowHeight here
+				this.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight), row, row, false);
 				History.TurnOn();
 
 				if (cache.angle) {
@@ -5440,6 +5442,7 @@
 				this.isChanged = true;
 			}
 		}
+		return res;
 	};
 
 	WorksheetView.prototype._updateRowsHeight = function () {
@@ -5464,34 +5467,34 @@
 						continue;
 					}
 
+					t.updateRowHeightValuePx = t.defaultRowHeightPx;
 					row = t.rows[r];
-					row.heightReal = AscCommonExcel.oDefaultMetrics.RowHeight;
-					row.height = Asc.round(AscCommonExcel.convertPtToPx(row.heightReal) * t.getZoom());
+					row.height = Asc.round(t.defaultRowHeightPx * t.getZoom());
 					row.descender = t.defaultRowDescender;
 
 					cache = t._getRowCache(r);
 
 					itRow.setRow(r);
-					var cell;
+					var cell, newHeight;
 					while (cell = itRow.next()) {
 						if (c_oAscMergeType.cols & getMergeType(t.model.getMergedByCell(cell.nRow, cell.nCol))) {
 							return;
 						}
-						if (cache && cache[cell.nCol]) {
-							t._updateRowHeight(cache[cell.nCol], r);
-						} else {
-							t._updateRowHeight2(cell);
-						}
+						t.updateRowHeightValuePx = (cache && cache[cell.nCol] ? t._updateRowHeight(cache[cell.nCol], r)
+							: t._updateRowHeight2(cell)) || t.updateRowHeightValuePx;
 					}
 
-					History.TurnOff();
-					t.model.setRowHeight(row.heightReal, r, r, false);
-					History.TurnOn();
+					if (newHeight) {
+						History.TurnOff();
+						t.model.setRowHeight(AscCommonExcel.convertPxToPt(t.updateRowHeightValuePx), r, r, false);
+						History.TurnOn();
+					}
 
 					minRow = Math.min(minRow, range.r1);
 				}
 			});
         }
+		this.updateRowHeightValuePx = null;
 		this.arrRecalcRangesWithHeight = [];
 		this.arrRecalcRangesCanChangeColWidth = [];
 		this.canChangeColWidth = canChangeColWidth;
