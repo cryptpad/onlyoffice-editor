@@ -309,7 +309,16 @@
                 }
                 default:
                 {
-                    sStr = sFieldType.toUpperCase();
+                    if(sFieldType.indexOf("datetime") === 0)
+                    {
+                        oDateTime = new Asc.cDate();
+                        oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
+                        sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+                    }
+                    else
+                    {
+                        sStr = sFieldType.toUpperCase();
+                    }
                     break;
                 }
             }

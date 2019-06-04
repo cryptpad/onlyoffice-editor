@@ -1768,10 +1768,10 @@ function CBinaryFileWriter()
     this.WriteHF = function(hf)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
-        oThis._WriteBool2(0, hf.dt);
-        oThis._WriteBool2(1, hf.ftr);
-        oThis._WriteBool2(2, hf.hdr);
-        oThis._WriteBool2(3, hf.sldNum);
+        oThis._WriteBool2(0, hf.dt === null ? true : hf.dt);
+        oThis._WriteBool2(1, hf.ftr === null ? true : hf.ftr);
+        oThis._WriteBool2(2, hf.hdr === null ? true : hf.hdr);
+        oThis._WriteBool2(3, hf.sldNum === null ? true : hf.sldNum);
         oThis.WriteUChar(g_nodeAttributeEnd);
     }
     this.WriteTxStyles = function(txStyles)
