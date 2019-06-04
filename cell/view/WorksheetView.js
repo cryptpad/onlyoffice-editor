@@ -726,15 +726,17 @@
     WorksheetView.prototype.getSelectedColumnWidthInSymbols = function () {
         var i, charCount, res = null;
         var range = this.model.selectionRange.getLast();
-        for (i = range.c1; i <= range.c2 && i < this.cols.length; ++i) {
+        for (i = range.c1; i <= range.c2; ++i) {
 			charCount = this.getColumnWidthInSymbols(i);
-            if (null === res) {
-                res = charCount;
-            } else if (res !== charCount) {
+			if (null !== res && res !== charCount) {
                 return null;
             }
+			res = charCount;
+
+            if (i >= this.cols.length) {
+				break;
+			}
         }
-        // ToDo сравнить с default для проверки выделения всего
         return res;
     };
 
