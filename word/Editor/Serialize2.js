@@ -368,7 +368,8 @@ var c_oSerProp_secPrType = {
 	cols: 8,
 	pgBorders: 9,
 	footnotePr: 10,
-	endnotePr: 11
+	endnotePr: 11,
+	rtlGutter: 12
 };
 var c_oSerProp_secPrSettingsType = {
     titlePg: 0,
@@ -619,7 +620,8 @@ var c_oSer_pgMarType = {
 	RightTwips: 8,
 	BottomTwips: 9,
 	HeaderTwips: 10,
-	FooterTwips: 11
+	FooterTwips: 11,
+	GutterTwips: 12
 };
 var c_oSer_CommentsType = {
 	Comment: 0,
@@ -653,7 +655,13 @@ var c_oSer_SettingsType = {
 	Compat: 8,
 	DefaultTabStopTwips: 9,
 	DecimalSymbol: 10,
-	ListSeparator: 11
+	ListSeparator: 11,
+	GutterAtTop: 12,
+	MirrorMargins: 13,
+	PrintTwoOnOne: 14,
+	BookFoldPrinting: 15,
+	BookFoldPrintingSheets: 16,
+	BookFoldRevPrinting: 17
 };
 var c_oSer_MathPrType = {
 	BrkBin: 0,
@@ -2412,6 +2420,8 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			this.bs.WriteItem(c_oSerProp_secPrType.pgBorders, function(){oThis.WritePgBorders(sectPr.Borders);});
 		if(null != sectPr.FootnotePr)
 			this.bs.WriteItem(c_oSerProp_secPrType.footnotePr, function(){oThis.WriteFootnotePr(sectPr.FootnotePr);});
+		// if(null != sectPr.RtlGutter)
+		// 	this.bs.WriteItem(c_oSerProp_secPrType.rtlGutter, function(){oThis.memory.WriteBool(sectPr.RtlGutter);});
     };
 	this.WriteFootnotePr = function(footnotePr)
 	{
@@ -2491,6 +2501,12 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         this.memory.WriteByte(c_oSer_pgMarType.FooterTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
         this.bs.writeMmToTwips(sectPr.Get_PageMargins_Footer());
+		//gutter
+		// if (null != sectPr.Gutter) {
+		// 	this.memory.WriteByte(c_oSer_pgMarType.GutterTwips);
+		// 	this.memory.WriteByte(c_oSerPropLenType.Long);
+		// 	this.bs.writeMmToTwips(sectPr.Gutter);
+		// }
     };
 	this.WritePageSetting = function(sectPr, oDocument)
     {
@@ -6308,6 +6324,24 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		if (oThis.Document.Settings && oThis.Document.Settings.ListSeparator) {
 			this.bs.WriteItem(c_oSer_SettingsType.ListSeparator, function() {oThis.memory.WriteString3(oThis.Document.Settings.ListSeparator);});
 		}
+		// if (oThis.Document.Settings && null != oThis.Document.Settings.GutterAtTop) {
+		// 	this.bs.WriteItem(c_oSer_SettingsType.GutterAtTop, function() {oThis.memory.WriteBool(oThis.Document.Settings.GutterAtTop);});
+		// }
+		// if (oThis.Document.Settings && null != oThis.Document.Settings.MirrorMargins) {
+		// 	this.bs.WriteItem(c_oSer_SettingsType.MirrorMargins, function() {oThis.memory.WriteBool(oThis.Document.Settings.MirrorMargins);});
+		// }
+		// if (oThis.Document.Settings && null != oThis.Document.Settings.PrintTwoOnOne) {
+		// 	this.bs.WriteItem(c_oSer_SettingsType.PrintTwoOnOne, function() {oThis.memory.WriteBool(oThis.Document.Settings.PrintTwoOnOne);});
+		// }
+		// if (oThis.Document.Settings && null != oThis.Document.Settings.BookFoldPrinting) {
+		// 	this.bs.WriteItem(c_oSer_SettingsType.BookFoldPrinting, function() {oThis.memory.WriteBool(oThis.Document.Settings.BookFoldPrinting);});
+		// }
+		// if (oThis.Document.Settings && null != oThis.Document.Settings.BookFoldPrintingSheets) {
+		// 	this.bs.WriteItem(c_oSer_SettingsType.BookFoldPrintingSheets, function() {oThis.memory.WriteLong(oThis.Document.Settings.BookFoldPrintingSheets);});
+		// }
+		// if (oThis.Document.Settings && null != oThis.Document.Settings.BookFoldRevPrinting) {
+		// 	this.bs.WriteItem(c_oSer_SettingsType.BookFoldRevPrinting, function() {oThis.memory.WriteBool(oThis.Document.Settings.BookFoldRevPrinting);});
+		// }
 		if (!oThis.Document.IsSdtGlobalSettingsDefault()) {
 			var rPr = new CTextPr();
 			rPr.Color = oThis.Document.GetSdtGlobalColor();
@@ -8524,8 +8558,9 @@ function Binary_pPrReader(doc, oReadResult, stream)
 			if (null != props.pos) {
 				oSectPr.SetFootnotePos(props.pos);
 			}
-		}
-        else
+		// } else if( c_oSerProp_secPrType.rtlGutter === type ) {
+		// 	oSectPr.RtlGutter = this.stream.GetBool();
+		} else
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
@@ -8678,6 +8713,10 @@ function Binary_pPrReader(doc, oReadResult, stream)
 		{
 			oSectPr.Set_PageMargins_Footer(g_dKoef_twips_to_mm * this.stream.GetULongLE());
 		}
+		// else if( c_oSer_pgMarType.GutterTwips === type )
+		// {
+		// 	oSectPr.Gutter = g_dKoef_twips_to_mm * this.stream.GetULongLE();
+		// }
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -15040,6 +15079,30 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		{
 			editor.WordControl.m_oLogicDocument.Settings.ListSeparator = this.stream.GetString2LE(length);
 		}
+		// else if ( c_oSer_SettingsType.GutterAtTop === type )
+		// {
+		// 	editor.WordControl.m_oLogicDocument.Settings.GutterAtTop = this.stream.GetBool();
+		// }
+		// else if ( c_oSer_SettingsType.MirrorMargins === type )
+		// {
+		// 	editor.WordControl.m_oLogicDocument.Settings.MirrorMargins = this.stream.GetBool();
+		// }
+		// else if ( c_oSer_SettingsType.PrintTwoOnOne === type )
+		// {
+		// 	editor.WordControl.m_oLogicDocument.Settings.PrintTwoOnOne = this.stream.GetBool();
+		// }
+		// else if ( c_oSer_SettingsType.BookFoldPrinting === type )
+		// {
+		// 	editor.WordControl.m_oLogicDocument.Settings.BookFoldPrinting = this.stream.GetBool();
+		// }
+		// else if ( c_oSer_SettingsType.BookFoldPrintingSheets === type )
+		// {
+		// 	editor.WordControl.m_oLogicDocument.Settings.BookFoldPrintingSheets = this.stream.GetLong();
+		// }
+		// else if ( c_oSer_SettingsType.BookFoldRevPrinting === type )
+		// {
+		// 	editor.WordControl.m_oLogicDocument.Settings.BookFoldRevPrinting = this.stream.GetBool();
+		// }
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
