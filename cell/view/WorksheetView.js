@@ -741,16 +741,19 @@
     };
 
     WorksheetView.prototype.getSelectedRowHeight = function () {
-        var r, res = null;
+        var i, hR, res = null;
         var range = this.model.selectionRange.getLast();
-        for (r = range.r1; r <= range.r2 && r < this.rows.length; ++r) {
-            if (null === res) {
-                res = this.rows[r].heightReal;
-            } else if (res !== this.rows[r].heightReal) {
+        for (i = range.r1; i <= range.r2; ++i) {
+			hR = this._getRowHeightReal(i);
+			if (null !== res && res !== hR) {
                 return null;
             }
+			res = hR;
+
+			if (i >= this.rows.length) {
+				break;
+			}
         }
-        // ToDo сравнить с default для проверки выделения всего
         return res;
     };
 
