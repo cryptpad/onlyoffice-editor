@@ -4223,16 +4223,38 @@
 		var redrawTablesArr = this.autoFilters.insertRows("delCell", oActualRange, c_oAscDeleteOptions.DeleteRows);
 		this.updatePivotOffset(oActualRange, offset);
 
+		var collapsedInfo = null, lastRowIndex;
 		var oDefRowPr = new AscCommonExcel.UndoRedoData_RowProp();
 		this.getRange3(start,0,stop,gc_nMaxCol0)._foreachRowNoEmpty(function(row){
 			var oOldProps = row.getHeightProp();
+			lastRowIndex = row.index;
 			if (false === oOldProps.isEqual(oDefRowPr))
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_RowProp, t.getId(), row._getUpdateRange(), new UndoRedoData_IndexSimpleProp(row.getIndex(), true, oOldProps, oDefRowPr));
 			row.setStyle(null);
 
+			if(!t.workbook.bRedoChanges) {
+				if(collapsedInfo && collapsedInfo.level < row.getOutlineLevel()) {
+					collapsedInfo = null;
+				}
+				if(row.getCollapsed()) {
+					collapsedInfo = {level: row.getOutlineLevel(), index: row.index};
+					t.setCollapsedRow(false, null, row);
+				}
+			}
+
 		}, function(cell){
 			t._removeCell(null, null, cell);
 		});
+
+		//ms не удаляет collapsed с удаляемой строки, он наследует это свойство следующей
+		if(collapsedInfo && lastRowIndex === stop) {
+			this._getRow(stop + 1, function(row) {
+				if(collapsedInfo.level >= row.getOutlineLevel()) {
+					//row.setCollapsed(true);
+					t.setCollapsedRow(true, null, row);
+				}
+			});
+		}
 
 		this._updateFormulasParents(start, 0, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
 		this.rowsData.deleteRange(start, (-nDif));
