@@ -4249,10 +4249,11 @@
 		//ms не удаляет collapsed с удаляемой строки, он наследует это свойство следующей
 		if(collapsedInfo !== null && lastRowIndex === stop) {
 			this._getRow(stop + 1, function(row) {
-				if(collapsedInfo >= row.getOutlineLevel()) {
+				//TODO проверить!!!
+				//if(collapsedInfo >= row.getOutlineLevel()) {
 					//row.setCollapsed(true);
 					t.setCollapsedRow(true, null, row);
-				}
+				//}
 			});
 		}
 
@@ -4400,7 +4401,8 @@
 
 		if(collapsedInfo !== null && lastRowIndex === stop) {
 			var curCol = this._getCol(stop + 1);
-			if(curCol && collapsedInfo >= curCol.getOutlineLevel()) {
+			//TODO проверить!!!
+			if(curCol /*&& collapsedInfo >= curCol.getOutlineLevel()*/) {
 				t.setCollapsedCol(true, null, curCol);
 			}
 		}
