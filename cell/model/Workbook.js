@@ -87,6 +87,7 @@
 	};
 	var g_sNewSheetNamePattern = "Sheet";
 	var g_nSheetNameMaxLength = 31;
+	var g_nDefNameMaxLength = 255;
 	var g_nAllColIndex = -1;
 	var g_nAllRowIndex = -1;
 	var aStandartNumFormats = [];
@@ -737,7 +738,7 @@
 		editDefinesNames: function(oldUndoName, newUndoName) {
 			var res = null;
 			if (!AscCommon.rx_defName.test(getDefNameIndex(newUndoName.name)) || !newUndoName.ref ||
-				newUndoName.ref.length == 0) {
+				newUndoName.ref.length == 0 || newUndoName.name.length > g_nDefNameMaxLength) {
 				return res;
 			}
 			if (oldUndoName) {
@@ -777,7 +778,7 @@
 						AscCommonExcel.g_oRangeCache.getAscRange(name);
 				});
 			}
-			if (range || !AscCommon.rx_defName.test(name.toLowerCase())) {
+			if (range || !AscCommon.rx_defName.test(name.toLowerCase()) || name.length > g_nDefNameMaxLength) {
 				res.status = false;
 				res.reason = c_oAscDefinedNameReason.WrongName;
 				return res;
