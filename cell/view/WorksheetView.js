@@ -10348,6 +10348,24 @@
             firstValuesRow = 0;
         }
 
+		var excludeHiddenRows = t.model.autoFilters.bIsExcludeHiddenRows(t.model.selectionRange.getLast(), t.model.selectionRange.activeCell);
+		var hiddenRowsArray = {};
+		var getOpenRowsCount = function(oRange) {
+			var res = oRange.r2 - oRange.r1 + 1;
+			if(false && excludeHiddenRows) {
+				var tempRange = t.model.getRange3(oRange.r1,0,oRange.r2, 0);
+				tempRange._foreachRowNoEmpty(function(row) {
+					if(row.getHidden()) {
+						res--;
+						if(!isCheckSelection) {
+							hiddenRowsArray[row.index] = 1;
+						}
+					}
+				});
+			}
+			return res;
+		};
+
         var rowDiff = arn.r1 - activeCellsPasteFragment.r1;
         var colDiff = arn.c1 - activeCellsPasteFragment.c1;
         var newPasteRange = new Asc.Range(arn.c1 - colDiff, arn.r1 - rowDiff, arn.c2 - colDiff, arn.r2 - rowDiff);
@@ -10360,7 +10378,7 @@
         } else if (arn.c2 >= cMax - 1 && arn.r2 >= rMax - 1) {
             //если область кратная куску вставки
             var widthArea = arn.c2 - arn.c1 + 1;
-            var heightArea = arn.r2 - arn.r1 + 1;
+            var heightArea = getOpenRowsCount(arn);
             var widthPasteFr = cMax - arn.c1;
             var heightPasteFr = rMax - arn.r1;
             //если кратны, то обрабатываем
@@ -10703,16 +10721,21 @@
 
 		 }*/
 
-
+		var hiddenRowCount = 0;
         for (var autoR = 0; autoR < maxARow; ++autoR) {
             for (var autoC = 0; autoC < maxACol; ++autoC) {
                 for (var r = 0; r < rMax - arn.r1; ++r) {
                     for (var c = 0; c < cMax - arn.c1; ++c) {
-                        var pasteRow = r + activeCellsPasteFragment.r1;
+                    	/*if(isMultiple && hiddenRowsArray[r + autoR * plRow + arn.r1]) {
+							hiddenRowCount++;
+                    		continue;
+						}*/
+
+                        var pasteRow = r + activeCellsPasteFragment.r1 - hiddenRowCount;
                         var pasteCol = c + activeCellsPasteFragment.c1;
 						if(specialPasteProps.transpose)
 						{
-							pasteRow = c + activeCellsPasteFragment.r1;
+							pasteRow = c + activeCellsPasteFragment.r1 - hiddenRowCount;
 							pasteCol = r + activeCellsPasteFragment.c1;
 						}
 
