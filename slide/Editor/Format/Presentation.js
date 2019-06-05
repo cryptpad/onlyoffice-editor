@@ -8122,12 +8122,89 @@ CPresentation.prototype =
         var oldMaster =  this.Slides[this.CurPage] && this.Slides[this.CurPage].Layout && this.Slides[this.CurPage].Layout.Master;
         var _new_master = themeInfo.Master;
         _new_master.presentation = this;
-        var _master_width = _new_master.Width;
-        var _master_height = _new_master.Height;
         themeInfo.Master.changeSize(this.Width, this.Height);
+        var oContent, oMasterSp, oMasterContent, oSp;
         if(oldMaster && oldMaster.hf)
         {
             themeInfo.Master.setHF(oldMaster.hf.createDuplicate());
+            if(oldMaster.hf.dt !== false)
+            {
+                oMasterSp = oldMaster.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                if(oMasterSp)
+                {
+                    oMasterContent = oMasterSp.getDocContent && oMasterSp.getDocContent();
+                    if(oMasterContent)
+                    {
+                        oSp = themeInfo.Master.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                        if(oSp)
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            oContent.Copy2(oMasterContent);
+                        }
+                        for(i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i)
+                        {
+                            oSp = themeInfo.Master.sldLayoutLst[i].getMatchingShape(AscFormat.phType_dt, null, false, {});
+                            if(oSp)
+                            {
+                                oContent = oSp.getDocContent && oSp.getDocContent();
+                                oContent.Copy2(oMasterContent);
+                            }
+                        }
+                    }
+                }
+            }
+            if(oldMaster.hf.hdr !== false)
+            {
+                oMasterSp = oldMaster.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                if(oMasterSp)
+                {
+                    oMasterContent = oMasterSp.getDocContent && oMasterSp.getDocContent();
+                    if(oMasterContent)
+                    {
+                        oSp = themeInfo.Master.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                        if(oSp)
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            oContent.Copy2(oMasterContent);
+                        }
+                        for(i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i)
+                        {
+                            oSp = themeInfo.Master.sldLayoutLst[i].getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                            if(oSp)
+                            {
+                                oContent = oSp.getDocContent && oSp.getDocContent();
+                                oContent.Copy2(oMasterContent);
+                            }
+                        }
+                    }
+                }
+            }
+            if(oldMaster.hf.ftr !== false)
+            {
+                oMasterSp = oldMaster.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                if(oMasterSp)
+                {
+                    oMasterContent = oMasterSp.getDocContent && oMasterSp.getDocContent();
+                    if(oMasterContent)
+                    {
+                        oSp = themeInfo.Master.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                        if(oSp)
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            oContent.Copy2(oMasterContent);
+                        }
+                        for(i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i)
+                        {
+                            oSp = themeInfo.Master.sldLayoutLst[i].getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                            if(oSp)
+                            {
+                                oContent = oSp.getDocContent && oSp.getDocContent();
+                                oContent.Copy2(oMasterContent);
+                            }
+                        }
+                    }
+                }
+            }
         }
         for(i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i)
         {
