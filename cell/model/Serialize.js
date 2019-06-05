@@ -301,7 +301,9 @@
         Min: 3,
         Style: 4,
         Width: 5,
-        CustomWidth: 6
+        CustomWidth: 6,
+        OutLevel: 7,
+        Collapsed: 8
     };
     /** @enum */
     var c_oSerHyperlinkTypes =
@@ -318,7 +320,9 @@
         DefaultRowHeight	: 1,
         BaseColWidth		: 2,
         CustomHeight		: 3,
-        ZeroHeight			: 4
+        ZeroHeight			: 4,
+        OutlineLevelCol		: 5,
+        OutlineLevelRow		: 6
     };
     /** @enum */
     var c_oSerRowTypes =
@@ -329,7 +333,9 @@
         Hidden: 3,
         Cells: 4,
         Cell: 5,
-        CustomHeight: 6
+        CustomHeight: 6,
+        OutLevel: 7,
+        Collapsed: 8
     };
     /** @enum */
     var c_oSerCellTypes =
@@ -3151,7 +3157,7 @@
                 aIndexes.push(i - 0);
             aIndexes.sort(AscCommon.fSortAscending);
             var fInitCol = function(col, nMin, nMax){
-                var oRes = {BestFit: col.BestFit, hd: col.getHidden(), Max: nMax, Min: nMin, xfsid: null, width: col.width, CustomWidth: col.CustomWidth};
+                var oRes = {col: col, Max: nMax, Min: nMin, xfsid: null, width: col.width};
                 if(null == oRes.width)
                 {
                     if(null != ws.oSheetFormatPr.dDefaultColWidth)
@@ -3222,8 +3228,9 @@
                 }
             }
         };
-        this.WriteWorksheetCol = function(oCol)
+        this.WriteWorksheetCol = function(oTmpCol)
         {
+            var oCol = oTmpCol.col;
             if(null != oCol.BestFit)
             {
                 this.memory.WriteByte(c_oSerWorksheetColTypes.BestFit);
@@ -3236,35 +3243,47 @@
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
                 this.memory.WriteBool(oCol.hd);
             }
-            if(null != oCol.Max)
+            if(null != oTmpCol.Max)
             {
                 this.memory.WriteByte(c_oSerWorksheetColTypes.Max);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(oCol.Max);
+                this.memory.WriteLong(oTmpCol.Max);
             }
-            if(null != oCol.Min)
+            if(null != oTmpCol.Min)
             {
                 this.memory.WriteByte(c_oSerWorksheetColTypes.Min);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(oCol.Min);
+                this.memory.WriteLong(oTmpCol.Min);
             }
-            if(null != oCol.xfsid)
+            if(null != oTmpCol.xfsid)
             {
                 this.memory.WriteByte(c_oSerWorksheetColTypes.Style);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(oCol.xfsid);
+                this.memory.WriteLong(oTmpCol.xfsid);
             }
-            if(null != oCol.width)
+            if(null != oTmpCol.width)
             {
                 this.memory.WriteByte(c_oSerWorksheetColTypes.Width);
                 this.memory.WriteByte(c_oSerPropLenType.Double);
-                this.memory.WriteDouble2(oCol.width);
+                this.memory.WriteDouble2(oTmpCol.width);
             }
             if(null != oCol.CustomWidth)
             {
                 this.memory.WriteByte(c_oSerWorksheetColTypes.CustomWidth);
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
                 this.memory.WriteBool(oCol.CustomWidth);
+            }
+            if (oCol.outlineLevel > 0)
+            {
+                this.memory.WriteByte(c_oSerWorksheetColTypes.OutLevel);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oCol.outlineLevel);
+            }
+            if (oCol.collapsed)
+            {
+                this.memory.WriteByte(c_oSerWorksheetColTypes.Collapsed);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteBool(true);
             }
         };
         this.WriteSheetViews = function (ws) {
@@ -3348,6 +3367,16 @@
                 this.memory.WriteByte(c_oSerSheetFormatPrTypes.DefaultColWidth);
                 this.memory.WriteByte(c_oSerPropLenType.Double);
                 this.memory.WriteDouble2(ws.oSheetFormatPr.dDefaultColWidth);
+            }
+            if (ws.oSheetFormatPr.nOutlineLevelCol > 0) {
+                this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelCol);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelCol);
+            }
+            if (ws.oSheetFormatPr.nOutlineLevelRow > 0) {
+                this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelRow);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelRow);
             }
             if(null !== ws.oSheetFormatPr.oAllRow) {
                 var oAllRow = ws.oSheetFormatPr.oAllRow;
@@ -3847,6 +3876,18 @@
             if(oRow.getHidden())
             {
                 this.memory.WriteByte(c_oSerRowTypes.Hidden);
+                this.memory.WriteByte(c_oSerPropLenType.Byte);
+                this.memory.WriteBool(true);
+            }
+            if (oRow.outlineLevel > 0)
+            {
+                this.memory.WriteByte(c_oSerRowTypes.OutLevel);
+                this.memory.WriteByte(c_oSerPropLenType.Long);
+                this.memory.WriteLong(oRow.outlineLevel);
+            }
+            if (oRow.getCollapsed())
+            {
+                this.memory.WriteByte(c_oSerRowTypes.Collapsed);
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
                 this.memory.WriteBool(true);
             }
@@ -6773,32 +6814,9 @@
             {
                 var aTempCols = [];
                 res = this.bcr.Read1(length, function(t,l){
-                    return oThis.ReadWorksheetCols(t,l, aTempCols, oWorksheet);
+                    return oThis.ReadWorksheetCols(t,l, aTempCols, oWorksheet, oThis.aCellXfs);
                 });
 
-                var fInitCol = function(oFrom, oTo)
-                {
-                    if(null != oFrom.BestFit)
-                        oTo.BestFit = oFrom.BestFit;
-                    oTo.setHidden(oFrom.hd);
-                    if(null != oFrom.xfs)
-                        oTo.setStyle(oFrom.xfs);
-                    else if(null != oFrom.xfsid)
-                    {
-                        var xfs = oThis.aCellXfs[oFrom.xfsid];
-                        if(null != xfs)
-                        {
-                            oFrom.xfs = xfs;
-                            oTo.setStyle(xfs);
-                        }
-                    }
-                    if(null != oFrom.width)
-                        oTo.width = oFrom.width;
-                    if(null != oFrom.CustomWidth)
-                        oTo.CustomWidth = oFrom.CustomWidth;
-                    if(oTo.index >= oWorksheet.nColsCount)
-                        oWorksheet.nColsCount = oTo.index + 1;
-                };
                 //если есть стиль последней колонки, назначаем его стилем всей таблицы и убираем из колонок
                 var oAllCol = null;
                 if(aTempCols.length > 0)
@@ -6806,23 +6824,21 @@
                     var oLast = aTempCols[aTempCols.length - 1];
                     if(AscCommon.gc_nMaxCol == oLast.Max)
                     {
-                        oAllCol = oLast;
-                        fInitCol(oAllCol, oWorksheet.getAllCol());
+                        oAllCol = oWorksheet.getAllCol();
+                        oLast.col.cloneTo(oAllCol);
                     }
                 }
-                for(var i = 0, length = aTempCols.length; i < length; ++i)
+                for(var i = 0; i < aTempCols.length; ++i)
                 {
                     var elem = aTempCols[i];
-                    if(null != oAllCol && elem.BestFit == oAllCol.BestFit && elem.hd == oAllCol.hd && elem.xfs == oAllCol.xfs && elem.width == oAllCol.width && elem.CustomWidth == oAllCol.CustomWidth)
+                    if(elem.Max >= oWorksheet.nColsCount)
+                        oWorksheet.nColsCount = elem.Max;
+                    if(null != oAllCol && oAllCol.isEqual(elem.col))
                         continue;
-                    if(null == elem.width)
-                    {
-                        elem.width = 0;
-                        elem.hd = true;
-                    }
+
                     for(var j = elem.Min; j <= elem.Max; j++){
                         var oNewCol = new AscCommonExcel.Col(oWorksheet, j - 1);
-                        fInitCol(elem, oNewCol);
+                        elem.col.cloneTo(oNewCol);
                         oWorksheet.aCols[oNewCol.index] = oNewCol;
                     }
                 }
@@ -6965,48 +6981,47 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
-        this.ReadWorksheetCols = function(type, length, aTempCols, oWorksheet)
+        this.ReadWorksheetCols = function(type, length, aTempCols, oWorksheet, aCellXfs)
         {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
             if ( c_oSerWorksheetsTypes.Col == type )
             {
-                var oTempCol = {BestFit: null, hd: null, Max: null, Min: null, xfs: null, xfsid: null, width: null, CustomWidth: null};
+                var oTempCol = {Max: null, Min: null, col: new AscCommonExcel.Col(oWorksheet, 0)};
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
-                    return oThis.ReadWorksheetCol(t,l, oTempCol);
+                    return oThis.ReadWorksheetCol(t,l, oTempCol, aCellXfs);
                 });
+                oTempCol.col.fixOnOpening();
                 aTempCols.push(oTempCol);
             }
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
-        this.ReadWorksheetCol = function(type, length, oCol)
+        this.ReadWorksheetCol = function(type, length, oTempCol, aCellXfs)
         {
             var res = c_oSerConstants.ReadOk;
             if ( c_oSerWorksheetColTypes.BestFit == type )
-                oCol.BestFit = this.stream.GetBool();
+                oTempCol.col.BestFit = this.stream.GetBool();
             else if ( c_oSerWorksheetColTypes.Hidden == type )
-                oCol.hd = this.stream.GetBool();
+                oTempCol.col.setHidden(this.stream.GetBool());
             else if ( c_oSerWorksheetColTypes.Max == type )
-                oCol.Max = this.stream.GetULongLE();
+                oTempCol.Max = this.stream.GetULongLE();
             else if ( c_oSerWorksheetColTypes.Min == type )
-                oCol.Min = this.stream.GetULongLE();
-            else if ( c_oSerWorksheetColTypes.Style == type )
-                oCol.xfsid = this.stream.GetULongLE();
-            else if ( c_oSerWorksheetColTypes.Width == type )
-            {
-                oCol.width = this.stream.GetDoubleLE();
-				if (oCol.width < 0) {
-					oCol.width = 0;
-				} else if (oCol.width > Asc.c_oAscMaxColumnWidth) {
-					oCol.width = Asc.c_oAscMaxColumnWidth;
-				}
-                if(AscCommon.CurFileVersion < 2)
-                    oCol.CustomWidth = 1;
-            }
+                oTempCol.Min = this.stream.GetULongLE();
+            else if (c_oSerWorksheetColTypes.Style == type) {
+                var xfs = aCellXfs[this.stream.GetULongLE()];
+                if (xfs) {
+                    oTempCol.col.setStyle(xfs);
+                }
+            } else if ( c_oSerWorksheetColTypes.Width == type )
+                oTempCol.col.width = this.stream.GetDoubleLE();
             else if ( c_oSerWorksheetColTypes.CustomWidth == type )
-                oCol.CustomWidth = this.stream.GetBool();
+                oTempCol.col.CustomWidth = this.stream.GetBool();
+            else if ( c_oSerWorksheetColTypes.OutLevel == type )
+                oTempCol.col.outlineLevel = this.stream.GetULongLE();
+            else if ( c_oSerWorksheetColTypes.Collapsed == type )
+                oTempCol.col.collapsed = this.stream.GetBool();
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -7036,6 +7051,14 @@
 				var hd = this.stream.GetBool();
 				if(hd)
 					oAllRow.setHidden(true);
+            }
+            else if ( c_oSerSheetFormatPrTypes.OutlineLevelCol == type )
+            {
+                oWorksheet.oSheetFormatPr.nOutlineLevelCol = this.stream.GetULongLE();
+            }
+            else if ( c_oSerSheetFormatPrTypes.OutlineLevelRow == type )
+            {
+                oWorksheet.oSheetFormatPr.nOutlineLevelRow = this.stream.GetULongLE();
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -7237,6 +7260,14 @@
 				if(hd)
 					tmp.row.setHidden(true);
 			}
+            else if ( c_oSerRowTypes.OutLevel == type )
+            {
+                tmp.row.setOutlineLevel(this.stream.GetULongLE());
+            }
+            else if ( c_oSerRowTypes.Collapsed == type )
+            {
+                tmp.row.setCollapsed(this.stream.GetBool());
+            }
             else if ( c_oSerRowTypes.Cells == type )
             {
 				//запоминам место чтобы читать Cells в конце, когда уже зачитан oRow.index

@@ -71,6 +71,10 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_RowHide = 28;
 	window['AscCH'].historyitem_Worksheet_SetDisplayGridlines = 31;
 	window['AscCH'].historyitem_Worksheet_SetDisplayHeadings = 32;
+	window['AscCH'].historyitem_Worksheet_GroupRow = 33;
+	window['AscCH'].historyitem_Worksheet_CollapsedRow = 34;
+	window['AscCH'].historyitem_Worksheet_CollapsedCol = 35;
+	window['AscCH'].historyitem_Worksheet_GroupCol = 36;
 // Frozen cell
 	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
 
@@ -494,6 +498,8 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.bRedoChanges = false;
 		if (oRedoObjectParam.bIsReInit)
 			this.workbook.handlers.trigger("reInit");
+		//TODO вызывать только в случае, если были изменения строк/столбцов и отдельно для строк и столбцов
+		this.workbook.handlers.trigger("updateGroupData");
 		this.workbook.handlers.trigger("drawWS");
 		if (bUndo) {
 			if (AscCommon.isRealObject(this.lastDrawingObjects)) {

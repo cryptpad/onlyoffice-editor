@@ -207,7 +207,9 @@
 
 			MailToClientMissing	: -452,
 
-			NoDataToParse : -601
+			NoDataToParse : -601,
+
+			CannotUngroupError : -700
 		}
 	};
 
@@ -1622,6 +1624,7 @@
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	prot['NoDataToParse']                    = prot.NoDataToParse;
+	prot['CannotUngroupError']               = prot.CannotUngroupError;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;

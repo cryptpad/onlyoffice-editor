@@ -2373,6 +2373,35 @@ var editor;
     this.wb.getWorksheet().changeWorksheet("hideRows");
   };
 
+  spreadsheet_api.prototype.asc_group = function(val) {
+    if(val) {
+		this.wb.getWorksheet().changeWorksheet("groupRows");
+    } else {
+		this.wb.getWorksheet().changeWorksheet("groupCols");
+    }
+  };
+
+  spreadsheet_api.prototype.asc_ungroup = function(val) {
+    if(val) {
+        this.wb.getWorksheet().changeWorksheet("groupRows", true);
+    } else {
+        this.wb.getWorksheet().changeWorksheet("groupCols", true);
+    }
+  };
+
+  spreadsheet_api.prototype.asc_checkAddGroup = function(bUngroup) {
+	  //true - rows, false - columns, null - show dialog, undefined - error
+    return this.wb.getWorksheet().checkAddGroup(bUngroup);
+  };
+
+  spreadsheet_api.prototype.asc_clearOutline = function() {
+      this.wb.getWorksheet().clearOutline();
+  };
+
+  spreadsheet_api.prototype.asc_changeGroupDetails = function(bExpand) {
+	  this.wb.getWorksheet().changeGroupDetails(bExpand);
+  };
+
   spreadsheet_api.prototype.asc_insertCells = function(options) {
     this.wb.getWorksheet().changeWorksheet("insCell", options);
   };
@@ -3829,6 +3858,13 @@ var editor;
 
   prot["asc_applyAutoCorrectOptions"] = prot.asc_applyAutoCorrectOptions;
 
+  //Group data
+  prot["asc_group"] = prot.asc_group;
+  prot["asc_ungroup"] = prot.asc_ungroup;
+  prot["asc_clearOutline"] = prot.asc_clearOutline;
+  prot["asc_changeGroupDetails"] = prot.asc_changeGroupDetails;
+  prot["asc_checkAddGroup"] = prot.asc_checkAddGroup;
+  
   // Drawing objects interface
 
   prot["asc_showDrawingObjects"] = prot.asc_showDrawingObjects;

@@ -54,6 +54,8 @@ var UndoRedoData_Layout = AscCommonExcel.UndoRedoData_Layout;
 var c_oAscCustomAutoFilter = Asc.c_oAscCustomAutoFilter;
 var c_oAscAutoFilterTypes = Asc.c_oAscAutoFilterTypes;
 
+var c_maxOutlineLevel = 8;
+
 var g_oColorManager = null;
 	
 var g_nHSLMaxValue = 255;
@@ -3416,12 +3418,16 @@ Hyperlink.prototype = {
 	function SheetFormatPr() {
 		this.nBaseColWidth = null;
 		this.dDefaultColWidth = null;
+		this.nOutlineLevelCol = 0;
+		this.nOutlineLevelRow = 0;
 		this.oAllRow = null;
 	}
 	SheetFormatPr.prototype.clone = function () {
 		var oRes = new SheetFormatPr();
 		oRes.nBaseColWidth = this.nBaseColWidth;
 		oRes.dDefaultColWidth = this.dDefaultColWidth;
+		oRes.nOutlineLevelCol = this.nOutlineLevelCol;
+		oRes.nOutlineLevelRow = this.nOutlineLevelRow;
 		if (null != this.oAllRow) {
 			oRes.oAllRow = this.oAllRow.clone();
 		}
@@ -3441,17 +3447,32 @@ Hyperlink.prototype = {
 		this.CustomWidth = null;
 		this.width = null;
 		this.xfs = null;
+		this.outlineLevel = 0;
+		this.collapsed = false;
 
 		this.widthPx = null;
 		this.charCount = null;
 	}
 
+	Col.prototype.fixOnOpening = function () {
+		if (null == this.width) {
+			this.width = 0;
+			this.hd = true;
+		} else if (this.width < 0) {
+			this.width = 0;
+		} else if (this.width > Asc.c_oAscMaxColumnWidth) {
+			this.width = Asc.c_oAscMaxColumnWidth;
+		}
+		if(AscCommon.CurFileVersion < 2)
+			this.CustomWidth = 1;
+	};
 	Col.prototype.moveHor = function (nDif) {
 		this.index += nDif;
 	};
 	Col.prototype.isEqual = function (obj) {
 		var bRes = this.BestFit == obj.BestFit && this.hd == obj.hd && this.width == obj.width &&
-			this.CustomWidth == obj.CustomWidth;
+			this.CustomWidth == obj.CustomWidth && this.outlineLevel == obj.outlineLevel &&
+			this.collapsed == obj.collapsed;
 		if (bRes) {
 			if (null != this.xfs && null != obj.xfs) {
 				bRes = this.xfs.isEqual(obj.xfs);
@@ -3464,13 +3485,17 @@ Hyperlink.prototype = {
 	};
 	Col.prototype.isEmpty = function () {
 		return null == this.BestFit && null == this.hd && null == this.width && null == this.xfs &&
-			null == this.CustomWidth;
+			null == this.CustomWidth && 0 === this.outlineLevel && false == this.collapsed;
 	};
 	Col.prototype.clone = function (oNewWs) {
 		if (!oNewWs) {
 			oNewWs = this.ws;
 		}
 		var oNewCol = new Col(oNewWs, this.index);
+		this.cloneTo(oNewCol);
+		return oNewCol;
+	};
+	Col.prototype.cloneTo = function (oNewCol) {
 		if (null != this.BestFit) {
 			oNewCol.BestFit = this.BestFit;
 		}
@@ -3486,6 +3511,8 @@ Hyperlink.prototype = {
 		if (null != this.xfs) {
 			oNewCol.xfs = this.xfs;
 		}
+		oNewCol.outlineLevel = this.outlineLevel;
+		oNewCol.collapsed = this.collapsed;
 
 		if (null != this.widthPx) {
 			oNewCol.widthPx = this.widthPx;
@@ -3493,7 +3520,6 @@ Hyperlink.prototype = {
 		if (null != this.charCount) {
 			oNewCol.charCount = this.charCount;
 		}
-		return oNewCol;
 	};
 	Col.prototype.getWidthProp = function () {
 		return new AscCommonExcel.UndoRedoData_ColProp(this);
@@ -3515,6 +3541,9 @@ Hyperlink.prototype = {
 				this.BestFit = prop.BestFit;
 			} else {
 				this.BestFit = null;
+			}
+			if (null != prop.OutlineLevel) {
+				this.outlineLevel = prop.OutlineLevel;
 			}
 		}
 	};
@@ -3727,10 +3756,43 @@ Hyperlink.prototype = {
 	Col.prototype.getIndex = function () {
 		return this.index;
 	};
+	Col.prototype.setOutlineLevel = function (val, bDel) {
+		if(null !== val) {
+			this.outlineLevel = val;
+		} else {
+			if(!this.outlineLevel) {
+				this.outlineLevel = 0;
+			}
+			this.outlineLevel = bDel ? this.outlineLevel - 1 : this.outlineLevel + 1;
+		}
+		if(this.outlineLevel < 0){
+			this.outlineLevel = 0;
+		} else if(this.outlineLevel > c_maxOutlineLevel - 1) {
+			this.outlineLevel = c_maxOutlineLevel - 1;
+		} else {
+			//TODO ?
+			//this._hasChanged = true;
+		}
+	};
+	Col.prototype.getOutlineLevel = function () {
+		return this.outlineLevel;
+	};
+	Col.prototype.setCollapsed = function (val) {
+		this.collapsed = val;
+	};
+	Col.prototype.getCollapsed = function () {
+		return this.collapsed;
+	};
 
-	var g_nRowOffsetFlag = 0;
+	//TODO удалить!
+	/*var g_nRowOffsetFlag = 0;
 	var g_nRowOffsetXf = g_nRowOffsetFlag + 1;
 	var g_nRowOffsetHeight = g_nRowOffsetXf + 4;
+	var g_nRowStructSize = g_nRowOffsetHeight + 8;*/
+	var g_nRowOffsetFlag = 0;
+	var g_nRowOffsetXf = g_nRowOffsetFlag + 1;
+	var g_nRowOutlineLevel = g_nRowOffsetXf + 4;
+	var g_nRowOffsetHeight = g_nRowOutlineLevel + 1;
 	var g_nRowStructSize = g_nRowOffsetHeight + 8;
 
 	var g_nRowFlag_empty = 0;
@@ -3739,6 +3801,7 @@ Hyperlink.prototype = {
 	var g_nRowFlag_CustomHeight = 4;
 	var g_nRowFlag_CalcHeight = 8;
 	var g_nRowFlag_NullHeight = 16;
+	var g_nRowFlag_Collapsed = 32;
 
 	/**
 	 * @constructor
@@ -3748,6 +3811,7 @@ Hyperlink.prototype = {
 		this.index = null;
 		this.xfs = null;
 		this.h = null;
+		this.outlineLevel = 0;
 		this.flags = g_nRowFlag_init;
 		this._hasChanged = false;
 	}
@@ -3755,6 +3819,7 @@ Hyperlink.prototype = {
 		this.index = null;
 		this.xfs = null;
 		this.h = null;
+		this.outlineLevel = 0;
 		this.flags = g_nRowFlag_init;
 		this._hasChanged = false;
 	};
@@ -3772,6 +3837,7 @@ Hyperlink.prototype = {
 			}
 			sheetMemory.setUint8(this.index, g_nRowOffsetFlag, flagToSave);
 			sheetMemory.setUint32(this.index, g_nRowOffsetXf, xfSave);
+			sheetMemory.setUint8(this.index, g_nRowOutlineLevel, this.outlineLevel);
 			sheetMemory.setFloat64(this.index, g_nRowOffsetHeight, heightToSave);
 		}
 	};
@@ -3784,6 +3850,7 @@ Hyperlink.prototype = {
 			this.flags = sheetMemory.getUint8(this.index, g_nRowOffsetFlag);
 			if (0 != (g_nRowFlag_init & this.flags)) {
 				this.xfs = g_StyleCache.getXf(sheetMemory.getUint32(this.index, g_nRowOffsetXf));
+				this.outlineLevel = sheetMemory.getUint8(this.index, g_nRowOutlineLevel);
 				if (0 !== (g_nRowFlag_NullHeight & this.flags)) {
 					this.flags &= ~g_nRowFlag_NullHeight;
 					this.h = null;
@@ -3803,7 +3870,7 @@ Hyperlink.prototype = {
 	};
 	Row.prototype.isEmptyProp = function () {
 		//todo
-		return null == this.xfs && null == this.h && g_nRowFlag_init == this.flags;
+		return null == this.xfs && null == this.h && g_nRowFlag_init == this.flags && 0 === this.outlineLevel;
 	};
 	Row.prototype.clone = function (oNewWs, renameParams) {
 		if (!oNewWs) {
@@ -3818,6 +3885,9 @@ Hyperlink.prototype = {
 		if (null != this.h) {
 			oNewRow.h = this.h;
 		}
+		if(0 !== this.outlineLevel) {
+			oNewRow.outlineLevel = this.outlineLevel;
+		}
 		return oNewRow;
 	};
 	Row.prototype.copyFrom = function (row) {
@@ -3827,6 +3897,9 @@ Hyperlink.prototype = {
 		}
 		if (null != row.h) {
 			this.h = row.h;
+		}
+		if(0 !== this.outlineLevel) {
+			this.outlineLevel = row.outlineLevel;
 		}
 		this._hasChanged = true;
 	};
@@ -3849,6 +3922,7 @@ Hyperlink.prototype = {
 			}
 			this.setHidden(prop.hd);
 			this.setCustomHeight(prop.CustomHeight);
+			this.setOutlineLevel(prop.OutlineLevel);
 		}
 	};
 	Row.prototype.getStyle = function () {
@@ -4057,6 +4131,26 @@ Hyperlink.prototype = {
 		}
 		this._hasChanged = true;
 	};
+	Row.prototype.setOutlineLevel = function (val, bDel) {
+		if(null !== val) {
+			this.outlineLevel = val;
+		} else {
+			if(!this.outlineLevel) {
+				this.outlineLevel = 0;
+			}
+			this.outlineLevel = bDel ? this.outlineLevel - 1 : this.outlineLevel + 1;
+		}
+		if(this.outlineLevel < 0){
+			this.outlineLevel = 0;
+		} else if(this.outlineLevel > c_maxOutlineLevel - 1) {
+			this.outlineLevel = c_maxOutlineLevel - 1;
+		} else {
+			this._hasChanged = true;
+		}
+	};
+	Row.prototype.getOutlineLevel = function () {
+		return this.outlineLevel;
+	};
 	Row.prototype.getHidden = function () {
 		return 0 !== (g_nRowFlag_hd & this.flags);
 	};
@@ -4081,6 +4175,17 @@ Hyperlink.prototype = {
 	};
 	Row.prototype.getCalcHeight = function () {
 		return 0 != (g_nRowFlag_CalcHeight & this.flags);
+	};
+	Row.prototype.setCollapsed = function (val) {
+		if (true === val) {
+			this.flags |= g_nRowFlag_Collapsed;
+		} else {
+			this.flags &= ~g_nRowFlag_Collapsed;
+		}
+		this._hasChanged = true;
+	};
+	Row.prototype.getCollapsed = function () {
+		return 0 != (g_nRowFlag_Collapsed & this.flags);
 	};
 	Row.prototype.setIndex = function (val) {
 		this.index = val;
