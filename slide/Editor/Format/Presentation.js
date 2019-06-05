@@ -1088,7 +1088,7 @@ CPresentation.prototype =
                                     for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
                                     {
                                         oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_ftr, null, false, {});
-                                        oContent = oSp.getDocContent && oSp.getDocContent();
+                                        oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                         if(oContent)
                                         {
                                             oContent.Set_ApplyToAll(true);
@@ -1096,6 +1096,15 @@ CPresentation.prototype =
                                             oContent.Set_ApplyToAll(false);
                                             AscFormat.AddToContentFromString(oContent, sText);
                                         }
+                                    }
+                                    oSp = oMaster.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                                    oContent = oSp && oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent)
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
                                     }
                                 }
                             }
@@ -1161,7 +1170,7 @@ CPresentation.prototype =
                                     for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
                                     {
                                         oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_hdr, null, false, {});
-                                        oContent = oSp.getDocContent && oSp.getDocContent();
+                                        oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                         if(oContent)
                                         {
                                             oContent.Set_ApplyToAll(true);
@@ -1169,6 +1178,15 @@ CPresentation.prototype =
                                             oContent.Set_ApplyToAll(false);
                                             AscFormat.AddToContentFromString(oContent, sText);
                                         }
+                                    }
+                                    oSp = oMaster.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                    oContent = oSp && oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent)
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
                                     }
                                 }
                             }
@@ -1268,6 +1286,33 @@ CPresentation.prototype =
                                                     {
                                                         AscFormat.AddToContentFromString(oContent, sCustomDateTime);
                                                     }
+                                                }
+                                            }
+                                        }
+                                        oSp = oMaster.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                                        if(oSp)
+                                        {
+                                            oContent = oSp.getDocContent && oSp.getDocContent();
+                                            if(oContent)
+                                            {
+                                                oContent.Set_ApplyToAll(true);
+                                                oContent.Remove(-1, false, false, false, false);
+                                                oContent.Set_ApplyToAll(false);
+                                                if(sDateTime)
+                                                {
+                                                    oParagraph = oContent.Content[0];
+                                                    oFld = new AscCommonWord.CPresentationField(oParagraph);
+                                                    oFld.SetGuid(AscCommon.GUID());
+                                                    oFld.SetFieldType(sDateTime);
+                                                    if(typeof sCustomDateTime === "string")
+                                                    {
+                                                        oFld.AddText(sCustomDateTime);
+                                                    }
+                                                    oParagraph.Internal_Content_Add(0, oFld);
+                                                }
+                                                else
+                                                {
+                                                    AscFormat.AddToContentFromString(oContent, sCustomDateTime);
                                                 }
                                             }
                                         }
