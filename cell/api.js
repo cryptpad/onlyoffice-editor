@@ -2389,9 +2389,9 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_checkAddGroup = function() {
+  spreadsheet_api.prototype.asc_checkAddGroup = function(bUngroup) {
 	  //true - rows, false - columns, null - show dialog, undefined - error
-    return this.wb.getWorksheet().checkAddGroup();
+    return this.wb.getWorksheet().checkAddGroup(bUngroup);
   };
 
   spreadsheet_api.prototype.asc_clearOutline = function() {

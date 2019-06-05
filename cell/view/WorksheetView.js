@@ -16145,11 +16145,6 @@
 		//следующему за последней скрытой в группе
 		//TODO рассмотреть: запись свойства collapsed только на сохранение
 
-		var bCollapsed = false;
-		var setCollapsedModel = function(cell) {
-			//cell.setCollapsed(bCollapsed);
-		};
-
 		var groupArr, index, i, j;
 		if(res) {
 			groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
@@ -16159,8 +16154,6 @@
 					if (groupArr[i]) {
 						for (j = 0; j < groupArr[i].length; j++) {
 							index = groupArr[i][j].end;
-							bCollapsed = false;
-							//bCol ? setCollapsedModel(this.model._getCol(index + 1)) : this.model._getRow(index + 1, setCollapsedModel);
 						}
 					}
 				}
@@ -16174,8 +16167,7 @@
 		}
 		if(groupArr) {
 			var addCollapsed = function(val) {
-				bCollapsed = val.getCollapsed();
-				if(bCollapsed) {
+				if(val.getCollapsed()) {
 					if(!levelMap[val.index]) {
 						levelMap[val.index] = {level: 0, collapsed: true};
 					} else {
@@ -16189,9 +16181,7 @@
 				if (groupArr[i]) {
 					for (j = 0; j < groupArr[i].length; j++) {
 						index = groupArr[i][j].end + 1;
-						bCollapsed = false;
 						bCol ? addCollapsed(this.model._getCol(index)) : this.model._getRow(index, addCollapsed);
-						//bCol ? setCollapsedModel(this.model._getCol(index + 1)) : this.model._getRow(index + 1, setCollapsedModel);
 					}
 				}
 			}
@@ -17869,7 +17859,7 @@
 							continue;
 						}
 						for(j = 0; j < groupArrCol[i].length; j++) {
-							range = Asc.Range(groupArrRow[i][j].start, 0, groupArrRow[i][j].end, gc_nMaxRow);
+							range = Asc.Range(groupArrCol[i][j].start, 0, groupArrCol[i][j].end, gc_nMaxRow);
 							intersection = ar.ranges[n].intersection(range);
 							if(intersection) {
 								t.model.setColHidden(false, intersection.c1, intersection.c2);
@@ -17886,12 +17876,16 @@
 		this._isLockedAll(onChangeWorksheetCallback);
 	};
 
-	WorksheetView.prototype.checkAddGroup = function() {
+	WorksheetView.prototype.checkAddGroup = function(bUngroup) {
 		//true - rows, false - columns, null - show dialog, undefined - error
 
 		//multiselect
 		if(this.model.selectionRange.ranges.length > 1) {
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CopyMultiselectAreaError, c_oAscError.Level.NoCritical);
+			return;
+		}
+		if(bUngroup && !this._isGroupSheet()) {
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotUngroupError, c_oAscError.Level.NoCritical);
 			return;
 		}
 
@@ -17902,6 +17896,17 @@
 		if (c_oAscSelectionType.RangeCol === type) {
 			res = false;
 		} else if(c_oAscSelectionType.RangeRow === type) {
+			res = true;
+		}
+
+		return res;
+	};
+
+	WorksheetView.prototype._isGroupSheet = function() {
+		//проверка на то, есть ли вообще группировка на листе
+		var res = false;
+
+		if((this.arrRowGroups && this.arrRowGroups.groupArr) || (this.arrColGroups && this.arrColGroups.groupArr)) {
 			res = true;
 		}
 
