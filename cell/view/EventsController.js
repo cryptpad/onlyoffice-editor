@@ -1443,6 +1443,9 @@
 							t.isRowGroup = true;
 						}
 						return;
+					} else if ((t.targetInfo.target === c_oTargetType.GroupCol || t.targetInfo.target === c_oTargetType.GroupRow) && 2 === event.button) {
+						this.handlers.trigger('onContextMenu', null);
+						return;
 					}
 				}
 			} else {
