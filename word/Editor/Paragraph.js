@@ -2920,14 +2920,25 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 			{
 				for (var Pos = EndPos - 1; Pos >= StartPos + 1; Pos--)
 				{
-					if (para_Run == this.Content[Pos].Type && reviewtype_Add === this.Content[Pos].GetReviewType())
-						this.Internal_Content_Remove2(Pos, 1);
+					if (para_Run === this.Content[Pos].Type)
+					{
+						if (para_Run == this.Content[Pos].Type && reviewtype_Add === this.Content[Pos].GetReviewType())
+							this.RemoveFromContent(Pos, 1);
+						else
+							this.Content[Pos].SetReviewType(reviewtype_Remove, false);
+					}
 					else
-						this.Content[Pos].SetReviewType(reviewtype_Remove, false);
+					{
+						this.Content[Pos].Remove(nCount, bOnAddText);
+						if (this.Content[Pos].IsEmpty())
+							this.RemoveFromContent(Pos, 1);
+					}
 				}
 			}
 			else
-				this.Internal_Content_Remove2(StartPos + 1, EndPos - StartPos - 1);
+			{
+				this.RemoveFromContent(StartPos + 1, EndPos - StartPos - 1);
+			}
 
 			var isFootnoteRefRun = (para_Run === this.Content[StartPos].Type && this.Content[StartPos].IsFootnoteReferenceRun());
 
