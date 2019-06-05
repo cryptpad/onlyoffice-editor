@@ -496,7 +496,7 @@ CBlockLevelSdt.prototype.AddInlineTable = function(nCols, nRows)
 	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddInlineTable(nCols, nRows);
 };
-CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
+CBlockLevelSdt.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlySelection, bOnAddText, isWord)
 {
 	if (this.IsPlaceHolder())
 	{
@@ -507,11 +507,11 @@ CBlockLevelSdt.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelecti
 		return true;
 	}
 
-	var bResult = this.Content.Remove(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord);
+	var bResult = this.Content.Remove(nCount, isRemoveWholeElement, bRemoveOnlySelection, bOnAddText, isWord);
 
 	if (this.IsEmpty()
 		&& !bOnAddText
-		&& true !== bOnlyText
+		&& true !== isRemoveWholeElement
 		&& this.CanBeEdited())
 	{
 		this.private_ReplaceContentWithPlaceHolder();
@@ -1034,7 +1034,7 @@ CBlockLevelSdt.prototype.Set_CurrentElement = function(bUpdateStates, PageAbs, o
 };
 CBlockLevelSdt.prototype.Refresh_RecalcData2 = function(CurPage)
 {
-	this.Parent.Refresh_RecalcData2(this.Index, CurPage);
+	this.Parent.Refresh_RecalcData2(this.Index, this.private_GetRelativePageIndex(CurPage));
 };
 CBlockLevelSdt.prototype.Refresh_RecalcData = function(Data)
 {

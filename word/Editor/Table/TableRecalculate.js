@@ -264,10 +264,12 @@ CTable.prototype.private_RecalculateGrid = function()
         }
         else
         {
-            TableW = TablePr.TableW.W
+            TableW = TablePr.TableW.W;
         }
 
-        if (TableW < MinWidth)
+        if (0.001 > TableW)
+        	TableW = 0;
+        else if (TableW < MinWidth)
             TableW = MinWidth;
     }
 
@@ -2334,7 +2336,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
             }
             else
             {
-                // Возьмем верхнюю ячейку теккущего объединения
+                // Возьмем верхнюю ячейку текущего объединения
                 if ( vmerge_Restart != Vmerge )
                 {
                     Cell = this.Internal_Get_StartMergedCell( CurRow, CurGridCol, GridSpan );

@@ -7864,6 +7864,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.scale = 100;
 		this.useFirstPageNumber = false;
 		this.usePrinterDefaults = true;
+		this.horizontalDpi = 600;
+		this.verticalDpi = 600;
+		this.paperUnits = 0;
 
 		this.ws = ws;
 

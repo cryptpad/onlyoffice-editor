@@ -61,7 +61,6 @@
   var c_oAscCleanOptions = asc.c_oAscCleanOptions;
   var c_oAscSelectionDialogType = asc.c_oAscSelectionDialogType;
   var c_oAscMouseMoveType = asc.c_oAscMouseMoveType;
-  var c_oAscCellEditorState = asc.c_oAscCellEditorState;
   var c_oAscPopUpSelectorType = asc.c_oAscPopUpSelectorType;
   var c_oAscAsyncAction = asc.c_oAscAsyncAction;
   var c_oAscFontRenderingModeType = asc.c_oAscFontRenderingModeType;
@@ -1490,7 +1489,6 @@
       ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
-      t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editStart);
 
       // Эвент на обновление состояния редактора
       t.cellEditor._updateEditorState();
@@ -1553,7 +1551,7 @@
 	  ws.updateSelectionWithSparklines();
 
     if (isCellEditMode) {
-      this.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editEnd);
+      this.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editEnd);
     }
 
     // Обновляем состояние Undo/Redo
@@ -2145,7 +2143,7 @@
 
 		if (ws.model.inPivotTable(activeCellRange)) {
 			this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
-			return false;
+			return;
 		}
 
 		if (c_oAscPopUpSelectorType.None === type) {
@@ -2181,7 +2179,7 @@
 		} else {
 			// Проверка глобального лока
 			if (this.collaborativeEditing.getGlobalLock()) {
-				return false;
+				return;
 			}
 
 			var selectionRange = ws.model.selectionRange.clone();
@@ -2216,20 +2214,12 @@
 					t.setCellEditMode(true);
 					ws.setCellEditMode(true);
 
-					t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editStart);
 					if (isNotFunction) {
 						t.skipHelpSelector = true;
 					}
 					t.hideSpecialPasteButton();
 					// Открываем, с выставлением позиции курсора
-					if (!ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange)) {
-						t.handlers.trigger("asc_onEditCell", c_oAscCellEditorState.editEnd);
-						t.setCellEditMode(false);
-						t.controller.setStrictClose(false);
-						t.controller.setFormulaEditMode(false);
-						ws.setCellEditMode(false);
-						ws.setFormulaEditMode(false);
-					}
+					ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange);
 					if (isNotFunction) {
 						t.skipHelpSelector = false;
 					}

@@ -5089,6 +5089,12 @@
 	Worksheet.prototype.getRange4=function(r, c){
 		return new Range(this, r, c, r, c);
 	};
+	Worksheet.prototype.getRowIterator=function(r1, c1, c2, callback){
+		var it = new RowIterator();
+		it.init(this, r1, c1, c2);
+		callback(it);
+		it.release();
+	};
 	Worksheet.prototype._removeCell=function(nRow, nCol, cell){
 		var t = this;
 		var processCell = function(cell) {
@@ -8862,31 +8868,19 @@
 		}
 	};
 	Range.prototype._foreachNoEmpty = function(actionCell, actionRow, excludeHiddenRows) {
-		var oRes, i;
-		var wb = this.worksheet.workbook;
-		var oBBox = this.bbox, minR = Math.max(this.worksheet.cellsByColRowsCount - 1, this.worksheet.rowsData.getSize() - 1);
+		var oRes, i, oBBox = this.bbox, minR = Math.max(this.worksheet.cellsByColRowsCount - 1, this.worksheet.rowsData.getSize() - 1);
 		minR = Math.min(minR, oBBox.r2);
 		if (actionCell || actionRow) {
-			var colData;
+			var itRow = new RowIterator();
+			if (actionCell) {
+				itRow.init(this.worksheet, this.bbox.r1, this.bbox.c1, this.bbox.c2);
+			}
 			var bExcludeHiddenRows = (this.worksheet.bExcludeHiddenRows || excludeHiddenRows);
 			var excludedCount = 0;
-			var tempCell = new Cell(this.worksheet);
+			var tempCell;
 			var tempRow = new AscCommonExcel.Row(this.worksheet);
 			var allRow = this.worksheet.getAllRow();
 			var allRowHidden = allRow && allRow.getHidden();
-			var colDatasIndex = [];
-			var colDatas = [];
-			if (actionCell) {
-				var minColData = Math.min(this.worksheet.getColDataLength() - 1, oBBox.c2);
-				for (i = oBBox.c1; i <= minColData; i++) {
-					colData = this.worksheet.getColDataNoEmpty(i);
-					if (colData) {
-						colDatas.push(colData);
-						colDatasIndex.push(i);
-					}
-				}
-				wb.loadCells.push(tempCell);
-			}
 			for (i = oBBox.r1; i <= minR; i++) {
 				if (actionRow) {
 					if (tempRow.loadContent(i)) {
@@ -8898,7 +8892,7 @@
 						tempRow.saveContent(true);
 						if (null != oRes) {
 							if (actionCell) {
-								wb.loadCells.pop();
+								itRow.release();
 							}
 							return oRes;
 						}
@@ -8910,46 +8904,21 @@
 					excludedCount++;
 					continue;
 				}
-				for (var j = 0; j < colDatasIndex.length; j++) {
-					colData = colDatas[j];
-					var nCol = colDatasIndex[j];
-					if (colData.hasSize(i)) {
-						var targetCell = null;
-						for (var k = 0; k < wb.loadCells.length - 1; ++k) {
-							var elem = wb.loadCells[k];
-							if (elem.nRow == i && elem.nCol == nCol && this.worksheet === elem.ws) {
-								targetCell = elem;
-								break;
-							}
-						}
-						if (null === targetCell) {
-							if (tempCell.loadContent(i, nCol, colData)) {
-								oRes = actionCell(tempCell, i, nCol, oBBox.r1, oBBox.c1, excludedCount);
-								tempCell.saveContent(true);
-							}
-						} else {
-							oRes = actionCell(targetCell, i, nCol, oBBox.r1, oBBox.c1, excludedCount);
-						}
+				if (actionCell) {
+					itRow.setRow(i);
+					while (tempCell = itRow.next()) {
+						oRes = actionCell(tempCell, i, tempCell.nCol, oBBox.r1, oBBox.c1, excludedCount);
 						if (null != oRes) {
 							if (actionCell) {
-								wb.loadCells.pop();
+								itRow.release();
 							}
 							return oRes;
 						}
-					} else {
-						//splice by one element is too slow
-						var endIndex = j + 1;
-						while (endIndex < colDatasIndex.length && !colDatas[endIndex].hasSize(i)) {
-							endIndex++;
-						}
-						colDatas.splice(j, endIndex - j);
-						colDatasIndex.splice(j, endIndex - j);
-						j--;
 					}
 				}
 			}
 			if (actionCell) {
-				wb.loadCells.pop();
+				itRow.release();
 			}
 		}
 	};
@@ -12007,6 +11976,73 @@
 
 	Range.prototype.getLeftTopCellNoEmpty = function(fAction) {
 		return this.worksheet._getCellNoEmpty(this.bbox.r1, this.bbox.c1, fAction);
+	};
+
+	function RowIterator() {
+	}
+
+	RowIterator.prototype.init = function(ws, r1, c1, c2) {
+		this.ws = ws;
+		this.cell = new Cell(ws);
+		this.c1 = c1;
+		this.c2 = Math.min(c2, ws.getColDataLength() - 1);
+		this.indexRow = r1;
+		this.indexCol = 0;
+
+		this.colDatas = [];
+		this.colDatasIndex = [];
+		for (var i = this.c1; i <= this.c2; i++) {
+			var colData = this.ws.getColDataNoEmpty(i);
+			if (colData) {
+				this.colDatas.push(colData);
+				this.colDatasIndex.push(i);
+			}
+		}
+		this.ws.workbook.loadCells.push(this.cell);
+	};
+	RowIterator.prototype.release = function() {
+		this.cell.saveContent(true);
+		this.ws.workbook.loadCells.pop();
+	};
+	RowIterator.prototype.setRow = function(index) {
+		this.indexRow = index;
+		this.indexCol = 0;
+	};
+	RowIterator.prototype.next = function() {
+		var wb = this.ws.workbook;
+		this.cell.saveContent(true);
+		for (; this.indexCol < this.colDatasIndex.length; this.indexCol++) {
+			var colData = this.colDatas[this.indexCol];
+			var nCol = this.colDatasIndex[this.indexCol];
+			if (colData.hasSize(this.indexRow)) {
+				var targetCell = null;
+				for (var k = 0; k < wb.loadCells.length - 1; ++k) {
+					var elem = wb.loadCells[k];
+					if (elem.nRow == this.indexRow && elem.nCol == nCol && this.ws === elem.ws) {
+						targetCell = elem;
+						break;
+					}
+				}
+				if (null === targetCell) {
+					if (this.cell.loadContent(this.indexRow, nCol, colData)) {
+						this.indexCol++;
+						return this.cell;
+					}
+				} else {
+					this.indexCol++;
+					return targetCell;
+				}
+			} else {
+				//splice by one element is too slow
+				var endIndex = this.indexCol + 1;
+				while (endIndex < this.colDatasIndex.length && !this.colDatas[endIndex].hasSize(this.indexRow)) {
+					endIndex++;
+				}
+				this.colDatas.splice(this.indexCol, endIndex - this.indexCol);
+				this.colDatasIndex.splice(this.indexCol, endIndex - this.indexCol);
+				this.indexCol--;
+			}
+		}
 	};
 //-------------------------------------------------------------------------------------------------
 	/**

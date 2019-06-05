@@ -1143,7 +1143,7 @@
 				return true;
 			}
 
-			if (this.handlers.trigger("graphicObjectWindowKeyPress", event)) {
+			if (!this.getCellEditMode() && this.handlers.trigger("graphicObjectWindowKeyPress", event)) {
 				return true;
 			}
 
