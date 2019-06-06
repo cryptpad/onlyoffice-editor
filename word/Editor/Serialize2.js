@@ -15932,3 +15932,4 @@ window["AscCommonWord"].BinaryFileWriter = BinaryFileWriter;
 window["AscCommonWord"].EThemeColor = EThemeColor;
 window["AscCommonWord"].DocReadResult = DocReadResult;
 window["AscCommonWord"].DocSaveParams = DocSaveParams;
+window["AscCommonWord"].CreateThemeUnifill = CreateThemeUnifill;
