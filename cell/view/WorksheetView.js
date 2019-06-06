@@ -5504,7 +5504,7 @@
 					cache = t._getRowCache(r);
 
 					itRow.setRow(r);
-					var cell, newHeight;
+					var cell;
 					while (cell = itRow.next()) {
 						if (c_oAscMergeType.cols & getMergeType(t.model.getMergedByCell(cell.nRow, cell.nCol))) {
 							return;
@@ -5513,7 +5513,7 @@
 							: t._updateRowHeight2(cell)) || t.updateRowHeightValuePx;
 					}
 
-					if (newHeight) {
+					if (t.updateRowHeightValuePx) {
 						History.TurnOff();
 						var oldExcludeCollapsed = t.model.bExcludeCollapsed;
 						this.model.bExcludeCollapsed = true;
