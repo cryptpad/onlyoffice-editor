@@ -5730,7 +5730,7 @@
 					cache = t._getRowCache(r);
 
 					itRow.setRow(r);
-					var cell, newHeight;
+					var cell;
 					while (cell = itRow.next()) {
 						if (c_oAscMergeType.cols & getMergeType(t.model.getMergedByCell(cell.nRow, cell.nCol))) {
 							return;
@@ -5739,12 +5739,12 @@
 							: t._updateRowHeight2(cell)) || t.updateRowHeightValuePx;
 					}
 
-					if (newHeight) {
+					if (t.updateRowHeightValuePx) {
 						History.TurnOff();
 						var oldExcludeCollapsed = t.model.bExcludeCollapsed;
-						this.model.bExcludeCollapsed = true;
+						t.model.bExcludeCollapsed = true;
 						t.model.setRowHeight(AscCommonExcel.convertPxToPt(t.updateRowHeightValuePx), r, r, false);
-						this.model.bExcludeCollapsed = oldExcludeCollapsed;
+						t.model.bExcludeCollapsed = oldExcludeCollapsed;
 						History.TurnOn();
 					}
 
@@ -17047,6 +17047,8 @@
 			this.drawingCtx.clearRect(x, y, w, h);
 		}
 
+		ctx.beginPath();
+
 		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
 
 		ctx.lineHorPrevPx(x, y, x + w);
@@ -17066,10 +17068,10 @@
 		dc.ppiX = asc.round(dc.ppiX / dc.scaleFactor * factor * 1000) / 1000;
 		dc.ppiY = asc.round(dc.ppiY / dc.scaleFactor * factor * 1000) / 1000;
 
-		if (AscCommon.AscBrowser.isRetina) {
+		/*if (AscCommon.AscBrowser.isRetina) {
 			dc.ppiX = AscCommon.AscBrowser.convertToRetinaValue(dc.ppiX, true);
 			dc.ppiY = AscCommon.AscBrowser.convertToRetinaValue(dc.ppiY, true);
-		}
+		}*/
 
 		dc.scaleFactor = factor;
 
@@ -17509,17 +17511,6 @@
 			return;
 		}
 
-		//TODO duplicate code into _tryChangeGroup func
-		var oRecalcType = AscCommonExcel.recalcType.recalc;
-		var reinitRanges = false;
-		var updateDrawingObjectsInfo = null;
-		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
-		var isUpdateCols = false, isUpdateRows = false;
-		var isCheckChangeAutoFilter;
-		var functionModelAction = null;
-		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
-		var arrChangedRanges = [];
-
 		var onChangeWorksheetCallback = function (isSuccess) {
 			if (false === isSuccess) {
 				return;
@@ -17527,47 +17518,9 @@
 
 			asc_applyFunction(callback);
 
-			t._initCellsArea(oRecalcType);
-			if (oRecalcType) {
-				t.cache.reset();
-			}
-			t._cleanCellsTextMetricsCache();
-			t._prepareCellTextMetricsCache();
-
-			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
-
-			t.cellCommentator.updateAreaComments();
-
-			if (t.objectRender) {
-				if (reinitRanges && t.objectRender.drawingArea) {
-					t.objectRender.drawingArea.reinitRanges();
-				}
-				if (null !== updateDrawingObjectsInfo) {
-					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
-				}
-				if (null !== updateDrawingObjectsInfo2) {
-					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
-						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
-				}
-				t.model.onUpdateRanges(arrChangedRanges);
-				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
-			}
+			t._updateAfterChangeGroup(undefined, null);
 			//тут требуется обновить только rowLevelMap
-			t._updateGroups(bCol, undefined, undefined, true);
-
-			t.draw(lockDraw);
-
-			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
-
-			if (isUpdateCols) {
-				t._updateVisibleColsCount();
-			}
-			if (isUpdateRows) {
-				t._updateVisibleRowsCount();
-			}
-
-			t.handlers.trigger("selectionChanged");
-			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+			//t._updateGroups(bCol, undefined, undefined, true);
 		};
 
 		var callback = function() {
@@ -17735,66 +17688,17 @@
 			selectPartColGroup = null;
 		}
 
-		//TODO duplicate code into _tryChangeGroup func
-		var oRecalcType = AscCommonExcel.recalcType.recalc;
-		var reinitRanges = false;
-		var updateDrawingObjectsInfo = null;
-		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
-		var isUpdateCols = false, isUpdateRows = false;
-		var isCheckChangeAutoFilter;
-		var functionModelAction = null;
-		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
-		var arrChangedRanges = [];
-
 		var onChangeWorksheetCallback = function (isSuccess) {
 			if (false === isSuccess) {
 				return;
 			}
 
 			asc_applyFunction(callback);
+			t._updateAfterChangeGroup(null, null);
 
-			t._initCellsArea(oRecalcType);
-			if (oRecalcType) {
-				t.cache.reset();
-			}
-			t._cleanCellsTextMetricsCache();
-			t._prepareCellTextMetricsCache();
-
-			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
-
-			t.cellCommentator.updateAreaComments();
-
-			if (t.objectRender) {
-				if (reinitRanges && t.objectRender.drawingArea) {
-					t.objectRender.drawingArea.reinitRanges();
-				}
-				if (null !== updateDrawingObjectsInfo) {
-					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
-				}
-				if (null !== updateDrawingObjectsInfo2) {
-					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
-						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
-				}
-				t.model.onUpdateRanges(arrChangedRanges);
-				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
-			}
 			//тут требуется обновить только rowLevelMap
-			t._updateGroups(true, undefined, undefined, true);
-			t._updateGroups(false, undefined, undefined, true);
-
-			t.draw(lockDraw);
-
-			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
-
-			if (isUpdateCols) {
-				t._updateVisibleColsCount();
-			}
-			if (isUpdateRows) {
-				t._updateVisibleRowsCount();
-			}
-
-			t.handlers.trigger("selectionChanged");
-			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+			//t._updateGroups(true, undefined, undefined, true);
+			//t._updateGroups(false, undefined, undefined, true);
 		};
 
 		//TODO необходимо не закрывать полностью выделенные 1 уровни
@@ -17886,67 +17790,13 @@
 		needGroups = getNeedGroups(t.arrColGroups.groupArr, true);
 		var allGroupSelectedCol = needGroups;
 
-
-		//TODO duplicate code into _tryChangeGroup func
-		var oRecalcType = AscCommonExcel.recalcType.recalc;
-		var reinitRanges = false;
-		var updateDrawingObjectsInfo = null;
-		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
-		var isUpdateCols = false, isUpdateRows = false;
-		var isCheckChangeAutoFilter;
-		var functionModelAction = null;
-		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
-		var arrChangedRanges = [];
-
 		var onChangeWorksheetCallback = function (isSuccess) {
 			if (false === isSuccess) {
 				return;
 			}
 
 			asc_applyFunction(callback);
-
-			t._initCellsArea(oRecalcType);
-			if (oRecalcType) {
-				t.cache.reset();
-			}
-			t._cleanCellsTextMetricsCache();
-			t._prepareCellTextMetricsCache();
-
-			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
-
-			t.cellCommentator.updateAreaComments();
-
-			if (t.objectRender) {
-				if (reinitRanges && t.objectRender.drawingArea) {
-					t.objectRender.drawingArea.reinitRanges();
-				}
-				if (null !== updateDrawingObjectsInfo) {
-					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
-				}
-				if (null !== updateDrawingObjectsInfo2) {
-					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
-						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
-				}
-				t.model.onUpdateRanges(arrChangedRanges);
-				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
-			}
-			//тут требуется обновить только rowLevelMap
-			t._updateGroups(true, undefined, undefined, true);
-			t._updateGroups(false, undefined, undefined, true);
-
-			t.draw(lockDraw);
-
-			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
-
-			if (isUpdateCols) {
-				t._updateVisibleColsCount();
-			}
-			if (isUpdateRows) {
-				t._updateVisibleRowsCount();
-			}
-
-			t.handlers.trigger("selectionChanged");
-			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+			t._updateAfterChangeGroup(null, null);
 		};
 
 		//TODO необходимо не закрывать полностью выделенные 1 уровни
@@ -17980,6 +17830,70 @@
 		}
 	};
 
+	WorksheetView.prototype._updateAfterChangeGroup = function(updateRow, updateCol) {
+		var t = this;
+
+		var oRecalcType = AscCommonExcel.recalcType.recalc;
+		var reinitRanges = false;
+		var updateDrawingObjectsInfo = null;
+		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
+		var isUpdateCols = false, isUpdateRows = false;
+		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
+		var arrChangedRanges = [];
+
+		t._initCellsArea(oRecalcType);
+		if (oRecalcType) {
+			t.cache.reset();
+		}
+		t._cleanCellsTextMetricsCache();
+		t._prepareCellTextMetricsCache();
+
+		arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
+
+		t.cellCommentator.updateAreaComments();
+
+		if (t.objectRender) {
+			if (reinitRanges && t.objectRender.drawingArea) {
+				t.objectRender.drawingArea.reinitRanges();
+			}
+			if (null !== updateDrawingObjectsInfo) {
+				t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
+			}
+			if (null !== updateDrawingObjectsInfo2) {
+				t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
+					updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
+			}
+			t.model.onUpdateRanges(arrChangedRanges);
+			t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+		}
+
+		if(updateRow) {
+			t._updateGroups(null);
+		} else if(updateRow === null) {
+		 	t._updateGroups(false, undefined, undefined, true);
+		}
+		if(updateCol) {
+			t._updateGroups(true);
+		} else if(updateCol === null) {
+			t._updateGroups(true, undefined, undefined, true);
+		}
+
+
+		t.draw(lockDraw);
+
+		t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
+
+		if (isUpdateCols) {
+			t._updateVisibleColsCount();
+		}
+		if (isUpdateRows) {
+			t._updateVisibleRowsCount();
+		}
+
+		t.handlers.trigger("selectionChanged");
+		t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+	};
+
 	WorksheetView.prototype.clearOutline = function() {
 		var t = this, groupArr;
 
@@ -17995,15 +17909,6 @@
 			return;
 		}
 
-		//TODO duplicate code into _tryChangeGroup func
-		var oRecalcType = AscCommonExcel.recalcType.recalc;
-		var reinitRanges = false;
-		var updateDrawingObjectsInfo = null;
-		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
-		var isUpdateCols = false, isUpdateRows = false;
-		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
-		var arrChangedRanges = [];
-
 		var onChangeWorksheetCallback = function (isSuccess) {
 			if (false === isSuccess) {
 				return;
@@ -18011,48 +17916,10 @@
 
 			asc_applyFunction(callback);
 
-			t._updateGroups(true);
-			t._updateGroups(null);
+			//t._updateGroups(true);
+			//t._updateGroups(null);
 
-			t._initCellsArea(oRecalcType);
-			if (oRecalcType) {
-				t.cache.reset();
-			}
-			t._cleanCellsTextMetricsCache();
-			t._prepareCellTextMetricsCache();
-
-			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
-
-			t.cellCommentator.updateAreaComments();
-
-			if (t.objectRender) {
-				if (reinitRanges && t.objectRender.drawingArea) {
-					t.objectRender.drawingArea.reinitRanges();
-				}
-				if (null !== updateDrawingObjectsInfo) {
-					t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
-				}
-				if (null !== updateDrawingObjectsInfo2) {
-					t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
-						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
-				}
-				t.model.onUpdateRanges(arrChangedRanges);
-				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
-			}
-
-			t.draw(lockDraw);
-
-			t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
-
-			if (isUpdateCols) {
-				t._updateVisibleColsCount();
-			}
-			if (isUpdateRows) {
-				t._updateVisibleRowsCount();
-			}
-
-			t.handlers.trigger("selectionChanged");
-			t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
+			t._updateAfterChangeGroup(true, true);
 		};
 
 		var callback = function() {
