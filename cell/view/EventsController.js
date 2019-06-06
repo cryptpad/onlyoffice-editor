@@ -117,6 +117,9 @@
             this.vsbApiLockMouse = false;
             this.hsbApiLockMouse = false;
 
+            //когда нажали на кнопку свертывания/развертывания группы строк
+            this.isRowGroup = false;
+
             this.smoothWheelCorrector = null;
             if (AscCommon.AscBrowser.isMacOs) {
                 this.smoothWheelCorrector = new AscCommon.CMouseSmoothWheelCorrector(this, function (deltaX, deltaY) {
@@ -305,6 +308,11 @@
 
 			// Для формулы не нужно выходить из редактирования ячейки
 			if (!this.canEdit() || t.isFormulaEditMode || t.isSelectionDialogMode) {return true;}
+
+			if (this.targetInfo && (this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupRow ||
+				this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupCol)) {
+				return false;
+			}
 
 			if(this.targetInfo && (this.targetInfo.target == c_oTargetType.MoveResizeRange ||
 				this.targetInfo.target == c_oTargetType.MoveRange ||
@@ -643,6 +651,13 @@
 
 		asc_CEventsController.prototype._autoFiltersClick = function (idFilter) {
 			this.handlers.trigger("autoFiltersClick", idFilter);
+		};
+
+		asc_CEventsController.prototype._groupRowClick = function (event, target) {
+			var t = this;
+			// Обновляемся в режиме перемещения диапазона
+			var coord = this._getCoordinates(event);
+			return this.handlers.trigger("groupRowClick", coord.x, coord.y, target, event.type);
 		};
 
 		asc_CEventsController.prototype._commentCellClick = function (event) {
@@ -1128,7 +1143,7 @@
 				return true;
 			}
 
-			if (this.handlers.trigger("graphicObjectWindowKeyPress", event)) {
+			if (!this.getCellEditMode() && this.handlers.trigger("graphicObjectWindowKeyPress", event)) {
 				return true;
 			}
 
@@ -1180,6 +1195,12 @@
 			if (this.isShapeAction) {
 				event.isLocked = this.isMousePressed;
 				this.handlers.trigger("graphicObjectMouseMove", event, coord.x, coord.y);
+			}
+
+			if (this.isRowGroup) {
+				if(!this._groupRowClick(event, this.targetInfo)) {
+					this.isRowGroup = false;
+				}
 			}
 
 			return true;
@@ -1412,6 +1433,19 @@
 						this.frozenAnchorMode = t.targetInfo.target;
 						t._moveFrozenAnchorHandle(event, this.frozenAnchorMode);
 						return;
+					} else if (t.targetInfo.target === c_oTargetType.GroupRow && 0 === event.button) {
+						if(t._groupRowClick(event, t.targetInfo)) {
+							t.isRowGroup = true;
+						}
+						return;
+					} else if (t.targetInfo.target === c_oTargetType.GroupCol && 0 === event.button) {
+						if(t._groupRowClick(event, t.targetInfo)) {
+							t.isRowGroup = true;
+						}
+						return;
+					} else if ((t.targetInfo.target === c_oTargetType.GroupCol || t.targetInfo.target === c_oTargetType.GroupRow) && 2 === event.button) {
+						this.handlers.trigger('onContextMenu', null);
+						return;
 					}
 				}
 			} else {
@@ -1536,6 +1570,12 @@
 			if (this.frozenAnchorMode) {
 				this._moveFrozenAnchorHandleDone(event, this.frozenAnchorMode);
 				this.frozenAnchorMode = false;
+			}
+
+			if (this.isRowGroup/* && this.targetInfo && this.targetInfo.target === c_oTargetType.GroupRow && 0 === event.button*/) {
+				this._groupRowClick(event, this.targetInfo);
+				this.isRowGroup = false;
+				return;
 			}
 
 			// Мы можем dblClick и не отработать, если вышли из области и отпустили кнопку мыши, нужно отработать

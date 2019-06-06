@@ -235,6 +235,13 @@ var c_oAscHyperlinkAnchor = {
 	Bookmark      : 2
 };
 
+
+var c_oAscWatermarkType = {
+	None       : 0,
+	Text       : 1,
+	Image      : 2
+};
+
 window["flat_desine"] = false;
 
 //------------------------------------------------------------export---------------------------------------------------
@@ -360,3 +367,9 @@ prot['Bookmark']      = c_oAscHyperlinkAnchor.Bookmark;
 window['AscCommon']                = window['AscCommon'] || {};
 window['AscCommon'].c_oSerFormat   = c_oSerFormat;
 window['AscCommon'].CurFileVersion = c_oSerFormat.Version;
+
+
+prot = window['Asc']['c_oAscWatermarkType'] = window['Asc'].c_oAscWatermarkType = c_oAscWatermarkType;
+prot['None'] = prot.None;
+prot['Text'] = prot.Text;
+prot['Image'] = prot.Image;

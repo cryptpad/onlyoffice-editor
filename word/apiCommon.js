@@ -1843,4 +1843,68 @@
 	CAscNumberingLvl.prototype['put_Suff']    = CAscNumberingLvl.prototype.put_Suff;
 	CAscNumberingLvl.prototype['get_Align']   = CAscNumberingLvl.prototype.get_Align;
 	CAscNumberingLvl.prototype['put_Align']   = CAscNumberingLvl.prototype.put_Align;
+
+
+	function CAscWatermarkProperties()
+	{
+		this.Type = c_oAscWatermarkType.None;
+
+		this.Text = null;
+		this.TextPr = null;
+		this.Opacity = null;
+		this.IsDiagonal = null;
+
+		this.ImageUrl = null;
+		this.Scale = null;
+
+		this.DivId = null;
+	}
+
+	CAscWatermarkProperties.prototype['put_Type'] = CAscWatermarkProperties.prototype.put_Type = function (v) {
+		this.Type = v;
+	};
+
+	CAscWatermarkProperties.prototype['get_Type'] = CAscWatermarkProperties.prototype.get_Type = function () {
+		return this.Type;
+	};
+	CAscWatermarkProperties.prototype['put_Text'] = CAscWatermarkProperties.prototype.put_Text = function (v) {
+		this.Text = v;
+	};
+	CAscWatermarkProperties.prototype['get_Text'] = CAscWatermarkProperties.prototype.get_Text = function () {
+		return this.Text;
+	};
+	CAscWatermarkProperties.prototype['put_TextPr'] = CAscWatermarkProperties.prototype.put_TextPr = function (v) {
+		this.TextPr = v;
+	};
+	CAscWatermarkProperties.prototype['get_TextPr'] = CAscWatermarkProperties.prototype.get_TextPr = function () {
+		return this.TextPr;
+	};
+	CAscWatermarkProperties.prototype['put_Opacity'] = CAscWatermarkProperties.prototype.put_Opacity = function (v) {
+		this.Opacity = v;
+	};
+	CAscWatermarkProperties.prototype['get_Opacity'] = CAscWatermarkProperties.prototype.get_Opacity = function () {
+		return this.Opacity;
+	};
+	CAscWatermarkProperties.prototype['put_IsDiagonal'] = CAscWatermarkProperties.prototype.put_IsDiagonal = function (v) {
+		this.IsDiagonal = v;
+	};
+	CAscWatermarkProperties.prototype['get_IsDiagonal'] = CAscWatermarkProperties.prototype.get_IsDiagonal = function () {
+		return this.IsDiagonal;
+	};
+
+	CAscWatermarkProperties.prototype['put_ImageUrl'] = CAscWatermarkProperties.prototype.put_ImageUrl = function (v) {
+		this.ImageUrl = v;
+	};
+	CAscWatermarkProperties.prototype['get_ImageUrl'] = CAscWatermarkProperties.prototype.get_ImageUrl = function () {
+		return this.ImageUrl;
+	};
+	CAscWatermarkProperties.prototype['put_Scale'] = CAscWatermarkProperties.prototype.put_Scale = function (v) {
+		this.Scale = v;
+	};
+	CAscWatermarkProperties.prototype['get_Scale'] = CAscWatermarkProperties.prototype.get_Scale = function () {
+		return this.Scale;
+	};
+	CAscWatermarkProperties.prototype['put_DivId'] = CAscWatermarkProperties.prototype.put_DivId = function (v) {
+		this.DivId = v;
+	};
 })(window, undefined);

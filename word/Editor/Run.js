@@ -3462,12 +3462,24 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					PRS.LastTab.Item         = Item;
 					PRS.LastTab.TabRightEdge = TabPos.TabRightEdge;
 
-                    // Если таб не левый, значит он не может быть сразу рассчитан, а если левый, тогда
+					var oLogicDocument     = PRS.Paragraph.LogicDocument;
+					var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : document_compatibility_mode_Current;
+
+					// Если таб не левый, значит он не может быть сразу рассчитан, а если левый, тогда
                     // рассчитываем его сразу здесь
                     if (tab_Left !== TabValue)
                     {
 						Item.Width        = 0;
 						Item.WidthVisible = 0;
+
+						// В Word2013 и раньше, если не левый таб заканчивается правее правой границы, тогда у параграфа
+						// правая граница имеет максимально возможное значение (55см)
+						if (AscCommon.MMToTwips(TabPos.NewX) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode <= document_compatibility_mode_Word14)
+						{
+							Para.Lines[PRS.Line].Ranges[PRS.Range].XEnd = 558.7;
+							XEnd                                        = 558.7;
+							PRS.BadLeftTab                              = true;
+						}
                     }
                     else
 					{
@@ -3479,8 +3491,6 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						var twXEnd = AscCommon.MMToTwips(XEnd);
 						var twNewX = AscCommon.MMToTwips(NewX);
 
-						var oLogicDocument     = PRS.Paragraph.LogicDocument;
-						var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : document_compatibility_mode_Current;
 						if (nCompatibilityMode <= document_compatibility_mode_Word14
 							&& !isLastTabToRightEdge
 							&& true !== TabPos.DefaultTab
@@ -5329,12 +5339,12 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         CurTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
         RGBA = CurTextPr.Unifill.getRGBAColor();
 
-        if ( true === PDSE.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill || bPresentation) )
-        {
-            AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
-            RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
-            pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
-        }
+		if (true === PDSE.VisitedHyperlink)
+		{
+			AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
+			RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
+			pGraphics.b_color1(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+		}
         else
         {
             if(bPresentation && PDSE.Hyperlink)
@@ -5351,7 +5361,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
     }
     else
     {
-        if ( true === PDSE.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill ) )
+        if (true === PDSE.VisitedHyperlink)
         {
             AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
             RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
@@ -5626,14 +5636,16 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     // Выставляем цвет обводки
 
     var bPresentation = this.Paragraph && !this.Paragraph.bFromDocument;
-    if ( true === PDSL.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill || bPresentation) )
-    {
-        AscFormat.G_O_VISITED_HLINK_COLOR.check(Theme, ColorMap);
-        RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
-        CurColor = new CDocumentColor( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
-    }
+    if (true === PDSL.VisitedHyperlink)
+	{
+		AscFormat.G_O_VISITED_HLINK_COLOR.check(Theme, ColorMap);
+		RGBA     = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
+		CurColor = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+	}
     else if ( true === CurTextPr.Color.Auto && !CurTextPr.Unifill)
-        CurColor = new CDocumentColor( AutoColor.r, AutoColor.g, AutoColor.b );
+	{
+		CurColor = new CDocumentColor(AutoColor.r, AutoColor.g, AutoColor.b);
+	}
     else
     {
         if(bPresentation && PDSL.Hyperlink)

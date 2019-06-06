@@ -345,7 +345,7 @@ CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPa
 
 	return oNumberingEngine.GetNumInfo();
 };
-CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
+CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (this.CurPos.ContentPos < 0)
 		return false;
@@ -635,7 +635,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 				{
 					this.RemoveTableRow();
 				}
-				else if (false === this.Content[StartPos].Remove(Count, true, bRemoveOnlySelection, bOnTextAdd))
+				else if (false === this.Content[StartPos].Remove(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd))
 				{
 					// При добавлении текста, параграф не объединяется
 					if (true !== bOnTextAdd || (isRemoveOnDrag && this.Content[StartPos].IsEmpty()))
@@ -693,7 +693,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		var nCurContentPos = this.CurPos.ContentPos;
 		if (type_Paragraph == this.Content[nCurContentPos].GetType())
 		{
-			if (false === this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord))
+			if (false === this.Content[nCurContentPos].Remove(Count, isRemoveWholeElement, false, false, isWord))
 			{
 				if (Count < 0)
 				{
@@ -881,7 +881,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else if (type_BlockLevelSdt === this.Content[nCurContentPos].GetType())
 		{
-			if (false === this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord))
+			if (false === this.Content[nCurContentPos].Remove(Count, isRemoveWholeElement, false, false, isWord))
 			{
 				var oLogicDocument = this.GetLogicDocument();
 				if (oLogicDocument && true === oLogicDocument.IsFillingFormMode())
@@ -953,7 +953,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else
 		{
-			this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord);
+			this.Content[nCurContentPos].Remove(Count, isRemoveWholeElement, false, false, isWord);
 		}
 
 		this.CurPos.ContentPos = nCurContentPos;

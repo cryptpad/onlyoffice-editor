@@ -4341,6 +4341,14 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype["asc_SetColumnsProps"]    = asc_docs_api.prototype.asc_SetColumnsProps;
 	asc_docs_api.prototype["asc_GetColumnsProps"]    = asc_docs_api.prototype.asc_GetColumnsProps;
+
+	asc_docs_api.prototype.asc_GetWatermarkProps = function()
+	{};
+
+	asc_docs_api.prototype.asc_SetWatermarkProps = function()
+	{};
+
+
 	asc_docs_api.prototype.sync_ColumnsPropsCallback = function(ColumnsProps)
 	{
 		this.sendEvent("asc_onColumnsProps", ColumnsProps);
@@ -9993,6 +10001,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_endEditCrop']                           = asc_docs_api.prototype.asc_endEditCrop;
 	asc_docs_api.prototype['asc_cropFit']                               = asc_docs_api.prototype.asc_cropFit;
 	asc_docs_api.prototype['asc_cropFill']                              = asc_docs_api.prototype.asc_cropFill;
+	asc_docs_api.prototype["asc_GetWatermarkProps"]                     = asc_docs_api.prototype.asc_GetWatermarkProps;
+	asc_docs_api.prototype["asc_SetWatermarkProps"]                     = asc_docs_api.prototype.asc_SetWatermarkProps;
 
 	asc_docs_api.prototype['sync_StartAddShapeCallback']                = asc_docs_api.prototype.sync_StartAddShapeCallback;
 	asc_docs_api.prototype['CanGroup']                                  = asc_docs_api.prototype.CanGroup;

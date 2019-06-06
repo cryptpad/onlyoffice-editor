@@ -1377,12 +1377,24 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
             }
 
             if (this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsTrackRevisions())
-            {
-                for (var CurPos = EndPos - 1; CurPos > StartPos; CurPos--)
-                {
-                    this.Content[CurPos].SetReviewType(reviewtype_Remove, false);
-                }
-            }
+			{
+				for (var nCurPos = EndPos - 1; nCurPos > StartPos; --nCurPos)
+				{
+					if (para_Run === this.Content[nCurPos].Type)
+					{
+						if (para_Run == this.Content[nCurPos].Type && reviewtype_Add === this.Content[nCurPos].GetReviewType())
+							this.RemoveFromContent(nCurPos, 1);
+						else
+							this.Content[nCurPos].SetReviewType(reviewtype_Remove, false);
+					}
+					else
+					{
+						this.Content[nCurPos].Remove(Direction, bOnAddText);
+						if (this.Content[nCurPos].IsEmpty())
+							this.RemoveFromContent(nCurPos, 1);
+					}
+				}
+			}
             else
             {
                 for (var CurPos = EndPos - 1; CurPos > StartPos; CurPos--)

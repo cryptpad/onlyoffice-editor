@@ -4280,13 +4280,6 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
 				LastPos++;
 				this.Content[LastPos].SelectAll();
 			}
-			else if (LastPos + 1 < this.Content.length && false === bConcatE && type_Paragraph === this.Content[LastPos + 1].Get_Type())
-			{
-				LastPos++;
-				this.Content[LastPos].Selection.Use = true;
-				this.Content[LastPos].Selection_SetBegEnd(true, true);
-				this.Content[LastPos].Selection_SetBegEnd(false, true);
-			}
 
             this.Selection.Start    = false;
             this.Selection.Use      = true;
