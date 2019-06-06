@@ -162,6 +162,17 @@ function asc_menu_WriteColor(_type, _color, _stream) {
     
     _stream["WriteByte"](255);
 }
+
+function asc_menu_WriteMath(oMath, s){
+    s["WriteLong"](oMath.Type);
+    s["WriteLong"](oMath.Action);
+    s["WriteBool"](oMath.CanIncreaseArgumentSize);
+    s["WriteBool"](oMath.CanDecreaseArgumentSize);
+    s["WriteBool"](oMath.CanInsertForcedBreak);
+    s["WriteBool"](oMath.CanDeleteForcedBreak);
+    s["WriteBool"](oMath.CanAlignToCharacter);
+}
+
 function asc_menu_ReadFontFamily(_params, _cursor){
     var _fontfamily = { Name : undefined, Index : -1 };
     var _continue = true;
