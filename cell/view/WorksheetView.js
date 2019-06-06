@@ -1978,7 +1978,7 @@
 			this.usePrintScale = true;
 			var printScale = this.getPrintScale();
 
-			drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
+			//drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
 
 			var transformMtarix;
 			if (printScale !== 1 && drawingCtx.Transform) {
