@@ -5516,7 +5516,7 @@ window["native"]["offline_keyboard_down"] = function(inputKeys) {
                 
             } else {
                 
-                if (32 === codeKey || 8 === codeKey || 13 === codeKey || 27 == codeKey) {
+                if (8 === codeKey || 13 === codeKey || 27 == codeKey) {
                     ws.objectRender.graphicObjectKeyDown(event);
                 } else {
                     ws.objectRender.graphicObjectKeyPress(event);
