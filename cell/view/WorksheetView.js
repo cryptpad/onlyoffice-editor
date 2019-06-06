@@ -5516,9 +5516,9 @@
 					if (t.updateRowHeightValuePx) {
 						History.TurnOff();
 						var oldExcludeCollapsed = t.model.bExcludeCollapsed;
-						this.model.bExcludeCollapsed = true;
+						t.model.bExcludeCollapsed = true;
 						t.model.setRowHeight(AscCommonExcel.convertPxToPt(t.updateRowHeightValuePx), r, r, false);
-						this.model.bExcludeCollapsed = oldExcludeCollapsed;
+						t.model.bExcludeCollapsed = oldExcludeCollapsed;
 						History.TurnOn();
 					}
 
