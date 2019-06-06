@@ -6010,7 +6010,7 @@ window["native"]["offline_cut"] = function() {
         
         _api.asc_CheckCopy(clipboard, AscCommon.c_oAscClipboardDataFormat.Internal|AscCommon.c_oAscClipboardDataFormat.Text);
         
-        worksheet.emptySelection(Asc.c_oAscCleanOptions.All);
+        worksheet.emptySelection(Asc.c_oAscCleanOptions.All, true);
     }
     
     var _stream = global_memory_stream_menu;
