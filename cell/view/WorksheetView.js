@@ -1955,25 +1955,25 @@
 		}
 	};
 
-    WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
-		this.fitPrintPages(2,1);
-    	this.stringRender.fontNeedUpdate = true;
-        if (null === printPagesData) {
-            // Напечатаем пустую страницу
-            drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
+	WorksheetView.prototype.drawForPrint = function (drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
+		this.fitPrintPages(2, 1);
+		this.stringRender.fontNeedUpdate = true;
+		if (null === printPagesData) {
+			// Напечатаем пустую страницу
+			drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
 
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
-            drawingCtx.EndPage();
-        } else {
-            drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
+			drawingCtx.EndPage();
+		} else {
+			drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
 
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
-            drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
-              printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);
+			drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
+				printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);
 
 			this.usePrintScale = true;
 			var printScale = this.getPrintScale();
@@ -1981,69 +1981,71 @@
 			drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
 
 			var transformMtarix;
-			if(printScale !== 1 && drawingCtx.Transform) {
+			if (printScale !== 1 && drawingCtx.Transform) {
 				var mmToPx = asc_getcvt(3/*mm*/, 0/*px*/, this._getPPIX());
 				var leftDiff = printPagesData.pageClipRectLeft * (1 - printScale);
 				var topDiff = printPagesData.pageClipRectTop * (1 - printScale);
 				transformMtarix = drawingCtx.Transform.CreateDublicate();
 
 				//drawingCtx.Transform.Scale(printScale, printScale);
-				drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale, leftDiff / mmToPx, topDiff / mmToPx);
+				drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale,
+					leftDiff / mmToPx, topDiff / mmToPx);
 			}
 
 			//TODO пересмотреть условие printScale < 1 ? printScale
 			drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
 				printPagesData.pageClipRectWidth / (printScale < 1 ? printScale : 1), printPagesData.pageClipRectHeight / (printScale < 1 ? printScale : 1));
 
-            var offsetCols = printPagesData.startOffsetPx;
-            var range = printPagesData.pageRange;
-            var offsetX = this._getColLeft(range.c1) - printPagesData.leftFieldInPx + offsetCols;
-            var offsetY = this._getRowTop(range.r1) - printPagesData.topFieldInPx;
+			var offsetCols = printPagesData.startOffsetPx;
+			var range = printPagesData.pageRange;
+			var offsetX = this._getColLeft(range.c1) - printPagesData.leftFieldInPx + offsetCols;
+			var offsetY = this._getRowTop(range.r1) - printPagesData.topFieldInPx;
 
-            var tmpVisibleRange = this.visibleRange;
-            // Сменим visibleRange для прохождения проверок отрисовки
-            this.visibleRange = range;
+			var tmpVisibleRange = this.visibleRange;
+			// Сменим visibleRange для прохождения проверок отрисовки
+			this.visibleRange = range;
 
 
-            // Нужно отрисовать заголовки
-            if (printPagesData.pageHeadings) {
-                this._drawColumnHeaders(drawingCtx, range.c1, range.c2, /*style*/ undefined, offsetX,
-                  printPagesData.topFieldInPx - this.cellsTop);
-                this._drawRowHeaders(drawingCtx, range.r1, range.r2, /*style*/ undefined,
-                  printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
-            }
+			// Нужно отрисовать заголовки
+			if (printPagesData.pageHeadings) {
+				this._drawColumnHeaders(drawingCtx, range.c1, range.c2, /*style*/ undefined, offsetX,
+					printPagesData.topFieldInPx - this.cellsTop);
+				this._drawRowHeaders(drawingCtx, range.r1, range.r2, /*style*/ undefined,
+					printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
+			}
 
 			// Рисуем сетку
-            if (printPagesData.pageGridLines) {
-                var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
+			if (printPagesData.pageGridLines) {
+				var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
 				if (AscCommon.AscBrowser.isRetina) {
 					vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
 				}
-                this._drawGrid(drawingCtx, range, offsetX, offsetY, printPagesData.pageWidth / vector_koef,
-                  printPagesData.pageHeight / vector_koef);
-            }
+				this._drawGrid(drawingCtx, range, offsetX, offsetY, printPagesData.pageWidth / vector_koef,
+					printPagesData.pageHeight / vector_koef);
+			}
 
-            // Отрисовываем ячейки и бордеры
-            this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
+			// Отрисовываем ячейки и бордеры
+			this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
 
-			if(transformMtarix) {
-				drawingCtx.setTransform(transformMtarix.sx,transformMtarix.shy, transformMtarix.shx, transformMtarix.sy, transformMtarix.tx, transformMtarix.ty);
+			if (transformMtarix) {
+				drawingCtx.setTransform(transformMtarix.sx, transformMtarix.shy, transformMtarix.shx,
+					transformMtarix.sy, transformMtarix.tx, transformMtarix.ty);
 			}
 			this.usePrintScale = false;
 
 			//Отрисовываем панель группировки по строкам
 			//this._drawGroupData(drawingCtx, null, offsetX, offsetY);
 
-            var drawingPrintOptions = {
-                ctx: drawingCtx, printPagesData: printPagesData
-            };
-            this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
-            this.visibleRange = tmpVisibleRange;
+			var drawingPrintOptions = {
+				ctx: drawingCtx, printPagesData: printPagesData
+			};
+			this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
+			this.visibleRange = tmpVisibleRange;
 
-            drawingCtx.RemoveClipRect();
-            drawingCtx.EndPage();
-        }
-    };
+			drawingCtx.RemoveClipRect();
+			drawingCtx.EndPage();
+		}
+	};
 
 	WorksheetView.prototype.fitOnOnePage = function(val) {
 		//TODO add constant!
