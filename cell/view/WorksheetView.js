@@ -16821,6 +16821,8 @@
 			this.drawingCtx.clearRect(x, y, w, h);
 		}
 
+		ctx.beginPath();
+
 		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
 
 		ctx.lineHorPrevPx(x, y, x + w);
@@ -16840,10 +16842,10 @@
 		dc.ppiX = asc.round(dc.ppiX / dc.scaleFactor * factor * 1000) / 1000;
 		dc.ppiY = asc.round(dc.ppiY / dc.scaleFactor * factor * 1000) / 1000;
 
-		if (AscCommon.AscBrowser.isRetina) {
+		/*if (AscCommon.AscBrowser.isRetina) {
 			dc.ppiX = AscCommon.AscBrowser.convertToRetinaValue(dc.ppiX, true);
 			dc.ppiY = AscCommon.AscBrowser.convertToRetinaValue(dc.ppiY, true);
-		}
+		}*/
 
 		dc.scaleFactor = factor;
 
