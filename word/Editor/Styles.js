@@ -3680,92 +3680,93 @@ function CStyles(bCreateDefault)
          this.Add( Style_Table );
          */
 
+        var fUF = AscCommonWord.CreateThemeUnifill;
         // Стандартные стили таблиц
 		var Style_Table_Lined_Accent = new CStyle("Lined - Accent", this.Default.Table, null, styletype_Table );
-		Style_Table_Lined_Accent.Create_Table_Lined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, 0x80, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, 0x0D, null));
+		Style_Table_Lined_Accent.Create_Table_Lined(fUF(EThemeColor.themecolorText1, 0x80, null), fUF(EThemeColor.themecolorText1, 0x0D, null));
 		this.Add( Style_Table_Lined_Accent );
 
 		var Style_Table_Lined_Accent1 = new CStyle("Lined - Accent 1", this.Default.Table, null, styletype_Table );
-		Style_Table_Lined_Accent1.Create_Table_Lined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, 0xEA, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, 0x50, null));
+		Style_Table_Lined_Accent1.Create_Table_Lined(fUF(EThemeColor.themecolorAccent1, 0xEA, null), fUF(EThemeColor.themecolorAccent1, 0x50, null));
 		this.Add( Style_Table_Lined_Accent1 );
 
 		var Style_Table_Lined_Accent2 = new CStyle("Lined - Accent 2", this.Default.Table, null, styletype_Table );
-		Style_Table_Lined_Accent2.Create_Table_Lined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent2, 0x97, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent2, 0x32, null));
+		Style_Table_Lined_Accent2.Create_Table_Lined(fUF(EThemeColor.themecolorAccent2, 0x97, null), fUF(EThemeColor.themecolorAccent2, 0x32, null));
 		this.Add( Style_Table_Lined_Accent2 );
 
 		var Style_Table_Lined_Accent3 = new CStyle("Lined - Accent 3", this.Default.Table, null, styletype_Table );
-		Style_Table_Lined_Accent3.Create_Table_Lined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent3, 0xFE, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent3, 0x34, null));
+		Style_Table_Lined_Accent3.Create_Table_Lined(fUF(EThemeColor.themecolorAccent3, 0xFE, null), fUF(EThemeColor.themecolorAccent3, 0x34, null));
 		this.Add( Style_Table_Lined_Accent3 );
 
 		var Style_Table_Lined_Accent4 = new CStyle("Lined - Accent 4", this.Default.Table, null, styletype_Table );
-		Style_Table_Lined_Accent4.Create_Table_Lined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent4, 0x9A, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent4, 0x34, null));
+		Style_Table_Lined_Accent4.Create_Table_Lined(fUF(EThemeColor.themecolorAccent4, 0x9A, null), fUF(EThemeColor.themecolorAccent4, 0x34, null));
 		this.Add( Style_Table_Lined_Accent4 );
 
 		var Style_Table_Lined_Accent5 = new CStyle("Lined - Accent 5", this.Default.Table, null, styletype_Table );
-		Style_Table_Lined_Accent5.Create_Table_Lined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent5, null, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent5, 0x34, null));
+		Style_Table_Lined_Accent5.Create_Table_Lined(fUF(EThemeColor.themecolorAccent5, null, null), fUF(EThemeColor.themecolorAccent5, 0x34, null));
 		this.Add( Style_Table_Lined_Accent5 );
 
 		var Style_Table_Lined_Accent6 = new CStyle("Lined - Accent 6", this.Default.Table, null, styletype_Table );
-		Style_Table_Lined_Accent6.Create_Table_Lined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent6, null, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent6, 0x34, null));
+		Style_Table_Lined_Accent6.Create_Table_Lined(fUF(EThemeColor.themecolorAccent6, null, null), fUF(EThemeColor.themecolorAccent6, 0x34, null));
 		this.Add( Style_Table_Lined_Accent6 );
 
 
 
 		var Style_Table_Bordered_Accent = new CStyle("Bordered - Accent", this.Default.Table, null, styletype_Table );
-		Style_Table_Bordered_Accent.Create_Table_Bordered(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, 0x80, null),  AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, 0x26, null));
+		Style_Table_Bordered_Accent.Create_Table_Bordered(fUF(EThemeColor.themecolorText1, 0x80, null),  fUF(EThemeColor.themecolorText1, 0x26, null));
 		this.Add( Style_Table_Bordered_Accent );
 
 		var Style_Table_Bordered_Accent_1 = new CStyle("Bordered - Accent 1", this.Default.Table, null, styletype_Table );
-		Style_Table_Bordered_Accent_1.Create_Table_Bordered(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, null, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, 0x67, null));
+		Style_Table_Bordered_Accent_1.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent1, null, null), fUF(EThemeColor.themecolorAccent1, 0x67, null));
 		this.Add( Style_Table_Bordered_Accent_1 );
 
 		var Style_Table_Bordered_Accent_2 = new CStyle("Bordered - Accent 2", this.Default.Table, null, styletype_Table );
-		Style_Table_Bordered_Accent_2.Create_Table_Bordered(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent2, 0x97, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent2, 0x67, null));
+		Style_Table_Bordered_Accent_2.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent2, 0x97, null), fUF(EThemeColor.themecolorAccent2, 0x67, null));
 		this.Add( Style_Table_Bordered_Accent_2 );
 
 		var Style_Table_Bordered_Accent_3 = new CStyle("Bordered - Accent 3", this.Default.Table, null, styletype_Table );
-		Style_Table_Bordered_Accent_3.Create_Table_Bordered(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent3, 0x98, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent3, 0x67, null));
+		Style_Table_Bordered_Accent_3.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent3, 0x98, null), fUF(EThemeColor.themecolorAccent3, 0x67, null));
 		this.Add( Style_Table_Bordered_Accent_3 );
 
 		var Style_Table_Bordered_Accent_4 = new CStyle("Bordered - Accent 4", this.Default.Table, null, styletype_Table );
-		Style_Table_Bordered_Accent_4.Create_Table_Bordered(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent4, 0x9A, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent4, 0x67, null));
+		Style_Table_Bordered_Accent_4.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent4, 0x9A, null), fUF(EThemeColor.themecolorAccent4, 0x67, null));
 		this.Add( Style_Table_Bordered_Accent_4 );
 
 		var Style_Table_Bordered_Accent_5 = new CStyle("Bordered - Accent 5", this.Default.Table, null, styletype_Table );
-		Style_Table_Bordered_Accent_5.Create_Table_Bordered(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent5, 0x9A, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent5, 0x67, null));
+		Style_Table_Bordered_Accent_5.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent5, 0x9A, null), fUF(EThemeColor.themecolorAccent5, 0x67, null));
 		this.Add( Style_Table_Bordered_Accent_5 );
 
 		var Style_Table_Bordered_Accent_6 = new CStyle("Bordered - Accent 6", this.Default.Table, null, styletype_Table );
-		Style_Table_Bordered_Accent_6.Create_Table_Bordered(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent6, 0x98, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent6, 0x67, null));
+		Style_Table_Bordered_Accent_6.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent6, 0x98, null), fUF(EThemeColor.themecolorAccent6, 0x67, null));
 		this.Add( Style_Table_Bordered_Accent_6 );
 
 
 		var Style_Table_BorderedLined_Accent0 = new CStyle("Bordered & Lined - Accent", this.Default.Table, null, styletype_Table );
-		Style_Table_BorderedLined_Accent0.Create_Table_BorderedAndLined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, 0x80, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, 0x0D, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, 0x0D, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, 0xA6, null));
+		Style_Table_BorderedLined_Accent0.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorText1, 0x80, null), fUF(EThemeColor.themecolorText1, 0x0D, null), fUF(EThemeColor.themecolorText1, 0x0D, null), fUF(EThemeColor.themecolorText1, 0xA6, null));
 		this.Add( Style_Table_BorderedLined_Accent0 );
 
         var Style_Table_BorderedLined_Accent1 = new CStyle("Bordered & Lined - Accent 1", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent1.Create_Table_BorderedAndLined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, 0xEA, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, 0x50, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, 0x50, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, null, 0x95));
+        Style_Table_BorderedLined_Accent1.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent1, 0xEA, null), fUF(EThemeColor.themecolorAccent1, 0x50, null), fUF(EThemeColor.themecolorAccent1, 0x50, null), fUF(EThemeColor.themecolorAccent1, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent1 );
 
         var Style_Table_BorderedLined_Accent2 = new CStyle("Bordered & Lined - Accent 2", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent2.Create_Table_BorderedAndLined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent2, 0x97, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent2, 0x32, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent2, 0x32, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent2, null, 0x95));
+        Style_Table_BorderedLined_Accent2.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent2, 0x97, null), fUF(EThemeColor.themecolorAccent2, 0x32, null), fUF(EThemeColor.themecolorAccent2, 0x32, null), fUF(EThemeColor.themecolorAccent2, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent2 );
 
 		var Style_Table_BorderedLined_Accent3 = new CStyle("Bordered & Lined - Accent 3", this.Default.Table, null, styletype_Table );
-		Style_Table_BorderedLined_Accent3.Create_Table_BorderedAndLined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent3, 0xFE, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent3, 0x34, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent3, 0x34, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent3, null, 0x95));
+		Style_Table_BorderedLined_Accent3.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent3, 0xFE, null), fUF(EThemeColor.themecolorAccent3, 0x34, null), fUF(EThemeColor.themecolorAccent3, 0x34, null), fUF(EThemeColor.themecolorAccent3, null, 0x95));
 		this.Add( Style_Table_BorderedLined_Accent3 );
 
         var Style_Table_BorderedLined_Accent4 = new CStyle("Bordered & Lined - Accent 4", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent4.Create_Table_BorderedAndLined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent4, 0x9A, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent4, 0x34, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent4, 0x34, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent4, null, 0x95));
+        Style_Table_BorderedLined_Accent4.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent4, 0x9A, null), fUF(EThemeColor.themecolorAccent4, 0x34, null), fUF(EThemeColor.themecolorAccent4, 0x34, null), fUF(EThemeColor.themecolorAccent4, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent4 );
 
         var Style_Table_BorderedLined_Accent5 = new CStyle("Bordered & Lined - Accent 5", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent5.Create_Table_BorderedAndLined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent5, null, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent5, 0x34, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent5, 0x34, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent5, null, 0x95));
+        Style_Table_BorderedLined_Accent5.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent5, null, null), fUF(EThemeColor.themecolorAccent5, 0x34, null), fUF(EThemeColor.themecolorAccent5, 0x34, null), fUF(EThemeColor.themecolorAccent5, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent5 );
 
         var Style_Table_BorderedLined_Accent6 = new CStyle("Bordered & Lined - Accent 6", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent6.Create_Table_BorderedAndLined(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent6, null, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent6, 0x34, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent6, 0x34, null), AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent6, null, 0x95));
+        Style_Table_BorderedLined_Accent6.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent6, null, null), fUF(EThemeColor.themecolorAccent6, 0x34, null), fUF(EThemeColor.themecolorAccent6, 0x34, null), fUF(EThemeColor.themecolorAccent6, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent6 );
 
 
