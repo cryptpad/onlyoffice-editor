@@ -348,8 +348,11 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 
 CHistory.prototype.Remove_LastPoint = function()
 {
-	this.Index--;
-	this.Points.length = this.Index + 1;
+	if (this.Index > -1)
+	{
+		this.Index--;
+		this.Points.length = this.Index + 1;
+	}
 };
 CHistory.prototype.RemoveLastPoint = function()
 {
@@ -676,7 +679,7 @@ CHistory.prototype.Add_RecalcTableGrid = function()
 CHistory.prototype.Create_NewPoint = function()
 {
 	if ( 0 !== this.TurnOffHistory || 0 !== this.Transaction )
-		return;
+		return false;
 
 	this.CanNotAddChanges = false;
 
@@ -713,6 +716,8 @@ CHistory.prototype.Create_NewPoint = function()
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
 	//this.workbook.handlers.trigger("cleanCutData");
+
+	return true;
 };
 
 // Регистрируем новое изменение:

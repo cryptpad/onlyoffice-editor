@@ -12970,21 +12970,24 @@ CTable.prototype.CorrectVMerge = function()
 };
 CTable.prototype.GetNumberingInfo = function(oNumberingEngine)
 {
-    if (oNumberingEngine.IsStop())
-        return;
+	if (oNumberingEngine.IsStop())
+		return;
 
-    for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
-    {
-        var oRow = this.GetRow(nCurRow);
-        for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
-        {
-            var oCell = oRow.GetCell(nCurCell);
-            oCell.GetContent().GetNumberingInfo(oNumberingEngine);
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			var oCell = oRow.GetCell(nCurCell);
+			if (oCell.IsMergedCell())
+				continue;
 
-            if (oNumberingEngine.IsStop())
-                return;
-        }
-    }
+			oCell.GetContent().GetNumberingInfo(oNumberingEngine);
+
+			if (oNumberingEngine.IsStop())
+				return;
+		}
+	}
 };
 CTable.prototype.IsTableFirstRowOnNewPage = function(CurRow)
 {
