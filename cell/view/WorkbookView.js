@@ -2927,8 +2927,8 @@
 			}
 		};
 
-		addStyles(wb.TableStyles.CustomStyles, "custom");
-		addStyles(defaultStyles, "default");
+		addStyles(wb.TableStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
+		addStyles(defaultStyles, AscCommon.c_oAscStyleImage.Default);
 
 		return result;
 	};
