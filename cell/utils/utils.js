@@ -2001,8 +2001,6 @@
 
 			this.styleThumbnailWidth = width;
 			this.styleThumbnailHeight = height;
-			this.styleThumbnailWidthPt = this.styleThumbnailWidth * 72 / 96;
-			this.styleThumbnailHeightPt = this.styleThumbnailHeight * 72 / 96;
 
 			this.styleThumbnailWidthWithRetina = this.styleThumbnailWidth;
 			this.styleThumbnailHeightWithRetina = this.styleThumbnailHeight;
@@ -2049,7 +2047,7 @@
 			oCanvas.width = this.styleThumbnailWidthWithRetina;
 			oCanvas.height = this.styleThumbnailHeightWithRetina;
 			var oGraphics = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 1/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
+				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: fmgrGraphics, font: oFont});
 
 			var oStyle, oCustomStyle;
 			this.defaultStyles = [];
@@ -2073,7 +2071,7 @@
 			oCanvas.width = this.styleThumbnailWidthWithRetina;
 			oCanvas.height = this.styleThumbnailHeightWithRetina;
 			var oGraphics = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 1/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
+				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: fmgrGraphics, font: oFont});
 
 			var oStyle;
 			this.docStyles = [];
@@ -2095,7 +2093,7 @@
 				var oColor = oStyle.getFillColor();
 				if (null !== oColor) {
 					oGraphics.setFillStyle(oColor);
-					oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
+					oGraphics.fillRect(0, 0, this.styleThumbnailWidth, this.styleThumbnailHeight);
 				}
 			}
 
@@ -2111,12 +2109,12 @@
 			if (oStyle.ApplyBorder) {
 				// borders
 				var oBorders = oStyle.getBorder();
-				drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt);
-				drawBorder(oBorders.r, this.styleThumbnailWidthPt, 0, this.styleThumbnailWidthPt,
-					this.styleThumbnailHeightPt);
-				drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0);
-				drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt, this.styleThumbnailWidthPt,
-					this.styleThumbnailHeightPt);
+				drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeight);
+				drawBorder(oBorders.r, this.styleThumbnailWidth, 0, this.styleThumbnailWidth,
+					this.styleThumbnailHeight);
+				drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidth, 0);
+				drawBorder(oBorders.b, 0, this.styleThumbnailHeight, this.styleThumbnailWidth,
+					this.styleThumbnailHeight);
 			}
 
 			// Draw text
@@ -2126,11 +2124,11 @@
 				format.setSize(16);
 			}
 
-			var width_padding = 3; // 4 * 72 / 96
+			var width_padding = 4;
 
 			var tm = sr.measureString(sStyleName);
 			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
-			var textY = 0.5 * (this.styleThumbnailHeightPt - tm.height);
+			var textY = Asc.round(0.5 * (this.styleThumbnailHeight - tm.height));
 			oGraphics.setFont(format);
 			oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
 			oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
