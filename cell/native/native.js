@@ -4783,25 +4783,6 @@ function OfflineEditor () {
     this.offline_beforeInit = function () {
         
         // STYLE MANAGER
-        
-        AscCommonExcel.asc_CStylesPainter.prototype.generateStylesAll = function (cellStylesAll, fmgrGraphics, oFont, stringRenderer) {
-            
-            var pxTomm = 1.0; // 72.0 / 96.0;
-            
-            this.styleThumbnailWidth = 92;// * pxTomm;
-            this.styleThumbnailHeight = 48;// * pxTomm;
-            
-            this.styleThumbnailWidthPt = Math.floor(this.styleThumbnailWidth * pxTomm);
-            this.styleThumbnailHeightPt = Math.floor(this.styleThumbnailHeight * pxTomm);
-            
-            this.styleThumbnailWidthWithRetina	= this.styleThumbnailWidth;
-            this.styleThumbnailHeightWithRetina	= this.styleThumbnailHeight;
-            
-            window["native"]["SetStylesType"](0);
-            
-            this.generateDefaultStyles(cellStylesAll, fmgrGraphics, oFont, stringRenderer);
-            this.generateDocumentStyles(cellStylesAll, fmgrGraphics, oFont, stringRenderer);
-        };
         AscCommonExcel.asc_CStylesPainter.prototype.generateDefaultStyles = function (cellStylesAll, fmgrGraphics, oFont, stringRenderer) {
             var cellStyles = cellStylesAll.DefaultStyles;
             var oGraphics = new window["Asc"].DrawingContext({canvas: null, units: 0/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
@@ -6642,7 +6623,8 @@ window["native"]["offline_apply_event"] = function(type,params) {
             
         case 2405: // ASC_SPREADSHEETS_EVENT_TYPE_CELL_STYLES
         {
-            _api.wb.getCellStyles();
+            window["native"]["SetStylesType"](0);
+            _api.wb.getCellStyles(92, 48);
             break;
         }
             

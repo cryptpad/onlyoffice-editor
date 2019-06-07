@@ -1635,19 +1635,13 @@ var editor;
     return (c_oAscLockTypeElem.Object === lockElem.Element["type"] && lockElem.Element["rangeOrObjectId"] === AscCommonExcel.c_oAscLockNameFrozenPane);
   };
 
-	spreadsheet_api.prototype._sendWorkbookStyles = function () {
-		if (this.wbModel) {
-
-			if (window["NATIVE_EDITOR_ENJINE"]) {
-				// Для нативной версии (сборка и приложение) не генерируем стили
-				return;
-			}
-
-			// Отправка стилей ячеек
-			this.handlers.trigger("asc_onInitEditorStyles",
-				this.wb.getCellStyles(this.styleThumbnailWidth, this.styleThumbnailHeight));
-		}
-	};
+  spreadsheet_api.prototype._sendWorkbookStyles = function () {
+    // Для нативной версии (сборка и приложение) не генерируем стили
+    if (this.wbModel && !window["NATIVE_EDITOR_ENJINE"]) {
+      // Отправка стилей ячеек
+      this.handlers.trigger("asc_onInitEditorStyles", this.wb.getCellStyles(this.styleThumbnailWidth, this.styleThumbnailHeight));
+    }
+  };
 
   spreadsheet_api.prototype.startCollaborationEditing = function() {
     // Начинаем совместное редактирование

@@ -2102,7 +2102,10 @@
 					oGraphics.setStrokeStyle(b.c);
 
 					// ToDo поправить
-					oGraphics.setLineWidth(b.w).beginPath().moveTo(x1, y1).lineTo(x2, y2).stroke();
+					oGraphics.setLineWidth(b.w).beginPath();
+					oGraphics.moveTo(x1, y1);
+					oGraphics.lineTo(x1, y1);
+					oGraphics.stroke(x1, y1);
 				}
 			};
 
