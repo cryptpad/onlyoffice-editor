@@ -2067,19 +2067,60 @@
 			//pageSetup.asc_setFitToHeight();
 		}
 
-		this.fitPrintPages(width, height);
+		this.fitToPages(width, height);
 	};
 	
-	WorksheetView.prototype.fitPrintPages = function (width, height) {
+	WorksheetView.prototype.fitToPages = function (width, height) {
+		//width/height - count of pages
+		//automatic -> width/height = undefined
+		//define print scale
+		this.setPrintScale(this.calcPrintScale(width, height));
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	//вызывается из меню при изменении только scale to fit -> width
+	WorksheetView.prototype.fitToWidth = function (val) {
 		//width/height - count of pages
 		//automatic -> width/height = undefined
 		//define print scale
 
-		if(width === undefined && height === undefined) {
-			return;
+		var t = this;
+		var pageOptions = t.model.PagePrintOptions;
+
+		if(val !== pageOptions.asc_getFitToWidth()) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			pageOptions.asc_setFitToWidth(val);
+			this.setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
+
+			History.EndTransaction();
 		}
 
-		this.setPrintScale(this.calcPrintScale(width, height));
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	//вызывается из меню при изменении только scale to fit -> height
+	WorksheetView.prototype.fitToHeight = function (val) {
+		//width/height - count of pages
+		//automatic -> width/height = undefined
+		//define print scale
+
+		var t = this;
+		var pageOptions = t.model.PagePrintOptions;
+
+		if(val !== pageOptions.asc_getFitToHeight()) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			pageOptions.asc_setFitToHeight(val);
+			this.setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
+
+			History.EndTransaction();
+		}
 
 		//TODO нужно ли в данном случае лочить?
 		//this._isLockedLayoutOptions(callback);
@@ -2091,7 +2132,12 @@
 		var oldScale = pageSetup.asc_getScale() / 100;
 
 		if(val !== oldScale) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
 			pageSetup.asc_setScale(val);
+
+			History.EndTransaction();
 		}
 
 		//TODO нужно ли в данном случае лочить?
@@ -16041,7 +16087,18 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+			var oldFitToWidth = pageOptions.asc_getFitToWidth();
+			var oldFitToHeight = pageOptions.asc_getFitToHeight();
+			var newFitToWidth = obj.asc_getFitToWidth();
+			var newFitToHeight = obj.asc_getFitToHeight();
+
 			pageOptions.asc_setOptions(obj);
+
+			//если поменялись scaling - fit sheet on.. -> необходимо пересчитать scaling
+			if(oldFitToWidth !== newFitToWidth || oldFitToHeight !== newFitToHeight) {
+				t.fitPrintPages(newFitToWidth, newFitToHeight);
+			}
+
 			t.changeViewPrintLines(true);
 			//window["Asc"]["editor"]._onUpdateLayoutMenu(this.model.nSheetId);
 
