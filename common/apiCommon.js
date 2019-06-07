@@ -3497,7 +3497,7 @@
 	};
 
 	function CStyleImage(name, type, image, uiPriority) {
-		this.Name = name;
+		this.name = name;
 		this.displayName = null;
 		this.type = type;
 		this.image = image;
@@ -3505,7 +3505,7 @@
 	}
 
 	CStyleImage.prototype.asc_getName = CStyleImage.prototype.get_Name = function () {
-		return this.Name;
+		return this.name;
 	};
 	CStyleImage.prototype.asc_getDisplayName = function () { return this.displayName; };
 	CStyleImage.prototype.asc_getType = CStyleImage.prototype.get_Type = function () {
