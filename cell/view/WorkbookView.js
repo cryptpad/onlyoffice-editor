@@ -2934,25 +2934,22 @@
 	};
 
   WorkbookView.prototype.af_getSmallIconTable = function (canvas, style, styleInfo, size) {
-
-    var fmgrGraphics = this.fmgrGraphics;
-  	var ctx = new Asc.DrawingContext({canvas: canvas, units: 1/*pt*/, fmgrGraphics: fmgrGraphics, font: this.m_oFont});
+  	var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: this.fmgrGraphics, font: this.m_oFont});
 
 	var w = size.w;
 	var h = size.h;
 	var row = size.row;
 	var col = size.col;
 
-	var pxToMM = 72 / 96;
-	var startX = 1 * pxToMM;
-	var startY = 1 * pxToMM;
+	var startX = 1;
+	var startY = 1;
 
-	var ySize = (h - 1) * pxToMM - 2 * startY;
-	var xSize = w * pxToMM - 2 * startX;
+	var ySize = (h - 1) - 2 * startY;
+	var xSize = w - 2 * startX;
 	
 	var stepY = (ySize) / row;
 	var stepX = (xSize) / col;
-	var lineStepX = (xSize - 1 * pxToMM) / 5;
+	var lineStepX = (xSize - 1) / 5;
 	
 	var whiteColor = new CColor(255, 255, 255);
 	var blackColor = new CColor(0, 0, 0);
@@ -3062,7 +3059,7 @@
 			
 			//marks
 			color = (curStyle && curStyle.font && curStyle.font.c) || defaultColor;
-			calculateLineHor(color, j * lineStepX + 3 * pxToMM, (i + 1) * stepY - stepY / 2, (j + 1) * lineStepX - 2 * pxToMM);
+			calculateLineHor(color, j * lineStepX + 3, (i + 1) * stepY - stepY / 2, (j + 1) * lineStepX - 2);
 		}
 	}
 
