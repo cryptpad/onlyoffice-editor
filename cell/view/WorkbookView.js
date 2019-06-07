@@ -2905,9 +2905,8 @@
 			//None style
 			var options;
 			if(type === "default" && props && !bPivotTable){
-				options = new AscCommonExcel.formatTablePictures();
-				options.name = "None";
-				options.displayName = "None";
+				options = new AscCommon.CStyleImage();
+				options.Name = options.displayName = "None";
 				var emptyStyle = new window["Asc"].CTableStyle();
 				emptyStyle.pivot = false;
 				options.image = t.af_getSmallIconTable(canvas, emptyStyle, styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
@@ -2918,8 +2917,8 @@
 			{
 				if ((bPivotTable && styles[i].pivot) || (!bPivotTable && styles[i].table))
 				{
-					options = new AscCommonExcel.formatTablePictures();
-					options.name = i;
+					options = new AscCommon.CStyleImage();
+					options.Name = i;
 					options.displayName = styles[i].displayName;
 					options.type = type;
 					options.image = t.af_getSmallIconTable(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});

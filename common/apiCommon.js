@@ -3498,6 +3498,7 @@
 
 	function CStyleImage(name, type, image, uiPriority) {
 		this.Name = name;
+		this.displayName = null;
 		this.type = type;
 		this.image = image;
 		this.uiPriority = uiPriority;
@@ -3506,13 +3507,13 @@
 	CStyleImage.prototype.asc_getName = CStyleImage.prototype.get_Name = function () {
 		return this.Name;
 	};
+	CStyleImage.prototype.asc_getDisplayName = function () { return this.displayName; };
 	CStyleImage.prototype.asc_getType = CStyleImage.prototype.get_Type = function () {
 		return this.type;
 	};
 	CStyleImage.prototype.asc_getImage = function () {
 		return this.image;
 	};
-
 
 	/** @constructor */
     function asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, Element)
@@ -4963,6 +4964,7 @@
 	window["AscCommon"].CStyleImage = CStyleImage;
 	prot = CStyleImage.prototype;
 	prot["asc_getName"] = prot["get_Name"] = prot.asc_getName;
+	prot["asc_getDisplayName"] = prot.asc_getDisplayName;
 	prot["asc_getType"] = prot["get_Type"] = prot.asc_getType;
 	prot["asc_getImage"] = prot.asc_getImage;
 
