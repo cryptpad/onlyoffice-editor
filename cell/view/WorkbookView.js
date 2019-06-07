@@ -3026,7 +3026,7 @@
 			color = curStyle && curStyle.fill && curStyle.fill.bg();
 			if(color)
 			{
-				calculateRect(color, j * stepX, i * stepY, (j + 1) * stepX - j * stepX, (i + 1) * stepY - i * stepY);
+				calculateRect(color, j * stepX, i * stepY, stepX, stepY);
 			}
 			
 			//borders
