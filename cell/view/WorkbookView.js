@@ -2889,8 +2889,7 @@
 			}
 		}
 
-		var originSizeW = styleThumbnailWidth;
-		var originSizeH = styleThumbnailHeight;
+		var sizeInfo = {w: styleThumbnailWidth, h: styleThumbnailHeight, row: row, col: col};
 
 		if (AscBrowser.isRetina)
 		{
@@ -2909,7 +2908,7 @@
 				options.name = options.displayName = "None";
 				var emptyStyle = new window["Asc"].CTableStyle();
 				emptyStyle.pivot = false;
-				options.image = t.af_getSmallIconTable(canvas, emptyStyle, styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
+				options.image = t.af_getSmallIconTable(canvas, emptyStyle, styleInfo, sizeInfo);
 				result.push(options);
 			}
 
@@ -2921,7 +2920,7 @@
 					options.name = i;
 					options.displayName = styles[i].displayName;
 					options.type = type;
-					options.image = t.af_getSmallIconTable(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
+					options.image = t.af_getSmallIconTable(canvas, styles[i], styleInfo, sizeInfo);
 					result.push(options);
 				}
 			}
