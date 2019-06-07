@@ -7951,7 +7951,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
-	asc_CPageSetup.prototype.asc_setScale = function (newVal) { this.scale = newVal; };
+	asc_CPageSetup.prototype.asc_setScale = function (newVal) {
+		var oldVal = this.scale;
+		this.scale = newVal;
+		if (this.ws && History.Is_On() && oldVal !== this.scale) {
+			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Scale, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
+		}
+	};
 
 	/** @constructor */
 	//этот объект используется как в модели, так и в меню для передачи измененных опций page layout

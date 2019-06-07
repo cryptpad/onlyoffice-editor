@@ -165,6 +165,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Layout_GridLines = 9;
 	window['AscCH'].historyitem_Layout_Headings = 10;
 	window['AscCH'].historyitem_Layout_Orientation = 11;
+	window['AscCH'].historyitem_Layout_Scale = 8;
 	
 	window['AscCH'].historyitem_ArrayFromula_AddFormula = 1;
 	window['AscCH'].historyitem_ArrayFromula_DeleteFormula = 2;

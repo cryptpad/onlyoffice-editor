@@ -2079,12 +2079,19 @@
 			return;
 		}
 
+		this.setPrintScale(this.calcPrintScale(width, height));
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	WorksheetView.prototype.setPrintScale = function (val) {
 		var pageOptions = this.model.PagePrintOptions;
 		var pageSetup = pageOptions.asc_getPageSetup();
 		var oldScale = pageSetup.asc_getScale() / 100;
-		var newScale = this.calcPrintScale(width, height);
-		if(newScale !== oldScale) {
-			pageSetup.asc_setScale(newScale);
+
+		if(val !== oldScale) {
+			pageSetup.asc_setScale(val);
 		}
 
 		//TODO нужно ли в данном случае лочить?
