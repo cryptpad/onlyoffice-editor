@@ -4952,13 +4952,13 @@ function OfflineEditor () {
                     {
                         if ("custom" == type) {
                             window["native"]["BeginDrawDocumentStyle"](i, n);
-                            t.af_getSmallIconTable(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
+                            t._drawTableStyle(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
                             window["native"]["EndDrawStyle"]();
                         }
                         
                         if ("default" == type) {
                             window["native"]["BeginDrawDefaultStyle"](i, n);
-                            t.af_getSmallIconTable(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
+                            t._drawTableStyle(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
                             window["native"]["EndDrawStyle"]();
                         }
                         
@@ -4973,144 +4973,6 @@ function OfflineEditor () {
             addStyles(defaultStyles, "default");
             
             return result;
-        };
-        
-        AscCommonExcel.WorkbookView.prototype.af_getSmallIconTable = function (canvas, style, styleInfo, size) {
-            
-            var fmgrGraphics = this.fmgrGraphics;
-            var oFont = this.m_oFont;
-            var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
-            
-            var w = size.w;
-            var h = size.h;
-            var row = size.row;
-            var col = size.col;
-            
-            var pxToMM = 1.0;//72 / 96;
-            var startX = 1 * pxToMM;
-            var startY = 1 * pxToMM;
-            
-            var ySize = (h - 1) * pxToMM - 2 * startY;
-            var xSize = w * pxToMM - 2 * startX;
-            var stepY = (ySize) / row;
-            var stepX = (xSize) / col;
-            var lineStepX = (xSize - 1 * pxToMM) / 5;
-            
-            var whiteColor = new AscCommon.CColor(255, 255, 255);
-            var blackColor = new AscCommon.CColor(0, 0, 0);
-            
-            var defaultColor;
-            if (!style || !style.wholeTable || !style.wholeTable.dxf.font) {
-                defaultColor = blackColor;
-            } else {
-                defaultColor = style.wholeTable.dxf.font.getColor();
-            }
-            
-            ctx.setFillStyle(whiteColor);
-            ctx.fillRect(0, 0, xSize + 2 * startX, ySize + 2 * startY);
-            
-            var calculateLineVer = function(color, x, y1, y2)
-            {
-                ctx.beginPath();
-                ctx.setStrokeStyle(color);
-                
-                //ctx.lineVer(x + startX, y1 + startY, y2 + startY);
-                window["native"]["PD_PathMoveTo"](x + startX, y1 + startY);
-                window["native"]["PD_PathLineTo"](x + startX, y2 + startY);
-                
-                ctx.stroke();
-                ctx.closePath();
-            };
-            
-            var calculateLineHor = function(color, x1, y, x2)
-            {
-                ctx.beginPath();
-                ctx.setStrokeStyle(color);
-                
-                //ctx.lineHor(x1 + startX, y + startY, x2 + startX);
-                window["native"]["PD_PathMoveTo"](x1 + startX, y + startY);
-                window["native"]["PD_PathLineTo"](x2 + startX, y + startY);
-                
-                ctx.stroke();
-                ctx.closePath();
-            };
-            
-            var calculateRect = function(color, x1, y1, w, h)
-            {
-                ctx.beginPath();
-                ctx.setFillStyle(color);
-                ctx.fillRect(x1 + startX, y1 + startY, w, h);
-                ctx.closePath();
-            };
-            
-            var bbox = new Asc.Range(0, 0, col - 1, row - 1);
-            var sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
-            var hiddenManager = new AscCommonExcel.HiddenManager(null);
-            
-            if(style.pivot)
-            {
-                this.getPivotMergeStyle(sheetMergedStyles, bbox, style, styleInfo);
-            }
-            else
-            {
-                style.initStyle(sheetMergedStyles, bbox, styleInfo,
-                                null !== styleInfo.HeaderRowCount ? styleInfo.HeaderRowCount : 1,
-                                null !== styleInfo.TotalsRowCount ? styleInfo.TotalsRowCount : 0);
-            }
-            
-            var compiledStylesArr = [];
-            for (var i = 0; i < row; i++)
-            {
-                for (var j = 0; j < col; j++) {
-                    var color = null, prevStyle;
-                    var curStyle = AscCommonExcel.getCompiledStyle(sheetMergedStyles, hiddenManager, i, j);
-                    
-                    if(!compiledStylesArr[i])
-                    {
-                        compiledStylesArr[i] = [];
-                    }
-                    compiledStylesArr[i][j] = curStyle;
-                    
-                    //fill
-                    color = curStyle && curStyle.fill && curStyle.fill.bg();
-                    if(color)
-                    {
-                        calculateRect(color, j * stepX, i * stepY, stepX, stepY);
-                    }
-                    
-                    //borders
-                    //left
-                    prevStyle = (j - 1 >= 0) ? compiledStylesArr[i][j - 1] : null;
-                    color = AscCommonExcel.getMatchingBorder(prevStyle && prevStyle.border && prevStyle.border.r, curStyle && curStyle.border && curStyle.border.l);
-                    if(color && color.w > 0)
-                    {
-                        calculateLineVer(color.c, j * lineStepX, i * stepY, (i + 1) * stepY);
-                    }
-                    //right
-                    color = curStyle && curStyle.border && curStyle.border.r;
-                    if(color && color.w > 0)
-                    {
-                        calculateLineVer(color.c, (j + 1) * lineStepX, i * stepY, (i + 1) * stepY);
-                    }
-                    //top
-                    prevStyle = (i - 1 >= 0) ? compiledStylesArr[i - 1][j] : null;
-                    color = AscCommonExcel.getMatchingBorder(prevStyle && prevStyle.border && prevStyle.border.b, curStyle && curStyle.border && curStyle.border.t);
-                    if(color && color.w > 0)
-                    {
-                        calculateLineHor(color.c, j * stepX, i * stepY, (j + 1) * stepX);
-                    }
-                    //bottom
-                    color = curStyle && curStyle.border && curStyle.border.b;
-                    if(color && color.w > 0)
-                    {
-                        calculateLineHor(color.c, j * stepX, (i + 1) * stepY, (j + 1) * stepX);
-                    }
-                    
-                    //marks
-                    color = (curStyle && curStyle.font && curStyle.font.c) || defaultColor;
-                    calculateLineHor(color, j * lineStepX + 3 * pxToMM, (i + 1) * stepY - stepY / 2, (j + 1) * lineStepX - 2 * pxToMM);
-                }
-            }
         };
         
         // chat styles
