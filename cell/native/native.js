@@ -6091,7 +6091,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
             var props = asc_ReadFormatTableInfo(params, _current);
             // console.log(JSON.stringify(props));
             window["native"]["SetStylesType"](1);
-            _api.wb.af_getTablePictures(props);
+            _api.wb.getTableStyles(props);
             break;
         }
             

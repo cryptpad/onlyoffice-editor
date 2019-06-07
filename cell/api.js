@@ -612,7 +612,7 @@ var editor;
   };
 
 	spreadsheet_api.prototype.asc_getTablePictures = function (props, pivot) {
-		return this.wb.af_getTablePictures(props, pivot);
+		return this.wb.getTableStyles(props, pivot);
 	};
 
   spreadsheet_api.prototype.asc_setViewMode = function (isViewMode) {

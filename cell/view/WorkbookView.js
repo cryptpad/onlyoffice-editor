@@ -2850,7 +2850,7 @@
 		}
 	};
 
-	WorkbookView.prototype.af_getTablePictures = function (props, bPivotTable) {
+	WorkbookView.prototype.getTableStyles = function (props, bPivotTable) {
 		var wb = this.model;
 		var t = this;
 		
