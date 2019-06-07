@@ -162,6 +162,17 @@ function asc_menu_WriteColor(_type, _color, _stream) {
     
     _stream["WriteByte"](255);
 }
+
+function asc_menu_WriteMath(oMath, s){
+    s["WriteLong"](oMath.Type);
+    s["WriteLong"](oMath.Action);
+    s["WriteBool"](oMath.CanIncreaseArgumentSize);
+    s["WriteBool"](oMath.CanDecreaseArgumentSize);
+    s["WriteBool"](oMath.CanInsertForcedBreak);
+    s["WriteBool"](oMath.CanDeleteForcedBreak);
+    s["WriteBool"](oMath.CanAlignToCharacter);
+}
+
 function asc_menu_ReadFontFamily(_params, _cursor){
     var _fontfamily = { Name : undefined, Index : -1 };
     var _continue = true;
@@ -5516,7 +5527,7 @@ window["native"]["offline_keyboard_down"] = function(inputKeys) {
                 
             } else {
                 
-                if (32 === codeKey || 8 === codeKey || 13 === codeKey || 27 == codeKey) {
+                if (8 === codeKey || 13 === codeKey || 27 == codeKey) {
                     ws.objectRender.graphicObjectKeyDown(event);
                 } else {
                     ws.objectRender.graphicObjectKeyPress(event);
@@ -6010,7 +6021,7 @@ window["native"]["offline_cut"] = function() {
         
         _api.asc_CheckCopy(clipboard, AscCommon.c_oAscClipboardDataFormat.Internal|AscCommon.c_oAscClipboardDataFormat.Text);
         
-        worksheet.emptySelection(Asc.c_oAscCleanOptions.All);
+        worksheet.emptySelection(Asc.c_oAscCleanOptions.All, true);
     }
     
     var _stream = global_memory_stream_menu;
