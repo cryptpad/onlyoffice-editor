@@ -36,31 +36,6 @@
 {
 	window['Asc'] = window['Asc'] || {};
 // ---------------------------------------------------------------
-	function CAscTableStyle()
-	{
-		this.Id = "";
-		this.Type = 0;
-		this.Image = "";
-	}
-
-	CAscTableStyle.prototype.get_Id = function ()
-	{
-		return this.Id;
-	};
-	CAscTableStyle.prototype.get_Image = function ()
-	{
-		return this.Image;
-	};
-	CAscTableStyle.prototype.get_Type = function ()
-	{
-		return this.Type;
-	};
-	window['Asc']['CAscTableStyle'] = window['Asc'].CAscTableStyle = CAscTableStyle;
-	CAscTableStyle.prototype['get_Id'] = CAscTableStyle.prototype.get_Id;
-	CAscTableStyle.prototype['get_Image'] = CAscTableStyle.prototype.get_Image;
-	CAscTableStyle.prototype['get_Type'] = CAscTableStyle.prototype.get_Type;
-
-// ---------------------------------------------------------------
 // CBackground
 // Value : тип заливки(прозрачная или нет),
 // Color : { r : 0, g : 0, b : 0 }
