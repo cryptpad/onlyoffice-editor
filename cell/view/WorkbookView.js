@@ -2906,7 +2906,7 @@
 			{
 				if ((bPivotTable && styles[i].pivot) || (!bPivotTable && styles[i].table))
 				{
-					t.af_getSmallIconTable(canvas, styles[i], styleInfo, sizeInfo);
+					t._drawTableStyle(canvas, styles[i], styleInfo, sizeInfo);
 					style = new AscCommon.CStyleImage();
 					style.name = i;
 					style.displayName = styles[i].displayName;
@@ -2921,7 +2921,7 @@
 		if (props) {
 			//None style
 			var emptyStyle = new Asc.CTableStyle();
-			emptyStyle.displayName = "None";
+			emptyStyle.displayName = 'None';
 			emptyStyle.pivot = false;
 			addStyles({'None': emptyStyle}, AscCommon.c_oAscStyleImage.Default);
 		}
@@ -2930,7 +2930,7 @@
 		return result;
 	};
 
-  WorkbookView.prototype.af_getSmallIconTable = function (canvas, style, styleInfo, size) {
+  WorkbookView.prototype._drawTableStyle = function (canvas, style, styleInfo, size) {
   	var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: this.fmgrGraphics, font: this.m_oFont});
 
 	var w = size.w;
