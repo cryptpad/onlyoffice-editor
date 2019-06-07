@@ -4823,52 +4823,6 @@ function OfflineEditor () {
                 ++styleIndex;
             }
         };
-        AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
-
-            if (oStyle.ApplyFill) {
-                var oColor = oStyle.getFillColor();
-                if (null !== oColor) {
-                    oGraphics.setFillStyle(oColor);
-                    oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
-                }
-            }
-            
-            var drawBorder = function (b, x1, y1, x2, y2) {
-                if (null != b && AscCommon.c_oAscBorderStyles.None !== b.s) {
-                    oGraphics.setStrokeStyle(b.c);
-                    oGraphics.setLineWidth(b.w).beginPath();
-                    
-                    window["native"]["PD_PathMoveTo"](x1, y1);
-                    window["native"]["PD_PathLineTo"](x2, y2);
-                    
-                    oGraphics.stroke();
-                }
-            };
-
-            if (oStyle.ApplyBorder) {
-                var oBorders = oStyle.getBorder();
-                drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt); // left
-                drawBorder(oBorders.r, this.styleThumbnailWidthPt - 0.25, 0, this.styleThumbnailWidthPt - 0.25, this.styleThumbnailHeightPt);     // right
-                drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0); // up
-                drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt - 0.25, this.styleThumbnailWidthPt,  this.styleThumbnailHeightPt - 0.25);   // down
-            }
-            
-            // Draw text
-            var format = oStyle.getFont().clone();
-            // Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
-            if (16 < format.getSize()) {
-                format.setSize(16);
-            }
-
-            var width_padding = 3; // 4 * 72 / 96
-            
-            var tm = sr.measureString(sStyleName);
-            // Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
-            var textY = 0.5 * (this.styleThumbnailHeightPt - tm.height);
-            oGraphics.setFont(format);
-            oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
-            oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
-        };
 
         // chat styles
         AscCommon.ChartPreviewManager.prototype.clearPreviews = function() {window["native"]["ClearCacheChartStyles"]();};
