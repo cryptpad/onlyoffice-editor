@@ -2858,7 +2858,8 @@
 		var canvas = document.createElement('canvas');
 		var styleInfo;
 
-		var defaultStyles, styleThumbnailWidth = 61, styleThumbnailHeight, row, col = 5;
+		var defaultStyles, styleThumbnailHeight, row, col = 5;
+		var styleThumbnailWidth = window["IS_NATIVE_EDITOR"] ? 91.5 : 61;
 		if(bPivotTable)
 		{
 			styleThumbnailHeight = 49;
@@ -2906,13 +2907,20 @@
 			{
 				if ((bPivotTable && styles[i].pivot) || (!bPivotTable && styles[i].table))
 				{
+					if (window["IS_NATIVE_EDITOR"]) {
+						window["native"]["BeginDrawStyle"](type, i);
+					}
 					t._drawTableStyle(canvas, styles[i], styleInfo, sizeInfo);
-					style = new AscCommon.CStyleImage();
-					style.name = i;
-					style.displayName = styles[i].displayName;
-					style.type = type;
-					style.image = canvas.toDataURL("image/png");
-					result.push(style);
+					if (window["IS_NATIVE_EDITOR"]) {
+						window["native"]["EndDrawStyle"]();
+					} else {
+						style = new AscCommon.CStyleImage();
+						style.name = i;
+						style.displayName = styles[i].displayName;
+						style.type = type;
+						style.image = canvas.toDataURL("image/png");
+						result.push(style);
+					}
 				}
 			}
 		};

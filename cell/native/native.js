@@ -4888,96 +4888,7 @@ function OfflineEditor () {
             oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
             oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
         };
-        
-        // AUTOFILTERS
-        
-        var styleThumbnailWidth  = 91.5;
-        var styleThumbnailHeight = 46.0;
-        
-        AscCommonExcel.WorkbookView.prototype.af_getTablePictures  = function(props, bPivotTable) {
-            
-            var wb = this.model;
-            var t = this;
-            
-            var result = [];
-            var canvas = document.createElement('canvas');
-            var styleInfo;
-            
-            var defaultStyles, row, col = 5;
-            if(bPivotTable)
-            {
-                //styleThumbnailHeight = 49;
-                row = 8;
-                defaultStyles =  wb.TableStyles.DefaultStylesPivot;
-                styleInfo = props;
-            }
-            else
-            {
-                //styleThumbnailHeight = 46;
-                row = 5;
-                defaultStyles = wb.TableStyles.DefaultStyles;
-                styleInfo = new AscCommonExcel.TableStyleInfo();
-                if (props) {
-                    styleInfo.ShowColumnStripes = props.asc_getBandVer();
-                    styleInfo.ShowFirstColumn = props.asc_getFirstCol();
-                    styleInfo.ShowLastColumn = props.asc_getLastCol();
-                    styleInfo.ShowRowStripes = props.asc_getBandHor();
-                    styleInfo.HeaderRowCount = props.asc_getFirstRow();
-                    styleInfo.TotalsRowCount = props.asc_getLastRow();
-                } else {
-                    styleInfo.ShowColumnStripes = false;
-                    styleInfo.ShowFirstColumn = false;
-                    styleInfo.ShowLastColumn = false;
-                    styleInfo.ShowRowStripes = true;
-                    styleInfo.HeaderRowCount = true;
-                    styleInfo.TotalsRowCount = false;
-                }
-            }
-            
-            var originSizeW = styleThumbnailWidth;
-            var originSizeH = styleThumbnailHeight;
-            
-            if (AscCommon.AscBrowser.isRetina)
-            {
-                styleThumbnailWidth = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailWidth, true);
-                styleThumbnailHeight = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailHeight, true);
-            }
-            
-            canvas.width = styleThumbnailWidth;
-            canvas.height = styleThumbnailHeight;
-            
-            var addStyles = function(styles, type)
-            {
-                var n = 0;
-                for (var i in styles)
-                {
-                    if ((bPivotTable && styles[i].pivot) || (!bPivotTable && styles[i].table))
-                    {
-                        if ("custom" == type) {
-                            window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Document, i);
-                            t._drawTableStyle(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
-                            window["native"]["EndDrawStyle"]();
-                        }
-                        
-                        if ("default" == type) {
-                            window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Default, i);
-                            t._drawTableStyle(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
-                            window["native"]["EndDrawStyle"]();
-                        }
-                        
-                        n++;
-                    }
-                }
-            };
-            
-            window["native"]["SetStylesType"](1);
-            
-            addStyles(wb.TableStyles.CustomStyles, "custom");
-            addStyles(defaultStyles, "default");
-            
-            return result;
-        };
-        
+
         // chat styles
         AscCommon.ChartPreviewManager.prototype.clearPreviews = function() {window["native"]["ClearCacheChartStyles"]();};
         AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex) {
@@ -6179,6 +6090,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
         {
             var props = asc_ReadFormatTableInfo(params, _current);
             // console.log(JSON.stringify(props));
+            window["native"]["SetStylesType"](1);
             _api.wb.af_getTablePictures(props);
             break;
         }
