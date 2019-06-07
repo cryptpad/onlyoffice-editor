@@ -352,6 +352,14 @@
 	NativeContext.prototype.lineTo = function (x, y) {
 		this.ctx["PD_PathLineTo"](x, y);
 	};
+	NativeContext.prototype.lineHor = function (x1, y, x2) {
+		this.ctx["PD_PathMoveTo"](x1, y);
+		this.ctx["PD_PathLineTo"](x2, y);
+	};
+	NativeContext.prototype.lineVer = function (x, y1, y2) {
+		this.ctx["PD_PathMoveTo"](x, y1);
+		this.ctx["PD_PathLineTo"](x, y2);
+	};
 	NativeContext.prototype.bezierCurveTo = function (x1, y1, x2, y2, x3, y3) {
 		this.ctx["PD_PathCurveTo"](x1, y1, x2, y2, x3, y3);
 	};
