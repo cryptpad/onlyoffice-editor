@@ -2901,32 +2901,30 @@
 
 		var addStyles = function(styles, type)
 		{
-			//None style
-			var options;
-			if(type === "default" && props && !bPivotTable){
-				options = new AscCommon.CStyleImage();
-				options.name = options.displayName = "None";
-				var emptyStyle = new window["Asc"].CTableStyle();
-				emptyStyle.pivot = false;
-				options.image = t.af_getSmallIconTable(canvas, emptyStyle, styleInfo, sizeInfo);
-				result.push(options);
-			}
-
+			var style;
 			for (var i in styles)
 			{
 				if ((bPivotTable && styles[i].pivot) || (!bPivotTable && styles[i].table))
 				{
-					options = new AscCommon.CStyleImage();
-					options.name = i;
-					options.displayName = styles[i].displayName;
-					options.type = type;
-					options.image = t.af_getSmallIconTable(canvas, styles[i], styleInfo, sizeInfo);
-					result.push(options);
+					t.af_getSmallIconTable(canvas, styles[i], styleInfo, sizeInfo);
+					style = new AscCommon.CStyleImage();
+					style.name = i;
+					style.displayName = styles[i].displayName;
+					style.type = type;
+					style.image = canvas.toDataURL("image/png");
+					result.push(style);
 				}
 			}
 		};
 
 		addStyles(wb.TableStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
+		if (props) {
+			//None style
+			var emptyStyle = new Asc.CTableStyle();
+			emptyStyle.displayName = "None";
+			emptyStyle.pivot = false;
+			addStyles({'None': emptyStyle}, AscCommon.c_oAscStyleImage.Default);
+		}
 		addStyles(defaultStyles, AscCommon.c_oAscStyleImage.Default);
 
 		return result;
@@ -3061,8 +3059,6 @@
 			calculateLineHor(color, j * lineStepX + 3, (i + 1) * stepY - stepY / 2, (j + 1) * lineStepX - 2);
 		}
 	}
-
-    return canvas.toDataURL("image/png");
   };
 
 	WorkbookView.prototype.IsSelectionUse = function () {
