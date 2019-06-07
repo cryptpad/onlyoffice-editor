@@ -4816,9 +4816,12 @@ function OfflineEditor () {
                 // ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
                 oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
                 
-                window["native"]["BeginDrawDefaultStyle"](oStyle.Name, styleIndex);
+                window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Default, oStyle.Name);
+
                 this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
+               
                 window["native"]["EndDrawStyle"]();
+                
                 ++styleIndex;
             }
         };
@@ -4951,13 +4954,13 @@ function OfflineEditor () {
                     if ((bPivotTable && styles[i].pivot) || (!bPivotTable && styles[i].table))
                     {
                         if ("custom" == type) {
-                            window["native"]["BeginDrawDocumentStyle"](i, n);
+                            window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Document, i);
                             t._drawTableStyle(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
                             window["native"]["EndDrawStyle"]();
                         }
                         
                         if ("default" == type) {
-                            window["native"]["BeginDrawDefaultStyle"](i, n);
+                            window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Default, i);
                             t._drawTableStyle(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
                             window["native"]["EndDrawStyle"]();
                         }
@@ -4995,8 +4998,8 @@ function OfflineEditor () {
                                               _width_px <<= 1;
                                               _height_px <<= 1;
                                               }
-                                              
-                                              window["native"]["BeginDrawDefaultStyle"](type + '', styleIndex);
+
+                                              window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Default, type + '');
                                               
                                               var dKoefToMM = AscCommon.g_dKoef_pix_to_mm;
                                               if (this.IsRetinaEnabled)
