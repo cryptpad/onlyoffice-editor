@@ -1922,6 +1922,10 @@ var editor;
     return this.wb.getDefaultDefinedName();
   };
 
+  spreadsheet_api.prototype.asc_getDefaultTableStyle = function() {
+      return this.wb.getDefaultTableStyle();
+  };
+
   spreadsheet_api.prototype._onUpdateDefinedNames = function(lockElem) {
 //      if( lockElem.Element["subType"] == AscCommonExcel.c_oAscLockTypeElemSubType.DefinedNames ){
       if( lockElem.Element["sheetId"] == -1 && lockElem.Element["rangeOrObjectId"] != -1 && !this.collaborativeEditing.getFast() ){
@@ -3849,6 +3853,8 @@ var editor;
   prot["asc_changeTableRange"] = prot.asc_changeTableRange;
   prot["asc_convertTableToRange"] = prot.asc_convertTableToRange;
   prot["asc_getTablePictures"] = prot.asc_getTablePictures;
+  prot["asc_getDefaultTableStyle"] = prot.asc_getDefaultTableStyle;
+
 
   prot["asc_applyAutoCorrectOptions"] = prot.asc_applyAutoCorrectOptions;
 

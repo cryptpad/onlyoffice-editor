@@ -2579,6 +2579,9 @@
     return new Asc.asc_CDefName("", oRangeValue.asc_getName(), null);
 
   };
+  WorkbookView.prototype.getDefaultTableStyle = function() {
+  	return this.model.TableStyles.DefaultTableStyle;
+  };
   WorkbookView.prototype.unlockDefName = function() {
     this.model.unlockDefName();
     this.handlers.trigger("asc_onRefreshDefNameList");
