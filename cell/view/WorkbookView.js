@@ -1652,8 +1652,7 @@
 
   WorkbookView.prototype.getCellStyles = function(width, height) {
     var oStylesPainter = new asc_CSP(width, height);
-    oStylesPainter.generateStylesAll(this.model.CellStyles, this.fmgrGraphics, this.m_oFont, this.stringRender);
-    return oStylesPainter;
+    return oStylesPainter.generateStylesAll(this.model.CellStyles, this.fmgrGraphics, this.m_oFont, this.stringRender);
   };
 
   WorkbookView.prototype.getWorksheetById = function(id, onlyExist) {

@@ -1729,7 +1729,7 @@
 			return ret;
 		}
 
-		function getEndValueRange (dx, start, v1, v2) {
+		function getEndValueRange(dx, start, v1, v2) {
 			var x1, x2;
 			if (0 !== dx) {
 				if (start === v1) {
@@ -1754,7 +1754,7 @@
 			return {x1: x1, x2: x2};
 		}
 
-		function checkStylesNames (cellStylesAll) {
+		function checkStylesNames(cellStylesAll) {
 			var oStyle, i;
 			for (i = 0; i < cellStylesAll.DefaultStyles.length; ++i) {
 				oStyle = cellStylesAll.DefaultStyles[i];
@@ -1765,7 +1765,7 @@
 				oStyle = cellStylesAll.CustomStyles[i];
 				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
 			}
-		};
+		}
 
 		//-----------------------------------------------------------------
 		// События движения мыши
@@ -2009,8 +2009,7 @@
 
 		/** @constructor */
 		function asc_CStylesPainter(width, height) {
-			this.defaultStyles = null;
-			this.docStyles = null;
+			this.styles = [];
 
 			this.styleThumbnailWidth = width;
 			this.styleThumbnailHeight = height;
@@ -2025,15 +2024,10 @@
 			}
 		}
 
-		asc_CStylesPainter.prototype.asc_getDefaultStyles = function () {
-			return this.defaultStyles;
-		};
-		asc_CStylesPainter.prototype.asc_getDocStyles = function () {
-			return this.docStyles;
-		};
 		asc_CStylesPainter.prototype.generateStylesAll = function (cellStylesAll, fmgrGraphics, oFont, sr) {
-			this.generateDefaultStyles(cellStylesAll, fmgrGraphics, oFont, sr);
 			this.generateDocumentStyles(cellStylesAll, fmgrGraphics, oFont, sr);
+			this.generateDefaultStyles(cellStylesAll, fmgrGraphics, oFont, sr);
+			return this.styles;
 		};
 		asc_CStylesPainter.prototype.generateDefaultStyles = function (cellStylesAll, fmgrGraphics, oFont, sr) {
 			var cellStyles = cellStylesAll.DefaultStyles;
@@ -2045,7 +2039,6 @@
 				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: fmgrGraphics, font: oFont});
 
 			var oStyle, oCustomStyle;
-			this.defaultStyles = [];
 			for (var i = 0; i < cellStyles.length; ++i) {
 				oStyle = cellStyles[i];
 				if (oStyle.Hidden) {
@@ -2055,7 +2048,7 @@
 				oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
 
 				this.drawStyle(oGraphics, sr, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name));
-				this.defaultStyles.push(new AscCommon.CStyleImage(oStyle.Name, AscCommon.c_oAscStyleImage.Default,
+				this.styles.push(new AscCommon.CStyleImage(oStyle.Name, AscCommon.c_oAscStyleImage.Default,
 					oCanvas.toDataURL("image/png")));
 			}
 		};
@@ -2069,7 +2062,6 @@
 				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: fmgrGraphics, font: oFont});
 
 			var oStyle;
-			this.docStyles = [];
 			for (var i = 0; i < cellStyles.length && i < 1000; ++i) {
 				oStyle = cellStyles[i];
 				if (oStyle.Hidden || null != oStyle.BuiltinId) {
@@ -2077,7 +2069,7 @@
 				}
 
 				this.drawStyle(oGraphics, sr, oStyle, oStyle.Name);
-				this.docStyles.push(new AscCommon.CStyleImage(oStyle.Name, AscCommon.c_oAscStyleImage.Document,
+				this.styles.push(new AscCommon.CStyleImage(oStyle.Name, AscCommon.c_oAscStyleImage.Document,
 					oCanvas.toDataURL("image/png")));
 			}
 		};
@@ -2534,12 +2526,7 @@
 		prot["asc_setShowRowColHeaders"] = prot.asc_setShowRowColHeaders;
 
 		window["AscCommonExcel"].asc_CPane = asc_CPane;
-
 		window["AscCommonExcel"].asc_CStylesPainter = asc_CStylesPainter;
-		prot = asc_CStylesPainter.prototype;
-		prot["asc_getDefaultStyles"] = prot.asc_getDefaultStyles;
-		prot["asc_getDocStyles"] = prot.asc_getDocStyles;
-
 		window["AscCommonExcel"].asc_CSheetPr = asc_CSheetPr;
 
 		window["AscCommonExcel"].asc_CSelectionMathInfo = asc_CSelectionMathInfo;
