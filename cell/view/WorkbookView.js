@@ -2890,8 +2890,6 @@
 			}
 		}
 
-		var sizeInfo = {w: styleThumbnailWidth, h: styleThumbnailHeight, row: row, col: col};
-
 		if (AscBrowser.isRetina)
 		{
 			styleThumbnailWidth = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailWidth, true);
@@ -2899,6 +2897,8 @@
 		}
 		canvas.width = styleThumbnailWidth;
 		canvas.height = styleThumbnailHeight;
+		var sizeInfo = {w: styleThumbnailWidth, h: styleThumbnailHeight, row: row, col: col};
+
 
 		var addStyles = function(styles, type, bEmptyStyle)
 		{
