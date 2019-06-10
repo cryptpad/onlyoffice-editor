@@ -55,7 +55,6 @@
   var asc_typeof = asc.typeOf;
   var asc_CMM = AscCommonExcel.asc_CMouseMoveData;
   var asc_CPrintPagesData = AscCommonExcel.CPrintPagesData;
-  var asc_CSP = AscCommonExcel.asc_CStylesPainter;
   var c_oTargetType = AscCommonExcel.c_oTargetType;
   var c_oAscError = asc.c_oAscError;
   var c_oAscCleanOptions = asc.c_oAscCleanOptions;
@@ -1651,8 +1650,7 @@
   };
 
   WorkbookView.prototype.getCellStyles = function(width, height) {
-    var oStylesPainter = new asc_CSP(width, height);
-    return oStylesPainter.generateStylesAll(this.model.CellStyles, this.fmgrGraphics, this.m_oFont, this.stringRender);
+  	return AscCommonExcel.generateStyles(width, height, this.model.CellStyles, this);
   };
 
   WorkbookView.prototype.getWorksheetById = function(id, onlyExist) {

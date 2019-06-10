@@ -1754,17 +1754,116 @@
 			return {x1: x1, x2: x2};
 		}
 
-		function checkStylesNames(cellStylesAll) {
+		function checkStylesNames(cellStyles) {
 			var oStyle, i;
-			for (i = 0; i < cellStylesAll.DefaultStyles.length; ++i) {
-				oStyle = cellStylesAll.DefaultStyles[i];
+			for (i = 0; i < cellStyles.DefaultStyles.length; ++i) {
+				oStyle = cellStyles.DefaultStyles[i];
 				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
 				AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(oStyle.Name));
 			}
-			for (i = 0; i < cellStylesAll.CustomStyles.length; ++i) {
-				oStyle = cellStylesAll.CustomStyles[i];
+			for (i = 0; i < cellStyles.CustomStyles.length; ++i) {
+				oStyle = cellStyles.CustomStyles[i];
 				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
 			}
+		}
+
+		function generateStyles(width, height, cellStyles, wb) {
+			var result = [];
+
+			var widthWithRetina = width;
+			var heightWithRetina = height;
+			if (AscCommon.AscBrowser.isRetina) {
+				widthWithRetina = AscCommon.AscBrowser.convertToRetinaValue(widthWithRetina, true);
+				heightWithRetina = AscCommon.AscBrowser.convertToRetinaValue(heightWithRetina, true);
+			}
+
+			var oCanvas = document.createElement('canvas');
+			oCanvas.width = widthWithRetina;
+			oCanvas.height = heightWithRetina;
+			var oGraphics = new Asc.DrawingContext(
+				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+
+			var addStyles = function(styles, type) {
+				var oStyle, name;
+				for (var i = 0; i < styles.length && i < 1000; ++i) {
+					oStyle = styles[i];
+					if (oStyle.Hidden) {
+						continue;
+					}
+					name = oStyle.Name;
+					if (type === AscCommon.c_oAscStyleImage.Default) {
+						// ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
+						oStyle = cellStyles.getCustomStyleByBuiltinId(oStyle.BuiltinId) || oStyle;
+						name = AscCommon.translateManager.getValue(name);
+					} else if (null !== oStyle.BuiltinId) {
+						continue;
+					}
+
+					if (window["IS_NATIVE_EDITOR"]) {
+						window["native"]["BeginDrawStyle"](type, name);
+					}
+					drawStyle(oGraphics, wb.stringRender, oStyle, name, width, height);
+					if (window["IS_NATIVE_EDITOR"]) {
+						window["native"]["EndDrawStyle"]();
+					} else {
+						result.push(new AscCommon.CStyleImage(name, type, oCanvas.toDataURL("image/png")));
+					}
+				}
+			};
+
+			addStyles(cellStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
+			addStyles(cellStyles.DefaultStyles, AscCommon.c_oAscStyleImage.Default);
+
+			return result;
+		}
+
+		function drawStyle(oGraphics, sr, oStyle, sStyleName, width, height) {
+			oGraphics.clear();
+			// Fill cell
+			if (oStyle.ApplyFill) {
+				var oColor = oStyle.getFillColor();
+				if (null !== oColor) {
+					oGraphics.setFillStyle(oColor);
+					oGraphics.fillRect(0, 0, width, height);
+				}
+			}
+
+			var drawBorder = function (b, x1, y1, x2, y2) {
+				if (b && AscCommon.c_oAscBorderStyles.None !== b.s) {
+					oGraphics.setStrokeStyle(b.c);
+
+					// ToDo поправить
+					oGraphics.setLineWidth(b.w).beginPath();
+					oGraphics.moveTo(x1, y1);
+					oGraphics.lineTo(x2, y2);
+					oGraphics.stroke();
+				}
+			};
+
+			if (oStyle.ApplyBorder) {
+				// borders
+				var oBorders = oStyle.getBorder();
+				drawBorder(oBorders.l, 0, 0, 0, height);
+				drawBorder(oBorders.r, width, 0, width, height);
+				drawBorder(oBorders.t, 0, 0, width, 0);
+				drawBorder(oBorders.b, 0, height, width, height);
+			}
+
+			// Draw text
+			var format = oStyle.getFont().clone();
+			// Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
+			if (16 < format.getSize()) {
+				format.setSize(16);
+			}
+
+			var width_padding = 4;
+
+			var tm = sr.measureString(sStyleName);
+			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
+			var textY = Asc.round(0.5 * (height - tm.height));
+			oGraphics.setFont(format);
+			oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
+			oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
 		}
 
 		//-----------------------------------------------------------------
@@ -2005,124 +2104,6 @@
 			this.bChangeActive = false;
 			this.activeSheet = null;
 		}
-
-
-		/** @constructor */
-		function asc_CStylesPainter(width, height) {
-			this.styles = [];
-
-			this.styleThumbnailWidth = width;
-			this.styleThumbnailHeight = height;
-
-			this.styleThumbnailWidthWithRetina = this.styleThumbnailWidth;
-			this.styleThumbnailHeightWithRetina = this.styleThumbnailHeight;
-			if (AscCommon.AscBrowser.isRetina) {
-				this.styleThumbnailWidthWithRetina =
-					AscCommon.AscBrowser.convertToRetinaValue(this.styleThumbnailWidthWithRetina, true);
-				this.styleThumbnailHeightWithRetina =
-					AscCommon.AscBrowser.convertToRetinaValue(this.styleThumbnailHeightWithRetina, true);
-			}
-		}
-
-		asc_CStylesPainter.prototype.generateStylesAll = function (cellStylesAll, fmgrGraphics, oFont, sr) {
-			this.generateDocumentStyles(cellStylesAll, fmgrGraphics, oFont, sr);
-			this.generateDefaultStyles(cellStylesAll, fmgrGraphics, oFont, sr);
-			return this.styles;
-		};
-		asc_CStylesPainter.prototype.generateDefaultStyles = function (cellStylesAll, fmgrGraphics, oFont, sr) {
-			var cellStyles = cellStylesAll.DefaultStyles;
-
-			var oCanvas = document.createElement('canvas');
-			oCanvas.width = this.styleThumbnailWidthWithRetina;
-			oCanvas.height = this.styleThumbnailHeightWithRetina;
-			var oGraphics = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: fmgrGraphics, font: oFont});
-
-			var oStyle, oCustomStyle;
-			for (var i = 0; i < cellStyles.length; ++i) {
-				oStyle = cellStyles[i];
-				if (oStyle.Hidden) {
-					continue;
-				}
-				// ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
-				oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
-
-				this.drawStyle(oGraphics, sr, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name));
-				this.styles.push(new AscCommon.CStyleImage(oStyle.Name, AscCommon.c_oAscStyleImage.Default,
-					oCanvas.toDataURL("image/png")));
-			}
-		};
-		asc_CStylesPainter.prototype.generateDocumentStyles = function (cellStylesAll, fmgrGraphics, oFont, sr) {
-			var cellStyles = cellStylesAll.CustomStyles;
-
-			var oCanvas = document.createElement('canvas');
-			oCanvas.width = this.styleThumbnailWidthWithRetina;
-			oCanvas.height = this.styleThumbnailHeightWithRetina;
-			var oGraphics = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: fmgrGraphics, font: oFont});
-
-			var oStyle;
-			for (var i = 0; i < cellStyles.length && i < 1000; ++i) {
-				oStyle = cellStyles[i];
-				if (oStyle.Hidden || null != oStyle.BuiltinId) {
-					continue;
-				}
-
-				this.drawStyle(oGraphics, sr, oStyle, oStyle.Name);
-				this.styles.push(new AscCommon.CStyleImage(oStyle.Name, AscCommon.c_oAscStyleImage.Document,
-					oCanvas.toDataURL("image/png")));
-			}
-		};
-		asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
-			oGraphics.clear();
-			// Fill cell
-			if (oStyle.ApplyFill) {
-				var oColor = oStyle.getFillColor();
-				if (null !== oColor) {
-					oGraphics.setFillStyle(oColor);
-					oGraphics.fillRect(0, 0, this.styleThumbnailWidth, this.styleThumbnailHeight);
-				}
-			}
-
-			var drawBorder = function (b, x1, y1, x2, y2) {
-				if (b && AscCommon.c_oAscBorderStyles.None !== b.s) {
-					oGraphics.setStrokeStyle(b.c);
-
-					// ToDo поправить
-					oGraphics.setLineWidth(b.w).beginPath();
-					oGraphics.moveTo(x1, y1);
-					oGraphics.lineTo(x1, y1);
-					oGraphics.stroke(x1, y1);
-				}
-			};
-
-			if (oStyle.ApplyBorder) {
-				// borders
-				var oBorders = oStyle.getBorder();
-				drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeight);
-				drawBorder(oBorders.r, this.styleThumbnailWidth, 0, this.styleThumbnailWidth,
-					this.styleThumbnailHeight);
-				drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidth, 0);
-				drawBorder(oBorders.b, 0, this.styleThumbnailHeight, this.styleThumbnailWidth,
-					this.styleThumbnailHeight);
-			}
-
-			// Draw text
-			var format = oStyle.getFont().clone();
-			// Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
-			if (16 < format.getSize()) {
-				format.setSize(16);
-			}
-
-			var width_padding = 4;
-
-			var tm = sr.measureString(sStyleName);
-			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
-			var textY = Asc.round(0.5 * (this.styleThumbnailHeight - tm.height));
-			oGraphics.setFont(format);
-			oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
-			oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
-		};
 
 		/** @constructor */
 		function asc_CSheetPr() {
@@ -2455,6 +2436,7 @@
 		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 		window["Asc"].getEndValueRange = getEndValueRange;
 		window["AscCommonExcel"].checkStylesNames = checkStylesNames;
+		window["AscCommonExcel"].generateStyles = generateStyles;
 
 		window["AscCommonExcel"].referenceType = referenceType;
 		window["Asc"].Range = Range;
@@ -2526,7 +2508,6 @@
 		prot["asc_setShowRowColHeaders"] = prot.asc_setShowRowColHeaders;
 
 		window["AscCommonExcel"].asc_CPane = asc_CPane;
-		window["AscCommonExcel"].asc_CStylesPainter = asc_CStylesPainter;
 		window["AscCommonExcel"].asc_CSheetPr = asc_CSheetPr;
 
 		window["AscCommonExcel"].asc_CSelectionMathInfo = asc_CSelectionMathInfo;

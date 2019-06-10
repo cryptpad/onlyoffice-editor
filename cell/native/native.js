@@ -4781,48 +4781,6 @@ function OfflineEditor () {
     };
     
     this.offline_beforeInit = function () {
-        
-        // STYLE MANAGER
-        AscCommonExcel.asc_CStylesPainter.prototype.generateDefaultStyles = function (cellStylesAll, fmgrGraphics, oFont, stringRenderer) {
-            var cellStyles = cellStylesAll.DefaultStyles;
-            var oGraphics = new window["Asc"].DrawingContext({canvas: null, units: 0/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
-
-            var oStyle, oCustomStyle; var styleIndex = 0;
-            for (var i = 0; i < cellStyles.length; ++i) {
-                oStyle = cellStyles[i];
-                if (oStyle.Hidden) {
-                    continue;
-                }
-
-                // ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
-                oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
-                
-                window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Default, oStyle.Name);
-
-                this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
-               
-                window["native"]["EndDrawStyle"]();
-                
-                ++styleIndex;
-            }
-        };
-        AscCommonExcel.asc_CStylesPainter.prototype.generateDocumentStyles = function (cellStylesAll, fmgrGraphics, oFont, stringRenderer) {
-            var cellStyles = cellStylesAll.CustomStyles;
-            var oGraphics = new window["Asc"].DrawingContext({canvas: null, units: 0/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
-
-            var oStyle; var styleIndex = 10000;
-            for (var i = 0; i < cellStyles.length; ++i) {
-                oStyle = cellStyles[i];
-                if (oStyle.Hidden || null != oStyle.BuiltinId) {
-                    continue;
-                }
-                
-                window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Document, oStyle.Name);
-                this.drawStyle(oGraphics, stringRenderer, oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
-                window["native"]["EndDrawStyle"]();
-                ++styleIndex;
-            }
-        };
 
         // chat styles
         AscCommon.ChartPreviewManager.prototype.clearPreviews = function() {window["native"]["ClearCacheChartStyles"]();};

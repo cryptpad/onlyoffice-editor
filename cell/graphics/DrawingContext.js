@@ -484,9 +484,6 @@
 	 * @return {Number}
 	 */
 	DrawingContext.prototype.getWidth = function (units) {
-		if (window["IS_NATIVE_EDITOR"] && this.canvas == null) {
-			return 0;
-		}
 		var i = units >= 0 && units <= 3 ? units : this.units;
 		return this.canvas.width * getCvtRatio(0/*px*/, i, this.ppiX);
 	};
@@ -497,9 +494,6 @@
 	 * @return {Number}
 	 */
 	DrawingContext.prototype.getHeight = function (units) {
-		if (window["IS_NATIVE_EDITOR"] && this.canvas == null) {
-			return 0;
-		}
 		var i = units >= 0 && units <= 3 ? units : this.units;
 		return this.canvas.height * getCvtRatio(0/*px*/, i, this.ppiY);
 	};
