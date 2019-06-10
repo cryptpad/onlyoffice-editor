@@ -2900,7 +2900,7 @@
 		canvas.width = styleThumbnailWidth;
 		canvas.height = styleThumbnailHeight;
 
-		var addStyles = function(styles, type)
+		var addStyles = function(styles, type, bEmptyStyle)
 		{
 			var style;
 			for (var i in styles)
@@ -2908,6 +2908,7 @@
 				if ((bPivotTable && styles[i].pivot) || (!bPivotTable && styles[i].table))
 				{
 					if (window["IS_NATIVE_EDITOR"]) {
+						//TODO empty style?
 						window["native"]["BeginDrawStyle"](type, i);
 					}
 					t._drawTableStyle(canvas, styles[i], styleInfo, sizeInfo);
@@ -2915,7 +2916,7 @@
 						window["native"]["EndDrawStyle"]();
 					} else {
 						style = new AscCommon.CStyleImage();
-						style.name = i;
+						style.name = bEmptyStyle ? null : i;
 						style.displayName = styles[i].displayName;
 						style.type = type;
 						style.image = canvas.toDataURL("image/png");
@@ -2929,9 +2930,9 @@
 		if (props) {
 			//None style
 			var emptyStyle = new Asc.CTableStyle();
-			emptyStyle.displayName = 'None';
+			emptyStyle.displayName = "None";
 			emptyStyle.pivot = false;
-			addStyles({'None': emptyStyle}, AscCommon.c_oAscStyleImage.Default);
+			addStyles({null: emptyStyle}, AscCommon.c_oAscStyleImage.Default, true);
 		}
 		addStyles(defaultStyles, AscCommon.c_oAscStyleImage.Default);
 
