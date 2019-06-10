@@ -15970,21 +15970,8 @@
 		return bImptyText ? "" : res;
 	};
 
-	var consoleWrite = false;
-	function console_time(str) {
-		if(consoleWrite) {
-			console_time(str);
-		}
-	}
-	function console_time_end() {
-		if(consoleWrite) {
-			console_time_end(str);
-		}
-	}
-
 	//GROUP DATA FUNCTIONS
 	WorksheetView.prototype._updateGroups = function(bCol, start, end, bUpdateOnlyRowLevelMap) {
-		console_time('_updateRowGroups');
 		if(bCol) {
 			if(bUpdateOnlyRowLevelMap) {
 				this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
@@ -16007,7 +15994,6 @@
 				this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
 			}
 		}
-		console_time_end('_updateRowGroups');
 	};
 
 	WorksheetView.prototype._updateGroupsWidth = function() {
@@ -16023,8 +16009,6 @@
 			start = 0;
 			end = bCol ? gc_nMaxCol : gc_nMaxRow;
 		}
-
-		console_time("old");
 
 		var levelMap = {};
 		var res = null;
@@ -16187,8 +16171,6 @@
 			}
 		}
 
-		console_time_end("old");
-
 		return {groupArr: res, levelMap: levelMap};
 	};
 
@@ -16302,7 +16284,6 @@
 			if(!groupData || !groupData.groupArr) {
 				return;
 			}
-			console_time("draw");
 			arrayLines = groupData.groupArr;
 			rowLevelMap = groupData.levelMap;
 
@@ -16400,7 +16381,6 @@
 			if(!groupData || !groupData.groupArr) {
 				return;
 			}
-			console_time("draw");
 			arrayLines = groupData.groupArr;
 			rowLevelMap = groupData.levelMap;
 
@@ -16485,8 +16465,6 @@
 
 
 		this._drawGroupDataButtons(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol);
-
-		console_time_end("draw");
 	};
 
 	WorksheetView.prototype._drawGroupDataButtons = function(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol) {
@@ -16886,7 +16864,6 @@
 	};
 
 	WorksheetView.prototype.getGroupCommonLevel = function (bCol) {
-		console_time("getGroupCommonLevel");
 		var res = 0;
 		var func = function(elem) {
 			var outLineLevel = elem.getOutlineLevel();
@@ -16900,7 +16877,6 @@
 			this.model.getRange3(0, 0, gc_nMaxRow0, 0)._foreachRowNoEmpty(func);
 		}
 
-		console_time_end("getGroupCommonLevel");
 		return res;
 	};
 
@@ -17002,8 +16978,6 @@
 			return this._groupRowMenuClick(x, y, target, type, bCol);
 		}
 
-		console_time("groupRowClick");
-
 		if(bCol) {
 			offsetY = 0;
 		} else {
@@ -17067,11 +17041,8 @@
 			doClick();
 		}
 		if(mouseDownClick) {
-			console_time_end("groupRowClick");
 			return true;
 		}
-
-		console_time_end("groupRowClick");
 	};
 
 	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type, bCol) {
@@ -17205,8 +17176,6 @@
 
 		functionModelAction = function () {
 			AscCommonExcel.checkFilteringMode(function () {
-				console_time("_tryChangeGroup");
-
 				History.Create_NewPoint();
 				History.StartTransaction();
 
@@ -17257,8 +17226,6 @@
 				//updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
 				History.EndTransaction();
-
-				console_time_end("_tryChangeGroup");
 			});
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
@@ -17266,7 +17233,6 @@
 	};
 
 	WorksheetView.prototype.hideGroupLevel = function (level, bCol) {
-		console_time("hideGroupLevel");
 
 		var t = this, groupArr;
 		if(bCol) {
@@ -17324,8 +17290,6 @@
 		};
 
 		this._isLockedAll(onChangeWorksheetCallback);
-
-		console_time_end("hideGroupLevel");
 	};
 
 	WorksheetView.prototype.changeGroupDetails2 = function (bExpand) {
