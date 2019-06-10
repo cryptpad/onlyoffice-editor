@@ -1754,6 +1754,19 @@
 			return {x1: x1, x2: x2};
 		}
 
+		function checkStylesNames (cellStylesAll) {
+			var oStyle, i;
+			for (i = 0; i < cellStylesAll.DefaultStyles.length; ++i) {
+				oStyle = cellStylesAll.DefaultStyles[i];
+				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
+				AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(oStyle.Name));
+			}
+			for (i = 0; i < cellStylesAll.CustomStyles.length; ++i) {
+				oStyle = cellStylesAll.CustomStyles[i];
+				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
+			}
+		};
+
 		//-----------------------------------------------------------------
 		// События движения мыши
 		//-----------------------------------------------------------------
@@ -2012,18 +2025,6 @@
 			}
 		}
 
-		asc_CStylesPainter.prototype.asc_checkStylesNames = function(cellStylesAll) {
-			var oStyle, i;
-			for (i = 0; i < cellStylesAll.DefaultStyles.length; ++i) {
-				oStyle = cellStylesAll.DefaultStyles[i];
-				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
-				AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(oStyle.Name));
-			}
-			for (i = 0; i < cellStylesAll.CustomStyles.length; ++i) {
-				oStyle = cellStylesAll.CustomStyles[i];
-				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
-			}
-		};
 		asc_CStylesPainter.prototype.asc_getDefaultStyles = function () {
 			return this.defaultStyles;
 		};
@@ -2397,6 +2398,7 @@
 		asc_CFormatCellsInfo.prototype.asc_getSeparator = function () {return this.separator;};
 		asc_CFormatCellsInfo.prototype.asc_getSymbol = function () {return this.symbol;};
 
+		/** @constructor */
 		function asc_CSelectionRangeValue(){
 			this.name =  null;
 			this.type = null;
@@ -2406,7 +2408,10 @@
 		asc_CSelectionRangeValue.prototype.asc_getType = function () {return this.type;};
 		asc_CSelectionRangeValue.prototype.asc_getName = function () {return this.name;};
 
-		//передаём в меню для того, чтобы показать иконку опций авторавертывания таблиц
+		/**
+		 * передаём в меню для того, чтобы показать иконку опций авторавертывания таблиц
+		 * @constructor
+		 */
 		function asc_CAutoCorrectOptions(){
 			this.type = null;
 			this.options = [];
@@ -2455,8 +2460,9 @@
 		window["AscCommonExcel"].dropDecimalAutofit = dropDecimalAutofit;
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
 		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
-		window["Asc"].getEndValueRange = getEndValueRange;
 		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
+		window["Asc"].getEndValueRange = getEndValueRange;
+		window["AscCommonExcel"].checkStylesNames = checkStylesNames;
 
 		window["AscCommonExcel"].referenceType = referenceType;
 		window["Asc"].Range = Range;

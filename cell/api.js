@@ -782,7 +782,7 @@ var editor;
 			this.openDocumentFromZip(t.wbModel, this.openingEnd.data).then(function() {
 				g_oIdCounter.Set_Load(false);
 				AscCommon.checkCultureInfoFontPicker();
-				AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
+				AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
 				t.FontLoader.LoadDocumentFonts(t.wbModel.generateFontMap2());
 
 				// Какая-то непонятная заглушка, чтобы не падало в ipad
@@ -3472,7 +3472,7 @@ var editor;
 	var thenCallback = function() {
 		g_oIdCounter.Set_Load(false);
 		AscCommon.checkCultureInfoFontPicker();
-		AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
+		AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
 		t._coAuthoringInit();
 		t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
 	};
