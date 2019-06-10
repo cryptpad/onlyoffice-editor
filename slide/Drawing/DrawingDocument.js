@@ -3234,11 +3234,14 @@ function CDrawingDocument()
 			var oStyleObject = AscCommon.g_oTableId.Get_ById(logicDoc.TablesForInterface[i].graphicObject.TableStyle);
 			if(oStyleObject)
 			{
-				_styleD.name = _styleD.displayName = oStyleObject.Name;
+				_styleD.name = logicDoc.TablesForInterface[i].graphicObject.TableStyle;
+				_styleD.displayName = oStyleObject.Name;
 			}
 			else
 			{
-				_styleD.name = _styleD.displayName = "";
+
+				_styleD.name = logicDoc.TablesForInterface[i].graphicObject.TableStyle;
+				_styleD.displayName = "";
 
 			}
 			_dst_styles.push(_styleD);
