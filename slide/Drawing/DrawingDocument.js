@@ -3231,7 +3231,16 @@ function CDrawingDocument()
 			var _styleD   = new AscCommon.CStyleImage();
 			_styleD.type  = AscCommon.c_oAscStyleImage.Default;
 			_styleD.image = _canvas.toDataURL("image/png");
-			_styleD.name = _styleD.displayName = logicDoc.TablesForInterface[i].graphicObject.TableStyle;
+			var oStyleObject = AscCommon.g_oTableId.Get_ById(logicDoc.TablesForInterface[i].graphicObject.TableStyle);
+			if(oStyleObject)
+			{
+				_styleD.name = _styleD.displayName = oStyleObject.Name;
+			}
+			else
+			{
+				_styleD.name = _styleD.displayName = "";
+
+			}
 			_dst_styles.push(_styleD);
 		}
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles);
