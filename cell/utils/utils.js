@@ -1770,8 +1770,8 @@
 		function generateStyles(width, height, cellStyles, wb) {
 			var result = [];
 
-			var widthWithRetina = 92;
-			var heightWithRetina = 48;
+			var widthWithRetina = width;
+			var heightWithRetina = height;
 			if (AscCommon.AscBrowser.isRetina) {
 				widthWithRetina = AscCommon.AscBrowser.convertToRetinaValue(widthWithRetina, true);
 				heightWithRetina = AscCommon.AscBrowser.convertToRetinaValue(heightWithRetina, true);
@@ -1783,7 +1783,7 @@
 			var oGraphics = new Asc.DrawingContext(
 				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
 
-			var addStyles = function(styles, type) {
+			function addStyles(styles, type) {
 				var oStyle, name;
 				for (var i = 0; i < styles.length && i < 1000; ++i) {
 					oStyle = styles[i];
@@ -1809,7 +1809,7 @@
 						result.push(new AscCommon.CStyleImage(name, type, oCanvas.toDataURL("image/png")));
 					}
 				}
-			};
+			}
 
 			addStyles(cellStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
 			addStyles(cellStyles.DefaultStyles, AscCommon.c_oAscStyleImage.Default);
@@ -1817,38 +1817,67 @@
 			return result;
 		}
 
-		function drawStyle(oGraphics, sr, oStyle, sStyleName, width, height) {
-			oGraphics.clear();
+		function drawStyle(ctx, sr, oStyle, sStyleName, width, height) {
+			var bc = null, bs = AscCommon.c_oAscBorderStyles.None, isNotFirst = false; // cached border color
+			ctx.clear();
 			// Fill cell
 			if (oStyle.ApplyFill) {
 				var oColor = oStyle.getFillColor();
 				if (null !== oColor) {
-					oGraphics.setFillStyle(oColor);
-					oGraphics.fillRect(0, 0, width, height);
+					ctx.setFillStyle(oColor);
+					ctx.fillRect(0, 0, width, height);
 				}
 			}
 
-			var drawBorder = function (b, x1, y1, x2, y2) {
-				if (b && AscCommon.c_oAscBorderStyles.None !== b.s) {
-					oGraphics.setStrokeStyle(b.c);
+			function drawBorder(type, b, x1, y1, x2, y2) {
+				if (b && b.w > 0) {
+					var isStroke = false;
+					var isNewColor = !AscCommonExcel.g_oColorManager.isEqual(bc, b.c);
+					var isNewStyle = bs !== b.s;
+					if (isNotFirst && (isNewColor || isNewStyle)) {
+						ctx.stroke();
+						isStroke = true;
+					}
 
-					// ToDo поправить
-					oGraphics.setLineWidth(b.w).beginPath();
-					oGraphics.moveTo(x1, y1);
-					oGraphics.lineTo(x2, y2);
-					oGraphics.stroke();
+					if (isNewColor) {
+						bc = b.c;
+						ctx.setStrokeStyle(bc);
+					}
+					if (isNewStyle) {
+						bs = b.s;
+						ctx.setLineWidth(b.w);
+						ctx.setLineDash(b.getDashSegments());
+					}
+
+					if (isStroke || false === isNotFirst) {
+						isNotFirst = true;
+						ctx.beginPath();
+					}
+
+					switch (type) {
+						case AscCommon.c_oAscBorderType.Hor:
+							ctx.lineHor(x1, y1, x2);
+							break;
+						case AscCommon.c_oAscBorderType.Ver:
+							ctx.lineVer(x1, y1, y2);
+							break;
+						case AscCommon.c_oAscBorderType.Diag:
+							ctx.lineDiag(x1, y1, x2, y2);
+							break;
+					}
 				}
-			};
+			}
 
 			if (oStyle.ApplyBorder) {
-				// Native hack for line
-				var hack = window["IS_NATIVE_EDITOR"] ? -0.5 : 0;
 				// borders
 				var oBorders = oStyle.getBorder();
-				drawBorder(oBorders.l, 0, 0, 0, height);
-				drawBorder(oBorders.r, width + hack, 0, width + hack, height);
-				drawBorder(oBorders.t, 0, 0, width, 0);
-				drawBorder(oBorders.b, 0, height + hack, width, height + hack);
+				drawBorder(AscCommon.c_oAscBorderType.Ver, oBorders.l, 0, 0, 0, height);
+				drawBorder(AscCommon.c_oAscBorderType.Hor, oBorders.b, 0, height - 1, width, height - 1);
+				drawBorder(AscCommon.c_oAscBorderType.Ver, oBorders.r, width - 1, height, width - 1, 0);
+				drawBorder(AscCommon.c_oAscBorderType.Hor, oBorders.t, width, 0, 0, 0);
+				if (isNotFirst) {
+					ctx.stroke();
+				}
 			}
 
 			// Draw text
@@ -1863,9 +1892,9 @@
 			var tm = sr.measureString(sStyleName);
 			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
 			var textY = Asc.round(0.5 * (height - tm.height));
-			oGraphics.setFont(format);
-			oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
-			oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
+			ctx.setFont(format);
+			ctx.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
+			ctx.fillText(sStyleName, width_padding, textY + tm.baseline);
 		}
 
 		//-----------------------------------------------------------------
