@@ -2024,12 +2024,6 @@
 				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
 			}
 		};
-		asc_CStylesPainter.prototype.asc_getStyleThumbnailWidth = function () {
-			return this.styleThumbnailWidthWithRetina;
-		};
-		asc_CStylesPainter.prototype.asc_getStyleThumbnailHeight = function () {
-			return this.styleThumbnailHeightWithRetina;
-		};
 		asc_CStylesPainter.prototype.asc_getDefaultStyles = function () {
 			return this.defaultStyles;
 		};
@@ -2537,8 +2531,6 @@
 
 		window["AscCommonExcel"].asc_CStylesPainter = asc_CStylesPainter;
 		prot = asc_CStylesPainter.prototype;
-		prot["asc_getStyleThumbnailWidth"] = prot.asc_getStyleThumbnailWidth;
-		prot["asc_getStyleThumbnailHeight"] = prot.asc_getStyleThumbnailHeight;
 		prot["asc_getDefaultStyles"] = prot.asc_getDefaultStyles;
 		prot["asc_getDocStyles"] = prot.asc_getDocStyles;
 
