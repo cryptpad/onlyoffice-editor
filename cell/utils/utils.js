@@ -1770,8 +1770,8 @@
 		function generateStyles(width, height, cellStyles, wb) {
 			var result = [];
 
-			var widthWithRetina = width;
-			var heightWithRetina = height;
+			var widthWithRetina = 92;
+			var heightWithRetina = 48;
 			if (AscCommon.AscBrowser.isRetina) {
 				widthWithRetina = AscCommon.AscBrowser.convertToRetinaValue(widthWithRetina, true);
 				heightWithRetina = AscCommon.AscBrowser.convertToRetinaValue(heightWithRetina, true);
@@ -1841,12 +1841,14 @@
 			};
 
 			if (oStyle.ApplyBorder) {
+				// Native hack for line
+				var hack = window["IS_NATIVE_EDITOR"] ? -0.5 : 0;
 				// borders
 				var oBorders = oStyle.getBorder();
 				drawBorder(oBorders.l, 0, 0, 0, height);
-				drawBorder(oBorders.r, width, 0, width, height);
+				drawBorder(oBorders.r, width + hack, 0, width + hack, height);
 				drawBorder(oBorders.t, 0, 0, width, 0);
-				drawBorder(oBorders.b, 0, height, width, height);
+				drawBorder(oBorders.b, 0, height + hack, width, height + hack);
 			}
 
 			// Draw text
