@@ -997,6 +997,34 @@ CNumberingLvl.prototype.IsNumbered = function()
 	var nFormat = this.GetFormat();
 	return (nFormat !== Asc.c_oAscNumberingFormat.Bullet && nFormat !== Asc.c_oAscNumberingFormat.None);
 };
+/**
+ * Получаем список связанных уровней с данным
+ * @returns {number[]}
+ */
+CNumberingLvl.prototype.GetRelatedLvlList = function()
+{
+	var arrLvls = [];
+	for (var nIndex = 0, nCount = this.LvlText.length; nIndex < nCount; ++nIndex)
+	{
+		if (numbering_lvltext_Num === this.LvlText[nIndex].Type)
+		{
+			var nLvl  = this.LvlText[nIndex].Value;
+
+			if (arrLvls.length <= 0)
+				arrLvls.push(nLvl);
+
+			for (var nLvlIndex = 0, nLvlsCount = arrLvls.length; nLvlIndex < nLvlsCount; ++nLvlIndex)
+			{
+				if (arrLvls[nLvlIndex] === nLvl)
+					break;
+				else if (arrLvls[nLvlIndex] > nLvl)
+					arrLvls.splice(nLvlIndex, 0, nLvl);
+			}
+		}
+	}
+
+	return arrLvls;
+};
 
 
 function CNumberingLvlTextString(Val)

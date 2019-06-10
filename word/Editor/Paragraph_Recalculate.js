@@ -3101,7 +3101,20 @@ CParagraphRecalculateStateWrap.prototype =
 				{
 					var arrNumInfo  = Para.Parent.CalculateNumberingValues(Para, NumPr, true);
 					var nLvl = NumPr.Lvl;
-					if (arrNumInfo[0][nLvl] !== arrNumInfo[1][nLvl])
+
+					var arrRelatedLvls = oNumLvl.GetRelatedLvlList();
+					var isEqual = true;
+					for (var nLvlIndex = 0, nLvlsCount = arrRelatedLvls.length; nLvlIndex < nLvlsCount; ++nLvlIndex)
+					{
+						var nTempLvl = arrRelatedLvls[nLvlIndex];
+						if (arrNumInfo[0][nTempLvl] !== arrNumInfo[1][nTempLvl])
+						{
+							isEqual = false;
+							break;
+						}
+					}
+
+					if (!isEqual)
 					{
 						if (reviewtype_Common === nReviewType)
 						{
@@ -3125,7 +3138,10 @@ CParagraphRecalculateStateWrap.prototype =
 					}
 					else
 					{
-						NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr);
+						if (reviewtype_Remove === nReviewType)
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), undefined, undefined, arrNumInfo[0], NumPr);
+						else
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr);
 					}
 				}
 				else if (oPrevNumPr && !NumPr)
@@ -3157,12 +3173,34 @@ CParagraphRecalculateStateWrap.prototype =
 						var oFinalNumLvl  = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
 
 						isEqual = oSourceNumLvl.IsSimilar(oFinalNumLvl);
+						if (isEqual)
+						{
+							var arrRelatedLvls = oSourceNumLvl.GetRelatedLvlList();
+							for (var nLvlIndex = 0, nLvlsCount = arrRelatedLvls.length; nLvlIndex < nLvlsCount; ++nLvlIndex)
+							{
+								var nTempLvl = arrRelatedLvls[nLvlIndex];
+								if (arrNumInfo[0][nTempLvl] !== arrNumInfo[1][nTempLvl])
+								{
+									isEqual = false;
+									break;
+								}
+							}
+						}
 					}
 
 					if (isEqual)
+					{
 						NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr);
+					}
 					else
-						NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, arrNumInfo2[1], oPrevNumPr);
+					{
+						if (reviewtype_Remove === nReviewType)
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), undefined, undefined, arrNumInfo2[1], oPrevNumPr);
+						else if (reviewtype_Add === nReviewType)
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, undefined, undefined);
+						else
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr, arrNumInfo2[1], oPrevNumPr);
+					}
 				}
 				else
 				{
