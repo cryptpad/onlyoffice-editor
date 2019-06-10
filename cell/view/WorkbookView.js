@@ -2899,6 +2899,7 @@
 		canvas.height = styleThumbnailHeight;
 		var sizeInfo = {w: styleThumbnailWidth, h: styleThumbnailHeight, row: row, col: col};
 
+		var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: this.fmgrGraphics, font: this.m_oFont});
 
 		var addStyles = function(styles, type, bEmptyStyle)
 		{
@@ -2911,7 +2912,7 @@
 						//TODO empty style?
 						window["native"]["BeginDrawStyle"](type, i);
 					}
-					t._drawTableStyle(canvas, styles[i], styleInfo, sizeInfo);
+					t._drawTableStyle(ctx, styles[i], styleInfo, sizeInfo);
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["EndDrawStyle"]();
 					} else {
@@ -2939,8 +2940,8 @@
 		return result;
 	};
 
-  WorkbookView.prototype._drawTableStyle = function (canvas, style, styleInfo, size) {
-  	var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: this.fmgrGraphics, font: this.m_oFont});
+  WorkbookView.prototype._drawTableStyle = function (ctx, style, styleInfo, size) {
+  	ctx.clear();
 
 	var w = size.w;
 	var h = size.h;
