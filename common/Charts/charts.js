@@ -492,9 +492,9 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType) {
 		var objectGroup = [];
 
 		for (var style = 0; style <  group.length; ++style) {
-			var chartStyle = new AscFormat.asc_CChartStyle();
-			chartStyle.asc_setStyle(style + 1);
-			chartStyle.asc_setImageUrl(group[style]);
+			var chartStyle = new AscCommon.CStyleImage();
+			chartStyle.name = style + 1;
+			chartStyle.image = group[style];
 			objectGroup.push(chartStyle);
 		}
 
