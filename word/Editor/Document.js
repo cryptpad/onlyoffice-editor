@@ -10154,6 +10154,13 @@ CDocument.prototype.Get_ColumnsProps = function()
 
 	return ColumnsPr;
 };
+
+
+CDocument.prototype.GetWatermarkProps = function()
+{
+    return this.DrawingObjects.getWatermarkProps(this.CurPage);
+};
+
 /**
  * Отключаем отсылку сообщений в интерфейс.
  */
@@ -20447,17 +20454,17 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 
 			if (reviewtype_Common === oReviewType)
 			{
-				this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
-				this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr);
+				this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr.Lvl);
+				this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr.Lvl);
 			}
 			else if (reviewtype_Add === oReviewType)
 			{
-				this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+				this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr.Lvl);
 			}
 			else if (reviewtype_Remove === oReviewType)
 			{
 				if (!oReviewInfo.GetPrevAdded())
-					this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr);
+					this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPr.Lvl);
 			}
 		}
 	}
@@ -20475,11 +20482,11 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 
 				if (reviewtype_Common === oReviewType)
 				{
-					this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+					this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr.Lvl);
 				}
 				else if (reviewtype_Add === oReviewType)
 				{
-					this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr);
+					this.private_UpdateCounter(this.FinalCounter, oNum, oParaNumPr.Lvl);
 				}
 			}
 		}
@@ -20497,7 +20504,7 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 
 					if (reviewtype_Common === oReviewType)
 					{
-						this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
+						this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev.Lvl);
 					}
 					else if (reviewtype_Add === oReviewType)
 					{
@@ -20505,7 +20512,7 @@ CDocumentNumberingInfoEngine.prototype.CheckParagraph = function(oPara)
 					else if (reviewtype_Remove === oReviewType)
 					{
 						if (!oReviewInfo.GetPrevAdded())
-							this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev);
+							this.private_UpdateCounter(this.SourceCounter, oNum, oParaNumPrPrev.Lvl);
 					}
 				}
 			}
@@ -20519,7 +20526,7 @@ CDocumentNumberingInfoEngine.prototype.GetNumInfo = function(isFinal)
 
 	return this.FinalCounter.NumInfo;
 };
-CDocumentNumberingInfoEngine.prototype.private_UpdateCounter = function(oCounter, oNum, oParaNumPr)
+CDocumentNumberingInfoEngine.prototype.private_UpdateCounter = function(oCounter, oNum, nParaLvl)
 {
 	if (-1 === oCounter.PrevLvl)
 	{
@@ -20528,43 +20535,43 @@ CDocumentNumberingInfoEngine.prototype.private_UpdateCounter = function(oCounter
 			oCounter.NumInfo[nLvl] = this.Start[nLvl];
 		}
 
-		for (var nLvl = oCounter.PrevLvl + 1; nLvl < oParaNumPr.Lvl; ++nLvl)
+		for (var nLvl = oCounter.PrevLvl + 1; nLvl < nParaLvl; ++nLvl)
 		{
 			oCounter.NumInfo[nLvl]++;
 		}
 	}
-	else if (oParaNumPr.Lvl < oCounter.PrevLvl)
+	else if (nParaLvl < oCounter.PrevLvl)
 	{
 		for (var nLvl = 0; nLvl < 9; ++nLvl)
 		{
-			if (nLvl > oParaNumPr.Lvl && 0 !== this.Restart[nLvl] && (-1 === this.Restart[nLvl] || oParaNumPr.Lvl <= this.Restart[nLvl] - 1))
+			if (nLvl > nParaLvl && 0 !== this.Restart[nLvl] && (-1 === this.Restart[nLvl] || nParaLvl <= this.Restart[nLvl] - 1))
 				oCounter.NumInfo[nLvl] = this.Start[nLvl];
 		}
 	}
-	else if (oParaNumPr.Lvl > oCounter.PrevLvl)
+	else if (nParaLvl > oCounter.PrevLvl)
 	{
-		for (var nLvl = oCounter.PrevLvl + 1; nLvl < oParaNumPr.Lvl; ++nLvl)
+		for (var nLvl = oCounter.PrevLvl + 1; nLvl < nParaLvl; ++nLvl)
 		{
 			oCounter.NumInfo[nLvl]++;
 		}
 	}
 
-	oCounter.NumInfo[oParaNumPr.Lvl]++;
+	oCounter.NumInfo[nParaLvl]++;
 
 	if (oCounter.CheckNum(oNum))
 	{
-		var nForceStart = oNum.GetStartOverride(oParaNumPr.Lvl);
+		var nForceStart = oNum.GetStartOverride(nParaLvl);
 		if (-1 !== nForceStart)
-			oCounter.NumInfo[oParaNumPr.Lvl] = nForceStart;
+			oCounter.NumInfo[nParaLvl] = nForceStart;
 	}
 
-	for (var nIndex = oParaNumPr.Lvl - 1; nIndex >= 0; --nIndex)
+	for (var nIndex = nParaLvl - 1; nIndex >= 0; --nIndex)
 	{
 		if (undefined === oCounter.NumInfo[nIndex] || 0 === oCounter.NumInfo[nIndex])
 			oCounter.NumInfo[nIndex] = 1;
 	}
 
-	oCounter.PrevLvl = oParaNumPr.Lvl;
+	oCounter.PrevLvl = nParaLvl;
 };
 
 function CDocumentFootnotesRangeEngine(bExtendedInfo)

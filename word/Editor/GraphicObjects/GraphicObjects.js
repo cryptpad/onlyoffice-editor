@@ -244,6 +244,29 @@ CGraphicObjects.prototype =
         return _arrFields;
     },
 
+    getWatermarkProps: function(nPageIndex)
+    {
+        var oProps;
+        var oWatermark = this.findWatermark(nPageIndex);
+        if(oWatermark)
+        {
+            return oWatermark.getWatermarkProps();
+        }
+        oProps = new Asc.CAscWatermarkProperties();
+        oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        return oProps;
+    },
+
+    findWatermark: function(nPageIndex)
+    {
+        var oPage = this.graphicPages[nPageIndex];
+        if(oPage)
+        {
+            return oPage.findWatermark();
+        }
+        return null;
+    },
+
     TurnOffCheckChartSelection: function()
     {
         this.bNoCheckChartTextSelection = true;

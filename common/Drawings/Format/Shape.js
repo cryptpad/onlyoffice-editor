@@ -5427,6 +5427,45 @@ CShape.prototype.remove = function (Count, bOnlyText, bRemoveOnlySelection, bOnT
 };
 
 
+CShape.prototype.isWatermark = function()
+{
+    return (this.getBodyPr().prstTxWarp !== null);
+};
+
+CShape.prototype.getWatermarkProps = function()
+{
+    var oProps = new Asc.CAscWatermarkProperties(), oTextPr, oRGBAColor, oInterfaceTextPr;
+    var oContent = this.getDocContent();
+    if(!oContent)
+    {
+        oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        return oProps;
+    }
+    oProps.put_Type(Asc.c_oAscWatermarkType.Text);
+    oProps.put_IsDiagonal(!AscFormat.fApproxEqual(this.rot, 0.0));
+    oContent.Set_ApplyToAll(true);
+    oProps.put_Text(oContent.GetSelectedText(true, {NewLineParagraph : false, NewLine : false}));
+    oTextPr = oContent.GetCalculatedTextPr();
+    oInterfaceTextPr = new Asc.CTextProp(oTextPr);
+    if(oTextPr.Unifill)
+    {
+        oTextPr.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
+        if (oTextPr.Unifill.fill && oTextPr.Unifill.fill.type === c_oAscFill.FILL_TYPE_SOLID && oTextPr.Unifill.fill.color)
+        {
+            oInterfaceTextPr.put_Color(AscCommon.CreateAscColor(oTextPr.Unifill.fill.color));
+        }
+        else
+        {
+            oRGBAColor = oTextPr.Unifill.getRGBAColor();
+            oInterfaceTextPr.put_Color(AscCommon.CreateAscColorCustom(oRGBAColor.R, oRGBAColor.G, oRGBAColor.B, false));
+        }
+        oProps.put_Opacity(AscFormat.isRealNumber(oTextPr.Unifill.transparent) ? oTextPr.Unifill.transparent : 255);
+    }
+    oProps.put_TextPr(oInterfaceTextPr);
+    oContent.Set_ApplyToAll(false);
+    return oProps;
+};
+
 CShape.prototype.Restart_CheckSpelling = function()
 {
     this.recalcInfo.recalculateShapeStyleForParagraph = true;

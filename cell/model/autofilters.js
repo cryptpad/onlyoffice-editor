@@ -146,19 +146,6 @@
 			asc_setDay: function (val) { this.day = val; }
 		};
 
-		/** @constructor */
-		function formatTablePictures () {
-			this.name = null;
-			this.displayName = null;
-			this.type = null;
-			this.image = null;
-		}
-
-		formatTablePictures.prototype.asc_getName = function () { return this.name; };
-		formatTablePictures.prototype.asc_getDisplayName = function () { return this.displayName; };
-		formatTablePictures.prototype.asc_getType = function () { return this.type; };
-		formatTablePictures.prototype.asc_getImage = function () { return this.image; };
-		
 		var g_oAutoFiltersOptionsProperties = {
 			cellId		: 0,
 			values		: 1,
@@ -5322,12 +5309,5 @@
 		prot["asc_getIsTitle"]					= prot.asc_getIsTitle;
 		prot["asc_setRange"]					= prot.asc_setRange;
 		prot["asc_setIsTitle"]					= prot.asc_setIsTitle;
-
-		window["AscCommonExcel"].formatTablePictures = formatTablePictures;
-		prot									= formatTablePictures.prototype;
-		prot["asc_getName"]					   	= prot.asc_getName;
-		prot["asc_getDisplayName"]				= prot.asc_getDisplayName;
-		prot["asc_getType"]						= prot.asc_getType;
-		prot["asc_getImage"]					= prot.asc_getImage;
 	}
 )(window);

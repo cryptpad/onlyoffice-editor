@@ -1508,7 +1508,7 @@ function readBookmarkStart(length, bcr, oReadResult, oParStruct, openParams) {
 		return bcr.ReadBookmark(t,l, bookmark);
 	});
 	if (undefined !== bookmark.BookmarkId && undefined !== bookmark.BookmarkName) {
-		var isCopyPaste = openParams && openParams.bCopyPaste;
+		var isCopyPaste = oReadResult.bCopyPaste;
 		var bookmarksManager = oReadResult.logicDocument.BookmarksManager;
 		if(!isCopyPaste || (isCopyPaste && bookmarksManager && null === bookmarksManager.GetBookmarkByName(bookmark.BookmarkName))){
 			var newBookmark = new CParagraphBookmark(true, bookmark.BookmarkId, bookmark.BookmarkName);
@@ -6630,6 +6630,7 @@ function BinaryFileReader(doc, openParams)
 	this.openParams = openParams;
     this.stream;
 	this.oReadResult = new DocReadResult(doc);
+	this.oReadResult.bCopyPaste = openParams.bCopyPaste;
     
     this.getbase64DecodedData = function(szSrc)
     {
@@ -6827,7 +6828,7 @@ function BinaryFileReader(doc, openParams)
             if(c_oSerConstants.ReadOk != res)
                 return res;
 			//todo сделать зачитывание в oReadResult, одновременно с кодом презентаций
-			if(!this.openParams.bCopyPaste)
+			if(!this.oReadResult.bCopyPaste)
 			{
 				res = (new Binary_OtherTableReader(this.Document, this.oReadResult, this.stream)).Read();
 			}
@@ -6867,7 +6868,7 @@ function BinaryFileReader(doc, openParams)
             if(c_oSerConstants.ReadOk != res)
                 return res;
 			//todo сделать зачитывание в oReadResult, одновременно с кодом презентаций
-			if(!this.openParams.bCopyPaste)
+			if(!this.oReadResult.bCopyPaste)
 			{
 				res = (new Binary_SettingsTableReader(this.Document, this.oReadResult, this.stream)).Read();
 			}
@@ -6906,7 +6907,7 @@ function BinaryFileReader(doc, openParams)
                     // break;
                 case c_oSerTableTypes.HdrFtr:
 					//todo сделать зачитывание в oReadResult
-					if(!this.openParams.bCopyPaste)
+					if(!this.oReadResult.bCopyPaste)
 					{
 						res = (new Binary_HdrFtrTableReader(this.Document, this.oReadResult,  this.openParams, this.stream)).Read();
 					}
@@ -7662,8 +7663,8 @@ function BinaryFileReader(doc, openParams)
 		
 		var oCommentsNewId = {};
 		//меняем CDocumentContent на Document для возможности вставки комментариев в колонтитул и таблицу
-		var isIntoShape = this.Document && this.Document.Parent && this.Document.Parent instanceof AscFormat.CShape ? true : false;
-		var isIntoDocumentContent = this.Document instanceof CDocumentContent ? true : false;
+		var isIntoShape = this.Document && this.Document.Parent && this.Document.Parent instanceof AscFormat.CShape;
+		var isIntoDocumentContent = this.Document instanceof CDocumentContent;
 		var document = this.Document && isIntoDocumentContent && !isIntoShape ? this.Document.LogicDocument : this.Document;
 		for(var i in this.oReadResult.oComments)
 		{
@@ -8169,7 +8170,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
                     });
                 break;
 			case c_oSerProp_pPrType.SectPr:
-				if(null != this.paragraph && this.Document instanceof CDocument)
+				if(null != this.paragraph && (!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting()))
 				{
 					var oNewSectionPr = new CSectionPr(this.Document);
 					var oAdditional = {EvenAndOddHeaders: null};
@@ -8185,7 +8186,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 res = c_oSerConstants.ReadUnknown;//todo
                 break;
             case c_oSerProp_pPrType.pPrChange:
-                if(null != this.paragraph && this.Document instanceof CDocument) {
+                if(null != this.paragraph && (!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting())) {
                     var pPrChange = new CParaPr();
                     var reviewInfo = new CReviewInfo();
                     var bpPrr = new Binary_pPrReader(this.Document, this.oReadResult, this.stream);
@@ -9236,7 +9237,7 @@ Binary_tblPrReader.prototype =
 		{
 			Pr.TableDescription = this.stream.GetString2LE(length);
 		}
-		else if( c_oSerProp_tblPrType.tblPrChange === type && this.Document instanceof CDocument)
+		else if( c_oSerProp_tblPrType.tblPrChange === type && (!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting()))
 		{
 			var tblPrChange = new CTablePr();
 			var reviewInfo = new CReviewInfo();
@@ -9509,21 +9510,21 @@ Binary_tblPrReader.prototype =
         {
             Pr.TableHeader = (this.stream.GetUChar() != 0);
         }
-        else if(c_oSerProp_rowPrType.Del === type && row && this.Document instanceof CDocument){
+        else if(c_oSerProp_rowPrType.Del === type && row && (!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting())){
 			var reviewInfo = new CReviewInfo();
 			res = this.bcr.Read1(length, function(t, l){
 				return ReadTrackRevision(t, l, oThis.stream, reviewInfo, null);
 			});
 			row.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo);
         }
-        else if(c_oSerProp_rowPrType.Ins === type && row && this.Document instanceof CDocument){
+        else if(c_oSerProp_rowPrType.Ins === type && row && (!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting())){
 			var reviewInfo = new CReviewInfo();
 			res = this.bcr.Read1(length, function(t, l){
 				return ReadTrackRevision(t, l, oThis.stream, reviewInfo, null);
 			});
 			row.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo);
         }
-        else if( c_oSerProp_rowPrType.trPrChange === type && this.Document instanceof CDocument){
+        else if( c_oSerProp_rowPrType.trPrChange === type && (!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting())){
 			var trPr = new CTableRowPr();
 			var reviewInfo = new CReviewInfo();
 			res = this.bcr.Read1(length, function(t, l) {
@@ -9685,7 +9686,7 @@ Binary_tblPrReader.prototype =
         else if( c_oSerProp_cellPrType.CellMerge === type ){
             res = c_oSerConstants.ReadUnknown;//todo
         }
-        else if( c_oSerProp_cellPrType.tcPrChange === type && this.Document instanceof CDocument){
+        else if( c_oSerProp_cellPrType.tcPrChange === type && (!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting())){
 			var tcPr = new CTableCellPr();
 			var reviewInfo = new CReviewInfo();
 			res = this.bcr.Read1(length, function(t, l) {
@@ -10211,7 +10212,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
               Content.push(oNewTable);
             }
         }
-        else if ( c_oSerParType.sectPr === type && !this.openParams.bCopyPaste)
+        else if ( c_oSerParType.sectPr === type && !this.oReadResult.bCopyPaste)
 		{
 			var oSectPr = oThis.Document.SectPr;
 			var oAdditional = {EvenAndOddHeaders: null};
@@ -10933,7 +10934,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			if (this.curFootnote) {
 				oNewElem = new ParaFootnoteRef(this.curFootnote);
 			}
-			else if(this.openParams && this.openParams.bCopyPaste && this.openParams.oDocument){
+			else if(this.oReadResult && this.oReadResult.bCopyPaste && this.openParams.oDocument){
 				oNewElem = new ParaFootnoteRef(this.openParams.oDocument);
 			}
 		}
@@ -11732,7 +11733,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		{
 			tblGrid.push(g_dKoef_twips_to_mm * this.stream.GetULongLE());
 		}
-		else if( c_oSerDocTableType.tblGridChange === type && table && this.Document instanceof CDocument)
+		else if( c_oSerDocTableType.tblGridChange === type && table && (!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting()))
 		{
 			var tblGridChange = [];
 			var reviewInfo = new CReviewInfo();
@@ -15924,6 +15925,16 @@ function DocReadResult(doc) {
 	this.compatibilityMode = null;
 	this.bdtr = null;
 	this.runsToSplit = [];
+	this.bCopyPaste = false;
+};
+DocReadResult.prototype = {
+	isDocumentPasting: function(){
+		var api = editor || window["Asc"]["editor"];
+		if(api) {
+			return this.bCopyPaste && AscCommon.c_oEditorId.Word === api.getEditorId();
+		}
+		return false;
+	}
 };
 //---------------------------------------------------------export---------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

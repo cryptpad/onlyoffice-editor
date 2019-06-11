@@ -10676,8 +10676,7 @@
 
 		var countPasteRow = activeCellsPasteFragment.r2 - activeCellsPasteFragment.r1 + 1;
 		var countPasteCol = activeCellsPasteFragment.c2 - activeCellsPasteFragment.c1 + 1;
-		if(specialPasteProps && specialPasteProps.transpose)
-		{
+		if(specialPasteProps && specialPasteProps.transpose) {
 			countPasteRow = activeCellsPasteFragment.c2 - activeCellsPasteFragment.c1 + 1;
 			countPasteCol = activeCellsPasteFragment.r2 - activeCellsPasteFragment.r1 + 1;
 		}
@@ -10785,50 +10784,48 @@
         var rMax2 = rMax;
         var cMax2 = cMax;
         //var rMax = values.length;
-        if (isCheckSelection) {
-            var newArr = arn.clone(true);
-            newArr.r2 = rMax2 - 1;
-            newArr.c2 = cMax2 - 1;
-            if (isMultiple || isOneMerge) {
-                newArr.r2 = arn.r2;
-                newArr.c2 = arn.c2;
-            }
-            return newArr;
-        }
-        //если не возникает конфликт, делаем unmerge
-		if(specialPasteProps.format)
-		{
+		if (isCheckSelection) {
+			var newArr = arn.clone(true);
+			newArr.r2 = rMax2 - 1;
+			newArr.c2 = cMax2 - 1;
+			if (isMultiple || isOneMerge) {
+				newArr.r2 = arn.r2;
+				newArr.c2 = arn.c2;
+			}
+			return newArr;
+		}
+		//если не возникает конфликт, делаем unmerge
+		if (specialPasteProps.format) {
 			rangeUnMerge.unmerge();
 			this.cellCommentator.deleteCommentsRange(rangeUnMerge.bbox);
 		}
-        if (!isOneMerge) {
-            arn.r2 = rMax2 - 1;
-            arn.c2 = cMax2 - 1;
-        }
+		if (!isOneMerge) {
+			arn.r2 = rMax2 - 1;
+			arn.c2 = cMax2 - 1;
+		}
 
 		var maxARow = 1, maxACol = 1, plRow = 0, plCol = 0;
-        if (isMultiple)//случай автозаполнения сложных форм
-        {
-            if(specialPasteProps.format)
-			{
-				t.model.getRange3(trueActiveRange.r1, trueActiveRange.c1, trueActiveRange.r2, trueActiveRange.c2).unmerge();
+		if (isMultiple)//случай автозаполнения сложных форм
+		{
+			if (specialPasteProps.format) {
+				t.model.getRange3(trueActiveRange.r1, trueActiveRange.c1, trueActiveRange.r2, trueActiveRange.c2)
+					.unmerge();
 			}
-            maxARow = heightArea / heightPasteFr;
-            maxACol = widthArea / widthPasteFr;
-            plRow = (rMax2 - arn.r1);
-            plCol = (arn.c2 - arn.c1) + 1;
-        } else {
+			maxARow = heightArea / heightPasteFr;
+			maxACol = widthArea / widthPasteFr;
+			plRow = (rMax2 - arn.r1);
+			plCol = (arn.c2 - arn.c1) + 1;
+		} else {
 			trueActiveRange.r2 = arn.r2;
 			trueActiveRange.c2 = arn.c2;
-        }
+		}
 
 		//необходимо проверить, пересекаемся ли мы с фоматированной таблицей
 		//если да, то подхватывать dxf при вставке не нужно
 		var intersectionAllRangeWithTables = t.model.autoFilters._intersectionRangeWithTableParts(trueActiveRange);
 
 
-		var addComments = function(pasteRow, pasteCol, comments)
-		{
+		var addComments = function (pasteRow, pasteCol, comments) {
 			var comment;
 			for (var i = 0; i < comments.length; i++) {
 				comment = comments[i];
@@ -10894,65 +10891,56 @@
 			}
 		};
 
-		var getTableDxf = function (pasteRow, pasteCol, newVal)
-		{
+		var getTableDxf = function (pasteRow, pasteCol, newVal) {
 			var dxf = null;
 
-			if(false !== intersectionAllRangeWithTables){
+			if (false !== intersectionAllRangeWithTables) {
 				return {dxf: null};
 			}
 
 			var tables = val.autoFilters._intersectionRangeWithTableParts(newVal.bbox);
 			var blocalArea = true;
-			if (tables && tables[0])
-			{
+			if (tables && tables[0]) {
 				var table = tables[0];
 				var styleInfo = table.TableStyleInfo;
 				var styleForCurTable = styleInfo ? t.model.workbook.TableStyles.AllStyles[styleInfo.Name] : null;
 
-				if (activeCellsPasteFragment.containsRange(table.Ref))
-				{
+				if (activeCellsPasteFragment.containsRange(table.Ref)) {
 					blocalArea = false;
 				}
 
-				if (!styleForCurTable)
-				{
+				if (!styleForCurTable) {
 					return null;
 				}
 
 				var headerRowCount = 1;
 				var totalsRowCount = 0;
-				if (null != table.HeaderRowCount)
-				{
+				if (null != table.HeaderRowCount) {
 					headerRowCount = table.HeaderRowCount;
 				}
-				if (null != table.TotalsRowCount)
-				{
+				if (null != table.TotalsRowCount) {
 					totalsRowCount = table.TotalsRowCount;
 				}
 
 				var bbox = new Asc.Range(table.Ref.c1, table.Ref.r1, table.Ref.c2, table.Ref.r2);
 				styleForCurTable.initStyle(val.sheetMergedStyles, bbox, styleInfo, headerRowCount, totalsRowCount);
-                val._getCell(pasteRow, pasteCol, function(cell) {
-                    if (cell)
-                    {
-                        dxf = cell.getCompiledStyle();
-                    }
-                    if (null === dxf)
-                    {
-                        pasteRow = pasteRow - table.Ref.r1;
-                        pasteCol = pasteCol - table.Ref.c1;
-                        dxf = val.getCompiledStyle(pasteRow, pasteCol);
-                    }
-                });
+				val._getCell(pasteRow, pasteCol, function (cell) {
+					if (cell) {
+						dxf = cell.getCompiledStyle();
+					}
+					if (null === dxf) {
+						pasteRow = pasteRow - table.Ref.r1;
+						pasteCol = pasteCol - table.Ref.c1;
+						dxf = val.getCompiledStyle(pasteRow, pasteCol);
+					}
+				});
 			}
 
 			return {dxf: dxf, blocalArea: blocalArea};
 		};
 
 		var colsWidth = {};
-		var putInsertedCellIntoRange = function(nRow, nCol, pasteRow, pasteCol, rowDiff, colDiff, range, newVal, curMerge, transposeRange)
-		{
+		var putInsertedCellIntoRange = function (nRow, nCol, pasteRow, pasteCol, rowDiff, colDiff, range, newVal, curMerge, transposeRange) {
 			var pastedRangeProps = {};
 			//range может далее изменится в связи с наличием мерженных ячеек, firstRange - не меняется(ему делаем setValue, как первой ячейке в диапазоне мерженных)
 			var firstRange = range.clone();
@@ -10992,13 +10980,10 @@
 
 				//borders
 				var fullBorders;
-				if(specialPasteProps.transpose)
-				{
+				if (specialPasteProps.transpose) {
 					//TODO сделано для правильного отображения бордеров при транспонирования. возможно стоит использовать эту функцию во всех ситуациях. проверить!
 					fullBorders = newVal.getBorder(newVal.bbox.r1, newVal.bbox.c1).clone();
-				}
-				else
-				{
+				} else {
 					fullBorders = newVal.getBorderFull();
 				}
 				if (pastedRangeProps.offsetLast && pastedRangeProps.offsetLast.col > 0 && curMerge && fullBorders) {
@@ -11023,18 +11008,14 @@
 			}
 
 			var tableDxf = getTableDxf(pasteRow, pasteCol, newVal);
-			if(tableDxf && tableDxf.blocalArea)
-			{
+			if (tableDxf && tableDxf.blocalArea) {
 				pastedRangeProps.tableDxfLocal = tableDxf.dxf;
-			}
-			else if(tableDxf)
-			{
+			} else if (tableDxf) {
 				pastedRangeProps.tableDxf = tableDxf.dxf;
 			}
 
 
-			if(undefined === colsWidth[nCol])
-			{
+			if (undefined === colsWidth[nCol]) {
 				colsWidth[nCol] = val._getCol(pasteCol);
 			}
 			pastedRangeProps.colsWidth = colsWidth;
@@ -11083,28 +11064,37 @@
 
 		 }*/
 
-		var hiddenRowCount = 0;
-        for (var autoR = 0; autoR < maxARow; ++autoR) {
-            for (var autoC = 0; autoC < maxACol; ++autoC) {
-                for (var r = 0; r < rMax - arn.r1; ++r) {
-                    for (var c = 0; c < cMax - arn.c1; ++c) {
-                    	/*if(isMultiple && hiddenRowsArray[r + autoR * plRow + arn.r1]) {
-							hiddenRowCount++;
-                    		continue;
-						}*/
+		var getNextNoHiddenRow = function(index) {
+			var startIndex = index;
+			while(hiddenRowsArray[index]) {
+				index++;
+			}
+			return index - startIndex;
+		};
 
-                        var pasteRow = r + activeCellsPasteFragment.r1 - hiddenRowCount;
-                        var pasteCol = c + activeCellsPasteFragment.c1;
-						if(specialPasteProps.transpose)
-						{
-							pasteRow = c + activeCellsPasteFragment.r1 - hiddenRowCount;
+		var hiddenRowCount = {};
+		for (var autoR = 0; autoR < maxARow; ++autoR) {
+			for (var autoC = 0; autoC < maxACol; ++autoC) {
+				if(!hiddenRowCount[autoC]) {
+					hiddenRowCount[autoC] = 0;
+				}
+				for (var r = 0; r < rMax - arn.r1; ++r) {
+					for (var c = 0; c < cMax - arn.c1; ++c) {
+						if(false && isMultiple && hiddenRowsArray[r + autoR * plRow + arn.r1 + hiddenRowCount[autoC]]) {
+							hiddenRowCount[autoC] += getNextNoHiddenRow(r + autoR * plRow + arn.r1 + hiddenRowCount[autoC]);
+						 }
+
+						var pasteRow = r + activeCellsPasteFragment.r1;
+						var pasteCol = c + activeCellsPasteFragment.c1;
+						if (specialPasteProps.transpose) {
+							pasteRow = c + activeCellsPasteFragment.r1;
 							pasteCol = r + activeCellsPasteFragment.c1;
 						}
 
-                        var newVal = val.getCell3(pasteRow, pasteCol);
-                        if (undefined !== newVal) {
+						var newVal = val.getCell3(pasteRow, pasteCol);
+						if (undefined !== newVal) {
 
-							var nRow = r + autoR * plRow + arn.r1;
+							var nRow = r + autoR * plRow + arn.r1 + hiddenRowCount[autoC];
 							var nCol = c + autoC * plCol + arn.c1;
 
 							if (nRow > gc_nMaxRow0) {
@@ -11115,8 +11105,7 @@
 							}
 
 							var curMerge = newVal.hasMerged();
-							if(curMerge && specialPasteProps.transpose)
-							{
+							if (curMerge && specialPasteProps.transpose) {
 								curMerge = curMerge.clone();
 								var r1 = curMerge.r1;
 								var r2 = curMerge.r2;
@@ -11129,25 +11118,25 @@
 								curMerge.c2 = r2;
 							}
 
-							var range = t.model.getRange3(nRow, nCol, nRow, nCol);
+							range = t.model.getRange3(nRow, nCol, nRow, nCol);
 							var transposeRange = null;
-							if(specialPasteProps.transpose)
-							{
+							if (specialPasteProps.transpose) {
 								transposeRange = t.model.getRange3(c + autoR * plRow + arn.r1, r + autoC * plCol + arn.c1, c + autoR * plRow + arn.r1, r + autoC * plCol + arn.c1);
 							}
 
-							putInsertedCellIntoRange(nRow, nCol, pasteRow, pasteCol, autoR * plRow, autoC * plCol, range, newVal, curMerge, transposeRange);
+							putInsertedCellIntoRange(nRow, nCol, pasteRow, pasteCol, autoR * plRow, autoC * plCol,
+								range, newVal, curMerge, transposeRange);
 
-                            //если замержили range
-                            c = range.bbox.c2 - autoC * plCol - arn.c1;
-                            if (c === cMax) {
-                                r = range.bbox.r2 - autoC * plCol - arn.r1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+							//если замержили range
+							c = range.bbox.c2 - autoC * plCol - arn.c1;
+							if (c === cMax) {
+								r = range.bbox.r2 - autoC * plCol - arn.r1;
+							}
+						}
+					}
+				}
+			}
+		}
 
         t.isChanged = true;
         var arnFor = [trueActiveRange, arrFormula];
@@ -12723,7 +12712,7 @@
 			}
 		}
 
-		if (0 > aReplaceCells.length) {
+		if (0 === aReplaceCells.length) {
 			return callback(options);
 		}
 		this.model.clearFindResults();
@@ -16260,21 +16249,8 @@
 		return bImptyText ? "" : res;
 	};
 
-	var consoleWrite = false;
-	function console_time(str) {
-		if(consoleWrite) {
-			console_time(str);
-		}
-	}
-	function console_time_end() {
-		if(consoleWrite) {
-			console_time_end(str);
-		}
-	}
-
 	//GROUP DATA FUNCTIONS
 	WorksheetView.prototype._updateGroups = function(bCol, start, end, bUpdateOnlyRowLevelMap) {
-		console_time('_updateRowGroups');
 		if(bCol) {
 			if(bUpdateOnlyRowLevelMap) {
 				this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
@@ -16297,7 +16273,6 @@
 				this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
 			}
 		}
-		console_time_end('_updateRowGroups');
 	};
 
 	WorksheetView.prototype._updateGroupsWidth = function() {
@@ -16313,8 +16288,6 @@
 			start = 0;
 			end = bCol ? gc_nMaxCol : gc_nMaxRow;
 		}
-
-		console_time("old");
 
 		var levelMap = {};
 		var res = null;
@@ -16477,8 +16450,6 @@
 			}
 		}
 
-		console_time_end("old");
-
 		return {groupArr: res, levelMap: levelMap};
 	};
 
@@ -16592,7 +16563,6 @@
 			if(!groupData || !groupData.groupArr) {
 				return;
 			}
-			console_time("draw");
 			arrayLines = groupData.groupArr;
 			rowLevelMap = groupData.levelMap;
 
@@ -16690,7 +16660,6 @@
 			if(!groupData || !groupData.groupArr) {
 				return;
 			}
-			console_time("draw");
 			arrayLines = groupData.groupArr;
 			rowLevelMap = groupData.levelMap;
 
@@ -16775,8 +16744,6 @@
 
 
 		this._drawGroupDataButtons(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol);
-
-		console_time_end("draw");
 	};
 
 	WorksheetView.prototype._drawGroupDataButtons = function(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol) {
@@ -17176,7 +17143,6 @@
 	};
 
 	WorksheetView.prototype.getGroupCommonLevel = function (bCol) {
-		console_time("getGroupCommonLevel");
 		var res = 0;
 		var func = function(elem) {
 			var outLineLevel = elem.getOutlineLevel();
@@ -17190,7 +17156,6 @@
 			this.model.getRange3(0, 0, gc_nMaxRow0, 0)._foreachRowNoEmpty(func);
 		}
 
-		console_time_end("getGroupCommonLevel");
 		return res;
 	};
 
@@ -17292,8 +17257,6 @@
 			return this._groupRowMenuClick(x, y, target, type, bCol);
 		}
 
-		console_time("groupRowClick");
-
 		if(bCol) {
 			offsetY = 0;
 		} else {
@@ -17357,11 +17320,8 @@
 			doClick();
 		}
 		if(mouseDownClick) {
-			console_time_end("groupRowClick");
 			return true;
 		}
-
-		console_time_end("groupRowClick");
 	};
 
 	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type, bCol) {
@@ -17495,8 +17455,6 @@
 
 		functionModelAction = function () {
 			AscCommonExcel.checkFilteringMode(function () {
-				console_time("_tryChangeGroup");
-
 				History.Create_NewPoint();
 				History.StartTransaction();
 
@@ -17547,8 +17505,6 @@
 				//updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
 				History.EndTransaction();
-
-				console_time_end("_tryChangeGroup");
 			});
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
@@ -17556,7 +17512,6 @@
 	};
 
 	WorksheetView.prototype.hideGroupLevel = function (level, bCol) {
-		console_time("hideGroupLevel");
 
 		var t = this, groupArr;
 		if(bCol) {
@@ -17614,8 +17569,6 @@
 		};
 
 		this._isLockedAll(onChangeWorksheetCallback);
-
-		console_time_end("hideGroupLevel");
 	};
 
 	WorksheetView.prototype.changeGroupDetails2 = function (bExpand) {

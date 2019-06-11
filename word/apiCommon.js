@@ -36,31 +36,6 @@
 {
 	window['Asc'] = window['Asc'] || {};
 // ---------------------------------------------------------------
-	function CAscTableStyle()
-	{
-		this.Id = "";
-		this.Type = 0;
-		this.Image = "";
-	}
-
-	CAscTableStyle.prototype.get_Id = function ()
-	{
-		return this.Id;
-	};
-	CAscTableStyle.prototype.get_Image = function ()
-	{
-		return this.Image;
-	};
-	CAscTableStyle.prototype.get_Type = function ()
-	{
-		return this.Type;
-	};
-	window['Asc']['CAscTableStyle'] = window['Asc'].CAscTableStyle = CAscTableStyle;
-	CAscTableStyle.prototype['get_Id'] = CAscTableStyle.prototype.get_Id;
-	CAscTableStyle.prototype['get_Image'] = CAscTableStyle.prototype.get_Image;
-	CAscTableStyle.prototype['get_Type'] = CAscTableStyle.prototype.get_Type;
-
-// ---------------------------------------------------------------
 // CBackground
 // Value : тип заливки(прозрачная или нет),
 // Color : { r : 0, g : 0, b : 0 }
@@ -1283,6 +1258,23 @@
 	CTextProp.prototype['get_Caps'] = CTextProp.prototype.get_Caps;
 	CTextProp.prototype['get_SmallCaps'] = CTextProp.prototype.get_SmallCaps;
 
+	CTextProp.prototype['put_Bold'] = CTextProp.prototype.put_Bold = function(v){this.Bold = v;};
+	CTextProp.prototype['put_Italic'] = CTextProp.prototype.put_Italic = function(v){this.Italic = v;};
+	CTextProp.prototype['put_Underline'] = CTextProp.prototype.put_Underline = function(v){this.Underline = v;};
+	CTextProp.prototype['put_Strikeout'] = CTextProp.prototype.put_Strikeout = function(v){this.Strikeout = v;};
+	CTextProp.prototype['put_FontFamily'] = CTextProp.prototype.put_FontFamily = function(v){this.FontFamily = v;};
+	CTextProp.prototype['put_FontSize'] = CTextProp.prototype.put_FontSize = function(v){this.FontSize = v;};
+	CTextProp.prototype['put_Color'] = CTextProp.prototype.put_Color = function(v){this.Color = v;};
+	CTextProp.prototype['put_VertAlign'] = CTextProp.prototype.put_VertAlign = function(v){this.VertAlign = v;};
+	CTextProp.prototype['put_HighLight'] = CTextProp.prototype.put_HighLight = function(v){this.HighLight = v;};
+	CTextProp.prototype['put_Spacing'] = CTextProp.prototype.put_Spacing = function(v){this.Spacing = v;};
+	CTextProp.prototype['put_DStrikeout'] = CTextProp.prototype.put_DStrikeout = function(v){this.DStrikeout = v;};
+	CTextProp.prototype['put_Caps'] = CTextProp.prototype.put_Caps = function(v){this.Caps = v;};
+	CTextProp.prototype['put_SmallCaps'] = CTextProp.prototype.put_SmallCaps = function(v){this.SmallCaps = v;};
+
+
+	window['Asc']['CTextProp'] = window['Asc'].CTextProp = CTextProp;
+
 	/**
 	 * Paragraph and text properties objects container
 	 * @param paragraphProp
@@ -1314,84 +1306,6 @@
 	CParagraphAndTextProp.prototype['get_ParaPr'] = CParagraphAndTextProp.prototype.get_ParaPr;
 	CParagraphAndTextProp.prototype['get_TextPr'] = CParagraphAndTextProp.prototype.get_TextPr;
 // ---------------------------------------------------------------
-
-	function GenerateTableStyles(drawingDoc, logicDoc, tableLook)
-	{
-		var _dst_styles = [];
-
-		var _styles = logicDoc.Styles.Get_AllTableStyles();
-		var _styles_len = _styles.length;
-
-		if (_styles_len == 0)
-			return _dst_styles;
-
-		var _x_mar = 10;
-		var _y_mar = 10;
-		var _r_mar = 10;
-		var _b_mar = 10;
-		var _pageW = 297;
-		var _pageH = 210;
-
-		var W = (_pageW - _x_mar - _r_mar);
-		var H = (_pageH - _y_mar - _b_mar);
-		var Grid = [];
-
-		var Rows = 5;
-		var Cols = 5;
-
-		for (var i = 0; i < Cols; i++)
-			Grid[i] = W / Cols;
-
-		var _canvas = document.createElement('canvas');
-		if (!this.m_oWordControl.bIsRetinaSupport)
-		{
-			_canvas.width = TABLE_STYLE_WIDTH_PIX;
-			_canvas.height = TABLE_STYLE_HEIGHT_PIX;
-		}
-		else
-		{
-			_canvas.width = AscCommon.AscBrowser.convertToRetinaValue(TABLE_STYLE_WIDTH_PIX, true);
-			_canvas.height = AscCommon.AscBrowser.convertToRetinaValue(TABLE_STYLE_HEIGHT_PIX, true);
-		}
-		var ctx = _canvas.getContext('2d');
-
-		AscCommon.History.TurnOff();
-		for (var i1 = 0; i1 < _styles_len; i1++)
-		{
-			var i = _styles[i1];
-			var _style = logicDoc.Styles.Style[i];
-
-			if (!_style || _style.Type != styletype_Table)
-				continue;
-
-			var table = new CTable(drawingDoc, logicDoc, true, Rows, Cols, Grid);
-			table.Set_Props({TableStyle: i});
-
-			for (var j = 0; j < Rows; j++)
-				table.Content[j].Set_Height(H / Rows, Asc.linerule_AtLeast);
-
-			ctx.fillStyle = "#FFFFFF";
-			ctx.fillRect(0, 0, _canvas.width, _canvas.height);
-
-			var graphics = new AscCommon.CGraphics();
-			graphics.init(ctx, _canvas.width, _canvas.height, _pageW, _pageH);
-			graphics.m_oFontManager = AscCommon.g_fontManager;
-			graphics.transform(1, 0, 0, 1, 0, 0);
-
-			table.Reset(_x_mar, _y_mar, 1000, 1000, 0, 0, 1);
-			table.Recalculate_Page(0);
-			table.Draw(0, graphics);
-
-			var _styleD = new CAscTableStyle();
-			_styleD.Type = 0;
-			_styleD.Image = _canvas.toDataURL("image/png");
-			_styleD.Id = i;
-			_dst_styles.push(_styleD);
-		}
-		AscCommon.History.TurnOn();
-
-		return _dst_styles;
-	}
 
 	/*
 	 структура заголовков, предварительно, выглядит так
@@ -1859,6 +1773,8 @@
 
 		this.DivId = null;
 	}
+
+	window['Asc']['CAscWatermarkProperties'] = window['Asc'].CAscWatermarkProperties = CAscWatermarkProperties;
 
 	CAscWatermarkProperties.prototype['put_Type'] = CAscWatermarkProperties.prototype.put_Type = function (v) {
 		this.Type = v;

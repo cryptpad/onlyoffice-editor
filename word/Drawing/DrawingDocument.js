@@ -7843,10 +7843,11 @@ function CDrawingDocument()
 			editor.isShowTableEmptyLineAttack = false;
 			editor.isViewMode = _old_mode;
 
-			var _styleD = new Asc.CAscTableStyle();
-			_styleD.Type = 0;
-			_styleD.Image = _canvas.toDataURL("image/png");
-			_styleD.Id = i;
+			var _styleD = new AscCommon.CStyleImage();
+			_styleD.type = AscCommon.c_oAscStyleImage.Default;
+			_styleD.image = _canvas.toDataURL("image/png");
+			_styleD.name = i;
+			_styleD.displayName = _style.Name;
 			_dst_styles.push(_styleD);
 		}
 		g_oTableId.m_bTurnOff = false;

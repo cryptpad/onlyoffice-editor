@@ -685,6 +685,15 @@
     };
 
 
+
+    CGraphicObjectBase.prototype.isWatermark = function()
+    {
+        return false;
+    };
+
+
+
+
     CGraphicObjectBase.prototype.CheckCorrect = function(){
         return this.checkCorrect();
     };

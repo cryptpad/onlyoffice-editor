@@ -162,6 +162,17 @@ function asc_menu_WriteColor(_type, _color, _stream) {
     
     _stream["WriteByte"](255);
 }
+
+function asc_menu_WriteMath(oMath, s){
+    s["WriteLong"](oMath.Type);
+    s["WriteLong"](oMath.Action);
+    s["WriteBool"](oMath.CanIncreaseArgumentSize);
+    s["WriteBool"](oMath.CanDecreaseArgumentSize);
+    s["WriteBool"](oMath.CanInsertForcedBreak);
+    s["WriteBool"](oMath.CanDeleteForcedBreak);
+    s["WriteBool"](oMath.CanAlignToCharacter);
+}
+
 function asc_menu_ReadFontFamily(_params, _cursor){
     var _fontfamily = { Name : undefined, Index : -1 };
     var _continue = true;
@@ -4770,338 +4781,7 @@ function OfflineEditor () {
     };
     
     this.offline_beforeInit = function () {
-        
-        // STYLE MANAGER
-        
-        AscCommonExcel.asc_CStylesPainter.prototype.generateStylesAll = function (cellStylesAll, fmgrGraphics, oFont, stringRenderer) {
-            
-            var pxTomm = 1.0; // 72.0 / 96.0;
-            
-            this.styleThumbnailWidth = 92;// * pxTomm;
-            this.styleThumbnailHeight = 48;// * pxTomm;
-            
-            this.styleThumbnailWidthPt = Math.floor(this.styleThumbnailWidth * pxTomm);
-            this.styleThumbnailHeightPt = Math.floor(this.styleThumbnailHeight * pxTomm);
-            
-            this.styleThumbnailWidthWithRetina	= this.styleThumbnailWidth;
-            this.styleThumbnailHeightWithRetina	= this.styleThumbnailHeight;
-            
-            window["native"]["SetStylesType"](0);
-            
-            this.generateDefaultStyles(cellStylesAll, fmgrGraphics, oFont, stringRenderer);
-            this.generateDocumentStyles(cellStylesAll, fmgrGraphics, oFont, stringRenderer);
-        };
-        AscCommonExcel.asc_CStylesPainter.prototype.generateDefaultStyles = function (cellStylesAll, fmgrGraphics, oFont, stringRenderer) {
-            var cellStyles = cellStylesAll.DefaultStyles;
-            var oGraphics = new window["Asc"].DrawingContext({canvas: null, units: 0/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
-            
-            var oStyle, oCustomStyle; var styleIndex = 0;
-            for (var i = 0; i < cellStyles.length; ++i) {
-                oStyle = cellStyles[i];
-                if (oStyle.Hidden) {
-                    continue;
-                }
-                
-                // ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
-                oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
-                
-                window["native"]["BeginDrawDefaultStyle"](oStyle.Name, styleIndex);
-                this.drawStyle(oGraphics, stringRenderer, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
-                window["native"]["EndDrawStyle"]();
-                ++styleIndex;
-            }
-        };
-        AscCommonExcel.asc_CStylesPainter.prototype.generateDocumentStyles = function (cellStylesAll, fmgrGraphics, oFont, stringRenderer) {
-            var cellStyles = cellStylesAll.CustomStyles;
-            var oGraphics = new window["Asc"].DrawingContext({canvas: null, units: 0/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
-            
-            var oStyle; var styleIndex = 10000;
-            for (var i = 0; i < cellStyles.length; ++i) {
-                oStyle = cellStyles[i];
-                if (oStyle.Hidden || null != oStyle.BuiltinId) {
-                    continue;
-                }
-                
-                window["native"]["BeginDrawDocumentStyle"](oStyle.Name, styleIndex);
-                this.drawStyle(oGraphics, stringRenderer, oStyle, AscCommon.translateManager.getValue(oStyle.Name), styleIndex);
-                window["native"]["EndDrawStyle"]();
-                ++styleIndex;
-            }
-        };
-        AscCommonExcel.asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
 
-            if (oStyle.ApplyFill) {
-                var oColor = oStyle.getFillColor();
-                if (null !== oColor) {
-                    oGraphics.setFillStyle(oColor);
-                    oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
-                }
-            }
-            
-            var drawBorder = function (b, x1, y1, x2, y2) {
-                if (null != b && AscCommon.c_oAscBorderStyles.None !== b.s) {
-                    oGraphics.setStrokeStyle(b.c);
-                    oGraphics.setLineWidth(b.w).beginPath();
-                    
-                    window["native"]["PD_PathMoveTo"](x1, y1);
-                    window["native"]["PD_PathLineTo"](x2, y2);
-                    
-                    oGraphics.stroke();
-                }
-            };
-
-            if (oStyle.ApplyBorder) {
-                var oBorders = oStyle.getBorder();
-                drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt); // left
-                drawBorder(oBorders.r, this.styleThumbnailWidthPt - 0.25, 0, this.styleThumbnailWidthPt - 0.25, this.styleThumbnailHeightPt);     // right
-                drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0); // up
-                drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt - 0.25, this.styleThumbnailWidthPt,  this.styleThumbnailHeightPt - 0.25);   // down
-            }
-            
-            // Draw text
-            var format = oStyle.getFont().clone();
-            // Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
-            if (16 < format.getSize()) {
-                format.setSize(16);
-            }
-
-            var width_padding = 3; // 4 * 72 / 96
-            
-            var tm = sr.measureString(sStyleName);
-            // Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
-            var textY = 0.5 * (this.styleThumbnailHeightPt - tm.height);
-            oGraphics.setFont(format);
-            oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
-            oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
-        };
-        
-        // AUTOFILTERS
-        
-        var styleThumbnailWidth  = 91.5;
-        var styleThumbnailHeight = 46.0;
-        
-        AscCommonExcel.WorkbookView.prototype.af_getTablePictures  = function(props, bPivotTable) {
-            
-            var wb = this.model;
-            var t = this;
-            
-            var result = [];
-            var canvas = document.createElement('canvas');
-            var styleInfo;
-            
-            var defaultStyles, row, col = 5;
-            if(bPivotTable)
-            {
-                //styleThumbnailHeight = 49;
-                row = 8;
-                defaultStyles =  wb.TableStyles.DefaultStylesPivot;
-                styleInfo = props;
-            }
-            else
-            {
-                //styleThumbnailHeight = 46;
-                row = 5;
-                defaultStyles = wb.TableStyles.DefaultStyles;
-                styleInfo = new AscCommonExcel.TableStyleInfo();
-                if (props) {
-                    styleInfo.ShowColumnStripes = props.asc_getBandVer();
-                    styleInfo.ShowFirstColumn = props.asc_getFirstCol();
-                    styleInfo.ShowLastColumn = props.asc_getLastCol();
-                    styleInfo.ShowRowStripes = props.asc_getBandHor();
-                    styleInfo.HeaderRowCount = props.asc_getFirstRow();
-                    styleInfo.TotalsRowCount = props.asc_getLastRow();
-                } else {
-                    styleInfo.ShowColumnStripes = false;
-                    styleInfo.ShowFirstColumn = false;
-                    styleInfo.ShowLastColumn = false;
-                    styleInfo.ShowRowStripes = true;
-                    styleInfo.HeaderRowCount = true;
-                    styleInfo.TotalsRowCount = false;
-                }
-            }
-            
-            var originSizeW = styleThumbnailWidth;
-            var originSizeH = styleThumbnailHeight;
-            
-            if (AscCommon.AscBrowser.isRetina)
-            {
-                styleThumbnailWidth = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailWidth, true);
-                styleThumbnailHeight = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailHeight, true);
-            }
-            
-            canvas.width = styleThumbnailWidth;
-            canvas.height = styleThumbnailHeight;
-            
-            var addStyles = function(styles, type)
-            {
-                var n = 0;
-                for (var i in styles)
-                {
-                    if ((bPivotTable && styles[i].pivot) || (!bPivotTable && styles[i].table))
-                    {
-                        if ("custom" == type) {
-                            window["native"]["BeginDrawDocumentStyle"](i, n);
-                            t.af_getSmallIconTable(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
-                            window["native"]["EndDrawStyle"]();
-                        }
-                        
-                        if ("default" == type) {
-                            window["native"]["BeginDrawDefaultStyle"](i, n);
-                            t.af_getSmallIconTable(canvas, styles[i], styleInfo, {w: originSizeW, h: originSizeH, row: row, col: col});
-                            window["native"]["EndDrawStyle"]();
-                        }
-                        
-                        n++;
-                    }
-                }
-            };
-            
-            window["native"]["SetStylesType"](1);
-            
-            addStyles(wb.TableStyles.CustomStyles, "custom");
-            addStyles(defaultStyles, "default");
-            
-            return result;
-        };
-        
-        AscCommonExcel.WorkbookView.prototype.af_getSmallIconTable = function (canvas, style, styleInfo, size) {
-            
-            var fmgrGraphics = this.fmgrGraphics;
-            var oFont = this.m_oFont;
-            var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
-            
-            var w = size.w;
-            var h = size.h;
-            var row = size.row;
-            var col = size.col;
-            
-            var pxToMM = 1.0;//72 / 96;
-            var startX = 1 * pxToMM;
-            var startY = 1 * pxToMM;
-            
-            var ySize = (h - 1) * pxToMM - 2 * startY;
-            var xSize = w * pxToMM - 2 * startX;
-            var stepY = (ySize) / row;
-            var stepX = (xSize) / col;
-            var lineStepX = (xSize - 1 * pxToMM) / 5;
-            
-            var whiteColor = new AscCommon.CColor(255, 255, 255);
-            var blackColor = new AscCommon.CColor(0, 0, 0);
-            
-            var defaultColor;
-            if (!style || !style.wholeTable || !style.wholeTable.dxf.font) {
-                defaultColor = blackColor;
-            } else {
-                defaultColor = style.wholeTable.dxf.font.getColor();
-            }
-            
-            ctx.setFillStyle(whiteColor);
-            ctx.fillRect(0, 0, xSize + 2 * startX, ySize + 2 * startY);
-            
-            var calculateLineVer = function(color, x, y1, y2)
-            {
-                ctx.beginPath();
-                ctx.setStrokeStyle(color);
-                
-                //ctx.lineVer(x + startX, y1 + startY, y2 + startY);
-                window["native"]["PD_PathMoveTo"](x + startX, y1 + startY);
-                window["native"]["PD_PathLineTo"](x + startX, y2 + startY);
-                
-                ctx.stroke();
-                ctx.closePath();
-            };
-            
-            var calculateLineHor = function(color, x1, y, x2)
-            {
-                ctx.beginPath();
-                ctx.setStrokeStyle(color);
-                
-                //ctx.lineHor(x1 + startX, y + startY, x2 + startX);
-                window["native"]["PD_PathMoveTo"](x1 + startX, y + startY);
-                window["native"]["PD_PathLineTo"](x2 + startX, y + startY);
-                
-                ctx.stroke();
-                ctx.closePath();
-            };
-            
-            var calculateRect = function(color, x1, y1, w, h)
-            {
-                ctx.beginPath();
-                ctx.setFillStyle(color);
-                ctx.fillRect(x1 + startX, y1 + startY, w, h);
-                ctx.closePath();
-            };
-            
-            var bbox = new Asc.Range(0, 0, col - 1, row - 1);
-            var sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
-            var hiddenManager = new AscCommonExcel.HiddenManager(null);
-            
-            if(style.pivot)
-            {
-                this.getPivotMergeStyle(sheetMergedStyles, bbox, style, styleInfo);
-            }
-            else
-            {
-                style.initStyle(sheetMergedStyles, bbox, styleInfo,
-                                null !== styleInfo.HeaderRowCount ? styleInfo.HeaderRowCount : 1,
-                                null !== styleInfo.TotalsRowCount ? styleInfo.TotalsRowCount : 0);
-            }
-            
-            var compiledStylesArr = [];
-            for (var i = 0; i < row; i++)
-            {
-                for (var j = 0; j < col; j++) {
-                    var color = null, prevStyle;
-                    var curStyle = AscCommonExcel.getCompiledStyle(sheetMergedStyles, hiddenManager, i, j);
-                    
-                    if(!compiledStylesArr[i])
-                    {
-                        compiledStylesArr[i] = [];
-                    }
-                    compiledStylesArr[i][j] = curStyle;
-                    
-                    //fill
-                    color = curStyle && curStyle.fill && curStyle.fill.bg();
-                    if(color)
-                    {
-                        calculateRect(color, j * stepX, i * stepY, stepX, stepY);
-                    }
-                    
-                    //borders
-                    //left
-                    prevStyle = (j - 1 >= 0) ? compiledStylesArr[i][j - 1] : null;
-                    color = AscCommonExcel.getMatchingBorder(prevStyle && prevStyle.border && prevStyle.border.r, curStyle && curStyle.border && curStyle.border.l);
-                    if(color && color.w > 0)
-                    {
-                        calculateLineVer(color.c, j * lineStepX, i * stepY, (i + 1) * stepY);
-                    }
-                    //right
-                    color = curStyle && curStyle.border && curStyle.border.r;
-                    if(color && color.w > 0)
-                    {
-                        calculateLineVer(color.c, (j + 1) * lineStepX, i * stepY, (i + 1) * stepY);
-                    }
-                    //top
-                    prevStyle = (i - 1 >= 0) ? compiledStylesArr[i - 1][j] : null;
-                    color = AscCommonExcel.getMatchingBorder(prevStyle && prevStyle.border && prevStyle.border.b, curStyle && curStyle.border && curStyle.border.t);
-                    if(color && color.w > 0)
-                    {
-                        calculateLineHor(color.c, j * stepX, i * stepY, (j + 1) * stepX);
-                    }
-                    //bottom
-                    color = curStyle && curStyle.border && curStyle.border.b;
-                    if(color && color.w > 0)
-                    {
-                        calculateLineHor(color.c, j * stepX, (i + 1) * stepY, (j + 1) * stepX);
-                    }
-                    
-                    //marks
-                    color = (curStyle && curStyle.font && curStyle.font.c) || defaultColor;
-                    calculateLineHor(color, j * lineStepX + 3 * pxToMM, (i + 1) * stepY - stepY / 2, (j + 1) * lineStepX - 2 * pxToMM);
-                }
-            }
-        };
-        
         // chat styles
         AscCommon.ChartPreviewManager.prototype.clearPreviews = function() {window["native"]["ClearCacheChartStyles"]();};
         AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex) {
@@ -5122,8 +4802,8 @@ function OfflineEditor () {
                                               _width_px <<= 1;
                                               _height_px <<= 1;
                                               }
-                                              
-                                              window["native"]["BeginDrawDefaultStyle"](type + '', styleIndex);
+
+                                              window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Default, type + '');
                                               
                                               var dKoefToMM = AscCommon.g_dKoef_pix_to_mm;
                                               if (this.IsRetinaEnabled)
@@ -6010,7 +5690,7 @@ window["native"]["offline_cut"] = function() {
         
         _api.asc_CheckCopy(clipboard, AscCommon.c_oAscClipboardDataFormat.Internal|AscCommon.c_oAscClipboardDataFormat.Text);
         
-        worksheet.emptySelection(Asc.c_oAscCleanOptions.All);
+        worksheet.emptySelection(Asc.c_oAscCleanOptions.All, true);
     }
     
     var _stream = global_memory_stream_menu;
@@ -6303,7 +5983,8 @@ window["native"]["offline_apply_event"] = function(type,params) {
         {
             var props = asc_ReadFormatTableInfo(params, _current);
             // console.log(JSON.stringify(props));
-            _api.wb.af_getTablePictures(props);
+            window["native"]["SetStylesType"](1);
+            _api.wb.getTableStyles(props);
             break;
         }
             
@@ -6854,7 +6535,8 @@ window["native"]["offline_apply_event"] = function(type,params) {
             
         case 2405: // ASC_SPREADSHEETS_EVENT_TYPE_CELL_STYLES
         {
-            _api.wb.getCellStyles();
+            window["native"]["SetStylesType"](0);
+            _api.wb.getCellStyles(92, 48);
             break;
         }
             
