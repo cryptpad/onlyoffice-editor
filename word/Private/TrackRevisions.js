@@ -892,7 +892,7 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
 					{
 						oElement.SetReviewType(reviewtype_Common);
-						this.ConcatParagraphs(nCurPos);;
+						this.ConcatParagraphs(nCurPos, true);
 					}
 				}
 				else if (oElement.IsTable())
@@ -981,16 +981,8 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 						&& !oTrackMove.IsFrom()
 						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
 					{
-						var oNextPara   = this.Content[nCurPos + 1];
-						var oNextParaPr = null;
-						if (oNextPara && oNextPara.IsParagraph())
-							oNextParaPr = oNextPara.GetDirectParaPr(false);
-
 						oElement.SetReviewType(reviewtype_Common);
-						this.ConcatParagraphs(nCurPos);
-
-						if (oNextParaPr)
-							oElement.SetDirectParaPr(oNextParaPr.Copy(true));
+						this.ConcatParagraphs(nCurPos, true);
 					}
 					else if (reviewtype_Remove === nReviewType
 						&& (undefined === nType
