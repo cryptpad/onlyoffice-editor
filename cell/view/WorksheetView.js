@@ -16076,16 +16076,18 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
-			var oldFitToWidth = pageOptions.asc_getFitToWidth();
-			var oldFitToHeight = pageOptions.asc_getFitToHeight();
-			var newFitToWidth = obj.asc_getFitToWidth();
-			var newFitToHeight = obj.asc_getFitToHeight();
+			var pageSetupModel = pageOptions.asc_getPageSetup();
+			var oldFitToWidth = pageSetupModel.asc_getFitToWidth();
+			var oldFitToHeight = pageSetupModel.asc_getFitToHeight();
+			var pageSetupObj = obj.asc_getPageSetup();
+			var newFitToWidth = pageSetupObj.asc_getFitToWidth();
+			var newFitToHeight = pageSetupObj.asc_getFitToHeight();
 
 			pageOptions.asc_setOptions(obj);
 
 			//если поменялись scaling - fit sheet on.. -> необходимо пересчитать scaling
 			if(oldFitToWidth !== newFitToWidth || oldFitToHeight !== newFitToHeight) {
-				t.fitPrintPages(newFitToWidth, newFitToHeight);
+				t.fitToPages(newFitToWidth, newFitToHeight);
 			}
 
 			t.changeViewPrintLines(true);
