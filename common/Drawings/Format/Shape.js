@@ -5459,6 +5459,7 @@ CShape.prototype.getWatermarkProps = function()
             oRGBAColor = oTextPr.Unifill.getRGBAColor();
             oInterfaceTextPr.put_Color(AscCommon.CreateAscColorCustom(oRGBAColor.R, oRGBAColor.G, oRGBAColor.B, false));
         }
+        oProps.put_Opacity(AscFormat.isRealNumber(oTextPr.Unifill.transparent) ? oTextPr.Unifill.transparent : 255);
     }
     oProps.put_TextPr(oInterfaceTextPr);
     oContent.Set_ApplyToAll(false);
