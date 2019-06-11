@@ -7907,6 +7907,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	asc_CPageSetup.prototype.asc_getScale = function () { return this.scale; };
 
 	asc_CPageSetup.prototype.asc_setFitToWidth = function (newVal) {
+		//TODO заглушка! потому что из меню проставляется булево значение, а должно быть число
+		if(newVal === true) {
+			newVal = 1;
+		} else if(newVal === false) {
+			newVal = 0;
+		}
+
 		var oldVal = this.fitToWidth;
 		this.fitToWidth = newVal;
 		if (this.ws && History.Is_On() && oldVal !== this.fitToWidth) {
@@ -7915,6 +7922,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 	asc_CPageSetup.prototype.asc_setFitToHeight = function (newVal) {
+		//TODO заглушка! потому что из меню проставляется булево значение, а должно быть число
+		if(newVal === true) {
+			newVal = 1;
+		} else if(newVal === false) {
+			newVal = 0;
+		}
+
 		var oldVal = this.fitToHeight;
 		this.fitToHeight = newVal;
 		if (this.ws && History.Is_On() && oldVal !== this.fitToHeight) {
