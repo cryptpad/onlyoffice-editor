@@ -12423,7 +12423,7 @@
 			}
 		}
 
-		if (0 > aReplaceCells.length) {
+		if (0 === aReplaceCells.length) {
 			return callback(options);
 		}
 		this.model.clearFindResults();
