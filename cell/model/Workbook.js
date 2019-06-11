@@ -8039,7 +8039,9 @@
 				oHyperlinkFont.setSize(this.ws.workbook.getDefaultSize());
 				oHyperlinkFont.setUnderline(Asc.EUnderline.underlineSingle);
 				oHyperlinkFont.setColor(AscCommonExcel.g_oColorManager.getThemeColor(AscCommonExcel.g_nColorHyperlink));
-				this.setFont(oHyperlinkFont);
+				AscFormat.ExecuteNoHistory(function () {
+					this.setFont(oHyperlinkFont);
+				}, this, []);
 			}
 
 			this.ws.workbook.dependencyFormulas.addToCleanCellCache(this.ws.getId(), this.nRow, this.nCol);
