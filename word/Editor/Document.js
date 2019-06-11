@@ -10154,6 +10154,13 @@ CDocument.prototype.Get_ColumnsProps = function()
 
 	return ColumnsPr;
 };
+
+
+CDocument.prototype.GetWatermarkProps = function()
+{
+    return this.DrawingObjects.getWatermarkProps(this.CurPage);
+};
+
 /**
  * Отключаем отсылку сообщений в интерфейс.
  */

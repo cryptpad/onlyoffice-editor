@@ -211,6 +211,12 @@ CImageShape.prototype.isGroup = function()
     return false;
 };
 
+
+CImageShape.prototype.isWatermark = function()
+{
+    return true;
+};
+
 CImageShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
 
 CImageShape.prototype.hitInPath = CShape.prototype.hitInPath;

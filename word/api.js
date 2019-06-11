@@ -4343,11 +4343,12 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_GetColumnsProps"]    = asc_docs_api.prototype.asc_GetColumnsProps;
 
 	asc_docs_api.prototype.asc_GetWatermarkProps = function()
-	{};
+	{
+		return this.WordControl.m_oLogicDocument.GetWatermarkProps();
+	};
 
 	asc_docs_api.prototype.asc_SetWatermarkProps = function()
 	{};
-
 
 	asc_docs_api.prototype.sync_ColumnsPropsCallback = function(ColumnsProps)
 	{
