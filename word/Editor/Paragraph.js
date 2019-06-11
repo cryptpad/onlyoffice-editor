@@ -11000,14 +11000,11 @@ Paragraph.prototype.Split = function(NewParagraph)
 };
 /**
  * Присоединяем контент параграфа Para к текущему параграфу
+ * @param Para {Paragraph}
+ * @param [isUseConcatedStyle=false] {boolean}
  */
-Paragraph.prototype.Concat = function(Para)
+Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 {
-	//var UpdateSelection = (true == this.Selection.Use || true === Para.Selection.Use);
-
-	//var Para1SelectionStartPos =
-
-
 	this.DeleteCommentOnRemove = false;
 	Para.DeleteCommentOnRemove = false;
 
@@ -11048,6 +11045,9 @@ Paragraph.prototype.Concat = function(Para)
 
 	this.DeleteCommentOnRemove = true;
 	Para.DeleteCommentOnRemove = true;
+
+	if (true === isUseConcatedStyle)
+		Para.CopyPr(this);
 };
 /**
  * Копируем настройки параграфа и последние текстовые настройки в новый параграф

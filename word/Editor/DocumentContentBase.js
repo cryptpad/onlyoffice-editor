@@ -733,18 +733,6 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 									this.Content[nCurContentPos + 1].SetDirectParaPr(oParaPr);
 									this.Content[nCurContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
 								}
-
-								if (this.Content[this.CurPos.ContentPos].IsParagraph())
-								{
-									var oParaPr   = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
-									var oPrChange = this.Content[this.CurPos.ContentPos + 1].GetDirectParaPr();
-									var oReviewInfo = new CReviewInfo();
-									oReviewInfo.Update();
-
-									this.Content[this.CurPos.ContentPos + 1].SetDirectParaPr(oParaPr);
-									this.Content[this.CurPos.ContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
-
-								}
 							}
 							else
 							{
@@ -821,17 +809,6 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 
 									this.Content[nCurContentPos].SetDirectParaPr(oParaPr);
 									this.Content[nCurContentPos].SetPrChange(oPrChange, oReviewInfo);
-								}
-
-								if (this.Content[this.CurPos.ContentPos - 1].IsParagraph())
-								{
-									var oParaPr   = this.Content[this.CurPos.ContentPos - 1].GetDirectParaPr();
-									var oPrChange = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
-									var oReviewInfo = new CReviewInfo();
-									oReviewInfo.Update();
-
-									this.Content[this.CurPos.ContentPos].SetDirectParaPr(oParaPr);
-									this.Content[this.CurPos.ContentPos].SetPrChange(oPrChange, oReviewInfo);
 								}
 							}
 							else
@@ -1602,13 +1579,14 @@ CDocumentContentBase.prototype.private_UpdateSelectionPosOnRemove = function(nPo
 /**
  * Соединяем параграф со следующим в заданной позиции
  * @param nPosition {number}
+ * @param isUseConcatedStyle {boolean} использовать ли стиль присоединяемого параграфа для итогового параграфа
  * @returns {boolean}
  */
-CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition)
+CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition, isUseConcatedStyle)
 {
 	if (nPosition < this.Content.length - 1 && this.Content[nPosition].IsParagraph() && this.Content[nPosition + 1].IsParagraph())
 	{
-		this.Content[nPosition].Concat(this.Content[nPosition + 1]);
+		this.Content[nPosition].Concat(this.Content[nPosition + 1], isUseConcatedStyle);
 		this.RemoveFromContent(nPosition + 1, 1);
 		return true;
 	}
