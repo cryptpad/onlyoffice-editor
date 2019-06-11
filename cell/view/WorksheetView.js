@@ -10785,27 +10785,37 @@
 
 		 }*/
 
-		var hiddenRowCount = 0;
+		var getNextNoHiddenRow = function(index) {
+			var startIndex = index;
+			while(hiddenRowsArray[index]) {
+				index++;
+			}
+			return index - startIndex;
+		};
+
+		var hiddenRowCount = {};
 		for (var autoR = 0; autoR < maxARow; ++autoR) {
 			for (var autoC = 0; autoC < maxACol; ++autoC) {
+				if(!hiddenRowCount[autoC]) {
+					hiddenRowCount[autoC] = 0;
+				}
 				for (var r = 0; r < rMax - arn.r1; ++r) {
 					for (var c = 0; c < cMax - arn.c1; ++c) {
-						/*if(isMultiple && hiddenRowsArray[r + autoR * plRow + arn.r1]) {
-						 hiddenRowCount++;
-						 continue;
-						 }*/
+						if(false && isMultiple && hiddenRowsArray[r + autoR * plRow + arn.r1 + hiddenRowCount[autoC]]) {
+							hiddenRowCount[autoC] += getNextNoHiddenRow(r + autoR * plRow + arn.r1 + hiddenRowCount[autoC]);
+						 }
 
-						var pasteRow = r + activeCellsPasteFragment.r1 - hiddenRowCount;
+						var pasteRow = r + activeCellsPasteFragment.r1;
 						var pasteCol = c + activeCellsPasteFragment.c1;
 						if (specialPasteProps.transpose) {
-							pasteRow = c + activeCellsPasteFragment.r1 - hiddenRowCount;
+							pasteRow = c + activeCellsPasteFragment.r1;
 							pasteCol = r + activeCellsPasteFragment.c1;
 						}
 
 						var newVal = val.getCell3(pasteRow, pasteCol);
 						if (undefined !== newVal) {
 
-							var nRow = r + autoR * plRow + arn.r1;
+							var nRow = r + autoR * plRow + arn.r1 + hiddenRowCount[autoC];
 							var nCol = c + autoC * plCol + arn.c1;
 
 							if (nRow > gc_nMaxRow0) {
