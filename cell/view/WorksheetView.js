@@ -2694,10 +2694,15 @@
 				var str = new AscCommonExcel.Fragment();
 				str.text = getFragmentText(portion[i].text);
 				str.format = portion[i].format.clone();
+				//TODO уменьшаю только размер текста. пересмотреть!
+				str.format.fs = AscCommonExcel.g_oDefaultFormat.Font.fs * printScale;
 				res.push(str);
 			}
 			return res;
 		};
+
+		var scaleWithDoc = this.model.headerFooter.getScaleWithDoc();
+		var printScale = (scaleWithDoc === null || scaleWithDoc === true) ? this.getPrintScale() : 1;
 
 		var margins = this.model.PagePrintOptions.asc_getPageMargins();
 		var width = printPagesData.pageWidth / AscCommonExcel.vector_koef;
@@ -2761,26 +2766,22 @@
 
 		//добавил аналогично другим отрисовка.
 		//без этого отсутвует drawingCtx.DocumentRenderer.m_arrayPages[0].FontPicker.LastPickFont
-		var printScale = this.model.headerFooter.getScaleWithDoc() ? this.getPrintScale() : 1;
-		var transformMatrix;
+		/*var transformMatrix;
 		if (printScale !== 1 && drawingCtx.Transform) {
-			var mmToPx = asc_getcvt(3/*mm*/, 0/*px*/, this._getPPIX());
-			var leftDiff = printPagesData.pageClipRectLeft * (1 - printScale);
-			var topDiff = printPagesData.pageClipRectTop * (1 - printScale);
 			transformMatrix = drawingCtx.Transform.CreateDublicate();
 
-			drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale, leftDiff / mmToPx, topDiff / mmToPx);
-		}
+			drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale, 0, 0);
+		}*/
 
 		this._setDefaultFont(drawingCtx);
 		for(var i = 0; i < headerFooterParser.portions.length; i++) {
 			drawPortion(i);
 		}
 
-		if (transformMatrix) {
+		/*if (transformMatrix) {
 			drawingCtx.setTransform(transformMatrix.sx, transformMatrix.shy, transformMatrix.shx,
 				transformMatrix.sy, transformMatrix.tx, transformMatrix.ty);
-		}
+		}*/
 	};
 
     WorksheetView.prototype._cleanColumnHeaders = function (colStart, colEnd) {
