@@ -182,10 +182,6 @@ AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics,
       // sizes for imageView
       window["native"]["DD_StartNativeDraw"](85 * 2, 85 * 2, 75, 75);
 
-      var dKoefToMM = AscCommon.g_dKoef_pix_to_mm;
-      if (this.IsRetinaEnabled)
-          dKoefToMM /= 2;
-
       chart_space.draw(_graphics);
       _graphics.ClearParams();
 
