@@ -1309,6 +1309,9 @@
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseDown = function (event) {
+			// Update state for device without cursor
+			this._onMouseMove(event);
+
 			if (AscCommon.g_inputContext) {
 				AscCommon.g_inputContext.externalChangeFocus();
 			}
@@ -1381,12 +1384,6 @@
 				} else {
 					event.returnValue = false;
 				}
-			}
-
-			if (!this.targetInfo) {
-				this.handlers.trigger("updateWorksheet", coord.x, coord.y, false, function (info) {
-					t.targetInfo = info;
-				});
 			}
 
 			// Запоминаем координаты нажатия
