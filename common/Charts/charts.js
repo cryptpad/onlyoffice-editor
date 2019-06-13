@@ -437,71 +437,75 @@ ChartPreviewManager.prototype.clearPreviews = function()
 {
 	this.previewGroups.length = 0;
 };
-ChartPreviewManager.prototype.createChartPreview = function(type, styleIndex) {
-    return AscFormat.ExecuteNoHistory(function(){
-        if(!this.chartsByTypes[type])
-            this.chartsByTypes[type] = this.getChartByType(type);
-        var chart_space = this.chartsByTypes[type];
-		AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
-		chart_space.recalcInfo.recalculateReferences = false;
-		chart_space.recalculate();
+ChartPreviewManager.prototype.createChartPreview = function(graphics, type, styleIndex) {
+	if(!this.chartsByTypes[type]) {
+		this.chartsByTypes[type] = this.getChartByType(type);
+	}
+	var chart_space = this.chartsByTypes[type];
+	AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
+	chart_space.recalcInfo.recalculateReferences = false;
+	chart_space.recalculate();
+	graphics.save();
+	chart_space.draw(graphics);
+	graphics.restore();
+};
 
-        if (null === this._canvas_charts) {
-            this._canvas_charts = document.createElement('canvas');
-            this._canvas_charts.width = this.CHART_PREVIEW_WIDTH_PIX;
-            this._canvas_charts.height = this.CHART_PREVIEW_HEIGHT_PIX;
+ChartPreviewManager.prototype._isCachedChartStyles = function(chartType) {
+	var res = this.previewGroups.hasOwnProperty(chartType);
+	this.previewGroups[chartType] = [];
+	return res;
+};
+ChartPreviewManager.prototype._getGraphics = function() {
+	if (null === this._canvas_charts) {
+		this._canvas_charts = document.createElement('canvas');
+		this._canvas_charts.width = this.CHART_PREVIEW_WIDTH_PIX;
+		this._canvas_charts.height = this.CHART_PREVIEW_HEIGHT_PIX;
 
-            if (AscCommon.AscBrowser.isRetina) {
-                this._canvas_charts.width = AscCommon.AscBrowser.convertToRetinaValue(this._canvas_charts.width, true);
-                this._canvas_charts.height = AscCommon.AscBrowser.convertToRetinaValue(this._canvas_charts.height, true);
-            }
-        }
+		if (AscCommon.AscBrowser.isRetina) {
+			this._canvas_charts.width = AscCommon.AscBrowser.convertToRetinaValue(this._canvas_charts.width, true);
+			this._canvas_charts.height = AscCommon.AscBrowser.convertToRetinaValue(this._canvas_charts.height, true);
+		}
+	}
 
-        var _canvas = this._canvas_charts;
-        var ctx = _canvas.getContext('2d');
-        var graphics = new AscCommon.CGraphics();
-        graphics.init(ctx, _canvas.width, _canvas.height, fChartSize, fChartSize);
-        graphics.m_oFontManager = AscCommon.g_fontManager;
-        graphics.transform(1,0,0,1,0,0);
-        chart_space.draw(graphics);
-        return _canvas.toDataURL("image/png");
-    }, this, []);
-
+	var _canvas = this._canvas_charts;
+	var ctx = _canvas.getContext('2d');
+	var graphics = new AscCommon.CGraphics();
+	graphics.init(ctx, _canvas.width, _canvas.height, fChartSize, fChartSize);
+	graphics.m_oFontManager = AscCommon.g_fontManager;
+	graphics.transform(1,0,0,1,0,0);
+	return graphics;
 };
 
 ChartPreviewManager.prototype.getChartPreviews = function(chartType) {
 	if (AscFormat.isRealNumber(chartType)) {
-		if (!this.previewGroups.hasOwnProperty(chartType)) {
-			this.previewGroups[chartType] = [];
-			var arr = this.previewGroups[chartType];
-			if(AscCommon.g_oChartPresets[chartType]){
-				var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
-				for(var i = 0; i < nStylesCount; ++i)
-					arr.push(this.createChartPreview(chartType, i));
-			}
+		if (!this._isCachedChartStyles(chartType)) {
+			if (AscCommon.g_oChartPresets[chartType]) {
+				AscFormat.ExecuteNoHistory(function () {
+					var graphics = this._getGraphics();
+					var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
+					for (var i = 0; i < nStylesCount; ++i) {
+						this.createChartPreview(graphics, chartType, i);
+						if (!window["IS_NATIVE_EDITOR"]) {
+							var chartStyle = new AscCommon.CStyleImage();
+							chartStyle.name = i + 1;
+							chartStyle.image = this._canvas_charts.toDataURL("image/png");
+							this.previewGroups[chartType].push(chartStyle);
+						}
+					}
+				}, this, []);
 
-			var api = Asc['editor'];
-			if (api && AscCommon.c_oEditorId.Spreadsheet === api.getEditorId()) {
-				var _graphics = api.wb.shapeCtx;
-				if (_graphics.ClearLastFont)
-					_graphics.ClearLastFont();
+				var api = Asc['editor'];
+				if (api && AscCommon.c_oEditorId.Spreadsheet === api.getEditorId()) {
+					var _graphics = api.wb.shapeCtx;
+					if (_graphics.ClearLastFont) {
+						_graphics.ClearLastFont();
+					}
+				}
 			}
 
 		}
-		var group = this.previewGroups[chartType];
-		var objectGroup = [];
-
-		for (var style = 0; style <  group.length; ++style) {
-			var chartStyle = new AscCommon.CStyleImage();
-			chartStyle.name = style + 1;
-			chartStyle.image = group[style];
-			objectGroup.push(chartStyle);
-		}
-
-		return objectGroup;
 	}
-	else
-		return null;
+	return this.previewGroups[chartType];
 };
 
 function CreateAscColorByIndex(nIndex)
