@@ -1331,6 +1331,8 @@
 				t.handlers.trigger("canvasClick");
 			}
 
+			var button = AscCommon.getMouseButton(event);
+
 			// Shapes
 			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
 			if (asc["editor"].isStartAddShape || graphicsInfo) {
@@ -1347,7 +1349,7 @@
 				t.isUpOnCanvas = false;
 
 
-				t.clickCounter.mouseDownEvent(coord.x, coord.y, event.button);
+				t.clickCounter.mouseDownEvent(coord.x, coord.y, button);
 				event.ClickCount = t.clickCounter.clickCount;
 				if (0 === event.ClickCount % 2) {
 					t.isDblClickInMouseDown = true;
@@ -1366,7 +1368,7 @@
 
 				// Проверка для IE, т.к. он присылает DblClick при сдвиге мыши...
 				if (this.mouseDownLastCord && coord.x === this.mouseDownLastCord.x && coord.y === this.mouseDownLastCord.y &&
-					0 === event.button && !this.handlers.trigger('isFormatPainter')) {
+					0 === button && !this.handlers.trigger('isFormatPainter')) {
 					// Выставляем, что мы уже сделали dblClick (иначе вдруг браузер не поддерживает свойство detail)
 					this.isDblClickInMouseDown = true;
 					// Нам нужно обработать эвент браузера о dblClick (если мы редактируем ячейку, то покажем курсор, если нет - то просто ничего не произойдет)
@@ -1398,7 +1400,7 @@
 				}
 				if (t.targetInfo) {
 					if ((t.targetInfo.target === c_oTargetType.ColumnResize ||
-						t.targetInfo.target === c_oTargetType.RowResize) && 0 === event.button) {
+						t.targetInfo.target === c_oTargetType.RowResize) && 0 === button) {
 						t.isResizeMode = true;
 						t._resizeElement(event);
 						return;
@@ -1412,10 +1414,10 @@
 						this.isMoveRangeMode = true;
 						t._moveRangeHandle(event);
 						return;
-					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 0 === event.button) {
+					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 0 === button) {
 						t._autoFiltersClick(t.targetInfo.idFilter);
 						return;
-					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 2 === event.button) {
+					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 2 === button) {
 						this.handlers.trigger('onContextMenu', null);
 						return;
 					} else if (t.targetInfo.commentIndexes && this.canEdit()) {
@@ -1430,17 +1432,17 @@
 						this.frozenAnchorMode = t.targetInfo.target;
 						t._moveFrozenAnchorHandle(event, this.frozenAnchorMode);
 						return;
-					} else if (t.targetInfo.target === c_oTargetType.GroupRow && 0 === event.button) {
+					} else if (t.targetInfo.target === c_oTargetType.GroupRow && 0 === button) {
 						if(t._groupRowClick(event, t.targetInfo)) {
 							t.isRowGroup = true;
 						}
 						return;
-					} else if (t.targetInfo.target === c_oTargetType.GroupCol && 0 === event.button) {
+					} else if (t.targetInfo.target === c_oTargetType.GroupCol && 0 === button) {
 						if(t._groupRowClick(event, t.targetInfo)) {
 							t.isRowGroup = true;
 						}
 						return;
-					} else if ((t.targetInfo.target === c_oTargetType.GroupCol || t.targetInfo.target === c_oTargetType.GroupRow) && 2 === event.button) {
+					} else if ((t.targetInfo.target === c_oTargetType.GroupCol || t.targetInfo.target === c_oTargetType.GroupRow) && 2 === button) {
 						this.handlers.trigger('onContextMenu', null);
 						return;
 					}
@@ -1489,7 +1491,7 @@
 			}
 
 			// Если нажали правую кнопку мыши, то сменим выделение только если мы не в выделенной области
-			if (2 === event.button) {
+			if (2 === button) {
 				this.handlers.trigger("changeSelectionRightClick", coord.x, coord.y, this.targetInfo && this.targetInfo.target);
 				this.handlers.trigger('onContextMenu', event);
 			} else {
@@ -1507,9 +1509,10 @@
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseUp = function (event) {
+			var button = AscCommon.getMouseButton(event);
 			AscCommon.global_mouseEvent.UnLockMouse();
 
-			if (2 === event.button) {
+			if (2 === button) {
 				if (this.isShapeAction) {
 					this.handlers.trigger('onContextMenu', event);
 				}
