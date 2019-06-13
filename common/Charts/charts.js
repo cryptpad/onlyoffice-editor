@@ -437,12 +437,12 @@ ChartPreviewManager.prototype.clearPreviews = function()
 {
 	this.previewGroups.length = 0;
 };
-ChartPreviewManager.prototype.createChartPreview = function(graphics, type, styleIndex) {
-	if(!this.chartsByTypes[type]) {
+ChartPreviewManager.prototype.createChartPreview = function(graphics, type, preset) {
+	if (!this.chartsByTypes[type]) {
 		this.chartsByTypes[type] = this.getChartByType(type);
 	}
 	var chart_space = this.chartsByTypes[type];
-	AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
+	AscFormat.ApplyPresetToChartSpace(chart_space, preset);
 	chart_space.recalcInfo.recalculateReferences = false;
 	chart_space.recalculate();
 	graphics.save();
@@ -479,12 +479,12 @@ ChartPreviewManager.prototype._getGraphics = function() {
 ChartPreviewManager.prototype.getChartPreviews = function(chartType) {
 	if (AscFormat.isRealNumber(chartType)) {
 		if (!this._isCachedChartStyles(chartType)) {
-			if (AscCommon.g_oChartPresets[chartType]) {
+			var presets = AscCommon.g_oChartPresets[chartType];
+			if (presets) {
 				AscFormat.ExecuteNoHistory(function () {
 					var graphics = this._getGraphics();
-					var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
-					for (var i = 0; i < nStylesCount; ++i) {
-						this.createChartPreview(graphics, chartType, i);
+					for (var i = 0; i < presets.length; ++i) {
+						this.createChartPreview(graphics, chartType, presets[i]);
 						if (!window["IS_NATIVE_EDITOR"]) {
 							var chartStyle = new AscCommon.CStyleImage();
 							chartStyle.name = i + 1;
