@@ -4794,21 +4794,9 @@ function OfflineEditor () {
                                               AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
                                               chart_space.recalcInfo.recalculateReferences = false;
                                               chart_space.recalculate();
-                                              
-                                              var _width_px = this.CHART_PREVIEW_WIDTH_PIX;
-                                              var _height_px = this.CHART_PREVIEW_HEIGHT_PIX;
-                                              if (AscCommon.AscBrowser.isRetina)
-                                              {
-                                              _width_px <<= 1;
-                                              _height_px <<= 1;
-                                              }
 
                                               window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Default, type + '');
-                                              
-                                              var dKoefToMM = AscCommon.g_dKoef_pix_to_mm;
-                                              if (this.IsRetinaEnabled)
-                                              dKoefToMM /= 2;
-                                              
+
                                               chart_space.draw(_graphics);
                                               _graphics.ClearParams();
                                               
