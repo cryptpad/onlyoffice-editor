@@ -199,7 +199,7 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
 {
     if (AscFormat.isRealNumber(chartType))
     {
-        var bIsCached = window["native"]["DD_IsCachedChartStyles"](chartType);
+        var bIsCached = window["native"]["IsCachedChartStyles"](chartType);
         if (!bIsCached)
         {
             window["native"]["DD_PrepareNativeDraw"]();

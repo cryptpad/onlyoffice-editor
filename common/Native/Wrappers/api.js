@@ -5848,7 +5848,7 @@ Asc['asc_docs_api'].prototype.pre_Paste = function(_fonts, _images, callback)
 // chat styles
 AscCommon.ChartPreviewManager.prototype.clearPreviews = function()
 {
-    window["native"]["DD_ClearCacheChartStyles"]();
+    window["native"]["ClearCacheChartStyles"]();
 };
 
 AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex)
@@ -5882,7 +5882,7 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
 {
     if (AscFormat.isRealNumber(chartType))
     {
-        var bIsCached = window["native"]["DD_IsCachedChartStyles"](chartType);
+        var bIsCached = window["native"]["IsCachedChartStyles"](chartType);
         if (!bIsCached)
         {
             window["native"]["DD_PrepareNativeDraw"]();
