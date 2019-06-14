@@ -697,8 +697,7 @@ ParaDrawing.prototype.IsWatermark = function()
 		return false;
 	}
 	var oContent = this.DocumentContent;
-	if(!oContent || oContent.IsTableCellContent(false)
-		|| oContent.Is_DrawingShape(false))
+	if(!oContent || oContent.Is_DrawingShape(false))
 	{
 		return false;
 	}

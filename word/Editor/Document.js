@@ -10192,7 +10192,38 @@ CDocument.prototype.GetWatermarkProps = function()
 
 CDocument.prototype.SetWatermarkProps = function(oProps)
 {
-    return this.DrawingObjects.setWatermarkProps(oProps);
+    this.StartAction(0);
+    var SectionPageInfo = this.Get_SectionPageNumInfo(this.CurPage);
+    var bFirst = SectionPageInfo.bFirst;
+    var bEven  = SectionPageInfo.bEven;
+    var HdrFtr = this.Get_SectionHdrFtr(this.CurPage, bFirst, bEven);
+    var Header = HdrFtr.Header;
+    if(null === Header)
+    {
+        if(Asc.c_oAscWatermarkType.None === oProps.get_Type())
+        {
+            this.FinalizeAction(true);
+            return;
+        }
+        Header = this.Create_SectionHdrFtr(hdrftr_Header, this.CurPage);
+    }
+    var oWatermark = Header.FindWatermark();
+    if(oWatermark)
+    {
+        oWatermark.Remove_FromDocument(false);
+    }
+    oWatermark = this.DrawingObjects.createWatermark(oProps);
+    if(oWatermark)
+    {
+        var oDocState = this.GetSelectionState();
+
+        var oContent = Header.Content;
+        oContent.MoveCursorToStartPos(false);
+        oContent.AddToParagraph(oWatermark);
+
+        this.SetSelectionState(oDocState);
+    }
+    this.FinalizeAction(true);
 };
 
 /**
