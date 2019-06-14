@@ -2393,7 +2393,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_clearOutline = function() {
-      this.wb.getWorksheet().clearOutline();
+	  this.wb.getWorksheet().changeWorksheet("clearOutline");
   };
 
   spreadsheet_api.prototype.asc_changeGroupDetails = function(bExpand) {

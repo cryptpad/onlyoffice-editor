@@ -12053,6 +12053,17 @@
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
+			case "clearOutline":
+				var groupArrCol= this.arrColGroups ? this.arrColGroups.groupArr : null;
+				var groupArrRow = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
+
+				if(!groupArrCol && !groupArrRow) {
+					return;
+				}
+
+				functionModelAction = t.clearOutline();
+				this._isLockedAll(onChangeWorksheetCallback);
+				break;
 			case "sheetViewSettings":
 				functionModelAction = function () {
 					if (AscCH.historyitem_Worksheet_SetDisplayGridlines === val.type) {
@@ -17447,78 +17458,55 @@
 	};
 
 	WorksheetView.prototype.clearOutline = function() {
-		var t = this, groupArr;
-
-		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
-			return;
-		}
+		var t = this;
 
 		var groupArrCol= this.arrColGroups ? this.arrColGroups.groupArr : null;
 		var groupArrRow = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
 
-		if(!groupArrCol && !groupArrRow) {
-			return;
+		History.Create_NewPoint();
+		History.StartTransaction();
+
+		//TODO check filtering mode
+		var ar = t.model.selectionRange;
+		var range, intersection;
+		for(var n = 0; n < ar.ranges.length; n++) {
+			if(groupArrRow) {
+				for(var i = 0; i <= groupArrRow.length; i++) {
+					if(!groupArrRow[i]) {
+						continue;
+					}
+					for(var j = 0; j < groupArrRow[i].length; j++) {
+						range = Asc.Range(0, groupArrRow[i][j].start, gc_nMaxCol, groupArrRow[i][j].end);
+						intersection = ar.ranges[n].intersection(range);
+						if(intersection) {
+							t.model.setRowHidden(false, intersection.r1, intersection.r2);
+							t.model.setOutlineRow(0, intersection.r1, intersection.r2);
+						}
+					}
+				}
+			}
+
+			if(groupArrCol) {
+				for(i = 0; i <= groupArrCol.length; i++) {
+					if(!groupArrCol[i]) {
+						continue;
+					}
+					for(j = 0; j < groupArrCol[i].length; j++) {
+						range = Asc.Range(groupArrCol[i][j].start, 0, groupArrCol[i][j].end, gc_nMaxRow);
+						intersection = ar.ranges[n].intersection(range);
+						if(intersection) {
+							t.model.setColHidden(false, intersection.c1, intersection.c2);
+							t.model.setOutlineCol(0, intersection.c1, intersection.c2);
+						}
+					}
+				}
+			}
 		}
 
-		var onChangeWorksheetCallback = function (isSuccess) {
-			if (false === isSuccess) {
-				return;
-			}
+		History.EndTransaction();
 
-			asc_applyFunction(callback);
-
-			//t._updateGroups(true);
-			//t._updateGroups(null);
-
-			t._updateAfterChangeGroup(true, true);
-		};
-
-		var callback = function() {
-			History.Create_NewPoint();
-			History.StartTransaction();
-
-			//TODO check filtering mode
-			var ar = t.model.selectionRange;
-			var range, intersection;
-			for(var n = 0; n < ar.ranges.length; n++) {
-				if(groupArrRow) {
-					for(var i = 0; i <= groupArrRow.length; i++) {
-						if(!groupArrRow[i]) {
-							continue;
-						}
-						for(var j = 0; j < groupArrRow[i].length; j++) {
-							range = Asc.Range(0, groupArrRow[i][j].start, gc_nMaxCol, groupArrRow[i][j].end);
-							intersection = ar.ranges[n].intersection(range);
-							if(intersection) {
-								t.model.setRowHidden(false, intersection.r1, intersection.r2);
-								t.model.setOutlineRow(0, intersection.r1, intersection.r2);
-							}
-						}
-					}
-				}
-
-				if(groupArrCol) {
-					for(i = 0; i <= groupArrCol.length; i++) {
-						if(!groupArrCol[i]) {
-							continue;
-						}
-						for(j = 0; j < groupArrCol[i].length; j++) {
-							range = Asc.Range(groupArrCol[i][j].start, 0, groupArrCol[i][j].end, gc_nMaxRow);
-							intersection = ar.ranges[n].intersection(range);
-							if(intersection) {
-								t.model.setColHidden(false, intersection.c1, intersection.c2);
-								t.model.setOutlineCol(0, intersection.c1, intersection.c2);
-							}
-						}
-					}
-				}
-			}
-
-			History.EndTransaction();
-		};
-
-		this._isLockedAll(onChangeWorksheetCallback);
+		t._updateGroups(null);
+		t._updateGroups(true);
 	};
 
 	WorksheetView.prototype.checkAddGroup = function(bUngroup) {
