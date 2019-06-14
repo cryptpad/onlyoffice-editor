@@ -575,18 +575,18 @@ cDate.prototype.addMonths = function ( counts ) {
 };
 
 cDate.prototype.addDays = function ( counts ) {
-	this.setUTCDate( this.getUTCDate() + Math.floor( counts ) );
+	this.setUTCDate( this.getUTCDate(true) + Math.floor( counts ) );
 };
 
 cDate.prototype.lastDayOfMonth = function () {
 	return this.getDaysInMonth() == this.getUTCDate();
 };
-cDate.prototype.getUTCDate = function () {
+cDate.prototype.getUTCDate = function (notCheckStartDate) {
 	var year = Date.prototype.getUTCFullYear.call(this);
 	var month = Date.prototype.getUTCMonth.call(this);
 	var date = Date.prototype.getUTCDate.call(this);
 
-	if(1899 == year && 11 == month && 31 == date) {
+	if(!notCheckStartDate && 1899 == year && 11 == month && 31 == date) {
 		return 0;
 	} else {
 		return date;

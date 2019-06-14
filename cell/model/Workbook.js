@@ -4475,7 +4475,7 @@
 					var oNewCol =  oPrevCol.clone();
 					oNewCol.setHidden(null);
 					oNewCol.BestFit = null;
-					oNewCol.index = index + i;
+					oNewCol.index = i;
 					this.aCols[i] = oNewCol;
 				}
 				History.LocalChange = false;

@@ -2770,9 +2770,10 @@
 		AscCommon.global_mouseEvent.LockMouse();
 
 		var pos;
+		var button = AscCommon.getMouseButton(event);
 		var coord = this._getCoordinates(event);
 		if (!window['IS_NATIVE_EDITOR']) {
-			this.clickCounter.mouseDownEvent(coord.x, coord.y, event.button);
+			this.clickCounter.mouseDownEvent(coord.x, coord.y, button);
 		}
 
 		this.setFocus(true);
@@ -2781,7 +2782,7 @@
 		this._updateTopLineActive(false);
 		this.input.isFocused = false;
 
-		if (0 === event.button) {
+		if (0 === button) {
 			if (1 === this.clickCounter.getClickCount() % 2) {
 				this.isSelectMode = c_oAscCellEditorSelectState.char;
 				if (!event.shiftKey) {
@@ -2804,7 +2805,7 @@
 				this._moveCursor(kPosition, startWord);
 				this._selectChars(kPosition, endWord);
 			}
-		} else if (2 === event.button) {
+		} else if (2 === button) {
 			this.handlers.trigger('onContextMenu', event);
 		}
 		return true;
@@ -2812,8 +2813,9 @@
 
 	/** @param event {MouseEvent} */
 	CellEditor.prototype._onMouseUp = function (event) {
+		var button = AscCommon.getMouseButton(event);
 		AscCommon.global_mouseEvent.UnLockMouse();
-		if (2 === event.button) {
+		if (2 === button) {
 			return true;
 		}
 		this.isSelectMode = c_oAscCellEditorSelectState.no;
