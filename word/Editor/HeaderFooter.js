@@ -1304,6 +1304,31 @@ CHeaderFooter.prototype.GetContent = function()
 	return this.Content;
 };
 
+CHeaderFooter.prototype.FindWatermark = function()
+{
+    var aAllDrawings = this.Content.GetAllDrawingObjects();
+    var oCandidate = null, oDrawing;
+    for(var i = aAllDrawings.length - 1; i > -1; --i)
+    {
+        oDrawing = aAllDrawings[i];
+        if(oDrawing.IsWatermark())
+        {
+            if(null === oCandidate)
+            {
+                oCandidate = oDrawing;
+            }
+            else
+            {
+                if(oCandidate.getDrawingArrayType() < oDrawing.getDrawingArrayType() || ComparisonByZIndexSimple(oDrawing, oCandidate))
+                {
+                    oCandidate = oDrawing;
+                }
+            }
+        }
+    }
+    return oCandidate;
+};
+
 //-----------------------------------------------------------------------------------
 // Класс для работы с колонтитулами
 //-----------------------------------------------------------------------------------

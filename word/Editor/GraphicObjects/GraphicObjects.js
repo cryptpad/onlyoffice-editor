@@ -173,6 +173,20 @@ CGraphicObjects.prototype =
         return oProps;
     },
 
+
+    setWatermarkProps: function(oProps)
+    {
+        var oProps;
+        var oWatermark = this.findWatermark(nPageIndex);
+        if(oWatermark)
+        {
+            return oWatermark.getWatermarkProps();
+        }
+        oProps = new Asc.CAscWatermarkProperties();
+        oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        return oProps;
+    },
+
     findWatermark: function(nPageIndex)
     {
         var oPage = this.graphicPages[nPageIndex];
@@ -1049,11 +1063,11 @@ CGraphicObjects.prototype =
             if(!cur_drawing.bNoNeedToAdd && cur_drawing.PageNum === pageIndex)
             {
                 var drawing_array = null;
-
-                if(cur_drawing.Is_Inline()){
+                var Type = cur_drawing.getDrawingArrayType();
+                if(Type === DRAWING_ARRAY_TYPE_INLINE){
                     drawing_array = hdr_ftr_page.inlineObjects;
                 }
-                else if(cur_drawing.behindDoc === true && (cur_drawing.wrappingType === WRAPPING_TYPE_NONE ||  nCompatibilityMode < document_compatibility_mode_Word15)){
+                else if(Type === DRAWING_ARRAY_TYPE_BEHIND){
                     drawing_array = hdr_ftr_page.behindDocObjects;
                 }
                 else{

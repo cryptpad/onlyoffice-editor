@@ -10161,7 +10161,31 @@ CDocument.prototype.Get_ColumnsProps = function()
 
 CDocument.prototype.GetWatermarkProps = function()
 {
-    return this.DrawingObjects.getWatermarkProps(this.CurPage);
+    var SectionPageInfo = this.Get_SectionPageNumInfo(this.CurPage);
+    var bFirst = SectionPageInfo.bFirst;
+    var bEven  = SectionPageInfo.bEven;
+    var HdrFtr = this.Get_SectionHdrFtr(this.CurPage, bFirst, bEven);
+    var Header = HdrFtr.Header;
+    var oProps;
+    if (null === Header)
+    {
+        oProps = new Asc.CAscWatermarkProperties();
+        oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        return oProps;
+    }
+    var oWatermark = Header.FindWatermark();
+    if(oWatermark)
+    {
+        return oWatermark.GetWatermarkProps();
+    }
+    oProps = new Asc.CAscWatermarkProperties();
+    oProps.put_Type(Asc.c_oAscWatermarkType.None);
+    return oProps;
+};
+
+CDocument.prototype.SetWatermarkProps = function(oProps)
+{
+    return this.DrawingObjects.setWatermarkProps(oProps);
 };
 
 /**

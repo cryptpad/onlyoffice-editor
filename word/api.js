@@ -4347,8 +4347,10 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.GetWatermarkProps();
 	};
 
-	asc_docs_api.prototype.asc_SetWatermarkProps = function()
-	{};
+	asc_docs_api.prototype.asc_SetWatermarkProps = function(oProps)
+	{
+		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+	};
 
 	asc_docs_api.prototype.sync_ColumnsPropsCallback = function(ColumnsProps)
 	{

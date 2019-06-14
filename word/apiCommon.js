@@ -1823,4 +1823,7 @@
 	CAscWatermarkProperties.prototype['put_DivId'] = CAscWatermarkProperties.prototype.put_DivId = function (v) {
 		this.DivId = v;
 	};
+	CAscWatermarkProperties.prototype['updateView'] = CAscWatermarkProperties.prototype.updateView = function (v) {
+
+	};
 })(window, undefined);

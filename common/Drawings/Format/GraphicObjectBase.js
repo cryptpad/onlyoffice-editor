@@ -692,6 +692,14 @@
     };
 
 
+    CGraphicObjectBase.prototype.getWatermarkProps = function()
+    {
+        var oProps = new Asc.CAscWatermarkProperties();
+        oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        return oProps;
+    };
+
+
 
 
     CGraphicObjectBase.prototype.CheckCorrect = function(){

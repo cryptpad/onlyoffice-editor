@@ -5429,18 +5429,18 @@ CShape.prototype.remove = function (Count, bOnlyText, bRemoveOnlySelection, bOnT
 
 CShape.prototype.isWatermark = function()
 {
-    return (this.getBodyPr().prstTxWarp !== null);
+    return (this.getBodyPr().prstTxWarp !== null && AscFormat.isRealObject(this.getDocContent()));
 };
 
 CShape.prototype.getWatermarkProps = function()
 {
-    var oProps = new Asc.CAscWatermarkProperties(), oTextPr, oRGBAColor, oInterfaceTextPr;
-    var oContent = this.getDocContent();
-    if(!oContent)
+    var oProps = new Asc.CAscWatermarkProperties(), oTextPr, oRGBAColor, oInterfaceTextPr, oContent;
+    if(!this.isWatermark())
     {
         oProps.put_Type(Asc.c_oAscWatermarkType.None);
         return oProps;
     }
+    oContent = this.getDocContent();
     oProps.put_Type(Asc.c_oAscWatermarkType.Text);
     oProps.put_IsDiagonal(!AscFormat.fApproxEqual(this.rot, 0.0));
     oContent.Set_ApplyToAll(true);
