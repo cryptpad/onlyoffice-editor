@@ -12018,6 +12018,10 @@
 				this.handlers.trigger("selectionNameChanged", t.getSelectionName(/*bRangeText*/false));
 				break;
 			case "groupRows":
+				if(!val && !this.checkSetGroup(arn)) {
+					return;
+				}
+
 				functionModelAction = function () {
 					History.Create_NewPoint();
 					History.StartTransaction();
@@ -12032,6 +12036,10 @@
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "groupCols":
+				if(!val && !this.checkSetGroup(arn, true)) {
+					return;
+				}
+
 				functionModelAction = function () {
 					History.Create_NewPoint();
 					History.StartTransaction();
@@ -17549,6 +17557,38 @@
 
 		return res;
 	};
+
+	WorksheetView.prototype.checkSetGroup = function(range, bCol) {
+		var res = true;
+		var c_maxLevel = window['AscCommonExcel'].c_maxOutlineLevel;
+		var maxLevel, i;
+
+		if(!bCol && this.arrRowGroups && this.arrRowGroups.groupArr) {
+			if(this.arrRowGroups.groupArr[c_maxLevel]) {
+				maxLevel = this.arrRowGroups.groupArr[c_maxLevel];
+				for(i = 0; i < maxLevel.length; i++) {
+					if(range.r1 >= maxLevel[i].start && range.r2 <= maxLevel[i].end) {
+						res = false;
+						break;
+					}
+				}
+			}
+		} else if(bCol && (this.arrColGroups && this.arrColGroups.groupArr)) {
+			if(this.arrColGroups.groupArr[c_maxLevel]) {
+				maxLevel = this.arrColGroups.groupArr[c_maxLevel];
+				for(i = 0; i < maxLevel.length; i++) {
+					if(range.c1 >= maxLevel[i].start && range.c2 <= maxLevel[i].end) {
+						res = false;
+						break;
+					}
+				}
+			}
+		}
+
+		return res;
+	};
+
+
 
    	//HEADER/FOOTER
 	function HeaderFooterField(val) {

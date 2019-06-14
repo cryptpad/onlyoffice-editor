@@ -54,7 +54,7 @@ var UndoRedoData_Layout = AscCommonExcel.UndoRedoData_Layout;
 var c_oAscCustomAutoFilter = Asc.c_oAscCustomAutoFilter;
 var c_oAscAutoFilterTypes = Asc.c_oAscAutoFilterTypes;
 
-var c_maxOutlineLevel = 8;
+var c_maxOutlineLevel = 7;
 
 var g_oColorManager = null;
 	
@@ -3767,8 +3767,8 @@ Hyperlink.prototype = {
 		}
 		if(this.outlineLevel < 0){
 			this.outlineLevel = 0;
-		} else if(this.outlineLevel > c_maxOutlineLevel - 1) {
-			this.outlineLevel = c_maxOutlineLevel - 1;
+		} else if(this.outlineLevel > c_maxOutlineLevel) {
+			this.outlineLevel = c_maxOutlineLevel;
 		} else {
 			//TODO ?
 			//this._hasChanged = true;
@@ -4142,8 +4142,8 @@ Hyperlink.prototype = {
 		}
 		if(this.outlineLevel < 0){
 			this.outlineLevel = 0;
-		} else if(this.outlineLevel > c_maxOutlineLevel - 1) {
-			this.outlineLevel = c_maxOutlineLevel - 1;
+		} else if(this.outlineLevel > c_maxOutlineLevel) {
+			this.outlineLevel = c_maxOutlineLevel;
 		} else {
 			this._hasChanged = true;
 		}
@@ -8302,6 +8302,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].g_oDefaultFormat = g_oDefaultFormat;
 	window['AscCommonExcel'].g_nColorTextDefault = g_nColorTextDefault;
 	window['AscCommonExcel'].g_nColorHyperlink = g_nColorHyperlink;
+	window['AscCommonExcel'].c_maxOutlineLevel = c_maxOutlineLevel;
 	window['AscCommonExcel'].g_oThemeColorsDefaultModsSpreadsheet = g_oThemeColorsDefaultModsSpreadsheet;
 	window['AscCommonExcel'].g_StyleCache = g_StyleCache;
 	window['AscCommonExcel'].map_themeExcel_to_themePresentation = map_themeExcel_to_themePresentation;
