@@ -11656,26 +11656,26 @@
 				break;
 			case "showCols":
 				functionModelAction = function () {
-					AscCommonExcel.checkFilteringMode(function () {
+					//AscCommonExcel.checkFilteringMode(function () {
 						t.model.setColHidden(false, arn.c1, arn.c2);
 						t._updateGroups(true);
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
 						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
-					});
+					//});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideCols":
 				functionModelAction = function () {
-					AscCommonExcel.checkFilteringMode(function () {
+					//AscCommonExcel.checkFilteringMode(function () {
 						t.model.setColHidden(true, arn.c1, arn.c2);
 						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
 						t._updateGroups(true);
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
 						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
-					});
+					//});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
@@ -11693,7 +11693,8 @@
 				return this._isLockedAll(onChangeWorksheetCallback);
 			case "showRows":
 				functionModelAction = function () {
-					AscCommonExcel.checkFilteringMode(function () {
+					//TODO пока убираю проверку на FilteringMode. перепроверить, нужна ли она?!
+					//AscCommonExcel.checkFilteringMode(function () {
 						t.model.setRowHidden(false, arn.r1, arn.r2);
 						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
 						t._updateGroups();
@@ -11701,13 +11702,13 @@
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
 						updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
-					});
+					//});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideRows":
 				functionModelAction = function () {
-					AscCommonExcel.checkFilteringMode(function () {
+					//AscCommonExcel.checkFilteringMode(function () {
 						t.model.setRowHidden(true, arn.r1, arn.r2);
 						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
 						t._updateGroups();
@@ -11715,7 +11716,7 @@
 						oRecalcType = AscCommonExcel.recalcType.full;
 						reinitRanges = true;
 						updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
-					});
+					//});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
@@ -17060,7 +17061,7 @@
 
 
 		functionModelAction = function () {
-			AscCommonExcel.checkFilteringMode(function () {
+			//AscCommonExcel.checkFilteringMode(function () {
 				History.Create_NewPoint();
 				History.StartTransaction();
 
@@ -17111,7 +17112,7 @@
 				//updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
 				History.EndTransaction();
-			});
+			//});
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
 
