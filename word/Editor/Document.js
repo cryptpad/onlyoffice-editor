@@ -8478,7 +8478,7 @@ CDocument.prototype.OnKeyDown = function(e)
         this.Document_Redo();
         bRetValue = keydownresult_PreventAll;
     }
-    else if (e.KeyCode == 90 && true === e.CtrlKey && (this.CanEdit() || this.IsEditCommentsMode() || this.IsFillingFormMode())) // Ctrl + Z - Undo
+    else if (e.KeyCode == 90 && true === e.CtrlKey && (this.CanEdit() || this.IsEditCommentsMode() || this.IsFillingFormMode()) && !this.IsViewModeInReview()) // Ctrl + Z - Undo
     {
        	this.Document_Undo();
         bRetValue = keydownresult_PreventAll;
@@ -10304,7 +10304,8 @@ CDocument.prototype.Create_NewHistoryPoint = function(nDescription)
 };
 CDocument.prototype.Document_Undo = function(Options)
 {
-	if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && true !== this.IsFillingFormMode() &&  !this.IsViewModeInReview())
+	// Проверка !this.IsViewModeInReview() нужна, чтобы во вьювере было переключение режима просмотра рецензирования
+	if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && true !== this.IsFillingFormMode() && !this.IsViewModeInReview())
 		return;
 
 	// Нужно сбрасывать, т.к. после Undo/Redo данные списки у нас будут в глобальной таблице, но не такие, какие нужны
