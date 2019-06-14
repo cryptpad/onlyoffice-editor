@@ -16568,130 +16568,6 @@
 		ctx.closePath();
 	};
 
-	WorksheetView.prototype._drawGroupDataButtons2 = function(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol) {
-		if(!buttons) {
-			return;
-		}
-
-		var groupData = bCol ? this.arrColGroups : this.arrRowGroups;
-		if(!groupData || !groupData.groupArr) {
-			return;
-		}
-
-		var rowLevelMap = groupData.levelMap;
-
-		var ctx = drawingCtx || this.drawingCtx;
-
-		var offsetX = 0, offsetY = 0;
-		if(bCol) {
-			offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
-			if (!drawingCtx && this.topLeftFrozenCell) {
-				if (undefined === leftFieldInPx) {
-					var cFrozen = this.topLeftFrozenCell.getCol0();
-					offsetX -= this._getColLeft(cFrozen) - this._getColLeft(0);
-				}
-			}
-		} else {
-			offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
-			if (!drawingCtx && this.topLeftFrozenCell) {
-				if (undefined === topFieldInPx) {
-					var rFrozen = this.topLeftFrozenCell.getRow0();
-					offsetY -= this._getRowTop(rFrozen) - this._getRowTop(0);
-				}
-			}
-		}
-
-		//buttons
-		//проходимся 2 раза, поскольку разная толщина у рамки и у -/+
-
-		var i, val, level, diff, pos, x, y, w, h, active;
-		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
-		for(i = 0; i < buttons.length; i++) {
-			val = buttons[i].r;
-			level = buttons[i].level;
-
-			pos = this._getGroupDataButtonPos(val, level, bCol);
-
-			x = pos.x;
-			y = pos.y;
-			w = pos.w;
-			h = pos.h;
-
-			var doNotDrawHor = false, doNotDrawVer = false;
-			if(!bCol) {
-				if(y < pos.pos) {
-					y = pos.pos;
-					doNotDrawHor = true;
-				}
-				if(h > pos.size) {
-					h = pos.size;
-					doNotDrawHor = true;
-				}
-			} else {
-				if(x < pos.pos) {
-					x = pos.pos;
-					doNotDrawVer = true;
-				}
-				if(w > pos.size) {
-					w = pos.size;
-					doNotDrawVer = true;
-				}
-			}
-
-			x = x - offsetX;
-			y = y - offsetY;
-
-			if(buttons[i].clean) {
-				ctx.clearRect(x, y, w, h);
-			}
-
-			if(!doNotDrawHor) {
-				ctx.lineHorPrevPx(x, y, x + w);
-				ctx.lineHorPrevPx(x + w, y + h, x);
-			}
-			if(!doNotDrawVer) {
-				ctx.lineVerPrevPx(x + w, y, y + h);
-				ctx.lineVerPrevPx(x, y + h, y - AscCommon.AscBrowser.convertToRetinaValue(1, true));
-			}
-		}
-		ctx.stroke();
-		ctx.closePath();
-
-
-		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(2, true)).beginPath();
-
-		var sizeLine = AscCommon.AscBrowser.convertToRetinaValue(8, true);
-		//var paddingLine = AscCommon.AscBrowser.convertToRetinaValue(3, true);
-		diff = AscCommon.AscBrowser.convertToRetinaValue(1, true);
-		for(i = 0; i < buttons.length; i++) {
-			val = buttons[i].r;
-			level = buttons[i].level;
-			active = buttons[i].active;
-
-			diff = active ? 1 : 0;
-			pos = this._getGroupDataButtonPos(val, level, bCol);
-
-			x = pos.x + diff - offsetX;
-			y = pos.y - offsetY + diff;
-			w = pos.w;
-			h = pos.h;
-
-			var paddingLine = Math.floor((w - sizeLine) / 2);
-
-			if(w > sizeLine + 2) {
-				if(rowLevelMap[val] && rowLevelMap[val].collapsed) {
-					ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + 1, x + sizeLine + paddingLine);
-					ctx.lineVerPrevPx(x + paddingLine + sizeLine / 2 + 1, y + h / 2 - sizeLine / 2,  y + h / 2 + sizeLine / 2);
-				} else {
-					ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + diff, x + sizeLine + paddingLine);
-				}
-			}
-		}
-
-		ctx.stroke();
-		ctx.closePath();
-	};
-
 	WorksheetView.prototype._getGroupDataButtonPos = function(val, level, bCol) {
 		//возвращает позицию без учета сдвига offsetY
 
@@ -17093,7 +16969,6 @@
 		var end = pos.end;
 
 
-
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock()) {
 			return;
@@ -17279,66 +17154,6 @@
 		};
 
 		this._isLockedAll(onChangeWorksheetCallback);
-	};
-
-	WorksheetView.prototype.changeGroupDetails2 = function (bExpand) {
-		//multiselect
-		if(this.model.selectionRange.ranges.length > 1) {
-			return;
-		}
-
-		var ar = this.model.selectionRange.getLast().clone();
-		var t = this;
-
-		var collapsedArrRow = [];
-		var arrayLines = t.arrRowGroups.groupArr;
-		if(arrayLines) {
-			for(var i = 0; i < arrayLines.length; i++) {
-				if(arrayLines[i]) {
-					for(var j = 0; j < arrayLines[i].length; j++) {
-						var outLineGroupRange = Asc.Range(0, arrayLines[i][j].start, gc_nMaxCol, arrayLines[i][j].end + 1);
-						if(outLineGroupRange.intersection(ar)) {
-							collapsedArrRow.push(outLineGroupRange);
-						}
-					}
-
-				}
-			}
-		}
-
-		arrayLines = t.arrColGroups.groupArr;
-		var collapsedArrCol = [];
-		if(arrayLines) {
-			for(i = 0; i < arrayLines.length; i++) {
-				if(arrayLines[i]) {
-					for(j = 0; j < arrayLines[i].length; j++) {
-						outLineGroupRange = Asc.Range(arrayLines[i][j].start, 0, arrayLines[i][j].end + 1, gc_nMaxRow);
-						if(outLineGroupRange.intersection(ar)) {
-							collapsedArrCol.push(outLineGroupRange);
-						}
-					}
-				}
-			}
-		}
-
-
-		var callback = function(isSuccess) {
-			if (false === isSuccess) {
-				return;
-			}
-
-			for(i = 0; i < collapsedArrRow.length; i++) {
-				//здесь скрываем предпоследнюю строку
-			}
-
-			for(i = 0; i < collapsedArrCol.length; i++) {
-				//здесь скрываем предпоследний столбец
-			}
-		};
-
-		if(collapsedArrRow.length || collapsedArrCol.length) {
-			this._isLockedAll(callback);
-		}
 	};
 
 	WorksheetView.prototype.changeGroupDetails = function (bExpand) {
@@ -17733,7 +17548,7 @@
 		return res;
 	};
 
-    //------------------------------------------------------------export---------------------------------------------------
+   	//HEADER/FOOTER
 	function HeaderFooterField(val) {
 		this.field = val;
 	}
@@ -18594,42 +18409,7 @@
 							self.controller.setFocus(!hasFocus);
 						},*/ "updateEditorState": function (state) {
 							self.handlers.trigger("asc_onEditCell", state);
-						},/* "isGlobalLockEditCell": function () {
-							return self.collaborativeEditing.getGlobalLockEditCell();
-						}, "updateFormulaEditModEnd": function () {
-							if (!self.lockDraw) {
-								self.getWorksheet().updateSelection();
-							}
-						}, "newRange": function (range, ws) {
-							if (!ws) {
-								self.getWorksheet().addFormulaRange(range);
-							} else {
-								self.getWorksheet(self.model.getWorksheetIndexByName(ws)).addFormulaRange(range);
-							}
-						}, "existedRange": function (range, ws) {
-							var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.copyActiveSheet;
-							if (-1 === editRangeSheet || editRangeSheet === self.wsActive) {
-								self.getWorksheet().activeFormulaRange(range);
-							} else {
-								self.getWorksheet(editRangeSheet).removeFormulaRange(range);
-								self.getWorksheet().addFormulaRange(range);
-							}
-						},/* "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
-							self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
-							self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
-						}, */ /*"applyCloseEvent": function () {
-							self.controller._onWindowKeyDown.apply(self.controller, arguments);
-						}, "canEdit": function () {
-							return self.Api.canEdit();
-						},*/ /*"getFormulaRanges": function () {
-							return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
-						}, "getCellFormulaEnterWSOpen": function () {
-							return self.cellFormulaEnterWSOpen;
-						}, "getActiveWS": function () {
-							return self.getWorksheet().model;
-						}, "setStrictClose": function (val) {
-							self.controller.setStrictClose(val);
-						},*/ "updateEditorSelectionInfo": function (info) {
+						}, "updateEditorSelectionInfo": function (info) {
 							self.handlers.trigger("asc_onEditorSelectionChanged", info);
 						}, "onContextMenu": function (event) {
 							self.handlers.trigger("asc_onContextMenu", event);
@@ -19192,8 +18972,9 @@
 	CHeaderFooterEditor.prototype._getSectionById = function (id) {
 		var res = null;
 		var type = this._getHeaderFooterType(this.pageType);
+		var i;
 		if(this.sections && this.sections[type]) {
-			for(var i = 0; i < this.sections[type].length; i++) {
+			for(i = 0; i < this.sections[type].length; i++) {
 				if(id === this.sections[type][i].canvasObj.idParent) {
 					return this.sections[type][i];
 				}
@@ -19201,7 +18982,7 @@
 		}
 		type = this._getHeaderFooterType(this.pageType, true);
 		if(this.sections && this.sections[type]) {
-			for(var i = 0; i < this.sections[type].length; i++) {
+			for(i = 0; i < this.sections[type].length; i++) {
 				if(id === this.sections[type][i].canvasObj.idParent) {
 					return this.sections[type][i];
 				}
