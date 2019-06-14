@@ -5022,6 +5022,9 @@ CDocument.prototype.CheckRange = function(X0, Y0, X1, Y1, _Y0, _Y1, X_lf, X_rf, 
 };
 CDocument.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 {
+	if (this.IsNumberingSelection())
+		this.RemoveSelection();
+
 	this.Controller.AddToParagraph(ParaItem, bRecalculate);
 };
 /**
@@ -15771,7 +15774,28 @@ CDocument.prototype.controller_RemoveSelection = function(bNoCheckDrawing)
 				}
 
 				if (this.Selection.Data.CurPara)
+				{
 					this.Selection.Data.CurPara.RemoveSelection();
+					this.Selection.Data.CurPara.MoveCursorToStartPos();
+				}
+
+				var Start = this.Selection.StartPos;
+				var End   = this.Selection.EndPos;
+
+				if (Start > End)
+				{
+					var Temp = Start;
+					Start    = End;
+					End      = Temp;
+				}
+
+				Start = Math.max(0, Start);
+				End   = Math.min(this.Content.length - 1, End);
+
+				for (var Index = Start; Index <= End; Index++)
+				{
+					this.Content[Index].RemoveSelection();
+				}
 
 				this.Selection.Use   = false;
 				this.Selection.Start = false;
