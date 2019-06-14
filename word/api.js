@@ -6635,6 +6635,7 @@ background-repeat: no-repeat;\
                     {
                         isSendOnReady = true;
                         this.bInit_word_control = true;
+                        Document.Start_SilentMode();
                         this.onDocumentContentReady();
                     }
 
@@ -6650,11 +6651,15 @@ background-repeat: no-repeat;\
                 {
                     isSendOnReady = true;
                     this.bInit_word_control = true;
+                    Document.Start_SilentMode();
                     this.onDocumentContentReady();
                 }
 
 				//Recalculate для Document
 				Document.MoveCursorToStartPos(false);
+
+				if (isSendOnReady)
+                    Document.End_SilentMode(false);
 
 				if (!this.isOnlyReaderMode)
 				{
