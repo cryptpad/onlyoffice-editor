@@ -2715,6 +2715,13 @@ CFootnotesController.prototype.SplitTableCells = function(Cols, Rows)
 
 	this.CurFootnote.SplitTableCells(Cols, Rows);
 };
+CFootnotesController.prototype.RemoveTableCells = function()
+{
+	if (false === this.private_CheckFootnotesSelectionBeforeAction())
+		return;
+
+	this.CurFootnote.RemoveTableCells();
+};
 CFootnotesController.prototype.RemoveTable = function()
 {
 	if (false === this.private_CheckFootnotesSelectionBeforeAction())

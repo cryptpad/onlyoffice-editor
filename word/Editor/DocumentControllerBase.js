@@ -654,6 +654,10 @@ CDocumentControllerBase.prototype.MergeTableCells = function(){};
  */
 CDocumentControllerBase.prototype.SplitTableCells = function(Cols, Rows){};
 /**
+ * Удаляем ячейки таблицы
+ */
+CDocumentControllerBase.prototype.RemoveTableCells = function(){};
+/**
  * Удаляем таблицу.
  */
 CDocumentControllerBase.prototype.RemoveTable = function(){};

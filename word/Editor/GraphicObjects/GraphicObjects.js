@@ -1982,10 +1982,15 @@ CGraphicObjects.prototype =
 
     tableRemoveRow: function()
     {
-
         var content = this.getTargetDocContent();
         return content && content.RemoveTableRow();
     },
+
+	tableRemoveCells : function()
+	{
+		var content = this.getTargetDocContent();
+		return content && content.RemoveTableCells();
+	},
 
     tableAddRow: function(bBefore)
     {

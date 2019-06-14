@@ -6518,6 +6518,25 @@ CDocumentContent.prototype.SplitTableCells = function(Cols, Rows)
 
 	return false;
 };
+CDocumentContent.prototype.RemoveTableCells = function()
+{
+	if (docpostype_DrawingObjects == this.CurPos.Type)
+	{
+		return this.LogicDocument.DrawingObjects.tableRemoveCells();
+	}
+	else if (docpostype_Content == this.CurPos.Type
+		&& ((true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && !this.Content[this.Selection.StartPos].IsParagraph())
+		|| (false == this.Selection.Use && !this.Content[this.CurPos.ContentPos].IsParagraph())))
+	{
+		var nPos = true === this.Selection.Use ? this.Selection.StartPos : this.CurPos.ContentPos;
+		if (false === this.Content[nPos].RemoveTableCells())
+			this.RemoveTable();
+
+		return true;
+	}
+
+	return false;
+};
 CDocumentContent.prototype.RemoveTable = function()
 {
     if (docpostype_DrawingObjects == this.CurPos.Type)

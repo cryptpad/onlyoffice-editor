@@ -9776,8 +9776,8 @@ CDocument.prototype.RemoveTableRow = function()
 {
 	this.Controller.RemoveTableRow();
 	this.Recalculate();
-	this.Document_UpdateSelectionState();
-	this.Document_UpdateInterfaceState();
+	this.UpdateSelection();
+	this.UpdateInterface();
 };
 CDocument.prototype.RemoveTableColumn = function()
 {
@@ -9799,6 +9799,13 @@ CDocument.prototype.SplitTableCells = function(Cols, Rows)
 	this.Recalculate();
 	this.Document_UpdateSelectionState();
 	this.Document_UpdateInterfaceState();
+};
+CDocument.prototype.RemoveTableCells = function()
+{
+	this.Controller.RemoveTableCells();
+	this.Recalculate();
+	this.UpdateSelection();
+	this.UpdateInterface();
 };
 CDocument.prototype.RemoveTable = function()
 {
@@ -16315,6 +16322,16 @@ CDocument.prototype.controller_SplitTableCells = function(Cols, Rows)
 			Pos = this.CurPos.ContentPos;
 
 		this.Content[Pos].SplitTableCells(Rows, Cols);
+	}
+};
+CDocument.prototype.controller_RemoveTableCells = function()
+{
+	if ((true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && !this.Content[this.Selection.StartPos].IsParagraph())
+		|| (false == this.Selection.Use && !this.Content[this.CurPos.ContentPos].IsParagraph()))
+	{
+		var nPos = true === this.Selection.Use ? this.Selection.StartPos : this.CurPos.ContentPos;
+		if (false === this.Content[nPos].RemoveTableCells())
+			this.controller_RemoveTable();
 	}
 };
 CDocument.prototype.controller_RemoveTable = function()

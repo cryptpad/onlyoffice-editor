@@ -1065,6 +1065,11 @@ CHeaderFooter.prototype =
 		this.Content.SplitTableCells(Cols, Rows);
 	},
 
+	RemoveTableCells : function()
+	{
+		this.Content.RemoveTableCells();
+	},
+
 	RemoveTable : function()
 	{
 		this.Content.RemoveTable();
@@ -2460,6 +2465,12 @@ CHeaderFooterController.prototype =
 	{
 		if (null != this.CurHdrFtr)
 			this.CurHdrFtr.SplitTableCells(Cols, Rows);
+	},
+
+	RemoveTableCells : function()
+	{
+		if (this.CurHdrFtr)
+			this.CurHdrFtr.RemoveTableCells();
 	},
 
 	RemoveTable : function()

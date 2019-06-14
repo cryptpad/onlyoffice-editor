@@ -562,6 +562,10 @@ CDocumentContentElementBase.prototype.SplitTableCells = function(nColsCount, nRo
 {
 	return false;
 };
+CDocumentContentElementBase.prototype.RemoveTableCells = function()
+{
+	return false;
+};
 CDocumentContentElementBase.prototype.RemoveTable = function()
 {
 	return false;

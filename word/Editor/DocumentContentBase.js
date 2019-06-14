@@ -413,7 +413,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				{
 					var oElement = this.Content[nIndex];
 					if (oElement.IsTable())
-						oElement.RemoveTableRow();
+						oElement.RemoveTableCells();
 					else
 						oElement.Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
 				}
@@ -633,7 +633,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				this.CurPos.ContentPos = StartPos;
 				if (Count < 0 && type_Table === this.Content[StartPos].GetType() && true === this.Content[StartPos].IsCellSelection() && true != bOnTextAdd)
 				{
-					this.RemoveTableRow();
+					this.RemoveTableCells();
 				}
 				else if (false === this.Content[StartPos].Remove(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd))
 				{
