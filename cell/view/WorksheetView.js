@@ -17468,6 +17468,10 @@
 
 		//TODO check filtering mode
 		var ar = t.model.selectionRange;
+
+		//если активной является 1 ячейка, то сбрасываем все группы
+		var isOneCell = 1 === ar.ranges.length && ar.ranges[0].isOneCell();
+
 		var range, intersection;
 		for(var n = 0; n < ar.ranges.length; n++) {
 			if(groupArrRow) {
@@ -17477,7 +17481,11 @@
 					}
 					for(var j = 0; j < groupArrRow[i].length; j++) {
 						range = Asc.Range(0, groupArrRow[i][j].start, gc_nMaxCol, groupArrRow[i][j].end);
-						intersection = ar.ranges[n].intersection(range);
+						if(isOneCell) {
+							intersection = range;
+						} else {
+							intersection = ar.ranges[n].intersection(range);
+						}
 						if(intersection) {
 							t.model.setRowHidden(false, intersection.r1, intersection.r2);
 							t.model.setOutlineRow(0, intersection.r1, intersection.r2);
@@ -17493,7 +17501,11 @@
 					}
 					for(j = 0; j < groupArrCol[i].length; j++) {
 						range = Asc.Range(groupArrCol[i][j].start, 0, groupArrCol[i][j].end, gc_nMaxRow);
-						intersection = ar.ranges[n].intersection(range);
+						if(isOneCell) {
+							intersection = range;
+						} else {
+							intersection = ar.ranges[n].intersection(range);
+						}
 						if(intersection) {
 							t.model.setColHidden(false, intersection.c1, intersection.c2);
 							t.model.setOutlineCol(0, intersection.c1, intersection.c2);
