@@ -904,7 +904,7 @@
 		this.font.assign(font);
 
 		if (window["IS_NATIVE_EDITOR"]) {
-			this.font.fs = this.font.getSize() * 2.54 * this.scaleFactor * 96.0 / 72.0;
+			this.font.fs = this.font.getSize() * this.scaleFactor * 96.0 / 25.4;
 			// this.font.fs = this.font.getSize() * 2.54 * this.scaleFactor * this.deviceDPI / 72.0;
 
 			// this.font.fs = this.font.getSize() * 2.54 * this.scaleFactor *

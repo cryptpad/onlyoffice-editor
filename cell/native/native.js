@@ -5971,8 +5971,16 @@ window["native"]["offline_apply_event"] = function(type,params) {
         {
             var props = asc_ReadFormatTableInfo(params, _current);
             // console.log(JSON.stringify(props));
+            
+            AscCommon.AscBrowser.isRetina = true;
+            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
+  
             window["native"]["SetStylesType"](1);
             _api.wb.getTableStyles(props);
+                      
+            AscCommon.AscBrowser.isRetina = false;
+            AscCommon.AscBrowser.retinaPixelRatio = 1.0;
+  
             break;
         }
             
@@ -6047,7 +6055,14 @@ window["native"]["offline_apply_event"] = function(type,params) {
         }
         case 201: // ASC_MENU_EVENT_TYPE_DOCUMENT_CHARTSTYLES
         {
+            AscCommon.AscBrowser.isRetina = true;
+            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
+  
             _api.chartPreviewManager.getChartPreviews(parseInt(params));
+
+            AscCommon.AscBrowser.isRetina = false;
+            AscCommon.AscBrowser.retinaPixelRatio = 1.0;
+  
             _return = global_memory_stream_menu;
             break;
         }
@@ -6522,9 +6537,15 @@ window["native"]["offline_apply_event"] = function(type,params) {
         }
             
         case 2405: // ASC_SPREADSHEETS_EVENT_TYPE_CELL_STYLES
-        {
+        {                    
+            AscCommon.AscBrowser.isRetina = true;
+            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
+           
             window["native"]["SetStylesType"](0);
             _api.wb.getCellStyles(92, 48);
+
+            AscCommon.AscBrowser.isRetina = false;
+            AscCommon.AscBrowser.retinaPixelRatio = 1.0;
             break;
         }
             

@@ -2859,7 +2859,7 @@
 		var styleInfo;
 
 		var defaultStyles, styleThumbnailHeight, row, col = 5;
-		var styleThumbnailWidth = window["IS_NATIVE_EDITOR"] ? 91.5 : 61;
+		var styleThumbnailWidth = window["IS_NATIVE_EDITOR"] ? 90 : 61;
 		if(bPivotTable)
 		{
 			styleThumbnailHeight = 49;
@@ -2869,7 +2869,7 @@
 		}
 		else
 		{
-			styleThumbnailHeight = 46;
+			styleThumbnailHeight = window["IS_NATIVE_EDITOR"] ? 48 : 46;
 			row = 5;
 			defaultStyles = wb.TableStyles.DefaultStyles;
 			styleInfo = new AscCommonExcel.TableStyleInfo();

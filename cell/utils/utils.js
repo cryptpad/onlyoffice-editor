@@ -1883,9 +1883,17 @@
 			// Draw text
 			var format = oStyle.getFont().clone();
 			// Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
+			var nSize = format.getSize();
 			if (16 < format.getSize()) {
-				format.setSize(16);
+				nSize = 16;
 			}
+
+			// рисуем в пикселях
+			if (window["IS_NATIVE_EDITOR"]) {
+				nSize *= AscCommon.AscBrowser.retinaPixelRatio;
+			}
+
+			format.setSize(nSize);
 
 			var width_padding = 4;
 
