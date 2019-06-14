@@ -3074,7 +3074,7 @@ CParagraphRecalculateStateWrap.prototype =
 				isHaveNumbering = true;
 			}
 
-			if (!isHaveNumbering || (!NumPr && !oPrevNumPr))
+			if (!isHaveNumbering || (!NumPr && !oPrevNumPr) || (!NumPr && reviewtype_Add === nReviewType))
 			{
 				// Так мы обнуляем все рассчитанные ширины данного элемента
 				NumberingItem.Measure(g_oTextMeasurer, undefined);
