@@ -343,97 +343,147 @@ CGraphicObjects.prototype =
         {
             return null;
         }
-        var oDrawing;
+        var oDrawing, extX, extY;
+        var oSectPr = this.document.Get_SectionProps();
         if(oProps.get_Type() === Asc.c_oAscWatermarkType.Image)
         {
-            oDrawing = this.createImage()
+            var oImgP = new Asc.asc_CImgProperty();
+            oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+            var oSize = oImgP.asc_getOriginSize(this.getEditorApi());
+            var dScale = oProps.get_Scale();
+            if(dScale < 0)
+            {
+                var dMaxWidth = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+                var dMaxHeight = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
+                extX = dMaxWidth;
+                extY = oSize.asc_getImageHeight() * (extX / oSize.asc_getImageWidth());
+                if(extY > dMaxHeight)
+                {
+                    extY = dMaxHeight;
+                    extX = oSize.asc_getImageWidth() * (extY / oSize.asc_getImageHeight());
+                }
+            }
+            else
+            {
+                extX = oSize.asc_getImageWidth() * dScale;
+                extY = oSize.asc_getImageHeight() * dScale;
+            }
+            oDrawing = this.createImage(oProps.get_ImageUrl(), 0, 0, extX, extY, null, null)
         }
         else
         {
+            var oTextPropMenu = oProps.get_TextPr();
+            var oShape = new AscFormat.CShape();
+            oShape.setWordShape(true);
+            oShape.setBDeleted(false);
+            oShape.createTextBoxContent();
+            var oSpPr = new AscFormat.CSpPr();
+            var oXfrm = new AscFormat.CXfrm();
+            oXfrm.setOffX(0);
+            oXfrm.setOffY(0);
+            oXfrm.setExtX(5);
+            oXfrm.setExtY(5);
+            oSpPr.setXfrm(oXfrm);
+            oXfrm.setParent(oSpPr);
+            oSpPr.setFill(AscFormat.CreateNoFillUniFill());
+            oSpPr.setLn(AscFormat.CreateNoFillLine());
+            oSpPr.setGeometry(AscFormat.CreateGeometry("rect"));
+            oShape.setSpPr(oSpPr);
+            oSpPr.setParent(oShape);
+            var oContent = oShape.getDocContent();
+            AscFormat.AddToContentFromString(oContent, oProps.get_Text());
+            var oTextPr = new CTextPr();
+            oTextPr.FontSize = (oTextPropMenu.get_FontSize() > 0 ? oTextPropMenu.get_FontSize() : 20);
+            oTextPr.RFonts.Set_All(oTextPropMenu.get_FontFamily(), -1);
+            oTextPr.Bold = oTextPropMenu.get_Bold();
+            oTextPr.Italic = oTextPropMenu.get_Italic();
+            oTextPr.Underline = oTextPropMenu.get_Underline();
+            oTextPr.Strikeout = oTextPropMenu.get_Strikeout();
+            oTextPr.TextFill = Asc.CreateUnifillFromAscColor(oTextPropMenu.get_Color(), 1);
+            oContent.Set_ApplyToAll(true);
+            oContent.AddToParagraph(new ParaTextPr(oTextPr));
+            oContent.SetParagraphAlign(AscCommon.align_Center);
+            oContent.Set_ApplyToAll(false);
+            var oBodyPr = oShape.getBodyPr().createDuplicate();
+            oBodyPr.rot = 0;
+            oBodyPr.spcFirstLastPara = false;
+            oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
+            oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
+            oBodyPr.vert = AscFormat.nVertTThorz;
+            oBodyPr.lIns = 0.0;
+            oBodyPr.tIns = 0.0;
+            oBodyPr.rIns = 0.0;
+            oBodyPr.bIns = 0.0;
+            oBodyPr.numCol = 1;
+            oBodyPr.spcCol = 0;
+            oBodyPr.rtlCol = 0;
+            oBodyPr.fromWordArt = false;
+            oBodyPr.anchor = 4;
+            oBodyPr.anchorCtr = false;
+            oBodyPr.forceAA = false;
+            oBodyPr.compatLnSpc = true;
+            oBodyPr.prstTxWarp = null;
+            oShape.setBodyPr(oBodyPr);
 
+
+
+            var dFontSize;
+            if(oTextPropMenu.get_FontSize() < 0)
+            {
+                
+            }
+            var sText2 = ((typeof (sText) === "string") && (sText.length > 0)) ? sText : "WATERMARK";
+            var sFontName2 = undefined;
+            var nFontSize2 = 2;
+            var oTextFill2 = AscFormat.CreateUnfilFromRGB(127, 127, 127);
+            oTextFill2.transparent = 127;
+
+            var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
+            var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
+
+            if (MainLogicDocument && true === TrackRevisions)
+                MainLogicDocument.SetTrackRevisions(false);
+
+
+
+            var fHeight = 45;
+            var fWidth;
+            if(bDiagonal !== false){
+                fWidth = 175;
+                oXfrm.setRot(7*Math.PI/4);
+            }
+            else{
+                fWidth = 165;
+            }
+
+
+
+            var oLogicDocument = private_GetLogicDocument();
+            var oDrawingDocuemnt = private_GetDrawingDocument();
+            var oDrawing = new ParaDrawing(fWidth, fHeight, null, oDrawingDocuemnt, oLogicDocument, null);
+            oShape.setParent(oDrawing);
+            oDrawing.Set_GraphicObject(oShape);
+            var oApiShape = new ApiShape(oShape);
+            oApiShape.SetWrappingStyle("inFront");
+            oApiShape.SetHorAlign("margin", "center");
+            oApiShape.SetVerAlign("margin", "center");
         }
-        var sText2 = ((typeof (sText) === "string") && (sText.length > 0)) ? sText : "WATERMARK";
-        var sFontName2 = undefined;
-        var nFontSize2 = 2;
-        var oTextFill2 = AscFormat.CreateUnfilFromRGB(127, 127, 127);
-        oTextFill2.transparent = 127;
-
-        var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
-        var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
-
-        if (MainLogicDocument && true === TrackRevisions)
-            MainLogicDocument.SetTrackRevisions(false);
-
-        var oShape = new AscFormat.CShape();
-        oShape.setWordShape(true);
-        oShape.setBDeleted(false);
-        oShape.createTextBoxContent();
-        var oSpPr = new AscFormat.CSpPr();
-        var oXfrm = new AscFormat.CXfrm();
-        oXfrm.setOffX(0);
-        oXfrm.setOffY(0);
-
-
-        var fHeight = 45;
-        var fWidth;
-        if(bDiagonal !== false){
-            fWidth = 175;
-            oXfrm.setRot(7*Math.PI/4);
+        var oParaDrawing = null;
+        if(oDrawing)
+        {
+            oParaDrawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
+            oDrawing.setParent(oParaDrawing);
+            oParaDrawing.Set_GraphicObject(oDrawing);
+            oParaDrawing.setExtent(oDrawing.spPr.xfrm.extX, oDrawing.spPr.xfrm.extY);
+            oParaDrawing.Set_DrawingType(drawing_Anchor);
+            oParaDrawing.Set_WrappingType(WRAPPING_TYPE_NONE);
+            oParaDrawing.Set_BehindDoc(true);
+            oParaDrawing.Set_Distance(3.2, 0, 3.2, 0);
+            oParaDrawing.Set_PositionH(Asc.c_oAscRelativeFromH.Margin, true,  Asc.c_oAscAlignH.Center, false);
+            oParaDrawing.Set_PositionV(Asc.c_oAscRelativeFromV.Margin, true,  Asc.c_oAscAlignV.Center, false);
         }
-        else{
-            fWidth = 165;
-        }
+        return oParaDrawing;
 
-        oXfrm.setExtX(fWidth);
-        oXfrm.setExtY(fHeight);
-        oSpPr.setXfrm(oXfrm);
-        oXfrm.setParent(oSpPr);
-        oSpPr.setFill(AscFormat.CreateNoFillUniFill());
-        oSpPr.setLn(AscFormat.CreateNoFillLine());
-        oSpPr.setGeometry(AscFormat.CreateGeometry("rect"));
-        oShape.setSpPr(oSpPr);
-        oSpPr.setParent(oShape);
-        var oContent = oShape.getDocContent();
-        AscFormat.AddToContentFromString(oContent, sText2);
-        var oTextPr = new CTextPr();
-        oTextPr.FontSize = nFontSize2;
-        oTextPr.RFonts.Ascii = sFontName2;
-        oTextPr.TextFill = oTextFill2;
-        oContent.Set_ApplyToAll(true);
-        oContent.AddToParagraph(new ParaTextPr(oTextPr));
-        oContent.SetParagraphAlign(AscCommon.align_Center);
-        oContent.Set_ApplyToAll(false);
-        var oBodyPr = oShape.getBodyPr().createDuplicate();
-        oBodyPr.rot = 0;
-        oBodyPr.spcFirstLastPara = false;
-        oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
-        oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
-        oBodyPr.vert = AscFormat.nVertTThorz;
-        oBodyPr.lIns = 2.54;
-        oBodyPr.tIns = 1.27;
-        oBodyPr.rIns = 2.54;
-        oBodyPr.bIns = 1.27;
-        oBodyPr.numCol = 1;
-        oBodyPr.spcCol = 0;
-        oBodyPr.rtlCol = 0;
-        oBodyPr.fromWordArt = false;
-        oBodyPr.anchor = 4;
-        oBodyPr.anchorCtr = false;
-        oBodyPr.forceAA = false;
-        oBodyPr.compatLnSpc = true;
-        oBodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function(){return AscFormat.CreatePrstTxWarpGeometry("textPlain");}, this, []);
-        oShape.setBodyPr(oBodyPr);
-
-        var oLogicDocument = private_GetLogicDocument();
-        var oDrawingDocuemnt = private_GetDrawingDocument();
-        var oDrawing = new ParaDrawing(fWidth, fHeight, null, oDrawingDocuemnt, oLogicDocument, null);
-        oShape.setParent(oDrawing);
-        oDrawing.Set_GraphicObject(oShape);
-        var oApiShape = new ApiShape(oShape);
-        oApiShape.SetWrappingStyle("inFront");
-        oApiShape.SetHorAlign("margin", "center");
-        oApiShape.SetVerAlign("margin", "center");
-        return oApiShape;
     },
 
     getTrialImage: function(sImageUrl)

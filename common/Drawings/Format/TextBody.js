@@ -655,10 +655,7 @@ CTextBody.prototype =
 
     getContentOneStringSizes: function()
     {
-        //TODO: потом переделать
-        this.content.Reset(0, 0, 20000, 20000);//выставляем большую ширину чтобы текст расчитался в одну строку.
-        this.content.Recalculate_Page(0, true);
-        return {w: this.content.Content[0].Lines[0].Ranges[0].W+0.1, h: this.content.GetSummaryHeight()+0.1};
+        return GetContentOneStringSizes(this.content);
     },
 
     recalculateByMaxWord: function()
@@ -767,6 +764,11 @@ CTextBody.prototype =
     }
 };
 
+    function GetContentOneStringSizes(oContent) {
+        oContent.Reset(0, 0, 20000, 20000);
+        oContent.Recalculate_Page(0, true);
+        return {w: oContent.Content[0].Lines[0].Ranges[0].W+0.1, h: oContent.GetSummaryHeight() + 0.1};
+    }
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CTextBody = CTextBody;
