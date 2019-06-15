@@ -345,6 +345,8 @@ CGraphicObjects.prototype =
         }
         var oDrawing, extX, extY;
         var oSectPr = this.document.Get_SectionProps();
+        var dMaxWidth = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+        var dMaxHeight = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
         if(oProps.get_Type() === Asc.c_oAscWatermarkType.Image)
         {
             var oImgP = new Asc.asc_CImgProperty();
@@ -353,8 +355,6 @@ CGraphicObjects.prototype =
             var dScale = oProps.get_Scale();
             if(dScale < 0)
             {
-                var dMaxWidth = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
-                var dMaxHeight = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
                 extX = dMaxWidth;
                 extY = oSize.asc_getImageHeight() * (extX / oSize.asc_getImageWidth());
                 if(extY > dMaxHeight)
@@ -373,24 +373,28 @@ CGraphicObjects.prototype =
         else
         {
             var oTextPropMenu = oProps.get_TextPr();
-            var oShape = new AscFormat.CShape();
-            oShape.setWordShape(true);
-            oShape.setBDeleted(false);
-            oShape.createTextBoxContent();
+            oDrawing = new AscFormat.CShape();
+            oDrawing.setWordShape(true);
+            oDrawing.setBDeleted(false);
+            oDrawing.createTextBoxContent();
             var oSpPr = new AscFormat.CSpPr();
             var oXfrm = new AscFormat.CXfrm();
             oXfrm.setOffX(0);
             oXfrm.setOffY(0);
             oXfrm.setExtX(5);
             oXfrm.setExtY(5);
+            if(oProps.get_IsDiagonal() !== false){
+                oXfrm.setRot(7*Math.PI/4);
+            }
+
             oSpPr.setXfrm(oXfrm);
             oXfrm.setParent(oSpPr);
             oSpPr.setFill(AscFormat.CreateNoFillUniFill());
             oSpPr.setLn(AscFormat.CreateNoFillLine());
             oSpPr.setGeometry(AscFormat.CreateGeometry("rect"));
-            oShape.setSpPr(oSpPr);
-            oSpPr.setParent(oShape);
-            var oContent = oShape.getDocContent();
+            oDrawing.setSpPr(oSpPr);
+            oSpPr.setParent(oDrawing);
+            var oContent = oDrawing.getDocContent();
             AscFormat.AddToContentFromString(oContent, oProps.get_Text());
             var oTextPr = new CTextPr();
             oTextPr.FontSize = (oTextPropMenu.get_FontSize() > 0 ? oTextPropMenu.get_FontSize() : 20);
@@ -404,7 +408,7 @@ CGraphicObjects.prototype =
             oContent.AddToParagraph(new ParaTextPr(oTextPr));
             oContent.SetParagraphAlign(AscCommon.align_Center);
             oContent.Set_ApplyToAll(false);
-            var oBodyPr = oShape.getBodyPr().createDuplicate();
+            var oBodyPr = oDrawing.getBodyPr().createDuplicate();
             oBodyPr.rot = 0;
             oBodyPr.spcFirstLastPara = false;
             oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
@@ -423,50 +427,29 @@ CGraphicObjects.prototype =
             oBodyPr.forceAA = false;
             oBodyPr.compatLnSpc = true;
             oBodyPr.prstTxWarp = null;
-            oShape.setBodyPr(oBodyPr);
-
-
-
-            var dFontSize;
+            oDrawing.setBodyPr(oBodyPr);
             if(oTextPropMenu.get_FontSize() < 0)
             {
-                
+                var oContentSize = AscFormat.GetContentOneStringSizes(oContent);
+                if(oProps.get_IsDiagonal())
+                {
+                    extX = Math.SQRT2*Math.min(dMaxWidth, dMaxHeight) / (oContentSize.h / oContentSize.w + 1);
+                }
+                else
+                {
+                    extX = dMaxWidth;
+                    extY = oContentSize.h * (extX / oContentSize.w);
+                    if(extY > dMaxHeight)
+                    {
+                        extY = dMaxHeight;
+                        extX = oContentSize.w * (extY / oContentSize.h);
+                    }
+                }
+                oTextPr.FontSize *= (extX / oContentSize.w);
+                oContent.Set_ApplyToAll(true);
+                oContent.AddToParagraph(new ParaTextPr(oTextPr));
+                oContent.Set_ApplyToAll(false);
             }
-            var sText2 = ((typeof (sText) === "string") && (sText.length > 0)) ? sText : "WATERMARK";
-            var sFontName2 = undefined;
-            var nFontSize2 = 2;
-            var oTextFill2 = AscFormat.CreateUnfilFromRGB(127, 127, 127);
-            oTextFill2.transparent = 127;
-
-            var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
-            var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
-
-            if (MainLogicDocument && true === TrackRevisions)
-                MainLogicDocument.SetTrackRevisions(false);
-
-
-
-            var fHeight = 45;
-            var fWidth;
-            if(bDiagonal !== false){
-                fWidth = 175;
-                oXfrm.setRot(7*Math.PI/4);
-            }
-            else{
-                fWidth = 165;
-            }
-
-
-
-            var oLogicDocument = private_GetLogicDocument();
-            var oDrawingDocuemnt = private_GetDrawingDocument();
-            var oDrawing = new ParaDrawing(fWidth, fHeight, null, oDrawingDocuemnt, oLogicDocument, null);
-            oShape.setParent(oDrawing);
-            oDrawing.Set_GraphicObject(oShape);
-            var oApiShape = new ApiShape(oShape);
-            oApiShape.SetWrappingStyle("inFront");
-            oApiShape.SetHorAlign("margin", "center");
-            oApiShape.SetVerAlign("margin", "center");
         }
         var oParaDrawing = null;
         if(oDrawing)
@@ -483,7 +466,6 @@ CGraphicObjects.prototype =
             oParaDrawing.Set_PositionV(Asc.c_oAscRelativeFromV.Margin, true,  Asc.c_oAscAlignV.Center, false);
         }
         return oParaDrawing;
-
     },
 
     getTrialImage: function(sImageUrl)

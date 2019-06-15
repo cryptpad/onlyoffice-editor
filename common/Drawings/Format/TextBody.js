@@ -771,5 +771,6 @@ CTextBody.prototype =
     }
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
+    window['AscFormat'].GetContentOneStringSizes = GetContentOneStringSizes;
     window['AscFormat'].CTextBody = CTextBody;
 })(window);
