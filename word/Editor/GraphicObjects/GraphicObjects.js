@@ -394,7 +394,7 @@ CGraphicObjects.prototype =
             oDrawing.setBodyPr(oBodyPr);
 
             var oContentSize = AscFormat.GetContentOneStringSizes(oContent);
-            oXfrm.setExtX(oContentSize.w);
+            oXfrm.setExtX(oContentSize.w + 1);
             oXfrm.setExtY(oContentSize.h);
             if(oTextPropMenu.get_FontSize() < 0)
             {
@@ -411,7 +411,7 @@ CGraphicObjects.prototype =
                 oContent.AddToParagraph(new ParaTextPr(oTextPr));
                 oContent.Set_ApplyToAll(false);
                 oContentSize = AscFormat.GetContentOneStringSizes(oContent);
-                oXfrm.setExtX(extX);
+                oXfrm.setExtX(extX + 1);
                 oXfrm.setExtY(oContentSize.h);
             }
         }

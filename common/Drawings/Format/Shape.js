@@ -5446,6 +5446,10 @@ CShape.prototype.getWatermarkProps = function()
     oContent.Set_ApplyToAll(true);
     oProps.put_Text(oContent.GetSelectedText(true, {NewLineParagraph : false, NewLine : false}));
     oTextPr = oContent.GetCalculatedTextPr();
+    if(oTextPr.FontSize - (oTextPr.FontSize >> 0) > 0)
+    {
+        oTextPr.FontSize = -1;
+    }
     oInterfaceTextPr = new Asc.CTextProp(oTextPr);
     if(oTextPr.Unifill)
     {
