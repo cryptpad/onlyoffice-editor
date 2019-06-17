@@ -345,7 +345,7 @@ CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPa
 
 	return oNumberingEngine.GetNumInfo();
 };
-CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
+CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
 	if (this.CurPos.ContentPos < 0)
 		return false;
@@ -413,7 +413,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 				{
 					var oElement = this.Content[nIndex];
 					if (oElement.IsTable())
-						oElement.RemoveTableRow();
+						oElement.RemoveTableCells();
 					else
 						oElement.Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
 				}
@@ -633,9 +633,9 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 				this.CurPos.ContentPos = StartPos;
 				if (Count < 0 && type_Table === this.Content[StartPos].GetType() && true === this.Content[StartPos].IsCellSelection() && true != bOnTextAdd)
 				{
-					this.RemoveTableRow();
+					this.RemoveTableCells();
 				}
-				else if (false === this.Content[StartPos].Remove(Count, true, bRemoveOnlySelection, bOnTextAdd))
+				else if (false === this.Content[StartPos].Remove(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd))
 				{
 					// При добавлении текста, параграф не объединяется
 					if (true !== bOnTextAdd || (isRemoveOnDrag && this.Content[StartPos].IsEmpty()))
@@ -693,7 +693,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		var nCurContentPos = this.CurPos.ContentPos;
 		if (type_Paragraph == this.Content[nCurContentPos].GetType())
 		{
-			if (false === this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord))
+			if (false === this.Content[nCurContentPos].Remove(Count, isRemoveWholeElement, false, false, isWord))
 			{
 				if (Count < 0)
 				{
@@ -732,18 +732,6 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 
 									this.Content[nCurContentPos + 1].SetDirectParaPr(oParaPr);
 									this.Content[nCurContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
-								}
-
-								if (this.Content[this.CurPos.ContentPos].IsParagraph())
-								{
-									var oParaPr   = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
-									var oPrChange = this.Content[this.CurPos.ContentPos + 1].GetDirectParaPr();
-									var oReviewInfo = new CReviewInfo();
-									oReviewInfo.Update();
-
-									this.Content[this.CurPos.ContentPos + 1].SetDirectParaPr(oParaPr);
-									this.Content[this.CurPos.ContentPos + 1].SetPrChange(oPrChange, oReviewInfo);
-
 								}
 							}
 							else
@@ -822,17 +810,6 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 									this.Content[nCurContentPos].SetDirectParaPr(oParaPr);
 									this.Content[nCurContentPos].SetPrChange(oPrChange, oReviewInfo);
 								}
-
-								if (this.Content[this.CurPos.ContentPos - 1].IsParagraph())
-								{
-									var oParaPr   = this.Content[this.CurPos.ContentPos - 1].GetDirectParaPr();
-									var oPrChange = this.Content[this.CurPos.ContentPos].GetDirectParaPr();
-									var oReviewInfo = new CReviewInfo();
-									oReviewInfo.Update();
-
-									this.Content[this.CurPos.ContentPos].SetDirectParaPr(oParaPr);
-									this.Content[this.CurPos.ContentPos].SetPrChange(oPrChange, oReviewInfo);
-								}
 							}
 							else
 							{
@@ -881,7 +858,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else if (type_BlockLevelSdt === this.Content[nCurContentPos].GetType())
 		{
-			if (false === this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord))
+			if (false === this.Content[nCurContentPos].Remove(Count, isRemoveWholeElement, false, false, isWord))
 			{
 				var oLogicDocument = this.GetLogicDocument();
 				if (oLogicDocument && true === oLogicDocument.IsFillingFormMode())
@@ -953,7 +930,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, bOnlyText, bRemo
 		}
 		else
 		{
-			this.Content[nCurContentPos].Remove(Count, bOnlyText, false, false, isWord);
+			this.Content[nCurContentPos].Remove(Count, isRemoveWholeElement, false, false, isWord);
 		}
 
 		this.CurPos.ContentPos = nCurContentPos;
@@ -1602,13 +1579,14 @@ CDocumentContentBase.prototype.private_UpdateSelectionPosOnRemove = function(nPo
 /**
  * Соединяем параграф со следующим в заданной позиции
  * @param nPosition {number}
+ * @param isUseConcatedStyle {boolean} использовать ли стиль присоединяемого параграфа для итогового параграфа
  * @returns {boolean}
  */
-CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition)
+CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition, isUseConcatedStyle)
 {
 	if (nPosition < this.Content.length - 1 && this.Content[nPosition].IsParagraph() && this.Content[nPosition + 1].IsParagraph())
 	{
-		this.Content[nPosition].Concat(this.Content[nPosition + 1]);
+		this.Content[nPosition].Concat(this.Content[nPosition + 1], isUseConcatedStyle);
 		this.RemoveFromContent(nPosition + 1, 1);
 		return true;
 	}

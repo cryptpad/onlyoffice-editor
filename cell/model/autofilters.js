@@ -146,19 +146,6 @@
 			asc_setDay: function (val) { this.day = val; }
 		};
 
-		/** @constructor */
-		function formatTablePictures () {
-			this.name = null;
-			this.displayName = null;
-			this.type = null;
-			this.image = null;
-		}
-
-		formatTablePictures.prototype.asc_getName = function () { return this.name; };
-		formatTablePictures.prototype.asc_getDisplayName = function () { return this.displayName; };
-		formatTablePictures.prototype.asc_getType = function () { return this.type; };
-		formatTablePictures.prototype.asc_getImage = function () { return this.image; };
-		
 		var g_oAutoFiltersOptionsProperties = {
 			cellId		: 0,
 			values		: 1,
@@ -396,7 +383,6 @@
 		/** @constructor */
 		function AutoFilters(currentSheet) {
 			this.worksheet = currentSheet;
-			this.changeFilters = null;
 
 			this.m_oColor = new AscCommon.CColor(120, 120, 120);
 			return this;
@@ -512,7 +498,7 @@
 				addFilterCallBack();
 			},
 
-			deleteAutoFilter: function (activeRange, offLock) {
+			deleteAutoFilter: function (activeRange) {
 				var worksheet = this.worksheet, filterRange, t = this, cloneFilter;
 				activeRange = activeRange.clone();
 
@@ -561,7 +547,7 @@
 				deleteFilterCallBack(true);
 			},
 
-			changeTableStyleInfo: function (styleName, activeRange, tableName) {
+			changeTableStyleInfo: function (styleName, activeRange) {
 				var filterRange, t = this, cloneFilter;
 
 				activeRange = activeRange.clone();
@@ -621,7 +607,6 @@
 				var bRedoChanges = worksheet.workbook.bRedoChanges;
 
 				var minChangeRow = null;
-				var rangeOldFilter = null;
 
 				//**get filter**
 				var filterObj = this._getPressedFilter(ar, autoFiltersObject.cellId);
@@ -653,7 +638,7 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
-				rangeOldFilter = oldFilter.Ref;
+				var rangeOldFilter = oldFilter.Ref;
 
 				//change model
 				var autoFilter = filterObj.filter.getAutoFilter();
@@ -778,7 +763,7 @@
 				return res;
 			},
 
-			reapplyAutoFilter: function (displayName, ar) {
+			reapplyAutoFilter: function (displayName) {
 				var worksheet = this.worksheet;
 				var bUndoChanges = worksheet.workbook.bUndoChanges;
 				var bRedoChanges = worksheet.workbook.bRedoChanges;
@@ -1632,15 +1617,18 @@
 			sortColFilter: function (type, cellId, activeRange, sortProps, displayName, color) {
 				//TODO возвращаю старую версию функции(для истории использую весь объект а/ф). есть проблемы в undo при сортировке. позже пересмотреть новую версию.
 
-				var curFilter, sortRange, filterRef, startCol, maxFilterRow;
+				var curFilter, filterRef, startCol, maxFilterRow;
 				var t = this;
 
 				if (!sortProps) {
 					sortProps = this.getPropForSort(cellId, activeRange, displayName);
 				}
 
-				curFilter = sortProps.curFilter, sortRange = sortProps.sortRange, filterRef =
-					sortProps.filterRef, startCol = sortProps.startCol, maxFilterRow = sortProps.maxFilterRow;
+				curFilter = sortProps.curFilter;
+				filterRef = sortProps.filterRef;
+				startCol = sortProps.startCol;
+				maxFilterRow = sortProps.maxFilterRow;
+
 				var bIsAutoFilter = curFilter.isAutoFilter();
 
 				var onSortAutoFilterCallback = function (type) {
@@ -3469,10 +3457,7 @@
 
 				var checkEmptyCell = function(row, col){
 					var cell = ws.getCell3(row, col);
-					if(cell.getValueWithoutFormat() !== ''){
-						return false;
-					}
-					return true;
+					return cell.getValueWithoutFormat() === '';
 				};
 
 				var checkLeft = function(){
@@ -3978,7 +3963,7 @@
 					{
 						cell = worksheet.getCell3(row, col);
 						var isMerged = cell.hasMerged();
-						var isMergedAllRow = (isMerged && isMerged.c2 + 1 == AscCommon.gc_nMaxCol && isMerged.c1 === 0) ? true : false;//если замержена вся ячейка
+						var isMergedAllRow = isMerged && isMerged.c2 + 1 == AscCommon.gc_nMaxCol && isMerged.c1 === 0;//если замержена вся ячейка
 						
 						if((isMerged && isMerged.c2 != col && !isMergedAllRow) || (isMergedAllRow && col !== ref.c1))
 						{	
@@ -5324,12 +5309,5 @@
 		prot["asc_getIsTitle"]					= prot.asc_getIsTitle;
 		prot["asc_setRange"]					= prot.asc_setRange;
 		prot["asc_setIsTitle"]					= prot.asc_setIsTitle;
-
-		window["AscCommonExcel"].formatTablePictures = formatTablePictures;
-		prot									= formatTablePictures.prototype;
-		prot["asc_getName"]					   	= prot.asc_getName;
-		prot["asc_getDisplayName"]				= prot.asc_getDisplayName;
-		prot["asc_getType"]						= prot.asc_getType;
-		prot["asc_getImage"]					= prot.asc_getImage;
 	}
 )(window);

@@ -612,7 +612,7 @@ var editor;
   };
 
 	spreadsheet_api.prototype.asc_getTablePictures = function (props, pivot) {
-		return this.wb.af_getTablePictures(props, pivot);
+		return this.wb.getTableStyles(props, pivot);
 	};
 
   spreadsheet_api.prototype.asc_setViewMode = function (isViewMode) {
@@ -782,7 +782,7 @@ var editor;
 			this.openDocumentFromZip(t.wbModel, this.openingEnd.data).then(function() {
 				g_oIdCounter.Set_Load(false);
 				AscCommon.checkCultureInfoFontPicker();
-				AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
+				AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
 				t.FontLoader.LoadDocumentFonts(t.wbModel.generateFontMap2());
 
 				// Какая-то непонятная заглушка, чтобы не падало в ipad
@@ -1635,19 +1635,13 @@ var editor;
     return (c_oAscLockTypeElem.Object === lockElem.Element["type"] && lockElem.Element["rangeOrObjectId"] === AscCommonExcel.c_oAscLockNameFrozenPane);
   };
 
-	spreadsheet_api.prototype._sendWorkbookStyles = function () {
-		if (this.wbModel) {
-
-			if (window["NATIVE_EDITOR_ENJINE"]) {
-				// Для нативной версии (сборка и приложение) не генерируем стили
-				return;
-			}
-
-			// Отправка стилей ячеек
-			this.handlers.trigger("asc_onInitEditorStyles",
-				this.wb.getCellStyles(this.styleThumbnailWidth, this.styleThumbnailHeight));
-		}
-	};
+  spreadsheet_api.prototype._sendWorkbookStyles = function () {
+    // Для нативной версии (сборка и приложение) не генерируем стили
+    if (this.wbModel && !window["NATIVE_EDITOR_ENJINE"]) {
+      // Отправка стилей ячеек
+      this.handlers.trigger("asc_onInitEditorStyles", this.wb.getCellStyles(this.styleThumbnailWidth, this.styleThumbnailHeight));
+    }
+  };
 
   spreadsheet_api.prototype.startCollaborationEditing = function() {
     // Начинаем совместное редактирование
@@ -1926,6 +1920,10 @@ var editor;
 
   spreadsheet_api.prototype.asc_getDefaultDefinedName = function() {
     return this.wb.getDefaultDefinedName();
+  };
+
+  spreadsheet_api.prototype.asc_getDefaultTableStyle = function() {
+      return this.wb.getDefaultTableStyle();
   };
 
   spreadsheet_api.prototype._onUpdateDefinedNames = function(lockElem) {
@@ -2371,6 +2369,35 @@ var editor;
 
   spreadsheet_api.prototype.asc_hideRows = function() {
     this.wb.getWorksheet().changeWorksheet("hideRows");
+  };
+
+  spreadsheet_api.prototype.asc_group = function(val) {
+    if(val) {
+		this.wb.getWorksheet().changeWorksheet("groupRows");
+    } else {
+		this.wb.getWorksheet().changeWorksheet("groupCols");
+    }
+  };
+
+  spreadsheet_api.prototype.asc_ungroup = function(val) {
+    if(val) {
+        this.wb.getWorksheet().changeWorksheet("groupRows", true);
+    } else {
+        this.wb.getWorksheet().changeWorksheet("groupCols", true);
+    }
+  };
+
+  spreadsheet_api.prototype.asc_checkAddGroup = function(bUngroup) {
+	  //true - rows, false - columns, null - show dialog, undefined - error
+    return this.wb.getWorksheet().checkAddGroup(bUngroup);
+  };
+
+  spreadsheet_api.prototype.asc_clearOutline = function() {
+	  this.wb.getWorksheet().changeWorksheet("clearOutline");
+  };
+
+  spreadsheet_api.prototype.asc_changeGroupDetails = function(bExpand) {
+	  this.wb.getWorksheet().changeGroupDetails(bExpand);
   };
 
   spreadsheet_api.prototype.asc_insertCells = function(options) {
@@ -3445,7 +3472,7 @@ var editor;
 	var thenCallback = function() {
 		g_oIdCounter.Set_Load(false);
 		AscCommon.checkCultureInfoFontPicker();
-		AscCommonExcel.asc_CStylesPainter.prototype.asc_checkStylesNames(t.wbModel.CellStyles);
+		AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
 		t._coAuthoringInit();
 		t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
 	};
@@ -3826,9 +3853,18 @@ var editor;
   prot["asc_changeTableRange"] = prot.asc_changeTableRange;
   prot["asc_convertTableToRange"] = prot.asc_convertTableToRange;
   prot["asc_getTablePictures"] = prot.asc_getTablePictures;
+  prot["asc_getDefaultTableStyle"] = prot.asc_getDefaultTableStyle;
+
 
   prot["asc_applyAutoCorrectOptions"] = prot.asc_applyAutoCorrectOptions;
 
+  //Group data
+  prot["asc_group"] = prot.asc_group;
+  prot["asc_ungroup"] = prot.asc_ungroup;
+  prot["asc_clearOutline"] = prot.asc_clearOutline;
+  prot["asc_changeGroupDetails"] = prot.asc_changeGroupDetails;
+  prot["asc_checkAddGroup"] = prot.asc_checkAddGroup;
+  
   // Drawing objects interface
 
   prot["asc_showDrawingObjects"] = prot.asc_showDrawingObjects;

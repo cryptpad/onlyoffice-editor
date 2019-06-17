@@ -2839,13 +2839,13 @@ Paragraph.prototype.Shift = function(PageIndex, Dx, Dy)
 /**
  * Удаляем элементы параграфа
  * @param nCount - количество удаляемых элементов, > 0 удаляем элементы после курсора, < 0 удаляем элементы до курсора
- * @param bOnlyText - true: удаляем только текст и пробелы, false - Удаляем любые элементы
+ * @param isRemoveWholeElement {boolean} true: удаляем элементы целиком, false - Удаляем содержимое элементов (если нужно содержимое заменяется PlaceHolder)
  * @param bRemoveOnlySelection
  * @param bOnAddText - удаление происходит на добавлении текста
  * @param isWord - удаление по словам (работает только при отсутсвии селекта)
  * @returns {boolean} Если возвращается false, то значит ничего нельзя удалить в заданном направлении
  */
-Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
+Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlySelection, bOnAddText, isWord)
 {
 	var Direction = nCount;
 	var Result    = true;
@@ -2920,14 +2920,25 @@ Paragraph.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, b
 			{
 				for (var Pos = EndPos - 1; Pos >= StartPos + 1; Pos--)
 				{
-					if (para_Run == this.Content[Pos].Type && reviewtype_Add === this.Content[Pos].GetReviewType())
-						this.Internal_Content_Remove2(Pos, 1);
+					if (para_Run === this.Content[Pos].Type)
+					{
+						if (para_Run == this.Content[Pos].Type && reviewtype_Add === this.Content[Pos].GetReviewType())
+							this.RemoveFromContent(Pos, 1);
+						else
+							this.Content[Pos].SetReviewType(reviewtype_Remove, false);
+					}
 					else
-						this.Content[Pos].SetReviewType(reviewtype_Remove, false);
+					{
+						this.Content[Pos].Remove(nCount, bOnAddText);
+						if (this.Content[Pos].IsEmpty())
+							this.RemoveFromContent(Pos, 1);
+					}
 				}
 			}
 			else
-				this.Internal_Content_Remove2(StartPos + 1, EndPos - StartPos - 1);
+			{
+				this.RemoveFromContent(StartPos + 1, EndPos - StartPos - 1);
+			}
 
 			var isFootnoteRefRun = (para_Run === this.Content[StartPos].Type && this.Content[StartPos].IsFootnoteReferenceRun());
 
@@ -6650,12 +6661,14 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 
 				if (this.Extend_ToPos(X))
 				{
+					this.RemoveSelection();
 					this.MoveCursorToEndPos();
 					this.Document_SetThisElementCurrent(true);
 					this.LogicDocument.Recalculate();
 				}
 
 				this.LogicDocument.FinalizeAction();
+				return;
 			}
 		}
 	}
@@ -8621,7 +8634,9 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 				Lvl = this.Pr.NumPr.Lvl;
 
 				if (Lvl >= 0 && Lvl <= 8)
+				{
 					Pr.ParaPr.Merge(Numbering.GetParaPr(this.Pr.NumPr.NumId, this.Pr.NumPr.Lvl));
+				}
 				else
 				{
 					Lvl             = -1;
@@ -10985,14 +11000,11 @@ Paragraph.prototype.Split = function(NewParagraph)
 };
 /**
  * Присоединяем контент параграфа Para к текущему параграфу
+ * @param Para {Paragraph}
+ * @param [isUseConcatedStyle=false] {boolean}
  */
-Paragraph.prototype.Concat = function(Para)
+Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 {
-	//var UpdateSelection = (true == this.Selection.Use || true === Para.Selection.Use);
-
-	//var Para1SelectionStartPos =
-
-
 	this.DeleteCommentOnRemove = false;
 	Para.DeleteCommentOnRemove = false;
 
@@ -11033,6 +11045,9 @@ Paragraph.prototype.Concat = function(Para)
 
 	this.DeleteCommentOnRemove = true;
 	Para.DeleteCommentOnRemove = true;
+
+	if (true === isUseConcatedStyle)
+		Para.CopyPr(this);
 };
 /**
  * Копируем настройки параграфа и последние текстовые настройки в новый параграф
@@ -12080,7 +12095,32 @@ Paragraph.prototype.HavePrChange = function()
 };
 Paragraph.prototype.GetPrChangeNumPr = function()
 {
-	return this.Pr.GetPrChangeNumPr();
+	if (!this.HavePrChange())
+		return null;
+
+	var oPrevNumPr = this.Pr.GetPrChangeNumPr();
+
+	if (!oPrevNumPr && this.Pr.PrChange.PStyle)
+	{
+		var oStyles     = this.Parent.Get_Styles();
+		var oTableStyle = this.Parent.Get_TableStyleForPara();
+		var oShapeStyle = this.Parent.Get_ShapeStyleForPara();
+
+		// Считываем свойства для текущего стиля
+		var oPr = oStyles.Get_Pr(this.Pr.PrChange.PStyle, styletype_Paragraph, oTableStyle, oShapeStyle);
+
+		if (oPr.ParaPr.NumPr)
+			oPrevNumPr = oPr.ParaPr.NumPr.Copy();
+	}
+
+	if (oPrevNumPr && undefined === oPrevNumPr.Lvl)
+	{
+		var oNumPr = this.GetNumPr();
+		if (oNumPr)
+			oPrevNumPr = new CNumPr(oPrevNumPr.NumId, oNumPr.Lvl);
+	}
+
+	return oPrevNumPr;
 };
 Paragraph.prototype.GetPrReviewColor = function()
 {

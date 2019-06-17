@@ -4280,13 +4280,6 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
 				LastPos++;
 				this.Content[LastPos].SelectAll();
 			}
-			else if (LastPos + 1 < this.Content.length && false === bConcatE && type_Paragraph === this.Content[LastPos + 1].Get_Type())
-			{
-				LastPos++;
-				this.Content[LastPos].Selection.Use = true;
-				this.Content[LastPos].Selection_SetBegEnd(true, true);
-				this.Content[LastPos].Selection_SetBegEnd(false, true);
-			}
 
             this.Selection.Start    = false;
             this.Selection.Use      = true;
@@ -6520,6 +6513,25 @@ CDocumentContent.prototype.SplitTableCells = function(Cols, Rows)
 			Pos = this.CurPos.ContentPos;
 
 		this.Content[Pos].SplitTableCells(Rows, Cols);
+		return true;
+	}
+
+	return false;
+};
+CDocumentContent.prototype.RemoveTableCells = function()
+{
+	if (docpostype_DrawingObjects == this.CurPos.Type)
+	{
+		return this.LogicDocument.DrawingObjects.tableRemoveCells();
+	}
+	else if (docpostype_Content == this.CurPos.Type
+		&& ((true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && !this.Content[this.Selection.StartPos].IsParagraph())
+		|| (false == this.Selection.Use && !this.Content[this.CurPos.ContentPos].IsParagraph())))
+	{
+		var nPos = true === this.Selection.Use ? this.Selection.StartPos : this.CurPos.ContentPos;
+		if (false === this.Content[nPos].RemoveTableCells())
+			this.RemoveTable();
+
 		return true;
 	}
 

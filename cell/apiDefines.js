@@ -263,8 +263,8 @@ var c_oAscCanChangeColWidth = {
 // Merge cell type
 var c_oAscMergeType = {
   none: 0,
-  columns: 1, // Замержены ли колонки (если да, то автоподбор ширины не должен работать)
-  rows: 2     // Замержены ли строки (если да, то автоподбор высоты не должен работать)
+  cols: 1, // Замержены ли колонки (если да, то автоподбор ширины не должен работать)
+  rows: 2  // Замержены ли строки (если да, то автоподбор высоты не должен работать)
 };
 
 var c_oAscPaneState = {
@@ -294,7 +294,9 @@ var c_oTargetType = {
   Cells: 11,
   Shape: 12,
   FrozenAnchorH: 14,
-  FrozenAnchorV: 15
+  FrozenAnchorV: 15,
+  GroupRow: 16,
+  GroupCol: 17
 };
 
 var c_oAscAutoFilterTypes = {

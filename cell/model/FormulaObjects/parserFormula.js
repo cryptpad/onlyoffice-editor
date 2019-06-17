@@ -470,11 +470,12 @@ var c_Date1904Const = 24107; //разница в днях между 01.01.1970 
 var c_Date1900Const = 25568; //разница в днях между 01.01.1970 и 01.01.1900 годами
 var c_sPerDay = 86400;
 var c_msPerDay = c_sPerDay * 1000;
-  var rx_sFuncPref = /_xlfn\./i;
-  var rx_sDefNamePref = /_xlnm\./i;
-	var cNumFormatFirstCell = -1;
-	var cNumFormatNone = -2;
-	var cNumFormatNull = -3;
+var rx_sFuncPref = /_xlfn\./i;
+var rx_sDefNamePref = /_xlnm\./i;
+var cNumFormatFirstCell = -1;
+var cNumFormatNone = -2;
+var cNumFormatNull = -3;
+var g_nFormulaStringMaxLength = 255;
 
 
 function cDate() {
@@ -574,18 +575,18 @@ cDate.prototype.addMonths = function ( counts ) {
 };
 
 cDate.prototype.addDays = function ( counts ) {
-	this.setUTCDate( this.getUTCDate() + Math.floor( counts ) );
+	this.setUTCDate( this.getUTCDate(true) + Math.floor( counts ) );
 };
 
 cDate.prototype.lastDayOfMonth = function () {
 	return this.getDaysInMonth() == this.getUTCDate();
 };
-cDate.prototype.getUTCDate = function () {
+cDate.prototype.getUTCDate = function (notCheckStartDate) {
 	var year = Date.prototype.getUTCFullYear.call(this);
 	var month = Date.prototype.getUTCMonth.call(this);
 	var date = Date.prototype.getUTCDate.call(this);
 
-	if(1899 == year && 11 == month && 31 == date) {
+	if(!notCheckStartDate && 1899 == year && 11 == month && 31 == date) {
 		return 0;
 	} else {
 		return date;
@@ -5965,6 +5966,11 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 
 			/* Strings */ else if (parserHelp.isString.call(ph, t.Formula, ph.pCurrPos)) {
+				if (ph.operand_str.length > g_nFormulaStringMaxLength && !ignoreErrors) {
+					parseResult.setError(c_oAscError.ID.FrmlMaxTextLength);
+					t.outStack = [];
+					return false;
+				}
 				found_operand = new cString(ph.operand_str);
 			}
 
@@ -6037,6 +6043,13 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 
 			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos, t.wb, t.ws)[0]) {
+
+				if (ph.operand_str.length > g_nFormulaStringMaxLength && !ignoreErrors) {
+					//TODO стоит добавить новую ошибку
+					parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
+					t.outStack = [];
+					return false;
+				}
 
 				//проверяем вдруг это область печати
 				var defName;

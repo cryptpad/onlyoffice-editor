@@ -211,6 +211,45 @@ CImageShape.prototype.isGroup = function()
     return false;
 };
 
+
+CImageShape.prototype.isWatermark = function()
+{
+    return this.getNoChangeAspect();
+};
+
+CImageShape.prototype.getWatermarkProps = function()
+{
+    var oProps = new Asc.CAscWatermarkProperties();
+    if(!this.isWatermark())
+    {
+        oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        return oProps;
+    }
+    oProps.put_Type(Asc.c_oAscWatermarkType.Image);
+    oProps.put_ImageUrl(this.blipFill.RasterImageId);
+    oProps.put_Scale(-1);
+    var oApi;
+    if(window["Asc"] && window["Asc"]["editor"])
+    {
+        oApi = window["Asc"]["editor"];
+    }
+    else
+    {
+        oApi = editor;
+    }
+    if(oApi)
+    {
+        var oImgP = new Asc.asc_CImgProperty();
+        oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+        var oSize = oImgP.asc_getOriginSize(oApi);
+        if(oSize && oSize.IsCorrect)
+        {
+            oProps.put_Scale(oSize.Width / this.extX);
+        }
+    }
+    return oProps;
+};
+
 CImageShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
 
 CImageShape.prototype.hitInPath = CShape.prototype.hitInPath;

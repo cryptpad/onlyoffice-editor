@@ -236,6 +236,18 @@ CAbstractNum.prototype.SetLvlStart = function(nLvl, nStart)
 	History.Add(new CChangesAbstractNumLvlChange(this, oLvlOld, this.Lvl[nLvl].Copy(), nLvl));
 };
 /**
+ * Получаем начальное значение для заданного уровня
+ * @param nLvl {number} 0..8
+ * @returns {number}
+ */
+CAbstractNum.prototype.GetLvlStart = function(nLvl)
+{
+	if ("number" !== typeof(nLvl) || nLvl < 0 || nLvl >= 9)
+		return 1;
+
+	return this.Lvl[nLvl].Start;
+};
+/**
  * Выставляем тип разделителя между табом и последующим текстом
  * @param nLvl {number} 0..8
  * @param nSuff {number}

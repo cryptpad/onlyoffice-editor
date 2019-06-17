@@ -422,20 +422,6 @@ function CCellObjectInfo () {
 }
 
 /** @constructor */
-function asc_CChartStyle() {
-    this.style = null;
-    this.imageUrl = null;
-}
-
-asc_CChartStyle.prototype = {
-    asc_getStyle: function() { return this.style; },
-    asc_setStyle: function(style) { this.style = style; },
-
-    asc_getImageUrl: function() { return this.imageUrl; },
-    asc_setImageUrl: function(imageUrl) { this.imageUrl = imageUrl; }
-};
-
-/** @constructor */
 function asc_CChartBinary(chart) {
 
     this["binary"] = null;
@@ -1635,6 +1621,7 @@ function DrawingObjects() {
                     var oShape = oTrack.getShape(false, _this.drawingDocument, null);
                     oShape.setWorksheet(worksheet.model);
                     oShape.addToDrawingObjects();
+                    oShape.checkDrawingBaseCoords();
                     oShape.select(_this.controller, 0);
                     _this.controller.startRecalculate();
                     worksheet.setSelectionShape(true);
@@ -4539,13 +4526,6 @@ ClickCounter.prototype.getClickCount = function() {
     window['Asc'] = window['Asc'] || {};
     window['AscFormat'].isObject = isObject;
     window['AscFormat'].CCellObjectInfo = CCellObjectInfo;
-
-    window["AscFormat"].asc_CChartStyle = asc_CChartStyle;
-    prot = asc_CChartStyle.prototype;
-    prot["asc_getStyle"] = prot.asc_getStyle;
-    prot["asc_setStyle"] = prot.asc_setStyle;
-    prot["asc_getImageUrl"] = prot.asc_getImageUrl;
-    prot["asc_setImageUrl"] = prot.asc_setImageUrl;
 
     window["Asc"]["asc_CChartBinary"] = window["Asc"].asc_CChartBinary = asc_CChartBinary;
     prot = asc_CChartBinary.prototype;

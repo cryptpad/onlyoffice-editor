@@ -332,7 +332,7 @@ CHistory.prototype =
     Create_NewPoint : function(Description)
     {
 		if ( 0 !== this.TurnOffHistory )
-			return;
+			return false;
 
 		if (this.Document && this.Document.OnCreateNewHistoryPoint)
 			this.Document.OnCreateNewHistoryPoint();
@@ -368,6 +368,8 @@ CHistory.prototype =
 		{
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 		}
+
+		return true;
     },
 
 	/**
@@ -389,11 +391,14 @@ CHistory.prototype =
 	},
     
     Remove_LastPoint : function()
-    {
-		this.CollectChanges = false;
-        this.Index--;
-        this.Points.length = this.Index + 1;
-    },
+	{
+		if (this.Index > -1)
+		{
+			this.CollectChanges = false;
+			this.Index--;
+			this.Points.length = this.Index + 1;
+		}
+	},
 
     Is_LastPointEmpty : function()
     {

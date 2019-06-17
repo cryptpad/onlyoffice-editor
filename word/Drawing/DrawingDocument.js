@@ -7843,10 +7843,11 @@ function CDrawingDocument()
 			editor.isShowTableEmptyLineAttack = false;
 			editor.isViewMode = _old_mode;
 
-			var _styleD = new Asc.CAscTableStyle();
-			_styleD.Type = 0;
-			_styleD.Image = _canvas.toDataURL("image/png");
-			_styleD.Id = i;
+			var _styleD = new AscCommon.CStyleImage();
+			_styleD.type = AscCommon.c_oAscStyleImage.Default;
+			_styleD.image = _canvas.toDataURL("image/png");
+			_styleD.name = i;
+			_styleD.displayName = _style.Name;
 			_dst_styles.push(_styleD);
 		}
 		g_oTableId.m_bTurnOff = false;
@@ -9110,7 +9111,7 @@ CStylesPainter.prototype =
 			var style = styles[i];
 			if (style.IsExpressStyle(DocumentStyles) && null === DocumentStyles.GetStyleIdByName(style.Name))
 			{
-				this.drawStyle(graphics, style, AscCommon.translateManager.getValue(style.Name));
+				this.drawStyle(_api, graphics, style, AscCommon.translateManager.getValue(style.Name));
 				this.defaultStyles.push(new AscCommon.CStyleImage(style.Name, AscCommon.c_oAscStyleImage.Default,
 					_canvas.toDataURL("image/png"), style.uiPriority));
 			}
@@ -9174,7 +9175,7 @@ CStylesPainter.prototype =
 				_dr_style.Name = style.Name;
 				_dr_style.Id = i;
 
-				this.drawStyle(graphics, _dr_style,
+				this.drawStyle(_api, graphics, _dr_style,
 					__Styles.Is_StyleDefault(style.Name) ? AscCommon.translateManager.getValue(style.Name) : style.Name);
 				this.docStyles[cur_index] = new AscCommon.CStyleImage(style.Name, AscCommon.c_oAscStyleImage.Document,
 					_canvas.toDataURL("image/png"), style.uiPriority);
@@ -9206,7 +9207,7 @@ CStylesPainter.prototype =
 			}
 		}
 	},
-	drawStyle: function (graphics, style, styleName)
+	drawStyle: function (_api, graphics, style, styleName)
 	{
 		var ctx = graphics.m_oContext;
 		ctx.fillStyle = "#FFFFFF";
@@ -9295,6 +9296,12 @@ CStylesPainter.prototype =
 
 			var oldDefTabStop = AscCommonWord.Default_Tab_Stop;
 			AscCommonWord.Default_Tab_Stop = 1;
+			var isShowParaMarks = false;
+			if (_api)
+			{
+				isShowParaMarks = _api.get_ShowParaMarks();
+				_api.put_ShowParaMarks(false);
+			}
 
 			var hdr = new CHeaderFooter(editor.WordControl.m_oLogicDocument.HdrFtr, editor.WordControl.m_oLogicDocument, editor.WordControl.m_oDrawingDocument, AscCommon.hdrftr_Header);
 			var _dc = hdr.Content;//new CDocumentContent(editor.WordControl.m_oLogicDocument, editor.WordControl.m_oDrawingDocument, 0, 0, 0, 0, false, true, false);
@@ -9394,6 +9401,9 @@ CStylesPainter.prototype =
 			par.Draw(0, graphics);
 
 			graphics.restore();
+
+			if (_api)
+				_api.put_ShowParaMarks(isShowParaMarks);
 
 			AscCommonWord.Default_Tab_Stop = oldDefTabStop;
 

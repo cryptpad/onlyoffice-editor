@@ -46,90 +46,6 @@ var HANDLE_EVENT_MODE_CURSOR = AscFormat.HANDLE_EVENT_MODE_CURSOR;
 
 var asc_CImgProperty = Asc.asc_CImgProperty;
 
-function CBoundsRectForMath(oDrawing)
-{
-    this.L = 0;
-    this.T = 0;
-    this.R = 0;
-    this.B = 0;
-
-    if(oDrawing)
-    {
-        this.Distance = oDrawing.Get_Distance();
-        switch (oDrawing.Get_Type())
-        {
-            case para_Drawing:
-            {
-                this.WrapType = oDrawing.wrappingType;
-                switch(oDrawing.wrappingType)
-                {
-                    case WRAPPING_TYPE_NONE:
-                    {
-                        break;
-                    }
-                    case WRAPPING_TYPE_SQUARE :
-                    case WRAPPING_TYPE_THROUGH:
-                    case WRAPPING_TYPE_TIGHT:
-                    {
-                        this.L = oDrawing.wrappingPolygon.left + this.Distance.L;
-                        this.R = oDrawing.wrappingPolygon.right - this.Distance.R;
-                        this.T = oDrawing.wrappingPolygon.top + this.Distance.T;
-                        this.B = oDrawing.wrappingPolygon.bottom - this.Distance.B;
-                        break;
-                    }
-                    case WRAPPING_TYPE_TOP_AND_BOTTOM:
-                    {
-                        var oLimits = editor.WordControl.m_oLogicDocument.Get_PageLimits(oDrawing.PageNum);
-                        this.L = oLimits.X;
-                        this.R = oLimits.XLimit;
-                        this.T = oDrawing.wrappingPolygon.top + this.Distance.T;
-                        this.B = oDrawing.wrappingPolygon.bottom - this.Distance.B;
-                        break;
-                    }
-                }
-                break;
-            }
-            case flowobject_Paragraph:
-            case flowobject_Table:
-            {
-                this.WrapType = oDrawing.WrappingType;
-                switch(oDrawing.WrappingType)
-                {
-                    case WRAPPING_TYPE_NONE:
-                    {
-                        break;
-                    }
-                    case WRAPPING_TYPE_SQUARE :
-                    case WRAPPING_TYPE_THROUGH:
-                    case WRAPPING_TYPE_TIGHT:
-                    {
-                        this.L = oDrawing.X;
-                        this.R = oDrawing.X + oDrawing.W;
-                        this.T = oDrawing.Y;
-                        this.B = oDrawing.Y + oDrawing.H;
-                        break;
-                    }
-                    case WRAPPING_TYPE_TOP_AND_BOTTOM:
-                    {
-                        var oLimits = editor.WordControl.m_oLogicDocument.Get_PageLimits(oDrawing.PageNum);
-                        this.L = oLimits.X;
-                        this.R = oLimits.XLimit;
-                        this.T = oDrawing.Y;
-                        this.B = oDrawing.Y + oDrawing.H;
-                        break;
-                    }
-                }
-            }
-        }
-
-    }
-    else
-    {
-        this.WrapType = WRAPPING_TYPE_NONE;
-        this.Distance = new AscFormat.CDistance(0, 0, 0, 0);
-    }
-}
-
 function CGraphicObjects(document, drawingDocument, api)
 {
     this.api = api;
@@ -243,7 +159,7 @@ CGraphicObjects.prototype =
         }
         return _arrFields;
     },
-
+    
     TurnOffCheckChartSelection: function()
     {
         this.bNoCheckChartTextSelection = true;
@@ -384,6 +300,135 @@ CGraphicObjects.prototype =
     createWatermarkImage: DrawingObjectsController.prototype.createWatermarkImage,
 
 
+    createWatermark: function(oProps)
+    {
+        if(oProps.get_Type() === Asc.c_oAscWatermarkType.None)
+        {
+            return null;
+        }
+        var oDrawing, extX, extY;
+        var oSectPr = this.document.Get_SectionProps();
+        var dMaxWidth = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+        var dMaxHeight = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
+        if(oProps.get_Type() === Asc.c_oAscWatermarkType.Image)
+        {
+            var oImgP = new Asc.asc_CImgProperty();
+            oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+            var oSize = oImgP.asc_getOriginSize(this.getEditorApi());
+            var dScale = oProps.get_Scale();
+            if(dScale < 0)
+            {
+                extX = dMaxWidth;
+                extY = oSize.asc_getImageHeight() * (extX / oSize.asc_getImageWidth());
+                if(extY > dMaxHeight)
+                {
+                    extY = dMaxHeight;
+                    extX = oSize.asc_getImageWidth() * (extY / oSize.asc_getImageHeight());
+                }
+            }
+            else
+            {
+                extX = oSize.asc_getImageWidth() * dScale;
+                extY = oSize.asc_getImageHeight() * dScale;
+            }
+            oDrawing = this.createImage(oProps.get_ImageUrl(), 0, 0, extX, extY, null, null)
+        }
+        else
+        {
+            var oTextPropMenu = oProps.get_TextPr();
+            oDrawing = new AscFormat.CShape();
+            oDrawing.setWordShape(true);
+            oDrawing.setBDeleted(false);
+            oDrawing.createTextBoxContent();
+            var oSpPr = new AscFormat.CSpPr();
+            var oXfrm = new AscFormat.CXfrm();
+            oXfrm.setOffX(0);
+            oXfrm.setOffY(0);
+            oXfrm.setExtX(5);
+            oXfrm.setExtY(5);
+            if(oProps.get_IsDiagonal() !== false){
+                oXfrm.setRot(7*Math.PI/4);
+            }
+            oSpPr.setXfrm(oXfrm);
+            oXfrm.setParent(oSpPr);
+            oSpPr.setFill(AscFormat.CreateNoFillUniFill());
+            oSpPr.setLn(AscFormat.CreateNoFillLine());
+            oSpPr.setGeometry(AscFormat.CreateGeometry("rect"));
+            oDrawing.setSpPr(oSpPr);
+            oSpPr.setParent(oDrawing);
+            var oContent = oDrawing.getDocContent();
+            AscFormat.AddToContentFromString(oContent, oProps.get_Text());
+            var oTextPr = new CTextPr();
+            oTextPr.FontSize = (oTextPropMenu.get_FontSize() > 0 ? oTextPropMenu.get_FontSize() : 20);
+            oTextPr.RFonts.Set_All(oTextPropMenu.get_FontFamily(), -1);
+            oTextPr.Bold = oTextPropMenu.get_Bold();
+            oTextPr.Italic = oTextPropMenu.get_Italic();
+            oTextPr.Underline = oTextPropMenu.get_Underline();
+            oTextPr.Strikeout = oTextPropMenu.get_Strikeout();
+            oTextPr.TextFill = Asc.CreateUnifillFromAscColor(oTextPropMenu.get_Color(), 1);
+            oContent.Set_ApplyToAll(true);
+            oContent.AddToParagraph(new ParaTextPr(oTextPr));
+            oContent.SetParagraphAlign(AscCommon.align_Center);
+            oContent.Set_ApplyToAll(false);
+            var oBodyPr = oDrawing.getBodyPr().createDuplicate();
+            oBodyPr.rot = 0;
+            oBodyPr.spcFirstLastPara = false;
+            oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
+            oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
+            oBodyPr.vert = AscFormat.nVertTThorz;
+            oBodyPr.lIns = 0.0;
+            oBodyPr.tIns = 0.0;
+            oBodyPr.rIns = 0.0;
+            oBodyPr.bIns = 0.0;
+            oBodyPr.numCol = 1;
+            oBodyPr.spcCol = 0;
+            oBodyPr.rtlCol = 0;
+            oBodyPr.fromWordArt = false;
+            oBodyPr.anchor = 4;
+            oBodyPr.anchorCtr = false;
+            oBodyPr.forceAA = false;
+            oBodyPr.compatLnSpc = true;
+            oBodyPr.prstTxWarp = null;
+            oDrawing.setBodyPr(oBodyPr);
+            if(oTextPropMenu.get_FontSize() < 0)
+            {
+                var oContentSize = AscFormat.GetContentOneStringSizes(oContent);
+                if(oProps.get_IsDiagonal())
+                {
+                    extX = Math.SQRT2*Math.min(dMaxWidth, dMaxHeight) / (oContentSize.h / oContentSize.w + 1);
+                }
+                else
+                {
+                    extX = dMaxWidth;
+                    extY = oContentSize.h * (extX / oContentSize.w);
+                    if(extY > dMaxHeight)
+                    {
+                        extY = dMaxHeight;
+                        extX = oContentSize.w * (extY / oContentSize.h);
+                    }
+                }
+                oTextPr.FontSize *= (extX / oContentSize.w);
+                oContent.Set_ApplyToAll(true);
+                oContent.AddToParagraph(new ParaTextPr(oTextPr));
+                oContent.Set_ApplyToAll(false);
+            }
+        }
+        var oParaDrawing = null;
+        if(oDrawing)
+        {
+            oParaDrawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
+            oDrawing.setParent(oParaDrawing);
+            oParaDrawing.Set_GraphicObject(oDrawing);
+            oParaDrawing.setExtent(oDrawing.spPr.xfrm.extX, oDrawing.spPr.xfrm.extY);
+            oParaDrawing.Set_DrawingType(drawing_Anchor);
+            oParaDrawing.Set_WrappingType(WRAPPING_TYPE_NONE);
+            oParaDrawing.Set_BehindDoc(true);
+            oParaDrawing.Set_Distance(3.2, 0, 3.2, 0);
+            oParaDrawing.Set_PositionH(Asc.c_oAscRelativeFromH.Margin, true,  Asc.c_oAscAlignH.Center, false);
+            oParaDrawing.Set_PositionV(Asc.c_oAscRelativeFromV.Margin, true,  Asc.c_oAscAlignV.Center, false);
+        }
+        return oParaDrawing;
+    },
 
     getTrialImage: function(sImageUrl)
     {
@@ -1110,11 +1155,11 @@ CGraphicObjects.prototype =
             if(!cur_drawing.bNoNeedToAdd && cur_drawing.PageNum === pageIndex)
             {
                 var drawing_array = null;
-
-                if(cur_drawing.Is_Inline()){
+                var Type = cur_drawing.getDrawingArrayType();
+                if(Type === DRAWING_ARRAY_TYPE_INLINE){
                     drawing_array = hdr_ftr_page.inlineObjects;
                 }
-                else if(cur_drawing.behindDoc === true && (cur_drawing.wrappingType === WRAPPING_TYPE_NONE ||  nCompatibilityMode < document_compatibility_mode_Word15)){
+                else if(Type === DRAWING_ARRAY_TYPE_BEHIND){
                     drawing_array = hdr_ftr_page.behindDocObjects;
                 }
                 else{
@@ -2029,10 +2074,15 @@ CGraphicObjects.prototype =
 
     tableRemoveRow: function()
     {
-
         var content = this.getTargetDocContent();
         return content && content.RemoveTableRow();
     },
+
+	tableRemoveCells : function()
+	{
+		var content = this.getTargetDocContent();
+		return content && content.RemoveTableCells();
+	},
 
     tableAddRow: function(bBefore)
     {

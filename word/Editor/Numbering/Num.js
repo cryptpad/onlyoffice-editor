@@ -779,13 +779,7 @@ CNum.prototype.GetStartOverride = function(nLvl)
 	if (!oLvlOverride)
 		return -1;
 
-	var nStartOverride = oLvlOverride.GetStartOverride();
-
-	var oLvl = oLvlOverride.GetLvl();
-	if (oLvl)
-		nStartOverride = oLvl.GetStart();
-
-	return nStartOverride;
+	return oLvlOverride.GetStartOverride();
 };
 /**
  * Проверяем есть ли у данной нумерации уровни с текстом, зависящим от других уровней

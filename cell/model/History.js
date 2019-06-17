@@ -71,6 +71,10 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_RowHide = 28;
 	window['AscCH'].historyitem_Worksheet_SetDisplayGridlines = 31;
 	window['AscCH'].historyitem_Worksheet_SetDisplayHeadings = 32;
+	window['AscCH'].historyitem_Worksheet_GroupRow = 33;
+	window['AscCH'].historyitem_Worksheet_CollapsedRow = 34;
+	window['AscCH'].historyitem_Worksheet_CollapsedCol = 35;
+	window['AscCH'].historyitem_Worksheet_GroupCol = 36;
 // Frozen cell
 	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
 
@@ -359,8 +363,11 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 
 CHistory.prototype.Remove_LastPoint = function()
 {
-	this.Index--;
-	this.Points.length = this.Index + 1;
+	if (this.Index > -1)
+	{
+		this.Index--;
+		this.Points.length = this.Index + 1;
+	}
 };
 CHistory.prototype.RemoveLastPoint = function()
 {
@@ -491,6 +498,8 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.bRedoChanges = false;
 		if (oRedoObjectParam.bIsReInit)
 			this.workbook.handlers.trigger("reInit");
+		//TODO вызывать только в случае, если были изменения строк/столбцов и отдельно для строк и столбцов
+		this.workbook.handlers.trigger("updateGroupData");
 		this.workbook.handlers.trigger("drawWS");
 		if (bUndo) {
 			if (AscCommon.isRealObject(this.lastDrawingObjects)) {
@@ -687,7 +696,7 @@ CHistory.prototype.Add_RecalcTableGrid = function()
 CHistory.prototype.Create_NewPoint = function()
 {
 	if ( 0 !== this.TurnOffHistory || 0 !== this.Transaction )
-		return;
+		return false;
 
 	this.CanNotAddChanges = false;
 
@@ -724,6 +733,8 @@ CHistory.prototype.Create_NewPoint = function()
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
 	//this.workbook.handlers.trigger("cleanCutData");
+
+	return true;
 };
 
 // Регистрируем новое изменение:

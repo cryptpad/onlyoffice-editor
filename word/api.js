@@ -4341,6 +4341,17 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype["asc_SetColumnsProps"]    = asc_docs_api.prototype.asc_SetColumnsProps;
 	asc_docs_api.prototype["asc_GetColumnsProps"]    = asc_docs_api.prototype.asc_GetColumnsProps;
+
+	asc_docs_api.prototype.asc_GetWatermarkProps = function()
+	{
+		return this.WordControl.m_oLogicDocument.GetWatermarkProps();
+	};
+
+	asc_docs_api.prototype.asc_SetWatermarkProps = function(oProps)
+	{
+		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+	};
+
 	asc_docs_api.prototype.sync_ColumnsPropsCallback = function(ColumnsProps)
 	{
 		this.sendEvent("asc_onColumnsProps", ColumnsProps);
@@ -6626,6 +6637,7 @@ background-repeat: no-repeat;\
                     {
                         isSendOnReady = true;
                         this.bInit_word_control = true;
+                        Document.Start_SilentMode();
                         this.onDocumentContentReady();
                     }
 
@@ -6641,11 +6653,15 @@ background-repeat: no-repeat;\
                 {
                     isSendOnReady = true;
                     this.bInit_word_control = true;
+                    Document.Start_SilentMode();
                     this.onDocumentContentReady();
                 }
 
 				//Recalculate для Document
 				Document.MoveCursorToStartPos(false);
+
+				if (isSendOnReady)
+                    Document.End_SilentMode(false);
 
 				if (!this.isOnlyReaderMode)
 				{
@@ -9753,7 +9769,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_TextPrFontFamilyCallBack']             = asc_docs_api.prototype.sync_TextPrFontFamilyCallBack;
 	asc_docs_api.prototype['sync_TextPrFontSizeCallBack']               = asc_docs_api.prototype.sync_TextPrFontSizeCallBack;
 	asc_docs_api.prototype['sync_PrLineSpacingCallBack']                = asc_docs_api.prototype.sync_PrLineSpacingCallBack;
-	asc_docs_api.prototype['sync_InitEditorTableStyles']                = asc_docs_api.prototype.sync_InitEditorTableStyles;
 	asc_docs_api.prototype['paraApply']                                 = asc_docs_api.prototype.paraApply;
 	asc_docs_api.prototype['put_PrAlign']                               = asc_docs_api.prototype.put_PrAlign;
 	asc_docs_api.prototype['put_TextPrBaseline']                        = asc_docs_api.prototype.put_TextPrBaseline;
@@ -9993,6 +10008,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_endEditCrop']                           = asc_docs_api.prototype.asc_endEditCrop;
 	asc_docs_api.prototype['asc_cropFit']                               = asc_docs_api.prototype.asc_cropFit;
 	asc_docs_api.prototype['asc_cropFill']                              = asc_docs_api.prototype.asc_cropFill;
+	asc_docs_api.prototype["asc_GetWatermarkProps"]                     = asc_docs_api.prototype.asc_GetWatermarkProps;
+	asc_docs_api.prototype["asc_SetWatermarkProps"]                     = asc_docs_api.prototype.asc_SetWatermarkProps;
 
 	asc_docs_api.prototype['sync_StartAddShapeCallback']                = asc_docs_api.prototype.sync_StartAddShapeCallback;
 	asc_docs_api.prototype['CanGroup']                                  = asc_docs_api.prototype.CanGroup;

@@ -3216,9 +3216,10 @@ function CDrawingDocument()
 		_canvas.width   = TABLE_STYLE_WIDTH_PIX;
 		_canvas.height  = TABLE_STYLE_HEIGHT_PIX;
 		var ctx         = _canvas.getContext('2d');
-
+		var oTable;
 		for (var i = 0; i < logicDoc.TablesForInterface.length; i++)
 		{
+			oTable = logicDoc.TablesForInterface[i].graphicObject;
 			ctx.fillStyle = "#FFFFFF";
 			ctx.fillRect(0, 0, _canvas.width, _canvas.height);
 
@@ -3226,12 +3227,24 @@ function CDrawingDocument()
 			graphics.init(ctx, _canvas.width, _canvas.height, _pageW, _pageH);
 			graphics.m_oFontManager = AscCommon.g_fontManager;
 			graphics.transform(1, 0, 0, 1, 0, 0);
-			logicDoc.TablesForInterface[i].graphicObject.Draw(0, graphics);
+			oTable.Draw(0, graphics);
 
-			var _styleD   = new Asc.CAscTableStyle();
-			_styleD.Type  = 0;
-			_styleD.Image = _canvas.toDataURL("image/png");
-			_styleD.Id    = logicDoc.TablesForInterface[i].graphicObject.TableStyle;
+			var _styleD   = new AscCommon.CStyleImage();
+			_styleD.type  = AscCommon.c_oAscStyleImage.Default;
+			_styleD.image = _canvas.toDataURL("image/png");
+			var oStyleObject = AscCommon.g_oTableId.Get_ById(oTable.TableStyle);
+			if(oStyleObject)
+			{
+				_styleD.name = oTable.TableStyle;
+				_styleD.displayName = oStyleObject.Name;
+			}
+			else
+			{
+
+				_styleD.name = oTable.TableStyle;
+				_styleD.displayName = "";
+
+			}
 			_dst_styles.push(_styleD);
 		}
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles);

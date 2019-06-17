@@ -4369,7 +4369,7 @@ CShape.prototype.check_bounds = function (checker) {
 
 CShape.prototype.getBase64Img = function ()
 {
-    if(typeof this.cachedImage === "string")
+    if(typeof this.cachedImage === "string" && this.cachedImage.length > 0)
     {
         return this.cachedImage;
     }
@@ -4545,7 +4545,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
             this.brush = AscFormat.CreateBlipFillUniFillFromUrl(sSignatureUrl);
         }
     }
-    if ((geometry || (this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_DLbl)) && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
+    if ((geometry || (this.getObjectType && (this.getObjectType() === AscDFH.historyitem_type_DLbl || this.getObjectType() === AscDFH.historyitem_type_Legend))) && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
         graphics.SetIntegerGrid(false);
         graphics.transform3(_transform, false);
 
@@ -5426,6 +5426,45 @@ CShape.prototype.remove = function (Count, bOnlyText, bRemoveOnlySelection, bOnT
     }
 };
 
+
+CShape.prototype.isWatermark = function()
+{
+    return (AscFormat.isRealObject(this.getDocContent()));
+};
+
+CShape.prototype.getWatermarkProps = function()
+{
+    var oProps = new Asc.CAscWatermarkProperties(), oTextPr, oRGBAColor, oInterfaceTextPr, oContent;
+    if(!this.isWatermark())
+    {
+        oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        return oProps;
+    }
+    oContent = this.getDocContent();
+    oProps.put_Type(Asc.c_oAscWatermarkType.Text);
+    oProps.put_IsDiagonal(!AscFormat.fApproxEqual(this.rot, 0.0));
+    oContent.Set_ApplyToAll(true);
+    oProps.put_Text(oContent.GetSelectedText(true, {NewLineParagraph : false, NewLine : false}));
+    oTextPr = oContent.GetCalculatedTextPr();
+    oInterfaceTextPr = new Asc.CTextProp(oTextPr);
+    if(oTextPr.Unifill)
+    {
+        oTextPr.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
+        if (oTextPr.Unifill.fill && oTextPr.Unifill.fill.type === c_oAscFill.FILL_TYPE_SOLID && oTextPr.Unifill.fill.color)
+        {
+            oInterfaceTextPr.put_Color(AscCommon.CreateAscColor(oTextPr.Unifill.fill.color));
+        }
+        else
+        {
+            oRGBAColor = oTextPr.Unifill.getRGBAColor();
+            oInterfaceTextPr.put_Color(AscCommon.CreateAscColorCustom(oRGBAColor.R, oRGBAColor.G, oRGBAColor.B, false));
+        }
+        oProps.put_Opacity(AscFormat.isRealNumber(oTextPr.Unifill.transparent) ? oTextPr.Unifill.transparent : 255);
+    }
+    oProps.put_TextPr(oInterfaceTextPr);
+    oContent.Set_ApplyToAll(false);
+    return oProps;
+};
 
 CShape.prototype.Restart_CheckSpelling = function()
 {
