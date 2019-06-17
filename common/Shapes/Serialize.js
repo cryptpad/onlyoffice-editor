@@ -5173,8 +5173,19 @@ function BinaryPPTYLoader()
                 }
                 case 4:
                 {
-                    var _len = s.GetULong();
-                    s.Skip2(_len);
+                    var len2 = s.GetLong();
+
+                    var  _end_rec_effect = s.cur + len2;
+                    if(len2 > 0)
+                    {
+                        var _type = s.GetUChar();
+                        if(_type === 1)//EFFECTPROPERTIES_TYPE_LIST
+                        {
+
+                        }
+                        var oEffectContainer  = this.ReadEffectDag();
+                    }
+                    s.Seek2(_end_rec_effect);
                     break;
                 }
                 case 5:
