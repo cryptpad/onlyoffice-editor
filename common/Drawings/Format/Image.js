@@ -240,7 +240,7 @@ CImageShape.prototype.getWatermarkProps = function()
     if(oApi)
     {
         var oImgP = new Asc.asc_CImgProperty();
-        oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+        oImgP.ImageUrl = this.blipFill.RasterImageId;
         var oSize = oImgP.asc_getOriginSize(oApi);
         if(oSize && oSize.IsCorrect)
         {

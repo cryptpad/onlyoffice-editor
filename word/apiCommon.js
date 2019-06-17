@@ -1904,8 +1904,8 @@
 				break;
 			}
 		}
-		var nWidth = oDiv.style.width;
-		var nHeight = oDiv.style.height;
+		var nWidth = oDiv.clientWidth;
+		var nHeight = oDiv.clientHeight;
 		if(null === oCanvas){
 			oCanvas = document.createElement('canvas');
 			oCanvas.width = parseInt(nWidth);

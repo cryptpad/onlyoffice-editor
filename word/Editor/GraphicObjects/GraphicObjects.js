@@ -308,12 +308,12 @@ CGraphicObjects.prototype =
         }
         var oDrawing, extX, extY;
         var oSectPr = this.document.Get_SectionProps();
-        var dMaxWidth = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
-        var dMaxHeight = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
+        var dMaxWidth = oSectPr.get_W() - oSectPr.get_LeftMargin() - oSectPr.get_RightMargin();
+        var dMaxHeight = oSectPr.get_H() - oSectPr.get_TopMargin() - oSectPr.get_BottomMargin();
         if(oProps.get_Type() === Asc.c_oAscWatermarkType.Image)
         {
             var oImgP = new Asc.asc_CImgProperty();
-            oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+            oImgP.ImageUrl = oProps.get_ImageUrl();
             var oSize = oImgP.asc_getOriginSize(this.getEditorApi());
             var dScale = oProps.get_Scale();
             if(dScale < 0)
@@ -416,7 +416,7 @@ CGraphicObjects.prototype =
         var oParaDrawing = null;
         if(oDrawing)
         {
-            oParaDrawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
+            oParaDrawing   = new ParaDrawing(oDrawing.spPr.xfrm.extX, oDrawing.spPr.xfrm.extY, null, this.DrawingDocument, this, null);
             oDrawing.setParent(oParaDrawing);
             oParaDrawing.Set_GraphicObject(oDrawing);
             oParaDrawing.setExtent(oDrawing.spPr.xfrm.extX, oDrawing.spPr.xfrm.extY);
