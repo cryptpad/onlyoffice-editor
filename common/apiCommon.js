@@ -1497,6 +1497,11 @@
 			return this.Name;
 		}, asc_getIndex: function () {
 			return this.Index;
+		},
+		asc_putName: function (v) {
+			this.Name = v;
+		}, asc_putIndex: function (v) {
+			this.Index = v;
 		}
 	};
 
@@ -4465,6 +4470,8 @@
 	prot = asc_CTextFontFamily.prototype;
 	prot["get_Name"] = prot["asc_getName"] = prot.asc_getName;
 	prot["get_Index"] = prot["asc_getIndex"] = prot.asc_getIndex;
+	prot["put_Name"] = prot["asc_putName"] = prot.asc_putName;
+	prot["put_Index"] = prot["asc_putIndex"] = prot.asc_putIndex;
 
 	window["Asc"]["asc_CParagraphTab"] = window["Asc"].asc_CParagraphTab = asc_CParagraphTab;
 	prot = asc_CParagraphTab.prototype;
