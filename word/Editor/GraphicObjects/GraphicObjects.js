@@ -360,7 +360,7 @@ CGraphicObjects.prototype =
             AscFormat.AddToContentFromString(oContent, oProps.get_Text());
             var oTextPr = new CTextPr();
             oTextPr.FontSize = (oTextPropMenu.get_FontSize() > 0 ? oTextPropMenu.get_FontSize() : 20);
-            oTextPr.RFonts.Set_All(oTextPropMenu.get_FontFamily(), -1);
+            oTextPr.RFonts.Set_All(oTextPropMenu.get_FontFamily().get_Name(), -1);
             oTextPr.Bold = oTextPropMenu.get_Bold();
             oTextPr.Italic = oTextPropMenu.get_Italic();
             oTextPr.Underline = oTextPropMenu.get_Underline();
