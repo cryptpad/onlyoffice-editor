@@ -365,10 +365,12 @@ CGraphicObjects.prototype =
             oTextPr.Italic = oTextPropMenu.get_Italic();
             oTextPr.Underline = oTextPropMenu.get_Underline();
             oTextPr.Strikeout = oTextPropMenu.get_Strikeout();
-            oTextPr.TextFill = Asc.CreateUnifillFromAscColor(oTextPropMenu.get_Color(), 1);
+            oTextPr.TextFill = AscFormat.CreateUnifillFromAscColor(oTextPropMenu.get_Color(), 1);
+            oTextPr.TextFill.transparent = (oProps.get_Opacity() < 255 ? 127.5 : null);
             oContent.Set_ApplyToAll(true);
             oContent.AddToParagraph(new ParaTextPr(oTextPr));
             oContent.SetParagraphAlign(AscCommon.align_Center);
+            oContent.SetParagraphSpacing({Before : 0, After: 0,  LineRule : Asc.linerule_Auto, Line : 1.0});
             oContent.Set_ApplyToAll(false);
             var oBodyPr = oDrawing.getBodyPr().createDuplicate();
             oBodyPr.rot = 0;
@@ -384,15 +386,18 @@ CGraphicObjects.prototype =
             oBodyPr.spcCol = 0;
             oBodyPr.rtlCol = 0;
             oBodyPr.fromWordArt = false;
-            oBodyPr.anchor = 4;
+            oBodyPr.anchor = 1;
             oBodyPr.anchorCtr = false;
             oBodyPr.forceAA = false;
             oBodyPr.compatLnSpc = true;
             oBodyPr.prstTxWarp = null;
             oDrawing.setBodyPr(oBodyPr);
+
+            var oContentSize = AscFormat.GetContentOneStringSizes(oContent);
+            oXfrm.setExtX(oContentSize.w);
+            oXfrm.setExtY(oContentSize.h);
             if(oTextPropMenu.get_FontSize() < 0)
             {
-                var oContentSize = AscFormat.GetContentOneStringSizes(oContent);
                 if(oProps.get_IsDiagonal())
                 {
                     extX = Math.SQRT2*Math.min(dMaxWidth, dMaxHeight) / (oContentSize.h / oContentSize.w + 1);
@@ -400,23 +405,20 @@ CGraphicObjects.prototype =
                 else
                 {
                     extX = dMaxWidth;
-                    extY = oContentSize.h * (extX / oContentSize.w);
-                    if(extY > dMaxHeight)
-                    {
-                        extY = dMaxHeight;
-                        extX = oContentSize.w * (extY / oContentSize.h);
-                    }
                 }
                 oTextPr.FontSize *= (extX / oContentSize.w);
                 oContent.Set_ApplyToAll(true);
                 oContent.AddToParagraph(new ParaTextPr(oTextPr));
                 oContent.Set_ApplyToAll(false);
+                oContentSize = AscFormat.GetContentOneStringSizes(oContent);
+                oXfrm.setExtX(extX);
+                oXfrm.setExtY(oContentSize.h);
             }
         }
         var oParaDrawing = null;
         if(oDrawing)
         {
-            oParaDrawing   = new ParaDrawing(oDrawing.spPr.xfrm.extX, oDrawing.spPr.xfrm.extY, null, this.DrawingDocument, this, null);
+            oParaDrawing   = new ParaDrawing(oDrawing.spPr.xfrm.extX, oDrawing.spPr.xfrm.extY, oDrawing, this.document.DrawingDocument, this.document, null);
             oDrawing.setParent(oParaDrawing);
             oParaDrawing.Set_GraphicObject(oDrawing);
             oParaDrawing.setExtent(oDrawing.spPr.xfrm.extX, oDrawing.spPr.xfrm.extY);

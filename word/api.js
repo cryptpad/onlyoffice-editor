@@ -4351,6 +4351,12 @@ background-repeat: no-repeat;\
 	{
 		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
 	};
+	asc_docs_api.prototype.asc_WatermarkRemove = function(oProps)
+	{
+		var oProps = new Asc.CAscWatermarkProperties();
+		oProps.put_Type(Asc.c_oAscWatermarkType.None);
+		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+	};
 
 	asc_docs_api.prototype.sync_ColumnsPropsCallback = function(ColumnsProps)
 	{

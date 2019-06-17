@@ -10227,6 +10227,7 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
 
         this.SetSelectionState(oDocState);
     }
+    this.Recalculate();
     this.FinalizeAction(true);
 };
 

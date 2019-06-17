@@ -5429,7 +5429,7 @@ CShape.prototype.remove = function (Count, bOnlyText, bRemoveOnlySelection, bOnT
 
 CShape.prototype.isWatermark = function()
 {
-    return (AscFormat.isRealObject(this.getDocContent()));
+    return (AscCommon.isRealObject(this.getDocContent()));
 };
 
 CShape.prototype.getWatermarkProps = function()
