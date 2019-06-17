@@ -70,32 +70,6 @@ CGraphicPage.prototype =
         return editor.WordControl.m_oLogicDocument.GetCompatibilityMode();
     },
 
-    findWatermark: function()
-    {
-        if(this.graphicObjects && this.hdrFtrPage)
-        {
-            return this.hdrFtrPage.findWatermark();
-        }
-        var i, drawing;
-        for(i = this.beforeTextObjects.length - 1; i > -1; --i)
-        {
-            drawing = this.beforeTextObjects[i];
-            if(drawing.isWatermark())
-            {
-                return drawing;
-            }
-        }
-        for(i = this.behindDocObjects.length - 1; i > -1; --i)
-        {
-            drawing = this.beforeTextObjects[i];
-            if(drawing.isWatermark())
-            {
-                return drawing;
-            }
-        }
-        return null;
-    },
-
     addFloatTable: function(table)
     {
         for(var i = 0; i < this.flowTables.length; ++i)
