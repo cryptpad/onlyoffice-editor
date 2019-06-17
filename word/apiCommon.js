@@ -1772,10 +1772,14 @@
 		this.Scale = null;
 
 		this.DivId = null;
+		this.Api = null;
 	}
 
 	window['Asc']['CAscWatermarkProperties'] = window['Asc'].CAscWatermarkProperties = CAscWatermarkProperties;
 
+	CAscWatermarkProperties.prototype['put_Api'] = CAscWatermarkProperties.prototype.put_Api = function (v) {
+		this.Api = v;
+	};
 	CAscWatermarkProperties.prototype['put_Type'] = CAscWatermarkProperties.prototype.put_Type = function (v) {
 		this.Type = v;
 	};
@@ -1825,5 +1829,137 @@
 	};
 	CAscWatermarkProperties.prototype['updateView'] = CAscWatermarkProperties.prototype.updateView = function (v) {
 
+	};
+	CAscWatermarkProperties.prototype['showFileDialog'] = CAscWatermarkProperties.prototype.showFileDialog = function () {
+		if(!this.Api || !this.DivId){
+			return;
+		}
+		var t = this.Api;
+		var _this = this;
+		AscCommon.ShowImageFileDialog(t.documentId, t.documentUserId, t.CoAuthoringApi.get_jwt(), function(error, files)
+			{
+				if (Asc.c_oAscError.ID.No !== error)
+				{
+					t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+				}
+				else
+				{
+					t.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+					AscCommon.UploadImageFiles(files, t.documentId, t.documentUserId, t.CoAuthoringApi.get_jwt(), function(error, urls)
+					{
+						if (Asc.c_oAscError.ID.No !== error)
+						{
+							t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+						}
+						else
+						{
+							t.ImageLoader.LoadImagesWithCallback(urls, function(){
+								if(urls.length > 0)
+								{
+									_this.ImageUrl = urls[0];
+									_this.drawTexture();
+								}
+							});
+						}
+						t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+					});
+				}
+			},
+			function(error)
+			{
+				if (Asc.c_oAscError.ID.No !== error)
+				{
+					t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+				}
+				t.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+			});
+	};
+
+	CAscWatermarkProperties.prototype['loadImageUrl'] = CAscWatermarkProperties.prototype.loadImageUrl = function(sUrl, withAuthorization)	{
+		var _this = this;
+		AscCommon.sendImgUrls(this, [sUrl], function(data) {
+			if (data && data[0]){
+				_this.ImageLoader.LoadImagesWithCallback([data[0].url], function(){
+					_this.ImageUrl = data[0].url;
+					_this.drawTexture();
+				});
+			}
+
+		}, false, undefined, withAuthorization);
+	};
+
+	CAscWatermarkProperties.prototype['drawTexture'] = CAscWatermarkProperties.prototype.drawTexture = function () {
+		if(!this.ImageUrl || !this.Api){
+			return;
+		}
+		var oDiv = document.getElementById(this.DivId);
+		if(!oDiv){
+			return;
+		}
+		var aChildren = oDiv.children;
+		var oCanvas = null;
+		for(var i = 0; i < aChildren.length; ++i){
+			if(aChildren[i].tagName === 'canvas'){
+				oCanvas = aChildren[i];
+				break;
+			}
+		}
+		var nWidth = oDiv.style.width;
+		var nHeight = oDiv.style.height;
+		if(null === oCanvas){
+			oCanvas = document.createElement('canvas');
+			oCanvas.width = parseInt(nWidth);
+			oCanvas.height = parseInt(nHeight);
+			oDiv.appendChild(oCanvas);
+		}
+		var oContext = oCanvas.getContext('2d');
+		var _img = this.Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(this.ImageUrl)];
+		if (_img != undefined && _img.Image != null && _img.Status != AscFonts.ImageLoadStatus.Loading)
+		{
+			var _x = 0;
+			var _y = 0;
+			var _w = Math.max(_img.Image.width, 1);
+			var _h = Math.max(_img.Image.height, 1);
+
+			var dAspect1 = nWidth / nHeight;
+			var dAspect2 = _w / _h;
+
+			_w = nWidth;
+			_h = nHeight;
+			if (dAspect1 >= dAspect2)
+			{
+				_w = dAspect2 * nHeight;
+				_x = (nWidth - _w) / 2;
+			}
+			else
+			{
+				_h = _w / dAspect2;
+				_y = (nHeight - _h) / 2;
+			}
+			oContext.drawImage(_img.Image, _x, _y, _w, _h);
+		}
+		else if (!_img || !_img.Image)
+		{
+			oContext.lineWidth = 1;
+
+			oContext.beginPath();
+			oContext.moveTo(0, 0);
+			oContext.lineTo(nWidth, nHeight);
+			oContext.moveTo(nWidth, 0);
+			oContext.lineTo(0, nHeight);
+			oContext.strokeStyle = "#FF0000";
+			oContext.stroke();
+
+			oContext.beginPath();
+			oContext.moveTo(0, 0);
+			oContext.lineTo(nWidth, 0);
+			oContext.lineTo(nWidth, nHeight);
+			oContext.lineTo(0, nHeight);
+			oContext.closePath();
+
+			oContext.strokeStyle = "#000000";
+			oContext.stroke();
+			oContext.beginPath();
+		}
 	};
 })(window, undefined);

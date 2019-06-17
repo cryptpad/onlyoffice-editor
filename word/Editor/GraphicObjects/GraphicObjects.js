@@ -386,7 +386,6 @@ CGraphicObjects.prototype =
             if(oProps.get_IsDiagonal() !== false){
                 oXfrm.setRot(7*Math.PI/4);
             }
-
             oSpPr.setXfrm(oXfrm);
             oXfrm.setParent(oSpPr);
             oSpPr.setFill(AscFormat.CreateNoFillUniFill());

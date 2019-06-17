@@ -10178,15 +10178,19 @@ CDocument.prototype.GetWatermarkProps = function()
     {
         oProps = new Asc.CAscWatermarkProperties();
         oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        oProps.put_Api(this.Api);
         return oProps;
     }
     var oWatermark = Header.FindWatermark();
     if(oWatermark)
     {
-        return oWatermark.GetWatermarkProps();
+        oProps = oWatermark.GetWatermarkProps();
+        oProps.put_Api(this.Api);
+        return oProps;
     }
     oProps = new Asc.CAscWatermarkProperties();
     oProps.put_Type(Asc.c_oAscWatermarkType.None);
+    oProps.put_Api(this.Api);
     return oProps;
 };
 
