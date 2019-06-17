@@ -204,66 +204,67 @@ PresentationSelectedContent.prototype.getContentType = function(){
 
 function CreatePresentationTableStyles(Styles, IdMap)
 {
-    function CreateMiddleStyle2(schemeId)
-    {
-        var style = new CStyle("Middle Style 2 - accent " + (schemeId + 1), null, null, styletype_Table);
-        //style.Id = "{" + GUID() + "}";
+    function CreateThemedStyle1(schemeId) {
+        if (schemeId == 8)
+            var style = new CStyle("Themed Style 1", null, null, styletype_Table);
+        else
+            var style = new CStyle("Themed Style 1 - Accent " + (schemeId + 1), null, null, styletype_Table);
         style.TablePr.Set_FromObject(
             {
                 TableBorders:
                 {
                     Left:
                     {
-                        Color : { r : 0, g : 0, b : 0 },
-                        Unifill : CreateUnifillSolidFillSchemeColor(12, 0),
-                        Space : 0,
-                        Size  : 12700/36000,
-                        Value : border_Single
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
                     },
 
                     Right:
                     {
-                        Color : { r : 0, g : 0, b : 0 },
-                        Unifill : CreateUnifillSolidFillSchemeColor(12, 0),
-                        Space : 0,
-                        Size  : 12700/36000,
-                        Value : border_Single
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
                     },
 
                     Top:
                     {
-                        Color : { r : 0, g : 0, b : 0 },
-                        Unifill : CreateUnifillSolidFillSchemeColor(12, 0),
-                        Space : 0,
-                        Size  : 12700/36000,
-                        Value : border_Single
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
                     },
 
                     Bottom:
                     {
-                        Color : { r : 0, g : 0, b : 0 },
-                        Unifill : CreateUnifillSolidFillSchemeColor(12, 0),
-                        Space : 0,
-                        Size  : 12700/36000,
-                        Value : border_Single
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
                     },
 
                     InsideH:
                     {
-                        Color : { r : 0, g : 0, b : 0 },
-                        Unifill : CreateUnifillSolidFillSchemeColor(12, 0),
-                        Space : 0,
-                        Size  : 12700/36000,
-                        Value : border_Single
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
                     },
 
                     InsideV:
                     {
-                        Color : { r : 0, g : 0, b : 0 },
-                        Unifill : CreateUnifillSolidFillSchemeColor(12, 0),
-                        Space : 0,
-                        Size  : 12700/36000,
-                        Value : border_Single
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
                     }
                 }
             }
@@ -273,18 +274,324 @@ function CreatePresentationTableStyles(Styles, IdMap)
                 TextPr:
                 {
                     FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
-                    Unifill:  CreateUnifillSolidFillSchemeColor(8, 0)
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
                 TableCellPr:
                 {
                     Shd:
                     {
-                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.6)
                     }
                 }
             }
         );
-        var styleObject =    {
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.8)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+
+        var styleLastRowObject = {
+            TableCellPr:
+            {
+
+            },
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            }
+        }
+        styleLastRowObject.TableCellPr.TableCellBorders =
+            {
+                Right:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_None
+                },
+                Left:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_None
+                },
+
+            };
+        style.TableLastRow.Set_FromObject(styleLastRowObject);
+        styleObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+            }
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            };
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateThemedStyle2(schemeId) {
+        if (schemeId == 8)
+            var style = new CStyle("Themed Style 2", null, null, styletype_Table);
+        else
+            var style = new CStyle("Themed Style 2 - Accent " + (schemeId + 1), null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.8)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            },
+            TableCellPr:
+            {
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+        styleObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+            }
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            };
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateLightStyle1(schemeId) {
+        if (schemeId == 8)
+            var style = new CStyle("Light Style 1", null, null, styletype_Table);
+        else
+            var style = new CStyle("Light Style 1 - Accent " + (schemeId + 1), null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                    }
+                }
+            }
+        );
+        var styleObject = {
             TableCellPr:
             {
                 Shd:
@@ -301,14 +608,494 @@ function CreatePresentationTableStyles(Styles, IdMap)
             {
                 Bold: true,
                 FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
-                Unifill:  CreateUnifillSolidFillSchemeColor(8, 0)
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
             },
+            TableCellPr:
+            {
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            };
+        styleObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            }
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateLightStyle2(schemeId) {
+        if (schemeId == 8)
+            var style = new CStyle("Light Style 2", null, null, styletype_Table);
+        else
+            var style = new CStyle("Light Style 2 - Accent " + (schemeId + 1), null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                    }
+                }
+            }
+        );
+        var styleObject = {
             TableCellPr:
             {
                 Shd:
                 {
-                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                },
+                TableCellBorders:
+                {
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    }
+                },
+            }
+        };
+        var styleTableBand1Vert =
+        {
+            TableCellPr:
+            {
+                TableCellBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    }
                 }
+            }
+        }
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleTableBand1Vert);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 38100 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            }
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            };
+
+        styleObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+            }
+
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateLightStyle3(schemeId) {
+        if (schemeId == 8)
+            var style = new CStyle("Light Style 3", null, null, styletype_Table);
+        else
+            var style = new CStyle("Light Style 3 - Accent " + (schemeId + 1), null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 38100 / 36000,
+                    Value: border_Single
+                }
+            };
+
+        styleObject.TableCellPr.Shd =
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                }
+            };
+
+        style.TableLastRow.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 38100 / 36000,
+                    Value: border_Single
+                }
+            };
+
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            };
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateMediumStyle1(schemeId) {
+    
+        if(schemeId == 8)
+        var style = new CStyle("Medium Style 1", null, null, styletype_Table); 
+        else
+        var style = new CStyle("Medium Style 1 - Accent " + (schemeId + 1), null, null, styletype_Table);  
+
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_Single
+                    },
+
+                    Right:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_Single
+                    },
+
+                    Top:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_Single
+                    },
+
+                    Bottom:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_Single
+                    },
+
+                    InsideH:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_Single
+                    },
+
+                    InsideV:
+                    {
+                        Value : border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill:  CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                    }
+                }
+            }
+        );
+        var styleObject =    {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill:  CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
             }
         };
         style.TableLastCol.Set_FromObject(styleObject);
@@ -319,19 +1106,35 @@ function CreatePresentationTableStyles(Styles, IdMap)
             Top:
             {
                 Color : { r : 0, g : 0, b : 0 },
-                Unifill : CreateUnifillSolidFillSchemeColor(12, 0),
+                Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
                 Space : 0,
                 Size  : 38100/36000,
                 Value : border_Single
             }
         };
+        styleObject.TableCellPr.Shd = 
+        {
+            Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+        }
         style.TableLastRow.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+        {
+            Top:
+            { 
+                Value : border_None
+            }
+        };
+        styleObject.TableCellPr.Shd = 
+        {
+            Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+        }
         styleObject.TableCellPr.TableCellBorders =
         {
             Bottom:
             {
                 Color : { r : 0, g : 0, b : 0 },
-                Unifill : CreateUnifillSolidFillSchemeColor(12, 0),
+                Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
                 Space : 0,
                 Size  : 38100/36000,
                 Value : border_Single
@@ -346,21 +1149,1338 @@ function CreatePresentationTableStyles(Styles, IdMap)
         style.TableFirstRow.Set_FromObject(styleObject);
         return style;
     }
-    var def = CreateMiddleStyle2(0), style;
+    function CreateMediumStyle2(schemeId) {
+        if (schemeId == 8)
+            var style = new CStyle("Medium Style 2", null, null, styletype_Table);
+        else
+            var style = new CStyle("Medium Style 2 - Accent " + (schemeId + 1), null, null, styletype_Table);
+        //style.Id = "{" + GUID() + "}";
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
 
-    style = CreateMiddleStyle2(8);
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.4)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            },
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+                }
+            }
+        };
+
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 38100 / 36000,
+                    Value: border_Single
+                }
+            };
+
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 38100 / 36000,
+                    Value: border_Single
+                }
+            };
+
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    } 
+    function CreateMediumStyle3(schemeId) {
+        if(schemeId == 8)
+        var style = new CStyle("Medium Style 3", null, null, styletype_Table); 
+        else
+        var style = new CStyle("Medium Style 3 - Accent " + (schemeId + 1), null, null, styletype_Table);  
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_None
+                    },
+
+                    Right:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_None
+                    },
+
+                    Top:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(8, 0),
+                        Space : 0,
+                        Size  : 38100/36000,
+                        Value : border_Single
+                    },
+
+                    Bottom:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(8, 0),
+                        Space : 0,
+                        Size  : 38100/36000,
+                        Value : border_Single
+                    },
+
+                    InsideH:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_None
+                    },
+
+                    InsideV:
+                    {
+                        Color : { r : 0, g : 0, b : 0 },
+                        Unifill : CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space : 0,
+                        Size  : 12700/36000,
+                        Value : border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill:  CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                    }
+                }
+            }
+        );
+        var styleObject =    {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(2, 0.2)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill:  CreateUnifillSolidFillSchemeColor(12, 0)
+            },
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+                }
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+        styleObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            }
+        styleObject.TableCellPr.TableCellBorders =
+        {
+            Top:
+            {
+                Color : { r : 0, g : 0, b : 0 },
+                Unifill : CreateUnifillSolidFillSchemeColor(8, 0),
+                Space : 0,
+                Size  : 38100/36000,
+                Value : border_Single
+            }
+        };
+        styleObject.TextPr =
+        {
+            Bold: true,
+            FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+            Unifill:  CreateUnifillSolidFillSchemeColor(8, 0)
+        },
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+        {
+            Bottom:
+            {
+                Color : { r : 0, g : 0, b : 0 },
+                Unifill : CreateUnifillSolidFillSchemeColor(8, 0),
+                Space : 0,
+                Size  : 38100/36000,
+                Value : border_Single
+            }
+        };
+        styleObject.TextPr =
+        {
+            Bold: true,
+            FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+            Unifill:  CreateUnifillSolidFillSchemeColor(12, 0)
+        };
+        styleObject.TableCellPr.Shd =
+        {
+            Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+        }
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateMediumStyle4(schemeId) {
+        if (schemeId == 8)
+            var style = new CStyle("Medium Style 4", null, null, styletype_Table);
+        else
+            var style = new CStyle("Medium Style 4 - Accent " + (schemeId + 1), null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.4)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
+            }
+        };
+
+        style.TableFirstCol.Set_FromObject(styleObject);
+        style.TableLastCol.Set_FromObject(styleObject)
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 38100 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+            }
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+            }
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            };
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateNoStyle1(schemeId) {
+
+        var style = new CStyle("No Style, No Grid", null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                }
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_None
+                }
+            };
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_None
+                }
+            };
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            };
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateDarkStyle1(schemeId) {
+        if (schemeId == 8)
+            var style = new CStyle("Dark Style 1", null, null, styletype_Table);
+        else
+            var style = new CStyle("Dark Style 1 - Accent " + (schemeId + 1), null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, -0.6)
+                }
+            }
+        };
+        style.TableBand1Vert.Set_FromObject(styleObject);
+        style.TableBand1Horz.Set_FromObject(styleObject);
+
+
+        var styleFirstLastColumnObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            },
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, -0.6)
+                },
+                TableCellBorders:
+                {
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                        Space: 0,
+                        Size: 38100 / 36000,
+                        Value: border_Single
+                    }
+                }
+            }
+
+        };
+        style.TableFirstCol.Set_FromObject(styleFirstLastColumnObject);
+        styleFirstLastColumnObject.TableCellPr.TableCellBorders = {
+            Left:
+            {
+                Color: { r: 0, g: 0, b: 0 },
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                Space: 0,
+                Size: 38100 / 36000,
+                Value: border_Single
+            },
+            Right:
+            {
+                Value: border_None
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleFirstLastColumnObject);
+
+        var styleLastRowObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            },
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, -0.4)
+                },
+            }
+        };
+        styleLastRowObject.TableCellPr.TableCellBorders = {
+            Top:
+            {
+                Color: { r: 0, g: 0, b: 0 },
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                Space: 0,
+                Size: 38100 / 36000,
+                Value: border_Single
+            }
+        }
+        style.TableLastRow.Set_FromObject(styleLastRowObject);
+
+        var styleFirstRowObject = {
+            TableCellPr:
+            {
+                TextPr:
+                {
+                    Bold: true,
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                },
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellBorders:
+                {
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                        Space: 0,
+                        Size: 38100 / 36000,
+                        Value: border_Single
+                    }
+                }
+            }
+        }
+        style.TableFirstRow.Set_FromObject(styleFirstRowObject);
+        return style;
+    }
+    function CreateNoStyle2(schemeId) {
+        var style = new CStyle("No Style, Table Grid", null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_Single
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+                }
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            };
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateBlackStyle(schemeId) {
+        var style = new CStyle("Dark Style 1", null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(8, 0.2)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0.4)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                }
+            }
+        };
+        style.TableLastCol.Set_FromObject(styleObject);
+        style.TableFirstCol.Set_FromObject(styleObject);
+
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_None
+                }
+            };
+        style.TableLastRow.Set_FromObject(styleObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_Single
+                }
+            };
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            };
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    function CreateDarkStyle2(schemeId) {
+        var style = new CStyle("Dark Style 2 - Accent " + (schemeId + 1) + "/" + "Accent " + (schemeId + 2), null, null, styletype_Table);
+        style.TablePr.Set_FromObject(
+            {
+                TableBorders:
+                {
+                    Left:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Right:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Top:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    Bottom:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideH:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    },
+
+                    InsideV:
+                    {
+                        Color: { r: 0, g: 0, b: 0 },
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0),
+                        Space: 0,
+                        Size: 12700 / 36000,
+                        Value: border_None
+                    }
+                }
+            }
+        );
+        style.TableWholeTable.Set_FromObject(
+            {
+                TextPr:
+                {
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+                },
+                TableCellPr:
+                {
+                    Shd:
+                    {
+                        Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+                    }
+                }
+            }
+        );
+        var styleObject = {
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.4)
+                }
+            }
+        };
+        style.TableBand1Horz.Set_FromObject(styleObject);
+        style.TableBand1Vert.Set_FromObject(styleObject);
+
+        styleObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            },
+            TableCellPr:
+            {
+                Shd:
+                {
+                    Unifill: CreateUnifillSolidFillSchemeColor(schemeId + 1, 0)
+                }
+            }
+        };
+        var styleLastObject = {
+            TextPr:
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
+            },
+            TableCellPr:
+            {
+            }
+        }
+        style.TableLastCol.Set_FromObject(styleLastObject);
+        style.TableFirstCol.Set_FromObject(styleLastObject);
+
+        styleLastObject.TableCellPr.Shd =
+            {
+                Unifill: CreateUnifillSolidFillSchemeColor(schemeId, 0.2)
+            }
+        styleLastObject.TableCellPr.TableCellBorders =
+            {
+                Top:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(8, 0),
+                    Space: 0,
+                    Size: 38100 / 36000,
+                    Value: border_Single
+                }
+            };
+
+        style.TableLastRow.Set_FromObject(styleLastObject);
+        styleObject.TableCellPr.TableCellBorders =
+            {
+                Bottom:
+                {
+                    Color: { r: 0, g: 0, b: 0 },
+                    Unifill: CreateUnifillSolidFillSchemeColor(12, 0),
+                    Space: 0,
+                    Size: 12700 / 36000,
+                    Value: border_None
+                }
+            };
+        styleObject.TextPr =
+            {
+                Bold: true,
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
+            };
+        style.TableFirstRow.Set_FromObject(styleObject);
+        return style;
+    }
+    var def, style;
+
+    style = CreateNoStyle1(8);
     Styles.Add(style);
     IdMap[style.Id] = true;
 
-    Styles.Add(def);
-    IdMap[def.Id] = true;
-    for(var i = 1; i < 6; ++i)
+    for(var i = 0; i < 6; ++i)
     {
-        style = CreateMiddleStyle2(i);
+        style = CreateThemedStyle1(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+    style = CreateNoStyle2(8);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    for(var i = 0; i < 6; ++i)
+    {
+        style = CreateThemedStyle2(i);
         Styles.Add(style);
         IdMap[style.Id] = true;
     }
 
+    style = CreateLightStyle1(8);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    for(var i = 0; i < 6; ++i)
+    {
+        style = CreateLightStyle1(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+    style = CreateLightStyle2(8);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    for(var i = 0; i < 6; ++i)
+    {
+        style = CreateLightStyle2(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+    style = CreateLightStyle3(8);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    for(var i = 0; i < 6; ++i)
+    {
+        style = CreateLightStyle3(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+
+    style = CreateMediumStyle1(8);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    for(var i = 0; i < 6; ++i)
+    {
+        style = CreateMediumStyle1(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+    style = CreateMediumStyle2(8);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    def = CreateMediumStyle2(0);
+    Styles.Add(def);
+    IdMap[def.Id] = true;
+
+    for(var i = 1; i < 6; ++i)
+    {
+        style = CreateMediumStyle2(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+    style = CreateMediumStyle3(8);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    for(var i = 0; i < 6; ++i)
+    {
+        style = CreateMediumStyle3(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+    style = CreateMediumStyle4(8);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    for(var i = 0; i < 6; ++i)
+    {
+        style = CreateMediumStyle4(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+
+    style = CreateBlackStyle(2);
+    Styles.Add(style);
+    IdMap[style.Id] = true;
+
+    for(var i = 0; i < 6; ++i)
+    {
+        style = CreateDarkStyle1(i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
+
+    for(var i = 0; i < 3; i++)
+    {
+        style = CreateDarkStyle2(2*i);
+        Styles.Add(style);
+        IdMap[style.Id] = true;
+    }
 
     return def.Id;
 }
