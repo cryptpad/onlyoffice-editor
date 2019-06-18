@@ -5438,7 +5438,7 @@ CShape.prototype.isWatermark = function()
             oContent.Set_ApplyToAll(true);
             oTextPr = oContent.GetCalculatedTextPr();
             oContent.Set_ApplyToAll(false);
-            if(oTextPr.FontSize > 33 && oTextPr.TextFill)
+            if(oTextPr.FontSize > 20 && oTextPr.TextFill)
             {
                 return true;
             }
