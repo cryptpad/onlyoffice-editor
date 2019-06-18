@@ -872,6 +872,124 @@ var g_oFontProperties = {
 		}
 		return newContext;
 	};
+	Font.prototype.checkSchemeFont = function(theme) {
+		if (null != this.scheme && theme) {
+			var fontScheme = theme.themeElements.fontScheme;
+			var sFontName = null;
+			switch (this.scheme) {
+				case Asc.EFontScheme.fontschemeMinor:sFontName = fontScheme.minorFont.latin;break;
+				case Asc.EFontScheme.fontschemeMajor:sFontName = fontScheme.majorFont.latin;break;
+			}
+			if (null != sFontName && "" != sFontName) {
+				this.fn = sFontName;
+			}
+		}
+	};
+	Font.prototype.fromXLSB = function(stream) {
+		var dyHeight = stream.GetUShortLE();
+		if(dyHeight >= 0x0014) {
+			this.fs = dyHeight / 20;
+		}
+		var grbit = stream.GetUShortLE();
+		if(0 !== (grbit & 0x2))
+		{
+			this.i = true;
+		}
+		if(0 !== (grbit & 0x8))
+		{
+			this.s = true;
+		}
+		var bls = stream.GetUShortLE();
+		if(0x02BC == bls) {
+			this.b = true;
+		}
+		var sss = stream.GetUShortLE();
+		if(sss > 0)
+		{
+			switch(sss)
+			{
+				case 0x0001:
+					this.va = AscCommon.vertalign_SuperScript;
+					break;
+				case 0x0002:
+					this.va = AscCommon.vertalign_SubScript;
+					break;
+			}
+		}
+		var uls = stream.GetUChar();
+		if(uls > 0)
+		{
+			switch(uls)
+			{
+				case 0x01:
+					this.u =  Asc.EUnderline.underlineSingle;
+					break;
+				case 0x02:
+					this.u =  Asc.EUnderline.underlineDouble;
+					break;
+				case 0x21:
+					this.u =  Asc.EUnderline.underlineSingleAccounting;
+					break;
+				case 0x22:
+					this.u =  Asc.EUnderline.underlineDoubleAccounting;
+					break;
+			}
+		}
+		stream.Skip2(3);
+
+		var xColorType = stream.GetUChar();
+		var index = stream.GetUChar();
+		var nTintAndShade = stream.GetShortLE();
+		var rgba = stream.GetULongLE();
+		var isActualRgb = 0 !== (xColorType & 0x1);
+		xColorType &= 0xFE;
+		var tint = null;
+		if(0 != nTintAndShade)
+		{
+			tint = nTintAndShade / 0x7FFF;
+		}
+		var theme = null;
+		if(0x6 == xColorType)
+		{
+			theme = 1;
+			switch(index)
+			{
+				case 0x01:
+					theme = 0;
+					break;
+				case 0x00:
+					theme = 1;
+					break;
+				case 0x03:
+					theme = 2;
+					break;
+				case 0x02:
+					theme = 3;
+					break;
+				default:
+					theme = index;
+					break;
+			}
+			this.c = AscCommonExcel.g_oColorManager.getThemeColor(theme, tint);
+		} else if(isActualRgb){
+			this.c = AscCommonExcel.createRgbColor((rgba & 0xFF), (rgba & 0xFF00)>>8, (rgba & 0xFF0000)>>16);
+		}
+
+		var bFontScheme = stream.GetUChar();
+		if(bFontScheme > 0)
+		{
+			switch(bFontScheme)
+			{
+				case 0x01:
+					this.scheme = Asc.EFontScheme.fontschemeMajor;
+					break;
+				case 0x02:
+					this.scheme = Asc.EFontScheme.fontschemeMinor;
+					break;
+			}
+		}
+		this.fn = stream.GetString();
+	};
 
 	var c_oAscGradientType = {
 		Linear : 0,
@@ -4204,6 +4322,70 @@ Hyperlink.prototype = {
 	};
 	Row.prototype.getHeight = function () {
 		return this.h;
+	};
+	Row.prototype.fromXLSB = function(stream, aCellXfs) {
+		var end = stream.XlsbReadRecordLength() + stream.GetCurPos();
+
+		this.setIndex(stream.GetULongLE() & 0xFFFFF);
+		var style = stream.GetULongLE();
+		var ht = stream.GetUShortLE();
+		stream.Skip2(1);
+		var byteExtra2 = stream.GetUChar();
+		this.setOutlineLevel(byteExtra2 & 0x7);
+		if (0 !== (byteExtra2 & 0x8)) {
+			this.setCollapsed(true);
+		}
+		if (0 !== (byteExtra2 & 0x10)) {
+			this.setHidden(true);
+		}
+		if (0 !== (byteExtra2 & 0x20)) {
+			this.setCustomHeight(true);
+		}
+		if (ht > 0 || this.getCustomHeight()) {
+			this.setHeight(ht / 20);
+		}
+		if (0 !== (byteExtra2 & 0x40)) {
+			var xf = aCellXfs[style];
+			if (xf) {
+				this.setStyle(xf);
+			}
+		}
+		stream.Seek2(end);
+	};
+	Row.prototype.toXLSB = function(stream, offsetIndex, stylesForWrite) {
+		stream.XlsbStartRecord(AscCommonExcel.XLSB.rt_ROW_HDR, 17);
+		stream.WriteULong((this.index + offsetIndex) & 0xFFFFF);
+		var nS = 0;
+		if (this.xfs) {
+			nS = stylesForWrite.add(this.xfs);
+		}
+		stream.WriteULong(nS);
+		var nHt = 0;
+		if (null != this.h) {
+			nHt = (this.h * 20) & 0x1FFF;
+		}
+		stream.WriteUShort(nHt);
+		stream.WriteByte(0);
+		var byteExtra2 = 0;
+		if (this.outlineLevel > 0) {
+			byteExtra2 |= this.outlineLevel & 0x7;
+		}
+		if (this.getCollapsed()) {
+			byteExtra2 |= 0x8;
+		}
+		if (this.getHidden()) {
+			byteExtra2 |= 0x10;
+		}
+		if (this.getCustomHeight()) {
+			byteExtra2 |= 0x20;
+		}
+		if (this.xfs) {
+			byteExtra2 |= 0x40;
+		}
+		stream.WriteByte(byteExtra2);
+		stream.WriteByte(0);
+		stream.WriteULong(0);
+		stream.XlsbEndRecord();
 	};
 
 	function getStringFromMultiText(multiText) {
