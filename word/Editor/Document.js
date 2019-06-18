@@ -10226,7 +10226,7 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
         var oDocState = this.GetSelectionState();
 
         var oContent = Header.Content;
-        oContent.MoveCursorToStartPos(false);
+        oContent.MoveCursorToEndPos(false);
         oContent.AddToParagraph(oWatermark);
 
         this.SetSelectionState(oDocState);
