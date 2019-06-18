@@ -367,6 +367,10 @@ CGraphicObjects.prototype =
             oTextPr.Strikeout = oTextPropMenu.get_Strikeout();
             oTextPr.TextFill = AscFormat.CreateUnifillFromAscColor(oTextPropMenu.get_Color(), 1);
             oTextPr.TextFill.transparent = (oProps.get_Opacity() < 255 ? 127.5 : null);
+            if(null !== oTextPropMenu.get_Lang())
+            {
+                oTextPr.SetLang(oTextPropMenu.get_Lang());
+            }
             oContent.Set_ApplyToAll(true);
             oContent.AddToParagraph(new ParaTextPr(oTextPr));
             oContent.SetParagraphAlign(AscCommon.align_Center);

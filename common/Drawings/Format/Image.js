@@ -242,9 +242,31 @@ CImageShape.prototype.getWatermarkProps = function()
         var oImgP = new Asc.asc_CImgProperty();
         oImgP.ImageUrl = this.blipFill.RasterImageId;
         var oSize = oImgP.asc_getOriginSize(oApi);
+
         if(oSize && oSize.IsCorrect)
         {
-            oProps.put_Scale(oSize.Width / this.extX);
+            var dScale = (((this.extX /oSize.Width) * 100 + 0.5) >> 0) / 100 ;
+            oProps.put_Scale(dScale);
+            var dAspect = this.extX / this.extY;
+            var dAspect2 = oSize.Width / oSize.Height;
+            if(AscFormat.fApproxEqual(dAspect, dAspect2, 0.01))
+            {
+                var oParaDrawing = AscFormat.getParaDrawing(this);
+                if(oParaDrawing) {
+                    var oParentParagraph = oParaDrawing.Get_ParentParagraph();
+                    if (oParentParagraph) {
+                        var oSectPr = oParentParagraph.Get_SectPr();
+                        if(oSectPr)
+                        {
+                            var Width = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+                            if(AscFormat.fApproxEqual(this.extX, Width, 1))
+                            {
+                                oProps.put_Scale(-1);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     return oProps;

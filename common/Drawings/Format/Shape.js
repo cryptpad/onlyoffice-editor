@@ -5446,24 +5446,25 @@ CShape.prototype.getWatermarkProps = function()
     oContent.Set_ApplyToAll(true);
     oProps.put_Text(oContent.GetSelectedText(true, {NewLineParagraph : false, NewLine : false}));
     oTextPr = oContent.GetCalculatedTextPr();
+    oProps.put_Opacity(255);
     if(oTextPr.FontSize - (oTextPr.FontSize >> 0) > 0)
     {
         oTextPr.FontSize = -1;
     }
     oInterfaceTextPr = new Asc.CTextProp(oTextPr);
-    if(oTextPr.Unifill)
+    if(oTextPr.TextFill)
     {
-        oTextPr.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
-        if (oTextPr.Unifill.fill && oTextPr.Unifill.fill.type === c_oAscFill.FILL_TYPE_SOLID && oTextPr.Unifill.fill.color)
+        oTextPr.TextFill.check(this.Get_Theme(), this.Get_ColorMap());
+        if (oTextPr.TextFill.fill && oTextPr.TextFill.fill.type === c_oAscFill.FILL_TYPE_SOLID && oTextPr.TextFill.fill.color)
         {
-            oInterfaceTextPr.put_Color(AscCommon.CreateAscColor(oTextPr.Unifill.fill.color));
+            oInterfaceTextPr.put_Color(AscCommon.CreateAscColor(oTextPr.TextFill.fill.color));
         }
         else
         {
-            oRGBAColor = oTextPr.Unifill.getRGBAColor();
+            oRGBAColor = oTextPr.TextFill.getRGBAColor();
             oInterfaceTextPr.put_Color(AscCommon.CreateAscColorCustom(oRGBAColor.R, oRGBAColor.G, oRGBAColor.B, false));
         }
-        oProps.put_Opacity(AscFormat.isRealNumber(oTextPr.Unifill.transparent) ? oTextPr.Unifill.transparent : 255);
+        oProps.put_Opacity(AscFormat.isRealNumber(oTextPr.TextFill.transparent) ? oTextPr.TextFill.transparent : 255);
     }
     oProps.put_TextPr(oInterfaceTextPr);
     oContent.Set_ApplyToAll(false);
