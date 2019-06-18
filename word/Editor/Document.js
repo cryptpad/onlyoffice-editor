@@ -10171,7 +10171,7 @@ CDocument.prototype.GetWatermarkProps = function()
     var SectionPageInfo = this.Get_SectionPageNumInfo(this.CurPage);
     var bFirst = SectionPageInfo.bFirst;
     var bEven  = SectionPageInfo.bEven;
-    var HdrFtr = this.Get_SectionHdrFtr(this.CurPage, bFirst, bEven);
+    var HdrFtr = this.Get_SectionHdrFtr(this.CurPage, false, false);
     var Header = HdrFtr.Header;
     var oProps;
     if (null === Header)
