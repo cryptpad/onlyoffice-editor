@@ -693,6 +693,13 @@ CBlockLevelSdt.prototype.SplitTableCells = function(nColsCount, nRowsCount)
 
 	return this.Content.SplitTableCells(nColsCount, nRowsCount);
 };
+CBlockLevelSdt.prototype.RemoveTableCells = function()
+{
+	if (this.IsPlaceHolder())
+		return false;
+
+	return this.Content.RemoveTableCells();
+};
 CBlockLevelSdt.prototype.RemoveTable = function()
 {
 	if (this.IsPlaceHolder())

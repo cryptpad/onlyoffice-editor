@@ -468,12 +468,13 @@ var cExcelMaxExponent = 308;
 var cExcelMinExponent = -308;
 var c_Date1904Const = 24107; //разница в днях между 01.01.1970 и 01.01.1904 годами
 var c_Date1900Const = 25568; //разница в днях между 01.01.1970 и 01.01.1900 годами
+var rx_sFuncPref = /_xlfn\./i;
+var rx_sDefNamePref = /_xlnm\./i;
+var cNumFormatFirstCell = -1;
+var cNumFormatNone = -2;
+var cNumFormatNull = -3;
+var g_nFormulaStringMaxLength = 255;
 
-  var rx_sFuncPref = /_xlfn\./i;
-  var rx_sDefNamePref = /_xlnm\./i;
-	var cNumFormatFirstCell = -1;
-	var cNumFormatNone = -2;
-	var cNumFormatNull = -3;
 
 
 
@@ -5827,6 +5828,11 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 
 			/* Strings */ else if (parserHelp.isString.call(ph, t.Formula, ph.pCurrPos)) {
+				if (ph.operand_str.length > g_nFormulaStringMaxLength && !ignoreErrors) {
+					parseResult.setError(c_oAscError.ID.FrmlMaxTextLength);
+					t.outStack = [];
+					return false;
+				}
 				found_operand = new cString(ph.operand_str);
 			}
 
@@ -5899,6 +5905,13 @@ parserFormula.prototype.setFormula = function(formula) {
 			}
 
 			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos, t.wb, t.ws)[0]) {
+
+				if (ph.operand_str.length > g_nFormulaStringMaxLength && !ignoreErrors) {
+					//TODO стоит добавить новую ошибку
+					parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
+					t.outStack = [];
+					return false;
+				}
 
 				//проверяем вдруг это область печати
 				var defName;

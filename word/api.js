@@ -4343,11 +4343,44 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_GetColumnsProps"]    = asc_docs_api.prototype.asc_GetColumnsProps;
 
 	asc_docs_api.prototype.asc_GetWatermarkProps = function()
-	{};
+	{
+		return this.WordControl.m_oLogicDocument.GetWatermarkProps();
+	};
 
-	asc_docs_api.prototype.asc_SetWatermarkProps = function()
-	{};
-
+	asc_docs_api.prototype.asc_SetWatermarkProps = function(oProps)
+	{
+		var oTextPr = oProps.get_TextPr();
+		var oApi = this;
+		if(oTextPr)
+		{
+			var oFontFamily = oTextPr.get_FontFamily();
+			if(oFontFamily && typeof oFontFamily.get_Name() === "string")
+			{
+				if(!g_fontApplication)
+				{
+					return;
+				}
+				var oLoader     = AscCommon.g_font_loader;
+				var oFontInfo   = g_fontApplication.GetFontInfo(oFontFamily.get_Name());
+				oFontFamily.put_Name(oFontInfo.Name);
+				var bAsync    = oLoader.LoadFont(oFontInfo, function () {
+					this.sync_EndAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadFont);
+					oApi.asc_SetWatermarkProps(oProps);
+				}, null);
+				if(bAsync)
+				{
+					return;
+				}
+			}
+		}
+		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+	};
+	asc_docs_api.prototype.asc_WatermarkRemove = function(oProps)
+	{
+		var oProps = new Asc.CAscWatermarkProperties();
+		oProps.put_Type(Asc.c_oAscWatermarkType.None);
+		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+	};
 
 	asc_docs_api.prototype.sync_ColumnsPropsCallback = function(ColumnsProps)
 	{
@@ -6634,6 +6667,7 @@ background-repeat: no-repeat;\
                     {
                         isSendOnReady = true;
                         this.bInit_word_control = true;
+                        Document.Start_SilentMode();
                         this.onDocumentContentReady();
                     }
 
@@ -6649,11 +6683,15 @@ background-repeat: no-repeat;\
                 {
                     isSendOnReady = true;
                     this.bInit_word_control = true;
+                    Document.Start_SilentMode();
                     this.onDocumentContentReady();
                 }
 
 				//Recalculate для Document
 				Document.MoveCursorToStartPos(false);
+
+				if (isSendOnReady)
+                    Document.End_SilentMode(false);
 
 				if (!this.isOnlyReaderMode)
 				{
@@ -9761,7 +9799,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_TextPrFontFamilyCallBack']             = asc_docs_api.prototype.sync_TextPrFontFamilyCallBack;
 	asc_docs_api.prototype['sync_TextPrFontSizeCallBack']               = asc_docs_api.prototype.sync_TextPrFontSizeCallBack;
 	asc_docs_api.prototype['sync_PrLineSpacingCallBack']                = asc_docs_api.prototype.sync_PrLineSpacingCallBack;
-	asc_docs_api.prototype['sync_InitEditorTableStyles']                = asc_docs_api.prototype.sync_InitEditorTableStyles;
 	asc_docs_api.prototype['paraApply']                                 = asc_docs_api.prototype.paraApply;
 	asc_docs_api.prototype['put_PrAlign']                               = asc_docs_api.prototype.put_PrAlign;
 	asc_docs_api.prototype['put_TextPrBaseline']                        = asc_docs_api.prototype.put_TextPrBaseline;
@@ -10003,6 +10040,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_cropFill']                              = asc_docs_api.prototype.asc_cropFill;
 	asc_docs_api.prototype["asc_GetWatermarkProps"]                     = asc_docs_api.prototype.asc_GetWatermarkProps;
 	asc_docs_api.prototype["asc_SetWatermarkProps"]                     = asc_docs_api.prototype.asc_SetWatermarkProps;
+	asc_docs_api.prototype["asc_WatermarkRemove"]                       = asc_docs_api.prototype.asc_WatermarkRemove;
 
 	asc_docs_api.prototype['sync_StartAddShapeCallback']                = asc_docs_api.prototype.sync_StartAddShapeCallback;
 	asc_docs_api.prototype['CanGroup']                                  = asc_docs_api.prototype.CanGroup;

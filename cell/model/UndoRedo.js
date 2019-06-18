@@ -902,16 +902,20 @@ function (window, undefined) {
 			this.hd = col.hd;
 			this.CustomWidth = col.CustomWidth;
 			this.BestFit = col.BestFit;
+			this.OutlineLevel = col.outlineLevel;
+			this.Collapsed = col.collapsed;
 		} else {
 			this.width = null;
 			this.hd = null;
 			this.CustomWidth = null;
 			this.BestFit = null;
+			this.OutlineLevel = null;
+			this.Collapsed = null;
 		}
 	}
 
 	UndoRedoData_ColProp.prototype.Properties = {
-		width: 0, hd: 1, CustomWidth: 2, BestFit: 3
+		width: 0, hd: 1, CustomWidth: 2, BestFit: 3, OutlineLevel: 4, Collapsed: 5
 	};
 	UndoRedoData_ColProp.prototype.isEqual = function (val) {
 		var defaultColWidth = AscCommonExcel.oDefaultMetrics.ColWidthChars;
@@ -920,7 +924,7 @@ function (window, undefined) {
 				((null == this.width || defaultColWidth == this.width) &&
 					(null == this.BestFit || true == this.BestFit) &&
 					(null == val.width || defaultColWidth == val.width) &&
-					(null == val.BestFit || true == val.BestFit)));
+					(null == val.BestFit || true == val.BestFit))) && this.OutlineLevel == val.OutlineLevel && this.Collapsed == val.Collapsed;
 	};
 	UndoRedoData_ColProp.prototype.getType = function () {
 		return UndoRedoDataTypes.ColProp;
@@ -942,6 +946,12 @@ function (window, undefined) {
 			case this.Properties.BestFit:
 				return this.BestFit;
 				break;
+			case this.Properties.OutlineLevel:
+				return this.OutlineLevel;
+				break;
+			case this.Properties.Collapsed:
+				return this.Collapsed;
+				break;
 		}
 		return null;
 	};
@@ -959,6 +969,12 @@ function (window, undefined) {
 			case this.Properties.BestFit:
 				this.BestFit = value;
 				break;
+			case this.Properties.OutlineLevel:
+				this.OutlineLevel = value;
+				break;
+			case this.Properties.Collapsed:
+				this.Collapsed = value;
+				break;
 		}
 	};
 
@@ -967,15 +983,19 @@ function (window, undefined) {
 			this.h = row.getHeight();
 			this.hd = row.getHidden();
 			this.CustomHeight = row.getCustomHeight();
+			this.OutlineLevel = row.getOutlineLevel();
+			this.Collapsed = row.getCollapsed();
 		} else {
 			this.h = null;
 			this.hd = null;
 			this.CustomHeight = null;
+			this.OutlineLevel = null;
+			this.Collapsed = null;
 		}
 	}
 
 	UndoRedoData_RowProp.prototype.Properties = {
-		h: 0, hd: 1, CustomHeight: 2
+		h: 0, hd: 1, CustomHeight: 2, OutlineLevel: 3, Collapsed: 4
 	};
 	UndoRedoData_RowProp.prototype.isEqual = function (val) {
 		var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
@@ -983,7 +1003,7 @@ function (window, undefined) {
 			((null == this.h || defaultRowHeight == this.h) &&
 				(null == this.CustomHeight || false == this.CustomHeight) &&
 				(null == val.h || defaultRowHeight == val.h) &&
-				(null == val.CustomHeight || false == val.CustomHeight)));
+				(null == val.CustomHeight || false == val.CustomHeight))) && this.OutlineLevel == val.OutlineLevel && this.Collapsed == val.Collapsed;
 	};
 	UndoRedoData_RowProp.prototype.getType = function () {
 		return UndoRedoDataTypes.RowProp;
@@ -1002,6 +1022,12 @@ function (window, undefined) {
 			case this.Properties.CustomHeight:
 				return this.CustomHeight;
 				break;
+			case this.Properties.OutlineLevel:
+				return this.OutlineLevel;
+				break;
+			case this.Properties.Collapsed:
+				return this.Collapsed;
+				break;
 		}
 		return null;
 	};
@@ -1015,6 +1041,12 @@ function (window, undefined) {
 				break;
 			case this.Properties.CustomHeight:
 				this.CustomHeight = value;
+				break;
+			case this.Properties.OutlineLevel:
+				this.OutlineLevel = value;
+				break;
+			case this.Properties.Collapsed:
+				this.Collapsed = value;
 				break;
 		}
 	};
@@ -1993,6 +2025,7 @@ function (window, undefined) {
 			return;
 		}
 		var collaborativeEditing = wb.oApi.collaborativeEditing;
+		var workSheetView;
 		if (AscCH.historyitem_Worksheet_RemoveCell == Type) {
 			nRow = Data.nRow;
 			nCol = Data.nCol;
@@ -2058,7 +2091,7 @@ function (window, undefined) {
 
 			//нужно для того, чтобы грамотно выставлялись цвета в ф/т при ручном скрытии строк, затрагивающих ф/т(undo/redo)
 			//TODO для случая скрытия строк фильтром(undo), может два раза вызываться функция setColorStyleTable - пересмотреть
-			var workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			workSheetView.model.autoFilters.reDrawFilter(null, index);
 		} else if (AscCH.historyitem_Worksheet_RowHide == Type) {
 			from = Data.from;
@@ -2082,7 +2115,7 @@ function (window, undefined) {
 
 			ws.setRowHidden(nRow, from, to);
 
-			var workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
+			workSheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			workSheetView.model.autoFilters.reDrawFilter(new Asc.Range(0, from, ws.nColsCount - 1, to));
 		} else if (AscCH.historyitem_Worksheet_AddRows == Type || AscCH.historyitem_Worksheet_RemoveRows == Type) {
 			from = Data.from;
@@ -2405,6 +2438,73 @@ function (window, undefined) {
 			worksheetView._updateFreezePane(updateData.c1, updateData.r1, /*lockDraw*/true);
 		} else if (AscCH.historyitem_Worksheet_SetTabColor === Type) {
 			ws.setTabColor(bUndo ? Data.from : Data.to);
+		} else if (AscCH.historyitem_Worksheet_GroupRow == Type) {
+			index = Data.index;
+			if (wb.bCollaborativeChanges) {
+				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
+				oLockInfo = new AscCommonExcel.asc_CLockInfo();
+				oLockInfo["sheetId"] = nSheetId;
+				oLockInfo["type"] = c_oAscLockTypeElem.Range;
+				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
+				wb.aCollaborativeChangeElements.push(oLockInfo);
+			}
+			ws._getRow(index, function (row) {
+				if (bUndo) {
+					row.setOutlineLevel(Data.oOldVal);
+				} else {
+					row.setOutlineLevel(Data.oNewVal);
+				}
+			});
+		} else if (AscCH.historyitem_Worksheet_GroupCol == Type) {
+			index = Data.index;
+			if (wb.bCollaborativeChanges) {
+				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
+				oLockInfo = new AscCommonExcel.asc_CLockInfo();
+				oLockInfo["sheetId"] = nSheetId;
+				oLockInfo["type"] = c_oAscLockTypeElem.Range;
+				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
+				wb.aCollaborativeChangeElements.push(oLockInfo);
+			}
+			col = ws._getCol(index);
+			if(col) {
+				if (bUndo) {
+					col.setOutlineLevel(Data.oOldVal);
+				} else {
+					col.setOutlineLevel(Data.oNewVal);
+				}
+			}
+		} else if (AscCH.historyitem_Worksheet_CollapsedRow == Type) {
+			index = Data.index;
+			if (wb.bCollaborativeChanges) {
+				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
+				oLockInfo = new AscCommonExcel.asc_CLockInfo();
+				oLockInfo["sheetId"] = nSheetId;
+				oLockInfo["type"] = c_oAscLockTypeElem.Range;
+				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
+				wb.aCollaborativeChangeElements.push(oLockInfo);
+			}
+
+			if (bUndo) {
+				ws.setCollapsedRow(Data.oOldVal, index);
+			} else {
+				ws.setCollapsedRow(Data.oNewVal, index);
+			}
+		} else if (AscCH.historyitem_Worksheet_CollapsedCol == Type) {
+			index = Data.index;
+			if (wb.bCollaborativeChanges) {
+				index = collaborativeEditing.getLockOtherRow2(nSheetId, index);
+				oLockInfo = new AscCommonExcel.asc_CLockInfo();
+				oLockInfo["sheetId"] = nSheetId;
+				oLockInfo["type"] = c_oAscLockTypeElem.Range;
+				oLockInfo["rangeOrObjectId"] = new Asc.Range(0, index, gc_nMaxCol0, index);
+				wb.aCollaborativeChangeElements.push(oLockInfo);
+			}
+
+			if (bUndo) {
+				ws.setCollapsedCol(Data.oOldVal, index);
+			} else {
+				ws.setCollapsedCol(Data.oNewVal, index);
+			}
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {

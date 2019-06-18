@@ -1497,6 +1497,11 @@
 			return this.Name;
 		}, asc_getIndex: function () {
 			return this.Index;
+		},
+		asc_putName: function (v) {
+			this.Name = v;
+		}, asc_putIndex: function (v) {
+			this.Index = v;
 		}
 	};
 
@@ -3497,22 +3502,23 @@
 	};
 
 	function CStyleImage(name, type, image, uiPriority) {
-		this.Name = name;
+		this.name = name;
+		this.displayName = null;
 		this.type = type;
 		this.image = image;
 		this.uiPriority = uiPriority;
 	}
 
-	CStyleImage.prototype.asc_getName = CStyleImage.prototype.get_Name = function () {
-		return this.Name;
+	CStyleImage.prototype.asc_getId = CStyleImage.prototype.asc_getName = CStyleImage.prototype.get_Name = function () {
+		return this.name;
 	};
+	CStyleImage.prototype.asc_getDisplayName = function () { return this.displayName; };
 	CStyleImage.prototype.asc_getType = CStyleImage.prototype.get_Type = function () {
 		return this.type;
 	};
 	CStyleImage.prototype.asc_getImage = function () {
 		return this.image;
 	};
-
 
 	/** @constructor */
     function asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, Element)
@@ -4464,6 +4470,8 @@
 	prot = asc_CTextFontFamily.prototype;
 	prot["get_Name"] = prot["asc_getName"] = prot.asc_getName;
 	prot["get_Index"] = prot["asc_getIndex"] = prot.asc_getIndex;
+	prot["put_Name"] = prot["asc_putName"] = prot.asc_putName;
+	prot["put_Index"] = prot["asc_putIndex"] = prot.asc_putIndex;
 
 	window["Asc"]["asc_CParagraphTab"] = window["Asc"].asc_CParagraphTab = asc_CParagraphTab;
 	prot = asc_CParagraphTab.prototype;
@@ -4962,7 +4970,8 @@
 
 	window["AscCommon"].CStyleImage = CStyleImage;
 	prot = CStyleImage.prototype;
-	prot["asc_getName"] = prot["get_Name"] = prot.asc_getName;
+	prot["asc_getId"] = prot["asc_getName"] = prot["get_Name"] = prot.asc_getName;
+	prot["asc_getDisplayName"] = prot.asc_getDisplayName;
 	prot["asc_getType"] = prot["get_Type"] = prot.asc_getType;
 	prot["asc_getImage"] = prot.asc_getImage;
 

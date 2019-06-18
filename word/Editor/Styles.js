@@ -1480,7 +1480,7 @@ CStyle.prototype =
         this.Set_TableBand1Vert( TableBand1Vert );
     },
 
-    Create_Table_Lined : function(Color1, Color2)
+    Create_Table_Lined : function(unifill1, unifill2)
     {
         var TextColor1 = new CDocumentColor(0xF2, 0xF2, 0xF2, false);
         var TextFont1  = { Name : "Arial", Index : -1 };
@@ -1488,7 +1488,10 @@ CStyle.prototype =
 
         var CellShd1   = new CDocumentShd();
         CellShd1.Value = c_oAscShdClear;
-        CellShd1.Color = new CDocumentColor(Color1.r, Color1.g, Color1.b);
+        CellShd1.Unifill = unifill1;
+		var CellShd2 = new CDocumentShd();
+		CellShd2.Value = c_oAscShdClear;
+		CellShd2.Unifill = unifill2;
 
         var TableStylePrBoundary =
         {
@@ -1599,11 +1602,8 @@ CStyle.prototype =
 
             TableCellPr :
             {
-                Shd :
-                {
-                    Value : c_oAscShdClear,
-                    Color : { r : Color2.r, g : Color2.g, b : Color2.b}
-                }
+                Shd : CellShd2
+
             }
         };
 
@@ -1624,8 +1624,18 @@ CStyle.prototype =
         this.Set_TableBand2Vert(TableStylePrBand2);
     },
 
-    Create_Table_Bordered : function(Color1, Color2)
+    Create_Table_Bordered : function(unifill1, unifill2)
     {
+		var TextColor1 = new CDocumentColor(0xF2, 0xF2, 0xF2, false);
+		var TextFont1  = { Name : "Arial", Index : -1 };
+		var TextSize1  = 11;
+
+		var CellShd1   = new CDocumentShd();
+		CellShd1.Value = c_oAscShdClear;
+		CellShd1.Unifill = unifill1;
+		var CellShd2   = new CDocumentShd();
+		CellShd2.Value = c_oAscShdClear;
+		CellShd2.Unifill = unifill2;
         var TableTextPr =
         {
             RFonts   : {Ascii : {Name : "Arial", Index : -1}, HAnsi : {Name : "Arial", Index : -1}},
@@ -1693,18 +1703,20 @@ CStyle.prototype =
 
         var TableBorder1 =
         {
-            Color : { r : Color1.r, g : Color1.g, b : Color1.b },
+			Color : { r : 0, g : 0, b : 0 },
             Value : border_Single,
             Size  : 0.5 * g_dKoef_pt_to_mm,
-            Space : 0
+            Space : 0,
+			Unifill: CellShd2.Unifill
         };
 
         var TableBorder2 =
         {
-            Color : { r : Color2.r, g : Color2.g, b : Color2.b },
+			Color : { r : 0, g : 0, b : 0 },
             Value : border_Single,
             Size  : 1.5 * g_dKoef_pt_to_mm,
-            Space : 0
+            Space : 0,
+			Unifill: CellShd1.Unifill
         };
 
         var TablePr =
@@ -1806,10 +1818,20 @@ CStyle.prototype =
         this.Set_TableFirstCol(TableFirstCol);
         this.Set_TableLastCol(TableLastCol);
         this.Set_TableBand1Horz(TableBand1Horz);
+
     },
 
-    Create_Table_BorderedAndLined : function(TableBorder, TableShdColorBoundary, TableShdColorVertBand, TableShdColorHorzBand)
+    Create_Table_BorderedAndLined : function(oBorderFillUnifill, oHorBandUniFill, oVertBandUnifill,  oBorderUnifill)
     {
+		var CellShd1   = new CDocumentShd();
+		CellShd1.Value = c_oAscShdClear;
+		CellShd1.Unifill = oBorderFillUnifill;
+		var CellShd2   = new CDocumentShd();
+		CellShd2.Value = c_oAscShdClear;
+		CellShd2.Unifill = oHorBandUniFill;
+		var CellShd3   = new CDocumentShd();
+		CellShd3.Value = c_oAscShdClear;
+		CellShd3.Unifill = oVertBandUnifill;
         var TextPr1 =
         {
             RFonts   : { Ascii : { Name : "Arial", Index : -1 }, HAnsi : { Name : "Arial", Index : -1 } },
@@ -1826,29 +1848,17 @@ CStyle.prototype =
 
         var TableCellPr1 =
         {
-            Shd :
-            {
-                Value : c_oAscShdClear,
-                Color : { r : TableShdColorBoundary.r, g : TableShdColorBoundary.g, b : TableShdColorBoundary.b}
-            }
+			Shd : CellShd1
         };
 
         var TableCellPrVert =
         {
-            Shd :
-            {
-                Value : c_oAscShdClear,
-                Color : { r : TableShdColorVertBand.r, g : TableShdColorVertBand.g, b : TableShdColorVertBand.b}
-            }
+            Shd : CellShd2
         };
 
         var TableCellPrHorz =
         {
-            Shd :
-            {
-                Value : c_oAscShdClear,
-                Color : { r : TableShdColorHorzBand.r, g : TableShdColorHorzBand.g, b : TableShdColorHorzBand.b}
-            }
+        	Shd : CellShd2
         };
 
         var ParaPr =
@@ -1911,10 +1921,11 @@ CStyle.prototype =
 
         var TableBorder1 =
         {
-            Color : { r : TableBorder.r, g : TableBorder.g, b : TableBorder.b },
-            Value : border_Single,
+			Color : { r : 0, g : 0, b : 0 },
+			Value : border_Single,
             Size  : 0.5 * g_dKoef_pt_to_mm,
-            Space : 0
+            Space : 0,
+			Unifill: oBorderUnifill
         };
 
         var TablePr =
@@ -2000,6 +2011,7 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1Vert);
         this.Set_TableBand2Horz(TableBand2Horz);
         this.Set_TableBand2Vert(TableBand2Vert);
+
     },
 
     isEqual: function(cStyles)
@@ -3668,90 +3680,95 @@ function CStyles(bCreateDefault)
          this.Add( Style_Table );
          */
 
+        var fUF = AscCommonWord.CreateThemeUnifill;
         // Стандартные стили таблиц
-        var Style_Table_Lined = new CStyle("Lined", this.Default.Table, null, styletype_Table );
-        Style_Table_Lined.Create_Table_Lined(new CDocumentColor(0x7F, 0x7F, 0x7F), new CDocumentColor(0xF2, 0xF2, 0xF2));
-        this.Add( Style_Table_Lined );
+		var Style_Table_Lined_Accent = new CStyle("Lined - Accent", this.Default.Table, null, styletype_Table );
+		Style_Table_Lined_Accent.Create_Table_Lined(fUF(EThemeColor.themecolorText1, 0x80, null), fUF(EThemeColor.themecolorText1, 0x0D, null));
+		this.Add( Style_Table_Lined_Accent );
 
-        var Style_Table_Lined_Accent1 = new CStyle("Lined - Accent 1", this.Default.Table, null, styletype_Table );
-        Style_Table_Lined_Accent1.Create_Table_Lined( new CDocumentColor(0x54, 0x8D, 0xD4), new CDocumentColor(0xC6, 0xD9, 0xF1));
-        this.Add( Style_Table_Lined_Accent1 );
+		var Style_Table_Lined_Accent1 = new CStyle("Lined - Accent 1", this.Default.Table, null, styletype_Table );
+		Style_Table_Lined_Accent1.Create_Table_Lined(fUF(EThemeColor.themecolorAccent1, 0xEA, null), fUF(EThemeColor.themecolorAccent1, 0x50, null));
+		this.Add( Style_Table_Lined_Accent1 );
 
-        var Style_Table_Lined_Accent2 = new CStyle("Lined - Accent 2", this.Default.Table, null, styletype_Table );
-        Style_Table_Lined_Accent2.Create_Table_Lined( new CDocumentColor(0xD9, 0x95, 0x94), new CDocumentColor(0xF2, 0xDB, 0xDB));
-        this.Add( Style_Table_Lined_Accent2 );
+		var Style_Table_Lined_Accent2 = new CStyle("Lined - Accent 2", this.Default.Table, null, styletype_Table );
+		Style_Table_Lined_Accent2.Create_Table_Lined(fUF(EThemeColor.themecolorAccent2, 0x97, null), fUF(EThemeColor.themecolorAccent2, 0x32, null));
+		this.Add( Style_Table_Lined_Accent2 );
 
-        var Style_Table_Lined_Accent3 = new CStyle("Lined - Accent 3", this.Default.Table, null, styletype_Table );
-        Style_Table_Lined_Accent3.Create_Table_Lined( new CDocumentColor(0x9B, 0xB5, 0x59), new CDocumentColor(0xEA, 0xF1, 0xDD));
-        this.Add( Style_Table_Lined_Accent3 );
+		var Style_Table_Lined_Accent3 = new CStyle("Lined - Accent 3", this.Default.Table, null, styletype_Table );
+		Style_Table_Lined_Accent3.Create_Table_Lined(fUF(EThemeColor.themecolorAccent3, 0xFE, null), fUF(EThemeColor.themecolorAccent3, 0x34, null));
+		this.Add( Style_Table_Lined_Accent3 );
 
-        var Style_Table_Lined_Accent4 = new CStyle("Lined - Accent 4", this.Default.Table, null, styletype_Table );
-        Style_Table_Lined_Accent4.Create_Table_Lined( new CDocumentColor(0xB2, 0xA1, 0xC7), new CDocumentColor(0xE5, 0xDF, 0xEC));
-        this.Add( Style_Table_Lined_Accent4 );
+		var Style_Table_Lined_Accent4 = new CStyle("Lined - Accent 4", this.Default.Table, null, styletype_Table );
+		Style_Table_Lined_Accent4.Create_Table_Lined(fUF(EThemeColor.themecolorAccent4, 0x9A, null), fUF(EThemeColor.themecolorAccent4, 0x34, null));
+		this.Add( Style_Table_Lined_Accent4 );
 
-        var Style_Table_Lined_Accent5 = new CStyle("Lined - Accent 5", this.Default.Table, null, styletype_Table );
-        Style_Table_Lined_Accent5.Create_Table_Lined( new CDocumentColor(0x4B, 0xAC, 0xC6), new CDocumentColor(0xDA, 0xEE, 0xF3));
-        this.Add( Style_Table_Lined_Accent5 );
+		var Style_Table_Lined_Accent5 = new CStyle("Lined - Accent 5", this.Default.Table, null, styletype_Table );
+		Style_Table_Lined_Accent5.Create_Table_Lined(fUF(EThemeColor.themecolorAccent5, null, null), fUF(EThemeColor.themecolorAccent5, 0x34, null));
+		this.Add( Style_Table_Lined_Accent5 );
 
-        var Style_Table_Lined_Accent6 = new CStyle("Lined - Accent 6", this.Default.Table, null, styletype_Table );
-        Style_Table_Lined_Accent6.Create_Table_Lined( new CDocumentColor(0xF7, 0x96, 0x46), new CDocumentColor(0xFD, 0xE9, 0xD9));
-        this.Add( Style_Table_Lined_Accent6 );
+		var Style_Table_Lined_Accent6 = new CStyle("Lined - Accent 6", this.Default.Table, null, styletype_Table );
+		Style_Table_Lined_Accent6.Create_Table_Lined(fUF(EThemeColor.themecolorAccent6, null, null), fUF(EThemeColor.themecolorAccent6, 0x34, null));
+		this.Add( Style_Table_Lined_Accent6 );
 
-        var Style_Table_Bordered = new CStyle("Bordered", this.Default.Table, null, styletype_Table );
-        Style_Table_Bordered.Create_Table_Bordered( new CDocumentColor(0xD9, 0xD9, 0xD9), new CDocumentColor(0x7F, 0x7F, 0x7F));
-        this.Add( Style_Table_Bordered );
 
-        var Style_Table_Bordered_Accent_1 = new CStyle("Bordered - Accent 1", this.Default.Table, null, styletype_Table );
-        Style_Table_Bordered_Accent_1.Create_Table_Bordered( new CDocumentColor(0xB8, 0xCC, 0xE4), new CDocumentColor(0x4F, 0x81, 0xBD));
-        this.Add( Style_Table_Bordered_Accent_1 );
 
-        var Style_Table_Bordered_Accent_2 = new CStyle("Bordered - Accent 2", this.Default.Table, null, styletype_Table );
-        Style_Table_Bordered_Accent_2.Create_Table_Bordered( new CDocumentColor(0xE5, 0xB8, 0xB7), new CDocumentColor(0xD9, 0x95, 0x94));
-        this.Add( Style_Table_Bordered_Accent_2 );
+		var Style_Table_Bordered_Accent = new CStyle("Bordered - Accent", this.Default.Table, null, styletype_Table );
+		Style_Table_Bordered_Accent.Create_Table_Bordered(fUF(EThemeColor.themecolorText1, 0x80, null),  fUF(EThemeColor.themecolorText1, 0x26, null));
+		this.Add( Style_Table_Bordered_Accent );
 
-        var Style_Table_Bordered_Accent_3 = new CStyle("Bordered - Accent 3", this.Default.Table, null, styletype_Table );
-        Style_Table_Bordered_Accent_3.Create_Table_Bordered( new CDocumentColor(0xD6, 0xE3, 0xBC), new CDocumentColor(0xC2, 0xD6, 0x9B));
-        this.Add( Style_Table_Bordered_Accent_3 );
+		var Style_Table_Bordered_Accent_1 = new CStyle("Bordered - Accent 1", this.Default.Table, null, styletype_Table );
+		Style_Table_Bordered_Accent_1.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent1, null, null), fUF(EThemeColor.themecolorAccent1, 0x67, null));
+		this.Add( Style_Table_Bordered_Accent_1 );
 
-        var Style_Table_Bordered_Accent_4 = new CStyle("Bordered - Accent 4", this.Default.Table, null, styletype_Table );
-        Style_Table_Bordered_Accent_4.Create_Table_Bordered( new CDocumentColor(0xCC, 0xC0, 0xD9), new CDocumentColor(0xB2, 0xA1, 0xC7));
-        this.Add( Style_Table_Bordered_Accent_4 );
+		var Style_Table_Bordered_Accent_2 = new CStyle("Bordered - Accent 2", this.Default.Table, null, styletype_Table );
+		Style_Table_Bordered_Accent_2.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent2, 0x97, null), fUF(EThemeColor.themecolorAccent2, 0x67, null));
+		this.Add( Style_Table_Bordered_Accent_2 );
 
-        var Style_Table_Bordered_Accent_5 = new CStyle("Bordered - Accent 5", this.Default.Table, null, styletype_Table );
-        Style_Table_Bordered_Accent_5.Create_Table_Bordered( new CDocumentColor(0xB6, 0xDD, 0xE8), new CDocumentColor(0x92, 0xCD, 0xDC));
-        this.Add( Style_Table_Bordered_Accent_5 );
+		var Style_Table_Bordered_Accent_3 = new CStyle("Bordered - Accent 3", this.Default.Table, null, styletype_Table );
+		Style_Table_Bordered_Accent_3.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent3, 0x98, null), fUF(EThemeColor.themecolorAccent3, 0x67, null));
+		this.Add( Style_Table_Bordered_Accent_3 );
 
-        var Style_Table_Bordered_Accent_6 = new CStyle("Bordered - Accent 6", this.Default.Table, null, styletype_Table );
-        Style_Table_Bordered_Accent_6.Create_Table_Bordered( new CDocumentColor(0xFB, 0xD4, 0xB4), new CDocumentColor(0xFA, 0xBF, 0x8F));
-        this.Add( Style_Table_Bordered_Accent_6 );
+		var Style_Table_Bordered_Accent_4 = new CStyle("Bordered - Accent 4", this.Default.Table, null, styletype_Table );
+		Style_Table_Bordered_Accent_4.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent4, 0x9A, null), fUF(EThemeColor.themecolorAccent4, 0x67, null));
+		this.Add( Style_Table_Bordered_Accent_4 );
 
-        var Style_Table_BorderedLined = new CStyle("Bordered & Lined", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined.Create_Table_BorderedAndLined(new CDocumentColor(0x59, 0x59, 0x59), new CDocumentColor(0x7F, 0x7F, 0x7F), new CDocumentColor(0xD9, 0xD9, 0xD9), new CDocumentColor(0xF2, 0xF2, 0xF2));
-        this.Add( Style_Table_BorderedLined );
+		var Style_Table_Bordered_Accent_5 = new CStyle("Bordered - Accent 5", this.Default.Table, null, styletype_Table );
+		Style_Table_Bordered_Accent_5.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent5, 0x9A, null), fUF(EThemeColor.themecolorAccent5, 0x67, null));
+		this.Add( Style_Table_Bordered_Accent_5 );
+
+		var Style_Table_Bordered_Accent_6 = new CStyle("Bordered - Accent 6", this.Default.Table, null, styletype_Table );
+		Style_Table_Bordered_Accent_6.Create_Table_Bordered(fUF(EThemeColor.themecolorAccent6, 0x98, null), fUF(EThemeColor.themecolorAccent6, 0x67, null));
+		this.Add( Style_Table_Bordered_Accent_6 );
+
+
+		var Style_Table_BorderedLined_Accent0 = new CStyle("Bordered & Lined - Accent", this.Default.Table, null, styletype_Table );
+		Style_Table_BorderedLined_Accent0.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorText1, 0x80, null), fUF(EThemeColor.themecolorText1, 0x0D, null), fUF(EThemeColor.themecolorText1, 0x0D, null), fUF(EThemeColor.themecolorText1, 0xA6, null));
+		this.Add( Style_Table_BorderedLined_Accent0 );
 
         var Style_Table_BorderedLined_Accent1 = new CStyle("Bordered & Lined - Accent 1", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent1.Create_Table_BorderedAndLined(new CDocumentColor(0x1F, 0x49, 0x7D), new CDocumentColor(0x54, 0x8D, 0xD4), new CDocumentColor(0xC6, 0xD9, 0xF1), new CDocumentColor(0xC6, 0xD9, 0xF1));
+        Style_Table_BorderedLined_Accent1.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent1, 0xEA, null), fUF(EThemeColor.themecolorAccent1, 0x50, null), fUF(EThemeColor.themecolorAccent1, 0x50, null), fUF(EThemeColor.themecolorAccent1, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent1 );
 
         var Style_Table_BorderedLined_Accent2 = new CStyle("Bordered & Lined - Accent 2", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent2.Create_Table_BorderedAndLined( new CDocumentColor(0xC0, 0x50, 0x4D), new CDocumentColor(0xD9, 0x95, 0x94), new CDocumentColor(0xF2, 0xDB, 0xDB), new CDocumentColor(0xF2, 0xDB, 0xDB));
+        Style_Table_BorderedLined_Accent2.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent2, 0x97, null), fUF(EThemeColor.themecolorAccent2, 0x32, null), fUF(EThemeColor.themecolorAccent2, 0x32, null), fUF(EThemeColor.themecolorAccent2, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent2 );
 
-        var Style_Table_BorderedLined_Accent3 = new CStyle("Bordered & Lined - Accent 3", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent3.Create_Table_BorderedAndLined( new CDocumentColor(0x76, 0x92, 0x3C), new CDocumentColor(0x9B, 0xBB, 0x59), new CDocumentColor(0xEA, 0xF1, 0xDD), new CDocumentColor(0xEA, 0xF1, 0xDD));
-        this.Add( Style_Table_BorderedLined_Accent3 );
+		var Style_Table_BorderedLined_Accent3 = new CStyle("Bordered & Lined - Accent 3", this.Default.Table, null, styletype_Table );
+		Style_Table_BorderedLined_Accent3.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent3, 0xFE, null), fUF(EThemeColor.themecolorAccent3, 0x34, null), fUF(EThemeColor.themecolorAccent3, 0x34, null), fUF(EThemeColor.themecolorAccent3, null, 0x95));
+		this.Add( Style_Table_BorderedLined_Accent3 );
 
         var Style_Table_BorderedLined_Accent4 = new CStyle("Bordered & Lined - Accent 4", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent4.Create_Table_BorderedAndLined( new CDocumentColor(0x80, 0x64, 0xA2), new CDocumentColor(0xB2, 0xA1, 0xC7), new CDocumentColor(0xE5, 0xDF, 0xEC), new CDocumentColor(0xE5, 0xDF, 0xEC));
+        Style_Table_BorderedLined_Accent4.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent4, 0x9A, null), fUF(EThemeColor.themecolorAccent4, 0x34, null), fUF(EThemeColor.themecolorAccent4, 0x34, null), fUF(EThemeColor.themecolorAccent4, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent4 );
 
         var Style_Table_BorderedLined_Accent5 = new CStyle("Bordered & Lined - Accent 5", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent5.Create_Table_BorderedAndLined( new CDocumentColor(0x31, 0x84, 0x9B), new CDocumentColor(0x4B, 0xAC, 0xC6), new CDocumentColor(0xDA, 0xEE, 0xF3), new CDocumentColor(0xDA, 0xEE, 0xF3));
+        Style_Table_BorderedLined_Accent5.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent5, null, null), fUF(EThemeColor.themecolorAccent5, 0x34, null), fUF(EThemeColor.themecolorAccent5, 0x34, null), fUF(EThemeColor.themecolorAccent5, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent5 );
 
         var Style_Table_BorderedLined_Accent6 = new CStyle("Bordered & Lined - Accent 6", this.Default.Table, null, styletype_Table );
-        Style_Table_BorderedLined_Accent6.Create_Table_BorderedAndLined( new CDocumentColor(0xE3, 0x6C, 0x0A), new CDocumentColor(0xF7, 0x96, 0x46), new CDocumentColor(0xFD, 0xE9, 0xD9), new CDocumentColor(0xFD, 0xE9, 0xD9));
+        Style_Table_BorderedLined_Accent6.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent6, null, null), fUF(EThemeColor.themecolorAccent6, 0x34, null), fUF(EThemeColor.themecolorAccent6, 0x34, null), fUF(EThemeColor.themecolorAccent6, null, 0x95));
         this.Add( Style_Table_BorderedLined_Accent6 );
+
 
         // Создаем стиль гиперссылки
         var oHyperlink = new CStyle("Hyperlink", null, null, styletype_Character );

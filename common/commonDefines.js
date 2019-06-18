@@ -179,6 +179,7 @@
 			SessionToken: -122,
 
 			/* для формул */
+			FrmlMaxTextLength           : -299,
 			FrmlWrongCountParentheses   : -300,
 			FrmlWrongOperator           : -301,
 			FrmlWrongMaxArgument        : -302,
@@ -207,7 +208,9 @@
 
 			MailToClientMissing	: -452,
 
-			NoDataToParse : -601
+			NoDataToParse : -601,
+
+			CannotUngroupError : -700
 		}
 	};
 
@@ -1601,6 +1604,7 @@
 	prot['SessionAbsolute']                  = prot.SessionAbsolute;
 	prot['SessionIdle']                      = prot.SessionIdle;
 	prot['SessionToken']                     = prot.SessionToken;
+	prot['FrmlMaxTextLength']                = prot.FrmlMaxTextLength;
 	prot['FrmlWrongCountParentheses']        = prot.FrmlWrongCountParentheses;
 	prot['FrmlWrongOperator']                = prot.FrmlWrongOperator;
 	prot['FrmlWrongMaxArgument']             = prot.FrmlWrongMaxArgument;
@@ -1622,6 +1626,7 @@
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	prot['NoDataToParse']                    = prot.NoDataToParse;
+	prot['CannotUngroupError']               = prot.CannotUngroupError;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;

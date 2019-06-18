@@ -812,7 +812,7 @@ CDrawingDocument.prototype.CheckTableStyles = function()
 
 CDrawingDocument.prototype.CheckThemes = function(){   
 
-    window["native"]["DD_ClearCacheThemeThumbnails"]();
+    window["native"]["ClearCacheThemeThumbnails"]();
     var logicDoc = this.m_oWordControl.m_oLogicDocument;
     var _dst_styles = [];
 
@@ -922,7 +922,7 @@ CDrawingDocument.prototype.CheckThemes = function(){
 
 CDrawingDocument.prototype.CheckLayouts = function(oMaster){   
 
-    window["native"]["DD_ClearCacheLayoutThumbnails"]();
+    window["native"]["ClearCacheLayoutThumbnails"]();
     var logicDoc = this.m_oWordControl.m_oLogicDocument;
     var _dst_styles = [];
 

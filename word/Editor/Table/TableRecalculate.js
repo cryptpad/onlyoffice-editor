@@ -264,10 +264,12 @@ CTable.prototype.private_RecalculateGrid = function()
         }
         else
         {
-            TableW = TablePr.TableW.W
+            TableW = TablePr.TableW.W;
         }
 
-        if (TableW < MinWidth)
+        if (0.001 > TableW)
+        	TableW = 0;
+        else if (TableW < MinWidth)
             TableW = MinWidth;
     }
 

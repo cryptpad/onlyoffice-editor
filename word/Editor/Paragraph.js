@@ -8634,7 +8634,9 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 				Lvl = this.Pr.NumPr.Lvl;
 
 				if (Lvl >= 0 && Lvl <= 8)
+				{
 					Pr.ParaPr.Merge(Numbering.GetParaPr(this.Pr.NumPr.NumId, this.Pr.NumPr.Lvl));
+				}
 				else
 				{
 					Lvl             = -1;
@@ -10998,14 +11000,11 @@ Paragraph.prototype.Split = function(NewParagraph)
 };
 /**
  * Присоединяем контент параграфа Para к текущему параграфу
+ * @param Para {Paragraph}
+ * @param [isUseConcatedStyle=false] {boolean}
  */
-Paragraph.prototype.Concat = function(Para)
+Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 {
-	//var UpdateSelection = (true == this.Selection.Use || true === Para.Selection.Use);
-
-	//var Para1SelectionStartPos =
-
-
 	this.DeleteCommentOnRemove = false;
 	Para.DeleteCommentOnRemove = false;
 
@@ -11046,6 +11045,9 @@ Paragraph.prototype.Concat = function(Para)
 
 	this.DeleteCommentOnRemove = true;
 	Para.DeleteCommentOnRemove = true;
+
+	if (true === isUseConcatedStyle)
+		Para.CopyPr(this);
 };
 /**
  * Копируем настройки параграфа и последние текстовые настройки в новый параграф
@@ -12093,7 +12095,32 @@ Paragraph.prototype.HavePrChange = function()
 };
 Paragraph.prototype.GetPrChangeNumPr = function()
 {
-	return this.Pr.GetPrChangeNumPr();
+	if (!this.HavePrChange())
+		return null;
+
+	var oPrevNumPr = this.Pr.GetPrChangeNumPr();
+
+	if (!oPrevNumPr && this.Pr.PrChange.PStyle)
+	{
+		var oStyles     = this.Parent.Get_Styles();
+		var oTableStyle = this.Parent.Get_TableStyleForPara();
+		var oShapeStyle = this.Parent.Get_ShapeStyleForPara();
+
+		// Считываем свойства для текущего стиля
+		var oPr = oStyles.Get_Pr(this.Pr.PrChange.PStyle, styletype_Paragraph, oTableStyle, oShapeStyle);
+
+		if (oPr.ParaPr.NumPr)
+			oPrevNumPr = oPr.ParaPr.NumPr.Copy();
+	}
+
+	if (oPrevNumPr && undefined === oPrevNumPr.Lvl)
+	{
+		var oNumPr = this.GetNumPr();
+		if (oNumPr)
+			oPrevNumPr = new CNumPr(oPrevNumPr.NumId, oNumPr.Lvl);
+	}
+
+	return oPrevNumPr;
 };
 Paragraph.prototype.GetPrReviewColor = function()
 {

@@ -2529,7 +2529,7 @@
 				pptx_content_loader.Clear();
 				pptx_content_loader.Start_UseFullUrl();
 				
-			    var openParams = { checkFileSize: false, charCount: 0, parCount: 0 };
+			    var openParams = { checkFileSize: false, charCount: 0, parCount: 0, bCopyPaste: true };
 			    var oBinaryFileReader = new AscCommonWord.BinaryFileReader(newCDocument, openParams);
 			    var oRes = oBinaryFileReader.ReadFromString(sBase64, {excelCopyPaste: true});
 				

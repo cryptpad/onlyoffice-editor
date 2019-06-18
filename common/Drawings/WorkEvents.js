@@ -275,6 +275,12 @@
 		return e;
 	}
 
+	function getMouseButton(e)
+	{
+		var res = e.button;
+		return (res && -1 !== res) ? res : 0;
+	}
+
 	function check_MouseUpEvent(e)
 	{
 		if (e.pageX || e.pageY)
@@ -300,7 +306,7 @@
 		global_keyboardEvent.CtrlKey  = global_mouseEvent.CtrlKey;
 
 		global_mouseEvent.Type   = g_mouse_event_type_up;
-		global_mouseEvent.Button = (e.button !== undefined) ? e.button : 0;
+		global_mouseEvent.Button = getMouseButton(e);
 
 		var lockedElement = null;
 
@@ -380,9 +386,7 @@
 		global_keyboardEvent.CtrlKey  = global_mouseEvent.CtrlKey;
 
 		global_mouseEvent.Type   = g_mouse_event_type_down;
-		global_mouseEvent.Button = (e.button !== undefined) ? e.button : 0;
-		if (global_mouseEvent.Button == -1)
-			global_mouseEvent.Button = 0;
+		global_mouseEvent.Button = getMouseButton(e);
 
 		if (!global_mouseEvent.IsLocked || !global_mouseEvent.Sender)
 			global_mouseEvent.Sender = (e.srcElement) ? e.srcElement : e.target;
@@ -726,6 +730,7 @@
 	window['AscCommon'].check_KeyboardEvent2     = check_KeyboardEvent2;
 	window['AscCommon'].check_MouseMoveEvent     = check_MouseMoveEvent;
 	window['AscCommon'].CreateMouseUpEventObject = CreateMouseUpEventObject;
+	window['AscCommon'].getMouseButton           = getMouseButton;
 	window['AscCommon'].check_MouseUpEvent       = check_MouseUpEvent;
 	window['AscCommon'].check_MouseDownEvent     = check_MouseDownEvent;
 	window['AscCommon'].Window_OnMouseUp         = Window_OnMouseUp;

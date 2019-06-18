@@ -1114,7 +1114,7 @@ NumFormat.prototype =
 			if(d.val)
 				stDate.setUTCDate( stDate.getUTCDate() + d.val );
 			day = stDate.getUTCDate();
-			dayWeek = ( stDate.getUTCDay() > 0) ? stDate.getUTCDay() - 1 : 6;
+			dayWeek = stDate.getUTCDay();
 			month = stDate.getUTCMonth();
 			year = stDate.getUTCFullYear();
 		}
@@ -1126,6 +1126,15 @@ NumFormat.prototype =
 				month = 1;
 				year = 1900;
 				dayWeek = 3;
+			}
+			else if(number === 0)
+			{
+				//TODO необходимо использовать cDate везде
+				stDate = new cDate(Date.UTC(1899,11,31,0,0,0));
+				day = stDate.getUTCDate();
+				dayWeek = ( stDate.getUTCDay() > 0) ? stDate.getUTCDay() - 1 : 6;
+				month = stDate.getUTCMonth();
+				year = stDate.getUTCFullYear();
 			}
 			else if(number < 60)
 			{

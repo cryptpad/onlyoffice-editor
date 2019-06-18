@@ -5427,6 +5427,65 @@ CShape.prototype.remove = function (Count, bOnlyText, bRemoveOnlySelection, bOnT
 };
 
 
+CShape.prototype.isWatermark = function()
+{
+    var oContent, oTextPr;
+    if( (!this.brush || !this.brush.fill || (this.brush.fill.type  ==  c_oAscFill.FILL_TYPE_NOFILL)))
+    {
+        oContent = this.getDocContent();
+        if(oContent)
+        {
+            oContent.Set_ApplyToAll(true);
+            oTextPr = oContent.GetCalculatedTextPr();
+            oContent.Set_ApplyToAll(false);
+            if(oTextPr.FontSize > 20 && oTextPr.TextFill)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+CShape.prototype.getWatermarkProps = function()
+{
+    var oProps = new Asc.CAscWatermarkProperties(), oTextPr, oRGBAColor, oInterfaceTextPr, oContent;
+    if(!this.isWatermark())
+    {
+        oProps.put_Type(Asc.c_oAscWatermarkType.None);
+        return oProps;
+    }
+    oContent = this.getDocContent();
+    oProps.put_Type(Asc.c_oAscWatermarkType.Text);
+    oProps.put_IsDiagonal(!AscFormat.fApproxEqual(this.rot, 0.0));
+    oContent.Set_ApplyToAll(true);
+    oProps.put_Text(oContent.GetSelectedText(true, {NewLineParagraph : false, NewLine : false}));
+    oTextPr = oContent.GetCalculatedTextPr();
+    oProps.put_Opacity(255);
+    if(oTextPr.FontSize - (oTextPr.FontSize >> 0) > 0)
+    {
+        oTextPr.FontSize = -1;
+    }
+    oInterfaceTextPr = new Asc.CTextProp(oTextPr);
+    if(oTextPr.TextFill)
+    {
+        oTextPr.TextFill.check(this.Get_Theme(), this.Get_ColorMap());
+        if (oTextPr.TextFill.fill && oTextPr.TextFill.fill.type === c_oAscFill.FILL_TYPE_SOLID && oTextPr.TextFill.fill.color)
+        {
+            oInterfaceTextPr.put_Color(AscCommon.CreateAscColor(oTextPr.TextFill.fill.color));
+        }
+        else
+        {
+            oRGBAColor = oTextPr.TextFill.getRGBAColor();
+            oInterfaceTextPr.put_Color(AscCommon.CreateAscColorCustom(oRGBAColor.R, oRGBAColor.G, oRGBAColor.B, false));
+        }
+        oProps.put_Opacity(AscFormat.isRealNumber(oTextPr.TextFill.transparent) ? oTextPr.TextFill.transparent : 255);
+    }
+    oProps.put_TextPr(oInterfaceTextPr);
+    oContent.Set_ApplyToAll(false);
+    return oProps;
+};
+
 CShape.prototype.Restart_CheckSpelling = function()
 {
     this.recalcInfo.recalculateShapeStyleForParagraph = true;
