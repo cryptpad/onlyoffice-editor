@@ -10214,6 +10214,10 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
     var oWatermark = Header.FindWatermark();
     if(oWatermark)
     {
+        if(oWatermark.GraphicObj.selected)
+        {
+            this.RemoveSelection(true);
+        }
         oWatermark.Remove_FromDocument(false);
     }
     oWatermark = this.DrawingObjects.createWatermark(oProps);
@@ -10228,6 +10232,9 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
         this.SetSelectionState(oDocState);
     }
     this.Recalculate();
+    this.Document_UpdateInterfaceState();
+    this.Document_UpdateSelectionState();
+    this.Document_UpdateRulersState();
     this.FinalizeAction(true);
 };
 

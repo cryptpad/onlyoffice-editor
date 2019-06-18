@@ -1899,7 +1899,7 @@
 		var aChildren = oDiv.children;
 		var oCanvas = null;
 		for(var i = 0; i < aChildren.length; ++i){
-			if(aChildren[i].tagName === 'canvas'){
+			if(aChildren[i].nodeName && aChildren[i].nodeName.toUpperCase() === 'CANVAS'){
 				oCanvas = aChildren[i];
 				break;
 			}
@@ -1913,6 +1913,7 @@
 			oDiv.appendChild(oCanvas);
 		}
 		var oContext = oCanvas.getContext('2d');
+		oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
 		var _img = this.Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(this.ImageUrl)];
 		if (_img != undefined && _img.Image != null && _img.Status != AscFonts.ImageLoadStatus.Loading)
 		{

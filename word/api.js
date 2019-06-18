@@ -4349,6 +4349,30 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_SetWatermarkProps = function(oProps)
 	{
+		var oTextPr = oProps.get_TextPr();
+		var oApi = this;
+		if(oTextPr)
+		{
+			var oFontFamily = oTextPr.get_FontFamily();
+			if(oFontFamily && typeof oFontFamily.get_Name() === "string")
+			{
+				if(!g_fontApplication)
+				{
+					return;
+				}
+				var oLoader     = AscCommon.g_font_loader;
+				var oFontInfo   = g_fontApplication.GetFontInfo(oFontFamily.get_Name());
+				oFontFamily.put_Name(oFontInfo.Name);
+				var bAsync    = oLoader.LoadFont(oFontInfo, function () {
+					this.sync_EndAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadFont);
+					oApi.asc_SetWatermarkProps(oProps);
+				}, null);
+				if(bAsync)
+				{
+					return;
+				}
+			}
+		}
 		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
 	};
 	asc_docs_api.prototype.asc_WatermarkRemove = function(oProps)
