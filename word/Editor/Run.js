@@ -1025,8 +1025,11 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					return true;
 				}
 
-                this.Remove_FromContent(CurPos - 1, 1, true);
+				var oStyles = this.Paragraph ? this.Paragraph.LogicDocument.GetStyles() : null;
+				if (oStyles && 1 === this.Content.length && para_FootnoteReference === this.Content[0].Type && this.Get_RStyle() === oStyles.GetDefaultFootnoteReference())
+					this.Set_RStyle(undefined);
 
+                this.RemoveFromContent(CurPos - 1, 1, true);
                 this.State.ContentPos = CurPos - 1;
             }
             else
@@ -1058,8 +1061,11 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					return true;
 				}
 
-                this.Remove_FromContent(CurPos, 1, true);
+				var oStyles = this.Paragraph ? this.Paragraph.LogicDocument.GetStyles() : null;
+				if (oStyles && 1 === this.Content.length && para_FootnoteReference === this.Content[0].Type && this.Get_RStyle() === oStyles.GetDefaultFootnoteReference())
+					this.Set_RStyle(undefined);
 
+				this.RemoveFromContent(CurPos, 1, true);
                 this.State.ContentPos = CurPos;
             }
         }
@@ -8182,6 +8188,7 @@ ParaRun.prototype.Get_HighLight = function()
 {
     return this.Get_CompiledPr(false).HighLight;
 };
+
 
 ParaRun.prototype.Set_RStyle = function(Value)
 {
