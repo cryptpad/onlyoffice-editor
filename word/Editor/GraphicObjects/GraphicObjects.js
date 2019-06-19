@@ -306,6 +306,12 @@ CGraphicObjects.prototype =
         {
             return null;
         }
+        var TrackRevisions = this.document.IsTrackRevisions();
+
+        if (TrackRevisions)
+        {
+            this.document.SetTrackRevisions(false);
+        }
         var oDrawing, extX, extY;
         var oSectPr = this.document.Get_SectionProps();
         var dMaxWidth = oSectPr.get_W() - oSectPr.get_LeftMargin() - oSectPr.get_RightMargin();
@@ -432,6 +438,10 @@ CGraphicObjects.prototype =
             oParaDrawing.Set_Distance(3.2, 0, 3.2, 0);
             oParaDrawing.Set_PositionH(Asc.c_oAscRelativeFromH.Margin, true,  Asc.c_oAscAlignH.Center, false);
             oParaDrawing.Set_PositionV(Asc.c_oAscRelativeFromV.Margin, true,  Asc.c_oAscAlignV.Center, false);
+        }
+        if (TrackRevisions)
+        {
+            this.document.SetTrackRevisions(false);
         }
         return oParaDrawing;
     },
