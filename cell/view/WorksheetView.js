@@ -17144,7 +17144,11 @@
 
 			asc_applyFunction(callback);
 
-			t._updateAfterChangeGroup(undefined, null);
+			if(bCol) {
+				t._updateAfterChangeGroup(undefined, null);
+			} else {
+				t._updateAfterChangeGroup(null);
+			}
 			//тут требуется обновить только rowLevelMap
 			//t._updateGroups(bCol, undefined, undefined, true);
 		};
