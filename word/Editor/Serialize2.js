@@ -12399,6 +12399,7 @@ function Binary_oMathReader(stream, oReadResult, curFootnote, openParams)
 		{
 			var reviewInfo = new CReviewInfo();
 			var oSdt = new AscCommonWord.CInlineLevelSdt();
+			oSdt.ReplacePlaceHolderWithContent(true);
 			oSdt.SetParagraph(oParStruct.paragraph);
 			var oSdtStruct = new OpenParStruct(oSdt, oParStruct.paragraph);
 			res = this.bcr.Read1(length, function(t, l){
@@ -12477,6 +12478,7 @@ function Binary_oMathReader(stream, oReadResult, curFootnote, openParams)
 		{
 			var reviewInfo = new CReviewInfo();
 			var oSdt = new AscCommonWord.CInlineLevelSdt();
+			oSdt.ReplacePlaceHolderWithContent(true);
 			oSdt.SetParagraph(oParStruct.paragraph);
 			var oSdtStruct = new OpenParStruct(oSdt, oParStruct.paragraph);
 			res = this.bcr.Read1(length, function(t, l){
