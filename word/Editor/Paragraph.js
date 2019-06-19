@@ -7495,6 +7495,9 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 	if (oSelectedContent.IsTrackRevisions())
 	{
 		oPara = new Paragraph(this.DrawingDocument, this.Parent, !this.bFromDocument);
+		oPara.Set_Pr(this.Pr.Copy());
+		oPara.TextPr.Set_Value(this.TextPr.Value.Copy());
+
 		for (var nPos = nStartPos, nParaPos = 0; nPos <= nEndPos; ++nPos)
 		{
 			var oNewItem = this.Content[nPos].GetSelectedContent(oSelectedContent);
