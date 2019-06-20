@@ -1338,6 +1338,8 @@
 	window['AscDFH'].historyitem_type_LockedCanvas           = 1133 << 16;
 	window['AscDFH'].historyitem_type_RelSizeAnchor          = 1134 << 16;
 	window['AscDFH'].historyitem_type_AbsSizeAnchor          = 1135 << 16;
+	window['AscDFH'].historyitem_type_Core                   = 1136 << 16;
+
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2744,6 +2746,13 @@
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_DocumentMacros_Data = window['Asc'].historyitem_type_DocumentMacros | 1;
 
+
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений класса CCore
+	//------------------------------------------------------------------------------------------------------------------
+	window['AscDFH'].historyitem_CoreProperties = window['AscDFH'].historyitem_type_Core | 1;
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -3106,6 +3115,8 @@
 	window['AscDFH'].historydescription_Document_AddBlankPage                       = 0x015d;
 	window['AscDFH'].historydescription_Document_AddTableFormula                    = 0x015e;
 	window['AscDFH'].historydescription_Document_ChangeTableFormula                 = 0x015e;
+	window['AscDFH'].historydescription_SetCoreproperties                           = 0x015f;
+	window['AscDFH'].historydescription_Document_AddWatermark                       = 0x0160;
 
 
 

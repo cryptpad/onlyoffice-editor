@@ -10241,7 +10241,7 @@ CDocument.prototype.GetWatermarkProps = function()
 
 CDocument.prototype.SetWatermarkProps = function(oProps)
 {
-    this.StartAction(0);
+    this.StartAction(AscDFH.historydescription_Document_AddWatermark);
     var SectionPageInfo = this.Get_SectionPageNumInfo(this.CurPage);
     var bFirst = SectionPageInfo.bFirst;
     var bEven  = SectionPageInfo.bEven;

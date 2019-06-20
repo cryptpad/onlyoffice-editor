@@ -9096,13 +9096,168 @@ CApp.prototype.asc_getLines = function(){return this.Lines;};
 CApp.prototype.asc_getManager = function(){return this.Manager;};
 CApp.prototype.asc_getPages = function(){return this.Pages;};
 
+    function CChangesCorePr(Class, Old, New, Color) {
+        AscDFH.CChangesBase.call(this, Class, Old, New, Color);
+        if(Old && New) {
+            this.OldTitle = Old.title;
+            this.OldCreator = Old.creator;
+            this.OldDescription = Old.description;
+            this.OldSubject = Old.subject;
+
+            this.NewTitle = New.title === Old.title ? undefined : New.title;
+            this.NewCreator = New.creator === Old.creator ? undefined : New.creator;
+            this.NewDescription = New.description === Old.description ? undefined : New.description;
+            this.NewSubject = New.subject === Old.subject ? undefined : New.subject;
+        }
+        else {
+            this.OldTitle = undefined;
+            this.OldCreator = undefined;
+            this.OldDescription = undefined;
+            this.OldSubject = undefined;
+
+            this.NewTitle = undefined;
+            this.NewCreator = undefined;
+            this.NewDescription = undefined;
+            this.NewSubject = undefined;
+        }
+    }
+    CChangesCorePr.prototype = Object.create(AscDFH.CChangesBase.prototype);
+    CChangesCorePr.prototype.constructor = CChangesCorePr;
+    CChangesCorePr.prototype.Type = AscDFH.historyitem_CoreProperties;
+    CChangesCorePr.prototype.Undo = function(){
+        if(!this.Class) {
+            return;
+        }
+        this.Class.title = this.OldTitle;
+        this.Class.creator = this.OldCreator;
+        this.Class.description = this.OldDescription;
+        this.Class.subject = this.OldSubject;
+    };
+    CChangesCorePr.prototype.Redo = function(){
+        if(!this.Class) {
+            return;
+        }
+        if(this.NewTitle !== undefined) {
+            this.Class.title = this.NewTitle;
+        }
+        if(this.NewCreator !== undefined) {
+            this.Class.creator = this.NewCreator;
+        }
+        if(this.NewDescription !== undefined) {
+            this.Class.description = this.NewDescription;
+        }
+        if(this.NewSubject !== undefined) {
+            this.Class.subject = this.NewSubject;
+        }
+    };
+    CChangesCorePr.prototype.WriteToBinary = function(Writer) {
+        var nFlags = 0;
+        if (undefined !== this.NewTitle) {
+            nFlags |= 1;
+        }
+        if (undefined !== this.NewCreator) {
+            nFlags |= 2;
+        }
+        if (undefined !== this.NewDescription) {
+            nFlags |= 4;
+        }
+        if (undefined !== this.NewSubject) {
+            nFlags |= 8;
+        }
+
+        Writer.WriteLong(nFlags);
+        var bIsField;
+        if(nFlags & 1) {
+            bIsField = typeof this.NewTitle === "string";
+            Writer.WriteBool(bIsField);
+            if(bIsField) {
+                Writer.WriteString2(this.NewTitle);
+            }
+        }
+        if(nFlags & 2) {
+            bIsField = typeof this.NewCreator === "string";
+            Writer.WriteBool(bIsField);
+            if(bIsField) {
+                Writer.WriteString2(this.NewCreator);
+            }
+        }
+        if(nFlags & 4) {
+            bIsField = typeof this.NewDescription === "string";
+            Writer.WriteBool(bIsField);
+            if(bIsField) {
+                Writer.WriteString2(this.NewDescription);
+            }
+        }
+        if(nFlags & 8) {
+            bIsField = typeof this.NewSubject === "string";
+            Writer.WriteBool(bIsField);
+            if(bIsField) {
+                Writer.WriteString2(this.NewSubject);
+            }
+        }
+    };
+
+    CChangesCorePr.prototype.ReadFromBinary = function(Reader) {
+        var nFlags = Reader.GetLong();
+        var bIsField;
+        if(nFlags & 1) {
+            bIsField = Reader.GetBool();
+            if(bIsField) {
+                this.NewTitle = Reader.GetString2();
+            }
+            else {
+                this.NewTitle = null;
+            }
+        }
+        if(nFlags & 2) {
+            bIsField = Reader.GetBool();
+            if(bIsField) {
+                this.NewCreator = Reader.GetString2();
+            }
+            else {
+                this.NewCreator = null;
+            }
+        }
+        if(nFlags & 4) {
+            bIsField = Reader.GetBool();
+            if(bIsField) {
+                this.NewDescription = Reader.GetString2();
+            }
+            else {
+                this.NewDescription = null;
+            }
+        }
+        if(nFlags & 8) {
+            bIsField = Reader.GetBool();
+            if(bIsField) {
+                this.NewSubject = Reader.GetString2();
+            }
+            else {
+                this.NewSubject = null;
+            }
+        }
+    };
+    CChangesCorePr.prototype.CreateReverseChange = function(){
+        var ret = new CChangesCorePr(this.Class);
+        ret.OldTitle = this.NewTitle ;
+        ret.OldCreator = this.NewCreator;
+        ret.OldDescription = this.NewCreator;
+        ret.OldSubject = this.NewSubject;
+        ret.NewTitle = this.OldTitle ;
+        ret.NewCreator = this.OldCreator;
+        ret.NewDescription = this.OldCreator;
+        ret.NewSubject = this.OldSubject;
+        return ret;
+    };
+
+    AscDFH.changesFactory[AscDFH.historyitem_CoreProperties] = CChangesCorePr;
 
 function CCore() {
     this.category = null;
-    this.contentStatus = null;
+    this.contentStatus = null;//Status in menu
     this.created = null;
-    this.creator = null;
-    this.description = null;
+    this.creator = null;// Authors in menu
+    this.description = null;//Comments in menu
     this.identifier = null;
     this.keywords = null;
     this.language = null;
@@ -9113,6 +9268,10 @@ function CCore() {
     this.subject = null;
     this.title = null;
     this.version = null;
+
+    this.Id = AscCommon.g_oIdCounter.Get_NewId();
+    this.Lock = new AscCommon.CLock();
+    AscCommon.g_oTableId.Add( this, this.Id );
 }
 CCore.prototype.fromStream = function(s)
 {
@@ -9258,6 +9417,70 @@ CCore.prototype.asc_getLanguage = function(){return this.language;};
 CCore.prototype.asc_getLastPrinted = function(){return this.lastPrinted;};
 CCore.prototype.asc_getSubject = function(){return this.subject;};
 CCore.prototype.asc_getVersion = function(){return this.version;};
+
+CCore.prototype.asc_putTitle = function(v){this.title = v;};
+CCore.prototype.asc_putCreator = function(v){this.creator = v;};
+CCore.prototype.asc_putLastModifiedBy = function(v){this.lastModifiedBy = v;};
+CCore.prototype.asc_putRevision = function(v){this.revision = v;};
+CCore.prototype.asc_putCreated = function(v){this.created = v;};
+CCore.prototype.asc_putModified = function(v){this.modified = v;};
+CCore.prototype.asc_putCategory = function(v){this.category = v;};
+CCore.prototype.asc_putContentStatus = function(v){this.contentStatus = v;};
+CCore.prototype.asc_putDescription = function(v){this.description = v;};
+CCore.prototype.asc_putIdentifier = function(v){this.identifier = v;};
+CCore.prototype.asc_putKeywords = function(v){this.keywords = v;};
+CCore.prototype.asc_putLanguage = function(v){this.language = v;};
+CCore.prototype.asc_putLastPrinted = function(v){this.lastPrinted = v;};
+CCore.prototype.asc_putSubject = function(v){this.subject = v;};
+CCore.prototype.asc_putVersion = function(v){this.version = v;};
+
+CCore.prototype.setProps = function(oProps){
+    History.Add(new CChangesCorePr(this, this, oProps, null));
+    this.title = oProps.title;
+    this.creator = oProps.creator;
+    this.description = oProps.description;
+    this.subject = oProps.subject;
+};
+CCore.prototype.Get_Id = function(){
+    return this.Id;
+};
+
+
+    CCore.prototype.getObjectType = function () {
+        return AscDFH.historyitem_type_Core;
+    };
+
+    CCore.prototype.Write_ToBinary2 = function (oWriter) {
+        oWriter.WriteLong(this.getObjectType());
+        oWriter.WriteString2(this.Get_Id());
+    };
+
+    CCore.prototype.Read_FromBinary2 = function (oReader) {
+        this.Id = oReader.GetString2();
+    };
+
+
+    CCore.prototype.copy = function(){
+        return AscFormat.ExecuteNoHistory(function(){
+            var oCopy = new CCore();
+            oCopy.category = this.category;
+            oCopy.contentStatus = this.contentStatus;
+            oCopy.created = this.created;
+            oCopy.creator = this.creator;
+            oCopy.description = this.description;
+            oCopy.identifier = this.identifier;
+            oCopy.keywords = this.keywords;
+            oCopy.language = this.language;
+            oCopy.lastModifiedBy = this.lastModifiedBy;
+            oCopy.lastPrinted = this.lastPrinted;
+            oCopy.modified = this.modified;
+            oCopy.revision = this.revision;
+            oCopy.subject = this.subject;
+            oCopy.title = this.title;
+            oCopy.version = this.version;
+            return oCopy;
+        }, this, []);
+    };
 
 function CPres()
 {
@@ -10608,4 +10831,21 @@ function CPres()
     prot["asc_getRevision"] = prot.asc_getRevision;
     prot["asc_getCreated"] = prot.asc_getCreated;
     prot["asc_getModified"] = prot.asc_getModified;
+
+    prot["asc_putTitle"] = prot.asc_putTitle;
+    prot["asc_putCreator"] = prot.asc_putCreator;
+    prot["asc_putLastModifiedBy"] = prot.asc_putLastModifiedBy;
+    prot["asc_putRevision"] = prot.asc_putRevision;
+    prot["asc_putCreated"] = prot.asc_putCreated;
+    prot["asc_putModified"] = prot.asc_putModified;
+    prot["asc_putCategory"] = prot.asc_putCategory;
+    prot["asc_putContentStatus"] = prot.asc_putContentStatus;
+    prot["asc_putDescription"] = prot.asc_putDescription;
+    prot["asc_putIdentifier"] = prot.asc_putIdentifier;
+    prot["asc_putKeywords"] = prot.asc_putKeywords;
+    prot["asc_putLanguage"] = prot.asc_putLanguage;
+    prot["asc_putLastPrinted"] = prot.asc_putLastPrinted;
+    prot["asc_putSubject"] = prot.asc_putSubject;
+    prot["asc_putVersion"] = prot.asc_putVersion;
+
 })(window);

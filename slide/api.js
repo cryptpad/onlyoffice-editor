@@ -827,6 +827,10 @@
 						{
 							editor.sync_LockComment(Class.Get_Id(), e["user"]);
 						}
+						if(Class instanceof AscCommon.CCore)
+						{
+							editor.sendEvent("asc_onLockCore", true);
+						}
 
 						// TODO: Здесь для ускорения надо сделать проверку, является ли текущим элемент с
 						//       заданным Id. Если нет, тогда и не надо обновлять состояние.
@@ -7410,11 +7414,26 @@ background-repeat: no-repeat;\
 		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.App || null;
 	};
 
-	asc_docs_api.prototype.asc_getCoreProps = function()
+	asc_docs_api.prototype.getInternalCoreProps = function()
 	{
-		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.Core || null;
+		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.Core;
 	};
 
+	asc_docs_api.prototype.asc_setCoreProps = function(oProps)
+	{
+		var oCore = this.getInternalCoreProps();
+		if(!oCore)
+		{
+			return;
+		}
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if(false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_CorePr, null))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_SetCoreproperties);
+			oCore.setProps(oProps);
+			oLogicDocument.FinalizeAction(true);
+		}
+	};
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                 = window['Asc'] || {};
 	window['AscCommonSlide']                                      = window['AscCommonSlide'] || {};
@@ -7453,6 +7472,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getDocumentName']                 = asc_docs_api.prototype.asc_getDocumentName;
 	asc_docs_api.prototype['asc_getAppProps']                     = asc_docs_api.prototype.asc_getAppProps;
 	asc_docs_api.prototype['asc_getCoreProps']                    = asc_docs_api.prototype.asc_getCoreProps;
+	asc_docs_api.prototype['asc_setCoreProps']                    = asc_docs_api.prototype.asc_setCoreProps;
 	asc_docs_api.prototype['asc_registerCallback']                = asc_docs_api.prototype.asc_registerCallback;
 	asc_docs_api.prototype['asc_unregisterCallback']              = asc_docs_api.prototype.asc_unregisterCallback;
 	asc_docs_api.prototype['asc_checkNeedCallback']               = asc_docs_api.prototype.asc_checkNeedCallback;
