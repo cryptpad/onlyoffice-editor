@@ -175,6 +175,13 @@ if(typeof CDocument !== "undefined")
 			{
 				this.DrawingObjects.Lock.Check(this.DrawingObjects.Get_Id());
 			}
+			else if(AscCommon.changestype_CorePr === CheckType)
+			{
+				if(this.Core)
+				{
+					this.Core.Lock.Check(this.Core.Get_Id());
+				}
+			}
 			else
 			{
 				this.Controller.IsSelectionLocked(CheckType);

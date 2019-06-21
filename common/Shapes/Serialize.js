@@ -9444,6 +9444,11 @@ CCore.prototype.setProps = function(oProps){
 CCore.prototype.Get_Id = function(){
     return this.Id;
 };
+CCore.prototype.Refresh_RecalcData = function(){
+};
+
+CCore.prototype.Refresh_RecalcData2 = function(){
+};
 
 
     CCore.prototype.getObjectType = function () {
