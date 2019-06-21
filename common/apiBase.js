@@ -1990,7 +1990,7 @@
 				}
 				case "hideContentControlTrack":
 				{
-					if (this.editorId === c_oEditorId.Word)
+					if (this.editorId === c_oEditorId.Word && this.WordControl && this.WordControl.m_oLogicDocument)
 						this.WordControl.m_oLogicDocument.SetForceHideContentControlTrack(obj[prop]);
 
 					break;

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PRODUCT_VERSION="5.3.0"
-BUILD_NUMBER="245"
+PRODUCT_VERSION="5.3.2"
+BUILD_NUMBER="13"
 
 echo "----------------------------------------"
 echo "Building for mobile"
