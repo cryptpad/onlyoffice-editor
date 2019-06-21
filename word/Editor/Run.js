@@ -468,6 +468,18 @@ ParaRun.prototype.Add = function(Item, bMath)
 	if (undefined !== Item.Parent)
 		Item.Parent = this;
 
+	if (this.IsParaEndRun())
+	{
+		var NewRun = this.private_SplitRunInCurPos();
+		if (NewRun)
+		{
+			NewRun.MoveCursorToStartPos();
+			NewRun.Add(Item, bMath);
+			NewRun.Make_ThisElementCurrent();
+			return;
+		}
+	}
+
 	if (this.Paragraph && this.Paragraph.LogicDocument)
 	{
 		// Специальный код, связанный с обработкой изменения языка ввода при наборе.
