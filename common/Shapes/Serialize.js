@@ -8809,7 +8809,9 @@ function BinaryPPTYLoader()
                                     Fld.SetPPr(_pPr);
                                 }
 
+                                par.Internal_Content_Add(EndPos++, new ParaRun(par, false));
                                 par.Internal_Content_Add(EndPos++, Fld);
+                                par.Internal_Content_Add(EndPos++, new ParaRun(par, false));
                                 s.Seek2(_end);
                                 break;
                             }

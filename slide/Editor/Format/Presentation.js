@@ -3394,7 +3394,7 @@ CPresentation.prototype =
                                                     {
                                                         oParagraph = oContent.Content[0];
                                                         oFld = new AscCommonWord.CPresentationField(oParagraph);
-                                                        oFld.SetGuid(AscCommon.GUID());
+                                                        oFld.SetGuid(AscCommon.CreateGUID());
                                                         oFld.SetFieldType(sDateTime);
                                                         if(typeof sCustomDateTime === "string")
                                                         {
@@ -3422,7 +3422,7 @@ CPresentation.prototype =
                                                 {
                                                     oParagraph = oContent.Content[0];
                                                     oFld = new AscCommonWord.CPresentationField(oParagraph);
-                                                    oFld.SetGuid(AscCommon.GUID());
+                                                    oFld.SetGuid(AscCommon.CreateGUID());
                                                     oFld.SetFieldType(sDateTime);
                                                     if(typeof sCustomDateTime === "string")
                                                     {
@@ -3464,7 +3464,7 @@ CPresentation.prototype =
                                         {
                                             oParagraph = oContent.Content[0];
                                             oFld = new AscCommonWord.CPresentationField(oParagraph);
-                                            oFld.SetGuid(AscCommon.GUID());
+                                            oFld.SetGuid(AscCommon.CreateGUID());
                                             oFld.SetFieldType(sDateTime);
                                             if(typeof sCustomDateTime === "string")
                                             {
@@ -3643,7 +3643,7 @@ CPresentation.prototype =
                                 {
                                     oParagraph = oContent.Content[0];
                                     oFld = new AscCommonWord.CPresentationField(oParagraph);
-                                    oFld.SetGuid(AscCommon.GUID());
+                                    oFld.SetGuid(AscCommon.CreateGUID());
                                     oFld.SetFieldType(sDateTime);
                                     if(typeof sCustomDateTime === "string")
                                     {
@@ -3670,6 +3670,47 @@ CPresentation.prototype =
                 }
             }
 
+        }
+    },
+
+    addSlideNumber: function ()
+    {
+        var oController = this.GetCurrentController();
+        if(!oController)
+        {
+            return;
+        }
+        var oContent = oController.getTargetDocContent(undefined, false);
+        if(!oContent)
+        {
+            return;
+        }
+        if(false === this.Document_Is_SelectionLocked(changestype_Drawing_Props))
+        {
+            this.StartAction(AscDFH.historydescription_Presentation_AddSlideNumber);
+            oContent = oController.getTargetDocContent(true, false);
+            if(oContent)
+            {
+                var oParagraph = oContent.Content[oContent.CurPos.ContentPos];
+                if(oParagraph)
+                {
+                    var oFld = new AscCommonWord.CPresentationField(oParagraph);
+                    oFld.SetGuid(AscCommon.CreateGUID());
+                    oFld.SetFieldType("slidenum");
+                    var nFirstSlideNum = AscFormat.isRealNumber(this.firstSlideNum) ? this.firstSlideNum : 1;
+                    oFld.AddText("" + (this.CurPage + nFirstSlideNum));
+
+                    oController.AddToParagraph(oFld, false, false);
+
+//                    oParagraph.Internal_Content_Add(oParagraph.CurPos.ContentPos, oFld, true);
+  //                  oParagraph.Add(oParagraph.CurPos.ContentPos, oFld, true);
+
+                    this.Recalculate();
+                    this.RecalculateCurPos();
+                    this.Document_UpdateSelectionState();
+                }
+            }
+            this.FinalizeAction(true);
         }
     },
 

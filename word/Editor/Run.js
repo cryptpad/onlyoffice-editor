@@ -1015,7 +1015,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					if (oComplexField)
 					{
 						oComplexField.SelectField();
-						var oLogicDocument = this.Paragraph ? this.Paragraph.LogicDocument : null;
+						var oLogicDocument = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument : null;
 						if (oLogicDocument)
 						{
 							oLogicDocument.Document_UpdateInterfaceState();
@@ -1025,7 +1025,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					return true;
 				}
 
-				var oStyles = this.Paragraph ? this.Paragraph.LogicDocument.GetStyles() : null;
+				var oStyles = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument.GetStyles() : null;
 				if (oStyles && 1 === this.Content.length && para_FootnoteReference === this.Content[0].Type && this.Get_RStyle() === oStyles.GetDefaultFootnoteReference())
 					this.Set_RStyle(undefined);
 
@@ -1051,7 +1051,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					if (oComplexField)
 					{
 						oComplexField.SelectField();
-						var oLogicDocument = this.Paragraph ? this.Paragraph.LogicDocument : null;
+						var oLogicDocument = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument : null;
 						if (oLogicDocument)
 						{
 							oLogicDocument.Document_UpdateInterfaceState();
@@ -1061,7 +1061,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					return true;
 				}
 
-				var oStyles = this.Paragraph ? this.Paragraph.LogicDocument.GetStyles() : null;
+				var oStyles = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument.GetStyles() : null;
 				if (oStyles && 1 === this.Content.length && para_FootnoteReference === this.Content[0].Type && this.Get_RStyle() === oStyles.GetDefaultFootnoteReference())
 					this.Set_RStyle(undefined);
 

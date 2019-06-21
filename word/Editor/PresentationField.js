@@ -78,7 +78,7 @@
         }
         var Field = new CPresentationField(this.Paragraph);
         Field.Set_Pr( this.Pr.Copy() );
-        Field.SetGuid( '{' + AscCommon.GUID() + '}');
+        Field.SetGuid(AscCommon.CreateGUID());
         Field.SetFieldType( this.FieldType );
         if(this.PPr)
         {
@@ -124,6 +124,10 @@
         }
         ParaRun.prototype.Remove_FromContent.call(this, Pos, Count, UpdatePosition);
     };
+    CPresentationField.prototype.Is_Empty = function()
+    {
+        return false;
+    };
 
     CPresentationField.prototype.private_CalculateContent = function()
     {
@@ -156,6 +160,7 @@
         if(typeof this.FieldType === 'string')
         {
             var sFieldType = this.FieldType.toLowerCase();
+            sStr = sFieldType;
             switch (sFieldType)
             {
                 case "slidenum":
@@ -163,24 +168,44 @@
                     if(this.Paragraph && this.Paragraph.Parent)
                     {
                         oStylesObject = this.Paragraph.Parent.Get_Styles();
+                        var nFirstSlideNum = 1;
+                        if(oStylesObject.presentation)
+                        {
+                            if(AscFormat.isRealNumber(oStylesObject.presentation.firstSlideNum))
+                            {
+                                nFirstSlideNum = oStylesObject.presentation.firstSlideNum;
+                            }
+                        }
                         if(oStylesObject.slide)
                         {
                             this.Slide = oStylesObject.slide;
                             if(AscFormat.isRealNumber(this.Slide.num))
                             {
                                 this.SlideNum = this.Slide.num;
-                                sStr = '' + (this.Slide.num + 1);
+                                sStr = '' + (this.Slide.num + nFirstSlideNum);
+                            }
+                        }
+                        else if(oStylesObject.notes)
+                        {
+                            if(oStylesObject.notes.slide)
+                            {
+                                this.Slide = oStylesObject.notes.slide;
+                                if(AscFormat.isRealNumber(this.Slide.num))
+                                {
+                                    this.SlideNum = this.Slide.num;
+                                    sStr = '' + (this.Slide.num + nFirstSlideNum);
+                                }
                             }
                         }
                         else if(oStylesObject.layout)
                         {
                             this.SlideNum = oStylesObject.layout.lastRecalcSlideIndex;
-                            sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + 1);
+                            sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + nFirstSlideNum);
                         }
                         else if(oStylesObject.master)
                         {
                             this.SlideNum = oStylesObject.master.lastRecalcSlideIndex;
-                            sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + 1);
+                            sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + nFirstSlideNum);
                         }
                     }
                     break;
