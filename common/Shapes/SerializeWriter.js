@@ -1017,11 +1017,15 @@ function CBinaryFileWriter()
         this._WriteBool2(2, pres.attrCompatMode);
         this._WriteLimit2(3, pres.attrConformance);
         this._WriteBool2(4, pres.attrEmbedTrueTypeFonts);
+
+        pres.attrFirstSlideNum = presentation.firstSlideNum;
         this._WriteInt2(5, pres.attrFirstSlideNum);
         this._WriteBool2(6, pres.attrRemovePersonalInfoOnSave);
         this._WriteBool2(7, pres.attrRtl);
         this._WriteBool2(8, pres.attrSaveSubsetFonts);
         this._WriteString2(9, pres.attrServerZoom);
+
+        pres.attrShowSpecialPlsOnTitleSld = presentation.showSpecialPlsOnTitleSld;
         this._WriteBool2(10, pres.attrShowSpecialPlsOnTitleSld);
         this._WriteBool2(11, pres.attrStrictFirstAndLastChars);
 
@@ -1764,10 +1768,10 @@ function CBinaryFileWriter()
     this.WriteHF = function(hf)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
-        oThis._WriteBool2(0, hf.dt);
-        oThis._WriteBool2(1, hf.ftr);
-        oThis._WriteBool2(2, hf.hdr);
-        oThis._WriteBool2(3, hf.sldNum);
+        oThis._WriteBool2(0, hf.dt === null ? true : hf.dt);
+        oThis._WriteBool2(1, hf.ftr === null ? true : hf.ftr);
+        oThis._WriteBool2(2, hf.hdr === null ? true : hf.hdr);
+        oThis._WriteBool2(3, hf.sldNum === null ? true : hf.sldNum);
         oThis.WriteUChar(g_nodeAttributeEnd);
     }
     this.WriteTxStyles = function(txStyles)

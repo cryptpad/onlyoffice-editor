@@ -56,16 +56,6 @@
     oDays[5] = "Friday";
     oDays[6] = "Saturday";
 
-    function AlignNum(Num, nDigitsCount)
-    {
-        var sStr = "" + Num;
-        for(var i = sStr.length; i < nDigitsCount; ++i)
-        {
-            sStr = '0' + sStr;
-        }
-        return sStr;
-    }
-
     function CPresentationField(Paragraph)
     {
         ParaRun.call(this, Paragraph, false);
@@ -88,7 +78,7 @@
         }
         var Field = new CPresentationField(this.Paragraph);
         Field.Set_Pr( this.Pr.Copy() );
-        Field.SetGuid( '{' + AscCommon.GUID() + '}');
+        Field.SetGuid(AscCommon.CreateGUID());
         Field.SetFieldType( this.FieldType );
         if(this.PPr)
         {
@@ -134,6 +124,10 @@
         }
         ParaRun.prototype.Remove_FromContent.call(this, Pos, Count, UpdatePosition);
     };
+    CPresentationField.prototype.Is_Empty = function()
+    {
+        return false;
+    };
 
     CPresentationField.prototype.private_CalculateContent = function()
     {
@@ -146,14 +140,27 @@
             }
         }, this, []);
     };
+    CPresentationField.prototype.GetFieldType = function(){
+        if(typeof this.FieldType === 'string') {
+            return this.FieldType.toLowerCase();
+        }
+        return "";
+    };
     CPresentationField.prototype.private_GetString = function()
     {
         var sStr = null;
         var oDate;
         var oStylesObject;
+        var oCultureInfo = AscCommon.g_aCultureInfos[this.Get_CompiledPr().Lang.Val];
+        if(!oCultureInfo)
+        {
+            oCultureInfo = AscCommon.g_aCultureInfos[1033];
+        }
+        var oDateTime, oFormat;
         if(typeof this.FieldType === 'string')
         {
             var sFieldType = this.FieldType.toLowerCase();
+            sStr = sFieldType;
             switch (sFieldType)
             {
                 case "slidenum":
@@ -161,24 +168,44 @@
                     if(this.Paragraph && this.Paragraph.Parent)
                     {
                         oStylesObject = this.Paragraph.Parent.Get_Styles();
+                        var nFirstSlideNum = 1;
+                        if(oStylesObject.presentation)
+                        {
+                            if(AscFormat.isRealNumber(oStylesObject.presentation.firstSlideNum))
+                            {
+                                nFirstSlideNum = oStylesObject.presentation.firstSlideNum;
+                            }
+                        }
                         if(oStylesObject.slide)
                         {
                             this.Slide = oStylesObject.slide;
                             if(AscFormat.isRealNumber(this.Slide.num))
                             {
                                 this.SlideNum = this.Slide.num;
-                                sStr = '' + (this.Slide.num + 1);
+                                sStr = '' + (this.Slide.num + nFirstSlideNum);
+                            }
+                        }
+                        else if(oStylesObject.notes)
+                        {
+                            if(oStylesObject.notes.slide)
+                            {
+                                this.Slide = oStylesObject.notes.slide;
+                                if(AscFormat.isRealNumber(this.Slide.num))
+                                {
+                                    this.SlideNum = this.Slide.num;
+                                    sStr = '' + (this.Slide.num + nFirstSlideNum);
+                                }
                             }
                         }
                         else if(oStylesObject.layout)
                         {
                             this.SlideNum = oStylesObject.layout.lastRecalcSlideIndex;
-                            sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + 1);
+                            sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + nFirstSlideNum);
                         }
                         else if(oStylesObject.master)
                         {
                             this.SlideNum = oStylesObject.master.lastRecalcSlideIndex;
-                            sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + 1);
+                            sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + nFirstSlideNum);
                         }
                     }
                     break;
@@ -209,91 +236,114 @@
                 }
                 case "datetime":
                 {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear();
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime1":
                 {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear();
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime2":
                 {
-                    oDate = new Date();
-                    sStr = AscCommon.translateManager.getValue(oDays[oDate.getDay()]) + ', ' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + AlignNum(oDate.getDate(), 2) + ', ' + oDate.getFullYear();
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("dddd\\,\\ mmmm\\ dd\\,\\ yyyy");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime3":
                 {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getDate(), 2) + ' ' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + oDate.getFullYear();
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("DD\\ MMMM\\ YYYY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime4":
                 {
-                    oDate = new Date();
-                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + AlignNum(oDate.getDate(), 2) + ', ' + oDate.getFullYear();
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("MMMM\\ DD\\,\\ YYYY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime5":
                 {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getDate(), 2) + '-' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]).slice(0, 3) + '-' + (oDate.getFullYear() + '').slice(2, 4);
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("DD-MMM-YY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime6":
                 {
-                    oDate = new Date();
-                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + (oDate.getFullYear() + '').slice(2, 4);
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("MMMM\\ YY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime7":
                 {
-                    oDate = new Date();
-                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]).slice(0, 3) + '-' + (oDate.getFullYear() + '').slice(2, 4);
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("MMM-YY");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime8":
                 {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear() + ' ' + oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY\\ hh:mm\\ AM/PM");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime9":
                 {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear() + ' ' + oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric', second: 'numeric' });
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY\\ hh:mm:ss\\ AM/PM");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime10":
                 {
-                    oDate = new Date();
-                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric',  minute: 'numeric', hour12: false });
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("hh:mm");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime11":
                 {
-                    oDate = new Date();
-                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric',  minute: 'numeric', second: 'numeric', hour12: false });
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("hh:mm:ss");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime12":
                 {
-                    oDate = new Date();
-                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("hh:mm\\ AM/PM");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 case "datetime13":
                 {
-                    oDate = new Date();
-                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric', second: 'numeric' });
+                    oDateTime = new Asc.cDate();
+                    oFormat = AscCommon.oNumFormatCache.get("hh:mm:ss:\\ AM/PM");
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                     break;
                 }
                 default:
                 {
-                    sStr = sFieldType.toUpperCase();
+                    if(sFieldType.indexOf("datetime") === 0)
+                    {
+                        oDateTime = new Asc.cDate();
+                        oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
+                        sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+                    }
+                    else
+                    {
+                        sStr = sFieldType.toUpperCase();
+                    }
                     break;
                 }
             }

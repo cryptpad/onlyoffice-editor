@@ -2679,6 +2679,9 @@ AscDFH.changesFactory[AscDFH.historyitem_Presentation_ChangeColorScheme] = AscDF
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_RemoveSlide] = AscDFH.CChangesDrawingsContentPresentation         ;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_AddSlide] = AscDFH.CChangesDrawingsContentPresentation         ;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetDefaultTextStyle] = AscDFH.CChangesDrawingsObjectNoId;
+AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetFirstSlideNum] = AscDFH.CChangesDrawingsLong;
+AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetShowSpecialPlsOnTitleSld] = AscDFH.CChangesDrawingsBool;
+
 
 AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetName] = AscDFH.CChangesDrawingsString;
 AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetStartIndex] = AscDFH.CChangesDrawingsLong;
@@ -2691,6 +2694,8 @@ AscDFH.drawingsChangesMap[AscDFH.historyitem_PresentationSectionSetGuid] = funct
 AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetShowPr] = function(oClass, value){oClass.showPr  = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SlideSize] = function(oClass, value){oClass.Width = value.a; oClass.Height = value.b; oClass.changeSlideSizeFunction(oClass.Width, oClass.Height);};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetDefaultTextStyle] = function(oClass, value){oClass.defaultTextStyle = value;};
+AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetFirstSlideNum] = function(oClass, value){oClass.firstSlideNum = value;};
+AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetShowSpecialPlsOnTitleSld] = function(oClass, value){oClass.showSpecialPlsOnTitleSld = value;};
 
 AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_AddSlide] = function(oClass){return oClass.Slides;};
 AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_RemoveSlide] = function(oClass){return oClass.Slides;};
@@ -2723,6 +2728,9 @@ function CPresentation(DrawingDocument)
 
     //------------------------------------------------------------------------
 
+    this.firstSlideNum = null;
+    this.showSpecialPlsOnTitleSld = null;
+
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     //Props
     this.App = null;
@@ -2731,7 +2739,7 @@ function CPresentation(DrawingDocument)
     this.StartPage = 0; // Для совместимости с CDocumentContent
     this.CurPage   = 0;
 
-    this.Orientation = Asc.c_oAscPageOrientation.PagePortrait; // ориентация страницы
+    this.Orientation = Asc.c_oAscPageOrientation.PagePortrait; // ориентация страницы//TODO: remove this
 
     this.slidesToUnlock = [];
 
@@ -2869,6 +2877,17 @@ CPresentation.prototype =
     TurnOnCheckChartSelection: function(){
     },
 
+    setFirstSlideNum: function(val)
+    {
+        History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_Presentation_SetFirstSlideNum, this.firstSlideNum, val));
+        this.firstSlideNum = val;
+    },
+    setShowSpecialPlsOnTitleSld: function(val)
+    {
+        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_Presentation_SetShowSpecialPlsOnTitleSld, this.showSpecialPlsOnTitleSld, val));
+        this.showSpecialPlsOnTitleSld = val;
+    },
+
     setDefaultTextStyle: function(oStyle)
     {
         History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_Presentation_SetDefaultTextStyle, this.defaultTextStyle, oStyle));
@@ -2912,6 +2931,787 @@ CPresentation.prototype =
             oTextPr = this.defaultTextStyle.levels[9].DefaultRunPr;
         }
         return oTextPr && oTextPr.Lang.Val ? oTextPr.Lang.Val : 1033;
+    },
+
+    collectHFProps: function(oSlide)
+    {
+        if(oSlide)
+        {
+            var oParentObjects = oSlide.getParentObjects();
+            var oContent, sText, oField;
+            var oSlideHF = new AscCommonSlide.CAscHFProps();
+            var sFieldType, oDateTimeFieldsMap;
+            oSlideHF.put_Api(this.Api);
+            var oDTShape = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
+
+            oSlideHF.put_ShowDateTime(false);
+            if(oDTShape)
+            {
+                oSlideHF.put_ShowDateTime(true);
+            }
+            if(!oDTShape)
+            {
+                if(oParentObjects.layout)
+                {
+                    oDTShape = oParentObjects.layout.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                }
+            }
+            if(!oDTShape)
+            {
+                if(oParentObjects.master)
+                {
+                    oDTShape = oParentObjects.master.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                }
+            }
+            if(oDTShape)
+            {
+                oContent = oDTShape.getDocContent();
+                if(oContent)
+                {
+                    var oDateTime = new AscCommonSlide.CAscDateTime();
+                    oContent.Set_ApplyToAll(true);
+                    sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
+                    oContent.Set_ApplyToAll(false);
+                    oDateTime.put_CustomDateTime(sText);
+                    oField = oContent.GetFieldByType2('datetime');
+                    if(oField)
+                    {
+                        oDateTimeFieldsMap = {};
+                        oDateTimeFieldsMap["datetime"] =
+                        oDateTimeFieldsMap["datetime1"] =
+                        oDateTimeFieldsMap["datetime2"] =
+                        oDateTimeFieldsMap["datetime3"] =
+                        oDateTimeFieldsMap["datetime4"] =
+                        oDateTimeFieldsMap["datetime5"] =
+                        oDateTimeFieldsMap["datetime6"] =
+                        oDateTimeFieldsMap["datetime7"] =
+                        oDateTimeFieldsMap["datetime8"] =
+                        oDateTimeFieldsMap["datetime9"] =
+                        oDateTimeFieldsMap["datetime10"] =
+                        oDateTimeFieldsMap["datetime11"] =
+                        oDateTimeFieldsMap["datetime12"] =
+                        oDateTimeFieldsMap["datetime13"] = true;
+                        if(oDateTimeFieldsMap[oField.FieldType])
+                        {
+                            sFieldType = oField.FieldType;
+                        }
+                        else
+                        {
+                            sFieldType = "datetime";
+                        }
+                        oDateTime.put_DateTime(sFieldType);
+
+                        oDateTime.put_Lang(oField.CompiledPr.Lang.Val);
+                    }
+                    oSlideHF.put_DateTime(oDateTime);
+                }
+            }
+
+
+            var oSldNumShape = oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+            if(oSldNumShape)
+            {
+                oSlideHF.put_ShowSlideNum(true);
+            }
+            else
+            {
+                oSlideHF.put_ShowSlideNum(false);
+            }
+
+            oSlideHF.put_ShowFooter(false);
+            var oFooterShape = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+            if(oFooterShape)
+            {
+                oSlideHF.put_ShowFooter(true);
+            }
+            if(!oFooterShape)
+            {
+                if(oParentObjects.layout)
+                {
+                    oFooterShape = oParentObjects.layout.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                }
+            }
+            if(!oFooterShape)
+            {
+                if(oParentObjects.master)
+                {
+                    oFooterShape = oParentObjects.master.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                }
+            }
+            if(oFooterShape)
+            {
+                oSlideHF.put_ShowFooter(true);
+                oContent = oFooterShape.getDocContent();
+                if(oContent)
+                {
+                    oContent.Set_ApplyToAll(true);
+                    sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
+                    oContent.Set_ApplyToAll(false);
+                    oSlideHF.put_Footer(sText);
+                }
+            }
+
+            oSlideHF.put_ShowHeader(false);
+            var oHeaderShape = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+            if(oHeaderShape)
+            {
+                oSlideHF.put_ShowHeader(true);
+            }
+            if(!oHeaderShape)
+            {
+                if(oParentObjects.layout)
+                {
+                    oHeaderShape = oParentObjects.layout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                }
+            }
+            if(!oHeaderShape)
+            {
+                if(oParentObjects.master)
+                {
+                    oHeaderShape = oParentObjects.master.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                }
+            }
+            if(oHeaderShape)
+            {
+                oSlideHF.put_ShowFooter(true);
+                oContent = oHeaderShape.getDocContent();
+                if(oContent)
+                {
+                    oContent.Set_ApplyToAll(true);
+                    sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
+                    oContent.Set_ApplyToAll(false);
+                    oSlideHF.put_Footer(sText);
+                }
+            }
+            oSlideHF.put_ShowOnTitleSlide(this.showSpecialPlsOnTitleSld !== false);
+            return oSlideHF
+        }
+        return null;
+    },
+
+    getHFProperties: function()
+    {
+        var oProps = new AscCommonSlide.CAscHF();
+        var oSlide = this.Slides[this.CurPage];
+        oProps.put_Slide(this.collectHFProps(oSlide));
+        if(oProps.Slide)
+        {
+            oProps.Slide.slide = oSlide;
+        }
+        if(oSlide)
+        {
+            oProps.put_Notes(this.collectHFProps(oSlide.notes));
+            if(oProps.Notes)
+            {
+                oProps.Notes.notes =  oSlide.notes;
+            }
+        }
+        return oProps;
+    },
+
+
+    setHFProperties: function(oProps, bAll)
+    {
+        //TODO: check locks
+        History.Create_NewPoint(AscDFH.historydescription_Presentation_SetHF);
+        var oSlideProps = oProps.get_Slide();
+        var i, j, oSlide, oMaster, oParents, oHF, oLayout, oSp,
+            sText, oContent, oDateTime, sDateTime, sCustomDateTime, oFld, oParagraph, bRemoveOnTitle;
+        if(oSlideProps)
+        {
+            var bShowOnTitleSlide = oSlideProps.get_ShowOnTitleSlide();
+            if(bShowOnTitleSlide)
+            {
+                if(this.showSpecialPlsOnTitleSld !== null)
+                {
+                    this.setShowSpecialPlsOnTitleSld(null);
+                }
+            }
+            else
+            {
+                if(this.showSpecialPlsOnTitleSld !== false)
+                {
+                    this.setShowSpecialPlsOnTitleSld(false);
+                }
+            }
+            if(bAll)
+            {
+                var oMastersMap = {};
+                for(i = 0; i < this.Slides.length; ++i)
+                {
+                    oSlide = this.Slides[i];
+                    oParents = oSlide.getParentObjects();
+                    oMaster = oParents.master;
+                    oLayout = oParents.layout;
+                    bRemoveOnTitle = oLayout.type === AscFormat.nSldLtTTitle && this.showSpecialPlsOnTitleSld === false;
+                    if(oMaster)
+                    {
+                        if(!oMaster.hf)
+                        {
+                            oMaster.setHF(new AscFormat.HF());
+                        }
+                        oHF = oMaster.hf;
+                        if(oSlideProps.get_ShowSlideNum())
+                        {
+                            if(oHF.sldNum !== null)
+                            {
+                                oHF.setSldNum(null);
+                            }
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+                            if(!bRemoveOnTitle)
+                            {
+                                if(!oSp)
+                                {
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+                                    if(oSp)
+                                    {
+                                        oSp = oSp.copy();
+                                        oSlide.addToSpTreeToPos(undefined, oSp);
+                                        oSp.setParent(oSlide);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if(oSp)
+                                {
+                                    oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                    oSp.setBDeleted(true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(oHF.sldNum !== false)
+                            {
+                                oHF.setSldNum(false);
+                            }
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+                            if(oSp)
+                            {
+                                oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                oSp.setBDeleted(true);
+                            }
+                        }
+
+                        if(oSlideProps.get_ShowFooter())
+                        {
+                            if(oHF.ftr !== null)
+                            {
+                                oHF.setFtr(null);
+                            }
+                            sText = oSlideProps.get_Footer();
+                            if(!oMastersMap[oMaster.Get_Id()])
+                            {
+                                if(typeof sText === "string")
+                                {
+                                    for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
+                                    {
+                                        oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                                        oContent = oSp && oSp.getDocContent && oSp.getDocContent();
+                                        if(oContent)
+                                        {
+                                            oContent.Set_ApplyToAll(true);
+                                            oContent.Remove(-1, false, false, false, false);
+                                            oContent.Set_ApplyToAll(false);
+                                            AscFormat.AddToContentFromString(oContent, sText);
+                                        }
+                                    }
+                                    oSp = oMaster.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                                    oContent = oSp && oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent)
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
+                                    }
+                                }
+                            }
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                            if(!bRemoveOnTitle)
+                            {
+                                if(!oSp)
+                                {
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                                    if(oSp)
+                                    {
+                                        oSp = oSp.copy();
+                                        oSlide.addToSpTreeToPos(undefined, oSp);
+                                        oSp.setParent(oSlide);
+                                    }
+                                }
+                                else
+                                {
+                                    oContent = oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent && typeof sText === "string")
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if(oSp)
+                                {
+                                    oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                    oSp.setBDeleted(true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(oHF.ftr !== false)
+                            {
+                                oHF.setFtr(false);
+                            }
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                            if(oSp)
+                            {
+                                oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                oSp.setBDeleted(true);
+                            }
+                        }
+
+                        if(oSlideProps.get_ShowHeader())
+                        {
+                            if(oHF.hdr !== null)
+                            {
+                                oHF.setHdr(null);
+                            }
+                            sText = oSlideProps.get_Header();
+                            if(!oMastersMap[oMaster.Get_Id()])
+                            {
+                                if(typeof sText === "string")
+                                {
+                                    for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
+                                    {
+                                        oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                        oContent = oSp && oSp.getDocContent && oSp.getDocContent();
+                                        if(oContent)
+                                        {
+                                            oContent.Set_ApplyToAll(true);
+                                            oContent.Remove(-1, false, false, false, false);
+                                            oContent.Set_ApplyToAll(false);
+                                            AscFormat.AddToContentFromString(oContent, sText);
+                                        }
+                                    }
+                                    oSp = oMaster.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                    oContent = oSp && oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent)
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
+                                    }
+                                }
+                            }
+
+
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                            if(!bRemoveOnTitle)
+                            {
+                                if(!oSp)
+                                {
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                                    if(oSp)
+                                    {
+                                        oSp = oSp.copy();
+                                        oSlide.addToSpTreeToPos(undefined, oSp);
+                                        oSp.setParent(oSlide);
+                                    }
+                                }
+                                else
+                                {
+                                    oContent = oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent && typeof sText === "string")
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        AscFormat.AddToContentFromString(oContent, sText);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if(oSp)
+                                {
+                                    oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                    oSp.setBDeleted(true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(oHF.hdr !== false)
+                            {
+                                oHF.setHdr(false);
+                            }
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                            if(oSp)
+                            {
+                                oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                oSp.setBDeleted(true);
+                            }
+                        }
+
+
+                        if(oSlideProps.get_ShowDateTime())
+                        {
+                            if(oHF.dt !== null)
+                            {
+                                oHF.setDt(null);
+                            }
+                            oDateTime = oSlideProps.get_DateTime();
+
+                            sDateTime = "";
+                            sCustomDateTime = "";
+                            if(oDateTime)
+                            {
+                                sDateTime = oDateTime.get_DateTime();
+                                sCustomDateTime = oDateTime.get_CustomDateTime();
+                                if(!oMastersMap[oMaster.Get_Id()])
+                                {
+                                    if(typeof sDateTime === "string" || typeof sCustomDateTime === "string")
+                                    {
+                                        for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
+                                        {
+                                            oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_dt, null, false, {});
+                                            if(oSp)
+                                            {
+                                                oContent = oSp.getDocContent && oSp.getDocContent();
+                                                if(oContent)
+                                                {
+                                                    oContent.Set_ApplyToAll(true);
+                                                    oContent.Remove(-1, false, false, false, false);
+                                                    oContent.Set_ApplyToAll(false);
+                                                    if(sDateTime)
+                                                    {
+                                                        oParagraph = oContent.Content[0];
+                                                        oFld = new AscCommonWord.CPresentationField(oParagraph);
+                                                        oFld.SetGuid(AscCommon.CreateGUID());
+                                                        oFld.SetFieldType(sDateTime);
+                                                        if(typeof sCustomDateTime === "string")
+                                                        {
+                                                            oFld.AddText(sCustomDateTime);
+                                                        }
+                                                        oParagraph.Internal_Content_Add(0, oFld);
+                                                    }
+                                                    else
+                                                    {
+                                                        AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        oSp = oMaster.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                                        if(oSp)
+                                        {
+                                            oContent = oSp.getDocContent && oSp.getDocContent();
+                                            if(oContent)
+                                            {
+                                                oContent.Set_ApplyToAll(true);
+                                                oContent.Remove(-1, false, false, false, false);
+                                                oContent.Set_ApplyToAll(false);
+                                                if(sDateTime)
+                                                {
+                                                    oParagraph = oContent.Content[0];
+                                                    oFld = new AscCommonWord.CPresentationField(oParagraph);
+                                                    oFld.SetGuid(AscCommon.CreateGUID());
+                                                    oFld.SetFieldType(sDateTime);
+                                                    if(typeof sCustomDateTime === "string")
+                                                    {
+                                                        oFld.AddText(sCustomDateTime);
+                                                    }
+                                                    oParagraph.Internal_Content_Add(0, oFld);
+                                                }
+                                                else
+                                                {
+                                                    AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                            if(!bRemoveOnTitle)
+                            {
+                                if(!oSp)
+                                {
+                                    oSp = oLayout.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                                    if(oSp)
+                                    {
+                                        oSp = oSp.copy();
+                                        oSlide.addToSpTreeToPos(undefined, oSp);
+                                        oSp.setParent(oSlide);
+                                    }
+                                }
+                                else
+                                {
+                                    oContent = oSp.getDocContent && oSp.getDocContent();
+                                    if(oContent)
+                                    {
+                                        oContent.Set_ApplyToAll(true);
+                                        oContent.Remove(-1, false, false, false, false);
+                                        oContent.Set_ApplyToAll(false);
+                                        if(sDateTime)
+                                        {
+                                            oParagraph = oContent.Content[0];
+                                            oFld = new AscCommonWord.CPresentationField(oParagraph);
+                                            oFld.SetGuid(AscCommon.CreateGUID());
+                                            oFld.SetFieldType(sDateTime);
+                                            if(typeof sCustomDateTime === "string")
+                                            {
+                                                oFld.AddText(sCustomDateTime);
+                                            }
+                                            oParagraph.Internal_Content_Add(0, oFld);
+                                        }
+                                        else
+                                        {
+                                            AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if(oSp)
+                                {
+                                    oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                    oSp.setBDeleted(true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(oHF.dt !== false)
+                            {
+                                oHF.setDt(false);
+                            }
+                            oSp = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                            if(oSp)
+                            {
+                                oSlide.removeFromSpTreeById(oSp.Get_Id());
+                                oSp.setBDeleted(true);
+                            }
+                        }
+
+                        oMastersMap[oMaster.Get_Id()] = oMaster;
+                    }
+                }
+            }
+            else
+            {
+                oSlide = this.Slides[this.CurPage];
+
+                oParents = oSlide.getParentObjects();
+                oLayout = oParents.layout;
+                bRemoveOnTitle = oLayout.type === AscFormat.nSldLtTTitle && this.showSpecialPlsOnTitleSld === false;
+                if(oSlide)
+                {
+                    if(oSlideProps.get_ShowSlideNum() && !bRemoveOnTitle)
+                    {
+                        if(!oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {}))
+                        {
+                            oSp = oLayout.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+                            if(oSp)
+                            {
+                                oSp = oSp.copy();
+                                oSlide.addToSpTreeToPos(undefined, oSp);
+                                oSp.setParent(oSlide);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        oSp = oSlide.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
+                        if(oSp)
+                        {
+                            oSlide.removeFromSpTreeById(oSp.Get_Id());
+                            oSp.setBDeleted(true);
+                        }
+                    }
+
+                    if(oSlideProps.get_ShowFooter() && !bRemoveOnTitle)
+                    {
+                        sText = oSlideProps.get_Footer();
+                        oSp = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                        if(!oSp)
+                        {
+                            oSp = oLayout.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                            if(oSp)
+                            {
+                                oSp = oSp.copy();
+                                oSlide.addToSpTreeToPos(undefined, oSp);
+                                oSp.setParent(oSlide);
+                            }
+                        }
+                        else
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            if(oContent && typeof sText === "string")
+                            {
+                                oContent.Set_ApplyToAll(true);
+                                oContent.Remove(-1, false, false, false, false);
+                                oContent.Set_ApplyToAll(false);
+                                AscFormat.AddToContentFromString(oContent, sText);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        oSp = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                        if(oSp)
+                        {
+                            oSlide.removeFromSpTreeById(oSp.Get_Id());
+                            oSp.setBDeleted(true);
+                        }
+                    }
+
+                    if(oSlideProps.get_ShowHeader() && !bRemoveOnTitle)
+                    {
+                        sText = oSlideProps.get_Header();
+                        oSp = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                        if(!oSp)
+                        {
+                            oSp = oLayout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                            if(oSp)
+                            {
+                                oSp = oSp.copy();
+                                oSlide.addToSpTreeToPos(undefined, oSp);
+                                oSp.setParent(oSlide);
+                            }
+                        }
+                        else
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            if(oContent && typeof sText === "string")
+                            {
+                                oContent.Set_ApplyToAll(true);
+                                oContent.Remove(-1, false, false, false, false);
+                                oContent.Set_ApplyToAll(false);
+                                AscFormat.AddToContentFromString(oContent, sText);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        oSp = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                        if(oSp)
+                        {
+                            oSlide.removeFromSpTreeById(oSp.Get_Id());
+                            oSp.setBDeleted(true);
+                        }
+                    }
+
+                    if(oSlideProps.get_ShowDateTime() && !bRemoveOnTitle)
+                    {
+                        oDateTime = oSlideProps.get_DateTime();
+                        sDateTime = "";
+                        sCustomDateTime = "";
+                        if(oDateTime)
+                        {
+                            sDateTime = oDateTime.get_DateTime();
+                            sCustomDateTime = oDateTime.get_CustomDateTime();
+                        }
+                        oSp = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                        if(!oSp)
+                        {
+                            oSp = oLayout.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                            if(oSp)
+                            {
+                                oSp = oSp.copy();
+                                oSlide.addToSpTreeToPos(undefined, oSp);
+                                oSp.setParent(oSlide);
+                            }
+                        }
+                        else
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            if(oContent)
+                            {
+                                oContent.Set_ApplyToAll(true);
+                                oContent.Remove(-1, false, false, false, false);
+                                oContent.Set_ApplyToAll(false);
+                                if(sDateTime)
+                                {
+                                    oParagraph = oContent.Content[0];
+                                    oFld = new AscCommonWord.CPresentationField(oParagraph);
+                                    oFld.SetGuid(AscCommon.CreateGUID());
+                                    oFld.SetFieldType(sDateTime);
+                                    if(typeof sCustomDateTime === "string")
+                                    {
+                                        oFld.AddText(sCustomDateTime);
+                                    }
+                                    oParagraph.Internal_Content_Add(0, oFld);
+                                }
+                                else
+                                {
+                                    AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        oSp = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                        if(oSp)
+                        {
+                            oSlide.removeFromSpTreeById(oSp.Get_Id());
+                            oSp.setBDeleted(true);
+                        }
+                    }
+                }
+            }
+
+        }
+    },
+
+    addSlideNumber: function ()
+    {
+        var oController = this.GetCurrentController();
+        if(!oController)
+        {
+            return;
+        }
+        var oContent = oController.getTargetDocContent(undefined, false);
+        if(!oContent)
+        {
+            return;
+        }
+        if(false === this.Document_Is_SelectionLocked(changestype_Drawing_Props))
+        {
+            this.StartAction(AscDFH.historydescription_Presentation_AddSlideNumber);
+            oContent = oController.getTargetDocContent(true, false);
+            if(oContent)
+            {
+                var oParagraph = oContent.Content[oContent.CurPos.ContentPos];
+                if(oParagraph)
+                {
+                    var oFld = new AscCommonWord.CPresentationField(oParagraph);
+                    oFld.SetGuid(AscCommon.CreateGUID());
+                    oFld.SetFieldType("slidenum");
+                    var nFirstSlideNum = AscFormat.isRealNumber(this.firstSlideNum) ? this.firstSlideNum : 1;
+                    oFld.AddText("" + (this.CurPage + nFirstSlideNum));
+
+                    oController.AddToParagraph(oFld, false, false);
+
+//                    oParagraph.Internal_Content_Add(oParagraph.CurPos.ContentPos, oFld, true);
+  //                  oParagraph.Add(oParagraph.CurPos.ContentPos, oFld, true);
+
+                    this.Recalculate();
+                    this.RecalculateCurPos();
+                    this.Document_UpdateSelectionState();
+                }
+            }
+            this.FinalizeAction(true);
+        }
     },
 
     Restart_CheckSpelling: function()
@@ -9132,12 +9932,14 @@ CPresentation.prototype =
     addNextSlide: function(layoutIndex)
     {
         History.Create_NewPoint(AscDFH.historydescription_Presentation_AddNextSlide);
-        var  new_slide, layout, i, _ph_type, sp;
+        var  new_slide, layout, i, _ph_type, sp, hf, bIsSpecialPh;
         if(this.Slides[this.CurPage])
         {
             var cur_slide = this.Slides[this.CurPage];
 
+
             layout = AscFormat.isRealNumber(layoutIndex) ? (cur_slide.Layout.Master.sldLayoutLst[layoutIndex] ?  cur_slide.Layout.Master.sldLayoutLst[layoutIndex]:  cur_slide.Layout) : cur_slide.Layout.Master.getMatchingLayout(cur_slide.Layout.type, cur_slide.Layout.matchingName, cur_slide.Layout.cSld.name);
+            hf = layout.Master.hf;
             new_slide = new Slide(this, layout, this.CurPage + 1);
             new_slide.setNotes(AscCommonSlide.CreateNotes());
             new_slide.notes.setNotesMaster(this.notesMasters[0]);
@@ -9147,11 +9949,15 @@ CPresentation.prototype =
                 if(layout.cSld.spTree[i].isPlaceholder())
                 {
                     _ph_type = layout.cSld.spTree[i].getPhType();
-                    if(_ph_type != AscFormat.phType_dt && _ph_type != AscFormat.phType_ftr && _ph_type != AscFormat.phType_hdr && _ph_type != AscFormat.phType_sldNum)
+                    bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
+                    if(!bIsSpecialPh || hf && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
+                        (_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
+                        (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
+                        (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false))))
                     {
                         sp = layout.cSld.spTree[i].copy();
                         sp.setParent(new_slide);
-                        sp.clearContent && sp.clearContent();
+                        !bIsSpecialPh && sp.clearContent && sp.clearContent();
                         new_slide.addToSpTreeToPos(new_slide.cSld.spTree.length, sp);
                     }
                 }
@@ -9185,7 +9991,7 @@ CPresentation.prototype =
                 if(layout.cSld.spTree[i].isPlaceholder())
                 {
                     _ph_type = layout.cSld.spTree[i].getPhType();
-                    if(_ph_type != AscFormat.phType_dt && _ph_type != AscFormat.phType_ftr && _ph_type != AscFormat.phType_hdr && _ph_type != AscFormat.phType_sldNum)
+                    if((_ph_type !== AscFormat.phType_dt || (hf && hf.dt !== false)) && _ph_type != AscFormat.phType_ftr && (_ph_type !== AscFormat.phType_hdr || (hf && hf.hdr !== false)) && (_ph_type !== AscFormat.phType_sldNum || (hf && hf.sldNum !== false)))
                     {
                         sp = layout.cSld.spTree[i].copy();
                         sp.setParent(new_slide);
@@ -9474,11 +10280,93 @@ CPresentation.prototype =
         {
             this.addSlideMaster(this.slideMasters.length, themeInfo.Master);
         }
+        var oldMaster =  this.Slides[this.CurPage] && this.Slides[this.CurPage].Layout && this.Slides[this.CurPage].Layout.Master;
         var _new_master = themeInfo.Master;
         _new_master.presentation = this;
-        var _master_width = _new_master.Width;
-        var _master_height = _new_master.Height;
         themeInfo.Master.changeSize(this.Width, this.Height);
+        var oContent, oMasterSp, oMasterContent, oSp;
+        if(oldMaster && oldMaster.hf)
+        {
+            themeInfo.Master.setHF(oldMaster.hf.createDuplicate());
+            if(oldMaster.hf.dt !== false)
+            {
+                oMasterSp = oldMaster.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                if(oMasterSp)
+                {
+                    oMasterContent = oMasterSp.getDocContent && oMasterSp.getDocContent();
+                    if(oMasterContent)
+                    {
+                        oSp = themeInfo.Master.getMatchingShape(AscFormat.phType_dt, null, false, {});
+                        if(oSp)
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            oContent.Copy2(oMasterContent);
+                        }
+                        for(i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i)
+                        {
+                            oSp = themeInfo.Master.sldLayoutLst[i].getMatchingShape(AscFormat.phType_dt, null, false, {});
+                            if(oSp)
+                            {
+                                oContent = oSp.getDocContent && oSp.getDocContent();
+                                oContent.Copy2(oMasterContent);
+                            }
+                        }
+                    }
+                }
+            }
+            if(oldMaster.hf.hdr !== false)
+            {
+                oMasterSp = oldMaster.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                if(oMasterSp)
+                {
+                    oMasterContent = oMasterSp.getDocContent && oMasterSp.getDocContent();
+                    if(oMasterContent)
+                    {
+                        oSp = themeInfo.Master.getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                        if(oSp)
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            oContent.Copy2(oMasterContent);
+                        }
+                        for(i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i)
+                        {
+                            oSp = themeInfo.Master.sldLayoutLst[i].getMatchingShape(AscFormat.phType_hdr, null, false, {});
+                            if(oSp)
+                            {
+                                oContent = oSp.getDocContent && oSp.getDocContent();
+                                oContent.Copy2(oMasterContent);
+                            }
+                        }
+                    }
+                }
+            }
+            if(oldMaster.hf.ftr !== false)
+            {
+                oMasterSp = oldMaster.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                if(oMasterSp)
+                {
+                    oMasterContent = oMasterSp.getDocContent && oMasterSp.getDocContent();
+                    if(oMasterContent)
+                    {
+                        oSp = themeInfo.Master.getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                        if(oSp)
+                        {
+                            oContent = oSp.getDocContent && oSp.getDocContent();
+                            oContent.Copy2(oMasterContent);
+                        }
+                        for(i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i)
+                        {
+                            oSp = themeInfo.Master.sldLayoutLst[i].getMatchingShape(AscFormat.phType_ftr, null, false, {});
+                            if(oSp)
+                            {
+                                oContent = oSp.getDocContent && oSp.getDocContent();
+                                oContent.Copy2(oMasterContent);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         for(i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i)
         {
             themeInfo.Master.sldLayoutLst[i].changeSize(this.Width, this.Height);

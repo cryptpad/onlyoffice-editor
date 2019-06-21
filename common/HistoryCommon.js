@@ -1821,16 +1821,18 @@
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы
 	//------------------------------------------------------------------------------------------------------------------
-	window['AscDFH'].historyitem_Presentation_AddSlide            = window['AscDFH'].historyitem_type_Presentation | 1;
-	window['AscDFH'].historyitem_Presentation_RemoveSlide         = window['AscDFH'].historyitem_type_Presentation | 2;
-	window['AscDFH'].historyitem_Presentation_SlideSize           = window['AscDFH'].historyitem_type_Presentation | 3;
-	window['AscDFH'].historyitem_Presentation_AddSlideMaster      = window['AscDFH'].historyitem_type_Presentation | 4;
-	window['AscDFH'].historyitem_Presentation_ChangeTheme         = window['AscDFH'].historyitem_type_Presentation | 5;
-	window['AscDFH'].historyitem_Presentation_ChangeColorScheme   = window['AscDFH'].historyitem_type_Presentation | 6;
-	window['AscDFH'].historyitem_Presentation_SetShowPr           = window['AscDFH'].historyitem_type_Presentation | 7;
-	window['AscDFH'].historyitem_Presentation_SetDefaultTextStyle = window['AscDFH'].historyitem_type_Presentation | 8;
-	window['AscDFH'].historyitem_Presentation_AddSection          = window['AscDFH'].historyitem_type_Presentation | 9;
-	window['AscDFH'].historyitem_Presentation_RemoveSection       = window['AscDFH'].historyitem_type_Presentation | 10;
+	window['AscDFH'].historyitem_Presentation_AddSlide                    = window['AscDFH'].historyitem_type_Presentation | 1;
+	window['AscDFH'].historyitem_Presentation_RemoveSlide                 = window['AscDFH'].historyitem_type_Presentation | 2;
+	window['AscDFH'].historyitem_Presentation_SlideSize                   = window['AscDFH'].historyitem_type_Presentation | 3;
+	window['AscDFH'].historyitem_Presentation_AddSlideMaster              = window['AscDFH'].historyitem_type_Presentation | 4;
+	window['AscDFH'].historyitem_Presentation_ChangeTheme                 = window['AscDFH'].historyitem_type_Presentation | 5;
+	window['AscDFH'].historyitem_Presentation_ChangeColorScheme           = window['AscDFH'].historyitem_type_Presentation | 6;
+	window['AscDFH'].historyitem_Presentation_SetShowPr                   = window['AscDFH'].historyitem_type_Presentation | 7;
+	window['AscDFH'].historyitem_Presentation_SetDefaultTextStyle         = window['AscDFH'].historyitem_type_Presentation | 8;
+	window['AscDFH'].historyitem_Presentation_AddSection                  = window['AscDFH'].historyitem_type_Presentation | 9;
+	window['AscDFH'].historyitem_Presentation_RemoveSection               = window['AscDFH'].historyitem_type_Presentation | 10;
+	window["AscDFH"].historyitem_Presentation_SetFirstSlideNum            = window["AscDFH"].historyitem_type_Presentation | 11;
+	window["AscDFH"].historyitem_Presentation_SetShowSpecialPlsOnTitleSld = window["AscDFH"].historyitem_type_Presentation | 12;
 
 	window['AscDFH'].historyitem_ColorMod_SetName = window['AscDFH'].historyitem_type_ColorMod | 1;
 	window['AscDFH'].historyitem_ColorMod_SetVal  = window['AscDFH'].historyitem_type_ColorMod | 2;
@@ -3117,6 +3119,8 @@
 	window['AscDFH'].historydescription_Document_ChangeTableFormula                 = 0x015e;
 	window['AscDFH'].historydescription_SetCoreproperties                           = 0x015f;
 	window['AscDFH'].historydescription_Document_AddWatermark                       = 0x0160;
+	window['AscDFH'].historydescription_Presentation_SetHF                          = 0x0161;
+	window['AscDFH'].historydescription_Presentation_AddSlideNumber                 = 0x0162;
 
 
 

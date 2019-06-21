@@ -437,6 +437,16 @@ function BinaryPPTYLoader()
 
             pres.fromStream(s, this);
 
+            if(pres.attrShowSpecialPlsOnTitleSld !== null)
+            {
+                this.presentation.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
+            }
+
+            if(pres.attrFirstSlideNum !== null)
+            {
+                this.presentation.setFirstSlideNum(pres.attrFirstSlideNum);
+            }
+
             this.presentation.defaultTextStyle = pres.defaultTextStyle;
             if(pres.SldSz)
             {
@@ -2925,7 +2935,7 @@ function BinaryPPTYLoader()
                 }
                 case 5:
                 {
-                    master.hf = this.ReadHF();
+                    master.setHF(this.ReadHF());
                     break;
                 }
                 case 6:
@@ -3072,7 +3082,7 @@ function BinaryPPTYLoader()
                 }
                 case 4:
                 {
-                    layout.hf = this.ReadHF();
+                    layout.setHF(this.ReadHF());
                     break;
                 }
                 default:
@@ -8799,7 +8809,9 @@ function BinaryPPTYLoader()
                                     Fld.SetPPr(_pPr);
                                 }
 
+                                par.Internal_Content_Add(EndPos++, new ParaRun(par, false));
                                 par.Internal_Content_Add(EndPos++, Fld);
+                                par.Internal_Content_Add(EndPos++, new ParaRun(par, false));
                                 s.Seek2(_end);
                                 break;
                             }

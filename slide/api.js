@@ -3989,6 +3989,11 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.asc_addSlideNumber = function()
+	{
+		this.WordControl.m_oLogicDocument.addSlideNumber();
+	};
+
 	asc_docs_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix)
 	{
 		var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
@@ -5198,7 +5203,13 @@ background-repeat: no-repeat;\
 		this.WordControl.m_oLogicDocument.Set_MathProps(MathProps);
 	};
 
-
+	asc_docs_api.prototype.asc_SetHFProps = function(HFProps, bAll)
+	{
+		if(this.WordControl && this.WordControl.m_oLogicDocument)
+		{
+			this.WordControl.m_oLogicDocument.setHFProperties(HFProps, bAll);
+		}
+	};
 
 	asc_docs_api.prototype.asyncFontEndLoaded = function(fontinfo)
 	{
@@ -5708,6 +5719,14 @@ background-repeat: no-repeat;\
     {
         return editor.WordControl.m_oLogicDocument.Get_DefaultLanguage();
     };
+
+    asc_docs_api.prototype.asc_getHFProperties = function(){
+		if(this.WordControl && this.WordControl.m_oLogicDocument)
+		{
+			return this.WordControl.m_oLogicDocument.getHFProperties();
+		}
+		return null;
+	};
 
     asc_docs_api.prototype.asc_getKeyboardLanguage = function()
     {
@@ -7848,6 +7867,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_pluginResize"]                    = asc_docs_api.prototype.asc_pluginResize;
 	asc_docs_api.prototype["asc_pluginButtonClick"]               = asc_docs_api.prototype.asc_pluginButtonClick;
 	asc_docs_api.prototype["asc_pluginEnableMouseEvents"]         = asc_docs_api.prototype.asc_pluginEnableMouseEvents;
+
+	asc_docs_api.prototype["asc_addSlideNumber"]                  = asc_docs_api.prototype.asc_addSlideNumber;
 
 	asc_docs_api.prototype["asc_startEditCurrentOleObject"]       = asc_docs_api.prototype.asc_startEditCurrentOleObject;
 	asc_docs_api.prototype["asc_InputClearKeyboardElement"]       = asc_docs_api.prototype.asc_InputClearKeyboardElement;
