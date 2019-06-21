@@ -301,7 +301,19 @@
 	};
 	baseEditorsApi.prototype.asc_getCoreProps                = function()
 	{
+		var oCore = this.getInternalCoreProps();
+		if(oCore) {
+			return oCore.copy();
+		}
 		return null;
+	};
+	baseEditorsApi.prototype.getInternalCoreProps                = function()
+	{
+		return null;
+	};
+	baseEditorsApi.prototype.asc_setCoreProps                = function(oProps)
+	{
+
 	};
 	baseEditorsApi.prototype.asc_setDocInfo                  = function(oDocInfo)
 	{

@@ -7085,7 +7085,8 @@ parserFormula.prototype.setFormula = function(formula) {
 		this.isProcessRecursion = false;
 	}
 	//for chrome63(real maximum call stack size is 12575) MAXRECURSION that cause excaption is 783
-	CalcRecursion.prototype.MAXRECURSION = 400;
+	//by measurement: stack size in doctrenderer is one fourth smaller than chrome
+	CalcRecursion.prototype.MAXRECURSION = 300;
 	CalcRecursion.prototype.incLevel = function() {
 		if (this.getIsForceBacktracking()) {
 			return false;

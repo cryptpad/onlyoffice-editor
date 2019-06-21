@@ -659,6 +659,14 @@ CParagraphContentBase.prototype.IsSelectionUse = function()
 {
 	return false;
 };
+/**
+ * Начинается ли элемент с новой строки
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.IsStartFromNewLine = function()
+{
+	return false;
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -1024,12 +1032,12 @@ CParagraphContentWithParagraphLikeContent.prototype.Is_CheckingNearestPos = func
 
     return false;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Is_StartFromNewLine = function()
+CParagraphContentWithParagraphLikeContent.prototype.IsStartFromNewLine = function()
 {
     if (this.Content.length < 0)
         return false;
 
-    return this.Content[0].Is_StartFromNewLine();
+    return this.Content[0].IsStartFromNewLine();
 };
 CParagraphContentWithParagraphLikeContent.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 {

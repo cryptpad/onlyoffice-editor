@@ -3690,9 +3690,35 @@ var editor;
 	{
 		return this.wbModel && this.wbModel.App || null;
 	};
-	spreadsheet_api.prototype.asc_getCoreProps = function()
+
+    spreadsheet_api.prototype.asc_setCoreProps = function(oProps)
+    {
+      var oCore = this.getInternalCoreProps();
+      if(!oCore) {
+        return;
+      }
+      var oWS = this.wb && this.wb.getWorksheet();
+      if(!oWS || !oWS.objectRender) {
+        History.Create_NewPoint();
+        oCore.setProps(oProps);
+      }
+      var oLocker = oWS.objectRender.objectLocker;
+      oLocker.reset();
+      oLocker.addObjectId(oCore.Get_Id());
+      oLocker.checkObjects(
+          function(bNoLock, bSync){
+              if(bNoLock) {
+                History.Create_NewPoint();
+                oCore.setProps(oProps);
+              }
+          }
+      );
+      return null;
+    };
+
+	spreadsheet_api.prototype.getInternalCoreProps = function()
 	{
-		return this.wbModel && this.wbModel.Core || null;
+      return this.wbModel && this.wbModel.Core;
 	};
 
   /*
@@ -3706,9 +3732,9 @@ var editor;
   prot["asc_GetFontThumbnailsPath"] = prot.asc_GetFontThumbnailsPath;
   prot["asc_setDocInfo"] = prot.asc_setDocInfo;
   prot['asc_getFunctionArgumentSeparator'] = prot.asc_getFunctionArgumentSeparator;
-	prot['asc_getCurrencySymbols'] = prot.asc_getCurrencySymbols;
-	prot['asc_getLocaleExample'] = prot.asc_getLocaleExample;
-	prot['asc_getFormatCells'] = prot.asc_getFormatCells;
+  prot['asc_getCurrencySymbols'] = prot.asc_getCurrencySymbols;
+  prot['asc_getLocaleExample'] = prot.asc_getLocaleExample;
+  prot['asc_getFormatCells'] = prot.asc_getFormatCells;
   prot["asc_getLocaleCurrency"] = prot.asc_getLocaleCurrency;
   prot["asc_setLocale"] = prot.asc_setLocale;
   prot["asc_getLocale"] = prot.asc_getLocale;
@@ -3731,18 +3757,19 @@ var editor;
 
 
   prot["asc_getDocumentName"] = prot.asc_getDocumentName;
-	prot["asc_getAppProps"] = prot.asc_getAppProps;
-	prot["asc_getCoreProps"] = prot.asc_getCoreProps;
+  prot["asc_getAppProps"] = prot.asc_getAppProps;
+  prot["asc_getCoreProps"] = prot.asc_getCoreProps;
+  prot["asc_setCoreProps"] = prot.asc_setCoreProps;
   prot["asc_isDocumentModified"] = prot.asc_isDocumentModified;
   prot["asc_isDocumentCanSave"] = prot.asc_isDocumentCanSave;
-	prot["asc_getCanUndo"] = prot.asc_getCanUndo;
-	prot["asc_getCanRedo"] = prot.asc_getCanRedo;
+  prot["asc_getCanUndo"] = prot.asc_getCanUndo;
+  prot["asc_getCanRedo"] = prot.asc_getCanRedo;
 
   prot["asc_setAutoSaveGap"] = prot.asc_setAutoSaveGap;
 
-	prot["asc_setViewMode"] = prot.asc_setViewMode;
-	prot["asc_setFilteringMode"] = prot.asc_setFilteringMode;
-	prot["asc_setRestriction"] = prot.asc_setRestriction;
+  prot["asc_setViewMode"] = prot.asc_setViewMode;
+  prot["asc_setFilteringMode"] = prot.asc_setFilteringMode;
+  prot["asc_setRestriction"] = prot.asc_setRestriction;
   prot["asc_setAdvancedOptions"] = prot.asc_setAdvancedOptions;
   prot["asc_setPageOptions"] = prot.asc_setPageOptions;
   prot["asc_savePagePrintOptions"] = prot.asc_savePagePrintOptions;
@@ -3824,8 +3851,8 @@ var editor;
   prot["asc_mergeCellsDataLost"] = prot.asc_mergeCellsDataLost;
   prot["asc_sortCellsRangeExpand"] = prot.asc_sortCellsRangeExpand;
   prot["asc_getSheetViewSettings"] = prot.asc_getSheetViewSettings;
-	prot["asc_setDisplayGridlines"] = prot.asc_setDisplayGridlines;
-	prot["asc_setDisplayHeadings"] = prot.asc_setDisplayHeadings;
+  prot["asc_setDisplayGridlines"] = prot.asc_setDisplayGridlines;
+  prot["asc_setDisplayHeadings"] = prot.asc_setDisplayHeadings;
 
   // Defined Names
   prot["asc_getDefinedNames"] = prot.asc_getDefinedNames;
@@ -3878,7 +3905,7 @@ var editor;
   prot["asc_DistributeSelectedDrawingObjectHor"] = prot.asc_DistributeSelectedDrawingObjectHor;
   prot["asc_DistributeSelectedDrawingObjectVer"] = prot.asc_DistributeSelectedDrawingObjectVer;
   prot["asc_getSelectedDrawingObjectsCount"] = prot.asc_getSelectedDrawingObjectsCount;
-    prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
+  prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
   prot["asc_getTextArtPreviews"] = prot.asc_getTextArtPreviews;
   prot['asc_getPropertyEditorShapes'] = prot.asc_getPropertyEditorShapes;
   prot['asc_getPropertyEditorTextArts'] = prot.asc_getPropertyEditorTextArts;

@@ -1338,6 +1338,8 @@
 	window['AscDFH'].historyitem_type_LockedCanvas           = 1133 << 16;
 	window['AscDFH'].historyitem_type_RelSizeAnchor          = 1134 << 16;
 	window['AscDFH'].historyitem_type_AbsSizeAnchor          = 1135 << 16;
+	window['AscDFH'].historyitem_type_Core                   = 1136 << 16;
+
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1819,18 +1821,16 @@
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы
 	//------------------------------------------------------------------------------------------------------------------
-	window['AscDFH'].historyitem_Presentation_AddSlide                    = window['AscDFH'].historyitem_type_Presentation | 1;
-	window['AscDFH'].historyitem_Presentation_RemoveSlide                 = window['AscDFH'].historyitem_type_Presentation | 2;
-	window['AscDFH'].historyitem_Presentation_SlideSize                   = window['AscDFH'].historyitem_type_Presentation | 3;
-	window['AscDFH'].historyitem_Presentation_AddSlideMaster              = window['AscDFH'].historyitem_type_Presentation | 4;
-	window['AscDFH'].historyitem_Presentation_ChangeTheme                 = window['AscDFH'].historyitem_type_Presentation | 5;
-	window['AscDFH'].historyitem_Presentation_ChangeColorScheme           = window['AscDFH'].historyitem_type_Presentation | 6;
-	window['AscDFH'].historyitem_Presentation_SetShowPr                   = window['AscDFH'].historyitem_type_Presentation | 7;
-	window['AscDFH'].historyitem_Presentation_SetDefaultTextStyle         = window['AscDFH'].historyitem_type_Presentation | 8;
-	window['AscDFH'].historyitem_Presentation_AddSection                  = window['AscDFH'].historyitem_type_Presentation | 9;
-	window['AscDFH'].historyitem_Presentation_RemoveSection               = window['AscDFH'].historyitem_type_Presentation | 10;
-	window['AscDFH'].historyitem_Presentation_SetFirstSlideNum            = window['AscDFH'].historyitem_type_Presentation | 11;
-	window['AscDFH'].historyitem_Presentation_SetShowSpecialPlsOnTitleSld = window['AscDFH'].historyitem_type_Presentation | 12;
+	window['AscDFH'].historyitem_Presentation_AddSlide            = window['AscDFH'].historyitem_type_Presentation | 1;
+	window['AscDFH'].historyitem_Presentation_RemoveSlide         = window['AscDFH'].historyitem_type_Presentation | 2;
+	window['AscDFH'].historyitem_Presentation_SlideSize           = window['AscDFH'].historyitem_type_Presentation | 3;
+	window['AscDFH'].historyitem_Presentation_AddSlideMaster      = window['AscDFH'].historyitem_type_Presentation | 4;
+	window['AscDFH'].historyitem_Presentation_ChangeTheme         = window['AscDFH'].historyitem_type_Presentation | 5;
+	window['AscDFH'].historyitem_Presentation_ChangeColorScheme   = window['AscDFH'].historyitem_type_Presentation | 6;
+	window['AscDFH'].historyitem_Presentation_SetShowPr           = window['AscDFH'].historyitem_type_Presentation | 7;
+	window['AscDFH'].historyitem_Presentation_SetDefaultTextStyle = window['AscDFH'].historyitem_type_Presentation | 8;
+	window['AscDFH'].historyitem_Presentation_AddSection          = window['AscDFH'].historyitem_type_Presentation | 9;
+	window['AscDFH'].historyitem_Presentation_RemoveSection       = window['AscDFH'].historyitem_type_Presentation | 10;
 
 	window['AscDFH'].historyitem_ColorMod_SetName = window['AscDFH'].historyitem_type_ColorMod | 1;
 	window['AscDFH'].historyitem_ColorMod_SetVal  = window['AscDFH'].historyitem_type_ColorMod | 2;
@@ -2637,7 +2637,6 @@
 	window['AscDFH'].historyitem_SlideLayoutSetClrMapOverride = window['AscDFH'].historyitem_type_SlideLayout | 9;
 	window['AscDFH'].historyitem_SlideLayoutAddToSpTree       = window['AscDFH'].historyitem_type_SlideLayout | 10;
 	window['AscDFH'].historyitem_SlideLayoutSetSize           = window['AscDFH'].historyitem_type_SlideLayout | 11;
-	window['AscDFH'].historyitem_SlideLayoutSetHF           = window['AscDFH'].historyitem_type_SlideLayout | 12;
 
 	window['AscDFH'].historyitem_SlideMasterAddToSpTree       = window['AscDFH'].historyitem_type_SlideMaster | 1;
 	window['AscDFH'].historyitem_SlideMasterSetTheme          = window['AscDFH'].historyitem_type_SlideMaster | 2;
@@ -2648,7 +2647,6 @@
 	window['AscDFH'].historyitem_SlideMasterAddLayout         = window['AscDFH'].historyitem_type_SlideMaster | 7;
 	window['AscDFH'].historyitem_SlideMasterSetThemeIndex     = window['AscDFH'].historyitem_type_SlideMaster | 8;
 	window['AscDFH'].historyitem_SlideMasterSetSize           = window['AscDFH'].historyitem_type_SlideMaster | 9;
-	window['AscDFH'].historyitem_SlideMasterSetHF             = window['AscDFH'].historyitem_type_SlideMaster | 10;
 
 	window['AscDFH'].historyitem_SlideCommentsAddComment    = window['AscDFH'].historyitem_type_SlideComments | 1;
 	window['AscDFH'].historyitem_SlideCommentsRemoveComment = window['AscDFH'].historyitem_type_SlideComments | 2;
@@ -2747,6 +2745,13 @@
 	// Типы изменений класса CDocumentMacros
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_DocumentMacros_Data = window['Asc'].historyitem_type_DocumentMacros | 1;
+
+
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений класса CCore
+	//------------------------------------------------------------------------------------------------------------------
+	window['AscDFH'].historyitem_CoreProperties = window['AscDFH'].historyitem_type_Core | 1;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3110,7 +3115,9 @@
 	window['AscDFH'].historydescription_Document_AddBlankPage                       = 0x015d;
 	window['AscDFH'].historydescription_Document_AddTableFormula                    = 0x015e;
 	window['AscDFH'].historydescription_Document_ChangeTableFormula                 = 0x015e;
-	window['AscDFH'].historydescription_Presentation_SetHF                          = 0x015f;
+	window['AscDFH'].historydescription_SetCoreproperties                           = 0x015f;
+	window['AscDFH'].historydescription_Document_AddWatermark                       = 0x0160;
+	window['AscDFH'].historydescription_Presentation_SetHF                          = 0x0161;
 
 
 

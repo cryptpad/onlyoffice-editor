@@ -1127,6 +1127,20 @@ if(typeof CPresentation !== "undefined")
             }
         }
 
+        if(CheckType === AscCommon.changestype_CorePr)
+        {
+			if(this.Core)
+			{
+				this.Core.Lock.Check(
+					{
+						"type": c_oAscLockTypeElemPresentation.Object,
+						"val": this.Core.Get_Id(),
+						"guid": this.Core.Get_Id(),
+						"objId": this.Core.Get_Id()
+					});
+			}
+        }
+
         if(CheckType === AscCommon.changestype_SlideTiming)
         {
             if(!AdditionalData || !AdditionalData.All)

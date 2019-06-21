@@ -4102,7 +4102,7 @@ Paragraph.prototype.Correct_ContentPos = function(CorrectEndLinePos)
 		while (_CurPos < Count && true === this.Content[_CurPos].Is_Empty({SkipAnchor : true}))
 			_CurPos++;
 
-		if (_CurPos < Count && true === this.Content[_CurPos].Is_StartFromNewLine())
+		if (_CurPos < Count && true === this.Content[_CurPos].IsStartFromNewLine())
 		{
 			CurPos = _CurPos;
 			this.Content[CurPos].MoveCursorToStartPos();
@@ -7495,6 +7495,9 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 	if (oSelectedContent.IsTrackRevisions())
 	{
 		oPara = new Paragraph(this.DrawingDocument, this.Parent, !this.bFromDocument);
+		oPara.Set_Pr(this.Pr.Copy());
+		oPara.TextPr.Set_Value(this.TextPr.Value.Copy());
+
 		for (var nPos = nStartPos, nParaPos = 0; nPos <= nEndPos; ++nPos)
 		{
 			var oNewItem = this.Content[nPos].GetSelectedContent(oSelectedContent);
