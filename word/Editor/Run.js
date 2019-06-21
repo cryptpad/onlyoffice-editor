@@ -454,7 +454,7 @@ ParaRun.prototype.Is_CheckingNearestPos = function()
 };
 
 // Начинается ли данный ран с новой строки
-ParaRun.prototype.Is_StartFromNewLine = function()
+ParaRun.prototype.IsStartFromNewLine = function()
 {
     if (this.protected_GetLinesCount() < 2 || 0 !== this.protected_GetRangeStartPos(1, 0))
         return false;
@@ -7354,6 +7354,9 @@ ParaRun.prototype.SetPr = function(oTextPr)
 };
 ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 {
+	if (undefined === IncFontSize && this.Pr.Is_Equal(TextPr) && (!this.IsParaEndRun() || !this.Paragraph || this.Paragraph.TextPr.Value.Is_Equal(TextPr)))
+		return [null, this, null];
+
     var bReview = false;
     if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.bFromDocument && true === this.Paragraph.LogicDocument.IsTrackRevisions())
         bReview = true;

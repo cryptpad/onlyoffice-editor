@@ -6626,7 +6626,7 @@ background-repeat: no-repeat;\
                     {
                         isSendOnReady = true;
                         this.bInit_word_control = true;
-                        this.onDocumentContentReady();
+                        Document.Start_SilentMode();
                     }
 
 					this.isApplyChangesOnOpenEnabled = false;
@@ -6641,11 +6641,17 @@ background-repeat: no-repeat;\
                 {
                     isSendOnReady = true;
                     this.bInit_word_control = true;
-                    this.onDocumentContentReady();
+                    Document.Start_SilentMode();
                 }
 
 				//Recalculate для Document
 				Document.MoveCursorToStartPos(false);
+
+				if (isSendOnReady)
+				{
+					this.onDocumentContentReady();
+					Document.End_SilentMode(false);
+				}
 
 				if (!this.isOnlyReaderMode)
 				{
