@@ -3700,7 +3700,7 @@ CPresentation.prototype =
                     var nFirstSlideNum = AscFormat.isRealNumber(this.firstSlideNum) ? this.firstSlideNum : 1;
                     oFld.AddText("" + (this.CurPage + nFirstSlideNum));
 
-                    oController.AddToParagraph(oFld, false, false);
+                    oContent.AddToParagraph(oFld, false, false);
 
 //                    oParagraph.Internal_Content_Add(oParagraph.CurPos.ContentPos, oFld, true);
   //                  oParagraph.Add(oParagraph.CurPos.ContentPos, oFld, true);
