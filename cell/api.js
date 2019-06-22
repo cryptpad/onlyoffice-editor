@@ -1294,7 +1294,17 @@ var editor;
         if (lockType === c_oAscLockTypeElem.Object) {
           drawing = g_oTableId.Get_ById(lockElem.Element["rangeOrObjectId"]);
           if (drawing) {
+            var bLocked, bLocked2;
+            bLocked = drawing.lockType !== c_oAscLockTypes.kLockTypeNone && drawing.lockType !== c_oAscLockTypes.kLockTypeMine;
+
             drawing.lockType = lockElem.Type;
+
+            if(drawing instanceof AscCommon.CCore) {
+              bLocked2 = drawing.lockType !== c_oAscLockTypes.kLockTypeNone && drawing.lockType !== c_oAscLockTypes.kLockTypeMine;
+              if(bLocked2 !== bLocked) {
+                t.sendEvent("asc_onLockCore", bLocked2);
+              }
+            }
           }
         }
 
@@ -1374,7 +1384,13 @@ var editor;
             if (lockElem.Element["type"] === c_oAscLockTypeElem.Object) {
               drawing = g_oTableId.Get_ById(lockElem.Element["rangeOrObjectId"]);
               if (drawing) {
+                var bLocked = drawing.lockType !== c_oAscLockTypes.kLockTypeNone && drawing.lockType !== c_oAscLockTypes.kLockTypeMine;
                 drawing.lockType = c_oAscLockTypes.kLockTypeNone;
+                if(drawing instanceof AscCommon.CCore) {
+                  if(bLocked){
+                    t.sendEvent("asc_onLockCore", false);
+                  }
+                }
               }
             }
           }

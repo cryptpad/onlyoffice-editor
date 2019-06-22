@@ -9283,6 +9283,7 @@ function CCore() {
 
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     this.Lock = new AscCommon.CLock();
+    this.lockType = AscCommon.c_oAscLockTypes.kLockTypeNone;
     AscCommon.g_oTableId.Add( this, this.Id );
 }
 CCore.prototype.fromStream = function(s)
