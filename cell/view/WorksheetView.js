@@ -2705,17 +2705,14 @@
         this._prepareCellTextMetricsCache( range );
 
         var mergedCells = [], mc, i;
-        for ( var row = range.r1; row <= range.r2; ++row ) {
-            mergedCells =
-              mergedCells.concat(this._drawRowBG(drawingCtx, row, range.c1, range.c2, offsetX, offsetY, null),
-                this._drawRowText(drawingCtx, row, range.c1, range.c2, offsetX, offsetY));
+        for (var row = range.r1; row <= range.r2; ++row) {
+            mergedCells = mergedCells.concat(this._drawRowBG(drawingCtx, row, range.c1, range.c2, offsetX, offsetY, null));
         }
         // draw merged cells at last stage to fix cells background issue
         for (i = 0; i < mergedCells.length; ++i) {
             if (i === mergedCells.indexOf(mergedCells[i])) {
                 mc = mergedCells[i];
                 this._drawRowBG(drawingCtx, mc.r1, mc.c1, mc.c1, offsetX, offsetY, mc);
-                this._drawCellText(drawingCtx, mc.c1, mc.r1, range.c1, range.c2, offsetX, offsetY, true);
             }
         }
         this._drawSparklines(drawingCtx, range, offsetX, offsetY);
@@ -2730,6 +2727,7 @@
 			return mergedCells;
 		}
 
+		var dependentCells = {}, i;
 		var aRules = this.model.aConditionalFormattingRules.sort(function (v1, v2) {
 			return v2.priority - v1.priority;
 		});
@@ -2849,53 +2847,39 @@
 				}
 			}
 
-			this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
-        }
-        return mergedCells;
-    };
+			var showValue = this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
+			if (showValue) {
+				this._drawCellText(drawingCtx, col, row, colStart, colEnd, offsetX, offsetY);
 
-    /** Рисует текст ячеек в строке */
-    WorksheetView.prototype._drawRowText = function ( drawingCtx, row, colStart, colEnd, offsetX, offsetY ) {
-        var mergedCells = [];
-        if ( 0 === this._getRowHeight(row) ) {
-            return mergedCells;
+				if (!mc) {
+					// check if long text overlaps this cell
+					i = this._findSourceOfCellText(col, row);
+					if (i >= 0) {
+						dependentCells[i] = (dependentCells[i] || []);
+						dependentCells[i].push(col);
+					}
+				}
+			}
         }
-
-        var dependentCells = {}, i, mc, col;
-        // draw cells' text
-        for ( col = colStart; col <= colEnd; ++col ) {
-            if ( this._getColumnWidth(col) <= 0 ) {
-                continue;
-            }
-            mc = this._drawCellText( drawingCtx, col, row, colStart, colEnd, offsetX, offsetY, false );
-            if ( mc !== null ) {
-                mergedCells.push(mc);
-            }
-            // check if long text overlaps this cell
-            i = this._findSourceOfCellText( col, row );
-            if ( i >= 0 ) {
-                dependentCells[i] = (dependentCells[i] || []);
-                dependentCells[i].push( col );
-            }
-        }
-        // draw long text that overlaps own cell's borders
-        for ( i in dependentCells ) {
-            var arr = dependentCells[i], j = arr.length - 1;
-            col = i >> 0;
-            // if source cell belongs to cells range then skip it (text has been drawn already)
-            if ( col >= arr[0] && col <= arr[j] ) {
-                continue;
-            }
-            // draw long text fragment
-            this._drawCellText( drawingCtx, col, row, arr[0], arr[j], offsetX, offsetY, false );
-        }
+		// draw long text that overlaps own cell's borders
+		for (i in dependentCells) {
+			var arr = dependentCells[i], j = arr.length - 1;
+			col = i >> 0;
+			// if source cell belongs to cells range then skip it (text has been drawn already)
+			if (col >= arr[0] && col <= arr[j]) {
+				continue;
+			}
+			// draw long text fragment
+			this._drawCellText(drawingCtx, col, row, arr[0], arr[j], offsetX, offsetY);
+		}
         return mergedCells;
     };
 
     WorksheetView.prototype._drawCellCF = function (ctx, aRules, c, row, col, top, width, height, offsetX, offsetY) {
+    	var showValue = true;
 		var ct = this._getCellTextCache(col, row);
 		if (!ct || !ct.flags.isNumberFormat || 0 === aRules.length) {
-			return null;
+			return showValue;
 		}
 
         var context = ctx || this.drawingCtx;
@@ -2919,6 +2903,7 @@
 					if (!oRuleElement || oRule.type !== oRuleElement.type) {
 						continue;
 					}
+					showValue = oRuleElement.ShowValue;
 					values = this.model._getValuesForConditionalFormatting(ranges, true);
 
 					var x = this._getColLeft(col);
@@ -2990,25 +2975,22 @@
 				}
 			}
 		}
+		return showValue;
 	};
 
 	/** Рисует текст ячейки */
-	WorksheetView.prototype._drawCellText =
-		function (drawingCtx, col, row, colStart, colEnd, offsetX, offsetY, drawMergedCells) {
+	WorksheetView.prototype._drawCellText = function (drawingCtx, col, row, colStart, colEnd, offsetX, offsetY) {
 			var ct = this._getCellTextCache(col, row);
 	        if (!ct) {
 				return null;
             }
 			var c = this._getVisibleCell(col, row);
 			var color = c.getFont().getColor();
-			var isMerged = ct.flags.isMerged(), range = undefined, isWrapped = ct.flags.wrapText;
+			var isMerged = ct.flags.isMerged(), range, isWrapped = ct.flags.wrapText;
 			var ctx = drawingCtx || this.drawingCtx;
 
 			if (isMerged) {
 				range = ct.flags.merged;
-				if (!drawMergedCells) {
-					return range;
-				}
 				if (col !== range.c1 || row !== range.r1) {
 					return null;
 				}
