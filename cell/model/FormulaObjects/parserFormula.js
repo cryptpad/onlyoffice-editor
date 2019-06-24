@@ -2620,7 +2620,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cBaseOperator.prototype.Assemble2Locale = function (arg, start, count, locale, digitDelim) {
 		var str = "";
-		if (this.argumentsCurrent === 2) {
+		if (this.argumentsCurrent === 2 && arg[start + count - 2] && arg[start + count - 1]) {
 			str += arg[start + count - 2].toLocaleString(digitDelim) + this.name +
 				arg[start + count - 1].toLocaleString(digitDelim);
 		} else {
