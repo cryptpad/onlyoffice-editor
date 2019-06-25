@@ -360,6 +360,9 @@ CAscHFProps.prototype['put_ShowHeader'] = CAscHFProps.prototype.put_ShowHeader =
 CAscHFProps.prototype['put_ShowDateTime'] = CAscHFProps.prototype.put_ShowDateTime = function(v){this.ShowDateTime = v;};
 
 CAscHFProps.prototype['put_DivId'] = CAscHFProps.prototype.put_DivId = function(v){this.divId = v;};
+CAscHFProps.prototype['updateView'] = CAscHFProps.prototype.updateView = function(v){
+    
+};
 CAscHFProps.prototype['put_Api'] = CAscHFProps.prototype.put_Api = function(v){this.api = v;};
 
 
