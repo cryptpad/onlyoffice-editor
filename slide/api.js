@@ -4003,6 +4003,25 @@ background-repeat: no-repeat;\
 		window['AscCommonWord'].sDefaultDateTimeFormat = sFormat;
 	};
 
+	asc_docs_api.prototype.asc_getHeaderFooterProperties = function()
+	{
+		if(this.WordControl && this.WordControl.m_oLogicDocument)
+		{
+			return this.WordControl.m_oLogicDocument.getHFProperties();
+		}
+		return null;
+	};
+
+	asc_docs_api.prototype.asc_setHeaderFooterProperties = function(oProps, bAll)
+	{
+		if(this.WordControl && this.WordControl.m_oLogicDocument)
+		{
+			return this.WordControl.m_oLogicDocument.setHFProperties(oProps, bAll);
+		}
+		return null;
+	};
+
+
 	asc_docs_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix)
 	{
 		var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
@@ -5728,14 +5747,6 @@ background-repeat: no-repeat;\
     {
         return editor.WordControl.m_oLogicDocument.Get_DefaultLanguage();
     };
-
-    asc_docs_api.prototype.asc_getHFProperties = function(){
-		if(this.WordControl && this.WordControl.m_oLogicDocument)
-		{
-			return this.WordControl.m_oLogicDocument.getHFProperties();
-		}
-		return null;
-	};
 
     asc_docs_api.prototype.asc_getKeyboardLanguage = function()
     {
@@ -7880,6 +7891,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_addSlideNumber"]                  = asc_docs_api.prototype.asc_addSlideNumber;
 	asc_docs_api.prototype["asc_addDateTime"]                     = asc_docs_api.prototype.asc_addDateTime;
 	asc_docs_api.prototype["asc_setDefaultDateTimeFormat"]        = asc_docs_api.prototype.asc_setDefaultDateTimeFormat;
+	asc_docs_api.prototype["asc_getHeaderFooterProperties"]       = asc_docs_api.prototype.asc_getHeaderFooterProperties;
+	asc_docs_api.prototype["asc_setHeaderFooterProperties"]       = asc_docs_api.prototype.asc_setHeaderFooterProperties;
 
 	asc_docs_api.prototype["asc_startEditCurrentOleObject"]       = asc_docs_api.prototype.asc_startEditCurrentOleObject;
 	asc_docs_api.prototype["asc_InputClearKeyboardElement"]       = asc_docs_api.prototype.asc_InputClearKeyboardElement;
