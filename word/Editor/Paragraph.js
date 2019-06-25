@@ -8434,6 +8434,28 @@ Paragraph.prototype.Get_CompiledPr = function()
 				}
 			}
 		}
+		else if (true === this.Parent.IsBlockLevelSdtContent() && true === Pr.ParaPr.ContextualSpacing)
+		{
+			var oPrevPara = null;
+			var oSdt      = this.Parent.Parent;
+			while (oSdt instanceof CBlockLevelSdt)
+			{
+				var oTempPrev = oSdt.Get_DocumentPrev();
+				if (oTempPrev)
+				{
+					oPrevPara = oTempPrev.GetLastParagraph();
+					break;
+				}
+
+				if (oSdt.Parent instanceof CDocumentContent && oSdt.Parent.Parent instanceof CBlockLevelSdt)
+					oSdt = oSdt.Parent.Parent;
+				else
+					oSdt = null;
+			}
+
+			if ((null === oPrevPara && undefined === StyleId) || (oPrevPara && oPrevPara.Style_Get() === StyleId))
+				Pr.ParaPr.Spacing.Before = 0;
+		}
 		else if (true === Pr.ParaPr.Spacing.BeforeAutoSpacing || !(this.bFromDocument === true))
 		{
 			Pr.ParaPr.Spacing.Before = 0;
@@ -8446,10 +8468,16 @@ Paragraph.prototype.Get_CompiledPr = function()
 			Pr.ParaPr.Spacing.Before = 14 * g_dKoef_pt_to_mm;
 		}
 	}
+	else if (PrevEl.IsBlockLevelSdt())
+	{
+		var oPrevPara = PrevEl.GetLastParagraph();
+		if (oPrevPara && oPrevPara.Style_Get() === StyleId)
+			Pr.ParaPr.Spacing.Before = 0;
+	}
 
 	if (null != NextEl)
 	{
-		if (type_Paragraph === NextEl.GetType())
+		if (NextEl.IsParagraph())
 		{
 			var NextStyle       = NextEl.Style_Get();
 			var Next_Pr         = NextEl.Get_CompiledPr2(false).ParaPr;
@@ -8478,14 +8506,14 @@ Paragraph.prototype.Get_CompiledPr = function()
 			else
 				Pr.ParaPr.Brd.Last = true;
 		}
-		else if (type_Table === NextEl.GetType())
+		else if (NextEl.IsTable() || NextEl.IsBlockLevelSdt())
 		{
-			var TableFirstParagraph = NextEl.Get_FirstParagraph();
-			if (null != TableFirstParagraph && undefined != TableFirstParagraph)
+			var oNextElFirstParagraph = NextEl.GetFirstParagraph();
+			if (oNextElFirstParagraph)
 			{
-				var NextStyle       = TableFirstParagraph.Style_Get();
-				var Next_Before     = TableFirstParagraph.Get_CompiledPr2(false).ParaPr.Spacing.Before;
-				var Next_BeforeAuto = TableFirstParagraph.Get_CompiledPr2(false).ParaPr.Spacing.BeforeAutoSpacing;
+				var NextStyle       = oNextElFirstParagraph.Style_Get();
+				var Next_Before     = oNextElFirstParagraph.Get_CompiledPr2(false).ParaPr.Spacing.Before;
+				var Next_BeforeAuto = oNextElFirstParagraph.Get_CompiledPr2(false).ParaPr.Spacing.BeforeAutoSpacing;
 				var Cur_After       = Pr.ParaPr.Spacing.After;
 				var Cur_AfterAuto   = Pr.ParaPr.Spacing.AfterAutoSpacing;
 				if (NextStyle === StyleId && true === Pr.ParaPr.ContextualSpacing)
@@ -8519,6 +8547,28 @@ Paragraph.prototype.Get_CompiledPr = function()
 		else if (true === this.Parent.IsTableCellContent() && true === Pr.ParaPr.Spacing.AfterAutoSpacing)
 		{
 			Pr.ParaPr.Spacing.After = 0;
+		}
+		else if (this.Parent.IsBlockLevelSdtContent() && true === Pr.ParaPr.ContextualSpacing)
+		{
+			var oNextPara = null;
+			var oSdt      = this.Parent.Parent;
+			while (oSdt instanceof CBlockLevelSdt)
+			{
+				var oTempNext = oSdt.Get_DocumentNext();
+				if (oTempNext)
+				{
+					oNextPara = oTempNext.GetFirstParagraph();
+					break;
+				}
+
+				if (oSdt.Parent instanceof CDocumentContent && oSdt.Parent.Parent instanceof CBlockLevelSdt)
+					oSdt = oSdt.Parent.Parent;
+				else
+					oSdt = null;
+			}
+
+			if ((null === oNextPara && undefined === StyleId) || (oNextPara && oNextPara.Style_Get() === StyleId))
+				Pr.ParaPr.Spacing.After = 0;
 		}
 		else if (!(this.bFromDocument === true))
 		{
