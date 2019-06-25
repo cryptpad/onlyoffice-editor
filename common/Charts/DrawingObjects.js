@@ -1097,21 +1097,16 @@ CSparklineView.prototype.draw = function(graphics, offX, offY)
         }
     }
 
-    var tx, ty, sx, sy, oldExtX, oldExtY;
-
     var _true_height = this.chartSpace.chartObj.calcProp.trueHeight;
-    var _true_width = this.chartSpace.chartObj.calcProp.trueWidht;
+    var _true_width = this.chartSpace.chartObj.calcProp.trueWidth;
 
-
-	this.chartSpace.chartObj.calcProp.trueWidht = this.chartSpace.extX * this.chartSpace.chartObj.calcProp.pxToMM;
+	this.chartSpace.chartObj.calcProp.trueWidth = this.chartSpace.extX * this.chartSpace.chartObj.calcProp.pxToMM;
 	this.chartSpace.chartObj.calcProp.trueHeight = this.chartSpace.extY * this.chartSpace.chartObj.calcProp.pxToMM;
 
     this.chartSpace.draw(graphics);
 
-	this.chartSpace.chartObj.calcProp.trueWidht = _true_width;
+	this.chartSpace.chartObj.calcProp.trueWidth = _true_width;
 	this.chartSpace.chartObj.calcProp.trueHeight = _true_height;
-
-
 };
 
 
@@ -2922,7 +2917,9 @@ function DrawingObjects() {
             if(oSparklineGroup.type !== Asc.c_oAscSparklineType.Stacked &&
                 (Asc.c_oAscSparklineAxisMinMax.Group === oSparklineGroup.minAxisType || Asc.c_oAscSparklineAxisMinMax.Group === oSparklineGroup.maxAxisType))
             {
-                _this.checkSparklineGroupMinMaxVal(oSparklineGroup);
+                AscFormat.ExecuteNoHistory(function(){
+                    _this.checkSparklineGroupMinMaxVal(oSparklineGroup);
+                }, _this, []);
             }
             for(j = 0; j < oSparklineGroup.arrSparklines.length; ++j) {
 				sparkline = oSparklineGroup.arrSparklines[j];

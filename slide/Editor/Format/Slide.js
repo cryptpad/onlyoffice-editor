@@ -1151,6 +1151,7 @@ Slide.prototype =
                 this.notes.graphicObjects.selection.textSelection = this.notesShape;
                 var oDocContent = this.notesShape.getDocContent();
                 if(oDocContent){
+                    oDocContent.CalculateAllFields();
                     this.notesShape.transformText.tx = 3;
                     this.notesShape.transformText.ty = 3;
                     this.notesShape.invertTransformText = AscCommon.global_MatrixTransformer.Invert(this.notesShape.transformText);

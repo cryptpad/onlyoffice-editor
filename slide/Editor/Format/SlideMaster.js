@@ -44,6 +44,7 @@ var History = AscCommon.History;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetTxStyles]       = AscDFH.CChangesDrawingsObjectNoId      ;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetCSldName]       = AscDFH.CChangesDrawingsString          ;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetClrMapOverride] = AscDFH.CChangesDrawingsObject          ;
+ AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetHF]             = AscDFH.CChangesDrawingsObject          ;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterAddLayout]         = AscDFH.CChangesDrawingsContent         ;
 
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetThemeIndex]     = function(oClass, value){oClass.ThemeIndex = value;};
@@ -70,6 +71,7 @@ var History = AscCommon.History;
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetTxStyles]       = function(oClass, value){oClass.txStyles = value;};
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetCSldName]       = function(oClass, value){oClass.cSld.name = value;};
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetClrMapOverride] = function(oClass, value){oClass.clrMap = value;};
+ AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetHF]             = function(oClass, value){oClass.hf = value;};
 
 
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideMasterSetSize]      = AscFormat.CDrawingBaseCoordsWritable;
@@ -86,7 +88,7 @@ function MasterSlide(presentation, theme)
     this.cSld = new AscFormat.CSld();
     this.clrMap = new AscFormat.ClrMap();
 
-    this.hf = new AscFormat.HF();
+    this.hf = null;
 
     this.sldLayoutLst = [];
 
@@ -458,6 +460,11 @@ MasterSlide.prototype =
             this.cSld.Bg = bg;
         },
 
+        setHF: function(pr) {
+            History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideMasterSetHF, this.hf, pr));
+            this.hf = pr;
+        },
+
         setTxStyles: function (txStyles) {
             History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_SlideMasterSetTxStyles, this.txStyles, txStyles));
             this.txStyles = txStyles;
@@ -530,6 +537,9 @@ MasterSlide.prototype =
             }
             if (this.cSld.Bg) {
                 copy.changeBackground(this.cSld.Bg.createFullCopy());
+            }
+            if(this.hf) {
+                copy.setHF(this.hf.createDuplicate());
             }
             for (i = 0; i < this.cSld.spTree.length; ++i) {
                 var _copy;

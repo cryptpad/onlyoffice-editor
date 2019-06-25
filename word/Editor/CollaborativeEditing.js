@@ -198,6 +198,8 @@ CWordCollaborativeEditing.prototype.Release_Locks = function()
                 editor.sync_UnLockComment(this.m_aNeedUnlock[Index].Get_Id());
             else if (this.m_aNeedUnlock[Index] instanceof AscCommonWord.CGraphicObjects)
                 editor.sync_UnLockDocumentSchema();
+            else if (this.m_aNeedUnlock[Index] instanceof AscCommon.CCore)
+                editor.sendEvent("asc_onLockCore", false);
         }
         else if (AscCommon.locktype_Other3 === CurLockType)
         {

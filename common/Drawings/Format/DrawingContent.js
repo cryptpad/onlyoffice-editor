@@ -59,6 +59,31 @@
             }
         }
     };
+    CDrawingDocContent.prototype.GetFieldByType = function (sType) {
+        var sType_ = sType.toLowerCase();
+        var oField;
+        for(var i = 0; i < this.AllFields.length; ++i){
+            oField = this.AllFields[i];
+            if(oField.GetFieldType() === sType_){
+                return oField;
+            }
+        }
+        return null;
+    };
+
+    CDrawingDocContent.prototype.GetFieldByType2 = function (sType) {
+        var sType_ = sType.toLowerCase();
+        var oField;
+        var sFieldType;
+        for(var i = 0; i < this.AllFields.length; ++i){
+            oField = this.AllFields[i];
+            sFieldType = oField.GetFieldType();
+            if(typeof sFieldType === "string" && sFieldType.indexOf(sType_) === 0){
+                return oField;
+            }
+        }
+        return null;
+    };
 
     CDrawingDocContent.prototype.GetAllDrawingObjects = function(arrDrawings){
         if (undefined === arrDrawings || null === arrDrawings)

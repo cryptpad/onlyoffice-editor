@@ -301,7 +301,19 @@
 	};
 	baseEditorsApi.prototype.asc_getCoreProps                = function()
 	{
+		var oCore = this.getInternalCoreProps();
+		if(oCore) {
+			return oCore.copy();
+		}
 		return null;
+	};
+	baseEditorsApi.prototype.getInternalCoreProps                = function()
+	{
+		return null;
+	};
+	baseEditorsApi.prototype.asc_setCoreProps                = function(oProps)
+	{
+
 	};
 	baseEditorsApi.prototype.asc_setDocInfo                  = function(oDocInfo)
 	{
@@ -1978,7 +1990,7 @@
 				}
 				case "hideContentControlTrack":
 				{
-					if (this.editorId === c_oEditorId.Word)
+					if (this.editorId === c_oEditorId.Word && this.WordControl && this.WordControl.m_oLogicDocument)
 						this.WordControl.m_oLogicDocument.SetForceHideContentControlTrack(obj[prop]);
 
 					break;

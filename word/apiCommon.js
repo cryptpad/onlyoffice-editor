@@ -1144,6 +1144,7 @@
 			this.Spacing = (undefined != obj.Spacing) ? obj.Spacing : null;
 			this.Caps = (undefined != obj.Caps) ? obj.Caps : null;
 			this.SmallCaps = (undefined != obj.SmallCaps) ? obj.SmallCaps : null;
+			this.Lang = (undefined != obj.Lang) ? obj.Lang.Val : null;
 		}
 		else
 		{
@@ -1178,6 +1179,7 @@
 			this.Spacing = 0;
 			this.Caps = false;
 			this.SmallCaps = false;
+			this.Lang = null;
 		}
 	}
 
@@ -1233,6 +1235,10 @@
 	{
 		return this.SmallCaps;
 	};
+	CTextProp.prototype.get_Lang = function ()
+	{
+		return this.Lang;
+	};
 
 	CParagraphPropEx.prototype['get_ContextualSpacing'] = CParagraphPropEx.prototype.get_ContextualSpacing;
 	CParagraphPropEx.prototype['get_Ind'] = CParagraphPropEx.prototype.get_Ind;
@@ -1257,6 +1263,7 @@
 	CTextProp.prototype['get_DStrikeout'] = CTextProp.prototype.get_DStrikeout;
 	CTextProp.prototype['get_Caps'] = CTextProp.prototype.get_Caps;
 	CTextProp.prototype['get_SmallCaps'] = CTextProp.prototype.get_SmallCaps;
+	CTextProp.prototype['get_Lang'] = CTextProp.prototype.get_Lang;
 
 	CTextProp.prototype['put_Bold'] = CTextProp.prototype.put_Bold = function(v){this.Bold = v;};
 	CTextProp.prototype['put_Italic'] = CTextProp.prototype.put_Italic = function(v){this.Italic = v;};
@@ -1271,6 +1278,7 @@
 	CTextProp.prototype['put_DStrikeout'] = CTextProp.prototype.put_DStrikeout = function(v){this.DStrikeout = v;};
 	CTextProp.prototype['put_Caps'] = CTextProp.prototype.put_Caps = function(v){this.Caps = v;};
 	CTextProp.prototype['put_SmallCaps'] = CTextProp.prototype.put_SmallCaps = function(v){this.SmallCaps = v;};
+	CTextProp.prototype['put_Lang'] = CTextProp.prototype.put_Lang = function(v){this.Lang = v;};
 
 
 	window['Asc']['CTextProp'] = window['Asc'].CTextProp = CTextProp;
@@ -1812,8 +1820,26 @@
 		return this.IsDiagonal;
 	};
 
-	CAscWatermarkProperties.prototype['put_ImageUrl'] = CAscWatermarkProperties.prototype.put_ImageUrl = function (v) {
-		this.ImageUrl = v;
+	CAscWatermarkProperties.prototype['put_ImageUrl'] = CAscWatermarkProperties.prototype.put_ImageUrl = function (sUrl, withAuthorization) {
+		var _this = this;
+		if(!_this.Api)
+		{
+			return;
+		}
+		AscCommon.sendImgUrls(_this.Api, [sUrl], function(data) {
+			if (data && data[0])
+			{
+				_this.Api.ImageLoader.LoadImagesWithCallback([data[0].url], function(){
+					_this.ImageUrl = data[0].url;
+					_this.Type = Asc.c_oAscWatermarkType.Image;
+					_this.drawTexture();
+					_this.Api.sendEvent("asc_onWatermarkImageLoaded");
+				});
+			}
+		}, false, undefined, withAuthorization);
+	};
+	CAscWatermarkProperties.prototype['put_ImageUrl2'] = CAscWatermarkProperties.prototype.put_ImageUrl2 = function (sUrl) {
+		this.ImageUrl = sUrl;
 	};
 	CAscWatermarkProperties.prototype['get_ImageUrl'] = CAscWatermarkProperties.prototype.get_ImageUrl = function () {
 		return this.ImageUrl;
@@ -1826,9 +1852,10 @@
 	};
 	CAscWatermarkProperties.prototype['put_DivId'] = CAscWatermarkProperties.prototype.put_DivId = function (v) {
 		this.DivId = v;
+		this.drawTexture();
 	};
 	CAscWatermarkProperties.prototype['updateView'] = CAscWatermarkProperties.prototype.updateView = function (v) {
-
+		this.drawTexture();
 	};
 	CAscWatermarkProperties.prototype['showFileDialog'] = CAscWatermarkProperties.prototype.showFileDialog = function () {
 		if(!this.Api || !this.DivId){
@@ -1850,6 +1877,7 @@
 						if (Asc.c_oAscError.ID.No !== error)
 						{
 							t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+							t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
 						}
 						else
 						{
@@ -1857,11 +1885,13 @@
 								if(urls.length > 0)
 								{
 									_this.ImageUrl = urls[0];
+									_this.Type = Asc.c_oAscWatermarkType.Image;
 									_this.drawTexture();
+									t.sendEvent("asc_onWatermarkImageLoaded");
 								}
+								t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
 							});
 						}
-						t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
 					});
 				}
 			},
@@ -1877,14 +1907,20 @@
 
 	CAscWatermarkProperties.prototype['loadImageUrl'] = CAscWatermarkProperties.prototype.loadImageUrl = function(sUrl, withAuthorization)	{
 		var _this = this;
-		AscCommon.sendImgUrls(this, [sUrl], function(data) {
-			if (data && data[0]){
+		if(!_this.Api)
+		{
+			return;
+		}
+		AscCommon.sendImgUrls(_this.Api, [sUrl], function(data) {
+			if (data && data[0])
+			{
 				_this.ImageLoader.LoadImagesWithCallback([data[0].url], function(){
 					_this.ImageUrl = data[0].url;
+					_this.Type = Asc.c_oAscWatermarkType.Image;
 					_this.drawTexture();
+					_this.sendEvent("asc_onWatermarkImageLoaded");
 				});
 			}
-
 		}, false, undefined, withAuthorization);
 	};
 
@@ -1899,13 +1935,13 @@
 		var aChildren = oDiv.children;
 		var oCanvas = null;
 		for(var i = 0; i < aChildren.length; ++i){
-			if(aChildren[i].tagName === 'canvas'){
+			if(aChildren[i].nodeName && aChildren[i].nodeName.toUpperCase() === 'CANVAS'){
 				oCanvas = aChildren[i];
 				break;
 			}
 		}
-		var nWidth = oDiv.style.width;
-		var nHeight = oDiv.style.height;
+		var nWidth = oDiv.clientWidth;
+		var nHeight = oDiv.clientHeight;
 		if(null === oCanvas){
 			oCanvas = document.createElement('canvas');
 			oCanvas.width = parseInt(nWidth);
@@ -1913,6 +1949,7 @@
 			oDiv.appendChild(oCanvas);
 		}
 		var oContext = oCanvas.getContext('2d');
+		oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
 		var _img = this.Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(this.ImageUrl)];
 		if (_img != undefined && _img.Image != null && _img.Status != AscFonts.ImageLoadStatus.Loading)
 		{

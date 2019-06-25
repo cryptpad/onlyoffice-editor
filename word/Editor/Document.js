@@ -2329,6 +2329,9 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	if (this.Action.Additional.TrackMove)
 		this.private_FinalizeRemoveTrackMove();
 
+	if (this.TrackMoveId)
+		this.private_FinalizeCheckTrackMove();
+
 	//------------------------------------------------------------------------------------------------------------------
 
 	var isAllPointsEmpty = true;
@@ -2409,6 +2412,48 @@ CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 	for (var sMoveId in this.Action.Additional.TrackMove)
 	{
 		var oMarks = this.Action.Additional.TrackMove[sMoveId];
+		privateRemoveTrackMoveMark(oMarks.To.Start);
+		privateRemoveTrackMoveMark(oMarks.To.End);
+		privateRemoveTrackMoveMark(oMarks.From.Start);
+		privateRemoveTrackMoveMark(oMarks.From.End);
+
+		this.Action.Recalculate = true;
+	}
+};
+CDocument.prototype.private_FinalizeCheckTrackMove = function()
+{
+	function privateRemoveTrackMoveMark(oMark)
+	{
+		if (oMark instanceof CRunRevisionMove)
+		{
+			oMark.GetRun().RemoveElement(oMark);
+		}
+		else if (oMark instanceof CParaRevisionMove && oMark.GetParagraph())
+		{
+			oMark.GetParagraph().RemoveElement(oMark);
+		}
+	}
+
+	var sMoveId = this.TrackMoveId;
+	var oMarks  = this.TrackRevisionsManager.GetMoveMarks(sMoveId);
+
+	if (oMarks
+		&& (!oMarks.To.Start
+		|| !oMarks.To.Start.IsUseInDocument()
+		|| !oMarks.To.End
+		|| !oMarks.To.End.IsUseInDocument()
+		|| !oMarks.From.Start
+		|| !oMarks.From.Start.IsUseInDocument()
+		|| !oMarks.From.End
+		|| !oMarks.From.End.IsUseInDocument()))
+	{
+		// TODO: Вообще лучше переделать схему, потому что она не всегда правильно работает
+		//       Если удаляемый элемент попадает в ранее добавленный текст, тогда и метка удалится, хотя такого быть не
+		//       должно
+
+		this.TrackMoveId = null;
+		this.RemoveTrackMoveMarks(sMoveId);
+
 		privateRemoveTrackMoveMark(oMarks.To.Start);
 		privateRemoveTrackMoveMark(oMarks.To.End);
 		privateRemoveTrackMoveMark(oMarks.From.Start);
@@ -10171,7 +10216,7 @@ CDocument.prototype.GetWatermarkProps = function()
     var SectionPageInfo = this.Get_SectionPageNumInfo(this.CurPage);
     var bFirst = SectionPageInfo.bFirst;
     var bEven  = SectionPageInfo.bEven;
-    var HdrFtr = this.Get_SectionHdrFtr(this.CurPage, bFirst, bEven);
+    var HdrFtr = this.Get_SectionHdrFtr(this.CurPage, false, false);
     var Header = HdrFtr.Header;
     var oProps;
     if (null === Header)
@@ -10196,7 +10241,7 @@ CDocument.prototype.GetWatermarkProps = function()
 
 CDocument.prototype.SetWatermarkProps = function(oProps)
 {
-    this.StartAction(0);
+    this.StartAction(AscDFH.historydescription_Document_AddWatermark);
     var SectionPageInfo = this.Get_SectionPageNumInfo(this.CurPage);
     var bFirst = SectionPageInfo.bFirst;
     var bEven  = SectionPageInfo.bEven;
@@ -10214,6 +10259,10 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
     var oWatermark = Header.FindWatermark();
     if(oWatermark)
     {
+        if(oWatermark.GraphicObj.selected)
+        {
+            this.RemoveSelection(true);
+        }
         oWatermark.Remove_FromDocument(false);
     }
     oWatermark = this.DrawingObjects.createWatermark(oProps);
@@ -10222,11 +10271,15 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
         var oDocState = this.GetSelectionState();
 
         var oContent = Header.Content;
-        oContent.MoveCursorToStartPos(false);
+        oContent.MoveCursorToEndPos(false);
         oContent.AddToParagraph(oWatermark);
 
         this.SetSelectionState(oDocState);
     }
+    this.Recalculate();
+    this.Document_UpdateInterfaceState();
+    this.Document_UpdateSelectionState();
+    this.Document_UpdateRulersState();
     this.FinalizeAction(true);
 };
 

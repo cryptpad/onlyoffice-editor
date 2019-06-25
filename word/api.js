@@ -1401,7 +1401,10 @@ background-repeat: no-repeat;\
 					{
 						t.sync_LockDocumentSchema();
 					}
-
+					else if(Class instanceof AscCommon.CCore)
+                    {
+                        editor.sendEvent("asc_onLockCore", true);
+                    }
 					// Теперь обновлять состояние необходимо, чтобы обновить локи в режиме рецензирования.
 					t.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
 				}
@@ -1498,6 +1501,17 @@ background-repeat: no-repeat;\
 						else
 						{
 							t.sync_UnLockDocumentSchema();
+						}
+					}
+					else if(Class instanceof AscCommon.CCore)
+					{
+						if (NewType !== locktype_Mine && NewType !== locktype_None)
+						{
+							editor.sendEvent("asc_onLockCore", true);
+						}
+						else
+						{
+							editor.sendEvent("asc_onLockCore", false);
 						}
 					}
 				}
@@ -4349,6 +4363,36 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_SetWatermarkProps = function(oProps)
 	{
+		var oTextPr = oProps.get_TextPr();
+		var oApi = this;
+		if(oTextPr)
+		{
+			var oFontFamily = oTextPr.get_FontFamily();
+			if(oFontFamily && typeof oFontFamily.get_Name() === "string")
+			{
+				if(!g_fontApplication)
+				{
+					return;
+				}
+				var oLoader     = AscCommon.g_font_loader;
+				var oFontInfo   = g_fontApplication.GetFontInfo(oFontFamily.get_Name());
+				oFontFamily.put_Name(oFontInfo.Name);
+				var bAsync    = oLoader.LoadFont(oFontInfo, function () {
+					this.sync_EndAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadFont);
+					oApi.asc_SetWatermarkProps(oProps);
+				}, null);
+				if(bAsync)
+				{
+					return;
+				}
+			}
+		}
+		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+	};
+	asc_docs_api.prototype.asc_WatermarkRemove = function(oProps)
+	{
+		var oProps = new Asc.CAscWatermarkProperties();
+		oProps.put_Type(Asc.c_oAscWatermarkType.None);
 		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
 	};
 
@@ -6638,7 +6682,6 @@ background-repeat: no-repeat;\
                         isSendOnReady = true;
                         this.bInit_word_control = true;
                         Document.Start_SilentMode();
-                        this.onDocumentContentReady();
                     }
 
 					this.isApplyChangesOnOpenEnabled = false;
@@ -6654,14 +6697,16 @@ background-repeat: no-repeat;\
                     isSendOnReady = true;
                     this.bInit_word_control = true;
                     Document.Start_SilentMode();
-                    this.onDocumentContentReady();
                 }
 
 				//Recalculate для Document
 				Document.MoveCursorToStartPos(false);
 
 				if (isSendOnReady)
-                    Document.End_SilentMode(false);
+				{
+					this.onDocumentContentReady();
+					Document.End_SilentMode(false);
+				}
 
 				if (!this.isOnlyReaderMode)
 				{
@@ -9566,9 +9611,25 @@ background-repeat: no-repeat;\
 		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.App || null;
 	};
 
-	asc_docs_api.prototype.asc_getCoreProps = function()
+	asc_docs_api.prototype.getInternalCoreProps = function()
 	{
-		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.Core || null;
+		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.Core;
+	};
+
+	asc_docs_api.prototype.asc_setCoreProps = function(oProps)
+	{
+		var oCore = this.getInternalCoreProps();
+		if(!oCore)
+		{
+			return;
+		}
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if(false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_CorePr, null))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_SetCoreproperties);
+			oCore.setProps(oProps);
+			oLogicDocument.FinalizeAction(true);
+		}
 	};
 
 	//-------------------------------------------------------------export---------------------------------------------------
@@ -9660,6 +9721,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getDocumentName']                       = asc_docs_api.prototype.asc_getDocumentName;
 	asc_docs_api.prototype['asc_getAppProps']                           = asc_docs_api.prototype.asc_getAppProps;
 	asc_docs_api.prototype['asc_getCoreProps']                          = asc_docs_api.prototype.asc_getCoreProps;
+	asc_docs_api.prototype['asc_setCoreProps']                          = asc_docs_api.prototype.asc_setCoreProps;
 	asc_docs_api.prototype['asc_registerCallback']                      = asc_docs_api.prototype.asc_registerCallback;
 	asc_docs_api.prototype['asc_unregisterCallback']                    = asc_docs_api.prototype.asc_unregisterCallback;
 	asc_docs_api.prototype['asc_checkNeedCallback']                     = asc_docs_api.prototype.asc_checkNeedCallback;
@@ -10010,6 +10072,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_cropFill']                              = asc_docs_api.prototype.asc_cropFill;
 	asc_docs_api.prototype["asc_GetWatermarkProps"]                     = asc_docs_api.prototype.asc_GetWatermarkProps;
 	asc_docs_api.prototype["asc_SetWatermarkProps"]                     = asc_docs_api.prototype.asc_SetWatermarkProps;
+	asc_docs_api.prototype["asc_WatermarkRemove"]                       = asc_docs_api.prototype.asc_WatermarkRemove;
 
 	asc_docs_api.prototype['sync_StartAddShapeCallback']                = asc_docs_api.prototype.sync_StartAddShapeCallback;
 	asc_docs_api.prototype['CanGroup']                                  = asc_docs_api.prototype.CanGroup;

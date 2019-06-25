@@ -6891,6 +6891,35 @@
 		}
 		this.nRowsCount = val;
 	};
+	Worksheet.prototype.fromXLSB = function(stream, type, tmp, aCellXfs, aSharedStrings, fInitCellAfterRead) {
+		stream.XlsbSkipRecord();//XLSB::rt_BEGIN_SHEET_DATA
+
+		var oldPos = -1;
+		while (oldPos !== stream.GetCurPos()) {
+			oldPos = stream.GetCurPos();
+			type = stream.XlsbReadRecordType();
+			if (AscCommonExcel.XLSB.rt_CELL_BLANK <= type && type <= AscCommonExcel.XLSB.rt_FMLA_ERROR) {
+				tmp.cell.clear();
+				tmp.formula.clean();
+				tmp.cell.fromXLSB(stream, type, tmp.row.index, aCellXfs, aSharedStrings, tmp);
+				fInitCellAfterRead(tmp);
+			}
+			else if (AscCommonExcel.XLSB.rt_ROW_HDR === type) {
+				tmp.row.clear();
+				tmp.row.fromXLSB(stream, aCellXfs);
+				tmp.row.saveContent();
+				tmp.ws.cellsByColRowsCount = Math.max(tmp.ws.cellsByColRowsCount, tmp.row.index + 1);
+				tmp.ws.nRowsCount = Math.max(tmp.ws.nRowsCount, tmp.ws.cellsByColRowsCount);
+			}
+			else if (AscCommonExcel.XLSB.rt_END_SHEET_DATA === type) {
+				stream.XlsbSkipRecord();
+				break;
+			}
+			else {
+				stream.XlsbSkipRecord();
+			}
+		}
+	};
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
@@ -8556,6 +8585,332 @@
 	Cell.prototype.setIsCalc = function(val) {
 		this.isCalc = val;
 		this._hasChanged = true;
+	};
+	Cell.prototype.fromXLSB = function(stream, type, row, aCellXfs, aSharedStrings, tmp, formula) {
+		var end = stream.XlsbReadRecordLength() + stream.GetCurPos();
+
+		this.setRowCol(row, stream.GetULongLE() & 0x3FFF);
+		var nStyleRef = stream.GetULongLE();
+		if (0 !== (nStyleRef & 0xFFFFFF)) {
+			var xf = aCellXfs[nStyleRef & 0xFFFFF];
+			if (xf) {
+				this.setStyle(xf);
+			}
+		}
+		//todo rt_CELL_RK
+		if (AscCommonExcel.XLSB.rt_CELL_REAL === type || AscCommonExcel.XLSB.rt_FMLA_NUM === type) {
+			this.setTypeInternal(CellValueType.Number);
+			this.setValueNumberInternal(stream.GetDoubleLE());
+		} else if (AscCommonExcel.XLSB.rt_CELL_ISST === type) {
+			this.setTypeInternal(CellValueType.String);
+			//todo textIndex
+			var ss = aSharedStrings[stream.GetULongLE()];
+			if (undefined !== ss) {
+				if (typeof ss === 'string') {
+					this.setValueTextInternal(ss);
+				} else {
+					this.setValueMultiTextInternal(ss);
+				}
+			}
+		} else if (AscCommonExcel.XLSB.rt_CELL_ST === type || AscCommonExcel.XLSB.rt_FMLA_STRING === type) {
+			this.setTypeInternal(CellValueType.String);
+			this.setValueTextInternal(stream.GetString());
+		} else if (AscCommonExcel.XLSB.rt_CELL_ERROR === type || AscCommonExcel.XLSB.rt_FMLA_ERROR === type) {
+			this.setTypeInternal(CellValueType.Error);
+			switch (stream.GetByte()) {
+				case 0x00:
+					this.setValueTextInternal("#NULL!");
+					break;
+				case 0x07:
+					this.setValueTextInternal("#DIV/0!");
+					break;
+				case 0x0F:
+					this.setValueTextInternal("#VALUE!");
+					break;
+				case 0x17:
+					this.setValueTextInternal("#REF!");
+					break;
+				case 0x1D:
+					this.setValueTextInternal("#NAME?");
+					break;
+				case 0x24:
+					this.setValueTextInternal("#NUM!");
+					break;
+				case 0x2A:
+					this.setValueTextInternal("#N/A");
+					break;
+				case 0x2B:
+					this.setValueTextInternal("#GETTING_DATA");
+					break;
+			}
+		} else if (AscCommonExcel.XLSB.rt_CELL_BOOL === type || AscCommonExcel.XLSB.rt_FMLA_BOOL === type) {
+			this.setTypeInternal(CellValueType.Bool);
+			this.setValueNumberInternal(stream.GetByte());
+		} else {
+			this.setTypeInternal(CellValueType.Number);
+		}
+		if (AscCommonExcel.XLSB.rt_FMLA_STRING <= type && type <= AscCommonExcel.XLSB.rt_FMLA_ERROR) {
+			this.fromXLSBFormula(stream, tmp.formula);
+		}
+		var flags = stream.GetUShortLE();
+		if (0 !== (flags & 0x4)) {
+			this.fromXLSBFormulaExt(stream, tmp.formula, flags);
+		}
+		if (0 !== (flags & 0x2000)) {
+			this.setTypeInternal(CellValueType.String);
+			this.setValueMultiTextInternal(this.fromXLSBRichText(stream));
+		}
+
+		stream.Seek2(end);
+	};
+	Cell.prototype.fromXLSBFormula = function(stream, formula) {
+		var flags = stream.GetUChar();
+		stream.Skip2(9);
+		if (0 !== (flags & 0x2)) {
+			formula.ca = true;
+		}
+	};
+	Cell.prototype.fromXLSBFormulaExt = function(stream, formula, flags) {
+		formula.t = flags & 0x3;
+		formula.v = stream.GetString();
+		if (0 !== (flags & 0x8)) {
+			formula.aca = true;
+		}
+		if (0 !== (flags & 0x10)) {
+			formula.bx = true;
+		}
+		if (0 !== (flags & 0x20)) {
+			formula.del1 = true;
+		}
+		if (0 !== (flags & 0x40)) {
+			formula.del2 = true;
+		}
+		if (0 !== (flags & 0x80)) {
+			formula.dt2d = true;
+		}
+		if (0 !== (flags & 0x100)) {
+			formula.dtr = true;
+		}
+		if (0 !== (flags & 0x200)) {
+			formula.r1 = stream.GetString();
+		}
+		if (0 !== (flags & 0x400)) {
+			formula.r2 = stream.GetString();
+		}
+		if (0 !== (flags & 0x800)) {
+			formula.ref = stream.GetString();
+		}
+		if (0 !== (flags & 0x1000)) {
+			formula.si = stream.GetULongLE();
+		}
+	};
+	Cell.prototype.fromXLSBRichText = function(stream) {
+		var res = [];
+		var count = stream.GetULongLE();
+		while (count-- > 0) {
+			var typeRun = stream.GetUChar();
+			var run;
+			if (0x1 === typeRun) {
+				run = new AscCommonExcel.CMultiTextElem();
+				run.text = "";
+				if (stream.GetBool()) {
+					run.format = new AscCommonExcel.Font();
+					run.format.fromXLSB(stream);
+					run.format.checkSchemeFont(this.ws.workbook.theme);
+				}
+				var textCount = stream.GetULongLE();
+				while (textCount-- > 0) {
+					run.text += stream.GetString();
+				}
+				res.push(run);
+			}
+			else if (0x2 === typeRun) {
+				run = new AscCommonExcel.CMultiTextElem();
+				run.text = stream.GetString();
+				res.push(run);
+			}
+		}
+		return res;
+	};
+	Cell.prototype.toXLSB = function(stream, nXfsId, formulaToWrite, oSharedStrings) {
+		var len = 4 + 4 + 2;
+		var type = AscCommonExcel.XLSB.rt_CELL_BLANK;
+		if (formulaToWrite) {
+			len += this.getXLSBSizeFormula(formulaToWrite);
+		}
+		var textToWrite;
+		if (formulaToWrite) {
+			if (!this.isNullTextString()) {
+				switch (this.type) {
+					case CellValueType.Number:
+						type = AscCommonExcel.XLSB.rt_FMLA_NUM;
+						len += 8;
+						break;
+					case CellValueType.String:
+						type = AscCommonExcel.XLSB.rt_FMLA_STRING;
+						textToWrite = this.text ? this.text : AscCommonExcel.getStringFromMultiText(this.multiText);
+						len += 4 + 2 * textToWrite.length;
+						break;
+					case CellValueType.Error:
+						type = AscCommonExcel.XLSB.rt_FMLA_ERROR;
+						len += 1;
+						break;
+					case CellValueType.Bool:
+						type = AscCommonExcel.XLSB.rt_FMLA_BOOL;
+						len += 1;
+						break;
+				}
+			} else {
+				type = AscCommonExcel.XLSB.rt_FMLA_STRING;
+				textToWrite = "";
+				len += 4 + 2 * textToWrite.length;
+			}
+		} else {
+			if (!this.isNullTextString()) {
+				switch (this.type) {
+					case CellValueType.Number:
+						type = AscCommonExcel.XLSB.rt_CELL_REAL;
+						len += 8;
+						break;
+					case CellValueType.String:
+						type = AscCommonExcel.XLSB.rt_CELL_ISST;
+						len += 4;
+						break;
+					case CellValueType.Error:
+						type = AscCommonExcel.XLSB.rt_CELL_ERROR;
+						len += 1;
+						break;
+					case CellValueType.Bool:
+						type = AscCommonExcel.XLSB.rt_CELL_BOOL;
+						len += 1;
+						break;
+				}
+			}
+		}
+
+		stream.XlsbStartRecord(type, len);
+		stream.WriteULong(this.nCol & 0x3FFF);
+		var nStyle = 0;
+		if (null !== nXfsId) {
+			nStyle = nXfsId;
+		}
+		stream.WriteULong(nStyle);
+		//todo RkNumber
+		switch (type) {
+			case AscCommonExcel.XLSB.rt_CELL_REAL:
+			case AscCommonExcel.XLSB.rt_FMLA_NUM:
+				stream.WriteDouble2(this.number);
+				break;
+			case AscCommonExcel.XLSB.rt_CELL_ISST:
+				var index;
+				var textIndex = this.getTextIndex();
+				if (null !== textIndex) {
+					index = oSharedStrings.strings[textIndex];
+					if (undefined === index) {
+						index = oSharedStrings.index++;
+						oSharedStrings.strings[textIndex] = index;
+					}
+				}
+				stream.WriteULong(index);
+				break;
+			case AscCommonExcel.XLSB.rt_CELL_ST:
+			case AscCommonExcel.XLSB.rt_FMLA_STRING:
+				stream.WriteString4(textToWrite);
+				break;
+			case AscCommonExcel.XLSB.rt_CELL_ERROR:
+			case AscCommonExcel.XLSB.rt_FMLA_ERROR:
+				if ("#NULL!" == this.text) {
+					stream.WriteByte(0x00);
+				}
+				else if ("#DIV/0!" == this.text) {
+					stream.WriteByte(0x07);
+				}
+				else if ("#VALUE!" == this.text) {
+					stream.WriteByte(0x0F);
+				}
+				else if ("#REF!" == this.text) {
+					stream.WriteByte(0x17);
+				}
+				else if ("#NAME?" == this.text) {
+					stream.WriteByte(0x1D);
+				}
+				else if ("#NUM!" == this.text) {
+					stream.WriteByte(0x24);
+				}
+				else if ("#N/A" == this.text) {
+					stream.WriteByte(0x2A);
+				}
+				else {
+					stream.WriteByte(0x2B);
+				}
+				break;
+			case AscCommonExcel.XLSB.rt_CELL_BOOL:
+			case AscCommonExcel.XLSB.rt_FMLA_BOOL:
+				stream.WriteByte(this.number);
+				break;
+		}
+		var flags = 0;
+		if (formulaToWrite) {
+			flags = this.toXLSBFormula(stream, formulaToWrite);
+		}
+		stream.WriteUShort(flags);
+		if (formulaToWrite) {
+			flags = this.toXLSBFormulaExt(stream, formulaToWrite);
+		}
+		stream.XlsbEndRecord();
+	};
+	Cell.prototype.getXLSBSizeFormula = function(formulaToWrite) {
+		var len = 2 + 4 + 4;
+		if (formulaToWrite.formula) {
+			len += 4 + 2 * formulaToWrite.formula.length;
+		} else {
+			len += 4;
+		}
+		if (undefined !== formulaToWrite.ref) {
+			len += 4 + 2 * formulaToWrite.ref.getName().length;
+		}
+		if (undefined !== formulaToWrite.si) {
+			len += 4;
+		}
+		return len;
+	};
+	Cell.prototype.toXLSBFormula = function(stream, formulaToWrite) {
+		var flags = 0;
+		if (formulaToWrite.ca) {
+			flags |= 0x2;
+		}
+		stream.WriteUShort(flags);
+		stream.WriteULong(0);//cce
+		stream.WriteULong(0);//cb
+
+		var flagsExt = 0;
+		if (undefined !== formulaToWrite.type) {
+			flagsExt |= formulaToWrite.type;
+		}
+		else {
+			flagsExt |= Asc.ECellFormulaType.cellformulatypeNormal;
+		}
+		flagsExt |= 0x4;
+		if (undefined !== formulaToWrite.ref) {
+			flagsExt |= 0x800;
+		}
+		if (undefined !== formulaToWrite.si) {
+			flagsExt |= 0x1000;
+		}
+		return flagsExt;
+	};
+	Cell.prototype.toXLSBFormulaExt = function(stream, formulaToWrite) {
+		if (undefined !== formulaToWrite.formula) {
+			stream.WriteString4(formulaToWrite.formula);
+		} else {
+			stream.WriteString4("");
+		}
+		if (undefined !== formulaToWrite.ref) {
+			stream.WriteString4(formulaToWrite.ref.getName());
+		}
+		if (undefined !== formulaToWrite.si) {
+			stream.WriteULong(formulaToWrite.si);
+		}
 	};
 //-------------------------------------------------------------------------------------------------
 
@@ -12596,6 +12951,7 @@
 	window['AscCommonExcel'].aStandartNumFormatsId = aStandartNumFormatsId;
 	window['AscCommonExcel'].oFormulaLocaleInfo = oFormulaLocaleInfo;
 	window['AscCommonExcel'].getDefNameIndex = getDefNameIndex;
+	window['AscCommonExcel'].getCellIndex = getCellIndex;
 	window['AscCommonExcel'].angleFormatToInterface2 = angleFormatToInterface2;
 	window['AscCommonExcel'].angleInterfaceToFormat = angleInterfaceToFormat;
 	window['AscCommonExcel'].Workbook = Workbook;

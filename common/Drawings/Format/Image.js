@@ -226,7 +226,7 @@ CImageShape.prototype.getWatermarkProps = function()
         return oProps;
     }
     oProps.put_Type(Asc.c_oAscWatermarkType.Image);
-    oProps.put_ImageUrl(this.blipFill.RasterImageId);
+    oProps.put_ImageUrl2(this.blipFill.RasterImageId);
     oProps.put_Scale(-1);
     var oApi;
     if(window["Asc"] && window["Asc"]["editor"])
@@ -240,11 +240,33 @@ CImageShape.prototype.getWatermarkProps = function()
     if(oApi)
     {
         var oImgP = new Asc.asc_CImgProperty();
-        oImgP.ImageUrl = cropObject.getBlipFill().RasterImageId;
+        oImgP.ImageUrl = this.blipFill.RasterImageId;
         var oSize = oImgP.asc_getOriginSize(oApi);
+
         if(oSize && oSize.IsCorrect)
         {
-            oProps.put_Scale(oSize.Width / this.extX);
+            var dScale = (((this.extX /oSize.Width) * 100 + 0.5) >> 0) / 100 ;
+            oProps.put_Scale(dScale);
+            var dAspect = this.extX / this.extY;
+            var dAspect2 = oSize.Width / oSize.Height;
+            if(AscFormat.fApproxEqual(dAspect, dAspect2, 0.01))
+            {
+                var oParaDrawing = AscFormat.getParaDrawing(this);
+                if(oParaDrawing) {
+                    var oParentParagraph = oParaDrawing.Get_ParentParagraph();
+                    if (oParentParagraph) {
+                        var oSectPr = oParentParagraph.Get_SectPr();
+                        if(oSectPr)
+                        {
+                            var Width = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+                            if(AscFormat.fApproxEqual(this.extX, Width, 1))
+                            {
+                                oProps.put_Scale(-1);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     return oProps;

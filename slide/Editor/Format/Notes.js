@@ -243,6 +243,12 @@
         return this.Master.Theme;
     };
 
+
+    CNotes.prototype.getParentObjects = function()
+    {
+        return {master: this.Master, layout: null, slide: null};
+    };
+
     CNotes.prototype.Refresh_RecalcData = function(){
 
     };

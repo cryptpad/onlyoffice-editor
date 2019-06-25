@@ -380,7 +380,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				_nEndPos = EndPos;
 
 			var oDirectParaPr = null;
-			if (this.Content[StartPos].IsParagraph())
+			if (this.Content[StartPos].IsParagraph() && !this.Content[StartPos].IsSelectedAll())
 				oDirectParaPr = this.Content[StartPos].GetDirectParaPr();
 
 			// TODO: Сделать для таблиц
