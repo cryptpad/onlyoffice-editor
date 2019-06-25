@@ -293,7 +293,6 @@ CAscDateTime.prototype['get_Lang'] = CAscDateTime.prototype.get_Lang = function(
 CAscDateTime.prototype['put_Lang'] = CAscDateTime.prototype.put_Lang = function(v){this.Lang = v;};
 CAscDateTime.prototype['get_DateTimeExamples'] = CAscDateTime.prototype.get_DateTimeExamples = function(){
     var oMap = {
-        "datetime": null,
         "datetime1": null,
         "datetime2": null,
         "datetime3": null,

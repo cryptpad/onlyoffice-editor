@@ -33,7 +33,7 @@
 "use strict";
 
 (function(window, undefined){
-     var oMonths = {};
+    var oMonths = {};
     oMonths[0] = "January";
     oMonths[1] = "February";
     oMonths[2] = "March";
@@ -47,7 +47,7 @@
     oMonths[10] = "November";
     oMonths[11] = "December";
 
-     var oDays = {};
+    var oDays = {};
     oDays[0] = "Sunday";
     oDays[1] = "Monday";
     oDays[2] = "Tuesday";
@@ -55,6 +55,23 @@
     oDays[4] = "Thursday";
     oDays[5] = "Friday";
     oDays[6] = "Saturday";
+
+
+
+    var oDateTimeFormats = {};
+    oDateTimeFormats["datetime1"] = "MM/DD/YYYY";
+    oDateTimeFormats["datetime2"] = "dddd\\,\\ mmmm\\ dd\\,\\ yyyy";
+    oDateTimeFormats["datetime3"] = "DD\\ MMMM\\ YYYY";
+    oDateTimeFormats["datetime4"] = "MMMM\\ DD\\,\\ YYYY";
+    oDateTimeFormats["datetime5"] = "DD-MMM-YY";
+    oDateTimeFormats["datetime6"] = "MMMM\\ YY";
+    oDateTimeFormats["datetime7"] = "MMM-YY";
+    oDateTimeFormats["datetime8"] = "MM/DD/YYYY\\ hh:mm\\ AM/PM";
+    oDateTimeFormats["datetime9"] = "MM/DD/YYYY\\ hh:mm:ss\\ AM/PM";
+    oDateTimeFormats["datetime10"] = "hh:mm";
+    oDateTimeFormats["datetime11"] = "hh:mm:ss";
+    oDateTimeFormats["datetime12"] = "hh:mm\\ AM/PM";
+    oDateTimeFormats["datetime13"] = "hh:mm:ss:\\ AM/PM";
 
     function CPresentationField(Paragraph)
     {
@@ -149,7 +166,6 @@
     CPresentationField.prototype.private_GetString = function()
     {
         var sStr = null;
-        var oDate;
         var oStylesObject;
         var oCultureInfo = AscCommon.g_aCultureInfos[this.Get_CompiledPr().Lang.Val];
         if(!oCultureInfo)
@@ -161,194 +177,114 @@
         {
             var sFieldType = this.FieldType.toLowerCase();
             sStr = sFieldType;
-            switch (sFieldType)
+            if("slidenum" === sFieldType)
             {
-                case "slidenum":
+                if(this.Paragraph && this.Paragraph.Parent)
                 {
-                    if(this.Paragraph && this.Paragraph.Parent)
+                    oStylesObject = this.Paragraph.Parent.Get_Styles();
+                    var nFirstSlideNum = 1;
+                    if(oStylesObject.presentation)
                     {
-                        oStylesObject = this.Paragraph.Parent.Get_Styles();
-                        var nFirstSlideNum = 1;
-                        if(oStylesObject.presentation)
+                        if(AscFormat.isRealNumber(oStylesObject.presentation.firstSlideNum))
                         {
-                            if(AscFormat.isRealNumber(oStylesObject.presentation.firstSlideNum))
-                            {
-                                nFirstSlideNum = oStylesObject.presentation.firstSlideNum;
-                            }
+                            nFirstSlideNum = oStylesObject.presentation.firstSlideNum;
                         }
-                        if(oStylesObject.slide)
+                    }
+                    if(oStylesObject.slide)
+                    {
+                        this.Slide = oStylesObject.slide;
+                        if(AscFormat.isRealNumber(this.Slide.num))
                         {
-                            this.Slide = oStylesObject.slide;
+                            this.SlideNum = this.Slide.num;
+                            sStr = '' + (this.Slide.num + nFirstSlideNum);
+                        }
+                    }
+                    else if(oStylesObject.notes)
+                    {
+                        if(oStylesObject.notes.slide)
+                        {
+                            this.Slide = oStylesObject.notes.slide;
                             if(AscFormat.isRealNumber(this.Slide.num))
                             {
                                 this.SlideNum = this.Slide.num;
                                 sStr = '' + (this.Slide.num + nFirstSlideNum);
                             }
                         }
-                        else if(oStylesObject.notes)
-                        {
-                            if(oStylesObject.notes.slide)
-                            {
-                                this.Slide = oStylesObject.notes.slide;
-                                if(AscFormat.isRealNumber(this.Slide.num))
-                                {
-                                    this.SlideNum = this.Slide.num;
-                                    sStr = '' + (this.Slide.num + nFirstSlideNum);
-                                }
-                            }
-                        }
-                        else if(oStylesObject.layout)
-                        {
-                            this.SlideNum = oStylesObject.layout.lastRecalcSlideIndex;
-                            sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + nFirstSlideNum);
-                        }
-                        else if(oStylesObject.master)
-                        {
-                            this.SlideNum = oStylesObject.master.lastRecalcSlideIndex;
-                            sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + nFirstSlideNum);
-                        }
                     }
-                    break;
-                }
-                case "value":
-                {
-                    if(this.Paragraph && this.Paragraph.Parent)
+                    else if(oStylesObject.layout)
                     {
-                        oStylesObject = this.Paragraph.Parent.Get_Styles();
-                        if(oStylesObject.shape && oStylesObject.shape.getValueString())
-                        {
-                            sStr = oStylesObject.shape.getValueString();
-                        }
+                        this.SlideNum = oStylesObject.layout.lastRecalcSlideIndex;
+                        sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + nFirstSlideNum);
                     }
-                    break;
-                }
-                case "percentage":
-                {
-                    if(this.Paragraph && this.Paragraph.Parent)
+                    else if(oStylesObject.master)
                     {
-                        oStylesObject = this.Paragraph.Parent.Get_Styles();
-                        if(oStylesObject.shape && oStylesObject.shape.getPercentageString())
-                        {
-                            sStr = oStylesObject.shape.getPercentageString();
-                        }
+                        this.SlideNum = oStylesObject.master.lastRecalcSlideIndex;
+                        sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + nFirstSlideNum);
                     }
-                    break;
                 }
-                case "datetime":
+            }
+            else if("value" === sFieldType)
+            {
+                if(this.Paragraph && this.Paragraph.Parent)
                 {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime1":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime2":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("dddd\\,\\ mmmm\\ dd\\,\\ yyyy");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime3":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("DD\\ MMMM\\ YYYY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime4":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MMMM\\ DD\\,\\ YYYY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime5":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("DD-MMM-YY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime6":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MMMM\\ YY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime7":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MMM-YY");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime8":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY\\ hh:mm\\ AM/PM");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime9":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY\\ hh:mm:ss\\ AM/PM");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime10":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("hh:mm");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime11":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("hh:mm:ss");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime12":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("hh:mm\\ AM/PM");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                case "datetime13":
-                {
-                    oDateTime = new Asc.cDate();
-                    oFormat = AscCommon.oNumFormatCache.get("hh:mm:ss:\\ AM/PM");
-                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
-                    break;
-                }
-                default:
-                {
-                    if(sFieldType.indexOf("datetime") === 0)
+                    oStylesObject = this.Paragraph.Parent.Get_Styles();
+                    if(oStylesObject.shape && oStylesObject.shape.getValueString())
                     {
-                        oDateTime = new Asc.cDate();
-                        oFormat = AscCommon.oNumFormatCache.get("MM/DD/YYYY");
-                        sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+                        sStr = oStylesObject.shape.getValueString();
                     }
-                    else
-                    {
-                        sStr = sFieldType.toUpperCase();
-                    }
-                    break;
                 }
+            }
+            else if("percentage" === sFieldType)
+            {
+                if(this.Paragraph && this.Paragraph.Parent)
+                {
+                    oStylesObject = this.Paragraph.Parent.Get_Styles();
+                    if(oStylesObject.shape && oStylesObject.shape.getPercentageString())
+                    {
+                        sStr = oStylesObject.shape.getPercentageString();
+                    }
+                }
+            }
+            else if(sFieldType.indexOf("datetime") === 0)
+            {
+                oFormat = this.private_GetDateTimeFormat(sFieldType);
+                if(oFormat)
+                {
+                    oDateTime = new Asc.cDate();
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+                }
+                else
+                {
+                    sStr = sFieldType.toUpperCase();
+                }
+            }
+            else
+            {
+                sStr = sFieldType.toUpperCase();
             }
         }
         return sStr;
+    };
+
+    CPresentationField.prototype.private_GetDateTimeFormat = function(sFieldType)
+    {
+        var oFormat = null;
+        if(oDateTimeFormats[sFieldType])
+        {
+            oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats[sFieldType]);
+        }
+        else
+        {
+            if(typeof AscCommonWord.sDefaultDateTimeFormat === "string")
+            {
+                oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats[sFieldType]);
+            }
+            else
+            {
+                oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats["datetime1"]);
+            }
+        }
+        return oFormat;
     };
 
     CPresentationField.prototype.Recalculate_MeasureContent = function()
@@ -389,4 +325,5 @@
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CPresentationField = CPresentationField;
+window['AscCommonWord'].sDefaultDateTimeFormat = "datetime1";
 })(window);
