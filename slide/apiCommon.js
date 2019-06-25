@@ -291,6 +291,37 @@ CAscDateTime.prototype['get_CustomDateTime']  = CAscDateTime.prototype.get_Custo
 CAscDateTime.prototype['put_CustomDateTime']  = CAscDateTime.prototype.put_CustomDateTime = function(v){this.CustomDateTime = v;};
 CAscDateTime.prototype['get_Lang'] = CAscDateTime.prototype.get_Lang = function(){return this.Lang;};
 CAscDateTime.prototype['put_Lang'] = CAscDateTime.prototype.put_Lang = function(v){this.Lang = v;};
+CAscDateTime.prototype['get_DateTimeExamples'] = CAscDateTime.prototype.get_DateTimeExamples = function(){
+    var oMap = {
+        "datetime": null,
+        "datetime1": null,
+        "datetime2": null,
+        "datetime3": null,
+        "datetime4": null,
+        "datetime5": null,
+        "datetime6": null,
+        "datetime7": null,
+        "datetime8": null,
+        "datetime9": null,
+        "datetime10": null,
+        "datetime11": null,
+        "datetime12": null,
+        "datetime13": null
+    };
+    var oParaField = new AscCommonWord.CPresentationField();
+    oParaField.RecalcInfo.TextPr = false;
+    oParaField.CompiledPr = new CTextPr();
+    oParaField.CompiledPr.Init_Default();
+    oParaField.CompiledPr.Lang.Val = this.Lang;
+    for(var key in oMap) {
+        if(oMap.hasOwnProperty(key)) {
+            oParaField.FieldType = key;
+            oMap[key] = oParaField.private_GetString();
+        }
+    }
+    return oMap;
+
+};
 
 function CAscHFProps() {
     this.Footer = null;
@@ -306,7 +337,7 @@ function CAscHFProps() {
 
 
     this.api = null;
-    this.canvasId = null;
+    this.divId = null;
     this.slide = null;
     this.notes = null;
 }
@@ -329,7 +360,7 @@ CAscHFProps.prototype['put_ShowFooter'] = CAscHFProps.prototype.put_ShowFooter =
 CAscHFProps.prototype['put_ShowHeader'] = CAscHFProps.prototype.put_ShowHeader = function(v){this.ShowHeader = v;};
 CAscHFProps.prototype['put_ShowDateTime'] = CAscHFProps.prototype.put_ShowDateTime = function(v){this.ShowDateTime = v;};
 
-CAscHFProps.prototype['put_CanvasId'] = CAscHFProps.prototype.put_CanvasId = function(v){this.canvasId = v;};
+CAscHFProps.prototype['put_DivId'] = CAscHFProps.prototype.put_DivId = function(v){this.divId = v;};
 CAscHFProps.prototype['put_Api'] = CAscHFProps.prototype.put_Api = function(v){this.api = v;};
 
 
