@@ -3993,6 +3993,10 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument.addSlideNumber();
 	};
+	asc_docs_api.prototype.asc_addDateTime = function(oPr)
+	{
+		this.WordControl.m_oLogicDocument.addDateTime(oPr);
+	};
 
 	asc_docs_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix)
 	{
@@ -7869,6 +7873,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_pluginEnableMouseEvents"]         = asc_docs_api.prototype.asc_pluginEnableMouseEvents;
 
 	asc_docs_api.prototype["asc_addSlideNumber"]                  = asc_docs_api.prototype.asc_addSlideNumber;
+	asc_docs_api.prototype["asc_addDateTime"]                     = asc_docs_api.prototype.asc_addDateTime;
 
 	asc_docs_api.prototype["asc_startEditCurrentOleObject"]       = asc_docs_api.prototype.asc_startEditCurrentOleObject;
 	asc_docs_api.prototype["asc_InputClearKeyboardElement"]       = asc_docs_api.prototype.asc_InputClearKeyboardElement;

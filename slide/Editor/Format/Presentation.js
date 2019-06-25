@@ -3673,7 +3673,8 @@ CPresentation.prototype =
         }
     },
 
-    addSlideNumber: function ()
+
+    addFieldToContent: function (fCallback)
     {
         var oController = this.GetCurrentController();
         if(!oController)
@@ -3694,24 +3695,69 @@ CPresentation.prototype =
                 var oParagraph = oContent.Content[oContent.CurPos.ContentPos];
                 if(oParagraph)
                 {
-                    var oFld = new AscCommonWord.CPresentationField(oParagraph);
-                    oFld.SetGuid(AscCommon.CreateGUID());
-                    oFld.SetFieldType("slidenum");
-                    var nFirstSlideNum = AscFormat.isRealNumber(this.firstSlideNum) ? this.firstSlideNum : 1;
-                    oFld.AddText("" + (this.CurPage + nFirstSlideNum));
-
-                    oContent.AddToParagraph(oFld, false, false);
-
-//                    oParagraph.Internal_Content_Add(oParagraph.CurPos.ContentPos, oFld, true);
-  //                  oParagraph.Add(oParagraph.CurPos.ContentPos, oFld, true);
-
-                    this.Recalculate();
-                    this.RecalculateCurPos();
-                    this.Document_UpdateSelectionState();
+                    var oFld = fCallback.call(this, oParagraph);
+                    if(oFld)
+                    {
+                        oContent.AddToParagraph(oFld, false, false);
+                        this.Recalculate();
+                        this.RecalculateCurPos();
+                        this.Document_UpdateSelectionState();
+                    }
                 }
             }
             this.FinalizeAction(true);
         }
+    },
+
+    addSlideNumber: function ()
+    {
+        this.addFieldToContent(function(oParagraph){
+            var oFld = new AscCommonWord.CPresentationField(oParagraph);
+            oFld.SetGuid(AscCommon.CreateGUID());
+            oFld.SetFieldType("slidenum");
+            var nFirstSlideNum = AscFormat.isRealNumber(this.firstSlideNum) ? this.firstSlideNum : 1;
+            oFld.AddText("" + (this.CurPage + nFirstSlideNum));
+            return oFld;
+        });
+    },
+
+    addDateTime: function (oPr)
+    {
+        this.addFieldToContent(function(oParagraph)
+        {
+            var oFld = null;
+            if(oPr)
+            {
+                var sCustomDateTime = oPr.get_CustomDateTime();
+                var sFieldType = oPr.get_DateTime();
+                var nLang = oPr.get_Lang();
+                if(!AscFormat.isRealNumber(nLang))
+                {
+                    nLang = 1033;
+                }
+                if(typeof sFieldType === "string" && sFieldType.length > 0)
+                {
+                    oFld = new AscCommonWord.CPresentationField(oParagraph);
+                    oFld.SetGuid(AscCommon.CreateGUID());
+                    oFld.SetFieldType(sFieldType);
+                    oFld.Set_Lang_Val(nLang);
+                    if(typeof sCustomDateTime === "string" && sCustomDateTime.length > 0)
+                    {
+                        oFld.AddText(sCustomDateTime);
+                    }
+                }
+                else
+                {
+                    if(typeof sCustomDateTime === "string" && sCustomDateTime.length > 0)
+                    {
+                        oFld = new AscCommonWord.ParaRun(oParagraph);
+                        oFld.AddText(sCustomDateTime);
+                        oFld.Set_Lang_Val(nLang);
+                    }
+                }
+            }
+            return oFld;
+        });
     },
 
     Restart_CheckSpelling: function()
