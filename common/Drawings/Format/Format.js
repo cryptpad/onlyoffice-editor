@@ -150,7 +150,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         }
     };
 
-    CT_Hyperlink.prototype.createDuplicate = function(r){
+    CT_Hyperlink.prototype.createDuplicate = function(){
         var ret = new CT_Hyperlink();
         ret.snd = this.snd;
         ret.id = this.id;
@@ -2806,6 +2806,13 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.tresh = r.GetLong();
     };
 
+    CAlphaBiLevel.prototype.createDuplicate = function()
+    {
+        var oCopy = new CAlphaBiLevel();
+        oCopy.tresh = this.tresh;
+        return oCopy;
+    };
+
 
     function CAlphaCeiling()
     {
@@ -2818,6 +2825,11 @@ var  EFFECT_TYPE_BLEND			=	30;
     CAlphaCeiling.prototype.Read_FromBinary = function(r)
     {
     };
+    CAlphaCeiling.prototype.createDuplicate = function()
+    {
+        var oCopy = new CAlphaCeiling();
+        return oCopy;
+    };
 
 
     function CAlphaFloor()
@@ -2829,6 +2841,11 @@ var  EFFECT_TYPE_BLEND			=	30;
     };
     CAlphaFloor.prototype.Read_FromBinary = function(r)
     {
+    };
+    CAlphaFloor.prototype.createDuplicate = function()
+    {
+        var oCopy = new CAlphaFloor();
+        return oCopy;
     };
 
     function CAlphaInv()
@@ -2856,6 +2873,15 @@ var  EFFECT_TYPE_BLEND			=	30;
             this.unicolor = new CUniColor();
             this.unicolor.Read_FromBinary(r);
         }
+    };
+    CAlphaInv.prototype.createDuplicate = function()
+    {
+        var oCopy = new CAlphaInv();
+        if(this.unicolor)
+        {
+            oCopy.unicolor = this.unicolor.createDuplicate();
+        }
+        return oCopy;
     };
 
     var effectcontainertypeSib  = 0;
@@ -2897,6 +2923,18 @@ var  EFFECT_TYPE_BLEND			=	30;
         }
     };
 
+    CEffectContainer.prototype.createDuplicate = function()
+    {
+        var oCopy = new CEffectContainer();
+        oCopy.type = this.type;
+        oCopy.name = this.name;
+        for(var i = 0; i < this.effectList.length; ++i)
+        {
+            oCopy.effectList.push(this.effectList[i].createDuplicate());
+        }
+        return oCopy;
+    };
+
     function CAlphaMod()
     {
         this.cont = new CEffectContainer();
@@ -2908,6 +2946,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     };
     CAlphaMod.prototype.Read_FromBinary  = function (r) {
         this.cont.Read_FromBinary(r);
+    };
+    CAlphaMod.prototype.createDuplicate = function()
+    {
+        var oCopy = new CAlphaMod();
+        oCopy.cont = this.cont.createDuplicate();
+        return oCopy;
     };
 
     function CAlphaModFix()
@@ -2922,6 +2966,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     CAlphaModFix.prototype.Read_FromBinary  = function (r) {
         this.amt = readLong(r);
     };
+    CAlphaModFix.prototype.createDuplicate = function()
+    {
+        var oCopy = new CAlphaModFix();
+        oCopy.amt = this.amt;
+        return oCopy;
+    };
 
     function CAlphaOutset()
     {
@@ -2934,6 +2984,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     };
     CAlphaOutset.prototype.Read_FromBinary  = function (r) {
         this.rad = readLong(r);
+    };
+    CAlphaOutset.prototype.createDuplicate = function()
+    {
+        var oCopy = new CAlphaOutset();
+        oCopy.rad = this.rad;
+        return oCopy;
     };
 
     function CAlphaRepl()
@@ -2948,6 +3004,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     CAlphaRepl.prototype.Read_FromBinary  = function (r) {
         this.a = readLong(r);
     };
+    CAlphaRepl.prototype.createDuplicate = function()
+    {
+        var oCopy = new CAlphaRepl();
+        oCopy.a = this.a;
+        return oCopy;
+    };
 
 
     function CBiLevel()
@@ -2961,6 +3023,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     };
     CBiLevel.prototype.Read_FromBinary  = function (r) {
         this.thresh = readLong(r);
+    };
+    CBiLevel.prototype.createDuplicate = function()
+    {
+        var oCopy = new CBiLevel();
+        oCopy.thresh = this.thresh;
+        return oCopy;
     };
 
     var blendmodeDarken  = 0;
@@ -2984,6 +3052,13 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.blend = readLong(r);
         this.cont.Read_FromBinary(r);
     };
+    CBlend.prototype.createDuplicate = function()
+    {
+        var oCopy = new CBlend();
+        oCopy.blend = this.blend;
+        oCopy.cont = this.cont.createDuplicate();
+        return oCopy;
+    };
 
     function CBlur()
     {
@@ -3000,6 +3075,13 @@ var  EFFECT_TYPE_BLEND			=	30;
     CBlur.prototype.Read_FromBinary  = function (r) {
         this.rad = readLong(r);
         this.grow = readBool(r);
+    };
+    CBlur.prototype.createDuplicate = function()
+    {
+        var oCopy = new CBlur();
+        oCopy.rad = this.rad;
+        oCopy.grow = this.grow;
+        return oCopy;
     };
 
 
@@ -3022,6 +3104,14 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.clrTo.Read_FromBinary(r);
         this.useA = readBool(r);
     };
+    CClrChange.prototype.createDuplicate = function()
+    {
+        var oCopy = new CClrChange();
+        oCopy.clrFrom = this.clrFrom.createDuplicate();
+        oCopy.clrTo = this.clrTo.createDuplicate();
+        oCopy.useA = this.useA;
+        return oCopy;
+    };
 
     function CClrRepl()
     {
@@ -3035,6 +3125,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     };
     CClrRepl.prototype.Read_FromBinary  = function (r) {
         this.color.Read_FromBinary(r);
+    };
+    CClrRepl.prototype.createDuplicate = function()
+    {
+        var oCopy = new CClrRepl();
+        oCopy.color = this.color.createDuplicate();
+        return oCopy;
     };
 
 
@@ -3060,6 +3156,15 @@ var  EFFECT_TYPE_BLEND			=	30;
             this.colors[i].Read_FromBinary(r);
         }
     };
+    CDuotone.prototype.createDuplicate = function()
+    {
+        var oCopy = new CDuotone();
+        for(var i = 0; i < this.colors.length; ++i)
+        {
+            oCopy.colors[i] = this.colors[i].createDuplicate();
+        }
+        return oCopy;
+    };
 
 
     function CEffectElement()
@@ -3074,6 +3179,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     CEffectElement.prototype.Read_FromBinary  = function (r) {
         this.ref = readString(r);
     };
+    CEffectElement.prototype.createDuplicate = function()
+    {
+        var oCopy = new CEffectElement();
+        oCopy.ref = this.ref;
+        return oCopy;
+    };
 
 
     function CFillEffect()
@@ -3087,6 +3198,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     };
     CFillEffect.prototype.Read_FromBinary  = function (r) {
         this.fill.Read_FromBinary(r);
+    };
+    CFillEffect.prototype.createDuplicate = function()
+    {
+        var oCopy = new CFillEffect();
+        oCopy.fill = this.fill.createDuplicate();
+        return oCopy;
     };
 
     function CFillOverlay()
@@ -3104,6 +3221,13 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.fill.Read_FromBinary(r);
         this.blend = r.GetLong();
     };
+    CFillOverlay.prototype.createDuplicate = function()
+    {
+        var oCopy = new CFillOverlay();
+        oCopy.fill = this.fill.createDuplicate();
+        oCopy.blend = this.blend;
+        return oCopy;
+    };
 
     function CGlow()
     {
@@ -3120,6 +3244,13 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.color.Read_FromBinary(r);
         this.rad = readLong(r);
     };
+    CGlow.prototype.createDuplicate = function()
+    {
+        var oCopy = new CGlow();
+        oCopy.color = this.color.createDuplicate();
+        oCopy.rad = this.rad;
+        return oCopy;
+    };
 
     function CGrayscl()
     {
@@ -3129,6 +3260,11 @@ var  EFFECT_TYPE_BLEND			=	30;
         w.WriteLong(EFFECT_TYPE_GRAYSCL);
     };
     CGrayscl.prototype.Read_FromBinary  = function (r) {
+    };
+    CGrayscl.prototype.createDuplicate = function()
+    {
+        var oCopy = new CGrayscl();
+        return oCopy;
     };
 
 
@@ -3149,6 +3285,14 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.h = readLong(r);
         this.s = readLong(r);
         this.l = readLong(r);
+    };
+    CHslEffect.prototype.createDuplicate = function()
+    {
+        var oCopy = new CHslEffect();
+        oCopy.h = this.h;
+        oCopy.s = this.s;
+        oCopy.l = this.l;
+        return oCopy;
     };
 
     function CInnerShdw()
@@ -3172,6 +3316,15 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.dir = readLong(r);
         this.dist = readLong(r);
     };
+    CInnerShdw.prototype.createDuplicate = function()
+    {
+        var oCopy = new CInnerShdw();
+        oCopy.color = oCopy.color.createDuplicate();
+        oCopy.blurRad = this.blurRad;
+        oCopy.dir = this.dir;
+        oCopy.dist = this.dist;
+        return oCopy;
+    };
 
     function CLumEffect()
     {
@@ -3187,6 +3340,13 @@ var  EFFECT_TYPE_BLEND			=	30;
     CLumEffect.prototype.Read_FromBinary  = function (r) {
         this.bright = readLong(r);
         this.contrast = readLong(r);
+    };
+    CLumEffect.prototype.createDuplicate = function()
+    {
+        var oCopy = new CLumEffect();
+        oCopy.bright = this.bright;
+        oCopy.contrast = this.contrast;
+        return oCopy;
     };
 
     function COuterShdw()
@@ -3225,8 +3385,23 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.kx = readLong(r);
         this.ky = readLong(r);
         this.rotWithShape = readBool(r);
-        his.sx = readLong(r);
-        his.sy = readLong(r);
+        this.sx = readLong(r);
+        this.sy = readLong(r);
+    };
+    COuterShdw.prototype.createDuplicate = function()
+    {
+        var oCopy = new COuterShdw();
+        oCopy.color = this.color.createDuplicate();
+        oCopy.algn = this.algn;
+        oCopy.blurRad = this.blurRad;
+        oCopy.dir = this.dir;
+        oCopy.dist = this.dist;
+        oCopy.kx = this.kx;
+        oCopy.ky = this.ky;
+        oCopy.rotWithShape = this.rotWithShape;
+        oCopy.sx = this.sx;
+        oCopy.sy = this.sy;
+        return oCopy;
     };
 
     function CPrstShdw()
@@ -3249,6 +3424,15 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.prst = readLong(r);
         this.dir = readLong(r);
         this.dis = readLong(r);
+    };
+    CPrstShdw.prototype.createDuplicate = function()
+    {
+        var oCopy = new CPrstShdw();
+        oCopy.color = this.color.createDuplicate();
+        oCopy.prst = this.prst;
+        oCopy.dir = this.dir;
+        oCopy.dis = this.dis;
+        return oCopy;
     };
 
 
@@ -3303,6 +3487,25 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.sx = readLong(r);
         this.sy = readLong(r);
     };
+    CReflection.prototype.createDuplicate = function()
+    {
+        var oCopy = new CReflection();
+        oCopy.algn = this.algn;
+        oCopy.blurRad = this.blurRad;
+        oCopy.stA = this.stA;
+        oCopy.endA = this.endA;
+        oCopy.stPos = this.stPos;
+        oCopy.endPos = this.endPos;
+        oCopy.dir = this.dir;
+        oCopy.fadeDir = this.fadeDir;
+        oCopy.dist = this.dist;
+        oCopy.kx = this.kx;
+        oCopy.ky = this.ky;
+        oCopy.rotWithShape = this.rotWithShape;
+        oCopy.sx = this.sx;
+        oCopy.sy = this.sy;
+        return oCopy;
+    };
 
     function CRelOff()
     {
@@ -3319,7 +3522,13 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.tx = readLong(r);
         this.ty = readLong(r);
     };
-
+    CRelOff.prototype.createDuplicate = function()
+    {
+        var oCopy = new CRelOff();
+        oCopy.tx = this.tx;
+        oCopy.ty = this.ty;
+        return oCopy;
+    };
 
     function CSoftEdge()
     {
@@ -3333,7 +3542,12 @@ var  EFFECT_TYPE_BLEND			=	30;
     CSoftEdge.prototype.Read_FromBinary  = function (r) {
         this.rad = readLong(r);
     };
-
+    CSoftEdge.prototype.createDuplicate = function()
+    {
+        var oCopy = new CSoftEdge();
+        oCopy.rad = this.rad;
+        return oCopy;
+    };
 
     function CTintEffect()
     {
@@ -3350,6 +3564,14 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.amt = readLong(r);
         this.hue = readLong(r);
     };
+    CTintEffect.prototype.createDuplicate = function()
+    {
+        var oCopy = new CTintEffect();
+        oCopy.amt = this.amt;
+        oCopy.hue = this.hue;
+        return oCopy;
+    };
+
     function CXfrmEffect()
     {
         this.kx = null;
@@ -3376,6 +3598,17 @@ var  EFFECT_TYPE_BLEND			=	30;
         this.sy = readLong(r);
         this.tx = readLong(r);
         this.ty = readLong(r);
+    };
+    CXfrmEffect.prototype.createDuplicate = function()
+    {
+        var oCopy = new CXfrmEffect();
+        oCopy.kx = this.kx;
+        oCopy.ky = this.ky;
+        oCopy.sx = this.sx;
+        oCopy.sy = this.sy;
+        oCopy.tx = this.tx;
+        oCopy.ty = this.ty;
+        return oCopy;
     };
 //-----------------
 
@@ -5871,7 +6104,7 @@ function UniMedia() {
         }
     };
 
-    UniMedia.prototype.createDuplicate = function(r){
+    UniMedia.prototype.createDuplicate = function(){
         var _ret = new UniMedia();
         _ret.type = this.type;
         _ret.media = this.media;
@@ -6858,7 +7091,6 @@ CEffectProperties.prototype.createDuplicate = function ()
         oCopy.EffectLst = this.EffectLst.createDuplicate();
     }
     return oCopy;
-
 };
 
 CEffectProperties.prototype.Write_ToBinary = function(w)
