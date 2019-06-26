@@ -4245,7 +4245,12 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
                 ParaS.Selection.Use      = true;
                 ParaS.Selection.StartPos = ParaS.Content.length - _ParaSContentLen;
                 ParaS.Selection.EndPos   = ParaS.Content.length - 1;
-            }
+
+				for (var nParaSIndex = ParaS.Selection.StartPos; nParaSIndex <= Math.min(ParaS.Selection.EndPos, ParaS.Content.length - 1); ++nParaSIndex)
+				{
+					ParaS.Content[nParaSIndex].SelectAll(1);
+				}
+			}
 
             var EndIndex = ElementsCount - 1;
             if (true === bConcatE)
