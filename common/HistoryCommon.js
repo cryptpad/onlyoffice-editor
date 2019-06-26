@@ -2383,6 +2383,7 @@
 	window['AscDFH'].historyitem_SpPr_SetFill     = window['AscDFH'].historyitem_type_SpPr | 4;
 	window['AscDFH'].historyitem_SpPr_SetLn       = window['AscDFH'].historyitem_type_SpPr | 5;
 	window['AscDFH'].historyitem_SpPr_SetParent   = window['AscDFH'].historyitem_type_SpPr | 6;
+	window['AscDFH'].historyitem_SpPr_SetEffectPr = window['AscDFH'].historyitem_type_SpPr | 7;
 
 	window['AscDFH'].historyitem_ClrScheme_AddClr  = window['AscDFH'].historyitem_type_ClrScheme | 1;
 	window['AscDFH'].historyitem_ClrScheme_SetName = window['AscDFH'].historyitem_type_ClrScheme | 2;

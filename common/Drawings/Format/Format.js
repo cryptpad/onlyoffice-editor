@@ -240,6 +240,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
             }
         };
         drawingsChangesMap[AscDFH.historyitem_SpPr_SetLn                        ] = function (oClass, value){oClass.ln       = value; oClass.handleUpdateLn();};
+        drawingsChangesMap[AscDFH.historyitem_SpPr_SetEffectPr                  ] = function (oClass, value){oClass.effectProps = value;};
         drawingsChangesMap[AscDFH.historyitem_ExtraClrScheme_SetClrScheme       ] = function (oClass, value){oClass.clrScheme = value;};
         drawingsChangesMap[AscDFH.historyitem_ExtraClrScheme_SetClrMap          ] = function (oClass, value){oClass.clrMap    = value;};
         drawingsChangesMap[AscDFH.historyitem_ThemeSetColorScheme               ] = function (oClass, value){
@@ -278,6 +279,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
     drawingConstructorsMap[AscDFH.historyitem_ShapeStyle_SetFontRef             ] = FontRef;
     drawingConstructorsMap[AscDFH.historyitem_SpPr_SetFill                      ] = CUniFill;
     drawingConstructorsMap[AscDFH.historyitem_SpPr_SetLn                        ] = CLn;
+    drawingConstructorsMap[AscDFH.historyitem_SpPr_SetEffectPr                  ] = CEffectProperties;
     drawingConstructorsMap[AscDFH.historyitem_ThemeSetColorScheme               ] = ClrScheme;
     drawingConstructorsMap[AscDFH.historyitem_ThemeSetFontScheme                ] = FontScheme;
     drawingConstructorsMap[AscDFH.historyitem_ThemeSetFmtScheme                 ] = FmtScheme;
@@ -333,6 +335,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
     AscDFH.changesFactory[AscDFH.historyitem_SpPr_SetGeometry] = CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_SpPr_SetFill] = CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_SpPr_SetLn] = CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_SpPr_SetEffectPr] = CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_ClrMap_SetClr] = CChangesDrawingsContentLongMap;
     AscDFH.changesFactory[AscDFH.historyitem_ExtraClrScheme_SetClrScheme] = CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_ExtraClrScheme_SetClrMap] = CChangesDrawingsObject;
@@ -7376,6 +7379,10 @@ CSpPr.prototype =
         {
             duplicate.setLn(this.ln.createDuplicate());
         }
+        if(this.effectProps)
+        {
+            duplicate.setEffectPr(this.effectProps.createDuplicate());
+        }
         return duplicate;
     },
 
@@ -7485,6 +7492,12 @@ CSpPr.prototype =
         {
             this.parent.handleUpdateLn();
         }
+    },
+
+    setEffectPr: function(pr)
+    {
+        History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_SpPr_SetEffectPr, this.effectProps,  pr));
+        this.effectProps = pr;
     },
 
     handleUpdatePosition: function()
@@ -12291,6 +12304,8 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].CShapeStyle = CShapeStyle;
     window['AscFormat'].CreateDefaultShapeStyle = CreateDefaultShapeStyle;
     window['AscFormat'].CXfrm = CXfrm;
+    window['AscFormat'].CEffectProperties = CEffectProperties;
+    window['AscFormat'].CEffectLst = CEffectLst;
     window['AscFormat'].CSpPr = CSpPr;
     window['AscFormat'].ClrScheme = ClrScheme;
     window['AscFormat'].ClrMap = ClrMap;

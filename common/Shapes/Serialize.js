@@ -5132,6 +5132,22 @@ function BinaryPPTYLoader()
         return def;
     }
 
+    this.ReadEffectProperties = function()
+    {
+        var s = this.stream;
+        var oEffectProperties = new AscFormat.CEffectProperties();
+        var type = s.GetUChar();
+        if(type === 1)/*EFFECTPROPERTIES_TYPE_LIST*/
+        {
+            oEffectProperties.EffectLst = new AscFormat.CEffectLst();
+
+        }
+        else //EFFECTPROPERTIES_TYPE_DAG
+        {
+
+        }
+    };
+
     this.ReadSpPr = function(spPr)
     {
         var s = this.stream;
