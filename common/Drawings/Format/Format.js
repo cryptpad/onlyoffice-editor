@@ -6838,6 +6838,229 @@ CXfrm.prototype =
     }
 };
 
+
+function CEffectProperties()
+{
+    this.EffectDag = null;
+    this.EffectLst = null;
+}
+
+
+CEffectProperties.prototype.createDuplicate = function ()
+{
+    var oCopy = new CEffectProperties();
+    if(this.EffectDag)
+    {
+        oCopy.EffectDag = this.EffectDag.createDuplicate();
+    }
+    if(this.EffectLst)
+    {
+        oCopy.EffectLst = this.EffectLst.createDuplicate();
+    }
+    return oCopy;
+
+};
+
+CEffectProperties.prototype.Write_ToBinary = function(w)
+{
+    var nFlags = 0;
+    if(this.EffectDag)
+    {
+        nFlags |= 1;
+    }
+    if(this.EffectLst)
+    {
+        nFlags |= 2;
+    }
+    w.WriteLong(nFlags);
+    if(this.EffectDag)
+    {
+        this.EffectDag.Write_ToBinary(w);
+    }
+    if(this.EffectLst)
+    {
+        this.EffectLst.Write_ToBinary(w);
+    }
+};
+CEffectProperties.prototype.Read_FromBinary = function(r)
+{
+    var nFlags = r.GetLong();
+    if(nFlags & 1)
+    {
+        this.EffectDag = new CEffectContainer();
+        this.EffectDag.Read_FromBinary(r);
+    }
+    if(nFlags & 2)
+    {
+        this.EffectLst = new CEffectLst();
+        this.EffectLst.Read_FromBinary(r);
+    }
+};
+
+
+function CEffectLst()
+{
+    this.blur = null;
+    this.fillOverlay = null;
+    this.glow = null;
+    this.innerShdw = null;
+    this.outerShdw = null;
+    this.prstShdw = null;
+    this.reflection = null;
+    this.softEdge = null;
+}
+CEffectLst.prototype.createDuplicate = function()
+{
+    var oCopy = new CEffectLst();
+    if(this.blur)
+    {
+        oCopy.blur = this.blur.createDuplicate();
+    }
+    if(this.fillOverlay)
+    {
+        oCopy.fillOverlay = this.fillOverlay.createDuplicate();
+    }
+    if(this.glow)
+    {
+        oCopy.glow = this.glow.createDuplicate();
+    }
+    if(this.innerShdw)
+    {
+        oCopy.innerShdw = this.innerShdw.createDuplicate();
+    }
+    if(this.outerShdw)
+    {
+        oCopy.outerShdw = this.outerShdw.createDuplicate();
+    }
+    if(this.prstShdw)
+    {
+        oCopy.prstShdw = this.prstShdw.createDuplicate();
+    }
+    if(this.reflection)
+    {
+        oCopy.reflection = this.reflection.createDuplicate();
+    }
+    if(this.softEdge)
+    {
+        oCopy.softEdge = this.softEdge.createDuplicate();
+    }
+    return oCopy;
+};
+CEffectLst.prototype.Write_ToBinary = function(w)
+{
+    var nFlags = 0;
+    if(this.blur)
+    {
+        nFlags |= 1;
+    }
+    if(this.fillOverlay)
+    {
+        nFlags |= 2;
+    }
+    if(this.glow)
+    {
+        nFlags |= 4;
+    }
+    if(this.innerShdw)
+    {
+        nFlags |= 8;
+    }
+    if(this.outerShdw)
+    {
+        nFlags |= 16;
+    }
+    if(this.prstShdw)
+    {
+        nFlags |= 32;
+    }
+    if(this.reflection)
+    {
+        nFlags |= 64;
+    }
+    if(this.softEdge)
+    {
+        nFlags |= 128;
+    }
+    w.WriteLong(nFlags);
+    if(this.blur)
+    {
+        this.blur.Write_ToBinary(w);
+    }
+    if(this.fillOverlay)
+    {
+        this.fillOverlay.Write_ToBinary(w);
+    }
+    if(this.glow)
+    {
+        this.glow.Write_ToBinary(w);
+    }
+    if(this.innerShdw)
+    {
+        this.innerShdw.Write_ToBinary(w);
+    }
+    if(this.outerShdw)
+    {
+        this.outerShdw.Write_ToBinary(w);
+    }
+    if(this.prstShdw)
+    {
+        this.prstShdw.Write_ToBinary(w);
+    }
+    if(this.reflection)
+    {
+        this.reflection.Write_ToBinary(w);
+    }
+    if(this.softEdge)
+    {
+        this.softEdge.Write_ToBinary(w);
+    }
+};
+CEffectLst.prototype.Read_FromBinary = function(r)
+{
+    var nFlags = r.GetLong();
+    if(nFlags & 1)
+    {
+        this.blur = new CBlur();
+        this.blur.Read_FromBinary(r);
+    }
+    if(nFlags & 2)
+    {
+        this.fillOverlay = new CFillOverlay();
+        this.fillOverlay.Read_FromBinary(r);
+    }
+    if(nFlags & 4)
+    {
+        this.glow = new CGlow();
+        this.glow.Read_FromBinary(r);
+    }
+    if(nFlags & 8)
+    {
+        this.innerShdw = new CInnerShdw();
+        this.innerShdw.Read_FromBinary(r);
+    }
+    if(nFlags & 16)
+    {
+        this.outerShdw = new COuterShdw();
+        this.outerShdw.Read_FromBinary(r);
+    }
+    if(nFlags & 32)
+    {
+        this.prstShdw = new CPrstShdw();
+        this.prstShdw.Read_FromBinary(r);
+    }
+    if(nFlags & 64)
+    {
+        this.reflection = new CReflection();
+        this.reflection.Read_FromBinary(r);
+    }
+    if(nFlags & 128)
+    {
+        this.softEdge = new CSoftEdge();
+        this.softEdge.Read_FromBinary(r);
+    }
+};
+
+
 function CSpPr()
 {
     this.bwMode    = 0;
@@ -6847,6 +7070,8 @@ function CSpPr()
     this.Fill       = null;
     this.ln         = null;
     this.parent     = null;
+
+    this.effectProps = null;
 
 
     this.Id = g_oIdCounter.Get_NewId();
