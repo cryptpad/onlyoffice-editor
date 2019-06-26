@@ -11723,6 +11723,13 @@ Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 	if (!Element)
 		return;
 
+	var isEndDot = false;
+	if (Element.IsEndDot() && 0x002E === Word.charCodeAt(Word.length - 1))
+	{
+		Word     = Word.substr(0, Word.length - 1);
+		isEndDot = true;
+	}
+
 	// Сначала вставим новое слово
 	var Class = Element.StartRun;
 	if (para_Run !== Class.Type || Element.StartPos.Data.Depth <= 0)
@@ -11759,6 +11766,8 @@ Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 
 	this.RemoveSelection();
 	this.Set_ParaContentPos(StartPos, true, -1, -1);
+	if (isEndDot)
+		this.MoveCursorRight(false, false);
 
 	this.RecalcInfo.Set_Type_0(pararecalc_0_All);
 
