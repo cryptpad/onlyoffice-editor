@@ -343,6 +343,20 @@ CWordCollaborativeEditing.prototype.IsNeedToSkipContentControlOnCheckEditingLock
 
 	return false;
 };
+CWordCollaborativeEditing.prototype.Start_CollaborationEditing = function()
+{
+	this.m_nUseType = -1;
+};
+CWordCollaborativeEditing.prototype.End_CollaborationEditing = function()
+{
+	if (this.m_nUseType <= 0)
+	{
+		if (this.m_oLogicDocument && !this.m_oLogicDocument.GetHistory().Have_Changes() && !this.Have_OtherChanges())
+			this.m_nUseType = 1;
+		else
+			this.m_nUseType = 0;
+	}
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с сохраненными позициями документа.
 //----------------------------------------------------------------------------------------------------------------------
