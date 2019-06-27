@@ -527,7 +527,6 @@ CComplexField.prototype.private_UpdateTOC = function()
 			oPara.Style_Add(oStyles.GetDefaultTOC(arrOutline[nIndex].Lvl), false);
 			oPara.SetOutlineLvl(undefined);
 
-
 			var oClearTextPr = new CTextPr();
 			oClearTextPr.Set_FromObject({
 				FontSize  : null,
@@ -535,6 +534,22 @@ CComplexField.prototype.private_UpdateTOC = function()
 				Underline : null,
 				Color     : null
 			});
+
+			// Дополнительно очищаем текстовые настройки, которые были заданы непосредственно в самом стиле
+			var oSrcPStylePr = oStyles.Get_Pr(oSrcParagraph.Style_Get(), styletype_Paragraph, oSrcParagraph.Parent.Get_TableStyleForPara(), oSrcParagraph.Parent.Get_ShapeStyleForPara()).TextPr;
+			var oDefaultPr   = oStyles.Get_Pr(oStyles.GetDefaultParagraph(), styletype_Paragraph, null, null).TextPr;
+
+			if (oSrcPStylePr.Bold !== oDefaultPr.Bold)
+			{
+				oClearTextPr.Bold   = null;
+				oClearTextPr.BoldCS = null;
+			}
+
+			if (oSrcPStylePr.Italic !== oDefaultPr.Italic)
+			{
+				oClearTextPr.Italic   = null;
+				oClearTextPr.ItalicCS = null;
+			}
 
 			oPara.SelectAll();
 			oPara.ApplyTextPr(oClearTextPr);
