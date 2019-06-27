@@ -2231,6 +2231,7 @@ function BinaryPPTYLoader()
         s.Seek2(nRecEnd);
         return oEffect;
     };
+
     this.ReadPrstShdw = function()
     {
         var s = this.stream;
@@ -11835,8 +11836,7 @@ function CPres()
                     }
                     case 4:
                     {
-                        var _len = s.GetULong();
-                        s.Skip2(_len);
+                        spPr.setEffectPr(this.Reader.ReadEffectProperties());
                         break;
                     }
                     case 5:
