@@ -2034,7 +2034,7 @@ function BinaryPPTYLoader()
     {
         var nRecStart, nRecLen, nRecEnd;
         var s = this.stream;
-        s.GetLong();
+        s.GetULong();
         s.GetUChar();
         nRecStart = s.cur;
         nRecLen = s.GetLong();
@@ -2061,7 +2061,7 @@ function BinaryPPTYLoader()
     this.ReadFillOverlay = function()
     {
         var s = this.stream;
-        s.GetLong();
+        s.GetULong();
         s.GetUChar();
         var nRecStart, nRecLen, nRecEnd;
         nRecStart = s.cur;
@@ -2102,7 +2102,7 @@ function BinaryPPTYLoader()
     this.ReadGlow = function()
     {
         var s = this.stream;
-        s.GetLong();
+        s.GetULong();
         s.GetUChar();
         var nRecStart = s.cur;
         var nRecLen = s.GetLong();
@@ -2142,7 +2142,7 @@ function BinaryPPTYLoader()
     this.ReadInnerShdw = function()
     {
         var s = this.stream;
-        s.GetLong();
+        s.GetULong();
         s.GetUChar();
         var nRecStart = s.cur;
         var nRecLen = s.GetLong();
@@ -2186,7 +2186,7 @@ function BinaryPPTYLoader()
     this.ReadOuterShdw = function()
     {
         var s = this.stream;
-        s.GetLong();
+        s.GetULong();
         s.GetUChar();
 
         var nRecStart = s.cur;
@@ -2234,7 +2234,7 @@ function BinaryPPTYLoader()
     this.ReadPrstShdw = function()
     {
         var s = this.stream;
-        s.GetLong();
+        s.GetULong();
         s.GetUChar();
         var nRecStart = s.cur;
         var nRecLen = s.GetLong();
@@ -2277,7 +2277,7 @@ function BinaryPPTYLoader()
     this.ReadReflection = function()
     {
         var s = this.stream;
-        s.GetLong();
+        s.GetULong();
         s.GetUChar();
         var nRecStart = s.cur;
         var nRecLen = s.GetLong();
@@ -2320,7 +2320,7 @@ function BinaryPPTYLoader()
     this.ReadSoftEdge = function()
     {
         var s = this.stream;
-        s.GetLong();
+        s.GetULong();
         s.GetUChar();
         var nRecStart = s.cur;
         var nRecLen = s.GetLong();
@@ -3037,15 +3037,14 @@ function BinaryPPTYLoader()
 
     this.ReadEffectDag = function ()
     {
-        var ret = new AscFormat.CEffectContainer();
         var s = this.stream;
-        s.Skip2(4); // len
-        var  _type = s.GetUChar();
+        s.GetULong();
+        s.GetUChar();
         var _start_pos = s.cur;
         var _end_rec = _start_pos + s.GetLong() + 4;
-
         s.Skip(1);
 
+        var ret = new AscFormat.CEffectContainer();
         while (true)
         {
             var _at = s.GetUChar();
@@ -5369,57 +5368,91 @@ function BinaryPPTYLoader()
     this.ReadEffectLst = function()
     {
         var s = this.stream;
+        s.GetULong();
+        s.GetUChar();
         var nRecStart = s.cur;
         var nRecLen = s.GetLong();
         var nRecEnd = nRecStart + nRecLen + 4;
-        var oEffect = new AscFormat.CEffectLst();
-        s.Skip2(1);
+        var oEffectLst = new AscFormat.CEffectLst();
 
-        while (true)
+        while (s.cur < nRecEnd)
         {
             var _at = s.GetUChar();
-            if (_at == g_nodeAttributeEnd)
-                break;
-
             switch (_at)
             {
                 case 0:
                 {
-                    oEffect.algn = ( s.GetUChar());
-                }break;
-                case 1:	oEffect.blurRad = s.GetLong(); break;
-                case 2:	oEffect.stA		= s.GetLong(); break;
-                case 3:	oEffect.endA	= s.GetLong(); break;
-                case 4:	oEffect.stPos	= s.GetLong(); break;
-                case 5:	oEffect.endPos	= s.GetLong(); break;
-                case 6:	oEffect.dir		= s.GetLong(); break;
-                case 7:	oEffect.fadeDir	= s.GetLong(); break;
-                case 8:	oEffect.dist	= s.GetLong(); break;
-                case 9:	oEffect.kx		= s.GetLong(); break;
-                case 10:oEffect.ky		= s.GetLong(); break;
-                case 11:oEffect.sx		= s.GetLong(); break;
-                case 12:oEffect.sy		= s.GetLong(); break;
-                case 13:oEffect.rotWithShape = s.GetBool(); break;
+                    oEffectLst.blur = this.ReadBlur();
+                    break;
+                }
+                case 1:
+                {
+                    oEffectLst.fillOverlay = this.ReadFillOverlay();
+                    break;
+                }
+                case 2:
+                {
+                    oEffectLst.glow = this.ReadGlow();
+                    break;
+                }
+                case 3:
+                {
+                    oEffectLst.innerShdw = this.ReadInnerShdw();
+                    break;
+                }
+                case 4:
+                {
+                    oEffectLst.outerShdw = this.ReadOuterShdw();
+                    break;
+                }
+                case 5:
+                {
+                    oEffectLst.prstShdw = this.ReadPrstShdw();
+                    break;
+                }
+                case 6:
+                {
+                    oEffectLst.reflection = this.ReadReflection();
+                    break;
+                }
+                case 7:
+                {
+                    oEffectLst.softEdge = this.ReadSoftEdge();
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
             }
         }
-
         s.Seek2(nRecEnd);
-        return oEffect;
+        return oEffectLst;
     };
 
     this.ReadEffectProperties = function()
     {
         var s = this.stream;
-        var oEffectProperties = new AscFormat.CEffectProperties();
+        var pos = s.cur;
+        var nLength = s.GetLong();
+        if(nLength === 0)
+        {
+            return null;
+        }
         var type = s.GetUChar();
-        if(type === 1)/*EFFECTPROPERTIES_TYPE_LIST*/
+        s.Seek2(pos);
+        var oEffectProperties = new AscFormat.CEffectProperties();
+        if(type === 1)
         {
             oEffectProperties.EffectLst = this.ReadEffectLst();
         }
-        else //EFFECTPROPERTIES_TYPE_DAG
+        else
         {
 
+            oEffectProperties.EffectDag = this.ReadEffectDag();
         }
+        return oEffectProperties;
     };
 
     this.ReadSpPr = function(spPr)
@@ -5473,19 +5506,7 @@ function BinaryPPTYLoader()
                 }
                 case 4:
                 {
-                    var len2 = s.GetLong();
-
-                    var  _end_rec_effect = s.cur + len2;
-                    if(len2 > 0)
-                    {
-                        var _type = s.GetUChar();
-                        if(_type === 1)//EFFECTPROPERTIES_TYPE_LIST
-                        {
-
-                        }
-                        var oEffectContainer  = this.ReadEffectDag();
-                    }
-                    s.Seek2(_end_rec_effect);
+                    spPr.setEffectPr(this.ReadEffectProperties());
                     break;
                 }
                 case 5:
