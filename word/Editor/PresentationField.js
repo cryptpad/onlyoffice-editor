@@ -275,9 +275,9 @@
         }
         else
         {
-            if(typeof AscCommonWord.sDefaultDateTimeFormat === "string")
+            if(typeof AscCommonWord.sDefaultDateTimeFormat === "string" && oDateTimeFormats[AscCommonWord.sDefaultDateTimeFormat])
             {
-                oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats[sFieldType]);
+                oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats[AscCommonWord.sDefaultDateTimeFormat]);
             }
             else
             {

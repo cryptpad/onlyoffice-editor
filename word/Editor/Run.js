@@ -10199,7 +10199,9 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 			CenterRun.Set_Pr(CenterRun.Pr.PrChange);
 		}
 
-		if (reviewtype_Add === ReviewType
+		var oReviewInfo = this.GetReviewInfo();
+		var oPrevInfo   = oReviewInfo.GetPrevAdded();
+		if ((reviewtype_Add === ReviewType
 			&& (undefined === nType
 			|| c_oAscRevisionsChangeType.TextAdd === nType
 			|| (c_oAscRevisionsChangeType.MoveMark === nType
@@ -10207,6 +10209,10 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 			&& oProcessMove
 			&& !oProcessMove.IsFrom()
 			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
+			|| (undefined === nType
+			&& bAll
+			&& reviewtype_Remove === ReviewType
+			&& oPrevInfo))
 		{
 			Parent.RemoveFromContent(CenterRunPos, 1);
 
@@ -10226,8 +10232,6 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 			&& oProcessMove.IsFrom()
 			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
 		{
-			var oReviewInfo = this.GetReviewInfo();
-			var oPrevInfo   = oReviewInfo.GetPrevAdded();
 			if (oPrevInfo && c_oAscRevisionsChangeType.MoveMark !== nType)
 			{
 				CenterRun.SetReviewTypeWithInfo(reviewtype_Add, oPrevInfo.Copy());
