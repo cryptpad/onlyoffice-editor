@@ -10776,10 +10776,22 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 				nUnicode = nCharCode;
 
 			if (null !== nUnicode) {
-				if (0x20 !== nUnicode || isInstrText)
-					oParStruct.addElemToContent(isInstrText ? new ParaInstrText(nUnicode) : new ParaText(nUnicode));
-				else
-					oParStruct.addElemToContent(new ParaSpace());
+				if(isInstrText){
+					oParStruct.addElemToContent(new ParaInstrText(nUnicode));
+				} else {
+					if (0x20 === nUnicode || 0x0A === nUnicode) {
+						oParStruct.addElemToContent(new ParaSpace());
+					} else if (0x0D === nUnicode) {
+						if (i + 1 < text.length && 0x0A === text.charCodeAt(i + 1)) {
+							i++;
+						}
+						oParStruct.addElemToContent(new ParaSpace());
+					} else if (0x09 === nUnicode) {
+						oParStruct.addElemToContent(new ParaTab());
+					} else {
+						oParStruct.addElemToContent(new ParaText(nUnicode));
+					}
+				}
 			}
 		}
 	};
@@ -12165,11 +12177,19 @@ function Binary_oMathReader(stream, oReadResult, curFootnote, openParams)
 			        nUnicode = nCharCode;
 
 			    if (null != nUnicode) {
-					if (0x20 !== nUnicode)
-						oPos.run.AddToContent(oPos.pos, new ParaText(nUnicode), false);
-					else
+					if (0x20 === nUnicode || 0x0A === nUnicode) {
 						oPos.run.AddToContent(oPos.pos, new ParaSpace(), false);
-			        oPos.pos++;
+					} else if (0x0D === nUnicode) {
+						if (i + 1 < text.length && 0x0A === text.charCodeAt(i + 1)) {
+							i++;
+						}
+						oPos.run.AddToContent(oPos.pos, new ParaSpace(), false);
+					} else if (0x09 === nUnicode) {
+						oPos.run.AddToContent(oPos.pos, new ParaTab(), false);
+					} else {
+						oPos.run.AddToContent(oPos.pos, new ParaText(nUnicode), false);
+					}
+					oPos.pos++;
 			    }
             }
         }
