@@ -436,7 +436,6 @@ CBookmarksManager.prototype.GetNameForHeadingBookmark = function(oParagraph)
  * Выделяем содержимое закладки
  * @param sName
  * @returns {boolean}
- * @constructor
  */
 CBookmarksManager.prototype.SelectBookmark = function(sName)
 {
@@ -445,18 +444,30 @@ CBookmarksManager.prototype.SelectBookmark = function(sName)
 	var oBookmark = this.GetBookmarkByName(sName);
 	if (oBookmark)
 	{
-		var oDocument = this.LogicDocument;
-		oDocument.RemoveSelection();
+		if (!oBookmark[0].GetParagraph()
+			|| !oBookmark[1].GetParagraph()
+			|| !oBookmark[0].GetParagraph().Parent
+			|| !oBookmark[1].GetParagraph().Parent
+			|| oBookmark[0].GetParagraph().Parent.GetTopDocumentContent() !== oBookmark[1].GetParagraph().Parent.GetTopDocumentContent())
+		{
+			oBookmark[0].GoToBookmark();
+			return false;
+		}
+		var oTopDocument = oBookmark[0].GetParagraph().Parent.GetTopDocumentContent();
+
+		var oLogicDocument = this.LogicDocument;
+		oLogicDocument.RemoveSelection();
 
 		oBookmark[0].GoToBookmark();
-		var oStartPos = oDocument.GetContentPosition(false);
+		var oStartPos = oTopDocument.GetContentPosition(false);
 
 		oBookmark[1].GoToBookmark();
-		var oEndPos = oDocument.GetContentPosition(false);
+		var oEndPos = oTopDocument.GetContentPosition(false);
 
-		oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
-		oDocument.Document_UpdateSelectionState();
-		oDocument.Document_UpdateInterfaceState();
+		oTopDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
+
+		oLogicDocument.UpdateSelection();
+		oLogicDocument.UpdateInterface();
 		return true;
 	}
 

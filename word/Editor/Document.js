@@ -5248,6 +5248,30 @@ CDocument.prototype.MoveCursorToSignature = function(sGuid)
 {
     this.DrawingObjects.moveCursorToSignature(sGuid);
 };
+CDocument.prototype.MoveCursorToPageStart = function()
+{
+	if (docpostype_Content !== this.GetDocPosType())
+	{
+		this.RemoveSelection();
+		this.SetDocPosType(docpostype_Content);
+	}
+
+	this.MoveCursorToXY(0, 0, false);
+	this.UpdateInterface();
+	this.UpdateSelection();
+};
+CDocument.prototype.MoveCursorToPageEnd = function()
+{
+	if (docpostype_Content !== this.GetDocPosType())
+	{
+		this.RemoveSelection();
+		this.SetDocPosType(docpostype_Content);
+	}
+
+	this.MoveCursorToXY(0, 10000, false);
+	this.UpdateInterface();
+	this.UpdateSelection();
+};
 CDocument.prototype.SetParagraphAlign = function(Align)
 {
 	var SelectedInfo = this.GetSelectedElementsInfo();

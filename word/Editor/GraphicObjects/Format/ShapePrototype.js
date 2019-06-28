@@ -780,59 +780,57 @@ CShape.prototype.hitInTextRect = function(x, y)
 
 CShape.prototype.Set_CurrentElement = function(bUpdate, pageIndex)
 {
+	var para_drawing;
+	if (this.group)
+	{
+		var main_group = this.group.getMainGroup();
+		para_drawing   = main_group.parent;
+	}
+	else
+	{
+		para_drawing = this.parent;
+	}
 
-    if(this.group)
-    {
-        var main_group = this.group.getMainGroup();
-        para_drawing = main_group.parent;
-    }
-    else
-    {
-        para_drawing = this.parent;
-    }
-    if(para_drawing && para_drawing.DocumentContent)
-    {
-        var drawing_objects = editor.WordControl.m_oLogicDocument.DrawingObjects;
-        drawing_objects.resetSelection(true);
-        var para_drawing;
-        if(this.group)
-        {
-            var main_group = this.group.getMainGroup();
-            drawing_objects.selectObject(main_group, pageIndex);
-            main_group.selectObject(this, pageIndex);
-            main_group.selection.textSelection = this;
-            drawing_objects.selection.groupSelection = main_group;
-            para_drawing = main_group.parent;
-        }
-        else
-        {
-            drawing_objects.selectObject(this, pageIndex);
-            drawing_objects.selection.textSelection = this;
-            para_drawing = this.parent;
-        }
+	if (para_drawing && para_drawing.DocumentContent)
+	{
+		var drawing_objects = editor.WordControl.m_oLogicDocument.DrawingObjects;
+		drawing_objects.resetSelection(true);
+		if (this.group)
+		{
+			var main_group = this.group.getMainGroup();
+			drawing_objects.selectObject(main_group, pageIndex);
+			main_group.selectObject(this, pageIndex);
+			main_group.selection.textSelection       = this;
+			drawing_objects.selection.groupSelection = main_group;
+		}
+		else
+		{
+			drawing_objects.selectObject(this, pageIndex);
+			drawing_objects.selection.textSelection = this;
+		}
 
-        if (para_drawing && para_drawing.Parent instanceof Paragraph)
-            para_drawing.Parent.Document_SetThisElementCurrent(false);
+		if (para_drawing && para_drawing.Parent instanceof Paragraph)
+			para_drawing.Parent.Document_SetThisElementCurrent(false);
 
-        var hdr_ftr = para_drawing.DocumentContent.IsHdrFtr(true);
-        if(hdr_ftr)
-        {
-            hdr_ftr.Content.SetDocPosType(docpostype_DrawingObjects);
-            hdr_ftr.Set_CurrentElement(bUpdate);
-        }
-        else
-        {
-            drawing_objects.document.SetDocPosType(docpostype_DrawingObjects);
-            drawing_objects.document.Selection.Use = true;
+		var hdr_ftr = para_drawing.DocumentContent.IsHdrFtr(true);
+		if (hdr_ftr)
+		{
+			hdr_ftr.Content.SetDocPosType(docpostype_DrawingObjects);
+			hdr_ftr.Set_CurrentElement(bUpdate);
+		}
+		else
+		{
+			drawing_objects.document.SetDocPosType(docpostype_DrawingObjects);
+			drawing_objects.document.Selection.Use = true;
 
-            if ( true === bUpdate )
-            {
-                drawing_objects.document.Document_UpdateInterfaceState();
-                drawing_objects.document.Document_UpdateRulersState();
-                drawing_objects.document.Document_UpdateSelectionState();
-            }
-        }
-    }
+			if (true === bUpdate)
+			{
+				drawing_objects.document.Document_UpdateInterfaceState();
+				drawing_objects.document.Document_UpdateRulersState();
+				drawing_objects.document.Document_UpdateSelectionState();
+			}
+		}
+	}
 };
 
 CShape.prototype.GetParaDrawing = function()
