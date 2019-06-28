@@ -3018,11 +3018,14 @@ CPresentation.prototype =
                 oSlideHF.put_ShowSlideNum(false);
             }
 
-            oSlideHF.put_ShowFooter(false);
             var oFooterShape = oSlide.getMatchingShape(AscFormat.phType_ftr, null, false, {});
             if(oFooterShape)
             {
                 oSlideHF.put_ShowFooter(true);
+            }
+            else
+            {
+                oSlideHF.put_ShowFooter(false);
             }
             if(!oFooterShape)
             {
@@ -3040,7 +3043,6 @@ CPresentation.prototype =
             }
             if(oFooterShape)
             {
-                oSlideHF.put_ShowFooter(true);
                 oContent = oFooterShape.getDocContent();
                 if(oContent)
                 {
@@ -3051,11 +3053,14 @@ CPresentation.prototype =
                 }
             }
 
-            oSlideHF.put_ShowHeader(false);
             var oHeaderShape = oSlide.getMatchingShape(AscFormat.phType_hdr, null, false, {});
             if(oHeaderShape)
             {
                 oSlideHF.put_ShowHeader(true);
+            }
+            else
+            {
+                oSlideHF.put_ShowHeader(false);
             }
             if(!oHeaderShape)
             {
@@ -3073,7 +3078,6 @@ CPresentation.prototype =
             }
             if(oHeaderShape)
             {
-                oSlideHF.put_ShowFooter(true);
                 oContent = oHeaderShape.getDocContent();
                 if(oContent)
                 {

@@ -336,7 +336,7 @@ function CAscHFProps() {
 
 
     this.api = null;
-    this.divId = null;
+    this.DivId = null;
     this.slide = null;
     this.notes = null;
 }
@@ -359,9 +359,77 @@ CAscHFProps.prototype['put_ShowFooter'] = CAscHFProps.prototype.put_ShowFooter =
 CAscHFProps.prototype['put_ShowHeader'] = CAscHFProps.prototype.put_ShowHeader = function(v){this.ShowHeader = v;};
 CAscHFProps.prototype['put_ShowDateTime'] = CAscHFProps.prototype.put_ShowDateTime = function(v){this.ShowDateTime = v;};
 
-CAscHFProps.prototype['put_DivId'] = CAscHFProps.prototype.put_DivId = function(v){this.divId = v;};
-CAscHFProps.prototype['updateView'] = CAscHFProps.prototype.updateView = function(v){
-    
+CAscHFProps.prototype['put_DivId'] = CAscHFProps.prototype.put_DivId = function(v){this.DivId = v;};
+CAscHFProps.prototype['updateView'] = CAscHFProps.prototype.updateView = function(){
+    var oDiv = document.getElementById(this.DivId);
+    if(!oDiv){
+        return;
+    }
+    var aChildren = oDiv.children;
+    var oCanvas = null, i;
+    for(i = 0; i < aChildren.length; ++i){
+        if(aChildren[i].nodeName && aChildren[i].nodeName.toUpperCase() === 'CANVAS'){
+            oCanvas = aChildren[i];
+            break;
+        }
+    }
+    var nWidth = oDiv.clientWidth;
+    var nHeight = oDiv.clientHeight;
+    if(null === oCanvas || true){
+        oCanvas = document.createElement('canvas');
+        oCanvas.width = parseInt(nWidth);
+        oCanvas.height = parseInt(nHeight);
+        oDiv.appendChild(oCanvas);
+    }
+    var oContext = oCanvas.getContext('2d');
+    oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
+    var oSp, nPhType, aSpTree, oSlideObject = null, l, t, r, b;
+    if(this.slide) {
+        oSlideObject = this.slide.Layout;
+    }
+    else if(this.notes) {
+        oSlideObject = this.notes.Master;
+    }
+    if(oSlideObject) {
+        aSpTree = oSlideObject.cSld.spTree;
+
+        oContext.fillStyle = "#FFFFFF";
+        oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
+        oContext.fillStyle = "#000000";
+        if(Array.isArray(aSpTree)) {
+            for(i = 0; i < aSpTree.length; ++i) {
+                oSp = aSpTree[i];
+                if(oSp.isPlaceholder()) {
+                    oSp.recalculate();
+                    l = ((oSp.x / oSlideObject.Width * oCanvas.width) >> 0) + 1;
+                    t = ((oSp.y / oSlideObject.Height * oCanvas.height) >> 0) + 1;
+                    r = (((oSp.x + oSp.extX)/ oSlideObject.Width * oCanvas.width) >> 0);
+                    b = (((oSp.y + oSp.extY)/ oSlideObject.Height * oCanvas.height) >> 0);
+                    nPhType = oSp.getPhType();
+                    oContext.beginPath();
+                    if(nPhType === AscFormat.phType_dt ||
+                    nPhType === AscFormat.phType_ftr ||
+                    nPhType === AscFormat.phType_hdr ||
+                    nPhType === AscFormat.phType_sldNum) {
+                        editor.WordControl.m_oDrawingDocument.AutoShapesTrack.AddRect(oContext, l, t, r, b, true);
+                        oContext.closePath();
+                        oContext.stroke();
+                        if(nPhType === AscFormat.phType_dt && this.ShowDateTime
+                            || nPhType === AscFormat.phType_ftr && this.ShowFooter
+                            || nPhType === AscFormat.phType_hdr && this.ShowHeader
+                            || nPhType === AscFormat.phType_sldNum && this.ShowSlideNum) {
+                            oContext.fill();
+                        }
+                    }
+                    else {
+                        editor.WordControl.m_oDrawingDocument.AutoShapesTrack.AddRectDashClever(oContext, l, t, r, b, 3, 3, true);
+                        oContext.closePath();
+                    }
+                }
+            }
+        }
+    }
+    //return oCanvas.toDataURL("image/png");
 };
 CAscHFProps.prototype['put_Api'] = CAscHFProps.prototype.put_Api = function(v){this.api = v;};
 
