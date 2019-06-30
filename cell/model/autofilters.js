@@ -4177,7 +4177,11 @@
 				var hasMerged = cell.hasMerged();
 				if(hasMerged)
 				{
-					res = hasMerged.c1 - ref.c1 >= 0 ? hasMerged.c1 - ref.c1 : res;
+					if(hasMerged.c1 < ref.c1) {
+						res = 0;
+					} else {
+						res = hasMerged.c1 - ref.c1 >= 0 ? hasMerged.c1 - ref.c1 : res;
+					}
 				}
 				
 				return res;
