@@ -2732,6 +2732,13 @@
 			return arg1;
 		}
 
+		var calc = function(n, d) {
+			if (d === 0) {
+				return new cError(cErrorType.division_by_zero);
+			}
+			return new cNumber(n - d * Math.floor(n / d));
+		};
+
 		if (arg0 instanceof cArray && arg1 instanceof cArray) {
 			if (arg0.getCountElement() != arg1.getCountElement() || arg0.getRowCount() != arg1.getRowCount()) {
 				return new cError(cErrorType.not_available);
@@ -2740,8 +2747,7 @@
 					var a = elem;
 					var b = arg1.getElementRowCol(r, c);
 					if (a instanceof cNumber && b instanceof cNumber) {
-						this.array[r][c] = new cNumber(
-							(b.getValue() < 0 ? -1 : 1) * ( Math.abs(a.getValue()) % Math.abs(b.getValue()) ));
+						this.array[r][c] = calc(a.getValue(), b.getValue());
 					} else {
 						this.array[r][c] = new cError(cErrorType.wrong_value_type);
 					}
@@ -2753,8 +2759,7 @@
 				var a = elem, b = arg1;
 				if (a instanceof cNumber && b instanceof cNumber) {
 
-					this.array[r][c] =
-						new cNumber((b.getValue() < 0 ? -1 : 1) * ( Math.abs(a.getValue()) % Math.abs(b.getValue()) ));
+					this.array[r][c] = calc(a.getValue(), b.getValue());
 				} else {
 					this.array[r][c] = new cError(cErrorType.wrong_value_type);
 				}
@@ -2764,8 +2769,7 @@
 			arg1.foreach(function (elem, r, c) {
 				var a = arg0, b = elem;
 				if (a instanceof cNumber && b instanceof cNumber) {
-					this.array[r][c] =
-						new cNumber((b.getValue() < 0 ? -1 : 1) * ( Math.abs(a.getValue()) % Math.abs(b.getValue()) ));
+					this.array[r][c] = calc(a.getValue(), b.getValue());
 				} else {
 					this.array[r][c] = new cError(cErrorType.wrong_value_type);
 				}
@@ -2781,7 +2785,7 @@
 			return new cError(cErrorType.division_by_zero);
 		}
 
-		return new cNumber((arg1.getValue() < 0 ? -1 : 1) * ( Math.abs(arg0.getValue()) % Math.abs(arg1.getValue()) ));
+		return calc(arg0.getValue(), arg1.getValue());
 
 	};
 

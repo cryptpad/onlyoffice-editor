@@ -2869,6 +2869,50 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 1 );
 
+		oParser = new parserFormula( "MOD(-10,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MOD(-9,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
+
+		oParser = new parserFormula( "MOD(-8,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( "MOD(-7,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 3 );
+
+		oParser = new parserFormula( "MOD(-6,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( "MOD(-5,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MOD(10,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MOD(9,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( "MOD(8,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 3 );
+
+		oParser = new parserFormula( "MOD(15,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MOD(15,0)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+
 		testArrayFormula2("MOD", 2, 2);
     } );
 
