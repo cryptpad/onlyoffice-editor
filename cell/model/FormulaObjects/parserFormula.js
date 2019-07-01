@@ -3174,7 +3174,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			//для функций row/column с нулевым количеством аргументов необходимо рассчитывать
 			//значение для каждой ячейки массива, изменяя при этом opt_bbox
 			//TODO добавляю ещё одну проверку. в будущем стоит рассмотреть использование всегда parserFormula.ref
-			if ((replaceAreaByRefs && 0 === argumentsCount) || null !== changeArgByIndexArr || (!bIsSpecialFunction && firstArray && checkOneRowCol())) {
+			//TODO персмотреть проверку isOneCell/checkOneRowCol - возможно стоит смотреть по количеству данных и расширять диапазон в случае, если parserFormula.ref превышает диапазон аргументов
+			if ((replaceAreaByRefs && 0 === argumentsCount) || null !== changeArgByIndexArr || (!bIsSpecialFunction && firstArray && !parserFormula.ref.isOneCell() && checkOneRowCol())) {
 				firstArray = new cArray();
 				firstArray.fillEmptyFromRange(parserFormula.ref);
 			}
