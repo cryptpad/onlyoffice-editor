@@ -2571,6 +2571,7 @@ CChartsDrawer.prototype =
 		var logVal = Math.log(val) / Math.log(logBase);
 		var result;
 
+		//TODO переписать функцию!
 		var parseVal, maxVal, minVal, startPos = 0, diffPos;
 		if (logVal < 0) {
 			parseVal = logVal.toString().split(".");
@@ -2578,8 +2579,14 @@ CChartsDrawer.prototype =
 			minVal = Math.pow(logBase, parseFloat(parseVal[0]) - 1);
 			for (var i = 0; i < yPoints.length; i++) {
 				if (yPoints[i].val < maxVal && yPoints[i].val >= minVal) {
-					startPos = yPoints[i + 1].pos;
-					diffPos = yPoints[i].pos - yPoints[i + 1].pos;
+					if(yPoints[i + 1]) {
+						startPos = yPoints[i + 1].pos;
+						diffPos = yPoints[i].pos - yPoints[i + 1].pos;
+					} else {
+						startPos = yPoints[i].pos;
+						diffPos = yPoints[i - 1].pos - yPoints[i].pos;
+					}
+
 					break;
 				}
 			}
@@ -2590,8 +2597,13 @@ CChartsDrawer.prototype =
 			maxVal = Math.pow(logBase, parseFloat(parseVal[0]) + 1);
 			for (var i = 0; i < yPoints.length; i++) {
 				if (yPoints[i].val < maxVal && yPoints[i].val >= minVal) {
-					startPos = yPoints[i].pos;
-					diffPos = yPoints[i].pos - yPoints[i + 1].pos;
+					if(yPoints[i + 1]) {
+						startPos = yPoints[i].pos;
+						diffPos = yPoints[i].pos - yPoints[i + 1].pos;
+					} else {
+						startPos = yPoints[i].pos;
+						diffPos = yPoints[i - 1].pos - yPoints[i].pos;
+					}
 					break;
 				}
 			}
