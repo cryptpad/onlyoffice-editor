@@ -736,6 +736,8 @@ RotateState.prototype =
                             if (bTrackRevisions)
                                 this.drawingObjects.document.SetTrackRevisions(false);
 
+                            this.drawingObjects.document.MoveDrawing = true;
+
                             var oOriginalRun = original.Parent.Get_DrawingObjectRun(original.Id);
 
                             original.Remove_FromDocument(false);
@@ -745,6 +747,8 @@ RotateState.prototype =
                             var originalCopy = original.Copy();
                             originalCopy.Set_XYForAdd(bounds.posX, bounds.posY, aNearestPos[i], pageIndex);
                             originalCopy.Add_ToDocument(aNearestPos[i], false, null, oOriginalRun);
+
+							this.drawingObjects.document.MoveDrawing = false;
 
                             if (bTrackRevisions)
                                 this.drawingObjects.document.SetTrackRevisions(true);

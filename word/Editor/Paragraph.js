@@ -313,6 +313,9 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	Para.Internal_Content_Add(Para.Content.length, EndRun, false);
 	EndRun.Set_Pr(this.TextPr.Value.Copy());
 
+	if (this.LogicDocument && (this.LogicDocument.RecalcTableHeader || this.LogicDocument.MoveDrawing))
+		EndRun.SetReviewTypeWithInfo(this.GetReviewType(), this.GetReviewInfo());
+
 	// Добавляем секцию в конце
 	if (undefined !== this.SectPr)
 	{

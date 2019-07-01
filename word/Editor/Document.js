@@ -1829,6 +1829,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
 	this.TrackMoveId               = null;  // Идентификатор переноса внутри рецензирования
 	this.RemoveEmptySelection      = true;  // При обновлении селекта, если он пустой тогда сбрасываем его
+	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
 
 	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
 	this.NeedUpdateTracksOnRecalc = false;

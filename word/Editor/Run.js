@@ -112,7 +112,8 @@ function ParaRun(Paragraph, bMathRun)
 		&& editor.WordControl
 		&& editor.WordControl.m_oLogicDocument
 		&& true === editor.WordControl.m_oLogicDocument.IsTrackRevisions()
-		&& !editor.WordControl.m_oLogicDocument.RecalcTableHeader)
+		&& !editor.WordControl.m_oLogicDocument.RecalcTableHeader
+		&& !editor.WordControl.m_oLogicDocument.MoveDrawing)
 	{
 		this.ReviewType = reviewtype_Add;
 		this.ReviewInfo.Update();
@@ -191,11 +192,11 @@ ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
     NewRun.Set_Pr( this.Pr.Copy() );
 
     var oLogicDocument = this.GetLogicDocument();
-    if (true === isCopyReviewPr || (oLogicDocument && oLogicDocument.RecalcTableHeader))
+    if (true === isCopyReviewPr || (oLogicDocument && (oLogicDocument.RecalcTableHeader || oLogicDocument.MoveDrawing)))
 	{
 		var nReviewType = this.GetReviewType();
 		var oReviewInfo = this.GetReviewInfo().Copy();
-		if (!(oLogicDocument && oLogicDocument.RecalcTableHeader))
+		if (!(oLogicDocument && (oLogicDocument.RecalcTableHeader || oLogicDocument.MoveDrawing)))
 			oReviewInfo.SetMove(Asc.c_oAscRevisionsMove.NoMove);
 
 		NewRun.SetReviewTypeWithInfo(nReviewType, oReviewInfo);
