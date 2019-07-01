@@ -5547,10 +5547,14 @@ parserFormula.prototype.setFormula = function(formula) {
 					if (ph.operand_str in cFormulaOperators) {
 						found_operator = cFormulaOperators[ph.operand_str].prototype;
 						parseResult.operand_expected = true;
-					} else if(!ignoreErrors) {
-						parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
-						t.outStack = [];
-						return false;
+					} else {
+						if(ignoreErrors) {
+							return true;
+						} else {
+							parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
+							t.outStack = [];
+							return false;
+						}
 					}
 				}
 			}
