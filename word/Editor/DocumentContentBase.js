@@ -402,7 +402,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				}
 			}
 
-			if (StartPos === EndPos && this.Content[StartPos].IsTable() && !this.Content[StartPos].IsCellSelection())
+			if (StartPos === EndPos && this.Content[StartPos].IsTable() && (!this.Content[StartPos].IsCellSelection() || bOnTextAdd))
 			{
 				this.Content[StartPos].Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
 			}
