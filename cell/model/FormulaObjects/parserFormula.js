@@ -3421,8 +3421,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cUnarMinusOperator.prototype.Assemble2 = function (arg, start, count) {
 		return new cString("-" + arg[start + count - 1]);
 	};
-	cUnarMinusOperator.prototype.Assemble2Locale = function (arg, start, count) {
-		return new cString("-" + arg[start + count - 1]);
+	cUnarMinusOperator.prototype.Assemble2Locale = function (arg, start, count, locale, digitDelim) {
+		return arg[start + count - 1].toLocaleString ?
+			new cString("-" + arg[start + count - 1].toLocaleString(digitDelim)) :
+			new cString("-" + arg[start + count - 1]);
 	};
 
 	/**
@@ -3455,8 +3457,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cUnarPlusOperator.prototype.Assemble2 = function (arg, start, count) {
 		return new cString("+" + arg[start + count - 1]);
 	};
-	cUnarPlusOperator.prototype.Assemble2Locale = function (arg, start, count) {
-		return new cString("+" + arg[start + count - 1]);
+	cUnarPlusOperator.prototype.Assemble2Locale = function (arg, start, count, locale, digitDelim) {
+		return arg[start + count - 1].toLocaleString ?
+			new cString("+" + arg[start + count - 1].toLocaleString(digitDelim)) :
+			new cString("+" + arg[start + count - 1]);
 	};
 
 	/**
